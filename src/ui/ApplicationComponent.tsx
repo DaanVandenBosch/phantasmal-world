@@ -1,7 +1,7 @@
 import React, { ChangeEvent, KeyboardEvent } from 'react';
 import { observer } from 'mobx-react';
 import { Button, Dialog, Intent } from '@blueprintjs/core';
-import { application_state } from '../store';
+import { applicationState } from '../store';
 import { current_area_id_changed, load_file, save_current_quest_to_file } from '../actions';
 import { Area3DComponent } from './Area3DComponent';
 import { EntityInfoComponent } from './EntityInfoComponent';
@@ -21,10 +21,10 @@ export class ApplicationComponent extends React.Component<{}, {
     };
 
     render() {
-        const quest = application_state.current_quest;
-        const model = application_state.current_model;
-        const areas = quest ? Array.from(quest.area_variants).map(a => a.area) : undefined;
-        const area = application_state.current_area;
+        const quest = applicationState.currentQuest;
+        const model = applicationState.currentModel;
+        const areas = quest ? Array.from(quest.areaVariants).map(a => a.area) : undefined;
+        const area = applicationState.currentArea;
         const area_id = area ? String(area.id) : undefined;
 
         return (
@@ -73,7 +73,7 @@ export class ApplicationComponent extends React.Component<{}, {
                         quest={quest}
                         area={area}
                         model={model} />
-                    <EntityInfoComponent entity={application_state.selected_entity} />
+                    <EntityInfoComponent entity={applicationState.selectedEntity} />
                 </div>
                 <Dialog
                     title="Save as..."

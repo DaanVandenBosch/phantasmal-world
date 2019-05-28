@@ -14,7 +14,7 @@ export interface NjContext {
     format: 'nj';
     positions: number[];
     normals: number[];
-    cached_chunk_offsets: number[];
+    cachedChunkOffsets: number[];
     vertices: { position: Vector3, normal: Vector3 }[];
 }
 
@@ -32,47 +32,47 @@ interface ChunkVertex {
 }
 
 interface ChunkTriangleStrip {
-    clockwise_winding: boolean;
+    clockwiseWinding: boolean;
     indices: number[];
 }
 
-export function parse_nj_model(cursor: ArrayBufferCursor, matrix: Matrix4, context: NjContext): void {
-    const { positions, normals, cached_chunk_offsets, vertices } = context;
+export function parseNjModel(cursor: ArrayBufferCursor, matrix: Matrix4, context: NjContext): void {
+    const { positions, normals, cachedChunkOffsets, vertices } = context;
 
-    const vlist_offset = cursor.u32(); // Vertex list
-    const plist_offset = cursor.u32(); // Triangle strip index list
+    const vlistOffset = cursor.u32(); // Vertex list
+    const plistOffset = cursor.u32(); // Triangle strip index list
 
-    const normal_matrix = new Matrix3().getNormalMatrix(matrix);
+    const normalMatrix = new Matrix3().getNormalMatrix(matrix);
 
-    if (vlist_offset) {
-        cursor.seek_start(vlist_offset);
+    if (vlistOffset) {
+        cursor.seekStart(vlistOffset);
 
-        for (const chunk of parse_chunks(cursor, cached_chunk_offsets, true)) {
-            if (chunk.chunk_type === 'VERTEX') {
-                const chunk_vertices: ChunkVertex[] = chunk.data;
+        for (const chunk of parseChunks(cursor, cachedChunkOffsets, true)) {
+            if (chunk.chunkType === 'VERTEX') {
+                const chunkVertices: ChunkVertex[] = chunk.data;
 
-                for (const vertex of chunk_vertices) {
+                for (const vertex of chunkVertices) {
                     const position = new Vector3(...vertex.position).applyMatrix4(matrix);
-                    const normal = vertex.normal ? new Vector3(...vertex.normal).applyMatrix3(normal_matrix) : new Vector3(0, 1, 0);
+                    const normal = vertex.normal ? new Vector3(...vertex.normal).applyMatrix3(normalMatrix) : new Vector3(0, 1, 0);
                     vertices[vertex.index] = { position, normal };
                 }
             }
         }
     }
 
-    if (plist_offset) {
-        cursor.seek_start(plist_offset);
+    if (plistOffset) {
+        cursor.seekStart(plistOffset);
 
-        for (const chunk of parse_chunks(cursor, cached_chunk_offsets, false)) {
-            if (chunk.chunk_type === 'STRIP') {
-                for (const { clockwise_winding, indices: strip_indices } of chunk.data) {
-                    for (let j = 2; j < strip_indices.length; ++j) {
-                        const a = vertices[strip_indices[j - 2]];
-                        const b = vertices[strip_indices[j - 1]];
-                        const c = vertices[strip_indices[j]];
+        for (const chunk of parseChunks(cursor, cachedChunkOffsets, false)) {
+            if (chunk.chunkType === 'STRIP') {
+                for (const { clockwiseWinding, indices: stripIndices } of chunk.data) {
+                    for (let j = 2; j < stripIndices.length; ++j) {
+                        const a = vertices[stripIndices[j - 2]];
+                        const b = vertices[stripIndices[j - 1]];
+                        const c = vertices[stripIndices[j]];
 
                         if (a && b && c) {
-                            if (j % 2 === (clockwise_winding ? 1 : 0)) {
+                            if (j % 2 === (clockwiseWinding ? 1 : 0)) {
                                 positions.splice(positions.length, 0, a.position.x, a.position.y, a.position.z);
                                 positions.splice(positions.length, 0, b.position.x, b.position.y, b.position.z);
                                 positions.splice(positions.length, 0, c.position.x, c.position.y, c.position.z);
@@ -95,73 +95,78 @@ export function parse_nj_model(cursor: ArrayBufferCursor, matrix: Matrix4, conte
     }
 }
 
-function parse_chunks(cursor: ArrayBufferCursor, cached_chunk_offsets: number[], wide_end_chunks: boolean): any[] {
+function parseChunks(cursor: ArrayBufferCursor, cachedChunkOffsets: number[], wideEndChunks: boolean): Array<{
+    chunkType: string,
+    chunkSubType: string | null,
+    chunkTypeId: number,
+    data: any
+}> {
     const chunks = [];
     let loop = true;
 
     while (loop) {
-        const chunk_type_id = cursor.u8();
+        const chunkTypeId = cursor.u8();
         const flags = cursor.u8();
-        const chunk_start_position = cursor.position;
-        let chunk_type = 'UNKOWN';
-        let chunk_sub_type = null;
+        const chunkStartPosition = cursor.position;
+        let chunkType = 'UNKOWN';
+        let chunkSubType = null;
         let data = null;
         let size = 0;
 
-        if (chunk_type_id === 0) {
-            chunk_type = 'NULL';
-        } else if (1 <= chunk_type_id && chunk_type_id <= 5) {
-            chunk_type = 'BITS';
+        if (chunkTypeId === 0) {
+            chunkType = 'NULL';
+        } else if (1 <= chunkTypeId && chunkTypeId <= 5) {
+            chunkType = 'BITS';
 
-            if (chunk_type_id === 4) {
-                chunk_sub_type = 'CACHE_POLYGON_LIST';
+            if (chunkTypeId === 4) {
+                chunkSubType = 'CACHE_POLYGON_LIST';
                 data = {
-                    store_index: flags,
+                    storeIndex: flags,
                     offset: cursor.position
                 };
-                cached_chunk_offsets[data.store_index] = data.offset;
+                cachedChunkOffsets[data.storeIndex] = data.offset;
                 loop = false;
-            } else if (chunk_type_id === 5) {
-                chunk_sub_type = 'DRAW_POLYGON_LIST';
+            } else if (chunkTypeId === 5) {
+                chunkSubType = 'DRAW_POLYGON_LIST';
                 data = {
-                    store_index: flags
+                    storeIndex: flags
                 };
-                cursor.seek_start(cached_chunk_offsets[data.store_index]);
-                chunks.splice(chunks.length, 0, ...parse_chunks(cursor, cached_chunk_offsets, wide_end_chunks));
+                cursor.seekStart(cachedChunkOffsets[data.storeIndex]);
+                chunks.splice(chunks.length, 0, ...parseChunks(cursor, cachedChunkOffsets, wideEndChunks));
             }
-        } else if (8 <= chunk_type_id && chunk_type_id <= 9) {
-            chunk_type = 'TINY';
+        } else if (8 <= chunkTypeId && chunkTypeId <= 9) {
+            chunkType = 'TINY';
             size = 2;
-        } else if (17 <= chunk_type_id && chunk_type_id <= 31) {
-            chunk_type = 'MATERIAL';
+        } else if (17 <= chunkTypeId && chunkTypeId <= 31) {
+            chunkType = 'MATERIAL';
             size = 2 + 2 * cursor.u16();
-        } else if (32 <= chunk_type_id && chunk_type_id <= 50) {
-            chunk_type = 'VERTEX';
+        } else if (32 <= chunkTypeId && chunkTypeId <= 50) {
+            chunkType = 'VERTEX';
             size = 2 + 4 * cursor.u16();
-            data = parse_chunk_vertex(cursor, chunk_type_id, flags);
-        } else if (56 <= chunk_type_id && chunk_type_id <= 58) {
-            chunk_type = 'VOLUME';
+            data = parseChunkVertex(cursor, chunkTypeId, flags);
+        } else if (56 <= chunkTypeId && chunkTypeId <= 58) {
+            chunkType = 'VOLUME';
             size = 2 + 2 * cursor.u16();
-        } else if (64 <= chunk_type_id && chunk_type_id <= 75) {
-            chunk_type = 'STRIP';
+        } else if (64 <= chunkTypeId && chunkTypeId <= 75) {
+            chunkType = 'STRIP';
             size = 2 + 2 * cursor.u16();
-            data = parse_chunk_triangle_strip(cursor, chunk_type_id);
-        } else if (chunk_type_id === 255) {
-            chunk_type = 'END';
-            size = wide_end_chunks ? 2 : 0;
+            data = parseChunkTriangleStrip(cursor, chunkTypeId);
+        } else if (chunkTypeId === 255) {
+            chunkType = 'END';
+            size = wideEndChunks ? 2 : 0;
             loop = false;
         } else {
             // Ignore unknown chunks.
-            console.warn(`Unknown chunk type: ${chunk_type_id}.`);
+            console.warn(`Unknown chunk type: ${chunkTypeId}.`);
             size = 2 + 2 * cursor.u16();
         }
 
-        cursor.seek_start(chunk_start_position + size);
+        cursor.seekStart(chunkStartPosition + size);
 
         chunks.push({
-            chunk_type,
-            chunk_sub_type,
-            chunk_type_id,
+            chunkType,
+            chunkSubType,
+            chunkTypeId,
             data
         });
     }
@@ -169,18 +174,18 @@ function parse_chunks(cursor: ArrayBufferCursor, cached_chunk_offsets: number[],
     return chunks;
 }
 
-function parse_chunk_vertex(cursor: ArrayBufferCursor, chunk_type_id: number, flags: number): ChunkVertex[] {
+function parseChunkVertex(cursor: ArrayBufferCursor, chunkTypeId: number, flags: number): ChunkVertex[] {
     // There are apparently 4 different sets of vertices, ignore all but set 0.
     if ((flags & 0b11) !== 0) {
         return [];
     }
 
     const index = cursor.u16();
-    const vertex_count = cursor.u16();
+    const vertexCount = cursor.u16();
 
     const vertices: ChunkVertex[] = [];
 
-    for (let i = 0; i < vertex_count; ++i) {
+    for (let i = 0; i < vertexCount; ++i) {
         const vertex: ChunkVertex = {
             index: index + i,
             position: [
@@ -190,9 +195,9 @@ function parse_chunk_vertex(cursor: ArrayBufferCursor, chunk_type_id: number, fl
             ]
         };
 
-        if (chunk_type_id === 32) {
+        if (chunkTypeId === 32) {
             cursor.seek(4); // Always 1.0
-        } else if (chunk_type_id === 33) {
+        } else if (chunkTypeId === 33) {
             cursor.seek(4); // Always 1.0
             vertex.normal = [
                 cursor.f32(), // x
@@ -200,8 +205,8 @@ function parse_chunk_vertex(cursor: ArrayBufferCursor, chunk_type_id: number, fl
                 cursor.f32(), // z
             ];
             cursor.seek(4); // Always 0.0
-        } else if (35 <= chunk_type_id && chunk_type_id <= 40) {
-            if (chunk_type_id === 37) {
+        } else if (35 <= chunkTypeId && chunkTypeId <= 40) {
+            if (chunkTypeId === 37) {
                 // Ninja flags
                 vertex.index = index + cursor.u16();
                 cursor.seek(2);
@@ -209,15 +214,15 @@ function parse_chunk_vertex(cursor: ArrayBufferCursor, chunk_type_id: number, fl
                 // Skip user flags and material information.
                 cursor.seek(4);
             }
-        } else if (41 <= chunk_type_id && chunk_type_id <= 47) {
+        } else if (41 <= chunkTypeId && chunkTypeId <= 47) {
             vertex.normal = [
                 cursor.f32(), // x
                 cursor.f32(), // y
                 cursor.f32(), // z
             ];
 
-            if (chunk_type_id >= 42) {
-                if (chunk_type_id === 44) {
+            if (chunkTypeId >= 42) {
+                if (chunkTypeId === 44) {
                     // Ninja flags
                     vertex.index = index + cursor.u16();
                     cursor.seek(2);
@@ -226,11 +231,11 @@ function parse_chunk_vertex(cursor: ArrayBufferCursor, chunk_type_id: number, fl
                     cursor.seek(4);
                 }
             }
-        } else if (chunk_type_id >= 48) {
+        } else if (chunkTypeId >= 48) {
             // Skip 32-bit vertex normal in format: reserved(2)|x(10)|y(10)|z(10)
             cursor.seek(4);
 
-            if (chunk_type_id >= 49) {
+            if (chunkTypeId >= 49) {
                 // Skip user flags and material information.
                 cursor.seek(4);
             }
@@ -242,13 +247,13 @@ function parse_chunk_vertex(cursor: ArrayBufferCursor, chunk_type_id: number, fl
     return vertices;
 }
 
-function parse_chunk_triangle_strip(cursor: ArrayBufferCursor, chunk_type_id: number): ChunkTriangleStrip[] {
-    const user_offset_and_strip_count = cursor.u16();
-    const user_flags_size = user_offset_and_strip_count >>> 14;
-    const strip_count = user_offset_and_strip_count & 0x3FFF;
+function parseChunkTriangleStrip(cursor: ArrayBufferCursor, chunkTypeId: number): ChunkTriangleStrip[] {
+    const userOffsetAndStripCount = cursor.u16();
+    const userFlagsSize = userOffsetAndStripCount >>> 14;
+    const stripCount = userOffsetAndStripCount & 0x3FFF;
     let options;
 
-    switch (chunk_type_id) {
+    switch (chunkTypeId) {
         case 64: options = [false, false, false, false]; break;
         case 65: options = [true, false, false, false]; break;
         case 66: options = [true, false, false, false]; break;
@@ -261,50 +266,50 @@ function parse_chunk_triangle_strip(cursor: ArrayBufferCursor, chunk_type_id: nu
         case 73: options = [false, false, false, false]; break;
         case 74: options = [true, false, false, true]; break;
         case 75: options = [true, false, false, true]; break;
-        default: throw new Error(`Unexpected chunk type ID: ${chunk_type_id}.`);
+        default: throw new Error(`Unexpected chunk type ID: ${chunkTypeId}.`);
     }
 
     const [
-        parse_texture_coords,
-        parse_color,
-        parse_normal,
-        parse_texture_coords_hires
+        parseTextureCoords,
+        parseColor,
+        parseNormal,
+        parseTextureCoordsHires
     ] = options;
 
     const strips = [];
 
-    for (let i = 0; i < strip_count; ++i) {
-        const winding_flag_and_index_count = cursor.i16();
-        const clockwise_winding = winding_flag_and_index_count < 1;
-        const index_count = Math.abs(winding_flag_and_index_count);
+    for (let i = 0; i < stripCount; ++i) {
+        const windingFlagAndIndexCount = cursor.i16();
+        const clockwiseWinding = windingFlagAndIndexCount < 1;
+        const indexCount = Math.abs(windingFlagAndIndexCount);
 
         const indices = [];
 
-        for (let j = 0; j < index_count; ++j) {
+        for (let j = 0; j < indexCount; ++j) {
             indices.push(cursor.u16());
 
-            if (parse_texture_coords) {
+            if (parseTextureCoords) {
                 cursor.seek(4);
             }
 
-            if (parse_color) {
+            if (parseColor) {
                 cursor.seek(4);
             }
 
-            if (parse_normal) {
+            if (parseNormal) {
                 cursor.seek(6);
             }
 
-            if (parse_texture_coords_hires) {
+            if (parseTextureCoordsHires) {
                 cursor.seek(8);
             }
 
             if (j >= 2) {
-                cursor.seek(2 * user_flags_size);
+                cursor.seek(2 * userFlagsSize);
             }
         }
 
-        strips.push({ clockwise_winding, indices });
+        strips.push({ clockwiseWinding, indices });
     }
 
     return strips;

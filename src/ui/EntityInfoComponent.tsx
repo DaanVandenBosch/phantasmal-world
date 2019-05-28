@@ -44,7 +44,7 @@ export class EntityInfoComponent extends React.Component<Props, any> {
         const entity = this.props.entity;
 
         if (entity) {
-            const section_id = entity.section ? entity.section.id : entity.section_id;
+            const section_id = entity.section ? entity.section.id : entity.sectionId;
             let name = null;
 
             if (entity instanceof QuestObject) {

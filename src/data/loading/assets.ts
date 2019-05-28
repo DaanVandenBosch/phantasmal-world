@@ -1,35 +1,35 @@
 import { NpcType, ObjectType } from '../../domain';
 
-export function get_area_render_data(
+export function getAreaRenderData(
     episode: number,
-    area_id: number,
-    area_version: number
+    areaId: number,
+    areaVersion: number
 ): Promise<ArrayBuffer> {
-    return get_area_asset(episode, area_id, area_version, 'render');
+    return getAreaAsset(episode, areaId, areaVersion, 'render');
 }
 
-export function get_area_collision_data(
+export function getAreaCollisionData(
     episode: number,
-    area_id: number,
-    area_version: number
+    areaId: number,
+    areaVersion: number
 ): Promise<ArrayBuffer> {
-    return get_area_asset(episode, area_id, area_version, 'collision');
+    return getAreaAsset(episode, areaId, areaVersion, 'collision');
 }
 
-export async function get_npc_data(npc_type: NpcType): Promise<{ url: string, data: ArrayBuffer }> {
+export async function getNpcData(npcType: NpcType): Promise<{ url: string, data: ArrayBuffer }> {
     try {
-        const url = npc_type_to_url(npc_type);
-        const data = await get_asset(url);
+        const url = npcTypeToUrl(npcType);
+        const data = await getAsset(url);
         return ({ url, data });
     } catch (e) {
         return Promise.reject(e);
     }
 }
 
-export async function get_object_data(object_type: ObjectType): Promise<{ url: string, data: ArrayBuffer }> {
+export async function getObjectData(objectType: ObjectType): Promise<{ url: string, data: ArrayBuffer }> {
     try {
-        const url = object_type_to_url(object_type);
-        const data = await get_asset(url);
+        const url = objectTypeToUrl(objectType);
+        const data = await getAsset(url);
         return ({ url, data });
     } catch (e) {
         return Promise.reject(e);
@@ -39,22 +39,22 @@ export async function get_object_data(object_type: ObjectType): Promise<{ url: s
 /**
  * Cache for the binary data.
  */
-const buffer_cache: Map<string, Promise<ArrayBuffer>> = new Map();
+const bufferCache: Map<string, Promise<ArrayBuffer>> = new Map();
 
-function get_asset(url: string): Promise<ArrayBuffer> {
-    const promise = buffer_cache.get(url);
+function getAsset(url: string): Promise<ArrayBuffer> {
+    const promise = bufferCache.get(url);
 
     if (promise) {
         return promise;
     } else {
-        const base_url = process.env.PUBLIC_URL;
-        const promise = fetch(base_url + url).then(r => r.arrayBuffer());
-        buffer_cache.set(url, promise);
+        const baseUrl = process.env.PUBLIC_URL;
+        const promise = fetch(baseUrl + url).then(r => r.arrayBuffer());
+        bufferCache.set(url, promise);
         return promise;
     }
 }
 
-const area_base_names = [
+const areaBaseNames = [
     [
         ['city00_00', 1],
         ['forest01', 1],
@@ -93,7 +93,7 @@ const area_base_names = [
         ['jungle07_', 5]
     ],
     [
-        // Don't remove, see usage of area_base_names in area_version_to_base_url.
+        // Don't remove this empty array, see usage of areaBaseNames in areaVersionToBaseUrl.
     ],
     [
         ['city02_00', 1],
@@ -109,89 +109,89 @@ const area_base_names = [
     ]
 ];
 
-function area_version_to_base_url(
+function areaVersionToBaseUrl(
     episode: number,
-    area_id: number,
-    area_variant: number
+    areaId: number,
+    areaVariant: number
 ): string {
-    const episode_base_names = area_base_names[episode - 1];
+    const episodeBaseNames = areaBaseNames[episode - 1];
 
-    if (0 <= area_id && area_id < episode_base_names.length) {
-        const [base_name, variants] = episode_base_names[area_id];
+    if (0 <= areaId && areaId < episodeBaseNames.length) {
+        const [baseName, variants] = episodeBaseNames[areaId];
 
-        if (0 <= area_variant && area_variant < variants) {
+        if (0 <= areaVariant && areaVariant < variants) {
             let variant: string;
 
             if (variants === 1) {
                 variant = '';
             } else {
-                variant = String(area_variant);
+                variant = String(areaVariant);
                 while (variant.length < 2) variant = '0' + variant;
             }
 
-            return `/maps/map_${base_name}${variant}`;
+            return `/maps/map_${baseName}${variant}`;
         } else {
-            throw new Error(`Unknown variant ${area_variant} of area ${area_id} in episode ${episode}.`);
+            throw new Error(`Unknown variant ${areaVariant} of area ${areaId} in episode ${episode}.`);
         }
     } else {
-        throw new Error(`Unknown episode ${episode} area ${area_id}.`);
+        throw new Error(`Unknown episode ${episode} area ${areaId}.`);
     }
 }
 
 type AreaAssetType = 'render' | 'collision';
 
-function get_area_asset(
+function getAreaAsset(
     episode: number,
-    area_id: number,
-    area_variant: number,
+    areaId: number,
+    areaVariant: number,
     type: AreaAssetType
 ): Promise<ArrayBuffer> {
     try {
-        const base_url = area_version_to_base_url(episode, area_id, area_variant);
+        const baseUrl = areaVersionToBaseUrl(episode, areaId, areaVariant);
         const suffix = type === 'render' ? 'n.rel' : 'c.rel';
-        return get_asset(base_url + suffix);
+        return getAsset(baseUrl + suffix);
     } catch (e) {
         return Promise.reject(e);
     }
 }
 
-function npc_type_to_url(npc_type: NpcType): string {
-    switch (npc_type) {
+function npcTypeToUrl(npcType: NpcType): string {
+    switch (npcType) {
         // The dubswitch model in in XJ format.
-        case NpcType.Dubswitch: return `/npcs/${npc_type.code}.xj`;
+        case NpcType.Dubswitch: return `/npcs/${npcType.code}.xj`;
 
         // Episode II VR Temple
 
-        case NpcType.Hildebear2: return npc_type_to_url(NpcType.Hildebear);
-        case NpcType.Hildeblue2: return npc_type_to_url(NpcType.Hildeblue);
-        case NpcType.RagRappy2: return npc_type_to_url(NpcType.RagRappy);
-        case NpcType.Monest2: return npc_type_to_url(NpcType.Monest);
-        case NpcType.PoisonLily2: return npc_type_to_url(NpcType.PoisonLily);
-        case NpcType.NarLily2: return npc_type_to_url(NpcType.NarLily);
-        case NpcType.GrassAssassin2: return npc_type_to_url(NpcType.GrassAssassin);
-        case NpcType.Dimenian2: return npc_type_to_url(NpcType.Dimenian);
-        case NpcType.LaDimenian2: return npc_type_to_url(NpcType.LaDimenian);
-        case NpcType.SoDimenian2: return npc_type_to_url(NpcType.SoDimenian);
-        case NpcType.DarkBelra2: return npc_type_to_url(NpcType.DarkBelra);
+        case NpcType.Hildebear2: return npcTypeToUrl(NpcType.Hildebear);
+        case NpcType.Hildeblue2: return npcTypeToUrl(NpcType.Hildeblue);
+        case NpcType.RagRappy2: return npcTypeToUrl(NpcType.RagRappy);
+        case NpcType.Monest2: return npcTypeToUrl(NpcType.Monest);
+        case NpcType.PoisonLily2: return npcTypeToUrl(NpcType.PoisonLily);
+        case NpcType.NarLily2: return npcTypeToUrl(NpcType.NarLily);
+        case NpcType.GrassAssassin2: return npcTypeToUrl(NpcType.GrassAssassin);
+        case NpcType.Dimenian2: return npcTypeToUrl(NpcType.Dimenian);
+        case NpcType.LaDimenian2: return npcTypeToUrl(NpcType.LaDimenian);
+        case NpcType.SoDimenian2: return npcTypeToUrl(NpcType.SoDimenian);
+        case NpcType.DarkBelra2: return npcTypeToUrl(NpcType.DarkBelra);
 
         // Episode II VR Spaceship
 
-        case NpcType.SavageWolf2: return npc_type_to_url(NpcType.SavageWolf);
-        case NpcType.BarbarousWolf2: return npc_type_to_url(NpcType.BarbarousWolf);
-        case NpcType.PanArms2: return npc_type_to_url(NpcType.PanArms);
-        case NpcType.Dubchic2: return npc_type_to_url(NpcType.Dubchic);
-        case NpcType.Gilchic2: return npc_type_to_url(NpcType.Gilchic);
-        case NpcType.Garanz2: return npc_type_to_url(NpcType.Garanz);
-        case NpcType.Dubswitch2: return npc_type_to_url(NpcType.Dubswitch);
-        case NpcType.Delsaber2: return npc_type_to_url(NpcType.Delsaber);
-        case NpcType.ChaosSorcerer2: return npc_type_to_url(NpcType.ChaosSorcerer);
+        case NpcType.SavageWolf2: return npcTypeToUrl(NpcType.SavageWolf);
+        case NpcType.BarbarousWolf2: return npcTypeToUrl(NpcType.BarbarousWolf);
+        case NpcType.PanArms2: return npcTypeToUrl(NpcType.PanArms);
+        case NpcType.Dubchic2: return npcTypeToUrl(NpcType.Dubchic);
+        case NpcType.Gilchic2: return npcTypeToUrl(NpcType.Gilchic);
+        case NpcType.Garanz2: return npcTypeToUrl(NpcType.Garanz);
+        case NpcType.Dubswitch2: return npcTypeToUrl(NpcType.Dubswitch);
+        case NpcType.Delsaber2: return npcTypeToUrl(NpcType.Delsaber);
+        case NpcType.ChaosSorcerer2: return npcTypeToUrl(NpcType.ChaosSorcerer);
 
-        default: return `/npcs/${npc_type.code}.nj`;
+        default: return `/npcs/${npcType.code}.nj`;
     }
 }
 
-function object_type_to_url(object_type: ObjectType): string {
-    switch (object_type) {
+function objectTypeToUrl(objectType: ObjectType): string {
+    switch (objectType) {
         case ObjectType.EasterEgg:
         case ObjectType.ChristmasTree:
         case ObjectType.ChristmasWreath:
@@ -208,9 +208,9 @@ function object_type_to_url(object_type: ObjectType): string {
         case ObjectType.FallingRock:
         case ObjectType.DesertFixedTypeBoxBreakableCrystals:
         case ObjectType.BeeHive:
-            return `/objects/${String(object_type.pso_id)}.nj`;
+            return `/objects/${String(objectType.psoId)}.nj`;
 
         default:
-            return `/objects/${String(object_type.pso_id)}.xj`;
+            return `/objects/${String(objectType.psoId)}.xj`;
     }
 }

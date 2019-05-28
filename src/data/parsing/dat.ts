@@ -4,102 +4,132 @@ import { ArrayBufferCursor } from '../ArrayBufferCursor';
 const OBJECT_SIZE = 68;
 const NPC_SIZE = 72;
 
-export function parse_dat(cursor: ArrayBufferCursor) {
-    const objs = [];
-    const npcs = [];
-    const unknowns = [];
+export interface DatFile {
+    objs: DatObject[];
+    npcs: DatNpc[];
+    unknowns: DatUnknown[];
+}
 
-    while (cursor.bytes_left) {
-        const entity_type = cursor.u32();
-        const total_size = cursor.u32();
-        const area_id = cursor.u32();
-        const entities_size = cursor.u32();
+interface DatEntity {
+    typeId: number;
+    sectionId: number;
+    position: { x: number, y: number, z: number };
+    rotation: { x: number, y: number, z: number };
+    areaId: number;
+    unknown: number[][];
+}
 
-        if (entity_type === 0) {
+export interface DatObject extends DatEntity {
+}
+
+export interface DatNpc extends DatEntity {
+    skin: number;
+}
+
+export interface DatUnknown {
+    entityType: number;
+    totalSize: number;
+    areaId: number;
+    entitiesSize: number;
+    data: number[];
+}
+
+export function parseDat(cursor: ArrayBufferCursor): DatFile {
+    const objs: DatObject[] = [];
+    const npcs: DatNpc[] = [];
+    const unknowns: DatUnknown[] = [];
+
+    while (cursor.bytesLeft) {
+        const entityType = cursor.u32();
+        const totalSize = cursor.u32();
+        const areaId = cursor.u32();
+        const entitiesSize = cursor.u32();
+
+        if (entityType === 0) {
             break;
         } else {
-            if (entities_size !== total_size - 16) {
-                throw Error(`Malformed DAT file. Expected an entities size of ${total_size - 16}, got ${entities_size}.`);
+            if (entitiesSize !== totalSize - 16) {
+                throw Error(`Malformed DAT file. Expected an entities size of ${totalSize - 16}, got ${entitiesSize}.`);
             }
 
-            if (entity_type === 1) { // Objects
-                const object_count = Math.floor(entities_size / OBJECT_SIZE);
-                const start_position = cursor.position;
+            if (entityType === 1) { // Objects
+                const objectCount = Math.floor(entitiesSize / OBJECT_SIZE);
+                const startPosition = cursor.position;
 
-                for (let i = 0; i < object_count; ++i) {
-                    const type_id = cursor.u16();
-                    const unknown1 = cursor.u8_array(10);
-                    const section_id = cursor.u16();
-                    const unknown2 = cursor.u8_array(2);
+                for (let i = 0; i < objectCount; ++i) {
+                    const typeId = cursor.u16();
+                    const unknown1 = cursor.u8Array(10);
+                    const sectionId = cursor.u16();
+                    const unknown2 = cursor.u8Array(2);
                     const x = cursor.f32();
                     const y = cursor.f32();
                     const z = cursor.f32();
-                    const rotation_x = cursor.i32() / 0xFFFF * 2 * Math.PI;
-                    const rotation_y = cursor.i32() / 0xFFFF * 2 * Math.PI;
-                    const rotation_z = cursor.i32() / 0xFFFF * 2 * Math.PI;
+                    const rotationX = cursor.i32() / 0xFFFF * 2 * Math.PI;
+                    const rotationY = cursor.i32() / 0xFFFF * 2 * Math.PI;
+                    const rotationZ = cursor.i32() / 0xFFFF * 2 * Math.PI;
                     // The next 3 floats seem to be scale values.
-                    const unknown3 = cursor.u8_array(28);
+                    const unknown3 = cursor.u8Array(28);
 
                     objs.push({
-                        type_id,
-                        section_id,
+                        typeId,
+                        sectionId,
                         position: { x, y, z },
-                        rotation: { x: rotation_x, y: rotation_y, z: rotation_z },
-                        area_id,
+                        rotation: { x: rotationX, y: rotationY, z: rotationZ },
+                        areaId,
                         unknown: [unknown1, unknown2, unknown3]
                     });
                 }
 
-                const bytes_read = cursor.position - start_position;
+                const bytesRead = cursor.position - startPosition;
 
-                if (bytes_read !== entities_size) {
-                    console.warn(`Read ${bytes_read} bytes instead of expected ${entities_size} for entity type ${entity_type} (Object).`);
-                    cursor.seek(entities_size - bytes_read);
+                if (bytesRead !== entitiesSize) {
+                    console.warn(`Read ${bytesRead} bytes instead of expected ${entitiesSize} for entity type ${entityType} (Object).`);
+                    cursor.seek(entitiesSize - bytesRead);
                 }
-            } else if (entity_type === 2) { // NPCs
-                const npc_count = Math.floor(entities_size / NPC_SIZE);
-                const start_position = cursor.position;
+            } else if (entityType === 2) { // NPCs
+                const npcCount = Math.floor(entitiesSize / NPC_SIZE);
+                const startPosition = cursor.position;
 
-                for (let i = 0; i < npc_count; ++i) {
-                    const type_id = cursor.u16();
-                    const unknown1 = cursor.u8_array(10);
-                    const section_id = cursor.u16();
-                    const unknown2 = cursor.u8_array(6);
+                for (let i = 0; i < npcCount; ++i) {
+                    const typeId = cursor.u16();
+                    const unknown1 = cursor.u8Array(10);
+                    const sectionId = cursor.u16();
+                    const unknown2 = cursor.u8Array(6);
                     const x = cursor.f32();
                     const y = cursor.f32();
                     const z = cursor.f32();
-                    const rotation_x = cursor.i32() / 0xFFFF * 2 * Math.PI;
-                    const rotation_y = cursor.i32() / 0xFFFF * 2 * Math.PI;
-                    const rotation_z = cursor.i32() / 0xFFFF * 2 * Math.PI;
-                    const unknown3 = cursor.u8_array(20);
+                    const rotationX = cursor.i32() / 0xFFFF * 2 * Math.PI;
+                    const rotationY = cursor.i32() / 0xFFFF * 2 * Math.PI;
+                    const rotationZ = cursor.i32() / 0xFFFF * 2 * Math.PI;
+                    const unknown3 = cursor.u8Array(20);
                     const skin = cursor.u32();
-                    const unknown4 = cursor.u8_array(4);
+                    const unknown4 = cursor.u8Array(4);
 
                     npcs.push({
-                        type_id,
-                        section_id,
+                        typeId,
+                        sectionId,
                         position: { x, y, z },
-                        rotation: { x: rotation_x, y: rotation_y, z: rotation_z },
+                        rotation: { x: rotationX, y: rotationY, z: rotationZ },
                         skin,
-                        area_id,
+                        areaId,
                         unknown: [unknown1, unknown2, unknown3, unknown4]
                     });
                 }
 
-                const bytes_read = cursor.position - start_position;
+                const bytesRead = cursor.position - startPosition;
 
-                if (bytes_read !== entities_size) {
-                    console.warn(`Read ${bytes_read} bytes instead of expected ${entities_size} for entity type ${entity_type} (NPC).`);
-                    cursor.seek(entities_size - bytes_read);
+                if (bytesRead !== entitiesSize) {
+                    console.warn(`Read ${bytesRead} bytes instead of expected ${entitiesSize} for entity type ${entityType} (NPC).`);
+                    cursor.seek(entitiesSize - bytesRead);
                 }
             } else {
                 // There are also waves (type 3) and unknown entity types 4 and 5.
                 unknowns.push({
-                    entity_type,
-                    total_size,
-                    area_id,
-                    entities_size,
-                    data: cursor.u8_array(entities_size)
+                    entityType,
+                    totalSize,
+                    areaId,
+                    entitiesSize,
+                    data: cursor.u8Array(entitiesSize)
                 });
             }
         }
@@ -108,85 +138,83 @@ export function parse_dat(cursor: ArrayBufferCursor) {
     return { objs, npcs, unknowns };
 }
 
-export function write_dat(
-    {objs, npcs, unknowns}: { objs: any[], npcs: any[], unknowns: any[] }
-): ArrayBufferCursor {
+export function writeDat({ objs, npcs, unknowns }: DatFile): ArrayBufferCursor {
     const cursor = new ArrayBufferCursor(
         objs.length * OBJECT_SIZE + npcs.length * NPC_SIZE + unknowns.length * 1000, true);
 
-    const grouped_objs = groupBy(objs, obj => obj.area_id);
-    const obj_area_ids = Object.keys(grouped_objs)
+    const groupedObjs = groupBy(objs, obj => obj.areaId);
+    const objAreaIds = Object.keys(groupedObjs)
         .map(key => parseInt(key, 10))
         .sort((a, b) => a - b);
 
-    for (const area_id of obj_area_ids) {
-        const area_objs = grouped_objs[area_id];
-        const entities_size = area_objs.length * OBJECT_SIZE;
-        cursor.write_u32(1); // Entity type
-        cursor.write_u32(entities_size + 16);
-        cursor.write_u32(area_id);
-        cursor.write_u32(entities_size);
+    for (const areaId of objAreaIds) {
+        const areaObjs = groupedObjs[areaId];
+        const entitiesSize = areaObjs.length * OBJECT_SIZE;
+        cursor.writeU32(1); // Entity type
+        cursor.writeU32(entitiesSize + 16);
+        cursor.writeU32(areaId);
+        cursor.writeU32(entitiesSize);
 
-        for (const obj of area_objs) {
-            cursor.write_u16(obj.type_id);
-            cursor.write_u8_array(obj.unknown[0]);
-            cursor.write_u16(obj.section_id);
-            cursor.write_u8_array(obj.unknown[1]);
-            cursor.write_f32(obj.position.x);
-            cursor.write_f32(obj.position.y);
-            cursor.write_f32(obj.position.z);
-            cursor.write_i32(Math.round(obj.rotation.x / (2 * Math.PI) * 0xFFFF));
-            cursor.write_i32(Math.round(obj.rotation.y / (2 * Math.PI) * 0xFFFF));
-            cursor.write_i32(Math.round(obj.rotation.z / (2 * Math.PI) * 0xFFFF));
-            cursor.write_u8_array(obj.unknown[2]);
+        for (const obj of areaObjs) {
+            cursor.writeU16(obj.typeId);
+            cursor.writeU8Array(obj.unknown[0]);
+            cursor.writeU16(obj.sectionId);
+            cursor.writeU8Array(obj.unknown[1]);
+            cursor.writeF32(obj.position.x);
+            cursor.writeF32(obj.position.y);
+            cursor.writeF32(obj.position.z);
+            cursor.writeI32(Math.round(obj.rotation.x / (2 * Math.PI) * 0xFFFF));
+            cursor.writeI32(Math.round(obj.rotation.y / (2 * Math.PI) * 0xFFFF));
+            cursor.writeI32(Math.round(obj.rotation.z / (2 * Math.PI) * 0xFFFF));
+            cursor.writeU8Array(obj.unknown[2]);
         }
     }
 
-    const grouped_npcs = groupBy(npcs, npc => npc.area_id);
-    const npc_area_ids = Object.keys(grouped_npcs)
+    const groupedNpcs = groupBy(npcs, npc => npc.areaId);
+    const npcAreaIds = Object.keys(groupedNpcs)
         .map(key => parseInt(key, 10))
         .sort((a, b) => a - b);
 
-    for (const area_id of npc_area_ids) {
-        const area_npcs = grouped_npcs[area_id];
-        const entities_size = area_npcs.length * NPC_SIZE;
-        cursor.write_u32(2); // Entity type
-        cursor.write_u32(entities_size + 16);
-        cursor.write_u32(area_id);
-        cursor.write_u32(entities_size);
+    for (const areaId of npcAreaIds) {
+        const areaNpcs = groupedNpcs[areaId];
+        const entitiesSize = areaNpcs.length * NPC_SIZE;
+        cursor.writeU32(2); // Entity type
+        cursor.writeU32(entitiesSize + 16);
+        cursor.writeU32(areaId);
+        cursor.writeU32(entitiesSize);
 
-        for (const npc of area_npcs) {
-            cursor.write_u16(npc.type_id);
-            cursor.write_u8_array(npc.unknown[0]);
-            cursor.write_u16(npc.section_id);
-            cursor.write_u8_array(npc.unknown[1]);
-            cursor.write_f32(npc.position.x);
-            cursor.write_f32(npc.position.y);
-            cursor.write_f32(npc.position.z);
-            cursor.write_i32(Math.round(npc.rotation.x / (2 * Math.PI) * 0xFFFF));
-            cursor.write_i32(Math.round(npc.rotation.y / (2 * Math.PI) * 0xFFFF));
-            cursor.write_i32(Math.round(npc.rotation.z / (2 * Math.PI) * 0xFFFF));
-            cursor.write_u8_array(npc.unknown[2]);
-            cursor.write_u32(npc.skin);
-            cursor.write_u8_array(npc.unknown[3]);
+        for (const npc of areaNpcs) {
+            cursor.writeU16(npc.typeId);
+            cursor.writeU8Array(npc.unknown[0]);
+            cursor.writeU16(npc.sectionId);
+            cursor.writeU8Array(npc.unknown[1]);
+            cursor.writeF32(npc.position.x);
+            cursor.writeF32(npc.position.y);
+            cursor.writeF32(npc.position.z);
+            cursor.writeI32(Math.round(npc.rotation.x / (2 * Math.PI) * 0xFFFF));
+            cursor.writeI32(Math.round(npc.rotation.y / (2 * Math.PI) * 0xFFFF));
+            cursor.writeI32(Math.round(npc.rotation.z / (2 * Math.PI) * 0xFFFF));
+            cursor.writeU8Array(npc.unknown[2]);
+            cursor.writeU32(npc.skin);
+            cursor.writeU8Array(npc.unknown[3]);
         }
     }
 
     for (const unknown of unknowns) {
-        cursor.write_u32(unknown.entity_type);
-        cursor.write_u32(unknown.total_size);
-        cursor.write_u32(unknown.area_id);
-        cursor.write_u32(unknown.entities_size);
-        cursor.write_u8_array(unknown.data);
+        cursor.writeU32(unknown.entityType);
+        cursor.writeU32(unknown.totalSize);
+        cursor.writeU32(unknown.areaId);
+        cursor.writeU32(unknown.entitiesSize);
+        cursor.writeU8Array(unknown.data);
     }
 
     // Final header.
-    cursor.write_u32(0);
-    cursor.write_u32(0);
-    cursor.write_u32(0);
-    cursor.write_u32(0);
+    cursor.writeU32(0);
+    cursor.writeU32(0);
+    cursor.writeU32(0);
+    cursor.writeU32(0);
 
-    cursor.seek_start(0);
+    cursor.seekStart(0);
 
     return cursor;
 }

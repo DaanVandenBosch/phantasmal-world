@@ -9,24 +9,24 @@ export function decompress(cursor: ArrayBufferCursor) {
     const ctx = new Context(cursor);
 
     while (true) {
-        if (ctx.read_flag_bit() === 1) {
+        if (ctx.readFlagBit() === 1) {
             // Single byte copy.
-            ctx.copy_u8();
+            ctx.copyU8();
         } else {
             // Multi byte copy.
             let length;
             let offset;
 
-            if (ctx.read_flag_bit() === 0) {
+            if (ctx.readFlagBit() === 0) {
                 // Short copy.
-                length = ctx.read_flag_bit() << 1;
-                length |= ctx.read_flag_bit();
+                length = ctx.readFlagBit() << 1;
+                length |= ctx.readFlagBit();
                 length += 2;
 
-                offset = ctx.read_u8() - 256;
+                offset = ctx.readU8() - 256;
             } else {
                 // Long copy or end of file.
-                offset = ctx.read_u16();
+                offset = ctx.readU16();
 
                 // Two zero bytes implies that this is the end of the file.
                 if (offset === 0) {
@@ -38,7 +38,7 @@ export function decompress(cursor: ArrayBufferCursor) {
                 offset >>>= 3;
 
                 if (length === 0) {
-                    length = ctx.read_u8();
+                    length = ctx.readU8();
                     length += 1;
                 } else {
                     length += 2;
@@ -47,52 +47,52 @@ export function decompress(cursor: ArrayBufferCursor) {
                 offset -= 8192;
             }
 
-            ctx.offset_copy(offset, length);
+            ctx.offsetCopy(offset, length);
         }
     }
 
-    return ctx.dst.seek_start(0);
+    return ctx.dst.seekStart(0);
 }
 
 class Context {
     src: ArrayBufferCursor;
     dst: ArrayBufferCursor;
     flags: number;
-    flag_bits_left: number;
+    flagBitsLeft: number;
 
     constructor(cursor: ArrayBufferCursor) {
         this.src = cursor;
-        this.dst = new ArrayBufferCursor(4 * cursor.size, cursor.little_endian);
+        this.dst = new ArrayBufferCursor(4 * cursor.size, cursor.littleEndian);
         this.flags = 0;
-        this.flag_bits_left = 0;
+        this.flagBitsLeft = 0;
     }
 
-    read_flag_bit() {
+    readFlagBit() {
         // Fetch a new flag byte when the previous byte has been processed.
-        if (this.flag_bits_left === 0) {
-            this.flags = this.read_u8();
-            this.flag_bits_left = 8;
+        if (this.flagBitsLeft === 0) {
+            this.flags = this.readU8();
+            this.flagBitsLeft = 8;
         }
 
         let bit = this.flags & 1;
         this.flags >>>= 1;
-        this.flag_bits_left -= 1;
+        this.flagBitsLeft -= 1;
         return bit;
     }
 
-    copy_u8() {
-        this.dst.write_u8(this.read_u8());
+    copyU8() {
+        this.dst.writeU8(this.readU8());
     }
 
-    read_u8() {
+    readU8() {
         return this.src.u8();
     }
 
-    read_u16() {
+    readU16() {
         return this.src.u16();
     }
 
-    offset_copy(offset: number, length: number) {
+    offsetCopy(offset: number, length: number) {
         if (offset < -8192 || offset > 0) {
             console.error(`offset was ${offset}, should be between -8192 and 0.`);
         }
@@ -102,16 +102,16 @@ class Context {
         }
 
         // The length can be larger than -offset, in that case we copy -offset bytes size/-offset times.
-        const buf_size = Math.min(-offset, length);
+        const bufSize = Math.min(-offset, length);
 
         this.dst.seek(offset);
-        const buf = this.dst.take(buf_size);
-        this.dst.seek(-offset - buf_size);
+        const buf = this.dst.take(bufSize);
+        this.dst.seek(-offset - bufSize);
 
-        for (let i = 0; i < Math.floor(length / buf_size); ++i) {
-            this.dst.write_cursor(buf);
+        for (let i = 0; i < Math.floor(length / bufSize); ++i) {
+            this.dst.writeCursor(buf);
         }
 
-        this.dst.write_cursor(buf.take(length % buf_size));
+        this.dst.writeCursor(buf.take(length % bufSize));
     }
 }

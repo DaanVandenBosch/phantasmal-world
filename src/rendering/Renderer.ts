@@ -17,7 +17,7 @@ import {
 } from 'three';
 import OrbitControlsCreator from 'three-orbit-controls';
 import { Vec3, Area, Quest, VisibleQuestEntity, QuestObject, QuestNpc, Section } from '../domain';
-import { get_area_collision_geometry, get_area_render_geometry } from '../data/loading/areas';
+import { getAreaCollisionGeometry, getAreaRenderGeometry } from '../data/loading/areas';
 import {
     OBJECT_COLOR,
     OBJECT_HOVER_COLOR,
@@ -115,15 +115,15 @@ export class Renderer {
 
             if (quest) {
                 for (const obj of quest.objects) {
-                    const array = this._objs.get(obj.area_id) || [];
+                    const array = this._objs.get(obj.areaId) || [];
                     array.push(obj);
-                    this._objs.set(obj.area_id, array);
+                    this._objs.set(obj.areaId, array);
                 }
 
                 for (const npc of quest.npcs) {
-                    const array = this._npcs.get(npc.area_id) || [];
+                    const array = this._npcs.get(npc.areaId) || [];
                     array.push(npc);
-                    this._npcs.set(npc.area_id, array);
+                    this._npcs.set(npc.areaId, array);
                 }
             }
 
@@ -168,10 +168,10 @@ export class Renderer {
         if (this._quest && this._area) {
             const episode = this._quest.episode;
             const area_id = this._area.id;
-            const variant = this._quest.area_variants.find(v => v.area.id === area_id);
+            const variant = this._quest.areaVariants.find(v => v.area.id === area_id);
             const variant_id = (variant && variant.id) || 0;
 
-            get_area_collision_geometry(episode, area_id, variant_id).then(geometry => {
+            getAreaCollisionGeometry(episode, area_id, variant_id).then(geometry => {
                 if (this._quest && this._area) {
                     this.set_model(undefined);
                     this._scene.remove(this._collision_geometry);
@@ -183,7 +183,7 @@ export class Renderer {
                 }
             });
 
-            get_area_render_geometry(episode, area_id, variant_id).then(geometry => {
+            getAreaRenderGeometry(episode, area_id, variant_id).then(geometry => {
                 if (this._quest && this._area) {
                     this._render_geometry = geometry;
                 }
@@ -209,7 +209,7 @@ export class Renderer {
             let loaded = true;
 
             for (const object of this._quest.objects) {
-                if (object.area_id === this._area.id) {
+                if (object.areaId === this._area.id) {
                     if (object.object3d) {
                         this._obj_geometry.add(object.object3d);
                     } else {
@@ -219,7 +219,7 @@ export class Renderer {
             }
 
             for (const npc of this._quest.npcs) {
-                if (npc.area_id === this._area.id) {
+                if (npc.areaId === this._area.id) {
                     if (npc.object3d) {
                         this._npc_geometry.add(npc.object3d);
                     } else {

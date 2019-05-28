@@ -6,50 +6,50 @@ import { ArrayBufferCursor } from '../../ArrayBufferCursor';
 
 export function compress(src: ArrayBufferCursor): ArrayBufferCursor {
     const ctx = new Context(src);
-    const hash_table = new HashTable();
+    const hashTable = new HashTable();
 
     if (ctx.src.size <= 3) {
         // Make a literal copy of the input.
-        while (ctx.src.bytes_left) {
-            ctx.set_bit(1);
-            ctx.copy_literal();
+        while (ctx.src.bytesLeft) {
+            ctx.setBit(1);
+            ctx.copyLiteral();
         }
     } else {
         // Add the first two "strings" to the hash table.
-        hash_table.put(hash_table.hash(ctx.src), 0);
+        hashTable.put(hashTable.hash(ctx.src), 0);
         ctx.src.seek(1);
-        hash_table.put(hash_table.hash(ctx.src), 1);
+        hashTable.put(hashTable.hash(ctx.src), 1);
         ctx.src.seek(-1);
 
         // Copy the first two bytes as literals.
-        ctx.set_bit(1);
-        ctx.copy_literal();
-        ctx.set_bit(1);
-        ctx.copy_literal();
+        ctx.setBit(1);
+        ctx.copyLiteral();
+        ctx.setBit(1);
+        ctx.copyLiteral();
 
-        while (ctx.src.bytes_left > 1) {
-            let [offset, mlen] = ctx.find_longest_match(hash_table, false);
+        while (ctx.src.bytesLeft > 1) {
+            let [offset, mlen] = ctx.findLongestMatch(hashTable, false);
 
             if (mlen > 0) {
                 ctx.src.seek(1);
-                const [offset2, mlen2] = ctx.find_longest_match(hash_table, true);
+                const [offset2, mlen2] = ctx.findLongestMatch(hashTable, true);
                 ctx.src.seek(-1);
 
                 // Did the "lazy match" produce something more compressed?
                 if (mlen2 > mlen) {
-                    let copy_literal = true;
+                    let copyLiteral = true;
                     // Check if it is a good idea to switch from a short match to a long one.
                     if (mlen >= 2 && mlen <= 5 && offset2 < offset) {
                         if (offset >= -256 && offset2 < -256) {
                             if (mlen2 - mlen < 3) {
-                                copy_literal = false;
+                                copyLiteral = false;
                             }
                         }
                     }
 
-                    if (copy_literal) {
-                        ctx.set_bit(1);
-                        ctx.copy_literal();
+                    if (copyLiteral) {
+                        ctx.setBit(1);
+                        ctx.copyLiteral();
                         continue;
                     }
                 }
@@ -57,20 +57,20 @@ export function compress(src: ArrayBufferCursor): ArrayBufferCursor {
                 // What kind of match did we find?
                 if (mlen >= 2 && mlen <= 5 && offset >= -256) {
                     // Short match.
-                    ctx.set_bit(0);
-                    ctx.set_bit(0);
-                    ctx.set_bit((mlen - 2) & 0x02);
-                    ctx.set_bit((mlen - 2) & 0x01);
-                    ctx.write_literal(offset & 0xFF);
-                    ctx.add_intermediates(hash_table, mlen);
+                    ctx.setBit(0);
+                    ctx.setBit(0);
+                    ctx.setBit((mlen - 2) & 0x02);
+                    ctx.setBit((mlen - 2) & 0x01);
+                    ctx.writeLiteral(offset & 0xFF);
+                    ctx.addIntermediates(hashTable, mlen);
                     continue;
                 } else if (mlen >= 3 && mlen <= 9) {
                     // Long match, short length.
-                    ctx.set_bit(0);
-                    ctx.set_bit(1);
-                    ctx.write_literal(((offset & 0x1F) << 3) | ((mlen - 2) & 0x07));
-                    ctx.write_literal(offset >> 5);
-                    ctx.add_intermediates(hash_table, mlen);
+                    ctx.setBit(0);
+                    ctx.setBit(1);
+                    ctx.writeLiteral(((offset & 0x1F) << 3) | ((mlen - 2) & 0x07));
+                    ctx.writeLiteral(offset >> 5);
+                    ctx.addIntermediates(hashTable, mlen);
                     continue;
                 } else if (mlen > 9) {
                     // Long match, long length.
@@ -78,31 +78,31 @@ export function compress(src: ArrayBufferCursor): ArrayBufferCursor {
                         mlen = 256;
                     }
 
-                    ctx.set_bit(0);
-                    ctx.set_bit(1);
-                    ctx.write_literal((offset & 0x1F) << 3);
-                    ctx.write_literal(offset >> 5);
-                    ctx.write_literal(mlen - 1);
-                    ctx.add_intermediates(hash_table, mlen);
+                    ctx.setBit(0);
+                    ctx.setBit(1);
+                    ctx.writeLiteral((offset & 0x1F) << 3);
+                    ctx.writeLiteral(offset >> 5);
+                    ctx.writeLiteral(mlen - 1);
+                    ctx.addIntermediates(hashTable, mlen);
                     continue;
                 }
             }
 
             // If we get here, we didn't find a suitable match, so just we just make a literal copy.
-            ctx.set_bit(1);
-            ctx.copy_literal();
+            ctx.setBit(1);
+            ctx.copyLiteral();
         }
 
         // If there's a left over byte at the end, make a literal copy.
-        if (ctx.src.bytes_left) {
-            ctx.set_bit(1);
-            ctx.copy_literal();
+        if (ctx.src.bytesLeft) {
+            ctx.setBit(1);
+            ctx.copyLiteral();
         }
     }
 
-    ctx.write_eof();
+    ctx.writeEof();
 
-    return ctx.dst.seek_start(0);
+    return ctx.dst.seekStart(0);
 }
 
 const MAX_WINDOW = 0x2000;
@@ -113,28 +113,28 @@ class Context {
     src: ArrayBufferCursor;
     dst: ArrayBufferCursor;
     flags: number;
-    flag_bits_left: number;
-    flag_offset: number;
+    flagBitsLeft: number;
+    flagOffset: number;
 
     constructor(cursor: ArrayBufferCursor) {
         this.src = cursor;
-        this.dst = new ArrayBufferCursor(cursor.size, cursor.little_endian);
+        this.dst = new ArrayBufferCursor(cursor.size, cursor.littleEndian);
         this.flags = 0;
-        this.flag_bits_left = 0;
-        this.flag_offset = 0;
+        this.flagBitsLeft = 0;
+        this.flagOffset = 0;
     }
 
-    set_bit(bit: number): void {
-        if (!this.flag_bits_left--) {
+    setBit(bit: number): void {
+        if (!this.flagBitsLeft--) {
             // Write out the flags to their position in the file, and store the next flags byte position.
             const pos = this.dst.position;
             this.dst
-                .seek_start(this.flag_offset)
-                .write_u8(this.flags)
-                .seek_start(pos)
-                .write_u8(0); // Placeholder for the next flags byte.
-            this.flag_offset = pos;
-            this.flag_bits_left = 7;
+                .seekStart(this.flagOffset)
+                .writeU8(this.flags)
+                .seekStart(pos)
+                .writeU8(0); // Placeholder for the next flags byte.
+            this.flagOffset = pos;
+            this.flagBitsLeft = 7;
         }
 
         this.flags >>>= 1;
@@ -144,35 +144,35 @@ class Context {
         }
     }
 
-    copy_literal(): void {
-        this.dst.write_u8(this.src.u8());
+    copyLiteral(): void {
+        this.dst.writeU8(this.src.u8());
     }
 
-    write_literal(value: number): void {
-        this.dst.write_u8(value);
+    writeLiteral(value: number): void {
+        this.dst.writeU8(value);
     }
 
-    write_final_flags(): void {
-        this.flags >>>= this.flag_bits_left;
+    writeFinalFlags(): void {
+        this.flags >>>= this.flagBitsLeft;
         const pos = this.dst.position;
         this.dst
-            .seek_start(this.flag_offset)
-            .write_u8(this.flags)
-            .seek_start(pos);
+            .seekStart(this.flagOffset)
+            .writeU8(this.flags)
+            .seekStart(pos);
     }
 
-    write_eof(): void {
-        this.set_bit(0);
-        this.set_bit(1);
+    writeEof(): void {
+        this.setBit(0);
+        this.setBit(1);
 
-        this.write_final_flags();
+        this.writeFinalFlags();
 
-        this.write_literal(0);
-        this.write_literal(0);
+        this.writeLiteral(0);
+        this.writeLiteral(0);
     }
 
-    match_length(s2: number): number {
-        const array = this.src.uint8_array_view();
+    matchLength(s2: number): number {
+        const array = this.src.uint8ArrayView();
         let len = 0;
         let s1 = this.src.position;
 
@@ -185,20 +185,20 @@ class Context {
         return len;
     }
 
-    find_longest_match(hash_table: HashTable, lazy: boolean): [number, number] {
-        if (!this.src.bytes_left) {
+    findLongestMatch(hashTable: HashTable, lazy: boolean): [number, number] {
+        if (!this.src.bytesLeft) {
             return [0, 0];
         }
 
         // Figure out where we're looking.
-        const hash = hash_table.hash(this.src);
+        const hash = hashTable.hash(this.src);
 
         // If there is nothing in the table at that point, bail out now.
-        let entry = hash_table.get(hash);
+        let entry = hashTable.get(hash);
 
         if (entry === null) {
             if (!lazy) {
-                hash_table.put(hash, this.src.position);
+                hashTable.put(hash, this.src.position);
             }
 
             return [0, 0];
@@ -206,10 +206,10 @@ class Context {
 
         // If we'd go outside the window, truncate the hash chain now. 
         if (this.src.position - entry > MAX_WINDOW) {
-            hash_table.hash_to_offset[hash] = null;
+            hashTable.hashToOffset[hash] = null;
 
             if (!lazy) {
-                hash_table.put(hash, this.src.position);
+                hashTable.put(hash, this.src.position);
             }
 
             return [0, 0];
@@ -217,24 +217,24 @@ class Context {
 
         // Ok, we have something in the hash table that matches the hash value.
         // Follow the chain to see if we have an actual string match, and find the longest match.
-        let longest_length = 0;
-        let longest_match = 0;
+        let longestLength = 0;
+        let longestMatch = 0;
 
         while (entry != null) {
-            const mlen = this.match_length(entry);
+            const mlen = this.matchLength(entry);
 
-            if (mlen > longest_length || mlen >= 256) {
-                longest_length = mlen;
-                longest_match = entry;
+            if (mlen > longestLength || mlen >= 256) {
+                longestLength = mlen;
+                longestMatch = entry;
             }
 
             // Follow the chain, making sure not to exceed a difference of MAX_WINDOW.
-            let entry2 = hash_table.prev(entry);
+            let entry2 = hashTable.prev(entry);
 
             if (entry2 !== null) {
                 // If we'd go outside the window, truncate the hash chain now.
                 if (this.src.position - entry2 > MAX_WINDOW) {
-                    hash_table.set_prev(entry, null);
+                    hashTable.setPrev(entry, null);
                     entry2 = null;
                 }
             }
@@ -244,33 +244,33 @@ class Context {
 
         // Add our current string to the hash.
         if (!lazy) {
-            hash_table.put(hash, this.src.position);
+            hashTable.put(hash, this.src.position);
         }
 
         // Did we find a match?
-        const offset = longest_length > 0 ? longest_match - this.src.position : 0;
-        return [offset, longest_length];
+        const offset = longestLength > 0 ? longestMatch - this.src.position : 0;
+        return [offset, longestLength];
     }
 
-    add_intermediates(hash_table: HashTable, len: number): void {
+    addIntermediates(hashTable: HashTable, len: number): void {
         this.src.seek(1);
 
         for (let i = 1; i < len; ++i) {
-            const hash = hash_table.hash(this.src);
-            hash_table.put(hash, this.src.position);
+            const hash = hashTable.hash(this.src);
+            hashTable.put(hash, this.src.position);
             this.src.seek(1);
         }
     }
 }
 
 class HashTable {
-    hash_to_offset: Array<number | null> = new Array(HASH_SIZE).fill(null);
-    masked_offset_to_prev: Array<number | null> = new Array(MAX_WINDOW).fill(null);
+    hashToOffset: Array<number | null> = new Array(HASH_SIZE).fill(null);
+    maskedOffsetToPrev: Array<number | null> = new Array(MAX_WINDOW).fill(null);
 
     hash(cursor: ArrayBufferCursor): number {
         let hash = cursor.u8();
 
-        if (cursor.bytes_left) {
+        if (cursor.bytesLeft) {
             hash ^= cursor.u8();
             cursor.seek(-1);
         }
@@ -280,19 +280,19 @@ class HashTable {
     }
 
     get(hash: number): number | null {
-        return this.hash_to_offset[hash];
+        return this.hashToOffset[hash];
     }
 
     put(hash: number, offset: number): void {
-        this.set_prev(offset, this.hash_to_offset[hash]);
-        this.hash_to_offset[hash] = offset;
+        this.setPrev(offset, this.hashToOffset[hash]);
+        this.hashToOffset[hash] = offset;
     }
 
     prev(offset: number): number | null {
-        return this.masked_offset_to_prev[offset & WINDOW_MASK];
+        return this.maskedOffsetToPrev[offset & WINDOW_MASK];
     }
 
-    set_prev(offset: number, prev_offset: number | null): void {
-        this.masked_offset_to_prev[offset & WINDOW_MASK] = prev_offset;
+    setPrev(offset: number, prevOffset: number | null): void {
+        this.maskedOffsetToPrev[offset & WINDOW_MASK] = prevOffset;
     }
 }

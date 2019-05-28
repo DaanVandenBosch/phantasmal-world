@@ -1,47 +1,59 @@
 import { ArrayBufferCursor } from '../ArrayBufferCursor';
 
-export function parse_bin(cursor: ArrayBufferCursor) {
-    const object_code_offset = cursor.u32();
-    const function_offset_table_offset = cursor.u32(); // Relative offsets
+export interface BinFile {
+    questNumber: number;
+    language: number;
+    questName: string;
+    shortDescription: string;
+    longDescription: string;
+    functionOffsets: number[];
+    instructions: Instruction[];
+    data: ArrayBufferCursor;
+}
+
+export function parseBin(cursor: ArrayBufferCursor): BinFile {
+    const objectCodeOffset = cursor.u32();
+    const functionOffsetTableOffset = cursor.u32(); // Relative offsets
     const size = cursor.u32();
     cursor.seek(4); // Always seems to be 0xFFFFFFFF
-    const quest_number = cursor.u32();
+    const questNumber = cursor.u32();
     const language = cursor.u32();
-    const quest_name = cursor.string_utf_16(64, true, true);
-    const short_description = cursor.string_utf_16(256, true, true);
-    const long_description = cursor.string_utf_16(576, true, true);
+    const questName = cursor.stringUtf16(64, true, true);
+    const shortDescription = cursor.stringUtf16(256, true, true);
+    const longDescription = cursor.stringUtf16(576, true, true);
 
     if (size !== cursor.size) {
         console.warn(`Value ${size} in bin size field does not match actual size ${cursor.size}.`);
     }
 
-    const function_offset_count = Math.floor(
-        (cursor.size - function_offset_table_offset) / 4);
+    const functionOffsetCount = Math.floor(
+        (cursor.size - functionOffsetTableOffset) / 4);
 
-    cursor.seek_start(function_offset_table_offset);
-    const function_offsets = [];
+    cursor.seekStart(functionOffsetTableOffset);
+    const functionOffsets = [];
 
-    for (let i = 0; i < function_offset_count; ++i) {
-        function_offsets.push(cursor.i32());
+    for (let i = 0; i < functionOffsetCount; ++i) {
+        functionOffsets.push(cursor.i32());
     }
 
-    const instructions = parse_object_code(
-        cursor.seek_start(object_code_offset).take(function_offset_table_offset - object_code_offset));
+    const instructions = parseObjectCode(
+        cursor.seekStart(objectCodeOffset).take(functionOffsetTableOffset - objectCodeOffset)
+    );
 
     return {
-        quest_number,
+        questNumber,
         language,
-        quest_name,
-        short_description,
-        long_description,
-        function_offsets,
+        questName,
+        shortDescription,
+        longDescription,
+        functionOffsets,
         instructions,
-        data: cursor.seek_start(0).take(cursor.size)
+        data: cursor.seekStart(0).take(cursor.size)
     };
 }
 
-export function write_bin({ data }: { data: ArrayBufferCursor }): ArrayBufferCursor {
-    return data.seek_start(0);
+export function writeBin({ data }: { data: ArrayBufferCursor }): ArrayBufferCursor {
+    return data.seekStart(0);
 }
 
 export interface Instruction {
@@ -51,35 +63,35 @@ export interface Instruction {
     size: number;
 }
 
-function parse_object_code(cursor: ArrayBufferCursor): Instruction[] {
+function parseObjectCode(cursor: ArrayBufferCursor): Instruction[] {
     const instructions = [];
 
-    while (cursor.bytes_left) {
-        const main_opcode = cursor.u8();
+    while (cursor.bytesLeft) {
+        const mainOpcode = cursor.u8();
         let opcode;
         let opsize;
         let list;
 
-        switch (main_opcode) {
+        switch (mainOpcode) {
             case 0xF8:
                 opcode = cursor.u8();
                 opsize = 2;
-                list = F8opcode_list;
+                list = F8opcodeList;
                 break;
             case 0xF9:
                 opcode = cursor.u8();
                 opsize = 2;
-                list = F9opcode_list;
+                list = F9opcodeList;
                 break;
             default:
-                opcode = main_opcode;
+                opcode = mainOpcode;
                 opsize = 1;
-                list = opcode_list;
+                list = opcodeList;
                 break;
         }
 
         const [, mnemonic, mask] = list[opcode];
-        const opargs = parse_instruction_arguments(cursor, mask);
+        const opargs = parseInstructionArguments(cursor, mask);
 
         if (!opargs) {
             console.error(`Parameters unknown for opcode 0x${opcode.toString(16).toUpperCase()}.`);
@@ -97,12 +109,12 @@ function parse_object_code(cursor: ArrayBufferCursor): Instruction[] {
     return instructions;
 }
 
-function parse_instruction_arguments(cursor: ArrayBufferCursor, mask: string | null) {
+function parseInstructionArguments(cursor: ArrayBufferCursor, mask: string | null) {
     if (mask == null) {
         return;
     }
 
-    const old_pos = cursor.position;
+    const oldPos = cursor.position;
     const args = [];
     let size = 0;
 
@@ -191,11 +203,11 @@ function parse_instruction_arguments(cursor: ArrayBufferCursor, mask: string | n
         }
     }
 
-    cursor.seek_start(old_pos + size);
+    cursor.seekStart(oldPos + size);
     return { args, size };
 }
 
-const opcode_list: Array<[number, string, string | null]> = [
+const opcodeList: Array<[number, string, string | null]> = [
     [0x00, 'nop', ''],
     [0x01, 'ret', ''],
     [0x02, 'sync', ''],
@@ -476,7 +488,7 @@ const opcode_list: Array<[number, string, string | null]> = [
     [0xFF, 'unknownFF', ''],
 ];
 
-const F8opcode_list: Array<[number, string, string | null]> = [
+const F8opcodeList: Array<[number, string, string | null]> = [
     [0x00, 'unknown', null],
     [0x01, 'set_chat_callback?', 'aRs'],
     [0x02, 'unknown', null],
@@ -735,7 +747,7 @@ const F8opcode_list: Array<[number, string, string | null]> = [
     [0xFF, 'unknown', null],
 ];
 
-const F9opcode_list: Array<[number, string, string | null]> = [
+const F9opcodeList: Array<[number, string, string | null]> = [
     [0x00, 'unknown', null],
     [0x01, 'dec2float', 'RR'],
     [0x02, 'float2dec', 'RR'],

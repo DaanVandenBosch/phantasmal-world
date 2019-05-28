@@ -1,23 +1,23 @@
 import * as fs from 'fs';
 import { ArrayBufferCursor } from '../ArrayBufferCursor';
 import * as prs from '../compression/prs';
-import { parse_dat, write_dat } from './dat';
+import { parseDat, writeDat } from './dat';
 
 /**
  * Parse a file, convert the resulting structure to DAT again and check whether the end result is equal to the original.
  */
-test('parse_dat and write_dat', () => {
-    const orig_buffer = fs.readFileSync('test/resources/quest118_e.dat').buffer;
-    const orig_dat = prs.decompress(new ArrayBufferCursor(orig_buffer, true));
-    const test_dat = write_dat(parse_dat(orig_dat));
-    orig_dat.seek_start(0);
+test('parseDat and writeDat', () => {
+    const origBuffer = fs.readFileSync('test/resources/quest118_e.dat').buffer;
+    const origDat = prs.decompress(new ArrayBufferCursor(origBuffer, true));
+    const testDat = writeDat(parseDat(origDat));
+    origDat.seekStart(0);
 
-    expect(test_dat.size).toBe(orig_dat.size);
+    expect(testDat.size).toBe(origDat.size);
 
     let match = true;
 
-    while (orig_dat.bytes_left) {
-        if (test_dat.u8() !== orig_dat.u8()) {
+    while (origDat.bytesLeft) {
+        if (testDat.u8() !== origDat.u8()) {
             match = false;
             break;
         }
@@ -30,29 +30,29 @@ test('parse_dat and write_dat', () => {
  * Parse a file, modify the resulting structure, convert it to DAT again and check whether the end result is equal to the original except for the bytes that should be changed.
  */
 test('parse, modify and write DAT', () => {
-    const orig_buffer = fs.readFileSync('./test/resources/quest118_e.dat').buffer;
-    const orig_dat = prs.decompress(new ArrayBufferCursor(orig_buffer, true));
-    const test_parsed = parse_dat(orig_dat);
-    orig_dat.seek_start(0);
+    const origBuffer = fs.readFileSync('./test/resources/quest118_e.dat').buffer;
+    const origDat = prs.decompress(new ArrayBufferCursor(origBuffer, true));
+    const testParsed = parseDat(origDat);
+    origDat.seekStart(0);
 
-    test_parsed.objs[9].position.x = 13;
-    test_parsed.objs[9].position.y = 17;
-    test_parsed.objs[9].position.z = 19;
+    testParsed.objs[9].position.x = 13;
+    testParsed.objs[9].position.y = 17;
+    testParsed.objs[9].position.z = 19;
 
-    const test_dat = write_dat(test_parsed);
+    const testDat = writeDat(testParsed);
 
-    expect(test_dat.size).toBe(orig_dat.size);
+    expect(testDat.size).toBe(origDat.size);
 
     let match = true;
 
-    while (orig_dat.bytes_left) {
-        if (orig_dat.position === 16 + 9 * 68 + 16) {
-            orig_dat.seek(12);
+    while (origDat.bytesLeft) {
+        if (origDat.position === 16 + 9 * 68 + 16) {
+            origDat.seek(12);
 
-            expect(test_dat.f32()).toBe(13);
-            expect(test_dat.f32()).toBe(17);
-            expect(test_dat.f32()).toBe(19);
-        } else if (test_dat.u8() !== orig_dat.u8()) {
+            expect(testDat.f32()).toBe(13);
+            expect(testDat.f32()).toBe(17);
+            expect(testDat.f32()).toBe(19);
+        } else if (testDat.u8() !== origDat.u8()) {
             match = false;
             break;
         }

@@ -13,8 +13,8 @@ import {
 } from 'three';
 import { Vec3, Section } from '../../domain';
 
-export function parse_c_rel(array_buffer: ArrayBuffer): Object3D {
-    const dv = new DataView(array_buffer);
+export function parseCRel(arrayBuffer: ArrayBuffer): Object3D {
+    const dv = new DataView(arrayBuffer);
 
     const object = new Object3D();
     const materials = [
@@ -40,7 +40,7 @@ export function parse_c_rel(array_buffer: ArrayBuffer): Object3D {
             side: DoubleSide
         })
     ];
-    const wireframe_materials = [
+    const wireframeMaterials = [
         // Wall
         new MeshBasicMaterial({
             color: 0x90D0E0,
@@ -65,33 +65,33 @@ export function parse_c_rel(array_buffer: ArrayBuffer): Object3D {
         })
     ];
 
-    const main_block_offset = dv.getUint32(dv.byteLength - 16, true);
-    const main_offset_table_offset = dv.getUint32(main_block_offset, true);
+    const mainBlockOffset = dv.getUint32(dv.byteLength - 16, true);
+    const mainOffsetTableOffset = dv.getUint32(mainBlockOffset, true);
 
     for (
-        let i = main_offset_table_offset;
-        i === main_offset_table_offset || dv.getUint32(i) !== 0;
+        let i = mainOffsetTableOffset;
+        i === mainOffsetTableOffset || dv.getUint32(i) !== 0;
         i += 24
     ) {
-        const block_geometry = new Geometry();
+        const blockGeometry = new Geometry();
 
-        const block_trailer_offset = dv.getUint32(i, true);
-        const vertex_count = dv.getUint32(block_trailer_offset, true);
-        const vertex_table_offset = dv.getUint32(block_trailer_offset + 4, true);
-        const vertex_table_end = vertex_table_offset + 12 * vertex_count;
-        const triangle_count = dv.getUint32(block_trailer_offset + 8, true);
-        const triangle_table_offset = dv.getUint32(block_trailer_offset + 12, true);
-        const triangle_table_end = triangle_table_offset + 36 * triangle_count;
+        const blockTrailerOffset = dv.getUint32(i, true);
+        const vertexCount = dv.getUint32(blockTrailerOffset, true);
+        const vertexTableOffset = dv.getUint32(blockTrailerOffset + 4, true);
+        const vertexTableEnd = vertexTableOffset + 12 * vertexCount;
+        const triangleCount = dv.getUint32(blockTrailerOffset + 8, true);
+        const triangleTableOffset = dv.getUint32(blockTrailerOffset + 12, true);
+        const triangleTableEnd = triangleTableOffset + 36 * triangleCount;
 
-        for (let j = vertex_table_offset; j < vertex_table_end; j += 12) {
+        for (let j = vertexTableOffset; j < vertexTableEnd; j += 12) {
             const x = dv.getFloat32(j, true);
             const y = dv.getFloat32(j + 4, true);
             const z = dv.getFloat32(j + 8, true);
 
-            block_geometry.vertices.push(new Vector3(x, y, z));
+            blockGeometry.vertices.push(new Vector3(x, y, z));
         }
 
-        for (let j = triangle_table_offset; j < triangle_table_end; j += 36) {
+        for (let j = triangleTableOffset; j < triangleTableEnd; j += 36) {
             const v1 = dv.getUint16(j, true);
             const v2 = dv.getUint16(j + 2, true);
             const v3 = dv.getUint16(j + 4, true);
@@ -101,69 +101,70 @@ export function parse_c_rel(array_buffer: ArrayBuffer): Object3D {
                 dv.getFloat32(j + 12, true),
                 dv.getFloat32(j + 16, true)
             );
-            const is_section_transition = flags & 0b1000000;
-            const is_vegetation = flags & 0b10000;
-            const is_ground = flags & 0b1;
-            const color_index = is_section_transition ? 3 : (is_vegetation ? 2 : (is_ground ? 1 : 0));
+            const isSectionTransition = flags & 0b1000000;
+            const isVegetation = flags & 0b10000;
+            const isGround = flags & 0b1;
+            const colorIndex = isSectionTransition ? 3 : (isVegetation ? 2 : (isGround ? 1 : 0));
 
-            block_geometry.faces.push(new Face3(v1, v2, v3, n, undefined, color_index));
+            blockGeometry.faces.push(new Face3(v1, v2, v3, n, undefined, colorIndex));
         }
 
-        const mesh = new Mesh(block_geometry, materials);
+        const mesh = new Mesh(blockGeometry, materials);
         mesh.renderOrder = 1;
         object.add(mesh);
 
-        const wireframe_mesh = new Mesh(block_geometry, wireframe_materials);
-        wireframe_mesh.renderOrder = 2;
-        object.add(wireframe_mesh);
+        const wireframeMesh = new Mesh(blockGeometry, wireframeMaterials);
+        wireframeMesh.renderOrder = 2;
+        object.add(wireframeMesh);
     }
 
     return object;
 }
 
-export function parse_n_rel(
-    array_buffer: ArrayBuffer
-): { sections: Section[], object_3d: Object3D } {
-    const dv = new DataView(array_buffer);
+export function parseNRel(
+    arrayBuffer: ArrayBuffer
+): { sections: Section[], object3d: Object3D } {
+    const dv = new DataView(arrayBuffer);
     const sections = new Map();
 
     const object = new Object3D();
 
-    const main_block_offset = dv.getUint32(dv.byteLength - 16, true);
-    const section_count = dv.getUint32(main_block_offset + 8, true);
-    const section_table_offset = dv.getUint32(main_block_offset + 16, true);
-    // const texture_name_offset = dv.getUint32(main_block_offset + 20, true);
+    const mainBlockOffset = dv.getUint32(dv.byteLength - 16, true);
+    const sectionCount = dv.getUint32(mainBlockOffset + 8, true);
+    const sectionTableOffset = dv.getUint32(mainBlockOffset + 16, true);
+    // const textureNameOffset = dv.getUint32(mainBlockOffset + 20, true);
 
     for (
-        let i = section_table_offset;
-        i < section_table_offset + section_count * 52;
+        let i = sectionTableOffset;
+        i < sectionTableOffset + sectionCount * 52;
         i += 52
     ) {
-        const section_id = dv.getInt32(i, true);
-        const section_x = dv.getFloat32(i + 4, true);
-        const section_y = dv.getFloat32(i + 8, true);
-        const section_z = dv.getFloat32(i + 12, true);
-        const section_rotation = dv.getInt32(i + 20, true) / 0xFFFF * 2 * Math.PI;
+        const sectionId = dv.getInt32(i, true);
+        const sectionX = dv.getFloat32(i + 4, true);
+        const sectionY = dv.getFloat32(i + 8, true);
+        const sectionZ = dv.getFloat32(i + 12, true);
+        const sectionRotation = dv.getInt32(i + 20, true) / 0xFFFF * 2 * Math.PI;
         const section = new Section(
-            section_id,
-            new Vec3(section_x, section_y, section_z),
-            section_rotation);
-        sections.set(section_id, section);
+            sectionId,
+            new Vec3(sectionX, sectionY, sectionZ),
+            sectionRotation
+        );
+        sections.set(sectionId, section);
 
-        const index_lists_list = [];
-        const position_lists_list = [];
-        const normal_lists_list = [];
+        const indexListsList = [];
+        const positionListsList = [];
+        const normalListsList = [];
 
-        const simple_geometry_offset_table_offset = dv.getUint32(i + 32, true);
-        // const complex_geometry_offset_table_offset = dv.getUint32(i + 36, true);
-        const simple_geometry_offset_count = dv.getUint32(i + 40, true);
-        // const complex_geometry_offset_count = dv.getUint32(i + 44, true);
+        const simpleGeometryOffsetTableOffset = dv.getUint32(i + 32, true);
+        // const complexGeometryOffsetTableOffset = dv.getUint32(i + 36, true);
+        const simpleGeometryOffsetCount = dv.getUint32(i + 40, true);
+        // const complexGeometryOffsetCount = dv.getUint32(i + 44, true);
 
-        // console.log(`section id: ${section_id}, section rotation: ${section_rotation}, simple vertices: ${simple_geometry_offset_count}, complex vertices: ${complex_geometry_offset_count}`);
+        // console.log(`section id: ${sectionId}, section rotation: ${sectionRotation}, simple vertices: ${simpleGeometryOffsetCount}, complex vertices: ${complexGeometryOffsetCount}`);
 
         for (
-            let j = simple_geometry_offset_table_offset;
-            j < simple_geometry_offset_table_offset + simple_geometry_offset_count * 16;
+            let j = simpleGeometryOffsetTableOffset;
+            j < simpleGeometryOffsetTableOffset + simpleGeometryOffsetCount * 16;
             j += 16
         ) {
             let offset = dv.getUint32(j, true);
@@ -173,133 +174,133 @@ export function parse_n_rel(
                 offset = dv.getUint32(offset, true);
             }
 
-            const geometry_offset = dv.getUint32(offset + 4, true);
+            const geometryOffset = dv.getUint32(offset + 4, true);
 
-            if (geometry_offset > 0) {
-                const vertex_info_table_offset = dv.getUint32(geometry_offset + 4, true);
-                const vertex_info_count = dv.getUint32(geometry_offset + 8, true);
-                const triangle_strip_table_offset = dv.getUint32(geometry_offset + 12, true);
-                const triangle_strip_count = dv.getUint32(geometry_offset + 16, true);
-                // const transparent_object_table_offset = dv.getUint32(block_offset + 20, true);
-                // const transparent_object_count = dv.getUint32(block_offset + 24, true);
+            if (geometryOffset > 0) {
+                const vertexInfoTableOffset = dv.getUint32(geometryOffset + 4, true);
+                const vertexInfoCount = dv.getUint32(geometryOffset + 8, true);
+                const triangleStripTableOffset = dv.getUint32(geometryOffset + 12, true);
+                const triangleStripCount = dv.getUint32(geometryOffset + 16, true);
+                // const transparentObjectTableOffset = dv.getUint32(blockOffset + 20, true);
+                // const transparentObjectCount = dv.getUint32(blockOffset + 24, true);
 
-                // console.log(`block offset: ${block_offset}, vertex info count: ${vertex_info_count}, object table offset ${object_table_offset}, object count: ${object_count}, transparent object count: ${transparent_object_count}`);
+                // console.log(`block offset: ${blockOffset}, vertex info count: ${vertexInfoCount}, object table offset ${objectTableOffset}, object count: ${objectCount}, transparent object count: ${transparentObjectCount}`);
 
-                const geom_index_lists = [];
+                const geomIndexLists = [];
 
                 for (
-                    let k = triangle_strip_table_offset;
-                    k < triangle_strip_table_offset + triangle_strip_count * 20;
+                    let k = triangleStripTableOffset;
+                    k < triangleStripTableOffset + triangleStripCount * 20;
                     k += 20
                 ) {
-                    // const flag_and_texture_id_offset = dv.getUint32(k, true);
-                    // const data_type = dv.getUint32(k + 4, true);
-                    const triangle_strip_index_table_offset = dv.getUint32(k + 8, true);
-                    const triangle_strip_index_count = dv.getUint32(k + 12, true);
+                    // const flagAndTextureIdOffset = dv.getUint32(k, true);
+                    // const dataType = dv.getUint32(k + 4, true);
+                    const triangleStripIndexTableOffset = dv.getUint32(k + 8, true);
+                    const triangleStripIndexCount = dv.getUint32(k + 12, true);
 
-                    const triangle_strip_indices = [];
+                    const triangleStripIndices = [];
 
                     for (
-                        let l = triangle_strip_index_table_offset;
-                        l < triangle_strip_index_table_offset + triangle_strip_index_count * 2;
+                        let l = triangleStripIndexTableOffset;
+                        l < triangleStripIndexTableOffset + triangleStripIndexCount * 2;
                         l += 2
                     ) {
-                        triangle_strip_indices.push(dv.getUint16(l, true));
+                        triangleStripIndices.push(dv.getUint16(l, true));
                     }
 
-                    geom_index_lists.push(triangle_strip_indices);
+                    geomIndexLists.push(triangleStripIndices);
 
                     // TODO: Read texture info.
                 }
 
                 // TODO: Do the previous for the transparent index table.
 
-                // Assume vertex_info_count == 1. TODO: Does that make sense?
-                if (vertex_info_count > 1) {
-                    console.warn(`Vertex info count of ${vertex_info_count} was larger than expected.`);
+                // Assume vertexInfoCount == 1. TODO: Does that make sense?
+                if (vertexInfoCount > 1) {
+                    console.warn(`Vertex info count of ${vertexInfoCount} was larger than expected.`);
                 }
 
-                // const vertex_type = dv.getUint32(vertex_info_table_offset, true);
-                const vertex_table_offset = dv.getUint32(vertex_info_table_offset + 4, true);
-                const vertex_size = dv.getUint32(vertex_info_table_offset + 8, true);
-                const vertex_count = dv.getUint32(vertex_info_table_offset + 12, true);
+                // const vertexType = dv.getUint32(vertexInfoTableOffset, true);
+                const vertexTableOffset = dv.getUint32(vertexInfoTableOffset + 4, true);
+                const vertexSize = dv.getUint32(vertexInfoTableOffset + 8, true);
+                const vertexCount = dv.getUint32(vertexInfoTableOffset + 12, true);
 
-                // console.log(`vertex type: ${vertex_type}, vertex size: ${vertex_size}, vertex count: ${vertex_count}`);
+                // console.log(`vertex type: ${vertexType}, vertex size: ${vertexSize}, vertex count: ${vertexCount}`);
 
-                const geom_positions = [];
-                const geom_normals = [];
+                const geomPositions = [];
+                const geomNormals = [];
 
                 for (
-                    let k = vertex_table_offset;
-                    k < vertex_table_offset + vertex_count * vertex_size;
-                    k += vertex_size
+                    let k = vertexTableOffset;
+                    k < vertexTableOffset + vertexCount * vertexSize;
+                    k += vertexSize
                 ) {
-                    let n_x, n_y, n_z;
+                    let nX, nY, nZ;
 
-                    switch (vertex_size) {
+                    switch (vertexSize) {
                         case 16:
                         case 24:
                             // TODO: are these values sensible?
-                            n_x = 0;
-                            n_y = 1;
-                            n_z = 0;
+                            nX = 0;
+                            nY = 1;
+                            nZ = 0;
                             break;
                         case 28:
                         case 36:
-                            n_x = dv.getFloat32(k + 12, true);
-                            n_y = dv.getFloat32(k + 16, true);
-                            n_z = dv.getFloat32(k + 20, true);
+                            nX = dv.getFloat32(k + 12, true);
+                            nY = dv.getFloat32(k + 16, true);
+                            nZ = dv.getFloat32(k + 20, true);
                             // TODO: color, texture coords.
                             break;
                         default:
-                            console.error(`Unexpected vertex size of ${vertex_size}.`);
+                            console.error(`Unexpected vertex size of ${vertexSize}.`);
                             continue;
                     }
 
                     const x = dv.getFloat32(k, true);
                     const y = dv.getFloat32(k + 4, true);
                     const z = dv.getFloat32(k + 8, true);
-                    const rotated_x = section.cos_y_axis_rotation * x + section.sin_y_axis_rotation * z;
-                    const rotated_z = -section.sin_y_axis_rotation * x + section.cos_y_axis_rotation * z;
+                    const rotatedX = section.cosYAxisRotation * x + section.sinYAxisRotation * z;
+                    const rotatedZ = -section.sinYAxisRotation * x + section.cosYAxisRotation * z;
 
-                    geom_positions.push(section_x + rotated_x);
-                    geom_positions.push(section_y + y);
-                    geom_positions.push(section_z + rotated_z);
-                    geom_normals.push(n_x);
-                    geom_normals.push(n_y);
-                    geom_normals.push(n_z);
+                    geomPositions.push(sectionX + rotatedX);
+                    geomPositions.push(sectionY + y);
+                    geomPositions.push(sectionZ + rotatedZ);
+                    geomNormals.push(nX);
+                    geomNormals.push(nY);
+                    geomNormals.push(nZ);
                 }
 
-                index_lists_list.push(geom_index_lists);
-                position_lists_list.push(geom_positions);
-                normal_lists_list.push(geom_normals);
+                indexListsList.push(geomIndexLists);
+                positionListsList.push(geomPositions);
+                normalListsList.push(geomNormals);
             } else {
-                // console.error(`Block offset at ${offset + 4} was ${block_offset}.`);
+                // console.error(`Block offset at ${offset + 4} was ${blockOffset}.`);
             }
         }
 
-        // function v_equal(v, w) {
+        // function vEqual(v, w) {
         //     return v[0] === w[0] && v[1] === w[1] && v[2] === w[2];
         // }
 
-        for (let i = 0; i < position_lists_list.length; ++i) {
-            const positions = position_lists_list[i];
-            const normals = normal_lists_list[i];
-            const geom_index_lists = index_lists_list[i];
+        for (let i = 0; i < positionListsList.length; ++i) {
+            const positions = positionListsList[i];
+            const normals = normalListsList[i];
+            const geomIndexLists = indexListsList[i];
             // const indices = [];
 
-            geom_index_lists.forEach(object_indices => {
-                // for (let j = 2; j < object_indices.length; ++j) {
-                //     const a = object_indices[j - 2];
-                //     const b = object_indices[j - 1];
-                //     const c = object_indices[j];
+            geomIndexLists.forEach(objectIndices => {
+                // for (let j = 2; j < objectIndices.length; ++j) {
+                //     const a = objectIndices[j - 2];
+                //     const b = objectIndices[j - 1];
+                //     const c = objectIndices[j];
 
                 //     if (a !== b && a !== c && b !== c) {
                 //         const ap = positions.slice(3 * a, 3 * a + 3);
                 //         const bp = positions.slice(3 * b, 3 * b + 3);
                 //         const cp = positions.slice(3 * c, 3 * c + 3);
 
-                //         if (!v_equal(ap, bp) && !v_equal(ap, cp) && !v_equal(bp, cp)) {
+                //         if (!vEqual(ap, bp) && !vEqual(ap, cp) && !vEqual(bp, cp)) {
                 //             if (j % 2 === 0) {
                 //                 indices.push(a);
                 //                 indices.push(b);
@@ -318,7 +319,7 @@ export function parse_n_rel(
                     'position', new BufferAttribute(new Float32Array(positions), 3));
                 geometry.addAttribute(
                     'normal', new BufferAttribute(new Float32Array(normals), 3));
-                geometry.setIndex(new BufferAttribute(new Uint16Array(object_indices), 1));
+                geometry.setIndex(new BufferAttribute(new Uint16Array(objectIndices), 1));
 
                 const mesh = new Mesh(
                     geometry,
@@ -352,7 +353,7 @@ export function parse_n_rel(
             // );
             // object.add(mesh);
 
-            // const wireframe_mesh = new Mesh(
+            // const wireframeMesh = new Mesh(
             //     geometry,
             //     new MeshBasicMaterial({
             //         color: 0x88ccff,
@@ -361,13 +362,13 @@ export function parse_n_rel(
             //         opacity: 0.75,
             //     })
             // );
-            // wireframe_mesh.setDrawMode(THREE.TriangleStripDrawMode);
-            // object.add(wireframe_mesh);
+            // wireframeMesh.setDrawMode(THREE.TriangleStripDrawMode);
+            // object.add(wireframeMesh);
         }
     }
 
     return {
         sections: [...sections.values()].sort((a, b) => a.id - b.id),
-        object_3d: object
+        object3d: object
     };
 }

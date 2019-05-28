@@ -14,6 +14,8 @@ const UTF_16LE_ENCODER = new TextEncoder('utf-16le');
  * Uses an ArrayBuffer internally. This buffer is reallocated if and only if a write beyond the current capacity happens.
  */
 export class ArrayBufferCursor {
+    private _size: number = 0;
+
     /**
      * The cursor's size. This value will always be non-negative and equal to or smaller than the cursor's capacity.
      */
@@ -26,7 +28,7 @@ export class ArrayBufferCursor {
             throw new Error('Size should be non-negative.')
         }
 
-        this._ensure_capacity(size);
+        this.ensureCapacity(size);
         this._size = size;
     }
 
@@ -38,12 +40,12 @@ export class ArrayBufferCursor {
     /**
      * Byte order mode.
      */
-    little_endian: boolean;
+    littleEndian: boolean;
 
     /**
      * The amount of bytes left to read from the current position onward.
      */
-    get bytes_left(): number {
+    get bytesLeft(): number {
         return this.size - this.position;
     }
 
@@ -56,38 +58,33 @@ export class ArrayBufferCursor {
 
     buffer: ArrayBuffer;
 
-    private _size: number = 0;
-    private _dv: DataView;
-    private _uint8_array: Uint8Array;
-    private _utf_16_decoder: TextDecoder;
-    private _utf_16_encoder: TextEncoder;
+    private dv: DataView;
+    private uint8Array: Uint8Array;
+    private utf16Decoder: TextDecoder;
+    private utf16Encoder: TextEncoder;
 
     /**
-     * @param buffer_or_capacity - If an ArrayBuffer is given, writes to the cursor will be reflected in this array buffer and vice versa until a cursor write that requires allocating a new internal buffer happens
-     * @param little_endian - Decides in which byte order multi-byte integers and floats will be interpreted
+     * @param bufferOrCapacity - If an ArrayBuffer is given, writes to the cursor will be reflected in this array buffer and vice versa until a cursor write that requires allocating a new internal buffer happens
+     * @param littleEndian - Decides in which byte order multi-byte integers and floats will be interpreted
      */
-    constructor(buffer_or_capacity: ArrayBuffer | number, little_endian?: boolean) {
-        if (typeof buffer_or_capacity === 'number') {
-            this.buffer = new ArrayBuffer(buffer_or_capacity);
+    constructor(bufferOrCapacity: ArrayBuffer | number, littleEndian?: boolean) {
+        if (typeof bufferOrCapacity === 'number') {
+            this.buffer = new ArrayBuffer(bufferOrCapacity);
             this.size = 0;
-        } else if (buffer_or_capacity instanceof ArrayBuffer) {
-            this.buffer = buffer_or_capacity;
+        } else if (bufferOrCapacity instanceof ArrayBuffer) {
+            this.buffer = bufferOrCapacity;
             this.size = this.buffer.byteLength;
         } else {
             throw new Error('buffer_or_capacity should be an ArrayBuffer or a number.');
         }
 
-        this.little_endian = !!little_endian;
+        this.littleEndian = !!littleEndian;
         this.position = 0;
-        this._dv = new DataView(this.buffer);
-        this._uint8_array = new Uint8Array(this.buffer, 0, this.size);
-        this._utf_16_decoder = little_endian ? UTF_16LE_DECODER : UTF_16BE_DECODER;
-        this._utf_16_encoder = little_endian ? UTF_16LE_ENCODER : UTF_16BE_ENCODER;
+        this.dv = new DataView(this.buffer);
+        this.uint8Array = new Uint8Array(this.buffer, 0, this.size);
+        this.utf16Decoder = littleEndian ? UTF_16LE_DECODER : UTF_16BE_DECODER;
+        this.utf16Encoder = littleEndian ? UTF_16LE_ENCODER : UTF_16BE_ENCODER;
     }
-
-    //
-    // Public methods
-    //
 
     /**
      * Seek forward or backward by a number of bytes.
@@ -95,7 +92,7 @@ export class ArrayBufferCursor {
      * @param offset - if positive, seeks forward by offset bytes, otherwise seeks backward by -offset bytes.
      */
     seek(offset: number) {
-        return this.seek_start(this.position + offset);
+        return this.seekStart(this.position + offset);
     }
 
     /**
@@ -103,7 +100,7 @@ export class ArrayBufferCursor {
      * 
      * @param offset - greater or equal to 0 and smaller than size
      */
-    seek_start(offset: number) {
+    seekStart(offset: number) {
         if (offset < 0 || offset > this.size) {
             throw new Error(`Offset ${offset} is out of bounds.`);
         }
@@ -117,7 +114,7 @@ export class ArrayBufferCursor {
      * 
      * @param offset - greater or equal to 0 and smaller than size
      */
-    seek_end(offset: number) {
+    seekEnd(offset: number) {
         if (offset < 0 || offset > this.size) {
             throw new Error(`Offset ${offset} is out of bounds.`);
         }
@@ -130,14 +127,14 @@ export class ArrayBufferCursor {
      * Reads an unsigned 8-bit integer and increments position by 1.
      */
     u8() {
-        return this._dv.getUint8(this.position++);
+        return this.dv.getUint8(this.position++);
     }
 
     /**
      * Reads an unsigned 16-bit integer and increments position by 2.
      */
     u16() {
-        const r = this._dv.getUint16(this.position, this.little_endian);
+        const r = this.dv.getUint16(this.position, this.littleEndian);
         this.position += 2;
         return r;
     }
@@ -146,7 +143,7 @@ export class ArrayBufferCursor {
      * Reads an unsigned 32-bit integer and increments position by 4.
      */
     u32() {
-        const r = this._dv.getUint32(this.position, this.little_endian);
+        const r = this.dv.getUint32(this.position, this.littleEndian);
         this.position += 4;
         return r;
     }
@@ -155,7 +152,7 @@ export class ArrayBufferCursor {
      * Reads a signed 16-bit integer and increments position by 2.
      */
     i16() {
-        const r = this._dv.getInt16(this.position, this.little_endian);
+        const r = this.dv.getInt16(this.position, this.littleEndian);
         this.position += 2;
         return r;
     }
@@ -164,7 +161,7 @@ export class ArrayBufferCursor {
      * Reads a signed 32-bit integer and increments position by 4.
      */
     i32() {
-        const r = this._dv.getInt32(this.position, this.little_endian);
+        const r = this.dv.getInt32(this.position, this.littleEndian);
         this.position += 4;
         return r;
     }
@@ -173,7 +170,7 @@ export class ArrayBufferCursor {
      * Reads a 32-bit floating point number and increments position by 4.
      */
     f32() {
-        const r = this._dv.getFloat32(this.position, this.little_endian);
+        const r = this.dv.getFloat32(this.position, this.littleEndian);
         this.position += 4;
         return r;
     }
@@ -181,20 +178,20 @@ export class ArrayBufferCursor {
     /**
      * Reads n unsigned 8-bit integers and increments position by n.
      */
-    u8_array(n: number): number[] {
+    u8Array(n: number): number[] {
         const array = [];
-        for (let i = 0; i < n; ++i) array.push(this._dv.getUint8(this.position++));
+        for (let i = 0; i < n; ++i) array.push(this.dv.getUint8(this.position++));
         return array;
     }
 
     /**
      * Reads n unsigned 16-bit integers and increments position by 2n.
      */
-    u16_array(n: number): number[] {
+    u16Array(n: number): number[] {
         const array = [];
 
         for (let i = 0; i < n; ++i) {
-            array.push(this._dv.getUint16(this.position, this.little_endian));
+            array.push(this.dv.getUint16(this.position, this.littleEndian));
             this.position += 2;
         }
 
@@ -214,48 +211,48 @@ export class ArrayBufferCursor {
 
         this.position += size;
         return new ArrayBufferCursor(
-            this.buffer.slice(this.position - size, this.position), this.little_endian);
+            this.buffer.slice(this.position - size, this.position), this.littleEndian);
     }
 
     /**
-     * Consumes up to max_byte_length bytes.
+     * Consumes up to maxByteLength bytes.
      */
-    string_ascii(max_byte_length: number, null_terminated: boolean, drop_remaining: boolean) {
-        const string_length = null_terminated
-            ? this._index_of_u8(0, max_byte_length) - this.position
-            : max_byte_length;
+    stringAscii(maxByteLength: number, nullTerminated: boolean, dropRemaining: boolean) {
+        const string_length = nullTerminated
+            ? this.indexOfU8(0, maxByteLength) - this.position
+            : maxByteLength;
 
         const r = ASCII_DECODER.decode(
             new DataView(this.buffer, this.position, string_length));
-        this.position += drop_remaining
-            ? max_byte_length
-            : Math.min(string_length + 1, max_byte_length);
+        this.position += dropRemaining
+            ? maxByteLength
+            : Math.min(string_length + 1, maxByteLength);
         return r;
     }
 
     /**
-     * Consumes up to max_byte_length bytes.
+     * Consumes up to maxByteLength bytes.
      */
-    string_utf_16(max_byte_length: number, null_terminated: boolean, drop_remaining: boolean) {
-        const string_length = null_terminated
-            ? this._index_of_u16(0, max_byte_length) - this.position
-            : Math.floor(max_byte_length / 2) * 2;
+    stringUtf16(maxByteLength: number, nullTerminated: boolean, dropRemaining: boolean) {
+        const stringLength = nullTerminated
+            ? this.indexOfU16(0, maxByteLength) - this.position
+            : Math.floor(maxByteLength / 2) * 2;
 
-        const r = this._utf_16_decoder.decode(
-            new DataView(this.buffer, this.position, string_length));
-        this.position += drop_remaining
-            ? max_byte_length
-            : Math.min(string_length + 2, max_byte_length);
+        const r = this.utf16Decoder.decode(
+            new DataView(this.buffer, this.position, stringLength));
+        this.position += dropRemaining
+            ? maxByteLength
+            : Math.min(stringLength + 2, maxByteLength);
         return r;
     }
 
     /**
      * Writes an unsigned 8-bit integer and increments position by 1. If necessary, grows the cursor and reallocates the underlying buffer.
      */
-    write_u8(value: number) {
-        this._ensure_capacity(this.position + 1);
+    writeU8(value: number) {
+        this.ensureCapacity(this.position + 1);
 
-        this._dv.setUint8(this.position++, value);
+        this.dv.setUint8(this.position++, value);
 
         if (this.position > this.size) {
             this.size = this.position;
@@ -267,10 +264,10 @@ export class ArrayBufferCursor {
     /**
      * Writes an unsigned 16-bit integer and increments position by 2. If necessary, grows the cursor and reallocates the underlying buffer.
      */
-    write_u16(value: number) {
-        this._ensure_capacity(this.position + 2);
+    writeU16(value: number) {
+        this.ensureCapacity(this.position + 2);
 
-        this._dv.setUint16(this.position, value, this.little_endian);
+        this.dv.setUint16(this.position, value, this.littleEndian);
         this.position += 2;
 
         if (this.position > this.size) {
@@ -283,10 +280,10 @@ export class ArrayBufferCursor {
     /**
      * Writes an unsigned 32-bit integer and increments position by 4. If necessary, grows the cursor and reallocates the underlying buffer.
      */
-    write_u32(value: number) {
-        this._ensure_capacity(this.position + 4);
+    writeU32(value: number) {
+        this.ensureCapacity(this.position + 4);
 
-        this._dv.setUint32(this.position, value, this.little_endian);
+        this.dv.setUint32(this.position, value, this.littleEndian);
         this.position += 4;
 
         if (this.position > this.size) {
@@ -297,12 +294,12 @@ export class ArrayBufferCursor {
     }
 
     /**
-     * Writes an signed 32-bit integer and increments position by 4. If necessary, grows the cursor and reallocates the underlying buffer.
+     * Writes a signed 32-bit integer and increments position by 4. If necessary, grows the cursor and reallocates the underlying buffer.
      */
-    write_i32(value: number) {
-        this._ensure_capacity(this.position + 4);
+    writeI32(value: number) {
+        this.ensureCapacity(this.position + 4);
 
-        this._dv.setInt32(this.position, value, this.little_endian);
+        this.dv.setInt32(this.position, value, this.littleEndian);
         this.position += 4;
 
         if (this.position > this.size) {
@@ -315,10 +312,10 @@ export class ArrayBufferCursor {
     /**
      * Writes a 32-bit floating point number and increments position by 4. If necessary, grows the cursor and reallocates the underlying buffer.
      */
-    write_f32(value: number) {
-        this._ensure_capacity(this.position + 4);
+    writeF32(value: number) {
+        this.ensureCapacity(this.position + 4);
 
-        this._dv.setFloat32(this.position, value, this.little_endian);
+        this.dv.setFloat32(this.position, value, this.littleEndian);
         this.position += 4;
 
         if (this.position > this.size) {
@@ -331,8 +328,8 @@ export class ArrayBufferCursor {
     /**
      * Writes an array of unsigned 8-bit integers and increments position by the array's length. If necessary, grows the cursor and reallocates the underlying buffer.
      */
-    write_u8_array(array: number[]) {
-        this._ensure_capacity(this.position + array.length);
+    writeU8Array(array: number[]) {
+        this.ensureCapacity(this.position + array.length);
 
         new Uint8Array(this.buffer, this.position).set(new Uint8Array(array));
         this.position += array.length;
@@ -347,8 +344,8 @@ export class ArrayBufferCursor {
     /**
      * Writes the contents of other and increments position by the size of other. If necessary, grows the cursor and reallocates the underlying buffer.
      */
-    write_cursor(other: ArrayBufferCursor) {
-        this._ensure_capacity(this.position + other.size);
+    writeCursor(other: ArrayBufferCursor) {
+        this.ensureCapacity(this.position + other.size);
 
         new Uint8Array(this.buffer, this.position).set(new Uint8Array(other.buffer));
         this.position += other.size;
@@ -360,18 +357,18 @@ export class ArrayBufferCursor {
         return this;
     }
 
-    write_string_ascii(str: string, byte_length: number) {
+    writeStringAscii(str: string, byteLength: number) {
         let i = 0;
 
         for (const byte of ASCII_ENCODER.encode(str)) {
-            if (i < byte_length) {
-                this.write_u8(byte);
+            if (i < byteLength) {
+                this.writeU8(byte);
                 ++i;
             }
         }
 
-        while (i < byte_length) {
-            this.write_u8(0);
+        while (i < byteLength) {
+            this.writeU8(0);
             ++i;
         }
     }
@@ -379,54 +376,50 @@ export class ArrayBufferCursor {
     /**
      * @returns a Uint8Array that remains a write-through view of the underlying array buffer until the buffer is reallocated.
      */
-    uint8_array_view(): Uint8Array {
-        return this._uint8_array;
+    uint8ArrayView(): Uint8Array {
+        return this.uint8Array;
     }
 
-    //
-    // Private methods
-    //
+    private indexOfU8(value: number, maxByteLength: number) {
+        const maxPos = Math.min(this.position + maxByteLength, this.size);
 
-    _index_of_u8(value: number, max_byte_length: number) {
-        const max_pos = Math.min(this.position + max_byte_length, this.size);
-
-        for (let i = this.position; i < max_pos; ++i) {
-            if (this._dv.getUint8(i) === value) {
+        for (let i = this.position; i < maxPos; ++i) {
+            if (this.dv.getUint8(i) === value) {
                 return i;
             }
         }
 
-        return this.position + max_byte_length;
+        return this.position + maxByteLength;
     }
 
-    _index_of_u16(value: number, max_byte_length: number) {
-        const max_pos = Math.min(this.position + max_byte_length, this.size);
+    private indexOfU16(value: number, maxByteLength: number) {
+        const maxPos = Math.min(this.position + maxByteLength, this.size);
 
-        for (let i = this.position; i < max_pos; i += 2) {
-            if (this._dv.getUint16(i, this.little_endian) === value) {
+        for (let i = this.position; i < maxPos; i += 2) {
+            if (this.dv.getUint16(i, this.littleEndian) === value) {
                 return i;
             }
         }
 
-        return this.position + max_byte_length;
+        return this.position + maxByteLength;
     }
 
     /**
      *  Increases buffer size if necessary.
      */
-    _ensure_capacity(min_new_size: number) {
-        if (min_new_size > this.capacity) {
-            let new_size = this.capacity || min_new_size;
+    private ensureCapacity(minNewSize: number) {
+        if (minNewSize > this.capacity) {
+            let newSize = this.capacity || minNewSize;
 
             do {
-                new_size *= 2;
-            } while (new_size < min_new_size);
+                newSize *= 2;
+            } while (newSize < minNewSize);
 
-            const new_buffer = new ArrayBuffer(new_size);
-            new Uint8Array(new_buffer).set(new Uint8Array(this.buffer, 0, this.size));
-            this.buffer = new_buffer;
-            this._dv = new DataView(this.buffer);
-            this._uint8_array = new Uint8Array(this.buffer, 0, min_new_size);
+            const newBuffer = new ArrayBuffer(newSize);
+            new Uint8Array(newBuffer).set(new Uint8Array(this.buffer, 0, this.size));
+            this.buffer = newBuffer;
+            this.dv = new DataView(this.buffer);
+            this.uint8Array = new Uint8Array(this.buffer, 0, minNewSize);
         }
     }
 }

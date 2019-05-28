@@ -64,12 +64,12 @@ export function QuestInfoComponent({ quest }: { quest?: Quest }) {
                         </tr>
                         <tr>
                             <td colSpan={2}>
-                                <pre className="bp3-code-block" style={description_style}>{quest.short_description}</pre>
+                                <pre className="bp3-code-block" style={description_style}>{quest.shortDescription}</pre>
                             </td>
                         </tr>
                         <tr>
                             <td colSpan={2}>
-                                <pre className="bp3-code-block" style={description_style}>{quest.long_description}</pre>
+                                <pre className="bp3-code-block" style={description_style}>{quest.longDescription}</pre>
                             </td>
                         </tr>
                     </tbody>

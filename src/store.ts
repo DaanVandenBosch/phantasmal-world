@@ -5,7 +5,7 @@ import { Area, AreaVariant, Quest, VisibleQuestEntity } from './domain';
 function area(id: number, name: string, order: number, variants: number) {
     const area = new Area(id, name, order, []);
     const varis = Array(variants).fill(null).map((_, i) => new AreaVariant(i, area));
-    area.area_variants.splice(0, 0, ...varis);
+    area.areaVariants.splice(0, 0, ...varis);
     return area;
 }
 
@@ -69,29 +69,29 @@ class AreaStore {
         ];
     }
 
-    get_variant(episode: number, area_id: number, variant_id: number) {
+    getVariant(episode: number, areaId: number, variantId: number) {
         if (episode !== 1 && episode !== 2 && episode !== 4)
             throw new Error(`Expected episode to be 1, 2 or 4, got ${episode}.`);
 
-        const area = this.areas[episode].find(a => a.id === area_id);
+        const area = this.areas[episode].find(a => a.id === areaId);
         if (!area)
-            throw new Error(`Area id ${area_id} for episode ${episode} is invalid.`);
+            throw new Error(`Area id ${areaId} for episode ${episode} is invalid.`);
 
-        const area_variant = area.area_variants[variant_id];
-        if (!area_variant)
-            throw new Error(`Area variant id ${variant_id} for area ${area_id} of episode ${episode} is invalid.`);
+        const areaVariant = area.areaVariants[variantId];
+        if (!areaVariant)
+            throw new Error(`Area variant id ${variantId} for area ${areaId} of episode ${episode} is invalid.`);
 
-        return area_variant;
+        return areaVariant;
     }
 }
 
-export const area_store = new AreaStore();
+export const areaStore = new AreaStore();
 
 class ApplicationState {
-    @observable current_model?: Object3D;
-    @observable current_quest?: Quest;
-    @observable current_area?: Area;
-    @observable selected_entity?: VisibleQuestEntity;
+    @observable currentModel?: Object3D;
+    @observable currentQuest?: Quest;
+    @observable currentArea?: Area;
+    @observable selectedEntity?: VisibleQuestEntity;
 }
 
-export const application_state = new ApplicationState();
+export const applicationState = new ApplicationState();

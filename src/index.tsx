@@ -8,5 +8,5 @@ import "@blueprintjs/icons/lib/css/blueprint-icons.css";
 
 ReactDOM.render(
     <ApplicationComponent />,
-    document.getElementById('phantq-root')
+    document.getElementById('phantasmal-world-root')
 );

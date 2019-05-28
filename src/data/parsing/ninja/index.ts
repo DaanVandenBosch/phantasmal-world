@@ -7,42 +7,42 @@ import {
     Vector3
 } from 'three';
 import { ArrayBufferCursor } from '../../ArrayBufferCursor';
-import { parse_nj_model, NjContext } from './nj';
-import { parse_xj_model, XjContext } from './xj';
+import { parseNjModel, NjContext } from './nj';
+import { parseXjModel, XjContext } from './xj';
 
 // TODO:
 // - deal with multiple NJCM chunks
 // - deal with other types of chunks
 
-export function parse_nj(cursor: ArrayBufferCursor): BufferGeometry | undefined {
-    return parse_ninja(cursor, 'nj');
+export function parseNj(cursor: ArrayBufferCursor): BufferGeometry | undefined {
+    return parseNinja(cursor, 'nj');
 }
 
-export function parse_xj(cursor: ArrayBufferCursor): BufferGeometry | undefined {
-    return parse_ninja(cursor, 'xj');
+export function parseXj(cursor: ArrayBufferCursor): BufferGeometry | undefined {
+    return parseNinja(cursor, 'xj');
 }
 
 type Format = 'nj' | 'xj';
 type Context = NjContext | XjContext;
 
-function parse_ninja(cursor: ArrayBufferCursor, format: Format): BufferGeometry | undefined {
-    while (cursor.bytes_left) {
+function parseNinja(cursor: ArrayBufferCursor, format: Format): BufferGeometry | undefined {
+    while (cursor.bytesLeft) {
         // Ninja uses a little endian variant of the IFF format.
         // IFF files contain chunks preceded by an 8-byte header.
         // The header consists of 4 ASCII characters for the "Type ID" and a 32-bit integer specifying the chunk size.
-        const iff_type_id = cursor.string_ascii(4, false, false);
-        const iff_chunk_size = cursor.u32();
+        const iffTypeId = cursor.stringAscii(4, false, false);
+        const iffChunkSize = cursor.u32();
 
-        if (iff_type_id === 'NJCM') {
-            return parse_njcm(cursor.take(iff_chunk_size), format);
+        if (iffTypeId === 'NJCM') {
+            return parseNjcm(cursor.take(iffChunkSize), format);
         } else {
-            cursor.seek(iff_chunk_size);
+            cursor.seek(iffChunkSize);
         }
     }
 }
 
-function parse_njcm(cursor: ArrayBufferCursor, format: Format): BufferGeometry | undefined {
-    if (cursor.bytes_left) {
+function parseNjcm(cursor: ArrayBufferCursor, format: Format): BufferGeometry | undefined {
+    if (cursor.bytesLeft) {
         let context: Context;
 
         if (format === 'nj') {
@@ -50,7 +50,7 @@ function parse_njcm(cursor: ArrayBufferCursor, format: Format): BufferGeometry |
                 format,
                 positions: [],
                 normals: [],
-                cached_chunk_offsets: [],
+                cachedChunkOffsets: [],
                 vertices: []
             };
         } else {
@@ -62,63 +62,63 @@ function parse_njcm(cursor: ArrayBufferCursor, format: Format): BufferGeometry |
             };
         }
 
-        parse_sibling_objects(cursor, new Matrix4(), context);
-        return create_buffer_geometry(context);
+        parseSiblingObjects(cursor, new Matrix4(), context);
+        return createBufferGeometry(context);
     }
 }
 
-function parse_sibling_objects(
+function parseSiblingObjects(
     cursor: ArrayBufferCursor,
-    parent_matrix: Matrix4,
+    parentMatrix: Matrix4,
     context: Context
 ): void {
-    const eval_flags = cursor.u32();
-    const no_translate = (eval_flags & 0b1) !== 0;
-    const no_rotate = (eval_flags & 0b10) !== 0;
-    const no_scale = (eval_flags & 0b100) !== 0;
-    const hidden = (eval_flags & 0b1000) !== 0;
-    const break_child_trace = (eval_flags & 0b10000) !== 0;
-    const zxy_rotation_order = (eval_flags & 0b100000) !== 0;
+    const evalFlags = cursor.u32();
+    const noTranslate = (evalFlags & 0b1) !== 0;
+    const noRotate = (evalFlags & 0b10) !== 0;
+    const noScale = (evalFlags & 0b100) !== 0;
+    const hidden = (evalFlags & 0b1000) !== 0;
+    const breakChildTrace = (evalFlags & 0b10000) !== 0;
+    const zxyRotationOrder = (evalFlags & 0b100000) !== 0;
 
-    const model_offset = cursor.u32();
-    const pos_x = cursor.f32();
-    const pos_y = cursor.f32();
-    const pos_z = cursor.f32();
-    const rotation_x = cursor.i32() * (2 * Math.PI / 0xFFFF);
-    const rotation_y = cursor.i32() * (2 * Math.PI / 0xFFFF);
-    const rotation_z = cursor.i32() * (2 * Math.PI / 0xFFFF);
-    const scale_x = cursor.f32();
-    const scale_y = cursor.f32();
-    const scale_z = cursor.f32();
-    const child_offset = cursor.u32();
-    const sibling_offset = cursor.u32();
+    const modelOffset = cursor.u32();
+    const posX = cursor.f32();
+    const posY = cursor.f32();
+    const posZ = cursor.f32();
+    const rotationX = cursor.i32() * (2 * Math.PI / 0xFFFF);
+    const rotationY = cursor.i32() * (2 * Math.PI / 0xFFFF);
+    const rotationZ = cursor.i32() * (2 * Math.PI / 0xFFFF);
+    const scaleX = cursor.f32();
+    const scaleY = cursor.f32();
+    const scaleZ = cursor.f32();
+    const childOffset = cursor.u32();
+    const siblingOffset = cursor.u32();
 
-    const rotation = new Euler(rotation_x, rotation_y, rotation_z, zxy_rotation_order ? 'ZXY' : 'ZYX');
+    const rotation = new Euler(rotationX, rotationY, rotationZ, zxyRotationOrder ? 'ZXY' : 'ZYX');
     const matrix = new Matrix4()
         .compose(
-            no_translate ? new Vector3() : new Vector3(pos_x, pos_y, pos_z),
-            no_rotate ? new Quaternion(0, 0, 0, 1) : new Quaternion().setFromEuler(rotation),
-            no_scale ? new Vector3(1, 1, 1) : new Vector3(scale_x, scale_y, scale_z)
+            noTranslate ? new Vector3() : new Vector3(posX, posY, posZ),
+            noRotate ? new Quaternion(0, 0, 0, 1) : new Quaternion().setFromEuler(rotation),
+            noScale ? new Vector3(1, 1, 1) : new Vector3(scaleX, scaleY, scaleZ)
         )
-        .premultiply(parent_matrix);
+        .premultiply(parentMatrix);
 
-    if (model_offset && !hidden) {
-        cursor.seek_start(model_offset);
-        parse_model(cursor, matrix, context);
+    if (modelOffset && !hidden) {
+        cursor.seekStart(modelOffset);
+        parseModel(cursor, matrix, context);
     }
 
-    if (child_offset && !break_child_trace) {
-        cursor.seek_start(child_offset);
-        parse_sibling_objects(cursor, matrix, context);
+    if (childOffset && !breakChildTrace) {
+        cursor.seekStart(childOffset);
+        parseSiblingObjects(cursor, matrix, context);
     }
 
-    if (sibling_offset) {
-        cursor.seek_start(sibling_offset);
-        parse_sibling_objects(cursor, parent_matrix, context);
+    if (siblingOffset) {
+        cursor.seekStart(siblingOffset);
+        parseSiblingObjects(cursor, parentMatrix, context);
     }
 }
 
-function create_buffer_geometry(context: Context): BufferGeometry {
+function createBufferGeometry(context: Context): BufferGeometry {
     const geometry = new BufferGeometry();
     geometry.addAttribute('position', new BufferAttribute(new Float32Array(context.positions), 3));
     geometry.addAttribute('normal', new BufferAttribute(new Float32Array(context.normals), 3));
@@ -130,10 +130,10 @@ function create_buffer_geometry(context: Context): BufferGeometry {
     return geometry;
 }
 
-function parse_model(cursor: ArrayBufferCursor, matrix: Matrix4, context: Context): void {
+function parseModel(cursor: ArrayBufferCursor, matrix: Matrix4, context: Context): void {
     if (context.format === 'nj') {
-        parse_nj_model(cursor, matrix, context);
+        parseNjModel(cursor, matrix, context);
     } else {
-        parse_xj_model(cursor, matrix, context);
+        parseXjModel(cursor, matrix, context);
     }
 }

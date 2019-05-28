@@ -9,15 +9,15 @@ export const NPC_COLOR = 0xFF0000;
 export const NPC_HOVER_COLOR = 0xFF3F5F;
 export const NPC_SELECTED_COLOR = 0xFF0054;
 
-export function create_object_mesh(object: QuestObject, sections: Section[], geometry: BufferGeometry): Mesh {
-    return create_mesh(object, sections, geometry, OBJECT_COLOR, 'Object');
+export function createObjectMesh(object: QuestObject, sections: Section[], geometry: BufferGeometry): Mesh {
+    return createMesh(object, sections, geometry, OBJECT_COLOR, 'Object');
 }
 
-export function create_npc_mesh(npc: QuestNpc, sections: Section[], geometry: BufferGeometry): Mesh {
-    return create_mesh(npc, sections, geometry, NPC_COLOR, 'NPC');
+export function createNpcMesh(npc: QuestNpc, sections: Section[], geometry: BufferGeometry): Mesh {
+    return createMesh(npc, sections, geometry, NPC_COLOR, 'NPC');
 }
 
-function create_mesh(
+function createMesh(
     entity: VisibleQuestEntity,
     sections: Section[],
     geometry: BufferGeometry,
@@ -26,39 +26,39 @@ function create_mesh(
 ): Mesh {
     let {x, y, z} = entity.position;
 
-    const section = sections.find(s => s.id === entity.section_id);
+    const section = sections.find(s => s.id === entity.sectionId);
     entity.section = section;
 
     if (section) {
-        const {x: sec_x, y: sec_y, z: sec_z} = section.position;
-        const rot_x = section.cos_y_axis_rotation * x + section.sin_y_axis_rotation * z;
-        const rot_z = -section.sin_y_axis_rotation * x + section.cos_y_axis_rotation * z;
-        x = rot_x + sec_x;
-        y += sec_y;
-        z = rot_z + sec_z;
+        const {x: secX, y: secY, z: secZ} = section.position;
+        const rotX = section.cosYAxisRotation * x + section.sinYAxisRotation * z;
+        const rotZ = -section.sinYAxisRotation * x + section.cosYAxisRotation * z;
+        x = rotX + secX;
+        y += secY;
+        z = rotZ + secZ;
     } else {
-        console.warn(`Section ${entity.section_id} not found.`);
+        console.warn(`Section ${entity.sectionId} not found.`);
     }
 
-    const object_3d = new Mesh(
+    const object3d = new Mesh(
         geometry,
         new MeshLambertMaterial({
             color,
             side: DoubleSide
         })
     );
-    object_3d.name = type;
-    object_3d.userData.entity = entity;
+    object3d.name = type;
+    object3d.userData.entity = entity;
 
     // TODO: dispose autorun?
     autorun(() => {
         const {x, y, z} = entity.position;
-        object_3d.position.set(x, y, z);
+        object3d.position.set(x, y, z);
         const rot = entity.rotation;
-        object_3d.rotation.set(rot.x, rot.y, rot.z);
+        object3d.rotation.set(rot.x, rot.y, rot.z);
     });
 
     entity.position = new Vec3(x, y, z);
 
-    return object_3d;
+    return object3d;
 }

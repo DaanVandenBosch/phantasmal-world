@@ -2,6 +2,8 @@ import { Object3D } from 'three';
 import { computed, observable } from 'mobx';
 import { NpcType } from './NpcType';
 import { ObjectType } from './ObjectType';
+import { DatObject, DatNpc, DatUnknown } from '../data/parsing/dat';
+import { ArrayBufferCursor } from '../data/ArrayBufferCursor';
 
 export { NpcType } from './NpcType';
 export { ObjectType } from './ObjectType';
@@ -35,85 +37,87 @@ export class Vec3 {
 export class Section {
     id: number;
     @observable position: Vec3;
-    @observable y_axis_rotation: number;
+    @observable yAxisRotation: number;
 
-    @computed get sin_y_axis_rotation(): number {
-        return Math.sin(this.y_axis_rotation);
+    @computed get sinYAxisRotation(): number {
+        return Math.sin(this.yAxisRotation);
     }
 
-    @computed get cos_y_axis_rotation(): number {
-        return Math.cos(this.y_axis_rotation);
+    @computed get cosYAxisRotation(): number {
+        return Math.cos(this.yAxisRotation);
     }
 
     constructor(
         id: number,
         position: Vec3,
-        y_axis_rotation: number
+        yAxisRotation: number
     ) {
         if (!Number.isInteger(id) || id < -1)
             throw new Error(`Expected id to be an integer greater than or equal to -1, got ${id}.`);
         if (!position) throw new Error('position is required.');
-        if (typeof y_axis_rotation !== 'number') throw new Error('y_axis_rotation is required.');
+        if (typeof yAxisRotation !== 'number') throw new Error('yAxisRotation is required.');
 
         this.id = id;
         this.position = position;
-        this.y_axis_rotation = y_axis_rotation;
+        this.yAxisRotation = yAxisRotation;
     }
 }
 
 export class Quest {
     @observable name: string;
-    @observable short_description: string;
-    @observable long_description: string;
-    @observable quest_no?: number;
+    @observable shortDescription: string;
+    @observable longDescription: string;
+    @observable questNo?: number;
     @observable episode: number;
-    @observable area_variants: AreaVariant[];
+    @observable areaVariants: AreaVariant[];
     @observable objects: QuestObject[];
     @observable npcs: QuestNpc[];
     /**
      * (Partial) raw DAT data that can't be parsed yet by Phantasmal.
      */
-    dat: any;
+    datUnkowns: DatUnknown[];
     /**
      * (Partial) raw BIN data that can't be parsed yet by Phantasmal.
      */
-    bin: any;
+    binData: ArrayBufferCursor;
 
     constructor(
         name: string,
-        short_description: string,
-        long_description: string,
-        quest_no: number | undefined,
+        shortDescription: string,
+        longDescription: string,
+        questNo: number | undefined,
         episode: number,
-        area_variants: AreaVariant[],
+        areaVariants: AreaVariant[],
         objects: QuestObject[],
         npcs: QuestNpc[],
-        dat: any,
-        bin: any
+        datUnknowns: DatUnknown[],
+        binData: ArrayBufferCursor
     ) {
-        if (quest_no != null && (!Number.isInteger(quest_no) || quest_no < 0)) throw new Error('quest_no should be null or a non-negative integer.');
+        if (questNo != null && (!Number.isInteger(questNo) || questNo < 0)) throw new Error('questNo should be null or a non-negative integer.');
         if (episode !== 1 && episode !== 2 && episode !== 4) throw new Error('episode should be 1, 2 or 4.');
         if (!objects || !(objects instanceof Array)) throw new Error('objs is required.');
         if (!npcs || !(npcs instanceof Array)) throw new Error('npcs is required.');
 
         this.name = name;
-        this.short_description = short_description;
-        this.long_description = long_description;
-        this.quest_no = quest_no;
+        this.shortDescription = shortDescription;
+        this.longDescription = longDescription;
+        this.questNo = questNo;
         this.episode = episode;
-        this.area_variants = area_variants;
+        this.areaVariants = areaVariants;
         this.objects = objects;
         this.npcs = npcs;
-        this.dat = dat;
-        this.bin = bin;
+        this.datUnkowns = datUnknowns;
+        this.binData = binData;
     }
 }
 
 export class VisibleQuestEntity {
-    @observable area_id: number;
+    @observable areaId: number;
 
-    @computed get section_id(): number {
-        return this.section ? this.section.id : this._section_id;
+    private _sectionId: number;
+
+    @computed get sectionId(): number {
+        return this.section ? this.section.id : this._sectionId;
     }
 
     @observable section?: Section;
@@ -128,36 +132,36 @@ export class VisibleQuestEntity {
     /**
      * Section-relative position
      */
-    @computed get section_position(): Vec3 {
+    @computed get sectionPosition(): Vec3 {
         let { x, y, z } = this.position;
 
         if (this.section) {
-            const rel_x = x - this.section.position.x;
-            const rel_y = y - this.section.position.y;
-            const rel_z = z - this.section.position.z;
-            const sin = -this.section.sin_y_axis_rotation;
-            const cos = this.section.cos_y_axis_rotation;
-            const rot_x = cos * rel_x + sin * rel_z;
-            const rot_z = -sin * rel_x + cos * rel_z;
-            x = rot_x;
-            y = rel_y;
-            z = rot_z;
+            const relX = x - this.section.position.x;
+            const relY = y - this.section.position.y;
+            const relZ = z - this.section.position.z;
+            const sin = -this.section.sinYAxisRotation;
+            const cos = this.section.cosYAxisRotation;
+            const rotX = cos * relX + sin * relZ;
+            const rotZ = -sin * relX + cos * relZ;
+            x = rotX;
+            y = relY;
+            z = rotZ;
         }
 
         return new Vec3(x, y, z);
     }
 
-    set section_position(sect_pos: Vec3) {
-        let { x: rel_x, y: rel_y, z: rel_z } = sect_pos;
+    set sectionPosition(sectPos: Vec3) {
+        let { x: relX, y: relY, z: relZ } = sectPos;
 
         if (this.section) {
-            const sin = -this.section.sin_y_axis_rotation;
-            const cos = this.section.cos_y_axis_rotation;
-            const rot_x = cos * rel_x - sin * rel_z;
-            const rot_z = sin * rel_x + cos * rel_z;
-            const x = rot_x + this.section.position.x;
-            const y = rel_y + this.section.position.y;
-            const z = rot_z + this.section.position.z;
+            const sin = -this.section.sinYAxisRotation;
+            const cos = this.section.cosYAxisRotation;
+            const rotX = cos * relX - sin * relZ;
+            const rotZ = sin * relX + cos * relZ;
+            const x = rotX + this.section.position.x;
+            const y = relY + this.section.position.y;
+            const z = rotZ + this.section.position.z;
             this.position = new Vec3(x, y, z);
         }
     }
@@ -165,27 +169,25 @@ export class VisibleQuestEntity {
     object3d?: Object3D;
 
     constructor(
-        area_id: number,
-        section_id: number,
+        areaId: number,
+        sectionId: number,
         position: Vec3,
         rotation: Vec3
     ) {
         if (Object.getPrototypeOf(this) === Object.getPrototypeOf(VisibleQuestEntity))
             throw new Error('Abstract class should not be instantiated directly.');
-        if (!Number.isInteger(area_id) || area_id < 0)
-            throw new Error(`Expected area_id to be a non-negative integer, got ${area_id}.`);
-        if (!Number.isInteger(section_id) || section_id < 0)
-            throw new Error(`Expected section_id to be a non-negative integer, got ${section_id}.`);
+        if (!Number.isInteger(areaId) || areaId < 0)
+            throw new Error(`Expected areaId to be a non-negative integer, got ${areaId}.`);
+        if (!Number.isInteger(sectionId) || sectionId < 0)
+            throw new Error(`Expected sectionId to be a non-negative integer, got ${sectionId}.`);
         if (!position) throw new Error('position is required.');
         if (!rotation) throw new Error('rotation is required.');
 
-        this.area_id = area_id;
-        this._section_id = section_id;
+        this.areaId = areaId;
+        this._sectionId = sectionId;
         this.position = position;
         this.rotation = rotation;
     }
-
-    private _section_id: number;
 }
 
 export class QuestObject extends VisibleQuestEntity {
@@ -193,17 +195,17 @@ export class QuestObject extends VisibleQuestEntity {
     /**
      * The raw data from a DAT file.
      */
-    dat: any;
+    dat: DatObject;
 
     constructor(
-        area_id: number,
-        section_id: number,
+        areaId: number,
+        sectionId: number,
         position: Vec3,
         rotation: Vec3,
         type: ObjectType,
-        dat: any
+        dat: DatObject
     ) {
-        super(area_id, section_id, position, rotation);
+        super(areaId, sectionId, position, rotation);
 
         if (!type) throw new Error('type is required.');
 
@@ -217,17 +219,17 @@ export class QuestNpc extends VisibleQuestEntity {
     /**
      * The raw data from a DAT file.
      */
-    dat: any;
+    dat: DatNpc;
 
     constructor(
-        area_id: number,
-        section_id: number,
+        areaId: number,
+        sectionId: number,
         position: Vec3,
         rotation: Vec3,
         type: NpcType,
-        dat: any
+        dat: DatNpc
     ) {
-        super(area_id, section_id, position, rotation);
+        super(areaId, sectionId, position, rotation);
 
         if (!type) throw new Error('type is required.');
 
@@ -240,18 +242,18 @@ export class Area {
     id: number;
     name: string;
     order: number;
-    area_variants: AreaVariant[];
+    areaVariants: AreaVariant[];
 
-    constructor(id: number, name: string, order: number, area_variants: AreaVariant[]) {
+    constructor(id: number, name: string, order: number, areaVariants: AreaVariant[]) {
         if (!Number.isInteger(id) || id < 0)
             throw new Error(`Expected id to be a non-negative integer, got ${id}.`);
         if (!name) throw new Error('name is required.');
-        if (!area_variants) throw new Error('area_variants is required.');
+        if (!areaVariants) throw new Error('areaVariants is required.');
 
         this.id = id;
         this.name = name;
         this.order = order;
-        this.area_variants = area_variants;
+        this.areaVariants = areaVariants;
     }
 }
 

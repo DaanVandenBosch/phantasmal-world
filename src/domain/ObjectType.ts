@@ -1,17 +1,17 @@
 export class ObjectType {
     id: number;
-    pso_id?: number;
+    psoId?: number;
     name: string;
 
-    constructor(id: number, pso_id: number | undefined, name: string) {
+    constructor(id: number, psoId: number | undefined, name: string) {
         if (!Number.isInteger(id) || id < 1)
             throw new Error(`Expected id to be an integer greater than or equal to 1, got ${id}.`);
-        if (pso_id != null && (!Number.isInteger(pso_id) || pso_id < 0))
-            throw new Error(`Expected pso_id to be null or an integer greater than or equal to 0, got ${pso_id}.`);
+        if (psoId != null && (!Number.isInteger(psoId) || psoId < 0))
+            throw new Error(`Expected psoId to be null or an integer greater than or equal to 0, got ${psoId}.`);
         if (!name) throw new Error('name is required.');
 
         this.id = id;
-        this.pso_id = pso_id;
+        this.psoId = psoId;
         this.name = name;
     }
 
@@ -296,8 +296,8 @@ export class ObjectType {
     static TopOfSaintMillionEgg: ObjectType;
     static UnknownItem961: ObjectType;
 
-    static from_pso_id(pso_id: number): ObjectType {
-        switch (pso_id) {
+    static fromPsoId(psoId: number): ObjectType {
+        switch (psoId) {
             default: return ObjectType.Unknown;
 
             case 0: return ObjectType.PlayerSet;
