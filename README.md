@@ -1,6 +1,6 @@
-# Phantasmal Quest Editor
+# Phantasmal World
 
-Phantasmal Quest Editor is an editor for Phantasy Star Online quests. This project is in a very early stage of development.
+Phantasmal World is a suite of tools for Phantasy Star Online. This project is in a very early stage of development.
 
 ## For Developers
 
