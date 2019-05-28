@@ -1,0 +1,38 @@
+.ApplicationComponent {
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+}
+
+.ApplicationComponent-heading {
+    font-size: 22px !important;
+}
+
+.ApplicationComponent-beta {
+    color: #f55656;
+    font-weight: bold;
+    margin-left: 2;
+}
+
+.ApplicationComponent-file-upload {
+    display: inline-block;
+    width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    word-wrap: normal;
+}
+
+.ApplicationComponent-main {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+}
+
+.ApplicationComponent-main div:nth-child(2) {
+    flex: 1;
+}
