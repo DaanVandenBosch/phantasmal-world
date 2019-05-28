@@ -2,13 +2,13 @@ import * as fs from 'fs';
 import { ArrayBufferCursor } from '../ArrayBufferCursor';
 import * as prs from '../compression/prs';
 import { parse_quest, write_quest_qst } from './quest';
-import { ObjectType } from '../../domain';
+import { ObjectType, Quest } from '../../domain';
 import { walk_qst_files } from '../../../test/src/utils';
 
 test('parse Towards the Future', () => {
     const buffer = fs.readFileSync('test/resources/quest118_e.qst').buffer;
     const cursor = new ArrayBufferCursor(buffer, true);
-    const quest = parse_quest(cursor);
+    const quest = parse_quest(cursor)!;
 
     expect(quest.name).toBe('Towards the Future');
     expect(quest.short_description).toBe('Challenge the\nnew simulator.');
@@ -29,8 +29,8 @@ test('parse Towards the Future', () => {
 test('parse_quest and write_quest_qst', () => {
     const buffer = fs.readFileSync('test/resources/tethealla_v0.143_quests/solo/ep1/02.qst').buffer;
     const cursor = new ArrayBufferCursor(buffer, true);
-    const orig_quest = parse_quest(cursor);
-    const test_quest = parse_quest(write_quest_qst(orig_quest, '02.qst'));
+    const orig_quest = parse_quest(cursor)!;
+    const test_quest = parse_quest(write_quest_qst(orig_quest, '02.qst'))!;
 
     expect(test_quest.name).toBe(orig_quest.name);
     expect(test_quest.short_description).toBe(orig_quest.short_description);
@@ -44,7 +44,7 @@ test('parse_quest and write_quest_qst', () => {
         .toEqual(testable_area_variants(orig_quest));
 });
 
-function testable_objects(quest) {
+function testable_objects(quest: Quest) {
     return quest.objects.map(object => [
         object.area_id,
         object.section_id,
@@ -53,7 +53,7 @@ function testable_objects(quest) {
     ]);
 }
 
-function testable_npcs(quest) {
+function testable_npcs(quest: Quest) {
     return quest.npcs.map(npc => [
         npc.area_id,
         npc.section_id,
@@ -62,6 +62,6 @@ function testable_npcs(quest) {
     ]);
 }
 
-function testable_area_variants(quest) {
+function testable_area_variants(quest: Quest) {
     return quest.area_variants.map(av => [av.area.id, av.id]);
 }

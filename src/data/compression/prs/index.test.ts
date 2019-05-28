@@ -1,5 +1,5 @@
 import { ArrayBufferCursor } from '../../ArrayBufferCursor';
-import { compress, decompress } from '../prs';
+import { compress, decompress } from '.';
 
 function test_with_bytes(bytes: number[], expected_compressed_size: number) {
     const cursor = new ArrayBufferCursor(new Uint8Array(bytes).buffer, true);
@@ -46,7 +46,7 @@ test('PRS compression and decompression, typical case', () => {
     const pattern = [0, 0, 2, 0, 3, 0, 5, 0, 0, 0, 7, 9, 11, 13, 0, 0];
     const arrays = new Array(100)
         .fill(pattern)
-        .map(array => array.map(e => e + prng.next_integer(0, 10)));
+        .map(array => array.map((e: number) => e + prng.next_integer(0, 10)));
     const flattened_array = [].concat.apply([], arrays);
 
     // Compression factor: 0.834

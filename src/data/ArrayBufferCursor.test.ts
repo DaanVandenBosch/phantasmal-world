@@ -45,31 +45,31 @@ function test_integer_read(method_name: string) {
         let test_number_1 = 0;
         let test_number_2 = 0;
         // The "false" arrays are for big endian tests and the "true" arrays for little endian tests.
-        const test_arrays = { false: [], true: [] };
+        const test_arrays: { [index: string]: number[] } = { false: [], true: [] };
 
         for (let i = 1; i <= bytes; ++i) {
             // Generates numbers of the form 0x010203...
             test_number_1 <<= 8;
             test_number_1 |= i;
-            test_arrays[false].push(i);
-            test_arrays[true].unshift(i);
+            test_arrays['false'].push(i);
+            test_arrays['true'].unshift(i);
         }
 
         for (let i = bytes + 1; i <= 2 * bytes; ++i) {
             test_number_2 <<= 8;
             test_number_2 |= i;
-            test_arrays[false].push(i);
-            test_arrays[true].splice(bytes, 0, i);
+            test_arrays['false'].push(i);
+            test_arrays['true'].splice(bytes, 0, i);
         }
 
         for (const little_endian of [false, true]) {
             const cursor = new ArrayBufferCursor(
-                new Uint8Array(test_arrays[little_endian]).buffer, little_endian);
+                new Uint8Array(test_arrays[String(little_endian)]).buffer, little_endian);
 
-            expect(cursor[method_name]()).toBe(test_number_1);
+            expect((cursor as any)[method_name]()).toBe(test_number_1);
             expect(cursor.position).toBe(bytes);
 
-            expect(cursor[method_name]()).toBe(test_number_2);
+            expect((cursor as any)[method_name]()).toBe(test_number_2);
             expect(cursor.position).toBe(2 * bytes);
         }
     });
@@ -109,25 +109,25 @@ function test_string_read(method_name: string, char_size: number) {
                 new Uint8Array(char_array_copy).buffer, little_endian);
 
             cursor.seek_start(char_size);
-            expect(cursor[method_name](4 * char_size, true, true)).toBe('AB');
+            expect((cursor as any)[method_name](4 * char_size, true, true)).toBe('AB');
             expect(cursor.position).toBe(5 * char_size);
             cursor.seek_start(char_size);
-            expect(cursor[method_name](2 * char_size, true, true)).toBe('AB');
+            expect((cursor as any)[method_name](2 * char_size, true, true)).toBe('AB');
             expect(cursor.position).toBe(3 * char_size);
 
             cursor.seek_start(char_size);
-            expect(cursor[method_name](4 * char_size, true, false)).toBe('AB');
+            expect((cursor as any)[method_name](4 * char_size, true, false)).toBe('AB');
             expect(cursor.position).toBe(4 * char_size);
             cursor.seek_start(char_size);
-            expect(cursor[method_name](2 * char_size, true, false)).toBe('AB');
+            expect((cursor as any)[method_name](2 * char_size, true, false)).toBe('AB');
             expect(cursor.position).toBe(3 * char_size);
 
             cursor.seek_start(char_size);
-            expect(cursor[method_name](4 * char_size, false, true)).toBe('AB\0ÿ');
+            expect((cursor as any)[method_name](4 * char_size, false, true)).toBe('AB\0ÿ');
             expect(cursor.position).toBe(5 * char_size);
 
             cursor.seek_start(char_size);
-            expect(cursor[method_name](4 * char_size, false, false)).toBe('AB\0ÿ');
+            expect((cursor as any)[method_name](4 * char_size, false, false)).toBe('AB\0ÿ');
             expect(cursor.position).toBe(5 * char_size);
         }
     });
@@ -142,8 +142,8 @@ function test_integer_write(method_name: string) {
         let test_number_1 = 0;
         let test_number_2 = 0;
         // The "false" arrays are for big endian tests and the "true" arrays for little endian tests.
-        const test_arrays_1 = { false: [], true: [] };
-        const test_arrays_2 = { false: [], true: [] };
+        const test_arrays_1: { [index: string]: number[] } = { false: [], true: [] };
+        const test_arrays_2: { [index: string]: number[] } = { false: [], true: [] };
 
         for (let i = 1; i <= bytes; ++i) {
             // Generates numbers of the form 0x010203...
@@ -151,26 +151,26 @@ function test_integer_write(method_name: string) {
             test_number_1 |= i;
             test_number_2 <<= 8;
             test_number_2 |= i + bytes;
-            test_arrays_1[false].push(i);
-            test_arrays_1[true].unshift(i);
-            test_arrays_2[false].push(i + bytes);
-            test_arrays_2[true].unshift(i + bytes);
+            test_arrays_1['false'].push(i);
+            test_arrays_1['true'].unshift(i);
+            test_arrays_2['false'].push(i + bytes);
+            test_arrays_2['true'].unshift(i + bytes);
         }
 
         for (const little_endian of [false, true]) {
             const cursor = new ArrayBufferCursor(0, little_endian);
-            cursor[method_name](test_number_1);
+            (cursor as any)[method_name](test_number_1);
 
             expect(cursor.position).toBe(bytes);
             expect(cursor.seek_start(0).u8_array(bytes))
-                .toEqual(test_arrays_1[little_endian]);
+                .toEqual(test_arrays_1[String(little_endian)]);
             expect(cursor.position).toBe(bytes);
 
-            cursor[method_name](test_number_2);
+            (cursor as any)[method_name](test_number_2);
 
             expect(cursor.position).toBe(2 * bytes);
             expect(cursor.seek_start(0).u8_array(2 * bytes))
-                .toEqual(test_arrays_1[little_endian].concat(test_arrays_2[little_endian]));
+                .toEqual(test_arrays_1[String(little_endian)].concat(test_arrays_2[String(little_endian)]));
         }
     });
 }

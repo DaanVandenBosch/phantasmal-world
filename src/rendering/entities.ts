@@ -1,4 +1,4 @@
-import { BufferGeometry, CylinderGeometry, DoubleSide, Mesh, MeshLambertMaterial } from 'three';
+import { BufferGeometry, DoubleSide, Mesh, MeshLambertMaterial } from 'three';
 import { autorun } from 'mobx';
 import { Vec3, VisibleQuestEntity, QuestNpc, QuestObject, Section } from '../domain';
 
@@ -16,8 +16,6 @@ export function create_object_mesh(object: QuestObject, sections: Section[], geo
 export function create_npc_mesh(npc: QuestNpc, sections: Section[], geometry: BufferGeometry): Mesh {
     return create_mesh(npc, sections, geometry, NPC_COLOR, 'NPC');
 }
-
-const cylinder = new CylinderGeometry(3, 3, 20).translate(0, 10, 0);
 
 function create_mesh(
     entity: VisibleQuestEntity,
@@ -43,7 +41,7 @@ function create_mesh(
     }
 
     const object_3d = new Mesh(
-        geometry || cylinder,
+        geometry,
         new MeshLambertMaterial({
             color,
             side: DoubleSide
