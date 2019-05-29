@@ -26,8 +26,8 @@ import {
     NPC_HOVER_COLOR,
     NPC_SELECTED_COLOR
 } from './entities';
-import { setSelectedEntity } from '../actions/appState';
-import { setPositionOnVisibleQuestEntity as setPositionAndSectionOnVisibleQuestEntity } from '../actions/visibleQuestEntities';
+import { setSelectedEntity } from '../actions/quest-editor/questEditor';
+import { setPositionOnVisibleQuestEntity as setPositionAndSectionOnVisibleQuestEntity } from '../actions/quest-editor/visibleQuestEntities';
 
 const OrbitControls = OrbitControlsCreator(THREE);
 
@@ -41,7 +41,7 @@ interface PickEntityResult {
 }
 
 /**
- * Renders one quest area at a time.
+ * Renders a quest area or an NJ/XJ model.
  */
 export class Renderer {
     private renderer = new WebGLRenderer({ antialias: true });

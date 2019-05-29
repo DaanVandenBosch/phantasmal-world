@@ -1,6 +1,6 @@
-import { writeQuestQst } from '../data/parsing/quest';
-import { VisibleQuestEntity, Quest } from '../domain';
-import { appStateStore } from '../stores/AppStateStore';
+import { writeQuestQst } from '../../data/parsing/quest';
+import { VisibleQuestEntity, Quest } from '../../domain';
+import { questEditorStore } from '../../stores/QuestEditorStore';
 import { action } from 'mobx';
 import { Object3D } from 'three';
 
@@ -9,7 +9,7 @@ import { Object3D } from 'three';
  */
 export const setModel = action('setModel', (model?: Object3D) => {
     resetModelAndQuestState();
-    appStateStore.currentModel = model;
+    questEditorStore.currentModel = model;
 });
 
 /**
@@ -17,39 +17,39 @@ export const setModel = action('setModel', (model?: Object3D) => {
  */
 export const setQuest = action('setQuest', (quest?: Quest) => {
     resetModelAndQuestState();
-    appStateStore.currentQuest = quest;
+    questEditorStore.currentQuest = quest;
 
     if (quest && quest.areaVariants.length) {
-        appStateStore.currentArea = quest.areaVariants[0].area;
+        questEditorStore.currentArea = quest.areaVariants[0].area;
     }
 });
 
 function resetModelAndQuestState() {
-    appStateStore.currentQuest = undefined;
-    appStateStore.currentArea = undefined;
-    appStateStore.selectedEntity = undefined;
-    appStateStore.currentModel = undefined;
+    questEditorStore.currentQuest = undefined;
+    questEditorStore.currentArea = undefined;
+    questEditorStore.selectedEntity = undefined;
+    questEditorStore.currentModel = undefined;
 }
 
 export const setSelectedEntity = action('setSelectedEntity', (entity?: VisibleQuestEntity) => {
-    appStateStore.selectedEntity = entity;
+    questEditorStore.selectedEntity = entity;
 });
 
 export const setCurrentAreaId = action('setCurrentAreaId', (areaId?: number) => {
-    appStateStore.selectedEntity = undefined;
+    questEditorStore.selectedEntity = undefined;
 
     if (areaId == null) {
-        appStateStore.currentArea = undefined;
-    } else if (appStateStore.currentQuest) {
-        const areaVariant = appStateStore.currentQuest.areaVariants.find(
+        questEditorStore.currentArea = undefined;
+    } else if (questEditorStore.currentQuest) {
+        const areaVariant = questEditorStore.currentQuest.areaVariants.find(
             variant => variant.area.id === areaId);
-        appStateStore.currentArea = areaVariant && areaVariant.area;
+        questEditorStore.currentArea = areaVariant && areaVariant.area;
     }
 });
 
 export const saveCurrentQuestToFile = (fileName: string) => {
-    if (appStateStore.currentQuest) {
-        const cursor = writeQuestQst(appStateStore.currentQuest, fileName);
+    if (questEditorStore.currentQuest) {
+        const cursor = writeQuestQst(questEditorStore.currentQuest, fileName);
 
         if (!fileName.endsWith('.qst')) {
             fileName += '.qst';

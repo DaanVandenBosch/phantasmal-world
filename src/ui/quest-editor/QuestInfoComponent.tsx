@@ -1,5 +1,5 @@
 import React from 'react';
-import { NpcType, Quest } from '../domain';
+import { NpcType, Quest } from '../../domain';
 import { Pre } from '@blueprintjs/core';
 import './QuestInfoComponent.css';
 

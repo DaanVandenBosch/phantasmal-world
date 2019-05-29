@@ -1,7 +1,7 @@
 import React from 'react';
 import { Object3D } from 'three';
-import { Area, Quest } from '../domain';
-import { Renderer } from '../rendering/Renderer';
+import { Area, Quest } from '../../domain';
+import { Renderer } from '../../rendering/Renderer';
 
 interface Props {
     quest?: Quest;

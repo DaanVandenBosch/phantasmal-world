@@ -1,7 +1,7 @@
 import { NumericInput } from '@blueprintjs/core';
 import { observer } from 'mobx-react';
 import React from 'react';
-import { QuestNpc, QuestObject, VisibleQuestEntity } from '../domain';
+import { QuestNpc, QuestObject, VisibleQuestEntity } from '../../domain';
 import './EntityInfoComponent.css';
 
 interface Props {

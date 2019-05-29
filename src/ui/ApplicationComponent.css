@@ -8,8 +8,8 @@
     right: 0;
 }
 
-.ApplicationComponent-heading {
-    font-size: 22px !important;
+div.ApplicationComponent .ApplicationComponent-heading {
+    font-size: 22px;
 }
 
 .ApplicationComponent-beta {
@@ -18,16 +18,13 @@
     margin-left: 2;
 }
 
-.ApplicationComponent-button-bar > * {
-    margin-right: 10px;
-}
-
 .ApplicationComponent-main {
     flex: 1;
     display: flex;
+    align-items: stretch;
     overflow: hidden;
 }
 
-.ApplicationComponent-main div:nth-child(2) {
+.ApplicationComponent-main>* {
     flex: 1;
 }

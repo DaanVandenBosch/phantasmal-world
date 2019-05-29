@@ -1,0 +1,18 @@
+.QuestEditorComponent {
+    display: flex;
+    flex-direction: column;
+}
+
+.QuestEditorComponent-main {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+}
+
+.QuestEditorComponent-button-bar>* {
+    margin-right: 10px;
+}
+
+.QuestEditorComponent-main div:nth-child(2) {
+    flex: 1;
+}
