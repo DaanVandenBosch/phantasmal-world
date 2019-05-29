@@ -1,8 +1,7 @@
 import React from 'react';
 import { Object3D } from 'three';
-import { entitySelected } from '../actions';
+import { Area, Quest } from '../domain';
 import { Renderer } from '../rendering/Renderer';
-import { Area, Quest, VisibleQuestEntity } from '../domain';
 
 interface Props {
     quest?: Quest;
@@ -10,17 +9,8 @@ interface Props {
     model?: Object3D;
 }
 
-export class Area3DComponent extends React.Component<Props> {
-    private renderer: Renderer;
-
-    constructor(props: Props) {
-        super(props);
-
-        // renderer has to be assigned here so that it happens after onSelect is assigned.
-        this.renderer = new Renderer({
-            onSelect: this.onSelect
-        });
-    }
+export class RendererComponent extends React.Component<Props> {
+    private renderer = new Renderer();
 
     render() {
         return <div style={{ overflow: 'hidden' }} ref={this.modifyDom} />;
@@ -49,10 +39,6 @@ export class Area3DComponent extends React.Component<Props> {
     private modifyDom = (div: HTMLDivElement) => {
         this.renderer.setSize(div.clientWidth, div.clientHeight);
         div.appendChild(this.renderer.domElement);
-    }
-
-    private onSelect = (entity?: VisibleQuestEntity) => {
-        entitySelected(entity);
     }
 
     private onResize = () => {

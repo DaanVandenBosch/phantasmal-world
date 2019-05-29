@@ -18,7 +18,7 @@ interface ParseQstResult {
  * Low level parsing function for .qst files.
  * Can only read the Blue Burst format.
  */
-export function parseQst(cursor: ArrayBufferCursor): ParseQstResult | null {
+export function parseQst(cursor: ArrayBufferCursor): ParseQstResult | undefined {
     // A .qst file contains two 88-byte headers that describe the embedded .dat and .bin files.
     let version = 'PC';
 
@@ -60,7 +60,7 @@ export function parseQst(cursor: ArrayBufferCursor): ParseQstResult | null {
             files
         };
     } else {
-        return null;
+        console.error(`Can't parse ${version} QST files.`);
     }
 }
 
@@ -206,6 +206,10 @@ function parseFiles(cursor: ArrayBufferCursor, expectedSizes: Map<string, number
 
 function writeFileHeaders(cursor: ArrayBufferCursor, files: SimpleQstContainedFile[]): void {
     for (const file of files) {
+        if (file.name.length > 16) {
+            throw Error(`File ${file.name} has a name longer than 16 characters.`);
+        }
+
         cursor.writeU16(88); // Header size.
         cursor.writeU16(0x44); // Magic number.
         cursor.writeU16(file.questNo || 0);
@@ -227,6 +231,10 @@ function writeFileHeaders(cursor: ArrayBufferCursor, files: SimpleQstContainedFi
                 : file.name.slice(0, dotPos) + '_j' + file.name.slice(dotPos);
         } else {
             fileName2 = file.name2;
+        }
+
+        if (fileName2.length > 24) {
+            throw Error(`File ${file.name} has a fileName2 length (${fileName2}) longer than 24 characters.`);
         }
 
         cursor.writeStringAscii(fileName2, 24);

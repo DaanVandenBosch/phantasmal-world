@@ -1,31 +1,32 @@
-import React, { ChangeEvent, KeyboardEvent } from 'react';
-import { observer } from 'mobx-react';
 import { Button, Dialog, Intent } from '@blueprintjs/core';
-import { applicationState } from '../store';
-import { currentAreaIdChanged, loadFile, saveCurrentQuestToFile } from '../actions';
-import { Area3DComponent } from './Area3DComponent';
+import { observer } from 'mobx-react';
+import React, { ChangeEvent, KeyboardEvent } from 'react';
+import { saveCurrentQuestToFile, setCurrentAreaId } from '../actions/appState';
+import { loadFile } from '../actions/loadFile';
+import { appStateStore } from '../stores/AppStateStore';
+import './ApplicationComponent.css';
+import { RendererComponent } from './RendererComponent';
 import { EntityInfoComponent } from './EntityInfoComponent';
 import { QuestInfoComponent } from './QuestInfoComponent';
-import './ApplicationComponent.css';
 
 @observer
 export class ApplicationComponent extends React.Component<{}, {
     filename?: string,
-    save_dialog_open: boolean,
-    save_dialog_filename: string
+    saveDialogOpen: boolean,
+    saveDialogFilename: string
 }> {
     state = {
         filename: undefined,
-        save_dialog_open: false,
-        save_dialog_filename: 'Untitled'
+        saveDialogOpen: false,
+        saveDialogFilename: 'Untitled',
     };
 
     render() {
-        const quest = applicationState.currentQuest;
-        const model = applicationState.currentModel;
+        const quest = appStateStore.currentQuest;
+        const model = appStateStore.currentModel;
         const areas = quest ? Array.from(quest.areaVariants).map(a => a.area) : undefined;
-        const area = applicationState.currentArea;
-        const area_id = area ? String(area.id) : undefined;
+        const area = appStateStore.currentArea;
+        const areaId = area ? String(area.id) : undefined;
 
         return (
             <div className="ApplicationComponent bp3-app bp3-dark">
@@ -39,7 +40,7 @@ export class ApplicationComponent extends React.Component<{}, {
                             <input
                                 type="file"
                                 accept=".nj, .qst, .xj"
-                                onChange={this._on_file_change} />
+                                onChange={this.onFileChange} />
                             <span className="bp3-file-upload-input">
                                 <span className="ApplicationComponent-file-upload">
                                     {this.state.filename || 'Choose file...'}
@@ -50,8 +51,8 @@ export class ApplicationComponent extends React.Component<{}, {
                             ? (
                                 <div className="bp3-select" style={{ marginLeft: 10 }}>
                                     <select
-                                        onChange={this._on_area_select_change}
-                                        defaultValue={area_id}>
+                                        onChange={this.onAreaSelectChange}
+                                        defaultValue={areaId}>
                                         {areas.map(area =>
                                             <option key={area.id} value={area.id}>{area.name}</option>)}
                                     </select>
@@ -62,26 +63,26 @@ export class ApplicationComponent extends React.Component<{}, {
                                 text="Save as..."
                                 icon="floppy-disk"
                                 style={{ marginLeft: 10 }}
-                                onClick={this._on_save_as_click} />
+                                onClick={this.onSaveAsClick} />
                             : null}
                     </div>
                 </nav>
                 <div className="ApplicationComponent-main">
                     <QuestInfoComponent
                         quest={quest} />
-                    <Area3DComponent
+                    <RendererComponent
                         quest={quest}
                         area={area}
                         model={model} />
-                    <EntityInfoComponent entity={applicationState.selectedEntity} />
+                    <EntityInfoComponent entity={appStateStore.selectedEntity} />
                 </div>
                 <Dialog
                     title="Save as..."
                     icon="floppy-disk"
                     className="bp3-dark"
                     style={{ width: 360 }}
-                    isOpen={this.state.save_dialog_open}
-                    onClose={this._on_save_dialog_close}>
+                    isOpen={this.state.saveDialogOpen}
+                    onClose={this.onSaveDialogClose}>
                     <div className="bp3-dialog-body">
                         <label className="bp3-label bp3-inline">
                             Name:
@@ -89,9 +90,11 @@ export class ApplicationComponent extends React.Component<{}, {
                                 autoFocus={true}
                                 className="bp3-input"
                                 style={{ width: 200, margin: '0 10px 0 10px' }}
-                                value={this.state.save_dialog_filename}
-                                onChange={this._on_save_dialog_name_change}
-                                onKeyUp={this._on_save_dialog_name_key_up} />
+                                value={this.state.saveDialogFilename}
+                                maxLength={12}
+                                onChange={this.onSaveDialogNameChange}
+                                onKeyUp={this.onSaveDialogNameKeyUp}
+                            />
                             (.qst)
                         </label>
                     </div>
@@ -100,7 +103,7 @@ export class ApplicationComponent extends React.Component<{}, {
                             <Button
                                 text="Save"
                                 style={{ marginLeft: 10 }}
-                                onClick={this._on_save_dialog_save_click}
+                                onClick={this.onSaveDialogSaveClick}
                                 intent={Intent.PRIMARY} />
                         </div>
                     </div>
@@ -109,7 +112,7 @@ export class ApplicationComponent extends React.Component<{}, {
         );
     }
 
-    private _on_file_change = (e: ChangeEvent<HTMLInputElement>) => {
+    private onFileChange = (e: ChangeEvent<HTMLInputElement>) => {
         if (e.currentTarget.files) {
             const file = e.currentTarget.files[0];
 
@@ -122,37 +125,37 @@ export class ApplicationComponent extends React.Component<{}, {
         }
     }
 
-    private _on_area_select_change = (e: ChangeEvent<HTMLSelectElement>) => {
-        const area_id = parseInt(e.currentTarget.value, 10);
-        currentAreaIdChanged(area_id);
+    private onAreaSelectChange = (e: ChangeEvent<HTMLSelectElement>) => {
+        const areaId = parseInt(e.currentTarget.value, 10);
+        setCurrentAreaId(areaId);
     }
 
-    private _on_save_as_click = () => {
+    private onSaveAsClick = () => {
         let name = this.state.filename || 'Untitled';
         name = name.endsWith('.qst') ? name.slice(0, -4) : name;
 
         this.setState({
-            save_dialog_open: true,
-            save_dialog_filename: name
+            saveDialogOpen: true,
+            saveDialogFilename: name
         });
     }
 
-    private _on_save_dialog_name_change = (e: ChangeEvent<HTMLInputElement>) => {
-        this.setState({ save_dialog_filename: e.currentTarget.value });
+    private onSaveDialogNameChange = (e: ChangeEvent<HTMLInputElement>) => {
+        this.setState({ saveDialogFilename: e.currentTarget.value });
     }
 
-    private _on_save_dialog_name_key_up = (e: KeyboardEvent<HTMLInputElement>) => {
+    private onSaveDialogNameKeyUp = (e: KeyboardEvent<HTMLInputElement>) => {
         if (e.key === 'Enter') {
-            this._on_save_dialog_save_click();
+            this.onSaveDialogSaveClick();
         }
     }
 
-    private _on_save_dialog_save_click = () => {
-        saveCurrentQuestToFile(this.state.save_dialog_filename);
-        this.setState({ save_dialog_open: false });
+    private onSaveDialogSaveClick = () => {
+        saveCurrentQuestToFile(this.state.saveDialogFilename);
+        this.setState({ saveDialogOpen: false });
     }
 
-    private _on_save_dialog_close = () => {
-        this.setState({ save_dialog_open: false });
+    private onSaveDialogClose = () => {
+        this.setState({ saveDialogOpen: false });
     }
 }

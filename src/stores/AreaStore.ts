@@ -1,6 +1,4 @@
-import { observable } from 'mobx';
-import { Object3D } from 'three';
-import { Area, AreaVariant, Quest, VisibleQuestEntity } from './domain';
+import { Area, AreaVariant } from '../domain';
 
 function area(id: number, name: string, order: number, variants: number) {
     const area = new Area(id, name, order, []);
@@ -86,12 +84,3 @@ class AreaStore {
 }
 
 export const areaStore = new AreaStore();
-
-class ApplicationState {
-    @observable currentModel?: Object3D;
-    @observable currentQuest?: Quest;
-    @observable currentArea?: Area;
-    @observable selectedEntity?: VisibleQuestEntity;
-}
-
-export const applicationState = new ApplicationState();

@@ -26,10 +26,10 @@ import {
     NPC_HOVER_COLOR,
     NPC_SELECTED_COLOR
 } from './entities';
+import { setSelectedEntity } from '../actions/appState';
+import { setPositionOnVisibleQuestEntity as setPositionAndSectionOnVisibleQuestEntity } from '../actions/visibleQuestEntities';
 
 const OrbitControls = OrbitControlsCreator(THREE);
-
-type OnSelectCallback = (visibleQuestEntity: VisibleQuestEntity | undefined) => void;
 
 interface PickEntityResult {
     object: Mesh;
@@ -58,14 +58,11 @@ export class Renderer {
     private renderGeometry = new Object3D();
     private objGeometry = new Object3D();
     private npcGeometry = new Object3D();
-    private onSelect?: OnSelectCallback;
     private hoveredData?: PickEntityResult;
     private selectedData?: PickEntityResult;
     private model?: Object3D;
 
-    constructor({ onSelect }: { onSelect: OnSelectCallback }) {
-        this.onSelect = onSelect;
-
+    constructor() {
         this.renderer.domElement.addEventListener(
             'mousedown', this.onMouseDown);
         this.renderer.domElement.addEventListener(
@@ -266,8 +263,8 @@ export class Renderer {
             ? oldSelectedData.object !== data.object
             : oldSelectedData !== data;
 
-        if (selectionChanged && this.onSelect) {
-            this.onSelect(data && data.entity);
+        if (selectionChanged) {
+            setSelectedEntity(data && data.entity);
         }
     }
 
@@ -282,7 +279,7 @@ export class Renderer {
         const pointerPos = this.pointerPosToDeviceCoords(e);
 
         if (this.selectedData && this.selectedData.manipulating) {
-            if (e.button === 0) {
+            if (e.buttons === 1) {
                 // User is dragging a selected entity.
                 const data = this.selectedData;
 
@@ -302,27 +299,23 @@ export class Renderer {
                         const yDelta = y - data.entity.position.y;
                         data.dragY += yDelta;
                         data.dragAdjust.y -= yDelta;
-                        data.entity.position = new Vec3(
+                        setPositionAndSectionOnVisibleQuestEntity(data.entity, new Vec3(
                             data.entity.position.x,
                             y,
                             data.entity.position.z
-                        );
+                        ));
                     }
                 } else {
                     // Horizontal movement accross terrain.
                     // Cast ray adjusted for dragging entities.
-                    const { intersection: terrain, section } = this.pickTerrain(pointerPos, data);
+                    const { intersection, section } = this.pickTerrain(pointerPos, data);
 
-                    if (terrain) {
-                        data.entity.position = new Vec3(
-                            terrain.point.x,
-                            terrain.point.y + data.dragY,
-                            terrain.point.z
-                        );
-
-                        if (section) {
-                            data.entity.section = section;
-                        }
+                    if (intersection) {
+                        setPositionAndSectionOnVisibleQuestEntity(data.entity, new Vec3(
+                            intersection.point.x,
+                            intersection.point.y + data.dragY,
+                            intersection.point.z
+                        ), section);
                     } else {
                         // If the cursor is not over any terrain, we translate the entity accross the horizontal plane in which the entity's origin lies.
                         this.raycaster.setFromCamera(pointerPos, this.camera);
@@ -334,11 +327,11 @@ export class Renderer {
                         const intersectionPoint = new Vector3();
 
                         if (ray.intersectPlane(plane, intersectionPoint)) {
-                            data.entity.position = new Vec3(
+                            setPositionAndSectionOnVisibleQuestEntity(data.entity, new Vec3(
                                 intersectionPoint.x + data.grabOffset.x,
                                 data.entity.position.y,
                                 intersectionPoint.z + data.grabOffset.z
-                            );
+                            ));
                         }
                     }
                 }
@@ -423,9 +416,9 @@ export class Renderer {
         return {
             object: intersection.object as Mesh,
             entity,
-            grabOffset: grabOffset,
-            dragAdjust: dragAdjust,
-            dragY: dragY,
+            grabOffset,
+            dragAdjust,
+            dragY,
             manipulating: false
         };
     }

@@ -12,18 +12,18 @@ import {
     ObjectType,
     NpcType
 } from '../../domain';
-import { areaStore } from '../../store';
+import { areaStore } from '../../stores/AreaStore';
 
 /**
  * High level parsing function that delegates to lower level parsing functions.
  * 
  * Always delegates to parseQst at the moment.
  */
-export function parseQuest(cursor: ArrayBufferCursor): Quest | null {
+export function parseQuest(cursor: ArrayBufferCursor): Quest | undefined {
     const qst = parseQst(cursor);
 
     if (!qst) {
-        return null;
+        return;
     }
 
     let datFile = null;
@@ -39,8 +39,14 @@ export function parseQuest(cursor: ArrayBufferCursor): Quest | null {
 
     // TODO: deal with missing/multiple DAT or BIN file.
 
-    if (!datFile || !binFile) {
-        return null;
+    if (!datFile) {
+        console.error('File contains no DAT file.');
+        return;
+    }
+
+    if (!binFile) {
+        console.error('File contains no BIN file.');
+        return;
     }
 
     const dat = parseDat(prs.decompress(datFile.data));
