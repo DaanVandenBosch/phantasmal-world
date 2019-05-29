@@ -4,14 +4,14 @@ import { NumericInput } from '@blueprintjs/core';
 import { VisibleQuestEntity, QuestObject, QuestNpc } from '../domain';
 import './EntityInfoComponent.css';
 
-const container_style: CSSProperties = {
+const containerStyle: CSSProperties = {
     width: 200,
     padding: 10,
     display: 'flex',
     flexDirection: 'column'
 };
 
-const table_style: CSSProperties = {
+const tableStyle: CSSProperties = {
     borderCollapse: 'collapse'
 };
 
@@ -27,7 +27,7 @@ export class EntityInfoComponent extends React.Component<Props, any> {
             y: null,
             z: null,
         },
-        section_position: {
+        sectionPosition: {
             x: null,
             y: null,
             z: null,
@@ -36,7 +36,7 @@ export class EntityInfoComponent extends React.Component<Props, any> {
 
     componentWillReceiveProps({ entity }: Props) {
         if (this.props.entity !== entity) {
-            this._clear_position_state();
+            this.clearPositionState();
         }
     }
 
@@ -44,7 +44,7 @@ export class EntityInfoComponent extends React.Component<Props, any> {
         const entity = this.props.entity;
 
         if (entity) {
-            const section_id = entity.section ? entity.section.id : entity.sectionId;
+            const sectionId = entity.section ? entity.section.id : entity.sectionId;
             let name = null;
 
             if (entity instanceof QuestObject) {
@@ -62,12 +62,12 @@ export class EntityInfoComponent extends React.Component<Props, any> {
             }
 
             return (
-                <div style={container_style}>
-                    <table style={table_style}>
+                <div style={containerStyle}>
+                    <table style={tableStyle}>
                         <tbody>
                             {name}
                             <tr>
-                                <td>Section: </td><td>{section_id}</td>
+                                <td>Section: </td><td>{sectionId}</td>
                             </tr>
                             <tr>
                                 <td colSpan={2}>World position: </td>
@@ -76,9 +76,9 @@ export class EntityInfoComponent extends React.Component<Props, any> {
                                 <td colSpan={2}>
                                     <table>
                                         <tbody>
-                                            {this._coord_row('position', 'x')}
-                                            {this._coord_row('position', 'y')}
-                                            {this._coord_row('position', 'z')}
+                                            {this.coordRow('position', 'x')}
+                                            {this.coordRow('position', 'y')}
+                                            {this.coordRow('position', 'z')}
                                         </tbody>
                                     </table>
                                 </td>
@@ -90,9 +90,9 @@ export class EntityInfoComponent extends React.Component<Props, any> {
                                 <td colSpan={2}>
                                     <table>
                                         <tbody>
-                                            {this._coord_row('section_position', 'x')}
-                                            {this._coord_row('section_position', 'y')}
-                                            {this._coord_row('section_position', 'z')}
+                                            {this.coordRow('sectionPosition', 'x')}
+                                            {this.coordRow('sectionPosition', 'y')}
+                                            {this.coordRow('sectionPosition', 'z')}
                                         </tbody>
                                     </table>
                                 </td>
@@ -102,18 +102,18 @@ export class EntityInfoComponent extends React.Component<Props, any> {
                 </div>
             );
         } else {
-            return <div style={container_style} />;
+            return <div style={containerStyle} />;
         }
     }
 
-    private _coord_row(pos_type: string, coord: string) {
+    private coordRow(posType: string, coord: string) {
         if (this.props.entity) {
             const entity = this.props.entity;
-            const value_str = (this.state as any)[pos_type][coord];
-            const value = value_str
-                ? value_str
+            const valueStr = (this.state as any)[posType][coord];
+            const value = valueStr
+                ? valueStr
                 // Do multiplication, rounding, division and || with zero to avoid numbers close to zero flickering between 0 and -0.
-                : (Math.round((entity as any)[pos_type][coord] * 10000) / 10000 || 0).toFixed(4);
+                : (Math.round((entity as any)[posType][coord] * 10000) / 10000 || 0).toFixed(4);
             return (
                 <tr>
                     <td>{coord.toUpperCase()}: </td>
@@ -122,8 +122,8 @@ export class EntityInfoComponent extends React.Component<Props, any> {
                             value={value}
                             className="pt-fill EntityInfoComponent-coord"
                             buttonPosition="none"
-                            onValueChange={(this._pos_change as any)[pos_type][coord]}
-                            onBlur={this._coord_input_blurred} />
+                            onValueChange={(this.posChange as any)[posType][coord]}
+                            onBlur={this.coordInputBlurred} />
                     </td>
                 </tr>
             );
@@ -132,61 +132,61 @@ export class EntityInfoComponent extends React.Component<Props, any> {
         }
     }
 
-    private _pos_change = {
+    private posChange = {
         position: {
-            x: (value: number, value_str: string) => {
-                this._pos_changed('position', 'x', value, value_str);
+            x: (value: number, valueStr: string) => {
+                this.posChanged('position', 'x', value, valueStr);
             },
-            y: (value: number, value_str: string) => {
-                this._pos_changed('position', 'y', value, value_str);
+            y: (value: number, valueStr: string) => {
+                this.posChanged('position', 'y', value, valueStr);
             },
-            z: (value: number, value_str: string) => {
-                this._pos_changed('position', 'z', value, value_str);
+            z: (value: number, valueStr: string) => {
+                this.posChanged('position', 'z', value, valueStr);
             }
         },
-        section_position: {
-            x: (value: number, value_str: string) => {
-                this._pos_changed('section_position', 'x', value, value_str);
+        sectionPosition: {
+            x: (value: number, valueStr: string) => {
+                this.posChanged('sectionPosition', 'x', value, valueStr);
             },
-            y: (value: number, value_str: string) => {
-                this._pos_changed('section_position', 'y', value, value_str);
+            y: (value: number, valueStr: string) => {
+                this.posChanged('sectionPosition', 'y', value, valueStr);
             },
-            z: (value: number, value_str: string) => {
-                this._pos_changed('section_position', 'z', value, value_str);
+            z: (value: number, valueStr: string) => {
+                this.posChanged('sectionPosition', 'z', value, valueStr);
             }
         }
     };
 
-    private _pos_changed(pos_type: string, coord: string, value: number, value_str: string) {
+    private posChanged(posType: string, coord: string, value: number, valueStr: string) {
         if (!isNaN(value)) {
             const entity = this.props.entity as any;
 
             if (entity) {
-                const v = entity[pos_type].clone();
+                const v = entity[posType].clone();
                 v[coord] = value;
-                entity[pos_type] = v;
+                entity[posType] = v;
             }
         }
 
         this.setState({
-            [pos_type]: {
-                [coord]: value_str
+            [posType]: {
+                [coord]: valueStr
             }
         });
     }
 
-    private _coord_input_blurred = () => {
-        this._clear_position_state();
+    private coordInputBlurred = () => {
+        this.clearPositionState();
     }
 
-    private _clear_position_state() {
+    private clearPositionState() {
         this.setState({
             position: {
                 x: null,
                 y: null,
                 z: null,
             },
-            section_position: {
+            sectionPosition: {
                 x: null,
                 y: null,
                 z: null,

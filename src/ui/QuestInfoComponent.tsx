@@ -1,92 +1,92 @@
 import React, { CSSProperties } from 'react';
 import { NpcType, Quest } from '../domain';
 
-const container_style: CSSProperties = {
+const containerStyle: CSSProperties = {
     width: 280,
     padding: 10,
     display: 'flex',
     flexDirection: 'column'
 };
 
-const table_style: CSSProperties = {
+const tableStyle: CSSProperties = {
     borderCollapse: 'collapse',
     width: '100%'
 };
 
-const table_header_style: CSSProperties = {
+const tableHeaderStyle: CSSProperties = {
     textAlign: 'right',
     paddingRight: 5
 };
 
-const description_style: CSSProperties = {
+const descriptionStyle: CSSProperties = {
     whiteSpace: 'pre-wrap',
     margin: '3px 0 3px 0'
 };
 
-const npc_counts_container_style: CSSProperties = {
+const npcCountsContainerStyle: CSSProperties = {
     overflow: 'auto'
 };
 
 export function QuestInfoComponent({ quest }: { quest?: Quest }) {
     if (quest) {
         const episode = quest.episode === 4 ? 'IV' : (quest.episode === 2 ? 'II' : 'I');
-        const npc_counts = new Map<NpcType, number>();
+        const npcCounts = new Map<NpcType, number>();
 
         for (const npc of quest.npcs) {
-            const val = npc_counts.get(npc.type) || 0;
-            npc_counts.set(npc.type, val + 1);
+            const val = npcCounts.get(npc.type) || 0;
+            npcCounts.set(npc.type, val + 1);
         }
 
-        const extra_canadines = (npc_counts.get(NpcType.Canane) || 0) * 8;
+        const extraCanadines = (npcCounts.get(NpcType.Canane) || 0) * 8;
 
         // Sort by type ID.
-        const sorted_npc_counts = [...npc_counts].sort((a, b) => a[0].id - b[0].id);
+        const sortedNpcCounts = [...npcCounts].sort((a, b) => a[0].id - b[0].id);
 
-        const npc_count_rows = sorted_npc_counts.map(([npc_type, count]) => {
-            const extra = npc_type === NpcType.Canadine ? extra_canadines : 0;
+        const npcCountRows = sortedNpcCounts.map(([npcType, count]) => {
+            const extra = npcType === NpcType.Canadine ? extraCanadines : 0;
             return (
-                <tr key={npc_type.id}>
-                    <td>{npc_type.name}:</td>
+                <tr key={npcType.id}>
+                    <td>{npcType.name}:</td>
                     <td>{count + extra}</td>
                 </tr>
             );
         });
 
         return (
-            <div style={container_style}>
-                <table style={table_style}>
+            <div style={containerStyle}>
+                <table style={tableStyle}>
                     <tbody>
                         <tr>
-                            <th style={table_header_style}>Name:</th><td>{quest.name}</td>
+                            <th style={tableHeaderStyle}>Name:</th><td>{quest.name}</td>
                         </tr>
                         <tr>
-                            <th style={table_header_style}>Episode:</th><td>{episode}</td>
+                            <th style={tableHeaderStyle}>Episode:</th><td>{episode}</td>
                         </tr>
                         <tr>
                             <td colSpan={2}>
-                                <pre className="bp3-code-block" style={description_style}>{quest.shortDescription}</pre>
+                                <pre className="bp3-code-block" style={descriptionStyle}>{quest.shortDescription}</pre>
                             </td>
                         </tr>
                         <tr>
                             <td colSpan={2}>
-                                <pre className="bp3-code-block" style={description_style}>{quest.longDescription}</pre>
+                                <pre className="bp3-code-block" style={descriptionStyle}>{quest.longDescription}</pre>
                             </td>
                         </tr>
                     </tbody>
                 </table>
-                <div style={npc_counts_container_style}>
-                    <table style={table_style}>
+                <div style={npcCountsContainerStyle}>
+                    <table style={tableStyle}>
                         <thead>
                             <tr><th>NPC Counts</th></tr>
                         </thead>
                         <tbody>
-                            {npc_count_rows}
+                            {npcCountRows}
                         </tbody>
                     </table>
                 </div>
             </div>
         );
     } else {
-        return <div style={container_style} />;
+        return <div style={containerStyle} />;
     }
 }

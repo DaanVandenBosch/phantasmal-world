@@ -29,16 +29,14 @@ import {
 
 const OrbitControls = OrbitControlsCreator(THREE);
 
-interface QuestRendererParams {
-    on_select: (visible_quest_entity: VisibleQuestEntity | undefined) => void;
-};
+type OnSelectCallback = (visibleQuestEntity: VisibleQuestEntity | undefined) => void;
 
-interface IntersectionData {
+interface PickEntityResult {
     object: Mesh;
     entity: VisibleQuestEntity;
-    grab_offset: Vector3;
-    drag_adjust: Vector3;
-    drag_y: number;
+    grabOffset: Vector3;
+    dragAdjust: Vector3;
+    dragY: number;
     manipulating: boolean;
 }
 
@@ -46,84 +44,84 @@ interface IntersectionData {
  * Renders one quest area at a time.
  */
 export class Renderer {
-    private _renderer = new WebGLRenderer({ antialias: true });
-    private _camera: PerspectiveCamera;
-    private _controls: any;
-    private _raycaster = new Raycaster();
-    private _scene = new Scene();
-    private _quest?: Quest;
-    private _quest_entities_loaded = false;
-    private _area?: Area;
-    private _objs: Map<number, QuestObject[]> = new Map(); // Objs grouped by area id
-    private _npcs: Map<number, QuestNpc[]> = new Map(); // Npcs grouped by area id
-    private _collision_geometry = new Object3D();
-    private _render_geometry = new Object3D();
-    private _obj_geometry = new Object3D();
-    private _npc_geometry = new Object3D();
-    private _on_select?: (visible_quest_entity: VisibleQuestEntity | undefined) => void;
-    private _hovered_data?: IntersectionData;
-    private _selected_data?: IntersectionData;
-    private _model?: Object3D;
+    private renderer = new WebGLRenderer({ antialias: true });
+    private camera: PerspectiveCamera;
+    private controls: any;
+    private raycaster = new Raycaster();
+    private scene = new Scene();
+    private quest?: Quest;
+    private questEntitiesLoaded = false;
+    private area?: Area;
+    private objs: Map<number, QuestObject[]> = new Map(); // Objs grouped by area id
+    private npcs: Map<number, QuestNpc[]> = new Map(); // Npcs grouped by area id
+    private collisionGeometry = new Object3D();
+    private renderGeometry = new Object3D();
+    private objGeometry = new Object3D();
+    private npcGeometry = new Object3D();
+    private onSelect?: OnSelectCallback;
+    private hoveredData?: PickEntityResult;
+    private selectedData?: PickEntityResult;
+    private model?: Object3D;
 
-    constructor({ on_select }: QuestRendererParams) {
-        this._on_select = on_select;
+    constructor({ onSelect }: { onSelect: OnSelectCallback }) {
+        this.onSelect = onSelect;
 
-        this._renderer.domElement.addEventListener(
-            'mousedown', this._on_mouse_down);
-        this._renderer.domElement.addEventListener(
-            'mouseup', this._on_mouse_up);
-        this._renderer.domElement.addEventListener(
-            'mousemove', this._on_mouse_move);
+        this.renderer.domElement.addEventListener(
+            'mousedown', this.onMouseDown);
+        this.renderer.domElement.addEventListener(
+            'mouseup', this.onMouseUp);
+        this.renderer.domElement.addEventListener(
+            'mousemove', this.onMouseMove);
 
-        this._camera = new PerspectiveCamera(75, 1, 0.1, 5000);
-        this._controls = new OrbitControls(
-            this._camera, this._renderer.domElement);
-        this._controls.mouseButtons.ORBIT = MOUSE.RIGHT;
-        this._controls.mouseButtons.PAN = MOUSE.LEFT;
+        this.camera = new PerspectiveCamera(75, 1, 0.1, 5000);
+        this.controls = new OrbitControls(
+            this.camera, this.renderer.domElement);
+        this.controls.mouseButtons.ORBIT = MOUSE.RIGHT;
+        this.controls.mouseButtons.PAN = MOUSE.LEFT;
 
-        this._scene.background = new Color(0x151C21);
-        this._scene.add(new HemisphereLight(0xffffff, 0x505050, 1));
-        this._scene.add(this._obj_geometry);
-        this._scene.add(this._npc_geometry);
+        this.scene.background = new Color(0x151C21);
+        this.scene.add(new HemisphereLight(0xffffff, 0x505050, 1));
+        this.scene.add(this.objGeometry);
+        this.scene.add(this.npcGeometry);
 
-        requestAnimationFrame(this._render_loop);
+        requestAnimationFrame(this.renderLoop);
     }
 
-    get dom_element(): HTMLElement {
-        return this._renderer.domElement;
+    get domElement(): HTMLElement {
+        return this.renderer.domElement;
     }
 
-    set_size(width: number, height: number) {
-        this._renderer.setSize(width, height);
-        this._camera.aspect = width / height;
-        this._camera.updateProjectionMatrix();
+    setSize(width: number, height: number) {
+        this.renderer.setSize(width, height);
+        this.camera.aspect = width / height;
+        this.camera.updateProjectionMatrix();
     }
 
-    set_quest_and_area(quest?: Quest, area?: Area) {
+    setQuestAndArea(quest?: Quest, area?: Area) {
         let update = false;
 
-        if (this._area !== area) {
-            this._area = area;
+        if (this.area !== area) {
+            this.area = area;
             update = true;
         }
 
-        if (this._quest !== quest) {
-            this._quest = quest;
+        if (this.quest !== quest) {
+            this.quest = quest;
 
-            this._objs.clear();
-            this._npcs.clear();
+            this.objs.clear();
+            this.npcs.clear();
 
             if (quest) {
                 for (const obj of quest.objects) {
-                    const array = this._objs.get(obj.areaId) || [];
+                    const array = this.objs.get(obj.areaId) || [];
                     array.push(obj);
-                    this._objs.set(obj.areaId, array);
+                    this.objs.set(obj.areaId, array);
                 }
 
                 for (const npc of quest.npcs) {
-                    const array = this._npcs.get(npc.areaId) || [];
+                    const array = this.npcs.get(npc.areaId) || [];
                     array.push(npc);
-                    this._npcs.set(npc.areaId, array);
+                    this.npcs.set(npc.areaId, array);
                 }
             }
 
@@ -131,179 +129,179 @@ export class Renderer {
         }
 
         if (update) {
-            this._update_geometry();
+            this.updateGeometry();
         }
     }
 
     /**
      * Renders a generic Object3D.
      */
-    set_model(model?: Object3D) {
-        if (this._model !== model) {
-            if (this._model) {
-                this._scene.remove(this._model);
+    setModel(model?: Object3D) {
+        if (this.model !== model) {
+            if (this.model) {
+                this.scene.remove(this.model);
             }
 
             if (model) {
-                this.set_quest_and_area(undefined, undefined);
-                this._scene.add(model);
-                this._reset_camera();
+                this.setQuestAndArea(undefined, undefined);
+                this.scene.add(model);
+                this.resetCamera();
             }
 
-            this._model = model;
+            this.model = model;
         }
     }
 
-    private _update_geometry() {
-        this._scene.remove(this._obj_geometry);
-        this._scene.remove(this._npc_geometry);
-        this._obj_geometry = new Object3D();
-        this._npc_geometry = new Object3D();
-        this._scene.add(this._obj_geometry);
-        this._scene.add(this._npc_geometry);
-        this._quest_entities_loaded = false;
+    private updateGeometry() {
+        this.scene.remove(this.objGeometry);
+        this.scene.remove(this.npcGeometry);
+        this.objGeometry = new Object3D();
+        this.npcGeometry = new Object3D();
+        this.scene.add(this.objGeometry);
+        this.scene.add(this.npcGeometry);
+        this.questEntitiesLoaded = false;
 
-        this._scene.remove(this._collision_geometry);
+        this.scene.remove(this.collisionGeometry);
 
-        if (this._quest && this._area) {
-            const episode = this._quest.episode;
-            const area_id = this._area.id;
-            const variant = this._quest.areaVariants.find(v => v.area.id === area_id);
-            const variant_id = (variant && variant.id) || 0;
+        if (this.quest && this.area) {
+            const episode = this.quest.episode;
+            const areaId = this.area.id;
+            const variant = this.quest.areaVariants.find(v => v.area.id === areaId);
+            const variantId = (variant && variant.id) || 0;
 
-            getAreaCollisionGeometry(episode, area_id, variant_id).then(geometry => {
-                if (this._quest && this._area) {
-                    this.set_model(undefined);
-                    this._scene.remove(this._collision_geometry);
+            getAreaCollisionGeometry(episode, areaId, variantId).then(geometry => {
+                if (this.quest && this.area) {
+                    this.setModel(undefined);
+                    this.scene.remove(this.collisionGeometry);
 
-                    this._reset_camera();
+                    this.resetCamera();
 
-                    this._collision_geometry = geometry;
-                    this._scene.add(geometry);
+                    this.collisionGeometry = geometry;
+                    this.scene.add(geometry);
                 }
             });
 
-            getAreaRenderGeometry(episode, area_id, variant_id).then(geometry => {
-                if (this._quest && this._area) {
-                    this._render_geometry = geometry;
+            getAreaRenderGeometry(episode, areaId, variantId).then(geometry => {
+                if (this.quest && this.area) {
+                    this.renderGeometry = geometry;
                 }
             });
         }
     }
 
-    private _reset_camera() {
-        this._controls.reset();
-        this._camera.position.set(0, 800, 700);
-        this._camera.lookAt(new Vector3(0, 0, 0));
+    private resetCamera() {
+        this.controls.reset();
+        this.camera.position.set(0, 800, 700);
+        this.camera.lookAt(new Vector3(0, 0, 0));
     }
 
-    private _render_loop = () => {
-        this._controls.update();
-        this._add_loaded_entities();
-        this._renderer.render(this._scene, this._camera);
-        requestAnimationFrame(this._render_loop);
+    private renderLoop = () => {
+        this.controls.update();
+        this.addLoadedEntities();
+        this.renderer.render(this.scene, this.camera);
+        requestAnimationFrame(this.renderLoop);
     }
 
-    private _add_loaded_entities() {
-        if (this._quest && this._area && !this._quest_entities_loaded) {
+    private addLoadedEntities() {
+        if (this.quest && this.area && !this.questEntitiesLoaded) {
             let loaded = true;
 
-            for (const object of this._quest.objects) {
-                if (object.areaId === this._area.id) {
+            for (const object of this.quest.objects) {
+                if (object.areaId === this.area.id) {
                     if (object.object3d) {
-                        this._obj_geometry.add(object.object3d);
+                        this.objGeometry.add(object.object3d);
                     } else {
                         loaded = false;
                     }
                 }
             }
 
-            for (const npc of this._quest.npcs) {
-                if (npc.areaId === this._area.id) {
+            for (const npc of this.quest.npcs) {
+                if (npc.areaId === this.area.id) {
                     if (npc.object3d) {
-                        this._npc_geometry.add(npc.object3d);
+                        this.npcGeometry.add(npc.object3d);
                     } else {
                         loaded = false;
                     }
                 }
             }
 
-            this._quest_entities_loaded = loaded;
+            this.questEntitiesLoaded = loaded;
         }
     }
 
-    private _on_mouse_down = (e: MouseEvent) => {
-        const old_selected_data = this._selected_data;
-        const data = this._pick_entity(
-            this._pointer_pos_to_device_coords(e));
+    private onMouseDown = (e: MouseEvent) => {
+        const oldSelectedData = this.selectedData;
+        const data = this.pickEntity(
+            this.pointerPosToDeviceCoords(e));
 
         // Did we pick a different object than the previously hovered over 3D object?
-        if (this._hovered_data && (!data || data.object !== this._hovered_data.object)) {
-            (this._hovered_data.object.material as MeshLambertMaterial).color.set(
-                this._get_color(this._hovered_data.entity, 'normal'));
+        if (this.hoveredData && (!data || data.object !== this.hoveredData.object)) {
+            (this.hoveredData.object.material as MeshLambertMaterial).color.set(
+                this.getColor(this.hoveredData.entity, 'normal'));
         }
 
         // Did we pick a different object than the previously selected 3D object?
-        if (this._selected_data && (!data || data.object !== this._selected_data.object)) {
-            (this._selected_data.object.material as MeshLambertMaterial).color.set(
-                this._get_color(this._selected_data.entity, 'normal'));
-            this._selected_data.manipulating = false;
+        if (this.selectedData && (!data || data.object !== this.selectedData.object)) {
+            (this.selectedData.object.material as MeshLambertMaterial).color.set(
+                this.getColor(this.selectedData.entity, 'normal'));
+            this.selectedData.manipulating = false;
         }
 
         if (data) {
             // User selected an entity.
-            (data.object.material as MeshLambertMaterial).color.set(this._get_color(data.entity, 'selected'));
+            (data.object.material as MeshLambertMaterial).color.set(this.getColor(data.entity, 'selected'));
             data.manipulating = true;
-            this._hovered_data = data;
-            this._selected_data = data;
-            this._controls.enabled = false;
+            this.hoveredData = data;
+            this.selectedData = data;
+            this.controls.enabled = false;
         } else {
             // User clicked on terrain or outside of area.
-            this._hovered_data = undefined;
-            this._selected_data = undefined;
-            this._controls.enabled = true;
+            this.hoveredData = undefined;
+            this.selectedData = undefined;
+            this.controls.enabled = true;
         }
 
-        const selection_changed = old_selected_data && data
-            ? old_selected_data.object !== data.object
-            : old_selected_data !== data;
+        const selectionChanged = oldSelectedData && data
+            ? oldSelectedData.object !== data.object
+            : oldSelectedData !== data;
 
-        if (selection_changed && this._on_select) {
-            this._on_select(data && data.entity);
-        }
-    }
-
-    private _on_mouse_up = () => {
-        if (this._selected_data) {
-            this._selected_data.manipulating = false;
-            this._controls.enabled = true;
+        if (selectionChanged && this.onSelect) {
+            this.onSelect(data && data.entity);
         }
     }
 
-    private _on_mouse_move = (e: MouseEvent) => {
-        const pointer_pos = this._pointer_pos_to_device_coords(e);
+    private onMouseUp = () => {
+        if (this.selectedData) {
+            this.selectedData.manipulating = false;
+            this.controls.enabled = true;
+        }
+    }
 
-        if (this._selected_data && this._selected_data.manipulating) {
+    private onMouseMove = (e: MouseEvent) => {
+        const pointerPos = this.pointerPosToDeviceCoords(e);
+
+        if (this.selectedData && this.selectedData.manipulating) {
             if (e.button === 0) {
                 // User is dragging a selected entity.
-                const data = this._selected_data;
+                const data = this.selectedData;
 
                 if (e.shiftKey) {
                     // Vertical movement.
                     // We intersect with a plane that's oriented toward the camera and that's coplanar with the point where the entity was grabbed.
-                    this._raycaster.setFromCamera(pointer_pos, this._camera);
-                    const ray = this._raycaster.ray;
-                    const negative_world_dir = this._camera.getWorldDirection(new Vector3()).negate();
+                    this.raycaster.setFromCamera(pointerPos, this.camera);
+                    const ray = this.raycaster.ray;
+                    const negativeWorldDir = this.camera.getWorldDirection(new Vector3()).negate();
                     const plane = new Plane().setFromNormalAndCoplanarPoint(
-                        new Vector3(negative_world_dir.x, 0, negative_world_dir.z).normalize(),
-                        data.object.position.sub(data.grab_offset));
-                    const intersection_point = new Vector3();
+                        new Vector3(negativeWorldDir.x, 0, negativeWorldDir.z).normalize(),
+                        data.object.position.sub(data.grabOffset));
+                    const intersectionPoint = new Vector3();
 
-                    if (ray.intersectPlane(plane, intersection_point)) {
-                        const y = intersection_point.y + data.grab_offset.y;
-                        const y_delta = y - data.entity.position.y;
-                        data.drag_y += y_delta;
-                        data.drag_adjust.y -= y_delta;
+                    if (ray.intersectPlane(plane, intersectionPoint)) {
+                        const y = intersectionPoint.y + data.grabOffset.y;
+                        const yDelta = y - data.entity.position.y;
+                        data.dragY += yDelta;
+                        data.dragAdjust.y -= yDelta;
                         data.entity.position = new Vec3(
                             data.entity.position.x,
                             y,
@@ -313,12 +311,12 @@ export class Renderer {
                 } else {
                     // Horizontal movement accross terrain.
                     // Cast ray adjusted for dragging entities.
-                    const { intersection: terrain, section } = this._pick_terrain(pointer_pos, data);
+                    const { intersection: terrain, section } = this.pickTerrain(pointerPos, data);
 
                     if (terrain) {
                         data.entity.position = new Vec3(
                             terrain.point.x,
-                            terrain.point.y + data.drag_y,
+                            terrain.point.y + data.dragY,
                             terrain.point.z
                         );
 
@@ -327,19 +325,19 @@ export class Renderer {
                         }
                     } else {
                         // If the cursor is not over any terrain, we translate the entity accross the horizontal plane in which the entity's origin lies.
-                        this._raycaster.setFromCamera(pointer_pos, this._camera);
-                        const ray = this._raycaster.ray;
-                        // ray.origin.add(data.drag_adjust);
+                        this.raycaster.setFromCamera(pointerPos, this.camera);
+                        const ray = this.raycaster.ray;
+                        // ray.origin.add(data.dragAdjust);
                         const plane = new Plane(
                             new Vector3(0, 1, 0),
-                            -data.entity.position.y + data.grab_offset.y);
-                        const intersection_point = new Vector3();
+                            -data.entity.position.y + data.grabOffset.y);
+                        const intersectionPoint = new Vector3();
 
-                        if (ray.intersectPlane(plane, intersection_point)) {
+                        if (ray.intersectPlane(plane, intersectionPoint)) {
                             data.entity.position = new Vec3(
-                                intersection_point.x + data.grab_offset.x,
+                                intersectionPoint.x + data.grabOffset.x,
                                 data.entity.position.y,
-                                intersection_point.z + data.grab_offset.z
+                                intersectionPoint.z + data.grabOffset.z
                             );
                         }
                     }
@@ -347,95 +345,99 @@ export class Renderer {
             }
         } else {
             // User is hovering.
-            const old_data = this._hovered_data;
-            const data = this._pick_entity(pointer_pos);
+            const oldData = this.hoveredData;
+            const data = this.pickEntity(pointerPos);
 
-            if (old_data && (!data || data.object !== old_data.object)) {
-                if (!this._selected_data || old_data.object !== this._selected_data.object) {
-                    (old_data.object.material as MeshLambertMaterial).color.set(
-                        this._get_color(old_data.entity, 'normal'));
+            if (oldData && (!data || data.object !== oldData.object)) {
+                if (!this.selectedData || oldData.object !== this.selectedData.object) {
+                    (oldData.object.material as MeshLambertMaterial).color.set(
+                        this.getColor(oldData.entity, 'normal'));
                 }
 
-                this._hovered_data = undefined;
+                this.hoveredData = undefined;
             }
 
-            if (data && (!old_data || data.object !== old_data.object)) {
-                if (!this._selected_data || data.object !== this._selected_data.object) {
+            if (data && (!oldData || data.object !== oldData.object)) {
+                if (!this.selectedData || data.object !== this.selectedData.object) {
                     (data.object.material as MeshLambertMaterial).color.set(
-                        this._get_color(data.entity, 'hover'));
+                        this.getColor(data.entity, 'hover'));
                 }
 
-                this._hovered_data = data;
+                this.hoveredData = data;
             }
         }
     }
 
-    private _pointer_pos_to_device_coords(e: MouseEvent) {
+    private pointerPosToDeviceCoords(e: MouseEvent) {
         const coords = new Vector2();
-        this._renderer.getSize(coords);
+        this.renderer.getSize(coords);
         coords.width = e.offsetX / coords.width * 2 - 1;
         coords.height = e.offsetY / coords.height * -2 + 1;
         return coords;
     }
 
     /**
-     * @param pointer_pos - pointer coordinates in normalized device space
+     * @param pointerPos - pointer coordinates in normalized device space
      */
-    private _pick_entity(pointer_pos: Vector2): IntersectionData | undefined {
+    private pickEntity(pointerPos: Vector2): PickEntityResult | undefined {
         // Find the nearest object and NPC under the pointer.
-        this._raycaster.setFromCamera(pointer_pos, this._camera);
-        const [nearest_object] = this._raycaster.intersectObjects(
-            this._obj_geometry.children);
-        const [nearest_npc] = this._raycaster.intersectObjects(
-            this._npc_geometry.children);
+        this.raycaster.setFromCamera(pointerPos, this.camera);
+        const [nearestObject] = this.raycaster.intersectObjects(
+            this.objGeometry.children
+        );
+        const [nearestNpc] = this.raycaster.intersectObjects(
+            this.npcGeometry.children
+        );
 
-        if (!nearest_object && !nearest_npc) {
+        if (!nearestObject && !nearestNpc) {
             return;
         }
 
-        const object_dist = nearest_object ? nearest_object.distance : Infinity;
-        const npc_dist = nearest_npc ? nearest_npc.distance : Infinity;
-        const intersection = object_dist < npc_dist ? nearest_object : nearest_npc;
+        const objectDist = nearestObject ? nearestObject.distance : Infinity;
+        const npcDist = nearestNpc ? nearestNpc.distance : Infinity;
+        const intersection = objectDist < npcDist ? nearestObject : nearestNpc;
 
         const entity = intersection.object.userData.entity;
         // Vector that points from the grabbing point to the model's origin.
-        const grab_offset = intersection.object.position
+        const grabOffset = intersection.object.position
             .clone()
             .sub(intersection.point);
         // Vector that points from the grabbing point to the terrain point directly under the model's origin.
-        const drag_adjust = grab_offset.clone();
+        const dragAdjust = grabOffset.clone();
         // Distance to terrain.
-        let drag_y = 0;
+        let dragY = 0;
 
         // Find vertical distance to terrain.
-        this._raycaster.set(
-            intersection.object.position, new Vector3(0, -1, 0));
-        const [terrain] = this._raycaster.intersectObjects(
-            this._collision_geometry.children, true);
+        this.raycaster.set(
+            intersection.object.position, new Vector3(0, -1, 0)
+        );
+        const [terrain] = this.raycaster.intersectObjects(
+            this.collisionGeometry.children, true
+        );
 
         if (terrain) {
-            drag_adjust.sub(new Vector3(0, terrain.distance, 0));
-            drag_y += terrain.distance;
+            dragAdjust.sub(new Vector3(0, terrain.distance, 0));
+            dragY += terrain.distance;
         }
 
         return {
             object: intersection.object as Mesh,
             entity,
-            grab_offset,
-            drag_adjust,
-            drag_y,
+            grabOffset: grabOffset,
+            dragAdjust: dragAdjust,
+            dragY: dragY,
             manipulating: false
         };
     }
 
     /**
-     * @param pointer_pos - pointer coordinates in normalized device space
+     * @param pointerPos - pointer coordinates in normalized device space
      */
-    private _pick_terrain(pointer_pos: Vector2, data: any): { intersection?: Intersection, section?: Section } {
-        this._raycaster.setFromCamera(pointer_pos, this._camera);
-        this._raycaster.ray.origin.add(data.drag_adjust);
-        const terrains = this._raycaster.intersectObjects(
-            this._collision_geometry.children, true);
+    private pickTerrain(pointerPos: Vector2, data: PickEntityResult): { intersection?: Intersection, section?: Section } {
+        this.raycaster.setFromCamera(pointerPos, this.camera);
+        this.raycaster.ray.origin.add(data.dragAdjust);
+        const terrains = this.raycaster.intersectObjects(
+            this.collisionGeometry.children, true);
 
         // Don't allow entities to be placed on very steep terrain.
         // E.g. walls.
@@ -443,15 +445,15 @@ export class Renderer {
         for (const terrain of terrains) {
             if (terrain.face!.normal.y > 0.75) {
                 // Find section ID.
-                this._raycaster.set(
+                this.raycaster.set(
                     terrain.point.clone().setY(1000), new Vector3(0, -1, 0));
-                const render_terrains = this._raycaster
-                    .intersectObjects(this._render_geometry.children, true)
+                const renderTerrains = this.raycaster
+                    .intersectObjects(this.renderGeometry.children, true)
                     .filter(rt => rt.object.userData.section.id >= 0);
 
                 return {
                     intersection: terrain,
-                    section: render_terrains[0] && render_terrains[0].object.userData.section
+                    section: renderTerrains[0] && renderTerrains[0].object.userData.section
                 };
             }
         }
@@ -459,14 +461,14 @@ export class Renderer {
         return {};
     }
 
-    private _get_color(entity: VisibleQuestEntity, type: 'normal' | 'hover' | 'selected') {
-        const is_npc = entity instanceof QuestNpc;
+    private getColor(entity: VisibleQuestEntity, type: 'normal' | 'hover' | 'selected') {
+        const isNpc = entity instanceof QuestNpc;
 
         switch (type) {
             default:
-            case 'normal': return is_npc ? NPC_COLOR : OBJECT_COLOR;
-            case 'hover': return is_npc ? NPC_HOVER_COLOR : OBJECT_HOVER_COLOR;
-            case 'selected': return is_npc ? NPC_SELECTED_COLOR : OBJECT_SELECTED_COLOR;
+            case 'normal': return isNpc ? NPC_COLOR : OBJECT_COLOR;
+            case 'hover': return isNpc ? NPC_HOVER_COLOR : OBJECT_HOVER_COLOR;
+            case 'selected': return isNpc ? NPC_SELECTED_COLOR : OBJECT_SELECTED_COLOR;
         }
     }
 }

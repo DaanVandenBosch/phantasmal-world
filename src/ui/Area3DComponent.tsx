@@ -1,6 +1,6 @@
 import React from 'react';
 import { Object3D } from 'three';
-import { entity_selected } from '../actions';
+import { entitySelected } from '../actions';
 import { Renderer } from '../rendering/Renderer';
 import { Area, Quest, VisibleQuestEntity } from '../domain';
 
@@ -11,34 +11,34 @@ interface Props {
 }
 
 export class Area3DComponent extends React.Component<Props> {
-    private _renderer: Renderer;
+    private renderer: Renderer;
 
     constructor(props: Props) {
         super(props);
 
-        // _renderer has to be assigned here so that it happens after _on_select is assigned.
-        this._renderer = new Renderer({
-            on_select: this._on_select
+        // renderer has to be assigned here so that it happens after onSelect is assigned.
+        this.renderer = new Renderer({
+            onSelect: this.onSelect
         });
     }
 
     render() {
-        return <div style={{ overflow: 'hidden' }} ref={this._modify_dom} />;
+        return <div style={{ overflow: 'hidden' }} ref={this.modifyDom} />;
     }
 
     componentDidMount() {
-        window.addEventListener('resize', this._on_resize);
+        window.addEventListener('resize', this.onResize);
     }
 
     componentWillUnmount() {
-        window.removeEventListener('resize', this._on_resize);
+        window.removeEventListener('resize', this.onResize);
     }
 
     componentWillReceiveProps({ quest, area, model }: Props) {
         if (model) {
-            this._renderer.set_model(model);
+            this.renderer.setModel(model);
         } else {
-            this._renderer.set_quest_and_area(quest, area);
+            this.renderer.setQuestAndArea(quest, area);
         }
     }
 
@@ -46,17 +46,17 @@ export class Area3DComponent extends React.Component<Props> {
         return false;
     }
 
-    private _modify_dom = (div: HTMLDivElement) => {
-        this._renderer.set_size(div.clientWidth, div.clientHeight);
-        div.appendChild(this._renderer.dom_element);
+    private modifyDom = (div: HTMLDivElement) => {
+        this.renderer.setSize(div.clientWidth, div.clientHeight);
+        div.appendChild(this.renderer.domElement);
     }
 
-    private _on_select = (entity?: VisibleQuestEntity) => {
-        entity_selected(entity);
+    private onSelect = (entity?: VisibleQuestEntity) => {
+        entitySelected(entity);
     }
 
-    private _on_resize = () => {
-        const wrapper_div = this._renderer.dom_element.parentNode as HTMLDivElement;
-        this._renderer.set_size(wrapper_div.clientWidth, wrapper_div.clientHeight);
+    private onResize = () => {
+        const wrapperDiv = this.renderer.domElement.parentNode as HTMLDivElement;
+        this.renderer.setSize(wrapperDiv.clientWidth, wrapperDiv.clientHeight);
     }
 }

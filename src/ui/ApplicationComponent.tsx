@@ -2,7 +2,7 @@ import React, { ChangeEvent, KeyboardEvent } from 'react';
 import { observer } from 'mobx-react';
 import { Button, Dialog, Intent } from '@blueprintjs/core';
 import { applicationState } from '../store';
-import { current_area_id_changed, load_file, save_current_quest_to_file } from '../actions';
+import { currentAreaIdChanged, loadFile, saveCurrentQuestToFile } from '../actions';
 import { Area3DComponent } from './Area3DComponent';
 import { EntityInfoComponent } from './EntityInfoComponent';
 import { QuestInfoComponent } from './QuestInfoComponent';
@@ -117,14 +117,14 @@ export class ApplicationComponent extends React.Component<{}, {
                 this.setState({
                     filename: file.name
                 });
-                load_file(file);
+                loadFile(file);
             }
         }
     }
 
     private _on_area_select_change = (e: ChangeEvent<HTMLSelectElement>) => {
         const area_id = parseInt(e.currentTarget.value, 10);
-        current_area_id_changed(area_id);
+        currentAreaIdChanged(area_id);
     }
 
     private _on_save_as_click = () => {
@@ -148,7 +148,7 @@ export class ApplicationComponent extends React.Component<{}, {
     }
 
     private _on_save_dialog_save_click = () => {
-        save_current_quest_to_file(this.state.save_dialog_filename);
+        saveCurrentQuestToFile(this.state.save_dialog_filename);
         this.setState({ save_dialog_open: false });
     }
 
