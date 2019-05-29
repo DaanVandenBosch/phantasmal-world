@@ -1,3 +1,14 @@
+.EntityInfoComponent-container {
+    width: 200px;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+}
+
+.EntityInfoComponent-table {
+    border-collapse: collapse;
+}
+
 .EntityInfoComponent-coord input {
     text-align: right;
     padding-right: 10px !important;

@@ -1,4 +1,4 @@
-import { Button, Dialog, Intent } from '@blueprintjs/core';
+import { Button, Dialog, Intent, Classes, Navbar, NavbarGroup, NavbarHeading, FileInput, HTMLSelect, FormGroup, InputGroup } from '@blueprintjs/core';
 import { observer } from 'mobx-react';
 import React, { ChangeEvent, KeyboardEvent } from 'react';
 import { saveCurrentQuestToFile, setCurrentAreaId } from '../actions/appState';
@@ -24,49 +24,45 @@ export class ApplicationComponent extends React.Component<{}, {
     render() {
         const quest = appStateStore.currentQuest;
         const model = appStateStore.currentModel;
-        const areas = quest ? Array.from(quest.areaVariants).map(a => a.area) : undefined;
+        const areas = quest && Array.from(quest.areaVariants).map(a => a.area);
         const area = appStateStore.currentArea;
-        const areaId = area ? String(area.id) : undefined;
+        const areaId = area && String(area.id);
 
         return (
-            <div className="ApplicationComponent bp3-app bp3-dark">
-                <nav className="bp3-navbar">
-                    <div className="bp3-navbar-group">
-                        <div className="ApplicationComponent-heading bp3-navbar-heading">
-                            Phantasmal Quest Editor
+            <div className={`ApplicationComponent ${Classes.DARK}`}>
+                <Navbar>
+                    <NavbarGroup className="ApplicationComponent-button-bar">
+                        <NavbarHeading className="ApplicationComponent-heading">
+                            Phantasmal World
                             <sup className="ApplicationComponent-beta">BETA</sup>
-                        </div>
-                        <label className="bp3-file-input">
-                            <input
-                                type="file"
-                                accept=".nj, .qst, .xj"
-                                onChange={this.onFileChange} />
-                            <span className="bp3-file-upload-input">
-                                <span className="ApplicationComponent-file-upload">
-                                    {this.state.filename || 'Choose file...'}
-                                </span>
-                            </span>
-                        </label>
-                        {areas
-                            ? (
-                                <div className="bp3-select" style={{ marginLeft: 10 }}>
-                                    <select
-                                        onChange={this.onAreaSelectChange}
-                                        defaultValue={areaId}>
-                                        {areas.map(area =>
-                                            <option key={area.id} value={area.id}>{area.name}</option>)}
-                                    </select>
-                                </div>
-                            ) : null}
-                        {quest
-                            ? <Button
+                        </NavbarHeading>
+                        <FileInput
+                            text={this.state.filename || 'Choose file...'}
+                            inputProps={{
+                                type: 'file',
+                                accept: '.nj, .qst, .xj',
+                                onChange: this.onFileChange
+                            }}
+                        />
+                        {areas ? (
+                            <HTMLSelect
+                                onChange={this.onAreaSelectChange}
+                                defaultValue={areaId}
+                            >
+                                {areas.map(area =>
+                                    <option key={area.id} value={area.id}>{area.name}</option>
+                                )}
+                            </HTMLSelect>
+                        ) : null}
+                        {quest ? (
+                            <Button
                                 text="Save as..."
                                 icon="floppy-disk"
-                                style={{ marginLeft: 10 }}
-                                onClick={this.onSaveAsClick} />
-                            : null}
-                    </div>
-                </nav>
+                                onClick={this.onSaveAsClick}
+                            />
+                        ) : null}
+                    </NavbarGroup>
+                </Navbar>
                 <div className="ApplicationComponent-main">
                     <QuestInfoComponent
                         quest={quest} />
@@ -79,27 +75,24 @@ export class ApplicationComponent extends React.Component<{}, {
                 <Dialog
                     title="Save as..."
                     icon="floppy-disk"
-                    className="bp3-dark"
+                    className={Classes.DARK}
                     style={{ width: 360 }}
                     isOpen={this.state.saveDialogOpen}
                     onClose={this.onSaveDialogClose}>
-                    <div className="bp3-dialog-body">
-                        <label className="bp3-label bp3-inline">
-                            Name:
-                            <input
+                    <div className={Classes.DIALOG_BODY}>
+                        <FormGroup label="Name:" labelFor="file-name-input">
+                            <InputGroup
+                                id="file-name-input"
                                 autoFocus={true}
-                                className="bp3-input"
-                                style={{ width: 200, margin: '0 10px 0 10px' }}
                                 value={this.state.saveDialogFilename}
                                 maxLength={12}
                                 onChange={this.onSaveDialogNameChange}
                                 onKeyUp={this.onSaveDialogNameKeyUp}
                             />
-                            (.qst)
-                        </label>
+                        </FormGroup>
                     </div>
-                    <div className="bp3-dialog-footer">
-                        <div className="bp3-dialog-footer-actions">
+                    <div className={Classes.DIALOG_FOOTER}>
+                        <div className={Classes.DIALOG_FOOTER_ACTIONS}>
                             <Button
                                 text="Save"
                                 style={{ marginLeft: 10 }}

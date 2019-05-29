@@ -1,0 +1,20 @@
+.QuestInfoComponent {
+    width: 280px;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+}
+
+.QuestInfoComponent table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+.QuestInfoComponent table tbody th {
+    text-align: right;
+    padding-right: 5px;
+}
+
+.QuestInfoComponent-npc-counts-container {
+    overflow: auto;
+}

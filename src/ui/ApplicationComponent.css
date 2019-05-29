@@ -18,13 +18,8 @@
     margin-left: 2;
 }
 
-.ApplicationComponent-file-upload {
-    display: inline-block;
-    width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    word-wrap: normal;
+.ApplicationComponent-button-bar > * {
+    margin-right: 10px;
 }
 
 .ApplicationComponent-main {

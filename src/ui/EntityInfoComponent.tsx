@@ -1,19 +1,8 @@
-import React, { CSSProperties } from 'react';
-import { observer } from 'mobx-react';
 import { NumericInput } from '@blueprintjs/core';
-import { VisibleQuestEntity, QuestObject, QuestNpc } from '../domain';
+import { observer } from 'mobx-react';
+import React from 'react';
+import { QuestNpc, QuestObject, VisibleQuestEntity } from '../domain';
 import './EntityInfoComponent.css';
-
-const containerStyle: CSSProperties = {
-    width: 200,
-    padding: 10,
-    display: 'flex',
-    flexDirection: 'column'
-};
-
-const tableStyle: CSSProperties = {
-    borderCollapse: 'collapse'
-};
 
 interface Props {
     entity?: VisibleQuestEntity
@@ -62,8 +51,8 @@ export class EntityInfoComponent extends React.Component<Props, any> {
             }
 
             return (
-                <div style={containerStyle}>
-                    <table style={tableStyle}>
+                <div className="EntityInfoComponent-container">
+                    <table className="EntityInfoComponent-table">
                         <tbody>
                             {name}
                             <tr>
@@ -102,7 +91,7 @@ export class EntityInfoComponent extends React.Component<Props, any> {
                 </div>
             );
         } else {
-            return <div style={containerStyle} />;
+            return <div className="EntityInfoComponent-container" />;
         }
     }
 
@@ -120,7 +109,8 @@ export class EntityInfoComponent extends React.Component<Props, any> {
                     <td>
                         <NumericInput
                             value={value}
-                            className="pt-fill EntityInfoComponent-coord"
+                            className="EntityInfoComponent-coord"
+                            fill={true}
                             buttonPosition="none"
                             onValueChange={(this.posChange as any)[posType][coord]}
                             onBlur={this.coordInputBlurred} />

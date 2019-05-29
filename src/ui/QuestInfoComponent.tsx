@@ -1,31 +1,7 @@
-import React, { CSSProperties } from 'react';
+import React from 'react';
 import { NpcType, Quest } from '../domain';
-
-const containerStyle: CSSProperties = {
-    width: 280,
-    padding: 10,
-    display: 'flex',
-    flexDirection: 'column'
-};
-
-const tableStyle: CSSProperties = {
-    borderCollapse: 'collapse',
-    width: '100%'
-};
-
-const tableHeaderStyle: CSSProperties = {
-    textAlign: 'right',
-    paddingRight: 5
-};
-
-const descriptionStyle: CSSProperties = {
-    whiteSpace: 'pre-wrap',
-    margin: '3px 0 3px 0'
-};
-
-const npcCountsContainerStyle: CSSProperties = {
-    overflow: 'auto'
-};
+import { Pre } from '@blueprintjs/core';
+import './QuestInfoComponent.css';
 
 export function QuestInfoComponent({ quest }: { quest?: Quest }) {
     if (quest) {
@@ -53,31 +29,31 @@ export function QuestInfoComponent({ quest }: { quest?: Quest }) {
         });
 
         return (
-            <div style={containerStyle}>
-                <table style={tableStyle}>
+            <div className="QuestInfoComponent">
+                <table>
                     <tbody>
                         <tr>
-                            <th style={tableHeaderStyle}>Name:</th><td>{quest.name}</td>
+                            <th>Name:</th><td>{quest.name}</td>
                         </tr>
                         <tr>
-                            <th style={tableHeaderStyle}>Episode:</th><td>{episode}</td>
+                            <th>Episode:</th><td>{episode}</td>
                         </tr>
                         <tr>
                             <td colSpan={2}>
-                                <pre className="bp3-code-block" style={descriptionStyle}>{quest.shortDescription}</pre>
+                                <Pre>{quest.shortDescription}</Pre>
                             </td>
                         </tr>
                         <tr>
                             <td colSpan={2}>
-                                <pre className="bp3-code-block" style={descriptionStyle}>{quest.longDescription}</pre>
+                                <Pre>{quest.longDescription}</Pre>
                             </td>
                         </tr>
                     </tbody>
                 </table>
-                <div style={npcCountsContainerStyle}>
-                    <table style={tableStyle}>
+                <div className="QuestInfoComponent-npc-counts-container">
+                    <table >
                         <thead>
-                            <tr><th>NPC Counts</th></tr>
+                            <tr><th colSpan={2}>NPC Counts</th></tr>
                         </thead>
                         <tbody>
                             {npcCountRows}
@@ -87,6 +63,6 @@ export function QuestInfoComponent({ quest }: { quest?: Quest }) {
             </div>
         );
     } else {
-        return <div style={containerStyle} />;
+        return <div className="QuestInfoComponent" />;
     }
 }
