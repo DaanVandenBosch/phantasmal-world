@@ -6,7 +6,6 @@
     "@blueprintjs/core": "^3.15.1",
     "@types/jest": "24.0.13",
     "@types/lodash": "^4.14.132",
-    "@types/node": "12.0.2",
     "@types/react": "16.8.18",
     "@types/react-dom": "16.8.4",
     "@types/text-encoding": "^0.0.35",
@@ -25,7 +24,8 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "updateDropsEphinea": "ts-node --project=tsconfig-scripts.json src/static/updateDropsEphinea.ts"
   },
   "eslintConfig": {
     "extends": "react-app"
@@ -41,5 +41,12 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "@types/cheerio": "^0.22.0",
+    "@types/node": "^12.0.3",
+    "cheerio": "^0.22.0",
+    "isomorphic-fetch": "^2.2.1",
+    "ts-node": "^8.2.0"
   }
 }

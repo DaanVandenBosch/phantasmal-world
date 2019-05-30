@@ -40,6 +40,16 @@ interface PickEntityResult {
     manipulating: boolean;
 }
 
+let renderer: Renderer | undefined;
+
+export function getRenderer(): Renderer {
+    if (!renderer) {
+        renderer = new Renderer();
+    }
+
+    return renderer;
+}
+
 /**
  * Renders a quest area or an NJ/XJ model.
  */

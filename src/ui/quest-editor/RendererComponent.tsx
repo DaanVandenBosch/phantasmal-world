@@ -1,7 +1,7 @@
 import React from 'react';
 import { Object3D } from 'three';
 import { Area, Quest } from '../../domain';
-import { Renderer } from '../../rendering/Renderer';
+import { getRenderer } from '../../rendering/Renderer';
 
 interface Props {
     quest?: Quest;
@@ -10,7 +10,7 @@ interface Props {
 }
 
 export class RendererComponent extends React.Component<Props> {
-    private renderer = new Renderer();
+    private renderer = getRenderer();
 
     render() {
         return <div style={{ overflow: 'hidden' }} ref={this.modifyDom} />;
@@ -36,9 +36,11 @@ export class RendererComponent extends React.Component<Props> {
         return false;
     }
 
-    private modifyDom = (div: HTMLDivElement) => {
-        this.renderer.setSize(div.clientWidth, div.clientHeight);
-        div.appendChild(this.renderer.domElement);
+    private modifyDom = (div: HTMLDivElement | null) => {
+        if (div) {
+            this.renderer.setSize(div.clientWidth, div.clientHeight);
+            div.appendChild(this.renderer.domElement);
+        }
     }
 
     private onResize = () => {
