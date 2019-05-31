@@ -1,6 +1,6 @@
 import { Object3D } from 'three';
 import { Section } from '../../domain';
-import { getAreaRenderData, getAreaCollisionData } from './assets';
+import { getAreaRenderData, getAreaCollisionData } from './binaryAssets';
 import { parseCRel, parseNRel } from '../parsing/geometry';
 
 //

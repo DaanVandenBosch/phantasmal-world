@@ -1,8 +1,10 @@
-import { Button, Classes, Dialog, FileInput, FormGroup, HTMLSelect, InputGroup, Intent, Navbar, NavbarGroup } from "@blueprintjs/core";
+import { Button, Form, Icon, Input, Modal, Select, Upload } from "antd";
+import { UploadChangeParam } from "antd/lib/upload";
+import { UploadFile } from "antd/lib/upload/interface";
 import { observer } from "mobx-react";
-import React, { ChangeEvent, KeyboardEvent } from "react";
-import { saveCurrentQuestToFile, setCurrentAreaId } from "../../actions/quest-editor/questEditor";
+import React, { ChangeEvent } from "react";
 import { loadFile } from "../../actions/quest-editor/loadFile";
+import { saveCurrentQuestToFile, setCurrentAreaId } from "../../actions/quest-editor/questEditor";
 import { questEditorStore } from "../../stores/QuestEditorStore";
 import { EntityInfoComponent } from "./EntityInfoComponent";
 import './QuestEditorComponent.css';
@@ -16,7 +18,6 @@ export class QuestEditorComponent extends React.Component<{}, {
     saveDialogFilename: string
 }> {
     state = {
-        filename: undefined,
         saveDialogOpen: false,
         saveDialogFilename: 'Untitled',
     };
@@ -24,103 +25,33 @@ export class QuestEditorComponent extends React.Component<{}, {
     render() {
         const quest = questEditorStore.currentQuest;
         const model = questEditorStore.currentModel;
-        const areas = quest && Array.from(quest.areaVariants).map(a => a.area);
         const area = questEditorStore.currentArea;
-        const areaId = area && String(area.id);
 
         return (
-            <div className="QuestEditorComponent">
-                <Navbar>
-                    <NavbarGroup className="QuestEditorComponent-button-bar">
-                        <FileInput
-                            text={this.state.filename || 'Choose file...'}
-                            inputProps={{
-                                type: 'file',
-                                accept: '.nj, .qst, .xj',
-                                onChange: this.onFileChange
-                            }}
-                        />
-                        {areas ? (
-                            <HTMLSelect
-                                onChange={this.onAreaSelectChange}
-                                defaultValue={areaId}
-                            >
-                                {areas.map(area =>
-                                    <option key={area.id} value={area.id}>{area.name}</option>
-                                )}
-                            </HTMLSelect>
-                        ) : null}
-                        {quest ? (
-                            <Button
-                                text="Save as..."
-                                icon="floppy-disk"
-                                onClick={this.onSaveAsClick}
-                            />
-                        ) : null}
-                    </NavbarGroup>
-                </Navbar>
-                <div className="QuestEditorComponent-main">
+            <div className="qe-QuestEditorComponent">
+                <Toolbar onSaveAsClicked={this.saveAsClicked} />
+                <div className="qe-QuestEditorComponent-main">
                     <QuestInfoComponent quest={quest} />
                     <RendererComponent
                         quest={quest}
                         area={area}
-                        model={model} />
+                        model={model}
+                    />
                     <EntityInfoComponent entity={questEditorStore.selectedEntity} />
                 </div>
-                <Dialog
-                    title="Save as..."
-                    icon="floppy-disk"
-                    className={Classes.DARK}
-                    style={{ width: 360 }}
+                <SaveAsForm
                     isOpen={this.state.saveDialogOpen}
-                    onClose={this.onSaveDialogClose}>
-                    <div className={Classes.DIALOG_BODY}>
-                        <FormGroup label="Name:" labelFor="file-name-input">
-                            <InputGroup
-                                id="file-name-input"
-                                autoFocus={true}
-                                value={this.state.saveDialogFilename}
-                                maxLength={12}
-                                onChange={this.onSaveDialogNameChange}
-                                onKeyUp={this.onSaveDialogNameKeyUp}
-                            />
-                        </FormGroup>
-                    </div>
-                    <div className={Classes.DIALOG_FOOTER}>
-                        <div className={Classes.DIALOG_FOOTER_ACTIONS}>
-                            <Button
-                                text="Save"
-                                style={{ marginLeft: 10 }}
-                                onClick={this.onSaveDialogSaveClick}
-                                intent={Intent.PRIMARY} />
-                        </div>
-                    </div>
-                </Dialog>
+                    filename={this.state.saveDialogFilename}
+                    onFilenameChange={this.saveDialogFilenameChanged}
+                    onOk={this.saveDialogAffirmed}
+                    onCancel={this.saveDialogCancelled}
+                />
             </div>
         );
     }
 
-    private onFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-        if (e.currentTarget.files) {
-            const file = e.currentTarget.files[0];
-
-            if (file) {
-                this.setState({
-                    filename: file.name
-                });
-                loadFile(file);
-            }
-        }
-    }
-
-    private onAreaSelectChange = (e: ChangeEvent<HTMLSelectElement>) => {
-        const areaId = parseInt(e.currentTarget.value, 10);
-        setCurrentAreaId(areaId);
-    }
-
-    private onSaveAsClick = () => {
-        let name = this.state.filename || 'Untitled';
-        name = name.endsWith('.qst') ? name.slice(0, -4) : name;
+    private saveAsClicked = (filename: string) => {
+        const name = filename.endsWith('.qst') ? filename.slice(0, -4) : filename;
 
         this.setState({
             saveDialogOpen: true,
@@ -128,22 +59,104 @@ export class QuestEditorComponent extends React.Component<{}, {
         });
     }
 
-    private onSaveDialogNameChange = (e: ChangeEvent<HTMLInputElement>) => {
-        this.setState({ saveDialogFilename: e.currentTarget.value });
+    private saveDialogFilenameChanged = (filename: string) => {
+        this.setState({ saveDialogFilename: filename });
     }
 
-    private onSaveDialogNameKeyUp = (e: KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === 'Enter') {
-            this.onSaveDialogSaveClick();
-        }
-    }
-
-    private onSaveDialogSaveClick = () => {
+    private saveDialogAffirmed = () => {
         saveCurrentQuestToFile(this.state.saveDialogFilename);
         this.setState({ saveDialogOpen: false });
     }
 
-    private onSaveDialogClose = () => {
+    private saveDialogCancelled = () => {
         this.setState({ saveDialogOpen: false });
+    }
+}
+
+@observer
+class Toolbar extends React.Component<{ onSaveAsClicked: (filename: string) => void }> {
+    state = {
+        filename: 'Choose file...'
+    }
+
+    render() {
+        const quest = questEditorStore.currentQuest;
+        const areas = quest && Array.from(quest.areaVariants).map(a => a.area);
+        const area = questEditorStore.currentArea;
+        const areaId = area && area.id;
+
+        return (
+            <div className="qe-QuestEditorComponent-toolbar">
+                <Upload
+                    accept=".nj, .qst, .xj"
+                    showUploadList={false}
+                    onChange={this.setFilename}
+                >
+                    <Button icon="file">{this.state.filename}</Button>
+                </Upload>
+                {areas && (
+                    <Select
+                        onChange={setCurrentAreaId}
+                        defaultValue={areaId}
+                        style={{ width: 200 }}
+                    >
+                        {areas.map(area =>
+                            <Select.Option key={area.id} value={area.id}>{area.name}</Select.Option>
+                        )}
+                    </Select>
+                )}
+                {quest && (
+                    <Button
+                        icon="save"
+                        onClick={this.saveAsClicked}
+                    >Save as...</Button>
+                )}
+            </div>
+        );
+    }
+
+    private setFilename = (info: UploadChangeParam<UploadFile>) => {
+        if (info.file.originFileObj) {
+            this.setState({ filename: info.file.name });
+            loadFile(info.file.originFileObj);
+        }
+    }
+
+    private saveAsClicked = () => {
+        this.props.onSaveAsClicked(this.state.filename);
+    }
+}
+
+class SaveAsForm extends React.Component<{
+    isOpen: boolean,
+    filename: string,
+    onFilenameChange: (name: string) => void,
+    onOk: () => void,
+    onCancel: () => void
+}> {
+    render() {
+        return (
+            <Modal
+                title={<><Icon type="save" /> Save as...</>}
+                visible={this.props.isOpen}
+                onOk={this.props.onOk}
+                onCancel={this.props.onCancel}
+            >
+                <Form layout="vertical">
+                    <Form.Item label="Name">
+                        <Input
+                            autoFocus={true}
+                            maxLength={12}
+                            value={this.props.filename}
+                            onChange={this.nameChanged}
+                        />
+                    </Form.Item>
+                </Form>
+            </Modal>
+        );
+    }
+
+    private nameChanged = (e: ChangeEvent<HTMLInputElement>) => {
+        this.props.onFilenameChange(e.currentTarget.value);
     }
 }

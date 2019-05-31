@@ -1,11 +1,10 @@
 import { action } from 'mobx';
-import { Object3D } from 'three';
 import { ArrayBufferCursor } from '../../data/ArrayBufferCursor';
 import { getAreaSections } from '../../data/loading/areas';
 import { getNpcGeometry, getObjectGeometry } from '../../data/loading/entities';
 import { parseNj, parseXj } from '../../data/parsing/ninja';
 import { parseQuest } from '../../data/parsing/quest';
-import { AreaVariant, Section, Vec3, VisibleQuestEntity } from '../../domain';
+import { Section, Vec3, VisibleQuestEntity } from '../../domain';
 import { createNpcMesh, createObjectMesh } from '../../rendering/entities';
 import { createModelMesh } from '../../rendering/models';
 import { setModel, setQuest } from './questEditor';
@@ -35,14 +34,14 @@ async function loadend(file: File, reader: FileReader) {
             // Load section data.
             for (const variant of quest.areaVariants) {
                 const sections = await getAreaSections(quest.episode, variant.area.id, variant.id);
-                setSectionsOnAreaVariant(variant, sections);
+                variant.sections = sections;
 
                 // Generate object geometry.
                 for (const object of quest.objects.filter(o => o.areaId === variant.area.id)) {
                     try {
                         const geometry = await getObjectGeometry(object.type);
                         setSectionOnVisibleQuestEntity(object, sections);
-                        setObject3dOnVisibleQuestEntity(object, createObjectMesh(object, geometry));
+                        object.object3d = createObjectMesh(object, geometry);
                     } catch (e) {
                         console.error(e);
                     }
@@ -53,7 +52,7 @@ async function loadend(file: File, reader: FileReader) {
                     try {
                         const geometry = await getNpcGeometry(npc.type);
                         setSectionOnVisibleQuestEntity(npc, sections);
-                        setObject3dOnVisibleQuestEntity(npc, createNpcMesh(npc, geometry));
+                        npc.object3d = createNpcMesh(npc, geometry);
                     } catch (e) {
                         console.error(e);
                     }
@@ -64,12 +63,6 @@ async function loadend(file: File, reader: FileReader) {
         }
     }
 }
-
-const setSectionsOnAreaVariant = action('setSectionsOnAreaVariant',
-    (variant: AreaVariant, sections: Section[]) => {
-        variant.sections = sections;
-    }
-);
 
 const setSectionOnVisibleQuestEntity = action('setSectionOnVisibleQuestEntity',
     (entity: VisibleQuestEntity, sections: Section[]) => {
@@ -90,11 +83,5 @@ const setSectionOnVisibleQuestEntity = action('setSectionOnVisibleQuestEntity',
         }
 
         entity.position = new Vec3(x, y, z);
-    }
-);
-
-const setObject3dOnVisibleQuestEntity = action('setObject3dOnVisibleQuestEntity',
-    (entity: VisibleQuestEntity, object3d: Object3D) => {
-        entity.object3d = object3d;
     }
 );

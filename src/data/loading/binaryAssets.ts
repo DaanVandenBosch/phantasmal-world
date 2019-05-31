@@ -17,23 +17,15 @@ export function getAreaCollisionData(
 }
 
 export async function getNpcData(npcType: NpcType): Promise<{ url: string, data: ArrayBuffer }> {
-    try {
-        const url = npcTypeToUrl(npcType);
-        const data = await getAsset(url);
-        return ({ url, data });
-    } catch (e) {
-        return Promise.reject(e);
-    }
+    const url = npcTypeToUrl(npcType);
+    const data = await getAsset(url);
+    return ({ url, data });
 }
 
 export async function getObjectData(objectType: ObjectType): Promise<{ url: string, data: ArrayBuffer }> {
-    try {
-        const url = objectTypeToUrl(objectType);
-        const data = await getAsset(url);
-        return ({ url, data });
-    } catch (e) {
-        return Promise.reject(e);
-    }
+    const url = objectTypeToUrl(objectType);
+    const data = await getAsset(url);
+    return ({ url, data });
 }
 
 /**

@@ -1,6 +1,6 @@
 import { BufferGeometry } from 'three';
 import { NpcType, ObjectType } from '../../domain';
-import { getNpcData, getObjectData } from './assets';
+import { getNpcData, getObjectData } from './binaryAssets';
 import { ArrayBufferCursor } from '../ArrayBufferCursor';
 import { parseNj, parseXj } from '../parsing/ninja';
 

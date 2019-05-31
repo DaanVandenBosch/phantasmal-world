@@ -265,3 +265,7 @@ export class AreaVariant {
             throw new Error(`Expected id to be a non-negative integer, got ${id}.`);
     }
 }
+
+export class Item {
+    constructor(public name: string) { }
+}

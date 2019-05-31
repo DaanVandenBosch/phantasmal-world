@@ -1,18 +1,23 @@
-.QuestEditorComponent {
+.qe-QuestEditorComponent {
     display: flex;
     flex-direction: column;
 }
 
-.QuestEditorComponent-main {
+.qe-QuestEditorComponent-toolbar {
+    display: flex;
+    padding: 10px 5px;
+}
+
+.qe-QuestEditorComponent-toolbar > * {
+    margin: 0 5px;
+}
+
+.qe-QuestEditorComponent-main {
     flex: 1;
     display: flex;
     overflow: hidden;
 }
 
-.QuestEditorComponent-button-bar>* {
-    margin-right: 10px;
-}
-
-.QuestEditorComponent-main div:nth-child(2) {
+.qe-QuestEditorComponent-main div:nth-child(2) {
     flex: 1;
 }

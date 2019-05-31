@@ -1,34 +1,15 @@
-import { NumericInput } from '@blueprintjs/core';
+import { InputNumber } from 'antd';
 import { observer } from 'mobx-react';
 import React from 'react';
 import { QuestNpc, QuestObject, VisibleQuestEntity } from '../../domain';
 import './EntityInfoComponent.css';
 
 interface Props {
-    entity?: VisibleQuestEntity
+    entity?: VisibleQuestEntity;
 }
 
 @observer
-export class EntityInfoComponent extends React.Component<Props, any> {
-    state = {
-        position: {
-            x: null,
-            y: null,
-            z: null,
-        },
-        sectionPosition: {
-            x: null,
-            y: null,
-            z: null,
-        }
-    };
-
-    componentWillReceiveProps({ entity }: Props) {
-        if (this.props.entity !== entity) {
-            this.clearPositionState();
-        }
-    }
-
+export class EntityInfoComponent extends React.Component<Props> {
     render() {
         const entity = this.props.entity;
 
@@ -65,9 +46,9 @@ export class EntityInfoComponent extends React.Component<Props, any> {
                                 <td colSpan={2}>
                                     <table>
                                         <tbody>
-                                            {this.coordRow('position', 'x')}
-                                            {this.coordRow('position', 'y')}
-                                            {this.coordRow('position', 'z')}
+                                            <CoordRow entity={entity} positionType="position" coord="x" />
+                                            <CoordRow entity={entity} positionType="position" coord="y" />
+                                            <CoordRow entity={entity} positionType="position" coord="z" />
                                         </tbody>
                                     </table>
                                 </td>
@@ -79,9 +60,9 @@ export class EntityInfoComponent extends React.Component<Props, any> {
                                 <td colSpan={2}>
                                     <table>
                                         <tbody>
-                                            {this.coordRow('sectionPosition', 'x')}
-                                            {this.coordRow('sectionPosition', 'y')}
-                                            {this.coordRow('sectionPosition', 'z')}
+                                            <CoordRow entity={entity} positionType="sectionPosition" coord="x" />
+                                            <CoordRow entity={entity} positionType="sectionPosition" coord="y" />
+                                            <CoordRow entity={entity} positionType="sectionPosition" coord="z" />
                                         </tbody>
                                     </table>
                                 </td>
@@ -94,93 +75,40 @@ export class EntityInfoComponent extends React.Component<Props, any> {
             return <div className="EntityInfoComponent-container" />;
         }
     }
+}
 
-    private coordRow(posType: string, coord: string) {
-        if (this.props.entity) {
+@observer
+class CoordRow extends React.Component<{
+    entity: VisibleQuestEntity,
+    positionType: 'position' | 'sectionPosition',
+    coord: 'x' | 'y' | 'z'
+}> {
+    render() {
+        const entity = this.props.entity;
+        const value = entity[this.props.positionType][this.props.coord];
+        return (
+            <tr>
+                <td>{this.props.coord.toUpperCase()}: </td>
+                <td>
+                    <InputNumber
+                        value={value}
+                        size="small"
+                        precision={3}
+                        className="EntityInfoComponent-coord"
+                        onChange={this.changed}
+                    />
+                </td>
+            </tr>
+        );
+    }
+
+    private changed = (value?: number) => {
+        if (value != null) {
             const entity = this.props.entity;
-            const valueStr = (this.state as any)[posType][coord];
-            const value = valueStr
-                ? valueStr
-                // Do multiplication, rounding, division and || with zero to avoid numbers close to zero flickering between 0 and -0.
-                : (Math.round((entity as any)[posType][coord] * 10000) / 10000 || 0).toFixed(4);
-            return (
-                <tr>
-                    <td>{coord.toUpperCase()}: </td>
-                    <td>
-                        <NumericInput
-                            value={value}
-                            className="EntityInfoComponent-coord"
-                            fill={true}
-                            buttonPosition="none"
-                            onValueChange={(this.posChange as any)[posType][coord]}
-                            onBlur={this.coordInputBlurred} />
-                    </td>
-                </tr>
-            );
-        } else {
-            return null;
+            const posType = this.props.positionType;
+            const pos = entity[posType].clone();
+            pos[this.props.coord] = value;
+            entity[posType] = pos;
         }
-    }
-
-    private posChange = {
-        position: {
-            x: (value: number, valueStr: string) => {
-                this.posChanged('position', 'x', value, valueStr);
-            },
-            y: (value: number, valueStr: string) => {
-                this.posChanged('position', 'y', value, valueStr);
-            },
-            z: (value: number, valueStr: string) => {
-                this.posChanged('position', 'z', value, valueStr);
-            }
-        },
-        sectionPosition: {
-            x: (value: number, valueStr: string) => {
-                this.posChanged('sectionPosition', 'x', value, valueStr);
-            },
-            y: (value: number, valueStr: string) => {
-                this.posChanged('sectionPosition', 'y', value, valueStr);
-            },
-            z: (value: number, valueStr: string) => {
-                this.posChanged('sectionPosition', 'z', value, valueStr);
-            }
-        }
-    };
-
-    private posChanged(posType: string, coord: string, value: number, valueStr: string) {
-        if (!isNaN(value)) {
-            const entity = this.props.entity as any;
-
-            if (entity) {
-                const v = entity[posType].clone();
-                v[coord] = value;
-                entity[posType] = v;
-            }
-        }
-
-        this.setState({
-            [posType]: {
-                [coord]: valueStr
-            }
-        });
-    }
-
-    private coordInputBlurred = () => {
-        this.clearPositionState();
-    }
-
-    private clearPositionState() {
-        this.setState({
-            position: {
-                x: null,
-                y: null,
-                z: null,
-            },
-            sectionPosition: {
-                x: null,
-                y: null,
-                z: null,
-            }
-        });
     }
 }

@@ -1,6 +1,5 @@
 import React from 'react';
 import { NpcType, Quest } from '../../domain';
-import { Pre } from '@blueprintjs/core';
 import './QuestInfoComponent.css';
 
 export function QuestInfoComponent({ quest }: { quest?: Quest }) {
@@ -29,7 +28,7 @@ export function QuestInfoComponent({ quest }: { quest?: Quest }) {
         });
 
         return (
-            <div className="QuestInfoComponent">
+            <div className="qe-QuestInfoComponent">
                 <table>
                     <tbody>
                         <tr>
@@ -40,17 +39,17 @@ export function QuestInfoComponent({ quest }: { quest?: Quest }) {
                         </tr>
                         <tr>
                             <td colSpan={2}>
-                                <Pre>{quest.shortDescription}</Pre>
+                                <pre>{quest.shortDescription}</pre>
                             </td>
                         </tr>
                         <tr>
                             <td colSpan={2}>
-                                <Pre>{quest.longDescription}</Pre>
+                                <pre>{quest.longDescription}</pre>
                             </td>
                         </tr>
                     </tbody>
                 </table>
-                <div className="QuestInfoComponent-npc-counts-container">
+                <div className="qe-QuestInfoComponent-npc-counts-container">
                     <table >
                         <thead>
                             <tr><th colSpan={2}>NPC Counts</th></tr>
@@ -63,6 +62,6 @@ export function QuestInfoComponent({ quest }: { quest?: Quest }) {
             </div>
         );
     } else {
-        return <div className="QuestInfoComponent" />;
+        return <div className="qe-QuestInfoComponent" />;
     }
 }

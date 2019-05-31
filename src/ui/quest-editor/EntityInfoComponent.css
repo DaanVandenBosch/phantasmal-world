@@ -9,7 +9,11 @@
     border-collapse: collapse;
 }
 
+.EntityInfoComponent-coord {
+    width: 100px !important;
+}
+
 .EntityInfoComponent-coord input {
     text-align: right;
-    padding-right: 10px !important;
+    padding-right: 24px !important;
 }

@@ -1,48 +1,46 @@
-import { Classes, Navbar, NavbarGroup, NavbarHeading, Button, Callout, Intent } from '@blueprintjs/core';
+import { Alert, Menu } from 'antd';
+import { ClickParam } from 'antd/lib/menu';
 import { observer } from 'mobx-react';
 import React from 'react';
-import { QuestEditorComponent } from './quest-editor/QuestEditorComponent';
-import { observable, action } from 'mobx';
-import { HuntOptimizerComponent } from './hunt-optimizer/HuntOptimizerComponent';
 import './ApplicationComponent.css';
+import { HuntOptimizerComponent } from './hunt-optimizer/HuntOptimizerComponent';
+import { QuestEditorComponent } from './quest-editor/QuestEditorComponent';
 
 @observer
 export class ApplicationComponent extends React.Component {
-    @observable private tool = 'quest-editor';
+    state = { tool: 'huntOptimizer' }
 
     render() {
         let toolComponent;
 
-        switch (this.tool) {
-            case 'quest-editor':
+        switch (this.state.tool) {
+            case 'questEditor':
                 toolComponent = <QuestEditorComponent />;
                 break;
-            case 'hunt-optimizer':
+            case 'huntOptimizer':
                 toolComponent = <HuntOptimizerComponent />;
                 break;
         }
 
         return (
-            <div className={`ApplicationComponent ${Classes.DARK}`}>
-                <Navbar>
-                    <NavbarGroup className="ApplicationComponent-button-bar">
-                        <NavbarHeading className="ApplicationComponent-heading">
-                            Phantasmal World
-                        </NavbarHeading>
-                        <Button
-                            text="Quest Editor (Beta)"
-                            minimal={true}
-                            active={this.tool === 'quest-editor'}
-                            onClick={() => this.setTool('quest-editor')}
-                        />
-                        <Button
-                            text="Hunt Optimizer"
-                            minimal={true}
-                            active={this.tool === 'hunt-optimizer'}
-                            onClick={() => this.setTool('hunt-optimizer')}
-                        />
-                    </NavbarGroup>
-                </Navbar>
+            <div className="ApplicationComponent">
+                <div className="ApplicationComponent-navbar">
+                    <h1 className="ApplicationComponent-heading">
+                        Phantasmal World
+                    </h1>
+                    <Menu
+                        onClick={this.menuClicked}
+                        selectedKeys={[this.state.tool]}
+                        mode="horizontal"
+                    >
+                        <Menu.Item key="questEditor">
+                            Quest Editor<sup className="ApplicationComponent-beta">(Beta)</sup>
+                        </Menu.Item>
+                        <Menu.Item key="huntOptimizer">
+                            Hunt Optimizer
+                            </Menu.Item>
+                    </Menu>
+                </div>
                 <ErrorBoundary>
                     {toolComponent}
                 </ErrorBoundary>
@@ -50,9 +48,9 @@ export class ApplicationComponent extends React.Component {
         );
     }
 
-    private setTool = action('setTool', (tool: string) => {
-        this.tool = tool;
-    });
+    private menuClicked = (e: ClickParam) => {
+        this.setState({ tool: e.key });
+    };
 }
 
 class ErrorBoundary extends React.Component {
@@ -66,7 +64,7 @@ class ErrorBoundary extends React.Component {
                 {this.state.hasError ? (
                     <div className="ApplicationComponent-error">
                         <div>
-                            <Callout intent={Intent.DANGER} title="Something went wrong." />
+                            <Alert type="error" message="Something went wrong." />
                         </div>
                     </div>
                 ) : this.props.children}

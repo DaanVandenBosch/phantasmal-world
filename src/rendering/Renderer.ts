@@ -27,7 +27,6 @@ import {
     NPC_SELECTED_COLOR
 } from './entities';
 import { setSelectedEntity } from '../actions/quest-editor/questEditor';
-import { setPositionOnVisibleQuestEntity as setPositionAndSectionOnVisibleQuestEntity } from '../actions/quest-editor/visibleQuestEntities';
 
 const OrbitControls = OrbitControlsCreator(THREE);
 
@@ -309,11 +308,11 @@ export class Renderer {
                         const yDelta = y - data.entity.position.y;
                         data.dragY += yDelta;
                         data.dragAdjust.y -= yDelta;
-                        setPositionAndSectionOnVisibleQuestEntity(data.entity, new Vec3(
+                        data.entity.position = new Vec3(
                             data.entity.position.x,
                             y,
                             data.entity.position.z
-                        ));
+                        );
                     }
                 } else {
                     // Horizontal movement accross terrain.
@@ -321,11 +320,12 @@ export class Renderer {
                     const { intersection, section } = this.pickTerrain(pointerPos, data);
 
                     if (intersection) {
-                        setPositionAndSectionOnVisibleQuestEntity(data.entity, new Vec3(
+                        data.entity.position = new Vec3(
                             intersection.point.x,
                             intersection.point.y + data.dragY,
                             intersection.point.z
-                        ), section);
+                        );
+                        data.entity.section = section;
                     } else {
                         // If the cursor is not over any terrain, we translate the entity accross the horizontal plane in which the entity's origin lies.
                         this.raycaster.setFromCamera(pointerPos, this.camera);
@@ -337,11 +337,11 @@ export class Renderer {
                         const intersectionPoint = new Vector3();
 
                         if (ray.intersectPlane(plane, intersectionPoint)) {
-                            setPositionAndSectionOnVisibleQuestEntity(data.entity, new Vec3(
+                            data.entity.position = new Vec3(
                                 intersectionPoint.x + data.grabOffset.x,
                                 data.entity.position.y,
                                 intersectionPoint.z + data.grabOffset.z
-                            ));
+                            );
                         }
                     }
                 }
