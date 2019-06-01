@@ -1,0 +1,42 @@
+@primary-color: hsl(200, 100%, 50%);
+
+@white: #000;
+@black: #fff;
+
+@primary-1: fade(@primary-color, 50%);
+@primary-2: fade(@primary-color, 40%);
+
+@body-background: hsl(200, 10%, 20%);
+@component-background: @body-background;
+@text-color: hsl(200, 10%, 90%);
+@text-color-secondary: hsl(200, 20%, 80%);
+
+@heading-color: fade(@black, 85%);
+
+@border-radius-base: 2px;
+@border-radius-sm: 0px;
+
+@background-color-light: lighten(@body-background, 20%); // background of header and selected item
+@background-color-base: fade(@primary-color, 20%); // Default grey background color
+
+@item-active-bg: fade(@primary-color, 20%);
+@item-hover-bg: fade(@primary-color, 10%);
+
+@border-color-base: lighten(@body-background, 20%); // base border outline a component
+@border-color-split: lighten(@body-background, 10%); // split border inside a component
+
+// Disabled states
+@disabled-color: fade(#fff, 50%);
+
+// Input
+@input-bg: darken(@body-background, 10%);
+
+// Buttons
+@btn-default-bg: lighten(@body-background, 10%);
+
+// Modal
+@modal-mask-bg: fade(black, 80%);
+
+// Table
+@table-selected-row-bg: @item-active-bg;
+@table-row-hover-bg: @item-hover-bg;

@@ -50,8 +50,10 @@ export class QuestEditorComponent extends React.Component<{}, {
         );
     }
 
-    private saveAsClicked = (filename: string) => {
-        const name = filename.endsWith('.qst') ? filename.slice(0, -4) : filename;
+    private saveAsClicked = (filename?: string) => {
+        const name = filename
+            ? filename.endsWith('.qst') ? filename.slice(0, -4) : filename
+            : this.state.saveDialogFilename;
 
         this.setState({
             saveDialogOpen: true,
@@ -74,9 +76,9 @@ export class QuestEditorComponent extends React.Component<{}, {
 }
 
 @observer
-class Toolbar extends React.Component<{ onSaveAsClicked: (filename: string) => void }> {
+class Toolbar extends React.Component<{ onSaveAsClicked: (filename?: string) => void }> {
     state = {
-        filename: 'Choose file...'
+        filename: undefined
     }
 
     render() {
@@ -92,7 +94,7 @@ class Toolbar extends React.Component<{ onSaveAsClicked: (filename: string) => v
                     showUploadList={false}
                     onChange={this.setFilename}
                 >
-                    <Button icon="file">{this.state.filename}</Button>
+                    <Button icon="file">{this.state.filename || 'Choose file...'}</Button>
                 </Upload>
                 {areas && (
                     <Select
