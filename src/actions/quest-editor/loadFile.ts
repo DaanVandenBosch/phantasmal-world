@@ -4,7 +4,7 @@ import { getAreaSections } from '../../data/loading/areas';
 import { getNpcGeometry, getObjectGeometry } from '../../data/loading/entities';
 import { parseNj, parseXj } from '../../data/parsing/ninja';
 import { parseQuest } from '../../data/parsing/quest';
-import { Section, Vec3, VisibleQuestEntity } from '../../domain';
+import { Section, Vec3, QuestEntity } from '../../domain';
 import { createNpcMesh, createObjectMesh } from '../../rendering/entities';
 import { createModelMesh } from '../../rendering/models';
 import { setModel, setQuest } from './questEditor';
@@ -65,7 +65,7 @@ async function loadend(file: File, reader: FileReader) {
 }
 
 const setSectionOnVisibleQuestEntity = action('setSectionOnVisibleQuestEntity',
-    (entity: VisibleQuestEntity, sections: Section[]) => {
+    (entity: QuestEntity, sections: Section[]) => {
         let { x, y, z } = entity.position;
 
         const section = sections.find(s => s.id === entity.sectionId);

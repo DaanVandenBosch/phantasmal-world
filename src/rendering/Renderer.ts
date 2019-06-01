@@ -16,7 +16,7 @@ import {
     MeshLambertMaterial
 } from 'three';
 import OrbitControlsCreator from 'three-orbit-controls';
-import { Vec3, Area, Quest, VisibleQuestEntity, QuestObject, QuestNpc, Section } from '../domain';
+import { Vec3, Area, Quest, QuestEntity, QuestObject, QuestNpc, Section } from '../domain';
 import { getAreaCollisionGeometry, getAreaRenderGeometry } from '../data/loading/areas';
 import {
     OBJECT_COLOR,
@@ -32,7 +32,7 @@ const OrbitControls = OrbitControlsCreator(THREE);
 
 interface PickEntityResult {
     object: Mesh;
-    entity: VisibleQuestEntity;
+    entity: QuestEntity;
     grabOffset: Vector3;
     dragAdjust: Vector3;
     dragY: number;
@@ -464,7 +464,7 @@ export class Renderer {
         return {};
     }
 
-    private getColor(entity: VisibleQuestEntity, type: 'normal' | 'hover' | 'selected') {
+    private getColor(entity: QuestEntity, type: 'normal' | 'hover' | 'selected') {
         const isNpc = entity instanceof QuestNpc;
 
         switch (type) {

@@ -1,5 +1,5 @@
 import { writeQuestQst } from '../../data/parsing/quest';
-import { VisibleQuestEntity, Quest } from '../../domain';
+import { QuestEntity, Quest } from '../../domain';
 import { questEditorStore } from '../../stores/QuestEditorStore';
 import { action } from 'mobx';
 import { Object3D } from 'three';
@@ -31,7 +31,7 @@ function resetModelAndQuestState() {
     questEditorStore.currentModel = undefined;
 }
 
-export const setSelectedEntity = action('setSelectedEntity', (entity?: VisibleQuestEntity) => {
+export const setSelectedEntity = action('setSelectedEntity', (entity?: QuestEntity) => {
     questEditorStore.selectedEntity = entity;
 });
 

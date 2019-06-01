@@ -1,11 +1,11 @@
 import { InputNumber } from 'antd';
 import { observer } from 'mobx-react';
 import React from 'react';
-import { QuestNpc, QuestObject, VisibleQuestEntity } from '../../domain';
+import { QuestNpc, QuestObject, QuestEntity } from '../../domain';
 import './EntityInfoComponent.css';
 
 interface Props {
-    entity?: VisibleQuestEntity;
+    entity?: QuestEntity;
 }
 
 @observer
@@ -79,7 +79,7 @@ export class EntityInfoComponent extends React.Component<Props> {
 
 @observer
 class CoordRow extends React.Component<{
-    entity: VisibleQuestEntity,
+    entity: QuestEntity,
     positionType: 'position' | 'sectionPosition',
     coord: 'x' | 'y' | 'z'
 }> {

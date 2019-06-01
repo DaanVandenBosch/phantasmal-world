@@ -1,6 +1,6 @@
 import { autorun } from 'mobx';
 import { BufferGeometry, DoubleSide, Mesh, MeshLambertMaterial } from 'three';
-import { QuestNpc, QuestObject, VisibleQuestEntity } from '../domain';
+import { QuestNpc, QuestObject, QuestEntity } from '../domain';
 
 export const OBJECT_COLOR = 0xFFFF00;
 export const OBJECT_HOVER_COLOR = 0xFFDF3F;
@@ -18,7 +18,7 @@ export function createNpcMesh(npc: QuestNpc, geometry: BufferGeometry): Mesh {
 }
 
 function createMesh(
-    entity: VisibleQuestEntity,
+    entity: QuestEntity,
     geometry: BufferGeometry,
     color: number,
     type: string

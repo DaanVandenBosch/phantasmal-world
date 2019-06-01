@@ -1,8 +1,4 @@
-.HuntOptimizerComponent {
+.ho-HuntOptimizerComponent {
     display: flex;
     align-items: stretch;
-}
-
-.HuntOptimizerComponent-wanted-items {
-    margin: 10px;
 }

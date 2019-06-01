@@ -111,7 +111,10 @@ export class Quest {
     }
 }
 
-export class VisibleQuestEntity {
+/**
+ * Abstract class from which QuestNpc and QuestObject derive.
+ */
+export class QuestEntity {
     @observable areaId: number;
 
     private _sectionId: number;
@@ -174,7 +177,7 @@ export class VisibleQuestEntity {
         position: Vec3,
         rotation: Vec3
     ) {
-        if (Object.getPrototypeOf(this) === Object.getPrototypeOf(VisibleQuestEntity))
+        if (Object.getPrototypeOf(this) === Object.getPrototypeOf(QuestEntity))
             throw new Error('Abstract class should not be instantiated directly.');
         if (!Number.isInteger(areaId) || areaId < 0)
             throw new Error(`Expected areaId to be a non-negative integer, got ${areaId}.`);
@@ -190,7 +193,7 @@ export class VisibleQuestEntity {
     }
 }
 
-export class QuestObject extends VisibleQuestEntity {
+export class QuestObject extends QuestEntity {
     @observable type: ObjectType;
     /**
      * The raw data from a DAT file.
@@ -214,7 +217,7 @@ export class QuestObject extends VisibleQuestEntity {
     }
 }
 
-export class QuestNpc extends VisibleQuestEntity {
+export class QuestNpc extends QuestEntity {
     @observable type: NpcType;
     /**
      * The raw data from a DAT file.
@@ -268,4 +271,32 @@ export class AreaVariant {
 
 export class Item {
     constructor(public name: string) { }
+}
+
+export class HuntMethod {
+    constructor(
+        public quest: SimpleQuest
+    ) { }
+}
+
+export class SimpleQuest {
+    enemies: SimpleNpc[];
+
+    constructor(
+        public name: string,
+        public npcs: SimpleNpc[]
+    ) {
+        if (!name) throw new Error('name is required.');
+        if (!npcs) throw new Error('npcs is required.');
+
+        this.enemies = npcs.filter(npc => npc.type.enemy);
+    }
+}
+
+export class SimpleNpc {
+    constructor(
+        public type: NpcType
+    ) {
+        if (!type) throw new Error('type is required.');
+    }
 }
