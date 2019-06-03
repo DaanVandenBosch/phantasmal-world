@@ -2,11 +2,30 @@ import { Object3D } from 'three';
 import { computed, observable } from 'mobx';
 import { NpcType } from './NpcType';
 import { ObjectType } from './ObjectType';
-import { DatObject, DatNpc, DatUnknown } from '../data/parsing/dat';
-import { ArrayBufferCursor } from '../data/ArrayBufferCursor';
+import { DatObject, DatNpc, DatUnknown } from '../bin-data/parsing/dat';
+import { ArrayBufferCursor } from '../bin-data/ArrayBufferCursor';
 
 export { NpcType } from './NpcType';
 export { ObjectType } from './ObjectType';
+
+export enum Server {
+    Ephinea = 'Ephinea'
+}
+
+export enum SectionId {
+    Viridia = 'Viridia',
+    Greenill = 'Greenill',
+    Skyly = 'Skyly',
+    Bluefull = 'Bluefull',
+    Purplenum = 'Purplenum',
+    Pinkal = 'Pinkal',
+    Redria = 'Redria',
+    Oran = 'Oran',
+    Yellowboze = 'Yellowboze',
+    Whitill = 'Whitill',
+}
+
+export const SectionIds = Object.keys(SectionId);
 
 export class Vec3 {
     x: number;

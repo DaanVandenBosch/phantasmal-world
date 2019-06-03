@@ -17,7 +17,7 @@
 
 .qe-QuestInfoComponent pre {
     padding: 8px;
-    border: solid 1px lightgray;
+    border: solid 1px hsl(200, 10%, 30%);
     margin: 4px 0;
 }
 

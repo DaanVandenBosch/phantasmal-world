@@ -10,6 +10,8 @@
 @component-background: @body-background;
 @text-color: hsl(200, 10%, 90%);
 @text-color-secondary: hsl(200, 20%, 80%);
+@text-color-dark: fade(white, 85%);
+@text-color-secondary-dark: fade(white, 65%);
 
 @heading-color: fade(@black, 85%);
 
@@ -28,8 +30,13 @@
 // Disabled states
 @disabled-color: fade(#fff, 50%);
 
+// Animation
+@animation-duration-slow: 0.1s; // Modal
+@animation-duration-base: 0.066s;
+@animation-duration-fast: 0.033s; // Tooltip
+
 // Input
-@input-bg: darken(@body-background, 10%);
+@input-bg: darken(@body-background, 5%);
 
 // Buttons
 @btn-default-bg: lighten(@body-background, 10%);
@@ -40,3 +47,6 @@
 // Table
 @table-selected-row-bg: @item-active-bg;
 @table-row-hover-bg: @item-hover-bg;
+
+// Menu
+@menu-dark-bg: @body-background;

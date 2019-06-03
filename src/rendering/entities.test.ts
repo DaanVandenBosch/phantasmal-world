@@ -1,5 +1,5 @@
 import { CylinderBufferGeometry, MeshLambertMaterial, Object3D, Vector3 } from 'three';
-import { DatNpc, DatObject } from '../data/parsing/dat';
+import { DatNpc, DatObject } from '../bin-data/parsing/dat';
 import { NpcType, ObjectType, QuestNpc, QuestObject, Vec3 } from '../domain';
 import { createNpcMesh, createObjectMesh, NPC_COLOR, OBJECT_COLOR } from './entities';
 

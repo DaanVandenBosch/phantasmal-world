@@ -1,32 +1,10 @@
 import * as THREE from 'three';
-import {
-    Color,
-    HemisphereLight,
-    MOUSE,
-    Object3D,
-    PerspectiveCamera,
-    Plane,
-    Raycaster,
-    Scene,
-    Vector2,
-    Vector3,
-    WebGLRenderer,
-    Intersection,
-    Mesh,
-    MeshLambertMaterial
-} from 'three';
+import { Color, HemisphereLight, Intersection, Mesh, MeshLambertMaterial, MOUSE, Object3D, PerspectiveCamera, Plane, Raycaster, Scene, Vector2, Vector3, WebGLRenderer } from 'three';
 import OrbitControlsCreator from 'three-orbit-controls';
-import { Vec3, Area, Quest, QuestEntity, QuestObject, QuestNpc, Section } from '../domain';
-import { getAreaCollisionGeometry, getAreaRenderGeometry } from '../data/loading/areas';
-import {
-    OBJECT_COLOR,
-    OBJECT_HOVER_COLOR,
-    OBJECT_SELECTED_COLOR,
-    NPC_COLOR,
-    NPC_HOVER_COLOR,
-    NPC_SELECTED_COLOR
-} from './entities';
-import { setSelectedEntity } from '../actions/quest-editor/questEditor';
+import { getAreaCollisionGeometry, getAreaRenderGeometry } from '../bin-data/loading/areas';
+import { Area, Quest, QuestEntity, QuestNpc, QuestObject, Section, Vec3 } from '../domain';
+import { questEditorStore } from '../stores/QuestEditorStore';
+import { NPC_COLOR, NPC_HOVER_COLOR, NPC_SELECTED_COLOR, OBJECT_COLOR, OBJECT_HOVER_COLOR, OBJECT_SELECTED_COLOR } from './entities';
 
 const OrbitControls = OrbitControlsCreator(THREE);
 
@@ -273,7 +251,7 @@ export class Renderer {
             : oldSelectedData !== data;
 
         if (selectionChanged) {
-            setSelectedEntity(data && data.entity);
+            questEditorStore.setSelectedEntity(data && data.entity);
         }
     }
 

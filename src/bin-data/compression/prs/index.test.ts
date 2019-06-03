@@ -1,5 +1,5 @@
 import { ArrayBufferCursor } from '../../ArrayBufferCursor';
-import { compress, decompress } from '.';
+import { compress, decompress } from '../prs';
 
 function testWithBytes(bytes: number[], expectedCompressedSize: number) {
     const cursor = new ArrayBufferCursor(new Uint8Array(bytes).buffer, true);

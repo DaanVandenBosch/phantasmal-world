@@ -1,42 +1,41 @@
 import { Button, InputNumber, Select, Table } from "antd";
-import { observable } from "mobx";
 import { observer } from "mobx-react";
 import React from "react";
-import { Item } from "../../domain";
+import { huntOptimizerStore, WantedItem } from "../../stores/HuntOptimizerStore";
 import { itemStore } from "../../stores/ItemStore";
 import './WantedItemsComponent.css';
 
 @observer
 export class WantedItemsComponent extends React.Component {
-    @observable
-    private wantedItems: Array<WantedItem> = [];
-
     render() {
         // Make sure render is called on updates.
-        this.wantedItems.slice(0, 0);
+        huntOptimizerStore.wantedItems.slice(0, 0);
 
         return (
             <section className="ho-WantedItemsComponent">
                 <h2>Wanted Items</h2>
-                <Select
-                    value={undefined}
-                    showSearch
-                    placeholder="Add an item"
-                    optionFilterProp="children"
-                    style={{ width: 200 }}
-                    filterOption
-                    onChange={this.addWanted}
-                >
-                    {itemStore.items.map(item => (
-                        <Select.Option key={item.name}>
-                            {item.name}
-                        </Select.Option>
-                    ))}
-                </Select>
+                <div>
+                    <Select
+                        value={undefined}
+                        showSearch
+                        placeholder="Add an item"
+                        optionFilterProp="children"
+                        style={{ width: 200 }}
+                        filterOption
+                        onChange={this.addWanted}
+                    >
+                        {itemStore.items.current.value.map(item => (
+                            <Select.Option key={item.name}>
+                                {item.name}
+                            </Select.Option>
+                        ))}
+                    </Select>
+                    <Button onClick={huntOptimizerStore.optimize}>Optimize</Button>
+                </div>
                 <Table
                     className="ho-WantedItemsComponent-table"
                     size="small"
-                    dataSource={this.wantedItems}
+                    dataSource={huntOptimizerStore.wantedItems}
                     rowKey={wanted => wanted.item.name}
                     pagination={false}
                 >
@@ -59,30 +58,20 @@ export class WantedItemsComponent extends React.Component {
     }
 
     private addWanted = (itemName: string) => {
-        let added = this.wantedItems.find(w => w.item.name === itemName);
+        let added = huntOptimizerStore.wantedItems.find(w => w.item.name === itemName);
 
         if (!added) {
-            const item = itemStore.items.find(i => i.name === itemName)!;
-            this.wantedItems.push(new WantedItem(item, 1));
+            const item = itemStore.items.current.value.find(i => i.name === itemName)!;
+            huntOptimizerStore.wantedItems.push(new WantedItem(item, 1));
         }
-    };
+    }
 
     private removeWanted = (wanted: WantedItem) => () => {
-        const i = this.wantedItems.findIndex(w => w === wanted);
+        const i = huntOptimizerStore.wantedItems.findIndex(w => w === wanted);
 
         if (i !== -1) {
-            this.wantedItems.splice(i, 1);
+            huntOptimizerStore.wantedItems.splice(i, 1);
         }
-    };
-}
-
-class WantedItem {
-    @observable item: Item;
-    @observable amount: number;
-
-    constructor(item: Item, amount: number) {
-        this.item = item;
-        this.amount = amount;
     }
 }
 

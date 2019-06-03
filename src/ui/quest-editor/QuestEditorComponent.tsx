@@ -3,8 +3,6 @@ import { UploadChangeParam } from "antd/lib/upload";
 import { UploadFile } from "antd/lib/upload/interface";
 import { observer } from "mobx-react";
 import React, { ChangeEvent } from "react";
-import { loadFile } from "../../actions/quest-editor/loadFile";
-import { saveCurrentQuestToFile, setCurrentAreaId } from "../../actions/quest-editor/questEditor";
 import { questEditorStore } from "../../stores/QuestEditorStore";
 import { EntityInfoComponent } from "./EntityInfoComponent";
 import './QuestEditorComponent.css';
@@ -66,7 +64,7 @@ export class QuestEditorComponent extends React.Component<{}, {
     }
 
     private saveDialogAffirmed = () => {
-        saveCurrentQuestToFile(this.state.saveDialogFilename);
+        questEditorStore.saveCurrentQuestToFile(this.state.saveDialogFilename);
         this.setState({ saveDialogOpen: false });
     }
 
@@ -98,8 +96,8 @@ class Toolbar extends React.Component<{ onSaveAsClicked: (filename?: string) => 
                 </Upload>
                 {areas && (
                     <Select
-                        onChange={setCurrentAreaId}
-                        defaultValue={areaId}
+                        onChange={questEditorStore.setCurrentAreaId}
+                        value={areaId}
                         style={{ width: 200 }}
                     >
                         {areas.map(area =>
@@ -120,7 +118,7 @@ class Toolbar extends React.Component<{ onSaveAsClicked: (filename?: string) => 
     private setFilename = (info: UploadChangeParam<UploadFile>) => {
         if (info.file.originFileObj) {
             this.setState({ filename: info.file.name });
-            loadFile(info.file.originFileObj);
+            questEditorStore.loadFile(info.file.originFileObj);
         }
     }
 
