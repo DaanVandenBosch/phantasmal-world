@@ -1,4 +1,4 @@
-import { Solve } from 'javascript-lp-solver';
+import solver from 'javascript-lp-solver';
 import { observable } from "mobx";
 import { Difficulties, Item, NpcType, SectionIds } from "../domain";
 import { huntMethodStore } from "./HuntMethodStore";
@@ -61,7 +61,7 @@ class HuntOptimizerStore {
             }
         }
 
-        const result = Solve({
+        const result = solver.Solve({
             optimize: 'time',
             opType: 'min',
             constraints,
