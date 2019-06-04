@@ -1,21 +1,23 @@
 import { observable } from "mobx";
 import { HuntMethod, NpcType, Server, SimpleNpc, SimpleQuest } from "../domain";
 import { Loadable } from "../Loadable";
-import { PerServer } from "./PerServer";
+import { ServerMap } from "./ServerMap";
 
 class HuntMethodStore {
-    @observable methods: PerServer<Loadable<Array<HuntMethod>>> = new PerServer(server =>
+    @observable methods: ServerMap<Loadable<Array<HuntMethod>>> = new ServerMap(server =>
         new Loadable([], () => this.loadHuntMethods(server))
     );
 
     private async loadHuntMethods(server: Server): Promise<HuntMethod[]> {
-        const response = await fetch(process.env.PUBLIC_URL + `/quests.${Server[server]}.tsv`);
+        const response = await fetch(
+            `${process.env.PUBLIC_URL}/quests.${Server[server].toLowerCase()}.tsv`
+        );
         const data = await response.text();
         const rows = data.split('\n').map(line => line.split('\t'));
 
         const npcTypeByIndex = rows[0].slice(2, -2).map((episode, i) => {
             const enemy = rows[1][i + 2];
-            return NpcType.bySimpleNameAndEpisode(enemy, parseInt(episode, 10))!;
+            return NpcType.byNameAndEpisode(enemy, parseInt(episode, 10))!;
         });
 
         return rows.slice(2).map(row => {
@@ -26,8 +28,10 @@ class HuntMethodStore {
                 const type = npcTypeByIndex[cellI];
                 const enemies = [];
 
-                for (let i = 0; i < amount; i++) {
-                    enemies.push(new SimpleNpc(type));
+                if (type) {
+                    for (let i = 0; i < amount; i++) {
+                        enemies.push(new SimpleNpc(type));
+                    }
                 }
 
                 return enemies;

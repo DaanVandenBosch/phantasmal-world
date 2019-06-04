@@ -31,14 +31,3 @@
 .ApplicationComponent-main>* {
     flex: 1;
 }
-
-.ApplicationComponent-error {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-.ApplicationComponent-error > div {
-    width: 300px;
-    margin-top: 30px;
-}

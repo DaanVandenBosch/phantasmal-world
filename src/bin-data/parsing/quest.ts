@@ -200,6 +200,7 @@ function parseNpcData(episode: number, npcs: DatNpc[]): QuestNpc[] {
     });
 }
 
+// TODO: detect Mothmant, St. Rappy, Hallo Rappy, Egg Rappy, Death Gunner, Bulk and Recon.
 function getNpcType(episode: number, { typeId, unknown, skin, areaId }: DatNpc): NpcType {
     const regular = (unknown[2][18] & 0x80) === 0;
 
@@ -353,8 +354,6 @@ function getNpcType(episode: number, { typeId, unknown, skin, areaId }: DatNpc):
         case 0x0FE: return NpcType.Nurse2;
     }
 
-    // TODO: remove log statement:
-    console.log(`Unknown type ID: ${typeId} (0x${typeId.toString(16)}).`);
     return NpcType.Unknown;
 }
 

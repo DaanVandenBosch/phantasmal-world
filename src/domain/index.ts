@@ -1,9 +1,10 @@
-import { Object3D } from 'three';
 import { computed, observable } from 'mobx';
+import { Object3D } from 'three';
+import { ArrayBufferCursor } from '../bin-data/ArrayBufferCursor';
+import { DatNpc, DatObject, DatUnknown } from '../bin-data/parsing/dat';
 import { NpcType } from './NpcType';
 import { ObjectType } from './ObjectType';
-import { DatObject, DatNpc, DatUnknown } from '../bin-data/parsing/dat';
-import { ArrayBufferCursor } from '../bin-data/ArrayBufferCursor';
+import { enumValues } from '../enums';
 
 export { NpcType } from './NpcType';
 export { ObjectType } from './ObjectType';
@@ -11,6 +12,8 @@ export { ObjectType } from './ObjectType';
 export enum Server {
     Ephinea = 'Ephinea'
 }
+
+export const Servers: Server[] = enumValues(Server);
 
 export enum SectionId {
     Viridia = 'Viridia',
@@ -25,7 +28,16 @@ export enum SectionId {
     Whitill = 'Whitill',
 }
 
-export const SectionIds = Object.keys(SectionId);
+export const SectionIds: SectionId[] = enumValues(SectionId);
+
+export enum Difficulty {
+    Normal = 'Normal',
+    Hard = 'Hard',
+    VHard = 'VHard',
+    Ultimate = 'Ultimate'
+}
+
+export const Difficulties: Difficulty[] = enumValues(Difficulty);
 
 export class Vec3 {
     x: number;
@@ -290,6 +302,24 @@ export class AreaVariant {
 
 export class Item {
     constructor(public name: string) { }
+}
+
+type ItemDrop = {
+    item: Item,
+    anythingRate: number,
+    rareRate: number
+}
+
+export class EnemyDrop implements ItemDrop {
+    rate: number;
+
+    constructor(
+        public item: Item,
+        public anythingRate: number,
+        public rareRate: number
+    ) {
+        this.rate = anythingRate * rareRate;
+    }
 }
 
 export class HuntMethod {

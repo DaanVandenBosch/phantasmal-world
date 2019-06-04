@@ -1,0 +1,2407 @@
+difficulty	episode	section_id	box	item	drop_rate
+normal	1	Viridia	Forest 1	AddSlot	0.0008544890582676089
+normal	1	Viridia	Forest 1	Amplifier of Foie	0.0008544890582676089
+normal	1	Purplenum	Forest 1	Amplifier of Barta	0.0008544890582676089
+normal	1	Pinkal	Forest 1	Amplifier of Barta	0.0008544890582676089
+normal	1	Whitill	Forest 1	Amplifier of Barta	0.0008544890582676089
+normal	1	Viridia	Forest 2	Amplifier of Barta	0.0008544890582676089
+normal	1	Greenill	Forest 2	AddSlot	0.0008544890582676089
+normal	1	Greenill	Forest 2	Amplifier of Barta	0.0008544890582676089
+normal	1	Skyly	Forest 2	Amplifier of Foie	0.0008544890582676089
+normal	1	Bluefull	Forest 2	Amplifier of Foie	0.0008544890582676089
+normal	1	Pinkal	Forest 2	AddSlot	0.0008544890582676089
+normal	1	Pinkal	Forest 2	Amplifier of Foie	0.0008544890582676089
+normal	1	Redria	Forest 2	AddSlot	0.001342768520134814
+normal	1	Oran	Forest 2	Amplifier of Foie	0.0008544890582676089
+normal	1	Yellowboze	Forest 2	AddSlot	0.0008544890582676089
+normal	1	Yellowboze	Forest 2	AddSlot	0.0008544890582676089
+normal	1	Whitill	Forest 2	Amplifier of Foie	0.0008544890582676089
+normal	1	Bluefull	Cave 1	Amplifier of Zonde	0.0008544890582676089
+normal	1	Purplenum	Cave 1	Amplifier of Zonde	0.0008544890582676089
+normal	1	Pinkal	Cave 1	Amplifier of Zonde	0.0008544890582676089
+normal	1	Oran	Cave 1	Amplifier of Zonde	0.0008544890582676089
+normal	1	Yellowboze	Cave 1	AddSlot	0.0008544890582676089
+normal	1	Whitill	Cave 1	AddSlot	0.0008544890582676089
+normal	1	Viridia	Cave 2	Amplifier of Gifoie	0.0008544890582676089
+normal	1	Bluefull	Cave 2	Amplifier of Gizonde	0.0008544890582676089
+normal	1	Purplenum	Cave 2	Amplifier of Gizonde	0.0008544890582676089
+normal	1	Pinkal	Cave 2	Amplifier of Gizonde	0.0008544890582676089
+normal	1	Oran	Cave 2	AddSlot	0.0008544890582676089
+normal	1	Oran	Cave 2	Amplifier of Gizonde	0.0008544890582676089
+normal	1	Viridia	Cave 3	Cannon	0.0005493177473577816
+normal	1	Viridia	Cave 3	Glaive	0.0005493177473577816
+normal	1	Viridia	Cave 3	Amplifier of Gibarta	0.0008544890582676089
+normal	1	Greenill	Cave 3	Blaster	0.0005493177473577816
+normal	1	Greenill	Cave 3	Blade	0.0005493177473577816
+normal	1	Skyly	Cave 3	Breaker	0.0005493177473577816
+normal	1	Skyly	Cave 3	Blaster	0.0005493177473577816
+normal	1	Skyly	Cave 3	AddSlot	0.0008544890582676089
+normal	1	Skyly	Cave 3	Amplifier of Gifoie	0.0008544890582676089
+normal	1	Bluefull	Cave 3	Glaive	0.0005493177473577816
+normal	1	Bluefull	Cave 3	Pole	0.0005493177473577816
+normal	1	Bluefull	Cave 3	Amplifier of Gifoie	0.0008544890582676089
+normal	1	Purplenum	Cave 3	Repeater	0.0005493177473577816
+normal	1	Purplenum	Cave 3	Blade	0.0005493177473577816
+normal	1	Pinkal	Cave 3	Staff	0.0005493177473577816
+normal	1	Pinkal	Cave 3	Glaive	0.0005493177473577816
+normal	1	Pinkal	Cave 3	Amplifier of Gifoie	0.0008544890582676089
+normal	1	Redria	Cave 3	Cutter	0.0005493177473577816
+normal	1	Redria	Cave 3	Cannon	0.0005493177473577816
+normal	1	Redria	Cave 3	AddSlot	0.001342768520134814
+normal	1	Oran	Cave 3	Blade	0.0005493177473577816
+normal	1	Oran	Cave 3	Breaker	0.0005493177473577816
+normal	1	Oran	Cave 3	Amplifier of Gifoie	0.0008544890582676089
+normal	1	Whitill	Cave 3	Cutter	0.0005493177473577816
+normal	1	Whitill	Cave 3	Repeater	0.0005493177473577816
+normal	1	Whitill	Cave 3	Amplifier of Gifoie	0.0008544890582676089
+normal	1	Viridia	Mine 1	Mag	0.008788890841975743
+normal	1	Viridia	Mine 1	Amplifier of Rafoie	0.0008544890582676089
+normal	1	Greenill	Mine 1	Mag	0.008788890841975743
+normal	1	Greenill	Mine 1	Amplifier of Gibarta	0.0008544890582676089
+normal	1	Skyly	Mine 1	Mag	0.008788890841975743
+normal	1	Bluefull	Mine 1	Mag	0.008788890841975743
+normal	1	Purplenum	Mine 1	Mag	0.008788890841975743
+normal	1	Purplenum	Mine 1	AddSlot	0.0008544890582676089
+normal	1	Purplenum	Mine 1	Amplifier of Gibarta	0.0008544890582676089
+normal	1	Pinkal	Mine 1	Mag	0.008788890841975743
+normal	1	Pinkal	Mine 1	Amplifier of Gibarta	0.0008544890582676089
+normal	1	Redria	Mine 1	Mag	0.008788890841975743
+normal	1	Redria	Mine 1	AddSlot	0.001342768520134814
+normal	1	Oran	Mine 1	Mag	0.008788890841975743
+normal	1	Yellowboze	Mine 1	Mag	0.008788890841975743
+normal	1	Whitill	Mine 1	Mag	0.008788890841975743
+normal	1	Whitill	Mine 1	Amplifier of Gibarta	0.0008544890582676089
+normal	1	Viridia	Mine 2	Mag	0.00390625
+normal	1	Viridia	Mine 2	Cannon	0.0006713887676659169
+normal	1	Viridia	Mine 2	Glaive	0.0006713887676659169
+normal	1	Greenill	Mine 2	Mag	0.00390625
+normal	1	Greenill	Mine 2	Blaster	0.0006713887676659169
+normal	1	Greenill	Mine 2	Blade	0.0006713887676659169
+normal	1	Skyly	Mine 2	Mag	0.00390625
+normal	1	Skyly	Mine 2	Breaker	0.0006713887676659169
+normal	1	Skyly	Mine 2	Blaster	0.0006713887676659169
+normal	1	Bluefull	Mine 2	Mag	0.00390625
+normal	1	Bluefull	Mine 2	Glaive	0.0006713887676659169
+normal	1	Bluefull	Mine 2	Pole	0.0006713887676659169
+normal	1	Bluefull	Mine 2	AddSlot	0.0008544890582676089
+normal	1	Purplenum	Mine 2	Mag	0.00390625
+normal	1	Purplenum	Mine 2	Repeater	0.0006713887676659169
+normal	1	Purplenum	Mine 2	Blade	0.0006713887676659169
+normal	1	Purplenum	Mine 2	Amplifier of Rabarta	0.0008544890582676089
+normal	1	Pinkal	Mine 2	Mag	0.00390625
+normal	1	Pinkal	Mine 2	Staff	0.0006713887676659169
+normal	1	Pinkal	Mine 2	Glaive	0.0006713887676659169
+normal	1	Pinkal	Mine 2	Amplifier of Rabarta	0.0008544890582676089
+normal	1	Redria	Mine 2	Mag	0.00390625
+normal	1	Redria	Mine 2	Cutter	0.0006713887676659169
+normal	1	Redria	Mine 2	Cannon	0.0006713887676659169
+normal	1	Oran	Mine 2	Mag	0.00390625
+normal	1	Oran	Mine 2	Blade	0.0006713887676659169
+normal	1	Oran	Mine 2	Breaker	0.0006713887676659169
+normal	1	Yellowboze	Mine 2	Mag	0.00390625
+normal	1	Yellowboze	Mine 2	AddSlot	0.0008544890582676089
+normal	1	Whitill	Mine 2	Mag	0.00390625
+normal	1	Whitill	Mine 2	Cutter	0.0006713887676659169
+normal	1	Whitill	Mine 2	Repeater	0.0006713887676659169
+normal	1	Whitill	Mine 2	Amplifier of Rabarta	0.0008544890582676089
+normal	1	Viridia	Ruins 1	Amplifier of Rabarta	0.0008544890582676089
+normal	1	Skyly	Ruins 1	Amplifier of Rafoie	0.0008544890582676089
+normal	1	Skyly	Ruins 1	Amplifier of Red 	0.0008544890582676089
+normal	1	Bluefull	Ruins 1	Amplifier of Rafoie	0.0008544890582676089
+normal	1	Pinkal	Ruins 1	Amplifier of Rafoie	0.0008544890582676089
+normal	1	Pinkal	Ruins 1	Amplifier of Red 	0.0008544890582676089
+normal	1	Redria	Ruins 1	AddSlot	0.001342768520134814
+normal	1	Redria	Ruins 1	Amplifier of Red 	0.0008544890582676089
+normal	1	Oran	Ruins 1	Amplifier of Red 	0.0008544890582676089
+normal	1	Oran	Ruins 1	Amplifier of Rafoie	0.0008544890582676089
+normal	1	Yellowboze	Ruins 1	Amplifier of Red 	0.0008544890582676089
+normal	1	Whitill	Ruins 1	Amplifier of Rafoie	0.0008544890582676089
+normal	1	Greenill	Ruins 2	Amplifier of Rabarta	0.0008544890582676089
+normal	1	Bluefull	Ruins 2	Amplifier of Razonde	0.0008544890582676089
+normal	1	Purplenum	Ruins 2	Amplifier of Razonde	0.0008544890582676089
+normal	1	Pinkal	Ruins 2	Amplifier of Razonde	0.0008544890582676089
+normal	1	Pinkal	Ruins 2	Amplifier of Yellow	0.0008544890582676089
+normal	1	Redria	Ruins 2	Amplifier of Yellow	0.0008544890582676089
+normal	1	Oran	Ruins 2	Amplifier of Yellow	0.0008544890582676089
+normal	1	Oran	Ruins 2	Amplifier of Razonde	0.0008544890582676089
+normal	1	Yellowboze	Ruins 2	Amplifier of Yellow	0.0008544890582676089
+normal	1	Viridia	Ruins 3	Launcher	0.0007934555783894439
+normal	1	Viridia	Ruins 3	Berdys	0.0007934555783894439
+normal	1	Greenill	Ruins 3	Beam	0.0007934555783894439
+normal	1	Greenill	Ruins 3	Edge	0.0007934555783894439
+normal	1	Greenill	Ruins 3	Amplifier of Blue	0.0008544890582676089
+normal	1	Skyly	Ruins 3	Claymore	0.0007934555783894439
+normal	1	Skyly	Ruins 3	Beam	0.0007934555783894439
+normal	1	Bluefull	Ruins 3	Berdys	0.0007934555783894439
+normal	1	Bluefull	Ruins 3	Pillar	0.0007934555783894439
+normal	1	Purplenum	Ruins 3	Gatling	0.0007934555783894439
+normal	1	Purplenum	Ruins 3	Edge	0.0007934555783894439
+normal	1	Pinkal	Ruins 3	Baton	0.0007934555783894439
+normal	1	Pinkal	Ruins 3	Berdys	0.0007934555783894439
+normal	1	Pinkal	Ruins 3	Amplifier of Blue	0.0008544890582676089
+normal	1	Redria	Ruins 3	Sawcer	0.0007934555783894439
+normal	1	Redria	Ruins 3	Launcher	0.0007934555783894439
+normal	1	Redria	Ruins 3	Amplifier of Blue	0.0008544890582676089
+normal	1	Oran	Ruins 3	Edge	0.0007934555783894439
+normal	1	Oran	Ruins 3	Claymore	0.0007934555783894439
+normal	1	Oran	Ruins 3	Amplifier of Blue	0.0008544890582676089
+normal	1	Yellowboze	Ruins 3	Amplifier of Blue	0.0008544890582676089
+normal	1	Whitill	Ruins 3	Sawcer	0.0007934555783894439
+normal	1	Whitill	Ruins 3	Gatling	0.0007934555783894439
+normal	2	Viridia	VR Temple: Alpha	AddSlot	0.0008544890582676089
+normal	2	Bluefull	VR Temple: Alpha	Amplifier of Zonde	0.0008544890582676089
+normal	2	Purplenum	VR Temple: Alpha	Amplifier of Zonde	0.0008544890582676089
+normal	2	Pinkal	VR Temple: Alpha	Amplifier of Zonde	0.0008544890582676089
+normal	2	Oran	VR Temple: Alpha	Amplifier of Zonde	0.0008544890582676089
+normal	2	Viridia	VR Temple: Beta	Amplifier of Barta	0.0008544890582676089
+normal	2	Greenill	VR Temple: Beta	AddSlot	0.0008544890582676089
+normal	2	Greenill	VR Temple: Beta	Amplifier of Barta	0.0008544890582676089
+normal	2	Purplenum	VR Temple: Beta	Amplifier of Barta	0.0008544890582676089
+normal	2	Pinkal	VR Temple: Beta	Amplifier of Barta	0.0008544890582676089
+normal	2	Redria	VR Temple: Beta	AddSlot	0.0008544890582676089
+normal	2	Whitill	VR Temple: Beta	Amplifier of Barta	0.0008544890582676089
+normal	2	Viridia	VR Spaceship: Alpha	Amplifier of Foie	0.0008544890582676089
+normal	2	Skyly	VR Spaceship: Alpha	AddSlot	0.0008544890582676089
+normal	2	Skyly	VR Spaceship: Alpha	Amplifier of Foie	0.0008544890582676089
+normal	2	Bluefull	VR Spaceship: Alpha	Amplifier of Foie	0.0008544890582676089
+normal	2	Pinkal	VR Spaceship: Alpha	Amplifier of Foie	0.0008544890582676089
+normal	2	Oran	VR Spaceship: Alpha	Amplifier of Foie	0.0008544890582676089
+normal	2	Whitill	VR Spaceship: Alpha	Amplifier of Foie	0.0008544890582676089
+normal	2	Viridia	VR Spaceship: Beta	Amplifier of Gibarta	0.0008544890582676089
+normal	2	Greenill	VR Spaceship: Beta	Amplifier of Gibarta	0.0008544890582676089
+normal	2	Bluefull	VR Spaceship: Beta	AddSlot	0.0008544890582676089
+normal	2	Purplenum	VR Spaceship: Beta	Amplifier of Gibarta	0.0008544890582676089
+normal	2	Pinkal	VR Spaceship: Beta	Amplifier of Gibarta	0.0008544890582676089
+normal	2	Redria	VR Spaceship: Beta	AddSlot	0.0008544890582676089
+normal	2	Whitill	VR Spaceship: Beta	Amplifier of Gibarta	0.0008544890582676089
+normal	2	Viridia	Jungle North	Cannon	0.0005493177473577816
+normal	2	Viridia	Jungle North	Glaive	0.0005493177473577816
+normal	2	Viridia	Jungle North	Red Barrier	0.0008544890582676089
+normal	2	Greenill	Jungle North	Blaster	0.0005493177473577816
+normal	2	Greenill	Jungle North	Blade	0.0005493177473577816
+normal	2	Skyly	Jungle North	Breaker	0.0005493177473577816
+normal	2	Skyly	Jungle North	Blaster	0.0005493177473577816
+normal	2	Skyly	Jungle North	Red Barrier	0.0008544890582676089
+normal	2	Bluefull	Jungle North	Glaive	0.0005493177473577816
+normal	2	Bluefull	Jungle North	Pole	0.0005493177473577816
+normal	2	Bluefull	Jungle North	Amplifier of Gizonde	0.0008544890582676089
+normal	2	Bluefull	Jungle North	Red Barrier	0.0008544890582676089
+normal	2	Purplenum	Jungle North	Repeater	0.0005493177473577816
+normal	2	Purplenum	Jungle North	Blade	0.0005493177473577816
+normal	2	Purplenum	Jungle North	AddSlot	0.0008544890582676089
+normal	2	Purplenum	Jungle North	Amplifier of Gizonde	0.0008544890582676089
+normal	2	Pinkal	Jungle North	Staff	0.0005493177473577816
+normal	2	Pinkal	Jungle North	Glaive	0.0005493177473577816
+normal	2	Pinkal	Jungle North	Amplifier of Gizonde	0.0008544890582676089
+normal	2	Pinkal	Jungle North	Red Barrier	0.0008544890582676089
+normal	2	Redria	Jungle North	Cutter	0.0005493177473577816
+normal	2	Redria	Jungle North	Cannon	0.0005493177473577816
+normal	2	Redria	Jungle North	Red Barrier	0.0008544890582676089
+normal	2	Oran	Jungle North	Blade	0.0005493177473577816
+normal	2	Oran	Jungle North	Breaker	0.0005493177473577816
+normal	2	Oran	Jungle North	Amplifier of Gizonde	0.0008544890582676089
+normal	2	Oran	Jungle North	Red Barrier	0.0008544890582676089
+normal	2	Yellowboze	Jungle North	AddSlot	0.0008544890582676089
+normal	2	Yellowboze	Jungle North	Red Barrier	0.0008544890582676089
+normal	2	Whitill	Jungle North	Cutter	0.0005493177473577816
+normal	2	Whitill	Jungle North	Repeater	0.0005493177473577816
+normal	2	Whitill	Jungle North	Red Barrier	0.0008544890582676089
+normal	2	Viridia	Jungle East	Mag	0.008788890841975743
+normal	2	Viridia	Jungle East	Amplifier of Gifoie	0.0008544890582676089
+normal	2	Greenill	Jungle East	Mag	0.008788890841975743
+normal	2	Skyly	Jungle East	Mag	0.008788890841975743
+normal	2	Skyly	Jungle East	Amplifier of Gifoie	0.0008544890582676089
+normal	2	Bluefull	Jungle East	Mag	0.008788890841975743
+normal	2	Bluefull	Jungle East	Amplifier of Gifoie	0.0008544890582676089
+normal	2	Bluefull	Jungle East	Yellow Barrier	0.0008544890582676089
+normal	2	Purplenum	Jungle East	Mag	0.008788890841975743
+normal	2	Purplenum	Jungle East	Yellow Barrier	0.0008544890582676089
+normal	2	Pinkal	Jungle East	Mag	0.008788890841975743
+normal	2	Pinkal	Jungle East	Amplifier of Gifoie	0.0008544890582676089
+normal	2	Pinkal	Jungle East	Yellow Barrier	0.0008544890582676089
+normal	2	Redria	Jungle East	Mag	0.008788890841975743
+normal	2	Redria	Jungle East	Yellow Barrier	0.0008544890582676089
+normal	2	Oran	Jungle East	Mag	0.008788890841975743
+normal	2	Oran	Jungle East	AddSlot	0.0008544890582676089
+normal	2	Oran	Jungle East	Amplifier of Gifoie	0.0008544890582676089
+normal	2	Oran	Jungle East	Yellow Barrier	0.0008544890582676089
+normal	2	Yellowboze	Jungle East	Mag	0.008788890841975743
+normal	2	Yellowboze	Jungle East	Yellow Barrier	0.0008544890582676089
+normal	2	Whitill	Jungle East	Mag	0.008788890841975743
+normal	2	Whitill	Jungle East	AddSlot	0.0008544890582676089
+normal	2	Whitill	Jungle East	Amplifier of Gifoie	0.0008544890582676089
+normal	2	Viridia	Mountain	Mag	0.00390625
+normal	2	Viridia	Mountain	Cannon	0.0006713887676659169
+normal	2	Viridia	Mountain	Glaive	0.0006713887676659169
+normal	2	Greenill	Mountain	Mag	0.00390625
+normal	2	Greenill	Mountain	Blaster	0.0006713887676659169
+normal	2	Greenill	Mountain	Blade	0.0006713887676659169
+normal	2	Skyly	Mountain	Mag	0.00390625
+normal	2	Skyly	Mountain	Breaker	0.0006713887676659169
+normal	2	Skyly	Mountain	Blaster	0.0006713887676659169
+normal	2	Bluefull	Mountain	Mag	0.00390625
+normal	2	Bluefull	Mountain	Glaive	0.0006713887676659169
+normal	2	Bluefull	Mountain	Pole	0.0006713887676659169
+normal	2	Bluefull	Mountain	Amplifier of Razonde	0.0008544890582676089
+normal	2	Purplenum	Mountain	Mag	0.00390625
+normal	2	Purplenum	Mountain	Repeater	0.0006713887676659169
+normal	2	Purplenum	Mountain	Blade	0.0006713887676659169
+normal	2	Purplenum	Mountain	Amplifier of Razonde	0.0008544890582676089
+normal	2	Pinkal	Mountain	Mag	0.00390625
+normal	2	Pinkal	Mountain	Staff	0.0006713887676659169
+normal	2	Pinkal	Mountain	Glaive	0.0006713887676659169
+normal	2	Pinkal	Mountain	Amplifier of Razonde	0.0008544890582676089
+normal	2	Redria	Mountain	Mag	0.00390625
+normal	2	Redria	Mountain	Cutter	0.0006713887676659169
+normal	2	Redria	Mountain	Cannon	0.0006713887676659169
+normal	2	Redria	Mountain	AddSlot	0.0008544890582676089
+normal	2	Oran	Mountain	Mag	0.00390625
+normal	2	Oran	Mountain	Blade	0.0006713887676659169
+normal	2	Oran	Mountain	Breaker	0.0006713887676659169
+normal	2	Oran	Mountain	Amplifier of Razonde	0.0008544890582676089
+normal	2	Yellowboze	Mountain	Mag	0.00390625
+normal	2	Yellowboze	Mountain	AddSlot	0.0008544890582676089
+normal	2	Whitill	Mountain	Mag	0.00390625
+normal	2	Whitill	Mountain	Cutter	0.0006713887676659169
+normal	2	Whitill	Mountain	Repeater	0.0006713887676659169
+normal	2	Viridia	Seaside 	Amplifier of Rabarta	0.0008544890582676089
+normal	2	Viridia	Seaside 	Blue Barrier	0.0008544890582676089
+normal	2	Greenill	Seaside 	Amplifier of Rabarta	0.0008544890582676089
+normal	2	Greenill	Seaside 	Amplifier of Blue	0.0008544890582676089
+normal	2	Greenill	Seaside 	Blue Barrier	0.0008544890582676089
+normal	2	Purplenum	Seaside 	Amplifier of Rabarta	0.0008544890582676089
+normal	2	Purplenum	Seaside 	Blue Barrier	0.0008544890582676089
+normal	2	Pinkal	Seaside 	AddSlot	0.0008544890582676089
+normal	2	Pinkal	Seaside 	Amplifier of Rabarta	0.0008544890582676089
+normal	2	Pinkal	Seaside 	Amplifier of Blue	0.0008544890582676089
+normal	2	Pinkal	Seaside 	Blue Barrier	0.0008544890582676089
+normal	2	Redria	Seaside 	Amplifier of Blue	0.0008544890582676089
+normal	2	Redria	Seaside 	Blue Barrier	0.0008544890582676089
+normal	2	Yellowboze	Seaside 	AddSlot	0.0008544890582676089
+normal	2	Yellowboze	Seaside 	Amplifier of Blue	0.0008544890582676089
+normal	2	Yellowboze	Seaside 	Blue Barrier	0.0008544890582676089
+normal	2	Whitill	Seaside 	Amplifier of Rabarta	0.0008544890582676089
+normal	2	Whitill	Seaside 	Blue Barrier	0.0008544890582676089
+normal	2	Viridia	Seabed: Upper Levels	Amplifier of Rafoie	0.0008544890582676089
+normal	2	Skyly	Seabed: Upper Levels	Amplifier of Rafoie	0.0008544890582676089
+normal	2	Skyly	Seabed: Upper Levels	Amplifier of Red 	0.0008544890582676089
+normal	2	Bluefull	Seabed: Upper Levels	Amplifier of Rafoie	0.0008544890582676089
+normal	2	Pinkal	Seabed: Upper Levels	Amplifier of Rafoie	0.0008544890582676089
+normal	2	Pinkal	Seabed: Upper Levels	Amplifier of Red 	0.0008544890582676089
+normal	2	Redria	Seabed: Upper Levels	Amplifier of Red 	0.0008544890582676089
+normal	2	Redria	Seabed: Upper Levels	AddSlot	0.0008544890582676089
+normal	2	Oran	Seabed: Upper Levels	Amplifier of Rafoie	0.0008544890582676089
+normal	2	Yellowboze	Seabed: Upper Levels	Amplifier of Red 	0.0008544890582676089
+normal	2	Whitill	Seabed: Upper Levels	Amplifier of Rafoie	0.0008544890582676089
+normal	2	Viridia	Seabed: Lower Levels	Launcher	0.0007934555783894439
+normal	2	Viridia	Seabed: Lower Levels	Berdys	0.0007934555783894439
+normal	2	Greenill	Seabed: Lower Levels	Beam	0.0007934555783894439
+normal	2	Greenill	Seabed: Lower Levels	Edge	0.0007934555783894439
+normal	2	Skyly	Seabed: Lower Levels	Claymore	0.0007934555783894439
+normal	2	Skyly	Seabed: Lower Levels	Beam	0.0007934555783894439
+normal	2	Bluefull	Seabed: Lower Levels	Berdys	0.0007934555783894439
+normal	2	Bluefull	Seabed: Lower Levels	Pillar	0.0007934555783894439
+normal	2	Purplenum	Seabed: Lower Levels	Gatling	0.0007934555783894439
+normal	2	Purplenum	Seabed: Lower Levels	Edge	0.0007934555783894439
+normal	2	Pinkal	Seabed: Lower Levels	Baton	0.0007934555783894439
+normal	2	Pinkal	Seabed: Lower Levels	Berdys	0.0007934555783894439
+normal	2	Pinkal	Seabed: Lower Levels	Amplifier of Yellow	0.0008544890582676089
+normal	2	Redria	Seabed: Lower Levels	Sawcer	0.0007934555783894439
+normal	2	Redria	Seabed: Lower Levels	Launcher	0.0007934555783894439
+normal	2	Redria	Seabed: Lower Levels	Amplifier of Yellow	0.0008544890582676089
+normal	2	Oran	Seabed: Lower Levels	Edge	0.0007934555783894439
+normal	2	Oran	Seabed: Lower Levels	Claymore	0.0007934555783894439
+normal	2	Yellowboze	Seabed: Lower Levels	AddSlot	0.0008544890582676089
+normal	2	Yellowboze	Seabed: Lower Levels	Amplifier of Yellow	0.0008544890582676089
+normal	2	Whitill	Seabed: Lower Levels	Sawcer	0.0007934555783894439
+normal	2	Whitill	Seabed: Lower Levels	Gatling	0.0007934555783894439
+normal	4	Viridia	Crater East	AddSlot	0.0008544890582676089
+normal	4	Greenill	Crater East	AddSlot	0.0008544890582676089
+normal	4	Skyly	Crater East	AddSlot	0.0008544890582676089
+normal	4	Bluefull	Crater East	AddSlot	0.0008544890582676089
+normal	4	Purplenum	Crater East	AddSlot	0.0008544890582676089
+normal	4	Pinkal	Crater East	AddSlot	0.0008544890582676089
+normal	4	Redria	Crater East	AddSlot	0.0008544890582676089
+normal	4	Oran	Crater East	AddSlot	0.0008544890582676089
+normal	4	Yellowboze	Crater East	AddSlot	0.0008544890582676089
+normal	4	Whitill	Crater East	AddSlot	0.0008544890582676089
+normal	4	Viridia	Crater West	AddSlot	0.0008544890582676089
+normal	4	Greenill	Crater West	AddSlot	0.0008544890582676089
+normal	4	Skyly	Crater West	AddSlot	0.0008544890582676089
+normal	4	Bluefull	Crater West	AddSlot	0.0008544890582676089
+normal	4	Purplenum	Crater West	AddSlot	0.0008544890582676089
+normal	4	Pinkal	Crater West	AddSlot	0.0008544890582676089
+normal	4	Redria	Crater West	AddSlot	0.0008544890582676089
+normal	4	Oran	Crater West	AddSlot	0.0008544890582676089
+normal	4	Yellowboze	Crater West	AddSlot	0.0008544890582676089
+normal	4	Whitill	Crater West	AddSlot	0.0008544890582676089
+normal	4	Viridia	Crater South	AddSlot	0.0008544890582676089
+normal	4	Greenill	Crater South	AddSlot	0.0008544890582676089
+normal	4	Skyly	Crater South	AddSlot	0.0008544890582676089
+normal	4	Bluefull	Crater South	AddSlot	0.0008544890582676089
+normal	4	Purplenum	Crater South	AddSlot	0.0008544890582676089
+normal	4	Pinkal	Crater South	AddSlot	0.0008544890582676089
+normal	4	Redria	Crater South	AddSlot	0.0008544890582676089
+normal	4	Oran	Crater South	AddSlot	0.0008544890582676089
+normal	4	Yellowboze	Crater South	AddSlot	0.0008544890582676089
+normal	4	Whitill	Crater South	AddSlot	0.0008544890582676089
+normal	4	Viridia	Crater North	AddSlot	0.0008544890582676089
+normal	4	Greenill	Crater North	AddSlot	0.0008544890582676089
+normal	4	Skyly	Crater North	AddSlot	0.0008544890582676089
+normal	4	Bluefull	Crater North	AddSlot	0.0008544890582676089
+normal	4	Purplenum	Crater North	AddSlot	0.0008544890582676089
+normal	4	Pinkal	Crater North	AddSlot	0.0008544890582676089
+normal	4	Redria	Crater North	AddSlot	0.0008544890582676089
+normal	4	Oran	Crater North	AddSlot	0.0008544890582676089
+normal	4	Yellowboze	Crater North	AddSlot	0.0008544890582676089
+normal	4	Whitill	Crater North	AddSlot	0.0008544890582676089
+normal	4	Viridia	Crater Int.	AddSlot	0.0008544890582676089
+normal	4	Greenill	Crater Int.	AddSlot	0.0008544890582676089
+normal	4	Skyly	Crater Int.	AddSlot	0.0008544890582676089
+normal	4	Bluefull	Crater Int.	AddSlot	0.0008544890582676089
+normal	4	Purplenum	Crater Int.	AddSlot	0.0008544890582676089
+normal	4	Pinkal	Crater Int.	AddSlot	0.0008544890582676089
+normal	4	Redria	Crater Int.	AddSlot	0.0008544890582676089
+normal	4	Oran	Crater Int.	AddSlot	0.0008544890582676089
+normal	4	Yellowboze	Crater Int.	AddSlot	0.0008544890582676089
+normal	4	Whitill	Crater Int.	AddSlot	0.0008544890582676089
+normal	4	Viridia	Desert 1	AddSlot	0.0008544890582676089
+normal	4	Greenill	Desert 1	AddSlot	0.0008544890582676089
+normal	4	Skyly	Desert 1	AddSlot	0.0008544890582676089
+normal	4	Bluefull	Desert 1	AddSlot	0.0008544890582676089
+normal	4	Purplenum	Desert 1	AddSlot	0.0008544890582676089
+normal	4	Pinkal	Desert 1	AddSlot	0.0008544890582676089
+normal	4	Redria	Desert 1	AddSlot	0.0008544890582676089
+normal	4	Oran	Desert 1	AddSlot	0.0008544890582676089
+normal	4	Yellowboze	Desert 1	AddSlot	0.0008544890582676089
+normal	4	Whitill	Desert 1	AddSlot	0.0008544890582676089
+normal	4	Viridia	Desert 2	AddSlot	0.0008544890582676089
+normal	4	Greenill	Desert 2	AddSlot	0.0008544890582676089
+normal	4	Skyly	Desert 2	AddSlot	0.0008544890582676089
+normal	4	Bluefull	Desert 2	AddSlot	0.0008544890582676089
+normal	4	Purplenum	Desert 2	AddSlot	0.0008544890582676089
+normal	4	Pinkal	Desert 2	AddSlot	0.0008544890582676089
+normal	4	Redria	Desert 2	AddSlot	0.0008544890582676089
+normal	4	Oran	Desert 2	AddSlot	0.0008544890582676089
+normal	4	Yellowboze	Desert 2	AddSlot	0.0008544890582676089
+normal	4	Whitill	Desert 2	AddSlot	0.0008544890582676089
+normal	4	Viridia	Desert 3	AddSlot	0.0008544890582676089
+normal	4	Greenill	Desert 3	AddSlot	0.0008544890582676089
+normal	4	Skyly	Desert 3	AddSlot	0.0008544890582676089
+normal	4	Bluefull	Desert 3	AddSlot	0.0008544890582676089
+normal	4	Purplenum	Desert 3	AddSlot	0.0008544890582676089
+normal	4	Pinkal	Desert 3	AddSlot	0.0008544890582676089
+normal	4	Redria	Desert 3	AddSlot	0.0008544890582676089
+normal	4	Oran	Desert 3	AddSlot	0.0008544890582676089
+normal	4	Yellowboze	Desert 3	AddSlot	0.0008544890582676089
+normal	4	Whitill	Desert 3	AddSlot	0.0008544890582676089
+normal	4	Viridia	Boss	AddSlot	0.0008544890582676089
+normal	4	Greenill	Boss	AddSlot	0.0008544890582676089
+normal	4	Skyly	Boss	AddSlot	0.0008544890582676089
+normal	4	Bluefull	Boss	AddSlot	0.0008544890582676089
+normal	4	Purplenum	Boss	AddSlot	0.0008544890582676089
+normal	4	Pinkal	Boss	AddSlot	0.0008544890582676089
+normal	4	Redria	Boss	AddSlot	0.0008544890582676089
+normal	4	Oran	Boss	AddSlot	0.0008544890582676089
+normal	4	Yellowboze	Boss	AddSlot	0.0008544890582676089
+normal	4	Whitill	Boss	AddSlot	0.0008544890582676089
+hard	1	Viridia	Forest 1	Amplifier of Barta	0.0008544890582676089
+hard	1	Greenill	Forest 1	Amplifier of Barta	0.0008544890582676089
+hard	1	Greenill	Forest 1	Amplifier of Deband	0.0008544890582676089
+hard	1	Bluefull	Forest 1	Amplifier of Shifta	0.0008544890582676089
+hard	1	Purplenum	Forest 1	Amplifier of Barta	0.0008544890582676089
+hard	1	Pinkal	Forest 1	Amplifier of Deband	0.0008544890582676089
+hard	1	Pinkal	Forest 1	Amplifier of Barta	0.0014648365974775516
+hard	1	Redria	Forest 1	AddSlot	0.0007934555783894439
+hard	1	Redria	Forest 1	AddSlot	0.001342768520134814
+hard	1	Redria	Forest 1	Recovery Barrier	0.0008544890582676089
+hard	1	Yellowboze	Forest 1	AddSlot	0.0008544890582676089
+hard	1	Yellowboze	Forest 1	Amplifier of Shifta	0.0008544890582676089
+hard	1	Whitill	Forest 1	Amplifier of Barta	0.0008544890582676089
+hard	1	Viridia	Forest 2	Amplifier of Foie	0.0008544890582676089
+hard	1	Viridia	Forest 2	Amplifier of Shifta	0.0008544890582676089
+hard	1	Greenill	Forest 2	Amplifier of Resta	0.0008544890582676089
+hard	1	Skyly	Forest 2	Amplifier of Foie	0.0008544890582676089
+hard	1	Skyly	Forest 2	Amplifier of Shifta	0.0008544890582676089
+hard	1	Bluefull	Forest 2	Amplifier of Foie	0.0008544890582676089
+hard	1	Purplenum	Forest 2	Amplifier of Anti	0.0008544890582676089
+hard	1	Pinkal	Forest 2	Amplifier of Resta	0.0008544890582676089
+hard	1	Pinkal	Forest 2	Amplifier of Foie	0.0014648365974775516
+hard	1	Oran	Forest 2	AddSlot	0.0008544890582676089
+hard	1	Oran	Forest 2	Amplifier of Foie	0.0008544890582676089
+hard	1	Oran	Forest 2	Amplifier of Anti	0.0008544890582676089
+hard	1	Whitill	Forest 2	Amplifier of Foie	0.0008544890582676089
+hard	1	Whitill	Forest 2	Amplifier of Shifta	0.0008544890582676089
+hard	1	Viridia	Cave 1	Amplifier of Resta	0.0008544890582676089
+hard	1	Skyly	Cave 1	Amplifier of Resta	0.0008544890582676089
+hard	1	Bluefull	Cave 1	Amplifier of Zonde	0.0008544890582676089
+hard	1	Bluefull	Cave 1	Amplifier of Deband	0.0008544890582676089
+hard	1	Purplenum	Cave 1	Amplifier of Zonde	0.0008544890582676089
+hard	1	Purplenum	Cave 1	Assist Barrier	0.0008544890582676089
+hard	1	Pinkal	Cave 1	Amplifier of Zonde	0.0014648365974775516
+hard	1	Redria	Cave 1	AddSlot	0.001342768520134814
+hard	1	Redria	Cave 1	Amplifier of Resta	0.0008544890582676089
+hard	1	Oran	Cave 1	Amplifier of Zonde	0.0008544890582676089
+hard	1	Oran	Cave 1	Assist Barrier	0.0008544890582676089
+hard	1	Yellowboze	Cave 1	AddSlot	0.0008544890582676089
+hard	1	Yellowboze	Cave 1	Amplifier of Deband	0.0008544890582676089
+hard	1	Whitill	Cave 1	Amplifier of Resta	0.0008544890582676089
+hard	1	Viridia	Cave 2	AddSlot	0.0008544890582676089
+hard	1	Viridia	Cave 2	Blue Barrier	0.0008544890582676089
+hard	1	Greenill	Cave 2	Blue Barrier	0.0008544890582676089
+hard	1	Bluefull	Cave 2	Amplifier of Gizonde	0.0008544890582676089
+hard	1	Purplenum	Cave 2	Amplifier of Gizonde	0.0008544890582676089
+hard	1	Purplenum	Cave 2	Blue Barrier	0.0008544890582676089
+hard	1	Purplenum	Cave 2	Amplifier of Deband	0.0008544890582676089
+hard	1	Pinkal	Cave 2	Amplifier of Gizonde	0.0014648365974775516
+hard	1	Pinkal	Cave 2	Blue Barrier	0.0014648365974775516
+hard	1	Redria	Cave 2	Blue Barrier	0.0007934555783894439
+hard	1	Oran	Cave 2	Amplifier of Gizonde	0.0008544890582676089
+hard	1	Oran	Cave 2	Amplifier of Deband	0.0008544890582676089
+hard	1	Yellowboze	Cave 2	Blue Barrier	0.0008544890582676089
+hard	1	Whitill	Cave 2	AddSlot	0.0008544890582676089
+hard	1	Whitill	Cave 2	Blue Barrier	0.0008544890582676089
+hard	1	Viridia	Cave 3	Arms	0.0021972709894311263
+hard	1	Viridia	Cave 3	Gungnir	0.0021972709894311263
+hard	1	Viridia	Cave 3	Amplifier of Gifoie	0.0008544890582676089
+hard	1	Greenill	Cave 3	Laser	0.0021972709894311263
+hard	1	Greenill	Cave 3	Ripper	0.0021972709894311263
+hard	1	Greenill	Cave 3	Recovery Barrier	0.0008544890582676089
+hard	1	Skyly	Cave 3	Calibur	0.0021972709894311263
+hard	1	Skyly	Cave 3	Laser	0.0021972709894311263
+hard	1	Skyly	Cave 3	Amplifier of Gifoie	0.0008544890582676089
+hard	1	Bluefull	Cave 3	Gungnir	0.0021972709894311263
+hard	1	Bluefull	Cave 3	Pillar	0.0021972709894311263
+hard	1	Bluefull	Cave 3	Amplifier of Gifoie	0.0008544890582676089
+hard	1	Bluefull	Cave 3	Recovery Barrier	0.0008544890582676089
+hard	1	Purplenum	Cave 3	Vulcan	0.0021972709894311263
+hard	1	Purplenum	Cave 3	Ripper	0.0021972709894311263
+hard	1	Purplenum	Cave 3	AddSlot	0.0008544890582676089
+hard	1	Pinkal	Cave 3	Scepter	0.0021972709894311263
+hard	1	Pinkal	Cave 3	Gungnir	0.0021972709894311263
+hard	1	Pinkal	Cave 3	Recovery Barrier	0.0008544890582676089
+hard	1	Pinkal	Cave 3	Amplifier of Gifoie	0.0014648365974775516
+hard	1	Redria	Cave 3	Diska	0.0021972709894311263
+hard	1	Redria	Cave 3	Arms	0.0021972709894311263
+hard	1	Redria	Cave 3	Amplifier of Anti	0.0008544890582676089
+hard	1	Oran	Cave 3	Ripper	0.0021972709894311263
+hard	1	Oran	Cave 3	Calibur	0.0021972709894311263
+hard	1	Oran	Cave 3	Amplifier of Gifoie	0.0008544890582676089
+hard	1	Yellowboze	Cave 3	Recovery Barrier	0.0008544890582676089
+hard	1	Whitill	Cave 3	Diska	0.0021972709894311263
+hard	1	Whitill	Cave 3	Vulcan	0.0021972709894311263
+hard	1	Whitill	Cave 3	Amplifier of Gifoie	0.0008544890582676089
+hard	1	Viridia	Mine 1	Mag	0.008788890841975743
+hard	1	Viridia	Mine 1	Red Barrier	0.0005493177473577816
+hard	1	Viridia	Mine 1	Amplifier of Gibarta	0.0008544890582676089
+hard	1	Greenill	Mine 1	Mag	0.008788890841975743
+hard	1	Greenill	Mine 1	Assist Barrier	0.0005493177473577816
+hard	1	Greenill	Mine 1	Amplifier of Gibarta	0.0008544890582676089
+hard	1	Greenill	Mine 1	Amplifier of Anti	0.0008544890582676089
+hard	1	Skyly	Mine 1	Mag	0.008788890841975743
+hard	1	Skyly	Mine 1	Yellow Barrier	0.0005493177473577816
+hard	1	Bluefull	Mine 1	Mag	0.008788890841975743
+hard	1	Bluefull	Mine 1	Recovery Barrier	0.0005493177473577816
+hard	1	Bluefull	Mine 1	AddSlot	0.0008544890582676089
+hard	1	Bluefull	Mine 1	Amplifier of Anti	0.0008544890582676089
+hard	1	Purplenum	Mine 1	Mag	0.008788890841975743
+hard	1	Purplenum	Mine 1	Yellow Barrier	0.0005493177473577816
+hard	1	Purplenum	Mine 1	Amplifier of Gibarta	0.0008544890582676089
+hard	1	Purplenum	Mine 1	Recovery Barrier	0.0008544890582676089
+hard	1	Pinkal	Mine 1	Mag	0.008788890841975743
+hard	1	Pinkal	Mine 1	Amplifier of Anti	0.0008544890582676089
+hard	1	Pinkal	Mine 1	Amplifier of Gibarta	0.0014648365974775516
+hard	1	Redria	Mine 1	Mag	0.008788890841975743
+hard	1	Redria	Mine 1	Red Barrier	0.0007934555783894439
+hard	1	Redria	Mine 1	Yellow Barrier	0.0007934555783894439
+hard	1	Redria	Mine 1	AddSlot	0.001342768520134814
+hard	1	Oran	Mine 1	Mag	0.008788890841975743
+hard	1	Oran	Mine 1	Recovery Barrier	0.0005493177473577816
+hard	1	Oran	Mine 1	Recovery Barrier	0.0008544890582676089
+hard	1	Yellowboze	Mine 1	Mag	0.008788890841975743
+hard	1	Yellowboze	Mine 1	Blue Barrier	0.0005493177473577816
+hard	1	Yellowboze	Mine 1	Yellow Barrier	0.0005493177473577816
+hard	1	Yellowboze	Mine 1	AddSlot	0.0008544890582676089
+hard	1	Yellowboze	Mine 1	Amplifier of Anti	0.0008544890582676089
+hard	1	Whitill	Mine 1	Mag	0.008788890841975743
+hard	1	Whitill	Mine 1	Assist Barrier	0.0005493177473577816
+hard	1	Whitill	Mine 1	Amplifier of Gibarta	0.0008544890582676089
+hard	1	Viridia	Mine 2	Mag	0.00390625
+hard	1	Viridia	Mine 2	Arms	0.002685573101299817
+hard	1	Viridia	Mine 2	Gungnir	0.002685573101299817
+hard	1	Viridia	Mine 2	Red Barrier	0.0005493177473577816
+hard	1	Viridia	Mine 2	Amplifier of Rabarta	0.0008544890582676089
+hard	1	Viridia	Mine 2	Recovery Barrier	0.0008544890582676089
+hard	1	Greenill	Mine 2	Mag	0.00390625
+hard	1	Greenill	Mine 2	Laser	0.002685573101299817
+hard	1	Greenill	Mine 2	Ripper	0.002685573101299817
+hard	1	Greenill	Mine 2	Assist Barrier	0.0005493177473577816
+hard	1	Greenill	Mine 2	Amplifier of Rabarta	0.0008544890582676089
+hard	1	Skyly	Mine 2	Mag	0.00390625
+hard	1	Skyly	Mine 2	Calibur	0.002685573101299817
+hard	1	Skyly	Mine 2	Laser	0.002685573101299817
+hard	1	Skyly	Mine 2	Yellow Barrier	0.0005493177473577816
+hard	1	Skyly	Mine 2	AddSlot	0.0008544890582676089
+hard	1	Skyly	Mine 2	Recovery Barrier	0.0008544890582676089
+hard	1	Bluefull	Mine 2	Mag	0.00390625
+hard	1	Bluefull	Mine 2	Gungnir	0.002685573101299817
+hard	1	Bluefull	Mine 2	Pillar	0.002685573101299817
+hard	1	Bluefull	Mine 2	Recovery Barrier	0.0005493177473577816
+hard	1	Bluefull	Mine 2	Yellow Barrier	0.0008544890582676089
+hard	1	Bluefull	Mine 2	Amplifier of Resta	0.0008544890582676089
+hard	1	Purplenum	Mine 2	Mag	0.00390625
+hard	1	Purplenum	Mine 2	Vulcan	0.002685573101299817
+hard	1	Purplenum	Mine 2	Ripper	0.002685573101299817
+hard	1	Purplenum	Mine 2	Yellow Barrier	0.0005493177473577816
+hard	1	Purplenum	Mine 2	Amplifier of Rabarta	0.0008544890582676089
+hard	1	Purplenum	Mine 2	Yellow Barrier	0.0008544890582676089
+hard	1	Pinkal	Mine 2	Mag	0.00390625
+hard	1	Pinkal	Mine 2	Scepter	0.002685573101299817
+hard	1	Pinkal	Mine 2	Gungnir	0.002685573101299817
+hard	1	Pinkal	Mine 2	Amplifier of Rabarta	0.0014648365974775516
+hard	1	Pinkal	Mine 2	Yellow Barrier	0.0014648365974775516
+hard	1	Redria	Mine 2	Mag	0.00390625
+hard	1	Redria	Mine 2	Diska	0.002685573101299817
+hard	1	Redria	Mine 2	Arms	0.002685573101299817
+hard	1	Redria	Mine 2	Red Barrier	0.0007934555783894439
+hard	1	Redria	Mine 2	Yellow Barrier	0.0007934555783894439
+hard	1	Redria	Mine 2	Yellow Barrier	0.0007934555783894439
+hard	1	Redria	Mine 2	Amplifier of Shifta	0.0008544890582676089
+hard	1	Oran	Mine 2	Mag	0.00390625
+hard	1	Oran	Mine 2	Ripper	0.002685573101299817
+hard	1	Oran	Mine 2	Calibur	0.002685573101299817
+hard	1	Oran	Mine 2	Recovery Barrier	0.0005493177473577816
+hard	1	Oran	Mine 2	Yellow Barrier	0.0008544890582676089
+hard	1	Yellowboze	Mine 2	Mag	0.00390625
+hard	1	Yellowboze	Mine 2	Blue Barrier	0.0005493177473577816
+hard	1	Yellowboze	Mine 2	Yellow Barrier	0.0005493177473577816
+hard	1	Yellowboze	Mine 2	Yellow Barrier	0.0008544890582676089
+hard	1	Yellowboze	Mine 2	Amplifier of Resta	0.0008544890582676089
+hard	1	Whitill	Mine 2	Mag	0.00390625
+hard	1	Whitill	Mine 2	Diska	0.002685573101299817
+hard	1	Whitill	Mine 2	Vulcan	0.002685573101299817
+hard	1	Whitill	Mine 2	Assist Barrier	0.0005493177473577816
+hard	1	Whitill	Mine 2	Amplifier of Rabarta	0.0008544890582676089
+hard	1	Whitill	Mine 2	Recovery Barrier	0.0008544890582676089
+hard	1	Viridia	Ruins 1	Amplifier of Rafoie	0.0008544890582676089
+hard	1	Viridia	Ruins 1	Amplifier of Deband	0.0008544890582676089
+hard	1	Greenill	Ruins 1	AddSlot	0.0008544890582676089
+hard	1	Skyly	Ruins 1	Amplifier of Rafoie	0.0008544890582676089
+hard	1	Skyly	Ruins 1	Amplifier of Red 	0.0008544890582676089
+hard	1	Skyly	Ruins 1	Amplifier of Deband	0.0008544890582676089
+hard	1	Bluefull	Ruins 1	Amplifier of Rafoie	0.0008544890582676089
+hard	1	Purplenum	Ruins 1	Amplifier of Resta	0.0008544890582676089
+hard	1	Pinkal	Ruins 1	Amplifier of Rafoie	0.0014648365974775516
+hard	1	Pinkal	Ruins 1	Amplifier of Red 	0.0014648365974775516
+hard	1	Redria	Ruins 1	Amplifier of Red 	0.0007934555783894439
+hard	1	Oran	Ruins 1	Amplifier of Rafoie	0.0008544890582676089
+hard	1	Oran	Ruins 1	Amplifier of Resta	0.0008544890582676089
+hard	1	Yellowboze	Ruins 1	AddSlot	0.0008544890582676089
+hard	1	Yellowboze	Ruins 1	Amplifier of Red 	0.0008544890582676089
+hard	1	Whitill	Ruins 1	Amplifier of Rafoie	0.0008544890582676089
+hard	1	Whitill	Ruins 1	Amplifier of Deband	0.0008544890582676089
+hard	1	Viridia	Ruins 2	Red Barrier	0.0008544890582676089
+hard	1	Viridia	Ruins 2	Amplifier of Anti	0.0008544890582676089
+hard	1	Greenill	Ruins 2	Assist Barrier	0.0008544890582676089
+hard	1	Skyly	Ruins 2	Red Barrier	0.0008544890582676089
+hard	1	Skyly	Ruins 2	Amplifier of Anti	0.0008544890582676089
+hard	1	Bluefull	Ruins 2	Amplifier of Razonde	0.0008544890582676089
+hard	1	Bluefull	Ruins 2	Red Barrier	0.0008544890582676089
+hard	1	Bluefull	Ruins 2	Assist Barrier	0.0008544890582676089
+hard	1	Purplenum	Ruins 2	Amplifier of Razonde	0.0008544890582676089
+hard	1	Pinkal	Ruins 2	Assist Barrier	0.0008544890582676089
+hard	1	Pinkal	Ruins 2	Amplifier of Razonde	0.0014648365974775516
+hard	1	Pinkal	Ruins 2	Amplifier of Yellow	0.0014648365974775516
+hard	1	Pinkal	Ruins 2	Red Barrier	0.0014648365974775516
+hard	1	Redria	Ruins 2	Amplifier of Yellow	0.0007934555783894439
+hard	1	Redria	Ruins 2	Red Barrier	0.0007934555783894439
+hard	1	Redria	Ruins 2	Amplifier of Deband	0.0008544890582676089
+hard	1	Oran	Ruins 2	Amplifier of Razonde	0.0008544890582676089
+hard	1	Oran	Ruins 2	Red Barrier	0.0008544890582676089
+hard	1	Yellowboze	Ruins 2	Amplifier of Yellow	0.0008544890582676089
+hard	1	Yellowboze	Ruins 2	Red Barrier	0.0008544890582676089
+hard	1	Yellowboze	Ruins 2	Assist Barrier	0.0008544890582676089
+hard	1	Whitill	Ruins 2	Red Barrier	0.0008544890582676089
+hard	1	Whitill	Ruins 2	Amplifier of Anti	0.0008544890582676089
+hard	1	Viridia	Ruins 3	Crush Bullet	0.0031737971308873937
+hard	1	Viridia	Ruins 3	Brionac	0.0031737971308873937
+hard	1	Viridia	Ruins 3	Assist Barrier	0.0008544890582676089
+hard	1	Greenill	Ruins 3	Visk-235W	0.0031737971308873937
+hard	1	Greenill	Ruins 3	Blade Dance	0.0031737971308873937
+hard	1	Greenill	Ruins 3	Amplifier of Blue	0.0008544890582676089
+hard	1	Greenill	Ruins 3	Amplifier of Shifta	0.0008544890582676089
+hard	1	Skyly	Ruins 3	Flowen's Sword	0.0031737971308873937
+hard	1	Skyly	Ruins 3	Visk-235W	0.0031737971308873937
+hard	1	Skyly	Ruins 3	Assist Barrier	0.0008544890582676089
+hard	1	Bluefull	Ruins 3	Brionac	0.0031737971308873937
+hard	1	Bluefull	Ruins 3	Striker	0.0031737971308873937
+hard	1	Purplenum	Ruins 3	M&A60 Vise	0.0031737971308873937
+hard	1	Purplenum	Ruins 3	Blade Dance	0.0031737971308873937
+hard	1	Purplenum	Ruins 3	Amplifier of Shifta	0.0008544890582676089
+hard	1	Pinkal	Ruins 3	Fire Scepter: Agni	0.0031737971308873937
+hard	1	Pinkal	Ruins 3	Brionac	0.0031737971308873937
+hard	1	Pinkal	Ruins 3	Amplifier of Shifta	0.0008544890582676089
+hard	1	Pinkal	Ruins 3	AddSlot	0.0014648365974775516
+hard	1	Pinkal	Ruins 3	Amplifier of Blue	0.0014648365974775516
+hard	1	Redria	Ruins 3	Slicer of Assassin	0.0031737971308873937
+hard	1	Redria	Ruins 3	Crush Bullet	0.0031737971308873937
+hard	1	Redria	Ruins 3	Amplifier of Blue	0.0007934555783894439
+hard	1	Redria	Ruins 3	Assist Barrier	0.0008544890582676089
+hard	1	Oran	Ruins 3	Blade Dance	0.0031737971308873937
+hard	1	Oran	Ruins 3	Flowen's Sword	0.0031737971308873937
+hard	1	Oran	Ruins 3	Amplifier of Shifta	0.0008544890582676089
+hard	1	Yellowboze	Ruins 3	Amplifier of Blue	0.0008544890582676089
+hard	1	Whitill	Ruins 3	Slicer of Assassin	0.0031737971308873937
+hard	1	Whitill	Ruins 3	M&A60 Vise	0.0031737971308873937
+hard	1	Whitill	Ruins 3	Assist Barrier	0.0008544890582676089
+hard	2	Bluefull	VR Temple: Alpha	Amplifier of Zonde	0.0008544890582676089
+hard	2	Purplenum	VR Temple: Alpha	Amplifier of Zonde	0.0008544890582676089
+hard	2	Pinkal	VR Temple: Alpha	Amplifier of Zonde	0.0008544890582676089
+hard	2	Redria	VR Temple: Alpha	Amplifier of Zonde	0.0008544890582676089
+hard	2	Oran	VR Temple: Alpha	AddSlot	0.0008544890582676089
+hard	2	Oran	VR Temple: Alpha	Amplifier of Zonde	0.0008544890582676089
+hard	2	Yellowboze	VR Temple: Alpha	AddSlot	0.0008544890582676089
+hard	2	Viridia	VR Temple: Beta	Recovery Barrier	0.0005493177473577816
+hard	2	Viridia	VR Temple: Beta	Amplifier of Barta	0.0008544890582676089
+hard	2	Greenill	VR Temple: Beta	Blue Barrier	0.0005493177473577816
+hard	2	Greenill	VR Temple: Beta	Amplifier of Barta	0.0008544890582676089
+hard	2	Skyly	VR Temple: Beta	Assist Barrier	0.0005493177473577816
+hard	2	Bluefull	VR Temple: Beta	Blue Barrier	0.0005493177473577816
+hard	2	Purplenum	VR Temple: Beta	Recovery Barrier	0.0005493177473577816
+hard	2	Purplenum	VR Temple: Beta	Amplifier of Barta	0.0008544890582676089
+hard	2	Pinkal	VR Temple: Beta	Blue Barrier	0.0005493177473577816
+hard	2	Pinkal	VR Temple: Beta	Amplifier of Barta	0.0008544890582676089
+hard	2	Redria	VR Temple: Beta	Assist Barrier	0.0005493177473577816
+hard	2	Redria	VR Temple: Beta	AddSlot	0.0008544890582676089
+hard	2	Oran	VR Temple: Beta	Assist Barrier	0.0005493177473577816
+hard	2	Yellowboze	VR Temple: Beta	Red Barrier	0.0005493177473577816
+hard	2	Whitill	VR Temple: Beta	Blue Barrier	0.0005493177473577816
+hard	2	Whitill	VR Temple: Beta	Yellow Barrier	0.0005493177473577816
+hard	2	Whitill	VR Temple: Beta	Amplifier of Barta	0.0008544890582676089
+hard	2	Viridia	VR Spaceship: Alpha	Recovery Barrier	0.0005493177473577816
+hard	2	Viridia	VR Spaceship: Alpha	Amplifier of Foie	0.0008544890582676089
+hard	2	Greenill	VR Spaceship: Alpha	Blue Barrier	0.0005493177473577816
+hard	2	Skyly	VR Spaceship: Alpha	Assist Barrier	0.0005493177473577816
+hard	2	Skyly	VR Spaceship: Alpha	Amplifier of Foie	0.0008544890582676089
+hard	2	Bluefull	VR Spaceship: Alpha	Blue Barrier	0.0005493177473577816
+hard	2	Bluefull	VR Spaceship: Alpha	Amplifier of Foie	0.0008544890582676089
+hard	2	Purplenum	VR Spaceship: Alpha	Recovery Barrier	0.0005493177473577816
+hard	2	Pinkal	VR Spaceship: Alpha	Blue Barrier	0.0005493177473577816
+hard	2	Pinkal	VR Spaceship: Alpha	AddSlot	0.0008544890582676089
+hard	2	Pinkal	VR Spaceship: Alpha	Amplifier of Foie	0.0008544890582676089
+hard	2	Redria	VR Spaceship: Alpha	Assist Barrier	0.0005493177473577816
+hard	2	Redria	VR Spaceship: Alpha	Amplifier of Foie	0.0008544890582676089
+hard	2	Oran	VR Spaceship: Alpha	Assist Barrier	0.0005493177473577816
+hard	2	Oran	VR Spaceship: Alpha	Amplifier of Foie	0.0008544890582676089
+hard	2	Yellowboze	VR Spaceship: Alpha	Red Barrier	0.0005493177473577816
+hard	2	Yellowboze	VR Spaceship: Alpha	AddSlot	0.0008544890582676089
+hard	2	Whitill	VR Spaceship: Alpha	Blue Barrier	0.0005493177473577816
+hard	2	Whitill	VR Spaceship: Alpha	Yellow Barrier	0.0005493177473577816
+hard	2	Whitill	VR Spaceship: Alpha	Amplifier of Foie	0.0008544890582676089
+hard	2	Viridia	VR Spaceship: Beta	Amplifier of Gibarta	0.0008544890582676089
+hard	2	Greenill	VR Spaceship: Beta	Amplifier of Gibarta	0.0008544890582676089
+hard	2	Purplenum	VR Spaceship: Beta	AddSlot	0.0008544890582676089
+hard	2	Purplenum	VR Spaceship: Beta	Amplifier of Gibarta	0.0008544890582676089
+hard	2	Pinkal	VR Spaceship: Beta	Amplifier of Gibarta	0.0008544890582676089
+hard	2	Whitill	VR Spaceship: Beta	Amplifier of Gibarta	0.0008544890582676089
+hard	2	Viridia	Jungle North	Arms	0.0021972709894311263
+hard	2	Viridia	Jungle North	Gungnir	0.0021972709894311263
+hard	2	Viridia	Jungle North	Red Barrier	0.0008544890582676089
+hard	2	Greenill	Jungle North	Laser	0.0021972709894311263
+hard	2	Greenill	Jungle North	Ripper	0.0021972709894311263
+hard	2	Skyly	Jungle North	Calibur	0.0021972709894311263
+hard	2	Skyly	Jungle North	Laser	0.0021972709894311263
+hard	2	Skyly	Jungle North	Red Barrier	0.0008544890582676089
+hard	2	Bluefull	Jungle North	Gungnir	0.0021972709894311263
+hard	2	Bluefull	Jungle North	Pillar	0.0021972709894311263
+hard	2	Bluefull	Jungle North	AddSlot	0.0008544890582676089
+hard	2	Bluefull	Jungle North	Amplifier of Gizonde	0.0008544890582676089
+hard	2	Bluefull	Jungle North	Red Barrier	0.0008544890582676089
+hard	2	Purplenum	Jungle North	Vulcan	0.0021972709894311263
+hard	2	Purplenum	Jungle North	Ripper	0.0021972709894311263
+hard	2	Purplenum	Jungle North	Amplifier of Gizonde	0.0008544890582676089
+hard	2	Pinkal	Jungle North	Scepter	0.0021972709894311263
+hard	2	Pinkal	Jungle North	Gungnir	0.0021972709894311263
+hard	2	Pinkal	Jungle North	Amplifier of Gizonde	0.0008544890582676089
+hard	2	Pinkal	Jungle North	Red Barrier	0.0008544890582676089
+hard	2	Redria	Jungle North	Diska	0.0021972709894311263
+hard	2	Redria	Jungle North	Arms	0.0021972709894311263
+hard	2	Redria	Jungle North	Red Barrier	0.0008544890582676089
+hard	2	Redria	Jungle North	AddSlot	0.0008544890582676089
+hard	2	Redria	Jungle North	Amplifier of Gizonde	0.0008544890582676089
+hard	2	Redria	Jungle North	Red Barrier	0.0008544890582676089
+hard	2	Oran	Jungle North	Ripper	0.0021972709894311263
+hard	2	Oran	Jungle North	Calibur	0.0021972709894311263
+hard	2	Oran	Jungle North	Red Barrier	0.0008544890582676089
+hard	2	Oran	Jungle North	Amplifier of Gizonde	0.0008544890582676089
+hard	2	Oran	Jungle North	Red Barrier	0.0008544890582676089
+hard	2	Yellowboze	Jungle North	Red Barrier	0.0008544890582676089
+hard	2	Whitill	Jungle North	Diska	0.0021972709894311263
+hard	2	Whitill	Jungle North	Vulcan	0.0021972709894311263
+hard	2	Whitill	Jungle North	Red Barrier	0.0008544890582676089
+hard	2	Viridia	Jungle East	Mag	0.008788890841975743
+hard	2	Viridia	Jungle East	Amplifier of Gifoie	0.0008544890582676089
+hard	2	Greenill	Jungle East	Mag	0.008788890841975743
+hard	2	Skyly	Jungle East	Mag	0.008788890841975743
+hard	2	Skyly	Jungle East	AddSlot	0.0008544890582676089
+hard	2	Skyly	Jungle East	Amplifier of Gifoie	0.0008544890582676089
+hard	2	Bluefull	Jungle East	Mag	0.008788890841975743
+hard	2	Bluefull	Jungle East	Amplifier of Gifoie	0.0008544890582676089
+hard	2	Bluefull	Jungle East	Yellow Barrier	0.0008544890582676089
+hard	2	Purplenum	Jungle East	Mag	0.008788890841975743
+hard	2	Purplenum	Jungle East	Yellow Barrier	0.0008544890582676089
+hard	2	Pinkal	Jungle East	Mag	0.008788890841975743
+hard	2	Pinkal	Jungle East	Amplifier of Gifoie	0.0008544890582676089
+hard	2	Pinkal	Jungle East	Yellow Barrier	0.0008544890582676089
+hard	2	Redria	Jungle East	Mag	0.008788890841975743
+hard	2	Redria	Jungle East	Yellow Barrier	0.0008544890582676089
+hard	2	Redria	Jungle East	Amplifier of Gifoie	0.0008544890582676089
+hard	2	Redria	Jungle East	Yellow Barrier	0.0008544890582676089
+hard	2	Oran	Jungle East	Mag	0.008788890841975743
+hard	2	Oran	Jungle East	Yellow Barrier	0.0008544890582676089
+hard	2	Oran	Jungle East	Amplifier of Gifoie	0.0008544890582676089
+hard	2	Oran	Jungle East	Yellow Barrier	0.0008544890582676089
+hard	2	Yellowboze	Jungle East	Mag	0.008788890841975743
+hard	2	Yellowboze	Jungle East	AddSlot	0.0008544890582676089
+hard	2	Yellowboze	Jungle East	Yellow Barrier	0.0008544890582676089
+hard	2	Whitill	Jungle East	Mag	0.008788890841975743
+hard	2	Whitill	Jungle East	Amplifier of Gifoie	0.0008544890582676089
+hard	2	Viridia	Mountain	Mag	0.006835737234260716
+hard	2	Viridia	Mountain	Arms	0.002685573101299817
+hard	2	Viridia	Mountain	Gungnir	0.002685573101299817
+hard	2	Greenill	Mountain	Mag	0.00390625
+hard	2	Greenill	Mountain	Laser	0.002685573101299817
+hard	2	Greenill	Mountain	Ripper	0.002685573101299817
+hard	2	Greenill	Mountain	AddSlot	0.0008544890582676089
+hard	2	Skyly	Mountain	Mag	0.00390625
+hard	2	Skyly	Mountain	Calibur	0.002685573101299817
+hard	2	Skyly	Mountain	Laser	0.002685573101299817
+hard	2	Bluefull	Mountain	Mag	0.00390625
+hard	2	Bluefull	Mountain	Gungnir	0.002685573101299817
+hard	2	Bluefull	Mountain	Pillar	0.002685573101299817
+hard	2	Bluefull	Mountain	Amplifier of Razonde	0.0008544890582676089
+hard	2	Purplenum	Mountain	Mag	0.00390625
+hard	2	Purplenum	Mountain	Vulcan	0.002685573101299817
+hard	2	Purplenum	Mountain	Ripper	0.002685573101299817
+hard	2	Purplenum	Mountain	Amplifier of Razonde	0.0008544890582676089
+hard	2	Pinkal	Mountain	Mag	0.00390625
+hard	2	Pinkal	Mountain	Scepter	0.002685573101299817
+hard	2	Pinkal	Mountain	Gungnir	0.002685573101299817
+hard	2	Pinkal	Mountain	Amplifier of Razonde	0.0008544890582676089
+hard	2	Redria	Mountain	Mag	0.00390625
+hard	2	Redria	Mountain	Diska	0.002685573101299817
+hard	2	Redria	Mountain	Arms	0.002685573101299817
+hard	2	Redria	Mountain	AddSlot	0.0008544890582676089
+hard	2	Redria	Mountain	Amplifier of Razonde	0.0008544890582676089
+hard	2	Oran	Mountain	Mag	0.00390625
+hard	2	Oran	Mountain	Ripper	0.002685573101299817
+hard	2	Oran	Mountain	Calibur	0.002685573101299817
+hard	2	Oran	Mountain	Amplifier of Razonde	0.0008544890582676089
+hard	2	Yellowboze	Mountain	Mag	0.00390625
+hard	2	Whitill	Mountain	Mag	0.00390625
+hard	2	Whitill	Mountain	Diska	0.002685573101299817
+hard	2	Whitill	Mountain	Vulcan	0.002685573101299817
+hard	2	Viridia	Seaside 	Amplifier of Rabarta	0.0008544890582676089
+hard	2	Viridia	Seaside 	Blue Barrier	0.0008544890582676089
+hard	2	Greenill	Seaside 	Amplifier of Rabarta	0.0008544890582676089
+hard	2	Greenill	Seaside 	Amplifier of Blue	0.0008544890582676089
+hard	2	Greenill	Seaside 	Blue Barrier	0.0008544890582676089
+hard	2	Purplenum	Seaside 	Amplifier of Rabarta	0.0008544890582676089
+hard	2	Purplenum	Seaside 	Blue Barrier	0.0008544890582676089
+hard	2	Pinkal	Seaside 	Amplifier of Rabarta	0.0008544890582676089
+hard	2	Pinkal	Seaside 	Amplifier of Blue	0.0008544890582676089
+hard	2	Pinkal	Seaside 	Blue Barrier	0.0008544890582676089
+hard	2	Redria	Seaside 	Amplifier of Blue	0.0008544890582676089
+hard	2	Redria	Seaside 	Blue Barrier	0.0008544890582676089
+hard	2	Oran	Seaside 	Amplifier of Blue	0.0008544890582676089
+hard	2	Oran	Seaside 	Blue Barrier	0.0008544890582676089
+hard	2	Yellowboze	Seaside 	AddSlot	0.0008544890582676089
+hard	2	Yellowboze	Seaside 	Amplifier of Blue	0.0008544890582676089
+hard	2	Yellowboze	Seaside 	Blue Barrier	0.0008544890582676089
+hard	2	Whitill	Seaside 	Amplifier of Rabarta	0.0008544890582676089
+hard	2	Whitill	Seaside 	Blue Barrier	0.0008544890582676089
+hard	2	Viridia	Seabed: Upper Levels	Amplifier of Rafoie	0.0008544890582676089
+hard	2	Skyly	Seabed: Upper Levels	Amplifier of Rafoie	0.0008544890582676089
+hard	2	Skyly	Seabed: Upper Levels	Amplifier of Red 	0.0008544890582676089
+hard	2	Bluefull	Seabed: Upper Levels	Amplifier of Rafoie	0.0008544890582676089
+hard	2	Pinkal	Seabed: Upper Levels	Amplifier of Rafoie	0.0008544890582676089
+hard	2	Pinkal	Seabed: Upper Levels	Amplifier of Red 	0.0008544890582676089
+hard	2	Redria	Seabed: Upper Levels	Amplifier of Red 	0.0008544890582676089
+hard	2	Redria	Seabed: Upper Levels	AddSlot	0.0008544890582676089
+hard	2	Redria	Seabed: Upper Levels	Amplifier of Rafoie	0.0008544890582676089
+hard	2	Oran	Seabed: Upper Levels	Amplifier of Red 	0.0008544890582676089
+hard	2	Oran	Seabed: Upper Levels	Amplifier of Rafoie	0.0008544890582676089
+hard	2	Yellowboze	Seabed: Upper Levels	Amplifier of Red 	0.0008544890582676089
+hard	2	Whitill	Seabed: Upper Levels	AddSlot	0.0008544890582676089
+hard	2	Whitill	Seabed: Upper Levels	Amplifier of Rafoie	0.0008544890582676089
+hard	2	Viridia	Seabed: Lower Levels	Crush Bullet	0.0031737971308873937
+hard	2	Viridia	Seabed: Lower Levels	Brionac	0.0031737971308873937
+hard	2	Viridia	Seabed: Lower Levels	AddSlot	0.0008544890582676089
+hard	2	Greenill	Seabed: Lower Levels	Visk-235W	0.0031737971308873937
+hard	2	Greenill	Seabed: Lower Levels	Blade Dance	0.0031737971308873937
+hard	2	Skyly	Seabed: Lower Levels	Flowen's Sword	0.0031737971308873937
+hard	2	Skyly	Seabed: Lower Levels	Visk-235W	0.0031737971308873937
+hard	2	Bluefull	Seabed: Lower Levels	Brionac	0.0031737971308873937
+hard	2	Bluefull	Seabed: Lower Levels	Striker	0.0031737971308873937
+hard	2	Purplenum	Seabed: Lower Levels	M&A60 Vise	0.0031737971308873937
+hard	2	Purplenum	Seabed: Lower Levels	Blade Dance	0.0031737971308873937
+hard	2	Pinkal	Seabed: Lower Levels	Fire Scepter: Agni	0.0031737971308873937
+hard	2	Pinkal	Seabed: Lower Levels	Brionac	0.0031737971308873937
+hard	2	Pinkal	Seabed: Lower Levels	Amplifier of Yellow	0.0008544890582676089
+hard	2	Redria	Seabed: Lower Levels	Slicer of Assassin	0.0031737971308873937
+hard	2	Redria	Seabed: Lower Levels	Crush Bullet	0.0031737971308873937
+hard	2	Redria	Seabed: Lower Levels	Amplifier of Yellow	0.0008544890582676089
+hard	2	Oran	Seabed: Lower Levels	Blade Dance	0.0031737971308873937
+hard	2	Oran	Seabed: Lower Levels	Flowen's Sword	0.0031737971308873937
+hard	2	Oran	Seabed: Lower Levels	Amplifier of Yellow	0.0008544890582676089
+hard	2	Yellowboze	Seabed: Lower Levels	Amplifier of Yellow	0.0008544890582676089
+hard	2	Whitill	Seabed: Lower Levels	Slicer of Assassin	0.0031737971308873937
+hard	2	Whitill	Seabed: Lower Levels	M&A60 Vise	0.0031737971308873937
+hard	4	Viridia	Crater East	Alliance Uniform	0.0005493177473577816
+hard	4	Greenill	Crater East	Alliance Uniform	0.0005493177473577816
+hard	4	Skyly	Crater East	Alliance Uniform	0.0005493177473577816
+hard	4	Bluefull	Crater East	Alliance Uniform	0.0005493177473577816
+hard	4	Purplenum	Crater East	Alliance Uniform	0.0005493177473577816
+hard	4	Pinkal	Crater East	Alliance Uniform	0.0005493177473577816
+hard	4	Redria	Crater East	Alliance Uniform	0.0005493177473577816
+hard	4	Oran	Crater East	Alliance Uniform	0.0005493177473577816
+hard	4	Yellowboze	Crater East	Alliance Uniform	0.0005493177473577816
+hard	4	Whitill	Crater East	Alliance Uniform	0.0005493177473577816
+hard	4	Viridia	Crater West	Alliance Uniform	0.0005493177473577816
+hard	4	Greenill	Crater West	Alliance Uniform	0.0005493177473577816
+hard	4	Skyly	Crater West	Alliance Uniform	0.0005493177473577816
+hard	4	Bluefull	Crater West	Alliance Uniform	0.0005493177473577816
+hard	4	Purplenum	Crater West	Alliance Uniform	0.0005493177473577816
+hard	4	Pinkal	Crater West	Alliance Uniform	0.0005493177473577816
+hard	4	Redria	Crater West	Alliance Uniform	0.0005493177473577816
+hard	4	Oran	Crater West	Alliance Uniform	0.0005493177473577816
+hard	4	Yellowboze	Crater West	Alliance Uniform	0.0005493177473577816
+hard	4	Whitill	Crater West	Alliance Uniform	0.0005493177473577816
+hard	4	Viridia	Crater South	Alliance Uniform	0.0005493177473577816
+hard	4	Greenill	Crater South	Alliance Uniform	0.0005493177473577816
+hard	4	Skyly	Crater South	Alliance Uniform	0.0005493177473577816
+hard	4	Bluefull	Crater South	Alliance Uniform	0.0005493177473577816
+hard	4	Purplenum	Crater South	Alliance Uniform	0.0005493177473577816
+hard	4	Pinkal	Crater South	Alliance Uniform	0.0005493177473577816
+hard	4	Redria	Crater South	Alliance Uniform	0.0005493177473577816
+hard	4	Oran	Crater South	Alliance Uniform	0.0005493177473577816
+hard	4	Yellowboze	Crater South	Alliance Uniform	0.0005493177473577816
+hard	4	Whitill	Crater South	Alliance Uniform	0.0005493177473577816
+hard	4	Viridia	Crater North	Alliance Uniform	0.0005493177473577816
+hard	4	Greenill	Crater North	Alliance Uniform	0.0005493177473577816
+hard	4	Skyly	Crater North	Alliance Uniform	0.0005493177473577816
+hard	4	Bluefull	Crater North	Alliance Uniform	0.0005493177473577816
+hard	4	Purplenum	Crater North	Alliance Uniform	0.0005493177473577816
+hard	4	Pinkal	Crater North	Alliance Uniform	0.0005493177473577816
+hard	4	Redria	Crater North	Alliance Uniform	0.0005493177473577816
+hard	4	Oran	Crater North	Alliance Uniform	0.0005493177473577816
+hard	4	Yellowboze	Crater North	Alliance Uniform	0.0005493177473577816
+hard	4	Whitill	Crater North	Alliance Uniform	0.0005493177473577816
+hard	4	Viridia	Crater Int.	Alliance Uniform	0.0005493177473577816
+hard	4	Greenill	Crater Int.	Alliance Uniform	0.0005493177473577816
+hard	4	Skyly	Crater Int.	Alliance Uniform	0.0005493177473577816
+hard	4	Bluefull	Crater Int.	Alliance Uniform	0.0005493177473577816
+hard	4	Purplenum	Crater Int.	Alliance Uniform	0.0005493177473577816
+hard	4	Pinkal	Crater Int.	Alliance Uniform	0.0005493177473577816
+hard	4	Redria	Crater Int.	Alliance Uniform	0.0005493177473577816
+hard	4	Oran	Crater Int.	Alliance Uniform	0.0005493177473577816
+hard	4	Yellowboze	Crater Int.	Alliance Uniform	0.0005493177473577816
+hard	4	Whitill	Crater Int.	Alliance Uniform	0.0005493177473577816
+hard	4	Viridia	Desert 1	Alliance Uniform	0.0005493177473577816
+hard	4	Greenill	Desert 1	Alliance Uniform	0.0005493177473577816
+hard	4	Skyly	Desert 1	Alliance Uniform	0.0005493177473577816
+hard	4	Bluefull	Desert 1	Alliance Uniform	0.0005493177473577816
+hard	4	Purplenum	Desert 1	Alliance Uniform	0.0005493177473577816
+hard	4	Pinkal	Desert 1	Alliance Uniform	0.0005493177473577816
+hard	4	Redria	Desert 1	Alliance Uniform	0.0005493177473577816
+hard	4	Oran	Desert 1	Alliance Uniform	0.0005493177473577816
+hard	4	Yellowboze	Desert 1	Alliance Uniform	0.0005493177473577816
+hard	4	Whitill	Desert 1	Alliance Uniform	0.0005493177473577816
+hard	4	Viridia	Desert 2	Alliance Uniform	0.0005493177473577816
+hard	4	Greenill	Desert 2	Alliance Uniform	0.0005493177473577816
+hard	4	Skyly	Desert 2	Alliance Uniform	0.0005493177473577816
+hard	4	Bluefull	Desert 2	Alliance Uniform	0.0005493177473577816
+hard	4	Purplenum	Desert 2	Alliance Uniform	0.0005493177473577816
+hard	4	Pinkal	Desert 2	Alliance Uniform	0.0005493177473577816
+hard	4	Redria	Desert 2	Alliance Uniform	0.0005493177473577816
+hard	4	Oran	Desert 2	Alliance Uniform	0.0005493177473577816
+hard	4	Yellowboze	Desert 2	Alliance Uniform	0.0005493177473577816
+hard	4	Whitill	Desert 2	Alliance Uniform	0.0005493177473577816
+hard	4	Viridia	Desert 3	Alliance Uniform	0.0005493177473577816
+hard	4	Greenill	Desert 3	Alliance Uniform	0.0005493177473577816
+hard	4	Skyly	Desert 3	Alliance Uniform	0.0005493177473577816
+hard	4	Bluefull	Desert 3	Alliance Uniform	0.0005493177473577816
+hard	4	Purplenum	Desert 3	Alliance Uniform	0.0005493177473577816
+hard	4	Pinkal	Desert 3	Alliance Uniform	0.0005493177473577816
+hard	4	Redria	Desert 3	Alliance Uniform	0.0005493177473577816
+hard	4	Oran	Desert 3	Alliance Uniform	0.0005493177473577816
+hard	4	Yellowboze	Desert 3	Alliance Uniform	0.0005493177473577816
+hard	4	Whitill	Desert 3	Alliance Uniform	0.0005493177473577816
+hard	4	Viridia	Boss	Alliance Uniform	0.0005493177473577816
+hard	4	Greenill	Boss	Alliance Uniform	0.0005493177473577816
+hard	4	Skyly	Boss	Alliance Uniform	0.0005493177473577816
+hard	4	Bluefull	Boss	Alliance Uniform	0.0005493177473577816
+hard	4	Purplenum	Boss	Alliance Uniform	0.0005493177473577816
+hard	4	Pinkal	Boss	Alliance Uniform	0.0005493177473577816
+hard	4	Redria	Boss	Alliance Uniform	0.0005493177473577816
+hard	4	Oran	Boss	Alliance Uniform	0.0005493177473577816
+hard	4	Yellowboze	Boss	Alliance Uniform	0.0005493177473577816
+hard	4	Whitill	Boss	Alliance Uniform	0.0005493177473577816
+vhard	1	Viridia	Forest 1	Amplifier of Resta	0.0008544890582676089
+vhard	1	Bluefull	Forest 1	Amplifier of Zonde	0.0008544890582676089
+vhard	1	Purplenum	Forest 1	Amplifier of Zonde	0.0008544890582676089
+vhard	1	Purplenum	Forest 1	Amplifier of Resta	0.0008544890582676089
+vhard	1	Oran	Forest 1	Amplifier of Zonde	0.0008544890582676089
+vhard	1	Oran	Forest 1	Amplifier of Resta	0.0008544890582676089
+vhard	1	Yellowboze	Forest 1	AddSlot	0.0008544890582676089
+vhard	1	Viridia	Forest 2	Crush Bullet	0.0017089927196910141
+vhard	1	Viridia	Forest 2	Berdys	0.0017089927196910141
+vhard	1	Viridia	Forest 2	DB's Saber	0.0017089927196910141
+vhard	1	Viridia	Forest 2	Varista	0.0017089927196910141
+vhard	1	Viridia	Forest 2	Club of Laconium	0.0017089927196910141
+vhard	1	Viridia	Forest 2	Amplifier of Barta	0.0008544890582676089
+vhard	1	Greenill	Forest 2	Visk-235W	0.0017089927196910141
+vhard	1	Greenill	Forest 2	Edge	0.0017089927196910141
+vhard	1	Greenill	Forest 2	DB's Saber	0.0017089927196910141
+vhard	1	Greenill	Forest 2	Varista	0.0017089927196910141
+vhard	1	Greenill	Forest 2	Club of Laconium	0.0017089927196910141
+vhard	1	Greenill	Forest 2	Amplifier of Barta	0.0008544890582676089
+vhard	1	Skyly	Forest 2	Flowen's Sword	0.0017089927196910141
+vhard	1	Skyly	Forest 2	Beam	0.0017089927196910141
+vhard	1	Skyly	Forest 2	DB's Saber	0.0017089927196910141
+vhard	1	Skyly	Forest 2	Varista	0.0017089927196910141
+vhard	1	Skyly	Forest 2	Club of Laconium	0.0017089927196910141
+vhard	1	Bluefull	Forest 2	Brionac	0.0017089927196910141
+vhard	1	Bluefull	Forest 2	Pillar	0.0017089927196910141
+vhard	1	Bluefull	Forest 2	DB's Saber	0.0017089927196910141
+vhard	1	Bluefull	Forest 2	Varista	0.0017089927196910141
+vhard	1	Bluefull	Forest 2	Club of Laconium	0.0017089927196910141
+vhard	1	Purplenum	Forest 2	M&A60 Vise	0.0017089927196910141
+vhard	1	Purplenum	Forest 2	Edge	0.0017089927196910141
+vhard	1	Purplenum	Forest 2	DB's Saber	0.0017089927196910141
+vhard	1	Purplenum	Forest 2	Varista	0.0017089927196910141
+vhard	1	Purplenum	Forest 2	Club of Laconium	0.0017089927196910141
+vhard	1	Pinkal	Forest 2	Fire Scepter: Agni	0.0017089927196910141
+vhard	1	Pinkal	Forest 2	Club of Laconium	0.0017089927196910141
+vhard	1	Pinkal	Forest 2	Amplifier of Barta	0.0008544890582676089
+vhard	1	Pinkal	Forest 2	DB's Saber	0.0017089927196910141
+vhard	1	Pinkal	Forest 2	Varista	0.0017089927196910141
+vhard	1	Redria	Forest 2	Sawcer	0.0017089927196910141
+vhard	1	Redria	Forest 2	Launcher	0.0017089927196910141
+vhard	1	Redria	Forest 2	DB's Saber	0.0017089927196910141
+vhard	1	Redria	Forest 2	Varista	0.0017089927196910141
+vhard	1	Redria	Forest 2	Club of Laconium	0.0017089927196910141
+vhard	1	Redria	Forest 2	AddSlot	0.0008544890582676089
+vhard	1	Oran	Forest 2	Blade Dance	0.0017089927196910141
+vhard	1	Oran	Forest 2	Claymore	0.0017089927196910141
+vhard	1	Oran	Forest 2	DB's Saber	0.0017089927196910141
+vhard	1	Oran	Forest 2	Varista	0.0017089927196910141
+vhard	1	Oran	Forest 2	Club of Laconium	0.0017089927196910141
+vhard	1	Yellowboze	Forest 2	DB's Saber	0.0017089927196910141
+vhard	1	Yellowboze	Forest 2	Varista	0.0017089927196910141
+vhard	1	Yellowboze	Forest 2	Club of Laconium	0.0017089927196910141
+vhard	1	Yellowboze	Forest 2	M&A60 Vise	0.0031737971308873937
+vhard	1	Whitill	Forest 2	Slicer of Assassin	0.0017089927196910141
+vhard	1	Whitill	Forest 2	Gatling	0.0017089927196910141
+vhard	1	Whitill	Forest 2	DB's Saber	0.0017089927196910141
+vhard	1	Whitill	Forest 2	Varista	0.0017089927196910141
+vhard	1	Whitill	Forest 2	Club of Laconium	0.0017089927196910141
+vhard	1	Whitill	Forest 2	Amplifier of Barta	0.0008544890582676089
+vhard	1	Viridia	Cave 1	Amplifier of Shifta	0.0008544890582676089
+vhard	1	Greenill	Cave 1	Amplifier of Anti	0.0008544890582676089
+vhard	1	Greenill	Cave 1	Amplifier of Shifta	0.0008544890582676089
+vhard	1	Skyly	Cave 1	Amplifier of Anti	0.0008544890582676089
+vhard	1	Bluefull	Cave 1	Amplifier of Anti	0.0008544890582676089
+vhard	1	Bluefull	Cave 1	Amplifier of Shifta	0.0008544890582676089
+vhard	1	Purplenum	Cave 1	Amplifier of Shifta	0.0008544890582676089
+vhard	1	Pinkal	Cave 1	Amplifier of Anti	0.0008544890582676089
+vhard	1	Redria	Cave 1	Amplifier of Anti	0.0008544890582676089
+vhard	1	Oran	Cave 1	Amplifier of Shifta	0.0008544890582676089
+vhard	1	Yellowboze	Cave 1	Amplifier of Anti	0.0008544890582676089
+vhard	1	Yellowboze	Cave 1	Fire Scepter: Agni	0.0031737971308873937
+vhard	1	Whitill	Cave 1	Amplifier of Anti	0.0008544890582676089
+vhard	1	Viridia	Cave 2	AddSlot	0.0008544890582676089
+vhard	1	Greenill	Cave 2	AddSlot	0.0008544890582676089
+vhard	1	Purplenum	Cave 2	AddSlot	0.0008544890582676089
+vhard	1	Pinkal	Cave 2	Amplifier of Gibarta	0.0008544890582676089
+vhard	1	Pinkal	Cave 2	AddSlot	0.0008544890582676089
+vhard	1	Redria	Cave 2	AddSlot	0.0008544890582676089
+vhard	1	Yellowboze	Cave 2	Blade Dance	0.0031737971308873937
+vhard	1	Yellowboze	Cave 2	Crush Bullet	0.0031737971308873937
+vhard	1	Whitill	Cave 2	Amplifier of Gibarta	0.0008544890582676089
+vhard	1	Whitill	Cave 2	AddSlot	0.0008544890582676089
+vhard	1	Viridia	Cave 3	Crush Bullet	0.0021972709894311263
+vhard	1	Viridia	Cave 3	Gungnir	0.0021972709894311263
+vhard	1	Viridia	Cave 3	DB's Saber	0.0021972709894311263
+vhard	1	Viridia	Cave 3	Varista	0.0021972709894311263
+vhard	1	Viridia	Cave 3	Club of Laconium	0.0021972709894311263
+vhard	1	Greenill	Cave 3	Visk-235W	0.0021972709894311263
+vhard	1	Greenill	Cave 3	Ripper	0.0021972709894311263
+vhard	1	Greenill	Cave 3	DB's Saber	0.0021972709894311263
+vhard	1	Greenill	Cave 3	Varista	0.0021972709894311263
+vhard	1	Greenill	Cave 3	Club of Laconium	0.0021972709894311263
+vhard	1	Skyly	Cave 3	Flowen's Sword	0.0021972709894311263
+vhard	1	Skyly	Cave 3	Laser	0.0021972709894311263
+vhard	1	Skyly	Cave 3	DB's Saber	0.0021972709894311263
+vhard	1	Skyly	Cave 3	Varista	0.0021972709894311263
+vhard	1	Skyly	Cave 3	Club of Laconium	0.0021972709894311263
+vhard	1	Skyly	Cave 3	Red Barrier	0.0008544890582676089
+vhard	1	Bluefull	Cave 3	Brionac	0.0021972709894311263
+vhard	1	Bluefull	Cave 3	Striker	0.0021972709894311263
+vhard	1	Bluefull	Cave 3	DB's Saber	0.0021972709894311263
+vhard	1	Bluefull	Cave 3	Varista	0.0021972709894311263
+vhard	1	Bluefull	Cave 3	Club of Laconium	0.0021972709894311263
+vhard	1	Bluefull	Cave 3	Amplifier of Gizonde	0.0008544890582676089
+vhard	1	Purplenum	Cave 3	M&A60 Vise	0.0021972709894311263
+vhard	1	Purplenum	Cave 3	Ripper	0.0021972709894311263
+vhard	1	Purplenum	Cave 3	DB's Saber	0.0021972709894311263
+vhard	1	Purplenum	Cave 3	Varista	0.0021972709894311263
+vhard	1	Purplenum	Cave 3	Club of Laconium	0.0021972709894311263
+vhard	1	Pinkal	Cave 3	Fire Scepter: Agni	0.0021972709894311263
+vhard	1	Pinkal	Cave 3	Club of Laconium	0.0021972709894311263
+vhard	1	Pinkal	Cave 3	Amplifier of Gizonde	0.0008544890582676089
+vhard	1	Pinkal	Cave 3	Red Barrier	0.0008544890582676089
+vhard	1	Pinkal	Cave 3	DB's Saber	0.0021972709894311263
+vhard	1	Pinkal	Cave 3	Varista	0.0021972709894311263
+vhard	1	Redria	Cave 3	Diska	0.0021972709894311263
+vhard	1	Redria	Cave 3	Arms	0.0021972709894311263
+vhard	1	Redria	Cave 3	DB's Saber	0.0021972709894311263
+vhard	1	Redria	Cave 3	Varista	0.0021972709894311263
+vhard	1	Redria	Cave 3	Club of Laconium	0.0021972709894311263
+vhard	1	Oran	Cave 3	Blade Dance	0.0021972709894311263
+vhard	1	Oran	Cave 3	Calibur	0.0021972709894311263
+vhard	1	Oran	Cave 3	DB's Saber	0.0021972709894311263
+vhard	1	Oran	Cave 3	Varista	0.0021972709894311263
+vhard	1	Oran	Cave 3	Club of Laconium	0.0021972709894311263
+vhard	1	Oran	Cave 3	Amplifier of Gizonde	0.0008544890582676089
+vhard	1	Oran	Cave 3	Red Barrier	0.0008544890582676089
+vhard	1	Yellowboze	Cave 3	DB's Saber	0.0021972709894311263
+vhard	1	Yellowboze	Cave 3	Varista	0.0021972709894311263
+vhard	1	Yellowboze	Cave 3	Club of Laconium	0.0021972709894311263
+vhard	1	Yellowboze	Cave 3	AddSlot	0.0008544890582676089
+vhard	1	Whitill	Cave 3	Slicer of Assassin	0.0021972709894311263
+vhard	1	Whitill	Cave 3	Vulcan	0.0021972709894311263
+vhard	1	Whitill	Cave 3	DB's Saber	0.0021972709894311263
+vhard	1	Whitill	Cave 3	Varista	0.0021972709894311263
+vhard	1	Whitill	Cave 3	Club of Laconium	0.0021972709894311263
+vhard	1	Whitill	Cave 3	Red Barrier	0.0008544890582676089
+vhard	1	Viridia	Mine 1	Mag	0.006835737234260716
+vhard	1	Greenill	Mine 1	Mag	0.006835737234260716
+vhard	1	Skyly	Mine 1	Mag	0.006835737234260716
+vhard	1	Bluefull	Mine 1	Mag	0.006835737234260716
+vhard	1	Bluefull	Mine 1	Amplifier of Gifoie	0.0008544890582676089
+vhard	1	Purplenum	Mine 1	Mag	0.006835737234260716
+vhard	1	Purplenum	Mine 1	Yellow Barrier	0.0008544890582676089
+vhard	1	Pinkal	Mine 1	Mag	0.006835737234260716
+vhard	1	Pinkal	Mine 1	Amplifier of Gifoie	0.0008544890582676089
+vhard	1	Pinkal	Mine 1	Yellow Barrier	0.0008544890582676089
+vhard	1	Redria	Mine 1	Mag	0.006835737234260716
+vhard	1	Oran	Mine 1	Mag	0.006835737234260716
+vhard	1	Oran	Mine 1	Amplifier of Gifoie	0.0008544890582676089
+vhard	1	Yellowboze	Mine 1	Mag	0.006835737234260716
+vhard	1	Yellowboze	Mine 1	Flowen's Sword	0.0031737971308873937
+vhard	1	Whitill	Mine 1	Mag	0.006835737234260716
+vhard	1	Whitill	Mine 1	Amplifier of Gifoie	0.0008544890582676089
+vhard	1	Viridia	Mine 2	Meteor Smash	0.0017089927196910141
+vhard	1	Viridia	Mine 2	Brionac	0.0017089927196910141
+vhard	1	Viridia	Mine 2	Kaladbolg	0.002685573101299817
+vhard	1	Viridia	Mine 2	Custom Ray ver.OO	0.002685573101299817
+vhard	1	Viridia	Mine 2	Mace of Adaman	0.002685573101299817
+vhard	1	Greenill	Mine 2	Wals-MK2	0.0017089927196910141
+vhard	1	Greenill	Mine 2	Blade Dance	0.0017089927196910141
+vhard	1	Greenill	Mine 2	Kaladbolg	0.002685573101299817
+vhard	1	Greenill	Mine 2	Custom Ray ver.OO	0.002685573101299817
+vhard	1	Greenill	Mine 2	Mace of Adaman	0.002685573101299817
+vhard	1	Greenill	Mine 2	AddSlot	0.0008544890582676089
+vhard	1	Skyly	Mine 2	Last Survivor	0.0017089927196910141
+vhard	1	Skyly	Mine 2	Visk-235W	0.0017089927196910141
+vhard	1	Skyly	Mine 2	Kaladbolg	0.002685573101299817
+vhard	1	Skyly	Mine 2	Custom Ray ver.OO	0.002685573101299817
+vhard	1	Skyly	Mine 2	Mace of Adaman	0.002685573101299817
+vhard	1	Skyly	Mine 2	Amplifier of Deband	0.0008544890582676089
+vhard	1	Bluefull	Mine 2	Vjaya	0.0017089927196910141
+vhard	1	Bluefull	Mine 2	Battle Verge	0.0017089927196910141
+vhard	1	Bluefull	Mine 2	Kaladbolg	0.002685573101299817
+vhard	1	Bluefull	Mine 2	Custom Ray ver.OO	0.002685573101299817
+vhard	1	Bluefull	Mine 2	Mace of Adaman	0.002685573101299817
+vhard	1	Bluefull	Mine 2	AddSlot	0.0008544890582676089
+vhard	1	Purplenum	Mine 2	H&S25 Justice	0.0017089927196910141
+vhard	1	Purplenum	Mine 2	Blade Dance	0.0017089927196910141
+vhard	1	Purplenum	Mine 2	Kaladbolg	0.002685573101299817
+vhard	1	Purplenum	Mine 2	Custom Ray ver.OO	0.002685573101299817
+vhard	1	Purplenum	Mine 2	Mace of Adaman	0.002685573101299817
+vhard	1	Purplenum	Mine 2	Amplifier of Razonde	0.0008544890582676089
+vhard	1	Purplenum	Mine 2	AddSlot	0.0008544890582676089
+vhard	1	Pinkal	Mine 2	Ice Staff: Dagon	0.0017089927196910141
+vhard	1	Pinkal	Mine 2	Mace of Adaman	0.002685573101299817
+vhard	1	Pinkal	Mine 2	Amplifier of Razonde	0.0008544890582676089
+vhard	1	Pinkal	Mine 2	Amplifier of Deband	0.0008544890582676089
+vhard	1	Pinkal	Mine 2	Kaladbolg	0.002685573101299817
+vhard	1	Pinkal	Mine 2	Custom Ray ver.OO	0.002685573101299817
+vhard	1	Pinkal	Mine 2	AddSlot	0.0008544890582676089
+vhard	1	Redria	Mine 2	Slicer of Assassin	0.0017089927196910141
+vhard	1	Redria	Mine 2	Crush Bullet	0.0017089927196910141
+vhard	1	Redria	Mine 2	Kaladbolg	0.002685573101299817
+vhard	1	Redria	Mine 2	Custom Ray ver.OO	0.002685573101299817
+vhard	1	Redria	Mine 2	Mace of Adaman	0.002685573101299817
+vhard	1	Redria	Mine 2	Amplifier of Deband	0.0008544890582676089
+vhard	1	Oran	Mine 2	Bloody Art	0.0017089927196910141
+vhard	1	Oran	Mine 2	Flowen's Sword	0.0017089927196910141
+vhard	1	Oran	Mine 2	Kaladbolg	0.002685573101299817
+vhard	1	Oran	Mine 2	Custom Ray ver.OO	0.002685573101299817
+vhard	1	Oran	Mine 2	Mace of Adaman	0.002685573101299817
+vhard	1	Oran	Mine 2	AddSlot	0.0008544890582676089
+vhard	1	Yellowboze	Mine 2	Kaladbolg	0.0017089927196910141
+vhard	1	Yellowboze	Mine 2	Custom Ray ver.OO	0.0017089927196910141
+vhard	1	Yellowboze	Mine 2	Mace of Adaman	0.002685573101299817
+vhard	1	Yellowboze	Mine 2	Amplifier of Deband	0.0008544890582676089
+vhard	1	Yellowboze	Mine 2	Battle Verge	0.0031737971308873937
+vhard	1	Whitill	Mine 2	Diska of Liberator	0.0017089927196910141
+vhard	1	Whitill	Mine 2	M&A60 Vise	0.0017089927196910141
+vhard	1	Whitill	Mine 2	Kaladbolg	0.002685573101299817
+vhard	1	Whitill	Mine 2	Custom Ray ver.OO	0.002685573101299817
+vhard	1	Whitill	Mine 2	Mace of Adaman	0.002685573101299817
+vhard	1	Whitill	Mine 2	Amplifier of Deband	0.0008544890582676089
+vhard	1	Viridia	Ruins 1	Amplifier of Rabarta	0.0008544890582676089
+vhard	1	Viridia	Ruins 1	Blue Barrier	0.0008544890582676089
+vhard	1	Greenill	Ruins 1	Amplifier of Rabarta	0.0008544890582676089
+vhard	1	Greenill	Ruins 1	Amplifier of Blue	0.0008544890582676089
+vhard	1	Skyly	Ruins 1	AddSlot	0.0008544890582676089
+vhard	1	Purplenum	Ruins 1	Amplifier of Rabarta	0.0008544890582676089
+vhard	1	Pinkal	Ruins 1	Amplifier of Blue	0.0008544890582676089
+vhard	1	Redria	Ruins 1	Blue Barrier	0.0008544890582676089
+vhard	1	Redria	Ruins 1	AddSlot	0.0008544890582676089
+vhard	1	Yellowboze	Ruins 1	Amplifier of Blue	0.0008544890582676089
+vhard	1	Yellowboze	Ruins 1	Blue Barrier	0.0008544890582676089
+vhard	1	Yellowboze	Ruins 1	Brionac	0.0031737971308873937
+vhard	1	Viridia	Ruins 2	Amplifier of Rafoie	0.0008544890582676089
+vhard	1	Viridia	Ruins 2	Recovery Barrier	0.0008544890582676089
+vhard	1	Viridia	Ruins 2	AddSlot	0.0008544890582676089
+vhard	1	Skyly	Ruins 2	Amplifier of Rafoie	0.0008544890582676089
+vhard	1	Skyly	Ruins 2	Amplifier of Red 	0.0008544890582676089
+vhard	1	Skyly	Ruins 2	AddSlot	0.0008544890582676089
+vhard	1	Bluefull	Ruins 2	Amplifier of Rafoie	0.0008544890582676089
+vhard	1	Bluefull	Ruins 2	AddSlot	0.0008544890582676089
+vhard	1	Purplenum	Ruins 2	Recovery Barrier	0.0008544890582676089
+vhard	1	Redria	Ruins 2	Amplifier of Red 	0.0008544890582676089
+vhard	1	Redria	Ruins 2	Recovery Barrier	0.0008544890582676089
+vhard	1	Oran	Ruins 2	Recovery Barrier	0.0008544890582676089
+vhard	1	Oran	Ruins 2	AddSlot	0.0008544890582676089
+vhard	1	Yellowboze	Ruins 2	Amplifier of Red 	0.0008544890582676089
+vhard	1	Yellowboze	Ruins 2	Recovery Barrier	0.0008544890582676089
+vhard	1	Yellowboze	Ruins 2	Visk-235W	0.0031737971308873937
+vhard	1	Whitill	Ruins 2	AddSlot	0.0008544890582676089
+vhard	1	Viridia	Ruins 3	Meteor Smash	0.0021972709894311263
+vhard	1	Viridia	Ruins 3	Brionac	0.0021972709894311263
+vhard	1	Viridia	Ruins 3	Kaladbolg	0.0031737971308873937
+vhard	1	Viridia	Ruins 3	Custom Ray ver.OO	0.0031737971308873937
+vhard	1	Viridia	Ruins 3	Mace of Adaman	0.0031737971308873937
+vhard	1	Greenill	Ruins 3	Wals-MK2	0.0021972709894311263
+vhard	1	Greenill	Ruins 3	Blade Dance	0.0021972709894311263
+vhard	1	Greenill	Ruins 3	Kaladbolg	0.0031737971308873937
+vhard	1	Greenill	Ruins 3	Custom Ray ver.OO	0.0031737971308873937
+vhard	1	Greenill	Ruins 3	Mace of Adaman	0.0031737971308873937
+vhard	1	Greenill	Ruins 3	Assist Barrier	0.0008544890582676089
+vhard	1	Greenill	Ruins 3	AddSlot	0.0008544890582676089
+vhard	1	Skyly	Ruins 3	Last Survivor	0.0021972709894311263
+vhard	1	Skyly	Ruins 3	Visk-235W	0.0021972709894311263
+vhard	1	Skyly	Ruins 3	Kaladbolg	0.0031737971308873937
+vhard	1	Skyly	Ruins 3	Custom Ray ver.OO	0.0031737971308873937
+vhard	1	Skyly	Ruins 3	Mace of Adaman	0.0031737971308873937
+vhard	1	Skyly	Ruins 3	Assist Barrier	0.0008544890582676089
+vhard	1	Skyly	Ruins 3	AddSlot	0.0008544890582676089
+vhard	1	Bluefull	Ruins 3	Vjaya	0.0021972709894311263
+vhard	1	Bluefull	Ruins 3	Battle Verge	0.0021972709894311263
+vhard	1	Bluefull	Ruins 3	Kaladbolg	0.0031737971308873937
+vhard	1	Bluefull	Ruins 3	Custom Ray ver.OO	0.0031737971308873937
+vhard	1	Bluefull	Ruins 3	Mace of Adaman	0.0031737971308873937
+vhard	1	Bluefull	Ruins 3	Assist Barrier	0.0008544890582676089
+vhard	1	Purplenum	Ruins 3	H&S25 Justice	0.0021972709894311263
+vhard	1	Purplenum	Ruins 3	Blade Dance	0.0021972709894311263
+vhard	1	Purplenum	Ruins 3	Kaladbolg	0.0031737971308873937
+vhard	1	Purplenum	Ruins 3	Custom Ray ver.OO	0.0031737971308873937
+vhard	1	Purplenum	Ruins 3	Mace of Adaman	0.0031737971308873937
+vhard	1	Pinkal	Ruins 3	Ice Staff: Dagon	0.0021972709894311263
+vhard	1	Pinkal	Ruins 3	Mace of Adaman	0.0031737971308873937
+vhard	1	Pinkal	Ruins 3	Assist Barrier	0.0008544890582676089
+vhard	1	Pinkal	Ruins 3	Kaladbolg	0.0031737971308873937
+vhard	1	Pinkal	Ruins 3	Custom Ray ver.OO	0.0031737971308873937
+vhard	1	Redria	Ruins 3	Slicer of Assassin	0.0021972709894311263
+vhard	1	Redria	Ruins 3	Crush Bullet	0.0021972709894311263
+vhard	1	Redria	Ruins 3	Kaladbolg	0.0031737971308873937
+vhard	1	Redria	Ruins 3	Custom Ray ver.OO	0.0031737971308873937
+vhard	1	Redria	Ruins 3	Mace of Adaman	0.0031737971308873937
+vhard	1	Redria	Ruins 3	Amplifier of Yellow	0.0008544890582676089
+vhard	1	Oran	Ruins 3	Bloody Art	0.0021972709894311263
+vhard	1	Oran	Ruins 3	Flowen's Sword	0.0021972709894311263
+vhard	1	Oran	Ruins 3	Kaladbolg	0.0031737971308873937
+vhard	1	Oran	Ruins 3	Custom Ray ver.OO	0.0031737971308873937
+vhard	1	Oran	Ruins 3	Mace of Adaman	0.0031737971308873937
+vhard	1	Yellowboze	Ruins 3	Kaladbolg	0.0021972709894311263
+vhard	1	Yellowboze	Ruins 3	Custom Ray ver.OO	0.0021972709894311263
+vhard	1	Yellowboze	Ruins 3	Mace of Adaman	0.0031737971308873937
+vhard	1	Yellowboze	Ruins 3	Slicer of Assassin	0.0031737971308873937
+vhard	1	Whitill	Ruins 3	Diska of Liberator	0.0021972709894311263
+vhard	1	Whitill	Ruins 3	M&A60 Vise	0.0021972709894311263
+vhard	1	Whitill	Ruins 3	Kaladbolg	0.0031737971308873937
+vhard	1	Whitill	Ruins 3	Custom Ray ver.OO	0.0031737971308873937
+vhard	1	Whitill	Ruins 3	Mace of Adaman	0.0031737971308873937
+vhard	1	Whitill	Ruins 3	Assist Barrier	0.0008544890582676089
+vhard	2	Greenill	VR Temple: Alpha	Amplifier of Resta	0.0008544890582676089
+vhard	2	Skyly	VR Temple: Alpha	Amplifier of Resta	0.0008544890582676089
+vhard	2	Bluefull	VR Temple: Alpha	Amplifier of Resta	0.0008544890582676089
+vhard	2	Pinkal	VR Temple: Alpha	Amplifier of Zonde	0.0008544890582676089
+vhard	2	Pinkal	VR Temple: Alpha	Amplifier of Resta	0.0008544890582676089
+vhard	2	Redria	VR Temple: Alpha	Amplifier of Resta	0.0008544890582676089
+vhard	2	Yellowboze	VR Temple: Alpha	Amplifier of Resta	0.0008544890582676089
+vhard	2	Yellowboze	VR Temple: Alpha	Brionac	0.0031737971308873937
+vhard	2	Whitill	VR Temple: Alpha	Amplifier of Resta	0.0008544890582676089
+vhard	2	Viridia	VR Temple: Beta	Crush Bullet	0.0017089927196910141
+vhard	2	Viridia	VR Temple: Beta	Berdys	0.0017089927196910141
+vhard	2	Viridia	VR Temple: Beta	DB's Saber	0.0017089927196910141
+vhard	2	Viridia	VR Temple: Beta	Varista	0.0017089927196910141
+vhard	2	Viridia	VR Temple: Beta	Club of Laconium	0.0017089927196910141
+vhard	2	Greenill	VR Temple: Beta	Visk-235W	0.0017089927196910141
+vhard	2	Greenill	VR Temple: Beta	Edge	0.0017089927196910141
+vhard	2	Greenill	VR Temple: Beta	DB's Saber	0.0017089927196910141
+vhard	2	Greenill	VR Temple: Beta	Varista	0.0017089927196910141
+vhard	2	Greenill	VR Temple: Beta	Club of Laconium	0.0017089927196910141
+vhard	2	Skyly	VR Temple: Beta	Flowen's Sword	0.0017089927196910141
+vhard	2	Skyly	VR Temple: Beta	Beam	0.0017089927196910141
+vhard	2	Skyly	VR Temple: Beta	DB's Saber	0.0017089927196910141
+vhard	2	Skyly	VR Temple: Beta	Varista	0.0017089927196910141
+vhard	2	Skyly	VR Temple: Beta	Club of Laconium	0.0017089927196910141
+vhard	2	Bluefull	VR Temple: Beta	Brionac	0.0017089927196910141
+vhard	2	Bluefull	VR Temple: Beta	Pillar	0.0017089927196910141
+vhard	2	Bluefull	VR Temple: Beta	DB's Saber	0.0017089927196910141
+vhard	2	Bluefull	VR Temple: Beta	Varista	0.0017089927196910141
+vhard	2	Bluefull	VR Temple: Beta	Club of Laconium	0.0017089927196910141
+vhard	2	Purplenum	VR Temple: Beta	M&A60 Vise	0.0017089927196910141
+vhard	2	Purplenum	VR Temple: Beta	Edge	0.0017089927196910141
+vhard	2	Purplenum	VR Temple: Beta	DB's Saber	0.0017089927196910141
+vhard	2	Purplenum	VR Temple: Beta	Varista	0.0017089927196910141
+vhard	2	Purplenum	VR Temple: Beta	Club of Laconium	0.0017089927196910141
+vhard	2	Purplenum	VR Temple: Beta	Amplifier of Barta	0.0008544890582676089
+vhard	2	Pinkal	VR Temple: Beta	Fire Scepter: Agni	0.0017089927196910141
+vhard	2	Pinkal	VR Temple: Beta	Berdys	0.0017089927196910141
+vhard	2	Pinkal	VR Temple: Beta	Club of Laconium	0.0017089927196910141
+vhard	2	Pinkal	VR Temple: Beta	Varista	0.0017089927196910141
+vhard	2	Pinkal	VR Temple: Beta	DB's Saber	0.0017089927196910141
+vhard	2	Redria	VR Temple: Beta	Sawcer	0.0017089927196910141
+vhard	2	Redria	VR Temple: Beta	Launcher	0.0017089927196910141
+vhard	2	Redria	VR Temple: Beta	DB's Saber	0.0017089927196910141
+vhard	2	Redria	VR Temple: Beta	Varista	0.0017089927196910141
+vhard	2	Redria	VR Temple: Beta	Club of Laconium	0.0017089927196910141
+vhard	2	Oran	VR Temple: Beta	Blade Dance	0.0017089927196910141
+vhard	2	Oran	VR Temple: Beta	Claymore	0.0017089927196910141
+vhard	2	Oran	VR Temple: Beta	DB's Saber	0.0017089927196910141
+vhard	2	Oran	VR Temple: Beta	Varista	0.0017089927196910141
+vhard	2	Oran	VR Temple: Beta	Club of Laconium	0.0017089927196910141
+vhard	2	Yellowboze	VR Temple: Beta	DB's Saber	0.0017089927196910141
+vhard	2	Yellowboze	VR Temple: Beta	Varista	0.0017089927196910141
+vhard	2	Yellowboze	VR Temple: Beta	Club of Laconium	0.0017089927196910141
+vhard	2	Yellowboze	VR Temple: Beta	Crush Bullet	0.0031737971308873937
+vhard	2	Yellowboze	VR Temple: Beta	AddSlot	0.0008544890582676089
+vhard	2	Whitill	VR Temple: Beta	Slicer of Assassin	0.0017089927196910141
+vhard	2	Whitill	VR Temple: Beta	Gatling	0.0017089927196910141
+vhard	2	Whitill	VR Temple: Beta	DB's Saber	0.0017089927196910141
+vhard	2	Whitill	VR Temple: Beta	Varista	0.0017089927196910141
+vhard	2	Whitill	VR Temple: Beta	Club of Laconium	0.0017089927196910141
+vhard	2	Whitill	VR Temple: Beta	AddSlot	0.0008544890582676089
+vhard	2	Viridia	VR Spaceship: Alpha	Amplifier of Foie	0.0008544890582676089
+vhard	2	Viridia	VR Spaceship: Alpha	Amplifier of Anti	0.0008544890582676089
+vhard	2	Skyly	VR Spaceship: Alpha	Amplifier of Foie	0.0008544890582676089
+vhard	2	Skyly	VR Spaceship: Alpha	Amplifier of Shifta	0.0008544890582676089
+vhard	2	Bluefull	VR Spaceship: Alpha	Amplifier of Foie	0.0008544890582676089
+vhard	2	Purplenum	VR Spaceship: Alpha	Amplifier of Anti	0.0008544890582676089
+vhard	2	Pinkal	VR Spaceship: Alpha	Amplifier of Foie	0.0008544890582676089
+vhard	2	Pinkal	VR Spaceship: Alpha	Amplifier of Shifta	0.0008544890582676089
+vhard	2	Redria	VR Spaceship: Alpha	Amplifier of Shifta	0.0008544890582676089
+vhard	2	Oran	VR Spaceship: Alpha	Amplifier of Foie	0.0008544890582676089
+vhard	2	Oran	VR Spaceship: Alpha	Amplifier of Anti	0.0008544890582676089
+vhard	2	Yellowboze	VR Spaceship: Alpha	Amplifier of Shifta	0.0008544890582676089
+vhard	2	Yellowboze	VR Spaceship: Alpha	Flowen's Sword	0.0031737971308873937
+vhard	2	Whitill	VR Spaceship: Alpha	Amplifier of Foie	0.0008544890582676089
+vhard	2	Whitill	VR Spaceship: Alpha	Amplifier of Shifta	0.0008544890582676089
+vhard	2	Viridia	VR Spaceship: Beta	Amplifier of Gibarta	0.0008544890582676089
+vhard	2	Greenill	VR Spaceship: Beta	Amplifier of Gibarta	0.0008544890582676089
+vhard	2	Greenill	VR Spaceship: Beta	AddSlot	0.0008544890582676089
+vhard	2	Purplenum	VR Spaceship: Beta	Amplifier of Gibarta	0.0008544890582676089
+vhard	2	Yellowboze	VR Spaceship: Beta	Battle Verge	0.0031737971308873937
+vhard	2	Viridia	Jungle North	Crush Bullet	0.0021972709894311263
+vhard	2	Viridia	Jungle North	Gungnir	0.0021972709894311263
+vhard	2	Viridia	Jungle North	DB's Saber	0.0021972709894311263
+vhard	2	Viridia	Jungle North	Varista	0.0021972709894311263
+vhard	2	Viridia	Jungle North	Club of Laconium	0.0021972709894311263
+vhard	2	Viridia	Jungle North	Red Barrier	0.0008544890582676089
+vhard	2	Viridia	Jungle North	AddSlot	0.0008544890582676089
+vhard	2	Greenill	Jungle North	Visk-235W	0.0021972709894311263
+vhard	2	Greenill	Jungle North	Ripper	0.0021972709894311263
+vhard	2	Greenill	Jungle North	DB's Saber	0.0021972709894311263
+vhard	2	Greenill	Jungle North	Varista	0.0021972709894311263
+vhard	2	Greenill	Jungle North	Club of Laconium	0.0021972709894311263
+vhard	2	Skyly	Jungle North	Flowen's Sword	0.0021972709894311263
+vhard	2	Skyly	Jungle North	Laser	0.0021972709894311263
+vhard	2	Skyly	Jungle North	DB's Saber	0.0021972709894311263
+vhard	2	Skyly	Jungle North	Varista	0.0021972709894311263
+vhard	2	Skyly	Jungle North	Club of Laconium	0.0021972709894311263
+vhard	2	Skyly	Jungle North	AddSlot	0.0008544890582676089
+vhard	2	Bluefull	Jungle North	Brionac	0.0021972709894311263
+vhard	2	Bluefull	Jungle North	Striker	0.0021972709894311263
+vhard	2	Bluefull	Jungle North	DB's Saber	0.0021972709894311263
+vhard	2	Bluefull	Jungle North	Varista	0.0021972709894311263
+vhard	2	Bluefull	Jungle North	Club of Laconium	0.0021972709894311263
+vhard	2	Bluefull	Jungle North	Red Barrier	0.0008544890582676089
+vhard	2	Bluefull	Jungle North	AddSlot	0.0008544890582676089
+vhard	2	Purplenum	Jungle North	M&A60 Vise	0.0021972709894311263
+vhard	2	Purplenum	Jungle North	Ripper	0.0021972709894311263
+vhard	2	Purplenum	Jungle North	DB's Saber	0.0021972709894311263
+vhard	2	Purplenum	Jungle North	Varista	0.0021972709894311263
+vhard	2	Purplenum	Jungle North	Club of Laconium	0.0021972709894311263
+vhard	2	Purplenum	Jungle North	Amplifier of Gizonde	0.0008544890582676089
+vhard	2	Pinkal	Jungle North	Fire Scepter: Agni	0.0021972709894311263
+vhard	2	Pinkal	Jungle North	Gungnir	0.0021972709894311263
+vhard	2	Pinkal	Jungle North	Club of Laconium	0.0021972709894311263
+vhard	2	Pinkal	Jungle North	Varista	0.0021972709894311263
+vhard	2	Pinkal	Jungle North	DB's Saber	0.0021972709894311263
+vhard	2	Redria	Jungle North	Diska	0.0021972709894311263
+vhard	2	Redria	Jungle North	Arms	0.0021972709894311263
+vhard	2	Redria	Jungle North	DB's Saber	0.0021972709894311263
+vhard	2	Redria	Jungle North	Varista	0.0021972709894311263
+vhard	2	Redria	Jungle North	Club of Laconium	0.0021972709894311263
+vhard	2	Redria	Jungle North	Red Barrier	0.0008544890582676089
+vhard	2	Redria	Jungle North	AddSlot	0.0008544890582676089
+vhard	2	Oran	Jungle North	Blade Dance	0.0021972709894311263
+vhard	2	Oran	Jungle North	Calibur	0.0021972709894311263
+vhard	2	Oran	Jungle North	DB's Saber	0.0021972709894311263
+vhard	2	Oran	Jungle North	Varista	0.0021972709894311263
+vhard	2	Oran	Jungle North	Club of Laconium	0.0021972709894311263
+vhard	2	Oran	Jungle North	AddSlot	0.0008544890582676089
+vhard	2	Yellowboze	Jungle North	DB's Saber	0.0021972709894311263
+vhard	2	Yellowboze	Jungle North	Varista	0.0021972709894311263
+vhard	2	Yellowboze	Jungle North	Club of Laconium	0.0021972709894311263
+vhard	2	Yellowboze	Jungle North	Red Barrier	0.0008544890582676089
+vhard	2	Whitill	Jungle North	Slicer of Assassin	0.0021972709894311263
+vhard	2	Whitill	Jungle North	Vulcan	0.0021972709894311263
+vhard	2	Whitill	Jungle North	DB's Saber	0.0021972709894311263
+vhard	2	Whitill	Jungle North	Varista	0.0021972709894311263
+vhard	2	Whitill	Jungle North	Club of Laconium	0.0021972709894311263
+vhard	2	Viridia	Jungle East	Mag	0.006835737234260716
+vhard	2	Viridia	Jungle East	Amplifier of Gifoie	0.0008544890582676089
+vhard	2	Greenill	Jungle East	Mag	0.006835737234260716
+vhard	2	Skyly	Jungle East	Mag	0.006835737234260716
+vhard	2	Skyly	Jungle East	Amplifier of Gifoie	0.0008544890582676089
+vhard	2	Bluefull	Jungle East	Mag	0.006835737234260716
+vhard	2	Bluefull	Jungle East	Yellow Barrier	0.0008544890582676089
+vhard	2	Bluefull	Jungle East	AddSlot	0.0008544890582676089
+vhard	2	Purplenum	Jungle East	Mag	0.006835737234260716
+vhard	2	Purplenum	Jungle East	AddSlot	0.0008544890582676089
+vhard	2	Pinkal	Jungle East	Mag	0.006835737234260716
+vhard	2	Redria	Jungle East	Mag	0.006835737234260716
+vhard	2	Redria	Jungle East	Yellow Barrier	0.0008544890582676089
+vhard	2	Redria	Jungle East	AddSlot	0.0008544890582676089
+vhard	2	Oran	Jungle East	Mag	0.006835737234260716
+vhard	2	Oran	Jungle East	Yellow Barrier	0.0008544890582676089
+vhard	2	Yellowboze	Jungle East	Mag	0.006835737234260716
+vhard	2	Yellowboze	Jungle East	Yellow Barrier	0.0008544890582676089
+vhard	2	Yellowboze	Jungle East	M&A60 Vise	0.0031737971308873937
+vhard	2	Yellowboze	Jungle East	AddSlot	0.0008544890582676089
+vhard	2	Whitill	Jungle East	Mag	0.006835737234260716
+vhard	2	Viridia	Mountain	Meteor Smash	0.0017089927196910141
+vhard	2	Viridia	Mountain	Brionac	0.0017089927196910141
+vhard	2	Viridia	Mountain	Kaladbolg	0.002685573101299817
+vhard	2	Viridia	Mountain	Custom Ray ver.OO	0.002685573101299817
+vhard	2	Viridia	Mountain	Mace of Adaman	0.002685573101299817
+vhard	2	Viridia	Mountain	Amplifier of Deband	0.0008544890582676089
+vhard	2	Greenill	Mountain	Wals-MK2	0.0017089927196910141
+vhard	2	Greenill	Mountain	Blade Dance	0.0017089927196910141
+vhard	2	Greenill	Mountain	Kaladbolg	0.002685573101299817
+vhard	2	Greenill	Mountain	Custom Ray ver.OO	0.002685573101299817
+vhard	2	Greenill	Mountain	Mace of Adaman	0.002685573101299817
+vhard	2	Greenill	Mountain	Amplifier of Deband	0.0008544890582676089
+vhard	2	Skyly	Mountain	Last Survivor	0.0017089927196910141
+vhard	2	Skyly	Mountain	Visk-235W	0.0017089927196910141
+vhard	2	Skyly	Mountain	Kaladbolg	0.002685573101299817
+vhard	2	Skyly	Mountain	Custom Ray ver.OO	0.002685573101299817
+vhard	2	Skyly	Mountain	Mace of Adaman	0.002685573101299817
+vhard	2	Bluefull	Mountain	Vjaya	0.0017089927196910141
+vhard	2	Bluefull	Mountain	Battle Verge	0.0017089927196910141
+vhard	2	Bluefull	Mountain	Kaladbolg	0.002685573101299817
+vhard	2	Bluefull	Mountain	Custom Ray ver.OO	0.002685573101299817
+vhard	2	Bluefull	Mountain	Mace of Adaman	0.002685573101299817
+vhard	2	Bluefull	Mountain	Amplifier of Razonde	0.0008544890582676089
+vhard	2	Bluefull	Mountain	Amplifier of Deband	0.0008544890582676089
+vhard	2	Purplenum	Mountain	H&S25 Justice	0.0017089927196910141
+vhard	2	Purplenum	Mountain	Blade Dance	0.0017089927196910141
+vhard	2	Purplenum	Mountain	Kaladbolg	0.002685573101299817
+vhard	2	Purplenum	Mountain	Custom Ray ver.OO	0.002685573101299817
+vhard	2	Purplenum	Mountain	Mace of Adaman	0.002685573101299817
+vhard	2	Purplenum	Mountain	Amplifier of Deband	0.0008544890582676089
+vhard	2	Pinkal	Mountain	Ice Staff: Dagon	0.0017089927196910141
+vhard	2	Pinkal	Mountain	Brionac	0.0017089927196910141
+vhard	2	Pinkal	Mountain	Mace of Adaman	0.002685573101299817
+vhard	2	Pinkal	Mountain	Custom Ray ver.OO	0.002685573101299817
+vhard	2	Pinkal	Mountain	Kaladbolg	0.002685573101299817
+vhard	2	Redria	Mountain	Slicer of Assassin	0.0017089927196910141
+vhard	2	Redria	Mountain	Crush Bullet	0.0017089927196910141
+vhard	2	Redria	Mountain	Kaladbolg	0.002685573101299817
+vhard	2	Redria	Mountain	Custom Ray ver.OO	0.002685573101299817
+vhard	2	Redria	Mountain	Mace of Adaman	0.002685573101299817
+vhard	2	Oran	Mountain	Bloody Art	0.0017089927196910141
+vhard	2	Oran	Mountain	Flowen's Sword	0.0017089927196910141
+vhard	2	Oran	Mountain	Kaladbolg	0.002685573101299817
+vhard	2	Oran	Mountain	Custom Ray ver.OO	0.002685573101299817
+vhard	2	Oran	Mountain	Mace of Adaman	0.002685573101299817
+vhard	2	Oran	Mountain	Amplifier of Razonde	0.0008544890582676089
+vhard	2	Oran	Mountain	Amplifier of Deband	0.0008544890582676089
+vhard	2	Yellowboze	Mountain	Kaladbolg	0.0017089927196910141
+vhard	2	Yellowboze	Mountain	Custom Ray ver.OO	0.0017089927196910141
+vhard	2	Yellowboze	Mountain	Mace of Adaman	0.002685573101299817
+vhard	2	Yellowboze	Mountain	Blade Dance	0.0031737971308873937
+vhard	2	Whitill	Mountain	Diska of Liberator	0.0017089927196910141
+vhard	2	Whitill	Mountain	M&A60 Vise	0.0017089927196910141
+vhard	2	Whitill	Mountain	Kaladbolg	0.002685573101299817
+vhard	2	Whitill	Mountain	Custom Ray ver.OO	0.002685573101299817
+vhard	2	Whitill	Mountain	Mace of Adaman	0.002685573101299817
+vhard	2	Whitill	Mountain	AddSlot	0.0008544890582676089
+vhard	2	Viridia	Seaside 	AddSlot	0.0008544890582676089
+vhard	2	Greenill	Seaside 	Blue Barrier	0.0008544890582676089
+vhard	2	Greenill	Seaside 	AddSlot	0.0008544890582676089
+vhard	2	Purplenum	Seaside 	Blue Barrier	0.0008544890582676089
+vhard	2	Purplenum	Seaside 	AddSlot	0.0008544890582676089
+vhard	2	Pinkal	Seaside 	Amplifier of Rabarta	0.0008544890582676089
+vhard	2	Pinkal	Seaside 	Blue Barrier	0.0008544890582676089
+vhard	2	Redria	Seaside 	AddSlot	0.0008544890582676089
+vhard	2	Yellowboze	Seaside 	Visk-235W	0.0031737971308873937
+vhard	2	Whitill	Seaside 	Amplifier of Rabarta	0.0008544890582676089
+vhard	2	Whitill	Seaside 	Blue Barrier	0.0008544890582676089
+vhard	2	Greenill	Seabed: Upper Levels	Recovery Barrier	0.0008544890582676089
+vhard	2	Skyly	Seabed: Upper Levels	Recovery Barrier	0.0008544890582676089
+vhard	2	Skyly	Seabed: Upper Levels	AddSlot	0.0008544890582676089
+vhard	2	Bluefull	Seabed: Upper Levels	Recovery Barrier	0.0008544890582676089
+vhard	2	Pinkal	Seabed: Upper Levels	Amplifier of Rafoie	0.0008544890582676089
+vhard	2	Pinkal	Seabed: Upper Levels	Amplifier of Red 	0.0008544890582676089
+vhard	2	Pinkal	Seabed: Upper Levels	Recovery Barrier	0.0008544890582676089
+vhard	2	Oran	Seabed: Upper Levels	Amplifier of Rafoie	0.0008544890582676089
+vhard	2	Yellowboze	Seabed: Upper Levels	Slicer of Assassin	0.0031737971308873937
+vhard	2	Whitill	Seabed: Upper Levels	Amplifier of Rafoie	0.0008544890582676089
+vhard	2	Whitill	Seabed: Upper Levels	Recovery Barrier	0.0008544890582676089
+vhard	2	Viridia	Seabed: Lower Levels	Meteor Smash	0.0021972709894311263
+vhard	2	Viridia	Seabed: Lower Levels	Brionac	0.0021972709894311263
+vhard	2	Viridia	Seabed: Lower Levels	Kaladbolg	0.0031737971308873937
+vhard	2	Viridia	Seabed: Lower Levels	Custom Ray ver.OO	0.0031737971308873937
+vhard	2	Viridia	Seabed: Lower Levels	Mace of Adaman	0.0031737971308873937
+vhard	2	Viridia	Seabed: Lower Levels	Assist Barrier	0.0008544890582676089
+vhard	2	Greenill	Seabed: Lower Levels	Wals-MK2	0.0021972709894311263
+vhard	2	Greenill	Seabed: Lower Levels	Blade Dance	0.0021972709894311263
+vhard	2	Greenill	Seabed: Lower Levels	Kaladbolg	0.0031737971308873937
+vhard	2	Greenill	Seabed: Lower Levels	Custom Ray ver.OO	0.0031737971308873937
+vhard	2	Greenill	Seabed: Lower Levels	Mace of Adaman	0.0031737971308873937
+vhard	2	Skyly	Seabed: Lower Levels	Last Survivor	0.0021972709894311263
+vhard	2	Skyly	Seabed: Lower Levels	Visk-235W	0.0021972709894311263
+vhard	2	Skyly	Seabed: Lower Levels	Kaladbolg	0.0031737971308873937
+vhard	2	Skyly	Seabed: Lower Levels	Custom Ray ver.OO	0.0031737971308873937
+vhard	2	Skyly	Seabed: Lower Levels	Mace of Adaman	0.0031737971308873937
+vhard	2	Bluefull	Seabed: Lower Levels	Vjaya	0.0021972709894311263
+vhard	2	Bluefull	Seabed: Lower Levels	Battle Verge	0.0021972709894311263
+vhard	2	Bluefull	Seabed: Lower Levels	Kaladbolg	0.0031737971308873937
+vhard	2	Bluefull	Seabed: Lower Levels	Custom Ray ver.OO	0.0031737971308873937
+vhard	2	Bluefull	Seabed: Lower Levels	Mace of Adaman	0.0031737971308873937
+vhard	2	Purplenum	Seabed: Lower Levels	H&S25 Justice	0.0021972709894311263
+vhard	2	Purplenum	Seabed: Lower Levels	Blade Dance	0.0021972709894311263
+vhard	2	Purplenum	Seabed: Lower Levels	Kaladbolg	0.0031737971308873937
+vhard	2	Purplenum	Seabed: Lower Levels	Custom Ray ver.OO	0.0031737971308873937
+vhard	2	Purplenum	Seabed: Lower Levels	Mace of Adaman	0.0031737971308873937
+vhard	2	Purplenum	Seabed: Lower Levels	Assist Barrier	0.0008544890582676089
+vhard	2	Pinkal	Seabed: Lower Levels	Ice Staff: Dagon	0.0021972709894311263
+vhard	2	Pinkal	Seabed: Lower Levels	Brionac	0.0021972709894311263
+vhard	2	Pinkal	Seabed: Lower Levels	Mace of Adaman	0.0031737971308873937
+vhard	2	Pinkal	Seabed: Lower Levels	Custom Ray ver.OO	0.0031737971308873937
+vhard	2	Pinkal	Seabed: Lower Levels	Kaladbolg	0.0031737971308873937
+vhard	2	Redria	Seabed: Lower Levels	Slicer of Assassin	0.0021972709894311263
+vhard	2	Redria	Seabed: Lower Levels	Crush Bullet	0.0021972709894311263
+vhard	2	Redria	Seabed: Lower Levels	Kaladbolg	0.0031737971308873937
+vhard	2	Redria	Seabed: Lower Levels	Custom Ray ver.OO	0.0031737971308873937
+vhard	2	Redria	Seabed: Lower Levels	Mace of Adaman	0.0031737971308873937
+vhard	2	Redria	Seabed: Lower Levels	Assist Barrier	0.0008544890582676089
+vhard	2	Redria	Seabed: Lower Levels	AddSlot	0.0008544890582676089
+vhard	2	Oran	Seabed: Lower Levels	Bloody Art	0.0021972709894311263
+vhard	2	Oran	Seabed: Lower Levels	Flowen's Sword	0.0021972709894311263
+vhard	2	Oran	Seabed: Lower Levels	Kaladbolg	0.0031737971308873937
+vhard	2	Oran	Seabed: Lower Levels	Custom Ray ver.OO	0.0031737971308873937
+vhard	2	Oran	Seabed: Lower Levels	Mace of Adaman	0.0031737971308873937
+vhard	2	Oran	Seabed: Lower Levels	Assist Barrier	0.0008544890582676089
+vhard	2	Oran	Seabed: Lower Levels	AddSlot	0.0008544890582676089
+vhard	2	Yellowboze	Seabed: Lower Levels	Kaladbolg	0.0021972709894311263
+vhard	2	Yellowboze	Seabed: Lower Levels	Custom Ray ver.OO	0.0021972709894311263
+vhard	2	Yellowboze	Seabed: Lower Levels	Mace of Adaman	0.0031737971308873937
+vhard	2	Yellowboze	Seabed: Lower Levels	Amplifier of Yellow	0.0008544890582676089
+vhard	2	Yellowboze	Seabed: Lower Levels	Assist Barrier	0.0008544890582676089
+vhard	2	Yellowboze	Seabed: Lower Levels	Fire Scepter: Agni	0.0031737971308873937
+vhard	2	Whitill	Seabed: Lower Levels	Diska of Liberator	0.0021972709894311263
+vhard	2	Whitill	Seabed: Lower Levels	M&A60 Vise	0.0021972709894311263
+vhard	2	Whitill	Seabed: Lower Levels	Kaladbolg	0.0031737971308873937
+vhard	2	Whitill	Seabed: Lower Levels	Custom Ray ver.OO	0.0031737971308873937
+vhard	2	Whitill	Seabed: Lower Levels	Mace of Adaman	0.0031737971308873937
+vhard	4	Viridia	Crater East	Photon Crystal	0.0006103515625
+vhard	4	Greenill	Crater East	Photon Crystal	0.0006103515625
+vhard	4	Skyly	Crater East	Photon Crystal	0.0006103515625
+vhard	4	Bluefull	Crater East	Photon Crystal	0.0006103515625
+vhard	4	Purplenum	Crater East	Photon Crystal	0.0006103515625
+vhard	4	Pinkal	Crater East	Photon Crystal	0.0006103515625
+vhard	4	Redria	Crater East	Photon Crystal	0.0006103515625
+vhard	4	Oran	Crater East	Photon Crystal	0.0006103515625
+vhard	4	Yellowboze	Crater East	Photon Crystal	0.0006103515625
+vhard	4	Whitill	Crater East	Photon Crystal	0.0006103515625
+vhard	4	Viridia	Crater West	Photon Crystal	0.0006103515625
+vhard	4	Greenill	Crater West	Photon Crystal	0.0006103515625
+vhard	4	Skyly	Crater West	Photon Crystal	0.0006103515625
+vhard	4	Bluefull	Crater West	Photon Crystal	0.0006103515625
+vhard	4	Purplenum	Crater West	Photon Crystal	0.0006103515625
+vhard	4	Pinkal	Crater West	Photon Crystal	0.0006103515625
+vhard	4	Redria	Crater West	Photon Crystal	0.0006103515625
+vhard	4	Oran	Crater West	Photon Crystal	0.0006103515625
+vhard	4	Yellowboze	Crater West	Photon Crystal	0.0006103515625
+vhard	4	Whitill	Crater West	Photon Crystal	0.0006103515625
+vhard	4	Viridia	Crater South	Photon Crystal	0.0006103515625
+vhard	4	Greenill	Crater South	Photon Crystal	0.0006103515625
+vhard	4	Skyly	Crater South	Photon Crystal	0.0006103515625
+vhard	4	Bluefull	Crater South	Photon Crystal	0.0006103515625
+vhard	4	Purplenum	Crater South	Photon Crystal	0.0006103515625
+vhard	4	Pinkal	Crater South	Photon Crystal	0.0006103515625
+vhard	4	Redria	Crater South	Photon Crystal	0.0006103515625
+vhard	4	Oran	Crater South	Photon Crystal	0.0006103515625
+vhard	4	Yellowboze	Crater South	Photon Crystal	0.0006103515625
+vhard	4	Whitill	Crater South	Photon Crystal	0.0006103515625
+vhard	4	Viridia	Crater North	Photon Crystal	0.0006103515625
+vhard	4	Greenill	Crater North	Photon Crystal	0.0006103515625
+vhard	4	Skyly	Crater North	Photon Crystal	0.0006103515625
+vhard	4	Bluefull	Crater North	Photon Crystal	0.0006103515625
+vhard	4	Purplenum	Crater North	Photon Crystal	0.0006103515625
+vhard	4	Pinkal	Crater North	Photon Crystal	0.0006103515625
+vhard	4	Redria	Crater North	Photon Crystal	0.0006103515625
+vhard	4	Oran	Crater North	Photon Crystal	0.0006103515625
+vhard	4	Yellowboze	Crater North	Photon Crystal	0.0006103515625
+vhard	4	Whitill	Crater North	Photon Crystal	0.0006103515625
+vhard	4	Viridia	Crater Int.	Photon Crystal	0.0006103515625
+vhard	4	Greenill	Crater Int.	Photon Crystal	0.0006103515625
+vhard	4	Skyly	Crater Int.	Photon Crystal	0.0006103515625
+vhard	4	Bluefull	Crater Int.	Photon Crystal	0.0006103515625
+vhard	4	Purplenum	Crater Int.	Photon Crystal	0.0006103515625
+vhard	4	Pinkal	Crater Int.	Photon Crystal	0.0006103515625
+vhard	4	Redria	Crater Int.	Photon Crystal	0.0006103515625
+vhard	4	Oran	Crater Int.	Photon Crystal	0.0006103515625
+vhard	4	Yellowboze	Crater Int.	Photon Crystal	0.0006103515625
+vhard	4	Whitill	Crater Int.	Photon Crystal	0.0006103515625
+vhard	4	Viridia	Desert 1	Photon Crystal	0.0006103515625
+vhard	4	Greenill	Desert 1	Photon Crystal	0.0006103515625
+vhard	4	Skyly	Desert 1	Photon Crystal	0.0006103515625
+vhard	4	Bluefull	Desert 1	Photon Crystal	0.0006103515625
+vhard	4	Purplenum	Desert 1	Photon Crystal	0.0006103515625
+vhard	4	Pinkal	Desert 1	Photon Crystal	0.0006103515625
+vhard	4	Redria	Desert 1	Photon Crystal	0.0006103515625
+vhard	4	Oran	Desert 1	Photon Crystal	0.0006103515625
+vhard	4	Yellowboze	Desert 1	Photon Crystal	0.0006103515625
+vhard	4	Whitill	Desert 1	Photon Crystal	0.0006103515625
+vhard	4	Viridia	Desert 2	Photon Crystal	0.0006103515625
+vhard	4	Greenill	Desert 2	Photon Crystal	0.0006103515625
+vhard	4	Skyly	Desert 2	Photon Crystal	0.0006103515625
+vhard	4	Bluefull	Desert 2	Photon Crystal	0.0006103515625
+vhard	4	Purplenum	Desert 2	Photon Crystal	0.0006103515625
+vhard	4	Pinkal	Desert 2	Photon Crystal	0.0006103515625
+vhard	4	Redria	Desert 2	Photon Crystal	0.0006103515625
+vhard	4	Oran	Desert 2	Photon Crystal	0.0006103515625
+vhard	4	Yellowboze	Desert 2	Photon Crystal	0.0006103515625
+vhard	4	Whitill	Desert 2	Photon Crystal	0.0006103515625
+vhard	4	Viridia	Desert 3	Photon Crystal	0.0006103515625
+vhard	4	Greenill	Desert 3	Photon Crystal	0.0006103515625
+vhard	4	Skyly	Desert 3	Photon Crystal	0.0006103515625
+vhard	4	Bluefull	Desert 3	Photon Crystal	0.0006103515625
+vhard	4	Purplenum	Desert 3	Photon Crystal	0.0006103515625
+vhard	4	Pinkal	Desert 3	Photon Crystal	0.0006103515625
+vhard	4	Redria	Desert 3	Photon Crystal	0.0006103515625
+vhard	4	Oran	Desert 3	Photon Crystal	0.0006103515625
+vhard	4	Yellowboze	Desert 3	Photon Crystal	0.0006103515625
+vhard	4	Whitill	Desert 3	Photon Crystal	0.0006103515625
+vhard	4	Viridia	Boss	Photon Crystal	0.0006103515625
+vhard	4	Greenill	Boss	Photon Crystal	0.0006103515625
+vhard	4	Skyly	Boss	Photon Crystal	0.0006103515625
+vhard	4	Bluefull	Boss	Photon Crystal	0.0006103515625
+vhard	4	Purplenum	Boss	Photon Crystal	0.0006103515625
+vhard	4	Pinkal	Boss	Photon Crystal	0.0006103515625
+vhard	4	Redria	Boss	Photon Crystal	0.0006103515625
+vhard	4	Oran	Boss	Photon Crystal	0.0006103515625
+vhard	4	Yellowboze	Boss	Photon Crystal	0.0006103515625
+vhard	4	Whitill	Boss	Photon Crystal	0.0006103515625
+ultimate	1	Viridia	Forest 1	Meteor Smash	0.0015869237483138936
+ultimate	1	Greenill	Forest 1	Wals-MK2	0.0015869237483138936
+ultimate	1	Skyly	Forest 1	Last Survivor	0.0015869237483138936
+ultimate	1	Bluefull	Forest 1	Vjaya	0.0015869237483138936
+ultimate	1	Bluefull	Forest 1	AddSlot	0.0008544890582676089
+ultimate	1	Purplenum	Forest 1	H&S25 Justice	0.0015869237483138936
+ultimate	1	Pinkal	Forest 1	Ice Staff: Dagon	0.0015869237483138936
+ultimate	1	Pinkal	Forest 1	Amplifier of Barta	0.002685573101299817
+ultimate	1	Redria	Forest 1	Diska of Liberator	0.0015869237483138936
+ultimate	1	Oran	Forest 1	Bloody Art	0.0015869237483138936
+ultimate	1	Whitill	Forest 1	Diska of Liberator	0.0015869237483138936
+ultimate	1	Viridia	Forest 2	Meteor Smash	0.0017089927196910141
+ultimate	1	Viridia	Forest 2	Vjaya	0.0015869237483138936
+ultimate	1	Viridia	Forest 2	Kaladbolg	0.0015869237483138936
+ultimate	1	Viridia	Forest 2	Custom Ray ver.OO	0.0015869237483138936
+ultimate	1	Viridia	Forest 2	Mace of Adaman	0.0015869237483138936
+ultimate	1	Viridia	Forest 2	Amplifier of Foie	0.0008544890582676089
+ultimate	1	Greenill	Forest 2	Wals-MK2	0.0017089927196910141
+ultimate	1	Greenill	Forest 2	Bloody Art	0.0015869237483138936
+ultimate	1	Greenill	Forest 2	Kaladbolg	0.0015869237483138936
+ultimate	1	Greenill	Forest 2	Custom Ray ver.OO	0.0015869237483138936
+ultimate	1	Greenill	Forest 2	Mace of Adaman	0.0015869237483138936
+ultimate	1	Skyly	Forest 2	Last Survivor	0.0017089927196910141
+ultimate	1	Skyly	Forest 2	Wals-MK2	0.0015869237483138936
+ultimate	1	Skyly	Forest 2	Kaladbolg	0.0015869237483138936
+ultimate	1	Skyly	Forest 2	Custom Ray ver.OO	0.0015869237483138936
+ultimate	1	Skyly	Forest 2	Mace of Adaman	0.0015869237483138936
+ultimate	1	Bluefull	Forest 2	Vjaya	0.0017089927196910141
+ultimate	1	Bluefull	Forest 2	Brave Hammer	0.0015869237483138936
+ultimate	1	Bluefull	Forest 2	Kaladbolg	0.0015869237483138936
+ultimate	1	Bluefull	Forest 2	Custom Ray ver.OO	0.0015869237483138936
+ultimate	1	Bluefull	Forest 2	Mace of Adaman	0.0015869237483138936
+ultimate	1	Bluefull	Forest 2	Amplifier of Foie	0.0008544890582676089
+ultimate	1	Purplenum	Forest 2	H&S25 Justice	0.0017089927196910141
+ultimate	1	Purplenum	Forest 2	Bloody Art	0.0015869237483138936
+ultimate	1	Purplenum	Forest 2	Kaladbolg	0.0015869237483138936
+ultimate	1	Purplenum	Forest 2	Custom Ray ver.OO	0.0015869237483138936
+ultimate	1	Purplenum	Forest 2	Mace of Adaman	0.0015869237483138936
+ultimate	1	Pinkal	Forest 2	Ice Staff: Dagon	0.0017089927196910141
+ultimate	1	Pinkal	Forest 2	Amplifier of Foie	0.0015869237483138936
+ultimate	1	Redria	Forest 2	Diska of Liberator	0.0017089927196910141
+ultimate	1	Redria	Forest 2	Kaladbolg	0.0015869237483138936
+ultimate	1	Redria	Forest 2	Custom Ray ver.OO	0.0015869237483138936
+ultimate	1	Redria	Forest 2	Mace of Adaman	0.0015869237483138936
+ultimate	1	Oran	Forest 2	Bloody Art	0.0017089927196910141
+ultimate	1	Oran	Forest 2	Last Survivor	0.0015869237483138936
+ultimate	1	Oran	Forest 2	Kaladbolg	0.0015869237483138936
+ultimate	1	Oran	Forest 2	Custom Ray ver.OO	0.0015869237483138936
+ultimate	1	Oran	Forest 2	Mace of Adaman	0.0015869237483138936
+ultimate	1	Oran	Forest 2	Amplifier of Foie	0.0008544890582676089
+ultimate	1	Yellowboze	Forest 2	Kaladbolg	0.0017089927196910141
+ultimate	1	Yellowboze	Forest 2	Custom Ray ver.OO	0.0017089927196910141
+ultimate	1	Yellowboze	Forest 2	Mace of Adaman	0.0017089927196910141
+ultimate	1	Yellowboze	Forest 2	AddSlot	0.0008544890582676089
+ultimate	1	Whitill	Forest 2	Diska of Liberator	0.0017089927196910141
+ultimate	1	Whitill	Forest 2	H&S25 Justice	0.0015869237483138936
+ultimate	1	Whitill	Forest 2	Kaladbolg	0.0015869237483138936
+ultimate	1	Whitill	Forest 2	Custom Ray ver.OO	0.0015869237483138936
+ultimate	1	Whitill	Forest 2	Mace of Adaman	0.0015869237483138936
+ultimate	1	Viridia	Cave 1	Meteor Smash	0.0021972709894311263
+ultimate	1	Greenill	Cave 1	Wals-MK2	0.0021972709894311263
+ultimate	1	Skyly	Cave 1	Last Survivor	0.0021972709894311263
+ultimate	1	Bluefull	Cave 1	Vjaya	0.0021972709894311263
+ultimate	1	Purplenum	Cave 1	H&S25 Justice	0.0021972709894311263
+ultimate	1	Purplenum	Cave 1	Amplifier of Zonde	0.0008544890582676089
+ultimate	1	Pinkal	Cave 1	Ice Staff: Dagon	0.0021972709894311263
+ultimate	1	Pinkal	Cave 1	Amplifier of Zonde	0.0021972709894311263
+ultimate	1	Redria	Cave 1	Diska of Liberator	0.0021972709894311263
+ultimate	1	Redria	Cave 1	AddSlot	0.0015869237483138936
+ultimate	1	Oran	Cave 1	Bloody Art	0.0021972709894311263
+ultimate	1	Whitill	Cave 1	Diska of Liberator	0.0021972709894311263
+ultimate	1	Viridia	Cave 2	Meteor Smash	0.002685573101299817
+ultimate	1	Greenill	Cave 2	Wals-MK2	0.002685573101299817
+ultimate	1	Greenill	Cave 2	Blue Barrier	0.0008544890582676089
+ultimate	1	Skyly	Cave 2	Last Survivor	0.002685573101299817
+ultimate	1	Bluefull	Cave 2	Vjaya	0.002685573101299817
+ultimate	1	Purplenum	Cave 2	H&S25 Justice	0.002685573101299817
+ultimate	1	Pinkal	Cave 2	Ice Staff: Dagon	0.002685573101299817
+ultimate	1	Pinkal	Cave 2	Amplifier of Gizonde	0.002685573101299817
+ultimate	1	Pinkal	Cave 2	Blue Barrier	0.0017089927196910141
+ultimate	1	Redria	Cave 2	Diska of Liberator	0.002685573101299817
+ultimate	1	Redria	Cave 2	Blue Barrier	0.0008544890582676089
+ultimate	1	Oran	Cave 2	Bloody Art	0.002685573101299817
+ultimate	1	Oran	Cave 2	AddSlot	0.0008544890582676089
+ultimate	1	Yellowboze	Cave 2	AddSlot	0.0008544890582676089
+ultimate	1	Yellowboze	Cave 2	Blue Barrier	0.0008544890582676089
+ultimate	1	Whitill	Cave 2	Diska of Liberator	0.002685573101299817
+ultimate	1	Viridia	Cave 3	Final Impact	0.0015869237483138936
+ultimate	1	Viridia	Cave 3	Vjaya	0.0017089927196910141
+ultimate	1	Viridia	Cave 3	Durandal	0.0017089927196910141
+ultimate	1	Viridia	Cave 3	Bravace	0.0017089927196910141
+ultimate	1	Viridia	Cave 3	Club of Zumiuran	0.0017089927196910141
+ultimate	1	Greenill	Cave 3	Justy-23ST	0.0015869237483138936
+ultimate	1	Greenill	Cave 3	Bloody Art	0.0017089927196910141
+ultimate	1	Greenill	Cave 3	Durandal	0.0017089927196910141
+ultimate	1	Greenill	Cave 3	Bravace	0.0017089927196910141
+ultimate	1	Greenill	Cave 3	Club of Zumiuran	0.0017089927196910141
+ultimate	1	Skyly	Cave 3	Dragon Slayer	0.0015869237483138936
+ultimate	1	Skyly	Cave 3	Wals-MK2	0.0017089927196910141
+ultimate	1	Skyly	Cave 3	Durandal	0.0017089927196910141
+ultimate	1	Skyly	Cave 3	Bravace	0.0017089927196910141
+ultimate	1	Skyly	Cave 3	Club of Zumiuran	0.0017089927196910141
+ultimate	1	Bluefull	Cave 3	Gae Bolg	0.0015869237483138936
+ultimate	1	Bluefull	Cave 3	Brave Hammer	0.0017089927196910141
+ultimate	1	Bluefull	Cave 3	Durandal	0.0017089927196910141
+ultimate	1	Bluefull	Cave 3	Bravace	0.0017089927196910141
+ultimate	1	Bluefull	Cave 3	Club of Zumiuran	0.0017089927196910141
+ultimate	1	Purplenum	Cave 3	L&K14 Combat	0.0015869237483138936
+ultimate	1	Purplenum	Cave 3	Bloody Art	0.0017089927196910141
+ultimate	1	Purplenum	Cave 3	Durandal	0.0017089927196910141
+ultimate	1	Purplenum	Cave 3	Bravace	0.0017089927196910141
+ultimate	1	Purplenum	Cave 3	Club of Zumiuran	0.0017089927196910141
+ultimate	1	Pinkal	Cave 3	Storm Wand: Indra	0.0015869237483138936
+ultimate	1	Pinkal	Cave 3	Amplifier of Gifoie	0.0017089927196910141
+ultimate	1	Redria	Cave 3	Diska of Braveman	0.0015869237483138936
+ultimate	1	Redria	Cave 3	Durandal	0.0017089927196910141
+ultimate	1	Redria	Cave 3	Bravace	0.0017089927196910141
+ultimate	1	Redria	Cave 3	Club of Zumiuran	0.0017089927196910141
+ultimate	1	Oran	Cave 3	Cross Scar	0.0015869237483138936
+ultimate	1	Oran	Cave 3	Last Survivor	0.0017089927196910141
+ultimate	1	Oran	Cave 3	Durandal	0.0017089927196910141
+ultimate	1	Oran	Cave 3	Bravace	0.0017089927196910141
+ultimate	1	Oran	Cave 3	Club of Zumiuran	0.0017089927196910141
+ultimate	1	Yellowboze	Cave 3	Durandal	0.0021972709894311263
+ultimate	1	Yellowboze	Cave 3	Bravace	0.0021972709894311263
+ultimate	1	Yellowboze	Cave 3	Club of Zumiuran	0.0021972709894311263
+ultimate	1	Yellowboze	Cave 3	AddSlot	0.0008544890582676089
+ultimate	1	Whitill	Cave 3	Diska of Braveman	0.0015869237483138936
+ultimate	1	Whitill	Cave 3	H&S25 Justice	0.0017089927196910141
+ultimate	1	Whitill	Cave 3	Durandal	0.0017089927196910141
+ultimate	1	Whitill	Cave 3	Bravace	0.0017089927196910141
+ultimate	1	Whitill	Cave 3	Club of Zumiuran	0.0017089927196910141
+ultimate	1	Viridia	Mine 1	Mag	0.006835737234260716
+ultimate	1	Viridia	Mine 1	Final Impact	0.0017089927196910141
+ultimate	1	Greenill	Mine 1	Mag	0.006835737234260716
+ultimate	1	Greenill	Mine 1	Justy-23ST	0.0017089927196910141
+ultimate	1	Skyly	Mine 1	Mag	0.006835737234260716
+ultimate	1	Skyly	Mine 1	Dragon Slayer	0.0017089927196910141
+ultimate	1	Bluefull	Mine 1	Mag	0.006835737234260716
+ultimate	1	Bluefull	Mine 1	Gae Bolg	0.0017089927196910141
+ultimate	1	Purplenum	Mine 1	Mag	0.006835737234260716
+ultimate	1	Purplenum	Mine 1	L&K14 Combat	0.0017089927196910141
+ultimate	1	Purplenum	Mine 1	Yellow Barrier	0.0008544890582676089
+ultimate	1	Pinkal	Mine 1	Mag	0.006835737234260716
+ultimate	1	Pinkal	Mine 1	Storm Wand: Indra	0.0017089927196910141
+ultimate	1	Pinkal	Mine 1	Amplifier of Gibarta	0.0015869237483138936
+ultimate	1	Pinkal	Mine 1	Recovery Barrier	0.0014648365974775516
+ultimate	1	Pinkal	Mine 1	Red Barrier	0.0014648365974775516
+ultimate	1	Pinkal	Mine 1	Yellow Barrier	0.0014648365974775516
+ultimate	1	Redria	Mine 1	Mag	0.006835737234260716
+ultimate	1	Redria	Mine 1	Diska of Braveman	0.0017089927196910141
+ultimate	1	Oran	Mine 1	Mag	0.006835737234260716
+ultimate	1	Oran	Mine 1	Cross Scar	0.0017089927196910141
+ultimate	1	Yellowboze	Mine 1	Mag	0.006835737234260716
+ultimate	1	Yellowboze	Mine 1	Blue Barrier	0.0008544890582676089
+ultimate	1	Yellowboze	Mine 1	Yellow Barrier	0.0008544890582676089
+ultimate	1	Whitill	Mine 1	Mag	0.006835737234260716
+ultimate	1	Whitill	Mine 1	Diska of Braveman	0.0017089927196910141
+ultimate	1	Whitill	Mine 1	Assist Barrier	0.0008544890582676089
+ultimate	1	Whitill	Mine 1	AddSlot	0.0008544890582676089
+ultimate	1	Viridia	Mine 2	Final Impact	0.0021972709894311263
+ultimate	1	Viridia	Mine 2	Vjaya	0.0021972709894311263
+ultimate	1	Viridia	Mine 2	Durandal	0.0021972709894311263
+ultimate	1	Viridia	Mine 2	Bravace	0.0021972709894311263
+ultimate	1	Viridia	Mine 2	Club of Zumiuran	0.0021972709894311263
+ultimate	1	Greenill	Mine 2	Justy-23ST	0.0021972709894311263
+ultimate	1	Greenill	Mine 2	Bloody Art	0.0021972709894311263
+ultimate	1	Greenill	Mine 2	Durandal	0.0021972709894311263
+ultimate	1	Greenill	Mine 2	Bravace	0.0021972709894311263
+ultimate	1	Greenill	Mine 2	Club of Zumiuran	0.0021972709894311263
+ultimate	1	Skyly	Mine 2	Dragon Slayer	0.0021972709894311263
+ultimate	1	Skyly	Mine 2	Wals-MK2	0.0021972709894311263
+ultimate	1	Skyly	Mine 2	Durandal	0.0021972709894311263
+ultimate	1	Skyly	Mine 2	Bravace	0.0021972709894311263
+ultimate	1	Skyly	Mine 2	Club of Zumiuran	0.0021972709894311263
+ultimate	1	Skyly	Mine 2	AddSlot	0.0008544890582676089
+ultimate	1	Bluefull	Mine 2	Gae Bolg	0.0021972709894311263
+ultimate	1	Bluefull	Mine 2	Brave Hammer	0.0021972709894311263
+ultimate	1	Bluefull	Mine 2	Durandal	0.0021972709894311263
+ultimate	1	Bluefull	Mine 2	Bravace	0.0021972709894311263
+ultimate	1	Bluefull	Mine 2	Club of Zumiuran	0.0021972709894311263
+ultimate	1	Purplenum	Mine 2	L&K14 Combat	0.0021972709894311263
+ultimate	1	Purplenum	Mine 2	Bloody Art	0.0021972709894311263
+ultimate	1	Purplenum	Mine 2	Durandal	0.0021972709894311263
+ultimate	1	Purplenum	Mine 2	Bravace	0.0021972709894311263
+ultimate	1	Purplenum	Mine 2	Club of Zumiuran	0.0021972709894311263
+ultimate	1	Purplenum	Mine 2	Yellow Barrier	0.0008544890582676089
+ultimate	1	Pinkal	Mine 2	Storm Wand: Indra	0.0021972709894311263
+ultimate	1	Pinkal	Mine 2	Amplifier of Rabarta	0.0017089927196910141
+ultimate	1	Pinkal	Mine 2	Yellow Barrier	0.0021972709894311263
+ultimate	1	Redria	Mine 2	Diska of Braveman	0.0021972709894311263
+ultimate	1	Redria	Mine 2	Durandal	0.0021972709894311263
+ultimate	1	Redria	Mine 2	Bravace	0.0021972709894311263
+ultimate	1	Redria	Mine 2	Club of Zumiuran	0.0021972709894311263
+ultimate	1	Redria	Mine 2	Yellow Barrier	0.0008544890582676089
+ultimate	1	Oran	Mine 2	Cross Scar	0.0021972709894311263
+ultimate	1	Oran	Mine 2	Last Survivor	0.0021972709894311263
+ultimate	1	Oran	Mine 2	Durandal	0.0021972709894311263
+ultimate	1	Oran	Mine 2	Bravace	0.0021972709894311263
+ultimate	1	Oran	Mine 2	Club of Zumiuran	0.0021972709894311263
+ultimate	1	Yellowboze	Mine 2	Durandal	0.002685573101299817
+ultimate	1	Yellowboze	Mine 2	Bravace	0.002685573101299817
+ultimate	1	Yellowboze	Mine 2	Club of Zumiuran	0.002685573101299817
+ultimate	1	Yellowboze	Mine 2	Blue Barrier	0.0008544890582676089
+ultimate	1	Yellowboze	Mine 2	Yellow Barrier	0.0008544890582676089
+ultimate	1	Yellowboze	Mine 2	Yellow Barrier	0.0008544890582676089
+ultimate	1	Whitill	Mine 2	Diska of Braveman	0.0021972709894311263
+ultimate	1	Whitill	Mine 2	H&S25 Justice	0.0021972709894311263
+ultimate	1	Whitill	Mine 2	Durandal	0.0021972709894311263
+ultimate	1	Whitill	Mine 2	Bravace	0.0021972709894311263
+ultimate	1	Whitill	Mine 2	Club of Zumiuran	0.0021972709894311263
+ultimate	1	Whitill	Mine 2	Assist Barrier	0.0008544890582676089
+ultimate	1	Viridia	Ruins 1	Final Impact	0.002685573101299817
+ultimate	1	Greenill	Ruins 1	Justy-23ST	0.002685573101299817
+ultimate	1	Greenill	Ruins 1	AddSlot	0.0008544890582676089
+ultimate	1	Skyly	Ruins 1	Dragon Slayer	0.002685573101299817
+ultimate	1	Skyly	Ruins 1	Amplifier of Red 	0.0008544890582676089
+ultimate	1	Bluefull	Ruins 1	Gae Bolg	0.002685573101299817
+ultimate	1	Purplenum	Ruins 1	L&K14 Combat	0.002685573101299817
+ultimate	1	Pinkal	Ruins 1	Storm Wand: Indra	0.002685573101299817
+ultimate	1	Pinkal	Ruins 1	Amplifier of Rafoie	0.0021972709894311263
+ultimate	1	Pinkal	Ruins 1	Amplifier of Red 	0.0017089927196910141
+ultimate	1	Redria	Ruins 1	Diska of Braveman	0.002685573101299817
+ultimate	1	Redria	Ruins 1	Amplifier of Red 	0.0008544890582676089
+ultimate	1	Oran	Ruins 1	Cross Scar	0.002685573101299817
+ultimate	1	Yellowboze	Ruins 1	AddSlot	0.0008544890582676089
+ultimate	1	Yellowboze	Ruins 1	Amplifier of Red 	0.0008544890582676089
+ultimate	1	Whitill	Ruins 1	Diska of Braveman	0.002685573101299817
+ultimate	1	Viridia	Ruins 2	Final Impact	0.0031737971308873937
+ultimate	1	Viridia	Ruins 2	Red Barrier	0.0008544890582676089
+ultimate	1	Viridia	Ruins 2	AddSlot	0.0008544890582676089
+ultimate	1	Greenill	Ruins 2	Justy-23ST	0.0031737971308873937
+ultimate	1	Skyly	Ruins 2	Dragon Slayer	0.0031737971308873937
+ultimate	1	Skyly	Ruins 2	Red Barrier	0.0008544890582676089
+ultimate	1	Bluefull	Ruins 2	Gae Bolg	0.0031737971308873937
+ultimate	1	Bluefull	Ruins 2	Red Barrier	0.0008544890582676089
+ultimate	1	Purplenum	Ruins 2	L&K14 Combat	0.0031737971308873937
+ultimate	1	Pinkal	Ruins 2	Storm Wand: Indra	0.0031737971308873937
+ultimate	1	Pinkal	Ruins 2	Amplifier of Razonde	0.0015869237483138936
+ultimate	1	Pinkal	Ruins 2	Amplifier of Yellow	0.002685573101299817
+ultimate	1	Pinkal	Ruins 2	Red Barrier	0.0015869237483138936
+ultimate	1	Redria	Ruins 2	Diska of Braveman	0.0031737971308873937
+ultimate	1	Redria	Ruins 2	Amplifier of Yellow	0.0008544890582676089
+ultimate	1	Redria	Ruins 2	Red Barrier	0.0008544890582676089
+ultimate	1	Oran	Ruins 2	Cross Scar	0.0031737971308873937
+ultimate	1	Oran	Ruins 2	Red Barrier	0.0008544890582676089
+ultimate	1	Yellowboze	Ruins 2	Amplifier of Yellow	0.0008544890582676089
+ultimate	1	Yellowboze	Ruins 2	Red Barrier	0.0008544890582676089
+ultimate	1	Whitill	Ruins 2	Diska of Braveman	0.0031737971308873937
+ultimate	1	Viridia	Ruins 3	Final Impact	0.0031737971308873937
+ultimate	1	Viridia	Ruins 3	Gae Bolg	0.002685573101299817
+ultimate	1	Viridia	Ruins 3	Durandal	0.002685573101299817
+ultimate	1	Viridia	Ruins 3	Bravace	0.002685573101299817
+ultimate	1	Viridia	Ruins 3	Club of Zumiuran	0.002685573101299817
+ultimate	1	Greenill	Ruins 3	Justy-23ST	0.0031737971308873937
+ultimate	1	Greenill	Ruins 3	Cross Scar	0.002685573101299817
+ultimate	1	Greenill	Ruins 3	Durandal	0.002685573101299817
+ultimate	1	Greenill	Ruins 3	Bravace	0.002685573101299817
+ultimate	1	Greenill	Ruins 3	Club of Zumiuran	0.002685573101299817
+ultimate	1	Greenill	Ruins 3	Amplifier of Blue	0.0008544890582676089
+ultimate	1	Skyly	Ruins 3	Dragon Slayer	0.0031737971308873937
+ultimate	1	Skyly	Ruins 3	Justy-23ST	0.002685573101299817
+ultimate	1	Skyly	Ruins 3	Durandal	0.002685573101299817
+ultimate	1	Skyly	Ruins 3	Bravace	0.002685573101299817
+ultimate	1	Skyly	Ruins 3	Club of Zumiuran	0.002685573101299817
+ultimate	1	Bluefull	Ruins 3	Gae Bolg	0.0031737971308873937
+ultimate	1	Bluefull	Ruins 3	Alive Aqhu	0.002685573101299817
+ultimate	1	Bluefull	Ruins 3	Durandal	0.002685573101299817
+ultimate	1	Bluefull	Ruins 3	Bravace	0.002685573101299817
+ultimate	1	Bluefull	Ruins 3	Club of Zumiuran	0.002685573101299817
+ultimate	1	Purplenum	Ruins 3	L&K14 Combat	0.0031737971308873937
+ultimate	1	Purplenum	Ruins 3	Cross Scar	0.002685573101299817
+ultimate	1	Purplenum	Ruins 3	Durandal	0.002685573101299817
+ultimate	1	Purplenum	Ruins 3	Bravace	0.002685573101299817
+ultimate	1	Purplenum	Ruins 3	Club of Zumiuran	0.002685573101299817
+ultimate	1	Pinkal	Ruins 3	Storm Wand: Indra	0.0031737971308873937
+ultimate	1	Pinkal	Ruins 3	Amplifier of Blue	0.0021972709894311263
+ultimate	1	Pinkal	Ruins 3	Club of Zumiuran	0.002685573101299817
+ultimate	1	Redria	Ruins 3	Diska of Braveman	0.0031737971308873937
+ultimate	1	Redria	Ruins 3	Durandal	0.002685573101299817
+ultimate	1	Redria	Ruins 3	Bravace	0.002685573101299817
+ultimate	1	Redria	Ruins 3	Club of Zumiuran	0.002685573101299817
+ultimate	1	Redria	Ruins 3	Amplifier of Blue	0.0008544890582676089
+ultimate	1	Oran	Ruins 3	Cross Scar	0.0031737971308873937
+ultimate	1	Oran	Ruins 3	Dragon Slayer	0.002685573101299817
+ultimate	1	Oran	Ruins 3	Durandal	0.002685573101299817
+ultimate	1	Oran	Ruins 3	Bravace	0.002685573101299817
+ultimate	1	Oran	Ruins 3	Club of Zumiuran	0.002685573101299817
+ultimate	1	Yellowboze	Ruins 3	Durandal	0.0031737971308873937
+ultimate	1	Yellowboze	Ruins 3	Bravace	0.0031737971308873937
+ultimate	1	Yellowboze	Ruins 3	Club of Zumiuran	0.0031737971308873937
+ultimate	1	Yellowboze	Ruins 3	Amplifier of Blue	0.0008544890582676089
+ultimate	1	Whitill	Ruins 3	Diska of Braveman	0.0031737971308873937
+ultimate	1	Whitill	Ruins 3	L&K14 Combat	0.002685573101299817
+ultimate	1	Whitill	Ruins 3	Durandal	0.002685573101299817
+ultimate	1	Whitill	Ruins 3	Bravace	0.002685573101299817
+ultimate	1	Whitill	Ruins 3	Club of Zumiuran	0.002685573101299817
+ultimate	2	Viridia	VR Temple: Alpha	Meteor Smash	0.0015869237483138936
+ultimate	2	Viridia	VR Temple: Alpha	Kaladbolg	0.0015869237483138936
+ultimate	2	Greenill	VR Temple: Alpha	Wals-MK2	0.0015869237483138936
+ultimate	2	Skyly	VR Temple: Alpha	Last Survivor	0.0015869237483138936
+ultimate	2	Bluefull	VR Temple: Alpha	Vjaya	0.0015869237483138936
+ultimate	2	Bluefull	VR Temple: Alpha	Amplifier of Zonde	0.0008544890582676089
+ultimate	2	Purplenum	VR Temple: Alpha	H&S25 Justice	0.0015869237483138936
+ultimate	2	Purplenum	VR Temple: Alpha	Amplifier of Zonde	0.0008544890582676089
+ultimate	2	Pinkal	VR Temple: Alpha	Ice Staff: Dagon	0.0015869237483138936
+ultimate	2	Pinkal	VR Temple: Alpha	Amplifier of Zonde	0.0015869237483138936
+ultimate	2	Redria	VR Temple: Alpha	Diska of Liberator	0.0015869237483138936
+ultimate	2	Oran	VR Temple: Alpha	Bloody Art	0.0015869237483138936
+ultimate	2	Oran	VR Temple: Alpha	Amplifier of Zonde	0.0008544890582676089
+ultimate	2	Yellowboze	VR Temple: Alpha	AddSlot	0.0008544890582676089
+ultimate	2	Whitill	VR Temple: Alpha	Diska of Liberator	0.0015869237483138936
+ultimate	2	Viridia	VR Temple: Beta	Meteor Smash	0.0017089927196910141
+ultimate	2	Viridia	VR Temple: Beta	Vjaya	0.0015869237483138936
+ultimate	2	Viridia	VR Temple: Beta	Custom Ray ver.OO	0.0015869237483138936
+ultimate	2	Viridia	VR Temple: Beta	Amplifier of Barta	0.0008544890582676089
+ultimate	2	Greenill	VR Temple: Beta	Wals-MK2	0.0017089927196910141
+ultimate	2	Greenill	VR Temple: Beta	Bloody Art	0.0015869237483138936
+ultimate	2	Greenill	VR Temple: Beta	Kaladbolg	0.0015869237483138936
+ultimate	2	Greenill	VR Temple: Beta	Custom Ray ver.OO	0.0015869237483138936
+ultimate	2	Greenill	VR Temple: Beta	Mace of Adaman	0.0015869237483138936
+ultimate	2	Skyly	VR Temple: Beta	Last Survivor	0.0017089927196910141
+ultimate	2	Skyly	VR Temple: Beta	Wals-MK2	0.0015869237483138936
+ultimate	2	Skyly	VR Temple: Beta	Kaladbolg	0.0015869237483138936
+ultimate	2	Skyly	VR Temple: Beta	Custom Ray ver.OO	0.0015869237483138936
+ultimate	2	Skyly	VR Temple: Beta	Mace of Adaman	0.0015869237483138936
+ultimate	2	Bluefull	VR Temple: Beta	Vjaya	0.0017089927196910141
+ultimate	2	Bluefull	VR Temple: Beta	Brave Hammer	0.0015869237483138936
+ultimate	2	Bluefull	VR Temple: Beta	Kaladbolg	0.0015869237483138936
+ultimate	2	Bluefull	VR Temple: Beta	Custom Ray ver.OO	0.0015869237483138936
+ultimate	2	Bluefull	VR Temple: Beta	Mace of Adaman	0.0015869237483138936
+ultimate	2	Purplenum	VR Temple: Beta	H&S25 Justice	0.0017089927196910141
+ultimate	2	Purplenum	VR Temple: Beta	Bloody Art	0.0015869237483138936
+ultimate	2	Purplenum	VR Temple: Beta	Kaladbolg	0.0015869237483138936
+ultimate	2	Purplenum	VR Temple: Beta	Custom Ray ver.OO	0.0015869237483138936
+ultimate	2	Purplenum	VR Temple: Beta	Mace of Adaman	0.0015869237483138936
+ultimate	2	Pinkal	VR Temple: Beta	Ice Staff: Dagon	0.0017089927196910141
+ultimate	2	Pinkal	VR Temple: Beta	Vjaya	0.0015869237483138936
+ultimate	2	Pinkal	VR Temple: Beta	Amplifier of Barta	0.0015869237483138936
+ultimate	2	Redria	VR Temple: Beta	Diska of Liberator	0.0017089927196910141
+ultimate	2	Redria	VR Temple: Beta	Kaladbolg	0.0015869237483138936
+ultimate	2	Redria	VR Temple: Beta	Custom Ray ver.OO	0.0015869237483138936
+ultimate	2	Redria	VR Temple: Beta	Mace of Adaman	0.0015869237483138936
+ultimate	2	Redria	VR Temple: Beta	Assist Barrier	0.0008544890582676089
+ultimate	2	Oran	VR Temple: Beta	Bloody Art	0.0017089927196910141
+ultimate	2	Oran	VR Temple: Beta	Last Survivor	0.0015869237483138936
+ultimate	2	Oran	VR Temple: Beta	Kaladbolg	0.0015869237483138936
+ultimate	2	Oran	VR Temple: Beta	Custom Ray ver.OO	0.0015869237483138936
+ultimate	2	Oran	VR Temple: Beta	Mace of Adaman	0.0015869237483138936
+ultimate	2	Yellowboze	VR Temple: Beta	Kaladbolg	0.0008544890582676089
+ultimate	2	Yellowboze	VR Temple: Beta	Custom Ray ver.OO	0.0008544890582676089
+ultimate	2	Yellowboze	VR Temple: Beta	Mace of Adaman	0.0008544890582676089
+ultimate	2	Yellowboze	VR Temple: Beta	Red Barrier	0.0008544890582676089
+ultimate	2	Whitill	VR Temple: Beta	Diska of Liberator	0.0017089927196910141
+ultimate	2	Whitill	VR Temple: Beta	H&S25 Justice	0.0015869237483138936
+ultimate	2	Whitill	VR Temple: Beta	Kaladbolg	0.0015869237483138936
+ultimate	2	Whitill	VR Temple: Beta	Custom Ray ver.OO	0.0015869237483138936
+ultimate	2	Whitill	VR Temple: Beta	Mace of Adaman	0.0015869237483138936
+ultimate	2	Viridia	VR Spaceship: Alpha	Meteor Smash	0.0021972709894311263
+ultimate	2	Viridia	VR Spaceship: Alpha	Mace of Adaman	0.0015869237483138936
+ultimate	2	Greenill	VR Spaceship: Alpha	Wals-MK2	0.0021972709894311263
+ultimate	2	Skyly	VR Spaceship: Alpha	Last Survivor	0.0021972709894311263
+ultimate	2	Bluefull	VR Spaceship: Alpha	Vjaya	0.0021972709894311263
+ultimate	2	Purplenum	VR Spaceship: Alpha	H&S25 Justice	0.0021972709894311263
+ultimate	2	Pinkal	VR Spaceship: Alpha	Ice Staff: Dagon	0.0021972709894311263
+ultimate	2	Pinkal	VR Spaceship: Alpha	Amplifier of Foie	0.0015869237483138936
+ultimate	2	Redria	VR Spaceship: Alpha	Diska of Liberator	0.0021972709894311263
+ultimate	2	Oran	VR Spaceship: Alpha	Bloody Art	0.0021972709894311263
+ultimate	2	Oran	VR Spaceship: Alpha	AddSlot	0.0008544890582676089
+ultimate	2	Yellowboze	VR Spaceship: Alpha	Red Barrier	0.0008544890582676089
+ultimate	2	Yellowboze	VR Spaceship: Alpha	AddSlot	0.0008544890582676089
+ultimate	2	Whitill	VR Spaceship: Alpha	Diska of Liberator	0.0021972709894311263
+ultimate	2	Whitill	VR Spaceship: Alpha	Amplifier of Foie	0.0008544890582676089
+ultimate	2	Whitill	VR Spaceship: Alpha	Blue Barrier	0.0008544890582676089
+ultimate	2	Viridia	VR Spaceship: Beta	Meteor Smash	0.002685573101299817
+ultimate	2	Viridia	VR Spaceship: Beta	Durandal	0.0017089927196910141
+ultimate	2	Greenill	VR Spaceship: Beta	Wals-MK2	0.002685573101299817
+ultimate	2	Skyly	VR Spaceship: Beta	Last Survivor	0.002685573101299817
+ultimate	2	Bluefull	VR Spaceship: Beta	Vjaya	0.002685573101299817
+ultimate	2	Purplenum	VR Spaceship: Beta	H&S25 Justice	0.002685573101299817
+ultimate	2	Pinkal	VR Spaceship: Beta	Ice Staff: Dagon	0.002685573101299817
+ultimate	2	Pinkal	VR Spaceship: Beta	Amplifier of Gibarta	0.0015869237483138936
+ultimate	2	Redria	VR Spaceship: Beta	Diska of Liberator	0.002685573101299817
+ultimate	2	Oran	VR Spaceship: Beta	Bloody Art	0.002685573101299817
+ultimate	2	Whitill	VR Spaceship: Beta	Diska of Liberator	0.002685573101299817
+ultimate	2	Viridia	Jungle North	Final Impact	0.0015869237483138936
+ultimate	2	Viridia	Jungle North	Vjaya	0.0017089927196910141
+ultimate	2	Viridia	Jungle North	Bravace	0.0017089927196910141
+ultimate	2	Greenill	Jungle North	Justy-23ST	0.0015869237483138936
+ultimate	2	Greenill	Jungle North	Bloody Art	0.0017089927196910141
+ultimate	2	Greenill	Jungle North	Durandal	0.0017089927196910141
+ultimate	2	Greenill	Jungle North	Bravace	0.0017089927196910141
+ultimate	2	Greenill	Jungle North	Club of Zumiuran	0.0017089927196910141
+ultimate	2	Skyly	Jungle North	Dragon Slayer	0.0015869237483138936
+ultimate	2	Skyly	Jungle North	Wals-MK2	0.0017089927196910141
+ultimate	2	Skyly	Jungle North	Durandal	0.0017089927196910141
+ultimate	2	Skyly	Jungle North	Bravace	0.0017089927196910141
+ultimate	2	Skyly	Jungle North	Club of Zumiuran	0.0017089927196910141
+ultimate	2	Skyly	Jungle North	Red Barrier	0.0008544890582676089
+ultimate	2	Bluefull	Jungle North	Gae Bolg	0.0015869237483138936
+ultimate	2	Bluefull	Jungle North	Brave Hammer	0.0017089927196910141
+ultimate	2	Bluefull	Jungle North	Durandal	0.0017089927196910141
+ultimate	2	Bluefull	Jungle North	Bravace	0.0017089927196910141
+ultimate	2	Bluefull	Jungle North	Club of Zumiuran	0.0017089927196910141
+ultimate	2	Purplenum	Jungle North	L&K14 Combat	0.0015869237483138936
+ultimate	2	Purplenum	Jungle North	Bloody Art	0.0017089927196910141
+ultimate	2	Purplenum	Jungle North	Durandal	0.0017089927196910141
+ultimate	2	Purplenum	Jungle North	Bravace	0.0017089927196910141
+ultimate	2	Purplenum	Jungle North	Club of Zumiuran	0.0017089927196910141
+ultimate	2	Pinkal	Jungle North	Storm Wand: Indra	0.0015869237483138936
+ultimate	2	Pinkal	Jungle North	Vjaya	0.0017089927196910141
+ultimate	2	Pinkal	Jungle North	Amplifier of Gizonde	0.0015869237483138936
+ultimate	2	Pinkal	Jungle North	Red Barrier	0.0015869237483138936
+ultimate	2	Redria	Jungle North	Diska of Braveman	0.0015869237483138936
+ultimate	2	Redria	Jungle North	Durandal	0.0017089927196910141
+ultimate	2	Redria	Jungle North	Bravace	0.0017089927196910141
+ultimate	2	Redria	Jungle North	Club of Zumiuran	0.0017089927196910141
+ultimate	2	Redria	Jungle North	Red Barrier	0.0008544890582676089
+ultimate	2	Oran	Jungle North	Cross Scar	0.0015869237483138936
+ultimate	2	Oran	Jungle North	Last Survivor	0.0017089927196910141
+ultimate	2	Oran	Jungle North	Durandal	0.0017089927196910141
+ultimate	2	Oran	Jungle North	Bravace	0.0017089927196910141
+ultimate	2	Oran	Jungle North	Club of Zumiuran	0.0017089927196910141
+ultimate	2	Yellowboze	Jungle North	Durandal	0.0009765625
+ultimate	2	Yellowboze	Jungle North	Bravace	0.0009765625
+ultimate	2	Yellowboze	Jungle North	Club of Zumiuran	0.0009765625
+ultimate	2	Yellowboze	Jungle North	AddSlot	0.0008544890582676089
+ultimate	2	Yellowboze	Jungle North	Red Barrier	0.0008544890582676089
+ultimate	2	Whitill	Jungle North	Diska of Braveman	0.0015869237483138936
+ultimate	2	Whitill	Jungle North	H&S25 Justice	0.0017089927196910141
+ultimate	2	Whitill	Jungle North	Durandal	0.0017089927196910141
+ultimate	2	Whitill	Jungle North	Bravace	0.0017089927196910141
+ultimate	2	Whitill	Jungle North	Club of Zumiuran	0.0017089927196910141
+ultimate	2	Whitill	Jungle North	Red Barrier	0.0008544890582676089
+ultimate	2	Viridia	Jungle East	Mag	0.006835737234260716
+ultimate	2	Viridia	Jungle East	Final Impact	0.0017089927196910141
+ultimate	2	Viridia	Jungle East	Durandal	0.0021972709894311263
+ultimate	2	Viridia	Jungle East	AddSlot	0.0008544890582676089
+ultimate	2	Greenill	Jungle East	Mag	0.006835737234260716
+ultimate	2	Greenill	Jungle East	Justy-23ST	0.0017089927196910141
+ultimate	2	Skyly	Jungle East	Mag	0.006835737234260716
+ultimate	2	Skyly	Jungle East	Dragon Slayer	0.0017089927196910141
+ultimate	2	Bluefull	Jungle East	Mag	0.006835737234260716
+ultimate	2	Bluefull	Jungle East	Gae Bolg	0.0017089927196910141
+ultimate	2	Bluefull	Jungle East	Yellow Barrier	0.0008544890582676089
+ultimate	2	Purplenum	Jungle East	Mag	0.006835737234260716
+ultimate	2	Purplenum	Jungle East	L&K14 Combat	0.0017089927196910141
+ultimate	2	Purplenum	Jungle East	Yellow Barrier	0.0008544890582676089
+ultimate	2	Pinkal	Jungle East	Mag	0.006835737234260716
+ultimate	2	Pinkal	Jungle East	Storm Wand: Indra	0.0017089927196910141
+ultimate	2	Pinkal	Jungle East	Amplifier of Gifoie	0.0015869237483138936
+ultimate	2	Pinkal	Jungle East	Yellow Barrier	0.0015869237483138936
+ultimate	2	Redria	Jungle East	Mag	0.006835737234260716
+ultimate	2	Redria	Jungle East	Diska of Braveman	0.0017089927196910141
+ultimate	2	Redria	Jungle East	Yellow Barrier	0.0008544890582676089
+ultimate	2	Oran	Jungle East	Mag	0.006835737234260716
+ultimate	2	Oran	Jungle East	Cross Scar	0.0017089927196910141
+ultimate	2	Oran	Jungle East	Yellow Barrier	0.0008544890582676089
+ultimate	2	Yellowboze	Jungle East	Mag	0.006835737234260716
+ultimate	2	Yellowboze	Jungle East	Yellow Barrier	0.0008544890582676089
+ultimate	2	Whitill	Jungle East	Mag	0.006835737234260716
+ultimate	2	Whitill	Jungle East	Diska of Braveman	0.0017089927196910141
+ultimate	2	Viridia	Mountain	Final Impact	0.0021972709894311263
+ultimate	2	Viridia	Mountain	Vjaya	0.0021972709894311263
+ultimate	2	Viridia	Mountain	Bravace	0.0021972709894311263
+ultimate	2	Greenill	Mountain	Justy-23ST	0.0021972709894311263
+ultimate	2	Greenill	Mountain	Bloody Art	0.0021972709894311263
+ultimate	2	Greenill	Mountain	Durandal	0.0021972709894311263
+ultimate	2	Greenill	Mountain	Bravace	0.0021972709894311263
+ultimate	2	Greenill	Mountain	Club of Zumiuran	0.0021972709894311263
+ultimate	2	Greenill	Mountain	AddSlot	0.0008544890582676089
+ultimate	2	Skyly	Mountain	Dragon Slayer	0.0021972709894311263
+ultimate	2	Skyly	Mountain	Wals-MK2	0.0021972709894311263
+ultimate	2	Skyly	Mountain	Durandal	0.0021972709894311263
+ultimate	2	Skyly	Mountain	Bravace	0.0021972709894311263
+ultimate	2	Skyly	Mountain	Club of Zumiuran	0.0021972709894311263
+ultimate	2	Bluefull	Mountain	Gae Bolg	0.0021972709894311263
+ultimate	2	Bluefull	Mountain	Brave Hammer	0.0021972709894311263
+ultimate	2	Bluefull	Mountain	Durandal	0.0021972709894311263
+ultimate	2	Bluefull	Mountain	Bravace	0.0021972709894311263
+ultimate	2	Bluefull	Mountain	Club of Zumiuran	0.0021972709894311263
+ultimate	2	Purplenum	Mountain	L&K14 Combat	0.0021972709894311263
+ultimate	2	Purplenum	Mountain	Bloody Art	0.0021972709894311263
+ultimate	2	Purplenum	Mountain	Durandal	0.0021972709894311263
+ultimate	2	Purplenum	Mountain	Bravace	0.0021972709894311263
+ultimate	2	Purplenum	Mountain	Club of Zumiuran	0.0021972709894311263
+ultimate	2	Pinkal	Mountain	Storm Wand: Indra	0.0021972709894311263
+ultimate	2	Pinkal	Mountain	Vjaya	0.0021972709894311263
+ultimate	2	Pinkal	Mountain	Amplifier of Razonde	0.0015869237483138936
+ultimate	2	Redria	Mountain	Diska of Braveman	0.0021972709894311263
+ultimate	2	Redria	Mountain	Durandal	0.0021972709894311263
+ultimate	2	Redria	Mountain	Bravace	0.0021972709894311263
+ultimate	2	Redria	Mountain	Club of Zumiuran	0.0021972709894311263
+ultimate	2	Oran	Mountain	Cross Scar	0.0021972709894311263
+ultimate	2	Oran	Mountain	Last Survivor	0.0021972709894311263
+ultimate	2	Oran	Mountain	Durandal	0.0021972709894311263
+ultimate	2	Oran	Mountain	Bravace	0.0021972709894311263
+ultimate	2	Oran	Mountain	Club of Zumiuran	0.0021972709894311263
+ultimate	2	Yellowboze	Mountain	Durandal	0.001220703125
+ultimate	2	Yellowboze	Mountain	Bravace	0.001220703125
+ultimate	2	Yellowboze	Mountain	Club of Zumiuran	0.001220703125
+ultimate	2	Whitill	Mountain	Diska of Braveman	0.0021972709894311263
+ultimate	2	Whitill	Mountain	H&S25 Justice	0.0021972709894311263
+ultimate	2	Whitill	Mountain	Durandal	0.0021972709894311263
+ultimate	2	Whitill	Mountain	Bravace	0.0021972709894311263
+ultimate	2	Whitill	Mountain	Club of Zumiuran	0.0021972709894311263
+ultimate	2	Viridia	 CCA	Final Impact	0.002685573101299817
+ultimate	2	Viridia	 CCA	Club of Zumiuran	0.0017089927196910141
+ultimate	2	Viridia	 CCA	Blue Barrier	0.0008544890582676089
+ultimate	2	Greenill	 CCA	Justy-23ST	0.002685573101299817
+ultimate	2	Greenill	 CCA	Amplifier of Blue	0.0008544890582676089
+ultimate	2	Greenill	 CCA	Blue Barrier	0.0008544890582676089
+ultimate	2	Skyly	 CCA	Dragon Slayer	0.002685573101299817
+ultimate	2	Skyly	 CCA	AddSlot	0.0008544890582676089
+ultimate	2	Bluefull	 CCA	Gae Bolg	0.002685573101299817
+ultimate	2	Purplenum	 CCA	L&K14 Combat	0.002685573101299817
+ultimate	2	Pinkal	 CCA	Storm Wand: Indra	0.002685573101299817
+ultimate	2	Pinkal	 CCA	Amplifier of Rabarta	0.0015869237483138936
+ultimate	2	Pinkal	 CCA	Amplifier of Blue	0.0015869237483138936
+ultimate	2	Pinkal	 CCA	Blue Barrier	0.0015869237483138936
+ultimate	2	Redria	 CCA	Diska of Braveman	0.002685573101299817
+ultimate	2	Redria	 CCA	Amplifier of Blue	0.0008544890582676089
+ultimate	2	Redria	 CCA	Blue Barrier	0.0008544890582676089
+ultimate	2	Oran	 CCA	Cross Scar	0.002685573101299817
+ultimate	2	Yellowboze	 CCA	Amplifier of Blue	0.0008544890582676089
+ultimate	2	Yellowboze	 CCA	Blue Barrier	0.0008544890582676089
+ultimate	2	Whitill	 CCA	Diska of Braveman	0.002685573101299817
+ultimate	2	Viridia	Seabed: Upper Levels	Final Impact	0.0031737971308873937
+ultimate	2	Viridia	Seabed: Upper Levels	Durandal	0.002685573101299817
+ultimate	2	Viridia	Seabed: Upper Levels	Club of Zumiuran	0.0021972709894311263
+ultimate	2	Greenill	Seabed: Upper Levels	Justy-23ST	0.0031737971308873937
+ultimate	2	Skyly	Seabed: Upper Levels	Dragon Slayer	0.0031737971308873937
+ultimate	2	Skyly	Seabed: Upper Levels	Amplifier of Red 	0.0008544890582676089
+ultimate	2	Bluefull	Seabed: Upper Levels	Gae Bolg	0.0031737971308873937
+ultimate	2	Bluefull	Seabed: Upper Levels	AddSlot	0.0008544890582676089
+ultimate	2	Purplenum	Seabed: Upper Levels	L&K14 Combat	0.0031737971308873937
+ultimate	2	Pinkal	Seabed: Upper Levels	Storm Wand: Indra	0.0031737971308873937
+ultimate	2	Pinkal	Seabed: Upper Levels	Amplifier of Rafoie	0.0015869237483138936
+ultimate	2	Pinkal	Seabed: Upper Levels	Amplifier of Red 	0.0015869237483138936
+ultimate	2	Redria	Seabed: Upper Levels	Diska of Braveman	0.0031737971308873937
+ultimate	2	Redria	Seabed: Upper Levels	Amplifier of Red 	0.0008544890582676089
+ultimate	2	Oran	Seabed: Upper Levels	Cross Scar	0.0031737971308873937
+ultimate	2	Yellowboze	Seabed: Upper Levels	AddSlot	0.0008544890582676089
+ultimate	2	Yellowboze	Seabed: Upper Levels	Amplifier of Red 	0.0008544890582676089
+ultimate	2	Whitill	Seabed: Upper Levels	Diska of Braveman	0.0031737971308873937
+ultimate	2	Viridia	Seabed: Lower Levels	Final Impact	0.0031737971308873937
+ultimate	2	Viridia	Seabed: Lower Levels	Gae Bolg	0.002685573101299817
+ultimate	2	Viridia	Seabed: Lower Levels	Bravace	0.002685573101299817
+ultimate	2	Viridia	Seabed: Lower Levels	Club of Zumiuran	0.002685573101299817
+ultimate	2	Greenill	Seabed: Lower Levels	Justy-23ST	0.0031737971308873937
+ultimate	2	Greenill	Seabed: Lower Levels	Cross Scar	0.002685573101299817
+ultimate	2	Greenill	Seabed: Lower Levels	Durandal	0.002685573101299817
+ultimate	2	Greenill	Seabed: Lower Levels	Bravace	0.002685573101299817
+ultimate	2	Greenill	Seabed: Lower Levels	Club of Zumiuran	0.002685573101299817
+ultimate	2	Skyly	Seabed: Lower Levels	Dragon Slayer	0.0031737971308873937
+ultimate	2	Skyly	Seabed: Lower Levels	Justy-23ST	0.002685573101299817
+ultimate	2	Skyly	Seabed: Lower Levels	Durandal	0.002685573101299817
+ultimate	2	Skyly	Seabed: Lower Levels	Bravace	0.002685573101299817
+ultimate	2	Skyly	Seabed: Lower Levels	Club of Zumiuran	0.002685573101299817
+ultimate	2	Bluefull	Seabed: Lower Levels	Gae Bolg	0.0031737971308873937
+ultimate	2	Bluefull	Seabed: Lower Levels	Alive Aqhu	0.002685573101299817
+ultimate	2	Bluefull	Seabed: Lower Levels	Durandal	0.002685573101299817
+ultimate	2	Bluefull	Seabed: Lower Levels	Bravace	0.002685573101299817
+ultimate	2	Bluefull	Seabed: Lower Levels	Club of Zumiuran	0.002685573101299817
+ultimate	2	Purplenum	Seabed: Lower Levels	L&K14 Combat	0.0031737971308873937
+ultimate	2	Purplenum	Seabed: Lower Levels	Cross Scar	0.002685573101299817
+ultimate	2	Purplenum	Seabed: Lower Levels	Durandal	0.002685573101299817
+ultimate	2	Purplenum	Seabed: Lower Levels	Bravace	0.002685573101299817
+ultimate	2	Purplenum	Seabed: Lower Levels	Club of Zumiuran	0.002685573101299817
+ultimate	2	Purplenum	Seabed: Lower Levels	AddSlot	0.0008544890582676089
+ultimate	2	Pinkal	Seabed: Lower Levels	Storm Wand: Indra	0.0031737971308873937
+ultimate	2	Pinkal	Seabed: Lower Levels	Gae Bolg	0.002685573101299817
+ultimate	2	Pinkal	Seabed: Lower Levels	Amplifier of Yellow	0.0015869237483138936
+ultimate	2	Redria	Seabed: Lower Levels	Diska of Braveman	0.0031737971308873937
+ultimate	2	Redria	Seabed: Lower Levels	Durandal	0.002685573101299817
+ultimate	2	Redria	Seabed: Lower Levels	Bravace	0.002685573101299817
+ultimate	2	Redria	Seabed: Lower Levels	Club of Zumiuran	0.002685573101299817
+ultimate	2	Redria	Seabed: Lower Levels	Amplifier of Yellow	0.0008544890582676089
+ultimate	2	Oran	Seabed: Lower Levels	Cross Scar	0.0031737971308873937
+ultimate	2	Oran	Seabed: Lower Levels	Dragon Slayer	0.002685573101299817
+ultimate	2	Oran	Seabed: Lower Levels	Durandal	0.002685573101299817
+ultimate	2	Oran	Seabed: Lower Levels	Bravace	0.002685573101299817
+ultimate	2	Oran	Seabed: Lower Levels	Club of Zumiuran	0.002685573101299817
+ultimate	2	Yellowboze	Seabed: Lower Levels	Durandal	0.0014648365974775516
+ultimate	2	Yellowboze	Seabed: Lower Levels	Bravace	0.0014648365974775516
+ultimate	2	Yellowboze	Seabed: Lower Levels	Club of Zumiuran	0.0014648365974775516
+ultimate	2	Yellowboze	Seabed: Lower Levels	Amplifier of Yellow	0.0008544890582676089
+ultimate	2	Whitill	Seabed: Lower Levels	Diska of Braveman	0.0031737971308873937
+ultimate	2	Whitill	Seabed: Lower Levels	L&K14 Combat	0.002685573101299817
+ultimate	2	Whitill	Seabed: Lower Levels	Durandal	0.002685573101299817
+ultimate	2	Whitill	Seabed: Lower Levels	Bravace	0.002685573101299817
+ultimate	2	Whitill	Seabed: Lower Levels	Club of Zumiuran	0.002685573101299817
+ultimate	4	Viridia	Crater East	Thirteen	0.0005493177473577816
+ultimate	4	Viridia	Crater East	Photon Crystal	0.0006103515625
+ultimate	4	Greenill	Crater East	Red Coat	0.0005493177473577816
+ultimate	4	Greenill	Crater East	Photon Crystal	0.0006103515625
+ultimate	4	Skyly	Crater East	Thirteen	0.0005493177473577816
+ultimate	4	Skyly	Crater East	Photon Crystal	0.0006103515625
+ultimate	4	Bluefull	Crater East	Red Coat	0.0005493177473577816
+ultimate	4	Bluefull	Crater East	Photon Crystal	0.0006103515625
+ultimate	4	Purplenum	Crater East	Thirteen	0.0005493177473577816
+ultimate	4	Purplenum	Crater East	Photon Crystal	0.0006103515625
+ultimate	4	Pinkal	Crater East	Red Coat	0.0005493177473577816
+ultimate	4	Pinkal	Crater East	Photon Crystal	0.0006103515625
+ultimate	4	Redria	Crater East	Thirteen	0.0005493177473577816
+ultimate	4	Redria	Crater East	Photon Crystal	0.0006103515625
+ultimate	4	Oran	Crater East	Red Coat	0.0005493177473577816
+ultimate	4	Oran	Crater East	Photon Crystal	0.0006103515625
+ultimate	4	Yellowboze	Crater East	Thirteen	0.0005493177473577816
+ultimate	4	Yellowboze	Crater East	Photon Crystal	0.0006103515625
+ultimate	4	Whitill	Crater East	Red Coat	0.0005493177473577816
+ultimate	4	Whitill	Crater East	Photon Crystal	0.0006103515625
+ultimate	4	Viridia	Crater West	Thirteen	0.0005493177473577816
+ultimate	4	Viridia	Crater West	Photon Crystal	0.0006103515625
+ultimate	4	Greenill	Crater West	Red Coat	0.0005493177473577816
+ultimate	4	Greenill	Crater West	Photon Crystal	0.0006103515625
+ultimate	4	Skyly	Crater West	Thirteen	0.0005493177473577816
+ultimate	4	Skyly	Crater West	Photon Crystal	0.0006103515625
+ultimate	4	Bluefull	Crater West	Red Coat	0.0005493177473577816
+ultimate	4	Bluefull	Crater West	Photon Crystal	0.0006103515625
+ultimate	4	Purplenum	Crater West	Thirteen	0.0005493177473577816
+ultimate	4	Purplenum	Crater West	Photon Crystal	0.0006103515625
+ultimate	4	Pinkal	Crater West	Red Coat	0.0005493177473577816
+ultimate	4	Pinkal	Crater West	Photon Crystal	0.0006103515625
+ultimate	4	Redria	Crater West	Thirteen	0.0005493177473577816
+ultimate	4	Redria	Crater West	Photon Crystal	0.0006103515625
+ultimate	4	Oran	Crater West	Red Coat	0.0005493177473577816
+ultimate	4	Oran	Crater West	Photon Crystal	0.0006103515625
+ultimate	4	Yellowboze	Crater West	Thirteen	0.0005493177473577816
+ultimate	4	Yellowboze	Crater West	Photon Crystal	0.0006103515625
+ultimate	4	Whitill	Crater West	Red Coat	0.0005493177473577816
+ultimate	4	Whitill	Crater West	Photon Crystal	0.0006103515625
+ultimate	4	Viridia	Crater South	Thirteen	0.0005493177473577816
+ultimate	4	Viridia	Crater South	Photon Crystal	0.0006103515625
+ultimate	4	Greenill	Crater South	Red Coat	0.0005493177473577816
+ultimate	4	Greenill	Crater South	Photon Crystal	0.0006103515625
+ultimate	4	Skyly	Crater South	Thirteen	0.0005493177473577816
+ultimate	4	Skyly	Crater South	Photon Crystal	0.0006103515625
+ultimate	4	Bluefull	Crater South	Red Coat	0.0005493177473577816
+ultimate	4	Bluefull	Crater South	Photon Crystal	0.0006103515625
+ultimate	4	Purplenum	Crater South	Thirteen	0.0005493177473577816
+ultimate	4	Purplenum	Crater South	Photon Crystal	0.0006103515625
+ultimate	4	Pinkal	Crater South	Red Coat	0.0005493177473577816
+ultimate	4	Pinkal	Crater South	Photon Crystal	0.0006103515625
+ultimate	4	Redria	Crater South	Thirteen	0.0005493177473577816
+ultimate	4	Redria	Crater South	Photon Crystal	0.0006103515625
+ultimate	4	Oran	Crater South	Red Coat	0.0005493177473577816
+ultimate	4	Oran	Crater South	Photon Crystal	0.0006103515625
+ultimate	4	Yellowboze	Crater South	Thirteen	0.0005493177473577816
+ultimate	4	Yellowboze	Crater South	Photon Crystal	0.0006103515625
+ultimate	4	Whitill	Crater South	Red Coat	0.0005493177473577816
+ultimate	4	Whitill	Crater South	Photon Crystal	0.0006103515625
+ultimate	4	Viridia	Crater North	Thirteen	0.0005493177473577816
+ultimate	4	Viridia	Crater North	Photon Crystal	0.0006103515625
+ultimate	4	Greenill	Crater North	Red Coat	0.0005493177473577816
+ultimate	4	Greenill	Crater North	Photon Crystal	0.0006103515625
+ultimate	4	Skyly	Crater North	Thirteen	0.0005493177473577816
+ultimate	4	Skyly	Crater North	Photon Crystal	0.0006103515625
+ultimate	4	Bluefull	Crater North	Red Coat	0.0005493177473577816
+ultimate	4	Bluefull	Crater North	Photon Crystal	0.0006103515625
+ultimate	4	Purplenum	Crater North	Thirteen	0.0005493177473577816
+ultimate	4	Purplenum	Crater North	Photon Crystal	0.0006103515625
+ultimate	4	Pinkal	Crater North	Red Coat	0.0005493177473577816
+ultimate	4	Pinkal	Crater North	Photon Crystal	0.0006103515625
+ultimate	4	Redria	Crater North	Thirteen	0.0005493177473577816
+ultimate	4	Redria	Crater North	Photon Crystal	0.0006103515625
+ultimate	4	Oran	Crater North	Red Coat	0.0005493177473577816
+ultimate	4	Oran	Crater North	Photon Crystal	0.0006103515625
+ultimate	4	Yellowboze	Crater North	Thirteen	0.0005493177473577816
+ultimate	4	Yellowboze	Crater North	Photon Crystal	0.0006103515625
+ultimate	4	Whitill	Crater North	Red Coat	0.0005493177473577816
+ultimate	4	Whitill	Crater North	Photon Crystal	0.0006103515625
+ultimate	4	Viridia	Crater Int.	Thirteen	0.0005493177473577816
+ultimate	4	Viridia	Crater Int.	Photon Crystal	0.0006103515625
+ultimate	4	Greenill	Crater Int.	Red Coat	0.0005493177473577816
+ultimate	4	Greenill	Crater Int.	Photon Crystal	0.0006103515625
+ultimate	4	Skyly	Crater Int.	Thirteen	0.0005493177473577816
+ultimate	4	Skyly	Crater Int.	Photon Crystal	0.0006103515625
+ultimate	4	Bluefull	Crater Int.	Red Coat	0.0005493177473577816
+ultimate	4	Bluefull	Crater Int.	Photon Crystal	0.0006103515625
+ultimate	4	Purplenum	Crater Int.	Thirteen	0.0005493177473577816
+ultimate	4	Purplenum	Crater Int.	Photon Crystal	0.0006103515625
+ultimate	4	Pinkal	Crater Int.	Red Coat	0.0005493177473577816
+ultimate	4	Pinkal	Crater Int.	Photon Crystal	0.0006103515625
+ultimate	4	Redria	Crater Int.	Thirteen	0.0005493177473577816
+ultimate	4	Redria	Crater Int.	Photon Crystal	0.0006103515625
+ultimate	4	Oran	Crater Int.	Red Coat	0.0005493177473577816
+ultimate	4	Oran	Crater Int.	Photon Crystal	0.0006103515625
+ultimate	4	Yellowboze	Crater Int.	Thirteen	0.0005493177473577816
+ultimate	4	Yellowboze	Crater Int.	Photon Crystal	0.0006103515625
+ultimate	4	Whitill	Crater Int.	Red Coat	0.0005493177473577816
+ultimate	4	Whitill	Crater Int.	Photon Crystal	0.0006103515625
+ultimate	4	Viridia	Desert 1	Thirteen	0.0005493177473577816
+ultimate	4	Viridia	Desert 1	Photon Crystal	0.0006103515625
+ultimate	4	Greenill	Desert 1	Red Coat	0.0005493177473577816
+ultimate	4	Greenill	Desert 1	Photon Crystal	0.0006103515625
+ultimate	4	Skyly	Desert 1	Thirteen	0.0005493177473577816
+ultimate	4	Skyly	Desert 1	Photon Crystal	0.0006103515625
+ultimate	4	Bluefull	Desert 1	Red Coat	0.0005493177473577816
+ultimate	4	Bluefull	Desert 1	Photon Crystal	0.0006103515625
+ultimate	4	Purplenum	Desert 1	Thirteen	0.0005493177473577816
+ultimate	4	Purplenum	Desert 1	Photon Crystal	0.0006103515625
+ultimate	4	Pinkal	Desert 1	Red Coat	0.0005493177473577816
+ultimate	4	Pinkal	Desert 1	Photon Crystal	0.0006103515625
+ultimate	4	Redria	Desert 1	Thirteen	0.0005493177473577816
+ultimate	4	Redria	Desert 1	Photon Crystal	0.0006103515625
+ultimate	4	Oran	Desert 1	Red Coat	0.0005493177473577816
+ultimate	4	Oran	Desert 1	Photon Crystal	0.0006103515625
+ultimate	4	Yellowboze	Desert 1	Thirteen	0.0005493177473577816
+ultimate	4	Yellowboze	Desert 1	Photon Crystal	0.0006103515625
+ultimate	4	Whitill	Desert 1	Red Coat	0.0005493177473577816
+ultimate	4	Whitill	Desert 1	Photon Crystal	0.0006103515625
+ultimate	4	Viridia	Desert 2	Thirteen	0.0005493177473577816
+ultimate	4	Viridia	Desert 2	Photon Crystal	0.0006103515625
+ultimate	4	Greenill	Desert 2	Red Coat	0.0005493177473577816
+ultimate	4	Greenill	Desert 2	Photon Crystal	0.0006103515625
+ultimate	4	Skyly	Desert 2	Thirteen	0.0005493177473577816
+ultimate	4	Skyly	Desert 2	Photon Crystal	0.0006103515625
+ultimate	4	Bluefull	Desert 2	Red Coat	0.0005493177473577816
+ultimate	4	Bluefull	Desert 2	Photon Crystal	0.0006103515625
+ultimate	4	Purplenum	Desert 2	Thirteen	0.0005493177473577816
+ultimate	4	Purplenum	Desert 2	Photon Crystal	0.0006103515625
+ultimate	4	Pinkal	Desert 2	Red Coat	0.0005493177473577816
+ultimate	4	Pinkal	Desert 2	Photon Crystal	0.0006103515625
+ultimate	4	Redria	Desert 2	Thirteen	0.0005493177473577816
+ultimate	4	Redria	Desert 2	Photon Crystal	0.0006103515625
+ultimate	4	Oran	Desert 2	Red Coat	0.0005493177473577816
+ultimate	4	Oran	Desert 2	Photon Crystal	0.0006103515625
+ultimate	4	Yellowboze	Desert 2	Thirteen	0.0005493177473577816
+ultimate	4	Yellowboze	Desert 2	Photon Crystal	0.0006103515625
+ultimate	4	Whitill	Desert 2	Red Coat	0.0005493177473577816
+ultimate	4	Whitill	Desert 2	Photon Crystal	0.0006103515625
+ultimate	4	Viridia	Desert 3	Thirteen	0.0005493177473577816
+ultimate	4	Viridia	Desert 3	Photon Crystal	0.0006103515625
+ultimate	4	Greenill	Desert 3	Red Coat	0.0005493177473577816
+ultimate	4	Greenill	Desert 3	Photon Crystal	0.0006103515625
+ultimate	4	Skyly	Desert 3	Thirteen	0.0005493177473577816
+ultimate	4	Skyly	Desert 3	Photon Crystal	0.0006103515625
+ultimate	4	Bluefull	Desert 3	Red Coat	0.0005493177473577816
+ultimate	4	Bluefull	Desert 3	Photon Crystal	0.0006103515625
+ultimate	4	Purplenum	Desert 3	Thirteen	0.0005493177473577816
+ultimate	4	Purplenum	Desert 3	Photon Crystal	0.0006103515625
+ultimate	4	Pinkal	Desert 3	Red Coat	0.0005493177473577816
+ultimate	4	Pinkal	Desert 3	Photon Crystal	0.0006103515625
+ultimate	4	Redria	Desert 3	Thirteen	0.0005493177473577816
+ultimate	4	Redria	Desert 3	Photon Crystal	0.0006103515625
+ultimate	4	Oran	Desert 3	Red Coat	0.0005493177473577816
+ultimate	4	Oran	Desert 3	Photon Crystal	0.0006103515625
+ultimate	4	Yellowboze	Desert 3	Thirteen	0.0005493177473577816
+ultimate	4	Yellowboze	Desert 3	Photon Crystal	0.0006103515625
+ultimate	4	Whitill	Desert 3	Red Coat	0.0005493177473577816
+ultimate	4	Whitill	Desert 3	Photon Crystal	0.0006103515625
+ultimate	4	Viridia	Boss	Thirteen	0.0005493177473577816
+ultimate	4	Viridia	Boss	Photon Crystal	0.0006103515625
+ultimate	4	Greenill	Boss	Red Coat	0.0005493177473577816
+ultimate	4	Greenill	Boss	Photon Crystal	0.0006103515625
+ultimate	4	Skyly	Boss	Thirteen	0.0005493177473577816
+ultimate	4	Skyly	Boss	Photon Crystal	0.0006103515625
+ultimate	4	Bluefull	Boss	Red Coat	0.0005493177473577816
+ultimate	4	Bluefull	Boss	Photon Crystal	0.0006103515625
+ultimate	4	Purplenum	Boss	Thirteen	0.0005493177473577816
+ultimate	4	Purplenum	Boss	Photon Crystal	0.0006103515625
+ultimate	4	Pinkal	Boss	Red Coat	0.0005493177473577816
+ultimate	4	Pinkal	Boss	Photon Crystal	0.0006103515625
+ultimate	4	Redria	Boss	Thirteen	0.0005493177473577816
+ultimate	4	Redria	Boss	Photon Crystal	0.0006103515625
+ultimate	4	Oran	Boss	Red Coat	0.0005493177473577816
+ultimate	4	Oran	Boss	Photon Crystal	0.0006103515625
+ultimate	4	Yellowboze	Boss	Thirteen	0.0005493177473577816
+ultimate	4	Yellowboze	Boss	Photon Crystal	0.0006103515625
+ultimate	4	Whitill	Boss	Red Coat	0.0005493177473577816
+ultimate	4	Whitill	Boss	Photon Crystal	0.0006103515625

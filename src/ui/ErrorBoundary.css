@@ -1,0 +1,10 @@
+.ErrorBoundary-error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow: hidden;
+}
+
+.ErrorBoundary-error > * {
+    margin-top: 10%;
+}

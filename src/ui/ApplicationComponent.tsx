@@ -1,10 +1,14 @@
-import { Alert, Menu } from 'antd';
+import { Menu } from 'antd';
 import { ClickParam } from 'antd/lib/menu';
 import { observer } from 'mobx-react';
 import React from 'react';
 import './ApplicationComponent.css';
+import { withErrorBoundary } from './ErrorBoundary';
 import { HuntOptimizerComponent } from './hunt-optimizer/HuntOptimizerComponent';
 import { QuestEditorComponent } from './quest-editor/QuestEditorComponent';
+
+const QuestEditor = withErrorBoundary(QuestEditorComponent);
+const HuntOptimizer = withErrorBoundary(HuntOptimizerComponent);
 
 @observer
 export class ApplicationComponent extends React.Component {
@@ -15,10 +19,10 @@ export class ApplicationComponent extends React.Component {
 
         switch (this.state.tool) {
             case 'questEditor':
-                toolComponent = <QuestEditorComponent />;
+                toolComponent = <QuestEditor />;
                 break;
             case 'huntOptimizer':
-                toolComponent = <HuntOptimizerComponent />;
+                toolComponent = <HuntOptimizer />;
                 break;
         }
 
@@ -41,9 +45,9 @@ export class ApplicationComponent extends React.Component {
                             </Menu.Item>
                     </Menu>
                 </div>
-                <ErrorBoundary>
+                <div className="ApplicationComponent-main">
                     {toolComponent}
-                </ErrorBoundary>
+                </div>
             </div>
         );
     }
@@ -51,28 +55,4 @@ export class ApplicationComponent extends React.Component {
     private menuClicked = (e: ClickParam) => {
         this.setState({ tool: e.key });
     };
-}
-
-class ErrorBoundary extends React.Component {
-    state = {
-        hasError: false
-    }
-
-    render() {
-        return (
-            <div className="ApplicationComponent-main" >
-                {this.state.hasError ? (
-                    <div className="ApplicationComponent-error">
-                        <div>
-                            <Alert type="error" message="Something went wrong." />
-                        </div>
-                    </div>
-                ) : this.props.children}
-            </div>
-        );
-    }
-
-    static getDerivedStateFromError(_error: Error) {
-        return { hasError: true };
-    }
 }
