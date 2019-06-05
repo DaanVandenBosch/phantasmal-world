@@ -20,17 +20,11 @@ export class EnumMap<K, V> {
     private keys: K[];
     private values = new Map<K, V>();
 
-    constructor(enum_: any, initialValue: V | ((key: K) => V)) {
+    constructor(enum_: any, initialValue: (key: K) => V) {
         this.keys = enumValues(enum_);
 
-        if (!(initialValue instanceof Function)) {
-            for (const key of this.keys) {
-                this.values.set(key, initialValue);
-            }
-        } else {
-            for (const key of this.keys) {
-                this.values.set(key, initialValue(key));
-            }
+        for (const key of this.keys) {
+            this.values.set(key, initialValue(key));
         }
     }
 

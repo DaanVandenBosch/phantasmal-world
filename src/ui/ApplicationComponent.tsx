@@ -42,7 +42,7 @@ export class ApplicationComponent extends React.Component {
                         </Menu.Item>
                         <Menu.Item key="huntOptimizer">
                             Hunt Optimizer
-                            </Menu.Item>
+                        </Menu.Item>
                     </Menu>
                 </div>
                 <div className="ApplicationComponent-main">

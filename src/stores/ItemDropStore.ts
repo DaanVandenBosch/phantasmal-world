@@ -7,7 +7,7 @@ import { ServerMap } from "./ServerMap";
 
 class EnemyDropTable {
     private map: EnumMap<Difficulty, EnumMap<SectionId, Map<NpcType, EnemyDrop>>> =
-        new EnumMap(Difficulty, new EnumMap(SectionId, new Map()));
+        new EnumMap(Difficulty, () => new EnumMap(SectionId, () => new Map()));
 
     getDrop(difficulty: Difficulty, sectionId: SectionId, npcType: NpcType): EnemyDrop | undefined {
         return this.map.get(difficulty).get(sectionId).get(npcType);
@@ -74,7 +74,7 @@ class ItemDropStore {
                 continue;
             }
 
-            const rareRate = parseFloat(cells[5]);
+            const rareRate = parseFloat(cells[6]);
 
             if (!rareRate) {
                 console.error(`Couldn't parse rare_rate for line ${lineNo}.`);

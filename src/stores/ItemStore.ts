@@ -10,7 +10,7 @@ class ItemStore {
         new Loadable([], () => this.loadItems(server))
     );
 
-    dedupItem(name: string): Item {
+    dedupItem = (name: string): Item => {
         let item = this.itemMap.get(name);
 
         if (!item) {
@@ -25,7 +25,7 @@ class ItemStore {
             `${process.env.PUBLIC_URL}/items.${Server[server].toLowerCase()}.tsv`
         );
         const data = await response.text();
-        return data.split('\n').slice(1).map(name => new Item(name));
+        return data.split('\n').slice(1).map(name => this.dedupItem(name));
     }
 }
 

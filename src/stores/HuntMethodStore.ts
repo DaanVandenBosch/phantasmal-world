@@ -20,30 +20,46 @@ class HuntMethodStore {
             return NpcType.byNameAndEpisode(enemy, parseInt(episode, 10))!;
         });
 
-        return rows.slice(2).map(row => {
-            const questName = row[0];
-
-            const npcs = row.slice(2, -2).flatMap((cell, cellI) => {
-                const amount = parseInt(cell, 10);
-                const type = npcTypeByIndex[cellI];
-                const enemies = [];
-
-                if (type) {
-                    for (let i = 0; i < amount; i++) {
-                        enemies.push(new SimpleNpc(type));
-                    }
+        return rows.slice(2)
+            .filter(row => {
+                const questName = row[0];
+                // TODO: let's not hard code this...
+                switch (questName) {
+                    case 'MAXIMUM ATTACK 3 Ver2':
+                    case 'LOGiN presents 勇場のマッチレース':
+                        return false;
+                    default:
+                        return true;
                 }
+            })
+            .map(row => {
+                const questName = row[0];
+                const time = parseFloat(row[1]);
 
-                return enemies;
+                const npcs = row.slice(2, -2).flatMap((cell, cellI) => {
+                    const amount = parseInt(cell, 10);
+                    const type = npcTypeByIndex[cellI];
+                    const enemies = [];
+
+                    if (type) {
+                        for (let i = 0; i < amount; i++) {
+                            enemies.push(new SimpleNpc(type));
+                        }
+                    } else {
+                        console.error(`Couldn't get type for cellI ${cellI}.`);
+                    }
+
+                    return enemies;
+                });
+
+                return new HuntMethod(
+                    time,
+                    new SimpleQuest(
+                        questName,
+                        npcs
+                    )
+                );
             });
-
-            return new HuntMethod(
-                new SimpleQuest(
-                    questName,
-                    npcs
-                )
-            );
-        });
     }
 }
 

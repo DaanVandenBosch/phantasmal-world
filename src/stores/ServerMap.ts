@@ -4,7 +4,7 @@ import { applicationStore } from "./ApplicationStore";
 import { EnumMap } from "../enums";
 
 export class ServerMap<V> extends EnumMap<Server, V> {
-    constructor(initialValue: V | ((server: Server) => V)) {
+    constructor(initialValue: (server: Server) => V) {
         super(Server, initialValue)
     }
 
