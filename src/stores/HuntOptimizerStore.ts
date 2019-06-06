@@ -30,19 +30,19 @@ export class OptimizationResult {
 }
 
 // TODO: Prefer methods that don't split pan arms over methods that do.
-// TODO: Row of totals.
-// TODO: save state in url for easy sharing.
+//       For some reason this doesn't actually seem to be a problem, should probably investigate.
+// TODO: save state in url for easy sharing (supporting custom methods will be hard though).
 // TODO: group similar methods (e.g. same difficulty, same quest and similar ID).
 //       This way people can choose their preferred section ID.
 // TODO: order of items in results table should match order in wanted table.
 // TODO: boxes.
 class HuntOptimizerStore {
     @observable readonly wantedItems: Array<WantedItem> = [];
-    @observable readonly result: IObservableArray<OptimizationResult> = observable.array();
+    @observable readonly results: IObservableArray<OptimizationResult> = observable.array();
 
     optimize = async () => {
         if (!this.wantedItems.length) {
-            this.result.splice(0);
+            this.results.splice(0);
             return;
         }
 
@@ -182,7 +182,7 @@ class HuntOptimizerStore {
         });
 
         runInAction(() => {
-            this.result.splice(0);
+            this.results.splice(0);
 
             if (!result.feasible) {
                 return;
@@ -207,7 +207,7 @@ class HuntOptimizerStore {
                         }
                     }
 
-                    this.result.push(new OptimizationResult(
+                    this.results.push(new OptimizationResult(
                         difficulty,
                         sectionId,
                         method.name + (splitPanArms ? ' (Split Pan Arms)' : ''),

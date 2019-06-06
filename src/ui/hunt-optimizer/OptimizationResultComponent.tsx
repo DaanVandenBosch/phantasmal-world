@@ -6,64 +6,116 @@ import { huntOptimizerStore, OptimizationResult } from "../../stores/HuntOptimiz
 import "./OptimizationResultComponent.less";
 import { computed } from "mobx";
 
+type Column = {
+    name: string,
+    width: number,
+    cellValue: (result: OptimizationResult) => string,
+    tooltip?: (result: OptimizationResult) => string,
+    total?: string,
+    totalTooltip?: string,
+    className?: string
+}
+
 @observer
 export class OptimizationResultComponent extends React.Component {
-    private standardColumns: Array<{
-        title: string,
-        width: number,
-        cellValue: (result: OptimizationResult) => string,
-        className?: string
-    }> = [
+    @computed private get columns(): Column[] {
+        // Standard columns.
+        const results = huntOptimizerStore.results;
+        let totalRuns = 0;
+        let totalTime = 0;
+
+        for (const result of results) {
+            totalRuns += result.runs;
+            totalTime += result.totalTime;
+        }
+
+        const columns: Column[] = [
             {
-                title: 'Difficulty',
+                name: 'Difficulty',
                 width: 75,
-                cellValue: (result) => result.difficulty
+                cellValue: (result) => result.difficulty,
+                total: 'Totals:',
             },
             {
-                title: 'Method',
+                name: 'Method',
                 width: 200,
-                cellValue: (result) => result.methodName
+                cellValue: (result) => result.methodName,
+                tooltip: (result) => result.methodName,
             },
             {
-                title: 'Section ID',
+                name: 'Section ID',
                 width: 80,
-                cellValue: (result) => result.sectionId
+                cellValue: (result) => result.sectionId,
             },
             {
-                title: 'Hours/Run',
+                name: 'Hours/Run',
                 width: 85,
                 cellValue: (result) => result.methodTime.toFixed(1),
-                className: 'number'
+                tooltip: (result) => result.methodTime.toString(),
+                className: 'number',
             },
             {
-                title: 'Runs',
-                width: 50,
+                name: 'Runs',
+                width: 60,
                 cellValue: (result) => result.runs.toFixed(1),
-                className: 'number'
+                tooltip: (result) => result.runs.toString(),
+                total: totalRuns.toFixed(1),
+                totalTooltip: totalRuns.toString(),
+                className: 'number',
             },
             {
-                title: 'Total Hours',
+                name: 'Total Hours',
                 width: 90,
                 cellValue: (result) => result.totalTime.toFixed(1),
-                className: 'number'
+                tooltip: (result) => result.totalTime.toString(),
+                total: totalTime.toFixed(1),
+                totalTooltip: totalTime.toString(),
+                className: 'number',
             },
         ];
 
-    @computed private get items(): Item[] {
+        // Add one column per item.
         const items = new Set<Item>();
 
-        for (const r of huntOptimizerStore.result) {
+        for (const r of results) {
             for (const i of r.itemCounts.keys()) {
                 items.add(i);
             }
         }
 
-        return [...items];
+        for (const item of items) {
+            const totalCount = results.reduce(
+                (acc, r) => acc + (r.itemCounts.get(item) || 0),
+                0
+            );
+
+            columns.push({
+                name: item.name,
+                width: 80,
+                cellValue: (result) => {
+                    const count = result.itemCounts.get(item);
+                    return count ? count.toFixed(2) : '';
+                },
+                tooltip: (result) => {
+                    const count = result.itemCounts.get(item);
+                    return count ? count.toString() : '';
+                },
+                className: 'number',
+                total: totalCount.toFixed(2),
+                totalTooltip: totalCount.toString()
+            });
+        }
+
+        return columns;
     }
 
     render() {
         // Make sure render is called when result changes.
-        huntOptimizerStore.result.slice(0, 0);
+        huntOptimizerStore.results.slice(0, 0);
+        // Always add a row for the header. Add a row for the totals only if we have results.
+        const rowCount = huntOptimizerStore.results.length
+            ? 2 + huntOptimizerStore.results.length
+            : 1;
 
         return (
             <section className="ho-OptimizationResultComponent">
@@ -72,20 +124,17 @@ export class OptimizationResultComponent extends React.Component {
                     <AutoSizer>
                         {({ width, height }) =>
                             <MultiGrid
-                                fixedRowCount={1}
                                 width={width}
                                 height={height}
                                 rowHeight={26}
-                                rowCount={1 + huntOptimizerStore.result.length}
+                                rowCount={rowCount}
+                                fixedRowCount={1}
                                 columnWidth={this.columnWidth}
-                                columnCount={this.standardColumns.length + this.items.length}
+                                columnCount={this.columns.length}
+                                fixedColumnCount={3}
                                 cellRenderer={this.cellRenderer}
-                                classNameTopRightGrid="ho-OptimizationResultComponent-table-top-right"
-                                noContentRenderer={() =>
-                                    <div className="ho-OptimizationResultComponent-no-result">
-                                        Add some items and click "Optimize" to see the result here.
-                                    </div>
-                                }
+                                classNameTopLeftGrid="ho-OptimizationResultComponent-table-header"
+                                classNameTopRightGrid="ho-OptimizationResultComponent-table-header"
                             />
                         }
                     </AutoSizer>
@@ -94,51 +143,42 @@ export class OptimizationResultComponent extends React.Component {
         );
     }
 
-    private columnWidth = ({ index }: Index) => {
-        const column = this.standardColumns[index];
-        return column ? column.width : 80;
+    private columnWidth = ({ index }: Index): number => {
+        return this.columns[index].width;
     }
 
     private cellRenderer: GridCellRenderer = ({ columnIndex, rowIndex, style }) => {
-        const column = this.standardColumns[columnIndex];
+        const column = this.columns[columnIndex];
         let text: string;
         let title: string | undefined;
         const classes = ['ho-OptimizationResultComponent-cell'];
 
-        if (columnIndex === this.standardColumns.length + this.items.length - 1) {
+        if (columnIndex === this.columns.length - 1) {
             classes.push('last-in-row');
         }
 
         if (rowIndex === 0) {
-            // Header
-            text = title = column
-                ? column.title
-                : this.items[columnIndex - this.standardColumns.length].name;
+            // Header row
+            text = title = column.name;
         } else {
-            // Method row
-            const result = huntOptimizerStore.result[rowIndex - 1];
-
-            if (column) {
-                text = title = column.cellValue(result);
-            } else {
-                const itemCount = result.itemCounts.get(
-                    this.items[columnIndex - this.standardColumns.length]
-                );
-
-                if (itemCount) {
-                    text = itemCount.toFixed(2);
-                    title = itemCount.toString();
-                } else {
-                    text = '';
-                }
+            // Method or totals row
+            if (column.className) {
+                classes.push(column.className);
             }
 
-            if (column) {
-                if (column.className) {
-                    classes.push(column.className);
-                }
+            if (rowIndex === 1 + huntOptimizerStore.results.length) {
+                // Totals row
+                text = column.total == null ? '' : column.total;
+                title = column.totalTooltip == null ? '' : column.totalTooltip;
             } else {
-                classes.push('number');
+                // Method row
+                const result = huntOptimizerStore.results[rowIndex - 1];
+
+                text = column.cellValue(result);
+
+                if (column.tooltip) {
+                    title = column.tooltip(result);
+                }
             }
         }
 
