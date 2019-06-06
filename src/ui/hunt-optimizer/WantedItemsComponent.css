@@ -1,7 +1,11 @@
 .ho-WantedItemsComponent {
-    margin: 10px;
+    display: flex;
+    flex-direction: column;
+    margin: 0 10px;
 }
 
 .ho-WantedItemsComponent-table {
+    position: relative;
+    flex: 1;
     margin-top: 10px;
 }

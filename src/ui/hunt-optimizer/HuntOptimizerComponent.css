@@ -1,4 +1,11 @@
 .ho-HuntOptimizerComponent {
     display: flex;
     align-items: stretch;
+    overflow: hidden;
+    margin-top: 10px;
+}
+
+.ho-HuntOptimizerComponent > *:nth-child(2) {
+    flex-grow: 1;
+    overflow: hidden;
 }

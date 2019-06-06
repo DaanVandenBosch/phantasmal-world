@@ -1,6 +1,7 @@
-import { Button, InputNumber, Select, Table } from "antd";
+import { Button, InputNumber, Select } from "antd";
 import { observer } from "mobx-react";
 import React from "react";
+import { AutoSizer, Column, Table, TableCellRenderer } from "react-virtualized";
 import { huntOptimizerStore, WantedItem } from "../../stores/HuntOptimizerStore";
 import { itemStore } from "../../stores/ItemStore";
 import './WantedItemsComponent.css';
@@ -13,7 +14,7 @@ export class WantedItemsComponent extends React.Component {
 
         return (
             <section className="ho-WantedItemsComponent">
-                <h2>Wanted Items</h2>
+                <h3>Wanted Items</h3>
                 <div>
                     <Select
                         value={undefined}
@@ -32,27 +33,40 @@ export class WantedItemsComponent extends React.Component {
                     </Select>
                     <Button onClick={huntOptimizerStore.optimize}>Optimize</Button>
                 </div>
-                <Table
-                    className="ho-WantedItemsComponent-table"
-                    size="small"
-                    dataSource={huntOptimizerStore.wantedItems}
-                    rowKey={wanted => wanted.item.name}
-                    pagination={false}
-                >
-                    <Table.Column<WantedItem>
-                        title="Amount"
-                        dataIndex="amount"
-                        render={(_, wanted) => (
-                            <WantedAmountCell wantedItem={wanted} />
+                <div className="ho-WantedItemsComponent-table">
+                    <AutoSizer>
+                        {({ width, height }) => (
+                            <Table
+                                width={width}
+                                height={height}
+                                headerHeight={30}
+                                rowHeight={30}
+                                rowCount={huntOptimizerStore.wantedItems.length}
+                                rowGetter={({ index }) => huntOptimizerStore.wantedItems[index]}
+                            >
+                                <Column
+                                    label="Amount"
+                                    dataKey="amount"
+                                    width={70}
+                                    cellRenderer={({ rowData }) =>
+                                        <WantedAmountCell wantedItem={rowData} />
+                                    }
+                                />
+                                <Column
+                                    label="Item"
+                                    dataKey="item"
+                                    width={150}
+                                    cellDataGetter={({ rowData }) => rowData.item.name}
+                                />
+                                <Column
+                                    dataKey="remove"
+                                    width={30}
+                                    cellRenderer={this.tableRemoveCellRenderer}
+                                />
+                            </Table>
                         )}
-                    />
-                    <Table.Column title="Item" dataIndex="item.name" />
-                    <Table.Column<WantedItem>
-                        render={(_, wanted) => (
-                            <Button type="link" icon="delete" onClick={this.removeWanted(wanted)} />
-                        )}
-                    />
-                </Table>
+                    </AutoSizer>
+                </div>
             </section>
         );
     }
@@ -73,6 +87,10 @@ export class WantedItemsComponent extends React.Component {
             huntOptimizerStore.wantedItems.splice(i, 1);
         }
     }
+
+    private tableRemoveCellRenderer: TableCellRenderer = ({ rowData }) => {
+        return <Button type="link" icon="delete" onClick={this.removeWanted(rowData)} />;
+    }
 }
 
 @observer
@@ -83,8 +101,11 @@ class WantedAmountCell extends React.Component<{ wantedItem: WantedItem }> {
         return (
             <InputNumber
                 min={1}
+                max={10}
                 value={wanted.amount}
                 onChange={this.wantedAmountChanged}
+                size="small"
+                style={{ width: '100%' }}
             />
         );
     }

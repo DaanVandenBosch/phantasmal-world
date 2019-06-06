@@ -31,13 +31,18 @@ export class OptimizationResult {
 
 // TODO: group similar methods (e.g. same difficulty, same quest and similar ID).
 // This way people can choose their preferred section ID.
-// TODO: Cutter doesn't seem to work.
+// TODO: boxes.
+// TODO: rare enemy variants.
+// TODO: order of items in results table should match order in wanted table.
 class HuntOptimizerStore {
     @observable readonly wantedItems: Array<WantedItem> = [];
     @observable readonly result: IObservableArray<OptimizationResult> = observable.array();
 
     optimize = async () => {
-        if (!this.wantedItems.length) return;
+        if (!this.wantedItems.length) {
+            this.result.splice(0);
+            return;
+        }
 
         const methods = await huntMethodStore.methods.current.promise;
         const dropTable = await itemDropStore.enemyDrops.current.promise;
@@ -106,6 +111,10 @@ class HuntOptimizerStore {
 
         runInAction(() => {
             this.result.splice(0);
+
+            if (!result.feasible) {
+                return;
+            }
 
             for (const [method, runsOrOther] of Object.entries(result)) {
                 const [diffStr, sIdStr, methodName] = method.split('\t', 3);

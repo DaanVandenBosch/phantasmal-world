@@ -1,0 +1,32 @@
+@import '~antd/dist/antd.less';
+
+#phantasmal-world-root {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+}
+
+@scrollbar-color: darken(@component-background, 3%);
+@scrollbar-thumb-color: lighten(@component-background, 3%);
+
+* {
+    scrollbar-color: @scrollbar-thumb-color @scrollbar-color;
+}
+
+::-webkit-scrollbar {
+    background-color: @scrollbar-color;
+}
+
+::-webkit-scrollbar-track {
+    background-color: @scrollbar-color;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: @scrollbar-thumb-color;
+}
+
+::-webkit-scrollbar-corner {
+    background-color: @scrollbar-color;
+}

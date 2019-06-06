@@ -1,7 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import './index.css';
+import './index.less';
 import { ApplicationComponent } from './ui/ApplicationComponent';
+import 'react-virtualized/styles.css';
 
 ReactDOM.render(
     <ApplicationComponent />,

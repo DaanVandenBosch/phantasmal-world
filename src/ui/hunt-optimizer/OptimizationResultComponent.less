@@ -1,0 +1,51 @@
+.ho-OptimizationResultComponent {
+    display: flex;
+    flex-direction: column;
+}
+
+.ho-OptimizationResultComponent-table {
+    flex: 1;
+    overflow: hidden;
+}
+
+.ho-OptimizationResultComponent-table div {
+    outline: none;
+}
+
+.ho-OptimizationResultComponent-cell {
+    display: flex;
+    align-items: center;
+    box-sizing: border-box;
+    padding: 0 5px;
+    border-bottom: solid 1px @border-color-base;
+    // border-right: solid 1px @border-color-base;
+}
+
+.ho-OptimizationResultComponent-cell > span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ho-OptimizationResultComponent-cell.first-in-row {
+    border-left: solid 1px @border-color-base;
+}
+
+.ho-OptimizationResultComponent-cell.last-in-row {
+    border-right: solid 1px @border-color-base;
+}
+
+.ho-OptimizationResultComponent-cell.header {
+    background-color: darken(@border-color-base, 10%);
+    font-weight: bold;
+    border-top: solid 1px @border-color-base;
+}
+
+.ho-OptimizationResultComponent-cell.number {
+    justify-content: flex-end;
+}
+
+.ho-OptimizationResultComponent-no-result {
+    margin: 20px;
+    color: @text-color-secondary;
+}
