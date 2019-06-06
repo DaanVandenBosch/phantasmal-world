@@ -1,6 +1,6 @@
 import solver from 'javascript-lp-solver';
 import { IObservableArray, observable, runInAction } from "mobx";
-import { Difficulties, Difficulty, Item, NpcType, SectionId, SectionIds, KONDRIEU_PROB, RARE_ENEMY_PROB } from "../domain";
+import { Difficulties, Difficulty, Item, NpcType, SectionId, SectionIds, KONDRIEU_PROB, RARE_ENEMY_PROB, HuntMethod } from "../domain";
 import { huntMethodStore } from "./HuntMethodStore";
 import { itemDropStore } from './ItemDropStore';
 
@@ -29,8 +29,9 @@ export class OptimizationResult {
     }
 }
 
-// TODO: Deal with hidoom and migium.
+// TODO: Prefer methods that don't split pan arms over methods that do.
 // TODO: Row of totals.
+// TODO: save state in url for easy sharing.
 // TODO: group similar methods (e.g. same difficulty, same quest and similar ID).
 //       This way people can choose their preferred section ID.
 // TODO: order of items in results table should match order in wanted table.
@@ -56,13 +57,23 @@ class HuntOptimizerStore {
         }
 
         // Add a variable to the LP model per method per difficulty per section ID.
+        // When a method with pan arms is encountered, two variables are added. One for the method
+        // with migiums and hidooms and one with pan arms.
         // Each variable has a time property to minimize and a property per item with the number
         // of enemies that drop the item multiplied by the corresponding drop rate as its value.
         type Variable = {
             time: number,
-            [itemName: string]: number
+            [itemName: string]: number,
         }
         const variables: { [methodName: string]: Variable } = {};
+
+        type VariableDetails = {
+            method: HuntMethod,
+            difficulty: Difficulty,
+            sectionId: SectionId,
+            splitPanArms: boolean,
+        }
+        const variableDetails: Map<string, VariableDetails> = new Map();
 
         const wantedItems = new Set(this.wantedItems.filter(w => w.amount > 0).map(w => w.item));
 
@@ -93,25 +104,66 @@ class HuntOptimizerStore {
                 }
             }
 
-            for (const diff of Difficulties) {
-                for (const sectionId of SectionIds) {
-                    const variable: Variable = {
-                        time: method.time
-                    };
-                    let addVariable = false;
+            // Create a secondary counts map if there are any pan arms that can be split into
+            // migiums and hidooms.
+            const countsList: Array<Map<NpcType, number>> = [counts];
+            const panArmsCount = counts.get(NpcType.PanArms);
+            const panArms2Count = counts.get(NpcType.PanArms2);
 
-                    for (const [npcType, count] of counts.entries()) {
-                        const drop = dropTable.getDrop(diff, sectionId, npcType);
+            if (panArmsCount || panArms2Count) {
+                const splitCounts = new Map(counts);
 
-                        if (drop && wantedItems.has(drop.item)) {
-                            const value = variable[drop.item.name] || 0;
-                            variable[drop.item.name] = value + count * drop.rate;
-                            addVariable = true;
+                if (panArmsCount) {
+                    splitCounts.delete(NpcType.PanArms);
+                    splitCounts.set(NpcType.Migium, panArmsCount);
+                    splitCounts.set(NpcType.Hidoom, panArmsCount);
+                }
+
+                if (panArms2Count) {
+                    splitCounts.delete(NpcType.PanArms2);
+                    splitCounts.set(NpcType.Migium2, panArms2Count);
+                    splitCounts.set(NpcType.Hidoom2, panArms2Count);
+                }
+
+                countsList.push(splitCounts);
+            }
+
+            for (let i = 0; i < countsList.length; i++) {
+                const counts = countsList[i];
+                const splitPanArms = i === 1;
+
+                for (const diff of Difficulties) {
+                    for (const sectionId of SectionIds) {
+                        const variable: Variable = {
+                            time: method.time
+                        };
+                        let addVariable = false;
+
+                        for (const [npcType, count] of counts.entries()) {
+                            const drop = dropTable.getDrop(diff, sectionId, npcType);
+
+                            if (drop && wantedItems.has(drop.item)) {
+                                const value = variable[drop.item.name] || 0;
+                                variable[drop.item.name] = value + count * drop.rate;
+                                addVariable = true;
+                            }
                         }
-                    }
 
-                    if (addVariable) {
-                        variables[`${diff}\t${sectionId}\t${method.quest.name}`] = variable;
+                        if (addVariable) {
+                            let name = `${diff}\t${sectionId}\t${method.name}`;
+
+                            if (splitPanArms) {
+                                name += ' (Split Pan Arms)';
+                            }
+
+                            variables[name] = variable;
+                            variableDetails.set(name, {
+                                method,
+                                difficulty: diff,
+                                sectionId,
+                                splitPanArms
+                            });
+                        }
                     }
                 }
             }
@@ -136,14 +188,13 @@ class HuntOptimizerStore {
                 return;
             }
 
-            for (const [method, runsOrOther] of Object.entries(result)) {
-                const [diffStr, sIdStr, methodName] = method.split('\t', 3);
+            for (const [variableName, runsOrOther] of Object.entries(result)) {
+                const details = variableDetails.get(variableName);
 
-                if (sIdStr && methodName) {
+                if (details) {
+                    const { method, difficulty, sectionId, splitPanArms } = details;
                     const runs = runsOrOther as number;
-                    const variable = variables[method];
-                    const diff = (Difficulty as any)[diffStr];
-                    const sectionId = (SectionId as any)[sIdStr];
+                    const variable = variables[variableName];
 
                     const items = new Map<Item, number>();
 
@@ -157,10 +208,10 @@ class HuntOptimizerStore {
                     }
 
                     this.result.push(new OptimizationResult(
-                        diff,
+                        difficulty,
                         sectionId,
-                        methodName,
-                        0.5,
+                        method.name + (splitPanArms ? ' (Split Pan Arms)' : ''),
+                        method.time,
                         runs,
                         items
                     ));

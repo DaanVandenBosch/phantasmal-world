@@ -328,9 +328,10 @@ export class EnemyDrop implements ItemDrop {
 export class HuntMethod {
     constructor(
         /**
-         * Time taken in hours.
+         * The time it takes to complete the quest in hours.
          */
         public time: number,
+        public name: string,
         public quest: SimpleQuest
     ) { }
 }
