@@ -90,7 +90,7 @@ async function download(mode: string, modeUrl: string = mode) {
                 } else if (monster === 'Za Boota') {
                     monster = 'Ze Boota';
                 } else if (monster === 'Saint Million') {
-                    monster = 'Saint-Million';
+                    monster = 'Saint-Milion';
                 }
 
                 $('td', tr).each((tdI, td) => {

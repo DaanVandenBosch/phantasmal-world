@@ -9,6 +9,9 @@ import { enumValues } from '../enums';
 export { NpcType } from './NpcType';
 export { ObjectType } from './ObjectType';
 
+export const RARE_ENEMY_PROB = 1 / 512;
+export const KONDRIEU_PROB = 1 / 512;
+
 export enum Server {
     Ephinea = 'Ephinea'
 }

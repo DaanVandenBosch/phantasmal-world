@@ -272,7 +272,7 @@ function getNpcType(episode: number, { typeId, unknown, skin, areaId }: DatNpc):
         case `${0x114}, 1, 4`: return NpcType.Pazuzu;
         case `${0x116}, 0, 4`: return NpcType.Dorphon;
         case `${0x116}, 1, 4`: return NpcType.DorphonEclair;
-        case `${0x119}, 0, 4`: return regular ? NpcType.SaintMillion : NpcType.Kondrieu;
+        case `${0x119}, 0, 4`: return regular ? NpcType.SaintMilion : NpcType.Kondrieu;
         case `${0x119}, 1, 4`: return regular ? NpcType.Shambertin : NpcType.Kondrieu;
     }
 
@@ -531,7 +531,7 @@ function npcTypeToDatData(
         case NpcType.Goran: return { typeId: 0x117, skin: 0, regular: true };
         case NpcType.PyroGoran: return { typeId: 0x117, skin: 1, regular: true };
         case NpcType.GoranDetonator: return { typeId: 0x117, skin: 2, regular: true };
-        case NpcType.SaintMillion: return { typeId: 0x119, skin: 0, regular: true };
+        case NpcType.SaintMilion: return { typeId: 0x119, skin: 0, regular: true };
         case NpcType.Shambertin: return { typeId: 0x119, skin: 1, regular: true };
         case NpcType.Kondrieu: return { typeId: 0x119, skin: 0, regular: false };
     }

@@ -1,6 +1,6 @@
 import solver from 'javascript-lp-solver';
 import { IObservableArray, observable, runInAction } from "mobx";
-import { Difficulties, Difficulty, Item, NpcType, SectionId, SectionIds } from "../domain";
+import { Difficulties, Difficulty, Item, NpcType, SectionId, SectionIds, KONDRIEU_PROB, RARE_ENEMY_PROB } from "../domain";
 import { huntMethodStore } from "./HuntMethodStore";
 import { itemDropStore } from './ItemDropStore';
 
@@ -29,11 +29,12 @@ export class OptimizationResult {
     }
 }
 
+// TODO: Deal with hidoom and migium.
+// TODO: Row of totals.
 // TODO: group similar methods (e.g. same difficulty, same quest and similar ID).
-// This way people can choose their preferred section ID.
-// TODO: boxes.
-// TODO: rare enemy variants.
+//       This way people can choose their preferred section ID.
 // TODO: order of items in results table should match order in wanted table.
+// TODO: boxes.
 class HuntOptimizerStore {
     @observable readonly wantedItems: Array<WantedItem> = [];
     @observable readonly result: IObservableArray<OptimizationResult> = observable.array();
@@ -63,14 +64,33 @@ class HuntOptimizerStore {
         }
         const variables: { [methodName: string]: Variable } = {};
 
-        const wantedItems = new Set(this.wantedItems.map(i => i.item));
+        const wantedItems = new Set(this.wantedItems.filter(w => w.amount > 0).map(w => w.item));
 
         for (const method of methods) {
+            // Counts include rare enemies, so they are fractional.
             const counts = new Map<NpcType, number>();
 
             for (const enemy of method.quest.enemies) {
                 const count = counts.get(enemy.type);
-                counts.set(enemy.type, (count || 0) + 1);
+
+                if (enemy.type.rareType == null) {
+                    counts.set(enemy.type, (count || 0) + 1);
+                } else {
+                    let rate, rareRate;
+
+                    if (enemy.type.rareType === NpcType.Kondrieu) {
+                        rate = 1 - KONDRIEU_PROB;
+                        rareRate = KONDRIEU_PROB;
+                    } else {
+                        rate = 1 - RARE_ENEMY_PROB;
+                        rareRate = RARE_ENEMY_PROB;
+                    }
+
+                    counts.set(enemy.type, (count || 0) + rate);
+
+                    const rareCount = counts.get(enemy.type.rareType);
+                    counts.set(enemy.type.rareType, (rareCount || 0) + rareRate);
+                }
             }
 
             for (const diff of Difficulties) {

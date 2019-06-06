@@ -106,7 +106,7 @@ class WantedAmountCell extends React.Component<{ wantedItem: WantedItem }> {
 
         return (
             <InputNumber
-                min={1}
+                min={0}
                 max={10}
                 value={wanted.amount}
                 onChange={this.wantedAmountChanged}
@@ -117,7 +117,7 @@ class WantedAmountCell extends React.Component<{ wantedItem: WantedItem }> {
     }
 
     private wantedAmountChanged = (value?: number) => {
-        if (value && value >= 1) {
+        if (value != null && value >= 0) {
             this.props.wantedItem.amount = value;
         }
     }
