@@ -1,3 +1,5 @@
+@import "../theme.less";
+
 .ho-OptimizationResultComponent {
     display: flex;
     flex-direction: column;
@@ -6,10 +8,33 @@
 .ho-OptimizationResultComponent-table {
     flex: 1;
     overflow: hidden;
+    border: solid 1px @border-color-base;
+    background-color: lighten(@component-background, 3%);
+    
+    & * {
+        scrollbar-color: @table-scrollbar-thumb-color @table-scrollbar-color;
+    }
+
+    & ::-webkit-scrollbar {
+        background-color: @table-scrollbar-color;
+    }
+
+    & ::-webkit-scrollbar-track {
+        background-color: @table-scrollbar-color;
+    }
+
+    & ::-webkit-scrollbar-thumb {
+        background-color: @table-scrollbar-thumb-color;
+    }
+
+    & ::-webkit-scrollbar-corner {
+        background-color: @table-scrollbar-color;
+    }
 }
 
-.ho-OptimizationResultComponent-table div {
-    outline: none;
+.ho-OptimizationResultComponent-table-top-right {
+    background-color: lighten(@component-background, 12%);
+    font-weight: bold;
 }
 
 .ho-OptimizationResultComponent-cell {
@@ -18,7 +43,6 @@
     box-sizing: border-box;
     padding: 0 5px;
     border-bottom: solid 1px @border-color-base;
-    // border-right: solid 1px @border-color-base;
 }
 
 .ho-OptimizationResultComponent-cell > span {
@@ -27,18 +51,8 @@
     text-overflow: ellipsis;
 }
 
-.ho-OptimizationResultComponent-cell.first-in-row {
-    border-left: solid 1px @border-color-base;
-}
-
 .ho-OptimizationResultComponent-cell.last-in-row {
     border-right: solid 1px @border-color-base;
-}
-
-.ho-OptimizationResultComponent-cell.header {
-    background-color: darken(@border-color-base, 10%);
-    font-weight: bold;
-    border-top: solid 1px @border-color-base;
 }
 
 .ho-OptimizationResultComponent-cell.number {

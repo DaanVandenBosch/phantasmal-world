@@ -75,11 +75,12 @@ export class OptimizationResultComponent extends React.Component {
                                 fixedRowCount={1}
                                 width={width}
                                 height={height}
-                                rowHeight={28}
+                                rowHeight={26}
                                 rowCount={1 + huntOptimizerStore.result.length}
                                 columnWidth={this.columnWidth}
                                 columnCount={this.standardColumns.length + this.items.length}
                                 cellRenderer={this.cellRenderer}
+                                classNameTopRightGrid="ho-OptimizationResultComponent-table-top-right"
                                 noContentRenderer={() =>
                                     <div className="ho-OptimizationResultComponent-no-result">
                                         Add some items and click "Optimize" to see the result here.
@@ -104,9 +105,7 @@ export class OptimizationResultComponent extends React.Component {
         let title: string | undefined;
         const classes = ['ho-OptimizationResultComponent-cell'];
 
-        if (columnIndex === 0) {
-            classes.push('first-in-row');
-        } else if (columnIndex === this.standardColumns.length + this.items.length - 1) {
+        if (columnIndex === this.standardColumns.length + this.items.length - 1) {
             classes.push('last-in-row');
         }
 
@@ -115,8 +114,6 @@ export class OptimizationResultComponent extends React.Component {
             text = title = column
                 ? column.title
                 : this.items[columnIndex - this.standardColumns.length].name;
-
-            classes.push('header');
         } else {
             // Method row
             const result = huntOptimizerStore.result[rowIndex - 1];

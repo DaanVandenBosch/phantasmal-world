@@ -31,7 +31,12 @@ export class WantedItemsComponent extends React.Component {
                             </Select.Option>
                         ))}
                     </Select>
-                    <Button onClick={huntOptimizerStore.optimize}>Optimize</Button>
+                    <Button
+                        onClick={huntOptimizerStore.optimize}
+                        style={{ marginLeft: 10 }}
+                    >
+                        Optimize
+                     </Button>
                 </div>
                 <div className="ho-WantedItemsComponent-table">
                     <AutoSizer>
@@ -56,6 +61,7 @@ export class WantedItemsComponent extends React.Component {
                                     label="Item"
                                     dataKey="item"
                                     width={150}
+                                    flexGrow={1}
                                     cellDataGetter={({ rowData }) => rowData.item.name}
                                 />
                                 <Column
