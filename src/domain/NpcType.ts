@@ -1,3 +1,5 @@
+import { Episode, checkEpisode } from ".";
+
 export class NpcType {
     readonly id: number;
     readonly code: string;
@@ -59,11 +61,9 @@ export class NpcType {
     /**
      * Uniquely identifies an NPC. Tries to match on simpleName and ultimateName.
      */
-    static byNameAndEpisode(name: string, episode: number): NpcType | undefined {
-        const ep = this.byEpAndName[episode];
-        if (!ep) throw new Error(`No NpcTypes for episode ${episode}.`);
-
-        return ep.get(name);
+    static byNameAndEpisode(name: string, episode: Episode): NpcType | undefined {
+        checkEpisode(episode);
+        return this.byEpAndName[episode]!.get(name);
     }
 
     //

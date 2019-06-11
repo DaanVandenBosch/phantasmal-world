@@ -4,6 +4,7 @@ import { EnumMap } from "../enums";
 import { Loadable } from "../Loadable";
 import { itemStore } from "./ItemStore";
 import { ServerMap } from "./ServerMap";
+import { EnemyDropDto } from "../dto";
 
 class EnemyDropTable {
     private map: EnumMap<Difficulty, EnumMap<SectionId, Map<NpcType, EnemyDrop>>> =
@@ -25,73 +26,24 @@ class ItemDropStore {
 
     private loadEnemyDrops = async (server: Server): Promise<EnemyDropTable> => {
         const response = await fetch(
-            `${process.env.PUBLIC_URL}/enemy_drops.${Server[server].toLowerCase()}.tsv`
+            `${process.env.PUBLIC_URL}/enemyDrops.${Server[server].toLowerCase()}.json`
         );
-        const data = await response.text();
-        const lines = data.split('\n');
-        const lineCount = lines.length;
+        const data: Array<EnemyDropDto> = await response.json();
 
         const drops = new EnemyDropTable();
 
-        for (let i = 1; i < lineCount; i++) {
-            const line = lines[i];
-            const lineNo = i + 1;
-            const cells = line.split('\t');
-            const diffStr = cells[0].toLowerCase();
-
-            const diff =
-                diffStr === 'normal' ? Difficulty.Normal
-                    : diffStr === 'hard' ? Difficulty.Hard
-                        : diffStr === 'vhard' ? Difficulty.VHard
-                            : diffStr === 'ultimate' ? Difficulty.Ultimate
-                                : undefined;
-
-            if (!diff) {
-                console.error(`Couldn't parse difficulty for line ${lineNo}.`);
-                continue;
-            }
-
-            const episode = parseInt(cells[1], 10);
-
-            if (episode !== 1 && episode !== 2 && episode !== 4) {
-                console.error(`Couldn't parse episode for line ${lineNo}.`);
-                continue;
-            }
-
-            const sectionId: SectionId | undefined = (SectionId as any)[cells[2]];
-
-            if (!sectionId) {
-                console.error(`Couldn't parse section_id for line ${lineNo}.`);
-                continue;
-            }
-
-            const enemyName = cells[3];
-
-            const anythingRate = parseFloat(cells[5]);
-
-            if (!isFinite(anythingRate)) {
-                console.error(`Couldn't parse drop_rate for line ${lineNo}.`);
-                continue;
-            }
-
-            const rareRate = parseFloat(cells[6]);
-
-            if (!rareRate) {
-                console.error(`Couldn't parse rare_rate for line ${lineNo}.`);
-                continue;
-            }
-
-            const npcType = NpcType.byNameAndEpisode(enemyName, episode);
+        for (const dropDto of data) {
+            const npcType = NpcType.byNameAndEpisode(dropDto.enemy, dropDto.episode);
 
             if (!npcType) {
-                console.error(`Couldn't determine enemy type for line ${lineNo}.`);
+                console.error(`Couldn't determine NpcType of episode ${dropDto.episode} ${dropDto.enemy}.`);
                 continue;
             }
 
-            drops.setDrop(diff, sectionId, npcType, new EnemyDrop(
-                itemStore.dedupItem(cells[4]),
-                anythingRate,
-                rareRate
+            drops.setDrop(dropDto.difficulty, dropDto.sectionId, npcType, new EnemyDrop(
+                itemStore.dedupItem(dropDto.item),
+                dropDto.dropRate,
+                dropDto.rareRate
             ));
         }
 

@@ -18,6 +18,18 @@ export enum Server {
 
 export const Servers: Server[] = enumValues(Server);
 
+export enum Episode {
+    I = 1,
+    II = 2,
+    IV = 4
+}
+
+export function checkEpisode(episode: Episode) {
+    if (!Episode[episode]) {
+        throw new Error(`Invalid episode ${episode}.`);
+    }
+}
+
 export enum SectionId {
     Viridia = 'Viridia',
     Greenill = 'Greenill',
@@ -102,7 +114,7 @@ export class Quest {
     @observable shortDescription: string;
     @observable longDescription: string;
     @observable questNo?: number;
-    @observable episode: number;
+    @observable episode: Episode;
     @observable areaVariants: AreaVariant[];
     @observable objects: QuestObject[];
     @observable npcs: QuestNpc[];
@@ -120,7 +132,7 @@ export class Quest {
         shortDescription: string,
         longDescription: string,
         questNo: number | undefined,
-        episode: number,
+        episode: Episode,
         areaVariants: AreaVariant[],
         objects: QuestObject[],
         npcs: QuestNpc[],
@@ -128,7 +140,7 @@ export class Quest {
         binData: ArrayBufferCursor
     ) {
         if (questNo != null && (!Number.isInteger(questNo) || questNo < 0)) throw new Error('questNo should be null or a non-negative integer.');
-        if (episode !== 1 && episode !== 2 && episode !== 4) throw new Error('episode should be 1, 2 or 4.');
+        checkEpisode(episode);
         if (!objects || !(objects instanceof Array)) throw new Error('objs is required.');
         if (!npcs || !(npcs instanceof Array)) throw new Error('npcs is required.');
 

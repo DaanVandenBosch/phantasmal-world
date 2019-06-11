@@ -2,8 +2,7 @@ import { observable } from "mobx";
 import { Item, Server } from "../domain";
 import { Loadable } from "../Loadable";
 import { ServerMap } from "./ServerMap";
-
-type ItemDTO = { name: string }
+import { ItemDto } from "../dto";
 
 class ItemStore {
     private itemMap = new Map<string, Item>();
@@ -26,7 +25,7 @@ class ItemStore {
         const response = await fetch(
             `${process.env.PUBLIC_URL}/items.${Server[server].toLowerCase()}.json`
         );
-        const data: Array<ItemDTO> = await response.json();
+        const data: Array<ItemDto> = await response.json();
         return data.map(({ name }) => this.dedupItem(name));
     }
 }

@@ -29,7 +29,7 @@
     "start": "craco start",
     "build": "craco build",
     "test": "craco test",
-    "updateDropsEphinea": "ts-node --project=tsconfig-scripts.json src/static/updateDropsEphinea.ts"
+    "updateDropsEphinea": "ts-node --project=tsconfig-scripts.json static/updateDropsEphinea.ts"
   },
   "eslintConfig": {
     "extends": "react-app"
