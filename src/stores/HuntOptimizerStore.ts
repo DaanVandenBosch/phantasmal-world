@@ -1,8 +1,10 @@
 import solver from 'javascript-lp-solver';
-import { IObservableArray, observable, runInAction } from "mobx";
-import { Difficulties, Difficulty, Item, NpcType, SectionId, SectionIds, KONDRIEU_PROB, RARE_ENEMY_PROB, HuntMethod } from "../domain";
+import { autorun, IObservableArray, observable, runInAction } from "mobx";
+import { Difficulties, Difficulty, HuntMethod, Item, KONDRIEU_PROB, NpcType, RARE_ENEMY_PROB, SectionId, SectionIds } from "../domain";
+import { applicationStore } from './ApplicationStore';
 import { huntMethodStore } from "./HuntMethodStore";
 import { itemDropStore } from './ItemDropStore';
+import { itemStore } from './ItemStore';
 
 export class WantedItem {
     @observable readonly item: Item;
@@ -31,14 +33,62 @@ export class OptimizationResult {
 
 // TODO: Prefer methods that don't split pan arms over methods that do.
 //       For some reason this doesn't actually seem to be a problem, should probably investigate.
-// TODO: save state in url for easy sharing (supporting custom methods will be hard though).
 // TODO: group similar methods (e.g. same difficulty, same quest and similar ID).
 //       This way people can choose their preferred section ID.
 // TODO: order of items in results table should match order in wanted table.
 // TODO: boxes.
 class HuntOptimizerStore {
-    @observable readonly wantedItems: Array<WantedItem> = [];
+    @observable readonly wantedItems: IObservableArray<WantedItem> = observable.array();
     @observable readonly results: IObservableArray<OptimizationResult> = observable.array();
+
+    constructor() {
+        this.initialize();
+    }
+
+    initialize = async () => {
+        await this.loadFromLocalStorage();
+        autorun(this.storeInLocalStorage);
+    }
+
+    loadFromLocalStorage = async () => {
+        try {
+            const wantedItemsJson = localStorage.getItem(
+                `HuntOptimizerStore.wantedItems.${applicationStore.currentServer}`
+            );
+
+            if (wantedItemsJson) {
+                const items = await itemStore.items.current.promise;
+                const wi = JSON.parse(wantedItemsJson);
+
+                const wantedItems: WantedItem[] = [];
+
+                for (const { itemName, amount } of wi) {
+                    const item = items.find(item => item.name === itemName);
+
+                    if (item) {
+                        wantedItems.push(new WantedItem(item, amount));
+                    }
+                }
+
+                this.wantedItems.replace(wantedItems);
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    storeInLocalStorage = () => {
+        try {
+            localStorage.setItem(
+                `HuntOptimizerStore.wantedItems.${applicationStore.currentServer}`,
+                JSON.stringify(
+                    this.wantedItems.map(({ item, amount }) => ({ itemName: item.name, amount }))
+                )
+            );
+        } catch (e) {
+            console.error(e);
+        }
+    }
 
     optimize = async () => {
         if (!this.wantedItems.length) {
