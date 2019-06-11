@@ -46,34 +46,34 @@ class HuntOptimizerStore {
     }
 
     initialize = async () => {
-        await this.loadFromLocalStorage();
-        autorun(this.storeInLocalStorage);
+        try {
+            await this.loadFromLocalStorage();
+            autorun(this.storeInLocalStorage);
+        } catch (e) {
+            console.error(e);
+        }
     }
 
     loadFromLocalStorage = async () => {
-        try {
-            const wantedItemsJson = localStorage.getItem(
-                `HuntOptimizerStore.wantedItems.${applicationStore.currentServer}`
-            );
+        const wantedItemsJson = localStorage.getItem(
+            `HuntOptimizerStore.wantedItems.${applicationStore.currentServer}`
+        );
 
-            if (wantedItemsJson) {
-                const items = await itemStore.items.current.promise;
-                const wi = JSON.parse(wantedItemsJson);
+        if (wantedItemsJson) {
+            const items = await itemStore.items.current.promise;
+            const wi = JSON.parse(wantedItemsJson);
 
-                const wantedItems: WantedItem[] = [];
+            const wantedItems: WantedItem[] = [];
 
-                for (const { itemName, amount } of wi) {
-                    const item = items.find(item => item.name === itemName);
+            for (const { itemName, amount } of wi) {
+                const item = items.find(item => item.name === itemName);
 
-                    if (item) {
-                        wantedItems.push(new WantedItem(item, amount));
-                    }
+                if (item) {
+                    wantedItems.push(new WantedItem(item, amount));
                 }
-
-                this.wantedItems.replace(wantedItems);
             }
-        } catch (e) {
-            console.error(e);
+
+            this.wantedItems.replace(wantedItems);
         }
     }
 

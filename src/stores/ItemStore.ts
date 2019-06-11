@@ -3,6 +3,8 @@ import { Item, Server } from "../domain";
 import { Loadable } from "../Loadable";
 import { ServerMap } from "./ServerMap";
 
+type ItemDTO = { name: string }
+
 class ItemStore {
     private itemMap = new Map<string, Item>();
 
@@ -22,10 +24,10 @@ class ItemStore {
 
     private async loadItems(server: Server): Promise<Item[]> {
         const response = await fetch(
-            `${process.env.PUBLIC_URL}/items.${Server[server].toLowerCase()}.tsv`
+            `${process.env.PUBLIC_URL}/items.${Server[server].toLowerCase()}.json`
         );
-        const data = await response.text();
-        return data.split('\n').slice(1).map(name => this.dedupItem(name));
+        const data: Array<ItemDTO> = await response.json();
+        return data.map(({ name }) => this.dedupItem(name));
     }
 }
 
