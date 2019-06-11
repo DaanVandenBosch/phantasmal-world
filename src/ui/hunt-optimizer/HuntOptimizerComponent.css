@@ -5,7 +5,23 @@
     margin-top: 10px;
 }
 
-.ho-HuntOptimizerComponent > *:nth-child(2) {
-    flex-grow: 1;
-    overflow: hidden;
+.ho-HuntOptimizerComponent > .ant-tabs {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.ho-HuntOptimizerComponent > .ant-tabs > .ant-tabs-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.ho-HuntOptimizerComponent > .ant-tabs > .ant-tabs-content > .ant-tabs-tabpane-active {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
 }

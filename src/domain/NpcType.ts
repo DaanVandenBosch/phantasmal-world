@@ -447,3 +447,190 @@ export class NpcType {
     NpcType.SaintMilion.rareType = NpcType.Kondrieu;
     NpcType.Shambertin.rareType = NpcType.Kondrieu;
 }());
+
+export const NpcTypes: Array<NpcType> = [
+
+    //
+    // Unknown NPCs
+    //
+
+    NpcType.Unknown,
+
+    //
+    // Friendly NPCs
+    //
+
+    NpcType.FemaleFat,
+    NpcType.FemaleMacho,
+    NpcType.FemaleTall,
+    NpcType.MaleDwarf,
+    NpcType.MaleFat,
+    NpcType.MaleMacho,
+    NpcType.MaleOld,
+    NpcType.BlueSoldier,
+    NpcType.RedSoldier,
+    NpcType.Principal,
+    NpcType.Tekker,
+    NpcType.GuildLady,
+    NpcType.Scientist,
+    NpcType.Nurse,
+    NpcType.Irene,
+    NpcType.ItemShop,
+    NpcType.Nurse2,
+
+    //
+    // Enemy NPCs
+    //
+
+    // Episode I Forest
+
+    NpcType.Hildebear,
+    NpcType.Hildeblue,
+    NpcType.RagRappy,
+    NpcType.AlRappy,
+    NpcType.Monest,
+    NpcType.Mothmant,
+    NpcType.SavageWolf,
+    NpcType.BarbarousWolf,
+    NpcType.Booma,
+    NpcType.Gobooma,
+    NpcType.Gigobooma,
+    NpcType.Dragon,
+
+    // Episode I Caves
+
+    NpcType.GrassAssassin,
+    NpcType.PoisonLily,
+    NpcType.NarLily,
+    NpcType.NanoDragon,
+    NpcType.EvilShark,
+    NpcType.PalShark,
+    NpcType.GuilShark,
+    NpcType.PofuillySlime,
+    NpcType.PouillySlime,
+    NpcType.PanArms,
+    NpcType.Migium,
+    NpcType.Hidoom,
+    NpcType.DeRolLe,
+
+    // Episode I Mines
+
+    NpcType.Dubchic,
+    NpcType.Gilchic,
+    NpcType.Garanz,
+    NpcType.SinowBeat,
+    NpcType.SinowGold,
+    NpcType.Canadine,
+    NpcType.Canane,
+    NpcType.Dubswitch,
+    NpcType.VolOpt,
+
+    // Episode I Ruins
+
+    NpcType.Delsaber,
+    NpcType.ChaosSorcerer,
+    NpcType.DarkGunner,
+    NpcType.DeathGunner,
+    NpcType.ChaosBringer,
+    NpcType.DarkBelra,
+    NpcType.Dimenian,
+    NpcType.LaDimenian,
+    NpcType.SoDimenian,
+    NpcType.Bulclaw,
+    NpcType.Bulk,
+    NpcType.Claw,
+    NpcType.DarkFalz,
+
+    // Episode II VR Temple
+
+    NpcType.Hildebear2,
+    NpcType.Hildeblue2,
+    NpcType.RagRappy2,
+    NpcType.LoveRappy,
+    NpcType.StRappy,
+    NpcType.HalloRappy,
+    NpcType.EggRappy,
+    NpcType.Monest2,
+    NpcType.Mothmant2,
+    NpcType.PoisonLily2,
+    NpcType.NarLily2,
+    NpcType.GrassAssassin2,
+    NpcType.Dimenian2,
+    NpcType.LaDimenian2,
+    NpcType.SoDimenian2,
+    NpcType.DarkBelra2,
+    NpcType.BarbaRay,
+
+    // Episode II VR Spaceship
+
+    NpcType.SavageWolf2,
+    NpcType.BarbarousWolf2,
+    NpcType.PanArms2,
+    NpcType.Migium2,
+    NpcType.Hidoom2,
+    NpcType.Dubchic2,
+    NpcType.Gilchic2,
+    NpcType.Garanz2,
+    NpcType.Dubswitch2,
+    NpcType.Delsaber2,
+    NpcType.ChaosSorcerer2,
+    NpcType.GolDragon,
+
+    // Episode II Central Control Area
+
+    NpcType.SinowBerill,
+    NpcType.SinowSpigell,
+    NpcType.Merillia,
+    NpcType.Meriltas,
+    NpcType.Mericarol,
+    NpcType.Mericus,
+    NpcType.Merikle,
+    NpcType.UlGibbon,
+    NpcType.ZolGibbon,
+    NpcType.Gibbles,
+    NpcType.Gee,
+    NpcType.GiGue,
+    NpcType.GalGryphon,
+
+    // Episode II Seabed
+
+    NpcType.Deldepth,
+    NpcType.Delbiter,
+    NpcType.Dolmolm,
+    NpcType.Dolmdarl,
+    NpcType.Morfos,
+    NpcType.Recobox,
+    NpcType.Recon,
+    NpcType.Epsilon,
+    NpcType.SinowZoa,
+    NpcType.SinowZele,
+    NpcType.IllGill,
+    NpcType.DelLily,
+    NpcType.OlgaFlow,
+
+    // Episode IV
+
+    NpcType.SandRappy,
+    NpcType.DelRappy,
+    NpcType.Astark,
+    NpcType.SatelliteLizard,
+    NpcType.Yowie,
+    NpcType.MerissaA,
+    NpcType.MerissaAA,
+    NpcType.Girtablulu,
+    NpcType.Zu,
+    NpcType.Pazuzu,
+    NpcType.Boota,
+    NpcType.ZeBoota,
+    NpcType.BaBoota,
+    NpcType.Dorphon,
+    NpcType.DorphonEclair,
+    NpcType.Goran,
+    NpcType.PyroGoran,
+    NpcType.GoranDetonator,
+    NpcType.SaintMilion,
+    NpcType.Shambertin,
+    NpcType.Kondrieu,
+];
+
+export const EnemyNpcTypes = NpcTypes.filter(type => type.enemy);

@@ -59,7 +59,7 @@ export class Loadable<T> {
     }
 
     /**
-     * This method returns valid data as soon as possible.
+     * This property returns valid data as soon as possible.
      * If the Loadable is uninitialized a data load will be triggered, otherwise the current value will be returned.
      */
     get promise(): Promise<T> {

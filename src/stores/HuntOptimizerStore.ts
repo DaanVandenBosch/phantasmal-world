@@ -131,7 +131,7 @@ class HuntOptimizerStore {
             // Counts include rare enemies, so they are fractional.
             const counts = new Map<NpcType, number>();
 
-            for (const enemy of method.quest.enemies) {
+            for (const enemy of method.enemies) {
                 const count = counts.get(enemy.type);
 
                 if (enemy.type.rareType == null) {

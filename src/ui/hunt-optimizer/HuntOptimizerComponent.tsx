@@ -1,13 +1,22 @@
+import { Tabs } from "antd";
 import React from "react";
 import './HuntOptimizerComponent.css';
-import { WantedItemsComponent } from "./WantedItemsComponent";
-import { OptimizationResultComponent } from "./OptimizationResultComponent";
+import { OptimizerComponent } from "./OptimizerComponent";
+import { MethodsComponent } from "./MethodsComponent";
+
+const TabPane = Tabs.TabPane;
 
 export function HuntOptimizerComponent() {
     return (
         <section className="ho-HuntOptimizerComponent">
-            <WantedItemsComponent />
-            <OptimizationResultComponent />
+            <Tabs type="card">
+                <TabPane tab="Optimize" key="optimize">
+                    <OptimizerComponent />
+                </TabPane>
+                <TabPane tab="Methods" key="methods">
+                    <MethodsComponent />
+                </TabPane>
+            </Tabs>
         </section>
     );
 }
