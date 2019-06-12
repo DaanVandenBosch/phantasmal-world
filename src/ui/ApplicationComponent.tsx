@@ -12,7 +12,7 @@ const HuntOptimizer = withErrorBoundary(HuntOptimizerComponent);
 
 @observer
 export class ApplicationComponent extends React.Component {
-    state = { tool: 'huntOptimizer' }
+    state = { tool: 'questEditor' }
 
     render() {
         let toolComponent;
