@@ -6,6 +6,7 @@ import { Item } from "../../domain";
 import { huntOptimizerStore, OptimizationResult } from "../../stores/HuntOptimizerStore";
 import { Column, DataTable } from "../dataTable";
 import "./OptimizationResultComponent.less";
+import { hoursToString } from "../time";
 
 @observer
 export class OptimizationResultComponent extends React.Component {
@@ -39,10 +40,9 @@ export class OptimizationResultComponent extends React.Component {
                 cellValue: (result) => result.sectionId,
             },
             {
-                name: 'Hours/Run',
-                width: 85,
-                cellValue: (result) => result.methodTime.toFixed(2),
-                tooltip: (result) => result.methodTime.toString(),
+                name: 'Time/Run',
+                width: 80,
+                cellValue: (result) => hoursToString(result.methodTime),
                 className: 'number',
             },
             {

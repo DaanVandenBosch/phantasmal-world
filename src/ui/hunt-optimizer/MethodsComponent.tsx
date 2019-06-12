@@ -6,6 +6,7 @@ import { EnemyNpcTypes } from "../../domain/NpcType";
 import { huntMethodStore } from "../../stores/HuntMethodStore";
 import "./MethodsComponent.css";
 import { DataTable, Column } from "../dataTable";
+import { hoursToString } from "../time";
 
 @observer
 export class MethodsComponent extends React.Component {
@@ -18,9 +19,10 @@ export class MethodsComponent extends React.Component {
                 cellValue: (method) => method.name,
             },
             {
-                name: 'Hours',
+                name: 'Time',
                 width: 50,
-                cellValue: (method) => method.time.toString(),
+                cellValue: (method) => hoursToString(method.time),
+                className: 'number',
             },
         ];
 
