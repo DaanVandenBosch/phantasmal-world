@@ -1,14 +1,17 @@
-import React from "react";
-import { Index, MultiGrid, GridCellRenderer } from "react-virtualized";
+import React, { ReactNode } from "react";
+import { GridCellRenderer, Index, MultiGrid } from "react-virtualized";
 import "./dataTable.less";
 
 export type Column<T> = {
     name: string,
     width: number,
-    cellValue: (record: T) => string,
+    cellRenderer: (record: T) => ReactNode,
     tooltip?: (record: T) => string,
     footerValue?: string,
     footerTooltip?: string,
+    /**
+     * "number" and "integrated" have special meaning.
+     */
     className?: string,
 }
 
@@ -20,10 +23,16 @@ export class DataTable<T> extends React.Component<{
     width: number,
     height: number,
     rowCount: number,
+    overscanRowCount?: number,
     columns: Array<Column<T>>,
     fixedColumnCount?: number,
+    overscanColumnCount?: number,
     record: (index: Index) => T,
     footer?: boolean,
+    /**
+     * When this changes, the DataTable will re-render.
+     */
+    updateTrigger?: any
 }> {
     render() {
         return (
@@ -34,12 +43,15 @@ export class DataTable<T> extends React.Component<{
                     rowHeight={26}
                     rowCount={this.props.rowCount + 1 + (this.props.footer ? 1 : 0)}
                     fixedRowCount={1}
+                    overscanRowCount={this.props.overscanRowCount}
                     columnWidth={this.columnWidth}
                     columnCount={this.props.columns.length}
                     fixedColumnCount={this.props.fixedColumnCount}
+                    overscanColumnCount={this.props.overscanColumnCount}
                     cellRenderer={this.cellRenderer}
                     classNameTopLeftGrid="DataTable-header"
                     classNameTopRightGrid="DataTable-header"
+                    updateTigger={this.props.updateTrigger}
                 />
             </div>
         );
@@ -51,7 +63,7 @@ export class DataTable<T> extends React.Component<{
 
     private cellRenderer: GridCellRenderer = ({ columnIndex, rowIndex, style }) => {
         const column = this.props.columns[columnIndex];
-        let text: string;
+        let cell: ReactNode;
         let title: string | undefined;
         const classes = ['DataTable-cell'];
 
@@ -61,7 +73,7 @@ export class DataTable<T> extends React.Component<{
 
         if (rowIndex === 0) {
             // Header row
-            text = title = column.name;
+            cell = title = column.name;
         } else {
             // Record or footer row
             if (column.className) {
@@ -71,18 +83,22 @@ export class DataTable<T> extends React.Component<{
             if (this.props.footer && rowIndex === 1 + this.props.rowCount) {
                 // Footer row
                 classes.push('footer-cell');
-                text = column.footerValue == null ? '' : column.footerValue;
+                cell = column.footerValue == null ? '' : column.footerValue;
                 title = column.footerTooltip == null ? '' : column.footerTooltip;
             } else {
                 // Record row
                 const result = this.props.record({ index: rowIndex - 1 });
 
-                text = column.cellValue(result);
+                cell = column.cellRenderer(result);
 
                 if (column.tooltip) {
                     title = column.tooltip(result);
                 }
             }
+        }
+
+        if (typeof cell !== 'string') {
+            classes.push('custom');
         }
 
         return (
@@ -92,7 +108,9 @@ export class DataTable<T> extends React.Component<{
                 style={style}
                 title={title}
             >
-                <span>{text}</span>
+                {typeof cell === 'string' ? (
+                    <span className="DataTable-cell-text">{cell}</span>
+                ) : cell}
             </div>
         );
     }

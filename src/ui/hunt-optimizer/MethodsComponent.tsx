@@ -1,11 +1,13 @@
+import { TimePicker } from "antd";
 import { observer } from "mobx-react";
+import moment, { Moment } from "moment";
 import React from "react";
 import { AutoSizer, Index } from "react-virtualized";
 import { HuntMethod } from "../../domain";
 import { EnemyNpcTypes } from "../../domain/NpcType";
 import { huntMethodStore } from "../../stores/HuntMethodStore";
+import { Column, DataTable } from "../dataTable";
 import "./MethodsComponent.css";
-import { DataTable, Column } from "../dataTable";
 import { hoursToString } from "../time";
 
 @observer
@@ -16,13 +18,15 @@ export class MethodsComponent extends React.Component {
             {
                 name: 'Method',
                 width: 250,
-                cellValue: (method) => method.name,
+                cellRenderer: (method) => method.name,
             },
             {
                 name: 'Time',
                 width: 50,
-                cellValue: (method) => hoursToString(method.time),
-                className: 'number',
+                cellRenderer: (method) => hoursToString(method.time),
+                // TODO: enable when methods have IDs so edits can be saved.
+                // cellRenderer: (method) => <TimeComponent method={method} />,
+                className: 'integrated',
             },
         ];
 
@@ -31,7 +35,7 @@ export class MethodsComponent extends React.Component {
             columns.push({
                 name: enemy.name,
                 width: 75,
-                cellValue: (method) => {
+                cellRenderer: (method) => {
                     const count = method.enemyCounts.get(enemy);
                     return count == null ? '' : count.toString();
                 },
@@ -65,5 +69,30 @@ export class MethodsComponent extends React.Component {
 
     private record = ({ index }: Index) => {
         return huntMethodStore.methods.current.value[index];
+    }
+}
+
+@observer
+class TimeComponent extends React.Component<{ method: HuntMethod }> {
+    render() {
+        const time = this.props.method.time;
+        const hour = Math.floor(time);
+        const minute = Math.round(60 * (time - hour));
+
+        return (
+            <TimePicker
+                className="ho-MethodsComponent-timepicker"
+                value={moment({ hour, minute })}
+                format="HH:mm"
+                size="small"
+                allowClear={false}
+                suffixIcon={<span />}
+                onChange={this.change}
+            />
+        );
+    }
+
+    private change = (time: Moment) => {
+        this.props.method.userTime = time.hour() + time.minute() / 60;
     }
 }

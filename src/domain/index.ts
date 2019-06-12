@@ -326,32 +326,51 @@ type ItemDrop = {
 }
 
 export class EnemyDrop implements ItemDrop {
-    rate: number;
+    readonly rate: number;
 
     constructor(
-        public item: Item,
-        public anythingRate: number,
-        public rareRate: number
+        public readonly item: Item,
+        public readonly anythingRate: number,
+        public readonly rareRate: number
     ) {
         this.rate = anythingRate * rareRate;
     }
 }
 
 export class HuntMethod {
+    readonly id: string;
+    readonly name: string;
+    readonly quest: SimpleQuest;
     readonly npcs: Array<SimpleNpc>;
     readonly enemies: Array<SimpleNpc>;
     readonly enemyCounts: Map<NpcType, number>;
+    /**
+     * The time it takes to complete the quest in hours.
+     */
+    readonly defaultTime: number;
+    /**
+     * The time it takes to complete the quest in hours as specified by the user.
+     */
+    @observable userTime?: number;
+
+    @computed get time(): number {
+        return this.userTime != null ? this.userTime : this.defaultTime;
+    }
 
     constructor(
-        /**
-         * The time it takes to complete the quest in hours.
-         */
-        public readonly time: number,
-        public readonly name: string,
-        public readonly quest: SimpleQuest
+        id: string,
+        name: string,
+        quest: SimpleQuest,
+        defaultTime: number
     ) {
-        if (time <= 0) throw new Error('time must be greater than zero.');
+        if (!id) throw new Error('id is required.');
+        if (defaultTime <= 0) throw new Error('defaultTime must be greater than zero.');
+        if (!name) throw new Error('name is required.');
+        if (!quest) throw new Error('quest is required.');
 
+        this.id = id;
+        this.name = name;
+        this.quest = quest;
         this.npcs = this.quest.npcs;
         this.enemies = this.npcs.filter(npc => npc.type.enemy);
         this.enemyCounts = new Map();
@@ -359,14 +378,18 @@ export class HuntMethod {
         for (const npc of this.enemies) {
             this.enemyCounts.set(npc.type, (this.enemyCounts.get(npc.type) || 0) + 1);
         }
+
+        this.defaultTime = defaultTime;
     }
 }
 
 export class SimpleQuest {
     constructor(
+        public readonly id: number,
         public readonly name: string,
         public readonly npcs: SimpleNpc[]
     ) {
+        if (!id) throw new Error('id is required.');
         if (!name) throw new Error('name is required.');
         if (!npcs) throw new Error('npcs is required.');
     }

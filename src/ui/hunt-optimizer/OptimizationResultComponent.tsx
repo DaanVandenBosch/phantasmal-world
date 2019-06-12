@@ -25,30 +25,30 @@ export class OptimizationResultComponent extends React.Component {
             {
                 name: 'Difficulty',
                 width: 75,
-                cellValue: (result) => result.difficulty,
+                cellRenderer: (result) => result.difficulty,
                 footerValue: 'Totals:',
             },
             {
                 name: 'Method',
                 width: 200,
-                cellValue: (result) => result.methodName,
+                cellRenderer: (result) => result.methodName,
                 tooltip: (result) => result.methodName,
             },
             {
                 name: 'Section ID',
                 width: 80,
-                cellValue: (result) => result.sectionId,
+                cellRenderer: (result) => result.sectionId,
             },
             {
                 name: 'Time/Run',
                 width: 80,
-                cellValue: (result) => hoursToString(result.methodTime),
+                cellRenderer: (result) => hoursToString(result.methodTime),
                 className: 'number',
             },
             {
                 name: 'Runs',
                 width: 60,
-                cellValue: (result) => result.runs.toFixed(1),
+                cellRenderer: (result) => result.runs.toFixed(1),
                 tooltip: (result) => result.runs.toString(),
                 footerValue: totalRuns.toFixed(1),
                 footerTooltip: totalRuns.toString(),
@@ -57,7 +57,7 @@ export class OptimizationResultComponent extends React.Component {
             {
                 name: 'Total Hours',
                 width: 90,
-                cellValue: (result) => result.totalTime.toFixed(1),
+                cellRenderer: (result) => result.totalTime.toFixed(1),
                 tooltip: (result) => result.totalTime.toString(),
                 footerValue: totalTime.toFixed(1),
                 footerTooltip: totalTime.toString(),
@@ -83,7 +83,7 @@ export class OptimizationResultComponent extends React.Component {
             columns.push({
                 name: item.name,
                 width: 80,
-                cellValue: (result) => {
+                cellRenderer: (result) => {
                     const count = result.itemCounts.get(item);
                     return count ? count.toFixed(2) : '';
                 },
@@ -100,9 +100,13 @@ export class OptimizationResultComponent extends React.Component {
         return columns;
     }
 
+    // Make sure render is called when result changes.
+    @computed private get updateTrigger() {
+        return huntOptimizerStore.results.slice(0, 0);
+    }
+
     render() {
-        // Make sure render is called when result changes.
-        huntOptimizerStore.results.slice(0, 0);
+        this.updateTrigger; // eslint-disable-line
 
         return (
             <section className="ho-OptimizationResultComponent">
@@ -118,6 +122,7 @@ export class OptimizationResultComponent extends React.Component {
                                 fixedColumnCount={3}
                                 record={this.record}
                                 footer={huntOptimizerStore.results.length > 0}
+                                updateTrigger={this.updateTrigger}
                             />
                         }
                     </AutoSizer>

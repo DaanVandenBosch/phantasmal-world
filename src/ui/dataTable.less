@@ -42,12 +42,6 @@
     border-bottom: solid 1px @border-color-base;
     border-right: solid 1px darken(@border-color-base, 11%);
 
-    & > span {
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-    
     &.last-in-row {
         border-right: solid 1px @border-color-base;
     }
@@ -58,6 +52,31 @@
 
     &.footer-cell {
         font-weight: bold;
+    }
+
+    &.custom {
+        padding: 0;
+    }
+
+    & > .DataTable-cell-text {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    & > .ant-time-picker {
+        /* Cover the default borders. */
+        margin: -1px;
+        height: calc(100% + 2px);
+
+        /* Make sure the glowing border is entirely visible. */
+        &:hover {
+            z-index: 10;
+        }
+
+        & input {
+            height: 100%;
+        }
     }
 }
 

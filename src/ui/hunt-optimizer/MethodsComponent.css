@@ -1,3 +1,7 @@
 .ho-MethodsComponent {
     flex: 1;
 }
+
+.ho-MethodsComponent-timepicker .ant-time-picker-icon {
+    display: none;
+}

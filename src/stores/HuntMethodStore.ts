@@ -20,7 +20,8 @@ class HuntMethodStore {
             return NpcType.byNameAndEpisode(enemy, parseInt(episode, 10))!;
         });
 
-        return rows.slice(2).map(row => {
+        return rows.slice(2).map((row, i) => {
+            const questId = i + 1;
             const questName = row[0];
             const time = parseFloat(row[1]);
 
@@ -41,12 +42,14 @@ class HuntMethodStore {
             });
 
             return new HuntMethod(
-                time,
+                `q${questId}`,
                 questName,
                 new SimpleQuest(
+                    questId,
                     questName,
                     npcs
-                )
+                ),
+                time
             );
         });
     }
