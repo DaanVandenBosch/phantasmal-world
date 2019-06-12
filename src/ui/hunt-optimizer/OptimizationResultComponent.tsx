@@ -1,24 +1,15 @@
+import { computed } from "mobx";
 import { observer } from "mobx-react";
 import React from "react";
-import { AutoSizer, GridCellRenderer, MultiGrid, Index } from "react-virtualized";
+import { AutoSizer, Index } from "react-virtualized";
 import { Item } from "../../domain";
 import { huntOptimizerStore, OptimizationResult } from "../../stores/HuntOptimizerStore";
+import { Column, DataTable } from "../dataTable";
 import "./OptimizationResultComponent.less";
-import { computed } from "mobx";
-
-type Column = {
-    name: string,
-    width: number,
-    cellValue: (result: OptimizationResult) => string,
-    tooltip?: (result: OptimizationResult) => string,
-    total?: string,
-    totalTooltip?: string,
-    className?: string
-}
 
 @observer
 export class OptimizationResultComponent extends React.Component {
-    @computed private get columns(): Column[] {
+    @computed private get columns(): Column<OptimizationResult>[] {
         // Standard columns.
         const results = huntOptimizerStore.results;
         let totalRuns = 0;
@@ -29,12 +20,12 @@ export class OptimizationResultComponent extends React.Component {
             totalTime += result.totalTime;
         }
 
-        const columns: Column[] = [
+        const columns: Column<OptimizationResult>[] = [
             {
                 name: 'Difficulty',
                 width: 75,
                 cellValue: (result) => result.difficulty,
-                total: 'Totals:',
+                footerValue: 'Totals:',
             },
             {
                 name: 'Method',
@@ -59,8 +50,8 @@ export class OptimizationResultComponent extends React.Component {
                 width: 60,
                 cellValue: (result) => result.runs.toFixed(1),
                 tooltip: (result) => result.runs.toString(),
-                total: totalRuns.toFixed(1),
-                totalTooltip: totalRuns.toString(),
+                footerValue: totalRuns.toFixed(1),
+                footerTooltip: totalRuns.toString(),
                 className: 'number',
             },
             {
@@ -68,8 +59,8 @@ export class OptimizationResultComponent extends React.Component {
                 width: 90,
                 cellValue: (result) => result.totalTime.toFixed(1),
                 tooltip: (result) => result.totalTime.toString(),
-                total: totalTime.toFixed(1),
-                totalTooltip: totalTime.toString(),
+                footerValue: totalTime.toFixed(1),
+                footerTooltip: totalTime.toString(),
                 className: 'number',
             },
         ];
@@ -101,8 +92,8 @@ export class OptimizationResultComponent extends React.Component {
                     return count ? count.toString() : '';
                 },
                 className: 'number',
-                total: totalCount.toFixed(2),
-                totalTooltip: totalCount.toString()
+                footerValue: totalCount.toFixed(2),
+                footerTooltip: totalCount.toString()
             });
         }
 
@@ -112,10 +103,6 @@ export class OptimizationResultComponent extends React.Component {
     render() {
         // Make sure render is called when result changes.
         huntOptimizerStore.results.slice(0, 0);
-        // Always add a row for the header. Add a row for the totals only if we have results.
-        const rowCount = huntOptimizerStore.results.length
-            ? 2 + huntOptimizerStore.results.length
-            : 1;
 
         return (
             <section className="ho-OptimizationResultComponent">
@@ -123,18 +110,14 @@ export class OptimizationResultComponent extends React.Component {
                 <div className="ho-OptimizationResultComponent-table">
                     <AutoSizer>
                         {({ width, height }) =>
-                            <MultiGrid
+                            <DataTable
                                 width={width}
                                 height={height}
-                                rowHeight={26}
-                                rowCount={rowCount}
-                                fixedRowCount={1}
-                                columnWidth={this.columnWidth}
-                                columnCount={this.columns.length}
+                                rowCount={huntOptimizerStore.results.length}
+                                columns={this.columns}
                                 fixedColumnCount={3}
-                                cellRenderer={this.cellRenderer}
-                                classNameTopLeftGrid="ho-OptimizationResultComponent-table-header"
-                                classNameTopRightGrid="ho-OptimizationResultComponent-table-header"
+                                record={this.record}
+                                footer={huntOptimizerStore.results.length > 0}
                             />
                         }
                     </AutoSizer>
@@ -143,54 +126,7 @@ export class OptimizationResultComponent extends React.Component {
         );
     }
 
-    private columnWidth = ({ index }: Index): number => {
-        return this.columns[index].width;
-    }
-
-    private cellRenderer: GridCellRenderer = ({ columnIndex, rowIndex, style }) => {
-        const column = this.columns[columnIndex];
-        let text: string;
-        let title: string | undefined;
-        const classes = ['ho-OptimizationResultComponent-cell'];
-
-        if (columnIndex === this.columns.length - 1) {
-            classes.push('last-in-row');
-        }
-
-        if (rowIndex === 0) {
-            // Header row
-            text = title = column.name;
-        } else {
-            // Method or totals row
-            if (column.className) {
-                classes.push(column.className);
-            }
-
-            if (rowIndex === 1 + huntOptimizerStore.results.length) {
-                // Totals row
-                text = column.total == null ? '' : column.total;
-                title = column.totalTooltip == null ? '' : column.totalTooltip;
-            } else {
-                // Method row
-                const result = huntOptimizerStore.results[rowIndex - 1];
-
-                text = column.cellValue(result);
-
-                if (column.tooltip) {
-                    title = column.tooltip(result);
-                }
-            }
-        }
-
-        return (
-            <div
-                className={classes.join(' ')}
-                key={`${columnIndex}, ${rowIndex}`}
-                style={style}
-                title={title}
-            >
-                <span>{text}</span>
-            </div>
-        );
+    private record = ({ index }: Index): OptimizationResult => {
+        return huntOptimizerStore.results[index];
     }
 }
