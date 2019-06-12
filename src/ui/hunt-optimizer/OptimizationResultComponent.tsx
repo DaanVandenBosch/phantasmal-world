@@ -41,7 +41,7 @@ export class OptimizationResultComponent extends React.Component {
             {
                 name: 'Hours/Run',
                 width: 85,
-                cellValue: (result) => result.methodTime.toFixed(1),
+                cellValue: (result) => result.methodTime.toFixed(2),
                 tooltip: (result) => result.methodTime.toString(),
                 className: 'number',
             },
