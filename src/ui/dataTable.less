@@ -1,9 +1,12 @@
 @import "./theme.less";
 
-.DataTable > * {
+.DataTable {
+    // position: relative; necessary to avoid background and border dissappearing while antd
+    // animates dropdowns in Chrome. No idea why this prevents it...
+    position: relative;
     border: solid 1px @border-color-base;
     background-color: lighten(@component-background, 3%);
-    
+
     & * {
         scrollbar-color: @table-scrollbar-thumb-color @table-scrollbar-color;
     }

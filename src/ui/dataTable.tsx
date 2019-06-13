@@ -36,7 +36,10 @@ export class DataTable<T> extends React.Component<{
 }> {
     render() {
         return (
-            <div className="DataTable">
+            <div
+                className="DataTable"
+                style={{ width: this.props.width, height: this.props.height }}
+            >
                 <MultiGrid
                     width={this.props.width}
                     height={this.props.height}
