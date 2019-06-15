@@ -21,7 +21,7 @@ export class OptimizationResult {
 
     constructor(
         public readonly difficulty: Difficulty,
-        public readonly sectionId: SectionId,
+        public readonly sectionIds: Array<SectionId>,
         public readonly methodName: string,
         public readonly methodTime: number,
         public readonly runs: number,
@@ -33,8 +33,8 @@ export class OptimizationResult {
 
 // TODO: Prefer methods that don't split pan arms over methods that do.
 //       For some reason this doesn't actually seem to be a problem, should probably investigate.
-// TODO: group similar methods (e.g. same difficulty, same quest and similar ID).
-//       This way people can choose their preferred section ID.
+// TODO: Show expected value or probability per item per method.
+//       Can be useful when you want one item "more" than the others.
 // TODO: order of items in results table should match order in wanted table.
 // TODO: boxes.
 class HuntOptimizerStore {
@@ -200,12 +200,9 @@ class HuntOptimizerStore {
                         }
 
                         if (addVariable) {
-                            let name = `${diff}\t${sectionId}\t${method.name}`;
-
-                            if (splitPanArms) {
-                                name += ' (Split Pan Arms)';
-                            }
-
+                            const name = this.fullMethodName(
+                                diff, sectionId, method, splitPanArms
+                            );
                             variables[name] = variable;
                             variableDetails.set(name, {
                                 method,
@@ -248,18 +245,48 @@ class HuntOptimizerStore {
 
                     const items = new Map<Item, number>();
 
-                    for (const [itemName, expectedValue] of Object.entries(variable)) {
+                    for (const [itemName, expectedAmount] of Object.entries(variable)) {
                         for (const item of wantedItems) {
                             if (itemName === item.name) {
-                                items.set(item, runs * expectedValue);
+                                items.set(item, runs * expectedAmount);
                                 break;
                             }
                         }
                     }
 
+                    // Find all section IDs that provide the same items with the same expected amount.
+                    // E.g. if you need a spread needle and a bringer's right arm, using either
+                    // purplenum or yellowboze will give you the exact same probabilities.
+                    const sectionIds: Array<SectionId> = [];
+
+                    for (const sid of SectionIds) {
+                        let matchFound = true;
+
+                        if (sid !== sectionId) {
+                            const v = variables[
+                                this.fullMethodName(difficulty, sid, method, splitPanArms)
+                            ];
+
+                            if (!v) {
+                                matchFound = false;
+                            } else {
+                                for (const itemName of Object.keys(variable)) {
+                                    if (variable[itemName] !== v[itemName]) {
+                                        matchFound = false;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+
+                        if (matchFound) {
+                            sectionIds.push(sid);
+                        }
+                    }
+
                     this.results.push(new OptimizationResult(
                         difficulty,
-                        sectionId,
+                        sectionIds,
                         method.name + (splitPanArms ? ' (Split Pan Arms)' : ''),
                         method.time,
                         runs,
@@ -268,6 +295,17 @@ class HuntOptimizerStore {
                 }
             }
         });
+    }
+
+    private fullMethodName(
+        difficulty: Difficulty,
+        sectionId: SectionId,
+        method: HuntMethod,
+        splitPanArms: boolean
+    ): string {
+        let name = `${difficulty}\t${sectionId}\t${method.name}`;
+        if (splitPanArms) name += ' (Split Pan Arms)';
+        return name;
     }
 }
 

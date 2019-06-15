@@ -37,7 +37,8 @@ export class OptimizationResultComponent extends React.Component {
             {
                 name: 'Section ID',
                 width: 80,
-                cellRenderer: (result) => result.sectionId,
+                cellRenderer: (result) => result.sectionIds.join(', '),
+                tooltip: (result) => result.sectionIds.join(', '),
             },
             {
                 name: 'Time/Run',
