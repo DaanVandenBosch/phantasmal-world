@@ -6,13 +6,15 @@ import './ApplicationComponent.css';
 import { withErrorBoundary } from './ErrorBoundary';
 import { HuntOptimizerComponent } from './hunt-optimizer/HuntOptimizerComponent';
 import { QuestEditorComponent } from './quest-editor/QuestEditorComponent';
+import { DpsCalcComponent } from './dps-calc/DpsCalcComponent';
 
 const QuestEditor = withErrorBoundary(QuestEditorComponent);
 const HuntOptimizer = withErrorBoundary(HuntOptimizerComponent);
+const DpsCalc = withErrorBoundary(DpsCalcComponent);
 
 @observer
 export class ApplicationComponent extends React.Component {
-    state = { tool: 'questEditor' }
+    state = { tool: this.initTool() }
 
     render() {
         let toolComponent;
@@ -23,6 +25,9 @@ export class ApplicationComponent extends React.Component {
                 break;
             case 'huntOptimizer':
                 toolComponent = <HuntOptimizer />;
+                break;
+            case 'dpsCalc':
+                toolComponent = <DpsCalc />;
                 break;
         }
 
@@ -43,6 +48,9 @@ export class ApplicationComponent extends React.Component {
                         <Menu.Item key="huntOptimizer">
                             Hunt Optimizer
                         </Menu.Item>
+                        {/* <Menu.Item key="dpsCalc">
+                            DPS Calculator
+                        </Menu.Item> */}
                     </Menu>
                 </div>
                 <div className="ApplicationComponent-main">
@@ -55,4 +63,9 @@ export class ApplicationComponent extends React.Component {
     private menuClicked = (e: ClickParam) => {
         this.setState({ tool: e.key });
     };
+
+    private initTool(): string {
+        const param = window.location.search.slice(1).split('&').find(p => p.startsWith('tool='));
+        return param ? param.slice(5) : 'questEditor';
+    }
 }
