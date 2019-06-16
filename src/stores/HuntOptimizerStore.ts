@@ -1,5 +1,5 @@
 import solver from 'javascript-lp-solver';
-import { autorun, IObservableArray, observable, runInAction } from "mobx";
+import { autorun, IObservableArray, observable } from "mobx";
 import { Difficulties, Difficulty, HuntMethod, Item, KONDRIEU_PROB, NpcType, RARE_ENEMY_PROB, SectionId, SectionIds } from "../domain";
 import { applicationStore } from './ApplicationStore';
 import { huntMethodStore } from "./HuntMethodStore";
