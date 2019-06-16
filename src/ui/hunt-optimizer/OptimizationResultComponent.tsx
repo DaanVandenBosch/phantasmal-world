@@ -4,6 +4,7 @@ import React from "react";
 import { AutoSizer, Index } from "react-virtualized";
 import { huntOptimizerStore, OptimalMethod } from "../../stores/HuntOptimizerStore";
 import { Column, DataTable } from "../dataTable";
+import { SectionIdIcon } from "../SectionIdIcon";
 import { hoursToString } from "../time";
 import "./OptimizationResultComponent.less";
 
@@ -37,8 +38,13 @@ export class OptimizationResultComponent extends React.Component {
             {
                 name: 'Section ID',
                 width: 80,
-                cellRenderer: (result) => result.sectionIds.join(', '),
-                tooltip: (result) => result.sectionIds.join(', '),
+                cellRenderer: (result) => (
+                    <div className="ho-OptimizationResultComponent-sid-col">
+                        {result.sectionIds.map(sid =>
+                            <SectionIdIcon sectionId={sid} title={sid} key={sid} size={20} />
+                        )}
+                    </div>
+                ),
             },
             {
                 name: 'Time/Run',
