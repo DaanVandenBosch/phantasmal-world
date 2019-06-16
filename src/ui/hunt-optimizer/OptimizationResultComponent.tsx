@@ -41,10 +41,11 @@ export class OptimizationResultComponent extends React.Component {
                 cellRenderer: (result) => (
                     <div className="ho-OptimizationResultComponent-sid-col">
                         {result.sectionIds.map(sid =>
-                            <SectionIdIcon sectionId={sid} title={sid} key={sid} size={20} />
+                            <SectionIdIcon sectionId={sid} key={sid} size={20} />
                         )}
                     </div>
                 ),
+                tooltip: (result) => result.sectionIds.join(', '),
             },
             {
                 name: 'Time/Run',

@@ -41,8 +41,7 @@ export class OptimalMethod {
 // TODO: Prefer methods that don't split pan arms over methods that do.
 //       For some reason this doesn't actually seem to be a problem, should probably investigate.
 // TODO: Show expected value or probability per item per method.
-//       Can be useful when you want one item "more" than the others.
-// TODO: order of items in results table should match order in wanted table.
+//       Can be useful when deciding which item to hunt first.
 // TODO: boxes.
 class HuntOptimizerStore {
     @observable readonly wantedItems: IObservableArray<WantedItem> = observable.array();
