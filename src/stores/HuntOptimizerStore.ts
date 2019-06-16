@@ -16,16 +16,23 @@ export class WantedItem {
     }
 }
 
-export class OptimizationResult {
-    public readonly totalTime: number;
+export class OptimalResult {
+    constructor(
+        readonly wantedItems: Array<Item>,
+        readonly optimalMethods: Array<OptimalMethod>
+    ) { }
+}
+
+export class OptimalMethod {
+    readonly totalTime: number;
 
     constructor(
-        public readonly difficulty: Difficulty,
-        public readonly sectionIds: Array<SectionId>,
-        public readonly methodName: string,
-        public readonly methodTime: number,
-        public readonly runs: number,
-        public readonly itemCounts: Map<Item, number>
+        readonly difficulty: Difficulty,
+        readonly sectionIds: Array<SectionId>,
+        readonly methodName: string,
+        readonly methodTime: number,
+        readonly runs: number,
+        readonly itemCounts: Map<Item, number>
     ) {
         this.totalTime = runs * methodTime;
     }
@@ -39,7 +46,7 @@ export class OptimizationResult {
 // TODO: boxes.
 class HuntOptimizerStore {
     @observable readonly wantedItems: IObservableArray<WantedItem> = observable.array();
-    @observable readonly results: IObservableArray<OptimizationResult> = observable.array();
+    @observable result?: OptimalResult;
 
     constructor() {
         this.initialize();
@@ -92,9 +99,13 @@ class HuntOptimizerStore {
 
     optimize = async () => {
         if (!this.wantedItems.length) {
-            this.results.splice(0);
+            this.result = undefined;
             return;
         }
+
+        // Initialize this set before awaiting data, so user changes don't affect this optimization
+        // run from this point on.
+        const wantedItems = new Set(this.wantedItems.filter(w => w.amount > 0).map(w => w.item));
 
         const methods = await huntMethodStore.methods.current.promise;
         const dropTable = await itemDropStore.enemyDrops.current.promise;
@@ -124,8 +135,6 @@ class HuntOptimizerStore {
             splitPanArms: boolean,
         }
         const variableDetails: Map<string, VariableDetails> = new Map();
-
-        const wantedItems = new Set(this.wantedItems.filter(w => w.amount > 0).map(w => w.item));
 
         for (const method of methods) {
             // Counts include rare enemies, so they are fractional.
@@ -158,22 +167,25 @@ class HuntOptimizerStore {
             // migiums and hidooms.
             const countsList: Array<Map<NpcType, number>> = [counts];
             const panArmsCount = counts.get(NpcType.PanArms);
-            const panArms2Count = counts.get(NpcType.PanArms2);
 
-            if (panArmsCount || panArms2Count) {
+            if (panArmsCount) {
                 const splitCounts = new Map(counts);
 
-                if (panArmsCount) {
-                    splitCounts.delete(NpcType.PanArms);
-                    splitCounts.set(NpcType.Migium, panArmsCount);
-                    splitCounts.set(NpcType.Hidoom, panArmsCount);
-                }
+                splitCounts.delete(NpcType.PanArms);
+                splitCounts.set(NpcType.Migium, panArmsCount);
+                splitCounts.set(NpcType.Hidoom, panArmsCount);
 
-                if (panArms2Count) {
-                    splitCounts.delete(NpcType.PanArms2);
-                    splitCounts.set(NpcType.Migium2, panArms2Count);
-                    splitCounts.set(NpcType.Hidoom2, panArms2Count);
-                }
+                countsList.push(splitCounts);
+            }
+
+            const panArms2Count = counts.get(NpcType.PanArms2);
+
+            if (panArms2Count) {
+                const splitCounts = new Map(counts);
+
+                splitCounts.delete(NpcType.PanArms2);
+                splitCounts.set(NpcType.Migium2, panArms2Count);
+                splitCounts.set(NpcType.Hidoom2, panArms2Count);
 
                 countsList.push(splitCounts);
             }
@@ -184,9 +196,12 @@ class HuntOptimizerStore {
 
                 for (const diff of Difficulties) {
                     for (const sectionId of SectionIds) {
+                        // Will contain an entry per wanted item dropped by enemies in this method/
+                        // difficulty/section ID combo.
                         const variable: Variable = {
                             time: method.time
                         };
+                        // Only add the variable if the method provides at least 1 item we want.
                         let addVariable = false;
 
                         for (const [npcType, count] of counts.entries()) {
@@ -220,6 +235,9 @@ class HuntOptimizerStore {
             feasible: boolean,
             bounded: boolean,
             result: number,
+            /**
+             * Value will always be a number if result is indexed with an actual method name.
+             */
             [method: string]: number | boolean
         } = solver.Solve({
             optimize: 'time',
@@ -228,73 +246,78 @@ class HuntOptimizerStore {
             variables
         });
 
-        runInAction(() => {
-            this.results.splice(0);
+        if (!result.feasible) {
+            this.result = undefined;
+            return;
+        }
 
-            if (!result.feasible) {
-                return;
-            }
+        const optimalMethods: Array<OptimalMethod> = [];
 
-            for (const [variableName, runsOrOther] of Object.entries(result)) {
-                const details = variableDetails.get(variableName);
+        // Loop over the entries in result, ignore standard properties that aren't variables.
+        for (const [variableName, runsOrOther] of Object.entries(result)) {
+            const details = variableDetails.get(variableName);
 
-                if (details) {
-                    const { method, difficulty, sectionId, splitPanArms } = details;
-                    const runs = runsOrOther as number;
-                    const variable = variables[variableName];
+            if (details) {
+                const { method, difficulty, sectionId, splitPanArms } = details;
+                const runs = runsOrOther as number;
+                const variable = variables[variableName];
 
-                    const items = new Map<Item, number>();
+                const items = new Map<Item, number>();
 
-                    for (const [itemName, expectedAmount] of Object.entries(variable)) {
-                        for (const item of wantedItems) {
-                            if (itemName === item.name) {
-                                items.set(item, runs * expectedAmount);
-                                break;
-                            }
+                for (const [itemName, expectedAmount] of Object.entries(variable)) {
+                    for (const item of wantedItems) {
+                        if (itemName === item.name) {
+                            items.set(item, runs * expectedAmount);
+                            break;
                         }
                     }
+                }
 
-                    // Find all section IDs that provide the same items with the same expected amount.
-                    // E.g. if you need a spread needle and a bringer's right arm, using either
-                    // purplenum or yellowboze will give you the exact same probabilities.
-                    const sectionIds: Array<SectionId> = [];
+                // Find all section IDs that provide the same items with the same expected amount.
+                // E.g. if you need a spread needle and a bringer's right arm, using either
+                // purplenum or yellowboze will give you the exact same probabilities.
+                const sectionIds: Array<SectionId> = [];
 
-                    for (const sid of SectionIds) {
-                        let matchFound = true;
+                for (const sid of SectionIds) {
+                    let matchFound = true;
 
-                        if (sid !== sectionId) {
-                            const v = variables[
-                                this.fullMethodName(difficulty, sid, method, splitPanArms)
-                            ];
+                    if (sid !== sectionId) {
+                        const v = variables[
+                            this.fullMethodName(difficulty, sid, method, splitPanArms)
+                        ];
 
-                            if (!v) {
-                                matchFound = false;
-                            } else {
-                                for (const itemName of Object.keys(variable)) {
-                                    if (variable[itemName] !== v[itemName]) {
-                                        matchFound = false;
-                                        break;
-                                    }
+                        if (!v) {
+                            matchFound = false;
+                        } else {
+                            for (const itemName of Object.keys(variable)) {
+                                if (variable[itemName] !== v[itemName]) {
+                                    matchFound = false;
+                                    break;
                                 }
                             }
                         }
-
-                        if (matchFound) {
-                            sectionIds.push(sid);
-                        }
                     }
 
-                    this.results.push(new OptimizationResult(
-                        difficulty,
-                        sectionIds,
-                        method.name + (splitPanArms ? ' (Split Pan Arms)' : ''),
-                        method.time,
-                        runs,
-                        items
-                    ));
+                    if (matchFound) {
+                        sectionIds.push(sid);
+                    }
                 }
+
+                optimalMethods.push(new OptimalMethod(
+                    difficulty,
+                    sectionIds,
+                    method.name + (splitPanArms ? ' (Split Pan Arms)' : ''),
+                    method.time,
+                    runs,
+                    items
+                ));
             }
-        });
+        }
+
+        this.result = new OptimalResult(
+            [...wantedItems],
+            optimalMethods
+        );
     }
 
     private fullMethodName(

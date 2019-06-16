@@ -2,26 +2,26 @@ import { computed } from "mobx";
 import { observer } from "mobx-react";
 import React from "react";
 import { AutoSizer, Index } from "react-virtualized";
-import { Item } from "../../domain";
-import { huntOptimizerStore, OptimizationResult } from "../../stores/HuntOptimizerStore";
+import { huntOptimizerStore, OptimalMethod } from "../../stores/HuntOptimizerStore";
 import { Column, DataTable } from "../dataTable";
-import "./OptimizationResultComponent.less";
 import { hoursToString } from "../time";
+import "./OptimizationResultComponent.less";
 
 @observer
 export class OptimizationResultComponent extends React.Component {
-    @computed private get columns(): Column<OptimizationResult>[] {
+    @computed private get columns(): Column<OptimalMethod>[] {
         // Standard columns.
-        const results = huntOptimizerStore.results;
+        const result = huntOptimizerStore.result;
+        const optimalMethods = result ? result.optimalMethods : [];
         let totalRuns = 0;
         let totalTime = 0;
 
-        for (const result of results) {
-            totalRuns += result.runs;
-            totalTime += result.totalTime;
+        for (const method of optimalMethods) {
+            totalRuns += method.runs;
+            totalTime += method.totalTime;
         }
 
-        const columns: Column<OptimizationResult>[] = [
+        const columns: Column<OptimalMethod>[] = [
             {
                 name: 'Difficulty',
                 width: 75,
@@ -67,35 +67,30 @@ export class OptimizationResultComponent extends React.Component {
         ];
 
         // Add one column per item.
-        const items = new Set<Item>();
+        if (result) {
+            for (const item of result.wantedItems) {
+                let totalCount = 0;
 
-        for (const r of results) {
-            for (const i of r.itemCounts.keys()) {
-                items.add(i);
+                for (const method of optimalMethods) {
+                    totalCount += method.itemCounts.get(item) || 0;
+                }
+
+                columns.push({
+                    name: item.name,
+                    width: 80,
+                    cellRenderer: (result) => {
+                        const count = result.itemCounts.get(item);
+                        return count ? count.toFixed(2) : '';
+                    },
+                    tooltip: (result) => {
+                        const count = result.itemCounts.get(item);
+                        return count ? count.toString() : '';
+                    },
+                    className: 'number',
+                    footerValue: totalCount.toFixed(2),
+                    footerTooltip: totalCount.toString()
+                });
             }
-        }
-
-        for (const item of items) {
-            const totalCount = results.reduce(
-                (acc, r) => acc + (r.itemCounts.get(item) || 0),
-                0
-            );
-
-            columns.push({
-                name: item.name,
-                width: 80,
-                cellRenderer: (result) => {
-                    const count = result.itemCounts.get(item);
-                    return count ? count.toFixed(2) : '';
-                },
-                tooltip: (result) => {
-                    const count = result.itemCounts.get(item);
-                    return count ? count.toString() : '';
-                },
-                className: 'number',
-                footerValue: totalCount.toFixed(2),
-                footerTooltip: totalCount.toString()
-            });
         }
 
         return columns;
@@ -103,11 +98,12 @@ export class OptimizationResultComponent extends React.Component {
 
     // Make sure render is called when result changes.
     @computed private get updateTrigger() {
-        return huntOptimizerStore.results.slice(0, 0);
+        return huntOptimizerStore.result != null;
     }
 
     render() {
         this.updateTrigger; // eslint-disable-line
+        const result = huntOptimizerStore.result;
 
         return (
             <section className="ho-OptimizationResultComponent">
@@ -118,11 +114,11 @@ export class OptimizationResultComponent extends React.Component {
                             <DataTable
                                 width={width}
                                 height={height}
-                                rowCount={huntOptimizerStore.results.length}
+                                rowCount={result ? result.optimalMethods.length : 0}
                                 columns={this.columns}
                                 fixedColumnCount={3}
                                 record={this.record}
-                                footer={huntOptimizerStore.results.length > 0}
+                                footer={result != null}
                                 updateTrigger={this.updateTrigger}
                             />
                         }
@@ -132,7 +128,7 @@ export class OptimizationResultComponent extends React.Component {
         );
     }
 
-    private record = ({ index }: Index): OptimizationResult => {
-        return huntOptimizerStore.results[index];
+    private record = ({ index }: Index): OptimalMethod => {
+        return huntOptimizerStore.result!.optimalMethods[index];
     }
 }
