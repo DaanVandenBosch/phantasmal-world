@@ -1,12 +1,13 @@
-import { Menu } from 'antd';
+import { Menu, Select } from 'antd';
 import { ClickParam } from 'antd/lib/menu';
 import { observer } from 'mobx-react';
 import React from 'react';
-import './ApplicationComponent.css';
+import './ApplicationComponent.less';
 import { withErrorBoundary } from './ErrorBoundary';
 import { HuntOptimizerComponent } from './hunt-optimizer/HuntOptimizerComponent';
 import { QuestEditorComponent } from './quest-editor/QuestEditorComponent';
 import { DpsCalcComponent } from './dps-calc/DpsCalcComponent';
+import { Server } from '../domain';
 
 const QuestEditor = withErrorBoundary(QuestEditorComponent);
 const HuntOptimizer = withErrorBoundary(HuntOptimizerComponent);
@@ -38,6 +39,7 @@ export class ApplicationComponent extends React.Component {
                         Phantasmal World
                     </h1>
                     <Menu
+                        className="ApplicationComponent-heading-menu"
                         onClick={this.menuClicked}
                         selectedKeys={[this.state.tool]}
                         mode="horizontal"
@@ -52,6 +54,12 @@ export class ApplicationComponent extends React.Component {
                             DPS Calculator
                         </Menu.Item> */}
                     </Menu>
+                    <div className="ApplicationComponent-server-select">
+                        <span>Server:</span>
+                        <Select defaultValue={Server.Ephinea} style={{ width: 120 }}>
+                            <Select.Option value={Server.Ephinea}>{Server.Ephinea}</Select.Option>
+                        </Select>
+                    </div>
                 </div>
                 <div className="ApplicationComponent-main">
                     {toolComponent}

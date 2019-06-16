@@ -10,10 +10,29 @@
 
 .ApplicationComponent-navbar {
     display: flex;
+    border-bottom: solid 1px @border-color-split;
 }
 
 .ApplicationComponent-heading {
-    margin: 5px 10px 0 10px;
+    align-self: center;
+    font-size: 26px;
+    margin: 0 10px;
+}
+
+.ApplicationComponent-heading-menu {
+    flex: 1;
+    margin-bottom: -1px;
+}
+
+.ApplicationComponent-server-select {
+    display: flex;
+    align-items: center;
+    margin: 0 6px;
+
+    & > span {
+        display: inline-block;
+        margin-right: 10px;
+    }
 }
 
 .ApplicationComponent-beta {
