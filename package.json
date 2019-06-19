@@ -9,6 +9,7 @@
     "@types/react": "16.8.20",
     "@types/react-dom": "16.8.4",
     "@types/react-virtualized": "^9.21.2",
+    "@types/react-virtualized-select": "^3.0.7",
     "@types/text-encoding": "^0.0.35",
     "antd": "^3.19.1",
     "craco-antd": "^1.11.0",
@@ -21,6 +22,7 @@
     "react-dom": "^16.8.6",
     "react-scripts": "^3.0.1",
     "react-virtualized": "^9.21.1",
+    "react-virtualized-select": "^3.1.3",
     "text-encoding": "^0.7.0",
     "three": "^0.105.2",
     "three-orbit-controls": "^82.1.0",
@@ -30,7 +32,7 @@
     "start": "craco start",
     "build": "craco build",
     "test": "craco test",
-    "updateDropsEphinea": "ts-node --project=tsconfig-scripts.json static/updateDropsEphinea.ts"
+    "updateEphineaData": "ts-node --project=tsconfig-scripts.json static/updateEphineaData.ts"
   },
   "eslintConfig": {
     "extends": "react-app"
@@ -48,10 +50,8 @@
     ]
   },
   "devDependencies": {
-    "@types/cheerio": "^0.22.0",
-    "@types/node": "^12.0.3",
+    "@types/cheerio": "^0.22.11",
     "cheerio": "^1.0.0-rc.3",
-    "isomorphic-fetch": "^2.2.1",
     "ts-node": "^8.3.0"
   }
 }

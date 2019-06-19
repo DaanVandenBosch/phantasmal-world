@@ -2,8 +2,9 @@ import { computed } from "mobx";
 import { observer } from "mobx-react";
 import React from "react";
 import { AutoSizer, Index } from "react-virtualized";
+import { Difficulty, SectionId } from "../../domain";
 import { huntOptimizerStore, OptimalMethod } from "../../stores/HuntOptimizerStore";
-import { Column, DataTable } from "../dataTable";
+import { Column, BigTable } from "../BigTable";
 import { SectionIdIcon } from "../SectionIdIcon";
 import { hoursToString } from "../time";
 import "./OptimizationResultComponent.less";
@@ -26,7 +27,7 @@ export class OptimizationResultComponent extends React.Component {
             {
                 name: 'Difficulty',
                 width: 75,
-                cellRenderer: (result) => result.difficulty,
+                cellRenderer: (result) => Difficulty[result.difficulty],
                 footerValue: 'Totals:',
             },
             {
@@ -45,7 +46,7 @@ export class OptimizationResultComponent extends React.Component {
                         )}
                     </div>
                 ),
-                tooltip: (result) => result.sectionIds.join(', '),
+                tooltip: (result) => result.sectionIds.map(sid => SectionId[sid]).join(', '),
             },
             {
                 name: 'Time/Run',
@@ -105,7 +106,7 @@ export class OptimizationResultComponent extends React.Component {
 
     // Make sure render is called when result changes.
     @computed private get updateTrigger() {
-        return huntOptimizerStore.result != null;
+        return huntOptimizerStore.result;
     }
 
     render() {
@@ -118,7 +119,7 @@ export class OptimizationResultComponent extends React.Component {
                 <div className="ho-OptimizationResultComponent-table">
                     <AutoSizer>
                         {({ width, height }) =>
-                            <DataTable
+                            <BigTable
                                 width={width}
                                 height={height}
                                 rowCount={result ? result.optimalMethods.length : 0}

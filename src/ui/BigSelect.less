@@ -1,0 +1,38 @@
+.BigSelect.Select {
+    & > .Select-control {
+        cursor: pointer;
+        background-color: @component-background;
+        color: @text-color;
+        height: 32px;
+        border-color: @border-color-base;
+        border-radius: @border-radius-base;
+    }
+
+    & .Select-placeholder, & .Select--single > .Select-control .Select-value {
+        line-height: 32px;
+    }
+
+    & .Select-input {
+        height: 30px;
+    }
+    
+    &:hover > .Select-control {
+        border-color: #29bfff;
+    }
+    
+    &.is-focused > .Select-control {
+        background-color: @component-background;
+        border-color: #29bfff;
+    }
+    
+    &.is-focused:not(.is-open) > .Select-control {
+        background-color: @component-background;
+        border-color: #29bfff;
+    }
+
+    & > .Select-menu-outer {
+        margin-top: 0;
+        background-color: @component-background;
+        border-color: @border-color-base;
+    }
+}

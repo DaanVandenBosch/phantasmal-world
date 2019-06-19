@@ -2,6 +2,10 @@ import { Episode, checkEpisode } from ".";
 
 export class NpcType {
     readonly id: number;
+    /**
+     * Matches the constant name. E.g. the code of NpcType.Zu is "Zu".
+     * Uniquely identifies an NPC.
+     */
     readonly code: string;
     /**
      * Unique name. E.g. a Delsaber would have (Ep. II) appended to its name.
@@ -26,8 +30,8 @@ export class NpcType {
         episode: number | undefined,
         enemy: boolean
     ) {
-        if (!Number.isInteger(id) || id < 1)
-            throw new Error(`Expected id to be an integer greater than or equal to 1, got ${id}.`);
+        if (!Number.isInteger(id) || id < 0)
+            throw new Error(`Expected id to be an integer greater than or equal to 0, got ${id}.`);
         if (!code) throw new Error('code is required.');
         if (!name) throw new Error('name is required.');
         if (!simpleName) throw new Error('simpleName is required.');
@@ -44,6 +48,8 @@ export class NpcType {
         this.episode = episode;
         this.enemy = enemy;
 
+        NpcType.byCodeMap.set(code, this);
+
         if (episode) {
             const map = NpcType.byEpAndName[episode];
 
@@ -54,9 +60,15 @@ export class NpcType {
         }
     }
 
+    private static byCodeMap = new Map<string, NpcType>();
+
     private static byEpAndName = [
         undefined, new Map<string, NpcType>(), new Map<string, NpcType>(), undefined, new Map<string, NpcType>()
     ];
+
+    static byCode(code: string): NpcType | undefined {
+        return this.byCodeMap.get(code);
+    }
 
     /**
      * Uniquely identifies an NPC. Tries to match on simpleName and ultimateName.
@@ -206,6 +218,9 @@ export class NpcType {
     static Gibbles: NpcType;
     static Gee: NpcType;
     static GiGue: NpcType;
+    static IllGill: NpcType;
+    static DelLily: NpcType;
+    static Epsilon: NpcType;
     static GalGryphon: NpcType;
 
     // Episode II Seabed
@@ -217,11 +232,8 @@ export class NpcType {
     static Morfos: NpcType;
     static Recobox: NpcType;
     static Recon: NpcType;
-    static Epsilon: NpcType;
     static SinowZoa: NpcType;
     static SinowZele: NpcType;
-    static IllGill: NpcType;
-    static DelLily: NpcType;
     static OlgaFlow: NpcType;
 
     // Episode IV
@@ -250,7 +262,7 @@ export class NpcType {
 }
 
 (function () {
-    let id = 1;
+    let id = 0;
 
     //
     // Unknown NPCs
@@ -399,6 +411,9 @@ export class NpcType {
     NpcType.Gibbles = new NpcType(id++, 'Gibbles', 'Gibbles', 'Gibbles', 'Gibbles', 2, true);
     NpcType.Gee = new NpcType(id++, 'Gee', 'Gee', 'Gee', 'Gee', 2, true);
     NpcType.GiGue = new NpcType(id++, 'GiGue', 'Gi Gue', 'Gi Gue', 'Gi Gue', 2, true);
+    NpcType.IllGill = new NpcType(id++, 'IllGill', 'Ill Gill', 'Ill Gill', 'Ill Gill', 2, true);
+    NpcType.DelLily = new NpcType(id++, 'DelLily', 'Del Lily', 'Del Lily', 'Del Lily', 2, true);
+    NpcType.Epsilon = new NpcType(id++, 'Epsilon', 'Epsilon', 'Epsilon', 'Epsilon', 2, true);
     NpcType.GalGryphon = new NpcType(id++, 'GalGryphon', 'Gal Gryphon', 'Gal Gryphon', 'Gal Gryphon', 2, true);
 
     // Episode II Seabed
@@ -410,11 +425,8 @@ export class NpcType {
     NpcType.Morfos = new NpcType(id++, 'Morfos', 'Morfos', 'Morfos', 'Morfos', 2, true);
     NpcType.Recobox = new NpcType(id++, 'Recobox', 'Recobox', 'Recobox', 'Recobox', 2, true);
     NpcType.Recon = new NpcType(id++, 'Recon', 'Recon', 'Recon', 'Recon', 2, true);
-    NpcType.Epsilon = new NpcType(id++, 'Epsilon', 'Epsilon', 'Epsilon', 'Epsilon', 2, true);
     NpcType.SinowZoa = new NpcType(id++, 'SinowZoa', 'Sinow Zoa', 'Sinow Zoa', 'Sinow Zoa', 2, true);
     NpcType.SinowZele = new NpcType(id++, 'SinowZele', 'Sinow Zele', 'Sinow Zele', 'Sinow Zele', 2, true);
-    NpcType.IllGill = new NpcType(id++, 'IllGill', 'Ill Gill', 'Ill Gill', 'Ill Gill', 2, true);
-    NpcType.DelLily = new NpcType(id++, 'DelLily', 'Del Lily', 'Del Lily', 'Del Lily', 2, true);
     NpcType.OlgaFlow = new NpcType(id++, 'OlgaFlow', 'Olga Flow', 'Olga Flow', 'Olga Flow', 2, true);
 
     // Episode IV
@@ -590,6 +602,9 @@ export const NpcTypes: Array<NpcType> = [
     NpcType.Gibbles,
     NpcType.Gee,
     NpcType.GiGue,
+    NpcType.IllGill,
+    NpcType.DelLily,
+    NpcType.Epsilon,
     NpcType.GalGryphon,
 
     // Episode II Seabed
@@ -601,11 +616,8 @@ export const NpcTypes: Array<NpcType> = [
     NpcType.Morfos,
     NpcType.Recobox,
     NpcType.Recon,
-    NpcType.Epsilon,
     NpcType.SinowZoa,
     NpcType.SinowZele,
-    NpcType.IllGill,
-    NpcType.DelLily,
     NpcType.OlgaFlow,
 
     // Episode IV

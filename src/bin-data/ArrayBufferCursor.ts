@@ -67,7 +67,7 @@ export class ArrayBufferCursor {
      * @param bufferOrCapacity - If an ArrayBuffer is given, writes to the cursor will be reflected in this array buffer and vice versa until a cursor write that requires allocating a new internal buffer happens
      * @param littleEndian - Decides in which byte order multi-byte integers and floats will be interpreted
      */
-    constructor(bufferOrCapacity: ArrayBuffer | number, littleEndian?: boolean) {
+    constructor(bufferOrCapacity: ArrayBuffer | number, littleEndian: boolean = false) {
         if (typeof bufferOrCapacity === 'number') {
             this.buffer = new ArrayBuffer(bufferOrCapacity);
             this.size = 0;
@@ -78,7 +78,7 @@ export class ArrayBufferCursor {
             throw new Error('buffer_or_capacity should be an ArrayBuffer or a number.');
         }
 
-        this.littleEndian = !!littleEndian;
+        this.littleEndian = littleEndian;
         this.position = 0;
         this.dv = new DataView(this.buffer);
         this.uint8Array = new Uint8Array(this.buffer, 0, this.size);
@@ -149,6 +149,13 @@ export class ArrayBufferCursor {
     }
 
     /**
+     * Reads an signed 8-bit integer and increments position by 1.
+     */
+    i8() {
+        return this.dv.getInt8(this.position++);
+    }
+
+    /**
      * Reads a signed 16-bit integer and increments position by 2.
      */
     i16() {
@@ -193,6 +200,20 @@ export class ArrayBufferCursor {
         for (let i = 0; i < n; ++i) {
             array.push(this.dv.getUint16(this.position, this.littleEndian));
             this.position += 2;
+        }
+
+        return array;
+    }
+
+    /**
+     * Reads n unsigned 32-bit integers and increments position by 4n.
+     */
+    u32Array(n: number): number[] {
+        const array = [];
+
+        for (let i = 0; i < n; ++i) {
+            array.push(this.dv.getUint32(this.position, this.littleEndian));
+            this.position += 4;
         }
 
         return array;

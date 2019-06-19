@@ -6,7 +6,7 @@ import { AutoSizer, Index } from "react-virtualized";
 import { HuntMethod } from "../../domain";
 import { EnemyNpcTypes } from "../../domain/NpcType";
 import { huntMethodStore } from "../../stores/HuntMethodStore";
-import { Column, DataTable } from "../dataTable";
+import { Column, BigTable } from "../BigTable";
 import "./MethodsComponent.css";
 import { hoursToString } from "../time";
 
@@ -53,7 +53,7 @@ export class MethodsComponent extends React.Component {
             <section className="ho-MethodsComponent">
                 <AutoSizer>
                     {({ width, height }) => (
-                        <DataTable<HuntMethod>
+                        <BigTable<HuntMethod>
                             width={width}
                             height={height}
                             rowCount={methods.length}

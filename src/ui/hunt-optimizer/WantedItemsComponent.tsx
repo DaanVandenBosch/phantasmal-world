@@ -1,9 +1,10 @@
-import { Button, InputNumber, Select, Popover } from "antd";
+import { Button, InputNumber, Popover } from "antd";
 import { observer } from "mobx-react";
 import React from "react";
 import { AutoSizer, Column, Table, TableCellRenderer } from "react-virtualized";
 import { huntOptimizerStore, WantedItem } from "../../stores/HuntOptimizerStore";
-import { itemStore } from "../../stores/ItemStore";
+import { itemKindStores } from "../../stores/ItemKindStore";
+import { BigSelect } from "../BigSelect";
 import './WantedItemsComponent.less';
 
 @observer
@@ -29,22 +30,17 @@ export class WantedItemsComponent extends React.Component {
                         <Button icon="info-circle" type="link" />
                     </Popover>
                 </h3>
-                <div>
-                    <Select
-                        value={undefined}
-                        showSearch
+                <div className="ho-WantedItemsComponent-top-bar">
+                    <BigSelect
                         placeholder="Add an item"
-                        optionFilterProp="children"
+                        value={undefined}
                         style={{ width: 200 }}
-                        filterOption
+                        options={huntOptimizerStore.huntableItems.map(itemKind => ({
+                            label: itemKind.name,
+                            value: itemKind.id
+                        }))}
                         onChange={this.addWanted}
-                    >
-                        {itemStore.items.current.value.map(item => (
-                            <Select.Option key={item.name}>
-                                {item.name}
-                            </Select.Option>
-                        ))}
-                    </Select>
+                    />
                     <Button
                         onClick={huntOptimizerStore.optimize}
                         style={{ marginLeft: 10 }}
@@ -77,7 +73,9 @@ export class WantedItemsComponent extends React.Component {
                                     dataKey="item"
                                     width={150}
                                     flexGrow={1}
-                                    cellDataGetter={({ rowData }) => rowData.item.name}
+                                    cellDataGetter={({ rowData }) =>
+                                        (rowData as WantedItem).itemKind.name
+                                    }
                                 />
                                 <Column
                                     dataKey="remove"
@@ -92,12 +90,14 @@ export class WantedItemsComponent extends React.Component {
         );
     }
 
-    private addWanted = (itemName: string) => {
-        let added = huntOptimizerStore.wantedItems.find(w => w.item.name === itemName);
+    private addWanted = (selected: any) => {
+        if (selected) {
+            let added = huntOptimizerStore.wantedItems.find(w => w.itemKind.id === selected.value);
 
-        if (!added) {
-            const item = itemStore.items.current.value.find(i => i.name === itemName)!;
-            huntOptimizerStore.wantedItems.push(new WantedItem(item, 1));
+            if (!added) {
+                const itemKind = itemKindStores.current.value.getById(selected.value)!;
+                huntOptimizerStore.wantedItems.push(new WantedItem(itemKind, 1));
+            }
         }
     }
 

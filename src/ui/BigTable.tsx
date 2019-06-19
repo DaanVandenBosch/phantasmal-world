@@ -1,6 +1,6 @@
 import React, { ReactNode } from "react";
 import { GridCellRenderer, Index, MultiGrid } from "react-virtualized";
-import "./dataTable.less";
+import "./BigTable.less";
 
 export type Column<T> = {
     name: string,
@@ -17,9 +17,10 @@ export type Column<T> = {
 
 /**
  * A table with a fixed header. Optionally has fixed columns and a footer.
+ * Uses windowing to support large amounts of rows and columns.
  * TODO: no-content message.
  */
-export class DataTable<T> extends React.Component<{
+export class BigTable<T> extends React.Component<{
     width: number,
     height: number,
     rowCount: number,

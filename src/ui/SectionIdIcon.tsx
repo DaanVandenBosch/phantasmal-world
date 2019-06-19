@@ -17,7 +17,7 @@ export function SectionIdIcon({
                 display: 'inline-block',
                 width: size,
                 height: size,
-                backgroundImage: `url(${process.env.PUBLIC_URL}/images/sectionids/${sectionId}.png)`,
+                backgroundImage: `url(${process.env.PUBLIC_URL}/images/sectionids/${SectionId[sectionId]}.png)`,
                 backgroundSize: size
             }}
         />

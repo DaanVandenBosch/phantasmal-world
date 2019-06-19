@@ -1,14 +1,14 @@
-import 'isomorphic-fetch';
 import cheerio from 'cheerio';
 import fs from 'fs';
-import { Difficulty, SectionIds } from '../src/domain';
-import { EnemyDropDto, ItemDto, BoxDropDto } from '../src/dto';
+import 'isomorphic-fetch';
+import { Difficulty, NpcType, SectionId, SectionIds } from '../src/domain';
+import { BoxDropDto, EnemyDropDto, ItemKindDto } from '../src/dto';
 
-async function update() {
-    const normal = await download(Difficulty.Normal);
-    const hard = await download(Difficulty.Hard);
-    const vhard = await download(Difficulty.VHard, 'very-hard');
-    const ultimate = await download(Difficulty.Ultimate);
+export async function updateDropsFromWebsite(items: ItemKindDto[]) {
+    const normal = await download(items, Difficulty.Normal);
+    const hard = await download(items, Difficulty.Hard);
+    const vhard = await download(items, Difficulty.VHard, 'very-hard');
+    const ultimate = await download(items, Difficulty.Ultimate);
 
     const enemyJson = JSON.stringify([
         ...normal.enemyDrops,
@@ -27,15 +27,13 @@ async function update() {
     ], null, 4);
 
     await fs.promises.writeFile('./public/boxDrops.ephinea.json', boxJson);
-
-    const itemNames = new Set([...normal.items, ...hard.items, ...vhard.items, ...ultimate.items]);
-    const items: Array<ItemDto> = [...itemNames].sort().map(name => ({ name }));
-    const itemsJson = JSON.stringify(items, null, 4);
-
-    await fs.promises.writeFile('./public/items.ephinea.json', itemsJson);
 }
 
-async function download(difficulty: Difficulty, difficultyUrl: string = difficulty.toLowerCase()) {
+async function download(
+    items: ItemKindDto[],
+    difficulty: Difficulty,
+    difficultyUrl: string = Difficulty[difficulty].toLowerCase()
+) {
     const response = await fetch(`https://ephinea.pioneer2.net/drop-charts/${difficultyUrl}/`);
     const body = await response.text();
     const $ = cheerio.load(body);
@@ -61,8 +59,9 @@ async function download(difficulty: Difficulty, difficultyUrl: string = difficul
             }
 
             try {
-                let enemyOrBox = enemyOrBoxText.split('/')[difficulty === Difficulty.Ultimate ? 1 : 0]
-                    || enemyOrBoxText;
+                let enemyOrBox = enemyOrBoxText.split('/')[
+                    difficulty === Difficulty.Ultimate ? 1 : 0
+                ] || enemyOrBoxText;
 
                 if (enemyOrBox === 'Halo Rappy') {
                     enemyOrBox = 'Hallo Rappy';
@@ -84,22 +83,23 @@ async function download(difficulty: Difficulty, difficultyUrl: string = difficul
                     const sectionId = SectionIds[tdI - 1];
 
                     if (isBox) {
-                        $('font font', td).each((_, font) => {
-                            const item = $('b', font).text();
-                            const rateNum = parseFloat($('sup', font).text());
-                            const rateDenom = parseFloat($('sub', font).text());
+                        // TODO:
+                        // $('font font', td).each((_, font) => {
+                        //     const item = $('b', font).text();
+                        //     const rateNum = parseFloat($('sup', font).text());
+                        //     const rateDenom = parseFloat($('sub', font).text());
 
-                            data.boxDrops.push({
-                                difficulty,
-                                episode,
-                                sectionId,
-                                box: enemyOrBox,
-                                item,
-                                dropRate: rateNum / rateDenom
-                            });
+                        //     data.boxDrops.push({
+                        //         difficulty: Difficulty[difficulty],
+                        //         episode,
+                        //         sectionId: SectionId[sectionId],
+                        //         box: enemyOrBox,
+                        //         item,
+                        //         dropRate: rateNum / rateDenom
+                        //     });
 
-                            data.items.add(item);
-                        });
+                        //     data.items.add(item);
+                        // });
                         return;
                     } else {
                         const item = $('font b', td).text();
@@ -109,6 +109,18 @@ async function download(difficulty: Difficulty, difficultyUrl: string = difficul
                         }
 
                         try {
+                            const itemKind = items.find(i => i.name === item);
+
+                            if (!itemKind) {
+                                throw new Error(`No item kind found with name "${item}".`)
+                            }
+
+                            const npcType = NpcType.byNameAndEpisode(enemyOrBox, episode);
+
+                            if (!npcType) {
+                                throw new Error(`Couldn't retrieve NpcType.`);
+                            }
+
                             const title = $('font abbr', td).attr('title').replace('\r', '');
                             const [, dropRateNum, dropRateDenom] =
                                 /Drop Rate: (\d+)\/(\d+(\.\d+)?)/g.exec(title)!.map(parseFloat);
@@ -116,18 +128,18 @@ async function download(difficulty: Difficulty, difficultyUrl: string = difficul
                                 /Rare Rate: (\d+)\/(\d+(\.\d+)?)/g.exec(title)!.map(parseFloat);
 
                             data.enemyDrops.push({
-                                difficulty,
+                                difficulty: Difficulty[difficulty],
                                 episode,
-                                sectionId,
-                                enemy: enemyOrBox,
-                                item,
+                                sectionId: SectionId[sectionId],
+                                enemy: npcType.code,
+                                itemKindId: itemKind.id,
                                 dropRate: dropRateNum / dropRateDenom,
                                 rareRate: rareRateNum / rareRateDenom,
                             });
 
                             data.items.add(item);
                         } catch (e) {
-                            console.error(`Error while processing item ${item} of ${enemyOrBox} in episode ${episode} ${difficulty}.`, e);
+                            console.error(`Error while processing item ${item} of ${enemyOrBox} in episode ${episode} ${Difficulty[difficulty]}.`, e);
                         }
                     }
                 });
@@ -139,7 +151,3 @@ async function download(difficulty: Difficulty, difficultyUrl: string = difficul
 
     return data;
 }
-
-update().catch((e) => {
-    console.error(e);
-});

@@ -1,24 +1,59 @@
-import { Difficulty, SectionId } from "./domain";
+export type ItemKindDto = WeaponItemKindDto
+    | ArmorItemKindDto
+    | ShieldItemKindDto
+    | UnitItemKindDto
+    | ToolItemKindDto
 
-export type ItemDto = {
+export type WeaponItemKindDto = {
+    type: 'weapon',
+    id: number,
+    name: string,
+    minAtp: number,
+    maxAtp: number,
+    ata: number,
+    maxGrind: number,
+    requiredAtp: number,
+}
+
+export type ArmorItemKindDto = {
+    type: 'armor',
+    id: number,
+    name: string,
+}
+
+export type ShieldItemKindDto = {
+    type: 'shield',
+    id: number,
+    name: string,
+}
+
+export type UnitItemKindDto = {
+    type: 'unit',
+    id: number,
+    name: string,
+}
+
+export type ToolItemKindDto = {
+    type: 'tool',
+    id: number,
     name: string,
 }
 
 export type EnemyDropDto = {
-    difficulty: Difficulty,
+    difficulty: string,
     episode: number,
-    sectionId: SectionId,
+    sectionId: string,
     enemy: string,
-    item: string,
+    itemKindId: number,
     dropRate: number,
     rareRate: number,
 }
 
 export type BoxDropDto = {
-    difficulty: Difficulty,
+    difficulty: string,
     episode: number,
-    sectionId: SectionId,
-    box: string,
-    item: string,
+    sectionId: string,
+    areaId: number,
+    itemKindId: number,
     dropRate: number,
 }

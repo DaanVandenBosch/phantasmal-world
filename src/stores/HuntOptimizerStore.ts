@@ -1,24 +1,24 @@
 import solver from 'javascript-lp-solver';
-import { autorun, IObservableArray, observable } from "mobx";
-import { Difficulties, Difficulty, HuntMethod, Item, KONDRIEU_PROB, NpcType, RARE_ENEMY_PROB, SectionId, SectionIds } from "../domain";
+import { autorun, IObservableArray, observable, computed } from "mobx";
+import { Difficulties, Difficulty, HuntMethod, ItemKind, KONDRIEU_PROB, NpcType, RARE_ENEMY_PROB, SectionId, SectionIds, Server } from "../domain";
 import { applicationStore } from './ApplicationStore';
 import { huntMethodStore } from "./HuntMethodStore";
-import { itemDropStore } from './ItemDropStore';
-import { itemStore } from './ItemStore';
+import { itemDropStores } from './ItemDropStore';
+import { itemKindStores } from './ItemKindStore';
 
 export class WantedItem {
-    @observable readonly item: Item;
+    @observable readonly itemKind: ItemKind;
     @observable amount: number;
 
-    constructor(item: Item, amount: number) {
-        this.item = item;
+    constructor(itemKind: ItemKind, amount: number) {
+        this.itemKind = itemKind;
         this.amount = amount;
     }
 }
 
 export class OptimalResult {
     constructor(
-        readonly wantedItems: Array<Item>,
+        readonly wantedItems: Array<ItemKind>,
         readonly optimalMethods: Array<OptimalMethod>
     ) { }
 }
@@ -32,7 +32,7 @@ export class OptimalMethod {
         readonly methodName: string,
         readonly methodTime: number,
         readonly runs: number,
-        readonly itemCounts: Map<Item, number>
+        readonly itemCounts: Map<ItemKind, number>
     ) {
         this.totalTime = runs * methodTime;
     }
@@ -44,6 +44,13 @@ export class OptimalMethod {
 //       Can be useful when deciding which item to hunt first.
 // TODO: boxes.
 class HuntOptimizerStore {
+    @computed get huntableItems(): Array<ItemKind> {
+        const itemDropStore = itemDropStores.current.value;
+        return itemKindStores.current.value.itemKinds.filter(i =>
+            itemDropStore.enemyDrops.getDropsForItemKind(i.id).length
+        );
+    }
+
     @observable readonly wantedItems: IObservableArray<WantedItem> = observable.array();
     @observable result?: OptimalResult;
 
@@ -62,17 +69,17 @@ class HuntOptimizerStore {
 
     loadFromLocalStorage = async () => {
         const wantedItemsJson = localStorage.getItem(
-            `HuntOptimizerStore.wantedItems.${applicationStore.currentServer}`
+            `HuntOptimizerStore.wantedItems.${Server[applicationStore.currentServer]}`
         );
 
         if (wantedItemsJson) {
-            const items = await itemStore.items.current.promise;
+            const itemStore = await itemKindStores.current.promise;
             const wi = JSON.parse(wantedItemsJson);
 
             const wantedItems: WantedItem[] = [];
 
-            for (const { itemName, amount } of wi) {
-                const item = items.find(item => item.name === itemName);
+            for (const { itemKindId, amount } of wi) {
+                const item = itemStore.getById(itemKindId);
 
                 if (item) {
                     wantedItems.push(new WantedItem(item, amount));
@@ -86,9 +93,12 @@ class HuntOptimizerStore {
     storeInLocalStorage = () => {
         try {
             localStorage.setItem(
-                `HuntOptimizerStore.wantedItems.${applicationStore.currentServer}`,
+                `HuntOptimizerStore.wantedItems.${Server[applicationStore.currentServer]}`,
                 JSON.stringify(
-                    this.wantedItems.map(({ item, amount }) => ({ itemName: item.name, amount }))
+                    this.wantedItems.map(({ itemKind, amount }) => ({
+                        itemKindId: itemKind.id,
+                        amount
+                    }))
                 )
             );
         } catch (e) {
@@ -104,16 +114,16 @@ class HuntOptimizerStore {
 
         // Initialize this set before awaiting data, so user changes don't affect this optimization
         // run from this point on.
-        const wantedItems = new Set(this.wantedItems.filter(w => w.amount > 0).map(w => w.item));
+        const wantedItems = new Set(this.wantedItems.filter(w => w.amount > 0).map(w => w.itemKind));
 
         const methods = await huntMethodStore.methods.current.promise;
-        const dropTable = await itemDropStore.enemyDrops.current.promise;
+        const dropTable = (await itemDropStores.current.promise).enemyDrops;
 
         // Add a constraint per wanted item.
         const constraints: { [itemName: string]: { min: number } } = {};
 
         for (const wanted of this.wantedItems) {
-            constraints[wanted.item.name] = { min: wanted.amount };
+            constraints[wanted.itemKind.name] = { min: wanted.amount };
         }
 
         // Add a variable to the LP model per method per difficulty per section ID.
@@ -261,7 +271,7 @@ class HuntOptimizerStore {
                 const runs = runsOrOther as number;
                 const variable = variables[variableName];
 
-                const items = new Map<Item, number>();
+                const items = new Map<ItemKind, number>();
 
                 for (const [itemName, expectedAmount] of Object.entries(variable)) {
                     for (const item of wantedItems) {
@@ -325,8 +335,8 @@ class HuntOptimizerStore {
         method: HuntMethod,
         splitPanArms: boolean
     ): string {
-        let name = `${difficulty}\t${sectionId}\t${method.name}`;
-        if (splitPanArms) name += ' (Split Pan Arms)';
+        let name = `${difficulty}\t${sectionId}\t${method.id}`;
+        if (splitPanArms) name += '\tspa';
         return name;
     }
 }

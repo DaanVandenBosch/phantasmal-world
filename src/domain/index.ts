@@ -10,7 +10,7 @@ export { NpcType } from './NpcType';
 export { ObjectType } from './ObjectType';
 
 export const RARE_ENEMY_PROB = 1 / 512;
-export const KONDRIEU_PROB = 1 / 512;
+export const KONDRIEU_PROB = 1 / 10;
 
 export enum Server {
     Ephinea = 'Ephinea'
@@ -24,6 +24,8 @@ export enum Episode {
     IV = 4
 }
 
+export const Episodes: Episode[] = enumValues(Episode);
+
 export function checkEpisode(episode: Episode) {
     if (!Episode[episode]) {
         throw new Error(`Invalid episode ${episode}.`);
@@ -31,25 +33,22 @@ export function checkEpisode(episode: Episode) {
 }
 
 export enum SectionId {
-    Viridia = 'Viridia',
-    Greenill = 'Greenill',
-    Skyly = 'Skyly',
-    Bluefull = 'Bluefull',
-    Purplenum = 'Purplenum',
-    Pinkal = 'Pinkal',
-    Redria = 'Redria',
-    Oran = 'Oran',
-    Yellowboze = 'Yellowboze',
-    Whitill = 'Whitill',
+    Viridia,
+    Greenill,
+    Skyly,
+    Bluefull,
+    Purplenum,
+    Pinkal,
+    Redria,
+    Oran,
+    Yellowboze,
+    Whitill,
 }
 
 export const SectionIds: SectionId[] = enumValues(SectionId);
 
 export enum Difficulty {
-    Normal = 'Normal',
-    Hard = 'Hard',
-    VHard = 'VHard',
-    Ultimate = 'Ultimate'
+    Normal, Hard, VHard, Ultimate
 }
 
 export const Difficulties: Difficulty[] = enumValues(Difficulty);
@@ -315,12 +314,70 @@ export class AreaVariant {
     }
 }
 
-export class Item {
-    constructor(public name: string) { }
+// Abstract base class of all item kinds.
+export class ItemKind {
+    constructor(
+        readonly id: number,
+        readonly name: string
+    ) {
+
+        if (Object.getPrototypeOf(this) === Object.getPrototypeOf(ItemKind))
+            throw new Error('Abstract class should not be instantiated directly.');
+    }
+}
+
+export class WeaponItemKind extends ItemKind {
+    constructor(
+        id: number,
+        name: string,
+        readonly minAtp: number,
+        readonly maxAtp: number,
+        readonly ata: number,
+        readonly maxGrind: number,
+        readonly requiredAtp: number,
+    ) {
+        super(id, name);
+    }
+}
+
+export class ArmorItemKind extends ItemKind {
+    constructor(
+        id: number,
+        name: string,
+    ) {
+        super(id, name);
+    }
+}
+
+export class ShieldItemKind extends ItemKind {
+    constructor(
+        id: number,
+        name: string,
+    ) {
+        super(id, name);
+    }
+}
+
+export class UnitItemKind extends ItemKind {
+    constructor(
+        id: number,
+        name: string,
+    ) {
+        super(id, name);
+    }
+}
+
+export class ToolItemKind extends ItemKind {
+    constructor(
+        id: number,
+        name: string,
+    ) {
+        super(id, name);
+    }
 }
 
 type ItemDrop = {
-    item: Item,
+    item: ItemKind,
     anythingRate: number,
     rareRate: number
 }
@@ -329,9 +386,12 @@ export class EnemyDrop implements ItemDrop {
     readonly rate: number;
 
     constructor(
-        public readonly item: Item,
-        public readonly anythingRate: number,
-        public readonly rareRate: number
+        readonly difficulty: Difficulty,
+        readonly sectionId: SectionId,
+        readonly npcType: NpcType,
+        readonly item: ItemKind,
+        readonly anythingRate: number,
+        readonly rareRate: number
     ) {
         this.rate = anythingRate * rareRate;
     }

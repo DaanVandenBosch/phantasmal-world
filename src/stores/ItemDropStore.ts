@@ -1,30 +1,54 @@
 import { observable } from "mobx";
-import { Difficulty, EnemyDrop, NpcType, SectionId, Server } from "../domain";
-import { EnumMap } from "../enums";
-import { Loadable } from "../Loadable";
-import { itemStore } from "./ItemStore";
-import { ServerMap } from "./ServerMap";
+import { Difficulties, Difficulty, EnemyDrop, NpcType, SectionId, SectionIds, Server, ItemKind } from "../domain";
+import { NpcTypes } from "../domain/NpcType";
 import { EnemyDropDto } from "../dto";
+import { Loadable } from "../Loadable";
+import { itemKindStores } from "./ItemKindStore";
+import { ServerMap } from "./ServerMap";
 
 class EnemyDropTable {
-    private map: EnumMap<Difficulty, EnumMap<SectionId, Map<NpcType, EnemyDrop>>> =
-        new EnumMap(Difficulty, () => new EnumMap(SectionId, () => new Map()));
+    // Mapping of difficulties to section IDs to NpcTypes to EnemyDrops.
+    private table: Array<EnemyDrop> =
+        new Array(Difficulties.length * SectionIds.length * NpcTypes.length);
+
+    // Mapping of ItemKind ids to EnemyDrops.
+    private itemKindToDrops: Array<Array<EnemyDrop>> = new Array();
 
     getDrop(difficulty: Difficulty, sectionId: SectionId, npcType: NpcType): EnemyDrop | undefined {
-        return this.map.get(difficulty).get(sectionId).get(npcType);
+        return this.table[
+            difficulty * SectionIds.length * NpcTypes.length
+            + sectionId * NpcTypes.length
+            + npcType.id
+        ];
     }
 
     setDrop(difficulty: Difficulty, sectionId: SectionId, npcType: NpcType, drop: EnemyDrop) {
-        this.map.get(difficulty).get(sectionId).set(npcType, drop);
+        this.table[
+            difficulty * SectionIds.length * NpcTypes.length
+            + sectionId * NpcTypes.length
+            + npcType.id
+        ] = drop;
+
+        let drops = this.itemKindToDrops[drop.item.id];
+
+        if (!drops) {
+            drops = [];
+            this.itemKindToDrops[drop.item.id] = drops;
+        }
+
+        drops.push(drop);
+    }
+
+    getDropsForItemKind(itemKindId: number): Array<EnemyDrop> {
+        return this.itemKindToDrops[itemKindId] || [];
     }
 }
 
 class ItemDropStore {
-    @observable enemyDrops: ServerMap<Loadable<EnemyDropTable>> = new ServerMap(server =>
-        new Loadable(new EnemyDropTable(), () => this.loadEnemyDrops(server))
-    );
+    @observable enemyDrops: EnemyDropTable = new EnemyDropTable();
 
-    private loadEnemyDrops = async (server: Server): Promise<EnemyDropTable> => {
+    load = async (server: Server): Promise<ItemDropStore> => {
+        const itemKindStore = await itemKindStores.current.promise;
         const response = await fetch(
             `${process.env.PUBLIC_URL}/enemyDrops.${Server[server].toLowerCase()}.json`
         );
@@ -33,22 +57,44 @@ class ItemDropStore {
         const drops = new EnemyDropTable();
 
         for (const dropDto of data) {
-            const npcType = NpcType.byNameAndEpisode(dropDto.enemy, dropDto.episode);
+            const npcType = NpcType.byCode(dropDto.enemy);
 
             if (!npcType) {
-                console.error(`Couldn't determine NpcType of episode ${dropDto.episode} ${dropDto.enemy}.`);
+                console.warn(`Couldn't determine NpcType of episode ${dropDto.episode} ${dropDto.enemy}.`);
                 continue;
             }
 
-            drops.setDrop(dropDto.difficulty, dropDto.sectionId, npcType, new EnemyDrop(
-                itemStore.dedupItem(dropDto.item),
+            const difficulty = (Difficulty as any)[dropDto.difficulty];
+            const itemKind = itemKindStore.getById(dropDto.itemKindId);
+
+            if (!itemKind) {
+                console.warn(`Couldn't find item kind ${dropDto.itemKindId}.`);
+                continue;
+            }
+
+            const sectionId = (SectionId as any)[dropDto.sectionId];
+
+            if (sectionId == null) {
+                console.warn(`Couldn't find section ID ${dropDto.sectionId}.`);
+                continue;
+            }
+
+            drops.setDrop(difficulty, sectionId, npcType, new EnemyDrop(
+                difficulty,
+                sectionId,
+                npcType,
+                itemKind,
                 dropDto.dropRate,
                 dropDto.rareRate
             ));
         }
 
-        return drops;
+        this.enemyDrops = drops;
+        return this;
     }
 }
 
-export const itemDropStore = new ItemDropStore();
+export const itemDropStores: ServerMap<Loadable<ItemDropStore>> = new ServerMap(server => {
+    const store = new ItemDropStore();
+    return new Loadable(store, () => store.load(server));
+});
