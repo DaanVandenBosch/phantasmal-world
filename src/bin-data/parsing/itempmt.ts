@@ -1,11 +1,19 @@
 import { ArrayBufferCursor } from "../ArrayBufferCursor";
 
 export type ItemPmt = {
+    statBoosts: PmtStatBoost[],
     armors: PmtArmor[],
     shields: PmtShield[],
     units: PmtUnit[],
     tools: PmtTool[][],
     weapons: PmtWeapon[][],
+}
+
+export type PmtStatBoost = {
+    stat1: number,
+    stat2: number,
+    amount1: number,
+    amount2: number,
 }
 
 export type PmtWeapon = {
@@ -107,6 +115,8 @@ export function parseItemPmt(cursor: ArrayBufferCursor): ItemPmt {
     }
 
     const itemPmt: ItemPmt = {
+        // This size (65268) of this table seems wrong, so we pass in a hard-coded value.
+        statBoosts: parseStatBoosts(cursor, tableOffsets[305].offset, 52),
         armors: parseArmors(cursor, tableOffsets[7].offset, tableOffsets[7].size),
         shields: parseShields(cursor, tableOffsets[8].offset, tableOffsets[8].size),
         units: parseUnits(cursor, tableOffsets[9].offset, tableOffsets[9].size),
@@ -125,6 +135,22 @@ export function parseItemPmt(cursor: ArrayBufferCursor): ItemPmt {
     }
 
     return itemPmt;
+}
+
+function parseStatBoosts(cursor: ArrayBufferCursor, offset: number, size: number): PmtStatBoost[] {
+    cursor.seekStart(offset);
+    const statBoosts: PmtStatBoost[] = [];
+
+    for (let i = 0; i < size; i++) {
+        statBoosts.push({
+            stat1: cursor.u8(),
+            stat2: cursor.u8(),
+            amount1: cursor.i16(),
+            amount2: cursor.i16(),
+        });
+    }
+
+    return statBoosts;
 }
 
 function parseWeapons(cursor: ArrayBufferCursor, offset: number, size: number): PmtWeapon[] {

@@ -5,9 +5,11 @@ import { DatNpc, DatObject, DatUnknown } from '../bin-data/parsing/dat';
 import { NpcType } from './NpcType';
 import { ObjectType } from './ObjectType';
 import { enumValues } from '../enums';
+import { ItemType } from './items';
 
-export { NpcType } from './NpcType';
-export { ObjectType } from './ObjectType';
+export * from './items';
+export * from './NpcType';
+export * from './ObjectType';
 
 export const RARE_ENEMY_PROB = 1 / 512;
 export const KONDRIEU_PROB = 1 / 10;
@@ -311,68 +313,6 @@ export class AreaVariant {
     constructor(public id: number, public area: Area) {
         if (!Number.isInteger(id) || id < 0)
             throw new Error(`Expected id to be a non-negative integer, got ${id}.`);
-    }
-}
-
-// Abstract base class of all item kinds.
-export class ItemType {
-    constructor(
-        readonly id: number,
-        readonly name: string
-    ) {
-
-        if (Object.getPrototypeOf(this) === Object.getPrototypeOf(ItemType))
-            throw new Error('Abstract class should not be instantiated directly.');
-    }
-}
-
-export class WeaponItemType extends ItemType {
-    constructor(
-        id: number,
-        name: string,
-        readonly minAtp: number,
-        readonly maxAtp: number,
-        readonly ata: number,
-        readonly maxGrind: number,
-        readonly requiredAtp: number,
-    ) {
-        super(id, name);
-    }
-}
-
-export class ArmorItemType extends ItemType {
-    constructor(
-        id: number,
-        name: string,
-    ) {
-        super(id, name);
-    }
-}
-
-export class ShieldItemType extends ItemType {
-    constructor(
-        id: number,
-        name: string,
-    ) {
-        super(id, name);
-    }
-}
-
-export class UnitItemType extends ItemType {
-    constructor(
-        id: number,
-        name: string,
-    ) {
-        super(id, name);
-    }
-}
-
-export class ToolItemType extends ItemType {
-    constructor(
-        id: number,
-        name: string,
-    ) {
-        super(id, name);
     }
 }
 

@@ -1,4 +1,6 @@
 import { observable, IObservableArray, computed } from "mobx";
+import { WeaponItem, WeaponItemType, ArmorItemType, ShieldItemType } from "../domain";
+import { itemTypeStores } from "./ItemTypeStore";
 
 const NORMAL_DAMAGE_FACTOR = 0.2 * 0.9;
 const HEAVY_DAMAGE_FACTOR = NORMAL_DAMAGE_FACTOR * 1.89;
@@ -6,40 +8,23 @@ const SAC_DAMAGE_FACTOR = NORMAL_DAMAGE_FACTOR * 3.32;
 const VJAYA_DAMAGE_FACTOR = NORMAL_DAMAGE_FACTOR * 5.56;
 const CRIT_FACTOR = 1.5;
 
-class WeaponType {
-    constructor(
-        readonly minAtp: number,
-        readonly maxAtp: number
-    ) { }
-}
-
 class Weapon {
-    readonly type: WeaponType;
-
-    /**
-     * Integer from 0 to 100.
-     */
-    @observable attributePercentage: number = 0;
-    @observable grind: number = 0;
+    readonly item: WeaponItem;
 
     @computed get shiftaAtp(): number {
-        if (this.type.minAtp === this.type.maxAtp) {
+        if (this.item.type.minAtp === this.item.type.maxAtp) {
             return 0;
         } else {
-            return this.type.maxAtp * this.store.shiftaFactor;
+            return this.item.type.maxAtp * this.store.shiftaFactor;
         }
     }
 
-    @computed get grindAtp(): number {
-        return 2 * this.grind;
-    }
-
     @computed get minAtp(): number {
-        return this.type.minAtp + this.grindAtp;
+        return this.item.type.minAtp + this.item.grindAtp;
     }
 
     @computed get maxAtp(): number {
-        return this.type.maxAtp + this.grindAtp + this.shiftaAtp;
+        return this.item.type.maxAtp + this.item.grindAtp + this.shiftaAtp;
     }
 
     @computed get finalMinAtp(): number {
@@ -84,21 +69,39 @@ class Weapon {
 
     constructor(
         private store: DpsCalcStore,
-        type: WeaponType,
+        item: WeaponItem,
     ) {
-        this.type = type;
+        this.item = item;
     }
 }
 
 class DpsCalcStore {
+    @computed get weaponTypes(): WeaponItemType[] {
+        return itemTypeStores.current.value.itemTypes.filter(it =>
+            it instanceof WeaponItemType
+        ) as WeaponItemType[];
+    }
+
+    @computed get armorTypes(): ArmorItemType[] {
+        return itemTypeStores.current.value.itemTypes.filter(it =>
+            it instanceof ArmorItemType
+        ) as ArmorItemType[];
+    }
+
+    @computed get shieldTypes(): ShieldItemType[] {
+        return itemTypeStores.current.value.itemTypes.filter(it =>
+            it instanceof ShieldItemType
+        ) as ShieldItemType[];
+    }
+
     //
     // Character Details
     //
 
     @observable charAtp: number = 0;
     @observable magPow: number = 0;
-    @observable armorAtp: number = 0;
-    @observable shieldAtp: number = 0;
+    @computed get armorAtp(): number { return this.armorType ? this.armorType.atp : 0 }
+    @computed get shieldAtp(): number { return this.shieldType ? this.shieldType.atp : 0 }
     @observable shiftaLvl: number = 0;
 
     @computed get baseAtp(): number {
@@ -114,6 +117,16 @@ class DpsCalcStore {
     }
 
     @observable readonly weapons: IObservableArray<Weapon> = observable.array();
+
+    addWeapon = (type: WeaponItemType) => {
+        this.weapons.push(new Weapon(
+            this,
+            new WeaponItem(type)
+        ));
+    }
+
+    @observable armorType?: ArmorItemType;
+    @observable shieldType?: ShieldItemType;
 
     //
     // Enemy Details

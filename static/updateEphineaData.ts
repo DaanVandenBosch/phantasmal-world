@@ -1,6 +1,6 @@
 import fs from 'fs';
 import { ArrayBufferCursor } from '../src/bin-data/ArrayBufferCursor';
-import { parseItemPmt } from '../src/bin-data/parsing/itempmt';
+import { parseItemPmt, ItemPmt } from '../src/bin-data/parsing/itempmt';
 import { parseUnitxt, Unitxt } from '../src/bin-data/parsing/unitxt';
 import { Difficulties, Difficulty, Episode, Episodes, NpcType, SectionId, SectionIds } from '../src/domain';
 import { NpcTypes } from '../src/domain/NpcType';
@@ -82,10 +82,18 @@ async function updateItems(itemNames: Array<string>): Promise<ItemTypeDto[]> {
 
         if (!ids.has(id)) {
             ids.add(id);
+
+            const stats = getStatBoosts(itemPmt, armor.statBoost);
+            stats.minEvp += armor.evp;
+            stats.minDfp += armor.dfp;
+
             itemTypes.push({
                 class: 'armor',
                 id,
                 name: itemNames[armor.id],
+                ...stats,
+                maxEvp: stats.minEvp + armor.evpRange,
+                maxDfp: stats.minDfp + armor.dfpRange,
             });
         }
     });
@@ -95,10 +103,18 @@ async function updateItems(itemNames: Array<string>): Promise<ItemTypeDto[]> {
 
         if (!ids.has(id)) {
             ids.add(id);
+
+            const stats = getStatBoosts(itemPmt, shield.statBoost);
+            stats.minEvp += shield.evp;
+            stats.minDfp += shield.dfp;
+
             itemTypes.push({
                 class: 'shield',
                 id,
                 name: itemNames[shield.id],
+                ...stats,
+                maxEvp: stats.minEvp + shield.evpRange,
+                maxDfp: stats.minDfp + shield.dfpRange,
             });
         }
     });
@@ -475,6 +491,54 @@ async function loadBoxDrops(
     }
 
     return drops;
+}
+
+function getStatBoosts(itemPmt: ItemPmt, statBoostIndex: number) {
+    const statBoost = itemPmt.statBoosts[statBoostIndex];
+    let atp = 0;
+    let ata = 0;
+    let minEvp = 0;
+    let minDfp = 0;
+    let mst = 0;
+    let hp = 0;
+    let lck = 0;
+
+    switch (statBoost.stat1) {
+        case 1: atp += statBoost.amount1; break;
+        case 2: ata += statBoost.amount1; break;
+        case 3: minEvp += statBoost.amount1; break;
+        case 4: minDfp += statBoost.amount1; break;
+        case 5: mst += statBoost.amount1; break;
+        case 6: hp += statBoost.amount1; break;
+        case 7: lck += statBoost.amount1; break;
+        case 8:
+            atp += statBoost.amount1;
+            ata += statBoost.amount1;
+            minEvp += statBoost.amount1;
+            minDfp += statBoost.amount1;
+            mst += statBoost.amount1;
+            hp += statBoost.amount1;
+            lck += statBoost.amount1;
+            break;
+        case 9: atp -= statBoost.amount1; break;
+        case 10: ata -= statBoost.amount1; break;
+        case 11: minEvp -= statBoost.amount1; break;
+        case 12: minDfp -= statBoost.amount1; break;
+        case 13: mst -= statBoost.amount1; break;
+        case 14: hp -= statBoost.amount1; break;
+        case 15: lck -= statBoost.amount1; break;
+        case 16:
+            atp -= statBoost.amount1;
+            ata -= statBoost.amount1;
+            minEvp -= statBoost.amount1;
+            minDfp -= statBoost.amount1;
+            mst -= statBoost.amount1;
+            hp -= statBoost.amount1;
+            lck -= statBoost.amount1;
+            break;
+    }
+
+    return { atp, ata, minEvp, minDfp, mst, hp, lck };
 }
 
 function getEnemyType(episode: Episode, index: number) {

@@ -40,12 +40,30 @@ class ItemTypeStore {
                     itemType = new ArmorItemType(
                         itemTypeDto.id,
                         itemTypeDto.name,
+                        itemTypeDto.atp,
+                        itemTypeDto.ata,
+                        itemTypeDto.minEvp,
+                        itemTypeDto.maxEvp,
+                        itemTypeDto.minDfp,
+                        itemTypeDto.maxDfp,
+                        itemTypeDto.mst,
+                        itemTypeDto.hp,
+                        itemTypeDto.lck,
                     );
                     break;
                 case 'shield':
                     itemType = new ShieldItemType(
                         itemTypeDto.id,
                         itemTypeDto.name,
+                        itemTypeDto.atp,
+                        itemTypeDto.ata,
+                        itemTypeDto.minEvp,
+                        itemTypeDto.maxEvp,
+                        itemTypeDto.minDfp,
+                        itemTypeDto.maxDfp,
+                        itemTypeDto.mst,
+                        itemTypeDto.hp,
+                        itemTypeDto.lck,
                     );
                     break;
                 case 'unit':

@@ -9032,1277 +9032,3572 @@
     {
         "class": "armor",
         "id": 65792,
-        "name": "Frame"
+        "name": "Frame",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 5,
+        "minDfp": 5,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 7,
+        "maxDfp": 7
     },
     {
         "class": "armor",
         "id": 65793,
-        "name": "Armor"
+        "name": "Armor",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 7,
+        "minDfp": 7,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 9,
+        "maxDfp": 9
     },
     {
         "class": "armor",
         "id": 65794,
-        "name": "Psy Armor"
+        "name": "Psy Armor",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 10,
+        "minDfp": 10,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 12,
+        "maxDfp": 13
     },
     {
         "class": "armor",
         "id": 65795,
-        "name": "Giga Frame"
+        "name": "Giga Frame",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 12,
+        "minDfp": 15,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 14,
+        "maxDfp": 19
     },
     {
         "class": "armor",
         "id": 65796,
-        "name": "Soul Frame"
+        "name": "Soul Frame",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 15,
+        "minDfp": 20,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 17,
+        "maxDfp": 24
     },
     {
         "class": "armor",
         "id": 65797,
-        "name": "Cross Armor"
+        "name": "Cross Armor",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 17,
+        "minDfp": 25,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 19,
+        "maxDfp": 29
     },
     {
         "class": "armor",
         "id": 65798,
-        "name": "Solid Frame"
+        "name": "Solid Frame",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 20,
+        "minDfp": 30,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 22,
+        "maxDfp": 34
     },
     {
         "class": "armor",
         "id": 65799,
-        "name": "Brave Armor"
+        "name": "Brave Armor",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 22,
+        "minDfp": 35,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 24,
+        "maxDfp": 39
     },
     {
         "class": "armor",
         "id": 65800,
-        "name": "Hyper Frame"
+        "name": "Hyper Frame",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 25,
+        "minDfp": 40,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 27,
+        "maxDfp": 44
     },
     {
         "class": "armor",
         "id": 65801,
-        "name": "Grand Armor"
+        "name": "Grand Armor",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 27,
+        "minDfp": 45,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 29,
+        "maxDfp": 49
     },
     {
         "class": "armor",
         "id": 65802,
-        "name": "Shock Frame"
+        "name": "Shock Frame",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 30,
+        "minDfp": 50,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 32,
+        "maxDfp": 54
     },
     {
         "class": "armor",
         "id": 65803,
-        "name": "King's Frame"
+        "name": "King's Frame",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 32,
+        "minDfp": 55,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 34,
+        "maxDfp": 59
     },
     {
         "class": "armor",
         "id": 65804,
-        "name": "Dragon Frame"
+        "name": "Dragon Frame",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 35,
+        "minDfp": 60,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 37,
+        "maxDfp": 64
     },
     {
         "class": "armor",
         "id": 65805,
-        "name": "Absorb Armor"
+        "name": "Absorb Armor",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 37,
+        "minDfp": 65,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 39,
+        "maxDfp": 69
     },
     {
         "class": "armor",
         "id": 65806,
-        "name": "Protect Frame"
+        "name": "Protect Frame",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 40,
+        "minDfp": 70,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 42,
+        "maxDfp": 74
     },
     {
         "class": "armor",
         "id": 65807,
-        "name": "General Armor"
+        "name": "General Armor",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 42,
+        "minDfp": 75,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 44,
+        "maxDfp": 79
     },
     {
         "class": "armor",
         "id": 65808,
-        "name": "Perfect Frame"
+        "name": "Perfect Frame",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 45,
+        "minDfp": 80,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 47,
+        "maxDfp": 84
     },
     {
         "class": "armor",
         "id": 65809,
-        "name": "Valiant Frame"
+        "name": "Valiant Frame",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 47,
+        "minDfp": 85,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 49,
+        "maxDfp": 89
     },
     {
         "class": "armor",
         "id": 65810,
-        "name": "Imperial Armor"
+        "name": "Imperial Armor",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 50,
+        "minDfp": 90,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 52,
+        "maxDfp": 94
     },
     {
         "class": "armor",
         "id": 65811,
-        "name": "Holiness Armor"
+        "name": "Holiness Armor",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 52,
+        "minDfp": 95,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 54,
+        "maxDfp": 99
     },
     {
         "class": "armor",
         "id": 65812,
-        "name": "Guardian Armor"
+        "name": "Guardian Armor",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 55,
+        "minDfp": 100,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 57,
+        "maxDfp": 104
     },
     {
         "class": "armor",
         "id": 65813,
-        "name": "Divinity Armor"
+        "name": "Divinity Armor",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 57,
+        "minDfp": 105,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 59,
+        "maxDfp": 109
     },
     {
         "class": "armor",
         "id": 65814,
-        "name": "Ultimate Frame"
+        "name": "Ultimate Frame",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 60,
+        "minDfp": 110,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 62,
+        "maxDfp": 114
     },
     {
         "class": "armor",
         "id": 65815,
-        "name": "Celestial Armor"
+        "name": "Celestial Armor",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 72,
+        "minDfp": 120,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 82,
+        "maxDfp": 130
     },
     {
         "class": "armor",
         "id": 65816,
-        "name": "Hunter Field"
+        "name": "Hunter Field",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 80,
+        "minDfp": 60,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 88,
+        "maxDfp": 68
     },
     {
         "class": "armor",
         "id": 65817,
-        "name": "Ranger Field"
+        "name": "Ranger Field",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 80,
+        "minDfp": 50,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 88,
+        "maxDfp": 58
     },
     {
         "class": "armor",
         "id": 65818,
-        "name": "Force Field"
+        "name": "Force Field",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 80,
+        "minDfp": 40,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 88,
+        "maxDfp": 48
     },
     {
         "class": "armor",
         "id": 65819,
-        "name": "Revival Garment"
+        "name": "Revival Garment",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 60,
+        "minDfp": 85,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 70,
+        "maxDfp": 90
     },
     {
         "class": "armor",
         "id": 65820,
-        "name": "Spirit Garment"
+        "name": "Spirit Garment",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 92,
+        "minDfp": 100,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 97,
+        "maxDfp": 107
     },
     {
         "class": "armor",
         "id": 65821,
-        "name": "Stink Frame"
+        "name": "Stink Frame",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 15,
+        "minDfp": 40,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 100,
+        "maxDfp": 125
     },
     {
         "class": "armor",
         "id": 65822,
-        "name": "D-Parts ver1.01"
+        "name": "D-Parts ver1.01",
+        "atp": 35,
+        "ata": 0,
+        "minEvp": 85,
+        "minDfp": 115,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 92,
+        "maxDfp": 125
     },
     {
         "class": "armor",
         "id": 65823,
-        "name": "D-Parts ver2.10"
+        "name": "D-Parts ver2.10",
+        "atp": 10,
+        "ata": 0,
+        "minEvp": 90,
+        "minDfp": 125,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 98,
+        "maxDfp": 135
     },
     {
         "class": "armor",
         "id": 65824,
-        "name": "Parasite Wear: De Rol"
+        "name": "Parasite Wear: De Rol",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 100,
+        "minDfp": 120,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 100,
+        "maxDfp": 120
     },
     {
         "class": "armor",
         "id": 65825,
-        "name": "Parasite Wear: Nelgal"
+        "name": "Parasite Wear: Nelgal",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 85,
+        "minDfp": 145,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 85,
+        "maxDfp": 145
     },
     {
         "class": "armor",
         "id": 65826,
-        "name": "Parasite Wear: Vajulla"
+        "name": "Parasite Wear: Vajulla",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 100,
+        "minDfp": 155,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 100,
+        "maxDfp": 155
     },
     {
         "class": "armor",
         "id": 65827,
-        "name": "Sense Plate"
+        "name": "Sense Plate",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 30,
+        "minDfp": 25,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 38,
+        "maxDfp": 33
     },
     {
         "class": "armor",
         "id": 65828,
-        "name": "Graviton Plate"
+        "name": "Graviton Plate",
+        "atp": 0,
+        "ata": -10,
+        "minEvp": 0,
+        "minDfp": 125,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 0,
+        "maxDfp": 133
     },
     {
         "class": "armor",
         "id": 65829,
-        "name": "Attribute Plate"
+        "name": "Attribute Plate",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 85,
+        "minDfp": 105,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 93,
+        "maxDfp": 113
     },
     {
         "class": "armor",
         "id": 65830,
-        "name": "Flowen's Frame"
+        "name": "Flowen's Frame",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 72,
+        "minDfp": 82,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 82,
+        "maxDfp": 92
     },
     {
         "class": "armor",
         "id": 65831,
-        "name": "Custom Frame ver.OO"
+        "name": "Custom Frame ver.OO",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 85,
+        "minDfp": 80,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 95,
+        "maxDfp": 90
     },
     {
         "class": "armor",
         "id": 65832,
-        "name": "DB's Armor"
+        "name": "DB's Armor",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 80,
+        "minDfp": 85,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 90,
+        "maxDfp": 95
     },
     {
         "class": "armor",
         "id": 65833,
-        "name": "Guard Wave"
+        "name": "Guard Wave",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 110,
+        "minDfp": 173,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 130,
+        "maxDfp": 223
     },
     {
         "class": "armor",
         "id": 65834,
-        "name": "DF Field"
+        "name": "DF Field",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 116,
+        "minDfp": 203,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 136,
+        "maxDfp": 253
     },
     {
         "class": "armor",
         "id": 65835,
-        "name": "Luminous Field"
+        "name": "Luminous Field",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 124,
+        "minDfp": 206,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 144,
+        "maxDfp": 256
     },
     {
         "class": "armor",
         "id": 65836,
-        "name": "Chu Chu Fever"
+        "name": "Chu Chu Fever",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 5,
+        "minDfp": 5,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 5,
+        "maxDfp": 5
     },
     {
         "class": "armor",
         "id": 65837,
-        "name": "Love Heart"
+        "name": "Love Heart",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 140,
+        "minDfp": 196,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 160,
+        "maxDfp": 246
     },
     {
         "class": "armor",
         "id": 65838,
-        "name": "Flame Garment"
+        "name": "Flame Garment",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 114,
+        "minDfp": 180,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 134,
+        "maxDfp": 230
     },
     {
         "class": "armor",
         "id": 65839,
-        "name": "Virus Armor: Lafuteria"
+        "name": "Virus Armor: Lafuteria",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 90,
+        "minDfp": 240,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 110,
+        "maxDfp": 290
     },
     {
         "class": "armor",
         "id": 65840,
-        "name": "Brightness Circle"
+        "name": "Brightness Circle",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 116,
+        "minDfp": 190,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 136,
+        "maxDfp": 240
     },
     {
         "class": "armor",
         "id": 65841,
-        "name": "Aura Field"
+        "name": "Aura Field",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 134,
+        "minDfp": 235,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 154,
+        "maxDfp": 285
     },
     {
         "class": "armor",
         "id": 65842,
-        "name": "Electro Frame"
+        "name": "Electro Frame",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 120,
+        "minDfp": 196,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 140,
+        "maxDfp": 246
     },
     {
         "class": "armor",
         "id": 65843,
-        "name": "Sacred Cloth"
+        "name": "Sacred Cloth",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 50,
+        "minDfp": 100,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 70,
+        "maxDfp": 150
     },
     {
         "class": "armor",
         "id": 65844,
-        "name": "Smoking Plate"
+        "name": "Smoking Plate",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 122,
+        "minDfp": 223,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 142,
+        "maxDfp": 273
     },
     {
         "class": "armor",
         "id": 65845,
-        "name": "Star Cuirass"
+        "name": "Star Cuirass",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 0,
+        "minDfp": 250,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 0,
+        "maxDfp": 270
     },
     {
         "class": "armor",
         "id": 65846,
-        "name": "Black Hound Cuirass"
+        "name": "Black Hound Cuirass",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 0,
+        "minDfp": 300,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 0,
+        "maxDfp": 330
     },
     {
         "class": "armor",
         "id": 65847,
-        "name": "Morning Prayer"
+        "name": "Morning Prayer",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 140,
+        "minDfp": 120,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 160,
+        "maxDfp": 130
     },
     {
         "class": "armor",
         "id": 65848,
-        "name": "Black Odoshi Domaru"
+        "name": "Black Odoshi Domaru",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 82,
+        "minDfp": 124,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 92,
+        "maxDfp": 134
     },
     {
         "class": "armor",
         "id": 65849,
-        "name": "Red Odoshi Domaru"
+        "name": "Red Odoshi Domaru",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 108,
+        "minDfp": 112,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 118,
+        "maxDfp": 122
     },
     {
         "class": "armor",
         "id": 65850,
-        "name": "Black Odoshi Red Nimaidou"
+        "name": "Black Odoshi Red Nimaidou",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 143,
+        "minDfp": 128,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 153,
+        "maxDfp": 138
     },
     {
         "class": "armor",
         "id": 65851,
-        "name": "Blue Odoshi Violet Nimaidou"
+        "name": "Blue Odoshi Violet Nimaidou",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 181,
+        "minDfp": 156,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 191,
+        "maxDfp": 166
     },
     {
         "class": "armor",
         "id": 65852,
-        "name": "Dirty Lifejacket"
+        "name": "Dirty Lifejacket",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 5,
+        "minDfp": 5,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 5,
+        "maxDfp": 5
     },
     {
         "class": "armor",
         "id": 65853,
-        "name": "Kroe's Sweater"
+        "name": "Kroe's Sweater",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 1,
+        "minDfp": 1,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 1,
+        "maxDfp": 1
     },
     {
         "class": "armor",
         "id": 65854,
-        "name": "Wedding Dress"
+        "name": "Wedding Dress",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 30,
+        "minDfp": 30,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 30,
+        "maxDfp": 30
     },
     {
         "class": "armor",
         "id": 65855,
-        "name": "Sonic Team Armor"
+        "name": "Sonic Team Armor",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 500,
+        "minDfp": 500,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 500,
+        "maxDfp": 500
     },
     {
         "class": "armor",
         "id": 65856,
-        "name": "Red Coat"
+        "name": "Red Coat",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 131,
+        "minDfp": 152,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 141,
+        "maxDfp": 162
     },
     {
         "class": "armor",
         "id": 65857,
-        "name": "Thirteen"
+        "name": "Thirteen",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 136,
+        "minDfp": 113,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 144,
+        "maxDfp": 121
     },
     {
         "class": "armor",
         "id": 65858,
-        "name": "Mother Garb"
+        "name": "Mother Garb",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 85,
+        "minDfp": 165,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 90,
+        "maxDfp": 180
     },
     {
         "class": "armor",
         "id": 65859,
-        "name": "Mother Garb+"
+        "name": "Mother Garb+",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 95,
+        "minDfp": 175,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 100,
+        "maxDfp": 190
     },
     {
         "class": "armor",
         "id": 65860,
-        "name": "Dress Plate"
+        "name": "Dress Plate",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 30,
+        "minDfp": 30,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 30,
+        "maxDfp": 30
     },
     {
         "class": "armor",
         "id": 65861,
-        "name": "Sweetheart"
+        "name": "Sweetheart",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 164,
+        "minDfp": 176,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 184,
+        "maxDfp": 226
     },
     {
         "class": "armor",
         "id": 65862,
-        "name": "Ignition Cloak"
+        "name": "Ignition Cloak",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 143,
+        "minDfp": 168,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 151,
+        "maxDfp": 176
     },
     {
         "class": "armor",
         "id": 65863,
-        "name": "Congeal Cloak"
+        "name": "Congeal Cloak",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 143,
+        "minDfp": 168,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 151,
+        "maxDfp": 176
     },
     {
         "class": "armor",
         "id": 65864,
-        "name": "Tempest Cloak"
+        "name": "Tempest Cloak",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 143,
+        "minDfp": 168,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 151,
+        "maxDfp": 176
     },
     {
         "class": "armor",
         "id": 65865,
-        "name": "Cursed Cloak"
+        "name": "Cursed Cloak",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 146,
+        "minDfp": 172,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 154,
+        "maxDfp": 180
     },
     {
         "class": "armor",
         "id": 65866,
-        "name": "Select Cloak"
+        "name": "Select Cloak",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 146,
+        "minDfp": 172,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 154,
+        "maxDfp": 180
     },
     {
         "class": "armor",
         "id": 65867,
-        "name": "Spirit Cuirass"
+        "name": "Spirit Cuirass",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 116,
+        "minDfp": 122,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 121,
+        "maxDfp": 129
     },
     {
         "class": "armor",
         "id": 65868,
-        "name": "Revival Cuirass"
+        "name": "Revival Cuirass",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 94,
+        "minDfp": 134,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 104,
+        "maxDfp": 139
     },
     {
         "class": "armor",
         "id": 65869,
-        "name": "Alliance Uniform"
+        "name": "Alliance Uniform",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 0,
+        "minDfp": 88,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 0,
+        "maxDfp": 100
     },
     {
         "class": "armor",
         "id": 65870,
-        "name": "Officer Uniform"
+        "name": "Officer Uniform",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 0,
+        "minDfp": 114,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 0,
+        "maxDfp": 128
     },
     {
         "class": "armor",
         "id": 65871,
-        "name": "Commander Uniform"
+        "name": "Commander Uniform",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 85,
+        "minDfp": 180,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 85,
+        "maxDfp": 196
     },
     {
         "class": "armor",
         "id": 65872,
-        "name": "Crimson Coat"
+        "name": "Crimson Coat",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 136,
+        "minDfp": 158,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 148,
+        "maxDfp": 170
     },
     {
         "class": "armor",
         "id": 65873,
-        "name": "Infantry Gear"
+        "name": "Infantry Gear",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 45,
+        "minDfp": 118,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 53,
+        "maxDfp": 130
     },
     {
         "class": "armor",
         "id": 65874,
-        "name": "Lieutenant Gear"
+        "name": "Lieutenant Gear",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 112,
+        "minDfp": 168,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 128,
+        "maxDfp": 186
     },
     {
         "class": "armor",
         "id": 65875,
-        "name": "Infantry Mantle"
+        "name": "Infantry Mantle",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 96,
+        "minDfp": 92,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 106,
+        "maxDfp": 102
     },
     {
         "class": "armor",
         "id": 65876,
-        "name": "Lieutenant Mantle"
+        "name": "Lieutenant Mantle",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 126,
+        "minDfp": 195,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 144,
+        "maxDfp": 216
     },
     {
         "class": "armor",
         "id": 65877,
-        "name": "Union Field"
+        "name": "Union Field",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 50,
+        "minDfp": 0,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 50,
+        "maxDfp": 0
     },
     {
         "class": "armor",
         "id": 65878,
-        "name": "Samurai Armor"
+        "name": "Samurai Armor",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 102,
+        "minDfp": 121,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 102,
+        "maxDfp": 121
     },
     {
         "class": "armor",
         "id": 65879,
-        "name": "Stealth Suit"
+        "name": "Stealth Suit",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 300,
+        "minDfp": 1,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 325,
+        "maxDfp": 1
     },
     {
         "class": "armor",
         "id": 65880,
-        "name": "????"
+        "name": "????",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 0,
+        "minDfp": 0,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 0,
+        "maxDfp": 0
     },
     {
         "class": "shield",
         "id": 66048,
-        "name": "Barrier"
+        "name": "Barrier",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 25,
+        "minDfp": 2,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 30,
+        "maxDfp": 7
     },
     {
         "class": "shield",
         "id": 66049,
-        "name": "Shield"
+        "name": "Shield",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 32,
+        "minDfp": 4,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 37,
+        "maxDfp": 9
     },
     {
         "class": "shield",
         "id": 66050,
-        "name": "Core Shield"
+        "name": "Core Shield",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 40,
+        "minDfp": 6,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 45,
+        "maxDfp": 11
     },
     {
         "class": "shield",
         "id": 66051,
-        "name": "Giga Shield"
+        "name": "Giga Shield",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 47,
+        "minDfp": 8,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 52,
+        "maxDfp": 13
     },
     {
         "class": "shield",
         "id": 66052,
-        "name": "Soul Barrier"
+        "name": "Soul Barrier",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 55,
+        "minDfp": 10,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 60,
+        "maxDfp": 15
     },
     {
         "class": "shield",
         "id": 66053,
-        "name": "Hard Shield"
+        "name": "Hard Shield",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 57,
+        "minDfp": 12,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 62,
+        "maxDfp": 17
     },
     {
         "class": "shield",
         "id": 66054,
-        "name": "Brave Barrier"
+        "name": "Brave Barrier",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 65,
+        "minDfp": 14,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 70,
+        "maxDfp": 19
     },
     {
         "class": "shield",
         "id": 66055,
-        "name": "Solid Shield"
+        "name": "Solid Shield",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 72,
+        "minDfp": 16,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 77,
+        "maxDfp": 21
     },
     {
         "class": "shield",
         "id": 66056,
-        "name": "Flame Barrier"
+        "name": "Flame Barrier",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 85,
+        "minDfp": 19,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 90,
+        "maxDfp": 24
     },
     {
         "class": "shield",
         "id": 66057,
-        "name": "Plasma Barrier"
+        "name": "Plasma Barrier",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 92,
+        "minDfp": 21,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 97,
+        "maxDfp": 26
     },
     {
         "class": "shield",
         "id": 66058,
-        "name": "Freeze Barrier"
+        "name": "Freeze Barrier",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 100,
+        "minDfp": 23,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 105,
+        "maxDfp": 28
     },
     {
         "class": "shield",
         "id": 66059,
-        "name": "Psychic Barrier"
+        "name": "Psychic Barrier",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 110,
+        "minDfp": 26,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 115,
+        "maxDfp": 31
     },
     {
         "class": "shield",
         "id": 66060,
-        "name": "General Shield"
+        "name": "General Shield",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 120,
+        "minDfp": 29,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 125,
+        "maxDfp": 34
     },
     {
         "class": "shield",
         "id": 66061,
-        "name": "Protect Barrier"
+        "name": "Protect Barrier",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 130,
+        "minDfp": 32,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 135,
+        "maxDfp": 37
     },
     {
         "class": "shield",
         "id": 66062,
-        "name": "Glorious Shield"
+        "name": "Glorious Shield",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 140,
+        "minDfp": 35,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 145,
+        "maxDfp": 40
     },
     {
         "class": "shield",
         "id": 66063,
-        "name": "Imperial Barrier"
+        "name": "Imperial Barrier",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 150,
+        "minDfp": 38,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 155,
+        "maxDfp": 43
     },
     {
         "class": "shield",
         "id": 66064,
-        "name": "Guardian Shield"
+        "name": "Guardian Shield",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 160,
+        "minDfp": 41,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 165,
+        "maxDfp": 46
     },
     {
         "class": "shield",
         "id": 66065,
-        "name": "Divinity Barrier"
+        "name": "Divinity Barrier",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 170,
+        "minDfp": 44,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 175,
+        "maxDfp": 49
     },
     {
         "class": "shield",
         "id": 66066,
-        "name": "Ultimate Shield"
+        "name": "Ultimate Shield",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 180,
+        "minDfp": 47,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 185,
+        "maxDfp": 52
     },
     {
         "class": "shield",
         "id": 66067,
-        "name": "Spiritual Shield"
+        "name": "Spiritual Shield",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 190,
+        "minDfp": 50,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 195,
+        "maxDfp": 55
     },
     {
         "class": "shield",
         "id": 66068,
-        "name": "Celestial Shield"
+        "name": "Celestial Shield",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 200,
+        "minDfp": 52,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 205,
+        "maxDfp": 57
     },
     {
         "class": "shield",
         "id": 66069,
-        "name": "Invisible Guard"
+        "name": "Invisible Guard",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 70,
+        "minDfp": 15,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 78,
+        "maxDfp": 23
     },
     {
         "class": "shield",
         "id": 66070,
-        "name": "Sacred Guard"
+        "name": "Sacred Guard",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 15,
+        "minDfp": 5,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 23,
+        "maxDfp": 13
     },
     {
         "class": "shield",
         "id": 66071,
-        "name": "S-Parts ver1.16"
+        "name": "S-Parts ver1.16",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 60,
+        "minDfp": 20,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 68,
+        "maxDfp": 28
     },
     {
         "class": "shield",
         "id": 66072,
-        "name": "S-Parts ver2.01"
+        "name": "S-Parts ver2.01",
+        "atp": 0,
+        "ata": 15,
+        "minEvp": 65,
+        "minDfp": 25,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 72,
+        "maxDfp": 32
     },
     {
         "class": "shield",
         "id": 66073,
-        "name": "Light Relief"
+        "name": "Light Relief",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 70,
+        "minDfp": 20,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 77,
+        "maxDfp": 27
     },
     {
         "class": "shield",
         "id": 66074,
-        "name": "Shield of Delsaber"
+        "name": "Shield of Delsaber",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 115,
+        "minDfp": 65,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 122,
+        "maxDfp": 72
     },
     {
         "class": "shield",
         "id": 66075,
-        "name": "Force Wall"
+        "name": "Force Wall",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 140,
+        "minDfp": 65,
+        "mst": 20,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 150,
+        "maxDfp": 75
     },
     {
         "class": "shield",
         "id": 66076,
-        "name": "Ranger Wall"
+        "name": "Ranger Wall",
+        "atp": 0,
+        "ata": 20,
+        "minEvp": 145,
+        "minDfp": 70,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 155,
+        "maxDfp": 80
     },
     {
         "class": "shield",
         "id": 66077,
-        "name": "Hunter Wall"
+        "name": "Hunter Wall",
+        "atp": 15,
+        "ata": 0,
+        "minEvp": 135,
+        "minDfp": 70,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 145,
+        "maxDfp": 80
     },
     {
         "class": "shield",
         "id": 66078,
-        "name": "Attribute Wall"
+        "name": "Attribute Wall",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 100,
+        "minDfp": 75,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 110,
+        "maxDfp": 85
     },
     {
         "class": "shield",
         "id": 66079,
-        "name": "Secret Gear"
+        "name": "Secret Gear",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 105,
+        "minDfp": 75,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 115,
+        "maxDfp": 85
     },
     {
         "class": "shield",
         "id": 66080,
-        "name": "Combat Gear"
+        "name": "Combat Gear",
+        "atp": 35,
+        "ata": 0,
+        "minEvp": 0,
+        "minDfp": 0,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 0,
+        "maxDfp": 0
     },
     {
         "class": "shield",
         "id": 66081,
-        "name": "Proto Regene Gear"
+        "name": "Proto Regene Gear",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 85,
+        "minDfp": 40,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 92,
+        "maxDfp": 47
     },
     {
         "class": "shield",
         "id": 66082,
-        "name": "Regenerate Gear"
+        "name": "Regenerate Gear",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 85,
+        "minDfp": 40,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 92,
+        "maxDfp": 47
     },
     {
         "class": "shield",
         "id": 66083,
-        "name": "Regene Gear Adv."
+        "name": "Regene Gear Adv.",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 90,
+        "minDfp": 45,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 97,
+        "maxDfp": 52
     },
     {
         "class": "shield",
         "id": 66084,
-        "name": "Flowen's Shield"
+        "name": "Flowen's Shield",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 70,
+        "minDfp": 62,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 80,
+        "maxDfp": 72
     },
     {
         "class": "shield",
         "id": 66085,
-        "name": "Custom Barrier ver.OO"
+        "name": "Custom Barrier ver.OO",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 65,
+        "minDfp": 65,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 75,
+        "maxDfp": 75
     },
     {
         "class": "shield",
         "id": 66086,
-        "name": "DB's Shield"
+        "name": "DB's Shield",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 67,
+        "minDfp": 67,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 77,
+        "maxDfp": 77
     },
     {
         "class": "shield",
         "id": 66087,
-        "name": "Red Ring"
+        "name": "Red Ring",
+        "atp": 20,
+        "ata": 20,
+        "minEvp": 232,
+        "minDfp": 150,
+        "mst": 20,
+        "hp": 20,
+        "lck": 20,
+        "maxEvp": 257,
+        "maxDfp": 235
     },
     {
         "class": "shield",
         "id": 66088,
-        "name": "Tripolic Shield"
+        "name": "Tripolic Shield",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 231,
+        "minDfp": 95,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 246,
+        "maxDfp": 145
     },
     {
         "class": "shield",
         "id": 66089,
-        "name": "Standstill Shield"
+        "name": "Standstill Shield",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 175,
+        "minDfp": 163,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 190,
+        "maxDfp": 213
     },
     {
         "class": "shield",
         "id": 66090,
-        "name": "Safety Heart"
+        "name": "Safety Heart",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 248,
+        "minDfp": 106,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 263,
+        "maxDfp": 156
     },
     {
         "class": "shield",
         "id": 66091,
-        "name": "Kasami Bracer"
+        "name": "Kasami Bracer",
+        "atp": 35,
+        "ata": 0,
+        "minEvp": 235,
+        "minDfp": 96,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 250,
+        "maxDfp": 146
     },
     {
         "class": "shield",
         "id": 66092,
-        "name": "Gods Shield \"Suzaku\""
+        "name": "Gods Shield \"Suzaku\"",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 100,
+        "minDfp": 50,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 100,
+        "maxDfp": 50
     },
     {
         "class": "shield",
         "id": 66093,
-        "name": "Gods Shield \"Genbu\""
+        "name": "Gods Shield \"Genbu\"",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 80,
+        "minDfp": 45,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 80,
+        "maxDfp": 45
     },
     {
         "class": "shield",
         "id": 66094,
-        "name": "Gods Shield \"Byakko\""
+        "name": "Gods Shield \"Byakko\"",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 80,
+        "minDfp": 45,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 80,
+        "maxDfp": 45
     },
     {
         "class": "shield",
         "id": 66095,
-        "name": "Gods Shield \"Seiryu\""
+        "name": "Gods Shield \"Seiryu\"",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 100,
+        "minDfp": 50,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 100,
+        "maxDfp": 50
     },
     {
         "class": "shield",
         "id": 66096,
-        "name": "Hunter's Shell"
+        "name": "Hunter's Shell",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 222,
+        "minDfp": 88,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 237,
+        "maxDfp": 138
     },
     {
         "class": "shield",
         "id": 66097,
-        "name": "Rico's Glasses"
+        "name": "Rico's Glasses",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 1,
+        "minDfp": 1,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 1,
+        "maxDfp": 1
     },
     {
         "class": "shield",
         "id": 66098,
-        "name": "Rico's Earring"
+        "name": "Rico's Earring",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 237,
+        "minDfp": 96,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 262,
+        "maxDfp": 181
     },
     {
         "class": "shield",
         "id": 66099,
-        "name": "Blue Ring"
+        "name": "Blue Ring",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 242,
+        "minDfp": 90,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 267,
+        "maxDfp": 175
     },
     {
         "class": "shield",
         "id": 66100,
-        "name": "Barrier"
+        "name": "Barrier",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 25,
+        "minDfp": 2,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 30,
+        "maxDfp": 7
     },
     {
         "class": "shield",
         "id": 66101,
-        "name": "Secure Feet"
+        "name": "Secure Feet",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 230,
+        "minDfp": 83,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 245,
+        "maxDfp": 133
     },
     {
         "class": "shield",
         "id": 66102,
-        "name": "Barrier"
+        "name": "Barrier",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 25,
+        "minDfp": 2,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 30,
+        "maxDfp": 7
     },
     {
         "class": "shield",
         "id": 66103,
-        "name": "Barrier"
+        "name": "Barrier",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 25,
+        "minDfp": 2,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 30,
+        "maxDfp": 7
     },
     {
         "class": "shield",
         "id": 66104,
-        "name": "Barrier"
+        "name": "Barrier",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 25,
+        "minDfp": 2,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 30,
+        "maxDfp": 7
     },
     {
         "class": "shield",
         "id": 66105,
-        "name": "Barrier"
+        "name": "Barrier",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 25,
+        "minDfp": 2,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 30,
+        "maxDfp": 7
     },
     {
         "class": "shield",
         "id": 66106,
-        "name": "Resta Merge"
+        "name": "Resta Merge",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 25,
+        "minDfp": 2,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 30,
+        "maxDfp": 7
     },
     {
         "class": "shield",
         "id": 66107,
-        "name": "Anti Merge"
+        "name": "Anti Merge",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 25,
+        "minDfp": 2,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 30,
+        "maxDfp": 7
     },
     {
         "class": "shield",
         "id": 66108,
-        "name": "Shifta Merge"
+        "name": "Shifta Merge",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 25,
+        "minDfp": 2,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 30,
+        "maxDfp": 7
     },
     {
         "class": "shield",
         "id": 66109,
-        "name": "Deband Merge"
+        "name": "Deband Merge",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 25,
+        "minDfp": 2,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 30,
+        "maxDfp": 7
     },
     {
         "class": "shield",
         "id": 66110,
-        "name": "Foie Merge"
+        "name": "Foie Merge",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 25,
+        "minDfp": 2,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 30,
+        "maxDfp": 7
     },
     {
         "class": "shield",
         "id": 66111,
-        "name": "Gifoie Merge"
+        "name": "Gifoie Merge",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 25,
+        "minDfp": 2,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 30,
+        "maxDfp": 7
     },
     {
         "class": "shield",
         "id": 66112,
-        "name": "Rafoie Merge"
+        "name": "Rafoie Merge",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 25,
+        "minDfp": 2,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 30,
+        "maxDfp": 7
     },
     {
         "class": "shield",
         "id": 66113,
-        "name": "Red Merge"
+        "name": "Red Merge",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 25,
+        "minDfp": 2,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 30,
+        "maxDfp": 7
     },
     {
         "class": "shield",
         "id": 66114,
-        "name": "Barta Merge"
+        "name": "Barta Merge",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 25,
+        "minDfp": 2,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 30,
+        "maxDfp": 7
     },
     {
         "class": "shield",
         "id": 66115,
-        "name": "Gibarta Merge"
+        "name": "Gibarta Merge",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 25,
+        "minDfp": 2,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 30,
+        "maxDfp": 7
     },
     {
         "class": "shield",
         "id": 66116,
-        "name": "Rabarta Merge"
+        "name": "Rabarta Merge",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 25,
+        "minDfp": 2,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 30,
+        "maxDfp": 7
     },
     {
         "class": "shield",
         "id": 66117,
-        "name": "Blue Merge"
+        "name": "Blue Merge",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 25,
+        "minDfp": 2,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 30,
+        "maxDfp": 7
     },
     {
         "class": "shield",
         "id": 66118,
-        "name": "Zonde Merge"
+        "name": "Zonde Merge",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 25,
+        "minDfp": 2,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 30,
+        "maxDfp": 7
     },
     {
         "class": "shield",
         "id": 66119,
-        "name": "Gizonde Merge"
+        "name": "Gizonde Merge",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 25,
+        "minDfp": 2,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 30,
+        "maxDfp": 7
     },
     {
         "class": "shield",
         "id": 66120,
-        "name": "Razonde Merge"
+        "name": "Razonde Merge",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 25,
+        "minDfp": 2,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 30,
+        "maxDfp": 7
     },
     {
         "class": "shield",
         "id": 66121,
-        "name": "Yellow Merge"
+        "name": "Yellow Merge",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 25,
+        "minDfp": 2,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 30,
+        "maxDfp": 7
     },
     {
         "class": "shield",
         "id": 66122,
-        "name": "Recovery Barrier"
+        "name": "Recovery Barrier",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 25,
+        "minDfp": 2,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 30,
+        "maxDfp": 7
     },
     {
         "class": "shield",
         "id": 66123,
-        "name": "Assist Barrier"
+        "name": "Assist Barrier",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 25,
+        "minDfp": 2,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 30,
+        "maxDfp": 7
     },
     {
         "class": "shield",
         "id": 66124,
-        "name": "Red Barrier"
+        "name": "Red Barrier",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 25,
+        "minDfp": 2,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 30,
+        "maxDfp": 7
     },
     {
         "class": "shield",
         "id": 66125,
-        "name": "Blue Barrier"
+        "name": "Blue Barrier",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 25,
+        "minDfp": 2,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 30,
+        "maxDfp": 7
     },
     {
         "class": "shield",
         "id": 66126,
-        "name": "Yellow Barrier"
+        "name": "Yellow Barrier",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 25,
+        "minDfp": 2,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 30,
+        "maxDfp": 7
     },
     {
         "class": "shield",
         "id": 66127,
-        "name": "Weapons Gold Shield"
+        "name": "Weapons Gold Shield",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 100,
+        "minDfp": 41,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 100,
+        "maxDfp": 41
     },
     {
         "class": "shield",
         "id": 66128,
-        "name": "Black Gear"
+        "name": "Black Gear",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 80,
+        "minDfp": 23,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 85,
+        "maxDfp": 28
     },
     {
         "class": "shield",
         "id": 66129,
-        "name": "Works Guard"
+        "name": "Works Guard",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 75,
+        "minDfp": 11,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 80,
+        "maxDfp": 16
     },
     {
         "class": "shield",
         "id": 66130,
-        "name": "Ragol Ring"
+        "name": "Ragol Ring",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 130,
+        "minDfp": 105,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 130,
+        "maxDfp": 105
     },
     {
         "class": "shield",
         "id": 66131,
-        "name": "Blue Ring*"
+        "name": "Blue Ring*",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 130,
+        "minDfp": 35,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 135,
+        "maxDfp": 40
     },
     {
         "class": "shield",
         "id": 66132,
-        "name": "Blue Ring"
+        "name": "Blue Ring",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 130,
+        "minDfp": 35,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 135,
+        "maxDfp": 40
     },
     {
         "class": "shield",
         "id": 66133,
-        "name": "Blue Ring"
+        "name": "Blue Ring",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 130,
+        "minDfp": 35,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 135,
+        "maxDfp": 40
     },
     {
         "class": "shield",
         "id": 66134,
-        "name": "Blue Ring"
+        "name": "Blue Ring",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 130,
+        "minDfp": 35,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 135,
+        "maxDfp": 40
     },
     {
         "class": "shield",
         "id": 66135,
-        "name": "Blue Ring"
+        "name": "Blue Ring",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 130,
+        "minDfp": 35,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 135,
+        "maxDfp": 40
     },
     {
         "class": "shield",
         "id": 66136,
-        "name": "Blue Ring"
+        "name": "Blue Ring",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 130,
+        "minDfp": 35,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 135,
+        "maxDfp": 40
     },
     {
         "class": "shield",
         "id": 66137,
-        "name": "Blue Ring"
+        "name": "Blue Ring",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 130,
+        "minDfp": 35,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 135,
+        "maxDfp": 40
     },
     {
         "class": "shield",
         "id": 66138,
-        "name": "Blue Ring"
+        "name": "Blue Ring",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 130,
+        "minDfp": 35,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 135,
+        "maxDfp": 40
     },
     {
         "class": "shield",
         "id": 66139,
-        "name": "Green Ring*"
+        "name": "Green Ring*",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 130,
+        "minDfp": 35,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 135,
+        "maxDfp": 40
     },
     {
         "class": "shield",
         "id": 66140,
-        "name": "Green Ring"
+        "name": "Green Ring",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 130,
+        "minDfp": 35,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 135,
+        "maxDfp": 40
     },
     {
         "class": "shield",
         "id": 66141,
-        "name": "Green Ring"
+        "name": "Green Ring",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 130,
+        "minDfp": 35,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 135,
+        "maxDfp": 40
     },
     {
         "class": "shield",
         "id": 66142,
-        "name": "Green Ring"
+        "name": "Green Ring",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 130,
+        "minDfp": 35,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 135,
+        "maxDfp": 40
     },
     {
         "class": "shield",
         "id": 66143,
-        "name": "Green Ring"
+        "name": "Green Ring",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 130,
+        "minDfp": 35,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 135,
+        "maxDfp": 40
     },
     {
         "class": "shield",
         "id": 66144,
-        "name": "Green Ring"
+        "name": "Green Ring",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 130,
+        "minDfp": 35,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 135,
+        "maxDfp": 40
     },
     {
         "class": "shield",
         "id": 66145,
-        "name": "Green Ring"
+        "name": "Green Ring",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 130,
+        "minDfp": 35,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 135,
+        "maxDfp": 40
     },
     {
         "class": "shield",
         "id": 66146,
-        "name": "Green Ring"
+        "name": "Green Ring",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 130,
+        "minDfp": 35,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 135,
+        "maxDfp": 40
     },
     {
         "class": "shield",
         "id": 66147,
-        "name": "Yellow Ring*"
+        "name": "Yellow Ring*",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 130,
+        "minDfp": 35,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 135,
+        "maxDfp": 40
     },
     {
         "class": "shield",
         "id": 66148,
-        "name": "Yellow Ring"
+        "name": "Yellow Ring",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 130,
+        "minDfp": 35,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 135,
+        "maxDfp": 40
     },
     {
         "class": "shield",
         "id": 66149,
-        "name": "Yellow Ring"
+        "name": "Yellow Ring",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 130,
+        "minDfp": 35,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 135,
+        "maxDfp": 40
     },
     {
         "class": "shield",
         "id": 66150,
-        "name": "Yellow Ring"
+        "name": "Yellow Ring",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 130,
+        "minDfp": 35,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 135,
+        "maxDfp": 40
     },
     {
         "class": "shield",
         "id": 66151,
-        "name": "Yellow Ring"
+        "name": "Yellow Ring",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 130,
+        "minDfp": 35,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 135,
+        "maxDfp": 40
     },
     {
         "class": "shield",
         "id": 66152,
-        "name": "Yellow Ring"
+        "name": "Yellow Ring",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 130,
+        "minDfp": 35,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 135,
+        "maxDfp": 40
     },
     {
         "class": "shield",
         "id": 66153,
-        "name": "Yellow Ring"
+        "name": "Yellow Ring",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 130,
+        "minDfp": 35,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 135,
+        "maxDfp": 40
     },
     {
         "class": "shield",
         "id": 66154,
-        "name": "Yellow Ring"
+        "name": "Yellow Ring",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 130,
+        "minDfp": 35,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 135,
+        "maxDfp": 40
     },
     {
         "class": "shield",
         "id": 66155,
-        "name": "Purple Ring*"
+        "name": "Purple Ring*",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 130,
+        "minDfp": 35,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 135,
+        "maxDfp": 40
     },
     {
         "class": "shield",
         "id": 66156,
-        "name": "Purple Ring"
+        "name": "Purple Ring",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 130,
+        "minDfp": 35,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 135,
+        "maxDfp": 40
     },
     {
         "class": "shield",
         "id": 66157,
-        "name": "Purple Ring"
+        "name": "Purple Ring",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 130,
+        "minDfp": 35,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 135,
+        "maxDfp": 40
     },
     {
         "class": "shield",
         "id": 66158,
-        "name": "Purple Ring"
+        "name": "Purple Ring",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 130,
+        "minDfp": 35,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 135,
+        "maxDfp": 40
     },
     {
         "class": "shield",
         "id": 66159,
-        "name": "Purple Ring"
+        "name": "Purple Ring",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 130,
+        "minDfp": 35,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 135,
+        "maxDfp": 40
     },
     {
         "class": "shield",
         "id": 66160,
-        "name": "Purple Ring"
+        "name": "Purple Ring",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 130,
+        "minDfp": 35,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 135,
+        "maxDfp": 40
     },
     {
         "class": "shield",
         "id": 66161,
-        "name": "Purple Ring"
+        "name": "Purple Ring",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 130,
+        "minDfp": 35,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 135,
+        "maxDfp": 40
     },
     {
         "class": "shield",
         "id": 66162,
-        "name": "Purple Ring"
+        "name": "Purple Ring",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 130,
+        "minDfp": 35,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 135,
+        "maxDfp": 40
     },
     {
         "class": "shield",
         "id": 66163,
-        "name": "Anti-Dark Ring"
+        "name": "Anti-Dark Ring",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 135,
+        "minDfp": 20,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 135,
+        "maxDfp": 20
     },
     {
         "class": "shield",
         "id": 66164,
-        "name": "White Ring*"
+        "name": "White Ring*",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 130,
+        "minDfp": 35,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 135,
+        "maxDfp": 40
     },
     {
         "class": "shield",
         "id": 66165,
-        "name": "White Ring"
+        "name": "White Ring",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 130,
+        "minDfp": 35,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 135,
+        "maxDfp": 40
     },
     {
         "class": "shield",
         "id": 66166,
-        "name": "White Ring"
+        "name": "White Ring",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 130,
+        "minDfp": 35,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 135,
+        "maxDfp": 40
     },
     {
         "class": "shield",
         "id": 66167,
-        "name": "White Ring"
+        "name": "White Ring",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 130,
+        "minDfp": 35,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 135,
+        "maxDfp": 40
     },
     {
         "class": "shield",
         "id": 66168,
-        "name": "White Ring"
+        "name": "White Ring",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 130,
+        "minDfp": 35,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 135,
+        "maxDfp": 40
     },
     {
         "class": "shield",
         "id": 66169,
-        "name": "White Ring"
+        "name": "White Ring",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 130,
+        "minDfp": 35,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 135,
+        "maxDfp": 40
     },
     {
         "class": "shield",
         "id": 66170,
-        "name": "White Ring"
+        "name": "White Ring",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 130,
+        "minDfp": 35,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 135,
+        "maxDfp": 40
     },
     {
         "class": "shield",
         "id": 66171,
-        "name": "Anti-Light Ring"
+        "name": "Anti-Light Ring",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 80,
+        "minDfp": 90,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 80,
+        "maxDfp": 90
     },
     {
         "class": "shield",
         "id": 66172,
-        "name": "Black Ring*"
+        "name": "Black Ring*",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 130,
+        "minDfp": 35,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 135,
+        "maxDfp": 40
     },
     {
         "class": "shield",
         "id": 66173,
-        "name": "Black Ring"
+        "name": "Black Ring",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 130,
+        "minDfp": 35,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 135,
+        "maxDfp": 40
     },
     {
         "class": "shield",
         "id": 66174,
-        "name": "Black Ring"
+        "name": "Black Ring",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 130,
+        "minDfp": 35,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 135,
+        "maxDfp": 40
     },
     {
         "class": "shield",
         "id": 66175,
-        "name": "Black Ring"
+        "name": "Black Ring",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 130,
+        "minDfp": 35,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 135,
+        "maxDfp": 40
     },
     {
         "class": "shield",
         "id": 66176,
-        "name": "Black Ring"
+        "name": "Black Ring",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 130,
+        "minDfp": 35,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 135,
+        "maxDfp": 40
     },
     {
         "class": "shield",
         "id": 66177,
-        "name": "Black Ring"
+        "name": "Black Ring",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 130,
+        "minDfp": 35,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 135,
+        "maxDfp": 40
     },
     {
         "class": "shield",
         "id": 66178,
-        "name": "Black Ring"
+        "name": "Black Ring",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 130,
+        "minDfp": 35,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 135,
+        "maxDfp": 40
     },
     {
         "class": "shield",
         "id": 66179,
-        "name": "Weapons Silver Shield"
+        "name": "Weapons Silver Shield",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 50,
+        "minDfp": 35,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 50,
+        "maxDfp": 35
     },
     {
         "class": "shield",
         "id": 66180,
-        "name": "Weapons Copper Shield"
+        "name": "Weapons Copper Shield",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 25,
+        "minDfp": 24,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 25,
+        "maxDfp": 24
     },
     {
         "class": "shield",
         "id": 66181,
-        "name": "Gratia"
+        "name": "Gratia",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 200,
+        "minDfp": 130,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 215,
+        "maxDfp": 150
     },
     {
         "class": "shield",
         "id": 66182,
-        "name": "Tripolic Reflector"
+        "name": "Tripolic Reflector",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 235,
+        "minDfp": 95,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 250,
+        "maxDfp": 145
     },
     {
         "class": "shield",
         "id": 66183,
-        "name": "Striker Plus"
+        "name": "Striker Plus",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 200,
+        "minDfp": 80,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 205,
+        "maxDfp": 90
     },
     {
         "class": "shield",
         "id": 66184,
-        "name": "Regenerate Gear B.P."
+        "name": "Regenerate Gear B.P.",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 180,
+        "minDfp": 90,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 187,
+        "maxDfp": 97
     },
     {
         "class": "shield",
         "id": 66185,
-        "name": "Rupika"
+        "name": "Rupika",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 180,
+        "minDfp": 120,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 200,
+        "maxDfp": 130
     },
     {
         "class": "shield",
         "id": 66186,
-        "name": "Yata Mirror"
+        "name": "Yata Mirror",
+        "atp": 35,
+        "ata": 0,
+        "minEvp": 200,
+        "minDfp": 40,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 225,
+        "maxDfp": 60
     },
     {
         "class": "shield",
         "id": 66187,
-        "name": "Bunny Ears"
+        "name": "Bunny Ears",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 25,
+        "minDfp": 2,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 25,
+        "maxDfp": 2
     },
     {
         "class": "shield",
         "id": 66188,
-        "name": "Cat Ears"
+        "name": "Cat Ears",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 25,
+        "minDfp": 2,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 25,
+        "maxDfp": 2
     },
     {
         "class": "shield",
         "id": 66189,
-        "name": "Three Seals"
+        "name": "Three Seals",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 33,
+        "minDfp": 33,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 36,
+        "maxDfp": 36
     },
     {
         "class": "shield",
         "id": 66190,
-        "name": "Gods Shield \"Kouryu\""
+        "name": "Gods Shield \"Kouryu\"",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 180,
+        "minDfp": 95,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 180,
+        "maxDfp": 95
     },
     {
         "class": "shield",
         "id": 66191,
-        "name": "DF Shield"
+        "name": "DF Shield",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 170,
+        "minDfp": 60,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 195,
+        "maxDfp": 145
     },
     {
         "class": "shield",
         "id": 66192,
-        "name": "From the Depths"
+        "name": "From the Depths",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 240,
+        "minDfp": 160,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 240,
+        "maxDfp": 160
     },
     {
         "class": "shield",
         "id": 66193,
-        "name": "De Rol Le Shield"
+        "name": "De Rol Le Shield",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 120,
+        "minDfp": 180,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 195,
+        "maxDfp": 255
     },
     {
         "class": "shield",
         "id": 66194,
-        "name": "Honeycomb Reflector"
+        "name": "Honeycomb Reflector",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 140,
+        "minDfp": 110,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 150,
+        "maxDfp": 120
     },
     {
         "class": "shield",
         "id": 66195,
-        "name": "Epsiguard"
+        "name": "Epsiguard",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 180,
+        "minDfp": 120,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 255,
+        "maxDfp": 195
     },
     {
         "class": "shield",
         "id": 66196,
-        "name": "Angel Ring"
+        "name": "Angel Ring",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 60,
+        "minDfp": 40,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 60,
+        "maxDfp": 40
     },
     {
         "class": "shield",
         "id": 66197,
-        "name": "Union Guard"
+        "name": "Union Guard",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 0,
+        "minDfp": 50,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 0,
+        "maxDfp": 50
     },
     {
         "class": "shield",
         "id": 66198,
-        "name": "Union Guard"
+        "name": "Union Guard",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 0,
+        "minDfp": 50,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 0,
+        "maxDfp": 50
     },
     {
         "class": "shield",
         "id": 66199,
-        "name": "Union Guard"
+        "name": "Union Guard",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 0,
+        "minDfp": 50,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 0,
+        "maxDfp": 50
     },
     {
         "class": "shield",
         "id": 66200,
-        "name": "Union Guard"
+        "name": "Union Guard",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 0,
+        "minDfp": 50,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 0,
+        "maxDfp": 50
     },
     {
         "class": "shield",
         "id": 66201,
-        "name": "Stink Shield"
+        "name": "Stink Shield",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 55,
+        "minDfp": 50,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 130,
+        "maxDfp": 125
     },
     {
         "class": "shield",
         "id": 66202,
-        "name": "UNKNOWN_B"
+        "name": "UNKNOWN_B",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 200,
+        "minDfp": 120,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 215,
+        "maxDfp": 170
     },
     {
         "class": "shield",
         "id": 66203,
-        "name": "Genpei"
+        "name": "Genpei",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 237,
+        "minDfp": 158,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 237,
+        "maxDfp": 158
     },
     {
         "class": "shield",
         "id": 66204,
-        "name": "Genpei"
+        "name": "Genpei",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 237,
+        "minDfp": 158,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 237,
+        "maxDfp": 158
     },
     {
         "class": "shield",
         "id": 66205,
-        "name": "Genpei"
+        "name": "Genpei",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 237,
+        "minDfp": 158,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 237,
+        "maxDfp": 158
     },
     {
         "class": "shield",
         "id": 66206,
-        "name": "Genpei"
+        "name": "Genpei",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 237,
+        "minDfp": 158,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 237,
+        "maxDfp": 158
     },
     {
         "class": "shield",
         "id": 66207,
-        "name": "Genpei"
+        "name": "Genpei",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 237,
+        "minDfp": 158,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 237,
+        "maxDfp": 158
     },
     {
         "class": "shield",
         "id": 66208,
-        "name": "Genpei"
+        "name": "Genpei",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 237,
+        "minDfp": 158,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 237,
+        "maxDfp": 158
     },
     {
         "class": "shield",
         "id": 66209,
-        "name": "Genpei"
+        "name": "Genpei",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 237,
+        "minDfp": 158,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 237,
+        "maxDfp": 158
     },
     {
         "class": "shield",
         "id": 66210,
-        "name": "Genpei"
+        "name": "Genpei",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 237,
+        "minDfp": 158,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 237,
+        "maxDfp": 158
     },
     {
         "class": "shield",
         "id": 66211,
-        "name": "Genpei"
+        "name": "Genpei",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 237,
+        "minDfp": 158,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 237,
+        "maxDfp": 158
     },
     {
         "class": "shield",
         "id": 66212,
-        "name": "Genpei"
+        "name": "Genpei",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 237,
+        "minDfp": 158,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 237,
+        "maxDfp": 158
     },
     {
         "class": "shield",
         "id": 66213,
-        "name": "????"
+        "name": "????",
+        "atp": 0,
+        "ata": 0,
+        "minEvp": 0,
+        "minDfp": 0,
+        "mst": 0,
+        "hp": 0,
+        "lck": 0,
+        "maxEvp": 0,
+        "maxDfp": 0
     },
     {
         "class": "unit",
