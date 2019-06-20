@@ -33,6 +33,12 @@ export class DpsCalcComponent extends React.Component {
                                 <td>Shifta ATP</td>
                                 <td>Final Min. ATP</td>
                                 <td>Final Max. ATP</td>
+                                <td>Min. Normal Damage</td>
+                                <td>Max. Normal Damage</td>
+                                <td>Avg. Normal Damage</td>
+                                <td>Min. Heavy Damage</td>
+                                <td>Max. Heavy Damage</td>
+                                <td>Avg. Heavy Damage</td>
                             </tr>
                         </thead>
                         <tbody>
@@ -52,9 +58,15 @@ export class DpsCalcComponent extends React.Component {
                                         />
                                     </td>
                                     <td>{weapon.item.grindAtp}</td>
-                                    <td>{weapon.shiftaAtp}</td>
-                                    <td>{weapon.finalMinAtp}</td>
-                                    <td>{weapon.finalMaxAtp}</td>
+                                    <td>{weapon.shiftaAtp.toFixed(1)}</td>
+                                    <td>{weapon.finalMinAtp.toFixed(1)}</td>
+                                    <td>{weapon.finalMaxAtp.toFixed(1)}</td>
+                                    <td>{weapon.minNormalDamage.toFixed(1)}</td>
+                                    <td>{weapon.maxNormalDamage.toFixed(1)}</td>
+                                    <td>{weapon.avgNormalDamage.toFixed(1)}</td>
+                                    <td>{weapon.minHeavyDamage.toFixed(1)}</td>
+                                    <td>{weapon.maxHeavyDamage.toFixed(1)}</td>
+                                    <td>{weapon.avgHeavyDamage.toFixed(1)}</td>
                                 </tr>
                             ))}
                         </tbody>
