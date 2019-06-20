@@ -315,18 +315,18 @@ export class AreaVariant {
 }
 
 // Abstract base class of all item kinds.
-export class ItemKind {
+export class ItemType {
     constructor(
         readonly id: number,
         readonly name: string
     ) {
 
-        if (Object.getPrototypeOf(this) === Object.getPrototypeOf(ItemKind))
+        if (Object.getPrototypeOf(this) === Object.getPrototypeOf(ItemType))
             throw new Error('Abstract class should not be instantiated directly.');
     }
 }
 
-export class WeaponItemKind extends ItemKind {
+export class WeaponItemType extends ItemType {
     constructor(
         id: number,
         name: string,
@@ -340,7 +340,7 @@ export class WeaponItemKind extends ItemKind {
     }
 }
 
-export class ArmorItemKind extends ItemKind {
+export class ArmorItemType extends ItemType {
     constructor(
         id: number,
         name: string,
@@ -349,7 +349,7 @@ export class ArmorItemKind extends ItemKind {
     }
 }
 
-export class ShieldItemKind extends ItemKind {
+export class ShieldItemType extends ItemType {
     constructor(
         id: number,
         name: string,
@@ -358,7 +358,7 @@ export class ShieldItemKind extends ItemKind {
     }
 }
 
-export class UnitItemKind extends ItemKind {
+export class UnitItemType extends ItemType {
     constructor(
         id: number,
         name: string,
@@ -367,7 +367,7 @@ export class UnitItemKind extends ItemKind {
     }
 }
 
-export class ToolItemKind extends ItemKind {
+export class ToolItemType extends ItemType {
     constructor(
         id: number,
         name: string,
@@ -377,7 +377,7 @@ export class ToolItemKind extends ItemKind {
 }
 
 type ItemDrop = {
-    item: ItemKind,
+    itemType: ItemType,
     anythingRate: number,
     rareRate: number
 }
@@ -389,7 +389,7 @@ export class EnemyDrop implements ItemDrop {
         readonly difficulty: Difficulty,
         readonly sectionId: SectionId,
         readonly npcType: NpcType,
-        readonly item: ItemKind,
+        readonly itemType: ItemType,
         readonly anythingRate: number,
         readonly rareRate: number
     ) {

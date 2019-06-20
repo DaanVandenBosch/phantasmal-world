@@ -4,7 +4,7 @@ import { parseItemPmt } from '../src/bin-data/parsing/itempmt';
 import { parseUnitxt, Unitxt } from '../src/bin-data/parsing/unitxt';
 import { Difficulties, Difficulty, Episode, Episodes, NpcType, SectionId, SectionIds } from '../src/domain';
 import { NpcTypes } from '../src/domain/NpcType';
-import { BoxDropDto, EnemyDropDto, ItemKindDto } from '../src/dto';
+import { BoxDropDto, EnemyDropDto, ItemTypeDto } from '../src/dto';
 import { updateDropsFromWebsite } from './updateDropsEphinea';
 
 /**
@@ -48,13 +48,13 @@ async function loadUnitxt(): Promise<Unitxt> {
     return unitxt;
 }
 
-async function updateItems(itemNames: Array<string>): Promise<ItemKindDto[]> {
+async function updateItems(itemNames: Array<string>): Promise<ItemTypeDto[]> {
     const buf = await fs.promises.readFile(
         `${RESOURCE_DIR}/ship-config/param/ItemPMT.bin`
     );
 
     const itemPmt = parseItemPmt(new ArrayBufferCursor(buf.buffer, true));
-    const items = new Array<ItemKindDto>();
+    const itemTypes = new Array<ItemTypeDto>();
     const ids = new Set<number>();
 
     itemPmt.weapons.forEach((category, categoryI) => {
@@ -63,8 +63,8 @@ async function updateItems(itemNames: Array<string>): Promise<ItemKindDto[]> {
 
             if (!ids.has(id)) {
                 ids.add(id);
-                items.push({
-                    type: 'weapon',
+                itemTypes.push({
+                    class: 'weapon',
                     id,
                     name: itemNames[weapon.id],
                     minAtp: weapon.minAtp,
@@ -82,8 +82,8 @@ async function updateItems(itemNames: Array<string>): Promise<ItemKindDto[]> {
 
         if (!ids.has(id)) {
             ids.add(id);
-            items.push({
-                type: 'armor',
+            itemTypes.push({
+                class: 'armor',
                 id,
                 name: itemNames[armor.id],
             });
@@ -95,8 +95,8 @@ async function updateItems(itemNames: Array<string>): Promise<ItemKindDto[]> {
 
         if (!ids.has(id)) {
             ids.add(id);
-            items.push({
-                type: 'shield',
+            itemTypes.push({
+                class: 'shield',
                 id,
                 name: itemNames[shield.id],
             });
@@ -108,8 +108,8 @@ async function updateItems(itemNames: Array<string>): Promise<ItemKindDto[]> {
 
         if (!ids.has(id)) {
             ids.add(id);
-            items.push({
-                type: 'unit',
+            itemTypes.push({
+                class: 'unit',
                 id,
                 name: itemNames[unit.id],
             });
@@ -122,8 +122,8 @@ async function updateItems(itemNames: Array<string>): Promise<ItemKindDto[]> {
 
             if (!ids.has(id)) {
                 ids.add(id);
-                items.push({
-                    type: 'tool',
+                itemTypes.push({
+                    class: 'tool',
                     id,
                     name: itemNames[tool.id],
                 });
@@ -132,11 +132,11 @@ async function updateItems(itemNames: Array<string>): Promise<ItemKindDto[]> {
     });
 
     await fs.promises.writeFile(
-        `${PUBLIC_DIR}/itemKinds.ephinea.json`,
-        JSON.stringify(items, null, 4)
+        `${PUBLIC_DIR}/itemTypes.ephinea.json`,
+        JSON.stringify(itemTypes, null, 4)
     );
 
-    return items;
+    return itemTypes;
 }
 
 async function updateDrops(itemPt: ItemPt) {
@@ -408,18 +408,18 @@ async function loadEnemyDrops(
 
             if (enemy) {
                 const rareRate = expandDropRate(parseInt(prevLine, 10));
-                const itemId = parseInt(trimmed, 16);
+                const itemTypeId = parseInt(trimmed, 16);
                 const dar = itemPt[episode][difficulty][sectionId].darTable.get(enemy);
 
                 if (dar == null) {
                     console.error(`No DAR found for ${enemy.name}.`);
-                } else if (rareRate > 0 && itemId) {
+                } else if (rareRate > 0 && itemTypeId) {
                     drops.push({
                         difficulty: Difficulty[difficulty],
                         episode: episode,
                         sectionId: SectionId[sectionId],
                         enemy: enemy.code,
-                        itemKindId: itemId,
+                        itemTypeId,
                         dropRate: dar,
                         rareRate,
                     });
@@ -455,15 +455,15 @@ async function loadBoxDrops(
         if (lineNo % 3 == 2) {
             const areaId = parseInt(prevPrevLine, 10);
             const dropRate = expandDropRate(parseInt(prevLine, 10));
-            const itemId = parseInt(trimmed, 16);
+            const itemTypeId = parseInt(trimmed, 16);
 
-            if (dropRate > 0 && itemId) {
+            if (dropRate > 0 && itemTypeId) {
                 drops.push({
                     difficulty: Difficulty[difficulty],
                     episode: episode,
                     sectionId: SectionId[sectionId],
                     areaId,
-                    itemKindId: itemId,
+                    itemTypeId,
                     dropRate,
                 });
             }

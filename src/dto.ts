@@ -1,11 +1,11 @@
-export type ItemKindDto = WeaponItemKindDto
-    | ArmorItemKindDto
-    | ShieldItemKindDto
-    | UnitItemKindDto
-    | ToolItemKindDto
+export type ItemTypeDto = WeaponItemTypeDto
+    | ArmorItemTypeDto
+    | ShieldItemTypeDto
+    | UnitItemTypeDto
+    | ToolItemTypeDto
 
-export type WeaponItemKindDto = {
-    type: 'weapon',
+export type WeaponItemTypeDto = {
+    class: 'weapon',
     id: number,
     name: string,
     minAtp: number,
@@ -15,26 +15,26 @@ export type WeaponItemKindDto = {
     requiredAtp: number,
 }
 
-export type ArmorItemKindDto = {
-    type: 'armor',
+export type ArmorItemTypeDto = {
+    class: 'armor',
     id: number,
     name: string,
 }
 
-export type ShieldItemKindDto = {
-    type: 'shield',
+export type ShieldItemTypeDto = {
+    class: 'shield',
     id: number,
     name: string,
 }
 
-export type UnitItemKindDto = {
-    type: 'unit',
+export type UnitItemTypeDto = {
+    class: 'unit',
     id: number,
     name: string,
 }
 
-export type ToolItemKindDto = {
-    type: 'tool',
+export type ToolItemTypeDto = {
+    class: 'tool',
     id: number,
     name: string,
 }
@@ -44,7 +44,7 @@ export type EnemyDropDto = {
     episode: number,
     sectionId: string,
     enemy: string,
-    itemKindId: number,
+    itemTypeId: number,
     dropRate: number,
     rareRate: number,
 }
@@ -54,6 +54,6 @@ export type BoxDropDto = {
     episode: number,
     sectionId: string,
     areaId: number,
-    itemKindId: number,
+    itemTypeId: number,
     dropRate: number,
 }

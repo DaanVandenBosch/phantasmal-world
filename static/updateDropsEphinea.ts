@@ -2,13 +2,13 @@ import cheerio from 'cheerio';
 import fs from 'fs';
 import 'isomorphic-fetch';
 import { Difficulty, NpcType, SectionId, SectionIds } from '../src/domain';
-import { BoxDropDto, EnemyDropDto, ItemKindDto } from '../src/dto';
+import { BoxDropDto, EnemyDropDto, ItemTypeDto } from '../src/dto';
 
-export async function updateDropsFromWebsite(items: ItemKindDto[]) {
-    const normal = await download(items, Difficulty.Normal);
-    const hard = await download(items, Difficulty.Hard);
-    const vhard = await download(items, Difficulty.VHard, 'very-hard');
-    const ultimate = await download(items, Difficulty.Ultimate);
+export async function updateDropsFromWebsite(itemTypes: ItemTypeDto[]) {
+    const normal = await download(itemTypes, Difficulty.Normal);
+    const hard = await download(itemTypes, Difficulty.Hard);
+    const vhard = await download(itemTypes, Difficulty.VHard, 'very-hard');
+    const ultimate = await download(itemTypes, Difficulty.Ultimate);
 
     const enemyJson = JSON.stringify([
         ...normal.enemyDrops,
@@ -30,7 +30,7 @@ export async function updateDropsFromWebsite(items: ItemKindDto[]) {
 }
 
 async function download(
-    items: ItemKindDto[],
+    itemTypes: ItemTypeDto[],
     difficulty: Difficulty,
     difficultyUrl: string = Difficulty[difficulty].toLowerCase()
 ) {
@@ -109,10 +109,10 @@ async function download(
                         }
 
                         try {
-                            const itemKind = items.find(i => i.name === item);
+                            const itemType = itemTypes.find(i => i.name === item);
 
-                            if (!itemKind) {
-                                throw new Error(`No item kind found with name "${item}".`)
+                            if (!itemType) {
+                                throw new Error(`No item type found with name "${item}".`)
                             }
 
                             const npcType = NpcType.byNameAndEpisode(enemyOrBox, episode);
@@ -132,7 +132,7 @@ async function download(
                                 episode,
                                 sectionId: SectionId[sectionId],
                                 enemy: npcType.code,
-                                itemKindId: itemKind.id,
+                                itemTypeId: itemType.id,
                                 dropRate: dropRateNum / dropRateDenom,
                                 rareRate: rareRateNum / rareRateDenom,
                             });

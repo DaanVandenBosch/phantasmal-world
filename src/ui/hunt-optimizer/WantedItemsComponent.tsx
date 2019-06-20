@@ -3,7 +3,7 @@ import { observer } from "mobx-react";
 import React from "react";
 import { AutoSizer, Column, Table, TableCellRenderer } from "react-virtualized";
 import { huntOptimizerStore, WantedItem } from "../../stores/HuntOptimizerStore";
-import { itemKindStores } from "../../stores/ItemKindStore";
+import { itemTypeStores } from "../../stores/ItemTypeStore";
 import { BigSelect } from "../BigSelect";
 import './WantedItemsComponent.less';
 
@@ -35,9 +35,9 @@ export class WantedItemsComponent extends React.Component {
                         placeholder="Add an item"
                         value={undefined}
                         style={{ width: 200 }}
-                        options={huntOptimizerStore.huntableItems.map(itemKind => ({
-                            label: itemKind.name,
-                            value: itemKind.id
+                        options={huntOptimizerStore.huntableItemTypes.map(itemType => ({
+                            label: itemType.name,
+                            value: itemType.id
                         }))}
                         onChange={this.addWanted}
                     />
@@ -74,7 +74,7 @@ export class WantedItemsComponent extends React.Component {
                                     width={150}
                                     flexGrow={1}
                                     cellDataGetter={({ rowData }) =>
-                                        (rowData as WantedItem).itemKind.name
+                                        (rowData as WantedItem).itemType.name
                                     }
                                 />
                                 <Column
@@ -92,11 +92,11 @@ export class WantedItemsComponent extends React.Component {
 
     private addWanted = (selected: any) => {
         if (selected) {
-            let added = huntOptimizerStore.wantedItems.find(w => w.itemKind.id === selected.value);
+            let added = huntOptimizerStore.wantedItems.find(w => w.itemType.id === selected.value);
 
             if (!added) {
-                const itemKind = itemKindStores.current.value.getById(selected.value)!;
-                huntOptimizerStore.wantedItems.push(new WantedItem(itemKind, 1));
+                const itemType = itemTypeStores.current.value.getById(selected.value)!;
+                huntOptimizerStore.wantedItems.push(new WantedItem(itemType, 1));
             }
         }
     }

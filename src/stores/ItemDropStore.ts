@@ -1,9 +1,9 @@
 import { observable } from "mobx";
-import { Difficulties, Difficulty, EnemyDrop, NpcType, SectionId, SectionIds, Server, ItemKind } from "../domain";
+import { Difficulties, Difficulty, EnemyDrop, NpcType, SectionId, SectionIds, Server, ItemType } from "../domain";
 import { NpcTypes } from "../domain/NpcType";
 import { EnemyDropDto } from "../dto";
 import { Loadable } from "../Loadable";
-import { itemKindStores } from "./ItemKindStore";
+import { itemTypeStores } from "./ItemTypeStore";
 import { ServerMap } from "./ServerMap";
 
 class EnemyDropTable {
@@ -11,8 +11,8 @@ class EnemyDropTable {
     private table: Array<EnemyDrop> =
         new Array(Difficulties.length * SectionIds.length * NpcTypes.length);
 
-    // Mapping of ItemKind ids to EnemyDrops.
-    private itemKindToDrops: Array<Array<EnemyDrop>> = new Array();
+    // Mapping of ItemType ids to EnemyDrops.
+    private itemTypeToDrops: Array<Array<EnemyDrop>> = new Array();
 
     getDrop(difficulty: Difficulty, sectionId: SectionId, npcType: NpcType): EnemyDrop | undefined {
         return this.table[
@@ -29,18 +29,18 @@ class EnemyDropTable {
             + npcType.id
         ] = drop;
 
-        let drops = this.itemKindToDrops[drop.item.id];
+        let drops = this.itemTypeToDrops[drop.itemType.id];
 
         if (!drops) {
             drops = [];
-            this.itemKindToDrops[drop.item.id] = drops;
+            this.itemTypeToDrops[drop.itemType.id] = drops;
         }
 
         drops.push(drop);
     }
 
-    getDropsForItemKind(itemKindId: number): Array<EnemyDrop> {
-        return this.itemKindToDrops[itemKindId] || [];
+    getDropsForItemType(itemTypeId: number): Array<EnemyDrop> {
+        return this.itemTypeToDrops[itemTypeId] || [];
     }
 }
 
@@ -48,7 +48,7 @@ class ItemDropStore {
     @observable enemyDrops: EnemyDropTable = new EnemyDropTable();
 
     load = async (server: Server): Promise<ItemDropStore> => {
-        const itemKindStore = await itemKindStores.current.promise;
+        const itemTypeStore = await itemTypeStores.current.promise;
         const response = await fetch(
             `${process.env.PUBLIC_URL}/enemyDrops.${Server[server].toLowerCase()}.json`
         );
@@ -65,10 +65,10 @@ class ItemDropStore {
             }
 
             const difficulty = (Difficulty as any)[dropDto.difficulty];
-            const itemKind = itemKindStore.getById(dropDto.itemKindId);
+            const itemType = itemTypeStore.getById(dropDto.itemTypeId);
 
-            if (!itemKind) {
-                console.warn(`Couldn't find item kind ${dropDto.itemKindId}.`);
+            if (!itemType) {
+                console.warn(`Couldn't find item kind ${dropDto.itemTypeId}.`);
                 continue;
             }
 
@@ -83,7 +83,7 @@ class ItemDropStore {
                 difficulty,
                 sectionId,
                 npcType,
-                itemKind,
+                itemType,
                 dropDto.dropRate,
                 dropDto.rareRate
             ));
