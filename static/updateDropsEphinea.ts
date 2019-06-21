@@ -17,7 +17,7 @@ export async function updateDropsFromWebsite(itemTypes: ItemTypeDto[]) {
         ...ultimate.enemyDrops
     ], null, 4);
 
-    await fs.promises.writeFile('./public/enemyDrops.ephinea.json', enemyJson);
+    await fs.writeFileSync('./public/enemyDrops.ephinea.json', enemyJson);
 
     const boxJson = JSON.stringify([
         ...normal.boxDrops,
@@ -26,7 +26,7 @@ export async function updateDropsFromWebsite(itemTypes: ItemTypeDto[]) {
         ...ultimate.boxDrops
     ], null, 4);
 
-    await fs.promises.writeFile('./public/boxDrops.ephinea.json', boxJson);
+    fs.writeFileSync('./public/boxDrops.ephinea.json', boxJson);
 }
 
 async function download(

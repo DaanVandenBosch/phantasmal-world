@@ -26,9 +26,9 @@ update().catch(e => console.error(e));
  *  - Red Ring has a requirement of 180, not 108
  */
 async function update() {
-    const unitxt = await loadUnitxt();
+    const unitxt = loadUnitxt();
     const itemNames = unitxt[1];
-    const items = await updateItems(itemNames);
+    const items = updateItems(itemNames);
     await updateDropsFromWebsite(items);
 
     // Use this if we ever get the Ephinea drop files.
@@ -36,8 +36,8 @@ async function update() {
     // await updateDrops(itemPt);
 }
 
-async function loadUnitxt(): Promise<Unitxt> {
-    const buf = await fs.promises.readFile(
+function loadUnitxt(): Unitxt {
+    const buf = fs.readFileSync(
         `${RESOURCE_DIR}/client/data/unitxt_j.prs`
     );
 
@@ -48,8 +48,8 @@ async function loadUnitxt(): Promise<Unitxt> {
     return unitxt;
 }
 
-async function updateItems(itemNames: Array<string>): Promise<ItemTypeDto[]> {
-    const buf = await fs.promises.readFile(
+function updateItems(itemNames: Array<string>): ItemTypeDto[] {
+    const buf = fs.readFileSync(
         `${RESOURCE_DIR}/ship-config/param/ItemPMT.bin`
     );
 
@@ -147,7 +147,7 @@ async function updateItems(itemNames: Array<string>): Promise<ItemTypeDto[]> {
         });
     });
 
-    await fs.promises.writeFile(
+    fs.writeFileSync(
         `${PUBLIC_DIR}/itemTypes.ephinea.json`,
         JSON.stringify(itemTypes, null, 4)
     );
