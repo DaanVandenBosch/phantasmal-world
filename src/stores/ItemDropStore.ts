@@ -1,10 +1,13 @@
 import { observable } from "mobx";
-import { Difficulties, Difficulty, EnemyDrop, NpcType, SectionId, SectionIds, Server, ItemType } from "../domain";
+import { Difficulties, Difficulty, EnemyDrop, NpcType, SectionId, SectionIds, Server } from "../domain";
 import { NpcTypes } from "../domain/NpcType";
 import { EnemyDropDto } from "../dto";
 import { Loadable } from "../Loadable";
 import { itemTypeStores } from "./ItemTypeStore";
 import { ServerMap } from "./ServerMap";
+import Logger from 'js-logger';
+
+const logger = Logger.get('stores/ItemDropStore');
 
 class EnemyDropTable {
     // Mapping of difficulties to section IDs to NpcTypes to EnemyDrops.
@@ -12,7 +15,7 @@ class EnemyDropTable {
         new Array(Difficulties.length * SectionIds.length * NpcTypes.length);
 
     // Mapping of ItemType ids to EnemyDrops.
-    private itemTypeToDrops: Array<Array<EnemyDrop>> = new Array();
+    private itemTypeToDrops: Array<Array<EnemyDrop>> = [];
 
     getDrop(difficulty: Difficulty, sectionId: SectionId, npcType: NpcType): EnemyDrop | undefined {
         return this.table[
@@ -60,7 +63,7 @@ class ItemDropStore {
             const npcType = NpcType.byCode(dropDto.enemy);
 
             if (!npcType) {
-                console.warn(`Couldn't determine NpcType of episode ${dropDto.episode} ${dropDto.enemy}.`);
+                logger.warn(`Couldn't determine NpcType of episode ${dropDto.episode} ${dropDto.enemy}.`);
                 continue;
             }
 
@@ -68,14 +71,14 @@ class ItemDropStore {
             const itemType = itemTypeStore.getById(dropDto.itemTypeId);
 
             if (!itemType) {
-                console.warn(`Couldn't find item kind ${dropDto.itemTypeId}.`);
+                logger.warn(`Couldn't find item kind ${dropDto.itemTypeId}.`);
                 continue;
             }
 
             const sectionId = (SectionId as any)[dropDto.sectionId];
 
             if (sectionId == null) {
-                console.warn(`Couldn't find section ID ${dropDto.sectionId}.`);
+                logger.warn(`Couldn't find section ID ${dropDto.sectionId}.`);
                 continue;
             }
 

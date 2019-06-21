@@ -1,4 +1,7 @@
-import { ArrayBufferCursor } from '../ArrayBufferCursor';
+import { ArrayBufferCursor } from '../../ArrayBufferCursor';
+import Logger from 'js-logger';
+
+const logger = Logger.get('bin-data/parsing/quest/qst');
 
 interface QstContainedFile {
     name: string;
@@ -60,7 +63,8 @@ export function parseQst(cursor: ArrayBufferCursor): ParseQstResult | undefined 
             files
         };
     } else {
-        console.error(`Can't parse ${version} QST files.`);
+        logger.error(`Can't parse ${version} QST files.`);
+        return undefined;
     }
 }
 
@@ -154,7 +158,7 @@ function parseFiles(cursor: ArrayBufferCursor, expectedSizes: Map<string, number
         }
 
         if (file.chunkNos.has(chunkNo)) {
-            console.warn(`File chunk number ${chunkNo} of file ${fileName} was already encountered, overwriting previous chunk.`);
+            logger.warn(`File chunk number ${chunkNo} of file ${fileName} was already encountered, overwriting previous chunk.`);
         } else {
             file.chunkNos.add(chunkNo);
         }
@@ -164,7 +168,7 @@ function parseFiles(cursor: ArrayBufferCursor, expectedSizes: Map<string, number
         cursor.seek(-1028);
 
         if (size > 1024) {
-            console.warn(`Data segment size of ${size} is larger than expected maximum size, reading just 1024 bytes.`);
+            logger.warn(`Data segment size of ${size} is larger than expected maximum size, reading just 1024 bytes.`);
             size = 1024;
         }
 
@@ -188,7 +192,7 @@ function parseFiles(cursor: ArrayBufferCursor, expectedSizes: Map<string, number
 
         // Check whether the expected size was correct.
         if (file.expectedSize != null && file.data.size !== file.expectedSize) {
-            console.warn(`File ${file.name} has an actual size of ${file.data.size} instead of the expected size ${file.expectedSize}.`);
+            logger.warn(`File ${file.name} has an actual size of ${file.data.size} instead of the expected size ${file.expectedSize}.`);
         }
 
         // Detect missing file chunks.
@@ -196,7 +200,7 @@ function parseFiles(cursor: ArrayBufferCursor, expectedSizes: Map<string, number
 
         for (let chunkNo = 0; chunkNo < Math.ceil(actualSize / 1024); ++chunkNo) {
             if (!file.chunkNos.has(chunkNo)) {
-                console.warn(`File ${file.name} is missing chunk ${chunkNo}.`);
+                logger.warn(`File ${file.name} is missing chunk ${chunkNo}.`);
             }
         }
     }

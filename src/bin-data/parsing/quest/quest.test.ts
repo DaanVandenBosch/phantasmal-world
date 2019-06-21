@@ -1,7 +1,7 @@
 import * as fs from 'fs';
-import { ArrayBufferCursor } from '../ArrayBufferCursor';
-import { parseQuest, writeQuestQst } from './quest';
-import { ObjectType, Quest } from '../../domain';
+import { ArrayBufferCursor } from '../../ArrayBufferCursor';
+import { parseQuest, writeQuestQst } from '.
+import { ObjectType, Quest } from '../../../domain';
 
 test('parse Towards the Future', () => {
     const buffer = fs.readFileSync('test/resources/quest118_e.qst').buffer;

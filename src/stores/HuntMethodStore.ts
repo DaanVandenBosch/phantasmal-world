@@ -2,6 +2,9 @@ import { observable } from "mobx";
 import { HuntMethod, NpcType, Server, SimpleNpc, SimpleQuest } from "../domain";
 import { Loadable } from "../Loadable";
 import { ServerMap } from "./ServerMap";
+import Logger from 'js-logger';
+
+const logger = Logger.get('stores/HuntMethodStore');
 
 class HuntMethodStore {
     @observable methods: ServerMap<Loadable<Array<HuntMethod>>> = new ServerMap(server =>
@@ -35,7 +38,7 @@ class HuntMethodStore {
                         enemies.push(new SimpleNpc(type));
                     }
                 } else {
-                    console.error(`Couldn't get type for cellI ${cellI}.`);
+                    logger.error(`Couldn't get type for cellI ${cellI}.`);
                 }
 
                 return enemies;

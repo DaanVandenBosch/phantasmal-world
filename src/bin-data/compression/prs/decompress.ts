@@ -1,9 +1,10 @@
 /**
  * This code is based on the Sylverant PRS decompression code written by Lawrence Sebald.
  */
-
-/*eslint no-use-before-define: "off"*/
 import { ArrayBufferCursor } from '../../ArrayBufferCursor';
+import Logger from 'js-logger';
+
+const logger = Logger.get('bin-data/compression/prs/decompress');
 
 export function decompress(cursor: ArrayBufferCursor) {
     const ctx = new Context(cursor);
@@ -94,11 +95,11 @@ class Context {
 
     offsetCopy(offset: number, length: number) {
         if (offset < -8192 || offset > 0) {
-            console.error(`offset was ${offset}, should be between -8192 and 0.`);
+            logger.error(`offset was ${offset}, should be between -8192 and 0.`);
         }
 
         if (length < 1 || length > 256) {
-            console.error(`length was ${length}, should be between 1 and 256.`);
+            logger.error(`length was ${length}, should be between 1 and 256.`);
         }
 
         // The length can be larger than -offset, in that case we copy -offset bytes size/-offset times.

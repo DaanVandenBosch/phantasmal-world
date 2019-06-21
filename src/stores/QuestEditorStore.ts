@@ -8,6 +8,9 @@ import { parseQuest, writeQuestQst } from '../bin-data/parsing/quest';
 import { Area, Quest, QuestEntity, Section, Vec3 } from '../domain';
 import { createNpcMesh, createObjectMesh } from '../rendering/entities';
 import { createModelMesh } from '../rendering/models';
+import Logger from 'js-logger';
+
+const logger = Logger.get('stores/QuestEditorStore');
 
 class QuestEditorStore {
     @observable currentModel?: Object3D;
@@ -62,7 +65,7 @@ class QuestEditorStore {
     // TODO: notify user of problems.
     private loadend = async (file: File, reader: FileReader) => {
         if (!(reader.result instanceof ArrayBuffer)) {
-            console.error('Couldn\'t read file.');
+            logger.error('Couldn\'t read file.');
             return;
         }
 
@@ -87,7 +90,7 @@ class QuestEditorStore {
                             this.setSectionOnVisibleQuestEntity(object, sections);
                             object.object3d = createObjectMesh(object, geometry);
                         } catch (e) {
-                            console.error(e);
+                            logger.error(e);
                         }
                     }
 
@@ -98,12 +101,12 @@ class QuestEditorStore {
                             this.setSectionOnVisibleQuestEntity(npc, sections);
                             npc.object3d = createNpcMesh(npc, geometry);
                         } catch (e) {
-                            console.error(e);
+                            logger.error(e);
                         }
                     }
                 }
             } else {
-                console.error('Couldn\'t parse quest file.');
+                logger.error('Couldn\'t parse quest file.');
             }
         }
     }
@@ -122,7 +125,7 @@ class QuestEditorStore {
             y += secY;
             z = rotZ + secZ;
         } else {
-            console.warn(`Section ${entity.sectionId} not found.`);
+            logger.warn(`Section ${entity.sectionId} not found.`);
         }
 
         entity.position = new Vec3(x, y, z);

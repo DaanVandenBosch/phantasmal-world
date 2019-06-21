@@ -1,5 +1,8 @@
 import { groupBy } from 'lodash';
-import { ArrayBufferCursor } from '../ArrayBufferCursor';
+import { ArrayBufferCursor } from '../../ArrayBufferCursor';
+import Logger from 'js-logger';
+
+const logger = Logger.get('bin-data/parsing/quest/dat');
 
 const OBJECT_SIZE = 68;
 const NPC_SIZE = 72;
@@ -83,7 +86,7 @@ export function parseDat(cursor: ArrayBufferCursor): DatFile {
                 const bytesRead = cursor.position - startPosition;
 
                 if (bytesRead !== entitiesSize) {
-                    console.warn(`Read ${bytesRead} bytes instead of expected ${entitiesSize} for entity type ${entityType} (Object).`);
+                    logger.warn(`Read ${bytesRead} bytes instead of expected ${entitiesSize} for entity type ${entityType} (Object).`);
                     cursor.seek(entitiesSize - bytesRead);
                 }
             } else if (entityType === 2) { // NPCs
@@ -119,7 +122,7 @@ export function parseDat(cursor: ArrayBufferCursor): DatFile {
                 const bytesRead = cursor.position - startPosition;
 
                 if (bytesRead !== entitiesSize) {
-                    console.warn(`Read ${bytesRead} bytes instead of expected ${entitiesSize} for entity type ${entityType} (NPC).`);
+                    logger.warn(`Read ${bytesRead} bytes instead of expected ${entitiesSize} for entity type ${entityType} (NPC).`);
                     cursor.seek(entitiesSize - bytesRead);
                 }
             } else {

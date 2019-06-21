@@ -1,6 +1,6 @@
-import { ArrayBufferCursor } from '../ArrayBufferCursor';
+import { ArrayBufferCursor } from '../../ArrayBufferCursor';
 import { parseQst, writeQst } from './qst';
-import { walkQstFiles  } from '../../../test/src/utils';
+import { walkQstFiles  } from '../../../../test/src/utils';
 
 /**
  * Parse a file, convert the resulting structure to QST again and check whether the end result is equal to the original.

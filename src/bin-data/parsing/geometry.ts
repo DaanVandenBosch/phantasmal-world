@@ -12,6 +12,9 @@ import {
     Vector3
 } from 'three';
 import { Vec3, Section } from '../../domain';
+import Logger from 'js-logger';
+
+const logger = Logger.get('bin-data/parsing/geometry');
 
 export function parseCRel(arrayBuffer: ArrayBuffer): Object3D {
     const dv = new DataView(arrayBuffer);
@@ -160,7 +163,7 @@ export function parseNRel(
         const simpleGeometryOffsetCount = dv.getUint32(i + 40, true);
         // const complexGeometryOffsetCount = dv.getUint32(i + 44, true);
 
-        // console.log(`section id: ${sectionId}, section rotation: ${sectionRotation}, simple vertices: ${simpleGeometryOffsetCount}, complex vertices: ${complexGeometryOffsetCount}`);
+        // logger.log(`section id: ${sectionId}, section rotation: ${sectionRotation}, simple vertices: ${simpleGeometryOffsetCount}, complex vertices: ${complexGeometryOffsetCount}`);
 
         for (
             let j = simpleGeometryOffsetTableOffset;
@@ -184,7 +187,7 @@ export function parseNRel(
                 // const transparentObjectTableOffset = dv.getUint32(blockOffset + 20, true);
                 // const transparentObjectCount = dv.getUint32(blockOffset + 24, true);
 
-                // console.log(`block offset: ${blockOffset}, vertex info count: ${vertexInfoCount}, object table offset ${objectTableOffset}, object count: ${objectCount}, transparent object count: ${transparentObjectCount}`);
+                // logger.log(`block offset: ${blockOffset}, vertex info count: ${vertexInfoCount}, object table offset ${objectTableOffset}, object count: ${objectCount}, transparent object count: ${transparentObjectCount}`);
 
                 const geomIndexLists = [];
 
@@ -217,7 +220,7 @@ export function parseNRel(
 
                 // Assume vertexInfoCount == 1. TODO: Does that make sense?
                 if (vertexInfoCount > 1) {
-                    console.warn(`Vertex info count of ${vertexInfoCount} was larger than expected.`);
+                    logger.warn(`Vertex info count of ${vertexInfoCount} was larger than expected.`);
                 }
 
                 // const vertexType = dv.getUint32(vertexInfoTableOffset, true);
@@ -225,7 +228,7 @@ export function parseNRel(
                 const vertexSize = dv.getUint32(vertexInfoTableOffset + 8, true);
                 const vertexCount = dv.getUint32(vertexInfoTableOffset + 12, true);
 
-                // console.log(`vertex type: ${vertexType}, vertex size: ${vertexSize}, vertex count: ${vertexCount}`);
+                // logger.log(`vertex type: ${vertexType}, vertex size: ${vertexSize}, vertex count: ${vertexCount}`);
 
                 const geomPositions = [];
                 const geomNormals = [];
@@ -253,7 +256,7 @@ export function parseNRel(
                             // TODO: color, texture coords.
                             break;
                         default:
-                            console.error(`Unexpected vertex size of ${vertexSize}.`);
+                            logger.error(`Unexpected vertex size of ${vertexSize}.`);
                             continue;
                     }
 
@@ -275,7 +278,7 @@ export function parseNRel(
                 positionListsList.push(geomPositions);
                 normalListsList.push(geomNormals);
             } else {
-                // console.error(`Block offset at ${offset + 4} was ${blockOffset}.`);
+                // logger.error(`Block offset at ${offset + 4} was ${blockOffset}.`);
             }
         }
 

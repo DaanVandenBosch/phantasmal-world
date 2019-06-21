@@ -1,4 +1,7 @@
-import { ArrayBufferCursor } from '../ArrayBufferCursor';
+import { ArrayBufferCursor } from '../../ArrayBufferCursor';
+import Logger from 'js-logger';
+
+const logger = Logger.get('bin-data/parsing/quest/bin');
 
 export interface BinFile {
     questNumber: number;
@@ -23,7 +26,7 @@ export function parseBin(cursor: ArrayBufferCursor): BinFile {
     const longDescription = cursor.stringUtf16(576, true, true);
 
     if (size !== cursor.size) {
-        console.warn(`Value ${size} in bin size field does not match actual size ${cursor.size}.`);
+        logger.warn(`Value ${size} in bin size field does not match actual size ${cursor.size}.`);
     }
 
     const functionOffsetCount = Math.floor(
@@ -94,7 +97,7 @@ function parseObjectCode(cursor: ArrayBufferCursor): Instruction[] {
         const opargs = parseInstructionArguments(cursor, mask);
 
         if (!opargs) {
-            console.error(`Parameters unknown for opcode 0x${opcode.toString(16).toUpperCase()}.`);
+            logger.error(`Parameters unknown for opcode 0x${opcode.toString(16).toUpperCase()}.`);
             break;
         }
 

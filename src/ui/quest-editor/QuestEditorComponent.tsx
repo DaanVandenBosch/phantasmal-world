@@ -91,6 +91,8 @@ class Toolbar extends React.Component<{ onSaveAsClicked: (filename?: string) => 
                     accept=".nj, .qst, .xj"
                     showUploadList={false}
                     onChange={this.setFilename}
+                    // Make sure it doesn't do a POST:
+                    customRequest={() => false}
                 >
                     <Button icon="file">{this.state.filename || 'Choose file...'}</Button>
                 </Upload>

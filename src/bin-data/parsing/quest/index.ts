@@ -1,5 +1,5 @@
-import { ArrayBufferCursor } from '../ArrayBufferCursor';
-import * as prs from '../compression/prs';
+import { ArrayBufferCursor } from '../../ArrayBufferCursor';
+import * as prs from '../../compression/prs';
 import { parseDat, writeDat, DatObject, DatNpc } from './dat';
 import { parseBin, writeBin, Instruction } from './bin';
 import { parseQst, writeQst } from './qst';
@@ -11,8 +11,11 @@ import {
     Quest,
     ObjectType,
     NpcType
-} from '../../domain';
-import { areaStore } from '../../stores/AreaStore';
+} from '../../../domain';
+import { areaStore } from '../../../stores/AreaStore';
+import Logger from 'js-logger';
+
+const logger = Logger.get('bin-data/parsing/quest');
 
 /**
  * High level parsing function that delegates to lower level parsing functions.
@@ -40,12 +43,12 @@ export function parseQuest(cursor: ArrayBufferCursor): Quest | undefined {
     // TODO: deal with missing/multiple DAT or BIN file.
 
     if (!datFile) {
-        console.error('File contains no DAT file.');
+        logger.error('File contains no DAT file.');
         return;
     }
 
     if (!binFile) {
-        console.error('File contains no BIN file.');
+        logger.error('File contains no BIN file.');
         return;
     }
 
@@ -61,10 +64,10 @@ export function parseQuest(cursor: ArrayBufferCursor): Quest | undefined {
             episode = getEpisode(func0Ops);
             areaVariants = getAreaVariants(episode, func0Ops);
         } else {
-            console.warn(`Function 0 offset ${bin.functionOffsets[0]} is invalid.`);
+            logger.warn(`Function 0 offset ${bin.functionOffsets[0]} is invalid.`);
         }
     } else {
-        console.warn('File contains no functions.');
+        logger.warn('File contains no functions.');
     }
 
     return new Quest(
@@ -121,7 +124,7 @@ function getEpisode(func0Ops: Instruction[]): number {
             case 2: return 4;
         }
     } else {
-        console.warn('Function 0 has no set_episode instruction.');
+        logger.debug('Function 0 has no set_episode instruction.');
         return 1;
     }
 }

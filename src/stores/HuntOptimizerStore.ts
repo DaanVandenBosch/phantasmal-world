@@ -5,6 +5,9 @@ import { applicationStore } from './ApplicationStore';
 import { huntMethodStore } from "./HuntMethodStore";
 import { itemDropStores } from './ItemDropStore';
 import { itemTypeStores } from './ItemTypeStore';
+import Logger from 'js-logger';
+
+const logger = Logger.get('stores/HuntOptimizerStore');
 
 export class WantedItem {
     @observable readonly itemType: ItemType;
@@ -63,7 +66,7 @@ class HuntOptimizerStore {
             await this.loadFromLocalStorage();
             autorun(this.storeInLocalStorage);
         } catch (e) {
-            console.error(e);
+            logger.error(e);
         }
     }
 
@@ -104,7 +107,7 @@ class HuntOptimizerStore {
                 )
             );
         } catch (e) {
-            console.error(e);
+            logger.error(e);
         }
     }
 

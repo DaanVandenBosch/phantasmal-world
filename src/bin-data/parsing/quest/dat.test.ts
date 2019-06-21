@@ -1,6 +1,6 @@
 import * as fs from 'fs';
-import { ArrayBufferCursor } from '../ArrayBufferCursor';
-import * as prs from '../compression/prs';
+import { ArrayBufferCursor } from '../../ArrayBufferCursor';
+import * as prs from '../../compression/prs';
 import { parseDat, writeDat } from './dat';
 
 /**

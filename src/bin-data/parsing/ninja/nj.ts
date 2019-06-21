@@ -1,5 +1,8 @@
 import { Matrix3, Matrix4, Vector3 } from 'three';
 import { ArrayBufferCursor } from '../../ArrayBufferCursor';
+import Logger from 'js-logger';
+
+const logger = Logger.get('bin-data/parsing/ninja/nj');
 
 // TODO:
 // - deal with multiple NJCM chunks
@@ -157,7 +160,7 @@ function parseChunks(cursor: ArrayBufferCursor, cachedChunkOffsets: number[], wi
             loop = false;
         } else {
             // Ignore unknown chunks.
-            console.warn(`Unknown chunk type: ${chunkTypeId}.`);
+            logger.warn(`Unknown chunk type: ${chunkTypeId}.`);
             size = 2 + 2 * cursor.u16();
         }
 
