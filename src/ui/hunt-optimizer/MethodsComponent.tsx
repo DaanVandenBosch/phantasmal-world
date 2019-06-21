@@ -3,12 +3,11 @@ import { observer } from "mobx-react";
 import moment, { Moment } from "moment";
 import React from "react";
 import { AutoSizer, Index } from "react-virtualized";
-import { HuntMethod, Episode } from "../../domain";
+import { Episode, HuntMethod } from "../../domain";
 import { EnemyNpcTypes } from "../../domain/NpcType";
 import { huntMethodStore } from "../../stores/HuntMethodStore";
-import { Column, BigTable } from "../BigTable";
+import { BigTable, Column } from "../BigTable";
 import "./MethodsComponent.css";
-import { hoursToString } from "../time";
 
 @observer
 export class MethodsComponent extends React.Component {
@@ -28,9 +27,7 @@ export class MethodsComponent extends React.Component {
             {
                 name: 'Time',
                 width: 50,
-                cellRenderer: (method) => hoursToString(method.time),
-                // TODO: enable when methods have IDs so edits can be saved.
-                // cellRenderer: (method) => <TimeComponent method={method} />,
+                cellRenderer: (method) => <TimeComponent method={method} />,
                 className: 'integrated',
             },
         ];

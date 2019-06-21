@@ -55,61 +55,12 @@ class HuntOptimizerStore {
         );
     }
 
+    // TODO: wanted items per server.
     @observable readonly wantedItems: IObservableArray<WantedItem> = observable.array();
     @observable result?: OptimalResult;
 
     constructor() {
         this.initialize();
-    }
-
-    initialize = async () => {
-        try {
-            await this.loadFromLocalStorage();
-            autorun(this.storeInLocalStorage);
-        } catch (e) {
-            logger.error(e);
-        }
-    }
-
-    loadFromLocalStorage = async () => {
-        const wantedItemsJson = localStorage.getItem(
-            `HuntOptimizerStore.wantedItems.${Server[applicationStore.currentServer]}`
-        );
-
-        if (wantedItemsJson) {
-            const itemStore = await itemTypeStores.current.promise;
-            const wi = JSON.parse(wantedItemsJson);
-
-            const wantedItems: WantedItem[] = [];
-
-            for (const { itemTypeId, itemKindId, amount } of wi) {
-                const item = itemTypeId != null
-                    ? itemStore.getById(itemTypeId)
-                    : itemStore.getById(itemKindId); // Legacy name.
-
-                if (item) {
-                    wantedItems.push(new WantedItem(item, amount));
-                }
-            }
-
-            this.wantedItems.replace(wantedItems);
-        }
-    }
-
-    storeInLocalStorage = () => {
-        try {
-            localStorage.setItem(
-                `HuntOptimizerStore.wantedItems.${Server[applicationStore.currentServer]}`,
-                JSON.stringify(
-                    this.wantedItems.map(({ itemType, amount }) => ({
-                        itemTypeId: itemType.id,
-                        amount
-                    }))
-                )
-            );
-        } catch (e) {
-            logger.error(e);
-        }
     }
 
     optimize = async () => {
@@ -346,6 +297,56 @@ class HuntOptimizerStore {
         let name = `${difficulty}\t${sectionId}\t${method.id}`;
         if (splitPanArms) name += '\tspa';
         return name;
+    }
+
+    private initialize = async () => {
+        try {
+            await this.loadFromLocalStorage();
+            autorun(this.storeInLocalStorage);
+        } catch (e) {
+            logger.error(e);
+        }
+    }
+
+    private loadFromLocalStorage = async () => {
+        const wantedItemsJson = localStorage.getItem(
+            `HuntOptimizerStore.wantedItems.${Server[applicationStore.currentServer]}`
+        );
+
+        if (wantedItemsJson) {
+            const itemStore = await itemTypeStores.current.promise;
+            const wi = JSON.parse(wantedItemsJson);
+
+            const wantedItems: WantedItem[] = [];
+
+            for (const { itemTypeId, itemKindId, amount } of wi) {
+                const item = itemTypeId != null
+                    ? itemStore.getById(itemTypeId)
+                    : itemStore.getById(itemKindId); // Legacy name.
+
+                if (item) {
+                    wantedItems.push(new WantedItem(item, amount));
+                }
+            }
+
+            this.wantedItems.replace(wantedItems);
+        }
+    }
+
+    private storeInLocalStorage = () => {
+        try {
+            localStorage.setItem(
+                `HuntOptimizerStore.wantedItems.${Server[applicationStore.currentServer]}`,
+                JSON.stringify(
+                    this.wantedItems.map(({ itemType, amount }) => ({
+                        itemTypeId: itemType.id,
+                        amount
+                    }))
+                )
+            );
+        } catch (e) {
+            logger.error(e);
+        }
     }
 }
 
