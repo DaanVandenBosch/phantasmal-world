@@ -2,9 +2,9 @@ import { computed } from "mobx";
 import { observer } from "mobx-react";
 import React from "react";
 import { AutoSizer, Index } from "react-virtualized";
-import { Difficulty, SectionId } from "../../domain";
+import { Difficulty, Episode, SectionId } from "../../domain";
 import { huntOptimizerStore, OptimalMethod } from "../../stores/HuntOptimizerStore";
-import { Column, BigTable } from "../BigTable";
+import { BigTable, Column } from "../BigTable";
 import { SectionIdIcon } from "../SectionIdIcon";
 import { hoursToString } from "../time";
 import "./OptimizationResultComponent.less";
@@ -35,6 +35,11 @@ export class OptimizationResultComponent extends React.Component {
                 width: 200,
                 cellRenderer: (result) => result.methodName,
                 tooltip: (result) => result.methodName,
+            },
+            {
+                name: 'Ep.',
+                width: 34,
+                cellRenderer: (result) => Episode[result.methodEpisode],
             },
             {
                 name: 'Section ID',

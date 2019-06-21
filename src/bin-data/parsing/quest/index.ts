@@ -22,7 +22,7 @@ const logger = Logger.get('bin-data/parsing/quest');
  * 
  * Always delegates to parseQst at the moment.
  */
-export function parseQuest(cursor: ArrayBufferCursor): Quest | undefined {
+export function parseQuest(cursor: ArrayBufferCursor, lenient: boolean = false): Quest | undefined {
     const qst = parseQst(cursor);
 
     if (!qst) {
@@ -33,9 +33,11 @@ export function parseQuest(cursor: ArrayBufferCursor): Quest | undefined {
     let binFile = null;
 
     for (const file of qst.files) {
-        if (file.name.endsWith('.dat')) {
+        const fileName = file.name.trim().toLowerCase();
+
+        if (fileName.endsWith('.dat')) {
             datFile = file;
-        } else if (file.name.endsWith('.bin')) {
+        } else if (fileName.endsWith('.bin')) {
             binFile = file;
         }
     }
@@ -53,7 +55,7 @@ export function parseQuest(cursor: ArrayBufferCursor): Quest | undefined {
     }
 
     const dat = parseDat(prs.decompress(datFile.data));
-    const bin = parseBin(prs.decompress(binFile.data));
+    const bin = parseBin(prs.decompress(binFile.data), lenient);
     let episode = 1;
     let areaVariants: AreaVariant[] = [];
 
@@ -62,7 +64,7 @@ export function parseQuest(cursor: ArrayBufferCursor): Quest | undefined {
 
         if (func0Ops) {
             episode = getEpisode(func0Ops);
-            areaVariants = getAreaVariants(episode, func0Ops);
+            areaVariants = getAreaVariants(episode, func0Ops, lenient);
         } else {
             logger.warn(`Function 0 offset ${bin.functionOffsets[0]} is invalid.`);
         }
@@ -129,7 +131,11 @@ function getEpisode(func0Ops: Instruction[]): number {
     }
 }
 
-function getAreaVariants(episode: number, func0Ops: Instruction[]): AreaVariant[] {
+function getAreaVariants(
+    episode: number,
+    func0Ops: Instruction[],
+    lenient: boolean
+): AreaVariant[] {
     const areaVariants = new Map();
     const bbMaps = func0Ops.filter(op => op.mnemonic === 'BB_Map_Designate');
 
@@ -139,12 +145,25 @@ function getAreaVariants(episode: number, func0Ops: Instruction[]): AreaVariant[
         areaVariants.set(areaId, variantId);
     }
 
+    const areaVariantsArray = new Array<AreaVariant>();
+
+    for (const [areaId, variantId] of areaVariants.entries()) {
+        try {
+            areaVariantsArray.push(
+                areaStore.getVariant(episode, areaId, variantId)
+            );
+        } catch (e) {
+            if (lenient) {
+                logger.error(`Unknown area variant.`, e);
+            } else {
+                throw e;
+            }
+        }
+    }
+
     // Sort by area order and then variant id.
-    return (
-        Array.from(areaVariants)
-            .map(([areaId, variantId]) =>
-                areaStore.getVariant(episode, areaId, variantId))
-            .sort((a, b) => a.area.order - b.area.order || a.id - b.id)
+    return areaVariantsArray.sort((a, b) =>
+        a.area.order - b.area.order || a.id - b.id
     );
 }
 

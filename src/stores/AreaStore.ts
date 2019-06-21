@@ -29,7 +29,10 @@ class AreaStore {
             area(8, 'Ruins 1', order++, 5),
             area(9, 'Ruins 2', order++, 5),
             area(10, 'Ruins 3', order++, 5),
-            area(14, 'Dark Falz', order++, 1)
+            area(14, 'Dark Falz', order++, 1),
+            area(15, 'BA Ruins', order++, 3),
+            area(16, 'BA Spaceship', order++, 3),
+            area(17, 'Lobby', order++, 15),
         ];
         order = 0;
         this.areas[2] = [

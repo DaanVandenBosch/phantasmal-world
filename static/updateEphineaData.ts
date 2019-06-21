@@ -4,11 +4,21 @@ import { parseItemPmt, ItemPmt } from '../src/bin-data/parsing/itempmt';
 import { parseUnitxt, Unitxt } from '../src/bin-data/parsing/unitxt';
 import { Difficulties, Difficulty, Episode, Episodes, NpcType, SectionId, SectionIds } from '../src/domain';
 import { NpcTypes } from '../src/domain/NpcType';
-import { BoxDropDto, EnemyDropDto, ItemTypeDto } from '../src/dto';
+import { BoxDropDto, EnemyDropDto, ItemTypeDto, QuestDto } from '../src/dto';
 import { updateDropsFromWebsite } from './updateDropsEphinea';
+import { parseQuest } from '../src/bin-data/parsing/quest';
+import Logger from 'js-logger';
+
+const logger = Logger.get('static/updateEphineaData');
+
+Logger.useDefaults({ defaultLevel: Logger.ERROR });
+logger.setLevel(Logger.INFO);
+Logger.get('static/updateDropsEphinea').setLevel(Logger.INFO);
+Logger.get('bin-data/parsing/quest').setLevel(Logger.OFF);
+Logger.get('bin-data/parsing/quest/bin').setLevel(Logger.OFF);
 
 /**
- * Used by scripts.
+ * Used by static data generation scripts.
  */
 const RESOURCE_DIR = './static/resources/ephinea';
 /**
@@ -16,7 +26,7 @@ const RESOURCE_DIR = './static/resources/ephinea';
  */
 const PUBLIC_DIR = './public';
 
-update().catch(e => console.error(e));
+update().catch(e => logger.error(e));
 
 /**
  * ItemPMT.bin and ItemPT.gsl comes from stock Tethealla. ItemPT.gsl is not used at the moment.
@@ -26,17 +36,111 @@ update().catch(e => console.error(e));
  *  - Red Ring has a requirement of 180, not 108
  */
 async function update() {
+    logger.info('Updating static Ephinea data.');
+
     const unitxt = loadUnitxt();
     const itemNames = unitxt[1];
     const items = updateItems(itemNames);
     await updateDropsFromWebsite(items);
+    updateQuests();
 
     // Use this if we ever get the Ephinea drop files.
     // const itemPt = await loadItemPt();
     // await updateDrops(itemPt);
+
+    logger.info('Done updating static Ephinea data.');
+}
+
+/**
+ * Shop quests are not processed.
+ * MAXIMUM ATTACK 3 Ver2 is ignored because its actual enemy count depends on the path taken.
+ *
+ * TODO: Missing quests:
+ *  - Maximum Attack 4th Stage -1R-
+ *  - Maximum Attack 4th Stage -2R-
+ *  - Maximum Attack 4th Stage -4R-
+ *  - Knight of Coral
+ *  - Knight of Coral Advent
+ *  - CAL's Clock Challenge
+ *  - The Value of Money (can't be parsed)
+ */
+function updateQuests() {
+    logger.info('Updating quest data.');
+
+    const quests = new Array<QuestDto>();
+    processQuestDir(`${RESOURCE_DIR}/ship-config/quest`, quests);
+
+    quests.sort((a, b) => a.episode - b.episode || a.name.localeCompare(b.name));
+
+    const idCounts = quests.reduce(
+        (counts, q) => counts.set(q.id, (counts.get(q.id) || 0) + 1),
+        new Map<number, number>()
+    );
+
+    for (const [id, count] of idCounts.entries()) {
+        if (count > 1) {
+            logger.error(`Duplicate quest ID ${id}, NOT writing quests file.`);
+            return;
+        }
+    }
+
+    fs.writeFileSync(`${PUBLIC_DIR}/quests.ephinea.json`, JSON.stringify(quests, null, 4));
+
+    logger.info('Done updating quest data.');
+}
+
+function processQuestDir(path: string, quests: QuestDto[]) {
+    const stat = fs.statSync(path);
+
+    if (stat.isFile()) {
+        processQuest(path, quests);
+    } else if (stat.isDirectory()) {
+        for (const file of fs.readdirSync(path)) {
+            processQuestDir(`${path}/${file}`, quests);
+        }
+    }
+}
+
+function processQuest(path: string, quests: QuestDto[]) {
+    try {
+        const buf = fs.readFileSync(path);
+        const q = parseQuest(new ArrayBufferCursor(buf.buffer, true), true);
+
+        if (q) {
+            logger.trace(`Processing quest "${q.name}".`);
+
+            if (q.questNo == null) {
+                throw new Error('No questNo.');
+            } else if (q.questNo === 314) {
+                // Ignore MAXIMUM ATTACK 3 Ver2
+                return;
+            }
+
+            const enemyCounts: { [npcTypeCode: string]: number } = {};
+
+            for (const npc of q.npcs) {
+                if (npc.type.enemy) {
+                    enemyCounts[npc.type.code] = (enemyCounts[npc.type.code] || 0) + 1;
+                }
+            }
+
+            quests.push({
+                id: q.questNo,
+                name: q.name,
+                episode: q.episode,
+                enemyCounts
+            });
+        } else {
+            logger.error(`Couldn't process ${path}.`);
+        }
+    } catch (e) {
+        logger.error(`Couldn't process ${path}.`, e);
+    }
 }
 
 function loadUnitxt(): Unitxt {
+    logger.info('Loading unitxt_j.prs.');
+
     const buf = fs.readFileSync(
         `${RESOURCE_DIR}/client/data/unitxt_j.prs`
     );
@@ -45,10 +149,14 @@ function loadUnitxt(): Unitxt {
     // Strip custom Ephinea items until we have the Ephinea ItemPMT.bin.
     unitxt[1].splice(177, 50);
     unitxt[1].splice(639, 59);
+
+    logger.info('Done loading unitxt_j.prs.');
     return unitxt;
 }
 
 function updateItems(itemNames: Array<string>): ItemTypeDto[] {
+    logger.info('Updating item type data.');
+
     const buf = fs.readFileSync(
         `${RESOURCE_DIR}/ship-config/param/ItemPMT.bin`
     );
@@ -152,21 +260,24 @@ function updateItems(itemNames: Array<string>): ItemTypeDto[] {
         JSON.stringify(itemTypes, null, 4)
     );
 
+    logger.info('Done updating item type data.');
     return itemTypes;
 }
 
-async function updateDrops(itemPt: ItemPt) {
+function updateDrops(itemPt: ItemPt) {
+    logger.info('Updating drop data.');
+
     const enemyDrops = new Array<EnemyDropDto>();
 
     for (const diff of Difficulties) {
         for (const ep of Episodes) {
             for (const sid of SectionIds) {
-                enemyDrops.push(...await loadEnemyDrops(itemPt, diff, ep, sid));
+                enemyDrops.push(...loadEnemyDrops(itemPt, diff, ep, sid));
             }
         }
     }
 
-    await fs.promises.writeFile(
+    fs.writeFileSync(
         `${PUBLIC_DIR}/enemyDrops.ephinea.json`,
         JSON.stringify(enemyDrops, null, 4)
     );
@@ -176,15 +287,17 @@ async function updateDrops(itemPt: ItemPt) {
     for (const diff of Difficulties) {
         for (const ep of Episodes) {
             for (const sid of SectionIds) {
-                boxDrops.push(...await loadBoxDrops(diff, ep, sid));
+                boxDrops.push(...loadBoxDrops(diff, ep, sid));
             }
         }
     }
 
-    await fs.promises.writeFile(
+    fs.writeFileSync(
         `${PUBLIC_DIR}/boxDrops.ephinea.json`,
         JSON.stringify(boxDrops, null, 4)
     );
+
+    logger.info('Done updating drop data.');
 }
 
 type ItemP = {
@@ -193,6 +306,8 @@ type ItemP = {
 type ItemPt = Array<Array<Array<ItemP>>>
 
 async function loadItemPt(): Promise<ItemPt> {
+    logger.info('Loading ItemPT.gsl.');
+
     const table: ItemPt = [];
     const buf = await fs.promises.readFile(
         `${RESOURCE_DIR}/ship-config/param/ItemPT.gsl`
@@ -398,17 +513,18 @@ async function loadItemPt(): Promise<ItemPt> {
         }
     }
 
+    logger.info('Done loading ItemPT.gsl.');
     return table;
 }
 
-async function loadEnemyDrops(
+function loadEnemyDrops(
     itemPt: ItemPt,
     difficulty: Difficulty,
     episode: Episode,
     sectionId: SectionId
-): Promise<Array<EnemyDropDto>> {
+): Array<EnemyDropDto> {
     const drops: Array<EnemyDropDto> = [];
-    const dropsBuf = await fs.promises.readFile(
+    const dropsBuf = fs.readFileSync(
         `${RESOURCE_DIR}/login-config/drop/ep${episode}_mob_${difficulty}_${sectionId}.txt`
     );
 
@@ -428,7 +544,7 @@ async function loadEnemyDrops(
                 const dar = itemPt[episode][difficulty][sectionId].darTable.get(enemy);
 
                 if (dar == null) {
-                    console.error(`No DAR found for ${enemy.name}.`);
+                    logger.error(`No DAR found for ${enemy.name}.`);
                 } else if (rareRate > 0 && itemTypeId) {
                     drops.push({
                         difficulty: Difficulty[difficulty],
@@ -450,13 +566,13 @@ async function loadEnemyDrops(
     return drops;
 }
 
-async function loadBoxDrops(
+function loadBoxDrops(
     difficulty: Difficulty,
     episode: Episode,
     sectionId: SectionId
-): Promise<Array<BoxDropDto>> {
+): Array<BoxDropDto> {
     const drops: Array<BoxDropDto> = [];
-    const dropsBuf = await fs.promises.readFile(
+    const dropsBuf = fs.readFileSync(
         `${RESOURCE_DIR}/login-config/drop/ep${episode}_box_${difficulty}_${sectionId}.txt`
     );
 

@@ -14,7 +14,7 @@ export interface BinFile {
     data: ArrayBufferCursor;
 }
 
-export function parseBin(cursor: ArrayBufferCursor): BinFile {
+export function parseBin(cursor: ArrayBufferCursor, lenient: boolean = false): BinFile {
     const objectCodeOffset = cursor.u32();
     const functionOffsetTableOffset = cursor.u32(); // Relative offsets
     const size = cursor.u32();
@@ -40,7 +40,8 @@ export function parseBin(cursor: ArrayBufferCursor): BinFile {
     }
 
     const instructions = parseObjectCode(
-        cursor.seekStart(objectCodeOffset).take(functionOffsetTableOffset - objectCodeOffset)
+        cursor.seekStart(objectCodeOffset).take(functionOffsetTableOffset - objectCodeOffset),
+        lenient
     );
 
     return {
@@ -66,47 +67,55 @@ export interface Instruction {
     size: number;
 }
 
-function parseObjectCode(cursor: ArrayBufferCursor): Instruction[] {
+function parseObjectCode(cursor: ArrayBufferCursor, lenient: boolean): Instruction[] {
     const instructions = [];
 
-    while (cursor.bytesLeft) {
-        const mainOpcode = cursor.u8();
-        let opcode;
-        let opsize;
-        let list;
+    try {
+        while (cursor.bytesLeft) {
+            const mainOpcode = cursor.u8();
+            let opcode;
+            let opsize;
+            let list;
 
-        switch (mainOpcode) {
-            case 0xF8:
-                opcode = cursor.u8();
-                opsize = 2;
-                list = F8opcodeList;
+            switch (mainOpcode) {
+                case 0xF8:
+                    opcode = cursor.u8();
+                    opsize = 2;
+                    list = F8opcodeList;
+                    break;
+                case 0xF9:
+                    opcode = cursor.u8();
+                    opsize = 2;
+                    list = F9opcodeList;
+                    break;
+                default:
+                    opcode = mainOpcode;
+                    opsize = 1;
+                    list = opcodeList;
+                    break;
+            }
+
+            const [, mnemonic, mask] = list[opcode];
+            const opargs = parseInstructionArguments(cursor, mask);
+
+            if (!opargs) {
+                logger.error(`Parameters unknown for opcode 0x${opcode.toString(16).toUpperCase()}.`);
                 break;
-            case 0xF9:
-                opcode = cursor.u8();
-                opsize = 2;
-                list = F9opcodeList;
-                break;
-            default:
-                opcode = mainOpcode;
-                opsize = 1;
-                list = opcodeList;
-                break;
+            }
+
+            instructions.push({
+                opcode,
+                mnemonic,
+                args: opargs.args,
+                size: opsize + opargs.size
+            });
         }
-
-        const [, mnemonic, mask] = list[opcode];
-        const opargs = parseInstructionArguments(cursor, mask);
-
-        if (!opargs) {
-            logger.error(`Parameters unknown for opcode 0x${opcode.toString(16).toUpperCase()}.`);
-            break;
+    } catch (e) {
+        if (lenient) {
+            logger.error("Couldn't fully parse object code.", e);
+        } else {
+            throw e;
         }
-
-        instructions.push({
-            opcode,
-            mnemonic,
-            args: opargs.args,
-            size: opsize + opargs.size
-        });
     }
 
     return instructions;

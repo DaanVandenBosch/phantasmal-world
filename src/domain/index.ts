@@ -340,9 +340,8 @@ export class EnemyDrop implements ItemDrop {
 export class HuntMethod {
     readonly id: string;
     readonly name: string;
+    readonly episode: Episode;
     readonly quest: SimpleQuest;
-    readonly npcs: Array<SimpleNpc>;
-    readonly enemies: Array<SimpleNpc>;
     readonly enemyCounts: Map<NpcType, number>;
     /**
      * The time it takes to complete the quest in hours.
@@ -370,15 +369,9 @@ export class HuntMethod {
 
         this.id = id;
         this.name = name;
+        this.episode = quest.episode;
         this.quest = quest;
-        this.npcs = this.quest.npcs;
-        this.enemies = this.npcs.filter(npc => npc.type.enemy);
-        this.enemyCounts = new Map();
-
-        for (const npc of this.enemies) {
-            this.enemyCounts.set(npc.type, (this.enemyCounts.get(npc.type) || 0) + 1);
-        }
-
+        this.enemyCounts = quest.enemyCounts;
         this.defaultTime = defaultTime;
     }
 }
@@ -387,18 +380,11 @@ export class SimpleQuest {
     constructor(
         public readonly id: number,
         public readonly name: string,
-        public readonly npcs: SimpleNpc[]
+        public readonly episode: Episode,
+        public readonly enemyCounts: Map<NpcType, number>
     ) {
         if (!id) throw new Error('id is required.');
         if (!name) throw new Error('name is required.');
-        if (!npcs) throw new Error('npcs is required.');
-    }
-}
-
-export class SimpleNpc {
-    constructor(
-        public type: NpcType
-    ) {
-        if (!type) throw new Error('type is required.');
+        if (!enemyCounts) throw new Error('enemyCounts is required.');
     }
 }

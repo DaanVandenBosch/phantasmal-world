@@ -138,7 +138,7 @@ function parseFiles(cursor: ArrayBufferCursor, expectedSizes: Map<string, number
     // Each chunk has a 24 byte header, 1024 byte data segment and an 8 byte trailer.
     const files = new Map<string, QstContainedFile>();
 
-    while (cursor.bytesLeft) {
+    while (cursor.bytesLeft >= 1056) {
         const startPosition = cursor.position;
 
         // Read meta data.
@@ -183,6 +183,10 @@ function parseFiles(cursor: ArrayBufferCursor, expectedSizes: Map<string, number
         if (cursor.position !== startPosition + 1056) {
             throw new Error(`Read ${cursor.position - startPosition} file chunk message bytes instead of expected 1056.`);
         }
+    }
+
+    if (cursor.bytesLeft) {
+        logger.warn(`${cursor.bytesLeft} Bytes left in file.`);
     }
 
     for (const file of files.values()) {

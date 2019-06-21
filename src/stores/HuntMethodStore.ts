@@ -1,8 +1,9 @@
+import Logger from 'js-logger';
 import { observable } from "mobx";
-import { HuntMethod, NpcType, Server, SimpleNpc, SimpleQuest } from "../domain";
+import { HuntMethod, NpcType, Server, SimpleQuest } from "../domain";
+import { QuestDto } from "../dto";
 import { Loadable } from "../Loadable";
 import { ServerMap } from "./ServerMap";
-import Logger from 'js-logger';
 
 const logger = Logger.get('stores/HuntMethodStore');
 
@@ -13,46 +14,35 @@ class HuntMethodStore {
 
     private async loadHuntMethods(server: Server): Promise<HuntMethod[]> {
         const response = await fetch(
-            `${process.env.PUBLIC_URL}/quests.${Server[server].toLowerCase()}.tsv`
+            `${process.env.PUBLIC_URL}/quests.${Server[server].toLowerCase()}.json`
         );
-        const data = await response.text();
-        const rows = data.split('\n').map(line => line.split('\t'));
+        const quests = await response.json() as QuestDto[];
 
-        const npcTypeByIndex = rows[0].slice(2, -2).map((episode, i) => {
-            const enemy = rows[1][i + 2];
-            return NpcType.byNameAndEpisode(enemy, parseInt(episode, 10))!;
-        });
+        return quests.map(quest => {
+            let totalCount = 0;
+            const enemyCounts = new Map<NpcType, number>();
 
-        return rows.slice(2).map((row, i) => {
-            const questId = i + 1;
-            const questName = row[0];
-            const time = parseFloat(row[1]);
+            for (const [code, count] of Object.entries(quest.enemyCounts)) {
+                const npcType = NpcType.byCode(code);
 
-            const npcs = row.slice(2, -2).flatMap((cell, cellI) => {
-                const amount = parseInt(cell, 10);
-                const type = npcTypeByIndex[cellI];
-                const enemies = [];
-
-                if (type) {
-                    for (let i = 0; i < amount; i++) {
-                        enemies.push(new SimpleNpc(type));
-                    }
+                if (!npcType) {
+                    logger.error(`No NpcType found for code ${code}.`);
                 } else {
-                    logger.error(`Couldn't get type for cellI ${cellI}.`);
+                    enemyCounts.set(npcType, count);
+                    totalCount += count;
                 }
-
-                return enemies;
-            });
+            }
 
             return new HuntMethod(
-                `q${questId}`,
-                questName,
+                `q${quest.id}`,
+                quest.name,
                 new SimpleQuest(
-                    questId,
-                    questName,
-                    npcs
+                    quest.id,
+                    quest.name,
+                    quest.episode,
+                    enemyCounts
                 ),
-                time
+                /^\d-\d.*/.test(quest.name) ? 0.75 : (totalCount > 400 ? 0.75 : 0.5)
             );
         });
     }

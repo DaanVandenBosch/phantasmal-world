@@ -3,7 +3,7 @@ import { observer } from "mobx-react";
 import moment, { Moment } from "moment";
 import React from "react";
 import { AutoSizer, Index } from "react-virtualized";
-import { HuntMethod } from "../../domain";
+import { HuntMethod, Episode } from "../../domain";
 import { EnemyNpcTypes } from "../../domain/NpcType";
 import { huntMethodStore } from "../../stores/HuntMethodStore";
 import { Column, BigTable } from "../BigTable";
@@ -19,6 +19,11 @@ export class MethodsComponent extends React.Component {
                 name: 'Method',
                 width: 250,
                 cellRenderer: (method) => method.name,
+            },
+            {
+                name: 'Ep.',
+                width: 34,
+                cellRenderer: (method) => Episode[method.episode],
             },
             {
                 name: 'Time',

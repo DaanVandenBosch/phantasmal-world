@@ -3,8 +3,13 @@ import fs from 'fs';
 import 'isomorphic-fetch';
 import { Difficulty, NpcType, SectionId, SectionIds } from '../src/domain';
 import { BoxDropDto, EnemyDropDto, ItemTypeDto } from '../src/dto';
+import Logger from 'js-logger';
+
+const logger = Logger.get('static/updateDropsEphinea');
 
 export async function updateDropsFromWebsite(itemTypes: ItemTypeDto[]) {
+    logger.info('Updating item drops.');
+
     const normal = await download(itemTypes, Difficulty.Normal);
     const hard = await download(itemTypes, Difficulty.Hard);
     const vhard = await download(itemTypes, Difficulty.VHard, 'very-hard');
@@ -27,6 +32,8 @@ export async function updateDropsFromWebsite(itemTypes: ItemTypeDto[]) {
     ], null, 4);
 
     fs.writeFileSync('./public/boxDrops.ephinea.json', boxJson);
+
+    logger.info('Done updating item drops.');
 }
 
 async function download(
@@ -139,12 +146,12 @@ async function download(
 
                             data.items.add(item);
                         } catch (e) {
-                            console.error(`Error while processing item ${item} of ${enemyOrBox} in episode ${episode} ${Difficulty[difficulty]}.`, e);
+                            logger.error(`Error while processing item ${item} of ${enemyOrBox} in episode ${episode} ${Difficulty[difficulty]}.`, e);
                         }
                     }
                 });
             } catch (e) {
-                console.error(`Error while processing ${enemyOrBoxText} in episode ${episode} ${difficulty}.`, e);
+                logger.error(`Error while processing ${enemyOrBoxText} in episode ${episode} ${difficulty}.`, e);
             }
         });
     });

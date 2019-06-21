@@ -1,6 +1,6 @@
 import solver from 'javascript-lp-solver';
 import { autorun, IObservableArray, observable, computed } from "mobx";
-import { Difficulties, Difficulty, HuntMethod, ItemType, KONDRIEU_PROB, NpcType, RARE_ENEMY_PROB, SectionId, SectionIds, Server } from "../domain";
+import { Difficulties, Difficulty, HuntMethod, ItemType, KONDRIEU_PROB, NpcType, RARE_ENEMY_PROB, SectionId, SectionIds, Server, Episode } from "../domain";
 import { applicationStore } from './ApplicationStore';
 import { huntMethodStore } from "./HuntMethodStore";
 import { itemDropStores } from './ItemDropStore';
@@ -33,6 +33,7 @@ export class OptimalMethod {
         readonly difficulty: Difficulty,
         readonly sectionIds: Array<SectionId>,
         readonly methodName: string,
+        readonly methodEpisode: Episode,
         readonly methodTime: number,
         readonly runs: number,
         readonly itemCounts: Map<ItemType, number>
@@ -154,15 +155,15 @@ class HuntOptimizerStore {
             // Counts include rare enemies, so they are fractional.
             const counts = new Map<NpcType, number>();
 
-            for (const enemy of method.enemies) {
-                const count = counts.get(enemy.type);
+            for (const [enemy, count] of method.enemyCounts.entries()) {
+                const oldCount = counts.get(enemy) || 0;
 
-                if (enemy.type.rareType == null) {
-                    counts.set(enemy.type, (count || 0) + 1);
+                if (enemy.rareType == null) {
+                    counts.set(enemy, oldCount + count);
                 } else {
                     let rate, rareRate;
 
-                    if (enemy.type.rareType === NpcType.Kondrieu) {
+                    if (enemy.rareType === NpcType.Kondrieu) {
                         rate = 1 - KONDRIEU_PROB;
                         rareRate = KONDRIEU_PROB;
                     } else {
@@ -170,10 +171,11 @@ class HuntOptimizerStore {
                         rareRate = RARE_ENEMY_PROB;
                     }
 
-                    counts.set(enemy.type, (count || 0) + rate);
-
-                    const rareCount = counts.get(enemy.type.rareType);
-                    counts.set(enemy.type.rareType, (rareCount || 0) + rareRate);
+                    counts.set(enemy, oldCount + count * rate);
+                    counts.set(
+                        enemy.rareType,
+                        (counts.get(enemy.rareType) || 0) + count * rareRate
+                    );
                 }
             }
 
@@ -321,6 +323,7 @@ class HuntOptimizerStore {
                     difficulty,
                     sectionIds,
                     method.name + (splitPanArms ? ' (Split Pan Arms)' : ''),
+                    method.episode,
                     method.time,
                     runs,
                     items
