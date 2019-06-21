@@ -2562,37 +2562,6 @@
         }
     },
     {
-        "id": 31,
-        "name": "Black Paper's Dangerous Deal",
-        "episode": 4,
-        "enemyCounts": {
-            "SandRappy": 47,
-            "DelRappy": 1,
-            "Dorphon": 11,
-            "DorphonEclair": 1,
-            "Zu": 14,
-            "Pazuzu": 1
-        }
-    },
-    {
-        "id": 34,
-        "name": "Black Paper's Dangerous Deal 2",
-        "episode": 4,
-        "enemyCounts": {
-            "GoranDetonator": 5,
-            "MerissaAA": 3,
-            "PyroGoran": 14,
-            "MerissaA": 9,
-            "DelRappy": 6,
-            "SatelliteLizard": 9,
-            "Goran": 8,
-            "Girtablulu": 1,
-            "Zu": 3,
-            "Pazuzu": 1,
-            "SandRappy": 7
-        }
-    },
-    {
         "id": 902,
         "name": "Christmas Fiasco",
         "episode": 4,

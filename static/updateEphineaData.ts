@@ -53,7 +53,9 @@ async function update() {
 
 /**
  * Shop quests are not processed.
- * MAXIMUM ATTACK 3 Ver2 is ignored because its actual enemy count depends on the path taken.
+ * MAXIMUM ATTACK 3 Ver2 is left out because its actual enemy count depends on the path taken.
+ * Black Paper's Dangerous Deal and Black Paper's Dangerous Deal 2 are left out because their
+ * enemies don't drop anything.
  *
  * TODO: Missing quests:
  *  - Maximum Attack 4th Stage -1R-
@@ -111,9 +113,14 @@ function processQuest(path: string, quests: QuestDto[]) {
 
             if (q.questNo == null) {
                 throw new Error('No questNo.');
-            } else if (q.questNo === 314) {
-                // Ignore MAXIMUM ATTACK 3 Ver2
-                return;
+            } else {
+                // Filter out some quests.
+                switch (q.questNo) {
+                    case 31: // Black Paper's Dangerous Deal
+                    case 34: // Black Paper's Dangerous Deal 2
+                    case 314: // MAXIMUM ATTACK 3 Ver2
+                        return;
+                }
             }
 
             const enemyCounts: { [npcTypeCode: string]: number } = {};
