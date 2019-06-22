@@ -2562,6 +2562,37 @@
         }
     },
     {
+        "id": 31,
+        "name": "Black Paper's Dangerous Deal",
+        "episode": 4,
+        "enemyCounts": {
+            "SandRappy": 47,
+            "DelRappy": 1,
+            "Dorphon": 11,
+            "DorphonEclair": 1,
+            "Zu": 14,
+            "Pazuzu": 1
+        }
+    },
+    {
+        "id": 34,
+        "name": "Black Paper's Dangerous Deal 2",
+        "episode": 4,
+        "enemyCounts": {
+            "GoranDetonator": 5,
+            "MerissaAA": 3,
+            "PyroGoran": 14,
+            "MerissaA": 9,
+            "DelRappy": 6,
+            "SatelliteLizard": 9,
+            "Goran": 8,
+            "Girtablulu": 1,
+            "Zu": 3,
+            "Pazuzu": 1,
+            "SandRappy": 7
+        }
+    },
+    {
         "id": 902,
         "name": "Christmas Fiasco",
         "episode": 4,
@@ -2614,6 +2645,26 @@
             "Girtablulu": 14,
             "PyroGoran": 52,
             "GoranDetonator": 22
+        }
+    },
+    {
+        "id": 314,
+        "name": "MAXIMUM ATTACK 3 Ver2",
+        "episode": 4,
+        "enemyCounts": {
+            "BaBoota": 47,
+            "Zu": 46,
+            "SatelliteLizard": 237,
+            "SandRappy": 83,
+            "Astark": 54,
+            "Boota": 45,
+            "ZeBoota": 39,
+            "Dorphon": 10,
+            "MerissaA": 99,
+            "Goran": 101,
+            "PyroGoran": 103,
+            "GoranDetonator": 32,
+            "Girtablulu": 4
         }
     },
     {
