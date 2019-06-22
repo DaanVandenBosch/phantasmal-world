@@ -223,8 +223,8 @@ function parseNpcData(episode: number, npcs: DatNpc[]): QuestNpc[] {
 }
 
 // TODO: detect Mothmant, St. Rappy, Hallo Rappy, Egg Rappy, Death Gunner, Bulk and Recon.
-function getNpcType(episode: number, { typeId, unknown, skin, areaId }: DatNpc): NpcType {
-    const regular = (unknown[2][6] & 0x80) === 0;
+function getNpcType(episode: number, { typeId, flags, skin, areaId }: DatNpc): NpcType {
+    const regular = (flags & 0x800000) === 0;
 
     switch (`${typeId}, ${skin % 3}, ${episode}`) {
         case `${0x044}, 0, 1`: return NpcType.Booma;
@@ -392,11 +392,12 @@ function objectsToDatData(objects: QuestObject[]): DatObject[] {
 
 function npcsToDatData(npcs: QuestNpc[]): DatNpc[] {
     return npcs.map(npc => {
-        // If the type is unknown, typeData will be null and we use the raw data from the DAT file.
+        // If the type is unknown, typeData will be undefined and we use the raw data from the DAT file.
         const typeData = npcTypeToDatData(npc.type);
+        let flags = npc.dat.flags;
 
         if (typeData) {
-            npc.dat.unknown[2][18] = (npc.dat.unknown[2][18] & ~0x80) | (typeData.regular ? 0 : 0x80);
+            flags = (npc.dat.flags & ~0x800000) | (typeData.regular ? 0 : 0x800000);
         }
 
         return {
@@ -404,6 +405,7 @@ function npcsToDatData(npcs: QuestNpc[]): DatNpc[] {
             sectionId: npc.sectionId,
             position: npc.sectionPosition,
             rotation: npc.rotation,
+            flags,
             skin: typeData ? typeData.skin : npc.dat.skin,
             areaId: npc.areaId,
             unknown: npc.dat.unknown
