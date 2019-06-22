@@ -4,7 +4,8 @@
         "name": "1-1:Planet Ragol",
         "episode": 1,
         "enemyCounts": {
-            "SavageWolf": 40,
+            "BarbarousWolf": 4,
+            "SavageWolf": 36,
             "Gobooma": 7,
             "Booma": 40,
             "Monest": 4,
@@ -17,7 +18,8 @@
         "name": "1-2:Torrential Woods",
         "episode": 1,
         "enemyCounts": {
-            "SavageWolf": 26,
+            "SavageWolf": 19,
+            "BarbarousWolf": 7,
             "Booma": 35,
             "Gobooma": 31,
             "Monest": 3,
@@ -31,10 +33,11 @@
         "name": "1-3:Subterranean Den",
         "episode": 1,
         "enemyCounts": {
-            "SavageWolf": 43,
+            "SavageWolf": 33,
             "Gobooma": 32,
             "RagRappy": 12,
             "Booma": 45,
+            "BarbarousWolf": 10,
             "Gigobooma": 15,
             "Monest": 3,
             "Hildebear": 5,
@@ -78,8 +81,9 @@
             "GuilShark": 24,
             "GrassAssassin": 7,
             "PoisonLily": 41,
-            "PofuillySlime": 12,
+            "PouillySlime": 2,
             "NanoDragon": 12,
+            "PofuillySlime": 10,
             "PanArms": 13
         }
     },
@@ -105,10 +109,11 @@
         "name": "3-1:The Facility",
         "episode": 1,
         "enemyCounts": {
-            "SinowBeat": 14,
+            "SinowBeat": 12,
             "Canadine": 31,
             "Gilchic": 115,
             "Canane": 2,
+            "SinowGold": 2,
             "Dubchic": 3,
             "Dubswitch": 1
         }
@@ -118,13 +123,14 @@
         "name": "3-2:Machines Attack",
         "episode": 1,
         "enemyCounts": {
-            "SinowBeat": 16,
+            "SinowBeat": 14,
             "Canadine": 43,
             "Gilchic": 60,
             "Dubswitch": 7,
             "Dubchic": 22,
             "Garanz": 9,
-            "Canane": 2
+            "Canane": 2,
+            "SinowGold": 2
         }
     },
     {
@@ -132,9 +138,10 @@
         "name": "3-3:Central Control",
         "episode": 1,
         "enemyCounts": {
-            "SinowBeat": 22,
+            "SinowBeat": 16,
             "Gilchic": 93,
             "Canadine": 66,
+            "SinowGold": 6,
             "Canane": 3,
             "Dubchic": 11,
             "Dubswitch": 3,
@@ -147,11 +154,12 @@
         "name": "4-1:The Lost Ruins",
         "episode": 1,
         "enemyCounts": {
-            "SinowBeat": 12,
+            "SinowBeat": 8,
             "Canadine": 33,
             "Gilchic": 42,
             "Dubchic": 14,
             "Dubswitch": 4,
+            "SinowGold": 4,
             "Canane": 1,
             "Garanz": 3,
             "Dimenian": 61,
@@ -257,7 +265,8 @@
         "name": "Battle Training",
         "episode": 1,
         "enemyCounts": {
-            "SavageWolf": 14,
+            "BarbarousWolf": 2,
+            "SavageWolf": 12,
             "Gobooma": 3,
             "Booma": 14,
             "Monest": 2,
@@ -289,7 +298,8 @@
             "Gobooma": 19,
             "Booma": 9,
             "RagRappy": 19,
-            "SavageWolf": 33,
+            "BarbarousWolf": 14,
+            "SavageWolf": 19,
             "Hildebear": 4
         }
     },
@@ -308,9 +318,10 @@
             "Gilchic": 31,
             "Dubchic": 20,
             "Dubswitch": 5,
-            "SinowBeat": 31,
+            "SinowBeat": 17,
             "Canane": 8,
             "Canadine": 38,
+            "SinowGold": 14,
             "Garanz": 37,
             "ChaosBringer": 27,
             "Dimenian": 29,
@@ -376,7 +387,8 @@
             "Canadine": 15,
             "Dubchic": 13,
             "Dubswitch": 3,
-            "SinowBeat": 5
+            "SinowBeat": 3,
+            "SinowGold": 2
         }
     },
     {
@@ -387,8 +399,9 @@
             "Monest": 4,
             "Booma": 60,
             "RagRappy": 19,
-            "SavageWolf": 33,
+            "SavageWolf": 29,
             "Gobooma": 32,
+            "BarbarousWolf": 4,
             "Gigobooma": 23,
             "Hildebear": 8
         }
@@ -414,7 +427,8 @@
         "enemyCounts": {
             "Canadine": 68,
             "Gilchic": 108,
-            "SinowBeat": 62,
+            "SinowBeat": 48,
+            "SinowGold": 14,
             "Canane": 2,
             "Garanz": 10,
             "Dubchic": 37,
@@ -443,7 +457,8 @@
         "name": "Forest of Sorrow",
         "episode": 1,
         "enemyCounts": {
-            "SavageWolf": 21,
+            "SavageWolf": 14,
+            "BarbarousWolf": 7,
             "Booma": 26,
             "Gobooma": 15,
             "Monest": 4,
@@ -461,7 +476,8 @@
             "Dubchic": 23,
             "Garanz": 22,
             "Canane": 5,
-            "SinowBeat": 29,
+            "SinowBeat": 25,
+            "SinowGold": 4,
             "Canadine": 20,
             "Dubswitch": 5,
             "Dimenian": 70,
@@ -559,9 +575,10 @@
             "Monest": 7,
             "Booma": 24,
             "RagRappy": 15,
-            "SavageWolf": 22,
+            "SavageWolf": 18,
             "Gobooma": 13,
             "Gigobooma": 7,
+            "BarbarousWolf": 4,
             "Hildebear": 4
         }
     },
@@ -570,9 +587,10 @@
         "name": "Journalistic Pursuit",
         "episode": 1,
         "enemyCounts": {
-            "SavageWolf": 13,
+            "SavageWolf": 12,
             "Gobooma": 10,
             "Booma": 20,
+            "BarbarousWolf": 1,
             "Gigobooma": 6,
             "RagRappy": 11,
             "Monest": 3,
@@ -584,10 +602,11 @@
         "name": "Knowing One's Heart",
         "episode": 1,
         "enemyCounts": {
-            "SinowBeat": 7,
+            "SinowBeat": 5,
             "Canadine": 21,
             "Gilchic": 22,
-            "Canane": 1
+            "Canane": 1,
+            "SinowGold": 2
         }
     },
     {
@@ -610,10 +629,11 @@
         "name": "Letter from Lionel",
         "episode": 1,
         "enemyCounts": {
-            "SavageWolf": 23,
+            "SavageWolf": 19,
             "Gobooma": 15,
             "RagRappy": 17,
             "Booma": 34,
+            "BarbarousWolf": 4,
             "Gigobooma": 5,
             "Monest": 2,
             "Hildebear": 5,
@@ -633,7 +653,8 @@
         "episode": 1,
         "enemyCounts": {
             "Booma": 34,
-            "SavageWolf": 33,
+            "SavageWolf": 26,
+            "BarbarousWolf": 7,
             "Gigobooma": 53,
             "Monest": 7,
             "Gobooma": 38,
@@ -681,7 +702,8 @@
         "name": "Lost SOUL BLADE",
         "episode": 1,
         "enemyCounts": {
-            "SinowBeat": 107,
+            "SinowBeat": 70,
+            "SinowGold": 37,
             "Gilchic": 85,
             "Canadine": 80,
             "Canane": 4,
@@ -708,7 +730,8 @@
         "enemyCounts": {
             "Booma": 59,
             "Hildebear": 11,
-            "SavageWolf": 43,
+            "BarbarousWolf": 18,
+            "SavageWolf": 25,
             "Gigobooma": 37,
             "Gobooma": 24,
             "Monest": 1,
@@ -723,7 +746,8 @@
             "Canadine": 63,
             "Canane": 2,
             "Garanz": 22,
-            "SinowBeat": 37
+            "SinowBeat": 34,
+            "SinowGold": 3
         }
     },
     {
@@ -739,10 +763,11 @@
             "GrassAssassin": 25,
             "GuilShark": 28,
             "Canane": 3,
-            "SinowBeat": 38,
+            "SinowGold": 21,
             "Canadine": 43,
             "Garanz": 12,
             "Gilchic": 46,
+            "SinowBeat": 17,
             "Dubchic": 20,
             "Dubswitch": 4,
             "Claw": 51,
@@ -768,7 +793,8 @@
             "PoisonLily": 62,
             "PofuillySlime": 14,
             "EvilShark": 20,
-            "SinowBeat": 35,
+            "SinowBeat": 19,
+            "SinowGold": 16,
             "Garanz": 13,
             "Canane": 3,
             "Dubchic": 21,
@@ -798,7 +824,8 @@
             "PoisonLily": 62,
             "PofuillySlime": 14,
             "EvilShark": 20,
-            "SinowBeat": 36,
+            "SinowGold": 19,
+            "SinowBeat": 17,
             "Garanz": 16,
             "Gilchic": 19,
             "Canane": 4,
@@ -840,7 +867,8 @@
             "Booma": 22,
             "Gigobooma": 37,
             "Gobooma": 17,
-            "SavageWolf": 32,
+            "BarbarousWolf": 7,
+            "SavageWolf": 25,
             "Monest": 5,
             "Hildebear": 32
         }
@@ -853,8 +881,9 @@
             "Gilchic": 42,
             "Canadine": 33,
             "Canane": 4,
-            "SinowBeat": 34,
+            "SinowBeat": 21,
             "Garanz": 19,
+            "SinowGold": 13,
             "Dubchic": 12,
             "Dubswitch": 3
         }
@@ -898,7 +927,8 @@
             "Hildebear": 35,
             "Delsaber": 28,
             "GrassAssassin": 22,
-            "SinowBeat": 40
+            "SinowBeat": 18,
+            "SinowGold": 22
         }
     },
     {
@@ -907,7 +937,8 @@
         "episode": 1,
         "enemyCounts": {
             "Garanz": 50,
-            "SinowBeat": 46,
+            "SinowBeat": 26,
+            "SinowGold": 20,
             "Gilchic": 38,
             "Canane": 6,
             "Canadine": 11,
@@ -920,7 +951,8 @@
         "episode": 1,
         "enemyCounts": {
             "Gigobooma": 36,
-            "SavageWolf": 15,
+            "SavageWolf": 10,
+            "BarbarousWolf": 5,
             "Monest": 2,
             "Gobooma": 23,
             "Booma": 14
@@ -945,7 +977,8 @@
         "episode": 1,
         "enemyCounts": {
             "Canadine": 39,
-            "SinowBeat": 24,
+            "SinowGold": 7,
+            "SinowBeat": 17,
             "Gilchic": 59,
             "Canane": 2,
             "Garanz": 6,
@@ -973,7 +1006,8 @@
         "name": "Native Research",
         "episode": 1,
         "enemyCounts": {
-            "SavageWolf": 14,
+            "BarbarousWolf": 4,
+            "SavageWolf": 10,
             "Gobooma": 13,
             "Booma": 29,
             "Gigobooma": 8,
@@ -1000,8 +1034,9 @@
             "Gilchic": 44,
             "Canadine": 10,
             "Canane": 9,
-            "SinowBeat": 79,
+            "SinowBeat": 36,
             "Garanz": 22,
+            "SinowGold": 43,
             "LaDimenian": 25,
             "Dimenian": 35,
             "ChaosSorcerer": 14,
@@ -1025,9 +1060,10 @@
         "episode": 1,
         "enemyCounts": {
             "Booma": 20,
-            "SavageWolf": 35,
+            "BarbarousWolf": 20,
             "Gigobooma": 13,
             "Gobooma": 11,
+            "SavageWolf": 15,
             "Hildebear": 75,
             "Monest": 10
         }
@@ -1039,8 +1075,9 @@
         "enemyCounts": {
             "Booma": 86,
             "Gobooma": 90,
-            "SavageWolf": 101,
+            "BarbarousWolf": 51,
             "RagRappy": 57,
+            "SavageWolf": 50,
             "Gigobooma": 70,
             "Monest": 17,
             "Hildebear": 39,
@@ -1090,7 +1127,8 @@
         "name": "Simulator 2.0",
         "episode": 1,
         "enemyCounts": {
-            "SavageWolf": 10,
+            "SavageWolf": 5,
+            "BarbarousWolf": 5,
             "Booma": 4,
             "Gobooma": 2,
             "Gigobooma": 6,
@@ -1101,9 +1139,10 @@
             "PoisonLily": 22,
             "GuilShark": 20,
             "Gilchic": 15,
-            "SinowBeat": 25,
+            "SinowBeat": 13,
             "Canadine": 8,
             "Garanz": 8,
+            "SinowGold": 12,
             "Dubchic": 3,
             "Dubswitch": 1,
             "ChaosSorcerer": 12,
@@ -1120,10 +1159,11 @@
         "name": "Soul of a Blacksmith",
         "episode": 1,
         "enemyCounts": {
-            "SavageWolf": 39,
+            "SavageWolf": 28,
             "Gobooma": 29,
             "RagRappy": 11,
             "Booma": 31,
+            "BarbarousWolf": 11,
             "Gigobooma": 27,
             "Monest": 5,
             "Hildebear": 5,
@@ -1135,7 +1175,8 @@
             "PanArms": 6,
             "PoisonLily": 17,
             "NanoDragon": 12,
-            "PofuillySlime": 11,
+            "PouillySlime": 2,
+            "PofuillySlime": 9,
             "Dragon": 1
         }
     },
@@ -1146,7 +1187,8 @@
         "enemyCounts": {
             "Gilchic": 22,
             "Garanz": 1,
-            "SinowBeat": 3,
+            "SinowBeat": 2,
+            "SinowGold": 1,
             "SoDimenian": 14,
             "Dimenian": 14,
             "DarkGunner": 11,
@@ -1238,7 +1280,8 @@
             "Gilchic": 47,
             "Garanz": 6,
             "Canadine": 25,
-            "SinowBeat": 34,
+            "SinowBeat": 27,
+            "SinowGold": 7,
             "Dubchic": 9,
             "Dubswitch": 3
         }
@@ -1252,7 +1295,8 @@
             "Hildebear": 4,
             "Booma": 12,
             "Gigobooma": 7,
-            "SavageWolf": 3,
+            "BarbarousWolf": 1,
+            "SavageWolf": 2,
             "Gobooma": 6,
             "EvilShark": 13,
             "PofuillySlime": 5,
@@ -1261,7 +1305,8 @@
             "NanoDragon": 5,
             "GuilShark": 7,
             "PalShark": 5,
-            "SinowBeat": 14,
+            "SinowBeat": 12,
+            "SinowGold": 2,
             "Canadine": 16,
             "Gilchic": 26,
             "Canane": 1,
@@ -1289,9 +1334,10 @@
             "Gobooma": 41,
             "Gigobooma": 17,
             "Hildebear": 52,
-            "SavageWolf": 30,
+            "SavageWolf": 21,
             "Booma": 17,
             "RagRappy": 28,
+            "BarbarousWolf": 9,
             "PoisonLily": 39,
             "GuilShark": 49,
             "PalShark": 25,
@@ -1299,7 +1345,8 @@
             "PanArms": 6,
             "PofuillySlime": 23,
             "NanoDragon": 12,
-            "SinowBeat": 50,
+            "SinowBeat": 25,
+            "SinowGold": 25,
             "Canadine": 51,
             "Gilchic": 73,
             "Dubswitch": 8,
@@ -1328,8 +1375,9 @@
         "enemyCounts": {
             "Canadine": 38,
             "Gilchic": 97,
-            "SinowBeat": 8,
+            "SinowBeat": 6,
             "Canane": 3,
+            "SinowGold": 2,
             "Dubchic": 13,
             "Dubswitch": 3,
             "DeRolLe": 1
@@ -1435,7 +1483,8 @@
         "episode": 2,
         "enemyCounts": {
             "Gilchic2": 54,
-            "SavageWolf2": 56,
+            "BarbarousWolf2": 24,
+            "SavageWolf2": 32,
             "PanArms2": 5,
             "Delsaber2": 12,
             "Garanz2": 7
@@ -1447,7 +1496,8 @@
         "episode": 2,
         "enemyCounts": {
             "Gilchic2": 84,
-            "SavageWolf2": 74,
+            "BarbarousWolf2": 24,
+            "SavageWolf2": 50,
             "PanArms2": 9,
             "Delsaber2": 17,
             "Garanz2": 5,
@@ -1464,10 +1514,11 @@
             "Dubchic2": 16,
             "Dubswitch2": 5,
             "Garanz2": 1,
-            "SavageWolf2": 63,
+            "SavageWolf2": 36,
             "PanArms2": 15,
             "Gilchic2": 50,
             "Delsaber2": 26,
+            "BarbarousWolf2": 27,
             "ChaosSorcerer2": 5
         }
     },
@@ -1477,7 +1528,8 @@
         "episode": 2,
         "enemyCounts": {
             "Gilchic2": 87,
-            "SavageWolf2": 75,
+            "BarbarousWolf2": 36,
+            "SavageWolf2": 39,
             "PanArms2": 8,
             "Delsaber2": 25,
             "Garanz2": 6,
@@ -1492,7 +1544,8 @@
         "episode": 2,
         "enemyCounts": {
             "Gilchic2": 92,
-            "SavageWolf2": 73,
+            "BarbarousWolf2": 32,
+            "SavageWolf2": 41,
             "PanArms2": 10,
             "Delsaber2": 27,
             "Garanz2": 5,
@@ -1682,11 +1735,12 @@
             "PoisonLily2": 2,
             "SoDimenian2": 17,
             "Gilchic2": 16,
-            "SavageWolf2": 28,
+            "SavageWolf2": 19,
             "Delsaber2": 7,
             "ChaosSorcerer2": 4,
             "Dubchic2": 8,
             "Dubswitch2": 3,
+            "BarbarousWolf2": 9,
             "PanArms2": 7,
             "BarbaRay": 1,
             "GolDragon": 1
@@ -1697,7 +1751,8 @@
         "name": "Christmas Fiasco",
         "episode": 2,
         "enemyCounts": {
-            "SavageWolf2": 46,
+            "SavageWolf2": 18,
+            "BarbarousWolf2": 28,
             "Gilchic2": 35,
             "Delsaber2": 36,
             "PanArms2": 16,
@@ -1766,7 +1821,8 @@
         "name": "Gal Da Val's Darkness",
         "episode": 2,
         "enemyCounts": {
-            "SavageWolf2": 37,
+            "SavageWolf2": 21,
+            "BarbarousWolf2": 16,
             "Gilchic2": 41,
             "Garanz2": 31,
             "Delsaber2": 28,
@@ -1816,7 +1872,8 @@
             "DarkBelra2": 14,
             "Gilchic2": 52,
             "PanArms2": 10,
-            "SavageWolf2": 61,
+            "SavageWolf2": 56,
+            "BarbarousWolf2": 5,
             "Garanz2": 17,
             "Delsaber2": 36,
             "Meriltas": 97,
@@ -1994,8 +2051,9 @@
         "episode": 2,
         "enemyCounts": {
             "Gilchic2": 61,
-            "SavageWolf2": 43,
+            "SavageWolf2": 23,
             "PanArms2": 8,
+            "BarbarousWolf2": 20,
             "Delsaber2": 29,
             "Dubchic2": 12,
             "Dubswitch2": 3,
@@ -2048,7 +2106,8 @@
             "RagRappy2": 17,
             "DarkBelra2": 17,
             "Gilchic2": 61,
-            "SavageWolf2": 37,
+            "SavageWolf2": 21,
+            "BarbarousWolf2": 16,
             "Delsaber2": 30,
             "Dubchic2": 12,
             "Dubswitch2": 3,
@@ -2179,7 +2238,8 @@
             "Garanz2": 10,
             "Dubswitch2": 5,
             "Delsaber2": 43,
-            "SavageWolf2": 31,
+            "BarbarousWolf2": 11,
+            "SavageWolf2": 20,
             "ChaosSorcerer2": 18,
             "SinowSpigell": 29,
             "Gee": 44,
@@ -2240,8 +2300,9 @@
             "Dubchic2": 28,
             "PanArms2": 1,
             "Gilchic2": 1,
-            "SavageWolf2": 2,
+            "SavageWolf2": 1,
             "Delsaber2": 1,
+            "BarbarousWolf2": 1,
             "Garanz2": 1,
             "Gee": 88,
             "Merillia": 19,
@@ -2284,8 +2345,9 @@
             "SoDimenian2": 5,
             "RagRappy2": 9,
             "Monest2": 4,
-            "SavageWolf2": 40,
+            "SavageWolf2": 31,
             "Gilchic2": 71,
+            "BarbarousWolf2": 9,
             "ChaosSorcerer2": 30,
             "Delsaber2": 38,
             "PanArms2": 19,
@@ -2425,8 +2487,9 @@
         "enemyCounts": {
             "Boota": 67,
             "ZeBoota": 48,
-            "SatelliteLizard": 52,
+            "SatelliteLizard": 40,
             "Astark": 10,
+            "Yowie": 12,
             "SandRappy": 26,
             "BaBoota": 27,
             "Dorphon": 1
@@ -2440,7 +2503,8 @@
             "ZeBoota": 21,
             "Boota": 48,
             "BaBoota": 24,
-            "SatelliteLizard": 46,
+            "SatelliteLizard": 28,
+            "Yowie": 18,
             "Astark": 18,
             "Dorphon": 5,
             "SandRappy": 41
@@ -2453,11 +2517,12 @@
         "enemyCounts": {
             "Boota": 21,
             "ZeBoota": 22,
-            "SatelliteLizard": 35,
+            "SatelliteLizard": 31,
             "Zu": 13,
             "SandRappy": 24,
             "Astark": 9,
             "BaBoota": 50,
+            "Yowie": 4,
             "Dorphon": 1
         }
     },
@@ -2470,7 +2535,8 @@
             "Boota": 45,
             "ZeBoota": 55,
             "Zu": 17,
-            "SatelliteLizard": 39,
+            "SatelliteLizard": 34,
+            "Yowie": 5,
             "BaBoota": 29,
             "Astark": 17,
             "Dorphon": 5
@@ -2481,7 +2547,7 @@
         "name": "9-5:The Chosen (1/2)",
         "episode": 4,
         "enemyCounts": {
-            "SatelliteLizard": 55,
+            "SatelliteLizard": 46,
             "Astark": 5,
             "Dorphon": 2,
             "Boota": 12,
@@ -2489,6 +2555,7 @@
             "SandRappy": 36,
             "BaBoota": 3,
             "Zu": 10,
+            "Yowie": 9,
             "Goran": 62,
             "MerissaA": 25,
             "PyroGoran": 20,
@@ -2500,12 +2567,13 @@
         "name": "9-6:The Chosen (2/2)",
         "episode": 4,
         "enemyCounts": {
-            "SatelliteLizard": 40,
+            "Yowie": 19,
             "PyroGoran": 34,
             "MerissaA": 34,
             "Zu": 2,
             "Goran": 25,
             "SandRappy": 12,
+            "SatelliteLizard": 21,
             "GoranDetonator": 4,
             "Girtablulu": 1
         }
@@ -2516,7 +2584,8 @@
         "episode": 4,
         "enemyCounts": {
             "MerissaA": 29,
-            "SatelliteLizard": 50,
+            "Yowie": 11,
+            "SatelliteLizard": 39,
             "Goran": 54,
             "PyroGoran": 38,
             "GoranDetonator": 11,
@@ -2532,8 +2601,9 @@
         "enemyCounts": {
             "Goran": 57,
             "PyroGoran": 61,
-            "SatelliteLizard": 104,
+            "Yowie": 63,
             "SandRappy": 45,
+            "SatelliteLizard": 41,
             "GoranDetonator": 8,
             "Zu": 6,
             "MerissaA": 47,
@@ -2551,8 +2621,9 @@
             "Boota": 45,
             "ZeBoota": 39,
             "Astark": 28,
-            "SatelliteLizard": 173,
+            "Yowie": 131,
             "BaBoota": 36,
+            "SatelliteLizard": 42,
             "Dorphon": 15,
             "Goran": 63,
             "GoranDetonator": 64,
@@ -2584,11 +2655,12 @@
             "PyroGoran": 14,
             "MerissaA": 9,
             "DelRappy": 6,
-            "SatelliteLizard": 9,
+            "Yowie": 6,
             "Goran": 8,
             "Girtablulu": 1,
             "Zu": 3,
             "Pazuzu": 1,
+            "SatelliteLizard": 3,
             "SandRappy": 7
         }
     },
@@ -2604,7 +2676,8 @@
             "ZeBoota": 15,
             "SandRappy": 81,
             "BaBoota": 18,
-            "SatelliteLizard": 110,
+            "SatelliteLizard": 59,
+            "Yowie": 51,
             "MerissaA": 80,
             "Goran": 48,
             "Girtablulu": 18,
@@ -2621,7 +2694,8 @@
             "ZeBoota": 11,
             "BaBoota": 23,
             "Dorphon": 15,
-            "SatelliteLizard": 44,
+            "SatelliteLizard": 24,
+            "Yowie": 20,
             "Zu": 20,
             "Astark": 19,
             "SandRappy": 4
@@ -2633,8 +2707,9 @@
         "episode": 4,
         "enemyCounts": {
             "ZeBoota": 51,
-            "SatelliteLizard": 116,
+            "Yowie": 70,
             "Boota": 59,
+            "SatelliteLizard": 46,
             "BaBoota": 22,
             "SandRappy": 88,
             "Zu": 20,
@@ -2654,7 +2729,8 @@
         "enemyCounts": {
             "BaBoota": 47,
             "Zu": 46,
-            "SatelliteLizard": 237,
+            "SatelliteLizard": 122,
+            "Yowie": 115,
             "SandRappy": 83,
             "Astark": 54,
             "Boota": 45,
@@ -2674,8 +2750,9 @@
         "enemyCounts": {
             "BaBoota": 16,
             "SandRappy": 57,
-            "SatelliteLizard": 124,
+            "SatelliteLizard": 68,
             "Astark": 13,
+            "Yowie": 56,
             "Boota": 18,
             "ZeBoota": 13,
             "Zu": 20,
@@ -2691,8 +2768,9 @@
         "name": "Maximum Attack 4th Stage -B-",
         "episode": 4,
         "enemyCounts": {
-            "SatelliteLizard": 108,
+            "Yowie": 50,
             "SandRappy": 60,
+            "SatelliteLizard": 58,
             "Zu": 48,
             "BaBoota": 17,
             "ZeBoota": 15,
@@ -2712,9 +2790,10 @@
         "episode": 4,
         "enemyCounts": {
             "ZeBoota": 22,
-            "SatelliteLizard": 143,
+            "Yowie": 74,
             "SandRappy": 73,
             "BaBoota": 16,
+            "SatelliteLizard": 69,
             "Zu": 33,
             "Astark": 16,
             "Dorphon": 13,
@@ -2735,9 +2814,10 @@
             "Zu": 8,
             "Boota": 24,
             "ZeBoota": 23,
-            "SatelliteLizard": 59,
+            "Yowie": 23,
             "Astark": 23,
             "BaBoota": 25,
+            "SatelliteLizard": 36,
             "Dorphon": 14
         }
     },
@@ -2748,8 +2828,9 @@
         "enemyCounts": {
             "GoranDetonator": 19,
             "Goran": 24,
-            "SatelliteLizard": 50,
+            "SatelliteLizard": 30,
             "PyroGoran": 26,
+            "Yowie": 20,
             "Zu": 18,
             "Girtablulu": 6,
             "MerissaA": 22,
@@ -2765,8 +2846,9 @@
             "Zu": 26,
             "Boota": 24,
             "ZeBoota": 23,
-            "SatelliteLizard": 109,
+            "Yowie": 43,
             "BaBoota": 25,
+            "SatelliteLizard": 66,
             "Dorphon": 9,
             "Astark": 18,
             "GoranDetonator": 19,
@@ -2789,7 +2871,8 @@
             "Dorphon": 27,
             "SandRappy": 58,
             "ZeBoota": 21,
-            "SatelliteLizard": 91,
+            "Yowie": 61,
+            "SatelliteLizard": 30,
             "Goran": 61,
             "GoranDetonator": 76,
             "PyroGoran": 38,
@@ -2803,8 +2886,9 @@
         "episode": 4,
         "enemyCounts": {
             "Astark": 22,
-            "SatelliteLizard": 52,
+            "Yowie": 20,
             "SandRappy": 37,
+            "SatelliteLizard": 32,
             "ZeBoota": 5,
             "Boota": 20,
             "Zu": 8,
@@ -2822,7 +2906,8 @@
             "SandRappy": 20,
             "ZeBoota": 36,
             "Dorphon": 5,
-            "SatelliteLizard": 64,
+            "Yowie": 23,
+            "SatelliteLizard": 41,
             "Boota": 31,
             "Zu": 5
         }
@@ -2835,8 +2920,9 @@
             "Goran": 108,
             "GoranDetonator": 16,
             "PyroGoran": 55,
-            "SatelliteLizard": 114,
+            "Yowie": 41,
             "SandRappy": 38,
+            "SatelliteLizard": 73,
             "Boota": 4,
             "Zu": 4
         }
@@ -2852,7 +2938,8 @@
             "MerissaA": 24,
             "Girtablulu": 1,
             "SandRappy": 29,
-            "SatelliteLizard": 63
+            "SatelliteLizard": 25,
+            "Yowie": 38
         }
     },
     {
@@ -2860,7 +2947,8 @@
         "name": "New Mop-Up Operation #5",
         "episode": 4,
         "enemyCounts": {
-            "SatelliteLizard": 78,
+            "Yowie": 40,
+            "SatelliteLizard": 38,
             "SandRappy": 11,
             "Zu": 19,
             "Girtablulu": 4,
@@ -2876,9 +2964,10 @@
         "episode": 4,
         "enemyCounts": {
             "SandRappy": 41,
-            "SatelliteLizard": 54,
+            "SatelliteLizard": 25,
             "Boota": 8,
             "Zu": 21,
+            "Yowie": 29,
             "Dorphon": 4,
             "Astark": 14,
             "ZeBoota": 2,
@@ -2895,7 +2984,8 @@
         "name": "Point of Disaster",
         "episode": 4,
         "enemyCounts": {
-            "SatelliteLizard": 79,
+            "Yowie": 31,
+            "SatelliteLizard": 50,
             "ZeBoota": 8,
             "Astark": 31,
             "Boota": 24,
@@ -2906,7 +2996,6 @@
             "MerissaA": 4,
             "Goran": 12,
             "GoranDetonator": 3,
-            "Yowie": 2,
             "Girtablulu": 1,
             "PyroGoran": 2,
             "Shambertin": 1
@@ -2917,7 +3006,8 @@
         "name": "The Restless Lion",
         "episode": 4,
         "enemyCounts": {
-            "SatelliteLizard": 29,
+            "SatelliteLizard": 16,
+            "Yowie": 13,
             "PyroGoran": 10,
             "MerissaA": 14,
             "Goran": 13,
@@ -2933,12 +3023,13 @@
         "enemyCounts": {
             "SandRappy": 38,
             "Astark": 35,
-            "SatelliteLizard": 142,
+            "Yowie": 73,
             "Zu": 27,
             "Dorphon": 14,
             "BaBoota": 15,
             "Boota": 42,
             "ZeBoota": 8,
+            "SatelliteLizard": 69,
             "Goran": 63,
             "PyroGoran": 30,
             "GoranDetonator": 6,
@@ -2953,8 +3044,9 @@
             "Zu": 12,
             "SandRappy": 42,
             "Astark": 42,
-            "SatelliteLizard": 76,
+            "SatelliteLizard": 51,
             "ZeBoota": 12,
+            "Yowie": 25,
             "Dorphon": 5,
             "BaBoota": 10,
             "Boota": 47
@@ -2970,9 +3062,10 @@
             "ZeBoota": 74,
             "Zu": 5,
             "Astark": 11,
-            "SatelliteLizard": 129,
+            "Yowie": 37,
             "BaBoota": 25,
-            "Boota": 39
+            "Boota": 39,
+            "SatelliteLizard": 92
         }
     },
     {
@@ -2984,7 +3077,8 @@
             "Goran": 87,
             "PyroGoran": 26,
             "SandRappy": 47,
-            "SatelliteLizard": 103,
+            "Yowie": 66,
+            "SatelliteLizard": 37,
             "Zu": 6,
             "GoranDetonator": 4
         }
@@ -3001,7 +3095,8 @@
             "Zu": 1,
             "Goran": 37,
             "PyroGoran": 36,
-            "SatelliteLizard": 56
+            "SatelliteLizard": 30,
+            "Yowie": 26
         }
     },
     {
@@ -3014,9 +3109,10 @@
             "GoranDetonator": 7,
             "Girtablulu": 4,
             "PyroGoran": 19,
-            "SatelliteLizard": 89,
+            "Yowie": 41,
             "SandRappy": 44,
-            "Goran": 49
+            "Goran": 49,
+            "SatelliteLizard": 48
         }
     },
     {
@@ -3025,10 +3121,11 @@
         "episode": 4,
         "enemyCounts": {
             "SandRappy": 61,
-            "SatelliteLizard": 104,
+            "Yowie": 53,
             "Boota": 35,
             "BaBoota": 23,
             "Astark": 46,
+            "SatelliteLizard": 51,
             "Zu": 29,
             "Dorphon": 13,
             "ZeBoota": 10
@@ -3043,8 +3140,9 @@
             "SandRappy": 56,
             "BaBoota": 47,
             "Boota": 77,
-            "SatelliteLizard": 55,
+            "Yowie": 41,
             "ZeBoota": 55,
+            "SatelliteLizard": 14,
             "Zu": 13,
             "Dorphon": 2
         }

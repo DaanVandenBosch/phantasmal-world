@@ -224,7 +224,7 @@ function parseNpcData(episode: number, npcs: DatNpc[]): QuestNpc[] {
 
 // TODO: detect Mothmant, St. Rappy, Hallo Rappy, Egg Rappy, Death Gunner, Bulk and Recon.
 function getNpcType(episode: number, { typeId, unknown, skin, areaId }: DatNpc): NpcType {
-    const regular = (unknown[2][18] & 0x80) === 0;
+    const regular = (unknown[2][6] & 0x80) === 0;
 
     switch (`${typeId}, ${skin % 3}, ${episode}`) {
         case `${0x044}, 0, 1`: return NpcType.Booma;
