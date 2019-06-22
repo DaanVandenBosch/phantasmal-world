@@ -42,6 +42,8 @@ export class OptimalMethod {
     }
 }
 
+// TODO: take into account mothmants spawned from mothverts.
+// TODO: take into account split slimes.
 // TODO: Prefer methods that don't split pan arms over methods that do.
 //       For some reason this doesn't actually seem to be a problem, should probably investigate.
 // TODO: Show expected value or probability per item per method.

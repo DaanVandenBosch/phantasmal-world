@@ -53,9 +53,6 @@ async function update() {
 
 /**
  * Shop quests are not processed.
- * MAXIMUM ATTACK 3 Ver2 is left out because its actual enemy count depends on the path taken.
- * Black Paper's Dangerous Deal and Black Paper's Dangerous Deal 2 are left out because their
- * enemies don't drop anything.
  *
  * TODO: Missing quests:
  *  - Maximum Attack 4th Stage -1R-
@@ -64,7 +61,8 @@ async function update() {
  *  - Knight of Coral
  *  - Knight of Coral Advent
  *  - CAL's Clock Challenge
- *  - The Value of Money (can't be parsed)
+ *  - The Value of Money (quest3_e.dat, can't be parsed, luckily doesn't have enemies)
+ * Note: The MA4R quests use a random area variation per area from the ABC MA quests. E.g. MA4-1R will use a random caves 2 variation from MA4-1A, MA4-1B or MA4-1C. Same for mines 2 and ruins 2.
  */
 function updateQuests() {
     logger.info('Updating quest data.');
@@ -113,14 +111,6 @@ function processQuest(path: string, quests: QuestDto[]) {
 
             if (q.questNo == null) {
                 throw new Error('No questNo.');
-            } else {
-                // Filter out some quests.
-                switch (q.questNo) {
-                    case 31: // Black Paper's Dangerous Deal
-                    case 34: // Black Paper's Dangerous Deal 2
-                    case 314: // MAXIMUM ATTACK 3 Ver2
-                        return;
-                }
             }
 
             const enemyCounts: { [npcTypeCode: string]: number } = {};
