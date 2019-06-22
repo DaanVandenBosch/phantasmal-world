@@ -29,11 +29,20 @@
 }
 
 .DataTable-header {
+    user-select: none;
     background-color: lighten(@component-background, 12%);
     font-weight: bold;
 
     & .DataTable-cell {
         border-right: solid 1px @border-color-base;
+
+        &.sortable {
+            cursor: pointer;
+        }
+
+        & .DataTable-sort-indictator {
+            fill: currentColor;
+        }
     }
 }
 

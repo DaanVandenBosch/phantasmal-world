@@ -2,11 +2,11 @@ import { TimePicker } from "antd";
 import { observer } from "mobx-react";
 import moment, { Moment } from "moment";
 import React from "react";
-import { AutoSizer, Index } from "react-virtualized";
+import { AutoSizer, Index, SortDirection } from "react-virtualized";
 import { Episode, HuntMethod } from "../../domain";
-import { EnemyNpcTypes } from "../../domain/NpcType";
+import { EnemyNpcTypes, NpcType } from "../../domain/NpcType";
 import { huntMethodStore } from "../../stores/HuntMethodStore";
-import { BigTable, Column } from "../BigTable";
+import { BigTable, Column, ColumnSort } from "../BigTable";
 import "./MethodsComponent.css";
 
 @observer
@@ -15,26 +15,33 @@ export class MethodsComponent extends React.Component {
         // Standard columns.
         const columns: Column<HuntMethod>[] = [
             {
+                key: 'name',
                 name: 'Method',
                 width: 250,
                 cellRenderer: (method) => method.name,
+                sortable: true,
             },
             {
+                key: 'episode',
                 name: 'Ep.',
                 width: 34,
                 cellRenderer: (method) => Episode[method.episode],
+                sortable: true,
             },
             {
+                key: 'time',
                 name: 'Time',
                 width: 50,
                 cellRenderer: (method) => <TimeComponent method={method} />,
                 className: 'integrated',
+                sortable: true,
             },
         ];
 
         // One column per enemy type.
         for (const enemy of EnemyNpcTypes) {
             columns.push({
+                key: enemy.code,
                 name: enemy.name,
                 width: 75,
                 cellRenderer: (method) => {
@@ -42,6 +49,7 @@ export class MethodsComponent extends React.Component {
                     return count == null ? '' : count.toString();
                 },
                 className: 'number',
+                sortable: true,
             });
         }
 
@@ -62,6 +70,8 @@ export class MethodsComponent extends React.Component {
                             columns={MethodsComponent.columns}
                             fixedColumnCount={3}
                             record={this.record}
+                            sort={this.sort}
+                            updateTrigger={huntMethodStore.methods.current.value}
                         />
                     )}
                 </AutoSizer>
@@ -71,6 +81,38 @@ export class MethodsComponent extends React.Component {
 
     private record = ({ index }: Index) => {
         return huntMethodStore.methods.current.value[index];
+    }
+
+    private sort = (sorts: ColumnSort<HuntMethod>[]) => {
+        const methods = huntMethodStore.methods.current.value.slice();
+
+        methods.sort((a, b) => {
+            for (const { column, direction } of sorts) {
+                let cmp = 0;
+
+                if (column.key === 'name') {
+                    cmp = a.name.localeCompare(b.name);
+                } else if (column.key === 'episode') {
+                    cmp = a.episode - b.episode;
+                } else if (column.key === 'time') {
+                    cmp = a.time - b.time;
+                } else if (column.key) {
+                    const type = NpcType.byCode(column.key);
+
+                    if (type) {
+                        cmp = (a.enemyCounts.get(type) || 0) - (b.enemyCounts.get(type) || 0);
+                    }
+                }
+
+                if (cmp !== 0) {
+                    return direction === SortDirection.ASC ? cmp : -cmp;
+                }
+            }
+
+            return 0;
+        });
+
+        huntMethodStore.methods.current.value = methods;
     }
 }
 

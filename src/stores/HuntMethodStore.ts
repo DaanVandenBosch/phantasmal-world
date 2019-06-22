@@ -37,6 +37,7 @@ class HuntMethodStore {
             }
 
             // Filter out some quests.
+            /* eslint-disable no-fallthrough */
             switch (quest.id) {
                 // The following quests are left out because their enemies don't drop anything.
                 case 31:   // Black Paper's Dangerous Deal

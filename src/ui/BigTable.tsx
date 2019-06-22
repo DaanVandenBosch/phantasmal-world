@@ -1,8 +1,9 @@
 import React, { ReactNode } from "react";
-import { GridCellRenderer, Index, MultiGrid } from "react-virtualized";
+import { GridCellRenderer, Index, MultiGrid, SortDirectionType, SortDirection } from "react-virtualized";
 import "./BigTable.less";
 
 export type Column<T> = {
+    key?: string,
     name: string,
     width: number,
     cellRenderer: (record: T) => ReactNode,
@@ -13,7 +14,10 @@ export type Column<T> = {
      * "number" and "integrated" have special meaning.
      */
     className?: string,
+    sortable?: boolean
 }
+
+export type ColumnSort<T> = { column: Column<T>, direction: SortDirectionType }
 
 /**
  * A table with a fixed header. Optionally has fixed columns and a footer.
@@ -33,8 +37,11 @@ export class BigTable<T> extends React.Component<{
     /**
      * When this changes, the DataTable will re-render.
      */
-    updateTrigger?: any
+    updateTrigger?: any,
+    sort?: (sortColumns: Array<ColumnSort<T>>) => void
 }> {
+    private sortColumns = new Array<ColumnSort<T>>();
+
     render() {
         return (
             <div
@@ -68,6 +75,7 @@ export class BigTable<T> extends React.Component<{
     private cellRenderer: GridCellRenderer = ({ columnIndex, rowIndex, style }) => {
         const column = this.props.columns[columnIndex];
         let cell: ReactNode;
+        let sortIndicator: ReactNode;
         let title: string | undefined;
         const classes = ['DataTable-cell'];
 
@@ -78,6 +86,30 @@ export class BigTable<T> extends React.Component<{
         if (rowIndex === 0) {
             // Header row
             cell = title = column.name;
+
+            if (column.sortable) {
+                classes.push('sortable');
+
+                const sort = this.sortColumns[0];
+
+                if (sort && sort.column === column) {
+                    if (sort.direction === SortDirection.ASC) {
+                        sortIndicator = (
+                            <svg className="DataTable-sort-indictator" width="18" height="18" viewBox="0 0 24 24">
+                                <path d="M7 14l5-5 5 5z"></path>
+                                <path d="M0 0h24v24H0z" fill="none"></path>
+                            </svg>
+                        );
+                    } else {
+                        sortIndicator = (
+                            <svg className="DataTable-sort-indictator" width="18" height="18" viewBox="0 0 24 24">
+                                <path d="M7 10l5 5 5-5z"></path>
+                                <path d="M0 0h24v24H0z" fill="none"></path>
+                            </svg>
+                        );
+                    }
+                }
+            }
         } else {
             // Record or footer row
             if (column.className) {
@@ -105,17 +137,39 @@ export class BigTable<T> extends React.Component<{
             classes.push('custom');
         }
 
+        const onClick = rowIndex === 0 && column.sortable
+            ? () => this.headerClicked(column)
+            : undefined;
+
         return (
             <div
                 className={classes.join(' ')}
                 key={`${columnIndex}, ${rowIndex}`}
                 style={style}
                 title={title}
+                onClick={onClick}
             >
                 {typeof cell === 'string' ? (
                     <span className="DataTable-cell-text">{cell}</span>
                 ) : cell}
+                {sortIndicator}
             </div>
         );
+    }
+
+    private headerClicked = (column: Column<T>) => {
+        const oldIndex = this.sortColumns.findIndex(sc => sc.column === column);
+        let old = oldIndex === -1 ? undefined : this.sortColumns.splice(oldIndex, 1)[0];
+
+        const direction = oldIndex === 0 && old!.direction === SortDirection.ASC
+            ? SortDirection.DESC
+            : SortDirection.ASC
+
+        this.sortColumns.unshift({ column, direction });
+        this.sortColumns.splice(10);
+
+        if (this.props.sort) {
+            this.props.sort(this.sortColumns);
+        }
     }
 }

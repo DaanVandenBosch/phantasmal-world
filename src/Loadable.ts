@@ -58,6 +58,10 @@ export class Loadable<T> {
         return this._value;
     }
 
+    set value(value: T) {
+        this._value = value;
+    }
+
     /**
      * This property returns valid data as soon as possible.
      * If the Loadable is uninitialized a data load will be triggered, otherwise the current value will be returned.
