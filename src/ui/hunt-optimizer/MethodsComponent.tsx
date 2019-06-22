@@ -60,7 +60,7 @@ export class MethodsComponent extends React.Component {
                             height={height}
                             rowCount={methods.length}
                             columns={MethodsComponent.columns}
-                            fixedColumnCount={2}
+                            fixedColumnCount={3}
                             record={this.record}
                         />
                     )}
