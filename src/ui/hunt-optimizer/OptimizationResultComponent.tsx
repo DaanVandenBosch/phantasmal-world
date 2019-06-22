@@ -129,7 +129,7 @@ export class OptimizationResultComponent extends React.Component {
                                 height={height}
                                 rowCount={result ? result.optimalMethods.length : 0}
                                 columns={this.columns}
-                                fixedColumnCount={3}
+                                fixedColumnCount={4}
                                 record={this.record}
                                 footer={result != null}
                                 updateTrigger={this.updateTrigger}

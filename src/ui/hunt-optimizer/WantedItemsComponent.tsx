@@ -132,10 +132,10 @@ function Help() {
     return (
         <div className="ho-WantedItemsComponent-help">
             <p>
-                Add some items with the drop down and click "Optimize" to see the optimal set of method/difficulty/section ID combinations on the right.
+                Add some items with the drop down and click "Optimize" to see the optimal combination of hunt methods on the right.
             </p>
             <p>
-                At the moment a method is simply a quest run-through. Partial quest run-throughs are coming. View the list of methods on the "Methods" tab. Each method takes a certain amount of time, which affects the optimization result. Make sure the times are correct for you (at the moment times can't be changed, but this feature is coming).
+                At the moment a method is simply a quest run-through. Partial quest run-throughs are coming. View the list of methods on the "Methods" tab. Each method takes a certain amount of time, which affects the optimization result. Make sure the times are correct for you.
             </p>
             <p>
                 Only enemy drops are considered. Box drops are coming.
