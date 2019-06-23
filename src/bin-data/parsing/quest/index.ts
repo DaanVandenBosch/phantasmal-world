@@ -1,6 +1,6 @@
 import { ArrayBufferCursor } from '../../ArrayBufferCursor';
 import * as prs from '../../compression/prs';
-import { parseDat, writeDat, DatObject, DatNpc } from './dat';
+import { parseDat, writeDat, DatObject, DatNpc, DatFile } from './dat';
 import { parseBin, writeBin, Instruction } from './bin';
 import { parseQst, writeQst } from './qst';
 import {
@@ -64,7 +64,7 @@ export function parseQuest(cursor: ArrayBufferCursor, lenient: boolean = false):
 
         if (func0Ops) {
             episode = getEpisode(func0Ops);
-            areaVariants = getAreaVariants(episode, func0Ops, lenient);
+            areaVariants = getAreaVariants(dat, episode, func0Ops, lenient);
         } else {
             logger.warn(`Function 0 offset ${bin.functionOffsets[0]} is invalid.`);
         }
@@ -132,11 +132,22 @@ function getEpisode(func0Ops: Instruction[]): number {
 }
 
 function getAreaVariants(
+    dat: DatFile,
     episode: number,
     func0Ops: Instruction[],
     lenient: boolean
 ): AreaVariant[] {
+    // Add area variants that have npcs or objects even if there are no BB_Map_Designate instructions for them.
     const areaVariants = new Map();
+
+    for (const npc of dat.npcs) {
+        areaVariants.set(npc.areaId, 0);
+    }
+
+    for (const obj of dat.objs) {
+        areaVariants.set(obj.areaId, 0);
+    }
+
     const bbMaps = func0Ops.filter(op => op.mnemonic === 'BB_Map_Designate');
 
     for (const bbMap of bbMaps) {
@@ -224,7 +235,7 @@ function parseNpcData(episode: number, npcs: DatNpc[]): QuestNpc[] {
 
 // TODO: detect Mothmant, St. Rappy, Hallo Rappy, Egg Rappy, Death Gunner, Bulk and Recon.
 function getNpcType(episode: number, { typeId, flags, skin, areaId }: DatNpc): NpcType {
-    const regular = (flags & 0x800000) === 0;
+    const regular = Math.abs(flags - 1) > 0.00001;
 
     switch (`${typeId}, ${skin % 3}, ${episode}`) {
         case `${0x044}, 0, 1`: return NpcType.Booma;
@@ -266,11 +277,6 @@ function getNpcType(episode: number, { typeId, flags, skin, areaId }: DatNpc): N
         case `${0x041}, 1, 2`: return NpcType.LoveRappy;
         case `${0x041}, 1, 4`: return NpcType.DelRappy;
 
-        case `${0x061}, 0, 1`: return areaId > 15 ? NpcType.DelLily : NpcType.PoisonLily;
-        case `${0x061}, 0, 2`: return areaId > 15 ? NpcType.DelLily : NpcType.PoisonLily2;
-        case `${0x061}, 1, 1`: return areaId > 15 ? NpcType.DelLily : NpcType.NarLily;
-        case `${0x061}, 1, 2`: return areaId > 15 ? NpcType.DelLily : NpcType.NarLily2;
-
         case `${0x080}, 0, 1`: return NpcType.Dubchic;
         case `${0x080}, 0, 2`: return NpcType.Dubchic2;
         case `${0x080}, 1, 1`: return NpcType.Gilchic;
@@ -306,6 +312,10 @@ function getNpcType(episode: number, { typeId, flags, skin, areaId }: DatNpc): N
 
         case `${0x060}, 1`: return NpcType.GrassAssassin;
         case `${0x060}, 2`: return NpcType.GrassAssassin2;
+        case `${0x061}, 1`: return areaId > 15 ? NpcType.DelLily : (
+            regular ? NpcType.PoisonLily : NpcType.NarLily);
+        case `${0x061}, 2`: return areaId > 15 ? NpcType.DelLily : (
+            regular ? NpcType.PoisonLily2 : NpcType.NarLily2);
         case `${0x062}, 1`: return NpcType.NanoDragon;
         case `${0x064}, 1`: return regular ? NpcType.PofuillySlime : NpcType.PouillySlime;
         case `${0x065}, 1`: return NpcType.PanArms;

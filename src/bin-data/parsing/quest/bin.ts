@@ -95,20 +95,42 @@ function parseObjectCode(cursor: ArrayBufferCursor, lenient: boolean): Instructi
                     break;
             }
 
-            const [, mnemonic, mask] = list[opcode];
-            const opargs = parseInstructionArguments(cursor, mask);
+            let [, mnemonic, mask] = list[opcode];
 
-            if (!opargs) {
-                logger.error(`Parameters unknown for opcode 0x${opcode.toString(16).toUpperCase()}.`);
-                break;
+            if (mask == null) {
+                let fullOpcode = mainOpcode;
+
+                if (mainOpcode === 0xF8 || mainOpcode === 0xF9) {
+                    fullOpcode = (fullOpcode << 8) | opcode;
+                }
+
+                logger.warn(`Parameters unknown for opcode 0x${fullOpcode.toString(16).toUpperCase()}, assuming 0.`);
+
+                instructions.push({
+                    opcode,
+                    mnemonic,
+                    args: [],
+                    size: opsize
+                });
+            } else {
+                try {
+                    const opargs = parseInstructionArguments(cursor, mask);
+
+                    instructions.push({
+                        opcode,
+                        mnemonic,
+                        args: opargs.args,
+                        size: opsize + opargs.size
+                    });
+                } catch (e) {
+                    instructions.push({
+                        opcode,
+                        mnemonic,
+                        args: [],
+                        size: opsize
+                    });
+                }
             }
-
-            instructions.push({
-                opcode,
-                mnemonic,
-                args: opargs.args,
-                size: opsize + opargs.size
-            });
         }
     } catch (e) {
         if (lenient) {
@@ -121,14 +143,13 @@ function parseObjectCode(cursor: ArrayBufferCursor, lenient: boolean): Instructi
     return instructions;
 }
 
-function parseInstructionArguments(cursor: ArrayBufferCursor, mask: string | null) {
-    if (mask == null) {
-        return;
-    }
-
+function parseInstructionArguments(
+    cursor: ArrayBufferCursor,
+    mask: string
+): { args: any[], size: number } {
     const oldPos = cursor.position;
     const args = [];
-    let size = 0;
+    let argsSize: number;
 
     outer:
     for (let i = 0; i < mask.length; ++i) {
@@ -143,71 +164,63 @@ function parseInstructionArguments(cursor: ArrayBufferCursor, mask: string | nul
             // Unsigned integers
             case 'B':
                 args.push(cursor.u8());
-                size += 1;
                 break;
             case 'W':
                 args.push(cursor.u16());
-                size += 2;
                 break;
             case 'L':
                 args.push(cursor.u32());
-                size += 4;
                 break;
 
             // Signed integers
             case 'I':
                 args.push(cursor.i32());
-                size += 4;
                 break;
 
             // Floats
             case 'f':
             case 'F':
                 args.push(cursor.f32());
-                size += 4;
                 break;
 
             // Registers?
             case 'R':
             case 'r':
-                size += 1;
+                cursor.seek(1);
                 break;
 
-            // Pointers to unsigned integers?
+            // Registers with unsigned integers?
             case 'b':
                 args.push(cursor.u8());
-                size += 1;
                 break;
             case 'w':
                 args.push(cursor.u16());
-                size += 2;
                 break;
             case 'l':
                 args.push(cursor.u32());
-                size += 4;
                 break;
 
-            // Pointers to signed integers?
+            // Registers with signed integers?
             case 'i':
                 args.push(cursor.i32());
-                size += 4;
                 break;
 
-            // Variably sized data (e.g. strings)?
+            // Variably sized data?
             case 'j':
             case 'J':
-                size += 1 + cursor.seek(size).u8() * 2;
+                argsSize = 2 * cursor.u8();
+                cursor.seek(argsSize);
                 break;
             case 't':
             case 'T':
-                size += 1 + cursor.seek(size).u8();
+                argsSize = cursor.u8();
+                cursor.seek(argsSize);
                 break;
+
+            // Strings
             case 's':
             case 'S':
-                while (cursor.u16()) {
-                    size += 2;
-                }
-                size += 2;
+                while (cursor.u16()) { }
                 break;
 
             default:
@@ -215,8 +228,7 @@ function parseInstructionArguments(cursor: ArrayBufferCursor, mask: string | nul
         }
     }
 
-    cursor.seekStart(oldPos + size);
-    return { args, size };
+    return { args, size: cursor.position - oldPos };
 }
 
 const opcodeList: Array<[number, string, string | null]> = [

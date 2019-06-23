@@ -106,7 +106,7 @@ export function parseDat(cursor: ArrayBufferCursor): DatFile {
                     const rotationY = cursor.i32() / 0xFFFF * 2 * Math.PI;
                     const rotationZ = cursor.i32() / 0xFFFF * 2 * Math.PI;
                     const unknown3 = cursor.u8Array(4);
-                    const flags = cursor.u32();
+                    const flags = cursor.f32();
                     const unknown4 = cursor.u8Array(12);
                     const skin = cursor.u32();
                     const unknown5 = cursor.u8Array(4);
@@ -202,7 +202,7 @@ export function writeDat({ objs, npcs, unknowns }: DatFile): ArrayBufferCursor {
             cursor.writeI32(Math.round(npc.rotation.y / (2 * Math.PI) * 0xFFFF));
             cursor.writeI32(Math.round(npc.rotation.z / (2 * Math.PI) * 0xFFFF));
             cursor.writeU8Array(npc.unknown[2]);
-            cursor.writeU32(npc.flags);
+            cursor.writeF32(npc.flags);
             cursor.writeU8Array(npc.unknown[3]);
             cursor.writeU32(npc.skin);
             cursor.writeU8Array(npc.unknown[4]);
