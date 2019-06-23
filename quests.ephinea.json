@@ -81,9 +81,8 @@
             "GuilShark": 24,
             "GrassAssassin": 7,
             "PoisonLily": 41,
-            "PouillySlime": 2,
+            "PofuillySlime": 12,
             "NanoDragon": 12,
-            "PofuillySlime": 10,
             "PanArms": 13
         }
     },
@@ -92,14 +91,13 @@
         "name": "2-4:Waterway Shadow",
         "episode": 1,
         "enemyCounts": {
-            "PoisonLily": 36,
+            "PoisonLily": 40,
             "EvilShark": 165,
             "PalShark": 87,
             "GuilShark": 28,
             "GrassAssassin": 16,
             "NanoDragon": 17,
             "PofuillySlime": 4,
-            "NarLily": 4,
             "PanArms": 4,
             "DeRolLe": 1
         }
@@ -243,15 +241,14 @@
         "name": "Addicting Food",
         "episode": 1,
         "enemyCounts": {
-            "PoisonLily": 62,
+            "PoisonLily": 64,
             "PalShark": 38,
             "EvilShark": 195,
             "GrassAssassin": 19,
             "GuilShark": 15,
             "NanoDragon": 19,
             "PofuillySlime": 13,
-            "PanArms": 7,
-            "NarLily": 2
+            "PanArms": 7
         }
     },
     {
@@ -280,13 +277,12 @@
         "enemyCounts": {
             "EvilShark": 94,
             "PalShark": 31,
-            "PoisonLily": 20,
+            "PoisonLily": 22,
             "GrassAssassin": 12,
             "NanoDragon": 14,
             "PofuillySlime": 8,
             "GuilShark": 10,
-            "PanArms": 3,
-            "NarLily": 2
+            "PanArms": 3
         }
     },
     {
@@ -616,12 +612,11 @@
         "enemyCounts": {
             "GrassAssassin": 14,
             "EvilShark": 38,
-            "PoisonLily": 15,
+            "PoisonLily": 17,
             "NanoDragon": 10,
             "PalShark": 16,
             "PanArms": 6,
-            "GuilShark": 12,
-            "NarLily": 2
+            "GuilShark": 12
         }
     },
     {
@@ -1024,11 +1019,10 @@
             "EvilShark": 24,
             "PalShark": 30,
             "GuilShark": 34,
-            "PoisonLily": 42,
+            "PoisonLily": 45,
             "GrassAssassin": 81,
             "NanoDragon": 17,
             "PanArms": 12,
-            "NarLily": 3,
             "Dubswitch": 4,
             "Dubchic": 39,
             "Gilchic": 44,
@@ -1169,14 +1163,12 @@
             "Hildebear": 5,
             "EvilShark": 125,
             "PalShark": 44,
-            "NarLily": 6,
+            "PoisonLily": 23,
             "GrassAssassin": 14,
             "GuilShark": 25,
             "PanArms": 6,
-            "PoisonLily": 17,
             "NanoDragon": 12,
-            "PouillySlime": 2,
-            "PofuillySlime": 9,
+            "PofuillySlime": 11,
             "Dragon": 1
         }
     },
@@ -1401,14 +1393,13 @@
         "name": "5-1:Test/VR Temple 1",
         "episode": 2,
         "enemyCounts": {
-            "PoisonLily2": 29,
+            "PoisonLily2": 31,
             "Dimenian2": 17,
             "LaDimenian2": 33,
             "GrassAssassin2": 16,
             "RagRappy2": 13,
             "Hildebear2": 5,
-            "Monest2": 3,
-            "NarLily2": 2
+            "Monest2": 3
         }
     },
     {
@@ -1448,13 +1439,12 @@
         "name": "5-4:Test/VR Temple 4",
         "episode": 2,
         "enemyCounts": {
-            "PoisonLily2": 56,
+            "PoisonLily2": 61,
             "Dimenian2": 14,
             "LaDimenian2": 47,
             "GrassAssassin2": 24,
             "RagRappy2": 29,
             "Hildebear2": 5,
-            "NarLily2": 5,
             "Monest2": 5,
             "SoDimenian2": 23,
             "DarkBelra2": 8
@@ -1687,13 +1677,12 @@
             "Dimenian2": 48,
             "LaDimenian2": 41,
             "SoDimenian2": 54,
-            "PoisonLily2": 95,
+            "PoisonLily2": 105,
             "GrassAssassin2": 20,
             "RagRappy2": 69,
             "Hildebear2": 38,
             "Monest2": 13,
             "DarkBelra2": 36,
-            "NarLily2": 10,
             "SinowBerill": 12,
             "SinowSpigell": 16,
             "Gibbles": 4,
@@ -2426,13 +2415,12 @@
             "SoDimenian2": 55,
             "Dimenian2": 48,
             "LaDimenian2": 41,
-            "PoisonLily2": 95,
+            "PoisonLily2": 105,
             "GrassAssassin2": 20,
             "RagRappy2": 69,
             "Hildebear2": 38,
             "Monest2": 13,
             "DarkBelra2": 36,
-            "NarLily2": 10,
             "SinowBerill": 12,
             "SinowSpigell": 16,
             "Gibbles": 4,
