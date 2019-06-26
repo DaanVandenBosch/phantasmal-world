@@ -4,11 +4,11 @@ import './ErrorBoundary.css';
 
 export class ErrorBoundary extends React.Component {
     state = {
-        hasError: false
+        has_error: false
     };
 
     render() {
-        if (this.state.hasError) {
+        if (this.state.has_error) {
             return (
                 <div className="ErrorBoundary-error">
                     <div>
@@ -26,6 +26,6 @@ export class ErrorBoundary extends React.Component {
     }
 }
 
-export function withErrorBoundary(Component: React.ComponentType) {
+export function with_error_boundary(Component: React.ComponentType) {
     return () => <ErrorBoundary><Component /></ErrorBoundary>;
 }

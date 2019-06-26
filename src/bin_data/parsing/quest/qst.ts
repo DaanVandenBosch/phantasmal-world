@@ -1,7 +1,7 @@
 import { BufferCursor } from '../../BufferCursor';
 import Logger from 'js-logger';
 
-const logger = Logger.get('bin-data/parsing/quest/qst');
+const logger = Logger.get('bin_data/parsing/quest/qst');
 
 interface QstContainedFile {
     name: string;

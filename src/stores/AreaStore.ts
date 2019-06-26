@@ -3,7 +3,7 @@ import { Area, AreaVariant } from '../domain';
 function area(id: number, name: string, order: number, variants: number) {
     const area = new Area(id, name, order, []);
     const varis = Array(variants).fill(null).map((_, i) => new AreaVariant(i, area));
-    area.areaVariants.splice(0, 0, ...varis);
+    area.area_variants.splice(0, 0, ...varis);
     return area;
 }
 
@@ -70,20 +70,20 @@ class AreaStore {
         ];
     }
 
-    getVariant(episode: number, areaId: number, variantId: number) {
+    get_variant(episode: number, area_id: number, variant_id: number) {
         if (episode !== 1 && episode !== 2 && episode !== 4)
             throw new Error(`Expected episode to be 1, 2 or 4, got ${episode}.`);
 
-        const area = this.areas[episode].find(a => a.id === areaId);
+        const area = this.areas[episode].find(a => a.id === area_id);
         if (!area)
-            throw new Error(`Area id ${areaId} for episode ${episode} is invalid.`);
+            throw new Error(`Area id ${area_id} for episode ${episode} is invalid.`);
 
-        const areaVariant = area.areaVariants[variantId];
-        if (!areaVariant)
-            throw new Error(`Area variant id ${variantId} for area ${areaId} of episode ${episode} is invalid.`);
+        const area_variant = area.area_variants[variant_id];
+        if (!area_variant)
+            throw new Error(`Area variant id ${variant_id} for area ${area_id} of episode ${episode} is invalid.`);
 
-        return areaVariant;
+        return area_variant;
     }
 }
 
-export const areaStore = new AreaStore();
+export const area_store = new AreaStore();

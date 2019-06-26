@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { Color, HemisphereLight, Intersection, Mesh, MeshLambertMaterial, MOUSE, Object3D, PerspectiveCamera, Plane, Raycaster, Scene, Vector2, Vector3, WebGLRenderer } from 'three';
 import OrbitControlsCreator from 'three-orbit-controls';
-import { getAreaCollisionGeometry, getAreaRenderGeometry } from '../bin-data/loading/areas';
+import { getAreaCollisionGeometry, getAreaRenderGeometry } from '../bin_data/loading/areas';
 import { Area, Quest, QuestEntity, QuestNpc, QuestObject, Section, Vec3 } from '../domain';
 import { questEditorStore } from '../stores/QuestEditorStore';
 import { NPC_COLOR, NPC_HOVER_COLOR, NPC_SELECTED_COLOR, OBJECT_COLOR, OBJECT_HOVER_COLOR, OBJECT_SELECTED_COLOR } from './entities';
@@ -97,15 +97,15 @@ export class Renderer {
 
             if (quest) {
                 for (const obj of quest.objects) {
-                    const array = this.objs.get(obj.areaId) || [];
+                    const array = this.objs.get(obj.area_id) || [];
                     array.push(obj);
-                    this.objs.set(obj.areaId, array);
+                    this.objs.set(obj.area_id, array);
                 }
 
                 for (const npc of quest.npcs) {
-                    const array = this.npcs.get(npc.areaId) || [];
+                    const array = this.npcs.get(npc.area_id) || [];
                     array.push(npc);
-                    this.npcs.set(npc.areaId, array);
+                    this.npcs.set(npc.area_id, array);
                 }
             }
 
@@ -150,7 +150,7 @@ export class Renderer {
         if (this.quest && this.area) {
             const episode = this.quest.episode;
             const areaId = this.area.id;
-            const variant = this.quest.areaVariants.find(v => v.area.id === areaId);
+            const variant = this.quest.area_variants.find(v => v.area.id === areaId);
             const variantId = (variant && variant.id) || 0;
 
             getAreaCollisionGeometry(episode, areaId, variantId).then(geometry => {
@@ -191,7 +191,7 @@ export class Renderer {
             let loaded = true;
 
             for (const object of this.quest.objects) {
-                if (object.areaId === this.area.id) {
+                if (object.area_id === this.area.id) {
                     if (object.object3d) {
                         this.objGeometry.add(object.object3d);
                     } else {
@@ -201,7 +201,7 @@ export class Renderer {
             }
 
             for (const npc of this.quest.npcs) {
-                if (npc.areaId === this.area.id) {
+                if (npc.area_id === this.area.id) {
                     if (npc.object3d) {
                         this.npcGeometry.add(npc.object3d);
                     } else {

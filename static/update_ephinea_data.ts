@@ -1,21 +1,21 @@
 import fs from 'fs';
-import { ArrayBufferCursor } from '../src/bin-data/ArrayBufferCursor';
-import { parseItemPmt, ItemPmt } from '../src/bin-data/parsing/itempmt';
-import { parseUnitxt, Unitxt } from '../src/bin-data/parsing/unitxt';
+import { BufferCursor } from '../src/bin_data/BufferCursor';
+import { parseItemPmt, ItemPmt } from '../src/bin_data/parsing/itempmt';
+import { parseUnitxt, Unitxt } from '../src/bin_data/parsing/unitxt';
 import { Difficulties, Difficulty, Episode, Episodes, NpcType, SectionId, SectionIds } from '../src/domain';
 import { NpcTypes } from '../src/domain/NpcType';
 import { BoxDropDto, EnemyDropDto, ItemTypeDto, QuestDto } from '../src/dto';
-import { updateDropsFromWebsite } from './updateDropsEphinea';
-import { parseQuest } from '../src/bin-data/parsing/quest';
+import { updateDropsFromWebsite } from './update_drops_ephinea';
+import { parseQuest } from '../src/bin_data/parsing/quest';
 import Logger from 'js-logger';
 
-const logger = Logger.get('static/updateEphineaData');
+const logger = Logger.get('static/update_ephinea_data');
 
 Logger.useDefaults({ defaultLevel: Logger.ERROR });
 logger.setLevel(Logger.INFO);
-Logger.get('static/updateDropsEphinea').setLevel(Logger.INFO);
-Logger.get('bin-data/parsing/quest').setLevel(Logger.OFF);
-Logger.get('bin-data/parsing/quest/bin').setLevel(Logger.OFF);
+Logger.get('static/update_drops_ephinea').setLevel(Logger.INFO);
+Logger.get('bin_data/parsing/quest').setLevel(Logger.OFF);
+Logger.get('bin_data/parsing/quest/bin').setLevel(Logger.OFF);
 
 /**
  * Used by static data generation scripts.
@@ -104,7 +104,7 @@ function processQuestDir(path: string, quests: QuestDto[]) {
 function processQuest(path: string, quests: QuestDto[]) {
     try {
         const buf = fs.readFileSync(path);
-        const q = parseQuest(new ArrayBufferCursor(buf.buffer, true), true);
+        const q = parseQuest(new BufferCursor(buf.buffer, true), true);
 
         if (q) {
             logger.trace(`Processing quest "${q.name}".`);
@@ -142,7 +142,7 @@ function loadUnitxt(): Unitxt {
         `${RESOURCE_DIR}/client/data/unitxt_j.prs`
     );
 
-    const unitxt = parseUnitxt(new ArrayBufferCursor(buf.buffer, true));
+    const unitxt = parseUnitxt(new BufferCursor(buf.buffer, true));
     // Strip custom Ephinea items until we have the Ephinea ItemPMT.bin.
     unitxt[1].splice(177, 50);
     unitxt[1].splice(639, 59);
@@ -158,7 +158,7 @@ function updateItems(itemNames: Array<string>): ItemTypeDto[] {
         `${RESOURCE_DIR}/ship-config/param/ItemPMT.bin`
     );
 
-    const itemPmt = parseItemPmt(new ArrayBufferCursor(buf.buffer, true));
+    const itemPmt = parseItemPmt(new BufferCursor(buf.buffer, true));
     const itemTypes = new Array<ItemTypeDto>();
     const ids = new Set<number>();
 
@@ -309,7 +309,7 @@ async function loadItemPt(): Promise<ItemPt> {
     const buf = await fs.promises.readFile(
         `${RESOURCE_DIR}/ship-config/param/ItemPT.gsl`
     );
-    const cursor = new ArrayBufferCursor(buf.buffer, false);
+    const cursor = new BufferCursor(buf.buffer, false);
 
     cursor.seek(0x3000);
 
@@ -330,7 +330,7 @@ async function loadItemPt(): Promise<ItemPt> {
 
                 const startPos = cursor.position;
                 cursor.seek(1608);
-                const enemyDar = cursor.u8Array(100);
+                const enemyDar = cursor.u8_array(100);
 
                 for (const npc of NpcTypes) {
                     if (npc.episode !== episode) continue;
@@ -358,7 +358,7 @@ async function loadItemPt(): Promise<ItemPt> {
                     }
                 }
 
-                cursor.seekStart(startPos + 0x1000);
+                cursor.seek_start(startPos + 0x1000);
             }
         }
     }

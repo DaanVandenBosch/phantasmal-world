@@ -81,7 +81,7 @@ class Toolbar extends React.Component<{ onSaveAsClicked: (filename?: string) => 
 
     render() {
         const quest = questEditorStore.currentQuest;
-        const areas = quest && Array.from(quest.areaVariants).map(a => a.area);
+        const areas = quest && Array.from(quest.area_variants).map(a => a.area);
         const area = questEditorStore.currentArea;
         const areaId = area && area.id;
 

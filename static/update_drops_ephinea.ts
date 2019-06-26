@@ -5,7 +5,7 @@ import { Difficulty, NpcType, SectionId, SectionIds } from '../src/domain';
 import { BoxDropDto, EnemyDropDto, ItemTypeDto } from '../src/dto';
 import Logger from 'js-logger';
 
-const logger = Logger.get('static/updateDropsEphinea');
+const logger = Logger.get('static/update_drops_ephinea');
 
 export async function updateDropsFromWebsite(itemTypes: ItemTypeDto[]) {
     logger.info('Updating item drops.');

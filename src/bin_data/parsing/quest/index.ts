@@ -2,7 +2,7 @@ import { BufferCursor } from '../../BufferCursor';
 import * as prs from '../../compression/prs';
 import { parseDat, writeDat, DatObject, DatNpc, DatFile } from './dat';
 import { parseBin, writeBin, Instruction } from './bin';
-import { parseQst, writeQst } from './qst';
+import { parseQst as parse_qst, writeQst as write_qst } from './qst';
 import {
     Vec3,
     AreaVariant,
@@ -12,59 +12,59 @@ import {
     ObjectType,
     NpcType
 } from '../../../domain';
-import { areaStore } from '../../../stores/AreaStore';
+import { area_store } from '../../../stores/AreaStore';
 import Logger from 'js-logger';
 
-const logger = Logger.get('bin-data/parsing/quest');
+const logger = Logger.get('bin_data/parsing/quest');
 
 /**
  * High level parsing function that delegates to lower level parsing functions.
  * 
  * Always delegates to parseQst at the moment.
  */
-export function parseQuest(cursor: BufferCursor, lenient: boolean = false): Quest | undefined {
-    const qst = parseQst(cursor);
+export function parse_quest(cursor: BufferCursor, lenient: boolean = false): Quest | undefined {
+    const qst = parse_qst(cursor);
 
     if (!qst) {
         return;
     }
 
-    let datFile = null;
-    let binFile = null;
+    let dat_file = null;
+    let bin_file = null;
 
     for (const file of qst.files) {
-        const fileName = file.name.trim().toLowerCase();
+        const file_name = file.name.trim().toLowerCase();
 
-        if (fileName.endsWith('.dat')) {
-            datFile = file;
-        } else if (fileName.endsWith('.bin')) {
-            binFile = file;
+        if (file_name.endsWith('.dat')) {
+            dat_file = file;
+        } else if (file_name.endsWith('.bin')) {
+            bin_file = file;
         }
     }
 
     // TODO: deal with missing/multiple DAT or BIN file.
 
-    if (!datFile) {
+    if (!dat_file) {
         logger.error('File contains no DAT file.');
         return;
     }
 
-    if (!binFile) {
+    if (!bin_file) {
         logger.error('File contains no BIN file.');
         return;
     }
 
-    const dat = parseDat(prs.decompress(datFile.data));
-    const bin = parseBin(prs.decompress(binFile.data), lenient);
+    const dat = parseDat(prs.decompress(dat_file.data));
+    const bin = parseBin(prs.decompress(bin_file.data), lenient);
     let episode = 1;
-    let areaVariants: AreaVariant[] = [];
+    let area_variants: AreaVariant[] = [];
 
     if (bin.functionOffsets.length) {
-        const func0Ops = getFuncOperations(bin.instructions, bin.functionOffsets[0]);
+        const func_0_ops = get_func_operations(bin.instructions, bin.functionOffsets[0]);
 
-        if (func0Ops) {
-            episode = getEpisode(func0Ops);
-            areaVariants = getAreaVariants(dat, episode, func0Ops, lenient);
+        if (func_0_ops) {
+            episode = get_episode(func_0_ops);
+            area_variants = get_area_variants(dat, episode, func_0_ops, lenient);
         } else {
             logger.warn(`Function 0 offset ${bin.functionOffsets[0]} is invalid.`);
         }
@@ -76,36 +76,36 @@ export function parseQuest(cursor: BufferCursor, lenient: boolean = false): Ques
         bin.questName,
         bin.shortDescription,
         bin.longDescription,
-        datFile.questNo,
+        dat_file.questNo,
         episode,
-        areaVariants,
-        parseObjData(dat.objs),
-        parseNpcData(episode, dat.npcs),
+        area_variants,
+        parse_obj_data(dat.objs),
+        parse_npc_data(episode, dat.npcs),
         dat.unknowns,
         bin.data
     );
 }
 
-export function writeQuestQst(quest: Quest, fileName: string): BufferCursor {
+export function write_quest_qst(quest: Quest, file_name: string): BufferCursor {
     const dat = writeDat({
-        objs: objectsToDatData(quest.objects),
+        objs: objects_to_dat_data(quest.objects),
         npcs: npcsToDatData(quest.npcs),
-        unknowns: quest.datUnkowns
+        unknowns: quest.dat_unknowns
     });
-    const bin = writeBin({ data: quest.binData });
-    const extStart = fileName.lastIndexOf('.');
-    const baseFileName = extStart === -1 ? fileName : fileName.slice(0, extStart);
+    const bin = writeBin({ data: quest.bin_data });
+    const ext_start = file_name.lastIndexOf('.');
+    const base_file_name = ext_start === -1 ? file_name : file_name.slice(0, ext_start);
 
-    return writeQst({
+    return write_qst({
         files: [
             {
-                name: baseFileName + '.dat',
-                questNo: quest.questNo,
+                name: base_file_name + '.dat',
+                questNo: quest.quest_no,
                 data: prs.compress(dat)
             },
             {
-                name: baseFileName + '.bin',
-                questNo: quest.questNo,
+                name: base_file_name + '.bin',
+                questNo: quest.quest_no,
                 data: prs.compress(bin)
             }
         ]
@@ -115,11 +115,11 @@ export function writeQuestQst(quest: Quest, fileName: string): BufferCursor {
 /**
  * Defaults to episode I.
  */
-function getEpisode(func0Ops: Instruction[]): number {
-    const setEpisode = func0Ops.find(op => op.mnemonic === 'set_episode');
+function get_episode(func_0_ops: Instruction[]): number {
+    const set_episode = func_0_ops.find(op => op.mnemonic === 'set_episode');
 
-    if (setEpisode) {
-        switch (setEpisode.args[0]) {
+    if (set_episode) {
+        switch (set_episode.args[0]) {
             default:
             case 0: return 1;
             case 1: return 2;
@@ -131,37 +131,37 @@ function getEpisode(func0Ops: Instruction[]): number {
     }
 }
 
-function getAreaVariants(
+function get_area_variants(
     dat: DatFile,
     episode: number,
-    func0Ops: Instruction[],
+    func_0_ops: Instruction[],
     lenient: boolean
 ): AreaVariant[] {
     // Add area variants that have npcs or objects even if there are no BB_Map_Designate instructions for them.
-    const areaVariants = new Map();
+    const area_variants = new Map();
 
     for (const npc of dat.npcs) {
-        areaVariants.set(npc.areaId, 0);
+        area_variants.set(npc.areaId, 0);
     }
 
     for (const obj of dat.objs) {
-        areaVariants.set(obj.areaId, 0);
+        area_variants.set(obj.areaId, 0);
     }
 
-    const bbMaps = func0Ops.filter(op => op.mnemonic === 'BB_Map_Designate');
+    const bb_maps = func_0_ops.filter(op => op.mnemonic === 'BB_Map_Designate');
 
-    for (const bbMap of bbMaps) {
-        const areaId = bbMap.args[0];
-        const variantId = bbMap.args[2];
-        areaVariants.set(areaId, variantId);
+    for (const bb_map of bb_maps) {
+        const area_id = bb_map.args[0];
+        const variant_id = bb_map.args[2];
+        area_variants.set(area_id, variant_id);
     }
 
-    const areaVariantsArray = new Array<AreaVariant>();
+    const area_variants_array = new Array<AreaVariant>();
 
-    for (const [areaId, variantId] of areaVariants.entries()) {
+    for (const [areaId, variantId] of area_variants.entries()) {
         try {
-            areaVariantsArray.push(
-                areaStore.getVariant(episode, areaId, variantId)
+            area_variants_array.push(
+                area_store.get_variant(episode, areaId, variantId)
             );
         } catch (e) {
             if (lenient) {
@@ -173,23 +173,23 @@ function getAreaVariants(
     }
 
     // Sort by area order and then variant id.
-    return areaVariantsArray.sort((a, b) =>
+    return area_variants_array.sort((a, b) =>
         a.area.order - b.area.order || a.id - b.id
     );
 }
 
-function getFuncOperations(operations: Instruction[], funcOffset: number) {
+function get_func_operations(operations: Instruction[], func_offset: number) {
     let position = 0;
-    let funcFound = false;
-    const funcOps: Instruction[] = [];
+    let func_found = false;
+    const func_ops: Instruction[] = [];
 
     for (const operation of operations) {
-        if (position === funcOffset) {
-            funcFound = true;
+        if (position === func_offset) {
+            func_found = true;
         }
 
-        if (funcFound) {
-            funcOps.push(operation);
+        if (func_found) {
+            func_ops.push(operation);
 
             // Break when ret is encountered.
             if (operation.opcode === 1) {
@@ -200,25 +200,25 @@ function getFuncOperations(operations: Instruction[], funcOffset: number) {
         position += operation.size;
     }
 
-    return funcFound ? funcOps : null;
+    return func_found ? func_ops : null;
 }
 
-function parseObjData(objs: DatObject[]): QuestObject[] {
-    return objs.map(objData => {
-        const { x, y, z } = objData.position;
-        const rot = objData.rotation;
+function parse_obj_data(objs: DatObject[]): QuestObject[] {
+    return objs.map(obj_data => {
+        const { x, y, z } = obj_data.position;
+        const rot = obj_data.rotation;
         return new QuestObject(
-            objData.areaId,
-            objData.sectionId,
+            obj_data.areaId,
+            obj_data.sectionId,
             new Vec3(x, y, z),
             new Vec3(rot.x, rot.y, rot.z),
-            ObjectType.fromPsoId(objData.typeId),
-            objData
+            ObjectType.from_pso_id(obj_data.typeId),
+            obj_data
         );
     });
 }
 
-function parseNpcData(episode: number, npcs: DatNpc[]): QuestNpc[] {
+function parse_npc_data(episode: number, npcs: DatNpc[]): QuestNpc[] {
     return npcs.map(npcData => {
         const { x, y, z } = npcData.position;
         const rot = npcData.rotation;
@@ -227,14 +227,14 @@ function parseNpcData(episode: number, npcs: DatNpc[]): QuestNpc[] {
             npcData.sectionId,
             new Vec3(x, y, z),
             new Vec3(rot.x, rot.y, rot.z),
-            getNpcType(episode, npcData),
+            get_npc_type(episode, npcData),
             npcData
         );
     });
 }
 
 // TODO: detect Mothmant, St. Rappy, Hallo Rappy, Egg Rappy, Death Gunner, Bulk and Recon.
-function getNpcType(episode: number, { typeId, flags, skin, areaId }: DatNpc): NpcType {
+function get_npc_type(episode: number, { typeId, flags, skin, areaId }: DatNpc): NpcType {
     const regular = Math.abs(flags - 1) > 0.00001;
 
     switch (`${typeId}, ${skin % 3}, ${episode}`) {
@@ -389,13 +389,13 @@ function getNpcType(episode: number, { typeId, flags, skin, areaId }: DatNpc): N
     return NpcType.Unknown;
 }
 
-function objectsToDatData(objects: QuestObject[]): DatObject[] {
+function objects_to_dat_data(objects: QuestObject[]): DatObject[] {
     return objects.map(object => ({
-        typeId: object.type.psoId!,
-        sectionId: object.sectionId,
-        position: object.sectionPosition,
+        typeId: object.type.pso_id!,
+        sectionId: object.section_id,
+        position: object.section_position,
         rotation: object.rotation,
-        areaId: object.areaId,
+        areaId: object.area_id,
         unknown: object.dat.unknown
     }));
 }
@@ -412,12 +412,12 @@ function npcsToDatData(npcs: QuestNpc[]): DatNpc[] {
 
         return {
             typeId: typeData ? typeData.typeId : npc.dat.typeId,
-            sectionId: npc.sectionId,
-            position: npc.sectionPosition,
+            sectionId: npc.section_id,
+            position: npc.section_position,
             rotation: npc.rotation,
             flags,
             skin: typeData ? typeData.skin : npc.dat.skin,
-            areaId: npc.areaId,
+            areaId: npc.area_id,
             unknown: npc.dat.unknown
         };
     });

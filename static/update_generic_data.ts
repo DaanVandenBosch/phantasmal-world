@@ -1,7 +1,7 @@
 import fs from "fs";
-import { BufferCursor } from "../src/bin-data/BufferCursor";
-import { parse_rlc } from "../src/bin-data/parsing/rlc";
-import { parse_njm2 } from "../src/bin-data/parsing/ninja/njm2";
+import { BufferCursor } from "../src/bin_data/BufferCursor";
+import { parse_rlc } from "../src/bin_data/parsing/rlc";
+import { parse_njm2 } from "../src/bin_data/parsing/ninja/njm2";
 import Logger from 'js-logger';
 
 const logger = Logger.get('static/updateGenericData');

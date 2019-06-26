@@ -200,9 +200,9 @@ function objectTypeToUrl(objectType: ObjectType): string {
         case ObjectType.FallingRock:
         case ObjectType.DesertFixedTypeBoxBreakableCrystals:
         case ObjectType.BeeHive:
-            return `/objects/${String(objectType.psoId)}.nj`;
+            return `/objects/${String(objectType.pso_id)}.nj`;
 
         default:
-            return `/objects/${String(objectType.psoId)}.xj`;
+            return `/objects/${String(objectType.pso_id)}.xj`;
     }
 }

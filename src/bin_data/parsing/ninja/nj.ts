@@ -2,7 +2,7 @@ import { Matrix3, Matrix4, Vector3 } from 'three';
 import { BufferCursor } from '../../BufferCursor';
 import Logger from 'js-logger';
 
-const logger = Logger.get('bin-data/parsing/ninja/nj');
+const logger = Logger.get('bin_data/parsing/ninja/nj');
 
 // TODO:
 // - deal with multiple NJCM chunks

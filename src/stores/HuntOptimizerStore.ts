@@ -108,7 +108,7 @@ class HuntOptimizerStore {
             // Counts include rare enemies, so they are fractional.
             const counts = new Map<NpcType, number>();
 
-            for (const [enemy, count] of method.enemyCounts.entries()) {
+            for (const [enemy, count] of method.enemy_counts.entries()) {
                 const oldCount = counts.get(enemy) || 0;
 
                 if (enemy.rareType == null) {
@@ -176,9 +176,9 @@ class HuntOptimizerStore {
                         for (const [npcType, count] of counts.entries()) {
                             const drop = dropTable.getDrop(diff, sectionId, npcType);
 
-                            if (drop && wantedItems.has(drop.itemType)) {
-                                const value = variable[drop.itemType.name] || 0;
-                                variable[drop.itemType.name] = value + count * drop.rate;
+                            if (drop && wantedItems.has(drop.item_type)) {
+                                const value = variable[drop.item_type.name] || 0;
+                                variable[drop.item_type.name] = value + count * drop.rate;
                                 addVariable = true;
                             }
                         }

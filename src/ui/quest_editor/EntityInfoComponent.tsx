@@ -14,7 +14,7 @@ export class EntityInfoComponent extends React.Component<Props> {
         const entity = this.props.entity;
 
         if (entity) {
-            const sectionId = entity.section ? entity.section.id : entity.sectionId;
+            const section_id = entity.section ? entity.section.id : entity.section_id;
             let name = null;
 
             if (entity instanceof QuestObject) {
@@ -37,7 +37,7 @@ export class EntityInfoComponent extends React.Component<Props> {
                         <tbody>
                             {name}
                             <tr>
-                                <td>Section: </td><td>{sectionId}</td>
+                                <td>Section: </td><td>{section_id}</td>
                             </tr>
                             <tr>
                                 <td colSpan={2}>World position: </td>
@@ -46,9 +46,9 @@ export class EntityInfoComponent extends React.Component<Props> {
                                 <td colSpan={2}>
                                     <table>
                                         <tbody>
-                                            <CoordRow entity={entity} positionType="position" coord="x" />
-                                            <CoordRow entity={entity} positionType="position" coord="y" />
-                                            <CoordRow entity={entity} positionType="position" coord="z" />
+                                            <CoordRow entity={entity} position_type="position" coord="x" />
+                                            <CoordRow entity={entity} position_type="position" coord="y" />
+                                            <CoordRow entity={entity} position_type="position" coord="z" />
                                         </tbody>
                                     </table>
                                 </td>
@@ -60,9 +60,9 @@ export class EntityInfoComponent extends React.Component<Props> {
                                 <td colSpan={2}>
                                     <table>
                                         <tbody>
-                                            <CoordRow entity={entity} positionType="sectionPosition" coord="x" />
-                                            <CoordRow entity={entity} positionType="sectionPosition" coord="y" />
-                                            <CoordRow entity={entity} positionType="sectionPosition" coord="z" />
+                                            <CoordRow entity={entity} position_type="section_position" coord="x" />
+                                            <CoordRow entity={entity} position_type="section_position" coord="y" />
+                                            <CoordRow entity={entity} position_type="section_position" coord="z" />
                                         </tbody>
                                     </table>
                                 </td>
@@ -80,12 +80,12 @@ export class EntityInfoComponent extends React.Component<Props> {
 @observer
 class CoordRow extends React.Component<{
     entity: QuestEntity,
-    positionType: 'position' | 'sectionPosition',
+    position_type: 'position' | 'section_position',
     coord: 'x' | 'y' | 'z'
 }> {
     render() {
         const entity = this.props.entity;
-        const value = entity[this.props.positionType][this.props.coord];
+        const value = entity[this.props.position_type][this.props.coord];
         return (
             <tr>
                 <td>{this.props.coord.toUpperCase()}: </td>
@@ -105,10 +105,10 @@ class CoordRow extends React.Component<{
     private changed = (value?: number) => {
         if (value != null) {
             const entity = this.props.entity;
-            const posType = this.props.positionType;
-            const pos = entity[posType].clone();
+            const pos_type = this.props.position_type;
+            const pos = entity[pos_type].clone();
             pos[this.props.coord] = value;
-            entity[posType] = pos;
+            entity[pos_type] = pos;
         }
     }
 }

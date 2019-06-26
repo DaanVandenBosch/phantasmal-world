@@ -1,10 +1,7 @@
-/**
- * This code is based on the Sylverant PRS decompression code written by Lawrence Sebald.
- */
 import { BufferCursor } from '../../BufferCursor';
 import Logger from 'js-logger';
 
-const logger = Logger.get('bin-data/compression/prs/decompress');
+const logger = Logger.get('bin_data/compression/prs/decompress');
 
 export function decompress(cursor: BufferCursor) {
     const ctx = new Context(cursor);
@@ -103,16 +100,16 @@ class Context {
         }
 
         // The length can be larger than -offset, in that case we copy -offset bytes size/-offset times.
-        const bufSize = Math.min(-offset, length);
+        const buf_size = Math.min(-offset, length);
 
         this.dst.seek(offset);
-        const buf = this.dst.take(bufSize);
-        this.dst.seek(-offset - bufSize);
+        const buf = this.dst.take(buf_size);
+        this.dst.seek(-offset - buf_size);
 
-        for (let i = 0; i < Math.floor(length / bufSize); ++i) {
+        for (let i = 0; i < Math.floor(length / buf_size); ++i) {
             this.dst.write_cursor(buf);
         }
 
-        this.dst.write_cursor(buf.take(length % bufSize));
+        this.dst.write_cursor(buf.take(length % buf_size));
     }
 }

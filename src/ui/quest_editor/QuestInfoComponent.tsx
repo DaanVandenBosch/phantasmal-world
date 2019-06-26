@@ -39,12 +39,12 @@ export function QuestInfoComponent({ quest }: { quest?: Quest }) {
                         </tr>
                         <tr>
                             <td colSpan={2}>
-                                <pre>{quest.shortDescription}</pre>
+                                <pre>{quest.short_description}</pre>
                             </td>
                         </tr>
                         <tr>
                             <td colSpan={2}>
-                                <pre>{quest.longDescription}</pre>
+                                <pre>{quest.long_description}</pre>
                             </td>
                         </tr>
                     </tbody>

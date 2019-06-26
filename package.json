@@ -33,8 +33,8 @@
     "start": "craco start",
     "build": "craco build",
     "test": "craco test",
-    "updateGenericData": "ts-node --project=tsconfig-scripts.json static/updateGenericData.ts",
-    "updateEphineaData": "ts-node --project=tsconfig-scripts.json static/updateEphineaData.ts"
+    "update_generic_data": "ts-node --project=tsconfig-scripts.json static/update_generic_data.ts",
+    "update_ephinea_data": "ts-node --project=tsconfig-scripts.json static/update_ephinea_data.ts"
   },
   "eslintConfig": {
     "extends": "react-app"

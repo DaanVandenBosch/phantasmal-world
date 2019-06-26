@@ -3,7 +3,7 @@ import { decrypt } from "../encryption/prc";
 import { decompress } from "../compression/prs";
 import Logger from 'js-logger';
 
-const logger = Logger.get('bin-data/parsing/prc');
+const logger = Logger.get('bin_data/parsing/prc');
 
 /**
  * Decrypts and decompresses a .prc file.

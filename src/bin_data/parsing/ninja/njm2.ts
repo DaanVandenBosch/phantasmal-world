@@ -1,7 +1,7 @@
 import Logger from 'js-logger';
 import { BufferCursor } from '../../BufferCursor';
 
-const logger = Logger.get('bin-data/parsing/ninja/njm2');
+const logger = Logger.get('bin_data/parsing/ninja/njm2');
 
 export type NjAction = {
     object_offset: number,

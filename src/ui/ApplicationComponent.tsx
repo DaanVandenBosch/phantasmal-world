@@ -3,32 +3,32 @@ import { ClickParam } from 'antd/lib/menu';
 import { observer } from 'mobx-react';
 import React from 'react';
 import './ApplicationComponent.less';
-import { withErrorBoundary } from './ErrorBoundary';
-import { HuntOptimizerComponent } from './hunt-optimizer/HuntOptimizerComponent';
-import { QuestEditorComponent } from './quest-editor/QuestEditorComponent';
-import { DpsCalcComponent } from './dps-calc/DpsCalcComponent';
+import { with_error_boundary } from './ErrorBoundary';
+import { HuntOptimizerComponent } from './hunt_optimizer/HuntOptimizerComponent';
+import { QuestEditorComponent } from './quest_editor/QuestEditorComponent';
+import { DpsCalcComponent } from './dps_calc/DpsCalcComponent';
 import { Server } from '../domain';
 
-const QuestEditor = withErrorBoundary(QuestEditorComponent);
-const HuntOptimizer = withErrorBoundary(HuntOptimizerComponent);
-const DpsCalc = withErrorBoundary(DpsCalcComponent);
+const QuestEditor = with_error_boundary(QuestEditorComponent);
+const HuntOptimizer = with_error_boundary(HuntOptimizerComponent);
+const DpsCalc = with_error_boundary(DpsCalcComponent);
 
 @observer
 export class ApplicationComponent extends React.Component {
-    state = { tool: this.initTool() }
+    state = { tool: this.init_tool() }
 
     render() {
-        let toolComponent;
+        let tool_component;
 
         switch (this.state.tool) {
             case 'questEditor':
-                toolComponent = <QuestEditor />;
+                tool_component = <QuestEditor />;
                 break;
             case 'huntOptimizer':
-                toolComponent = <HuntOptimizer />;
+                tool_component = <HuntOptimizer />;
                 break;
             case 'dpsCalc':
-                toolComponent = <DpsCalc />;
+                tool_component = <DpsCalc />;
                 break;
         }
 
@@ -40,7 +40,7 @@ export class ApplicationComponent extends React.Component {
                     </h1>
                     <Menu
                         className="ApplicationComponent-heading-menu"
-                        onClick={this.menuClicked}
+                        onClick={this.menu_clicked}
                         selectedKeys={[this.state.tool]}
                         mode="horizontal"
                     >
@@ -62,17 +62,17 @@ export class ApplicationComponent extends React.Component {
                     </div>
                 </div>
                 <div className="ApplicationComponent-main">
-                    {toolComponent}
+                    {tool_component}
                 </div>
             </div>
         );
     }
 
-    private menuClicked = (e: ClickParam) => {
+    private menu_clicked = (e: ClickParam) => {
         this.setState({ tool: e.key });
     };
 
-    private initTool(): string {
+    private init_tool(): string {
         const param = window.location.search.slice(1).split('&').find(p => p.startsWith('tool='));
         return param ? param.slice(5) : 'questEditor';
     }

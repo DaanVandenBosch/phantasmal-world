@@ -39,8 +39,8 @@ export class Loadable<T> {
     private _load?: () => Promise<T>;
     @observable private _error?: Error;
 
-    constructor(initialValue: T, load?: () => Promise<T>) {
-        this._value = initialValue;
+    constructor(initial_value: T, load?: () => Promise<T>) {
+        this._value = initial_value;
         this._load = load;
     }
 
@@ -52,7 +52,7 @@ export class Loadable<T> {
         // Load value on first use and return initial placeholder value.
         if (this._state === LoadableState.Uninitialized) {
             // Defer loading value to avoid side effects in computed value.
-            defer(() => this.loadValue());
+            defer(() => this.load_value());
         }
 
         return this._value;
@@ -69,7 +69,7 @@ export class Loadable<T> {
     get promise(): Promise<T> {
         // Load value on first use.
         if (this._state === LoadableState.Uninitialized) {
-            return this.loadValue();
+            return this.load_value();
         } else {
             return this._promise;
         }
@@ -83,14 +83,14 @@ export class Loadable<T> {
      * @returns true if the initial data load has happened. It may or may not have succeeded.
      * Check [error]{@link Loadable#error} to know whether an error occurred.
      */
-    @computed get isInitialized(): boolean {
+    @computed get is_initialized(): boolean {
         return this._state !== LoadableState.Uninitialized;
     }
 
     /**
      * @returns true if a data load is underway. This may be the initializing load or a later load.
      */
-    @computed get isLoading(): boolean {
+    @computed get is_loading(): boolean {
         switch (this._state) {
             case LoadableState.Initializing:
             case LoadableState.Reloading:
@@ -111,11 +111,11 @@ export class Loadable<T> {
      * Load the data. Initializes the Loadable if it is uninitialized.
      */
     load(): Promise<T> {
-        return this.loadValue();
+        return this.load_value();
     }
 
-    private async loadValue(): Promise<T> {
-        if (this.isLoading) return this._promise;
+    private async load_value(): Promise<T> {
+        if (this.is_loading) return this._promise;
 
         this._state = LoadableState.Initializing;
 

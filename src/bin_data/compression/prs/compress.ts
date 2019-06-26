@@ -1,7 +1,3 @@
-/**
- * This code is based on the Sylverant PRS compression code written by Lawrence Sebald.
- */
-
 import { BufferCursor } from '../../BufferCursor';
 
 export function compress(src: BufferCursor): BufferCursor {

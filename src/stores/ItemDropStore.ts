@@ -32,11 +32,11 @@ class EnemyDropTable {
             + npcType.id
         ] = drop;
 
-        let drops = this.itemTypeToDrops[drop.itemType.id];
+        let drops = this.itemTypeToDrops[drop.item_type.id];
 
         if (!drops) {
             drops = [];
-            this.itemTypeToDrops[drop.itemType.id] = drops;
+            this.itemTypeToDrops[drop.item_type.id] = drops;
         }
 
         drops.push(drop);
@@ -60,7 +60,7 @@ class ItemDropStore {
         const drops = new EnemyDropTable();
 
         for (const dropDto of data) {
-            const npcType = NpcType.byCode(dropDto.enemy);
+            const npcType = NpcType.by_code(dropDto.enemy);
 
             if (!npcType) {
                 logger.warn(`Couldn't determine NpcType of episode ${dropDto.episode} ${dropDto.enemy}.`);

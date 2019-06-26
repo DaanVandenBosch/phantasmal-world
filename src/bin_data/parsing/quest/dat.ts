@@ -2,7 +2,7 @@ import { groupBy } from 'lodash';
 import { BufferCursor } from '../../BufferCursor';
 import Logger from 'js-logger';
 
-const logger = Logger.get('bin-data/parsing/quest/dat');
+const logger = Logger.get('bin_data/parsing/quest/dat');
 
 const OBJECT_SIZE = 68;
 const NPC_SIZE = 72;

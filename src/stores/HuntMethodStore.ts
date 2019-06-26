@@ -26,7 +26,7 @@ class HuntMethodStore {
             const enemyCounts = new Map<NpcType, number>();
 
             for (const [code, count] of Object.entries(quest.enemyCounts)) {
-                const npcType = NpcType.byCode(code);
+                const npcType = NpcType.by_code(code);
 
                 if (!npcType) {
                     logger.error(`No NpcType found for code ${code}.`);
@@ -82,7 +82,7 @@ class HuntMethodStore {
                 const userTimes = JSON.parse(methodUserTimesJson);
 
                 for (const method of methods) {
-                    method.userTime = userTimes[method.id] as number;
+                    method.user_time = userTimes[method.id] as number;
                 }
             }
 
@@ -103,8 +103,8 @@ class HuntMethodStore {
             const userTimes: any = {};
 
             for (const method of methods) {
-                if (method.userTime != null) {
-                    userTimes[method.id] = method.userTime;
+                if (method.user_time != null) {
+                    userTimes[method.id] = method.user_time;
                 }
             }
 

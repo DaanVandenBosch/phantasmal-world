@@ -14,7 +14,7 @@ import {
 import { Vec3, Section } from '../../domain';
 import Logger from 'js-logger';
 
-const logger = Logger.get('bin-data/parsing/geometry');
+const logger = Logger.get('bin_data/parsing/geometry');
 
 export function parseCRel(arrayBuffer: ArrayBuffer): Object3D {
     const dv = new DataView(arrayBuffer);
@@ -263,8 +263,8 @@ export function parseNRel(
                     const x = dv.getFloat32(k, true);
                     const y = dv.getFloat32(k + 4, true);
                     const z = dv.getFloat32(k + 8, true);
-                    const rotatedX = section.cosYAxisRotation * x + section.sinYAxisRotation * z;
-                    const rotatedZ = -section.sinYAxisRotation * x + section.cosYAxisRotation * z;
+                    const rotatedX = section.cos_y_axis_rotation * x + section.sin_y_axis_rotation * z;
+                    const rotatedZ = -section.sin_y_axis_rotation * x + section.cos_y_axis_rotation * z;
 
                     geomPositions.push(sectionX + rotatedX);
                     geomPositions.push(sectionY + y);

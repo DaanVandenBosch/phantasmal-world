@@ -1,4 +1,4 @@
-import { Episode, checkEpisode } from ".";
+import { Episode, check_episode } from ".";
 
 export class NpcType {
     readonly id: number;
@@ -15,8 +15,8 @@ export class NpcType {
      * Name used in the game.
      * Might conflict with other NPC names (e.g. Delsaber from ep. I and ep. II).
      */
-    readonly simpleName: string;
-    readonly ultimateName: string;
+    readonly simple_name: string;
+    readonly ultimate_name: string;
     readonly episode?: number;
     readonly enemy: boolean;
     rareType?: NpcType;
@@ -25,8 +25,8 @@ export class NpcType {
         id: number,
         code: string,
         name: string,
-        simpleName: string,
-        ultimateName: string,
+        simple_name: string,
+        ultimate_name: string,
         episode: number | undefined,
         enemy: boolean
     ) {
@@ -34,48 +34,48 @@ export class NpcType {
             throw new Error(`Expected id to be an integer greater than or equal to 0, got ${id}.`);
         if (!code) throw new Error('code is required.');
         if (!name) throw new Error('name is required.');
-        if (!simpleName) throw new Error('simpleName is required.');
-        if (!ultimateName) throw new Error('ultimateName is required.');
+        if (!simple_name) throw new Error('simple_name is required.');
+        if (!ultimate_name) throw new Error('ultimate_name is required.');
         if (episode != null && episode !== 1 && episode !== 2 && episode !== 4)
             throw new Error(`episode should be undefined, 1, 2 or 4, got ${episode}.`);
         if (typeof enemy !== 'boolean') throw new Error('enemy is required.');
 
         this.id = id;
         this.code = code;
-        this.simpleName = simpleName;
-        this.ultimateName = ultimateName;
+        this.simple_name = simple_name;
+        this.ultimate_name = ultimate_name;
         this.name = name;
         this.episode = episode;
         this.enemy = enemy;
 
-        NpcType.byCodeMap.set(code, this);
+        NpcType.by_code_map.set(code, this);
 
         if (episode) {
-            const map = NpcType.byEpAndName[episode];
+            const map = NpcType.by_ep_and_name[episode];
 
             if (map) {
-                map.set(simpleName, this);
-                map.set(ultimateName, this);
+                map.set(simple_name, this);
+                map.set(ultimate_name, this);
             }
         }
     }
 
-    private static byCodeMap = new Map<string, NpcType>();
+    private static by_code_map = new Map<string, NpcType>();
 
-    private static byEpAndName = [
+    private static by_ep_and_name = [
         undefined, new Map<string, NpcType>(), new Map<string, NpcType>(), undefined, new Map<string, NpcType>()
     ];
 
-    static byCode(code: string): NpcType | undefined {
-        return this.byCodeMap.get(code);
+    static by_code(code: string): NpcType | undefined {
+        return this.by_code_map.get(code);
     }
 
     /**
-     * Uniquely identifies an NPC. Tries to match on simpleName and ultimateName.
+     * Uniquely identifies an NPC. Tries to match on simple_name and ultimate_name.
      */
-    static byNameAndEpisode(name: string, episode: Episode): NpcType | undefined {
-        checkEpisode(episode);
-        return this.byEpAndName[episode]!.get(name);
+    static by_name_and_episode(name: string, episode: Episode): NpcType | undefined {
+        check_episode(episode);
+        return this.by_ep_and_name[episode]!.get(name);
     }
 
     //

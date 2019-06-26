@@ -45,7 +45,7 @@ export class MethodsComponent extends React.Component {
                 name: enemy.name,
                 width: 75,
                 cellRenderer: (method) => {
-                    const count = method.enemyCounts.get(enemy);
+                    const count = method.enemy_counts.get(enemy);
                     return count == null ? '' : count.toString();
                 },
                 className: 'number',
@@ -97,10 +97,10 @@ export class MethodsComponent extends React.Component {
                 } else if (column.key === 'time') {
                     cmp = a.time - b.time;
                 } else if (column.key) {
-                    const type = NpcType.byCode(column.key);
+                    const type = NpcType.by_code(column.key);
 
                     if (type) {
-                        cmp = (a.enemyCounts.get(type) || 0) - (b.enemyCounts.get(type) || 0);
+                        cmp = (a.enemy_counts.get(type) || 0) - (b.enemy_counts.get(type) || 0);
                     }
                 }
 
@@ -137,6 +137,6 @@ class TimeComponent extends React.Component<{ method: HuntMethod }> {
     }
 
     private change = (time: Moment) => {
-        this.props.method.userTime = time.hour() + time.minute() / 60;
+        this.props.method.user_time = time.hour() + time.minute() / 60;
     }
 }
