@@ -1,5 +1,5 @@
 import * as fs from 'fs';
-import { ArrayBufferCursor } from '../../ArrayBufferCursor';
+import { BufferCursor } from '../../BufferCursor';
 import * as prs from '../../compression/prs';
 import { parseDat, writeDat } from './dat';
 
@@ -8,15 +8,15 @@ import { parseDat, writeDat } from './dat';
  */
 test('parseDat and writeDat', () => {
     const origBuffer = fs.readFileSync('test/resources/quest118_e.dat').buffer;
-    const origDat = prs.decompress(new ArrayBufferCursor(origBuffer, true));
+    const origDat = prs.decompress(new BufferCursor(origBuffer, true));
     const testDat = writeDat(parseDat(origDat));
-    origDat.seekStart(0);
+    origDat.seek_start(0);
 
     expect(testDat.size).toBe(origDat.size);
 
     let match = true;
 
-    while (origDat.bytesLeft) {
+    while (origDat.bytes_left) {
         if (testDat.u8() !== origDat.u8()) {
             match = false;
             break;
@@ -31,9 +31,9 @@ test('parseDat and writeDat', () => {
  */
 test('parse, modify and write DAT', () => {
     const origBuffer = fs.readFileSync('./test/resources/quest118_e.dat').buffer;
-    const origDat = prs.decompress(new ArrayBufferCursor(origBuffer, true));
+    const origDat = prs.decompress(new BufferCursor(origBuffer, true));
     const testParsed = parseDat(origDat);
-    origDat.seekStart(0);
+    origDat.seek_start(0);
 
     testParsed.objs[9].position.x = 13;
     testParsed.objs[9].position.y = 17;
@@ -45,7 +45,7 @@ test('parse, modify and write DAT', () => {
 
     let match = true;
 
-    while (origDat.bytesLeft) {
+    while (origDat.bytes_left) {
         if (origDat.position === 16 + 9 * 68 + 16) {
             origDat.seek(12);
 

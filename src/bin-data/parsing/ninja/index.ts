@@ -6,7 +6,7 @@ import {
     Quaternion,
     Vector3
 } from 'three';
-import { ArrayBufferCursor } from '../../ArrayBufferCursor';
+import { BufferCursor } from '../../BufferCursor';
 import { parseNjModel, NjContext } from './nj';
 import { parseXjModel, XjContext } from './xj';
 
@@ -14,23 +14,23 @@ import { parseXjModel, XjContext } from './xj';
 // - deal with multiple NJCM chunks
 // - deal with other types of chunks
 
-export function parseNj(cursor: ArrayBufferCursor): BufferGeometry | undefined {
+export function parseNj(cursor: BufferCursor): BufferGeometry | undefined {
     return parseNinja(cursor, 'nj');
 }
 
-export function parseXj(cursor: ArrayBufferCursor): BufferGeometry | undefined {
+export function parseXj(cursor: BufferCursor): BufferGeometry | undefined {
     return parseNinja(cursor, 'xj');
 }
 
 type Format = 'nj' | 'xj';
 type Context = NjContext | XjContext;
 
-function parseNinja(cursor: ArrayBufferCursor, format: Format): BufferGeometry | undefined {
-    while (cursor.bytesLeft) {
+function parseNinja(cursor: BufferCursor, format: Format): BufferGeometry | undefined {
+    while (cursor.bytes_left) {
         // Ninja uses a little endian variant of the IFF format.
         // IFF files contain chunks preceded by an 8-byte header.
         // The header consists of 4 ASCII characters for the "Type ID" and a 32-bit integer specifying the chunk size.
-        const iffTypeId = cursor.stringAscii(4, false, false);
+        const iffTypeId = cursor.string_ascii(4, false, false);
         const iffChunkSize = cursor.u32();
 
         if (iffTypeId === 'NJCM') {
@@ -41,8 +41,8 @@ function parseNinja(cursor: ArrayBufferCursor, format: Format): BufferGeometry |
     }
 }
 
-function parseNjcm(cursor: ArrayBufferCursor, format: Format): BufferGeometry | undefined {
-    if (cursor.bytesLeft) {
+function parseNjcm(cursor: BufferCursor, format: Format): BufferGeometry | undefined {
+    if (cursor.bytes_left) {
         let context: Context;
 
         if (format === 'nj') {
@@ -68,7 +68,7 @@ function parseNjcm(cursor: ArrayBufferCursor, format: Format): BufferGeometry | 
 }
 
 function parseSiblingObjects(
-    cursor: ArrayBufferCursor,
+    cursor: BufferCursor,
     parentMatrix: Matrix4,
     context: Context
 ): void {
@@ -103,17 +103,17 @@ function parseSiblingObjects(
         .premultiply(parentMatrix);
 
     if (modelOffset && !hidden) {
-        cursor.seekStart(modelOffset);
+        cursor.seek_start(modelOffset);
         parseModel(cursor, matrix, context);
     }
 
     if (childOffset && !breakChildTrace) {
-        cursor.seekStart(childOffset);
+        cursor.seek_start(childOffset);
         parseSiblingObjects(cursor, matrix, context);
     }
 
     if (siblingOffset) {
-        cursor.seekStart(siblingOffset);
+        cursor.seek_start(siblingOffset);
         parseSiblingObjects(cursor, parentMatrix, context);
     }
 }
@@ -130,7 +130,7 @@ function createBufferGeometry(context: Context): BufferGeometry {
     return geometry;
 }
 
-function parseModel(cursor: ArrayBufferCursor, matrix: Matrix4, context: Context): void {
+function parseModel(cursor: BufferCursor, matrix: Matrix4, context: Context): void {
     if (context.format === 'nj') {
         parseNjModel(cursor, matrix, context);
     } else {

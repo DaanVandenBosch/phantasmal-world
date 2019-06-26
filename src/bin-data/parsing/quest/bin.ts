@@ -1,4 +1,4 @@
-import { ArrayBufferCursor } from '../../ArrayBufferCursor';
+import { BufferCursor } from '../../BufferCursor';
 import Logger from 'js-logger';
 
 const logger = Logger.get('bin-data/parsing/quest/bin');
@@ -11,19 +11,19 @@ export interface BinFile {
     longDescription: string;
     functionOffsets: number[];
     instructions: Instruction[];
-    data: ArrayBufferCursor;
+    data: BufferCursor;
 }
 
-export function parseBin(cursor: ArrayBufferCursor, lenient: boolean = false): BinFile {
+export function parseBin(cursor: BufferCursor, lenient: boolean = false): BinFile {
     const objectCodeOffset = cursor.u32();
     const functionOffsetTableOffset = cursor.u32(); // Relative offsets
     const size = cursor.u32();
     cursor.seek(4); // Always seems to be 0xFFFFFFFF
     const questNumber = cursor.u32();
     const language = cursor.u32();
-    const questName = cursor.stringUtf16(64, true, true);
-    const shortDescription = cursor.stringUtf16(256, true, true);
-    const longDescription = cursor.stringUtf16(576, true, true);
+    const questName = cursor.string_utf16(64, true, true);
+    const shortDescription = cursor.string_utf16(256, true, true);
+    const longDescription = cursor.string_utf16(576, true, true);
 
     if (size !== cursor.size) {
         logger.warn(`Value ${size} in bin size field does not match actual size ${cursor.size}.`);
@@ -32,7 +32,7 @@ export function parseBin(cursor: ArrayBufferCursor, lenient: boolean = false): B
     const functionOffsetCount = Math.floor(
         (cursor.size - functionOffsetTableOffset) / 4);
 
-    cursor.seekStart(functionOffsetTableOffset);
+    cursor.seek_start(functionOffsetTableOffset);
     const functionOffsets = [];
 
     for (let i = 0; i < functionOffsetCount; ++i) {
@@ -40,7 +40,7 @@ export function parseBin(cursor: ArrayBufferCursor, lenient: boolean = false): B
     }
 
     const instructions = parseObjectCode(
-        cursor.seekStart(objectCodeOffset).take(functionOffsetTableOffset - objectCodeOffset),
+        cursor.seek_start(objectCodeOffset).take(functionOffsetTableOffset - objectCodeOffset),
         lenient
     );
 
@@ -52,12 +52,12 @@ export function parseBin(cursor: ArrayBufferCursor, lenient: boolean = false): B
         longDescription,
         functionOffsets,
         instructions,
-        data: cursor.seekStart(0).take(cursor.size)
+        data: cursor.seek_start(0).take(cursor.size)
     };
 }
 
-export function writeBin({ data }: { data: ArrayBufferCursor }): ArrayBufferCursor {
-    return data.seekStart(0);
+export function writeBin({ data }: { data: BufferCursor }): BufferCursor {
+    return data.seek_start(0);
 }
 
 export interface Instruction {
@@ -67,11 +67,11 @@ export interface Instruction {
     size: number;
 }
 
-function parseObjectCode(cursor: ArrayBufferCursor, lenient: boolean): Instruction[] {
+function parseObjectCode(cursor: BufferCursor, lenient: boolean): Instruction[] {
     const instructions = [];
 
     try {
-        while (cursor.bytesLeft) {
+        while (cursor.bytes_left) {
             const mainOpcode = cursor.u8();
             let opcode;
             let opsize;
@@ -144,7 +144,7 @@ function parseObjectCode(cursor: ArrayBufferCursor, lenient: boolean): Instructi
 }
 
 function parseInstructionArguments(
-    cursor: ArrayBufferCursor,
+    cursor: BufferCursor,
     mask: string
 ): { args: any[], size: number } {
     const oldPos = cursor.position;

@@ -1,6 +1,6 @@
 import { computed, observable } from 'mobx';
 import { Object3D } from 'three';
-import { ArrayBufferCursor } from '../bin-data/ArrayBufferCursor';
+import { BufferCursor } from '../bin-data/BufferCursor';
 import { DatNpc, DatObject, DatUnknown } from '../bin-data/parsing/quest/dat';
 import { NpcType } from './NpcType';
 import { ObjectType } from './ObjectType';
@@ -126,7 +126,7 @@ export class Quest {
     /**
      * (Partial) raw BIN data that can't be parsed yet by Phantasmal.
      */
-    binData: ArrayBufferCursor;
+    binData: BufferCursor;
 
     constructor(
         name: string,
@@ -138,7 +138,7 @@ export class Quest {
         objects: QuestObject[],
         npcs: QuestNpc[],
         datUnknowns: DatUnknown[],
-        binData: ArrayBufferCursor
+        binData: BufferCursor
     ) {
         if (questNo != null && (!Number.isInteger(questNo) || questNo < 0)) throw new Error('questNo should be null or a non-negative integer.');
         checkEpisode(episode);

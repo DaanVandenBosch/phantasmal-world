@@ -1,33 +1,33 @@
 /**
  * This code is based on the Sylverant PRS decompression code written by Lawrence Sebald.
  */
-import { ArrayBufferCursor } from '../../ArrayBufferCursor';
+import { BufferCursor } from '../../BufferCursor';
 import Logger from 'js-logger';
 
 const logger = Logger.get('bin-data/compression/prs/decompress');
 
-export function decompress(cursor: ArrayBufferCursor) {
+export function decompress(cursor: BufferCursor) {
     const ctx = new Context(cursor);
 
     while (true) {
-        if (ctx.readFlagBit() === 1) {
+        if (ctx.read_flag_bit() === 1) {
             // Single byte copy.
-            ctx.copyU8();
+            ctx.copy_u8();
         } else {
             // Multi byte copy.
             let length;
             let offset;
 
-            if (ctx.readFlagBit() === 0) {
+            if (ctx.read_flag_bit() === 0) {
                 // Short copy.
-                length = ctx.readFlagBit() << 1;
-                length |= ctx.readFlagBit();
+                length = ctx.read_flag_bit() << 1;
+                length |= ctx.read_flag_bit();
                 length += 2;
 
-                offset = ctx.readU8() - 256;
+                offset = ctx.read_u8() - 256;
             } else {
                 // Long copy or end of file.
-                offset = ctx.readU16();
+                offset = ctx.read_u16();
 
                 // Two zero bytes implies that this is the end of the file.
                 if (offset === 0) {
@@ -39,7 +39,7 @@ export function decompress(cursor: ArrayBufferCursor) {
                 offset >>>= 3;
 
                 if (length === 0) {
-                    length = ctx.readU8();
+                    length = ctx.read_u8();
                     length += 1;
                 } else {
                     length += 2;
@@ -48,52 +48,52 @@ export function decompress(cursor: ArrayBufferCursor) {
                 offset -= 8192;
             }
 
-            ctx.offsetCopy(offset, length);
+            ctx.offset_copy(offset, length);
         }
     }
 
-    return ctx.dst.seekStart(0);
+    return ctx.dst.seek_start(0);
 }
 
 class Context {
-    src: ArrayBufferCursor;
-    dst: ArrayBufferCursor;
+    src: BufferCursor;
+    dst: BufferCursor;
     flags: number;
-    flagBitsLeft: number;
+    flag_bits_left: number;
 
-    constructor(cursor: ArrayBufferCursor) {
+    constructor(cursor: BufferCursor) {
         this.src = cursor;
-        this.dst = new ArrayBufferCursor(4 * cursor.size, cursor.littleEndian);
+        this.dst = new BufferCursor(4 * cursor.size, cursor.little_endian);
         this.flags = 0;
-        this.flagBitsLeft = 0;
+        this.flag_bits_left = 0;
     }
 
-    readFlagBit() {
+    read_flag_bit() {
         // Fetch a new flag byte when the previous byte has been processed.
-        if (this.flagBitsLeft === 0) {
-            this.flags = this.readU8();
-            this.flagBitsLeft = 8;
+        if (this.flag_bits_left === 0) {
+            this.flags = this.read_u8();
+            this.flag_bits_left = 8;
         }
 
         let bit = this.flags & 1;
         this.flags >>>= 1;
-        this.flagBitsLeft -= 1;
+        this.flag_bits_left -= 1;
         return bit;
     }
 
-    copyU8() {
-        this.dst.writeU8(this.readU8());
+    copy_u8() {
+        this.dst.write_u8(this.read_u8());
     }
 
-    readU8() {
+    read_u8() {
         return this.src.u8();
     }
 
-    readU16() {
+    read_u16() {
         return this.src.u16();
     }
 
-    offsetCopy(offset: number, length: number) {
+    offset_copy(offset: number, length: number) {
         if (offset < -8192 || offset > 0) {
             logger.error(`offset was ${offset}, should be between -8192 and 0.`);
         }
@@ -110,9 +110,9 @@ class Context {
         this.dst.seek(-offset - bufSize);
 
         for (let i = 0; i < Math.floor(length / bufSize); ++i) {
-            this.dst.writeCursor(buf);
+            this.dst.write_cursor(buf);
         }
 
-        this.dst.writeCursor(buf.take(length % bufSize));
+        this.dst.write_cursor(buf.take(length % bufSize));
     }
 }

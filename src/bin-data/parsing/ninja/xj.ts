@@ -1,5 +1,5 @@
 import { Matrix3, Matrix4, Vector3 } from 'three';
-import { ArrayBufferCursor } from '../../ArrayBufferCursor';
+import { BufferCursor } from '../../BufferCursor';
 
 // TODO:
 // - textures
@@ -14,7 +14,7 @@ export interface XjContext {
     indices: number[];
 }
 
-export function parseXjModel(cursor: ArrayBufferCursor, matrix: Matrix4, context: XjContext): void {
+export function parseXjModel(cursor: BufferCursor, matrix: Matrix4, context: XjContext): void {
     const { positions, normals, indices } = context;
 
     cursor.seek(4); // Flags according to QEdit, seemingly always 0.
@@ -30,14 +30,14 @@ export function parseXjModel(cursor: ArrayBufferCursor, matrix: Matrix4, context
     const indexOffset = positions.length / 3;
 
     if (vertexInfoListOffset) {
-        cursor.seekStart(vertexInfoListOffset);
+        cursor.seek_start(vertexInfoListOffset);
         cursor.seek(4); // Possibly the vertex type.
         const vertexListOffset = cursor.u32();
         const vertexSize = cursor.u32();
         const vertexCount = cursor.u32();
 
         for (let i = 0; i < vertexCount; ++i) {
-            cursor.seekStart(vertexListOffset + i * vertexSize);
+            cursor.seek_start(vertexListOffset + i * vertexSize);
             const position = new Vector3(
                 cursor.f32(),
                 cursor.f32(),
@@ -90,7 +90,7 @@ export function parseXjModel(cursor: ArrayBufferCursor, matrix: Matrix4, context
 }
 
 function parseTriangleStripList(
-    cursor: ArrayBufferCursor,
+    cursor: BufferCursor,
     triangleStripListOffset: number,
     triangleStripCount: number,
     positions: number[],
@@ -99,14 +99,14 @@ function parseTriangleStripList(
     indexOffset: number
 ): void {
     for (let i = 0; i < triangleStripCount; ++i) {
-        cursor.seekStart(triangleStripListOffset + i * 20);
+        cursor.seek_start(triangleStripListOffset + i * 20);
         cursor.seek(8); // Skip material information.
         const indexListOffset = cursor.u32();
         const indexCount = cursor.u32();
         // Ignoring 4 bytes.
 
-        cursor.seekStart(indexListOffset);
-        const stripIndices = cursor.u16Array(indexCount);
+        cursor.seek_start(indexListOffset);
+        const stripIndices = cursor.u16_array(indexCount);
         let clockwise = true;
 
         for (let j = 2; j < stripIndices.length; ++j) {

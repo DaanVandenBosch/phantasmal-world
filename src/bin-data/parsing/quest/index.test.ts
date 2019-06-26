@@ -1,11 +1,11 @@
 import * as fs from 'fs';
-import { ArrayBufferCursor } from '../../ArrayBufferCursor';
+import { BufferCursor } from '../../BufferCursor';
 import { parseQuest, writeQuestQst } from '.';
 import { ObjectType, Quest } from '../../../domain';
 
 test('parse Towards the Future', () => {
     const buffer = fs.readFileSync('test/resources/quest118_e.qst').buffer;
-    const cursor = new ArrayBufferCursor(buffer, true);
+    const cursor = new BufferCursor(buffer, true);
     const quest = parseQuest(cursor)!;
 
     expect(quest.name).toBe('Towards the Future');
@@ -27,7 +27,7 @@ test('parse Towards the Future', () => {
  */
 test('parseQuest and writeQuestQst', () => {
     const buffer = fs.readFileSync('test/resources/tethealla_v0.143_quests/solo/ep1/02.qst').buffer;
-    const cursor = new ArrayBufferCursor(buffer, true);
+    const cursor = new BufferCursor(buffer, true);
     const origQuest = parseQuest(cursor)!;
     const testQuest = parseQuest(writeQuestQst(origQuest, '02.qst'))!;
 

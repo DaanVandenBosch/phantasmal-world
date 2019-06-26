@@ -1,4 +1,4 @@
-import { ArrayBufferCursor } from '../../ArrayBufferCursor';
+import { BufferCursor } from '../../BufferCursor';
 import Logger from 'js-logger';
 
 const logger = Logger.get('bin-data/parsing/quest/qst');
@@ -8,7 +8,7 @@ interface QstContainedFile {
     name2?: string; // Unsure what this is
     questNo?: number;
     expectedSize?: number;
-    data: ArrayBufferCursor;
+    data: BufferCursor;
     chunkNos: Set<number>;
 }
 
@@ -21,7 +21,7 @@ interface ParseQstResult {
  * Low level parsing function for .qst files.
  * Can only read the Blue Burst format.
  */
-export function parseQst(cursor: ArrayBufferCursor): ParseQstResult | undefined {
+export function parseQst(cursor: BufferCursor): ParseQstResult | undefined {
     // A .qst file contains two 88-byte headers that describe the embedded .dat and .bin files.
     let version = 'PC';
 
@@ -42,7 +42,7 @@ export function parseQst(cursor: ArrayBufferCursor): ParseQstResult | undefined 
 
     if (version === 'Blue Burst') {
         // Read headers and contained files.
-        cursor.seekStart(0);
+        cursor.seek_start(0);
 
         const headers = parseHeaders(cursor);
 
@@ -72,7 +72,7 @@ interface SimpleQstContainedFile {
     name: string;
     name2?: string;
     questNo?: number;
-    data: ArrayBufferCursor;
+    data: BufferCursor;
 }
 
 interface WriteQstParams {
@@ -83,12 +83,12 @@ interface WriteQstParams {
 /**
  * Always writes in Blue Burst format.
  */
-export function writeQst(params: WriteQstParams): ArrayBufferCursor {
+export function writeQst(params: WriteQstParams): BufferCursor {
     const files = params.files;
     const totalSize = files
         .map(f => 88 + Math.ceil(f.data.size / 1024) * 1056)
         .reduce((a, b) => a + b);
-    const cursor = new ArrayBufferCursor(totalSize, true);
+    const cursor = new BufferCursor(totalSize, true);
 
     writeFileHeaders(cursor, files);
     writeFileChunks(cursor, files);
@@ -97,7 +97,7 @@ export function writeQst(params: WriteQstParams): ArrayBufferCursor {
         throw new Error(`Expected a final file size of ${totalSize}, but got ${cursor.size}.`);
     }
 
-    return cursor.seekStart(0);
+    return cursor.seek_start(0);
 }
 
 interface QstHeader {
@@ -110,17 +110,17 @@ interface QstHeader {
 /**
  * TODO: Read all headers instead of just the first 2.
  */
-function parseHeaders(cursor: ArrayBufferCursor): QstHeader[] {
+function parseHeaders(cursor: BufferCursor): QstHeader[] {
     const headers = [];
 
     for (let i = 0; i < 2; ++i) {
         cursor.seek(4);
         const questNo = cursor.u16();
         cursor.seek(38);
-        const fileName = cursor.stringAscii(16, true, true);
+        const fileName = cursor.string_ascii(16, true, true);
         const size = cursor.u32();
         // Not sure what this is:
-        const fileName2 = cursor.stringAscii(24, true, true);
+        const fileName2 = cursor.string_ascii(24, true, true);
 
         headers.push({
             questNo,
@@ -133,17 +133,17 @@ function parseHeaders(cursor: ArrayBufferCursor): QstHeader[] {
     return headers;
 }
 
-function parseFiles(cursor: ArrayBufferCursor, expectedSizes: Map<string, number>): QstContainedFile[] {
+function parseFiles(cursor: BufferCursor, expectedSizes: Map<string, number>): QstContainedFile[] {
     // Files are interleaved in 1056 byte chunks.
     // Each chunk has a 24 byte header, 1024 byte data segment and an 8 byte trailer.
     const files = new Map<string, QstContainedFile>();
 
-    while (cursor.bytesLeft >= 1056) {
+    while (cursor.bytes_left >= 1056) {
         const startPosition = cursor.position;
 
         // Read meta data.
         const chunkNo = cursor.seek(4).u8();
-        const fileName = cursor.seek(3).stringAscii(16, true, true);
+        const fileName = cursor.seek(3).string_ascii(16, true, true);
 
         let file = files.get(fileName);
 
@@ -152,7 +152,7 @@ function parseFiles(cursor: ArrayBufferCursor, expectedSizes: Map<string, number
             files.set(fileName, file = {
                 name: fileName,
                 expectedSize,
-                data: new ArrayBufferCursor(expectedSize || (10 * 1024), true),
+                data: new BufferCursor(expectedSize || (10 * 1024), true),
                 chunkNos: new Set()
             });
         }
@@ -175,7 +175,7 @@ function parseFiles(cursor: ArrayBufferCursor, expectedSizes: Map<string, number
         const data = cursor.take(size);
         const chunkPosition = chunkNo * 1024;
         file.data.size = Math.max(chunkPosition + size, file.data.size);
-        file.data.seekStart(chunkPosition).writeCursor(data);
+        file.data.seek_start(chunkPosition).write_cursor(data);
 
         // Skip the padding and the trailer.
         cursor.seek(1032 - data.size);
@@ -185,13 +185,13 @@ function parseFiles(cursor: ArrayBufferCursor, expectedSizes: Map<string, number
         }
     }
 
-    if (cursor.bytesLeft) {
-        logger.warn(`${cursor.bytesLeft} Bytes left in file.`);
+    if (cursor.bytes_left) {
+        logger.warn(`${cursor.bytes_left} Bytes left in file.`);
     }
 
     for (const file of files.values()) {
         // Clean up file properties.
-        file.data.seekStart(0);
+        file.data.seek_start(0);
         file.chunkNos = new Set(Array.from(file.chunkNos.values()).sort((a, b) => a - b));
 
         // Check whether the expected size was correct.
@@ -212,22 +212,22 @@ function parseFiles(cursor: ArrayBufferCursor, expectedSizes: Map<string, number
     return Array.from(files.values());
 }
 
-function writeFileHeaders(cursor: ArrayBufferCursor, files: SimpleQstContainedFile[]): void {
+function writeFileHeaders(cursor: BufferCursor, files: SimpleQstContainedFile[]): void {
     for (const file of files) {
         if (file.name.length > 16) {
             throw Error(`File ${file.name} has a name longer than 16 characters.`);
         }
 
-        cursor.writeU16(88); // Header size.
-        cursor.writeU16(0x44); // Magic number.
-        cursor.writeU16(file.questNo || 0);
+        cursor.write_u16(88); // Header size.
+        cursor.write_u16(0x44); // Magic number.
+        cursor.write_u16(file.questNo || 0);
 
         for (let i = 0; i < 38; ++i) {
-            cursor.writeU8(0);
+            cursor.write_u8(0);
         }
 
-        cursor.writeStringAscii(file.name, 16);
-        cursor.writeU32(file.data.size);
+        cursor.write_string_ascii(file.name, 16);
+        cursor.write_u32(file.data.size);
 
         let fileName2: string;
 
@@ -245,11 +245,11 @@ function writeFileHeaders(cursor: ArrayBufferCursor, files: SimpleQstContainedFi
             throw Error(`File ${file.name} has a fileName2 length (${fileName2}) longer than 24 characters.`);
         }
 
-        cursor.writeStringAscii(fileName2, 24);
+        cursor.write_string_ascii(fileName2, 24);
     }
 }
 
-function writeFileChunks(cursor: ArrayBufferCursor, files: SimpleQstContainedFile[]): void {
+function writeFileChunks(cursor: BufferCursor, files: SimpleQstContainedFile[]): void {
     // Files are interleaved in 1056 byte chunks.
     // Each chunk has a 24 byte header, 1024 byte data segment and an 8 byte trailer.
     files = files.slice();
@@ -274,26 +274,26 @@ function writeFileChunks(cursor: ArrayBufferCursor, files: SimpleQstContainedFil
  * @returns true if there are bytes left to write in data, false otherwise.
  */
 function writeFileChunk(
-    cursor: ArrayBufferCursor,
-    data: ArrayBufferCursor,
+    cursor: BufferCursor,
+    data: BufferCursor,
     chunkNo: number,
     name: string
 ): boolean {
-    cursor.writeU8Array([28, 4, 19, 0]);
-    cursor.writeU8(chunkNo);
-    cursor.writeU8Array([0, 0, 0]);
-    cursor.writeStringAscii(name, 16);
+    cursor.write_u8_array([28, 4, 19, 0]);
+    cursor.write_u8(chunkNo);
+    cursor.write_u8_array([0, 0, 0]);
+    cursor.write_string_ascii(name, 16);
 
-    const size = Math.min(1024, data.bytesLeft);
-    cursor.writeCursor(data.take(size));
+    const size = Math.min(1024, data.bytes_left);
+    cursor.write_cursor(data.take(size));
 
     // Padding.
     for (let i = size; i < 1024; ++i) {
-        cursor.writeU8(0);
+        cursor.write_u8(0);
     }
 
-    cursor.writeU32(size);
-    cursor.writeU32(0);
+    cursor.write_u32(size);
+    cursor.write_u32(0);
 
-    return !!data.bytesLeft;
+    return !!data.bytes_left;
 }

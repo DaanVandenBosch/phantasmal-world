@@ -1,4 +1,4 @@
-import { ArrayBufferCursor } from '../../ArrayBufferCursor';
+import { BufferCursor } from '../../BufferCursor';
 import * as prs from '../../compression/prs';
 import { parseDat, writeDat, DatObject, DatNpc, DatFile } from './dat';
 import { parseBin, writeBin, Instruction } from './bin';
@@ -22,7 +22,7 @@ const logger = Logger.get('bin-data/parsing/quest');
  * 
  * Always delegates to parseQst at the moment.
  */
-export function parseQuest(cursor: ArrayBufferCursor, lenient: boolean = false): Quest | undefined {
+export function parseQuest(cursor: BufferCursor, lenient: boolean = false): Quest | undefined {
     const qst = parseQst(cursor);
 
     if (!qst) {
@@ -86,7 +86,7 @@ export function parseQuest(cursor: ArrayBufferCursor, lenient: boolean = false):
     );
 }
 
-export function writeQuestQst(quest: Quest, fileName: string): ArrayBufferCursor {
+export function writeQuestQst(quest: Quest, fileName: string): BufferCursor {
     const dat = writeDat({
         objs: objectsToDatData(quest.objects),
         npcs: npcsToDatData(quest.npcs),

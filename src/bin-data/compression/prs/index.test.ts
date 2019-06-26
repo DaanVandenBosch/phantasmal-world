@@ -1,24 +1,24 @@
-import { ArrayBufferCursor } from '../../ArrayBufferCursor';
+import { BufferCursor } from '../../BufferCursor';
 import { compress, decompress } from '../prs';
 
 function testWithBytes(bytes: number[], expectedCompressedSize: number) {
-    const cursor = new ArrayBufferCursor(new Uint8Array(bytes).buffer, true);
+    const cursor = new BufferCursor(new Uint8Array(bytes).buffer, true);
 
     for (const byte of bytes) {
-        cursor.writeU8(byte);
+        cursor.write_u8(byte);
     }
 
-    cursor.seekStart(0);
+    cursor.seek_start(0);
     const compressedCursor = compress(cursor);
 
     expect(compressedCursor.size).toBe(expectedCompressedSize);
 
     const testCursor = decompress(compressedCursor);
-    cursor.seekStart(0);
+    cursor.seek_start(0);
 
     expect(testCursor.size).toBe(cursor.size);
 
-    while (cursor.bytesLeft) {
+    while (cursor.bytes_left) {
         if (cursor.u8() !== testCursor.u8()) {
             cursor.seek(-1);
             testCursor.seek(-1);

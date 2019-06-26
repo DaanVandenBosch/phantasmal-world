@@ -1,5 +1,5 @@
 import { Matrix3, Matrix4, Vector3 } from 'three';
-import { ArrayBufferCursor } from '../../ArrayBufferCursor';
+import { BufferCursor } from '../../BufferCursor';
 import Logger from 'js-logger';
 
 const logger = Logger.get('bin-data/parsing/ninja/nj');
@@ -39,7 +39,7 @@ interface ChunkTriangleStrip {
     indices: number[];
 }
 
-export function parseNjModel(cursor: ArrayBufferCursor, matrix: Matrix4, context: NjContext): void {
+export function parseNjModel(cursor: BufferCursor, matrix: Matrix4, context: NjContext): void {
     const { positions, normals, cachedChunkOffsets, vertices } = context;
 
     const vlistOffset = cursor.u32(); // Vertex list
@@ -48,7 +48,7 @@ export function parseNjModel(cursor: ArrayBufferCursor, matrix: Matrix4, context
     const normalMatrix = new Matrix3().getNormalMatrix(matrix);
 
     if (vlistOffset) {
-        cursor.seekStart(vlistOffset);
+        cursor.seek_start(vlistOffset);
 
         for (const chunk of parseChunks(cursor, cachedChunkOffsets, true)) {
             if (chunk.chunkType === 'VERTEX') {
@@ -64,7 +64,7 @@ export function parseNjModel(cursor: ArrayBufferCursor, matrix: Matrix4, context
     }
 
     if (plistOffset) {
-        cursor.seekStart(plistOffset);
+        cursor.seek_start(plistOffset);
 
         for (const chunk of parseChunks(cursor, cachedChunkOffsets, false)) {
             if (chunk.chunkType === 'STRIP') {
@@ -98,7 +98,7 @@ export function parseNjModel(cursor: ArrayBufferCursor, matrix: Matrix4, context
     }
 }
 
-function parseChunks(cursor: ArrayBufferCursor, cachedChunkOffsets: number[], wideEndChunks: boolean): Array<{
+function parseChunks(cursor: BufferCursor, cachedChunkOffsets: number[], wideEndChunks: boolean): Array<{
     chunkType: string,
     chunkSubType: string | null,
     chunkTypeId: number,
@@ -134,7 +134,7 @@ function parseChunks(cursor: ArrayBufferCursor, cachedChunkOffsets: number[], wi
                 data = {
                     storeIndex: flags
                 };
-                cursor.seekStart(cachedChunkOffsets[data.storeIndex]);
+                cursor.seek_start(cachedChunkOffsets[data.storeIndex]);
                 chunks.splice(chunks.length, 0, ...parseChunks(cursor, cachedChunkOffsets, wideEndChunks));
             }
         } else if (8 <= chunkTypeId && chunkTypeId <= 9) {
@@ -164,7 +164,7 @@ function parseChunks(cursor: ArrayBufferCursor, cachedChunkOffsets: number[], wi
             size = 2 + 2 * cursor.u16();
         }
 
-        cursor.seekStart(chunkStartPosition + size);
+        cursor.seek_start(chunkStartPosition + size);
 
         chunks.push({
             chunkType,
@@ -177,7 +177,7 @@ function parseChunks(cursor: ArrayBufferCursor, cachedChunkOffsets: number[], wi
     return chunks;
 }
 
-function parseChunkVertex(cursor: ArrayBufferCursor, chunkTypeId: number, flags: number): ChunkVertex[] {
+function parseChunkVertex(cursor: BufferCursor, chunkTypeId: number, flags: number): ChunkVertex[] {
     // There are apparently 4 different sets of vertices, ignore all but set 0.
     if ((flags & 0b11) !== 0) {
         return [];
@@ -250,7 +250,7 @@ function parseChunkVertex(cursor: ArrayBufferCursor, chunkTypeId: number, flags:
     return vertices;
 }
 
-function parseChunkTriangleStrip(cursor: ArrayBufferCursor, chunkTypeId: number): ChunkTriangleStrip[] {
+function parseChunkTriangleStrip(cursor: BufferCursor, chunkTypeId: number): ChunkTriangleStrip[] {
     const userOffsetAndStripCount = cursor.u16();
     const userFlagsSize = userOffsetAndStripCount >>> 14;
     const stripCount = userOffsetAndStripCount & 0x3FFF;

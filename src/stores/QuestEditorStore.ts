@@ -1,6 +1,6 @@
 import { observable, action } from 'mobx';
 import { Object3D } from 'three';
-import { ArrayBufferCursor } from '../bin-data/ArrayBufferCursor';
+import { BufferCursor } from '../bin-data/BufferCursor';
 import { getAreaSections } from '../bin-data/loading/areas';
 import { getNpcGeometry, getObjectGeometry } from '../bin-data/loading/entities';
 import { parseNj, parseXj } from '../bin-data/parsing/ninja';
@@ -70,11 +70,11 @@ class QuestEditorStore {
         }
 
         if (file.name.endsWith('.nj')) {
-            this.setModel(createModelMesh(parseNj(new ArrayBufferCursor(reader.result, true))));
+            this.setModel(createModelMesh(parseNj(new BufferCursor(reader.result, true))));
         } else if (file.name.endsWith('.xj')) {
-            this.setModel(createModelMesh(parseXj(new ArrayBufferCursor(reader.result, true))));
+            this.setModel(createModelMesh(parseXj(new BufferCursor(reader.result, true))));
         } else {
-            const quest = parseQuest(new ArrayBufferCursor(reader.result, true));
+            const quest = parseQuest(new BufferCursor(reader.result, true));
             this.setQuest(quest);
 
             if (quest) {

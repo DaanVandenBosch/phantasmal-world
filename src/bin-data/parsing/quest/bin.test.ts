@@ -1,5 +1,5 @@
 import * as fs from 'fs';
-import { ArrayBufferCursor } from '../../ArrayBufferCursor';
+import { BufferCursor } from '../../BufferCursor';
 import * as prs from '../../compression/prs';
 import { parseBin, writeBin } from './bin';
 
@@ -8,15 +8,15 @@ import { parseBin, writeBin } from './bin';
  */
 test('parseBin and writeBin', () => {
     const origBuffer = fs.readFileSync('test/resources/quest118_e.bin').buffer;
-    const origBin = prs.decompress(new ArrayBufferCursor(origBuffer, true));
+    const origBin = prs.decompress(new BufferCursor(origBuffer, true));
     const testBin = writeBin(parseBin(origBin));
-    origBin.seekStart(0);
+    origBin.seek_start(0);
 
     expect(testBin.size).toBe(origBin.size);
 
     let match = true;
 
-    while (origBin.bytesLeft) {
+    while (origBin.bytes_left) {
         if (testBin.u8() !== origBin.u8()) {
             match = false;
             break;
