@@ -9,37 +9,37 @@ export const NPC_COLOR = 0xFF0000;
 export const NPC_HOVER_COLOR = 0xFF3F5F;
 export const NPC_SELECTED_COLOR = 0xFF0054;
 
-export function createObjectMesh(object: QuestObject, geometry: BufferGeometry): Mesh {
-    return createMesh(object, geometry, OBJECT_COLOR, 'Object');
+export function create_object_mesh(object: QuestObject, geometry: BufferGeometry): Mesh {
+    return create_mesh(object, geometry, OBJECT_COLOR, 'Object');
 }
 
-export function createNpcMesh(npc: QuestNpc, geometry: BufferGeometry): Mesh {
-    return createMesh(npc, geometry, NPC_COLOR, 'NPC');
+export function create_npc_mesh(npc: QuestNpc, geometry: BufferGeometry): Mesh {
+    return create_mesh(npc, geometry, NPC_COLOR, 'NPC');
 }
 
-function createMesh(
+function create_mesh(
     entity: QuestEntity,
     geometry: BufferGeometry,
     color: number,
     type: string
 ): Mesh {
-    const object3d = new Mesh(
+    const object_3d = new Mesh(
         geometry,
         new MeshLambertMaterial({
             color,
             side: DoubleSide
         })
     );
-    object3d.name = type;
-    object3d.userData.entity = entity;
+    object_3d.name = type;
+    object_3d.userData.entity = entity;
 
     // TODO: dispose autorun?
     autorun(() => {
         const { x, y, z } = entity.position;
-        object3d.position.set(x, y, z);
+        object_3d.position.set(x, y, z);
         const rot = entity.rotation;
-        object3d.rotation.set(rot.x, rot.y, rot.z);
+        object_3d.rotation.set(rot.x, rot.y, rot.z);
     });
 
-    return object3d;
+    return object_3d;
 }

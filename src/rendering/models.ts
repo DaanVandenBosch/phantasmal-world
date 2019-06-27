@@ -1,6 +1,6 @@
 import { BufferGeometry, DoubleSide, Mesh, MeshLambertMaterial } from 'three';
 
-export function createModelMesh(geometry?: BufferGeometry): Mesh | undefined {
+export function create_model_mesh(geometry?: BufferGeometry): Mesh | undefined {
     return geometry && new Mesh(
         geometry,
         new MeshLambertMaterial({

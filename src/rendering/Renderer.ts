@@ -1,9 +1,9 @@
 import * as THREE from 'three';
-import { Color, HemisphereLight, Intersection, Mesh, MeshLambertMaterial, MOUSE, Object3D, PerspectiveCamera, Plane, Raycaster, Scene, Vector2, Vector3, WebGLRenderer } from 'three';
+import { Color, HemisphereLight, Intersection, Mesh, MeshLambertMaterial, MOUSE, Object3D, PerspectiveCamera, Plane, Raycaster, Scene, Vector2, Vector3, WebGLRenderer, Clock } from 'three';
 import OrbitControlsCreator from 'three-orbit-controls';
-import { getAreaCollisionGeometry, getAreaRenderGeometry } from '../bin_data/loading/areas';
+import { get_area_collision_geometry, get_area_render_geometry } from '../bin_data/loading/areas';
 import { Area, Quest, QuestEntity, QuestNpc, QuestObject, Section, Vec3 } from '../domain';
-import { questEditorStore } from '../stores/QuestEditorStore';
+import { quest_editor_store } from '../stores/QuestEditorStore';
 import { NPC_COLOR, NPC_HOVER_COLOR, NPC_SELECTED_COLOR, OBJECT_COLOR, OBJECT_HOVER_COLOR, OBJECT_SELECTED_COLOR } from './entities';
 
 const OrbitControls = OrbitControlsCreator(THREE);
@@ -48,6 +48,7 @@ export class Renderer {
     private hoveredData?: PickEntityResult;
     private selectedData?: PickEntityResult;
     private model?: Object3D;
+    private clock = new Clock();
 
     constructor() {
         this.renderer.domElement.addEventListener(
@@ -153,7 +154,7 @@ export class Renderer {
             const variant = this.quest.area_variants.find(v => v.area.id === areaId);
             const variantId = (variant && variant.id) || 0;
 
-            getAreaCollisionGeometry(episode, areaId, variantId).then(geometry => {
+            get_area_collision_geometry(episode, areaId, variantId).then(geometry => {
                 if (this.quest && this.area) {
                     this.setModel(undefined);
                     this.scene.remove(this.collisionGeometry);
@@ -165,7 +166,7 @@ export class Renderer {
                 }
             });
 
-            getAreaRenderGeometry(episode, areaId, variantId).then(geometry => {
+            get_area_render_geometry(episode, areaId, variantId).then(geometry => {
                 if (this.quest && this.area) {
                     this.renderGeometry = geometry;
                 }
@@ -182,6 +183,11 @@ export class Renderer {
     private renderLoop = () => {
         this.controls.update();
         this.addLoadedEntities();
+
+        if (quest_editor_store.animation_mixer) {
+            quest_editor_store.animation_mixer.update(this.clock.getDelta());
+        }
+
         this.renderer.render(this.scene, this.camera);
         requestAnimationFrame(this.renderLoop);
     }
@@ -251,7 +257,7 @@ export class Renderer {
             : oldSelectedData !== data;
 
         if (selectionChanged) {
-            questEditorStore.setSelectedEntity(data && data.entity);
+            quest_editor_store.setSelectedEntity(data && data.entity);
         }
     }
 

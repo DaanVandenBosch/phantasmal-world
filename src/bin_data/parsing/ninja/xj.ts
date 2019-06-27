@@ -14,30 +14,30 @@ export interface XjContext {
     indices: number[];
 }
 
-export function parseXjModel(cursor: BufferCursor, matrix: Matrix4, context: XjContext): void {
+export function parse_xj_model(cursor: BufferCursor, matrix: Matrix4, context: XjContext): void {
     const { positions, normals, indices } = context;
 
     cursor.seek(4); // Flags according to QEdit, seemingly always 0.
-    const vertexInfoListOffset = cursor.u32();
+    const vertex_info_list_offset = cursor.u32();
     cursor.seek(4); // Seems to be the vertexInfoCount, always 1.
-    const triangleStripListAOffset = cursor.u32();
-    const triangleStripACount = cursor.u32();
-    const triangleStripListBOffset = cursor.u32();
-    const triangleStripBCount = cursor.u32();
+    const triangle_strip_list_a_offset = cursor.u32();
+    const triangle_strip_a_count = cursor.u32();
+    const triangle_strip_list_b_offset = cursor.u32();
+    const triangle_strip_b_count = cursor.u32();
     cursor.seek(16); // Bounding sphere position and radius in floats.
 
-    const normalMatrix = new Matrix3().getNormalMatrix(matrix);
-    const indexOffset = positions.length / 3;
+    const normal_matrix = new Matrix3().getNormalMatrix(matrix);
+    const index_offset = positions.length / 3;
 
-    if (vertexInfoListOffset) {
-        cursor.seek_start(vertexInfoListOffset);
+    if (vertex_info_list_offset) {
+        cursor.seek_start(vertex_info_list_offset);
         cursor.seek(4); // Possibly the vertex type.
-        const vertexListOffset = cursor.u32();
-        const vertexSize = cursor.u32();
-        const vertexCount = cursor.u32();
+        const vertexList_offset = cursor.u32();
+        const vertex_size = cursor.u32();
+        const vertex_count = cursor.u32();
 
-        for (let i = 0; i < vertexCount; ++i) {
-            cursor.seek_start(vertexListOffset + i * vertexSize);
+        for (let i = 0; i < vertex_count; ++i) {
+            cursor.seek_start(vertexList_offset + i * vertex_size);
             const position = new Vector3(
                 cursor.f32(),
                 cursor.f32(),
@@ -45,12 +45,12 @@ export function parseXjModel(cursor: BufferCursor, matrix: Matrix4, context: XjC
             ).applyMatrix4(matrix);
             let normal;
 
-            if (vertexSize === 28 || vertexSize === 32 || vertexSize === 36) {
+            if (vertex_size === 28 || vertex_size === 32 || vertex_size === 36) {
                 normal = new Vector3(
                     cursor.f32(),
                     cursor.f32(),
                     cursor.f32()
-                ).applyMatrix3(normalMatrix);
+                ).applyMatrix3(normal_matrix);
             } else {
                 normal = new Vector3(0, 1, 0);
             }
@@ -64,55 +64,55 @@ export function parseXjModel(cursor: BufferCursor, matrix: Matrix4, context: XjC
         }
     }
 
-    if (triangleStripListAOffset) {
-        parseTriangleStripList(
+    if (triangle_strip_list_a_offset) {
+        parse_triangle_strip_list(
             cursor,
-            triangleStripListAOffset,
-            triangleStripACount,
+            triangle_strip_list_a_offset,
+            triangle_strip_a_count,
             positions,
             normals,
             indices,
-            indexOffset
+            index_offset
         );
     }
 
-    if (triangleStripListBOffset) {
-        parseTriangleStripList(
+    if (triangle_strip_list_b_offset) {
+        parse_triangle_strip_list(
             cursor,
-            triangleStripListBOffset,
-            triangleStripBCount,
+            triangle_strip_list_b_offset,
+            triangle_strip_b_count,
             positions,
             normals,
             indices,
-            indexOffset
+            index_offset
         );
     }
 }
 
-function parseTriangleStripList(
+function parse_triangle_strip_list(
     cursor: BufferCursor,
-    triangleStripListOffset: number,
-    triangleStripCount: number,
+    triangle_strip_list_offset: number,
+    triangle_strip_count: number,
     positions: number[],
     normals: number[],
     indices: number[],
-    indexOffset: number
+    index_offset: number
 ): void {
-    for (let i = 0; i < triangleStripCount; ++i) {
-        cursor.seek_start(triangleStripListOffset + i * 20);
+    for (let i = 0; i < triangle_strip_count; ++i) {
+        cursor.seek_start(triangle_strip_list_offset + i * 20);
         cursor.seek(8); // Skip material information.
-        const indexListOffset = cursor.u32();
-        const indexCount = cursor.u32();
+        const index_list_offset = cursor.u32();
+        const index_count = cursor.u32();
         // Ignoring 4 bytes.
 
-        cursor.seek_start(indexListOffset);
-        const stripIndices = cursor.u16_array(indexCount);
+        cursor.seek_start(index_list_offset);
+        const strip_indices = cursor.u16_array(index_count);
         let clockwise = true;
 
-        for (let j = 2; j < stripIndices.length; ++j) {
-            const a = indexOffset + stripIndices[j - 2];
-            const b = indexOffset + stripIndices[j - 1];
-            const c = indexOffset + stripIndices[j];
+        for (let j = 2; j < strip_indices.length; ++j) {
+            const a = index_offset + strip_indices[j - 2];
+            const b = index_offset + strip_indices[j - 1];
+            const c = index_offset + strip_indices[j];
             const pa = new Vector3(positions[3 * a], positions[3 * a + 1], positions[3 * a + 2]);
             const pb = new Vector3(positions[3 * b], positions[3 * b + 1], positions[3 * b + 2]);
             const pc = new Vector3(positions[3 * c], positions[3 * c + 1], positions[3 * c + 2]);
@@ -128,12 +128,12 @@ function parseTriangleStripList(
                 normal.negate();
             }
 
-            const oppositeCount =
+            const opposite_count =
                 (normal.dot(na) < 0 ? 1 : 0) +
                 (normal.dot(nb) < 0 ? 1 : 0) +
                 (normal.dot(nc) < 0 ? 1 : 0);
 
-            if (oppositeCount >= 2) {
+            if (opposite_count >= 2) {
                 clockwise = !clockwise;
             }
 

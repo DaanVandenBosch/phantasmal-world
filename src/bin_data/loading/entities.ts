@@ -2,51 +2,51 @@ import { BufferGeometry } from 'three';
 import { NpcType, ObjectType } from '../../domain';
 import { getNpcData, getObjectData } from './binaryAssets';
 import { BufferCursor } from '../BufferCursor';
-import { parseNj, parseXj } from '../parsing/ninja';
+import { parse_nj, parse_xj } from '../parsing/ninja';
 
-const npcCache: Map<string, Promise<BufferGeometry>> = new Map();
-const objectCache: Map<string, Promise<BufferGeometry>> = new Map();
+const npc_cache: Map<string, Promise<BufferGeometry>> = new Map();
+const object_cache: Map<string, Promise<BufferGeometry>> = new Map();
 
-export function getNpcGeometry(npcType: NpcType): Promise<BufferGeometry> {
-    let geometry = npcCache.get(String(npcType.id));
+export function get_npc_geometry(npc_type: NpcType): Promise<BufferGeometry> {
+    let geometry = npc_cache.get(String(npc_type.id));
 
     if (geometry) {
         return geometry;
     } else {
-        geometry = getNpcData(npcType).then(({ url, data }) => {
+        geometry = getNpcData(npc_type).then(({ url, data }) => {
             const cursor = new BufferCursor(data, true);
-            const object3d = url.endsWith('.nj') ? parseNj(cursor) : parseXj(cursor);
+            const object_3d = url.endsWith('.nj') ? parse_nj(cursor) : parse_xj(cursor);
 
-            if (object3d) {
-                return object3d;
+            if (object_3d) {
+                return object_3d;
             } else {
                 throw new Error('File could not be parsed into a BufferGeometry.');
             }
         });
 
-        npcCache.set(String(npcType.id), geometry);
+        npc_cache.set(String(npc_type.id), geometry);
         return geometry;
     }
 }
 
-export function getObjectGeometry(objectType: ObjectType): Promise<BufferGeometry> {
-    let geometry = objectCache.get(String(objectType.id));
+export function get_object_geometry(object_type: ObjectType): Promise<BufferGeometry> {
+    let geometry = object_cache.get(String(object_type.id));
 
     if (geometry) {
         return geometry;
     } else {
-        geometry = getObjectData(objectType).then(({ url, data }) => {
+        geometry = getObjectData(object_type).then(({ url, data }) => {
             const cursor = new BufferCursor(data, true);
-            const object3d = url.endsWith('.nj') ? parseNj(cursor) : parseXj(cursor);
+            const object_3d = url.endsWith('.nj') ? parse_nj(cursor) : parse_xj(cursor);
 
-            if (object3d) {
-                return object3d;
+            if (object_3d) {
+                return object_3d;
             } else {
                 throw new Error('File could not be parsed into a BufferGeometry.');
             }
         });
 
-        objectCache.set(String(objectType.id), geometry);
+        object_cache.set(String(object_type.id), geometry);
         return geometry;
     }
 }

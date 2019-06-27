@@ -3,7 +3,7 @@ import { UploadChangeParam } from "antd/lib/upload";
 import { UploadFile } from "antd/lib/upload/interface";
 import { observer } from "mobx-react";
 import React, { ChangeEvent } from "react";
-import { questEditorStore } from "../../stores/QuestEditorStore";
+import { quest_editor_store } from "../../stores/QuestEditorStore";
 import { EntityInfoComponent } from "./EntityInfoComponent";
 import './QuestEditorComponent.css';
 import { QuestInfoComponent } from "./QuestInfoComponent";
@@ -12,22 +12,22 @@ import { RendererComponent } from "./RendererComponent";
 @observer
 export class QuestEditorComponent extends React.Component<{}, {
     filename?: string,
-    saveDialogOpen: boolean,
-    saveDialogFilename: string
+    save_dialog_open: boolean,
+    save_dialog_filename: string
 }> {
     state = {
-        saveDialogOpen: false,
-        saveDialogFilename: 'Untitled',
+        save_dialog_open: false,
+        save_dialog_filename: 'Untitled',
     };
 
     render() {
-        const quest = questEditorStore.currentQuest;
-        const model = questEditorStore.currentModel;
-        const area = questEditorStore.currentArea;
+        const quest = quest_editor_store.current_quest;
+        const model = quest_editor_store.current_model;
+        const area = quest_editor_store.current_area;
 
         return (
             <div className="qe-QuestEditorComponent">
-                <Toolbar onSaveAsClicked={this.saveAsClicked} />
+                <Toolbar onSaveAsClicked={this.save_as_clicked} />
                 <div className="qe-QuestEditorComponent-main">
                     <QuestInfoComponent quest={quest} />
                     <RendererComponent
@@ -35,41 +35,41 @@ export class QuestEditorComponent extends React.Component<{}, {
                         area={area}
                         model={model}
                     />
-                    <EntityInfoComponent entity={questEditorStore.selectedEntity} />
+                    <EntityInfoComponent entity={quest_editor_store.selected_entity} />
                 </div>
                 <SaveAsForm
-                    isOpen={this.state.saveDialogOpen}
-                    filename={this.state.saveDialogFilename}
-                    onFilenameChange={this.saveDialogFilenameChanged}
-                    onOk={this.saveDialogAffirmed}
-                    onCancel={this.saveDialogCancelled}
+                    is_open={this.state.save_dialog_open}
+                    filename={this.state.save_dialog_filename}
+                    on_filename_change={this.save_dialog_filename_changed}
+                    on_ok={this.save_dialog_affirmed}
+                    on_cancel={this.save_dialog_cancelled}
                 />
             </div>
         );
     }
 
-    private saveAsClicked = (filename?: string) => {
+    private save_as_clicked = (filename?: string) => {
         const name = filename
             ? filename.endsWith('.qst') ? filename.slice(0, -4) : filename
-            : this.state.saveDialogFilename;
+            : this.state.save_dialog_filename;
 
         this.setState({
-            saveDialogOpen: true,
-            saveDialogFilename: name
+            save_dialog_open: true,
+            save_dialog_filename: name
         });
     }
 
-    private saveDialogFilenameChanged = (filename: string) => {
-        this.setState({ saveDialogFilename: filename });
+    private save_dialog_filename_changed = (filename: string) => {
+        this.setState({ save_dialog_filename: filename });
     }
 
-    private saveDialogAffirmed = () => {
-        questEditorStore.saveCurrentQuestToFile(this.state.saveDialogFilename);
-        this.setState({ saveDialogOpen: false });
+    private save_dialog_affirmed = () => {
+        quest_editor_store.save_current_quest_to_file(this.state.save_dialog_filename);
+        this.setState({ save_dialog_open: false });
     }
 
-    private saveDialogCancelled = () => {
-        this.setState({ saveDialogOpen: false });
+    private save_dialog_cancelled = () => {
+        this.setState({ save_dialog_open: false });
     }
 }
 
@@ -80,17 +80,17 @@ class Toolbar extends React.Component<{ onSaveAsClicked: (filename?: string) => 
     }
 
     render() {
-        const quest = questEditorStore.currentQuest;
+        const quest = quest_editor_store.current_quest;
         const areas = quest && Array.from(quest.area_variants).map(a => a.area);
-        const area = questEditorStore.currentArea;
-        const areaId = area && area.id;
+        const area = quest_editor_store.current_area;
+        const area_id = area && area.id;
 
         return (
             <div className="qe-QuestEditorComponent-toolbar">
                 <Upload
-                    accept=".nj, .qst, .xj"
+                    accept=".nj, .njm, .qst, .xj"
                     showUploadList={false}
-                    onChange={this.setFilename}
+                    onChange={this.set_filename}
                     // Make sure it doesn't do a POST:
                     customRequest={() => false}
                 >
@@ -98,8 +98,8 @@ class Toolbar extends React.Component<{ onSaveAsClicked: (filename?: string) => 
                 </Upload>
                 {areas && (
                     <Select
-                        onChange={questEditorStore.setCurrentAreaId}
-                        value={areaId}
+                        onChange={quest_editor_store.set_current_area_id}
+                        value={area_id}
                         style={{ width: 200 }}
                     >
                         {areas.map(area =>
@@ -110,39 +110,39 @@ class Toolbar extends React.Component<{ onSaveAsClicked: (filename?: string) => 
                 {quest && (
                     <Button
                         icon="save"
-                        onClick={this.saveAsClicked}
+                        onClick={this.save_as_clicked}
                     >Save as...</Button>
                 )}
             </div>
         );
     }
 
-    private setFilename = (info: UploadChangeParam<UploadFile>) => {
+    private set_filename = (info: UploadChangeParam<UploadFile>) => {
         if (info.file.originFileObj) {
             this.setState({ filename: info.file.name });
-            questEditorStore.loadFile(info.file.originFileObj);
+            quest_editor_store.load_file(info.file.originFileObj);
         }
     }
 
-    private saveAsClicked = () => {
+    private save_as_clicked = () => {
         this.props.onSaveAsClicked(this.state.filename);
     }
 }
 
 class SaveAsForm extends React.Component<{
-    isOpen: boolean,
+    is_open: boolean,
     filename: string,
-    onFilenameChange: (name: string) => void,
-    onOk: () => void,
-    onCancel: () => void
+    on_filename_change: (name: string) => void,
+    on_ok: () => void,
+    on_cancel: () => void
 }> {
     render() {
         return (
             <Modal
                 title={<><Icon type="save" /> Save as...</>}
-                visible={this.props.isOpen}
-                onOk={this.props.onOk}
-                onCancel={this.props.onCancel}
+                visible={this.props.is_open}
+                onOk={this.props.on_ok}
+                onCancel={this.props.on_cancel}
             >
                 <Form layout="vertical">
                     <Form.Item label="Name">
@@ -150,7 +150,7 @@ class SaveAsForm extends React.Component<{
                             autoFocus={true}
                             maxLength={12}
                             value={this.props.filename}
-                            onChange={this.nameChanged}
+                            onChange={this.name_changed}
                         />
                     </Form.Item>
                 </Form>
@@ -158,7 +158,7 @@ class SaveAsForm extends React.Component<{
         );
     }
 
-    private nameChanged = (e: ChangeEvent<HTMLInputElement>) => {
-        this.props.onFilenameChange(e.currentTarget.value);
+    private name_changed = (e: ChangeEvent<HTMLInputElement>) => {
+        this.props.on_filename_change(e.currentTarget.value);
     }
 }

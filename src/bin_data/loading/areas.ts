@@ -6,74 +6,78 @@ import { parseCRel, parseNRel } from '../parsing/geometry';
 //
 // Caches
 //
-const sectionsCache: Map<string, Promise<Section[]>> = new Map();
-const renderGeometryCache: Map<string, Promise<Object3D>> = new Map();
-const collisionGeometryCache: Map<string, Promise<Object3D>> = new Map();
+const sections_cache: Map<string, Promise<Section[]>> = new Map();
+const render_geometry_cache: Map<string, Promise<Object3D>> = new Map();
+const collision_geometry_cache: Map<string, Promise<Object3D>> = new Map();
 
-export function getAreaSections(
+export function get_area_sections(
     episode: number,
-    areaId: number,
-    areaVariant: number
+    area_id: number,
+    area_variant: number
 ): Promise<Section[]> {
-    const sections = sectionsCache.get(`${episode}-${areaId}-${areaVariant}`);
+    const sections = sections_cache.get(`${episode}-${area_id}-${area_variant}`);
 
     if (sections) {
         return sections;
     } else {
-        return getAreaSectionsAndRenderGeometry(
-            episode, areaId, areaVariant).then(({sections}) => sections);
+        return get_area_sections_and_render_geometry(
+            episode, area_id, area_variant
+        ).then(({ sections }) => sections);
     }
 }
 
-export function getAreaRenderGeometry(
+export function get_area_render_geometry(
     episode: number,
-    areaId: number,
-    areaVariant: number
+    area_id: number,
+    area_variant: number
 ): Promise<Object3D> {
-    const object3d = renderGeometryCache.get(`${episode}-${areaId}-${areaVariant}`);
+    const object_3d = render_geometry_cache.get(`${episode}-${area_id}-${area_variant}`);
 
-    if (object3d) {
-        return object3d;
+    if (object_3d) {
+        return object_3d;
     } else {
-        return getAreaSectionsAndRenderGeometry(
-            episode, areaId, areaVariant).then(({object3d}) => object3d);
+        return get_area_sections_and_render_geometry(
+            episode, area_id, area_variant
+        ).then(({ object3d }) => object3d);
     }
 }
 
-export function getAreaCollisionGeometry(
+export function get_area_collision_geometry(
     episode: number,
-    areaId: number,
-    areaVariant: number
+    area_id: number,
+    area_variant: number
 ): Promise<Object3D> {
-    const object3d = collisionGeometryCache.get(`${episode}-${areaId}-${areaVariant}`);
+    const object_3d = collision_geometry_cache.get(`${episode}-${area_id}-${area_variant}`);
 
-    if (object3d) {
-        return object3d;
+    if (object_3d) {
+        return object_3d;
     } else {
-        const object3d = getAreaCollisionData(
-            episode, areaId, areaVariant).then(parseCRel);
-        collisionGeometryCache.set(`${areaId}-${areaVariant}`, object3d);
-        return object3d;
+        const object_3d = getAreaCollisionData(
+            episode, area_id, area_variant
+        ).then(parseCRel);
+        collision_geometry_cache.set(`${area_id}-${area_variant}`, object_3d);
+        return object_3d;
     }
 }
 
-function getAreaSectionsAndRenderGeometry(
+function get_area_sections_and_render_geometry(
     episode: number,
-    areaId: number,
-    areaVariant: number
+    area_id: number,
+    area_variant: number
 ): Promise<{ sections: Section[], object3d: Object3D }> {
     const promise = getAreaRenderData(
-        episode, areaId, areaVariant).then(parseNRel);
+        episode, area_id, area_variant
+    ).then(parseNRel);
 
     const sections = new Promise<Section[]>((resolve, reject) => {
-        promise.then(({sections}) => resolve(sections)).catch(reject);
+        promise.then(({ sections }) => resolve(sections)).catch(reject);
     });
-    const object3d = new Promise<Object3D>((resolve, reject) => {
-        promise.then(({object3d}) => resolve(object3d)).catch(reject);
+    const object_3d = new Promise<Object3D>((resolve, reject) => {
+        promise.then(({ object3d }) => resolve(object3d)).catch(reject);
     });
 
-    sectionsCache.set(`${episode}-${areaId}-${areaVariant}`, sections);
-    renderGeometryCache.set(`${episode}-${areaId}-${areaVariant}`, object3d);
+    sections_cache.set(`${episode}-${area_id}-${area_variant}`, sections);
+    render_geometry_cache.set(`${episode}-${area_id}-${area_variant}`, object_3d);
 
     return promise;
 }

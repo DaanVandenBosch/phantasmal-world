@@ -12,13 +12,38 @@ export type NjMotion = {
     motion_data: NjMotionData[],
     frame_count: number,
     type: number,
-    interpolation: number,
+    interpolation: NjInterpolation,
     element_count: number,
 }
 
+export enum NjInterpolation {
+    Linear, Spline, UserFunction, SamplingMask
+}
+
 export type NjMotionData = {
-    keyframes: NjKeyframe[][],
-    keyframe_count: number[],
+    tracks: NjKeyframeTrack[],
+}
+
+export enum NjKeyframeTrackType {
+    Position, Rotation, Scale
+}
+
+export type NjKeyframeTrack =
+    NjKeyframeTrackPosition | NjKeyframeTrackRotation | NjKeyframeTrackScale
+
+export type NjKeyframeTrackPosition = {
+    type: NjKeyframeTrackType.Position,
+    keyframes: NjKeyframeF[],
+}
+
+export type NjKeyframeTrackRotation = {
+    type: NjKeyframeTrackType.Rotation,
+    keyframes: NjKeyframeA[],
+}
+
+export type NjKeyframeTrackScale = {
+    type: NjKeyframeTrackType.Scale,
+    keyframes: NjKeyframeF[],
 }
 
 export type NjKeyframe = NjKeyframeF | NjKeyframeA
@@ -40,9 +65,9 @@ export type NjKeyframeA = {
 }
 
 /**
- * Format used by plymotiondata.rlc.
+ * Format used by PSO:BB plymotiondata.rlc.
  */
-export function parse_njm2(cursor: BufferCursor): NjAction {
+export function parse_njm_4(cursor: BufferCursor): NjAction {
     cursor.seek_end(16);
     const offset1 = cursor.u32();
     log_offset('offset1', offset1);
@@ -67,6 +92,7 @@ function parse_action(cursor: BufferCursor): NjAction {
     };
 }
 
+// TODO: parse data for all objects.
 function parse_motion(cursor: BufferCursor): NjMotion {
     // Points to an array the size of the total amount of objects in the object tree.
     const mdata_offset = cursor.u32();
@@ -74,12 +100,11 @@ function parse_motion(cursor: BufferCursor): NjMotion {
     const type = cursor.u16();
     const inp_fn = cursor.u16();
     // Linear, spline, user function or sampling mask.
-    const interpolation = (inp_fn & 0b11000000) >> 6;
+    const interpolation: NjInterpolation = (inp_fn & 0b11000000) >> 6;
     const element_count = inp_fn & 0b1111;
 
     let motion_data: NjMotionData = {
-        keyframes: [],
-        keyframe_count: [],
+        tracks: [],
     };
 
     const size = count_set_bits(type);
@@ -93,49 +118,51 @@ function parse_motion(cursor: BufferCursor): NjMotion {
 
     for (let i = 0; i < size; i++) {
         const count = cursor.u32();
-        motion_data.keyframe_count.push(count);
         keyframe_counts.push(count);
     }
 
     // NJD_MTYPE_POS_0
     if ((type & (1 << 0)) !== 0) {
         cursor.seek_start(keyframe_offsets.shift()!);
-        motion_data.keyframes.push(
-            parse_motion_data_f(cursor, keyframe_counts.shift()!)
-        );
+        motion_data.tracks.push({
+            type: NjKeyframeTrackType.Position,
+            keyframes: parse_motion_data_f(cursor, keyframe_counts.shift()!)
+        });
     }
 
     // NJD_MTYPE_ANG_1
     if ((type & (1 << 1)) !== 0) {
         cursor.seek_start(keyframe_offsets.shift()!);
-        motion_data.keyframes.push(
-            parse_motion_data_a(cursor, keyframe_counts.shift()!)
-        );
+        motion_data.tracks.push({
+            type: NjKeyframeTrackType.Rotation,
+            keyframes: parse_motion_data_a(cursor, keyframe_counts.shift()!)
+        });
     }
 
     // NJD_MTYPE_SCL_2
     if ((type & (1 << 2)) !== 0) {
         cursor.seek_start(keyframe_offsets.shift()!);
-        motion_data.keyframes.push(
-            parse_motion_data_f(cursor, keyframe_counts.shift()!)
-        );
+        motion_data.tracks.push({
+            type: NjKeyframeTrackType.Scale,
+            keyframes: parse_motion_data_f(cursor, keyframe_counts.shift()!)
+        });
     }
 
-    // NJD_MTYPE_VEC_3
-    if ((type & (1 << 3)) !== 0) {
-        cursor.seek_start(keyframe_offsets.shift()!);
-        motion_data.keyframes.push(
-            parse_motion_data_f(cursor, keyframe_counts.shift()!)
-        );
-    }
+    // // NJD_MTYPE_VEC_3
+    // if ((type & (1 << 3)) !== 0) {
+    //     cursor.seek_start(keyframe_offsets.shift()!);
+    //     motion_data.tracks.push(
+    //         parse_motion_data_f(cursor, keyframe_counts.shift()!)
+    //     );
+    // }
 
-    // NJD_MTYPE_TARGET_3
-    if ((type & (1 << 6)) !== 0) {
-        cursor.seek_start(keyframe_offsets.shift()!);
-        motion_data.keyframes.push(
-            parse_motion_data_f(cursor, keyframe_counts.shift()!)
-        );
-    }
+    // // NJD_MTYPE_TARGET_3
+    // if ((type & (1 << 6)) !== 0) {
+    //     cursor.seek_start(keyframe_offsets.shift()!);
+    //     motion_data.tracks.push(
+    //         parse_motion_data_f(cursor, keyframe_counts.shift()!)
+    //     );
+    // }
 
     // TODO: all NJD_MTYPE's
 
