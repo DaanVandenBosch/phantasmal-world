@@ -1,7 +1,7 @@
-import Logger from 'js-logger';
 import { BufferCursor } from '../../BufferCursor';
+import { Vec3 } from '../../../domain';
 
-const logger = Logger.get('bin_data/parsing/ninja/njm2');
+const ANGLE_TO_RAD = 2 * Math.PI / 65536;
 
 export type NjAction = {
     object_offset: number,
@@ -17,7 +17,7 @@ export type NjMotion = {
 }
 
 export enum NjInterpolation {
-    Linear, Spline, UserFunction, SamplingMask
+    Linear, Spline, UserFunction
 }
 
 export type NjMotionData = {
@@ -53,7 +53,7 @@ export type NjKeyframe = NjKeyframeF | NjKeyframeA
  */
 export type NjKeyframeF = {
     frame: number,
-    value: [number, number, number],
+    value: Vec3,
 }
 
 /**
@@ -61,7 +61,7 @@ export type NjKeyframeF = {
  */
 export type NjKeyframeA = {
     frame: number,
-    value: [number, number, number],
+    value: Vec3, // Euler angles in radians.
 }
 
 /**
@@ -70,10 +70,8 @@ export type NjKeyframeA = {
 export function parse_njm_4(cursor: BufferCursor): NjAction {
     cursor.seek_end(16);
     const offset1 = cursor.u32();
-    log_offset('offset1', offset1);
     cursor.seek_start(offset1);
     const action_offset = cursor.u32();
-    log_offset('action_offset', action_offset);
     cursor.seek_start(action_offset);
     return parse_action(cursor);
 }
@@ -81,8 +79,6 @@ export function parse_njm_4(cursor: BufferCursor): NjAction {
 function parse_action(cursor: BufferCursor): NjAction {
     const object_offset = cursor.u32();
     const motion_offset = cursor.u32();
-    log_offset('object offset', object_offset);
-    log_offset('motion offset', motion_offset);
     cursor.seek_start(motion_offset);
     const motion = parse_motion(cursor);
 
@@ -92,82 +88,105 @@ function parse_action(cursor: BufferCursor): NjAction {
     };
 }
 
-// TODO: parse data for all objects.
 function parse_motion(cursor: BufferCursor): NjMotion {
+    const motion_offset = cursor.position;
     // Points to an array the size of the total amount of objects in the object tree.
-    const mdata_offset = cursor.u32();
+    let mdata_offset = cursor.u32();
     const frame_count = cursor.u32();
     const type = cursor.u16();
     const inp_fn = cursor.u16();
-    // Linear, spline, user function or sampling mask.
+    // Linear, spline or user function.
     const interpolation: NjInterpolation = (inp_fn & 0b11000000) >> 6;
     const element_count = inp_fn & 0b1111;
+    const motion_data_list = [];
 
-    let motion_data: NjMotionData = {
-        tracks: [],
-    };
+    // The mdata array stops where the motion structure starts.
+    while (true) {
+        cursor.seek_start(mdata_offset);
 
-    const size = count_set_bits(type);
-    cursor.seek_start(mdata_offset);
-    const keyframe_offsets: number[] = [];
-    const keyframe_counts: number[] = [];
+        if (cursor.position >= motion_offset) {
+            break;
+        }
 
-    for (let i = 0; i < size; i++) {
-        keyframe_offsets.push(cursor.u32());
+        mdata_offset = mdata_offset += 8 * element_count;
+
+        let motion_data: NjMotionData = {
+            tracks: [],
+        };
+        motion_data_list.push(motion_data);
+
+        const keyframe_offsets: number[] = [];
+        const keyframe_counts: number[] = [];
+
+        for (let i = 0; i < element_count; i++) {
+            keyframe_offsets.push(cursor.u32());
+        }
+
+        for (let i = 0; i < element_count; i++) {
+            const count = cursor.u32();
+            keyframe_counts.push(count);
+        }
+
+        // NJD_MTYPE_POS_0
+        if ((type & (1 << 0)) !== 0) {
+            cursor.seek_start(keyframe_offsets.shift()!);
+            const count = keyframe_counts.shift();
+
+            if (count) {
+                motion_data.tracks.push({
+                    type: NjKeyframeTrackType.Position,
+                    keyframes: parse_motion_data_f(cursor, count)
+                });
+            }
+        }
+
+        // NJD_MTYPE_ANG_1
+        if ((type & (1 << 1)) !== 0) {
+            cursor.seek_start(keyframe_offsets.shift()!);
+            const count = keyframe_counts.shift();
+
+            if (count) {
+                motion_data.tracks.push({
+                    type: NjKeyframeTrackType.Rotation,
+                    keyframes: parse_motion_data_a(cursor, count)
+                });
+            }
+        }
+
+        // NJD_MTYPE_SCL_2
+        if ((type & (1 << 2)) !== 0) {
+            cursor.seek_start(keyframe_offsets.shift()!);
+            const count = keyframe_counts.shift();
+
+            if (count) {
+                motion_data.tracks.push({
+                    type: NjKeyframeTrackType.Scale,
+                    keyframes: parse_motion_data_f(cursor, count)
+                });
+            }
+        }
+
+        // // NJD_MTYPE_VEC_3
+        // if ((type & (1 << 3)) !== 0) {
+        //     cursor.seek_start(keyframe_offsets.shift()!);
+        //     motion_data.tracks.push(
+        //         parse_motion_data_f(cursor, keyframe_counts.shift()!)
+        //     );
+        // }
+
+        // // NJD_MTYPE_TARGET_3
+        // if ((type & (1 << 6)) !== 0) {
+        //     cursor.seek_start(keyframe_offsets.shift()!);
+        //     motion_data.tracks.push(
+        //         parse_motion_data_f(cursor, keyframe_counts.shift()!)
+        //     );
+        // }
+
+        // TODO: all NJD_MTYPE's
     }
-
-    for (let i = 0; i < size; i++) {
-        const count = cursor.u32();
-        keyframe_counts.push(count);
-    }
-
-    // NJD_MTYPE_POS_0
-    if ((type & (1 << 0)) !== 0) {
-        cursor.seek_start(keyframe_offsets.shift()!);
-        motion_data.tracks.push({
-            type: NjKeyframeTrackType.Position,
-            keyframes: parse_motion_data_f(cursor, keyframe_counts.shift()!)
-        });
-    }
-
-    // NJD_MTYPE_ANG_1
-    if ((type & (1 << 1)) !== 0) {
-        cursor.seek_start(keyframe_offsets.shift()!);
-        motion_data.tracks.push({
-            type: NjKeyframeTrackType.Rotation,
-            keyframes: parse_motion_data_a(cursor, keyframe_counts.shift()!)
-        });
-    }
-
-    // NJD_MTYPE_SCL_2
-    if ((type & (1 << 2)) !== 0) {
-        cursor.seek_start(keyframe_offsets.shift()!);
-        motion_data.tracks.push({
-            type: NjKeyframeTrackType.Scale,
-            keyframes: parse_motion_data_f(cursor, keyframe_counts.shift()!)
-        });
-    }
-
-    // // NJD_MTYPE_VEC_3
-    // if ((type & (1 << 3)) !== 0) {
-    //     cursor.seek_start(keyframe_offsets.shift()!);
-    //     motion_data.tracks.push(
-    //         parse_motion_data_f(cursor, keyframe_counts.shift()!)
-    //     );
-    // }
-
-    // // NJD_MTYPE_TARGET_3
-    // if ((type & (1 << 6)) !== 0) {
-    //     cursor.seek_start(keyframe_offsets.shift()!);
-    //     motion_data.tracks.push(
-    //         parse_motion_data_f(cursor, keyframe_counts.shift()!)
-    //     );
-    // }
-
-    // TODO: all NJD_MTYPE's
 
     return {
-        motion_data: [motion_data],
+        motion_data: motion_data_list,
         frame_count,
         type,
         interpolation,
@@ -181,7 +200,7 @@ function parse_motion_data_f(cursor: BufferCursor, count: number): NjKeyframeF[]
     for (let i = 0; i < count; ++i) {
         frames.push({
             frame: cursor.u32(),
-            value: [cursor.f32(), cursor.f32(), cursor.f32()],
+            value: new Vec3(cursor.f32(), cursor.f32(), cursor.f32()),
         });
     }
 
@@ -194,24 +213,13 @@ function parse_motion_data_a(cursor: BufferCursor, count: number): NjKeyframeA[]
     for (let i = 0; i < count; ++i) {
         frames.push({
             frame: cursor.u16(),
-            value: [cursor.i16(), cursor.i16(), cursor.i16()],
+            value: new Vec3(
+                cursor.u16() * ANGLE_TO_RAD,
+                cursor.u16() * ANGLE_TO_RAD,
+                cursor.u16() * ANGLE_TO_RAD
+            ),
         });
     }
 
     return frames;
-}
-
-function log_offset(name: string, offset: number) {
-    logger.debug(`${name}: 0x${offset.toString(16).toUpperCase()}`);
-}
-
-function count_set_bits(n: number): number {
-    let count = 0;
-
-    while (n) {
-        count += n & 1;
-        n >>= 1;
-    }
-
-    return count;
 }
