@@ -11,45 +11,40 @@ export function create_animation_clip(action: NjAction): AnimationClip {
 
     const tracks: KeyframeTrack[] = [];
 
-    motion.motion_data.forEach((motion_data, object_id) => {
+    motion.motion_data.forEach((motion_data, bone_id) => {
         motion_data.tracks.forEach(({ type, keyframes }) => {
+            let name: string;
             const times: number[] = [];
             const values: number[] = [];
 
-            if (type === NjKeyframeTrackType.Position) {
-                const name = `obj_${object_id}.position`;
+            for (const keyframe of keyframes) {
+                times.push(keyframe.frame / PSO_FRAME_RATE);
 
-                for (const keyframe of keyframes) {
-                    times.push(keyframe.frame / PSO_FRAME_RATE);
+                if (type === NjKeyframeTrackType.Position) {
+                    name = `.bones[${bone_id}].position`;
                     values.push(keyframe.value.x, keyframe.value.y, keyframe.value.z);
-                }
-
-                tracks.push(new VectorKeyframeTrack(name, times, values, interpolation));
-            } else if (type === NjKeyframeTrackType.Scale) {
-                const name = `obj_${object_id}.scale`;
-
-                for (const keyframe of keyframes) {
-                    times.push(keyframe.frame / PSO_FRAME_RATE);
+                } else if (type === NjKeyframeTrackType.Scale) {
+                    name = `.bones[${bone_id}].scale`;
                     values.push(keyframe.value.x, keyframe.value.y, keyframe.value.z);
-                }
-
-                tracks.push(new VectorKeyframeTrack(name, times, values, interpolation));
-            } else {
-                for (const keyframe of keyframes) {
-                    times.push(keyframe.frame / PSO_FRAME_RATE);
-
+                } else {
+                    name = `.bones[${bone_id}].quaternion`;
+                    
                     const quat = new Quaternion().setFromEuler(
                         new Euler(keyframe.value.x, keyframe.value.y, keyframe.value.z)
                     );
 
                     values.push(quat.x, quat.y, quat.z, quat.w);
                 }
+            }
 
+            if (type === NjKeyframeTrackType.Rotation) {
                 tracks.push(
                     new QuaternionKeyframeTrack(
-                        `obj_${object_id}.quaternion`, times, values, interpolation
+                        name!, times, values, interpolation
                     )
                 );
+            } else {
+                tracks.push(new VectorKeyframeTrack(name, times, values, interpolation));
             }
         });
     });

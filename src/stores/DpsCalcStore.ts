@@ -4,9 +4,9 @@ import { itemTypeStores } from "./ItemTypeStore";
 
 const NORMAL_DAMAGE_FACTOR = 0.2 * 0.9;
 const HEAVY_DAMAGE_FACTOR = NORMAL_DAMAGE_FACTOR * 1.89;
-const SAC_DAMAGE_FACTOR = NORMAL_DAMAGE_FACTOR * 3.32;
-const VJAYA_DAMAGE_FACTOR = NORMAL_DAMAGE_FACTOR * 5.56;
-const CRIT_FACTOR = 1.5;
+// const SAC_DAMAGE_FACTOR = NORMAL_DAMAGE_FACTOR * 3.32;
+// const VJAYA_DAMAGE_FACTOR = NORMAL_DAMAGE_FACTOR * 5.56;
+// const CRIT_FACTOR = 1.5;
 
 class Weapon {
     readonly item: WeaponItem;

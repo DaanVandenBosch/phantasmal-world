@@ -1,31 +1,32 @@
-import { BufferAttribute, BufferGeometry, DoubleSide, Euler, Material, Matrix3, Matrix4, Mesh, MeshLambertMaterial, Object3D, Quaternion, Vector3 } from 'three';
+import { Bone, BufferGeometry, DoubleSide, Euler, Float32BufferAttribute, Material, Matrix3, Matrix4, MeshLambertMaterial, Quaternion, Skeleton, SkinnedMesh, Uint16BufferAttribute, Vector3 } from 'three';
 import { vec3_to_threejs } from '.';
 import { NinjaModel, NinjaObject } from '../bin_data/parsing/ninja';
 import { NjModel } from '../bin_data/parsing/ninja/nj';
 import { XjModel } from '../bin_data/parsing/ninja/xj';
-import { Vec3 } from '../domain';
 
 const DEFAULT_MATERIAL = new MeshLambertMaterial({
     color: 0xFF00FF,
     side: DoubleSide
 });
-const DEFAULT_NORMAL = new Vec3(0, 1, 0);
+const DEFAULT_SKINNED_MATERIAL = new MeshLambertMaterial({
+    skinning: true,
+    color: 0xFF00FF,
+    side: DoubleSide
+});
+const DEFAULT_NORMAL = new Vector3(0, 1, 0);
 
-export function ninja_object_to_object3d(
-    object: NinjaObject<NinjaModel>,
-    material: Material = DEFAULT_MATERIAL
-): Object3D {
-    return new Object3DCreator(material).create_object_3d(object);
-}
-
-/**
- * Generate a single BufferGeometry.
- */
 export function ninja_object_to_buffer_geometry(
     object: NinjaObject<NinjaModel>,
     material: Material = DEFAULT_MATERIAL
 ): BufferGeometry {
     return new Object3DCreator(material).create_buffer_geometry(object);
+}
+
+export function ninja_object_to_skinned_mesh(
+    object: NinjaObject<NinjaModel>,
+    material: Material = DEFAULT_SKINNED_MATERIAL
+): SkinnedMesh {
+    return new Object3DCreator(material).create_skinned_mesh(object);
 }
 
 class Object3DCreator {
@@ -34,28 +35,24 @@ class Object3DCreator {
     private positions: number[] = [];
     private normals: number[] = [];
     private indices: number[] = [];
-    private flat: boolean = false;
+    private bone_indices: number[] = [];
+    private bone_weights: number[] = [];
+    private bones: Bone[] = [];
 
     constructor(
         private material: Material
     ) { }
 
-    create_object_3d(object: NinjaObject<NinjaModel>): Object3D {
-        return this.object_to_object3d(object, new Matrix4())!;
-    }
-
     create_buffer_geometry(object: NinjaObject<NinjaModel>): BufferGeometry {
-        this.flat = true;
-
-        this.object_to_object3d(object, new Matrix4());
+        this.object_to_object3d(object, undefined, new Matrix4());
 
         const geom = new BufferGeometry();
 
-        geom.addAttribute('position', new BufferAttribute(new Float32Array(this.positions), 3));
-        geom.addAttribute('normal', new BufferAttribute(new Float32Array(this.normals), 3));
+        geom.addAttribute('position', new Float32BufferAttribute(this.positions, 3));
+        geom.addAttribute('normal', new Float32BufferAttribute(this.normals, 3));
 
         if (this.indices.length) {
-            geom.setIndex(new BufferAttribute(new Uint16Array(this.indices), 1));
+            geom.setIndex(new Uint16BufferAttribute(this.indices, 1));
         }
 
         // The bounding spheres from the object seem be too small.
@@ -64,7 +61,26 @@ class Object3DCreator {
         return geom;
     }
 
-    private object_to_object3d(object: NinjaObject<NinjaModel>, parent_matrix: Matrix4): Object3D | undefined {
+    create_skinned_mesh(object: NinjaObject<NinjaModel>): SkinnedMesh {
+        const geom = this.create_buffer_geometry(object);
+        geom.addAttribute('skinIndex', new Uint16BufferAttribute(this.bone_indices, 4));
+        geom.addAttribute('skinWeight', new Uint16BufferAttribute(this.bone_weights, 4));
+
+        const mesh = new SkinnedMesh(geom, this.material);
+
+        const skeleton = new Skeleton(this.bones);
+        mesh.add(this.bones[0]);
+        mesh.bind(skeleton);
+        console.log(this.bones)
+
+        return mesh;
+    }
+
+    private object_to_object3d(
+        object: NinjaObject<NinjaModel>,
+        parent_bone: Bone | undefined,
+        parent_matrix: Matrix4
+    ) {
         const {
             no_translate, no_rotate, no_scale, hidden, break_child_trace, zxy_rotation_order, eval_skip
         } = object.evaluation_flags;
@@ -81,72 +97,59 @@ class Object3DCreator {
             )
             .premultiply(parent_matrix);
 
-        if (this.flat) {
-            if (object.model && !hidden) {
-                this.model_to_geometry(object.model, matrix);
-            }
+        let bone: Bone | undefined;
 
-            if (!break_child_trace) {
-                for (const child of object.children) {
-                    this.object_to_object3d(child, matrix);
-                }
-            }
-
-            return undefined;
+        if (eval_skip) {
+            bone = parent_bone;
         } else {
-            let mesh: Object3D;
+            bone = new Bone();
+            bone.name = (this.id++).toString();
 
-            if (object.model && !hidden) {
-                mesh = new Mesh(
-                    this.model_to_geometry(object.model, matrix),
-                    this.material
-                );
-            } else {
-                mesh = new Object3D();
+            bone.position.set(position.x, position.y, position.z);
+            bone.setRotationFromEuler(euler);
+            bone.scale.set(scale.x, scale.y, scale.z);
+
+            this.bones.push(bone);
+
+            if (parent_bone) {
+                parent_bone.add(bone);
             }
+        }
 
-            if (!eval_skip) {
-                mesh.name = `obj_${this.id++}`;
+        if (object.model && !hidden) {
+            this.model_to_geometry(object.model, matrix);
+        }
+
+        if (!break_child_trace) {
+            for (const child of object.children) {
+                this.object_to_object3d(child, bone, matrix);
             }
-
-            mesh.position.set(position.x, position.y, position.z);
-            mesh.setRotationFromEuler(euler);
-            mesh.scale.set(scale.x, scale.y, scale.z);
-
-            if (!break_child_trace) {
-                for (const child of object.children) {
-                    mesh.add(this.object_to_object3d(child, matrix)!);
-                }
-            }
-
-            return mesh;
         }
     }
 
-    private model_to_geometry(model: NinjaModel, matrix: Matrix4): BufferGeometry | undefined {
+    private model_to_geometry(model: NinjaModel, matrix: Matrix4) {
         if (model.type === 'nj') {
-            return this.nj_model_to_geometry(model, matrix);
+            this.nj_model_to_geometry(model, matrix);
         } else {
-            return this.xj_model_to_geometry(model, matrix);
+            this.xj_model_to_geometry(model, matrix);
         }
     }
 
     // TODO: use indices and don't add duplicate positions/normals.
-    private nj_model_to_geometry(model: NjModel, matrix: Matrix4): BufferGeometry | undefined {
-        const positions = this.flat ? this.positions : [];
-        const normals = this.flat ? this.normals : [];
+    private nj_model_to_geometry(model: NjModel, matrix: Matrix4) {
+        const positions = this.positions;
+        const normals = this.normals;
+        const bone_indices = this.bone_indices;
+        const bone_weights = this.bone_weights;
 
         const normal_matrix = new Matrix3().getNormalMatrix(matrix);
 
-        const matrix_inverse = new Matrix4().getInverse(matrix);
-        const normal_matrix_inverse = new Matrix3().getNormalMatrix(matrix_inverse);
-
         const new_vertices = model.vertices.map(({ position, normal }) => {
-            const new_position = vec3_to_threejs(position).applyMatrix4(matrix);
+            const new_position = vec3_to_threejs(position);
+            const new_normal = normal ? vec3_to_threejs(normal) : DEFAULT_NORMAL;
 
-            const new_normal = normal
-                ? vec3_to_threejs(normal).applyMatrix3(normal_matrix)
-                : DEFAULT_NORMAL;
+            new_position.applyMatrix4(matrix);
+            new_normal.applyMatrix3(normal_matrix);
 
             return {
                 position: new_position,
@@ -154,52 +157,16 @@ class Object3DCreator {
             };
         });
 
-        if (this.flat) {
-            Object.assign(this.vertices, new_vertices);
-        }
+        Object.assign(this.vertices, new_vertices);
 
         for (const mesh of model.meshes) {
             for (let i = 2; i < mesh.indices.length; ++i) {
                 const a_idx = mesh.indices[i - 2];
                 const b_idx = mesh.indices[i - 1];
                 const c_idx = mesh.indices[i];
-                let a;
-                let b;
-                let c;
-
-                if (this.flat) {
-                    a = this.vertices[a_idx];
-                    b = this.vertices[b_idx];
-                    c = this.vertices[c_idx];
-                } else {
-                    a = model.vertices[a_idx];
-                    b = model.vertices[b_idx];
-                    c = model.vertices[c_idx];
-
-                    if (!a && this.vertices[a_idx]) {
-                        const { position, normal } = this.vertices[a_idx];
-                        a = {
-                            position: position.clone().applyMatrix4(matrix_inverse),
-                            normal: normal && normal.clone().applyMatrix3(normal_matrix_inverse)
-                        };
-                    }
-
-                    if (!b && this.vertices[b_idx]) {
-                        const { position, normal } = this.vertices[b_idx];
-                        b = {
-                            position: position.clone().applyMatrix4(matrix_inverse),
-                            normal: normal && normal.clone().applyMatrix3(normal_matrix_inverse)
-                        };
-                    }
-
-                    if (!c && this.vertices[c_idx]) {
-                        const { position, normal } = this.vertices[c_idx];
-                        c = {
-                            position: position.clone().applyMatrix4(matrix_inverse),
-                            normal: normal && normal.clone().applyMatrix3(normal_matrix_inverse)
-                        };
-                    }
-                }
+                const a = this.vertices[a_idx];
+                const b = this.vertices[b_idx];
+                const c = this.vertices[c_idx];
 
                 if (a && b && c) {
                     const a_n = a.normal || DEFAULT_NORMAL;
@@ -221,41 +188,33 @@ class Object3DCreator {
                         normals.push(a_n.x, a_n.y, a_n.z);
                         normals.push(c_n.x, c_n.y, c_n.z);
                     }
+
+                    bone_indices.push(this.id, 0, 0, 0);
+                    bone_indices.push(this.id, 0, 0, 0);
+                    bone_indices.push(this.id, 0, 0, 0);
+                    bone_weights.push(1, 0, 0, 0);
+                    bone_weights.push(1, 0, 0, 0);
+                    bone_weights.push(1, 0, 0, 0);
                 }
             }
         }
-
-        if (this.flat) {
-            return undefined;
-        } else {
-            Object.assign(this.vertices, new_vertices);
-
-            const geom = new BufferGeometry();
-
-            geom.addAttribute('position', new BufferAttribute(new Float32Array(positions), 3));
-            geom.addAttribute('normal', new BufferAttribute(new Float32Array(normals), 3));
-            // The bounding spheres from the object seem be too small.
-            geom.computeBoundingSphere();
-
-            return geom;
-        }
     }
 
-    private xj_model_to_geometry(model: XjModel, matrix: Matrix4): BufferGeometry | undefined {
-        const positions = this.flat ? this.positions : [];
-        const normals = this.flat ? this.normals : [];
-        const indices = this.flat ? this.indices : [];
-        const index_offset = this.flat ? this.positions.length / 3 : 0;
+    private xj_model_to_geometry(model: XjModel, matrix: Matrix4) {
+        const positions = this.positions;
+        const normals = this.normals;
+        const indices = this.indices;
+        const index_offset = this.positions.length / 3;
         let clockwise = true;
 
         const normal_matrix = new Matrix3().getNormalMatrix(matrix);
 
         for (let { position, normal } of model.vertices) {
-            const p = this.flat ? vec3_to_threejs(position).applyMatrix4(matrix) : position;
+            const p = vec3_to_threejs(position).applyMatrix4(matrix);
             positions.push(p.x, p.y, p.z);
 
             normal = normal || DEFAULT_NORMAL;
-            const n = this.flat ? vec3_to_threejs(normal).applyMatrix3(normal_matrix) : normal;
+            const n = vec3_to_threejs(normal).applyMatrix3(normal_matrix);
             normals.push(n.x, n.y, n.z);
         }
 
@@ -321,20 +280,6 @@ class Object3DCreator {
                 //         break;
                 // }
             }
-        }
-
-        if (this.flat) {
-            return undefined;
-        } else {
-            const geom = new BufferGeometry();
-
-            geom.addAttribute('position', new BufferAttribute(new Float32Array(positions), 3));
-            geom.addAttribute('normal', new BufferAttribute(new Float32Array(normals), 3));
-            geom.setIndex(new BufferAttribute(new Uint16Array(indices), 1));
-            // The bounding spheres from the object seem be too small.
-            geom.computeBoundingSphere();
-
-            return geom;
         }
     }
 }

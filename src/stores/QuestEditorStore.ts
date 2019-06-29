@@ -4,13 +4,13 @@ import { AnimationClip, AnimationMixer, Object3D } from 'three';
 import { BufferCursor } from '../bin_data/BufferCursor';
 import { get_area_sections } from '../bin_data/loading/areas';
 import { get_npc_geometry, get_object_geometry } from '../bin_data/loading/entities';
-import { parse_nj, parse_xj, NinjaObject, NinjaModel } from '../bin_data/parsing/ninja';
+import { NinjaModel, NinjaObject, parse_nj, parse_xj } from '../bin_data/parsing/ninja';
 import { parse_njm_4 } from '../bin_data/parsing/ninja/motion';
 import { parse_quest, write_quest_qst } from '../bin_data/parsing/quest';
 import { Area, Quest, QuestEntity, Section, Vec3 } from '../domain';
 import { create_animation_clip } from '../rendering/animation';
 import { create_npc_mesh as create_npc_object_3d, create_object_mesh as create_object_object_3d } from '../rendering/entities';
-import { ninja_object_to_object3d as create_model_obj3d } from '../rendering/models';
+import { ninja_object_to_skinned_mesh } from '../rendering/models';
 
 const logger = Logger.get('stores/QuestEditorStore');
 
@@ -63,7 +63,7 @@ class QuestEditorStore {
                 this.current_model = model;
             }
 
-            this.current_model_obj3d = create_model_obj3d(this.current_model);
+            this.current_model_obj3d = ninja_object_to_skinned_mesh(this.current_model);
         }
     })
 
