@@ -198,8 +198,8 @@ export class Renderer {
 
             for (const object of this.quest.objects) {
                 if (object.area_id === this.area.id) {
-                    if (object.object3d) {
-                        this.objGeometry.add(object.object3d);
+                    if (object.object_3d) {
+                        this.objGeometry.add(object.object_3d);
                     } else {
                         loaded = false;
                     }
@@ -208,8 +208,8 @@ export class Renderer {
 
             for (const npc of this.quest.npcs) {
                 if (npc.area_id === this.area.id) {
-                    if (npc.object3d) {
-                        this.npcGeometry.add(npc.object3d);
+                    if (npc.object_3d) {
+                        this.npcGeometry.add(npc.object_3d);
                     } else {
                         loaded = false;
                     }
@@ -257,7 +257,7 @@ export class Renderer {
             : oldSelectedData !== data;
 
         if (selectionChanged) {
-            quest_editor_store.setSelectedEntity(data && data.entity);
+            quest_editor_store.set_selected_entity(data && data.entity);
         }
     }
 

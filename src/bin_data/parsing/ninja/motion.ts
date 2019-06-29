@@ -101,13 +101,8 @@ function parse_motion(cursor: BufferCursor): NjMotion {
     const motion_data_list = [];
 
     // The mdata array stops where the motion structure starts.
-    while (true) {
+    while (mdata_offset < motion_offset) {
         cursor.seek_start(mdata_offset);
-
-        if (cursor.position >= motion_offset) {
-            break;
-        }
-
         mdata_offset = mdata_offset += 8 * element_count;
 
         let motion_data: NjMotionData = {

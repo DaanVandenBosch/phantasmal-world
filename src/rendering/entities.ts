@@ -1,6 +1,6 @@
 import { autorun } from 'mobx';
 import { BufferGeometry, DoubleSide, Mesh, MeshLambertMaterial } from 'three';
-import { QuestNpc, QuestObject, QuestEntity } from '../domain';
+import { QuestEntity, QuestNpc, QuestObject } from '../domain';
 
 export const OBJECT_COLOR = 0xFFFF00;
 export const OBJECT_HOVER_COLOR = 0xFFDF3F;
@@ -23,23 +23,23 @@ function create_mesh(
     color: number,
     type: string
 ): Mesh {
-    const object_3d = new Mesh(
+    const mesh = new Mesh(
         geometry,
         new MeshLambertMaterial({
             color,
             side: DoubleSide
         })
-    );
-    object_3d.name = type;
-    object_3d.userData.entity = entity;
+    )
+    mesh.name = type;
+    mesh.userData.entity = entity;
 
     // TODO: dispose autorun?
     autorun(() => {
         const { x, y, z } = entity.position;
-        object_3d.position.set(x, y, z);
+        mesh.position.set(x, y, z);
         const rot = entity.rotation;
-        object_3d.rotation.set(rot.x, rot.y, rot.z);
+        mesh.rotation.set(rot.x, rot.y, rot.z);
     });
 
-    return object_3d;
+    return mesh;
 }

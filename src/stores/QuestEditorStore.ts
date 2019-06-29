@@ -4,22 +4,44 @@ import { AnimationClip, AnimationMixer, Object3D } from 'three';
 import { BufferCursor } from '../bin_data/BufferCursor';
 import { get_area_sections } from '../bin_data/loading/areas';
 import { get_npc_geometry, get_object_geometry } from '../bin_data/loading/entities';
-import { parse_nj, parse_xj } from '../bin_data/parsing/ninja';
+import { parse_nj, parse_xj, NinjaObject, NinjaModel } from '../bin_data/parsing/ninja';
 import { parse_njm_4 } from '../bin_data/parsing/ninja/motion';
 import { parse_quest, write_quest_qst } from '../bin_data/parsing/quest';
 import { Area, Quest, QuestEntity, Section, Vec3 } from '../domain';
 import { create_animation_clip } from '../rendering/animation';
-import { create_npc_mesh, create_object_mesh } from '../rendering/entities';
-import { create_model_mesh } from '../rendering/models';
+import { create_npc_mesh as create_npc_object_3d, create_object_mesh as create_object_object_3d } from '../rendering/entities';
+import { ninja_object_to_object3d as create_model_obj3d } from '../rendering/models';
 
 const logger = Logger.get('stores/QuestEditorStore');
+
+function traverse(
+    object: NinjaObject<NinjaModel>,
+    head_part: NinjaObject<NinjaModel>,
+    id_ref: [number]
+) {
+    if (!object.evaluation_flags.eval_skip) {
+        const id = id_ref[0]++;
+
+        if (id === 59) {
+            object.evaluation_flags.hidden = false;
+            object.evaluation_flags.break_child_trace = false;
+            object.children.push(head_part);
+            return;
+        }
+    }
+
+    for (const child of object.children) {
+        traverse(child, head_part, id_ref);
+    }
+}
 
 class QuestEditorStore {
     @observable current_quest?: Quest;
     @observable current_area?: Area;
     @observable selected_entity?: QuestEntity;
 
-    @observable.ref current_model?: Object3D;
+    @observable.ref current_model?: NinjaObject<NinjaModel>;
+    @observable.ref current_model_obj3d?: Object3D;
     @observable.ref animation_mixer?: AnimationMixer;
 
     set_quest = action('set_quest', (quest?: Quest) => {
@@ -31,19 +53,28 @@ class QuestEditorStore {
         }
     })
 
-    set_model = action('set_model', (model?: Object3D) => {
+    set_model = action('set_model', (model?: NinjaObject<NinjaModel>) => {
         this.reset_model_and_quest_state();
-        this.current_model = model;
+
+        if (model) {
+            if (this.current_model) {
+                traverse(this.current_model, model, [0]);
+            } else {
+                this.current_model = model;
+            }
+
+            this.current_model_obj3d = create_model_obj3d(this.current_model);
+        }
     })
 
     add_animation = action('add_animation', (clip: AnimationClip) => {
-        if (!this.current_model) return;
+        if (!this.current_model_obj3d) return;
 
         if (this.animation_mixer) {
             this.animation_mixer.stopAllAction();
-            this.animation_mixer.uncacheRoot(this.current_model);
+            this.animation_mixer.uncacheRoot(this.current_model_obj3d);
         } else {
-            this.animation_mixer = new AnimationMixer(this.current_model);
+            this.animation_mixer = new AnimationMixer(this.current_model_obj3d);
         }
 
         const action = this.animation_mixer.clipAction(clip);
@@ -59,11 +90,11 @@ class QuestEditorStore {
             this.animation_mixer.uncacheRoot(this.current_model);
         }
 
-        this.current_model = undefined;
+        this.current_model_obj3d = undefined;
         this.animation_mixer = undefined;
     }
 
-    setSelectedEntity = (entity?: QuestEntity) => {
+    set_selected_entity = (entity?: QuestEntity) => {
         this.selected_entity = entity;
     }
 
@@ -94,12 +125,16 @@ class QuestEditorStore {
         }
 
         if (file.name.endsWith('.nj')) {
-            this.set_model(create_model_mesh(parse_nj(new BufferCursor(reader.result, true))));
+            const model = parse_nj(new BufferCursor(reader.result, true))[0];
+            this.set_model(model);
         } else if (file.name.endsWith('.xj')) {
-            this.set_model(create_model_mesh(parse_xj(new BufferCursor(reader.result, true))));
+            const model = parse_xj(new BufferCursor(reader.result, true))[0];
+            this.set_model(model);
         } else if (file.name.endsWith('.njm')) {
             this.add_animation(
-                create_animation_clip(parse_njm_4(new BufferCursor(reader.result, true)))
+                create_animation_clip(
+                    parse_njm_4(new BufferCursor(reader.result, true))
+                )
             );
         } else {
             const quest = parse_quest(new BufferCursor(reader.result, true));
@@ -118,9 +153,9 @@ class QuestEditorStore {
                     // Generate object geometry.
                     for (const object of quest.objects.filter(o => o.area_id === variant.area.id)) {
                         try {
-                            const geometry = await get_object_geometry(object.type);
+                            const object_geom = await get_object_geometry(object.type);
                             this.set_section_on_visible_quest_entity(object, sections);
-                            object.object3d = create_object_mesh(object, geometry);
+                            object.object_3d = create_object_object_3d(object, object_geom);
                         } catch (e) {
                             logger.error(e);
                         }
@@ -129,9 +164,9 @@ class QuestEditorStore {
                     // Generate NPC geometry.
                     for (const npc of quest.npcs.filter(npc => npc.area_id === variant.area.id)) {
                         try {
-                            const geometry = await get_npc_geometry(npc.type);
+                            const npc_geom = await get_npc_geometry(npc.type);
                             this.set_section_on_visible_quest_entity(npc, sections);
-                            npc.object3d = create_npc_mesh(npc, geometry);
+                            npc.object_3d = create_npc_object_3d(npc, npc_geom);
                         } catch (e) {
                             logger.error(e);
                         }

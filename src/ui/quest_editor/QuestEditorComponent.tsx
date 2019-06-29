@@ -22,8 +22,6 @@ export class QuestEditorComponent extends React.Component<{}, {
 
     render() {
         const quest = quest_editor_store.current_quest;
-        const model = quest_editor_store.current_model;
-        const area = quest_editor_store.current_area;
 
         return (
             <div className="qe-QuestEditorComponent">
@@ -32,8 +30,8 @@ export class QuestEditorComponent extends React.Component<{}, {
                     <QuestInfoComponent quest={quest} />
                     <RendererComponent
                         quest={quest}
-                        area={area}
-                        model={model}
+                        area={quest_editor_store.current_area}
+                        model={quest_editor_store.current_model_obj3d}
                     />
                     <EntityInfoComponent entity={quest_editor_store.selected_entity} />
                 </div>

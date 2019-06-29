@@ -1,4 +1,4 @@
-import { AnimationClip, InterpolateLinear, InterpolateSmooth, KeyframeTrack, VectorKeyframeTrack } from "three";
+import { AnimationClip, Euler, InterpolateLinear, InterpolateSmooth, KeyframeTrack, Quaternion, QuaternionKeyframeTrack, VectorKeyframeTrack } from "three";
 import { NjAction, NjInterpolation, NjKeyframeTrackType } from "../bin_data/parsing/ninja/motion";
 
 const PSO_FRAME_RATE = 30;
@@ -8,32 +8,50 @@ export function create_animation_clip(action: NjAction): AnimationClip {
     const interpolation = motion.interpolation === NjInterpolation.Spline
         ? InterpolateSmooth
         : InterpolateLinear;
-    // TODO: parse data for all objects.
-    const motion_data = motion.motion_data[0];
 
     const tracks: KeyframeTrack[] = [];
 
-    motion_data.tracks.forEach(({ type, keyframes }) => {
-        // TODO: rotation
-        if (type === NjKeyframeTrackType.Rotation) return;
+    motion.motion_data.forEach((motion_data, object_id) => {
+        motion_data.tracks.forEach(({ type, keyframes }) => {
+            const times: number[] = [];
+            const values: number[] = [];
 
-        const times: number[] = [];
-        const values: number[] = [];
+            if (type === NjKeyframeTrackType.Position) {
+                const name = `obj_${object_id}.position`;
 
-        for (const keyframe of keyframes) {
-            times.push(keyframe.frame / PSO_FRAME_RATE);
-            values.push(...keyframe.value);
-        }
+                for (const keyframe of keyframes) {
+                    times.push(keyframe.frame / PSO_FRAME_RATE);
+                    values.push(keyframe.value.x, keyframe.value.y, keyframe.value.z);
+                }
 
-        let name: string;
+                tracks.push(new VectorKeyframeTrack(name, times, values, interpolation));
+            } else if (type === NjKeyframeTrackType.Scale) {
+                const name = `obj_${object_id}.scale`;
 
-        switch (type) {
-            case NjKeyframeTrackType.Position: name = '.position'; break;
-            // case NjKeyframeTrackType.Rotation: name = 'rotation'; break;
-            case NjKeyframeTrackType.Scale: name = '.scale'; break;
-        }
+                for (const keyframe of keyframes) {
+                    times.push(keyframe.frame / PSO_FRAME_RATE);
+                    values.push(keyframe.value.x, keyframe.value.y, keyframe.value.z);
+                }
 
-        tracks.push(new VectorKeyframeTrack(name!, times, values, interpolation));
+                tracks.push(new VectorKeyframeTrack(name, times, values, interpolation));
+            } else {
+                for (const keyframe of keyframes) {
+                    times.push(keyframe.frame / PSO_FRAME_RATE);
+
+                    const quat = new Quaternion().setFromEuler(
+                        new Euler(keyframe.value.x, keyframe.value.y, keyframe.value.z)
+                    );
+
+                    values.push(quat.x, quat.y, quat.z, quat.w);
+                }
+
+                tracks.push(
+                    new QuaternionKeyframeTrack(
+                        `obj_${object_id}.quaternion`, times, values, interpolation
+                    )
+                );
+            }
+        });
     });
 
     return new AnimationClip(

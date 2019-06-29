@@ -1,31 +1,52 @@
-import {
-    BufferAttribute,
-    BufferGeometry,
-    Euler,
-    Matrix4,
-    Quaternion,
-    Vector3
-} from 'three';
 import { BufferCursor } from '../../BufferCursor';
-import { parse_nj_model, NjContext } from './nj';
-import { parse_xj_model, XjContext } from './xj';
+import { parse_nj_model, NjModel } from './nj';
+import { parse_xj_model, XjModel } from './xj';
+import { Vec3 } from '../../../domain';
 
 // TODO:
 // - deal with multiple NJCM chunks
 // - deal with other types of chunks
 
-export function parse_nj(cursor: BufferCursor): BufferGeometry | undefined {
-    return parse_ninja(cursor, 'nj');
+const ANGLE_TO_RAD = 2 * Math.PI / 65536;
+
+export type NinjaVertex = {
+    position: Vec3,
+    normal?: Vec3,
 }
 
-export function parse_xj(cursor: BufferCursor): BufferGeometry | undefined {
-    return parse_ninja(cursor, 'xj');
+export type NinjaModel = NjModel | XjModel;
+
+export type NinjaObject<M extends NinjaModel> = {
+    evaluation_flags: {
+        no_translate: boolean,
+        no_rotate: boolean,
+        no_scale: boolean,
+        hidden: boolean,
+        break_child_trace: boolean,
+        zxy_rotation_order: boolean,
+        eval_skip: boolean,
+        eval_shape_skip: boolean,
+    },
+    model?: M,
+    position: Vec3,
+    rotation: Vec3, // Euler angles in radians.
+    scale: Vec3,
+    children: NinjaObject<M>[],
 }
 
-type Format = 'nj' | 'xj';
-type Context = NjContext | XjContext;
+export function parse_nj(cursor: BufferCursor): NinjaObject<NjModel>[] {
+    return parse_ninja(cursor, parse_nj_model, []);
+}
 
-function parse_ninja(cursor: BufferCursor, format: Format): BufferGeometry | undefined {
+export function parse_xj(cursor: BufferCursor): NinjaObject<XjModel>[] {
+    return parse_ninja(cursor, parse_xj_model, undefined);
+}
+
+function parse_ninja<M extends NinjaModel>(
+    cursor: BufferCursor,
+    parse_model: (cursor: BufferCursor, context: any) => M,
+    context: any
+): NinjaObject<M>[] {
     while (cursor.bytes_left) {
         // Ninja uses a little endian variant of the IFF format.
         // IFF files contain chunks preceded by an 8-byte header.
@@ -34,44 +55,21 @@ function parse_ninja(cursor: BufferCursor, format: Format): BufferGeometry | und
         const iff_chunk_size = cursor.u32();
 
         if (iff_type_id === 'NJCM') {
-            return parse_njcm(cursor.take(iff_chunk_size), format);
+            return parse_sibling_objects(cursor.take(iff_chunk_size), parse_model, context);
         } else {
             cursor.seek(iff_chunk_size);
         }
     }
+
+    return [];
 }
 
-function parse_njcm(cursor: BufferCursor, format: Format): BufferGeometry | undefined {
-    if (cursor.bytes_left) {
-        let context: Context;
-
-        if (format === 'nj') {
-            context = {
-                format,
-                positions: [],
-                normals: [],
-                cached_chunk_offsets: [],
-                vertices: []
-            };
-        } else {
-            context = {
-                format,
-                positions: [],
-                normals: [],
-                indices: []
-            };
-        }
-
-        parse_sibling_objects(cursor, new Matrix4(), context);
-        return create_buffer_geometry(context);
-    }
-}
-
-function parse_sibling_objects(
+// TODO: cache model and object offsets so we don't reparse the same data.
+function parse_sibling_objects<M extends NinjaModel>(
     cursor: BufferCursor,
-    parent_matrix: Matrix4,
-    context: Context
-): void {
+    parse_model: (cursor: BufferCursor, context: any) => M,
+    context: any
+): NinjaObject<M>[] {
     const eval_flags = cursor.u32();
     const no_translate = (eval_flags & 0b1) !== 0;
     const no_rotate = (eval_flags & 0b10) !== 0;
@@ -79,61 +77,62 @@ function parse_sibling_objects(
     const hidden = (eval_flags & 0b1000) !== 0;
     const break_child_trace = (eval_flags & 0b10000) !== 0;
     const zxy_rotation_order = (eval_flags & 0b100000) !== 0;
+    const eval_skip = (eval_flags & 0b1000000) !== 0;
+    const eval_shape_skip = (eval_flags & 0b1000000) !== 0;
 
     const model_offset = cursor.u32();
     const pos_x = cursor.f32();
     const pos_y = cursor.f32();
     const pos_z = cursor.f32();
-    const rotation_x = cursor.i32() * (2 * Math.PI / 0xFFFF);
-    const rotation_y = cursor.i32() * (2 * Math.PI / 0xFFFF);
-    const rotation_z = cursor.i32() * (2 * Math.PI / 0xFFFF);
+    const rotation_x = cursor.i32() * ANGLE_TO_RAD;
+    const rotation_y = cursor.i32() * ANGLE_TO_RAD;
+    const rotation_z = cursor.i32() * ANGLE_TO_RAD;
     const scale_x = cursor.f32();
     const scale_y = cursor.f32();
     const scale_z = cursor.f32();
     const child_offset = cursor.u32();
     const sibling_offset = cursor.u32();
 
-    const rotation = new Euler(rotation_x, rotation_y, rotation_z, zxy_rotation_order ? 'ZXY' : 'ZYX');
-    const matrix = new Matrix4()
-        .compose(
-            no_translate ? new Vector3() : new Vector3(pos_x, pos_y, pos_z),
-            no_rotate ? new Quaternion(0, 0, 0, 1) : new Quaternion().setFromEuler(rotation),
-            no_scale ? new Vector3(1, 1, 1) : new Vector3(scale_x, scale_y, scale_z)
-        )
-        .premultiply(parent_matrix);
+    let model: M | undefined;
+    let children: NinjaObject<M>[];
+    let siblings: NinjaObject<M>[];
 
-    if (model_offset && !hidden) {
+    if (model_offset) {
         cursor.seek_start(model_offset);
-        parse_model(cursor, matrix, context);
+        model = parse_model(cursor, context);
     }
 
-    if (child_offset && !break_child_trace) {
+    if (child_offset) {
         cursor.seek_start(child_offset);
-        parse_sibling_objects(cursor, matrix, context);
+        children = parse_sibling_objects(cursor, parse_model, context);
+    } else {
+        children = [];
     }
 
     if (sibling_offset) {
         cursor.seek_start(sibling_offset);
-        parse_sibling_objects(cursor, parent_matrix, context);
-    }
-}
-
-function create_buffer_geometry(context: Context): BufferGeometry {
-    const geometry = new BufferGeometry();
-    geometry.addAttribute('position', new BufferAttribute(new Float32Array(context.positions), 3));
-    geometry.addAttribute('normal', new BufferAttribute(new Float32Array(context.normals), 3));
-
-    if ('indices' in context) {
-        geometry.setIndex(new BufferAttribute(new Uint16Array(context.indices), 1));
-    }
-
-    return geometry;
-}
-
-function parse_model(cursor: BufferCursor, matrix: Matrix4, context: Context): void {
-    if (context.format === 'nj') {
-        parse_nj_model(cursor, matrix, context);
+        siblings = parse_sibling_objects(cursor, parse_model, context);
     } else {
-        parse_xj_model(cursor, matrix, context);
+        siblings = [];
     }
+
+    const object: NinjaObject<M> = {
+        evaluation_flags: {
+            no_translate,
+            no_rotate,
+            no_scale,
+            hidden,
+            break_child_trace,
+            zxy_rotation_order,
+            eval_skip,
+            eval_shape_skip,
+        },
+        model,
+        position: new Vec3(pos_x, pos_y, pos_z),
+        rotation: new Vec3(rotation_x, rotation_y, rotation_z),
+        scale: new Vec3(scale_x, scale_y, scale_z),
+        children,
+    };
+
+    return [object, ...siblings];
 }

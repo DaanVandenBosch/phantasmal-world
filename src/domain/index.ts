@@ -60,10 +60,10 @@ export class Vec3 {
     y: number;
     z: number;
 
-    constructor(x?: number, y?: number, z?: number) {
-        this.x = x || 0;
-        this.y = y || 0;
-        this.z = z || 0;
+    constructor(x: number, y: number, z: number) {
+        this.x = x;
+        this.y = y;
+        this.z = z;
     }
 
     add(v: Vec3): Vec3 {
@@ -73,11 +73,8 @@ export class Vec3 {
         return this;
     }
 
-    clone(x?: number, y?: number, z?: number) {
-        return new Vec3(
-            typeof x === 'number' ? x : this.x,
-            typeof y === 'number' ? y : this.y,
-            typeof z === 'number' ? z : this.z);
+    clone() {
+        return new Vec3(this.x, this.y, this.z);
     }
 };
 
@@ -216,7 +213,7 @@ export class QuestEntity {
         }
     }
 
-    object3d?: Object3D;
+    object_3d?: Object3D;
 
     constructor(
         area_id: number,
