@@ -87,6 +87,8 @@ type NjVertex = {
     position: Vec3,
     normal?: Vec3,
     bone_weight: number,
+    bone_weight_status: number,
+    calc_continue: boolean,
 }
 
 type NjTriangleStrip = {
@@ -115,7 +117,9 @@ export function parse_nj_model(cursor: BufferCursor, cached_chunk_offsets: numbe
                     vertices[vertex.index] = {
                         position: vertex.position,
                         normal: vertex.normal,
-                        bone_weight: vertex.bone_weight
+                        bone_weight: vertex.bone_weight,
+                        bone_weight_status: vertex.bone_weight_status,
+                        calc_continue: vertex.calc_continue
                     };
                 }
             }
@@ -252,10 +256,13 @@ function parse_vertex_chunk(
     chunk_type_id: number,
     flags: number
 ): NjVertex[] {
-    // There are apparently 4 different sets of vertices, ignore all but set 0.
-    if ((flags & 0b11) !== 0) {
+    if (chunk_type_id < 32 || chunk_type_id > 50) {
+        logger.warn(`Unknown vertex chunk type ${chunk_type_id}.`);
         return [];
     }
+
+    const bone_weight_status = flags & 0b11;
+    const calc_continue = (flags & 0x80) !== 0;
 
     const index = cursor.u16();
     const vertex_count = cursor.u16();
@@ -270,7 +277,9 @@ function parse_vertex_chunk(
                 cursor.f32(), // y
                 cursor.f32(), // z
             ),
-            bone_weight: 1
+            bone_weight: 1,
+            bone_weight_status,
+            calc_continue
         };
 
         if (chunk_type_id === 32) {
@@ -313,9 +322,14 @@ function parse_vertex_chunk(
                     cursor.seek(4);
                 }
             }
-        } else if (chunk_type_id >= 48) {
-            // Skip 32-bit vertex normal in format: reserved(2)|x(10)|y(10)|z(10)
-            cursor.seek(4);
+        } else if (48 <= chunk_type_id && chunk_type_id <= 50) {
+            // 32-Bit vertex normal in format: reserved(2)|x(10)|y(10)|z(10)
+            const normal = cursor.u32();
+            vertex.normal = new Vec3(
+                ((normal >> 20) & 0x3FF) / 0x3FF,
+                ((normal >> 10) & 0x3FF) / 0x3FF,
+                (normal & 0x3FF) / 0x3FF
+            );
 
             if (chunk_type_id >= 49) {
                 // Skip user flags and material information.

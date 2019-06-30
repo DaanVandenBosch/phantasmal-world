@@ -6,7 +6,7 @@ import { Difficulties, Difficulty, Episode, Episodes, NpcType, SectionId, Sectio
 import { NpcTypes } from '../src/domain/NpcType';
 import { BoxDropDto, EnemyDropDto, ItemTypeDto, QuestDto } from '../src/dto';
 import { updateDropsFromWebsite } from './update_drops_ephinea';
-import { parseQuest } from '../src/bin_data/parsing/quest';
+import { parse_quest } from '../src/bin_data/parsing/quest';
 import Logger from 'js-logger';
 
 const logger = Logger.get('static/update_ephinea_data');
@@ -104,13 +104,13 @@ function processQuestDir(path: string, quests: QuestDto[]) {
 function processQuest(path: string, quests: QuestDto[]) {
     try {
         const buf = fs.readFileSync(path);
-        const q = parseQuest(new BufferCursor(buf.buffer, true), true);
+        const q = parse_quest(new BufferCursor(buf.buffer, true), true);
 
         if (q) {
             logger.trace(`Processing quest "${q.name}".`);
 
-            if (q.questNo == null) {
-                throw new Error('No questNo.');
+            if (q.quest_no == null) {
+                throw new Error('No quest_no.');
             }
 
             const enemyCounts: { [npcTypeCode: string]: number } = {};
@@ -122,7 +122,7 @@ function processQuest(path: string, quests: QuestDto[]) {
             }
 
             quests.push({
-                id: q.questNo,
+                id: q.quest_no,
                 name: q.name,
                 episode: q.episode,
                 enemyCounts

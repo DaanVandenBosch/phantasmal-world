@@ -1,16 +1,14 @@
 import React from 'react';
-import { Object3D } from 'three';
 import { Area, Quest } from '../../domain';
-import { getRenderer } from '../../rendering/Renderer';
+import { get_quest_renderer } from '../../rendering/QuestRenderer';
 
-interface Props {
-    quest?: Quest;
-    area?: Area;
-    model?: Object3D;
+type Props = {
+    quest?: Quest,
+    area?: Area,
 }
 
 export class RendererComponent extends React.Component<Props> {
-    private renderer = getRenderer();
+    private renderer = get_quest_renderer();
 
     render() {
         return <div style={{ overflow: 'hidden' }} ref={this.modifyDom} />;
@@ -24,12 +22,8 @@ export class RendererComponent extends React.Component<Props> {
         window.removeEventListener('resize', this.onResize);
     }
 
-    componentWillReceiveProps({ quest, area, model }: Props) {
-        if (model) {
-            this.renderer.setModel(model);
-        } else {
-            this.renderer.setQuestAndArea(quest, area);
-        }
+    componentWillReceiveProps({ quest, area }: Props) {
+        this.renderer.set_quest_and_area(quest, area);
     }
 
     shouldComponentUpdate() {
@@ -38,13 +32,13 @@ export class RendererComponent extends React.Component<Props> {
 
     private modifyDom = (div: HTMLDivElement | null) => {
         if (div) {
-            this.renderer.setSize(div.clientWidth, div.clientHeight);
-            div.appendChild(this.renderer.domElement);
+            this.renderer.set_size(div.clientWidth, div.clientHeight);
+            div.appendChild(this.renderer.dom_element);
         }
     }
 
     private onResize = () => {
-        const wrapperDiv = this.renderer.domElement.parentNode as HTMLDivElement;
-        this.renderer.setSize(wrapperDiv.clientWidth, wrapperDiv.clientHeight);
+        const wrapperDiv = this.renderer.dom_element.parentNode as HTMLDivElement;
+        this.renderer.set_size(wrapperDiv.clientWidth, wrapperDiv.clientHeight);
     }
 }

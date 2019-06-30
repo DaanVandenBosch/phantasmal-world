@@ -3,7 +3,7 @@ import { NpcType, ObjectType } from '../../domain';
 import { ninja_object_to_buffer_geometry } from '../../rendering/models';
 import { BufferCursor } from '../BufferCursor';
 import { parse_nj, parse_xj } from '../parsing/ninja';
-import { getNpcData, getObjectData } from './binaryAssets';
+import { get_npc_data, get_object_data } from './binary_assets';
 
 const npc_cache: Map<string, Promise<BufferGeometry>> = new Map();
 const object_cache: Map<string, Promise<BufferGeometry>> = new Map();
@@ -14,7 +14,7 @@ export function get_npc_geometry(npc_type: NpcType): Promise<BufferGeometry> {
     if (mesh) {
         return mesh;
     } else {
-        mesh = getNpcData(npc_type).then(({ url, data }) => {
+        mesh = get_npc_data(npc_type).then(({ url, data }) => {
             const cursor = new BufferCursor(data, true);
             const nj_objects = url.endsWith('.nj') ? parse_nj(cursor) : parse_xj(cursor);
 
@@ -36,7 +36,7 @@ export function get_object_geometry(object_type: ObjectType): Promise<BufferGeom
     if (geometry) {
         return geometry;
     } else {
-        geometry = getObjectData(object_type).then(({ url, data }) => {
+        geometry = get_object_data(object_type).then(({ url, data }) => {
             const cursor = new BufferCursor(data, true);
             const nj_objects = url.endsWith('.nj') ? parse_nj(cursor) : parse_xj(cursor);
 

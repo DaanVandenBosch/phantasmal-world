@@ -18,6 +18,6 @@
     overflow: hidden;
 }
 
-.qe-QuestEditorComponent-main div:nth-child(2) {
+.qe-QuestEditorComponent-main > div:nth-child(2) {
     flex: 1;
 }

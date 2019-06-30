@@ -8,7 +8,9 @@ import { HuntOptimizerComponent } from './hunt_optimizer/HuntOptimizerComponent'
 import { QuestEditorComponent } from './quest_editor/QuestEditorComponent';
 import { DpsCalcComponent } from './dps_calc/DpsCalcComponent';
 import { Server } from '../domain';
+import { ModelViewerComponent } from './model_viewer/ModelViewerComponent';
 
+const ModelViewer = with_error_boundary(ModelViewerComponent);
 const QuestEditor = with_error_boundary(QuestEditorComponent);
 const HuntOptimizer = with_error_boundary(HuntOptimizerComponent);
 const DpsCalc = with_error_boundary(DpsCalcComponent);
@@ -21,13 +23,16 @@ export class ApplicationComponent extends React.Component {
         let tool_component;
 
         switch (this.state.tool) {
-            case 'questEditor':
+            case 'model_viewer':
+                tool_component = <ModelViewer />;
+                break;
+            case 'quest_editor':
                 tool_component = <QuestEditor />;
                 break;
-            case 'huntOptimizer':
+            case 'hunt_optimizer':
                 tool_component = <HuntOptimizer />;
                 break;
-            case 'dpsCalc':
+            case 'dps_calc':
                 tool_component = <DpsCalc />;
                 break;
         }
@@ -44,10 +49,13 @@ export class ApplicationComponent extends React.Component {
                         selectedKeys={[this.state.tool]}
                         mode="horizontal"
                     >
-                        <Menu.Item key="questEditor">
+                        <Menu.Item key="model_viewer">
+                            Model Viewer<sup className="ApplicationComponent-beta">(Beta)</sup>
+                        </Menu.Item>
+                        <Menu.Item key="quest_editor">
                             Quest Editor<sup className="ApplicationComponent-beta">(Beta)</sup>
                         </Menu.Item>
-                        <Menu.Item key="huntOptimizer">
+                        <Menu.Item key="hunt_optimizer">
                             Hunt Optimizer
                         </Menu.Item>
                         {/* <Menu.Item key="dpsCalc">
@@ -74,6 +82,6 @@ export class ApplicationComponent extends React.Component {
 
     private init_tool(): string {
         const param = window.location.search.slice(1).split('&').find(p => p.startsWith('tool='));
-        return param ? param.slice(5) : 'questEditor';
+        return param ? param.slice(5) : 'model_viewer';
     }
 }

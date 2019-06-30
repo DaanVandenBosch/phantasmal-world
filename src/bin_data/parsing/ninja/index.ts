@@ -13,6 +13,8 @@ export type NinjaVertex = {
     position: Vec3,
     normal?: Vec3,
     bone_weight: number,
+    bone_weight_status: number,
+    calc_continue: boolean
 }
 
 export type NinjaModel = NjModel | XjModel;

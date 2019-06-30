@@ -34,6 +34,8 @@ type Vertex = {
     position: Vector3,
     normal?: Vector3,
     bone_weight: number,
+    bone_weight_status: number,
+    calc_continue: boolean,
 }
 
 class VerticesHolder {
@@ -73,16 +75,13 @@ class Object3DCreator {
     ) { }
 
     create_buffer_geometry(object: NinjaObject<NinjaModel>): BufferGeometry {
-        this.object_to_object3d(object, undefined, new Matrix4());
+        this.object_to_geometry(object, undefined, new Matrix4());
 
         const geom = new BufferGeometry();
 
         geom.addAttribute('position', new Float32BufferAttribute(this.positions, 3));
         geom.addAttribute('normal', new Float32BufferAttribute(this.normals, 3));
-
-        if (this.indices.length) {
-            geom.setIndex(new Uint16BufferAttribute(this.indices, 1));
-        }
+        geom.setIndex(new Uint16BufferAttribute(this.indices, 1));
 
         // The bounding spheres from the object seem be too small.
         geom.computeBoundingSphere();
@@ -100,12 +99,11 @@ class Object3DCreator {
         const skeleton = new Skeleton(this.bones);
         mesh.add(this.bones[0]);
         mesh.bind(skeleton);
-        console.log(this.bones)
 
         return mesh;
     }
 
-    private object_to_object3d(
+    private object_to_geometry(
         object: NinjaObject<NinjaModel>,
         parent_bone: Bone | undefined,
         parent_matrix: Matrix4
@@ -151,7 +149,7 @@ class Object3DCreator {
 
         if (!break_child_trace) {
             for (const child of object.children) {
-                this.object_to_object3d(child, bone, matrix);
+                this.object_to_geometry(child, bone, matrix);
             }
         }
     }
@@ -166,66 +164,63 @@ class Object3DCreator {
 
     // TODO: use indices and don't add duplicate positions/normals.
     private nj_model_to_geometry(model: NjModel, matrix: Matrix4) {
-        const positions = this.positions;
-        const normals = this.normals;
-        const bone_indices = this.bone_indices;
-        const bone_weights = this.bone_weights;
-
         const normal_matrix = new Matrix3().getNormalMatrix(matrix);
 
-        const new_vertices = model.vertices.map(({ position, normal, bone_weight }) => {
-            const new_position = vec3_to_threejs(position);
-            const new_normal = normal ? vec3_to_threejs(normal) : DEFAULT_NORMAL;
+        const new_vertices = model.vertices.map(vertex => {
+            const position = vec3_to_threejs(vertex.position);
+            const normal = vertex.normal ? vec3_to_threejs(vertex.normal) : DEFAULT_NORMAL;
 
-            new_position.applyMatrix4(matrix);
-            new_normal.applyMatrix3(normal_matrix);
+            position.applyMatrix4(matrix);
+            normal.applyMatrix3(normal_matrix);
 
             return {
                 bone_id: this.id,
-                position: new_position,
-                normal: new_normal,
-                bone_weight
+                position,
+                normal,
+                bone_weight: vertex.bone_weight,
+                bone_weight_status: vertex.bone_weight_status,
+                calc_continue: vertex.calc_continue
             };
         });
 
         this.vertices.put(new_vertices);
 
         for (const mesh of model.meshes) {
-            for (let i = 2; i < mesh.indices.length; ++i) {
-                const a_idx = mesh.indices[i - 2];
-                const b_idx = mesh.indices[i - 1];
-                const c_idx = mesh.indices[i];
-                const a = this.vertices.get(a_idx)[0];
-                const b = this.vertices.get(b_idx)[0];
-                const c = this.vertices.get(c_idx)[0];
+            for (let i = 0; i < mesh.indices.length; ++i) {
+                const vertex_idx = mesh.indices[i];
+                const vertices = this.vertices.get(vertex_idx);
 
-                if (a && b && c) {
-                    const a_n = a.normal || DEFAULT_NORMAL;
-                    const b_n = b.normal || DEFAULT_NORMAL;
-                    const c_n = c.normal || DEFAULT_NORMAL;
+                if (vertices.length) {
+                    const vertex = vertices[0];
+                    const normal = vertex.normal || DEFAULT_NORMAL;
+                    const index = this.positions.length / 3;
 
-                    if (i % 2 === (mesh.clockwise_winding ? 1 : 0)) {
-                        positions.push(a.position.x, a.position.y, a.position.z);
-                        positions.push(b.position.x, b.position.y, b.position.z);
-                        positions.push(c.position.x, c.position.y, c.position.z);
-                        normals.push(a_n.x, a_n.y, a_n.z);
-                        normals.push(b_n.x, b_n.y, b_n.z);
-                        normals.push(c_n.x, c_n.y, c_n.z);
-                    } else {
-                        positions.push(b.position.x, b.position.y, b.position.z);
-                        positions.push(a.position.x, a.position.y, a.position.z);
-                        positions.push(c.position.x, c.position.y, c.position.z);
-                        normals.push(b_n.x, b_n.y, b_n.z);
-                        normals.push(a_n.x, a_n.y, a_n.z);
-                        normals.push(c_n.x, c_n.y, c_n.z);
+                    this.positions.push(vertex.position.x, vertex.position.y, vertex.position.z);
+                    this.normals.push(normal.x, normal.y, normal.z);
+
+                    if (i >= 2) {
+                        if (i % 2 === (mesh.clockwise_winding ? 1 : 0)) {
+                            this.indices.push(index - 2);
+                            this.indices.push(index - 1);
+                            this.indices.push(index);
+                        } else {
+                            this.indices.push(index - 2);
+                            this.indices.push(index);
+                            this.indices.push(index - 1);
+                        }
                     }
 
-                    bone_indices.push(a.bone_id, 0, 0, 0);
-                    bone_indices.push(b.bone_id, 0, 0, 0);
-                    bone_indices.push(c.bone_id, 0, 0, 0);
-                    bone_weights.push(1, 0, 0, 0);
-                    bone_weights.push(1, 0, 0, 0);
-                    bone_weights.push(1, 0, 0, 0);
+                    const bone_indices = [0, 0, 0, 0];
+                    const bone_weights = [0, 0, 0, 0];
+
+                    for (let j = vertices.length - 1; j >= 0; j--) {
+                        const vertex = vertices[j];
+                        bone_indices[vertex.bone_weight_status] = vertex.bone_id;
+                        bone_weights[vertex.bone_weight_status] = vertex.bone_weight;
+                    }
+
+                    this.bone_indices.push(...bone_indices);
+                    this.bone_weights.push(...bone_weights);
                 }
             }
         }

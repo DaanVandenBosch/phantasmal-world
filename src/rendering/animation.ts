@@ -53,5 +53,5 @@ export function create_animation_clip(action: NjAction): AnimationClip {
         'Animation',
         motion.frame_count / PSO_FRAME_RATE,
         tracks
-    );
+    ).optimize();
 }

@@ -385,3 +385,12 @@ export class SimpleQuest {
         if (!enemy_counts) throw new Error('enemyCounts is required.');
     }
 }
+
+export class PlayerModel {
+    constructor(
+        public readonly name: string,
+        public readonly head_style_count: number,
+        public readonly hair_styles_count: number,
+        public readonly hair_styles_with_accessory: Set<number>
+    ) { }
+}

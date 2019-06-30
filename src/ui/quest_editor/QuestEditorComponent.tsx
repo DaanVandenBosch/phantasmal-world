@@ -31,7 +31,6 @@ export class QuestEditorComponent extends React.Component<{}, {
                     <RendererComponent
                         quest={quest}
                         area={quest_editor_store.current_area}
-                        model={quest_editor_store.current_model_obj3d}
                     />
                     <EntityInfoComponent entity={quest_editor_store.selected_entity} />
                 </div>
@@ -86,7 +85,7 @@ class Toolbar extends React.Component<{ onSaveAsClicked: (filename?: string) => 
         return (
             <div className="qe-QuestEditorComponent-toolbar">
                 <Upload
-                    accept=".nj, .njm, .qst, .xj"
+                    accept=".qst"
                     showUploadList={false}
                     onChange={this.set_filename}
                     // Make sure it doesn't do a POST:
