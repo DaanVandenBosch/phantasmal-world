@@ -58,7 +58,7 @@ export function parse_xj_model(cursor: BufferCursor): XjModel {
                 );
             }
 
-            model.vertices.push({ position, normal });
+            model.vertices.push({ position, normal, bone_weight: 1.0 });
         }
     }
 

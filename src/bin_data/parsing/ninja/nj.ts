@@ -86,6 +86,7 @@ type NjVertex = {
     index: number,
     position: Vec3,
     normal?: Vec3,
+    bone_weight: number,
 }
 
 type NjTriangleStrip = {
@@ -113,7 +114,8 @@ export function parse_nj_model(cursor: BufferCursor, cached_chunk_offsets: numbe
                 for (const vertex of chunk.vertices) {
                     vertices[vertex.index] = {
                         position: vertex.position,
-                        normal: vertex.normal
+                        normal: vertex.normal,
+                        bone_weight: vertex.bone_weight
                     };
                 }
             }
@@ -267,12 +269,15 @@ function parse_vertex_chunk(
                 cursor.f32(), // x
                 cursor.f32(), // y
                 cursor.f32(), // z
-            )
+            ),
+            bone_weight: 1
         };
 
         if (chunk_type_id === 32) {
+            // NJD_CV_SH
             cursor.seek(4); // Always 1.0
         } else if (chunk_type_id === 33) {
+            // NJD_CV_VN_SH
             cursor.seek(4); // Always 1.0
             vertex.normal = new Vec3(
                 cursor.f32(), // x
@@ -282,9 +287,10 @@ function parse_vertex_chunk(
             cursor.seek(4); // Always 0.0
         } else if (35 <= chunk_type_id && chunk_type_id <= 40) {
             if (chunk_type_id === 37) {
-                // Ninja flags
+                // NJD_CV_NF
+                // NinjaFlags32
                 vertex.index = index + cursor.u16();
-                cursor.seek(2);
+                vertex.bone_weight = cursor.u16() / 255;
             } else {
                 // Skip user flags and material information.
                 cursor.seek(4);
@@ -298,9 +304,10 @@ function parse_vertex_chunk(
 
             if (chunk_type_id >= 42) {
                 if (chunk_type_id === 44) {
-                    // Ninja flags
+                    // NJD_CV_VN_NF
+                    // NinjaFlags32
                     vertex.index = index + cursor.u16();
-                    cursor.seek(2);
+                    vertex.bone_weight = cursor.u16() / 255;
                 } else {
                     // Skip user flags and material information.
                     cursor.seek(4);

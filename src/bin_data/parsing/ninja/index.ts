@@ -12,6 +12,7 @@ const ANGLE_TO_RAD = 2 * Math.PI / 65536;
 export type NinjaVertex = {
     position: Vec3,
     normal?: Vec3,
+    bone_weight: number,
 }
 
 export type NinjaModel = NjModel | XjModel;

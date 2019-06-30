@@ -29,9 +29,38 @@ export function ninja_object_to_skinned_mesh(
     return new Object3DCreator(material).create_skinned_mesh(object);
 }
 
+type Vertex = {
+    bone_id: number,
+    position: Vector3,
+    normal?: Vector3,
+    bone_weight: number,
+}
+
+class VerticesHolder {
+    private vertices_stack: Vertex[][] = [];
+
+    put(vertices: Vertex[]) {
+        this.vertices_stack.push(vertices);
+    }
+
+    get(index: number): Vertex[] {
+        const vertices: Vertex[] = [];
+
+        for (let i = this.vertices_stack.length - 1; i >= 0; i--) {
+            const vertex = this.vertices_stack[i][index];
+
+            if (vertex) {
+                vertices.push(vertex);
+            }
+        }
+
+        return vertices;
+    }
+}
+
 class Object3DCreator {
     private id: number = 0;
-    private vertices: { position: Vector3, normal?: Vector3 }[] = [];
+    private vertices = new VerticesHolder();
     private positions: number[] = [];
     private normals: number[] = [];
     private indices: number[] = [];
@@ -64,7 +93,7 @@ class Object3DCreator {
     create_skinned_mesh(object: NinjaObject<NinjaModel>): SkinnedMesh {
         const geom = this.create_buffer_geometry(object);
         geom.addAttribute('skinIndex', new Uint16BufferAttribute(this.bone_indices, 4));
-        geom.addAttribute('skinWeight', new Uint16BufferAttribute(this.bone_weights, 4));
+        geom.addAttribute('skinWeight', new Float32BufferAttribute(this.bone_weights, 4));
 
         const mesh = new SkinnedMesh(geom, this.material);
 
@@ -144,7 +173,7 @@ class Object3DCreator {
 
         const normal_matrix = new Matrix3().getNormalMatrix(matrix);
 
-        const new_vertices = model.vertices.map(({ position, normal }) => {
+        const new_vertices = model.vertices.map(({ position, normal, bone_weight }) => {
             const new_position = vec3_to_threejs(position);
             const new_normal = normal ? vec3_to_threejs(normal) : DEFAULT_NORMAL;
 
@@ -152,21 +181,23 @@ class Object3DCreator {
             new_normal.applyMatrix3(normal_matrix);
 
             return {
+                bone_id: this.id,
                 position: new_position,
-                normal: new_normal
+                normal: new_normal,
+                bone_weight
             };
         });
 
-        Object.assign(this.vertices, new_vertices);
+        this.vertices.put(new_vertices);
 
         for (const mesh of model.meshes) {
             for (let i = 2; i < mesh.indices.length; ++i) {
                 const a_idx = mesh.indices[i - 2];
                 const b_idx = mesh.indices[i - 1];
                 const c_idx = mesh.indices[i];
-                const a = this.vertices[a_idx];
-                const b = this.vertices[b_idx];
-                const c = this.vertices[c_idx];
+                const a = this.vertices.get(a_idx)[0];
+                const b = this.vertices.get(b_idx)[0];
+                const c = this.vertices.get(c_idx)[0];
 
                 if (a && b && c) {
                     const a_n = a.normal || DEFAULT_NORMAL;
@@ -189,9 +220,9 @@ class Object3DCreator {
                         normals.push(c_n.x, c_n.y, c_n.z);
                     }
 
-                    bone_indices.push(this.id, 0, 0, 0);
-                    bone_indices.push(this.id, 0, 0, 0);
-                    bone_indices.push(this.id, 0, 0, 0);
+                    bone_indices.push(a.bone_id, 0, 0, 0);
+                    bone_indices.push(b.bone_id, 0, 0, 0);
+                    bone_indices.push(c.bone_id, 0, 0, 0);
                     bone_weights.push(1, 0, 0, 0);
                     bone_weights.push(1, 0, 0, 0);
                     bone_weights.push(1, 0, 0, 0);
