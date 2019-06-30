@@ -59,7 +59,7 @@ function add_to_bone(
     bone_id: number,
     id_ref: [number] = [0]
 ) {
-    if (!object.evaluation_flags.eval_skip) {
+    if (!object.evaluation_flags.skip) {
         const id = id_ref[0]++;
 
         if (id === bone_id) {

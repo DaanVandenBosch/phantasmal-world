@@ -14,6 +14,9 @@ const DEFAULT_SKINNED_MATERIAL = new MeshLambertMaterial({
     side: DoubleSide
 });
 const DEFAULT_NORMAL = new Vector3(0, 1, 0);
+const NO_TRANSLATION = new Vector3(0, 0, 0);
+const NO_ROTATION = new Quaternion(0, 0, 0, 1);
+const NO_SCALE = new Vector3(1, 1, 1);
 
 export function ninja_object_to_buffer_geometry(
     object: NinjaObject<NinjaModel>,
@@ -109,7 +112,7 @@ class Object3DCreator {
         parent_matrix: Matrix4
     ) {
         const {
-            no_translate, no_rotate, no_scale, hidden, break_child_trace, zxy_rotation_order, eval_skip
+            no_translate, no_rotate, no_scale, hidden, break_child_trace, zxy_rotation_order, skip
         } = object.evaluation_flags;
         const { position, rotation, scale } = object;
 
@@ -118,15 +121,15 @@ class Object3DCreator {
         );
         const matrix = new Matrix4()
             .compose(
-                no_translate ? new Vector3() : vec3_to_threejs(position),
-                no_rotate ? new Quaternion(0, 0, 0, 1) : new Quaternion().setFromEuler(euler),
-                no_scale ? new Vector3(1, 1, 1) : vec3_to_threejs(scale)
+                no_translate ? NO_TRANSLATION : vec3_to_threejs(position),
+                no_rotate ? NO_ROTATION : new Quaternion().setFromEuler(euler),
+                no_scale ? NO_SCALE : vec3_to_threejs(scale)
             )
             .premultiply(parent_matrix);
 
         let bone: Bone | undefined;
 
-        if (eval_skip) {
+        if (skip) {
             bone = parent_bone;
         } else {
             bone = new Bone();
@@ -162,7 +165,6 @@ class Object3DCreator {
         }
     }
 
-    // TODO: use indices and don't add duplicate positions/normals.
     private nj_model_to_geometry(model: NjModel, matrix: Matrix4) {
         const normal_matrix = new Matrix3().getNormalMatrix(matrix);
 

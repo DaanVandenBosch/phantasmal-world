@@ -27,8 +27,8 @@ export type NinjaObject<M extends NinjaModel> = {
         hidden: boolean,
         break_child_trace: boolean,
         zxy_rotation_order: boolean,
-        eval_skip: boolean,
-        eval_shape_skip: boolean,
+        skip: boolean,
+        shape_skip: boolean,
     },
     model?: M,
     position: Vec3,
@@ -80,8 +80,8 @@ function parse_sibling_objects<M extends NinjaModel>(
     const hidden = (eval_flags & 0b1000) !== 0;
     const break_child_trace = (eval_flags & 0b10000) !== 0;
     const zxy_rotation_order = (eval_flags & 0b100000) !== 0;
-    const eval_skip = (eval_flags & 0b1000000) !== 0;
-    const eval_shape_skip = (eval_flags & 0b1000000) !== 0;
+    const skip = (eval_flags & 0b1000000) !== 0;
+    const shape_skip = (eval_flags & 0b10000000) !== 0;
 
     const model_offset = cursor.u32();
     const pos_x = cursor.f32();
@@ -127,8 +127,8 @@ function parse_sibling_objects<M extends NinjaModel>(
             hidden,
             break_child_trace,
             zxy_rotation_order,
-            eval_skip,
-            eval_shape_skip,
+            skip,
+            shape_skip,
         },
         model,
         position: new Vec3(pos_x, pos_y, pos_z),
