@@ -44,6 +44,7 @@ class ModelViewerStore {
         if (this.current_model_obj3d && this.animation_mixer) {
             this.animation_mixer.stopAllAction();
             this.animation_mixer.uncacheRoot(this.current_model_obj3d);
+            this.animation_mixer = undefined;
         }
 
         if (model) {
@@ -113,7 +114,6 @@ class ModelViewerStore {
 
         if (this.animation_mixer) {
             this.animation_mixer.stopAllAction();
-            this.animation_mixer.uncacheRoot(this.current_model_obj3d);
         } else {
             this.animation_mixer = new AnimationMixer(this.current_model_obj3d);
         }
