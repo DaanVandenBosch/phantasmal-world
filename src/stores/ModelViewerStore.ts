@@ -3,7 +3,7 @@ import { action, observable } from "mobx";
 import { AnimationAction, AnimationClip, AnimationMixer, SkinnedMesh } from "three";
 import { BufferCursor } from "../data_formats/BufferCursor";
 import { NinjaModel, NinjaObject, parse_nj, parse_xj } from "../data_formats/parsing/ninja";
-import { parse_njm_4 } from "../data_formats/parsing/ninja/motion";
+import { parse_njm } from "../data_formats/parsing/ninja/motion";
 import { PlayerModel } from '../domain';
 import { create_animation_clip, PSO_FRAME_RATE } from "../rendering/animation";
 import { ninja_object_to_skinned_mesh } from "../rendering/models";
@@ -30,7 +30,8 @@ class ModelViewerStore {
     ];
 
     @observable.ref current_model?: NinjaObject<NinjaModel>;
-    @observable.ref current_model_obj3d?: SkinnedMesh;
+    @observable.ref current_bone_count: number = 0;
+    @observable.ref current_obj3d?: SkinnedMesh;
 
     @observable.ref animation?: {
         mixer: AnimationMixer,
@@ -64,6 +65,8 @@ class ModelViewerStore {
     load_model = async (model: PlayerModel) => {
         const object = await this.get_player_ninja_object(model);
         this.set_model(object);
+        // Ignore the bones from the head parts.
+        this.current_bone_count = 64;
     }
 
     load_file = (file: File) => {
@@ -88,28 +91,22 @@ class ModelViewerStore {
 
     private set_model = action('set_model',
         (model: NinjaObject<NinjaModel>, filename?: string) => {
-            if (this.current_model_obj3d && this.animation) {
+            if (this.current_obj3d && this.animation) {
                 this.animation.mixer.stopAllAction();
-                this.animation.mixer.uncacheRoot(this.current_model_obj3d);
+                this.animation.mixer.uncacheRoot(this.current_obj3d);
+                this.animation = undefined;
             }
 
             if (this.current_model && filename && HEAD_PART_REGEX.test(filename)) {
                 this.add_to_bone(this.current_model, model, 59);
             } else {
                 this.current_model = model;
+                this.current_bone_count = model.bone_count();
             }
 
             const mesh = ninja_object_to_skinned_mesh(this.current_model);
             mesh.translateY(-mesh.geometry.boundingSphere.radius);
-            this.current_model_obj3d = mesh;
-
-            if (this.animation) {
-                this.animation.mixer = new AnimationMixer(mesh);
-                this.animation.mixer.timeScale = this.animation_frame_rate / PSO_FRAME_RATE;
-                this.animation.action = this.animation.mixer.clipAction(this.animation.clip);
-                this.animation.action.paused = !this.animation_playing;
-                this.animation.action.play();
-            }
+            this.current_obj3d = mesh;
         }
     )
 
@@ -128,7 +125,10 @@ class ModelViewerStore {
             this.set_model(model, file.name);
         } else if (file.name.endsWith('.njm')) {
             if (this.current_model) {
-                const njm = parse_njm_4(new BufferCursor(reader.result, true));
+                const njm = parse_njm(
+                    new BufferCursor(reader.result, true),
+                    this.current_bone_count
+                );
                 this.add_animation(create_animation_clip(this.current_model, njm));
             }
         } else {
@@ -141,7 +141,7 @@ class ModelViewerStore {
         head_part: NinjaObject<NinjaModel>,
         bone_id: number
     ) {
-        const bone = object.find_bone(bone_id);
+        const bone = object.get_bone(bone_id);
 
         if (bone) {
             bone.evaluation_flags.hidden = false;
@@ -151,7 +151,7 @@ class ModelViewerStore {
     }
 
     private add_animation = action('add_animation', (clip: AnimationClip) => {
-        if (!this.current_model_obj3d) return;
+        if (!this.current_obj3d) return;
 
         let mixer: AnimationMixer;
 
@@ -159,7 +159,7 @@ class ModelViewerStore {
             this.animation.mixer.stopAllAction();
             mixer = this.animation.mixer;
         } else {
-            mixer = new AnimationMixer(this.current_model_obj3d)
+            mixer = new AnimationMixer(this.current_obj3d)
         }
 
         this.animation = {

@@ -23,7 +23,7 @@ export class ModelViewerComponent extends React.Component {
                 <div className="mv-ModelViewerComponent-main">
                     <ModelSelectionComponent />
                     <RendererComponent
-                        model={model_viewer_store.current_model_obj3d}
+                        model={model_viewer_store.current_obj3d}
                     />
                 </div>
             </div>
@@ -81,15 +81,15 @@ class Toolbar extends React.Component {
                                 / {model_viewer_store.animation_frame_count}
                             </span>
                         </div>
-                        <div className="group">
-                            <span>Show skeleton:</span>
-                            <Switch
-                                checked={model_viewer_store.show_skeleton}
-                                onChange={(value) => model_viewer_store.show_skeleton = value}
-                            />
-                        </div>
                     </>
                 )}
+                <div className="group">
+                    <span>Show skeleton:</span>
+                    <Switch
+                        checked={model_viewer_store.show_skeleton}
+                        onChange={(value) => model_viewer_store.show_skeleton = value}
+                    />
+                </div>
             </div>
         );
     }

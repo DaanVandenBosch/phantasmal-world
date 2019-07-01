@@ -21,6 +21,7 @@ export type NinjaModel = NjModel | XjModel;
 
 export class NinjaObject<M extends NinjaModel>  {
     private bone_cache = new Map<number, NinjaObject<M> | null>();
+    private _bone_count = -1;
 
     constructor(
         public evaluation_flags: {
@@ -40,34 +41,47 @@ export class NinjaObject<M extends NinjaModel>  {
         public children: NinjaObject<M>[]
     ) { }
 
-    find_bone(bone_id: number): NinjaObject<M> | undefined {
+    bone_count(): number {
+        if (this._bone_count === -1) {
+            const id_ref: [number] = [0];
+            this.get_bone_internal(this, Infinity, id_ref);
+            this._bone_count = id_ref[0];
+        }
+
+        return this._bone_count;
+    }
+
+    get_bone(bone_id: number): NinjaObject<M> | undefined {
         let bone = this.bone_cache.get(bone_id);
 
         // Strict check because null means there's no bone with this id.
         if (bone === undefined) {
-            bone = this.find_bone_internal(this, bone_id, [0]);
+            bone = this.get_bone_internal(this, bone_id, [0]);
             this.bone_cache.set(bone_id, bone || null);
         }
 
         return bone || undefined;
     }
 
-    private find_bone_internal(
+    private get_bone_internal(
         object: NinjaObject<M>,
         bone_id: number,
         id_ref: [number]
     ): NinjaObject<M> | undefined {
         if (!object.evaluation_flags.skip) {
             const id = id_ref[0]++;
+            this.bone_cache.set(id, object);
 
             if (id === bone_id) {
                 return object;
             }
         }
 
-        for (const child of object.children) {
-            const bone = this.find_bone_internal(child, bone_id, id_ref);
-            if (bone) return bone;
+        if (!object.evaluation_flags.break_child_trace) {
+            for (const child of object.children) {
+                const bone = this.get_bone_internal(child, bone_id, id_ref);
+                if (bone) return bone;
+            }
         }
     }
 }

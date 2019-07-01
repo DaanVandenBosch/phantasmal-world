@@ -1,14 +1,13 @@
 import { AnimationClip, Euler, InterpolateLinear, InterpolateSmooth, KeyframeTrack, Quaternion, QuaternionKeyframeTrack, VectorKeyframeTrack } from "three";
-import { NjAction, NjInterpolation, NjKeyframeTrackType } from "../data_formats/parsing/ninja/motion";
-import { NinjaObject, NinjaModel } from "../data_formats/parsing/ninja";
+import { NinjaModel, NinjaObject } from "../data_formats/parsing/ninja";
+import { NjInterpolation, NjKeyframeTrackType, NjMotion } from "../data_formats/parsing/ninja/motion";
 
 export const PSO_FRAME_RATE = 30;
 
 export function create_animation_clip(
     object: NinjaObject<NinjaModel>,
-    action: NjAction
+    motion: NjMotion
 ): AnimationClip {
-    const motion = action.motion;
     const interpolation = motion.interpolation === NjInterpolation.Spline
         ? InterpolateSmooth
         : InterpolateLinear;
@@ -16,7 +15,7 @@ export function create_animation_clip(
     const tracks: KeyframeTrack[] = [];
 
     motion.motion_data.forEach((motion_data, bone_id) => {
-        const bone = object.find_bone(bone_id);
+        const bone = object.get_bone(bone_id);
 
         motion_data.tracks.forEach(({ type, keyframes }) => {
             const times: number[] = [];

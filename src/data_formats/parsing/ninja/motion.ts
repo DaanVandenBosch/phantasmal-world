@@ -3,11 +3,6 @@ import { Vec3 } from '../../../domain';
 
 const ANGLE_TO_RAD = 2 * Math.PI / 0xFFFF;
 
-export type NjAction = {
-    object_offset: number,
-    motion: NjMotion
-}
-
 export type NjMotion = {
     motion_data: NjMotionData[],
     frame_count: number,
@@ -64,33 +59,44 @@ export type NjKeyframeA = {
     value: Vec3, // Euler angles in radians.
 }
 
+export function parse_njm(cursor: BufferCursor, bone_count: number): NjMotion {
+    if (cursor.string_ascii(4, false, true) === 'NMDM') {
+        return parse_njm_v2(cursor, bone_count);
+    } else {
+        cursor.seek_start(0);
+        return parse_njm_bb(cursor, bone_count);
+    }
+}
+
+/**
+ * Format used by PSO v2 and for the enemies in PSO:BB.
+ */
+function parse_njm_v2(cursor: BufferCursor, bone_count: number): NjMotion {
+    const chunk_size = cursor.u32();
+    return parse_motion(cursor.take(chunk_size), bone_count);
+}
+
 /**
  * Format used by PSO:BB plymotiondata.rlc.
  */
-export function parse_njm_4(cursor: BufferCursor): NjAction {
+function parse_njm_bb(cursor: BufferCursor, bone_count: number): NjMotion {
     cursor.seek_end(16);
     const offset1 = cursor.u32();
     cursor.seek_start(offset1);
     const action_offset = cursor.u32();
     cursor.seek_start(action_offset);
-    return parse_action(cursor);
+    return parse_action(cursor, bone_count);
 }
 
-function parse_action(cursor: BufferCursor): NjAction {
-    const object_offset = cursor.u32();
+function parse_action(cursor: BufferCursor, bone_count: number): NjMotion {
+    cursor.seek(4); // Object pointer placeholder.
     const motion_offset = cursor.u32();
     cursor.seek_start(motion_offset);
-    const motion = parse_motion(cursor);
-
-    return {
-        object_offset,
-        motion
-    };
+    return parse_motion(cursor, bone_count);
 }
 
-function parse_motion(cursor: BufferCursor): NjMotion {
-    const motion_offset = cursor.position;
-    // Points to an array the size of the total amount of objects in the object tree.
+function parse_motion(cursor: BufferCursor, bone_count: number): NjMotion {
+    // Points to an array the size of bone_count.
     let mdata_offset = cursor.u32();
     const frame_count = cursor.u32();
     const type = cursor.u16();
@@ -100,8 +106,7 @@ function parse_motion(cursor: BufferCursor): NjMotion {
     const element_count = inp_fn & 0b1111;
     const motion_data_list = [];
 
-    // The mdata array stops where the motion structure starts.
-    while (mdata_offset < motion_offset) {
+    for (let i = 0; i < bone_count; i++) {
         cursor.seek_start(mdata_offset);
         mdata_offset = mdata_offset += 8 * element_count;
 
@@ -113,11 +118,11 @@ function parse_motion(cursor: BufferCursor): NjMotion {
         const keyframe_offsets: number[] = [];
         const keyframe_counts: number[] = [];
 
-        for (let i = 0; i < element_count; i++) {
+        for (let j = 0; j < element_count; j++) {
             keyframe_offsets.push(cursor.u32());
         }
 
-        for (let i = 0; i < element_count; i++) {
+        for (let j = 0; j < element_count; j++) {
             const count = cursor.u32();
             keyframe_counts.push(count);
         }
@@ -143,7 +148,7 @@ function parse_motion(cursor: BufferCursor): NjMotion {
             if (count) {
                 motion_data.tracks.push({
                     type: NjKeyframeTrackType.Rotation,
-                    keyframes: parse_motion_data_a(cursor, count)
+                    keyframes: parse_motion_data_a(cursor, count, frame_count)
                 });
             }
         }
@@ -202,16 +207,49 @@ function parse_motion_data_f(cursor: BufferCursor, count: number): NjKeyframeF[]
     return frames;
 }
 
-function parse_motion_data_a(cursor: BufferCursor, count: number): NjKeyframeA[] {
+function parse_motion_data_a(
+    cursor: BufferCursor,
+    keyframe_count: number,
+    frame_count: number
+): NjKeyframeA[] {
     const frames: NjKeyframeA[] = [];
+    const start_pos = cursor.position;
 
-    for (let i = 0; i < count; ++i) {
+    for (let i = 0; i < keyframe_count; ++i) {
         frames.push({
             frame: cursor.u16(),
             value: new Vec3(
                 cursor.u16() * ANGLE_TO_RAD,
                 cursor.u16() * ANGLE_TO_RAD,
                 cursor.u16() * ANGLE_TO_RAD
+            ),
+        });
+    }
+
+    let prev = -1;
+
+    for (const { frame } of frames) {
+        if (frame < prev || frame >= frame_count) {
+            cursor.seek_start(start_pos);
+            return parse_motion_data_a_wide(cursor, keyframe_count);
+        }
+
+        prev = frame;
+    }
+
+    return frames;
+}
+
+function parse_motion_data_a_wide(cursor: BufferCursor, keyframe_count: number): NjKeyframeA[] {
+    const frames: NjKeyframeA[] = [];
+
+    for (let i = 0; i < keyframe_count; ++i) {
+        frames.push({
+            frame: cursor.u32(),
+            value: new Vec3(
+                cursor.u32() * ANGLE_TO_RAD,
+                cursor.u32() * ANGLE_TO_RAD,
+                cursor.u32() * ANGLE_TO_RAD
             ),
         });
     }
