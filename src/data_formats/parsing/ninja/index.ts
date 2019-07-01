@@ -95,6 +95,10 @@ function parse_ninja<M extends NinjaModel>(
         if (iff_type_id === 'NJCM') {
             return parse_sibling_objects(cursor.take(iff_chunk_size), parse_model, context);
         } else {
+            if (iff_chunk_size > cursor.bytes_left) {
+                break;
+            }
+
             cursor.seek(iff_chunk_size);
         }
     }

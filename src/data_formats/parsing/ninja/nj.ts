@@ -92,8 +92,20 @@ type NjVertex = {
 }
 
 type NjTriangleStrip = {
+    ignore_light: boolean,
+    ignore_specular: boolean,
+    ignore_ambient: boolean,
+    use_alpha: boolean,
+    double_side: boolean,
+    flat_shading: boolean,
+    environment_mapping: boolean,
     clockwise_winding: boolean,
-    indices: number[],
+    vertices: NjMeshVertex[],
+}
+
+type NjMeshVertex = {
+    index: number,
+    normal?: Vec3,
 }
 
 export function parse_nj_model(cursor: BufferCursor, cached_chunk_offsets: number[]): NjModel {
@@ -227,7 +239,7 @@ function parse_chunks(
             chunks.push({
                 type: NjChunkType.Strip,
                 type_id,
-                triangle_strips: parse_triangle_strip_chunk(cursor, type_id)
+                triangle_strips: parse_triangle_strip_chunk(cursor, type_id, flags)
             });
         } else if (type_id === 255) {
             size = wide_end_chunks ? 2 : 0;
@@ -345,8 +357,18 @@ function parse_vertex_chunk(
 
 function parse_triangle_strip_chunk(
     cursor: BufferCursor,
-    chunk_type_id: number
+    chunk_type_id: number,
+    flags: number
 ): NjTriangleStrip[] {
+    const render_flags = {
+        ignore_light: (flags & 0b1) !== 0,
+        ignore_specular: (flags & 0b10) !== 0,
+        ignore_ambient: (flags & 0b100) !== 0,
+        use_alpha: (flags & 0b1000) !== 0,
+        double_side: (flags & 0b10000) !== 0,
+        flat_shading: (flags & 0b100000) !== 0,
+        environment_mapping: (flags & 0b1000000) !== 0,
+    };
     const user_offset_and_strip_count = cursor.u16();
     const user_flags_size = user_offset_and_strip_count >>> 14;
     const strip_count = user_offset_and_strip_count & 0x3FFF;
@@ -382,10 +404,13 @@ function parse_triangle_strip_chunk(
         const clockwise_winding = winding_flag_and_index_count < 1;
         const index_count = Math.abs(winding_flag_and_index_count);
 
-        const indices = [];
+        const vertices: NjMeshVertex[] = [];
 
         for (let j = 0; j < index_count; ++j) {
-            indices.push(cursor.u16());
+            const vertex: NjMeshVertex = {
+                index: cursor.u16()
+            };
+            vertices.push(vertex);
 
             if (parse_texture_coords) {
                 cursor.seek(4);
@@ -396,7 +421,11 @@ function parse_triangle_strip_chunk(
             }
 
             if (parse_normal) {
-                cursor.seek(6);
+                vertex.normal = new Vec3(
+                    cursor.u16(),
+                    cursor.u16(),
+                    cursor.u16()
+                );
             }
 
             if (parse_texture_coords_hires) {
@@ -408,7 +437,11 @@ function parse_triangle_strip_chunk(
             }
         }
 
-        strips.push({ clockwise_winding, indices });
+        strips.push({
+            ...render_flags,
+            clockwise_winding,
+            vertices,
+        });
     }
 
     return strips;

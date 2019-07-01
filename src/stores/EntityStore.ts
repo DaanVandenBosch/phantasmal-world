@@ -1,16 +1,26 @@
-import { BufferGeometry } from "three";
+import { BufferGeometry, CylinderBufferGeometry } from "three";
 import { NpcType, ObjectType } from "../domain";
 import { BufferCursor } from "../data_formats/BufferCursor";
 import { get_npc_data, get_object_data } from "./binary_assets";
 import { ninja_object_to_buffer_geometry } from "../rendering/models";
 import { parse_nj, parse_xj } from "../data_formats/parsing/ninja";
 
-const npc_cache: Map<number, Promise<BufferGeometry>> = new Map();
-const object_cache: Map<number, Promise<BufferGeometry>> = new Map();
+const DEFAULT_ENTITY = new CylinderBufferGeometry(3, 3, 20);
+DEFAULT_ENTITY.translate(0, 10, 0);
+
+const DEFAULT_ENTITY_PROMISE: Promise<BufferGeometry> = new Promise(resolve =>
+    resolve(DEFAULT_ENTITY)
+);
+
+const npc_cache: Map<NpcType, Promise<BufferGeometry>> = new Map();
+npc_cache.set(NpcType.Unknown, DEFAULT_ENTITY_PROMISE);
+
+const object_cache: Map<ObjectType, Promise<BufferGeometry>> = new Map();
+object_cache.set(ObjectType.Unknown, DEFAULT_ENTITY_PROMISE);
 
 class EntityStore {
     async get_npc_geometry(npc_type: NpcType): Promise<BufferGeometry> {
-        let mesh = npc_cache.get(npc_type.id);
+        let mesh = npc_cache.get(npc_type);
 
         if (mesh) {
             return mesh;
@@ -26,13 +36,13 @@ class EntityStore {
                 }
             });
 
-            npc_cache.set(npc_type.id, mesh);
+            npc_cache.set(npc_type, mesh);
             return mesh;
         }
     }
 
     async get_object_geometry(object_type: ObjectType): Promise<BufferGeometry> {
-        let geometry = object_cache.get(object_type.id);
+        let geometry = object_cache.get(object_type);
 
         if (geometry) {
             return geometry;
@@ -48,7 +58,7 @@ class EntityStore {
                 }
             });
 
-            object_cache.set(object_type.id, geometry);
+            object_cache.set(object_type, geometry);
             return geometry;
         }
     }

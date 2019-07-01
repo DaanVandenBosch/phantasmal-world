@@ -188,13 +188,13 @@ class Object3DCreator {
         this.vertices.put(new_vertices);
 
         for (const mesh of model.meshes) {
-            for (let i = 0; i < mesh.indices.length; ++i) {
-                const vertex_idx = mesh.indices[i];
-                const vertices = this.vertices.get(vertex_idx);
+            for (let i = 0; i < mesh.vertices.length; ++i) {
+                const mesh_vertex = mesh.vertices[i];
+                const vertices = this.vertices.get(mesh_vertex.index);
 
                 if (vertices.length) {
                     const vertex = vertices[0];
-                    const normal = vertex.normal || DEFAULT_NORMAL;
+                    const normal = vertex.normal || mesh_vertex.normal || DEFAULT_NORMAL;
                     const index = this.positions.length / 3;
 
                     this.positions.push(vertex.position.x, vertex.position.y, vertex.position.z);
