@@ -1,9 +1,9 @@
 import React from 'react';
-import { Object3D } from 'three';
+import { SkinnedMesh } from 'three';
 import { get_model_renderer } from '../../rendering/ModelRenderer';
 
 type Props = {
-    model?: Object3D
+    model?: SkinnedMesh
 }
 
 export class RendererComponent extends React.Component<Props> {

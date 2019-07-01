@@ -1,6 +1,6 @@
 import Logger from 'js-logger';
 import { action, observable } from "mobx";
-import { AnimationAction, AnimationClip, AnimationMixer, Object3D } from "three";
+import { AnimationAction, AnimationClip, AnimationMixer, SkinnedMesh } from "three";
 import { BufferCursor } from "../data_formats/BufferCursor";
 import { NinjaModel, NinjaObject, parse_nj, parse_xj } from "../data_formats/parsing/ninja";
 import { parse_njm_4 } from "../data_formats/parsing/ninja/motion";
@@ -30,7 +30,7 @@ class ModelViewerStore {
     ];
 
     @observable.ref current_model?: NinjaObject<NinjaModel>;
-    @observable.ref current_model_obj3d?: Object3D;
+    @observable.ref current_model_obj3d?: SkinnedMesh;
 
     @observable.ref animation?: {
         mixer: AnimationMixer,
@@ -127,11 +127,10 @@ class ModelViewerStore {
             const model = parse_xj(new BufferCursor(reader.result, true))[0];
             this.set_model(model, file.name);
         } else if (file.name.endsWith('.njm')) {
-            this.add_animation(
-                create_animation_clip(
-                    parse_njm_4(new BufferCursor(reader.result, true))
-                )
-            );
+            if (this.current_model) {
+                const njm = parse_njm_4(new BufferCursor(reader.result, true));
+                this.add_animation(create_animation_clip(this.current_model, njm));
+            }
         } else {
             logger.error(`Unknown file extension in filename "${file.name}".`);
         }
@@ -140,22 +139,14 @@ class ModelViewerStore {
     private add_to_bone(
         object: NinjaObject<NinjaModel>,
         head_part: NinjaObject<NinjaModel>,
-        bone_id: number,
-        id_ref: [number] = [0]
+        bone_id: number
     ) {
-        if (!object.evaluation_flags.skip) {
-            const id = id_ref[0]++;
+        const bone = object.find_bone(bone_id);
 
-            if (id === bone_id) {
-                object.evaluation_flags.hidden = false;
-                object.evaluation_flags.break_child_trace = false;
-                object.children.push(head_part);
-                return;
-            }
-        }
-
-        for (const child of object.children) {
-            this.add_to_bone(child, head_part, bone_id, id_ref);
+        if (bone) {
+            bone.evaluation_flags.hidden = false;
+            bone.evaluation_flags.break_child_trace = false;
+            bone.children.push(head_part);
         }
     }
 

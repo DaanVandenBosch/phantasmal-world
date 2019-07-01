@@ -1,7 +1,7 @@
 import { BufferCursor } from '../../BufferCursor';
 import { Vec3 } from '../../../domain';
 
-const ANGLE_TO_RAD = 2 * Math.PI / 65536;
+const ANGLE_TO_RAD = 2 * Math.PI / 0xFFFF;
 
 export type NjAction = {
     object_offset: number,
@@ -123,7 +123,7 @@ function parse_motion(cursor: BufferCursor): NjMotion {
         }
 
         // NJD_MTYPE_POS_0
-        if ((type & (1 << 0)) !== 0) {
+        if (type & (1 << 0)) {
             cursor.seek_start(keyframe_offsets.shift()!);
             const count = keyframe_counts.shift();
 
@@ -136,7 +136,7 @@ function parse_motion(cursor: BufferCursor): NjMotion {
         }
 
         // NJD_MTYPE_ANG_1
-        if ((type & (1 << 1)) !== 0) {
+        if (type & (1 << 1)) {
             cursor.seek_start(keyframe_offsets.shift()!);
             const count = keyframe_counts.shift();
 
@@ -149,7 +149,7 @@ function parse_motion(cursor: BufferCursor): NjMotion {
         }
 
         // NJD_MTYPE_SCL_2
-        if ((type & (1 << 2)) !== 0) {
+        if (type & (1 << 2)) {
             cursor.seek_start(keyframe_offsets.shift()!);
             const count = keyframe_counts.shift();
 

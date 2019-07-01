@@ -1,7 +1,7 @@
-import { BufferCursor } from '../../BufferCursor';
-import { parse_nj_model, NjModel } from './nj';
-import { parse_xj_model, XjModel } from './xj';
 import { Vec3 } from '../../../domain';
+import { BufferCursor } from '../../BufferCursor';
+import { NjModel, parse_nj_model } from './nj';
+import { parse_xj_model, XjModel } from './xj';
 
 // TODO:
 // - deal with multiple NJCM chunks
@@ -19,22 +19,57 @@ export type NinjaVertex = {
 
 export type NinjaModel = NjModel | XjModel;
 
-export type NinjaObject<M extends NinjaModel> = {
-    evaluation_flags: {
-        no_translate: boolean,
-        no_rotate: boolean,
-        no_scale: boolean,
-        hidden: boolean,
-        break_child_trace: boolean,
-        zxy_rotation_order: boolean,
-        skip: boolean,
-        shape_skip: boolean,
-    },
-    model?: M,
-    position: Vec3,
-    rotation: Vec3, // Euler angles in radians.
-    scale: Vec3,
-    children: NinjaObject<M>[],
+export class NinjaObject<M extends NinjaModel>  {
+    private bone_cache = new Map<number, NinjaObject<M> | null>();
+
+    constructor(
+        public evaluation_flags: {
+            no_translate: boolean,
+            no_rotate: boolean,
+            no_scale: boolean,
+            hidden: boolean,
+            break_child_trace: boolean,
+            zxy_rotation_order: boolean,
+            skip: boolean,
+            shape_skip: boolean,
+        },
+        public model: M | undefined,
+        public position: Vec3,
+        public rotation: Vec3, // Euler angles in radians.
+        public scale: Vec3,
+        public children: NinjaObject<M>[]
+    ) { }
+
+    find_bone(bone_id: number): NinjaObject<M> | undefined {
+        let bone = this.bone_cache.get(bone_id);
+
+        // Strict check because null means there's no bone with this id.
+        if (bone === undefined) {
+            bone = this.find_bone_internal(this, bone_id, [0]);
+            this.bone_cache.set(bone_id, bone || null);
+        }
+
+        return bone || undefined;
+    }
+
+    private find_bone_internal(
+        object: NinjaObject<M>,
+        bone_id: number,
+        id_ref: [number]
+    ): NinjaObject<M> | undefined {
+        if (!object.evaluation_flags.skip) {
+            const id = id_ref[0]++;
+
+            if (id === bone_id) {
+                return object;
+            }
+        }
+
+        for (const child of object.children) {
+            const bone = this.find_bone_internal(child, bone_id, id_ref);
+            if (bone) return bone;
+        }
+    }
 }
 
 export function parse_nj(cursor: BufferCursor): NinjaObject<NjModel>[] {
@@ -119,8 +154,8 @@ function parse_sibling_objects<M extends NinjaModel>(
         siblings = [];
     }
 
-    const object: NinjaObject<M> = {
-        evaluation_flags: {
+    const object = new NinjaObject<M>(
+        {
             no_translate,
             no_rotate,
             no_scale,
@@ -131,11 +166,11 @@ function parse_sibling_objects<M extends NinjaModel>(
             shape_skip,
         },
         model,
-        position: new Vec3(pos_x, pos_y, pos_z),
-        rotation: new Vec3(rotation_x, rotation_y, rotation_z),
-        scale: new Vec3(scale_x, scale_y, scale_z),
-        children,
-    };
+        new Vec3(pos_x, pos_y, pos_z),
+        new Vec3(rotation_x, rotation_y, rotation_z),
+        new Vec3(scale_x, scale_y, scale_z),
+        children
+    );
 
     return [object, ...siblings];
 }
