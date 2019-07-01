@@ -1,11 +1,11 @@
 import Logger from 'js-logger';
 import { action, observable } from 'mobx';
-import { BufferCursor } from '../bin_data/BufferCursor';
-import { get_area_sections } from '../bin_data/loading/areas';
-import { get_npc_geometry, get_object_geometry } from '../bin_data/loading/entities';
-import { parse_quest, write_quest_qst } from '../bin_data/parsing/quest';
+import { BufferCursor } from '../data_formats/BufferCursor';
+import { parse_quest, write_quest_qst } from '../data_formats/parsing/quest';
 import { Area, Quest, QuestEntity, Section, Vec3 } from '../domain';
 import { create_npc_mesh as create_npc_object_3d, create_object_mesh as create_object_object_3d } from '../rendering/entities';
+import { area_store } from './AreaStore';
+import { entity_store } from './EntityStore';
 
 const logger = Logger.get('stores/QuestEditorStore');
 
@@ -65,7 +65,7 @@ class QuestEditorStore {
         if (quest) {
             // Load section data.
             for (const variant of quest.area_variants) {
-                const sections = await get_area_sections(
+                const sections = await area_store.get_area_sections(
                     quest.episode,
                     variant.area.id,
                     variant.id
@@ -75,7 +75,7 @@ class QuestEditorStore {
                 // Generate object geometry.
                 for (const object of quest.objects.filter(o => o.area_id === variant.area.id)) {
                     try {
-                        const object_geom = await get_object_geometry(object.type);
+                        const object_geom = await entity_store.get_object_geometry(object.type);
                         this.set_section_on_visible_quest_entity(object, sections);
                         object.object_3d = create_object_object_3d(object, object_geom);
                     } catch (e) {
@@ -86,7 +86,7 @@ class QuestEditorStore {
                 // Generate NPC geometry.
                 for (const npc of quest.npcs.filter(npc => npc.area_id === variant.area.id)) {
                     try {
-                        const npc_geom = await get_npc_geometry(npc.type);
+                        const npc_geom = await entity_store.get_npc_geometry(npc.type);
                         this.set_section_on_visible_quest_entity(npc, sections);
                         npc.object_3d = create_npc_object_3d(npc, npc_geom);
                     } catch (e) {

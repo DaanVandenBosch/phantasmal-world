@@ -2,7 +2,7 @@ import { BufferCursor } from "../BufferCursor";
 import Logger from 'js-logger';
 import { parse_prc } from "./prc";
 
-const logger = Logger.get('bin_data/parsing/rlc');
+const logger = Logger.get('data_formats/parsing/rlc');
 const MARKER = 'RelChunkVer0.20';
 
 /**

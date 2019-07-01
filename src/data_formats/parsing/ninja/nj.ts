@@ -1,9 +1,9 @@
 import Logger from 'js-logger';
 import { BufferCursor } from '../../BufferCursor';
 import { Vec3 } from '../../../domain';
-import { NinjaVertex } from '.';
+import { NinjaVertex } from '../ninja';
 
-const logger = Logger.get('bin_data/parsing/ninja/nj');
+const logger = Logger.get('data_formats/parsing/ninja/nj');
 
 // TODO:
 // - textures

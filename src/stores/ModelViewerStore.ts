@@ -1,15 +1,16 @@
 import Logger from 'js-logger';
 import { action, observable } from "mobx";
 import { AnimationClip, AnimationMixer, Object3D } from "three";
-import { BufferCursor } from "../bin_data/BufferCursor";
-import { NinjaModel, NinjaObject, parse_nj, parse_xj } from "../bin_data/parsing/ninja";
-import { parse_njm_4 } from "../bin_data/parsing/ninja/motion";
+import { BufferCursor } from "../data_formats/BufferCursor";
+import { NinjaModel, NinjaObject, parse_nj, parse_xj } from "../data_formats/parsing/ninja";
+import { parse_njm_4 } from "../data_formats/parsing/ninja/motion";
 import { create_animation_clip } from "../rendering/animation";
 import { ninja_object_to_skinned_mesh } from "../rendering/models";
 import { PlayerModel } from '../domain';
-import { get_player_ninja_object } from '../bin_data/loading/player';
+import { get_player_data } from './binary_assets';
 
 const logger = Logger.get('stores/ModelViewerStore');
+const cache: Map<string, Promise<NinjaObject<NinjaModel>>> = new Map();
 
 class ModelViewerStore {
     readonly models: PlayerModel[] = [
@@ -32,7 +33,7 @@ class ModelViewerStore {
     @observable.ref animation_mixer?: AnimationMixer;
 
     load_model = async (model: PlayerModel) => {
-        const object = await get_player_ninja_object(model);
+        const object = await this.get_player_ninja_object(model);
         this.set_model(object);
     }
 
@@ -51,7 +52,7 @@ class ModelViewerStore {
 
         if (model) {
             if (this.current_model && filename && /^pl[A-Z](hed|hai|cap)\d\d.nj$/.test(filename)) {
-                this.add_to_bone(this.current_model, model, 59, [0]);
+                this.add_to_bone(this.current_model, model, 59);
             } else {
                 this.current_model = model;
             }
@@ -93,7 +94,7 @@ class ModelViewerStore {
         object: NinjaObject<NinjaModel>,
         head_part: NinjaObject<NinjaModel>,
         bone_id: number,
-        id_ref: [number]
+        id_ref: [number] = [0]
     ) {
         if (!object.evaluation_flags.skip) {
             const id = id_ref[0]++;
@@ -123,6 +124,54 @@ class ModelViewerStore {
         const action = this.animation_mixer.clipAction(clip);
         action.play();
     })
+
+    private get_player_ninja_object(model: PlayerModel): Promise<NinjaObject<NinjaModel>> {
+        let ninja_object = cache.get(model.name);
+
+        if (ninja_object) {
+            return ninja_object;
+        } else {
+            ninja_object = this.get_all_assets(model);
+            cache.set(model.name, ninja_object);
+            return ninja_object;
+        }
+    }
+
+    private async  get_all_assets(model: PlayerModel): Promise<NinjaObject<NinjaModel>> {
+        const body_data = await get_player_data(model.name, 'Body');
+        const body = parse_nj(new BufferCursor(body_data, true))[0];
+
+        if (!body) {
+            throw new Error(`Couldn't parse body for player class ${model.name}.`);
+        }
+
+        const head_data = await get_player_data(model.name, 'Head', 0);
+        const head = parse_nj(new BufferCursor(head_data, true))[0];
+
+        if (head) {
+            this.add_to_bone(body, head, 59);
+        }
+
+        if (model.hair_styles_count > 0) {
+            const hair_data = await get_player_data(model.name, 'Hair', 0);
+            const hair = parse_nj(new BufferCursor(hair_data, true))[0];
+
+            if (hair) {
+                this.add_to_bone(body, hair, 59);
+            }
+
+            if (model.hair_styles_with_accessory.has(0)) {
+                const accessory_data = await get_player_data(model.name, 'Accessory', 0);
+                const accessory = parse_nj(new BufferCursor(accessory_data, true))[0];
+
+                if (accessory) {
+                    this.add_to_bone(body, accessory, 59);
+                }
+            }
+        }
+
+        return body;
+    }
 }
 
 export const model_viewer_store = new ModelViewerStore();

@@ -14,7 +14,7 @@ import {
 import { Vec3, Section } from '../../domain';
 import Logger from 'js-logger';
 
-const logger = Logger.get('bin_data/parsing/geometry');
+const logger = Logger.get('data_formats/parsing/geometry');
 
 export function parseCRel(arrayBuffer: ArrayBuffer): Object3D {
     const dv = new DataView(arrayBuffer);

@@ -1,12 +1,12 @@
 import { CylinderBufferGeometry, MeshLambertMaterial, Object3D, Vector3 } from 'three';
-import { DatNpc, DatObject } from '../bin_data/parsing/quest/dat';
+import { DatNpc, DatObject } from '../data_formats/parsing/quest/dat';
 import { NpcType, ObjectType, QuestNpc, QuestObject, Vec3 } from '../domain';
 import { create_npc_mesh, create_object_mesh, NPC_COLOR, OBJECT_COLOR } from './entities';
 
 const cylinder = new CylinderBufferGeometry(3, 3, 20).translate(0, 10, 0);
 
 test('create geometry for quest objects', () => {
-    const object = new QuestObject(7, 13, new Vec3(17, 19, 23), new Vec3(), ObjectType.PrincipalWarp, {} as DatObject);
+    const object = new QuestObject(7, 13, new Vec3(17, 19, 23), new Vec3(0, 0, 0), ObjectType.PrincipalWarp, {} as DatObject);
     const geometry = create_object_mesh(object, cylinder);
 
     expect(geometry).toBeInstanceOf(Object3D);
@@ -19,7 +19,7 @@ test('create geometry for quest objects', () => {
 });
 
 test('create geometry for quest NPCs', () => {
-    const npc = new QuestNpc(7, 13, new Vec3(17, 19, 23), new Vec3(), NpcType.Booma, {} as DatNpc);
+    const npc = new QuestNpc(7, 13, new Vec3(17, 19, 23), new Vec3(0, 0, 0), NpcType.Booma, {} as DatNpc);
     const geometry = create_npc_mesh(npc, cylinder);
 
     expect(geometry).toBeInstanceOf(Object3D);
@@ -32,7 +32,7 @@ test('create geometry for quest NPCs', () => {
 });
 
 test('geometry position changes when entity position changes element-wise', () => {
-    const npc = new QuestNpc(7, 13, new Vec3(17, 19, 23), new Vec3(), NpcType.Booma, {} as DatNpc);
+    const npc = new QuestNpc(7, 13, new Vec3(17, 19, 23), new Vec3(0, 0, 0), NpcType.Booma, {} as DatNpc);
     const geometry = create_npc_mesh(npc, cylinder);
     npc.position = new Vec3(2, 3, 5).add(npc.position);
 
@@ -40,7 +40,7 @@ test('geometry position changes when entity position changes element-wise', () =
 });
 
 test('geometry position changes when entire entity position changes', () => {
-    const npc = new QuestNpc(7, 13, new Vec3(17, 19, 23), new Vec3(), NpcType.Booma, {} as DatNpc);
+    const npc = new QuestNpc(7, 13, new Vec3(17, 19, 23), new Vec3(0, 0, 0), NpcType.Booma, {} as DatNpc);
     const geometry = create_npc_mesh(npc, cylinder);
     npc.position = new Vec3(2, 3, 5);
 

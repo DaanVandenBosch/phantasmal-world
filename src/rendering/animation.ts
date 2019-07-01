@@ -1,5 +1,5 @@
 import { AnimationClip, Euler, InterpolateLinear, InterpolateSmooth, KeyframeTrack, Quaternion, QuaternionKeyframeTrack, VectorKeyframeTrack } from "three";
-import { NjAction, NjInterpolation, NjKeyframeTrackType } from "../bin_data/parsing/ninja/motion";
+import { NjAction, NjInterpolation, NjKeyframeTrackType } from "../data_formats/parsing/ninja/motion";
 
 const PSO_FRAME_RATE = 30;
 

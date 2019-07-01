@@ -1,6 +1,6 @@
 import { BufferCursor } from '../../BufferCursor';
 import { Vec3 } from '../../../domain';
-import { NinjaVertex } from '.';
+import { NinjaVertex } from '../ninja';
 
 // TODO:
 // - textures

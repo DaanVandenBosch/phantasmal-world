@@ -1,8 +1,8 @@
 import { Bone, BufferGeometry, DoubleSide, Euler, Float32BufferAttribute, Material, Matrix3, Matrix4, MeshLambertMaterial, Quaternion, Skeleton, SkinnedMesh, Uint16BufferAttribute, Vector3 } from 'three';
 import { vec3_to_threejs } from '.';
-import { NinjaModel, NinjaObject } from '../bin_data/parsing/ninja';
-import { NjModel } from '../bin_data/parsing/ninja/nj';
-import { XjModel } from '../bin_data/parsing/ninja/xj';
+import { NinjaModel, NinjaObject } from '../data_formats/parsing/ninja';
+import { NjModel } from '../data_formats/parsing/ninja/nj';
+import { XjModel } from '../data_formats/parsing/ninja/xj';
 
 const DEFAULT_MATERIAL = new MeshLambertMaterial({
     color: 0xFF00FF,

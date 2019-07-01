@@ -15,7 +15,7 @@ import {
 import { area_store } from '../../../stores/AreaStore';
 import Logger from 'js-logger';
 
-const logger = Logger.get('bin_data/parsing/quest');
+const logger = Logger.get('data_formats/parsing/quest');
 
 /**
  * High level parsing function that delegates to lower level parsing functions.

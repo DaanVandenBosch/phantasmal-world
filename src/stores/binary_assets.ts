@@ -1,4 +1,4 @@
-import { NpcType, ObjectType } from '../../domain';
+import { NpcType, ObjectType } from '../domain';
 
 export function get_area_render_data(
     episode: number,
@@ -145,7 +145,7 @@ function get_area_asset(
 
 function npc_type_to_url(npc_type: NpcType): string {
     switch (npc_type) {
-        // The dubswitch model in in XJ format.
+        // The dubswitch model is in XJ format.
         case NpcType.Dubswitch: return `/npcs/${npc_type.code}.xj`;
 
         // Episode II VR Temple
@@ -196,10 +196,10 @@ function object_type_to_url(object_type: ObjectType): string {
         case ObjectType.FallingRock:
         case ObjectType.DesertFixedTypeBoxBreakableCrystals:
         case ObjectType.BeeHive:
-            return `/objects/${String(object_type.pso_id)}.nj`;
+            return `/objects/${object_type.pso_id}.nj`;
 
         default:
-            return `/objects/${String(object_type.pso_id)}.xj`;
+            return `/objects/${object_type.pso_id}.xj`;
     }
 }
 

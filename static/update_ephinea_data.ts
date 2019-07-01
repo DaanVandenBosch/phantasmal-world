@@ -1,12 +1,12 @@
 import fs from 'fs';
-import { BufferCursor } from '../src/bin_data/BufferCursor';
-import { parseItemPmt, ItemPmt } from '../src/bin_data/parsing/itempmt';
-import { parseUnitxt, Unitxt } from '../src/bin_data/parsing/unitxt';
+import { BufferCursor } from '../src/data_formats/BufferCursor';
+import { parseItemPmt, ItemPmt } from '../src/data_formats/parsing/itempmt';
+import { parseUnitxt, Unitxt } from '../src/data_formats/parsing/unitxt';
 import { Difficulties, Difficulty, Episode, Episodes, NpcType, SectionId, SectionIds } from '../src/domain';
 import { NpcTypes } from '../src/domain/NpcType';
 import { BoxDropDto, EnemyDropDto, ItemTypeDto, QuestDto } from '../src/dto';
 import { updateDropsFromWebsite } from './update_drops_ephinea';
-import { parse_quest } from '../src/bin_data/parsing/quest';
+import { parse_quest } from '../src/data_formats/parsing/quest';
 import Logger from 'js-logger';
 
 const logger = Logger.get('static/update_ephinea_data');
@@ -14,8 +14,8 @@ const logger = Logger.get('static/update_ephinea_data');
 Logger.useDefaults({ defaultLevel: Logger.ERROR });
 logger.setLevel(Logger.INFO);
 Logger.get('static/update_drops_ephinea').setLevel(Logger.INFO);
-Logger.get('bin_data/parsing/quest').setLevel(Logger.OFF);
-Logger.get('bin_data/parsing/quest/bin').setLevel(Logger.OFF);
+Logger.get('data_formats/parsing/quest').setLevel(Logger.OFF);
+Logger.get('data_formats/parsing/quest/bin').setLevel(Logger.OFF);
 
 /**
  * Used by static data generation scripts.

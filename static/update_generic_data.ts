@@ -1,7 +1,7 @@
 import fs from "fs";
 import Logger from 'js-logger';
-import { BufferCursor } from "../src/bin_data/BufferCursor";
-import { parse_rlc } from "../src/bin_data/parsing/rlc";
+import { BufferCursor } from "../src/data_formats/BufferCursor";
+import { parse_rlc } from "../src/data_formats/parsing/rlc";
 
 const logger = Logger.get('static/update_generic_data');
 

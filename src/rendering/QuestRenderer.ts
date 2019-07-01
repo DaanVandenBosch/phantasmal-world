@@ -1,6 +1,6 @@
 import { Intersection, Mesh, MeshLambertMaterial, Object3D, Plane, Raycaster, Vector2, Vector3 } from "three";
-import { get_area_collision_geometry, get_area_render_geometry } from "../bin_data/loading/areas";
 import { Area, Quest, QuestEntity, QuestNpc, QuestObject, Section, Vec3 } from "../domain";
+import { area_store } from "../stores/AreaStore";
 import { quest_editor_store } from "../stores/QuestEditorStore";
 import { NPC_COLOR, NPC_HOVER_COLOR, NPC_SELECTED_COLOR, OBJECT_COLOR, OBJECT_HOVER_COLOR, OBJECT_SELECTED_COLOR } from "./entities";
 import { Renderer } from "./Renderer";
@@ -100,7 +100,7 @@ export class QuestRenderer extends Renderer {
         this.renderer.render(this.scene, this.camera);
     }
 
-    private update_geometry() {
+    private async update_geometry() {
         this.scene.remove(this.obj_geometry);
         this.scene.remove(this.npc_geometry);
         this.obj_geometry = new Object3D();
@@ -117,22 +117,22 @@ export class QuestRenderer extends Renderer {
             const variant = this.quest.area_variants.find(v => v.area.id === area_id);
             const variant_id = (variant && variant.id) || 0;
 
-            get_area_collision_geometry(episode, area_id, variant_id).then(geometry => {
-                if (this.quest && this.area) {
-                    this.scene.remove(this.collision_geometry);
+            const collision_geometry = await area_store.get_area_collision_geometry(episode, area_id, variant_id);
 
-                    this.reset_camera(new Vector3(0, 800, 700), new Vector3(0, 0, 0));
+            if (this.quest && this.area) {
+                this.scene.remove(this.collision_geometry);
 
-                    this.collision_geometry = geometry;
-                    this.scene.add(geometry);
-                }
-            });
+                this.reset_camera(new Vector3(0, 800, 700), new Vector3(0, 0, 0));
 
-            get_area_render_geometry(episode, area_id, variant_id).then(geometry => {
-                if (this.quest && this.area) {
-                    this.render_geometry = geometry;
-                }
-            });
+                this.collision_geometry = collision_geometry;
+                this.scene.add(collision_geometry);
+            }
+
+            const render_geometry = await area_store.get_area_render_geometry(episode, area_id, variant_id);
+
+            if (this.quest && this.area) {
+                this.render_geometry = render_geometry;
+            }
         }
     }
 

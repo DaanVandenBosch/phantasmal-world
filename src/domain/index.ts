@@ -1,7 +1,7 @@
 import { computed, observable } from 'mobx';
 import { Object3D } from 'three';
-import { BufferCursor } from '../bin_data/BufferCursor';
-import { DatNpc, DatObject, DatUnknown } from '../bin_data/parsing/quest/dat';
+import { BufferCursor } from '../data_formats/BufferCursor';
+import { DatNpc, DatObject, DatUnknown } from '../data_formats/parsing/quest/dat';
 import { NpcType } from './NpcType';
 import { ObjectType } from './ObjectType';
 import { enumValues as enum_values } from '../enums';
