@@ -6,18 +6,28 @@
 .mv-ModelViewerComponent-toolbar {
     display: flex;
     padding: 10px 5px;
-}
+    align-items: center;
 
-.mv-ModelViewerComponent-toolbar > * {
-    margin: 0 5px;
+    &  > * {
+        margin: 0 5px;
+    }
+
+    & .group {
+        display: flex;
+        align-items: center;
+
+        & > * {
+            margin: 0 5px;
+        }
+    }
 }
 
 .mv-ModelViewerComponent-main {
     flex: 1;
     display: flex;
     overflow: hidden;
-}
 
-.mv-ModelViewerComponent-main > div:nth-child(2) {
-    flex: 1;
+    & > div:nth-child(2) {
+        flex: 1;
+    }
 }

@@ -1,7 +1,7 @@
 import { AnimationClip, Euler, InterpolateLinear, InterpolateSmooth, KeyframeTrack, Quaternion, QuaternionKeyframeTrack, VectorKeyframeTrack } from "three";
 import { NjAction, NjInterpolation, NjKeyframeTrackType } from "../data_formats/parsing/ninja/motion";
 
-const PSO_FRAME_RATE = 30;
+export const PSO_FRAME_RATE = 30;
 
 export function create_animation_clip(action: NjAction): AnimationClip {
     const motion = action.motion;
@@ -19,14 +19,14 @@ export function create_animation_clip(action: NjAction): AnimationClip {
             for (const keyframe of keyframes) {
                 times.push(keyframe.frame / PSO_FRAME_RATE);
 
-                if (type === NjKeyframeTrackType.Position || type === NjKeyframeTrackType.Scale) {
-                    values.push(keyframe.value.x, keyframe.value.y, keyframe.value.z);
-                } else {
+                if (type === NjKeyframeTrackType.Rotation) {
                     const quat = new Quaternion().setFromEuler(
                         new Euler(keyframe.value.x, keyframe.value.y, keyframe.value.z)
                     );
 
                     values.push(quat.x, quat.y, quat.z, quat.w);
+                } else {
+                    values.push(keyframe.value.x, keyframe.value.y, keyframe.value.z);
                 }
             }
 
@@ -48,7 +48,7 @@ export function create_animation_clip(action: NjAction): AnimationClip {
 
     return new AnimationClip(
         'Animation',
-        motion.frame_count / PSO_FRAME_RATE,
+        (motion.frame_count - 1) / PSO_FRAME_RATE,
         tracks
     ).optimize();
 }

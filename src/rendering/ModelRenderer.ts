@@ -1,6 +1,7 @@
-import { Object3D, Vector3, Clock } from "three";
+import { Object3D, Vector3, Clock, SkeletonHelper } from "three";
 import { model_viewer_store } from "../stores/ModelViewerStore";
 import { Renderer } from "./Renderer";
+import { autorun } from "mobx";
 
 let renderer: ModelRenderer | undefined;
 
@@ -13,15 +14,33 @@ export class ModelRenderer extends Renderer {
     private clock = new Clock();
 
     private model?: Object3D;
+    private skeleton_helper?: SkeletonHelper;
+
+    constructor() {
+        super();
+        autorun(() => {
+            const show = model_viewer_store.show_skeleton;
+
+            if (this.skeleton_helper) {
+                this.skeleton_helper.visible = show;
+            }
+        });
+    }
 
     set_model(model?: Object3D) {
         if (this.model !== model) {
             if (this.model) {
                 this.scene.remove(this.model);
+                this.scene.remove(this.skeleton_helper!);
+                this.skeleton_helper = undefined;
             }
 
             if (model) {
                 this.scene.add(model);
+                this.skeleton_helper = new SkeletonHelper(model);
+                this.skeleton_helper.visible = model_viewer_store.show_skeleton;
+                (this.skeleton_helper.material as any).linewidth = 3;
+                this.scene.add(this.skeleton_helper);
                 this.reset_camera(new Vector3(0, 10, 20), new Vector3(0, 0, 0));
             }
 
@@ -32,8 +51,9 @@ export class ModelRenderer extends Renderer {
     protected render() {
         this.controls.update();
 
-        if (model_viewer_store.animation_mixer) {
-            model_viewer_store.animation_mixer.update(this.clock.getDelta());
+        if (model_viewer_store.animation) {
+            model_viewer_store.animation.mixer.update(this.clock.getDelta());
+            model_viewer_store.update_animation_frame();
         }
 
         this.renderer.render(this.scene, this.camera);

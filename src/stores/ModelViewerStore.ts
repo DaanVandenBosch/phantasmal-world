@@ -1,14 +1,15 @@
 import Logger from 'js-logger';
 import { action, observable } from "mobx";
-import { AnimationClip, AnimationMixer, Object3D } from "three";
+import { AnimationAction, AnimationClip, AnimationMixer, Object3D } from "three";
 import { BufferCursor } from "../data_formats/BufferCursor";
 import { NinjaModel, NinjaObject, parse_nj, parse_xj } from "../data_formats/parsing/ninja";
 import { parse_njm_4 } from "../data_formats/parsing/ninja/motion";
-import { create_animation_clip } from "../rendering/animation";
-import { ninja_object_to_skinned_mesh } from "../rendering/models";
 import { PlayerModel } from '../domain';
+import { create_animation_clip, PSO_FRAME_RATE } from "../rendering/animation";
+import { ninja_object_to_skinned_mesh } from "../rendering/models";
 import { get_player_data } from './binary_assets';
 
+const HEAD_PART_REGEX = /^pl[A-Z](hed|hai|cap)\d\d.nj$/;
 const logger = Logger.get('stores/ModelViewerStore');
 const cache: Map<string, Promise<NinjaObject<NinjaModel>>> = new Map();
 
@@ -30,7 +31,35 @@ class ModelViewerStore {
 
     @observable.ref current_model?: NinjaObject<NinjaModel>;
     @observable.ref current_model_obj3d?: Object3D;
-    @observable.ref animation_mixer?: AnimationMixer;
+
+    @observable.ref animation?: {
+        mixer: AnimationMixer,
+        clip: AnimationClip,
+        action: AnimationAction,
+    }
+    @observable animation_playing: boolean = false;
+    @observable animation_frame_rate: number = PSO_FRAME_RATE;
+    @observable animation_frame: number = 0;
+    @observable animation_frame_count: number = 0;
+
+    @observable show_skeleton: boolean = false;
+
+    set_animation_frame_rate = action('set_animation_frame_rate', (rate: number) => {
+        if (this.animation) {
+            this.animation.mixer.timeScale = rate / PSO_FRAME_RATE;
+            this.animation_frame_rate = rate;
+        }
+    })
+
+    set_animation_frame = action('set_animation_frame', (frame: number) => {
+        if (this.animation) {
+            const frame_count = this.animation_frame_count;
+            frame = (frame - 1) % frame_count + 1;
+            if (frame < 1) frame = frame_count + frame;
+            this.animation.action.time = (frame - 1) / (frame_count - 1);
+            this.animation_frame = frame;
+        }
+    })
 
     load_model = async (model: PlayerModel) => {
         const object = await this.get_player_ninja_object(model);
@@ -43,15 +72,28 @@ class ModelViewerStore {
         reader.readAsArrayBuffer(file);
     }
 
-    private set_model = action('set_model', (model?: NinjaObject<NinjaModel>, filename?: string) => {
-        if (this.current_model_obj3d && this.animation_mixer) {
-            this.animation_mixer.stopAllAction();
-            this.animation_mixer.uncacheRoot(this.current_model_obj3d);
-            this.animation_mixer = undefined;
+    toggle_animation_playing = action('toggle_animation_playing', () => {
+        if (this.animation) {
+            this.animation.action.paused = !this.animation.action.paused;
+            this.animation_playing = !this.animation.action.paused;
         }
+    })
 
-        if (model) {
-            if (this.current_model && filename && /^pl[A-Z](hed|hai|cap)\d\d.nj$/.test(filename)) {
+    update_animation_frame = action('update_animation_frame', () => {
+        if (this.animation) {
+            const frame_count = this.animation_frame_count;
+            this.animation_frame = Math.floor(this.animation.action.time * (frame_count - 1) + 1);
+        }
+    })
+
+    private set_model = action('set_model',
+        (model: NinjaObject<NinjaModel>, filename?: string) => {
+            if (this.current_model_obj3d && this.animation) {
+                this.animation.mixer.stopAllAction();
+                this.animation.mixer.uncacheRoot(this.current_model_obj3d);
+            }
+
+            if (this.current_model && filename && HEAD_PART_REGEX.test(filename)) {
                 this.add_to_bone(this.current_model, model, 59);
             } else {
                 this.current_model = model;
@@ -60,11 +102,16 @@ class ModelViewerStore {
             const mesh = ninja_object_to_skinned_mesh(this.current_model);
             mesh.translateY(-mesh.geometry.boundingSphere.radius);
             this.current_model_obj3d = mesh;
-        } else {
-            this.current_model = undefined;
-            this.current_model_obj3d = undefined;
+
+            if (this.animation) {
+                this.animation.mixer = new AnimationMixer(mesh);
+                this.animation.mixer.timeScale = this.animation_frame_rate / PSO_FRAME_RATE;
+                this.animation.action = this.animation.mixer.clipAction(this.animation.clip);
+                this.animation.action.paused = !this.animation_playing;
+                this.animation.action.play();
+            }
         }
-    })
+    )
 
     // TODO: notify user of problems.
     private loadend = async (file: File, reader: FileReader) => {
@@ -115,14 +162,24 @@ class ModelViewerStore {
     private add_animation = action('add_animation', (clip: AnimationClip) => {
         if (!this.current_model_obj3d) return;
 
-        if (this.animation_mixer) {
-            this.animation_mixer.stopAllAction();
+        let mixer: AnimationMixer;
+
+        if (this.animation) {
+            this.animation.mixer.stopAllAction();
+            mixer = this.animation.mixer;
         } else {
-            this.animation_mixer = new AnimationMixer(this.current_model_obj3d);
+            mixer = new AnimationMixer(this.current_model_obj3d)
         }
 
-        const action = this.animation_mixer.clipAction(clip);
-        action.play();
+        this.animation = {
+            mixer,
+            clip,
+            action: mixer.clipAction(clip)
+        }
+
+        this.animation.action.play();
+        this.animation_playing = true;
+        this.animation_frame_count = PSO_FRAME_RATE * clip.duration + 1;
     })
 
     private get_player_ninja_object(model: PlayerModel): Promise<NinjaObject<NinjaModel>> {

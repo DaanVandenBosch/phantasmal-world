@@ -1,4 +1,4 @@
-import { Button, Upload } from "antd";
+import { Button, InputNumber, Upload, Switch } from "antd";
 import { UploadChangeParam } from "antd/lib/upload";
 import { UploadFile } from "antd/lib/upload/interface";
 import { observer } from "mobx-react";
@@ -47,8 +47,49 @@ class Toolbar extends React.Component {
                     // Make sure it doesn't do a POST:
                     customRequest={() => false}
                 >
-                    <Button icon="file">{this.state.filename || 'Choose file...'}</Button>
+                    <Button icon="file">{this.state.filename || 'Open file...'}</Button>
                 </Upload>
+                {model_viewer_store.animation && (
+                    <>
+                        <Button
+                            icon={model_viewer_store.animation_playing ? 'pause' : 'caret-right'}
+                            onClick={model_viewer_store.toggle_animation_playing}
+                        >
+                            {model_viewer_store.animation_playing ? 'Pause animation' : 'Play animation'}
+                        </Button>
+                        <div className="group">
+                            <span>Frame rate:</span>
+                            <InputNumber
+                                value={model_viewer_store.animation_frame_rate}
+                                onChange={(value) =>
+                                    model_viewer_store.set_animation_frame_rate(value || 0)
+                                }
+                                min={1}
+                                step={1}
+                            />
+                        </div>
+                        <div className="group">
+                            <span>Frame:</span>
+                            <InputNumber
+                                value={model_viewer_store.animation_frame}
+                                onChange={(value) =>
+                                    model_viewer_store.set_animation_frame(value || 0)
+                                }
+                                step={1}
+                            />
+                            <span>
+                                / {model_viewer_store.animation_frame_count}
+                            </span>
+                        </div>
+                        <div className="group">
+                            <span>Show skeleton:</span>
+                            <Switch
+                                checked={model_viewer_store.show_skeleton}
+                                onChange={(value) => model_viewer_store.show_skeleton = value}
+                            />
+                        </div>
+                    </>
+                )}
             </div>
         );
     }

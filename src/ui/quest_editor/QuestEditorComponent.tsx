@@ -91,7 +91,7 @@ class Toolbar extends React.Component<{ onSaveAsClicked: (filename?: string) => 
                     // Make sure it doesn't do a POST:
                     customRequest={() => false}
                 >
-                    <Button icon="file">{this.state.filename || 'Choose file...'}</Button>
+                    <Button icon="file">{this.state.filename || 'Open file...'}</Button>
                 </Upload>
                 {areas && (
                     <Select
