@@ -191,7 +191,7 @@ export class QuestEntity {
         }
     }
 
-    object_3d?: Object3D;
+    @observable object_3d?: Object3D;
 
     constructor(area_id: number, section_id: number, position: Vec3, rotation: Vec3) {
         if (Object.getPrototypeOf(this) === Object.getPrototypeOf(QuestEntity))

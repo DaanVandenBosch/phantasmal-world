@@ -1,4 +1,3 @@
-import { autorun } from "mobx";
 import { BufferGeometry, DoubleSide, Mesh, MeshLambertMaterial } from "three";
 import { QuestEntity, QuestNpc, QuestObject } from "../domain";
 
@@ -32,14 +31,6 @@ function create_mesh(
     );
     mesh.name = type;
     mesh.userData.entity = entity;
-
-    // TODO: dispose autorun?
-    autorun(() => {
-        const { x, y, z } = entity.position;
-        mesh.position.set(x, y, z);
-        const rot = entity.rotation;
-        mesh.rotation.set(rot.x, rot.y, rot.z);
-    });
 
     return mesh;
 }

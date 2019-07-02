@@ -29,9 +29,10 @@
         "@typescript-eslint/no-parameter-properties": "off",
         "@typescript-eslint/no-use-before-define": "off",
         "@typescript-eslint/prefer-interface": "off",
+        "no-console": "warn",
         "no-constant-condition": ["warn", { "checkLoops": false }],
         "no-empty": "warn",
-        "prettier/prettier": ["warn"],
+        "prettier/prettier": "warn",
         "react/no-unescaped-entities": "off",
         "@typescript-eslint/no-non-null-assertion": "off"
     },

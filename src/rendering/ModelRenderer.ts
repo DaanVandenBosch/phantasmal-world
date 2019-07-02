@@ -18,11 +18,25 @@ export class ModelRenderer extends Renderer {
 
     constructor() {
         super();
+
         autorun(() => {
-            const show = model_viewer_store.show_skeleton;
+            const show_skeleton = model_viewer_store.show_skeleton;
 
             if (this.skeleton_helper) {
-                this.skeleton_helper.visible = show;
+                this.skeleton_helper.visible = show_skeleton;
+                this.schedule_render();
+            }
+
+            if (!model_viewer_store.animation_playing) {
+                // Reference animation_frame here to make sure we render when the user sets the frame manually.
+                model_viewer_store.animation_frame;
+                this.schedule_render();
+            }
+        });
+
+        autorun(() => {
+            if (model_viewer_store.animation) {
+                this.schedule_render();
             }
         });
     }
@@ -45,17 +59,20 @@ export class ModelRenderer extends Renderer {
             }
 
             this.model = model;
+            this.schedule_render();
         }
     }
 
     protected render(): void {
-        this.controls.update();
-
         if (model_viewer_store.animation) {
             model_viewer_store.animation.mixer.update(this.clock.getDelta());
             model_viewer_store.update_animation_frame();
         }
 
-        this.renderer.render(this.scene, this.camera);
+        super.render();
+
+        if (model_viewer_store.animation && !model_viewer_store.animation.action.paused) {
+            this.schedule_render();
+        }
     }
 }

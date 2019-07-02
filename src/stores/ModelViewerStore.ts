@@ -54,9 +54,9 @@ class ModelViewerStore {
     set_animation_frame = action("set_animation_frame", (frame: number) => {
         if (this.animation) {
             const frame_count = this.animation_frame_count;
-            frame = ((frame - 1) % frame_count) + 1;
-            if (frame < 1) frame = frame_count + frame;
-            this.animation.action.time = (frame - 1) / (frame_count - 1);
+            if (frame > frame_count) frame = 1;
+            if (frame < 1) frame = frame_count;
+            this.animation.action.time = (frame - 1) / PSO_FRAME_RATE;
             this.animation_frame = frame;
         }
     });
@@ -84,9 +84,9 @@ class ModelViewerStore {
     });
 
     update_animation_frame = action("update_animation_frame", () => {
-        if (this.animation) {
-            const frame_count = this.animation_frame_count;
-            this.animation_frame = Math.floor(this.animation.action.time * (frame_count - 1) + 1);
+        if (this.animation && this.animation_playing) {
+            const time = this.animation.action.time;
+            this.animation_frame = Math.round(time * PSO_FRAME_RATE) + 1;
         }
     });
 
@@ -165,7 +165,7 @@ class ModelViewerStore {
 
         this.animation.action.play();
         this.animation_playing = true;
-        this.animation_frame_count = PSO_FRAME_RATE * clip.duration + 1;
+        this.animation_frame_count = Math.round(PSO_FRAME_RATE * clip.duration) + 1;
     });
 
     private get_player_ninja_object(model: PlayerModel): Promise<NinjaObject<NinjaModel>> {

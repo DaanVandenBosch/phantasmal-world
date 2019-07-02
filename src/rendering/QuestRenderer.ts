@@ -1,3 +1,4 @@
+import { autorun, IReactionDisposer, when } from "mobx";
 import {
     Intersection,
     Mesh,
@@ -8,8 +9,8 @@ import {
     Vector2,
     Vector3,
 } from "three";
-import { Area, Quest, QuestEntity, QuestNpc, QuestObject, Section } from "../domain";
 import { Vec3 } from "../data_formats/Vec3";
+import { Area, Quest, QuestEntity, QuestNpc, Section } from "../domain";
 import { area_store } from "../stores/AreaStore";
 import { quest_editor_store } from "../stores/QuestEditorStore";
 import {
@@ -29,23 +30,25 @@ export function get_quest_renderer(): QuestRenderer {
     return renderer;
 }
 
-interface PickEntityResult {
+type PickEntityResult = {
     object: Mesh;
     entity: QuestEntity;
     grab_offset: Vector3;
     drag_adjust: Vector3;
     drag_y: number;
     manipulating: boolean;
-}
+};
+
+type EntityUserData = {
+    entity: QuestEntity;
+};
 
 export class QuestRenderer extends Renderer {
     private raycaster = new Raycaster();
 
     private quest?: Quest;
-    private quest_entities_loaded = false;
     private area?: Area;
-    private objs: Map<number, QuestObject[]> = new Map(); // Objs grouped by area id
-    private npcs: Map<number, QuestNpc[]> = new Map(); // Npcs grouped by area id
+    private entity_reaction_disposers: IReactionDisposer[] = [];
 
     private collision_geometry = new Object3D();
     private render_geometry = new Object3D();
@@ -58,9 +61,9 @@ export class QuestRenderer extends Renderer {
     constructor() {
         super();
 
-        this.renderer.domElement.addEventListener("mousedown", this.on_mouse_down);
-        this.renderer.domElement.addEventListener("mouseup", this.on_mouse_up);
-        this.renderer.domElement.addEventListener("mousemove", this.on_mouse_move);
+        this.dom_element.addEventListener("mousedown", this.on_mouse_down);
+        this.dom_element.addEventListener("mouseup", this.on_mouse_up);
+        this.dom_element.addEventListener("mousemove", this.on_mouse_move);
 
         this.scene.add(this.obj_geometry);
         this.scene.add(this.npc_geometry);
@@ -76,24 +79,6 @@ export class QuestRenderer extends Renderer {
 
         if (this.quest !== quest) {
             this.quest = quest;
-
-            this.objs.clear();
-            this.npcs.clear();
-
-            if (quest) {
-                for (const obj of quest.objects) {
-                    const array = this.objs.get(obj.area_id) || [];
-                    array.push(obj);
-                    this.objs.set(obj.area_id, array);
-                }
-
-                for (const npc of quest.npcs) {
-                    const array = this.npcs.get(npc.area_id) || [];
-                    array.push(npc);
-                    this.npcs.set(npc.area_id, array);
-                }
-            }
-
             update = true;
         }
 
@@ -102,24 +87,29 @@ export class QuestRenderer extends Renderer {
         }
     }
 
-    protected render(): void {
-        this.controls.update();
-        this.add_loaded_entities();
-        this.renderer.render(this.scene, this.camera);
-    }
-
     private async update_geometry(): Promise<void> {
+        this.dispose_entity_reactions();
+
         this.scene.remove(this.obj_geometry);
         this.scene.remove(this.npc_geometry);
         this.obj_geometry = new Object3D();
         this.npc_geometry = new Object3D();
         this.scene.add(this.obj_geometry);
         this.scene.add(this.npc_geometry);
-        this.quest_entities_loaded = false;
 
         this.scene.remove(this.collision_geometry);
 
         if (this.quest && this.area) {
+            // Add necessary entity geometry when it arrives.
+            for (const obj of this.quest.objects) {
+                this.update_entity_geometry(obj, this.obj_geometry);
+            }
+
+            for (const npc of this.quest.npcs) {
+                this.update_entity_geometry(npc, this.npc_geometry);
+            }
+
+            // Load necessary area geometry.
             const episode = this.quest.episode;
             const area_id = this.area.id;
             const variant = this.quest.area_variants.find(v => v.area.id === area_id);
@@ -131,14 +121,12 @@ export class QuestRenderer extends Renderer {
                 variant_id
             );
 
-            if (this.quest && this.area) {
-                this.scene.remove(this.collision_geometry);
+            this.scene.remove(this.collision_geometry);
 
-                this.reset_camera(new Vector3(0, 800, 700), new Vector3(0, 0, 0));
+            this.reset_camera(new Vector3(0, 800, 700), new Vector3(0, 0, 0));
 
-                this.collision_geometry = collision_geometry;
-                this.scene.add(collision_geometry);
-            }
+            this.collision_geometry = collision_geometry;
+            this.scene.add(collision_geometry);
 
             const render_geometry = await area_store.get_area_render_geometry(
                 episode,
@@ -146,37 +134,39 @@ export class QuestRenderer extends Renderer {
                 variant_id
             );
 
-            if (this.quest && this.area) {
-                this.render_geometry = render_geometry;
-            }
+            this.render_geometry = render_geometry;
         }
     }
 
-    private add_loaded_entities(): void {
-        if (this.quest && this.area && !this.quest_entities_loaded) {
-            let loaded = true;
+    private update_entity_geometry(entity: QuestEntity, entity_geometry: Object3D): void {
+        if (this.area && entity.area_id === this.area.id) {
+            this.entity_reaction_disposers.push(
+                when(
+                    () => entity.object_3d != undefined,
+                    () => {
+                        const object_3d = entity.object_3d!;
+                        entity_geometry.add(object_3d);
 
-            for (const object of this.quest.objects) {
-                if (object.area_id === this.area.id) {
-                    if (object.object_3d) {
-                        this.obj_geometry.add(object.object_3d);
-                    } else {
-                        loaded = false;
+                        this.entity_reaction_disposers.push(
+                            autorun(() => {
+                                const { x, y, z } = entity.position;
+                                object_3d.position.set(x, y, z);
+                                const rot = entity.rotation;
+                                object_3d.rotation.set(rot.x, rot.y, rot.z);
+                                this.schedule_render();
+                            })
+                        );
+
+                        this.schedule_render();
                     }
-                }
-            }
+                )
+            );
+        }
+    }
 
-            for (const npc of this.quest.npcs) {
-                if (npc.area_id === this.area.id) {
-                    if (npc.object_3d) {
-                        this.npc_geometry.add(npc.object_3d);
-                    } else {
-                        loaded = false;
-                    }
-                }
-            }
-
-            this.quest_entities_loaded = loaded;
+    private dispose_entity_reactions(): void {
+        for (const disposer of this.entity_reaction_disposers) {
+            disposer();
         }
     }
 
@@ -222,6 +212,7 @@ export class QuestRenderer extends Renderer {
 
         if (selection_changed) {
             quest_editor_store.set_selected_entity(data && data.entity);
+            this.schedule_render();
         }
     };
 
@@ -229,6 +220,7 @@ export class QuestRenderer extends Renderer {
         if (this.selected_data) {
             this.selected_data.manipulating = false;
             this.controls.enabled = true;
+            this.schedule_render();
         }
     };
 
@@ -298,6 +290,8 @@ export class QuestRenderer extends Renderer {
                     }
                 }
             }
+
+            this.schedule_render();
         } else {
             // User is hovering.
             const old_data = this.hovered_data;
@@ -311,6 +305,7 @@ export class QuestRenderer extends Renderer {
                 }
 
                 this.hovered_data = undefined;
+                this.schedule_render();
             }
 
             if (data && (!old_data || data.object !== old_data.object)) {
@@ -321,17 +316,10 @@ export class QuestRenderer extends Renderer {
                 }
 
                 this.hovered_data = data;
+                this.schedule_render();
             }
         }
     };
-
-    private pointer_pos_to_device_coords(e: MouseEvent): Vector2 {
-        const coords = new Vector2();
-        this.renderer.getSize(coords);
-        coords.width = (e.offsetX / coords.width) * 2 - 1;
-        coords.height = (e.offsetY / coords.height) * -2 + 1;
-        return coords;
-    }
 
     /**
      * @param pointer_pos - pointer coordinates in normalized device space
@@ -350,7 +338,7 @@ export class QuestRenderer extends Renderer {
         const npc_dist = nearest_npc ? nearest_npc.distance : Infinity;
         const intersection = object_dist < npc_dist ? nearest_object : nearest_npc;
 
-        const entity = intersection.object.userData.entity;
+        const entity = (intersection.object.userData as EntityUserData).entity;
         // Vector that points from the grabbing point to the model's origin.
         const grab_offset = intersection.object.position.clone().sub(intersection.point);
         // Vector that points from the grabbing point to the terrain point directly under the model's origin.
