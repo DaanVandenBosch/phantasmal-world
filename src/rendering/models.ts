@@ -64,7 +64,7 @@ class VerticesHolder {
 }
 
 class Object3DCreator {
-    private id: number = 0;
+    private bone_id: number = 0;
     private vertices = new VerticesHolder();
     private positions: number[] = [];
     private normals: number[] = [];
@@ -133,7 +133,7 @@ class Object3DCreator {
             bone = parent_bone;
         } else {
             bone = new Bone();
-            bone.name = (this.id++).toString();
+            bone.name = (this.bone_id++).toString();
 
             bone.position.set(position.x, position.y, position.z);
             bone.setRotationFromEuler(euler);
@@ -176,7 +176,7 @@ class Object3DCreator {
             normal.applyMatrix3(normal_matrix);
 
             return {
-                bone_id: this.id,
+                bone_id: this.bone_id,
                 position,
                 normal,
                 bone_weight: vertex.bone_weight,

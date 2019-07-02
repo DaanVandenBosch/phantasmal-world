@@ -166,22 +166,6 @@ function parse_motion(cursor: BufferCursor, bone_count: number): NjMotion {
             }
         }
 
-        // // NJD_MTYPE_VEC_3
-        // if ((type & (1 << 3)) !== 0) {
-        //     cursor.seek_start(keyframe_offsets.shift()!);
-        //     motion_data.tracks.push(
-        //         parse_motion_data_f(cursor, keyframe_counts.shift()!)
-        //     );
-        // }
-
-        // // NJD_MTYPE_TARGET_3
-        // if ((type & (1 << 6)) !== 0) {
-        //     cursor.seek_start(keyframe_offsets.shift()!);
-        //     motion_data.tracks.push(
-        //         parse_motion_data_f(cursor, keyframe_counts.shift()!)
-        //     );
-        // }
-
         // TODO: all NJD_MTYPE's
     }
 
@@ -247,9 +231,9 @@ function parse_motion_data_a_wide(cursor: BufferCursor, keyframe_count: number):
         frames.push({
             frame: cursor.u32(),
             value: new Vec3(
-                cursor.u32() * ANGLE_TO_RAD,
-                cursor.u32() * ANGLE_TO_RAD,
-                cursor.u32() * ANGLE_TO_RAD
+                cursor.i32() * ANGLE_TO_RAD,
+                cursor.i32() * ANGLE_TO_RAD,
+                cursor.i32() * ANGLE_TO_RAD
             ),
         });
     }

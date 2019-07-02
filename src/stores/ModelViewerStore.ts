@@ -9,7 +9,6 @@ import { create_animation_clip, PSO_FRAME_RATE } from "../rendering/animation";
 import { ninja_object_to_skinned_mesh } from "../rendering/models";
 import { get_player_data } from './binary_assets';
 
-const HEAD_PART_REGEX = /^pl[A-Z](hed|hai|cap)\d\d.nj$/;
 const logger = Logger.get('stores/ModelViewerStore');
 const cache: Map<string, Promise<NinjaObject<NinjaModel>>> = new Map();
 
@@ -89,26 +88,20 @@ class ModelViewerStore {
         }
     })
 
-    private set_model = action('set_model',
-        (model: NinjaObject<NinjaModel>, filename?: string) => {
-            if (this.current_obj3d && this.animation) {
-                this.animation.mixer.stopAllAction();
-                this.animation.mixer.uncacheRoot(this.current_obj3d);
-                this.animation = undefined;
-            }
-
-            if (this.current_model && filename && HEAD_PART_REGEX.test(filename)) {
-                this.add_to_bone(this.current_model, model, 59);
-            } else {
-                this.current_model = model;
-                this.current_bone_count = model.bone_count();
-            }
-
-            const mesh = ninja_object_to_skinned_mesh(this.current_model);
-            mesh.translateY(-mesh.geometry.boundingSphere.radius);
-            this.current_obj3d = mesh;
+    private set_model = action('set_model', (model: NinjaObject<NinjaModel>) => {
+        if (this.current_obj3d && this.animation) {
+            this.animation.mixer.stopAllAction();
+            this.animation.mixer.uncacheRoot(this.current_obj3d);
+            this.animation = undefined;
         }
-    )
+
+        this.current_model = model;
+        this.current_bone_count = model.bone_count();
+
+        const mesh = ninja_object_to_skinned_mesh(this.current_model);
+        mesh.translateY(-mesh.geometry.boundingSphere.radius);
+        this.current_obj3d = mesh;
+    })
 
     // TODO: notify user of problems.
     private loadend = async (file: File, reader: FileReader) => {
@@ -119,10 +112,10 @@ class ModelViewerStore {
 
         if (file.name.endsWith('.nj')) {
             const model = parse_nj(new BufferCursor(reader.result, true))[0];
-            this.set_model(model, file.name);
+            this.set_model(model);
         } else if (file.name.endsWith('.xj')) {
             const model = parse_xj(new BufferCursor(reader.result, true))[0];
-            this.set_model(model, file.name);
+            this.set_model(model);
         } else if (file.name.endsWith('.njm')) {
             if (this.current_model) {
                 const njm = parse_njm(

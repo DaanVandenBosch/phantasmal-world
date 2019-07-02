@@ -16,6 +16,7 @@ export function create_animation_clip(
 
     motion.motion_data.forEach((motion_data, bone_id) => {
         const bone = object.get_bone(bone_id);
+        if (!bone) return;
 
         motion_data.tracks.forEach(({ type, keyframes }) => {
             const times: number[] = [];
@@ -25,7 +26,7 @@ export function create_animation_clip(
                 times.push(keyframe.frame / PSO_FRAME_RATE);
 
                 if (type === NjKeyframeTrackType.Rotation) {
-                    const order = bone && bone.evaluation_flags.zxy_rotation_order ? 'ZXY' : 'ZYX';
+                    const order = bone.evaluation_flags.zxy_rotation_order ? 'ZXY' : 'ZYX';
                     const quat = new Quaternion().setFromEuler(
                         new Euler(keyframe.value.x, keyframe.value.y, keyframe.value.z, order)
                     );
