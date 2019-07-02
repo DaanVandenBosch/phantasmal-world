@@ -34,7 +34,8 @@
     "build": "craco build",
     "test": "craco test",
     "update_generic_data": "ts-node --project=tsconfig-scripts.json static_generation/update_generic_data.ts",
-    "update_ephinea_data": "ts-node --project=tsconfig-scripts.json static_generation/update_ephinea_data.ts"
+    "update_ephinea_data": "ts-node --project=tsconfig-scripts.json static_generation/update_ephinea_data.ts",
+    "lint": "prettier --check \"{src,static_generation,test}/**/*.{ts,tsx}\" && eslint \"{src,static_generation,test}/**/*.{ts,tsx}\" && echo All code passes the prettier and eslint checks."
   },
   "eslintConfig": {
     "extends": "react-app"

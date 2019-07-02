@@ -7,7 +7,7 @@ import Logger from "js-logger";
 
 const logger = Logger.get("static/update_drops_ephinea");
 
-export async function update_drops_from_website(item_types: ItemTypeDto[]) {
+export async function update_drops_from_website(item_types: ItemTypeDto[]): Promise<void> {
     logger.info("Updating item drops.");
 
     const normal = await download(item_types, Difficulty.Normal);
@@ -38,15 +38,15 @@ async function download(
     item_types: ItemTypeDto[],
     difficulty: Difficulty,
     difficulty_url: string = Difficulty[difficulty].toLowerCase()
-) {
+): Promise<{ enemy_drops: EnemyDropDto[]; box_drops: BoxDropDto[]; items: Set<string> }> {
     const response = await fetch(`https://ephinea.pioneer2.net/drop-charts/${difficulty_url}/`);
     const body = await response.text();
     const $ = cheerio.load(body);
 
     let episode = 1;
     const data: {
-        enemy_drops: Array<EnemyDropDto>;
-        box_drops: Array<BoxDropDto>;
+        enemy_drops: EnemyDropDto[];
+        box_drops: BoxDropDto[];
         items: Set<string>;
     } = {
         enemy_drops: [],

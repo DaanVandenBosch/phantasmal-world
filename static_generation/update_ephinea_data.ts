@@ -33,6 +33,10 @@ const RESOURCE_DIR = "./static/resources/ephinea";
  * Used by production code.
  */
 const PUBLIC_DIR = "./public";
+/**
+ * Enable this if we ever get the Ephinea ItemPT.gsl file.
+ */
+const USE_ITEMPT = false;
 
 update().catch(e => logger.error(e));
 
@@ -43,18 +47,21 @@ update().catch(e => logger.error(e));
  *  - Clio is equipable by HUnewearls
  *  - Red Ring has a requirement of 180, not 108
  */
-async function update() {
+async function update(): Promise<void> {
     logger.info("Updating static Ephinea data.");
 
     const unitxt = load_unitxt();
     const item_names = unitxt[1];
     const items = update_items(item_names);
-    await update_drops_from_website(items);
-    update_quests();
 
-    // Use this if we ever get the Ephinea drop files.
-    // const item_pt = await load_item_pt();
-    // await update_drops(item_pt);
+    if (USE_ITEMPT) {
+        const item_pt = await load_item_pt();
+        await update_drops(item_pt);
+    } else {
+        await update_drops_from_website(items);
+    }
+
+    update_quests();
 
     logger.info("Done updating static Ephinea data.");
 }
@@ -72,7 +79,7 @@ async function update() {
  *  - The Value of Money (quest3_e.dat, can't be parsed, luckily doesn't have enemies)
  * Note: The MA4R quests use a random area variation per area from the ABC MA quests. E.g. MA4-1R will use a random caves 2 variation from MA4-1A, MA4-1B or MA4-1C. Same for mines 2 and ruins 2.
  */
-function update_quests() {
+function update_quests(): Promise<void> {
     logger.info("Updating quest data.");
 
     const quests = new Array<QuestDto>();
@@ -97,7 +104,7 @@ function update_quests() {
     logger.info("Done updating quest data.");
 }
 
-function process_quest_dir(path: string, quests: QuestDto[]) {
+function process_quest_dir(path: string, quests: QuestDto[]): void {
     const stat = fs.statSync(path);
 
     if (stat.isFile()) {
@@ -109,7 +116,7 @@ function process_quest_dir(path: string, quests: QuestDto[]) {
     }
 }
 
-function process_quest(path: string, quests: QuestDto[]) {
+function process_quest(path: string, quests: QuestDto[]): void {
     try {
         const buf = fs.readFileSync(path);
         const q = parse_quest(new BufferCursor(buf.buffer, true), true);
@@ -157,7 +164,7 @@ function load_unitxt(): Unitxt {
     return unitxt;
 }
 
-function update_items(item_names: Array<string>): ItemTypeDto[] {
+function update_items(item_names: string[]): ItemTypeDto[] {
     logger.info("Updating item type data.");
 
     const buf = fs.readFileSync(`${RESOURCE_DIR}/ship-config/param/ItemPMT.bin`);
@@ -262,7 +269,7 @@ function update_items(item_names: Array<string>): ItemTypeDto[] {
     return item_types;
 }
 
-function update_drops(item_pt: ItemPt) {
+function update_drops(item_pt: ItemPt): void {
     logger.info("Updating drop data.");
 
     const enemy_drops = new Array<EnemyDropDto>();
@@ -295,7 +302,7 @@ function update_drops(item_pt: ItemPt) {
 type ItemP = {
     dar_table: Map<NpcType, number>;
 };
-type ItemPt = Array<Array<Array<ItemP>>>;
+type ItemPt = ItemP[][][];
 
 async function load_item_pt(): Promise<ItemPt> {
     logger.info("Loading ItemPT.gsl.");
@@ -560,8 +567,8 @@ function load_box_drops(
     difficulty: Difficulty,
     episode: Episode,
     section_id: SectionId
-): Array<BoxDropDto> {
-    const drops: Array<BoxDropDto> = [];
+): BoxDropDto[] {
+    const drops: BoxDropDto[] = [];
     const drops_buf = fs.readFileSync(
         `${RESOURCE_DIR}/login-config/drop/ep${episode}_box_${difficulty}_${section_id}.txt`
     );
@@ -599,7 +606,18 @@ function load_box_drops(
     return drops;
 }
 
-function get_stat_boosts(item_pmt: ItemPmt, stat_boost_index: number) {
+function get_stat_boosts(
+    item_pmt: ItemPmt,
+    stat_boost_index: number
+): {
+    atp: number;
+    ata: number;
+    minEvp: number;
+    minDfp: number;
+    mst: number;
+    hp: number;
+    lck: number;
+} {
     const stat_boost = item_pmt.stat_boosts[stat_boost_index];
     let atp = 0;
     let ata = 0;
@@ -675,7 +693,7 @@ function get_stat_boosts(item_pmt: ItemPmt, stat_boost_index: number) {
     return { atp, ata, minEvp: min_evp, minDfp: min_dfp, mst, hp, lck };
 }
 
-function get_enemy_type(episode: Episode, index: number) {
+function get_enemy_type(episode: Episode, index: number): NpcType | undefined {
     if (episode === Episode.I) {
         return [
             undefined,

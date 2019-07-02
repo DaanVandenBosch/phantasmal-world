@@ -18,7 +18,7 @@ const PUBLIC_DIR = "./public";
 
 update();
 
-function update() {
+function update(): void {
     logger.info("Updating generic static data.");
 
     logger.info("Extracting player animations.");

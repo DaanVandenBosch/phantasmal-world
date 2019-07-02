@@ -48,7 +48,7 @@ class PrcDecryptor {
         return out_cursor;
     }
 
-    private construct_keys(key: number) {
+    private construct_keys(key: number): void {
         this.keys[55] = key;
 
         let idx;
@@ -68,7 +68,7 @@ class PrcDecryptor {
         this.mix_keys();
     }
 
-    private mix_keys() {
+    private mix_keys(): void {
         let ptr = 1;
 
         for (let i = 24; i; --i, ++ptr) {
@@ -82,7 +82,7 @@ class PrcDecryptor {
         }
     }
 
-    private decrypt_u32(data: number) {
+    private decrypt_u32(data: number): number {
         if (this.key_pos === 56) {
             this.mix_keys();
             this.key_pos = 1;

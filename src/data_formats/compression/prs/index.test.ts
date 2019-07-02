@@ -1,7 +1,7 @@
 import { BufferCursor } from "../../BufferCursor";
 import { compress, decompress } from "../prs";
 
-function test_with_bytes(bytes: number[], expected_compressed_size: number) {
+function test_with_bytes(bytes: number[], expected_compressed_size: number): void {
     const cursor = new BufferCursor(new Uint8Array(bytes).buffer, true);
 
     for (const byte of bytes) {
@@ -38,7 +38,7 @@ test("PRS compression and decompression, worst case", () => {
     const prng = new Prng();
 
     // Compression factor: 1.124
-    test_with_bytes(new Array(1000).fill(0).map(_ => prng.next_integer(0, 255)), 1124);
+    test_with_bytes(new Array(1000).fill(0).map(() => prng.next_integer(0, 255)), 1124);
 });
 
 test("PRS compression and decompression, typical case", () => {

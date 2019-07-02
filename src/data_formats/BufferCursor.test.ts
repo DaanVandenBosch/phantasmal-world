@@ -47,7 +47,7 @@ test("reallocation of internal buffer when necessary", () => {
     expect(cursor.buffer.byteLength).toBeGreaterThanOrEqual(4);
 });
 
-function test_integer_read(method_name: string) {
+function test_integer_read(method_name: string): void {
     test(method_name, () => {
         const bytes = parseInt(method_name.replace(/^[iu](\d+)$/, "$1"), 10) / 8;
         let test_number_1 = 0;
@@ -98,7 +98,7 @@ test("u8_array", () => {
     expect(cursor.seek_start(5).u8_array(3)).toEqual([6, 7, 8]);
 });
 
-function test_string_read(method_name: string, char_size: number) {
+function test_string_read(method_name: string, char_size: number): void {
     test(method_name, () => {
         const char_array = [7, 65, 66, 0, 255, 13];
 
@@ -145,7 +145,7 @@ function test_string_read(method_name: string, char_size: number) {
 test_string_read("string_ascii", 1);
 test_string_read("string_utf16", 2);
 
-function test_integer_write(method_name: string) {
+function test_integer_write(method_name: string): void {
     test(method_name, () => {
         const bytes = parseInt(method_name.replace(/^write_[iu](\d+)$/, "$1"), 10) / 8;
         let test_number_1 = 0;

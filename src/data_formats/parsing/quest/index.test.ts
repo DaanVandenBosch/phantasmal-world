@@ -51,7 +51,7 @@ test("parse_quest and write_quest_qst", () => {
     expect(testable_area_variants(test_quest)).toEqual(testable_area_variants(orig_quest));
 });
 
-function testable_objects(quest: Quest) {
+function testable_objects(quest: Quest): any[][] {
     return quest.objects.map(object => [
         object.area_id,
         object.section_id,
@@ -60,10 +60,10 @@ function testable_objects(quest: Quest) {
     ]);
 }
 
-function testable_npcs(quest: Quest) {
+function testable_npcs(quest: Quest): any[][] {
     return quest.npcs.map(npc => [npc.area_id, npc.section_id, npc.position, npc.type]);
 }
 
-function testable_area_variants(quest: Quest) {
+function testable_area_variants(quest: Quest): any[][] {
     return quest.area_variants.map(av => [av.area.id, av.id]);
 }
