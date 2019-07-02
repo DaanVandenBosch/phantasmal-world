@@ -9,7 +9,7 @@ export function SectionIdIcon({
     section_id: SectionId;
     size?: number;
     title?: string;
-}) {
+}): JSX.Element {
     return (
         <div
             title={title}

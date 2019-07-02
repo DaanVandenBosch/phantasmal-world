@@ -3,7 +3,7 @@ import { WantedItemsComponent } from "./WantedItemsComponent";
 import { OptimizationResultComponent } from "./OptimizationResultComponent";
 import "./OptimizerComponent.css";
 
-export function OptimizerComponent() {
+export function OptimizerComponent(): JSX.Element {
     return (
         <section className="ho-OptimizerComponent">
             <WantedItemsComponent />

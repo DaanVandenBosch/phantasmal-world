@@ -3,7 +3,7 @@ import Logger from "js-logger";
 
 const logger = Logger.get("data_formats/compression/prs/decompress");
 
-export function decompress(cursor: BufferCursor) {
+export function decompress(cursor: BufferCursor): BufferCursor {
     const ctx = new Context(cursor);
 
     while (true) {
@@ -65,7 +65,7 @@ class Context {
         this.flag_bits_left = 0;
     }
 
-    read_flag_bit() {
+    read_flag_bit(): number {
         // Fetch a new flag byte when the previous byte has been processed.
         if (this.flag_bits_left === 0) {
             this.flags = this.read_u8();
@@ -78,19 +78,19 @@ class Context {
         return bit;
     }
 
-    copy_u8() {
+    copy_u8(): void {
         this.dst.write_u8(this.read_u8());
     }
 
-    read_u8() {
+    read_u8(): number {
         return this.src.u8();
     }
 
-    read_u16() {
+    read_u16(): number {
         return this.src.u16();
     }
 
-    offset_copy(offset: number, length: number) {
+    offset_copy(offset: number, length: number): void {
         if (offset < -8192 || offset > 0) {
             logger.error(`offset was ${offset}, should be between -8192 and 0.`);
         }

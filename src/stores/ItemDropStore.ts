@@ -38,7 +38,12 @@ export class EnemyDropTable {
         ];
     }
 
-    set_drop(difficulty: Difficulty, section_id: SectionId, npc_type: NpcType, drop: EnemyDrop) {
+    set_drop(
+        difficulty: Difficulty,
+        section_id: SectionId,
+        npc_type: NpcType,
+        drop: EnemyDrop
+    ): void {
         this.table[
             difficulty * SectionIds.length * NpcTypes.length +
                 section_id * NpcTypes.length +

@@ -104,7 +104,7 @@ export function parse_item_pmt(cursor: BufferCursor): ItemPmt {
 
     const compact_table_offsets = cursor.u16_array(main_table_size);
     const table_offsets: { offset: number; size: number }[] = [];
-    let expanded_offset: number = 0;
+    let expanded_offset = 0;
 
     for (const compact_offset of compact_table_offsets) {
         expanded_offset = expanded_offset + 4 * compact_offset;

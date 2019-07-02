@@ -66,7 +66,7 @@ export class QuestRenderer extends Renderer {
         this.scene.add(this.npc_geometry);
     }
 
-    set_quest_and_area(quest?: Quest, area?: Area) {
+    set_quest_and_area(quest?: Quest, area?: Area): void {
         let update = false;
 
         if (this.area !== area) {
@@ -102,13 +102,13 @@ export class QuestRenderer extends Renderer {
         }
     }
 
-    protected render() {
+    protected render(): void {
         this.controls.update();
         this.add_loaded_entities();
         this.renderer.render(this.scene, this.camera);
     }
 
-    private async update_geometry() {
+    private async update_geometry(): Promise<void> {
         this.scene.remove(this.obj_geometry);
         this.scene.remove(this.npc_geometry);
         this.obj_geometry = new Object3D();
@@ -152,7 +152,7 @@ export class QuestRenderer extends Renderer {
         }
     }
 
-    private add_loaded_entities() {
+    private add_loaded_entities(): void {
         if (this.quest && this.area && !this.quest_entities_loaded) {
             let loaded = true;
 
@@ -325,7 +325,7 @@ export class QuestRenderer extends Renderer {
         }
     };
 
-    private pointer_pos_to_device_coords(e: MouseEvent) {
+    private pointer_pos_to_device_coords(e: MouseEvent): Vector2 {
         const coords = new Vector2();
         this.renderer.getSize(coords);
         coords.width = (e.offsetX / coords.width) * 2 - 1;
@@ -412,7 +412,7 @@ export class QuestRenderer extends Renderer {
         return {};
     }
 
-    private get_color(entity: QuestEntity, type: "normal" | "hover" | "selected") {
+    private get_color(entity: QuestEntity, type: "normal" | "hover" | "selected"): number {
         const is_npc = entity instanceof QuestNpc;
 
         switch (type) {

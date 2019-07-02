@@ -1104,7 +1104,7 @@ export class NpcType {
     NpcType.Shambertin.rare_type = NpcType.Kondrieu;
 })();
 
-export const NpcTypes: Array<NpcType> = [
+export const NpcTypes: NpcType[] = [
     //
     // Unknown NPCs
     //

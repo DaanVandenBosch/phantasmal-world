@@ -59,7 +59,7 @@ type Vertex = {
 class VerticesHolder {
     private vertices_stack: Vertex[][] = [];
 
-    put(vertices: Vertex[]) {
+    put(vertices: Vertex[]): void {
         this.vertices_stack.push(vertices);
     }
 
@@ -79,6 +79,7 @@ class VerticesHolder {
 }
 
 class Object3DCreator {
+    private material: Material;
     private bone_id: number = 0;
     private vertices = new VerticesHolder();
     private positions: number[] = [];
@@ -88,7 +89,9 @@ class Object3DCreator {
     private bone_weights: number[] = [];
     private bones: Bone[] = [];
 
-    constructor(private material: Material) {}
+    constructor(material: Material) {
+        this.material = material;
+    }
 
     create_buffer_geometry(object: NinjaObject<NinjaModel>): BufferGeometry {
         this.object_to_geometry(object, undefined, new Matrix4());
@@ -123,7 +126,7 @@ class Object3DCreator {
         object: NinjaObject<NinjaModel>,
         parent_bone: Bone | undefined,
         parent_matrix: Matrix4
-    ) {
+    ): void {
         const {
             no_translate,
             no_rotate,
@@ -179,7 +182,7 @@ class Object3DCreator {
         }
     }
 
-    private model_to_geometry(model: NinjaModel, matrix: Matrix4) {
+    private model_to_geometry(model: NinjaModel, matrix: Matrix4): void {
         if (model.type === "nj") {
             this.nj_model_to_geometry(model, matrix);
         } else {
@@ -187,7 +190,7 @@ class Object3DCreator {
         }
     }
 
-    private nj_model_to_geometry(model: NjModel, matrix: Matrix4) {
+    private nj_model_to_geometry(model: NjModel, matrix: Matrix4): void {
         const normal_matrix = new Matrix3().getNormalMatrix(matrix);
 
         const new_vertices = model.vertices.map(vertex => {
@@ -250,7 +253,7 @@ class Object3DCreator {
         }
     }
 
-    private xj_model_to_geometry(model: XjModel, matrix: Matrix4) {
+    private xj_model_to_geometry(model: XjModel, matrix: Matrix4): void {
         const positions = this.positions;
         const normals = this.normals;
         const indices = this.indices;

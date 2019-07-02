@@ -1,6 +1,6 @@
 import { computed } from "mobx";
 import { observer } from "mobx-react";
-import React from "react";
+import React, { Component, ReactNode } from "react";
 import { AutoSizer, Index } from "react-virtualized";
 import { Difficulty, Episode, SectionId } from "../../domain";
 import { hunt_optimizer_store, OptimalMethod } from "../../stores/HuntOptimizerStore";
@@ -10,7 +10,7 @@ import { hours_to_string } from "../time";
 import "./OptimizationResultComponent.less";
 
 @observer
-export class OptimizationResultComponent extends React.Component {
+export class OptimizationResultComponent extends Component {
     @computed private get columns(): Column<OptimalMethod>[] {
         // Standard columns.
         const result = hunt_optimizer_store.result;
@@ -110,11 +110,11 @@ export class OptimizationResultComponent extends React.Component {
     }
 
     // Make sure render is called when result changes.
-    @computed private get update_trigger() {
+    @computed private get update_trigger(): any {
         return hunt_optimizer_store.result;
     }
 
-    render() {
+    render(): ReactNode {
         this.update_trigger; // eslint-disable-line
         const result = hunt_optimizer_store.result;
 

@@ -1,7 +1,7 @@
 import { Menu, Select } from "antd";
 import { ClickParam } from "antd/lib/menu";
 import { observer } from "mobx-react";
-import React from "react";
+import React, { ReactNode } from "react";
 import "./ApplicationComponent.less";
 import { with_error_boundary } from "./ErrorBoundary";
 import { HuntOptimizerComponent } from "./hunt_optimizer/HuntOptimizerComponent";
@@ -19,7 +19,7 @@ const DpsCalc = with_error_boundary(DpsCalcComponent);
 export class ApplicationComponent extends React.Component {
     state = { tool: this.init_tool() };
 
-    render() {
+    render(): ReactNode {
         let tool_component;
 
         switch (this.state.tool) {

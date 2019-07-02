@@ -2,7 +2,7 @@ import React from "react";
 import { NpcType, Quest } from "../../domain";
 import "./QuestInfoComponent.css";
 
-export function QuestInfoComponent({ quest }: { quest?: Quest }) {
+export function QuestInfoComponent({ quest }: { quest?: Quest }): JSX.Element {
     if (quest) {
         const episode = quest.episode === 4 ? "IV" : quest.episode === 2 ? "II" : "I";
         const npc_counts = new Map<NpcType, number>();

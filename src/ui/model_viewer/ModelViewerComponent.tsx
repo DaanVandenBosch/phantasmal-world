@@ -2,21 +2,21 @@ import { Button, InputNumber, Upload, Switch } from "antd";
 import { UploadChangeParam } from "antd/lib/upload";
 import { UploadFile } from "antd/lib/upload/interface";
 import { observer } from "mobx-react";
-import React from "react";
+import React, { ReactNode, Component } from "react";
 import { model_viewer_store } from "../../stores/ModelViewerStore";
 import { ModelSelectionComponent } from "./ModelSelectionComponent";
 import "./ModelViewerComponent.less";
 import { RendererComponent } from "./RendererComponent";
 
 @observer
-export class ModelViewerComponent extends React.Component {
-    componentDidMount() {
+export class ModelViewerComponent extends Component {
+    componentDidMount(): void {
         if (!model_viewer_store.current_model) {
             model_viewer_store.load_model(model_viewer_store.models[5]);
         }
     }
 
-    render() {
+    render(): ReactNode {
         return (
             <div className="mv-ModelViewerComponent">
                 <Toolbar />
@@ -30,12 +30,12 @@ export class ModelViewerComponent extends React.Component {
 }
 
 @observer
-class Toolbar extends React.Component {
+class Toolbar extends Component {
     state = {
         filename: undefined,
     };
 
-    render() {
+    render(): ReactNode {
         return (
             <div className="mv-ModelViewerComponent-toolbar">
                 <Upload

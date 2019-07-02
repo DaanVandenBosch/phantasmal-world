@@ -10,7 +10,7 @@ export function parse_unitxt(buf: BufferCursor, compressed: boolean = true): Uni
 
     const category_count = buf.u32();
     const entry_counts = buf.u32_array(category_count);
-    const category_entry_offsets: Array<Array<number>> = [];
+    const category_entry_offsets: number[][] = [];
 
     for (const entry_count of entry_counts) {
         category_entry_offsets.push(buf.u32_array(entry_count));

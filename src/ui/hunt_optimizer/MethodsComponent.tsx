@@ -1,7 +1,7 @@
 import { TimePicker } from "antd";
 import { observer } from "mobx-react";
 import moment, { Moment } from "moment";
-import React from "react";
+import React, { ReactNode, Component } from "react";
 import { AutoSizer, Index, SortDirection } from "react-virtualized";
 import { Episode, HuntMethod } from "../../domain";
 import { EnemyNpcTypes, NpcType } from "../../domain/NpcType";
@@ -10,8 +10,8 @@ import { BigTable, Column, ColumnSort } from "../BigTable";
 import "./MethodsComponent.css";
 
 @observer
-export class MethodsComponent extends React.Component {
-    static columns: Array<Column<HuntMethod>> = (() => {
+export class MethodsComponent extends Component {
+    static columns: Column<HuntMethod>[] = (() => {
         // Standard columns.
         const columns: Column<HuntMethod>[] = [
             {
@@ -56,7 +56,7 @@ export class MethodsComponent extends React.Component {
         return columns;
     })();
 
-    render() {
+    render(): ReactNode {
         const methods = hunt_method_store.methods.current.value;
 
         return (
@@ -118,7 +118,7 @@ export class MethodsComponent extends React.Component {
 
 @observer
 class TimeComponent extends React.Component<{ method: HuntMethod }> {
-    render() {
+    render(): ReactNode {
         const time = this.props.method.time;
         const hour = Math.floor(time);
         const minute = Math.round(60 * (time - hour));

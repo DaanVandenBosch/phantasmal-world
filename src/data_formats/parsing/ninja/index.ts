@@ -20,26 +20,31 @@ export type NinjaVertex = {
 export type NinjaModel = NjModel | XjModel;
 
 export class NinjaObject<M extends NinjaModel> {
+    evaluation_flags: NinjaEvaluationFlags;
+    model: M | undefined;
+    position: Vec3;
+    rotation: Vec3; // Euler angles in radians.
+    scale: Vec3;
+    children: NinjaObject<M>[];
+
     private bone_cache = new Map<number, NinjaObject<M> | null>();
     private _bone_count = -1;
 
     constructor(
-        public evaluation_flags: {
-            no_translate: boolean;
-            no_rotate: boolean;
-            no_scale: boolean;
-            hidden: boolean;
-            break_child_trace: boolean;
-            zxy_rotation_order: boolean;
-            skip: boolean;
-            shape_skip: boolean;
-        },
-        public model: M | undefined,
-        public position: Vec3,
-        public rotation: Vec3, // Euler angles in radians.
-        public scale: Vec3,
-        public children: NinjaObject<M>[]
-    ) {}
+        evaluation_flags: NinjaEvaluationFlags,
+        model: M | undefined,
+        position: Vec3,
+        rotation: Vec3, // Euler angles in radians.
+        scale: Vec3,
+        children: NinjaObject<M>[]
+    ) {
+        this.evaluation_flags = evaluation_flags;
+        this.model = model;
+        this.position = position;
+        this.rotation = rotation;
+        this.scale = scale;
+        this.children = children;
+    }
 
     bone_count(): number {
         if (this._bone_count === -1) {
@@ -85,6 +90,17 @@ export class NinjaObject<M extends NinjaModel> {
         }
     }
 }
+
+export type NinjaEvaluationFlags = {
+    no_translate: boolean;
+    no_rotate: boolean;
+    no_scale: boolean;
+    hidden: boolean;
+    break_child_trace: boolean;
+    zxy_rotation_order: boolean;
+    skip: boolean;
+    shape_skip: boolean;
+};
 
 export function parse_nj(cursor: BufferCursor): NinjaObject<NjModel>[] {
     return parse_ninja(cursor, parse_nj_model, []);

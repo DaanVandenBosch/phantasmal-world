@@ -32,25 +32,42 @@ export class WantedItem {
 }
 
 export class OptimalResult {
-    constructor(
-        readonly wanted_items: Array<ItemType>,
-        readonly optimal_methods: Array<OptimalMethod>
-    ) {}
+    readonly wanted_items: ItemType[];
+    readonly optimal_methods: OptimalMethod[];
+
+    constructor(wanted_items: ItemType[], optimal_methods: OptimalMethod[]) {
+        this.wanted_items = wanted_items;
+        this.optimal_methods = optimal_methods;
+    }
 }
 
 export class OptimalMethod {
+    readonly difficulty: Difficulty;
+    readonly section_ids: SectionId[];
+    readonly method_name: string;
+    readonly method_episode: Episode;
+    readonly method_time: number;
+    readonly runs: number;
     readonly total_time: number;
+    readonly item_counts: Map<ItemType, number>;
 
     constructor(
-        readonly difficulty: Difficulty,
-        readonly section_ids: Array<SectionId>,
-        readonly method_name: string,
-        readonly method_episode: Episode,
-        readonly method_time: number,
-        readonly runs: number,
-        readonly item_counts: Map<ItemType, number>
+        difficulty: Difficulty,
+        section_ids: SectionId[],
+        method_name: string,
+        method_episode: Episode,
+        method_time: number,
+        runs: number,
+        item_counts: Map<ItemType, number>
     ) {
+        this.difficulty = difficulty;
+        this.section_ids = section_ids;
+        this.method_name = method_name;
+        this.method_episode = method_episode;
+        this.method_time = method_time;
+        this.runs = runs;
         this.total_time = runs * method_time;
+        this.item_counts = item_counts;
     }
 }
 
@@ -62,7 +79,7 @@ export class OptimalMethod {
 //       Can be useful when deciding which item to hunt first.
 // TODO: boxes.
 class HuntOptimizerStore {
-    @computed get huntable_item_types(): Array<ItemType> {
+    @computed get huntable_item_types(): ItemType[] {
         const item_drop_store = item_drop_stores.current.value;
         return item_type_stores.current.value.item_types.filter(
             i => item_drop_store.enemy_drops.get_drops_for_item_type(i.id).length
@@ -148,7 +165,7 @@ class HuntOptimizerStore {
 
             // Create a secondary counts map if there are any pan arms that can be split into
             // migiums and hidooms.
-            const counts_list: Array<Map<NpcType, number>> = [counts];
+            const counts_list: Map<NpcType, number>[] = [counts];
             const pan_arms_count = counts.get(NpcType.PanArms);
 
             if (pan_arms_count) {
@@ -237,7 +254,7 @@ class HuntOptimizerStore {
             return;
         }
 
-        const optimal_methods: Array<OptimalMethod> = [];
+        const optimal_methods: OptimalMethod[] = [];
 
         // Loop over the entries in result, ignore standard properties that aren't variables.
         for (const [variable_name, runs_or_other] of Object.entries(result)) {
@@ -262,7 +279,7 @@ class HuntOptimizerStore {
                 // Find all section IDs that provide the same items with the same expected amount.
                 // E.g. if you need a spread needle and a bringer's right arm, using either
                 // purplenum or yellowboze will give you the exact same probabilities.
-                const section_ids: Array<SectionId> = [];
+                const section_ids: SectionId[] = [];
 
                 for (const sid of SectionIds) {
                     let match_found = true;

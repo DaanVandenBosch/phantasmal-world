@@ -34,19 +34,19 @@ export class Renderer {
         return this.renderer.domElement;
     }
 
-    set_size(width: number, height: number) {
+    set_size(width: number, height: number): void {
         this.renderer.setSize(width, height);
         this.camera.aspect = width / height;
         this.camera.updateProjectionMatrix();
     }
 
-    protected reset_camera(position: Vector3, look_at: Vector3) {
+    protected reset_camera(position: Vector3, look_at: Vector3): void {
         this.controls.reset();
         this.camera.position.copy(position);
         this.camera.lookAt(look_at);
     }
 
-    protected render() {
+    protected render(): void {
         this.controls.update();
         this.renderer.render(this.scene, this.camera);
     }

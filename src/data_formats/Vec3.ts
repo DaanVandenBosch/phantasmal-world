@@ -16,7 +16,7 @@ export class Vec3 {
         return this;
     }
 
-    clone() {
+    clone(): Vec3 {
         return new Vec3(this.x, this.y, this.z);
     }
 }

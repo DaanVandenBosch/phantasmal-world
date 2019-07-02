@@ -1,4 +1,4 @@
-import React from "react";
+import React, { ReactNode, Component } from "react";
 import { Area, Quest } from "../../domain";
 import { get_quest_renderer } from "../../rendering/QuestRenderer";
 
@@ -7,26 +7,26 @@ type Props = {
     area?: Area;
 };
 
-export class RendererComponent extends React.Component<Props> {
+export class RendererComponent extends Component<Props> {
     private renderer = get_quest_renderer();
 
-    render() {
+    render(): ReactNode {
         return <div style={{ overflow: "hidden" }} ref={this.modifyDom} />;
     }
 
-    componentDidMount() {
+    componentDidMount(): void {
         window.addEventListener("resize", this.onResize);
     }
 
-    componentWillUnmount() {
+    componentWillUnmount(): void {
         window.removeEventListener("resize", this.onResize);
     }
 
-    componentWillReceiveProps({ quest, area }: Props) {
+    componentWillReceiveProps({ quest, area }: Props): void {
         this.renderer.set_quest_and_area(quest, area);
     }
 
-    shouldComponentUpdate() {
+    shouldComponentUpdate(): boolean {
         return false;
     }
 

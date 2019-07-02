@@ -1,6 +1,6 @@
 import { InputNumber } from "antd";
 import { observer } from "mobx-react";
-import React from "react";
+import React, { ReactNode, Component } from "react";
 import { QuestNpc, QuestObject, QuestEntity } from "../../domain";
 import "./EntityInfoComponent.css";
 
@@ -9,8 +9,8 @@ export type Props = {
 };
 
 @observer
-export class EntityInfoComponent extends React.Component<Props> {
-    render() {
+export class EntityInfoComponent extends Component<Props> {
+    render(): ReactNode {
         const entity = this.props.entity;
 
         if (entity) {
@@ -105,12 +105,12 @@ export class EntityInfoComponent extends React.Component<Props> {
 }
 
 @observer
-class CoordRow extends React.Component<{
+class CoordRow extends Component<{
     entity: QuestEntity;
     position_type: "position" | "section_position";
     coord: "x" | "y" | "z";
 }> {
-    render() {
+    render(): ReactNode {
         const entity = this.props.entity;
         const value = entity[this.props.position_type][this.props.coord];
         return (

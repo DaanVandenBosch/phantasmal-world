@@ -27,7 +27,7 @@ class QuestEditorStore {
         }
     });
 
-    private reset_quest_state() {
+    private reset_quest_state(): void {
         this.current_quest = undefined;
         this.current_area = undefined;
         this.selected_entity = undefined;

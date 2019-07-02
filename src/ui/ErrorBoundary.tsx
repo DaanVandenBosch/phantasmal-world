@@ -1,13 +1,15 @@
 import { Alert } from "antd";
-import React from "react";
+import React, { ReactNode, Component, ComponentType } from "react";
 import "./ErrorBoundary.css";
 
-export class ErrorBoundary extends React.Component {
+type State = { has_error: boolean };
+
+export class ErrorBoundary extends Component<{}, State> {
     state = {
         has_error: false,
     };
 
-    render() {
+    render(): ReactNode {
         if (this.state.has_error) {
             return (
                 <div className="ErrorBoundary-error">
@@ -21,15 +23,17 @@ export class ErrorBoundary extends React.Component {
         }
     }
 
-    static getDerivedStateFromError(_error: any) {
-        return { hasError: true };
+    static getDerivedStateFromError(): State {
+        return { has_error: true };
     }
 }
 
-export function with_error_boundary(Component: React.ComponentType) {
-    return () => (
+export function with_error_boundary(Component: ComponentType): ComponentType {
+    const ComponentErrorBoundary = (): JSX.Element => (
         <ErrorBoundary>
             <Component />
         </ErrorBoundary>
     );
+    ComponentErrorBoundary.displayName = `${Component.displayName}ErrorBoundary`;
+    return ComponentErrorBoundary;
 }

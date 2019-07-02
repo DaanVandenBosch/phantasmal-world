@@ -135,7 +135,7 @@ class ModelViewerStore {
         object: NinjaObject<NinjaModel>,
         head_part: NinjaObject<NinjaModel>,
         bone_id: number
-    ) {
+    ): void {
         const bone = object.get_bone(bone_id);
 
         if (bone) {

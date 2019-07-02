@@ -6,7 +6,7 @@ import { MethodsComponent } from "./MethodsComponent";
 
 const TabPane = Tabs.TabPane;
 
-export function HuntOptimizerComponent() {
+export function HuntOptimizerComponent(): JSX.Element {
     return (
         <section className="ho-HuntOptimizerComponent">
             <Tabs type="card">

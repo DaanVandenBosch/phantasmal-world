@@ -9,6 +9,7 @@ const HEAVY_DAMAGE_FACTOR = NORMAL_DAMAGE_FACTOR * 1.89;
 // const CRIT_FACTOR = 1.5;
 
 class Weapon {
+    private readonly store: DpsCalcStore;
     readonly item: WeaponItem;
 
     @computed get shifta_atp(): number {
@@ -71,7 +72,8 @@ class Weapon {
         return (this.min_heavy_damage + this.max_heavy_damage) / 2;
     }
 
-    constructor(private store: DpsCalcStore, item: WeaponItem) {
+    constructor(store: DpsCalcStore, item: WeaponItem) {
+        this.store = store;
         this.item = item;
     }
 }

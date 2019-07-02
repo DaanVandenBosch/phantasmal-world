@@ -13,9 +13,9 @@ import { ServerMap } from "./ServerMap";
 import { ItemTypeDto } from "../dto";
 
 export class ItemTypeStore {
-    private id_to_item_type: Array<ItemType> = [];
+    private id_to_item_type: ItemType[] = [];
 
-    @observable item_types: Array<ItemType> = [];
+    @observable item_types: ItemType[] = [];
 
     get_by_id(id: number): ItemType | undefined {
         return this.id_to_item_type[id];
@@ -25,7 +25,7 @@ export class ItemTypeStore {
         const response = await fetch(
             `${process.env.PUBLIC_URL}/itemTypes.${Server[server].toLowerCase()}.json`
         );
-        const data: Array<ItemTypeDto> = await response.json();
+        const data: ItemTypeDto[] = await response.json();
 
         const item_types = new Array<ItemType>();
 

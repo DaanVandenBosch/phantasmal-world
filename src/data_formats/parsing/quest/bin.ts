@@ -224,7 +224,9 @@ function parse_instruction_arguments(
             // Strings
             case "s":
             case "S":
-                while (cursor.u16()) {}
+                while (cursor.u16()) {
+                    // Eat up the entire string.
+                }
                 break;
 
             default:
@@ -235,7 +237,7 @@ function parse_instruction_arguments(
     return { args, size: cursor.position - old_pos };
 }
 
-const opcode_list: Array<[number, string, string | null]> = [
+const opcode_list: [number, string, string | null][] = [
     [0x00, "nop", ""],
     [0x01, "ret", ""],
     [0x02, "sync", ""],
@@ -516,7 +518,7 @@ const opcode_list: Array<[number, string, string | null]> = [
     [0xff, "unknownFF", ""],
 ];
 
-const f8_opcode_list: Array<[number, string, string | null]> = [
+const f8_opcode_list: [number, string, string | null][] = [
     [0x00, "unknown", null],
     [0x01, "set_chat_callback?", "aRs"],
     [0x02, "unknown", null],
@@ -775,7 +777,7 @@ const f8_opcode_list: Array<[number, string, string | null]> = [
     [0xff, "unknown", null],
 ];
 
-const f9_opcode_list: Array<[number, string, string | null]> = [
+const f9_opcode_list: [number, string, string | null][] = [
     [0x00, "unknown", null],
     [0x01, "dec2float", "RR"],
     [0x02, "float2dec", "RR"],

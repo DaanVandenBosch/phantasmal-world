@@ -1,4 +1,4 @@
-import React, { ReactNode } from "react";
+import React, { ReactNode, Component } from "react";
 import {
     GridCellRenderer,
     Index,
@@ -8,7 +8,7 @@ import {
 } from "react-virtualized";
 import "./BigTable.less";
 
-export type Column<T> = {
+export interface Column<T> {
     key?: string;
     name: string;
     width: number;
@@ -21,7 +21,7 @@ export type Column<T> = {
      */
     class_name?: string;
     sortable?: boolean;
-};
+}
 
 export type ColumnSort<T> = { column: Column<T>; direction: SortDirectionType };
 
@@ -30,12 +30,12 @@ export type ColumnSort<T> = { column: Column<T>; direction: SortDirectionType };
  * Uses windowing to support large amounts of rows and columns.
  * TODO: no-content message.
  */
-export class BigTable<T> extends React.Component<{
+export class BigTable<T> extends Component<{
     width: number;
     height: number;
     row_count: number;
     overscan_row_count?: number;
-    columns: Array<Column<T>>;
+    columns: Column<T>[];
     fixed_column_count?: number;
     overscan_column_count?: number;
     record: (index: Index) => T;
@@ -44,11 +44,11 @@ export class BigTable<T> extends React.Component<{
      * When this changes, the DataTable will re-render.
      */
     update_trigger?: any;
-    sort?: (sort_columns: Array<ColumnSort<T>>) => void;
+    sort?: (sort_columns: ColumnSort<T>[]) => void;
 }> {
     private sort_columns = new Array<ColumnSort<T>>();
 
-    render() {
+    render(): ReactNode {
         return (
             <div
                 className="DataTable"
@@ -78,7 +78,7 @@ export class BigTable<T> extends React.Component<{
         return this.props.columns[index].width;
     };
 
-    private cell_renderer: GridCellRenderer = ({ columnIndex, rowIndex, style }) => {
+    private cell_renderer: GridCellRenderer = ({ columnIndex, rowIndex, style }): ReactNode => {
         const column = this.props.columns[columnIndex];
         let cell: ReactNode;
         let sort_indicator: ReactNode;
@@ -174,12 +174,12 @@ export class BigTable<T> extends React.Component<{
         );
     };
 
-    private header_clicked = (column: Column<T>) => {
+    private header_clicked = (column: Column<T>): void => {
         const old_index = this.sort_columns.findIndex(sc => sc.column === column);
         let old = old_index === -1 ? undefined : this.sort_columns.splice(old_index, 1)[0];
 
         const direction =
-            old_index === 0 && old!.direction === SortDirection.ASC
+            old_index === 0 && old && old.direction === SortDirection.ASC
                 ? SortDirection.DESC
                 : SortDirection.ASC;
 

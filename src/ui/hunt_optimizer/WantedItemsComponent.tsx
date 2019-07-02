@@ -1,6 +1,6 @@
 import { Button, InputNumber, Popover } from "antd";
 import { observer } from "mobx-react";
-import React from "react";
+import React, { ReactNode, Component } from "react";
 import { AutoSizer, Column, Table, TableCellRenderer } from "react-virtualized";
 import { hunt_optimizer_store, WantedItem } from "../../stores/HuntOptimizerStore";
 import { item_type_stores } from "../../stores/ItemTypeStore";
@@ -8,12 +8,12 @@ import { BigSelect } from "../BigSelect";
 import "./WantedItemsComponent.less";
 
 @observer
-export class WantedItemsComponent extends React.Component {
+export class WantedItemsComponent extends Component {
     state = {
         help_visible: false,
     };
 
-    render() {
+    render(): ReactNode {
         // Make sure render is called on updates.
         hunt_optimizer_store.wanted_items.slice(0, 0);
 
@@ -128,7 +128,7 @@ export class WantedItemsComponent extends React.Component {
     };
 }
 
-function Help() {
+function Help(): JSX.Element {
     return (
         <div className="ho-WantedItemsComponent-help">
             <p>
@@ -151,8 +151,8 @@ function Help() {
 }
 
 @observer
-class WantedAmountCell extends React.Component<{ wantedItem: WantedItem }> {
-    render() {
+class WantedAmountCell extends Component<{ wantedItem: WantedItem }> {
+    render(): ReactNode {
         const wanted = this.props.wantedItem;
 
         return (

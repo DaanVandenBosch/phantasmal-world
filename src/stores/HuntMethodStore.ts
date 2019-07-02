@@ -8,7 +8,7 @@ import { ServerMap } from "./ServerMap";
 const logger = Logger.get("stores/HuntMethodStore");
 
 class HuntMethodStore {
-    @observable methods: ServerMap<Loadable<Array<HuntMethod>>> = new ServerMap(
+    @observable methods: ServerMap<Loadable<HuntMethod[]>> = new ServerMap(
         server => new Loadable([], () => this.load_hunt_methods(server))
     );
 

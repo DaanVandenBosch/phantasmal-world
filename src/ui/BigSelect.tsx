@@ -1,4 +1,4 @@
-import React, { PureComponent } from "react";
+import React, { PureComponent, ReactNode } from "react";
 import {
     OptionValues,
     ReactAsyncSelectProps,
@@ -14,7 +14,7 @@ import "./BigSelect.less";
 export class BigSelect<TValue = OptionValues> extends PureComponent<
     VirtualizedSelectProps<TValue>
 > {
-    render() {
+    render(): ReactNode {
         return <VirtualizedSelect className="BigSelect" {...this.props} />;
     }
 }

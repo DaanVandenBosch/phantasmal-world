@@ -260,8 +260,8 @@ class Context {
 }
 
 class HashTable {
-    hash_to_offset: Array<number | null> = new Array(HASH_SIZE).fill(null);
-    masked_offset_to_prev: Array<number | null> = new Array(MAX_WINDOW).fill(null);
+    hash_to_offset: (number | null)[] = new Array(HASH_SIZE).fill(null);
+    masked_offset_to_prev: (number | null)[] = new Array(MAX_WINDOW).fill(null);
 
     hash(cursor: BufferCursor): number {
         let hash = cursor.u8();

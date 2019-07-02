@@ -2,7 +2,7 @@ import { Button, Form, Icon, Input, Modal, Select, Upload } from "antd";
 import { UploadChangeParam } from "antd/lib/upload";
 import { UploadFile } from "antd/lib/upload/interface";
 import { observer } from "mobx-react";
-import React, { ChangeEvent } from "react";
+import React, { ChangeEvent, ReactNode, Component } from "react";
 import { quest_editor_store } from "../../stores/QuestEditorStore";
 import { EntityInfoComponent } from "./EntityInfoComponent";
 import "./QuestEditorComponent.css";
@@ -10,7 +10,7 @@ import { QuestInfoComponent } from "./QuestInfoComponent";
 import { RendererComponent } from "./RendererComponent";
 
 @observer
-export class QuestEditorComponent extends React.Component<
+export class QuestEditorComponent extends Component<
     {},
     {
         filename?: string;
@@ -23,7 +23,7 @@ export class QuestEditorComponent extends React.Component<
         save_dialog_filename: "Untitled",
     };
 
-    render() {
+    render(): ReactNode {
         const quest = quest_editor_store.current_quest;
 
         return (
@@ -73,12 +73,12 @@ export class QuestEditorComponent extends React.Component<
 }
 
 @observer
-class Toolbar extends React.Component<{ onSaveAsClicked: (filename?: string) => void }> {
+class Toolbar extends Component<{ onSaveAsClicked: (filename?: string) => void }> {
     state = {
         filename: undefined,
     };
 
-    render() {
+    render(): ReactNode {
         const quest = quest_editor_store.current_quest;
         const areas = quest && Array.from(quest.area_variants).map(a => a.area);
         const area = quest_editor_store.current_area;
@@ -136,7 +136,7 @@ class SaveAsForm extends React.Component<{
     on_ok: () => void;
     on_cancel: () => void;
 }> {
-    render() {
+    render(): ReactNode {
         return (
             <Modal
                 title={

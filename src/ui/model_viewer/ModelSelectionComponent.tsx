@@ -1,10 +1,10 @@
 import { List } from "antd";
-import React, { Component } from "react";
+import React, { Component, ReactNode } from "react";
 import { model_viewer_store } from "../../stores/ModelViewerStore";
 import "./ModelSelectionComponent.less";
 
 export class ModelSelectionComponent extends Component {
-    render() {
+    render(): ReactNode {
         return (
             <section className="mv-ModelSelectionComponent">
                 <List

@@ -29,7 +29,7 @@ export enum Episode {
 
 export const Episodes: Episode[] = enum_values(Episode);
 
-export function check_episode(episode: Episode) {
+export function check_episode(episode: Episode): void {
     if (!Episode[episode]) {
         throw new Error(`Invalid episode ${episode}.`);
     }

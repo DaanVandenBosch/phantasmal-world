@@ -1,4 +1,4 @@
-import React from "react";
+import React, { ReactNode, Component } from "react";
 import { SkinnedMesh } from "three";
 import { get_model_renderer } from "../../rendering/ModelRenderer";
 
@@ -6,26 +6,26 @@ type Props = {
     model?: SkinnedMesh;
 };
 
-export class RendererComponent extends React.Component<Props> {
+export class RendererComponent extends Component<Props> {
     private renderer = get_model_renderer();
 
-    render() {
+    render(): ReactNode {
         return <div style={{ overflow: "hidden" }} ref={this.modifyDom} />;
     }
 
-    componentDidMount() {
+    componentDidMount(): void {
         window.addEventListener("resize", this.onResize);
     }
 
-    componentWillUnmount() {
+    componentWillUnmount(): void {
         window.removeEventListener("resize", this.onResize);
     }
 
-    componentWillReceiveProps({ model }: Props) {
+    componentWillReceiveProps({ model }: Props): void {
         this.renderer.set_model(model);
     }
 
-    shouldComponentUpdate() {
+    shouldComponentUpdate(): boolean {
         return false;
     }
 

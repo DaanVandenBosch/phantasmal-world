@@ -27,7 +27,7 @@ export class ModelRenderer extends Renderer {
         });
     }
 
-    set_model(model?: SkinnedMesh) {
+    set_model(model?: SkinnedMesh): void {
         if (this.model !== model) {
             if (this.model) {
                 this.scene.remove(this.model);
@@ -48,7 +48,7 @@ export class ModelRenderer extends Renderer {
         }
     }
 
-    protected render() {
+    protected render(): void {
         this.controls.update();
 
         if (model_viewer_store.animation) {
