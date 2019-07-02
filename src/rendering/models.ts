@@ -1,17 +1,32 @@
-import { Bone, BufferGeometry, DoubleSide, Euler, Float32BufferAttribute, Material, Matrix3, Matrix4, MeshLambertMaterial, Quaternion, Skeleton, SkinnedMesh, Uint16BufferAttribute, Vector3 } from 'three';
-import { vec3_to_threejs } from '.';
-import { NinjaModel, NinjaObject } from '../data_formats/parsing/ninja';
-import { NjModel } from '../data_formats/parsing/ninja/nj';
-import { XjModel } from '../data_formats/parsing/ninja/xj';
+import {
+    Bone,
+    BufferGeometry,
+    DoubleSide,
+    Euler,
+    Float32BufferAttribute,
+    Material,
+    Matrix3,
+    Matrix4,
+    MeshLambertMaterial,
+    Quaternion,
+    Skeleton,
+    SkinnedMesh,
+    Uint16BufferAttribute,
+    Vector3,
+} from "three";
+import { vec3_to_threejs } from ".";
+import { NinjaModel, NinjaObject } from "../data_formats/parsing/ninja";
+import { NjModel } from "../data_formats/parsing/ninja/nj";
+import { XjModel } from "../data_formats/parsing/ninja/xj";
 
 const DEFAULT_MATERIAL = new MeshLambertMaterial({
-    color: 0xFF00FF,
-    side: DoubleSide
+    color: 0xff00ff,
+    side: DoubleSide,
 });
 const DEFAULT_SKINNED_MATERIAL = new MeshLambertMaterial({
     skinning: true,
-    color: 0xFF00FF,
-    side: DoubleSide
+    color: 0xff00ff,
+    side: DoubleSide,
 });
 const DEFAULT_NORMAL = new Vector3(0, 1, 0);
 const NO_TRANSLATION = new Vector3(0, 0, 0);
@@ -33,13 +48,13 @@ export function ninja_object_to_skinned_mesh(
 }
 
 type Vertex = {
-    bone_id: number,
-    position: Vector3,
-    normal?: Vector3,
-    bone_weight: number,
-    bone_weight_status: number,
-    calc_continue: boolean,
-}
+    bone_id: number;
+    position: Vector3;
+    normal?: Vector3;
+    bone_weight: number;
+    bone_weight_status: number;
+    calc_continue: boolean;
+};
 
 class VerticesHolder {
     private vertices_stack: Vertex[][] = [];
@@ -73,17 +88,15 @@ class Object3DCreator {
     private bone_weights: number[] = [];
     private bones: Bone[] = [];
 
-    constructor(
-        private material: Material
-    ) { }
+    constructor(private material: Material) {}
 
     create_buffer_geometry(object: NinjaObject<NinjaModel>): BufferGeometry {
         this.object_to_geometry(object, undefined, new Matrix4());
 
         const geom = new BufferGeometry();
 
-        geom.addAttribute('position', new Float32BufferAttribute(this.positions, 3));
-        geom.addAttribute('normal', new Float32BufferAttribute(this.normals, 3));
+        geom.addAttribute("position", new Float32BufferAttribute(this.positions, 3));
+        geom.addAttribute("normal", new Float32BufferAttribute(this.normals, 3));
         geom.setIndex(new Uint16BufferAttribute(this.indices, 1));
 
         // The bounding spheres from the object seem be too small.
@@ -94,8 +107,8 @@ class Object3DCreator {
 
     create_skinned_mesh(object: NinjaObject<NinjaModel>): SkinnedMesh {
         const geom = this.create_buffer_geometry(object);
-        geom.addAttribute('skinIndex', new Uint16BufferAttribute(this.bone_indices, 4));
-        geom.addAttribute('skinWeight', new Float32BufferAttribute(this.bone_weights, 4));
+        geom.addAttribute("skinIndex", new Uint16BufferAttribute(this.bone_indices, 4));
+        geom.addAttribute("skinWeight", new Float32BufferAttribute(this.bone_weights, 4));
 
         const mesh = new SkinnedMesh(geom, this.material);
 
@@ -112,12 +125,21 @@ class Object3DCreator {
         parent_matrix: Matrix4
     ) {
         const {
-            no_translate, no_rotate, no_scale, hidden, break_child_trace, zxy_rotation_order, skip
+            no_translate,
+            no_rotate,
+            no_scale,
+            hidden,
+            break_child_trace,
+            zxy_rotation_order,
+            skip,
         } = object.evaluation_flags;
         const { position, rotation, scale } = object;
 
         const euler = new Euler(
-            rotation.x, rotation.y, rotation.z, zxy_rotation_order ? 'ZXY' : 'ZYX'
+            rotation.x,
+            rotation.y,
+            rotation.z,
+            zxy_rotation_order ? "ZXY" : "ZYX"
         );
         const matrix = new Matrix4()
             .compose(
@@ -158,7 +180,7 @@ class Object3DCreator {
     }
 
     private model_to_geometry(model: NinjaModel, matrix: Matrix4) {
-        if (model.type === 'nj') {
+        if (model.type === "nj") {
             this.nj_model_to_geometry(model, matrix);
         } else {
             this.xj_model_to_geometry(model, matrix);
@@ -181,7 +203,7 @@ class Object3DCreator {
                 normal,
                 bone_weight: vertex.bone_weight,
                 bone_weight_status: vertex.bone_weight_status,
-                calc_continue: vertex.calc_continue
+                calc_continue: vertex.calc_continue,
             };
         });
 
@@ -253,16 +275,31 @@ class Object3DCreator {
                 const a = index_offset + strip_indices[j - 2];
                 const b = index_offset + strip_indices[j - 1];
                 const c = index_offset + strip_indices[j];
-                const pa = new Vector3(positions[3 * a], positions[3 * a + 1], positions[3 * a + 2]);
-                const pb = new Vector3(positions[3 * b], positions[3 * b + 1], positions[3 * b + 2]);
-                const pc = new Vector3(positions[3 * c], positions[3 * c + 1], positions[3 * c + 2]);
+                const pa = new Vector3(
+                    positions[3 * a],
+                    positions[3 * a + 1],
+                    positions[3 * a + 2]
+                );
+                const pb = new Vector3(
+                    positions[3 * b],
+                    positions[3 * b + 1],
+                    positions[3 * b + 2]
+                );
+                const pc = new Vector3(
+                    positions[3 * c],
+                    positions[3 * c + 1],
+                    positions[3 * c + 2]
+                );
                 const na = new Vector3(normals[3 * a], normals[3 * a + 1], normals[3 * a + 2]);
                 const nb = new Vector3(normals[3 * a], normals[3 * a + 1], normals[3 * a + 2]);
                 const nc = new Vector3(normals[3 * a], normals[3 * a + 1], normals[3 * a + 2]);
 
                 // Calculate a surface normal and reverse the vertex winding if at least 2 of the vertex normals point in the opposite direction.
                 // This hack fixes the winding for most models.
-                const normal = pb.clone().sub(pa).cross(pc.clone().sub(pa));
+                const normal = pb
+                    .clone()
+                    .sub(pa)
+                    .cross(pc.clone().sub(pa));
 
                 if (clockwise) {
                     normal.negate();

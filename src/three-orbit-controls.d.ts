@@ -1,1 +1,1 @@
-declare module 'three-orbit-controls';
+declare module "three-orbit-controls";

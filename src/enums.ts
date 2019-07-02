@@ -1,16 +1,16 @@
 export function enum_values<E>(e: any): E[] {
     const values = Object.values(e);
-    const number_values = values.filter(v => typeof v === 'number');
+    const number_values = values.filter(v => typeof v === "number");
 
     if (number_values.length) {
-        return number_values as any as E[];
+        return (number_values as any) as E[];
     } else {
-        return values as any as E[];
+        return (values as any) as E[];
     }
 }
 
 export function enum_names(e: any): string[] {
-    return Object.keys(e).filter(k => typeof (e as any)[k] === 'string');
+    return Object.keys(e).filter(k => typeof (e as any)[k] === "string");
 }
 
 /**

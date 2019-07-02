@@ -1,6 +1,6 @@
-import { BufferCursor } from '../../BufferCursor';
+import { BufferCursor } from "../../BufferCursor";
 import { Vec3 } from "../../Vec3";
-import { NinjaVertex } from '../ninja';
+import { NinjaVertex } from "../ninja";
 
 // TODO:
 // - textures
@@ -9,14 +9,14 @@ import { NinjaVertex } from '../ninja';
 // - animation
 
 export type XjModel = {
-    type: 'xj',
-    vertices: NinjaVertex[],
-    meshes: XjTriangleStrip[],
-}
+    type: "xj";
+    vertices: NinjaVertex[];
+    meshes: XjTriangleStrip[];
+};
 
 export type XjTriangleStrip = {
-    indices: number[],
-}
+    indices: number[];
+};
 
 export function parse_xj_model(cursor: BufferCursor): XjModel {
     cursor.seek(4); // Flags according to QEdit, seemingly always 0.
@@ -29,9 +29,9 @@ export function parse_xj_model(cursor: BufferCursor): XjModel {
     cursor.seek(16); // Bounding sphere position and radius in floats.
 
     const model: XjModel = {
-        type: 'xj',
+        type: "xj",
         vertices: [],
-        meshes: []
+        meshes: [],
     };
 
     if (vertex_info_list_offset) {
@@ -43,22 +43,20 @@ export function parse_xj_model(cursor: BufferCursor): XjModel {
 
         for (let i = 0; i < vertex_count; ++i) {
             cursor.seek_start(vertexList_offset + i * vertex_size);
-            const position = new Vec3(
-                cursor.f32(),
-                cursor.f32(),
-                cursor.f32()
-            );
+            const position = new Vec3(cursor.f32(), cursor.f32(), cursor.f32());
             let normal: Vec3 | undefined;
 
             if (vertex_size === 28 || vertex_size === 32 || vertex_size === 36) {
-                normal = new Vec3(
-                    cursor.f32(),
-                    cursor.f32(),
-                    cursor.f32()
-                );
+                normal = new Vec3(cursor.f32(), cursor.f32(), cursor.f32());
             }
 
-            model.vertices.push({ position, normal, bone_weight: 1.0, bone_weight_status: 0, calc_continue: true });
+            model.vertices.push({
+                position,
+                normal,
+                bone_weight: 1.0,
+                bone_weight_status: 0,
+                calc_continue: true,
+            });
         }
     }
 
@@ -88,7 +86,7 @@ export function parse_xj_model(cursor: BufferCursor): XjModel {
 function parse_triangle_strip_list(
     cursor: BufferCursor,
     triangle_strip_list_offset: number,
-    triangle_strip_count: number,
+    triangle_strip_count: number
 ): XjTriangleStrip[] {
     const strips: XjTriangleStrip[] = [];
 

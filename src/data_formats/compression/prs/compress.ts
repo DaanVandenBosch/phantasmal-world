@@ -1,4 +1,4 @@
-import { BufferCursor } from '../../BufferCursor';
+import { BufferCursor } from "../../BufferCursor";
 
 export function compress(src: BufferCursor): BufferCursor {
     const ctx = new Context(src);
@@ -57,14 +57,14 @@ export function compress(src: BufferCursor): BufferCursor {
                     ctx.set_bit(0);
                     ctx.set_bit((mlen - 2) & 0x02);
                     ctx.set_bit((mlen - 2) & 0x01);
-                    ctx.write_literal(offset & 0xFF);
+                    ctx.write_literal(offset & 0xff);
                     ctx.add_intermediates(hash_table, mlen);
                     continue;
                 } else if (mlen >= 3 && mlen <= 9) {
                     // Long match, short length.
                     ctx.set_bit(0);
                     ctx.set_bit(1);
-                    ctx.write_literal(((offset & 0x1F) << 3) | ((mlen - 2) & 0x07));
+                    ctx.write_literal(((offset & 0x1f) << 3) | ((mlen - 2) & 0x07));
                     ctx.write_literal(offset >> 5);
                     ctx.add_intermediates(hash_table, mlen);
                     continue;
@@ -76,7 +76,7 @@ export function compress(src: BufferCursor): BufferCursor {
 
                     ctx.set_bit(0);
                     ctx.set_bit(1);
-                    ctx.write_literal((offset & 0x1F) << 3);
+                    ctx.write_literal((offset & 0x1f) << 3);
                     ctx.write_literal(offset >> 5);
                     ctx.write_literal(mlen - 1);
                     ctx.add_intermediates(hash_table, mlen);
@@ -200,7 +200,7 @@ class Context {
             return [0, 0];
         }
 
-        // If we'd go outside the window, truncate the hash chain now. 
+        // If we'd go outside the window, truncate the hash chain now.
         if (this.src.position - entry > MAX_WINDOW) {
             hash_table.hash_to_offset[hash] = null;
 

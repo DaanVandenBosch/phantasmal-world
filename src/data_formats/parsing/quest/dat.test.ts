@@ -1,13 +1,13 @@
-import * as fs from 'fs';
-import { BufferCursor } from '../../BufferCursor';
-import * as prs from '../../compression/prs';
-import { parse_dat, write_dat } from './dat';
+import * as fs from "fs";
+import { BufferCursor } from "../../BufferCursor";
+import * as prs from "../../compression/prs";
+import { parse_dat, write_dat } from "./dat";
 
 /**
  * Parse a file, convert the resulting structure to DAT again and check whether the end result is equal to the original.
  */
-test('parse_dat and write_dat', () => {
-    const orig_buffer = fs.readFileSync('test/resources/quest118_e.dat').buffer;
+test("parse_dat and write_dat", () => {
+    const orig_buffer = fs.readFileSync("test/resources/quest118_e.dat").buffer;
     const orig_dat = prs.decompress(new BufferCursor(orig_buffer, true));
     const test_dat = write_dat(parse_dat(orig_dat));
     orig_dat.seek_start(0);
@@ -29,8 +29,8 @@ test('parse_dat and write_dat', () => {
 /**
  * Parse a file, modify the resulting structure, convert it to DAT again and check whether the end result is equal to the original except for the bytes that should be changed.
  */
-test('parse, modify and write DAT', () => {
-    const orig_buffer = fs.readFileSync('./test/resources/quest118_e.dat').buffer;
+test("parse, modify and write DAT", () => {
+    const orig_buffer = fs.readFileSync("./test/resources/quest118_e.dat").buffer;
     const orig_dat = prs.decompress(new BufferCursor(orig_buffer, true));
     const test_parsed = parse_dat(orig_dat);
     orig_dat.seek_start(0);

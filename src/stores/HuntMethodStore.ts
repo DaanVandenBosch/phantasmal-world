@@ -1,15 +1,15 @@
-import Logger from 'js-logger';
+import Logger from "js-logger";
 import { autorun, IReactionDisposer, observable } from "mobx";
 import { HuntMethod, NpcType, Server, SimpleQuest } from "../domain";
 import { QuestDto } from "../dto";
 import { Loadable } from "../Loadable";
 import { ServerMap } from "./ServerMap";
 
-const logger = Logger.get('stores/HuntMethodStore');
+const logger = Logger.get("stores/HuntMethodStore");
 
 class HuntMethodStore {
-    @observable methods: ServerMap<Loadable<Array<HuntMethod>>> = new ServerMap(server =>
-        new Loadable([], () => this.load_hunt_methods(server))
+    @observable methods: ServerMap<Loadable<Array<HuntMethod>>> = new ServerMap(
+        server => new Loadable([], () => this.load_hunt_methods(server))
     );
 
     private storage_disposer?: IReactionDisposer;
@@ -18,7 +18,7 @@ class HuntMethodStore {
         const response = await fetch(
             `${process.env.PUBLIC_URL}/quests.${Server[server].toLowerCase()}.json`
         );
-        const quests = await response.json() as QuestDto[];
+        const quests = (await response.json()) as QuestDto[];
         const methods = new Array<HuntMethod>();
 
         for (const quest of quests) {
@@ -40,12 +40,12 @@ class HuntMethodStore {
             /* eslint-disable no-fallthrough */
             switch (quest.id) {
                 // The following quests are left out because their enemies don't drop anything.
-                case 31:   // Black Paper's Dangerous Deal
-                case 34:   // Black Paper's Dangerous Deal 2
+                case 31: // Black Paper's Dangerous Deal
+                case 34: // Black Paper's Dangerous Deal 2
                 case 1305: // Maximum Attack S (Ep. 1)
                 case 1306: // Maximum Attack S (Ep. 2)
                 case 1307: // Maximum Attack S (Ep. 4)
-                case 313:  // Beyond the Horizon
+                case 313: // Beyond the Horizon
 
                 // MAXIMUM ATTACK 3 Ver2 is filtered out because its actual enemy count depends on the path taken.
                 // TODO: generate a method per path.
@@ -57,13 +57,8 @@ class HuntMethodStore {
                 new HuntMethod(
                     `q${quest.id}`,
                     quest.name,
-                    new SimpleQuest(
-                        quest.id,
-                        quest.name,
-                        quest.episode,
-                        enemy_counts
-                    ),
-                    /^\d-\d.*/.test(quest.name) ? 0.75 : (total_count > 400 ? 0.75 : 0.5)
+                    new SimpleQuest(quest.id, quest.name, quest.episode, enemy_counts),
+                    /^\d-\d.*/.test(quest.name) ? 0.75 : total_count > 400 ? 0.75 : 0.5
                 )
             );
         }
@@ -90,13 +85,11 @@ class HuntMethodStore {
                 this.storage_disposer();
             }
 
-            this.storage_disposer = autorun(() =>
-                this.store_in_local_storage(methods, server)
-            );
+            this.storage_disposer = autorun(() => this.store_in_local_storage(methods, server));
         } catch (e) {
             logger.error(e);
         }
-    }
+    };
 
     private store_in_local_storage = (methods: HuntMethod[], server: Server) => {
         try {
@@ -115,7 +108,7 @@ class HuntMethodStore {
         } catch (e) {
             logger.error(e);
         }
-    }
+    };
 }
 
 type StoredUserTimes = { [method_id: string]: number };

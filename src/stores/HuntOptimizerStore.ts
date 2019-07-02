@@ -1,13 +1,25 @@
-import solver from 'javascript-lp-solver';
+import solver from "javascript-lp-solver";
 import { autorun, IObservableArray, observable, computed } from "mobx";
-import { Difficulties, Difficulty, HuntMethod, ItemType, KONDRIEU_PROB, NpcType, RARE_ENEMY_PROB, SectionId, SectionIds, Server, Episode } from "../domain";
-import { application_store } from './ApplicationStore';
+import {
+    Difficulties,
+    Difficulty,
+    HuntMethod,
+    ItemType,
+    KONDRIEU_PROB,
+    NpcType,
+    RARE_ENEMY_PROB,
+    SectionId,
+    SectionIds,
+    Server,
+    Episode,
+} from "../domain";
+import { application_store } from "./ApplicationStore";
 import { hunt_method_store } from "./HuntMethodStore";
-import { item_drop_stores as item_drop_stores } from './ItemDropStore';
-import { item_type_stores } from './ItemTypeStore';
-import Logger from 'js-logger';
+import { item_drop_stores } from "./ItemDropStore";
+import { item_type_stores } from "./ItemTypeStore";
+import Logger from "js-logger";
 
-const logger = Logger.get('stores/HuntOptimizerStore');
+const logger = Logger.get("stores/HuntOptimizerStore");
 
 export class WantedItem {
     @observable readonly item_type: ItemType;
@@ -23,7 +35,7 @@ export class OptimalResult {
     constructor(
         readonly wanted_items: Array<ItemType>,
         readonly optimal_methods: Array<OptimalMethod>
-    ) { }
+    ) {}
 }
 
 export class OptimalMethod {
@@ -52,8 +64,8 @@ export class OptimalMethod {
 class HuntOptimizerStore {
     @computed get huntable_item_types(): Array<ItemType> {
         const item_drop_store = item_drop_stores.current.value;
-        return item_type_stores.current.value.item_types.filter(i =>
-            item_drop_store.enemy_drops.get_drops_for_item_type(i.id).length
+        return item_type_stores.current.value.item_types.filter(
+            i => item_drop_store.enemy_drops.get_drops_for_item_type(i.id).length
         );
     }
 
@@ -73,7 +85,9 @@ class HuntOptimizerStore {
 
         // Initialize this set before awaiting data, so user changes don't affect this optimization
         // run from this point on.
-        const wanted_items = new Set(this.wanted_items.filter(w => w.amount > 0).map(w => w.item_type));
+        const wanted_items = new Set(
+            this.wanted_items.filter(w => w.amount > 0).map(w => w.item_type)
+        );
 
         const methods = await hunt_method_store.methods.current.promise;
         const drop_table = (await item_drop_stores.current.promise).enemy_drops;
@@ -91,17 +105,17 @@ class HuntOptimizerStore {
         // Each variable has a time property to minimize and a property per item with the number
         // of enemies that drop the item multiplied by the corresponding drop rate as its value.
         type Variable = {
-            time: number,
-            [item_name: string]: number,
-        }
+            time: number;
+            [item_name: string]: number;
+        };
         const variables: { [method_name: string]: Variable } = {};
 
         type VariableDetails = {
-            method: HuntMethod,
-            difficulty: Difficulty,
-            section_id: SectionId,
-            split_pan_arms: boolean,
-        }
+            method: HuntMethod;
+            difficulty: Difficulty;
+            section_id: SectionId;
+            split_pan_arms: boolean;
+        };
         const variable_details: Map<string, VariableDetails> = new Map();
 
         for (const method of methods) {
@@ -168,7 +182,7 @@ class HuntOptimizerStore {
                         // Will contain an entry per wanted item dropped by enemies in this method/
                         // difficulty/section ID combo.
                         const variable: Variable = {
-                            time: method.time
+                            time: method.time,
                         };
                         // Only add the variable if the method provides at least 1 item we want.
                         let add_variable = false;
@@ -185,14 +199,17 @@ class HuntOptimizerStore {
 
                         if (add_variable) {
                             const name = this.full_method_name(
-                                difficulty, section_id, method, split_pan_arms
+                                difficulty,
+                                section_id,
+                                method,
+                                split_pan_arms
                             );
                             variables[name] = variable;
                             variable_details.set(name, {
                                 method,
                                 difficulty,
                                 section_id,
-                                split_pan_arms
+                                split_pan_arms,
                             });
                         }
                     }
@@ -201,18 +218,18 @@ class HuntOptimizerStore {
         }
 
         const result: {
-            feasible: boolean,
-            bounded: boolean,
-            result: number,
+            feasible: boolean;
+            bounded: boolean;
+            result: number;
             /**
              * Value will always be a number if result is indexed with an actual method name.
              */
-            [method: string]: number | boolean
+            [method: string]: number | boolean;
         } = solver.Solve({
-            optimize: 'time',
-            opType: 'min',
+            optimize: "time",
+            opType: "min",
             constraints,
-            variables
+            variables,
         });
 
         if (!result.feasible) {
@@ -251,9 +268,10 @@ class HuntOptimizerStore {
                     let match_found = true;
 
                     if (sid !== section_id) {
-                        const v = variables[
-                            this.full_method_name(difficulty, sid, method, split_pan_arms)
-                        ];
+                        const v =
+                            variables[
+                                this.full_method_name(difficulty, sid, method, split_pan_arms)
+                            ];
 
                         if (!v) {
                             match_found = false;
@@ -272,23 +290,22 @@ class HuntOptimizerStore {
                     }
                 }
 
-                optimal_methods.push(new OptimalMethod(
-                    difficulty,
-                    section_ids,
-                    method.name + (split_pan_arms ? ' (Split Pan Arms)' : ''),
-                    method.episode,
-                    method.time,
-                    runs,
-                    items
-                ));
+                optimal_methods.push(
+                    new OptimalMethod(
+                        difficulty,
+                        section_ids,
+                        method.name + (split_pan_arms ? " (Split Pan Arms)" : ""),
+                        method.episode,
+                        method.time,
+                        runs,
+                        items
+                    )
+                );
             }
         }
 
-        this.result = new OptimalResult(
-            [...wanted_items],
-            optimal_methods
-        );
-    }
+        this.result = new OptimalResult([...wanted_items], optimal_methods);
+    };
 
     private full_method_name(
         difficulty: Difficulty,
@@ -297,7 +314,7 @@ class HuntOptimizerStore {
         split_pan_arms: boolean
     ): string {
         let name = `${difficulty}\t${section_id}\t${method.id}`;
-        if (split_pan_arms) name += '\tspa';
+        if (split_pan_arms) name += "\tspa";
         return name;
     }
 
@@ -308,7 +325,7 @@ class HuntOptimizerStore {
         } catch (e) {
             logger.error(e);
         }
-    }
+    };
 
     private load_from_local_storage = async () => {
         const wanted_items_json = localStorage.getItem(
@@ -322,9 +339,10 @@ class HuntOptimizerStore {
             const wanted_items: WantedItem[] = [];
 
             for (const { itemTypeId, itemKindId, amount } of wi) {
-                const item = itemTypeId != undefined
-                    ? item_store.get_by_id(itemTypeId)
-                    : item_store.get_by_id(itemKindId!);
+                const item =
+                    itemTypeId != undefined
+                        ? item_store.get_by_id(itemTypeId)
+                        : item_store.get_by_id(itemKindId!);
 
                 if (item) {
                     wanted_items.push(new WantedItem(item, amount));
@@ -333,29 +351,31 @@ class HuntOptimizerStore {
 
             this.wanted_items.replace(wanted_items);
         }
-    }
+    };
 
     private store_in_local_storage = () => {
         try {
             localStorage.setItem(
                 `HuntOptimizerStore.wantedItems.${Server[application_store.current_server]}`,
                 JSON.stringify(
-                    this.wanted_items.map(({ item_type: itemType, amount }): StoredWantedItem => ({
-                        itemTypeId: itemType.id,
-                        amount
-                    }))
+                    this.wanted_items.map(
+                        ({ item_type: itemType, amount }): StoredWantedItem => ({
+                            itemTypeId: itemType.id,
+                            amount,
+                        })
+                    )
                 )
             );
         } catch (e) {
             logger.error(e);
         }
-    }
+    };
 }
 
 type StoredWantedItem = {
-    itemTypeId?: number, // Should only be undefined if the legacy name is still used.
-    itemKindId?: number, // Legacy name.
-    amount: number,
+    itemTypeId?: number; // Should only be undefined if the legacy name is still used.
+    itemKindId?: number; // Legacy name.
+    amount: number;
 };
 
 export const hunt_optimizer_store = new HuntOptimizerStore();

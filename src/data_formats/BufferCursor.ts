@@ -1,13 +1,13 @@
 // TODO: remove dependency on text-encoding because it is no longer maintained.
-import { TextDecoder, TextEncoder } from 'text-encoding';
+import { TextDecoder, TextEncoder } from "text-encoding";
 
-const ASCII_DECODER = new TextDecoder('ascii');
-const UTF_16BE_DECODER = new TextDecoder('utf-16be');
-const UTF_16LE_DECODER = new TextDecoder('utf-16le');
+const ASCII_DECODER = new TextDecoder("ascii");
+const UTF_16BE_DECODER = new TextDecoder("utf-16be");
+const UTF_16LE_DECODER = new TextDecoder("utf-16le");
 
-const ASCII_ENCODER = new TextEncoder('ascii');
-const UTF_16BE_ENCODER = new TextEncoder('utf-16be');
-const UTF_16LE_ENCODER = new TextEncoder('utf-16le');
+const ASCII_ENCODER = new TextEncoder("ascii");
+const UTF_16BE_ENCODER = new TextEncoder("utf-16be");
+const UTF_16LE_ENCODER = new TextEncoder("utf-16le");
 
 /**
  * A cursor for reading and writing binary data.
@@ -25,7 +25,7 @@ export class BufferCursor {
 
     set size(size: number) {
         if (size < 0) {
-            throw new Error('Size should be non-negative.')
+            throw new Error("Size should be non-negative.");
         }
 
         this.ensure_capacity(size);
@@ -77,7 +77,7 @@ export class BufferCursor {
      * @param little_endian - Decides in which byte order multi-byte integers and floats will be interpreted
      */
     constructor(buffer_or_capacity: ArrayBuffer | Buffer | number, little_endian: boolean = false) {
-        if (typeof buffer_or_capacity === 'number') {
+        if (typeof buffer_or_capacity === "number") {
             this.buffer = new ArrayBuffer(buffer_or_capacity);
             this.size = 0;
         } else if (buffer_or_capacity instanceof ArrayBuffer) {
@@ -88,7 +88,7 @@ export class BufferCursor {
             this.buffer = buffer_or_capacity.buffer;
             this.size = buffer_or_capacity.byteLength;
         } else {
-            throw new Error('buffer_or_capacity should be an ArrayBuffer, a Buffer or a number.');
+            throw new Error("buffer_or_capacity should be an ArrayBuffer, a Buffer or a number.");
         }
 
         this.little_endian = little_endian;
@@ -98,7 +98,7 @@ export class BufferCursor {
 
     /**
      * Seek forward or backward by a number of bytes.
-     * 
+     *
      * @param offset - if positive, seeks forward by offset bytes, otherwise seeks backward by -offset bytes.
      */
     seek(offset: number) {
@@ -107,7 +107,7 @@ export class BufferCursor {
 
     /**
      * Seek forward from the start of the cursor by a number of bytes.
-     * 
+     *
      * @param offset - greater or equal to 0 and smaller than size
      */
     seek_start(offset: number) {
@@ -121,7 +121,7 @@ export class BufferCursor {
 
     /**
      * Seek backward from the end of the cursor by a number of bytes.
-     * 
+     *
      * @param offset - greater or equal to 0 and smaller than size
      */
     seek_end(offset: number) {
@@ -231,7 +231,7 @@ export class BufferCursor {
 
     /**
      * Consumes a variable number of bytes.
-     * 
+     *
      * @param size - the amount bytes to consume.
      * @returns a new cursor containing size bytes.
      */
@@ -242,7 +242,9 @@ export class BufferCursor {
 
         this.position += size;
         return new BufferCursor(
-            this.buffer.slice(this.position - size, this.position), this.little_endian);
+            this.buffer.slice(this.position - size, this.position),
+            this.little_endian
+        );
     }
 
     /**
@@ -253,8 +255,7 @@ export class BufferCursor {
             ? this.index_of_u8(0, max_byte_length) - this.position
             : max_byte_length;
 
-        const r = ASCII_DECODER.decode(
-            new DataView(this.buffer, this.position, string_length));
+        const r = ASCII_DECODER.decode(new DataView(this.buffer, this.position, string_length));
         this.position += drop_remaining
             ? max_byte_length
             : Math.min(string_length + 1, max_byte_length);
@@ -270,7 +271,8 @@ export class BufferCursor {
             : Math.floor(max_byte_length / 2) * 2;
 
         const r = this.utf16_decoder.decode(
-            new DataView(this.buffer, this.position, string_length));
+            new DataView(this.buffer, this.position, string_length)
+        );
         this.position += drop_remaining
             ? max_byte_length
             : Math.min(string_length + 2, max_byte_length);

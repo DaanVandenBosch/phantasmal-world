@@ -1,5 +1,13 @@
 import { observable } from "mobx";
-import { ItemType, Server, WeaponItemType, ArmorItemType, ShieldItemType, ToolItemType, UnitItemType } from "../domain";
+import {
+    ItemType,
+    Server,
+    WeaponItemType,
+    ArmorItemType,
+    ShieldItemType,
+    ToolItemType,
+    UnitItemType,
+} from "../domain";
 import { Loadable } from "../Loadable";
 import { ServerMap } from "./ServerMap";
 import { ItemTypeDto } from "../dto";
@@ -25,7 +33,7 @@ export class ItemTypeStore {
             let item_type: ItemType;
 
             switch (item_type_dto.class) {
-                case 'weapon':
+                case "weapon":
                     item_type = new WeaponItemType(
                         item_type_dto.id,
                         item_type_dto.name,
@@ -33,10 +41,10 @@ export class ItemTypeStore {
                         item_type_dto.maxAtp,
                         item_type_dto.ata,
                         item_type_dto.maxGrind,
-                        item_type_dto.requiredAtp,
+                        item_type_dto.requiredAtp
                     );
                     break;
-                case 'armor':
+                case "armor":
                     item_type = new ArmorItemType(
                         item_type_dto.id,
                         item_type_dto.name,
@@ -48,10 +56,10 @@ export class ItemTypeStore {
                         item_type_dto.maxDfp,
                         item_type_dto.mst,
                         item_type_dto.hp,
-                        item_type_dto.lck,
+                        item_type_dto.lck
                     );
                     break;
-                case 'shield':
+                case "shield":
                     item_type = new ShieldItemType(
                         item_type_dto.id,
                         item_type_dto.name,
@@ -63,20 +71,14 @@ export class ItemTypeStore {
                         item_type_dto.maxDfp,
                         item_type_dto.mst,
                         item_type_dto.hp,
-                        item_type_dto.lck,
+                        item_type_dto.lck
                     );
                     break;
-                case 'unit':
-                    item_type = new UnitItemType(
-                        item_type_dto.id,
-                        item_type_dto.name,
-                    );
+                case "unit":
+                    item_type = new UnitItemType(item_type_dto.id, item_type_dto.name);
                     break;
-                case 'tool':
-                    item_type = new ToolItemType(
-                        item_type_dto.id,
-                        item_type_dto.name,
-                    );
+                case "tool":
+                    item_type = new ToolItemType(item_type_dto.id, item_type_dto.name);
                     break;
                 default:
                     continue;
@@ -89,7 +91,7 @@ export class ItemTypeStore {
         this.item_types = item_types;
 
         return this;
-    }
+    };
 }
 
 export const item_type_stores: ServerMap<Loadable<ItemTypeStore>> = new ServerMap(server => {

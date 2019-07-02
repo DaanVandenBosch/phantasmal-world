@@ -1,45 +1,45 @@
 import { Vec3 } from "../../Vec3";
-import { BufferCursor } from '../../BufferCursor';
-import { NjModel, parse_nj_model } from './nj';
-import { parse_xj_model, XjModel } from './xj';
+import { BufferCursor } from "../../BufferCursor";
+import { NjModel, parse_nj_model } from "./nj";
+import { parse_xj_model, XjModel } from "./xj";
 
 // TODO:
 // - deal with multiple NJCM chunks
 // - deal with other types of chunks
 
-const ANGLE_TO_RAD = 2 * Math.PI / 65536;
+const ANGLE_TO_RAD = (2 * Math.PI) / 65536;
 
 export type NinjaVertex = {
-    position: Vec3,
-    normal?: Vec3,
-    bone_weight: number,
-    bone_weight_status: number,
-    calc_continue: boolean
-}
+    position: Vec3;
+    normal?: Vec3;
+    bone_weight: number;
+    bone_weight_status: number;
+    calc_continue: boolean;
+};
 
 export type NinjaModel = NjModel | XjModel;
 
-export class NinjaObject<M extends NinjaModel>  {
+export class NinjaObject<M extends NinjaModel> {
     private bone_cache = new Map<number, NinjaObject<M> | null>();
     private _bone_count = -1;
 
     constructor(
         public evaluation_flags: {
-            no_translate: boolean,
-            no_rotate: boolean,
-            no_scale: boolean,
-            hidden: boolean,
-            break_child_trace: boolean,
-            zxy_rotation_order: boolean,
-            skip: boolean,
-            shape_skip: boolean,
+            no_translate: boolean;
+            no_rotate: boolean;
+            no_scale: boolean;
+            hidden: boolean;
+            break_child_trace: boolean;
+            zxy_rotation_order: boolean;
+            skip: boolean;
+            shape_skip: boolean;
         },
         public model: M | undefined,
         public position: Vec3,
         public rotation: Vec3, // Euler angles in radians.
         public scale: Vec3,
         public children: NinjaObject<M>[]
-    ) { }
+    ) {}
 
     bone_count(): number {
         if (this._bone_count === -1) {
@@ -106,7 +106,7 @@ function parse_ninja<M extends NinjaModel>(
         const iff_type_id = cursor.string_ascii(4, false, false);
         const iff_chunk_size = cursor.u32();
 
-        if (iff_type_id === 'NJCM') {
+        if (iff_type_id === "NJCM") {
             return parse_sibling_objects(cursor.take(iff_chunk_size), parse_model, context);
         } else {
             if (iff_chunk_size > cursor.bytes_left) {

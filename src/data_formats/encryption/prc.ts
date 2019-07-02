@@ -54,7 +54,7 @@ class PrcDecryptor {
         let idx;
         let tmp = 1;
 
-        for (let i = 0x15; i <= 0x46E; i += 0x15) {
+        for (let i = 0x15; i <= 0x46e; i += 0x15) {
             idx = i % 55;
             key -= tmp;
             this.keys[idx] = tmp;
@@ -88,6 +88,6 @@ class PrcDecryptor {
             this.key_pos = 1;
         }
 
-        return data ^ this.keys[this.key_pos++];;
+        return data ^ this.keys[this.key_pos++];
     }
 }

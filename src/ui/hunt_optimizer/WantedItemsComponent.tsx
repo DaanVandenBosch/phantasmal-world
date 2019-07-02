@@ -5,13 +5,13 @@ import { AutoSizer, Column, Table, TableCellRenderer } from "react-virtualized";
 import { hunt_optimizer_store, WantedItem } from "../../stores/HuntOptimizerStore";
 import { item_type_stores } from "../../stores/ItemTypeStore";
 import { BigSelect } from "../BigSelect";
-import './WantedItemsComponent.less';
+import "./WantedItemsComponent.less";
 
 @observer
 export class WantedItemsComponent extends React.Component {
     state = {
-        help_visible: false
-    }
+        help_visible: false,
+    };
 
     render() {
         // Make sure render is called on updates.
@@ -37,16 +37,13 @@ export class WantedItemsComponent extends React.Component {
                         style={{ width: 200 }}
                         options={hunt_optimizer_store.huntable_item_types.map(itemType => ({
                             label: itemType.name,
-                            value: itemType.id
+                            value: itemType.id,
                         }))}
                         onChange={this.add_wanted}
                     />
-                    <Button
-                        onClick={hunt_optimizer_store.optimize}
-                        style={{ marginLeft: 10 }}
-                    >
+                    <Button onClick={hunt_optimizer_store.optimize} style={{ marginLeft: 10 }}>
                         Optimize
-                     </Button>
+                    </Button>
                 </div>
                 <div className="ho-WantedItemsComponent-table">
                     <AutoSizer>
@@ -64,9 +61,9 @@ export class WantedItemsComponent extends React.Component {
                                     label="Amount"
                                     dataKey="amount"
                                     width={70}
-                                    cellRenderer={({ rowData }) =>
+                                    cellRenderer={({ rowData }) => (
                                         <WantedAmountCell wantedItem={rowData} />
-                                    }
+                                    )}
                                 />
                                 <Column
                                     label="Item"
@@ -92,14 +89,16 @@ export class WantedItemsComponent extends React.Component {
 
     private add_wanted = (selected: any) => {
         if (selected) {
-            let added = hunt_optimizer_store.wanted_items.find(w => w.item_type.id === selected.value);
+            let added = hunt_optimizer_store.wanted_items.find(
+                w => w.item_type.id === selected.value
+            );
 
             if (!added) {
                 const item_type = item_type_stores.current.value.get_by_id(selected.value)!;
                 hunt_optimizer_store.wanted_items.push(new WantedItem(item_type, 1));
             }
         }
-    }
+    };
 
     private remove_wanted = (wanted: WantedItem) => () => {
         const i = hunt_optimizer_store.wanted_items.findIndex(w => w === wanted);
@@ -107,44 +106,48 @@ export class WantedItemsComponent extends React.Component {
         if (i !== -1) {
             hunt_optimizer_store.wanted_items.splice(i, 1);
         }
-    }
+    };
 
     private table_remove_cell_renderer: TableCellRenderer = ({ rowData }) => {
         return <Button type="link" icon="delete" onClick={this.remove_wanted(rowData)} />;
-    }
+    };
 
     private no_rows_renderer = () => {
         return (
             <div className="ho-WantedItemsComponent-no-rows">
                 <p>
-                    Add some items with the above drop down and click "Optimize" to see the result on the right.
+                    Add some items with the above drop down and click "Optimize" to see the result
+                    on the right.
                 </p>
             </div>
         );
-    }
+    };
 
     private on_help_visible_change = (visible: boolean) => {
         this.setState({ helpVisible: visible });
-    }
+    };
 }
 
 function Help() {
     return (
         <div className="ho-WantedItemsComponent-help">
             <p>
-                Add some items with the drop down and click "Optimize" to see the optimal combination of hunt methods on the right.
+                Add some items with the drop down and click "Optimize" to see the optimal
+                combination of hunt methods on the right.
             </p>
             <p>
-                At the moment a method is simply a quest run-through. Partial quest run-throughs are coming. View the list of methods on the "Methods" tab. Each method takes a certain amount of time, which affects the optimization result. Make sure the times are correct for you.
+                At the moment a method is simply a quest run-through. Partial quest run-throughs are
+                coming. View the list of methods on the "Methods" tab. Each method takes a certain
+                amount of time, which affects the optimization result. Make sure the times are
+                correct for you.
             </p>
+            <p>Only enemy drops are considered. Box drops are coming.</p>
             <p>
-                Only enemy drops are considered. Box drops are coming.
-            </p>
-            <p>
-                The optimal result is calculated using linear optimization. The optimizer takes rare enemies and the fact that pan arms can be split in two into account.
+                The optimal result is calculated using linear optimization. The optimizer takes rare
+                enemies and the fact that pan arms can be split in two into account.
             </p>
         </div>
-    )
+    );
 }
 
 @observer
@@ -159,7 +162,7 @@ class WantedAmountCell extends React.Component<{ wantedItem: WantedItem }> {
                 value={wanted.amount}
                 onChange={this.wanted_amount_changed}
                 size="small"
-                style={{ width: '100%' }}
+                style={{ width: "100%" }}
             />
         );
     }
@@ -168,5 +171,5 @@ class WantedAmountCell extends React.Component<{ wantedItem: WantedItem }> {
         if (value != null && value >= 0) {
             this.props.wantedItem.amount = value;
         }
-    }
+    };
 }

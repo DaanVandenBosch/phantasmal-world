@@ -1,7 +1,7 @@
-import { BufferCursor } from '../../BufferCursor';
-import Logger from 'js-logger';
+import { BufferCursor } from "../../BufferCursor";
+import Logger from "js-logger";
 
-const logger = Logger.get('data_formats/compression/prs/decompress');
+const logger = Logger.get("data_formats/compression/prs/decompress");
 
 export function decompress(cursor: BufferCursor) {
     const ctx = new Context(cursor);

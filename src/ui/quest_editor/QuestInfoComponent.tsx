@@ -1,10 +1,10 @@
-import React from 'react';
-import { NpcType, Quest } from '../../domain';
-import './QuestInfoComponent.css';
+import React from "react";
+import { NpcType, Quest } from "../../domain";
+import "./QuestInfoComponent.css";
 
 export function QuestInfoComponent({ quest }: { quest?: Quest }) {
     if (quest) {
-        const episode = quest.episode === 4 ? 'IV' : (quest.episode === 2 ? 'II' : 'I');
+        const episode = quest.episode === 4 ? "IV" : quest.episode === 2 ? "II" : "I";
         const npc_counts = new Map<NpcType, number>();
 
         for (const npc of quest.npcs) {
@@ -32,10 +32,12 @@ export function QuestInfoComponent({ quest }: { quest?: Quest }) {
                 <table>
                     <tbody>
                         <tr>
-                            <th>Name:</th><td>{quest.name}</td>
+                            <th>Name:</th>
+                            <td>{quest.name}</td>
                         </tr>
                         <tr>
-                            <th>Episode:</th><td>{episode}</td>
+                            <th>Episode:</th>
+                            <td>{episode}</td>
                         </tr>
                         <tr>
                             <td colSpan={2}>
@@ -50,13 +52,13 @@ export function QuestInfoComponent({ quest }: { quest?: Quest }) {
                     </tbody>
                 </table>
                 <div className="qe-QuestInfoComponent-npc-counts-container">
-                    <table >
+                    <table>
                         <thead>
-                            <tr><th colSpan={2}>NPC Counts</th></tr>
+                            <tr>
+                                <th colSpan={2}>NPC Counts</th>
+                            </tr>
                         </thead>
-                        <tbody>
-                            {npc_count_rows}
-                        </tbody>
+                        <tbody>{npc_count_rows}</tbody>
                     </table>
                 </div>
             </div>

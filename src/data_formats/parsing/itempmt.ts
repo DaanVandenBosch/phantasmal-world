@@ -1,98 +1,98 @@
 import { BufferCursor } from "../BufferCursor";
 
 export type ItemPmt = {
-    stat_boosts: PmtStatBoost[],
-    armors: PmtArmor[],
-    shields: PmtShield[],
-    units: PmtUnit[],
-    tools: PmtTool[][],
-    weapons: PmtWeapon[][],
-}
+    stat_boosts: PmtStatBoost[];
+    armors: PmtArmor[];
+    shields: PmtShield[];
+    units: PmtUnit[];
+    tools: PmtTool[][];
+    weapons: PmtWeapon[][];
+};
 
 export type PmtStatBoost = {
-    stat_1: number,
-    stat_2: number,
-    amount_1: number,
-    amount_2: number,
-}
+    stat_1: number;
+    stat_2: number;
+    amount_1: number;
+    amount_2: number;
+};
 
 export type PmtWeapon = {
-    id: number,
-    type: number,
-    skin: number,
-    team_points: number,
-    class: number,
-    reserved_1: number,
-    min_atp: number,
-    max_atp: number,
-    req_atp: number,
-    req_mst: number,
-    req_ata: number,
-    mst: number,
-    max_grind: number,
-    photon: number,
-    special: number,
-    ata: number,
-    stat_boost: number,
-    projectile: number,
-    photon_trail_1_x: number,
-    photon_trail_1_y: number,
-    photon_trail_2_x: number,
-    photon_trail_2_y: number,
-    photon_type: number,
-    unknown_1: number[],
-    tech_boost: number,
-    combo_type: number,
-}
+    id: number;
+    type: number;
+    skin: number;
+    team_points: number;
+    class: number;
+    reserved_1: number;
+    min_atp: number;
+    max_atp: number;
+    req_atp: number;
+    req_mst: number;
+    req_ata: number;
+    mst: number;
+    max_grind: number;
+    photon: number;
+    special: number;
+    ata: number;
+    stat_boost: number;
+    projectile: number;
+    photon_trail_1_x: number;
+    photon_trail_1_y: number;
+    photon_trail_2_x: number;
+    photon_trail_2_y: number;
+    photon_type: number;
+    unknown_1: number[];
+    tech_boost: number;
+    combo_type: number;
+};
 
 export type PmtArmor = {
-    id: number,
-    type: number,
-    skin: number,
-    team_points: number,
-    dfp: number,
-    evp: number,
-    block_particle: number,
-    block_effect: number,
-    class: number,
-    reserved_1: number,
-    required_level: number,
-    efr: number,
-    eth: number,
-    eic: number,
-    edk: number,
-    elt: number,
-    dfp_range: number,
-    evp_range: number,
-    stat_boost: number,
-    tech_boost: number,
-    unknown_1: number,
-}
+    id: number;
+    type: number;
+    skin: number;
+    team_points: number;
+    dfp: number;
+    evp: number;
+    block_particle: number;
+    block_effect: number;
+    class: number;
+    reserved_1: number;
+    required_level: number;
+    efr: number;
+    eth: number;
+    eic: number;
+    edk: number;
+    elt: number;
+    dfp_range: number;
+    evp_range: number;
+    stat_boost: number;
+    tech_boost: number;
+    unknown_1: number;
+};
 
-export type PmtShield = PmtArmor
+export type PmtShield = PmtArmor;
 
 export type PmtUnit = {
-    id: number,
-    type: number,
-    skin: number,
-    team_points: number,
-    stat: number,
-    stat_amount: number,
-    plus_minus: number,
-    reserved: number[]
-}
+    id: number;
+    type: number;
+    skin: number;
+    team_points: number;
+    stat: number;
+    stat_amount: number;
+    plus_minus: number;
+    reserved: number[];
+};
 
 export type PmtTool = {
-    id: number,
-    type: number,
-    skin: number,
-    team_points: number,
-    amount: number,
-    tech: number,
-    cost: number,
-    item_flag: number,
-    reserved: number[],
-}
+    id: number;
+    type: number;
+    skin: number;
+    team_points: number;
+    amount: number;
+    tech: number;
+    cost: number;
+    item_flag: number;
+    reserved: number[];
+};
 
 export function parse_item_pmt(cursor: BufferCursor): ItemPmt {
     cursor.seek_end(32);
@@ -103,7 +103,7 @@ export function parse_item_pmt(cursor: BufferCursor): ItemPmt {
     cursor.seek_start(main_table_offset);
 
     const compact_table_offsets = cursor.u16_array(main_table_size);
-    const table_offsets: { offset: number, size: number }[] = [];
+    const table_offsets: { offset: number; size: number }[] = [];
     let expanded_offset: number = 0;
 
     for (const compact_offset of compact_table_offsets) {

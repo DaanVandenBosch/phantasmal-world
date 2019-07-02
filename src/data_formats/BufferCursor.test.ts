@@ -1,6 +1,6 @@
-import { BufferCursor } from './BufferCursor';
+import { BufferCursor } from "./BufferCursor";
 
-test('simple properties and invariants', () => {
+test("simple properties and invariants", () => {
     const cursor = new BufferCursor(10, true);
 
     expect(cursor.size).toBe(cursor.position + cursor.bytes_left);
@@ -11,7 +11,11 @@ test('simple properties and invariants', () => {
     expect(cursor.bytes_left).toBe(0);
     expect(cursor.little_endian).toBe(true);
 
-    cursor.write_u8(99).write_u8(99).write_u8(99).write_u8(99);
+    cursor
+        .write_u8(99)
+        .write_u8(99)
+        .write_u8(99)
+        .write_u8(99);
     cursor.seek(-1);
 
     expect(cursor.size).toBe(cursor.position + cursor.bytes_left);
@@ -23,16 +27,20 @@ test('simple properties and invariants', () => {
     expect(cursor.little_endian).toBe(true);
 });
 
-test('correct byte order handling', () => {
+test("correct byte order handling", () => {
     const buffer = new Uint8Array([1, 2, 3, 4]).buffer;
 
     expect(new BufferCursor(buffer, false).u32()).toBe(0x01020304);
     expect(new BufferCursor(buffer, true).u32()).toBe(0x04030201);
 });
 
-test('reallocation of internal buffer when necessary', () => {
+test("reallocation of internal buffer when necessary", () => {
     const cursor = new BufferCursor(3, true);
-    cursor.write_u8(99).write_u8(99).write_u8(99).write_u8(99);
+    cursor
+        .write_u8(99)
+        .write_u8(99)
+        .write_u8(99)
+        .write_u8(99);
 
     expect(cursor.size).toBe(4);
     expect(cursor.capacity).toBeGreaterThanOrEqual(4);
@@ -41,7 +49,7 @@ test('reallocation of internal buffer when necessary', () => {
 
 function test_integer_read(method_name: string) {
     test(method_name, () => {
-        const bytes = parseInt(method_name.replace(/^[iu](\d+)$/, '$1'), 10) / 8;
+        const bytes = parseInt(method_name.replace(/^[iu](\d+)$/, "$1"), 10) / 8;
         let test_number_1 = 0;
         let test_number_2 = 0;
         // The "false" arrays are for big endian tests and the "true" arrays for little endian tests.
@@ -51,20 +59,22 @@ function test_integer_read(method_name: string) {
             // Generates numbers of the form 0x010203...
             test_number_1 <<= 8;
             test_number_1 |= i;
-            test_arrays['false'].push(i);
-            test_arrays['true'].unshift(i);
+            test_arrays["false"].push(i);
+            test_arrays["true"].unshift(i);
         }
 
         for (let i = bytes + 1; i <= 2 * bytes; ++i) {
             test_number_2 <<= 8;
             test_number_2 |= i;
-            test_arrays['false'].push(i);
-            test_arrays['true'].splice(bytes, 0, i);
+            test_arrays["false"].push(i);
+            test_arrays["true"].splice(bytes, 0, i);
         }
 
         for (const little_endian of [false, true]) {
             const cursor = new BufferCursor(
-                new Uint8Array(test_arrays[String(little_endian)]).buffer, little_endian);
+                new Uint8Array(test_arrays[String(little_endian)]).buffer,
+                little_endian
+            );
 
             expect((cursor as any)[method_name]()).toBe(test_number_1);
             expect(cursor.position).toBe(bytes);
@@ -75,12 +85,12 @@ function test_integer_read(method_name: string) {
     });
 }
 
-test_integer_read('u8');
-test_integer_read('u16');
-test_integer_read('u32');
-test_integer_read('i32');
+test_integer_read("u8");
+test_integer_read("u16");
+test_integer_read("u32");
+test_integer_read("i32");
 
-test('u8_array', () => {
+test("u8_array", () => {
     const cursor = new BufferCursor(new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8]).buffer, true);
 
     expect(cursor.u8_array(3)).toEqual([1, 2, 3]);
@@ -105,40 +115,39 @@ function test_string_read(method_name: string, char_size: number) {
                 if (!little_endian) char_array_copy.push(char);
             }
 
-            const cursor = new BufferCursor(
-                new Uint8Array(char_array_copy).buffer, little_endian);
+            const cursor = new BufferCursor(new Uint8Array(char_array_copy).buffer, little_endian);
 
             cursor.seek_start(char_size);
-            expect((cursor as any)[method_name](4 * char_size, true, true)).toBe('AB');
+            expect((cursor as any)[method_name](4 * char_size, true, true)).toBe("AB");
             expect(cursor.position).toBe(5 * char_size);
             cursor.seek_start(char_size);
-            expect((cursor as any)[method_name](2 * char_size, true, true)).toBe('AB');
+            expect((cursor as any)[method_name](2 * char_size, true, true)).toBe("AB");
             expect(cursor.position).toBe(3 * char_size);
 
             cursor.seek_start(char_size);
-            expect((cursor as any)[method_name](4 * char_size, true, false)).toBe('AB');
+            expect((cursor as any)[method_name](4 * char_size, true, false)).toBe("AB");
             expect(cursor.position).toBe(4 * char_size);
             cursor.seek_start(char_size);
-            expect((cursor as any)[method_name](2 * char_size, true, false)).toBe('AB');
+            expect((cursor as any)[method_name](2 * char_size, true, false)).toBe("AB");
             expect(cursor.position).toBe(3 * char_size);
 
             cursor.seek_start(char_size);
-            expect((cursor as any)[method_name](4 * char_size, false, true)).toBe('AB\0ÿ');
+            expect((cursor as any)[method_name](4 * char_size, false, true)).toBe("AB\0ÿ");
             expect(cursor.position).toBe(5 * char_size);
 
             cursor.seek_start(char_size);
-            expect((cursor as any)[method_name](4 * char_size, false, false)).toBe('AB\0ÿ');
+            expect((cursor as any)[method_name](4 * char_size, false, false)).toBe("AB\0ÿ");
             expect(cursor.position).toBe(5 * char_size);
         }
     });
 }
 
-test_string_read('string_ascii', 1);
-test_string_read('string_utf16', 2);
+test_string_read("string_ascii", 1);
+test_string_read("string_utf16", 2);
 
 function test_integer_write(method_name: string) {
     test(method_name, () => {
-        const bytes = parseInt(method_name.replace(/^write_[iu](\d+)$/, '$1'), 10) / 8;
+        const bytes = parseInt(method_name.replace(/^write_[iu](\d+)$/, "$1"), 10) / 8;
         let test_number_1 = 0;
         let test_number_2 = 0;
         // The "false" arrays are for big endian tests and the "true" arrays for little endian tests.
@@ -151,10 +160,10 @@ function test_integer_write(method_name: string) {
             test_number_1 |= i;
             test_number_2 <<= 8;
             test_number_2 |= i + bytes;
-            test_arrays_1['false'].push(i);
-            test_arrays_1['true'].unshift(i);
-            test_arrays_2['false'].push(i + bytes);
-            test_arrays_2['true'].unshift(i + bytes);
+            test_arrays_1["false"].push(i);
+            test_arrays_1["true"].unshift(i);
+            test_arrays_2["false"].push(i + bytes);
+            test_arrays_2["true"].unshift(i + bytes);
         }
 
         for (const little_endian of [false, true]) {
@@ -162,24 +171,26 @@ function test_integer_write(method_name: string) {
             (cursor as any)[method_name](test_number_1);
 
             expect(cursor.position).toBe(bytes);
-            expect(cursor.seek_start(0).u8_array(bytes))
-                .toEqual(test_arrays_1[String(little_endian)]);
+            expect(cursor.seek_start(0).u8_array(bytes)).toEqual(
+                test_arrays_1[String(little_endian)]
+            );
             expect(cursor.position).toBe(bytes);
 
             (cursor as any)[method_name](test_number_2);
 
             expect(cursor.position).toBe(2 * bytes);
-            expect(cursor.seek_start(0).u8_array(2 * bytes))
-                .toEqual(test_arrays_1[String(little_endian)].concat(test_arrays_2[String(little_endian)]));
+            expect(cursor.seek_start(0).u8_array(2 * bytes)).toEqual(
+                test_arrays_1[String(little_endian)].concat(test_arrays_2[String(little_endian)])
+            );
         }
     });
 }
 
-test_integer_write('write_u8');
-test_integer_write('write_u16');
-test_integer_write('write_u32');
+test_integer_write("write_u8");
+test_integer_write("write_u16");
+test_integer_write("write_u32");
 
-test('write_f32', () => {
+test("write_f32", () => {
     for (const little_endian of [false, true]) {
         const cursor = new BufferCursor(0, little_endian);
         cursor.write_f32(1337.9001);
@@ -195,7 +206,7 @@ test('write_f32', () => {
     }
 });
 
-test('write_u8_array', () => {
+test("write_u8_array", () => {
     for (const little_endian of [false, true]) {
         const bytes = 10;
         const cursor = new BufferCursor(2 * bytes, little_endian);

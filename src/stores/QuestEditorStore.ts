@@ -1,28 +1,31 @@
-import Logger from 'js-logger';
-import { action, observable } from 'mobx';
-import { BufferCursor } from '../data_formats/BufferCursor';
-import { parse_quest, write_quest_qst } from '../data_formats/parsing/quest';
-import { Area, Quest, QuestEntity, Section } from '../domain';
+import Logger from "js-logger";
+import { action, observable } from "mobx";
+import { BufferCursor } from "../data_formats/BufferCursor";
+import { parse_quest, write_quest_qst } from "../data_formats/parsing/quest";
+import { Area, Quest, QuestEntity, Section } from "../domain";
 import { Vec3 } from "../data_formats/Vec3";
-import { create_npc_mesh as create_npc_object_3d, create_object_mesh as create_object_object_3d } from '../rendering/entities';
-import { area_store } from './AreaStore';
-import { entity_store } from './EntityStore';
+import {
+    create_npc_mesh as create_npc_object_3d,
+    create_object_mesh as create_object_object_3d,
+} from "../rendering/entities";
+import { area_store } from "./AreaStore";
+import { entity_store } from "./EntityStore";
 
-const logger = Logger.get('stores/QuestEditorStore');
+const logger = Logger.get("stores/QuestEditorStore");
 
 class QuestEditorStore {
     @observable current_quest?: Quest;
     @observable current_area?: Area;
     @observable selected_entity?: QuestEntity;
 
-    set_quest = action('set_quest', (quest?: Quest) => {
+    set_quest = action("set_quest", (quest?: Quest) => {
         this.reset_quest_state();
         this.current_quest = quest;
 
         if (quest && quest.area_variants.length) {
             this.current_area = quest.area_variants[0].area;
         }
-    })
+    });
 
     private reset_quest_state() {
         this.current_quest = undefined;
@@ -32,9 +35,9 @@ class QuestEditorStore {
 
     set_selected_entity = (entity?: QuestEntity) => {
         this.selected_entity = entity;
-    }
+    };
 
-    set_current_area_id = action('set_current_area_id', (area_id?: number) => {
+    set_current_area_id = action("set_current_area_id", (area_id?: number) => {
         this.selected_entity = undefined;
 
         if (area_id == null) {
@@ -45,18 +48,20 @@ class QuestEditorStore {
             );
             this.current_area = area_variant && area_variant.area;
         }
-    })
+    });
 
     load_file = (file: File) => {
         const reader = new FileReader();
-        reader.addEventListener('loadend', () => { this.loadend(file, reader) });
+        reader.addEventListener("loadend", () => {
+            this.loadend(file, reader);
+        });
         reader.readAsArrayBuffer(file);
-    }
+    };
 
     // TODO: notify user of problems.
     private loadend = async (file: File, reader: FileReader) => {
         if (!(reader.result instanceof ArrayBuffer)) {
-            logger.error('Couldn\'t read file.');
+            logger.error("Couldn't read file.");
             return;
         }
 
@@ -96,9 +101,9 @@ class QuestEditorStore {
                 }
             }
         } else {
-            logger.error('Couldn\'t parse quest file.');
+            logger.error("Couldn't parse quest file.");
         }
-    }
+    };
 
     private set_section_on_visible_quest_entity = async (
         entity: QuestEntity,
@@ -121,17 +126,17 @@ class QuestEditorStore {
         }
 
         entity.position = new Vec3(x, y, z);
-    }
+    };
 
     save_current_quest_to_file = (file_name: string) => {
         if (this.current_quest) {
             const cursor = write_quest_qst(this.current_quest, file_name);
 
-            if (!file_name.endsWith('.qst')) {
-                file_name += '.qst';
+            if (!file_name.endsWith(".qst")) {
+                file_name += ".qst";
             }
 
-            const a = document.createElement('a');
+            const a = document.createElement("a");
             a.href = URL.createObjectURL(new Blob([cursor.buffer]));
             a.download = file_name;
             document.body.appendChild(a);
@@ -139,7 +144,7 @@ class QuestEditorStore {
             URL.revokeObjectURL(a.href);
             document.body.removeChild(a);
         }
-    }
+    };
 }
 
 export const quest_editor_store = new QuestEditorStore();

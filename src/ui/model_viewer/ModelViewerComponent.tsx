@@ -5,7 +5,7 @@ import { observer } from "mobx-react";
 import React from "react";
 import { model_viewer_store } from "../../stores/ModelViewerStore";
 import { ModelSelectionComponent } from "./ModelSelectionComponent";
-import './ModelViewerComponent.less';
+import "./ModelViewerComponent.less";
 import { RendererComponent } from "./RendererComponent";
 
 @observer
@@ -22,9 +22,7 @@ export class ModelViewerComponent extends React.Component {
                 <Toolbar />
                 <div className="mv-ModelViewerComponent-main">
                     <ModelSelectionComponent />
-                    <RendererComponent
-                        model={model_viewer_store.current_obj3d}
-                    />
+                    <RendererComponent model={model_viewer_store.current_obj3d} />
                 </div>
             </div>
         );
@@ -34,8 +32,8 @@ export class ModelViewerComponent extends React.Component {
 @observer
 class Toolbar extends React.Component {
     state = {
-        filename: undefined
-    }
+        filename: undefined,
+    };
 
     render() {
         return (
@@ -47,21 +45,23 @@ class Toolbar extends React.Component {
                     // Make sure it doesn't do a POST:
                     customRequest={() => false}
                 >
-                    <Button icon="file">{this.state.filename || 'Open file...'}</Button>
+                    <Button icon="file">{this.state.filename || "Open file..."}</Button>
                 </Upload>
                 {model_viewer_store.animation && (
                     <>
                         <Button
-                            icon={model_viewer_store.animation_playing ? 'pause' : 'caret-right'}
+                            icon={model_viewer_store.animation_playing ? "pause" : "caret-right"}
                             onClick={model_viewer_store.toggle_animation_playing}
                         >
-                            {model_viewer_store.animation_playing ? 'Pause animation' : 'Play animation'}
+                            {model_viewer_store.animation_playing
+                                ? "Pause animation"
+                                : "Play animation"}
                         </Button>
                         <div className="group">
                             <span>Frame rate:</span>
                             <InputNumber
                                 value={model_viewer_store.animation_frame_rate}
-                                onChange={(value) =>
+                                onChange={value =>
                                     model_viewer_store.set_animation_frame_rate(value || 0)
                                 }
                                 min={1}
@@ -72,14 +72,12 @@ class Toolbar extends React.Component {
                             <span>Frame:</span>
                             <InputNumber
                                 value={model_viewer_store.animation_frame}
-                                onChange={(value) =>
+                                onChange={value =>
                                     model_viewer_store.set_animation_frame(value || 0)
                                 }
                                 step={1}
                             />
-                            <span>
-                                / {model_viewer_store.animation_frame_count}
-                            </span>
+                            <span>/ {model_viewer_store.animation_frame_count}</span>
                         </div>
                     </>
                 )}
@@ -87,7 +85,7 @@ class Toolbar extends React.Component {
                     <span>Show skeleton:</span>
                     <Switch
                         checked={model_viewer_store.show_skeleton}
-                        onChange={(value) => model_viewer_store.show_skeleton = value}
+                        onChange={value => (model_viewer_store.show_skeleton = value)}
                     />
                 </div>
             </div>
@@ -99,5 +97,5 @@ class Toolbar extends React.Component {
             this.setState({ filename: info.file.name });
             model_viewer_store.load_file(info.file.originFileObj);
         }
-    }
+    };
 }

@@ -1,22 +1,22 @@
-import { computed, observable } from 'mobx';
-import { Object3D } from 'three';
-import { BufferCursor } from '../data_formats/BufferCursor';
-import { DatNpc, DatObject, DatUnknown } from '../data_formats/parsing/quest/dat';
-import { NpcType } from './NpcType';
-import { ObjectType } from './ObjectType';
-import { enum_values } from '../enums';
-import { ItemType } from './items';
-import { Vec3 } from '../data_formats/Vec3';
+import { computed, observable } from "mobx";
+import { Object3D } from "three";
+import { BufferCursor } from "../data_formats/BufferCursor";
+import { DatNpc, DatObject, DatUnknown } from "../data_formats/parsing/quest/dat";
+import { NpcType } from "./NpcType";
+import { ObjectType } from "./ObjectType";
+import { enum_values } from "../enums";
+import { ItemType } from "./items";
+import { Vec3 } from "../data_formats/Vec3";
 
-export * from './items';
-export * from './NpcType';
-export * from './ObjectType';
+export * from "./items";
+export * from "./NpcType";
+export * from "./ObjectType";
 
 export const RARE_ENEMY_PROB = 1 / 512;
 export const KONDRIEU_PROB = 1 / 10;
 
 export enum Server {
-    Ephinea = 'Ephinea'
+    Ephinea = "Ephinea",
 }
 
 export const Servers: Server[] = enum_values(Server);
@@ -24,7 +24,7 @@ export const Servers: Server[] = enum_values(Server);
 export enum Episode {
     I = 1,
     II = 2,
-    IV = 4
+    IV = 4,
 }
 
 export const Episodes: Episode[] = enum_values(Episode);
@@ -51,7 +51,10 @@ export enum SectionId {
 export const SectionIds: SectionId[] = enum_values(SectionId);
 
 export enum Difficulty {
-    Normal, Hard, VHard, Ultimate
+    Normal,
+    Hard,
+    VHard,
+    Ultimate,
 }
 
 export const Difficulties: Difficulty[] = enum_values(Difficulty);
@@ -69,15 +72,11 @@ export class Section {
         return Math.cos(this.y_axis_rotation);
     }
 
-    constructor(
-        id: number,
-        position: Vec3,
-        y_axis_rotation: number
-    ) {
+    constructor(id: number, position: Vec3, y_axis_rotation: number) {
         if (!Number.isInteger(id) || id < -1)
             throw new Error(`Expected id to be an integer greater than or equal to -1, got ${id}.`);
-        if (!position) throw new Error('position is required.');
-        if (typeof y_axis_rotation !== 'number') throw new Error('y_axis_rotation is required.');
+        if (!position) throw new Error("position is required.");
+        if (typeof y_axis_rotation !== "number") throw new Error("y_axis_rotation is required.");
 
         this.id = id;
         this.position = position;
@@ -115,10 +114,11 @@ export class Quest {
         dat_unknowns: DatUnknown[],
         bin_data: BufferCursor
     ) {
-        if (id != null && (!Number.isInteger(id) || id < 0)) throw new Error('id should be undefined or a non-negative integer.');
+        if (id != null && (!Number.isInteger(id) || id < 0))
+            throw new Error("id should be undefined or a non-negative integer.");
         check_episode(episode);
-        if (!objects || !(objects instanceof Array)) throw new Error('objs is required.');
-        if (!npcs || !(npcs instanceof Array)) throw new Error('npcs is required.');
+        if (!objects || !(objects instanceof Array)) throw new Error("objs is required.");
+        if (!npcs || !(npcs instanceof Array)) throw new Error("npcs is required.");
 
         this.id = id;
         this.name = name;
@@ -193,20 +193,15 @@ export class QuestEntity {
 
     object_3d?: Object3D;
 
-    constructor(
-        area_id: number,
-        section_id: number,
-        position: Vec3,
-        rotation: Vec3
-    ) {
+    constructor(area_id: number, section_id: number, position: Vec3, rotation: Vec3) {
         if (Object.getPrototypeOf(this) === Object.getPrototypeOf(QuestEntity))
-            throw new Error('Abstract class should not be instantiated directly.');
+            throw new Error("Abstract class should not be instantiated directly.");
         if (!Number.isInteger(area_id) || area_id < 0)
             throw new Error(`Expected area_id to be a non-negative integer, got ${area_id}.`);
         if (!Number.isInteger(section_id) || section_id < 0)
             throw new Error(`Expected section_id to be a non-negative integer, got ${section_id}.`);
-        if (!position) throw new Error('position is required.');
-        if (!rotation) throw new Error('rotation is required.');
+        if (!position) throw new Error("position is required.");
+        if (!rotation) throw new Error("rotation is required.");
 
         this.area_id = area_id;
         this._section_id = section_id;
@@ -232,7 +227,7 @@ export class QuestObject extends QuestEntity {
     ) {
         super(area_id, section_id, position, rotation);
 
-        if (!type) throw new Error('type is required.');
+        if (!type) throw new Error("type is required.");
 
         this.type = type;
         this.dat = dat;
@@ -256,7 +251,7 @@ export class QuestNpc extends QuestEntity {
     ) {
         super(area_id, section_id, position, rotation);
 
-        if (!type) throw new Error('type is required.');
+        if (!type) throw new Error("type is required.");
 
         this.type = type;
         this.dat = dat;
@@ -272,8 +267,8 @@ export class Area {
     constructor(id: number, name: string, order: number, area_variants: AreaVariant[]) {
         if (!Number.isInteger(id) || id < 0)
             throw new Error(`Expected id to be a non-negative integer, got ${id}.`);
-        if (!name) throw new Error('name is required.');
-        if (!area_variants) throw new Error('area_variants is required.');
+        if (!name) throw new Error("name is required.");
+        if (!area_variants) throw new Error("area_variants is required.");
 
         this.id = id;
         this.name = name;
@@ -292,10 +287,10 @@ export class AreaVariant {
 }
 
 type ItemDrop = {
-    item_type: ItemType,
-    anything_rate: number,
-    rare_rate: number
-}
+    item_type: ItemType;
+    anything_rate: number;
+    rare_rate: number;
+};
 
 export class EnemyDrop implements ItemDrop {
     readonly rate: number;
@@ -331,16 +326,11 @@ export class HuntMethod {
         return this.user_time != null ? this.user_time : this.default_time;
     }
 
-    constructor(
-        id: string,
-        name: string,
-        quest: SimpleQuest,
-        default_time: number
-    ) {
-        if (!id) throw new Error('id is required.');
-        if (default_time <= 0) throw new Error('default_time must be greater than zero.');
-        if (!name) throw new Error('name is required.');
-        if (!quest) throw new Error('quest is required.');
+    constructor(id: string, name: string, quest: SimpleQuest, default_time: number) {
+        if (!id) throw new Error("id is required.");
+        if (default_time <= 0) throw new Error("default_time must be greater than zero.");
+        if (!name) throw new Error("name is required.");
+        if (!quest) throw new Error("quest is required.");
 
         this.id = id;
         this.name = name;
@@ -358,9 +348,9 @@ export class SimpleQuest {
         public readonly episode: Episode,
         public readonly enemy_counts: Map<NpcType, number>
     ) {
-        if (!id) throw new Error('id is required.');
-        if (!name) throw new Error('name is required.');
-        if (!enemy_counts) throw new Error('enemyCounts is required.');
+        if (!id) throw new Error("id is required.");
+        if (!name) throw new Error("name is required.");
+        if (!enemy_counts) throw new Error("enemyCounts is required.");
     }
 }
 
@@ -370,5 +360,5 @@ export class PlayerModel {
         public readonly head_style_count: number,
         public readonly hair_styles_count: number,
         public readonly hair_styles_with_accessory: Set<number>
-    ) { }
+    ) {}
 }

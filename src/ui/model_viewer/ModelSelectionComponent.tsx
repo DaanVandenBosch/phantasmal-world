@@ -14,11 +14,11 @@ export class ModelSelectionComponent extends Component {
                     renderItem={model => (
                         <List.Item onClick={() => model_viewer_store.load_model(model)}>
                             <List.Item.Meta
-                                title={(
+                                title={
                                     <span className="mv-ModelSelectionComponent-model">
                                         {model.name}
                                     </span>
-                                )}
+                                }
                             />
                         </List.Item>
                     )}

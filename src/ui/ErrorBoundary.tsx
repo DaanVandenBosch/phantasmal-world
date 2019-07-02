@@ -1,10 +1,10 @@
-import { Alert } from 'antd';
-import React from 'react';
-import './ErrorBoundary.css';
+import { Alert } from "antd";
+import React from "react";
+import "./ErrorBoundary.css";
 
 export class ErrorBoundary extends React.Component {
     state = {
-        has_error: false
+        has_error: false,
     };
 
     render() {
@@ -27,5 +27,9 @@ export class ErrorBoundary extends React.Component {
 }
 
 export function with_error_boundary(Component: React.ComponentType) {
-    return () => <ErrorBoundary><Component /></ErrorBoundary>;
+    return () => (
+        <ErrorBoundary>
+            <Component />
+        </ErrorBoundary>
+    );
 }

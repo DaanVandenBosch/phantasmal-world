@@ -1,12 +1,12 @@
-import { InputNumber } from 'antd';
-import { observer } from 'mobx-react';
-import React from 'react';
-import { QuestNpc, QuestObject, QuestEntity } from '../../domain';
-import './EntityInfoComponent.css';
+import { InputNumber } from "antd";
+import { observer } from "mobx-react";
+import React from "react";
+import { QuestNpc, QuestObject, QuestEntity } from "../../domain";
+import "./EntityInfoComponent.css";
 
 export type Props = {
-    entity?: QuestEntity,
-}
+    entity?: QuestEntity;
+};
 
 @observer
 export class EntityInfoComponent extends React.Component<Props> {
@@ -20,13 +20,15 @@ export class EntityInfoComponent extends React.Component<Props> {
             if (entity instanceof QuestObject) {
                 name = (
                     <tr>
-                        <td>Object: </td><td colSpan={2}>{entity.type.name}</td>
+                        <td>Object: </td>
+                        <td colSpan={2}>{entity.type.name}</td>
                     </tr>
                 );
             } else if (entity instanceof QuestNpc) {
                 name = (
                     <tr>
-                        <td>NPC: </td><td>{entity.type.name}</td>
+                        <td>NPC: </td>
+                        <td>{entity.type.name}</td>
                     </tr>
                 );
             }
@@ -37,7 +39,8 @@ export class EntityInfoComponent extends React.Component<Props> {
                         <tbody>
                             {name}
                             <tr>
-                                <td>Section: </td><td>{section_id}</td>
+                                <td>Section: </td>
+                                <td>{section_id}</td>
                             </tr>
                             <tr>
                                 <td colSpan={2}>World position: </td>
@@ -46,9 +49,21 @@ export class EntityInfoComponent extends React.Component<Props> {
                                 <td colSpan={2}>
                                     <table>
                                         <tbody>
-                                            <CoordRow entity={entity} position_type="position" coord="x" />
-                                            <CoordRow entity={entity} position_type="position" coord="y" />
-                                            <CoordRow entity={entity} position_type="position" coord="z" />
+                                            <CoordRow
+                                                entity={entity}
+                                                position_type="position"
+                                                coord="x"
+                                            />
+                                            <CoordRow
+                                                entity={entity}
+                                                position_type="position"
+                                                coord="y"
+                                            />
+                                            <CoordRow
+                                                entity={entity}
+                                                position_type="position"
+                                                coord="z"
+                                            />
                                         </tbody>
                                     </table>
                                 </td>
@@ -60,9 +75,21 @@ export class EntityInfoComponent extends React.Component<Props> {
                                 <td colSpan={2}>
                                     <table>
                                         <tbody>
-                                            <CoordRow entity={entity} position_type="section_position" coord="x" />
-                                            <CoordRow entity={entity} position_type="section_position" coord="y" />
-                                            <CoordRow entity={entity} position_type="section_position" coord="z" />
+                                            <CoordRow
+                                                entity={entity}
+                                                position_type="section_position"
+                                                coord="x"
+                                            />
+                                            <CoordRow
+                                                entity={entity}
+                                                position_type="section_position"
+                                                coord="y"
+                                            />
+                                            <CoordRow
+                                                entity={entity}
+                                                position_type="section_position"
+                                                coord="z"
+                                            />
                                         </tbody>
                                     </table>
                                 </td>
@@ -79,9 +106,9 @@ export class EntityInfoComponent extends React.Component<Props> {
 
 @observer
 class CoordRow extends React.Component<{
-    entity: QuestEntity,
-    position_type: 'position' | 'section_position',
-    coord: 'x' | 'y' | 'z'
+    entity: QuestEntity;
+    position_type: "position" | "section_position";
+    coord: "x" | "y" | "z";
 }> {
     render() {
         const entity = this.props.entity;
@@ -110,5 +137,5 @@ class CoordRow extends React.Component<{
             pos[this.props.coord] = value;
             entity[pos_type] = pos;
         }
-    }
+    };
 }

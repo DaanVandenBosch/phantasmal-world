@@ -27,7 +27,7 @@ class EntityStore {
         } else {
             mesh = get_npc_data(npc_type).then(({ url, data }) => {
                 const cursor = new BufferCursor(data, true);
-                const nj_objects = url.endsWith('.nj') ? parse_nj(cursor) : parse_xj(cursor);
+                const nj_objects = url.endsWith(".nj") ? parse_nj(cursor) : parse_xj(cursor);
 
                 if (nj_objects.length) {
                     return ninja_object_to_buffer_geometry(nj_objects[0]);
@@ -49,12 +49,12 @@ class EntityStore {
         } else {
             geometry = get_object_data(object_type).then(({ url, data }) => {
                 const cursor = new BufferCursor(data, true);
-                const nj_objects = url.endsWith('.nj') ? parse_nj(cursor) : parse_xj(cursor);
+                const nj_objects = url.endsWith(".nj") ? parse_nj(cursor) : parse_xj(cursor);
 
                 if (nj_objects.length) {
                     return ninja_object_to_buffer_geometry(nj_objects[0]);
                 } else {
-                    throw new Error('File could not be parsed into a BufferGeometry.');
+                    throw new Error("File could not be parsed into a BufferGeometry.");
                 }
             });
 

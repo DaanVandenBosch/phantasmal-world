@@ -18,7 +18,7 @@ export class DpsCalcComponent extends React.Component {
                         value={undefined}
                         options={dps_calc_store.weapon_types.map(wt => ({
                             label: wt.name,
-                            value: wt.id
+                            value: wt.id,
                         }))}
                         onChange={this.add_weapon}
                     />
@@ -54,7 +54,7 @@ export class DpsCalcComponent extends React.Component {
                                             min={0}
                                             max={weapon.item.type.max_grind}
                                             step={1}
-                                            onChange={(value) => weapon.item.grind = value || 0}
+                                            onChange={value => (weapon.item.grind = value || 0)}
                                         />
                                     </td>
                                     <td>{weapon.item.grind_atp}</td>
@@ -76,7 +76,7 @@ export class DpsCalcComponent extends React.Component {
                         value={dps_calc_store.char_atp}
                         min={0}
                         step={1}
-                        onChange={(value) => dps_calc_store.char_atp = value || 0}
+                        onChange={value => (dps_calc_store.char_atp = value || 0)}
                     />
                     <div>MAG POW:</div>
                     <InputNumber
@@ -84,7 +84,7 @@ export class DpsCalcComponent extends React.Component {
                         min={0}
                         max={200}
                         step={1}
-                        onChange={(value) => dps_calc_store.mag_pow = value || 0}
+                        onChange={value => (dps_calc_store.mag_pow = value || 0)}
                     />
                     <div>Armor:</div>
                     <BigSelect
@@ -92,7 +92,7 @@ export class DpsCalcComponent extends React.Component {
                         value={dps_calc_store.armor_type && dps_calc_store.armor_type.id}
                         options={dps_calc_store.armor_types.map(at => ({
                             label: at.name,
-                            value: at.id
+                            value: at.id,
                         }))}
                         onChange={this.armor_changed}
                     />
@@ -103,7 +103,7 @@ export class DpsCalcComponent extends React.Component {
                         value={dps_calc_store.shield_type && dps_calc_store.shield_type.id}
                         options={dps_calc_store.shield_types.map(st => ({
                             label: st.name,
-                            value: st.id
+                            value: st.id,
                         }))}
                         onChange={this.shield_changed}
                     />
@@ -114,7 +114,7 @@ export class DpsCalcComponent extends React.Component {
                         min={0}
                         max={30}
                         step={1}
-                        onChange={(value) => dps_calc_store.shifta_lvl = value || 0}
+                        onChange={value => (dps_calc_store.shifta_lvl = value || 0)}
                     />
                     <div>Shifta factor:</div>
                     <div>{dps_calc_store.shifta_factor.toFixed(3)}</div>
@@ -130,23 +130,23 @@ export class DpsCalcComponent extends React.Component {
             let type = item_type_stores.current.value.get_by_id(selected.value)!;
             dps_calc_store.add_weapon(type as WeaponItemType);
         }
-    }
+    };
 
     private armor_changed = (selected: any) => {
         if (selected) {
-            let type = item_type_stores.current.value.get_by_id(selected.value)!;
-            dps_calc_store.armor_type = (type as ArmorItemType);
+            let item_type = item_type_stores.current.value.get_by_id(selected.value)!;
+            dps_calc_store.armor_type = item_type as ArmorItemType;
         } else {
             dps_calc_store.armor_type = undefined;
         }
-    }
+    };
 
     private shield_changed = (selected: any) => {
         if (selected) {
-            let type = item_type_stores.current.value.get_by_id(selected.value)!;
-            dps_calc_store.shield_type = (type as ShieldItemType);
+            let item_type = item_type_stores.current.value.get_by_id(selected.value)!;
+            dps_calc_store.shield_type = item_type as ShieldItemType;
         } else {
             dps_calc_store.shield_type = undefined;
         }
-    }
+    };
 }

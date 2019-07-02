@@ -1,21 +1,21 @@
-import { BufferCursor } from '../../BufferCursor';
-import Logger from 'js-logger';
+import { BufferCursor } from "../../BufferCursor";
+import Logger from "js-logger";
 
-const logger = Logger.get('data_formats/parsing/quest/qst');
+const logger = Logger.get("data_formats/parsing/quest/qst");
 
 export type QstContainedFile = {
-    id?: number,
-    name: string,
-    name_2?: string, // Unsure what this is
-    expected_size?: number,
-    data: BufferCursor,
-    chunk_nos: Set<number>,
-}
+    id?: number;
+    name: string;
+    name_2?: string; // Unsure what this is
+    expected_size?: number;
+    data: BufferCursor;
+    chunk_nos: Set<number>;
+};
 
 export type ParseQstResult = {
-    version: string,
-    files: QstContainedFile[],
-}
+    version: string;
+    files: QstContainedFile[];
+};
 
 /**
  * Low level parsing function for .qst files.
@@ -23,7 +23,7 @@ export type ParseQstResult = {
  */
 export function parse_qst(cursor: BufferCursor): ParseQstResult | undefined {
     // A .qst file contains two 88-byte headers that describe the embedded .dat and .bin files.
-    let version = 'PC';
+    let version = "PC";
 
     // Detect version.
     const version_a = cursor.u8();
@@ -31,24 +31,22 @@ export function parse_qst(cursor: BufferCursor): ParseQstResult | undefined {
     const version_b = cursor.u8();
 
     if (version_a === 0x44) {
-        version = 'Dreamcast/GameCube';
+        version = "Dreamcast/GameCube";
     } else if (version_a === 0x58) {
         if (version_b === 0x44) {
-            version = 'Blue Burst';
+            version = "Blue Burst";
         }
-    } else if (version_a === 0xA6) {
-        version = 'Dreamcast download';
+    } else if (version_a === 0xa6) {
+        version = "Dreamcast download";
     }
 
-    if (version === 'Blue Burst') {
+    if (version === "Blue Burst") {
         // Read headers and contained files.
         cursor.seek_start(0);
 
         const headers = parse_headers(cursor);
 
-        const files = parse_files(
-            cursor, new Map(headers.map(h => [h.file_name, h.size]))
-        );
+        const files = parse_files(cursor, new Map(headers.map(h => [h.file_name, h.size])));
 
         for (const file of files) {
             const header = headers.find(h => h.file_name === file.name);
@@ -61,7 +59,7 @@ export function parse_qst(cursor: BufferCursor): ParseQstResult | undefined {
 
         return {
             version,
-            files
+            files,
         };
     } else {
         logger.error(`Can't parse ${version} QST files.`);
@@ -70,16 +68,16 @@ export function parse_qst(cursor: BufferCursor): ParseQstResult | undefined {
 }
 
 export type SimpleQstContainedFile = {
-    id?: number,
-    name: string,
-    name_2?: string,
-    data: BufferCursor,
-}
+    id?: number;
+    name: string;
+    name_2?: string;
+    data: BufferCursor;
+};
 
 export type WriteQstParams = {
-    version?: string,
-    files: SimpleQstContainedFile[],
-}
+    version?: string;
+    files: SimpleQstContainedFile[];
+};
 
 /**
  * Always uses Blue Burst format.
@@ -102,11 +100,11 @@ export function write_qst(params: WriteQstParams): BufferCursor {
 }
 
 type QstHeader = {
-    quest_id: number,
-    file_name: string,
-    file_name_2: string,
-    size: number,
-}
+    quest_id: number;
+    file_name: string;
+    file_name_2: string;
+    size: number;
+};
 
 /**
  * TODO: Read all headers instead of just the first 2.
@@ -127,14 +125,17 @@ function parse_headers(cursor: BufferCursor): QstHeader[] {
             quest_id,
             file_name,
             file_name_2,
-            size
+            size,
         });
     }
 
     return headers;
 }
 
-function parse_files(cursor: BufferCursor, expected_sizes: Map<string, number>): QstContainedFile[] {
+function parse_files(
+    cursor: BufferCursor,
+    expected_sizes: Map<string, number>
+): QstContainedFile[] {
     // Files are interleaved in 1056 byte chunks.
     // Each chunk has a 24 byte header, 1024 byte data segment and an 8 byte trailer.
     const files = new Map<string, QstContainedFile>();
@@ -150,16 +151,21 @@ function parse_files(cursor: BufferCursor, expected_sizes: Map<string, number>):
 
         if (!file) {
             const expected_size = expected_sizes.get(file_name);
-            files.set(file_name, file = {
-                name: file_name,
-                expected_size,
-                data: new BufferCursor(expected_size || (10 * 1024), true),
-                chunk_nos: new Set()
-            });
+            files.set(
+                file_name,
+                (file = {
+                    name: file_name,
+                    expected_size,
+                    data: new BufferCursor(expected_size || 10 * 1024, true),
+                    chunk_nos: new Set(),
+                })
+            );
         }
 
         if (file.chunk_nos.has(chunk_no)) {
-            logger.warn(`File chunk number ${chunk_no} of file ${file_name} was already encountered, overwriting previous chunk.`);
+            logger.warn(
+                `File chunk number ${chunk_no} of file ${file_name} was already encountered, overwriting previous chunk.`
+            );
         } else {
             file.chunk_nos.add(chunk_no);
         }
@@ -169,7 +175,9 @@ function parse_files(cursor: BufferCursor, expected_sizes: Map<string, number>):
         cursor.seek(-1028);
 
         if (size > 1024) {
-            logger.warn(`Data segment size of ${size} is larger than expected maximum size, reading just 1024 bytes.`);
+            logger.warn(
+                `Data segment size of ${size} is larger than expected maximum size, reading just 1024 bytes.`
+            );
             size = 1024;
         }
 
@@ -182,7 +190,10 @@ function parse_files(cursor: BufferCursor, expected_sizes: Map<string, number>):
         cursor.seek(1032 - data.size);
 
         if (cursor.position !== start_position + 1056) {
-            throw new Error(`Read ${cursor.position - start_position} file chunk message bytes instead of expected 1056.`);
+            throw new Error(
+                `Read ${cursor.position -
+                    start_position} file chunk message bytes instead of expected 1056.`
+            );
         }
     }
 
@@ -197,7 +208,9 @@ function parse_files(cursor: BufferCursor, expected_sizes: Map<string, number>):
 
         // Check whether the expected size was correct.
         if (file.expected_size != null && file.data.size !== file.expected_size) {
-            logger.warn(`File ${file.name} has an actual size of ${file.data.size} instead of the expected size ${file.expected_size}.`);
+            logger.warn(
+                `File ${file.name} has an actual size of ${file.data.size} instead of the expected size ${file.expected_size}.`
+            );
         }
 
         // Detect missing file chunks.
@@ -234,16 +247,19 @@ function write_file_headers(cursor: BufferCursor, files: SimpleQstContainedFile[
 
         if (file.name_2 == null) {
             // Not sure this makes sense.
-            const dot_pos = file.name.lastIndexOf('.');
-            file_name_2 = dot_pos === -1
-                ? file.name + '_j'
-                : file.name.slice(0, dot_pos) + '_j' + file.name.slice(dot_pos);
+            const dot_pos = file.name.lastIndexOf(".");
+            file_name_2 =
+                dot_pos === -1
+                    ? file.name + "_j"
+                    : file.name.slice(0, dot_pos) + "_j" + file.name.slice(dot_pos);
         } else {
             file_name_2 = file.name_2;
         }
 
         if (file_name_2.length > 24) {
-            throw Error(`File ${file.name} has a file_name_2 length (${file_name_2}) longer than 24 characters.`);
+            throw Error(
+                `File ${file.name} has a file_name_2 length (${file_name_2}) longer than 24 characters.`
+            );
         }
 
         cursor.write_string_ascii(file_name_2, 24);

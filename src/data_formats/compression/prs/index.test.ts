@@ -1,5 +1,5 @@
-import { BufferCursor } from '../../BufferCursor';
-import { compress, decompress } from '../prs';
+import { BufferCursor } from "../../BufferCursor";
+import { compress, decompress } from "../prs";
 
 function test_with_bytes(bytes: number[], expected_compressed_size: number) {
     const cursor = new BufferCursor(new Uint8Array(bytes).buffer, true);
@@ -29,19 +29,19 @@ function test_with_bytes(bytes: number[], expected_compressed_size: number) {
     expect(test_cursor.position).toBe(test_cursor.size);
 }
 
-test('PRS compression and decompression, best case', () => {
+test("PRS compression and decompression, best case", () => {
     // Compression factor: 0.018
     test_with_bytes(new Array(1000).fill(128), 18);
 });
 
-test('PRS compression and decompression, worst case', () => {
+test("PRS compression and decompression, worst case", () => {
     const prng = new Prng();
 
     // Compression factor: 1.124
     test_with_bytes(new Array(1000).fill(0).map(_ => prng.next_integer(0, 255)), 1124);
 });
 
-test('PRS compression and decompression, typical case', () => {
+test("PRS compression and decompression, typical case", () => {
     const prng = new Prng();
     const pattern = [0, 0, 2, 0, 3, 0, 5, 0, 0, 0, 7, 9, 11, 13, 0, 0];
     const arrays = new Array(100)
@@ -53,19 +53,19 @@ test('PRS compression and decompression, typical case', () => {
     test_with_bytes(flattened_array, 1335);
 });
 
-test('PRS compression and decompression, 0 bytes', () => {
+test("PRS compression and decompression, 0 bytes", () => {
     test_with_bytes([], 3);
 });
 
-test('PRS compression and decompression, 1 byte', () => {
+test("PRS compression and decompression, 1 byte", () => {
     test_with_bytes([111], 4);
 });
 
-test('PRS compression and decompression, 2 bytes', () => {
+test("PRS compression and decompression, 2 bytes", () => {
     test_with_bytes([111, 224], 5);
 });
 
-test('PRS compression and decompression, 3 bytes', () => {
+test("PRS compression and decompression, 3 bytes", () => {
     test_with_bytes([56, 237, 158], 6);
 });
 

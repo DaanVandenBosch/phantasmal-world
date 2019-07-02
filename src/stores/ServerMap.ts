@@ -8,7 +8,7 @@ import { EnumMap } from "../enums";
  */
 export class ServerMap<V> extends EnumMap<Server, V> {
     constructor(initial_value: (server: Server) => V) {
-        super(Server, initial_value)
+        super(Server, initial_value);
     }
 
     /**

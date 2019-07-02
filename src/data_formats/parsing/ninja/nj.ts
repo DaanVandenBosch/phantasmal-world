@@ -1,9 +1,9 @@
-import Logger from 'js-logger';
-import { BufferCursor } from '../../BufferCursor';
+import Logger from "js-logger";
+import { BufferCursor } from "../../BufferCursor";
 import { Vec3 } from "../../Vec3";
-import { NinjaVertex } from '../ninja';
+import { NinjaVertex } from "../ninja";
 
-const logger = Logger.get('data_formats/parsing/ninja/nj');
+const logger = Logger.get("data_formats/parsing/ninja/nj");
 
 // TODO:
 // - textures
@@ -13,109 +13,126 @@ const logger = Logger.get('data_formats/parsing/ninja/nj');
 // - deal with vertex information contained in triangle strips
 
 export type NjModel = {
-    type: 'nj',
+    type: "nj";
     /**
      * Sparse array of vertices.
      */
-    vertices: NinjaVertex[],
-    meshes: NjTriangleStrip[],
+    vertices: NinjaVertex[];
+    meshes: NjTriangleStrip[];
     // materials: [],
-    bounding_sphere_center: Vec3,
-    bounding_sphere_radius: number,
-}
+    bounding_sphere_center: Vec3;
+    bounding_sphere_radius: number;
+};
 
 enum NjChunkType {
-    Unknown, Null, Bits, CachePolygonList, DrawPolygonList, Tiny, Material, Vertex, Volume, Strip, End
+    Unknown,
+    Null,
+    Bits,
+    CachePolygonList,
+    DrawPolygonList,
+    Tiny,
+    Material,
+    Vertex,
+    Volume,
+    Strip,
+    End,
 }
 
 type NjChunk = {
-    type: NjChunkType,
-    type_id: number,
-} & (NjUnknownChunk | NjNullChunk | NjBitsChunk | NjCachePolygonListChunk | NjDrawPolygonListChunk | NjTinyChunk | NjMaterialChunk | NjVertexChunk | NjVolumeChunk | NjStripChunk | NjEndChunk)
+    type: NjChunkType;
+    type_id: number;
+} & (
+    | NjUnknownChunk
+    | NjNullChunk
+    | NjBitsChunk
+    | NjCachePolygonListChunk
+    | NjDrawPolygonListChunk
+    | NjTinyChunk
+    | NjMaterialChunk
+    | NjVertexChunk
+    | NjVolumeChunk
+    | NjStripChunk
+    | NjEndChunk);
 
 type NjUnknownChunk = {
-    type: NjChunkType.Unknown,
-}
+    type: NjChunkType.Unknown;
+};
 
 type NjNullChunk = {
-    type: NjChunkType.Null,
-}
+    type: NjChunkType.Null;
+};
 
 type NjBitsChunk = {
-    type: NjChunkType.Bits,
-}
+    type: NjChunkType.Bits;
+};
 
 type NjCachePolygonListChunk = {
-    type: NjChunkType.CachePolygonList,
-    cache_index: number,
-    offset: number,
-}
+    type: NjChunkType.CachePolygonList;
+    cache_index: number;
+    offset: number;
+};
 
 type NjDrawPolygonListChunk = {
-    type: NjChunkType.DrawPolygonList,
-    cache_index: number
-}
+    type: NjChunkType.DrawPolygonList;
+    cache_index: number;
+};
 
 type NjTinyChunk = {
-    type: NjChunkType.Tiny,
-}
+    type: NjChunkType.Tiny;
+};
 
 type NjMaterialChunk = {
-    type: NjChunkType.Material,
-}
+    type: NjChunkType.Material;
+};
 
 type NjVertexChunk = {
-    type: NjChunkType.Vertex,
-    vertices: NjVertex[]
-}
+    type: NjChunkType.Vertex;
+    vertices: NjVertex[];
+};
 
 type NjVolumeChunk = {
-    type: NjChunkType.Volume,
-}
+    type: NjChunkType.Volume;
+};
 
 type NjStripChunk = {
-    type: NjChunkType.Strip,
-    triangle_strips: NjTriangleStrip[]
-}
+    type: NjChunkType.Strip;
+    triangle_strips: NjTriangleStrip[];
+};
 
 type NjEndChunk = {
-    type: NjChunkType.End,
-}
+    type: NjChunkType.End;
+};
 
 type NjVertex = {
-    index: number,
-    position: Vec3,
-    normal?: Vec3,
-    bone_weight: number,
-    bone_weight_status: number,
-    calc_continue: boolean,
-}
+    index: number;
+    position: Vec3;
+    normal?: Vec3;
+    bone_weight: number;
+    bone_weight_status: number;
+    calc_continue: boolean;
+};
 
 type NjTriangleStrip = {
-    ignore_light: boolean,
-    ignore_specular: boolean,
-    ignore_ambient: boolean,
-    use_alpha: boolean,
-    double_side: boolean,
-    flat_shading: boolean,
-    environment_mapping: boolean,
-    clockwise_winding: boolean,
-    vertices: NjMeshVertex[],
-}
+    ignore_light: boolean;
+    ignore_specular: boolean;
+    ignore_ambient: boolean;
+    use_alpha: boolean;
+    double_side: boolean;
+    flat_shading: boolean;
+    environment_mapping: boolean;
+    clockwise_winding: boolean;
+    vertices: NjMeshVertex[];
+};
 
 type NjMeshVertex = {
-    index: number,
-    normal?: Vec3,
-}
+    index: number;
+    normal?: Vec3;
+};
 
 export function parse_nj_model(cursor: BufferCursor, cached_chunk_offsets: number[]): NjModel {
     const vlist_offset = cursor.u32(); // Vertex list
     const plist_offset = cursor.u32(); // Triangle strip index list
-    const bounding_sphere_center = new Vec3(
-        cursor.f32(),
-        cursor.f32(),
-        cursor.f32()
-    );
+    const bounding_sphere_center = new Vec3(cursor.f32(), cursor.f32(), cursor.f32());
     const bounding_sphere_radius = cursor.f32();
     const vertices: NinjaVertex[] = [];
     const meshes: NjTriangleStrip[] = [];
@@ -131,7 +148,7 @@ export function parse_nj_model(cursor: BufferCursor, cached_chunk_offsets: numbe
                         normal: vertex.normal,
                         bone_weight: vertex.bone_weight,
                         bone_weight_status: vertex.bone_weight_status,
-                        calc_continue: vertex.calc_continue
+                        calc_continue: vertex.calc_continue,
                     };
                 }
             }
@@ -149,11 +166,11 @@ export function parse_nj_model(cursor: BufferCursor, cached_chunk_offsets: numbe
     }
 
     return {
-        type: 'nj',
+        type: "nj",
         vertices,
         meshes,
         bounding_sphere_center,
-        bounding_sphere_radius
+        bounding_sphere_radius,
     };
 }
 
@@ -175,12 +192,12 @@ function parse_chunks(
         if (type_id === 0) {
             chunks.push({
                 type: NjChunkType.Null,
-                type_id
+                type_id,
             });
         } else if (1 <= type_id && type_id <= 3) {
             chunks.push({
                 type: NjChunkType.Bits,
-                type_id
+                type_id,
             });
         } else if (type_id === 4) {
             const cache_index = flags;
@@ -189,7 +206,7 @@ function parse_chunks(
                 type: NjChunkType.CachePolygonList,
                 type_id,
                 cache_index,
-                offset
+                offset,
             });
             cached_chunk_offsets[cache_index] = offset;
             loop = false;
@@ -199,60 +216,58 @@ function parse_chunks(
 
             if (cached_offset != null) {
                 cursor.seek_start(cached_offset);
-                chunks.push(
-                    ...parse_chunks(cursor, cached_chunk_offsets, wide_end_chunks)
-                );
+                chunks.push(...parse_chunks(cursor, cached_chunk_offsets, wide_end_chunks));
             }
 
             chunks.push({
                 type: NjChunkType.DrawPolygonList,
                 type_id,
-                cache_index
+                cache_index,
             });
         } else if (8 <= type_id && type_id <= 9) {
             size = 2;
             chunks.push({
                 type: NjChunkType.Tiny,
-                type_id
+                type_id,
             });
         } else if (17 <= type_id && type_id <= 31) {
             size = 2 + 2 * cursor.u16();
             chunks.push({
                 type: NjChunkType.Material,
-                type_id
+                type_id,
             });
         } else if (32 <= type_id && type_id <= 50) {
             size = 2 + 4 * cursor.u16();
             chunks.push({
                 type: NjChunkType.Vertex,
                 type_id,
-                vertices: parse_vertex_chunk(cursor, type_id, flags)
+                vertices: parse_vertex_chunk(cursor, type_id, flags),
             });
         } else if (56 <= type_id && type_id <= 58) {
             size = 2 + 2 * cursor.u16();
             chunks.push({
                 type: NjChunkType.Volume,
-                type_id
+                type_id,
             });
         } else if (64 <= type_id && type_id <= 75) {
             size = 2 + 2 * cursor.u16();
             chunks.push({
                 type: NjChunkType.Strip,
                 type_id,
-                triangle_strips: parse_triangle_strip_chunk(cursor, type_id, flags)
+                triangle_strips: parse_triangle_strip_chunk(cursor, type_id, flags),
             });
         } else if (type_id === 255) {
             size = wide_end_chunks ? 2 : 0;
             chunks.push({
                 type: NjChunkType.End,
-                type_id
+                type_id,
             });
             loop = false;
         } else {
             size = 2 + 2 * cursor.u16();
             chunks.push({
                 type: NjChunkType.Unknown,
-                type_id
+                type_id,
             });
             logger.warn(`Unknown chunk type ${type_id} at offset ${chunk_start_position}.`);
         }
@@ -287,11 +302,11 @@ function parse_vertex_chunk(
             position: new Vec3(
                 cursor.f32(), // x
                 cursor.f32(), // y
-                cursor.f32(), // z
+                cursor.f32() // z
             ),
             bone_weight: 1,
             bone_weight_status,
-            calc_continue
+            calc_continue,
         };
 
         if (chunk_type_id === 32) {
@@ -303,7 +318,7 @@ function parse_vertex_chunk(
             vertex.normal = new Vec3(
                 cursor.f32(), // x
                 cursor.f32(), // y
-                cursor.f32(), // z
+                cursor.f32() // z
             );
             cursor.seek(4); // Always 0.0
         } else if (35 <= chunk_type_id && chunk_type_id <= 40) {
@@ -320,7 +335,7 @@ function parse_vertex_chunk(
             vertex.normal = new Vec3(
                 cursor.f32(), // x
                 cursor.f32(), // y
-                cursor.f32(), // z
+                cursor.f32() // z
             );
 
             if (chunk_type_id >= 42) {
@@ -338,9 +353,9 @@ function parse_vertex_chunk(
             // 32-Bit vertex normal in format: reserved(2)|x(10)|y(10)|z(10)
             const normal = cursor.u32();
             vertex.normal = new Vec3(
-                ((normal >> 20) & 0x3FF) / 0x3FF,
-                ((normal >> 10) & 0x3FF) / 0x3FF,
-                (normal & 0x3FF) / 0x3FF
+                ((normal >> 20) & 0x3ff) / 0x3ff,
+                ((normal >> 10) & 0x3ff) / 0x3ff,
+                (normal & 0x3ff) / 0x3ff
             );
 
             if (chunk_type_id >= 49) {
@@ -371,31 +386,51 @@ function parse_triangle_strip_chunk(
     };
     const user_offset_and_strip_count = cursor.u16();
     const user_flags_size = user_offset_and_strip_count >>> 14;
-    const strip_count = user_offset_and_strip_count & 0x3FFF;
+    const strip_count = user_offset_and_strip_count & 0x3fff;
     let options;
 
     switch (chunk_type_id) {
-        case 64: options = [false, false, false, false]; break;
-        case 65: options = [true, false, false, false]; break;
-        case 66: options = [true, false, false, false]; break;
-        case 67: options = [false, false, true, false]; break;
-        case 68: options = [true, false, true, false]; break;
-        case 69: options = [true, false, true, false]; break;
-        case 70: options = [false, true, false, false]; break;
-        case 71: options = [true, true, false, false]; break;
-        case 72: options = [true, true, false, false]; break;
-        case 73: options = [false, false, false, false]; break;
-        case 74: options = [true, false, false, true]; break;
-        case 75: options = [true, false, false, true]; break;
-        default: throw new Error(`Unexpected chunk type ID: ${chunk_type_id}.`);
+        case 64:
+            options = [false, false, false, false];
+            break;
+        case 65:
+            options = [true, false, false, false];
+            break;
+        case 66:
+            options = [true, false, false, false];
+            break;
+        case 67:
+            options = [false, false, true, false];
+            break;
+        case 68:
+            options = [true, false, true, false];
+            break;
+        case 69:
+            options = [true, false, true, false];
+            break;
+        case 70:
+            options = [false, true, false, false];
+            break;
+        case 71:
+            options = [true, true, false, false];
+            break;
+        case 72:
+            options = [true, true, false, false];
+            break;
+        case 73:
+            options = [false, false, false, false];
+            break;
+        case 74:
+            options = [true, false, false, true];
+            break;
+        case 75:
+            options = [true, false, false, true];
+            break;
+        default:
+            throw new Error(`Unexpected chunk type ID: ${chunk_type_id}.`);
     }
 
-    const [
-        parse_texture_coords,
-        parse_color,
-        parse_normal,
-        parse_texture_coords_hires
-    ] = options;
+    const [parse_texture_coords, parse_color, parse_normal, parse_texture_coords_hires] = options;
 
     const strips: NjTriangleStrip[] = [];
 
@@ -408,7 +443,7 @@ function parse_triangle_strip_chunk(
 
         for (let j = 0; j < index_count; ++j) {
             const vertex: NjMeshVertex = {
-                index: cursor.u16()
+                index: cursor.u16(),
             };
             vertices.push(vertex);
 
@@ -421,11 +456,7 @@ function parse_triangle_strip_chunk(
             }
 
             if (parse_normal) {
-                vertex.normal = new Vec3(
-                    cursor.u16(),
-                    cursor.u16(),
-                    cursor.u16()
-                );
+                vertex.normal = new Vec3(cursor.u16(), cursor.u16(), cursor.u16());
             }
 
             if (parse_texture_coords_hires) {

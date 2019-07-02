@@ -1,9 +1,22 @@
-import Logger from 'js-logger';
-import { BufferGeometry, DoubleSide, Face3, Float32BufferAttribute, Geometry, Mesh, MeshBasicMaterial, MeshLambertMaterial, Object3D, TriangleStripDrawMode, Uint16BufferAttribute, Vector3 } from 'three';
-import { Section } from '../../domain';
+import Logger from "js-logger";
+import {
+    BufferGeometry,
+    DoubleSide,
+    Face3,
+    Float32BufferAttribute,
+    Geometry,
+    Mesh,
+    MeshBasicMaterial,
+    MeshLambertMaterial,
+    Object3D,
+    TriangleStripDrawMode,
+    Uint16BufferAttribute,
+    Vector3,
+} from "three";
+import { Section } from "../../domain";
 import { Vec3 } from "../Vec3";
 
-const logger = Logger.get('data_formats/parsing/geometry');
+const logger = Logger.get("data_formats/parsing/geometry");
 
 export function parse_c_rel(array_buffer: ArrayBuffer): Object3D {
     const dv = new DataView(array_buffer);
@@ -12,49 +25,49 @@ export function parse_c_rel(array_buffer: ArrayBuffer): Object3D {
     const materials = [
         // Wall
         new MeshBasicMaterial({
-            color: 0x80C0D0,
+            color: 0x80c0d0,
             transparent: true,
-            opacity: 0.25
+            opacity: 0.25,
         }),
         // Ground
         new MeshLambertMaterial({
-            color: 0x50D0D0,
-            side: DoubleSide
+            color: 0x50d0d0,
+            side: DoubleSide,
         }),
         // Vegetation
         new MeshLambertMaterial({
-            color: 0x50B070,
-            side: DoubleSide
+            color: 0x50b070,
+            side: DoubleSide,
         }),
         // Section transition zone
         new MeshLambertMaterial({
             color: 0x604080,
-            side: DoubleSide
-        })
+            side: DoubleSide,
+        }),
     ];
     const wireframe_materials = [
         // Wall
         new MeshBasicMaterial({
-            color: 0x90D0E0,
+            color: 0x90d0e0,
             wireframe: true,
             transparent: true,
             opacity: 0.3,
         }),
         // Ground
         new MeshBasicMaterial({
-            color: 0x60F0F0,
-            wireframe: true
+            color: 0x60f0f0,
+            wireframe: true,
         }),
         // Vegetation
         new MeshBasicMaterial({
-            color: 0x60C080,
-            wireframe: true
+            color: 0x60c080,
+            wireframe: true,
         }),
         // Section transition zone
         new MeshBasicMaterial({
             color: 0x705090,
-            wireframe: true
-        })
+            wireframe: true,
+        }),
     ];
 
     const main_block_offset = dv.getUint32(dv.byteLength - 16, true);
@@ -96,7 +109,7 @@ export function parse_c_rel(array_buffer: ArrayBuffer): Object3D {
             const is_section_transition = flags & 0b1000000;
             const is_vegetation = flags & 0b10000;
             const is_ground = flags & 0b1;
-            const color_index = is_section_transition ? 3 : (is_vegetation ? 2 : (is_ground ? 1 : 0));
+            const color_index = is_section_transition ? 3 : is_vegetation ? 2 : is_ground ? 1 : 0;
 
             block_geometry.faces.push(new Face3(v1, v2, v3, n, undefined, color_index));
         }
@@ -115,7 +128,7 @@ export function parse_c_rel(array_buffer: ArrayBuffer): Object3D {
 
 export function parse_n_rel(
     array_buffer: ArrayBuffer
-): { sections: Section[], object_3d: Object3D } {
+): { sections: Section[]; object_3d: Object3D } {
     const dv = new DataView(array_buffer);
     const sections = new Map();
 
@@ -126,16 +139,12 @@ export function parse_n_rel(
     const section_table_offset = dv.getUint32(main_block_offset + 16, true);
     // const texture_name_offset = dv.getUint32(main_block_offset + 20, true);
 
-    for (
-        let i = section_table_offset;
-        i < section_table_offset + section_count * 52;
-        i += 52
-    ) {
+    for (let i = section_table_offset; i < section_table_offset + section_count * 52; i += 52) {
         const section_id = dv.getInt32(i, true);
         const section_x = dv.getFloat32(i + 4, true);
         const section_y = dv.getFloat32(i + 8, true);
         const section_z = dv.getFloat32(i + 12, true);
-        const section_rotation = dv.getInt32(i + 20, true) / 0xFFFF * 2 * Math.PI;
+        const section_rotation = (dv.getInt32(i + 20, true) / 0xffff) * 2 * Math.PI;
         const section = new Section(
             section_id,
             new Vec3(section_x, section_y, section_z),
@@ -205,7 +214,9 @@ export function parse_n_rel(
 
                 // Assume vertexInfoCount == 1. TODO: Does that make sense?
                 if (vertex_info_count > 1) {
-                    logger.warn(`Vertex info count of ${vertex_info_count} was larger than expected.`);
+                    logger.warn(
+                        `Vertex info count of ${vertex_info_count} was larger than expected.`
+                    );
                 }
 
                 // const vertex_type = dv.getUint32(vertexInfoTableOffset, true);
@@ -246,8 +257,10 @@ export function parse_n_rel(
                     const x = dv.getFloat32(k, true);
                     const y = dv.getFloat32(k + 4, true);
                     const z = dv.getFloat32(k + 8, true);
-                    const rotated_x = section.cos_y_axis_rotation * x + section.sin_y_axis_rotation * z;
-                    const rotated_z = -section.sin_y_axis_rotation * x + section.cos_y_axis_rotation * z;
+                    const rotated_x =
+                        section.cos_y_axis_rotation * x + section.sin_y_axis_rotation * z;
+                    const rotated_z =
+                        -section.sin_y_axis_rotation * x + section.cos_y_axis_rotation * z;
 
                     geom_positions.push(section_x + rotated_x);
                     geom_positions.push(section_y + y);
@@ -299,8 +312,8 @@ export function parse_n_rel(
                 // }
 
                 const geometry = new BufferGeometry();
-                geometry.addAttribute('position', new Float32BufferAttribute(positions, 3));
-                geometry.addAttribute('normal', new Float32BufferAttribute(normals, 3));
+                geometry.addAttribute("position", new Float32BufferAttribute(positions, 3));
+                geometry.addAttribute("normal", new Float32BufferAttribute(normals, 3));
                 geometry.setIndex(new Uint16BufferAttribute(object_indices, 1));
 
                 const mesh = new Mesh(
@@ -309,7 +322,7 @@ export function parse_n_rel(
                         color: 0x44aaff,
                         // transparent: true,
                         opacity: 0.25,
-                        side: DoubleSide
+                        side: DoubleSide,
                     })
                 );
                 mesh.setDrawMode(TriangleStripDrawMode);
@@ -351,6 +364,6 @@ export function parse_n_rel(
 
     return {
         sections: [...sections.values()].sort((a, b) => a.id - b.id),
-        object_3d: object
+        object_3d: object,
     };
 }

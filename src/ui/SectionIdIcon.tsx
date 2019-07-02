@@ -4,21 +4,21 @@ import { SectionId } from "../domain";
 export function SectionIdIcon({
     section_id,
     size = 28,
-    title
+    title,
 }: {
-    section_id: SectionId,
-    size?: number,
-    title?: string
+    section_id: SectionId;
+    size?: number;
+    title?: string;
 }) {
     return (
         <div
             title={title}
             style={{
-                display: 'inline-block',
+                display: "inline-block",
                 width: size,
                 height: size,
                 backgroundImage: `url(${process.env.PUBLIC_URL}/images/sectionids/${SectionId[section_id]}.png)`,
-                backgroundSize: size
+                backgroundSize: size,
             }}
         />
     );

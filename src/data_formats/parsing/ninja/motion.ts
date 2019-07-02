@@ -1,66 +1,72 @@
-import { BufferCursor } from '../../BufferCursor';
+import { BufferCursor } from "../../BufferCursor";
 import { Vec3 } from "../../Vec3";
 
-const ANGLE_TO_RAD = 2 * Math.PI / 0xFFFF;
+const ANGLE_TO_RAD = (2 * Math.PI) / 0xffff;
 
 export type NjMotion = {
-    motion_data: NjMotionData[],
-    frame_count: number,
-    type: number,
-    interpolation: NjInterpolation,
-    element_count: number,
-}
+    motion_data: NjMotionData[];
+    frame_count: number;
+    type: number;
+    interpolation: NjInterpolation;
+    element_count: number;
+};
 
 export enum NjInterpolation {
-    Linear, Spline, UserFunction
+    Linear,
+    Spline,
+    UserFunction,
 }
 
 export type NjMotionData = {
-    tracks: NjKeyframeTrack[],
-}
+    tracks: NjKeyframeTrack[];
+};
 
 export enum NjKeyframeTrackType {
-    Position, Rotation, Scale
+    Position,
+    Rotation,
+    Scale,
 }
 
 export type NjKeyframeTrack =
-    NjKeyframeTrackPosition | NjKeyframeTrackRotation | NjKeyframeTrackScale
+    | NjKeyframeTrackPosition
+    | NjKeyframeTrackRotation
+    | NjKeyframeTrackScale;
 
 export type NjKeyframeTrackPosition = {
-    type: NjKeyframeTrackType.Position,
-    keyframes: NjKeyframeF[],
-}
+    type: NjKeyframeTrackType.Position;
+    keyframes: NjKeyframeF[];
+};
 
 export type NjKeyframeTrackRotation = {
-    type: NjKeyframeTrackType.Rotation,
-    keyframes: NjKeyframeA[],
-}
+    type: NjKeyframeTrackType.Rotation;
+    keyframes: NjKeyframeA[];
+};
 
 export type NjKeyframeTrackScale = {
-    type: NjKeyframeTrackType.Scale,
-    keyframes: NjKeyframeF[],
-}
+    type: NjKeyframeTrackType.Scale;
+    keyframes: NjKeyframeF[];
+};
 
-export type NjKeyframe = NjKeyframeF | NjKeyframeA
+export type NjKeyframe = NjKeyframeF | NjKeyframeA;
 
 /**
  * Used for parallel motion (POS), scale (SCL) and vector (VEC).
  */
 export type NjKeyframeF = {
-    frame: number,
-    value: Vec3,
-}
+    frame: number;
+    value: Vec3;
+};
 
 /**
  * Used for rotation (ANG).
  */
 export type NjKeyframeA = {
-    frame: number,
-    value: Vec3, // Euler angles in radians.
-}
+    frame: number;
+    value: Vec3; // Euler angles in radians.
+};
 
 export function parse_njm(cursor: BufferCursor, bone_count: number): NjMotion {
-    if (cursor.string_ascii(4, false, true) === 'NMDM') {
+    if (cursor.string_ascii(4, false, true) === "NMDM") {
         return parse_njm_v2(cursor, bone_count);
     } else {
         cursor.seek_start(0);
@@ -135,7 +141,7 @@ function parse_motion(cursor: BufferCursor, bone_count: number): NjMotion {
             if (count) {
                 motion_data.tracks.push({
                     type: NjKeyframeTrackType.Position,
-                    keyframes: parse_motion_data_f(cursor, count)
+                    keyframes: parse_motion_data_f(cursor, count),
                 });
             }
         }
@@ -148,7 +154,7 @@ function parse_motion(cursor: BufferCursor, bone_count: number): NjMotion {
             if (count) {
                 motion_data.tracks.push({
                     type: NjKeyframeTrackType.Rotation,
-                    keyframes: parse_motion_data_a(cursor, count, frame_count)
+                    keyframes: parse_motion_data_a(cursor, count, frame_count),
                 });
             }
         }
@@ -161,7 +167,7 @@ function parse_motion(cursor: BufferCursor, bone_count: number): NjMotion {
             if (count) {
                 motion_data.tracks.push({
                     type: NjKeyframeTrackType.Scale,
-                    keyframes: parse_motion_data_f(cursor, count)
+                    keyframes: parse_motion_data_f(cursor, count),
                 });
             }
         }
@@ -174,7 +180,7 @@ function parse_motion(cursor: BufferCursor, bone_count: number): NjMotion {
         frame_count,
         type,
         interpolation,
-        element_count
+        element_count,
     };
 }
 

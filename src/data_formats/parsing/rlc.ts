@@ -1,13 +1,13 @@
 import { BufferCursor } from "../BufferCursor";
-import Logger from 'js-logger';
+import Logger from "js-logger";
 import { parse_prc } from "./prc";
 
-const logger = Logger.get('data_formats/parsing/rlc');
-const MARKER = 'RelChunkVer0.20';
+const logger = Logger.get("data_formats/parsing/rlc");
+const MARKER = "RelChunkVer0.20";
 
 /**
  * Container of prc files.
- * 
+ *
  * @returns the contained files, decrypted and decompressed.
  */
 export function parse_rlc(cursor: BufferCursor): BufferCursor[] {

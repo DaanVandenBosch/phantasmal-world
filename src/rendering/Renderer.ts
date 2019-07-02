@@ -1,6 +1,14 @@
-import * as THREE from 'three';
-import { Color, HemisphereLight, MOUSE, PerspectiveCamera, Scene, Vector3, WebGLRenderer } from 'three';
-import OrbitControlsCreator from 'three-orbit-controls';
+import * as THREE from "three";
+import {
+    Color,
+    HemisphereLight,
+    MOUSE,
+    PerspectiveCamera,
+    Scene,
+    Vector3,
+    WebGLRenderer,
+} from "three";
+import OrbitControlsCreator from "three-orbit-controls";
 
 const OrbitControls = OrbitControlsCreator(THREE);
 
@@ -12,14 +20,11 @@ export class Renderer {
 
     constructor() {
         this.camera = new PerspectiveCamera(75, 1, 0.1, 5000);
-        this.controls = new OrbitControls(
-            this.camera,
-            this.renderer.domElement
-        );
+        this.controls = new OrbitControls(this.camera, this.renderer.domElement);
         this.controls.mouseButtons.ORBIT = MOUSE.RIGHT;
         this.controls.mouseButtons.PAN = MOUSE.LEFT;
 
-        this.scene.background = new Color(0x151C21);
+        this.scene.background = new Color(0x151c21);
         this.scene.add(new HemisphereLight(0xffffff, 0x505050, 1));
 
         requestAnimationFrame(this.render_loop);
@@ -49,5 +54,5 @@ export class Renderer {
     private render_loop = () => {
         this.render();
         requestAnimationFrame(this.render_loop);
-    }
+    };
 }

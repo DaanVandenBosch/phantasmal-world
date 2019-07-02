@@ -20,6 +20,6 @@
     "downlevelIteration": true
   },
   "include": [
-    "static"
+    "static_generation"
   ]
 }

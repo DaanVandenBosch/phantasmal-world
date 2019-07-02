@@ -1,4 +1,4 @@
-import * as fs from 'fs';
+import * as fs from "fs";
 
 /**
  * Applies f to all QST files in a directory.
@@ -7,7 +7,7 @@ import * as fs from 'fs';
  */
 export function walk_qst_files(
     f: (path: string, file_name: string, contents: Buffer) => void,
-    dir: string = 'test/resources/tethealla_v0.143_quests'
+    dir: string = "test/resources/tethealla_v0.143_quests"
 ) {
     for (const [path, file] of get_qst_files(dir)) {
         f(path, file, fs.readFileSync(path));
@@ -23,19 +23,19 @@ export function get_qst_files(dir: string): [string, string][] {
 
         if (stats.isDirectory()) {
             files = files.concat(get_qst_files(path));
-        } else if (path.endsWith('.qst')) {
+        } else if (path.endsWith(".qst")) {
             // BUG: Battle quests are not always parsed in the same way.
             // Could be a bug in Jest or Node as the quest parsing code has no randomness or dependency on mutable state.
             // TODO: Some quests can not yet be parsed correctly.
             const exceptions = [
-                '/battle/', // Battle mode quests
-                '/princ/', // Goverment quests
-                'fragmentofmemoryen.qst',
-                'lost havoc vulcan.qst',
-                'ep2/event/ma4-a.qst',
-                'gallon.qst',
-                'ep1/04.qst',
-                'goodluck.qst'
+                "/battle/", // Battle mode quests
+                "/princ/", // Goverment quests
+                "fragmentofmemoryen.qst",
+                "lost havoc vulcan.qst",
+                "ep2/event/ma4-a.qst",
+                "gallon.qst",
+                "ep1/04.qst",
+                "goodluck.qst",
             ];
 
             if (exceptions.every(e => path.indexOf(e) === -1)) {

@@ -1,1 +1,1 @@
-declare module 'javascript-lp-solver';
+declare module "javascript-lp-solver";

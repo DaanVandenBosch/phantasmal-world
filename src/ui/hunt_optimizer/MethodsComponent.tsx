@@ -15,25 +15,25 @@ export class MethodsComponent extends React.Component {
         // Standard columns.
         const columns: Column<HuntMethod>[] = [
             {
-                key: 'name',
-                name: 'Method',
+                key: "name",
+                name: "Method",
                 width: 250,
-                cell_renderer: (method) => method.name,
+                cell_renderer: method => method.name,
                 sortable: true,
             },
             {
-                key: 'episode',
-                name: 'Ep.',
+                key: "episode",
+                name: "Ep.",
                 width: 34,
-                cell_renderer: (method) => Episode[method.episode],
+                cell_renderer: method => Episode[method.episode],
                 sortable: true,
             },
             {
-                key: 'time',
-                name: 'Time',
+                key: "time",
+                name: "Time",
                 width: 50,
-                cell_renderer: (method) => <TimeComponent method={method} />,
-                class_name: 'integrated',
+                cell_renderer: method => <TimeComponent method={method} />,
+                class_name: "integrated",
                 sortable: true,
             },
         ];
@@ -44,11 +44,11 @@ export class MethodsComponent extends React.Component {
                 key: enemy.code,
                 name: enemy.name,
                 width: 75,
-                cell_renderer: (method) => {
+                cell_renderer: method => {
                     const count = method.enemy_counts.get(enemy);
-                    return count == null ? '' : count.toString();
+                    return count == null ? "" : count.toString();
                 },
-                class_name: 'number',
+                class_name: "number",
                 sortable: true,
             });
         }
@@ -81,7 +81,7 @@ export class MethodsComponent extends React.Component {
 
     private record = ({ index }: Index) => {
         return hunt_method_store.methods.current.value[index];
-    }
+    };
 
     private sort = (sorts: ColumnSort<HuntMethod>[]) => {
         const methods = hunt_method_store.methods.current.value.slice();
@@ -90,11 +90,11 @@ export class MethodsComponent extends React.Component {
             for (const { column, direction } of sorts) {
                 let cmp = 0;
 
-                if (column.key === 'name') {
+                if (column.key === "name") {
                     cmp = a.name.localeCompare(b.name);
-                } else if (column.key === 'episode') {
+                } else if (column.key === "episode") {
                     cmp = a.episode - b.episode;
-                } else if (column.key === 'time') {
+                } else if (column.key === "time") {
                     cmp = a.time - b.time;
                 } else if (column.key) {
                     const type = NpcType.by_code(column.key);
@@ -113,7 +113,7 @@ export class MethodsComponent extends React.Component {
         });
 
         hunt_method_store.methods.current.value = methods;
-    }
+    };
 }
 
 @observer
@@ -138,5 +138,5 @@ class TimeComponent extends React.Component<{ method: HuntMethod }> {
 
     private change = (time: Moment) => {
         this.props.method.user_time = time.hour() + time.minute() / 60;
-    }
+    };
 }

@@ -7,8 +7,8 @@ import { observable, computed } from "mobx";
 //
 
 export interface ItemType {
-    readonly id: number,
-    readonly name: string
+    readonly id: number;
+    readonly name: string;
 }
 
 export class WeaponItemType implements ItemType {
@@ -19,8 +19,8 @@ export class WeaponItemType implements ItemType {
         readonly max_atp: number,
         readonly ata: number,
         readonly max_grind: number,
-        readonly required_atp: number,
-    ) { }
+        readonly required_atp: number
+    ) {}
 }
 
 export class ArmorItemType implements ItemType {
@@ -35,8 +35,8 @@ export class ArmorItemType implements ItemType {
         readonly max_dfp: number,
         readonly mst: number,
         readonly hp: number,
-        readonly lck: number,
-    ) { }
+        readonly lck: number
+    ) {}
 }
 
 export class ShieldItemType implements ItemType {
@@ -51,22 +51,16 @@ export class ShieldItemType implements ItemType {
         readonly max_dfp: number,
         readonly mst: number,
         readonly hp: number,
-        readonly lck: number,
-    ) { }
+        readonly lck: number
+    ) {}
 }
 
 export class UnitItemType implements ItemType {
-    constructor(
-        readonly id: number,
-        readonly name: string,
-    ) { }
+    constructor(readonly id: number, readonly name: string) {}
 }
 
 export class ToolItemType implements ItemType {
-    constructor(
-        readonly id: number,
-        readonly name: string,
-    ) { }
+    constructor(readonly id: number, readonly name: string) {}
 }
 
 //
@@ -76,7 +70,7 @@ export class ToolItemType implements ItemType {
 //
 
 export interface Item {
-    readonly type: ItemType,
+    readonly type: ItemType;
 }
 
 export class WeaponItem implements Item {
@@ -94,31 +88,21 @@ export class WeaponItem implements Item {
         return 2 * this.grind;
     }
 
-    constructor(
-        readonly type: WeaponItemType,
-    ) { }
+    constructor(readonly type: WeaponItemType) {}
 }
 
 export class ArmorItem implements Item {
-    constructor(
-        readonly type: ArmorItemType,
-    ) { }
+    constructor(readonly type: ArmorItemType) {}
 }
 
 export class ShieldItem implements Item {
-    constructor(
-        readonly type: ShieldItemType,
-    ) { }
+    constructor(readonly type: ShieldItemType) {}
 }
 
 export class UnitItem implements Item {
-    constructor(
-        readonly type: UnitItemType,
-    ) { }
+    constructor(readonly type: UnitItemType) {}
 }
 
 export class ToolItem implements Item {
-    constructor(
-        readonly type: ToolItemType,
-    ) { }
+    constructor(readonly type: ToolItemType) {}
 }

@@ -1,42 +1,42 @@
-import { groupBy } from 'lodash';
-import { BufferCursor } from '../../BufferCursor';
-import Logger from 'js-logger';
-import { Vec3 } from '../../Vec3';
+import { groupBy } from "lodash";
+import { BufferCursor } from "../../BufferCursor";
+import Logger from "js-logger";
+import { Vec3 } from "../../Vec3";
 
-const logger = Logger.get('data_formats/parsing/quest/dat');
+const logger = Logger.get("data_formats/parsing/quest/dat");
 
 const OBJECT_SIZE = 68;
 const NPC_SIZE = 72;
 
 export type DatFile = {
-    objs: DatObject[],
-    npcs: DatNpc[],
-    unknowns: DatUnknown[],
-}
+    objs: DatObject[];
+    npcs: DatNpc[];
+    unknowns: DatUnknown[];
+};
 
 export type DatEntity = {
-    type_id: number,
-    section_id: number,
-    position: Vec3,
-    rotation: Vec3,
-    area_id: number,
-    unknown: number[][],
-}
+    type_id: number;
+    section_id: number;
+    position: Vec3;
+    rotation: Vec3;
+    area_id: number;
+    unknown: number[][];
+};
 
-export type DatObject = DatEntity
+export type DatObject = DatEntity;
 
 export type DatNpc = DatEntity & {
-    flags: number,
-    skin: number,
-}
+    flags: number;
+    skin: number;
+};
 
 export type DatUnknown = {
-    entity_type: number,
-    total_size: number,
-    area_id: number,
-    entities_size: number,
-    data: number[],
-}
+    entity_type: number;
+    total_size: number;
+    area_id: number;
+    entities_size: number;
+    data: number[];
+};
 
 export function parse_dat(cursor: BufferCursor): DatFile {
     const objs: DatObject[] = [];
@@ -53,10 +53,14 @@ export function parse_dat(cursor: BufferCursor): DatFile {
             break;
         } else {
             if (entities_size !== total_size - 16) {
-                throw Error(`Malformed DAT file. Expected an entities size of ${total_size - 16}, got ${entities_size}.`);
+                throw Error(
+                    `Malformed DAT file. Expected an entities size of ${total_size -
+                        16}, got ${entities_size}.`
+                );
             }
 
-            if (entity_type === 1) { // Objects
+            if (entity_type === 1) {
+                // Objects
                 const object_count = Math.floor(entities_size / OBJECT_SIZE);
                 const start_position = cursor.position;
 
@@ -68,9 +72,9 @@ export function parse_dat(cursor: BufferCursor): DatFile {
                     const x = cursor.f32();
                     const y = cursor.f32();
                     const z = cursor.f32();
-                    const rotation_x = cursor.i32() / 0xFFFF * 2 * Math.PI;
-                    const rotation_y = cursor.i32() / 0xFFFF * 2 * Math.PI;
-                    const rotation_z = cursor.i32() / 0xFFFF * 2 * Math.PI;
+                    const rotation_x = (cursor.i32() / 0xffff) * 2 * Math.PI;
+                    const rotation_y = (cursor.i32() / 0xffff) * 2 * Math.PI;
+                    const rotation_z = (cursor.i32() / 0xffff) * 2 * Math.PI;
                     // The next 3 floats seem to be scale values.
                     const unknown3 = cursor.u8_array(28);
 
@@ -80,17 +84,20 @@ export function parse_dat(cursor: BufferCursor): DatFile {
                         position: new Vec3(x, y, z),
                         rotation: new Vec3(rotation_x, rotation_y, rotation_z),
                         area_id,
-                        unknown: [unknown1, unknown2, unknown3]
+                        unknown: [unknown1, unknown2, unknown3],
                     });
                 }
 
                 const bytes_read = cursor.position - start_position;
 
                 if (bytes_read !== entities_size) {
-                    logger.warn(`Read ${bytes_read} bytes instead of expected ${entities_size} for entity type ${entity_type} (Object).`);
+                    logger.warn(
+                        `Read ${bytes_read} bytes instead of expected ${entities_size} for entity type ${entity_type} (Object).`
+                    );
                     cursor.seek(entities_size - bytes_read);
                 }
-            } else if (entity_type === 2) { // NPCs
+            } else if (entity_type === 2) {
+                // NPCs
                 const npc_count = Math.floor(entities_size / NPC_SIZE);
                 const start_position = cursor.position;
 
@@ -102,9 +109,9 @@ export function parse_dat(cursor: BufferCursor): DatFile {
                     const x = cursor.f32();
                     const y = cursor.f32();
                     const z = cursor.f32();
-                    const rotation_x = cursor.i32() / 0xFFFF * 2 * Math.PI;
-                    const rotation_y = cursor.i32() / 0xFFFF * 2 * Math.PI;
-                    const rotation_z = cursor.i32() / 0xFFFF * 2 * Math.PI;
+                    const rotation_x = (cursor.i32() / 0xffff) * 2 * Math.PI;
+                    const rotation_y = (cursor.i32() / 0xffff) * 2 * Math.PI;
+                    const rotation_z = (cursor.i32() / 0xffff) * 2 * Math.PI;
                     const unknown3 = cursor.u8_array(4);
                     const flags = cursor.f32();
                     const unknown4 = cursor.u8_array(12);
@@ -119,14 +126,16 @@ export function parse_dat(cursor: BufferCursor): DatFile {
                         skin,
                         area_id,
                         flags,
-                        unknown: [unknown1, unknown2, unknown3, unknown4, unknown5]
+                        unknown: [unknown1, unknown2, unknown3, unknown4, unknown5],
                     });
                 }
 
                 const bytes_read = cursor.position - start_position;
 
                 if (bytes_read !== entities_size) {
-                    logger.warn(`Read ${bytes_read} bytes instead of expected ${entities_size} for entity type ${entity_type} (NPC).`);
+                    logger.warn(
+                        `Read ${bytes_read} bytes instead of expected ${entities_size} for entity type ${entity_type} (NPC).`
+                    );
                     cursor.seek(entities_size - bytes_read);
                 }
             } else {
@@ -136,7 +145,7 @@ export function parse_dat(cursor: BufferCursor): DatFile {
                     total_size,
                     area_id,
                     entities_size,
-                    data: cursor.u8_array(entities_size)
+                    data: cursor.u8_array(entities_size),
                 });
             }
         }
@@ -172,9 +181,9 @@ export function write_dat({ objs, npcs, unknowns }: DatFile): BufferCursor {
             cursor.write_f32(obj.position.x);
             cursor.write_f32(obj.position.y);
             cursor.write_f32(obj.position.z);
-            cursor.write_i32(Math.round(obj.rotation.x / (2 * Math.PI) * 0xFFFF));
-            cursor.write_i32(Math.round(obj.rotation.y / (2 * Math.PI) * 0xFFFF));
-            cursor.write_i32(Math.round(obj.rotation.z / (2 * Math.PI) * 0xFFFF));
+            cursor.write_i32(Math.round((obj.rotation.x / (2 * Math.PI)) * 0xffff));
+            cursor.write_i32(Math.round((obj.rotation.y / (2 * Math.PI)) * 0xffff));
+            cursor.write_i32(Math.round((obj.rotation.z / (2 * Math.PI)) * 0xffff));
             cursor.write_u8_array(obj.unknown[2]);
         }
     }
@@ -200,9 +209,9 @@ export function write_dat({ objs, npcs, unknowns }: DatFile): BufferCursor {
             cursor.write_f32(npc.position.x);
             cursor.write_f32(npc.position.y);
             cursor.write_f32(npc.position.z);
-            cursor.write_i32(Math.round(npc.rotation.x / (2 * Math.PI) * 0xFFFF));
-            cursor.write_i32(Math.round(npc.rotation.y / (2 * Math.PI) * 0xFFFF));
-            cursor.write_i32(Math.round(npc.rotation.z / (2 * Math.PI) * 0xFFFF));
+            cursor.write_i32(Math.round((npc.rotation.x / (2 * Math.PI)) * 0xffff));
+            cursor.write_i32(Math.round((npc.rotation.y / (2 * Math.PI)) * 0xffff));
+            cursor.write_i32(Math.round((npc.rotation.z / (2 * Math.PI)) * 0xffff));
             cursor.write_u8_array(npc.unknown[2]);
             cursor.write_f32(npc.flags);
             cursor.write_u8_array(npc.unknown[3]);
