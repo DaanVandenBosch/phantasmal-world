@@ -4,8 +4,8 @@ import React from 'react';
 import { QuestNpc, QuestObject, QuestEntity } from '../../domain';
 import './EntityInfoComponent.css';
 
-interface Props {
-    entity?: QuestEntity;
+export type Props = {
+    entity?: QuestEntity,
 }
 
 @observer

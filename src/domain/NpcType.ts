@@ -19,7 +19,7 @@ export class NpcType {
     readonly ultimate_name: string;
     readonly episode?: number;
     readonly enemy: boolean;
-    rareType?: NpcType;
+    rare_type?: NpcType;
 
     constructor(
         id: number,
@@ -300,10 +300,10 @@ export class NpcType {
 
     NpcType.Hildebear = new NpcType(id++, 'Hildebear', 'Hildebear', 'Hildebear', 'Hildelt', 1, true);
     NpcType.Hildeblue = new NpcType(id++, 'Hildeblue', 'Hildeblue', 'Hildeblue', 'Hildetorr', 1, true);
-    NpcType.Hildebear.rareType = NpcType.Hildeblue;
+    NpcType.Hildebear.rare_type = NpcType.Hildeblue;
     NpcType.RagRappy = new NpcType(id++, 'RagRappy', 'Rag Rappy', 'Rag Rappy', 'El Rappy', 1, true);
     NpcType.AlRappy = new NpcType(id++, 'AlRappy', 'Al Rappy', 'Al Rappy', 'Pal Rappy', 1, true);
-    NpcType.RagRappy.rareType = NpcType.AlRappy;
+    NpcType.RagRappy.rare_type = NpcType.AlRappy;
     NpcType.Monest = new NpcType(id++, 'Monest', 'Monest', 'Monest', 'Mothvist', 1, true);
     NpcType.Mothmant = new NpcType(id++, 'Mothmant', 'Mothmant', 'Mothmant', 'Mothvert', 1, true);
     NpcType.SavageWolf = new NpcType(id++, 'SavageWolf', 'Savage Wolf', 'Savage Wolf', 'Gulgus', 1, true);
@@ -318,14 +318,14 @@ export class NpcType {
     NpcType.GrassAssassin = new NpcType(id++, 'GrassAssassin', 'Grass Assassin', 'Grass Assassin', 'Crimson Assassin', 1, true);
     NpcType.PoisonLily = new NpcType(id++, 'PoisonLily', 'Poison Lily', 'Poison Lily', 'Ob Lily', 1, true);
     NpcType.NarLily = new NpcType(id++, 'NarLily', 'Nar Lily', 'Nar Lily', 'Mil Lily', 1, true);
-    NpcType.PoisonLily.rareType = NpcType.NarLily;
+    NpcType.PoisonLily.rare_type = NpcType.NarLily;
     NpcType.NanoDragon = new NpcType(id++, 'NanoDragon', 'Nano Dragon', 'Nano Dragon', 'Nano Dragon', 1, true);
     NpcType.EvilShark = new NpcType(id++, 'EvilShark', 'Evil Shark', 'Evil Shark', 'Vulmer', 1, true);
     NpcType.PalShark = new NpcType(id++, 'PalShark', 'Pal Shark', 'Pal Shark', 'Govulmer', 1, true);
     NpcType.GuilShark = new NpcType(id++, 'GuilShark', 'Guil Shark', 'Guil Shark', 'Melqueek', 1, true);
     NpcType.PofuillySlime = new NpcType(id++, 'PofuillySlime', 'Pofuilly Slime', 'Pofuilly Slime', 'Pofuilly Slime', 1, true);
     NpcType.PouillySlime = new NpcType(id++, 'PouillySlime', 'Pouilly Slime', 'Pouilly Slime', 'Pouilly Slime', 1, true);
-    NpcType.PofuillySlime.rareType = NpcType.PouillySlime;
+    NpcType.PofuillySlime.rare_type = NpcType.PouillySlime;
     NpcType.PanArms = new NpcType(id++, 'PanArms', 'Pan Arms', 'Pan Arms', 'Pan Arms', 1, true);
     NpcType.Migium = new NpcType(id++, 'Migium', 'Migium', 'Migium', 'Migium', 1, true);
     NpcType.Hidoom = new NpcType(id++, 'Hidoom', 'Hidoom', 'Hidoom', 'Hidoom', 1, true);
@@ -363,10 +363,10 @@ export class NpcType {
 
     NpcType.Hildebear2 = new NpcType(id++, 'Hildebear2', 'Hildebear (Ep. II)', 'Hildebear', 'Hildelt', 2, true);
     NpcType.Hildeblue2 = new NpcType(id++, 'Hildeblue2', 'Hildeblue (Ep. II)', 'Hildeblue', 'Hildetorr', 2, true);
-    NpcType.Hildebear2.rareType = NpcType.Hildeblue2;
+    NpcType.Hildebear2.rare_type = NpcType.Hildeblue2;
     NpcType.RagRappy2 = new NpcType(id++, 'RagRappy2', 'Rag Rappy (Ep. II)', 'Rag Rappy', 'El Rappy', 2, true);
     NpcType.LoveRappy = new NpcType(id++, 'LoveRappy', 'Love Rappy', 'Love Rappy', 'Love Rappy', 2, true);
-    NpcType.RagRappy2.rareType = NpcType.LoveRappy;
+    NpcType.RagRappy2.rare_type = NpcType.LoveRappy;
     NpcType.StRappy = new NpcType(id++, 'StRappy', 'St. Rappy', 'St. Rappy', 'St. Rappy', 2, true);
     NpcType.HalloRappy = new NpcType(id++, 'HalloRappy', 'Hallo Rappy', 'Hallo Rappy', 'Hallo Rappy', 2, true);
     NpcType.EggRappy = new NpcType(id++, 'EggRappy', 'Egg Rappy', 'Egg Rappy', 'Egg Rappy', 2, true);
@@ -374,7 +374,7 @@ export class NpcType {
     NpcType.Mothmant2 = new NpcType(id++, 'Mothmant2', 'Mothmant', 'Mothmant', 'Mothvert', 2, true);
     NpcType.PoisonLily2 = new NpcType(id++, 'PoisonLily2', 'Poison Lily (Ep. II)', 'Poison Lily', 'Ob Lily', 2, true);
     NpcType.NarLily2 = new NpcType(id++, 'NarLily2', 'Nar Lily (Ep. II)', 'Nar Lily', 'Mil Lily', 2, true);
-    NpcType.PoisonLily2.rareType = NpcType.NarLily2;
+    NpcType.PoisonLily2.rare_type = NpcType.NarLily2;
     NpcType.GrassAssassin2 = new NpcType(id++, 'GrassAssassin2', 'Grass Assassin (Ep. II)', 'Grass Assassin', 'Crimson Assassin', 2, true);
     NpcType.Dimenian2 = new NpcType(id++, 'Dimenian2', 'Dimenian (Ep. II)', 'Dimenian', 'Arlan', 2, true);
     NpcType.LaDimenian2 = new NpcType(id++, 'LaDimenian2', 'La Dimenian (Ep. II)', 'La Dimenian', 'Merlan', 2, true);
@@ -433,31 +433,31 @@ export class NpcType {
 
     NpcType.SandRappy = new NpcType(id++, 'SandRappy', 'Sand Rappy', 'Sand Rappy', 'Sand Rappy', 4, true);
     NpcType.DelRappy = new NpcType(id++, 'DelRappy', 'Del Rappy', 'Del Rappy', 'Del Rappy', 4, true);
-    NpcType.SandRappy.rareType = NpcType.DelRappy;
+    NpcType.SandRappy.rare_type = NpcType.DelRappy;
     NpcType.Astark = new NpcType(id++, 'Astark', 'Astark', 'Astark', 'Astark', 4, true);
     NpcType.SatelliteLizard = new NpcType(id++, 'SatelliteLizard', 'Satellite Lizard', 'Satellite Lizard', 'Satellite Lizard', 4, true);
     NpcType.Yowie = new NpcType(id++, 'Yowie', 'Yowie', 'Yowie', 'Yowie', 4, true);
     NpcType.MerissaA = new NpcType(id++, 'MerissaA', 'Merissa A', 'Merissa A', 'Merissa A', 4, true);
     NpcType.MerissaAA = new NpcType(id++, 'MerissaAA', 'Merissa AA', 'Merissa AA', 'Merissa AA', 4, true);
-    NpcType.MerissaA.rareType = NpcType.MerissaAA;
+    NpcType.MerissaA.rare_type = NpcType.MerissaAA;
     NpcType.Girtablulu = new NpcType(id++, 'Girtablulu', 'Girtablulu', 'Girtablulu', 'Girtablulu', 4, true);
     NpcType.Zu = new NpcType(id++, 'Zu', 'Zu', 'Zu', 'Zu', 4, true);
     NpcType.Pazuzu = new NpcType(id++, 'Pazuzu', 'Pazuzu', 'Pazuzu', 'Pazuzu', 4, true);
-    NpcType.Zu.rareType = NpcType.Pazuzu;
+    NpcType.Zu.rare_type = NpcType.Pazuzu;
     NpcType.Boota = new NpcType(id++, 'Boota', 'Boota', 'Boota', 'Boota', 4, true);
     NpcType.ZeBoota = new NpcType(id++, 'ZeBoota', 'Ze Boota', 'Ze Boota', 'Ze Boota', 4, true);
     NpcType.BaBoota = new NpcType(id++, 'BaBoota', 'Ba Boota', 'Ba Boota', 'Ba Boota', 4, true);
     NpcType.Dorphon = new NpcType(id++, 'Dorphon', 'Dorphon', 'Dorphon', 'Dorphon', 4, true);
     NpcType.DorphonEclair = new NpcType(id++, 'DorphonEclair', 'Dorphon Eclair', 'Dorphon Eclair', 'Dorphon Eclair', 4, true);
-    NpcType.Dorphon.rareType = NpcType.DorphonEclair;
+    NpcType.Dorphon.rare_type = NpcType.DorphonEclair;
     NpcType.Goran = new NpcType(id++, 'Goran', 'Goran', 'Goran', 'Goran', 4, true);
     NpcType.PyroGoran = new NpcType(id++, 'PyroGoran', 'Pyro Goran', 'Pyro Goran', 'Pyro Goran', 4, true);
     NpcType.GoranDetonator = new NpcType(id++, 'GoranDetonator', 'Goran Detonator', 'Goran Detonator', 'Goran Detonator', 4, true);
     NpcType.SaintMilion = new NpcType(id++, 'SaintMilion', 'Saint-Milion', 'Saint-Milion', 'Saint-Milion', 4, true);
     NpcType.Shambertin = new NpcType(id++, 'Shambertin', 'Shambertin', 'Shambertin', 'Shambertin', 4, true);
     NpcType.Kondrieu = new NpcType(id++, 'Kondrieu', 'Kondrieu', 'Kondrieu', 'Kondrieu', 4, true);
-    NpcType.SaintMilion.rareType = NpcType.Kondrieu;
-    NpcType.Shambertin.rareType = NpcType.Kondrieu;
+    NpcType.SaintMilion.rare_type = NpcType.Kondrieu;
+    NpcType.Shambertin.rare_type = NpcType.Kondrieu;
 }());
 
 export const NpcTypes: Array<NpcType> = [

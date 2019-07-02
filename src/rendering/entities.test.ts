@@ -1,6 +1,7 @@
 import { CylinderBufferGeometry, MeshLambertMaterial, Object3D, Vector3 } from 'three';
 import { DatNpc, DatObject } from '../data_formats/parsing/quest/dat';
-import { NpcType, ObjectType, QuestNpc, QuestObject, Vec3 } from '../domain';
+import { NpcType, ObjectType, QuestNpc, QuestObject } from '../domain';
+import { Vec3 } from "../data_formats/Vec3";
 import { create_npc_mesh, create_object_mesh, NPC_COLOR, OBJECT_COLOR } from './entities';
 
 const cylinder = new CylinderBufferGeometry(3, 3, 20).translate(0, 10, 0);

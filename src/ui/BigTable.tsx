@@ -6,14 +6,14 @@ export type Column<T> = {
     key?: string,
     name: string,
     width: number,
-    cellRenderer: (record: T) => ReactNode,
+    cell_renderer: (record: T) => ReactNode,
     tooltip?: (record: T) => string,
-    footerValue?: string,
-    footerTooltip?: string,
+    footer_value?: string,
+    footer_tooltip?: string,
     /**
      * "number" and "integrated" have special meaning.
      */
-    className?: string,
+    class_name?: string,
     sortable?: boolean
 }
 
@@ -27,20 +27,20 @@ export type ColumnSort<T> = { column: Column<T>, direction: SortDirectionType }
 export class BigTable<T> extends React.Component<{
     width: number,
     height: number,
-    rowCount: number,
-    overscanRowCount?: number,
+    row_count: number,
+    overscan_row_count?: number,
     columns: Array<Column<T>>,
-    fixedColumnCount?: number,
-    overscanColumnCount?: number,
+    fixed_column_count?: number,
+    overscan_column_count?: number,
     record: (index: Index) => T,
     footer?: boolean,
     /**
      * When this changes, the DataTable will re-render.
      */
-    updateTrigger?: any,
-    sort?: (sortColumns: Array<ColumnSort<T>>) => void
+    update_trigger?: any,
+    sort?: (sort_columns: Array<ColumnSort<T>>) => void
 }> {
-    private sortColumns = new Array<ColumnSort<T>>();
+    private sort_columns = new Array<ColumnSort<T>>();
 
     render() {
         return (
@@ -52,30 +52,30 @@ export class BigTable<T> extends React.Component<{
                     width={this.props.width}
                     height={this.props.height}
                     rowHeight={26}
-                    rowCount={this.props.rowCount + 1 + (this.props.footer ? 1 : 0)}
+                    rowCount={this.props.row_count + 1 + (this.props.footer ? 1 : 0)}
                     fixedRowCount={1}
-                    overscanRowCount={this.props.overscanRowCount}
-                    columnWidth={this.columnWidth}
+                    overscanRowCount={this.props.overscan_row_count}
+                    columnWidth={this.column_width}
                     columnCount={this.props.columns.length}
-                    fixedColumnCount={this.props.fixedColumnCount}
-                    overscanColumnCount={this.props.overscanColumnCount}
-                    cellRenderer={this.cellRenderer}
+                    fixedColumnCount={this.props.fixed_column_count}
+                    overscanColumnCount={this.props.overscan_column_count}
+                    cellRenderer={this.cell_renderer}
                     classNameTopLeftGrid="DataTable-header"
                     classNameTopRightGrid="DataTable-header"
-                    updateTigger={this.props.updateTrigger}
+                    updateTigger={this.props.update_trigger}
                 />
             </div>
         );
     }
 
-    private columnWidth = ({ index }: Index): number => {
+    private column_width = ({ index }: Index): number => {
         return this.props.columns[index].width;
     }
 
-    private cellRenderer: GridCellRenderer = ({ columnIndex, rowIndex, style }) => {
+    private cell_renderer: GridCellRenderer = ({ columnIndex, rowIndex, style }) => {
         const column = this.props.columns[columnIndex];
         let cell: ReactNode;
-        let sortIndicator: ReactNode;
+        let sort_indicator: ReactNode;
         let title: string | undefined;
         const classes = ['DataTable-cell'];
 
@@ -90,18 +90,18 @@ export class BigTable<T> extends React.Component<{
             if (column.sortable) {
                 classes.push('sortable');
 
-                const sort = this.sortColumns[0];
+                const sort = this.sort_columns[0];
 
                 if (sort && sort.column === column) {
                     if (sort.direction === SortDirection.ASC) {
-                        sortIndicator = (
+                        sort_indicator = (
                             <svg className="DataTable-sort-indictator" width="18" height="18" viewBox="0 0 24 24">
                                 <path d="M7 14l5-5 5 5z"></path>
                                 <path d="M0 0h24v24H0z" fill="none"></path>
                             </svg>
                         );
                     } else {
-                        sortIndicator = (
+                        sort_indicator = (
                             <svg className="DataTable-sort-indictator" width="18" height="18" viewBox="0 0 24 24">
                                 <path d="M7 10l5 5 5-5z"></path>
                                 <path d="M0 0h24v24H0z" fill="none"></path>
@@ -112,20 +112,20 @@ export class BigTable<T> extends React.Component<{
             }
         } else {
             // Record or footer row
-            if (column.className) {
-                classes.push(column.className);
+            if (column.class_name) {
+                classes.push(column.class_name);
             }
 
-            if (this.props.footer && rowIndex === 1 + this.props.rowCount) {
+            if (this.props.footer && rowIndex === 1 + this.props.row_count) {
                 // Footer row
                 classes.push('footer-cell');
-                cell = column.footerValue == null ? '' : column.footerValue;
-                title = column.footerTooltip == null ? '' : column.footerTooltip;
+                cell = column.footer_value == null ? '' : column.footer_value;
+                title = column.footer_tooltip == null ? '' : column.footer_tooltip;
             } else {
                 // Record row
                 const result = this.props.record({ index: rowIndex - 1 });
 
-                cell = column.cellRenderer(result);
+                cell = column.cell_renderer(result);
 
                 if (column.tooltip) {
                     title = column.tooltip(result);
@@ -137,8 +137,8 @@ export class BigTable<T> extends React.Component<{
             classes.push('custom');
         }
 
-        const onClick = rowIndex === 0 && column.sortable
-            ? () => this.headerClicked(column)
+        const on_click = rowIndex === 0 && column.sortable
+            ? () => this.header_clicked(column)
             : undefined;
 
         return (
@@ -147,29 +147,29 @@ export class BigTable<T> extends React.Component<{
                 key={`${columnIndex}, ${rowIndex}`}
                 style={style}
                 title={title}
-                onClick={onClick}
+                onClick={on_click}
             >
                 {typeof cell === 'string' ? (
                     <span className="DataTable-cell-text">{cell}</span>
                 ) : cell}
-                {sortIndicator}
+                {sort_indicator}
             </div>
         );
     }
 
-    private headerClicked = (column: Column<T>) => {
-        const oldIndex = this.sortColumns.findIndex(sc => sc.column === column);
-        let old = oldIndex === -1 ? undefined : this.sortColumns.splice(oldIndex, 1)[0];
+    private header_clicked = (column: Column<T>) => {
+        const old_index = this.sort_columns.findIndex(sc => sc.column === column);
+        let old = old_index === -1 ? undefined : this.sort_columns.splice(old_index, 1)[0];
 
-        const direction = oldIndex === 0 && old!.direction === SortDirection.ASC
+        const direction = old_index === 0 && old!.direction === SortDirection.ASC
             ? SortDirection.DESC
             : SortDirection.ASC
 
-        this.sortColumns.unshift({ column, direction });
-        this.sortColumns.splice(10);
+        this.sort_columns.unshift({ column, direction });
+        this.sort_columns.splice(10);
 
         if (this.props.sort) {
-            this.props.sort(this.sortColumns);
+            this.props.sort(this.sort_columns);
         }
     }
 }

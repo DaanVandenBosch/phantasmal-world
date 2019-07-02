@@ -1,6 +1,6 @@
 import Logger from 'js-logger';
 import { BufferCursor } from '../../BufferCursor';
-import { Vec3 } from '../../../domain';
+import { Vec3 } from "../../Vec3";
 import { NinjaVertex } from '../ninja';
 
 const logger = Logger.get('data_formats/parsing/ninja/nj');

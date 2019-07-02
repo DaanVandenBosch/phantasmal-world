@@ -2,20 +2,20 @@ import { Button, InputNumber, Popover } from "antd";
 import { observer } from "mobx-react";
 import React from "react";
 import { AutoSizer, Column, Table, TableCellRenderer } from "react-virtualized";
-import { huntOptimizerStore, WantedItem } from "../../stores/HuntOptimizerStore";
-import { itemTypeStores } from "../../stores/ItemTypeStore";
+import { hunt_optimizer_store, WantedItem } from "../../stores/HuntOptimizerStore";
+import { item_type_stores } from "../../stores/ItemTypeStore";
 import { BigSelect } from "../BigSelect";
 import './WantedItemsComponent.less';
 
 @observer
 export class WantedItemsComponent extends React.Component {
     state = {
-        helpVisible: false
+        help_visible: false
     }
 
     render() {
         // Make sure render is called on updates.
-        huntOptimizerStore.wantedItems.slice(0, 0);
+        hunt_optimizer_store.wanted_items.slice(0, 0);
 
         return (
             <section className="ho-WantedItemsComponent">
@@ -24,8 +24,8 @@ export class WantedItemsComponent extends React.Component {
                     <Popover
                         content={<Help />}
                         trigger="click"
-                        visible={this.state.helpVisible}
-                        onVisibleChange={this.onHelpVisibleChange}
+                        visible={this.state.help_visible}
+                        onVisibleChange={this.on_help_visible_change}
                     >
                         <Button icon="info-circle" type="link" />
                     </Popover>
@@ -35,14 +35,14 @@ export class WantedItemsComponent extends React.Component {
                         placeholder="Add an item"
                         value={undefined}
                         style={{ width: 200 }}
-                        options={huntOptimizerStore.huntableItemTypes.map(itemType => ({
+                        options={hunt_optimizer_store.huntable_item_types.map(itemType => ({
                             label: itemType.name,
                             value: itemType.id
                         }))}
-                        onChange={this.addWanted}
+                        onChange={this.add_wanted}
                     />
                     <Button
-                        onClick={huntOptimizerStore.optimize}
+                        onClick={hunt_optimizer_store.optimize}
                         style={{ marginLeft: 10 }}
                     >
                         Optimize
@@ -56,9 +56,9 @@ export class WantedItemsComponent extends React.Component {
                                 height={height}
                                 headerHeight={30}
                                 rowHeight={30}
-                                rowCount={huntOptimizerStore.wantedItems.length}
-                                rowGetter={({ index }) => huntOptimizerStore.wantedItems[index]}
-                                noRowsRenderer={this.noRowsRenderer}
+                                rowCount={hunt_optimizer_store.wanted_items.length}
+                                rowGetter={({ index }) => hunt_optimizer_store.wanted_items[index]}
+                                noRowsRenderer={this.no_rows_renderer}
                             >
                                 <Column
                                     label="Amount"
@@ -74,13 +74,13 @@ export class WantedItemsComponent extends React.Component {
                                     width={150}
                                     flexGrow={1}
                                     cellDataGetter={({ rowData }) =>
-                                        (rowData as WantedItem).itemType.name
+                                        (rowData as WantedItem).item_type.name
                                     }
                                 />
                                 <Column
                                     dataKey="remove"
                                     width={30}
-                                    cellRenderer={this.tableRemoveCellRenderer}
+                                    cellRenderer={this.table_remove_cell_renderer}
                                 />
                             </Table>
                         )}
@@ -90,30 +90,30 @@ export class WantedItemsComponent extends React.Component {
         );
     }
 
-    private addWanted = (selected: any) => {
+    private add_wanted = (selected: any) => {
         if (selected) {
-            let added = huntOptimizerStore.wantedItems.find(w => w.itemType.id === selected.value);
+            let added = hunt_optimizer_store.wanted_items.find(w => w.item_type.id === selected.value);
 
             if (!added) {
-                const itemType = itemTypeStores.current.value.getById(selected.value)!;
-                huntOptimizerStore.wantedItems.push(new WantedItem(itemType, 1));
+                const item_type = item_type_stores.current.value.get_by_id(selected.value)!;
+                hunt_optimizer_store.wanted_items.push(new WantedItem(item_type, 1));
             }
         }
     }
 
-    private removeWanted = (wanted: WantedItem) => () => {
-        const i = huntOptimizerStore.wantedItems.findIndex(w => w === wanted);
+    private remove_wanted = (wanted: WantedItem) => () => {
+        const i = hunt_optimizer_store.wanted_items.findIndex(w => w === wanted);
 
         if (i !== -1) {
-            huntOptimizerStore.wantedItems.splice(i, 1);
+            hunt_optimizer_store.wanted_items.splice(i, 1);
         }
     }
 
-    private tableRemoveCellRenderer: TableCellRenderer = ({ rowData }) => {
-        return <Button type="link" icon="delete" onClick={this.removeWanted(rowData)} />;
+    private table_remove_cell_renderer: TableCellRenderer = ({ rowData }) => {
+        return <Button type="link" icon="delete" onClick={this.remove_wanted(rowData)} />;
     }
 
-    private noRowsRenderer = () => {
+    private no_rows_renderer = () => {
         return (
             <div className="ho-WantedItemsComponent-no-rows">
                 <p>
@@ -123,7 +123,7 @@ export class WantedItemsComponent extends React.Component {
         );
     }
 
-    private onHelpVisibleChange = (visible: boolean) => {
+    private on_help_visible_change = (visible: boolean) => {
         this.setState({ helpVisible: visible });
     }
 }
@@ -157,14 +157,14 @@ class WantedAmountCell extends React.Component<{ wantedItem: WantedItem }> {
                 min={0}
                 max={10}
                 value={wanted.amount}
-                onChange={this.wantedAmountChanged}
+                onChange={this.wanted_amount_changed}
                 size="small"
                 style={{ width: '100%' }}
             />
         );
     }
 
-    private wantedAmountChanged = (value?: number) => {
+    private wanted_amount_changed = (value?: number) => {
         if (value != null && value >= 0) {
             this.props.wantedItem.amount = value;
         }

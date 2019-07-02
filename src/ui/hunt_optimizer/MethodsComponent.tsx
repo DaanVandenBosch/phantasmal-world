@@ -5,7 +5,7 @@ import React from "react";
 import { AutoSizer, Index, SortDirection } from "react-virtualized";
 import { Episode, HuntMethod } from "../../domain";
 import { EnemyNpcTypes, NpcType } from "../../domain/NpcType";
-import { huntMethodStore } from "../../stores/HuntMethodStore";
+import { hunt_method_store } from "../../stores/HuntMethodStore";
 import { BigTable, Column, ColumnSort } from "../BigTable";
 import "./MethodsComponent.css";
 
@@ -18,22 +18,22 @@ export class MethodsComponent extends React.Component {
                 key: 'name',
                 name: 'Method',
                 width: 250,
-                cellRenderer: (method) => method.name,
+                cell_renderer: (method) => method.name,
                 sortable: true,
             },
             {
                 key: 'episode',
                 name: 'Ep.',
                 width: 34,
-                cellRenderer: (method) => Episode[method.episode],
+                cell_renderer: (method) => Episode[method.episode],
                 sortable: true,
             },
             {
                 key: 'time',
                 name: 'Time',
                 width: 50,
-                cellRenderer: (method) => <TimeComponent method={method} />,
-                className: 'integrated',
+                cell_renderer: (method) => <TimeComponent method={method} />,
+                class_name: 'integrated',
                 sortable: true,
             },
         ];
@@ -44,11 +44,11 @@ export class MethodsComponent extends React.Component {
                 key: enemy.code,
                 name: enemy.name,
                 width: 75,
-                cellRenderer: (method) => {
+                cell_renderer: (method) => {
                     const count = method.enemy_counts.get(enemy);
                     return count == null ? '' : count.toString();
                 },
-                className: 'number',
+                class_name: 'number',
                 sortable: true,
             });
         }
@@ -57,7 +57,7 @@ export class MethodsComponent extends React.Component {
     })();
 
     render() {
-        const methods = huntMethodStore.methods.current.value;
+        const methods = hunt_method_store.methods.current.value;
 
         return (
             <section className="ho-MethodsComponent">
@@ -66,12 +66,12 @@ export class MethodsComponent extends React.Component {
                         <BigTable<HuntMethod>
                             width={width}
                             height={height}
-                            rowCount={methods.length}
+                            row_count={methods.length}
                             columns={MethodsComponent.columns}
-                            fixedColumnCount={3}
+                            fixed_column_count={3}
                             record={this.record}
                             sort={this.sort}
-                            updateTrigger={huntMethodStore.methods.current.value}
+                            update_trigger={hunt_method_store.methods.current.value}
                         />
                     )}
                 </AutoSizer>
@@ -80,11 +80,11 @@ export class MethodsComponent extends React.Component {
     }
 
     private record = ({ index }: Index) => {
-        return huntMethodStore.methods.current.value[index];
+        return hunt_method_store.methods.current.value[index];
     }
 
     private sort = (sorts: ColumnSort<HuntMethod>[]) => {
-        const methods = huntMethodStore.methods.current.value.slice();
+        const methods = hunt_method_store.methods.current.value.slice();
 
         methods.sort((a, b) => {
             for (const { column, direction } of sorts) {
@@ -112,7 +112,7 @@ export class MethodsComponent extends React.Component {
             return 0;
         });
 
-        huntMethodStore.methods.current.value = methods;
+        hunt_method_store.methods.current.value = methods;
     }
 }
 

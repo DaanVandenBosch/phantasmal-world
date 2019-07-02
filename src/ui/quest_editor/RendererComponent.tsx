@@ -38,7 +38,7 @@ export class RendererComponent extends React.Component<Props> {
     }
 
     private onResize = () => {
-        const wrapperDiv = this.renderer.dom_element.parentNode as HTMLDivElement;
-        this.renderer.set_size(wrapperDiv.clientWidth, wrapperDiv.clientHeight);
+        const wrapper_div = this.renderer.dom_element.parentNode as HTMLDivElement;
+        this.renderer.set_size(wrapper_div.clientWidth, wrapper_div.clientHeight);
     }
 }

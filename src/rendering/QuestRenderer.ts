@@ -1,5 +1,6 @@
 import { Intersection, Mesh, MeshLambertMaterial, Object3D, Plane, Raycaster, Vector2, Vector3 } from "three";
-import { Area, Quest, QuestEntity, QuestNpc, QuestObject, Section, Vec3 } from "../domain";
+import { Area, Quest, QuestEntity, QuestNpc, QuestObject, Section } from "../domain";
+import { Vec3 } from "../data_formats/Vec3";
 import { area_store } from "../stores/AreaStore";
 import { quest_editor_store } from "../stores/QuestEditorStore";
 import { NPC_COLOR, NPC_HOVER_COLOR, NPC_SELECTED_COLOR, OBJECT_COLOR, OBJECT_HOVER_COLOR, OBJECT_SELECTED_COLOR } from "./entities";

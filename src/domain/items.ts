@@ -15,11 +15,11 @@ export class WeaponItemType implements ItemType {
     constructor(
         readonly id: number,
         readonly name: string,
-        readonly minAtp: number,
-        readonly maxAtp: number,
+        readonly min_atp: number,
+        readonly max_atp: number,
         readonly ata: number,
-        readonly maxGrind: number,
-        readonly requiredAtp: number,
+        readonly max_grind: number,
+        readonly required_atp: number,
     ) { }
 }
 
@@ -29,10 +29,10 @@ export class ArmorItemType implements ItemType {
         readonly name: string,
         readonly atp: number,
         readonly ata: number,
-        readonly minEvp: number,
-        readonly maxEvp: number,
-        readonly minDfp: number,
-        readonly maxDfp: number,
+        readonly min_evp: number,
+        readonly max_evp: number,
+        readonly min_dfp: number,
+        readonly max_dfp: number,
         readonly mst: number,
         readonly hp: number,
         readonly lck: number,
@@ -45,10 +45,10 @@ export class ShieldItemType implements ItemType {
         readonly name: string,
         readonly atp: number,
         readonly ata: number,
-        readonly minEvp: number,
-        readonly maxEvp: number,
-        readonly minDfp: number,
-        readonly maxDfp: number,
+        readonly min_evp: number,
+        readonly max_evp: number,
+        readonly min_dfp: number,
+        readonly max_dfp: number,
         readonly mst: number,
         readonly hp: number,
         readonly lck: number,
@@ -90,7 +90,7 @@ export class WeaponItem implements Item {
     @observable hit: number = 0;
     @observable grind: number = 0;
 
-    @computed get grindAtp(): number {
+    @computed get grind_atp(): number {
         return 2 * this.grind;
     }
 

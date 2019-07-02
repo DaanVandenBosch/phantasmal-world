@@ -1,110 +1,110 @@
 import { groupBy } from 'lodash';
 import { BufferCursor } from '../../BufferCursor';
 import Logger from 'js-logger';
+import { Vec3 } from '../../Vec3';
 
 const logger = Logger.get('data_formats/parsing/quest/dat');
 
 const OBJECT_SIZE = 68;
 const NPC_SIZE = 72;
 
-export interface DatFile {
-    objs: DatObject[];
-    npcs: DatNpc[];
-    unknowns: DatUnknown[];
+export type DatFile = {
+    objs: DatObject[],
+    npcs: DatNpc[],
+    unknowns: DatUnknown[],
 }
 
-interface DatEntity {
-    typeId: number;
-    sectionId: number;
-    position: { x: number, y: number, z: number };
-    rotation: { x: number, y: number, z: number };
-    areaId: number;
-    unknown: number[][];
+export type DatEntity = {
+    type_id: number,
+    section_id: number,
+    position: Vec3,
+    rotation: Vec3,
+    area_id: number,
+    unknown: number[][],
 }
 
-export interface DatObject extends DatEntity {
+export type DatObject = DatEntity
+
+export type DatNpc = DatEntity & {
+    flags: number,
+    skin: number,
 }
 
-export interface DatNpc extends DatEntity {
-    flags: number;
-    skin: number;
+export type DatUnknown = {
+    entity_type: number,
+    total_size: number,
+    area_id: number,
+    entities_size: number,
+    data: number[],
 }
 
-export interface DatUnknown {
-    entityType: number;
-    totalSize: number;
-    areaId: number;
-    entitiesSize: number;
-    data: number[];
-}
-
-export function parseDat(cursor: BufferCursor): DatFile {
+export function parse_dat(cursor: BufferCursor): DatFile {
     const objs: DatObject[] = [];
     const npcs: DatNpc[] = [];
     const unknowns: DatUnknown[] = [];
 
     while (cursor.bytes_left) {
-        const entityType = cursor.u32();
-        const totalSize = cursor.u32();
-        const areaId = cursor.u32();
-        const entitiesSize = cursor.u32();
+        const entity_type = cursor.u32();
+        const total_size = cursor.u32();
+        const area_id = cursor.u32();
+        const entities_size = cursor.u32();
 
-        if (entityType === 0) {
+        if (entity_type === 0) {
             break;
         } else {
-            if (entitiesSize !== totalSize - 16) {
-                throw Error(`Malformed DAT file. Expected an entities size of ${totalSize - 16}, got ${entitiesSize}.`);
+            if (entities_size !== total_size - 16) {
+                throw Error(`Malformed DAT file. Expected an entities size of ${total_size - 16}, got ${entities_size}.`);
             }
 
-            if (entityType === 1) { // Objects
-                const objectCount = Math.floor(entitiesSize / OBJECT_SIZE);
-                const startPosition = cursor.position;
+            if (entity_type === 1) { // Objects
+                const object_count = Math.floor(entities_size / OBJECT_SIZE);
+                const start_position = cursor.position;
 
-                for (let i = 0; i < objectCount; ++i) {
-                    const typeId = cursor.u16();
+                for (let i = 0; i < object_count; ++i) {
+                    const type_id = cursor.u16();
                     const unknown1 = cursor.u8_array(10);
-                    const sectionId = cursor.u16();
+                    const section_id = cursor.u16();
                     const unknown2 = cursor.u8_array(2);
                     const x = cursor.f32();
                     const y = cursor.f32();
                     const z = cursor.f32();
-                    const rotationX = cursor.i32() / 0xFFFF * 2 * Math.PI;
-                    const rotationY = cursor.i32() / 0xFFFF * 2 * Math.PI;
-                    const rotationZ = cursor.i32() / 0xFFFF * 2 * Math.PI;
+                    const rotation_x = cursor.i32() / 0xFFFF * 2 * Math.PI;
+                    const rotation_y = cursor.i32() / 0xFFFF * 2 * Math.PI;
+                    const rotation_z = cursor.i32() / 0xFFFF * 2 * Math.PI;
                     // The next 3 floats seem to be scale values.
                     const unknown3 = cursor.u8_array(28);
 
                     objs.push({
-                        typeId,
-                        sectionId,
-                        position: { x, y, z },
-                        rotation: { x: rotationX, y: rotationY, z: rotationZ },
-                        areaId,
+                        type_id,
+                        section_id,
+                        position: new Vec3(x, y, z),
+                        rotation: new Vec3(rotation_x, rotation_y, rotation_z),
+                        area_id,
                         unknown: [unknown1, unknown2, unknown3]
                     });
                 }
 
-                const bytesRead = cursor.position - startPosition;
+                const bytes_read = cursor.position - start_position;
 
-                if (bytesRead !== entitiesSize) {
-                    logger.warn(`Read ${bytesRead} bytes instead of expected ${entitiesSize} for entity type ${entityType} (Object).`);
-                    cursor.seek(entitiesSize - bytesRead);
+                if (bytes_read !== entities_size) {
+                    logger.warn(`Read ${bytes_read} bytes instead of expected ${entities_size} for entity type ${entity_type} (Object).`);
+                    cursor.seek(entities_size - bytes_read);
                 }
-            } else if (entityType === 2) { // NPCs
-                const npcCount = Math.floor(entitiesSize / NPC_SIZE);
-                const startPosition = cursor.position;
+            } else if (entity_type === 2) { // NPCs
+                const npc_count = Math.floor(entities_size / NPC_SIZE);
+                const start_position = cursor.position;
 
-                for (let i = 0; i < npcCount; ++i) {
-                    const typeId = cursor.u16();
+                for (let i = 0; i < npc_count; ++i) {
+                    const type_id = cursor.u16();
                     const unknown1 = cursor.u8_array(10);
-                    const sectionId = cursor.u16();
+                    const section_id = cursor.u16();
                     const unknown2 = cursor.u8_array(6);
                     const x = cursor.f32();
                     const y = cursor.f32();
                     const z = cursor.f32();
-                    const rotationX = cursor.i32() / 0xFFFF * 2 * Math.PI;
-                    const rotationY = cursor.i32() / 0xFFFF * 2 * Math.PI;
-                    const rotationZ = cursor.i32() / 0xFFFF * 2 * Math.PI;
+                    const rotation_x = cursor.i32() / 0xFFFF * 2 * Math.PI;
+                    const rotation_y = cursor.i32() / 0xFFFF * 2 * Math.PI;
+                    const rotation_z = cursor.i32() / 0xFFFF * 2 * Math.PI;
                     const unknown3 = cursor.u8_array(4);
                     const flags = cursor.f32();
                     const unknown4 = cursor.u8_array(12);
@@ -112,31 +112,31 @@ export function parseDat(cursor: BufferCursor): DatFile {
                     const unknown5 = cursor.u8_array(4);
 
                     npcs.push({
-                        typeId,
-                        sectionId,
-                        position: { x, y, z },
-                        rotation: { x: rotationX, y: rotationY, z: rotationZ },
+                        type_id,
+                        section_id,
+                        position: new Vec3(x, y, z),
+                        rotation: new Vec3(rotation_x, rotation_y, rotation_z),
                         skin,
-                        areaId,
+                        area_id,
                         flags,
                         unknown: [unknown1, unknown2, unknown3, unknown4, unknown5]
                     });
                 }
 
-                const bytesRead = cursor.position - startPosition;
+                const bytes_read = cursor.position - start_position;
 
-                if (bytesRead !== entitiesSize) {
-                    logger.warn(`Read ${bytesRead} bytes instead of expected ${entitiesSize} for entity type ${entityType} (NPC).`);
-                    cursor.seek(entitiesSize - bytesRead);
+                if (bytes_read !== entities_size) {
+                    logger.warn(`Read ${bytes_read} bytes instead of expected ${entities_size} for entity type ${entity_type} (NPC).`);
+                    cursor.seek(entities_size - bytes_read);
                 }
             } else {
                 // There are also waves (type 3) and unknown entity types 4 and 5.
                 unknowns.push({
-                    entityType,
-                    totalSize,
-                    areaId,
-                    entitiesSize,
-                    data: cursor.u8_array(entitiesSize)
+                    entity_type,
+                    total_size,
+                    area_id,
+                    entities_size,
+                    data: cursor.u8_array(entities_size)
                 });
             }
         }
@@ -145,27 +145,29 @@ export function parseDat(cursor: BufferCursor): DatFile {
     return { objs, npcs, unknowns };
 }
 
-export function writeDat({ objs, npcs, unknowns }: DatFile): BufferCursor {
+export function write_dat({ objs, npcs, unknowns }: DatFile): BufferCursor {
     const cursor = new BufferCursor(
-        objs.length * OBJECT_SIZE + npcs.length * NPC_SIZE + unknowns.length * 1000, true);
+        objs.length * OBJECT_SIZE + npcs.length * NPC_SIZE + unknowns.length * 1000,
+        true
+    );
 
-    const groupedObjs = groupBy(objs, obj => obj.areaId);
-    const objAreaIds = Object.keys(groupedObjs)
+    const grouped_objs = groupBy(objs, obj => obj.area_id);
+    const obj_area_ids = Object.keys(grouped_objs)
         .map(key => parseInt(key, 10))
         .sort((a, b) => a - b);
 
-    for (const areaId of objAreaIds) {
-        const areaObjs = groupedObjs[areaId];
-        const entitiesSize = areaObjs.length * OBJECT_SIZE;
+    for (const area_id of obj_area_ids) {
+        const area_objs = grouped_objs[area_id];
+        const entities_size = area_objs.length * OBJECT_SIZE;
         cursor.write_u32(1); // Entity type
-        cursor.write_u32(entitiesSize + 16);
-        cursor.write_u32(areaId);
-        cursor.write_u32(entitiesSize);
+        cursor.write_u32(entities_size + 16);
+        cursor.write_u32(area_id);
+        cursor.write_u32(entities_size);
 
-        for (const obj of areaObjs) {
-            cursor.write_u16(obj.typeId);
+        for (const obj of area_objs) {
+            cursor.write_u16(obj.type_id);
             cursor.write_u8_array(obj.unknown[0]);
-            cursor.write_u16(obj.sectionId);
+            cursor.write_u16(obj.section_id);
             cursor.write_u8_array(obj.unknown[1]);
             cursor.write_f32(obj.position.x);
             cursor.write_f32(obj.position.y);
@@ -177,23 +179,23 @@ export function writeDat({ objs, npcs, unknowns }: DatFile): BufferCursor {
         }
     }
 
-    const groupedNpcs = groupBy(npcs, npc => npc.areaId);
-    const npcAreaIds = Object.keys(groupedNpcs)
+    const grouped_npcs = groupBy(npcs, npc => npc.area_id);
+    const npc_area_ids = Object.keys(grouped_npcs)
         .map(key => parseInt(key, 10))
         .sort((a, b) => a - b);
 
-    for (const areaId of npcAreaIds) {
-        const areaNpcs = groupedNpcs[areaId];
-        const entitiesSize = areaNpcs.length * NPC_SIZE;
+    for (const area_id of npc_area_ids) {
+        const area_npcs = grouped_npcs[area_id];
+        const entities_size = area_npcs.length * NPC_SIZE;
         cursor.write_u32(2); // Entity type
-        cursor.write_u32(entitiesSize + 16);
-        cursor.write_u32(areaId);
-        cursor.write_u32(entitiesSize);
+        cursor.write_u32(entities_size + 16);
+        cursor.write_u32(area_id);
+        cursor.write_u32(entities_size);
 
-        for (const npc of areaNpcs) {
-            cursor.write_u16(npc.typeId);
+        for (const npc of area_npcs) {
+            cursor.write_u16(npc.type_id);
             cursor.write_u8_array(npc.unknown[0]);
-            cursor.write_u16(npc.sectionId);
+            cursor.write_u16(npc.section_id);
             cursor.write_u8_array(npc.unknown[1]);
             cursor.write_f32(npc.position.x);
             cursor.write_f32(npc.position.y);
@@ -210,10 +212,10 @@ export function writeDat({ objs, npcs, unknowns }: DatFile): BufferCursor {
     }
 
     for (const unknown of unknowns) {
-        cursor.write_u32(unknown.entityType);
-        cursor.write_u32(unknown.totalSize);
-        cursor.write_u32(unknown.areaId);
-        cursor.write_u32(unknown.entitiesSize);
+        cursor.write_u32(unknown.entity_type);
+        cursor.write_u32(unknown.total_size);
+        cursor.write_u32(unknown.area_id);
+        cursor.write_u32(unknown.entities_size);
         cursor.write_u8_array(unknown.data);
     }
 

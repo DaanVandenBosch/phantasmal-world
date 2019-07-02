@@ -4,59 +4,59 @@ import Logger from 'js-logger';
 const logger = Logger.get('data_formats/parsing/quest/bin');
 
 export interface BinFile {
-    questNumber: number;
+    quest_id: number;
     language: number;
-    questName: string;
-    shortDescription: string;
-    longDescription: string;
-    functionOffsets: number[];
+    quest_name: string;
+    short_description: string;
+    long_description: string;
+    function_offsets: number[];
     instructions: Instruction[];
     data: BufferCursor;
 }
 
-export function parseBin(cursor: BufferCursor, lenient: boolean = false): BinFile {
-    const objectCodeOffset = cursor.u32();
-    const functionOffsetTableOffset = cursor.u32(); // Relative offsets
+export function parse_bin(cursor: BufferCursor, lenient: boolean = false): BinFile {
+    const object_code_offset = cursor.u32();
+    const function_offset_table_offset = cursor.u32(); // Relative offsets
     const size = cursor.u32();
     cursor.seek(4); // Always seems to be 0xFFFFFFFF
-    const questNumber = cursor.u32();
+    const quest_id = cursor.u32();
     const language = cursor.u32();
-    const questName = cursor.string_utf16(64, true, true);
-    const shortDescription = cursor.string_utf16(256, true, true);
-    const longDescription = cursor.string_utf16(576, true, true);
+    const quest_name = cursor.string_utf16(64, true, true);
+    const short_description = cursor.string_utf16(256, true, true);
+    const long_description = cursor.string_utf16(576, true, true);
 
     if (size !== cursor.size) {
         logger.warn(`Value ${size} in bin size field does not match actual size ${cursor.size}.`);
     }
 
-    const functionOffsetCount = Math.floor(
-        (cursor.size - functionOffsetTableOffset) / 4);
+    const function_offset_count = Math.floor(
+        (cursor.size - function_offset_table_offset) / 4);
 
-    cursor.seek_start(functionOffsetTableOffset);
-    const functionOffsets = [];
+    cursor.seek_start(function_offset_table_offset);
+    const function_offsets = [];
 
-    for (let i = 0; i < functionOffsetCount; ++i) {
-        functionOffsets.push(cursor.i32());
+    for (let i = 0; i < function_offset_count; ++i) {
+        function_offsets.push(cursor.i32());
     }
 
-    const instructions = parseObjectCode(
-        cursor.seek_start(objectCodeOffset).take(functionOffsetTableOffset - objectCodeOffset),
+    const instructions = parse_object_code(
+        cursor.seek_start(object_code_offset).take(function_offset_table_offset - object_code_offset),
         lenient
     );
 
     return {
-        questNumber,
+        quest_id,
         language,
-        questName,
-        shortDescription,
-        longDescription,
-        functionOffsets,
+        quest_name,
+        short_description,
+        long_description,
+        function_offsets,
         instructions,
         data: cursor.seek_start(0).take(cursor.size)
     };
 }
 
-export function writeBin({ data }: { data: BufferCursor }): BufferCursor {
+export function write_bin({ data }: { data: BufferCursor }): BufferCursor {
     return data.seek_start(0);
 }
 
@@ -67,44 +67,44 @@ export interface Instruction {
     size: number;
 }
 
-function parseObjectCode(cursor: BufferCursor, lenient: boolean): Instruction[] {
+function parse_object_code(cursor: BufferCursor, lenient: boolean): Instruction[] {
     const instructions = [];
 
     try {
         while (cursor.bytes_left) {
-            const mainOpcode = cursor.u8();
+            const main_opcode = cursor.u8();
             let opcode;
             let opsize;
             let list;
 
-            switch (mainOpcode) {
+            switch (main_opcode) {
                 case 0xF8:
                     opcode = cursor.u8();
                     opsize = 2;
-                    list = F8opcodeList;
+                    list = f8_opcode_list;
                     break;
                 case 0xF9:
                     opcode = cursor.u8();
                     opsize = 2;
-                    list = F9opcodeList;
+                    list = f9_opcode_list;
                     break;
                 default:
-                    opcode = mainOpcode;
+                    opcode = main_opcode;
                     opsize = 1;
-                    list = opcodeList;
+                    list = opcode_list;
                     break;
             }
 
             let [, mnemonic, mask] = list[opcode];
 
             if (mask == null) {
-                let fullOpcode = mainOpcode;
+                let full_opcode = main_opcode;
 
-                if (mainOpcode === 0xF8 || mainOpcode === 0xF9) {
-                    fullOpcode = (fullOpcode << 8) | opcode;
+                if (main_opcode === 0xF8 || main_opcode === 0xF9) {
+                    full_opcode = (full_opcode << 8) | opcode;
                 }
 
-                logger.warn(`Parameters unknown for opcode 0x${fullOpcode.toString(16).toUpperCase()}, assuming 0.`);
+                logger.warn(`Parameters unknown for opcode 0x${full_opcode.toString(16).toUpperCase()}, assuming 0.`);
 
                 instructions.push({
                     opcode,
@@ -114,7 +114,7 @@ function parseObjectCode(cursor: BufferCursor, lenient: boolean): Instruction[] 
                 });
             } else {
                 try {
-                    const opargs = parseInstructionArguments(cursor, mask);
+                    const opargs = parse_instruction_arguments(cursor, mask);
 
                     instructions.push({
                         opcode,
@@ -143,13 +143,13 @@ function parseObjectCode(cursor: BufferCursor, lenient: boolean): Instruction[] 
     return instructions;
 }
 
-function parseInstructionArguments(
+function parse_instruction_arguments(
     cursor: BufferCursor,
     mask: string
 ): { args: any[], size: number } {
-    const oldPos = cursor.position;
+    const old_pos = cursor.position;
     const args = [];
-    let argsSize: number;
+    let args_size: number;
 
     outer:
     for (let i = 0; i < mask.length; ++i) {
@@ -208,13 +208,13 @@ function parseInstructionArguments(
             // Variably sized data?
             case 'j':
             case 'J':
-                argsSize = 2 * cursor.u8();
-                cursor.seek(argsSize);
+                args_size = 2 * cursor.u8();
+                cursor.seek(args_size);
                 break;
             case 't':
             case 'T':
-                argsSize = cursor.u8();
-                cursor.seek(argsSize);
+                args_size = cursor.u8();
+                cursor.seek(args_size);
                 break;
 
             // Strings
@@ -228,10 +228,10 @@ function parseInstructionArguments(
         }
     }
 
-    return { args, size: cursor.position - oldPos };
+    return { args, size: cursor.position - old_pos };
 }
 
-const opcodeList: Array<[number, string, string | null]> = [
+const opcode_list: Array<[number, string, string | null]> = [
     [0x00, 'nop', ''],
     [0x01, 'ret', ''],
     [0x02, 'sync', ''],
@@ -512,7 +512,7 @@ const opcodeList: Array<[number, string, string | null]> = [
     [0xFF, 'unknownFF', ''],
 ];
 
-const F8opcodeList: Array<[number, string, string | null]> = [
+const f8_opcode_list: Array<[number, string, string | null]> = [
     [0x00, 'unknown', null],
     [0x01, 'set_chat_callback?', 'aRs'],
     [0x02, 'unknown', null],
@@ -771,7 +771,7 @@ const F8opcodeList: Array<[number, string, string | null]> = [
     [0xFF, 'unknown', null],
 ];
 
-const F9opcodeList: Array<[number, string, string | null]> = [
+const f9_opcode_list: Array<[number, string, string | null]> = [
     [0x00, 'unknown', null],
     [0x01, 'dec2float', 'RR'],
     [0x02, 'float2dec', 'RR'],

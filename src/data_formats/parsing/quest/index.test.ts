@@ -16,7 +16,7 @@ test('parse Towards the Future', () => {
     expect(quest.objects[0].type).toBe(ObjectType.MenuActivation);
     expect(quest.objects[4].type).toBe(ObjectType.PlayerSet);
     expect(quest.npcs.length).toBe(216);
-    expect(testableAreaVariants(quest)).toEqual([
+    expect(testable_area_variants(quest)).toEqual([
         [0, 0], [2, 0], [11, 0], [5, 4], [12, 0], [7, 4], [13, 0], [8, 4], [10, 4], [14, 0]
     ]);
 });
@@ -25,25 +25,25 @@ test('parse Towards the Future', () => {
  * Parse a QST file, write the resulting Quest object to QST again, then parse that again.
  * Then check whether the two Quest objects are equal.
  */
-test('parseQuest and writeQuestQst', () => {
+test('parse_quest and write_quest_qst', () => {
     const buffer = fs.readFileSync('test/resources/tethealla_v0.143_quests/solo/ep1/02.qst').buffer;
     const cursor = new BufferCursor(buffer, true);
-    const origQuest = parse_quest(cursor)!;
-    const testQuest = parse_quest(write_quest_qst(origQuest, '02.qst'))!;
+    const orig_quest = parse_quest(cursor)!;
+    const test_quest = parse_quest(write_quest_qst(orig_quest, '02.qst'))!;
 
-    expect(testQuest.name).toBe(origQuest.name);
-    expect(testQuest.short_description).toBe(origQuest.short_description);
-    expect(testQuest.long_description).toBe(origQuest.long_description);
-    expect(testQuest.episode).toBe(origQuest.episode);
-    expect(testableObjects(testQuest))
-        .toEqual(testableObjects(origQuest));
-    expect(testableNpcs(testQuest))
-        .toEqual(testableNpcs(origQuest));
-    expect(testableAreaVariants(testQuest))
-        .toEqual(testableAreaVariants(origQuest));
+    expect(test_quest.name).toBe(orig_quest.name);
+    expect(test_quest.short_description).toBe(orig_quest.short_description);
+    expect(test_quest.long_description).toBe(orig_quest.long_description);
+    expect(test_quest.episode).toBe(orig_quest.episode);
+    expect(testable_objects(test_quest))
+        .toEqual(testable_objects(orig_quest));
+    expect(testable_npcs(test_quest))
+        .toEqual(testable_npcs(orig_quest));
+    expect(testable_area_variants(test_quest))
+        .toEqual(testable_area_variants(orig_quest));
 });
 
-function testableObjects(quest: Quest) {
+function testable_objects(quest: Quest) {
     return quest.objects.map(object => [
         object.area_id,
         object.section_id,
@@ -52,7 +52,7 @@ function testableObjects(quest: Quest) {
     ]);
 }
 
-function testableNpcs(quest: Quest) {
+function testable_npcs(quest: Quest) {
     return quest.npcs.map(npc => [
         npc.area_id,
         npc.section_id,
@@ -61,6 +61,6 @@ function testableNpcs(quest: Quest) {
     ]);
 }
 
-function testableAreaVariants(quest: Quest) {
+function testable_area_variants(quest: Quest) {
     return quest.area_variants.map(av => [av.area.id, av.id]);
 }

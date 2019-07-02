@@ -1,15 +1,15 @@
-export function enumValues<E>(e: any): E[] {
+export function enum_values<E>(e: any): E[] {
     const values = Object.values(e);
-    const numberValues = values.filter(v => typeof v === 'number');
+    const number_values = values.filter(v => typeof v === 'number');
 
-    if (numberValues.length) {
-        return numberValues as any as E[];
+    if (number_values.length) {
+        return number_values as any as E[];
     } else {
         return values as any as E[];
     }
 }
 
-export function enumNames(e: any): string[] {
+export function enum_names(e: any): string[] {
     return Object.keys(e).filter(k => typeof (e as any)[k] === 'string');
 }
 
@@ -20,11 +20,11 @@ export class EnumMap<K, V> {
     private keys: K[];
     private values = new Map<K, V>();
 
-    constructor(enum_: any, initialValue: (key: K) => V) {
-        this.keys = enumValues(enum_);
+    constructor(enum_: any, initial_value: (key: K) => V) {
+        this.keys = enum_values(enum_);
 
         for (const key of this.keys) {
-            this.values.set(key, initialValue(key));
+            this.values.set(key, initial_value(key));
         }
     }
 

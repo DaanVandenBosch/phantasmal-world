@@ -2,11 +2,11 @@ import React from "react";
 import { SectionId } from "../domain";
 
 export function SectionIdIcon({
-    sectionId,
+    section_id,
     size = 28,
     title
 }: {
-    sectionId: SectionId,
+    section_id: SectionId,
     size?: number,
     title?: string
 }) {
@@ -17,7 +17,7 @@ export function SectionIdIcon({
                 display: 'inline-block',
                 width: size,
                 height: size,
-                backgroundImage: `url(${process.env.PUBLIC_URL}/images/sectionids/${SectionId[sectionId]}.png)`,
+                backgroundImage: `url(${process.env.PUBLIC_URL}/images/sectionids/${SectionId[section_id]}.png)`,
                 backgroundSize: size
             }}
         />

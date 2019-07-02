@@ -1,9 +1,9 @@
 import { Area, AreaVariant, Section } from '../domain';
 import { Object3D } from 'three';
-import { parseCRel, parseNRel } from '../data_formats/parsing/geometry';
+import { parse_c_rel, parse_n_rel } from '../data_formats/parsing/geometry';
 import { get_area_render_data, get_area_collision_data } from './binary_assets';
 
-function area(id: number, name: string, order: number, variants: number) {
+function area(id: number, name: string, order: number, variants: number): Area {
     const area = new Area(id, name, order, []);
     const varis = Array(variants).fill(null).map((_, i) => new AreaVariant(i, area));
     area.area_variants.splice(0, 0, ...varis);
@@ -77,7 +77,7 @@ class AreaStore {
         ];
     }
 
-    get_variant(episode: number, area_id: number, variant_id: number) {
+    get_variant(episode: number, area_id: number, variant_id: number): AreaVariant {
         if (episode !== 1 && episode !== 2 && episode !== 4)
             throw new Error(`Expected episode to be 1, 2 or 4, got ${episode}.`);
 
@@ -120,7 +120,7 @@ class AreaStore {
         } else {
             return this.get_area_sections_and_render_geometry(
                 episode, area_id, area_variant
-            ).then(({ object3d }) => object3d);
+            ).then(({ object_3d }) => object_3d);
         }
     }
 
@@ -136,7 +136,7 @@ class AreaStore {
         } else {
             const object_3d = get_area_collision_data(
                 episode, area_id, area_variant
-            ).then(parseCRel);
+            ).then(parse_c_rel);
             collision_geometry_cache.set(`${area_id}-${area_variant}`, object_3d);
             return object_3d;
         }
@@ -146,16 +146,16 @@ class AreaStore {
         episode: number,
         area_id: number,
         area_variant: number
-    ): Promise<{ sections: Section[], object3d: Object3D }> {
+    ): Promise<{ sections: Section[], object_3d: Object3D }> {
         const promise = get_area_render_data(
             episode, area_id, area_variant
-        ).then(parseNRel);
+        ).then(parse_n_rel);
 
         const sections = new Promise<Section[]>((resolve, reject) => {
             promise.then(({ sections }) => resolve(sections)).catch(reject);
         });
         const object_3d = new Promise<Object3D>((resolve, reject) => {
-            promise.then(({ object3d }) => resolve(object3d)).catch(reject);
+            promise.then(({ object_3d }) => resolve(object_3d)).catch(reject);
         });
 
         sections_cache.set(`${episode}-${area_id}-${area_variant}`, sections);

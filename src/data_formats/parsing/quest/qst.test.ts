@@ -1,25 +1,25 @@
 import { BufferCursor } from '../../BufferCursor';
-import { parseQst, writeQst } from './qst';
-import { walkQstFiles  } from '../../../../test/src/utils';
+import { parse_qst, write_qst } from './qst';
+import { walk_qst_files } from '../../../../test/src/utils';
 
 /**
  * Parse a file, convert the resulting structure to QST again and check whether the end result is equal to the original.
  */
-test('parseQst and writeQst', () => {
-    walkQstFiles((_filePath, _fileName, fileContent) => {
-        const origQst = new BufferCursor(fileContent.buffer, true);
-        const origQuest = parseQst(origQst);
+test('parse_qst and write_qst', () => {
+    walk_qst_files((_file_path, _file_name, file_content) => {
+        const orig_qst = new BufferCursor(file_content.buffer, true);
+        const orig_quest = parse_qst(orig_qst);
 
-        if (origQuest) {
-            const testQst = writeQst(origQuest);
-            origQst.seek_start(0);
+        if (orig_quest) {
+            const test_qst = write_qst(orig_quest);
+            orig_qst.seek_start(0);
 
-            expect(testQst.size).toBe(origQst.size);
+            expect(test_qst.size).toBe(orig_qst.size);
 
             let match = true;
 
-            while (origQst.bytes_left) {
-                if (testQst.u8() !== origQst.u8()) {
+            while (orig_qst.bytes_left) {
+                if (test_qst.u8() !== orig_qst.u8()) {
                     match = false;
                     break;
                 }

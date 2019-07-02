@@ -9,12 +9,12 @@ const logger = Logger.get('stores/HuntMethodStore');
 
 class HuntMethodStore {
     @observable methods: ServerMap<Loadable<Array<HuntMethod>>> = new ServerMap(server =>
-        new Loadable([], () => this.loadHuntMethods(server))
+        new Loadable([], () => this.load_hunt_methods(server))
     );
 
-    private storageDisposer?: IReactionDisposer;
+    private storage_disposer?: IReactionDisposer;
 
-    private async loadHuntMethods(server: Server): Promise<HuntMethod[]> {
+    private async load_hunt_methods(server: Server): Promise<HuntMethod[]> {
         const response = await fetch(
             `${process.env.PUBLIC_URL}/quests.${Server[server].toLowerCase()}.json`
         );
@@ -22,17 +22,17 @@ class HuntMethodStore {
         const methods = new Array<HuntMethod>();
 
         for (const quest of quests) {
-            let totalCount = 0;
-            const enemyCounts = new Map<NpcType, number>();
+            let total_count = 0;
+            const enemy_counts = new Map<NpcType, number>();
 
             for (const [code, count] of Object.entries(quest.enemyCounts)) {
-                const npcType = NpcType.by_code(code);
+                const npc_type = NpcType.by_code(code);
 
-                if (!npcType) {
+                if (!npc_type) {
                     logger.error(`No NpcType found for code ${code}.`);
                 } else {
-                    enemyCounts.set(npcType, count);
-                    totalCount += count;
+                    enemy_counts.set(npc_type, count);
+                    total_count += count;
                 }
             }
 
@@ -61,56 +61,56 @@ class HuntMethodStore {
                         quest.id,
                         quest.name,
                         quest.episode,
-                        enemyCounts
+                        enemy_counts
                     ),
-                    /^\d-\d.*/.test(quest.name) ? 0.75 : (totalCount > 400 ? 0.75 : 0.5)
+                    /^\d-\d.*/.test(quest.name) ? 0.75 : (total_count > 400 ? 0.75 : 0.5)
                 )
             );
         }
 
-        this.loadFromLocalStorage(methods, server);
+        this.load_from_local_storage(methods, server);
         return methods;
     }
 
-    private loadFromLocalStorage = (methods: HuntMethod[], server: Server) => {
+    private load_from_local_storage = (methods: HuntMethod[], server: Server) => {
         try {
-            const methodUserTimesJson = localStorage.getItem(
+            const method_user_times_json = localStorage.getItem(
                 `HuntMethodStore.methodUserTimes.${Server[server]}`
             );
 
-            if (methodUserTimesJson) {
-                const userTimes = JSON.parse(methodUserTimesJson);
+            if (method_user_times_json) {
+                const user_times: StoredUserTimes = JSON.parse(method_user_times_json);
 
                 for (const method of methods) {
-                    method.user_time = userTimes[method.id] as number;
+                    method.user_time = user_times[method.id];
                 }
             }
 
-            if (this.storageDisposer) {
-                this.storageDisposer();
+            if (this.storage_disposer) {
+                this.storage_disposer();
             }
 
-            this.storageDisposer = autorun(() =>
-                this.storeInLocalStorage(methods, server)
+            this.storage_disposer = autorun(() =>
+                this.store_in_local_storage(methods, server)
             );
         } catch (e) {
             logger.error(e);
         }
     }
 
-    private storeInLocalStorage = (methods: HuntMethod[], server: Server) => {
+    private store_in_local_storage = (methods: HuntMethod[], server: Server) => {
         try {
-            const userTimes: any = {};
+            const user_times: StoredUserTimes = {};
 
             for (const method of methods) {
-                if (method.user_time != null) {
-                    userTimes[method.id] = method.user_time;
+                if (method.user_time != undefined) {
+                    user_times[method.id] = method.user_time;
                 }
             }
 
             localStorage.setItem(
                 `HuntMethodStore.methodUserTimes.${Server[server]}`,
-                JSON.stringify(userTimes)
+                JSON.stringify(user_times)
             );
         } catch (e) {
             logger.error(e);
@@ -118,4 +118,6 @@ class HuntMethodStore {
     }
 }
 
-export const huntMethodStore = new HuntMethodStore();
+type StoredUserTimes = { [method_id: string]: number };
+
+export const hunt_method_store = new HuntMethodStore();

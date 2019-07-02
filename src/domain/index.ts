@@ -4,8 +4,9 @@ import { BufferCursor } from '../data_formats/BufferCursor';
 import { DatNpc, DatObject, DatUnknown } from '../data_formats/parsing/quest/dat';
 import { NpcType } from './NpcType';
 import { ObjectType } from './ObjectType';
-import { enumValues as enum_values } from '../enums';
+import { enum_values } from '../enums';
 import { ItemType } from './items';
+import { Vec3 } from '../data_formats/Vec3';
 
 export * from './items';
 export * from './NpcType';
@@ -55,29 +56,6 @@ export enum Difficulty {
 
 export const Difficulties: Difficulty[] = enum_values(Difficulty);
 
-export class Vec3 {
-    x: number;
-    y: number;
-    z: number;
-
-    constructor(x: number, y: number, z: number) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
-    }
-
-    add(v: Vec3): Vec3 {
-        this.x += v.x;
-        this.y += v.y;
-        this.z += v.z;
-        return this;
-    }
-
-    clone() {
-        return new Vec3(this.x, this.y, this.z);
-    }
-};
-
 export class Section {
     id: number;
     @observable position: Vec3;
@@ -108,10 +86,10 @@ export class Section {
 }
 
 export class Quest {
+    @observable id?: number;
     @observable name: string;
     @observable short_description: string;
     @observable long_description: string;
-    @observable quest_no?: number;
     @observable episode: Episode;
     @observable area_variants: AreaVariant[];
     @observable objects: QuestObject[];
@@ -126,10 +104,10 @@ export class Quest {
     bin_data: BufferCursor;
 
     constructor(
+        id: number | undefined,
         name: string,
         short_description: string,
         long_description: string,
-        quest_no: number | undefined,
         episode: Episode,
         area_variants: AreaVariant[],
         objects: QuestObject[],
@@ -137,15 +115,15 @@ export class Quest {
         dat_unknowns: DatUnknown[],
         bin_data: BufferCursor
     ) {
-        if (quest_no != null && (!Number.isInteger(quest_no) || quest_no < 0)) throw new Error('quest_no should be null or a non-negative integer.');
+        if (id != null && (!Number.isInteger(id) || id < 0)) throw new Error('id should be undefined or a non-negative integer.');
         check_episode(episode);
         if (!objects || !(objects instanceof Array)) throw new Error('objs is required.');
         if (!npcs || !(npcs instanceof Array)) throw new Error('npcs is required.');
 
+        this.id = id;
         this.name = name;
         this.short_description = short_description;
         this.long_description = long_description;
-        this.quest_no = quest_no;
         this.episode = episode;
         this.area_variants = area_variants;
         this.objects = objects;

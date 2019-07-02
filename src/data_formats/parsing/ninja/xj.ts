@@ -1,5 +1,5 @@
 import { BufferCursor } from '../../BufferCursor';
-import { Vec3 } from '../../../domain';
+import { Vec3 } from "../../Vec3";
 import { NinjaVertex } from '../ninja';
 
 // TODO:

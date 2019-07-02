@@ -5,23 +5,23 @@ import './QuestInfoComponent.css';
 export function QuestInfoComponent({ quest }: { quest?: Quest }) {
     if (quest) {
         const episode = quest.episode === 4 ? 'IV' : (quest.episode === 2 ? 'II' : 'I');
-        const npcCounts = new Map<NpcType, number>();
+        const npc_counts = new Map<NpcType, number>();
 
         for (const npc of quest.npcs) {
-            const val = npcCounts.get(npc.type) || 0;
-            npcCounts.set(npc.type, val + 1);
+            const val = npc_counts.get(npc.type) || 0;
+            npc_counts.set(npc.type, val + 1);
         }
 
-        const extraCanadines = (npcCounts.get(NpcType.Canane) || 0) * 8;
+        const extra_canadines = (npc_counts.get(NpcType.Canane) || 0) * 8;
 
         // Sort by type ID.
-        const sortedNpcCounts = [...npcCounts].sort((a, b) => a[0].id - b[0].id);
+        const sorted_npc_counts = [...npc_counts].sort((a, b) => a[0].id - b[0].id);
 
-        const npcCountRows = sortedNpcCounts.map(([npcType, count]) => {
-            const extra = npcType === NpcType.Canadine ? extraCanadines : 0;
+        const npc_count_rows = sorted_npc_counts.map(([npc_type, count]) => {
+            const extra = npc_type === NpcType.Canadine ? extra_canadines : 0;
             return (
-                <tr key={npcType.id}>
-                    <td>{npcType.name}:</td>
+                <tr key={npc_type.id}>
+                    <td>{npc_type.name}:</td>
                     <td>{count + extra}</td>
                 </tr>
             );
@@ -55,7 +55,7 @@ export function QuestInfoComponent({ quest }: { quest?: Quest }) {
                             <tr><th colSpan={2}>NPC Counts</th></tr>
                         </thead>
                         <tbody>
-                            {npcCountRows}
+                            {npc_count_rows}
                         </tbody>
                     </table>
                 </div>

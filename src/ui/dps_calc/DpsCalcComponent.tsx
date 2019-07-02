@@ -2,8 +2,8 @@ import { InputNumber } from "antd";
 import { observer } from "mobx-react";
 import React from "react";
 import { WeaponItemType, ArmorItemType, ShieldItemType } from "../../domain";
-import { dpsCalcStore } from "../../stores/DpsCalcStore";
-import { itemTypeStores } from "../../stores/ItemTypeStore";
+import { dps_calc_store } from "../../stores/DpsCalcStore";
+import { item_type_stores } from "../../stores/ItemTypeStore";
 import { BigSelect } from "../BigSelect";
 
 @observer
@@ -16,11 +16,11 @@ export class DpsCalcComponent extends React.Component {
                     <BigSelect
                         placeholder="Add a weapon"
                         value={undefined}
-                        options={dpsCalcStore.weaponTypes.map(wt => ({
+                        options={dps_calc_store.weapon_types.map(wt => ({
                             label: wt.name,
                             value: wt.id
                         }))}
-                        onChange={this.addWeapon}
+                        onChange={this.add_weapon}
                     />
                     <table>
                         <thead>
@@ -42,111 +42,111 @@ export class DpsCalcComponent extends React.Component {
                             </tr>
                         </thead>
                         <tbody>
-                            {dpsCalcStore.weapons.map((weapon, i) => (
+                            {dps_calc_store.weapons.map((weapon, i) => (
                                 <tr key={i}>
                                     <td>{weapon.item.type.name}</td>
-                                    <td>{weapon.item.type.minAtp}</td>
-                                    <td>{weapon.item.type.maxAtp}</td>
+                                    <td>{weapon.item.type.min_atp}</td>
+                                    <td>{weapon.item.type.max_atp}</td>
                                     <td>
                                         <InputNumber
                                             size="small"
                                             value={weapon.item.grind}
                                             min={0}
-                                            max={weapon.item.type.maxGrind}
+                                            max={weapon.item.type.max_grind}
                                             step={1}
                                             onChange={(value) => weapon.item.grind = value || 0}
                                         />
                                     </td>
-                                    <td>{weapon.item.grindAtp}</td>
-                                    <td>{weapon.shiftaAtp.toFixed(1)}</td>
-                                    <td>{weapon.finalMinAtp.toFixed(1)}</td>
-                                    <td>{weapon.finalMaxAtp.toFixed(1)}</td>
-                                    <td>{weapon.minNormalDamage.toFixed(1)}</td>
-                                    <td>{weapon.maxNormalDamage.toFixed(1)}</td>
-                                    <td>{weapon.avgNormalDamage.toFixed(1)}</td>
-                                    <td>{weapon.minHeavyDamage.toFixed(1)}</td>
-                                    <td>{weapon.maxHeavyDamage.toFixed(1)}</td>
-                                    <td>{weapon.avgHeavyDamage.toFixed(1)}</td>
+                                    <td>{weapon.item.grind_atp}</td>
+                                    <td>{weapon.shifta_atp.toFixed(1)}</td>
+                                    <td>{weapon.final_min_atp.toFixed(1)}</td>
+                                    <td>{weapon.final_max_atp.toFixed(1)}</td>
+                                    <td>{weapon.min_normal_damage.toFixed(1)}</td>
+                                    <td>{weapon.max_normal_damage.toFixed(1)}</td>
+                                    <td>{weapon.avg_normal_damage.toFixed(1)}</td>
+                                    <td>{weapon.min_heavy_damage.toFixed(1)}</td>
+                                    <td>{weapon.max_heavy_damage.toFixed(1)}</td>
+                                    <td>{weapon.avg_heavy_damage.toFixed(1)}</td>
                                 </tr>
                             ))}
                         </tbody>
                     </table>
                     <div>Character ATP:</div>
                     <InputNumber
-                        value={dpsCalcStore.charAtp}
+                        value={dps_calc_store.char_atp}
                         min={0}
                         step={1}
-                        onChange={(value) => dpsCalcStore.charAtp = value || 0}
+                        onChange={(value) => dps_calc_store.char_atp = value || 0}
                     />
                     <div>MAG POW:</div>
                     <InputNumber
-                        value={dpsCalcStore.magPow}
+                        value={dps_calc_store.mag_pow}
                         min={0}
                         max={200}
                         step={1}
-                        onChange={(value) => dpsCalcStore.magPow = value || 0}
+                        onChange={(value) => dps_calc_store.mag_pow = value || 0}
                     />
                     <div>Armor:</div>
                     <BigSelect
                         placeholder="Choose an armor"
-                        value={dpsCalcStore.armorType && dpsCalcStore.armorType.id}
-                        options={dpsCalcStore.armorTypes.map(at => ({
+                        value={dps_calc_store.armor_type && dps_calc_store.armor_type.id}
+                        options={dps_calc_store.armor_types.map(at => ({
                             label: at.name,
                             value: at.id
                         }))}
-                        onChange={this.armorChanged}
+                        onChange={this.armor_changed}
                     />
-                    <span>Armor ATP: {dpsCalcStore.armorAtp}</span>
+                    <span>Armor ATP: {dps_calc_store.armor_atp}</span>
                     <div>Shield:</div>
                     <BigSelect
                         placeholder="Choose a shield"
-                        value={dpsCalcStore.shieldType && dpsCalcStore.shieldType.id}
-                        options={dpsCalcStore.shieldTypes.map(st => ({
+                        value={dps_calc_store.shield_type && dps_calc_store.shield_type.id}
+                        options={dps_calc_store.shield_types.map(st => ({
                             label: st.name,
                             value: st.id
                         }))}
-                        onChange={this.shieldChanged}
+                        onChange={this.shield_changed}
                     />
-                    <span>Shield ATP: {dpsCalcStore.shieldAtp}</span>
+                    <span>Shield ATP: {dps_calc_store.shield_atp}</span>
                     <div>Shifta level:</div>
                     <InputNumber
-                        value={dpsCalcStore.shiftaLvl}
+                        value={dps_calc_store.shifta_lvl}
                         min={0}
                         max={30}
                         step={1}
-                        onChange={(value) => dpsCalcStore.shiftaLvl = value || 0}
+                        onChange={(value) => dps_calc_store.shifta_lvl = value || 0}
                     />
                     <div>Shifta factor:</div>
-                    <div>{dpsCalcStore.shiftaFactor.toFixed(3)}</div>
+                    <div>{dps_calc_store.shifta_factor.toFixed(3)}</div>
                     <div>Base shifta ATP:</div>
-                    <div>{dpsCalcStore.baseShiftaAtp.toFixed(2)}</div>
+                    <div>{dps_calc_store.base_shifta_atp.toFixed(2)}</div>
                 </section>
             </section>
         );
     }
 
-    private addWeapon = (selected: any) => {
+    private add_weapon = (selected: any) => {
         if (selected) {
-            let type = itemTypeStores.current.value.getById(selected.value)!;
-            dpsCalcStore.addWeapon(type as WeaponItemType);
+            let type = item_type_stores.current.value.get_by_id(selected.value)!;
+            dps_calc_store.add_weapon(type as WeaponItemType);
         }
     }
 
-    private armorChanged = (selected: any) => {
+    private armor_changed = (selected: any) => {
         if (selected) {
-            let type = itemTypeStores.current.value.getById(selected.value)!;
-            dpsCalcStore.armorType = (type as ArmorItemType);
+            let type = item_type_stores.current.value.get_by_id(selected.value)!;
+            dps_calc_store.armor_type = (type as ArmorItemType);
         } else {
-            dpsCalcStore.armorType = undefined;
+            dps_calc_store.armor_type = undefined;
         }
     }
 
-    private shieldChanged = (selected: any) => {
+    private shield_changed = (selected: any) => {
         if (selected) {
-            let type = itemTypeStores.current.value.getById(selected.value)!;
-            dpsCalcStore.shieldType = (type as ShieldItemType);
+            let type = item_type_stores.current.value.get_by_id(selected.value)!;
+            dps_calc_store.shield_type = (type as ShieldItemType);
         } else {
-            dpsCalcStore.shieldType = undefined;
+            dps_calc_store.shield_type = undefined;
         }
     }
 }

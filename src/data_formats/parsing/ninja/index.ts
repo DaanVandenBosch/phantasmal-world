@@ -1,4 +1,4 @@
-import { Vec3 } from '../../../domain';
+import { Vec3 } from "../../Vec3";
 import { BufferCursor } from '../../BufferCursor';
 import { NjModel, parse_nj_model } from './nj';
 import { parse_xj_model, XjModel } from './xj';

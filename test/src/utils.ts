@@ -5,16 +5,16 @@ import * as fs from 'fs';
  * F is called with the path to the file, the file name and the content of the file.
  * Uses the QST files provided with Tethealla version 0.143 by default.
  */
-export function walkQstFiles(
-    f: (path: string, fileName: string, contents: Buffer) => void,
+export function walk_qst_files(
+    f: (path: string, file_name: string, contents: Buffer) => void,
     dir: string = 'test/resources/tethealla_v0.143_quests'
 ) {
-    for (const [path, file] of getQstFiles(dir)) {
+    for (const [path, file] of get_qst_files(dir)) {
         f(path, file, fs.readFileSync(path));
     }
 }
 
-export function getQstFiles(dir: string): [string, string][] {
+export function get_qst_files(dir: string): [string, string][] {
     let files: [string, string][] = [];
 
     for (const file of fs.readdirSync(dir)) {
@@ -22,7 +22,7 @@ export function getQstFiles(dir: string): [string, string][] {
         const stats = fs.statSync(path);
 
         if (stats.isDirectory()) {
-            files = files.concat(getQstFiles(path));
+            files = files.concat(get_qst_files(path));
         } else if (path.endsWith('.qst')) {
             // BUG: Battle quests are not always parsed in the same way.
             // Could be a bug in Jest or Node as the quest parsing code has no randomness or dependency on mutable state.

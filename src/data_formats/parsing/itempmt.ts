@@ -1,7 +1,7 @@
 import { BufferCursor } from "../BufferCursor";
 
 export type ItemPmt = {
-    statBoosts: PmtStatBoost[],
+    stat_boosts: PmtStatBoost[],
     armors: PmtArmor[],
     shields: PmtShield[],
     units: PmtUnit[],
@@ -10,63 +10,63 @@ export type ItemPmt = {
 }
 
 export type PmtStatBoost = {
-    stat1: number,
-    stat2: number,
-    amount1: number,
-    amount2: number,
+    stat_1: number,
+    stat_2: number,
+    amount_1: number,
+    amount_2: number,
 }
 
 export type PmtWeapon = {
     id: number,
     type: number,
     skin: number,
-    teamPoints: number,
+    team_points: number,
     class: number,
-    reserved1: number,
-    minAtp: number,
-    maxAtp: number,
-    reqAtp: number,
-    reqMst: number,
-    reqAta: number,
+    reserved_1: number,
+    min_atp: number,
+    max_atp: number,
+    req_atp: number,
+    req_mst: number,
+    req_ata: number,
     mst: number,
-    maxGrind: number,
+    max_grind: number,
     photon: number,
     special: number,
     ata: number,
-    statBoost: number,
+    stat_boost: number,
     projectile: number,
-    photonTrail1X: number,
-    photonTrail1Y: number,
-    photonTrail2X: number,
-    photonTrail2Y: number,
-    photonType: number,
-    unknown1: number[],
-    techBoost: number,
-    comboType: number,
+    photon_trail_1_x: number,
+    photon_trail_1_y: number,
+    photon_trail_2_x: number,
+    photon_trail_2_y: number,
+    photon_type: number,
+    unknown_1: number[],
+    tech_boost: number,
+    combo_type: number,
 }
 
 export type PmtArmor = {
     id: number,
     type: number,
     skin: number,
-    teamPoints: number,
+    team_points: number,
     dfp: number,
     evp: number,
-    blockParticle: number,
-    blockEffect: number,
+    block_particle: number,
+    block_effect: number,
     class: number,
-    reserved1: number,
-    requiredLevel: number,
+    reserved_1: number,
+    required_level: number,
     efr: number,
     eth: number,
     eic: number,
     edk: number,
     elt: number,
-    dfpRange: number,
-    evpRange: number,
-    statBoost: number,
-    techBoost: number,
-    unknown1: number,
+    dfp_range: number,
+    evp_range: number,
+    stat_boost: number,
+    tech_boost: number,
+    unknown_1: number,
 }
 
 export type PmtShield = PmtArmor
@@ -75,10 +75,10 @@ export type PmtUnit = {
     id: number,
     type: number,
     skin: number,
-    teamPoints: number,
+    team_points: number,
     stat: number,
-    statAmount: number,
-    plusMinus: number,
+    stat_amount: number,
+    plus_minus: number,
     reserved: number[]
 }
 
@@ -86,74 +86,74 @@ export type PmtTool = {
     id: number,
     type: number,
     skin: number,
-    teamPoints: number,
+    team_points: number,
     amount: number,
     tech: number,
     cost: number,
-    itemFlag: number,
+    item_flag: number,
     reserved: number[],
 }
 
-export function parseItemPmt(cursor: BufferCursor): ItemPmt {
+export function parse_item_pmt(cursor: BufferCursor): ItemPmt {
     cursor.seek_end(32);
-    const mainTableOffset = cursor.u32();
-    const mainTableSize = cursor.u32();
-    // const mainTableCount = cursor.u32(); // Should be 1.
+    const main_table_offset = cursor.u32();
+    const main_table_size = cursor.u32();
+    // const main_table_count = cursor.u32(); // Should be 1.
 
-    cursor.seek_start(mainTableOffset);
+    cursor.seek_start(main_table_offset);
 
-    const compactTableOffsets = cursor.u16_array(mainTableSize);
-    const tableOffsets: { offset: number, size: number }[] = [];
-    let expandedOffset: number = 0;
+    const compact_table_offsets = cursor.u16_array(main_table_size);
+    const table_offsets: { offset: number, size: number }[] = [];
+    let expanded_offset: number = 0;
 
-    for (const compactOffset of compactTableOffsets) {
-        expandedOffset = expandedOffset + 4 * compactOffset;
-        cursor.seek_start(expandedOffset - 4);
+    for (const compact_offset of compact_table_offsets) {
+        expanded_offset = expanded_offset + 4 * compact_offset;
+        cursor.seek_start(expanded_offset - 4);
         const size = cursor.u32();
         const offset = cursor.u32();
-        tableOffsets.push({ offset, size });
+        table_offsets.push({ offset, size });
     }
 
-    const itemPmt: ItemPmt = {
+    const item_pmt: ItemPmt = {
         // This size (65268) of this table seems wrong, so we pass in a hard-coded value.
-        statBoosts: parseStatBoosts(cursor, tableOffsets[305].offset, 52),
-        armors: parseArmors(cursor, tableOffsets[7].offset, tableOffsets[7].size),
-        shields: parseShields(cursor, tableOffsets[8].offset, tableOffsets[8].size),
-        units: parseUnits(cursor, tableOffsets[9].offset, tableOffsets[9].size),
+        stat_boosts: parse_stat_boosts(cursor, table_offsets[305].offset, 52),
+        armors: parse_armors(cursor, table_offsets[7].offset, table_offsets[7].size),
+        shields: parse_shields(cursor, table_offsets[8].offset, table_offsets[8].size),
+        units: parse_units(cursor, table_offsets[9].offset, table_offsets[9].size),
         tools: [],
         weapons: [],
     };
 
     for (let i = 11; i <= 37; i++) {
-        itemPmt.tools.push(parseTools(cursor, tableOffsets[i].offset, tableOffsets[i].size));
+        item_pmt.tools.push(parse_tools(cursor, table_offsets[i].offset, table_offsets[i].size));
     }
 
     for (let i = 38; i <= 275; i++) {
-        itemPmt.weapons.push(
-            parseWeapons(cursor, tableOffsets[i].offset, tableOffsets[i].size)
+        item_pmt.weapons.push(
+            parse_weapons(cursor, table_offsets[i].offset, table_offsets[i].size)
         );
     }
 
-    return itemPmt;
+    return item_pmt;
 }
 
-function parseStatBoosts(cursor: BufferCursor, offset: number, size: number): PmtStatBoost[] {
+function parse_stat_boosts(cursor: BufferCursor, offset: number, size: number): PmtStatBoost[] {
     cursor.seek_start(offset);
-    const statBoosts: PmtStatBoost[] = [];
+    const stat_boosts: PmtStatBoost[] = [];
 
     for (let i = 0; i < size; i++) {
-        statBoosts.push({
-            stat1: cursor.u8(),
-            stat2: cursor.u8(),
-            amount1: cursor.i16(),
-            amount2: cursor.i16(),
+        stat_boosts.push({
+            stat_1: cursor.u8(),
+            stat_2: cursor.u8(),
+            amount_1: cursor.i16(),
+            amount_2: cursor.i16(),
         });
     }
 
-    return statBoosts;
+    return stat_boosts;
 }
 
-function parseWeapons(cursor: BufferCursor, offset: number, size: number): PmtWeapon[] {
+function parse_weapons(cursor: BufferCursor, offset: number, size: number): PmtWeapon[] {
     cursor.seek_start(offset);
     const weapons: PmtWeapon[] = [];
 
@@ -162,36 +162,36 @@ function parseWeapons(cursor: BufferCursor, offset: number, size: number): PmtWe
             id: cursor.u32(),
             type: cursor.i16(),
             skin: cursor.i16(),
-            teamPoints: cursor.i32(),
+            team_points: cursor.i32(),
             class: cursor.u8(),
-            reserved1: cursor.u8(),
-            minAtp: cursor.i16(),
-            maxAtp: cursor.i16(),
-            reqAtp: cursor.i16(),
-            reqMst: cursor.i16(),
-            reqAta: cursor.i16(),
+            reserved_1: cursor.u8(),
+            min_atp: cursor.i16(),
+            max_atp: cursor.i16(),
+            req_atp: cursor.i16(),
+            req_mst: cursor.i16(),
+            req_ata: cursor.i16(),
             mst: cursor.i16(),
-            maxGrind: cursor.u8(),
+            max_grind: cursor.u8(),
             photon: cursor.i8(),
             special: cursor.u8(),
             ata: cursor.u8(),
-            statBoost: cursor.u8(),
+            stat_boost: cursor.u8(),
             projectile: cursor.u8(),
-            photonTrail1X: cursor.i8(),
-            photonTrail1Y: cursor.i8(),
-            photonTrail2X: cursor.i8(),
-            photonTrail2Y: cursor.i8(),
-            photonType: cursor.i8(),
-            unknown1: cursor.u8_array(5),
-            techBoost: cursor.u8(),
-            comboType: cursor.u8(),
+            photon_trail_1_x: cursor.i8(),
+            photon_trail_1_y: cursor.i8(),
+            photon_trail_2_x: cursor.i8(),
+            photon_trail_2_y: cursor.i8(),
+            photon_type: cursor.i8(),
+            unknown_1: cursor.u8_array(5),
+            tech_boost: cursor.u8(),
+            combo_type: cursor.u8(),
         });
     }
 
     return weapons;
 }
 
-function parseArmors(cursor: BufferCursor, offset: number, size: number): PmtArmor[] {
+function parse_armors(cursor: BufferCursor, offset: number, size: number): PmtArmor[] {
     cursor.seek_start(offset);
     const armors: PmtArmor[] = [];
 
@@ -200,35 +200,35 @@ function parseArmors(cursor: BufferCursor, offset: number, size: number): PmtArm
             id: cursor.u32(),
             type: cursor.i16(),
             skin: cursor.i16(),
-            teamPoints: cursor.i32(),
+            team_points: cursor.i32(),
             dfp: cursor.i16(),
             evp: cursor.i16(),
-            blockParticle: cursor.u8(),
-            blockEffect: cursor.u8(),
+            block_particle: cursor.u8(),
+            block_effect: cursor.u8(),
             class: cursor.u8(),
-            reserved1: cursor.u8(),
-            requiredLevel: cursor.u8(),
+            reserved_1: cursor.u8(),
+            required_level: cursor.u8(),
             efr: cursor.u8(),
             eth: cursor.u8(),
             eic: cursor.u8(),
             edk: cursor.u8(),
             elt: cursor.u8(),
-            dfpRange: cursor.u8(),
-            evpRange: cursor.u8(),
-            statBoost: cursor.u8(),
-            techBoost: cursor.u8(),
-            unknown1: cursor.i16(),
+            dfp_range: cursor.u8(),
+            evp_range: cursor.u8(),
+            stat_boost: cursor.u8(),
+            tech_boost: cursor.u8(),
+            unknown_1: cursor.i16(),
         });
     }
 
     return armors;
 }
 
-function parseShields(cursor: BufferCursor, offset: number, size: number): PmtShield[] {
-    return parseArmors(cursor, offset, size);
+function parse_shields(cursor: BufferCursor, offset: number, size: number): PmtShield[] {
+    return parse_armors(cursor, offset, size);
 }
 
-function parseUnits(cursor: BufferCursor, offset: number, size: number): PmtUnit[] {
+function parse_units(cursor: BufferCursor, offset: number, size: number): PmtUnit[] {
     cursor.seek_start(offset);
     const units: PmtUnit[] = [];
 
@@ -237,10 +237,10 @@ function parseUnits(cursor: BufferCursor, offset: number, size: number): PmtUnit
             id: cursor.u32(),
             type: cursor.i16(),
             skin: cursor.i16(),
-            teamPoints: cursor.i32(),
+            team_points: cursor.i32(),
             stat: cursor.i16(),
-            statAmount: cursor.i16(),
-            plusMinus: cursor.u8(),
+            stat_amount: cursor.i16(),
+            plus_minus: cursor.u8(),
             reserved: cursor.u8_array(3),
         });
     }
@@ -248,7 +248,7 @@ function parseUnits(cursor: BufferCursor, offset: number, size: number): PmtUnit
     return units;
 }
 
-function parseTools(cursor: BufferCursor, offset: number, size: number): PmtTool[] {
+function parse_tools(cursor: BufferCursor, offset: number, size: number): PmtTool[] {
     cursor.seek_start(offset);
     const tools: PmtTool[] = [];
 
@@ -257,11 +257,11 @@ function parseTools(cursor: BufferCursor, offset: number, size: number): PmtTool
             id: cursor.u32(),
             type: cursor.i16(),
             skin: cursor.i16(),
-            teamPoints: cursor.i32(),
+            team_points: cursor.i32(),
             amount: cursor.i16(),
             tech: cursor.i16(),
             cost: cursor.i32(),
-            itemFlag: cursor.u8(),
+            item_flag: cursor.u8(),
             reserved: cursor.u8_array(3),
         });
     }

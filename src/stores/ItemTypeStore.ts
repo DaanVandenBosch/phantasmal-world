@@ -4,13 +4,13 @@ import { Loadable } from "../Loadable";
 import { ServerMap } from "./ServerMap";
 import { ItemTypeDto } from "../dto";
 
-class ItemTypeStore {
-    private idToItemType: Array<ItemType> = [];
+export class ItemTypeStore {
+    private id_to_item_type: Array<ItemType> = [];
 
-    @observable itemTypes: Array<ItemType> = [];
+    @observable item_types: Array<ItemType> = [];
 
-    getById(id: number): ItemType | undefined {
-        return this.idToItemType[id];
+    get_by_id(id: number): ItemType | undefined {
+        return this.id_to_item_type[id];
     }
 
     load = async (server: Server): Promise<ItemTypeStore> => {
@@ -19,80 +19,80 @@ class ItemTypeStore {
         );
         const data: Array<ItemTypeDto> = await response.json();
 
-        const itemTypes = new Array<ItemType>();
+        const item_types = new Array<ItemType>();
 
-        for (const itemTypeDto of data) {
-            let itemType: ItemType;
+        for (const item_type_dto of data) {
+            let item_type: ItemType;
 
-            switch (itemTypeDto.class) {
+            switch (item_type_dto.class) {
                 case 'weapon':
-                    itemType = new WeaponItemType(
-                        itemTypeDto.id,
-                        itemTypeDto.name,
-                        itemTypeDto.minAtp,
-                        itemTypeDto.maxAtp,
-                        itemTypeDto.ata,
-                        itemTypeDto.maxGrind,
-                        itemTypeDto.requiredAtp,
+                    item_type = new WeaponItemType(
+                        item_type_dto.id,
+                        item_type_dto.name,
+                        item_type_dto.minAtp,
+                        item_type_dto.maxAtp,
+                        item_type_dto.ata,
+                        item_type_dto.maxGrind,
+                        item_type_dto.requiredAtp,
                     );
                     break;
                 case 'armor':
-                    itemType = new ArmorItemType(
-                        itemTypeDto.id,
-                        itemTypeDto.name,
-                        itemTypeDto.atp,
-                        itemTypeDto.ata,
-                        itemTypeDto.minEvp,
-                        itemTypeDto.maxEvp,
-                        itemTypeDto.minDfp,
-                        itemTypeDto.maxDfp,
-                        itemTypeDto.mst,
-                        itemTypeDto.hp,
-                        itemTypeDto.lck,
+                    item_type = new ArmorItemType(
+                        item_type_dto.id,
+                        item_type_dto.name,
+                        item_type_dto.atp,
+                        item_type_dto.ata,
+                        item_type_dto.minEvp,
+                        item_type_dto.maxEvp,
+                        item_type_dto.minDfp,
+                        item_type_dto.maxDfp,
+                        item_type_dto.mst,
+                        item_type_dto.hp,
+                        item_type_dto.lck,
                     );
                     break;
                 case 'shield':
-                    itemType = new ShieldItemType(
-                        itemTypeDto.id,
-                        itemTypeDto.name,
-                        itemTypeDto.atp,
-                        itemTypeDto.ata,
-                        itemTypeDto.minEvp,
-                        itemTypeDto.maxEvp,
-                        itemTypeDto.minDfp,
-                        itemTypeDto.maxDfp,
-                        itemTypeDto.mst,
-                        itemTypeDto.hp,
-                        itemTypeDto.lck,
+                    item_type = new ShieldItemType(
+                        item_type_dto.id,
+                        item_type_dto.name,
+                        item_type_dto.atp,
+                        item_type_dto.ata,
+                        item_type_dto.minEvp,
+                        item_type_dto.maxEvp,
+                        item_type_dto.minDfp,
+                        item_type_dto.maxDfp,
+                        item_type_dto.mst,
+                        item_type_dto.hp,
+                        item_type_dto.lck,
                     );
                     break;
                 case 'unit':
-                    itemType = new UnitItemType(
-                        itemTypeDto.id,
-                        itemTypeDto.name,
+                    item_type = new UnitItemType(
+                        item_type_dto.id,
+                        item_type_dto.name,
                     );
                     break;
                 case 'tool':
-                    itemType = new ToolItemType(
-                        itemTypeDto.id,
-                        itemTypeDto.name,
+                    item_type = new ToolItemType(
+                        item_type_dto.id,
+                        item_type_dto.name,
                     );
                     break;
                 default:
                     continue;
             }
 
-            this.idToItemType[itemType.id] = itemType;
-            itemTypes.push(itemType);
+            this.id_to_item_type[item_type.id] = item_type;
+            item_types.push(item_type);
         }
 
-        this.itemTypes = itemTypes;
+        this.item_types = item_types;
 
         return this;
     }
 }
 
-export const itemTypeStores: ServerMap<Loadable<ItemTypeStore>> = new ServerMap(server => {
+export const item_type_stores: ServerMap<Loadable<ItemTypeStore>> = new ServerMap(server => {
     const store = new ItemTypeStore();
     return new Loadable(store, () => store.load(server));
 });
