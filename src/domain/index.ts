@@ -362,3 +362,7 @@ export class PlayerModel {
         public readonly hair_styles_with_accessory: Set<number>
     ) {}
 }
+
+export class PlayerAnimation {
+    constructor(public readonly id: number, public readonly name: string) {}
+}

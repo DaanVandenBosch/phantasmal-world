@@ -3,14 +3,15 @@ import { action, observable } from "mobx";
 import { AnimationAction, AnimationClip, AnimationMixer, SkinnedMesh } from "three";
 import { BufferCursor } from "../data_formats/BufferCursor";
 import { NinjaModel, NinjaObject, parse_nj, parse_xj } from "../data_formats/parsing/ninja";
-import { parse_njm } from "../data_formats/parsing/ninja/motion";
-import { PlayerModel } from "../domain";
+import { parse_njm, NjMotion } from "../data_formats/parsing/ninja/motion";
+import { PlayerModel, PlayerAnimation } from "../domain";
 import { create_animation_clip, PSO_FRAME_RATE } from "../rendering/animation";
 import { ninja_object_to_skinned_mesh } from "../rendering/models";
-import { get_player_data } from "./binary_assets";
+import { get_player_data, get_player_animation_data } from "./binary_assets";
 
 const logger = Logger.get("stores/ModelViewerStore");
-const cache: Map<string, Promise<NinjaObject<NinjaModel>>> = new Map();
+const nj_object_cache: Map<string, Promise<NinjaObject<NinjaModel>>> = new Map();
+const nj_motion_cache: Map<number, Promise<NjMotion>> = new Map();
 
 class ModelViewerStore {
     readonly models: PlayerModel[] = [
@@ -27,6 +28,9 @@ class ModelViewerStore {
         new PlayerModel("FOnewm", 1, 10, new Set([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])),
         new PlayerModel("FOnewearl", 1, 10, new Set([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])),
     ];
+    readonly animations: PlayerAnimation[] = new Array(572)
+        .fill(undefined)
+        .map((_, i) => new PlayerAnimation(i, `Animation ${i + 1}`));
 
     @observable.ref current_model?: NinjaObject<NinjaModel>;
     @observable.ref current_bone_count: number = 0;
@@ -68,6 +72,14 @@ class ModelViewerStore {
         this.current_bone_count = 64;
     };
 
+    load_animation = async (animation: PlayerAnimation) => {
+        const nj_motion = await this.get_nj_motion(animation);
+
+        if (this.current_model) {
+            this.set_animation(create_animation_clip(this.current_model, nj_motion));
+        }
+    };
+
     load_file = (file: File) => {
         const reader = new FileReader();
         reader.addEventListener("loadend", () => {
@@ -88,6 +100,29 @@ class ModelViewerStore {
             const time = this.animation.action.time;
             this.animation_frame = Math.round(time * PSO_FRAME_RATE) + 1;
         }
+    });
+
+    set_animation = action("set_animation", (clip: AnimationClip) => {
+        if (!this.current_obj3d) return;
+
+        let mixer: AnimationMixer;
+
+        if (this.animation) {
+            this.animation.mixer.stopAllAction();
+            mixer = this.animation.mixer;
+        } else {
+            mixer = new AnimationMixer(this.current_obj3d);
+        }
+
+        this.animation = {
+            mixer,
+            clip,
+            action: mixer.clipAction(clip),
+        };
+
+        this.animation.action.play();
+        this.animation_playing = true;
+        this.animation_frame_count = Math.round(PSO_FRAME_RATE * clip.duration) + 1;
     });
 
     private set_model = action("set_model", (model: NinjaObject<NinjaModel>) => {
@@ -124,7 +159,7 @@ class ModelViewerStore {
                     new BufferCursor(reader.result, true),
                     this.current_bone_count
                 );
-                this.add_animation(create_animation_clip(this.current_model, njm));
+                this.set_animation(create_animation_clip(this.current_model, njm));
             }
         } else {
             logger.error(`Unknown file extension in filename "${file.name}".`);
@@ -145,37 +180,14 @@ class ModelViewerStore {
         }
     }
 
-    private add_animation = action("add_animation", (clip: AnimationClip) => {
-        if (!this.current_obj3d) return;
-
-        let mixer: AnimationMixer;
-
-        if (this.animation) {
-            this.animation.mixer.stopAllAction();
-            mixer = this.animation.mixer;
-        } else {
-            mixer = new AnimationMixer(this.current_obj3d);
-        }
-
-        this.animation = {
-            mixer,
-            clip,
-            action: mixer.clipAction(clip),
-        };
-
-        this.animation.action.play();
-        this.animation_playing = true;
-        this.animation_frame_count = Math.round(PSO_FRAME_RATE * clip.duration) + 1;
-    });
-
-    private get_player_ninja_object(model: PlayerModel): Promise<NinjaObject<NinjaModel>> {
-        let ninja_object = cache.get(model.name);
+    private async get_player_ninja_object(model: PlayerModel): Promise<NinjaObject<NinjaModel>> {
+        let ninja_object = nj_object_cache.get(model.name);
 
         if (ninja_object) {
             return ninja_object;
         } else {
             ninja_object = this.get_all_assets(model);
-            cache.set(model.name, ninja_object);
+            nj_object_cache.set(model.name, ninja_object);
             return ninja_object;
         }
     }
@@ -214,6 +226,21 @@ class ModelViewerStore {
         }
 
         return body;
+    }
+
+    private async get_nj_motion(animation: PlayerAnimation): Promise<NjMotion> {
+        let nj_motion = nj_motion_cache.get(animation.id);
+
+        if (nj_motion) {
+            return nj_motion;
+        } else {
+            nj_motion = get_player_animation_data(animation.id).then(motion_data =>
+                parse_njm(new BufferCursor(motion_data, true), this.current_bone_count)
+            );
+
+            nj_motion_cache.set(animation.id, nj_motion);
+            return nj_motion;
+        }
     }
 }
 

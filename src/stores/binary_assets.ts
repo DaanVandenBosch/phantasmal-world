@@ -38,10 +38,10 @@ export async function get_player_data(
     return await get_asset(player_class_to_url(player_class, body_part, no));
 }
 
-function get_asset(url: string): Promise<ArrayBuffer> {
-    const base_url = process.env.PUBLIC_URL;
-    const promise = fetch(base_url + url).then(r => r.arrayBuffer());
-    return promise;
+export async function get_player_animation_data(animation_id: number): Promise<ArrayBuffer> {
+    return await get_asset(
+        `/player/animation/animation_${animation_id.toString().padStart(3, "0")}.njm`
+    );
 }
 
 const area_base_names = [
@@ -227,4 +227,10 @@ function object_type_to_url(object_type: ObjectType): string {
 
 function player_class_to_url(player_class: string, body_part: string, no?: number): string {
     return `/player/${player_class}${body_part}${no == null ? "" : no}.nj`;
+}
+
+function get_asset(url: string): Promise<ArrayBuffer> {
+    const base_url = process.env.PUBLIC_URL;
+    const promise = fetch(base_url + url).then(r => r.arrayBuffer());
+    return promise;
 }

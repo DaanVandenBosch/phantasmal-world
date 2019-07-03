@@ -1,9 +1,10 @@
-import { Button, InputNumber, Upload, Switch } from "antd";
+import { Button, InputNumber, Switch, Upload } from "antd";
 import { UploadChangeParam } from "antd/lib/upload";
 import { UploadFile } from "antd/lib/upload/interface";
 import { observer } from "mobx-react";
-import React, { ReactNode, Component } from "react";
+import React, { Component, ReactNode } from "react";
 import { model_viewer_store } from "../../stores/ModelViewerStore";
+import { AnimationSelectionComponent } from "./AnimationSelectionComponent";
 import { ModelSelectionComponent } from "./ModelSelectionComponent";
 import "./ModelViewerComponent.less";
 import { RendererComponent } from "./RendererComponent";
@@ -22,6 +23,7 @@ export class ModelViewerComponent extends Component {
                 <Toolbar />
                 <div className="mv-ModelViewerComponent-main">
                     <ModelSelectionComponent />
+                    <AnimationSelectionComponent />
                     <RendererComponent model={model_viewer_store.current_obj3d} />
                 </div>
             </div>
