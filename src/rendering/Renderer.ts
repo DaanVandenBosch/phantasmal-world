@@ -48,6 +48,7 @@ export class Renderer {
         this.renderer.setSize(width, height);
         this.camera.aspect = width / height;
         this.camera.updateProjectionMatrix();
+        this.schedule_render();
     }
 
     protected schedule_render = () => {

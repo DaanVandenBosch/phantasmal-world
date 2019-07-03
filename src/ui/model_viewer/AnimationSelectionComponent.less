@@ -5,12 +5,13 @@
         height: 100%;
         padding: 0;
         margin: 0;
-        overflow: auto;
+        overflow-y: scroll;
         list-style-type: none;
 
         & > li {
             cursor: pointer;
             padding: 2px 5px;
+            white-space: nowrap;
 
             &:hover {
                 color: lighten(@primary-color, 30%);
