@@ -8,6 +8,7 @@ import {
     Vector3,
     WebGLRenderer,
     Vector2,
+    Group,
 } from "three";
 import OrbitControlsCreator from "three-orbit-controls";
 
@@ -17,11 +18,15 @@ export class Renderer {
     protected camera: PerspectiveCamera;
     protected controls: any;
     protected scene = new Scene();
+    protected light_holder = new Group();
 
     private renderer = new WebGLRenderer({ antialias: true });
     private render_scheduled = false;
+    private light = new HemisphereLight(0xffffff, 0x505050, 1);
 
     constructor() {
+        this.renderer.setPixelRatio(window.devicePixelRatio);
+
         this.camera = new PerspectiveCamera(75, 1, 0.1, 5000);
 
         this.controls = new OrbitControls(this.camera, this.renderer.domElement);
@@ -30,7 +35,9 @@ export class Renderer {
         this.controls.addEventListener("change", this.schedule_render);
 
         this.scene.background = new Color(0x151c21);
-        this.scene.add(new HemisphereLight(0xffffff, 0x505050, 1));
+
+        this.light_holder.add(this.light);
+        this.scene.add(this.light_holder);
     }
 
     get dom_element(): HTMLElement {

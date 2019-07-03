@@ -69,6 +69,7 @@ export class ModelRenderer extends Renderer {
             model_viewer_store.update_animation_frame();
         }
 
+        this.light_holder.quaternion.copy(this.camera.quaternion);
         super.render();
 
         if (model_viewer_store.animation && !model_viewer_store.animation.action.paused) {
