@@ -32,11 +32,13 @@ class ModelViewerStore {
         .fill(undefined)
         .map((_, i) => new PlayerAnimation(i, `Animation ${i + 1}`));
 
+    @observable.ref current_player_model?: PlayerModel;
     @observable.ref current_model?: NinjaObject<NinjaModel>;
     @observable.ref current_bone_count: number = 0;
     @observable.ref current_obj3d?: SkinnedMesh;
 
     @observable.ref animation?: {
+        player_animation?: PlayerAnimation;
         mixer: AnimationMixer;
         clip: AnimationClip;
         action: AnimationAction;
@@ -67,7 +69,7 @@ class ModelViewerStore {
 
     load_model = async (model: PlayerModel) => {
         const object = await this.get_player_ninja_object(model);
-        this.set_model(object);
+        this.set_model(object, model);
         // Ignore the bones from the head parts.
         this.current_bone_count = 64;
     };
@@ -76,7 +78,7 @@ class ModelViewerStore {
         const nj_motion = await this.get_nj_motion(animation);
 
         if (this.current_model) {
-            this.set_animation(create_animation_clip(this.current_model, nj_motion));
+            this.set_animation(create_animation_clip(this.current_model, nj_motion), animation);
         }
     };
 
@@ -102,7 +104,7 @@ class ModelViewerStore {
         }
     });
 
-    set_animation = action("set_animation", (clip: AnimationClip) => {
+    set_animation = action("set_animation", (clip: AnimationClip, animation?: PlayerAnimation) => {
         if (!this.current_obj3d) return;
 
         let mixer: AnimationMixer;
@@ -115,6 +117,7 @@ class ModelViewerStore {
         }
 
         this.animation = {
+            player_animation: animation,
             mixer,
             clip,
             action: mixer.clipAction(clip),
@@ -125,20 +128,24 @@ class ModelViewerStore {
         this.animation_frame_count = Math.round(PSO_FRAME_RATE * clip.duration) + 1;
     });
 
-    private set_model = action("set_model", (model: NinjaObject<NinjaModel>) => {
-        if (this.current_obj3d && this.animation) {
-            this.animation.mixer.stopAllAction();
-            this.animation.mixer.uncacheRoot(this.current_obj3d);
-            this.animation = undefined;
+    private set_model = action(
+        "set_model",
+        (model: NinjaObject<NinjaModel>, player_model?: PlayerModel) => {
+            if (this.current_obj3d && this.animation) {
+                this.animation.mixer.stopAllAction();
+                this.animation.mixer.uncacheRoot(this.current_obj3d);
+                this.animation = undefined;
+            }
+
+            this.current_player_model = player_model;
+            this.current_model = model;
+            this.current_bone_count = model.bone_count();
+
+            const mesh = ninja_object_to_skinned_mesh(this.current_model);
+            mesh.translateY(-mesh.geometry.boundingSphere.radius);
+            this.current_obj3d = mesh;
         }
-
-        this.current_model = model;
-        this.current_bone_count = model.bone_count();
-
-        const mesh = ninja_object_to_skinned_mesh(this.current_model);
-        mesh.translateY(-mesh.geometry.boundingSphere.radius);
-        this.current_obj3d = mesh;
-    });
+    );
 
     // TODO: notify user of problems.
     private loadend = async (file: File, reader: FileReader) => {
