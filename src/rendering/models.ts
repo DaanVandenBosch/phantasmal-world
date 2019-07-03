@@ -158,7 +158,7 @@ class Object3DCreator {
             bone = parent_bone;
         } else {
             bone = new Bone();
-            bone.name = (this.bone_id++).toString();
+            bone.name = this.bone_id.toString();
 
             bone.position.set(position.x, position.y, position.z);
             bone.setRotationFromEuler(euler);
@@ -174,6 +174,8 @@ class Object3DCreator {
         if (object.model && !hidden) {
             this.model_to_geometry(object.model, matrix);
         }
+
+        this.bone_id++;
 
         if (!break_child_trace) {
             for (const child of object.children) {
