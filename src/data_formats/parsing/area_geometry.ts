@@ -2,131 +2,19 @@ import Logger from "js-logger";
 import {
     BufferGeometry,
     DoubleSide,
-    Face3,
     Float32BufferAttribute,
-    Geometry,
     Mesh,
-    MeshBasicMaterial,
     MeshLambertMaterial,
     Object3D,
     TriangleStripDrawMode,
     Uint16BufferAttribute,
-    Vector3,
 } from "three";
 import { Section } from "../../domain";
 import { Vec3 } from "../Vec3";
 
-const logger = Logger.get("data_formats/parsing/geometry");
+const logger = Logger.get("data_formats/parsing/area_geometry");
 
-export function parse_c_rel(array_buffer: ArrayBuffer): Object3D {
-    const dv = new DataView(array_buffer);
-
-    const object = new Object3D();
-    const materials = [
-        // Wall
-        new MeshBasicMaterial({
-            color: 0x80c0d0,
-            transparent: true,
-            opacity: 0.25,
-        }),
-        // Ground
-        new MeshLambertMaterial({
-            color: 0x50d0d0,
-            side: DoubleSide,
-        }),
-        // Vegetation
-        new MeshLambertMaterial({
-            color: 0x50b070,
-            side: DoubleSide,
-        }),
-        // Section transition zone
-        new MeshLambertMaterial({
-            color: 0x604080,
-            side: DoubleSide,
-        }),
-    ];
-    const wireframe_materials = [
-        // Wall
-        new MeshBasicMaterial({
-            color: 0x90d0e0,
-            wireframe: true,
-            transparent: true,
-            opacity: 0.3,
-        }),
-        // Ground
-        new MeshBasicMaterial({
-            color: 0x60f0f0,
-            wireframe: true,
-        }),
-        // Vegetation
-        new MeshBasicMaterial({
-            color: 0x60c080,
-            wireframe: true,
-        }),
-        // Section transition zone
-        new MeshBasicMaterial({
-            color: 0x705090,
-            wireframe: true,
-        }),
-    ];
-
-    const main_block_offset = dv.getUint32(dv.byteLength - 16, true);
-    const main_offset_table_offset = dv.getUint32(main_block_offset, true);
-
-    for (
-        let i = main_offset_table_offset;
-        i === main_offset_table_offset || dv.getUint32(i) !== 0;
-        i += 24
-    ) {
-        const block_geometry = new Geometry();
-
-        const block_trailer_offset = dv.getUint32(i, true);
-        const vertex_count = dv.getUint32(block_trailer_offset, true);
-        const vertex_table_offset = dv.getUint32(block_trailer_offset + 4, true);
-        const vertex_table_end = vertex_table_offset + 12 * vertex_count;
-        const triangle_count = dv.getUint32(block_trailer_offset + 8, true);
-        const triangle_table_offset = dv.getUint32(block_trailer_offset + 12, true);
-        const triangle_table_end = triangle_table_offset + 36 * triangle_count;
-
-        for (let j = vertex_table_offset; j < vertex_table_end; j += 12) {
-            const x = dv.getFloat32(j, true);
-            const y = dv.getFloat32(j + 4, true);
-            const z = dv.getFloat32(j + 8, true);
-
-            block_geometry.vertices.push(new Vector3(x, y, z));
-        }
-
-        for (let j = triangle_table_offset; j < triangle_table_end; j += 36) {
-            const v1 = dv.getUint16(j, true);
-            const v2 = dv.getUint16(j + 2, true);
-            const v3 = dv.getUint16(j + 4, true);
-            const flags = dv.getUint16(j + 6, true);
-            const n = new Vector3(
-                dv.getFloat32(j + 8, true),
-                dv.getFloat32(j + 12, true),
-                dv.getFloat32(j + 16, true)
-            );
-            const is_section_transition = flags & 0b1000000;
-            const is_vegetation = flags & 0b10000;
-            const is_ground = flags & 0b1;
-            const color_index = is_section_transition ? 3 : is_vegetation ? 2 : is_ground ? 1 : 0;
-
-            block_geometry.faces.push(new Face3(v1, v2, v3, n, undefined, color_index));
-        }
-
-        const mesh = new Mesh(block_geometry, materials);
-        mesh.renderOrder = 1;
-        object.add(mesh);
-
-        const wireframe_mesh = new Mesh(block_geometry, wireframe_materials);
-        wireframe_mesh.renderOrder = 2;
-        object.add(wireframe_mesh);
-    }
-
-    return object;
-}
-
-export function parse_n_rel(
+export function parse_area_geometry(
     array_buffer: ArrayBuffer
 ): { sections: Section[]; object_3d: Object3D } {
     const dv = new DataView(array_buffer);

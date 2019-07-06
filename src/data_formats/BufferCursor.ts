@@ -32,10 +32,14 @@ export class BufferCursor {
         this._size = size;
     }
 
+    private _position: number;
+
     /**
      * The position from where bytes will be read or written.
      */
-    position: number;
+    get position(): number {
+        return this._position;
+    }
 
     private _little_endian: boolean = false;
 
@@ -66,33 +70,37 @@ export class BufferCursor {
         return this.buffer.byteLength;
     }
 
-    buffer: ArrayBuffer;
+    private _buffer: ArrayBuffer;
+
+    get buffer(): ArrayBuffer {
+        return this._buffer;
+    }
 
     private dv: DataView;
     private utf16_decoder: TextDecoder = UTF_16BE_DECODER;
     private utf16_encoder: TextEncoder = UTF_16BE_ENCODER;
 
     /**
-     * @param buffer_or_capacity - If an ArrayBuffer or Buffer is given, writes to the cursor will be reflected in this buffer and vice versa until a cursor write that requires allocating a new internal buffer happens
-     * @param little_endian - Decides in which byte order multi-byte integers and floats will be interpreted
+     * @param buffer_or_capacity - If an ArrayBuffer or Buffer is given, writes to the cursor will be reflected in this buffer and vice versa until a cursor write that requires allocating a new internal buffer happens.
+     * @param little_endian - Decides in which byte order multi-byte integers and floats will be interpreted.
      */
     constructor(buffer_or_capacity: ArrayBuffer | Buffer | number, little_endian: boolean = false) {
         if (typeof buffer_or_capacity === "number") {
-            this.buffer = new ArrayBuffer(buffer_or_capacity);
+            this._buffer = new ArrayBuffer(buffer_or_capacity);
             this.size = 0;
         } else if (buffer_or_capacity instanceof ArrayBuffer) {
-            this.buffer = buffer_or_capacity;
+            this._buffer = buffer_or_capacity;
             this.size = buffer_or_capacity.byteLength;
         } else if (buffer_or_capacity instanceof Buffer) {
             // Use the backing ArrayBuffer.
-            this.buffer = buffer_or_capacity.buffer;
+            this._buffer = buffer_or_capacity.buffer;
             this.size = buffer_or_capacity.byteLength;
         } else {
             throw new Error("buffer_or_capacity should be an ArrayBuffer, a Buffer or a number.");
         }
 
         this.little_endian = little_endian;
-        this.position = 0;
+        this._position = 0;
         this.dv = new DataView(this.buffer);
     }
 
@@ -115,7 +123,7 @@ export class BufferCursor {
             throw new Error(`Offset ${offset} is out of bounds.`);
         }
 
-        this.position = offset;
+        this._position = offset;
         return this;
     }
 
@@ -129,7 +137,7 @@ export class BufferCursor {
             throw new Error(`Offset ${offset} is out of bounds.`);
         }
 
-        this.position = this.size - offset;
+        this._position = this.size - offset;
         return this;
     }
 
@@ -137,7 +145,7 @@ export class BufferCursor {
      * Reads an unsigned 8-bit integer and increments position by 1.
      */
     u8(): number {
-        return this.dv.getUint8(this.position++);
+        return this.dv.getUint8(this._position++);
     }
 
     /**
@@ -145,7 +153,7 @@ export class BufferCursor {
      */
     u16(): number {
         const r = this.dv.getUint16(this.position, this.little_endian);
-        this.position += 2;
+        this._position += 2;
         return r;
     }
 
@@ -154,7 +162,7 @@ export class BufferCursor {
      */
     u32(): number {
         const r = this.dv.getUint32(this.position, this.little_endian);
-        this.position += 4;
+        this._position += 4;
         return r;
     }
 
@@ -162,7 +170,7 @@ export class BufferCursor {
      * Reads an signed 8-bit integer and increments position by 1.
      */
     i8(): number {
-        return this.dv.getInt8(this.position++);
+        return this.dv.getInt8(this._position++);
     }
 
     /**
@@ -170,7 +178,7 @@ export class BufferCursor {
      */
     i16(): number {
         const r = this.dv.getInt16(this.position, this.little_endian);
-        this.position += 2;
+        this._position += 2;
         return r;
     }
 
@@ -179,7 +187,7 @@ export class BufferCursor {
      */
     i32(): number {
         const r = this.dv.getInt32(this.position, this.little_endian);
-        this.position += 4;
+        this._position += 4;
         return r;
     }
 
@@ -188,7 +196,7 @@ export class BufferCursor {
      */
     f32(): number {
         const r = this.dv.getFloat32(this.position, this.little_endian);
-        this.position += 4;
+        this._position += 4;
         return r;
     }
 
@@ -197,7 +205,7 @@ export class BufferCursor {
      */
     u8_array(n: number): number[] {
         const array = [];
-        for (let i = 0; i < n; ++i) array.push(this.dv.getUint8(this.position++));
+        for (let i = 0; i < n; ++i) array.push(this.dv.getUint8(this._position++));
         return array;
     }
 
@@ -209,7 +217,7 @@ export class BufferCursor {
 
         for (let i = 0; i < n; ++i) {
             array.push(this.dv.getUint16(this.position, this.little_endian));
-            this.position += 2;
+            this._position += 2;
         }
 
         return array;
@@ -223,7 +231,7 @@ export class BufferCursor {
 
         for (let i = 0; i < n; ++i) {
             array.push(this.dv.getUint32(this.position, this.little_endian));
-            this.position += 4;
+            this._position += 4;
         }
 
         return array;
@@ -240,7 +248,7 @@ export class BufferCursor {
             throw new Error(`Size ${size} out of bounds.`);
         }
 
-        this.position += size;
+        this._position += size;
         return new BufferCursor(
             this.buffer.slice(this.position - size, this.position),
             this.little_endian
@@ -260,7 +268,7 @@ export class BufferCursor {
             : max_byte_length;
 
         const r = ASCII_DECODER.decode(new DataView(this.buffer, this.position, string_length));
-        this.position += drop_remaining
+        this._position += drop_remaining
             ? max_byte_length
             : Math.min(string_length + 1, max_byte_length);
         return r;
@@ -281,7 +289,7 @@ export class BufferCursor {
         const r = this.utf16_decoder.decode(
             new DataView(this.buffer, this.position, string_length)
         );
-        this.position += drop_remaining
+        this._position += drop_remaining
             ? max_byte_length
             : Math.min(string_length + 2, max_byte_length);
         return r;
@@ -293,7 +301,7 @@ export class BufferCursor {
     write_u8(value: number): BufferCursor {
         this.ensure_capacity(this.position + 1);
 
-        this.dv.setUint8(this.position++, value);
+        this.dv.setUint8(this._position++, value);
 
         if (this.position > this.size) {
             this.size = this.position;
@@ -309,7 +317,7 @@ export class BufferCursor {
         this.ensure_capacity(this.position + 2);
 
         this.dv.setUint16(this.position, value, this.little_endian);
-        this.position += 2;
+        this._position += 2;
 
         if (this.position > this.size) {
             this.size = this.position;
@@ -325,7 +333,7 @@ export class BufferCursor {
         this.ensure_capacity(this.position + 4);
 
         this.dv.setUint32(this.position, value, this.little_endian);
-        this.position += 4;
+        this._position += 4;
 
         if (this.position > this.size) {
             this.size = this.position;
@@ -341,7 +349,7 @@ export class BufferCursor {
         this.ensure_capacity(this.position + 4);
 
         this.dv.setInt32(this.position, value, this.little_endian);
-        this.position += 4;
+        this._position += 4;
 
         if (this.position > this.size) {
             this.size = this.position;
@@ -357,7 +365,7 @@ export class BufferCursor {
         this.ensure_capacity(this.position + 4);
 
         this.dv.setFloat32(this.position, value, this.little_endian);
-        this.position += 4;
+        this._position += 4;
 
         if (this.position > this.size) {
             this.size = this.position;
@@ -373,7 +381,7 @@ export class BufferCursor {
         this.ensure_capacity(this.position + array.length);
 
         new Uint8Array(this.buffer, this.position).set(new Uint8Array(array));
-        this.position += array.length;
+        this._position += array.length;
 
         if (this.position > this.size) {
             this.size = this.position;
@@ -389,7 +397,7 @@ export class BufferCursor {
         this.ensure_capacity(this.position + other.size);
 
         new Uint8Array(this.buffer, this.position).set(new Uint8Array(other.buffer));
-        this.position += other.size;
+        this._position += other.size;
 
         if (this.position > this.size) {
             this.size = this.position;
@@ -460,7 +468,7 @@ export class BufferCursor {
 
             const new_buffer = new ArrayBuffer(new_size);
             new Uint8Array(new_buffer).set(new Uint8Array(this.buffer, 0, this.size));
-            this.buffer = new_buffer;
+            this._buffer = new_buffer;
             this.dv = new DataView(this.buffer);
         }
     }

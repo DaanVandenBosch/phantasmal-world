@@ -1,7 +1,10 @@
-import { Area, AreaVariant, Section } from "../domain";
 import { Object3D } from "three";
-import { parse_c_rel, parse_n_rel } from "../data_formats/parsing/geometry";
-import { get_area_render_data, get_area_collision_data } from "./binary_assets";
+import { BufferCursor } from "../data_formats/BufferCursor";
+import { parse_area_collision_geometry } from "../data_formats/parsing/area_collision_geometry";
+import { parse_area_geometry } from "../data_formats/parsing/area_geometry";
+import { Area, AreaVariant, Section } from "../domain";
+import { area_collision_geometry_to_object_3d } from "../rendering/areas";
+import { get_area_collision_data, get_area_render_data } from "./binary_assets";
 
 function area(id: number, name: string, order: number, variants: number): Area {
     const area = new Area(id, name, order, []);
@@ -137,8 +140,10 @@ class AreaStore {
         if (object_3d) {
             return object_3d;
         } else {
-            const object_3d = get_area_collision_data(episode, area_id, area_variant).then(
-                parse_c_rel
+            const object_3d = get_area_collision_data(episode, area_id, area_variant).then(buffer =>
+                area_collision_geometry_to_object_3d(
+                    parse_area_collision_geometry(new BufferCursor(buffer, true))
+                )
             );
             collision_geometry_cache.set(`${area_id}-${area_variant}`, object_3d);
             return object_3d;
@@ -150,7 +155,9 @@ class AreaStore {
         area_id: number,
         area_variant: number
     ): Promise<{ sections: Section[]; object_3d: Object3D }> {
-        const promise = get_area_render_data(episode, area_id, area_variant).then(parse_n_rel);
+        const promise = get_area_render_data(episode, area_id, area_variant).then(
+            parse_area_geometry
+        );
 
         const sections = new Promise<Section[]>((resolve, reject) => {
             promise.then(({ sections }) => resolve(sections)).catch(reject);

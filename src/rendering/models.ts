@@ -102,7 +102,6 @@ class Object3DCreator {
         geom.addAttribute("normal", new Float32BufferAttribute(this.normals, 3));
         geom.setIndex(new Uint16BufferAttribute(this.indices, 1));
 
-        // The bounding spheres from the object seem be too small.
         geom.computeBoundingSphere();
 
         return geom;

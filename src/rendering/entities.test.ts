@@ -1,7 +1,7 @@
-import { CylinderBufferGeometry, MeshLambertMaterial, Object3D, Vector3 } from "three";
+import { CylinderBufferGeometry, MeshLambertMaterial, Object3D } from "three";
 import { DatNpc, DatObject } from "../data_formats/parsing/quest/dat";
-import { NpcType, ObjectType, QuestNpc, QuestObject } from "../domain";
 import { Vec3 } from "../data_formats/Vec3";
+import { NpcType, ObjectType, QuestNpc, QuestObject } from "../domain";
 import { create_npc_mesh, create_object_mesh, NPC_COLOR, OBJECT_COLOR } from "./entities";
 
 const cylinder = new CylinderBufferGeometry(3, 3, 20).translate(0, 10, 0);
@@ -44,34 +44,4 @@ test("create geometry for quest NPCs", () => {
     expect(geometry.position.y).toBe(19);
     expect(geometry.position.z).toBe(23);
     expect((geometry.material as MeshLambertMaterial).color.getHex()).toBe(NPC_COLOR);
-});
-
-test("geometry position changes when entity position changes element-wise", () => {
-    const npc = new QuestNpc(
-        7,
-        13,
-        new Vec3(17, 19, 23),
-        new Vec3(0, 0, 0),
-        NpcType.Booma,
-        {} as DatNpc
-    );
-    const geometry = create_npc_mesh(npc, cylinder);
-    npc.position = new Vec3(2, 3, 5).add(npc.position);
-
-    expect(geometry.position).toEqual(new Vector3(19, 22, 28));
-});
-
-test("geometry position changes when entire entity position changes", () => {
-    const npc = new QuestNpc(
-        7,
-        13,
-        new Vec3(17, 19, 23),
-        new Vec3(0, 0, 0),
-        NpcType.Booma,
-        {} as DatNpc
-    );
-    const geometry = create_npc_mesh(npc, cylinder);
-    npc.position = new Vec3(2, 3, 5);
-
-    expect(geometry.position).toEqual(new Vector3(2, 3, 5));
 });

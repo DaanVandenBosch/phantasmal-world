@@ -43,7 +43,7 @@ class PrcDecryptor {
             out_cursor.write_u32(this.decrypt_u32(u32));
         }
 
-        out_cursor.position = 0;
+        out_cursor.seek_start(0);
         out_cursor.size = actual_size;
         return out_cursor;
     }

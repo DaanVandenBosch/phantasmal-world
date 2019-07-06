@@ -3,7 +3,7 @@ import { BufferCursor } from "../../BufferCursor";
 import { Vec3 } from "../../Vec3";
 import { NjVertex } from ".";
 
-const logger = Logger.get("data_formats/parsing/ninja/nj");
+const logger = Logger.get("data_formats/parsing/ninja/njcm");
 
 // TODO:
 // - textures
@@ -20,8 +20,8 @@ export type NjcmModel = {
     vertices: NjVertex[];
     meshes: NjcmTriangleStrip[];
     // materials: [],
-    bounding_sphere_center: Vec3;
-    bounding_sphere_radius: number;
+    collision_sphere_center: Vec3;
+    collision_sphere_radius: number;
 };
 
 enum NjcmChunkType {
@@ -169,8 +169,8 @@ export function parse_njcm_model(cursor: BufferCursor, cached_chunk_offsets: num
         type: "njcm",
         vertices,
         meshes,
-        bounding_sphere_center,
-        bounding_sphere_radius,
+        collision_sphere_center: bounding_sphere_center,
+        collision_sphere_radius: bounding_sphere_radius,
     };
 }
 

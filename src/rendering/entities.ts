@@ -32,5 +32,10 @@ function create_mesh(
     mesh.name = type;
     mesh.userData.entity = entity;
 
+    const { x, y, z } = entity.position;
+    mesh.position.set(x, y, z);
+    const rot = entity.rotation;
+    mesh.rotation.set(rot.x, rot.y, rot.z);
+
     return mesh;
 }
