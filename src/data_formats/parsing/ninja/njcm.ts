@@ -1,7 +1,7 @@
 import Logger from "js-logger";
 import { BufferCursor } from "../../BufferCursor";
 import { Vec3 } from "../../Vec3";
-import { NinjaVertex } from "../ninja";
+import { NjVertex } from ".";
 
 const logger = Logger.get("data_formats/parsing/ninja/nj");
 
@@ -12,19 +12,19 @@ const logger = Logger.get("data_formats/parsing/ninja/nj");
 // - animation
 // - deal with vertex information contained in triangle strips
 
-export type NjModel = {
-    type: "nj";
+export type NjcmModel = {
+    type: "njcm";
     /**
      * Sparse array of vertices.
      */
-    vertices: NinjaVertex[];
-    meshes: NjTriangleStrip[];
+    vertices: NjVertex[];
+    meshes: NjcmTriangleStrip[];
     // materials: [],
     bounding_sphere_center: Vec3;
     bounding_sphere_radius: number;
 };
 
-enum NjChunkType {
+enum NjcmChunkType {
     Unknown,
     Null,
     Bits,
@@ -38,72 +38,72 @@ enum NjChunkType {
     End,
 }
 
-type NjChunk = {
-    type: NjChunkType;
+type NjcmChunk = {
+    type: NjcmChunkType;
     type_id: number;
 } & (
-    | NjUnknownChunk
-    | NjNullChunk
-    | NjBitsChunk
-    | NjCachePolygonListChunk
-    | NjDrawPolygonListChunk
-    | NjTinyChunk
-    | NjMaterialChunk
-    | NjVertexChunk
-    | NjVolumeChunk
-    | NjStripChunk
-    | NjEndChunk);
+    | NjcmUnknownChunk
+    | NjcmNullChunk
+    | NjcmBitsChunk
+    | NjcmCachePolygonListChunk
+    | NjcmDrawPolygonListChunk
+    | NjcmTinyChunk
+    | NjcmMaterialChunk
+    | NjcmVertexChunk
+    | NjcmVolumeChunk
+    | NjcmStripChunk
+    | NjcmEndChunk);
 
-type NjUnknownChunk = {
-    type: NjChunkType.Unknown;
+type NjcmUnknownChunk = {
+    type: NjcmChunkType.Unknown;
 };
 
-type NjNullChunk = {
-    type: NjChunkType.Null;
+type NjcmNullChunk = {
+    type: NjcmChunkType.Null;
 };
 
-type NjBitsChunk = {
-    type: NjChunkType.Bits;
+type NjcmBitsChunk = {
+    type: NjcmChunkType.Bits;
 };
 
-type NjCachePolygonListChunk = {
-    type: NjChunkType.CachePolygonList;
+type NjcmCachePolygonListChunk = {
+    type: NjcmChunkType.CachePolygonList;
     cache_index: number;
     offset: number;
 };
 
-type NjDrawPolygonListChunk = {
-    type: NjChunkType.DrawPolygonList;
+type NjcmDrawPolygonListChunk = {
+    type: NjcmChunkType.DrawPolygonList;
     cache_index: number;
 };
 
-type NjTinyChunk = {
-    type: NjChunkType.Tiny;
+type NjcmTinyChunk = {
+    type: NjcmChunkType.Tiny;
 };
 
-type NjMaterialChunk = {
-    type: NjChunkType.Material;
+type NjcmMaterialChunk = {
+    type: NjcmChunkType.Material;
 };
 
-type NjVertexChunk = {
-    type: NjChunkType.Vertex;
-    vertices: NjVertex[];
+type NjcmVertexChunk = {
+    type: NjcmChunkType.Vertex;
+    vertices: NjcmVertex[];
 };
 
-type NjVolumeChunk = {
-    type: NjChunkType.Volume;
+type NjcmVolumeChunk = {
+    type: NjcmChunkType.Volume;
 };
 
-type NjStripChunk = {
-    type: NjChunkType.Strip;
-    triangle_strips: NjTriangleStrip[];
+type NjcmStripChunk = {
+    type: NjcmChunkType.Strip;
+    triangle_strips: NjcmTriangleStrip[];
 };
 
-type NjEndChunk = {
-    type: NjChunkType.End;
+type NjcmEndChunk = {
+    type: NjcmChunkType.End;
 };
 
-type NjVertex = {
+type NjcmVertex = {
     index: number;
     position: Vec3;
     normal?: Vec3;
@@ -112,7 +112,7 @@ type NjVertex = {
     calc_continue: boolean;
 };
 
-type NjTriangleStrip = {
+type NjcmTriangleStrip = {
     ignore_light: boolean;
     ignore_specular: boolean;
     ignore_ambient: boolean;
@@ -121,27 +121,27 @@ type NjTriangleStrip = {
     flat_shading: boolean;
     environment_mapping: boolean;
     clockwise_winding: boolean;
-    vertices: NjMeshVertex[];
+    vertices: NjcmMeshVertex[];
 };
 
-type NjMeshVertex = {
+type NjcmMeshVertex = {
     index: number;
     normal?: Vec3;
 };
 
-export function parse_nj_model(cursor: BufferCursor, cached_chunk_offsets: number[]): NjModel {
+export function parse_njcm_model(cursor: BufferCursor, cached_chunk_offsets: number[]): NjcmModel {
     const vlist_offset = cursor.u32(); // Vertex list
     const plist_offset = cursor.u32(); // Triangle strip index list
     const bounding_sphere_center = new Vec3(cursor.f32(), cursor.f32(), cursor.f32());
     const bounding_sphere_radius = cursor.f32();
-    const vertices: NinjaVertex[] = [];
-    const meshes: NjTriangleStrip[] = [];
+    const vertices: NjVertex[] = [];
+    const meshes: NjcmTriangleStrip[] = [];
 
     if (vlist_offset) {
         cursor.seek_start(vlist_offset);
 
         for (const chunk of parse_chunks(cursor, cached_chunk_offsets, true)) {
-            if (chunk.type === NjChunkType.Vertex) {
+            if (chunk.type === NjcmChunkType.Vertex) {
                 for (const vertex of chunk.vertices) {
                     vertices[vertex.index] = {
                         position: vertex.position,
@@ -159,14 +159,14 @@ export function parse_nj_model(cursor: BufferCursor, cached_chunk_offsets: numbe
         cursor.seek_start(plist_offset);
 
         for (const chunk of parse_chunks(cursor, cached_chunk_offsets, false)) {
-            if (chunk.type === NjChunkType.Strip) {
+            if (chunk.type === NjcmChunkType.Strip) {
                 meshes.push(...chunk.triangle_strips);
             }
         }
     }
 
     return {
-        type: "nj",
+        type: "njcm",
         vertices,
         meshes,
         bounding_sphere_center,
@@ -179,8 +179,8 @@ function parse_chunks(
     cursor: BufferCursor,
     cached_chunk_offsets: number[],
     wide_end_chunks: boolean
-): NjChunk[] {
-    const chunks: NjChunk[] = [];
+): NjcmChunk[] {
+    const chunks: NjcmChunk[] = [];
     let loop = true;
 
     while (loop) {
@@ -191,19 +191,19 @@ function parse_chunks(
 
         if (type_id === 0) {
             chunks.push({
-                type: NjChunkType.Null,
+                type: NjcmChunkType.Null,
                 type_id,
             });
         } else if (1 <= type_id && type_id <= 3) {
             chunks.push({
-                type: NjChunkType.Bits,
+                type: NjcmChunkType.Bits,
                 type_id,
             });
         } else if (type_id === 4) {
             const cache_index = flags;
             const offset = cursor.position;
             chunks.push({
-                type: NjChunkType.CachePolygonList,
+                type: NjcmChunkType.CachePolygonList,
                 type_id,
                 cache_index,
                 offset,
@@ -220,53 +220,53 @@ function parse_chunks(
             }
 
             chunks.push({
-                type: NjChunkType.DrawPolygonList,
+                type: NjcmChunkType.DrawPolygonList,
                 type_id,
                 cache_index,
             });
         } else if (8 <= type_id && type_id <= 9) {
             size = 2;
             chunks.push({
-                type: NjChunkType.Tiny,
+                type: NjcmChunkType.Tiny,
                 type_id,
             });
         } else if (17 <= type_id && type_id <= 31) {
             size = 2 + 2 * cursor.u16();
             chunks.push({
-                type: NjChunkType.Material,
+                type: NjcmChunkType.Material,
                 type_id,
             });
         } else if (32 <= type_id && type_id <= 50) {
             size = 2 + 4 * cursor.u16();
             chunks.push({
-                type: NjChunkType.Vertex,
+                type: NjcmChunkType.Vertex,
                 type_id,
                 vertices: parse_vertex_chunk(cursor, type_id, flags),
             });
         } else if (56 <= type_id && type_id <= 58) {
             size = 2 + 2 * cursor.u16();
             chunks.push({
-                type: NjChunkType.Volume,
+                type: NjcmChunkType.Volume,
                 type_id,
             });
         } else if (64 <= type_id && type_id <= 75) {
             size = 2 + 2 * cursor.u16();
             chunks.push({
-                type: NjChunkType.Strip,
+                type: NjcmChunkType.Strip,
                 type_id,
                 triangle_strips: parse_triangle_strip_chunk(cursor, type_id, flags),
             });
         } else if (type_id === 255) {
             size = wide_end_chunks ? 2 : 0;
             chunks.push({
-                type: NjChunkType.End,
+                type: NjcmChunkType.End,
                 type_id,
             });
             loop = false;
         } else {
             size = 2 + 2 * cursor.u16();
             chunks.push({
-                type: NjChunkType.Unknown,
+                type: NjcmChunkType.Unknown,
                 type_id,
             });
             logger.warn(`Unknown chunk type ${type_id} at offset ${chunk_start_position}.`);
@@ -282,7 +282,7 @@ function parse_vertex_chunk(
     cursor: BufferCursor,
     chunk_type_id: number,
     flags: number
-): NjVertex[] {
+): NjcmVertex[] {
     if (chunk_type_id < 32 || chunk_type_id > 50) {
         logger.warn(`Unknown vertex chunk type ${chunk_type_id}.`);
         return [];
@@ -294,10 +294,10 @@ function parse_vertex_chunk(
     const index = cursor.u16();
     const vertex_count = cursor.u16();
 
-    const vertices: NjVertex[] = [];
+    const vertices: NjcmVertex[] = [];
 
     for (let i = 0; i < vertex_count; ++i) {
-        const vertex: NjVertex = {
+        const vertex: NjcmVertex = {
             index: index + i,
             position: new Vec3(
                 cursor.f32(), // x
@@ -374,7 +374,7 @@ function parse_triangle_strip_chunk(
     cursor: BufferCursor,
     chunk_type_id: number,
     flags: number
-): NjTriangleStrip[] {
+): NjcmTriangleStrip[] {
     const render_flags = {
         ignore_light: (flags & 0b1) !== 0,
         ignore_specular: (flags & 0b10) !== 0,
@@ -432,17 +432,17 @@ function parse_triangle_strip_chunk(
 
     const [parse_texture_coords, parse_color, parse_normal, parse_texture_coords_hires] = options;
 
-    const strips: NjTriangleStrip[] = [];
+    const strips: NjcmTriangleStrip[] = [];
 
     for (let i = 0; i < strip_count; ++i) {
         const winding_flag_and_index_count = cursor.i16();
         const clockwise_winding = winding_flag_and_index_count < 1;
         const index_count = Math.abs(winding_flag_and_index_count);
 
-        const vertices: NjMeshVertex[] = [];
+        const vertices: NjcmMeshVertex[] = [];
 
         for (let j = 0; j < index_count; ++j) {
-            const vertex: NjMeshVertex = {
+            const vertex: NjcmMeshVertex = {
                 index: cursor.u16(),
             };
             vertices.push(vertex);

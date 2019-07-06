@@ -1,6 +1,6 @@
 import { BufferCursor } from "../../BufferCursor";
 import { Vec3 } from "../../Vec3";
-import { NinjaVertex } from "../ninja";
+import { NjVertex } from "../ninja";
 
 // TODO:
 // - textures
@@ -10,7 +10,7 @@ import { NinjaVertex } from "../ninja";
 
 export type XjModel = {
     type: "xj";
-    vertices: NinjaVertex[];
+    vertices: NjVertex[];
     meshes: XjTriangleStrip[];
 };
 

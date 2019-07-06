@@ -15,8 +15,8 @@ import {
     Vector3,
 } from "three";
 import { vec3_to_threejs } from ".";
-import { NinjaModel, NinjaObject } from "../data_formats/parsing/ninja";
-import { NjModel } from "../data_formats/parsing/ninja/nj";
+import { NjModel, NjObject, is_njcm_model } from "../data_formats/parsing/ninja";
+import { NjcmModel } from "../data_formats/parsing/ninja/njcm";
 import { XjModel } from "../data_formats/parsing/ninja/xj";
 
 const DEFAULT_MATERIAL = new MeshLambertMaterial({
@@ -34,14 +34,14 @@ const NO_ROTATION = new Quaternion(0, 0, 0, 1);
 const NO_SCALE = new Vector3(1, 1, 1);
 
 export function ninja_object_to_buffer_geometry(
-    object: NinjaObject<NinjaModel>,
+    object: NjObject<NjModel>,
     material: Material = DEFAULT_MATERIAL
 ): BufferGeometry {
     return new Object3DCreator(material).create_buffer_geometry(object);
 }
 
 export function ninja_object_to_skinned_mesh(
-    object: NinjaObject<NinjaModel>,
+    object: NjObject<NjModel>,
     material: Material = DEFAULT_SKINNED_MATERIAL
 ): SkinnedMesh {
     return new Object3DCreator(material).create_skinned_mesh(object);
@@ -93,7 +93,7 @@ class Object3DCreator {
         this.material = material;
     }
 
-    create_buffer_geometry(object: NinjaObject<NinjaModel>): BufferGeometry {
+    create_buffer_geometry(object: NjObject<NjModel>): BufferGeometry {
         this.object_to_geometry(object, undefined, new Matrix4());
 
         const geom = new BufferGeometry();
@@ -108,7 +108,7 @@ class Object3DCreator {
         return geom;
     }
 
-    create_skinned_mesh(object: NinjaObject<NinjaModel>): SkinnedMesh {
+    create_skinned_mesh(object: NjObject<NjModel>): SkinnedMesh {
         const geom = this.create_buffer_geometry(object);
         geom.addAttribute("skinIndex", new Uint16BufferAttribute(this.bone_indices, 4));
         geom.addAttribute("skinWeight", new Float32BufferAttribute(this.bone_weights, 4));
@@ -123,7 +123,7 @@ class Object3DCreator {
     }
 
     private object_to_geometry(
-        object: NinjaObject<NinjaModel>,
+        object: NjObject<NjModel>,
         parent_bone: Bone | undefined,
         parent_matrix: Matrix4
     ): void {
@@ -184,15 +184,15 @@ class Object3DCreator {
         }
     }
 
-    private model_to_geometry(model: NinjaModel, matrix: Matrix4): void {
-        if (model.type === "nj") {
-            this.nj_model_to_geometry(model, matrix);
+    private model_to_geometry(model: NjModel, matrix: Matrix4): void {
+        if (is_njcm_model(model)) {
+            this.njcm_model_to_geometry(model, matrix);
         } else {
             this.xj_model_to_geometry(model, matrix);
         }
     }
 
-    private nj_model_to_geometry(model: NjModel, matrix: Matrix4): void {
+    private njcm_model_to_geometry(model: NjcmModel, matrix: Matrix4): void {
         const normal_matrix = new Matrix3().getNormalMatrix(matrix);
 
         const new_vertices = model.vertices.map(vertex => {

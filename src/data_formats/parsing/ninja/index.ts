@@ -1,6 +1,6 @@
-import { Vec3 } from "../../Vec3";
 import { BufferCursor } from "../../BufferCursor";
-import { NjModel, parse_nj_model } from "./nj";
+import { Vec3 } from "../../Vec3";
+import { NjcmModel, parse_njcm_model } from "./njcm";
 import { parse_xj_model, XjModel } from "./xj";
 
 // TODO:
@@ -9,7 +9,7 @@ import { parse_xj_model, XjModel } from "./xj";
 
 const ANGLE_TO_RAD = (2 * Math.PI) / 65536;
 
-export type NinjaVertex = {
+export type NjVertex = {
     position: Vec3;
     normal?: Vec3;
     bone_weight: number;
@@ -17,26 +17,34 @@ export type NinjaVertex = {
     calc_continue: boolean;
 };
 
-export type NinjaModel = NjModel | XjModel;
+export type NjModel = NjcmModel | XjModel;
 
-export class NinjaObject<M extends NinjaModel> {
-    evaluation_flags: NinjaEvaluationFlags;
+export function is_njcm_model(model: NjModel): model is NjcmModel {
+    return model.type === "njcm";
+}
+
+export function is_xj_model(model: NjModel): model is XjModel {
+    return model.type === "xj";
+}
+
+export class NjObject<M extends NjModel> {
+    evaluation_flags: NjEvaluationFlags;
     model: M | undefined;
     position: Vec3;
     rotation: Vec3; // Euler angles in radians.
     scale: Vec3;
-    children: NinjaObject<M>[];
+    children: NjObject<M>[];
 
-    private bone_cache = new Map<number, NinjaObject<M> | null>();
+    private bone_cache = new Map<number, NjObject<M> | null>();
     private _bone_count = -1;
 
     constructor(
-        evaluation_flags: NinjaEvaluationFlags,
+        evaluation_flags: NjEvaluationFlags,
         model: M | undefined,
         position: Vec3,
         rotation: Vec3, // Euler angles in radians.
         scale: Vec3,
-        children: NinjaObject<M>[]
+        children: NjObject<M>[]
     ) {
         this.evaluation_flags = evaluation_flags;
         this.model = model;
@@ -56,7 +64,7 @@ export class NinjaObject<M extends NinjaModel> {
         return this._bone_count;
     }
 
-    get_bone(bone_id: number): NinjaObject<M> | undefined {
+    get_bone(bone_id: number): NjObject<M> | undefined {
         let bone = this.bone_cache.get(bone_id);
 
         // Strict check because null means there's no bone with this id.
@@ -69,10 +77,10 @@ export class NinjaObject<M extends NinjaModel> {
     }
 
     private get_bone_internal(
-        object: NinjaObject<M>,
+        object: NjObject<M>,
         bone_id: number,
         id_ref: [number]
-    ): NinjaObject<M> | undefined {
+    ): NjObject<M> | undefined {
         if (!object.evaluation_flags.skip) {
             const id = id_ref[0]++;
             this.bone_cache.set(id, object);
@@ -91,7 +99,7 @@ export class NinjaObject<M extends NinjaModel> {
     }
 }
 
-export type NinjaEvaluationFlags = {
+export type NjEvaluationFlags = {
     no_translate: boolean;
     no_rotate: boolean;
     no_scale: boolean;
@@ -102,19 +110,19 @@ export type NinjaEvaluationFlags = {
     shape_skip: boolean;
 };
 
-export function parse_nj(cursor: BufferCursor): NinjaObject<NjModel>[] {
-    return parse_ninja(cursor, parse_nj_model, []);
+export function parse_nj(cursor: BufferCursor): NjObject<NjcmModel>[] {
+    return parse_ninja(cursor, parse_njcm_model, []);
 }
 
-export function parse_xj(cursor: BufferCursor): NinjaObject<XjModel>[] {
+export function parse_xj(cursor: BufferCursor): NjObject<XjModel>[] {
     return parse_ninja(cursor, parse_xj_model, undefined);
 }
 
-function parse_ninja<M extends NinjaModel>(
+function parse_ninja<M extends NjModel>(
     cursor: BufferCursor,
     parse_model: (cursor: BufferCursor, context: any) => M,
     context: any
-): NinjaObject<M>[] {
+): NjObject<M>[] {
     while (cursor.bytes_left) {
         // Ninja uses a little endian variant of the IFF format.
         // IFF files contain chunks preceded by an 8-byte header.
@@ -137,11 +145,11 @@ function parse_ninja<M extends NinjaModel>(
 }
 
 // TODO: cache model and object offsets so we don't reparse the same data.
-function parse_sibling_objects<M extends NinjaModel>(
+function parse_sibling_objects<M extends NjModel>(
     cursor: BufferCursor,
     parse_model: (cursor: BufferCursor, context: any) => M,
     context: any
-): NinjaObject<M>[] {
+): NjObject<M>[] {
     const eval_flags = cursor.u32();
     const no_translate = (eval_flags & 0b1) !== 0;
     const no_rotate = (eval_flags & 0b10) !== 0;
@@ -166,8 +174,8 @@ function parse_sibling_objects<M extends NinjaModel>(
     const sibling_offset = cursor.u32();
 
     let model: M | undefined;
-    let children: NinjaObject<M>[];
-    let siblings: NinjaObject<M>[];
+    let children: NjObject<M>[];
+    let siblings: NjObject<M>[];
 
     if (model_offset) {
         cursor.seek_start(model_offset);
@@ -188,7 +196,7 @@ function parse_sibling_objects<M extends NinjaModel>(
         siblings = [];
     }
 
-    const object = new NinjaObject<M>(
+    const object = new NjObject<M>(
         {
             no_translate,
             no_rotate,

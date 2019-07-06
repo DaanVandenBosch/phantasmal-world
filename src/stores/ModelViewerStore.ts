@@ -2,7 +2,7 @@ import Logger from "js-logger";
 import { action, observable } from "mobx";
 import { AnimationAction, AnimationClip, AnimationMixer, SkinnedMesh } from "three";
 import { BufferCursor } from "../data_formats/BufferCursor";
-import { NinjaModel, NinjaObject, parse_nj, parse_xj } from "../data_formats/parsing/ninja";
+import { NjModel, NjObject, parse_nj, parse_xj } from "../data_formats/parsing/ninja";
 import { parse_njm, NjMotion } from "../data_formats/parsing/ninja/motion";
 import { PlayerModel, PlayerAnimation } from "../domain";
 import { create_animation_clip, PSO_FRAME_RATE } from "../rendering/animation";
@@ -10,7 +10,7 @@ import { ninja_object_to_skinned_mesh } from "../rendering/models";
 import { get_player_data, get_player_animation_data } from "./binary_assets";
 
 const logger = Logger.get("stores/ModelViewerStore");
-const nj_object_cache: Map<string, Promise<NinjaObject<NinjaModel>>> = new Map();
+const nj_object_cache: Map<string, Promise<NjObject<NjModel>>> = new Map();
 const nj_motion_cache: Map<number, Promise<NjMotion>> = new Map();
 
 class ModelViewerStore {
@@ -33,7 +33,7 @@ class ModelViewerStore {
         .map((_, i) => new PlayerAnimation(i, `Animation ${i + 1}`));
 
     @observable.ref current_player_model?: PlayerModel;
-    @observable.ref current_model?: NinjaObject<NinjaModel>;
+    @observable.ref current_model?: NjObject<NjModel>;
     @observable.ref current_bone_count: number = 0;
     @observable.ref current_obj3d?: SkinnedMesh;
 
@@ -130,7 +130,7 @@ class ModelViewerStore {
 
     private set_model = action(
         "set_model",
-        (model: NinjaObject<NinjaModel>, player_model?: PlayerModel) => {
+        (model: NjObject<NjModel>, player_model?: PlayerModel) => {
             if (this.current_obj3d && this.animation) {
                 this.animation.mixer.stopAllAction();
                 this.animation.mixer.uncacheRoot(this.current_obj3d);
@@ -174,8 +174,8 @@ class ModelViewerStore {
     };
 
     private add_to_bone(
-        object: NinjaObject<NinjaModel>,
-        head_part: NinjaObject<NinjaModel>,
+        object: NjObject<NjModel>,
+        head_part: NjObject<NjModel>,
         bone_id: number
     ): void {
         const bone = object.get_bone(bone_id);
@@ -187,7 +187,7 @@ class ModelViewerStore {
         }
     }
 
-    private async get_player_ninja_object(model: PlayerModel): Promise<NinjaObject<NinjaModel>> {
+    private async get_player_ninja_object(model: PlayerModel): Promise<NjObject<NjModel>> {
         let ninja_object = nj_object_cache.get(model.name);
 
         if (ninja_object) {
@@ -199,7 +199,7 @@ class ModelViewerStore {
         }
     }
 
-    private async get_all_assets(model: PlayerModel): Promise<NinjaObject<NinjaModel>> {
+    private async get_all_assets(model: PlayerModel): Promise<NjObject<NjModel>> {
         const body_data = await get_player_data(model.name, "Body");
         const body = parse_nj(new BufferCursor(body_data, true))[0];
 
