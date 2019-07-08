@@ -1,7 +1,7 @@
-import { BufferCursor } from "../../BufferCursor";
 import { Vec3 } from "../../Vec3";
 import { NjcmModel, parse_njcm_model } from "./njcm";
 import { parse_xj_model, XjModel } from "./xj";
+import { Cursor } from "../../cursor/Cursor";
 
 // TODO:
 // - deal with multiple NJCM chunks
@@ -110,17 +110,17 @@ export type NjEvaluationFlags = {
     shape_skip: boolean;
 };
 
-export function parse_nj(cursor: BufferCursor): NjObject<NjcmModel>[] {
+export function parse_nj(cursor: Cursor): NjObject<NjcmModel>[] {
     return parse_ninja(cursor, parse_njcm_model, []);
 }
 
-export function parse_xj(cursor: BufferCursor): NjObject<XjModel>[] {
+export function parse_xj(cursor: Cursor): NjObject<XjModel>[] {
     return parse_ninja(cursor, parse_xj_model, undefined);
 }
 
 function parse_ninja<M extends NjModel>(
-    cursor: BufferCursor,
-    parse_model: (cursor: BufferCursor, context: any) => M,
+    cursor: Cursor,
+    parse_model: (cursor: Cursor, context: any) => M,
     context: any
 ): NjObject<M>[] {
     while (cursor.bytes_left) {
@@ -146,8 +146,8 @@ function parse_ninja<M extends NjModel>(
 
 // TODO: cache model and object offsets so we don't reparse the same data.
 function parse_sibling_objects<M extends NjModel>(
-    cursor: BufferCursor,
-    parse_model: (cursor: BufferCursor, context: any) => M,
+    cursor: Cursor,
+    parse_model: (cursor: Cursor, context: any) => M,
     context: any
 ): NjObject<M>[] {
     const eval_flags = cursor.u32();

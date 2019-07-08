@@ -1,11 +1,13 @@
 import * as fs from "fs";
-import { BufferCursor } from "../../BufferCursor";
-import { parse_quest, write_quest_qst } from "../quest";
 import { ObjectType, Quest } from "../../../domain";
+import { parse_quest, write_quest_qst } from "../quest";
+import { Endianness } from "../..";
+import { BufferCursor } from "../../cursor/BufferCursor";
+import { ArrayBufferCursor } from "../../cursor/ArrayBufferCursor";
 
 test("parse Towards the Future", () => {
-    const buffer = fs.readFileSync("test/resources/quest118_e.qst").buffer;
-    const cursor = new BufferCursor(buffer, true);
+    const buffer = fs.readFileSync("test/resources/quest118_e.qst");
+    const cursor = new BufferCursor(buffer, Endianness.Little);
     const quest = parse_quest(cursor)!;
 
     expect(quest.name).toBe("Towards the Future");
@@ -33,14 +35,17 @@ test("parse Towards the Future", () => {
 });
 
 /**
+ * Roundtrip test.
  * Parse a QST file, write the resulting Quest object to QST again, then parse that again.
  * Then check whether the two Quest objects are equal.
  */
 test("parse_quest and write_quest_qst", () => {
-    const buffer = fs.readFileSync("test/resources/tethealla_v0.143_quests/solo/ep1/02.qst").buffer;
-    const cursor = new BufferCursor(buffer, true);
+    const buffer = fs.readFileSync("test/resources/tethealla_v0.143_quests/solo/ep1/02.qst");
+    const cursor = new BufferCursor(buffer, Endianness.Little);
     const orig_quest = parse_quest(cursor)!;
-    const test_quest = parse_quest(write_quest_qst(orig_quest, "02.qst"))!;
+    const test_quest = parse_quest(
+        new ArrayBufferCursor(write_quest_qst(orig_quest, "02.qst"), Endianness.Little)
+    )!;
 
     expect(test_quest.name).toBe(orig_quest.name);
     expect(test_quest.short_description).toBe(orig_quest.short_description);

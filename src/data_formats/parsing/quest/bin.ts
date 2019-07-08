@@ -1,5 +1,5 @@
-import { BufferCursor } from "../../BufferCursor";
 import Logger from "js-logger";
+import { Cursor } from "../../cursor/Cursor";
 
 const logger = Logger.get("data_formats/parsing/quest/bin");
 
@@ -11,10 +11,10 @@ export interface BinFile {
     long_description: string;
     function_offsets: number[];
     instructions: Instruction[];
-    data: BufferCursor;
+    data: ArrayBuffer;
 }
 
-export function parse_bin(cursor: BufferCursor, lenient: boolean = false): BinFile {
+export function parse_bin(cursor: Cursor, lenient: boolean = false): BinFile {
     const object_code_offset = cursor.u32();
     const function_offset_table_offset = cursor.u32(); // Relative offsets
     const size = cursor.u32();
@@ -53,12 +53,12 @@ export function parse_bin(cursor: BufferCursor, lenient: boolean = false): BinFi
         long_description,
         function_offsets,
         instructions,
-        data: cursor.seek_start(0).take(cursor.size),
+        data: cursor.seek_start(0).array_buffer(),
     };
 }
 
-export function write_bin({ data }: { data: BufferCursor }): BufferCursor {
-    return data.seek_start(0);
+export function write_bin({ data }: { data: ArrayBuffer }): ArrayBuffer {
+    return data;
 }
 
 export interface Instruction {
@@ -68,7 +68,7 @@ export interface Instruction {
     size: number;
 }
 
-function parse_object_code(cursor: BufferCursor, lenient: boolean): Instruction[] {
+function parse_object_code(cursor: Cursor, lenient: boolean): Instruction[] {
     const instructions = [];
 
     try {
@@ -148,10 +148,7 @@ function parse_object_code(cursor: BufferCursor, lenient: boolean): Instruction[
     return instructions;
 }
 
-function parse_instruction_arguments(
-    cursor: BufferCursor,
-    mask: string
-): { args: any[]; size: number } {
+function parse_instruction_arguments(cursor: Cursor, mask: string): { args: any[]; size: number } {
     const old_pos = cursor.position;
     const args = [];
     let args_size: number;

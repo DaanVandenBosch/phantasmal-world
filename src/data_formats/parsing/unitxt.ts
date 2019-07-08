@@ -1,9 +1,9 @@
-import { BufferCursor } from "../BufferCursor";
 import { decompress } from "../compression/prs";
+import { Cursor } from "../cursor/Cursor";
 
 export type Unitxt = string[][];
 
-export function parse_unitxt(buf: BufferCursor, compressed: boolean = true): Unitxt {
+export function parse_unitxt(buf: Cursor, compressed: boolean = true): Unitxt {
     if (compressed) {
         buf = decompress(buf);
     }

@@ -1,14 +1,14 @@
-import { BufferCursor } from "../BufferCursor";
-import { decrypt } from "../encryption/prc";
-import { decompress } from "../compression/prs";
 import Logger from "js-logger";
+import { decompress } from "../compression/prs";
+import { Cursor } from "../cursor/Cursor";
+import { decrypt } from "../encryption/prc";
 
 const logger = Logger.get("data_formats/parsing/prc");
 
 /**
  * Decrypts and decompresses a .prc file.
  */
-export function parse_prc(cursor: BufferCursor): BufferCursor {
+export function parse_prc(cursor: Cursor): Cursor {
     // Unencrypted, decompressed size.
     const size = cursor.u32();
     let key = cursor.u32();

@@ -1,14 +1,9 @@
-import { BufferCursor } from "../../BufferCursor";
+import { Endianness } from "../..";
+import { ArrayBufferCursor } from "../../cursor/ArrayBufferCursor";
 import { compress, decompress } from "../prs";
 
 function test_with_bytes(bytes: number[], expected_compressed_size: number): void {
-    const cursor = new BufferCursor(new Uint8Array(bytes).buffer, true);
-
-    for (const byte of bytes) {
-        cursor.write_u8(byte);
-    }
-
-    cursor.seek_start(0);
+    const cursor = new ArrayBufferCursor(new Uint8Array(bytes).buffer, Endianness.Little);
     const compressed_cursor = compress(cursor);
 
     expect(compressed_cursor.size).toBe(expected_compressed_size);

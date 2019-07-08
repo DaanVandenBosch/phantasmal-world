@@ -1,6 +1,9 @@
-import { BufferCursor } from "../../BufferCursor";
+import { Cursor } from "../../cursor/Cursor";
+import { WritableCursor } from "../../cursor/WritableCursor";
+import { WritableResizableBufferCursor } from "../../cursor/WritableResizableBufferCursor";
+import { ResizableBuffer } from "../../ResizableBuffer";
 
-export function compress(src: BufferCursor): BufferCursor {
+export function compress(src: Cursor): Cursor {
     const ctx = new Context(src);
     const hash_table = new HashTable();
 
@@ -106,15 +109,18 @@ const WINDOW_MASK = MAX_WINDOW - 1;
 const HASH_SIZE = 1 << 8;
 
 class Context {
-    src: BufferCursor;
-    dst: BufferCursor;
+    src: Cursor;
+    dst: WritableCursor;
     flags: number;
     flag_bits_left: number;
     flag_offset: number;
 
-    constructor(cursor: BufferCursor) {
+    constructor(cursor: Cursor) {
         this.src = cursor;
-        this.dst = new BufferCursor(cursor.size, cursor.little_endian);
+        this.dst = new WritableResizableBufferCursor(
+            new ResizableBuffer(cursor.size),
+            cursor.endianness
+        );
         this.flags = 0;
         this.flag_bits_left = 0;
         this.flag_offset = 0;
@@ -148,7 +154,7 @@ class Context {
         this.dst.write_u8(value);
     }
 
-    writeFinalFlags(): void {
+    write_final_flags(): void {
         this.flags >>>= this.flag_bits_left;
         const pos = this.dst.position;
         this.dst
@@ -161,18 +167,18 @@ class Context {
         this.set_bit(0);
         this.set_bit(1);
 
-        this.writeFinalFlags();
+        this.write_final_flags();
 
         this.write_literal(0);
         this.write_literal(0);
     }
 
     match_length(s2: number): number {
-        const array = this.src.uint8_array_view();
         let len = 0;
         let s1 = this.src.position;
+        const size = this.src.size;
 
-        while (s1 < array.byteLength && array[s1] === array[s2]) {
+        while (s1 < size && this.src.u8_at(s1) === this.src.u8_at(s2)) {
             ++len;
             ++s1;
             ++s2;
@@ -263,7 +269,7 @@ class HashTable {
     hash_to_offset: (number | null)[] = new Array(HASH_SIZE).fill(null);
     masked_offset_to_prev: (number | null)[] = new Array(MAX_WINDOW).fill(null);
 
-    hash(cursor: BufferCursor): number {
+    hash(cursor: Cursor): number {
         let hash = cursor.u8();
 
         if (cursor.bytes_left) {

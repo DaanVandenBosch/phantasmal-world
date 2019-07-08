@@ -1,4 +1,4 @@
-import { BufferCursor } from "../BufferCursor";
+import { Cursor } from "../cursor/Cursor";
 
 export type ItemPmt = {
     stat_boosts: PmtStatBoost[];
@@ -94,7 +94,7 @@ export type PmtTool = {
     reserved: number[];
 };
 
-export function parse_item_pmt(cursor: BufferCursor): ItemPmt {
+export function parse_item_pmt(cursor: Cursor): ItemPmt {
     cursor.seek_end(32);
     const main_table_offset = cursor.u32();
     const main_table_size = cursor.u32();
@@ -137,7 +137,7 @@ export function parse_item_pmt(cursor: BufferCursor): ItemPmt {
     return item_pmt;
 }
 
-function parse_stat_boosts(cursor: BufferCursor, offset: number, size: number): PmtStatBoost[] {
+function parse_stat_boosts(cursor: Cursor, offset: number, size: number): PmtStatBoost[] {
     cursor.seek_start(offset);
     const stat_boosts: PmtStatBoost[] = [];
 
@@ -153,7 +153,7 @@ function parse_stat_boosts(cursor: BufferCursor, offset: number, size: number): 
     return stat_boosts;
 }
 
-function parse_weapons(cursor: BufferCursor, offset: number, size: number): PmtWeapon[] {
+function parse_weapons(cursor: Cursor, offset: number, size: number): PmtWeapon[] {
     cursor.seek_start(offset);
     const weapons: PmtWeapon[] = [];
 
@@ -191,7 +191,7 @@ function parse_weapons(cursor: BufferCursor, offset: number, size: number): PmtW
     return weapons;
 }
 
-function parse_armors(cursor: BufferCursor, offset: number, size: number): PmtArmor[] {
+function parse_armors(cursor: Cursor, offset: number, size: number): PmtArmor[] {
     cursor.seek_start(offset);
     const armors: PmtArmor[] = [];
 
@@ -224,11 +224,11 @@ function parse_armors(cursor: BufferCursor, offset: number, size: number): PmtAr
     return armors;
 }
 
-function parse_shields(cursor: BufferCursor, offset: number, size: number): PmtShield[] {
+function parse_shields(cursor: Cursor, offset: number, size: number): PmtShield[] {
     return parse_armors(cursor, offset, size);
 }
 
-function parse_units(cursor: BufferCursor, offset: number, size: number): PmtUnit[] {
+function parse_units(cursor: Cursor, offset: number, size: number): PmtUnit[] {
     cursor.seek_start(offset);
     const units: PmtUnit[] = [];
 
@@ -248,7 +248,7 @@ function parse_units(cursor: BufferCursor, offset: number, size: number): PmtUni
     return units;
 }
 
-function parse_tools(cursor: BufferCursor, offset: number, size: number): PmtTool[] {
+function parse_tools(cursor: Cursor, offset: number, size: number): PmtTool[] {
     cursor.seek_start(offset);
     const tools: PmtTool[] = [];
 

@@ -1,9 +1,10 @@
 import { BufferGeometry, CylinderBufferGeometry } from "three";
-import { NpcType, ObjectType } from "../domain";
-import { BufferCursor } from "../data_formats/BufferCursor";
-import { get_npc_data, get_object_data } from "./binary_assets";
-import { ninja_object_to_buffer_geometry } from "../rendering/models";
 import { parse_nj, parse_xj } from "../data_formats/parsing/ninja";
+import { NpcType, ObjectType } from "../domain";
+import { ninja_object_to_buffer_geometry } from "../rendering/models";
+import { get_npc_data, get_object_data } from "./binary_assets";
+import { Endianness } from "../data_formats";
+import { ArrayBufferCursor } from "../data_formats/cursor/ArrayBufferCursor";
 
 const DEFAULT_ENTITY = new CylinderBufferGeometry(3, 3, 20);
 DEFAULT_ENTITY.translate(0, 10, 0);
@@ -26,7 +27,7 @@ class EntityStore {
             return mesh;
         } else {
             mesh = get_npc_data(npc_type).then(({ url, data }) => {
-                const cursor = new BufferCursor(data, true);
+                const cursor = new ArrayBufferCursor(data, Endianness.Little);
                 const nj_objects = url.endsWith(".nj") ? parse_nj(cursor) : parse_xj(cursor);
 
                 if (nj_objects.length) {
@@ -48,7 +49,7 @@ class EntityStore {
             return geometry;
         } else {
             geometry = get_object_data(object_type).then(({ url, data }) => {
-                const cursor = new BufferCursor(data, true);
+                const cursor = new ArrayBufferCursor(data, Endianness.Little);
                 const nj_objects = url.endsWith(".nj") ? parse_nj(cursor) : parse_xj(cursor);
 
                 if (nj_objects.length) {

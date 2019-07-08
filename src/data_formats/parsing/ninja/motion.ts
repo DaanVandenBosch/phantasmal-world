@@ -1,5 +1,5 @@
-import { BufferCursor } from "../../BufferCursor";
 import { Vec3 } from "../../Vec3";
+import { Cursor } from "../../cursor/Cursor";
 
 const ANGLE_TO_RAD = (2 * Math.PI) / 0xffff;
 
@@ -65,7 +65,7 @@ export type NjKeyframeA = {
     value: Vec3; // Euler angles in radians.
 };
 
-export function parse_njm(cursor: BufferCursor, bone_count: number): NjMotion {
+export function parse_njm(cursor: Cursor, bone_count: number): NjMotion {
     if (cursor.string_ascii(4, false, true) === "NMDM") {
         return parse_njm_v2(cursor, bone_count);
     } else {
@@ -77,7 +77,7 @@ export function parse_njm(cursor: BufferCursor, bone_count: number): NjMotion {
 /**
  * Format used by PSO v2 and for the enemies in PSO:BB.
  */
-function parse_njm_v2(cursor: BufferCursor, bone_count: number): NjMotion {
+function parse_njm_v2(cursor: Cursor, bone_count: number): NjMotion {
     const chunk_size = cursor.u32();
     return parse_motion(cursor.take(chunk_size), bone_count);
 }
@@ -85,7 +85,7 @@ function parse_njm_v2(cursor: BufferCursor, bone_count: number): NjMotion {
 /**
  * Format used by PSO:BB plymotiondata.rlc.
  */
-function parse_njm_bb(cursor: BufferCursor, bone_count: number): NjMotion {
+function parse_njm_bb(cursor: Cursor, bone_count: number): NjMotion {
     cursor.seek_end(16);
     const offset1 = cursor.u32();
     cursor.seek_start(offset1);
@@ -94,14 +94,14 @@ function parse_njm_bb(cursor: BufferCursor, bone_count: number): NjMotion {
     return parse_action(cursor, bone_count);
 }
 
-function parse_action(cursor: BufferCursor, bone_count: number): NjMotion {
+function parse_action(cursor: Cursor, bone_count: number): NjMotion {
     cursor.seek(4); // Object pointer placeholder.
     const motion_offset = cursor.u32();
     cursor.seek_start(motion_offset);
     return parse_motion(cursor, bone_count);
 }
 
-function parse_motion(cursor: BufferCursor, bone_count: number): NjMotion {
+function parse_motion(cursor: Cursor, bone_count: number): NjMotion {
     // Points to an array the size of bone_count.
     let mdata_offset = cursor.u32();
     const frame_count = cursor.u32();
@@ -184,7 +184,7 @@ function parse_motion(cursor: BufferCursor, bone_count: number): NjMotion {
     };
 }
 
-function parse_motion_data_f(cursor: BufferCursor, count: number): NjKeyframeF[] {
+function parse_motion_data_f(cursor: Cursor, count: number): NjKeyframeF[] {
     const frames: NjKeyframeF[] = [];
 
     for (let i = 0; i < count; ++i) {
@@ -198,7 +198,7 @@ function parse_motion_data_f(cursor: BufferCursor, count: number): NjKeyframeF[]
 }
 
 function parse_motion_data_a(
-    cursor: BufferCursor,
+    cursor: Cursor,
     keyframe_count: number,
     frame_count: number
 ): NjKeyframeA[] {
@@ -230,7 +230,7 @@ function parse_motion_data_a(
     return frames;
 }
 
-function parse_motion_data_a_wide(cursor: BufferCursor, keyframe_count: number): NjKeyframeA[] {
+function parse_motion_data_a_wide(cursor: Cursor, keyframe_count: number): NjKeyframeA[] {
     const frames: NjKeyframeA[] = [];
 
     for (let i = 0; i < keyframe_count; ++i) {

@@ -1,9 +1,12 @@
-import { BufferCursor } from "../../BufferCursor";
 import Logger from "js-logger";
+import { Cursor } from "../../cursor/Cursor";
+import { WritableCursor } from "../../cursor/WritableCursor";
+import { WritableResizableBufferCursor } from "../../cursor/WritableResizableBufferCursor";
+import { ResizableBuffer } from "../../ResizableBuffer";
 
 const logger = Logger.get("data_formats/compression/prs/decompress");
 
-export function decompress(cursor: BufferCursor): BufferCursor {
+export function decompress(cursor: Cursor): Cursor {
     const ctx = new Context(cursor);
 
     while (true) {
@@ -53,14 +56,17 @@ export function decompress(cursor: BufferCursor): BufferCursor {
 }
 
 class Context {
-    src: BufferCursor;
-    dst: BufferCursor;
+    src: Cursor;
+    dst: WritableCursor;
     flags: number;
     flag_bits_left: number;
 
-    constructor(cursor: BufferCursor) {
+    constructor(cursor: Cursor) {
         this.src = cursor;
-        this.dst = new BufferCursor(4 * cursor.size, cursor.little_endian);
+        this.dst = new WritableResizableBufferCursor(
+            new ResizableBuffer(Math.floor(1.5 * cursor.size)),
+            cursor.endianness
+        );
         this.flags = 0;
         this.flag_bits_left = 0;
     }
@@ -108,6 +114,7 @@ class Context {
 
         for (let i = 0; i < Math.floor(length / buf_size); ++i) {
             this.dst.write_cursor(buf);
+            buf.seek_start(0);
         }
 
         this.dst.write_cursor(buf.take(length % buf_size));

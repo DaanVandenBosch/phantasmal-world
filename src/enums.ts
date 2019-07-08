@@ -9,10 +9,6 @@ export function enum_values<E>(e: any): E[] {
     }
 }
 
-export function enum_names(e: any): string[] {
-    return Object.keys(e).filter(k => typeof (e as any)[k] === "string");
-}
-
 /**
  * Map with a guaranteed value per enum key.
  */

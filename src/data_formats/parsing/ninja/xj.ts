@@ -1,4 +1,4 @@
-import { BufferCursor } from "../../BufferCursor";
+import { Cursor } from "../../cursor/Cursor";
 import { Vec3 } from "../../Vec3";
 import { NjVertex } from "../ninja";
 
@@ -18,7 +18,7 @@ export type XjTriangleStrip = {
     indices: number[];
 };
 
-export function parse_xj_model(cursor: BufferCursor): XjModel {
+export function parse_xj_model(cursor: Cursor): XjModel {
     cursor.seek(4); // Flags according to QEdit, seemingly always 0.
     const vertex_info_list_offset = cursor.u32();
     cursor.seek(4); // Seems to be the vertexInfoCount, always 1.
@@ -84,7 +84,7 @@ export function parse_xj_model(cursor: BufferCursor): XjModel {
 }
 
 function parse_triangle_strip_list(
-    cursor: BufferCursor,
+    cursor: Cursor,
     triangle_strip_list_offset: number,
     triangle_strip_count: number
 ): XjTriangleStrip[] {

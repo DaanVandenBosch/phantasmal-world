@@ -1,10 +1,11 @@
 import { Object3D } from "three";
-import { BufferCursor } from "../data_formats/BufferCursor";
 import { parse_area_collision_geometry } from "../data_formats/parsing/area_collision_geometry";
 import { parse_area_geometry } from "../data_formats/parsing/area_geometry";
 import { Area, AreaVariant, Section } from "../domain";
 import { area_collision_geometry_to_object_3d } from "../rendering/areas";
 import { get_area_collision_data, get_area_render_data } from "./binary_assets";
+import { Endianness } from "../data_formats";
+import { ArrayBufferCursor } from "../data_formats/cursor/ArrayBufferCursor";
 
 function area(id: number, name: string, order: number, variants: number): Area {
     const area = new Area(id, name, order, []);
@@ -142,7 +143,7 @@ class AreaStore {
         } else {
             const object_3d = get_area_collision_data(episode, area_id, area_variant).then(buffer =>
                 area_collision_geometry_to_object_3d(
-                    parse_area_collision_geometry(new BufferCursor(buffer, true))
+                    parse_area_collision_geometry(new ArrayBufferCursor(buffer, Endianness.Little))
                 )
             );
             collision_geometry_cache.set(`${area_id}-${area_variant}`, object_3d);

@@ -1,5 +1,4 @@
 import fs from "fs";
-import { BufferCursor } from "../src/data_formats/BufferCursor";
 import { parse_item_pmt, ItemPmt } from "../src/data_formats/parsing/itempmt";
 import { parse_unitxt, Unitxt } from "../src/data_formats/parsing/unitxt";
 import {
@@ -15,7 +14,9 @@ import { NpcTypes } from "../src/domain/NpcType";
 import { BoxDropDto, EnemyDropDto, ItemTypeDto, QuestDto } from "../src/dto";
 import { update_drops_from_website } from "./update_drops_ephinea";
 import { parse_quest } from "../src/data_formats/parsing/quest";
+import { BufferCursor } from "../src/data_formats/cursor/BufferCursor";
 import Logger from "js-logger";
+import { Endianness } from "../src/data_formats";
 
 const logger = Logger.get("static/update_ephinea_data");
 
@@ -119,7 +120,7 @@ function process_quest_dir(path: string, quests: QuestDto[]): void {
 function process_quest(path: string, quests: QuestDto[]): void {
     try {
         const buf = fs.readFileSync(path);
-        const q = parse_quest(new BufferCursor(buf.buffer, true), true);
+        const q = parse_quest(new BufferCursor(buf, Endianness.Little), true);
 
         if (q) {
             logger.trace(`Processing quest "${q.name}".`);
@@ -155,7 +156,7 @@ function load_unitxt(): Unitxt {
 
     const buf = fs.readFileSync(`${RESOURCE_DIR}/client/data/unitxt_j.prs`);
 
-    const unitxt = parse_unitxt(new BufferCursor(buf.buffer, true));
+    const unitxt = parse_unitxt(new BufferCursor(buf, Endianness.Little));
     // Strip custom Ephinea items until we have the Ephinea ItemPMT.bin.
     unitxt[1].splice(177, 50);
     unitxt[1].splice(639, 59);
@@ -169,7 +170,7 @@ function update_items(item_names: string[]): ItemTypeDto[] {
 
     const buf = fs.readFileSync(`${RESOURCE_DIR}/ship-config/param/ItemPMT.bin`);
 
-    const item_pmt = parse_item_pmt(new BufferCursor(buf.buffer, true));
+    const item_pmt = parse_item_pmt(new BufferCursor(buf, Endianness.Little));
     const item_types = new Array<ItemTypeDto>();
     const ids = new Set<number>();
 
@@ -309,7 +310,7 @@ async function load_item_pt(): Promise<ItemPt> {
 
     const table: ItemPt = [];
     const buf = await fs.promises.readFile(`${RESOURCE_DIR}/ship-config/param/ItemPT.gsl`);
-    const cursor = new BufferCursor(buf.buffer, false);
+    const cursor = new BufferCursor(buf, Endianness.Big);
 
     cursor.seek(0x3000);
 

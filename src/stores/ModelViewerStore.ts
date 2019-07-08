@@ -1,13 +1,14 @@
 import Logger from "js-logger";
 import { action, observable } from "mobx";
 import { AnimationAction, AnimationClip, AnimationMixer, SkinnedMesh } from "three";
-import { BufferCursor } from "../data_formats/BufferCursor";
 import { NjModel, NjObject, parse_nj, parse_xj } from "../data_formats/parsing/ninja";
-import { parse_njm, NjMotion } from "../data_formats/parsing/ninja/motion";
-import { PlayerModel, PlayerAnimation } from "../domain";
+import { NjMotion, parse_njm } from "../data_formats/parsing/ninja/motion";
+import { PlayerAnimation, PlayerModel } from "../domain";
 import { create_animation_clip, PSO_FRAME_RATE } from "../rendering/animation";
 import { ninja_object_to_skinned_mesh } from "../rendering/models";
-import { get_player_data, get_player_animation_data } from "./binary_assets";
+import { get_player_animation_data, get_player_data } from "./binary_assets";
+import { ArrayBufferCursor } from "../data_formats/cursor/ArrayBufferCursor";
+import { Endianness } from "../data_formats";
 
 const logger = Logger.get("stores/ModelViewerStore");
 const nj_object_cache: Map<string, Promise<NjObject<NjModel>>> = new Map();
@@ -154,18 +155,17 @@ class ModelViewerStore {
             return;
         }
 
+        const cursor = new ArrayBufferCursor(reader.result, Endianness.Little);
+
         if (file.name.endsWith(".nj")) {
-            const model = parse_nj(new BufferCursor(reader.result, true))[0];
+            const model = parse_nj(cursor)[0];
             this.set_model(model);
         } else if (file.name.endsWith(".xj")) {
-            const model = parse_xj(new BufferCursor(reader.result, true))[0];
+            const model = parse_xj(cursor)[0];
             this.set_model(model);
         } else if (file.name.endsWith(".njm")) {
             if (this.current_model) {
-                const njm = parse_njm(
-                    new BufferCursor(reader.result, true),
-                    this.current_bone_count
-                );
+                const njm = parse_njm(cursor, this.current_bone_count);
                 this.set_animation(create_animation_clip(this.current_model, njm));
             }
         } else {
@@ -201,14 +201,14 @@ class ModelViewerStore {
 
     private async get_all_assets(model: PlayerModel): Promise<NjObject<NjModel>> {
         const body_data = await get_player_data(model.name, "Body");
-        const body = parse_nj(new BufferCursor(body_data, true))[0];
+        const body = parse_nj(new ArrayBufferCursor(body_data, Endianness.Little))[0];
 
         if (!body) {
             throw new Error(`Couldn't parse body for player class ${model.name}.`);
         }
 
         const head_data = await get_player_data(model.name, "Head", 0);
-        const head = parse_nj(new BufferCursor(head_data, true))[0];
+        const head = parse_nj(new ArrayBufferCursor(head_data, Endianness.Little))[0];
 
         if (head) {
             this.add_to_bone(body, head, 59);
@@ -216,7 +216,7 @@ class ModelViewerStore {
 
         if (model.hair_styles_count > 0) {
             const hair_data = await get_player_data(model.name, "Hair", 0);
-            const hair = parse_nj(new BufferCursor(hair_data, true))[0];
+            const hair = parse_nj(new ArrayBufferCursor(hair_data, Endianness.Little))[0];
 
             if (hair) {
                 this.add_to_bone(body, hair, 59);
@@ -224,7 +224,9 @@ class ModelViewerStore {
 
             if (model.hair_styles_with_accessory.has(0)) {
                 const accessory_data = await get_player_data(model.name, "Accessory", 0);
-                const accessory = parse_nj(new BufferCursor(accessory_data, true))[0];
+                const accessory = parse_nj(
+                    new ArrayBufferCursor(accessory_data, Endianness.Little)
+                )[0];
 
                 if (accessory) {
                     this.add_to_bone(body, accessory, 59);
@@ -242,7 +244,10 @@ class ModelViewerStore {
             return nj_motion;
         } else {
             nj_motion = get_player_animation_data(animation.id).then(motion_data =>
-                parse_njm(new BufferCursor(motion_data, true), this.current_bone_count)
+                parse_njm(
+                    new ArrayBufferCursor(motion_data, Endianness.Little),
+                    this.current_bone_count
+                )
             );
 
             nj_motion_cache.set(animation.id, nj_motion);

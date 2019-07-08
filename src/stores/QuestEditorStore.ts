@@ -1,15 +1,13 @@
 import Logger from "js-logger";
 import { action, observable } from "mobx";
-import { BufferCursor } from "../data_formats/BufferCursor";
 import { parse_quest, write_quest_qst } from "../data_formats/parsing/quest";
-import { Area, Quest, QuestEntity, Section } from "../domain";
 import { Vec3 } from "../data_formats/Vec3";
-import {
-    create_npc_mesh as create_npc_object_3d,
-    create_object_mesh as create_object_object_3d,
-} from "../rendering/entities";
+import { Area, Quest, QuestEntity, Section } from "../domain";
+import { create_npc_mesh, create_object_mesh } from "../rendering/entities";
 import { area_store } from "./AreaStore";
 import { entity_store } from "./EntityStore";
+import { ArrayBufferCursor } from "../data_formats/cursor/ArrayBufferCursor";
+import { Endianness } from "../data_formats";
 
 const logger = Logger.get("stores/QuestEditorStore");
 
@@ -53,19 +51,19 @@ class QuestEditorStore {
     load_file = (file: File) => {
         const reader = new FileReader();
         reader.addEventListener("loadend", () => {
-            this.loadend(file, reader);
+            this.loadend(reader);
         });
         reader.readAsArrayBuffer(file);
     };
 
     // TODO: notify user of problems.
-    private loadend = async (file: File, reader: FileReader) => {
+    private loadend = async (reader: FileReader) => {
         if (!(reader.result instanceof ArrayBuffer)) {
             logger.error("Couldn't read file.");
             return;
         }
 
-        const quest = parse_quest(new BufferCursor(reader.result, true));
+        const quest = parse_quest(new ArrayBufferCursor(reader.result, Endianness.Little));
         this.set_quest(quest);
 
         if (quest) {
@@ -83,7 +81,7 @@ class QuestEditorStore {
                     try {
                         const object_geom = await entity_store.get_object_geometry(object.type);
                         this.set_section_on_visible_quest_entity(object, sections);
-                        object.object_3d = create_object_object_3d(object, object_geom);
+                        object.object_3d = create_object_mesh(object, object_geom);
                     } catch (e) {
                         logger.error(e);
                     }
@@ -94,7 +92,7 @@ class QuestEditorStore {
                     try {
                         const npc_geom = await entity_store.get_npc_geometry(npc.type);
                         this.set_section_on_visible_quest_entity(npc, sections);
-                        npc.object_3d = create_npc_object_3d(npc, npc_geom);
+                        npc.object_3d = create_npc_mesh(npc, npc_geom);
                     } catch (e) {
                         logger.error(e);
                     }
@@ -130,14 +128,14 @@ class QuestEditorStore {
 
     save_current_quest_to_file = (file_name: string) => {
         if (this.current_quest) {
-            const cursor = write_quest_qst(this.current_quest, file_name);
+            const buffer = write_quest_qst(this.current_quest, file_name);
 
             if (!file_name.endsWith(".qst")) {
                 file_name += ".qst";
             }
 
             const a = document.createElement("a");
-            a.href = URL.createObjectURL(new Blob([cursor.buffer]));
+            a.href = URL.createObjectURL(new Blob([buffer], { type: "application/octet-stream" }));
             a.download = file_name;
             document.body.appendChild(a);
             a.click();

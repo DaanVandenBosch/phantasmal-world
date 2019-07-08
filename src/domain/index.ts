@@ -1,12 +1,11 @@
 import { computed, observable } from "mobx";
 import { Object3D } from "three";
-import { BufferCursor } from "../data_formats/BufferCursor";
 import { DatNpc, DatObject, DatUnknown } from "../data_formats/parsing/quest/dat";
-import { NpcType } from "./NpcType";
-import { ObjectType } from "./ObjectType";
+import { Vec3 } from "../data_formats/Vec3";
 import { enum_values } from "../enums";
 import { ItemType } from "./items";
-import { Vec3 } from "../data_formats/Vec3";
+import { NpcType } from "./NpcType";
+import { ObjectType } from "./ObjectType";
 
 export * from "./items";
 export * from "./NpcType";
@@ -100,7 +99,7 @@ export class Quest {
     /**
      * (Partial) raw BIN data that can't be parsed yet by Phantasmal.
      */
-    bin_data: BufferCursor;
+    bin_data: ArrayBuffer;
 
     constructor(
         id: number | undefined,
@@ -112,7 +111,7 @@ export class Quest {
         objects: QuestObject[],
         npcs: QuestNpc[],
         dat_unknowns: DatUnknown[],
-        bin_data: BufferCursor
+        bin_data: ArrayBuffer
     ) {
         if (id != null && (!Number.isInteger(id) || id < 0))
             throw new Error("id should be undefined or a non-negative integer.");

@@ -1,8 +1,11 @@
 import Logger from "js-logger";
+import { Endianness } from "../..";
 import { AreaVariant, NpcType, ObjectType, Quest, QuestNpc, QuestObject } from "../../../domain";
 import { area_store } from "../../../stores/AreaStore";
-import { BufferCursor } from "../../BufferCursor";
 import * as prs from "../../compression/prs";
+import { ArrayBufferCursor } from "../../cursor/ArrayBufferCursor";
+import { Cursor } from "../../cursor/Cursor";
+import { ResizableBufferCursor } from "../../cursor/ResizableBufferCursor";
 import { Vec3 } from "../../Vec3";
 import { Instruction, parse_bin, write_bin } from "./bin";
 import { DatFile, DatNpc, DatObject, parse_dat, write_dat } from "./dat";
@@ -15,7 +18,7 @@ const logger = Logger.get("data_formats/parsing/quest");
  *
  * Always delegates to parseQst at the moment.
  */
-export function parse_quest(cursor: BufferCursor, lenient: boolean = false): Quest | undefined {
+export function parse_quest(cursor: Cursor, lenient: boolean = false): Quest | undefined {
     const qst = parse_qst(cursor);
 
     if (!qst) {
@@ -47,8 +50,11 @@ export function parse_quest(cursor: BufferCursor, lenient: boolean = false): Que
         return;
     }
 
-    const dat = parse_dat(prs.decompress(dat_file.data));
-    const bin = parse_bin(prs.decompress(bin_file.data), lenient);
+    const dat = parse_dat(prs.decompress(new ArrayBufferCursor(dat_file.data, Endianness.Little)));
+    const bin = parse_bin(
+        prs.decompress(new ArrayBufferCursor(bin_file.data, Endianness.Little)),
+        lenient
+    );
     let episode = 1;
     let area_variants: AreaVariant[] = [];
 
@@ -79,7 +85,7 @@ export function parse_quest(cursor: BufferCursor, lenient: boolean = false): Que
     );
 }
 
-export function write_quest_qst(quest: Quest, file_name: string): BufferCursor {
+export function write_quest_qst(quest: Quest, file_name: string): ArrayBuffer {
     const dat = write_dat({
         objs: objects_to_dat_data(quest.objects),
         npcs: npcsToDatData(quest.npcs),
@@ -94,12 +100,14 @@ export function write_quest_qst(quest: Quest, file_name: string): BufferCursor {
             {
                 name: base_file_name + ".dat",
                 id: quest.id,
-                data: prs.compress(dat),
+                data: prs
+                    .compress(new ResizableBufferCursor(dat, Endianness.Little))
+                    .array_buffer(),
             },
             {
                 name: base_file_name + ".bin",
                 id: quest.id,
-                data: prs.compress(bin),
+                data: prs.compress(new ArrayBufferCursor(bin, Endianness.Little)).array_buffer(),
             },
         ],
     });

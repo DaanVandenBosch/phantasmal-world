@@ -1,4 +1,4 @@
-import { BufferCursor } from "../BufferCursor";
+import { Cursor } from "../cursor/Cursor";
 import { Vec3 } from "../Vec3";
 
 export type CollisionObject = {
@@ -16,7 +16,7 @@ export type CollisionTriangle = {
     normal: Vec3;
 };
 
-export function parse_area_collision_geometry(cursor: BufferCursor): CollisionObject {
+export function parse_area_collision_geometry(cursor: Cursor): CollisionObject {
     cursor.seek_end(16);
     const main_block_offset = cursor.u32();
     cursor.seek_start(main_block_offset);

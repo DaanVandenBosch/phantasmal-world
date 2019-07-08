@@ -1,7 +1,7 @@
 import Logger from "js-logger";
-import { BufferCursor } from "../../BufferCursor";
-import { Vec3 } from "../../Vec3";
 import { NjVertex } from ".";
+import { Cursor } from "../../cursor/Cursor";
+import { Vec3 } from "../../Vec3";
 
 const logger = Logger.get("data_formats/parsing/ninja/njcm");
 
@@ -129,7 +129,7 @@ type NjcmMeshVertex = {
     normal?: Vec3;
 };
 
-export function parse_njcm_model(cursor: BufferCursor, cached_chunk_offsets: number[]): NjcmModel {
+export function parse_njcm_model(cursor: Cursor, cached_chunk_offsets: number[]): NjcmModel {
     const vlist_offset = cursor.u32(); // Vertex list
     const plist_offset = cursor.u32(); // Triangle strip index list
     const bounding_sphere_center = new Vec3(cursor.f32(), cursor.f32(), cursor.f32());
@@ -176,7 +176,7 @@ export function parse_njcm_model(cursor: BufferCursor, cached_chunk_offsets: num
 
 // TODO: don't reparse when DrawPolygonList chunk is encountered.
 function parse_chunks(
-    cursor: BufferCursor,
+    cursor: Cursor,
     cached_chunk_offsets: number[],
     wide_end_chunks: boolean
 ): NjcmChunk[] {
@@ -278,11 +278,7 @@ function parse_chunks(
     return chunks;
 }
 
-function parse_vertex_chunk(
-    cursor: BufferCursor,
-    chunk_type_id: number,
-    flags: number
-): NjcmVertex[] {
+function parse_vertex_chunk(cursor: Cursor, chunk_type_id: number, flags: number): NjcmVertex[] {
     if (chunk_type_id < 32 || chunk_type_id > 50) {
         logger.warn(`Unknown vertex chunk type ${chunk_type_id}.`);
         return [];
@@ -371,7 +367,7 @@ function parse_vertex_chunk(
 }
 
 function parse_triangle_strip_chunk(
-    cursor: BufferCursor,
+    cursor: Cursor,
     chunk_type_id: number,
     flags: number
 ): NjcmTriangleStrip[] {

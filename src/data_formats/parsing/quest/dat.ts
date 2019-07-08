@@ -1,6 +1,9 @@
-import { groupBy } from "lodash";
-import { BufferCursor } from "../../BufferCursor";
 import Logger from "js-logger";
+import { groupBy } from "lodash";
+import { Endianness } from "../..";
+import { Cursor } from "../../cursor/Cursor";
+import { WritableResizableBufferCursor } from "../../cursor/WritableResizableBufferCursor";
+import { ResizableBuffer } from "../../ResizableBuffer";
 import { Vec3 } from "../../Vec3";
 
 const logger = Logger.get("data_formats/parsing/quest/dat");
@@ -38,7 +41,7 @@ export type DatUnknown = {
     data: number[];
 };
 
-export function parse_dat(cursor: BufferCursor): DatFile {
+export function parse_dat(cursor: Cursor): DatFile {
     const objs: DatObject[] = [];
     const npcs: DatNpc[] = [];
     const unknowns: DatUnknown[] = [];
@@ -154,11 +157,13 @@ export function parse_dat(cursor: BufferCursor): DatFile {
     return { objs, npcs, unknowns };
 }
 
-export function write_dat({ objs, npcs, unknowns }: DatFile): BufferCursor {
-    const cursor = new BufferCursor(
-        objs.length * OBJECT_SIZE + npcs.length * NPC_SIZE + unknowns.length * 1000,
-        true
+export function write_dat({ objs, npcs, unknowns }: DatFile): ResizableBuffer {
+    const buffer = new ResizableBuffer(
+        objs.length * (16 + OBJECT_SIZE) +
+            npcs.length * (16 + NPC_SIZE) +
+            unknowns.reduce((a, b) => a + b.total_size, 0)
     );
+    const cursor = new WritableResizableBufferCursor(buffer, Endianness.Little);
 
     const grouped_objs = groupBy(objs, obj => obj.area_id);
     const obj_area_ids = Object.keys(grouped_objs)
@@ -234,7 +239,5 @@ export function write_dat({ objs, npcs, unknowns }: DatFile): BufferCursor {
     cursor.write_u32(0);
     cursor.write_u32(0);
 
-    cursor.seek_start(0);
-
-    return cursor;
+    return buffer;
 }

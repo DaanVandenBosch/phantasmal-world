@@ -1,15 +1,17 @@
 import * as fs from "fs";
-import { BufferCursor } from "../../BufferCursor";
+import { Endianness } from "../..";
 import * as prs from "../../compression/prs";
+import { BufferCursor } from "../../cursor/BufferCursor";
+import { ResizableBufferCursor } from "../../cursor/ResizableBufferCursor";
 import { parse_dat, write_dat } from "./dat";
 
 /**
  * Parse a file, convert the resulting structure to DAT again and check whether the end result is equal to the original.
  */
 test("parse_dat and write_dat", () => {
-    const orig_buffer = fs.readFileSync("test/resources/quest118_e.dat").buffer;
-    const orig_dat = prs.decompress(new BufferCursor(orig_buffer, true));
-    const test_dat = write_dat(parse_dat(orig_dat));
+    const orig_buffer = fs.readFileSync("test/resources/quest118_e.dat");
+    const orig_dat = prs.decompress(new BufferCursor(orig_buffer, Endianness.Little));
+    const test_dat = new ResizableBufferCursor(write_dat(parse_dat(orig_dat)), Endianness.Little);
     orig_dat.seek_start(0);
 
     expect(test_dat.size).toBe(orig_dat.size);
@@ -30,8 +32,8 @@ test("parse_dat and write_dat", () => {
  * Parse a file, modify the resulting structure, convert it to DAT again and check whether the end result is equal to the original except for the bytes that should be changed.
  */
 test("parse, modify and write DAT", () => {
-    const orig_buffer = fs.readFileSync("./test/resources/quest118_e.dat").buffer;
-    const orig_dat = prs.decompress(new BufferCursor(orig_buffer, true));
+    const orig_buffer = fs.readFileSync("./test/resources/quest118_e.dat");
+    const orig_dat = prs.decompress(new BufferCursor(orig_buffer, Endianness.Little));
     const test_parsed = parse_dat(orig_dat);
     orig_dat.seek_start(0);
 
@@ -39,7 +41,7 @@ test("parse, modify and write DAT", () => {
     test_parsed.objs[9].position.y = 17;
     test_parsed.objs[9].position.z = 19;
 
-    const test_dat = write_dat(test_parsed);
+    const test_dat = new ResizableBufferCursor(write_dat(test_parsed), Endianness.Little);
 
     expect(test_dat.size).toBe(orig_dat.size);
 
