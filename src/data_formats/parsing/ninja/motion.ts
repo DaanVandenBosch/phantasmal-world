@@ -1,7 +1,6 @@
-import { Vec3 } from "../../Vec3";
+import { ANGLE_TO_RAD } from ".";
 import { Cursor } from "../../cursor/Cursor";
-
-const ANGLE_TO_RAD = (2 * Math.PI) / 0xffff;
+import { Vec3 } from "../../Vec3";
 
 export type NjMotion = {
     motion_data: NjMotionData[];

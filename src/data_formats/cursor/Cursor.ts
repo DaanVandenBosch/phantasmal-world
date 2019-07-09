@@ -1,4 +1,5 @@
 import { Endianness } from "..";
+import { Vec3 } from "../Vec3";
 
 /**
  * A cursor for reading binary data.
@@ -24,21 +25,21 @@ export interface Cursor {
     /**
      * Seek forward or backward by a number of bytes.
      *
-     * @param offset - if positive, seeks forward by offset bytes, otherwise seeks backward by -offset bytes.
+     * @param offset if positive, seeks forward by offset bytes, otherwise seeks backward by -offset bytes.
      */
     seek(offset: number): this;
 
     /**
      * Seek forward from the start of the cursor by a number of bytes.
      *
-     * @param offset - greater or equal to 0 and smaller than size
+     * @param offset greater or equal to 0 and smaller than size
      */
     seek_start(offset: number): this;
 
     /**
      * Seek backward from the end of the cursor by a number of bytes.
      *
-     * @param offset - greater or equal to 0 and smaller than size
+     * @param offset greater or equal to 0 and smaller than size
      */
     seek_end(offset: number): this;
 
@@ -127,10 +128,12 @@ export interface Cursor {
      */
     u32_array(n: number): number[];
 
+    vec3(): Vec3;
+
     /**
      * Consumes a variable number of bytes.
      *
-     * @param size - the amount bytes to consume.
+     * @param size the amount bytes to consume.
      * @returns a write-through view containing size bytes.
      */
     take(size: number): Cursor;

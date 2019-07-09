@@ -7,6 +7,7 @@ import {
 } from ".";
 import { Endianness } from "..";
 import { Cursor } from "./Cursor";
+import { Vec3 } from "../Vec3";
 
 /**
  * A cursor for reading from an array buffer or part of an array buffer.
@@ -184,6 +185,10 @@ export class ArrayBufferCursor implements Cursor {
         }
 
         return array;
+    }
+
+    vec3(): Vec3 {
+        return new Vec3(this.f32(), this.f32(), this.f32());
     }
 
     take(size: number): ArrayBufferCursor {

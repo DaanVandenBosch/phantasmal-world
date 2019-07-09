@@ -1,13 +1,13 @@
+import { Cursor } from "../../cursor/Cursor";
 import { Vec3 } from "../../Vec3";
 import { NjcmModel, parse_njcm_model } from "./njcm";
 import { parse_xj_model, XjModel } from "./xj";
-import { Cursor } from "../../cursor/Cursor";
 
 // TODO:
 // - deal with multiple NJCM chunks
 // - deal with other types of chunks
 
-const ANGLE_TO_RAD = (2 * Math.PI) / 65536;
+export const ANGLE_TO_RAD = (2 * Math.PI) / 0xffff;
 
 export type NjVertex = {
     position: Vec3;

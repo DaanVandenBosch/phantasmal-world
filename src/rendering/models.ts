@@ -15,9 +15,9 @@ import {
     Vector3,
 } from "three";
 import { vec3_to_threejs } from ".";
-import { NjModel, NjObject, is_njcm_model } from "../data_formats/parsing/ninja";
+import { is_njcm_model, NjModel, NjObject } from "../data_formats/parsing/ninja";
 import { NjcmModel } from "../data_formats/parsing/ninja/njcm";
-import { XjModel } from "../data_formats/parsing/ninja/xj";
+import { xj_model_to_geometry } from "./xj_model_to_geometry";
 
 const DEFAULT_MATERIAL = new MeshLambertMaterial({
     color: 0xff00ff,
@@ -187,7 +187,7 @@ class Object3DCreator {
         if (is_njcm_model(model)) {
             this.njcm_model_to_geometry(model, matrix);
         } else {
-            this.xj_model_to_geometry(model, matrix);
+            xj_model_to_geometry(model, matrix, this.positions, this.normals, this.indices);
         }
     }
 
@@ -250,104 +250,6 @@ class Object3DCreator {
                     this.bone_indices.push(...bone_indices);
                     this.bone_weights.push(...bone_weights);
                 }
-            }
-        }
-    }
-
-    private xj_model_to_geometry(model: XjModel, matrix: Matrix4): void {
-        const positions = this.positions;
-        const normals = this.normals;
-        const indices = this.indices;
-        const index_offset = this.positions.length / 3;
-        let clockwise = true;
-
-        const normal_matrix = new Matrix3().getNormalMatrix(matrix);
-
-        for (let { position, normal } of model.vertices) {
-            const p = vec3_to_threejs(position).applyMatrix4(matrix);
-            positions.push(p.x, p.y, p.z);
-
-            normal = normal || DEFAULT_NORMAL;
-            const n = vec3_to_threejs(normal).applyMatrix3(normal_matrix);
-            normals.push(n.x, n.y, n.z);
-        }
-
-        for (const mesh of model.meshes) {
-            const strip_indices = mesh.indices;
-
-            for (let j = 2; j < strip_indices.length; ++j) {
-                const a = index_offset + strip_indices[j - 2];
-                const b = index_offset + strip_indices[j - 1];
-                const c = index_offset + strip_indices[j];
-                const pa = new Vector3(
-                    positions[3 * a],
-                    positions[3 * a + 1],
-                    positions[3 * a + 2]
-                );
-                const pb = new Vector3(
-                    positions[3 * b],
-                    positions[3 * b + 1],
-                    positions[3 * b + 2]
-                );
-                const pc = new Vector3(
-                    positions[3 * c],
-                    positions[3 * c + 1],
-                    positions[3 * c + 2]
-                );
-                const na = new Vector3(normals[3 * a], normals[3 * a + 1], normals[3 * a + 2]);
-                const nb = new Vector3(normals[3 * a], normals[3 * a + 1], normals[3 * a + 2]);
-                const nc = new Vector3(normals[3 * a], normals[3 * a + 1], normals[3 * a + 2]);
-
-                // Calculate a surface normal and reverse the vertex winding if at least 2 of the vertex normals point in the opposite direction.
-                // This hack fixes the winding for most models.
-                const normal = pb
-                    .clone()
-                    .sub(pa)
-                    .cross(pc.clone().sub(pa));
-
-                if (clockwise) {
-                    normal.negate();
-                }
-
-                const opposite_count =
-                    (normal.dot(na) < 0 ? 1 : 0) +
-                    (normal.dot(nb) < 0 ? 1 : 0) +
-                    (normal.dot(nc) < 0 ? 1 : 0);
-
-                if (opposite_count >= 2) {
-                    clockwise = !clockwise;
-                }
-
-                if (clockwise) {
-                    indices.push(b);
-                    indices.push(a);
-                    indices.push(c);
-                } else {
-                    indices.push(a);
-                    indices.push(b);
-                    indices.push(c);
-                }
-
-                clockwise = !clockwise;
-
-                // The following switch statement fixes model 180.xj (zanba).
-                // switch (j) {
-                //     case 17:
-                //     case 52:
-                //     case 70:
-                //     case 92:
-                //     case 97:
-                //     case 126:
-                //     case 140:
-                //     case 148:
-                //     case 187:
-                //     case 200:
-                //         console.warn(`swapping winding at: ${j}, (${a}, ${b}, ${c})`);
-                //         break;
-                //     default:
-                //         ccw = !ccw;
-                //         break;
-                // }
             }
         }
     }

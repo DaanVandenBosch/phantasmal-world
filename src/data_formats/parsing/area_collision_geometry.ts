@@ -1,5 +1,6 @@
 import { Cursor } from "../cursor/Cursor";
 import { Vec3 } from "../Vec3";
+import { parse_rel } from "./rel";
 
 export type CollisionObject = {
     meshes: CollisionMesh[];
@@ -17,9 +18,8 @@ export type CollisionTriangle = {
 };
 
 export function parse_area_collision_geometry(cursor: Cursor): CollisionObject {
-    cursor.seek_end(16);
-    const main_block_offset = cursor.u32();
-    cursor.seek_start(main_block_offset);
+    const { data_offset } = parse_rel(cursor, false);
+    cursor.seek_start(data_offset);
     const main_offset_table_offset = cursor.u32();
     cursor.seek_start(main_offset_table_offset);
 

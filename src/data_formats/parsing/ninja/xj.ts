@@ -1,6 +1,9 @@
+import Logger from "js-logger";
 import { Cursor } from "../../cursor/Cursor";
 import { Vec3 } from "../../Vec3";
 import { NjVertex } from "../ninja";
+
+const logger = Logger.get("data_formats/parsing/ninja/xj");
 
 // TODO:
 // - textures
@@ -11,7 +14,9 @@ import { NjVertex } from "../ninja";
 export type XjModel = {
     type: "xj";
     vertices: NjVertex[];
-    meshes: XjTriangleStrip[];
+    strips: XjTriangleStrip[];
+    collision_sphere_position: Vec3;
+    collision_sphere_radius: number;
 };
 
 export type XjTriangleStrip = {
@@ -20,34 +25,42 @@ export type XjTriangleStrip = {
 
 export function parse_xj_model(cursor: Cursor): XjModel {
     cursor.seek(4); // Flags according to QEdit, seemingly always 0.
-    const vertex_info_list_offset = cursor.u32();
-    cursor.seek(4); // Seems to be the vertexInfoCount, always 1.
-    const triangle_strip_list_a_offset = cursor.u32();
-    const triangle_strip_a_count = cursor.u32();
-    const triangle_strip_list_b_offset = cursor.u32();
-    const triangle_strip_b_count = cursor.u32();
-    cursor.seek(16); // Bounding sphere position and radius in floats.
+    const vertex_info_table_offset = cursor.u32();
+    const vertex_info_count = cursor.u32();
+    const triangle_strip_table_offset = cursor.u32();
+    const triangle_strip_count = cursor.u32();
+    const transparent_triangle_strip_table_offset = cursor.u32();
+    const transparent_triangle_strip_count = cursor.u32();
+    const collision_sphere_position = cursor.vec3();
+    const collision_sphere_radius = cursor.f32();
 
     const model: XjModel = {
         type: "xj",
         vertices: [],
-        meshes: [],
+        strips: [],
+        collision_sphere_position,
+        collision_sphere_radius,
     };
 
-    if (vertex_info_list_offset) {
-        cursor.seek_start(vertex_info_list_offset);
-        cursor.seek(4); // Possibly the vertex type.
-        const vertexList_offset = cursor.u32();
+    if (vertex_info_count >= 1) {
+        if (vertex_info_count > 1) {
+            logger.warn(`Vertex info count of ${vertex_info_count} was larger than expected.`);
+        }
+
+        cursor.seek_start(vertex_info_table_offset);
+        cursor.seek(4); // Vertex type.
+        const vertex_table_offset = cursor.u32();
         const vertex_size = cursor.u32();
         const vertex_count = cursor.u32();
 
         for (let i = 0; i < vertex_count; ++i) {
-            cursor.seek_start(vertexList_offset + i * vertex_size);
-            const position = new Vec3(cursor.f32(), cursor.f32(), cursor.f32());
+            cursor.seek_start(vertex_table_offset + i * vertex_size);
+
+            const position = cursor.vec3();
             let normal: Vec3 | undefined;
 
             if (vertex_size === 28 || vertex_size === 32 || vertex_size === 36) {
-                normal = new Vec3(cursor.f32(), cursor.f32(), cursor.f32());
+                normal = cursor.vec3();
             }
 
             model.vertices.push({
@@ -60,22 +73,18 @@ export function parse_xj_model(cursor: Cursor): XjModel {
         }
     }
 
-    if (triangle_strip_list_a_offset) {
-        model.meshes.push(
-            ...parse_triangle_strip_list(
-                cursor,
-                triangle_strip_list_a_offset,
-                triangle_strip_a_count
-            )
+    if (triangle_strip_table_offset) {
+        model.strips.push(
+            ...parse_triangle_strip_table(cursor, triangle_strip_table_offset, triangle_strip_count)
         );
     }
 
-    if (triangle_strip_list_b_offset) {
-        model.meshes.push(
-            ...parse_triangle_strip_list(
+    if (transparent_triangle_strip_table_offset) {
+        model.strips.push(
+            ...parse_triangle_strip_table(
                 cursor,
-                triangle_strip_list_b_offset,
-                triangle_strip_b_count
+                transparent_triangle_strip_table_offset,
+                transparent_triangle_strip_count
             )
         );
     }
@@ -83,7 +92,7 @@ export function parse_xj_model(cursor: Cursor): XjModel {
     return model;
 }
 
-function parse_triangle_strip_list(
+function parse_triangle_strip_table(
     cursor: Cursor,
     triangle_strip_list_offset: number,
     triangle_strip_count: number
@@ -92,7 +101,7 @@ function parse_triangle_strip_list(
 
     for (let i = 0; i < triangle_strip_count; ++i) {
         cursor.seek_start(triangle_strip_list_offset + i * 20);
-        cursor.seek(8); // Skip material information.
+        cursor.seek(8); // Skip flag_and_texture_id_offset and data_type.
         const index_list_offset = cursor.u32();
         const index_count = cursor.u32();
         // Ignoring 4 bytes.

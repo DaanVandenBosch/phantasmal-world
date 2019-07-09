@@ -1,11 +1,14 @@
 import { Object3D } from "three";
+import { Endianness } from "../data_formats";
+import { ArrayBufferCursor } from "../data_formats/cursor/ArrayBufferCursor";
 import { parse_area_collision_geometry } from "../data_formats/parsing/area_collision_geometry";
 import { parse_area_geometry } from "../data_formats/parsing/area_geometry";
 import { Area, AreaVariant, Section } from "../domain";
-import { area_collision_geometry_to_object_3d } from "../rendering/areas";
+import {
+    area_collision_geometry_to_object_3d,
+    area_geometry_to_sections_and_object_3d,
+} from "../rendering/areas";
 import { get_area_collision_data, get_area_render_data } from "./binary_assets";
-import { Endianness } from "../data_formats";
-import { ArrayBufferCursor } from "../data_formats/cursor/ArrayBufferCursor";
 
 function area(id: number, name: string, order: number, variants: number): Area {
     const area = new Area(id, name, order, []);
@@ -104,15 +107,15 @@ class AreaStore {
         area_id: number,
         area_variant: number
     ): Promise<Section[]> {
-        const sections = sections_cache.get(`${episode}-${area_id}-${area_variant}`);
+        const key = `${episode}-${area_id}-${area_variant}`;
+        let sections = sections_cache.get(key);
 
-        if (sections) {
-            return sections;
-        } else {
-            return this.get_area_sections_and_render_geometry(episode, area_id, area_variant).then(
-                ({ sections }) => sections
-            );
+        if (!sections) {
+            this.load_area_sections_and_render_geometry(episode, area_id, area_variant);
+            sections = sections_cache.get(key)!;
         }
+
+        return sections;
     }
 
     async get_area_render_geometry(
@@ -120,15 +123,15 @@ class AreaStore {
         area_id: number,
         area_variant: number
     ): Promise<Object3D> {
-        const object_3d = render_geometry_cache.get(`${episode}-${area_id}-${area_variant}`);
+        const key = `${episode}-${area_id}-${area_variant}`;
+        let object_3d = render_geometry_cache.get(key);
 
-        if (object_3d) {
-            return object_3d;
-        } else {
-            return this.get_area_sections_and_render_geometry(episode, area_id, area_variant).then(
-                ({ object_3d }) => object_3d
-            );
+        if (!object_3d) {
+            this.load_area_sections_and_render_geometry(episode, area_id, area_variant);
+            object_3d = render_geometry_cache.get(key)!;
         }
+
+        return object_3d;
     }
 
     async get_area_collision_geometry(
@@ -151,26 +154,25 @@ class AreaStore {
         }
     }
 
-    private get_area_sections_and_render_geometry(
+    private load_area_sections_and_render_geometry(
         episode: number,
         area_id: number,
         area_variant: number
-    ): Promise<{ sections: Section[]; object_3d: Object3D }> {
-        const promise = get_area_render_data(episode, area_id, area_variant).then(
-            parse_area_geometry
+    ): void {
+        const promise = get_area_render_data(episode, area_id, area_variant).then(buffer =>
+            area_geometry_to_sections_and_object_3d(
+                parse_area_geometry(new ArrayBufferCursor(buffer, Endianness.Little))
+            )
         );
 
-        const sections = new Promise<Section[]>((resolve, reject) => {
-            promise.then(({ sections }) => resolve(sections)).catch(reject);
-        });
-        const object_3d = new Promise<Object3D>((resolve, reject) => {
-            promise.then(({ object_3d }) => resolve(object_3d)).catch(reject);
-        });
-
-        sections_cache.set(`${episode}-${area_id}-${area_variant}`, sections);
-        render_geometry_cache.set(`${episode}-${area_id}-${area_variant}`, object_3d);
-
-        return promise;
+        sections_cache.set(
+            `${episode}-${area_id}-${area_variant}`,
+            promise.then(([sections]) => sections)
+        );
+        render_geometry_cache.set(
+            `${episode}-${area_id}-${area_variant}`,
+            promise.then(([, object_3d]) => object_3d)
+        );
     }
 }
 

@@ -1,4 +1,5 @@
 import { Cursor } from "../cursor/Cursor";
+import { parse_rel } from "./rel";
 
 export type ItemPmt = {
     stat_boosts: PmtStatBoost[];
@@ -95,43 +96,24 @@ export type PmtTool = {
 };
 
 export function parse_item_pmt(cursor: Cursor): ItemPmt {
-    cursor.seek_end(32);
-    const main_table_offset = cursor.u32();
-    const main_table_size = cursor.u32();
-    // const main_table_count = cursor.u32(); // Should be 1.
-
-    cursor.seek_start(main_table_offset);
-
-    const compact_table_offsets = cursor.u16_array(main_table_size);
-    const table_offsets: { offset: number; size: number }[] = [];
-    let expanded_offset = 0;
-
-    for (const compact_offset of compact_table_offsets) {
-        expanded_offset = expanded_offset + 4 * compact_offset;
-        cursor.seek_start(expanded_offset - 4);
-        const size = cursor.u32();
-        const offset = cursor.u32();
-        table_offsets.push({ offset, size });
-    }
+    const { index } = parse_rel(cursor, true);
 
     const item_pmt: ItemPmt = {
         // This size (65268) of this table seems wrong, so we pass in a hard-coded value.
-        stat_boosts: parse_stat_boosts(cursor, table_offsets[305].offset, 52),
-        armors: parse_armors(cursor, table_offsets[7].offset, table_offsets[7].size),
-        shields: parse_shields(cursor, table_offsets[8].offset, table_offsets[8].size),
-        units: parse_units(cursor, table_offsets[9].offset, table_offsets[9].size),
+        stat_boosts: parse_stat_boosts(cursor, index[305].offset, 52),
+        armors: parse_armors(cursor, index[7].offset, index[7].size),
+        shields: parse_shields(cursor, index[8].offset, index[8].size),
+        units: parse_units(cursor, index[9].offset, index[9].size),
         tools: [],
         weapons: [],
     };
 
     for (let i = 11; i <= 37; i++) {
-        item_pmt.tools.push(parse_tools(cursor, table_offsets[i].offset, table_offsets[i].size));
+        item_pmt.tools.push(parse_tools(cursor, index[i].offset, index[i].size));
     }
 
     for (let i = 38; i <= 275; i++) {
-        item_pmt.weapons.push(
-            parse_weapons(cursor, table_offsets[i].offset, table_offsets[i].size)
-        );
+        item_pmt.weapons.push(parse_weapons(cursor, index[i].offset, index[i].size));
     }
 
     return item_pmt;

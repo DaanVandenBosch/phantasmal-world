@@ -1,4 +1,4 @@
-import { autorun, IReactionDisposer, when } from "mobx";
+import { autorun, IReactionDisposer, when, runInAction } from "mobx";
 import {
     Intersection,
     Mesh,
@@ -98,6 +98,7 @@ export class QuestRenderer extends Renderer {
         this.scene.add(this.npc_geometry);
 
         this.scene.remove(this.collision_geometry);
+        // this.scene.remove(this.render_geometry);
 
         if (this.quest && this.area) {
             // Add necessary entity geometry when it arrives.
@@ -122,6 +123,7 @@ export class QuestRenderer extends Renderer {
             );
 
             this.scene.remove(this.collision_geometry);
+            // this.scene.remove(this.render_geometry);
 
             this.reset_camera(new Vector3(0, 800, 700), new Vector3(0, 0, 0));
 
@@ -135,6 +137,7 @@ export class QuestRenderer extends Renderer {
             );
 
             this.render_geometry = render_geometry;
+            // this.scene.add(render_geometry);
         }
     }
 
@@ -263,12 +266,14 @@ export class QuestRenderer extends Renderer {
                     const { intersection, section } = this.pick_terrain(pointer_pos, data);
 
                     if (intersection) {
-                        data.entity.position = new Vec3(
-                            intersection.point.x,
-                            intersection.point.y + data.drag_y,
-                            intersection.point.z
-                        );
-                        data.entity.section = section;
+                        runInAction(() => {
+                            data.entity.position = new Vec3(
+                                intersection.point.x,
+                                intersection.point.y + data.drag_y,
+                                intersection.point.z
+                            );
+                            data.entity.section = section;
+                        });
                     } else {
                         // If the cursor is not over any terrain, we translate the entity accross the horizontal plane in which the entity's origin lies.
                         this.raycaster.setFromCamera(pointer_pos, this.camera);

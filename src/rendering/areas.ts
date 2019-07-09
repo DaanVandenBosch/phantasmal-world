@@ -1,15 +1,22 @@
 import {
+    BufferGeometry,
     DoubleSide,
     Face3,
+    Float32BufferAttribute,
     Geometry,
     Group,
+    Matrix4,
     Mesh,
     MeshBasicMaterial,
     MeshLambertMaterial,
     Object3D,
+    Uint16BufferAttribute,
     Vector3,
 } from "three";
 import { CollisionObject } from "../data_formats/parsing/area_collision_geometry";
+import { RenderObject } from "../data_formats/parsing/area_geometry";
+import { Section } from "../domain";
+import { xj_model_to_geometry } from "./xj_model_to_geometry";
 
 const materials = [
     // Wall
@@ -98,4 +105,45 @@ export function area_collision_geometry_to_object_3d(object: CollisionObject): O
     }
 
     return group;
+}
+
+export function area_geometry_to_sections_and_object_3d(
+    object: RenderObject
+): [Section[], Object3D] {
+    const sections: Section[] = [];
+    const group = new Group();
+
+    for (const section of object.sections) {
+        const positions: number[] = [];
+        const normals: number[] = [];
+        const indices: number[] = [];
+
+        for (const model of section.models) {
+            xj_model_to_geometry(model, new Matrix4(), positions, normals, indices);
+        }
+
+        const geometry = new BufferGeometry();
+        geometry.addAttribute("position", new Float32BufferAttribute(positions, 3));
+        geometry.addAttribute("normal", new Float32BufferAttribute(normals, 3));
+        geometry.setIndex(new Uint16BufferAttribute(indices, 1));
+
+        const mesh = new Mesh(
+            geometry,
+            new MeshLambertMaterial({
+                color: 0x44aaff,
+                transparent: true,
+                opacity: 0.25,
+                side: DoubleSide,
+            })
+        );
+        mesh.position.set(section.position.x, section.position.y, section.position.z);
+        mesh.rotation.set(section.rotation.x, section.rotation.y, section.rotation.z);
+        group.add(mesh);
+
+        const sec = new Section(section.id, section.position, section.rotation.y);
+        mesh.userData.section = sec;
+        sections.push(sec);
+    }
+
+    return [sections, group];
 }

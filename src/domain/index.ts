@@ -59,17 +59,11 @@ export enum Difficulty {
 export const Difficulties: Difficulty[] = enum_values(Difficulty);
 
 export class Section {
-    id: number;
-    @observable position: Vec3;
-    @observable y_axis_rotation: number;
-
-    @computed get sin_y_axis_rotation(): number {
-        return Math.sin(this.y_axis_rotation);
-    }
-
-    @computed get cos_y_axis_rotation(): number {
-        return Math.cos(this.y_axis_rotation);
-    }
+    readonly id: number;
+    readonly position: Vec3;
+    readonly y_axis_rotation: number;
+    readonly sin_y_axis_rotation: number;
+    readonly cos_y_axis_rotation: number;
 
     constructor(id: number, position: Vec3, y_axis_rotation: number) {
         if (!Number.isInteger(id) || id < -1)
@@ -80,6 +74,8 @@ export class Section {
         this.id = id;
         this.position = position;
         this.y_axis_rotation = y_axis_rotation;
+        this.sin_y_axis_rotation = Math.sin(this.y_axis_rotation);
+        this.cos_y_axis_rotation = Math.cos(this.y_axis_rotation);
     }
 }
 
@@ -160,32 +156,32 @@ export class QuestEntity {
         let { x, y, z } = this.position;
 
         if (this.section) {
-            const relX = x - this.section.position.x;
-            const relY = y - this.section.position.y;
-            const relZ = z - this.section.position.z;
+            const rel_x = x - this.section.position.x;
+            const rel_y = y - this.section.position.y;
+            const rel_z = z - this.section.position.z;
             const sin = -this.section.sin_y_axis_rotation;
             const cos = this.section.cos_y_axis_rotation;
-            const rotX = cos * relX + sin * relZ;
-            const rotZ = -sin * relX + cos * relZ;
-            x = rotX;
-            y = relY;
-            z = rotZ;
+            const rot_x = cos * rel_x + sin * rel_z;
+            const rot_z = -sin * rel_x + cos * rel_z;
+            x = rot_x;
+            y = rel_y;
+            z = rot_z;
         }
 
         return new Vec3(x, y, z);
     }
 
-    set section_position(sectPos: Vec3) {
-        let { x: relX, y: relY, z: relZ } = sectPos;
+    set section_position(sec_pos: Vec3) {
+        let { x: rel_x, y: rel_y, z: rel_z } = sec_pos;
 
         if (this.section) {
             const sin = -this.section.sin_y_axis_rotation;
             const cos = this.section.cos_y_axis_rotation;
-            const rotX = cos * relX - sin * relZ;
-            const rotZ = sin * relX + cos * relZ;
-            const x = rotX + this.section.position.x;
-            const y = relY + this.section.position.y;
-            const z = rotZ + this.section.position.z;
+            const rot_x = cos * rel_x - sin * rel_z;
+            const rot_z = sin * rel_x + cos * rel_z;
+            const x = rot_x + this.section.position.x;
+            const y = rel_y + this.section.position.y;
+            const z = rot_z + this.section.position.z;
             this.position = new Vec3(x, y, z);
         }
     }

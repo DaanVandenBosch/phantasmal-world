@@ -1,5 +1,5 @@
 import Logger from "js-logger";
-import { action, observable } from "mobx";
+import { action, observable, runInAction } from "mobx";
 import { parse_quest, write_quest_qst } from "../data_formats/parsing/quest";
 import { Vec3 } from "../data_formats/Vec3";
 import { Area, Quest, QuestEntity, Section } from "../domain";
@@ -110,7 +110,6 @@ class QuestEditorStore {
         let { x, y, z } = entity.position;
 
         const section = sections.find(s => s.id === entity.section_id);
-        entity.section = section;
 
         if (section) {
             const { x: sec_x, y: sec_y, z: sec_z } = section.position;
@@ -123,7 +122,10 @@ class QuestEditorStore {
             logger.warn(`Section ${entity.section_id} not found.`);
         }
 
-        entity.position = new Vec3(x, y, z);
+        runInAction(() => {
+            entity.section = section;
+            entity.position = new Vec3(x, y, z);
+        });
     };
 
     save_current_quest_to_file = (file_name: string) => {
