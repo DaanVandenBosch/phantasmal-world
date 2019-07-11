@@ -237,7 +237,10 @@ export class ArrayBufferCursor implements Cursor {
     }
 
     array_buffer(size: number = this.size - this.position): ArrayBuffer {
-        const r = this.buffer.slice(this.offset + this.position, size);
+        const r = this.buffer.slice(
+            this.offset + this.position,
+            this.offset + this.position + size
+        );
         this._position += size;
         return r;
     }

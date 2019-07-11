@@ -8,6 +8,7 @@ import {
     Raycaster,
     Vector2,
     Vector3,
+    PerspectiveCamera,
 } from "three";
 import { Vec3 } from "../data_formats/Vec3";
 import { Area, Quest, QuestEntity, QuestNpc, Section } from "../domain";
@@ -43,7 +44,7 @@ type EntityUserData = {
     entity: QuestEntity;
 };
 
-export class QuestRenderer extends Renderer {
+export class QuestRenderer extends Renderer<PerspectiveCamera> {
     private raycaster = new Raycaster();
 
     private quest?: Quest;
@@ -59,7 +60,7 @@ export class QuestRenderer extends Renderer {
     private selected_data?: PickEntityResult;
 
     constructor() {
-        super();
+        super(new PerspectiveCamera(75, 1, 0.1, 5000));
 
         this.dom_element.addEventListener("mousedown", this.on_mouse_down);
         this.dom_element.addEventListener("mouseup", this.on_mouse_up);
@@ -67,24 +68,25 @@ export class QuestRenderer extends Renderer {
 
         this.scene.add(this.obj_geometry);
         this.scene.add(this.npc_geometry);
+
+        autorun(() => {
+            this.set_quest_and_area(
+                quest_editor_store.current_quest,
+                quest_editor_store.current_area
+            );
+        });
     }
 
     set_quest_and_area(quest?: Quest, area?: Area): void {
-        let update = false;
+        this.area = area;
+        this.quest = quest;
+        this.update_geometry();
+    }
 
-        if (this.area !== area) {
-            this.area = area;
-            update = true;
-        }
-
-        if (this.quest !== quest) {
-            this.quest = quest;
-            update = true;
-        }
-
-        if (update) {
-            this.update_geometry();
-        }
+    set_size(width: number, height: number): void {
+        this.camera.aspect = width / height;
+        this.camera.updateProjectionMatrix();
+        super.set_size(width, height);
     }
 
     private async update_geometry(): Promise<void> {

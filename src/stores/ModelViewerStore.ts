@@ -1,14 +1,23 @@
 import Logger from "js-logger";
 import { action, observable } from "mobx";
-import { AnimationAction, AnimationClip, AnimationMixer, SkinnedMesh } from "three";
+import {
+    AnimationAction,
+    AnimationClip,
+    AnimationMixer,
+    DoubleSide,
+    Mesh,
+    MeshLambertMaterial,
+    SkinnedMesh,
+} from "three";
+import { Endianness } from "../data_formats";
+import { ArrayBufferCursor } from "../data_formats/cursor/ArrayBufferCursor";
 import { NjModel, NjObject, parse_nj, parse_xj } from "../data_formats/parsing/ninja";
 import { NjMotion, parse_njm } from "../data_formats/parsing/ninja/motion";
 import { PlayerAnimation, PlayerModel } from "../domain";
+import { read_file } from "../read_file";
 import { create_animation_clip, PSO_FRAME_RATE } from "../rendering/animation";
-import { ninja_object_to_skinned_mesh } from "../rendering/models";
+import { ninja_object_to_buffer_geometry, ninja_object_to_skinned_mesh } from "../rendering/models";
 import { get_player_animation_data, get_player_data } from "./binary_assets";
-import { ArrayBufferCursor } from "../data_formats/cursor/ArrayBufferCursor";
-import { Endianness } from "../data_formats";
 
 const logger = Logger.get("stores/ModelViewerStore");
 const nj_object_cache: Map<string, Promise<NjObject<NjModel>>> = new Map();
@@ -36,7 +45,7 @@ class ModelViewerStore {
     @observable.ref current_player_model?: PlayerModel;
     @observable.ref current_model?: NjObject<NjModel>;
     @observable.ref current_bone_count: number = 0;
-    @observable.ref current_obj3d?: SkinnedMesh;
+    @observable.ref current_obj3d?: Mesh;
 
     @observable.ref animation?: {
         player_animation?: PlayerAnimation;
@@ -70,7 +79,7 @@ class ModelViewerStore {
 
     load_model = async (model: PlayerModel) => {
         const object = await this.get_player_ninja_object(model);
-        this.set_model(object, model);
+        this.set_model(object, true, model);
         // Ignore the bones from the head parts.
         this.current_bone_count = 64;
     };
@@ -83,12 +92,29 @@ class ModelViewerStore {
         }
     };
 
-    load_file = (file: File) => {
-        const reader = new FileReader();
-        reader.addEventListener("loadend", () => {
-            this.loadend(file, reader);
-        });
-        reader.readAsArrayBuffer(file);
+    // TODO: notify user of problems.
+    load_file = async (file: File) => {
+        try {
+            const buffer = await read_file(file);
+            const cursor = new ArrayBufferCursor(buffer, Endianness.Little);
+
+            if (file.name.endsWith(".nj")) {
+                const model = parse_nj(cursor)[0];
+                this.set_model(model, true);
+            } else if (file.name.endsWith(".xj")) {
+                const model = parse_xj(cursor)[0];
+                this.set_model(model, false);
+            } else if (file.name.endsWith(".njm")) {
+                if (this.current_model) {
+                    const njm = parse_njm(cursor, this.current_bone_count);
+                    this.set_animation(create_animation_clip(this.current_model, njm));
+                }
+            } else {
+                logger.error(`Unknown file extension in filename "${file.name}".`);
+            }
+        } catch (e) {
+            logger.error("Couldn't read file.", e);
+        }
     };
 
     toggle_animation_playing = action("toggle_animation_playing", () => {
@@ -106,7 +132,7 @@ class ModelViewerStore {
     });
 
     set_animation = action("set_animation", (clip: AnimationClip, animation?: PlayerAnimation) => {
-        if (!this.current_obj3d) return;
+        if (!this.current_obj3d || !(this.current_obj3d instanceof SkinnedMesh)) return;
 
         let mixer: AnimationMixer;
 
@@ -131,7 +157,7 @@ class ModelViewerStore {
 
     private set_model = action(
         "set_model",
-        (model: NjObject<NjModel>, player_model?: PlayerModel) => {
+        (model: NjObject<NjModel>, skeleton: boolean, player_model?: PlayerModel) => {
             if (this.current_obj3d && this.animation) {
                 this.animation.mixer.stopAllAction();
                 this.animation.mixer.uncacheRoot(this.current_obj3d);
@@ -142,36 +168,24 @@ class ModelViewerStore {
             this.current_model = model;
             this.current_bone_count = model.bone_count();
 
-            const mesh = ninja_object_to_skinned_mesh(this.current_model);
+            let mesh: Mesh;
+
+            if (skeleton) {
+                mesh = ninja_object_to_skinned_mesh(this.current_model);
+            } else {
+                mesh = new Mesh(
+                    ninja_object_to_buffer_geometry(this.current_model),
+                    new MeshLambertMaterial({
+                        color: 0xff00ff,
+                        side: DoubleSide,
+                    })
+                );
+            }
+
             mesh.translateY(-mesh.geometry.boundingSphere.radius);
             this.current_obj3d = mesh;
         }
     );
-
-    // TODO: notify user of problems.
-    private loadend = async (file: File, reader: FileReader) => {
-        if (!(reader.result instanceof ArrayBuffer)) {
-            logger.error("Couldn't read file.");
-            return;
-        }
-
-        const cursor = new ArrayBufferCursor(reader.result, Endianness.Little);
-
-        if (file.name.endsWith(".nj")) {
-            const model = parse_nj(cursor)[0];
-            this.set_model(model);
-        } else if (file.name.endsWith(".xj")) {
-            const model = parse_xj(cursor)[0];
-            this.set_model(model);
-        } else if (file.name.endsWith(".njm")) {
-            if (this.current_model) {
-                const njm = parse_njm(cursor, this.current_bone_count);
-                this.set_animation(create_animation_clip(this.current_model, njm));
-            }
-        } else {
-            logger.error(`Unknown file extension in filename "${file.name}".`);
-        }
-    };
 
     private add_to_bone(
         object: NjObject<NjModel>,

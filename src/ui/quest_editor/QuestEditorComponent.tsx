@@ -7,7 +7,8 @@ import { quest_editor_store } from "../../stores/QuestEditorStore";
 import { EntityInfoComponent } from "./EntityInfoComponent";
 import "./QuestEditorComponent.css";
 import { QuestInfoComponent } from "./QuestInfoComponent";
-import { RendererComponent } from "./RendererComponent";
+import { RendererComponent } from "../RendererComponent";
+import { get_quest_renderer } from "../../rendering/QuestRenderer";
 
 @observer
 export class QuestEditorComponent extends Component<
@@ -31,7 +32,7 @@ export class QuestEditorComponent extends Component<
                 <Toolbar onSaveAsClicked={this.save_as_clicked} />
                 <div className="qe-QuestEditorComponent-main">
                     <QuestInfoComponent quest={quest} />
-                    <RendererComponent quest={quest} area={quest_editor_store.current_area} />
+                    <RendererComponent renderer={get_quest_renderer()} />
                     <EntityInfoComponent entity={quest_editor_store.selected_entity} />
                 </div>
                 <SaveAsForm

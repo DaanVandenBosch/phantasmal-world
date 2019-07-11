@@ -271,7 +271,10 @@ export class ResizableBufferCursor implements Cursor {
 
     array_buffer(size: number = this.size - this.position): ArrayBuffer {
         this.check_size("size", size, size);
-        const r = this.buffer.backing_buffer.slice(this.offset + this.position, size);
+        const r = this.buffer.backing_buffer.slice(
+            this.offset + this.position,
+            this.offset + this.position + size
+        );
         this._position += size;
         return r;
     }

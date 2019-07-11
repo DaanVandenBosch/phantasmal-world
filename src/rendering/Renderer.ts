@@ -1,21 +1,21 @@
 import * as THREE from "three";
 import {
+    Camera,
     Color,
+    Group,
     HemisphereLight,
     MOUSE,
-    PerspectiveCamera,
     Scene,
+    Vector2,
     Vector3,
     WebGLRenderer,
-    Vector2,
-    Group,
 } from "three";
 import OrbitControlsCreator from "three-orbit-controls";
 
 const OrbitControls = OrbitControlsCreator(THREE);
 
-export class Renderer {
-    protected camera: PerspectiveCamera;
+export class Renderer<C extends Camera> {
+    protected camera: C;
     protected controls: any;
     protected scene = new Scene();
     protected light_holder = new Group();
@@ -24,10 +24,10 @@ export class Renderer {
     private render_scheduled = false;
     private light = new HemisphereLight(0xffffff, 0x505050, 1);
 
-    constructor() {
+    constructor(camera: C) {
         this.renderer.setPixelRatio(window.devicePixelRatio);
 
-        this.camera = new PerspectiveCamera(75, 1, 0.1, 5000);
+        this.camera = camera;
 
         this.controls = new OrbitControls(this.camera, this.renderer.domElement);
         this.controls.mouseButtons.ORBIT = MOUSE.RIGHT;
@@ -46,8 +46,6 @@ export class Renderer {
 
     set_size(width: number, height: number): void {
         this.renderer.setSize(width, height);
-        this.camera.aspect = width / height;
-        this.camera.updateProjectionMatrix();
         this.schedule_render();
     }
 

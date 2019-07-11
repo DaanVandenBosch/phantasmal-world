@@ -8,6 +8,7 @@ import { area_store } from "./AreaStore";
 import { entity_store } from "./EntityStore";
 import { ArrayBufferCursor } from "../data_formats/cursor/ArrayBufferCursor";
 import { Endianness } from "../data_formats";
+import { read_file } from "../read_file";
 
 const logger = Logger.get("stores/QuestEditorStore");
 
@@ -48,58 +49,50 @@ class QuestEditorStore {
         }
     });
 
-    load_file = (file: File) => {
-        const reader = new FileReader();
-        reader.addEventListener("loadend", () => {
-            this.loadend(reader);
-        });
-        reader.readAsArrayBuffer(file);
-    };
-
     // TODO: notify user of problems.
-    private loadend = async (reader: FileReader) => {
-        if (!(reader.result instanceof ArrayBuffer)) {
-            logger.error("Couldn't read file.");
-            return;
-        }
+    load_file = async (file: File) => {
+        try {
+            const buffer = await read_file(file);
+            const quest = parse_quest(new ArrayBufferCursor(buffer, Endianness.Little));
+            this.set_quest(quest);
 
-        const quest = parse_quest(new ArrayBufferCursor(reader.result, Endianness.Little));
-        this.set_quest(quest);
+            if (quest) {
+                // Load section data.
+                for (const variant of quest.area_variants) {
+                    const sections = await area_store.get_area_sections(
+                        quest.episode,
+                        variant.area.id,
+                        variant.id
+                    );
+                    variant.sections = sections;
 
-        if (quest) {
-            // Load section data.
-            for (const variant of quest.area_variants) {
-                const sections = await area_store.get_area_sections(
-                    quest.episode,
-                    variant.area.id,
-                    variant.id
-                );
-                variant.sections = sections;
+                    // Generate object geometry.
+                    for (const object of quest.objects.filter(o => o.area_id === variant.area.id)) {
+                        try {
+                            const object_geom = await entity_store.get_object_geometry(object.type);
+                            this.set_section_on_visible_quest_entity(object, sections);
+                            object.object_3d = create_object_mesh(object, object_geom);
+                        } catch (e) {
+                            logger.error(e);
+                        }
+                    }
 
-                // Generate object geometry.
-                for (const object of quest.objects.filter(o => o.area_id === variant.area.id)) {
-                    try {
-                        const object_geom = await entity_store.get_object_geometry(object.type);
-                        this.set_section_on_visible_quest_entity(object, sections);
-                        object.object_3d = create_object_mesh(object, object_geom);
-                    } catch (e) {
-                        logger.error(e);
+                    // Generate NPC geometry.
+                    for (const npc of quest.npcs.filter(npc => npc.area_id === variant.area.id)) {
+                        try {
+                            const npc_geom = await entity_store.get_npc_geometry(npc.type);
+                            this.set_section_on_visible_quest_entity(npc, sections);
+                            npc.object_3d = create_npc_mesh(npc, npc_geom);
+                        } catch (e) {
+                            logger.error(e);
+                        }
                     }
                 }
-
-                // Generate NPC geometry.
-                for (const npc of quest.npcs.filter(npc => npc.area_id === variant.area.id)) {
-                    try {
-                        const npc_geom = await entity_store.get_npc_geometry(npc.type);
-                        this.set_section_on_visible_quest_entity(npc, sections);
-                        npc.object_3d = create_npc_mesh(npc, npc_geom);
-                    } catch (e) {
-                        logger.error(e);
-                    }
-                }
+            } else {
+                logger.error("Couldn't parse quest file.");
             }
-        } else {
-            logger.error("Couldn't parse quest file.");
+        } catch (e) {
+            logger.error("Couldn't read file.", e);
         }
     };
 

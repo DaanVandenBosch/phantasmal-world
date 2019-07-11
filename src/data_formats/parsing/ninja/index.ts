@@ -2,12 +2,15 @@ import { Cursor } from "../../cursor/Cursor";
 import { Vec3 } from "../../Vec3";
 import { NjcmModel, parse_njcm_model } from "./njcm";
 import { parse_xj_model, XjModel } from "./xj";
+import { parse_iff } from "../iff";
 
 // TODO:
 // - deal with multiple NJCM chunks
 // - deal with other types of chunks
 
 export const ANGLE_TO_RAD = (2 * Math.PI) / 0xffff;
+
+const NJCM = 0x4d434a4e;
 
 export type NjVertex = {
     position: Vec3;
@@ -123,25 +126,9 @@ function parse_ninja<M extends NjModel>(
     parse_model: (cursor: Cursor, context: any) => M,
     context: any
 ): NjObject<M>[] {
-    while (cursor.bytes_left) {
-        // Ninja uses a little endian variant of the IFF format.
-        // IFF files contain chunks preceded by an 8-byte header.
-        // The header consists of 4 ASCII characters for the "Type ID" and a 32-bit integer specifying the chunk size.
-        const iff_type_id = cursor.string_ascii(4, false, false);
-        const iff_chunk_size = cursor.u32();
-
-        if (iff_type_id === "NJCM") {
-            return parse_sibling_objects(cursor.take(iff_chunk_size), parse_model, context);
-        } else {
-            if (iff_chunk_size > cursor.bytes_left) {
-                break;
-            }
-
-            cursor.seek(iff_chunk_size);
-        }
-    }
-
-    return [];
+    return parse_iff(cursor)
+        .filter(chunk => chunk.type === NJCM)
+        .flatMap(chunk => parse_sibling_objects(chunk.data, parse_model, context));
 }
 
 // TODO: cache model and object offsets so we don't reparse the same data.

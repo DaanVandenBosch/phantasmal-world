@@ -3,11 +3,12 @@ import { UploadChangeParam } from "antd/lib/upload";
 import { UploadFile } from "antd/lib/upload/interface";
 import { observer } from "mobx-react";
 import React, { Component, ReactNode } from "react";
-import { model_viewer_store } from "../../stores/ModelViewerStore";
+import { model_viewer_store } from "../../../stores/ModelViewerStore";
 import { AnimationSelectionComponent } from "./AnimationSelectionComponent";
 import { ModelSelectionComponent } from "./ModelSelectionComponent";
 import "./ModelViewerComponent.less";
-import { RendererComponent } from "./RendererComponent";
+import { get_model_renderer } from "../../../rendering/ModelRenderer";
+import { RendererComponent } from "../../RendererComponent";
 
 @observer
 export class ModelViewerComponent extends Component {
@@ -19,12 +20,12 @@ export class ModelViewerComponent extends Component {
 
     render(): ReactNode {
         return (
-            <div className="mv-ModelViewerComponent">
+            <div className="v-m-ModelViewerComponent">
                 <Toolbar />
-                <div className="mv-ModelViewerComponent-main">
+                <div className="v-m-ModelViewerComponent-main">
                     <ModelSelectionComponent />
                     <AnimationSelectionComponent />
-                    <RendererComponent model={model_viewer_store.current_obj3d} />
+                    <RendererComponent renderer={get_model_renderer()} />
                 </div>
             </div>
         );
@@ -39,11 +40,11 @@ class Toolbar extends Component {
 
     render(): ReactNode {
         return (
-            <div className="mv-ModelViewerComponent-toolbar">
+            <div className="v-m-ModelViewerComponent-toolbar">
                 <Upload
-                    accept=".nj, .njm, .xj"
+                    accept=".nj, .njm, .xj, .xvm"
                     showUploadList={false}
-                    onChange={this.set_filename}
+                    onChange={this.load_file}
                     // Make sure it doesn't do a POST:
                     customRequest={() => false}
                 >
@@ -94,7 +95,7 @@ class Toolbar extends Component {
         );
     }
 
-    private set_filename = (info: UploadChangeParam<UploadFile>) => {
+    private load_file = (info: UploadChangeParam<UploadFile>) => {
         if (info.file.originFileObj) {
             this.setState({ filename: info.file.name });
             model_viewer_store.load_file(info.file.originFileObj);

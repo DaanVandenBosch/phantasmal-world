@@ -132,7 +132,7 @@ export function area_geometry_to_sections_and_object_3d(
             new MeshLambertMaterial({
                 color: 0x44aaff,
                 transparent: true,
-                opacity: 0.25,
+                opacity: 0.75,
                 side: DoubleSide,
             })
         );

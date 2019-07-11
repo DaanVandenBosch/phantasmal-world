@@ -2,6 +2,7 @@
     flex: 1;
     display: flex;
     align-items: stretch;
+    padding-top: 5px;
 }
 
 .ho-OptimizerComponent > *:nth-child(2) {

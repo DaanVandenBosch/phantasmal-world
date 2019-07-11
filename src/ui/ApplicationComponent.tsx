@@ -2,15 +2,15 @@ import { Menu, Select } from "antd";
 import { ClickParam } from "antd/lib/menu";
 import { observer } from "mobx-react";
 import React, { ReactNode } from "react";
+import { Server } from "../domain";
 import "./ApplicationComponent.less";
+import { DpsCalcComponent } from "./dps_calc/DpsCalcComponent";
 import { with_error_boundary } from "./ErrorBoundary";
 import { HuntOptimizerComponent } from "./hunt_optimizer/HuntOptimizerComponent";
 import { QuestEditorComponent } from "./quest_editor/QuestEditorComponent";
-import { DpsCalcComponent } from "./dps_calc/DpsCalcComponent";
-import { Server } from "../domain";
-import { ModelViewerComponent } from "./model_viewer/ModelViewerComponent";
+import { ViewerComponent } from "./viewer/ViewerComponent";
 
-const ModelViewer = with_error_boundary(ModelViewerComponent);
+const Viewer = with_error_boundary(ViewerComponent);
 const QuestEditor = with_error_boundary(QuestEditorComponent);
 const HuntOptimizer = with_error_boundary(HuntOptimizerComponent);
 const DpsCalc = with_error_boundary(DpsCalcComponent);
@@ -23,8 +23,8 @@ export class ApplicationComponent extends React.Component {
         let tool_component;
 
         switch (this.state.tool) {
-            case "model_viewer":
-                tool_component = <ModelViewer />;
+            case "viewer":
+                tool_component = <Viewer />;
                 break;
             case "quest_editor":
                 tool_component = <QuestEditor />;
@@ -47,8 +47,8 @@ export class ApplicationComponent extends React.Component {
                         selectedKeys={[this.state.tool]}
                         mode="horizontal"
                     >
-                        <Menu.Item key="model_viewer">
-                            Model Viewer<sup className="ApplicationComponent-beta">(Beta)</sup>
+                        <Menu.Item key="viewer">
+                            Viewer<sup className="ApplicationComponent-beta">(Beta)</sup>
                         </Menu.Item>
                         <Menu.Item key="quest_editor">
                             Quest Editor<sup className="ApplicationComponent-beta">(Beta)</sup>
@@ -79,6 +79,6 @@ export class ApplicationComponent extends React.Component {
             .slice(1)
             .split("&")
             .find(p => p.startsWith("tool="));
-        return param ? param.slice(5) : "model_viewer";
+        return param ? param.slice(5) : "viewer";
     }
 }

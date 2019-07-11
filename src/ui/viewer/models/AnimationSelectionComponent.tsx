@@ -1,5 +1,5 @@
 import React, { Component, ReactNode } from "react";
-import { model_viewer_store } from "../../stores/ModelViewerStore";
+import { model_viewer_store } from "../../../stores/ModelViewerStore";
 import "./AnimationSelectionComponent.less";
 import { observer } from "mobx-react";
 
@@ -7,7 +7,7 @@ import { observer } from "mobx-react";
 export class AnimationSelectionComponent extends Component {
     render(): ReactNode {
         return (
-            <section className="mv-AnimationSelectionComponent">
+            <section className="v-m-AnimationSelectionComponent">
                 <ul>
                     {model_viewer_store.animations.map(animation => {
                         const selected =

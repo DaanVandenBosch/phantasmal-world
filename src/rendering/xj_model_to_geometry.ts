@@ -12,8 +12,6 @@ export function xj_model_to_geometry(
     indices: number[]
 ): void {
     const index_offset = positions.length / 3;
-    let clockwise = true;
-
     const normal_matrix = new Matrix3().getNormalMatrix(matrix);
 
     for (let { position, normal } of model.vertices) {
@@ -25,13 +23,13 @@ export function xj_model_to_geometry(
         normals.push(n.x, n.y, n.z);
     }
 
-    for (const mesh of model.strips) {
-        const strip_indices = mesh.indices;
+    for (const mesh of model.meshes) {
+        let clockwise = true;
 
-        for (let j = 2; j < strip_indices.length; ++j) {
-            const a = index_offset + strip_indices[j - 2];
-            const b = index_offset + strip_indices[j - 1];
-            const c = index_offset + strip_indices[j];
+        for (let j = 2; j < mesh.indices.length; ++j) {
+            const a = index_offset + mesh.indices[j - 2];
+            const b = index_offset + mesh.indices[j - 1];
+            const c = index_offset + mesh.indices[j];
             const pa = new Vector3(positions[3 * a], positions[3 * a + 1], positions[3 * a + 2]);
             const pb = new Vector3(positions[3 * b], positions[3 * b + 1], positions[3 * b + 2]);
             const pc = new Vector3(positions[3 * c], positions[3 * c + 1], positions[3 * c + 2]);
@@ -70,25 +68,6 @@ export function xj_model_to_geometry(
             }
 
             clockwise = !clockwise;
-
-            // The following switch statement fixes model 180.xj (zanba).
-            // switch (j) {
-            //     case 17:
-            //     case 52:
-            //     case 70:
-            //     case 92:
-            //     case 97:
-            //     case 126:
-            //     case 140:
-            //     case 148:
-            //     case 187:
-            //     case 200:
-            //         console.warn(`swapping winding at: ${j}, (${a}, ${b}, ${c})`);
-            //         break;
-            //     default:
-            //         ccw = !ccw;
-            //         break;
-            // }
         }
     }
 }

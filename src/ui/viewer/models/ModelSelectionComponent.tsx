@@ -1,12 +1,12 @@
 import { List } from "antd";
 import React, { Component, ReactNode } from "react";
-import { model_viewer_store } from "../../stores/ModelViewerStore";
+import { model_viewer_store } from "../../../stores/ModelViewerStore";
 import "./ModelSelectionComponent.less";
 
 export class ModelSelectionComponent extends Component {
     render(): ReactNode {
         return (
-            <section className="mv-ModelSelectionComponent">
+            <section className="v-m-ModelSelectionComponent">
                 <List
                     itemLayout="horizontal"
                     dataSource={model_viewer_store.models}
@@ -20,7 +20,7 @@ export class ModelSelectionComponent extends Component {
                                     title={
                                         <span
                                             className={
-                                                "mv-ModelSelectionComponent-model" +
+                                                "v-m-ModelSelectionComponent-model" +
                                                 (selected ? " selected" : "")
                                             }
                                         >

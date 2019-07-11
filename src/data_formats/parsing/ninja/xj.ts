@@ -14,12 +14,12 @@ const logger = Logger.get("data_formats/parsing/ninja/xj");
 export type XjModel = {
     type: "xj";
     vertices: NjVertex[];
-    strips: XjTriangleStrip[];
+    meshes: XjMesh[];
     collision_sphere_position: Vec3;
     collision_sphere_radius: number;
 };
 
-export type XjTriangleStrip = {
+export type XjMesh = {
     indices: number[];
 };
 
@@ -37,7 +37,7 @@ export function parse_xj_model(cursor: Cursor): XjModel {
     const model: XjModel = {
         type: "xj",
         vertices: [],
-        strips: [],
+        meshes: [],
         collision_sphere_position,
         collision_sphere_radius,
     };
@@ -74,13 +74,13 @@ export function parse_xj_model(cursor: Cursor): XjModel {
     }
 
     if (triangle_strip_table_offset) {
-        model.strips.push(
+        model.meshes.push(
             ...parse_triangle_strip_table(cursor, triangle_strip_table_offset, triangle_strip_count)
         );
     }
 
     if (transparent_triangle_strip_table_offset) {
-        model.strips.push(
+        model.meshes.push(
             ...parse_triangle_strip_table(
                 cursor,
                 transparent_triangle_strip_table_offset,
@@ -96,20 +96,22 @@ function parse_triangle_strip_table(
     cursor: Cursor,
     triangle_strip_list_offset: number,
     triangle_strip_count: number
-): XjTriangleStrip[] {
-    const strips: XjTriangleStrip[] = [];
+): XjMesh[] {
+    const strips: XjMesh[] = [];
 
     for (let i = 0; i < triangle_strip_count; ++i) {
         cursor.seek_start(triangle_strip_list_offset + i * 20);
-        cursor.seek(8); // Skip flag_and_texture_id_offset and data_type.
+
+        cursor.seek(8); // Skipping flag_and_texture_id_offset and data_type?
         const index_list_offset = cursor.u32();
         const index_count = cursor.u32();
-        // Ignoring 4 bytes.
 
         cursor.seek_start(index_list_offset);
         const indices = cursor.u16_array(index_count);
 
-        strips.push({ indices });
+        strips.push({
+            indices,
+        });
     }
 
     return strips;

@@ -2,6 +2,8 @@ import { ANGLE_TO_RAD } from ".";
 import { Cursor } from "../../cursor/Cursor";
 import { Vec3 } from "../../Vec3";
 
+const NMDM = 0x4d444d4e;
+
 export type NjMotion = {
     motion_data: NjMotionData[];
     frame_count: number;
@@ -65,7 +67,7 @@ export type NjKeyframeA = {
 };
 
 export function parse_njm(cursor: Cursor, bone_count: number): NjMotion {
-    if (cursor.string_ascii(4, false, true) === "NMDM") {
+    if (cursor.u32() === NMDM) {
         return parse_njm_v2(cursor, bone_count);
     } else {
         cursor.seek_start(0);

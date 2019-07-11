@@ -1,5 +1,5 @@
 import { autorun } from "mobx";
-import { Clock, SkeletonHelper, SkinnedMesh, Vector3 } from "three";
+import { Clock, Object3D, SkeletonHelper, Vector3, PerspectiveCamera } from "three";
 import { model_viewer_store } from "../stores/ModelViewerStore";
 import { Renderer } from "./Renderer";
 
@@ -10,14 +10,18 @@ export function get_model_renderer(): ModelRenderer {
     return renderer;
 }
 
-export class ModelRenderer extends Renderer {
+export class ModelRenderer extends Renderer<PerspectiveCamera> {
     private clock = new Clock();
 
-    private model?: SkinnedMesh;
+    private model?: Object3D;
     private skeleton_helper?: SkeletonHelper;
 
     constructor() {
-        super();
+        super(new PerspectiveCamera(75, 1, 1, 200));
+
+        autorun(() => {
+            this.set_model(model_viewer_store.current_obj3d);
+        });
 
         autorun(() => {
             const show_skeleton = model_viewer_store.show_skeleton;
@@ -41,26 +45,10 @@ export class ModelRenderer extends Renderer {
         });
     }
 
-    set_model(model?: SkinnedMesh): void {
-        if (this.model !== model) {
-            if (this.model) {
-                this.scene.remove(this.model);
-                this.scene.remove(this.skeleton_helper!);
-                this.skeleton_helper = undefined;
-            }
-
-            if (model) {
-                this.scene.add(model);
-                this.skeleton_helper = new SkeletonHelper(model);
-                this.skeleton_helper.visible = model_viewer_store.show_skeleton;
-                (this.skeleton_helper.material as any).linewidth = 3;
-                this.scene.add(this.skeleton_helper);
-                this.reset_camera(new Vector3(0, 10, 20), new Vector3(0, 0, 0));
-            }
-
-            this.model = model;
-            this.schedule_render();
-        }
+    set_size(width: number, height: number): void {
+        this.camera.aspect = width / height;
+        this.camera.updateProjectionMatrix();
+        super.set_size(width, height);
     }
 
     protected render(): void {
@@ -75,5 +63,25 @@ export class ModelRenderer extends Renderer {
         if (model_viewer_store.animation && !model_viewer_store.animation.action.paused) {
             this.schedule_render();
         }
+    }
+
+    private set_model(model?: Object3D): void {
+        if (this.model) {
+            this.scene.remove(this.model);
+            this.scene.remove(this.skeleton_helper!);
+            this.skeleton_helper = undefined;
+        }
+
+        if (model) {
+            this.scene.add(model);
+            this.skeleton_helper = new SkeletonHelper(model);
+            this.skeleton_helper.visible = model_viewer_store.show_skeleton;
+            (this.skeleton_helper.material as any).linewidth = 3;
+            this.scene.add(this.skeleton_helper);
+            this.reset_camera(new Vector3(0, 10, 20), new Vector3(0, 0, 0));
+        }
+
+        this.model = model;
+        this.schedule_render();
     }
 }
