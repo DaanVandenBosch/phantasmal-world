@@ -98,7 +98,7 @@ class Toolbar extends Component {
     private load_file = (info: UploadChangeParam<UploadFile>) => {
         if (info.file.originFileObj) {
             this.setState({ filename: info.file.name });
-            model_viewer_store.load_file(info.file.originFileObj);
+            model_viewer_store.load_file(info.file.originFileObj as File);
         }
     };
 }

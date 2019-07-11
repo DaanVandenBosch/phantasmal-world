@@ -121,7 +121,7 @@ class Toolbar extends Component<{ onSaveAsClicked: (filename?: string) => void }
     private set_filename = (info: UploadChangeParam<UploadFile>) => {
         if (info.file.originFileObj) {
             this.setState({ filename: info.file.name });
-            quest_editor_store.load_file(info.file.originFileObj);
+            quest_editor_store.load_file(info.file.originFileObj as File);
         }
     };
 
