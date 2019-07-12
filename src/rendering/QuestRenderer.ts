@@ -10,7 +10,7 @@ import {
     Vector3,
     PerspectiveCamera,
 } from "three";
-import { Vec3 } from "../data_formats/Vec3";
+import { Vec3 } from "../data_formats/vector";
 import { Area, Quest, QuestEntity, QuestNpc, Section } from "../domain";
 import { area_store } from "../stores/AreaStore";
 import { quest_editor_store } from "../stores/QuestEditorStore";

@@ -1,5 +1,5 @@
 import { Endianness } from "..";
-import { Vec3 } from "../Vec3";
+import { Vec3 } from "../vector";
 
 /**
  * A cursor for reading binary data.

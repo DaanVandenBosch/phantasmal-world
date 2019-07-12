@@ -4,7 +4,7 @@ import { Endianness } from "../..";
 import { Cursor } from "../../cursor/Cursor";
 import { WritableResizableBufferCursor } from "../../cursor/WritableResizableBufferCursor";
 import { ResizableBuffer } from "../../ResizableBuffer";
-import { Vec3 } from "../../Vec3";
+import { Vec3 } from "../../vector";
 
 const logger = Logger.get("data_formats/parsing/quest/dat");
 

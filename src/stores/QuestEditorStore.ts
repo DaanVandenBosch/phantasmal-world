@@ -1,7 +1,7 @@
 import Logger from "js-logger";
 import { action, observable, runInAction } from "mobx";
 import { parse_quest, write_quest_qst } from "../data_formats/parsing/quest";
-import { Vec3 } from "../data_formats/Vec3";
+import { Vec3 } from "../data_formats/vector";
 import { Area, Quest, QuestEntity, Section } from "../domain";
 import { create_npc_mesh, create_object_mesh } from "../rendering/entities";
 import { area_store } from "./AreaStore";

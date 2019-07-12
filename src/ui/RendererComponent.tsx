@@ -6,6 +6,7 @@ import { Camera } from "three";
 export class RendererComponent extends Component<{
     renderer: Renderer<Camera>;
     className?: string;
+    on_will_unmount?: () => void;
 }> {
     render(): ReactNode {
         let className = "RendererComponent";
@@ -20,6 +21,7 @@ export class RendererComponent extends Component<{
 
     componentWillUnmount(): void {
         window.removeEventListener("resize", this.onResize);
+        this.props.on_will_unmount && this.props.on_will_unmount();
     }
 
     shouldComponentUpdate(): boolean {

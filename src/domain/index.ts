@@ -1,7 +1,7 @@
 import { computed, observable } from "mobx";
 import { Object3D } from "three";
 import { DatNpc, DatObject, DatUnknown } from "../data_formats/parsing/quest/dat";
-import { Vec3 } from "../data_formats/Vec3";
+import { Vec3 } from "../data_formats/vector";
 import { enum_values } from "../enums";
 import { ItemType } from "./items";
 import { NpcType } from "./NpcType";

@@ -1,6 +1,6 @@
 import Logger from "js-logger";
 import { Cursor } from "../../cursor/Cursor";
-import { Vec3 } from "../../Vec3";
+import { Vec3 } from "../../vector";
 import { NjVertex } from "../ninja";
 
 const logger = Logger.get("data_formats/parsing/ninja/xj");

@@ -8,6 +8,7 @@ import {
     Mesh,
     MeshLambertMaterial,
     SkinnedMesh,
+    Clock,
 } from "three";
 import { Endianness } from "../data_formats";
 import { ArrayBufferCursor } from "../data_formats/cursor/ArrayBufferCursor";
@@ -41,6 +42,8 @@ class ModelViewerStore {
     readonly animations: PlayerAnimation[] = new Array(572)
         .fill(undefined)
         .map((_, i) => new PlayerAnimation(i, `Animation ${i + 1}`));
+
+    readonly clock = new Clock();
 
     @observable.ref current_player_model?: PlayerModel;
     @observable.ref current_model?: NjObject<NjModel>;
@@ -117,10 +120,24 @@ class ModelViewerStore {
         }
     };
 
+    pause_animation = action("pause_animation", () => {
+        if (this.animation) {
+            this.animation.action.paused = true;
+            this.animation_playing = false;
+            this.clock.stop();
+        }
+    });
+
     toggle_animation_playing = action("toggle_animation_playing", () => {
         if (this.animation) {
             this.animation.action.paused = !this.animation.action.paused;
             this.animation_playing = !this.animation.action.paused;
+
+            if (this.animation_playing) {
+                this.clock.start();
+            } else {
+                this.clock.stop();
+            }
         }
     });
 
@@ -150,6 +167,7 @@ class ModelViewerStore {
             action: mixer.clipAction(clip),
         };
 
+        this.clock.start();
         this.animation.action.play();
         this.animation_playing = true;
         this.animation_frame_count = Math.round(PSO_FRAME_RATE * clip.duration) + 1;

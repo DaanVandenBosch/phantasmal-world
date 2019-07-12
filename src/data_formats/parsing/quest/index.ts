@@ -6,7 +6,7 @@ import * as prs from "../../compression/prs";
 import { ArrayBufferCursor } from "../../cursor/ArrayBufferCursor";
 import { Cursor } from "../../cursor/Cursor";
 import { ResizableBufferCursor } from "../../cursor/ResizableBufferCursor";
-import { Vec3 } from "../../Vec3";
+import { Vec3 } from "../../vector";
 import { Instruction, parse_bin, write_bin } from "./bin";
 import { DatFile, DatNpc, DatObject, parse_dat, write_dat } from "./dat";
 import { parse_qst, QstContainedFile, write_qst } from "./qst";

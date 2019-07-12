@@ -1,5 +1,5 @@
 import { Cursor } from "../../cursor/Cursor";
-import { Vec3 } from "../../Vec3";
+import { Vec3 } from "../../vector";
 import { NjcmModel, parse_njcm_model } from "./njcm";
 import { parse_xj_model, XjModel } from "./xj";
 import { parse_iff } from "../iff";

@@ -1,5 +1,5 @@
 import { Cursor } from "../cursor/Cursor";
-import { Vec3 } from "../Vec3";
+import { Vec3 } from "../vector";
 import { ANGLE_TO_RAD } from "./ninja";
 import { parse_xj_model, XjModel } from "./ninja/xj";
 import { parse_rel } from "./rel";

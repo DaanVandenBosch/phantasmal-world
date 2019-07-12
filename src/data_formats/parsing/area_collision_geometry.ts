@@ -1,5 +1,5 @@
 import { Cursor } from "../cursor/Cursor";
-import { Vec3 } from "../Vec3";
+import { Vec3 } from "../vector";
 import { parse_rel } from "./rel";
 
 export type CollisionObject = {

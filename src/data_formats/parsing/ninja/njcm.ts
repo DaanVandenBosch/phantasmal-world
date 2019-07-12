@@ -1,7 +1,7 @@
 import Logger from "js-logger";
 import { NjVertex } from ".";
 import { Cursor } from "../../cursor/Cursor";
-import { Vec3 } from "../../Vec3";
+import { Vec3, Vec2 } from "../../vector";
 
 const logger = Logger.get("data_formats/parsing/ninja/njcm");
 
@@ -121,18 +121,21 @@ type NjcmTriangleStrip = {
     flat_shading: boolean;
     environment_mapping: boolean;
     clockwise_winding: boolean;
+    has_tex_coords: boolean;
+    has_normal: boolean;
     vertices: NjcmMeshVertex[];
 };
 
 type NjcmMeshVertex = {
     index: number;
     normal?: Vec3;
+    tex_coords?: Vec2;
 };
 
 export function parse_njcm_model(cursor: Cursor, cached_chunk_offsets: number[]): NjcmModel {
     const vlist_offset = cursor.u32(); // Vertex list
     const plist_offset = cursor.u32(); // Triangle strip index list
-    const bounding_sphere_center = new Vec3(cursor.f32(), cursor.f32(), cursor.f32());
+    const bounding_sphere_center = cursor.vec3();
     const bounding_sphere_radius = cursor.f32();
     const vertices: NjVertex[] = [];
     const meshes: NjcmTriangleStrip[] = [];
@@ -295,11 +298,7 @@ function parse_vertex_chunk(cursor: Cursor, chunk_type_id: number, flags: number
     for (let i = 0; i < vertex_count; ++i) {
         const vertex: NjcmVertex = {
             index: index + i,
-            position: new Vec3(
-                cursor.f32(), // x
-                cursor.f32(), // y
-                cursor.f32() // z
-            ),
+            position: cursor.vec3(),
             bone_weight: 1,
             bone_weight_status,
             calc_continue,
@@ -311,11 +310,7 @@ function parse_vertex_chunk(cursor: Cursor, chunk_type_id: number, flags: number
         } else if (chunk_type_id === 33) {
             // NJD_CV_VN_SH
             cursor.seek(4); // Always 1.0
-            vertex.normal = new Vec3(
-                cursor.f32(), // x
-                cursor.f32(), // y
-                cursor.f32() // z
-            );
+            vertex.normal = cursor.vec3();
             cursor.seek(4); // Always 0.0
         } else if (35 <= chunk_type_id && chunk_type_id <= 40) {
             if (chunk_type_id === 37) {
@@ -328,11 +323,7 @@ function parse_vertex_chunk(cursor: Cursor, chunk_type_id: number, flags: number
                 cursor.seek(4);
             }
         } else if (41 <= chunk_type_id && chunk_type_id <= 47) {
-            vertex.normal = new Vec3(
-                cursor.f32(), // x
-                cursor.f32(), // y
-                cursor.f32() // z
-            );
+            vertex.normal = cursor.vec3();
 
             if (chunk_type_id >= 42) {
                 if (chunk_type_id === 44) {
@@ -383,50 +374,44 @@ function parse_triangle_strip_chunk(
     const user_offset_and_strip_count = cursor.u16();
     const user_flags_size = user_offset_and_strip_count >>> 14;
     const strip_count = user_offset_and_strip_count & 0x3fff;
-    let options;
+
+    let has_tex_coords = false;
+    let has_color = false;
+    let has_normal = false;
+    let has_double_tex_coords = false;
 
     switch (chunk_type_id) {
         case 64:
-            options = [false, false, false, false];
             break;
         case 65:
-            options = [true, false, false, false];
-            break;
         case 66:
-            options = [true, false, false, false];
+            has_tex_coords = true;
             break;
         case 67:
-            options = [false, false, true, false];
+            has_normal = true;
             break;
         case 68:
-            options = [true, false, true, false];
-            break;
         case 69:
-            options = [true, false, true, false];
+            has_tex_coords = true;
+            has_normal = true;
             break;
         case 70:
-            options = [false, true, false, false];
+            has_color = true;
             break;
         case 71:
-            options = [true, true, false, false];
-            break;
         case 72:
-            options = [true, true, false, false];
+            has_tex_coords = true;
+            has_color = true;
             break;
         case 73:
-            options = [false, false, false, false];
             break;
         case 74:
-            options = [true, false, false, true];
-            break;
         case 75:
-            options = [true, false, false, true];
+            has_double_tex_coords = true;
             break;
         default:
             throw new Error(`Unexpected chunk type ID: ${chunk_type_id}.`);
     }
-
-    const [parse_texture_coords, parse_color, parse_normal, parse_texture_coords_hires] = options;
 
     const strips: NjcmTriangleStrip[] = [];
 
@@ -443,22 +428,29 @@ function parse_triangle_strip_chunk(
             };
             vertices.push(vertex);
 
-            if (parse_texture_coords) {
+            if (has_tex_coords) {
+                vertex.tex_coords = new Vec2(cursor.u16(), cursor.u16());
+            }
+
+            // Ignore ARGB8888 color.
+            if (has_color) {
                 cursor.seek(4);
             }
 
-            if (parse_color) {
-                cursor.seek(4);
+            if (has_normal) {
+                vertex.normal = new Vec3(
+                    cursor.u16() / 255,
+                    cursor.u16() / 255,
+                    cursor.u16() / 255
+                );
             }
 
-            if (parse_normal) {
-                vertex.normal = new Vec3(cursor.u16(), cursor.u16(), cursor.u16());
-            }
-
-            if (parse_texture_coords_hires) {
+            // Ignore double texture coordinates (Ua, Vb, Ua, Vb).
+            if (has_double_tex_coords) {
                 cursor.seek(8);
             }
 
+            // User flags start at the third vertex because they are per-triangle.
             if (j >= 2) {
                 cursor.seek(2 * user_flags_size);
             }
@@ -467,6 +459,8 @@ function parse_triangle_strip_chunk(
         strips.push({
             ...render_flags,
             clockwise_winding,
+            has_tex_coords,
+            has_normal,
             vertices,
         });
     }

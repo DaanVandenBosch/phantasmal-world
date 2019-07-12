@@ -7,7 +7,7 @@ import {
 } from ".";
 import { Endianness } from "..";
 import { Cursor } from "./Cursor";
-import { Vec3 } from "../Vec3";
+import { Vec3 } from "../vector";
 
 /**
  * A cursor for reading from an array buffer or part of an array buffer.

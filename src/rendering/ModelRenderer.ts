@@ -1,5 +1,5 @@
 import { autorun } from "mobx";
-import { Clock, Object3D, SkeletonHelper, Vector3, PerspectiveCamera } from "three";
+import { Object3D, PerspectiveCamera, SkeletonHelper, Vector3 } from "three";
 import { model_viewer_store } from "../stores/ModelViewerStore";
 import { Renderer } from "./Renderer";
 
@@ -11,8 +11,6 @@ export function get_model_renderer(): ModelRenderer {
 }
 
 export class ModelRenderer extends Renderer<PerspectiveCamera> {
-    private clock = new Clock();
-
     private model?: Object3D;
     private skeleton_helper?: SkeletonHelper;
 
@@ -21,9 +19,7 @@ export class ModelRenderer extends Renderer<PerspectiveCamera> {
 
         autorun(() => {
             this.set_model(model_viewer_store.current_obj3d);
-        });
 
-        autorun(() => {
             const show_skeleton = model_viewer_store.show_skeleton;
 
             if (this.skeleton_helper) {
@@ -31,15 +27,13 @@ export class ModelRenderer extends Renderer<PerspectiveCamera> {
                 this.schedule_render();
             }
 
+            if (model_viewer_store.animation) {
+                this.schedule_render();
+            }
+
             if (!model_viewer_store.animation_playing) {
                 // Reference animation_frame here to make sure we render when the user sets the frame manually.
                 model_viewer_store.animation_frame;
-                this.schedule_render();
-            }
-        });
-
-        autorun(() => {
-            if (model_viewer_store.animation) {
                 this.schedule_render();
             }
         });
@@ -53,7 +47,7 @@ export class ModelRenderer extends Renderer<PerspectiveCamera> {
 
     protected render(): void {
         if (model_viewer_store.animation) {
-            model_viewer_store.animation.mixer.update(this.clock.getDelta());
+            model_viewer_store.animation.mixer.update(model_viewer_store.clock.getDelta());
             model_viewer_store.update_animation_frame();
         }
 
@@ -66,22 +60,24 @@ export class ModelRenderer extends Renderer<PerspectiveCamera> {
     }
 
     private set_model(model?: Object3D): void {
-        if (this.model) {
-            this.scene.remove(this.model);
-            this.scene.remove(this.skeleton_helper!);
-            this.skeleton_helper = undefined;
-        }
+        if (this.model !== model) {
+            if (this.model) {
+                this.scene.remove(this.model);
+                this.scene.remove(this.skeleton_helper!);
+                this.skeleton_helper = undefined;
+            }
 
-        if (model) {
-            this.scene.add(model);
-            this.skeleton_helper = new SkeletonHelper(model);
-            this.skeleton_helper.visible = model_viewer_store.show_skeleton;
-            (this.skeleton_helper.material as any).linewidth = 3;
-            this.scene.add(this.skeleton_helper);
-            this.reset_camera(new Vector3(0, 10, 20), new Vector3(0, 0, 0));
-        }
+            if (model) {
+                this.scene.add(model);
+                this.skeleton_helper = new SkeletonHelper(model);
+                this.skeleton_helper.visible = model_viewer_store.show_skeleton;
+                (this.skeleton_helper.material as any).linewidth = 3;
+                this.scene.add(this.skeleton_helper);
+                this.reset_camera(new Vector3(0, 10, 20), new Vector3(0, 0, 0));
+            }
 
-        this.model = model;
-        this.schedule_render();
+            this.model = model;
+            this.schedule_render();
+        }
     }
 }

@@ -8,7 +8,7 @@ import {
 import { Endianness } from "..";
 import { ResizableBuffer } from "../ResizableBuffer";
 import { Cursor } from "./Cursor";
-import { Vec3 } from "../Vec3";
+import { Vec3 } from "../vector";
 
 export class ResizableBufferCursor implements Cursor {
     private _offset: number;

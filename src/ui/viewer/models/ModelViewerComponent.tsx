@@ -25,7 +25,10 @@ export class ModelViewerComponent extends Component {
                 <div className="v-m-ModelViewerComponent-main">
                     <ModelSelectionComponent />
                     <AnimationSelectionComponent />
-                    <RendererComponent renderer={get_model_renderer()} />
+                    <RendererComponent
+                        renderer={get_model_renderer()}
+                        on_will_unmount={model_viewer_store.pause_animation}
+                    />
                 </div>
             </div>
         );
