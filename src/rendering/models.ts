@@ -19,9 +19,9 @@ import { is_njcm_model, NjModel, NjObject } from "../data_formats/parsing/ninja"
 import { NjcmModel } from "../data_formats/parsing/ninja/njcm";
 import { xj_model_to_geometry } from "./xj_model_to_geometry";
 
-const DEFAULT_MATERIAL = new MeshLambertMaterial({
+const DUMMY_MATERIAL = new MeshLambertMaterial({
     color: 0xff00ff,
-    side: DoubleSide,
+    transparent: true,
 });
 const DEFAULT_SKINNED_MATERIAL = new MeshLambertMaterial({
     skinning: true,
@@ -35,16 +35,16 @@ const NO_SCALE = new Vector3(1, 1, 1);
 
 export function ninja_object_to_buffer_geometry(
     object: NjObject<NjModel>,
-    material: Material = DEFAULT_MATERIAL
+    materials: Material[] = []
 ): BufferGeometry {
-    return new Object3DCreator(material).create_buffer_geometry(object);
+    return new Object3DCreator(materials).create_buffer_geometry(object);
 }
 
 export function ninja_object_to_skinned_mesh(
     object: NjObject<NjModel>,
-    material: Material = DEFAULT_SKINNED_MATERIAL
+    materials: Material[] = []
 ): SkinnedMesh {
-    return new Object3DCreator(material).create_skinned_mesh(object);
+    return new Object3DCreator(materials).create_skinned_mesh(object);
 }
 
 type Vertex = {
@@ -79,18 +79,21 @@ class VerticesHolder {
 }
 
 class Object3DCreator {
-    private material: Material;
-    private bone_id: number = 0;
+    private materials: Material[];
     private vertices = new VerticesHolder();
+    private bone_id: number = 0;
+    private bones: Bone[] = [];
+
     private positions: number[] = [];
     private normals: number[] = [];
+    private uvs: number[] = [];
     private indices: number[] = [];
     private bone_indices: number[] = [];
     private bone_weights: number[] = [];
-    private bones: Bone[] = [];
+    private groups: { start: number; count: number; mat_idx: number }[] = [];
 
-    constructor(material: Material) {
-        this.material = material;
+    constructor(materials: Material[]) {
+        this.materials = [DUMMY_MATERIAL, ...materials];
     }
 
     create_buffer_geometry(object: NjObject<NjModel>): BufferGeometry {
@@ -100,23 +103,34 @@ class Object3DCreator {
 
         geom.addAttribute("position", new Float32BufferAttribute(this.positions, 3));
         geom.addAttribute("normal", new Float32BufferAttribute(this.normals, 3));
+        geom.addAttribute("uv", new Float32BufferAttribute(this.uvs, 2));
+
         geom.setIndex(new Uint16BufferAttribute(this.indices, 1));
 
-        geom.computeBoundingSphere();
+        for (const group of this.groups) {
+            geom.addGroup(group.start, group.count, group.mat_idx);
+        }
+
+        geom.computeBoundingBox();
 
         return geom;
     }
 
     create_skinned_mesh(object: NjObject<NjModel>): SkinnedMesh {
         const geom = this.create_buffer_geometry(object);
+
         geom.addAttribute("skinIndex", new Uint16BufferAttribute(this.bone_indices, 4));
         geom.addAttribute("skinWeight", new Float32BufferAttribute(this.bone_weights, 4));
 
-        const mesh = new SkinnedMesh(geom, this.material);
+        const max_mat_idx = this.groups.reduce((max, g) => Math.max(max, g.mat_idx), 0);
 
-        const skeleton = new Skeleton(this.bones);
+        for (let i = this.materials.length - 1; i < max_mat_idx; ++i) {
+            this.materials.push(DEFAULT_SKINNED_MATERIAL);
+        }
+
+        const mesh = new SkinnedMesh(geom, this.materials);
         mesh.add(this.bones[0]);
-        mesh.bind(skeleton);
+        mesh.bind(new Skeleton(this.bones));
 
         return mesh;
     }
@@ -214,6 +228,8 @@ class Object3DCreator {
         this.vertices.put(new_vertices);
 
         for (const mesh of model.meshes) {
+            const start_index_count = this.indices.length;
+
             for (let i = 0; i < mesh.vertices.length; ++i) {
                 const mesh_vertex = mesh.vertices[i];
                 const vertices = this.vertices.get(mesh_vertex.index);
@@ -225,6 +241,12 @@ class Object3DCreator {
 
                     this.positions.push(vertex.position.x, vertex.position.y, vertex.position.z);
                     this.normals.push(normal.x, normal.y, normal.z);
+
+                    if (mesh.has_tex_coords) {
+                        this.uvs.push(mesh_vertex.tex_coords!.x, mesh_vertex.tex_coords!.y);
+                    } else {
+                        this.uvs.push(0, 0);
+                    }
 
                     if (i >= 2) {
                         if (i % 2 === (mesh.clockwise_winding ? 1 : 0)) {
@@ -250,6 +272,18 @@ class Object3DCreator {
                     this.bone_indices.push(...bone_indices);
                     this.bone_weights.push(...bone_weights);
                 }
+            }
+
+            const last_group = this.groups[this.groups.length - 1];
+
+            if (last_group && last_group.mat_idx === mesh.texture_id) {
+                last_group.count += this.indices.length - start_index_count;
+            } else {
+                this.groups.push({
+                    start: start_index_count,
+                    count: this.indices.length - start_index_count,
+                    mat_idx: mesh.texture_id == null ? 0 : mesh.texture_id + 1,
+                });
             }
         }
     }

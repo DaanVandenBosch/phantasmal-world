@@ -1,19 +1,20 @@
+import Logger from "js-logger";
 import { autorun } from "mobx";
 import {
-    CompressedTexture,
-    LinearFilter,
     Mesh,
     MeshBasicMaterial,
     OrthographicCamera,
     PlaneGeometry,
-    RGBA_S3TC_DXT1_Format,
-    RGBA_S3TC_DXT3_Format,
+    Texture,
     Vector2,
     Vector3,
 } from "three";
-import { Texture, Xvm } from "../data_formats/parsing/ninja/texture";
+import { Xvm } from "../data_formats/parsing/ninja/texture";
 import { texture_viewer_store } from "../stores/TextureViewerStore";
 import { Renderer } from "./Renderer";
+import { xvm_texture_to_texture } from "./textures";
+
+const logger = Logger.get("rendering/TextureRenderer");
 
 let renderer: TextureRenderer | undefined;
 
@@ -66,7 +67,14 @@ export class TextureRenderer extends Renderer<OrthographicCamera> {
         const y = -Math.floor(total_height / 2);
 
         for (const tex of xvm.textures) {
-            const tex_3js = this.create_texture(tex);
+            let tex_3js: Texture | undefined;
+
+            try {
+                tex_3js = xvm_texture_to_texture(tex);
+            } catch (e) {
+                logger.warn("Couldn't convert XVM texture.", e);
+            }
+
             const quad_mesh = new Mesh(
                 this.create_quad(
                     x,
@@ -74,11 +82,14 @@ export class TextureRenderer extends Renderer<OrthographicCamera> {
                     tex.width,
                     tex.height
                 ),
-                new MeshBasicMaterial({
-                    map: tex_3js,
-                    color: tex_3js ? undefined : 0xff00ff,
-                    transparent: true,
-                })
+                tex_3js
+                    ? new MeshBasicMaterial({
+                          map: tex_3js,
+                          transparent: true,
+                      })
+                    : new MeshBasicMaterial({
+                          color: 0xff00ff,
+                      })
             );
 
             this.quad_meshes.push(quad_mesh);
@@ -87,40 +98,6 @@ export class TextureRenderer extends Renderer<OrthographicCamera> {
             x += 10 + tex.width;
         }
     };
-
-    private create_texture(tex: Texture): CompressedTexture | undefined {
-        const texture_3js = new CompressedTexture(
-            [
-                {
-                    data: new Uint8Array(tex.data) as any,
-                    width: tex.width,
-                    height: tex.height,
-                },
-            ],
-            tex.width,
-            tex.height
-        );
-
-        switch (tex.format[1]) {
-            case 6:
-                texture_3js.format = RGBA_S3TC_DXT1_Format as any;
-                break;
-            case 7:
-                if (tex.format[0] === 2) {
-                    texture_3js.format = RGBA_S3TC_DXT3_Format as any;
-                } else {
-                    return undefined;
-                }
-                break;
-            default:
-                return undefined;
-        }
-
-        texture_3js.minFilter = LinearFilter;
-        texture_3js.needsUpdate = true;
-
-        return texture_3js;
-    }
 
     private create_quad(x: number, y: number, width: number, height: number): PlaneGeometry {
         const quad = new PlaneGeometry(width, height, 1, 1);

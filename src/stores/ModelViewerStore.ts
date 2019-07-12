@@ -4,20 +4,24 @@ import {
     AnimationAction,
     AnimationClip,
     AnimationMixer,
-    DoubleSide,
+    Clock,
     Mesh,
     MeshLambertMaterial,
     SkinnedMesh,
-    Clock,
+    Texture,
+    Vector3,
+    DoubleSide,
 } from "three";
 import { Endianness } from "../data_formats";
 import { ArrayBufferCursor } from "../data_formats/cursor/ArrayBufferCursor";
 import { NjModel, NjObject, parse_nj, parse_xj } from "../data_formats/parsing/ninja";
 import { NjMotion, parse_njm } from "../data_formats/parsing/ninja/motion";
+import { parse_xvm } from "../data_formats/parsing/ninja/texture";
 import { PlayerAnimation, PlayerModel } from "../domain";
 import { read_file } from "../read_file";
 import { create_animation_clip, PSO_FRAME_RATE } from "../rendering/animation";
 import { ninja_object_to_buffer_geometry, ninja_object_to_skinned_mesh } from "../rendering/models";
+import { xvm_to_textures } from "../rendering/textures";
 import { get_player_animation_data, get_player_data } from "./binary_assets";
 
 const logger = Logger.get("stores/ModelViewerStore");
@@ -61,6 +65,7 @@ class ModelViewerStore {
     @observable animation_frame: number = 0;
     @observable animation_frame_count: number = 0;
 
+    private has_skeleton = false;
     @observable show_skeleton: boolean = false;
 
     set_animation_frame_rate = action("set_animation_frame_rate", (rate: number) => {
@@ -111,6 +116,11 @@ class ModelViewerStore {
                 if (this.current_model) {
                     const njm = parse_njm(cursor, this.current_bone_count);
                     this.set_animation(create_animation_clip(this.current_model, njm));
+                }
+            } else if (file.name.endsWith(".xvm")) {
+                if (this.current_model) {
+                    const xvm = parse_xvm(cursor);
+                    this.set_textures(xvm_to_textures(xvm));
                 }
             } else {
                 logger.error(`Unknown file extension in filename "${file.name}".`);
@@ -185,23 +195,9 @@ class ModelViewerStore {
             this.current_player_model = player_model;
             this.current_model = model;
             this.current_bone_count = model.bone_count();
+            this.has_skeleton = skeleton;
 
-            let mesh: Mesh;
-
-            if (skeleton) {
-                mesh = ninja_object_to_skinned_mesh(this.current_model);
-            } else {
-                mesh = new Mesh(
-                    ninja_object_to_buffer_geometry(this.current_model),
-                    new MeshLambertMaterial({
-                        color: 0xff00ff,
-                        side: DoubleSide,
-                    })
-                );
-            }
-
-            mesh.translateY(-mesh.geometry.boundingSphere.radius);
-            this.current_obj3d = mesh;
+            this.set_obj3d();
         }
     );
 
@@ -286,6 +282,45 @@ class ModelViewerStore {
             return nj_motion;
         }
     }
+
+    private set_textures = action("set_textures", (textures: Texture[]) => {
+        this.set_obj3d(textures);
+    });
+
+    private set_obj3d = (textures?: Texture[]) => {
+        if (this.current_model) {
+            let mesh: Mesh;
+            let bb_size = new Vector3();
+
+            if (this.has_skeleton) {
+                mesh = ninja_object_to_skinned_mesh(
+                    this.current_model,
+                    textures &&
+                        textures.map(
+                            tex =>
+                                new MeshLambertMaterial({
+                                    skinning: true,
+                                    map: tex,
+                                    transparent: true,
+                                    side: DoubleSide,
+                                })
+                        )
+                );
+            } else {
+                mesh = new Mesh(
+                    ninja_object_to_buffer_geometry(this.current_model),
+                    new MeshLambertMaterial({
+                        color: 0xff00ff,
+                        side: DoubleSide,
+                    })
+                );
+            }
+
+            mesh.geometry.boundingBox.getSize(bb_size);
+            mesh.translateY(-bb_size.y / 2);
+            this.current_obj3d = mesh;
+        }
+    };
 }
 
 export const model_viewer_store = new ModelViewerStore();

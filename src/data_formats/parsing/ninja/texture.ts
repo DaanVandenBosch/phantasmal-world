@@ -5,10 +5,10 @@ import { parse_iff } from "../iff";
 const logger = Logger.get("data_formats/parsing/ninja/texture");
 
 export type Xvm = {
-    textures: Texture[];
+    textures: XvmTexture[];
 };
 
-export type Texture = {
+export type XvmTexture = {
     id: number;
     format: [number, number];
     width: number;
@@ -51,7 +51,7 @@ function parse_header(cursor: Cursor): Header {
     };
 }
 
-function parse_texture(cursor: Cursor): Texture {
+function parse_texture(cursor: Cursor): XvmTexture {
     const format_1 = cursor.u32();
     const format_2 = cursor.u32();
     const id = cursor.u32();

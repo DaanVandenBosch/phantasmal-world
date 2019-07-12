@@ -79,6 +79,14 @@ type NjcmDrawPolygonListChunk = {
 
 type NjcmTinyChunk = {
     type: NjcmChunkType.Tiny;
+    flip_u: boolean;
+    flip_v: boolean;
+    clamp_u: boolean;
+    clamp_v: boolean;
+    mipmap_d_adjust: number;
+    filter_mode: number;
+    super_sample: boolean;
+    texture_id: number;
 };
 
 type NjcmMaterialChunk = {
@@ -123,6 +131,7 @@ type NjcmTriangleStrip = {
     clockwise_winding: boolean;
     has_tex_coords: boolean;
     has_normal: boolean;
+    texture_id?: number;
     vertices: NjcmMeshVertex[];
 };
 
@@ -161,8 +170,16 @@ export function parse_njcm_model(cursor: Cursor, cached_chunk_offsets: number[])
     if (plist_offset) {
         cursor.seek_start(plist_offset);
 
+        let texture_id: number | undefined;
+
         for (const chunk of parse_chunks(cursor, cached_chunk_offsets, false)) {
-            if (chunk.type === NjcmChunkType.Strip) {
+            if (chunk.type === NjcmChunkType.Tiny) {
+                texture_id = chunk.texture_id;
+            } else if (chunk.type === NjcmChunkType.Strip) {
+                for (const strip of chunk.triangle_strips) {
+                    strip.texture_id = texture_id;
+                }
+
                 meshes.push(...chunk.triangle_strips);
             }
         }
@@ -229,9 +246,18 @@ function parse_chunks(
             });
         } else if (8 <= type_id && type_id <= 9) {
             size = 2;
+            const texture_bits_and_id = cursor.u16();
             chunks.push({
                 type: NjcmChunkType.Tiny,
                 type_id,
+                flip_u: (type_id & 0x80) !== 0,
+                flip_v: (type_id & 0x40) !== 0,
+                clamp_u: (type_id & 0x20) !== 0,
+                clamp_v: (type_id & 0x10) !== 0,
+                mipmap_d_adjust: type_id & 0b1111,
+                filter_mode: texture_bits_and_id >>> 14,
+                super_sample: (texture_bits_and_id & 0x40) !== 0,
+                texture_id: texture_bits_and_id & 0x1fff,
             });
         } else if (17 <= type_id && type_id <= 31) {
             size = 2 + 2 * cursor.u16();
@@ -429,7 +455,7 @@ function parse_triangle_strip_chunk(
             vertices.push(vertex);
 
             if (has_tex_coords) {
-                vertex.tex_coords = new Vec2(cursor.u16(), cursor.u16());
+                vertex.tex_coords = new Vec2(cursor.u16() / 255, cursor.u16() / 255);
             }
 
             // Ignore ARGB8888 color.
