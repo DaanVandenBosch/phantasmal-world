@@ -1,5 +1,10 @@
 import { NpcType, ObjectType } from "../domain";
 
+export enum AssetType {
+    Geometry,
+    Texture,
+}
+
 export function get_area_render_data(
     episode: number,
     area_id: number,
@@ -16,8 +21,11 @@ export function get_area_collision_data(
     return get_area_asset(episode, area_id, area_version, "collision");
 }
 
-export async function get_npc_data(npc_type: NpcType): Promise<{ url: string; data: ArrayBuffer }> {
-    const url = npc_type_to_url(npc_type);
+export async function get_npc_data(
+    npc_type: NpcType,
+    type: AssetType
+): Promise<{ url: string; data: ArrayBuffer }> {
+    const url = npc_type_to_url(npc_type, type);
     const data = await get_asset(url);
     return { url, data };
 }
@@ -143,60 +151,60 @@ function get_area_asset(
     }
 }
 
-function npc_type_to_url(npc_type: NpcType): string {
+function npc_type_to_url(npc_type: NpcType, type: AssetType): string {
     switch (npc_type) {
         // The dubswitch model is in XJ format.
         case NpcType.Dubswitch:
-            return `/npcs/${npc_type.code}.xj`;
+            return `/npcs/${npc_type.code}.${type === AssetType.Geometry ? "xj" : "xvm"}`;
 
         // Episode II VR Temple
 
         case NpcType.Hildebear2:
-            return npc_type_to_url(NpcType.Hildebear);
+            return npc_type_to_url(NpcType.Hildebear, type);
         case NpcType.Hildeblue2:
-            return npc_type_to_url(NpcType.Hildeblue);
+            return npc_type_to_url(NpcType.Hildeblue, type);
         case NpcType.RagRappy2:
-            return npc_type_to_url(NpcType.RagRappy);
+            return npc_type_to_url(NpcType.RagRappy, type);
         case NpcType.Monest2:
-            return npc_type_to_url(NpcType.Monest);
+            return npc_type_to_url(NpcType.Monest, type);
         case NpcType.PoisonLily2:
-            return npc_type_to_url(NpcType.PoisonLily);
+            return npc_type_to_url(NpcType.PoisonLily, type);
         case NpcType.NarLily2:
-            return npc_type_to_url(NpcType.NarLily);
+            return npc_type_to_url(NpcType.NarLily, type);
         case NpcType.GrassAssassin2:
-            return npc_type_to_url(NpcType.GrassAssassin);
+            return npc_type_to_url(NpcType.GrassAssassin, type);
         case NpcType.Dimenian2:
-            return npc_type_to_url(NpcType.Dimenian);
+            return npc_type_to_url(NpcType.Dimenian, type);
         case NpcType.LaDimenian2:
-            return npc_type_to_url(NpcType.LaDimenian);
+            return npc_type_to_url(NpcType.LaDimenian, type);
         case NpcType.SoDimenian2:
-            return npc_type_to_url(NpcType.SoDimenian);
+            return npc_type_to_url(NpcType.SoDimenian, type);
         case NpcType.DarkBelra2:
-            return npc_type_to_url(NpcType.DarkBelra);
+            return npc_type_to_url(NpcType.DarkBelra, type);
 
         // Episode II VR Spaceship
 
         case NpcType.SavageWolf2:
-            return npc_type_to_url(NpcType.SavageWolf);
+            return npc_type_to_url(NpcType.SavageWolf, type);
         case NpcType.BarbarousWolf2:
-            return npc_type_to_url(NpcType.BarbarousWolf);
+            return npc_type_to_url(NpcType.BarbarousWolf, type);
         case NpcType.PanArms2:
-            return npc_type_to_url(NpcType.PanArms);
+            return npc_type_to_url(NpcType.PanArms, type);
         case NpcType.Dubchic2:
-            return npc_type_to_url(NpcType.Dubchic);
+            return npc_type_to_url(NpcType.Dubchic, type);
         case NpcType.Gilchic2:
-            return npc_type_to_url(NpcType.Gilchic);
+            return npc_type_to_url(NpcType.Gilchic, type);
         case NpcType.Garanz2:
-            return npc_type_to_url(NpcType.Garanz);
+            return npc_type_to_url(NpcType.Garanz, type);
         case NpcType.Dubswitch2:
-            return npc_type_to_url(NpcType.Dubswitch);
+            return npc_type_to_url(NpcType.Dubswitch, type);
         case NpcType.Delsaber2:
-            return npc_type_to_url(NpcType.Delsaber);
+            return npc_type_to_url(NpcType.Delsaber, type);
         case NpcType.ChaosSorcerer2:
-            return npc_type_to_url(NpcType.ChaosSorcerer);
+            return npc_type_to_url(NpcType.ChaosSorcerer, type);
 
         default:
-            return `/npcs/${npc_type.code}.nj`;
+            return `/npcs/${npc_type.code}.${type === AssetType.Geometry ? "nj" : "xvm"}`;
     }
 }
 

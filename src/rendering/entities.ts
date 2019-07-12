@@ -1,4 +1,12 @@
-import { BufferGeometry, DoubleSide, Mesh, MeshLambertMaterial } from "three";
+import {
+    BufferGeometry,
+    DoubleSide,
+    Mesh,
+    MeshBasicMaterial,
+    MeshLambertMaterial,
+    Texture,
+    Material,
+} from "three";
 import { QuestEntity, QuestNpc, QuestObject } from "../domain";
 
 export const OBJECT_COLOR = 0xffff00;
@@ -9,26 +17,55 @@ export const NPC_HOVER_COLOR = 0xff3f5f;
 export const NPC_SELECTED_COLOR = 0xff0054;
 
 export function create_object_mesh(object: QuestObject, geometry: BufferGeometry): Mesh {
-    return create_mesh(object, geometry, OBJECT_COLOR, "Object");
+    return create_mesh(object, geometry, [], OBJECT_COLOR, "Object");
 }
 
-export function create_npc_mesh(npc: QuestNpc, geometry: BufferGeometry): Mesh {
-    return create_mesh(npc, geometry, NPC_COLOR, "NPC");
+export function create_npc_mesh(
+    npc: QuestNpc,
+    geometry: BufferGeometry,
+    textures: Texture[]
+): Mesh {
+    return create_mesh(npc, geometry, textures, NPC_COLOR, "NPC");
 }
 
 function create_mesh(
     entity: QuestEntity,
     geometry: BufferGeometry,
+    textures: Texture[],
     color: number,
     type: string
 ): Mesh {
-    const mesh = new Mesh(
-        geometry,
-        new MeshLambertMaterial({
+    const max_mat_idx = geometry.groups.reduce((max, g) => Math.max(max, g.materialIndex || 0), 0);
+
+    const materials: Material[] = [
+        new MeshBasicMaterial({
             color,
-            side: DoubleSide,
-        })
+            transparent: true,
+        }),
+    ];
+
+    materials.push(
+        ...textures.map(
+            tex =>
+                new MeshLambertMaterial({
+                    skinning: true,
+                    map: tex,
+                    transparent: true,
+                    side: DoubleSide,
+                })
+        )
     );
+
+    for (let i = materials.length - 1; i < max_mat_idx; ++i) {
+        materials.push(
+            new MeshLambertMaterial({
+                color,
+                side: DoubleSide,
+            })
+        );
+    }
+
+    const mesh = new Mesh(geometry, materials);
     mesh.name = type;
     mesh.userData.entity = entity;
 

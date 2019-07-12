@@ -81,8 +81,9 @@ class QuestEditorStore {
                     for (const npc of quest.npcs.filter(npc => npc.area_id === variant.area.id)) {
                         try {
                             const npc_geom = await entity_store.get_npc_geometry(npc.type);
+                            const npc_tex = await entity_store.get_npc_tex(npc.type);
                             this.set_section_on_visible_quest_entity(npc, sections);
-                            npc.object_3d = create_npc_mesh(npc, npc_geom);
+                            npc.object_3d = create_npc_mesh(npc, npc_geom, npc_tex);
                         } catch (e) {
                             logger.error(e);
                         }

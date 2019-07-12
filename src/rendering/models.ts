@@ -13,13 +13,14 @@ import {
     SkinnedMesh,
     Uint16BufferAttribute,
     Vector3,
+    MeshBasicMaterial,
 } from "three";
 import { vec3_to_threejs } from ".";
 import { is_njcm_model, NjModel, NjObject } from "../data_formats/parsing/ninja";
 import { NjcmModel } from "../data_formats/parsing/ninja/njcm";
 import { xj_model_to_geometry } from "./xj_model_to_geometry";
 
-const DUMMY_MATERIAL = new MeshLambertMaterial({
+const DUMMY_MATERIAL = new MeshBasicMaterial({
     color: 0xff00ff,
     transparent: true,
 });
@@ -33,11 +34,8 @@ const NO_TRANSLATION = new Vector3(0, 0, 0);
 const NO_ROTATION = new Quaternion(0, 0, 0, 1);
 const NO_SCALE = new Vector3(1, 1, 1);
 
-export function ninja_object_to_buffer_geometry(
-    object: NjObject<NjModel>,
-    materials: Material[] = []
-): BufferGeometry {
-    return new Object3DCreator(materials).create_buffer_geometry(object);
+export function ninja_object_to_buffer_geometry(object: NjObject<NjModel>): BufferGeometry {
+    return new Object3DCreator([]).create_buffer_geometry(object);
 }
 
 export function ninja_object_to_skinned_mesh(

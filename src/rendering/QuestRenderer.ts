@@ -181,24 +181,36 @@ export class QuestRenderer extends Renderer<PerspectiveCamera> {
 
         // Did we pick a different object than the previously hovered over 3D object?
         if (this.hovered_data && (!data || data.object !== this.hovered_data.object)) {
-            (this.hovered_data.object.material as MeshLambertMaterial).color.set(
-                this.get_color(this.hovered_data.entity, "normal")
-            );
+            const color = this.get_color(this.hovered_data.entity, "hover");
+
+            for (const material of this.hovered_data.object.material as MeshLambertMaterial[]) {
+                material.color.set(color);
+            }
         }
 
         // Did we pick a different object than the previously selected 3D object?
         if (this.selected_data && (!data || data.object !== this.selected_data.object)) {
-            (this.selected_data.object.material as MeshLambertMaterial).color.set(
-                this.get_color(this.selected_data.entity, "normal")
-            );
+            const color = this.get_color(this.selected_data.entity, "normal");
+
+            for (const material of this.selected_data.object.material as MeshLambertMaterial[]) {
+                if (material.map) {
+                    material.color.set(0xffffff);
+                } else {
+                    material.color.set(color);
+                }
+            }
+
             this.selected_data.manipulating = false;
         }
 
         if (data) {
             // User selected an entity.
-            (data.object.material as MeshLambertMaterial).color.set(
-                this.get_color(data.entity, "selected")
-            );
+            const color = this.get_color(data.entity, "selected");
+
+            for (const material of data.object.material as MeshLambertMaterial[]) {
+                material.color.set(color);
+            }
+
             data.manipulating = true;
             this.hovered_data = data;
             this.selected_data = data;
@@ -306,9 +318,15 @@ export class QuestRenderer extends Renderer<PerspectiveCamera> {
 
             if (old_data && (!data || data.object !== old_data.object)) {
                 if (!this.selected_data || old_data.object !== this.selected_data.object) {
-                    (old_data.object.material as MeshLambertMaterial).color.set(
-                        this.get_color(old_data.entity, "normal")
-                    );
+                    const color = this.get_color(old_data.entity, "normal");
+
+                    for (const material of old_data.object.material as MeshLambertMaterial[]) {
+                        if (material.map) {
+                            material.color.set(0xffffff);
+                        } else {
+                            material.color.set(color);
+                        }
+                    }
                 }
 
                 this.hovered_data = undefined;
@@ -317,9 +335,11 @@ export class QuestRenderer extends Renderer<PerspectiveCamera> {
 
             if (data && (!old_data || data.object !== old_data.object)) {
                 if (!this.selected_data || data.object !== this.selected_data.object) {
-                    (data.object.material as MeshLambertMaterial).color.set(
-                        this.get_color(data.entity, "hover")
-                    );
+                    const color = this.get_color(data.entity, "hover");
+
+                    for (const material of data.object.material as MeshLambertMaterial[]) {
+                        material.color.set(color);
+                    }
                 }
 
                 this.hovered_data = data;
