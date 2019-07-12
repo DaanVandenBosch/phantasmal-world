@@ -273,14 +273,15 @@ class Object3DCreator {
             }
 
             const last_group = this.groups[this.groups.length - 1];
+            const mat_idx = mesh.texture_id == null ? 0 : mesh.texture_id + 1;
 
-            if (last_group && last_group.mat_idx === mesh.texture_id) {
+            if (last_group && last_group.mat_idx === mat_idx) {
                 last_group.count += this.indices.length - start_index_count;
             } else {
                 this.groups.push({
                     start: start_index_count,
                     count: this.indices.length - start_index_count,
-                    mat_idx: mesh.texture_id == null ? 0 : mesh.texture_id + 1,
+                    mat_idx,
                 });
             }
         }

@@ -60,7 +60,7 @@ export class QuestRenderer extends Renderer<PerspectiveCamera> {
     private selected_data?: PickEntityResult;
 
     constructor() {
-        super(new PerspectiveCamera(75, 1, 0.1, 5000));
+        super(new PerspectiveCamera(60, 1, 10, 10000));
 
         this.dom_element.addEventListener("mousedown", this.on_mouse_down);
         this.dom_element.addEventListener("mouseup", this.on_mouse_up);
