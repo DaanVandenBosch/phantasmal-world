@@ -1,11 +1,12 @@
-import { Xvm, XvmTexture } from "../data_formats/parsing/ninja/texture";
 import {
-    Texture,
-    LinearFilter,
-    RGBA_S3TC_DXT3_Format,
-    RGBA_S3TC_DXT1_Format,
     CompressedTexture,
+    LinearFilter,
+    MirroredRepeatWrapping,
+    RGBA_S3TC_DXT1_Format,
+    RGBA_S3TC_DXT3_Format,
+    Texture,
 } from "three";
+import { Xvm, XvmTexture } from "../data_formats/parsing/ninja/texture";
 
 export function xvm_to_textures(xvm: Xvm): Texture[] {
     return xvm.textures.map(xvm_texture_to_texture);
@@ -40,6 +41,8 @@ export function xvm_texture_to_texture(tex: XvmTexture): Texture {
     }
 
     texture_3js.minFilter = LinearFilter;
+    texture_3js.wrapS = MirroredRepeatWrapping;
+    texture_3js.wrapT = MirroredRepeatWrapping;
     texture_3js.needsUpdate = true;
 
     return texture_3js;
