@@ -44,6 +44,7 @@ function create_mesh(
     const materials: Material[] = [
         new MeshBasicMaterial({
             color,
+            side: DoubleSide,
         }),
     ];
 
@@ -51,7 +52,6 @@ function create_mesh(
         ...textures.map(
             tex =>
                 new MeshLambertMaterial({
-                    skinning: true,
                     map: tex,
                     side: DoubleSide,
                     alphaTest: 0.5,

@@ -127,6 +127,7 @@ class Object3DCreator {
             geom.addGroup(group.start, group.count, group.material_index);
         }
 
+        geom.computeBoundingSphere();
         geom.computeBoundingBox();
 
         return geom;

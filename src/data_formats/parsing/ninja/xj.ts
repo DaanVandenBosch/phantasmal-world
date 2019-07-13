@@ -62,9 +62,8 @@ export function parse_xj_model(cursor: Cursor): XjModel {
         }
 
         cursor.seek_start(vertex_info_table_offset);
-        cursor.seek(4); // Vertex type.
-        // Vertex Types
-        // 3) size: 32, has position, normal, uv
+        const vertex_type = cursor.u16();
+        cursor.seek(2); // Flags?
         const vertex_table_offset = cursor.u32();
         const vertex_size = cursor.u32();
         const vertex_count = cursor.u32();
@@ -76,13 +75,38 @@ export function parse_xj_model(cursor: Cursor): XjModel {
             let normal: Vec3 | undefined;
             let uv: Vec2 | undefined;
 
-            if (vertex_size === 28 || vertex_size === 32 || vertex_size === 36) {
-                normal = cursor.vec3_f32();
+            switch (vertex_type) {
+                case 3:
+                    normal = cursor.vec3_f32();
+                    uv = cursor.vec2_f32();
+                    break;
+                case 4:
+                    // Skip 4 bytes.
+                    break;
+                case 5:
+                    cursor.seek(4);
+                    uv = cursor.vec2_f32();
+                    break;
+                case 6:
+                    normal = cursor.vec3_f32();
+                    // Skip 4 bytes.
+                    break;
+                case 7:
+                    normal = cursor.vec3_f32();
+                    uv = cursor.vec2_f32();
+                    break;
+                default:
+                    logger.warn(`Unknown vertex type ${vertex_type} with size ${vertex_size}.`);
+                    break;
             }
 
-            if (vertex_size === 24 || vertex_size === 32 || vertex_size === 36) {
-                uv = cursor.vec2_f32();
-            }
+            // if (vertex_size === 28 || vertex_size === 32 || vertex_size === 36) {
+            //     normal = cursor.vec3_f32();
+            // }
+
+            // if (vertex_size === 24 || vertex_size === 32 || vertex_size === 36) {
+            //     uv = cursor.vec2_f32();
+            // }
 
             model.vertices.push({
                 position,

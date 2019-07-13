@@ -22,7 +22,7 @@ export class Renderer<C extends Camera> {
 
     private renderer = new WebGLRenderer({ antialias: true });
     private render_scheduled = false;
-    private light = new HemisphereLight(0xffffff, 0x505050, 1);
+    private light = new HemisphereLight(0xffffff, 0x505050, 1.2);
 
     constructor(camera: C) {
         this.renderer.setPixelRatio(window.devicePixelRatio);

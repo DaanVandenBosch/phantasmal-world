@@ -297,7 +297,7 @@ class ModelViewerStore {
                 textures.map(
                     tex =>
                         new MeshLambertMaterial({
-                            skinning: true,
+                            skinning: this.has_skeleton,
                             map: tex,
                             side: DoubleSide,
                             alphaTest: 0.5,

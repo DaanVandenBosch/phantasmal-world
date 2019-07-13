@@ -31,10 +31,32 @@ const npc_tex_cache: Map<NpcType, Promise<Texture[]>> = new Map();
 npc_tex_cache.set(NpcType.Unknown, DEFAULT_ENTITY_TEX_PROMISE);
 
 const object_cache: Map<ObjectType, Promise<BufferGeometry>> = new Map();
-object_cache.set(ObjectType.Unknown, DEFAULT_ENTITY_PROMISE);
-
 const object_tex_cache: Map<ObjectType, Promise<Texture[]>> = new Map();
-object_tex_cache.set(ObjectType.Unknown, DEFAULT_ENTITY_TEX_PROMISE);
+
+for (const type of [
+    ObjectType.Unknown,
+    ObjectType.PlayerSet,
+    ObjectType.FogCollision,
+    ObjectType.EventCollision,
+    ObjectType.ObjRoomID,
+    ObjectType.ScriptCollision,
+    ObjectType.ItemLight,
+    ObjectType.FogCollisionSW,
+    ObjectType.MenuActivation,
+    ObjectType.BoxDetectObject,
+    ObjectType.SymbolChatObject,
+    ObjectType.TouchPlateObject,
+    ObjectType.TargetableObject,
+    ObjectType.EffectObject,
+    ObjectType.CountDownObject,
+    ObjectType.TelepipeLocation,
+    ObjectType.Pioneer2InvisibleTouchplate,
+    ObjectType.TempleMapDetect,
+    ObjectType.LabInvisibleObject,
+]) {
+    object_cache.set(type, DEFAULT_ENTITY_PROMISE);
+    object_tex_cache.set(type, DEFAULT_ENTITY_TEX_PROMISE);
+}
 
 class EntityStore {
     async get_npc_geometry(npc_type: NpcType): Promise<BufferGeometry> {
