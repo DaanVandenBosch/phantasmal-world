@@ -33,6 +33,9 @@ npc_tex_cache.set(NpcType.Unknown, DEFAULT_ENTITY_TEX_PROMISE);
 const object_cache: Map<ObjectType, Promise<BufferGeometry>> = new Map();
 object_cache.set(ObjectType.Unknown, DEFAULT_ENTITY_PROMISE);
 
+const object_tex_cache: Map<ObjectType, Promise<Texture[]>> = new Map();
+object_tex_cache.set(ObjectType.Unknown, DEFAULT_ENTITY_TEX_PROMISE);
+
 class EntityStore {
     async get_npc_geometry(npc_type: NpcType): Promise<BufferGeometry> {
         let mesh = npc_cache.get(npc_type);
@@ -90,7 +93,7 @@ class EntityStore {
         if (geometry) {
             return geometry;
         } else {
-            geometry = get_object_data(object_type)
+            geometry = get_object_data(object_type, AssetType.Geometry)
                 .then(({ url, data }) => {
                     const cursor = new ArrayBufferCursor(data, Endianness.Little);
                     const nj_objects = url.endsWith(".nj") ? parse_nj(cursor) : parse_xj(cursor);
@@ -109,6 +112,28 @@ class EntityStore {
 
             object_cache.set(object_type, geometry);
             return geometry;
+        }
+    }
+
+    async get_object_tex(object_type: ObjectType): Promise<Texture[]> {
+        let tex = object_tex_cache.get(object_type);
+
+        if (tex) {
+            return tex;
+        } else {
+            tex = get_object_data(object_type, AssetType.Texture)
+                .then(({ data }) => {
+                    const cursor = new ArrayBufferCursor(data, Endianness.Little);
+                    const xvm = parse_xvm(cursor);
+                    return xvm_to_textures(xvm);
+                })
+                .catch(e => {
+                    logger.warn(`Could load texture file for ${object_type.name}.`, e);
+                    return DEFAULT_ENTITY_TEX;
+                });
+
+            object_tex_cache.set(object_type, tex);
+            return tex;
         }
     }
 }

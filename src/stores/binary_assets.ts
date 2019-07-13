@@ -31,9 +31,10 @@ export async function get_npc_data(
 }
 
 export async function get_object_data(
-    object_type: ObjectType
+    object_type: ObjectType,
+    type: AssetType
 ): Promise<{ url: string; data: ArrayBuffer }> {
-    const url = object_type_to_url(object_type);
+    const url = object_type_to_url(object_type, type);
     const data = await get_asset(url);
     return { url, data };
 }
@@ -208,28 +209,32 @@ function npc_type_to_url(npc_type: NpcType, type: AssetType): string {
     }
 }
 
-function object_type_to_url(object_type: ObjectType): string {
-    switch (object_type) {
-        case ObjectType.EasterEgg:
-        case ObjectType.ChristmasTree:
-        case ObjectType.ChristmasWreath:
-        case ObjectType.TwentyFirstCentury:
-        case ObjectType.Sonic:
-        case ObjectType.WelcomeBoard:
-        case ObjectType.FloatingJelifish:
-        case ObjectType.RuinsSeal:
-        case ObjectType.Dolphin:
-        case ObjectType.Cacti:
-        case ObjectType.BigBrownRock:
-        case ObjectType.PoisonPlant:
-        case ObjectType.BigBlackRocks:
-        case ObjectType.FallingRock:
-        case ObjectType.DesertFixedTypeBoxBreakableCrystals:
-        case ObjectType.BeeHive:
-            return `/objects/${object_type.pso_id}.nj`;
+function object_type_to_url(object_type: ObjectType, type: AssetType): string {
+    if (type === AssetType.Geometry) {
+        switch (object_type) {
+            case ObjectType.EasterEgg:
+            case ObjectType.ChristmasTree:
+            case ObjectType.ChristmasWreath:
+            case ObjectType.TwentyFirstCentury:
+            case ObjectType.Sonic:
+            case ObjectType.WelcomeBoard:
+            case ObjectType.FloatingJelifish:
+            case ObjectType.RuinsSeal:
+            case ObjectType.Dolphin:
+            case ObjectType.Cacti:
+            case ObjectType.BigBrownRock:
+            case ObjectType.PoisonPlant:
+            case ObjectType.BigBlackRocks:
+            case ObjectType.FallingRock:
+            case ObjectType.DesertFixedTypeBoxBreakableCrystals:
+            case ObjectType.BeeHive:
+                return `/objects/${object_type.pso_id}.nj`;
 
-        default:
-            return `/objects/${object_type.pso_id}.xj`;
+            default:
+                return `/objects/${object_type.pso_id}.xj`;
+        }
+    } else {
+        return `/objects/${object_type.pso_id}.xvm`;
     }
 }
 

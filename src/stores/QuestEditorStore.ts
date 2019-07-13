@@ -70,8 +70,9 @@ class QuestEditorStore {
                     for (const object of quest.objects.filter(o => o.area_id === variant.area.id)) {
                         try {
                             const object_geom = await entity_store.get_object_geometry(object.type);
+                            const object_tex = await entity_store.get_object_tex(object.type);
                             this.set_section_on_visible_quest_entity(object, sections);
-                            object.object_3d = create_object_mesh(object, object_geom);
+                            object.object_3d = create_object_mesh(object, object_geom, object_tex);
                         } catch (e) {
                             logger.error(e);
                         }

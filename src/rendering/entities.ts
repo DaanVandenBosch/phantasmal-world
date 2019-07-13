@@ -16,8 +16,12 @@ export const NPC_COLOR = 0xff0000;
 export const NPC_HOVER_COLOR = 0xff3f5f;
 export const NPC_SELECTED_COLOR = 0xff0054;
 
-export function create_object_mesh(object: QuestObject, geometry: BufferGeometry): Mesh {
-    return create_mesh(object, geometry, [], OBJECT_COLOR, "Object");
+export function create_object_mesh(
+    object: QuestObject,
+    geometry: BufferGeometry,
+    textures: Texture[]
+): Mesh {
+    return create_mesh(object, geometry, textures, OBJECT_COLOR, "Object");
 }
 
 export function create_npc_mesh(
