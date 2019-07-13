@@ -301,8 +301,8 @@ class ModelViewerStore {
                                 new MeshLambertMaterial({
                                     skinning: true,
                                     map: tex,
-                                    transparent: true,
                                     side: DoubleSide,
+                                    alphaTest: 0.5,
                                 })
                         )
                 );
@@ -312,6 +312,7 @@ class ModelViewerStore {
                     new MeshLambertMaterial({
                         color: 0xff00ff,
                         side: DoubleSide,
+                        alphaTest: 0.5,
                     })
                 );
             }

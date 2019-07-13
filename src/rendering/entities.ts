@@ -40,7 +40,6 @@ function create_mesh(
     const materials: Material[] = [
         new MeshBasicMaterial({
             color,
-            transparent: true,
         }),
     ];
 
@@ -50,8 +49,8 @@ function create_mesh(
                 new MeshLambertMaterial({
                     skinning: true,
                     map: tex,
-                    transparent: true,
                     side: DoubleSide,
+                    alphaTest: 0.5,
                 })
         )
     );
