@@ -24,6 +24,7 @@ const materials = [
         color: 0x80c0d0,
         transparent: true,
         opacity: 0.25,
+        visible: false,
     }),
     // Ground
     new MeshLambertMaterial({
@@ -48,6 +49,7 @@ const wireframe_materials = [
         wireframe: true,
         transparent: true,
         opacity: 0.3,
+        visible: false,
     }),
     // Ground
     new MeshBasicMaterial({
