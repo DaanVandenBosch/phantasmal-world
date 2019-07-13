@@ -1,27 +1,30 @@
 import Logger from "js-logger";
-import { NjVertex } from ".";
 import { Cursor } from "../../cursor/Cursor";
-import { Vec3, Vec2 } from "../../vector";
+import { Vec2, Vec3 } from "../../vector";
 
 const logger = Logger.get("data_formats/parsing/ninja/njcm");
 
 // TODO:
-// - textures
 // - colors
 // - bump maps
-// - animation
-// - deal with vertex information contained in triangle strips
 
 export type NjcmModel = {
     type: "njcm";
     /**
      * Sparse array of vertices.
      */
-    vertices: NjVertex[];
+    vertices: NjcmVertex[];
     meshes: NjcmTriangleStrip[];
-    // materials: [],
     collision_sphere_center: Vec3;
     collision_sphere_radius: number;
+};
+
+export type NjcmVertex = {
+    position: Vec3;
+    normal?: Vec3;
+    bone_weight: number;
+    bone_weight_status: number;
+    calc_continue: boolean;
 };
 
 enum NjcmChunkType {
@@ -95,7 +98,7 @@ type NjcmMaterialChunk = {
 
 type NjcmVertexChunk = {
     type: NjcmChunkType.Vertex;
-    vertices: NjcmVertex[];
+    vertices: NjcmChunkVertex[];
 };
 
 type NjcmVolumeChunk = {
@@ -111,7 +114,7 @@ type NjcmEndChunk = {
     type: NjcmChunkType.End;
 };
 
-type NjcmVertex = {
+type NjcmChunkVertex = {
     index: number;
     position: Vec3;
     normal?: Vec3;
@@ -144,9 +147,9 @@ type NjcmMeshVertex = {
 export function parse_njcm_model(cursor: Cursor, cached_chunk_offsets: number[]): NjcmModel {
     const vlist_offset = cursor.u32(); // Vertex list
     const plist_offset = cursor.u32(); // Triangle strip index list
-    const bounding_sphere_center = cursor.vec3();
+    const bounding_sphere_center = cursor.vec3_f32();
     const bounding_sphere_radius = cursor.f32();
-    const vertices: NjVertex[] = [];
+    const vertices: NjcmVertex[] = [];
     const meshes: NjcmTriangleStrip[] = [];
 
     if (vlist_offset) {
@@ -307,7 +310,11 @@ function parse_chunks(
     return chunks;
 }
 
-function parse_vertex_chunk(cursor: Cursor, chunk_type_id: number, flags: number): NjcmVertex[] {
+function parse_vertex_chunk(
+    cursor: Cursor,
+    chunk_type_id: number,
+    flags: number
+): NjcmChunkVertex[] {
     if (chunk_type_id < 32 || chunk_type_id > 50) {
         logger.warn(`Unknown vertex chunk type ${chunk_type_id}.`);
         return [];
@@ -319,12 +326,12 @@ function parse_vertex_chunk(cursor: Cursor, chunk_type_id: number, flags: number
     const index = cursor.u16();
     const vertex_count = cursor.u16();
 
-    const vertices: NjcmVertex[] = [];
+    const vertices: NjcmChunkVertex[] = [];
 
     for (let i = 0; i < vertex_count; ++i) {
-        const vertex: NjcmVertex = {
+        const vertex: NjcmChunkVertex = {
             index: index + i,
-            position: cursor.vec3(),
+            position: cursor.vec3_f32(),
             bone_weight: 1,
             bone_weight_status,
             calc_continue,
@@ -336,7 +343,7 @@ function parse_vertex_chunk(cursor: Cursor, chunk_type_id: number, flags: number
         } else if (chunk_type_id === 33) {
             // NJD_CV_VN_SH
             cursor.seek(4); // Always 1.0
-            vertex.normal = cursor.vec3();
+            vertex.normal = cursor.vec3_f32();
             cursor.seek(4); // Always 0.0
         } else if (35 <= chunk_type_id && chunk_type_id <= 40) {
             if (chunk_type_id === 37) {
@@ -349,7 +356,7 @@ function parse_vertex_chunk(cursor: Cursor, chunk_type_id: number, flags: number
                 cursor.seek(4);
             }
         } else if (41 <= chunk_type_id && chunk_type_id <= 47) {
-            vertex.normal = cursor.vec3();
+            vertex.normal = cursor.vec3_f32();
 
             if (chunk_type_id >= 42) {
                 if (chunk_type_id === 44) {

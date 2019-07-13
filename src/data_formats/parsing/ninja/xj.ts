@@ -1,26 +1,40 @@
 import Logger from "js-logger";
 import { Cursor } from "../../cursor/Cursor";
-import { Vec3 } from "../../vector";
-import { NjVertex } from "../ninja";
+import { Vec2, Vec3 } from "../../vector";
 
 const logger = Logger.get("data_formats/parsing/ninja/xj");
 
 // TODO:
-// - textures
-// - colors
+// - vertex colors
 // - bump maps
-// - animation
 
 export type XjModel = {
     type: "xj";
-    vertices: NjVertex[];
+    vertices: XjVertex[];
     meshes: XjMesh[];
     collision_sphere_position: Vec3;
     collision_sphere_radius: number;
 };
 
+export type XjVertex = {
+    position: Vec3;
+    normal?: Vec3;
+    uv?: Vec2;
+};
+
 export type XjMesh = {
+    material_properties: XjMaterialProperties;
     indices: number[];
+};
+
+export type XjMaterialProperties = {
+    alpha_src?: number;
+    alpha_dst?: number;
+    texture_id?: number;
+    diffuse_r?: number;
+    diffuse_g?: number;
+    diffuse_b?: number;
+    diffuse_a?: number;
 };
 
 export function parse_xj_model(cursor: Cursor): XjModel {
@@ -31,7 +45,7 @@ export function parse_xj_model(cursor: Cursor): XjModel {
     const triangle_strip_count = cursor.u32();
     const transparent_triangle_strip_table_offset = cursor.u32();
     const transparent_triangle_strip_count = cursor.u32();
-    const collision_sphere_position = cursor.vec3();
+    const collision_sphere_position = cursor.vec3_f32();
     const collision_sphere_radius = cursor.f32();
 
     const model: XjModel = {
@@ -49,6 +63,8 @@ export function parse_xj_model(cursor: Cursor): XjModel {
 
         cursor.seek_start(vertex_info_table_offset);
         cursor.seek(4); // Vertex type.
+        // Vertex Types
+        // 3) size: 32, has position, normal, uv
         const vertex_table_offset = cursor.u32();
         const vertex_size = cursor.u32();
         const vertex_count = cursor.u32();
@@ -56,19 +72,22 @@ export function parse_xj_model(cursor: Cursor): XjModel {
         for (let i = 0; i < vertex_count; ++i) {
             cursor.seek_start(vertex_table_offset + i * vertex_size);
 
-            const position = cursor.vec3();
+            const position = cursor.vec3_f32();
             let normal: Vec3 | undefined;
+            let uv: Vec2 | undefined;
 
             if (vertex_size === 28 || vertex_size === 32 || vertex_size === 36) {
-                normal = cursor.vec3();
+                normal = cursor.vec3_f32();
+            }
+
+            if (vertex_size === 24 || vertex_size === 32 || vertex_size === 36) {
+                uv = cursor.vec2_f32();
             }
 
             model.vertices.push({
                 position,
                 normal,
-                bone_weight: 1.0,
-                bone_weight_status: 0,
-                calc_continue: true,
+                uv,
             });
         }
     }
@@ -102,17 +121,60 @@ function parse_triangle_strip_table(
     for (let i = 0; i < triangle_strip_count; ++i) {
         cursor.seek_start(triangle_strip_list_offset + i * 20);
 
-        cursor.seek(8); // Skipping flag_and_texture_id_offset and data_type?
+        const material_table_offset = cursor.u32();
+        const material_table_size = cursor.u32();
         const index_list_offset = cursor.u32();
         const index_count = cursor.u32();
+
+        const material_properties = parse_triangle_strip_material_properties(
+            cursor,
+            material_table_offset,
+            material_table_size
+        );
 
         cursor.seek_start(index_list_offset);
         const indices = cursor.u16_array(index_count);
 
         strips.push({
+            material_properties,
             indices,
         });
     }
 
     return strips;
+}
+
+function parse_triangle_strip_material_properties(
+    cursor: Cursor,
+    offset: number,
+    size: number
+): XjMaterialProperties {
+    const props: XjMaterialProperties = {};
+
+    for (let i = 0; i < size; ++i) {
+        cursor.seek_start(offset + i * 16);
+
+        const type = cursor.u32();
+
+        switch (type) {
+            case 2:
+                props.alpha_src = cursor.u32();
+                props.alpha_dst = cursor.u32();
+                break;
+            case 3:
+                props.texture_id = cursor.u32();
+                break;
+            case 5:
+                {
+                    const rgba = cursor.u32();
+                    props.diffuse_r = (rgba & 0xff) / 0xff;
+                    props.diffuse_g = ((rgba >>> 8) & 0xff) / 0xff;
+                    props.diffuse_b = ((rgba >>> 16) & 0xff) / 0xff;
+                    props.diffuse_a = ((rgba >>> 24) & 0xff) / 0xff;
+                }
+                break;
+        }
+    }
+
+    return props;
 }

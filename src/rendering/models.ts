@@ -14,6 +14,7 @@ import {
     Uint16BufferAttribute,
     Vector3,
     MeshBasicMaterial,
+    Mesh,
 } from "three";
 import { vec3_to_threejs } from ".";
 import { is_njcm_model, NjModel, NjObject } from "../data_formats/parsing/ninja";
@@ -21,8 +22,12 @@ import { NjcmModel } from "../data_formats/parsing/ninja/njcm";
 import { xj_model_to_geometry } from "./xj_model_to_geometry";
 
 const DUMMY_MATERIAL = new MeshBasicMaterial({
+    color: 0x00ff00,
+    side: DoubleSide,
+});
+const DEFAULT_MATERIAL = new MeshBasicMaterial({
     color: 0xff00ff,
-    transparent: true,
+    side: DoubleSide,
 });
 const DEFAULT_SKINNED_MATERIAL = new MeshLambertMaterial({
     skinning: true,
@@ -38,12 +43,25 @@ export function ninja_object_to_buffer_geometry(object: NjObject<NjModel>): Buff
     return new Object3DCreator([]).create_buffer_geometry(object);
 }
 
+export function ninja_object_to_mesh(object: NjObject<NjModel>, materials: Material[] = []): Mesh {
+    return new Object3DCreator(materials).create_mesh(object);
+}
+
 export function ninja_object_to_skinned_mesh(
     object: NjObject<NjModel>,
     materials: Material[] = []
 ): SkinnedMesh {
     return new Object3DCreator(materials).create_skinned_mesh(object);
 }
+
+export type VertexGroup = {
+    /**
+     * Start index.
+     */
+    start: number;
+    count: number;
+    material_index: number;
+};
 
 type Vertex = {
     bone_id: number;
@@ -88,7 +106,7 @@ class Object3DCreator {
     private indices: number[] = [];
     private bone_indices: number[] = [];
     private bone_weights: number[] = [];
-    private groups: { start: number; count: number; mat_idx: number }[] = [];
+    private groups: VertexGroup[] = [];
 
     constructor(materials: Material[]) {
         this.materials = [DUMMY_MATERIAL, ...materials];
@@ -106,12 +124,24 @@ class Object3DCreator {
         geom.setIndex(new Uint16BufferAttribute(this.indices, 1));
 
         for (const group of this.groups) {
-            geom.addGroup(group.start, group.count, group.mat_idx);
+            geom.addGroup(group.start, group.count, group.material_index);
         }
 
         geom.computeBoundingBox();
 
         return geom;
+    }
+
+    create_mesh(object: NjObject<NjModel>): Mesh {
+        const geom = this.create_buffer_geometry(object);
+
+        const max_mat_idx = this.groups.reduce((max, g) => Math.max(max, g.material_index), 0);
+
+        for (let i = this.materials.length - 1; i < max_mat_idx; ++i) {
+            this.materials.push(DEFAULT_MATERIAL);
+        }
+
+        return new Mesh(geom, this.materials);
     }
 
     create_skinned_mesh(object: NjObject<NjModel>): SkinnedMesh {
@@ -120,7 +150,7 @@ class Object3DCreator {
         geom.addAttribute("skinIndex", new Uint16BufferAttribute(this.bone_indices, 4));
         geom.addAttribute("skinWeight", new Float32BufferAttribute(this.bone_weights, 4));
 
-        const max_mat_idx = this.groups.reduce((max, g) => Math.max(max, g.mat_idx), 0);
+        const max_mat_idx = this.groups.reduce((max, g) => Math.max(max, g.material_index), 0);
 
         for (let i = this.materials.length - 1; i < max_mat_idx; ++i) {
             this.materials.push(DEFAULT_SKINNED_MATERIAL);
@@ -199,7 +229,15 @@ class Object3DCreator {
         if (is_njcm_model(model)) {
             this.njcm_model_to_geometry(model, matrix);
         } else {
-            xj_model_to_geometry(model, matrix, this.positions, this.normals, this.indices);
+            xj_model_to_geometry(
+                model,
+                matrix,
+                this.positions,
+                this.normals,
+                this.uvs,
+                this.indices,
+                this.groups
+            );
         }
     }
 
@@ -275,13 +313,13 @@ class Object3DCreator {
             const last_group = this.groups[this.groups.length - 1];
             const mat_idx = mesh.texture_id == null ? 0 : mesh.texture_id + 1;
 
-            if (last_group && last_group.mat_idx === mat_idx) {
+            if (last_group && last_group.material_index === mat_idx) {
                 last_group.count += this.indices.length - start_index_count;
             } else {
                 this.groups.push({
                     start: start_index_count,
                     count: this.indices.length - start_index_count,
-                    mat_idx,
+                    material_index: mat_idx,
                 });
             }
         }

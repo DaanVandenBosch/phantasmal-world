@@ -119,7 +119,7 @@ export function area_geometry_to_sections_and_object_3d(
         const indices: number[] = [];
 
         for (const model of section.models) {
-            xj_model_to_geometry(model, new Matrix4(), positions, normals, indices);
+            xj_model_to_geometry(model, new Matrix4(), positions, normals, [], indices, []);
         }
 
         const geometry = new BufferGeometry();

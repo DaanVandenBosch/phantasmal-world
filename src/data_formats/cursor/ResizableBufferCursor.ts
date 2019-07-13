@@ -8,7 +8,7 @@ import {
 import { Endianness } from "..";
 import { ResizableBuffer } from "../ResizableBuffer";
 import { Cursor } from "./Cursor";
-import { Vec3 } from "../vector";
+import { Vec3, Vec2 } from "../vector";
 
 export class ResizableBufferCursor implements Cursor {
     private _offset: number;
@@ -214,7 +214,11 @@ export class ResizableBufferCursor implements Cursor {
         return array;
     }
 
-    vec3(): Vec3 {
+    vec2_f32(): Vec2 {
+        return new Vec2(this.f32(), this.f32());
+    }
+
+    vec3_f32(): Vec3 {
         return new Vec3(this.f32(), this.f32(), this.f32());
     }
 

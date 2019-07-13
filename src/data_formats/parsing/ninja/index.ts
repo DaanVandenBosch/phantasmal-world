@@ -1,24 +1,12 @@
 import { Cursor } from "../../cursor/Cursor";
 import { Vec3 } from "../../vector";
+import { parse_iff } from "../iff";
 import { NjcmModel, parse_njcm_model } from "./njcm";
 import { parse_xj_model, XjModel } from "./xj";
-import { parse_iff } from "../iff";
-
-// TODO:
-// - deal with multiple NJCM chunks
-// - deal with other types of chunks
 
 export const ANGLE_TO_RAD = (2 * Math.PI) / 0xffff;
 
 const NJCM = 0x4d434a4e;
-
-export type NjVertex = {
-    position: Vec3;
-    normal?: Vec3;
-    bone_weight: number;
-    bone_weight_status: number;
-    calc_continue: boolean;
-};
 
 export type NjModel = NjcmModel | XjModel;
 
@@ -126,6 +114,7 @@ function parse_ninja<M extends NjModel>(
     parse_model: (cursor: Cursor, context: any) => M,
     context: any
 ): NjObject<M>[] {
+    // POF0 and other chunks types are ignored.
     return parse_iff(cursor)
         .filter(chunk => chunk.type === NJCM)
         .flatMap(chunk => parse_sibling_objects(chunk.data, parse_model, context));

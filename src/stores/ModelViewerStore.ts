@@ -5,12 +5,12 @@ import {
     AnimationClip,
     AnimationMixer,
     Clock,
+    DoubleSide,
     Mesh,
     MeshLambertMaterial,
     SkinnedMesh,
     Texture,
     Vector3,
-    DoubleSide,
 } from "three";
 import { Endianness } from "../data_formats";
 import { ArrayBufferCursor } from "../data_formats/cursor/ArrayBufferCursor";
@@ -20,7 +20,7 @@ import { parse_xvm } from "../data_formats/parsing/ninja/texture";
 import { PlayerAnimation, PlayerModel } from "../domain";
 import { read_file } from "../read_file";
 import { create_animation_clip, PSO_FRAME_RATE } from "../rendering/animation";
-import { ninja_object_to_buffer_geometry, ninja_object_to_skinned_mesh } from "../rendering/models";
+import { ninja_object_to_mesh, ninja_object_to_skinned_mesh } from "../rendering/models";
 import { xvm_to_textures } from "../rendering/textures";
 import { get_player_animation_data, get_player_data } from "./binary_assets";
 
@@ -292,29 +292,22 @@ class ModelViewerStore {
             let mesh: Mesh;
             let bb_size = new Vector3();
 
+            const materials =
+                textures &&
+                textures.map(
+                    tex =>
+                        new MeshLambertMaterial({
+                            skinning: true,
+                            map: tex,
+                            side: DoubleSide,
+                            alphaTest: 0.5,
+                        })
+                );
+
             if (this.has_skeleton) {
-                mesh = ninja_object_to_skinned_mesh(
-                    this.current_model,
-                    textures &&
-                        textures.map(
-                            tex =>
-                                new MeshLambertMaterial({
-                                    skinning: true,
-                                    map: tex,
-                                    side: DoubleSide,
-                                    alphaTest: 0.5,
-                                })
-                        )
-                );
+                mesh = ninja_object_to_skinned_mesh(this.current_model, materials);
             } else {
-                mesh = new Mesh(
-                    ninja_object_to_buffer_geometry(this.current_model),
-                    new MeshLambertMaterial({
-                        color: 0xff00ff,
-                        side: DoubleSide,
-                        alphaTest: 0.5,
-                    })
-                );
+                mesh = ninja_object_to_mesh(this.current_model, materials);
             }
 
             mesh.geometry.boundingBox.getSize(bb_size);

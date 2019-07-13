@@ -37,7 +37,7 @@ export function parse_area_geometry(cursor: Cursor): RenderObject {
         cursor.seek_start(section_table_offset + 52 * i);
 
         const section_id = cursor.i32();
-        const section_position = cursor.vec3();
+        const section_position = cursor.vec3_f32();
         const section_rotation = new Vec3(
             cursor.u32() * ANGLE_TO_RAD,
             cursor.u32() * ANGLE_TO_RAD,

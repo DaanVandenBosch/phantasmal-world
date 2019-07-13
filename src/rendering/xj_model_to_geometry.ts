@@ -1,29 +1,40 @@
 import { Matrix3, Matrix4, Vector3 } from "three";
 import { vec3_to_threejs } from ".";
 import { XjModel } from "../data_formats/parsing/ninja/xj";
+import { Vec2 } from "../data_formats/vector";
+import { VertexGroup } from "./models";
 
 const DEFAULT_NORMAL = new Vector3(0, 1, 0);
+const DEFAULT_UV = new Vec2(0, 0);
 
 export function xj_model_to_geometry(
     model: XjModel,
     matrix: Matrix4,
     positions: number[],
     normals: number[],
-    indices: number[]
+    uvs: number[],
+    indices: number[],
+    groups: VertexGroup[]
 ): void {
     const index_offset = positions.length / 3;
     const normal_matrix = new Matrix3().getNormalMatrix(matrix);
 
-    for (let { position, normal } of model.vertices) {
+    for (let { position, normal, uv } of model.vertices) {
         const p = vec3_to_threejs(position).applyMatrix4(matrix);
         positions.push(p.x, p.y, p.z);
 
         const local_n = normal ? vec3_to_threejs(normal) : DEFAULT_NORMAL;
         const n = local_n.applyMatrix3(normal_matrix);
         normals.push(n.x, n.y, n.z);
+
+        const tuv = uv || DEFAULT_UV;
+        uvs.push(tuv.x, tuv.y);
     }
 
+    let current_mat_idx = 0;
+
     for (const mesh of model.meshes) {
+        const start_index_count = indices.length;
         let clockwise = true;
 
         for (let j = 2; j < mesh.indices.length; ++j) {
@@ -68,6 +79,22 @@ export function xj_model_to_geometry(
             }
 
             clockwise = !clockwise;
+        }
+
+        const last_group = groups[groups.length - 1];
+
+        if (mesh.material_properties.texture_id != null) {
+            current_mat_idx = mesh.material_properties.texture_id + 1;
+        }
+
+        if (last_group && last_group.material_index === current_mat_idx) {
+            last_group.count += indices.length - start_index_count;
+        } else {
+            groups.push({
+                start: start_index_count,
+                count: indices.length - start_index_count,
+                material_index: current_mat_idx,
+            });
         }
     }
 }

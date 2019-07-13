@@ -1,5 +1,5 @@
 import { Endianness } from "..";
-import { Vec3 } from "../vector";
+import { Vec3, Vec2 } from "../vector";
 
 /**
  * A cursor for reading binary data.
@@ -109,7 +109,7 @@ export interface Cursor {
     f32(): number;
 
     /**
-     * Reads a 32-bit floating point number/ Doesn't increment position.
+     * Reads a 32-bit floating point number. Doesn't increment position.
      */
     f32_at(offset: number): number;
 
@@ -128,7 +128,15 @@ export interface Cursor {
      */
     u32_array(n: number): number[];
 
-    vec3(): Vec3;
+    /**
+     * Reads 2 32-bit floating point numbers and increments position by 8.
+     */
+    vec2_f32(): Vec2;
+
+    /**
+     * Reads 3 32-bit floating point numbers and increments position by 12.
+     */
+    vec3_f32(): Vec3;
 
     /**
      * Consumes a variable number of bytes.
