@@ -61,78 +61,73 @@ export function parse_xj_model(cursor: Cursor): XjModel {
             logger.warn(`Vertex info count of ${vertex_info_count} was larger than expected.`);
         }
 
-        cursor.seek_start(vertex_info_table_offset);
-        const vertex_type = cursor.u16();
-        cursor.seek(2); // Flags?
-        const vertex_table_offset = cursor.u32();
-        const vertex_size = cursor.u32();
-        const vertex_count = cursor.u32();
-
-        for (let i = 0; i < vertex_count; ++i) {
-            cursor.seek_start(vertex_table_offset + i * vertex_size);
-
-            const position = cursor.vec3_f32();
-            let normal: Vec3 | undefined;
-            let uv: Vec2 | undefined;
-
-            switch (vertex_type) {
-                case 3:
-                    normal = cursor.vec3_f32();
-                    uv = cursor.vec2_f32();
-                    break;
-                case 4:
-                    // Skip 4 bytes.
-                    break;
-                case 5:
-                    cursor.seek(4);
-                    uv = cursor.vec2_f32();
-                    break;
-                case 6:
-                    normal = cursor.vec3_f32();
-                    // Skip 4 bytes.
-                    break;
-                case 7:
-                    normal = cursor.vec3_f32();
-                    uv = cursor.vec2_f32();
-                    break;
-                default:
-                    logger.warn(`Unknown vertex type ${vertex_type} with size ${vertex_size}.`);
-                    break;
-            }
-
-            // if (vertex_size === 28 || vertex_size === 32 || vertex_size === 36) {
-            //     normal = cursor.vec3_f32();
-            // }
-
-            // if (vertex_size === 24 || vertex_size === 32 || vertex_size === 36) {
-            //     uv = cursor.vec2_f32();
-            // }
-
-            model.vertices.push({
-                position,
-                normal,
-                uv,
-            });
-        }
+        model.vertices.push(...parse_vertex_info_table(cursor, vertex_info_table_offset));
     }
 
-    if (triangle_strip_table_offset) {
-        model.meshes.push(
-            ...parse_triangle_strip_table(cursor, triangle_strip_table_offset, triangle_strip_count)
-        );
-    }
+    model.meshes.push(
+        ...parse_triangle_strip_table(cursor, triangle_strip_table_offset, triangle_strip_count)
+    );
 
-    if (transparent_triangle_strip_table_offset) {
-        model.meshes.push(
-            ...parse_triangle_strip_table(
-                cursor,
-                transparent_triangle_strip_table_offset,
-                transparent_triangle_strip_count
-            )
-        );
-    }
+    model.meshes.push(
+        ...parse_triangle_strip_table(
+            cursor,
+            transparent_triangle_strip_table_offset,
+            transparent_triangle_strip_count
+        )
+    );
 
     return model;
+}
+
+function parse_vertex_info_table(cursor: Cursor, vertex_info_table_offset: number): XjVertex[] {
+    cursor.seek_start(vertex_info_table_offset);
+    const vertex_type = cursor.u16();
+    cursor.seek(2); // Flags?
+    const vertex_table_offset = cursor.u32();
+    const vertex_size = cursor.u32();
+    const vertex_count = cursor.u32();
+    const vertices: XjVertex[] = [];
+
+    for (let i = 0; i < vertex_count; ++i) {
+        cursor.seek_start(vertex_table_offset + i * vertex_size);
+
+        const position = cursor.vec3_f32();
+        let normal: Vec3 | undefined;
+        let uv: Vec2 | undefined;
+
+        switch (vertex_type) {
+            case 3:
+                normal = cursor.vec3_f32();
+                uv = cursor.vec2_f32();
+                break;
+            case 4:
+                // Skip 4 bytes.
+                break;
+            case 5:
+                cursor.seek(4);
+                uv = cursor.vec2_f32();
+                break;
+            case 6:
+                normal = cursor.vec3_f32();
+                // Skip 4 bytes.
+                break;
+            case 7:
+                normal = cursor.vec3_f32();
+                uv = cursor.vec2_f32();
+                break;
+            default:
+                logger.warn(`Unknown vertex type ${vertex_type} with size ${vertex_size}.`);
+                break;
+        }
+
+        vertices.push({
+            position,
+            normal,
+            uv,
+        });
+    }
+
+    return vertices;
 }
 
 function parse_triangle_strip_table(
@@ -189,13 +184,10 @@ function parse_triangle_strip_material_properties(
                 props.texture_id = cursor.u32();
                 break;
             case 5:
-                {
-                    const rgba = cursor.u32();
-                    props.diffuse_r = (rgba & 0xff) / 0xff;
-                    props.diffuse_g = ((rgba >>> 8) & 0xff) / 0xff;
-                    props.diffuse_b = ((rgba >>> 16) & 0xff) / 0xff;
-                    props.diffuse_a = ((rgba >>> 24) & 0xff) / 0xff;
-                }
+                props.diffuse_r = cursor.u8();
+                props.diffuse_g = cursor.u8();
+                props.diffuse_b = cursor.u8();
+                props.diffuse_a = cursor.u8();
                 break;
         }
     }
