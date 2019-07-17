@@ -109,6 +109,10 @@ export function area_collision_geometry_to_object_3d(object: CollisionObject): O
     return group;
 }
 
+export type AreaUserData = {
+    section: Section;
+};
+
 export function area_geometry_to_sections_and_object_3d(
     object: RenderObject
 ): [Section[], Object3D] {
@@ -143,7 +147,7 @@ export function area_geometry_to_sections_and_object_3d(
         group.add(mesh);
 
         const sec = new Section(section.id, section.position, section.rotation.y);
-        mesh.userData.section = sec;
+        (mesh.userData as AreaUserData).section = sec;
         sections.push(sec);
     }
 

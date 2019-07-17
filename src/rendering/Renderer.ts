@@ -48,10 +48,11 @@ export class Renderer<C extends Camera> {
         this.schedule_render();
     }
 
-    pointer_pos_to_device_coords(e: MouseEvent, coords: Vector2): void {
-        this.renderer.getSize(coords);
+    pointer_pos_to_device_coords(e: MouseEvent): Vector2 {
+        const coords = this.renderer.getSize(new Vector2());
         coords.width = (e.offsetX / coords.width) * 2 - 1;
         coords.height = (e.offsetY / coords.height) * -2 + 1;
+        return coords;
     }
 
     schedule_render = () => {

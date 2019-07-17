@@ -10,11 +10,15 @@ import {
 import { QuestEntity, QuestNpc, QuestObject } from "../../domain";
 
 export const OBJECT_COLOR = 0xffff00;
-export const OBJECT_HOVER_COLOR = 0xffdf3f;
+export const OBJECT_HIGHLIGHTED_COLOR = 0xffdf3f;
 export const OBJECT_SELECTED_COLOR = 0xffaa00;
 export const NPC_COLOR = 0xff0000;
-export const NPC_HOVER_COLOR = 0xff3f5f;
+export const NPC_HIGHLIGHTED_COLOR = 0xff3f5f;
 export const NPC_SELECTED_COLOR = 0xff0054;
+
+export type EntityUserData = {
+    entity: QuestEntity;
+};
 
 export function create_object_mesh(
     object: QuestObject,
@@ -70,7 +74,7 @@ function create_mesh(
 
     const mesh = new Mesh(geometry, materials);
     mesh.name = type;
-    mesh.userData.entity = entity;
+    (mesh.userData as EntityUserData).entity = entity;
 
     const { x, y, z } = entity.position;
     mesh.position.set(x, y, z);

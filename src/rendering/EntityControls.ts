@@ -4,223 +4,238 @@ import { Vec3 } from "../data_formats/vector";
 import { QuestEntity, QuestNpc, Section } from "../domain";
 import { quest_editor_store } from "../stores/QuestEditorStore";
 import {
+    EntityUserData,
     NPC_COLOR,
-    NPC_HOVER_COLOR,
+    NPC_HIGHLIGHTED_COLOR,
     NPC_SELECTED_COLOR,
     OBJECT_COLOR,
-    OBJECT_HOVER_COLOR,
+    OBJECT_HIGHLIGHTED_COLOR,
     OBJECT_SELECTED_COLOR,
 } from "./conversion/entities";
 import { QuestRenderer } from "./QuestRenderer";
+import { AreaUserData } from "./conversion/areas";
 
-type PickEntityResult = {
+type Pick = {
     object: Mesh;
     entity: QuestEntity;
     grab_offset: Vector3;
     drag_adjust: Vector3;
     drag_y: number;
-    manipulating: boolean;
 };
 
-type EntityUserData = {
-    entity: QuestEntity;
-};
+enum ColorType {
+    Normal,
+    Highlighted,
+    Selected,
+}
 
 export class EntityControls {
     private raycaster = new Raycaster();
-    private hovered_data?: PickEntityResult;
-    private selected_data?: PickEntityResult;
-    private pointer_pos = new Vector2(0, 0);
+    private selected?: Pick;
+    private highlighted?: Pick;
+    private transforming = false;
+    private last_pointer_position = new Vector2(0, 0);
+    private moved_since_last_mouse_down = false;
 
     constructor(private renderer: QuestRenderer) {}
 
     on_mouse_down = (e: MouseEvent) => {
-        const old_selected_data = this.selected_data;
-        this.renderer.pointer_pos_to_device_coords(e, this.pointer_pos);
-        const data = this.pick_entity(this.pointer_pos);
+        this.process_event(e);
 
-        // Did we pick a different object than the previously hovered over 3D object?
-        if (this.hovered_data && (!data || data.object !== this.hovered_data.object)) {
-            const color = this.get_color(this.hovered_data.entity, "hover");
+        const new_pick = this.pick_entity(this.renderer.pointer_pos_to_device_coords(e));
 
-            for (const material of this.hovered_data.object.material as MeshLambertMaterial[]) {
-                material.color.set(color);
-            }
+        if (new_pick) {
+            this.transforming = new_pick != null;
+            // Disable camera controls while the user is transforming an entity.
+            this.renderer.controls.enabled = !this.transforming;
+
+            this.select(new_pick);
+            quest_editor_store.set_selected_entity(new_pick.entity);
         }
 
-        // Did we pick a different object than the previously selected 3D object?
-        if (this.selected_data && (!data || data.object !== this.selected_data.object)) {
-            const color = this.get_color(this.selected_data.entity, "normal");
-
-            for (const material of this.selected_data.object.material as MeshLambertMaterial[]) {
-                if (material.map) {
-                    material.color.set(0xffffff);
-                } else {
-                    material.color.set(color);
-                }
-            }
-
-            this.selected_data.manipulating = false;
-        }
-
-        if (data) {
-            // User selected an entity.
-            const color = this.get_color(data.entity, "selected");
-
-            for (const material of data.object.material as MeshLambertMaterial[]) {
-                material.color.set(color);
-            }
-
-            data.manipulating = true;
-            this.hovered_data = data;
-            this.selected_data = data;
-            this.renderer.controls.enabled = false;
-        } else {
-            // User clicked on terrain or outside of area.
-            this.hovered_data = undefined;
-            this.selected_data = undefined;
-            this.renderer.controls.enabled = true;
-        }
-
-        const selection_changed =
-            old_selected_data && data
-                ? old_selected_data.object !== data.object
-                : old_selected_data !== data;
-
-        if (selection_changed) {
-            quest_editor_store.set_selected_entity(data && data.entity);
-            this.renderer.schedule_render();
-        }
+        this.renderer.schedule_render();
     };
 
-    on_mouse_up = () => {
-        if (this.selected_data) {
-            this.selected_data.manipulating = false;
-            this.renderer.controls.enabled = true;
-            this.renderer.schedule_render();
+    on_mouse_up = (e: MouseEvent) => {
+        this.process_event(e);
+
+        // If the user clicks on nothing, deselect the currently selected entity.
+        if (!this.moved_since_last_mouse_down && !this.transforming) {
+            this.deselect();
+            quest_editor_store.set_selected_entity(undefined);
         }
+
+        this.transforming = false;
+        // Enable camera controls again after transforming an entity.
+        this.renderer.controls.enabled = !this.transforming;
+
+        this.renderer.schedule_render();
     };
 
     on_mouse_move = (e: MouseEvent) => {
-        this.renderer.pointer_pos_to_device_coords(e, this.pointer_pos);
+        this.process_event(e);
 
-        if (this.selected_data && this.selected_data.manipulating) {
+        const pointer_device_pos = this.renderer.pointer_pos_to_device_coords(e);
+
+        if (this.selected && this.transforming) {
             if (e.buttons === 1) {
                 // User is dragging a selected entity.
-                const data = this.selected_data;
-
                 if (e.shiftKey) {
                     // Vertical movement.
-                    // We intersect with a plane that's oriented toward the camera and that's coplanar with the point where the entity was grabbed.
-                    this.raycaster.setFromCamera(this.pointer_pos, this.renderer.camera);
-                    const ray = this.raycaster.ray;
-                    const negative_world_dir = this.renderer.camera
-                        .getWorldDirection(new Vector3())
-                        .negate();
-                    const plane = new Plane().setFromNormalAndCoplanarPoint(
-                        new Vector3(negative_world_dir.x, 0, negative_world_dir.z).normalize(),
-                        data.object.position.sub(data.grab_offset)
-                    );
-                    const intersection_point = new Vector3();
-
-                    if (ray.intersectPlane(plane, intersection_point)) {
-                        const y = intersection_point.y + data.grab_offset.y;
-                        const y_delta = y - data.entity.position.y;
-                        data.drag_y += y_delta;
-                        data.drag_adjust.y -= y_delta;
-                        data.entity.position = new Vec3(
-                            data.entity.position.x,
-                            y,
-                            data.entity.position.z
-                        );
-                    }
+                    this.translate_vertically(this.selected, pointer_device_pos);
                 } else {
                     // Horizontal movement accross terrain.
-                    // Cast ray adjusted for dragging entities.
-                    const { intersection, section } = this.pick_terrain(this.pointer_pos, data);
-
-                    if (intersection) {
-                        runInAction(() => {
-                            data.entity.position = new Vec3(
-                                intersection.point.x,
-                                intersection.point.y + data.drag_y,
-                                intersection.point.z
-                            );
-                            data.entity.section = section;
-                        });
-                    } else {
-                        // If the cursor is not over any terrain, we translate the entity accross the horizontal plane in which the entity's origin lies.
-                        this.raycaster.setFromCamera(this.pointer_pos, this.renderer.camera);
-                        const ray = this.raycaster.ray;
-                        // ray.origin.add(data.dragAdjust);
-                        const plane = new Plane(
-                            new Vector3(0, 1, 0),
-                            -data.entity.position.y + data.grab_offset.y
-                        );
-                        const intersection_point = new Vector3();
-
-                        if (ray.intersectPlane(plane, intersection_point)) {
-                            data.entity.position = new Vec3(
-                                intersection_point.x + data.grab_offset.x,
-                                data.entity.position.y,
-                                intersection_point.z + data.grab_offset.z
-                            );
-                        }
-                    }
+                    this.translate_horizontally(this.selected, pointer_device_pos);
                 }
             }
 
             this.renderer.schedule_render();
         } else {
             // User is hovering.
-            const old_data = this.hovered_data;
-            const data = this.pick_entity(this.pointer_pos);
+            const new_pick = this.pick_entity(pointer_device_pos);
 
-            if (old_data && (!data || data.object !== old_data.object)) {
-                if (!this.selected_data || old_data.object !== this.selected_data.object) {
-                    const color = this.get_color(old_data.entity, "normal");
-
-                    for (const material of old_data.object.material as MeshLambertMaterial[]) {
-                        if (material.map) {
-                            material.color.set(0xffffff);
-                        } else {
-                            material.color.set(color);
-                        }
-                    }
-                }
-
-                this.hovered_data = undefined;
-                this.renderer.schedule_render();
-            }
-
-            if (data && (!old_data || data.object !== old_data.object)) {
-                if (!this.selected_data || data.object !== this.selected_data.object) {
-                    const color = this.get_color(data.entity, "hover");
-
-                    for (const material of data.object.material as MeshLambertMaterial[]) {
-                        material.color.set(color);
-                    }
-                }
-
-                this.hovered_data = data;
+            if (this.highlight(new_pick)) {
                 this.renderer.schedule_render();
             }
         }
     };
 
+    private process_event(e: MouseEvent): void {
+        if (e.type === "mousedown") {
+            this.moved_since_last_mouse_down = false;
+        } else {
+            if (
+                e.offsetX !== this.last_pointer_position.x ||
+                e.offsetY !== this.last_pointer_position.y
+            ) {
+                this.moved_since_last_mouse_down = true;
+            }
+        }
+
+        this.last_pointer_position.set(e.offsetX, e.offsetY);
+    }
+
     /**
-     * @param pointer_pos - pointer coordinates in normalized device space
+     * @returns true if a render is required.
      */
-    private pick_entity(pointer_pos: Vector2): PickEntityResult | undefined {
+    private highlight(pick?: Pick): boolean {
+        let render_required = false;
+
+        if (!this.selected || !picks_equal(pick, this.selected)) {
+            if (!picks_equal(pick, this.highlighted)) {
+                this.unhighlight();
+
+                if (pick) {
+                    set_color(pick, ColorType.Highlighted);
+                }
+
+                render_required = true;
+            }
+
+            this.highlighted = pick;
+        }
+
+        return render_required;
+    }
+
+    private unhighlight(): void {
+        if (this.highlighted) {
+            set_color(this.highlighted, ColorType.Normal);
+            this.highlighted = undefined;
+        }
+    }
+
+    private select(pick: Pick): void {
+        this.unhighlight();
+
+        if (!picks_equal(pick, this.selected)) {
+            if (this.selected) {
+                set_color(this.selected, ColorType.Normal);
+            }
+
+            set_color(pick, ColorType.Selected);
+        }
+
+        this.selected = pick;
+    }
+
+    private deselect(): void {
+        if (this.selected) {
+            set_color(this.selected, ColorType.Normal);
+        }
+
+        this.selected = undefined;
+    }
+
+    private translate_vertically(pick: Pick, pointer_position: Vector2): void {
+        // We intersect with a plane that's oriented toward the camera and that's coplanar with the point where the entity was grabbed.
+        this.raycaster.setFromCamera(pointer_position, this.renderer.camera);
+        const ray = this.raycaster.ray;
+
+        const negative_world_dir = this.renderer.camera.getWorldDirection(new Vector3()).negate();
+        const plane = new Plane().setFromNormalAndCoplanarPoint(
+            new Vector3(negative_world_dir.x, 0, negative_world_dir.z).normalize(),
+            pick.object.position.sub(pick.grab_offset)
+        );
+
+        const intersection_point = new Vector3();
+
+        if (ray.intersectPlane(plane, intersection_point)) {
+            const y = intersection_point.y + pick.grab_offset.y;
+            const y_delta = y - pick.entity.position.y;
+            pick.drag_y += y_delta;
+            pick.drag_adjust.y -= y_delta;
+            pick.entity.position = new Vec3(pick.entity.position.x, y, pick.entity.position.z);
+        }
+    }
+
+    private translate_horizontally(pick: Pick, pointer_position: Vector2): void {
+        // Cast ray adjusted for dragging entities.
+        const { intersection, section } = this.pick_terrain(pointer_position, pick);
+
+        if (intersection) {
+            runInAction(() => {
+                pick.entity.position = new Vec3(
+                    intersection.point.x,
+                    intersection.point.y + pick.drag_y,
+                    intersection.point.z
+                );
+                pick.entity.section = section;
+            });
+        } else {
+            // If the cursor is not over any terrain, we translate the entity accross the horizontal plane in which the entity's origin lies.
+            this.raycaster.setFromCamera(pointer_position, this.renderer.camera);
+            const ray = this.raycaster.ray;
+            // ray.origin.add(data.dragAdjust);
+            const plane = new Plane(
+                new Vector3(0, 1, 0),
+                -pick.entity.position.y + pick.grab_offset.y
+            );
+            const intersection_point = new Vector3();
+
+            if (ray.intersectPlane(plane, intersection_point)) {
+                pick.entity.position = new Vec3(
+                    intersection_point.x + pick.grab_offset.x,
+                    pick.entity.position.y,
+                    intersection_point.z + pick.grab_offset.z
+                );
+            }
+        }
+    }
+
+    /**
+     * @param pointer_position pointer coordinates in normalized device space
+     */
+    private pick_entity(pointer_position: Vector2): Pick | undefined {
         // Find the nearest object and NPC under the pointer.
-        this.raycaster.setFromCamera(pointer_pos, this.renderer.camera);
+        this.raycaster.setFromCamera(pointer_position, this.renderer.camera);
         const [nearest_object] = this.raycaster.intersectObjects(
             this.renderer.obj_geometry.children
         );
         const [nearest_npc] = this.raycaster.intersectObjects(this.renderer.npc_geometry.children);
 
         if (!nearest_object && !nearest_npc) {
-            return;
+            return undefined;
         }
 
         const object_dist = nearest_object ? nearest_object.distance : Infinity;
@@ -253,7 +268,6 @@ export class EntityControls {
             grab_offset,
             drag_adjust,
             drag_y,
-            manipulating: false,
         };
     }
 
@@ -262,7 +276,7 @@ export class EntityControls {
      */
     private pick_terrain(
         pointer_pos: Vector2,
-        data: PickEntityResult
+        data: Pick
     ): {
         intersection?: Intersection;
         section?: Section;
@@ -283,29 +297,47 @@ export class EntityControls {
                 this.raycaster.set(terrain.point.clone().setY(1000), new Vector3(0, -1, 0));
                 const render_terrains = this.raycaster
                     .intersectObjects(this.renderer.render_geometry.children, true)
-                    .filter(rt => rt.object.userData.section.id >= 0);
+                    .filter(rt => (rt.object.userData as AreaUserData).section.id >= 0);
 
                 return {
                     intersection: terrain,
-                    section: render_terrains[0] && render_terrains[0].object.userData.section,
+                    section:
+                        render_terrains[0] &&
+                        (render_terrains[0].object.userData as AreaUserData).section,
                 };
             }
         }
 
         return {};
     }
+}
 
-    private get_color(entity: QuestEntity, type: "normal" | "hover" | "selected"): number {
-        const is_npc = entity instanceof QuestNpc;
+function set_color(pick: Pick, type: ColorType): void {
+    const color = get_color(pick.entity, type);
 
-        switch (type) {
-            default:
-            case "normal":
-                return is_npc ? NPC_COLOR : OBJECT_COLOR;
-            case "hover":
-                return is_npc ? NPC_HOVER_COLOR : OBJECT_HOVER_COLOR;
-            case "selected":
-                return is_npc ? NPC_SELECTED_COLOR : OBJECT_SELECTED_COLOR;
+    for (const material of pick.object.material as MeshLambertMaterial[]) {
+        if (type === ColorType.Normal && material.map) {
+            material.color.set(0xffffff);
+        } else {
+            material.color.set(color);
         }
+    }
+}
+
+function picks_equal(a?: Pick, b?: Pick): boolean {
+    return a && b ? a.entity === b.entity : a === b;
+}
+
+function get_color(entity: QuestEntity, type: ColorType): number {
+    const is_npc = entity instanceof QuestNpc;
+
+    switch (type) {
+        default:
+        case ColorType.Normal:
+            return is_npc ? NPC_COLOR : OBJECT_COLOR;
+        case ColorType.Highlighted:
+            return is_npc ? NPC_HIGHLIGHTED_COLOR : OBJECT_HIGHLIGHTED_COLOR;
+        case ColorType.Selected:
+            return is_npc ? NPC_SELECTED_COLOR : OBJECT_SELECTED_COLOR;
     }
 }
