@@ -13,10 +13,10 @@ import {
     Uint16BufferAttribute,
     Vector3,
 } from "three";
-import { CollisionObject } from "../data_formats/parsing/area_collision_geometry";
-import { RenderObject } from "../data_formats/parsing/area_geometry";
-import { Section } from "../domain";
-import { xj_model_to_geometry } from "./xj_model_to_geometry";
+import { CollisionObject } from "../../data_formats/parsing/area_collision_geometry";
+import { RenderObject } from "../../data_formats/parsing/area_geometry";
+import { Section } from "../../domain";
+import { xj_model_to_geometry } from "./xj_models";
 
 const materials = [
     // Wall

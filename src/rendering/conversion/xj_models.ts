@@ -1,8 +1,8 @@
 import { Matrix3, Matrix4, Vector3 } from "three";
 import { vec3_to_threejs } from ".";
-import { XjModel } from "../data_formats/parsing/ninja/xj";
-import { Vec2 } from "../data_formats/vector";
-import { VertexGroup } from "./models";
+import { XjModel } from "../../data_formats/parsing/ninja/xj";
+import { Vec2 } from "../../data_formats/vector";
+import { VertexGroup } from "./ninja_geometry";
 
 const DEFAULT_NORMAL = new Vector3(0, 1, 0);
 const DEFAULT_UV = new Vec2(0, 0);

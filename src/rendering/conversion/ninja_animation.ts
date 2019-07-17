@@ -8,12 +8,12 @@ import {
     QuaternionKeyframeTrack,
     VectorKeyframeTrack,
 } from "three";
-import { NjModel, NjObject } from "../data_formats/parsing/ninja";
+import { NjModel, NjObject } from "../../data_formats/parsing/ninja";
 import {
     NjInterpolation,
     NjKeyframeTrackType,
     NjMotion,
-} from "../data_formats/parsing/ninja/motion";
+} from "../../data_formats/parsing/ninja/motion";
 
 export const PSO_FRAME_RATE = 30;
 

@@ -19,10 +19,13 @@ import { NjMotion, parse_njm } from "../data_formats/parsing/ninja/motion";
 import { parse_xvm } from "../data_formats/parsing/ninja/texture";
 import { PlayerAnimation, PlayerModel } from "../domain";
 import { read_file } from "../read_file";
-import { create_animation_clip, PSO_FRAME_RATE } from "../rendering/animation";
-import { ninja_object_to_mesh, ninja_object_to_skinned_mesh } from "../rendering/models";
-import { xvm_to_textures } from "../rendering/textures";
-import { get_player_animation_data, get_player_data } from "./binary_assets";
+import { create_animation_clip, PSO_FRAME_RATE } from "../rendering/conversion/ninja_animation";
+import {
+    ninja_object_to_mesh,
+    ninja_object_to_skinned_mesh,
+} from "../rendering/conversion/ninja_geometry";
+import { xvm_to_textures } from "../rendering/conversion/ninja_textures";
+import { get_player_animation_data, get_player_data } from "../loading/player";
 
 const logger = Logger.get("stores/ModelViewerStore");
 const nj_object_cache: Map<string, Promise<NjObject<NjModel>>> = new Map();

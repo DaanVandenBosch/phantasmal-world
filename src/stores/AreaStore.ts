@@ -1,14 +1,5 @@
-import { Object3D } from "three";
-import { Endianness } from "../data_formats";
-import { ArrayBufferCursor } from "../data_formats/cursor/ArrayBufferCursor";
-import { parse_area_collision_geometry } from "../data_formats/parsing/area_collision_geometry";
-import { parse_area_geometry } from "../data_formats/parsing/area_geometry";
 import { Area, AreaVariant, Section } from "../domain";
-import {
-    area_collision_geometry_to_object_3d,
-    area_geometry_to_sections_and_object_3d,
-} from "../rendering/areas";
-import { get_area_collision_data, get_area_render_data } from "./binary_assets";
+import { load_area_sections } from "../loading/areas";
 
 function area(id: number, name: string, order: number, variants: number): Area {
     const area = new Area(id, name, order, []);
@@ -19,16 +10,11 @@ function area(id: number, name: string, order: number, variants: number): Area {
     return area;
 }
 
-const sections_cache: Map<string, Promise<Section[]>> = new Map();
-const render_geometry_cache: Map<string, Promise<Object3D>> = new Map();
-const collision_geometry_cache: Map<string, Promise<Object3D>> = new Map();
-
 class AreaStore {
-    areas: Area[][];
+    readonly areas: Area[][] = [];
 
     constructor() {
         // The IDs match the PSO IDs for areas.
-        this.areas = [];
         let order = 0;
         this.areas[1] = [
             area(0, "Pioneer II", order++, 1),
@@ -86,7 +72,7 @@ class AreaStore {
         ];
     }
 
-    get_variant(episode: number, area_id: number, variant_id: number): AreaVariant {
+    get_variant = (episode: number, area_id: number, variant_id: number): AreaVariant => {
         if (episode !== 1 && episode !== 2 && episode !== 4)
             throw new Error(`Expected episode to be 1, 2 or 4, got ${episode}.`);
 
@@ -100,80 +86,15 @@ class AreaStore {
             );
 
         return area_variant;
-    }
+    };
 
-    async get_area_sections(
+    get_area_sections = (
         episode: number,
         area_id: number,
-        area_variant: number
-    ): Promise<Section[]> {
-        const key = `${episode}-${area_id}-${area_variant}`;
-        let sections = sections_cache.get(key);
-
-        if (!sections) {
-            this.load_area_sections_and_render_geometry(episode, area_id, area_variant);
-            sections = sections_cache.get(key)!;
-        }
-
-        return sections;
-    }
-
-    async get_area_render_geometry(
-        episode: number,
-        area_id: number,
-        area_variant: number
-    ): Promise<Object3D> {
-        const key = `${episode}-${area_id}-${area_variant}`;
-        let object_3d = render_geometry_cache.get(key);
-
-        if (!object_3d) {
-            this.load_area_sections_and_render_geometry(episode, area_id, area_variant);
-            object_3d = render_geometry_cache.get(key)!;
-        }
-
-        return object_3d;
-    }
-
-    async get_area_collision_geometry(
-        episode: number,
-        area_id: number,
-        area_variant: number
-    ): Promise<Object3D> {
-        const object_3d = collision_geometry_cache.get(`${episode}-${area_id}-${area_variant}`);
-
-        if (object_3d) {
-            return object_3d;
-        } else {
-            const object_3d = get_area_collision_data(episode, area_id, area_variant).then(buffer =>
-                area_collision_geometry_to_object_3d(
-                    parse_area_collision_geometry(new ArrayBufferCursor(buffer, Endianness.Little))
-                )
-            );
-            collision_geometry_cache.set(`${area_id}-${area_variant}`, object_3d);
-            return object_3d;
-        }
-    }
-
-    private load_area_sections_and_render_geometry(
-        episode: number,
-        area_id: number,
-        area_variant: number
-    ): void {
-        const promise = get_area_render_data(episode, area_id, area_variant).then(buffer =>
-            area_geometry_to_sections_and_object_3d(
-                parse_area_geometry(new ArrayBufferCursor(buffer, Endianness.Little))
-            )
-        );
-
-        sections_cache.set(
-            `${episode}-${area_id}-${area_variant}`,
-            promise.then(([sections]) => sections)
-        );
-        render_geometry_cache.set(
-            `${episode}-${area_id}-${area_variant}`,
-            promise.then(([, object_3d]) => object_3d)
-        );
-    }
+        variant_id: number
+    ): Promise<Section[]> => {
+        return load_area_sections(episode, area_id, variant_id);
+    };
 }
 
 export const area_store = new AreaStore();

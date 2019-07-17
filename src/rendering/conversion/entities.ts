@@ -7,7 +7,7 @@ import {
     Texture,
     Material,
 } from "three";
-import { QuestEntity, QuestNpc, QuestObject } from "../domain";
+import { QuestEntity, QuestNpc, QuestObject } from "../../domain";
 
 export const OBJECT_COLOR = 0xffff00;
 export const OBJECT_HOVER_COLOR = 0xffdf3f;

@@ -1,14 +1,12 @@
 import Logger from "js-logger";
 import { action, observable, runInAction } from "mobx";
+import { Endianness } from "../data_formats";
+import { ArrayBufferCursor } from "../data_formats/cursor/ArrayBufferCursor";
 import { parse_quest, write_quest_qst } from "../data_formats/parsing/quest";
 import { Vec3 } from "../data_formats/vector";
 import { Area, Quest, QuestEntity, Section } from "../domain";
-import { create_npc_mesh, create_object_mesh } from "../rendering/entities";
-import { area_store } from "./AreaStore";
-import { entity_store } from "./EntityStore";
-import { ArrayBufferCursor } from "../data_formats/cursor/ArrayBufferCursor";
-import { Endianness } from "../data_formats";
 import { read_file } from "../read_file";
+import { area_store } from "./AreaStore";
 
 const logger = Logger.get("stores/QuestEditorStore");
 
@@ -69,10 +67,7 @@ class QuestEditorStore {
                     // Generate object geometry.
                     for (const object of quest.objects.filter(o => o.area_id === variant.area.id)) {
                         try {
-                            const object_geom = await entity_store.get_object_geometry(object.type);
-                            const object_tex = await entity_store.get_object_tex(object.type);
                             this.set_section_on_visible_quest_entity(object, sections);
-                            object.object_3d = create_object_mesh(object, object_geom, object_tex);
                         } catch (e) {
                             logger.error(e);
                         }
@@ -81,10 +76,7 @@ class QuestEditorStore {
                     // Generate NPC geometry.
                     for (const npc of quest.npcs.filter(npc => npc.area_id === variant.area.id)) {
                         try {
-                            const npc_geom = await entity_store.get_npc_geometry(npc.type);
-                            const npc_tex = await entity_store.get_npc_tex(npc.type);
                             this.set_section_on_visible_quest_entity(npc, sections);
-                            npc.object_3d = create_npc_mesh(npc, npc_geom, npc_tex);
                         } catch (e) {
                             logger.error(e);
                         }

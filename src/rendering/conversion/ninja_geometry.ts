@@ -17,9 +17,9 @@ import {
     Mesh,
 } from "three";
 import { vec3_to_threejs } from ".";
-import { is_njcm_model, NjModel, NjObject } from "../data_formats/parsing/ninja";
-import { NjcmModel } from "../data_formats/parsing/ninja/njcm";
-import { xj_model_to_geometry } from "./xj_model_to_geometry";
+import { is_njcm_model, NjModel, NjObject } from "../../data_formats/parsing/ninja";
+import { NjcmModel } from "../../data_formats/parsing/ninja/njcm";
+import { xj_model_to_geometry } from "./xj_models";
 
 const DUMMY_MATERIAL = new MeshBasicMaterial({
     color: 0x00ff00,

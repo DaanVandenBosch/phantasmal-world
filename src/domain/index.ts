@@ -1,5 +1,4 @@
 import { computed, observable } from "mobx";
-import { Object3D } from "three";
 import { DatNpc, DatObject, DatUnknown } from "../data_formats/parsing/quest/dat";
 import { Vec3 } from "../data_formats/vector";
 import { enum_values } from "../enums";
@@ -185,8 +184,6 @@ export class QuestEntity {
             this.position = new Vec3(x, y, z);
         }
     }
-
-    @observable object_3d?: Object3D;
 
     constructor(area_id: number, section_id: number, position: Vec3, rotation: Vec3) {
         if (Object.getPrototypeOf(this) === Object.getPrototypeOf(QuestEntity))

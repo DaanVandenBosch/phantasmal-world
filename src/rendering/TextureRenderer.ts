@@ -12,7 +12,7 @@ import {
 import { Xvm } from "../data_formats/parsing/ninja/texture";
 import { texture_viewer_store } from "../stores/TextureViewerStore";
 import { Renderer } from "./Renderer";
-import { xvm_texture_to_texture } from "./textures";
+import { xvm_texture_to_texture } from "./conversion/ninja_textures";
 
 const logger = Logger.get("rendering/TextureRenderer");
 
