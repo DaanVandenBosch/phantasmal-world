@@ -31,6 +31,7 @@ const logger = Logger.get("stores/ModelViewerStore");
 const nj_object_cache: Map<string, Promise<NjObject<NjModel>>> = new Map();
 const nj_motion_cache: Map<number, Promise<NjMotion>> = new Map();
 
+// TODO: move all Three.js stuff into the renderer.
 class ModelViewerStore {
     readonly models: PlayerModel[] = [
         new PlayerModel("HUmar", 1, 10, new Set([6])),

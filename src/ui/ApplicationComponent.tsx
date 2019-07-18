@@ -1,7 +1,7 @@
 import { Menu, Select } from "antd";
 import { ClickParam } from "antd/lib/menu";
 import { observer } from "mobx-react";
-import React, { ReactNode } from "react";
+import React, { ReactNode, Component } from "react";
 import { Server } from "../domain";
 import "./ApplicationComponent.less";
 import { DpsCalcComponent } from "./dps_calc/DpsCalcComponent";
@@ -9,6 +9,7 @@ import { with_error_boundary } from "./ErrorBoundary";
 import { HuntOptimizerComponent } from "./hunt_optimizer/HuntOptimizerComponent";
 import { QuestEditorComponent } from "./quest_editor/QuestEditorComponent";
 import { ViewerComponent } from "./viewer/ViewerComponent";
+import { application_store } from "../stores/ApplicationStore";
 
 const Viewer = with_error_boundary(ViewerComponent);
 const QuestEditor = with_error_boundary(QuestEditorComponent);
@@ -16,13 +17,19 @@ const HuntOptimizer = with_error_boundary(HuntOptimizerComponent);
 const DpsCalc = with_error_boundary(DpsCalcComponent);
 
 @observer
-export class ApplicationComponent extends React.Component {
-    state = { tool: this.init_tool() };
+export class ApplicationComponent extends Component {
+    componentDidMount(): void {
+        window.addEventListener("keyup", this.keyup);
+    }
+
+    componentWillUnmount(): void {
+        window.removeEventListener("keyup", this.keyup);
+    }
 
     render(): ReactNode {
         let tool_component;
 
-        switch (this.state.tool) {
+        switch (application_store.current_tool) {
             case "viewer":
                 tool_component = <Viewer />;
                 break;
@@ -44,7 +51,7 @@ export class ApplicationComponent extends React.Component {
                     <Menu
                         className="ApplicationComponent-heading-menu"
                         onClick={this.menu_clicked}
-                        selectedKeys={[this.state.tool]}
+                        selectedKeys={[application_store.current_tool]}
                         mode="horizontal"
                     >
                         <Menu.Item key="viewer">
@@ -71,14 +78,10 @@ export class ApplicationComponent extends React.Component {
     }
 
     private menu_clicked = (e: ClickParam) => {
-        this.setState({ tool: e.key });
+        application_store.current_tool = e.key;
     };
 
-    private init_tool(): string {
-        const param = window.location.search
-            .slice(1)
-            .split("&")
-            .find(p => p.startsWith("tool="));
-        return param ? param.slice(5) : "viewer";
-    }
+    private keyup = (e: KeyboardEvent) => {
+        application_store.dispatch_global_keyup(e);
+    };
 }

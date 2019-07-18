@@ -1,8 +1,8 @@
-import React, { Component, ReactNode } from "react";
 import { Tabs } from "antd";
+import React, { Component, ReactNode } from "react";
 import { ModelViewerComponent } from "./models/ModelViewerComponent";
-import "./ViewerComponent.less";
 import { TextureViewerComponent } from "./textures/TextureViewerComponent";
+import "./ViewerComponent.less";
 
 export class ViewerComponent extends Component {
     render(): ReactNode {

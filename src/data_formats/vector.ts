@@ -16,6 +16,10 @@ export class Vec2 {
     clone(): Vec2 {
         return new Vec2(this.x, this.y);
     }
+
+    equals(v: Vec2): boolean {
+        return this.x === v.x && this.y === v.y;
+    }
 }
 
 export class Vec3 {
@@ -38,5 +42,9 @@ export class Vec3 {
 
     clone(): Vec3 {
         return new Vec3(this.x, this.y, this.z);
+    }
+
+    equals(v: Vec3): boolean {
+        return this.x === v.x && this.y === v.y && this.z === v.z;
     }
 }

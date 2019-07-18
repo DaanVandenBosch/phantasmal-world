@@ -9,6 +9,7 @@ import "./QuestEditorComponent.css";
 import { QuestInfoComponent } from "./QuestInfoComponent";
 import { RendererComponent } from "../RendererComponent";
 import { get_quest_renderer } from "../../rendering/QuestRenderer";
+import { application_store } from "../../stores/ApplicationStore";
 
 @observer
 export class QuestEditorComponent extends Component<
@@ -24,12 +25,16 @@ export class QuestEditorComponent extends Component<
         save_dialog_filename: "Untitled",
     };
 
+    componentDidMount(): void {
+        application_store.on_global_keyup("quest_editor", this.keyup);
+    }
+
     render(): ReactNode {
         const quest = quest_editor_store.current_quest;
 
         return (
             <div className="qe-QuestEditorComponent">
-                <Toolbar onSaveAsClicked={this.save_as_clicked} />
+                <Toolbar on_save_as_clicked={this.save_as_clicked} />
                 <div className="qe-QuestEditorComponent-main">
                     <QuestInfoComponent quest={quest} />
                     <RendererComponent renderer={get_quest_renderer()} />
@@ -71,17 +76,26 @@ export class QuestEditorComponent extends Component<
     private save_dialog_cancelled = () => {
         this.setState({ save_dialog_open: false });
     };
+
+    private keyup = (e: KeyboardEvent) => {
+        if (e.ctrlKey && e.key === "z" && !e.altKey) {
+            quest_editor_store.undo_stack.undo();
+        } else if (e.ctrlKey && e.key === "Z" && !e.altKey) {
+            quest_editor_store.undo_stack.redo();
+        }
+    };
 }
 
 @observer
-class Toolbar extends Component<{ onSaveAsClicked: (filename?: string) => void }> {
+class Toolbar extends Component<{ on_save_as_clicked: (filename?: string) => void }> {
     state = {
         filename: undefined,
     };
 
     render(): ReactNode {
+        const undo = quest_editor_store.undo_stack;
         const quest = quest_editor_store.current_quest;
-        const areas = quest && Array.from(quest.area_variants).map(a => a.area);
+        const areas = quest ? Array.from(quest.area_variants).map(a => a.area) : [];
         const area = quest_editor_store.current_area;
         const area_id = area && area.id;
 
@@ -96,24 +110,33 @@ class Toolbar extends Component<{ onSaveAsClicked: (filename?: string) => void }
                 >
                     <Button icon="file">{this.state.filename || "Open file..."}</Button>
                 </Upload>
-                {areas && (
-                    <Select
-                        onChange={quest_editor_store.set_current_area_id}
-                        value={area_id}
-                        style={{ width: 200 }}
-                    >
-                        {areas.map(area => (
-                            <Select.Option key={area.id} value={area.id}>
-                                {area.name}
-                            </Select.Option>
-                        ))}
-                    </Select>
-                )}
-                {quest && (
-                    <Button icon="save" onClick={this.save_as_clicked}>
-                        Save as...
-                    </Button>
-                )}
+                <Select
+                    onChange={quest_editor_store.set_current_area_id}
+                    value={area_id}
+                    style={{ width: 200 }}
+                    disabled={!quest}
+                >
+                    {areas.map(area => (
+                        <Select.Option key={area.id} value={area.id}>
+                            {area.name}
+                        </Select.Option>
+                    ))}
+                </Select>
+                <Button icon="save" onClick={this.save_as} disabled={!quest}>
+                    Save as...
+                </Button>
+                <Button
+                    icon="undo"
+                    onClick={this.undo}
+                    title={"Undo" + (undo.first_undo ? ` "${undo.first_undo.description}"` : "")}
+                    disabled={!undo.can_undo}
+                />
+                <Button
+                    icon="redo"
+                    onClick={this.redo}
+                    title={"Redo" + (undo.first_redo ? ` "${undo.first_redo.description}"` : "")}
+                    disabled={!quest_editor_store.undo_stack.can_redo}
+                />
             </div>
         );
     }
@@ -125,8 +148,16 @@ class Toolbar extends Component<{ onSaveAsClicked: (filename?: string) => void }
         }
     };
 
-    private save_as_clicked = () => {
-        this.props.onSaveAsClicked(this.state.filename);
+    private save_as = () => {
+        this.props.on_save_as_clicked(this.state.filename);
+    };
+
+    private undo = () => {
+        quest_editor_store.undo_stack.undo();
+    };
+
+    private redo = () => {
+        quest_editor_store.undo_stack.redo();
     };
 }
 

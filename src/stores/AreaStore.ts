@@ -1,4 +1,4 @@
-import { Area, AreaVariant, Section } from "../domain";
+import { Area, AreaVariant, Section, Episode } from "../domain";
 import { load_area_sections } from "../loading/areas";
 
 function area(id: number, name: string, order: number, variants: number): Area {
@@ -11,12 +11,12 @@ function area(id: number, name: string, order: number, variants: number): Area {
 }
 
 class AreaStore {
-    readonly areas: Area[][] = [];
+    private areas: Area[][] = [];
 
     constructor() {
         // The IDs match the PSO IDs for areas.
         let order = 0;
-        this.areas[1] = [
+        this.areas[Episode.I] = [
             area(0, "Pioneer II", order++, 1),
             area(1, "Forest 1", order++, 1),
             area(2, "Forest 2", order++, 1),
@@ -37,7 +37,7 @@ class AreaStore {
             area(17, "Lobby", order++, 15),
         ];
         order = 0;
-        this.areas[2] = [
+        this.areas[Episode.II] = [
             area(0, "Lab", order++, 1),
             area(1, "VR Temple Alpha", order++, 3),
             area(2, "VR Temple Beta", order++, 3),
@@ -58,7 +58,7 @@ class AreaStore {
             area(17, "Control Tower", order++, 5),
         ];
         order = 0;
-        this.areas[4] = [
+        this.areas[Episode.IV] = [
             area(0, "Pioneer II (Ep. IV)", order++, 1),
             area(1, "Crater Route 1", order++, 1),
             area(2, "Crater Route 2", order++, 1),
@@ -72,12 +72,14 @@ class AreaStore {
         ];
     }
 
-    get_variant = (episode: number, area_id: number, variant_id: number): AreaVariant => {
-        if (episode !== 1 && episode !== 2 && episode !== 4)
-            throw new Error(`Expected episode to be 1, 2 or 4, got ${episode}.`);
-
+    get_area = (episode: Episode, area_id: number): Area => {
         const area = this.areas[episode].find(a => a.id === area_id);
         if (!area) throw new Error(`Area id ${area_id} for episode ${episode} is invalid.`);
+        return area;
+    };
+
+    get_variant = (episode: Episode, area_id: number, variant_id: number): AreaVariant => {
+        const area = this.get_area(episode, area_id);
 
         const area_variant = area.area_variants[variant_id];
         if (!area_variant)
@@ -89,7 +91,7 @@ class AreaStore {
     };
 
     get_area_sections = (
-        episode: number,
+        episode: Episode,
         area_id: number,
         variant_id: number
     ): Promise<Section[]> => {

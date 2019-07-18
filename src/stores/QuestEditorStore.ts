@@ -7,34 +7,40 @@ import { Vec3 } from "../data_formats/vector";
 import { Area, Quest, QuestEntity, Section } from "../domain";
 import { read_file } from "../read_file";
 import { area_store } from "./AreaStore";
+import { UndoStack } from "../undo";
 
 const logger = Logger.get("stores/QuestEditorStore");
 
 class QuestEditorStore {
+    readonly undo_stack = new UndoStack();
     @observable current_quest?: Quest;
     @observable current_area?: Area;
     @observable selected_entity?: QuestEntity;
 
-    set_quest = action("set_quest", (quest?: Quest) => {
-        this.reset_quest_state();
+    @action
+    set_quest = (quest?: Quest) => {
+        this.undo_stack.clear();
+        this.selected_entity = undefined;
         this.current_quest = quest;
 
         if (quest && quest.area_variants.length) {
             this.current_area = quest.area_variants[0].area;
+        } else {
+            this.current_area = undefined;
         }
-    });
+    };
 
-    private reset_quest_state(): void {
-        this.current_quest = undefined;
-        this.current_area = undefined;
-        this.selected_entity = undefined;
-    }
-
+    @action
     set_selected_entity = (entity?: QuestEntity) => {
+        if (entity) {
+            this.set_current_area_id(entity.area_id);
+        }
+
         this.selected_entity = entity;
     };
 
-    set_current_area_id = action("set_current_area_id", (area_id?: number) => {
+    @action
+    set_current_area_id = (area_id?: number) => {
         this.selected_entity = undefined;
 
         if (area_id == null) {
@@ -45,7 +51,7 @@ class QuestEditorStore {
             );
             this.current_area = area_variant && area_variant.area;
         }
-    });
+    };
 
     // TODO: notify user of problems.
     load_file = async (file: File) => {
@@ -64,7 +70,6 @@ class QuestEditorStore {
                     );
                     variant.sections = sections;
 
-                    // Generate object geometry.
                     for (const object of quest.objects.filter(o => o.area_id === variant.area.id)) {
                         try {
                             this.set_section_on_visible_quest_entity(object, sections);
@@ -73,7 +78,6 @@ class QuestEditorStore {
                         }
                     }
 
-                    // Generate NPC geometry.
                     for (const npc of quest.npcs.filter(npc => npc.area_id === variant.area.id)) {
                         try {
                             this.set_section_on_visible_quest_entity(npc, sections);

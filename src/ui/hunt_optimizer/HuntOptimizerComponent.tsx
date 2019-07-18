@@ -1,8 +1,8 @@
 import { Tabs } from "antd";
 import React from "react";
 import "./HuntOptimizerComponent.css";
-import { OptimizerComponent } from "./OptimizerComponent";
 import { MethodsComponent } from "./MethodsComponent";
+import { OptimizerComponent } from "./OptimizerComponent";
 
 const TabPane = Tabs.TabPane;
 

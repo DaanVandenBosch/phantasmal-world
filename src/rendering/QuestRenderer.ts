@@ -1,9 +1,11 @@
 import { autorun } from "mobx";
-import { Object3D, PerspectiveCamera } from "three";
+import { Mesh, Object3D, PerspectiveCamera, Group } from "three";
+import { QuestEntity } from "../domain";
 import { quest_editor_store } from "../stores/QuestEditorStore";
-import { EntityControls } from "./EntityControls";
+import { QuestEntityControls } from "./QuestEntityControls";
 import { QuestModelManager } from "./QuestModelManager";
 import { Renderer } from "./Renderer";
+import { EntityUserData } from "./conversion/entities";
 
 let renderer: QuestRenderer | undefined;
 
@@ -37,29 +39,14 @@ export class QuestRenderer extends Renderer<PerspectiveCamera> {
         // this.scene.add(render_geometry);
     }
 
-    private _obj_geometry = new Object3D();
+    private _entity_models = new Object3D();
 
-    get obj_geometry(): Object3D {
-        return this._obj_geometry;
+    get entity_models(): Object3D {
+        return this._entity_models;
     }
 
-    set obj_geometry(obj_geometry: Object3D) {
-        this.scene.remove(this._obj_geometry);
-        this._obj_geometry = obj_geometry;
-        this.scene.add(obj_geometry);
-    }
-
-    private _npc_geometry = new Object3D();
-
-    get npc_geometry(): Object3D {
-        return this._npc_geometry;
-    }
-
-    set npc_geometry(npc_geometry: Object3D) {
-        this.scene.remove(this._npc_geometry);
-        this._npc_geometry = npc_geometry;
-        this.scene.add(npc_geometry);
-    }
+    private entity_to_mesh = new Map<QuestEntity, Mesh>();
+    private entity_controls: QuestEntityControls;
 
     constructor() {
         super(new PerspectiveCamera(60, 1, 10, 10000));
@@ -73,16 +60,37 @@ export class QuestRenderer extends Renderer<PerspectiveCamera> {
             );
         });
 
-        const entity_controls = new EntityControls(this);
+        this.entity_controls = new QuestEntityControls(this);
 
-        this.dom_element.addEventListener("mousedown", entity_controls.on_mouse_down);
-        this.dom_element.addEventListener("mouseup", entity_controls.on_mouse_up);
-        this.dom_element.addEventListener("mousemove", entity_controls.on_mouse_move);
+        this.dom_element.addEventListener("mousedown", this.entity_controls.on_mouse_down);
+        this.dom_element.addEventListener("mouseup", this.entity_controls.on_mouse_up);
+        this.dom_element.addEventListener("mousemove", this.entity_controls.on_mouse_move);
     }
 
     set_size(width: number, height: number): void {
         this.camera.aspect = width / height;
         this.camera.updateProjectionMatrix();
         super.set_size(width, height);
+    }
+
+    reset_entity_models(): void {
+        this.scene.remove(this._entity_models);
+        this._entity_models = new Group();
+        this.scene.add(this._entity_models);
+        this.entity_to_mesh.clear();
+    }
+
+    add_entity_model(model: Mesh): void {
+        const entity = (model.userData as EntityUserData).entity;
+        this._entity_models.add(model);
+        this.entity_to_mesh.set(entity, model);
+
+        if (entity === quest_editor_store.selected_entity) {
+            this.entity_controls.try_highlight_selected();
+        }
+    }
+
+    get_entity_mesh(entity: QuestEntity): Mesh | undefined {
+        return this.entity_to_mesh.get(entity);
     }
 }

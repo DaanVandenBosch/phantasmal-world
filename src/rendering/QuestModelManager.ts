@@ -1,16 +1,16 @@
-import { QuestRenderer } from "./QuestRenderer";
-import { Quest, Area, QuestEntity } from "../domain";
-import { IReactionDisposer, autorun } from "mobx";
-import { Object3D, Group, Vector3 } from "three";
+import Logger from "js-logger";
+import { autorun, IReactionDisposer } from "mobx";
+import { Mesh, Object3D, Vector3 } from "three";
+import { Area, Quest, QuestEntity } from "../domain";
 import { load_area_collision_geometry, load_area_render_geometry } from "../loading/areas";
 import {
-    load_object_geometry,
-    load_object_tex as load_object_textures,
     load_npc_geometry,
     load_npc_tex as load_npc_textures,
+    load_object_geometry,
+    load_object_tex as load_object_textures,
 } from "../loading/entities";
-import { create_object_mesh, create_npc_mesh } from "./conversion/entities";
-import Logger from "js-logger";
+import { create_npc_mesh, create_object_mesh } from "./conversion/entities";
+import { QuestRenderer } from "./QuestRenderer";
 
 const logger = Logger.get("rendering/QuestModelManager");
 
@@ -63,10 +63,7 @@ export class QuestModelManager {
                 this.renderer.reset_camera(CAMERA_POSITION, CAMERA_LOOKAT);
 
                 // Load entity models.
-                const npc_group = new Group();
-                const obj_group = new Group();
-                this.renderer.npc_geometry = npc_group;
-                this.renderer.obj_geometry = obj_group;
+                this.renderer.reset_entity_models();
 
                 for (const npc of quest.npcs) {
                     if (npc.area_id === area.id) {
@@ -76,7 +73,7 @@ export class QuestModelManager {
                         if (this.quest !== quest || this.area !== area) return;
 
                         const model = create_npc_mesh(npc, npc_geom, npc_tex);
-                        this.update_entity_geometry(npc, npc_group, model);
+                        this.update_entity_geometry(npc, model);
                     }
                 }
 
@@ -88,26 +85,24 @@ export class QuestModelManager {
                         if (this.quest !== quest || this.area !== area) return;
 
                         const model = create_object_mesh(object, object_geom, object_tex);
-                        this.update_entity_geometry(object, obj_group, model);
+                        this.update_entity_geometry(object, model);
                     }
                 }
             } catch (e) {
                 logger.error(`Couldn't load models for quest ${quest.id}, ${area.name}.`, e);
                 this.renderer.collision_geometry = DUMMY_OBJECT;
                 this.renderer.render_geometry = DUMMY_OBJECT;
-                this.renderer.obj_geometry = DUMMY_OBJECT;
-                this.renderer.npc_geometry = DUMMY_OBJECT;
+                this.renderer.reset_entity_models();
             }
         } else {
             this.renderer.collision_geometry = DUMMY_OBJECT;
             this.renderer.render_geometry = DUMMY_OBJECT;
-            this.renderer.obj_geometry = DUMMY_OBJECT;
-            this.renderer.npc_geometry = DUMMY_OBJECT;
+            this.renderer.reset_entity_models();
         }
     }
 
-    private update_entity_geometry(entity: QuestEntity, group: Group, model: Object3D): void {
-        group.add(model);
+    private update_entity_geometry(entity: QuestEntity, model: Mesh): void {
+        this.renderer.add_entity_model(model);
 
         this.entity_reaction_disposers.push(
             autorun(() => {

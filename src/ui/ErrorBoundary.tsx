@@ -28,10 +28,10 @@ export class ErrorBoundary extends Component<{}, State> {
     }
 }
 
-export function with_error_boundary(Component: ComponentType): ComponentType {
-    const ComponentErrorBoundary = (): JSX.Element => (
+export function with_error_boundary<P>(Component: ComponentType<P>): ComponentType<P> {
+    const ComponentErrorBoundary = (props: P): JSX.Element => (
         <ErrorBoundary>
-            <Component />
+            <Component {...props} />
         </ErrorBoundary>
     );
     ComponentErrorBoundary.displayName = `${Component.displayName}ErrorBoundary`;
