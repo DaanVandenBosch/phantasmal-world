@@ -1,10 +1,9 @@
 import { InputNumber } from "antd";
+import { autorun, IReactionDisposer } from "mobx";
 import { observer } from "mobx-react";
-import React, { ReactNode, Component, PureComponent } from "react";
-import { QuestNpc, QuestObject, QuestEntity } from "../../domain";
+import React, { Component, PureComponent, ReactNode } from "react";
+import { QuestEntity, QuestNpc, QuestObject } from "../../domain";
 import "./EntityInfoComponent.css";
-import { IReactionDisposer, autorun } from "mobx";
-import { Vec3 } from "../../data_formats/vector";
 
 export type Props = {
     entity?: QuestEntity;
@@ -156,7 +155,7 @@ class CoordInput extends Component<CoordProps, { value: number }> {
         );
     }
 
-    private start_observing() {
+    private start_observing(): void {
         if (this.disposer) this.disposer();
 
         this.disposer = autorun(
