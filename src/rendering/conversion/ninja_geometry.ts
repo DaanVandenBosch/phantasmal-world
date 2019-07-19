@@ -3,23 +3,23 @@ import {
     BufferGeometry,
     DoubleSide,
     Euler,
-    Float32BufferAttribute,
     Material,
     Matrix3,
     Matrix4,
+    Mesh,
+    MeshBasicMaterial,
     MeshLambertMaterial,
     Quaternion,
     Skeleton,
     SkinnedMesh,
-    Uint16BufferAttribute,
+    Vector2,
     Vector3,
-    MeshBasicMaterial,
-    Mesh,
 } from "three";
 import { vec3_to_threejs } from ".";
 import { is_njcm_model, NjModel, NjObject } from "../../data_formats/parsing/ninja";
 import { NjcmModel } from "../../data_formats/parsing/ninja/njcm";
-import { xj_model_to_geometry } from "./xj_models";
+import { XjModel } from "../../data_formats/parsing/ninja/xj";
+import { GeometryBuilder } from "./GeometryBuilder";
 
 const DUMMY_MATERIAL = new MeshBasicMaterial({
     color: 0x00ff00,
@@ -35,33 +35,41 @@ const DEFAULT_SKINNED_MATERIAL = new MeshLambertMaterial({
     side: DoubleSide,
 });
 const DEFAULT_NORMAL = new Vector3(0, 1, 0);
+const DEFAULT_UV = new Vector2(0, 0);
 const NO_TRANSLATION = new Vector3(0, 0, 0);
 const NO_ROTATION = new Quaternion(0, 0, 0, 1);
 const NO_SCALE = new Vector3(1, 1, 1);
 
-export function ninja_object_to_buffer_geometry(object: NjObject<NjModel>): BufferGeometry {
-    return new Object3DCreator([]).create_buffer_geometry(object);
+export function ninja_object_to_geometry_builder(
+    object: NjObject<NjModel>,
+    builder: GeometryBuilder
+) {
+    new ModelCreator(builder).to_geometry_builder(object);
 }
 
-export function ninja_object_to_mesh(object: NjObject<NjModel>, materials: Material[] = []): Mesh {
-    return new Object3DCreator(materials).create_mesh(object);
+export function ninja_object_to_buffer_geometry(object: NjObject<NjModel>): BufferGeometry {
+    return new ModelCreator(new GeometryBuilder()).create_buffer_geometry(object);
+}
+
+export function ninja_object_to_mesh(
+    object: NjObject<NjModel>,
+    materials: Material[] = [],
+    default_material: Material = DEFAULT_MATERIAL
+): Mesh {
+    return new ModelCreator(new GeometryBuilder()).create_mesh(object, materials, default_material);
 }
 
 export function ninja_object_to_skinned_mesh(
     object: NjObject<NjModel>,
-    materials: Material[] = []
+    materials: Material[] = [],
+    default_material: Material = DEFAULT_SKINNED_MATERIAL
 ): SkinnedMesh {
-    return new Object3DCreator(materials).create_skinned_mesh(object);
+    return new ModelCreator(new GeometryBuilder()).create_skinned_mesh(
+        object,
+        materials,
+        default_material
+    );
 }
-
-export type VertexGroup = {
-    /**
-     * Start index.
-     */
-    start: number;
-    count: number;
-    material_index: number;
-};
 
 type Vertex = {
     bone_id: number;
@@ -94,70 +102,57 @@ class VerticesHolder {
     }
 }
 
-class Object3DCreator {
-    private materials: Material[];
+class ModelCreator {
     private vertices = new VerticesHolder();
     private bone_id: number = 0;
     private bones: Bone[] = [];
+    private builder: GeometryBuilder;
 
-    private positions: number[] = [];
-    private normals: number[] = [];
-    private uvs: number[] = [];
-    private indices: number[] = [];
-    private bone_indices: number[] = [];
-    private bone_weights: number[] = [];
-    private groups: VertexGroup[] = [];
+    constructor(builder: GeometryBuilder) {
+        this.builder = builder;
+    }
 
-    constructor(materials: Material[]) {
-        this.materials = [DUMMY_MATERIAL, ...materials];
+    to_geometry_builder(object: NjObject<NjModel>) {
+        this.object_to_geometry(object, undefined, new Matrix4());
     }
 
     create_buffer_geometry(object: NjObject<NjModel>): BufferGeometry {
-        this.object_to_geometry(object, undefined, new Matrix4());
-
-        const geom = new BufferGeometry();
-
-        geom.addAttribute("position", new Float32BufferAttribute(this.positions, 3));
-        geom.addAttribute("normal", new Float32BufferAttribute(this.normals, 3));
-        geom.addAttribute("uv", new Float32BufferAttribute(this.uvs, 2));
-
-        geom.setIndex(new Uint16BufferAttribute(this.indices, 1));
-
-        for (const group of this.groups) {
-            geom.addGroup(group.start, group.count, group.material_index);
-        }
-
-        geom.computeBoundingSphere();
-        geom.computeBoundingBox();
-
-        return geom;
+        this.to_geometry_builder(object);
+        return this.builder.build();
     }
 
-    create_mesh(object: NjObject<NjModel>): Mesh {
+    create_mesh(
+        object: NjObject<NjModel>,
+        materials: Material[],
+        default_material: Material
+    ): Mesh {
         const geom = this.create_buffer_geometry(object);
 
-        const max_mat_idx = this.groups.reduce((max, g) => Math.max(max, g.material_index), 0);
+        materials = [DUMMY_MATERIAL, ...materials];
+        const max_mat_idx = this.builder.max_material_index || 0;
 
-        for (let i = this.materials.length - 1; i < max_mat_idx; ++i) {
-            this.materials.push(DEFAULT_MATERIAL);
+        for (let i = materials.length - 1; i < max_mat_idx; ++i) {
+            materials.push(default_material);
         }
 
-        return new Mesh(geom, this.materials);
+        return new Mesh(geom, materials);
     }
 
-    create_skinned_mesh(object: NjObject<NjModel>): SkinnedMesh {
+    create_skinned_mesh(
+        object: NjObject<NjModel>,
+        materials: Material[],
+        default_material: Material
+    ): SkinnedMesh {
         const geom = this.create_buffer_geometry(object);
 
-        geom.addAttribute("skinIndex", new Uint16BufferAttribute(this.bone_indices, 4));
-        geom.addAttribute("skinWeight", new Float32BufferAttribute(this.bone_weights, 4));
+        materials = [DUMMY_MATERIAL, ...materials];
+        const max_mat_idx = this.builder.max_material_index || 0;
 
-        const max_mat_idx = this.groups.reduce((max, g) => Math.max(max, g.material_index), 0);
-
-        for (let i = this.materials.length - 1; i < max_mat_idx; ++i) {
-            this.materials.push(DEFAULT_SKINNED_MATERIAL);
+        for (let i = materials.length - 1; i < max_mat_idx; ++i) {
+            materials.push(default_material);
         }
 
-        const mesh = new SkinnedMesh(geom, this.materials);
+        const mesh = new SkinnedMesh(geom, materials);
         mesh.add(this.bones[0]);
         mesh.bind(new Skeleton(this.bones));
 
@@ -230,15 +225,7 @@ class Object3DCreator {
         if (is_njcm_model(model)) {
             this.njcm_model_to_geometry(model, matrix);
         } else {
-            xj_model_to_geometry(
-                model,
-                matrix,
-                this.positions,
-                this.normals,
-                this.uvs,
-                this.indices,
-                this.groups
-            );
+            this.xj_model_to_geometry(model, matrix);
         }
     }
 
@@ -247,7 +234,7 @@ class Object3DCreator {
 
         const new_vertices = model.vertices.map(vertex => {
             const position = vec3_to_threejs(vertex.position);
-            const normal = vertex.normal ? vec3_to_threejs(vertex.normal) : DEFAULT_NORMAL;
+            const normal = vertex.normal ? vec3_to_threejs(vertex.normal) : new Vector3(0, 1, 0);
 
             position.applyMatrix4(matrix);
             normal.applyMatrix3(normal_matrix);
@@ -265,7 +252,7 @@ class Object3DCreator {
         this.vertices.put(new_vertices);
 
         for (const mesh of model.meshes) {
-            const start_index_count = this.indices.length;
+            const start_index_count = this.builder.index_count;
 
             for (let i = 0; i < mesh.vertices.length; ++i) {
                 const mesh_vertex = mesh.vertices[i];
@@ -274,55 +261,121 @@ class Object3DCreator {
                 if (vertices.length) {
                     const vertex = vertices[0];
                     const normal = vertex.normal || mesh_vertex.normal || DEFAULT_NORMAL;
-                    const index = this.positions.length / 3;
+                    const index = this.builder.vertex_count;
 
-                    this.positions.push(vertex.position.x, vertex.position.y, vertex.position.z);
-                    this.normals.push(normal.x, normal.y, normal.z);
-
-                    if (mesh.has_tex_coords) {
-                        this.uvs.push(mesh_vertex.tex_coords!.x, mesh_vertex.tex_coords!.y);
-                    } else {
-                        this.uvs.push(0, 0);
-                    }
+                    this.builder.add_vertex(
+                        vertex.position,
+                        normal,
+                        mesh.has_tex_coords ? mesh_vertex.tex_coords! : DEFAULT_UV
+                    );
 
                     if (i >= 2) {
                         if (i % 2 === (mesh.clockwise_winding ? 1 : 0)) {
-                            this.indices.push(index - 2);
-                            this.indices.push(index - 1);
-                            this.indices.push(index);
+                            this.builder.add_index(index - 2);
+                            this.builder.add_index(index - 1);
+                            this.builder.add_index(index);
                         } else {
-                            this.indices.push(index - 2);
-                            this.indices.push(index);
-                            this.indices.push(index - 1);
+                            this.builder.add_index(index - 2);
+                            this.builder.add_index(index);
+                            this.builder.add_index(index - 1);
                         }
                     }
 
-                    const bone_indices = [0, 0, 0, 0];
-                    const bone_weights = [0, 0, 0, 0];
+                    const bones = [[0, 0], [0, 0], [0, 0], [0, 0]];
 
                     for (let j = vertices.length - 1; j >= 0; j--) {
                         const vertex = vertices[j];
-                        bone_indices[vertex.bone_weight_status] = vertex.bone_id;
-                        bone_weights[vertex.bone_weight_status] = vertex.bone_weight;
+                        bones[vertex.bone_weight_status] = [vertex.bone_id, vertex.bone_weight];
                     }
 
-                    this.bone_indices.push(...bone_indices);
-                    this.bone_weights.push(...bone_weights);
+                    for (const [bone_index, bone_weight] of bones) {
+                        this.builder.add_bone(bone_index, bone_weight);
+                    }
                 }
             }
 
-            const last_group = this.groups[this.groups.length - 1];
-            const mat_idx = mesh.texture_id == null ? 0 : mesh.texture_id + 1;
+            this.builder.add_group(
+                start_index_count,
+                this.builder.index_count - start_index_count,
+                mesh.texture_id
+            );
+        }
+    }
 
-            if (last_group && last_group.material_index === mat_idx) {
-                last_group.count += this.indices.length - start_index_count;
-            } else {
-                this.groups.push({
-                    start: start_index_count,
-                    count: this.indices.length - start_index_count,
-                    material_index: mat_idx,
-                });
+    private xj_model_to_geometry(model: XjModel, matrix: Matrix4): void {
+        const index_offset = this.builder.vertex_count;
+        const normal_matrix = new Matrix3().getNormalMatrix(matrix);
+
+        for (let { position, normal, uv } of model.vertices) {
+            const p = vec3_to_threejs(position).applyMatrix4(matrix);
+
+            const local_n = normal ? vec3_to_threejs(normal) : new Vector3(0, 1, 0);
+            const n = local_n.applyMatrix3(normal_matrix);
+
+            const tuv = uv || DEFAULT_UV;
+
+            this.builder.add_vertex(p, n, tuv);
+        }
+
+        let current_mat_idx: number | undefined;
+
+        for (const mesh of model.meshes) {
+            const start_index_count = this.builder.index_count;
+            let clockwise = false;
+
+            for (let j = 2; j < mesh.indices.length; ++j) {
+                const a = index_offset + mesh.indices[j - 2];
+                const b = index_offset + mesh.indices[j - 1];
+                const c = index_offset + mesh.indices[j];
+                const pa = this.builder.get_position(a);
+                const pb = this.builder.get_position(b);
+                const pc = this.builder.get_position(c);
+                const na = this.builder.get_normal(a);
+                const nb = this.builder.get_normal(b);
+                const nc = this.builder.get_normal(c);
+
+                // Calculate a surface normal and reverse the vertex winding if at least 2 of the vertex normals point in the opposite direction.
+                // This hack fixes the winding for most models.
+                const normal = pb
+                    .clone()
+                    .sub(pa)
+                    .cross(pc.clone().sub(pa));
+
+                if (clockwise) {
+                    normal.negate();
+                }
+
+                const opposite_count =
+                    (normal.dot(na) < 0 ? 1 : 0) +
+                    (normal.dot(nb) < 0 ? 1 : 0) +
+                    (normal.dot(nc) < 0 ? 1 : 0);
+
+                if (opposite_count >= 2) {
+                    clockwise = !clockwise;
+                }
+
+                if (clockwise) {
+                    this.builder.add_index(b);
+                    this.builder.add_index(a);
+                    this.builder.add_index(c);
+                } else {
+                    this.builder.add_index(a);
+                    this.builder.add_index(b);
+                    this.builder.add_index(c);
+                }
+
+                clockwise = !clockwise;
             }
+
+            if (mesh.material_properties.texture_id != null) {
+                current_mat_idx = mesh.material_properties.texture_id;
+            }
+
+            this.builder.add_group(
+                start_index_count,
+                this.builder.index_count - start_index_count,
+                current_mat_idx
+            );
         }
     }
 }

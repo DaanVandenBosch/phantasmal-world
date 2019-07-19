@@ -1,22 +1,19 @@
 import {
-    BufferGeometry,
     DoubleSide,
     Face3,
-    Float32BufferAttribute,
     Geometry,
     Group,
-    Matrix4,
     Mesh,
     MeshBasicMaterial,
     MeshLambertMaterial,
     Object3D,
-    Uint16BufferAttribute,
     Vector3,
 } from "three";
 import { CollisionObject } from "../../data_formats/parsing/area_collision_geometry";
 import { RenderObject } from "../../data_formats/parsing/area_geometry";
 import { Section } from "../../domain";
-import { xj_model_to_geometry } from "./xj_models";
+import { ninja_object_to_mesh, ninja_object_to_geometry_builder } from "./ninja_geometry";
+import { GeometryBuilder } from "./GeometryBuilder";
 
 const materials = [
     // Wall
@@ -120,21 +117,17 @@ export function area_geometry_to_sections_and_object_3d(
     const group = new Group();
 
     for (const section of object.sections) {
-        const positions: number[] = [];
-        const normals: number[] = [];
-        const indices: number[] = [];
+        const sec = new Section(section.id, section.position, section.rotation.y);
+        sections.push(sec);
 
-        for (const model of section.models) {
-            xj_model_to_geometry(model, new Matrix4(), positions, normals, [], indices, []);
+        const builder = new GeometryBuilder();
+
+        for (const object of section.objects) {
+            ninja_object_to_geometry_builder(object, builder);
         }
 
-        const geometry = new BufferGeometry();
-        geometry.addAttribute("position", new Float32BufferAttribute(positions, 3));
-        geometry.addAttribute("normal", new Float32BufferAttribute(normals, 3));
-        geometry.setIndex(new Uint16BufferAttribute(indices, 1));
-
         const mesh = new Mesh(
-            geometry,
+            builder.build(),
             new MeshLambertMaterial({
                 color: 0x44aaff,
                 transparent: true,
@@ -142,13 +135,9 @@ export function area_geometry_to_sections_and_object_3d(
                 side: DoubleSide,
             })
         );
-        mesh.position.set(section.position.x, section.position.y, section.position.z);
-        mesh.rotation.set(section.rotation.x, section.rotation.y, section.rotation.z);
-        group.add(mesh);
 
-        const sec = new Section(section.id, section.position, section.rotation.y);
         (mesh.userData as AreaUserData).section = sec;
-        sections.push(sec);
+        group.add(mesh);
     }
 
     return [sections, group];

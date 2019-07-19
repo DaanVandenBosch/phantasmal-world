@@ -1,7 +1,7 @@
 import { Cursor } from "../cursor/Cursor";
 import { Vec3 } from "../vector";
-import { ANGLE_TO_RAD } from "./ninja";
-import { parse_xj_model, XjModel } from "./ninja/xj";
+import { ANGLE_TO_RAD, NjObject, parse_xj_object } from "./ninja";
+import { XjModel } from "./ninja/xj";
 import { parse_rel } from "./rel";
 
 export type RenderObject = {
@@ -12,7 +12,7 @@ export type RenderSection = {
     id: number;
     position: Vec3;
     rotation: Vec3;
-    models: XjModel[];
+    objects: NjObject<XjModel>[];
 };
 
 export type Vertex = {
@@ -53,7 +53,7 @@ export function parse_area_geometry(cursor: Cursor): RenderObject {
         // const animated_geometry_offset_count = cursor.u32();
         // Ignore animated_geometry_offset_count and the last 4 bytes.
 
-        const models = parse_geometry_table(
+        const objects = parse_geometry_table(
             cursor,
             simple_geometry_offset_table_offset,
             simple_geometry_offset_count
@@ -63,19 +63,20 @@ export function parse_area_geometry(cursor: Cursor): RenderObject {
             id: section_id,
             position: section_position,
             rotation: section_rotation,
-            models,
+            objects,
         });
     }
 
     return { sections };
 }
 
+// TODO: don't reparse the same objects multiple times. Create DAG instead of tree.
 function parse_geometry_table(
     cursor: Cursor,
     table_offset: number,
     table_entry_count: number
-): XjModel[] {
-    const models: XjModel[] = [];
+): NjObject<XjModel>[] {
+    const objects: NjObject<XjModel>[] = [];
 
     for (let i = 0; i < table_entry_count; i++) {
         cursor.seek_start(table_offset + 16 * i);
@@ -88,14 +89,9 @@ function parse_geometry_table(
             offset = cursor.seek_start(offset).u32();
         }
 
-        cursor.seek_start(offset + 4);
-        const geometry_offset = cursor.u32();
-
-        if (geometry_offset > 0) {
-            cursor.seek_start(geometry_offset);
-            models.push(parse_xj_model(cursor));
-        }
+        cursor.seek_start(offset);
+        objects.push(...parse_xj_object(cursor));
     }
 
-    return models;
+    return objects;
 }

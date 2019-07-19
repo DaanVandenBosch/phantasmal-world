@@ -101,12 +101,25 @@ export type NjEvaluationFlags = {
     shape_skip: boolean;
 };
 
+/**
+ * Parses an NJCM file.
+ */
 export function parse_nj(cursor: Cursor): NjObject<NjcmModel>[] {
     return parse_ninja(cursor, parse_njcm_model, []);
 }
 
+/**
+ * Parses an NJCM file.
+ */
 export function parse_xj(cursor: Cursor): NjObject<XjModel>[] {
     return parse_ninja(cursor, parse_xj_model, undefined);
+}
+
+/**
+ * Parses a ninja object.
+ */
+export function parse_xj_object(cursor: Cursor): NjObject<XjModel>[] {
+    return parse_sibling_objects(cursor, parse_xj_model, undefined);
 }
 
 function parse_ninja<M extends NjModel>(
