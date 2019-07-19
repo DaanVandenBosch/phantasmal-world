@@ -1,11 +1,15 @@
-export class ObjectType {
-    id: number;
-    pso_id?: number;
-    name: string;
+import { EntityType } from ".";
 
-    constructor(id: number, pso_id: number | undefined, name: string) {
+export class ObjectType implements EntityType {
+    readonly id: number;
+    readonly code: string;
+    readonly pso_id?: number;
+    readonly name: string;
+
+    constructor(id: number, code: string, pso_id: number | undefined, name: string) {
         if (!Number.isInteger(id) || id < 1)
             throw new Error(`Expected id to be an integer greater than or equal to 1, got ${id}.`);
+        if (!code) throw new Error("code is required.");
         if (pso_id != null && (!Number.isInteger(pso_id) || pso_id < 0))
             throw new Error(
                 `Expected pso_id to be null or an integer greater than or equal to 0, got ${pso_id}.`
@@ -13,6 +17,7 @@ export class ObjectType {
         if (!name) throw new Error("name is required.");
 
         this.id = id;
+        this.code = code;
         this.pso_id = pso_id;
         this.name = name;
     }
@@ -868,353 +873,785 @@ export class ObjectType {
 (function() {
     let id = 1;
 
-    ObjectType.Unknown = new ObjectType(id++, undefined, "Unknown");
+    ObjectType.Unknown = new ObjectType(id++, "Unknown", undefined, "Unknown");
 
-    ObjectType.PlayerSet = new ObjectType(id++, 0, "Player Set");
-    ObjectType.Particle = new ObjectType(id++, 1, "Particle");
-    ObjectType.Teleporter = new ObjectType(id++, 2, "Teleporter");
-    ObjectType.Warp = new ObjectType(id++, 3, "Warp");
-    ObjectType.LightCollision = new ObjectType(id++, 4, "Light Collision");
-    ObjectType.Item = new ObjectType(id++, 5, "Item");
-    ObjectType.EnvSound = new ObjectType(id++, 6, "Env Sound");
-    ObjectType.FogCollision = new ObjectType(id++, 7, "Fog Collision");
-    ObjectType.EventCollision = new ObjectType(id++, 8, "Event Collision");
-    ObjectType.CharaCollision = new ObjectType(id++, 9, "Chara Collision");
-    ObjectType.ElementalTrap = new ObjectType(id++, 10, "Elemental Trap");
-    ObjectType.StatusTrap = new ObjectType(id++, 11, "Status Trap");
-    ObjectType.HealTrap = new ObjectType(id++, 12, "Heal Trap");
-    ObjectType.LargeElementalTrap = new ObjectType(id++, 13, "Large Elemental Trap");
-    ObjectType.ObjRoomID = new ObjectType(id++, 14, "Obj Room ID");
-    ObjectType.Sensor = new ObjectType(id++, 15, "Sensor");
-    ObjectType.UnknownItem16 = new ObjectType(id++, 16, "Unknown Item (16)");
-    ObjectType.Lensflare = new ObjectType(id++, 17, "Lensflare");
-    ObjectType.ScriptCollision = new ObjectType(id++, 18, "Script Collision");
-    ObjectType.HealRing = new ObjectType(id++, 19, "Heal Ring");
-    ObjectType.MapCollision = new ObjectType(id++, 20, "Map Collision");
-    ObjectType.ScriptCollisionA = new ObjectType(id++, 21, "Script Collision A");
-    ObjectType.ItemLight = new ObjectType(id++, 22, "Item Light");
-    ObjectType.RadarCollision = new ObjectType(id++, 23, "Radar Collision");
-    ObjectType.FogCollisionSW = new ObjectType(id++, 24, "Fog Collision SW");
-    ObjectType.BossTeleporter = new ObjectType(id++, 25, "Boss Teleporter");
-    ObjectType.ImageBoard = new ObjectType(id++, 26, "Image Board");
-    ObjectType.QuestWarp = new ObjectType(id++, 27, "Quest Warp");
-    ObjectType.Epilogue = new ObjectType(id++, 28, "Epilogue");
-    ObjectType.UnknownItem29 = new ObjectType(id++, 29, "Unknown Item (29)");
-    ObjectType.UnknownItem30 = new ObjectType(id++, 30, "Unknown Item (30)");
-    ObjectType.UnknownItem31 = new ObjectType(id++, 31, "Unknown Item (31)");
-    ObjectType.BoxDetectObject = new ObjectType(id++, 32, "Box Detect Object");
-    ObjectType.SymbolChatObject = new ObjectType(id++, 33, "Symbol Chat Object");
-    ObjectType.TouchPlateObject = new ObjectType(id++, 34, "Touch plate Object");
-    ObjectType.TargetableObject = new ObjectType(id++, 35, "Targetable Object");
-    ObjectType.EffectObject = new ObjectType(id++, 36, "Effect object");
-    ObjectType.CountDownObject = new ObjectType(id++, 37, "Count Down Object");
-    ObjectType.UnknownItem38 = new ObjectType(id++, 38, "Unknown Item (38)");
-    ObjectType.UnknownItem39 = new ObjectType(id++, 39, "Unknown Item (39)");
-    ObjectType.UnknownItem40 = new ObjectType(id++, 40, "Unknown Item (40)");
-    ObjectType.UnknownItem41 = new ObjectType(id++, 41, "Unknown Item (41)");
-    ObjectType.MenuActivation = new ObjectType(id++, 64, "Menu activation");
-    ObjectType.TelepipeLocation = new ObjectType(id++, 65, "Telepipe Location");
-    ObjectType.BGMCollision = new ObjectType(id++, 66, "BGM Collision");
-    ObjectType.MainRagolTeleporter = new ObjectType(id++, 67, "Main Ragol Teleporter");
-    ObjectType.LobbyTeleporter = new ObjectType(id++, 68, "Lobby Teleporter");
-    ObjectType.PrincipalWarp = new ObjectType(id++, 69, "Principal warp");
-    ObjectType.ShopDoor = new ObjectType(id++, 70, "Shop Door");
-    ObjectType.HuntersGuildDoor = new ObjectType(id++, 71, "Hunter's Guild Door");
-    ObjectType.TeleporterDoor = new ObjectType(id++, 72, "Teleporter Door");
-    ObjectType.MedicalCenterDoor = new ObjectType(id++, 73, "Medical Center Door");
-    ObjectType.Elevator = new ObjectType(id++, 74, "Elevator");
-    ObjectType.EasterEgg = new ObjectType(id++, 75, "Easter Egg");
-    ObjectType.ValentinesHeart = new ObjectType(id++, 76, "Valentines Heart");
-    ObjectType.ChristmasTree = new ObjectType(id++, 77, "Christmas Tree");
-    ObjectType.ChristmasWreath = new ObjectType(id++, 78, "Christmas Wreath");
-    ObjectType.HalloweenPumpkin = new ObjectType(id++, 79, "Halloween Pumpkin");
-    ObjectType.TwentyFirstCentury = new ObjectType(id++, 80, "21st Century");
-    ObjectType.Sonic = new ObjectType(id++, 81, "Sonic");
-    ObjectType.WelcomeBoard = new ObjectType(id++, 82, "Welcome Board");
-    ObjectType.Firework = new ObjectType(id++, 83, "Firework");
-    ObjectType.LobbyScreenDoor = new ObjectType(id++, 84, "Lobby Screen Door");
+    ObjectType.PlayerSet = new ObjectType(id++, "PlayerSet", 0, "Player Set");
+    ObjectType.Particle = new ObjectType(id++, "Particle", 1, "Particle");
+    ObjectType.Teleporter = new ObjectType(id++, "Teleporter", 2, "Teleporter");
+    ObjectType.Warp = new ObjectType(id++, "Warp", 3, "Warp");
+    ObjectType.LightCollision = new ObjectType(id++, "LightCollision", 4, "Light Collision");
+    ObjectType.Item = new ObjectType(id++, "Item", 5, "Item");
+    ObjectType.EnvSound = new ObjectType(id++, "EnvSound", 6, "Env Sound");
+    ObjectType.FogCollision = new ObjectType(id++, "FogCollision", 7, "Fog Collision");
+    ObjectType.EventCollision = new ObjectType(id++, "EventCollision", 8, "Event Collision");
+    ObjectType.CharaCollision = new ObjectType(id++, "CharaCollision", 9, "Chara Collision");
+    ObjectType.ElementalTrap = new ObjectType(id++, "ElementalTrap", 10, "Elemental Trap");
+    ObjectType.StatusTrap = new ObjectType(id++, "StatusTrap", 11, "Status Trap");
+    ObjectType.HealTrap = new ObjectType(id++, "HealTrap", 12, "Heal Trap");
+    ObjectType.LargeElementalTrap = new ObjectType(
+        id++,
+        "LargeElementalTrap",
+        13,
+        "Large Elemental Trap"
+    );
+    ObjectType.ObjRoomID = new ObjectType(id++, "ObjRoomID", 14, "Obj Room ID");
+    ObjectType.Sensor = new ObjectType(id++, "Sensor", 15, "Sensor");
+    ObjectType.UnknownItem16 = new ObjectType(id++, "UnknownItem16", 16, "Unknown Item (16)");
+    ObjectType.Lensflare = new ObjectType(id++, "Lensflare", 17, "Lensflare");
+    ObjectType.ScriptCollision = new ObjectType(id++, "ScriptCollision", 18, "Script Collision");
+    ObjectType.HealRing = new ObjectType(id++, "HealRing", 19, "Heal Ring");
+    ObjectType.MapCollision = new ObjectType(id++, "MapCollision", 20, "Map Collision");
+    ObjectType.ScriptCollisionA = new ObjectType(
+        id++,
+        "ScriptCollisionA",
+        21,
+        "Script Collision A"
+    );
+    ObjectType.ItemLight = new ObjectType(id++, "ItemLight", 22, "Item Light");
+    ObjectType.RadarCollision = new ObjectType(id++, "RadarCollision", 23, "Radar Collision");
+    ObjectType.FogCollisionSW = new ObjectType(id++, "FogCollisionSW", 24, "Fog Collision SW");
+    ObjectType.BossTeleporter = new ObjectType(id++, "BossTeleporter", 25, "Boss Teleporter");
+    ObjectType.ImageBoard = new ObjectType(id++, "ImageBoard", 26, "Image Board");
+    ObjectType.QuestWarp = new ObjectType(id++, "QuestWarp", 27, "Quest Warp");
+    ObjectType.Epilogue = new ObjectType(id++, "Epilogue", 28, "Epilogue");
+    ObjectType.UnknownItem29 = new ObjectType(id++, "UnknownItem29", 29, "Unknown Item (29)");
+    ObjectType.UnknownItem30 = new ObjectType(id++, "UnknownItem30", 30, "Unknown Item (30)");
+    ObjectType.UnknownItem31 = new ObjectType(id++, "UnknownItem31", 31, "Unknown Item (31)");
+    ObjectType.BoxDetectObject = new ObjectType(id++, "BoxDetectObject", 32, "Box Detect Object");
+    ObjectType.SymbolChatObject = new ObjectType(
+        id++,
+        "SymbolChatObject",
+        33,
+        "Symbol Chat Object"
+    );
+    ObjectType.TouchPlateObject = new ObjectType(
+        id++,
+        "TouchPlateObject",
+        34,
+        "Touch plate Object"
+    );
+    ObjectType.TargetableObject = new ObjectType(id++, "TargetableObject", 35, "Targetable Object");
+    ObjectType.EffectObject = new ObjectType(id++, "EffectObject", 36, "Effect object");
+    ObjectType.CountDownObject = new ObjectType(id++, "CountDownObject", 37, "Count Down Object");
+    ObjectType.UnknownItem38 = new ObjectType(id++, "UnknownItem38", 38, "Unknown Item (38)");
+    ObjectType.UnknownItem39 = new ObjectType(id++, "UnknownItem39", 39, "Unknown Item (39)");
+    ObjectType.UnknownItem40 = new ObjectType(id++, "UnknownItem40", 40, "Unknown Item (40)");
+    ObjectType.UnknownItem41 = new ObjectType(id++, "UnknownItem41", 41, "Unknown Item (41)");
+    ObjectType.MenuActivation = new ObjectType(id++, "MenuActivation", 64, "Menu activation");
+    ObjectType.TelepipeLocation = new ObjectType(id++, "TelepipeLocation", 65, "Telepipe Location");
+    ObjectType.BGMCollision = new ObjectType(id++, "BGMCollision", 66, "BGM Collision");
+    ObjectType.MainRagolTeleporter = new ObjectType(
+        id++,
+        "MainRagolTeleporter",
+        67,
+        "Main Ragol Teleporter"
+    );
+    ObjectType.LobbyTeleporter = new ObjectType(id++, "LobbyTeleporter", 68, "Lobby Teleporter");
+    ObjectType.PrincipalWarp = new ObjectType(id++, "PrincipalWarp", 69, "Principal warp");
+    ObjectType.ShopDoor = new ObjectType(id++, "ShopDoor", 70, "Shop Door");
+    ObjectType.HuntersGuildDoor = new ObjectType(
+        id++,
+        "HuntersGuildDoor",
+        71,
+        "Hunter's Guild Door"
+    );
+    ObjectType.TeleporterDoor = new ObjectType(id++, "TeleporterDoor", 72, "Teleporter Door");
+    ObjectType.MedicalCenterDoor = new ObjectType(
+        id++,
+        "MedicalCenterDoor",
+        73,
+        "Medical Center Door"
+    );
+    ObjectType.Elevator = new ObjectType(id++, "Elevator", 74, "Elevator");
+    ObjectType.EasterEgg = new ObjectType(id++, "EasterEgg", 75, "Easter Egg");
+    ObjectType.ValentinesHeart = new ObjectType(id++, "ValentinesHeart", 76, "Valentines Heart");
+    ObjectType.ChristmasTree = new ObjectType(id++, "ChristmasTree", 77, "Christmas Tree");
+    ObjectType.ChristmasWreath = new ObjectType(id++, "ChristmasWreath", 78, "Christmas Wreath");
+    ObjectType.HalloweenPumpkin = new ObjectType(id++, "HalloweenPumpkin", 79, "Halloween Pumpkin");
+    ObjectType.TwentyFirstCentury = new ObjectType(id++, "TwentyFirstCentury", 80, "21st Century");
+    ObjectType.Sonic = new ObjectType(id++, "Sonic", 81, "Sonic");
+    ObjectType.WelcomeBoard = new ObjectType(id++, "WelcomeBoard", 82, "Welcome Board");
+    ObjectType.Firework = new ObjectType(id++, "Firework", 83, "Firework");
+    ObjectType.LobbyScreenDoor = new ObjectType(id++, "LobbyScreenDoor", 84, "Lobby Screen Door");
     ObjectType.MainRagolTeleporterBattleInNextArea = new ObjectType(
         id++,
+        "MainRagolTeleporterBattleInNextArea",
         85,
         "Main Ragol Teleporter (Battle in next area?)"
     );
-    ObjectType.LabTeleporterDoor = new ObjectType(id++, 86, "Lab Teleporter Door");
+    ObjectType.LabTeleporterDoor = new ObjectType(
+        id++,
+        "LabTeleporterDoor",
+        86,
+        "Lab Teleporter Door"
+    );
     ObjectType.Pioneer2InvisibleTouchplate = new ObjectType(
         id++,
+        "Pioneer2InvisibleTouchplate",
         87,
         "Pioneer 2 Invisible Touchplate"
     );
-    ObjectType.ForestDoor = new ObjectType(id++, 128, "Forest Door");
-    ObjectType.ForestSwitch = new ObjectType(id++, 129, "Forest Switch");
-    ObjectType.LaserFence = new ObjectType(id++, 130, "Laser Fence");
-    ObjectType.LaserSquareFence = new ObjectType(id++, 131, "Laser Square Fence");
-    ObjectType.ForestLaserFenceSwitch = new ObjectType(id++, 132, "Forest Laser Fence Switch");
-    ObjectType.LightRays = new ObjectType(id++, 133, "Light rays");
-    ObjectType.BlueButterfly = new ObjectType(id++, 134, "Blue Butterfly");
-    ObjectType.Probe = new ObjectType(id++, 135, "Probe");
-    ObjectType.RandomTypeBox1 = new ObjectType(id++, 136, "Random Type Box 1");
-    ObjectType.ForestWeatherStation = new ObjectType(id++, 137, "Forest Weather Station");
-    ObjectType.Battery = new ObjectType(id++, 138, "Battery");
-    ObjectType.ForestConsole = new ObjectType(id++, 139, "Forest Console");
-    ObjectType.BlackSlidingDoor = new ObjectType(id++, 140, "Black Sliding Door");
-    ObjectType.RicoMessagePod = new ObjectType(id++, 141, "Rico Message Pod");
-    ObjectType.EnergyBarrier = new ObjectType(id++, 142, "Energy Barrier");
-    ObjectType.ForestRisingBridge = new ObjectType(id++, 143, "Forest Rising Bridge");
-    ObjectType.SwitchNoneDoor = new ObjectType(id++, 144, "Switch (none door)");
-    ObjectType.EnemyBoxGrey = new ObjectType(id++, 145, "Enemy Box (Grey)");
-    ObjectType.FixedTypeBox = new ObjectType(id++, 146, "Fixed Type Box");
-    ObjectType.EnemyBoxBrown = new ObjectType(id++, 147, "Enemy Box (Brown)");
-    ObjectType.EmptyTypeBox = new ObjectType(id++, 149, "Empty Type Box");
-    ObjectType.LaserFenseEx = new ObjectType(id++, 150, "Laser Fense Ex");
-    ObjectType.LaserSquareFenceEx = new ObjectType(id++, 151, "Laser Square Fence Ex");
-    ObjectType.FloorPanel1 = new ObjectType(id++, 192, "Floor Panel 1");
-    ObjectType.Caves4ButtonDoor = new ObjectType(id++, 193, "Caves 4 Button door");
-    ObjectType.CavesNormalDoor = new ObjectType(id++, 194, "Caves Normal door");
-    ObjectType.CavesSmashingPillar = new ObjectType(id++, 195, "Caves Smashing Pillar");
-    ObjectType.CavesSign1 = new ObjectType(id++, 196, "Caves Sign 1");
-    ObjectType.CavesSign2 = new ObjectType(id++, 197, "Caves Sign 2");
-    ObjectType.CavesSign3 = new ObjectType(id++, 198, "Caves Sign 3");
-    ObjectType.HexagalTank = new ObjectType(id++, 199, "Hexagal Tank");
-    ObjectType.BrownPlatform = new ObjectType(id++, 200, "Brown Platform");
-    ObjectType.WarningLightObject = new ObjectType(id++, 201, "Warning Light Object");
-    ObjectType.Rainbow = new ObjectType(id++, 203, "Rainbow");
-    ObjectType.FloatingJelifish = new ObjectType(id++, 204, "Floating Jelifish");
-    ObjectType.FloatingDragonfly = new ObjectType(id++, 205, "Floating Dragonfly");
-    ObjectType.CavesSwitchDoor = new ObjectType(id++, 206, "Caves Switch Door");
-    ObjectType.RobotRechargeStation = new ObjectType(id++, 207, "Robot Recharge Station");
-    ObjectType.CavesCakeShop = new ObjectType(id++, 208, "Caves Cake Shop");
-    ObjectType.Caves1SmallRedRock = new ObjectType(id++, 209, "Caves 1 Small Red Rock");
-    ObjectType.Caves1MediumRedRock = new ObjectType(id++, 210, "Caves 1 Medium Red Rock");
-    ObjectType.Caves1LargeRedRock = new ObjectType(id++, 211, "Caves 1 Large Red Rock");
-    ObjectType.Caves2SmallRock1 = new ObjectType(id++, 212, "Caves 2 Small Rock 1");
-    ObjectType.Caves2MediumRock1 = new ObjectType(id++, 213, "Caves 2 Medium Rock 1");
-    ObjectType.Caves2LargeRock1 = new ObjectType(id++, 214, "Caves 2 Large Rock 1");
-    ObjectType.Caves2SmallRock2 = new ObjectType(id++, 215, "Caves 2 Small Rock 2");
-    ObjectType.Caves2MediumRock2 = new ObjectType(id++, 216, "Caves 2 Medium Rock 2");
-    ObjectType.Caves2LargeRock2 = new ObjectType(id++, 217, "Caves 2 Large Rock 2");
-    ObjectType.Caves3SmallRock = new ObjectType(id++, 218, "Caves 3 Small Rock");
-    ObjectType.Caves3MediumRock = new ObjectType(id++, 219, "Caves 3 Medium Rock");
-    ObjectType.Caves3LargeRock = new ObjectType(id++, 220, "Caves 3 Large Rock");
-    ObjectType.FloorPanel2 = new ObjectType(id++, 222, "Floor Panel 2");
-    ObjectType.DestructableRockCaves1 = new ObjectType(id++, 223, "Destructable Rock (Caves 1)");
-    ObjectType.DestructableRockCaves2 = new ObjectType(id++, 224, "Destructable Rock (Caves 2)");
-    ObjectType.DestructableRockCaves3 = new ObjectType(id++, 225, "Destructable Rock (Caves 3)");
-    ObjectType.MinesDoor = new ObjectType(id++, 256, "Mines Door");
-    ObjectType.FloorPanel3 = new ObjectType(id++, 257, "Floor Panel 3");
-    ObjectType.MinesSwitchDoor = new ObjectType(id++, 258, "Mines Switch Door");
-    ObjectType.LargeCryoTube = new ObjectType(id++, 259, "Large Cryo-Tube");
-    ObjectType.ComputerLikeCalus = new ObjectType(id++, 260, "Computer (like calus)");
+    ObjectType.ForestDoor = new ObjectType(id++, "ForestDoor", 128, "Forest Door");
+    ObjectType.ForestSwitch = new ObjectType(id++, "ForestSwitch", 129, "Forest Switch");
+    ObjectType.LaserFence = new ObjectType(id++, "LaserFence", 130, "Laser Fence");
+    ObjectType.LaserSquareFence = new ObjectType(
+        id++,
+        "LaserSquareFence",
+        131,
+        "Laser Square Fence"
+    );
+    ObjectType.ForestLaserFenceSwitch = new ObjectType(
+        id++,
+        "ForestLaserFenceSwitch",
+        132,
+        "Forest Laser Fence Switch"
+    );
+    ObjectType.LightRays = new ObjectType(id++, "LightRays", 133, "Light rays");
+    ObjectType.BlueButterfly = new ObjectType(id++, "BlueButterfly", 134, "Blue Butterfly");
+    ObjectType.Probe = new ObjectType(id++, "Probe", 135, "Probe");
+    ObjectType.RandomTypeBox1 = new ObjectType(id++, "RandomTypeBox1", 136, "Random Type Box 1");
+    ObjectType.ForestWeatherStation = new ObjectType(
+        id++,
+        "ForestWeatherStation",
+        137,
+        "Forest Weather Station"
+    );
+    ObjectType.Battery = new ObjectType(id++, "Battery", 138, "Battery");
+    ObjectType.ForestConsole = new ObjectType(id++, "ForestConsole", 139, "Forest Console");
+    ObjectType.BlackSlidingDoor = new ObjectType(
+        id++,
+        "BlackSlidingDoor",
+        140,
+        "Black Sliding Door"
+    );
+    ObjectType.RicoMessagePod = new ObjectType(id++, "RicoMessagePod", 141, "Rico Message Pod");
+    ObjectType.EnergyBarrier = new ObjectType(id++, "EnergyBarrier", 142, "Energy Barrier");
+    ObjectType.ForestRisingBridge = new ObjectType(
+        id++,
+        "ForestRisingBridge",
+        143,
+        "Forest Rising Bridge"
+    );
+    ObjectType.SwitchNoneDoor = new ObjectType(id++, "SwitchNoneDoor", 144, "Switch (none door)");
+    ObjectType.EnemyBoxGrey = new ObjectType(id++, "EnemyBoxGrey", 145, "Enemy Box (Grey)");
+    ObjectType.FixedTypeBox = new ObjectType(id++, "FixedTypeBox", 146, "Fixed Type Box");
+    ObjectType.EnemyBoxBrown = new ObjectType(id++, "EnemyBoxBrown", 147, "Enemy Box (Brown)");
+    ObjectType.EmptyTypeBox = new ObjectType(id++, "EmptyTypeBox", 149, "Empty Type Box");
+    ObjectType.LaserFenseEx = new ObjectType(id++, "LaserFenseEx", 150, "Laser Fense Ex");
+    ObjectType.LaserSquareFenceEx = new ObjectType(
+        id++,
+        "LaserSquareFenceEx",
+        151,
+        "Laser Square Fence Ex"
+    );
+    ObjectType.FloorPanel1 = new ObjectType(id++, "FloorPanel1", 192, "Floor Panel 1");
+    ObjectType.Caves4ButtonDoor = new ObjectType(
+        id++,
+        "Caves4ButtonDoor",
+        193,
+        "Caves 4 Button door"
+    );
+    ObjectType.CavesNormalDoor = new ObjectType(id++, "CavesNormalDoor", 194, "Caves Normal door");
+    ObjectType.CavesSmashingPillar = new ObjectType(
+        id++,
+        "CavesSmashingPillar",
+        195,
+        "Caves Smashing Pillar"
+    );
+    ObjectType.CavesSign1 = new ObjectType(id++, "CavesSign1", 196, "Caves Sign 1");
+    ObjectType.CavesSign2 = new ObjectType(id++, "CavesSign2", 197, "Caves Sign 2");
+    ObjectType.CavesSign3 = new ObjectType(id++, "CavesSign3", 198, "Caves Sign 3");
+    ObjectType.HexagalTank = new ObjectType(id++, "HexagalTank", 199, "Hexagal Tank");
+    ObjectType.BrownPlatform = new ObjectType(id++, "BrownPlatform", 200, "Brown Platform");
+    ObjectType.WarningLightObject = new ObjectType(
+        id++,
+        "WarningLightObject",
+        201,
+        "Warning Light Object"
+    );
+    ObjectType.Rainbow = new ObjectType(id++, "Rainbow", 203, "Rainbow");
+    ObjectType.FloatingJelifish = new ObjectType(
+        id++,
+        "FloatingJelifish",
+        204,
+        "Floating Jelifish"
+    );
+    ObjectType.FloatingDragonfly = new ObjectType(
+        id++,
+        "FloatingDragonfly",
+        205,
+        "Floating Dragonfly"
+    );
+    ObjectType.CavesSwitchDoor = new ObjectType(id++, "CavesSwitchDoor", 206, "Caves Switch Door");
+    ObjectType.RobotRechargeStation = new ObjectType(
+        id++,
+        "RobotRechargeStation",
+        207,
+        "Robot Recharge Station"
+    );
+    ObjectType.CavesCakeShop = new ObjectType(id++, "CavesCakeShop", 208, "Caves Cake Shop");
+    ObjectType.Caves1SmallRedRock = new ObjectType(
+        id++,
+        "Caves1SmallRedRock",
+        209,
+        "Caves 1 Small Red Rock"
+    );
+    ObjectType.Caves1MediumRedRock = new ObjectType(
+        id++,
+        "Caves1MediumRedRock",
+        210,
+        "Caves 1 Medium Red Rock"
+    );
+    ObjectType.Caves1LargeRedRock = new ObjectType(
+        id++,
+        "Caves1LargeRedRock",
+        211,
+        "Caves 1 Large Red Rock"
+    );
+    ObjectType.Caves2SmallRock1 = new ObjectType(
+        id++,
+        "Caves2SmallRock1",
+        212,
+        "Caves 2 Small Rock 1"
+    );
+    ObjectType.Caves2MediumRock1 = new ObjectType(
+        id++,
+        "Caves2MediumRock1",
+        213,
+        "Caves 2 Medium Rock 1"
+    );
+    ObjectType.Caves2LargeRock1 = new ObjectType(
+        id++,
+        "Caves2LargeRock1",
+        214,
+        "Caves 2 Large Rock 1"
+    );
+    ObjectType.Caves2SmallRock2 = new ObjectType(
+        id++,
+        "Caves2SmallRock2",
+        215,
+        "Caves 2 Small Rock 2"
+    );
+    ObjectType.Caves2MediumRock2 = new ObjectType(
+        id++,
+        "Caves2MediumRock2",
+        216,
+        "Caves 2 Medium Rock 2"
+    );
+    ObjectType.Caves2LargeRock2 = new ObjectType(
+        id++,
+        "Caves2LargeRock2",
+        217,
+        "Caves 2 Large Rock 2"
+    );
+    ObjectType.Caves3SmallRock = new ObjectType(id++, "Caves3SmallRock", 218, "Caves 3 Small Rock");
+    ObjectType.Caves3MediumRock = new ObjectType(
+        id++,
+        "Caves3MediumRock",
+        219,
+        "Caves 3 Medium Rock"
+    );
+    ObjectType.Caves3LargeRock = new ObjectType(id++, "Caves3LargeRock", 220, "Caves 3 Large Rock");
+    ObjectType.FloorPanel2 = new ObjectType(id++, "FloorPanel2", 222, "Floor Panel 2");
+    ObjectType.DestructableRockCaves1 = new ObjectType(
+        id++,
+        "DestructableRockCaves1",
+        223,
+        "Destructable Rock (Caves 1)"
+    );
+    ObjectType.DestructableRockCaves2 = new ObjectType(
+        id++,
+        "DestructableRockCaves2",
+        224,
+        "Destructable Rock (Caves 2)"
+    );
+    ObjectType.DestructableRockCaves3 = new ObjectType(
+        id++,
+        "DestructableRockCaves3",
+        225,
+        "Destructable Rock (Caves 3)"
+    );
+    ObjectType.MinesDoor = new ObjectType(id++, "MinesDoor", 256, "Mines Door");
+    ObjectType.FloorPanel3 = new ObjectType(id++, "FloorPanel3", 257, "Floor Panel 3");
+    ObjectType.MinesSwitchDoor = new ObjectType(id++, "MinesSwitchDoor", 258, "Mines Switch Door");
+    ObjectType.LargeCryoTube = new ObjectType(id++, "LargeCryoTube", 259, "Large Cryo-Tube");
+    ObjectType.ComputerLikeCalus = new ObjectType(
+        id++,
+        "ComputerLikeCalus",
+        260,
+        "Computer (like calus)"
+    );
     ObjectType.GreenScreenOpeningAndClosing = new ObjectType(
         id++,
+        "GreenScreenOpeningAndClosing",
         261,
         "Green Screen opening and closing"
     );
-    ObjectType.FloatingRobot = new ObjectType(id++, 262, "Floating Robot");
-    ObjectType.FloatingBlueLight = new ObjectType(id++, 263, "Floating Blue Light");
-    ObjectType.SelfDestructingObject1 = new ObjectType(id++, 264, "Self Destructing Object 1");
-    ObjectType.SelfDestructingObject2 = new ObjectType(id++, 265, "Self Destructing Object 2");
-    ObjectType.SelfDestructingObject3 = new ObjectType(id++, 266, "Self Destructing Object 3");
-    ObjectType.SparkMachine = new ObjectType(id++, 267, "Spark Machine");
-    ObjectType.MinesLargeFlashingCrate = new ObjectType(id++, 268, "Mines Large Flashing Crate");
-    ObjectType.RuinsSeal = new ObjectType(id++, 304, "Ruins Seal");
-    ObjectType.RuinsTeleporter = new ObjectType(id++, 320, "Ruins Teleporter");
-    ObjectType.RuinsWarpSiteToSite = new ObjectType(id++, 321, "Ruins Warp (Site to site)");
-    ObjectType.RuinsSwitch = new ObjectType(id++, 322, "Ruins Switch");
-    ObjectType.FloorPanel4 = new ObjectType(id++, 323, "Floor Panel 4");
-    ObjectType.Ruins1Door = new ObjectType(id++, 324, "Ruins 1 Door");
-    ObjectType.Ruins3Door = new ObjectType(id++, 325, "Ruins 3 Door");
-    ObjectType.Ruins2Door = new ObjectType(id++, 326, "Ruins 2 Door");
-    ObjectType.Ruins11ButtonDoor = new ObjectType(id++, 327, "Ruins 1-1 Button Door");
-    ObjectType.Ruins21ButtonDoor = new ObjectType(id++, 328, "Ruins 2-1 Button Door");
-    ObjectType.Ruins31ButtonDoor = new ObjectType(id++, 329, "Ruins 3-1 Button Door");
-    ObjectType.Ruins4ButtonDoor = new ObjectType(id++, 330, "Ruins 4-Button Door");
-    ObjectType.Ruins2ButtonDoor = new ObjectType(id++, 331, "Ruins 2-Button Door");
-    ObjectType.RuinsSensor = new ObjectType(id++, 332, "Ruins Sensor");
-    ObjectType.RuinsFenceSwitch = new ObjectType(id++, 333, "Ruins Fence Switch");
-    ObjectType.RuinsLaserFence4x2 = new ObjectType(id++, 334, "Ruins Laser Fence 4x2");
-    ObjectType.RuinsLaserFence6x2 = new ObjectType(id++, 335, "Ruins Laser Fence 6x2");
-    ObjectType.RuinsLaserFence4x4 = new ObjectType(id++, 336, "Ruins Laser Fence 4x4");
-    ObjectType.RuinsLaserFence6x4 = new ObjectType(id++, 337, "Ruins Laser Fence 6x4");
-    ObjectType.RuinsPoisonBlob = new ObjectType(id++, 338, "Ruins poison Blob");
-    ObjectType.RuinsPilarTrap = new ObjectType(id++, 339, "Ruins Pilar Trap");
-    ObjectType.PopupTrapNoTech = new ObjectType(id++, 340, "Popup Trap (No Tech)");
-    ObjectType.RuinsCrystal = new ObjectType(id++, 341, "Ruins Crystal");
-    ObjectType.Monument = new ObjectType(id++, 342, "Monument");
-    ObjectType.RuinsRock1 = new ObjectType(id++, 345, "Ruins Rock 1");
-    ObjectType.RuinsRock2 = new ObjectType(id++, 346, "Ruins Rock 2");
-    ObjectType.RuinsRock3 = new ObjectType(id++, 347, "Ruins Rock 3");
-    ObjectType.RuinsRock4 = new ObjectType(id++, 348, "Ruins Rock 4");
-    ObjectType.RuinsRock5 = new ObjectType(id++, 349, "Ruins Rock 5");
-    ObjectType.RuinsRock6 = new ObjectType(id++, 350, "Ruins Rock 6");
-    ObjectType.RuinsRock7 = new ObjectType(id++, 351, "Ruins Rock 7");
-    ObjectType.Poison = new ObjectType(id++, 352, "Poison");
-    ObjectType.FixedBoxTypeRuins = new ObjectType(id++, 353, "Fixed Box Type (Ruins)");
-    ObjectType.RandomBoxTypeRuins = new ObjectType(id++, 354, "Random Box Type (Ruins)");
-    ObjectType.EnemyTypeBoxYellow = new ObjectType(id++, 355, "Enemy Type Box (Yellow)");
-    ObjectType.EnemyTypeBoxBlue = new ObjectType(id++, 356, "Enemy Type Box (Blue)");
-    ObjectType.EmptyTypeBoxBlue = new ObjectType(id++, 357, "Empty Type Box (Blue)");
-    ObjectType.DestructableRock = new ObjectType(id++, 358, "Destructable Rock");
-    ObjectType.PopupTrapsTechs = new ObjectType(id++, 359, "Popup Traps (techs)");
-    ObjectType.FlyingWhiteBird = new ObjectType(id++, 368, "Flying White Bird");
-    ObjectType.Tower = new ObjectType(id++, 369, "Tower");
-    ObjectType.FloatingRocks = new ObjectType(id++, 370, "Floating Rocks");
-    ObjectType.FloatingSoul = new ObjectType(id++, 371, "Floating Soul");
-    ObjectType.Butterfly = new ObjectType(id++, 372, "Butterfly");
-    ObjectType.LobbyGameMenu = new ObjectType(id++, 384, "Lobby Game menu");
-    ObjectType.LobbyWarpObject = new ObjectType(id++, 385, "Lobby Warp Object");
+    ObjectType.FloatingRobot = new ObjectType(id++, "FloatingRobot", 262, "Floating Robot");
+    ObjectType.FloatingBlueLight = new ObjectType(
+        id++,
+        "FloatingBlueLight",
+        263,
+        "Floating Blue Light"
+    );
+    ObjectType.SelfDestructingObject1 = new ObjectType(
+        id++,
+        "SelfDestructingObject1",
+        264,
+        "Self Destructing Object 1"
+    );
+    ObjectType.SelfDestructingObject2 = new ObjectType(
+        id++,
+        "SelfDestructingObject2",
+        265,
+        "Self Destructing Object 2"
+    );
+    ObjectType.SelfDestructingObject3 = new ObjectType(
+        id++,
+        "SelfDestructingObject3",
+        266,
+        "Self Destructing Object 3"
+    );
+    ObjectType.SparkMachine = new ObjectType(id++, "SparkMachine", 267, "Spark Machine");
+    ObjectType.MinesLargeFlashingCrate = new ObjectType(
+        id++,
+        "MinesLargeFlashingCrate",
+        268,
+        "Mines Large Flashing Crate"
+    );
+    ObjectType.RuinsSeal = new ObjectType(id++, "RuinsSeal", 304, "Ruins Seal");
+    ObjectType.RuinsTeleporter = new ObjectType(id++, "RuinsTeleporter", 320, "Ruins Teleporter");
+    ObjectType.RuinsWarpSiteToSite = new ObjectType(
+        id++,
+        "RuinsWarpSiteToSite",
+        321,
+        "Ruins Warp (Site to site)"
+    );
+    ObjectType.RuinsSwitch = new ObjectType(id++, "RuinsSwitch", 322, "Ruins Switch");
+    ObjectType.FloorPanel4 = new ObjectType(id++, "FloorPanel4", 323, "Floor Panel 4");
+    ObjectType.Ruins1Door = new ObjectType(id++, "Ruins1Door", 324, "Ruins 1 Door");
+    ObjectType.Ruins3Door = new ObjectType(id++, "Ruins3Door", 325, "Ruins 3 Door");
+    ObjectType.Ruins2Door = new ObjectType(id++, "Ruins2Door", 326, "Ruins 2 Door");
+    ObjectType.Ruins11ButtonDoor = new ObjectType(
+        id++,
+        "Ruins11ButtonDoor",
+        327,
+        "Ruins 1-1 Button Door"
+    );
+    ObjectType.Ruins21ButtonDoor = new ObjectType(
+        id++,
+        "Ruins21ButtonDoor",
+        328,
+        "Ruins 2-1 Button Door"
+    );
+    ObjectType.Ruins31ButtonDoor = new ObjectType(
+        id++,
+        "Ruins31ButtonDoor",
+        329,
+        "Ruins 3-1 Button Door"
+    );
+    ObjectType.Ruins4ButtonDoor = new ObjectType(
+        id++,
+        "Ruins4ButtonDoor",
+        330,
+        "Ruins 4-Button Door"
+    );
+    ObjectType.Ruins2ButtonDoor = new ObjectType(
+        id++,
+        "Ruins2ButtonDoor",
+        331,
+        "Ruins 2-Button Door"
+    );
+    ObjectType.RuinsSensor = new ObjectType(id++, "RuinsSensor", 332, "Ruins Sensor");
+    ObjectType.RuinsFenceSwitch = new ObjectType(
+        id++,
+        "RuinsFenceSwitch",
+        333,
+        "Ruins Fence Switch"
+    );
+    ObjectType.RuinsLaserFence4x2 = new ObjectType(
+        id++,
+        "RuinsLaserFence4x2",
+        334,
+        "Ruins Laser Fence 4x2"
+    );
+    ObjectType.RuinsLaserFence6x2 = new ObjectType(
+        id++,
+        "RuinsLaserFence6x2",
+        335,
+        "Ruins Laser Fence 6x2"
+    );
+    ObjectType.RuinsLaserFence4x4 = new ObjectType(
+        id++,
+        "RuinsLaserFence4x4",
+        336,
+        "Ruins Laser Fence 4x4"
+    );
+    ObjectType.RuinsLaserFence6x4 = new ObjectType(
+        id++,
+        "RuinsLaserFence6x4",
+        337,
+        "Ruins Laser Fence 6x4"
+    );
+    ObjectType.RuinsPoisonBlob = new ObjectType(id++, "RuinsPoisonBlob", 338, "Ruins poison Blob");
+    ObjectType.RuinsPilarTrap = new ObjectType(id++, "RuinsPilarTrap", 339, "Ruins Pilar Trap");
+    ObjectType.PopupTrapNoTech = new ObjectType(
+        id++,
+        "PopupTrapNoTech",
+        340,
+        "Popup Trap (No Tech)"
+    );
+    ObjectType.RuinsCrystal = new ObjectType(id++, "RuinsCrystal", 341, "Ruins Crystal");
+    ObjectType.Monument = new ObjectType(id++, "Monument", 342, "Monument");
+    ObjectType.RuinsRock1 = new ObjectType(id++, "RuinsRock1", 345, "Ruins Rock 1");
+    ObjectType.RuinsRock2 = new ObjectType(id++, "RuinsRock2", 346, "Ruins Rock 2");
+    ObjectType.RuinsRock3 = new ObjectType(id++, "RuinsRock3", 347, "Ruins Rock 3");
+    ObjectType.RuinsRock4 = new ObjectType(id++, "RuinsRock4", 348, "Ruins Rock 4");
+    ObjectType.RuinsRock5 = new ObjectType(id++, "RuinsRock5", 349, "Ruins Rock 5");
+    ObjectType.RuinsRock6 = new ObjectType(id++, "RuinsRock6", 350, "Ruins Rock 6");
+    ObjectType.RuinsRock7 = new ObjectType(id++, "RuinsRock7", 351, "Ruins Rock 7");
+    ObjectType.Poison = new ObjectType(id++, "Poison", 352, "Poison");
+    ObjectType.FixedBoxTypeRuins = new ObjectType(
+        id++,
+        "FixedBoxTypeRuins",
+        353,
+        "Fixed Box Type (Ruins)"
+    );
+    ObjectType.RandomBoxTypeRuins = new ObjectType(
+        id++,
+        "RandomBoxTypeRuins",
+        354,
+        "Random Box Type (Ruins)"
+    );
+    ObjectType.EnemyTypeBoxYellow = new ObjectType(
+        id++,
+        "EnemyTypeBoxYellow",
+        355,
+        "Enemy Type Box (Yellow)"
+    );
+    ObjectType.EnemyTypeBoxBlue = new ObjectType(
+        id++,
+        "EnemyTypeBoxBlue",
+        356,
+        "Enemy Type Box (Blue)"
+    );
+    ObjectType.EmptyTypeBoxBlue = new ObjectType(
+        id++,
+        "EmptyTypeBoxBlue",
+        357,
+        "Empty Type Box (Blue)"
+    );
+    ObjectType.DestructableRock = new ObjectType(
+        id++,
+        "DestructableRock",
+        358,
+        "Destructable Rock"
+    );
+    ObjectType.PopupTrapsTechs = new ObjectType(
+        id++,
+        "PopupTrapsTechs",
+        359,
+        "Popup Traps (techs)"
+    );
+    ObjectType.FlyingWhiteBird = new ObjectType(id++, "FlyingWhiteBird", 368, "Flying White Bird");
+    ObjectType.Tower = new ObjectType(id++, "Tower", 369, "Tower");
+    ObjectType.FloatingRocks = new ObjectType(id++, "FloatingRocks", 370, "Floating Rocks");
+    ObjectType.FloatingSoul = new ObjectType(id++, "FloatingSoul", 371, "Floating Soul");
+    ObjectType.Butterfly = new ObjectType(id++, "Butterfly", 372, "Butterfly");
+    ObjectType.LobbyGameMenu = new ObjectType(id++, "LobbyGameMenu", 384, "Lobby Game menu");
+    ObjectType.LobbyWarpObject = new ObjectType(id++, "LobbyWarpObject", 385, "Lobby Warp Object");
     ObjectType.Lobby1EventObjectDefaultTree = new ObjectType(
         id++,
+        "Lobby1EventObjectDefaultTree",
         386,
         "Lobby 1 Event Object (Default Tree)"
     );
-    ObjectType.UnknownItem387 = new ObjectType(id++, 387, "Unknown Item (387)");
-    ObjectType.UnknownItem388 = new ObjectType(id++, 388, "Unknown Item (388)");
-    ObjectType.UnknownItem389 = new ObjectType(id++, 389, "Unknown Item (389)");
+    ObjectType.UnknownItem387 = new ObjectType(id++, "UnknownItem387", 387, "Unknown Item (387)");
+    ObjectType.UnknownItem388 = new ObjectType(id++, "UnknownItem388", 388, "Unknown Item (388)");
+    ObjectType.UnknownItem389 = new ObjectType(id++, "UnknownItem389", 389, "Unknown Item (389)");
     ObjectType.LobbyEventObjectStaticPumpkin = new ObjectType(
         id++,
+        "LobbyEventObjectStaticPumpkin",
         390,
         "Lobby Event Object (Static Pumpkin)"
     );
     ObjectType.LobbyEventObject3ChristmasWindows = new ObjectType(
         id++,
+        "LobbyEventObject3ChristmasWindows",
         391,
         "Lobby Event Object (3 Christmas Windows)"
     );
     ObjectType.LobbyEventObjectRedAndWhiteCurtain = new ObjectType(
         id++,
+        "LobbyEventObjectRedAndWhiteCurtain",
         392,
         "Lobby Event Object (Red and White Curtain)"
     );
-    ObjectType.UnknownItem393 = new ObjectType(id++, 393, "Unknown Item (393)");
-    ObjectType.UnknownItem394 = new ObjectType(id++, 394, "Unknown Item (394)");
-    ObjectType.LobbyFishTank = new ObjectType(id++, 395, "Lobby Fish Tank");
+    ObjectType.UnknownItem393 = new ObjectType(id++, "UnknownItem393", 393, "Unknown Item (393)");
+    ObjectType.UnknownItem394 = new ObjectType(id++, "UnknownItem394", 394, "Unknown Item (394)");
+    ObjectType.LobbyFishTank = new ObjectType(id++, "LobbyFishTank", 395, "Lobby Fish Tank");
     ObjectType.LobbyEventObjectButterflies = new ObjectType(
         id++,
+        "LobbyEventObjectButterflies",
         396,
         "Lobby Event Object (Butterflies)"
     );
-    ObjectType.UnknownItem400 = new ObjectType(id++, 400, "Unknown Item (400)");
-    ObjectType.GreyWallLow = new ObjectType(id++, 401, "grey wall low");
-    ObjectType.SpaceshipDoor = new ObjectType(id++, 402, "Spaceship Door");
-    ObjectType.GreyWallHigh = new ObjectType(id++, 403, "grey wall high");
-    ObjectType.TempleNormalDoor = new ObjectType(id++, 416, "Temple Normal Door");
+    ObjectType.UnknownItem400 = new ObjectType(id++, "UnknownItem400", 400, "Unknown Item (400)");
+    ObjectType.GreyWallLow = new ObjectType(id++, "GreyWallLow", 401, "grey wall low");
+    ObjectType.SpaceshipDoor = new ObjectType(id++, "SpaceshipDoor", 402, "Spaceship Door");
+    ObjectType.GreyWallHigh = new ObjectType(id++, "GreyWallHigh", 403, "grey wall high");
+    ObjectType.TempleNormalDoor = new ObjectType(
+        id++,
+        "TempleNormalDoor",
+        416,
+        "Temple Normal Door"
+    );
     ObjectType.BreakableWallWallButUnbreakable = new ObjectType(
         id++,
+        "BreakableWallWallButUnbreakable",
         417,
         '"breakable wall wall, but unbreakable"'
     );
-    ObjectType.BrokenCilinderAndRubble = new ObjectType(id++, 418, "Broken cilinder and rubble");
+    ObjectType.BrokenCilinderAndRubble = new ObjectType(
+        id++,
+        "BrokenCilinderAndRubble",
+        418,
+        "Broken cilinder and rubble"
+    );
     ObjectType.ThreeBrokenWallPiecesOnFloor = new ObjectType(
         id++,
+        "ThreeBrokenWallPiecesOnFloor",
         419,
         "3 broken wall pieces on floor"
     );
-    ObjectType.HighBrickCilinder = new ObjectType(id++, 420, "high brick cilinder");
-    ObjectType.LyingCilinder = new ObjectType(id++, 421, "lying cilinder");
-    ObjectType.BrickConeWithFlatTop = new ObjectType(id++, 422, "brick cone with flat top");
-    ObjectType.BreakableTempleWall = new ObjectType(id++, 423, "breakable temple wall");
-    ObjectType.TempleMapDetect = new ObjectType(id++, 424, "Temple Map Detect");
+    ObjectType.HighBrickCilinder = new ObjectType(
+        id++,
+        "HighBrickCilinder",
+        420,
+        "high brick cilinder"
+    );
+    ObjectType.LyingCilinder = new ObjectType(id++, "LyingCilinder", 421, "lying cilinder");
+    ObjectType.BrickConeWithFlatTop = new ObjectType(
+        id++,
+        "BrickConeWithFlatTop",
+        422,
+        "brick cone with flat top"
+    );
+    ObjectType.BreakableTempleWall = new ObjectType(
+        id++,
+        "BreakableTempleWall",
+        423,
+        "breakable temple wall"
+    );
+    ObjectType.TempleMapDetect = new ObjectType(id++, "TempleMapDetect", 424, "Temple Map Detect");
     ObjectType.SmallBrownBrickRisingBridge = new ObjectType(
         id++,
+        "SmallBrownBrickRisingBridge",
         425,
         "small brown brick rising bridge"
     );
     ObjectType.LongRisingBridgeWithPinkHighEdges = new ObjectType(
         id++,
+        "LongRisingBridgeWithPinkHighEdges",
         426,
         "long rising bridge (with pink high edges)"
     );
-    ObjectType.FourSwitchTempleDoor = new ObjectType(id++, 427, "4 switch temple door");
-    ObjectType.FourButtonSpaceshipDoor = new ObjectType(id++, 448, "4 button spaceship door");
-    ObjectType.ItemBoxCca = new ObjectType(id++, 512, "item box cca");
-    ObjectType.TeleporterEp2 = new ObjectType(id++, 513, "Teleporter (Ep 2)");
-    ObjectType.CCADoor = new ObjectType(id++, 514, "CCA Door");
-    ObjectType.SpecialBoxCCA = new ObjectType(id++, 515, "Special Box CCA");
-    ObjectType.BigCCADoor = new ObjectType(id++, 516, "Big CCA Door");
-    ObjectType.BigCCADoorSwitch = new ObjectType(id++, 517, "Big CCA Door Switch");
-    ObjectType.LittleRock = new ObjectType(id++, 518, "Little Rock");
-    ObjectType.Little3StoneWall = new ObjectType(id++, 519, "Little 3 Stone Wall");
-    ObjectType.Medium3StoneWall = new ObjectType(id++, 520, "Medium 3 stone wall");
-    ObjectType.SpiderPlant = new ObjectType(id++, 521, "Spider Plant");
-    ObjectType.CCAAreaTeleporter = new ObjectType(id++, 522, "CCA Area Teleporter");
-    ObjectType.UnknownItem523 = new ObjectType(id++, 523, "Unknown Item (523)");
-    ObjectType.WhiteBird = new ObjectType(id++, 524, "White Bird");
-    ObjectType.OrangeBird = new ObjectType(id++, 525, "Orange Bird");
-    ObjectType.Saw = new ObjectType(id++, 527, "Saw");
-    ObjectType.LaserDetect = new ObjectType(id++, 528, "Laser Detect");
-    ObjectType.UnknownItem529 = new ObjectType(id++, 529, "Unknown Item (529)");
-    ObjectType.UnknownItem530 = new ObjectType(id++, 530, "Unknown Item (530)");
-    ObjectType.Seagull = new ObjectType(id++, 531, "Seagull");
-    ObjectType.Fish = new ObjectType(id++, 544, "Fish");
-    ObjectType.SeabedDoorWithBlueEdges = new ObjectType(id++, 545, "Seabed Door (with blue edges)");
+    ObjectType.FourSwitchTempleDoor = new ObjectType(
+        id++,
+        "FourSwitchTempleDoor",
+        427,
+        "4 switch temple door"
+    );
+    ObjectType.FourButtonSpaceshipDoor = new ObjectType(
+        id++,
+        "FourButtonSpaceshipDoor",
+        448,
+        "4 button spaceship door"
+    );
+    ObjectType.ItemBoxCca = new ObjectType(id++, "ItemBoxCca", 512, "item box cca");
+    ObjectType.TeleporterEp2 = new ObjectType(id++, "TeleporterEp2", 513, "Teleporter (Ep 2)");
+    ObjectType.CCADoor = new ObjectType(id++, "CCADoor", 514, "CCA Door");
+    ObjectType.SpecialBoxCCA = new ObjectType(id++, "SpecialBoxCCA", 515, "Special Box CCA");
+    ObjectType.BigCCADoor = new ObjectType(id++, "BigCCADoor", 516, "Big CCA Door");
+    ObjectType.BigCCADoorSwitch = new ObjectType(
+        id++,
+        "BigCCADoorSwitch",
+        517,
+        "Big CCA Door Switch"
+    );
+    ObjectType.LittleRock = new ObjectType(id++, "LittleRock", 518, "Little Rock");
+    ObjectType.Little3StoneWall = new ObjectType(
+        id++,
+        "Little3StoneWall",
+        519,
+        "Little 3 Stone Wall"
+    );
+    ObjectType.Medium3StoneWall = new ObjectType(
+        id++,
+        "Medium3StoneWall",
+        520,
+        "Medium 3 stone wall"
+    );
+    ObjectType.SpiderPlant = new ObjectType(id++, "SpiderPlant", 521, "Spider Plant");
+    ObjectType.CCAAreaTeleporter = new ObjectType(
+        id++,
+        "CCAAreaTeleporter",
+        522,
+        "CCA Area Teleporter"
+    );
+    ObjectType.UnknownItem523 = new ObjectType(id++, "UnknownItem523", 523, "Unknown Item (523)");
+    ObjectType.WhiteBird = new ObjectType(id++, "WhiteBird", 524, "White Bird");
+    ObjectType.OrangeBird = new ObjectType(id++, "OrangeBird", 525, "Orange Bird");
+    ObjectType.Saw = new ObjectType(id++, "Saw", 527, "Saw");
+    ObjectType.LaserDetect = new ObjectType(id++, "LaserDetect", 528, "Laser Detect");
+    ObjectType.UnknownItem529 = new ObjectType(id++, "UnknownItem529", 529, "Unknown Item (529)");
+    ObjectType.UnknownItem530 = new ObjectType(id++, "UnknownItem530", 530, "Unknown Item (530)");
+    ObjectType.Seagull = new ObjectType(id++, "Seagull", 531, "Seagull");
+    ObjectType.Fish = new ObjectType(id++, "Fish", 544, "Fish");
+    ObjectType.SeabedDoorWithBlueEdges = new ObjectType(
+        id++,
+        "SeabedDoorWithBlueEdges",
+        545,
+        "Seabed Door (with blue edges)"
+    );
     ObjectType.SeabedDoorAlwaysOpenNonTriggerable = new ObjectType(
         id++,
+        "SeabedDoorAlwaysOpenNonTriggerable",
         546,
         "Seabed door (always open, non-triggerable)"
     );
-    ObjectType.LittleCryotube = new ObjectType(id++, 547, "Little Cryotube");
-    ObjectType.WideGlassWallBreakable = new ObjectType(id++, 548, "Wide Glass Wall (breakable)");
-    ObjectType.BlueFloatingRobot = new ObjectType(id++, 549, "Blue floating robot");
-    ObjectType.RedFloatingRobot = new ObjectType(id++, 550, "Red floating robot");
-    ObjectType.Dolphin = new ObjectType(id++, 551, "Dolphin");
-    ObjectType.CaptureTrap = new ObjectType(id++, 552, "Capture Trap");
-    ObjectType.VRLink = new ObjectType(id++, 553, "VR link");
-    ObjectType.UnknownItem576 = new ObjectType(id++, 576, "Unknown Item (576)");
-    ObjectType.WarpInBarbaRayRoom = new ObjectType(id++, 640, "Warp in Barba Ray Room");
-    ObjectType.UnknownItem672 = new ObjectType(id++, 672, "Unknown Item (672)");
-    ObjectType.GeeNest = new ObjectType(id++, 688, "Gee Nest");
-    ObjectType.LabComputerConsole = new ObjectType(id++, 689, "Lab Computer Console");
+    ObjectType.LittleCryotube = new ObjectType(id++, "LittleCryotube", 547, "Little Cryotube");
+    ObjectType.WideGlassWallBreakable = new ObjectType(
+        id++,
+        "WideGlassWallBreakable",
+        548,
+        "Wide Glass Wall (breakable)"
+    );
+    ObjectType.BlueFloatingRobot = new ObjectType(
+        id++,
+        "BlueFloatingRobot",
+        549,
+        "Blue floating robot"
+    );
+    ObjectType.RedFloatingRobot = new ObjectType(
+        id++,
+        "RedFloatingRobot",
+        550,
+        "Red floating robot"
+    );
+    ObjectType.Dolphin = new ObjectType(id++, "Dolphin", 551, "Dolphin");
+    ObjectType.CaptureTrap = new ObjectType(id++, "CaptureTrap", 552, "Capture Trap");
+    ObjectType.VRLink = new ObjectType(id++, "VRLink", 553, "VR link");
+    ObjectType.UnknownItem576 = new ObjectType(id++, "UnknownItem576", 576, "Unknown Item (576)");
+    ObjectType.WarpInBarbaRayRoom = new ObjectType(
+        id++,
+        "WarpInBarbaRayRoom",
+        640,
+        "Warp in Barba Ray Room"
+    );
+    ObjectType.UnknownItem672 = new ObjectType(id++, "UnknownItem672", 672, "Unknown Item (672)");
+    ObjectType.GeeNest = new ObjectType(id++, "GeeNest", 688, "Gee Nest");
+    ObjectType.LabComputerConsole = new ObjectType(
+        id++,
+        "LabComputerConsole",
+        689,
+        "Lab Computer Console"
+    );
     ObjectType.LabComputerConsoleGreenScreen = new ObjectType(
         id++,
+        "LabComputerConsoleGreenScreen",
         690,
         "Lab Computer Console (Green Screen)"
     );
-    ObjectType.ChairYelllowPillow = new ObjectType(id++, 691, "Chair, Yelllow Pillow");
+    ObjectType.ChairYelllowPillow = new ObjectType(
+        id++,
+        "ChairYelllowPillow",
+        691,
+        "Chair, Yelllow Pillow"
+    );
     ObjectType.OrangeWallWithHoleInMiddle = new ObjectType(
         id++,
+        "OrangeWallWithHoleInMiddle",
         692,
         "orange wall with hole in middle"
     );
     ObjectType.GreyWallWithHoleInMiddle = new ObjectType(
         id++,
+        "GreyWallWithHoleInMiddle",
         693,
         "grey wall with hole in middle"
     );
-    ObjectType.LongTable = new ObjectType(id++, 694, "long table");
-    ObjectType.GBAStation = new ObjectType(id++, 695, "GBA Station");
-    ObjectType.TalkLinkToSupport = new ObjectType(id++, 696, "Talk (link to support)");
-    ObjectType.InstaWarp = new ObjectType(id++, 697, "insta-warp");
-    ObjectType.LabInvisibleObject = new ObjectType(id++, 698, "Lab Invisible Object");
-    ObjectType.LabGlassWindowDoor = new ObjectType(id++, 699, "Lab Glass window Door");
-    ObjectType.UnknownItem700 = new ObjectType(id++, 700, "Unknown Item (700)");
-    ObjectType.LabCelingWarp = new ObjectType(id++, 701, "Lab Celing Warp");
-    ObjectType.Ep4LightSource = new ObjectType(id++, 768, "Ep4 Light Source");
-    ObjectType.Cacti = new ObjectType(id++, 769, "cacti");
-    ObjectType.BigBrownRock = new ObjectType(id++, 770, "Big Brown Rock");
-    ObjectType.BreakableBrownRock = new ObjectType(id++, 771, "Breakable Brown Rock");
-    ObjectType.UnknownItem832 = new ObjectType(id++, 832, "Unknown Item (832)");
-    ObjectType.UnknownItem833 = new ObjectType(id++, 833, "Unknown Item (833)");
-    ObjectType.PoisonPlant = new ObjectType(id++, 896, "Poison Plant");
-    ObjectType.UnknownItem897 = new ObjectType(id++, 897, "Unknown Item (897)");
-    ObjectType.UnknownItem898 = new ObjectType(id++, 898, "Unknown Item (898)");
-    ObjectType.OozingDesertPlant = new ObjectType(id++, 899, "Oozing Desert Plant");
-    ObjectType.UnknownItem901 = new ObjectType(id++, 901, "Unknown Item (901)");
-    ObjectType.BigBlackRocks = new ObjectType(id++, 902, "big black rocks");
-    ObjectType.UnknownItem903 = new ObjectType(id++, 903, "Unknown Item (903)");
-    ObjectType.UnknownItem904 = new ObjectType(id++, 904, "Unknown Item (904)");
-    ObjectType.UnknownItem905 = new ObjectType(id++, 905, "Unknown Item (905)");
-    ObjectType.UnknownItem906 = new ObjectType(id++, 906, "Unknown Item (906)");
-    ObjectType.FallingRock = new ObjectType(id++, 907, "Falling Rock");
-    ObjectType.DesertPlantHasCollision = new ObjectType(id++, 908, "Desert Plant (has collision)");
+    ObjectType.LongTable = new ObjectType(id++, "LongTable", 694, "long table");
+    ObjectType.GBAStation = new ObjectType(id++, "GBAStation", 695, "GBA Station");
+    ObjectType.TalkLinkToSupport = new ObjectType(
+        id++,
+        "TalkLinkToSupport",
+        696,
+        "Talk (link to support)"
+    );
+    ObjectType.InstaWarp = new ObjectType(id++, "InstaWarp", 697, "insta-warp");
+    ObjectType.LabInvisibleObject = new ObjectType(
+        id++,
+        "LabInvisibleObject",
+        698,
+        "Lab Invisible Object"
+    );
+    ObjectType.LabGlassWindowDoor = new ObjectType(
+        id++,
+        "LabGlassWindowDoor",
+        699,
+        "Lab Glass window Door"
+    );
+    ObjectType.UnknownItem700 = new ObjectType(id++, "UnknownItem700", 700, "Unknown Item (700)");
+    ObjectType.LabCelingWarp = new ObjectType(id++, "LabCelingWarp", 701, "Lab Celing Warp");
+    ObjectType.Ep4LightSource = new ObjectType(id++, "Ep4LightSource", 768, "Ep4 Light Source");
+    ObjectType.Cacti = new ObjectType(id++, "Cacti", 769, "cacti");
+    ObjectType.BigBrownRock = new ObjectType(id++, "BigBrownRock", 770, "Big Brown Rock");
+    ObjectType.BreakableBrownRock = new ObjectType(
+        id++,
+        "BreakableBrownRock",
+        771,
+        "Breakable Brown Rock"
+    );
+    ObjectType.UnknownItem832 = new ObjectType(id++, "UnknownItem832", 832, "Unknown Item (832)");
+    ObjectType.UnknownItem833 = new ObjectType(id++, "UnknownItem833", 833, "Unknown Item (833)");
+    ObjectType.PoisonPlant = new ObjectType(id++, "PoisonPlant", 896, "Poison Plant");
+    ObjectType.UnknownItem897 = new ObjectType(id++, "UnknownItem897", 897, "Unknown Item (897)");
+    ObjectType.UnknownItem898 = new ObjectType(id++, "UnknownItem898", 898, "Unknown Item (898)");
+    ObjectType.OozingDesertPlant = new ObjectType(
+        id++,
+        "OozingDesertPlant",
+        899,
+        "Oozing Desert Plant"
+    );
+    ObjectType.UnknownItem901 = new ObjectType(id++, "UnknownItem901", 901, "Unknown Item (901)");
+    ObjectType.BigBlackRocks = new ObjectType(id++, "BigBlackRocks", 902, "big black rocks");
+    ObjectType.UnknownItem903 = new ObjectType(id++, "UnknownItem903", 903, "Unknown Item (903)");
+    ObjectType.UnknownItem904 = new ObjectType(id++, "UnknownItem904", 904, "Unknown Item (904)");
+    ObjectType.UnknownItem905 = new ObjectType(id++, "UnknownItem905", 905, "Unknown Item (905)");
+    ObjectType.UnknownItem906 = new ObjectType(id++, "UnknownItem906", 906, "Unknown Item (906)");
+    ObjectType.FallingRock = new ObjectType(id++, "FallingRock", 907, "Falling Rock");
+    ObjectType.DesertPlantHasCollision = new ObjectType(
+        id++,
+        "DesertPlantHasCollision",
+        908,
+        "Desert Plant (has collision)"
+    );
     ObjectType.DesertFixedTypeBoxBreakableCrystals = new ObjectType(
         id++,
+        "DesertFixedTypeBoxBreakableCrystals",
         909,
         "Desert Fixed Type Box (Breakable Crystals)"
     );
-    ObjectType.UnknownItem910 = new ObjectType(id++, 910, "Unknown Item (910)");
-    ObjectType.BeeHive = new ObjectType(id++, 911, "Bee Hive");
-    ObjectType.UnknownItem912 = new ObjectType(id++, 912, "Unknown Item (912)");
-    ObjectType.Heat = new ObjectType(id++, 913, "Heat");
-    ObjectType.TopOfSaintMillionEgg = new ObjectType(id++, 960, "Top of saint million egg");
-    ObjectType.UnknownItem961 = new ObjectType(id++, 961, "Unknown Item (961)");
+    ObjectType.UnknownItem910 = new ObjectType(id++, "UnknownItem910", 910, "Unknown Item (910)");
+    ObjectType.BeeHive = new ObjectType(id++, "BeeHive", 911, "Bee Hive");
+    ObjectType.UnknownItem912 = new ObjectType(id++, "UnknownItem912", 912, "Unknown Item (912)");
+    ObjectType.Heat = new ObjectType(id++, "Heat", 913, "Heat");
+    ObjectType.TopOfSaintMillionEgg = new ObjectType(
+        id++,
+        "TopOfSaintMillionEgg",
+        960,
+        "Top of saint million egg"
+    );
+    ObjectType.UnknownItem961 = new ObjectType(id++, "UnknownItem961", 961, "Unknown Item (961)");
 })();

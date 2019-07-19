@@ -1,4 +1,4 @@
-import { computed, observable } from "mobx";
+import { computed, observable, action } from "mobx";
 import { DatNpc, DatObject, DatUnknown } from "../data_formats/parsing/quest/dat";
 import { Vec3 } from "../data_formats/vector";
 import { enum_values } from "../enums";
@@ -127,10 +127,18 @@ export class Quest {
     }
 }
 
+export interface EntityType {
+    readonly id: number;
+    readonly code: string;
+    readonly name: string;
+}
+
 /**
  * Abstract class from which QuestNpc and QuestObject derive.
  */
-export class QuestEntity {
+export class QuestEntity<Type extends EntityType = EntityType> {
+    readonly type: Type;
+
     @observable area_id: number;
 
     private _section_id: number;
@@ -139,14 +147,14 @@ export class QuestEntity {
         return this.section ? this.section.id : this._section_id;
     }
 
-    @observable section?: Section;
+    @observable.ref section?: Section;
 
     /**
      * World position
      */
-    @observable position: Vec3;
+    @observable.ref position: Vec3;
 
-    @observable rotation: Vec3;
+    @observable.ref rotation: Vec3;
 
     /**
      * Section-relative position
@@ -185,9 +193,10 @@ export class QuestEntity {
         }
     }
 
-    constructor(area_id: number, section_id: number, position: Vec3, rotation: Vec3) {
+    constructor(type: Type, area_id: number, section_id: number, position: Vec3, rotation: Vec3) {
         if (Object.getPrototypeOf(this) === Object.getPrototypeOf(QuestEntity))
             throw new Error("Abstract class should not be instantiated directly.");
+        if (!type) throw new Error("type is required.");
         if (!Number.isInteger(area_id) || area_id < 0)
             throw new Error(`Expected area_id to be a non-negative integer, got ${area_id}.`);
         if (!Number.isInteger(section_id) || section_id < 0)
@@ -195,14 +204,21 @@ export class QuestEntity {
         if (!position) throw new Error("position is required.");
         if (!rotation) throw new Error("rotation is required.");
 
+        this.type = type;
         this.area_id = area_id;
         this._section_id = section_id;
         this.position = position;
         this.rotation = rotation;
     }
+
+    @action
+    set_position_and_section(position: Vec3, section?: Section): void {
+        this.position = position;
+        this.section = section;
+    }
 }
 
-export class QuestObject extends QuestEntity {
+export class QuestObject extends QuestEntity<ObjectType> {
     @observable type: ObjectType;
     /**
      * The raw data from a DAT file.
@@ -217,16 +233,14 @@ export class QuestObject extends QuestEntity {
         type: ObjectType,
         dat: DatObject
     ) {
-        super(area_id, section_id, position, rotation);
-
-        if (!type) throw new Error("type is required.");
+        super(type, area_id, section_id, position, rotation);
 
         this.type = type;
         this.dat = dat;
     }
 }
 
-export class QuestNpc extends QuestEntity {
+export class QuestNpc extends QuestEntity<NpcType> {
     @observable type: NpcType;
     /**
      * The raw data from a DAT file.
@@ -241,7 +255,7 @@ export class QuestNpc extends QuestEntity {
         type: NpcType,
         dat: DatNpc
     ) {
-        super(area_id, section_id, position, rotation);
+        super(type, area_id, section_id, position, rotation);
 
         if (!type) throw new Error("type is required.");
 
@@ -270,7 +284,7 @@ export class Area {
 }
 
 export class AreaVariant {
-    @observable sections: Section[] = [];
+    @observable.shallow sections: Section[] = [];
 
     constructor(public id: number, public area: Area) {
         if (!Number.isInteger(id) || id < 0)

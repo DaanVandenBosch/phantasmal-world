@@ -1,4 +1,4 @@
-import { autorun, runInAction } from "mobx";
+import { autorun } from "mobx";
 import { Intersection, Mesh, MeshLambertMaterial, Plane, Raycaster, Vector2, Vector3 } from "three";
 import { Vec3 } from "../data_formats/vector";
 import { QuestEntity, QuestNpc, QuestObject, Section } from "../domain";
@@ -239,14 +239,14 @@ export class QuestEntityControls {
         const { intersection, section } = this.pick_terrain(pointer_position, pick);
 
         if (intersection) {
-            runInAction(() => {
-                selection.entity.position = new Vec3(
+            selection.entity.set_position_and_section(
+                new Vec3(
                     intersection.point.x,
                     intersection.point.y + pick.drag_y,
                     intersection.point.z
-                );
-                selection.entity.section = section;
-            });
+                ),
+                section
+            );
         } else {
             // If the cursor is not over any terrain, we translate the entity accross the horizontal plane in which the entity's origin lies.
             this.raycaster.setFromCamera(pointer_position, this.renderer.camera);

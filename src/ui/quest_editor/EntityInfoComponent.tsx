@@ -1,8 +1,10 @@
 import { InputNumber } from "antd";
 import { observer } from "mobx-react";
-import React, { ReactNode, Component } from "react";
+import React, { ReactNode, Component, PureComponent } from "react";
 import { QuestNpc, QuestObject, QuestEntity } from "../../domain";
 import "./EntityInfoComponent.css";
+import { IReactionDisposer, autorun } from "mobx";
+import { Vec3 } from "../../data_formats/vector";
 
 export type Props = {
     entity?: QuestEntity;
@@ -104,28 +106,69 @@ export class EntityInfoComponent extends Component<Props> {
     }
 }
 
-@observer
-class CoordRow extends Component<{
+type CoordProps = {
     entity: QuestEntity;
     position_type: "position" | "section_position";
     coord: "x" | "y" | "z";
-}> {
+};
+
+class CoordRow extends PureComponent<CoordProps> {
     render(): ReactNode {
-        const entity = this.props.entity;
-        const value = entity[this.props.position_type][this.props.coord];
         return (
             <tr>
                 <td>{this.props.coord.toUpperCase()}: </td>
                 <td>
-                    <InputNumber
-                        value={value}
-                        size="small"
-                        precision={3}
-                        className="EntityInfoComponent-coord"
-                        onChange={this.changed}
-                    />
+                    <CoordInput {...this.props} />
                 </td>
             </tr>
+        );
+    }
+}
+
+class CoordInput extends Component<CoordProps, { value: number }> {
+    private disposer?: IReactionDisposer;
+
+    state = { value: 0 };
+
+    componentDidMount(): void {
+        this.start_observing();
+    }
+
+    componentWillUnmount(): void {
+        if (this.disposer) this.disposer();
+    }
+
+    componentDidUpdate(prev_props: CoordProps): void {
+        if (this.props.entity !== prev_props.entity) {
+            this.start_observing();
+        }
+    }
+
+    render(): ReactNode {
+        return (
+            <InputNumber
+                value={this.state.value}
+                size="small"
+                precision={3}
+                className="EntityInfoComponent-coord"
+                onChange={this.changed}
+            />
+        );
+    }
+
+    private start_observing() {
+        if (this.disposer) this.disposer();
+
+        this.disposer = autorun(
+            () => {
+                this.setState({
+                    value: this.props.entity[this.props.position_type][this.props.coord],
+                });
+            },
+            {
+                name: `${this.props.entity.type.code}.${this.props.position_type}.${this.props.coord} changed`,
+                delay: 50,
+            }
         );
     }
 

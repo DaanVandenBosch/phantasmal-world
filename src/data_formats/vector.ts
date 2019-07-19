@@ -7,7 +7,13 @@ export class Vec2 {
         this.y = y;
     }
 
-    add(v: Vec2): Vec2 {
+    set(x: number, y: number): this {
+        this.x = x;
+        this.y = y;
+        return this;
+    }
+
+    add(v: Vec2): this {
         this.x += v.x;
         this.y += v.y;
         return this;
@@ -33,7 +39,14 @@ export class Vec3 {
         this.z = z;
     }
 
-    add(v: Vec3): Vec3 {
+    set(x: number, y: number, z: number): this {
+        this.x = x;
+        this.y = y;
+        this.z = z;
+        return this;
+    }
+
+    add(v: Vec3): this {
         this.x += v.x;
         this.y += v.y;
         this.z += v.z;

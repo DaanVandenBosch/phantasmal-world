@@ -1,6 +1,6 @@
-import { Episode, check_episode } from ".";
+import { Episode, check_episode, EntityType } from ".";
 
-export class NpcType {
+export class NpcType implements EntityType {
     readonly id: number;
     /**
      * Matches the constant name. E.g. the code of NpcType.Zu is "Zu".
