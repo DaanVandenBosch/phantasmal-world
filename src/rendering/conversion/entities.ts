@@ -1,20 +1,22 @@
-import {
-    BufferGeometry,
-    DoubleSide,
-    Mesh,
-    MeshBasicMaterial,
-    MeshLambertMaterial,
-    Texture,
-    Material,
-} from "three";
+import { BufferGeometry, DoubleSide, Mesh, MeshLambertMaterial, Texture } from "three";
 import { QuestEntity, QuestNpc, QuestObject } from "../../domain";
+import { create_mesh } from "./create_mesh";
 
-export const OBJECT_COLOR = 0xffff00;
-export const OBJECT_HIGHLIGHTED_COLOR = 0xffdf3f;
-export const OBJECT_SELECTED_COLOR = 0xffaa00;
-export const NPC_COLOR = 0xff0000;
-export const NPC_HIGHLIGHTED_COLOR = 0xff3f5f;
-export const NPC_SELECTED_COLOR = 0xff0054;
+export enum ColorType {
+    Normal,
+    Hovered,
+    Selected,
+}
+
+export const OBJECT_COLORS: number[] = [];
+OBJECT_COLORS[ColorType.Normal] = 0xffff00;
+OBJECT_COLORS[ColorType.Hovered] = 0xffdf3f;
+OBJECT_COLORS[ColorType.Selected] = 0xffaa00;
+
+export const NPC_COLORS: number[] = [];
+NPC_COLORS[ColorType.Normal] = 0xff0000;
+NPC_COLORS[ColorType.Hovered] = 0xff3f5f;
+NPC_COLORS[ColorType.Selected] = 0xff0054;
 
 export type EntityUserData = {
     entity: QuestEntity;
@@ -25,7 +27,7 @@ export function create_object_mesh(
     geometry: BufferGeometry,
     textures: Texture[]
 ): Mesh {
-    return create_mesh(object, geometry, textures, OBJECT_COLOR, "Object");
+    return create(object, geometry, textures, OBJECT_COLORS[ColorType.Normal], object.type.name);
 }
 
 export function create_npc_mesh(
@@ -33,47 +35,37 @@ export function create_npc_mesh(
     geometry: BufferGeometry,
     textures: Texture[]
 ): Mesh {
-    return create_mesh(npc, geometry, textures, NPC_COLOR, "NPC");
+    return create(npc, geometry, textures, NPC_COLORS[ColorType.Normal], npc.type.code);
 }
 
-function create_mesh(
+function create(
     entity: QuestEntity,
     geometry: BufferGeometry,
     textures: Texture[],
     color: number,
-    type: string
+    name: string
 ): Mesh {
-    const max_mat_idx = geometry.groups.reduce((max, g) => Math.max(max, g.materialIndex || 0), 0);
+    const default_material = new MeshLambertMaterial({
+        color,
+        side: DoubleSide,
+    });
 
-    const materials: Material[] = [
-        new MeshBasicMaterial({
-            color,
-            side: DoubleSide,
-        }),
-    ];
-
-    materials.push(
-        ...textures.map(
-            tex =>
-                new MeshLambertMaterial({
-                    map: tex,
-                    side: DoubleSide,
-                    alphaTest: 0.5,
-                })
-        )
+    const mesh = create_mesh(
+        geometry,
+        textures.length
+            ? textures.map(
+                  tex =>
+                      new MeshLambertMaterial({
+                          map: tex,
+                          side: DoubleSide,
+                          alphaTest: 0.5,
+                      })
+              )
+            : default_material,
+        default_material
     );
 
-    for (let i = materials.length - 1; i < max_mat_idx; ++i) {
-        materials.push(
-            new MeshLambertMaterial({
-                color,
-                side: DoubleSide,
-            })
-        );
-    }
-
-    const mesh = new Mesh(geometry, materials);
-    mesh.name = type;
+    mesh.name = name;
     (mesh.userData as EntityUserData).entity = entity;
 
     const { x, y, z } = entity.position;

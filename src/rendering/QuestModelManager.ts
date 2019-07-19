@@ -1,6 +1,6 @@
 import Logger from "js-logger";
 import { autorun, IReactionDisposer } from "mobx";
-import { Mesh, Object3D, Vector3 } from "three";
+import { Mesh, Object3D, Vector3, Raycaster, Intersection } from "three";
 import { Area, Quest, QuestEntity } from "../domain";
 import { load_area_collision_geometry, load_area_render_geometry } from "../loading/areas";
 import {
@@ -11,6 +11,7 @@ import {
 } from "../loading/entities";
 import { create_npc_mesh, create_object_mesh } from "./conversion/entities";
 import { QuestRenderer } from "./QuestRenderer";
+import { AreaUserData } from "./conversion/areas";
 
 const logger = Logger.get("rendering/QuestModelManager");
 
@@ -55,6 +56,8 @@ export class QuestModelManager {
                     variant_id
                 );
 
+                this.add_sections_to_collision_geometry(collision_geometry, render_geometry);
+
                 if (this.quest !== quest || this.area !== area) return;
 
                 this.renderer.collision_geometry = collision_geometry;
@@ -98,6 +101,47 @@ export class QuestModelManager {
             this.renderer.collision_geometry = DUMMY_OBJECT;
             this.renderer.render_geometry = DUMMY_OBJECT;
             this.renderer.reset_entity_models();
+        }
+    }
+
+    private add_sections_to_collision_geometry(
+        collision_geom: Object3D,
+        render_geom: Object3D
+    ): void {
+        const raycaster = new Raycaster();
+        const origin = new Vector3();
+        const down = new Vector3(0, -1, 0);
+        const up = new Vector3(0, 1, 0);
+
+        for (const collision_area of collision_geom.children) {
+            (collision_area as Mesh).geometry.boundingBox.getCenter(origin);
+
+            raycaster.set(origin, down);
+            const intersection1 = raycaster
+                .intersectObject(render_geom, true)
+                .find(i => (i.object.userData as AreaUserData).section != null);
+
+            raycaster.set(origin, up);
+            const intersection2 = raycaster
+                .intersectObject(render_geom, true)
+                .find(i => (i.object.userData as AreaUserData).section != null);
+
+            let intersection: Intersection | undefined;
+
+            if (intersection1 && intersection2) {
+                intersection =
+                    intersection1.distance <= intersection2.distance
+                        ? intersection1
+                        : intersection2;
+            } else {
+                intersection = intersection1 || intersection2;
+            }
+
+            if (intersection) {
+                const cud = collision_area.userData as AreaUserData;
+                const rud = intersection.object.userData as AreaUserData;
+                cud.section = rud.section;
+            }
         }
     }
 

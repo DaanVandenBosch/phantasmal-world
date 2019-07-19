@@ -1,4 +1,19 @@
-import { BufferGeometry, Float32BufferAttribute, Uint16BufferAttribute, Vector3 } from "three";
+import {
+    BufferGeometry,
+    Float32BufferAttribute,
+    Uint16BufferAttribute,
+    Vector3,
+    Bone,
+} from "three";
+
+export type BuilderData = {
+    created_by_geometry_builder: boolean;
+    /**
+     * Maps material indices to normalized material indices.
+     */
+    normalized_material_indices: Map<number, number>;
+    bones: Bone[];
+};
 
 export type BuilderVec2 = {
     x: number;
@@ -22,10 +37,14 @@ export class GeometryBuilder {
     private normals: number[] = [];
     private uvs: number[] = [];
     private indices: number[] = [];
+    private bones: Bone[] = [];
     private bone_indices: number[] = [];
     private bone_weights: number[] = [];
     private groups: VertexGroup[] = [];
-    private _max_material_index?: number;
+    /**
+     * Will contain all material indices used in {@link this.groups} and -1 for the dummy material.
+     */
+    private material_indices = new Set<number>([-1]);
 
     get vertex_count(): number {
         return this.positions.length / 3;
@@ -33,10 +52,6 @@ export class GeometryBuilder {
 
     get index_count(): number {
         return this.indices.length;
-    }
-
-    get max_material_index(): number | undefined {
-        return this._max_material_index;
     }
 
     get_position(index: number): Vector3 {
@@ -65,14 +80,18 @@ export class GeometryBuilder {
         this.indices.push(index);
     }
 
-    add_bone(index: number, weight: number): void {
+    add_bone(bone: Bone): void {
+        this.bones.push(bone);
+    }
+
+    add_bone_weight(index: number, weight: number): void {
         this.bone_indices.push(index);
         this.bone_weights.push(weight);
     }
 
-    add_group(offset: number, size: number, material_id?: number): void {
+    add_group(offset: number, size: number, material_index?: number): void {
         const last_group = this.groups[this.groups.length - 1];
-        const mat_idx = material_id == null ? 0 : material_id + 1;
+        const mat_idx = material_index == null ? -1 : material_index;
 
         if (last_group && last_group.material_index === mat_idx) {
             last_group.size += size;
@@ -82,15 +101,14 @@ export class GeometryBuilder {
                 size,
                 material_index: mat_idx,
             });
-
-            this._max_material_index = this._max_material_index
-                ? Math.max(this._max_material_index, mat_idx)
-                : mat_idx;
+            this.material_indices.add(mat_idx);
         }
     }
 
     build(): BufferGeometry {
         const geom = new BufferGeometry();
+        const data = geom.userData as BuilderData;
+        data.created_by_geometry_builder = true;
 
         geom.addAttribute("position", new Float32BufferAttribute(this.positions, 3));
         geom.addAttribute("normal", new Float32BufferAttribute(this.normals, 3));
@@ -98,14 +116,28 @@ export class GeometryBuilder {
 
         geom.setIndex(new Uint16BufferAttribute(this.indices, 1));
 
-        for (const group of this.groups) {
-            geom.addGroup(group.offset, group.size, group.material_index);
-        }
-
-        if (this.bone_indices.length) {
+        if (this.bone_indices.length && this.bones.length) {
             geom.addAttribute("skinIndex", new Uint16BufferAttribute(this.bone_indices, 4));
             geom.addAttribute("skinWeight", new Float32BufferAttribute(this.bone_weights, 4));
+            data.bones = this.bones;
+        } else {
+            data.bones = [];
         }
+
+        // Normalize material indices.
+        const normalized_mat_idxs = new Map<number, number>();
+        let i = 0;
+
+        for (const mat_idx of [...this.material_indices].sort((a, b) => a - b)) {
+            normalized_mat_idxs.set(mat_idx, i++);
+        }
+
+        // Use normalized material indices in Three.js groups.
+        for (const group of this.groups) {
+            geom.addGroup(group.offset, group.size, normalized_mat_idxs.get(group.material_index));
+        }
+
+        data.normalized_material_indices = normalized_mat_idxs;
 
         geom.computeBoundingSphere();
         geom.computeBoundingBox();

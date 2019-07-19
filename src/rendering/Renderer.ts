@@ -15,6 +15,16 @@ import OrbitControlsCreator from "three-orbit-controls";
 const OrbitControls = OrbitControlsCreator(THREE);
 
 export class Renderer<C extends Camera> {
+    protected _debug = false;
+
+    get debug(): boolean {
+        return this._debug;
+    }
+
+    set debug(debug: boolean) {
+        this._debug = debug;
+    }
+
     readonly camera: C;
     readonly controls: any;
     readonly scene = new Scene();

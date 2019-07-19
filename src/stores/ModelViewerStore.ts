@@ -10,7 +10,6 @@ import {
     MeshLambertMaterial,
     SkinnedMesh,
     Texture,
-    Vector3,
 } from "three";
 import { Endianness } from "../data_formats";
 import { ArrayBufferCursor } from "../data_formats/cursor/ArrayBufferCursor";
@@ -18,14 +17,12 @@ import { NjModel, NjObject, parse_nj, parse_xj } from "../data_formats/parsing/n
 import { NjMotion, parse_njm } from "../data_formats/parsing/ninja/motion";
 import { parse_xvm } from "../data_formats/parsing/ninja/texture";
 import { PlayerAnimation, PlayerModel } from "../domain";
-import { read_file } from "../read_file";
-import { create_animation_clip, PSO_FRAME_RATE } from "../rendering/conversion/ninja_animation";
-import {
-    ninja_object_to_mesh,
-    ninja_object_to_skinned_mesh,
-} from "../rendering/conversion/ninja_geometry";
-import { xvm_to_textures } from "../rendering/conversion/ninja_textures";
 import { get_player_animation_data, get_player_data } from "../loading/player";
+import { read_file } from "../read_file";
+import { create_skinned_mesh, create_mesh } from "../rendering/conversion/create_mesh";
+import { create_animation_clip, PSO_FRAME_RATE } from "../rendering/conversion/ninja_animation";
+import { ninja_object_to_buffer_geometry } from "../rendering/conversion/ninja_geometry";
+import { xvm_to_textures } from "../rendering/conversion/ninja_textures";
 
 const logger = Logger.get("stores/ModelViewerStore");
 const nj_object_cache: Map<string, Promise<NjObject<NjModel>>> = new Map();
@@ -294,7 +291,6 @@ class ModelViewerStore {
     private set_obj3d = (textures?: Texture[]) => {
         if (this.current_model) {
             let mesh: Mesh;
-            let bb_size = new Vector3();
 
             const materials =
                 textures &&
@@ -309,13 +305,19 @@ class ModelViewerStore {
                 );
 
             if (this.has_skeleton) {
-                mesh = ninja_object_to_skinned_mesh(this.current_model, materials);
+                mesh = create_skinned_mesh(
+                    ninja_object_to_buffer_geometry(this.current_model),
+                    materials
+                );
             } else {
-                mesh = ninja_object_to_mesh(this.current_model, materials);
+                mesh = create_mesh(ninja_object_to_buffer_geometry(this.current_model), materials);
             }
 
-            mesh.geometry.boundingBox.getSize(bb_size);
-            mesh.translateY(-bb_size.y / 2);
+            // Make sure we rotate around the center of the model.
+            const bb = mesh.geometry.boundingBox;
+            const height = bb.max.y - bb.min.y;
+            mesh.translateY(-height / 2 - bb.min.y);
+
             this.current_obj3d = mesh;
         }
     };

@@ -15,6 +15,18 @@ export function get_quest_renderer(): QuestRenderer {
 }
 
 export class QuestRenderer extends Renderer<PerspectiveCamera> {
+    get debug(): boolean {
+        return this._debug;
+    }
+
+    set debug(debug: boolean) {
+        if (this._debug !== debug) {
+            this._debug = debug;
+            this._render_geometry.visible = debug;
+            this.schedule_render();
+        }
+    }
+
     private _collision_geometry = new Object3D();
 
     get collision_geometry(): Object3D {
@@ -34,9 +46,10 @@ export class QuestRenderer extends Renderer<PerspectiveCamera> {
     }
 
     set render_geometry(render_geometry: Object3D) {
-        // this.scene.remove(this._render_geometry);
+        this.scene.remove(this._render_geometry);
         this._render_geometry = render_geometry;
-        // this.scene.add(render_geometry);
+        render_geometry.visible = this.debug;
+        this.scene.add(render_geometry);
     }
 
     private _entity_models = new Object3D();

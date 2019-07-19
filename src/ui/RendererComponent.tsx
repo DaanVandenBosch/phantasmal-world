@@ -3,16 +3,23 @@ import { Renderer } from "../rendering/Renderer";
 import "./RendererComponent.less";
 import { Camera } from "three";
 
-export class RendererComponent extends Component<{
+type Props = {
     renderer: Renderer<Camera>;
+    debug?: boolean;
     className?: string;
     on_will_unmount?: () => void;
-}> {
+};
+
+export class RendererComponent extends Component<Props> {
     render(): ReactNode {
         let className = "RendererComponent";
         if (this.props.className) className += " " + this.props.className;
 
         return <div className={className} ref={this.modifyDom} />;
+    }
+
+    componentWillReceiveProps(props: Props): void {
+        this.props.renderer.debug = !!props.debug;
     }
 
     componentDidMount(): void {

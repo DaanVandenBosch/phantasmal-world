@@ -1,39 +1,10 @@
-import {
-    Bone,
-    BufferGeometry,
-    DoubleSide,
-    Euler,
-    Material,
-    Matrix3,
-    Matrix4,
-    Mesh,
-    MeshBasicMaterial,
-    MeshLambertMaterial,
-    Quaternion,
-    Skeleton,
-    SkinnedMesh,
-    Vector2,
-    Vector3,
-} from "three";
+import { Bone, BufferGeometry, Euler, Matrix3, Matrix4, Quaternion, Vector2, Vector3 } from "three";
 import { vec3_to_threejs } from ".";
 import { is_njcm_model, NjModel, NjObject } from "../../data_formats/parsing/ninja";
 import { NjcmModel } from "../../data_formats/parsing/ninja/njcm";
 import { XjModel } from "../../data_formats/parsing/ninja/xj";
 import { GeometryBuilder } from "./GeometryBuilder";
 
-const DUMMY_MATERIAL = new MeshBasicMaterial({
-    color: 0x00ff00,
-    side: DoubleSide,
-});
-const DEFAULT_MATERIAL = new MeshBasicMaterial({
-    color: 0xff00ff,
-    side: DoubleSide,
-});
-const DEFAULT_SKINNED_MATERIAL = new MeshLambertMaterial({
-    skinning: true,
-    color: 0xff00ff,
-    side: DoubleSide,
-});
 const DEFAULT_NORMAL = new Vector3(0, 1, 0);
 const DEFAULT_UV = new Vector2(0, 0);
 const NO_TRANSLATION = new Vector3(0, 0, 0);
@@ -43,32 +14,12 @@ const NO_SCALE = new Vector3(1, 1, 1);
 export function ninja_object_to_geometry_builder(
     object: NjObject<NjModel>,
     builder: GeometryBuilder
-) {
-    new ModelCreator(builder).to_geometry_builder(object);
+): void {
+    new GeometryCreator(builder).to_geometry_builder(object);
 }
 
 export function ninja_object_to_buffer_geometry(object: NjObject<NjModel>): BufferGeometry {
-    return new ModelCreator(new GeometryBuilder()).create_buffer_geometry(object);
-}
-
-export function ninja_object_to_mesh(
-    object: NjObject<NjModel>,
-    materials: Material[] = [],
-    default_material: Material = DEFAULT_MATERIAL
-): Mesh {
-    return new ModelCreator(new GeometryBuilder()).create_mesh(object, materials, default_material);
-}
-
-export function ninja_object_to_skinned_mesh(
-    object: NjObject<NjModel>,
-    materials: Material[] = [],
-    default_material: Material = DEFAULT_SKINNED_MATERIAL
-): SkinnedMesh {
-    return new ModelCreator(new GeometryBuilder()).create_skinned_mesh(
-        object,
-        materials,
-        default_material
-    );
+    return new GeometryCreator(new GeometryBuilder()).create_buffer_geometry(object);
 }
 
 type Vertex = {
@@ -102,61 +53,22 @@ class VerticesHolder {
     }
 }
 
-class ModelCreator {
+class GeometryCreator {
     private vertices = new VerticesHolder();
     private bone_id: number = 0;
-    private bones: Bone[] = [];
     private builder: GeometryBuilder;
 
     constructor(builder: GeometryBuilder) {
         this.builder = builder;
     }
 
-    to_geometry_builder(object: NjObject<NjModel>) {
+    to_geometry_builder(object: NjObject<NjModel>): void {
         this.object_to_geometry(object, undefined, new Matrix4());
     }
 
     create_buffer_geometry(object: NjObject<NjModel>): BufferGeometry {
         this.to_geometry_builder(object);
         return this.builder.build();
-    }
-
-    create_mesh(
-        object: NjObject<NjModel>,
-        materials: Material[],
-        default_material: Material
-    ): Mesh {
-        const geom = this.create_buffer_geometry(object);
-
-        materials = [DUMMY_MATERIAL, ...materials];
-        const max_mat_idx = this.builder.max_material_index || 0;
-
-        for (let i = materials.length - 1; i < max_mat_idx; ++i) {
-            materials.push(default_material);
-        }
-
-        return new Mesh(geom, materials);
-    }
-
-    create_skinned_mesh(
-        object: NjObject<NjModel>,
-        materials: Material[],
-        default_material: Material
-    ): SkinnedMesh {
-        const geom = this.create_buffer_geometry(object);
-
-        materials = [DUMMY_MATERIAL, ...materials];
-        const max_mat_idx = this.builder.max_material_index || 0;
-
-        for (let i = materials.length - 1; i < max_mat_idx; ++i) {
-            materials.push(default_material);
-        }
-
-        const mesh = new SkinnedMesh(geom, materials);
-        mesh.add(this.bones[0]);
-        mesh.bind(new Skeleton(this.bones));
-
-        return mesh;
     }
 
     private object_to_geometry(
@@ -201,7 +113,7 @@ class ModelCreator {
             bone.setRotationFromEuler(euler);
             bone.scale.set(scale.x, scale.y, scale.z);
 
-            this.bones.push(bone);
+            this.builder.add_bone(bone);
 
             if (parent_bone) {
                 parent_bone.add(bone);
@@ -289,7 +201,7 @@ class ModelCreator {
                     }
 
                     for (const [bone_index, bone_weight] of bones) {
-                        this.builder.add_bone(bone_index, bone_weight);
+                        this.builder.add_bone_weight(bone_index, bone_weight);
                     }
                 }
             }

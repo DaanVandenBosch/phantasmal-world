@@ -8,12 +8,13 @@ import {
     MeshLambertMaterial,
     Object3D,
     Vector3,
+    Color,
 } from "three";
 import { CollisionObject } from "../../data_formats/parsing/area_collision_geometry";
 import { RenderObject } from "../../data_formats/parsing/area_geometry";
 import { Section } from "../../domain";
-import { ninja_object_to_mesh, ninja_object_to_geometry_builder } from "./ninja_geometry";
 import { GeometryBuilder } from "./GeometryBuilder";
+import { ninja_object_to_geometry_builder } from "./ninja_geometry";
 
 const materials = [
     // Wall
@@ -65,6 +66,10 @@ const wireframe_materials = [
     }),
 ];
 
+export type AreaUserData = {
+    section?: Section;
+};
+
 export function area_collision_geometry_to_object_3d(object: CollisionObject): Object3D {
     const group = new Group();
 
@@ -94,6 +99,9 @@ export function area_collision_geometry_to_object_3d(object: CollisionObject): O
             );
         }
 
+        geom.computeBoundingBox();
+        geom.computeBoundingSphere();
+
         const mesh = new Mesh(geom, materials);
         mesh.renderOrder = 1;
         group.add(mesh);
@@ -106,20 +114,14 @@ export function area_collision_geometry_to_object_3d(object: CollisionObject): O
     return group;
 }
 
-export type AreaUserData = {
-    section: Section;
-};
-
 export function area_geometry_to_sections_and_object_3d(
     object: RenderObject
 ): [Section[], Object3D] {
     const sections: Section[] = [];
     const group = new Group();
+    let i = 0;
 
     for (const section of object.sections) {
-        const sec = new Section(section.id, section.position, section.rotation.y);
-        sections.push(sec);
-
         const builder = new GeometryBuilder();
 
         for (const object of section.objects) {
@@ -128,16 +130,23 @@ export function area_geometry_to_sections_and_object_3d(
 
         const mesh = new Mesh(
             builder.build(),
-            new MeshLambertMaterial({
-                color: 0x44aaff,
+            new MeshBasicMaterial({
+                color: new Color().setHSL((i++ % 7) / 7, 1, 0.5),
                 transparent: true,
-                opacity: 0.75,
+                opacity: 0.25,
                 side: DoubleSide,
             })
         );
-
-        (mesh.userData as AreaUserData).section = sec;
         group.add(mesh);
+
+        mesh.position.set(section.position.x, section.position.y, section.position.z);
+        mesh.rotation.set(section.rotation.x, section.rotation.y, section.rotation.z);
+
+        if (section.id >= 0) {
+            const sec = new Section(section.id, section.position, section.rotation.y);
+            sections.push(sec);
+            (mesh.userData as AreaUserData).section = sec;
+        }
     }
 
     return [sections, group];

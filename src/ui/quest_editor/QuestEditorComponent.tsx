@@ -15,12 +15,14 @@ import { application_store } from "../../stores/ApplicationStore";
 export class QuestEditorComponent extends Component<
     {},
     {
+        debug: boolean;
         filename?: string;
         save_dialog_open: boolean;
         save_dialog_filename: string;
     }
 > {
     state = {
+        debug: false,
         save_dialog_open: false,
         save_dialog_filename: "Untitled",
     };
@@ -37,7 +39,7 @@ export class QuestEditorComponent extends Component<
                 <Toolbar on_save_as_clicked={this.save_as_clicked} />
                 <div className="qe-QuestEditorComponent-main">
                     <QuestInfoComponent quest={quest} />
-                    <RendererComponent renderer={get_quest_renderer()} />
+                    <RendererComponent renderer={get_quest_renderer()} debug={this.state.debug} />
                     <EntityInfoComponent entity={quest_editor_store.selected_entity} />
                 </div>
                 <SaveAsForm
@@ -82,6 +84,8 @@ export class QuestEditorComponent extends Component<
             quest_editor_store.undo_stack.undo();
         } else if (e.ctrlKey && e.key === "Z" && !e.altKey) {
             quest_editor_store.undo_stack.redo();
+        } else if (e.ctrlKey && e.altKey && e.key === "d") {
+            this.setState(state => ({ debug: !state.debug }));
         }
     };
 }

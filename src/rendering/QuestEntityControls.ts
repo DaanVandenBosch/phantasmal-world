@@ -4,18 +4,12 @@ import { Vec3 } from "../data_formats/vector";
 import { QuestEntity, QuestNpc, QuestObject, Section } from "../domain";
 import { quest_editor_store } from "../stores/QuestEditorStore";
 import { AreaUserData } from "./conversion/areas";
-import {
-    EntityUserData,
-    NPC_COLOR,
-    NPC_HIGHLIGHTED_COLOR,
-    NPC_SELECTED_COLOR,
-    OBJECT_COLOR,
-    OBJECT_HIGHLIGHTED_COLOR,
-    OBJECT_SELECTED_COLOR,
-} from "./conversion/entities";
+import { ColorType, EntityUserData, NPC_COLORS, OBJECT_COLORS } from "./conversion/entities";
 import { QuestRenderer } from "./QuestRenderer";
 
-type Selection = {
+const DOWN_VECTOR = new Vector3(0, -1, 0);
+
+type Highlighted = {
     entity: QuestEntity;
     mesh: Mesh;
 };
@@ -32,16 +26,10 @@ type PickResult = Pick & {
     mesh: Mesh;
 };
 
-enum ColorType {
-    Normal,
-    Highlighted,
-    Selected,
-}
-
 export class QuestEntityControls {
     private raycaster = new Raycaster();
-    private selected?: Selection;
-    private highlighted?: Selection;
+    private selected?: Highlighted;
+    private hovered?: Highlighted;
     /**
      * Iff defined, the user is transforming the selected entity.
      */
@@ -118,24 +106,26 @@ export class QuestEntityControls {
         const pointer_device_pos = this.renderer.pointer_pos_to_device_coords(e);
 
         if (this.selected && this.pick) {
-            // User is tranforming selected entity.
-            if (e.buttons === 1) {
-                // User is dragging selected entity.
-                if (e.shiftKey) {
-                    // Vertical movement.
-                    this.translate_vertically(this.selected, this.pick, pointer_device_pos);
-                } else {
-                    // Horizontal movement accross terrain.
-                    this.translate_horizontally(this.selected, this.pick, pointer_device_pos);
+            if (this.moved_since_last_mouse_down) {
+                if (e.buttons === 1) {
+                    // User is tranforming selected entity.
+                    // User is dragging selected entity.
+                    if (e.shiftKey) {
+                        // Vertical movement.
+                        this.translate_vertically(this.selected, this.pick, pointer_device_pos);
+                    } else {
+                        // Horizontal movement accross terrain.
+                        this.translate_horizontally(this.selected, this.pick, pointer_device_pos);
+                    }
                 }
-            }
 
-            this.renderer.schedule_render();
+                this.renderer.schedule_render();
+            }
         } else {
             // User is hovering.
             const new_pick = this.pick_entity(pointer_device_pos);
 
-            if (this.highlight(new_pick)) {
+            if (this.mark_hovered(new_pick)) {
                 this.renderer.schedule_render();
             }
         }
@@ -159,32 +149,32 @@ export class QuestEntityControls {
     /**
      * @returns true if a render is required.
      */
-    private highlight(selection?: Selection): boolean {
+    private mark_hovered(selection?: Highlighted): boolean {
         let render_required = false;
 
         if (!this.selected || !selection_equals(selection, this.selected)) {
-            if (!selection_equals(selection, this.highlighted)) {
-                if (this.highlighted) {
-                    set_color(this.highlighted, ColorType.Normal);
-                    this.highlighted = undefined;
+            if (!selection_equals(selection, this.hovered)) {
+                if (this.hovered) {
+                    set_color(this.hovered, ColorType.Normal);
+                    this.hovered = undefined;
                 }
 
                 if (selection) {
-                    set_color(selection, ColorType.Highlighted);
+                    set_color(selection, ColorType.Hovered);
                 }
 
                 render_required = true;
             }
 
-            this.highlighted = selection;
+            this.hovered = selection;
         }
 
         return render_required;
     }
 
-    private select(selection: Selection): void {
-        if (selection_equals(selection, this.highlighted)) {
-            this.highlighted = undefined;
+    private select(selection: Highlighted): void {
+        if (selection_equals(selection, this.hovered)) {
+            this.hovered = undefined;
         }
 
         if (!selection_equals(selection, this.selected)) {
@@ -211,7 +201,7 @@ export class QuestEntityControls {
     }
 
     private translate_vertically(
-        selection: Selection,
+        selection: Highlighted,
         pick: Pick,
         pointer_position: Vector2
     ): void {
@@ -241,7 +231,7 @@ export class QuestEntityControls {
     }
 
     private translate_horizontally(
-        selection: Selection,
+        selection: Highlighted,
         pick: Pick,
         pointer_position: Vector2
     ): void {
@@ -325,15 +315,15 @@ export class QuestEntityControls {
         let drag_y = 0;
 
         // Find vertical distance to terrain.
-        this.raycaster.set(intersection.object.position, new Vector3(0, -1, 0));
-        const [terrain] = this.raycaster.intersectObjects(
+        this.raycaster.set(intersection.object.position, DOWN_VECTOR);
+        const [collision_geom_intersection] = this.raycaster.intersectObjects(
             this.renderer.collision_geometry.children,
             true
         );
 
-        if (terrain) {
-            drag_adjust.sub(new Vector3(0, terrain.distance, 0));
-            drag_y += terrain.distance;
+        if (collision_geom_intersection) {
+            drag_adjust.y -= collision_geom_intersection.distance;
+            drag_y += collision_geom_intersection.distance;
         }
 
         return {
@@ -358,7 +348,7 @@ export class QuestEntityControls {
     } {
         this.raycaster.setFromCamera(pointer_pos, this.renderer.camera);
         this.raycaster.ray.origin.add(data.drag_adjust);
-        const terrains = this.raycaster.intersectObjects(
+        const intersections = this.raycaster.intersectObjects(
             this.renderer.collision_geometry.children,
             true
         );
@@ -366,19 +356,11 @@ export class QuestEntityControls {
         // Don't allow entities to be placed on very steep terrain.
         // E.g. walls.
         // TODO: make use of the flags field in the collision data.
-        for (const terrain of terrains) {
-            if (terrain.face!.normal.y > 0.75) {
-                // Find section ID.
-                this.raycaster.set(terrain.point.clone().setY(1000), new Vector3(0, -1, 0));
-                const render_terrains = this.raycaster
-                    .intersectObjects(this.renderer.render_geometry.children, true)
-                    .filter(rt => (rt.object.userData as AreaUserData).section.id >= 0);
-
+        for (const intersection of intersections) {
+            if (intersection.face!.normal.y > 0.75) {
                 return {
-                    intersection: terrain,
-                    section:
-                        render_terrains[0] &&
-                        (render_terrains[0].object.userData as AreaUserData).section,
+                    intersection,
+                    section: (intersection.object.userData as AreaUserData).section,
                 };
             }
         }
@@ -387,34 +369,24 @@ export class QuestEntityControls {
     }
 }
 
-function set_color({ entity, mesh }: Selection, type: ColorType): void {
-    const color = get_color(entity, type);
+function set_color({ entity, mesh }: Highlighted, type: ColorType): void {
+    const color = entity instanceof QuestNpc ? NPC_COLORS[type] : OBJECT_COLORS[type];
 
     if (mesh) {
-        for (const material of mesh.material as MeshLambertMaterial[]) {
-            if (type === ColorType.Normal && material.map) {
-                material.color.set(0xffffff);
-            } else {
-                material.color.set(color);
+        if (Array.isArray(mesh.material)) {
+            for (const mat of mesh.material as MeshLambertMaterial[]) {
+                if (type === ColorType.Normal && mat.map) {
+                    mat.color.set(0xffffff);
+                } else {
+                    mat.color.set(color);
+                }
             }
+        } else {
+            (mesh.material as MeshLambertMaterial).color.set(color);
         }
     }
 }
 
-function selection_equals(a?: Selection, b?: Selection): boolean {
+function selection_equals(a?: Highlighted, b?: Highlighted): boolean {
     return a && b ? a.entity === b.entity : a === b;
-}
-
-function get_color(entity: QuestEntity, type: ColorType): number {
-    const is_npc = entity instanceof QuestNpc;
-
-    switch (type) {
-        default:
-        case ColorType.Normal:
-            return is_npc ? NPC_COLOR : OBJECT_COLOR;
-        case ColorType.Highlighted:
-            return is_npc ? NPC_HIGHLIGHTED_COLOR : OBJECT_HIGHLIGHTED_COLOR;
-        case ColorType.Selected:
-            return is_npc ? NPC_SELECTED_COLOR : OBJECT_SELECTED_COLOR;
-    }
 }
