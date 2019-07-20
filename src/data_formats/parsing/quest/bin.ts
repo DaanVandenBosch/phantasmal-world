@@ -1,9 +1,12 @@
 import Logger from "js-logger";
 import { Cursor } from "../../cursor/Cursor";
+import { WritableArrayBufferCursor } from "../../cursor/WritableArrayBufferCursor";
+import { Endianness } from "../..";
+import { ArrayBufferCursor } from "../../cursor/ArrayBufferCursor";
 
 const logger = Logger.get("data_formats/parsing/quest/bin");
 
-export interface BinFile {
+export type BinFile = {
     quest_id: number;
     language: number;
     quest_name: string;
@@ -11,11 +14,12 @@ export interface BinFile {
     long_description: string;
     function_offsets: number[];
     instructions: Instruction[];
-    data: ArrayBuffer;
-}
+    object_code: ArrayBuffer;
+    unknown: ArrayBuffer;
+};
 
 export function parse_bin(cursor: Cursor, lenient: boolean = false): BinFile {
-    const object_code_offset = cursor.u32();
+    const object_code_offset = cursor.u32(); // Always 4652
     const function_offset_table_offset = cursor.u32(); // Relative offsets
     const size = cursor.u32();
     cursor.seek(4); // Always seems to be 0xFFFFFFFF
@@ -29,6 +33,14 @@ export function parse_bin(cursor: Cursor, lenient: boolean = false): BinFile {
         logger.warn(`Value ${size} in bin size field does not match actual size ${cursor.size}.`);
     }
 
+    const unknown = cursor.take(object_code_offset - cursor.position).array_buffer();
+
+    const object_code = cursor
+        .seek_start(object_code_offset)
+        .take(function_offset_table_offset - object_code_offset);
+
+    const instructions = parse_object_code(object_code, lenient);
+
     const function_offset_count = Math.floor((cursor.size - function_offset_table_offset) / 4);
 
     cursor.seek_start(function_offset_table_offset);
@@ -38,13 +50,6 @@ export function parse_bin(cursor: Cursor, lenient: boolean = false): BinFile {
         function_offsets.push(cursor.i32());
     }
 
-    const instructions = parse_object_code(
-        cursor
-            .seek_start(object_code_offset)
-            .take(function_offset_table_offset - object_code_offset),
-        lenient
-    );
-
     return {
         quest_id,
         language,
@@ -53,20 +58,49 @@ export function parse_bin(cursor: Cursor, lenient: boolean = false): BinFile {
         long_description,
         function_offsets,
         instructions,
-        data: cursor.seek_start(0).array_buffer(),
+        object_code: object_code.seek_start(0).array_buffer(),
+        unknown,
     };
 }
 
-export function write_bin({ data }: { data: ArrayBuffer }): ArrayBuffer {
-    return data;
+export function write_bin(bin: BinFile): ArrayBuffer {
+    const object_code_offset = 4652;
+    const buffer = new ArrayBuffer(
+        object_code_offset + bin.object_code.byteLength + 4 * bin.function_offsets.length
+    );
+    const cursor = new WritableArrayBufferCursor(buffer, Endianness.Little);
+
+    cursor.write_u32(object_code_offset);
+    cursor.write_u32(object_code_offset + bin.object_code.byteLength);
+    cursor.write_u32(buffer.byteLength);
+    cursor.write_u32(0xffffffff);
+    cursor.write_u32(bin.quest_id);
+    cursor.write_u32(bin.language);
+    cursor.write_string_utf16(bin.quest_name, 64);
+    cursor.write_string_utf16(bin.short_description, 256);
+    cursor.write_string_utf16(bin.long_description, 576);
+
+    cursor.write_cursor(new ArrayBufferCursor(bin.unknown, Endianness.Little));
+
+    while (cursor.position < object_code_offset) {
+        cursor.write_u8(0);
+    }
+
+    cursor.write_cursor(new ArrayBufferCursor(bin.object_code, Endianness.Little));
+
+    for (const function_offset of bin.function_offsets) {
+        cursor.write_i32(function_offset);
+    }
+
+    return buffer;
 }
 
-export interface Instruction {
+export type Instruction = {
     opcode: number;
     mnemonic: string;
     args: any[];
     size: number;
-}
+};
 
 function parse_object_code(cursor: Cursor, lenient: boolean): Instruction[] {
     const instructions = [];

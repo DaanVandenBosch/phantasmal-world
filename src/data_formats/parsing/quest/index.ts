@@ -72,7 +72,8 @@ export function parse_quest(cursor: Cursor, lenient: boolean = false): Quest | u
     }
 
     return new Quest(
-        dat_file.id,
+        bin.quest_id,
+        bin.language,
         bin.quest_name,
         bin.short_description,
         bin.long_description,
@@ -81,19 +82,32 @@ export function parse_quest(cursor: Cursor, lenient: boolean = false): Quest | u
         parse_obj_data(dat.objs),
         parse_npc_data(episode, dat.npcs),
         dat.unknowns,
-        bin.data
+        bin.function_offsets,
+        bin.object_code,
+        bin.unknown
     );
 }
 
 export function write_quest_qst(quest: Quest, file_name: string): ArrayBuffer {
     const dat = write_dat({
         objs: objects_to_dat_data(quest.objects),
-        npcs: npcsToDatData(quest.npcs),
+        npcs: npcs_to_dat_data(quest.npcs),
         unknowns: quest.dat_unknowns,
     });
-    const bin = write_bin({ data: quest.bin_data });
+    const bin = write_bin({
+        quest_id: quest.id,
+        language: quest.language,
+        quest_name: quest.name,
+        short_description: quest.short_description,
+        long_description: quest.long_description,
+        function_offsets: quest.function_offsets,
+        instructions: [],
+        object_code: quest.object_code,
+        unknown: quest.bin_unknown,
+    });
     const ext_start = file_name.lastIndexOf(".");
-    const base_file_name = ext_start === -1 ? file_name : file_name.slice(0, ext_start);
+    const base_file_name =
+        ext_start === -1 ? file_name.slice(0, 12) : file_name.slice(0, Math.min(12, ext_start));
 
     return write_qst({
         files: [
@@ -208,37 +222,37 @@ function get_func_operations(
 
 function parse_obj_data(objs: DatObject[]): QuestObject[] {
     return objs.map(obj_data => {
-        const { x, y, z } = obj_data.position;
-        const rot = obj_data.rotation;
         return new QuestObject(
+            ObjectType.from_pso_id(obj_data.type_id),
             obj_data.area_id,
             obj_data.section_id,
-            new Vec3(x, y, z),
-            new Vec3(rot.x, rot.y, rot.z),
-            ObjectType.from_pso_id(obj_data.type_id),
-            obj_data
+            obj_data.position.clone(),
+            obj_data.rotation.clone(),
+            obj_data.scale.clone(),
+            obj_data.unknown
         );
     });
 }
 
 function parse_npc_data(episode: number, npcs: DatNpc[]): QuestNpc[] {
     return npcs.map(npc_data => {
-        const { x, y, z } = npc_data.position;
-        const rot = npc_data.rotation;
         return new QuestNpc(
+            get_npc_type(episode, npc_data),
+            npc_data.type_id,
+            npc_data.skin,
             npc_data.area_id,
             npc_data.section_id,
-            new Vec3(x, y, z),
-            new Vec3(rot.x, rot.y, rot.z),
-            get_npc_type(episode, npc_data),
-            npc_data
+            npc_data.position.clone(),
+            npc_data.rotation.clone(),
+            npc_data.scale.clone(),
+            npc_data.unknown
         );
     });
 }
 
 // TODO: detect Mothmant, St. Rappy, Hallo Rappy, Egg Rappy, Death Gunner, Bulk and Recon.
-function get_npc_type(episode: number, { type_id, flags, skin, area_id }: DatNpc): NpcType {
-    const regular = Math.abs(flags - 1) > 0.00001;
+function get_npc_type(episode: number, { type_id, scale, skin, area_id }: DatNpc): NpcType {
+    const regular = Math.abs(scale.y - 1) > 0.00001;
 
     switch (`${type_id}, ${skin % 3}, ${episode}`) {
         case `${0x044}, 0, 1`:
@@ -516,32 +530,37 @@ function objects_to_dat_data(objects: QuestObject[]): DatObject[] {
     return objects.map(object => ({
         type_id: object.type.pso_id!,
         section_id: object.section_id,
-        position: object.section_position,
-        rotation: object.rotation,
+        position: object.section_position.clone(),
+        rotation: object.rotation.clone(),
+        scale: object.scale.clone(),
         area_id: object.area_id,
-        unknown: object.dat.unknown,
+        unknown: object.unknown,
     }));
 }
 
-function npcsToDatData(npcs: QuestNpc[]): DatNpc[] {
+function npcs_to_dat_data(npcs: QuestNpc[]): DatNpc[] {
     return npcs.map(npc => {
-        // If the type is unknown, typeData will be undefined and we use the raw data from the DAT file.
-        const type_data = npc_type_to_dat_data(npc.type);
-        let flags = npc.dat.flags;
+        const type_data = npc_type_to_dat_data(npc.type) || {
+            type_id: npc.pso_type_id,
+            skin: npc.pso_skin,
+            regular: true,
+        };
 
-        if (type_data) {
-            flags = (npc.dat.flags & ~0x800000) | (type_data.regular ? 0 : 0x800000);
-        }
+        let scale = new Vec3(
+            npc.scale.x,
+            (npc.scale.y & ~0x800000) | (type_data.regular ? 0 : 0x800000),
+            npc.scale.z
+        );
 
         return {
-            type_id: type_data ? type_data.type_id : npc.dat.type_id,
+            type_id: type_data.type_id,
             section_id: npc.section_id,
-            position: npc.section_position,
-            rotation: npc.rotation,
-            flags,
-            skin: type_data ? type_data.skin : npc.dat.skin,
+            position: npc.section_position.clone(),
+            rotation: npc.rotation.clone(),
+            scale,
+            skin: type_data.skin,
             area_id: npc.area_id,
-            unknown: npc.dat.unknown,
+            unknown: npc.unknown,
         };
     });
 }

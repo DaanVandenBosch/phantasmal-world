@@ -41,8 +41,7 @@ test("parse Towards the Future", () => {
  */
 test("parse_quest and write_quest_qst", () => {
     const buffer = fs.readFileSync("test/resources/tethealla_v0.143_quests/solo/ep1/02.qst");
-    const cursor = new BufferCursor(buffer, Endianness.Little);
-    const orig_quest = parse_quest(cursor)!;
+    const orig_quest = parse_quest(new BufferCursor(buffer, Endianness.Little))!;
     const test_quest = parse_quest(
         new ArrayBufferCursor(write_quest_qst(orig_quest, "02.qst"), Endianness.Little)
     )!;

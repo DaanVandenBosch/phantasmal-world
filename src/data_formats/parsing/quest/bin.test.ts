@@ -1,29 +1,35 @@
-import * as fs from "fs";
-import * as prs from "../../compression/prs";
-import { parse_bin, write_bin } from "./bin";
+import { readFileSync } from "fs";
 import { Endianness } from "../..";
-import { BufferCursor } from "../../cursor/BufferCursor";
+import * as prs from "../../compression/prs";
 import { ArrayBufferCursor } from "../../cursor/ArrayBufferCursor";
+import { BufferCursor } from "../../cursor/BufferCursor";
+import { parse_bin, write_bin } from "./bin";
 
 /**
  * Parse a file, convert the resulting structure to BIN again and check whether the end result is equal to the original.
  */
 test("parse_bin and write_bin", () => {
-    const orig_buffer = fs.readFileSync("test/resources/quest118_e.bin");
+    const orig_buffer = readFileSync("test/resources/quest118_e.bin");
     const orig_bin = prs.decompress(new BufferCursor(orig_buffer, Endianness.Little));
     const test_bin = new ArrayBufferCursor(write_bin(parse_bin(orig_bin)), Endianness.Little);
-    orig_bin.seek_start(0);
 
+    orig_bin.seek_start(0);
     expect(test_bin.size).toBe(orig_bin.size);
 
-    let match = true;
+    let matching_bytes = 0;
 
     while (orig_bin.bytes_left) {
-        if (test_bin.u8() !== orig_bin.u8()) {
-            match = false;
-            break;
+        const test_byte = test_bin.u8();
+        const orig_byte = orig_bin.u8();
+
+        if (test_byte !== orig_byte) {
+            throw new Error(
+                `Byte ${matching_bytes} didn't match, expected ${orig_byte}, got ${test_byte}.`
+            );
         }
+
+        matching_bytes++;
     }
 
-    expect(match).toBe(true);
+    expect(matching_bytes).toBe(orig_bin.size);
 });

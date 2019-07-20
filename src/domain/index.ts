@@ -79,7 +79,8 @@ export class Section {
 }
 
 export class Quest {
-    @observable id?: number;
+    @observable id: number;
+    @observable language: number;
     @observable name: string;
     @observable short_description: string;
     @observable long_description: string;
@@ -91,13 +92,13 @@ export class Quest {
      * (Partial) raw DAT data that can't be parsed yet by Phantasmal.
      */
     dat_unknowns: DatUnknown[];
-    /**
-     * (Partial) raw BIN data that can't be parsed yet by Phantasmal.
-     */
-    bin_data: ArrayBuffer;
+    function_offsets: number[];
+    object_code: ArrayBuffer;
+    bin_unknown: ArrayBuffer;
 
     constructor(
-        id: number | undefined,
+        id: number,
+        language: number,
         name: string,
         short_description: string,
         long_description: string,
@@ -106,15 +107,24 @@ export class Quest {
         objects: QuestObject[],
         npcs: QuestNpc[],
         dat_unknowns: DatUnknown[],
-        bin_data: ArrayBuffer
+        function_offsets: number[],
+        object_code: ArrayBuffer,
+        bin_unknown: ArrayBuffer
     ) {
-        if (id != null && (!Number.isInteger(id) || id < 0))
-            throw new Error("id should be undefined or a non-negative integer.");
+        if (!Number.isInteger(id) || id < 0)
+            throw new Error("id should be a non-negative integer.");
+        if (!Number.isInteger(language)) throw new Error("language should be an integer.");
         check_episode(episode);
+        if (!area_variants) throw new Error("area_variants is required.");
         if (!objects || !(objects instanceof Array)) throw new Error("objs is required.");
         if (!npcs || !(npcs instanceof Array)) throw new Error("npcs is required.");
+        if (!dat_unknowns) throw new Error("dat_unknowns is required.");
+        if (!function_offsets) throw new Error("function_offsets is required.");
+        if (!object_code) throw new Error("object_code is required.");
+        if (!bin_unknown) throw new Error("bin_unknown is required.");
 
         this.id = id;
+        this.language = language;
         this.name = name;
         this.short_description = short_description;
         this.long_description = long_description;
@@ -123,7 +133,9 @@ export class Quest {
         this.objects = objects;
         this.npcs = npcs;
         this.dat_unknowns = dat_unknowns;
-        this.bin_data = bin_data;
+        this.function_offsets = function_offsets;
+        this.object_code = object_code;
+        this.bin_unknown = bin_unknown;
     }
 }
 
@@ -155,6 +167,8 @@ export class QuestEntity<Type extends EntityType = EntityType> {
     @observable.ref position: Vec3;
 
     @observable.ref rotation: Vec3;
+
+    @observable.ref scale: Vec3;
 
     /**
      * Section-relative position
@@ -193,7 +207,14 @@ export class QuestEntity<Type extends EntityType = EntityType> {
         }
     }
 
-    constructor(type: Type, area_id: number, section_id: number, position: Vec3, rotation: Vec3) {
+    constructor(
+        type: Type,
+        area_id: number,
+        section_id: number,
+        position: Vec3,
+        rotation: Vec3,
+        scale: Vec3
+    ) {
         if (Object.getPrototypeOf(this) === Object.getPrototypeOf(QuestEntity))
             throw new Error("Abstract class should not be instantiated directly.");
         if (!type) throw new Error("type is required.");
@@ -203,12 +224,14 @@ export class QuestEntity<Type extends EntityType = EntityType> {
             throw new Error(`Expected section_id to be a non-negative integer, got ${section_id}.`);
         if (!position) throw new Error("position is required.");
         if (!rotation) throw new Error("rotation is required.");
+        if (!scale) throw new Error("scale is required.");
 
         this.type = type;
         this.area_id = area_id;
         this._section_id = section_id;
         this.position = position;
         this.rotation = rotation;
+        this.scale = scale;
     }
 
     @action
@@ -221,46 +244,52 @@ export class QuestEntity<Type extends EntityType = EntityType> {
 export class QuestObject extends QuestEntity<ObjectType> {
     @observable type: ObjectType;
     /**
-     * The raw data from a DAT file.
+     * Data of which the purpose hasn't been discovered yet.
      */
-    dat: DatObject;
+    unknown: number[][];
 
     constructor(
+        type: ObjectType,
         area_id: number,
         section_id: number,
         position: Vec3,
         rotation: Vec3,
-        type: ObjectType,
-        dat: DatObject
+        scale: Vec3,
+        unknown: number[][]
     ) {
-        super(type, area_id, section_id, position, rotation);
+        super(type, area_id, section_id, position, rotation, scale);
 
         this.type = type;
-        this.dat = dat;
+        this.unknown = unknown;
     }
 }
 
 export class QuestNpc extends QuestEntity<NpcType> {
     @observable type: NpcType;
+    pso_type_id: number;
+    pso_skin: number;
     /**
-     * The raw data from a DAT file.
+     * Data of which the purpose hasn't been discovered yet.
      */
-    dat: DatNpc;
+    unknown: number[][];
 
     constructor(
+        type: NpcType,
+        pso_type_id: number,
+        pso_skin: number,
         area_id: number,
         section_id: number,
         position: Vec3,
         rotation: Vec3,
-        type: NpcType,
-        dat: DatNpc
+        scale: Vec3,
+        unknown: number[][]
     ) {
-        super(type, area_id, section_id, position, rotation);
-
-        if (!type) throw new Error("type is required.");
+        super(type, area_id, section_id, position, rotation, scale);
 
         this.type = type;
-        this.dat = dat;
+        this.pso_type_id = pso_type_id;
+        this.pso_skin = pso_skin;
+        this.unknown = unknown;
     }
 }
 

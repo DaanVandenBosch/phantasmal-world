@@ -49,9 +49,8 @@ export class ArrayBufferCursor implements Cursor {
 
     protected buffer: ArrayBuffer;
     protected dv: DataView;
-
-    private utf16_decoder: TextDecoder = UTF_16BE_DECODER;
-    private utf16_encoder: TextEncoder = UTF_16BE_ENCODER;
+    protected utf16_decoder!: TextDecoder;
+    protected utf16_encoder!: TextEncoder;
 
     /**
      * @param buffer The buffer to read from.

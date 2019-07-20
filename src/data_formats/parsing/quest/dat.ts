@@ -22,6 +22,7 @@ export type DatEntity = {
     section_id: number;
     position: Vec3;
     rotation: Vec3;
+    scale: Vec3;
     area_id: number;
     unknown: number[][];
 };
@@ -29,7 +30,6 @@ export type DatEntity = {
 export type DatObject = DatEntity;
 
 export type DatNpc = DatEntity & {
-    flags: number;
     skin: number;
 };
 
@@ -72,20 +72,19 @@ export function parse_dat(cursor: Cursor): DatFile {
                     const unknown1 = cursor.u8_array(10);
                     const section_id = cursor.u16();
                     const unknown2 = cursor.u8_array(2);
-                    const x = cursor.f32();
-                    const y = cursor.f32();
-                    const z = cursor.f32();
+                    const position = cursor.vec3_f32();
                     const rotation_x = (cursor.i32() / 0xffff) * 2 * Math.PI;
                     const rotation_y = (cursor.i32() / 0xffff) * 2 * Math.PI;
                     const rotation_z = (cursor.i32() / 0xffff) * 2 * Math.PI;
-                    // The next 3 floats seem to be scale values.
-                    const unknown3 = cursor.u8_array(28);
+                    const scale = cursor.vec3_f32();
+                    const unknown3 = cursor.u8_array(16);
 
                     objs.push({
                         type_id,
                         section_id,
-                        position: new Vec3(x, y, z),
+                        position,
                         rotation: new Vec3(rotation_x, rotation_y, rotation_z),
+                        scale,
                         area_id,
                         unknown: [unknown1, unknown2, unknown3],
                     });
@@ -109,27 +108,24 @@ export function parse_dat(cursor: Cursor): DatFile {
                     const unknown1 = cursor.u8_array(10);
                     const section_id = cursor.u16();
                     const unknown2 = cursor.u8_array(6);
-                    const x = cursor.f32();
-                    const y = cursor.f32();
-                    const z = cursor.f32();
+                    const position = cursor.vec3_f32();
                     const rotation_x = (cursor.i32() / 0xffff) * 2 * Math.PI;
                     const rotation_y = (cursor.i32() / 0xffff) * 2 * Math.PI;
                     const rotation_z = (cursor.i32() / 0xffff) * 2 * Math.PI;
-                    const unknown3 = cursor.u8_array(4);
-                    const flags = cursor.f32();
-                    const unknown4 = cursor.u8_array(12);
+                    const scale = cursor.vec3_f32();
+                    const unknown3 = cursor.u8_array(8);
                     const skin = cursor.u32();
-                    const unknown5 = cursor.u8_array(4);
+                    const unknown4 = cursor.u8_array(4);
 
                     npcs.push({
                         type_id,
                         section_id,
-                        position: new Vec3(x, y, z),
+                        position,
                         rotation: new Vec3(rotation_x, rotation_y, rotation_z),
+                        scale,
                         skin,
                         area_id,
-                        flags,
-                        unknown: [unknown1, unknown2, unknown3, unknown4, unknown5],
+                        unknown: [unknown1, unknown2, unknown3, unknown4],
                     });
                 }
 
@@ -179,16 +175,30 @@ export function write_dat({ objs, npcs, unknowns }: DatFile): ResizableBuffer {
         cursor.write_u32(entities_size);
 
         for (const obj of area_objs) {
+            if (obj.unknown.length !== 3)
+                throw new Error(`unknown should be of length 3, was ${obj.unknown.length}`);
+
             cursor.write_u16(obj.type_id);
+
+            if (obj.unknown[0].length !== 10)
+                throw new Error(`unknown[0] should be of length 10, was ${obj.unknown[0].length}`);
+
             cursor.write_u8_array(obj.unknown[0]);
             cursor.write_u16(obj.section_id);
+
+            if (obj.unknown[1].length !== 2)
+                throw new Error(`unknown[1] should be of length 2, was ${obj.unknown[1].length}`);
+
             cursor.write_u8_array(obj.unknown[1]);
-            cursor.write_f32(obj.position.x);
-            cursor.write_f32(obj.position.y);
-            cursor.write_f32(obj.position.z);
+            cursor.write_vec3_f32(obj.position);
             cursor.write_i32(Math.round((obj.rotation.x / (2 * Math.PI)) * 0xffff));
             cursor.write_i32(Math.round((obj.rotation.y / (2 * Math.PI)) * 0xffff));
             cursor.write_i32(Math.round((obj.rotation.z / (2 * Math.PI)) * 0xffff));
+            cursor.write_vec3_f32(obj.scale);
+
+            if (obj.unknown[2].length !== 16)
+                throw new Error(`unknown[2] should be of length 16, was ${obj.unknown[2].length}`);
+
             cursor.write_u8_array(obj.unknown[2]);
         }
     }
@@ -211,17 +221,14 @@ export function write_dat({ objs, npcs, unknowns }: DatFile): ResizableBuffer {
             cursor.write_u8_array(npc.unknown[0]);
             cursor.write_u16(npc.section_id);
             cursor.write_u8_array(npc.unknown[1]);
-            cursor.write_f32(npc.position.x);
-            cursor.write_f32(npc.position.y);
-            cursor.write_f32(npc.position.z);
+            cursor.write_vec3_f32(npc.position);
             cursor.write_i32(Math.round((npc.rotation.x / (2 * Math.PI)) * 0xffff));
             cursor.write_i32(Math.round((npc.rotation.y / (2 * Math.PI)) * 0xffff));
             cursor.write_i32(Math.round((npc.rotation.z / (2 * Math.PI)) * 0xffff));
+            cursor.write_vec3_f32(npc.scale);
             cursor.write_u8_array(npc.unknown[2]);
-            cursor.write_f32(npc.flags);
-            cursor.write_u8_array(npc.unknown[3]);
             cursor.write_u32(npc.skin);
-            cursor.write_u8_array(npc.unknown[4]);
+            cursor.write_u8_array(npc.unknown[3]);
         }
     }
 

@@ -1,4 +1,4 @@
-import { computed, observable } from "mobx";
+import { computed, observable, IObservableArray, action } from "mobx";
 
 export class Action {
     constructor(
@@ -9,7 +9,9 @@ export class Action {
 }
 
 export class UndoStack {
-    @observable.ref private stack: Action[] = [];
+    @observable private readonly stack: IObservableArray<Action> = observable.array([], {
+        deep: false,
+    });
     /**
      * The index where new actions are inserted.
      */
@@ -37,15 +39,18 @@ export class UndoStack {
         return this.stack[this.index];
     }
 
+    @action
     push_action(description: string, undo: () => void, redo: () => void): void {
         this.push(new Action(description, undo, redo));
     }
 
+    @action
     push(action: Action): void {
         this.stack.splice(this.index, this.stack.length - this.index, action);
         this.index++;
     }
 
+    @action
     undo(): boolean {
         if (this.can_undo) {
             this.stack[--this.index].undo();
@@ -55,6 +60,7 @@ export class UndoStack {
         }
     }
 
+    @action
     redo(): boolean {
         if (this.can_redo) {
             this.stack[this.index++].redo();
@@ -64,8 +70,9 @@ export class UndoStack {
         }
     }
 
+    @action
     clear(): void {
-        this.stack = [];
+        this.stack.clear();
         this.index = 0;
     }
 }

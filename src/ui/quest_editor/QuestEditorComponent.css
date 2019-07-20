@@ -3,15 +3,6 @@
     flex-direction: column;
 }
 
-.qe-QuestEditorComponent-toolbar {
-    display: flex;
-    padding: 10px 5px;
-}
-
-.qe-QuestEditorComponent-toolbar > * {
-    margin: 0 5px;
-}
-
 .qe-QuestEditorComponent-main {
     flex: 1;
     display: flex;

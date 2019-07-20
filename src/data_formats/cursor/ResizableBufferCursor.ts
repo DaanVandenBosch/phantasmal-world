@@ -51,8 +51,8 @@ export class ResizableBufferCursor implements Cursor {
         return this.buffer.view;
     }
 
-    private utf16_decoder: TextDecoder = UTF_16BE_DECODER;
-    private utf16_encoder: TextEncoder = UTF_16BE_ENCODER;
+    protected utf16_decoder: TextDecoder = UTF_16BE_DECODER;
+    protected utf16_encoder: TextEncoder = UTF_16BE_ENCODER;
 
     /**
      * @param buffer The buffer to read from.

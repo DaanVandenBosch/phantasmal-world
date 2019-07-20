@@ -1,4 +1,5 @@
 import { Cursor } from "./Cursor";
+import { Vec2, Vec3 } from "../vector";
 
 /**
  * A cursor for reading and writing binary data.
@@ -37,6 +38,16 @@ export interface WritableCursor extends Cursor {
     write_u8_array(array: number[]): this;
 
     /**
+     * Writes two 32-bit floating point numbers and increments position by 8.
+     */
+    write_vec2_f32(value: Vec2): this;
+
+    /**
+     * Writes three 32-bit floating point numbers and increments position by 12.
+     */
+    write_vec3_f32(value: Vec3): this;
+
+    /**
      * Writes the contents of the given cursor from its position to its end. Increments this cursor's and the given cursor's position by the size of the given cursor.
      */
     write_cursor(other: Cursor): this;
@@ -45,4 +56,9 @@ export interface WritableCursor extends Cursor {
      * Writes byte_length characters of str. If str is shorter than byte_length, nul bytes will be inserted until byte_length bytes have been written.
      */
     write_string_ascii(str: string, byte_length: number): this;
+
+    /**
+     * Writes characters of str without writing more than byte_length bytes. If less than byte_length bytes can be written this way, nul bytes will be inserted until byte_length bytes have been written.
+     */
+    write_string_utf16(str: string, byte_length: number): this;
 }
