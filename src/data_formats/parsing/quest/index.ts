@@ -7,9 +7,10 @@ import { ArrayBufferCursor } from "../../cursor/ArrayBufferCursor";
 import { Cursor } from "../../cursor/Cursor";
 import { ResizableBufferCursor } from "../../cursor/ResizableBufferCursor";
 import { Vec3 } from "../../vector";
-import { Instruction, parse_bin, write_bin } from "./bin";
+import { Instruction, parse_bin, write_bin, OP_RET, BB_MAP_DESIGNATE, SET_EPISODE } from "./bin";
 import { DatFile, DatNpc, DatObject, parse_dat, write_dat } from "./dat";
 import { parse_qst, QstContainedFile, write_qst } from "./qst";
+import { number } from "prop-types";
 
 const logger = Logger.get("data_formats/parsing/quest");
 
@@ -59,13 +60,13 @@ export function parse_quest(cursor: Cursor, lenient: boolean = false): Quest | u
     let area_variants: AreaVariant[] = [];
 
     if (bin.function_offsets.length) {
-        const func_0_ops = get_func_operations(bin.instructions, bin.function_offsets[0]);
+        const func_0_ops = get_func_instructions(bin.instructions, bin.function_offsets[0]);
 
         if (func_0_ops) {
             episode = get_episode(func_0_ops);
             area_variants = get_area_variants(dat, episode, func_0_ops, lenient);
         } else {
-            logger.warn(`Function 0 offset ${bin.function_offsets[0]} is invalid.`);
+            logger.warn(`Offset ${bin.function_offsets[0]} for function 0 is invalid.`);
         }
     } else {
         logger.warn("File contains no functions.");
@@ -130,11 +131,11 @@ export function write_quest_qst(quest: Quest, file_name: string): ArrayBuffer {
 /**
  * Defaults to episode I.
  */
-function get_episode(func_0_ops: Instruction[]): number {
-    const set_episode = func_0_ops.find(op => op.mnemonic === "set_episode");
+function get_episode(func_0_instructions: Instruction[]): number {
+    const set_episode = func_0_instructions.find(instruction => instruction.opcode === SET_EPISODE);
 
     if (set_episode) {
-        switch (set_episode.args[0]) {
+        switch (set_episode.args[0].value) {
             default:
             case 0:
                 return 1;
@@ -152,11 +153,11 @@ function get_episode(func_0_ops: Instruction[]): number {
 function get_area_variants(
     dat: DatFile,
     episode: number,
-    func_0_ops: Instruction[],
+    func_0_instructions: Instruction[],
     lenient: boolean
 ): AreaVariant[] {
     // Add area variants that have npcs or objects even if there are no BB_Map_Designate instructions for them.
-    const area_variants = new Map();
+    const area_variants = new Map<number, number>();
 
     for (const npc of dat.npcs) {
         area_variants.set(npc.area_id, 0);
@@ -166,11 +167,13 @@ function get_area_variants(
         area_variants.set(obj.area_id, 0);
     }
 
-    const bb_maps = func_0_ops.filter(op => op.mnemonic === "BB_Map_Designate");
+    const bb_maps = func_0_instructions.filter(
+        instruction => instruction.opcode === BB_MAP_DESIGNATE
+    );
 
     for (const bb_map of bb_maps) {
-        const area_id = bb_map.args[0];
-        const variant_id = bb_map.args[2];
+        const area_id: number = bb_map.args[0].value;
+        const variant_id: number = bb_map.args[2].value;
         area_variants.set(area_id, variant_id);
     }
 
@@ -192,29 +195,29 @@ function get_area_variants(
     return area_variants_array.sort((a, b) => a.area.order - b.area.order || a.id - b.id);
 }
 
-function get_func_operations(
-    operations: Instruction[],
+function get_func_instructions(
+    instructions: Instruction[],
     func_offset: number
 ): Instruction[] | undefined {
     let position = 0;
     let func_found = false;
     const func_ops: Instruction[] = [];
 
-    for (const operation of operations) {
+    for (const instruction of instructions) {
         if (position === func_offset) {
             func_found = true;
         }
 
         if (func_found) {
-            func_ops.push(operation);
+            func_ops.push(instruction);
 
             // Break when ret is encountered.
-            if (operation.opcode === 1) {
+            if (instruction.opcode === OP_RET) {
                 break;
             }
         }
 
-        position += operation.size;
+        position += instruction.size;
     }
 
     return func_found ? func_ops : undefined;
