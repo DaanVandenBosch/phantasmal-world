@@ -1,6 +1,6 @@
-import { Quest, ObjectType, QuestObject, Episode, QuestNpc, NpcType } from "../domain";
-import { area_store } from "./AreaStore";
 import { Vec3 } from "../data_formats/vector";
+import { Episode, NpcType, ObjectType, Quest, QuestNpc, QuestObject } from "../domain";
+import { area_store } from "./AreaStore";
 
 export function create_new_quest(episode: Episode): Quest {
     if (episode === Episode.II) throw new Error("Episode II not yet supported.");
@@ -16,6 +16,7 @@ export function create_new_quest(episode: Episode): Quest {
         create_default_objects(),
         create_default_npcs(),
         [],
+        new Map(),
         [],
         new ArrayBuffer(0),
         new ArrayBuffer(0)

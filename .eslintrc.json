@@ -32,6 +32,7 @@
         "no-console": "warn",
         "no-constant-condition": ["warn", { "checkLoops": false }],
         "no-empty": "warn",
+        "no-useless-escape": "warn",
         "prettier/prettier": "warn",
         "react/no-unescaped-entities": "off",
         "@typescript-eslint/no-non-null-assertion": "off"

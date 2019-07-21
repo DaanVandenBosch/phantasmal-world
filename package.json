@@ -19,6 +19,8 @@
     "mobx": "^5.11.0",
     "mobx-react": "^6.1.1",
     "moment": "^2.24.0",
+    "monaco-editor": "^0.17.1",
+    "monaco-editor-webpack-plugin": "^1.7.0",
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
     "react-scripts": "^3.0.1",

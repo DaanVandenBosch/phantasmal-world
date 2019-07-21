@@ -5,9 +5,12 @@ import { application_store } from "../../stores/ApplicationStore";
 import { quest_editor_store } from "../../stores/QuestEditorStore";
 import { RendererComponent } from "../RendererComponent";
 import { EntityInfoComponent } from "./EntityInfoComponent";
-import "./QuestEditorComponent.css";
+import "./QuestEditorComponent.less";
 import { QuestInfoComponent } from "./QuestInfoComponent";
 import { Toolbar } from "./Toolbar";
+import { Tabs } from "antd";
+import { ScriptEditorComponent } from "./ScriptEditorComponent";
+import { AutoSizer } from "react-virtualized";
 
 @observer
 export class QuestEditorComponent extends Component<{}, { debug: boolean }> {
@@ -25,8 +28,34 @@ export class QuestEditorComponent extends Component<{}, { debug: boolean }> {
                 <Toolbar />
                 <div className="qe-QuestEditorComponent-main">
                     <QuestInfoComponent quest={quest} />
-                    <RendererComponent renderer={get_quest_renderer()} debug={this.state.debug} />
-                    <EntityInfoComponent entity={quest_editor_store.selected_entity} />
+                    <Tabs type="card" className="qe-QuestEditorComponent-tabcontainer">
+                        <Tabs.TabPane
+                            tab="Entities"
+                            key="entities"
+                            className="qe-QuestEditorComponent-tab"
+                        >
+                            <div className="qe-QuestEditorComponent-tab-main">
+                                <AutoSizer>
+                                    {({ width, height }) => (
+                                        <RendererComponent
+                                            renderer={get_quest_renderer()}
+                                            width={width}
+                                            height={height}
+                                            debug={this.state.debug}
+                                        />
+                                    )}
+                                </AutoSizer>
+                            </div>
+                            <EntityInfoComponent entity={quest_editor_store.selected_entity} />
+                        </Tabs.TabPane>
+                        <Tabs.TabPane
+                            tab="Script"
+                            key="script"
+                            className="qe-QuestEditorComponent-tab"
+                        >
+                            <ScriptEditorComponent className="qe-QuestEditorComponent-tab-main" />
+                        </Tabs.TabPane>
+                    </Tabs>
                 </div>
             </div>
         );

@@ -7,7 +7,7 @@ import { ArrayBufferCursor } from "../../cursor/ArrayBufferCursor";
 import { Cursor } from "../../cursor/Cursor";
 import { ResizableBufferCursor } from "../../cursor/ResizableBufferCursor";
 import { Vec3 } from "../../vector";
-import { BB_MAP_DESIGNATE, Instruction, OP_RET, parse_bin, SET_EPISODE, write_bin } from "./bin";
+import { BB_MAP_DESIGNATE, Instruction, parse_bin, SET_EPISODE, write_bin, BinFile } from "./bin";
 import { DatFile, DatNpc, DatObject, parse_dat, write_dat } from "./dat";
 import { parse_qst, QstContainedFile, write_qst } from "./qst";
 
@@ -58,17 +58,21 @@ export function parse_quest(cursor: Cursor, lenient: boolean = false): Quest | u
     let episode = 1;
     let area_variants: AreaVariant[] = [];
 
-    if (bin.function_offsets.length) {
-        const func_0_ops = get_func_instructions(bin.instructions, bin.function_offsets[0]);
+    if (bin.labels.size) {
+        if (bin.labels.has(0)) {
+            const label_0_instructions = bin.get_label_instructions(0);
 
-        if (func_0_ops) {
-            episode = get_episode(func_0_ops);
-            area_variants = get_area_variants(dat, episode, func_0_ops, lenient);
+            if (label_0_instructions) {
+                episode = get_episode(label_0_instructions);
+                area_variants = get_area_variants(dat, episode, label_0_instructions, lenient);
+            } else {
+                logger.warn(`Index ${bin.labels.get(0)} for label 0 is invalid.`);
+            }
         } else {
-            logger.warn(`Offset ${bin.function_offsets[0]} for function 0 is invalid.`);
+            logger.warn(`Label 0 not found.`);
         }
     } else {
-        logger.warn("File contains no functions.");
+        logger.warn("File contains no labels.");
     }
 
     return new Quest(
@@ -82,7 +86,8 @@ export function parse_quest(cursor: Cursor, lenient: boolean = false): Quest | u
         parse_obj_data(dat.objs),
         parse_npc_data(episode, dat.npcs),
         dat.unknowns,
-        bin.function_offsets,
+        bin.labels,
+        bin.instructions,
         bin.object_code,
         bin.unknown
     );
@@ -94,17 +99,19 @@ export function write_quest_qst(quest: Quest, file_name: string): ArrayBuffer {
         npcs: npcs_to_dat_data(quest.npcs),
         unknowns: quest.dat_unknowns,
     });
-    const bin = write_bin({
-        quest_id: quest.id,
-        language: quest.language,
-        quest_name: quest.name,
-        short_description: quest.short_description,
-        long_description: quest.long_description,
-        function_offsets: quest.function_offsets,
-        instructions: [],
-        object_code: quest.object_code,
-        unknown: quest.bin_unknown,
-    });
+    const bin = write_bin(
+        new BinFile(
+            quest.id,
+            quest.language,
+            quest.name,
+            quest.short_description,
+            quest.long_description,
+            quest.labels,
+            [],
+            quest.object_code,
+            quest.bin_unknown
+        )
+    );
     const ext_start = file_name.lastIndexOf(".");
     const base_file_name =
         ext_start === -1 ? file_name.slice(0, 12) : file_name.slice(0, Math.min(12, ext_start));
@@ -192,34 +199,6 @@ function get_area_variants(
 
     // Sort by area order and then variant id.
     return area_variants_array.sort((a, b) => a.area.order - b.area.order || a.id - b.id);
-}
-
-function get_func_instructions(
-    instructions: Instruction[],
-    func_offset: number
-): Instruction[] | undefined {
-    let position = 0;
-    let func_found = false;
-    const func_ops: Instruction[] = [];
-
-    for (const instruction of instructions) {
-        if (position === func_offset) {
-            func_found = true;
-        }
-
-        if (func_found) {
-            func_ops.push(instruction);
-
-            // Break when ret is encountered.
-            if (instruction.opcode === OP_RET) {
-                break;
-            }
-        }
-
-        position += instruction.size;
-    }
-
-    return func_found ? func_ops : undefined;
 }
 
 function parse_obj_data(objs: DatObject[]): QuestObject[] {

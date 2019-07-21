@@ -309,7 +309,7 @@ export class ResizableBufferCursor implements Cursor {
         const max_pos = Math.min(this.position + max_byte_length, this.size);
 
         for (let i = this.position; i < max_pos; ++i) {
-            if (this.dv.getUint8(i) === value) {
+            if (this.dv.getUint8(this.offset + i) === value) {
                 return i;
             }
         }
@@ -321,7 +321,7 @@ export class ResizableBufferCursor implements Cursor {
         const max_pos = Math.min(this.position + max_byte_length, this.size);
 
         for (let i = this.position; i < max_pos; i += 2) {
-            if (this.dv.getUint16(i, this.little_endian) === value) {
+            if (this.dv.getUint16(this.offset + i, this.little_endian) === value) {
                 return i;
             }
         }

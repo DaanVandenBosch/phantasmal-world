@@ -5,6 +5,7 @@ import { enum_values } from "../enums";
 import { ItemType } from "./items";
 import { NpcType } from "./NpcType";
 import { ObjectType } from "./ObjectType";
+import { Instruction } from "../data_formats/parsing/quest/bin";
 
 export * from "./items";
 export * from "./NpcType";
@@ -92,7 +93,8 @@ export class Quest {
      * (Partial) raw DAT data that can't be parsed yet by Phantasmal.
      */
     dat_unknowns: DatUnknown[];
-    function_offsets: number[];
+    labels: Map<number, number>;
+    instructions: Instruction[];
     object_code: ArrayBuffer;
     bin_unknown: ArrayBuffer;
 
@@ -107,7 +109,8 @@ export class Quest {
         objects: QuestObject[],
         npcs: QuestNpc[],
         dat_unknowns: DatUnknown[],
-        function_offsets: number[],
+        labels: Map<number, number>,
+        instructions: Instruction[],
         object_code: ArrayBuffer,
         bin_unknown: ArrayBuffer
     ) {
@@ -119,7 +122,8 @@ export class Quest {
         if (!objects || !(objects instanceof Array)) throw new Error("objs is required.");
         if (!npcs || !(npcs instanceof Array)) throw new Error("npcs is required.");
         if (!dat_unknowns) throw new Error("dat_unknowns is required.");
-        if (!function_offsets) throw new Error("function_offsets is required.");
+        if (!labels) throw new Error("labels is required.");
+        if (!instructions) throw new Error("instructions is required.");
         if (!object_code) throw new Error("object_code is required.");
         if (!bin_unknown) throw new Error("bin_unknown is required.");
 
@@ -133,7 +137,8 @@ export class Quest {
         this.objects = objects;
         this.npcs = npcs;
         this.dat_unknowns = dat_unknowns;
-        this.function_offsets = function_offsets;
+        this.labels = labels;
+        this.instructions = instructions;
         this.object_code = object_code;
         this.bin_unknown = bin_unknown;
     }

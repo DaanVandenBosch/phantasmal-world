@@ -6,16 +6,24 @@ import { get_texture_renderer } from "../../../rendering/TextureRenderer";
 import { texture_viewer_store } from "../../../stores/TextureViewerStore";
 import { RendererComponent } from "../../RendererComponent";
 import "./TextureViewerComponent.less";
+import { AutoSizer } from "react-virtualized";
 
 export class TextureViewerComponent extends Component {
     render(): ReactNode {
         return (
             <section className="v-t-TextureViewerComponent">
                 <Toolbar />
-                <RendererComponent
-                    renderer={get_texture_renderer()}
-                    className={"v-t-TextureViewerComponent-renderer"}
-                />
+                <div className="v-t-TextureViewerComponent-renderer">
+                    <AutoSizer>
+                        {({ width, height }) => (
+                            <RendererComponent
+                                renderer={get_texture_renderer()}
+                                width={width}
+                                height={height}
+                            />
+                        )}
+                    </AutoSizer>
+                </div>
             </section>
         );
     }

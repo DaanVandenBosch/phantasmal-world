@@ -3,12 +3,13 @@ import { UploadChangeParam } from "antd/lib/upload";
 import { UploadFile } from "antd/lib/upload/interface";
 import { observer } from "mobx-react";
 import React, { Component, ReactNode } from "react";
+import { AutoSizer } from "react-virtualized";
+import { get_model_renderer } from "../../../rendering/ModelRenderer";
 import { model_viewer_store } from "../../../stores/ModelViewerStore";
+import { RendererComponent } from "../../RendererComponent";
 import { AnimationSelectionComponent } from "./AnimationSelectionComponent";
 import { ModelSelectionComponent } from "./ModelSelectionComponent";
 import "./ModelViewerComponent.less";
-import { get_model_renderer } from "../../../rendering/ModelRenderer";
-import { RendererComponent } from "../../RendererComponent";
 
 @observer
 export class ModelViewerComponent extends Component {
@@ -25,10 +26,18 @@ export class ModelViewerComponent extends Component {
                 <div className="v-m-ModelViewerComponent-main">
                     <ModelSelectionComponent />
                     <AnimationSelectionComponent />
-                    <RendererComponent
-                        renderer={get_model_renderer()}
-                        on_will_unmount={model_viewer_store.pause_animation}
-                    />
+                    <div className="v-m-ModelViewerComponent-renderer">
+                        <AutoSizer>
+                            {({ width, height }) => (
+                                <RendererComponent
+                                    renderer={get_model_renderer()}
+                                    width={width}
+                                    height={height}
+                                    on_will_unmount={model_viewer_store.pause_animation}
+                                />
+                            )}
+                        </AutoSizer>
+                    </div>
                 </div>
             </div>
         );

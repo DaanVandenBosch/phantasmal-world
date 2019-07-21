@@ -1,0 +1,31 @@
+.qe-QuestEditorComponent {
+    display: flex;
+    flex-direction: column;
+}
+
+.qe-QuestEditorComponent-main {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+}
+
+.qe-QuestEditorComponent-tabcontainer {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+
+    & > .ant-tabs-content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+}
+
+.qe-QuestEditorComponent-tab.ant-tabs-tabpane-active {
+    flex: 1;
+    display: flex;
+}
+
+.qe-QuestEditorComponent-tab-main {
+    flex: 1;
+}

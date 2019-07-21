@@ -18,6 +18,7 @@ class QuestEditorStore {
     @observable current_quest_filename?: string;
     @observable current_quest?: Quest;
     @observable current_area?: Area;
+
     @observable selected_entity?: QuestEntity;
 
     @observable save_dialog_filename?: string;
