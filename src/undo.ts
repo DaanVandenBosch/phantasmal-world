@@ -29,14 +29,14 @@ export class UndoStack {
      * The first action that will be undone when calling undo().
      */
     @computed get first_undo(): Action | undefined {
-        return this.stack[this.index - 1];
+        return this.can_undo ? this.stack[this.index - 1] : undefined;
     }
 
     /**
      * The first action that will be redone when calling redo().
      */
     @computed get first_redo(): Action | undefined {
-        return this.stack[this.index];
+        return this.can_redo ? this.stack[this.index] : undefined;
     }
 
     @action

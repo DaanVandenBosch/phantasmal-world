@@ -7,10 +7,9 @@ import { ArrayBufferCursor } from "../../cursor/ArrayBufferCursor";
 import { Cursor } from "../../cursor/Cursor";
 import { ResizableBufferCursor } from "../../cursor/ResizableBufferCursor";
 import { Vec3 } from "../../vector";
-import { Instruction, parse_bin, write_bin, OP_RET, BB_MAP_DESIGNATE, SET_EPISODE } from "./bin";
+import { BB_MAP_DESIGNATE, Instruction, OP_RET, parse_bin, SET_EPISODE, write_bin } from "./bin";
 import { DatFile, DatNpc, DatObject, parse_dat, write_dat } from "./dat";
 import { parse_qst, QstContainedFile, write_qst } from "./qst";
-import { number } from "prop-types";
 
 const logger = Logger.get("data_formats/parsing/quest");
 

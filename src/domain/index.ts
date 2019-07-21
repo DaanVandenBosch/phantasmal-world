@@ -1,5 +1,5 @@
-import { computed, observable, action } from "mobx";
-import { DatNpc, DatObject, DatUnknown } from "../data_formats/parsing/quest/dat";
+import { action, computed, observable } from "mobx";
+import { DatUnknown } from "../data_formats/parsing/quest/dat";
 import { Vec3 } from "../data_formats/vector";
 import { enum_values } from "../enums";
 import { ItemType } from "./items";
