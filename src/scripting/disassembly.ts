@@ -1,17 +1,20 @@
-import { Arg, Param, Type } from "../../data_formats/parsing/quest/bin";
-import { Quest } from "../../domain";
+import { Arg, Instruction, Param, Type } from "../data_formats/parsing/quest/bin";
 
 /**
  * @param manual_stack If true, will ouput stack management instructions (argpush variants). Otherwise stack management instructions will not be output and their arguments will be output as arguments to the instruction that pops them from the stack.
  */
-export function disassemble(quest: Quest, manual_stack: boolean = false): string {
+export function disassemble(
+    instructions: Instruction[],
+    labels: Map<number, number>,
+    manual_stack: boolean = false
+): string {
     const lines: string[] = [];
-    const index_to_label = new Map([...quest.labels.entries()].map(([l, i]) => [i, l]));
+    const index_to_label = new Map([...labels.entries()].map(([l, i]) => [i, l]));
 
     const stack: Arg[] = [];
 
-    for (let i = 0; i < quest.instructions.length; ++i) {
-        const ins = quest.instructions[i];
+    for (let i = 0; i < instructions.length; ++i) {
+        const ins = instructions[i];
         const label = index_to_label.get(i);
 
         if (!manual_stack && ins.opcode.push_stack) {

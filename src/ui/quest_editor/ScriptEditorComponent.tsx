@@ -4,7 +4,7 @@ import { AutoSizer } from "react-virtualized";
 import { OPCODES } from "../../data_formats/parsing/quest/bin";
 import { quest_editor_store } from "../../stores/QuestEditorStore";
 import "./ScriptEditorComponent.less";
-import { disassemble } from "../scripting/disassembly";
+import { disassemble } from "../../scripting/disassembly";
 import { IReactionDisposer, autorun } from "mobx";
 
 const ASM_SYNTAX: languages.IMonarchLanguage = {
@@ -13,7 +13,7 @@ const ASM_SYNTAX: languages.IMonarchLanguage = {
     tokenizer: {
         root: [
             // Identifiers.
-            [/[a-z][\w=<>!]*/, "identifier"],
+            [/[a-z][a-z_=<>!]*/, "identifier"],
 
             // Labels.
             [/^\d+:/, "tag"],
@@ -23,8 +23,8 @@ const ASM_SYNTAX: languages.IMonarchLanguage = {
 
             // Whitespace.
             [/[ \t\r\n]+/, "white"],
-            [/\/\*/, "comment", "@comment"],
-            [/\/\/.*$/, "comment"],
+            // [/\/\*/, "comment", "@comment"],
+            // [/\/\/.*$/, "comment"],
 
             // Numbers.
             [/-?\d*\.\d+([eE][-+]?\d+)?/, "number.float"],
@@ -39,12 +39,12 @@ const ASM_SYNTAX: languages.IMonarchLanguage = {
             [/"/, { token: "string.quote", bracket: "@open", next: "@string" }],
         ],
 
-        comment: [
-            [/[^/*]+/, "comment"],
-            [/\/\*/, "comment", "@push"], // Nested comment.
-            [/\*\//, "comment", "@pop"],
-            [/[/*]/, "comment"],
-        ],
+        // comment: [
+        //     [/[^/*]+/, "comment"],
+        //     [/\/\*/, "comment", "@push"], // Nested comment.
+        //     [/\*\//, "comment", "@pop"],
+        //     [/[/*]/, "comment"],
+        // ],
 
         string: [
             [/[^\\"]+/, "string"],
@@ -139,7 +139,9 @@ class MonacoComponent extends Component<MonacoProps> {
 
             this.disposer = autorun(() => {
                 const quest = quest_editor_store.current_quest;
-                const model = quest && editor.createModel(disassemble(quest), "psoasm");
+                const model =
+                    quest &&
+                    editor.createModel(disassemble(quest.instructions, quest.labels, true), "psoasm");
 
                 if (model && this.editor) {
                     // model.onDidChangeContent(e => {

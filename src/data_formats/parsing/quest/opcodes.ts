@@ -1,24 +1,44 @@
+import { string } from "prop-types";
+
 /**
  * Instruction parameter types.
  */
 export enum Type {
+    /**
+     * Unsigned 8-bit integer.
+     */
     U8,
+    /**
+     * Unsigned 16-bit integer.
+     */
     U16,
+    /**
+     * Unsigned 32-bit integer.
+     */
     U32,
+    /**
+     * Signed 32-bit integer.
+     */
     I32,
+    /**
+     * 32-Bit floating point number.
+     */
     F32,
     /**
      * Register reference
      */
     Register,
     /**
-     * Variable amount of u8 arguments.
+     * Arbitrary amount of u8 arguments.
      */
     U8Var,
     /**
-     * Variable amount of u16 arguments.
+     * Arbitrary amount of u16 arguments.
      */
     U16Var,
+    /**
+     * String of arbitrary size.
+     */
     String,
 }
 
@@ -4902,3 +4922,9 @@ export class Opcode {
         []
     ));
 }
+
+export const OPCODES_BY_MNEMONIC = new Map<string, Opcode>();
+
+OPCODES.forEach(opcode => {
+    OPCODES_BY_MNEMONIC.set(opcode.mnemonic, opcode);
+});
