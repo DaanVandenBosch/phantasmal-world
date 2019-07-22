@@ -95,7 +95,6 @@ export class Quest {
     dat_unknowns: DatUnknown[];
     labels: Map<number, number>;
     instructions: Instruction[];
-    object_code: ArrayBuffer;
     bin_unknown: ArrayBuffer;
 
     constructor(
@@ -111,7 +110,6 @@ export class Quest {
         dat_unknowns: DatUnknown[],
         labels: Map<number, number>,
         instructions: Instruction[],
-        object_code: ArrayBuffer,
         bin_unknown: ArrayBuffer
     ) {
         if (!Number.isInteger(id) || id < 0)
@@ -124,7 +122,6 @@ export class Quest {
         if (!dat_unknowns) throw new Error("dat_unknowns is required.");
         if (!labels) throw new Error("labels is required.");
         if (!instructions) throw new Error("instructions is required.");
-        if (!object_code) throw new Error("object_code is required.");
         if (!bin_unknown) throw new Error("bin_unknown is required.");
 
         this.id = id;
@@ -139,7 +136,6 @@ export class Quest {
         this.dat_unknowns = dat_unknowns;
         this.labels = labels;
         this.instructions = instructions;
-        this.object_code = object_code;
         this.bin_unknown = bin_unknown;
     }
 }

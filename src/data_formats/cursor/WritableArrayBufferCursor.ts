@@ -43,6 +43,16 @@ export class WritableArrayBufferCursor extends ArrayBufferCursor implements Writ
         return this;
     }
 
+    write_u16_array(array: number[]): this {
+        const len = array.length;
+
+        for (let i = 0; i < len; i++) {
+            this.write_u16(array[i]);
+        }
+
+        return this;
+    }
+
     write_vec2_f32(value: Vec2): this {
         this.dv.setFloat32(this.position, value.x, this.little_endian);
         this.dv.setFloat32(this.position + 4, value.y, this.little_endian);

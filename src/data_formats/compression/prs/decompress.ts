@@ -6,7 +6,7 @@ import { ResizableBuffer } from "../../ResizableBuffer";
 
 const logger = Logger.get("data_formats/compression/prs/decompress");
 
-export function decompress(cursor: Cursor): Cursor {
+export function prs_decompress(cursor: Cursor): Cursor {
     const ctx = new Context(cursor);
 
     while (true) {

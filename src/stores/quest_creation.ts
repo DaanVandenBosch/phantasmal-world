@@ -1,6 +1,9 @@
+import { Instruction, Opcode } from "../data_formats/parsing/quest/bin";
 import { Vec3 } from "../data_formats/vector";
 import { Episode, NpcType, ObjectType, Quest, QuestNpc, QuestObject } from "../domain";
 import { area_store } from "./AreaStore";
+import { WritableArrayBufferCursor } from "../data_formats/cursor/WritableArrayBufferCursor";
+import { Endianness } from "../data_formats";
 
 export function create_new_quest(episode: Episode): Quest {
     if (episode === Episode.II) throw new Error("Episode II not yet supported.");
@@ -16,11 +19,43 @@ export function create_new_quest(episode: Episode): Quest {
         create_default_objects(),
         create_default_npcs(),
         [],
-        new Map(),
-        [],
-        new ArrayBuffer(0),
-        new ArrayBuffer(0)
+        new Map([[0, 0], [1, 6]]),
+        [
+            new Instruction(Opcode.set_episode, [{ value: 0, size: 4 }]),
+            new Instruction(Opcode.arg_pushl, [{ value: 0, size: 4 }]),
+            new Instruction(Opcode.arg_pushw, [{ value: 1, size: 2 }]),
+            new Instruction(Opcode.set_floor_handler, []),
+            new Instruction(Opcode.bb_map_designate, [
+                { value: 0, size: 1 },
+                { value: 0, size: 2 },
+                { value: 0, size: 1 },
+                { value: 0, size: 1 },
+            ]),
+            new Instruction(Opcode.ret, []),
+            new Instruction(Opcode.ret, []),
+        ],
+        create_bin_unknown()
     );
+}
+
+function create_bin_unknown(): ArrayBuffer {
+    const buffer = new ArrayBuffer(3732);
+    const cursor = new WritableArrayBufferCursor(buffer, Endianness.Little);
+    cursor.write_u32(0);
+
+    for (let i = 0; i < 16; i++) {
+        cursor.write_u8(0xff);
+    }
+
+    for (let i = 0; i < 16; i++) {
+        cursor.write_u8(0);
+    }
+
+    for (let i = 0; i < 112; i++) {
+        cursor.write_u8(0xff);
+    }
+
+    return buffer;
 }
 
 function create_default_objects(): QuestObject[] {

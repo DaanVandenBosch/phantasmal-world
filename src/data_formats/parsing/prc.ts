@@ -1,5 +1,5 @@
 import Logger from "js-logger";
-import { decompress } from "../compression/prs";
+import { prs_decompress } from "../compression/prs/decompress";
 import { Cursor } from "../cursor/Cursor";
 import { decrypt } from "../encryption/prc";
 
@@ -12,7 +12,7 @@ export function parse_prc(cursor: Cursor): Cursor {
     // Unencrypted, decompressed size.
     const size = cursor.u32();
     let key = cursor.u32();
-    const out = decompress(decrypt(key, cursor));
+    const out = prs_decompress(decrypt(key, cursor));
 
     if (out.size !== size) {
         logger.warn(

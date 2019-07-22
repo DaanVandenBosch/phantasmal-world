@@ -97,8 +97,8 @@ export function write_qst(params: WriteQstParams): ArrayBuffer {
     write_file_headers(cursor, files);
     write_file_chunks(cursor, files);
 
-    if (cursor.size !== total_size) {
-        throw new Error(`Expected a final file size of ${total_size}, but got ${cursor.size}.`);
+    if (cursor.position !== total_size) {
+        throw new Error(`Expected a final file size of ${total_size}, but got ${cursor.position}.`);
     }
 
     return buffer;
@@ -251,7 +251,7 @@ function parse_files(cursor: Cursor, expected_sizes: Map<string, number>): QstCo
 function write_file_headers(cursor: WritableCursor, files: QstContainedFileParam[]): void {
     for (const file of files) {
         if (file.name.length > 16) {
-            throw Error(`File ${file.name} has a name longer than 16 characters.`);
+            throw new Error(`File ${file.name} has a name longer than 16 characters.`);
         }
 
         cursor.write_u16(88); // Header size.
@@ -291,22 +291,37 @@ function write_file_headers(cursor: WritableCursor, files: QstContainedFileParam
 function write_file_chunks(cursor: WritableCursor, files: QstContainedFileParam[]): void {
     // Files are interleaved in 1056 byte chunks.
     // Each chunk has a 24 byte header, 1024 byte data segment and an 8 byte trailer.
-    const chunks = files.map(file => ({
+    const files_to_chunk = files.map(file => ({
         no: 0,
         data: new ArrayBufferCursor(file.data, Endianness.Little),
         name: file.name,
     }));
+    let done = 0;
 
-    while (chunks.length) {
-        let i = 0;
-
-        while (i < chunks.length) {
-            if (!write_file_chunk(cursor, chunks[i].data, chunks[i].no++, chunks[i].name)) {
-                // Remove if there are no more chunks to write.
-                chunks.splice(i, 1);
-            } else {
-                ++i;
+    while (done < files_to_chunk.length) {
+        for (const file_to_chunk of files_to_chunk) {
+            if (file_to_chunk.data.bytes_left) {
+                if (
+                    !write_file_chunk(
+                        cursor,
+                        file_to_chunk.data,
+                        file_to_chunk.no++,
+                        file_to_chunk.name
+                    )
+                ) {
+                    done++;
+                }
             }
+        }
+    }
+
+    for (const file_to_chunk of files_to_chunk) {
+        const expected_chunks = Math.ceil(file_to_chunk.data.size / 1024);
+
+        if (file_to_chunk.no !== expected_chunks) {
+            throw new Error(
+                `Expected to write ${expected_chunks} chunks for file "${file_to_chunk.name}" but ${file_to_chunk.no} where written.`
+            );
         }
     }
 }

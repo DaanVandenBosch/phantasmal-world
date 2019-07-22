@@ -3,7 +3,7 @@ import { WritableCursor } from "../../cursor/WritableCursor";
 import { WritableResizableBufferCursor } from "../../cursor/WritableResizableBufferCursor";
 import { ResizableBuffer } from "../../ResizableBuffer";
 
-export function compress(src: Cursor): Cursor {
+export function prs_compress(src: Cursor): Cursor {
     const ctx = new Context(src);
     const hash_table = new HashTable();
 
@@ -111,9 +111,9 @@ const HASH_SIZE = 1 << 8;
 class Context {
     src: Cursor;
     dst: WritableCursor;
-    flags: number;
-    flag_bits_left: number;
-    flag_offset: number;
+    flags = 0;
+    flag_bits_left = 0;
+    flag_offset = 0;
 
     constructor(cursor: Cursor) {
         this.src = cursor;
@@ -121,9 +121,6 @@ class Context {
             new ResizableBuffer(cursor.size),
             cursor.endianness
         );
-        this.flags = 0;
-        this.flag_bits_left = 0;
-        this.flag_offset = 0;
     }
 
     set_bit(bit: number): void {
@@ -178,6 +175,12 @@ class Context {
         let s1 = this.src.position;
         const size = this.src.size;
 
+        while (s1 < size - 4 && this.src.u32_at(s1) === this.src.u32_at(s2)) {
+            len += 4;
+            s1 += 4;
+            s2 += 4;
+        }
+
         while (s1 < size && this.src.u8_at(s1) === this.src.u8_at(s2)) {
             ++len;
             ++s1;
@@ -198,7 +201,7 @@ class Context {
         // If there is nothing in the table at that point, bail out now.
         let entry = hash_table.get(hash);
 
-        if (entry === null) {
+        if (entry === -1) {
             if (!lazy) {
                 hash_table.put(hash, this.src.position);
             }
@@ -208,7 +211,7 @@ class Context {
 
         // If we'd go outside the window, truncate the hash chain now.
         if (this.src.position - entry > MAX_WINDOW) {
-            hash_table.hash_to_offset[hash] = null;
+            hash_table.hash_to_offset[hash] = -1;
 
             if (!lazy) {
                 hash_table.put(hash, this.src.position);
@@ -222,7 +225,7 @@ class Context {
         let longest_length = 0;
         let longest_match = 0;
 
-        while (entry != null) {
+        while (entry !== -1) {
             const mlen = this.match_length(entry);
 
             if (mlen > longest_length || mlen >= 256) {
@@ -233,11 +236,11 @@ class Context {
             // Follow the chain, making sure not to exceed a difference of MAX_WINDOW.
             let entry_2 = hash_table.prev(entry);
 
-            if (entry_2 !== null) {
+            if (entry_2 !== -1) {
                 // If we'd go outside the window, truncate the hash chain now.
                 if (this.src.position - entry_2 > MAX_WINDOW) {
-                    hash_table.set_prev(entry, null);
-                    entry_2 = null;
+                    hash_table.set_prev(entry, -1);
+                    entry_2 = -1;
                 }
             }
 
@@ -266,8 +269,8 @@ class Context {
 }
 
 class HashTable {
-    hash_to_offset: (number | null)[] = new Array(HASH_SIZE).fill(null);
-    masked_offset_to_prev: (number | null)[] = new Array(MAX_WINDOW).fill(null);
+    hash_to_offset = new Int32Array(HASH_SIZE).fill(-1);
+    masked_offset_to_prev = new Int16Array(MAX_WINDOW).fill(-1);
 
     hash(cursor: Cursor): number {
         let hash = cursor.u8();
@@ -281,7 +284,7 @@ class HashTable {
         return hash;
     }
 
-    get(hash: number): number | null {
+    get(hash: number): number {
         return this.hash_to_offset[hash];
     }
 
@@ -290,11 +293,11 @@ class HashTable {
         this.hash_to_offset[hash] = offset;
     }
 
-    prev(offset: number): number | null {
+    prev(offset: number): number {
         return this.masked_offset_to_prev[offset & WINDOW_MASK];
     }
 
-    set_prev(offset: number, prevOffset: number | null): void {
-        this.masked_offset_to_prev[offset & WINDOW_MASK] = prevOffset;
+    set_prev(offset: number, prev_offset: number): void {
+        this.masked_offset_to_prev[offset & WINDOW_MASK] = prev_offset;
     }
 }

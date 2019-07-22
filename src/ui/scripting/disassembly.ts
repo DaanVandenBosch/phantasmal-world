@@ -1,12 +1,12 @@
-import { Arg, Type } from "../../data_formats/parsing/quest/bin";
+import { Arg, Param, Type } from "../../data_formats/parsing/quest/bin";
 import { Quest } from "../../domain";
 
+/**
+ * @param manual_stack If true, will ouput stack management instructions (argpush variants). Otherwise stack management instructions will not be output and their arguments will be output as arguments to the instruction that pops them from the stack.
+ */
 export function disassemble(quest: Quest, manual_stack: boolean = false): string {
     const lines: string[] = [];
-    const index_to_label = [...quest.labels.entries()].reduce(
-        (map, [l, i]) => map.set(i, l),
-        new Map<number, number>()
-    );
+    const index_to_label = new Map([...quest.labels.entries()].map(([l, i]) => [i, l]));
 
     const stack: Arg[] = [];
 
@@ -17,25 +17,18 @@ export function disassemble(quest: Quest, manual_stack: boolean = false): string
         if (!manual_stack && ins.opcode.push_stack) {
             stack.push(...ins.args);
         } else {
-            let args: string[] = [];
-
-            for (let j = 0; j < ins.opcode.params.length; j++) {
-                const param_type = ins.opcode.params[j];
-                const arg = ins.args[j];
-                args.push(...arg_to_strings(param_type, arg));
-            }
+            let args = args_to_strings(ins.opcode.params, ins.args);
 
             if (!manual_stack) {
-                for (let j = ins.opcode.stack_params.length - 1; j >= 0; j--) {
-                    const param_type = ins.opcode.stack_params[j];
-                    const arg = stack.pop();
-
-                    if (!arg) {
-                        break;
-                    }
-
-                    args.push(...arg_to_strings(param_type, arg));
-                }
+                args.push(
+                    ...args_to_strings(
+                        ins.opcode.stack_params,
+                        stack.splice(
+                            Math.max(0, stack.length - ins.opcode.stack_params.length),
+                            ins.opcode.stack_params.length
+                        )
+                    )
+                );
             }
 
             if (label != null) {
@@ -46,23 +39,45 @@ export function disassemble(quest: Quest, manual_stack: boolean = false): string
         }
     }
 
+    // Ensure newline.
+    if (lines.length) {
+        lines.push("");
+    }
+
     return lines.join("\n");
 }
 
-function arg_to_strings(param_type: Type, arg: Arg): string[] {
-    switch (param_type) {
-        case Type.U8:
-        case Type.U16:
-        case Type.U32:
-        case Type.I32:
-        case Type.F32:
-            return [arg.value.toString()];
-        case Type.Register:
-            return ["r" + arg.value];
-        case Type.SwitchData:
-        case Type.JumpData:
-            return arg.value.map(String);
-        case Type.String:
-            return [JSON.stringify(arg.value)];
+function args_to_strings(params: Param[], args: Arg[]): string[] {
+    const arg_strings: string[] = [];
+
+    for (let i = 0; i < params.length; i++) {
+        const type = params[i].type;
+        const arg = args[i];
+
+        if (arg == null) {
+            arg_strings.push("");
+            continue;
+        }
+
+        switch (type) {
+            case Type.U8Var:
+            case Type.U16Var:
+                for (; i < args.length; i++) {
+                    arg_strings.push(args[i].value.toString());
+                }
+
+                break;
+            case Type.Register:
+                arg_strings.push("r" + arg.value);
+                break;
+            case Type.String:
+                arg_strings.push(JSON.stringify(arg.value));
+                break;
+            default:
+                arg_strings.push(arg.value.toString());
+                break;
+        }
     }
+
+    return arg_strings;
 }

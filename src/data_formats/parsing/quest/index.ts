@@ -2,14 +2,16 @@ import Logger from "js-logger";
 import { Endianness } from "../..";
 import { AreaVariant, NpcType, ObjectType, Quest, QuestNpc, QuestObject } from "../../../domain";
 import { area_store } from "../../../stores/AreaStore";
-import * as prs from "../../compression/prs";
+import { prs_compress } from "../../compression/prs/compress";
+import { prs_decompress } from "../../compression/prs/decompress";
 import { ArrayBufferCursor } from "../../cursor/ArrayBufferCursor";
 import { Cursor } from "../../cursor/Cursor";
 import { ResizableBufferCursor } from "../../cursor/ResizableBufferCursor";
 import { Vec3 } from "../../vector";
-import { BB_MAP_DESIGNATE, Instruction, parse_bin, SET_EPISODE, write_bin, BinFile } from "./bin";
+import { BinFile, Instruction, parse_bin, write_bin } from "./bin";
 import { DatFile, DatNpc, DatObject, parse_dat, write_dat } from "./dat";
 import { parse_qst, QstContainedFile, write_qst } from "./qst";
+import { Opcode } from "./opcodes";
 
 const logger = Logger.get("data_formats/parsing/quest");
 
@@ -50,11 +52,14 @@ export function parse_quest(cursor: Cursor, lenient: boolean = false): Quest | u
         return;
     }
 
-    const dat = parse_dat(prs.decompress(new ArrayBufferCursor(dat_file.data, Endianness.Little)));
-    const bin = parse_bin(
-        prs.decompress(new ArrayBufferCursor(bin_file.data, Endianness.Little)),
-        lenient
+    const dat_decompressed = prs_decompress(
+        new ArrayBufferCursor(dat_file.data, Endianness.Little)
     );
+    const dat = parse_dat(dat_decompressed);
+    const bin_decompressed = prs_decompress(
+        new ArrayBufferCursor(bin_file.data, Endianness.Little)
+    );
+    const bin = parse_bin(bin_decompressed, lenient);
     let episode = 1;
     let area_variants: AreaVariant[] = [];
 
@@ -88,7 +93,6 @@ export function parse_quest(cursor: Cursor, lenient: boolean = false): Quest | u
         dat.unknowns,
         bin.labels,
         bin.instructions,
-        bin.object_code,
         bin.unknown
     );
 }
@@ -107,8 +111,7 @@ export function write_quest_qst(quest: Quest, file_name: string): ArrayBuffer {
             quest.short_description,
             quest.long_description,
             quest.labels,
-            [],
-            quest.object_code,
+            quest.instructions,
             quest.bin_unknown
         )
     );
@@ -121,14 +124,14 @@ export function write_quest_qst(quest: Quest, file_name: string): ArrayBuffer {
             {
                 name: base_file_name + ".dat",
                 id: quest.id,
-                data: prs
-                    .compress(new ResizableBufferCursor(dat, Endianness.Little))
-                    .array_buffer(),
+                data: prs_compress(
+                    new ResizableBufferCursor(dat, Endianness.Little)
+                ).array_buffer(),
             },
             {
                 name: base_file_name + ".bin",
                 id: quest.id,
-                data: prs.compress(new ArrayBufferCursor(bin, Endianness.Little)).array_buffer(),
+                data: prs_compress(new ArrayBufferCursor(bin, Endianness.Little)).array_buffer(),
             },
         ],
     });
@@ -138,7 +141,9 @@ export function write_quest_qst(quest: Quest, file_name: string): ArrayBuffer {
  * Defaults to episode I.
  */
 function get_episode(func_0_instructions: Instruction[]): number {
-    const set_episode = func_0_instructions.find(instruction => instruction.opcode === SET_EPISODE);
+    const set_episode = func_0_instructions.find(
+        instruction => instruction.opcode === Opcode.set_episode
+    );
 
     if (set_episode) {
         switch (set_episode.args[0].value) {
@@ -174,7 +179,7 @@ function get_area_variants(
     }
 
     const bb_maps = func_0_instructions.filter(
-        instruction => instruction.opcode === BB_MAP_DESIGNATE
+        instruction => instruction.opcode === Opcode.bb_map_designate
     );
 
     for (const bb_map of bb_maps) {
@@ -520,6 +525,8 @@ function objects_to_dat_data(objects: QuestObject[]): DatObject[] {
 }
 
 function npcs_to_dat_data(npcs: QuestNpc[]): DatNpc[] {
+    const dv = new DataView(new ArrayBuffer(4));
+
     return npcs.map(npc => {
         const type_data = npc_type_to_dat_data(npc.type) || {
             type_id: npc.pso_type_id,
@@ -527,11 +534,11 @@ function npcs_to_dat_data(npcs: QuestNpc[]): DatNpc[] {
             regular: true,
         };
 
-        let scale = new Vec3(
-            npc.scale.x,
-            (npc.scale.y & ~0x800000) | (type_data.regular ? 0 : 0x800000),
-            npc.scale.z
-        );
+        dv.setFloat32(0, npc.scale.y);
+        dv.setUint32(0, (dv.getUint32(0) & ~0x800000) | (type_data.regular ? 0 : 0x800000));
+        const scale_y = dv.getFloat32(0);
+
+        let scale = new Vec3(npc.scale.x, scale_y, npc.scale.z);
 
         return {
             type_id: type_data.type_id,

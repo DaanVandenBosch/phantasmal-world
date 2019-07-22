@@ -1,12 +1,13 @@
-import * as fs from "fs";
 import { ObjectType, Quest } from "../../../domain";
 import { parse_quest, write_quest_qst } from "../quest";
 import { Endianness } from "../..";
 import { BufferCursor } from "../../cursor/BufferCursor";
 import { ArrayBufferCursor } from "../../cursor/ArrayBufferCursor";
+import { walk_qst_files } from "../../../../test/src/utils";
+import { readFileSync } from "fs";
 
 test("parse Towards the Future", () => {
-    const buffer = fs.readFileSync("test/resources/quest118_e.qst");
+    const buffer = readFileSync("test/resources/quest118_e.qst");
     const cursor = new BufferCursor(buffer, Endianness.Little);
     const quest = parse_quest(cursor)!;
 
@@ -35,37 +36,63 @@ test("parse Towards the Future", () => {
 });
 
 /**
- * Roundtrip test.
+ * Roundtrip tests.
  * Parse a QST file, write the resulting Quest object to QST again, then parse that again.
  * Then check whether the two Quest objects are equal.
  */
-test("parse_quest and write_quest_qst", () => {
-    const buffer = fs.readFileSync("test/resources/tethealla_v0.143_quests/solo/ep1/02.qst");
-    const orig_quest = parse_quest(new BufferCursor(buffer, Endianness.Little))!;
-    const test_quest = parse_quest(
-        new ArrayBufferCursor(write_quest_qst(orig_quest, "02.qst"), Endianness.Little)
-    )!;
-
-    expect(test_quest.name).toBe(orig_quest.name);
-    expect(test_quest.short_description).toBe(orig_quest.short_description);
-    expect(test_quest.long_description).toBe(orig_quest.long_description);
-    expect(test_quest.episode).toBe(orig_quest.episode);
-    expect(testable_objects(test_quest)).toEqual(testable_objects(orig_quest));
-    expect(testable_npcs(test_quest)).toEqual(testable_npcs(orig_quest));
-    expect(testable_area_variants(test_quest)).toEqual(testable_area_variants(orig_quest));
-});
-
-function testable_objects(quest: Quest): any[][] {
-    return quest.objects.map(object => [
-        object.area_id,
-        object.section_id,
-        object.position,
-        object.type,
-    ]);
+if (process.env["RUN_ALL_TESTS"] === "true") {
+    walk_qst_files(roundtrip_test);
+} else {
+    const file_name = "quest118_e.qst";
+    const path = `test/resources/${file_name}`;
+    const buffer = readFileSync(path);
+    roundtrip_test(path, file_name, buffer);
 }
 
-function testable_npcs(quest: Quest): any[][] {
-    return quest.npcs.map(npc => [npc.area_id, npc.section_id, npc.position, npc.type]);
+function roundtrip_test(path: string, file_name: string, contents: Buffer) {
+    test(`parse_quest and write_quest_qst ${path}`, () => {
+        const orig_quest = parse_quest(new BufferCursor(contents, Endianness.Little))!;
+        const test_bin = write_quest_qst(orig_quest, file_name);
+        const test_quest = parse_quest(new ArrayBufferCursor(test_bin, Endianness.Little))!;
+
+        expect(test_quest.name).toBe(orig_quest.name);
+        expect(test_quest.short_description).toBe(orig_quest.short_description);
+        expect(test_quest.long_description).toBe(orig_quest.long_description);
+        expect(test_quest.episode).toBe(orig_quest.episode);
+        expect(test_quest.objects.length).toBe(orig_quest.objects.length);
+
+        for (let i = 0; i < orig_quest.objects.length; i++) {
+            const orig_obj = orig_quest.objects[i];
+            const test_obj = test_quest.objects[i];
+            expect(test_obj.area_id).toBe(orig_obj.area_id);
+            expect(test_obj.section_id).toBe(orig_obj.section_id);
+            expect(test_obj.position).toEqual(orig_obj.position);
+            expect(test_obj.type.id).toBe(orig_obj.type.id);
+        }
+
+        expect(test_quest.npcs.length).toBe(orig_quest.npcs.length);
+
+        for (let i = 0; i < orig_quest.npcs.length; i++) {
+            const orig_npc = orig_quest.npcs[i];
+            const test_npc = test_quest.npcs[i];
+            expect(test_npc.area_id).toBe(orig_npc.area_id);
+            expect(test_npc.section_id).toBe(orig_npc.section_id);
+            expect(test_npc.position).toEqual(orig_npc.position);
+            expect(test_npc.type.id).toBe(orig_npc.type.id);
+        }
+
+        expect(test_quest.area_variants.length).toBe(orig_quest.area_variants.length);
+
+        for (let i = 0; i < orig_quest.area_variants.length; i++) {
+            const orig_area_variant = orig_quest.area_variants[i];
+            const test_area_variant = test_quest.area_variants[i];
+            expect(test_area_variant.area.id).toBe(orig_area_variant.area.id);
+            expect(test_area_variant.id).toBe(orig_area_variant.id);
+        }
+
+        expect(test_quest.instructions.length).toBe(orig_quest.instructions.length);
+        expect(test_quest.labels.size).toBe(orig_quest.labels.size);
+    });
 }
 
 function testable_area_variants(quest: Quest): any[][] {

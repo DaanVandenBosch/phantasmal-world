@@ -55,7 +55,7 @@ const ASM_SYNTAX: languages.IMonarchLanguage = {
     },
 };
 
-const INSTRUCTION_SUGGESTIONS = OPCODES.map(opcode => {
+const INSTRUCTION_SUGGESTIONS = OPCODES.filter(opcode => opcode != null).map(opcode => {
     return ({
         label: opcode.mnemonic,
         kind: languages.CompletionItemKind.Function,
@@ -131,10 +131,6 @@ class MonacoComponent extends Component<MonacoProps> {
 
     componentDidMount(): void {
         if (this.div_ref.current) {
-            // model.onDidChangeContent(e => {
-            //     e.changes[0].range
-            // })
-
             this.editor = editor.create(this.div_ref.current, {
                 theme: "phantasmal-world",
                 scrollBeyondLastLine: false,
@@ -146,6 +142,9 @@ class MonacoComponent extends Component<MonacoProps> {
                 const model = quest && editor.createModel(disassemble(quest), "psoasm");
 
                 if (model && this.editor) {
+                    // model.onDidChangeContent(e => {
+                    // });
+
                     this.editor.setModel(model);
                 }
             });

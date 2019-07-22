@@ -38,6 +38,11 @@ export interface WritableCursor extends Cursor {
     write_u8_array(array: number[]): this;
 
     /**
+     * Writes an array of unsigned 16-bit integers and increments position by twice the array's length.
+     */
+    write_u16_array(array: number[]): this;
+
+    /**
      * Writes two 32-bit floating point numbers and increments position by 8.
      */
     write_vec2_f32(value: Vec2): this;

@@ -1,11 +1,11 @@
-import { decompress } from "../compression/prs";
+import { prs_decompress } from "../compression/prs/decompress";
 import { Cursor } from "../cursor/Cursor";
 
 export type Unitxt = string[][];
 
 export function parse_unitxt(buf: Cursor, compressed: boolean = true): Unitxt {
     if (compressed) {
-        buf = decompress(buf);
+        buf = prs_decompress(buf);
     }
 
     const category_count = buf.u32();
