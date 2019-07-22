@@ -149,7 +149,7 @@ export interface EntityType {
 /**
  * Abstract class from which QuestNpc and QuestObject derive.
  */
-export class QuestEntity<Type extends EntityType = EntityType> {
+export abstract class QuestEntity<Type extends EntityType = EntityType> {
     readonly type: Type;
 
     @observable area_id: number;
@@ -216,8 +216,6 @@ export class QuestEntity<Type extends EntityType = EntityType> {
         rotation: Vec3,
         scale: Vec3
     ) {
-        if (Object.getPrototypeOf(this) === Object.getPrototypeOf(QuestEntity))
-            throw new Error("Abstract class should not be instantiated directly.");
         if (!type) throw new Error("type is required.");
         if (!Number.isInteger(area_id) || area_id < 0)
             throw new Error(`Expected area_id to be a non-negative integer, got ${area_id}.`);

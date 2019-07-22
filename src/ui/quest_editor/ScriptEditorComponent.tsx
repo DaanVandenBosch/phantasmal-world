@@ -1,11 +1,12 @@
-import { editor, languages } from "monaco-editor";
+import { autorun } from "mobx";
+import { editor, languages, MarkerSeverity } from "monaco-editor";
 import React, { Component, createRef, ReactNode } from "react";
 import { AutoSizer } from "react-virtualized";
 import { OPCODES } from "../../data_formats/parsing/quest/bin";
+import { assemble } from "../../scripting/assembly";
+import { disassemble } from "../../scripting/disassembly";
 import { quest_editor_store } from "../../stores/QuestEditorStore";
 import "./ScriptEditorComponent.less";
-import { disassemble } from "../../scripting/disassembly";
-import { IReactionDisposer, autorun } from "mobx";
 
 const ASM_SYNTAX: languages.IMonarchLanguage = {
     defaultToken: "invalid",
@@ -73,18 +74,20 @@ languages.registerCompletionItemProvider("psoasm", {
             startColumn: 1,
             endColumn: position.column + 1,
         });
-        const suggest = /^\s*([a-z][\w=<>!]*)?$/.test(value);
+        const suggestions = /^\s*([a-z][a-z0-9_=<>!]*)?$/.test(value)
+            ? INSTRUCTION_SUGGESTIONS
+            : [];
 
         return {
-            suggestions: suggest ? INSTRUCTION_SUGGESTIONS : [],
+            suggestions,
             incomplete: false,
         };
     },
 });
 languages.setLanguageConfiguration("psoasm", {
     indentationRules: {
-        increaseIndentPattern: /\d+:/,
-        decreaseIndentPattern: /\d+/,
+        increaseIndentPattern: /^\s*\d+:/,
+        decreaseIndentPattern: /^\s*\d+/,
     },
     autoClosingPairs: [{ open: '"', close: '"' }],
     surroundingPairs: [{ open: '"', close: '"' }],
@@ -130,7 +133,7 @@ type MonacoProps = {
 class MonacoComponent extends Component<MonacoProps> {
     private div_ref = createRef<HTMLDivElement>();
     private editor?: editor.IStandaloneCodeEditor;
-    private disposer?: IReactionDisposer;
+    private disposers: (() => void)[] = [];
 
     render(): ReactNode {
         return <div ref={this.div_ref} />;
@@ -142,36 +145,41 @@ class MonacoComponent extends Component<MonacoProps> {
                 theme: "phantasmal-world",
                 scrollBeyondLastLine: false,
                 autoIndent: true,
+                fontSize: 14,
+                wordBasedSuggestions: false,
             });
 
-            this.disposer = autorun(() => {
-                const quest = quest_editor_store.current_quest;
-                const model =
-                    quest &&
-                    editor.createModel(
-                        disassemble(quest.instructions, quest.labels, true),
-                        "psoasm"
-                    );
+            this.disposers.push(
+                () => {
+                    if (this.editor) {
+                        this.editor.dispose();
+                        const model = this.editor.getModel();
+                        if (model) model.dispose();
+                        this.editor = undefined;
+                    }
+                },
+                autorun(() => {
+                    const quest = quest_editor_store.current_quest;
+                    const model =
+                        quest &&
+                        editor.createModel(disassemble(quest.instructions, quest.labels), "psoasm");
 
-                if (model && this.editor) {
-                    // model.onDidChangeContent(e => {
-                    // });
+                    if (model && this.editor) {
+                        const disposable = model.onDidChangeContent(this.validate);
+                        this.disposers.push(() => disposable.dispose());
 
-                    this.editor.setModel(model);
-                }
-            });
+                        this.editor.setModel(model);
+                        this.validate();
+                    }
+                })
+            );
         }
     }
 
     componentWillUnmount(): void {
-        if (this.editor) {
-            const model = this.editor.getModel();
-            if (model) model.dispose();
-
-            this.editor.dispose();
+        for (const disposer of this.disposers.splice(0, this.disposers.length)) {
+            disposer();
         }
-
-        if (this.disposer) this.disposer();
     }
 
     shouldComponentUpdate(): boolean {
@@ -186,4 +194,31 @@ class MonacoComponent extends Component<MonacoProps> {
             this.editor.layout(props);
         }
     }
+
+    private validate = () => {
+        if (!this.editor) return;
+
+        const model = this.editor.getModel();
+        if (!model) return;
+
+        const { instructions, labels, errors } = assemble(model.getValue());
+
+        if (quest_editor_store.current_quest) {
+            quest_editor_store.current_quest.instructions = instructions;
+            quest_editor_store.current_quest.labels = labels;
+        }
+
+        editor.setModelMarkers(
+            model,
+            "psoasm",
+            errors.map(error => ({
+                severity: MarkerSeverity.Error,
+                message: error.message,
+                startLineNumber: error.line,
+                endLineNumber: error.line,
+                startColumn: error.col,
+                endColumn: error.col + error.length,
+            }))
+        );
+    };
 }
