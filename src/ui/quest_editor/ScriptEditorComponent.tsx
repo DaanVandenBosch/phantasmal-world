@@ -12,14 +12,14 @@ const ASM_SYNTAX: languages.IMonarchLanguage = {
 
     tokenizer: {
         root: [
-            // Identifiers.
-            [/[a-z][a-z_=<>!]*/, "identifier"],
-
-            // Labels.
-            [/^\d+:/, "tag"],
-
             // Registers.
             [/r\d+/, "predefined"],
+
+            // Identifiers.
+            [/[a-z][a-z0-9_=<>!]*/, "identifier"],
+
+            // Labels.
+            [/\d+:/, "tag"],
 
             // Whitespace.
             [/[ \t\r\n]+/, "white"],
@@ -28,7 +28,7 @@ const ASM_SYNTAX: languages.IMonarchLanguage = {
 
             // Numbers.
             [/-?\d*\.\d+([eE][-+]?\d+)?/, "number.float"],
-            [/-?0[xX][0-9a-fA-F]+/, "number.hex"],
+            // [/-?0[xX][0-9a-fA-F]+/, "number.hex"],
             [/-?\d+/, "number"],
 
             // Delimiters.
@@ -93,7 +93,14 @@ languages.setLanguageConfiguration("psoasm", {
 editor.defineTheme("phantasmal-world", {
     base: "vs-dark",
     inherit: true,
-    rules: [{ token: "", background: "151c21" }],
+    rules: [
+        { token: "", foreground: "e0e0e0", background: "151c21" },
+        { token: "tag", foreground: "99bbff" },
+        { token: "predefined", foreground: "bbffbb" },
+        { token: "number", foreground: "ffffaa" },
+        { token: "string", foreground: "88ffff" },
+        { token: "string.escape", foreground: "8888ff" },
+    ],
     colors: {
         "editor.background": "#151c21",
         "editor.lineHighlightBackground": "#1a2228",
@@ -141,7 +148,10 @@ class MonacoComponent extends Component<MonacoProps> {
                 const quest = quest_editor_store.current_quest;
                 const model =
                     quest &&
-                    editor.createModel(disassemble(quest.instructions, quest.labels, true), "psoasm");
+                    editor.createModel(
+                        disassemble(quest.instructions, quest.labels, true),
+                        "psoasm"
+                    );
 
                 if (model && this.editor) {
                     // model.onDidChangeContent(e => {
