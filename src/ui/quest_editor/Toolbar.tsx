@@ -40,9 +40,7 @@ export class Toolbar extends Component {
                     // Make sure it doesn't do a POST:
                     customRequest={() => false}
                 >
-                    <Button icon="file">
-                        {quest_editor_store.current_quest_filename || "Open file..."}
-                    </Button>
+                    <Button icon="file">Open file...</Button>
                 </Upload>
                 <Select
                     onChange={quest_editor_store.set_current_area_id}
