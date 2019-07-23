@@ -2,7 +2,8 @@ import { assemble } from "./assembly";
 import { Opcode } from "../data_formats/parsing/quest/bin";
 
 test("", () => {
-    const { instructions, labels, errors } = assemble(`
+    const { instructions, labels, errors } = assemble(
+        `
     0:   set_episode 0
          bb_map_designate 1, 2, 3, 4
          set_floor_handler 0, 150
@@ -11,7 +12,8 @@ test("", () => {
     150: set_mainwarp 1
          ret
     151: ret
-    `);
+    `.split("\n")
+    );
 
     expect(errors).toEqual([]);
 

@@ -195,13 +195,19 @@ class MonacoComponent extends Component<MonacoProps> {
         }
     }
 
-    private validate = () => {
+    private validate = (e?: editor.IModelContentChangedEvent) => {
         if (!this.editor) return;
 
         const model = this.editor.getModel();
         if (!model) return;
 
-        const { instructions, labels, errors } = assemble(model.getValue());
+        if (e) {
+            e.changes.forEach(change => {
+                console.log(change);
+            });
+        }
+
+        const { instructions, labels, errors } = assemble(model.getLinesContent());
 
         if (quest_editor_store.current_quest) {
             quest_editor_store.current_quest.instructions = instructions;
@@ -214,8 +220,8 @@ class MonacoComponent extends Component<MonacoProps> {
             errors.map(error => ({
                 severity: MarkerSeverity.Error,
                 message: error.message,
-                startLineNumber: error.line,
-                endLineNumber: error.line,
+                startLineNumber: error.line_no,
+                endLineNumber: error.line_no,
                 startColumn: error.col,
                 endColumn: error.col + error.length,
             }))

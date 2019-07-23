@@ -7,15 +7,15 @@ import {
     Param,
 } from "../data_formats/parsing/quest/bin";
 
-type AssemblyError = {
-    line: number;
+export type AssemblyError = {
+    line_no: number;
     col: number;
     length: number;
     message: string;
 };
 
 export function assemble(
-    assembly: string,
+    assembly: string[],
     manual_stack: boolean = false
 ): {
     instructions: Instruction[];
@@ -26,21 +26,21 @@ export function assemble(
     const instructions: Instruction[] = [];
     const labels = new Map<number, number>();
 
-    let line = 1;
+    let line_no = 1;
 
-    for (const line_text of assembly.split("\n")) {
-        const match = line_text.match(
+    for (const line of assembly) {
+        const match = line.match(
             /^(?<lbl_ws>\s*)(?<lbl>[^\s]+?:)?(?<op_ws>\s*)(?<op>[a-z][a-z0-9_=<>!]*)?(?<args>.*)$/
         );
 
         if (!match || !match.groups || (match.groups.lbl == null && match.groups.op == null)) {
-            const left_trimmed = line_text.trimLeft();
+            const left_trimmed = line.trimLeft();
             const trimmed = left_trimmed.trimRight();
 
             if (trimmed.length) {
                 errors.push({
-                    line,
-                    col: 1 + line_text.length - left_trimmed.length,
+                    line_no,
+                    col: 1 + line.length - left_trimmed.length,
                     length: trimmed.length,
                     message: "Expected label or instruction.",
                 });
@@ -53,14 +53,14 @@ export function assemble(
 
                 if (!isFinite(label) || !/^\d+:$/.test(lbl)) {
                     errors.push({
-                        line,
+                        line_no,
                         col: 1 + lbl_ws.length,
                         length: lbl.length,
                         message: "Invalid label name.",
                     });
                 } else if (labels.has(label)) {
                     errors.push({
-                        line,
+                        line_no,
                         col: 1 + lbl_ws.length,
                         length: lbl.length - 1,
                         message: "Duplicate label.",
@@ -75,7 +75,7 @@ export function assemble(
 
                 if (!opcode) {
                     errors.push({
-                        line,
+                        line_no,
                         col: 1 + lbl_ws.length + (lbl ? lbl.length : 0) + op_ws.length,
                         length: op.length,
                         message: "Unknown instruction.",
@@ -98,7 +98,7 @@ export function assemble(
                         const trimmed = args.trimRight();
 
                         errors.push({
-                            line,
+                            line_no,
                             col: args_col + args.length - left_trimmed.length,
                             length: trimmed.length,
                             message: "Instruction arguments expected.",
@@ -117,10 +117,10 @@ export function assemble(
                                 ? arg_tokens.length < param_count
                                 : arg_tokens.length !== param_count
                         ) {
-                            const left_trimmed = line_text.trimLeft();
+                            const left_trimmed = line.trimLeft();
                             errors.push({
-                                line,
-                                col: 1 + line_text.length - left_trimmed.length,
+                                line_no,
+                                col: 1 + line.length - left_trimmed.length,
                                 length: left_trimmed.length,
                                 message: `Expected${
                                     varargs ? " at least" : ""
@@ -129,10 +129,16 @@ export function assemble(
                                 }.`,
                             });
                         } else if (varargs || arg_tokens.length === opcode.params.length) {
-                            parse_args(opcode.params, arg_tokens, ins_args, line, errors);
+                            parse_args(opcode.params, arg_tokens, ins_args, line_no, errors);
                         } else {
                             const stack_args: Arg[] = [];
-                            parse_args(opcode.stack_params, arg_tokens, stack_args, line, errors);
+                            parse_args(
+                                opcode.stack_params,
+                                arg_tokens,
+                                stack_args,
+                                line_no,
+                                errors
+                            );
 
                             for (let i = 0; i < opcode.stack_params.length; i++) {
                                 const param = opcode.stack_params[i];
@@ -162,7 +168,7 @@ export function assemble(
                                         break;
                                     default:
                                         errors.push({
-                                            line,
+                                            line_no,
                                             col,
                                             length,
                                             message: `Type ${Type[param.type]} not implemented.`,
@@ -177,7 +183,7 @@ export function assemble(
             }
         }
 
-        line++;
+        line_no++;
     }
 
     return {
@@ -262,7 +268,7 @@ function parse_args(
                 return;
             default:
                 errors.push({
-                    line,
+                    line_no: line,
                     col,
                     length,
                     message: `Type ${Type[param.type]} not implemented.`,
@@ -285,14 +291,14 @@ function parse_uint(
 
     if (!/^\d+$/.test(arg_str)) {
         errors.push({
-            line,
+            line_no: line,
             col,
             length: arg_str.length,
             message: `Expected unsigned integer.`,
         });
     } else if (value > max_value) {
         errors.push({
-            line,
+            line_no: line,
             col,
             length: arg_str.length,
             message: `${bit_size}-Bit unsigned integer can't be greater than ${max_value}.`,
@@ -320,21 +326,21 @@ function parse_sint(
 
     if (!/^-?\d+$/.test(arg_str)) {
         errors.push({
-            line,
+            line_no: line,
             col,
             length: arg_str.length,
             message: `Expected signed integer.`,
         });
     } else if (value < min_value) {
         errors.push({
-            line,
+            line_no: line,
             col,
             length: arg_str.length,
             message: `${bit_size}-Bit signed integer can't be less than ${min_value}.`,
         });
     } else if (value > max_value) {
         errors.push({
-            line,
+            line_no: line,
             col,
             length: arg_str.length,
             message: `${bit_size}-Bit signed integer can't be greater than ${max_value}.`,
@@ -358,7 +364,7 @@ function parse_float(
 
     if (!Number.isFinite(value)) {
         errors.push({
-            line,
+            line_no: line,
             col,
             length: arg_str.length,
             message: `Expected floating point number.`,
@@ -382,14 +388,14 @@ function parse_register(
 
     if (!/^r\d+$/.test(arg_str)) {
         errors.push({
-            line,
+            line_no: line,
             col,
             length: arg_str.length,
             message: `Expected register reference.`,
         });
     } else if (value > 255) {
         errors.push({
-            line,
+            line_no: line,
             col,
             length: arg_str.length,
             message: `Invalid register reference, expected r0-r255.`,
@@ -411,7 +417,7 @@ function parse_string(
 ): void {
     if (!/^"([^"\\]|\\.)*"$/.test(arg_str)) {
         errors.push({
-            line,
+            line_no: line,
             col,
             length: arg_str.length,
             message: `Expected string.`,
