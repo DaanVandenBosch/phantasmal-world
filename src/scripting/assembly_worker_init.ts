@@ -1,23 +1,75 @@
-import { editor } from "monaco-editor";
-import { assemble, AssemblyError } from "./assembly";
+import { NewErrorsOutput, ScriptWorkerInput } from "./assembler_messages";
+import { assemble } from "./assembly";
 
-interface ScriptWorkerInput {}
-
-class NewModelInput implements ScriptWorkerInput {
-    constructor(readonly value: string) {}
-}
-
-class ModelChangeInput implements ScriptWorkerInput {
-    constructor(readonly changes: editor.IModelContentChange[]) {}
-}
-
-interface ScriptWorkerOutput {}
-
-class NewErrorsOutput implements ScriptWorkerOutput {
-    constructor(readonly errors: AssemblyError[]) {}
-}
+const ctx: Worker = self as any;
 
 let lines: string[] = [];
+const messages: ScriptWorkerInput[] = [];
+let timeout: any;
+
+ctx.onmessage = (e: MessageEvent) => {
+    messages.push(e.data);
+
+    if (!timeout) {
+        process_messages();
+
+        timeout = setTimeout(() => {
+            timeout = undefined;
+            process_messages();
+        }, 100);
+    }
+};
+
+function process_messages(): void {
+    if (messages.length === 0) return;
+
+    for (const message of messages.splice(0, messages.length)) {
+        if (message.type === "new_assembly_input") {
+            lines = message.assembly;
+        } else if (message.type === "assembly_change_input") {
+            for (const change of message.changes) {
+                const { startLineNumber, endLineNumber, startColumn, endColumn } = change.range;
+                const lines_changed = endLineNumber - startLineNumber + 1;
+                const new_lines = change.text.split("\n");
+
+                if (lines_changed === 1) {
+                    replace_line_part(startLineNumber, startColumn, endColumn, new_lines);
+                } else if (new_lines.length === 1) {
+                    replace_lines_and_merge_line_parts(
+                        startLineNumber,
+                        endLineNumber,
+                        startColumn,
+                        endColumn,
+                        new_lines[0]
+                    );
+                } else {
+                    // Keep the left part of the first changed line.
+                    replace_line_part_right(startLineNumber, startColumn, new_lines[0]);
+
+                    // Replace all the lines in between.
+                    replace_lines(
+                        startLineNumber + 1,
+                        endLineNumber - 1,
+                        new_lines.slice(1, new_lines.length - 1)
+                    );
+
+                    // Keep the right part of the last changed line.
+                    replace_line_part_left(
+                        endLineNumber,
+                        endColumn,
+                        new_lines[new_lines.length - 1]
+                    );
+                }
+            }
+        }
+    }
+
+    const response: NewErrorsOutput = {
+        type: "new_errors_output",
+        ...assemble(lines),
+    };
+    ctx.postMessage(response);
+}
 
 function replace_line_part(
     line_no: number,
@@ -28,7 +80,7 @@ function replace_line_part(
     const line = lines[line_no - 1];
     // We keep the parts of the line that weren't affected by the edit.
     const line_start = line.slice(0, start_col - 1);
-    const line_end = line.slice(end_col);
+    const line_end = line.slice(end_col - 1);
 
     if (new_line_parts.length === 1) {
         lines.splice(line_no - 1, 1, line_start + new_line_parts[0] + line_end);
@@ -44,7 +96,7 @@ function replace_line_part(
 }
 
 function replace_line_part_left(line_no: number, end_col: number, new_line_part: string): void {
-    lines.splice(line_no - 1, 1, new_line_part + lines[line_no - 1].slice(end_col));
+    lines.splice(line_no - 1, 1, new_line_part + lines[line_no - 1].slice(end_col - 1));
 }
 
 function replace_line_part_right(line_no: number, start_col: number, new_line_part: string): void {
@@ -66,7 +118,7 @@ function replace_lines_and_merge_line_parts(
     const end_line = lines[end_line_no - 1];
     // We keep the parts of the lines that weren't affected by the edit.
     const start_line_start = start_line.slice(0, start_col - 1);
-    const end_line_end = end_line.slice(end_col);
+    const end_line_end = end_line.slice(end_col - 1);
 
     lines.splice(
         start_line_no - 1,
@@ -74,47 +126,3 @@ function replace_lines_and_merge_line_parts(
         start_line_start + new_line_part + end_line_end
     );
 }
-
-window.onmessage = (e: MessageEvent) => {
-    const message: ScriptWorkerInput = e.data;
-
-    if (message instanceof NewModelInput) {
-        lines = message.value.split("\n");
-        window.postMessage(assemble(lines).errors, window.origin);
-    } else if (message instanceof ModelChangeInput) {
-        for (const change of message.changes) {
-            const { startLineNumber, endLineNumber, startColumn, endColumn } = change.range;
-            const lines_changed = endLineNumber - startLineNumber + 1;
-            const new_lines = change.text.split("\n");
-
-            if (lines_changed === 1) {
-                replace_line_part(startLineNumber, startColumn, endColumn, new_lines);
-            } else if (new_lines.length === 1) {
-                replace_lines_and_merge_line_parts(
-                    startLineNumber,
-                    endLineNumber,
-                    startColumn,
-                    endColumn,
-                    new_lines[0]
-                );
-            } else {
-                // Keep the left part of the first changed line.
-                replace_line_part_right(startLineNumber, startColumn, new_lines[0]);
-
-                // Replace all the lines in between.
-                replace_lines(
-                    startLineNumber + 1,
-                    endLineNumber - 1,
-                    new_lines.slice(1, new_lines.length - 2)
-                );
-
-                // Keep the right part of the last changed line.
-                replace_line_part_left(startLineNumber, endColumn, new_lines[new_lines.length - 1]);
-            }
-        }
-
-        window.postMessage(assemble(lines).errors, window.origin);
-    } else {
-        throw new Error("Couldn't process message.");
-    }
-};

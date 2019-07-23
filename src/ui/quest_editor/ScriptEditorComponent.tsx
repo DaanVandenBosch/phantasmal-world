@@ -3,8 +3,7 @@ import { editor, languages, MarkerSeverity } from "monaco-editor";
 import React, { Component, createRef, ReactNode } from "react";
 import { AutoSizer } from "react-virtualized";
 import { OPCODES } from "../../data_formats/parsing/quest/bin";
-import { assemble } from "../../scripting/assembly";
-import { disassemble } from "../../scripting/disassembly";
+import { Assembler } from "../../scripting/Assembler";
 import { quest_editor_store } from "../../stores/QuestEditorStore";
 import "./ScriptEditorComponent.less";
 
@@ -72,7 +71,7 @@ languages.registerCompletionItemProvider("psoasm", {
             startLineNumber: position.lineNumber,
             endLineNumber: position.lineNumber,
             startColumn: 1,
-            endColumn: position.column + 1,
+            endColumn: position.column,
         });
         const suggestions = /^\s*([a-z][a-z0-9_=<>!]*)?$/.test(value)
             ? INSTRUCTION_SUGGESTIONS
@@ -133,6 +132,7 @@ type MonacoProps = {
 class MonacoComponent extends Component<MonacoProps> {
     private div_ref = createRef<HTMLDivElement>();
     private editor?: editor.IStandaloneCodeEditor;
+    private assembler?: Assembler;
     private disposers: (() => void)[] = [];
 
     render(): ReactNode {
@@ -149,29 +149,12 @@ class MonacoComponent extends Component<MonacoProps> {
                 wordBasedSuggestions: false,
             });
 
+            this.assembler = new Assembler();
+
             this.disposers.push(
-                () => {
-                    if (this.editor) {
-                        this.editor.dispose();
-                        const model = this.editor.getModel();
-                        if (model) model.dispose();
-                        this.editor = undefined;
-                    }
-                },
-                autorun(() => {
-                    const quest = quest_editor_store.current_quest;
-                    const model =
-                        quest &&
-                        editor.createModel(disassemble(quest.instructions, quest.labels), "psoasm");
-
-                    if (model && this.editor) {
-                        const disposable = model.onDidChangeContent(this.validate);
-                        this.disposers.push(() => disposable.dispose());
-
-                        this.editor.setModel(model);
-                        this.validate();
-                    }
-                })
+                this.dispose,
+                autorun(this.update_model),
+                autorun(this.update_model_markers)
             );
         }
     }
@@ -195,29 +178,36 @@ class MonacoComponent extends Component<MonacoProps> {
         }
     }
 
-    private validate = (e?: editor.IModelContentChangedEvent) => {
-        if (!this.editor) return;
+    private update_model = () => {
+        const quest = quest_editor_store.current_quest;
+
+        if (quest && this.editor && this.assembler) {
+            const assembly = this.assembler.disassemble(quest.instructions, quest.labels);
+            const model = editor.createModel(assembly.join("\n"), "psoasm");
+
+            const disposable = model.onDidChangeContent(e => {
+                if (!this.assembler) return;
+                this.assembler.update_assembly(e.changes);
+            });
+
+            this.disposers.push(() => disposable.dispose());
+            this.editor.setModel(model);
+        }
+    };
+
+    private update_model_markers = () => {
+        if (!this.editor || !this.assembler) return;
+
+        // Reference errors here to make sure we get mobx updates.
+        this.assembler.errors.length;
 
         const model = this.editor.getModel();
         if (!model) return;
 
-        if (e) {
-            e.changes.forEach(change => {
-                console.log(change);
-            });
-        }
-
-        const { instructions, labels, errors } = assemble(model.getLinesContent());
-
-        if (quest_editor_store.current_quest) {
-            quest_editor_store.current_quest.instructions = instructions;
-            quest_editor_store.current_quest.labels = labels;
-        }
-
         editor.setModelMarkers(
             model,
             "psoasm",
-            errors.map(error => ({
+            this.assembler.errors.map(error => ({
                 severity: MarkerSeverity.Error,
                 message: error.message,
                 startLineNumber: error.line_no,
@@ -226,5 +216,18 @@ class MonacoComponent extends Component<MonacoProps> {
                 endColumn: error.col + error.length,
             }))
         );
+    };
+
+    private dispose = () => {
+        if (this.editor) {
+            this.editor.dispose();
+            const model = this.editor.getModel();
+            if (model) model.dispose();
+            this.editor = undefined;
+        }
+
+        if (this.assembler) {
+            this.assembler.dispose();
+        }
     };
 }

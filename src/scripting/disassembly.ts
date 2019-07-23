@@ -7,7 +7,7 @@ export function disassemble(
     instructions: Instruction[],
     labels: Map<number, number>,
     manual_stack: boolean = false
-): string {
+): string[] {
     const lines: string[] = [];
     const index_to_label = new Map([...labels.entries()].map(([l, i]) => [i, l]));
 
@@ -47,7 +47,7 @@ export function disassemble(
         lines.push("");
     }
 
-    return lines.join("\n");
+    return lines;
 }
 
 function args_to_strings(params: Param[], args: Arg[]): string[] {

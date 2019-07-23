@@ -92,10 +92,10 @@ export class Quest {
     /**
      * (Partial) raw DAT data that can't be parsed yet by Phantasmal.
      */
-    dat_unknowns: DatUnknown[];
-    labels: Map<number, number>;
-    instructions: Instruction[];
-    bin_unknown: ArrayBuffer;
+    readonly dat_unknowns: DatUnknown[];
+    readonly labels: Map<number, number>;
+    readonly instructions: Instruction[];
+    readonly bin_unknown: ArrayBuffer;
 
     constructor(
         id: number,
