@@ -3,16 +3,13 @@ import { autorun, IReactionDisposer } from "mobx";
 import { observer } from "mobx-react";
 import React, { Component, PureComponent, ReactNode } from "react";
 import { QuestEntity, QuestNpc, QuestObject } from "../../domain";
+import { quest_editor_store } from "../../stores/QuestEditorStore";
 import "./EntityInfoComponent.css";
 
-export type Props = {
-    entity?: QuestEntity;
-};
-
 @observer
-export class EntityInfoComponent extends Component<Props> {
+export class EntityInfoComponent extends Component {
     render(): ReactNode {
-        const entity = this.props.entity;
+        const entity = quest_editor_store.selected_entity;
 
         if (entity) {
             const section_id = entity.section ? entity.section.id : entity.section_id;

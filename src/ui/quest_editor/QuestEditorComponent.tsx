@@ -1,62 +1,97 @@
+import GoldenLayout from "golden-layout";
 import { observer } from "mobx-react";
-import React, { Component, ReactNode } from "react";
-import { get_quest_renderer } from "../../rendering/QuestRenderer";
+import React, { Component, createRef, ReactNode } from "react";
 import { application_store } from "../../stores/ApplicationStore";
 import { quest_editor_store } from "../../stores/QuestEditorStore";
-import { RendererComponent } from "../RendererComponent";
 import { EntityInfoComponent } from "./EntityInfoComponent";
 import "./QuestEditorComponent.less";
 import { QuestInfoComponent } from "./QuestInfoComponent";
-import { Toolbar } from "./Toolbar";
-import { Tabs } from "antd";
+import { QuestRendererComponent } from "./QuestRendererComponent";
 import { ScriptEditorComponent } from "./ScriptEditorComponent";
-import { AutoSizer } from "react-virtualized";
+import { Toolbar } from "./Toolbar";
 
 @observer
-export class QuestEditorComponent extends Component<{}, { debug: boolean }> {
-    state = { debug: false };
+export class QuestEditorComponent extends Component {
+    private layout_element = createRef<HTMLDivElement>();
+    private layout?: GoldenLayout;
 
     componentDidMount(): void {
         application_store.on_global_keyup("quest_editor", this.keyup);
+
+        window.addEventListener("resize", this.resize);
+
+        setTimeout(() => {
+            if (this.layout_element.current && !this.layout) {
+                this.layout = new GoldenLayout(
+                    {
+                        settings: {
+                            showPopoutIcon: false,
+                        },
+                        content: [
+                            {
+                                type: "row",
+                                content: [
+                                    {
+                                        title: "Info",
+                                        type: "react-component",
+                                        component: "QuestInfoComponent",
+                                        isClosable: false,
+                                        width: 3,
+                                    },
+                                    {
+                                        type: "stack",
+                                        width: 9,
+                                        content: [
+                                            {
+                                                title: "3D View",
+                                                type: "react-component",
+                                                component: "QuestRendererComponent",
+                                                isClosable: false,
+                                            },
+                                            {
+                                                title: "Script",
+                                                type: "react-component",
+                                                component: "ScriptEditorComponent",
+                                                isClosable: false,
+                                            },
+                                        ],
+                                    },
+                                    {
+                                        title: "Entity",
+                                        type: "react-component",
+                                        component: "EntityInfoComponent",
+                                        isClosable: false,
+                                        width: 2,
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                    this.layout_element.current
+                );
+                this.layout.registerComponent("QuestInfoComponent", QuestInfoComponent);
+                this.layout.registerComponent("QuestRendererComponent", QuestRendererComponent);
+                this.layout.registerComponent("EntityInfoComponent", EntityInfoComponent);
+                this.layout.registerComponent("ScriptEditorComponent", ScriptEditorComponent);
+                this.layout.init();
+            }
+        }, 0);
+    }
+
+    componentWillUnmount(): void {
+        window.removeEventListener("resize", this.resize);
+
+        if (this.layout) {
+            this.layout.destroy();
+            this.layout = undefined;
+        }
     }
 
     render(): ReactNode {
-        const quest = quest_editor_store.current_quest;
-
         return (
             <div className="qe-QuestEditorComponent">
                 <Toolbar />
-                <div className="qe-QuestEditorComponent-main">
-                    <QuestInfoComponent quest={quest} />
-                    <Tabs type="card" className="qe-QuestEditorComponent-tabcontainer">
-                        <Tabs.TabPane
-                            tab="Entities"
-                            key="entities"
-                            className="qe-QuestEditorComponent-tab"
-                        >
-                            <div className="qe-QuestEditorComponent-tab-main">
-                                <AutoSizer>
-                                    {({ width, height }) => (
-                                        <RendererComponent
-                                            renderer={get_quest_renderer()}
-                                            width={width}
-                                            height={height}
-                                            debug={this.state.debug}
-                                        />
-                                    )}
-                                </AutoSizer>
-                            </div>
-                            <EntityInfoComponent entity={quest_editor_store.selected_entity} />
-                        </Tabs.TabPane>
-                        <Tabs.TabPane
-                            tab="Script"
-                            key="script"
-                            className="qe-QuestEditorComponent-tab"
-                        >
-                            <ScriptEditorComponent className="qe-QuestEditorComponent-tab-main" />
-                        </Tabs.TabPane>
-                    </Tabs>
-                </div>
+                <div className="qe-QuestEditorComponent-main" ref={this.layout_element} />
             </div>
         );
     }
@@ -67,7 +102,13 @@ export class QuestEditorComponent extends Component<{}, { debug: boolean }> {
         } else if (e.ctrlKey && e.key === "Z" && !e.altKey) {
             quest_editor_store.undo_stack.redo();
         } else if (e.ctrlKey && e.altKey && e.key === "d") {
-            this.setState(state => ({ debug: !state.debug }));
+            quest_editor_store.toggle_debug();
+        }
+    };
+
+    private resize = () => {
+        if (this.layout) {
+            this.layout.updateSize();
         }
     };
 }

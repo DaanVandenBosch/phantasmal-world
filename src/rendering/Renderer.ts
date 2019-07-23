@@ -42,7 +42,7 @@ export class Renderer<C extends Camera> {
         this.controls.mouseButtons.PAN = MOUSE.LEFT;
         this.controls.addEventListener("change", this.schedule_render);
 
-        this.scene.background = new Color(0x151c21);
+        this.scene.background = new Color(0x181818);
         this.light_holder.add(this.light);
         this.scene.add(this.light_holder);
 

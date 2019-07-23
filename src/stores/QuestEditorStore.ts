@@ -13,6 +13,8 @@ import { create_new_quest } from "./quest_creation";
 const logger = Logger.get("stores/QuestEditorStore");
 
 class QuestEditorStore {
+    @observable debug = false;
+
     readonly undo_stack = new UndoStack();
 
     @observable current_quest_filename?: string;
@@ -23,6 +25,11 @@ class QuestEditorStore {
 
     @observable save_dialog_filename?: string;
     @observable save_dialog_open: boolean = false;
+
+    @action
+    toggle_debug = () => {
+        this.debug = !this.debug;
+    };
 
     @action
     set_selected_entity = (entity?: QuestEntity) => {

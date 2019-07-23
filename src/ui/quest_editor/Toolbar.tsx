@@ -1,11 +1,11 @@
 import { Button, Dropdown, Form, Icon, Input, Menu, Modal, Select, Upload } from "antd";
+import { ClickParam } from "antd/lib/menu";
 import { UploadChangeParam, UploadFile } from "antd/lib/upload/interface";
 import { observer } from "mobx-react";
 import React, { ChangeEvent, Component, ReactNode } from "react";
 import { Episode } from "../../domain";
 import { quest_editor_store } from "../../stores/QuestEditorStore";
 import "./Toolbar.less";
-import { ClickParam } from "antd/lib/menu";
 
 @observer
 export class Toolbar extends Component {
@@ -42,6 +42,25 @@ export class Toolbar extends Component {
                 >
                     <Button icon="file">Open file...</Button>
                 </Upload>
+                <Button icon="save" onClick={quest_editor_store.open_save_dialog} disabled={!quest}>
+                    Save as...
+                </Button>
+                <Button
+                    icon="undo"
+                    onClick={this.undo}
+                    title={"Undo" + (undo.first_undo ? ` "${undo.first_undo.description}"` : "")}
+                    disabled={!undo.can_undo}
+                >
+                    Undo
+                </Button>
+                <Button
+                    icon="redo"
+                    onClick={this.redo}
+                    title={"Redo" + (undo.first_redo ? ` "${undo.first_redo.description}"` : "")}
+                    disabled={!quest_editor_store.undo_stack.can_redo}
+                >
+                    Redo
+                </Button>
                 <Select
                     onChange={quest_editor_store.set_current_area_id}
                     value={area_id}
@@ -54,21 +73,6 @@ export class Toolbar extends Component {
                         </Select.Option>
                     ))}
                 </Select>
-                <Button icon="save" onClick={quest_editor_store.open_save_dialog} disabled={!quest}>
-                    Save as...
-                </Button>
-                <Button
-                    icon="undo"
-                    onClick={this.undo}
-                    title={"Undo" + (undo.first_undo ? ` "${undo.first_undo.description}"` : "")}
-                    disabled={!undo.can_undo}
-                />
-                <Button
-                    icon="redo"
-                    onClick={this.redo}
-                    title={"Redo" + (undo.first_redo ? ` "${undo.first_redo.description}"` : "")}
-                    disabled={!quest_editor_store.undo_stack.can_redo}
-                />
                 <SaveQuestComponent />
             </div>
         );

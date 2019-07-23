@@ -96,7 +96,7 @@ editor.defineTheme("phantasmal-world", {
     base: "vs-dark",
     inherit: true,
     rules: [
-        { token: "", foreground: "e0e0e0", background: "151c21" },
+        { token: "", foreground: "e0e0e0", background: "#181818" },
         { token: "tag", foreground: "99bbff" },
         { token: "predefined", foreground: "bbffbb" },
         { token: "number", foreground: "ffffaa" },
@@ -104,18 +104,15 @@ editor.defineTheme("phantasmal-world", {
         { token: "string.escape", foreground: "8888ff" },
     ],
     colors: {
-        "editor.background": "#151c21",
-        "editor.lineHighlightBackground": "#1a2228",
+        "editor.background": "#181818",
+        "editor.lineHighlightBackground": "#202020",
     },
 });
 
-export class ScriptEditorComponent extends Component<{ className?: string }> {
+export class ScriptEditorComponent extends Component {
     render(): ReactNode {
-        let className = "qe-ScriptEditorComponent";
-        if (this.props.className) className += " " + this.props.className;
-
         return (
-            <section className={className}>
+            <section className="qe-ScriptEditorComponent">
                 <AutoSizer>
                     {({ width, height }) => <MonacoComponent width={width} height={height} />}
                 </AutoSizer>

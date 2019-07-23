@@ -8,20 +8,26 @@
 @primary-1: fade(@primary-color, 50%);
 @primary-2: fade(@primary-color, 40%);
 
-@body-background: hsl(200, 10%, 20%);
+@body-background: hsl(200, 0%, 20%);
 @component-background: @body-background;
-@text-color: hsl(200, 10%, 90%);
-@text-color-secondary: hsl(200, 20%, 80%);
+@text-color: hsl(200, 0%, 90%);
+@text-color-secondary: hsl(200, 0%, 80%);
 @text-color-dark: fade(white, 85%);
 @text-color-secondary-dark: fade(white, 65%);
 
 @heading-color: fade(@black, 85%);
 
-@border-radius-base: 2px;
+@border-radius-base: 0px;
 @border-radius-sm: 0px;
 
+// vertical paddings
+@padding-lg: 12px; // containers
+@padding-md: 8px; // small containers and buttons
+@padding-sm: 6px; // Form controls and items
+@padding-xs: 4px; // small items
+
 @background-color-light: lighten(@component-background, 20%); // background of header and selected item
-@background-color-base: fade(@primary-color, 20%); // Default grey background color
+@background-color-base: @component-background; // Default grey background color
 
 @item-active-bg: fade(@primary-color, 20%);
 @item-hover-bg: fade(@primary-color, 10%);
@@ -33,15 +39,23 @@
 @disabled-color: fade(#fff, 50%);
 
 // Animation
-@animation-duration-slow: 0.1s; // Modal
-@animation-duration-base: 0.066s;
-@animation-duration-fast: 0.033s; // Tooltip
+@animation-duration-slow: 0s; // Modal
+@animation-duration-base: 0s;
+@animation-duration-fast: 0s; // Tooltip
 
 // Input
 @input-bg: darken(@component-background, 5%);
 
+@input-height-base: 28px;
+@input-height-lg: 34px;
+@input-height-sm: 24px;
+
 // Buttons
 @btn-default-bg: lighten(@component-background, 10%);
+
+@btn-height-base: 28px;
+@btn-height-lg: 34px;
+@btn-height-sm: 24px;
 
 // Modal
 @modal-mask-bg: fade(black, 80%);
@@ -52,3 +66,14 @@
 
 // Menu
 @menu-dark-bg: @component-background;
+
+
+// Tabs
+// ---
+@tabs-card-head-background: darken(@background-color-base, 5%);
+@tabs-card-height: 28px;
+@tabs-card-active-color: white;
+@tabs-highlight-color: white;
+@tabs-hover-color: white;
+@tabs-card-active-color: white;
+@tabs-ink-bar-color: white;

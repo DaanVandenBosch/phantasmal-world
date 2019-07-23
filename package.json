@@ -13,6 +13,7 @@
     "@types/text-encoding": "^0.0.35",
     "antd": "^3.20.1",
     "craco-antd": "^1.11.0",
+    "golden-layout": "^1.5.9",
     "javascript-lp-solver": "^0.4.5",
     "js-logger": "^1.6.0",
     "lodash": "^4.17.14",
