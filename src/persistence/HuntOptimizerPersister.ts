@@ -3,11 +3,13 @@ import { WantedItem } from "../stores/HuntOptimizerStore";
 import { item_type_stores } from "../stores/ItemTypeStore";
 import { Persister } from "./Persister";
 
+const WANTED_ITEMS_KEY = "HuntOptimizerStore.wantedItems";
+
 class HuntOptimizerPersister extends Persister {
     persist_wanted_items(server: Server, wanted_items: WantedItem[]): void {
         this.persist_for_server(
             server,
-            "HuntOptimizerStore.wantedItems",
+            WANTED_ITEMS_KEY,
             wanted_items.map(
                 ({ item_type, amount }): PersistedWantedItem => ({
                     itemTypeId: item_type.id,
@@ -22,7 +24,7 @@ class HuntOptimizerPersister extends Persister {
 
         const persisted_wanted_items = await this.load_for_server<PersistedWantedItem[]>(
             server,
-            "HuntOptimizerStore.wantedItems"
+            WANTED_ITEMS_KEY
         );
         const wanted_items: WantedItem[] = [];
 

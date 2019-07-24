@@ -1,6 +1,8 @@
 import { Persister } from "./Persister";
 import { Server, HuntMethod } from "../domain";
 
+const METHOD_USER_TIMES_KEY = "HuntMethodStore.methodUserTimes";
+
 class HuntMethodPersister extends Persister {
     persist_method_user_times(hunt_methods: HuntMethod[], server: Server): void {
         const user_times: PersistedUserTimes = {};
@@ -11,7 +13,7 @@ class HuntMethodPersister extends Persister {
             }
         }
 
-        this.persist_for_server(server, "HuntMethodStore.methodUserTimes", user_times);
+        this.persist_for_server(server, METHOD_USER_TIMES_KEY, user_times);
     }
 
     async load_method_user_times(
@@ -20,7 +22,7 @@ class HuntMethodPersister extends Persister {
     ): Promise<HuntMethod[]> {
         const user_times = await this.load_for_server<PersistedUserTimes>(
             server,
-            "HuntMethodStore.methodUserTimes"
+            METHOD_USER_TIMES_KEY
         );
 
         if (user_times) {
