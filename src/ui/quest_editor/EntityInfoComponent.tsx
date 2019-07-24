@@ -5,7 +5,8 @@ import React, { Component, PureComponent, ReactNode } from "react";
 import { QuestEntity, QuestNpc, QuestObject } from "../../domain";
 import { quest_editor_store } from "../../stores/QuestEditorStore";
 import { DisabledTextComponent } from "../DisabledTextComponent";
-import "./EntityInfoComponent.css";
+import "./EntityInfoComponent.less";
+import { Vec3 } from "../../data_formats/vector";
 
 @observer
 export class EntityInfoComponent extends Component {
@@ -15,84 +16,30 @@ export class EntityInfoComponent extends Component {
 
         if (entity) {
             const section_id = entity.section ? entity.section.id : entity.section_id;
-            let name = null;
-
-            if (entity instanceof QuestObject) {
-                name = (
-                    <tr>
-                        <td>Object: </td>
-                        <td colSpan={2}>{entity.type.name}</td>
-                    </tr>
-                );
-            } else if (entity instanceof QuestNpc) {
-                name = (
-                    <tr>
-                        <td>NPC: </td>
-                        <td>{entity.type.name}</td>
-                    </tr>
-                );
-            }
 
             body = (
-                <table className="EntityInfoComponent-table">
+                <table className="qe-EntityInfoComponent-table">
                     <tbody>
-                        {name}
                         <tr>
-                            <td>Section: </td>
+                            <th>{entity instanceof QuestNpc ? "NPC" : "Object"}:</th>
+                            <td>{entity.type.name}</td>
+                        </tr>
+                        <tr>
+                            <th>Section:</th>
                             <td>{section_id}</td>
                         </tr>
                         <tr>
-                            <td colSpan={2}>World position: </td>
+                            <th colSpan={2}>World position:</th>
                         </tr>
+                        <CoordRow entity={entity} position_type="position" coord="x" />
+                        <CoordRow entity={entity} position_type="position" coord="y" />
+                        <CoordRow entity={entity} position_type="position" coord="z" />
                         <tr>
-                            <td colSpan={2}>
-                                <table>
-                                    <tbody>
-                                        <CoordRow
-                                            entity={entity}
-                                            position_type="position"
-                                            coord="x"
-                                        />
-                                        <CoordRow
-                                            entity={entity}
-                                            position_type="position"
-                                            coord="y"
-                                        />
-                                        <CoordRow
-                                            entity={entity}
-                                            position_type="position"
-                                            coord="z"
-                                        />
-                                    </tbody>
-                                </table>
-                            </td>
+                            <th colSpan={2}>Section position:</th>
                         </tr>
-                        <tr>
-                            <td colSpan={2}>Section position: </td>
-                        </tr>
-                        <tr>
-                            <td colSpan={2}>
-                                <table>
-                                    <tbody>
-                                        <CoordRow
-                                            entity={entity}
-                                            position_type="section_position"
-                                            coord="x"
-                                        />
-                                        <CoordRow
-                                            entity={entity}
-                                            position_type="section_position"
-                                            coord="y"
-                                        />
-                                        <CoordRow
-                                            entity={entity}
-                                            position_type="section_position"
-                                            coord="z"
-                                        />
-                                    </tbody>
-                                </table>
-                            </td>
-                        </tr>
+                        <CoordRow entity={entity} position_type="section_position" coord="x" />
+                        <CoordRow entity={entity} position_type="section_position" coord="y" />
+                        <CoordRow entity={entity} position_type="section_position" coord="z" />
                     </tbody>
                 </table>
             );
@@ -101,7 +48,7 @@ export class EntityInfoComponent extends Component {
         }
 
         return (
-            <div className="EntityInfoComponent-container" tabIndex={-1}>
+            <div className="qe-EntityInfoComponent-container" tabIndex={-1}>
                 {body}
             </div>
         );
@@ -118,7 +65,9 @@ class CoordRow extends PureComponent<CoordProps> {
     render(): ReactNode {
         return (
             <tr>
-                <td>{this.props.coord.toUpperCase()}: </td>
+                <th className="qe-EntityInfoComponent-coord-label">
+                    {this.props.coord.toUpperCase()}:
+                </th>
                 <td>
                     <CoordInput {...this.props} />
                 </td>
@@ -127,10 +76,10 @@ class CoordRow extends PureComponent<CoordProps> {
     }
 }
 
-class CoordInput extends Component<CoordProps, { value: number }> {
+class CoordInput extends Component<CoordProps, { value: number; initial_position: Vec3 }> {
     private disposer?: IReactionDisposer;
 
-    state = { value: 0 };
+    state = { value: 0, initial_position: new Vec3(0, 0, 0) };
 
     componentDidMount(): void {
         this.start_observing();
@@ -152,7 +101,9 @@ class CoordInput extends Component<CoordProps, { value: number }> {
                 value={this.state.value}
                 size="small"
                 precision={3}
-                className="EntityInfoComponent-coord"
+                className="qe-EntityInfoComponent-coord"
+                onFocus={this.focus}
+                onBlur={this.blur}
                 onChange={this.changed}
             />
         );
@@ -173,6 +124,20 @@ class CoordInput extends Component<CoordProps, { value: number }> {
             }
         );
     }
+
+    private focus = () => {
+        this.setState({ initial_position: this.props.entity.position });
+    };
+
+    private blur = () => {
+        if (!this.state.initial_position.equals(this.props.entity.position)) {
+            quest_editor_store.push_entity_move_action(
+                this.props.entity,
+                this.state.initial_position,
+                this.props.entity.position
+            );
+        }
+    };
 
     private changed = (value?: number) => {
         if (value != null) {

@@ -271,21 +271,10 @@ export class QuestEntityControls {
     private stop_transforming = () => {
         if (this.moved_since_last_mouse_down && this.selected && this.pick) {
             const entity = this.selected.entity;
-            const initial_position = this.pick.initial_position;
-            const new_position = entity.position;
-            const entity_type =
-                entity instanceof QuestNpc ? entity.type.name : (entity as QuestObject).type.name;
-
-            quest_editor_store.undo.push_action(
-                `Move ${entity_type}`,
-                () => {
-                    entity.position = initial_position;
-                    quest_editor_store.set_selected_entity(entity);
-                },
-                () => {
-                    entity.position = new_position;
-                    quest_editor_store.set_selected_entity(entity);
-                }
+            quest_editor_store.push_entity_move_action(
+                entity,
+                this.pick.initial_position,
+                entity.position
             );
         }
 

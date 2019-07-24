@@ -6,7 +6,7 @@ import { parse_quest, write_quest_qst } from "../data_formats/parsing/quest";
 import { Vec3 } from "../data_formats/vector";
 import { Area, Episode, Quest, QuestEntity, Section } from "../domain";
 import { read_file } from "../read_file";
-import { UndoStack, SimpleUndo } from "../undo";
+import { SimpleUndo, UndoStack } from "../undo";
 import { application_store } from "./ApplicationStore";
 import { area_store } from "./AreaStore";
 import { create_new_quest } from "./quest_creation";
@@ -116,6 +116,21 @@ class QuestEditorStore {
         }
 
         this.save_dialog_open = false;
+    };
+
+    @action
+    push_entity_move_action = (entity: QuestEntity, initial_position: Vec3, new_position: Vec3) => {
+        this.undo.push_action(
+            `Move ${entity.type.name}`,
+            () => {
+                entity.position = initial_position;
+                quest_editor_store.set_selected_entity(entity);
+            },
+            () => {
+                entity.position = new_position;
+                quest_editor_store.set_selected_entity(entity);
+            }
+        );
     };
 
     @action
