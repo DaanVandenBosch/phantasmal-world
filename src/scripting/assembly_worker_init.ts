@@ -46,18 +46,19 @@ function process_messages(): void {
                     // Keep the left part of the first changed line.
                     replace_line_part_right(startLineNumber, startColumn, new_lines[0]);
 
-                    // Replace all the lines in between.
-                    replace_lines(
-                        startLineNumber + 1,
-                        endLineNumber - 1,
-                        new_lines.slice(1, new_lines.length - 1)
-                    );
-
                     // Keep the right part of the last changed line.
                     replace_line_part_left(
                         endLineNumber,
                         endColumn,
                         new_lines[new_lines.length - 1]
+                    );
+
+                    // Replace all the lines in between.
+                    // It's important that we do this last.
+                    replace_lines(
+                        startLineNumber + 1,
+                        endLineNumber - 1,
+                        new_lines.slice(1, new_lines.length - 1)
                     );
                 }
             }

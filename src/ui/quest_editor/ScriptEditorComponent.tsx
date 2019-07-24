@@ -238,6 +238,9 @@ class MonacoComponent extends Component<MonacoProps> {
 
             this.disposers.push(() => disposable.dispose());
             this.editor.setModel(model);
+            this.editor.updateOptions({ readOnly: false });
+        } else if (this.editor) {
+            this.editor.updateOptions({ readOnly: true });
         }
     };
 

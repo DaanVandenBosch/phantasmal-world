@@ -675,7 +675,7 @@ export class Opcode {
     static readonly p_noncol = (OPCODES[0x74] = new Opcode(0x74, "p_noncol", [], false, []));
     static readonly p_col = (OPCODES[0x75] = new Opcode(0x75, "p_col", [], false, []));
     static readonly p_setpos = (OPCODES[0x76] = new Opcode(0x76, "p_setpos", [], false, [
-        { type: Type.Register },
+        { type: Type.U32 },
         { type: Type.Register },
     ]));
     static readonly p_return_guild = (OPCODES[0x77] = new Opcode(
