@@ -3,6 +3,7 @@ import React, { Component, ReactNode } from "react";
 import { NpcType } from "../../domain";
 import { quest_editor_store } from "../../stores/QuestEditorStore";
 import "./QuestInfoComponent.css";
+import { DisabledTextComponent } from "../DisabledTextComponent";
 
 @observer
 export class QuestInfoComponent extends Component {
@@ -70,7 +71,11 @@ export class QuestInfoComponent extends Component {
                 </div>
             );
         } else {
-            return <div className="qe-QuestInfoComponent" />;
+            return (
+                <div className="qe-QuestInfoComponent">
+                    <DisabledTextComponent>No quest loaded.</DisabledTextComponent>
+                </div>
+            );
         }
     }
 }

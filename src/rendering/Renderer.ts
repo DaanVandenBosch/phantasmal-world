@@ -37,6 +37,10 @@ export class Renderer<C extends Camera> {
     constructor(camera: C) {
         this.camera = camera;
 
+        this.dom_element.tabIndex = 0;
+        this.dom_element.addEventListener("mousedown", this.on_mouse_down);
+        this.dom_element.style.outline = "none";
+
         this.controls = new OrbitControls(camera, this.dom_element);
         this.controls.mouseButtons.ORBIT = MOUSE.RIGHT;
         this.controls.mouseButtons.PAN = MOUSE.LEFT;
@@ -81,6 +85,10 @@ export class Renderer<C extends Camera> {
     protected render(): void {
         this.renderer.render(this.scene, this.camera);
     }
+
+    private on_mouse_down = (e: Event) => {
+        if (e.currentTarget) (e.currentTarget as HTMLElement).focus();
+    };
 
     private call_render = () => {
         this.render_scheduled = false;

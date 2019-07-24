@@ -27,6 +27,15 @@ export class QuestEditorComponent extends Component {
                         settings: {
                             showPopoutIcon: false,
                         },
+                        dimensions: {
+                            headerHeight: 28,
+                        },
+                        labels: {
+                            close: "Close",
+                            maximise: "Maximise",
+                            minimise: "Minimise",
+                            popout: "Open in new window",
+                        },
                         content: [
                             {
                                 type: "row",

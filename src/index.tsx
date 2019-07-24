@@ -1,7 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import Logger from "js-logger";
-import "./index.less";
+import "./ui/index.less";
 import { ApplicationComponent } from "./ui/ApplicationComponent";
 import "react-virtualized/styles.css";
 import "react-select/dist/react-select.css";

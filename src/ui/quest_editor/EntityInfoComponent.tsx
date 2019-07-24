@@ -4,6 +4,7 @@ import { observer } from "mobx-react";
 import React, { Component, PureComponent, ReactNode } from "react";
 import { QuestEntity, QuestNpc, QuestObject } from "../../domain";
 import { quest_editor_store } from "../../stores/QuestEditorStore";
+import { DisabledTextComponent } from "../DisabledTextComponent";
 import "./EntityInfoComponent.css";
 
 @observer
@@ -97,7 +98,11 @@ export class EntityInfoComponent extends Component {
                 </div>
             );
         } else {
-            return <div className="EntityInfoComponent-container" />;
+            return (
+                <div className="EntityInfoComponent-container">
+                    <DisabledTextComponent>No entity selected.</DisabledTextComponent>
+                </div>
+            );
         }
     }
 }

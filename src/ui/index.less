@@ -1,5 +1,7 @@
 @import "~antd/dist/antd.less";
-@import "ui/theme.less";
+@import "./theme.less";
+
+// React Root Element
 
 #phantasmal-world-root {
     position: absolute;
@@ -8,6 +10,8 @@
     left: 0;
     right: 0;
 }
+
+// antd
 
 * {
     scrollbar-color: @scrollbar-thumb-color @scrollbar-color;
@@ -33,6 +37,8 @@
     background-color: @scrollbar-color;
 }
 
+// react-virtualized
+
 #phantasmal-world-root {
     & .ReactVirtualized__Grid {
         outline: none;
@@ -44,5 +50,39 @@
 
     .ant-tabs-bar {
         margin: 0;
+    }
+}
+
+// golden-layout
+
+#phantasmal-world-root {
+    & .lm_header {
+        background: darken(@component-background, 5%);
+    }
+
+    & .lm_goldenlayout {
+        background: darken(@component-background, 5%);
+    }
+
+    & .lm_content {
+        background: @component-background;
+    }
+
+    & .lm_tab {
+        height: 26px;
+        line-height: 26px;
+        padding: 0px 16px;
+        margin: 2px 2px 0px 0px;
+        background: darken(@component-background, 3%);
+        box-shadow: none;
+
+        &.lm_active {
+            background: @component-background;
+        }
+    }
+
+    & .lm_controls {
+        top: 6px;
+        right: 6px;
     }
 }
