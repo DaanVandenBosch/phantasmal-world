@@ -1,21 +1,39 @@
 import { observable } from "mobx";
 import { Server } from "../domain";
+import { UndoStack } from "../undo";
 
 class ApplicationStore {
     @observable current_server: Server = Server.Ephinea;
     @observable current_tool: string = this.init_tool();
 
-    private key_event_handlers = new Map<string, (e: KeyboardEvent) => void>();
+    private global_keyup_handlers = new Map<string, () => void>();
 
-    on_global_keyup = (tool: string, handler: (e: KeyboardEvent) => void) => {
-        this.key_event_handlers.set(tool, handler);
-    };
+    on_global_keyup(tool: string, binding: string, handler: () => void): void {
+        this.global_keyup_handlers.set(`${tool} ${binding}`, handler);
+    }
 
     dispatch_global_keyup = (e: KeyboardEvent) => {
-        const handler = this.key_event_handlers.get(this.current_tool);
+        const binding_parts: string[] = [];
+        if (e.ctrlKey) binding_parts.push("Ctrl");
+        if (e.shiftKey) binding_parts.push("Shift");
+        if (e.altKey) binding_parts.push("Alt");
+        binding_parts.push(e.key.toUpperCase());
 
-        if (handler) {
-            handler(e);
+        const binding = binding_parts.join("-");
+
+        switch (binding) {
+            case "Ctrl-Z":
+                UndoStack.current && UndoStack.current.undo();
+                break;
+            case "Ctrl-Shift-Z":
+                UndoStack.current && UndoStack.current.redo();
+                break;
+            default:
+                {
+                    const handler = this.global_keyup_handlers.get(binding);
+                    if (handler) handler();
+                }
+                break;
         }
     };
 

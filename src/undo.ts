@@ -9,6 +9,8 @@ export class Action {
 }
 
 export class UndoStack {
+    @observable static current?: UndoStack;
+
     @observable private readonly stack: IObservableArray<Action> = observable.array([], {
         deep: false,
     });
@@ -16,6 +18,16 @@ export class UndoStack {
      * The index where new actions are inserted.
      */
     @observable private index = 0;
+
+    make_current(): void {
+        UndoStack.current = this;
+    }
+
+    ensure_not_current(): void {
+        if (UndoStack.current === this) {
+            UndoStack.current = undefined;
+        }
+    }
 
     @computed get can_undo(): boolean {
         return this.index > 0;

@@ -7,6 +7,7 @@ import { Vec3 } from "../data_formats/vector";
 import { Area, Episode, Quest, QuestEntity, Section } from "../domain";
 import { read_file } from "../read_file";
 import { UndoStack } from "../undo";
+import { application_store } from "./ApplicationStore";
 import { area_store } from "./AreaStore";
 import { create_new_quest } from "./quest_creation";
 
@@ -16,6 +17,7 @@ class QuestEditorStore {
     @observable debug = false;
 
     readonly undo_stack = new UndoStack();
+    readonly script_undo_stack = new UndoStack();
 
     @observable current_quest_filename?: string;
     @observable current_quest?: Quest;
@@ -25,6 +27,10 @@ class QuestEditorStore {
 
     @observable save_dialog_filename?: string;
     @observable save_dialog_open: boolean = false;
+
+    constructor() {
+        application_store.on_global_keyup("quest_editor", "Ctrl-Alt-D", this.toggle_debug);
+    }
 
     @action
     toggle_debug = () => {

@@ -11,6 +11,7 @@ import "./EntityInfoComponent.css";
 export class EntityInfoComponent extends Component {
     render(): ReactNode {
         const entity = quest_editor_store.selected_entity;
+        let body: ReactNode;
 
         if (entity) {
             const section_id = entity.section ? entity.section.id : entity.section_id;
@@ -32,78 +33,78 @@ export class EntityInfoComponent extends Component {
                 );
             }
 
-            return (
-                <div className="EntityInfoComponent-container">
-                    <table className="EntityInfoComponent-table">
-                        <tbody>
-                            {name}
-                            <tr>
-                                <td>Section: </td>
-                                <td>{section_id}</td>
-                            </tr>
-                            <tr>
-                                <td colSpan={2}>World position: </td>
-                            </tr>
-                            <tr>
-                                <td colSpan={2}>
-                                    <table>
-                                        <tbody>
-                                            <CoordRow
-                                                entity={entity}
-                                                position_type="position"
-                                                coord="x"
-                                            />
-                                            <CoordRow
-                                                entity={entity}
-                                                position_type="position"
-                                                coord="y"
-                                            />
-                                            <CoordRow
-                                                entity={entity}
-                                                position_type="position"
-                                                coord="z"
-                                            />
-                                        </tbody>
-                                    </table>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td colSpan={2}>Section position: </td>
-                            </tr>
-                            <tr>
-                                <td colSpan={2}>
-                                    <table>
-                                        <tbody>
-                                            <CoordRow
-                                                entity={entity}
-                                                position_type="section_position"
-                                                coord="x"
-                                            />
-                                            <CoordRow
-                                                entity={entity}
-                                                position_type="section_position"
-                                                coord="y"
-                                            />
-                                            <CoordRow
-                                                entity={entity}
-                                                position_type="section_position"
-                                                coord="z"
-                                            />
-                                        </tbody>
-                                    </table>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+            body = (
+                <table className="EntityInfoComponent-table">
+                    <tbody>
+                        {name}
+                        <tr>
+                            <td>Section: </td>
+                            <td>{section_id}</td>
+                        </tr>
+                        <tr>
+                            <td colSpan={2}>World position: </td>
+                        </tr>
+                        <tr>
+                            <td colSpan={2}>
+                                <table>
+                                    <tbody>
+                                        <CoordRow
+                                            entity={entity}
+                                            position_type="position"
+                                            coord="x"
+                                        />
+                                        <CoordRow
+                                            entity={entity}
+                                            position_type="position"
+                                            coord="y"
+                                        />
+                                        <CoordRow
+                                            entity={entity}
+                                            position_type="position"
+                                            coord="z"
+                                        />
+                                    </tbody>
+                                </table>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colSpan={2}>Section position: </td>
+                        </tr>
+                        <tr>
+                            <td colSpan={2}>
+                                <table>
+                                    <tbody>
+                                        <CoordRow
+                                            entity={entity}
+                                            position_type="section_position"
+                                            coord="x"
+                                        />
+                                        <CoordRow
+                                            entity={entity}
+                                            position_type="section_position"
+                                            coord="y"
+                                        />
+                                        <CoordRow
+                                            entity={entity}
+                                            position_type="section_position"
+                                            coord="z"
+                                        />
+                                    </tbody>
+                                </table>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
             );
         } else {
-            return (
-                <div className="EntityInfoComponent-container">
-                    <DisabledTextComponent>No entity selected.</DisabledTextComponent>
-                </div>
-            );
+            body = <DisabledTextComponent>No entity selected.</DisabledTextComponent>;
         }
+
+        return (
+            <div className="EntityInfoComponent-container" tabIndex={-1}>
+                {body}
+            </div>
+        );
     }
 }
 

@@ -112,7 +112,7 @@ editor.defineTheme("phantasmal-world", {
 export class ScriptEditorComponent extends Component {
     render(): ReactNode {
         return (
-            <section className="qe-ScriptEditorComponent">
+            <section id="qe-ScriptEditorComponent" className="qe-ScriptEditorComponent">
                 <AutoSizer>
                     {({ width, height }) => <MonacoComponent width={width} height={height} />}
                 </AutoSizer>

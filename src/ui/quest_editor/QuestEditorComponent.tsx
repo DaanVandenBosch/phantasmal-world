@@ -1,7 +1,8 @@
 import GoldenLayout from "golden-layout";
+import Logger from "js-logger";
 import { observer } from "mobx-react";
-import React, { Component, createRef, ReactNode } from "react";
-import { application_store } from "../../stores/ApplicationStore";
+import React, { Component, createRef, FocusEvent, ReactNode } from "react";
+import { quest_editor_ui_persister } from "../../persistence/QuestEditorUiPersister";
 import { quest_editor_store } from "../../stores/QuestEditorStore";
 import { EntityInfoComponent } from "./EntityInfoComponent";
 import "./QuestEditorComponent.less";
@@ -9,8 +10,6 @@ import { QuestInfoComponent } from "./QuestInfoComponent";
 import { QuestRendererComponent } from "./QuestRendererComponent";
 import { ScriptEditorComponent } from "./ScriptEditorComponent";
 import { Toolbar } from "./Toolbar";
-import { quest_editor_ui_persister } from "../../persistence/QuestEditorUiPersister";
-import Logger from "js-logger";
 
 const logger = Logger.get("ui/quest_editor/QuestEditorComponent");
 
@@ -74,7 +73,7 @@ export class QuestEditorComponent extends Component {
     private layout?: GoldenLayout;
 
     componentDidMount(): void {
-        application_store.on_global_keyup("quest_editor", this.keyup);
+        quest_editor_store.undo_stack.make_current();
 
         window.addEventListener("resize", this.resize);
 
@@ -117,6 +116,8 @@ export class QuestEditorComponent extends Component {
     }
 
     componentWillUnmount(): void {
+        quest_editor_store.undo_stack.ensure_not_current();
+
         window.removeEventListener("resize", this.resize);
 
         if (this.layout) {
@@ -129,18 +130,27 @@ export class QuestEditorComponent extends Component {
         return (
             <div className="qe-QuestEditorComponent">
                 <Toolbar />
-                <div className="qe-QuestEditorComponent-main" ref={this.layout_element} />
+                <div
+                    className="qe-QuestEditorComponent-main"
+                    onFocus={this.focus}
+                    ref={this.layout_element}
+                />
             </div>
         );
     }
 
-    private keyup = (e: KeyboardEvent) => {
-        if (e.ctrlKey && e.key === "z" && !e.altKey) {
-            quest_editor_store.undo_stack.undo();
-        } else if (e.ctrlKey && e.key === "Z" && !e.altKey) {
-            quest_editor_store.undo_stack.redo();
-        } else if (e.ctrlKey && e.altKey && e.key === "d") {
-            quest_editor_store.toggle_debug();
+    private focus = (e: FocusEvent) => {
+        const scrip_editor_element = document.getElementById("qe-ScriptEditorComponent");
+
+        if (
+            scrip_editor_element &&
+            scrip_editor_element.compareDocumentPosition(e.target) &
+                Node.DOCUMENT_POSITION_CONTAINED_BY
+        ) {
+            // quest_editor_store.script_undo_stack.make_current();
+            quest_editor_store.undo_stack.ensure_not_current();
+        } else {
+            quest_editor_store.undo_stack.make_current();
         }
     };
 

@@ -6,11 +6,12 @@ import React, { ChangeEvent, Component, ReactNode } from "react";
 import { Episode } from "../../domain";
 import { quest_editor_store } from "../../stores/QuestEditorStore";
 import "./Toolbar.less";
+import { UndoStack } from "../../undo";
 
 @observer
 export class Toolbar extends Component {
     render(): ReactNode {
-        const undo = quest_editor_store.undo_stack;
+        const undo = UndoStack.current;
         const quest = quest_editor_store.current_quest;
         const areas = quest ? Array.from(quest.area_variants).map(a => a.area) : [];
         const area = quest_editor_store.current_area;
@@ -47,16 +48,22 @@ export class Toolbar extends Component {
                 <Button
                     icon="undo"
                     onClick={this.undo}
-                    title={"Undo" + (undo.first_undo ? ` "${undo.first_undo.description}"` : "")}
-                    disabled={!undo.can_undo}
+                    title={
+                        "Undo" +
+                        (undo && undo.first_undo ? ` "${undo.first_undo.description}"` : "")
+                    }
+                    disabled={!(undo && undo.can_undo)}
                 >
                     Undo
                 </Button>
                 <Button
                     icon="redo"
                     onClick={this.redo}
-                    title={"Redo" + (undo.first_redo ? ` "${undo.first_redo.description}"` : "")}
-                    disabled={!quest_editor_store.undo_stack.can_redo}
+                    title={
+                        "Redo" +
+                        (undo && undo.first_redo ? ` "${undo.first_redo.description}"` : "")
+                    }
+                    disabled={!(undo && undo.can_redo)}
                 >
                     Redo
                 </Button>
@@ -88,11 +95,11 @@ export class Toolbar extends Component {
     }
 
     private undo(): void {
-        quest_editor_store.undo_stack.undo();
+        UndoStack.current && UndoStack.current.undo();
     }
 
     private redo(): void {
-        quest_editor_store.undo_stack.redo();
+        UndoStack.current && UndoStack.current.redo();
     }
 }
 

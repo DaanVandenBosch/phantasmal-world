@@ -9,6 +9,7 @@ import { DisabledTextComponent } from "../DisabledTextComponent";
 export class QuestInfoComponent extends Component {
     render(): ReactNode {
         const quest = quest_editor_store.current_quest;
+        let body: ReactNode;
 
         if (quest) {
             const episode = quest.episode === 4 ? "IV" : quest.episode === 2 ? "II" : "I";
@@ -34,8 +35,8 @@ export class QuestInfoComponent extends Component {
                 );
             });
 
-            return (
-                <div className="qe-QuestInfoComponent">
+            body = (
+                <>
                     <table>
                         <tbody>
                             <tr>
@@ -68,14 +69,16 @@ export class QuestInfoComponent extends Component {
                             <tbody>{npc_count_rows}</tbody>
                         </table>
                     </div>
-                </div>
+                </>
             );
         } else {
-            return (
-                <div className="qe-QuestInfoComponent">
-                    <DisabledTextComponent>No quest loaded.</DisabledTextComponent>
-                </div>
-            );
+            body = <DisabledTextComponent>No quest loaded.</DisabledTextComponent>;
         }
+
+        return (
+            <div className="qe-QuestInfoComponent" tabIndex={-1}>
+                {body}
+            </div>
+        );
     }
 }
