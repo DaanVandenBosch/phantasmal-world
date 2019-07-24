@@ -6,6 +6,7 @@ import { OPCODES } from "../../data_formats/parsing/quest/bin";
 import { Assembler } from "../../scripting/Assembler";
 import { quest_editor_store } from "../../stores/QuestEditorStore";
 import "./ScriptEditorComponent.less";
+import { Action } from "../../undo";
 
 const ASM_SYNTAX: languages.IMonarchLanguage = {
     defaultToken: "invalid",
@@ -182,7 +183,53 @@ class MonacoComponent extends Component<MonacoProps> {
             const assembly = this.assembler.disassemble(quest.instructions, quest.labels);
             const model = editor.createModel(assembly.join("\n"), "psoasm");
 
+            quest_editor_store.script_undo.action = new Action(
+                "Text edits",
+                () => {
+                    if (this.editor) {
+                        this.editor.trigger("undo stack", "undo", undefined);
+                    }
+                },
+                () => {
+                    if (this.editor) {
+                        this.editor.trigger("redo stack", "redo", undefined);
+                    }
+                }
+            );
+
+            let initial_version = model.getAlternativeVersionId();
+            let current_version = initial_version;
+            let last_version = initial_version;
+
             const disposable = model.onDidChangeContent(e => {
+                const version = model.getAlternativeVersionId();
+
+                if (version < current_version) {
+                    // Undoing.
+                    quest_editor_store.script_undo.can_redo = true;
+
+                    if (version === initial_version) {
+                        quest_editor_store.script_undo.can_undo = false;
+                    }
+                } else {
+                    // Redoing.
+                    if (version <= last_version) {
+                        if (version === last_version) {
+                            quest_editor_store.script_undo.can_redo = false;
+                        }
+                    } else {
+                        quest_editor_store.script_undo.can_redo = false;
+
+                        if (current_version > last_version) {
+                            last_version = current_version;
+                        }
+                    }
+
+                    quest_editor_store.script_undo.can_undo = true;
+                }
+
+                current_version = version;
+
                 if (!this.assembler) return;
                 this.assembler.update_assembly(e.changes);
             });

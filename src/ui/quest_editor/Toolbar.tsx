@@ -5,13 +5,12 @@ import { observer } from "mobx-react";
 import React, { ChangeEvent, Component, ReactNode } from "react";
 import { Episode } from "../../domain";
 import { quest_editor_store } from "../../stores/QuestEditorStore";
+import { undo_manager } from "../../undo";
 import "./Toolbar.less";
-import { UndoStack } from "../../undo";
 
 @observer
 export class Toolbar extends Component {
     render(): ReactNode {
-        const undo = UndoStack.current;
         const quest = quest_editor_store.current_quest;
         const areas = quest ? Array.from(quest.area_variants).map(a => a.area) : [];
         const area = quest_editor_store.current_area;
@@ -49,10 +48,11 @@ export class Toolbar extends Component {
                     icon="undo"
                     onClick={this.undo}
                     title={
-                        "Undo" +
-                        (undo && undo.first_undo ? ` "${undo.first_undo.description}"` : "")
+                        undo_manager.first_undo
+                            ? `Undo "${undo_manager.first_undo.description}"`
+                            : "Nothing to undo"
                     }
-                    disabled={!(undo && undo.can_undo)}
+                    disabled={!undo_manager.can_undo}
                 >
                     Undo
                 </Button>
@@ -60,10 +60,11 @@ export class Toolbar extends Component {
                     icon="redo"
                     onClick={this.redo}
                     title={
-                        "Redo" +
-                        (undo && undo.first_redo ? ` "${undo.first_redo.description}"` : "")
+                        undo_manager.first_redo
+                            ? `Redo "${undo_manager.first_redo.description}"`
+                            : "Nothing to redo"
                     }
-                    disabled={!(undo && undo.can_redo)}
+                    disabled={!undo_manager.can_redo}
                 >
                     Redo
                 </Button>
@@ -95,11 +96,11 @@ export class Toolbar extends Component {
     }
 
     private undo(): void {
-        UndoStack.current && UndoStack.current.undo();
+        undo_manager.undo();
     }
 
     private redo(): void {
-        UndoStack.current && UndoStack.current.redo();
+        undo_manager.redo();
     }
 }
 

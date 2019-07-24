@@ -1,6 +1,6 @@
 import { observable } from "mobx";
 import { Server } from "../domain";
-import { UndoStack } from "../undo";
+import { undo_manager } from "../undo";
 
 class ApplicationStore {
     @observable current_server: Server = Server.Ephinea;
@@ -23,10 +23,10 @@ class ApplicationStore {
 
         switch (binding) {
             case "Ctrl-Z":
-                UndoStack.current && UndoStack.current.undo();
+                undo_manager.undo();
                 break;
             case "Ctrl-Shift-Z":
-                UndoStack.current && UndoStack.current.redo();
+                undo_manager.redo();
                 break;
             default:
                 {

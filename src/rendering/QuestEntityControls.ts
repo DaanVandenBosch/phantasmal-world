@@ -276,7 +276,7 @@ export class QuestEntityControls {
             const entity_type =
                 entity instanceof QuestNpc ? entity.type.name : (entity as QuestObject).type.name;
 
-            quest_editor_store.undo_stack.push_action(
+            quest_editor_store.undo.push_action(
                 `Move ${entity_type}`,
                 () => {
                     entity.position = initial_position;

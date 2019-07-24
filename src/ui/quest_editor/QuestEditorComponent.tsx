@@ -73,7 +73,7 @@ export class QuestEditorComponent extends Component {
     private layout?: GoldenLayout;
 
     componentDidMount(): void {
-        quest_editor_store.undo_stack.make_current();
+        quest_editor_store.undo.make_current();
 
         window.addEventListener("resize", this.resize);
 
@@ -116,7 +116,7 @@ export class QuestEditorComponent extends Component {
     }
 
     componentWillUnmount(): void {
-        quest_editor_store.undo_stack.ensure_not_current();
+        quest_editor_store.undo.ensure_not_current();
 
         window.removeEventListener("resize", this.resize);
 
@@ -147,10 +147,9 @@ export class QuestEditorComponent extends Component {
             scrip_editor_element.compareDocumentPosition(e.target) &
                 Node.DOCUMENT_POSITION_CONTAINED_BY
         ) {
-            // quest_editor_store.script_undo_stack.make_current();
-            quest_editor_store.undo_stack.ensure_not_current();
+            quest_editor_store.script_undo.make_current();
         } else {
-            quest_editor_store.undo_stack.make_current();
+            quest_editor_store.undo.make_current();
         }
     };
 

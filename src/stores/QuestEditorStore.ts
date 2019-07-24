@@ -6,7 +6,7 @@ import { parse_quest, write_quest_qst } from "../data_formats/parsing/quest";
 import { Vec3 } from "../data_formats/vector";
 import { Area, Episode, Quest, QuestEntity, Section } from "../domain";
 import { read_file } from "../read_file";
-import { UndoStack } from "../undo";
+import { UndoStack, SimpleUndo } from "../undo";
 import { application_store } from "./ApplicationStore";
 import { area_store } from "./AreaStore";
 import { create_new_quest } from "./quest_creation";
@@ -16,8 +16,8 @@ const logger = Logger.get("stores/QuestEditorStore");
 class QuestEditorStore {
     @observable debug = false;
 
-    readonly undo_stack = new UndoStack();
-    readonly script_undo_stack = new UndoStack();
+    readonly undo = new UndoStack();
+    readonly script_undo = new SimpleUndo("Text edits", () => {}, () => {});
 
     @observable current_quest_filename?: string;
     @observable current_quest?: Quest;
@@ -121,7 +121,8 @@ class QuestEditorStore {
     @action
     private set_quest = flow(function* set_quest(this: QuestEditorStore, quest?: Quest) {
         if (quest !== this.current_quest) {
-            this.undo_stack.clear();
+            this.undo.reset();
+            this.script_undo.reset();
             this.selected_entity = undefined;
             this.current_quest = quest;
 
