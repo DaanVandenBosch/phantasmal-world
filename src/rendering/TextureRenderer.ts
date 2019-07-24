@@ -29,7 +29,8 @@ export class TextureRenderer extends Renderer<OrthographicCamera> {
     constructor() {
         super(new OrthographicCamera(-400, 400, 300, -300, 1, 10));
 
-        this.controls.enableRotate = false;
+        this.controls.azimuthRotateSpeed = 0;
+        this.controls.polarRotateSpeed = 0;
 
         autorun(() => {
             this.scene.remove(...this.quad_meshes);

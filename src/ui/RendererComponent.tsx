@@ -1,9 +1,9 @@
 import React, { Component, ReactNode } from "react";
-import { Camera } from "three";
+import { OrthographicCamera, PerspectiveCamera } from "three";
 import { Renderer } from "../rendering/Renderer";
 
 type Props = {
-    renderer: Renderer<Camera>;
+    renderer: Renderer<PerspectiveCamera | OrthographicCamera>;
     width: number;
     height: number;
     debug?: boolean;
@@ -25,7 +25,12 @@ export class RendererComponent extends Component<Props> {
         }
     }
 
+    componentDidMount(): void {
+        this.props.renderer.start_rendering();
+    }
+
     componentWillUnmount(): void {
+        this.props.renderer.stop_rendering();
         this.props.on_will_unmount && this.props.on_will_unmount();
     }
 

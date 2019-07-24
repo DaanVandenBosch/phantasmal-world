@@ -1,20 +1,27 @@
+import CameraControls from "camera-controls";
 import * as THREE from "three";
 import {
-    Camera,
     Color,
     Group,
     HemisphereLight,
-    MOUSE,
+    OrthographicCamera,
+    PerspectiveCamera,
     Scene,
     Vector2,
     Vector3,
     WebGLRenderer,
+    Clock,
 } from "three";
-import OrbitControlsCreator from "three-orbit-controls";
 
-const OrbitControls = OrbitControlsCreator(THREE);
+CameraControls.install({
+    // Hack to make panning and orbiting work the way we want.
+    THREE: {
+        ...THREE,
+        MOUSE: { ...THREE.MOUSE, LEFT: THREE.MOUSE.RIGHT, RIGHT: THREE.MOUSE.LEFT },
+    },
+});
 
-export class Renderer<C extends Camera> {
+export class Renderer<C extends PerspectiveCamera | OrthographicCamera> {
     protected _debug = false;
 
     get debug(): boolean {
@@ -26,13 +33,15 @@ export class Renderer<C extends Camera> {
     }
 
     readonly camera: C;
-    readonly controls: any;
+    readonly controls: CameraControls;
     readonly scene = new Scene();
     readonly light_holder = new Group();
 
     private renderer = new WebGLRenderer({ antialias: true });
     private render_scheduled = false;
+    private render_stop_scheduled = false;
     private light = new HemisphereLight(0xffffff, 0x505050, 1.2);
+    private controls_clock = new Clock();
 
     constructor(camera: C) {
         this.camera = camera;
@@ -41,10 +50,9 @@ export class Renderer<C extends Camera> {
         this.dom_element.addEventListener("mousedown", this.on_mouse_down);
         this.dom_element.style.outline = "none";
 
-        this.controls = new OrbitControls(camera, this.dom_element);
-        this.controls.mouseButtons.ORBIT = MOUSE.RIGHT;
-        this.controls.mouseButtons.PAN = MOUSE.LEFT;
-        this.controls.addEventListener("change", this.schedule_render);
+        this.controls = new CameraControls(camera, this.renderer.domElement);
+        this.controls.dampingFactor = 1;
+        this.controls.draggingDampingFactor = 1;
 
         this.scene.background = new Color(0x181818);
         this.light_holder.add(this.light);
@@ -69,17 +77,27 @@ export class Renderer<C extends Camera> {
         return coords;
     }
 
+    start_rendering(): void {
+        requestAnimationFrame(this.call_render);
+    }
+
+    stop_rendering(): void {
+        this.render_stop_scheduled = true;
+    }
+
     schedule_render = () => {
-        if (!this.render_scheduled) {
-            this.render_scheduled = true;
-            requestAnimationFrame(this.call_render);
-        }
+        this.render_scheduled = true;
     };
 
     reset_camera(position: Vector3, look_at: Vector3): void {
-        this.controls.reset();
-        this.camera.position.copy(position);
-        this.camera.lookAt(look_at);
+        this.controls.setLookAt(
+            position.x,
+            position.y,
+            position.z,
+            look_at.x,
+            look_at.y,
+            look_at.z
+        );
     }
 
     protected render(): void {
@@ -91,7 +109,20 @@ export class Renderer<C extends Camera> {
     };
 
     private call_render = () => {
+        const controls_updated = this.controls.update(this.controls_clock.getDelta());
+        const should_render = this.render_scheduled || controls_updated;
+
         this.render_scheduled = false;
-        this.render();
+
+        if (this.render_stop_scheduled) {
+            this.render_stop_scheduled = false;
+            return;
+        }
+
+        if (should_render) {
+            this.render();
+        }
+
+        requestAnimationFrame(this.call_render);
     };
 }
