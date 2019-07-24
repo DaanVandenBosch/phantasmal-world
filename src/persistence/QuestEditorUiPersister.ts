@@ -1,5 +1,6 @@
 import { Persister } from "./Persister";
 import { throttle } from "lodash";
+import GoldenLayout from "golden-layout";
 
 const LAYOUT_CONFIG_KEY = "QuestEditorUiPersister.layout_config";
 
@@ -8,16 +9,17 @@ class QuestEditorUiPersister extends Persister {
         (config: any) => {
             this.persist(LAYOUT_CONFIG_KEY, config);
         },
-        1000,
+        500,
         { leading: false, trailing: true }
     );
 
-    async load_layout_config(components: string[], default_config: any): Promise<any> {
-        const config = await this.load(LAYOUT_CONFIG_KEY);
+    async load_layout_config(
+        components: string[],
+        default_config: GoldenLayout.ItemConfigType[]
+    ): Promise<any> {
+        const config = await this.load<GoldenLayout.ItemConfigType[]>(LAYOUT_CONFIG_KEY);
 
-        let valid = this.verify_layout_config(config, new Set(components));
-
-        if (valid) {
+        if (config && this.verify_layout_config(config, components)) {
             return config;
         } else {
             return default_config;
@@ -25,16 +27,31 @@ class QuestEditorUiPersister extends Persister {
     }
 
     private verify_layout_config(
-        config: any,
+        config: GoldenLayout.ItemConfigType[],
+        components: string[]
+    ): boolean {
+        const set = new Set(components);
+
+        for (const child of config) {
+            if (!this.verify_layout_child(child, set, new Set(), true)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private verify_layout_child(
+        config: GoldenLayout.ItemConfigType,
         components: Set<string>,
-        found: Set<string> = new Set(),
-        first: boolean = true
+        found: Set<string>,
+        first: boolean
     ): boolean {
         if (!config) {
             return false;
         }
 
-        if (config.component) {
+        if ("component" in config) {
             if (!components.has(config.component)) {
                 return false;
             } else {
@@ -44,7 +61,7 @@ class QuestEditorUiPersister extends Persister {
 
         if (config.content) {
             for (const child of config.content) {
-                if (!this.verify_layout_config(child, components, found, false)) {
+                if (!this.verify_layout_child(child, components, found, false)) {
                     return false;
                 }
             }

@@ -1,4 +1,4 @@
-import GoldenLayout from "golden-layout";
+import GoldenLayout, { ItemConfigType } from "golden-layout";
 import Logger from "js-logger";
 import { observer } from "mobx-react";
 import React, { Component, createRef, FocusEvent, ReactNode } from "react";
@@ -28,7 +28,7 @@ const DEFAULT_LAYOUT_CONFIG = {
     },
 };
 
-const DEFAULT_LAYOUT_CONTENT = [
+const DEFAULT_LAYOUT_CONTENT: ItemConfigType[] = [
     {
         type: "row",
         content: [
@@ -90,7 +90,7 @@ export class QuestEditorComponent extends Component {
                     DEFAULT_LAYOUT_CONTENT
                 );
 
-                const config = {
+                const config: GoldenLayout.Config = {
                     ...DEFAULT_LAYOUT_CONFIG,
                     content,
                 };
