@@ -3,6 +3,7 @@ import { autorun, IReactionDisposer, observable } from "mobx";
 import { HuntMethod, NpcType, Server, SimpleQuest } from "../domain";
 import { QuestDto } from "../dto";
 import { Loadable } from "../Loadable";
+import { hunt_method_persister } from "../persistence/HuntMethodPersister";
 import { ServerMap } from "./ServerMap";
 
 const logger = Logger.get("stores/HuntMethodStore");
@@ -63,54 +64,23 @@ class HuntMethodStore {
             );
         }
 
-        this.load_from_local_storage(methods, server);
+        await this.load_user_times(methods, server);
         return methods;
     }
 
-    private load_from_local_storage = (methods: HuntMethod[], server: Server) => {
-        try {
-            const method_user_times_json = localStorage.getItem(
-                `HuntMethodStore.methodUserTimes.${Server[server]}`
-            );
+    private load_user_times = async (methods: HuntMethod[], server: Server) => {
+        await hunt_method_persister.load_method_user_times(methods, server);
 
-            if (method_user_times_json) {
-                const user_times: StoredUserTimes = JSON.parse(method_user_times_json);
-
-                for (const method of methods) {
-                    method.user_time = user_times[method.id];
-                }
-            }
-
-            if (this.storage_disposer) {
-                this.storage_disposer();
-            }
-
-            this.storage_disposer = autorun(() => this.store_in_local_storage(methods, server));
-        } catch (e) {
-            logger.error(e);
+        if (this.storage_disposer) {
+            this.storage_disposer();
         }
+
+        this.storage_disposer = autorun(() => this.persist_user_times(methods, server));
     };
 
-    private store_in_local_storage = (methods: HuntMethod[], server: Server) => {
-        try {
-            const user_times: StoredUserTimes = {};
-
-            for (const method of methods) {
-                if (method.user_time != undefined) {
-                    user_times[method.id] = method.user_time;
-                }
-            }
-
-            localStorage.setItem(
-                `HuntMethodStore.methodUserTimes.${Server[server]}`,
-                JSON.stringify(user_times)
-            );
-        } catch (e) {
-            logger.error(e);
-        }
+    private persist_user_times = (methods: HuntMethod[], server: Server) => {
+        hunt_method_persister.persist_method_user_times(methods, server);
     };
 }
-
-type StoredUserTimes = { [method_id: string]: number };
 
 export const hunt_method_store = new HuntMethodStore();

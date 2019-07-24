@@ -1,8 +1,9 @@
 import solver from "javascript-lp-solver";
-import { autorun, IObservableArray, observable, computed } from "mobx";
+import { autorun, computed, IObservableArray, observable } from "mobx";
 import {
     Difficulties,
     Difficulty,
+    Episode,
     HuntMethod,
     ItemType,
     KONDRIEU_PROB,
@@ -10,16 +11,12 @@ import {
     RARE_ENEMY_PROB,
     SectionId,
     SectionIds,
-    Server,
-    Episode,
 } from "../domain";
+import { hunt_optimizer_persister } from "../persistence/HuntOptimizerPersister";
 import { application_store } from "./ApplicationStore";
 import { hunt_method_store } from "./HuntMethodStore";
 import { item_drop_stores } from "./ItemDropStore";
 import { item_type_stores } from "./ItemTypeStore";
-import Logger from "js-logger";
-
-const logger = Logger.get("stores/HuntOptimizerStore");
 
 export class WantedItem {
     @observable readonly item_type: ItemType;
@@ -91,7 +88,7 @@ class HuntOptimizerStore {
     @observable result?: OptimalResult;
 
     constructor() {
-        this.initialize();
+        this.initialize_persistence();
     }
 
     optimize = async () => {
@@ -335,64 +332,18 @@ class HuntOptimizerStore {
         return name;
     }
 
-    private initialize = async () => {
-        try {
-            await this.load_from_local_storage();
-            autorun(this.store_in_local_storage);
-        } catch (e) {
-            logger.error(e);
-        }
-    };
-
-    private load_from_local_storage = async () => {
-        const wanted_items_json = localStorage.getItem(
-            `HuntOptimizerStore.wantedItems.${Server[application_store.current_server]}`
+    private initialize_persistence = async () => {
+        this.wanted_items.replace(
+            await hunt_optimizer_persister.load_wanted_items(application_store.current_server)
         );
 
-        if (wanted_items_json) {
-            const item_store = await item_type_stores.current.promise;
-            const wi: StoredWantedItem[] = JSON.parse(wanted_items_json);
-
-            const wanted_items: WantedItem[] = [];
-
-            for (const { itemTypeId, itemKindId, amount } of wi) {
-                const item =
-                    itemTypeId != undefined
-                        ? item_store.get_by_id(itemTypeId)
-                        : item_store.get_by_id(itemKindId!);
-
-                if (item) {
-                    wanted_items.push(new WantedItem(item, amount));
-                }
-            }
-
-            this.wanted_items.replace(wanted_items);
-        }
-    };
-
-    private store_in_local_storage = () => {
-        try {
-            localStorage.setItem(
-                `HuntOptimizerStore.wantedItems.${Server[application_store.current_server]}`,
-                JSON.stringify(
-                    this.wanted_items.map(
-                        ({ item_type: itemType, amount }): StoredWantedItem => ({
-                            itemTypeId: itemType.id,
-                            amount,
-                        })
-                    )
-                )
+        autorun(() => {
+            hunt_optimizer_persister.persist_wanted_items(
+                application_store.current_server,
+                this.wanted_items
             );
-        } catch (e) {
-            logger.error(e);
-        }
+        });
     };
 }
-
-type StoredWantedItem = {
-    itemTypeId?: number; // Should only be undefined if the legacy name is still used.
-    itemKindId?: number; // Legacy name.
-    amount: number;
-};
 
 export const hunt_optimizer_store = new HuntOptimizerStore();
