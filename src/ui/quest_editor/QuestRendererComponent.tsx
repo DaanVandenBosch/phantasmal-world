@@ -8,6 +8,8 @@ import { RendererComponent } from "../RendererComponent";
 @observer
 export class QuestRendererComponent extends Component {
     render(): ReactNode {
+        const debug = quest_editor_store.debug;
+
         return (
             <AutoSizer>
                 {({ width, height }) => (
@@ -15,7 +17,7 @@ export class QuestRendererComponent extends Component {
                         renderer={get_quest_renderer()}
                         width={width}
                         height={height}
-                        debug={quest_editor_store.debug}
+                        debug={debug}
                     />
                 )}
             </AutoSizer>

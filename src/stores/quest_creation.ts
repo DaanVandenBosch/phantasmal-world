@@ -2,8 +2,6 @@ import { Instruction, Opcode } from "../data_formats/parsing/quest/bin";
 import { Vec3 } from "../data_formats/vector";
 import { Episode, NpcType, ObjectType, Quest, QuestNpc, QuestObject } from "../domain";
 import { area_store } from "./AreaStore";
-import { WritableArrayBufferCursor } from "../data_formats/cursor/WritableArrayBufferCursor";
-import { Endianness } from "../data_formats";
 
 export function create_new_quest(episode: Episode): Quest {
     if (episode === Episode.II) throw new Error("Episode II not yet supported.");
@@ -34,28 +32,8 @@ export function create_new_quest(episode: Episode): Quest {
             new Instruction(Opcode.ret, []),
             new Instruction(Opcode.ret, []),
         ],
-        create_bin_unknown()
+        []
     );
-}
-
-function create_bin_unknown(): ArrayBuffer {
-    const buffer = new ArrayBuffer(3732);
-    const cursor = new WritableArrayBufferCursor(buffer, Endianness.Little);
-    cursor.write_u32(0);
-
-    for (let i = 0; i < 16; i++) {
-        cursor.write_u8(0xff);
-    }
-
-    for (let i = 0; i < 16; i++) {
-        cursor.write_u8(0);
-    }
-
-    for (let i = 0; i < 112; i++) {
-        cursor.write_u8(0xff);
-    }
-
-    return buffer;
 }
 
 function create_default_objects(): QuestObject[] {

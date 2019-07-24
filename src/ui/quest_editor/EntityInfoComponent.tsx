@@ -2,11 +2,11 @@ import { InputNumber } from "antd";
 import { autorun, IReactionDisposer } from "mobx";
 import { observer } from "mobx-react";
 import React, { Component, PureComponent, ReactNode } from "react";
-import { QuestEntity, QuestNpc, QuestObject } from "../../domain";
+import { Vec3 } from "../../data_formats/vector";
+import { QuestEntity, QuestNpc } from "../../domain";
 import { quest_editor_store } from "../../stores/QuestEditorStore";
 import { DisabledTextComponent } from "../DisabledTextComponent";
 import "./EntityInfoComponent.less";
-import { Vec3 } from "../../data_formats/vector";
 
 @observer
 export class EntityInfoComponent extends Component {

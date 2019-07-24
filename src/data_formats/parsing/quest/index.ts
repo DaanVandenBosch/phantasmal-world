@@ -93,7 +93,7 @@ export function parse_quest(cursor: Cursor, lenient: boolean = false): Quest | u
         dat.unknowns,
         bin.labels,
         bin.instructions,
-        bin.unknown
+        bin.shop_items
     );
 }
 
@@ -112,7 +112,7 @@ export function write_quest_qst(quest: Quest, file_name: string): ArrayBuffer {
             quest.long_description,
             quest.labels,
             quest.instructions,
-            quest.bin_unknown
+            quest.shop_items
         )
     );
     const ext_start = file_name.lastIndexOf(".");

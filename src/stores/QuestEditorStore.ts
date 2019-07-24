@@ -6,7 +6,7 @@ import { parse_quest, write_quest_qst } from "../data_formats/parsing/quest";
 import { Vec3 } from "../data_formats/vector";
 import { Area, Episode, Quest, QuestEntity, Section } from "../domain";
 import { read_file } from "../read_file";
-import { SimpleUndo, UndoStack } from "../undo";
+import { SimpleUndo, UndoStack, undo_manager } from "../undo";
 import { application_store } from "./ApplicationStore";
 import { area_store } from "./AreaStore";
 import { create_new_quest } from "./quest_creation";
@@ -29,6 +29,18 @@ class QuestEditorStore {
     @observable save_dialog_open: boolean = false;
 
     constructor() {
+        application_store.on_global_keyup("quest_editor", "Ctrl-Z", () => {
+            // Let Monaco handle its own keybindings.
+            if (undo_manager.current !== this.script_undo) {
+                undo_manager.undo();
+            }
+        });
+        application_store.on_global_keyup("quest_editor", "Ctrl-Shift-Z", () => {
+            // Let Monaco handle its own keybindings.
+            if (undo_manager.current !== this.script_undo) {
+                undo_manager.redo();
+            }
+        });
         application_store.on_global_keyup("quest_editor", "Ctrl-Alt-D", this.toggle_debug);
     }
 

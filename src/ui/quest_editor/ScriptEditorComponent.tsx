@@ -145,6 +145,8 @@ class MonacoComponent extends Component<MonacoProps> {
                 autoIndent: true,
                 fontSize: 14,
                 wordBasedSuggestions: false,
+                wordWrap: "on",
+                wrappingIndent: "indent",
             });
 
             this.assembler = new Assembler();

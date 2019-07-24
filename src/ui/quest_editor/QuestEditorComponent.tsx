@@ -26,46 +26,47 @@ const DEFAULT_LAYOUT_CONFIG = {
         minimise: "Minimise",
         popout: "Open in new window",
     },
-    content: [
-        {
-            type: "row",
-            content: [
-                {
-                    title: "Info",
-                    type: "react-component",
-                    component: QuestInfoComponent.name,
-                    isClosable: false,
-                    width: 3,
-                },
-                {
-                    type: "stack",
-                    width: 9,
-                    content: [
-                        {
-                            title: "3D View",
-                            type: "react-component",
-                            component: QuestRendererComponent.name,
-                            isClosable: false,
-                        },
-                        {
-                            title: "Script",
-                            type: "react-component",
-                            component: ScriptEditorComponent.name,
-                            isClosable: false,
-                        },
-                    ],
-                },
-                {
-                    title: "Entity",
-                    type: "react-component",
-                    component: EntityInfoComponent.name,
-                    isClosable: false,
-                    width: 2,
-                },
-            ],
-        },
-    ],
 };
+
+const DEFAULT_LAYOUT_CONTENT = [
+    {
+        type: "row",
+        content: [
+            {
+                title: "Info",
+                type: "react-component",
+                component: QuestInfoComponent.name,
+                isClosable: false,
+                width: 3,
+            },
+            {
+                type: "stack",
+                width: 9,
+                content: [
+                    {
+                        title: "3D View",
+                        type: "react-component",
+                        component: QuestRendererComponent.name,
+                        isClosable: false,
+                    },
+                    {
+                        title: "Script",
+                        type: "react-component",
+                        component: ScriptEditorComponent.name,
+                        isClosable: false,
+                    },
+                ],
+            },
+            {
+                title: "Entity",
+                type: "react-component",
+                component: EntityInfoComponent.name,
+                isClosable: false,
+                width: 2,
+            },
+        ],
+    },
+];
 
 @observer
 export class QuestEditorComponent extends Component {
@@ -79,15 +80,20 @@ export class QuestEditorComponent extends Component {
 
         setTimeout(async () => {
             if (this.layout_element.current && !this.layout) {
-                const config = await quest_editor_ui_persister.load_layout_config(
+                const content = await quest_editor_ui_persister.load_layout_config(
                     [
                         QuestInfoComponent.name,
                         QuestRendererComponent.name,
                         EntityInfoComponent.name,
                         ScriptEditorComponent.name,
                     ],
-                    DEFAULT_LAYOUT_CONFIG
+                    DEFAULT_LAYOUT_CONTENT
                 );
+
+                const config = {
+                    ...DEFAULT_LAYOUT_CONFIG,
+                    content,
+                };
 
                 try {
                     this.layout = new GoldenLayout(config, this.layout_element.current);
@@ -95,7 +101,10 @@ export class QuestEditorComponent extends Component {
                     logger.warn("Couldn't initialize golden layout with persisted layout.", e);
 
                     this.layout = new GoldenLayout(
-                        DEFAULT_LAYOUT_CONFIG,
+                        {
+                            ...DEFAULT_LAYOUT_CONFIG,
+                            content: DEFAULT_LAYOUT_CONTENT,
+                        },
                         this.layout_element.current
                     );
                 }
@@ -106,7 +115,9 @@ export class QuestEditorComponent extends Component {
                 this.layout.registerComponent(ScriptEditorComponent.name, ScriptEditorComponent);
                 this.layout.on("stateChanged", () => {
                     if (this.layout) {
-                        quest_editor_ui_persister.persist_layout_config(this.layout.toConfig());
+                        quest_editor_ui_persister.persist_layout_config(
+                            this.layout.toConfig().content
+                        );
                     }
                 });
 

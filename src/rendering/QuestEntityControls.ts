@@ -1,7 +1,7 @@
 import { autorun } from "mobx";
 import { Intersection, Mesh, MeshLambertMaterial, Plane, Raycaster, Vector2, Vector3 } from "three";
 import { Vec3 } from "../data_formats/vector";
-import { QuestEntity, QuestNpc, QuestObject, Section } from "../domain";
+import { QuestEntity, QuestNpc, Section } from "../domain";
 import { quest_editor_store } from "../stores/QuestEditorStore";
 import { AreaUserData } from "./conversion/areas";
 import { ColorType, EntityUserData, NPC_COLORS, OBJECT_COLORS } from "./conversion/entities";

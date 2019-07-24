@@ -71,6 +71,17 @@ export class WritableResizableBufferCursor extends ResizableBufferCursor impleme
         return this;
     }
 
+    write_u32_array(array: number[]): this {
+        this.ensure_size(4 * array.length);
+        const len = array.length;
+
+        for (let i = 0; i < len; i++) {
+            this.write_u32(array[i]);
+        }
+
+        return this;
+    }
+
     write_vec2_f32(value: Vec2): this {
         this.ensure_size(8);
         this.dv.setFloat32(this.position, value.x, this.little_endian);

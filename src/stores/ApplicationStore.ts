@@ -1,6 +1,5 @@
-import { observable } from "mobx";
+import { autorun, observable } from "mobx";
 import { Server } from "../domain";
-import { undo_manager } from "../undo";
 
 class ApplicationStore {
     @observable current_server: Server = Server.Ephinea;
@@ -8,8 +7,14 @@ class ApplicationStore {
 
     private global_keyup_handlers = new Map<string, () => void>();
 
+    constructor() {
+        autorun(() => {
+            window.location.hash = `#/${this.current_tool}`;
+        });
+    }
+
     on_global_keyup(tool: string, binding: string, handler: () => void): void {
-        this.global_keyup_handlers.set(`${tool} ${binding}`, handler);
+        this.global_keyup_handlers.set(`${tool} -> ${binding}`, handler);
     }
 
     dispatch_global_keyup = (e: KeyboardEvent) => {
@@ -21,28 +26,13 @@ class ApplicationStore {
 
         const binding = binding_parts.join("-");
 
-        switch (binding) {
-            case "Ctrl-Z":
-                undo_manager.undo();
-                break;
-            case "Ctrl-Shift-Z":
-                undo_manager.redo();
-                break;
-            default:
-                {
-                    const handler = this.global_keyup_handlers.get(binding);
-                    if (handler) handler();
-                }
-                break;
-        }
+        const handler = this.global_keyup_handlers.get(`${this.current_tool} -> ${binding}`);
+        if (handler) handler();
     };
 
     private init_tool(): string {
-        const param = window.location.search
-            .slice(1)
-            .split("&")
-            .find(p => p.startsWith("tool="));
-        return param ? param.slice(5) : "viewer";
+        const tool = window.location.hash.slice(2);
+        return tool.length ? tool : "viewer";
     }
 }
 

@@ -95,7 +95,7 @@ export class Quest {
     readonly dat_unknowns: DatUnknown[];
     readonly labels: Map<number, number>;
     readonly instructions: Instruction[];
-    readonly bin_unknown: ArrayBuffer;
+    readonly shop_items: number[];
 
     constructor(
         id: number,
@@ -110,7 +110,7 @@ export class Quest {
         dat_unknowns: DatUnknown[],
         labels: Map<number, number>,
         instructions: Instruction[],
-        bin_unknown: ArrayBuffer
+        shop_items: number[]
     ) {
         if (!Number.isInteger(id) || id < 0)
             throw new Error("id should be a non-negative integer.");
@@ -122,7 +122,7 @@ export class Quest {
         if (!dat_unknowns) throw new Error("dat_unknowns is required.");
         if (!labels) throw new Error("labels is required.");
         if (!instructions) throw new Error("instructions is required.");
-        if (!bin_unknown) throw new Error("bin_unknown is required.");
+        if (!shop_items) throw new Error("shop_items is required.");
 
         this.id = id;
         this.language = language;
@@ -136,7 +136,7 @@ export class Quest {
         this.dat_unknowns = dat_unknowns;
         this.labels = labels;
         this.instructions = instructions;
-        this.bin_unknown = bin_unknown;
+        this.shop_items = shop_items;
     }
 }
 

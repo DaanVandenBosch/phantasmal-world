@@ -1,6 +1,5 @@
 import Logger from "js-logger";
 import { Endianness } from "../..";
-import { ArrayBufferCursor } from "../../cursor/ArrayBufferCursor";
 import { Cursor } from "../../cursor/Cursor";
 import { WritableCursor } from "../../cursor/WritableCursor";
 import { WritableResizableBufferCursor } from "../../cursor/WritableResizableBufferCursor";
@@ -23,7 +22,7 @@ export class BinFile {
          */
         readonly labels: Map<number, number>,
         readonly instructions: Instruction[],
-        readonly unknown: ArrayBuffer
+        readonly shop_items: number[]
     ) {}
 
     get_label_instructions(label: number): Instruction[] | undefined {
@@ -118,7 +117,9 @@ export function parse_bin(cursor: Cursor, lenient: boolean = false): BinFile {
         logger.warn(`Value ${size} in bin size field does not match actual size ${cursor.size}.`);
     }
 
-    const unknown = cursor.take(object_code_offset - cursor.position).array_buffer();
+    cursor.seek(4); // Skip padding.
+
+    const shop_items = cursor.u32_array(932);
 
     const object_code = cursor
         .seek_start(object_code_offset)
@@ -180,7 +181,7 @@ export function parse_bin(cursor: Cursor, lenient: boolean = false): BinFile {
         long_description,
         labels,
         instructions,
-        unknown
+        shop_items
     );
 }
 
@@ -205,8 +206,17 @@ export function write_bin(bin: BinFile): ArrayBuffer {
     cursor.write_string_utf16(bin.quest_name, 64);
     cursor.write_string_utf16(bin.short_description, 256);
     cursor.write_string_utf16(bin.long_description, 576);
+    cursor.write_u32(0);
 
-    cursor.write_cursor(new ArrayBufferCursor(bin.unknown, Endianness.Little));
+    if (bin.shop_items.length > 932) {
+        throw new Error(`shop_items can't be larger than 932, was ${bin.shop_items.length}.`);
+    }
+
+    cursor.write_u32_array(bin.shop_items);
+
+    for (let i = bin.shop_items.length; i < 932; i++) {
+        cursor.write_u32(0);
+    }
 
     while (cursor.position < object_code_offset) {
         cursor.write_u8(0);
