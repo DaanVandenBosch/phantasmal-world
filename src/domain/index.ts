@@ -29,7 +29,7 @@ export enum Episode {
 export const Episodes: Episode[] = enum_values(Episode);
 
 export function check_episode(episode: Episode): void {
-    if (!Episode[episode]) {
+    if (Episode[episode] == undefined) {
         throw new Error(`Invalid episode ${episode}.`);
     }
 }
@@ -80,15 +80,74 @@ export class Section {
 }
 
 export class Quest {
-    @observable id: number;
-    @observable language: number;
-    @observable name: string;
-    @observable short_description: string;
-    @observable long_description: string;
-    @observable episode: Episode;
-    @observable area_variants: AreaVariant[];
-    @observable objects: QuestObject[];
-    @observable npcs: QuestNpc[];
+    @observable private _id!: number;
+
+    get id(): number {
+        return this._id;
+    }
+
+    @action
+    set_id(id: number): void {
+        if (!Number.isInteger(id) || id < 0 || id > 4294967295)
+            throw new Error("id must be an integer greater than 0 and less than 4294967295.");
+        this._id = id;
+    }
+
+    @observable private _language!: number;
+
+    get language(): number {
+        return this._language;
+    }
+
+    @action
+    set_language(language: number): void {
+        if (!Number.isInteger(language)) throw new Error("language must be an integer.");
+        this._language = language;
+    }
+
+    @observable private _name!: string;
+
+    get name(): string {
+        return this._name;
+    }
+
+    @action
+    set_name(name: string): void {
+        if (name.length > 32) throw new Error("name can't be longer than 32 characters.");
+        this._name = name;
+    }
+
+    @observable private _short_description!: string;
+
+    get short_description(): string {
+        return this._short_description;
+    }
+
+    @action
+    set_short_description(short_description: string): void {
+        if (short_description.length > 128)
+            throw new Error("short_description can't be longer than 128 characters.");
+        this._short_description = short_description;
+    }
+
+    @observable _long_description!: string;
+
+    get long_description(): string {
+        return this._long_description;
+    }
+
+    @action
+    set_long_description(long_description: string): void {
+        if (long_description.length > 288)
+            throw new Error("long_description can't be longer than 288 characters.");
+        this._long_description = long_description;
+    }
+
+    readonly episode: Episode;
+
+    @observable readonly area_variants: AreaVariant[];
+    @observable readonly objects: QuestObject[];
+    @observable readonly npcs: QuestNpc[];
     /**
      * (Partial) raw DAT data that can't be parsed yet by Phantasmal.
      */
@@ -112,9 +171,6 @@ export class Quest {
         instructions: Instruction[],
         shop_items: number[]
     ) {
-        if (!Number.isInteger(id) || id < 0)
-            throw new Error("id should be a non-negative integer.");
-        if (!Number.isInteger(language)) throw new Error("language should be an integer.");
         check_episode(episode);
         if (!area_variants) throw new Error("area_variants is required.");
         if (!objects || !(objects instanceof Array)) throw new Error("objs is required.");
@@ -124,11 +180,11 @@ export class Quest {
         if (!instructions) throw new Error("instructions is required.");
         if (!shop_items) throw new Error("shop_items is required.");
 
-        this.id = id;
-        this.language = language;
-        this.name = name;
-        this.short_description = short_description;
-        this.long_description = long_description;
+        this.set_id(id);
+        this.set_language(language);
+        this.set_name(name);
+        this.set_short_description(short_description);
+        this.set_long_description(long_description);
         this.episode = episode;
         this.area_variants = area_variants;
         this.objects = objects;

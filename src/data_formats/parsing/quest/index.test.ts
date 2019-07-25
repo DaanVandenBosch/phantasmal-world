@@ -1,10 +1,10 @@
-import { ObjectType, Quest } from "../../../domain";
-import { parse_quest, write_quest_qst } from "../quest";
-import { Endianness } from "../..";
-import { BufferCursor } from "../../cursor/BufferCursor";
-import { ArrayBufferCursor } from "../../cursor/ArrayBufferCursor";
-import { walk_qst_files } from "../../../../test/src/utils";
 import { readFileSync } from "fs";
+import { Endianness } from "../..";
+import { walk_qst_files } from "../../../../test/src/utils";
+import { ObjectType, Quest } from "../../../domain";
+import { ArrayBufferCursor } from "../../cursor/ArrayBufferCursor";
+import { BufferCursor } from "../../cursor/BufferCursor";
+import { parse_quest, write_quest_qst } from "../quest";
 
 test("parse Towards the Future", () => {
     const buffer = readFileSync("test/resources/quest118_e.qst");
@@ -49,7 +49,7 @@ if (process.env["RUN_ALL_TESTS"] === "true") {
     roundtrip_test(path, file_name, buffer);
 }
 
-function roundtrip_test(path: string, file_name: string, contents: Buffer) {
+function roundtrip_test(path: string, file_name: string, contents: Buffer): void {
     test(`parse_quest and write_quest_qst ${path}`, () => {
         const orig_quest = parse_quest(new BufferCursor(contents, Endianness.Little))!;
         const test_bin = write_quest_qst(orig_quest, file_name);

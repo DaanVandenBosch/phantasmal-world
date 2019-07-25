@@ -1,6 +1,6 @@
 import { editor } from "monaco-editor";
-import { AssemblyError } from "./assembly";
 import { Instruction } from "../data_formats/parsing/quest/bin";
+import { AssemblyError } from "./assembly";
 
 export type ScriptWorkerInput = NewAssemblyInput | AssemblyChangeInput;
 
@@ -19,6 +19,6 @@ export type ScriptWorkerOutput = NewErrorsOutput;
 export type NewErrorsOutput = {
     readonly type: "new_errors_output";
     readonly instructions: Instruction[];
-    readonly labels: Map<number,number>;
+    readonly labels: Map<number, number>;
     readonly errors: AssemblyError[];
 };

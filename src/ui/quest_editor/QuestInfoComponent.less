@@ -4,6 +4,7 @@
     padding: 2px 10px 10px 10px;
     display: flex;
     flex-direction: column;
+    overflow: auto;
 }
 
 .qe-QuestInfoComponent table {
@@ -11,17 +12,12 @@
     width: 100%;
 }
 
-.qe-QuestInfoComponent table tbody th {
-    text-align: right;
-    padding-right: 5px;
-}
-
-.qe-QuestInfoComponent pre {
-    padding: 8px;
-    border: solid 1px hsl(200, 10%, 30%);
-    margin: 4px 0;
+.qe-QuestInfoComponent textarea {
+    font-family: 'Courier New', Courier, monospace
 }
 
 .qe-QuestInfoComponent-npc-counts-container {
     overflow: auto;
+    min-height: 50px;
+    margin-top: 5px;
 }

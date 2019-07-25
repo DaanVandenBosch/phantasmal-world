@@ -48,7 +48,7 @@ export class EntityInfoComponent extends Component {
         }
 
         return (
-            <div className="qe-EntityInfoComponent-container" tabIndex={-1}>
+            <div className="qe-EntityInfoComponent" tabIndex={-1}>
                 {body}
             </div>
         );
