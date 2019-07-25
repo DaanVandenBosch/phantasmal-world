@@ -90,7 +90,7 @@ function replace_line_part(
             line_no - 1,
             1,
             line_start + new_line_parts[0],
-            ...new_line_parts.slice(1, new_line_parts.length - 2),
+            ...new_line_parts.slice(1, new_line_parts.length - 1),
             new_line_parts[new_line_parts.length - 1] + line_end
         );
     }

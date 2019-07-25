@@ -1,4 +1,4 @@
-import GoldenLayout, { ItemConfigType } from "golden-layout";
+import GoldenLayout, { ItemConfigType, ContentItem } from "golden-layout";
 import Logger from "js-logger";
 import { observer } from "mobx-react";
 import React, { Component, createRef, FocusEvent, ReactNode } from "react";
@@ -8,10 +8,18 @@ import { EntityInfoComponent } from "./EntityInfoComponent";
 import "./QuestEditorComponent.less";
 import { QuestInfoComponent } from "./QuestInfoComponent";
 import { QuestRendererComponent } from "./QuestRendererComponent";
-import { ScriptEditorComponent } from "./ScriptEditorComponent";
+import { AssemblyEditorComponent } from "./AssemblyEditorComponent";
 import { Toolbar } from "./Toolbar";
 
 const logger = Logger.get("ui/quest_editor/QuestEditorComponent");
+
+// Don't change these ids, as they are persisted in the user's browser.
+const CMP_TO_NAME = new Map([
+    [QuestInfoComponent, "quest_info"],
+    [QuestRendererComponent, "quest_renderer"],
+    [AssemblyEditorComponent, "assembly_editor"],
+    [EntityInfoComponent, "entity_info"],
+]);
 
 const DEFAULT_LAYOUT_CONFIG = {
     settings: {
@@ -35,7 +43,7 @@ const DEFAULT_LAYOUT_CONTENT: ItemConfigType[] = [
             {
                 title: "Info",
                 type: "react-component",
-                component: QuestInfoComponent.name,
+                component: CMP_TO_NAME.get(QuestInfoComponent),
                 isClosable: false,
                 width: 3,
             },
@@ -46,13 +54,13 @@ const DEFAULT_LAYOUT_CONTENT: ItemConfigType[] = [
                     {
                         title: "3D View",
                         type: "react-component",
-                        component: QuestRendererComponent.name,
+                        component: CMP_TO_NAME.get(QuestRendererComponent),
                         isClosable: false,
                     },
                     {
                         title: "Script",
                         type: "react-component",
-                        component: ScriptEditorComponent.name,
+                        component: CMP_TO_NAME.get(AssemblyEditorComponent),
                         isClosable: false,
                     },
                 ],
@@ -60,7 +68,7 @@ const DEFAULT_LAYOUT_CONTENT: ItemConfigType[] = [
             {
                 title: "Entity",
                 type: "react-component",
-                component: EntityInfoComponent.name,
+                component: CMP_TO_NAME.get(EntityInfoComponent),
                 isClosable: false,
                 width: 2,
             },
@@ -81,12 +89,7 @@ export class QuestEditorComponent extends Component {
         setTimeout(async () => {
             if (this.layout_element.current && !this.layout) {
                 const content = await quest_editor_ui_persister.load_layout_config(
-                    [
-                        QuestInfoComponent.name,
-                        QuestRendererComponent.name,
-                        EntityInfoComponent.name,
-                        ScriptEditorComponent.name,
-                    ],
+                    [...CMP_TO_NAME.values()],
                     DEFAULT_LAYOUT_CONTENT
                 );
 
@@ -109,16 +112,30 @@ export class QuestEditorComponent extends Component {
                     );
                 }
 
-                this.layout.registerComponent(QuestInfoComponent.name, QuestInfoComponent);
-                this.layout.registerComponent(QuestRendererComponent.name, QuestRendererComponent);
-                this.layout.registerComponent(EntityInfoComponent.name, EntityInfoComponent);
-                this.layout.registerComponent(ScriptEditorComponent.name, ScriptEditorComponent);
+                for (const [component, name] of CMP_TO_NAME) {
+                    this.layout.registerComponent(name, component);
+                }
+
                 this.layout.on("stateChanged", () => {
                     if (this.layout) {
                         quest_editor_ui_persister.persist_layout_config(
                             this.layout.toConfig().content
                         );
                     }
+                });
+
+                this.layout.on("stackCreated", (stack: ContentItem) => {
+                    stack.on("activeContentItemChanged", (item: ContentItem) => {
+                        if ("component" in item.config) {
+                            if (
+                                item.config.component === CMP_TO_NAME.get(AssemblyEditorComponent)
+                            ) {
+                                quest_editor_store.script_undo.make_current();
+                            } else {
+                                quest_editor_store.undo.make_current();
+                            }
+                        }
+                    });
                 });
 
                 this.layout.init();

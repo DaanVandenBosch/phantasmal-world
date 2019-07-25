@@ -1,6 +1,6 @@
 import { observable } from "mobx";
 import { editor } from "monaco-editor";
-import AssemblyWorker from "worker-loader!./assembly_worker_init";
+import AssemblyWorker from "worker-loader!./assembly_worker";
 import { Instruction } from "../data_formats/parsing/quest/bin";
 import { AssemblyChangeInput, NewAssemblyInput, ScriptWorkerOutput } from "./assembler_messages";
 import { AssemblyError } from "./assembly";

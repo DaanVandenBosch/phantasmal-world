@@ -110,7 +110,7 @@ editor.defineTheme("phantasmal-world", {
     },
 });
 
-export class ScriptEditorComponent extends Component {
+export class AssemblyEditorComponent extends Component {
     render(): ReactNode {
         return (
             <section id="qe-ScriptEditorComponent" className="qe-ScriptEditorComponent">
