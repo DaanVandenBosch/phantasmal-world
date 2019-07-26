@@ -1,0 +1,41 @@
+.main:global(.Select > .Select-control) {
+    cursor: pointer;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    height: 28px;
+    border-color: var(--input-border-color);
+    border-radius: 0;
+}
+
+.main:global(.Select .Select-control .Select-value .Select-value-label) {
+    color: white !important;
+}
+
+.main:global(.Select .Select-placeholder),
+.main:global(.Select .Select--single > .Select-control .Select-value) {
+    line-height: 28px;
+}
+
+.main:global(.Select .Select-input) {
+    height: 26px;
+}
+
+.main:global(.Select:hover > .Select-control) {
+    border-color: var(--hover-color);
+}
+
+.main:global(.Select.is-focused > .Select-control) {
+    background-color: var(--background-color);
+    border-color: var(--hover-color);
+}
+
+.main:global(.Select.is-focused:not(.is-open) > .Select-control) {
+    background-color: var(--background-color);
+    border-color: var(--hover-color);
+}
+
+.main:global(.Select > .Select-menu-outer) {
+    margin-top: 0;
+    background-color: var(--background-color);
+    border-color: var(--border-color);
+}

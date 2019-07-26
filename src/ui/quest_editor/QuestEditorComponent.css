@@ -1,9 +1,9 @@
-.qe-QuestEditorComponent {
+.main {
     display: flex;
     flex-direction: column;
 }
 
-.qe-QuestEditorComponent-main {
+.content {
     flex: 1;
     display: flex;
     overflow: hidden;

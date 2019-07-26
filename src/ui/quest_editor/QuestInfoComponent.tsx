@@ -4,7 +4,7 @@ import React, { ChangeEvent, Component, ReactNode } from "react";
 import { Episode, NpcType } from "../../domain";
 import { quest_editor_store } from "../../stores/QuestEditorStore";
 import { DisabledTextComponent } from "../DisabledTextComponent";
-import "./QuestInfoComponent.less";
+import styles from "./QuestInfoComponent.css";
 
 @observer
 export class QuestInfoComponent extends Component {
@@ -96,7 +96,7 @@ export class QuestInfoComponent extends Component {
                             </tr>
                         </tbody>
                     </table>
-                    <div className="qe-QuestInfoComponent-npc-counts-container">
+                    <div className={styles.npc_counts_container}>
                         <table>
                             <thead>
                                 <tr>
@@ -113,7 +113,7 @@ export class QuestInfoComponent extends Component {
         }
 
         return (
-            <div className="qe-QuestInfoComponent" tabIndex={-1}>
+            <div className={styles.main} tabIndex={-1}>
                 {body}
             </div>
         );

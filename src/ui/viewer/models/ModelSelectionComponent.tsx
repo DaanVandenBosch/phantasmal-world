@@ -2,7 +2,7 @@ import { List } from "antd";
 import { observer } from "mobx-react";
 import React, { Component, ReactNode } from "react";
 import { model_viewer_store } from "../../../stores/ModelViewerStore";
-import "./ModelSelectionComponent.less";
+import styles from "./ModelSelectionComponent.css";
 
 @observer
 export class ModelSelectionComponent extends Component {
@@ -11,7 +11,7 @@ export class ModelSelectionComponent extends Component {
         const current = model_viewer_store.current_player_model;
 
         return (
-            <section className="v-m-ModelSelectionComponent">
+            <section className={styles.main}>
                 <List
                     itemLayout="horizontal"
                     dataSource={model_viewer_store.models}
@@ -25,8 +25,8 @@ export class ModelSelectionComponent extends Component {
                                     title={
                                         <span
                                             className={
-                                                "v-m-ModelSelectionComponent-model" +
-                                                (selected ? " selected" : "")
+                                                styles.model +
+                                                (selected ? ` ${styles.selected}` : "")
                                             }
                                         >
                                             {model.name}

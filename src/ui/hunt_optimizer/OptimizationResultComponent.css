@@ -1,15 +1,13 @@
-@import "../theme.less";
-
-.ho-OptimizationResultComponent {
+.main {
     display: flex;
     flex-direction: column;
 }
 
-.ho-OptimizationResultComponent-table {
+.table {
     flex: 1;
 }
 
-.ho-OptimizationResultComponent-sid-col {
+.sid_col {
     display: inline-block;
     overflow: hidden;
     white-space: nowrap;

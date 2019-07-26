@@ -1,10 +1,10 @@
-.ErrorBoundary-error {
+.main {
     display: flex;
     flex-direction: column;
     align-items: center;
     overflow: hidden;
 }
 
-.ErrorBoundary-error > * {
+.main > * {
     margin-top: 10%;
 }

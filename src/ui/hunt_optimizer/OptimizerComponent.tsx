@@ -1,11 +1,11 @@
 import React from "react";
-import { WantedItemsComponent } from "./WantedItemsComponent";
 import { OptimizationResultComponent } from "./OptimizationResultComponent";
-import "./OptimizerComponent.css";
+import styles from "./OptimizerComponent.css";
+import { WantedItemsComponent } from "./WantedItemsComponent";
 
 export function OptimizerComponent(): JSX.Element {
     return (
-        <section className="ho-OptimizerComponent">
+        <section className={styles.main}>
             <WantedItemsComponent />
             <OptimizationResultComponent />
         </section>

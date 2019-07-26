@@ -6,7 +6,7 @@ import {
     SortDirectionType,
     SortDirection,
 } from "react-virtualized";
-import "./BigTable.less";
+import styles from "./BigTable.css";
 
 export interface Column<T> {
     key?: string;
@@ -17,7 +17,7 @@ export interface Column<T> {
     footer_value?: string;
     footer_tooltip?: string;
     /**
-     * "number" and "integrated" have special meaning.
+     * "number" has special meaning.
      */
     class_name?: string;
     sortable?: boolean;
@@ -51,7 +51,7 @@ export class BigTable<T> extends Component<{
     render(): ReactNode {
         return (
             <div
-                className="DataTable"
+                className={styles.main}
                 style={{ width: this.props.width, height: this.props.height }}
             >
                 <MultiGrid
@@ -66,8 +66,8 @@ export class BigTable<T> extends Component<{
                     fixedColumnCount={this.props.fixed_column_count}
                     overscanColumnCount={this.props.overscan_column_count}
                     cellRenderer={this.cell_renderer}
-                    classNameTopLeftGrid="DataTable-header"
-                    classNameTopRightGrid="DataTable-header"
+                    classNameTopLeftGrid={styles.header}
+                    classNameTopRightGrid={styles.header}
                     updateTigger={this.props.update_trigger}
                 />
             </div>
@@ -83,10 +83,10 @@ export class BigTable<T> extends Component<{
         let cell: ReactNode;
         let sort_indicator: ReactNode;
         let title: string | undefined;
-        const classes = ["DataTable-cell"];
+        const classes = [styles.cell];
 
         if (columnIndex === this.props.columns.length - 1) {
-            classes.push("last-in-row");
+            classes.push(styles.last_in_row);
         }
 
         if (rowIndex === 0) {
@@ -94,7 +94,7 @@ export class BigTable<T> extends Component<{
             cell = title = column.name;
 
             if (column.sortable) {
-                classes.push("sortable");
+                classes.push(styles.sortable);
 
                 const sort = this.sort_columns[0];
 
@@ -102,7 +102,7 @@ export class BigTable<T> extends Component<{
                     if (sort.direction === SortDirection.ASC) {
                         sort_indicator = (
                             <svg
-                                className="DataTable-sort-indictator"
+                                className={styles.sort_indictator}
                                 width="18"
                                 height="18"
                                 viewBox="0 0 24 24"
@@ -114,7 +114,7 @@ export class BigTable<T> extends Component<{
                     } else {
                         sort_indicator = (
                             <svg
-                                className="DataTable-sort-indictator"
+                                className={styles.sort_indictator}
                                 width="18"
                                 height="18"
                                 viewBox="0 0 24 24"
@@ -134,7 +134,7 @@ export class BigTable<T> extends Component<{
 
             if (this.props.footer && rowIndex === 1 + this.props.row_count) {
                 // Footer row
-                classes.push("footer-cell");
+                classes.push(styles.footer_cell);
                 cell = column.footer_value == null ? "" : column.footer_value;
                 title = column.footer_tooltip == null ? "" : column.footer_tooltip;
             } else {
@@ -150,7 +150,7 @@ export class BigTable<T> extends Component<{
         }
 
         if (typeof cell !== "string") {
-            classes.push("custom");
+            classes.push(styles.custom);
         }
 
         const on_click =
@@ -164,11 +164,7 @@ export class BigTable<T> extends Component<{
                 title={title}
                 onClick={on_click}
             >
-                {typeof cell === "string" ? (
-                    <span className="DataTable-cell-text">{cell}</span>
-                ) : (
-                    cell
-                )}
+                {typeof cell === "string" ? <span className={styles.cell_text}>{cell}</span> : cell}
                 {sort_indicator}
             </div>
         );

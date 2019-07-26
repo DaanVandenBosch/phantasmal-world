@@ -1,0 +1,15 @@
+.main {
+    margin: 0 10px;
+}
+
+.model {
+    cursor: pointer;
+}
+
+.model.selected {
+    color: var(--hover-color);
+}
+
+.model:hover {
+    color: --hover-color;
+}

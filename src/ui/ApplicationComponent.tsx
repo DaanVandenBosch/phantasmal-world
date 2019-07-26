@@ -3,7 +3,7 @@ import { ClickParam } from "antd/lib/menu";
 import { observer } from "mobx-react";
 import React, { ReactNode, Component } from "react";
 import { Server } from "../domain";
-import "./ApplicationComponent.less";
+import styles from "./ApplicationComponent.css";
 import { DpsCalcComponent } from "./dps_calc/DpsCalcComponent";
 import { with_error_boundary } from "./ErrorBoundary";
 import { HuntOptimizerComponent } from "./hunt_optimizer/HuntOptimizerComponent";
@@ -45,34 +45,33 @@ export class ApplicationComponent extends Component {
         }
 
         return (
-            <div className="ApplicationComponent">
-                <div className="ApplicationComponent-navbar">
-                    <h1 className="ApplicationComponent-heading">Phantasmal World</h1>
+            <div className={styles.main}>
+                <div className={styles.navbar}>
                     <Menu
-                        className="ApplicationComponent-heading-menu"
+                        className={styles.heading_menu}
                         onClick={this.menu_clicked}
                         selectedKeys={[application_store.current_tool]}
                         mode="horizontal"
                     >
                         <Menu.Item key="viewer">
-                            Viewer<sup className="ApplicationComponent-beta">(Beta)</sup>
+                            Viewer<sup className={styles.beta}>(Beta)</sup>
                         </Menu.Item>
                         <Menu.Item key="quest_editor">
-                            Quest Editor<sup className="ApplicationComponent-beta">(Beta)</sup>
+                            Quest Editor<sup className={styles.beta}>(Beta)</sup>
                         </Menu.Item>
                         <Menu.Item key="hunt_optimizer">Hunt Optimizer</Menu.Item>
                         {/* <Menu.Item key="dpsCalc">
                             DPS Calculator
                         </Menu.Item> */}
                     </Menu>
-                    <div className="ApplicationComponent-server-select">
+                    <div className={styles.server_select}>
                         <span>Server:</span>
                         <Select defaultValue={Server.Ephinea} style={{ width: 120 }}>
                             <Select.Option value={Server.Ephinea}>{Server.Ephinea}</Select.Option>
                         </Select>
                     </div>
                 </div>
-                <div className="ApplicationComponent-main">{tool_component}</div>
+                <div className={styles.content}>{tool_component}</div>
             </div>
         );
     }

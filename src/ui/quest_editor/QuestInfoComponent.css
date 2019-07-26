@@ -1,4 +1,4 @@
-.qe-QuestInfoComponent {
+.main {
     height: 100%;
     width: 100%;
     padding: 2px 10px 10px 10px;
@@ -7,16 +7,16 @@
     overflow: auto;
 }
 
-.qe-QuestInfoComponent table {
+.main table {
     border-collapse: collapse;
     width: 100%;
 }
 
-.qe-QuestInfoComponent textarea {
+.main textarea {
     font-family: 'Courier New', Courier, monospace
 }
 
-.qe-QuestInfoComponent-npc-counts-container {
+.npc_counts_container {
     overflow: auto;
     min-height: 50px;
     margin-top: 5px;

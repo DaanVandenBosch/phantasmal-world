@@ -1,24 +1,24 @@
-.ho-WantedItemsComponent {
+.main {
     display: flex;
     flex-direction: column;
     margin: 0 10px;
 }
 
-.ho-WantedItemsComponent-top-bar {
+.top_bar {
     display: flex;
 }
 
-.ho-WantedItemsComponent-table {
+.table {
     position: relative;
     flex: 1;
     margin: 10px 0 0 -10px;
 }
 
-.ho-WantedItemsComponent-no-rows {
+.no_rows {
     padding: 5px 20px;
-    color: @text-color-secondary;
+    color: var(--text-color-disabled);
 }
 
-.ho-WantedItemsComponent-help {
+.help {
     max-width: 500px;
 }

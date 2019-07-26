@@ -6,7 +6,7 @@ import { Vec3 } from "../../data_formats/vector";
 import { QuestEntity, QuestNpc } from "../../domain";
 import { quest_editor_store } from "../../stores/QuestEditorStore";
 import { DisabledTextComponent } from "../DisabledTextComponent";
-import "./EntityInfoComponent.less";
+import styles from "./EntityInfoComponent.css";
 
 @observer
 export class EntityInfoComponent extends Component {
@@ -18,7 +18,7 @@ export class EntityInfoComponent extends Component {
             const section_id = entity.section ? entity.section.id : entity.section_id;
 
             body = (
-                <table className="qe-EntityInfoComponent-table">
+                <table className={styles.table}>
                     <tbody>
                         <tr>
                             <th>{entity instanceof QuestNpc ? "NPC" : "Object"}:</th>
@@ -48,7 +48,7 @@ export class EntityInfoComponent extends Component {
         }
 
         return (
-            <div className="qe-EntityInfoComponent" tabIndex={-1}>
+            <div className={styles.main} tabIndex={-1}>
                 {body}
             </div>
         );
@@ -65,9 +65,7 @@ class CoordRow extends PureComponent<CoordProps> {
     render(): ReactNode {
         return (
             <tr>
-                <th className="qe-EntityInfoComponent-coord-label">
-                    {this.props.coord.toUpperCase()}:
-                </th>
+                <th className={styles.coord_label}>{this.props.coord.toUpperCase()}:</th>
                 <td>
                     <CoordInput {...this.props} />
                 </td>
@@ -101,7 +99,7 @@ class CoordInput extends Component<CoordProps, { value: number; initial_position
                 value={this.state.value}
                 size="small"
                 precision={3}
-                className="qe-EntityInfoComponent-coord"
+                className={styles.coord}
                 onFocus={this.focus}
                 onBlur={this.blur}
                 onChange={this.changed}

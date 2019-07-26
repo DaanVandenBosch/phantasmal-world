@@ -7,7 +7,7 @@ import { hunt_optimizer_store, OptimalMethod } from "../../stores/HuntOptimizerS
 import { BigTable, Column } from "../BigTable";
 import { SectionIdIcon } from "../SectionIdIcon";
 import { hours_to_string } from "../time";
-import "./OptimizationResultComponent.less";
+import styles from "./OptimizationResultComponent.css";
 
 @observer
 export class OptimizationResultComponent extends Component {
@@ -45,7 +45,7 @@ export class OptimizationResultComponent extends Component {
                 name: "Section ID",
                 width: 80,
                 cell_renderer: result => (
-                    <div className="ho-OptimizationResultComponent-sid-col">
+                    <div className={styles.sid_col}>
                         {result.section_ids.map(sid => (
                             <SectionIdIcon section_id={sid} key={sid} size={20} />
                         ))}
@@ -119,9 +119,9 @@ export class OptimizationResultComponent extends Component {
         const result = hunt_optimizer_store.result;
 
         return (
-            <section className="ho-OptimizationResultComponent">
+            <section className={styles.main}>
                 <h3>Optimization Result</h3>
-                <div className="ho-OptimizationResultComponent-table">
+                <div className={styles.table}>
                     <AutoSizer>
                         {({ width, height }) => (
                             <BigTable

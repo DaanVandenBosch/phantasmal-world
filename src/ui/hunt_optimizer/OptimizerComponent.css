@@ -1,11 +1,11 @@
-.ho-OptimizerComponent {
+.main {
     flex: 1;
     display: flex;
     align-items: stretch;
     padding-top: 5px;
 }
 
-.ho-OptimizerComponent > *:nth-child(2) {
+.main > *:nth-child(2) {
     flex: 1;
     overflow: hidden;
 }

@@ -5,8 +5,8 @@ import { AutoSizer } from "react-virtualized";
 import { OPCODES } from "../../data_formats/parsing/quest/bin";
 import { Assembler } from "../../scripting/Assembler";
 import { quest_editor_store } from "../../stores/QuestEditorStore";
-import "./ScriptEditorComponent.less";
 import { Action } from "../../undo";
+import styles from "./AssemblyEditorComponent.css";
 
 const ASM_SYNTAX: languages.IMonarchLanguage = {
     defaultToken: "invalid",
@@ -113,7 +113,7 @@ editor.defineTheme("phantasmal-world", {
 export class AssemblyEditorComponent extends Component {
     render(): ReactNode {
         return (
-            <section id="qe-ScriptEditorComponent" className="qe-ScriptEditorComponent">
+            <section id="qe-ScriptEditorComponent" className={styles.main}>
                 <AutoSizer>
                     {({ width, height }) => <MonacoComponent width={width} height={height} />}
                 </AutoSizer>

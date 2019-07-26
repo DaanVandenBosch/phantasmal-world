@@ -1,14 +1,14 @@
-import GoldenLayout, { ItemConfigType, ContentItem } from "golden-layout";
+import GoldenLayout, { ContentItem, ItemConfigType } from "golden-layout";
 import Logger from "js-logger";
 import { observer } from "mobx-react";
 import React, { Component, createRef, FocusEvent, ReactNode } from "react";
 import { quest_editor_ui_persister } from "../../persistence/QuestEditorUiPersister";
 import { quest_editor_store } from "../../stores/QuestEditorStore";
+import { AssemblyEditorComponent } from "./AssemblyEditorComponent";
 import { EntityInfoComponent } from "./EntityInfoComponent";
-import "./QuestEditorComponent.less";
+import styles from "./QuestEditorComponent.css";
 import { QuestInfoComponent } from "./QuestInfoComponent";
 import { QuestRendererComponent } from "./QuestRendererComponent";
-import { AssemblyEditorComponent } from "./AssemblyEditorComponent";
 import { Toolbar } from "./Toolbar";
 
 const logger = Logger.get("ui/quest_editor/QuestEditorComponent");
@@ -156,13 +156,9 @@ export class QuestEditorComponent extends Component {
 
     render(): ReactNode {
         return (
-            <div className="qe-QuestEditorComponent">
+            <div className={styles.main}>
                 <Toolbar />
-                <div
-                    className="qe-QuestEditorComponent-main"
-                    onFocus={this.focus}
-                    ref={this.layout_element}
-                />
+                <div className={styles.content} onFocus={this.focus} ref={this.layout_element} />
             </div>
         );
     }

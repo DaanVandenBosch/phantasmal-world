@@ -6,7 +6,7 @@ import {
     ReactSelectProps,
 } from "react-select";
 import VirtualizedSelect, { AdditionalVirtualizedSelectProps } from "react-virtualized-select";
-import "./BigSelect.less";
+import styles from "./BigSelect.css";
 
 /**
  * Simply wraps {@link VirtualizedSelect} to provide consistent styling.
@@ -15,7 +15,7 @@ export class BigSelect<TValue = OptionValues> extends PureComponent<
     VirtualizedSelectProps<TValue>
 > {
     render(): ReactNode {
-        return <VirtualizedSelect className="BigSelect" {...this.props} />;
+        return <VirtualizedSelect className={styles.main} {...this.props} />;
     }
 }
 

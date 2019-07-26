@@ -6,7 +6,7 @@ import React, { ChangeEvent, Component, ReactNode } from "react";
 import { Episode } from "../../domain";
 import { quest_editor_store } from "../../stores/QuestEditorStore";
 import { undo_manager } from "../../undo";
-import "./Toolbar.less";
+import styles from "./Toolbar.css";
 
 @observer
 export class Toolbar extends Component {
@@ -17,7 +17,7 @@ export class Toolbar extends Component {
         const area_id = area && area.id;
 
         return (
-            <div className="qe-Toolbar">
+            <div className={styles.main}>
                 <Dropdown
                     overlay={
                         <Menu onClick={this.new_quest}>

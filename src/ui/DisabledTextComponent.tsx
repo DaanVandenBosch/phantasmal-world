@@ -1,8 +1,8 @@
 import React, { Component, ReactNode } from "react";
-import "./DisabledTextComponent.less";
+import styles from "./DisabledTextComponent.css";
 
 export class DisabledTextComponent extends Component<{ children: string }> {
     render(): ReactNode {
-        return <div className="DisabledTextComponent">{this.props.children}</div>;
+        return <div className={styles.main}>{this.props.children}</div>;
     }
 }

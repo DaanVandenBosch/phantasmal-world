@@ -1,6 +1,6 @@
 import { Tabs } from "antd";
 import React from "react";
-import "./HuntOptimizerComponent.css";
+import styles from "./HuntOptimizerComponent.css";
 import { MethodsComponent } from "./MethodsComponent";
 import { OptimizerComponent } from "./OptimizerComponent";
 
@@ -8,7 +8,7 @@ const TabPane = Tabs.TabPane;
 
 export function HuntOptimizerComponent(): JSX.Element {
     return (
-        <section className="ho-HuntOptimizerComponent">
+        <section className={styles.main}>
             <Tabs type="card">
                 <TabPane tab="Optimize" key="optimize">
                     <OptimizerComponent />

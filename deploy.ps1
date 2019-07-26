@@ -5,8 +5,8 @@ Param([Parameter(Mandatory = $true)][Int32]$release)
 Write-Output "Deleting ./deployment contents."
 Remove-Item -Recurse ./deployment/*
 
-Write-Output "Copying build to ./deployment."
-Copy-Item -Recurse ./build/* ./deployment
+Write-Output "Copying dist to ./deployment."
+Copy-Item -Recurse ./dist/* ./deployment
 Write-Output "www.phantasmal.world" > deployment/CNAME
 
 Write-Output "Committing and pushing to gh-pages."

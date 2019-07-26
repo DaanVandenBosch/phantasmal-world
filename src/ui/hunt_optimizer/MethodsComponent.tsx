@@ -7,7 +7,7 @@ import { Episode, HuntMethod } from "../../domain";
 import { EnemyNpcTypes, NpcType } from "../../domain/NpcType";
 import { hunt_method_store } from "../../stores/HuntMethodStore";
 import { BigTable, Column, ColumnSort } from "../BigTable";
-import "./MethodsComponent.css";
+import styles from "./MethodsComponent.css";
 
 @observer
 export class MethodsComponent extends Component {
@@ -60,7 +60,7 @@ export class MethodsComponent extends Component {
         const methods = hunt_method_store.methods.current.value;
 
         return (
-            <section className="ho-MethodsComponent">
+            <section className={styles.main}>
                 <AutoSizer>
                     {({ width, height }) => (
                         <BigTable<HuntMethod>
@@ -125,7 +125,7 @@ class TimeComponent extends React.Component<{ method: HuntMethod }> {
 
         return (
             <TimePicker
-                className="ho-MethodsComponent-timepicker"
+                className={styles.timepicker}
                 value={moment({ hour, minute })}
                 format="HH:mm"
                 size="small"

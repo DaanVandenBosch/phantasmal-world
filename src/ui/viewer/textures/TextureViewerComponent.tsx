@@ -5,15 +5,15 @@ import React, { Component, ReactNode } from "react";
 import { get_texture_renderer } from "../../../rendering/TextureRenderer";
 import { texture_viewer_store } from "../../../stores/TextureViewerStore";
 import { RendererComponent } from "../../RendererComponent";
-import "./TextureViewerComponent.less";
+import styles from "./TextureViewerComponent.css";
 import { AutoSizer } from "react-virtualized";
 
 export class TextureViewerComponent extends Component {
     render(): ReactNode {
         return (
-            <section className="v-t-TextureViewerComponent">
+            <section className={styles.main}>
                 <Toolbar />
-                <div className="v-t-TextureViewerComponent-renderer">
+                <div className={styles.renderer}>
                     <AutoSizer>
                         {({ width, height }) => (
                             <RendererComponent
@@ -37,7 +37,7 @@ class Toolbar extends Component {
 
     render(): ReactNode {
         return (
-            <div className="v-t-TextureViewerComponent-toolbar">
+            <div className={styles.toolbar}>
                 <Upload
                     accept=".xvm"
                     showUploadList={false}

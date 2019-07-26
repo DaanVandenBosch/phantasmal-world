@@ -1,6 +1,6 @@
 import { Alert } from "antd";
 import React, { ReactNode, Component, ComponentType } from "react";
-import "./ErrorBoundary.css";
+import styles from "./ErrorBoundary.css";
 
 type State = { has_error: boolean };
 
@@ -12,7 +12,7 @@ export class ErrorBoundary extends Component<{}, State> {
     render(): ReactNode {
         if (this.state.has_error) {
             return (
-                <div className="ErrorBoundary-error">
+                <div className={styles.main}>
                     <div>
                         <Alert type="error" message="Something went wrong." />
                     </div>

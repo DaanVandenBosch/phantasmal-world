@@ -9,7 +9,7 @@ import { model_viewer_store } from "../../../stores/ModelViewerStore";
 import { RendererComponent } from "../../RendererComponent";
 import { AnimationSelectionComponent } from "./AnimationSelectionComponent";
 import { ModelSelectionComponent } from "./ModelSelectionComponent";
-import "./ModelViewerComponent.less";
+import styles from "./ModelViewerComponent.css";
 
 @observer
 export class ModelViewerComponent extends Component {
@@ -21,12 +21,12 @@ export class ModelViewerComponent extends Component {
 
     render(): ReactNode {
         return (
-            <div className="v-m-ModelViewerComponent">
+            <div className={styles.main}>
                 <Toolbar />
-                <div className="v-m-ModelViewerComponent-main">
+                <div className={styles.content}>
                     <ModelSelectionComponent />
                     <AnimationSelectionComponent />
-                    <div className="v-m-ModelViewerComponent-renderer">
+                    <div className={styles.renderer}>
                         <AutoSizer>
                             {({ width, height }) => (
                                 <RendererComponent
@@ -52,7 +52,7 @@ class Toolbar extends Component {
 
     render(): ReactNode {
         return (
-            <div className="v-m-ModelViewerComponent-toolbar">
+            <div className={styles.toolbar}>
                 <Upload
                     accept=".nj, .njm, .xj, .xvm"
                     showUploadList={false}
@@ -72,7 +72,7 @@ class Toolbar extends Component {
                                 ? "Pause animation"
                                 : "Play animation"}
                         </Button>
-                        <div className="group">
+                        <div className={styles.group}>
                             <span>Frame rate:</span>
                             <InputNumber
                                 value={model_viewer_store.animation_frame_rate}
@@ -83,7 +83,7 @@ class Toolbar extends Component {
                                 step={1}
                             />
                         </div>
-                        <div className="group">
+                        <div className={styles.group}>
                             <span>Frame:</span>
                             <InputNumber
                                 value={model_viewer_store.animation_frame}
@@ -96,7 +96,7 @@ class Toolbar extends Component {
                         </div>
                     </>
                 )}
-                <div className="group">
+                <div className={styles.group}>
                     <span>Show skeleton:</span>
                     <Switch
                         checked={model_viewer_store.show_skeleton}

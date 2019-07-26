@@ -1,11 +1,11 @@
 import { Button, InputNumber, Popover } from "antd";
 import { observer } from "mobx-react";
-import React, { ReactNode, Component } from "react";
+import React, { Component, ReactNode } from "react";
 import { AutoSizer, Column, Table, TableCellRenderer } from "react-virtualized";
 import { hunt_optimizer_store, WantedItem } from "../../stores/HuntOptimizerStore";
 import { item_type_stores } from "../../stores/ItemTypeStore";
 import { BigSelect } from "../BigSelect";
-import "./WantedItemsComponent.less";
+import styles from "./WantedItemsComponent.css";
 
 @observer
 export class WantedItemsComponent extends Component {
@@ -18,7 +18,7 @@ export class WantedItemsComponent extends Component {
         hunt_optimizer_store.wanted_items.slice(0, 0);
 
         return (
-            <section className="ho-WantedItemsComponent">
+            <section className={styles.main}>
                 <h3>
                     Wanted Items
                     <Popover
@@ -30,7 +30,7 @@ export class WantedItemsComponent extends Component {
                         <Button icon="info-circle" type="link" />
                     </Popover>
                 </h3>
-                <div className="ho-WantedItemsComponent-top-bar">
+                <div className={styles.top_bar}>
                     <BigSelect
                         placeholder="Add an item"
                         value={undefined}
@@ -45,7 +45,7 @@ export class WantedItemsComponent extends Component {
                         Optimize
                     </Button>
                 </div>
-                <div className="ho-WantedItemsComponent-table">
+                <div className={styles.table}>
                     <AutoSizer>
                         {({ width, height }) => (
                             <Table
@@ -114,7 +114,7 @@ export class WantedItemsComponent extends Component {
 
     private no_rows_renderer = () => {
         return (
-            <div className="ho-WantedItemsComponent-no-rows">
+            <div className={styles.no_rows}>
                 <p>
                     Add some items with the above drop down and click "Optimize" to see the result
                     on the right.
@@ -130,7 +130,7 @@ export class WantedItemsComponent extends Component {
 
 function Help(): JSX.Element {
     return (
-        <div className="ho-WantedItemsComponent-help">
+        <div className={styles.help}>
             <p>
                 Add some items with the drop down and click "Optimize" to see the optimal
                 combination of hunt methods on the right.

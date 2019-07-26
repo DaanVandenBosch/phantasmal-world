@@ -1,13 +1,13 @@
 import React, { Component, ReactNode } from "react";
 import { model_viewer_store } from "../../../stores/ModelViewerStore";
-import "./AnimationSelectionComponent.less";
+import styles from "./AnimationSelectionComponent.css";
 import { observer } from "mobx-react";
 
 @observer
 export class AnimationSelectionComponent extends Component {
     render(): ReactNode {
         return (
-            <section className="v-m-AnimationSelectionComponent">
+            <section className={styles.main}>
                 <ul>
                     {model_viewer_store.animations.map(animation => {
                         const selected =
@@ -18,7 +18,7 @@ export class AnimationSelectionComponent extends Component {
                         return (
                             <li
                                 key={animation.id}
-                                className={selected ? "selected" : undefined}
+                                className={selected ? styles.selected : undefined}
                                 onClick={() => model_viewer_store.load_animation(animation)}
                             >
                                 {animation.name}
