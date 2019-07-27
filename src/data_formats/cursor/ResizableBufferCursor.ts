@@ -1,14 +1,14 @@
 import {
+    ASCII_DECODER,
     UTF_16BE_DECODER,
     UTF_16BE_ENCODER,
     UTF_16LE_DECODER,
     UTF_16LE_ENCODER,
-    ASCII_DECODER,
 } from ".";
 import { Endianness } from "..";
 import { ResizableBuffer } from "../ResizableBuffer";
+import { Vec2, Vec3 } from "../vector";
 import { Cursor } from "./Cursor";
-import { Vec3, Vec2 } from "../vector";
 
 export class ResizableBufferCursor implements Cursor {
     private _offset: number;
@@ -236,6 +236,10 @@ export class ResizableBufferCursor implements Cursor {
         null_terminated: boolean,
         drop_remaining: boolean
     ): string {
+        if (null_terminated) {
+            max_byte_length = Math.min(max_byte_length, this.size - this.position);
+        }
+
         this.check_size("max_byte_length", max_byte_length, max_byte_length);
 
         const string_length = null_terminated
@@ -257,6 +261,10 @@ export class ResizableBufferCursor implements Cursor {
         null_terminated: boolean,
         drop_remaining: boolean
     ): string {
+        if (null_terminated) {
+            max_byte_length = Math.min(max_byte_length, this.size - this.position);
+        }
+
         this.check_size("max_byte_length", max_byte_length, max_byte_length);
 
         const string_length = null_terminated

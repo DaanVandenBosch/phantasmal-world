@@ -1,11 +1,12 @@
 import cheerio from "cheerio";
-import fs from "fs";
+import { writeFileSync } from "fs";
 import "isomorphic-fetch";
+import Logger from "js-logger";
+import { ASSETS_DIR } from ".";
 import { Difficulty, NpcType, SectionId, SectionIds } from "../src/domain";
 import { BoxDropDto, EnemyDropDto, ItemTypeDto } from "../src/dto";
-import Logger from "js-logger";
 
-const logger = Logger.get("static/update_drops_ephinea");
+const logger = Logger.get("assets_generation/update_drops_ephinea");
 
 export async function update_drops_from_website(item_types: ItemTypeDto[]): Promise<void> {
     logger.info("Updating item drops.");
@@ -21,7 +22,7 @@ export async function update_drops_from_website(item_types: ItemTypeDto[]): Prom
         4
     );
 
-    await fs.writeFileSync("./public/enemyDrops.ephinea.json", enemy_json);
+    writeFileSync(`${ASSETS_DIR}/enemyDrops.ephinea.json`, enemy_json);
 
     const box_json = JSON.stringify(
         [...normal.box_drops, ...hard.box_drops, ...vhard.box_drops, ...ultimate.box_drops],
@@ -29,7 +30,7 @@ export async function update_drops_from_website(item_types: ItemTypeDto[]): Prom
         4
     );
 
-    fs.writeFileSync("./public/boxDrops.ephinea.json", box_json);
+    writeFileSync(`${ASSETS_DIR}/boxDrops.ephinea.json`, box_json);
 
     logger.info("Done updating item drops.");
 }

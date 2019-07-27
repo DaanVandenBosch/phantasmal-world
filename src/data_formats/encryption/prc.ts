@@ -5,7 +5,7 @@ import { Endianness } from "..";
 /**
  * Decrypts the bytes left in cursor.
  */
-export function decrypt(key: number, cursor: Cursor): Cursor {
+export function prc_decrypt(key: number, cursor: Cursor): Cursor {
     return new PrcDecryptor(key).decrypt(cursor);
 }
 

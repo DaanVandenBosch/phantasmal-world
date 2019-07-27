@@ -10,7 +10,7 @@ React is used for the frontend, MobX is used for state management and THREE.js f
 
 1. Install Yarn ([https://yarnpkg.com/](https://yarnpkg.com/))
 2. cd to the project directory
-3. Launch server on [http://localhost:8080/](http://localhost:8080/) with `yarn start`
+3. Launch server on [http://localhost:1623/](http://localhost:1623/) with `yarn start`
 4. src/index.tsx is the application's entry point
 
 ### Tests

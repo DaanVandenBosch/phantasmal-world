@@ -6,8 +6,8 @@ import {
     UTF_16LE_ENCODER,
 } from ".";
 import { Endianness } from "..";
+import { Vec2, Vec3 } from "../vector";
 import { Cursor } from "./Cursor";
-import { Vec3, Vec2 } from "../vector";
 
 /**
  * A cursor for reading from an array buffer or part of an array buffer.
@@ -206,6 +206,10 @@ export class ArrayBufferCursor implements Cursor {
         null_terminated: boolean,
         drop_remaining: boolean
     ): string {
+        if (null_terminated) {
+            max_byte_length = Math.min(max_byte_length, this.size - this.position);
+        }
+
         const string_length = null_terminated
             ? this.index_of_u8(0, max_byte_length) - this.position
             : max_byte_length;
@@ -225,6 +229,10 @@ export class ArrayBufferCursor implements Cursor {
         null_terminated: boolean,
         drop_remaining: boolean
     ): string {
+        if (null_terminated) {
+            max_byte_length = Math.min(max_byte_length, this.size - this.position);
+        }
+
         const string_length = null_terminated
             ? this.index_of_u16(0, max_byte_length) - this.position
             : Math.floor(max_byte_length / 2) * 2;

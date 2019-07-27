@@ -1,5 +1,10 @@
-import fs from "fs";
-import { parse_item_pmt, ItemPmt } from "../src/data_formats/parsing/itempmt";
+import { readdirSync, readFileSync, statSync, writeFileSync } from "fs";
+import Logger from "js-logger";
+import { ASSETS_DIR, RESOURCE_DIR } from ".";
+import { Endianness } from "../src/data_formats";
+import { BufferCursor } from "../src/data_formats/cursor/BufferCursor";
+import { ItemPmt, parse_item_pmt } from "../src/data_formats/parsing/itempmt";
+import { parse_quest } from "../src/data_formats/parsing/quest";
 import { parse_unitxt, Unitxt } from "../src/data_formats/parsing/unitxt";
 import {
     Difficulties,
@@ -13,12 +18,8 @@ import {
 import { NpcTypes } from "../src/domain/NpcType";
 import { BoxDropDto, EnemyDropDto, ItemTypeDto, QuestDto } from "../src/dto";
 import { update_drops_from_website } from "./update_drops_ephinea";
-import { parse_quest } from "../src/data_formats/parsing/quest";
-import { BufferCursor } from "../src/data_formats/cursor/BufferCursor";
-import Logger from "js-logger";
-import { Endianness } from "../src/data_formats";
 
-const logger = Logger.get("static/update_ephinea_data");
+const logger = Logger.get("assets_generation/update_ephinea_data");
 
 Logger.useDefaults({ defaultLevel: Logger.ERROR });
 logger.setLevel(Logger.INFO);
@@ -29,11 +30,7 @@ Logger.get("data_formats/parsing/quest/bin").setLevel(Logger.OFF);
 /**
  * Used by static data generation scripts.
  */
-const RESOURCE_DIR = "./static/resources/ephinea";
-/**
- * Used by production code.
- */
-const PUBLIC_DIR = "./public";
+const EPHINEA_RESOURCE_DIR = `${RESOURCE_DIR}/ephinea`;
 /**
  * Enable this if we ever get the Ephinea ItemPT.gsl file.
  */
@@ -56,8 +53,8 @@ async function update(): Promise<void> {
     const items = update_items(item_names);
 
     if (USE_ITEMPT) {
-        const item_pt = await load_item_pt();
-        await update_drops(item_pt);
+        const item_pt = load_item_pt();
+        update_drops(item_pt);
     } else {
         await update_drops_from_website(items);
     }
@@ -80,11 +77,11 @@ async function update(): Promise<void> {
  *  - The Value of Money (quest3_e.dat, can't be parsed, luckily doesn't have enemies)
  * Note: The MA4R quests use a random area variation per area from the ABC MA quests. E.g. MA4-1R will use a random caves 2 variation from MA4-1A, MA4-1B or MA4-1C. Same for mines 2 and ruins 2.
  */
-function update_quests(): Promise<void> {
+function update_quests(): void {
     logger.info("Updating quest data.");
 
     const quests = new Array<QuestDto>();
-    process_quest_dir(`${RESOURCE_DIR}/ship-config/quest`, quests);
+    process_quest_dir(`${EPHINEA_RESOURCE_DIR}/ship-config/quest`, quests);
 
     quests.sort((a, b) => a.episode - b.episode || a.name.localeCompare(b.name));
 
@@ -100,18 +97,18 @@ function update_quests(): Promise<void> {
         }
     }
 
-    fs.writeFileSync(`${PUBLIC_DIR}/quests.ephinea.json`, JSON.stringify(quests, null, 4));
+    writeFileSync(`${ASSETS_DIR}/quests.ephinea.json`, JSON.stringify(quests, null, 4));
 
     logger.info("Done updating quest data.");
 }
 
 function process_quest_dir(path: string, quests: QuestDto[]): void {
-    const stat = fs.statSync(path);
+    const stat = statSync(path);
 
     if (stat.isFile()) {
         process_quest(path, quests);
     } else if (stat.isDirectory()) {
-        for (const file of fs.readdirSync(path)) {
+        for (const file of readdirSync(path)) {
             process_quest_dir(`${path}/${file}`, quests);
         }
     }
@@ -119,7 +116,7 @@ function process_quest_dir(path: string, quests: QuestDto[]): void {
 
 function process_quest(path: string, quests: QuestDto[]): void {
     try {
-        const buf = fs.readFileSync(path);
+        const buf = readFileSync(path);
         const q = parse_quest(new BufferCursor(buf, Endianness.Little), true);
 
         if (q) {
@@ -154,7 +151,7 @@ function process_quest(path: string, quests: QuestDto[]): void {
 function load_unitxt(): Unitxt {
     logger.info("Loading unitxt_j.prs.");
 
-    const buf = fs.readFileSync(`${RESOURCE_DIR}/client/data/unitxt_j.prs`);
+    const buf = readFileSync(`${EPHINEA_RESOURCE_DIR}/client/data/unitxt_j.prs`);
 
     const unitxt = parse_unitxt(new BufferCursor(buf, Endianness.Little));
     // Strip custom Ephinea items until we have the Ephinea ItemPMT.bin.
@@ -168,7 +165,7 @@ function load_unitxt(): Unitxt {
 function update_items(item_names: string[]): ItemTypeDto[] {
     logger.info("Updating item type data.");
 
-    const buf = fs.readFileSync(`${RESOURCE_DIR}/ship-config/param/ItemPMT.bin`);
+    const buf = readFileSync(`${EPHINEA_RESOURCE_DIR}/ship-config/param/ItemPMT.bin`);
 
     const item_pmt = parse_item_pmt(new BufferCursor(buf, Endianness.Little));
     const item_types = new Array<ItemTypeDto>();
@@ -264,7 +261,7 @@ function update_items(item_names: string[]): ItemTypeDto[] {
         });
     });
 
-    fs.writeFileSync(`${PUBLIC_DIR}/itemTypes.ephinea.json`, JSON.stringify(item_types, null, 4));
+    writeFileSync(`${ASSETS_DIR}/itemTypes.ephinea.json`, JSON.stringify(item_types, null, 4));
 
     logger.info("Done updating item type data.");
     return item_types;
@@ -283,7 +280,7 @@ function update_drops(item_pt: ItemPt): void {
         }
     }
 
-    fs.writeFileSync(`${PUBLIC_DIR}/enemyDrops.ephinea.json`, JSON.stringify(enemy_drops, null, 4));
+    writeFileSync(`${ASSETS_DIR}/enemyDrops.ephinea.json`, JSON.stringify(enemy_drops, null, 4));
 
     const box_drops = new Array<BoxDropDto>();
 
@@ -295,7 +292,7 @@ function update_drops(item_pt: ItemPt): void {
         }
     }
 
-    fs.writeFileSync(`${PUBLIC_DIR}/boxDrops.ephinea.json`, JSON.stringify(box_drops, null, 4));
+    writeFileSync(`${ASSETS_DIR}/boxDrops.ephinea.json`, JSON.stringify(box_drops, null, 4));
 
     logger.info("Done updating drop data.");
 }
@@ -305,11 +302,11 @@ type ItemP = {
 };
 type ItemPt = ItemP[][][];
 
-async function load_item_pt(): Promise<ItemPt> {
+function load_item_pt(): ItemPt {
     logger.info("Loading ItemPT.gsl.");
 
     const table: ItemPt = [];
-    const buf = await fs.promises.readFile(`${RESOURCE_DIR}/ship-config/param/ItemPT.gsl`);
+    const buf = readFileSync(`${EPHINEA_RESOURCE_DIR}/ship-config/param/ItemPT.gsl`);
     const cursor = new BufferCursor(buf, Endianness.Big);
 
     cursor.seek(0x3000);
@@ -522,8 +519,8 @@ function load_enemy_drops(
     section_id: SectionId
 ): EnemyDropDto[] {
     const drops: EnemyDropDto[] = [];
-    const drops_buf = fs.readFileSync(
-        `${RESOURCE_DIR}/login-config/drop/ep${episode}_mob_${difficulty}_${section_id}.txt`
+    const drops_buf = readFileSync(
+        `${EPHINEA_RESOURCE_DIR}/login-config/drop/ep${episode}_mob_${difficulty}_${section_id}.txt`
     );
 
     let line_no = 0;
@@ -570,8 +567,8 @@ function load_box_drops(
     section_id: SectionId
 ): BoxDropDto[] {
     const drops: BoxDropDto[] = [];
-    const drops_buf = fs.readFileSync(
-        `${RESOURCE_DIR}/login-config/drop/ep${episode}_box_${difficulty}_${section_id}.txt`
+    const drops_buf = readFileSync(
+        `${EPHINEA_RESOURCE_DIR}/login-config/drop/ep${episode}_box_${difficulty}_${section_id}.txt`
     );
 
     let line_no = 0;
