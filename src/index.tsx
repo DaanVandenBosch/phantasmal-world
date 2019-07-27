@@ -11,7 +11,7 @@ import "golden-layout/src/css/goldenlayout-dark-theme.css";
 import "antd/dist/antd.less";
 
 Logger.useDefaults({
-    defaultLevel: (Logger as any)[process.env["REACT_APP_LOG_LEVEL"] || "OFF"],
+    defaultLevel: (Logger as any)[process.env["LOG_LEVEL"] || "OFF"],
 });
 
 const root_element = document.createElement("div");

@@ -236,10 +236,6 @@ export class ResizableBufferCursor implements Cursor {
         null_terminated: boolean,
         drop_remaining: boolean
     ): string {
-        if (null_terminated) {
-            max_byte_length = Math.min(max_byte_length, this.size - this.position);
-        }
-
         this.check_size("max_byte_length", max_byte_length, max_byte_length);
 
         const string_length = null_terminated
@@ -261,10 +257,6 @@ export class ResizableBufferCursor implements Cursor {
         null_terminated: boolean,
         drop_remaining: boolean
     ): string {
-        if (null_terminated) {
-            max_byte_length = Math.min(max_byte_length, this.size - this.position);
-        }
-
         this.check_size("max_byte_length", max_byte_length, max_byte_length);
 
         const string_length = null_terminated

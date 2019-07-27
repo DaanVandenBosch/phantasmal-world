@@ -24,7 +24,7 @@ export function parse_unitxt(buf: Cursor, compressed: boolean = true): Unitxt {
 
         for (const entry_offset of category_entry_offset) {
             buf.seek_start(entry_offset);
-            const str = buf.string_utf16(1024, true, true);
+            const str = buf.string_utf16(Math.min(1024, buf.bytes_left), true, true);
             entries.push(str);
         }
     }

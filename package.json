@@ -4,7 +4,6 @@
     "private": true,
     "license": "MIT",
     "dependencies": {
-        "@types/jest": "24.0.15",
         "@types/lodash": "^4.14.132",
         "@types/react": "16.8.20",
         "@types/react-dom": "16.8.4",
@@ -31,7 +30,7 @@
     "scripts": {
         "start": "webpack-dev-server --port 1623 --config webpack.dev.js",
         "buildweb": "webpack --config webpack.prod.js",
-        "test": "scripts/test.js",
+        "test": "jest",
         "update_generic_data": "ts-node --project=tsconfig-scripts.json assets_generation/update_generic_data.ts",
         "update_ephinea_data": "ts-node --project=tsconfig-scripts.json assets_generation/update_ephinea_data.ts",
         "lint": "prettier --check \"{src,assets_generation,test}/**/*.{ts,tsx}\" && echo Linting... && eslint \"{src,assets_generation,test}/**/*.{ts,tsx}\" && echo All code passes the prettier and eslint checks."
@@ -41,6 +40,7 @@
     },
     "devDependencies": {
         "@types/cheerio": "^0.22.11",
+        "@types/jest": "^24.0.15",
         "@typescript-eslint/eslint-plugin": "^1.13.0",
         "@typescript-eslint/parser": "^1.13.0",
         "cheerio": "^1.0.0-rc.3",
@@ -56,6 +56,7 @@
         "file-loader": "^4.1.0",
         "fork-ts-checker-webpack-plugin": "^1.4.3",
         "html-webpack-plugin": "^3.2.0",
+        "jest": "^24.8.0",
         "less": "^3.9.0",
         "less-loader": "^5.0.0",
         "mini-css-extract-plugin": "^0.8.0",
@@ -63,6 +64,7 @@
         "optimize-css-assets-webpack-plugin": "^5.0.3",
         "prettier": "1.18.2",
         "terser-webpack-plugin": "^1.3.0",
+        "ts-jest": "^24.0.2",
         "ts-loader": "^6.0.4",
         "ts-node": "^8.3.0",
         "typescript": "^3.5.3",
