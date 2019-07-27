@@ -1,6 +1,6 @@
-import { WritableResizableBufferCursor } from "./WritableResizableBufferCursor";
-import { ResizableBuffer } from "../ResizableBuffer";
 import { Endianness } from "..";
+import { ResizableBuffer } from "../ResizableBuffer";
+import { ResizableBufferCursor } from "./ResizableBufferCursor";
 
 /**
  * Writes two integers to a cursor backed with a buffer of size 0.
@@ -13,7 +13,7 @@ function test_integer_write(method_name: string): void {
         let expected_number_2 = 7348942;
 
         const buf = new ResizableBuffer(8);
-        const cursor = new WritableResizableBufferCursor(buf, Endianness.Little);
+        const cursor = new ResizableBufferCursor(buf, Endianness.Little);
 
         expect(buf.size).toBe(0);
         expect(cursor.size).toBe(0);
@@ -33,7 +33,7 @@ test_integer_write("write_u32");
 test_integer_write("write_i32");
 
 test("write, seek backwards then take", () => {
-    const cursor = new WritableResizableBufferCursor(new ResizableBuffer(0), Endianness.Little);
+    const cursor = new ResizableBufferCursor(new ResizableBuffer(0), Endianness.Little);
     cursor
         .write_u32(1)
         .write_u32(2)

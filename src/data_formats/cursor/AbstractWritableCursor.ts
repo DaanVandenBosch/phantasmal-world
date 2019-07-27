@@ -1,21 +1,10 @@
-import { WritableCursor } from "./WritableCursor";
-import { ResizableBufferCursor } from "./ResizableBufferCursor";
+import { Vec2, Vec3 } from "../vector";
+import { AbstractCursor } from "./AbstractCursor";
 import { Cursor } from "./Cursor";
-import { ASCII_ENCODER } from ".";
-import { Vec3, Vec2 } from "../vector";
+import { WritableCursor } from "./WritableCursor";
 
-export class WritableResizableBufferCursor extends ResizableBufferCursor implements WritableCursor {
-    get size(): number {
-        return this._size;
-    }
-
-    set size(size: number) {
-        if (size > this._size) {
-            this.ensure_size(size - this._size);
-        } else {
-            this._size = size;
-        }
-    }
+export abstract class AbstractWritableCursor extends AbstractCursor implements WritableCursor {
+    abstract size: number;
 
     write_u8(value: number): this {
         this.ensure_size(1);
@@ -53,9 +42,7 @@ export class WritableResizableBufferCursor extends ResizableBufferCursor impleme
 
     write_u8_array(array: number[]): this {
         this.ensure_size(array.length);
-        new Uint8Array(this.buffer.backing_buffer, this.offset + this.position).set(
-            new Uint8Array(array)
-        );
+        new Uint8Array(this.backing_buffer, this.offset + this.position).set(new Uint8Array(array));
         this._position += array.length;
         return this;
     }
@@ -104,7 +91,7 @@ export class WritableResizableBufferCursor extends ResizableBufferCursor impleme
         this.ensure_size(size);
 
         other.copy_to_uint8_array(
-            new Uint8Array(this.buffer.backing_buffer, this.offset + this.position, size),
+            new Uint8Array(this.backing_buffer, this.offset + this.position, size),
             size
         );
 
@@ -115,15 +102,15 @@ export class WritableResizableBufferCursor extends ResizableBufferCursor impleme
     write_string_ascii(str: string, byte_length: number): this {
         this.ensure_size(byte_length);
 
-        const encoded = ASCII_ENCODER.encode(str);
-        const encoded_length = Math.min(encoded.byteLength, byte_length);
-        let i = 0;
+        const len = Math.min(byte_length, str.length);
 
-        while (i < encoded_length) {
-            this.write_u8(encoded[i++]);
+        for (let i = 0; i < len; i++) {
+            this.write_u8(str.codePointAt(i)!);
         }
 
-        while (i++ < byte_length) {
+        let pad_len = byte_length - len;
+
+        for (let i = 0; i < pad_len; i++) {
             this.write_u8(0);
         }
 
@@ -133,30 +120,25 @@ export class WritableResizableBufferCursor extends ResizableBufferCursor impleme
     write_string_utf16(str: string, byte_length: number): this {
         this.ensure_size(byte_length);
 
-        const encoded = this.utf16_encoder.encode(str);
-        const encoded_length = Math.min(encoded.byteLength, byte_length);
-        let i = 0;
+        const max_len = Math.floor(byte_length / 2);
+        const len = Math.min(max_len, str.length);
 
-        while (i < encoded_length) {
-            this.write_u8(encoded[i++]);
+        for (let i = 0; i < len; i++) {
+            this.write_u16(str.codePointAt(i)!);
         }
 
-        while (i++ < byte_length) {
-            this.write_u8(0);
+        let pad_len = max_len - len;
+
+        for (let i = 0; i < pad_len; i++) {
+            this.write_u16(0);
         }
 
         return this;
     }
 
-    private ensure_size(size: number): void {
-        const needed = this.position + size - this._size;
-
-        if (needed > 0) {
-            this._size += needed;
-
-            if (this.buffer.size < this.offset + this._size) {
-                this.buffer.size = this.offset + this._size;
-            }
+    protected ensure_size(size: number): void {
+        if (size > this.bytes_left) {
+            throw new Error(`${size} Bytes required but only ${this.bytes_left} available.`);
         }
     }
 }

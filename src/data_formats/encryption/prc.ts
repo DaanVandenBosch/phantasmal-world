@@ -1,6 +1,6 @@
-import { Cursor } from "../cursor/Cursor";
-import { WritableArrayBufferCursor } from "../cursor/WritableArrayBufferCursor";
 import { Endianness } from "..";
+import { ArrayBufferCursor } from "../cursor/ArrayBufferCursor";
+import { Cursor } from "../cursor/Cursor";
 
 /**
  * Decrypts the bytes left in cursor.
@@ -21,10 +21,7 @@ class PrcDecryptor {
         // Size should be divisible by 4.
         const actual_size = cursor.bytes_left;
         const size = Math.ceil(actual_size / 4) * 4;
-        const out_cursor = new WritableArrayBufferCursor(
-            new ArrayBuffer(actual_size),
-            cursor.endianness
-        );
+        const out_cursor = new ArrayBufferCursor(new ArrayBuffer(actual_size), cursor.endianness);
 
         for (let pos = 0; pos < size; pos += 4) {
             let u32;

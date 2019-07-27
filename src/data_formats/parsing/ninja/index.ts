@@ -128,9 +128,14 @@ function parse_ninja<M extends NjModel>(
     context: any
 ): NjObject<M>[] {
     // POF0 and other chunks types are ignored.
-    return parse_iff(cursor)
-        .filter(chunk => chunk.type === NJCM)
-        .flatMap(chunk => parse_sibling_objects(chunk.data, parse_model, context));
+    const njcm_chunks = parse_iff(cursor).filter(chunk => chunk.type === NJCM);
+    const objects: NjObject<M>[] = [];
+
+    for (const chunk of njcm_chunks) {
+        objects.push(...parse_sibling_objects(chunk.data, parse_model, context));
+    }
+
+    return objects;
 }
 
 // TODO: cache model and object offsets so we don't reparse the same data.

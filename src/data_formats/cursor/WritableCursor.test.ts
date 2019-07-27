@@ -1,9 +1,9 @@
 import { Endianness } from "..";
 import { enum_values } from "../../enums";
 import { ResizableBuffer } from "../ResizableBuffer";
-import { WritableArrayBufferCursor } from "./WritableArrayBufferCursor";
+import { ArrayBufferCursor } from "./ArrayBufferCursor";
+import { ResizableBufferCursor } from "./ResizableBufferCursor";
 import { WritableCursor } from "./WritableCursor";
-import { WritableResizableBufferCursor } from "./WritableResizableBufferCursor";
 
 /**
  * Run a test on every writable cursor implementation with every endianness.
@@ -33,14 +33,14 @@ function test_all(
 
     const cursors: [string, Endianness, WritableCursor][] = [
         ...endiannesses.map(endianness => [
-            WritableArrayBufferCursor.name,
+            ArrayBufferCursor.name,
             endianness,
-            new WritableArrayBufferCursor(new Uint8Array(bytes(endianness)).buffer, endianness),
+            new ArrayBufferCursor(new Uint8Array(bytes(endianness)).buffer, endianness),
         ]),
         ...endiannesses.map(endianness => [
-            WritableResizableBufferCursor.name,
+            ResizableBufferCursor.name,
             endianness,
-            new WritableResizableBufferCursor(rbuf(endianness), endianness),
+            new ResizableBufferCursor(rbuf(endianness), endianness),
         ]),
     ] as any;
 

@@ -5,8 +5,6 @@ import { ArrayBufferCursor } from "./ArrayBufferCursor";
 import { BufferCursor } from "./BufferCursor";
 import { Cursor } from "./Cursor";
 import { ResizableBufferCursor } from "./ResizableBufferCursor";
-import { WritableArrayBufferCursor } from "./WritableArrayBufferCursor";
-import { WritableResizableBufferCursor } from "./WritableResizableBufferCursor";
 
 /**
  * Run a test on every cursor implementation with every endianness.
@@ -49,16 +47,6 @@ function test_all(
             ResizableBufferCursor.name,
             endianness,
             new ResizableBufferCursor(rbuf(endianness), endianness),
-        ]),
-        ...endiannesses.map(endianness => [
-            WritableArrayBufferCursor.name,
-            endianness,
-            new WritableArrayBufferCursor(new Uint8Array(bytes(endianness)).buffer, endianness),
-        ]),
-        ...endiannesses.map(endianness => [
-            WritableResizableBufferCursor.name,
-            endianness,
-            new WritableResizableBufferCursor(rbuf(endianness), endianness),
         ]),
     ] as any;
 

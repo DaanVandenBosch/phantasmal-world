@@ -1,11 +1,10 @@
 import Logger from "js-logger";
-import { Cursor } from "../../cursor/Cursor";
-import { WritableArrayBufferCursor } from "../../cursor/WritableArrayBufferCursor";
 import { Endianness } from "../..";
-import { WritableCursor } from "../../cursor/WritableCursor";
-import { WritableResizableBufferCursor } from "../../cursor/WritableResizableBufferCursor";
-import { ResizableBuffer } from "../../ResizableBuffer";
 import { ArrayBufferCursor } from "../../cursor/ArrayBufferCursor";
+import { Cursor } from "../../cursor/Cursor";
+import { ResizableBufferCursor } from "../../cursor/ResizableBufferCursor";
+import { WritableCursor } from "../../cursor/WritableCursor";
+import { ResizableBuffer } from "../../ResizableBuffer";
 
 const logger = Logger.get("data_formats/parsing/quest/qst");
 
@@ -92,7 +91,7 @@ export function write_qst(params: WriteQstParams): ArrayBuffer {
         .map(f => 88 + Math.ceil(f.data.byteLength / 1024) * 1056)
         .reduce((a, b) => a + b);
     const buffer = new ArrayBuffer(total_size);
-    const cursor = new WritableArrayBufferCursor(buffer, Endianness.Little);
+    const cursor = new ArrayBufferCursor(buffer, Endianness.Little);
 
     write_file_headers(cursor, files);
     write_file_chunks(cursor, files);
@@ -166,7 +165,7 @@ function parse_files(cursor: Cursor, expected_sizes: Map<string, number>): QstCo
                 (file = {
                     name: file_name,
                     expected_size,
-                    cursor: new WritableResizableBufferCursor(
+                    cursor: new ResizableBufferCursor(
                         new ResizableBuffer(expected_size || 10 * 1024),
                         Endianness.Little
                     ),

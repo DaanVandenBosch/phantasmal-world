@@ -1,8 +1,8 @@
 import Logger from "js-logger";
 import { Endianness } from "../..";
 import { Cursor } from "../../cursor/Cursor";
+import { ResizableBufferCursor } from "../../cursor/ResizableBufferCursor";
 import { WritableCursor } from "../../cursor/WritableCursor";
-import { WritableResizableBufferCursor } from "../../cursor/WritableResizableBufferCursor";
 import { ResizableBuffer } from "../../ResizableBuffer";
 import { Opcode, OPCODES, Type } from "./opcodes";
 
@@ -195,7 +195,7 @@ export function write_bin(bin: BinFile): ArrayBuffer {
     const buffer = new ResizableBuffer(
         object_code_offset + 10 * bin.instructions.length + 4 * labels.length
     );
-    const cursor = new WritableResizableBufferCursor(buffer, Endianness.Little);
+    const cursor = new ResizableBufferCursor(buffer, Endianness.Little);
 
     cursor.write_u32(object_code_offset);
     cursor.write_u32(0); // Placeholder for the labels offset.

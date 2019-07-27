@@ -1,6 +1,6 @@
 import { Cursor } from "../../cursor/Cursor";
+import { ResizableBufferCursor } from "../../cursor/ResizableBufferCursor";
 import { WritableCursor } from "../../cursor/WritableCursor";
-import { WritableResizableBufferCursor } from "../../cursor/WritableResizableBufferCursor";
 import { ResizableBuffer } from "../../ResizableBuffer";
 
 export function prs_compress(src: Cursor): Cursor {
@@ -117,10 +117,7 @@ class Context {
 
     constructor(cursor: Cursor) {
         this.src = cursor;
-        this.dst = new WritableResizableBufferCursor(
-            new ResizableBuffer(cursor.size),
-            cursor.endianness
-        );
+        this.dst = new ResizableBufferCursor(new ResizableBuffer(cursor.size), cursor.endianness);
     }
 
     set_bit(bit: number): void {

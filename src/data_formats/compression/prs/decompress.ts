@@ -1,7 +1,7 @@
 import Logger from "js-logger";
 import { Cursor } from "../../cursor/Cursor";
+import { ResizableBufferCursor } from "../../cursor/ResizableBufferCursor";
 import { WritableCursor } from "../../cursor/WritableCursor";
-import { WritableResizableBufferCursor } from "../../cursor/WritableResizableBufferCursor";
 import { ResizableBuffer } from "../../ResizableBuffer";
 
 const logger = Logger.get("data_formats/compression/prs/decompress");
@@ -63,7 +63,7 @@ class Context {
 
     constructor(cursor: Cursor) {
         this.src = cursor;
-        this.dst = new WritableResizableBufferCursor(
+        this.dst = new ResizableBufferCursor(
             new ResizableBuffer(Math.floor(1.5 * cursor.size)),
             cursor.endianness
         );

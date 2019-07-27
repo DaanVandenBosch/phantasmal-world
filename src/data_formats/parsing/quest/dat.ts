@@ -2,7 +2,7 @@ import Logger from "js-logger";
 import { groupBy } from "lodash";
 import { Endianness } from "../..";
 import { Cursor } from "../../cursor/Cursor";
-import { WritableResizableBufferCursor } from "../../cursor/WritableResizableBufferCursor";
+import { ResizableBufferCursor } from "../../cursor/ResizableBufferCursor";
 import { ResizableBuffer } from "../../ResizableBuffer";
 import { Vec3 } from "../../vector";
 
@@ -159,7 +159,7 @@ export function write_dat({ objs, npcs, unknowns }: DatFile): ResizableBuffer {
             npcs.length * (16 + NPC_SIZE) +
             unknowns.reduce((a, b) => a + b.total_size, 0)
     );
-    const cursor = new WritableResizableBufferCursor(buffer, Endianness.Little);
+    const cursor = new ResizableBufferCursor(buffer, Endianness.Little);
 
     const grouped_objs = groupBy(objs, obj => obj.area_id);
     const obj_area_ids = Object.keys(grouped_objs)
