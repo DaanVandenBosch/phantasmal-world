@@ -168,6 +168,19 @@ export abstract class AbstractCursor implements Cursor {
         return array;
     }
 
+    i32_array(n: number): number[] {
+        this.check_size("n", n, 4 * n);
+
+        const array = [];
+
+        for (let i = 0; i < n; ++i) {
+            array.push(this.dv.getInt32(this.offset + this.position, this.little_endian));
+            this._position += 4;
+        }
+
+        return array;
+    }
+
     vec2_f32(): Vec2 {
         return new Vec2(this.f32(), this.f32());
     }

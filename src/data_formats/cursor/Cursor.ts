@@ -129,6 +129,11 @@ export interface Cursor {
     u32_array(n: number): number[];
 
     /**
+     * Reads n signed 32-bit integers and increments position by 4n.
+     */
+    i32_array(n: number): number[];
+
+    /**
      * Reads 2 32-bit floating point numbers and increments position by 8.
      */
     vec2_f32(): Vec2;

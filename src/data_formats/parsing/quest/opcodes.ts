@@ -23,17 +23,25 @@ export enum Type {
      */
     F32,
     /**
-     * Register reference
+     * Register reference.
      */
     Register,
     /**
-     * Arbitrary amount of u8 arguments.
+     * Named reference to an instruction.
+     */
+    ILabel,
+    /**
+     * Named reference to a data segment.
+     */
+    DLabel,
+    /**
+     * Arbitrary amount of U8 arguments.
      */
     U8Var,
     /**
-     * Arbitrary amount of u16 arguments.
+     * Arbitrary amount of ILabel arguments.
      */
-    U16Var,
+    ILabelVar,
     /**
      * String of arbitrary size.
      */
@@ -53,7 +61,7 @@ export class Opcode {
     /**
      * Byte size of the instruction code, either 1 or 2.
      */
-    readonly code_size: number;
+    readonly size: number;
 
     constructor(
         /**
@@ -75,7 +83,7 @@ export class Opcode {
          */
         readonly stack_params: Param[]
     ) {
-        this.code_size = this.code < 256 ? 1 : 2;
+        this.size = this.code < 256 ? 1 : 2;
     }
 
     static readonly nop = (OPCODES[0x00] = new Opcode(0x00, "nop", [], false, []));
@@ -87,7 +95,7 @@ export class Opcode {
     static readonly thread = (OPCODES[0x04] = new Opcode(
         0x04,
         "thread",
-        [{ type: Type.U16 }],
+        [{ type: Type.ILabel }],
         false,
         []
     ));
@@ -96,7 +104,7 @@ export class Opcode {
     static readonly va_call = (OPCODES[0x07] = new Opcode(
         0x07,
         "va_call",
-        [{ type: Type.U16 }],
+        [{ type: Type.ILabel }],
         false,
         []
     ));
@@ -291,182 +299,182 @@ export class Opcode {
     static readonly jmp = (OPCODES[0x28] = new Opcode(
         0x28,
         "jmp",
-        [{ type: Type.U16 }],
+        [{ type: Type.ILabel }],
         false,
         []
     ));
     static readonly call = (OPCODES[0x29] = new Opcode(
         0x29,
         "call",
-        [{ type: Type.U16 }],
+        [{ type: Type.ILabel }],
         false,
         []
     ));
     static readonly jmp_on = (OPCODES[0x2a] = new Opcode(
         0x2a,
         "jmp_on",
-        [{ type: Type.U16 }, { type: Type.U8Var }],
+        [{ type: Type.ILabel }, { type: Type.U8Var }],
         false,
         []
     ));
     static readonly jmp_off = (OPCODES[0x2b] = new Opcode(
         0x2b,
         "jmp_off",
-        [{ type: Type.U16 }, { type: Type.U8Var }],
+        [{ type: Type.ILabel }, { type: Type.U8Var }],
         false,
         []
     ));
     static readonly jmp_e = (OPCODES[0x2c] = new Opcode(
         0x2c,
         "jmp_=",
-        [{ type: Type.Register }, { type: Type.Register }, { type: Type.U16 }],
+        [{ type: Type.Register }, { type: Type.Register }, { type: Type.ILabel }],
         false,
         []
     ));
     static readonly jmpi_e = (OPCODES[0x2d] = new Opcode(
         0x2d,
         "jmpi_=",
-        [{ type: Type.Register }, { type: Type.I32 }, { type: Type.U16 }],
+        [{ type: Type.Register }, { type: Type.I32 }, { type: Type.ILabel }],
         false,
         []
     ));
     static readonly jmp_ne = (OPCODES[0x2e] = new Opcode(
         0x2e,
         "jmp_!=",
-        [{ type: Type.Register }, { type: Type.Register }, { type: Type.U16 }],
+        [{ type: Type.Register }, { type: Type.Register }, { type: Type.ILabel }],
         false,
         []
     ));
     static readonly jmpi_ne = (OPCODES[0x2f] = new Opcode(
         0x2f,
         "jmpi_!=",
-        [{ type: Type.Register }, { type: Type.I32 }, { type: Type.U16 }],
+        [{ type: Type.Register }, { type: Type.I32 }, { type: Type.ILabel }],
         false,
         []
     ));
     static readonly ujmp_g = (OPCODES[0x30] = new Opcode(
         0x30,
         "ujmp_>",
-        [{ type: Type.Register }, { type: Type.Register }, { type: Type.U16 }],
+        [{ type: Type.Register }, { type: Type.Register }, { type: Type.ILabel }],
         false,
         []
     ));
     static readonly ujmpi_g = (OPCODES[0x31] = new Opcode(
         0x31,
         "ujmpi_>",
-        [{ type: Type.Register }, { type: Type.U32 }, { type: Type.U16 }],
+        [{ type: Type.Register }, { type: Type.U32 }, { type: Type.ILabel }],
         false,
         []
     ));
     static readonly jmp_g = (OPCODES[0x32] = new Opcode(
         0x32,
         "jmp_>",
-        [{ type: Type.Register }, { type: Type.Register }, { type: Type.U16 }],
+        [{ type: Type.Register }, { type: Type.Register }, { type: Type.ILabel }],
         false,
         []
     ));
     static readonly jmpi_g = (OPCODES[0x33] = new Opcode(
         0x33,
         "jmpi_>",
-        [{ type: Type.Register }, { type: Type.I32 }, { type: Type.U16 }],
+        [{ type: Type.Register }, { type: Type.I32 }, { type: Type.ILabel }],
         false,
         []
     ));
     static readonly ujmp_l = (OPCODES[0x34] = new Opcode(
         0x34,
         "ujmp_<",
-        [{ type: Type.Register }, { type: Type.Register }, { type: Type.U16 }],
+        [{ type: Type.Register }, { type: Type.Register }, { type: Type.ILabel }],
         false,
         []
     ));
     static readonly ujmpi_l = (OPCODES[0x35] = new Opcode(
         0x35,
         "ujmpi_<",
-        [{ type: Type.Register }, { type: Type.U32 }, { type: Type.U16 }],
+        [{ type: Type.Register }, { type: Type.U32 }, { type: Type.ILabel }],
         false,
         []
     ));
     static readonly jmp_l = (OPCODES[0x36] = new Opcode(
         0x36,
         "jmp_<",
-        [{ type: Type.Register }, { type: Type.Register }, { type: Type.U16 }],
+        [{ type: Type.Register }, { type: Type.Register }, { type: Type.ILabel }],
         false,
         []
     ));
     static readonly jmpi_l = (OPCODES[0x37] = new Opcode(
         0x37,
         "jmpi_<",
-        [{ type: Type.Register }, { type: Type.I32 }, { type: Type.U16 }],
+        [{ type: Type.Register }, { type: Type.I32 }, { type: Type.ILabel }],
         false,
         []
     ));
     static readonly ujmp_ge = (OPCODES[0x38] = new Opcode(
         0x38,
         "ujmp_>=",
-        [{ type: Type.Register }, { type: Type.Register }, { type: Type.U16 }],
+        [{ type: Type.Register }, { type: Type.Register }, { type: Type.ILabel }],
         false,
         []
     ));
     static readonly ujmpi_ge = (OPCODES[0x39] = new Opcode(
         0x39,
         "ujmpi_>=",
-        [{ type: Type.Register }, { type: Type.U32 }, { type: Type.U16 }],
+        [{ type: Type.Register }, { type: Type.U32 }, { type: Type.ILabel }],
         false,
         []
     ));
     static readonly jmp_ge = (OPCODES[0x3a] = new Opcode(
         0x3a,
         "jmp_>=",
-        [{ type: Type.Register }, { type: Type.Register }, { type: Type.U16 }],
+        [{ type: Type.Register }, { type: Type.Register }, { type: Type.ILabel }],
         false,
         []
     ));
     static readonly jmpi_ge = (OPCODES[0x3b] = new Opcode(
         0x3b,
         "jmpi_>=",
-        [{ type: Type.Register }, { type: Type.I32 }, { type: Type.U16 }],
+        [{ type: Type.Register }, { type: Type.I32 }, { type: Type.ILabel }],
         false,
         []
     ));
     static readonly ujmp_le = (OPCODES[0x3c] = new Opcode(
         0x3c,
         "ujmp_<=",
-        [{ type: Type.Register }, { type: Type.Register }, { type: Type.U16 }],
+        [{ type: Type.Register }, { type: Type.Register }, { type: Type.ILabel }],
         false,
         []
     ));
     static readonly ujmpi_le = (OPCODES[0x3d] = new Opcode(
         0x3d,
         "ujmpi_<=",
-        [{ type: Type.Register }, { type: Type.U32 }, { type: Type.U16 }],
+        [{ type: Type.Register }, { type: Type.U32 }, { type: Type.ILabel }],
         false,
         []
     ));
     static readonly jmp_le = (OPCODES[0x3e] = new Opcode(
         0x3e,
         "jmp_<=",
-        [{ type: Type.Register }, { type: Type.Register }, { type: Type.U16 }],
+        [{ type: Type.Register }, { type: Type.Register }, { type: Type.ILabel }],
         false,
         []
     ));
     static readonly jmpi_le = (OPCODES[0x3f] = new Opcode(
         0x3f,
         "jmpi_<=",
-        [{ type: Type.Register }, { type: Type.I32 }, { type: Type.U16 }],
+        [{ type: Type.Register }, { type: Type.I32 }, { type: Type.ILabel }],
         false,
         []
     ));
     static readonly switch_jmp = (OPCODES[0x40] = new Opcode(
         0x40,
         "switch_jmp",
-        [{ type: Type.Register }, { type: Type.U16Var }],
+        [{ type: Type.Register }, { type: Type.ILabelVar }],
         false,
         []
     ));
     static readonly switch_call = (OPCODES[0x41] = new Opcode(
         0x41,
         "switch_call",
-        [{ type: Type.Register }, { type: Type.U16Var }],
+        [{ type: Type.Register }, { type: Type.ILabelVar }],
         false,
         []
     ));
@@ -842,7 +850,7 @@ export class Opcode {
         "set_floor_handler",
         [],
         false,
-        [{ type: Type.U32 }, { type: Type.U16 }]
+        [{ type: Type.U32 }, { type: Type.ILabel }]
     ));
     static readonly clr_floor_handler = (OPCODES[0x96] = new Opcode(
         0x96,
@@ -876,14 +884,14 @@ export class Opcode {
     static readonly set_qt_failure = (OPCODES[0xa1] = new Opcode(
         0xa1,
         "set_qt_failure",
-        [{ type: Type.U16 }],
+        [{ type: Type.ILabel }],
         false,
         []
     ));
     static readonly set_qt_success = (OPCODES[0xa2] = new Opcode(
         0xa2,
         "set_qt_success",
-        [{ type: Type.U16 }],
+        [{ type: Type.ILabel }],
         false,
         []
     ));
@@ -904,7 +912,7 @@ export class Opcode {
     static readonly set_qt_cancel = (OPCODES[0xa5] = new Opcode(
         0xa5,
         "set_qt_cancel",
-        [{ type: Type.U16 }],
+        [{ type: Type.ILabel }],
         false,
         []
     ));
@@ -937,7 +945,7 @@ export class Opcode {
     static readonly thread_stg = (OPCODES[0xb1] = new Opcode(
         0xb1,
         "thread_stg",
-        [{ type: Type.U16 }],
+        [{ type: Type.ILabel }],
         false,
         []
     ));
@@ -996,7 +1004,7 @@ export class Opcode {
     static readonly set_qt_exit = (OPCODES[0xba] = new Opcode(
         0xba,
         "set_qt_exit",
-        [{ type: Type.U16 }],
+        [{ type: Type.ILabel }],
         false,
         []
     ));
@@ -1060,7 +1068,7 @@ export class Opcode {
         "set_quest_board_handler",
         [],
         false,
-        [{ type: Type.U32 }, { type: Type.U16 }, { type: Type.String }]
+        [{ type: Type.U32 }, { type: Type.ILabel }, { type: Type.String }]
     ));
     static readonly clear_quest_board_handler = (OPCODES[0xcc] = new Opcode(
         0xcc,
@@ -1755,7 +1763,7 @@ export class Opcode {
     static readonly get_npc_data = (OPCODES[0xf841] = new Opcode(
         0xf841,
         "get_npc_data",
-        [{ type: Type.U16 }],
+        [{ type: Type.DLabel }],
         false,
         []
     ));
@@ -2819,10 +2827,11 @@ export class Opcode {
             { type: Type.U16 },
         ]
     ));
+    // TODO: 3rd parameter is a string data reference.
     static readonly npc_action_string = (OPCODES[0xf8dc] = new Opcode(
         0xf8dc,
         "npc_action_string",
-        [{ type: Type.Register }, { type: Type.Register }, { type: Type.U16 }],
+        [{ type: Type.Register }, { type: Type.Register }, { type: Type.DLabel }],
         false,
         []
     ));
@@ -2984,7 +2993,7 @@ export class Opcode {
             { type: Type.U32 },
             { type: Type.U32 },
             { type: Type.Register },
-            { type: Type.U16 },
+            { type: Type.DLabel },
         ]
     ));
     static readonly particle2 = (OPCODES[0xf8f3] = new Opcode(0xf8f3, "particle2", [], false, [
@@ -3221,7 +3230,7 @@ export class Opcode {
         "set_palettex_callback",
         [],
         false,
-        [{ type: Type.Register }, { type: Type.U16 }]
+        [{ type: Type.Register }, { type: Type.ILabel }]
     ));
     static readonly activate_palettex = (OPCODES[0xf915] = new Opcode(
         0xf915,
@@ -3531,7 +3540,7 @@ export class Opcode {
         "prepare_statistic",
         [],
         false,
-        [{ type: Type.U32 }, { type: Type.U16 }, { type: Type.U16 }]
+        [{ type: Type.U32 }, { type: Type.ILabel }, { type: Type.ILabel }]
     ));
     static readonly keyword_detect = (OPCODES[0xf93f] = new Opcode(
         0xf93f,

@@ -1,8 +1,8 @@
+import { InstructionSegment, Opcode, SegmentType } from "../data_formats/parsing/quest/bin";
 import { assemble } from "./assembly";
-import { Opcode } from "../data_formats/parsing/quest/bin";
 
 test("", () => {
-    const { instructions, labels, errors } = assemble(
+    const { object_code, errors } = assemble(
         `
     0:   set_episode 0
          bb_map_designate 1, 2, 3, 4
@@ -17,46 +17,59 @@ test("", () => {
 
     expect(errors).toEqual([]);
 
-    expect(instructions.length).toBe(13);
+    expect(object_code.length).toBe(3);
 
-    expect(instructions[0].opcode).toBe(Opcode.set_episode);
-    expect(instructions[0].args).toEqual([{ value: 0, size: 4 }]);
+    const segment_0 = object_code[0] as InstructionSegment;
 
-    expect(instructions[1].opcode).toBe(Opcode.bb_map_designate);
-    expect(instructions[1].args).toEqual([
+    expect(segment_0.type).toBe(SegmentType.Instructions);
+    expect(segment_0.instructions.length).toBe(9);
+
+    expect(segment_0.instructions[0].opcode).toBe(Opcode.set_episode);
+    expect(segment_0.instructions[0].args).toEqual([{ value: 0, size: 4 }]);
+
+    expect(segment_0.instructions[1].opcode).toBe(Opcode.bb_map_designate);
+    expect(segment_0.instructions[1].args).toEqual([
         { value: 1, size: 1 },
         { value: 2, size: 2 },
         { value: 3, size: 1 },
         { value: 4, size: 1 },
     ]);
 
-    expect(instructions[2].opcode).toBe(Opcode.arg_pushl);
-    expect(instructions[2].args).toEqual([{ value: 0, size: 4 }]);
-    expect(instructions[3].opcode).toBe(Opcode.arg_pushw);
-    expect(instructions[3].args).toEqual([{ value: 150, size: 2 }]);
-    expect(instructions[4].opcode).toBe(Opcode.set_floor_handler);
-    expect(instructions[4].args).toEqual([]);
+    expect(segment_0.instructions[2].opcode).toBe(Opcode.arg_pushl);
+    expect(segment_0.instructions[2].args).toEqual([{ value: 0, size: 4 }]);
+    expect(segment_0.instructions[3].opcode).toBe(Opcode.arg_pushw);
+    expect(segment_0.instructions[3].args).toEqual([{ value: 150, size: 2 }]);
+    expect(segment_0.instructions[4].opcode).toBe(Opcode.set_floor_handler);
+    expect(segment_0.instructions[4].args).toEqual([]);
 
-    expect(instructions[5].opcode).toBe(Opcode.arg_pushl);
-    expect(instructions[5].args).toEqual([{ value: 1, size: 4 }]);
-    expect(instructions[6].opcode).toBe(Opcode.arg_pushw);
-    expect(instructions[6].args).toEqual([{ value: 151, size: 2 }]);
-    expect(instructions[7].opcode).toBe(Opcode.set_floor_handler);
-    expect(instructions[7].args).toEqual([]);
+    expect(segment_0.instructions[5].opcode).toBe(Opcode.arg_pushl);
+    expect(segment_0.instructions[5].args).toEqual([{ value: 1, size: 4 }]);
+    expect(segment_0.instructions[6].opcode).toBe(Opcode.arg_pushw);
+    expect(segment_0.instructions[6].args).toEqual([{ value: 151, size: 2 }]);
+    expect(segment_0.instructions[7].opcode).toBe(Opcode.set_floor_handler);
+    expect(segment_0.instructions[7].args).toEqual([]);
 
-    expect(instructions[8].opcode).toBe(Opcode.ret);
-    expect(instructions[8].args).toEqual([]);
+    expect(segment_0.instructions[8].opcode).toBe(Opcode.ret);
+    expect(segment_0.instructions[8].args).toEqual([]);
 
-    expect(instructions[9].opcode).toBe(Opcode.arg_pushl);
-    expect(instructions[9].args).toEqual([{ value: 1, size: 4 }]);
-    expect(instructions[10].opcode).toBe(Opcode.set_mainwarp);
-    expect(instructions[10].args).toEqual([]);
+    const segment_1 = object_code[1] as InstructionSegment;
 
-    expect(instructions[11].opcode).toBe(Opcode.ret);
-    expect(instructions[11].args).toEqual([]);
+    expect(segment_1.type).toBe(SegmentType.Instructions);
+    expect(segment_1.instructions.length).toBe(3);
 
-    expect(instructions[12].opcode).toBe(Opcode.ret);
-    expect(instructions[12].args).toEqual([]);
+    expect(segment_1.instructions[0].opcode).toBe(Opcode.arg_pushl);
+    expect(segment_1.instructions[0].args).toEqual([{ value: 1, size: 4 }]);
+    expect(segment_1.instructions[1].opcode).toBe(Opcode.set_mainwarp);
+    expect(segment_1.instructions[1].args).toEqual([]);
 
-    expect(labels).toEqual(new Map([[0, 0], [150, 9], [151, 12]]));
+    expect(segment_1.instructions[2].opcode).toBe(Opcode.ret);
+    expect(segment_1.instructions[2].args).toEqual([]);
+
+    const segment_2 = object_code[2] as InstructionSegment;
+
+    expect(segment_2.type).toBe(SegmentType.Instructions);
+    expect(segment_2.instructions.length).toBe(1);
+
+    expect(segment_2.instructions[0].opcode).toBe(Opcode.ret);
+    expect(segment_2.instructions[0].args).toEqual([]);
 });

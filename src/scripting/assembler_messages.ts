@@ -1,5 +1,5 @@
 import { editor } from "monaco-editor";
-import { Instruction } from "../data_formats/parsing/quest/bin";
+import { Segment } from "../data_formats/parsing/quest/bin";
 import { AssemblyError } from "./assembly";
 
 export type ScriptWorkerInput = NewAssemblyInput | AssemblyChangeInput;
@@ -14,11 +14,10 @@ export type AssemblyChangeInput = {
     readonly changes: editor.IModelContentChange[];
 };
 
-export type ScriptWorkerOutput = NewErrorsOutput;
+export type ScriptWorkerOutput = NewObjectCodeOutput;
 
-export type NewErrorsOutput = {
-    readonly type: "new_errors_output";
-    readonly instructions: Instruction[];
-    readonly labels: Map<number, number>;
+export type NewObjectCodeOutput = {
+    readonly type: "new_object_code_output";
+    readonly object_code: Segment[];
     readonly errors: AssemblyError[];
 };

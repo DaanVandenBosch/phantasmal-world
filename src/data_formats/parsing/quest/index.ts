@@ -1,6 +1,14 @@
 import Logger from "js-logger";
 import { Endianness } from "../..";
-import { AreaVariant, NpcType, ObjectType, Quest, QuestNpc, QuestObject } from "../../../domain";
+import {
+    AreaVariant,
+    Episode,
+    NpcType,
+    ObjectType,
+    Quest,
+    QuestNpc,
+    QuestObject,
+} from "../../../domain";
 import { area_store } from "../../../stores/AreaStore";
 import { prs_compress } from "../../compression/prs/compress";
 import { prs_decompress } from "../../compression/prs/decompress";
@@ -8,17 +16,17 @@ import { ArrayBufferCursor } from "../../cursor/ArrayBufferCursor";
 import { Cursor } from "../../cursor/Cursor";
 import { ResizableBufferCursor } from "../../cursor/ResizableBufferCursor";
 import { Vec3 } from "../../vector";
-import { BinFile, Instruction, parse_bin, write_bin } from "./bin";
+import { BinFile, Instruction, InstructionSegment, parse_bin, SegmentType, write_bin } from "./bin";
 import { DatFile, DatNpc, DatObject, parse_dat, write_dat } from "./dat";
-import { parse_qst, QstContainedFile, write_qst } from "./qst";
 import { Opcode } from "./opcodes";
+import { parse_qst, QstContainedFile, write_qst } from "./qst";
 
 const logger = Logger.get("data_formats/parsing/quest");
 
 /**
  * High level parsing function that delegates to lower level parsing functions.
  *
- * Always delegates to parseQst at the moment.
+ * Always delegates to parse_qst at the moment.
  */
 export function parse_quest(cursor: Cursor, lenient: boolean = false): Quest | undefined {
     const qst = parse_qst(cursor);
@@ -39,8 +47,6 @@ export function parse_quest(cursor: Cursor, lenient: boolean = false): Quest | u
             bin_file = file;
         }
     }
-
-    // TODO: deal with missing/multiple DAT or BIN file.
 
     if (!dat_file) {
         logger.error("File contains no DAT file.");
@@ -63,21 +69,24 @@ export function parse_quest(cursor: Cursor, lenient: boolean = false): Quest | u
     let episode = 1;
     let area_variants: AreaVariant[] = [];
 
-    if (bin.labels.size) {
-        if (bin.labels.has(0)) {
-            const label_0_instructions = bin.get_label_instructions(0);
+    if (bin.object_code.length) {
+        let label_0_segment: InstructionSegment | undefined;
 
-            if (label_0_instructions) {
-                episode = get_episode(label_0_instructions);
-                area_variants = get_area_variants(dat, episode, label_0_instructions, lenient);
-            } else {
-                logger.warn(`Index ${bin.labels.get(0)} for label 0 is invalid.`);
+        for (const segment of bin.object_code) {
+            if (segment.type === SegmentType.Instructions && segment.label === 0) {
+                label_0_segment = segment;
+                break;
             }
+        }
+
+        if (label_0_segment) {
+            episode = get_episode(label_0_segment.instructions);
+            area_variants = get_area_variants(dat, episode, label_0_segment.instructions, lenient);
         } else {
-            logger.warn(`Label 0 not found.`);
+            logger.warn(`No instruction for label 0 found.`);
         }
     } else {
-        logger.warn("File contains no labels.");
+        logger.warn("File contains no instruction labels.");
     }
 
     return new Quest(
@@ -91,8 +100,7 @@ export function parse_quest(cursor: Cursor, lenient: boolean = false): Quest | u
         parse_obj_data(dat.objs),
         parse_npc_data(episode, dat.npcs),
         dat.unknowns,
-        bin.labels,
-        bin.instructions,
+        bin.object_code,
         bin.shop_items
     );
 }
@@ -110,8 +118,7 @@ export function write_quest_qst(quest: Quest, file_name: string): ArrayBuffer {
             quest.name,
             quest.short_description,
             quest.long_description,
-            quest.labels,
-            quest.instructions,
+            quest.object_code,
             quest.shop_items
         )
     );
@@ -140,7 +147,7 @@ export function write_quest_qst(quest: Quest, file_name: string): ArrayBuffer {
 /**
  * Defaults to episode I.
  */
-function get_episode(func_0_instructions: Instruction[]): number {
+function get_episode(func_0_instructions: Instruction[]): Episode {
     const set_episode = func_0_instructions.find(
         instruction => instruction.opcode === Opcode.set_episode
     );
@@ -149,11 +156,11 @@ function get_episode(func_0_instructions: Instruction[]): number {
         switch (set_episode.args[0].value) {
             default:
             case 0:
-                return 1;
+                return Episode.I;
             case 1:
-                return 2;
+                return Episode.II;
             case 2:
-                return 4;
+                return Episode.IV;
         }
     } else {
         logger.debug("Function 0 has no set_episode instruction.");

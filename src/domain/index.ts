@@ -1,11 +1,11 @@
 import { action, computed, observable } from "mobx";
+import { Segment } from "../data_formats/parsing/quest/bin";
 import { DatUnknown } from "../data_formats/parsing/quest/dat";
 import { Vec3 } from "../data_formats/vector";
 import { enum_values } from "../enums";
 import { ItemType } from "./items";
 import { NpcType } from "./NpcType";
 import { ObjectType } from "./ObjectType";
-import { Instruction } from "../data_formats/parsing/quest/bin";
 
 export * from "./items";
 export * from "./NpcType";
@@ -152,8 +152,7 @@ export class Quest {
      * (Partial) raw DAT data that can't be parsed yet by Phantasmal.
      */
     readonly dat_unknowns: DatUnknown[];
-    readonly labels: Map<number, number>;
-    readonly instructions: Instruction[];
+    readonly object_code: Segment[];
     readonly shop_items: number[];
 
     constructor(
@@ -167,8 +166,7 @@ export class Quest {
         objects: QuestObject[],
         npcs: QuestNpc[],
         dat_unknowns: DatUnknown[],
-        labels: Map<number, number>,
-        instructions: Instruction[],
+        object_code: Segment[],
         shop_items: number[]
     ) {
         check_episode(episode);
@@ -176,8 +174,7 @@ export class Quest {
         if (!objects || !(objects instanceof Array)) throw new Error("objs is required.");
         if (!npcs || !(npcs instanceof Array)) throw new Error("npcs is required.");
         if (!dat_unknowns) throw new Error("dat_unknowns is required.");
-        if (!labels) throw new Error("labels is required.");
-        if (!instructions) throw new Error("instructions is required.");
+        if (!object_code) throw new Error("object_code is required.");
         if (!shop_items) throw new Error("shop_items is required.");
 
         this.set_id(id);
@@ -190,8 +187,7 @@ export class Quest {
         this.objects = objects;
         this.npcs = npcs;
         this.dat_unknowns = dat_unknowns;
-        this.labels = labels;
-        this.instructions = instructions;
+        this.object_code = object_code;
         this.shop_items = shop_items;
     }
 }

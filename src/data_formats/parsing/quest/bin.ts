@@ -1,10 +1,12 @@
 import Logger from "js-logger";
 import { Endianness } from "../..";
+import { ArrayBufferCursor } from "../../cursor/ArrayBufferCursor";
 import { Cursor } from "../../cursor/Cursor";
 import { ResizableBufferCursor } from "../../cursor/ResizableBufferCursor";
 import { WritableCursor } from "../../cursor/WritableCursor";
 import { ResizableBuffer } from "../../ResizableBuffer";
 import { Opcode, OPCODES, Type } from "./opcodes";
+import { number } from "prop-types";
 
 export * from "./opcodes";
 
@@ -17,32 +19,9 @@ export class BinFile {
         readonly quest_name: string,
         readonly short_description: string,
         readonly long_description: string,
-        /**
-         * Map of labels to instruction indices.
-         */
-        readonly labels: Map<number, number>,
-        readonly instructions: Instruction[],
+        readonly object_code: Segment[],
         readonly shop_items: number[]
     ) {}
-
-    get_label_instructions(label: number): Instruction[] | undefined {
-        const index = this.labels.get(label);
-
-        if (index == null || index > this.instructions.length) return undefined;
-
-        const instructions: Instruction[] = [];
-
-        for (let i = index; i < this.instructions.length; i++) {
-            const instruction = this.instructions[i];
-            instructions.push(instruction);
-
-            if (instruction.opcode === Opcode.ret) {
-                break;
-            }
-        }
-
-        return instructions;
-    }
 }
 
 /**
@@ -68,13 +47,13 @@ export class Instruction {
             const arg = args[i];
             this.param_to_args[i] = [];
 
-            if (arg == null) {
+            if (arg == undefined) {
                 break;
             }
 
             switch (type) {
                 case Type.U8Var:
-                case Type.U16Var:
+                case Type.ILabelVar:
                     this.arg_size++;
 
                     for (let j = i; j < args.length; j++) {
@@ -90,9 +69,31 @@ export class Instruction {
             }
         }
 
-        this.size = opcode.code_size + this.arg_size;
+        this.size = opcode.size + this.arg_size;
     }
 }
+
+export enum SegmentType {
+    Instructions,
+    Data,
+}
+
+/**
+ * Segment of object code.
+ */
+export type Segment = InstructionSegment | DataSegment;
+
+export type InstructionSegment = {
+    type: SegmentType.Instructions;
+    label: number;
+    instructions: Instruction[];
+};
+
+export type DataSegment = {
+    type: SegmentType.Data;
+    label: number;
+    data: ArrayBuffer;
+};
 
 /**
  * Instruction argument.
@@ -121,55 +122,68 @@ export function parse_bin(cursor: Cursor, lenient: boolean = false): BinFile {
 
     const shop_items = cursor.u32_array(932);
 
+    const label_offset_count = Math.floor((cursor.size - label_offset_table_offset) / 4);
+    cursor.seek_start(label_offset_table_offset);
+
+    const label_offsets = cursor.i32_array(label_offset_count);
+    const offset_to_labels = new Map<number, number[]>();
+
+    for (let label = 0; label < label_offsets.length; label++) {
+        const offset = label_offsets[label];
+
+        if (offset !== -1) {
+            let labels = offset_to_labels.get(offset);
+
+            if (!labels) {
+                labels = [];
+                offset_to_labels.set(offset, labels);
+            }
+
+            labels.push(label);
+        }
+    }
+
     const object_code = cursor
         .seek_start(object_code_offset)
         .take(label_offset_table_offset - object_code_offset);
 
-    const instructions = parse_object_code(object_code, lenient);
+    const segments = parse_object_code(object_code, offset_to_labels, lenient);
 
-    let instruction_size = 0;
+    // Sanity check parsed object code.
+    let segments_size = 0;
 
-    for (const instruction of instructions) {
-        instruction_size += instruction.size;
+    for (const segment of segments) {
+        if (segment.type === SegmentType.Instructions) {
+            for (const instruction of segment.instructions) {
+                segments_size += instruction.size;
+            }
+        } else {
+            segments_size += segment.data.byteLength;
+        }
     }
 
-    if (object_code.size !== instruction_size) {
-        throw new Error(
-            `Expected to parse ${object_code.size} bytes but parsed ${instruction_size} instead.`
-        );
+    if (object_code.size !== segments_size) {
+        const message = `Expected to parse ${object_code.size} bytes but parsed ${segments_size} instead.`;
+
+        if (lenient) {
+            logger.error(message);
+        } else {
+            throw new Error(message);
+        }
     }
 
-    const label_offset_count = Math.floor((cursor.size - label_offset_table_offset) / 4);
-    cursor.seek_start(label_offset_table_offset);
-
-    const labels = new Map<number, number>();
-
-    for (let label = 0; label < label_offset_count; ++label) {
-        const offset = cursor.i32();
-
-        if (offset >= 0) {
-            let size = 0;
-            let index = 0;
-
-            for (const instruction of instructions) {
-                if (offset === size) {
-                    break;
-                } else if (offset < size) {
-                    logger.warn(
-                        `Label ${label} offset ${offset} does not point to the start of an instruction.`
-                    );
-                    break;
+    // Verify labels.
+    outer: for (let label = 0; label < label_offset_count; label++) {
+        if (label_offsets[label] !== -1) {
+            for (const segment of segments) {
+                if (segment.label === label) {
+                    continue outer;
                 }
-
-                size += instruction.size;
-                index++;
             }
 
-            if (index >= instructions.length) {
-                logger.warn(`Label ${label} offset ${offset} is too large.`);
-            } else {
-                labels.set(label, index);
-            }
+            logger.warn(
+                `Label ${label} with offset ${label_offsets[label]} does not point to anything.`
+            );
         }
     }
 
@@ -179,22 +193,14 @@ export function parse_bin(cursor: Cursor, lenient: boolean = false): BinFile {
         quest_name,
         short_description,
         long_description,
-        labels,
-        instructions,
+        segments,
         shop_items
     );
 }
 
 export function write_bin(bin: BinFile): ArrayBuffer {
-    const labels: number[] = [...bin.labels.entries()].reduce((ls, [l, i]) => {
-        ls[l] = i;
-        return ls;
-    }, new Array<number>());
-
     const object_code_offset = 4652;
-    const buffer = new ResizableBuffer(
-        object_code_offset + 10 * bin.instructions.length + 4 * labels.length
-    );
+    const buffer = new ResizableBuffer(object_code_offset + 100 * bin.object_code.length);
     const cursor = new ResizableBufferCursor(buffer, Endianness.Little);
 
     cursor.write_u32(object_code_offset);
@@ -222,26 +228,14 @@ export function write_bin(bin: BinFile): ArrayBuffer {
         cursor.write_u8(0);
     }
 
-    const object_code_size = write_object_code(cursor, bin.instructions);
+    const { size: object_code_size, label_offsets } = write_object_code(cursor, bin.object_code);
 
-    for (let label = 0; label < labels.length; label++) {
-        const index = labels[label];
+    for (let label = 0; label < label_offsets.length; label++) {
+        const offset = label_offsets[label];
 
-        if (index == null) {
+        if (offset == undefined) {
             cursor.write_i32(-1);
         } else {
-            let offset = 0;
-
-            for (let j = 0; j < bin.instructions.length; j++) {
-                const instruction = bin.instructions[j];
-
-                if (j === index) {
-                    break;
-                } else {
-                    offset += instruction.size;
-                }
-            }
-
             cursor.write_i32(offset);
         }
     }
@@ -255,11 +249,83 @@ export function write_bin(bin: BinFile): ArrayBuffer {
     return cursor.seek_start(0).array_buffer(file_size);
 }
 
-function parse_object_code(cursor: Cursor, lenient: boolean): Instruction[] {
-    const instructions: Instruction[] = [];
+function parse_object_code(
+    cursor: Cursor,
+    offset_to_labels: Map<number, number[]>,
+    lenient: boolean
+): Segment[] {
+    const segments: Segment[] = [];
+    const data_labels = new Set<number>();
 
     try {
+        let instructions: Instruction[] | undefined;
+
         while (cursor.bytes_left) {
+            // See if this instruction and the ones following belong to a new label.
+            const offset = cursor.position;
+            const labels: number[] | undefined = offset_to_labels.get(offset);
+
+            // Check whether we've encountered a data segment.
+            // If a single label that points to this segment is referred to from a data context we assume the segment is a data segment.
+            if (labels && labels.some(label => data_labels.has(label))) {
+                for (const [label_offset, labels] of offset_to_labels.entries()) {
+                    if (label_offset > offset) {
+                        // We create empty segments for all but the last label.
+                        // The data will be in the last label's segment.
+                        for (let i = 0; i < labels.length - 1; i++) {
+                            segments.push({
+                                type: SegmentType.Data,
+                                label: labels[i],
+                                data: new ArrayBuffer(0),
+                            });
+                        }
+
+                        segments.push({
+                            type: SegmentType.Data,
+                            label: labels[labels.length - 1],
+                            data: cursor.array_buffer(label_offset - offset),
+                        });
+
+                        break;
+                    }
+                }
+
+                instructions = undefined;
+                continue;
+            }
+
+            // Parse as instruction.
+            if (labels == undefined) {
+                if (instructions == undefined) {
+                    logger.warn(`Unlabelled instructions at ${offset}.`);
+
+                    instructions = [];
+
+                    segments.push({
+                        type: SegmentType.Instructions,
+                        label: -1,
+                        instructions,
+                    });
+                }
+            } else {
+                for (let i = 0; i < labels.length - 1; i++) {
+                    segments.push({
+                        type: SegmentType.Instructions,
+                        label: labels[i],
+                        instructions: [],
+                    });
+                }
+
+                instructions = [];
+
+                segments.push({
+                    type: SegmentType.Instructions,
+                    label: labels[labels.length - 1],
+                    instructions,
+                });
+            }
+
+            // Parse the opcode.
             const main_opcode = cursor.u8();
             let opcode_index;
 
@@ -275,15 +341,30 @@ function parse_object_code(cursor: Cursor, lenient: boolean): Instruction[] {
 
             let opcode = OPCODES[opcode_index];
 
+            // Parse the arguments.
             try {
                 const args = parse_instruction_arguments(cursor, opcode);
                 instructions.push(new Instruction(opcode, args));
+
+                // Check whether we can deduce a data segment label.
+                for (let i = 0; i < opcode.params.length; i++) {
+                    const param_type = opcode.params[i].type;
+                    const arg_value = args[i].value;
+
+                    if (param_type === Type.DLabel) {
+                        data_labels.add(arg_value);
+                    }
+                }
             } catch (e) {
-                logger.warn(
-                    `Exception occurred while parsing arguments for instruction ${opcode.mnemonic}.`,
-                    e
-                );
-                instructions.push(new Instruction(opcode, []));
+                if (lenient) {
+                    logger.error(
+                        `Exception occurred while parsing arguments for instruction ${opcode.mnemonic}.`,
+                        e
+                    );
+                    instructions.push(new Instruction(opcode, []));
+                } else {
+                    throw e;
+                }
             }
         }
     } catch (e) {
@@ -294,7 +375,7 @@ function parse_object_code(cursor: Cursor, lenient: boolean): Instruction[] {
         }
     }
 
-    return instructions;
+    return segments;
 }
 
 function parse_instruction_arguments(cursor: Cursor, opcode: Opcode): Arg[] {
@@ -320,13 +401,19 @@ function parse_instruction_arguments(cursor: Cursor, opcode: Opcode): Arg[] {
             case Type.Register:
                 args.push({ value: cursor.u8(), size: 1 });
                 break;
+            case Type.ILabel:
+                args.push({ value: cursor.u16(), size: 2 });
+                break;
+            case Type.DLabel:
+                args.push({ value: cursor.u16(), size: 2 });
+                break;
             case Type.U8Var:
                 {
                     const arg_size = cursor.u8();
                     args.push(...cursor.u8_array(arg_size).map(value => ({ value, size: 1 })));
                 }
                 break;
-            case Type.U16Var:
+            case Type.ILabelVar:
                 {
                     const arg_size = cursor.u8();
                     args.push(...cursor.u16_array(arg_size).map(value => ({ value, size: 2 })));
@@ -351,60 +438,84 @@ function parse_instruction_arguments(cursor: Cursor, opcode: Opcode): Arg[] {
     return args;
 }
 
-function write_object_code(cursor: WritableCursor, instructions: Instruction[]): number {
+function write_object_code(
+    cursor: WritableCursor,
+    segments: Segment[]
+): { size: number; label_offsets: number[] } {
     const start_pos = cursor.position;
+    // Keep track of label offsets.
+    const label_offsets: number[] = [];
 
-    for (const instruction of instructions) {
-        const opcode = instruction.opcode;
-
-        if (opcode.code_size === 2) {
-            cursor.write_u8(opcode.code >>> 8);
+    // Write instructions first.
+    for (const segment of segments) {
+        if (segment.label !== -1) {
+            label_offsets[segment.label] = cursor.position - start_pos;
         }
 
-        cursor.write_u8(opcode.code & 0xff);
+        if (segment.type === SegmentType.Instructions) {
+            for (const instruction of segment.instructions) {
+                const opcode = instruction.opcode;
 
-        for (let i = 0; i < opcode.params.length; i++) {
-            const param = opcode.params[i];
-            const args = instruction.param_to_args[i];
-            const [arg] = args;
+                if (opcode.size === 2) {
+                    cursor.write_u8(opcode.code >>> 8);
+                }
 
-            switch (param.type) {
-                case Type.U8:
-                    cursor.write_u8(arg.value);
-                    break;
-                case Type.U16:
-                    cursor.write_u16(arg.value);
-                    break;
-                case Type.U32:
-                    cursor.write_u32(arg.value);
-                    break;
-                case Type.I32:
-                    cursor.write_i32(arg.value);
-                    break;
-                case Type.F32:
-                    cursor.write_f32(arg.value);
-                    break;
-                case Type.Register:
-                    cursor.write_u8(arg.value);
-                    break;
-                case Type.U8Var:
-                    cursor.write_u8(args.length);
-                    cursor.write_u8_array(args.map(arg => arg.value));
-                    break;
-                case Type.U16Var:
-                    cursor.write_u8(args.length);
-                    cursor.write_u16_array(args.map(arg => arg.value));
-                    break;
-                case Type.String:
-                    cursor.write_string_utf16(arg.value, arg.size);
-                    break;
-                default:
-                    throw new Error(
-                        `Parameter type ${Type[param.type]} (${param.type}) not implemented.`
-                    );
+                cursor.write_u8(opcode.code & 0xff);
+
+                for (let i = 0; i < opcode.params.length; i++) {
+                    const param = opcode.params[i];
+                    const args = instruction.param_to_args[i];
+                    const [arg] = args;
+
+                    switch (param.type) {
+                        case Type.U8:
+                            cursor.write_u8(arg.value);
+                            break;
+                        case Type.U16:
+                            cursor.write_u16(arg.value);
+                            break;
+                        case Type.U32:
+                            cursor.write_u32(arg.value);
+                            break;
+                        case Type.I32:
+                            cursor.write_i32(arg.value);
+                            break;
+                        case Type.F32:
+                            cursor.write_f32(arg.value);
+                            break;
+                        case Type.Register:
+                            cursor.write_u8(arg.value);
+                            break;
+                        case Type.ILabel:
+                            cursor.write_u16(arg.value);
+                            break;
+                        case Type.DLabel:
+                            cursor.write_u16(arg.value);
+                            break;
+                        case Type.U8Var:
+                            cursor.write_u8(args.length);
+                            cursor.write_u8_array(args.map(arg => arg.value));
+                            break;
+                        case Type.ILabelVar:
+                            cursor.write_u8(args.length);
+                            cursor.write_u16_array(args.map(arg => arg.value));
+                            break;
+                        case Type.String:
+                            cursor.write_string_utf16(arg.value, arg.size);
+                            break;
+                        default:
+                            throw new Error(
+                                `Parameter type ${Type[param.type]} (${
+                                    param.type
+                                }) not implemented.`
+                            );
+                    }
+                }
             }
+        } else {
+            cursor.write_cursor(new ArrayBufferCursor(segment.data, cursor.endianness));
         }
     }
 
-    return cursor.position - start_pos;
+    return { size: cursor.position - start_pos, label_offsets };
 }

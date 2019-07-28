@@ -3,7 +3,7 @@ import { editor, languages, MarkerSeverity } from "monaco-editor";
 import React, { Component, createRef, ReactNode } from "react";
 import { AutoSizer } from "react-virtualized";
 import { OPCODES } from "../../data_formats/parsing/quest/bin";
-import { Assembler } from "../../scripting/Assembler";
+import { AssemblyAnalyser } from "../../scripting/AssemblyAnalyser";
 import { quest_editor_store } from "../../stores/QuestEditorStore";
 import { Action } from "../../undo";
 import styles from "./AssemblyEditorComponent.css";
@@ -130,7 +130,7 @@ type MonacoProps = {
 class MonacoComponent extends Component<MonacoProps> {
     private div_ref = createRef<HTMLDivElement>();
     private editor?: editor.IStandaloneCodeEditor;
-    private assembler?: Assembler;
+    private assembler?: AssemblyAnalyser;
     private disposers: (() => void)[] = [];
 
     render(): ReactNode {
@@ -149,7 +149,7 @@ class MonacoComponent extends Component<MonacoProps> {
                 wrappingIndent: "indent",
             });
 
-            this.assembler = new Assembler();
+            this.assembler = new AssemblyAnalyser();
 
             this.disposers.push(
                 this.dispose,
@@ -182,7 +182,7 @@ class MonacoComponent extends Component<MonacoProps> {
         const quest = quest_editor_store.current_quest;
 
         if (quest && this.editor && this.assembler) {
-            const assembly = this.assembler.disassemble(quest.instructions, quest.labels);
+            const assembly = this.assembler.disassemble(quest.object_code);
             const model = editor.createModel(assembly.join("\n"), "psoasm");
 
             quest_editor_store.script_undo.action = new Action(

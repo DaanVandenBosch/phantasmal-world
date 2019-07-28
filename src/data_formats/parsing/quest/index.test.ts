@@ -90,8 +90,12 @@ function roundtrip_test(path: string, file_name: string, contents: Buffer): void
             expect(test_area_variant.id).toBe(orig_area_variant.id);
         }
 
-        expect(test_quest.instructions.length).toBe(orig_quest.instructions.length);
-        expect(test_quest.labels.size).toBe(orig_quest.labels.size);
+        expect(test_quest.object_code.length).toBe(orig_quest.object_code.length);
+
+        for (let i = 0; i < orig_quest.object_code.length; i++) {
+            expect(test_quest.object_code[i].type).toBe(orig_quest.object_code[i].type);
+            expect(test_quest.object_code[i].label).toBe(orig_quest.object_code[i].label);
+        }
     });
 }
 

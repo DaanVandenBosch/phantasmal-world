@@ -1,4 +1,4 @@
-import { NewErrorsOutput, ScriptWorkerInput } from "./assembler_messages";
+import { NewObjectCodeOutput, ScriptWorkerInput } from "./assembler_messages";
 import { assemble } from "./assembly";
 
 const ctx: Worker = self as any;
@@ -65,8 +65,8 @@ function process_messages(): void {
         }
     }
 
-    const response: NewErrorsOutput = {
-        type: "new_errors_output",
+    const response: NewObjectCodeOutput = {
+        type: "new_object_code_output",
         ...assemble(lines),
     };
     ctx.postMessage(response);
