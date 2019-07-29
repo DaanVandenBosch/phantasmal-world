@@ -13,10 +13,14 @@ const ASM_SYNTAX: languages.IMonarchLanguage = {
 
     tokenizer: {
         root: [
+            // Strings.
+            [/"([^"\\]|\\.)*$/, "string.invalid"], // Unterminated string.
+            [/"/, { token: "string.quote", bracket: "@open", next: "@string" }],
+
             // Registers.
             [/r\d+/, "predefined"],
 
-            [/\.[^\s]+|(^|\s+)bytes($|\s+)/, "keyword"],
+            [/\.[^\s]+/, "keyword"],
 
             // Labels.
             [/[^\s]+:/, "tag"],
@@ -36,10 +40,6 @@ const ASM_SYNTAX: languages.IMonarchLanguage = {
 
             // Delimiters.
             [/,/, "delimiter"],
-
-            // Strings.
-            [/"([^"\\]|\\.)*$/, "string.invalid"], // Unterminated string.
-            [/"/, { token: "string.quote", bracket: "@open", next: "@string" }],
         ],
 
         // comment: [
@@ -66,6 +66,19 @@ const INSTRUCTION_SUGGESTIONS = OPCODES.filter(opcode => opcode != null).map(opc
     } as any) as languages.CompletionItem;
 });
 
+const KEYWORD_SUGGESTIONS = [
+    {
+        label: ".code",
+        kind: languages.CompletionItemKind.Keyword,
+        insertText: "code",
+    },
+    {
+        label: ".data",
+        kind: languages.CompletionItemKind.Keyword,
+        insertText: "data",
+    },
+] as languages.CompletionItem[];
+
 languages.register({ id: "psoasm" });
 languages.setMonarchTokensProvider("psoasm", ASM_SYNTAX);
 languages.registerCompletionItemProvider("psoasm", {
@@ -78,6 +91,8 @@ languages.registerCompletionItemProvider("psoasm", {
         });
         const suggestions = /^\s*([a-z][a-z0-9_=<>!]*)?$/.test(value)
             ? INSTRUCTION_SUGGESTIONS
+            : /^\s*\.[a-z]+$/.test(value)
+            ? KEYWORD_SUGGESTIONS
             : [];
 
         return {

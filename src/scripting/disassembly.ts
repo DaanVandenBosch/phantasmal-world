@@ -12,12 +12,22 @@ export function disassemble(object_code: Segment[], manual_stack: boolean = fals
         if (segment.type === SegmentType.Data) {
             if (code_block !== false) {
                 code_block = false;
-                lines.push(".data");
+
+                if (lines.length) {
+                    lines.push("");
+                }
+
+                lines.push(".data", "");
             }
         } else {
             if (code_block !== true) {
                 code_block = true;
-                lines.push(".code");
+
+                if (lines.length) {
+                    lines.push("");
+                }
+
+                lines.push(".code", "");
             }
         }
 

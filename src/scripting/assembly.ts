@@ -76,13 +76,9 @@ class Assembler {
         for (const line of this.assembly) {
             this.tokens = this.lexer.tokenize_line(line);
 
-            if (this.tokens.length === 0) {
-                continue;
-            }
+            if (this.tokens.length > 0) {
+                const token = this.tokens.shift()!;
 
-            const token = this.tokens.shift()!;
-
-            if (this.code_section) {
                 switch (token.type) {
                     case TokenType.Label:
                         this.parse_label(token);
@@ -93,8 +89,27 @@ class Assembler {
                     case TokenType.DataSection:
                         this.parse_data_section(token);
                         break;
+                    case TokenType.Int:
+                        if (this.code_section) {
+                            this.add_error({
+                                col: token.col,
+                                length: token.len,
+                                message: "Unexpected token.",
+                            });
+                        } else {
+                            this.parse_bytes(token);
+                        }
+                        break;
                     case TokenType.Ident:
-                        this.parse_instruction(token);
+                        if (this.code_section) {
+                            this.parse_instruction(token);
+                        } else {
+                            this.add_error({
+                                col: token.col,
+                                length: token.len,
+                                message: "Unexpected token.",
+                            });
+                        }
                         break;
                     case TokenType.InvalidSection:
                         this.add_error({
@@ -116,15 +131,6 @@ class Assembler {
                             length: token.len,
                             message: "Unexpected token.",
                         });
-                        break;
-                }
-            } else {
-                switch (token.type) {
-                    case TokenType.Label:
-                        this.parse_label(token);
-                        break;
-                    case TokenType.Int:
-                        this.parse_bytes(token);
                         break;
                 }
             }
@@ -425,7 +431,7 @@ class Assembler {
                     this.add_error({
                         col: token.col,
                         length: token.len,
-                        message: "Argument expected.",
+                        message: "Expected an argument.",
                     });
                 } else {
                     if (param.type !== Type.U8Var && param.type !== Type.ILabelVar) {
@@ -442,7 +448,7 @@ class Assembler {
                     this.add_error({
                         col,
                         length: token.col - col,
-                        message: "Comma expected.",
+                        message: "Expected a comma.",
                     });
                 }
 
@@ -503,37 +509,37 @@ class Assembler {
 
                     switch (param.type) {
                         case Type.U8:
-                            type_str = "unsigned 8-bit integer";
+                            type_str = "an unsigned 8-bit integer";
                             break;
                         case Type.U16:
-                            type_str = "unsigned 16-bit integer";
+                            type_str = "an unsigned 16-bit integer";
                             break;
                         case Type.U32:
-                            type_str = "unsigned 32-bit integer";
+                            type_str = "an unsigned 32-bit integer";
                             break;
                         case Type.I32:
-                            type_str = "signed 32-bit integer";
+                            type_str = "a signed 32-bit integer";
                             break;
                         case Type.F32:
-                            type_str = "float";
+                            type_str = "a float";
                             break;
                         case Type.Register:
-                            type_str = "register reference";
+                            type_str = "a register reference";
                             break;
                         case Type.ILabel:
-                            type_str = "instruction label";
+                            type_str = "an instruction label";
                             break;
                         case Type.DLabel:
-                            type_str = "data label";
+                            type_str = "a data label";
                             break;
                         case Type.U8Var:
-                            type_str = "unsigned 8-bit integer";
+                            type_str = "an unsigned 8-bit integer";
                             break;
                         case Type.ILabelVar:
-                            type_str = "instruction label";
+                            type_str = "an instruction label";
                             break;
                         case Type.String:
-                            type_str = "string";
+                            type_str = "a string";
                             break;
                     }
 
@@ -558,13 +564,13 @@ class Assembler {
             this.add_error({
                 col,
                 length: len,
-                message: `${bit_size}-Bit unsigned integer can't be less than 0.`,
+                message: `Unsigned ${bit_size}-bit integer can't be less than 0.`,
             });
         } else if (value > max_value) {
             this.add_error({
                 col,
                 length: len,
-                message: `${bit_size}-Bit unsigned integer can't be greater than ${max_value}.`,
+                message: `Unsigned ${bit_size}-bit integer can't be greater than ${max_value}.`,
             });
         }
 
@@ -583,13 +589,13 @@ class Assembler {
             this.add_error({
                 col,
                 length: len,
-                message: `${bit_size}-Bit signed integer can't be less than ${min_value}.`,
+                message: `Signed ${bit_size}-bit integer can't be less than ${min_value}.`,
             });
         } else if (value > max_value) {
             this.add_error({
                 col,
                 length: len,
-                message: `${bit_size}-Bit signed integer can't be greater than ${max_value}.`,
+                message: `Signed ${bit_size}-bit integer can't be greater than ${max_value}.`,
             });
         }
 
@@ -624,13 +630,13 @@ class Assembler {
                 this.add_error({
                     col: token.col,
                     length: token.len,
-                    message: `8-Bit unsigned integer can't be less than 0.`,
+                    message: "Unsigned 8-bit integer can't be less than 0.",
                 });
             } else if (token.value > 255) {
                 this.add_error({
                     col: token.col,
                     length: token.len,
-                    message: `8-Bit unsigned integer can't be greater than 255.`,
+                    message: "Unsigned 8-bit integer can't be greater than 255.",
                 });
             }
 
@@ -647,7 +653,7 @@ class Assembler {
             this.add_error({
                 col: token.col,
                 length: token.len,
-                message: "Unexpected token.",
+                message: "Expected an unsigned 8-bit integer.",
             });
         }
 
