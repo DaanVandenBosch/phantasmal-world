@@ -9,7 +9,6 @@
         "@types/react-dom": "16.8.4",
         "@types/react-virtualized": "^9.21.2",
         "@types/react-virtualized-select": "^3.0.7",
-        "@types/text-encoding": "^0.0.35",
         "antd": "^3.20.1",
         "camera-controls": "^1.12.2",
         "golden-layout": "^1.5.9",

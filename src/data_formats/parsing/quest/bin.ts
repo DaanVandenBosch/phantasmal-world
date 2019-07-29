@@ -6,7 +6,6 @@ import { ResizableBufferCursor } from "../../cursor/ResizableBufferCursor";
 import { WritableCursor } from "../../cursor/WritableCursor";
 import { ResizableBuffer } from "../../ResizableBuffer";
 import { Opcode, OPCODES, Type } from "./opcodes";
-import { number } from "prop-types";
 
 export * from "./opcodes";
 

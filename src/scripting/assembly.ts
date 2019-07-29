@@ -1,3 +1,4 @@
+import Logger from "js-logger";
 import {
     Arg,
     Instruction,
@@ -8,81 +9,123 @@ import {
     Segment,
     SegmentType,
     Type,
+    DataSegment,
 } from "../data_formats/parsing/quest/bin";
+import {
+    AssemblyLexer,
+    CodeSectionToken,
+    DataSectionToken,
+    IdentToken,
+    IntToken,
+    LabelToken,
+    RegisterToken,
+    Token,
+    TokenType,
+} from "./AssemblyLexer";
 
-export type AssemblyError = {
+const logger = Logger.get("scripting/assembly");
+
+export type AssemblyWarning = {
     line_no: number;
     col: number;
     length: number;
     message: string;
 };
 
+export type AssemblyError = AssemblyWarning;
+
 export function assemble(
     assembly: string[],
     manual_stack: boolean = false
 ): {
     object_code: Segment[];
+    warnings: AssemblyWarning[];
     errors: AssemblyError[];
 } {
     return new Assembler(assembly, manual_stack).assemble();
 }
 
-type ArgToken = {
-    col: number;
-    arg: string;
-};
-
 class Assembler {
+    private lexer = new AssemblyLexer();
     private line_no!: number;
+    private tokens!: Token[];
     private object_code!: Segment[];
+    // The current segment.
+    private segment?: Segment;
+    private warnings!: AssemblyWarning[];
     private errors!: AssemblyError[];
     // Encountered labels.
     private labels!: Set<number>;
+    // True iff we're in a code section, false iff we're in a data section.
+    private code_section = true;
 
     constructor(private assembly: string[], private manual_stack: boolean) {}
 
     assemble(): {
         object_code: Segment[];
+        warnings: AssemblyWarning[];
         errors: AssemblyError[];
     } {
         this.line_no = 1;
         this.object_code = [];
+        this.warnings = [];
         this.errors = [];
         this.labels = new Set();
+        this.code_section = true;
 
         for (const line of this.assembly) {
-            const match = line.match(
-                /^(?<lbl_ws>\s*)(?<lbl>[^\s]+?:)?(?<op_ws>\s*)(?<op>[a-z][a-z0-9_=<>!]*)?(?<args>.*)$/
-            );
+            this.tokens = this.lexer.tokenize_line(line);
 
-            if (
-                !match ||
-                !match.groups ||
-                (match.groups.lbl == undefined && match.groups.op == undefined)
-            ) {
-                const left_trimmed = line.trimLeft();
-                const trimmed = left_trimmed.trimRight();
+            if (this.tokens.length === 0) {
+                continue;
+            }
 
-                if (trimmed.length) {
-                    this.add_error({
-                        col: 1 + line.length - left_trimmed.length,
-                        length: trimmed.length,
-                        message: "Expected label or instruction.",
-                    });
+            const token = this.tokens.shift()!;
+
+            if (this.code_section) {
+                switch (token.type) {
+                    case TokenType.Label:
+                        this.parse_label(token);
+                        break;
+                    case TokenType.CodeSection:
+                        this.parse_code_section(token);
+                        break;
+                    case TokenType.DataSection:
+                        this.parse_data_section(token);
+                        break;
+                    case TokenType.Ident:
+                        this.parse_instruction(token);
+                        break;
+                    case TokenType.InvalidSection:
+                        this.add_error({
+                            col: token.col,
+                            length: token.len,
+                            message: "Invalid section type.",
+                        });
+                        break;
+                    case TokenType.InvalidIdent:
+                        this.add_error({
+                            col: token.col,
+                            length: token.len,
+                            message: "Invalid identifier.",
+                        });
+                        break;
+                    default:
+                        this.add_error({
+                            col: token.col,
+                            length: token.len,
+                            message: "Unexpected token.",
+                        });
+                        break;
                 }
             } else {
-                const { lbl_ws, lbl, op_ws, op, args } = match.groups;
-
-                if (lbl != undefined) {
-                    this.parse_label(lbl, lbl_ws);
-                }
-
-                if (op != undefined) {
-                    this.parse_instruction(
-                        1 + lbl_ws.length + (lbl ? lbl.length : 0) + op_ws.length,
-                        op,
-                        args
-                    );
+                switch (token.type) {
+                    case TokenType.Label:
+                        this.parse_label(token);
+                        break;
+                    case TokenType.Int:
+                        this.parse_bytes(token);
+                        break;
                 }
             }
 
@@ -91,16 +134,48 @@ class Assembler {
 
         return {
             object_code: this.object_code,
+            warnings: this.warnings,
             errors: this.errors,
         };
     }
 
     private add_instruction(opcode: Opcode, args: Arg[]): void {
-        const { instructions } = this.object_code[
-            this.object_code.length - 1
-        ] as InstructionSegment;
+        if (!this.segment) {
+            // Unreachable code, technically valid.
+            const instruction_segment: InstructionSegment = {
+                label: -1,
+                type: SegmentType.Instructions,
+                instructions: [],
+            };
 
-        instructions.push(new Instruction(opcode, args));
+            this.segment = instruction_segment;
+            this.object_code.push(instruction_segment);
+        }
+
+        (this.segment as InstructionSegment).instructions.push(new Instruction(opcode, args));
+    }
+
+    private add_bytes(bytes: number[]): void {
+        if (!this.segment) {
+            // Unadressable data, technically valid.
+            const data_segment: DataSegment = {
+                label: -1,
+                type: SegmentType.Data,
+                data: new Uint8Array(bytes).buffer,
+            };
+
+            this.segment = data_segment;
+            this.object_code.push(data_segment);
+        } else {
+            const d_seg = this.segment as DataSegment;
+            const buf = new ArrayBuffer(d_seg.data.byteLength + bytes.length);
+            const arr = new Uint8Array(buf);
+
+            arr.set(new Uint8Array(d_seg.data));
+            arr.set(new Uint8Array(bytes));
+
+            d_seg.data = buf;
+        }
     }
 
     private add_error({
@@ -120,116 +195,211 @@ class Assembler {
         });
     }
 
-    private parse_label(lbl: string, lbl_ws: string): void {
-        const label = parseInt(lbl.slice(0, -1), 10);
+    private add_warning({
+        col,
+        length,
+        message,
+    }: {
+        col: number;
+        length: number;
+        message: string;
+    }): void {
+        this.warnings.push({
+            line_no: this.line_no,
+            col,
+            length,
+            message,
+        });
+    }
 
-        if (!isFinite(label) || !/^\d+:$/.test(lbl)) {
+    private parse_label({ col, len, value: label }: LabelToken): void {
+        if (this.labels.has(label)) {
             this.add_error({
-                col: 1 + lbl_ws.length,
-                length: lbl.length,
-                message: "Invalid label name.",
+                col,
+                length: len,
+                message: "Duplicate label.",
             });
-        } else {
-            if (this.labels.has(label)) {
-                this.add_error({
-                    col: 1 + lbl_ws.length,
-                    length: lbl.length - 1,
-                    message: "Duplicate label.",
-                });
-            }
+        }
 
-            this.object_code.push({
+        this.labels.add(label);
+
+        const next_token = this.tokens.shift();
+
+        if (this.code_section) {
+            this.segment = {
                 type: SegmentType.Instructions,
                 label,
                 instructions: [],
+            };
+            this.object_code.push(this.segment);
+
+            if (next_token) {
+                if (next_token.type === TokenType.Ident) {
+                    this.parse_instruction(next_token);
+                } else {
+                    this.add_error({
+                        col: next_token.col,
+                        length: next_token.len,
+                        message: "Expected opcode mnemonic.",
+                    });
+                }
+            }
+        } else {
+            this.segment = {
+                type: SegmentType.Data,
+                label,
+                data: new ArrayBuffer(0),
+            };
+            this.object_code.push(this.segment);
+
+            if (next_token) {
+                if (next_token.type === TokenType.Int) {
+                    this.parse_bytes(next_token);
+                } else {
+                    this.add_error({
+                        col: next_token.col,
+                        length: next_token.len,
+                        message: "Expected bytes.",
+                    });
+                }
+            }
+        }
+    }
+
+    private parse_code_section({ col, len }: CodeSectionToken): void {
+        if (this.code_section) {
+            this.add_warning({
+                col,
+                length: len,
+                message: "Unnecessary code section marker.",
+            });
+        }
+
+        this.code_section = true;
+
+        const next_token = this.tokens.shift();
+
+        if (next_token) {
+            this.add_error({
+                col: next_token.col,
+                length: next_token.len,
+                message: "Unexpected token.",
             });
         }
     }
 
-    private parse_instruction(col: number, op: string, args: string): void {
-        const opcode = OPCODES_BY_MNEMONIC.get(op);
+    private parse_data_section({ col, len }: DataSectionToken): void {
+        if (!this.code_section) {
+            this.add_warning({
+                col,
+                length: len,
+                message: "Unnecessary data section marker.",
+            });
+        }
+
+        this.code_section = false;
+
+        const next_token = this.tokens.shift();
+
+        if (next_token) {
+            this.add_error({
+                col: next_token.col,
+                length: next_token.len,
+                message: "Unexpected token.",
+            });
+        }
+    }
+
+    private parse_instruction({ col, len, value }: IdentToken): void {
+        const opcode = OPCODES_BY_MNEMONIC.get(value);
 
         if (!opcode) {
             this.add_error({
                 col,
-                length: op.length,
+                length: len,
                 message: "Unknown instruction.",
             });
         } else {
-            const args_col = col + (op ? op.length : 0);
+            const varargs =
+                opcode.params.findIndex(p => p.type === Type.U8Var || p.type === Type.ILabelVar) !==
+                -1;
 
-            const arg_tokens: ArgToken[] = [];
-            const args_tokenization_ok = this.tokenize_args(args, args_col, arg_tokens);
+            const param_count =
+                opcode.params.length + (this.manual_stack ? 0 : opcode.stack_params.length);
 
+            let arg_count = 0;
+
+            for (const token of this.tokens) {
+                if (token.type !== TokenType.ArgSeperator) {
+                    arg_count++;
+                }
+            }
+
+            const last_token = this.tokens[this.tokens.length - 1];
+            let error_length = last_token ? last_token.col + last_token.len - col : 0;
             const ins_args: Arg[] = [];
 
-            if (!args_tokenization_ok) {
-                const left_trimmed = args.trimLeft();
-                const trimmed = args.trimRight();
-
+            if (!varargs && arg_count !== param_count) {
                 this.add_error({
-                    col: args_col + args.length - left_trimmed.length,
-                    length: trimmed.length,
-                    message: "Instruction arguments expected.",
+                    col,
+                    length: error_length,
+                    message: `Expected ${param_count} argument${
+                        param_count === 1 ? "" : "s"
+                    }, got ${arg_count}.`,
                 });
+
+                return;
+            } else if (varargs && arg_count < param_count) {
+                this.add_error({
+                    col,
+                    length: error_length,
+                    message: `Expected at least ${param_count} argument${
+                        param_count === 1 ? "" : "s"
+                    }, got ${arg_count}.`,
+                });
+
+                return;
+            } else if (varargs || arg_count === opcode.params.length) {
+                // Inline arguments.
+                if (!this.parse_args(opcode.params, ins_args)) {
+                    return;
+                }
             } else {
-                const varargs =
-                    opcode.params.findIndex(
-                        p => p.type === Type.U8Var || p.type === Type.ILabelVar
-                    ) !== -1;
+                // Stack arguments.
+                const stack_args: Arg[] = [];
 
-                const param_count =
-                    opcode.params.length + (this.manual_stack ? 0 : opcode.stack_params.length);
+                if (!this.parse_args(opcode.stack_params, stack_args)) {
+                    return;
+                }
 
-                if (varargs ? arg_tokens.length < param_count : arg_tokens.length !== param_count) {
-                    this.add_error({
-                        col,
-                        length: op.length + args.trimRight().length,
-                        message: `Expected${varargs ? " at least" : ""} ${param_count} argument${
-                            param_count === 1 ? "" : "s"
-                        }, got ${arg_tokens.length}.`,
-                    });
-                } else if (varargs || arg_tokens.length === opcode.params.length) {
-                    this.parse_args(opcode.params, arg_tokens, ins_args);
-                } else {
-                    const stack_args: Arg[] = [];
-                    this.parse_args(opcode.stack_params, arg_tokens, stack_args);
+                for (let i = 0; i < opcode.stack_params.length; i++) {
+                    const param = opcode.stack_params[i];
+                    const arg = stack_args[i];
 
-                    for (let i = 0; i < opcode.stack_params.length; i++) {
-                        const param = opcode.stack_params[i];
-                        const arg = stack_args[i];
-                        const col = arg_tokens[i].col;
-                        const length = arg_tokens[i].arg.length;
+                    if (arg == undefined) {
+                        continue;
+                    }
 
-                        if (arg == undefined) {
-                            continue;
-                        }
-
-                        switch (param.type) {
-                            case Type.U8:
-                            case Type.Register:
-                                this.add_instruction(Opcode.arg_pushb, [arg]);
-                                break;
-                            case Type.U16:
-                            case Type.ILabel:
-                            case Type.DLabel:
-                                this.add_instruction(Opcode.arg_pushw, [arg]);
-                                break;
-                            case Type.U32:
-                            case Type.I32:
-                            case Type.F32:
-                                this.add_instruction(Opcode.arg_pushl, [arg]);
-                                break;
-                            case Type.String:
-                                this.add_instruction(Opcode.arg_pushs, [arg]);
-                                break;
-                            default:
-                                this.add_error({
-                                    col,
-                                    length,
-                                    message: `Type ${Type[param.type]} not implemented.`,
-                                });
-                        }
+                    switch (param.type) {
+                        case Type.U8:
+                        case Type.Register:
+                            this.add_instruction(Opcode.arg_pushb, [arg]);
+                            break;
+                        case Type.U16:
+                        case Type.ILabel:
+                        case Type.DLabel:
+                            this.add_instruction(Opcode.arg_pushw, [arg]);
+                            break;
+                        case Type.U32:
+                        case Type.I32:
+                        case Type.F32:
+                            this.add_instruction(Opcode.arg_pushl, [arg]);
+                            break;
+                        case Type.String:
+                            this.add_instruction(Opcode.arg_pushs, [arg]);
+                            break;
+                        default:
+                            logger.error(`Type ${Type[param.type]} not implemented.`);
                     }
                 }
             }
@@ -238,204 +408,249 @@ class Assembler {
         }
     }
 
-    private tokenize_args(arg_str: string, col: number, args: ArgToken[]): boolean {
-        if (arg_str.trim().length === 0) {
-            return true;
-        }
+    /**
+     * @returns true if arguments can be translated to object code, possibly after truncation. False otherwise.
+     */
+    private parse_args(params: Param[], args: Arg[]): boolean {
+        let semi_valid = true;
+        let should_be_arg = true;
+        let param_i = 0;
 
-        let match: RegExpMatchArray | null;
+        for (let i = 0; i < this.tokens.length; i++) {
+            const token = this.tokens[i];
+            const param = params[param_i];
 
-        if (args.length === 0) {
-            match = arg_str.match(/^(?<arg_ws>\s+)(?<arg>"([^"\\]|\\.)*"|[^\s,]+)\s*/);
-        } else {
-            match = arg_str.match(/^(?<arg_ws>,\s*)(?<arg>"([^"\\]|\\.)*"|[^\s,]+)\s*/);
-        }
+            if (token.type === TokenType.ArgSeperator) {
+                if (should_be_arg) {
+                    this.add_error({
+                        col: token.col,
+                        length: token.len,
+                        message: "Argument expected.",
+                    });
+                } else {
+                    if (param.type !== Type.U8Var && param.type !== Type.ILabelVar) {
+                        param_i++;
+                    }
+                }
 
-        if (!match || !match.groups) {
-            return false;
-        } else {
-            const { arg_ws, arg } = match.groups;
-            args.push({
-                col: col + arg_ws.length,
-                arg,
-            });
+                should_be_arg = true;
+            } else {
+                if (!should_be_arg) {
+                    const prev_token = this.tokens[i - 1];
+                    const col = prev_token.col + prev_token.len;
 
-            return this.tokenize_args(arg_str.slice(match[0].length), col + match[0].length, args);
-        }
-    }
-
-    private parse_args(params: Param[], arg_tokens: ArgToken[], args: Arg[]): void {
-        for (let i = 0; i < params.length; i++) {
-            const param = params[i];
-            const arg_token = arg_tokens[i];
-            const arg_str = arg_token.arg;
-            const col = arg_token.col;
-            const length = arg_str.length;
-
-            switch (param.type) {
-                case Type.U8:
-                    this.parse_uint(arg_str, 1, args, col);
-                    break;
-                case Type.U16:
-                case Type.ILabel:
-                case Type.DLabel:
-                    this.parse_uint(arg_str, 2, args, col);
-                    break;
-                case Type.U32:
-                    this.parse_uint(arg_str, 4, args, col);
-                    break;
-                case Type.I32:
-                    this.parse_sint(arg_str, 4, args, col);
-                    break;
-                case Type.F32:
-                    this.parse_float(arg_str, args, col);
-                    break;
-                case Type.Register:
-                    this.parse_register(arg_str, args, col);
-                    break;
-                case Type.String:
-                    this.parse_string(arg_str, args, col);
-                    break;
-                case Type.U8Var:
-                    this.parse_uint_varargs(arg_tokens, i, 1, args);
-                    return;
-                case Type.ILabelVar:
-                    this.parse_uint_varargs(arg_tokens, i, 2, args);
-                    return;
-                default:
                     this.add_error({
                         col,
-                        length,
-                        message: `Type ${Type[param.type]} not implemented.`,
+                        length: token.col - col,
+                        message: "Comma expected.",
                     });
-                    break;
+                }
+
+                should_be_arg = false;
+
+                let match: boolean;
+
+                switch (token.type) {
+                    case TokenType.Int:
+                        switch (param.type) {
+                            case Type.U8:
+                            case Type.U8Var:
+                                match = true;
+                                this.verify_uint(1, token, args);
+                                break;
+                            case Type.U16:
+                            case Type.ILabel:
+                            case Type.ILabelVar:
+                            case Type.DLabel:
+                                match = true;
+                                this.verify_uint(2, token, args);
+                                break;
+                            case Type.U32:
+                                match = true;
+                                this.verify_uint(4, token, args);
+                                break;
+                            case Type.I32:
+                                match = true;
+                                this.verify_sint(4, token, args);
+                                break;
+                            case Type.F32:
+                                match = true;
+                                break;
+                            default:
+                                match = false;
+                                break;
+                        }
+                        break;
+                    case TokenType.Float:
+                        match = param.type === Type.F32;
+                        break;
+                    case TokenType.Register:
+                        match = param.type === Type.Register;
+                        this.verify_register(token, args);
+                        break;
+                    case TokenType.String:
+                        match = param.type === Type.String;
+                        break;
+                    default:
+                        match = false;
+                        break;
+                }
+
+                if (!match) {
+                    semi_valid = false;
+
+                    let type_str = Type[param.type];
+
+                    switch (param.type) {
+                        case Type.U8:
+                            type_str = "unsigned 8-bit integer";
+                            break;
+                        case Type.U16:
+                            type_str = "unsigned 16-bit integer";
+                            break;
+                        case Type.U32:
+                            type_str = "unsigned 32-bit integer";
+                            break;
+                        case Type.I32:
+                            type_str = "signed 32-bit integer";
+                            break;
+                        case Type.F32:
+                            type_str = "float";
+                            break;
+                        case Type.Register:
+                            type_str = "register reference";
+                            break;
+                        case Type.ILabel:
+                            type_str = "instruction label";
+                            break;
+                        case Type.DLabel:
+                            type_str = "data label";
+                            break;
+                        case Type.U8Var:
+                            type_str = "unsigned 8-bit integer";
+                            break;
+                        case Type.ILabelVar:
+                            type_str = "instruction label";
+                            break;
+                        case Type.String:
+                            type_str = "string";
+                            break;
+                    }
+
+                    this.add_error({
+                        col: token.col,
+                        length: token.len,
+                        message: `Expected ${type_str}.`,
+                    });
+                }
             }
         }
+
+        this.tokens = [];
+        return semi_valid;
     }
 
-    private parse_uint(arg_str: string, size: number, args: Arg[], col: number): void {
+    private verify_uint(size: number, { col, len, value }: IntToken, args: Arg[]): void {
         const bit_size = 8 * size;
-        const value = parseInt(arg_str, 10);
         const max_value = Math.pow(2, bit_size) - 1;
 
-        if (!/^\d+$/.test(arg_str)) {
+        if (value < 0) {
             this.add_error({
                 col,
-                length: arg_str.length,
-                message: `Expected unsigned integer.`,
+                length: len,
+                message: `${bit_size}-Bit unsigned integer can't be less than 0.`,
             });
         } else if (value > max_value) {
             this.add_error({
                 col,
-                length: arg_str.length,
+                length: len,
                 message: `${bit_size}-Bit unsigned integer can't be greater than ${max_value}.`,
             });
-        } else {
-            args.push({
-                value,
-                size,
-            });
         }
+
+        args.push({
+            value,
+            size,
+        });
     }
 
-    private parse_sint(arg_str: string, size: number, args: Arg[], col: number): void {
+    private verify_sint(size: number, { col, len, value }: IntToken, args: Arg[]): void {
         const bit_size = 8 * size;
-        const value = parseInt(arg_str, 10);
         const min_value = -Math.pow(2, bit_size - 1);
         const max_value = Math.pow(2, bit_size - 1) - 1;
 
-        if (!/^-?\d+$/.test(arg_str)) {
+        if (value < min_value) {
             this.add_error({
                 col,
-                length: arg_str.length,
-                message: `Expected signed integer.`,
-            });
-        } else if (value < min_value) {
-            this.add_error({
-                col,
-                length: arg_str.length,
+                length: len,
                 message: `${bit_size}-Bit signed integer can't be less than ${min_value}.`,
             });
         } else if (value > max_value) {
             this.add_error({
                 col,
-                length: arg_str.length,
+                length: len,
                 message: `${bit_size}-Bit signed integer can't be greater than ${max_value}.`,
             });
-        } else {
-            args.push({
-                value,
-                size,
-            });
         }
+
+        args.push({
+            value,
+            size,
+        });
     }
 
-    private parse_float(arg_str: string, args: Arg[], col: number): void {
-        const value = parseFloat(arg_str);
-
-        if (!Number.isFinite(value)) {
+    private verify_register({ col, len, value }: RegisterToken, args: Arg[]): void {
+        if (value > 255) {
             this.add_error({
                 col,
-                length: arg_str.length,
-                message: `Expected floating point number.`,
-            });
-        } else {
-            args.push({
-                value,
-                size: 4,
-            });
-        }
-    }
-
-    private parse_register(arg_str: string, args: Arg[], col: number): void {
-        const value = parseInt(arg_str.slice(1), 10);
-
-        if (!/^r\d+$/.test(arg_str)) {
-            this.add_error({
-                col,
-                length: arg_str.length,
-                message: `Expected register reference.`,
-            });
-        } else if (value > 255) {
-            this.add_error({
-                col,
-                length: arg_str.length,
+                length: len,
                 message: `Invalid register reference, expected r0-r255.`,
             });
-        } else {
-            args.push({
-                value,
-                size: 1,
-            });
         }
+
+        args.push({
+            value,
+            size: 1,
+        });
     }
 
-    private parse_string(arg_str: string, args: Arg[], col: number): void {
-        if (!/^"([^"\\]|\\.)*"$/.test(arg_str)) {
+    private parse_bytes(first_token: IntToken): void {
+        const bytes = [];
+        let token: Token = first_token;
+        let i = 0;
+
+        while (token.type === TokenType.Int) {
+            if (token.value < 0) {
+                this.add_error({
+                    col: token.col,
+                    length: token.len,
+                    message: `8-Bit unsigned integer can't be less than 0.`,
+                });
+            } else if (token.value > 255) {
+                this.add_error({
+                    col: token.col,
+                    length: token.len,
+                    message: `8-Bit unsigned integer can't be greater than 255.`,
+                });
+            }
+
+            bytes.push(token.value);
+
+            if (i < this.tokens.length) {
+                token = this.tokens[i++];
+            } else {
+                break;
+            }
+        }
+
+        if (i < this.tokens.length) {
             this.add_error({
-                col,
-                length: arg_str.length,
-                message: `Expected string.`,
-            });
-        } else {
-            const value = JSON.parse(arg_str);
-            args.push({
-                value,
-                size: 2 + 2 * value.length,
+                col: token.col,
+                length: token.len,
+                message: "Unexpected token.",
             });
         }
-    }
 
-    private parse_uint_varargs(
-        arg_tokens: ArgToken[],
-        index: number,
-        size: number,
-        args: Arg[]
-    ): void {
-        for (; index < arg_tokens.length; index++) {
-            const arg_token = arg_tokens[index];
-            const col = arg_token.col;
-            this.parse_uint(arg_token.arg, size, args, col);
-        }
+        this.add_bytes(bytes);
     }
 }

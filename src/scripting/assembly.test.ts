@@ -2,7 +2,7 @@ import { InstructionSegment, Opcode, SegmentType } from "../data_formats/parsing
 import { assemble } from "./assembly";
 
 test("", () => {
-    const { object_code, errors } = assemble(
+    const { object_code, warnings, errors } = assemble(
         `
     0:   set_episode 0
          bb_map_designate 1, 2, 3, 4
@@ -15,6 +15,7 @@ test("", () => {
     `.split("\n")
     );
 
+    expect(warnings).toEqual([]);
     expect(errors).toEqual([]);
 
     expect(object_code.length).toBe(3);

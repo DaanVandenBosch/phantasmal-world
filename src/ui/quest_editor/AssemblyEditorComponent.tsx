@@ -16,21 +16,23 @@ const ASM_SYNTAX: languages.IMonarchLanguage = {
             // Registers.
             [/r\d+/, "predefined"],
 
-            // Identifiers.
-            [/[a-z][a-z0-9_=<>!]*/, "identifier"],
+            [/\.[^\s]+|(^|\s+)bytes($|\s+)/, "keyword"],
 
             // Labels.
-            [/\d+:/, "tag"],
+            [/[^\s]+:/, "tag"],
+
+            // Numbers.
+            [/-?\d+\.\d+/, "number.float"],
+            [/0x[0-9a-fA-F]+/, "number.hex"],
+            [/-?[0-9]+?/, "number"],
+
+            // Identifiers.
+            [/[a-z][a-z0-9_=<>!]*/, "identifier"],
 
             // Whitespace.
             [/[ \t\r\n]+/, "white"],
             // [/\/\*/, "comment", "@comment"],
             // [/\/\/.*$/, "comment"],
-
-            // Numbers.
-            [/-?\d*\.\d+([eE][-+]?\d+)?/, "number.float"],
-            // [/-?0[xX][0-9a-fA-F]+/, "number.hex"],
-            [/-?\d+/, "number"],
 
             // Delimiters.
             [/,/, "delimiter"],
@@ -87,7 +89,7 @@ languages.registerCompletionItemProvider("psoasm", {
 languages.setLanguageConfiguration("psoasm", {
     indentationRules: {
         increaseIndentPattern: /^\s*\d+:/,
-        decreaseIndentPattern: /^\s*\d+/,
+        decreaseIndentPattern: /^\s*(\d+|\.)/,
     },
     autoClosingPairs: [{ open: '"', close: '"' }],
     surroundingPairs: [{ open: '"', close: '"' }],
@@ -99,8 +101,10 @@ editor.defineTheme("phantasmal-world", {
     rules: [
         { token: "", foreground: "e0e0e0", background: "#181818" },
         { token: "tag", foreground: "99bbff" },
+        { token: "keyword", foreground: "d0a0ff", fontStyle: "bold" },
         { token: "predefined", foreground: "bbffbb" },
         { token: "number", foreground: "ffffaa" },
+        { token: "number.hex", foreground: "ddffaa" },
         { token: "string", foreground: "88ffff" },
         { token: "string.escape", foreground: "8888ff" },
     ],
