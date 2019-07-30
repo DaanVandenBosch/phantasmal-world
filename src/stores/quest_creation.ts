@@ -1,4 +1,4 @@
-import { Instruction, Opcode } from "../data_formats/parsing/quest/bin";
+import { Instruction, Opcode, SegmentType } from "../data_formats/parsing/quest/bin";
 import { Vec3 } from "../data_formats/vector";
 import { Episode, NpcType, ObjectType, Quest, QuestNpc, QuestObject } from "../domain";
 import { area_store } from "./AreaStore";
@@ -17,20 +17,59 @@ export function create_new_quest(episode: Episode): Quest {
         create_default_objects(),
         create_default_npcs(),
         [],
-        new Map([[0, 0], [1, 6]]),
         [
-            new Instruction(Opcode.set_episode, [{ value: 0, size: 4 }]),
-            new Instruction(Opcode.arg_pushl, [{ value: 0, size: 4 }]),
-            new Instruction(Opcode.arg_pushw, [{ value: 1, size: 2 }]),
-            new Instruction(Opcode.set_floor_handler, []),
-            new Instruction(Opcode.bb_map_designate, [
-                { value: 0, size: 1 },
-                { value: 0, size: 2 },
-                { value: 0, size: 1 },
-                { value: 0, size: 1 },
-            ]),
-            new Instruction(Opcode.ret, []),
-            new Instruction(Opcode.ret, []),
+            {
+                labels: [0],
+                type: SegmentType.Instructions,
+                instructions: [
+                    new Instruction(Opcode.set_episode, [{ value: 0, size: 4 }]),
+                    new Instruction(Opcode.arg_pushl, [{ value: 0, size: 4 }]),
+                    new Instruction(Opcode.arg_pushw, [{ value: 150, size: 2 }]),
+                    new Instruction(Opcode.set_floor_handler, []),
+                    new Instruction(Opcode.bb_map_designate, [
+                        { value: 0, size: 1 },
+                        { value: 0, size: 2 },
+                        { value: 0, size: 1 },
+                        { value: 0, size: 1 },
+                    ]),
+                    new Instruction(Opcode.ret, []),
+                ],
+            },
+            {
+                labels: [150],
+                type: SegmentType.Instructions,
+                instructions: [
+                    new Instruction(Opcode.leti, [{ value: 60, size: 1 }, { value: 237, size: 4 }]),
+                    new Instruction(Opcode.leti, [{ value: 61, size: 1 }, { value: 0, size: 4 }]),
+                    new Instruction(Opcode.leti, [{ value: 62, size: 1 }, { value: 333, size: 4 }]),
+                    new Instruction(Opcode.leti, [{ value: 63, size: 1 }, { value: -15, size: 4 }]),
+                    new Instruction(Opcode.arg_pushl, [{ value: 0, size: 4 }]),
+                    new Instruction(Opcode.arg_pushr, [{ value: 60, size: 1 }]),
+                    new Instruction(Opcode.p_setpos, []),
+                    new Instruction(Opcode.leti, [{ value: 60, size: 1 }, { value: 255, size: 4 }]),
+                    new Instruction(Opcode.leti, [{ value: 61, size: 1 }, { value: 0, size: 4 }]),
+                    new Instruction(Opcode.leti, [{ value: 62, size: 1 }, { value: 338, size: 4 }]),
+                    new Instruction(Opcode.leti, [{ value: 63, size: 1 }, { value: -43, size: 4 }]),
+                    new Instruction(Opcode.arg_pushl, [{ value: 1, size: 4 }]),
+                    new Instruction(Opcode.arg_pushr, [{ value: 60, size: 1 }]),
+                    new Instruction(Opcode.p_setpos, []),
+                    new Instruction(Opcode.leti, [{ value: 60, size: 1 }, { value: 222, size: 4 }]),
+                    new Instruction(Opcode.leti, [{ value: 61, size: 1 }, { value: 0, size: 4 }]),
+                    new Instruction(Opcode.leti, [{ value: 62, size: 1 }, { value: 322, size: 4 }]),
+                    new Instruction(Opcode.leti, [{ value: 63, size: 1 }, { value: 25, size: 4 }]),
+                    new Instruction(Opcode.arg_pushl, [{ value: 2, size: 4 }]),
+                    new Instruction(Opcode.arg_pushr, [{ value: 60, size: 1 }]),
+                    new Instruction(Opcode.p_setpos, []),
+                    new Instruction(Opcode.leti, [{ value: 60, size: 1 }, { value: 248, size: 4 }]),
+                    new Instruction(Opcode.leti, [{ value: 61, size: 1 }, { value: 0, size: 4 }]),
+                    new Instruction(Opcode.leti, [{ value: 62, size: 1 }, { value: 323, size: 4 }]),
+                    new Instruction(Opcode.leti, [{ value: 63, size: 1 }, { value: -20, size: 4 }]),
+                    new Instruction(Opcode.arg_pushl, [{ value: 3, size: 4 }]),
+                    new Instruction(Opcode.arg_pushr, [{ value: 60, size: 1 }]),
+                    new Instruction(Opcode.p_setpos, []),
+                    new Instruction(Opcode.ret, []),
+                ],
+            },
         ],
         []
     );

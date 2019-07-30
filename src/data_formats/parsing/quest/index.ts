@@ -65,7 +65,7 @@ export function parse_quest(cursor: Cursor, lenient: boolean = false): Quest | u
     const bin_decompressed = prs_decompress(
         new ArrayBufferCursor(bin_file.data, Endianness.Little)
     );
-    const bin = parse_bin(bin_decompressed, lenient);
+    const bin = parse_bin(bin_decompressed, [0], lenient);
     let episode = 1;
     let area_variants: AreaVariant[] = [];
 
@@ -73,7 +73,7 @@ export function parse_quest(cursor: Cursor, lenient: boolean = false): Quest | u
         let label_0_segment: InstructionSegment | undefined;
 
         for (const segment of bin.object_code) {
-            if (segment.type === SegmentType.Instructions && segment.label === 0) {
+            if (segment.type === SegmentType.Instructions && segment.labels.includes(0)) {
                 label_0_segment = segment;
                 break;
             }

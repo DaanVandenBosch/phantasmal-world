@@ -31,8 +31,8 @@ export function disassemble(object_code: Segment[], manual_stack: boolean = fals
             }
         }
 
-        if (segment.label !== -1) {
-            lines.push(`${segment.label}:`);
+        for (const label of segment.labels) {
+            lines.push(`${label}:`);
         }
 
         if (segment.type === SegmentType.Data) {

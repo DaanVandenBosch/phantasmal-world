@@ -62,6 +62,12 @@ Features that are in ***bold italics*** are planned and not yet implemented.
 - ***Rotation***
 - ***Multi select and translate/rotate/edit***
 
+## Events
+
+- ***Create events***
+- ***Delete events***
+- ***Edit events***
+
 ## Script Object Code
 
 - Disassembler
@@ -72,6 +78,7 @@ Features that are in ***bold italics*** are planned and not yet implemented.
   - Binary data
   - ***Strings***
 - Labels
+- ***Interpret code called from objects as code***
 
 ## Script Assembly Editor
 
@@ -99,7 +106,8 @@ Features that are in ***bold italics*** are planned and not yet implemented.
   - Invalid instruction arguments
   - ***Invalid label references***
   - ***Mark all duplicate labels (the first one is not marked at the moment)***
-- ***Show instruction parameters on hover over***
+- ***Instruction parameter hints***
+- ***Show instruction documentation on hover over***
 - ***Show reserved register usage on hover over***
 - ***When saving, ask user whether to really save when asm contains errors***
 

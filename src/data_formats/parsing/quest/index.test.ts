@@ -94,7 +94,7 @@ function roundtrip_test(path: string, file_name: string, contents: Buffer): void
 
         for (let i = 0; i < orig_quest.object_code.length; i++) {
             expect(test_quest.object_code[i].type).toBe(orig_quest.object_code[i].type);
-            expect(test_quest.object_code[i].label).toBe(orig_quest.object_code[i].label);
+            expect(test_quest.object_code[i].labels).toEqual(orig_quest.object_code[i].labels);
         }
     });
 }

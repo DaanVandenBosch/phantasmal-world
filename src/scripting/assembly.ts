@@ -149,7 +149,7 @@ class Assembler {
         if (!this.segment) {
             // Unreachable code, technically valid.
             const instruction_segment: InstructionSegment = {
-                label: -1,
+                labels: [],
                 type: SegmentType.Instructions,
                 instructions: [],
             };
@@ -165,7 +165,7 @@ class Assembler {
         if (!this.segment) {
             // Unadressable data, technically valid.
             const data_segment: DataSegment = {
-                label: -1,
+                labels: [],
                 type: SegmentType.Data,
                 data: new Uint8Array(bytes).buffer,
             };
@@ -234,7 +234,7 @@ class Assembler {
         if (this.code_section) {
             this.segment = {
                 type: SegmentType.Instructions,
-                label,
+                labels: [label],
                 instructions: [],
             };
             this.object_code.push(this.segment);
@@ -253,7 +253,7 @@ class Assembler {
         } else {
             this.segment = {
                 type: SegmentType.Data,
-                label,
+                labels: [label],
                 data: new ArrayBuffer(0),
             };
             this.object_code.push(this.segment);

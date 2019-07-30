@@ -3682,8 +3682,8 @@ export class Opcode {
             { type: Type.U32 },
             { type: Type.U32 },
             { type: Type.U32 },
-            { type: Type.U16 },
-            { type: Type.U16 },
+            { type: Type.ILabel },
+            { type: Type.ILabel },
         ]
     ));
     static readonly bb_check_wrap = (OPCODES[0xf954] = new Opcode(
@@ -3702,8 +3702,8 @@ export class Opcode {
             { type: Type.Register },
             { type: Type.Register },
             { type: Type.Register },
-            { type: Type.U16 },
-            { type: Type.U16 },
+            { type: Type.ILabel },
+            { type: Type.ILabel },
         ]
     ));
     static readonly bb_exchange_pd_srank = (OPCODES[0xf956] = new Opcode(
@@ -3717,8 +3717,8 @@ export class Opcode {
             { type: Type.Register },
             { type: Type.Register },
             { type: Type.Register },
-            { type: Type.U16 },
-            { type: Type.U16 },
+            { type: Type.ILabel },
+            { type: Type.ILabel },
         ]
     ));
     static readonly bb_exchange_pd_special = (OPCODES[0xf957] = new Opcode(
@@ -3733,8 +3733,8 @@ export class Opcode {
             { type: Type.Register },
             { type: Type.Register },
             { type: Type.U32 },
-            { type: Type.U16 },
-            { type: Type.U16 },
+            { type: Type.ILabel },
+            { type: Type.ILabel },
         ]
     ));
     static readonly bb_exchange_pd_percent = (OPCODES[0xf958] = new Opcode(
@@ -3749,8 +3749,8 @@ export class Opcode {
             { type: Type.Register },
             { type: Type.Register },
             { type: Type.U32 },
-            { type: Type.U16 },
-            { type: Type.U16 },
+            { type: Type.ILabel },
+            { type: Type.ILabel },
         ]
     ));
     static readonly unknown_f959 = (OPCODES[0xf959] = new Opcode(
@@ -3779,7 +3779,7 @@ export class Opcode {
         "bb_exchange_slt",
         [],
         false,
-        [{ type: Type.U32 }, { type: Type.Register }, { type: Type.U16 }, { type: Type.U16 }]
+        [{ type: Type.U32 }, { type: Type.Register }, { type: Type.ILabel }, { type: Type.ILabel }]
     ));
     static readonly bb_exchange_pc = (OPCODES[0xf95d] = new Opcode(
         0xf95d,
@@ -3804,8 +3804,8 @@ export class Opcode {
             { type: Type.Register },
             { type: Type.Register },
             { type: Type.U32 },
-            { type: Type.U16 },
-            { type: Type.U16 },
+            { type: Type.ILabel },
+            { type: Type.ILabel },
         ]
     ));
     static readonly unknown_f960 = (OPCODES[0xf960] = new Opcode(
