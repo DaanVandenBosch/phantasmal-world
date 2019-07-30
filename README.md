@@ -1,23 +1,23 @@
 # Phantasmal World
 
-Phantasmal World is a suite of tools for Phantasy Star Online. This project is in a very early stage of development.
+Phantasmal World is a suite of tools for Phantasy Star Online.
 
 ## For Developers
 
-React is used for the frontend, MobX is used for state management and THREE.js for 3D graphics.
+React is used for the frontend, MobX is used for state management and THREE.js for 3D graphics. See [features](./FEATURES.md) for a list of features, planned features and bugs.
 
 ### Getting Started
 
 1. Install Yarn ([https://yarnpkg.com/](https://yarnpkg.com/))
 2. cd to the project directory
-3. Launch server on [http://localhost:1623/](http://localhost:1623/) with `yarn start`
-4. src/index.tsx is the application's entry point
+3. Install dependencies with `yarn`
+4. Launch server on [http://localhost:1623/](http://localhost:1623/) with `yarn start`
+5. src/index.tsx is the application's entry point
 
 ### Tests
 
-Run tests with `yarn test`.
+Run tests with `yarn test`. The testing framework used is Jest.
 
 ### Production Build
 
-1. Change the homepage field in package.json if you don't want to deploy to /
-3. Build with `yarn build`
+Create an optimized production build with `yarn build`.
