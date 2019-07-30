@@ -109,7 +109,16 @@ Features that are in ***bold italics*** are planned and not yet implemented.
 
 ## Bugs
 
+- [3D View](#3d-view): Random Type Box 1 and Fixed Type Box objects aren't rendered correctly
+- [3D View](#3d-view): Some objects are only partially loaded (they consist of several seperate models)
+  - Forest Switch
+  - Laser Fence
+  - Forest Laser
+  - Switch (none door)
+  - Energy Barrier
 - [Script Object Code](#script-object-code): Make sure data segments are referenced by an instruction with an offset before the segment's offset
 - [Script Object Code](#script-object-code): Detect code that is both unused and incorrect and reinterpret it as data (this avoids loading and then saving the quest incorrectly)
 - [Area Selection](#area-selection): Lost heart breaker/phantasmal world 4 overwrite area 16 to have both towers
 - [Area Selection](#area-selection): Show areas that are referenced from .dat but not from script (test with Point of Disaster (709))
+- [Load Quest](#load-quest): Can't parse quest 4
+- [Load Quest](#load-quest): Can't parse quest 125 White Day

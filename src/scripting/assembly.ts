@@ -462,25 +462,29 @@ class Assembler {
                             case Type.U8:
                             case Type.U8Var:
                                 match = true;
-                                this.verify_uint(1, token, args);
+                                this.parse_uint(1, token, args);
                                 break;
                             case Type.U16:
                             case Type.ILabel:
                             case Type.ILabelVar:
                             case Type.DLabel:
                                 match = true;
-                                this.verify_uint(2, token, args);
+                                this.parse_uint(2, token, args);
                                 break;
                             case Type.U32:
                                 match = true;
-                                this.verify_uint(4, token, args);
+                                this.parse_uint(4, token, args);
                                 break;
                             case Type.I32:
                                 match = true;
-                                this.verify_sint(4, token, args);
+                                this.parse_sint(4, token, args);
                                 break;
                             case Type.F32:
                                 match = true;
+                                args.push({
+                                    value: token.value,
+                                    size: 4,
+                                });
                                 break;
                             default:
                                 match = false;
@@ -489,13 +493,29 @@ class Assembler {
                         break;
                     case TokenType.Float:
                         match = param.type === Type.F32;
+
+                        if (match) {
+                            args.push({
+                                value: token.value,
+                                size: 4,
+                            });
+                        }
+
                         break;
                     case TokenType.Register:
                         match = param.type === Type.Register;
-                        this.verify_register(token, args);
+                        this.parse_register(token, args);
                         break;
                     case TokenType.String:
                         match = param.type === Type.String;
+
+                        if (match) {
+                            args.push({
+                                value: token.value,
+                                size: 2 * token.value.length + 2,
+                            });
+                        }
+
                         break;
                     default:
                         match = false;
@@ -556,7 +576,7 @@ class Assembler {
         return semi_valid;
     }
 
-    private verify_uint(size: number, { col, len, value }: IntToken, args: Arg[]): void {
+    private parse_uint(size: number, { col, len, value }: IntToken, args: Arg[]): void {
         const bit_size = 8 * size;
         const max_value = Math.pow(2, bit_size) - 1;
 
@@ -572,15 +592,15 @@ class Assembler {
                 length: len,
                 message: `Unsigned ${bit_size}-bit integer can't be greater than ${max_value}.`,
             });
+        } else {
+            args.push({
+                value,
+                size,
+            });
         }
-
-        args.push({
-            value,
-            size,
-        });
     }
 
-    private verify_sint(size: number, { col, len, value }: IntToken, args: Arg[]): void {
+    private parse_sint(size: number, { col, len, value }: IntToken, args: Arg[]): void {
         const bit_size = 8 * size;
         const min_value = -Math.pow(2, bit_size - 1);
         const max_value = Math.pow(2, bit_size - 1) - 1;
@@ -597,27 +617,27 @@ class Assembler {
                 length: len,
                 message: `Signed ${bit_size}-bit integer can't be greater than ${max_value}.`,
             });
+        } else {
+            args.push({
+                value,
+                size,
+            });
         }
-
-        args.push({
-            value,
-            size,
-        });
     }
 
-    private verify_register({ col, len, value }: RegisterToken, args: Arg[]): void {
+    private parse_register({ col, len, value }: RegisterToken, args: Arg[]): void {
         if (value > 255) {
             this.add_error({
                 col,
                 length: len,
                 message: `Invalid register reference, expected r0-r255.`,
             });
+        } else {
+            args.push({
+                value,
+                size: 1,
+            });
         }
-
-        args.push({
-            value,
-            size: 1,
-        });
     }
 
     private parse_bytes(first_token: IntToken): void {

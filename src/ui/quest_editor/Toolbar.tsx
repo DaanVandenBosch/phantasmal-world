@@ -22,7 +22,6 @@ export class Toolbar extends Component {
                     overlay={
                         <Menu onClick={this.new_quest}>
                             <Menu.Item key={Episode[Episode.I]}>Episode I</Menu.Item>
-                            <Menu.Item key={Episode[Episode.IV]}>Episode IV</Menu.Item>
                         </Menu>
                     }
                     trigger={["click"]}

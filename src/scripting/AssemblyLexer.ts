@@ -317,8 +317,8 @@ export class AssemblyLexer {
 
     private tokenize_string(): StringToken | UnterminatedStringToken {
         const col = this.col;
+        this.mark();
         this.skip();
-        this.mark(); // Mark after opening quote.
         let prev_was_bs = false;
         let terminated = false;
 
@@ -342,23 +342,17 @@ export class AssemblyLexer {
         }
 
         let value: string;
-        let len: number;
 
-        // Don't include quote in value.
         if (terminated) {
-            this.back();
-            value = this.slice();
-            len = this.marked_len() + 2;
-            this.skip();
+            value = JSON.parse(this.slice());
         } else {
-            value = this.slice();
-            len = this.marked_len() + 1;
+            value = JSON.parse(this.slice() + '"');
         }
 
         return {
             type: terminated ? TokenType.String : TokenType.UnterminatedString,
             col,
-            len,
+            len: this.marked_len(),
             value,
         };
     }
