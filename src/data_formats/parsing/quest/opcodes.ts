@@ -122,10 +122,34 @@ export class Opcode {
         false,
         []
     ));
-    static readonly unknown_0a = (OPCODES[0x0a] = new Opcode(0x0a, "unknown_0a", [], false, []));
-    static readonly unknown_0b = (OPCODES[0x0b] = new Opcode(0x0b, "unknown_0b", [], false, []));
-    static readonly unknown_0c = (OPCODES[0x0c] = new Opcode(0x0c, "unknown_0c", [], false, []));
-    static readonly unknown_0d = (OPCODES[0x0d] = new Opcode(0x0d, "unknown_0d", [], false, []));
+    static readonly letb = (OPCODES[0x0a] = new Opcode(
+        0x0a,
+        "letb",
+        [{ type: Type.Register }, { type: Type.U8 }],
+        false,
+        []
+    ));
+    static readonly letw = (OPCODES[0x0b] = new Opcode(
+        0x0b,
+        "letw",
+        [{ type: Type.Register }, { type: Type.U16 }],
+        false,
+        []
+    ));
+    static readonly leta = (OPCODES[0x0c] = new Opcode(
+        0x0c,
+        "leta",
+        [{ type: Type.Register }, { type: Type.Register }],
+        false,
+        []
+    ));
+    static readonly leto = (OPCODES[0x0d] = new Opcode(
+        0x0d,
+        "leto",
+        [{ type: Type.Register }, { type: Type.U16 /* ILabel or DLabel */ }],
+        false,
+        []
+    ));
     static readonly unknown_0e = (OPCODES[0x0e] = new Opcode(0x0e, "unknown_0e", [], false, []));
     static readonly unknown_0f = (OPCODES[0x0f] = new Opcode(0x0f, "unknown_0f", [], false, []));
     static readonly set = (OPCODES[0x10] = new Opcode(
@@ -1262,7 +1286,7 @@ export class Opcode {
     ));
     static readonly sync_register = (OPCODES[0xef] = new Opcode(0xef, "sync_register", [], false, [
         { type: Type.Register },
-        { type: Type.U32 },
+        { type: Type.U32 /* TODO: Can be U32 or Register. */ },
     ]));
     static readonly send_regwork = (OPCODES[0xf0] = new Opcode(
         0xf0,
