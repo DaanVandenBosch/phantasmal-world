@@ -28,7 +28,7 @@ Features that are in ***bold italics*** are planned and not yet implemented.
 
 ## Area Selection
 
-- Dropdown to switch area
+- Dropdown menu to switch area
 
 ## Simple Quest Properties
 
@@ -51,6 +51,7 @@ Features that are in ***bold italics*** are planned and not yet implemented.
 - ***Top-down view (orthogonal view might suffice?)***
 - ***Add "shadow" to entities to more easily see where floating entities are positioned***
   - ***MVP: a single line***
+- ***Show positions and radii from the relevant script instructions***
 
 ## NPC/object manipulation
 

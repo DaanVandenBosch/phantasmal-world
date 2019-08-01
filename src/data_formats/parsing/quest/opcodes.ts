@@ -2922,16 +2922,16 @@ export class Opcode {
         false,
         []
     ));
-    static readonly unknown_f8e6 = (OPCODES[0xf8e6] = new Opcode(
+    static readonly move_coords_object = (OPCODES[0xf8e6] = new Opcode(
         0xf8e6,
-        "unknown_f8e6",
+        "move_coords_object ",
         [{ type: Type.Register }, { type: Type.Register }],
         false,
         []
     ));
-    static readonly unknown_f8e7 = (OPCODES[0xf8e7] = new Opcode(
+    static readonly at_coords_call_ex = (OPCODES[0xf8e7] = new Opcode(
         0xf8e7,
-        "unknown_f8e7",
+        "at_coords_call_ex",
         [{ type: Type.Register }, { type: Type.Register }],
         false,
         []

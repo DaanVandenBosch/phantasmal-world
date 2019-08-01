@@ -1,10 +1,11 @@
 import {
-    Instruction,
     InstructionSegment,
     Opcode,
     Segment,
     SegmentType,
+    Instruction,
 } from "../data_formats/parsing/quest/bin";
+import { ValueSet } from "./ValueSet";
 
 export enum BranchType {
     None,
@@ -36,38 +37,93 @@ export class BasicBlock {
 }
 
 export class ControlFlowGraph {
-    readonly nodes: BasicBlock[] = [];
+    readonly blocks: BasicBlock[] = [];
+    readonly instructions: Map<Instruction, BasicBlock> = new Map();
 }
 
 export function create_control_flow_graph(segments: InstructionSegment[]): ControlFlowGraph {
     const cfg = new ControlFlowGraph();
-    /**
-     * Mapping of labels to basic blocks.
-     */
+    // Mapping of labels to basic blocks.
     const label_blocks = new Map<number, BasicBlock>();
 
     for (const segment of segments) {
-        const blocks = create_basic_blocks(segment);
-
-        if (blocks.length) {
-            cfg.nodes.push(...blocks);
-
-            for (const label of segment.labels) {
-                label_blocks.set(label, blocks[0]);
-            }
-        }
+        create_basic_blocks(cfg, label_blocks, segment);
     }
 
     link_blocks(cfg, label_blocks);
     return cfg;
 }
 
-function create_basic_blocks(segment: InstructionSegment): BasicBlock[] {
-    const blocks: BasicBlock[] = [];
+/**
+ * Computes the possible values of a register at a specific instruction.
+ */
+export function register_value_set(
+    cfg: ControlFlowGraph,
+    instruction: Instruction,
+    register: number
+): ValueSet {
+    const block = cfg.instructions.get(instruction);
+
+    if (block) {
+        let inst_idx = block.start;
+
+        while (inst_idx < block.end) {
+            if (block.segment.instructions[inst_idx] === instruction) {
+                break;
+            }
+
+            inst_idx++;
+        }
+
+        return find_value_set(block, inst_idx, register);
+    } else {
+        return new ValueSet();
+    }
+}
+
+function find_value_set(block: BasicBlock, end: number, register: number): ValueSet {
+    let values = new ValueSet();
+
+    for (let i = block.start; i < end; i++) {
+        const instruction = block.segment.instructions[i];
+        const args = instruction.args;
+
+        switch (instruction.opcode) {
+            case Opcode.let:
+                if (args[0].value === register) {
+                    values = find_value_set(block, i, args[1].value);
+                }
+                break;
+            case Opcode.leti:
+            case Opcode.letb:
+            case Opcode.letw:
+            case Opcode.leto:
+                if (args[0].value === register) {
+                    values.set_value(args[1].value);
+                }
+                break;
+        }
+    }
+
+    if (values.size() === 0) {
+        for (const from of block.from) {
+            values.union(find_value_set(from, from.end, register));
+        }
+    }
+
+    return values;
+}
+
+function create_basic_blocks(
+    cfg: ControlFlowGraph,
+    label_blocks: Map<number, BasicBlock>,
+    segment: InstructionSegment
+) {
     const len = segment.instructions.length;
     let start = 0;
+    let first_block = true;
 
-    for (let i = start; i < len; i++) {
+    for (let i = 0; i < len; i++) {
         const inst = segment.instructions[i];
 
         let branch_type: BranchType;
@@ -145,20 +201,33 @@ function create_basic_blocks(segment: InstructionSegment): BasicBlock[] {
                 }
         }
 
-        blocks.push(new BasicBlock(segment, start, i + 1, branch_type, branch_labels));
+        const block = new BasicBlock(segment, start, i + 1, branch_type, branch_labels);
+
+        for (let j = block.start; j < block.end; j++) {
+            cfg.instructions.set(block.segment.instructions[j], block);
+        }
+
+        cfg.blocks.push(block);
+
+        if (first_block) {
+            for (const label of segment.labels) {
+                label_blocks.set(label, block);
+            }
+
+            first_block = false;
+        }
+
         start = i + 1;
     }
-
-    return blocks;
 }
 
 function link_blocks(cfg: ControlFlowGraph, label_blocks: Map<number, BasicBlock>): void {
     // Pairs of calling block and block to which callees should return to.
     const callers: [BasicBlock, BasicBlock][] = [];
 
-    for (let i = 0; i < cfg.nodes.length; i++) {
-        const block = cfg.nodes[i];
-        const next_block = cfg.nodes[i + 1];
+    for (let i = 0; i < cfg.blocks.length; i++) {
+        const block = cfg.blocks[i];
+        const next_block = cfg.blocks[i + 1];
 
         switch (block.branch_type) {
             case BranchType.Return:
