@@ -1,14 +1,46 @@
 /**
- * Represents a set of integers.
+ * Represents a sorted set of integers.
  */
 export class ValueSet {
     /**
-     * Open intervals [start, end[.
+     * Closed intervals [start, end].
      */
     private intervals: { start: number; end: number }[] = [];
 
     size(): number {
-        return this.intervals.reduce((acc, i) => acc + i.end - i.start, 0);
+        return this.intervals.reduce((acc, i) => acc + i.end - i.start + 1, 0);
+    }
+
+    get(i: number): number | undefined {
+        for (const { start, end } of this.intervals) {
+            const size = end - start + 1;
+
+            if (i < size) {
+                return start + i;
+            } else {
+                i -= size;
+            }
+        }
+
+        return undefined;
+    }
+
+    min(): number | undefined {
+        return this.intervals.length ? this.intervals[0].start : undefined;
+    }
+
+    max(): number | undefined {
+        return this.intervals.length ? this.intervals[this.intervals.length - 1].end : undefined;
+    }
+
+    has(value: number): boolean {
+        for (const int of this.intervals) {
+            if (int.start <= value && value <= int.end) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -17,7 +49,7 @@ export class ValueSet {
      * @param value integer value
      */
     set_value(value: number): ValueSet {
-        this.intervals = [{ start: value, end: value + 1 }];
+        this.intervals = [{ start: value, end: value }];
         return this;
     }
 
@@ -25,16 +57,47 @@ export class ValueSet {
      * Sets this ValueSet to the values in the given interval.
      *
      * @param start lower bound, inclusive
-     * @param end upper bound, exclusive
+     * @param end upper bound, inclusive
      */
     set_interval(start: number, end: number): ValueSet {
         if (end < start)
             throw new Error(
-                `Interval upper bound should be greater than lower bound, got [${start}, ${end}[.`
+                `Interval upper bound should be greater than or equal to lower bound, got [${start}, ${end}].`
             );
 
-        if (end !== start) {
-            this.intervals = [{ start, end }];
+        this.intervals = [{ start, end }];
+        return this;
+    }
+
+    scalar_add(s: number): ValueSet {
+        for (const int of this.intervals) {
+            int.start += s;
+            int.end += s;
+        }
+
+        return this;
+    }
+
+    scalar_sub(s: number): ValueSet {
+        return this.scalar_add(-s);
+    }
+
+    scalar_mul(s: number): ValueSet {
+        for (const int of this.intervals) {
+            int.start *= s;
+            int.end *= s;
+        }
+
+        return this;
+    }
+
+    /**
+     * Integer division.
+     */
+    scalar_div(s: number): ValueSet {
+        for (const int of this.intervals) {
+            int.start = Math.floor(int.start / s);
+            int.end = Math.floor(int.end / s);
         }
 
         return this;
@@ -47,11 +110,11 @@ export class ValueSet {
             while (i < this.intervals.length) {
                 const a = this.intervals[i];
 
-                if (b.end < a.start) {
+                if (b.end < a.start - 1) {
                     this.intervals.splice(i, 0, b);
                     i++;
                     continue outer;
-                } else if (b.start <= a.end) {
+                } else if (b.start <= a.end + 1) {
                     a.start = Math.min(a.start, b.start);
 
                     let j = i;
@@ -80,6 +143,18 @@ export class ValueSet {
         return this;
     }
 
+    to_array(): number[] {
+        let array: number[] = [];
+
+        for (const { start, end } of this.intervals) {
+            for (let i = start; i <= end; i++) {
+                array.push(i);
+            }
+        }
+
+        return array;
+    }
+
     [Symbol.iterator](): Iterator<number> {
         const vs = this;
         let int_i = 0;
@@ -93,7 +168,7 @@ export class ValueSet {
                     if (isNaN(value)) {
                         value = vs.intervals[int_i].start;
                         done = false;
-                    } else if (value >= vs.intervals[int_i].end) {
+                    } else if (value > vs.intervals[int_i].end) {
                         int_i++;
 
                         if (int_i < vs.intervals.length) {

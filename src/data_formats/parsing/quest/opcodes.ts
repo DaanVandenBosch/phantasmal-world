@@ -136,6 +136,7 @@ export class Opcode {
         false,
         []
     ));
+    // Sets a register to the memory offset of a register. Not used by Sega.
     static readonly leta = (OPCODES[0x0c] = new Opcode(
         0x0c,
         "leta",
@@ -143,6 +144,7 @@ export class Opcode {
         false,
         []
     ));
+    // Sets a register to the memory offset of a label. Not used by Sega.
     static readonly leto = (OPCODES[0x0d] = new Opcode(
         0x0d,
         "leto",
@@ -2404,6 +2406,7 @@ export class Opcode {
         false,
         []
     ));
+    // Resets all registers to 0 (may have to change areas?).
     static readonly reset_map = (OPCODES[0xf89b] = new Opcode(0xf89b, "reset_map", [], false, []));
     static readonly disp_chl_retry_menu = (OPCODES[0xf89c] = new Opcode(
         0xf89c,

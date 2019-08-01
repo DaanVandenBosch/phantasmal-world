@@ -1,13 +1,13 @@
-import { InstructionSegment, SegmentType } from "../data_formats/parsing/quest/bin";
-import { assemble } from "./assembly";
-import { create_control_flow_graph, BranchType } from "./data_flow_analysis";
+import { InstructionSegment, SegmentType } from "../../data_formats/parsing/quest/bin";
+import { assemble } from "../assembly";
+import { BranchType, ControlFlowGraph } from "./ControlFlowGraph";
 
 test("single instruction", () => {
     const im = to_instructions(`
         0:
             ret
     `);
-    const cfg = create_control_flow_graph(im);
+    const cfg = ControlFlowGraph.create(im);
 
     expect(cfg.blocks.length).toBe(1);
 
@@ -26,7 +26,7 @@ test("single unconditional jump", () => {
         1:
             ret
     `);
-    const cfg = create_control_flow_graph(im);
+    const cfg = ControlFlowGraph.create(im);
 
     expect(cfg.blocks.length).toBe(2);
 
@@ -53,7 +53,7 @@ test("single conditional jump", () => {
         1:
             ret
     `);
-    const cfg = create_control_flow_graph(im);
+    const cfg = ControlFlowGraph.create(im);
 
     expect(cfg.blocks.length).toBe(3);
 
@@ -87,7 +87,7 @@ test("single call", () => {
         1:
             ret
     `);
-    const cfg = create_control_flow_graph(im);
+    const cfg = ControlFlowGraph.create(im);
 
     expect(cfg.blocks.length).toBe(3);
 
@@ -122,7 +122,7 @@ test("conditional jump with fall-through", () => {
             nop
             ret
     `);
-    const cfg = create_control_flow_graph(im);
+    const cfg = ControlFlowGraph.create(im);
 
     expect(cfg.blocks.length).toBe(3);
 
