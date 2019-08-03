@@ -1,7 +1,12 @@
-import { InstructionSegment, SegmentType, Opcode } from "../../data_formats/parsing/quest/bin";
+import { InstructionSegment, Opcode, SegmentType } from "../../data_formats/parsing/quest/bin";
 import { assemble } from "../assembly";
 import { ControlFlowGraph } from "./ControlFlowGraph";
-import { register_values } from "./register_values";
+import {
+    MAX_REGISTER_VALUE,
+    MIN_REGISTER_VALUE,
+    register_values,
+    REGISTER_VALUES,
+} from "./register_values";
 
 test(`${register_values.name} trivial case`, () => {
     const im = to_instructions(`
@@ -46,6 +51,19 @@ test(`${register_values.name} two code paths`, () => {
     expect(values.get(1)).toBe(222);
 });
 
+test(`${register_values.name} loop`, () => {
+    const im = to_instructions(`
+        0:
+            addi r10, 5
+            jmpi_< r10, 500, 0
+            ret
+    `);
+    const cfg = ControlFlowGraph.create(im);
+    const values = register_values(cfg, im[0].instructions[2], 10);
+
+    expect(values.size()).toBe(REGISTER_VALUES);
+});
+
 test(`${register_values.name} leta and leto`, () => {
     const im = to_instructions(`
         0:
@@ -56,15 +74,15 @@ test(`${register_values.name} leta and leto`, () => {
     const cfg = ControlFlowGraph.create(im);
     const r0 = register_values(cfg, im[0].instructions[2], 0);
 
-    expect(r0.size()).toBe(Math.pow(2, 32));
-    expect(r0.min()).toBe(-Math.pow(2, 31));
-    expect(r0.max()).toBe(Math.pow(2, 31) - 1);
+    expect(r0.size()).toBe(REGISTER_VALUES);
+    expect(r0.min()).toBe(MIN_REGISTER_VALUE);
+    expect(r0.max()).toBe(MAX_REGISTER_VALUE);
 
     const r1 = register_values(cfg, im[0].instructions[2], 1);
 
-    expect(r1.size()).toBe(Math.pow(2, 32));
-    expect(r1.min()).toBe(-Math.pow(2, 31));
-    expect(r1.max()).toBe(Math.pow(2, 31) - 1);
+    expect(r1.size()).toBe(REGISTER_VALUES);
+    expect(r1.min()).toBe(MIN_REGISTER_VALUE);
+    expect(r1.max()).toBe(MAX_REGISTER_VALUE);
 });
 
 test(`${register_values.name} rev`, () => {
@@ -147,8 +165,8 @@ test(`${register_values.name} get_random`, () => {
 
     const v1 = register_values(cfg, im[0].instructions[5], 10);
 
-    expect(v0.size()).toBe(1);
-    expect(v0.get(0)).toBe(20);
+    expect(v1.size()).toBe(1);
+    expect(v1.get(0)).toBe(20);
 
     const v2 = register_values(cfg, im[0].instructions[7], 10);
 

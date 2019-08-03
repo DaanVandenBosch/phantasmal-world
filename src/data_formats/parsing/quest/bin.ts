@@ -624,7 +624,7 @@ function parse_instruction_arguments(cursor: Cursor, opcode: Opcode): Arg[] {
             case Type.F32:
                 args.push({ value: cursor.f32(), size: 4 });
                 break;
-            case Type.Register:
+            case Type.RegRef:
                 args.push({ value: cursor.u8(), size: 1 });
                 break;
             case Type.ILabel:
@@ -708,7 +708,7 @@ function write_object_code(
                         case Type.F32:
                             cursor.write_f32(arg.value);
                             break;
-                        case Type.Register:
+                        case Type.RegRef:
                             cursor.write_u8(arg.value);
                             break;
                         case Type.ILabel:

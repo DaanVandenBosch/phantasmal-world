@@ -69,6 +69,9 @@ export class ValueSet {
         return this;
     }
 
+    /**
+     * Doesn't take into account interger overflow.
+     */
     scalar_add(s: number): ValueSet {
         for (const int of this.intervals) {
             int.start += s;
@@ -78,10 +81,16 @@ export class ValueSet {
         return this;
     }
 
+    /**
+     * Doesn't take into account interger overflow.
+     */
     scalar_sub(s: number): ValueSet {
         return this.scalar_add(-s);
     }
 
+    /**
+     * Doesn't take into account interger overflow.
+     */
     scalar_mul(s: number): ValueSet {
         for (const int of this.intervals) {
             int.start *= s;
@@ -93,6 +102,7 @@ export class ValueSet {
 
     /**
      * Integer division.
+     * Doesn't take into account interger overflow.
      */
     scalar_div(s: number): ValueSet {
         for (const int of this.intervals) {

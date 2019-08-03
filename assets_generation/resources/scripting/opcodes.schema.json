@@ -1,0 +1,112 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Phantasy Star Online Instruction Set",
+    "type": "object",
+    "required": ["opcodes"],
+    "additionalProperties": false,
+    "properties": {
+        "opcodes": {
+            "type": "array",
+            "description": "List of every known opcode.",
+            "items": {
+                "$ref": "#/definitions/opcode"
+            }
+        }
+    },
+    "definitions": {
+        "opcode": {
+            "type": "object",
+            "required": ["code", "params"],
+            "additionalProperties": false,
+            "properties": {
+                "code": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 63999,
+                    "description": "Unique byte representation of the opcode."
+                },
+                "mnemonic": {
+                    "type": "string",
+                    "pattern": "^[a-z][a-z0-9=<>!_]+$",
+                    "description": "Unique string representation of the opcode."
+                },
+                "doc": {
+                    "type": "string",
+                    "description": "Opcode documentation."
+                },
+                "params": {
+                    "type": "array",
+                    "description": "Opcode parameters. Whether or not the stack is used is determined by the stack property.",
+                    "items": {
+                        "$ref": "#/definitions/param"
+                    }
+                },
+                "stack": {
+                    "enum": ["push", "pop"],
+                    "description": "Stack interaction. \"push\" if the instruction takes immediate arguments and pushes its arguments onto the stack. \"pop\" if the instruction doesn't take immediate arguments but pops its arguments off the stack."
+                }
+            }
+        },
+        "param": {
+            "type": "object",
+            "required": ["type"],
+            "additionalProperties": false,
+            "properties": {
+                "type": {
+                    "$ref": "#/definitions/param_type"
+                },
+                "doc": {
+                    "type": "string",
+                    "description": "Parameter-specific documentation."
+                },
+                "access": {
+                    "$ref": "#/definitions/access"
+                },
+                "reg_tup": {
+                    "type": "array",
+                    "minItems": 1,
+                    "description": "Specifies the way the referenced registers will be interpreted. Should only be specified if the parameter type is \"reg_tup_ref\".",
+                    "items": {
+                        "type": "object",
+                        "required": ["type", "access"],
+                        "additionalProperties": false,
+                        "properties": {
+                            "type": {
+                                "$ref": "#/definitions/param_type"
+                            },
+                            "doc": {
+                                "type": "string"
+                            },
+                            "access": {
+                                "$ref": "#/definitions/access"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "param_type": {
+            "type": "string",
+            "enum": [
+                "any",
+                "byte",
+                "word",
+                "dword",
+                "float",
+                "label",
+                "i_label",
+                "d_label",
+                "string",
+                "reg_ref",
+                "reg_tup_ref",
+                "reg_ref_var",
+                "pointer"
+            ]
+        },
+        "access": {
+            "type": "string",
+            "enum": ["read", "write", "read_write"],
+            "description": "Specifies the way the instruction accesses the referenced register(s)."
+        }
+    }
+}

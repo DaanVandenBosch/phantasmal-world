@@ -388,7 +388,7 @@ class Assembler {
 
                     switch (param.type) {
                         case Type.U8:
-                        case Type.Register:
+                        case Type.RegRef:
                             this.add_instruction(Opcode.arg_pushb, [arg]);
                             break;
                         case Type.U16:
@@ -503,7 +503,7 @@ class Assembler {
 
                         break;
                     case TokenType.Register:
-                        match = param.type === Type.Register;
+                        match = param.type === Type.RegRef;
                         this.parse_register(token, args);
                         break;
                     case TokenType.String:
@@ -543,7 +543,7 @@ class Assembler {
                         case Type.F32:
                             type_str = "a float";
                             break;
-                        case Type.Register:
+                        case Type.RegRef:
                             type_str = "a register reference";
                             break;
                         case Type.ILabel:

@@ -116,8 +116,13 @@ Features that are in ***bold italics*** are planned and not yet implemented.
 
 - ***Figure out how they work***
 
+## Non-BlueBurst Support
+
+- Support different sets of instructions (older versions had no stack)
+
 ## Bugs
 
+- [Script Object Code](#script-object-code): Correctly deal with stack arguments (e.g. when a function expects a u32, pushing a u8, u16, u32 or register value is ok) (when a function expects a register reference, arg_pushb should be used)
 - [3D View](#3d-view): Random Type Box 1 and Fixed Type Box objects aren't rendered correctly
 - [3D View](#3d-view): Some objects are only partially loaded (they consist of several seperate models)
   - Forest Switch

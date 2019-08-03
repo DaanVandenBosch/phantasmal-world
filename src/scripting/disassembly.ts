@@ -113,7 +113,7 @@ function args_to_strings(params: Param[], args: Arg[]): string[] {
                 }
 
                 break;
-            case Type.Register:
+            case Type.RegRef:
                 arg_strings.push("r" + arg.value);
                 break;
             case Type.String:

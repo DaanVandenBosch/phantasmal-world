@@ -1,0 +1,3145 @@
+opcodes:
+  - code: 0x00
+    mnemonic: nop
+    doc: No operation, does nothing.
+    params: []
+
+  - code: 0x01
+    mnemonic: ret
+    doc: Returns control to caller.
+    params: []
+
+  - code: 0x02
+    mnemonic: sync
+    doc: Yields control for the rest of the current frame. Execution will continue the following frame.
+    params: []
+
+  - code: 0x03
+    mnemonic: exit
+    params:
+      - type: dword
+    stack: pop
+
+  - code: 0x04
+    mnemonic: thread
+    doc: |-
+        Starts a new thread. Thread execution will start at the given label.
+        Often used to check a register every frame. Make sure to yield control with sync when looping.
+    params: 
+      - type: i_label
+
+  - code: 0x05
+    mnemonic: va_start
+    doc: |-
+        Initializes a variable argument list.
+        Make sure to call va_end after va_start and va_call.
+    params: []
+
+  - code: 0x06
+    mnemonic: va_end
+    doc: |-
+        Restores the registers overwritten by arg_push* instructions.
+        Called after va_call.
+    params: []
+
+  - code: 0x07
+    mnemonic: va_call
+    doc: |-
+        Calls the variable argument function at the given label.
+        Called after initializing the argument list with va_start and pushing arguments onto the stack with arg_push* instructions. Make sure to call va_end afterwards.
+    params:
+      - type: i_label
+
+  - code: 0x08
+    mnemonic: let
+    doc: Sets the first register's value to second one's value.
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: write
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: read
+
+  - code: 0x09
+    mnemonic: leti
+    doc: Sets a register to the given value.
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: write
+      - type: dword
+
+  - code: 0x0a
+    mnemonic: letb
+    doc: Sets a register to the given value.
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: byte
+            access: write
+      - type: byte
+
+  - code: 0x0b
+    mnemonic: letw
+    doc: Sets a register to the given value.
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: word
+            access: write
+      - type: word
+
+  - code: 0x0c
+    mnemonic: leta
+    doc: Sets the first register to the memory address of the second register. Not used by Sega.
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: pointer
+            access: write
+      - type: reg_tup_ref
+        reg_tup:
+          - type: any
+            access: read
+
+  - code: 0x0d
+    mnemonic: leto
+    doc: Sets a register to the memory address of the given label. Not used by Sega.
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: pointer
+            access: write
+      - type: label
+
+  - code: 0x10
+    mnemonic: set
+    doc: Sets a register to 1.
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: write
+
+  - code: 0x11
+    mnemonic: clear
+    doc: Sets a register to 0.
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: write
+
+  - code: 0x12
+    mnemonic: rev
+    doc: Sets a register to 1 if its current value is 0, otherwise sets it to 0.
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: read_write
+
+  - code: 0x13
+    mnemonic: gset
+    params:
+      - type: word
+
+  - code: 0x14
+    mnemonic: gclear
+    params:
+      - type: word
+
+  - code: 0x15
+    mnemonic: grev
+    params:
+      - type: word
+
+  - code: 0x16
+    mnemonic: glet
+    params:
+      - type: word
+
+  - code: 0x17
+    mnemonic: gget
+    doc: Sets a register to value of the given flag.
+    params:
+      - type: word
+      - type: reg_tup_ref
+        reg_tup:
+          - type: word
+            access: write
+
+  - code: 0x18
+    mnemonic: add
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: write
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: read
+
+  - code: 0x19
+    mnemonic: addi
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: write
+      - type: dword
+
+  - code: 0x1a
+    mnemonic: sub
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: write
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: read
+
+  - code: 0x1b
+    mnemonic: subi
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: write
+      - type: dword
+
+  - code: 0x1c
+    mnemonic: mul
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: write
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: read
+
+  - code: 0x1d
+    mnemonic: muli
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: write
+      - type: dword
+
+  - code: 0x1e
+    mnemonic: div
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: write
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: read
+
+  - code: 0x1f
+    mnemonic: divi
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: write
+      - type: dword
+
+  - code: 0x20
+    mnemonic: and
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: write
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: read
+
+  - code: 0x21
+    mnemonic: andi
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: write
+      - type: dword
+
+  - code: 0x22
+    mnemonic: or
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: write
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: read
+
+  - code: 0x23
+    mnemonic: ori
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: write
+      - type: dword
+
+  - code: 0x24
+    mnemonic: xor
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: write
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: read
+
+  - code: 0x25
+    mnemonic: xori
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: write
+      - type: dword
+
+  - code: 0x26
+    mnemonic: mod
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: write
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: read
+
+  - code: 0x27
+    mnemonic: modi
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: write
+      - type: dword
+
+  - code: 0x28
+    mnemonic: jmp
+    params:
+      - type: i_label
+
+  - code: 0x29
+    mnemonic: call
+    params:
+      - type: i_label
+
+  - code: 0x2a
+    mnemonic: jmp_on
+    params:
+      - type: i_label
+      - type: reg_ref_var
+        access: read
+
+  - code: 0x2b
+    mnemonic: jmp_off
+    params:
+      - type: i_label
+      - type: reg_ref_var
+        access: read
+
+  - code: 0x2c
+    mnemonic: jmp_=
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: any
+            access: read
+      - type: reg_tup_ref
+        reg_tup:
+          - type: any
+            access: read
+      - type: i_label
+
+  - code: 0x2d
+    mnemonic: jmpi_=
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: read
+      - type: dword
+      - type: i_label
+
+  - code: 0x2e
+    mnemonic: jmp_!=
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: any
+            access: read
+      - type: reg_tup_ref
+        reg_tup:
+          - type: any
+            access: read
+      - type: i_label
+
+  - code: 0x2f
+    mnemonic: jmpi_!=
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: read
+      - type: dword
+      - type: i_label
+
+  - code: 0x30
+    mnemonic: ujmp_>
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: read
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: read
+      - type: i_label
+
+  - code: 0x31
+    mnemonic: ujmpi_>
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: read
+      - type: dword
+      - type: i_label
+
+  - code: 0x32
+    mnemonic: jmp_>
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: read
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: read
+      - type: i_label
+
+  - code: 0x33
+    mnemonic: jmpi_>
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: read
+      - type: dword
+      - type: i_label
+
+  - code: 0x34
+    mnemonic: ujmp_<
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: read
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: read
+      - type: i_label
+
+  - code: 0x35
+    mnemonic: ujmpi_<
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: read
+      - type: dword
+      - type: i_label
+
+  - code: 0x36
+    mnemonic: jmp_<
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: read
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: read
+      - type: i_label
+
+  - code: 0x37
+    mnemonic: jmpi_<
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: read
+      - type: dword
+      - type: i_label
+
+  - code: 0x38
+    mnemonic: ujmp_>=
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: read
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: read
+      - type: i_label
+
+  - code: 0x39
+    mnemonic: ujmpi_>=
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: read
+      - type: dword
+      - type: i_label
+
+  - code: 0x3a
+    mnemonic: jmp_>=
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: read
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: read
+      - type: i_label
+
+  - code: 0x3b
+    mnemonic: jmpi_>=
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: read
+      - type: dword
+      - type: i_label
+
+  - code: 0x3c
+    mnemonic: ujmp_<=
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: read
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: read
+      - type: i_label
+
+  - code: 0x3d
+    mnemonic: ujmpi_<=
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: read
+      - type: dword
+      - type: i_label
+
+  - code: 0x3e
+    mnemonic: jmp_<=
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: read
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: read
+      - type: i_label
+
+  - code: 0x3f
+    mnemonic: jmpi_<=
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: read
+      - type: dword
+      - type: i_label
+
+  - code: 0x40
+    mnemonic: switch_jmp
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: read
+      - type: i_label
+
+  - code: 0x41
+    mnemonic: switch_call
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: read
+      - type: i_label
+
+  - code: 0x42
+    mnemonic: stack_push
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: any
+            access: read
+
+  - code: 0x43
+    mnemonic: stack_pop
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: any
+            access: write
+
+  - code: 0x44
+    mnemonic: stack_pushm
+    doc: Pushes the values of an arbitrary amount of registers onto the stack.
+    params:
+      - type: reg_ref
+        access: read
+      - type: dword
+
+  - code: 0x45
+    mnemonic: stack_popm
+    doc: Pops an arbitrary amount of values from the stack and writes them to registers.
+    params:
+      - type: reg_ref
+        access: write
+      - type: dword
+
+  - code: 0x48
+    mnemonic: arg_pushr
+    doc: Pushes the value of the given register onto the stack.
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: any
+            access: read
+    stack: push
+
+  - code: 0x49
+    mnemonic: arg_pushl
+    doc: Pushes the given value onto the stack.
+    params:
+      - type: dword
+    stack: push
+
+  - code: 0x4a
+    mnemonic: arg_pushb
+    doc: Pushes the given value onto the stack.
+    params:
+      - type: byte
+    stack: push
+
+  - code: 0x4b
+    mnemonic: arg_pushw
+    doc: Pushes the given value onto the stack.
+    params:
+      - type: word
+    stack: push
+
+  - code: 0x4e
+    mnemonic: arg_pushs
+    doc: Pushes the given value onto the stack.
+    params:
+      - type: string
+    stack: push
+
+  - code: 0x4f
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: read
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: read
+
+  - code: 0x50
+    mnemonic: message
+    params:
+      - type: dword
+      - type: string
+    stack: pop
+
+  - code: 0x51
+    mnemonic: list
+    doc: |-
+        Used to display a list of items and retrieve the item selected by the player.
+        List items should be seperated by newlines. The selected item's index will be written to the given register.
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: byte
+            access: write
+      - type: string
+    stack: pop
+
+  - code: 0x52
+    mnemonic: fadein
+    params: []
+
+  - code: 0x53
+    mnemonic: fadeout
+    params: []
+
+  - code: 0x54
+    mnemonic: se
+    params:
+      - type: dword
+    stack: pop
+
+  - code: 0x55
+    mnemonic: bgm
+    params:
+      - type: dword
+    stack: pop
+
+  - code: 0x58
+    mnemonic: enable
+    params:
+      - type: dword
+    stack: pop
+
+  - code: 0x59
+    mnemonic: disable
+    params:
+      - type: dword
+    stack: pop
+
+  - code: 0x5a
+    mnemonic: window_msg
+    params:
+      - type: string
+    stack: pop
+
+  - code: 0x5b
+    mnemonic: add_msg
+    params:
+      - type: string
+    stack: pop
+
+  - code: 0x5c
+    mnemonic: mesend
+    params: []
+
+  - code: 0x5d
+    mnemonic: gettime
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: write
+
+  - code: 0x5e
+    mnemonic: winend
+    params: []
+
+  - code: 0x60
+    mnemonic: npc_crt_v3
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: read
+
+  - code: 0x61
+    mnemonic: npc_stop
+    params:
+      - type: dword
+    stack: pop
+
+  - code: 0x62
+    mnemonic: npc_play
+    params:
+      - type: dword
+    stack: pop
+
+  - code: 0x63
+    mnemonic: npc_kill
+    params:
+      - type: dword
+    stack: pop
+
+  - code: 0x64
+    mnemonic: npc_nont
+    params: []
+
+  - code: 0x65
+    mnemonic: npc_talk
+    params: []
+
+  - code: 0x66
+    mnemonic: npc_crp_v3
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: read
+
+  - code: 0x68
+    mnemonic: create_pipe
+    params:
+      - type: dword
+    stack: pop
+
+  - code: 0x69
+    mnemonic: p_hpstat_v3
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: read
+      - type: dword
+    stack: pop
+
+  - code: 0x6a
+    mnemonic: p_dead_v3
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: byte
+            access: write
+      - type: dword
+
+  - code: 0x6b
+    mnemonic: p_disablewarp
+    params: []
+
+  - code: 0x6c
+    mnemonic: p_enablewarp
+    params: []
+
+  - code: 0x6d
+    mnemonic: p_move_v3
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: read
+
+  - code: 0x6e
+    mnemonic: p_look
+    params:
+      - type: dword
+    stack: pop
+
+  - code: 0x70
+    mnemonic: p_action_disable
+    params: []
+
+  - code: 0x71
+    mnemonic: p_action_enable
+    params: []
+
+  - code: 0x72
+    mnemonic: disable_movement1
+    params:
+      - type: dword
+    stack: pop
+
+  - code: 0x73
+    mnemonic: enable_movement1
+    params:
+      - type: dword
+    stack: pop
+
+  - code: 0x74
+    mnemonic: p_noncol
+    params: []
+
+  - code: 0x75
+    mnemonic: p_col
+    params: []
+
+  - code: 0x76
+    mnemonic: p_setpos
+    doc: Sets a player's position.
+    params:
+      - type: dword
+        doc: Player slot.
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            doc: X coordinate.
+            access: read
+          - type: dword
+            doc: Y coordinate.
+            access: read
+          - type: dword
+            doc: Z coordinate.
+            access: read
+          - type: dword
+            doc: Y-axis rotation.
+            access: read
+    stack: pop
+
+  - code: 0x77
+    mnemonic: p_return_guild
+    params: []
+
+  - code: 0x78
+    mnemonic: p_talk_guild
+    params:
+      - type: dword
+    stack: pop
+
+  - code: 0x79
+    mnemonic: npc_talk_pl_v3
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: read
+
+  - code: 0x7a
+    mnemonic: npc_talk_kill
+    params:
+      - type: dword
+    stack: pop
+
+  - code: 0x7b
+    mnemonic: npc_crtpk_v3
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: read
+
+  - code: 0x7c
+    mnemonic: npc_crppk_v3
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: read
+
+  - code: 0x7d
+    mnemonic: npc_crptalk_v3
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: read
+
+  - code: 0x7e
+    mnemonic: p_look_at_v1
+    params:
+      - type: dword
+      - type: dword
+    stack: pop
+
+  - code: 0x7f
+    mnemonic: npc_crp_id_v3
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: read
+
+  - code: 0x80
+    mnemonic: cam_quake
+    params: []
+
+  - code: 0x81
+    mnemonic: cam_adj
+    params: []
+
+  - code: 0x82
+    mnemonic: cam_zmin
+    params: []
+
+  - code: 0x83
+    mnemonic: cam_zmout
+    params: []
+
+  - code: 0x84
+    mnemonic: cam_pan_v3
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: read
+          - type: dword
+            access: read
+          - type: dword
+            access: read
+          - type: dword
+            access: read
+          - type: dword
+            access: read
+
+  - code: 0x85
+    mnemonic: game_lev_super
+    params: []
+
+  - code: 0x86
+    mnemonic: game_lev_reset
+    params: []
+
+  - code: 0x87
+    mnemonic: pos_pipe_v3
+    doc: Create a telepipe at a specific position for the given player slot that takes players back to Pioneer 2 or the Lab.
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            doc: X coordinate.
+            access: read
+          - type: dword
+            doc: Y coordinate.
+            access: read
+          - type: dword
+            doc: Z coordinate.
+            access: read
+          - type: dword
+            doc: Player slot.
+            access: read
+
+  - code: 0x88
+    mnemonic: if_zone_clear
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: write
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: read
+          - type: dword
+            access: read
+
+  - code: 0x89
+    mnemonic: chk_ene_num
+    doc: Retrieves the amount of enemies killed during the quest.
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: write
+
+  - code: 0x8a
+    mnemonic: unhide_obj
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: read
+          - type: dword
+            access: read
+          - type: dword
+            access: read
+
+  - code: 0x8b
+    mnemonic: unhide_ene
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: read
+          - type: dword
+            access: read
+          - type: dword
+            access: read
+          - type: dword
+            access: read
+
+  - code: 0x8c
+    mnemonic: at_coords_call
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: read
+          - type: dword
+            access: read
+          - type: dword
+            access: read
+          - type: dword
+            access: read
+          - type: i_label
+            access: read
+
+  - code: 0x8d
+    mnemonic: at_coords_talk
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: read
+          - type: dword
+            access: read
+          - type: dword
+            access: read
+          - type: dword
+            access: read
+          - type: i_label
+            access: read
+
+  - code: 0x8e
+    mnemonic: col_npcin
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: read
+          - type: dword
+            access: read
+          - type: dword
+            access: read
+          - type: dword
+            access: read
+          - type: i_label
+            access: read
+
+  - code: 0x8f
+    mnemonic: col_npcinr
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: read
+
+  - code: 0x90
+    mnemonic: switch_on
+    params:
+      - type: dword
+    stack: pop
+
+  - code: 0x91
+    mnemonic: switch_off
+    params:
+      - type: dword
+    stack: pop
+
+  - code: 0x92
+    mnemonic: playbgm_epi
+    params:
+      - type: dword
+    stack: pop
+
+  - code: 0x93
+    mnemonic: set_mainwarp
+    params:
+      - type: dword
+    stack: pop
+
+  - code: 0x94
+    mnemonic: set_obj_param
+    doc: Creates a targetable object.
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            doc: X coordinate.
+            access: read
+          - type: dword
+            doc: Y coordinate.
+            access: read
+          - type: dword
+            doc: Z coordinate.
+            access: read
+          - type: dword
+            doc: Collision radius.
+            access: read
+          - type: i_label
+            doc: Function label.
+            access: read
+          - type: dword
+            doc: Vertical position of the cursor.
+            access: read
+      - type: reg_tup_ref
+        doc: Object handle.
+        reg_tup:
+          - type: any
+            access: write
+
+  - code: 0x95
+    mnemonic: set_floor_handler
+    params:
+      - type: dword
+        doc: Floor number.
+      - type: i_label
+        doc: Handler function label.
+    stack: pop
+
+  - code: 0x96
+    mnemonic: clr_floor_handler
+    params:
+      - type: dword
+        doc: Floor number.
+    stack: pop
+
+  - code: 0x97
+    mnemonic: col_plinaw
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: read
+
+  - code: 0x98
+    mnemonic: hud_hide
+    params: []
+
+  - code: 0x99
+    mnemonic: hud_show
+    params: []
+
+  - code: 0x9a
+    mnemonic: cine_enable
+    params: []
+
+  - code: 0x9b
+    mnemonic: cine_disable
+    params: []
+
+  - code: 0xa1
+    mnemonic: set_qt_failure
+    params:
+      - type: i_label
+
+  - code: 0xa2
+    mnemonic: set_qt_success
+    params:
+      - type: i_label
+
+  - code: 0xa3
+    mnemonic: clr_qt_failure
+    params: []
+
+  - code: 0xa4
+    mnemonic: clr_qt_success
+    params: []
+
+  - code: 0xa5
+    mnemonic: set_qt_cancel
+    params:
+      - type: i_label
+
+  - code: 0xa6
+    mnemonic: clr_qt_cancel
+    params: []
+
+  - code: 0xa8
+    mnemonic: pl_walk_v3
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: read
+
+  - code: 0xb0
+    mnemonic: pl_add_meseta
+    params:
+      - type: dword
+      - type: dword
+    stack: pop
+
+  - code: 0xb1
+    mnemonic: thread_stg
+    params:
+      - type: i_label
+
+  - code: 0xb2
+    mnemonic: del_obj_param
+    params:
+      - type: reg_tup_ref
+        doc: Object handle.
+        reg_tup:
+          - type: any
+            access: read
+
+  - code: 0xb3
+    mnemonic: item_create
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: read
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: read
+
+  - code: 0xb4
+    mnemonic: item_create2
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: read
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: read
+
+  - code: 0xb5
+    mnemonic: item_delete
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: read
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: read
+
+  - code: 0xb6
+    mnemonic: item_delete2
+    doc: Deletes an item from the player's inventory.
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: read
+          - type: dword
+            access: read
+          - type: dword
+            access: read
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: write
+
+  - code: 0xb7
+    mnemonic: item_check
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: read
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: read
+
+  - code: 0xb8
+    mnemonic: setevt
+    params:
+      - type: dword
+    stack: pop
+
+  - code: 0xb9
+    mnemonic: get_difflvl
+    doc: |-
+        Sets the given register to the current difficulty. 0 For normal, 1 for hard and 2 for both very hard and ultimate.
+        Use get_difficulty_level2 if you want to differentiate between very hard and ultimate.
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: write
+
+  - code: 0xba
+    mnemonic: set_qt_exit
+    params:
+      - type: i_label
+
+  - code: 0xbb
+    mnemonic: clr_qt_exit
+    params: []
+
+  - code: 0xc0
+    mnemonic: particle_v3
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: read
+
+  - code: 0xc1
+    mnemonic: npc_text
+    params:
+      - type: dword
+      - type: string
+    stack: pop
+
+  - code: 0xc2
+    mnemonic: npc_chkwarp
+    params: []
+
+  - code: 0xc3
+    mnemonic: pl_pkoff
+    params: []
+
+  - code: 0xc4
+    mnemonic: map_designate
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: read
+
+  - code: 0xc5
+    mnemonic: masterkey_on
+    params: []
+
+  - code: 0xc6
+    mnemonic: masterkey_off
+    params: []
+
+  - code: 0xc7
+    mnemonic: window_time
+    params: []
+
+  - code: 0xc8
+    mnemonic: winend_time
+    params: []
+
+  - code: 0xc9
+    mnemonic: winset_time
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: write
+
+  - code: 0xca
+    mnemonic: getmtime
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: write
+
+  - code: 0xcb
+    mnemonic: set_quest_board_handler
+    params:
+      - type: dword
+      - type: i_label
+      - type: string
+    stack: pop
+
+  - code: 0xcc
+    mnemonic: clear_quest_board_handler
+    params:
+      - type: dword
+    stack: pop
+
+  - code: 0xcd
+    mnemonic: particle_id_v3
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: read
+          - type: dword
+            access: read
+          - type: dword
+            access: read
+          - type: dword
+            access: read
+
+  - code: 0xce
+    mnemonic: npc_crptalk_id_v3
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: read
+
+  - code: 0xcf
+    mnemonic: npc_lang_clean
+    params: []
+
+  - code: 0xd0
+    mnemonic: pl_pkon
+    params: []
+
+  - code: 0xd1
+    mnemonic: pl_chk_item2
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: read
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: read
+
+  - code: 0xd2
+    mnemonic: enable_mainmenu
+    params: []
+
+  - code: 0xd3
+    mnemonic: disable_mainmenu
+    params: []
+
+  - code: 0xd4
+    mnemonic: start_battlebgm
+    params: []
+
+  - code: 0xd5
+    mnemonic: end_battlebgm
+    params: []
+
+  - code: 0xd6
+    mnemonic: disp_msg_qb
+    params:
+      - type: string
+    stack: pop
+
+  - code: 0xd7
+    mnemonic: close_msg_qb
+    params: []
+
+  - code: 0xd8
+    mnemonic: set_eventflag_v3
+    params:
+      - type: dword
+      - type: dword
+    stack: pop
+
+  - code: 0xd9
+    mnemonic: sync_leti
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: write
+      - type: dword
+
+  - code: 0xda
+    mnemonic: set_returnhunter
+    params: []
+
+  - code: 0xdb
+    mnemonic: set_returncity
+    params: []
+
+  - code: 0xdc
+    mnemonic: load_pvr
+    params: []
+
+  - code: 0xdd
+    mnemonic: load_midi
+    params: []
+
+  - code: 0xdf
+    mnemonic: npc_param_v3
+    params: 
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: read
+      - type: dword
+    stack: pop
+
+  - code: 0xe0
+    mnemonic: pad_dragon
+    params: []
+
+  - code: 0xe1
+    mnemonic: clear_mainwarp
+    params:
+      - type: dword
+    stack: pop
+
+  - code: 0xe2
+    mnemonic: pcam_param_v3
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: read
+
+  - code: 0xe3
+    mnemonic: start_setevt_v3
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: read
+      - type: dword
+    stack: pop
+
+  - code: 0xe4
+    mnemonic: warp_on
+    params: []
+
+  - code: 0xe5
+    mnemonic: warp_off
+    params: []
+
+  - code: 0xe6
+    mnemonic: get_slotnumber
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: write
+
+  - code: 0xe7
+    mnemonic: get_servernumber
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: write # TODO: determine reg_tup
+
+  - code: 0xe8
+    mnemonic: set_eventflag2
+    params:
+      - type: dword
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: read
+    stack: pop
+
+  - code: 0xe9
+    mnemonic: res
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: read
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: read
+
+  - code: 0xea
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: read
+      - type: dword
+
+  - code: 0xeb
+    mnemonic: enable_bgmctrl
+    params:
+      - type: dword
+    stack: pop
+
+  - code: 0xec
+    mnemonic: sw_send
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: read
+
+  - code: 0xed
+    mnemonic: create_bgmctrl
+    params: []
+
+  - code: 0xee
+    mnemonic: pl_add_meseta2
+    params:
+      - type: dword
+    stack: pop
+
+  - code: 0xef
+    mnemonic: sync_register
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: write
+      - type: dword
+    stack: pop
+
+  - code: 0xf0
+    mnemonic: send_regwork
+    params: []
+
+  - code: 0xf1
+    mnemonic: leti_fixed_camera_v3
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: read
+          - type: dword
+            access: read
+          - type: dword
+            access: read
+          - type: dword
+            access: read
+          - type: dword
+            access: read
+          - type: dword
+            access: read
+
+  - code: 0xf2
+    mnemonic: default_camera_pos1
+    params: []
+
+  - code: 0xf8
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: read
+
+  - code: 0xfa
+    mnemonic: get_gc_number
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: write
+
+  - code: 0xfb
+    params:
+      - type: word
+
+  - code: 0xf801
+    mnemonic: set_chat_callback
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: read
+      - type: string
+    stack: pop
+
+  - code: 0xf808
+    mnemonic: get_difficulty_level2
+    doc: Sets the given register to the current difficulty. 0 For normal, 1 for hard, 2 for very hard and 3 for ultimate.
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: write
+
+  - code: 0xf809
+    mnemonic: get_number_of_player1
+    doc: Set the given register to the current number of players. Either 1, 2, 3 or 4.
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: write
+
+  - code: 0xf80a
+    mnemonic: get_coord_of_player
+    doc: Retrieves a player's position.
+    params:
+      - type: reg_tup_ref
+        reg_tup: 
+          - type: dword
+            doc: X coordinate.
+            access: write
+          - type: dword
+            doc: Y coordinate.
+            access: write
+          - type: dword
+            doc: Z coordinate.
+            access: write
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            doc: Player slot.
+            access: read
+
+  - code: 0xf80b
+    mnemonic: enable_map
+    params: []
+
+  - code: 0xf80c
+    mnemonic: disable_map
+    params: []
+
+  - code: 0xf80d
+    mnemonic: map_designate_ex
+    params:
+      - type: reg_tup_ref
+        reg_tup: 
+          - type: dword
+            access: read
+          - type: dword
+            access: read
+          - type: dword
+            access: read
+          - type: dword
+            access: read
+          - type: dword
+            access: read
+
+  - code: 0xf80e
+    params:
+      - type: dword
+    stack: pop
+
+  - code: 0xf80f
+    params:
+      - type: dword
+    stack: pop
+
+  - code: 0xf810
+    mnemonic: ba_initial_floor
+    params:
+      - type: dword
+    stack: pop
+
+  - code: 0xf811
+    mnemonic: set_ba_rules
+    params: []
+
+  - code: 0xf812
+    params:
+      - type: dword
+    stack: pop
+
+  - code: 0xf813
+    params:
+      - type: dword
+    stack: pop
+
+  - code: 0xf814
+    params:
+      - type: dword
+    stack: pop
+
+  - code: 0xf815
+    params:
+      - type: dword
+    stack: pop
+
+  - code: 0xf816
+    params:
+      - type: dword
+    stack: pop
+
+  - code: 0xf817
+    params:
+      - type: dword
+    stack: pop
+
+  - code: 0xf818
+    params:
+      - type: dword
+    stack: pop
+
+  - code: 0xf819
+    params:
+      - type: dword
+    stack: pop
+
+  - code: 0xf81a
+    params:
+      - type: dword
+    stack: pop
+
+  - code: 0xf81b
+    params:
+      - type: dword
+    stack: pop
+
+  - code: 0xf81c
+    mnemonic: ba_disp_msg
+    params:
+      - type: string
+    stack: pop
+
+  - code: 0xf81d
+    mnemonic: death_lvl_up
+    params:
+      - type: dword
+    stack: pop
+
+  - code: 0xf81e
+    mnemonic: death_tech_lvl_up
+    params:
+      - type: dword
+    stack: pop
+
+  - code: 0xf820
+    mnemonic: cmode_stage
+    params:
+      - type: dword
+    stack: pop
+
+  - code: 0xf823
+    params:
+      - type: dword
+    stack: pop
+
+  - code: 0xf824
+    params:
+      - type: dword
+    stack: pop
+
+  - code: 0xf825
+    mnemonic: exp_multiplication
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: write
+
+  - code: 0xf826
+    mnemonic: exp_division
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: write
+
+  - code: 0xf827
+    mnemonic: get_user_is_dead
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: write
+
+  - code: 0xf828
+    mnemonic: go_floor
+    doc: Sends a player to the given floor.
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            doc: Player slot.
+            access: read
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            doc: Floor ID.
+            access: read
+
+  - code: 0xf82b
+    mnemonic: unlock_door2
+    params: [{ type: dword }, { type: dword }]
+    stack: pop
+
+  - code: 0xf82c
+    mnemonic: lock_door2
+    params: [{ type: dword }, { type: dword }]
+    stack: pop
+
+  - code: 0xf82d
+    mnemonic: if_switch_not_pressed
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: dword
+            access: read
+          - type: dword
+            access: write
+
+  - code: 0xf82e
+    mnemonic: if_switch_pressed
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            doc: Floor ID.
+            access: read
+          - type: dword
+            doc: Switch ID.
+            access: read
+          - type: dword
+            doc: Will be set to 1 if the switch is pressed, 0 otherwise.
+            access: write
+
+  - code: 0xf82f
+    params: [{ type: dword }, { type: dword }]
+    stack: pop
+
+  - code: 0xf830
+    mnemonic: control_dragon
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: dword
+            access: read
+
+  - code: 0xf831
+    mnemonic: release_dragon
+    params: []
+
+  - code: 0xf838
+    mnemonic: shrink
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            doc: Player slot.
+            access: read
+
+  - code: 0xf839
+    mnemonic: unshrink
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            doc: Player slot.
+            access: read
+
+  - code: 0xf83c
+    mnemonic: display_clock2
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: dword
+            access: read
+
+  - code: 0xf83d
+    params:
+      - type: dword
+    stack: pop
+
+  - code: 0xf83e
+    mnemonic: delete_area_title
+    params:
+      - type: dword
+    stack: pop
+
+  - code: 0xf840
+    mnemonic: load_npc_data
+    params: []
+
+  - code: 0xf841
+    mnemonic: get_npc_data
+    params:
+      - type: d_label
+
+  - code: 0xf848
+    mnemonic: give_damage_score
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: dword
+            access: write
+
+  - code: 0xf849
+    mnemonic: take_damage_score
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: dword
+            access: write
+
+  - code: 0xf84a
+    mnemonic: unk_score_f84a
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: dword
+            access: write
+
+  - code: 0xf84b
+    mnemonic: unk_score_f84b
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: dword
+            access: write
+
+  - code: 0xf84c
+    mnemonic: kill_score
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: dword
+            access: write
+
+  - code: 0xf84d
+    mnemonic: death_score
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: dword
+            access: write
+
+  - code: 0xf84e
+    mnemonic: unk_score_f84e
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: dword
+            access: write
+
+  - code: 0xf84f
+    mnemonic: enemy_death_score
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: dword
+            access: write
+
+  - code: 0xf850
+    mnemonic: meseta_score
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: dword
+            access: write
+
+  - code: 0xf851
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: dword
+            access: write
+
+  - code: 0xf852
+    params:
+      - type: dword
+    stack: pop
+
+  - code: 0xf853
+    mnemonic: reverse_warps
+    params: []
+
+  - code: 0xf854
+    mnemonic: unreverse_warps
+    params: []
+
+  - code: 0xf855
+    mnemonic: set_ult_map
+    params: []
+
+  - code: 0xf856
+    mnemonic: unset_ult_map
+    params: []
+
+  - code: 0xf857
+    mnemonic: set_area_title
+    params:
+      - type: string
+    stack: pop
+
+  - code: 0xf85a
+    mnemonic: equip_item
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: dword
+            access: read
+
+  - code: 0xf85b
+    mnemonic: unequip_item
+    params:
+      - type: dword
+      - type: dword
+    stack: pop
+
+  - code: 0xf85e
+    params:
+      - type: dword
+    stack: pop
+
+  - code: 0xf85f
+    params:
+      - type: dword
+    stack: pop
+
+  - code: 0xf860
+    params: []
+
+  - code: 0xf861
+    params:
+      - type: dword
+    stack: pop
+
+  - code: 0xf864
+    mnemonic: cmode_rank
+    params:
+      - type: dword
+      - type: string
+    stack: pop
+
+  - code: 0xf865
+    mnemonic: award_item_name
+    params: []
+
+  - code: 0xf866
+    mnemonic: award_item_select
+    params: []
+
+  - code: 0xf867
+    mnemonic: award_item_give_to
+    params: [{ type: Type.RegRef }]
+
+  - code: 0xf868
+    params: [{ type: Type.RegRef }, { type: Type.RegRef }]
+
+  - code: 0xf869
+    params: [{ type: Type.RegRef }, { type: Type.RegRef }]
+
+  - code: 0xf86a
+    mnemonic: item_create_cmode
+    params: [{ type: Type.RegRef }, { type: Type.RegRef }]
+
+  - code: 0xf86b
+    params: [{ type: Type.RegRef }]
+
+  - code: 0xf86c
+    mnemonic: award_item_ok
+    params: [{ type: Type.RegRef }]
+
+  - code: 0xf86f
+    mnemonic: ba_set_lives
+    params:
+      - type: dword
+    stack: pop
+
+  - code: 0xf870
+    mnemonic: ba_set_tech_lvl
+    params:
+      - type: dword
+    stack: pop
+
+  - code: 0xf871
+    mnemonic: ba_set_lvl
+    params:
+      - type: dword
+    stack: pop
+
+  - code: 0xf872
+    mnemonic: ba_set_time_limit
+    params:
+      - type: dword
+    stack: pop
+
+  - code: 0xf873
+    mnemonic: boss_is_dead
+    params: [{ type: Type.RegRef }]
+
+  - code: 0xf877
+    mnemonic: enable_techs
+    params: [{ type: Type.RegRef }]
+
+  - code: 0xf878
+    mnemonic: disable_techs
+    params: [{ type: Type.RegRef }]
+
+  - code: 0xf879
+    mnemonic: get_gender
+    params: [{ type: Type.RegRef }, { type: Type.RegRef }]
+
+  - code: 0xf87a
+    mnemonic: get_chara_class
+    params: [{ type: Type.RegRef }, { type: Type.RegRef }]
+
+  - code: 0xf87b
+    mnemonic: take_slot_meseta
+    params: [{ type: Type.RegRef }, { type: Type.RegRef }]
+
+  - code: 0xf87f
+    mnemonic: read_guildcard_flag
+    params: [{ type: Type.RegRef }, { type: Type.RegRef }]
+
+  - code: 0xf880
+    params: [{ type: Type.RegRef }]
+
+  - code: 0xf881
+    mnemonic: get_pl_name
+    params: [{ type: Type.RegRef }]
+
+  - code: 0xf883
+    params: [{ type: Type.RegRef }, { type: Type.RegRef }]
+
+  - code: 0xf88a
+    mnemonic: get_player_status
+    params: [{ type: Type.RegRef }, { type: Type.RegRef }]
+
+  - code: 0xf88b
+    mnemonic: send_mail
+    params: []
+    stack_params: [{ type: Type.RegRef }, { type: string }]
+
+  - code: 0xf88c
+    mnemonic: online_check
+    params: [{ type: Type.RegRef }]
+
+  - code: 0xf88d
+    mnemonic: chl_set_timerecord
+    params: [{ type: Type.RegRef }]
+
+  - code: 0xf88e
+    mnemonic: chl_get_timerecord
+    params: [{ type: Type.RegRef }]
+
+  - code: 0xf88f
+    params: [{ type: Type.RegRef }]
+
+  - code: 0xf891
+    mnemonic: load_enemy_data
+    params:
+      - type: dword
+    stack: pop
+
+  - code: 0xf892
+    mnemonic: get_physical_data
+    params:
+      - type: word
+
+  - code: 0xf893
+    mnemonic: get_attack_data
+    params:
+      - type: word
+
+  - code: 0xf894
+    mnemonic: get_resist_data
+    params:
+      - type: word
+
+  - code: 0xf895
+    mnemonic: get_movement_data
+    params:
+      - type: word
+
+  - code: 0xf898
+    mnemonic: shift_left
+    params: [{ type: Type.RegRef }, { type: Type.RegRef }]
+
+  - code: 0xf899
+    mnemonic: shift_right
+    params: [{ type: Type.RegRef }, { type: Type.RegRef }]
+
+  - code: 0xf89a
+    mnemonic: get_random
+    params: [{ type: Type.RegRef }, { type: Type.RegRef }]
+    # Resets all registers to 0 (may have to change areas?).
+
+  - code: 0xf89b
+    mnemonic: reset_map
+    params: []
+
+  - code: 0xf89c
+    mnemonic: disp_chl_retry_menu
+    params: [{ type: Type.RegRef }]
+
+  - code: 0xf89d
+    mnemonic: chl_reverser
+    params: []
+
+  - code: 0xf89e
+    params: []
+    stack_params:
+      - type: dword
+
+  - code: 0xf89f
+    params: [{ type: Type.RegRef }]
+
+  - code: 0xf8a8
+    params: []
+    stack_params:
+      - type: dword
+
+  - code: 0xf8a9
+    params: [{ type: Type.RegRef }]
+
+  - code: 0xf8ad
+    mnemonic: get_number_of_player2
+    params: [{ type: Type.RegRef }]
+
+  - code: 0xf8b9
+    mnemonic: chl_recovery
+    params: []
+
+  - code: 0xf8bc
+    mnemonic: set_episode
+    params:
+      - type: dword
+
+  - code: 0xf8c0
+    mnemonic: file_dl_req
+    params: []
+    stack_params: [{ type: dword }, { type: string }]
+
+  - code: 0xf8c1
+    mnemonic: get_dl_status
+    params: [{ type: Type.RegRef }]
+
+  - code: 0xf8c2
+    mnemonic: gba_unknown4
+    params: []
+
+  - code: 0xf8c3
+    mnemonic: get_gba_state
+    params: [{ type: Type.RegRef }]
+
+  - code: 0xf8c4
+    params: [{ type: Type.RegRef }]
+
+  - code: 0xf8c5
+    params: [{ type: Type.RegRef }]
+
+  - code: 0xf8c6
+    mnemonic: qexit
+    params: []
+
+  - code: 0xf8c7
+    mnemonic: use_animation
+    params: [{ type: Type.RegRef }, { type: Type.RegRef }]
+
+  - code: 0xf8c8
+    mnemonic: stop_animation
+    params: [{ type: Type.RegRef }]
+
+  - code: 0xf8c9
+    mnemonic: run_to_coord
+    params: [{ type: Type.RegRef }, { type: Type.RegRef }]
+
+  - code: 0xf8ca
+    mnemonic: set_slot_invincible
+    params: [{ type: Type.RegRef }, { type: Type.RegRef }]
+
+  - code: 0xf8cb
+    params: [{ type: Type.RegRef }]
+
+  - code: 0xf8cc
+    mnemonic: set_slot_poison
+    params: [{ type: Type.RegRef }]
+
+  - code: 0xf8cd
+    mnemonic: set_slot_paralyze
+    params: [{ type: Type.RegRef }]
+
+  - code: 0xf8ce
+    mnemonic: set_slot_shock
+    params: [{ type: Type.RegRef }]
+
+  - code: 0xf8cf
+    mnemonic: set_slot_freeze
+    params: [{ type: Type.RegRef }]
+
+  - code: 0xf8d0
+    mnemonic: set_slot_slow
+    params: [{ type: Type.RegRef }]
+
+  - code: 0xf8d1
+    mnemonic: set_slot_confuse
+    params: [{ type: Type.RegRef }]
+
+  - code: 0xf8d2
+    mnemonic: set_slot_shifta
+    params: [{ type: Type.RegRef }]
+
+  - code: 0xf8d3
+    mnemonic: set_slot_deband
+    params: [{ type: Type.RegRef }]
+
+  - code: 0xf8d4
+    mnemonic: set_slot_jellen
+    params: [{ type: Type.RegRef }]
+
+  - code: 0xf8d5
+    mnemonic: set_slot_zalure
+    params: [{ type: Type.RegRef }]
+
+  - code: 0xf8d6
+    mnemonic: fleti_fixed_camera
+    params: []
+    stack_params: [{ type: Type.RegRef }]
+
+  - code: 0xf8d7
+    mnemonic: fleti_locked_camera
+    params: []
+    stack_params: [{ type: dword }, { type: Type.RegRef }]
+
+  - code: 0xf8d8
+    mnemonic: default_camera_pos2
+    params: []
+
+  - code: 0xf8d9
+    mnemonic: set_motion_blur
+    params: []
+
+  - code: 0xf8da
+    mnemonic: set_screen_bw
+    params: []
+
+  - code: 0xf8db
+    params: []
+    stack_params: [
+        { type: dword },
+        { type: dword },
+        { type: dword },
+        { type: dword },
+        { type: Type.RegRef },
+        { type: word }
+    ]
+    # TODO: 3rd parameter is a string data reference.
+
+  - code: 0xf8dc
+    mnemonic: npc_action_string
+    params: [{ type: Type.RegRef }, { type: Type.RegRef }, { type: d_label }]
+
+  - code: 0xf8dd
+    mnemonic: get_pad_cond
+    params: [{ type: Type.RegRef }, { type: Type.RegRef }]
+
+  - code: 0xf8de
+    mnemonic: get_button_cond
+    params: [{ type: Type.RegRef }, { type: Type.RegRef }]
+
+  - code: 0xf8df
+    mnemonic: freeze_enemies
+    params: []
+
+  - code: 0xf8e0
+    mnemonic: unfreeze_enemies
+    params: []
+
+  - code: 0xf8e1
+    mnemonic: freeze_everything
+    params: []
+
+  - code: 0xf8e2
+    mnemonic: unfreeze_everything
+    params: []
+
+  - code: 0xf8e3
+    mnemonic: restore_hp
+    params: [{ type: Type.RegRef }]
+
+  - code: 0xf8e4
+    mnemonic: restore_tp
+    params: [{ type: Type.RegRef }]
+
+  - code: 0xf8e5
+    mnemonic: close_chat_bubble
+    params: [{ type: Type.RegRef }]
+
+  - code: 0xf8e6
+    mnemonic: move_coords_object 
+    params: [{ type: Type.RegRef }, { type: Type.RegRef }]
+
+  - code: 0xf8e7
+    mnemonic: at_coords_call_ex
+    params: [{ type: Type.RegRef }, { type: Type.RegRef }]
+
+  - code: 0xf8e8
+    params: [{ type: Type.RegRef }, { type: Type.RegRef }]
+
+  - code: 0xf8e9
+    params: [{ type: Type.RegRef }, { type: Type.RegRef }]
+
+  - code: 0xf8ea
+    params: [{ type: Type.RegRef }, { type: Type.RegRef }]
+
+  - code: 0xf8eb
+    params: [{ type: Type.RegRef }, { type: Type.RegRef }]
+
+  - code: 0xf8ec
+    params: [{ type: Type.RegRef }, { type: Type.RegRef }]
+
+  - code: 0xf8ed
+    mnemonic: animation_check
+    params: [{ type: Type.RegRef }, { type: Type.RegRef }]
+
+  - code: 0xf8ee
+    mnemonic: call_image_data
+    params: []
+    stack_params: [{ type: dword }, { type: word }]
+
+  - code: 0xf8f0
+    mnemonic: turn_off_bgm_p2
+    params: []
+
+  - code: 0xf8f1
+    mnemonic: turn_on_bgm_p2
+    params: []
+
+  - code: 0xf8f2
+    mnemonic: load_unk_data
+    params: []
+    stack_params: [
+        { type: dword },
+        { type: dword },
+        { type: dword },
+        { type: dword },
+        { type: Type.RegRef },
+        { type: d_label }
+    ]
+
+  - code: 0xf8f3
+    mnemonic: particle2
+    params: []
+    stack_params: [{ type: Type.RegRef }, { type: dword }, { type: f32 }]
+
+  - code: 0xf901
+    mnemonic: dec2float
+    params: [{ type: Type.RegRef }, { type: Type.RegRef }]
+
+  - code: 0xf902
+    mnemonic: float2dec
+    params: [{ type: Type.RegRef }, { type: Type.RegRef }]
+
+  - code: 0xf903
+    mnemonic: flet
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: float
+            access: write
+      - type: reg_tup_ref
+        reg_tup:
+          - type: float
+            access: read
+
+  - code: 0xf904
+    mnemonic: fleti
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: float
+            access: write
+      - type: float
+
+  - code: 0xf908
+    mnemonic: fadd
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: float
+            access: write
+      - type: reg_tup_ref
+        reg_tup:
+          - type: float
+            access: read
+
+  - code: 0xf909
+    mnemonic: faddi
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: float
+            access: write
+      - type: float
+
+  - code: 0xf90a
+    mnemonic: fsub
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: float
+            access: write
+      - type: reg_tup_ref
+        reg_tup:
+          - type: float
+            access: read
+
+  - code: 0xf90b
+    mnemonic: fsubi
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: float
+            access: write
+      - type: float
+
+  - code: 0xf90c
+    mnemonic: fmul
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: float
+            access: write
+      - type: reg_tup_ref
+        reg_tup:
+          - type: float
+            access: read
+
+  - code: 0xf90d
+    mnemonic: fmuli
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: float
+            access: write
+      - type: float
+
+  - code: 0xf90e
+    mnemonic: fdiv
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: float
+            access: write
+      - type: reg_tup_ref
+        reg_tup:
+          - type: float
+            access: read
+
+  - code: 0xf90f
+    mnemonic: fdivi
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: float
+            access: write
+      - type: float
+
+  - code: 0xf910
+    mnemonic: get_unknown_count
+    params: []
+    stack_params: [{ type: dword }, { type: Type.RegRef }]
+
+  - code: 0xf911
+    mnemonic: get_stackable_item_count
+    params: [{ type: Type.RegRef }, { type: Type.RegRef }]
+
+  - code: 0xf912
+    mnemonic: freeze_and_hide_equip
+    params: []
+
+  - code: 0xf913
+    mnemonic: thaw_and_show_equip
+    params: []
+
+  - code: 0xf914
+    mnemonic: set_palettex_callback
+    params: []
+    stack_params: [{ type: Type.RegRef }, { type: i_label }]
+
+  - code: 0xf915
+    mnemonic: activate_palettex
+    params: []
+    stack_params: [{ type: Type.RegRef }]
+
+  - code: 0xf916
+    mnemonic: enable_palettex
+    params: []
+    stack_params: [{ type: Type.RegRef }]
+
+  - code: 0xf917
+    mnemonic: restore_palettex
+    params:
+      - type: dword
+    stack: pop
+
+  - code: 0xf918
+    mnemonic: disable_palettex
+    params:
+      - type: dword
+    stack: pop
+
+  - code: 0xf919
+    mnemonic: get_palettex_activated
+    params: []
+    stack_params: [{ type: dword }, { type: Type.RegRef }]
+
+  - code: 0xf91a
+    mnemonic: get_unknown_palettex_status
+    params: []
+    stack_params: [{ type: dword }, { type: Type.RegRef }]
+
+  - code: 0xf91b
+    mnemonic: disable_movement2
+    params: []
+    stack_params: [{ type: Type.RegRef }]
+
+  - code: 0xf91c
+    mnemonic: enable_movement2
+    params: []
+    stack_params: [{ type: Type.RegRef }]
+
+  - code: 0xf91d
+    mnemonic: get_time_played
+    params: [{ type: Type.RegRef }]
+
+  - code: 0xf91e
+    mnemonic: get_guildcard_total
+    params: [{ type: Type.RegRef }]
+
+  - code: 0xf91f
+    mnemonic: get_slot_meseta
+    params: [{ type: Type.RegRef }]
+
+  - code: 0xf920
+    mnemonic: get_player_level
+    params: []
+    stack_params: [{ type: dword }, { type: Type.RegRef }]
+
+  - code: 0xf921
+    mnemonic: get_section_id
+    params: []
+    stack_params: [{ type: dword }, { type: Type.RegRef }]
+
+  - code: 0xf922
+    mnemonic: get_player_hp
+    params: []
+    stack_params: [{ type: Type.RegRef }, { type: Type.RegRef }]
+
+  - code: 0xf923
+    mnemonic: get_floor_number
+    params: []
+    stack_params: [{ type: Type.RegRef }, { type: Type.RegRef }]
+
+  - code: 0xf924
+    mnemonic: get_coord_player_detect
+    params: [{ type: Type.RegRef }, { type: Type.RegRef }]
+
+  - code: 0xf925
+    mnemonic: read_global_flag
+    params: []
+    stack_params: [{ type: byte }, { type: Type.RegRef }]
+
+  - code: 0xf926
+    mnemonic: write_global_flag
+    params: []
+    stack_params: [{ type: byte }, { type: Type.RegRef }]
+
+  - code: 0xf927
+    params: [{ type: Type.RegRef }, { type: Type.RegRef }]
+
+  - code: 0xf928
+    mnemonic: floor_player_detect
+    params: [{ type: Type.RegRef }]
+
+  - code: 0xf929
+    mnemonic: read_disk_file
+    params: []
+    stack_params:
+      - type: string
+
+  - code: 0xf92a
+    mnemonic: open_pack_select
+    params: []
+
+  - code: 0xf92b
+    mnemonic: item_select
+    params: [{ type: Type.RegRef }]
+
+  - code: 0xf92c
+    mnemonic: get_item_id
+    params: [{ type: Type.RegRef }]
+
+  - code: 0xf92d
+    mnemonic: color_change
+    params: []
+    stack_params: [
+        { type: Type.RegRef },
+        { type: Type.RegRef },
+        { type: Type.RegRef },
+        { type: Type.RegRef },
+        { type: Type.RegRef },
+    ]
+
+  - code: 0xf92e
+    mnemonic: send_statistic
+    params: []
+    stack_params: [
+        { type: dword },
+        { type: dword },
+        { type: dword },
+        { type: dword },
+        { type: dword },
+        { type: dword },
+        { type: dword },
+        { type: dword },
+    ]
+
+  - code: 0xf92f
+    params: []
+    stack_params: [{ type: dword }, { type: dword }]
+
+  - code: 0xf930
+    mnemonic: chat_box
+    params: []
+    stack_params: [
+        { type: dword },
+        { type: dword },
+        { type: dword },
+        { type: dword },
+        { type: dword },
+        { type: string }
+    ]
+
+  - code: 0xf931
+    mnemonic: chat_bubble
+    params: []
+    stack_params: [{ type: dword }, { type: string }]
+
+  - code: 0xf933
+    params: [{ type: Type.RegRef }]
+
+  - code: 0xf934
+    mnemonic: scroll_text
+    params: []
+    stack_params: [
+        { type: dword },
+        { type: dword },
+        { type: dword },
+        { type: dword },
+        { type: dword },
+        { type: f32 },
+        { type: Type.RegRef },
+        { type: string }
+    ]
+
+  - code: 0xf935
+    mnemonic: gba_unknown1
+    params: []
+
+  - code: 0xf936
+    mnemonic: gba_unknown2
+    params: []
+
+  - code: 0xf937
+    mnemonic: gba_unknown3
+    params: []
+
+  - code: 0xf938
+    mnemonic: add_damage_to
+    params:
+      - type: dword
+      - type: dword
+    stack: pop
+
+  - code: 0xf939
+    mnemonic: item_delete3
+    params:
+      - type: dword
+    stack: pop
+
+  - code: 0xf93a
+    mnemonic: get_item_info
+    params: []
+    stack_params: [{ type: dword }, { type: Type.RegRef }]
+
+  - code: 0xf93b
+    mnemonic: item_packing1
+    params:
+      - type: dword
+    stack: pop
+
+  - code: 0xf93c
+    mnemonic: item_packing2
+    params:
+      - type: dword
+      - type: dword
+    stack: pop
+
+  - code: 0xf93d
+    mnemonic: get_lang_setting
+    params: []
+    stack_params: [{ type: Type.RegRef }]
+
+  - code: 0xf93e
+    mnemonic: prepare_statistic
+    params:
+      - type: dword
+      - type: i_label
+      - type: i_label
+    stack: pop
+
+  - code: 0xf93f
+    mnemonic: keyword_detect
+    params: []
+
+  - code: 0xf940
+    mnemonic: keyword
+    params: []
+    stack_params: [{ type: Type.RegRef }, { type: dword }, { type: string }]
+
+  - code: 0xf941
+    mnemonic: get_guildcard_num
+    params: []
+    stack_params: [{ type: dword }, { type: Type.RegRef }]
+
+  - code: 0xf944
+    mnemonic: get_wrap_status
+    params: []
+    stack_params: [{ type: dword }, { type: Type.RegRef }]
+
+  - code: 0xf945
+    mnemonic: initial_floor
+    params:
+      - type: dword
+    stack: pop
+
+  - code: 0xf946
+    mnemonic: sin
+    params: []
+    stack_params: [{ type: Type.RegRef }, { type: dword }]
+
+  - code: 0xf947
+    mnemonic: cos
+    params: []
+    stack_params: [{ type: Type.RegRef }, { type: dword }]
+
+  - code: 0xf94a
+    mnemonic: boss_is_dead2
+    params: [{ type: Type.RegRef }]
+
+  - code: 0xf94b
+    params: [{ type: Type.RegRef }]
+
+  - code: 0xf94c
+    params: [{ type: Type.RegRef }]
+
+  - code: 0xf94d
+    mnemonic: is_there_cardbattle
+    params: [{ type: Type.RegRef }]
+
+  - code: 0xf950
+    mnemonic: bb_p2_menu
+    params:
+      - type: dword
+    stack: pop
+
+  - code: 0xf951
+    mnemonic: bb_map_designate
+    params: [{ type: byte }, { type: word }, { type: byte }, { type: byte }]
+
+  - code: 0xf952
+    mnemonic: bb_get_number_in_pack
+    params: [{ type: Type.RegRef }]
+
+  - code: 0xf953
+    mnemonic: bb_swap_item
+    params: []
+    stack_params: [
+        { type: dword },
+        { type: dword },
+        { type: dword },
+        { type: dword },
+        { type: dword },
+        { type: dword },
+        { type: i_label },
+        { type: i_label }
+    ]
+
+  - code: 0xf954
+    mnemonic: bb_check_wrap
+    params: []
+    stack_params: [{ type: Type.RegRef }, { type: Type.RegRef }]
+
+  - code: 0xf955
+    mnemonic: bb_exchange_pd_item
+    params: []
+    stack_params: [
+        { type: Type.RegRef },
+        { type: Type.RegRef },
+        { type: Type.RegRef },
+        { type: i_label },
+        { type: i_label }
+    ]
+
+  - code: 0xf956
+    mnemonic: bb_exchange_pd_srank
+    params: []
+    stack_params: [
+        { type: Type.RegRef },
+        { type: Type.RegRef },
+        { type: Type.RegRef },
+        { type: Type.RegRef },
+        { type: Type.RegRef },
+        { type: i_label },
+        { type: i_label }
+    ]
+
+  - code: 0xf957
+    mnemonic: bb_exchange_pd_special
+    params: []
+    stack_params: [
+        { type: Type.RegRef },
+        { type: Type.RegRef },
+        { type: Type.RegRef },
+        { type: Type.RegRef },
+        { type: Type.RegRef },
+        { type: dword },
+        { type: i_label },
+        { type: i_label }
+    ]
+
+  - code: 0xf958
+    mnemonic: bb_exchange_pd_percent
+    params: []
+    stack_params: [
+        { type: Type.RegRef },
+        { type: Type.RegRef },
+        { type: Type.RegRef },
+        { type: Type.RegRef },
+        { type: Type.RegRef },
+        { type: dword },
+        { type: i_label },
+        { type: i_label }
+    ]
+
+  - code: 0xf959
+    params:
+      - type: dword
+    stack: pop
+
+  - code: 0xf95c
+    mnemonic: bb_exchange_slt
+    params: []
+    stack_params: [
+        { type: dword },
+        { type: Type.RegRef },
+        { type: i_label },
+        { type: i_label }
+    ]
+
+  - code: 0xf95d
+    mnemonic: bb_exchange_pc
+    params: []
+
+  - code: 0xf95e
+    mnemonic: bb_box_create_bp
+    params:
+      - type: dword
+      - type: float
+      - type: float
+    stack: pop
+
+  - code: 0xf95f
+    mnemonic: bb_exchange_pt
+    params: []
+    stack_params: [
+        { type: Type.RegRef },
+        { type: Type.RegRef },
+        { type: dword },
+        { type: i_label },
+        { type: i_label }
+    ]
+
+  - code: 0xf960
+    params:
+      - type: dword
+    stack: pop
