@@ -1,13 +1,37 @@
 import Logger from "js-logger";
 import { Endianness } from "../..";
+import {
+    Arg,
+    DataSegment,
+    Instruction,
+    InstructionSegment,
+    Segment,
+    SegmentType,
+} from "../../../scripting/instructions";
+import {
+    Opcode,
+    OPCODES,
+    RegTupRefType,
+    StackInteraction,
+    TYPE_BYTE,
+    TYPE_DWORD,
+    TYPE_D_LABEL,
+    TYPE_FLOAT,
+    TYPE_I_LABEL,
+    TYPE_I_LABEL_VAR,
+    TYPE_LABEL,
+    TYPE_REF,
+    TYPE_REG_REF,
+    TYPE_REG_REF_VAR,
+    TYPE_STRING,
+    TYPE_S_LABEL,
+    TYPE_WORD,
+} from "../../../scripting/opcodes";
 import { ArrayBufferCursor } from "../../cursor/ArrayBufferCursor";
 import { Cursor } from "../../cursor/Cursor";
 import { ResizableBufferCursor } from "../../cursor/ResizableBufferCursor";
 import { WritableCursor } from "../../cursor/WritableCursor";
 import { ResizableBuffer } from "../../ResizableBuffer";
-import { Opcode, OPCODES, Type } from "../../../scripting/opcodes";
-
-export * from "../../../scripting/opcodes";
 
 const logger = Logger.get("data_formats/parsing/quest/bin");
 
@@ -23,88 +47,9 @@ export class BinFile {
     ) {}
 }
 
-/**
- * Instruction invocation.
- */
-export class Instruction {
-    /**
-     * Byte size of the argument list.
-     */
-    readonly arg_size: number = 0;
-    /**
-     * Byte size of the entire instruction, i.e. the sum of the opcode size and all argument sizes.
-     */
-    readonly size: number;
-    /**
-     * Maps each parameter by index to its arguments.
-     */
-    readonly param_to_args: Arg[][] = [];
-
-    constructor(readonly opcode: Opcode, readonly args: Arg[]) {
-        for (let i = 0; i < opcode.params.length; i++) {
-            const type = opcode.params[i].type;
-            const arg = args[i];
-            this.param_to_args[i] = [];
-
-            if (arg == undefined) {
-                break;
-            }
-
-            switch (type) {
-                case Type.U8Var:
-                case Type.ILabelVar:
-                    this.arg_size++;
-
-                    for (let j = i; j < args.length; j++) {
-                        this.param_to_args[i].push(args[j]);
-                        this.arg_size += args[j].size;
-                    }
-
-                    break;
-                default:
-                    this.arg_size += arg.size;
-                    this.param_to_args[i].push(arg);
-                    break;
-            }
-        }
-
-        this.size = opcode.size + this.arg_size;
-    }
-}
-
-export enum SegmentType {
-    Instructions,
-    Data,
-}
-
 const SEGMENT_PRIORITY: number[] = [];
 SEGMENT_PRIORITY[SegmentType.Instructions] = 1;
 SEGMENT_PRIORITY[SegmentType.Data] = 0;
-
-/**
- * Segment of object code.
- */
-export type Segment = InstructionSegment | DataSegment;
-
-export type InstructionSegment = {
-    type: SegmentType.Instructions;
-    labels: number[];
-    instructions: Instruction[];
-};
-
-export type DataSegment = {
-    type: SegmentType.Data;
-    labels: number[];
-    data: ArrayBuffer;
-};
-
-/**
- * Instruction argument.
- */
-export type Arg = {
-    value: any;
-    size: number;
-};
 
 export function parse_bin(
     cursor: Cursor,
@@ -509,10 +454,14 @@ function parse_instructions_segment(
     const stack: Arg[] = [];
 
     for (const instruction of instructions) {
-        const params = instruction.opcode.params;
-        const args = instruction.args;
+        const opcode = instruction.opcode;
+        const params = opcode.params;
+        const args =
+            opcode.stack === StackInteraction.Pop
+                ? stack.splice(stack.length - params.length, params.length)
+                : instruction.args;
 
-        if (instruction.opcode.push_stack) {
+        if (opcode.stack === StackInteraction.Push) {
             for (const arg of args) {
                 stack.push(arg);
             }
@@ -523,14 +472,21 @@ function parse_instructions_segment(
                 let segment_type: SegmentType;
 
                 switch (param_type) {
-                    case Type.ILabel:
+                    case TYPE_I_LABEL:
                         segment_type = SegmentType.Instructions;
                         break;
-                    case Type.DLabel:
+                    case TYPE_D_LABEL:
                         segment_type = SegmentType.Data;
+                    case TYPE_S_LABEL:
+                        segment_type = SegmentType.String;
                         break;
                     default:
                         continue;
+                }
+
+                if (!Number.isInteger(label)) {
+                    logger.error(`Expected label reference but got ${label}.`);
+                    continue;
                 }
 
                 parse_segment(
@@ -543,40 +499,13 @@ function parse_instructions_segment(
                 );
             }
         }
-
-        const stack_params = instruction.opcode.stack_params;
-        const stack_args = stack.splice(stack.length - stack_params.length, stack_params.length);
-
-        for (let i = 0; i < stack_args.length; i++) {
-            const param_type = stack_params[i].type;
-            let label = stack_args[i].value;
-            let segment_type: SegmentType;
-
-            switch (param_type) {
-                case Type.ILabel:
-                    segment_type = SegmentType.Instructions;
-                    break;
-                case Type.DLabel:
-                    segment_type = SegmentType.Data;
-                    break;
-                default:
-                    continue;
-            }
-
-            if (!Number.isInteger(label)) {
-                logger.error(`Expected label reference but got ${label}.`);
-                continue;
-            }
-
-            parse_segment(offset_to_segment, label_holder, cursor, label, segment_type, lenient);
-        }
     }
 
     // Recurse on label drop-through.
     if (
         next_label != undefined &&
         instructions.length &&
-        instructions[instructions.length - 1].opcode !== Opcode.ret
+        instructions[instructions.length - 1].opcode !== Opcode.RET
     ) {
         parse_segment(
             offset_to_segment,
@@ -609,43 +538,25 @@ function parse_instruction_arguments(cursor: Cursor, opcode: Opcode): Arg[] {
 
     for (const param of opcode.params) {
         switch (param.type) {
-            case Type.U8:
+            case TYPE_BYTE:
                 args.push({ value: cursor.u8(), size: 1 });
                 break;
-            case Type.U16:
+            case TYPE_WORD:
                 args.push({ value: cursor.u16(), size: 2 });
                 break;
-            case Type.U32:
-                args.push({ value: cursor.u32(), size: 4 });
-                break;
-            case Type.I32:
+            case TYPE_DWORD:
                 args.push({ value: cursor.i32(), size: 4 });
                 break;
-            case Type.F32:
+            case TYPE_FLOAT:
                 args.push({ value: cursor.f32(), size: 4 });
                 break;
-            case Type.RegRef:
-                args.push({ value: cursor.u8(), size: 1 });
-                break;
-            case Type.ILabel:
+            case TYPE_LABEL:
+            case TYPE_I_LABEL:
+            case TYPE_D_LABEL:
+            case TYPE_S_LABEL:
                 args.push({ value: cursor.u16(), size: 2 });
                 break;
-            case Type.DLabel:
-                args.push({ value: cursor.u16(), size: 2 });
-                break;
-            case Type.U8Var:
-                {
-                    const arg_size = cursor.u8();
-                    args.push(...cursor.u8_array(arg_size).map(value => ({ value, size: 1 })));
-                }
-                break;
-            case Type.ILabelVar:
-                {
-                    const arg_size = cursor.u8();
-                    args.push(...cursor.u16_array(arg_size).map(value => ({ value, size: 2 })));
-                }
-                break;
-            case Type.String:
+            case TYPE_STRING:
                 {
                     const start_pos = cursor.position;
                     args.push({
@@ -654,10 +565,28 @@ function parse_instruction_arguments(cursor: Cursor, opcode: Opcode): Arg[] {
                     });
                 }
                 break;
+            case TYPE_I_LABEL_VAR:
+                {
+                    const arg_size = cursor.u8();
+                    args.push(...cursor.u16_array(arg_size).map(value => ({ value, size: 2 })));
+                }
+                break;
+            case TYPE_REG_REF:
+                args.push({ value: cursor.u8(), size: 1 });
+                break;
+            case TYPE_REG_REF_VAR:
+                {
+                    const arg_size = cursor.u8();
+                    args.push(...cursor.u8_array(arg_size).map(value => ({ value, size: 1 })));
+                }
+                break;
             default:
-                throw new Error(
-                    `Parameter type ${Type[param.type]} (${param.type}) not implemented.`
-                );
+                if (param.type instanceof RegTupRefType) {
+                    args.push({ value: cursor.u8(), size: 1 });
+                    break;
+                } else {
+                    throw new Error(`Parameter type ${param.type} not implemented.`);
+                }
         }
     }
 
@@ -693,47 +622,50 @@ function write_object_code(
                     const [arg] = args;
 
                     switch (param.type) {
-                        case Type.U8:
+                        case TYPE_BYTE:
                             cursor.write_u8(arg.value);
                             break;
-                        case Type.U16:
+                        case TYPE_WORD:
                             cursor.write_u16(arg.value);
                             break;
-                        case Type.U32:
-                            cursor.write_u32(arg.value);
+                        case TYPE_DWORD:
+                            if (arg.value >= 0) {
+                                cursor.write_u32(arg.value);
+                            } else {
+                                cursor.write_i32(arg.value);
+                            }
                             break;
-                        case Type.I32:
-                            cursor.write_i32(arg.value);
-                            break;
-                        case Type.F32:
+                        case TYPE_FLOAT:
                             cursor.write_f32(arg.value);
                             break;
-                        case Type.RegRef:
-                            cursor.write_u8(arg.value);
-                            break;
-                        case Type.ILabel:
+                        case TYPE_LABEL: // Abstract type
+                        case TYPE_I_LABEL:
+                        case TYPE_D_LABEL:
+                        case TYPE_S_LABEL:
                             cursor.write_u16(arg.value);
                             break;
-                        case Type.DLabel:
-                            cursor.write_u16(arg.value);
+                        case TYPE_STRING:
+                            cursor.write_string_utf16(arg.value, arg.size);
                             break;
-                        case Type.U8Var:
-                            cursor.write_u8(args.length);
-                            cursor.write_u8_array(args.map(arg => arg.value));
-                            break;
-                        case Type.ILabelVar:
+                        case TYPE_I_LABEL_VAR:
                             cursor.write_u8(args.length);
                             cursor.write_u16_array(args.map(arg => arg.value));
                             break;
-                        case Type.String:
-                            cursor.write_string_utf16(arg.value, arg.size);
+                        case TYPE_REF: // Abstract type
+                        case TYPE_REG_REF:
+                            cursor.write_u8(arg.value);
+                            break;
+                        case TYPE_REG_REF_VAR:
+                            cursor.write_u8(args.length);
+                            cursor.write_u8_array(args.map(arg => arg.value));
                             break;
                         default:
-                            throw new Error(
-                                `Parameter type ${Type[param.type]} (${
-                                    param.type
-                                }) not implemented.`
-                            );
+                            if (param.type instanceof RegTupRefType) {
+                                cursor.write_u8(arg.value);
+                            } else {
+                                // TYPE_ANY and TYPE_POINTER cannot be serialized.
+                                throw new Error(`Parameter type ${param.type} not implemented.`);
+                            }
                     }
                 }
             }

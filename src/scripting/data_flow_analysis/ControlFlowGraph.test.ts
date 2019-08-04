@@ -1,5 +1,5 @@
-import { InstructionSegment, SegmentType } from "../../data_formats/parsing/quest/bin";
 import { assemble } from "../assembly";
+import { InstructionSegment, SegmentType } from "../instructions";
 import { BranchType, ControlFlowGraph } from "./ControlFlowGraph";
 
 test("single instruction", () => {

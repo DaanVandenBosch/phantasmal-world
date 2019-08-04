@@ -1,5 +1,6 @@
-import { InstructionSegment, Opcode, SegmentType } from "../../data_formats/parsing/quest/bin";
 import { assemble } from "../assembly";
+import { InstructionSegment, SegmentType } from "../instructions";
+import { Opcode } from "../opcodes";
 import { ControlFlowGraph } from "./ControlFlowGraph";
 import {
     MAX_REGISTER_VALUE,
@@ -140,10 +141,10 @@ function test_branched(opcode: Opcode, ...expected: number[]): void {
     });
 }
 
-test_branched(Opcode.addi, 25, 35);
-test_branched(Opcode.subi, -5, 5);
-test_branched(Opcode.muli, 150, 300);
-test_branched(Opcode.divi, 0, 1);
+test_branched(Opcode.ADDI, 25, 35);
+test_branched(Opcode.SUBI, -5, 5);
+test_branched(Opcode.MULI, 150, 300);
+test_branched(Opcode.DIVI, 0, 1);
 
 test(`${register_values.name} get_random`, () => {
     const im = to_instructions(`

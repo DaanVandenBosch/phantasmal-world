@@ -1,10 +1,5 @@
-import {
-    Instruction,
-    Opcode,
-    RegTupRefType,
-    TYPE_REG_REF,
-    TYPE_REG_REF_VAR,
-} from "../../data_formats/parsing/quest/bin";
+import { Instruction } from "../instructions";
+import { Opcode, ParamAccess, RegTupRefType } from "../opcodes";
 import { BasicBlock, ControlFlowGraph } from "./ControlFlowGraph";
 import { ValueSet } from "./ValueSet";
 
@@ -52,30 +47,30 @@ function find_values(
         const args = instruction.args;
 
         switch (instruction.opcode) {
-            case Opcode.let:
+            case Opcode.LET:
                 if (args[0].value === register) {
                     values = find_values(new Set(path), block, i, args[1].value);
                 }
                 break;
-            case Opcode.leti:
-            case Opcode.letb:
-            case Opcode.letw:
-            case Opcode.sync_leti:
+            case Opcode.LETI:
+            case Opcode.LETB:
+            case Opcode.LETW:
+            case Opcode.SYNC_LETI:
                 if (args[0].value === register) {
                     values.set_value(args[1].value);
                 }
                 break;
-            case Opcode.set:
+            case Opcode.SET:
                 if (args[0].value === register) {
                     values.set_value(1);
                 }
                 break;
-            case Opcode.clear:
+            case Opcode.CLEAR:
                 if (args[0].value === register) {
                     values.set_value(0);
                 }
                 break;
-            case Opcode.rev:
+            case Opcode.REV:
                 if (args[0].value === register) {
                     const prev_vals = find_values(new Set(path), block, i, register);
                     const prev_size = prev_vals.size();
@@ -89,42 +84,42 @@ function find_values(
                     }
                 }
                 break;
-            case Opcode.addi:
+            case Opcode.ADDI:
                 if (args[0].value === register) {
                     values = find_values(new Set(path), block, i, register);
                     values.scalar_add(args[1].value);
                 }
                 break;
-            case Opcode.subi:
+            case Opcode.SUBI:
                 if (args[0].value === register) {
                     values = find_values(new Set(path), block, i, register);
                     values.scalar_sub(args[1].value);
                 }
                 break;
-            case Opcode.muli:
+            case Opcode.MULI:
                 if (args[0].value === register) {
                     values = find_values(new Set(path), block, i, register);
                     values.scalar_mul(args[1].value);
                 }
                 break;
-            case Opcode.divi:
+            case Opcode.DIVI:
                 if (args[0].value === register) {
                     values = find_values(new Set(path), block, i, register);
                     values.scalar_div(args[1].value);
                 }
                 break;
-            case Opcode.if_zone_clear:
+            case Opcode.IF_ZONE_CLEAR:
                 if (args[0].value === register) {
                     values.set_interval(0, 1);
                 }
                 break;
-            case Opcode.get_difflvl:
-            case Opcode.get_slotnumber:
+            case Opcode.GET_DIFFLVL:
+            case Opcode.GET_SLOTNUMBER:
                 if (args[0].value === register) {
                     values.set_interval(0, 3);
                 }
                 break;
-            case Opcode.get_random:
+            case Opcode.GET_RANDOM:
                 if (args[1].value === register) {
                     // TODO: undefined values.
                     const min = find_values(new Set(path), block, i, args[0].value).min() || 0;
@@ -135,26 +130,41 @@ function find_values(
                     values.set_interval(min, max - 1);
                 }
                 break;
+            case Opcode.STACK_PUSHM:
+            case Opcode.STACK_POPM:
+                {
+                    const min_reg = args[0].value;
+                    const max_reg = args[0].value + args[1].value;
+
+                    if (min_reg <= register && register < max_reg) {
+                        values.set_interval(MIN_REGISTER_VALUE, MAX_REGISTER_VALUE);
+                    }
+                }
+                break;
             default:
                 // Assume any other opcodes that write to the register can produce any value.
                 {
                     const params = instruction.opcode.params;
-                    const len = Math.min(args.length, params.length);
+                    const arg_len = Math.min(args.length, params.length);
 
-                    for (let j = 0; j < len; j++) {
+                    outer: for (let j = 0; j < arg_len; j++) {
                         const param = params[j];
-                        const val = args[j].value;
 
-                        if (param.write) {
-                            if (
-                                (param.type instanceof RegTupRefType &&
-                                    register >= val &&
-                                    register < val + param.type.registers.length) ||
-                                (param.type === TYPE_REG_REF && val.includes(register)) ||
-                                (param.type === TYPE_REG_REF_VAR && val.includes(register))
-                            ) {
-                                values.set_interval(MIN_REGISTER_VALUE, MAX_REGISTER_VALUE);
-                                break;
+                        if (param.type instanceof RegTupRefType) {
+                            const reg_ref = args[j].value;
+                            let k = 0;
+
+                            for (const reg_param of param.type.registers) {
+                                if (
+                                    (reg_param.access === ParamAccess.Write ||
+                                        reg_param.access === ParamAccess.ReadWrite) &&
+                                    reg_ref + k === register
+                                ) {
+                                    values.set_interval(MIN_REGISTER_VALUE, MAX_REGISTER_VALUE);
+                                    break outer;
+                                }
+
+                                k++;
                             }
                         }
                     }

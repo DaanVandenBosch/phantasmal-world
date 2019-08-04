@@ -3687,9 +3687,9 @@ opcodes:
   - code: 0xf955
     mnemonic: bb_exchange_pd_item
     params: # TODO: determine types
-      - type: any
-      - type: any
-      - type: any
+      - type: dword
+      - type: dword
+      - type: dword
       - type: instruction_label
       - type: instruction_label
     stack: pop
@@ -3697,11 +3697,11 @@ opcodes:
   - code: 0xf956
     mnemonic: bb_exchange_pd_srank
     params: # TODO: determine types
-      - type: any
-      - type: any
-      - type: any
-      - type: any
-      - type: any
+      - type: dword
+      - type: dword
+      - type: dword
+      - type: dword
+      - type: dword
       - type: instruction_label
       - type: instruction_label
     stack: pop
@@ -3709,11 +3709,11 @@ opcodes:
   - code: 0xf957
     mnemonic: bb_exchange_pd_special
     params: # TODO: determine types
-      - type: any
-      - type: any
-      - type: any
-      - type: any
-      - type: any
+      - type: dword
+      - type: dword
+      - type: dword
+      - type: dword
+      - type: dword
       - type: dword
       - type: instruction_label
       - type: instruction_label
@@ -3722,11 +3722,11 @@ opcodes:
   - code: 0xf958
     mnemonic: bb_exchange_pd_percent
     params: # TODO: determine types
-      - type: any
-      - type: any
-      - type: any
-      - type: any
-      - type: any
+      - type: dword
+      - type: dword
+      - type: dword
+      - type: dword
+      - type: dword
       - type: dword
       - type: instruction_label
       - type: instruction_label

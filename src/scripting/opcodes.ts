@@ -1,83 +1,76 @@
 /**
- * Opcode parameter type.
+ * Abstract super type of all types.
  */
-export class Type {}
-export const TYPE = new Type();
+class AnyType {}
 
-export class ValueType extends Type {}
-export const TYPE_VALUE = new ValueType();
-
-export class RefType extends Type {}
-export const TYPE_REF = new RefType();
+/**
+ * Abstract super type of all value types.
+ */
+class ValueType extends AnyType {}
 
 /**
  * 8-Bit integer.
  */
 class ByteType extends ValueType {}
-export const TYPE_BYTE = new ByteType();
 
 /**
  * 16-Bit integer.
  */
 class WordType extends ValueType {}
-export const TYPE_WORD = new WordType();
 
 /**
  * 32-Bit integer.
  */
 class DWordType extends ValueType {}
-export const TYPE_DWORD = new DWordType();
 
 /**
  * 32-Bit floating point number.
  */
 class FloatType extends ValueType {}
-export const TYPE_FLOAT = new FloatType();
 
 /**
- * Named reference to a segment of the object code.
+ * Abstract super type of all label types.
  */
 class LabelType extends ValueType {}
-export const TYPE_LABEL = new LabelType();
 
 /**
  * Named reference to an instruction.
  */
 class ILabelType extends LabelType {}
-export const TYPE_I_LABEL = new ILabelType();
 
 /**
  * Named reference to a data segment.
  */
 class DLabelType extends LabelType {}
-export const TYPE_D_LABEL = new DLabelType();
 
 /**
  * Named reference to a string segment.
  */
 class SLabelType extends LabelType {}
-export const TYPE_S_LABEL = new SLabelType();
 
 /**
  * String of arbitrary size.
  */
 class StringType extends ValueType {}
-export const TYPE_STRING = new StringType();
 
 /**
  * Arbitrary amount of instruction labels.
  */
 class ILabelVarType extends ValueType {}
-export const TYPE_I_LABEL_VAR = new ILabelVarType();
+
+/**
+ * Abstract super type of all reference types.
+ */
+class RefType extends AnyType {}
 
 /**
  * Reference to one or more registers.
  */
 class RegRefType extends RefType {}
-export const TYPE_REG_REF = new RegRefType();
 
 /**
  * Reference to a fixed amount of consecutive registers of specific types.
+ * The only parameterized type.
  */
 export class RegTupRefType extends RefType {
     readonly registers: Param[];
@@ -92,10 +85,38 @@ export class RegTupRefType extends RefType {
  * Arbitrary amount of register references.
  */
 class RegRefVarType extends RefType {}
-export const TYPE_REG_REF_VAR = new RegRefVarType();
 
-class PointerType extends Type {}
+/**
+ * Raw memory pointer.
+ */
+class PointerType extends AnyType {}
+
+// Singleton type constants.
+// All types except `RegTupRefType` have a single instance.
+export const TYPE_ANY = new AnyType();
+export const TYPE_VALUE = new ValueType();
+export const TYPE_BYTE = new ByteType();
+export const TYPE_WORD = new WordType();
+export const TYPE_DWORD = new DWordType();
+export const TYPE_FLOAT = new FloatType();
+export const TYPE_LABEL = new LabelType();
+export const TYPE_I_LABEL = new ILabelType();
+export const TYPE_D_LABEL = new DLabelType();
+export const TYPE_S_LABEL = new SLabelType();
+export const TYPE_STRING = new StringType();
+export const TYPE_I_LABEL_VAR = new ILabelVarType();
+export const TYPE_REF = new RefType();
+export const TYPE_REG_REF = new RegRefType();
+// No singleton constant for `RegTupRefType` because it is parameterized.
+export const TYPE_REG_REF_VAR = new RegRefVarType();
 export const TYPE_POINTER = new PointerType();
+
+export const MIN_SIGNED_DWORD_VALUE = -Math.pow(2, 31);
+export const MAX_SIGNED_DWORD_VALUE = Math.pow(2, 31) - 1;
+export const MIN_UNSIGNED_DWORD_VALUE = 0;
+export const MAX_UNSIGNED_DWORD_VALUE = Math.pow(2, 32) - 1;
+export const MIN_DWORD_VALUE = MIN_SIGNED_DWORD_VALUE;
+export const MAX_DWORD_VALUE = MAX_UNSIGNED_DWORD_VALUE;
 
 export enum ParamAccess {
     Read,
@@ -104,7 +125,7 @@ export enum ParamAccess {
 }
 
 export class Param {
-    type: Type;
+    type: AnyType;
     /**
      * Documentation string.
      */
@@ -114,7 +135,7 @@ export class Param {
      */
     access?: ParamAccess;
 
-    constructor(type: Type, doc?: string, access?: ParamAccess) {
+    constructor(type: AnyType, doc?: string, access?: ParamAccess) {
         this.type = type;
         this.doc = doc;
         this.access = access;
@@ -301,7 +322,7 @@ export class Opcode {
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Read)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
                 undefined,
                 undefined
             ),
@@ -713,12 +734,12 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Read)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Read)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
                 undefined,
                 undefined
             ),
@@ -747,12 +768,12 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Read)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Read)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
                 undefined,
                 undefined
             ),
@@ -1081,7 +1102,7 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Read)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
                 undefined,
                 undefined
             ),
@@ -1094,7 +1115,7 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Write)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
                 undefined,
                 undefined
             ),
@@ -1141,7 +1162,7 @@ export class Opcode {
         "Pushes the value of the given register onto the stack.",
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Read)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
                 undefined,
                 undefined
             ),
@@ -1196,12 +1217,12 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Read)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Read)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
                 undefined,
                 undefined
             ),
@@ -1321,7 +1342,7 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Read)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
                 undefined,
                 undefined
             ),
@@ -1369,7 +1390,7 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Read)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
                 undefined,
                 undefined
             ),
@@ -1396,7 +1417,7 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Read)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
                 undefined,
                 undefined
             ),
@@ -1438,7 +1459,7 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Read)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
                 undefined,
                 undefined
             ),
@@ -1534,7 +1555,7 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Read)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
                 undefined,
                 undefined
             ),
@@ -1554,7 +1575,7 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Read)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
                 undefined,
                 undefined
             ),
@@ -1567,7 +1588,7 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Read)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
                 undefined,
                 undefined
             ),
@@ -1580,7 +1601,7 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Read)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
                 undefined,
                 undefined
             ),
@@ -1600,7 +1621,7 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Read)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
                 undefined,
                 undefined
             ),
@@ -1818,7 +1839,7 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Read)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
                 undefined,
                 undefined
             ),
@@ -1871,7 +1892,7 @@ export class Opcode {
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Write)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
                 "Object handle.",
                 undefined
             ),
@@ -1901,7 +1922,7 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Read)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
                 undefined,
                 undefined
             ),
@@ -2026,7 +2047,7 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Read)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
                 undefined,
                 undefined
             ),
@@ -2102,7 +2123,7 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Read)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
                 "Object handle.",
                 undefined
             ),
@@ -2115,12 +2136,12 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Read)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Read)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
                 undefined,
                 undefined
             ),
@@ -2133,12 +2154,12 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Read)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Read)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
                 undefined,
                 undefined
             ),
@@ -2151,12 +2172,12 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Read)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Read)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
                 undefined,
                 undefined
             ),
@@ -2178,7 +2199,7 @@ export class Opcode {
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Write)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
                 undefined,
                 undefined
             ),
@@ -2191,12 +2212,12 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Read)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Read)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
                 undefined,
                 undefined
             ),
@@ -2271,7 +2292,7 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Read)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
                 undefined,
                 undefined
             ),
@@ -2305,7 +2326,7 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Read)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
                 undefined,
                 undefined
             ),
@@ -2359,7 +2380,7 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Write)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
                 undefined,
                 undefined
             ),
@@ -2408,7 +2429,7 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Read)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
                 undefined,
                 undefined
             ),
@@ -2435,12 +2456,12 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Read)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Read)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
                 undefined,
                 undefined
             ),
@@ -2551,7 +2572,7 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Read)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
                 undefined,
                 undefined
             ),
@@ -2579,7 +2600,7 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Read)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
                 undefined,
                 undefined
             ),
@@ -2592,7 +2613,7 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Read)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
                 undefined,
                 undefined
             ),
@@ -2647,7 +2668,7 @@ export class Opcode {
         [
             new Param(TYPE_DWORD, undefined, undefined),
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Read)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
                 undefined,
                 undefined
             ),
@@ -2660,12 +2681,12 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Read)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Read)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
                 undefined,
                 undefined
             ),
@@ -2678,7 +2699,7 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Read)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
                 undefined,
                 undefined
             ),
@@ -2699,7 +2720,7 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Read)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
                 undefined,
                 undefined
             ),
@@ -2809,7 +2830,7 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Read)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
                 undefined,
                 undefined
             ),
@@ -2829,7 +2850,7 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Write)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
                 undefined,
                 undefined
             ),
@@ -2884,7 +2905,7 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Read)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
                 undefined,
                 undefined
             ),
@@ -3182,7 +3203,7 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Write)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
                 undefined,
                 undefined
             ),
@@ -3195,7 +3216,7 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Write)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
                 undefined,
                 undefined
             ),
@@ -3208,7 +3229,7 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Write)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
                 undefined,
                 undefined
             ),
@@ -3799,12 +3820,12 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Write)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Write)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
                 undefined,
                 undefined
             ),
@@ -3817,12 +3838,12 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Write)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Write)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
                 undefined,
                 undefined
             ),
@@ -3835,12 +3856,12 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Write)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Write)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
                 undefined,
                 undefined
             ),
@@ -3853,7 +3874,7 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Read)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
                 undefined,
                 undefined
             ),
@@ -3866,7 +3887,7 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Write)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
                 undefined,
                 undefined
             ),
@@ -3921,7 +3942,7 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Write)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
                 undefined,
                 undefined
             ),
@@ -4076,12 +4097,12 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Write)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Write)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
                 undefined,
                 undefined
             ),
@@ -4094,7 +4115,7 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Write)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
                 undefined,
                 undefined
             ),
@@ -4127,12 +4148,12 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Write)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Write)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
                 undefined,
                 undefined
             ),
@@ -4187,12 +4208,12 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Write)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Write)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
                 undefined,
                 undefined
             ),
@@ -4205,7 +4226,7 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Read)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
                 undefined,
                 undefined
             ),
@@ -4219,7 +4240,7 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Write)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
                 undefined,
                 undefined
             ),
@@ -4232,7 +4253,7 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Read)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
                 undefined,
                 undefined
             ),
@@ -4245,7 +4266,7 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Write)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
                 undefined,
                 undefined
             ),
@@ -4258,7 +4279,7 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Write)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
                 undefined,
                 undefined
             ),
@@ -4391,7 +4412,7 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Write)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
                 undefined,
                 undefined
             ),
@@ -4418,7 +4439,7 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Write)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
                 undefined,
                 undefined
             ),
@@ -4494,7 +4515,7 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Write)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
                 undefined,
                 undefined
             ),
@@ -4528,7 +4549,7 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Write)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
                 undefined,
                 undefined
             ),
@@ -4674,7 +4695,7 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Write)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
                 undefined,
                 undefined
             ),
@@ -4694,7 +4715,7 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Write)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
                 undefined,
                 undefined
             ),
@@ -4707,7 +4728,7 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Write)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
                 undefined,
                 undefined
             ),
@@ -4720,7 +4741,7 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Write)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
                 undefined,
                 undefined
             ),
@@ -4778,12 +4799,12 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Read)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Read)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
                 undefined,
                 undefined
             ),
@@ -4814,7 +4835,7 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Read)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
                 undefined,
                 undefined
             ),
@@ -4957,7 +4978,7 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Read)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
                 undefined,
                 undefined
             ),
@@ -4971,7 +4992,7 @@ export class Opcode {
         [
             new Param(TYPE_DWORD, undefined, undefined),
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Read)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
                 undefined,
                 undefined
             ),
@@ -5009,7 +5030,7 @@ export class Opcode {
             new Param(TYPE_DWORD, undefined, undefined),
             new Param(TYPE_DWORD, undefined, undefined),
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Read)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
                 undefined,
                 undefined
             ),
@@ -5023,12 +5044,12 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Read)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Read)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
                 undefined,
                 undefined
             ),
@@ -5042,12 +5063,12 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Write)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Write)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
                 undefined,
                 undefined
             ),
@@ -5060,12 +5081,12 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Write)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Write)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
                 undefined,
                 undefined
             ),
@@ -5106,7 +5127,7 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Read)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
                 undefined,
                 undefined
             ),
@@ -5119,7 +5140,7 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Read)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
                 undefined,
                 undefined
             ),
@@ -5132,7 +5153,7 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Read)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
                 undefined,
                 undefined
             ),
@@ -5145,12 +5166,12 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Read)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Read)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
                 undefined,
                 undefined
             ),
@@ -5163,12 +5184,12 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Read)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Read)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
                 undefined,
                 undefined
             ),
@@ -5181,12 +5202,12 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Read)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Read)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
                 undefined,
                 undefined
             ),
@@ -5199,12 +5220,12 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Read)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Read)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
                 undefined,
                 undefined
             ),
@@ -5217,12 +5238,12 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Read)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Read)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
                 undefined,
                 undefined
             ),
@@ -5235,12 +5256,12 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Read)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Read)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
                 undefined,
                 undefined
             ),
@@ -5253,12 +5274,12 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Read)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Read)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
                 undefined,
                 undefined
             ),
@@ -5271,12 +5292,12 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Read)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Read)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
                 undefined,
                 undefined
             ),
@@ -5321,7 +5342,7 @@ export class Opcode {
             new Param(TYPE_DWORD, undefined, undefined),
             new Param(TYPE_DWORD, undefined, undefined),
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Read)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
                 undefined,
                 undefined
             ),
@@ -5335,7 +5356,7 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Read)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
                 undefined,
                 undefined
             ),
@@ -5924,12 +5945,12 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Write)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Write)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
                 undefined,
                 undefined
             ),
@@ -5974,7 +5995,7 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Write)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
                 undefined,
                 undefined
             ),
@@ -5987,7 +6008,7 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Write)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
                 undefined,
                 undefined
             ),
@@ -6064,7 +6085,7 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Write)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
                 undefined,
                 undefined
             ),
@@ -6133,7 +6154,7 @@ export class Opcode {
         [
             new Param(TYPE_DWORD, undefined, undefined),
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Write)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
                 undefined,
                 undefined
             ),
@@ -6160,7 +6181,7 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE, undefined, ParamAccess.Write)),
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
                 undefined,
                 undefined
             ),
@@ -6424,9 +6445,9 @@ export class Opcode {
         "bb_exchange_pd_item",
         undefined,
         [
-            new Param(TYPE, undefined, undefined),
-            new Param(TYPE, undefined, undefined),
-            new Param(TYPE, undefined, undefined),
+            new Param(TYPE_DWORD, undefined, undefined),
+            new Param(TYPE_DWORD, undefined, undefined),
+            new Param(TYPE_DWORD, undefined, undefined),
             new Param(TYPE_I_LABEL, undefined, undefined),
             new Param(TYPE_I_LABEL, undefined, undefined),
         ],
@@ -6437,11 +6458,11 @@ export class Opcode {
         "bb_exchange_pd_srank",
         undefined,
         [
-            new Param(TYPE, undefined, undefined),
-            new Param(TYPE, undefined, undefined),
-            new Param(TYPE, undefined, undefined),
-            new Param(TYPE, undefined, undefined),
-            new Param(TYPE, undefined, undefined),
+            new Param(TYPE_DWORD, undefined, undefined),
+            new Param(TYPE_DWORD, undefined, undefined),
+            new Param(TYPE_DWORD, undefined, undefined),
+            new Param(TYPE_DWORD, undefined, undefined),
+            new Param(TYPE_DWORD, undefined, undefined),
             new Param(TYPE_I_LABEL, undefined, undefined),
             new Param(TYPE_I_LABEL, undefined, undefined),
         ],
@@ -6452,11 +6473,11 @@ export class Opcode {
         "bb_exchange_pd_special",
         undefined,
         [
-            new Param(TYPE, undefined, undefined),
-            new Param(TYPE, undefined, undefined),
-            new Param(TYPE, undefined, undefined),
-            new Param(TYPE, undefined, undefined),
-            new Param(TYPE, undefined, undefined),
+            new Param(TYPE_DWORD, undefined, undefined),
+            new Param(TYPE_DWORD, undefined, undefined),
+            new Param(TYPE_DWORD, undefined, undefined),
+            new Param(TYPE_DWORD, undefined, undefined),
+            new Param(TYPE_DWORD, undefined, undefined),
             new Param(TYPE_DWORD, undefined, undefined),
             new Param(TYPE_I_LABEL, undefined, undefined),
             new Param(TYPE_I_LABEL, undefined, undefined),
@@ -6468,11 +6489,11 @@ export class Opcode {
         "bb_exchange_pd_percent",
         undefined,
         [
-            new Param(TYPE, undefined, undefined),
-            new Param(TYPE, undefined, undefined),
-            new Param(TYPE, undefined, undefined),
-            new Param(TYPE, undefined, undefined),
-            new Param(TYPE, undefined, undefined),
+            new Param(TYPE_DWORD, undefined, undefined),
+            new Param(TYPE_DWORD, undefined, undefined),
+            new Param(TYPE_DWORD, undefined, undefined),
+            new Param(TYPE_DWORD, undefined, undefined),
+            new Param(TYPE_DWORD, undefined, undefined),
             new Param(TYPE_DWORD, undefined, undefined),
             new Param(TYPE_I_LABEL, undefined, undefined),
             new Param(TYPE_I_LABEL, undefined, undefined),

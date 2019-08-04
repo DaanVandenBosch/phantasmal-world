@@ -1,10 +1,5 @@
-import {
-    Instruction,
-    InstructionSegment,
-    Opcode,
-    Segment,
-    SegmentType,
-} from "../../data_formats/parsing/quest/bin";
+import { Instruction, InstructionSegment, Segment, SegmentType } from "../instructions";
+import { Opcode } from "../opcodes";
 
 export enum BranchType {
     None,
@@ -74,61 +69,61 @@ export class ControlFlowGraph {
 
             switch (inst.opcode) {
                 // Return.
-                case Opcode.ret:
+                case Opcode.RET:
                     branch_type = BranchType.Return;
                     branch_labels = [];
                     break;
 
                 // Unconditional jump.
-                case Opcode.jmp:
+                case Opcode.JMP:
                     branch_type = BranchType.Jump;
                     branch_labels = [inst.args[0].value];
                     break;
 
                 // Conditional jumps.
-                case Opcode.jmp_on:
-                case Opcode.jmp_off:
+                case Opcode.JMP_ON:
+                case Opcode.JMP_OFF:
                     branch_type = BranchType.ConditionalJump;
                     branch_labels = [inst.args[0].value];
                     break;
-                case Opcode.jmp_e:
-                case Opcode.jmpi_e:
-                case Opcode.jmp_ne:
-                case Opcode.jmpi_ne:
-                case Opcode.ujmp_g:
-                case Opcode.ujmpi_g:
-                case Opcode.jmp_g:
-                case Opcode.jmpi_g:
-                case Opcode.ujmp_l:
-                case Opcode.ujmpi_l:
-                case Opcode.jmp_l:
-                case Opcode.jmpi_l:
-                case Opcode.ujmp_ge:
-                case Opcode.ujmpi_ge:
-                case Opcode.jmp_ge:
-                case Opcode.jmpi_ge:
-                case Opcode.ujmp_le:
-                case Opcode.ujmpi_le:
-                case Opcode.jmp_le:
-                case Opcode.jmpi_le:
+                case Opcode.JMP_E:
+                case Opcode.JMPI_E:
+                case Opcode.JMP_NE:
+                case Opcode.JMPI_NE:
+                case Opcode.UJMP_G:
+                case Opcode.UJMPI_G:
+                case Opcode.JMP_G:
+                case Opcode.JMPI_G:
+                case Opcode.UJMP_L:
+                case Opcode.UJMPI_L:
+                case Opcode.JMP_L:
+                case Opcode.JMPI_L:
+                case Opcode.UJMP_GE:
+                case Opcode.UJMPI_GE:
+                case Opcode.JMP_GE:
+                case Opcode.JMPI_GE:
+                case Opcode.UJMP_LE:
+                case Opcode.UJMPI_LE:
+                case Opcode.JMP_LE:
+                case Opcode.JMPI_LE:
                     branch_type = BranchType.ConditionalJump;
                     branch_labels = [inst.args[2].value];
                     break;
-                case Opcode.switch_jmp:
+                case Opcode.SWITCH_JMP:
                     branch_type = BranchType.ConditionalJump;
                     branch_labels = inst.args.slice(1).map(a => a.value);
                     break;
 
                 // Calls.
-                case Opcode.call:
+                case Opcode.CALL:
                     branch_type = BranchType.Call;
                     branch_labels = [inst.args[0].value];
                     break;
-                case Opcode.va_call:
+                case Opcode.VA_CALL:
                     branch_type = BranchType.Call;
                     branch_labels = [inst.args[0].value];
                     break;
-                case Opcode.switch_call:
+                case Opcode.SWITCH_CALL:
                     branch_type = BranchType.Call;
                     branch_labels = inst.args.slice(1).map(a => a.value);
                     break;
@@ -281,46 +276,46 @@ function data_flow(
 
         for (const state of out_states) {
             switch (instruction.opcode) {
-                case Opcode.let:
-                case Opcode.flet:
+                case Opcode.LET:
+                case Opcode.FLET:
                     state.set(
                         args[0].value,
                         state.get_min(args[1].value),
                         state.get_max(args[1].value)
                     );
                     break;
-                case Opcode.leti:
-                case Opcode.letb:
-                case Opcode.letw:
-                case Opcode.leta:
-                case Opcode.sync_leti:
-                case Opcode.sync_register:
+                case Opcode.LETI:
+                case Opcode.LETB:
+                case Opcode.LETW:
+                case Opcode.LETA:
+                case Opcode.SYNC_LETI:
+                case Opcode.SYNC_REGISTER:
                     state.set(args[0].value, args[1].value, args[1].value);
                     break;
-                case Opcode.leto:
+                case Opcode.LETO:
                     {
                         const info = label_holder.get_info(args[1].value);
                         state.set(args[0].value, info ? info.offset : 0, info ? info.offset : 0);
                     }
                     break;
-                case Opcode.set:
+                case Opcode.SET:
                     state.set(args[0].value, 1, 1);
                     break;
-                case Opcode.clear:
+                case Opcode.CLEAR:
                     state.set(args[0].value, 0, 0);
                     break;
-                case Opcode.leti:
-                case Opcode.letb:
-                case Opcode.letw:
-                case Opcode.leta:
-                case Opcode.sync_leti:
-                case Opcode.sync_register:
+                case Opcode.LETI:
+                case Opcode.LETB:
+                case Opcode.LETW:
+                case Opcode.LETA:
+                case Opcode.SYNC_LETI:
+                case Opcode.SYNC_REGISTER:
                     state.set(args[0].value, args[1].value, args[1].value);
                     break;
                 // case Opcode.fleti:
                 //     state.setf(args[0].value, args[1].value);
                 //     break;
-                case Opcode.rev:
+                case Opcode.REV:
                     {
                         const reg = args[0].value;
                         const max = state.get_min(reg) <= 0 && state.get_max(reg) >= 0 ? 1 : 0;

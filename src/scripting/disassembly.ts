@@ -1,4 +1,13 @@
-import { Arg, Param, Segment, SegmentType, Type } from "../data_formats/parsing/quest/bin";
+import { Arg, Segment, SegmentType } from "./instructions";
+import {
+    Param,
+    StackInteraction,
+    TYPE_STRING,
+    TYPE_I_LABEL_VAR,
+    TYPE_REG_REF_VAR,
+    TYPE_REG_REF,
+    RegTupRefType,
+} from "./opcodes";
 
 /**
  * @param manual_stack If true, will output stack management instructions (argpush variants). Otherwise the arguments of stack management instructions will be output as arguments to the instruction that pops them from the stack.
@@ -53,26 +62,27 @@ export function disassemble(object_code: Segment[], manual_stack: boolean = fals
             if (line.length > 4) {
                 lines.push(line);
             }
+        } else if (segment.type === SegmentType.String) {
+            lines.push("    " + segment.value);
         } else {
             for (const instruction of segment.instructions) {
-                if (!manual_stack && instruction.opcode.push_stack) {
+                if (!manual_stack && instruction.opcode.stack === StackInteraction.Push) {
                     stack.push(...instruction.args);
                 } else {
-                    let args = args_to_strings(instruction.opcode.params, instruction.args);
+                    let args: string[] = [];
 
-                    if (!manual_stack) {
-                        args.push(
-                            ...args_to_strings(
-                                instruction.opcode.stack_params,
+                    if (instruction.opcode.stack === StackInteraction.Pop) {
+                        if (!manual_stack) {
+                            args = args_to_strings(
+                                instruction.opcode.params,
                                 stack.splice(
-                                    Math.max(
-                                        0,
-                                        stack.length - instruction.opcode.stack_params.length
-                                    ),
-                                    instruction.opcode.stack_params.length
+                                    Math.max(0, stack.length - instruction.opcode.params.length),
+                                    instruction.opcode.params.length
                                 )
-                            )
-                        );
+                            );
+                        }
+                    } else {
+                        args = args_to_strings(instruction.opcode.params, instruction.args);
                     }
 
                     lines.push(
@@ -106,21 +116,28 @@ function args_to_strings(params: Param[], args: Arg[]): string[] {
         }
 
         switch (type) {
-            case Type.U8Var:
-            case Type.ILabelVar:
+            case TYPE_I_LABEL_VAR:
                 for (; i < args.length; i++) {
                     arg_strings.push(args[i].value.toString());
                 }
-
                 break;
-            case Type.RegRef:
+            case TYPE_REG_REF_VAR:
+                for (; i < args.length; i++) {
+                    arg_strings.push("r" + args[i].value);
+                }
+                break;
+            case TYPE_REG_REF:
                 arg_strings.push("r" + arg.value);
                 break;
-            case Type.String:
+            case TYPE_STRING:
                 arg_strings.push(JSON.stringify(arg.value));
                 break;
             default:
-                arg_strings.push(arg.value.toString());
+                if (type instanceof RegTupRefType) {
+                    arg_strings.push("r" + arg.value);
+                } else {
+                    arg_strings.push(arg.value.toString());
+                }
                 break;
         }
     }

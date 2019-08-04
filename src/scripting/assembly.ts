@@ -1,17 +1,5 @@
 import Logger from "js-logger";
 import {
-    Arg,
-    Instruction,
-    InstructionSegment,
-    Opcode,
-    OPCODES_BY_MNEMONIC,
-    Param,
-    Segment,
-    SegmentType,
-    Type,
-    DataSegment,
-} from "../data_formats/parsing/quest/bin";
-import {
     AssemblyLexer,
     CodeSectionToken,
     DataSectionToken,
@@ -22,6 +10,15 @@ import {
     Token,
     TokenType,
 } from "./AssemblyLexer";
+import {
+    Segment,
+    Arg,
+    InstructionSegment,
+    SegmentType,
+    Instruction,
+    DataSegment,
+} from "./instructions";
+import { Opcode, OPCODES_BY_MNEMONIC, Param } from "./opcodes";
 
 const logger = Logger.get("scripting/assembly");
 
