@@ -25,8 +25,8 @@ opcodes:
     doc: |-
         Starts a new thread. Thread execution will start at the given label.
         Often used to check a register every frame. Make sure to yield control with sync when looping.
-    params: 
-      - type: i_label
+    params:
+      - type: instruction_label
 
   - code: 0x05
     mnemonic: va_start
@@ -48,7 +48,7 @@ opcodes:
         Calls the variable argument function at the given label.
         Called after initializing the argument list with va_start and pushing arguments onto the stack with arg_push* instructions. Make sure to call va_end afterwards.
     params:
-      - type: i_label
+      - type: instruction_label
 
   - code: 0x08
     mnemonic: let
@@ -344,24 +344,24 @@ opcodes:
   - code: 0x28
     mnemonic: jmp
     params:
-      - type: i_label
+      - type: instruction_label
 
   - code: 0x29
     mnemonic: call
     params:
-      - type: i_label
+      - type: instruction_label
 
   - code: 0x2a
     mnemonic: jmp_on
     params:
-      - type: i_label
+      - type: instruction_label
       - type: reg_ref_var
         access: read
 
   - code: 0x2b
     mnemonic: jmp_off
     params:
-      - type: i_label
+      - type: instruction_label
       - type: reg_ref_var
         access: read
 
@@ -376,7 +376,7 @@ opcodes:
         reg_tup:
           - type: any
             access: read
-      - type: i_label
+      - type: instruction_label
 
   - code: 0x2d
     mnemonic: jmpi_=
@@ -386,7 +386,7 @@ opcodes:
           - type: dword
             access: read
       - type: dword
-      - type: i_label
+      - type: instruction_label
 
   - code: 0x2e
     mnemonic: jmp_!=
@@ -399,7 +399,7 @@ opcodes:
         reg_tup:
           - type: any
             access: read
-      - type: i_label
+      - type: instruction_label
 
   - code: 0x2f
     mnemonic: jmpi_!=
@@ -409,7 +409,7 @@ opcodes:
           - type: dword
             access: read
       - type: dword
-      - type: i_label
+      - type: instruction_label
 
   - code: 0x30
     mnemonic: ujmp_>
@@ -422,7 +422,7 @@ opcodes:
         reg_tup:
           - type: dword
             access: read
-      - type: i_label
+      - type: instruction_label
 
   - code: 0x31
     mnemonic: ujmpi_>
@@ -432,7 +432,7 @@ opcodes:
           - type: dword
             access: read
       - type: dword
-      - type: i_label
+      - type: instruction_label
 
   - code: 0x32
     mnemonic: jmp_>
@@ -445,7 +445,7 @@ opcodes:
         reg_tup:
           - type: dword
             access: read
-      - type: i_label
+      - type: instruction_label
 
   - code: 0x33
     mnemonic: jmpi_>
@@ -455,7 +455,7 @@ opcodes:
           - type: dword
             access: read
       - type: dword
-      - type: i_label
+      - type: instruction_label
 
   - code: 0x34
     mnemonic: ujmp_<
@@ -468,7 +468,7 @@ opcodes:
         reg_tup:
           - type: dword
             access: read
-      - type: i_label
+      - type: instruction_label
 
   - code: 0x35
     mnemonic: ujmpi_<
@@ -478,7 +478,7 @@ opcodes:
           - type: dword
             access: read
       - type: dword
-      - type: i_label
+      - type: instruction_label
 
   - code: 0x36
     mnemonic: jmp_<
@@ -491,7 +491,7 @@ opcodes:
         reg_tup:
           - type: dword
             access: read
-      - type: i_label
+      - type: instruction_label
 
   - code: 0x37
     mnemonic: jmpi_<
@@ -501,7 +501,7 @@ opcodes:
           - type: dword
             access: read
       - type: dword
-      - type: i_label
+      - type: instruction_label
 
   - code: 0x38
     mnemonic: ujmp_>=
@@ -514,7 +514,7 @@ opcodes:
         reg_tup:
           - type: dword
             access: read
-      - type: i_label
+      - type: instruction_label
 
   - code: 0x39
     mnemonic: ujmpi_>=
@@ -524,7 +524,7 @@ opcodes:
           - type: dword
             access: read
       - type: dword
-      - type: i_label
+      - type: instruction_label
 
   - code: 0x3a
     mnemonic: jmp_>=
@@ -537,7 +537,7 @@ opcodes:
         reg_tup:
           - type: dword
             access: read
-      - type: i_label
+      - type: instruction_label
 
   - code: 0x3b
     mnemonic: jmpi_>=
@@ -547,7 +547,7 @@ opcodes:
           - type: dword
             access: read
       - type: dword
-      - type: i_label
+      - type: instruction_label
 
   - code: 0x3c
     mnemonic: ujmp_<=
@@ -560,7 +560,7 @@ opcodes:
         reg_tup:
           - type: dword
             access: read
-      - type: i_label
+      - type: instruction_label
 
   - code: 0x3d
     mnemonic: ujmpi_<=
@@ -570,7 +570,7 @@ opcodes:
           - type: dword
             access: read
       - type: dword
-      - type: i_label
+      - type: instruction_label
 
   - code: 0x3e
     mnemonic: jmp_<=
@@ -583,7 +583,7 @@ opcodes:
         reg_tup:
           - type: dword
             access: read
-      - type: i_label
+      - type: instruction_label
 
   - code: 0x3f
     mnemonic: jmpi_<=
@@ -593,7 +593,7 @@ opcodes:
           - type: dword
             access: read
       - type: dword
-      - type: i_label
+      - type: instruction_label
 
   - code: 0x40
     mnemonic: switch_jmp
@@ -602,7 +602,7 @@ opcodes:
         reg_tup:
           - type: dword
             access: read
-      - type: i_label
+      - type: instruction_label
 
   - code: 0x41
     mnemonic: switch_call
@@ -611,7 +611,7 @@ opcodes:
         reg_tup:
           - type: dword
             access: read
-      - type: i_label
+      - type: instruction_label
 
   - code: 0x42
     mnemonic: stack_push
@@ -1097,7 +1097,7 @@ opcodes:
             access: read
           - type: dword
             access: read
-          - type: i_label
+          - type: instruction_label
             access: read
 
   - code: 0x8d
@@ -1113,7 +1113,7 @@ opcodes:
             access: read
           - type: dword
             access: read
-          - type: i_label
+          - type: instruction_label
             access: read
 
   - code: 0x8e
@@ -1129,7 +1129,7 @@ opcodes:
             access: read
           - type: dword
             access: read
-          - type: i_label
+          - type: instruction_label
             access: read
 
   - code: 0x8f
@@ -1182,7 +1182,7 @@ opcodes:
           - type: dword
             doc: Collision radius.
             access: read
-          - type: i_label
+          - type: instruction_label
             doc: Function label.
             access: read
           - type: dword
@@ -1199,7 +1199,7 @@ opcodes:
     params:
       - type: dword
         doc: Floor number.
-      - type: i_label
+      - type: instruction_label
         doc: Handler function label.
     stack: pop
 
@@ -1237,12 +1237,12 @@ opcodes:
   - code: 0xa1
     mnemonic: set_qt_failure
     params:
-      - type: i_label
+      - type: instruction_label
 
   - code: 0xa2
     mnemonic: set_qt_success
     params:
-      - type: i_label
+      - type: instruction_label
 
   - code: 0xa3
     mnemonic: clr_qt_failure
@@ -1255,7 +1255,7 @@ opcodes:
   - code: 0xa5
     mnemonic: set_qt_cancel
     params:
-      - type: i_label
+      - type: instruction_label
 
   - code: 0xa6
     mnemonic: clr_qt_cancel
@@ -1279,7 +1279,7 @@ opcodes:
   - code: 0xb1
     mnemonic: thread_stg
     params:
-      - type: i_label
+      - type: instruction_label
 
   - code: 0xb2
     mnemonic: del_obj_param
@@ -1375,7 +1375,7 @@ opcodes:
   - code: 0xba
     mnemonic: set_qt_exit
     params:
-      - type: i_label
+      - type: instruction_label
 
   - code: 0xbb
     mnemonic: clr_qt_exit
@@ -1448,7 +1448,7 @@ opcodes:
     mnemonic: set_quest_board_handler
     params:
       - type: dword
-      - type: i_label
+      - type: instruction_label
       - type: string
     stack: pop
 
@@ -2040,7 +2040,7 @@ opcodes:
   - code: 0xf841
     mnemonic: get_npc_data
     params:
-      - type: d_label
+      - type: data_label
 
   - code: 0xf848
     mnemonic: give_damage_score
@@ -2198,24 +2198,60 @@ opcodes:
 
   - code: 0xf867
     mnemonic: award_item_give_to
-    params: [{ type: Type.RegRef }]
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: dword
+            access: read
 
   - code: 0xf868
-    params: [{ type: Type.RegRef }, { type: Type.RegRef }]
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: write
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: write
 
   - code: 0xf869
-    params: [{ type: Type.RegRef }, { type: Type.RegRef }]
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: write
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: write
 
   - code: 0xf86a
     mnemonic: item_create_cmode
-    params: [{ type: Type.RegRef }, { type: Type.RegRef }]
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: write
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: write
 
   - code: 0xf86b
-    params: [{ type: Type.RegRef }]
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: read
 
   - code: 0xf86c
     mnemonic: award_item_ok
-    params: [{ type: Type.RegRef }]
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: write
 
   - code: 0xf86f
     mnemonic: ba_set_lives
@@ -2243,65 +2279,175 @@ opcodes:
 
   - code: 0xf873
     mnemonic: boss_is_dead
-    params: [{ type: Type.RegRef }]
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: write
 
   - code: 0xf877
     mnemonic: enable_techs
-    params: [{ type: Type.RegRef }]
+    doc: Enables technique use for the given player.
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            doc: Player slot.
+            access: read
 
   - code: 0xf878
     mnemonic: disable_techs
-    params: [{ type: Type.RegRef }]
+    doc: Disables technique use for the given player.
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            doc: Player slot.
+            access: read
 
   - code: 0xf879
     mnemonic: get_gender
-    params: [{ type: Type.RegRef }, { type: Type.RegRef }]
+    doc: Retrieves the player's gender. 0 If male, 1 if female.
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            doc: Player slot.
+            access: read
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            doc: Player gender.
+            access: write
 
   - code: 0xf87a
     mnemonic: get_chara_class
-    params: [{ type: Type.RegRef }, { type: Type.RegRef }]
+    doc: Retrieves the player's race and character class.
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            doc: Player slot.
+            access: read
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            doc: Player race. 0 If human, 1 if newman, 2 if cast.
+            access: write
+          - type: dword
+            doc: Player class. 0 If hunter, 1 if ranger, 2 if force.
+            access: write
 
   - code: 0xf87b
     mnemonic: take_slot_meseta
-    params: [{ type: Type.RegRef }, { type: Type.RegRef }]
+    doc: Takes an amount of meseta from a player's inventory.
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            doc: Player slot.
+            access: read
+          - type: dword
+            doc: Amount of meseta to take.
+            access: read
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            doc: Will be set to 1 if the meseta was taken, 0 otherwise.
+            access: write
 
   - code: 0xf87f
     mnemonic: read_guildcard_flag
-    params: [{ type: Type.RegRef }, { type: Type.RegRef }]
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: write
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: write
 
   - code: 0xf880
-    params: [{ type: Type.RegRef }]
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: write
 
   - code: 0xf881
     mnemonic: get_pl_name
-    params: [{ type: Type.RegRef }]
+    doc: Sets the value of <pl_name> to the given player's name.
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            doc: Player slot.
+            access: read
 
   - code: 0xf883
-    params: [{ type: Type.RegRef }, { type: Type.RegRef }]
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: write
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: write
 
   - code: 0xf88a
     mnemonic: get_player_status
-    params: [{ type: Type.RegRef }, { type: Type.RegRef }]
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: write
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: write
 
   - code: 0xf88b
     mnemonic: send_mail
-    params: []
-    stack_params: [{ type: Type.RegRef }, { type: string }]
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: read
+      - type: string
+    stack: pop
 
   - code: 0xf88c
     mnemonic: online_check
-    params: [{ type: Type.RegRef }]
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: write
 
   - code: 0xf88d
     mnemonic: chl_set_timerecord
-    params: [{ type: Type.RegRef }]
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: read
 
   - code: 0xf88e
     mnemonic: chl_get_timerecord
-    params: [{ type: Type.RegRef }]
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: write
 
   - code: 0xf88f
-    params: [{ type: Type.RegRef }]
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: write
 
   - code: 0xf891
     mnemonic: load_enemy_data
@@ -2331,48 +2477,91 @@ opcodes:
 
   - code: 0xf898
     mnemonic: shift_left
-    params: [{ type: Type.RegRef }, { type: Type.RegRef }]
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: write
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: read
 
   - code: 0xf899
     mnemonic: shift_right
-    params: [{ type: Type.RegRef }, { type: Type.RegRef }]
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: write
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: read
 
   - code: 0xf89a
     mnemonic: get_random
-    params: [{ type: Type.RegRef }, { type: Type.RegRef }]
-    # Resets all registers to 0 (may have to change areas?).
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: read
+          - type: dword
+            access: read
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: write
 
+    # TODO: Do you have to change areas after calling this opcode?
   - code: 0xf89b
     mnemonic: reset_map
+    doc: Sets all registers to 0 and resets the quest.
     params: []
 
   - code: 0xf89c
     mnemonic: disp_chl_retry_menu
-    params: [{ type: Type.RegRef }]
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: write
 
   - code: 0xf89d
     mnemonic: chl_reverser
     params: []
 
   - code: 0xf89e
-    params: []
-    stack_params:
+    params:
       - type: dword
+    stack: pop
 
   - code: 0xf89f
-    params: [{ type: Type.RegRef }]
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: write
 
   - code: 0xf8a8
-    params: []
-    stack_params:
+    params:
       - type: dword
+    stack: pop
 
   - code: 0xf8a9
-    params: [{ type: Type.RegRef }]
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: write
 
   - code: 0xf8ad
     mnemonic: get_number_of_player2
-    params: [{ type: Type.RegRef }]
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: write
 
   - code: 0xf8b9
     mnemonic: chl_recovery
@@ -2385,12 +2574,18 @@ opcodes:
 
   - code: 0xf8c0
     mnemonic: file_dl_req
-    params: []
-    stack_params: [{ type: dword }, { type: string }]
+    params:
+      - type: dword
+      - type: string
+    stack: pop
 
   - code: 0xf8c1
     mnemonic: get_dl_status
-    params: [{ type: Type.RegRef }]
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: write
 
   - code: 0xf8c2
     mnemonic: gba_unknown4
@@ -2398,13 +2593,25 @@ opcodes:
 
   - code: 0xf8c3
     mnemonic: get_gba_state
-    params: [{ type: Type.RegRef }]
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: write
 
   - code: 0xf8c4
-    params: [{ type: Type.RegRef }]
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: write
 
   - code: 0xf8c5
-    params: [{ type: Type.RegRef }]
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: write
 
   - code: 0xf8c6
     mnemonic: qexit
@@ -2412,72 +2619,170 @@ opcodes:
 
   - code: 0xf8c7
     mnemonic: use_animation
-    params: [{ type: Type.RegRef }, { type: Type.RegRef }]
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            doc: Player slot.
+            access: read
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            doc: Animation ID.
+            access: read
+          - type: dword
+            doc: Animation duration in number of frames.
+            access: read
 
   - code: 0xf8c8
     mnemonic: stop_animation
-    params: [{ type: Type.RegRef }]
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            doc: Player slot.
+            access: read
 
   - code: 0xf8c9
     mnemonic: run_to_coord
-    params: [{ type: Type.RegRef }, { type: Type.RegRef }]
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: read
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: read
 
   - code: 0xf8ca
     mnemonic: set_slot_invincible
-    params: [{ type: Type.RegRef }, { type: Type.RegRef }]
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            doc: Player slot.
+            access: read
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: read
 
   - code: 0xf8cb
-    params: [{ type: Type.RegRef }]
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: read
 
   - code: 0xf8cc
     mnemonic: set_slot_poison
-    params: [{ type: Type.RegRef }]
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            doc: Player slot.
+            access: read
 
   - code: 0xf8cd
     mnemonic: set_slot_paralyze
-    params: [{ type: Type.RegRef }]
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            doc: Player slot.
+            access: read
 
   - code: 0xf8ce
     mnemonic: set_slot_shock
-    params: [{ type: Type.RegRef }]
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            doc: Player slot.
+            access: read
 
   - code: 0xf8cf
     mnemonic: set_slot_freeze
-    params: [{ type: Type.RegRef }]
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            doc: Player slot.
+            access: read
 
   - code: 0xf8d0
     mnemonic: set_slot_slow
-    params: [{ type: Type.RegRef }]
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            doc: Player slot.
+            access: read
 
   - code: 0xf8d1
     mnemonic: set_slot_confuse
-    params: [{ type: Type.RegRef }]
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            doc: Player slot.
+            access: read
 
   - code: 0xf8d2
     mnemonic: set_slot_shifta
-    params: [{ type: Type.RegRef }]
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            doc: Player slot.
+            access: read
 
   - code: 0xf8d3
     mnemonic: set_slot_deband
-    params: [{ type: Type.RegRef }]
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            doc: Player slot.
+            access: read
 
   - code: 0xf8d4
     mnemonic: set_slot_jellen
-    params: [{ type: Type.RegRef }]
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            doc: Player slot.
+            access: read
 
   - code: 0xf8d5
     mnemonic: set_slot_zalure
-    params: [{ type: Type.RegRef }]
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            doc: Player slot.
+            access: read
 
   - code: 0xf8d6
     mnemonic: fleti_fixed_camera
-    params: []
-    stack_params: [{ type: Type.RegRef }]
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: read
+    stack: pop
 
   - code: 0xf8d7
     mnemonic: fleti_locked_camera
-    params: []
-    stack_params: [{ type: dword }, { type: Type.RegRef }]
+    params:
+      - type: dword
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: read
+    stack: pop
 
   - code: 0xf8d8
     mnemonic: default_camera_pos2
@@ -2492,28 +2797,54 @@ opcodes:
     params: []
 
   - code: 0xf8db
-    params: []
-    stack_params: [
-        { type: dword },
-        { type: dword },
-        { type: dword },
-        { type: dword },
-        { type: Type.RegRef },
-        { type: word }
-    ]
-    # TODO: 3rd parameter is a string data reference.
+    params:
+      - type: dword
+      - type: dword
+      - type: dword
+      - type: dword
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: read
+      - type: word
+    stack: pop
 
   - code: 0xf8dc
     mnemonic: npc_action_string
-    params: [{ type: Type.RegRef }, { type: Type.RegRef }, { type: d_label }]
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: read
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: read
+      - type: string_label
 
   - code: 0xf8dd
     mnemonic: get_pad_cond
-    params: [{ type: Type.RegRef }, { type: Type.RegRef }]
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: write
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: write
 
   - code: 0xf8de
     mnemonic: get_button_cond
-    params: [{ type: Type.RegRef }, { type: Type.RegRef }]
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: write
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: write
 
   - code: 0xf8df
     mnemonic: freeze_enemies
@@ -2533,47 +2864,125 @@ opcodes:
 
   - code: 0xf8e3
     mnemonic: restore_hp
-    params: [{ type: Type.RegRef }]
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: read
 
   - code: 0xf8e4
     mnemonic: restore_tp
-    params: [{ type: Type.RegRef }]
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: read
 
   - code: 0xf8e5
     mnemonic: close_chat_bubble
-    params: [{ type: Type.RegRef }]
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: read
 
   - code: 0xf8e6
     mnemonic: move_coords_object 
-    params: [{ type: Type.RegRef }, { type: Type.RegRef }]
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: read
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: read
 
   - code: 0xf8e7
     mnemonic: at_coords_call_ex
-    params: [{ type: Type.RegRef }, { type: Type.RegRef }]
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: read
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: read
 
   - code: 0xf8e8
-    params: [{ type: Type.RegRef }, { type: Type.RegRef }]
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: read
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: read
 
   - code: 0xf8e9
-    params: [{ type: Type.RegRef }, { type: Type.RegRef }]
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: read
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: read
 
   - code: 0xf8ea
-    params: [{ type: Type.RegRef }, { type: Type.RegRef }]
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: read
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: read
 
   - code: 0xf8eb
-    params: [{ type: Type.RegRef }, { type: Type.RegRef }]
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: read
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: read
 
   - code: 0xf8ec
-    params: [{ type: Type.RegRef }, { type: Type.RegRef }]
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: read
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: read
 
   - code: 0xf8ed
     mnemonic: animation_check
-    params: [{ type: Type.RegRef }, { type: Type.RegRef }]
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: read
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: read
 
   - code: 0xf8ee
     mnemonic: call_image_data
-    params: []
-    stack_params: [{ type: dword }, { type: word }]
+    params:
+      - type: dword
+      - type: word
+    stack: pop
 
   - code: 0xf8f0
     mnemonic: turn_off_bgm_p2
@@ -2585,28 +2994,52 @@ opcodes:
 
   - code: 0xf8f2
     mnemonic: load_unk_data
-    params: []
-    stack_params: [
-        { type: dword },
-        { type: dword },
-        { type: dword },
-        { type: dword },
-        { type: Type.RegRef },
-        { type: d_label }
-    ]
+    params:
+      - type: dword
+      - type: dword
+      - type: dword
+      - type: dword
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: read
+      - type: data_label
+    stack: pop
 
   - code: 0xf8f3
     mnemonic: particle2
-    params: []
-    stack_params: [{ type: Type.RegRef }, { type: dword }, { type: f32 }]
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: read
+      - type: dword
+      - type: float
+    stack: pop
 
   - code: 0xf901
     mnemonic: dec2float
-    params: [{ type: Type.RegRef }, { type: Type.RegRef }]
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: float
+            access: write
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: read
 
   - code: 0xf902
     mnemonic: float2dec
-    params: [{ type: Type.RegRef }, { type: Type.RegRef }]
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: write
+      - type: reg_tup_ref
+        reg_tup:
+          - type: float
+            access: read
 
   - code: 0xf903
     mnemonic: flet
@@ -2715,12 +3148,32 @@ opcodes:
 
   - code: 0xf910
     mnemonic: get_unknown_count
-    params: []
-    stack_params: [{ type: dword }, { type: Type.RegRef }]
+    params:
+      - type: dword
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: write
+    stack: pop
 
   - code: 0xf911
     mnemonic: get_stackable_item_count
-    params: [{ type: Type.RegRef }, { type: Type.RegRef }]
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            doc: Player slot.
+            access: read
+          - type: dword
+            access: read
+          - type: dword
+            access: read
+          - type: dword
+            access: read
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: write
 
   - code: 0xf912
     mnemonic: freeze_and_hide_equip
@@ -2732,109 +3185,210 @@ opcodes:
 
   - code: 0xf914
     mnemonic: set_palettex_callback
-    params: []
-    stack_params: [{ type: Type.RegRef }, { type: i_label }]
+    params:
+      - type: dword
+        doc: Player slot.
+      - type: instruction_label
+    stack: pop
 
   - code: 0xf915
     mnemonic: activate_palettex
-    params: []
-    stack_params: [{ type: Type.RegRef }]
+    params:
+      - type: dword
+        doc: Player slot.
+    stack: pop
 
   - code: 0xf916
     mnemonic: enable_palettex
-    params: []
-    stack_params: [{ type: Type.RegRef }]
+    params:
+      - type: dword
+        doc: Player slot.
+    stack: pop
 
   - code: 0xf917
     mnemonic: restore_palettex
     params:
       - type: dword
+        doc: Player slot.
     stack: pop
 
   - code: 0xf918
     mnemonic: disable_palettex
     params:
       - type: dword
+        doc: Player slot.
     stack: pop
 
   - code: 0xf919
     mnemonic: get_palettex_activated
-    params: []
-    stack_params: [{ type: dword }, { type: Type.RegRef }]
+    params:
+      - type: dword
+        doc: Player slot.
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: write
+    stack: pop
 
   - code: 0xf91a
     mnemonic: get_unknown_palettex_status
-    params: []
-    stack_params: [{ type: dword }, { type: Type.RegRef }]
+    params:
+      - type: dword
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: write
+    stack: pop
 
   - code: 0xf91b
     mnemonic: disable_movement2
-    params: []
-    stack_params: [{ type: Type.RegRef }]
+    params:
+      - type: dword
+        doc: Player slot.
+    stack: pop
 
   - code: 0xf91c
     mnemonic: enable_movement2
-    params: []
-    stack_params: [{ type: Type.RegRef }]
+    params:
+      - type: dword
+        doc: Player slot.
+    stack: pop
 
   - code: 0xf91d
     mnemonic: get_time_played
-    params: [{ type: Type.RegRef }]
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: dword
+            access: write
 
   - code: 0xf91e
     mnemonic: get_guildcard_total
-    params: [{ type: Type.RegRef }]
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: dword
+            access: write
 
   - code: 0xf91f
     mnemonic: get_slot_meseta
-    params: [{ type: Type.RegRef }]
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: write
 
   - code: 0xf920
     mnemonic: get_player_level
-    params: []
-    stack_params: [{ type: dword }, { type: Type.RegRef }]
+    params:
+      - type: dword
+        doc: Player slot.
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: write
+    stack: pop
 
   - code: 0xf921
     mnemonic: get_section_id
-    params: []
-    stack_params: [{ type: dword }, { type: Type.RegRef }]
+    params:
+      - type: dword
+        doc: Player slot.
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: write
+    stack: pop
 
   - code: 0xf922
     mnemonic: get_player_hp
-    params: []
-    stack_params: [{ type: Type.RegRef }, { type: Type.RegRef }]
+    params:
+      - type: dword
+        doc: Player slot.
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            doc: Maximum HP.
+            access: write
+          - type: dword
+            doc: Current HP.
+            access: write
+          - type: dword
+            doc: Maximum TP.
+            access: write
+          - type: dword
+            doc: Current TP.
+            access: write
+    stack: pop
 
   - code: 0xf923
     mnemonic: get_floor_number
-    params: []
-    stack_params: [{ type: Type.RegRef }, { type: Type.RegRef }]
+    params:
+      - type: dword
+        doc: Player slot.
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: write
+    stack: pop
 
   - code: 0xf924
     mnemonic: get_coord_player_detect
-    params: [{ type: Type.RegRef }, { type: Type.RegRef }]
+    params:
+      - type: dword
+        doc: Player slot.
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: dword
+            access: write
 
   - code: 0xf925
     mnemonic: read_global_flag
-    params: []
-    stack_params: [{ type: byte }, { type: Type.RegRef }]
+    params:
+      - type: dword
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: write
+    stack: pop
 
   - code: 0xf926
     mnemonic: write_global_flag
-    params: []
-    stack_params: [{ type: byte }, { type: Type.RegRef }]
+    params:
+      - type: dword
+      - type: dword
+    stack: pop
 
   - code: 0xf927
-    params: [{ type: Type.RegRef }, { type: Type.RegRef }]
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: write
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: write
 
   - code: 0xf928
     mnemonic: floor_player_detect
-    params: [{ type: Type.RegRef }]
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: write
+          - type: dword
+            access: write
+          - type: dword
+            access: write
+          - type: dword
+            access: write
 
   - code: 0xf929
     mnemonic: read_disk_file
-    params: []
-    stack_params:
+    params:
       - type: string
+    stack: pop
 
   - code: 0xf92a
     mnemonic: open_pack_select
@@ -2842,74 +3396,89 @@ opcodes:
 
   - code: 0xf92b
     mnemonic: item_select
-    params: [{ type: Type.RegRef }]
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: write
 
   - code: 0xf92c
     mnemonic: get_item_id
-    params: [{ type: Type.RegRef }]
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: write
 
   - code: 0xf92d
     mnemonic: color_change
-    params: []
-    stack_params: [
-        { type: Type.RegRef },
-        { type: Type.RegRef },
-        { type: Type.RegRef },
-        { type: Type.RegRef },
-        { type: Type.RegRef },
-    ]
+    params:
+      - type: dword
+      - type: dword
+      - type: dword
+      - type: dword
+      - type: dword
+    stack: pop
 
   - code: 0xf92e
     mnemonic: send_statistic
-    params: []
-    stack_params: [
-        { type: dword },
-        { type: dword },
-        { type: dword },
-        { type: dword },
-        { type: dword },
-        { type: dword },
-        { type: dword },
-        { type: dword },
-    ]
+    params:
+      - type: dword
+      - type: dword
+      - type: dword
+      - type: dword
+      - type: dword
+      - type: dword
+      - type: dword
+      - type: dword
+    stack: pop
 
   - code: 0xf92f
-    params: []
-    stack_params: [{ type: dword }, { type: dword }]
+    params:
+      - type: dword
+      - type: dword
+    stack: pop
 
   - code: 0xf930
     mnemonic: chat_box
-    params: []
-    stack_params: [
-        { type: dword },
-        { type: dword },
-        { type: dword },
-        { type: dword },
-        { type: dword },
-        { type: string }
-    ]
+    params:
+      - type: dword
+      - type: dword
+      - type: dword
+      - type: dword
+      - type: dword
+      - type: string
+    stack: pop
 
   - code: 0xf931
     mnemonic: chat_bubble
-    params: []
-    stack_params: [{ type: dword }, { type: string }]
+    params:
+      - type: dword
+      - type: string
+    stack: pop
 
   - code: 0xf933
-    params: [{ type: Type.RegRef }]
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: write
 
   - code: 0xf934
     mnemonic: scroll_text
-    params: []
-    stack_params: [
-        { type: dword },
-        { type: dword },
-        { type: dword },
-        { type: dword },
-        { type: dword },
-        { type: f32 },
-        { type: Type.RegRef },
-        { type: string }
-    ]
+    params:
+      - type: dword
+      - type: dword
+      - type: dword
+      - type: dword
+      - type: dword
+      - type: float
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: write
+      - type: string
+    stack: pop
 
   - code: 0xf935
     mnemonic: gba_unknown1
@@ -2938,8 +3507,13 @@ opcodes:
 
   - code: 0xf93a
     mnemonic: get_item_info
-    params: []
-    stack_params: [{ type: dword }, { type: Type.RegRef }]
+    params:
+      - type: dword
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: write
+    stack: pop
 
   - code: 0xf93b
     mnemonic: item_packing1
@@ -2956,15 +3530,19 @@ opcodes:
 
   - code: 0xf93d
     mnemonic: get_lang_setting
-    params: []
-    stack_params: [{ type: Type.RegRef }]
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: write
+    stack: pop
 
   - code: 0xf93e
     mnemonic: prepare_statistic
     params:
       - type: dword
-      - type: i_label
-      - type: i_label
+      - type: instruction_label
+      - type: instruction_label
     stack: pop
 
   - code: 0xf93f
@@ -2973,18 +3551,37 @@ opcodes:
 
   - code: 0xf940
     mnemonic: keyword
-    params: []
-    stack_params: [{ type: Type.RegRef }, { type: dword }, { type: string }]
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: write
+      - type: dword
+        doc: Player slot.
+      - type: string
+    stack: pop
 
   - code: 0xf941
     mnemonic: get_guildcard_num
-    params: []
-    stack_params: [{ type: dword }, { type: Type.RegRef }]
+    params:
+      - type: dword
+        doc: Player slot.
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: write
+    stack: pop
 
   - code: 0xf944
     mnemonic: get_wrap_status
-    params: []
-    stack_params: [{ type: dword }, { type: Type.RegRef }]
+    params:
+      - type: dword
+        doc: Player slot.
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: write
+    stack: pop
 
   - code: 0xf945
     mnemonic: initial_floor
@@ -2994,27 +3591,53 @@ opcodes:
 
   - code: 0xf946
     mnemonic: sin
-    params: []
-    stack_params: [{ type: Type.RegRef }, { type: dword }]
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: dword
+            access: write
+      - type: dword
+    stack: pop
 
   - code: 0xf947
     mnemonic: cos
-    params: []
-    stack_params: [{ type: Type.RegRef }, { type: dword }]
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: dword
+            access: write
+      - type: dword
+    stack: pop
 
   - code: 0xf94a
     mnemonic: boss_is_dead2
-    params: [{ type: Type.RegRef }]
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: dword
+            access: write
 
   - code: 0xf94b
-    params: [{ type: Type.RegRef }]
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: dword
+            access: write
 
   - code: 0xf94c
-    params: [{ type: Type.RegRef }]
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: dword
+            access: write
 
   - code: 0xf94d
     mnemonic: is_there_cardbattle
-    params: [{ type: Type.RegRef }]
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: dword
+            access: write
 
   - code: 0xf950
     mnemonic: bb_p2_menu
@@ -3024,82 +3647,90 @@ opcodes:
 
   - code: 0xf951
     mnemonic: bb_map_designate
-    params: [{ type: byte }, { type: word }, { type: byte }, { type: byte }]
+    params:
+      - type: byte
+      - type: word
+      - type: byte
+      - type: byte
 
   - code: 0xf952
     mnemonic: bb_get_number_in_pack
-    params: [{ type: Type.RegRef }]
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: write
 
   - code: 0xf953
     mnemonic: bb_swap_item
-    params: []
-    stack_params: [
-        { type: dword },
-        { type: dword },
-        { type: dword },
-        { type: dword },
-        { type: dword },
-        { type: dword },
-        { type: i_label },
-        { type: i_label }
-    ]
+    params:
+      - type: dword
+      - type: dword
+      - type: dword
+      - type: dword
+      - type: dword
+      - type: dword
+      - type: instruction_label
+      - type: instruction_label
+    stack: pop
 
   - code: 0xf954
     mnemonic: bb_check_wrap
-    params: []
-    stack_params: [{ type: Type.RegRef }, { type: Type.RegRef }]
+    params:
+      - type: dword
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: dword
+            access: write
+    stack: pop
 
   - code: 0xf955
     mnemonic: bb_exchange_pd_item
-    params: []
-    stack_params: [
-        { type: Type.RegRef },
-        { type: Type.RegRef },
-        { type: Type.RegRef },
-        { type: i_label },
-        { type: i_label }
-    ]
+    params: # TODO: determine types
+      - type: any
+      - type: any
+      - type: any
+      - type: instruction_label
+      - type: instruction_label
+    stack: pop
 
   - code: 0xf956
     mnemonic: bb_exchange_pd_srank
-    params: []
-    stack_params: [
-        { type: Type.RegRef },
-        { type: Type.RegRef },
-        { type: Type.RegRef },
-        { type: Type.RegRef },
-        { type: Type.RegRef },
-        { type: i_label },
-        { type: i_label }
-    ]
+    params: # TODO: determine types
+      - type: any
+      - type: any
+      - type: any
+      - type: any
+      - type: any
+      - type: instruction_label
+      - type: instruction_label
+    stack: pop
 
   - code: 0xf957
     mnemonic: bb_exchange_pd_special
-    params: []
-    stack_params: [
-        { type: Type.RegRef },
-        { type: Type.RegRef },
-        { type: Type.RegRef },
-        { type: Type.RegRef },
-        { type: Type.RegRef },
-        { type: dword },
-        { type: i_label },
-        { type: i_label }
-    ]
+    params: # TODO: determine types
+      - type: any
+      - type: any
+      - type: any
+      - type: any
+      - type: any
+      - type: dword
+      - type: instruction_label
+      - type: instruction_label
+    stack: pop
 
   - code: 0xf958
     mnemonic: bb_exchange_pd_percent
-    params: []
-    stack_params: [
-        { type: Type.RegRef },
-        { type: Type.RegRef },
-        { type: Type.RegRef },
-        { type: Type.RegRef },
-        { type: Type.RegRef },
-        { type: dword },
-        { type: i_label },
-        { type: i_label }
-    ]
+    params: # TODO: determine types
+      - type: any
+      - type: any
+      - type: any
+      - type: any
+      - type: any
+      - type: dword
+      - type: instruction_label
+      - type: instruction_label
+    stack: pop
 
   - code: 0xf959
     params:
@@ -3108,13 +3739,15 @@ opcodes:
 
   - code: 0xf95c
     mnemonic: bb_exchange_slt
-    params: []
-    stack_params: [
-        { type: dword },
-        { type: Type.RegRef },
-        { type: i_label },
-        { type: i_label }
-    ]
+    params:
+      - type: dword
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: dword
+            access: write
+      - type: instruction_label
+      - type: instruction_label
+    stack: pop
 
   - code: 0xf95d
     mnemonic: bb_exchange_pc
@@ -3130,14 +3763,19 @@ opcodes:
 
   - code: 0xf95f
     mnemonic: bb_exchange_pt
-    params: []
-    stack_params: [
-        { type: Type.RegRef },
-        { type: Type.RegRef },
-        { type: dword },
-        { type: i_label },
-        { type: i_label }
-    ]
+    params:
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: dword
+            access: write
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: dword
+            access: write
+      - type: dword
+      - type: instruction_label
+      - type: instruction_label
+    stack: pop
 
   - code: 0xf960
     params:
