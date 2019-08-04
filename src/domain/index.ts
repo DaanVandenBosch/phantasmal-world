@@ -1,8 +1,8 @@
 import { action, computed, observable } from "mobx";
-import { Segment } from "../data_formats/parsing/quest/bin";
 import { DatUnknown } from "../data_formats/parsing/quest/dat";
 import { Vec3 } from "../data_formats/vector";
 import { enum_values } from "../enums";
+import { Segment } from "../scripting/instructions";
 import { ItemType } from "./items";
 import { NpcType } from "./NpcType";
 import { ObjectType } from "./ObjectType";

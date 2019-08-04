@@ -113,6 +113,8 @@ function test_integer_write(method_name: string): void {
 test_integer_write("write_u8");
 test_integer_write("write_u16");
 test_integer_write("write_u32");
+test_integer_write("write_i8");
+test_integer_write("write_i16");
 test_integer_write("write_i32");
 
 /**

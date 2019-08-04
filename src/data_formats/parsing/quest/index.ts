@@ -9,6 +9,8 @@ import {
     QuestNpc,
     QuestObject,
 } from "../../../domain";
+import { Instruction, InstructionSegment, SegmentType } from "../../../scripting/instructions";
+import { Opcode } from "../../../scripting/opcodes";
 import { area_store } from "../../../stores/AreaStore";
 import { prs_compress } from "../../compression/prs/compress";
 import { prs_decompress } from "../../compression/prs/decompress";
@@ -16,9 +18,8 @@ import { ArrayBufferCursor } from "../../cursor/ArrayBufferCursor";
 import { Cursor } from "../../cursor/Cursor";
 import { ResizableBufferCursor } from "../../cursor/ResizableBufferCursor";
 import { Vec3 } from "../../vector";
-import { BinFile, Instruction, InstructionSegment, parse_bin, SegmentType, write_bin } from "./bin";
+import { BinFile, parse_bin, write_bin } from "./bin";
 import { DatFile, DatNpc, DatObject, parse_dat, write_dat } from "./dat";
-import { Opcode } from "../../../scripting/opcodes";
 import { parse_qst, QstContainedFile, write_qst } from "./qst";
 
 const logger = Logger.get("data_formats/parsing/quest");

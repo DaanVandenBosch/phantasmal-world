@@ -98,6 +98,7 @@
                 "data_label",
                 "string_label",
                 "string",
+                "instruction_label_var",
                 "reg_ref",
                 "reg_tup_ref",
                 "reg_ref_var",

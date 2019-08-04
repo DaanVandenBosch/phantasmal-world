@@ -1078,7 +1078,7 @@ export class Opcode {
                 undefined,
                 undefined
             ),
-            new Param(TYPE_I_LABEL, undefined, undefined),
+            new Param(TYPE_I_LABEL_VAR, undefined, undefined),
         ],
         undefined
     ));
@@ -1092,7 +1092,7 @@ export class Opcode {
                 undefined,
                 undefined
             ),
-            new Param(TYPE_I_LABEL, undefined, undefined),
+            new Param(TYPE_I_LABEL_VAR, undefined, undefined),
         ],
         undefined
     ));
@@ -1190,19 +1190,25 @@ export class Opcode {
         [new Param(TYPE_WORD, undefined, undefined)],
         StackInteraction.Push
     ));
-    static readonly UNKNOWN_4C = (OPCODES[0x4c] = new Opcode(
+    static readonly ARG_PUSHA = (OPCODES[0x4c] = new Opcode(
         0x4c,
-        "unknown_4c",
-        undefined,
-        [],
-        undefined
+        "arg_pusha",
+        "Pushes the memory address of the given register onto the stack. Not used by Sega.",
+        [
+            new Param(
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
+                undefined,
+                undefined
+            ),
+        ],
+        StackInteraction.Push
     ));
-    static readonly UNKNOWN_4D = (OPCODES[0x4d] = new Opcode(
+    static readonly ARG_PUSHO = (OPCODES[0x4d] = new Opcode(
         0x4d,
-        "unknown_4d",
-        undefined,
-        [],
-        undefined
+        "arg_pusho",
+        "Pushes the memory address of the given label onto the stack. Not used by Sega.",
+        [new Param(TYPE_LABEL, undefined, undefined)],
+        StackInteraction.Push
     ));
     static readonly ARG_PUSHS = (OPCODES[0x4e] = new Opcode(
         0x4e,
@@ -5043,16 +5049,8 @@ export class Opcode {
         "npc_action_string",
         undefined,
         [
-            new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
-                undefined,
-                undefined
-            ),
-            new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
-                undefined,
-                undefined
-            ),
+            new Param(TYPE_DWORD, undefined, undefined),
+            new Param(TYPE_DWORD, undefined, undefined),
             new Param(TYPE_S_LABEL, undefined, undefined),
         ],
         undefined

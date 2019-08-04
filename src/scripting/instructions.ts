@@ -18,14 +18,12 @@ export class Instruction {
     readonly param_to_args: Arg[][] = [];
 
     constructor(readonly opcode: Opcode, readonly args: Arg[]) {
-        for (let i = 0; i < opcode.params.length; i++) {
+        const len = Math.min(opcode.params.length, args.length);
+
+        for (let i = 0; i < len; i++) {
             const type = opcode.params[i].type;
             const arg = args[i];
             this.param_to_args[i] = [];
-
-            if (arg == undefined) {
-                break;
-            }
 
             switch (type) {
                 case TYPE_I_LABEL_VAR:

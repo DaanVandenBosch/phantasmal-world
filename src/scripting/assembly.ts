@@ -9,6 +9,8 @@ import {
     RegisterToken,
     Token,
     TokenType,
+    StringSectionToken,
+    StringToken,
 } from "./AssemblyLexer";
 import {
     Segment,
@@ -17,8 +19,27 @@ import {
     SegmentType,
     Instruction,
     DataSegment,
+    StringSegment,
 } from "./instructions";
-import { Opcode, OPCODES_BY_MNEMONIC, Param } from "./opcodes";
+import {
+    Opcode,
+    OPCODES_BY_MNEMONIC,
+    Param,
+    TYPE_I_LABEL_VAR,
+    TYPE_REG_REF_VAR,
+    StackInteraction,
+    TYPE_BYTE,
+    TYPE_DWORD,
+    TYPE_WORD,
+    TYPE_FLOAT,
+    TYPE_S_LABEL,
+    TYPE_D_LABEL,
+    TYPE_I_LABEL,
+    TYPE_LABEL,
+    TYPE_STRING,
+    TYPE_REG_REF,
+    RegTupRefType,
+} from "./opcodes";
 
 const logger = Logger.get("scripting/assembly");
 
@@ -53,8 +74,7 @@ class Assembler {
     private errors!: AssemblyError[];
     // Encountered labels.
     private labels!: Set<number>;
-    // True iff we're in a code section, false iff we're in a data section.
-    private code_section = true;
+    private section_type: SegmentType = SegmentType.Instructions;
 
     constructor(private assembly: string[], private manual_stack: boolean) {}
 
@@ -68,7 +88,8 @@ class Assembler {
         this.warnings = [];
         this.errors = [];
         this.labels = new Set();
-        this.code_section = true;
+        // Need to cast SegmentType.Instructions because of TypeScript bug.
+        this.section_type = SegmentType.Instructions as SegmentType;
 
         for (const line of this.assembly) {
             this.tokens = this.lexer.tokenize_line(line);
@@ -81,24 +102,34 @@ class Assembler {
                         this.parse_label(token);
                         break;
                     case TokenType.CodeSection:
-                        this.parse_code_section(token);
-                        break;
                     case TokenType.DataSection:
-                        this.parse_data_section(token);
+                    case TokenType.StringSection:
+                        this.parse_section(token);
                         break;
                     case TokenType.Int:
-                        if (this.code_section) {
+                        if (this.section_type === SegmentType.Data) {
+                            this.parse_bytes(token);
+                        } else {
                             this.add_error({
                                 col: token.col,
                                 length: token.len,
                                 message: "Unexpected token.",
                             });
+                        }
+                        break;
+                    case TokenType.String:
+                        if (this.section_type === SegmentType.String) {
+                            this.parse_string(token);
                         } else {
-                            this.parse_bytes(token);
+                            this.add_error({
+                                col: token.col,
+                                length: token.len,
+                                message: "Unexpected token.",
+                            });
                         }
                         break;
                     case TokenType.Ident:
-                        if (this.code_section) {
+                        if (this.section_type === SegmentType.Instructions) {
                             this.parse_instruction(token);
                         } else {
                             this.add_error({
@@ -181,6 +212,23 @@ class Assembler {
         }
     }
 
+    private add_string(str: string): void {
+        if (!this.segment) {
+            // Unadressable data, technically valid.
+            const string_segment: StringSegment = {
+                labels: [],
+                type: SegmentType.String,
+                value: str,
+            };
+
+            this.segment = string_segment;
+            this.object_code.push(string_segment);
+        } else {
+            const s_seg = this.segment as StringSegment;
+            s_seg.value += str;
+        }
+    }
+
     private add_error({
         col,
         length,
@@ -228,79 +276,101 @@ class Assembler {
 
         const next_token = this.tokens.shift();
 
-        if (this.code_section) {
-            this.segment = {
-                type: SegmentType.Instructions,
-                labels: [label],
-                instructions: [],
-            };
-            this.object_code.push(this.segment);
+        switch (this.section_type) {
+            case SegmentType.Instructions:
+                this.segment = {
+                    type: SegmentType.Instructions,
+                    labels: [label],
+                    instructions: [],
+                };
+                this.object_code.push(this.segment);
 
-            if (next_token) {
-                if (next_token.type === TokenType.Ident) {
-                    this.parse_instruction(next_token);
-                } else {
-                    this.add_error({
-                        col: next_token.col,
-                        length: next_token.len,
-                        message: "Expected opcode mnemonic.",
-                    });
+                if (next_token) {
+                    if (next_token.type === TokenType.Ident) {
+                        this.parse_instruction(next_token);
+                    } else {
+                        this.add_error({
+                            col: next_token.col,
+                            length: next_token.len,
+                            message: "Expected opcode mnemonic.",
+                        });
+                    }
                 }
-            }
-        } else {
-            this.segment = {
-                type: SegmentType.Data,
-                labels: [label],
-                data: new ArrayBuffer(0),
-            };
-            this.object_code.push(this.segment);
 
-            if (next_token) {
-                if (next_token.type === TokenType.Int) {
-                    this.parse_bytes(next_token);
-                } else {
-                    this.add_error({
-                        col: next_token.col,
-                        length: next_token.len,
-                        message: "Expected bytes.",
-                    });
+                break;
+            case SegmentType.Data:
+                this.segment = {
+                    type: SegmentType.Data,
+                    labels: [label],
+                    data: new ArrayBuffer(0),
+                };
+                this.object_code.push(this.segment);
+
+                if (next_token) {
+                    if (next_token.type === TokenType.Int) {
+                        this.parse_bytes(next_token);
+                    } else {
+                        this.add_error({
+                            col: next_token.col,
+                            length: next_token.len,
+                            message: "Expected bytes.",
+                        });
+                    }
                 }
-            }
+
+                break;
+            case SegmentType.String:
+                this.segment = {
+                    type: SegmentType.String,
+                    labels: [label],
+                    value: "",
+                };
+                this.object_code.push(this.segment);
+
+                if (next_token) {
+                    if (next_token.type === TokenType.String) {
+                        this.parse_string(next_token);
+                    } else {
+                        this.add_error({
+                            col: next_token.col,
+                            length: next_token.len,
+                            message: "Expected a string.",
+                        });
+                    }
+                }
+
+                break;
         }
     }
 
-    private parse_code_section({ col, len }: CodeSectionToken): void {
-        if (this.code_section) {
+    private parse_section({
+        type,
+        col,
+        len,
+    }: CodeSectionToken | DataSectionToken | StringSectionToken): void {
+        let section_type!: SegmentType;
+
+        switch (type) {
+            case TokenType.CodeSection:
+                section_type = SegmentType.Instructions;
+                break;
+            case TokenType.DataSection:
+                section_type = SegmentType.Data;
+                break;
+            case TokenType.StringSection:
+                section_type = SegmentType.String;
+                break;
+        }
+
+        if (this.section_type === section_type) {
             this.add_warning({
                 col,
                 length: len,
-                message: "Unnecessary code section marker.",
+                message: "Unnecessary section marker.",
             });
         }
 
-        this.code_section = true;
-
-        const next_token = this.tokens.shift();
-
-        if (next_token) {
-            this.add_error({
-                col: next_token.col,
-                length: next_token.len,
-                message: "Unexpected token.",
-            });
-        }
-    }
-
-    private parse_data_section({ col, len }: DataSectionToken): void {
-        if (!this.code_section) {
-            this.add_warning({
-                col,
-                length: len,
-                message: "Unnecessary data section marker.",
-            });
-        }
-
-        this.code_section = false;
+        this.section_type = section_type;
 
         const next_token = this.tokens.shift();
 
@@ -324,11 +394,14 @@ class Assembler {
             });
         } else {
             const varargs =
-                opcode.params.findIndex(p => p.type === Type.U8Var || p.type === Type.ILabelVar) !==
-                -1;
+                opcode.params.findIndex(
+                    p => p.type === TYPE_I_LABEL_VAR || p.type === TYPE_REG_REF_VAR
+                ) !== -1;
 
             const param_count =
-                opcode.params.length + (this.manual_stack ? 0 : opcode.stack_params.length);
+                this.manual_stack && opcode.stack === StackInteraction.Pop
+                    ? 0
+                    : opcode.params.length;
 
             let arg_count = 0;
 
@@ -362,7 +435,7 @@ class Assembler {
                 });
 
                 return;
-            } else if (varargs || arg_count === opcode.params.length) {
+            } else if (opcode.stack !== StackInteraction.Pop) {
                 // Inline arguments.
                 if (!this.parse_args(opcode.params, ins_args)) {
                     return;
@@ -371,12 +444,12 @@ class Assembler {
                 // Stack arguments.
                 const stack_args: Arg[] = [];
 
-                if (!this.parse_args(opcode.stack_params, stack_args)) {
+                if (!this.parse_args(opcode.params, stack_args)) {
                     return;
                 }
 
-                for (let i = 0; i < opcode.stack_params.length; i++) {
-                    const param = opcode.stack_params[i];
+                for (let i = 0; i < opcode.params.length; i++) {
+                    const param = opcode.params[i];
                     const arg = stack_args[i];
 
                     if (arg == undefined) {
@@ -384,25 +457,32 @@ class Assembler {
                     }
 
                     switch (param.type) {
-                        case Type.U8:
-                        case Type.RegRef:
-                            this.add_instruction(Opcode.arg_pushb, [arg]);
+                        case TYPE_BYTE:
+                        case TYPE_REG_REF:
+                            this.add_instruction(Opcode.ARG_PUSHB, [arg]);
                             break;
-                        case Type.U16:
-                        case Type.ILabel:
-                        case Type.DLabel:
-                            this.add_instruction(Opcode.arg_pushw, [arg]);
+                        case TYPE_WORD:
+                        case TYPE_LABEL:
+                        case TYPE_I_LABEL:
+                        case TYPE_D_LABEL:
+                        case TYPE_S_LABEL:
+                            this.add_instruction(Opcode.ARG_PUSHW, [arg]);
                             break;
-                        case Type.U32:
-                        case Type.I32:
-                        case Type.F32:
-                            this.add_instruction(Opcode.arg_pushl, [arg]);
+                        case TYPE_DWORD:
+                        case TYPE_FLOAT:
+                            this.add_instruction(Opcode.ARG_PUSHL, [arg]);
                             break;
-                        case Type.String:
-                            this.add_instruction(Opcode.arg_pushs, [arg]);
+                        case TYPE_STRING:
+                            this.add_instruction(Opcode.ARG_PUSHS, [arg]);
                             break;
                         default:
-                            logger.error(`Type ${Type[param.type]} not implemented.`);
+                            if (param.type instanceof RegTupRefType) {
+                                this.add_instruction(Opcode.ARG_PUSHB, [arg]);
+                            } else {
+                                logger.error(`Type ${param.type} not implemented.`);
+                            }
+
+                            break;
                     }
                 }
             }
@@ -431,7 +511,7 @@ class Assembler {
                         message: "Expected an argument.",
                     });
                 } else {
-                    if (param.type !== Type.U8Var && param.type !== Type.ILabelVar) {
+                    if (param.type !== TYPE_I_LABEL_VAR && param.type !== TYPE_REG_REF_VAR) {
                         param_i++;
                     }
                 }
@@ -456,27 +536,24 @@ class Assembler {
                 switch (token.type) {
                     case TokenType.Int:
                         switch (param.type) {
-                            case Type.U8:
-                            case Type.U8Var:
+                            case TYPE_BYTE:
                                 match = true;
-                                this.parse_uint(1, token, args);
+                                this.parse_int(1, token, args);
                                 break;
-                            case Type.U16:
-                            case Type.ILabel:
-                            case Type.ILabelVar:
-                            case Type.DLabel:
+                            case TYPE_WORD:
+                            case TYPE_LABEL:
+                            case TYPE_I_LABEL:
+                            case TYPE_D_LABEL:
+                            case TYPE_S_LABEL:
+                            case TYPE_I_LABEL_VAR:
                                 match = true;
-                                this.parse_uint(2, token, args);
+                                this.parse_int(2, token, args);
                                 break;
-                            case Type.U32:
+                            case TYPE_DWORD:
                                 match = true;
-                                this.parse_uint(4, token, args);
+                                this.parse_int(4, token, args);
                                 break;
-                            case Type.I32:
-                                match = true;
-                                this.parse_sint(4, token, args);
-                                break;
-                            case Type.F32:
+                            case TYPE_FLOAT:
                                 match = true;
                                 args.push({
                                     value: token.value,
@@ -489,7 +566,7 @@ class Assembler {
                         }
                         break;
                     case TokenType.Float:
-                        match = param.type === Type.F32;
+                        match = param.type === TYPE_FLOAT;
 
                         if (match) {
                             args.push({
@@ -500,11 +577,15 @@ class Assembler {
 
                         break;
                     case TokenType.Register:
-                        match = param.type === Type.RegRef;
+                        match =
+                            param.type === TYPE_REG_REF ||
+                            param.type === TYPE_REG_REF_VAR ||
+                            param.type instanceof RegTupRefType;
+
                         this.parse_register(token, args);
                         break;
                     case TokenType.String:
-                        match = param.type === Type.String;
+                        match = param.type === TYPE_STRING;
 
                         if (match) {
                             args.push({
@@ -522,49 +603,61 @@ class Assembler {
                 if (!match) {
                     semi_valid = false;
 
-                    let type_str = Type[param.type];
+                    let type_str: string | undefined;
 
                     switch (param.type) {
-                        case Type.U8:
-                            type_str = "an unsigned 8-bit integer";
+                        case TYPE_BYTE:
+                            type_str = "a 8-bit integer";
                             break;
-                        case Type.U16:
-                            type_str = "an unsigned 16-bit integer";
+                        case TYPE_WORD:
+                            type_str = "a 16-bit integer";
                             break;
-                        case Type.U32:
-                            type_str = "an unsigned 32-bit integer";
+                        case TYPE_DWORD:
+                            type_str = "a 32-bit integer";
                             break;
-                        case Type.I32:
-                            type_str = "a signed 32-bit integer";
-                            break;
-                        case Type.F32:
+                        case TYPE_FLOAT:
                             type_str = "a float";
                             break;
-                        case Type.RegRef:
-                            type_str = "a register reference";
+                        case TYPE_LABEL:
+                            type_str = "a label";
                             break;
-                        case Type.ILabel:
+                        case TYPE_I_LABEL:
+                        case TYPE_I_LABEL_VAR:
                             type_str = "an instruction label";
                             break;
-                        case Type.DLabel:
+                        case TYPE_D_LABEL:
                             type_str = "a data label";
                             break;
-                        case Type.U8Var:
-                            type_str = "an unsigned 8-bit integer";
+                        case TYPE_S_LABEL:
+                            type_str = "a string label";
                             break;
-                        case Type.ILabelVar:
-                            type_str = "an instruction label";
-                            break;
-                        case Type.String:
+                        case TYPE_STRING:
                             type_str = "a string";
+                            break;
+                        case TYPE_REG_REF:
+                        case TYPE_REG_REF_VAR:
+                            type_str = "a register reference";
+                            break;
+                        default:
+                            if (param.type instanceof RegTupRefType) {
+                                type_str = "a register reference";
+                            }
                             break;
                     }
 
-                    this.add_error({
-                        col: token.col,
-                        length: token.len,
-                        message: `Expected ${type_str}.`,
-                    });
+                    if (type_str) {
+                        this.add_error({
+                            col: token.col,
+                            length: token.len,
+                            message: `Expected ${type_str}.`,
+                        });
+                    } else {
+                        this.add_error({
+                            col: token.col,
+                            length: token.len,
+                            message: `Unexpected token.`,
+                        });
+                    }
                 }
             }
         }
@@ -573,46 +666,22 @@ class Assembler {
         return semi_valid;
     }
 
-    private parse_uint(size: number, { col, len, value }: IntToken, args: Arg[]): void {
-        const bit_size = 8 * size;
-        const max_value = Math.pow(2, bit_size) - 1;
-
-        if (value < 0) {
-            this.add_error({
-                col,
-                length: len,
-                message: `Unsigned ${bit_size}-bit integer can't be less than 0.`,
-            });
-        } else if (value > max_value) {
-            this.add_error({
-                col,
-                length: len,
-                message: `Unsigned ${bit_size}-bit integer can't be greater than ${max_value}.`,
-            });
-        } else {
-            args.push({
-                value,
-                size,
-            });
-        }
-    }
-
-    private parse_sint(size: number, { col, len, value }: IntToken, args: Arg[]): void {
+    private parse_int(size: number, { col, len, value }: IntToken, args: Arg[]): void {
         const bit_size = 8 * size;
         const min_value = -Math.pow(2, bit_size - 1);
-        const max_value = Math.pow(2, bit_size - 1) - 1;
+        const max_value = Math.pow(2, bit_size) - 1;
 
         if (value < min_value) {
             this.add_error({
                 col,
                 length: len,
-                message: `Signed ${bit_size}-bit integer can't be less than ${min_value}.`,
+                message: `${bit_size}-Bit integer can't be less than ${min_value}.`,
             });
         } else if (value > max_value) {
             this.add_error({
                 col,
                 length: len,
-                message: `Signed ${bit_size}-bit integer can't be greater than ${max_value}.`,
+                message: `${bit_size}-Bit integer can't be greater than ${max_value}.`,
             });
         } else {
             args.push({
@@ -675,5 +744,19 @@ class Assembler {
         }
 
         this.add_bytes(bytes);
+    }
+
+    private parse_string(token: StringToken): void {
+        const next_token = this.tokens.shift();
+
+        if (next_token) {
+            this.add_error({
+                col: next_token.col,
+                length: next_token.len,
+                message: "Unexpected token.",
+            });
+        }
+
+        this.add_string(token.value);
     }
 }

@@ -23,6 +23,16 @@ export interface WritableCursor extends Cursor {
     write_u32(value: number): this;
 
     /**
+     * Writes a signed 8-bit integer and increments position by 1.
+     */
+    write_i8(value: number): this;
+
+    /**
+     * Writes a signed 16-bit integer and increments position by 2.
+     */
+    write_i16(value: number): this;
+
+    /**
      * Writes a signed 32-bit integer and increments position by 4.
      */
     write_i32(value: number): this;

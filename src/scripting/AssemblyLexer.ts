@@ -6,6 +6,7 @@ export enum TokenType {
     Label,
     CodeSection,
     DataSection,
+    StringSection,
     InvalidSection,
     String,
     UnterminatedString,
@@ -22,6 +23,7 @@ export type Token =
     | LabelToken
     | CodeSectionToken
     | DataSectionToken
+    | StringSectionToken
     | InvalidSectionToken
     | StringToken
     | UnterminatedStringToken
@@ -71,6 +73,12 @@ export type CodeSectionToken = {
 
 export type DataSectionToken = {
     type: TokenType.DataSection;
+    col: number;
+    len: number;
+};
+
+export type StringSectionToken = {
+    type: TokenType.StringSection;
     col: number;
     len: number;
 };
@@ -293,7 +301,11 @@ export class AssemblyLexer {
         }
     }
 
-    private tokenize_section(): CodeSectionToken | DataSectionToken | InvalidSectionToken {
+    private tokenize_section():
+        | CodeSectionToken
+        | DataSectionToken
+        | StringSectionToken
+        | InvalidSectionToken {
         const col = this.col;
         this.mark();
 
@@ -310,6 +322,8 @@ export class AssemblyLexer {
                 return { type: TokenType.CodeSection, col, len: 5 };
             case ".data":
                 return { type: TokenType.DataSection, col, len: 5 };
+            case ".string":
+                return { type: TokenType.DataSection, col, len: 7 };
             default:
                 return { type: TokenType.InvalidSection, col, len: this.marked_len() };
         }

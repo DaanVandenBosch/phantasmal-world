@@ -144,7 +144,7 @@ function params_to_code(params: any[]) {
 
             switch (param.type) {
                 case "any":
-                    type = "TYPE";
+                    type = "TYPE_ANY";
                     break;
                 case "byte":
                     type = "TYPE_BYTE";
@@ -172,6 +172,9 @@ function params_to_code(params: any[]) {
                     break;
                 case "string":
                     type = "TYPE_STRING";
+                    break;
+                case "instruction_label_var":
+                    type = "TYPE_I_LABEL_VAR";
                     break;
                 case "reg_ref":
                     type = "TYPE_REG_REF";

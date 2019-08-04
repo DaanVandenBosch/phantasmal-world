@@ -7,6 +7,7 @@ import {
     InstructionSegment,
     Segment,
     SegmentType,
+    StringSegment,
 } from "../../../scripting/instructions";
 import {
     Opcode,
@@ -48,7 +49,8 @@ export class BinFile {
 }
 
 const SEGMENT_PRIORITY: number[] = [];
-SEGMENT_PRIORITY[SegmentType.Instructions] = 1;
+SEGMENT_PRIORITY[SegmentType.Instructions] = 2;
+SEGMENT_PRIORITY[SegmentType.String] = 1;
 SEGMENT_PRIORITY[SegmentType.Data] = 0;
 
 export function parse_bin(
@@ -300,6 +302,9 @@ function parse_object_code(
             case SegmentType.Data:
                 offset += segment.data.byteLength;
                 break;
+            case SegmentType.String:
+                offset += 2 * segment.value.length + 2;
+                break;
             default:
                 throw new Error(`${SegmentType[segment!.type]} not implemented.`);
         }
@@ -386,6 +391,9 @@ function parse_segment(
             case SegmentType.Data:
                 parse_data_segment(offset_to_segment, cursor, end_offset, labels);
                 break;
+            case SegmentType.String:
+                parse_string_segment(offset_to_segment, cursor, end_offset, labels);
+                break;
             default:
                 throw new Error(`Segment type ${SegmentType[type]} not implemented.`);
         }
@@ -462,11 +470,11 @@ function parse_instructions_segment(
                 : instruction.args;
 
         if (opcode.stack === StackInteraction.Push) {
-            for (const arg of args) {
-                stack.push(arg);
-            }
+            stack.push(...args);
         } else {
-            for (let i = 0; i < params.length && i < args.length; i++) {
+            const len = Math.min(params.length, args.length);
+
+            for (let i = 0; i < len; i++) {
                 const param_type = params[i].type;
                 const label = args[i].value;
                 let segment_type: SegmentType;
@@ -475,6 +483,22 @@ function parse_instructions_segment(
                     case TYPE_I_LABEL:
                         segment_type = SegmentType.Instructions;
                         break;
+                    case TYPE_I_LABEL_VAR:
+                        segment_type = SegmentType.Instructions;
+
+                        // Eat all remaining arguments.
+                        for (; i < args.length; i++) {
+                            parse_segment(
+                                offset_to_segment,
+                                label_holder,
+                                cursor,
+                                args[i].value,
+                                segment_type,
+                                lenient
+                            );
+                        }
+
+                        break;
                     case TYPE_D_LABEL:
                         segment_type = SegmentType.Data;
                     case TYPE_S_LABEL:
@@ -482,11 +506,6 @@ function parse_instructions_segment(
                         break;
                     default:
                         continue;
-                }
-
-                if (!Number.isInteger(label)) {
-                    logger.error(`Expected label reference but got ${label}.`);
-                    continue;
                 }
 
                 parse_segment(
@@ -502,19 +521,19 @@ function parse_instructions_segment(
     }
 
     // Recurse on label drop-through.
-    if (
-        next_label != undefined &&
-        instructions.length &&
-        instructions[instructions.length - 1].opcode !== Opcode.RET
-    ) {
-        parse_segment(
-            offset_to_segment,
-            label_holder,
-            cursor,
-            next_label,
-            SegmentType.Instructions,
-            lenient
-        );
+    if (next_label != undefined && instructions.length) {
+        const last_opcode = instructions[instructions.length - 1].opcode;
+
+        if (last_opcode !== Opcode.RET && last_opcode !== Opcode.JMP) {
+            parse_segment(
+                offset_to_segment,
+                label_holder,
+                cursor,
+                next_label,
+                SegmentType.Instructions,
+                lenient
+            );
+        }
     }
 }
 
@@ -533,60 +552,81 @@ function parse_data_segment(
     offset_to_segment.set(start_offset, segment);
 }
 
+function parse_string_segment(
+    offset_to_segment: Map<number, Segment>,
+    cursor: Cursor,
+    end_offset: number,
+    labels: number[]
+) {
+    const start_offset = cursor.position;
+    const segment: StringSegment = {
+        type: SegmentType.String,
+        labels,
+        value: cursor.string_utf16(end_offset - start_offset, true, true),
+    };
+    offset_to_segment.set(start_offset, segment);
+}
+
 function parse_instruction_arguments(cursor: Cursor, opcode: Opcode): Arg[] {
     const args: Arg[] = [];
 
-    for (const param of opcode.params) {
-        switch (param.type) {
-            case TYPE_BYTE:
-                args.push({ value: cursor.u8(), size: 1 });
-                break;
-            case TYPE_WORD:
-                args.push({ value: cursor.u16(), size: 2 });
-                break;
-            case TYPE_DWORD:
-                args.push({ value: cursor.i32(), size: 4 });
-                break;
-            case TYPE_FLOAT:
-                args.push({ value: cursor.f32(), size: 4 });
-                break;
-            case TYPE_LABEL:
-            case TYPE_I_LABEL:
-            case TYPE_D_LABEL:
-            case TYPE_S_LABEL:
-                args.push({ value: cursor.u16(), size: 2 });
-                break;
-            case TYPE_STRING:
-                {
-                    const start_pos = cursor.position;
-                    args.push({
-                        value: cursor.string_utf16(Math.min(4096, cursor.bytes_left), true, false),
-                        size: cursor.position - start_pos,
-                    });
-                }
-                break;
-            case TYPE_I_LABEL_VAR:
-                {
-                    const arg_size = cursor.u8();
-                    args.push(...cursor.u16_array(arg_size).map(value => ({ value, size: 2 })));
-                }
-                break;
-            case TYPE_REG_REF:
-                args.push({ value: cursor.u8(), size: 1 });
-                break;
-            case TYPE_REG_REF_VAR:
-                {
-                    const arg_size = cursor.u8();
-                    args.push(...cursor.u8_array(arg_size).map(value => ({ value, size: 1 })));
-                }
-                break;
-            default:
-                if (param.type instanceof RegTupRefType) {
+    if (opcode.stack !== StackInteraction.Pop) {
+        for (const param of opcode.params) {
+            switch (param.type) {
+                case TYPE_BYTE:
                     args.push({ value: cursor.u8(), size: 1 });
                     break;
-                } else {
-                    throw new Error(`Parameter type ${param.type} not implemented.`);
-                }
+                case TYPE_WORD:
+                    args.push({ value: cursor.u16(), size: 2 });
+                    break;
+                case TYPE_DWORD:
+                    args.push({ value: cursor.i32(), size: 4 });
+                    break;
+                case TYPE_FLOAT:
+                    args.push({ value: cursor.f32(), size: 4 });
+                    break;
+                case TYPE_LABEL:
+                case TYPE_I_LABEL:
+                case TYPE_D_LABEL:
+                case TYPE_S_LABEL:
+                    args.push({ value: cursor.u16(), size: 2 });
+                    break;
+                case TYPE_STRING:
+                    {
+                        const start_pos = cursor.position;
+                        args.push({
+                            value: cursor.string_utf16(
+                                Math.min(4096, cursor.bytes_left),
+                                true,
+                                false
+                            ),
+                            size: cursor.position - start_pos,
+                        });
+                    }
+                    break;
+                case TYPE_I_LABEL_VAR:
+                    {
+                        const arg_size = cursor.u8();
+                        args.push(...cursor.u16_array(arg_size).map(value => ({ value, size: 2 })));
+                    }
+                    break;
+                case TYPE_REG_REF:
+                    args.push({ value: cursor.u8(), size: 1 });
+                    break;
+                case TYPE_REG_REF_VAR:
+                    {
+                        const arg_size = cursor.u8();
+                        args.push(...cursor.u8_array(arg_size).map(value => ({ value, size: 1 })));
+                    }
+                    break;
+                default:
+                    if (param.type instanceof RegTupRefType) {
+                        args.push({ value: cursor.u8(), size: 1 });
+                        break;
+                    } else {
+                        throw new Error(`Parameter type ${param.type} not implemented.`);
+                    }
+            }
         }
     }
 
@@ -616,59 +656,73 @@ function write_object_code(
 
                 cursor.write_u8(opcode.code & 0xff);
 
-                for (let i = 0; i < opcode.params.length; i++) {
-                    const param = opcode.params[i];
-                    const args = instruction.param_to_args[i];
-                    const [arg] = args;
+                if (opcode.stack !== StackInteraction.Pop) {
+                    for (let i = 0; i < opcode.params.length; i++) {
+                        const param = opcode.params[i];
+                        const args = instruction.param_to_args[i];
+                        const [arg] = args;
 
-                    switch (param.type) {
-                        case TYPE_BYTE:
-                            cursor.write_u8(arg.value);
-                            break;
-                        case TYPE_WORD:
-                            cursor.write_u16(arg.value);
-                            break;
-                        case TYPE_DWORD:
-                            if (arg.value >= 0) {
-                                cursor.write_u32(arg.value);
-                            } else {
-                                cursor.write_i32(arg.value);
-                            }
-                            break;
-                        case TYPE_FLOAT:
-                            cursor.write_f32(arg.value);
-                            break;
-                        case TYPE_LABEL: // Abstract type
-                        case TYPE_I_LABEL:
-                        case TYPE_D_LABEL:
-                        case TYPE_S_LABEL:
-                            cursor.write_u16(arg.value);
-                            break;
-                        case TYPE_STRING:
-                            cursor.write_string_utf16(arg.value, arg.size);
-                            break;
-                        case TYPE_I_LABEL_VAR:
-                            cursor.write_u8(args.length);
-                            cursor.write_u16_array(args.map(arg => arg.value));
-                            break;
-                        case TYPE_REF: // Abstract type
-                        case TYPE_REG_REF:
-                            cursor.write_u8(arg.value);
-                            break;
-                        case TYPE_REG_REF_VAR:
-                            cursor.write_u8(args.length);
-                            cursor.write_u8_array(args.map(arg => arg.value));
-                            break;
-                        default:
-                            if (param.type instanceof RegTupRefType) {
+                        switch (param.type) {
+                            case TYPE_BYTE:
+                                if (arg.value >= 0) {
+                                    cursor.write_u8(arg.value);
+                                } else {
+                                    cursor.write_i8(arg.value);
+                                }
+                                break;
+                            case TYPE_WORD:
+                                if (arg.value >= 0) {
+                                    cursor.write_u16(arg.value);
+                                } else {
+                                    cursor.write_i16(arg.value);
+                                }
+                                break;
+                            case TYPE_DWORD:
+                                if (arg.value >= 0) {
+                                    cursor.write_u32(arg.value);
+                                } else {
+                                    cursor.write_i32(arg.value);
+                                }
+                                break;
+                            case TYPE_FLOAT:
+                                cursor.write_f32(arg.value);
+                                break;
+                            case TYPE_LABEL: // Abstract type
+                            case TYPE_I_LABEL:
+                            case TYPE_D_LABEL:
+                            case TYPE_S_LABEL:
+                                cursor.write_u16(arg.value);
+                                break;
+                            case TYPE_STRING:
+                                cursor.write_string_utf16(arg.value, arg.size);
+                                break;
+                            case TYPE_I_LABEL_VAR:
+                                cursor.write_u8(args.length);
+                                cursor.write_u16_array(args.map(arg => arg.value));
+                                break;
+                            case TYPE_REF: // Abstract type
+                            case TYPE_REG_REF:
                                 cursor.write_u8(arg.value);
-                            } else {
-                                // TYPE_ANY and TYPE_POINTER cannot be serialized.
-                                throw new Error(`Parameter type ${param.type} not implemented.`);
-                            }
+                                break;
+                            case TYPE_REG_REF_VAR:
+                                cursor.write_u8(args.length);
+                                cursor.write_u8_array(args.map(arg => arg.value));
+                                break;
+                            default:
+                                if (param.type instanceof RegTupRefType) {
+                                    cursor.write_u8(arg.value);
+                                } else {
+                                    // TYPE_ANY and TYPE_POINTER cannot be serialized.
+                                    throw new Error(
+                                        `Parameter type ${param.type} not implemented.`
+                                    );
+                                }
+                        }
                     }
                 }
             }
+        } else if (segment.type === SegmentType.String) {
+            cursor.write_string_utf16(segment.value, 2 * segment.value.length + 2);
         } else {
             cursor.write_cursor(new ArrayBufferCursor(segment.data, cursor.endianness));
         }

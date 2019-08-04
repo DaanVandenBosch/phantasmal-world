@@ -1,10 +1,10 @@
 import { observable } from "mobx";
 import { editor } from "monaco-editor";
 import AssemblyWorker from "worker-loader!./assembly_worker";
-import { Segment } from "../data_formats/parsing/quest/bin";
 import { AssemblyChangeInput, NewAssemblyInput, ScriptWorkerOutput } from "./assembler_messages";
 import { AssemblyError } from "./assembly";
 import { disassemble } from "./disassembly";
+import { Segment } from "./instructions";
 
 export class AssemblyAnalyser {
     @observable errors: AssemblyError[] = [];

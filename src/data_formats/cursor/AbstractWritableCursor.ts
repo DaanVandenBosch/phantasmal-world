@@ -26,6 +26,20 @@ export abstract class AbstractWritableCursor extends AbstractCursor implements W
         return this;
     }
 
+    write_i8(value: number): this {
+        this.ensure_size(1);
+        this.dv.setInt8(this.position, value);
+        this._position += 1;
+        return this;
+    }
+
+    write_i16(value: number): this {
+        this.ensure_size(2);
+        this.dv.setInt16(this.position, value, this.little_endian);
+        this._position += 2;
+        return this;
+    }
+
     write_i32(value: number): this {
         this.ensure_size(4);
         this.dv.setInt32(this.position, value, this.little_endian);

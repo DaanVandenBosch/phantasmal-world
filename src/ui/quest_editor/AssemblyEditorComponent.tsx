@@ -2,8 +2,8 @@ import { autorun } from "mobx";
 import { editor, languages, MarkerSeverity } from "monaco-editor";
 import React, { Component, createRef, ReactNode } from "react";
 import { AutoSizer } from "react-virtualized";
-import { OPCODES } from "../../data_formats/parsing/quest/bin";
 import { AssemblyAnalyser } from "../../scripting/AssemblyAnalyser";
+import { OPCODES } from "../../scripting/opcodes";
 import { quest_editor_store } from "../../stores/QuestEditorStore";
 import { Action } from "../../undo";
 import styles from "./AssemblyEditorComponent.css";
@@ -76,6 +76,11 @@ const KEYWORD_SUGGESTIONS = [
         label: ".data",
         kind: languages.CompletionItemKind.Keyword,
         insertText: "data",
+    },
+    {
+        label: ".string",
+        kind: languages.CompletionItemKind.Keyword,
+        insertText: "string",
     },
 ] as languages.CompletionItem[];
 

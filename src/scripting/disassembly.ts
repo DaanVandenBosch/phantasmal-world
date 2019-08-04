@@ -15,35 +15,40 @@ import {
 export function disassemble(object_code: Segment[], manual_stack: boolean = false): string[] {
     const lines: string[] = [];
     const stack: Arg[] = [];
-    let code_block: boolean | undefined;
+    let section_type: SegmentType | undefined;
 
     for (const segment of object_code) {
-        if (segment.type === SegmentType.Data) {
-            if (code_block !== false) {
-                code_block = false;
+        // Section marker.
+        let section_marker!: string;
 
-                if (lines.length) {
-                    lines.push("");
-                }
-
-                lines.push(".data", "");
-            }
-        } else {
-            if (code_block !== true) {
-                code_block = true;
-
-                if (lines.length) {
-                    lines.push("");
-                }
-
-                lines.push(".code", "");
-            }
+        switch (segment.type) {
+            case SegmentType.Instructions:
+                section_marker = ".code";
+                break;
+            case SegmentType.Data:
+                section_marker = ".data";
+                break;
+            case SegmentType.String:
+                section_marker = ".string";
+                break;
         }
 
+        if (section_type !== segment.type) {
+            section_type = segment.type;
+
+            if (lines.length) {
+                lines.push("");
+            }
+
+            lines.push(section_marker, "");
+        }
+
+        // Labels.
         for (const label of segment.labels) {
             lines.push(`${label}:`);
         }
 
+        // Code or data lines.
         if (segment.type === SegmentType.Data) {
             const bytes = new Uint8Array(segment.data);
             let line = "    ";
@@ -63,7 +68,7 @@ export function disassemble(object_code: Segment[], manual_stack: boolean = fals
                 lines.push(line);
             }
         } else if (segment.type === SegmentType.String) {
-            lines.push("    " + segment.value);
+            lines.push("    " + JSON.stringify(segment.value));
         } else {
             for (const instruction of segment.instructions) {
                 if (!manual_stack && instruction.opcode.stack === StackInteraction.Push) {
