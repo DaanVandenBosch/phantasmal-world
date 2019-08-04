@@ -149,7 +149,7 @@ function find_values(
                             if (
                                 (param.type instanceof RegTupRefType &&
                                     register >= val &&
-                                    register < val + param.type.types.length) ||
+                                    register < val + param.type.registers.length) ||
                                 (param.type === TYPE_REG_REF && val.includes(register)) ||
                                 (param.type === TYPE_REG_REF_VAR && val.includes(register))
                             ) {

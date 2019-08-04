@@ -18,7 +18,7 @@ import { ResizableBufferCursor } from "../../cursor/ResizableBufferCursor";
 import { Vec3 } from "../../vector";
 import { BinFile, Instruction, InstructionSegment, parse_bin, SegmentType, write_bin } from "./bin";
 import { DatFile, DatNpc, DatObject, parse_dat, write_dat } from "./dat";
-import { Opcode } from "./opcodes";
+import { Opcode } from "../../../scripting/opcodes";
 import { parse_qst, QstContainedFile, write_qst } from "./qst";
 
 const logger = Logger.get("data_formats/parsing/quest");
@@ -149,7 +149,7 @@ export function write_quest_qst(quest: Quest, file_name: string): ArrayBuffer {
  */
 function get_episode(func_0_instructions: Instruction[]): Episode {
     const set_episode = func_0_instructions.find(
-        instruction => instruction.opcode === Opcode.set_episode
+        instruction => instruction.opcode === Opcode.SET_EPISODE
     );
 
     if (set_episode) {
@@ -186,7 +186,7 @@ function get_area_variants(
     }
 
     const bb_maps = func_0_instructions.filter(
-        instruction => instruction.opcode === Opcode.bb_map_designate
+        instruction => instruction.opcode === Opcode.BB_MAP_DESIGNATE
     );
 
     for (const bb_map of bb_maps) {

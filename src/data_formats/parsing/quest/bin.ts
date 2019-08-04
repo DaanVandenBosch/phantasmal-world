@@ -5,9 +5,9 @@ import { Cursor } from "../../cursor/Cursor";
 import { ResizableBufferCursor } from "../../cursor/ResizableBufferCursor";
 import { WritableCursor } from "../../cursor/WritableCursor";
 import { ResizableBuffer } from "../../ResizableBuffer";
-import { Opcode, OPCODES, Type } from "./opcodes";
+import { Opcode, OPCODES, Type } from "../../../scripting/opcodes";
 
-export * from "./opcodes";
+export * from "../../../scripting/opcodes";
 
 const logger = Logger.get("data_formats/parsing/quest/bin");
 

@@ -39,6 +39,7 @@
     "devDependencies": {
         "@types/cheerio": "^0.22.11",
         "@types/jest": "^24.0.15",
+        "@types/yaml": "^1.0.2",
         "@typescript-eslint/eslint-plugin": "^1.13.0",
         "@typescript-eslint/parser": "^1.13.0",
         "cheerio": "^1.0.0-rc.3",
@@ -70,6 +71,7 @@
         "webpack-cli": "^3.3.6",
         "webpack-dev-server": "^3.7.2",
         "webpack-merge": "^4.2.1",
-        "worker-loader": "^2.0.0"
+        "worker-loader": "^2.0.0",
+        "yaml": "^1.6.0"
     }
 }
