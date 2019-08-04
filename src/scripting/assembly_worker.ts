@@ -1,5 +1,10 @@
 import { NewObjectCodeOutput, ScriptWorkerInput } from "./assembler_messages";
 import { assemble } from "./assembly";
+import Logger from "js-logger";
+
+Logger.useDefaults({
+    defaultLevel: (Logger as any)[process.env["LOG_LEVEL"] || "OFF"],
+});
 
 const ctx: Worker = self as any;
 

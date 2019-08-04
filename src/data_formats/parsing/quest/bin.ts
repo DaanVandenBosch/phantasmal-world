@@ -303,7 +303,8 @@ function parse_object_code(
                 offset += segment.data.byteLength;
                 break;
             case SegmentType.String:
-                offset += 2 * segment.value.length + 2;
+                // String segments should be multiples of 4 bytes.
+                offset += 4 * Math.ceil((segment.value.length + 1) / 2);
                 break;
             default:
                 throw new Error(`${SegmentType[segment!.type]} not implemented.`);
@@ -501,6 +502,7 @@ function parse_instructions_segment(
                         break;
                     case TYPE_D_LABEL:
                         segment_type = SegmentType.Data;
+                        break;
                     case TYPE_S_LABEL:
                         segment_type = SegmentType.String;
                         break;
@@ -722,7 +724,9 @@ function write_object_code(
                 }
             }
         } else if (segment.type === SegmentType.String) {
-            cursor.write_string_utf16(segment.value, 2 * segment.value.length + 2);
+            // String segments should be multiples of 4 bytes.
+            const byte_length = 4 * Math.ceil((segment.value.length + 1) / 2);
+            cursor.write_string_utf16(segment.value, byte_length);
         } else {
             cursor.write_cursor(new ArrayBufferCursor(segment.data, cursor.endianness));
         }

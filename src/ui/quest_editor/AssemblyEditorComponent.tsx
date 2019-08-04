@@ -154,7 +154,7 @@ type MonacoProps = {
 class MonacoComponent extends Component<MonacoProps> {
     private div_ref = createRef<HTMLDivElement>();
     private editor?: editor.IStandaloneCodeEditor;
-    private assembler?: AssemblyAnalyser;
+    private assembly_analyser?: AssemblyAnalyser;
     private disposers: (() => void)[] = [];
 
     render(): ReactNode {
@@ -173,7 +173,7 @@ class MonacoComponent extends Component<MonacoProps> {
                 wrappingIndent: "indent",
             });
 
-            this.assembler = new AssemblyAnalyser();
+            this.assembly_analyser = new AssemblyAnalyser();
 
             this.disposers.push(
                 this.dispose,
@@ -205,8 +205,8 @@ class MonacoComponent extends Component<MonacoProps> {
     private update_model = () => {
         const quest = quest_editor_store.current_quest;
 
-        if (quest && this.editor && this.assembler) {
-            const assembly = this.assembler.disassemble(quest.object_code);
+        if (quest && this.editor && this.assembly_analyser) {
+            const assembly = this.assembly_analyser.disassemble(quest.object_code);
             const model = editor.createModel(assembly.join("\n"), "psoasm");
 
             quest_editor_store.script_undo.action = new Action(
@@ -256,8 +256,8 @@ class MonacoComponent extends Component<MonacoProps> {
 
                 current_version = version;
 
-                if (!this.assembler) return;
-                this.assembler.update_assembly(e.changes);
+                if (!this.assembly_analyser) return;
+                this.assembly_analyser.update_assembly(e.changes);
             });
 
             this.disposers.push(() => disposable.dispose());
@@ -269,10 +269,10 @@ class MonacoComponent extends Component<MonacoProps> {
     };
 
     private update_model_markers = () => {
-        if (!this.editor || !this.assembler) return;
+        if (!this.editor || !this.assembly_analyser) return;
 
         // Reference errors here to make sure we get mobx updates.
-        this.assembler.errors.length;
+        this.assembly_analyser.errors.length;
 
         const model = this.editor.getModel();
         if (!model) return;
@@ -280,7 +280,7 @@ class MonacoComponent extends Component<MonacoProps> {
         editor.setModelMarkers(
             model,
             "psoasm",
-            this.assembler.errors.map(error => ({
+            this.assembly_analyser.errors.map(error => ({
                 severity: MarkerSeverity.Error,
                 message: error.message,
                 startLineNumber: error.line_no,
@@ -299,8 +299,8 @@ class MonacoComponent extends Component<MonacoProps> {
             this.editor = undefined;
         }
 
-        if (this.assembler) {
-            this.assembler.dispose();
+        if (this.assembly_analyser) {
+            this.assembly_analyser.dispose();
         }
     };
 }

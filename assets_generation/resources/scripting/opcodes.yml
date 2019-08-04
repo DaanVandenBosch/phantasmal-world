@@ -854,9 +854,11 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: byte
+          - type: dword
             access: write
       - type: dword
+        doc: Player slot.
+    stack: pop
 
   - code: 0x6b
     mnemonic: p_disablewarp
@@ -2829,8 +2831,14 @@ opcodes:
   - code: 0xf8dc
     mnemonic: npc_action_string
     params:
-      - type: dword
-      - type: dword
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: read
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: read
       - type: string_label
 
   - code: 0xf8dd
@@ -3346,12 +3354,15 @@ opcodes:
   - code: 0xf924
     mnemonic: get_coord_player_detect
     params:
-      - type: dword
-        doc: Player slot.
       - type: reg_tup_ref
         reg_tup: # TODO: determine type and access
-          - type: dword
-            access: write
+          - type: any
+            doc: Player slot.
+            access: read
+      - type: reg_tup_ref
+        reg_tup: # TODO: determine type and access
+          - type: any
+            access: read
 
   - code: 0xf925
     mnemonic: read_global_flag

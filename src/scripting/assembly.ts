@@ -74,7 +74,7 @@ class Assembler {
     private errors!: AssemblyError[];
     // Encountered labels.
     private labels!: Set<number>;
-    private section_type: SegmentType = SegmentType.Instructions;
+    private section: SegmentType = SegmentType.Instructions;
 
     constructor(private assembly: string[], private manual_stack: boolean) {}
 
@@ -89,7 +89,7 @@ class Assembler {
         this.errors = [];
         this.labels = new Set();
         // Need to cast SegmentType.Instructions because of TypeScript bug.
-        this.section_type = SegmentType.Instructions as SegmentType;
+        this.section = SegmentType.Instructions as SegmentType;
 
         for (const line of this.assembly) {
             this.tokens = this.lexer.tokenize_line(line);
@@ -107,7 +107,7 @@ class Assembler {
                         this.parse_section(token);
                         break;
                     case TokenType.Int:
-                        if (this.section_type === SegmentType.Data) {
+                        if (this.section === SegmentType.Data) {
                             this.parse_bytes(token);
                         } else {
                             this.add_error({
@@ -118,7 +118,7 @@ class Assembler {
                         }
                         break;
                     case TokenType.String:
-                        if (this.section_type === SegmentType.String) {
+                        if (this.section === SegmentType.String) {
                             this.parse_string(token);
                         } else {
                             this.add_error({
@@ -129,7 +129,7 @@ class Assembler {
                         }
                         break;
                     case TokenType.Ident:
-                        if (this.section_type === SegmentType.Instructions) {
+                        if (this.section === SegmentType.Instructions) {
                             this.parse_instruction(token);
                         } else {
                             this.add_error({
@@ -184,9 +184,11 @@ class Assembler {
 
             this.segment = instruction_segment;
             this.object_code.push(instruction_segment);
+        } else if (this.segment.type === SegmentType.Instructions) {
+            this.segment.instructions.push(new Instruction(opcode, args));
+        } else {
+            logger.error(`Line ${this.line_no}: Expected instructions segment.`);
         }
-
-        (this.segment as InstructionSegment).instructions.push(new Instruction(opcode, args));
     }
 
     private add_bytes(bytes: number[]): void {
@@ -200,15 +202,16 @@ class Assembler {
 
             this.segment = data_segment;
             this.object_code.push(data_segment);
-        } else {
-            const d_seg = this.segment as DataSegment;
-            const buf = new ArrayBuffer(d_seg.data.byteLength + bytes.length);
+        } else if (this.segment.type === SegmentType.Data) {
+            const buf = new ArrayBuffer(this.segment.data.byteLength + bytes.length);
             const arr = new Uint8Array(buf);
 
-            arr.set(new Uint8Array(d_seg.data));
+            arr.set(new Uint8Array(this.segment.data));
             arr.set(new Uint8Array(bytes));
 
-            d_seg.data = buf;
+            this.segment.data = buf;
+        } else {
+            logger.error(`Line ${this.line_no}: Expected data segment.`);
         }
     }
 
@@ -223,9 +226,10 @@ class Assembler {
 
             this.segment = string_segment;
             this.object_code.push(string_segment);
+        } else if (this.segment.type === SegmentType.String) {
+            this.segment.value += str;
         } else {
-            const s_seg = this.segment as StringSegment;
-            s_seg.value += str;
+            logger.error(`Line ${this.line_no}: Expected string segment.`);
         }
     }
 
@@ -276,7 +280,7 @@ class Assembler {
 
         const next_token = this.tokens.shift();
 
-        switch (this.section_type) {
+        switch (this.section) {
             case SegmentType.Instructions:
                 this.segment = {
                     type: SegmentType.Instructions,
@@ -348,21 +352,21 @@ class Assembler {
         col,
         len,
     }: CodeSectionToken | DataSectionToken | StringSectionToken): void {
-        let section_type!: SegmentType;
+        let section!: SegmentType;
 
         switch (type) {
             case TokenType.CodeSection:
-                section_type = SegmentType.Instructions;
+                section = SegmentType.Instructions;
                 break;
             case TokenType.DataSection:
-                section_type = SegmentType.Data;
+                section = SegmentType.Data;
                 break;
             case TokenType.StringSection:
-                section_type = SegmentType.String;
+                section = SegmentType.String;
                 break;
         }
 
-        if (this.section_type === section_type) {
+        if (this.section === section) {
             this.add_warning({
                 col,
                 length: len,
@@ -370,7 +374,7 @@ class Assembler {
             });
         }
 
-        this.section_type = section_type;
+        this.section = section;
 
         const next_token = this.tokens.shift();
 
@@ -479,7 +483,9 @@ class Assembler {
                             if (param.type instanceof RegTupRefType) {
                                 this.add_instruction(Opcode.ARG_PUSHB, [arg]);
                             } else {
-                                logger.error(`Type ${param.type} not implemented.`);
+                                logger.error(
+                                    `Line ${this.line_no}: Type ${param.type} not implemented.`
+                                );
                             }
 
                             break;

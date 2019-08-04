@@ -1437,13 +1437,13 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_BYTE, undefined, ParamAccess.Write)),
+                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Write)),
                 undefined,
                 undefined
             ),
-            new Param(TYPE_DWORD, undefined, undefined),
+            new Param(TYPE_DWORD, "Player slot.", undefined),
         ],
-        undefined
+        StackInteraction.Pop
     ));
     static readonly P_DISABLEWARP = (OPCODES[0x6b] = new Opcode(
         0x6b,
@@ -5049,8 +5049,16 @@ export class Opcode {
         "npc_action_string",
         undefined,
         [
-            new Param(TYPE_DWORD, undefined, undefined),
-            new Param(TYPE_DWORD, undefined, undefined),
+            new Param(
+                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Read)),
+                undefined,
+                undefined
+            ),
+            new Param(
+                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Read)),
+                undefined,
+                undefined
+            ),
             new Param(TYPE_S_LABEL, undefined, undefined),
         ],
         undefined
@@ -5907,9 +5915,13 @@ export class Opcode {
         "get_coord_player_detect",
         undefined,
         [
-            new Param(TYPE_DWORD, "Player slot.", undefined),
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Write)),
+                new RegTupRefType(new Param(TYPE_ANY, "Player slot.", ParamAccess.Read)),
+                undefined,
+                undefined
+            ),
+            new Param(
+                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
                 undefined,
                 undefined
             ),

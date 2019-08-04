@@ -323,7 +323,7 @@ export class AssemblyLexer {
             case ".data":
                 return { type: TokenType.DataSection, col, len: 5 };
             case ".string":
-                return { type: TokenType.DataSection, col, len: 7 };
+                return { type: TokenType.StringSection, col, len: 7 };
             default:
                 return { type: TokenType.InvalidSection, col, len: this.marked_len() };
         }

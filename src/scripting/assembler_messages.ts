@@ -1,6 +1,6 @@
 import { editor } from "monaco-editor";
-import { Segment } from "../data_formats/parsing/quest/bin";
 import { AssemblyError } from "./assembly";
+import { Segment } from "./instructions";
 
 export type ScriptWorkerInput = NewAssemblyInput | AssemblyChangeInput;
 
