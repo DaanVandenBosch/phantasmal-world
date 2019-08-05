@@ -1,5 +1,7 @@
 import Logger from "js-logger";
 import { Endianness } from "../..";
+import { ControlFlowGraph } from "../../../scripting/data_flow_analysis/ControlFlowGraph";
+import { register_values } from "../../../scripting/data_flow_analysis/register_values";
 import {
     Arg,
     DataSegment,
@@ -33,9 +35,6 @@ import { Cursor } from "../../cursor/Cursor";
 import { ResizableBufferCursor } from "../../cursor/ResizableBufferCursor";
 import { WritableCursor } from "../../cursor/WritableCursor";
 import { ResizableBuffer } from "../../ResizableBuffer";
-import { ControlFlowGraph } from "../../../scripting/data_flow_analysis/ControlFlowGraph";
-import { register_values } from "../../../scripting/data_flow_analysis/register_values";
-import { disassemble } from "../../../scripting/disassembly";
 
 const logger = Logger.get("data_formats/parsing/quest/bin");
 
@@ -533,6 +532,7 @@ function parse_instructions_segment(
                 : instruction.args;
 
         if (opcode.stack === StackInteraction.Push) {
+            // TODO: correctly deal with arg_pushr.
             stack.push(...args);
         } else {
             const len = Math.min(params.length, args.length);

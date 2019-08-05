@@ -179,6 +179,10 @@ export class AssemblyLexer {
         return this.line.charAt(this.index);
     }
 
+    private peek_prev(): string {
+        return this.line.charAt(this.index - 1);
+    }
+
     private skip(): void {
         this.index++;
     }
@@ -219,7 +223,7 @@ export class AssemblyLexer {
                     is_float = true;
                     this.skip();
                 }
-            } else if ("x" === char) {
+            } else if ("x" === char && this.marked_len() === 1 && this.peek_prev() === "0") {
                 if (is_float || is_hex) {
                     break;
                 } else {

@@ -417,7 +417,7 @@ class Assembler {
 
             const last_token = this.tokens[this.tokens.length - 1];
             let error_length = last_token ? last_token.col + last_token.len - col : 0;
-            const ins_args: Arg[] = [];
+            const ins_args: [Arg, Token][] = [];
 
             if (!varargs && arg_count !== param_count) {
                 this.add_error({
@@ -441,67 +441,76 @@ class Assembler {
                 return;
             } else if (opcode.stack !== StackInteraction.Pop) {
                 // Inline arguments.
-                if (!this.parse_args(opcode.params, ins_args)) {
+                if (!this.parse_args(opcode.params, ins_args, false)) {
                     return;
                 }
             } else {
                 // Stack arguments.
-                // TODO: take into account that stack arguments can come from registers (arg_pushr).
-                const stack_args: Arg[] = [];
+                const stack_args: [Arg, Token][] = [];
 
-                if (!this.parse_args(opcode.params, stack_args)) {
+                if (!this.parse_args(opcode.params, stack_args, true)) {
                     return;
                 }
 
                 for (let i = 0; i < opcode.params.length; i++) {
                     const param = opcode.params[i];
-                    const arg = stack_args[i];
+                    const arg_and_token = stack_args[i];
 
-                    if (arg == undefined) {
+                    if (arg_and_token == undefined) {
                         continue;
                     }
 
-                    switch (param.type) {
-                        case TYPE_BYTE:
-                        case TYPE_REG_REF:
-                            this.add_instruction(Opcode.ARG_PUSHB, [arg]);
-                            break;
-                        case TYPE_WORD:
-                        case TYPE_LABEL:
-                        case TYPE_I_LABEL:
-                        case TYPE_D_LABEL:
-                        case TYPE_S_LABEL:
-                            this.add_instruction(Opcode.ARG_PUSHW, [arg]);
-                            break;
-                        case TYPE_DWORD:
-                        case TYPE_FLOAT:
-                            this.add_instruction(Opcode.ARG_PUSHL, [arg]);
-                            break;
-                        case TYPE_STRING:
-                            this.add_instruction(Opcode.ARG_PUSHS, [arg]);
-                            break;
-                        default:
-                            if (param.type instanceof RegTupRefType) {
-                                this.add_instruction(Opcode.ARG_PUSHB, [arg]);
-                            } else {
-                                logger.error(
-                                    `Line ${this.line_no}: Type ${param.type} not implemented.`
-                                );
-                            }
+                    const [arg, token] = arg_and_token;
 
-                            break;
+                    if (token.type === TokenType.Register) {
+                        if (param.type instanceof RegTupRefType) {
+                            this.add_instruction(Opcode.ARG_PUSHB, [arg]);
+                        } else {
+                            this.add_instruction(Opcode.ARG_PUSHR, [arg]);
+                        }
+                    } else {
+                        switch (param.type) {
+                            case TYPE_BYTE:
+                            case TYPE_REG_REF:
+                                this.add_instruction(Opcode.ARG_PUSHB, [arg]);
+                                break;
+                            case TYPE_WORD:
+                            case TYPE_LABEL:
+                            case TYPE_I_LABEL:
+                            case TYPE_D_LABEL:
+                            case TYPE_S_LABEL:
+                                this.add_instruction(Opcode.ARG_PUSHW, [arg]);
+                                break;
+                            case TYPE_DWORD:
+                            case TYPE_FLOAT:
+                                this.add_instruction(Opcode.ARG_PUSHL, [arg]);
+                                break;
+                            case TYPE_STRING:
+                                this.add_instruction(Opcode.ARG_PUSHS, [arg]);
+                                break;
+                            default:
+                                if (param.type instanceof RegTupRefType) {
+                                    this.add_instruction(Opcode.ARG_PUSHB, [arg]);
+                                } else {
+                                    logger.error(
+                                        `Line ${this.line_no}: Type ${param.type} not implemented.`
+                                    );
+                                }
+
+                                break;
+                        }
                     }
                 }
             }
 
-            this.add_instruction(opcode, ins_args);
+            this.add_instruction(opcode, ins_args.map(([arg]) => arg));
         }
     }
 
     /**
      * @returns true if arguments can be translated to object code, possibly after truncation. False otherwise.
      */
-    private parse_args(params: Param[], args: Arg[]): boolean {
+    private parse_args(params: Param[], arg_and_tokens: [Arg, Token][], stack: boolean): boolean {
         let semi_valid = true;
         let should_be_arg = true;
         let param_i = 0;
@@ -545,7 +554,7 @@ class Assembler {
                         switch (param.type) {
                             case TYPE_BYTE:
                                 match = true;
-                                this.parse_int(1, token, args);
+                                this.parse_int(1, token, arg_and_tokens);
                                 break;
                             case TYPE_WORD:
                             case TYPE_LABEL:
@@ -554,18 +563,21 @@ class Assembler {
                             case TYPE_S_LABEL:
                             case TYPE_I_LABEL_VAR:
                                 match = true;
-                                this.parse_int(2, token, args);
+                                this.parse_int(2, token, arg_and_tokens);
                                 break;
                             case TYPE_DWORD:
                                 match = true;
-                                this.parse_int(4, token, args);
+                                this.parse_int(4, token, arg_and_tokens);
                                 break;
                             case TYPE_FLOAT:
                                 match = true;
-                                args.push({
-                                    value: token.value,
-                                    size: 4,
-                                });
+                                arg_and_tokens.push([
+                                    {
+                                        value: token.value,
+                                        size: 4,
+                                    },
+                                    token,
+                                ]);
                                 break;
                             default:
                                 match = false;
@@ -576,29 +588,36 @@ class Assembler {
                         match = param.type === TYPE_FLOAT;
 
                         if (match) {
-                            args.push({
-                                value: token.value,
-                                size: 4,
-                            });
+                            arg_and_tokens.push([
+                                {
+                                    value: token.value,
+                                    size: 4,
+                                },
+                                token,
+                            ]);
                         }
 
                         break;
                     case TokenType.Register:
                         match =
+                            stack ||
                             param.type === TYPE_REG_REF ||
                             param.type === TYPE_REG_REF_VAR ||
                             param.type instanceof RegTupRefType;
 
-                        this.parse_register(token, args);
+                        this.parse_register(token, arg_and_tokens);
                         break;
                     case TokenType.String:
                         match = param.type === TYPE_STRING;
 
                         if (match) {
-                            args.push({
-                                value: token.value,
-                                size: 2 * token.value.length + 2,
-                            });
+                            arg_and_tokens.push([
+                                {
+                                    value: token.value,
+                                    size: 2 * token.value.length + 2,
+                                },
+                                token,
+                            ]);
                         }
 
                         break;
@@ -673,7 +692,8 @@ class Assembler {
         return semi_valid;
     }
 
-    private parse_int(size: number, { col, len, value }: IntToken, args: Arg[]): void {
+    private parse_int(size: number, token: IntToken, arg_and_tokens: [Arg, Token][]): void {
+        const { value, col, len } = token;
         const bit_size = 8 * size;
         const min_value = -Math.pow(2, bit_size - 1);
         const max_value = Math.pow(2, bit_size) - 1;
@@ -691,14 +711,19 @@ class Assembler {
                 message: `${bit_size}-Bit integer can't be greater than ${max_value}.`,
             });
         } else {
-            args.push({
-                value,
-                size,
-            });
+            arg_and_tokens.push([
+                {
+                    value,
+                    size,
+                },
+                token,
+            ]);
         }
     }
 
-    private parse_register({ col, len, value }: RegisterToken, args: Arg[]): void {
+    private parse_register(token: RegisterToken, arg_and_tokens: [Arg, Token][]): void {
+        const { col, len, value } = token;
+
         if (value > 255) {
             this.add_error({
                 col,
@@ -706,10 +731,13 @@ class Assembler {
                 message: `Invalid register reference, expected r0-r255.`,
             });
         } else {
-            args.push({
-                value,
-                size: 1,
-            });
+            arg_and_tokens.push([
+                {
+                    value,
+                    size: 1,
+                },
+                token,
+            ]);
         }
     }
 

@@ -2,7 +2,7 @@ import { assemble } from "./assembly";
 import { InstructionSegment, SegmentType } from "./instructions";
 import { Opcode } from "./opcodes";
 
-test("", () => {
+test("basic script", () => {
     const { object_code, warnings, errors } = assemble(
         `
     0:   set_episode 0
@@ -74,4 +74,54 @@ test("", () => {
 
     expect(segment_2.instructions[0].opcode).toBe(Opcode.RET);
     expect(segment_2.instructions[0].args).toEqual([]);
+});
+
+test("pass the value of a register via the stack", () => {
+    const { object_code, warnings, errors } = assemble(
+        `
+    0:
+        leti r255, 7
+        exit r255
+        ret
+    `.split("\n")
+    );
+
+    expect(warnings).toEqual([]);
+    expect(errors).toEqual([]);
+
+    expect(object_code.length).toBe(1);
+
+    const segment_0 = object_code[0] as InstructionSegment;
+
+    expect(segment_0.type).toBe(SegmentType.Instructions);
+    expect(segment_0.instructions.length).toBe(4);
+
+    expect(segment_0.instructions[1].opcode).toBe(Opcode.ARG_PUSHR);
+    expect(segment_0.instructions[1].args).toEqual([{ value: 255, size: 1 }]);
+});
+
+test("pass a register reference via the stack", () => {
+    const { object_code, warnings, errors } = assemble(
+        `
+    0:
+        p_dead_v3 r200, 3
+        ret
+    `.split("\n")
+    );
+
+    expect(warnings).toEqual([]);
+    expect(errors).toEqual([]);
+
+    expect(object_code.length).toBe(1);
+
+    const segment_0 = object_code[0] as InstructionSegment;
+
+    expect(segment_0.type).toBe(SegmentType.Instructions);
+    expect(segment_0.instructions.length).toBe(4);
+
+    expect(segment_0.instructions[0].opcode).toBe(Opcode.ARG_PUSHB);
+    expect(segment_0.instructions[0].args).toEqual([{ value: 200, size: 1 }]);
+
+    expect(segment_0.instructions[1].opcode).toBe(Opcode.ARG_PUSHL);
+    expect(segment_0.instructions[1].args).toEqual([{ value: 3, size: 4 }]);
 });
