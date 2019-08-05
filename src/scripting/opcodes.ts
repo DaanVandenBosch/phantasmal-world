@@ -73,11 +73,11 @@ class RegRefType extends RefType {}
  * The only parameterized type.
  */
 export class RegTupRefType extends RefType {
-    readonly registers: Param[];
+    readonly register_tuples: Param[];
 
-    constructor(...registers: Param[]) {
+    constructor(...register_tuples: Param[]) {
         super();
-        this.registers = registers;
+        this.register_tuples = register_tuples;
     }
 }
 
@@ -1396,7 +1396,14 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
+                new RegTupRefType(
+                    new Param(TYPE_ANY, undefined, ParamAccess.Read),
+                    new Param(TYPE_ANY, undefined, ParamAccess.Read),
+                    new Param(TYPE_ANY, undefined, ParamAccess.Read),
+                    new Param(TYPE_I_LABEL, undefined, ParamAccess.Read),
+                    new Param(TYPE_ANY, undefined, ParamAccess.Read),
+                    new Param(TYPE_ANY, undefined, ParamAccess.Read)
+                ),
                 undefined,
                 undefined
             ),

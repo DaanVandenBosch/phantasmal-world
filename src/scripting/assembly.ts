@@ -446,6 +446,7 @@ class Assembler {
                 }
             } else {
                 // Stack arguments.
+                // TODO: take into account that stack arguments can come from registers (arg_pushr).
                 const stack_args: Arg[] = [];
 
                 if (!this.parse_args(opcode.params, stack_args)) {

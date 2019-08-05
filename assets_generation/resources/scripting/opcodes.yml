@@ -832,6 +832,16 @@ opcodes:
         reg_tup: # TODO: determine type and access
           - type: any
             access: read
+          - type: any
+            access: read
+          - type: any
+            access: read
+          - type: instruction_label
+            access: read
+          - type: any
+            access: read
+          - type: any
+            access: read
 
   - code: 0x68
     mnemonic: create_pipe

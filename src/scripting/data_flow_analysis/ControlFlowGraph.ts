@@ -25,8 +25,10 @@ export class BasicBlock {
     ) {}
 
     link_to(other: BasicBlock): void {
-        this.to.push(other);
-        other.from.push(this);
+        if (!this.to.includes(other)) {
+            this.to.push(other);
+            other.from.push(this);
+        }
     }
 }
 
@@ -200,286 +202,47 @@ export class ControlFlowGraph {
 
 /**
  * Links returning blocks to their callers.
+ *
+ * @param ret Block the caller should return to.
+ * @param caller Calling block.
  */
 function link_returning_blocks(
     label_blocks: Map<number, BasicBlock>,
     ret: BasicBlock,
-    block: BasicBlock
+    caller: BasicBlock
 ): void {
-    for (const label of block.branch_labels) {
-        const sub_block = label_blocks.get(label);
+    for (const label of caller.branch_labels) {
+        const callee = label_blocks.get(label);
 
-        if (sub_block) {
-            if (sub_block.branch_type === BranchType.Return) {
-                sub_block.link_to(ret);
+        if (callee) {
+            if (callee.branch_type === BranchType.Return) {
+                callee.link_to(ret);
+            } else {
+                link_returning_blocks_recurse(new Set(), ret, callee);
             }
-
-            link_returning_blocks(label_blocks, ret, sub_block);
         }
     }
-}
-
-/////////////////
-//    Crap:    //
-/////////////////
-
-class DfState {
-    private registers: DataView;
-
-    constructor(other?: DfState) {
-        if (other) {
-            this.registers = new DataView(other.registers.buffer.slice(0));
-        } else {
-            this.registers = new DataView(new ArrayBuffer(2 * 4 * 256));
-        }
-    }
-
-    get_min(register: number): number {
-        return this.registers.getInt32(2 * register);
-    }
-
-    get_max(register: number): number {
-        return this.registers.getInt32(2 * register + 1);
-    }
-
-    set(register: number, min: number, max: number): void {
-        this.registers.setInt32(2 * register, min);
-        this.registers.setInt32(2 * register + 1, max);
-    }
-
-    // getf(register: number): number {
-    //     return this.registers.getFloat32(2 * register);
-    // }
-
-    // setf(register: number, value: number): void {
-    //     this.registers.setFloat32(2 * register, value);
-    //     this.registers.setFloat32(2 * register + 1, value);
-    // }
 }
 
 /**
- * @param segments mapping of labels to segments.
+ * @param encountered For avoiding infinite loops.
  */
-function data_flow(
-    label_holder: any,
-    segments: Map<number, Segment>,
-    entry_label: number,
-    entry_state: DfState
+function link_returning_blocks_recurse(
+    encountered: Set<BasicBlock>,
+    ret: BasicBlock,
+    block: BasicBlock
 ): void {
-    const segment = segments.get(entry_label);
-    if (!segment || segment.type !== SegmentType.Instructions) return;
+    if (encountered.has(block)) {
+        return;
+    } else {
+        encountered.add(block);
+    }
 
-    let out_states: DfState[] = [new DfState(entry_state)];
-
-    for (const instruction of segment.instructions) {
-        const args = instruction.args;
-
-        for (const state of out_states) {
-            switch (instruction.opcode) {
-                case Opcode.LET:
-                case Opcode.FLET:
-                    state.set(
-                        args[0].value,
-                        state.get_min(args[1].value),
-                        state.get_max(args[1].value)
-                    );
-                    break;
-                case Opcode.LETI:
-                case Opcode.LETB:
-                case Opcode.LETW:
-                case Opcode.LETA:
-                case Opcode.SYNC_LETI:
-                case Opcode.SYNC_REGISTER:
-                    state.set(args[0].value, args[1].value, args[1].value);
-                    break;
-                case Opcode.LETO:
-                    {
-                        const info = label_holder.get_info(args[1].value);
-                        state.set(args[0].value, info ? info.offset : 0, info ? info.offset : 0);
-                    }
-                    break;
-                case Opcode.SET:
-                    state.set(args[0].value, 1, 1);
-                    break;
-                case Opcode.CLEAR:
-                    state.set(args[0].value, 0, 0);
-                    break;
-                case Opcode.LETI:
-                case Opcode.LETB:
-                case Opcode.LETW:
-                case Opcode.LETA:
-                case Opcode.SYNC_LETI:
-                case Opcode.SYNC_REGISTER:
-                    state.set(args[0].value, args[1].value, args[1].value);
-                    break;
-                // case Opcode.fleti:
-                //     state.setf(args[0].value, args[1].value);
-                //     break;
-                case Opcode.REV:
-                    {
-                        const reg = args[0].value;
-                        const max = state.get_min(reg) <= 0 && state.get_max(reg) >= 0 ? 1 : 0;
-                        const min = state.get_min(reg) === 0 && state.get_max(reg) === 0 ? 1 : 0;
-                        state.set(reg, min, max);
-                    }
-                    break;
-                // case Opcode.add:
-                //     {
-                //         const reg = args[0].value;
-                //         state.set(reg, state.get_min(reg) + state.get_min(args[1].value));
-                //     }
-                //     break;
-                // case Opcode.addi:
-                //     {
-                //         const reg = args[0].value;
-                //         state.set(reg, state.get_min(reg) + args[1].value);
-                //     }
-                //     break;
-                // case Opcode.sub:
-                //     {
-                //         const reg = args[0].value;
-                //         state.set(reg, state.get_min(reg) - state.get_min(args[1].value));
-                //     }
-                //     break;
-                // case Opcode.subi:
-                //     {
-                //         const reg = args[0].value;
-                //         state.set(reg, state.get_min(reg) - args[1].value);
-                //     }
-                //     break;
-                // case Opcode.mul:
-                //     {
-                //         const reg = args[0].value;
-                //         state.set(reg, state.get_min(reg) * state.get_min(args[1].value));
-                //     }
-                //     break;
-                // case Opcode.muli:
-                //     {
-                //         const reg = args[0].value;
-                //         state.set(reg, state.get_min(reg) * args[1].value);
-                //     }
-                //     break;
-                // case Opcode.div:
-                //     {
-                //         const reg = args[0].value;
-                //         state.set(reg, state.get_min(reg) / state.get_min(args[1].value));
-                //     }
-                //     break;
-                // case Opcode.divi:
-                //     {
-                //         const reg = args[0].value;
-                //         state.set(reg, state.get_min(reg) / args[1].value);
-                //     }
-                //     break;
-                // case Opcode.and:
-                //     {
-                //         const reg = args[0].value;
-                //         state.set(reg, state.get_min(reg) & state.get_min(args[1].value));
-                //     }
-                //     break;
-                // case Opcode.andi:
-                //     {
-                //         const reg = args[0].value;
-                //         state.set(reg, state.get_min(reg) & args[1].value);
-                //     }
-                //     break;
-                // case Opcode.or:
-                //     {
-                //         const reg = args[0].value;
-                //         state.set(reg, state.get_min(reg) | state.get_min(args[1].value));
-                //     }
-                //     break;
-                // case Opcode.ori:
-                //     {
-                //         const reg = args[0].value;
-                //         state.set(reg, state.get_min(reg) | args[1].value);
-                //     }
-                //     break;
-                // case Opcode.xor:
-                //     {
-                //         const reg = args[0].value;
-                //         state.set(reg, state.get_min(reg) ^ state.get_min(args[1].value));
-                //     }
-                //     break;
-                // case Opcode.xori:
-                //     {
-                //         const reg = args[0].value;
-                //         state.set(reg, state.get_min(reg) ^ args[1].value);
-                //     }
-                //     break;
-                // case Opcode.mod:
-                //     {
-                //         const reg = args[0].value;
-                //         state.set(reg, state.get_min(reg) % state.get_min(args[1].value));
-                //     }
-                //     break;
-                // case Opcode.modi:
-                //     {
-                //         const reg = args[0].value;
-                //         state.set(reg, state.get_min(reg) % args[1].value);
-                //     }
-                //     break;
-                // case Opcode.shift_left:
-                //     {
-                //         const reg = args[0].value;
-                //         state.set(reg, state.get_min(reg) << state.get_min(args[1].value));
-                //     }
-                //     break;
-                // case Opcode.shift_right:
-                //     {
-                //         const reg = args[0].value;
-                //         state.set(reg, state.get_min(reg) >> state.get_min(args[1].value));
-                //     }
-                //     break;
-                // case Opcode.fadd:
-                //     {
-                //         const reg = args[0].value;
-                //         state.setf(reg, state.getf(reg) + state.getf(args[1].value));
-                //     }
-                //     break;
-                // case Opcode.faddi:
-                //     {
-                //         const reg = args[0].value;
-                //         state.setf(reg, state.getf(reg) + args[1].value);
-                //     }
-                //     break;
-                // case Opcode.fsub:
-                //     {
-                //         const reg = args[0].value;
-                //         state.setf(reg, state.getf(reg) - state.getf(args[1].value));
-                //     }
-                //     break;
-                // case Opcode.fsubi:
-                //     {
-                //         const reg = args[0].value;
-                //         state.setf(reg, state.getf(reg) - args[1].value);
-                //     }
-                //     break;
-                // case Opcode.fmul:
-                //     {
-                //         const reg = args[0].value;
-                //         state.setf(reg, state.getf(reg) * state.getf(args[1].value));
-                //     }
-                //     break;
-                // case Opcode.fmuli:
-                //     {
-                //         const reg = args[0].value;
-                //         state.setf(reg, state.getf(reg) * args[1].value);
-                //     }
-                //     break;
-                // case Opcode.fdiv:
-                //     {
-                //         const reg = args[0].value;
-                //         state.setf(reg, state.getf(reg) / state.getf(args[1].value));
-                //     }
-                //     break;
-                // case Opcode.fdivi:
-                //     {
-                //         const reg = args[0].value;
-                //         state.setf(reg, state.getf(reg) / args[1].value);
-                //     }
-                //     break;
-            }
+    for (const to_block of block.to) {
+        if (to_block.branch_type === BranchType.Return) {
+            to_block.link_to(ret);
+        } else {
+            link_returning_blocks_recurse(encountered, ret, to_block);
         }
     }
 }

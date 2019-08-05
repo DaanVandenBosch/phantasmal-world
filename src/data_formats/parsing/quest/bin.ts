@@ -33,6 +33,9 @@ import { Cursor } from "../../cursor/Cursor";
 import { ResizableBufferCursor } from "../../cursor/ResizableBufferCursor";
 import { WritableCursor } from "../../cursor/WritableCursor";
 import { ResizableBuffer } from "../../ResizableBuffer";
+import { ControlFlowGraph } from "../../../scripting/data_flow_analysis/ControlFlowGraph";
+import { register_values } from "../../../scripting/data_flow_analysis/register_values";
+import { disassemble } from "../../../scripting/disassembly";
 
 const logger = Logger.get("data_formats/parsing/quest/bin");
 
@@ -231,17 +234,7 @@ function parse_object_code(
 ): Segment[] {
     const offset_to_segment = new Map<number, Segment>();
 
-    // Recursively parse segments from the entry points.
-    for (const entry_label of entry_labels) {
-        parse_segment(
-            offset_to_segment,
-            label_holder,
-            cursor,
-            entry_label,
-            SegmentType.Instructions,
-            lenient
-        );
-    }
+    find_and_parse_segments(cursor, label_holder, entry_labels, offset_to_segment, lenient);
 
     const segments: Segment[] = [];
 
@@ -337,6 +330,75 @@ function parse_object_code(
     }
 
     return segments;
+}
+
+function find_and_parse_segments(
+    cursor: Cursor,
+    label_holder: LabelHolder,
+    entry_labels: number[],
+    offset_to_segment: Map<number, Segment>,
+    lenient: boolean
+) {
+    let start_segment_count: number;
+
+    // Iteratively parse segments from entry points.
+    do {
+        start_segment_count = offset_to_segment.size;
+
+        for (const entry_label of entry_labels) {
+            parse_segment(
+                offset_to_segment,
+                label_holder,
+                cursor,
+                entry_label,
+                SegmentType.Instructions,
+                lenient
+            );
+        }
+
+        // Determine dynamically set entry points.
+        const sorted_segments = [...offset_to_segment.entries()]
+            .filter(([, s]) => s.type === SegmentType.Instructions)
+            .sort(([a], [b]) => a - b)
+            .map(([, s]) => s as InstructionSegment);
+
+        const cfg = ControlFlowGraph.create(sorted_segments);
+
+        entry_labels = [];
+
+        for (const segment of sorted_segments) {
+            for (const instruction of segment.instructions) {
+                if (instruction.opcode.stack) {
+                    continue;
+                }
+
+                const len = Math.min(instruction.opcode.params.length, instruction.args.length);
+
+                for (let i = 0; i < len; i++) {
+                    const param = instruction.opcode.params[i];
+                    const arg = instruction.args[i];
+
+                    if (param.type instanceof RegTupRefType) {
+                        for (let j = 0; j < param.type.register_tuples.length; j++) {
+                            const reg_tup = param.type.register_tuples[j];
+
+                            if (reg_tup.type === TYPE_I_LABEL) {
+                                const label_values = register_values(
+                                    cfg,
+                                    instruction,
+                                    arg.value + j
+                                );
+
+                                if (label_values.size() <= 10) {
+                                    entry_labels.push(...label_values);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    } while (offset_to_segment.size > start_segment_count);
 }
 
 function parse_segment(
@@ -459,7 +521,7 @@ function parse_instructions_segment(
         }
     }
 
-    // Recurse on label references.
+    // Recurse on static label references.
     const stack: Arg[] = [];
 
     for (const instruction of instructions) {
@@ -523,8 +585,17 @@ function parse_instructions_segment(
     }
 
     // Recurse on label drop-through.
-    if (next_label != undefined && instructions.length) {
-        const last_opcode = instructions[instructions.length - 1].opcode;
+    if (next_label != undefined) {
+        // Find the first non-nop.
+        let last_opcode: Opcode | undefined;
+
+        for (let i = instructions.length - 1; i >= 0; i--) {
+            last_opcode = instructions[i].opcode;
+
+            if (last_opcode !== Opcode.NOP) {
+                break;
+            }
+        }
 
         if (last_opcode !== Opcode.RET && last_opcode !== Opcode.JMP) {
             parse_segment(

@@ -2,6 +2,9 @@ import { Instruction } from "../instructions";
 import { Opcode, ParamAccess, RegTupRefType } from "../opcodes";
 import { BasicBlock, ControlFlowGraph } from "./ControlFlowGraph";
 import { ValueSet } from "./ValueSet";
+import Logger from "js-logger";
+
+const logger = Logger.get("scripting/data_flow_analysis");
 
 export const MIN_REGISTER_VALUE = -Math.pow(2, 31);
 export const MAX_REGISTER_VALUE = Math.pow(2, 31) - 1;
@@ -28,19 +31,30 @@ export function register_values(
             inst_idx++;
         }
 
-        return find_values(new Set(), block, inst_idx, register);
+        return find_values(new Context(), new Set(), block, inst_idx, register);
     } else {
         return new ValueSet();
     }
 }
 
+class Context {
+    iterations = 0;
+}
+
 function find_values(
+    ctx: Context,
     path: Set<BasicBlock>,
     block: BasicBlock,
     end: number,
     register: number
 ): ValueSet {
     let values = new ValueSet();
+
+    if (++ctx.iterations > 1000) {
+        logger.warn("Too many iterations.");
+        values.set_interval(MIN_REGISTER_VALUE, MAX_REGISTER_VALUE);
+        return values;
+    }
 
     for (let i = block.start; i < end; i++) {
         const instruction = block.segment.instructions[i];
@@ -49,7 +63,7 @@ function find_values(
         switch (instruction.opcode) {
             case Opcode.LET:
                 if (args[0].value === register) {
-                    values = find_values(new Set(path), block, i, args[1].value);
+                    values = find_values(ctx, new Set(path), block, i, args[1].value);
                 }
                 break;
             case Opcode.LETI:
@@ -72,7 +86,7 @@ function find_values(
                 break;
             case Opcode.REV:
                 if (args[0].value === register) {
-                    const prev_vals = find_values(new Set(path), block, i, register);
+                    const prev_vals = find_values(ctx, new Set(path), block, i, register);
                     const prev_size = prev_vals.size();
 
                     if (prev_size === 0 || (prev_size === 1 && prev_vals.get(0) === 0)) {
@@ -86,25 +100,25 @@ function find_values(
                 break;
             case Opcode.ADDI:
                 if (args[0].value === register) {
-                    values = find_values(new Set(path), block, i, register);
+                    values = find_values(ctx, new Set(path), block, i, register);
                     values.scalar_add(args[1].value);
                 }
                 break;
             case Opcode.SUBI:
                 if (args[0].value === register) {
-                    values = find_values(new Set(path), block, i, register);
+                    values = find_values(ctx, new Set(path), block, i, register);
                     values.scalar_sub(args[1].value);
                 }
                 break;
             case Opcode.MULI:
                 if (args[0].value === register) {
-                    values = find_values(new Set(path), block, i, register);
+                    values = find_values(ctx, new Set(path), block, i, register);
                     values.scalar_mul(args[1].value);
                 }
                 break;
             case Opcode.DIVI:
                 if (args[0].value === register) {
-                    values = find_values(new Set(path), block, i, register);
+                    values = find_values(ctx, new Set(path), block, i, register);
                     values.scalar_div(args[1].value);
                 }
                 break;
@@ -122,9 +136,9 @@ function find_values(
             case Opcode.GET_RANDOM:
                 if (args[1].value === register) {
                     // TODO: undefined values.
-                    const min = find_values(new Set(path), block, i, args[0].value).min() || 0;
+                    const min = find_values(ctx, new Set(path), block, i, args[0].value).min() || 0;
                     const max = Math.max(
-                        find_values(new Set(path), block, i, args[0].value + 1).max() || 0,
+                        find_values(ctx, new Set(path), block, i, args[0].value + 1).max() || 0,
                         min + 1
                     );
                     values.set_interval(min, max - 1);
@@ -154,7 +168,7 @@ function find_values(
                             const reg_ref = args[j].value;
                             let k = 0;
 
-                            for (const reg_param of param.type.registers) {
+                            for (const reg_param of param.type.register_tuples) {
                                 if (
                                     (reg_param.access === ParamAccess.Write ||
                                         reg_param.access === ParamAccess.ReadWrite) &&
@@ -183,7 +197,7 @@ function find_values(
                 break;
             }
 
-            values.union(find_values(new Set(path), from, from.end, register));
+            values.union(find_values(ctx, new Set(path), from, from.end, register));
         }
     }
 
