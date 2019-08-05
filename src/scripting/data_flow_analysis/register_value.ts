@@ -1,19 +1,25 @@
+import Logger from "js-logger";
 import { Instruction } from "../instructions";
-import { Opcode, ParamAccess, RegTupRefType } from "../opcodes";
+import {
+    MAX_SIGNED_DWORD_VALUE,
+    MIN_SIGNED_DWORD_VALUE,
+    Opcode,
+    ParamAccess,
+    RegTupRefType,
+} from "../opcodes";
 import { BasicBlock, ControlFlowGraph } from "./ControlFlowGraph";
 import { ValueSet } from "./ValueSet";
-import Logger from "js-logger";
 
-const logger = Logger.get("scripting/data_flow_analysis");
+const logger = Logger.get("scripting/data_flow_analysis/register_value");
 
-export const MIN_REGISTER_VALUE = -Math.pow(2, 31);
-export const MAX_REGISTER_VALUE = Math.pow(2, 31) - 1;
+export const MIN_REGISTER_VALUE = MIN_SIGNED_DWORD_VALUE;
+export const MAX_REGISTER_VALUE = MAX_SIGNED_DWORD_VALUE;
 export const REGISTER_VALUES = Math.pow(2, 32);
 
 /**
- * Computes the possible values of a register at a specific instruction.
+ * Computes the possible values of a register right before a specific instruction.
  */
-export function register_values(
+export function register_value(
     cfg: ControlFlowGraph,
     instruction: Instruction,
     register: number
@@ -21,17 +27,13 @@ export function register_values(
     const block = cfg.get_block_for_instuction(instruction);
 
     if (block) {
-        let inst_idx = block.start;
-
-        while (inst_idx < block.end) {
-            if (block.segment.instructions[inst_idx] === instruction) {
-                break;
-            }
-
-            inst_idx++;
-        }
-
-        return find_values(new Context(), new Set(), block, inst_idx, register);
+        return find_values(
+            new Context(),
+            new Set(),
+            block,
+            block.index_of_instruction(instruction),
+            register
+        );
     } else {
         return new ValueSet();
     }
@@ -48,22 +50,19 @@ function find_values(
     end: number,
     register: number
 ): ValueSet {
-    let values = new ValueSet();
-
-    if (++ctx.iterations > 1000) {
+    if (++ctx.iterations > 100) {
         logger.warn("Too many iterations.");
-        values.set_interval(MIN_REGISTER_VALUE, MAX_REGISTER_VALUE);
-        return values;
+        return new ValueSet().set_interval(MIN_REGISTER_VALUE, MAX_REGISTER_VALUE);
     }
 
-    for (let i = block.start; i < end; i++) {
+    for (let i = end - 1; i >= block.start; i--) {
         const instruction = block.segment.instructions[i];
         const args = instruction.args;
 
         switch (instruction.opcode) {
             case Opcode.LET:
                 if (args[0].value === register) {
-                    values = find_values(ctx, new Set(path), block, i, args[1].value);
+                    return find_values(ctx, new Set(path), block, i, args[1].value);
                 }
                 break;
             case Opcode.LETI:
@@ -71,17 +70,17 @@ function find_values(
             case Opcode.LETW:
             case Opcode.SYNC_LETI:
                 if (args[0].value === register) {
-                    values.set_value(args[1].value);
+                    return new ValueSet().set_value(args[1].value);
                 }
                 break;
             case Opcode.SET:
                 if (args[0].value === register) {
-                    values.set_value(1);
+                    return new ValueSet().set_value(1);
                 }
                 break;
             case Opcode.CLEAR:
                 if (args[0].value === register) {
-                    values.set_value(0);
+                    return new ValueSet().set_value(0);
                 }
                 break;
             case Opcode.REV:
@@ -90,47 +89,51 @@ function find_values(
                     const prev_size = prev_vals.size();
 
                     if (prev_size === 0 || (prev_size === 1 && prev_vals.get(0) === 0)) {
-                        values.set_value(1);
-                    } else if (values.has(0)) {
-                        values.set_interval(0, 1);
+                        return new ValueSet().set_value(1);
+                    } else if (prev_vals.has(0)) {
+                        return new ValueSet().set_interval(0, 1);
                     } else {
-                        values.set_value(0);
+                        return new ValueSet().set_value(0);
                     }
                 }
                 break;
             case Opcode.ADDI:
                 if (args[0].value === register) {
-                    values = find_values(ctx, new Set(path), block, i, register);
-                    values.scalar_add(args[1].value);
+                    const prev_vals = find_values(ctx, new Set(path), block, i, register);
+                    return prev_vals.scalar_add(args[1].value);
                 }
                 break;
             case Opcode.SUBI:
                 if (args[0].value === register) {
-                    values = find_values(ctx, new Set(path), block, i, register);
-                    values.scalar_sub(args[1].value);
+                    const prev_vals = find_values(ctx, new Set(path), block, i, register);
+                    return prev_vals.scalar_sub(args[1].value);
                 }
                 break;
             case Opcode.MULI:
                 if (args[0].value === register) {
-                    values = find_values(ctx, new Set(path), block, i, register);
-                    values.scalar_mul(args[1].value);
+                    const prev_vals = find_values(ctx, new Set(path), block, i, register);
+                    return prev_vals.scalar_mul(args[1].value);
                 }
                 break;
             case Opcode.DIVI:
                 if (args[0].value === register) {
-                    values = find_values(ctx, new Set(path), block, i, register);
-                    values.scalar_div(args[1].value);
+                    const prev_vals = find_values(ctx, new Set(path), block, i, register);
+                    return prev_vals.scalar_div(args[1].value);
                 }
                 break;
             case Opcode.IF_ZONE_CLEAR:
                 if (args[0].value === register) {
-                    values.set_interval(0, 1);
+                    return new ValueSet().set_interval(0, 1);
                 }
                 break;
             case Opcode.GET_DIFFLVL:
+                if (args[0].value === register) {
+                    return new ValueSet().set_interval(0, 2);
+                }
+                break;
             case Opcode.GET_SLOTNUMBER:
                 if (args[0].value === register) {
-                    values.set_interval(0, 3);
+                    return new ValueSet().set_interval(0, 3);
                 }
                 break;
             case Opcode.GET_RANDOM:
@@ -141,7 +144,7 @@ function find_values(
                         find_values(ctx, new Set(path), block, i, args[0].value + 1).max() || 0,
                         min + 1
                     );
-                    values.set_interval(min, max - 1);
+                    return new ValueSet().set_interval(min, max - 1);
                 }
                 break;
             case Opcode.STACK_PUSHM:
@@ -151,7 +154,7 @@ function find_values(
                     const max_reg = args[0].value + args[1].value;
 
                     if (min_reg <= register && register < max_reg) {
-                        values.set_interval(MIN_REGISTER_VALUE, MAX_REGISTER_VALUE);
+                        return new ValueSet().set_interval(MIN_REGISTER_VALUE, MAX_REGISTER_VALUE);
                     }
                 }
                 break;
@@ -161,7 +164,7 @@ function find_values(
                     const params = instruction.opcode.params;
                     const arg_len = Math.min(args.length, params.length);
 
-                    outer: for (let j = 0; j < arg_len; j++) {
+                    for (let j = 0; j < arg_len; j++) {
                         const param = params[j];
 
                         if (param.type instanceof RegTupRefType) {
@@ -174,8 +177,10 @@ function find_values(
                                         reg_param.access === ParamAccess.ReadWrite) &&
                                     reg_ref + k === register
                                 ) {
-                                    values.set_interval(MIN_REGISTER_VALUE, MAX_REGISTER_VALUE);
-                                    break outer;
+                                    return new ValueSet().set_interval(
+                                        MIN_REGISTER_VALUE,
+                                        MAX_REGISTER_VALUE
+                                    );
                                 }
 
                                 k++;
@@ -187,18 +192,17 @@ function find_values(
         }
     }
 
-    if (values.size() === 0) {
-        path.add(block);
+    const values = new ValueSet();
+    path.add(block);
 
-        for (const from of block.from) {
-            // Bail out from loops.
-            if (path.has(from)) {
-                values.set_interval(MIN_REGISTER_VALUE, MAX_REGISTER_VALUE);
-                break;
-            }
-
-            values.union(find_values(ctx, new Set(path), from, from.end, register));
+    for (const from of block.from) {
+        // Bail out from loops.
+        if (path.has(from)) {
+            values.set_interval(MIN_REGISTER_VALUE, MAX_REGISTER_VALUE);
+            break;
         }
+
+        values.union(find_values(ctx, new Set(path), from, from.end, register));
     }
 
     return values;

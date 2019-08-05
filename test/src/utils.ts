@@ -2,8 +2,8 @@ import * as fs from "fs";
 
 /**
  * Applies f to all QST files in a directory.
- * F is called with the path to the file, the file name and the content of the file.
- * Uses the QST files provided with Tethealla version 0.143 by default.
+ * f is called with the path to the file, the file name and the content of the file.
+ * Uses the 106 QST files provided with Tethealla version 0.143 by default.
  */
 export function walk_qst_files(
     f: (path: string, file_name: string, contents: Buffer) => void,

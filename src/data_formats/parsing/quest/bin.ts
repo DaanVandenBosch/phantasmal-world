@@ -1,7 +1,7 @@
 import Logger from "js-logger";
 import { Endianness } from "../..";
 import { ControlFlowGraph } from "../../../scripting/data_flow_analysis/ControlFlowGraph";
-import { register_values } from "../../../scripting/data_flow_analysis/register_values";
+import { register_value } from "../../../scripting/data_flow_analysis/register_value";
 import {
     Arg,
     DataSegment,
@@ -35,6 +35,9 @@ import { Cursor } from "../../cursor/Cursor";
 import { ResizableBufferCursor } from "../../cursor/ResizableBufferCursor";
 import { WritableCursor } from "../../cursor/WritableCursor";
 import { ResizableBuffer } from "../../ResizableBuffer";
+import { stack_value } from "../../../scripting/data_flow_analysis/stack_value";
+
+// TODO: correctly deal with stack floats (they're pushed with arg_pushl)
 
 const logger = Logger.get("data_formats/parsing/quest/bin");
 
@@ -233,7 +236,13 @@ function parse_object_code(
 ): Segment[] {
     const offset_to_segment = new Map<number, Segment>();
 
-    find_and_parse_segments(cursor, label_holder, entry_labels, offset_to_segment, lenient);
+    find_and_parse_segments(
+        cursor,
+        label_holder,
+        entry_labels.reduce((m, l) => m.set(l, SegmentType.Instructions), new Map()),
+        offset_to_segment,
+        lenient
+    );
 
     const segments: Segment[] = [];
 
@@ -334,28 +343,21 @@ function parse_object_code(
 function find_and_parse_segments(
     cursor: Cursor,
     label_holder: LabelHolder,
-    entry_labels: number[],
+    labels: Map<number, SegmentType>,
     offset_to_segment: Map<number, Segment>,
     lenient: boolean
 ) {
     let start_segment_count: number;
 
-    // Iteratively parse segments from entry points.
+    // Iteratively parse segments from label references.
     do {
         start_segment_count = offset_to_segment.size;
 
-        for (const entry_label of entry_labels) {
-            parse_segment(
-                offset_to_segment,
-                label_holder,
-                cursor,
-                entry_label,
-                SegmentType.Instructions,
-                lenient
-            );
+        for (const [label, type] of labels) {
+            parse_segment(offset_to_segment, label_holder, cursor, label, type, lenient);
         }
 
-        // Determine dynamically set entry points.
+        // Find label references.
         const sorted_segments = [...offset_to_segment.entries()]
             .filter(([, s]) => s.type === SegmentType.Instructions)
             .sort(([a], [b]) => a - b)
@@ -363,41 +365,106 @@ function find_and_parse_segments(
 
         const cfg = ControlFlowGraph.create(sorted_segments);
 
-        entry_labels = [];
+        labels = new Map();
 
         for (const segment of sorted_segments) {
             for (const instruction of segment.instructions) {
-                if (instruction.opcode.stack) {
-                    continue;
-                }
-
-                const len = Math.min(instruction.opcode.params.length, instruction.args.length);
-
-                for (let i = 0; i < len; i++) {
+                for (let i = 0; i < instruction.opcode.params.length; i++) {
                     const param = instruction.opcode.params[i];
-                    const arg = instruction.args[i];
 
-                    if (param.type instanceof RegTupRefType) {
-                        for (let j = 0; j < param.type.register_tuples.length; j++) {
-                            const reg_tup = param.type.register_tuples[j];
+                    switch (param.type) {
+                        case TYPE_I_LABEL:
+                            get_arg_label_values(
+                                cfg,
+                                labels,
+                                instruction,
+                                i,
+                                SegmentType.Instructions
+                            );
+                            break;
+                        case TYPE_I_LABEL_VAR:
+                            // Never on the stack.
+                            // Eat all remaining arguments.
+                            for (; i < instruction.args.length; i++) {
+                                labels.set(instruction.args[i].value, SegmentType.Instructions);
+                            }
 
-                            if (reg_tup.type === TYPE_I_LABEL) {
-                                const label_values = register_values(
-                                    cfg,
-                                    instruction,
-                                    arg.value + j
-                                );
+                            break;
+                        case TYPE_D_LABEL:
+                            get_arg_label_values(cfg, labels, instruction, i, SegmentType.Data);
+                            break;
+                        case TYPE_S_LABEL:
+                            get_arg_label_values(cfg, labels, instruction, i, SegmentType.String);
+                            break;
+                        default:
+                            if (param.type instanceof RegTupRefType) {
+                                // Never on the stack.
+                                const arg = instruction.args[i];
 
-                                if (label_values.size() <= 10) {
-                                    entry_labels.push(...label_values);
+                                for (let j = 0; j < param.type.register_tuples.length; j++) {
+                                    const reg_tup = param.type.register_tuples[j];
+
+                                    if (reg_tup.type === TYPE_I_LABEL) {
+                                        const label_values = register_value(
+                                            cfg,
+                                            instruction,
+                                            arg.value + j
+                                        );
+
+                                        if (label_values.size() <= 10) {
+                                            for (const label of label_values) {
+                                                labels.set(label, SegmentType.Instructions);
+                                            }
+                                        }
+                                    }
                                 }
                             }
-                        }
+
+                            break;
                     }
                 }
             }
         }
     } while (offset_to_segment.size > start_segment_count);
+}
+
+/**
+ * @returns immediate arguments or stack arguments.
+ */
+function get_arg_label_values(
+    cfg: ControlFlowGraph,
+    labels: Map<number, SegmentType>,
+    instruction: Instruction,
+    param_idx: number,
+    segment_type: SegmentType
+): void {
+    if (instruction.opcode.stack === StackInteraction.Pop) {
+        const stack_values = stack_value(
+            cfg,
+            instruction,
+            instruction.opcode.params.length - param_idx - 1
+        );
+
+        if (stack_values.size() <= 10) {
+            for (const value of stack_values) {
+                const old_type = labels.get(value);
+
+                if (
+                    old_type == undefined ||
+                    SEGMENT_PRIORITY[segment_type] > SEGMENT_PRIORITY[old_type]
+                ) {
+                    labels.set(value, segment_type);
+                }
+            }
+        }
+    } else {
+        const value = instruction.args[param_idx].value;
+        const old_type = labels.get(value);
+
+        if (old_type == undefined || SEGMENT_PRIORITY[segment_type] > SEGMENT_PRIORITY[old_type]) {
+            labels.set(value, segment_type);
+        }
+    }
 }
 
 function parse_segment(
@@ -516,70 +583,6 @@ function parse_instructions_segment(
                 instructions.push(new Instruction(opcode, []));
             } else {
                 throw e;
-            }
-        }
-    }
-
-    // Recurse on static label references.
-    const stack: Arg[] = [];
-
-    for (const instruction of instructions) {
-        const opcode = instruction.opcode;
-        const params = opcode.params;
-        const args =
-            opcode.stack === StackInteraction.Pop
-                ? stack.splice(stack.length - params.length, params.length)
-                : instruction.args;
-
-        if (opcode.stack === StackInteraction.Push) {
-            // TODO: correctly deal with arg_pushr.
-            stack.push(...args);
-        } else {
-            const len = Math.min(params.length, args.length);
-
-            for (let i = 0; i < len; i++) {
-                const param_type = params[i].type;
-                const label = args[i].value;
-                let segment_type: SegmentType;
-
-                switch (param_type) {
-                    case TYPE_I_LABEL:
-                        segment_type = SegmentType.Instructions;
-                        break;
-                    case TYPE_I_LABEL_VAR:
-                        segment_type = SegmentType.Instructions;
-
-                        // Eat all remaining arguments.
-                        for (; i < args.length; i++) {
-                            parse_segment(
-                                offset_to_segment,
-                                label_holder,
-                                cursor,
-                                args[i].value,
-                                segment_type,
-                                lenient
-                            );
-                        }
-
-                        break;
-                    case TYPE_D_LABEL:
-                        segment_type = SegmentType.Data;
-                        break;
-                    case TYPE_S_LABEL:
-                        segment_type = SegmentType.String;
-                        break;
-                    default:
-                        continue;
-                }
-
-                parse_segment(
-                    offset_to_segment,
-                    label_holder,
-                    cursor,
-                    label,
-                    segment_type,
-                    lenient
-                );
             }
         }
     }

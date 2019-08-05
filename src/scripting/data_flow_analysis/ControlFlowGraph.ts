@@ -30,6 +30,11 @@ export class BasicBlock {
             other.from.push(this);
         }
     }
+
+    index_of_instruction(instruction: Instruction): number {
+        const index = this.segment.instructions.indexOf(instruction, this.start);
+        return index < this.end ? index : -1;
+    }
 }
 
 export class ControlFlowGraph {
