@@ -7,7 +7,9 @@ import {
     TYPE_REG_REF_VAR,
     TYPE_REG_REF,
     RegTupRefType,
+    TYPE_FLOAT,
 } from "./opcodes";
+import { reinterpret_i32_as_f32 } from "../primitive_conversion";
 
 /**
  * @param manual_stack If true, will output stack management instructions (argpush variants). Otherwise the arguments of stack management instructions will be output as arguments to the instruction that pops them from the stack.
@@ -83,11 +85,12 @@ export function disassemble(object_code: Segment[], manual_stack: boolean = fals
                                 stack.splice(
                                     Math.max(0, stack.length - instruction.opcode.params.length),
                                     instruction.opcode.params.length
-                                )
+                                ),
+                                true
                             );
                         }
                     } else {
-                        args = args_to_strings(instruction.opcode.params, instruction.args);
+                        args = args_to_strings(instruction.opcode.params, instruction.args, false);
                     }
 
                     lines.push(
@@ -108,7 +111,7 @@ export function disassemble(object_code: Segment[], manual_stack: boolean = fals
     return lines;
 }
 
-function args_to_strings(params: Param[], args: Arg[]): string[] {
+function args_to_strings(params: Param[], args: Arg[], stack: boolean): string[] {
     const arg_strings: string[] = [];
 
     for (let i = 0; i < params.length; i++) {
@@ -121,6 +124,14 @@ function args_to_strings(params: Param[], args: Arg[]): string[] {
         }
 
         switch (type) {
+            case TYPE_FLOAT:
+                // Floats are pushed onto the stack as integers with arg_pushl.
+                if (stack) {
+                    arg_strings.push(reinterpret_i32_as_f32(arg.value).toString());
+                } else {
+                    arg_strings.push(arg.value.toString());
+                }
+                break;
             case TYPE_I_LABEL_VAR:
                 for (; i < args.length; i++) {
                     arg_strings.push(args[i].value.toString());

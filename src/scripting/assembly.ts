@@ -40,6 +40,7 @@ import {
     TYPE_REG_REF,
     RegTupRefType,
 } from "./opcodes";
+import { reinterpret_f32_as_i32 } from "../primitive_conversion";
 
 const logger = Logger.get("scripting/assembly");
 
@@ -482,8 +483,15 @@ class Assembler {
                                 this.add_instruction(Opcode.ARG_PUSHW, [arg]);
                                 break;
                             case TYPE_DWORD:
-                            case TYPE_FLOAT:
                                 this.add_instruction(Opcode.ARG_PUSHL, [arg]);
+                                break;
+                            case TYPE_FLOAT:
+                                this.add_instruction(Opcode.ARG_PUSHL, [
+                                    {
+                                        value: reinterpret_f32_as_i32(arg.value),
+                                        size: 4,
+                                    },
+                                ]);
                                 break;
                             case TYPE_STRING:
                                 this.add_instruction(Opcode.ARG_PUSHS, [arg]);

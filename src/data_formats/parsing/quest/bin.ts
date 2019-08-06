@@ -37,8 +37,6 @@ import { WritableCursor } from "../../cursor/WritableCursor";
 import { ResizableBuffer } from "../../ResizableBuffer";
 import { stack_value } from "../../../scripting/data_flow_analysis/stack_value";
 
-// TODO: correctly deal with stack floats (they're pushed with arg_pushl), see scroll_text in quest235.qst
-
 const logger = Logger.get("data_formats/parsing/quest/bin");
 
 export class BinFile {
