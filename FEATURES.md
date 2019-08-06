@@ -77,7 +77,7 @@ Features that are in ***bold italics*** are planned and not yet implemented.
 - Simplified stack management (push* instructions are inserted transparently)
 - Data
   - Binary data
-  - ***Strings***
+  - Strings
 - Labels
 - ***Interpret code called from objects as code***
 
@@ -86,7 +86,7 @@ Features that are in ***bold italics*** are planned and not yet implemented.
 - Instructions
 - Data
   - Binary data
-  - ***Strings***
+  - Strings
 - Labels
   - ***Show in outline***
 - Autocompletion
