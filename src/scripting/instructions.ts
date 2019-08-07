@@ -1,4 +1,4 @@
-import { TYPE_I_LABEL_VAR, TYPE_REG_REF_VAR, Opcode } from "./opcodes";
+import { Kind, Opcode } from "./opcodes";
 
 /**
  * Instruction invocation.
@@ -25,9 +25,9 @@ export class Instruction {
             const arg = args[i];
             this.param_to_args[i] = [];
 
-            switch (type) {
-                case TYPE_I_LABEL_VAR:
-                case TYPE_REG_REF_VAR:
+            switch (type.kind) {
+                case Kind.ILabelVar:
+                case Kind.RegRefVar:
                     this.arg_size++;
 
                     for (let j = i; j < args.length; j++) {

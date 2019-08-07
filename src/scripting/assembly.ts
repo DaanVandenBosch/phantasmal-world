@@ -1,4 +1,5 @@
 import Logger from "js-logger";
+import { reinterpret_f32_as_i32 } from "../primitive_conversion";
 import {
     AssemblyLexer,
     CodeSectionToken,
@@ -7,40 +8,21 @@ import {
     IntToken,
     LabelToken,
     RegisterToken,
-    Token,
-    TokenType,
     StringSectionToken,
     StringToken,
+    Token,
+    TokenType,
 } from "./AssemblyLexer";
 import {
-    Segment,
     Arg,
-    InstructionSegment,
-    SegmentType,
-    Instruction,
     DataSegment,
+    Instruction,
+    InstructionSegment,
+    Segment,
+    SegmentType,
     StringSegment,
 } from "./instructions";
-import {
-    Opcode,
-    OPCODES_BY_MNEMONIC,
-    Param,
-    TYPE_I_LABEL_VAR,
-    TYPE_REG_REF_VAR,
-    StackInteraction,
-    TYPE_BYTE,
-    TYPE_DWORD,
-    TYPE_WORD,
-    TYPE_FLOAT,
-    TYPE_S_LABEL,
-    TYPE_D_LABEL,
-    TYPE_I_LABEL,
-    TYPE_LABEL,
-    TYPE_STRING,
-    TYPE_REG_REF,
-    RegTupRefType,
-} from "./opcodes";
-import { reinterpret_f32_as_i32 } from "../primitive_conversion";
+import { Kind, Opcode, OPCODES_BY_MNEMONIC, Param, StackInteraction } from "./opcodes";
 
 const logger = Logger.get("scripting/assembly");
 
@@ -400,7 +382,7 @@ class Assembler {
         } else {
             const varargs =
                 opcode.params.findIndex(
-                    p => p.type === TYPE_I_LABEL_VAR || p.type === TYPE_REG_REF_VAR
+                    p => p.type.kind === Kind.ILabelVar || p.type.kind === Kind.RegRefVar
                 ) !== -1;
 
             const param_count =
@@ -464,28 +446,29 @@ class Assembler {
                     const [arg, token] = arg_and_token;
 
                     if (token.type === TokenType.Register) {
-                        if (param.type instanceof RegTupRefType) {
+                        if (param.type.kind === Kind.RegTupRef) {
                             this.add_instruction(Opcode.ARG_PUSHB, [arg]);
                         } else {
                             this.add_instruction(Opcode.ARG_PUSHR, [arg]);
                         }
                     } else {
-                        switch (param.type) {
-                            case TYPE_BYTE:
-                            case TYPE_REG_REF:
+                        switch (param.type.kind) {
+                            case Kind.Byte:
+                            case Kind.RegRef:
+                            case Kind.RegTupRef:
                                 this.add_instruction(Opcode.ARG_PUSHB, [arg]);
                                 break;
-                            case TYPE_WORD:
-                            case TYPE_LABEL:
-                            case TYPE_I_LABEL:
-                            case TYPE_D_LABEL:
-                            case TYPE_S_LABEL:
+                            case Kind.Word:
+                            case Kind.Label:
+                            case Kind.ILabel:
+                            case Kind.DLabel:
+                            case Kind.SLabel:
                                 this.add_instruction(Opcode.ARG_PUSHW, [arg]);
                                 break;
-                            case TYPE_DWORD:
+                            case Kind.DWord:
                                 this.add_instruction(Opcode.ARG_PUSHL, [arg]);
                                 break;
-                            case TYPE_FLOAT:
+                            case Kind.Float:
                                 this.add_instruction(Opcode.ARG_PUSHL, [
                                     {
                                         value: reinterpret_f32_as_i32(arg.value),
@@ -493,18 +476,15 @@ class Assembler {
                                     },
                                 ]);
                                 break;
-                            case TYPE_STRING:
+                            case Kind.String:
                                 this.add_instruction(Opcode.ARG_PUSHS, [arg]);
                                 break;
                             default:
-                                if (param.type instanceof RegTupRefType) {
-                                    this.add_instruction(Opcode.ARG_PUSHB, [arg]);
-                                } else {
-                                    logger.error(
-                                        `Line ${this.line_no}: Type ${param.type} not implemented.`
-                                    );
-                                }
-
+                                logger.error(
+                                    `Line ${this.line_no}: Type ${
+                                        Kind[param.type.kind]
+                                    } not implemented.`
+                                );
                                 break;
                         }
                     }
@@ -535,7 +515,7 @@ class Assembler {
                         message: "Expected an argument.",
                     });
                 } else {
-                    if (param.type !== TYPE_I_LABEL_VAR && param.type !== TYPE_REG_REF_VAR) {
+                    if (param.type.kind !== Kind.ILabelVar && param.type.kind !== Kind.RegRefVar) {
                         param_i++;
                     }
                 }
@@ -559,25 +539,25 @@ class Assembler {
 
                 switch (token.type) {
                     case TokenType.Int:
-                        switch (param.type) {
-                            case TYPE_BYTE:
+                        switch (param.type.kind) {
+                            case Kind.Byte:
                                 match = true;
                                 this.parse_int(1, token, arg_and_tokens);
                                 break;
-                            case TYPE_WORD:
-                            case TYPE_LABEL:
-                            case TYPE_I_LABEL:
-                            case TYPE_D_LABEL:
-                            case TYPE_S_LABEL:
-                            case TYPE_I_LABEL_VAR:
+                            case Kind.Word:
+                            case Kind.Label:
+                            case Kind.ILabel:
+                            case Kind.DLabel:
+                            case Kind.SLabel:
+                            case Kind.ILabelVar:
                                 match = true;
                                 this.parse_int(2, token, arg_and_tokens);
                                 break;
-                            case TYPE_DWORD:
+                            case Kind.DWord:
                                 match = true;
                                 this.parse_int(4, token, arg_and_tokens);
                                 break;
-                            case TYPE_FLOAT:
+                            case Kind.Float:
                                 match = true;
                                 arg_and_tokens.push([
                                     {
@@ -593,7 +573,7 @@ class Assembler {
                         }
                         break;
                     case TokenType.Float:
-                        match = param.type === TYPE_FLOAT;
+                        match = param.type.kind === Kind.Float;
 
                         if (match) {
                             arg_and_tokens.push([
@@ -609,14 +589,14 @@ class Assembler {
                     case TokenType.Register:
                         match =
                             stack ||
-                            param.type === TYPE_REG_REF ||
-                            param.type === TYPE_REG_REF_VAR ||
-                            param.type instanceof RegTupRefType;
+                            param.type.kind === Kind.RegRef ||
+                            param.type.kind === Kind.RegRefVar ||
+                            param.type.kind === Kind.RegTupRef;
 
                         this.parse_register(token, arg_and_tokens);
                         break;
                     case TokenType.String:
-                        match = param.type === TYPE_STRING;
+                        match = param.type.kind === Kind.String;
 
                         if (match) {
                             arg_and_tokens.push([
@@ -639,43 +619,39 @@ class Assembler {
 
                     let type_str: string | undefined;
 
-                    switch (param.type) {
-                        case TYPE_BYTE:
+                    switch (param.type.kind) {
+                        case Kind.Byte:
                             type_str = "a 8-bit integer";
                             break;
-                        case TYPE_WORD:
+                        case Kind.Word:
                             type_str = "a 16-bit integer";
                             break;
-                        case TYPE_DWORD:
+                        case Kind.DWord:
                             type_str = "a 32-bit integer";
                             break;
-                        case TYPE_FLOAT:
+                        case Kind.Float:
                             type_str = "a float";
                             break;
-                        case TYPE_LABEL:
+                        case Kind.Label:
                             type_str = "a label";
                             break;
-                        case TYPE_I_LABEL:
-                        case TYPE_I_LABEL_VAR:
+                        case Kind.ILabel:
+                        case Kind.ILabelVar:
                             type_str = "an instruction label";
                             break;
-                        case TYPE_D_LABEL:
+                        case Kind.DLabel:
                             type_str = "a data label";
                             break;
-                        case TYPE_S_LABEL:
+                        case Kind.SLabel:
                             type_str = "a string label";
                             break;
-                        case TYPE_STRING:
+                        case Kind.String:
                             type_str = "a string";
                             break;
-                        case TYPE_REG_REF:
-                        case TYPE_REG_REF_VAR:
+                        case Kind.RegRef:
+                        case Kind.RegRefVar:
+                        case Kind.RegTupRef:
                             type_str = "a register reference";
-                            break;
-                        default:
-                            if (param.type instanceof RegTupRefType) {
-                                type_str = "a register reference";
-                            }
                             break;
                     }
 

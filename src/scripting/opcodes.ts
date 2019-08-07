@@ -1,115 +1,167 @@
 /**
- * Abstract super type of all types.
+ * Enumerates all the types that are not purely abstract.
  */
-class AnyType {}
+export enum Kind {
+    Any,
+    Byte,
+    Word,
+    DWord,
+    Float,
+    Label,
+    ILabel,
+    DLabel,
+    SLabel,
+    String,
+    ILabelVar,
+    RegRef,
+    RegTupRef,
+    RegRefVar,
+    Pointer,
+}
 
 /**
- * Abstract super type of all value types.
+ * Abstract super type of all types.
  */
-class ValueType extends AnyType {}
+type AnyType =
+    | ValueType
+    | RefType
+    | PointerType
+    | {
+          readonly kind: Kind.Any;
+      };
+
+/**
+ * Purely abstract super type of all value types.
+ */
+type ValueType = ByteType | WordType | DWordType | FloatType | LabelType;
 
 /**
  * 8-Bit integer.
  */
-class ByteType extends ValueType {}
+type ByteType = {
+    readonly kind: Kind.Byte;
+};
 
 /**
  * 16-Bit integer.
  */
-class WordType extends ValueType {}
+type WordType = {
+    readonly kind: Kind.Word;
+};
 
 /**
  * 32-Bit integer.
  */
-class DWordType extends ValueType {}
+type DWordType = {
+    readonly kind: Kind.DWord;
+};
 
 /**
  * 32-Bit floating point number.
  */
-class FloatType extends ValueType {}
+type FloatType = {
+    readonly kind: Kind.Float;
+};
 
 /**
  * Abstract super type of all label types.
  */
-class LabelType extends ValueType {}
+type LabelType =
+    | ILabelType
+    | DLabelType
+    | SLabelType
+    | StringType
+    | ILabelVarType
+    | {
+          readonly kind: Kind.Label;
+      };
 
 /**
  * Named reference to an instruction.
  */
-class ILabelType extends LabelType {}
+type ILabelType = {
+    readonly kind: Kind.ILabel;
+};
 
 /**
  * Named reference to a data segment.
  */
-class DLabelType extends LabelType {}
+type DLabelType = {
+    readonly kind: Kind.DLabel;
+};
 
 /**
  * Named reference to a string segment.
  */
-class SLabelType extends LabelType {}
+type SLabelType = {
+    readonly kind: Kind.SLabel;
+};
 
 /**
  * String of arbitrary size.
  */
-class StringType extends ValueType {}
+type StringType = {
+    readonly kind: Kind.String;
+};
 
 /**
  * Arbitrary amount of instruction labels.
  */
-class ILabelVarType extends ValueType {}
+type ILabelVarType = {
+    readonly kind: Kind.ILabelVar;
+};
 
 /**
- * Abstract super type of all reference types.
+ * Purely abstract super type of all reference types.
  */
-class RefType extends AnyType {}
+type RefType = RegRefType | RegTupRefType | RegRefVarType;
 
 /**
  * Reference to one or more registers.
  */
-class RegRefType extends RefType {}
+type RegRefType = {
+    readonly kind: Kind.RegRef;
+};
 
 /**
  * Reference to a fixed amount of consecutive registers of specific types.
  * The only parameterized type.
  */
-export class RegTupRefType extends RefType {
+type RegTupRefType = {
+    readonly kind: Kind.RegTupRef;
     readonly register_tuples: Param[];
-
-    constructor(...register_tuples: Param[]) {
-        super();
-        this.register_tuples = register_tuples;
-    }
-}
+};
 
 /**
  * Arbitrary amount of register references.
  */
-class RegRefVarType extends RefType {}
+type RegRefVarType = {
+    readonly kind: Kind.RegRefVar;
+};
 
 /**
  * Raw memory pointer.
  */
-class PointerType extends AnyType {}
+type PointerType = {
+    readonly kind: Kind.Pointer;
+};
 
 // Singleton type constants.
-// All types except `RegTupRefType` have a single instance.
-export const TYPE_ANY = new AnyType();
-export const TYPE_VALUE = new ValueType();
-export const TYPE_BYTE = new ByteType();
-export const TYPE_WORD = new WordType();
-export const TYPE_DWORD = new DWordType();
-export const TYPE_FLOAT = new FloatType();
-export const TYPE_LABEL = new LabelType();
-export const TYPE_I_LABEL = new ILabelType();
-export const TYPE_D_LABEL = new DLabelType();
-export const TYPE_S_LABEL = new SLabelType();
-export const TYPE_STRING = new StringType();
-export const TYPE_I_LABEL_VAR = new ILabelVarType();
-export const TYPE_REF = new RefType();
-export const TYPE_REG_REF = new RegRefType();
-// No singleton constant for `RegTupRefType` because it is parameterized.
-export const TYPE_REG_REF_VAR = new RegRefVarType();
-export const TYPE_POINTER = new PointerType();
+// No singleton constant for `RegTupRef` because it is parameterized.
+const TYPE_ANY: AnyType = { kind: Kind.Any };
+const TYPE_BYTE: ByteType = { kind: Kind.Byte };
+const TYPE_WORD: WordType = { kind: Kind.Word };
+const TYPE_DWORD: DWordType = { kind: Kind.DWord };
+const TYPE_FLOAT: FloatType = { kind: Kind.Float };
+const TYPE_LABEL: LabelType = { kind: Kind.Label };
+const TYPE_I_LABEL: ILabelType = { kind: Kind.ILabel };
+const TYPE_D_LABEL: DLabelType = { kind: Kind.DLabel };
+const TYPE_S_LABEL: SLabelType = { kind: Kind.SLabel };
+const TYPE_STRING: StringType = { kind: Kind.String };
+const TYPE_I_LABEL_VAR: ILabelVarType = { kind: Kind.ILabelVar };
+const TYPE_REG_REF: RegRefType = { kind: Kind.RegRef };
+const TYPE_REG_REF_VAR: RegRefVarType = { kind: Kind.RegRefVar };
+const TYPE_POINTER: PointerType = { kind: Kind.Pointer };
 
 export const MIN_SIGNED_DWORD_VALUE = -Math.pow(2, 31);
 export const MAX_SIGNED_DWORD_VALUE = Math.pow(2, 31) - 1;
@@ -125,15 +177,15 @@ export enum ParamAccess {
 }
 
 export class Param {
-    type: AnyType;
+    readonly type: AnyType;
     /**
      * Documentation string.
      */
-    doc?: string;
+    readonly doc?: string;
     /**
      * The way referenced registers are accessed by the instruction. Only set when type is a register reference.
      */
-    access?: ParamAccess;
+    readonly access?: ParamAccess;
 
     constructor(type: AnyType, doc?: string, access?: ParamAccess) {
         this.type = type;
@@ -257,12 +309,18 @@ export class Opcode {
         "Sets the first register's value to second one's value.",
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -275,7 +333,10 @@ export class Opcode {
         "Sets a register to the given value.",
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -289,7 +350,10 @@ export class Opcode {
         "Sets a register to the given value.",
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_BYTE, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_BYTE, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -303,7 +367,10 @@ export class Opcode {
         "Sets a register to the given value.",
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_WORD, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_WORD, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -317,12 +384,18 @@ export class Opcode {
         "Sets the first register to the memory address of the second register. Not used by Sega.",
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_POINTER, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_POINTER, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -335,7 +408,10 @@ export class Opcode {
         "Sets a register to the memory address of the given label. Not used by Sega.",
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_POINTER, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_POINTER, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -363,7 +439,10 @@ export class Opcode {
         "Sets a register to 1.",
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -376,7 +455,10 @@ export class Opcode {
         "Sets a register to 0.",
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -389,7 +471,10 @@ export class Opcode {
         "Sets a register to 1 if its current value is 0, otherwise sets it to 0.",
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.ReadWrite)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.ReadWrite)],
+                },
                 undefined,
                 undefined
             ),
@@ -431,7 +516,10 @@ export class Opcode {
         [
             new Param(TYPE_WORD, undefined, undefined),
             new Param(
-                new RegTupRefType(new Param(TYPE_WORD, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_WORD, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -444,12 +532,18 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -462,7 +556,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -476,12 +573,18 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -494,7 +597,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -508,12 +614,18 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -526,7 +638,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -540,12 +655,18 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -558,7 +679,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -572,12 +696,18 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -590,7 +720,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -604,12 +737,18 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -622,7 +761,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -636,12 +778,18 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -654,7 +802,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -668,12 +819,18 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -686,7 +843,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -734,12 +894,18 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -753,7 +919,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -768,12 +937,18 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -787,7 +962,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -802,12 +980,18 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -821,7 +1005,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -836,12 +1023,18 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -855,7 +1048,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -870,12 +1066,18 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -889,7 +1091,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -904,12 +1109,18 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -923,7 +1134,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -938,12 +1152,18 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -957,7 +1177,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -972,12 +1195,18 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -991,7 +1220,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -1006,12 +1238,18 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -1025,7 +1263,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -1040,12 +1281,18 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -1059,7 +1306,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -1074,7 +1324,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -1088,7 +1341,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -1102,7 +1358,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -1115,7 +1374,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -1162,7 +1424,10 @@ export class Opcode {
         "Pushes the value of the given register onto the stack.",
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -1196,7 +1461,10 @@ export class Opcode {
         "Pushes the memory address of the given register onto the stack. Not used by Sega.",
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -1223,12 +1491,18 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -1248,7 +1522,10 @@ export class Opcode {
         "Used to display a list of items and retrieve the item selected by the player.\nList items should be seperated by newlines. The selected item's index will be written to the given register.",
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_BYTE, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_BYTE, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -1327,7 +1604,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -1348,7 +1628,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -1396,14 +1679,17 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(
-                    new Param(TYPE_ANY, undefined, ParamAccess.Read),
-                    new Param(TYPE_ANY, undefined, ParamAccess.Read),
-                    new Param(TYPE_ANY, undefined, ParamAccess.Read),
-                    new Param(TYPE_I_LABEL, undefined, ParamAccess.Read),
-                    new Param(TYPE_ANY, undefined, ParamAccess.Read),
-                    new Param(TYPE_ANY, undefined, ParamAccess.Read)
-                ),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [
+                        new Param(TYPE_ANY, undefined, ParamAccess.Read),
+                        new Param(TYPE_ANY, undefined, ParamAccess.Read),
+                        new Param(TYPE_ANY, undefined, ParamAccess.Read),
+                        new Param(TYPE_I_LABEL, undefined, ParamAccess.Read),
+                        new Param(TYPE_ANY, undefined, ParamAccess.Read),
+                        new Param(TYPE_ANY, undefined, ParamAccess.Read),
+                    ],
+                },
                 undefined,
                 undefined
             ),
@@ -1430,7 +1716,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -1444,7 +1733,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -1472,7 +1764,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -1536,12 +1831,15 @@ export class Opcode {
         [
             new Param(TYPE_DWORD, "Player slot.", undefined),
             new Param(
-                new RegTupRefType(
-                    new Param(TYPE_DWORD, "X coordinate.", ParamAccess.Read),
-                    new Param(TYPE_DWORD, "Y coordinate.", ParamAccess.Read),
-                    new Param(TYPE_DWORD, "Z coordinate.", ParamAccess.Read),
-                    new Param(TYPE_DWORD, "Y-axis rotation.", ParamAccess.Read)
-                ),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [
+                        new Param(TYPE_DWORD, "X coordinate.", ParamAccess.Read),
+                        new Param(TYPE_DWORD, "Y coordinate.", ParamAccess.Read),
+                        new Param(TYPE_DWORD, "Z coordinate.", ParamAccess.Read),
+                        new Param(TYPE_DWORD, "Y-axis rotation.", ParamAccess.Read),
+                    ],
+                },
                 undefined,
                 undefined
             ),
@@ -1568,7 +1866,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -1588,7 +1889,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -1601,7 +1905,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -1614,7 +1921,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -1634,7 +1944,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -1675,13 +1988,16 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(
-                    new Param(TYPE_DWORD, undefined, ParamAccess.Read),
-                    new Param(TYPE_DWORD, undefined, ParamAccess.Read),
-                    new Param(TYPE_DWORD, undefined, ParamAccess.Read),
-                    new Param(TYPE_DWORD, undefined, ParamAccess.Read),
-                    new Param(TYPE_DWORD, undefined, ParamAccess.Read)
-                ),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [
+                        new Param(TYPE_DWORD, undefined, ParamAccess.Read),
+                        new Param(TYPE_DWORD, undefined, ParamAccess.Read),
+                        new Param(TYPE_DWORD, undefined, ParamAccess.Read),
+                        new Param(TYPE_DWORD, undefined, ParamAccess.Read),
+                        new Param(TYPE_DWORD, undefined, ParamAccess.Read),
+                    ],
+                },
                 undefined,
                 undefined
             ),
@@ -1708,12 +2024,15 @@ export class Opcode {
         "Create a telepipe at a specific position for the given player slot that takes players back to Pioneer 2 or the Lab.",
         [
             new Param(
-                new RegTupRefType(
-                    new Param(TYPE_DWORD, "X coordinate.", ParamAccess.Read),
-                    new Param(TYPE_DWORD, "Y coordinate.", ParamAccess.Read),
-                    new Param(TYPE_DWORD, "Z coordinate.", ParamAccess.Read),
-                    new Param(TYPE_DWORD, "Player slot.", ParamAccess.Read)
-                ),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [
+                        new Param(TYPE_DWORD, "X coordinate.", ParamAccess.Read),
+                        new Param(TYPE_DWORD, "Y coordinate.", ParamAccess.Read),
+                        new Param(TYPE_DWORD, "Z coordinate.", ParamAccess.Read),
+                        new Param(TYPE_DWORD, "Player slot.", ParamAccess.Read),
+                    ],
+                },
                 undefined,
                 undefined
             ),
@@ -1726,15 +2045,21 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(
-                    new Param(TYPE_DWORD, undefined, ParamAccess.Read),
-                    new Param(TYPE_DWORD, undefined, ParamAccess.Read)
-                ),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [
+                        new Param(TYPE_DWORD, undefined, ParamAccess.Read),
+                        new Param(TYPE_DWORD, undefined, ParamAccess.Read),
+                    ],
+                },
                 undefined,
                 undefined
             ),
@@ -1747,7 +2072,10 @@ export class Opcode {
         "Retrieves the amount of enemies killed during the quest.",
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -1760,11 +2088,14 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(
-                    new Param(TYPE_DWORD, undefined, ParamAccess.Read),
-                    new Param(TYPE_DWORD, undefined, ParamAccess.Read),
-                    new Param(TYPE_DWORD, undefined, ParamAccess.Read)
-                ),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [
+                        new Param(TYPE_DWORD, undefined, ParamAccess.Read),
+                        new Param(TYPE_DWORD, undefined, ParamAccess.Read),
+                        new Param(TYPE_DWORD, undefined, ParamAccess.Read),
+                    ],
+                },
                 undefined,
                 undefined
             ),
@@ -1777,12 +2108,15 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(
-                    new Param(TYPE_DWORD, undefined, ParamAccess.Read),
-                    new Param(TYPE_DWORD, undefined, ParamAccess.Read),
-                    new Param(TYPE_DWORD, undefined, ParamAccess.Read),
-                    new Param(TYPE_DWORD, undefined, ParamAccess.Read)
-                ),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [
+                        new Param(TYPE_DWORD, undefined, ParamAccess.Read),
+                        new Param(TYPE_DWORD, undefined, ParamAccess.Read),
+                        new Param(TYPE_DWORD, undefined, ParamAccess.Read),
+                        new Param(TYPE_DWORD, undefined, ParamAccess.Read),
+                    ],
+                },
                 undefined,
                 undefined
             ),
@@ -1795,13 +2129,16 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(
-                    new Param(TYPE_DWORD, undefined, ParamAccess.Read),
-                    new Param(TYPE_DWORD, undefined, ParamAccess.Read),
-                    new Param(TYPE_DWORD, undefined, ParamAccess.Read),
-                    new Param(TYPE_DWORD, undefined, ParamAccess.Read),
-                    new Param(TYPE_I_LABEL, undefined, ParamAccess.Read)
-                ),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [
+                        new Param(TYPE_DWORD, undefined, ParamAccess.Read),
+                        new Param(TYPE_DWORD, undefined, ParamAccess.Read),
+                        new Param(TYPE_DWORD, undefined, ParamAccess.Read),
+                        new Param(TYPE_DWORD, undefined, ParamAccess.Read),
+                        new Param(TYPE_I_LABEL, undefined, ParamAccess.Read),
+                    ],
+                },
                 undefined,
                 undefined
             ),
@@ -1814,13 +2151,16 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(
-                    new Param(TYPE_DWORD, undefined, ParamAccess.Read),
-                    new Param(TYPE_DWORD, undefined, ParamAccess.Read),
-                    new Param(TYPE_DWORD, undefined, ParamAccess.Read),
-                    new Param(TYPE_DWORD, undefined, ParamAccess.Read),
-                    new Param(TYPE_I_LABEL, undefined, ParamAccess.Read)
-                ),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [
+                        new Param(TYPE_DWORD, undefined, ParamAccess.Read),
+                        new Param(TYPE_DWORD, undefined, ParamAccess.Read),
+                        new Param(TYPE_DWORD, undefined, ParamAccess.Read),
+                        new Param(TYPE_DWORD, undefined, ParamAccess.Read),
+                        new Param(TYPE_I_LABEL, undefined, ParamAccess.Read),
+                    ],
+                },
                 undefined,
                 undefined
             ),
@@ -1833,13 +2173,16 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(
-                    new Param(TYPE_DWORD, undefined, ParamAccess.Read),
-                    new Param(TYPE_DWORD, undefined, ParamAccess.Read),
-                    new Param(TYPE_DWORD, undefined, ParamAccess.Read),
-                    new Param(TYPE_DWORD, undefined, ParamAccess.Read),
-                    new Param(TYPE_I_LABEL, undefined, ParamAccess.Read)
-                ),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [
+                        new Param(TYPE_DWORD, undefined, ParamAccess.Read),
+                        new Param(TYPE_DWORD, undefined, ParamAccess.Read),
+                        new Param(TYPE_DWORD, undefined, ParamAccess.Read),
+                        new Param(TYPE_DWORD, undefined, ParamAccess.Read),
+                        new Param(TYPE_I_LABEL, undefined, ParamAccess.Read),
+                    ],
+                },
                 undefined,
                 undefined
             ),
@@ -1852,7 +2195,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -1893,19 +2239,25 @@ export class Opcode {
         "Creates a targetable object.",
         [
             new Param(
-                new RegTupRefType(
-                    new Param(TYPE_DWORD, "X coordinate.", ParamAccess.Read),
-                    new Param(TYPE_DWORD, "Y coordinate.", ParamAccess.Read),
-                    new Param(TYPE_DWORD, "Z coordinate.", ParamAccess.Read),
-                    new Param(TYPE_DWORD, "Collision radius.", ParamAccess.Read),
-                    new Param(TYPE_I_LABEL, "Function label.", ParamAccess.Read),
-                    new Param(TYPE_DWORD, "Vertical position of the cursor.", ParamAccess.Read)
-                ),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [
+                        new Param(TYPE_DWORD, "X coordinate.", ParamAccess.Read),
+                        new Param(TYPE_DWORD, "Y coordinate.", ParamAccess.Read),
+                        new Param(TYPE_DWORD, "Z coordinate.", ParamAccess.Read),
+                        new Param(TYPE_DWORD, "Collision radius.", ParamAccess.Read),
+                        new Param(TYPE_I_LABEL, "Function label.", ParamAccess.Read),
+                        new Param(TYPE_DWORD, "Vertical position of the cursor.", ParamAccess.Read),
+                    ],
+                },
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Write)],
+                },
                 "Object handle.",
                 undefined
             ),
@@ -1935,7 +2287,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -2060,7 +2415,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -2136,7 +2494,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Read)],
+                },
                 "Object handle.",
                 undefined
             ),
@@ -2149,12 +2510,18 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -2167,12 +2534,18 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -2185,12 +2558,18 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -2203,16 +2582,22 @@ export class Opcode {
         "Deletes an item from the player's inventory.",
         [
             new Param(
-                new RegTupRefType(
-                    new Param(TYPE_DWORD, undefined, ParamAccess.Read),
-                    new Param(TYPE_DWORD, undefined, ParamAccess.Read),
-                    new Param(TYPE_DWORD, undefined, ParamAccess.Read)
-                ),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [
+                        new Param(TYPE_DWORD, undefined, ParamAccess.Read),
+                        new Param(TYPE_DWORD, undefined, ParamAccess.Read),
+                        new Param(TYPE_DWORD, undefined, ParamAccess.Read),
+                    ],
+                },
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -2225,12 +2610,18 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -2250,7 +2641,10 @@ export class Opcode {
         "Sets the given register to the current difficulty. 0 For normal, 1 for hard and 2 for both very hard and ultimate.\nUse get_difficulty_level2 if you want to differentiate between very hard and ultimate.",
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -2305,7 +2699,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -2339,7 +2736,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -2380,7 +2780,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -2393,7 +2796,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -2424,12 +2830,15 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(
-                    new Param(TYPE_DWORD, undefined, ParamAccess.Read),
-                    new Param(TYPE_DWORD, undefined, ParamAccess.Read),
-                    new Param(TYPE_DWORD, undefined, ParamAccess.Read),
-                    new Param(TYPE_DWORD, undefined, ParamAccess.Read)
-                ),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [
+                        new Param(TYPE_DWORD, undefined, ParamAccess.Read),
+                        new Param(TYPE_DWORD, undefined, ParamAccess.Read),
+                        new Param(TYPE_DWORD, undefined, ParamAccess.Read),
+                        new Param(TYPE_DWORD, undefined, ParamAccess.Read),
+                    ],
+                },
                 undefined,
                 undefined
             ),
@@ -2442,7 +2851,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -2469,12 +2881,18 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -2536,7 +2954,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -2585,7 +3006,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -2613,7 +3037,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -2626,7 +3053,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -2654,7 +3084,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -2667,7 +3100,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -2681,7 +3117,10 @@ export class Opcode {
         [
             new Param(TYPE_DWORD, undefined, undefined),
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -2694,12 +3133,18 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -2712,7 +3157,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -2733,7 +3181,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -2760,7 +3211,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -2781,14 +3235,17 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(
-                    new Param(TYPE_DWORD, undefined, ParamAccess.Read),
-                    new Param(TYPE_DWORD, undefined, ParamAccess.Read),
-                    new Param(TYPE_DWORD, undefined, ParamAccess.Read),
-                    new Param(TYPE_DWORD, undefined, ParamAccess.Read),
-                    new Param(TYPE_DWORD, undefined, ParamAccess.Read),
-                    new Param(TYPE_DWORD, undefined, ParamAccess.Read)
-                ),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [
+                        new Param(TYPE_DWORD, undefined, ParamAccess.Read),
+                        new Param(TYPE_DWORD, undefined, ParamAccess.Read),
+                        new Param(TYPE_DWORD, undefined, ParamAccess.Read),
+                        new Param(TYPE_DWORD, undefined, ParamAccess.Read),
+                        new Param(TYPE_DWORD, undefined, ParamAccess.Read),
+                        new Param(TYPE_DWORD, undefined, ParamAccess.Read),
+                    ],
+                },
                 undefined,
                 undefined
             ),
@@ -2843,7 +3300,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -2863,7 +3323,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -2918,7 +3381,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -2974,7 +3440,10 @@ export class Opcode {
         "Sets the given register to the current difficulty. 0 For normal, 1 for hard, 2 for very hard and 3 for ultimate.",
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -2987,7 +3456,10 @@ export class Opcode {
         "Set the given register to the current number of players. Either 1, 2, 3 or 4.",
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -3000,16 +3472,22 @@ export class Opcode {
         "Retrieves a player's position.",
         [
             new Param(
-                new RegTupRefType(
-                    new Param(TYPE_DWORD, "X coordinate.", ParamAccess.Write),
-                    new Param(TYPE_DWORD, "Y coordinate.", ParamAccess.Write),
-                    new Param(TYPE_DWORD, "Z coordinate.", ParamAccess.Write)
-                ),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [
+                        new Param(TYPE_DWORD, "X coordinate.", ParamAccess.Write),
+                        new Param(TYPE_DWORD, "Y coordinate.", ParamAccess.Write),
+                        new Param(TYPE_DWORD, "Z coordinate.", ParamAccess.Write),
+                    ],
+                },
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, "Player slot.", ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, "Player slot.", ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -3036,13 +3514,16 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(
-                    new Param(TYPE_DWORD, undefined, ParamAccess.Read),
-                    new Param(TYPE_DWORD, undefined, ParamAccess.Read),
-                    new Param(TYPE_DWORD, undefined, ParamAccess.Read),
-                    new Param(TYPE_DWORD, undefined, ParamAccess.Read),
-                    new Param(TYPE_DWORD, undefined, ParamAccess.Read)
-                ),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [
+                        new Param(TYPE_DWORD, undefined, ParamAccess.Read),
+                        new Param(TYPE_DWORD, undefined, ParamAccess.Read),
+                        new Param(TYPE_DWORD, undefined, ParamAccess.Read),
+                        new Param(TYPE_DWORD, undefined, ParamAccess.Read),
+                        new Param(TYPE_DWORD, undefined, ParamAccess.Read),
+                    ],
+                },
                 undefined,
                 undefined
             ),
@@ -3216,7 +3697,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -3229,7 +3713,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -3242,7 +3729,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -3255,12 +3745,18 @@ export class Opcode {
         "Sends a player to the given floor.",
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, "Player slot.", ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, "Player slot.", ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, "Floor ID.", ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, "Floor ID.", ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -3301,10 +3797,13 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(
-                    new Param(TYPE_DWORD, undefined, ParamAccess.Read),
-                    new Param(TYPE_DWORD, undefined, ParamAccess.Write)
-                ),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [
+                        new Param(TYPE_DWORD, undefined, ParamAccess.Read),
+                        new Param(TYPE_DWORD, undefined, ParamAccess.Write),
+                    ],
+                },
                 undefined,
                 undefined
             ),
@@ -3317,15 +3816,18 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(
-                    new Param(TYPE_DWORD, "Floor ID.", ParamAccess.Read),
-                    new Param(TYPE_DWORD, "Switch ID.", ParamAccess.Read),
-                    new Param(
-                        TYPE_DWORD,
-                        "Will be set to 1 if the switch is pressed, 0 otherwise.",
-                        ParamAccess.Write
-                    )
-                ),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [
+                        new Param(TYPE_DWORD, "Floor ID.", ParamAccess.Read),
+                        new Param(TYPE_DWORD, "Switch ID.", ParamAccess.Read),
+                        new Param(
+                            TYPE_DWORD,
+                            "Will be set to 1 if the switch is pressed, 0 otherwise.",
+                            ParamAccess.Write
+                        ),
+                    ],
+                },
                 undefined,
                 undefined
             ),
@@ -3345,7 +3847,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -3407,7 +3912,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, "Player slot.", ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, "Player slot.", ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -3420,7 +3928,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, "Player slot.", ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, "Player slot.", ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -3447,7 +3958,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -3537,7 +4051,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -3550,7 +4067,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -3563,7 +4083,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -3576,7 +4099,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -3589,7 +4115,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -3602,7 +4131,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -3615,7 +4147,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -3628,7 +4163,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -3641,7 +4179,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -3654,7 +4195,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -3723,7 +4267,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -3820,7 +4367,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -3833,12 +4383,18 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -3851,12 +4407,18 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -3869,12 +4431,18 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -3887,7 +4455,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -3900,7 +4471,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -3955,7 +4529,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -3989,7 +4566,10 @@ export class Opcode {
         "Enables technique use for the given player.",
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, "Player slot.", ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, "Player slot.", ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -4002,7 +4582,10 @@ export class Opcode {
         "Disables technique use for the given player.",
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, "Player slot.", ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, "Player slot.", ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -4015,12 +4598,18 @@ export class Opcode {
         "Retrieves the player's gender. 0 If male, 1 if female.",
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, "Player slot.", ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, "Player slot.", ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, "Player gender.", ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, "Player gender.", ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -4033,23 +4622,29 @@ export class Opcode {
         "Retrieves the player's race and character class.",
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, "Player slot.", ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, "Player slot.", ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(
-                    new Param(
-                        TYPE_DWORD,
-                        "Player race. 0 If human, 1 if newman, 2 if cast.",
-                        ParamAccess.Write
-                    ),
-                    new Param(
-                        TYPE_DWORD,
-                        "Player class. 0 If hunter, 1 if ranger, 2 if force.",
-                        ParamAccess.Write
-                    )
-                ),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [
+                        new Param(
+                            TYPE_DWORD,
+                            "Player race. 0 If human, 1 if newman, 2 if cast.",
+                            ParamAccess.Write
+                        ),
+                        new Param(
+                            TYPE_DWORD,
+                            "Player class. 0 If hunter, 1 if ranger, 2 if force.",
+                            ParamAccess.Write
+                        ),
+                    ],
+                },
                 undefined,
                 undefined
             ),
@@ -4062,21 +4657,27 @@ export class Opcode {
         "Takes an amount of meseta from a player's inventory.",
         [
             new Param(
-                new RegTupRefType(
-                    new Param(TYPE_DWORD, "Player slot.", ParamAccess.Read),
-                    new Param(TYPE_DWORD, "Amount of meseta to take.", ParamAccess.Read)
-                ),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [
+                        new Param(TYPE_DWORD, "Player slot.", ParamAccess.Read),
+                        new Param(TYPE_DWORD, "Amount of meseta to take.", ParamAccess.Read),
+                    ],
+                },
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(
-                    new Param(
-                        TYPE_DWORD,
-                        "Will be set to 1 if the meseta was taken, 0 otherwise.",
-                        ParamAccess.Write
-                    )
-                ),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [
+                        new Param(
+                            TYPE_DWORD,
+                            "Will be set to 1 if the meseta was taken, 0 otherwise.",
+                            ParamAccess.Write
+                        ),
+                    ],
+                },
                 undefined,
                 undefined
             ),
@@ -4110,12 +4711,18 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -4128,7 +4735,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -4141,7 +4751,10 @@ export class Opcode {
         "Sets the value of <pl_name> to the given player's name.",
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, "Player slot.", ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, "Player slot.", ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -4161,12 +4774,18 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -4221,12 +4840,18 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -4239,7 +4864,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -4253,7 +4881,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -4266,7 +4897,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -4279,7 +4913,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -4292,7 +4929,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -4361,12 +5001,18 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -4379,12 +5025,18 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -4397,15 +5049,21 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(
-                    new Param(TYPE_DWORD, undefined, ParamAccess.Read),
-                    new Param(TYPE_DWORD, undefined, ParamAccess.Read)
-                ),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [
+                        new Param(TYPE_DWORD, undefined, ParamAccess.Read),
+                        new Param(TYPE_DWORD, undefined, ParamAccess.Read),
+                    ],
+                },
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -4425,7 +5083,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -4452,7 +5113,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -4528,7 +5192,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -4562,7 +5229,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -4708,7 +5378,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -4728,7 +5401,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -4741,7 +5417,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -4754,7 +5433,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -4774,19 +5456,25 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, "Player slot.", ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, "Player slot.", ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(
-                    new Param(TYPE_DWORD, "Animation ID.", ParamAccess.Read),
-                    new Param(
-                        TYPE_DWORD,
-                        "Animation duration in number of frames.",
-                        ParamAccess.Read
-                    )
-                ),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [
+                        new Param(TYPE_DWORD, "Animation ID.", ParamAccess.Read),
+                        new Param(
+                            TYPE_DWORD,
+                            "Animation duration in number of frames.",
+                            ParamAccess.Read
+                        ),
+                    ],
+                },
                 undefined,
                 undefined
             ),
@@ -4799,7 +5487,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, "Player slot.", ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, "Player slot.", ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -4812,12 +5503,18 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -4830,12 +5527,18 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, "Player slot.", ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, "Player slot.", ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -4848,7 +5551,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -4861,7 +5567,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, "Player slot.", ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, "Player slot.", ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -4874,7 +5583,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, "Player slot.", ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, "Player slot.", ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -4887,7 +5599,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, "Player slot.", ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, "Player slot.", ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -4900,7 +5615,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, "Player slot.", ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, "Player slot.", ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -4913,7 +5631,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, "Player slot.", ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, "Player slot.", ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -4926,7 +5647,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, "Player slot.", ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, "Player slot.", ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -4939,7 +5663,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, "Player slot.", ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, "Player slot.", ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -4952,7 +5679,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, "Player slot.", ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, "Player slot.", ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -4965,7 +5695,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, "Player slot.", ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, "Player slot.", ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -4978,7 +5711,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, "Player slot.", ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, "Player slot.", ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -4991,7 +5727,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -5005,7 +5744,10 @@ export class Opcode {
         [
             new Param(TYPE_DWORD, undefined, undefined),
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -5043,7 +5785,10 @@ export class Opcode {
             new Param(TYPE_DWORD, undefined, undefined),
             new Param(TYPE_DWORD, undefined, undefined),
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -5057,12 +5802,18 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -5076,12 +5827,18 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -5094,12 +5851,18 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -5140,7 +5903,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -5153,7 +5919,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -5166,7 +5935,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -5179,12 +5951,18 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -5197,12 +5975,18 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -5215,12 +5999,18 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -5233,12 +6023,18 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -5251,12 +6047,18 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -5269,12 +6071,18 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -5287,12 +6095,18 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -5305,12 +6119,18 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -5355,7 +6175,10 @@ export class Opcode {
             new Param(TYPE_DWORD, undefined, undefined),
             new Param(TYPE_DWORD, undefined, undefined),
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -5369,7 +6192,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -5475,12 +6301,18 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_FLOAT, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_FLOAT, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -5493,12 +6325,18 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE_FLOAT, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_FLOAT, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -5511,12 +6349,18 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_FLOAT, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_FLOAT, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE_FLOAT, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_FLOAT, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -5529,7 +6373,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_FLOAT, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_FLOAT, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -5564,12 +6411,18 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_FLOAT, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_FLOAT, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE_FLOAT, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_FLOAT, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -5582,7 +6435,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_FLOAT, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_FLOAT, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -5596,12 +6452,18 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_FLOAT, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_FLOAT, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE_FLOAT, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_FLOAT, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -5614,7 +6476,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_FLOAT, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_FLOAT, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -5628,12 +6493,18 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_FLOAT, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_FLOAT, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE_FLOAT, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_FLOAT, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -5646,7 +6517,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_FLOAT, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_FLOAT, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -5660,12 +6534,18 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_FLOAT, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_FLOAT, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE_FLOAT, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_FLOAT, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -5678,7 +6558,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_FLOAT, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_FLOAT, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -5693,7 +6576,10 @@ export class Opcode {
         [
             new Param(TYPE_DWORD, undefined, undefined),
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -5706,17 +6592,23 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(
-                    new Param(TYPE_DWORD, "Player slot.", ParamAccess.Read),
-                    new Param(TYPE_DWORD, undefined, ParamAccess.Read),
-                    new Param(TYPE_DWORD, undefined, ParamAccess.Read),
-                    new Param(TYPE_DWORD, undefined, ParamAccess.Read)
-                ),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [
+                        new Param(TYPE_DWORD, "Player slot.", ParamAccess.Read),
+                        new Param(TYPE_DWORD, undefined, ParamAccess.Read),
+                        new Param(TYPE_DWORD, undefined, ParamAccess.Read),
+                        new Param(TYPE_DWORD, undefined, ParamAccess.Read),
+                    ],
+                },
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -5782,7 +6674,10 @@ export class Opcode {
         [
             new Param(TYPE_DWORD, "Player slot.", undefined),
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -5796,7 +6691,10 @@ export class Opcode {
         [
             new Param(TYPE_DWORD, undefined, undefined),
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -5823,7 +6721,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -5836,7 +6737,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -5849,7 +6753,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -5863,7 +6770,10 @@ export class Opcode {
         [
             new Param(TYPE_DWORD, "Player slot.", undefined),
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -5877,7 +6787,10 @@ export class Opcode {
         [
             new Param(TYPE_DWORD, "Player slot.", undefined),
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -5891,12 +6804,15 @@ export class Opcode {
         [
             new Param(TYPE_DWORD, "Player slot.", undefined),
             new Param(
-                new RegTupRefType(
-                    new Param(TYPE_DWORD, "Maximum HP.", ParamAccess.Write),
-                    new Param(TYPE_DWORD, "Current HP.", ParamAccess.Write),
-                    new Param(TYPE_DWORD, "Maximum TP.", ParamAccess.Write),
-                    new Param(TYPE_DWORD, "Current TP.", ParamAccess.Write)
-                ),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [
+                        new Param(TYPE_DWORD, "Maximum HP.", ParamAccess.Write),
+                        new Param(TYPE_DWORD, "Current HP.", ParamAccess.Write),
+                        new Param(TYPE_DWORD, "Maximum TP.", ParamAccess.Write),
+                        new Param(TYPE_DWORD, "Current TP.", ParamAccess.Write),
+                    ],
+                },
                 undefined,
                 undefined
             ),
@@ -5910,7 +6826,10 @@ export class Opcode {
         [
             new Param(TYPE_DWORD, "Player slot.", undefined),
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -5923,12 +6842,18 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, "Player slot.", ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, "Player slot.", ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Read)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Read)],
+                },
                 undefined,
                 undefined
             ),
@@ -5942,7 +6867,10 @@ export class Opcode {
         [
             new Param(TYPE_DWORD, undefined, undefined),
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -5962,12 +6890,18 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -5980,12 +6914,15 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(
-                    new Param(TYPE_DWORD, undefined, ParamAccess.Write),
-                    new Param(TYPE_DWORD, undefined, ParamAccess.Write),
-                    new Param(TYPE_DWORD, undefined, ParamAccess.Write),
-                    new Param(TYPE_DWORD, undefined, ParamAccess.Write)
-                ),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [
+                        new Param(TYPE_DWORD, undefined, ParamAccess.Write),
+                        new Param(TYPE_DWORD, undefined, ParamAccess.Write),
+                        new Param(TYPE_DWORD, undefined, ParamAccess.Write),
+                        new Param(TYPE_DWORD, undefined, ParamAccess.Write),
+                    ],
+                },
                 undefined,
                 undefined
             ),
@@ -6012,7 +6949,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -6025,7 +6965,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -6102,7 +7045,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -6121,7 +7067,10 @@ export class Opcode {
             new Param(TYPE_DWORD, undefined, undefined),
             new Param(TYPE_FLOAT, undefined, undefined),
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -6171,7 +7120,10 @@ export class Opcode {
         [
             new Param(TYPE_DWORD, undefined, undefined),
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -6198,7 +7150,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_ANY, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_ANY, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -6229,7 +7184,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -6245,7 +7203,10 @@ export class Opcode {
         [
             new Param(TYPE_DWORD, "Player slot.", undefined),
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -6273,7 +7234,10 @@ export class Opcode {
         [
             new Param(TYPE_DWORD, "Player slot.", undefined),
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -6293,7 +7257,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -6307,7 +7274,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -6335,7 +7305,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -6348,7 +7321,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -6361,7 +7337,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -6374,7 +7353,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -6420,7 +7402,10 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -6450,7 +7435,10 @@ export class Opcode {
         [
             new Param(TYPE_DWORD, undefined, undefined),
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -6545,7 +7533,10 @@ export class Opcode {
         [
             new Param(TYPE_DWORD, undefined, undefined),
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
@@ -6578,12 +7569,18 @@ export class Opcode {
         undefined,
         [
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),
             new Param(
-                new RegTupRefType(new Param(TYPE_DWORD, undefined, ParamAccess.Write)),
+                {
+                    kind: Kind.RegTupRef,
+                    register_tuples: [new Param(TYPE_DWORD, undefined, ParamAccess.Write)],
+                },
                 undefined,
                 undefined
             ),

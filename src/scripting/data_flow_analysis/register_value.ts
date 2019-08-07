@@ -1,11 +1,11 @@
 import Logger from "js-logger";
 import { Instruction } from "../instructions";
 import {
+    Kind,
     MAX_SIGNED_DWORD_VALUE,
     MIN_SIGNED_DWORD_VALUE,
     Opcode,
     ParamAccess,
-    RegTupRefType,
 } from "../opcodes";
 import { BasicBlock, ControlFlowGraph } from "./ControlFlowGraph";
 import { ValueSet } from "./ValueSet";
@@ -167,7 +167,7 @@ function find_values(
                     for (let j = 0; j < arg_len; j++) {
                         const param = params[j];
 
-                        if (param.type instanceof RegTupRefType) {
+                        if (param.type.kind == Kind.RegTupRef) {
                             const reg_ref = args[j].value;
                             let k = 0;
 

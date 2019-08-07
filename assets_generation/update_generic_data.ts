@@ -180,7 +180,9 @@ function params_to_code(params: any[]) {
                     type = "TYPE_REG_REF";
                     break;
                 case "reg_tup_ref":
-                    type = `new RegTupRefType(${params_to_code(param.reg_tup)})`;
+                    type = `{ kind: Kind.RegTupRef, register_tuples: [${params_to_code(
+                        param.reg_tup
+                    )}] }`;
                     break;
                 case "reg_ref_var":
                     type = "TYPE_REG_REF_VAR";

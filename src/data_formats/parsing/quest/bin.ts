@@ -2,6 +2,7 @@ import Logger from "js-logger";
 import { Endianness } from "../..";
 import { ControlFlowGraph } from "../../../scripting/data_flow_analysis/ControlFlowGraph";
 import { register_value } from "../../../scripting/data_flow_analysis/register_value";
+import { stack_value } from "../../../scripting/data_flow_analysis/stack_value";
 import {
     Arg,
     DataSegment,
@@ -11,31 +12,12 @@ import {
     SegmentType,
     StringSegment,
 } from "../../../scripting/instructions";
-import {
-    Opcode,
-    OPCODES,
-    RegTupRefType,
-    StackInteraction,
-    TYPE_BYTE,
-    TYPE_DWORD,
-    TYPE_D_LABEL,
-    TYPE_FLOAT,
-    TYPE_I_LABEL,
-    TYPE_I_LABEL_VAR,
-    TYPE_LABEL,
-    TYPE_REF,
-    TYPE_REG_REF,
-    TYPE_REG_REF_VAR,
-    TYPE_STRING,
-    TYPE_S_LABEL,
-    TYPE_WORD,
-} from "../../../scripting/opcodes";
+import { Kind, Opcode, OPCODES, StackInteraction } from "../../../scripting/opcodes";
 import { ArrayBufferCursor } from "../../cursor/ArrayBufferCursor";
 import { Cursor } from "../../cursor/Cursor";
 import { ResizableBufferCursor } from "../../cursor/ResizableBufferCursor";
 import { WritableCursor } from "../../cursor/WritableCursor";
 import { ResizableBuffer } from "../../ResizableBuffer";
-import { stack_value } from "../../../scripting/data_flow_analysis/stack_value";
 
 const logger = Logger.get("data_formats/parsing/quest/bin");
 
@@ -370,8 +352,8 @@ function find_and_parse_segments(
                 for (let i = 0; i < instruction.opcode.params.length; i++) {
                     const param = instruction.opcode.params[i];
 
-                    switch (param.type) {
-                        case TYPE_I_LABEL:
+                    switch (param.type.kind) {
+                        case Kind.ILabel:
                             get_arg_label_values(
                                 cfg,
                                 labels,
@@ -380,7 +362,7 @@ function find_and_parse_segments(
                                 SegmentType.Instructions
                             );
                             break;
-                        case TYPE_I_LABEL_VAR:
+                        case Kind.ILabelVar:
                             // Never on the stack.
                             // Eat all remaining arguments.
                             for (; i < instruction.args.length; i++) {
@@ -388,31 +370,29 @@ function find_and_parse_segments(
                             }
 
                             break;
-                        case TYPE_D_LABEL:
+                        case Kind.DLabel:
                             get_arg_label_values(cfg, labels, instruction, i, SegmentType.Data);
                             break;
-                        case TYPE_S_LABEL:
+                        case Kind.SLabel:
                             get_arg_label_values(cfg, labels, instruction, i, SegmentType.String);
                             break;
-                        default:
-                            if (param.type instanceof RegTupRefType) {
-                                // Never on the stack.
-                                const arg = instruction.args[i];
+                        case Kind.RegTupRef:
+                            // Never on the stack.
+                            const arg = instruction.args[i];
 
-                                for (let j = 0; j < param.type.register_tuples.length; j++) {
-                                    const reg_tup = param.type.register_tuples[j];
+                            for (let j = 0; j < param.type.register_tuples.length; j++) {
+                                const reg_tup = param.type.register_tuples[j];
 
-                                    if (reg_tup.type === TYPE_I_LABEL) {
-                                        const label_values = register_value(
-                                            cfg,
-                                            instruction,
-                                            arg.value + j
-                                        );
+                                if (reg_tup.type.kind === Kind.ILabel) {
+                                    const label_values = register_value(
+                                        cfg,
+                                        instruction,
+                                        arg.value + j
+                                    );
 
-                                        if (label_values.size() <= 10) {
-                                            for (const label of label_values) {
-                                                labels.set(label, SegmentType.Instructions);
-                                            }
+                                    if (label_values.size() <= 10) {
+                                        for (const label of label_values) {
+                                            labels.set(label, SegmentType.Instructions);
                                         }
                                     }
                                 }
@@ -646,26 +626,26 @@ function parse_instruction_arguments(cursor: Cursor, opcode: Opcode): Arg[] {
 
     if (opcode.stack !== StackInteraction.Pop) {
         for (const param of opcode.params) {
-            switch (param.type) {
-                case TYPE_BYTE:
+            switch (param.type.kind) {
+                case Kind.Byte:
                     args.push({ value: cursor.u8(), size: 1 });
                     break;
-                case TYPE_WORD:
+                case Kind.Word:
                     args.push({ value: cursor.u16(), size: 2 });
                     break;
-                case TYPE_DWORD:
+                case Kind.DWord:
                     args.push({ value: cursor.i32(), size: 4 });
                     break;
-                case TYPE_FLOAT:
+                case Kind.Float:
                     args.push({ value: cursor.f32(), size: 4 });
                     break;
-                case TYPE_LABEL:
-                case TYPE_I_LABEL:
-                case TYPE_D_LABEL:
-                case TYPE_S_LABEL:
+                case Kind.Label:
+                case Kind.ILabel:
+                case Kind.DLabel:
+                case Kind.SLabel:
                     args.push({ value: cursor.u16(), size: 2 });
                     break;
-                case TYPE_STRING:
+                case Kind.String:
                     {
                         const start_pos = cursor.position;
                         args.push({
@@ -678,28 +658,24 @@ function parse_instruction_arguments(cursor: Cursor, opcode: Opcode): Arg[] {
                         });
                     }
                     break;
-                case TYPE_I_LABEL_VAR:
+                case Kind.ILabelVar:
                     {
                         const arg_size = cursor.u8();
                         args.push(...cursor.u16_array(arg_size).map(value => ({ value, size: 2 })));
                     }
                     break;
-                case TYPE_REG_REF:
+                case Kind.RegRef:
+                case Kind.RegTupRef:
                     args.push({ value: cursor.u8(), size: 1 });
                     break;
-                case TYPE_REG_REF_VAR:
+                case Kind.RegRefVar:
                     {
                         const arg_size = cursor.u8();
                         args.push(...cursor.u8_array(arg_size).map(value => ({ value, size: 1 })));
                     }
                     break;
                 default:
-                    if (param.type instanceof RegTupRefType) {
-                        args.push({ value: cursor.u8(), size: 1 });
-                        break;
-                    } else {
-                        throw new Error(`Parameter type ${param.type} not implemented.`);
-                    }
+                    throw new Error(`Parameter type ${Kind[param.type.kind]} not implemented.`);
             }
         }
     }
@@ -736,61 +712,57 @@ function write_object_code(
                         const args = instruction.param_to_args[i];
                         const [arg] = args;
 
-                        switch (param.type) {
-                            case TYPE_BYTE:
+                        switch (param.type.kind) {
+                            case Kind.Byte:
                                 if (arg.value >= 0) {
                                     cursor.write_u8(arg.value);
                                 } else {
                                     cursor.write_i8(arg.value);
                                 }
                                 break;
-                            case TYPE_WORD:
+                            case Kind.Word:
                                 if (arg.value >= 0) {
                                     cursor.write_u16(arg.value);
                                 } else {
                                     cursor.write_i16(arg.value);
                                 }
                                 break;
-                            case TYPE_DWORD:
+                            case Kind.DWord:
                                 if (arg.value >= 0) {
                                     cursor.write_u32(arg.value);
                                 } else {
                                     cursor.write_i32(arg.value);
                                 }
                                 break;
-                            case TYPE_FLOAT:
+                            case Kind.Float:
                                 cursor.write_f32(arg.value);
                                 break;
-                            case TYPE_LABEL: // Abstract type
-                            case TYPE_I_LABEL:
-                            case TYPE_D_LABEL:
-                            case TYPE_S_LABEL:
+                            case Kind.Label:
+                            case Kind.ILabel:
+                            case Kind.DLabel:
+                            case Kind.SLabel:
                                 cursor.write_u16(arg.value);
                                 break;
-                            case TYPE_STRING:
+                            case Kind.String:
                                 cursor.write_string_utf16(arg.value, arg.size);
                                 break;
-                            case TYPE_I_LABEL_VAR:
+                            case Kind.ILabelVar:
                                 cursor.write_u8(args.length);
                                 cursor.write_u16_array(args.map(arg => arg.value));
                                 break;
-                            case TYPE_REF: // Abstract type
-                            case TYPE_REG_REF:
+                            case Kind.RegRef:
+                            case Kind.RegTupRef:
                                 cursor.write_u8(arg.value);
                                 break;
-                            case TYPE_REG_REF_VAR:
+                            case Kind.RegRefVar:
                                 cursor.write_u8(args.length);
                                 cursor.write_u8_array(args.map(arg => arg.value));
                                 break;
                             default:
-                                if (param.type instanceof RegTupRefType) {
-                                    cursor.write_u8(arg.value);
-                                } else {
-                                    // TYPE_ANY and TYPE_POINTER cannot be serialized.
-                                    throw new Error(
-                                        `Parameter type ${param.type} not implemented.`
-                                    );
-                                }
+                                // TYPE_ANY, TYPE_VALUE and TYPE_POINTER cannot be serialized.
+                                throw new Error(
+                                    `Parameter type ${Kind[param.type.kind]} not implemented.`
+                                );
                         }
                     }
                 }

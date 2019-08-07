@@ -1,15 +1,6 @@
-import { Arg, Segment, SegmentType } from "./instructions";
-import {
-    Param,
-    StackInteraction,
-    TYPE_STRING,
-    TYPE_I_LABEL_VAR,
-    TYPE_REG_REF_VAR,
-    TYPE_REG_REF,
-    RegTupRefType,
-    TYPE_FLOAT,
-} from "./opcodes";
 import { reinterpret_i32_as_f32 } from "../primitive_conversion";
+import { Arg, Segment, SegmentType } from "./instructions";
+import { Kind, Param, StackInteraction } from "./opcodes";
 
 /**
  * @param manual_stack If true, will output stack management instructions (argpush variants). Otherwise the arguments of stack management instructions will be output as arguments to the instruction that pops them from the stack.
@@ -123,8 +114,8 @@ function args_to_strings(params: Param[], args: Arg[], stack: boolean): string[]
             continue;
         }
 
-        switch (type) {
-            case TYPE_FLOAT:
+        switch (type.kind) {
+            case Kind.Float:
                 // Floats are pushed onto the stack as integers with arg_pushl.
                 if (stack) {
                     arg_strings.push(reinterpret_i32_as_f32(arg.value).toString());
@@ -132,28 +123,25 @@ function args_to_strings(params: Param[], args: Arg[], stack: boolean): string[]
                     arg_strings.push(arg.value.toString());
                 }
                 break;
-            case TYPE_I_LABEL_VAR:
+            case Kind.ILabelVar:
                 for (; i < args.length; i++) {
                     arg_strings.push(args[i].value.toString());
                 }
                 break;
-            case TYPE_REG_REF_VAR:
+            case Kind.RegRefVar:
                 for (; i < args.length; i++) {
                     arg_strings.push("r" + args[i].value);
                 }
                 break;
-            case TYPE_REG_REF:
+            case Kind.RegRef:
+            case Kind.RegTupRef:
                 arg_strings.push("r" + arg.value);
                 break;
-            case TYPE_STRING:
+            case Kind.String:
                 arg_strings.push(JSON.stringify(arg.value));
                 break;
             default:
-                if (type instanceof RegTupRefType) {
-                    arg_strings.push("r" + arg.value);
-                } else {
-                    arg_strings.push(arg.value.toString());
-                }
+                arg_strings.push(arg.value.toString());
                 break;
         }
     }
