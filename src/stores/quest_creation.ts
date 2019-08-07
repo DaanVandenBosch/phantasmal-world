@@ -438,22 +438,6 @@ function create_default_npcs(): QuestNpc[] {
             ]
         ),
         new QuestNpc(
-            NpcType.MaleFat,
-            11,
-            0,
-            0,
-            10,
-            new Vec3(-2.9971923828125, 0, 63.999267578125),
-            new Vec3(0, 2.9452880542695796, 0),
-            new Vec3(0, 0, 0),
-            [
-                [0, 0, 7, 87, 0, 0, 0, 0, 23, 88],
-                [0, 0, 0, 0, 0, 0],
-                [6, 0, 202, 66, 4, 0, 155, 67],
-                [128, 238, 227, 176],
-            ]
-        ),
-        new QuestNpc(
             NpcType.FemaleFat,
             4,
             1,
