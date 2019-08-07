@@ -43,10 +43,15 @@ test("parse Towards the Future", () => {
 if (process.env["RUN_ALL_TESTS"] === "true") {
     walk_qst_files(roundtrip_test);
 } else {
-    const file_name = "quest118_e.qst";
-    const path = `test/resources/${file_name}`;
-    const buffer = readFileSync(path);
-    roundtrip_test(path, file_name, buffer);
+    const file_name_1 = "quest118_e.qst";
+    const path_1 = `test/resources/${file_name_1}`;
+    const buffer_1 = readFileSync(path_1);
+    roundtrip_test(path_1, file_name_1, buffer_1);
+
+    const file_name_2 = "quest27_e.qst";
+    const path_2 = `test/resources/${file_name_2}`;
+    const buffer_2 = readFileSync(path_2);
+    roundtrip_test(path_2, file_name_2, buffer_2);
 }
 
 function roundtrip_test(path: string, file_name: string, contents: Buffer): void {
@@ -93,8 +98,7 @@ function roundtrip_test(path: string, file_name: string, contents: Buffer): void
         expect(test_quest.object_code.length).toBe(orig_quest.object_code.length);
 
         for (let i = 0; i < orig_quest.object_code.length; i++) {
-            expect(test_quest.object_code[i].type).toBe(orig_quest.object_code[i].type);
-            expect(test_quest.object_code[i].labels).toEqual(orig_quest.object_code[i].labels);
+            expect(test_quest.object_code[i]).toEqual(orig_quest.object_code[i]);
         }
     });
 }
