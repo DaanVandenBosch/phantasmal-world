@@ -82,8 +82,7 @@ class QuestEditorStore {
         try {
             const buffer = yield read_file(file);
             const quest = parse_quest(new ArrayBufferCursor(buffer, Endianness.Little));
-            this.current_quest_filename = filename;
-            this.set_quest(quest);
+            this.set_quest(quest, filename);
         } catch (e) {
             logger.error("Couldn't read file.", e);
         }
@@ -146,7 +145,13 @@ class QuestEditorStore {
     };
 
     @action
-    private set_quest = flow(function* set_quest(this: QuestEditorStore, quest?: Quest) {
+    private set_quest = flow(function* set_quest(
+        this: QuestEditorStore,
+        quest?: Quest,
+        filename?: string
+    ) {
+        this.current_quest_filename = filename;
+
         if (quest !== this.current_quest) {
             this.undo.reset();
             this.script_undo.reset();
