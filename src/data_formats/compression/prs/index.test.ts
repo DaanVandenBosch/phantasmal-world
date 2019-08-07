@@ -28,27 +28,27 @@ function test_with_bytes(bytes: number[], expected_compressed_size: number): voi
 }
 
 test("PRS compression and decompression, best case", () => {
-    // Compression factor: 0.018
-    test_with_bytes(new Array(1000).fill(128), 18);
+    // Compression factor: 0.048
+    test_with_bytes(new Array(10000).fill(128), 475);
 });
 
 test("PRS compression and decompression, worst case", () => {
     const prng = new Prng();
 
-    // Compression factor: 1.124
-    test_with_bytes(new Array(1000).fill(0).map(() => prng.next_integer(0, 255)), 1124);
+    // Compression factor: 1.125
+    test_with_bytes(new Array(10000).fill(0).map(() => prng.next_integer(0, 255)), 11253);
 });
 
 test("PRS compression and decompression, typical case", () => {
     const prng = new Prng();
     const pattern = [0, 0, 2, 0, 3, 0, 5, 0, 0, 0, 7, 9, 11, 13, 0, 0];
-    const arrays = new Array(100)
+    const arrays = new Array(1000)
         .fill(pattern)
         .map(array => array.map((e: number) => e + prng.next_integer(0, 10)));
     const flattened_array = [].concat.apply([], arrays);
 
-    // Compression factor: 0.834
-    test_with_bytes(flattened_array, 1335);
+    // Compression factor: 0.933
+    test_with_bytes(flattened_array, 14924);
 });
 
 test("PRS compression and decompression, 0 bytes", () => {

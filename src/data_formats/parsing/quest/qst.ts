@@ -249,8 +249,8 @@ function parse_files(cursor: Cursor, expected_sizes: Map<string, number>): QstCo
 
 function write_file_headers(cursor: WritableCursor, files: QstContainedFileParam[]): void {
     for (const file of files) {
-        if (file.name.length > 16) {
-            throw new Error(`File ${file.name} has a name longer than 16 characters.`);
+        if (file.name.length > 15) {
+            throw new Error(`File ${file.name} has a name longer than 15 characters.`);
         }
 
         cursor.write_u16(88); // Header size.

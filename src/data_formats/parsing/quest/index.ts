@@ -125,7 +125,7 @@ export function write_quest_qst(quest: Quest, file_name: string): ArrayBuffer {
     );
     const ext_start = file_name.lastIndexOf(".");
     const base_file_name =
-        ext_start === -1 ? file_name.slice(0, 12) : file_name.slice(0, Math.min(12, ext_start));
+        ext_start === -1 ? file_name.slice(0, 11) : file_name.slice(0, Math.min(11, ext_start));
 
     return write_qst({
         files: [
