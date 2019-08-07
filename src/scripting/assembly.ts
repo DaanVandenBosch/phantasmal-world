@@ -57,7 +57,8 @@ class Assembler {
     private errors!: AssemblyError[];
     // Encountered labels.
     private labels!: Set<number>;
-    private section: SegmentType = SegmentType.Instructions;
+    private section!: SegmentType;
+    private first_section_marker = true;
 
     constructor(private assembly: string[], private manual_stack: boolean) {}
 
@@ -73,6 +74,7 @@ class Assembler {
         this.labels = new Set();
         // Need to cast SegmentType.Instructions because of TypeScript bug.
         this.section = SegmentType.Instructions as SegmentType;
+        this.first_section_marker = true;
 
         for (const line of this.assembly) {
             this.tokens = this.lexer.tokenize_line(line);
@@ -190,7 +192,7 @@ class Assembler {
             const arr = new Uint8Array(buf);
 
             arr.set(new Uint8Array(this.segment.data));
-            arr.set(new Uint8Array(bytes));
+            arr.set(new Uint8Array(bytes), this.segment.data.byteLength);
 
             this.segment.data = buf;
         } else {
@@ -349,7 +351,7 @@ class Assembler {
                 break;
         }
 
-        if (this.section === section) {
+        if (this.section === section && !this.first_section_marker) {
             this.add_warning({
                 col,
                 length: len,
@@ -358,6 +360,7 @@ class Assembler {
         }
 
         this.section = section;
+        this.first_section_marker = false;
 
         const next_token = this.tokens.shift();
 
