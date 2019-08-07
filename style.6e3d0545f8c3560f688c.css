@@ -1,0 +1,603 @@
+:root {
+    --background-color: hsl(0, 0%, 20%);
+    --foreground-color: hsl(0, 0%, 23%);
+
+    --hover-color: hsl(198, 61%, 87%);
+
+    --item-hover-bg: hsl(200, 30%, 30%);
+
+    --border-color: hsl(0, 0%, 25%);
+    --border-color-split: hsl(0, 0%, 30%);
+    --input-border-color: hsl(0, 0%, 40%);
+
+    --text-color: hsl(0, 0%, 90%);
+    --text-color-disabled: hsl(0, 0%, 50%);
+
+    --scrollbar-color: hsl(0, 0%, 17%);
+    --scrollbar-thumb-color: hsl(0, 0%, 23%);
+
+    --table-scrollbar-color: hsl(0, 0%, 18%);
+    --table-scrollbar-thumb-color: hsl(0, 0%, 22%);
+    --table-border-color: var(--input-border-color);
+
+    --dock-border-color: hsl(0, 0%, 17%);
+    --dock-tab-color: hsl(0, 0%, 14%);
+    --dock-tab-active-color: var(--background-color);
+}
+
+/* React Root Element */
+
+#phantasmal_world_root--3KCHT {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+}
+
+* {
+    scrollbar-color: var(--scrollbar-thumb-color) var(--scrollbar-color);
+
+    /* Turn off antd animations by turning all animations off. */
+    animation-duration: 0s !important;
+    transition-duration: 0s !important;
+}
+
+::-webkit-scrollbar {
+    background-color: var(--scrollbar-color);
+}
+
+::-webkit-scrollbar-track {
+    background-color: var(--scrollbar-color);
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: var(--scrollbar-thumb-color);
+}
+
+::-webkit-scrollbar-corner {
+    background-color: var(--scrollbar-color);
+}
+
+body {
+    overflow: hidden; /* Necessary for golden layout. */
+}
+
+/* react-virtualized */
+
+#phantasmal_world_root--3KCHT .ReactVirtualized__Grid {
+    outline: none;
+}
+
+#phantasmal_world_root--3KCHT .ReactVirtualized__Table__headerRow {
+    text-transform: none;
+}
+
+#phantasmal_world_root--3KCHT .ant-tabs-bar {
+    margin: 0;
+}
+
+/* golden-layout */
+
+#phantasmal_world_root--3KCHT .lm_header {
+    background: var(--dock-border-color);
+}
+
+#phantasmal_world_root--3KCHT .lm_goldenlayout {
+    background: var(--dock-border-color);
+}
+
+#phantasmal_world_root--3KCHT .lm_content {
+    background: var(--background-color);
+}
+
+#phantasmal_world_root--3KCHT .lm_tab {
+    height: 26px;
+    line-height: 26px;
+    font-size: 12px;
+    padding: 0 16px;
+    margin: 2px 0 0 0;
+    background: var(--dock-tab-color);
+    box-shadow: none;
+}
+
+#phantasmal_world_root--3KCHT .lm_tab.lm_active {
+    background: var(--dock-tab-active-color);
+}
+
+#phantasmal_world_root--3KCHT .lm_controls {
+    top: 6px;
+    right: 6px;
+}
+
+.main--2qM2M {
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+}
+
+.navbar--j8ubN {
+    display: flex;
+    border-bottom: solid 1px var(--border-color-split);
+}
+
+.heading_menu--2MFxl {
+    flex: 1;
+    margin-bottom: -1px !important;
+}
+
+.server_select--Ht6Xf {
+    display: flex;
+    align-items: center;
+    margin: 0 6px;
+}
+
+.server_select--Ht6Xf > span {
+    display: inline-block;
+    margin-right: 10px;
+}
+
+.beta--3xQ4S {
+    color: #f55656;
+    font-weight: bold;
+}
+
+.content--2enZx {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    overflow: hidden;
+}
+
+.content--2enZx > * {
+    flex: 1;
+    overflow: hidden;
+}
+
+.main--17lBR.Select > .Select-control {
+    cursor: pointer;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    height: 28px;
+    border-color: var(--input-border-color);
+    border-radius: 0;
+}
+
+.main--17lBR.Select .Select-control .Select-value .Select-value-label {
+    color: white !important;
+}
+
+.main--17lBR.Select .Select-placeholder,
+.main--17lBR.Select .Select--single > .Select-control .Select-value {
+    line-height: 28px;
+}
+
+.main--17lBR.Select .Select-input {
+    height: 26px;
+}
+
+.main--17lBR.Select:hover > .Select-control {
+    border-color: var(--hover-color);
+}
+
+.main--17lBR.Select.is-focused > .Select-control {
+    background-color: var(--background-color);
+    border-color: var(--hover-color);
+}
+
+.main--17lBR.Select.is-focused:not(.is-open) > .Select-control {
+    background-color: var(--background-color);
+    border-color: var(--hover-color);
+}
+
+.main--17lBR.Select > .Select-menu-outer {
+    margin-top: 0;
+    background-color: var(--background-color);
+    border-color: var(--border-color);
+}
+
+.main--pmmFA {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow: hidden;
+}
+
+.main--pmmFA > * {
+    margin-top: 10%;
+}
+
+.main--3PUEC {
+    display: flex;
+    align-items: stretch;
+    overflow: hidden;
+    margin-top: 10px;
+}
+
+.main--3PUEC > .ant-tabs {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.main--3PUEC > .ant-tabs > .ant-tabs-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.main--3PUEC > .ant-tabs > .ant-tabs-content > .ant-tabs-tabpane-active {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.main--1wyoT {
+    /*
+    position: relative; necessary to avoid background and border disappearing while antd animates
+    dropdowns in Chrome. No idea why this prevents it...
+    */
+    position: relative;
+    border: solid 1px var(--table-border-color);
+    background-color: var(--foreground-color);
+}
+
+.main--1wyoT * {
+    scrollbar-color: var(--table-scrollbar-thumb-color) var(--table-scrollbar-color);
+}
+
+.main--1wyoT ::-webkit-scrollbar {
+    background-color: var(--table-scrollbar-color);
+}
+
+.main--1wyoT ::-webkit-scrollbar-track {
+    background-color: var(--table-scrollbar-color);
+}
+
+.main--1wyoT ::-webkit-scrollbar-thumb {
+    background-color: var(--table-scrollbar-thumb-color);
+}
+
+.main--1wyoT ::-webkit-scrollbar-corner {
+    background-color: var(--table-scrollbar-color);
+}
+
+.header--Qajp3 {
+    user-select: none;
+    background-color: hsl(0, 0%, 32%);
+    font-weight: bold;
+}
+
+.header--Qajp3 .cell--1wlis {
+    border-right: solid 1px var(--table-border-color);
+}
+
+.header--Qajp3 .cell--1wlis.sortable--3H_bk {
+    cursor: pointer;
+}
+
+.header--Qajp3 .cell--1wlis .sort_indictator--1mimJ {
+    fill: currentColor;
+}
+
+.cell--1wlis {
+    display: flex;
+    align-items: center;
+    box-sizing: border-box;
+    padding: 0 5px;
+    border-bottom: solid 1px var(--table-border-color);
+    border-right: solid 1px hsl(0, 0%, 29%);
+}
+
+.cell--1wlis.last_in_row--3rCr- {
+    border-right: solid 1px var(--table-border-color);
+}
+
+.cell--1wlis.number {
+    justify-content: flex-end;
+}
+
+.cell--1wlis.footer_cell--17iMy {
+    font-weight: bold;
+}
+
+.cell--1wlis.custom--2f4EP {
+    padding: 0;
+}
+
+.cell--1wlis > .cell_text--xB_Yt {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.cell--1wlis > .ant-time-picker {
+    /* Cover the default borders. */
+    margin: -1px;
+    height: calc(100% + 2px);
+}
+
+/* Make sure the glowing border is entirely visible. */
+.cell--1wlis > .ant-time-picker:hover {
+    z-index: 10;
+}
+
+.cell--1wlis > .ant-time-picker input {
+    height: 100%;
+}
+
+.no_result--2U6tw {
+    margin: 20px;
+    color: var(--text-color-disabled);
+}
+
+.main--2-Bej {
+    flex: 1;
+}
+
+.timepicker--b-2mx .ant-time-picker-icon {
+    display: none;
+}
+
+.main--GggVa {
+    display: flex;
+    flex-direction: column;
+}
+
+.table--37vMg {
+    flex: 1;
+}
+
+.sid_col--38D_W {
+    display: inline-block;
+    overflow: hidden;
+    white-space: nowrap;
+    height: 20px;
+    margin: 0 3px;
+}
+
+.main--2sB9G {
+    flex: 1;
+    display: flex;
+    align-items: stretch;
+    padding-top: 5px;
+}
+
+.main--2sB9G > *:nth-child(2) {
+    flex: 1;
+    overflow: hidden;
+}
+
+.main--2swWt {
+    display: flex;
+    flex-direction: column;
+    margin: 0 10px;
+}
+
+.top_bar--3Hrv2 {
+    display: flex;
+}
+
+.table--bVxXg {
+    position: relative;
+    flex: 1;
+    margin: 10px 0 0 -10px;
+}
+
+.no_rows--1CvG1 {
+    padding: 5px 20px;
+    color: var(--text-color-disabled);
+}
+
+.help--1xQED {
+    max-width: 500px;
+}
+
+.main--3Fs71 {
+    width: 100%;
+    height: 100%;
+}
+
+.main--17GtD {
+    color: var(--text-color-disabled);
+    padding: 5px 0;
+}
+
+.main--z-Lop {
+    width: 100%;
+    height: 100%;
+    padding: 2px 10px 10px 10px;
+    display: flex;
+    flex-direction: column;
+    overflow: auto;
+}
+
+.table--m0xCU {
+    border-collapse: collapse;
+}
+
+.table--m0xCU th:not([colspan]) {
+    width: 65px;
+}
+
+.coord_label--3d8gP {
+    padding: 0px 5px 0px 10px;
+}
+
+.coord--1YxOh {
+    width: 100px !important;
+}
+
+.coord--1YxOh input {
+    text-align: right;
+    padding-right: 24px !important;
+}
+
+.main--3DTLh {
+    display: flex;
+    flex-direction: column;
+}
+
+.content--1o-Fs {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+}
+
+.main--yncUt {
+    height: 100%;
+    width: 100%;
+    padding: 2px 10px 10px 10px;
+    display: flex;
+    flex-direction: column;
+    overflow: auto;
+}
+
+.main--yncUt table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+.main--yncUt textarea {
+    font-family: 'Courier New', Courier, monospace
+}
+
+.npc_counts_container--YPY2d {
+    overflow: auto;
+    min-height: 50px;
+    margin-top: 5px;
+}
+.main--i1V9g {
+    display: flex;
+    padding: 6px 3px;
+}
+
+.main--i1V9g > * {
+    margin: 0 3px;
+}
+
+.main--2F3RS {
+    margin: 0 10px;
+}
+
+.main--2F3RS > ul {
+    height: 100%;
+    padding: 0;
+    margin: 0;
+    overflow-y: scroll;
+    list-style-type: none;
+}
+
+.main--2F3RS > ul > li {
+    cursor: pointer;
+    padding: 2px 5px;
+    white-space: nowrap;
+}
+
+.main--2F3RS > ul > li.selected--1tjCY {
+    color: var(--hover-color);
+}
+
+.main--2F3RS > ul > li:hover {
+    color: var(--hover-color);
+}
+
+.main--1haT3 {
+    margin: 0 10px;
+}
+
+.model--3xEBm {
+    cursor: pointer;
+}
+
+.model--3xEBm.selected--1pDDd {
+    color: var(--hover-color);
+}
+
+.model--3xEBm:hover {
+    color: --hover-color;
+}
+
+.main--3DEhu {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+}
+
+.toolbar--2u_HJ {
+    display: flex;
+    padding: 10px 5px;
+    align-items: center;
+}
+
+.toolbar--2u_HJ > * {
+    margin: 0 5px;
+}
+
+.toolbar--2u_HJ .group--3AQfM {
+    display: flex;
+    align-items: center;
+}
+
+.toolbar--2u_HJ .group--3AQfM > * {
+    margin: 0 5px;
+}
+
+.content--3TrZL {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+}
+
+.renderer--1yL53 {
+    flex: 1;
+}
+
+.main--1zk0T {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+}
+
+.toolbar--3Dft7 {
+    margin: 10px;
+}
+
+.renderer--1gjMU {
+    flex: 1;
+}
+
+.main--2WnKf {
+    display: flex;
+    padding-top: 10px;
+    overflow: hidden;
+}
+
+.main--2WnKf > .ant-tabs {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.main--2WnKf > .ant-tabs > .ant-tabs-content {
+    flex: 1;
+    overflow: hidden;
+}
+
+.main--2WnKf > .ant-tabs > .ant-tabs-content > .ant-tabs-tabpane-active {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
