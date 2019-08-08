@@ -27,7 +27,7 @@
     },
     "scripts": {
         "start": "webpack-dev-server --port 1623 --config webpack.dev.js",
-        "buildweb": "webpack --config webpack.prod.js",
+        "build": "webpack --config webpack.prod.js",
         "test": "jest",
         "update_generic_data": "ts-node --project=tsconfig-scripts.json assets_generation/update_generic_data.ts",
         "update_ephinea_data": "ts-node --project=tsconfig-scripts.json assets_generation/update_ephinea_data.ts",
