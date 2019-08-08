@@ -143,6 +143,16 @@ export class AssemblyLexer {
             const char = this.peek();
             let token: Token;
 
+            if ("/" === char) {
+                this.skip();
+
+                if ("/" === this.peek()) {
+                    break;
+                } else {
+                    this.back();
+                }
+            }
+
             if (/\s/.test(char)) {
                 this.skip();
                 continue;
@@ -380,8 +390,17 @@ export class AssemblyLexer {
         this.mark();
 
         while (this.has_next()) {
-            if (/[\s,]/.test(this.peek())) {
+            const char = this.peek();
+
+            if (/[\s,]/.test(char)) {
                 break;
+            } else if ("/" === char) {
+                this.skip();
+
+                if (this.peek() === "/") {
+                    this.back();
+                    break;
+                }
             } else {
                 this.skip();
             }

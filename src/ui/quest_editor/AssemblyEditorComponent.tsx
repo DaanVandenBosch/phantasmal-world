@@ -36,7 +36,7 @@ const ASM_SYNTAX: languages.IMonarchLanguage = {
             // Whitespace.
             [/[ \t\r\n]+/, "white"],
             // [/\/\*/, "comment", "@comment"],
-            // [/\/\/.*$/, "comment"],
+            [/\/\/.*$/, "comment"],
 
             // Delimiters.
             [/,/, "delimiter"],
@@ -113,6 +113,9 @@ languages.setLanguageConfiguration("psoasm", {
     },
     autoClosingPairs: [{ open: '"', close: '"' }],
     surroundingPairs: [{ open: '"', close: '"' }],
+    comments: {
+        lineComment: "//",
+    },
 });
 
 editor.defineTheme("phantasmal-world", {

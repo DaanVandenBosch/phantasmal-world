@@ -19,6 +19,8 @@ Features that are in ***bold italics*** are planned and not yet implemented.
   - Save as dialog to choose name
 - Support for .qst (BB, ***GC***, ***PC***, ***DC***)
 - ***Notify user when and why quest saving fails***
+- Custom text-based format
+  - Usable with SCM tools
 
 ## Undo/Redo
 
@@ -111,6 +113,7 @@ Features that are in ***bold italics*** are planned and not yet implemented.
 - ***Show instruction documentation on hover over***
 - ***Show reserved register usage on hover over***
 - ***When saving, ask user whether to really save when asm contains errors***
+- ***Theme selection***
 
 ## Enemy Waves
 
