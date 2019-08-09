@@ -1,54 +1,47 @@
 import { observable } from "mobx";
-import {
-    Difficulties,
-    Difficulty,
-    EnemyDrop,
-    NpcType,
-    SectionId,
-    SectionIds,
-    Server,
-} from "../domain";
-import { NpcTypes } from "../domain/NpcType";
+import { Difficulties, Difficulty, EnemyDrop, SectionId, SectionIds, Server } from "../domain";
 import { EnemyDropDto } from "../dto";
 import { Loadable } from "../Loadable";
 import { item_type_stores } from "./ItemTypeStore";
 import { ServerMap } from "./ServerMap";
 import Logger from "js-logger";
+import { NpcType } from "../data_formats/parsing/quest/npc_types";
 
 const logger = Logger.get("stores/ItemDropStore");
 
 export class EnemyDropTable {
     // Mapping of difficulties to section IDs to NpcTypes to EnemyDrops.
-    private table: EnemyDrop[] = new Array(
-        Difficulties.length * SectionIds.length * NpcTypes.length
-    );
+    private table: EnemyDrop[][][] = [];
 
     // Mapping of ItemType ids to EnemyDrops.
     private item_type_to_drops: EnemyDrop[][] = [];
 
+    constructor() {
+        for (let i = 0; i < Difficulties.length; i++) {
+            const diff_array: EnemyDrop[][] = [];
+            this.table.push(diff_array);
+
+            for (let j = 0; j < SectionIds.length; j++) {
+                diff_array.push([]);
+            }
+        }
+    }
+
     get_drop(
         difficulty: Difficulty,
         section_id: SectionId,
-        npc_type: NpcType
+        npc_type: NpcType,
     ): EnemyDrop | undefined {
-        return this.table[
-            difficulty * SectionIds.length * NpcTypes.length +
-                section_id * NpcTypes.length +
-                npc_type.id
-        ];
+        return this.table[difficulty][section_id][npc_type];
     }
 
     set_drop(
         difficulty: Difficulty,
         section_id: SectionId,
         npc_type: NpcType,
-        drop: EnemyDrop
+        drop: EnemyDrop,
     ): void {
-        this.table[
-            difficulty * SectionIds.length * NpcTypes.length +
-                section_id * NpcTypes.length +
-                npc_type.id
-        ] = drop;
+        this.table[difficulty][section_id][npc_type] = drop;
 
         let drops = this.item_type_to_drops[drop.item_type.id];
 
@@ -77,18 +70,18 @@ export const item_drop_stores: ServerMap<Loadable<ItemDropStore>> = new ServerMa
 async function load(store: ItemDropStore, server: Server): Promise<ItemDropStore> {
     const item_type_store = await item_type_stores.current.promise;
     const response = await fetch(
-        `${process.env.PUBLIC_URL}/enemyDrops.${Server[server].toLowerCase()}.json`
+        `${process.env.PUBLIC_URL}/enemyDrops.${Server[server].toLowerCase()}.json`,
     );
     const data: EnemyDropDto[] = await response.json();
 
     const drops = new EnemyDropTable();
 
     for (const drop_dto of data) {
-        const npc_type = NpcType.by_code(drop_dto.enemy);
+        const npc_type = (NpcType as any)[drop_dto.enemy];
 
         if (!npc_type) {
             logger.warn(
-                `Couldn't determine NpcType of episode ${drop_dto.episode} ${drop_dto.enemy}.`
+                `Couldn't determine NpcType of episode ${drop_dto.episode} ${drop_dto.enemy}.`,
             );
             continue;
         }
@@ -118,8 +111,8 @@ async function load(store: ItemDropStore, server: Server): Promise<ItemDropStore
                 npc_type,
                 item_type,
                 drop_dto.dropRate,
-                drop_dto.rareRate
-            )
+                drop_dto.rareRate,
+            ),
         );
     }
 

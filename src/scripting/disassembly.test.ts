@@ -1,5 +1,5 @@
 import { readFileSync } from "fs";
-import { Endianness } from "../data_formats";
+import { Endianness } from "../data_formats/Endianness";
 import { prs_decompress } from "../data_formats/compression/prs/decompress";
 import { ArrayBufferCursor } from "../data_formats/cursor/ArrayBufferCursor";
 import { BufferCursor } from "../data_formats/cursor/BufferCursor";

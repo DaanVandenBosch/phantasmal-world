@@ -1,6 +1,6 @@
 import { walk_qst_files } from "../../../../test/src/utils";
 import { parse_qst, write_qst } from "./qst";
-import { Endianness } from "../..";
+import { Endianness } from "../../Endianness";
 import { BufferCursor } from "../../cursor/BufferCursor";
 import { ArrayBufferCursor } from "../../cursor/ArrayBufferCursor";
 

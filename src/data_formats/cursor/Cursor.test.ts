@@ -1,4 +1,4 @@
-import { Endianness } from "..";
+import { Endianness } from "../Endianness";
 import { enum_values } from "../../enums";
 import { ResizableBuffer } from "../ResizableBuffer";
 import { ArrayBufferCursor } from "./ArrayBufferCursor";

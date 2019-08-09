@@ -2,7 +2,7 @@ import { observable } from "mobx";
 import { Xvm, parse_xvm } from "../data_formats/parsing/ninja/texture";
 import { ArrayBufferCursor } from "../data_formats/cursor/ArrayBufferCursor";
 import { read_file } from "../read_file";
-import { Endianness } from "../data_formats";
+import { Endianness } from "../data_formats/Endianness";
 import Logger from "js-logger";
 
 const logger = Logger.get("stores/TextureViewerStore");

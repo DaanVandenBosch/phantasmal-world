@@ -1,16 +1,16 @@
 import { autorun } from "mobx";
 import { Intersection, Mesh, MeshLambertMaterial, Plane, Raycaster, Vector2, Vector3 } from "three";
 import { Vec3 } from "../data_formats/vector";
-import { QuestEntity, QuestNpc, Section } from "../domain";
 import { quest_editor_store } from "../stores/QuestEditorStore";
 import { AreaUserData } from "./conversion/areas";
 import { ColorType, EntityUserData, NPC_COLORS, OBJECT_COLORS } from "./conversion/entities";
 import { QuestRenderer } from "./QuestRenderer";
+import { ObservableQuestEntity, ObservableQuestNpc, Section } from "../domain";
 
 const DOWN_VECTOR = new Vector3(0, -1, 0);
 
 type Highlighted = {
-    entity: QuestEntity;
+    entity: ObservableQuestEntity;
     mesh: Mesh;
 };
 
@@ -22,7 +22,7 @@ type Pick = {
 };
 
 type PickResult = Pick & {
-    entity: QuestEntity;
+    entity: ObservableQuestEntity;
     mesh: Mesh;
 };
 
@@ -203,7 +203,7 @@ export class QuestEntityControls {
     private translate_vertically(
         selection: Highlighted,
         pick: Pick,
-        pointer_position: Vector2
+        pointer_position: Vector2,
     ): void {
         // We intersect with a plane that's oriented toward the camera and that's coplanar with the point where the entity was grabbed.
         this.raycaster.setFromCamera(pointer_position, this.renderer.camera);
@@ -212,7 +212,7 @@ export class QuestEntityControls {
         const negative_world_dir = this.renderer.camera.getWorldDirection(new Vector3()).negate();
         const plane = new Plane().setFromNormalAndCoplanarPoint(
             new Vector3(negative_world_dir.x, 0, negative_world_dir.z).normalize(),
-            selection.mesh.position.sub(pick.grab_offset)
+            selection.mesh.position.sub(pick.grab_offset),
         );
 
         const intersection_point = new Vector3();
@@ -225,7 +225,7 @@ export class QuestEntityControls {
             selection.entity.position = new Vec3(
                 selection.entity.position.x,
                 y,
-                selection.entity.position.z
+                selection.entity.position.z,
             );
         }
     }
@@ -233,7 +233,7 @@ export class QuestEntityControls {
     private translate_horizontally(
         selection: Highlighted,
         pick: Pick,
-        pointer_position: Vector2
+        pointer_position: Vector2,
     ): void {
         // Cast ray adjusted for dragging entities.
         const { intersection, section } = this.pick_terrain(pointer_position, pick);
@@ -243,9 +243,9 @@ export class QuestEntityControls {
                 new Vec3(
                     intersection.point.x,
                     intersection.point.y + pick.drag_y,
-                    intersection.point.z
+                    intersection.point.z,
                 ),
-                section
+                section,
             );
         } else {
             // If the cursor is not over any terrain, we translate the entity accross the horizontal plane in which the entity's origin lies.
@@ -254,7 +254,7 @@ export class QuestEntityControls {
             // ray.origin.add(data.dragAdjust);
             const plane = new Plane(
                 new Vector3(0, 1, 0),
-                -selection.entity.position.y + pick.grab_offset.y
+                -selection.entity.position.y + pick.grab_offset.y,
             );
             const intersection_point = new Vector3();
 
@@ -262,7 +262,7 @@ export class QuestEntityControls {
                 selection.entity.position = new Vec3(
                     intersection_point.x + pick.grab_offset.x,
                     selection.entity.position.y,
-                    intersection_point.z + pick.grab_offset.z
+                    intersection_point.z + pick.grab_offset.z,
                 );
             }
         }
@@ -274,7 +274,7 @@ export class QuestEntityControls {
             quest_editor_store.push_entity_move_action(
                 entity,
                 this.pick.initial_position,
-                entity.position
+                entity.position,
             );
         }
 
@@ -288,7 +288,7 @@ export class QuestEntityControls {
         // Find the nearest object and NPC under the pointer.
         this.raycaster.setFromCamera(pointer_position, this.renderer.camera);
         const [intersection] = this.raycaster.intersectObjects(
-            this.renderer.entity_models.children
+            this.renderer.entity_models.children,
         );
 
         if (!intersection) {
@@ -307,7 +307,7 @@ export class QuestEntityControls {
         this.raycaster.set(intersection.object.position, DOWN_VECTOR);
         const [collision_geom_intersection] = this.raycaster.intersectObjects(
             this.renderer.collision_geometry.children,
-            true
+            true,
         );
 
         if (collision_geom_intersection) {
@@ -330,7 +330,7 @@ export class QuestEntityControls {
      */
     private pick_terrain(
         pointer_pos: Vector2,
-        data: Pick
+        data: Pick,
     ): {
         intersection?: Intersection;
         section?: Section;
@@ -339,7 +339,7 @@ export class QuestEntityControls {
         this.raycaster.ray.origin.add(data.drag_adjust);
         const intersections = this.raycaster.intersectObjects(
             this.renderer.collision_geometry.children,
-            true
+            true,
         );
 
         // Don't allow entities to be placed on very steep terrain.
@@ -359,7 +359,7 @@ export class QuestEntityControls {
 }
 
 function set_color({ entity, mesh }: Highlighted, type: ColorType): void {
-    const color = entity instanceof QuestNpc ? NPC_COLORS[type] : OBJECT_COLORS[type];
+    const color = entity instanceof ObservableQuestNpc ? NPC_COLORS[type] : OBJECT_COLORS[type];
 
     if (mesh) {
         if (Array.isArray(mesh.material)) {

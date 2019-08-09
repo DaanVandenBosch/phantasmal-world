@@ -1,5 +1,5 @@
 import Logger from "js-logger";
-import { Endianness } from "../..";
+import { Endianness } from "../../Endianness";
 import { ControlFlowGraph } from "../../../scripting/data_flow_analysis/ControlFlowGraph";
 import { register_value } from "../../../scripting/data_flow_analysis/register_value";
 import { stack_value } from "../../../scripting/data_flow_analysis/stack_value";
@@ -567,18 +567,19 @@ function parse_instructions_segment(
 
     // Recurse on label drop-through.
     if (next_label != undefined) {
-        // Find the first non-nop.
-        let last_opcode: Opcode | undefined;
+        // Find the first ret or jmp.
+        let drop_through = true;
 
         for (let i = instructions.length - 1; i >= 0; i--) {
-            last_opcode = instructions[i].opcode;
+            const opcode = instructions[i].opcode;
 
-            if (last_opcode !== Opcode.NOP) {
+            if (opcode === Opcode.RET || opcode === Opcode.JMP) {
+                drop_through = false;
                 break;
             }
         }
 
-        if (last_opcode !== Opcode.RET && last_opcode !== Opcode.JMP) {
+        if (drop_through) {
             parse_segment(
                 offset_to_segment,
                 label_holder,

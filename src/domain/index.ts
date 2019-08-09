@@ -1,15 +1,15 @@
-import { action, computed, observable } from "mobx";
+import { action, computed, IObservableArray, observable } from "mobx";
 import { DatUnknown } from "../data_formats/parsing/quest/dat";
+import { EntityType } from "../data_formats/parsing/quest/entities";
+import { check_episode, Episode } from "../data_formats/parsing/quest/Episode";
 import { Vec3 } from "../data_formats/vector";
 import { enum_values } from "../enums";
 import { Segment } from "../scripting/instructions";
 import { ItemType } from "./items";
-import { NpcType } from "./NpcType";
-import { ObjectType } from "./ObjectType";
+import { ObjectType } from "../data_formats/parsing/quest/object_types";
+import { NpcType } from "../data_formats/parsing/quest/npc_types";
 
 export * from "./items";
-export * from "./NpcType";
-export * from "./ObjectType";
 
 export const RARE_ENEMY_PROB = 1 / 512;
 export const KONDRIEU_PROB = 1 / 10;
@@ -19,20 +19,6 @@ export enum Server {
 }
 
 export const Servers: Server[] = enum_values(Server);
-
-export enum Episode {
-    I = 1,
-    II = 2,
-    IV = 4,
-}
-
-export const Episodes: Episode[] = enum_values(Episode);
-
-export function check_episode(episode: Episode): void {
-    if (Episode[episode] == undefined) {
-        throw new Error(`Invalid episode ${episode}.`);
-    }
-}
 
 export enum SectionId {
     Viridia,
@@ -69,7 +55,7 @@ export class Section {
         if (!Number.isInteger(id) || id < -1)
             throw new Error(`Expected id to be an integer greater than or equal to -1, got ${id}.`);
         if (!position) throw new Error("position is required.");
-        if (typeof y_axis_rotation !== "number") throw new Error("y_axis_rotation is required.");
+        if (!Number.isFinite(y_axis_rotation)) throw new Error("y_axis_rotation is required.");
 
         this.id = id;
         this.position = position;
@@ -79,7 +65,7 @@ export class Section {
     }
 }
 
-export class Quest {
+export class ObservableQuest {
     @observable private _id!: number;
 
     get id(): number {
@@ -145,9 +131,12 @@ export class Quest {
 
     readonly episode: Episode;
 
-    @observable readonly area_variants: AreaVariant[];
-    @observable readonly objects: QuestObject[];
-    @observable readonly npcs: QuestNpc[];
+    /**
+     * One variant per area.
+     */
+    @observable readonly area_variants: ObservableAreaVariant[];
+    @observable readonly objects: ObservableQuestObject[];
+    @observable readonly npcs: ObservableQuestNpc[];
     /**
      * (Partial) raw DAT data that can't be parsed yet by Phantasmal.
      */
@@ -162,17 +151,17 @@ export class Quest {
         short_description: string,
         long_description: string,
         episode: Episode,
-        area_variants: AreaVariant[],
-        objects: QuestObject[],
-        npcs: QuestNpc[],
+        area_variants: ObservableAreaVariant[],
+        objects: ObservableQuestObject[],
+        npcs: ObservableQuestNpc[],
         dat_unknowns: DatUnknown[],
         object_code: Segment[],
-        shop_items: number[]
+        shop_items: number[],
     ) {
         check_episode(episode);
         if (!area_variants) throw new Error("area_variants is required.");
-        if (!objects || !(objects instanceof Array)) throw new Error("objs is required.");
-        if (!npcs || !(npcs instanceof Array)) throw new Error("npcs is required.");
+        if (!Array.isArray(objects)) throw new Error("objs is required.");
+        if (!Array.isArray(npcs)) throw new Error("npcs is required.");
         if (!dat_unknowns) throw new Error("dat_unknowns is required.");
         if (!object_code) throw new Error("object_code is required.");
         if (!shop_items) throw new Error("shop_items is required.");
@@ -192,21 +181,15 @@ export class Quest {
     }
 }
 
-export interface EntityType {
-    readonly id: number;
-    readonly code: string;
-    readonly name: string;
-}
-
 /**
- * Abstract class from which QuestNpc and QuestObject derive.
+ * Abstract class from which ObservableQuestNpc and ObservableQuestObject derive.
  */
-export abstract class QuestEntity<Type extends EntityType = EntityType> {
+export abstract class ObservableQuestEntity<Type extends EntityType = EntityType> {
     readonly type: Type;
 
     @observable area_id: number;
 
-    private _section_id: number;
+    private readonly _section_id: number;
 
     @computed get section_id(): number {
         return this.section ? this.section.id : this._section_id;
@@ -260,15 +243,15 @@ export abstract class QuestEntity<Type extends EntityType = EntityType> {
         }
     }
 
-    constructor(
+    protected constructor(
         type: Type,
         area_id: number,
         section_id: number,
         position: Vec3,
         rotation: Vec3,
-        scale: Vec3
+        scale: Vec3,
     ) {
-        if (!type) throw new Error("type is required.");
+        if (type == undefined) throw new Error("type is required.");
         if (!Number.isInteger(area_id) || area_id < 0)
             throw new Error(`Expected area_id to be a non-negative integer, got ${area_id}.`);
         if (!Number.isInteger(section_id) || section_id < 0)
@@ -292,7 +275,7 @@ export abstract class QuestEntity<Type extends EntityType = EntityType> {
     }
 }
 
-export class QuestObject extends QuestEntity<ObjectType> {
+export class ObservableQuestObject extends ObservableQuestEntity<ObjectType> {
     @observable type: ObjectType;
     /**
      * Data of which the purpose hasn't been discovered yet.
@@ -306,7 +289,7 @@ export class QuestObject extends QuestEntity<ObjectType> {
         position: Vec3,
         rotation: Vec3,
         scale: Vec3,
-        unknown: number[][]
+        unknown: number[][],
     ) {
         super(type, area_id, section_id, position, rotation, scale);
 
@@ -315,7 +298,7 @@ export class QuestObject extends QuestEntity<ObjectType> {
     }
 }
 
-export class QuestNpc extends QuestEntity<NpcType> {
+export class ObservableQuestNpc extends ObservableQuestEntity<NpcType> {
     @observable type: NpcType;
     pso_type_id: number;
     pso_skin: number;
@@ -333,7 +316,7 @@ export class QuestNpc extends QuestEntity<NpcType> {
         position: Vec3,
         rotation: Vec3,
         scale: Vec3,
-        unknown: number[][]
+        unknown: number[][],
     ) {
         super(type, area_id, section_id, position, rotation, scale);
 
@@ -344,13 +327,16 @@ export class QuestNpc extends QuestEntity<NpcType> {
     }
 }
 
-export class Area {
-    id: number;
-    name: string;
-    order: number;
-    area_variants: AreaVariant[];
+export class ObservableArea {
+    /**
+     * Matches the PSO ID.
+     */
+    readonly id: number;
+    readonly name: string;
+    readonly order: number;
+    readonly area_variants: ObservableAreaVariant[];
 
-    constructor(id: number, name: string, order: number, area_variants: AreaVariant[]) {
+    constructor(id: number, name: string, order: number, area_variants: ObservableAreaVariant[]) {
         if (!Number.isInteger(id) || id < 0)
             throw new Error(`Expected id to be a non-negative integer, got ${id}.`);
         if (!name) throw new Error("name is required.");
@@ -363,12 +349,17 @@ export class Area {
     }
 }
 
-export class AreaVariant {
-    @observable.shallow sections: Section[] = [];
+export class ObservableAreaVariant {
+    readonly id: number;
+    readonly area: ObservableArea;
+    @observable.shallow readonly sections: IObservableArray<Section> = observable.array();
 
-    constructor(public id: number, public area: Area) {
+    constructor(id: number, area: ObservableArea) {
         if (!Number.isInteger(id) || id < 0)
             throw new Error(`Expected id to be a non-negative integer, got ${id}.`);
+
+        this.id = id;
+        this.area = area;
     }
 }
 
@@ -387,7 +378,7 @@ export class EnemyDrop implements ItemDrop {
         readonly npc_type: NpcType,
         readonly item_type: ItemType,
         readonly anything_rate: number,
-        readonly rare_rate: number
+        readonly rare_rate: number,
     ) {
         this.rate = anything_rate * rare_rate;
     }
@@ -429,10 +420,10 @@ export class HuntMethod {
 
 export class SimpleQuest {
     constructor(
-        public readonly id: number,
-        public readonly name: string,
-        public readonly episode: Episode,
-        public readonly enemy_counts: Map<NpcType, number>
+        readonly id: number,
+        readonly name: string,
+        readonly episode: Episode,
+        readonly enemy_counts: Map<NpcType, number>,
     ) {
         if (!id) throw new Error("id is required.");
         if (!name) throw new Error("name is required.");
@@ -442,13 +433,13 @@ export class SimpleQuest {
 
 export class PlayerModel {
     constructor(
-        public readonly name: string,
-        public readonly head_style_count: number,
-        public readonly hair_styles_count: number,
-        public readonly hair_styles_with_accessory: Set<number>
+        readonly name: string,
+        readonly head_style_count: number,
+        readonly hair_styles_count: number,
+        readonly hair_styles_with_accessory: Set<number>,
     ) {}
 }
 
 export class PlayerAnimation {
-    constructor(public readonly id: number, public readonly name: string) {}
+    constructor(readonly id: number, readonly name: string) {}
 }

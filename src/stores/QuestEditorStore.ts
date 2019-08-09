@@ -1,15 +1,24 @@
 import Logger from "js-logger";
 import { action, flow, observable } from "mobx";
-import { Endianness } from "../data_formats";
+import { Endianness } from "../data_formats/Endianness";
 import { ArrayBufferCursor } from "../data_formats/cursor/ArrayBufferCursor";
 import { parse_quest, write_quest_qst } from "../data_formats/parsing/quest";
 import { Vec3 } from "../data_formats/vector";
-import { Area, Episode, Quest, QuestEntity, Section } from "../domain";
+import {
+    ObservableArea,
+    ObservableQuest,
+    ObservableQuestEntity,
+    Section,
+    ObservableQuestObject,
+    ObservableQuestNpc,
+} from "../domain";
 import { read_file } from "../read_file";
 import { SimpleUndo, UndoStack, undo_manager } from "../undo";
 import { application_store } from "./ApplicationStore";
 import { area_store } from "./AreaStore";
 import { create_new_quest } from "./quest_creation";
+import { Episode } from "../data_formats/parsing/quest/Episode";
+import { entity_data } from "../data_formats/parsing/quest/entities";
 
 const logger = Logger.get("stores/QuestEditorStore");
 
@@ -20,23 +29,23 @@ class QuestEditorStore {
     readonly script_undo = new SimpleUndo("Text edits", () => {}, () => {});
 
     @observable current_quest_filename?: string;
-    @observable current_quest?: Quest;
-    @observable current_area?: Area;
+    @observable current_quest?: ObservableQuest;
+    @observable current_area?: ObservableArea;
 
-    @observable selected_entity?: QuestEntity;
+    @observable selected_entity?: ObservableQuestEntity;
 
     @observable save_dialog_filename?: string;
     @observable save_dialog_open: boolean = false;
 
     constructor() {
         application_store.on_global_keyup("quest_editor", "Ctrl-Z", () => {
-            // Let Monaco handle its own keybindings.
+            // Let Monaco handle its own key bindings.
             if (undo_manager.current !== this.script_undo) {
                 undo_manager.undo();
             }
         });
         application_store.on_global_keyup("quest_editor", "Ctrl-Shift-Z", () => {
-            // Let Monaco handle its own keybindings.
+            // Let Monaco handle its own key bindings.
             if (undo_manager.current !== this.script_undo) {
                 undo_manager.redo();
             }
@@ -50,7 +59,7 @@ class QuestEditorStore {
     };
 
     @action
-    set_selected_entity = (entity?: QuestEntity) => {
+    set_selected_entity = (entity?: ObservableQuestEntity) => {
         if (entity) {
             this.set_current_area_id(entity.area_id);
         }
@@ -65,10 +74,7 @@ class QuestEditorStore {
         if (area_id == null) {
             this.current_area = undefined;
         } else if (this.current_quest) {
-            const area_variant = this.current_quest.area_variants.find(
-                variant => variant.area.id === area_id
-            );
-            this.current_area = area_variant && area_variant.area;
+            this.current_area = area_store.get_area(this.current_quest.episode, area_id);
         }
     };
 
@@ -82,7 +88,50 @@ class QuestEditorStore {
         try {
             const buffer = yield read_file(file);
             const quest = parse_quest(new ArrayBufferCursor(buffer, Endianness.Little));
-            this.set_quest(quest, filename);
+            this.set_quest(
+                quest &&
+                    new ObservableQuest(
+                        quest.id,
+                        quest.language,
+                        quest.name,
+                        quest.short_description,
+                        quest.long_description,
+                        quest.episode,
+                        quest.area_variants.map(variant =>
+                            area_store.get_variant(quest.episode, variant.area.id, variant.id),
+                        ),
+                        quest.objects.map(
+                            obj =>
+                                new ObservableQuestObject(
+                                    obj.type,
+                                    obj.area_id,
+                                    obj.section_id,
+                                    obj.position,
+                                    obj.rotation,
+                                    obj.scale,
+                                    obj.unknown,
+                                ),
+                        ),
+                        quest.npcs.map(
+                            npc =>
+                                new ObservableQuestNpc(
+                                    npc.type,
+                                    npc.pso_type_id,
+                                    npc.pso_skin,
+                                    npc.area_id,
+                                    npc.section_id,
+                                    npc.position,
+                                    npc.rotation,
+                                    npc.scale,
+                                    npc.unknown,
+                                ),
+                        ),
+                        quest.dat_unknowns,
+                        quest.object_code,
+                        quest.shop_items,
+                    ),
+                filename,
+            );
         } catch (e) {
             logger.error("Couldn't read file.", e);
         }
@@ -110,8 +159,44 @@ class QuestEditorStore {
     };
 
     save_current_quest_to_file = (file_name: string) => {
-        if (this.current_quest) {
-            const buffer = write_quest_qst(this.current_quest, file_name);
+        const quest = this.current_quest;
+
+        if (quest) {
+            const buffer = write_quest_qst(
+                {
+                    id: quest.id,
+                    language: quest.language,
+                    name: quest.name,
+                    short_description: quest.short_description,
+                    long_description: quest.long_description,
+                    episode: quest.episode,
+                    objects: quest.objects.map(obj => ({
+                        type: obj.type,
+                        area_id: obj.area_id,
+                        section_id: obj.section_id,
+                        position: obj.section_position,
+                        rotation: obj.rotation,
+                        scale: obj.scale,
+                        unknown: obj.unknown,
+                    })),
+                    npcs: quest.npcs.map(npc => ({
+                        type: npc.type,
+                        area_id: npc.area_id,
+                        section_id: npc.section_id,
+                        position: npc.section_position,
+                        rotation: npc.rotation,
+                        scale: npc.scale,
+                        unknown: npc.unknown,
+                        pso_type_id: npc.pso_type_id,
+                        pso_skin: npc.pso_skin,
+                    })),
+                    dat_unknowns: quest.dat_unknowns,
+                    object_code: quest.object_code,
+                    shop_items: quest.shop_items,
+                    area_variants: quest.area_variants,
+                },
+                file_name,
+            );
 
             if (!file_name.endsWith(".qst")) {
                 file_name += ".qst";
@@ -130,9 +215,13 @@ class QuestEditorStore {
     };
 
     @action
-    push_entity_move_action = (entity: QuestEntity, initial_position: Vec3, new_position: Vec3) => {
+    push_entity_move_action = (
+        entity: ObservableQuestEntity,
+        initial_position: Vec3,
+        new_position: Vec3,
+    ) => {
         this.undo.push_action(
-            `Move ${entity.type.name}`,
+            `Move ${entity_data(entity.type).name}`,
             () => {
                 entity.position = initial_position;
                 quest_editor_store.set_selected_entity(entity);
@@ -140,15 +229,15 @@ class QuestEditorStore {
             () => {
                 entity.position = new_position;
                 quest_editor_store.set_selected_entity(entity);
-            }
+            },
         );
     };
 
     @action
     private set_quest = flow(function* set_quest(
         this: QuestEditorStore,
-        quest?: Quest,
-        filename?: string
+        quest?: ObservableQuest,
+        filename?: string,
     ) {
         this.current_quest_filename = filename;
 
@@ -158,8 +247,8 @@ class QuestEditorStore {
             this.selected_entity = undefined;
             this.current_quest = quest;
 
-            if (quest && quest.area_variants.length) {
-                this.current_area = quest.area_variants[0].area;
+            if (quest) {
+                this.current_area = area_store.get_area(quest.episode, 0);
             } else {
                 this.current_area = undefined;
             }
@@ -170,13 +259,13 @@ class QuestEditorStore {
                     const sections = yield area_store.get_area_sections(
                         quest.episode,
                         variant.area.id,
-                        variant.id
+                        variant.id,
                     );
-                    variant.sections = sections;
+                    variant.sections.replace(sections);
 
                     for (const object of quest.objects.filter(o => o.area_id === variant.area.id)) {
                         try {
-                            this.set_section_on_visible_quest_entity(object, sections);
+                            this.set_section_on_quest_entity(object, sections);
                         } catch (e) {
                             logger.error(e);
                         }
@@ -184,7 +273,7 @@ class QuestEditorStore {
 
                     for (const npc of quest.npcs.filter(npc => npc.area_id === variant.area.id)) {
                         try {
-                            this.set_section_on_visible_quest_entity(npc, sections);
+                            this.set_section_on_quest_entity(npc, sections);
                         } catch (e) {
                             logger.error(e);
                         }
@@ -196,7 +285,7 @@ class QuestEditorStore {
         }
     });
 
-    private set_section_on_visible_quest_entity = (entity: QuestEntity, sections: Section[]) => {
+    private set_section_on_quest_entity = (entity: ObservableQuestEntity, sections: Section[]) => {
         let { x, y, z } = entity.position;
 
         const section = sections.find(s => s.id === entity.section_id);

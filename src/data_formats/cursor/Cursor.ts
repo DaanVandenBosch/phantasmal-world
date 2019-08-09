@@ -1,4 +1,4 @@
-import { Endianness } from "..";
+import { Endianness } from "../Endianness";
 import { Vec3, Vec2 } from "../vector";
 
 /**

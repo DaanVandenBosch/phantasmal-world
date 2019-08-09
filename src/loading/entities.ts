@@ -1,14 +1,15 @@
 import { Texture, CylinderBufferGeometry, BufferGeometry } from "three";
-import { ObjectType, NpcType } from "../domain";
 import Logger from "js-logger";
 import { LoadingCache } from "./LoadingCache";
-import { Endianness } from "../data_formats";
+import { Endianness } from "../data_formats/Endianness";
 import { ArrayBufferCursor } from "../data_formats/cursor/ArrayBufferCursor";
 import { ninja_object_to_buffer_geometry } from "../rendering/conversion/ninja_geometry";
 import { parse_nj, parse_xj } from "../data_formats/parsing/ninja";
 import { parse_xvm } from "../data_formats/parsing/ninja/texture";
 import { xvm_to_textures } from "../rendering/conversion/ninja_textures";
 import { load_array_buffer } from "./load_array_buffer";
+import { object_data, ObjectType } from "../data_formats/parsing/quest/object_types";
+import { NpcType } from "../data_formats/parsing/quest/npc_types";
 
 const logger = Logger.get("loading/entities");
 
@@ -16,13 +17,13 @@ const DEFAULT_ENTITY = new CylinderBufferGeometry(3, 3, 20);
 DEFAULT_ENTITY.translate(0, 10, 0);
 
 const DEFAULT_ENTITY_PROMISE: Promise<BufferGeometry> = new Promise(resolve =>
-    resolve(DEFAULT_ENTITY)
+    resolve(DEFAULT_ENTITY),
 );
 
 const DEFAULT_ENTITY_TEX: Texture[] = [];
 
 const DEFAULT_ENTITY_TEX_PROMISE: Promise<Texture[]> = new Promise(resolve =>
-    resolve(DEFAULT_ENTITY_TEX)
+    resolve(DEFAULT_ENTITY_TEX),
 );
 
 const npc_cache = new LoadingCache<NpcType, Promise<BufferGeometry>>();
@@ -69,11 +70,11 @@ export async function load_npc_geometry(npc_type: NpcType): Promise<BufferGeomet
             if (nj_objects.length) {
                 return ninja_object_to_buffer_geometry(nj_objects[0]);
             } else {
-                logger.warn(`Couldn't parse ${url} for ${npc_type.code}.`);
+                logger.warn(`Couldn't parse ${url} for ${NpcType[npc_type]}.`);
                 return DEFAULT_ENTITY;
             }
         } catch (e) {
-            logger.warn(`Couldn't load geometry file for ${npc_type.code}.`, e);
+            logger.warn(`Couldn't load geometry file for ${NpcType[npc_type]}.`, e);
             return DEFAULT_ENTITY;
         }
     });
@@ -87,7 +88,7 @@ export async function load_npc_tex(npc_type: NpcType): Promise<Texture[]> {
             const xvm = parse_xvm(cursor);
             return xvm_to_textures(xvm);
         } catch (e) {
-            logger.warn(`Couldn't load texture file for ${npc_type.code}.`, e);
+            logger.warn(`Couldn't load texture file for ${NpcType[npc_type]}.`, e);
             return DEFAULT_ENTITY_TEX;
         }
     });
@@ -103,11 +104,11 @@ export async function load_object_geometry(object_type: ObjectType): Promise<Buf
             if (nj_objects.length) {
                 return ninja_object_to_buffer_geometry(nj_objects[0]);
             } else {
-                logger.warn(`Couldn't parse ${url} for ${object_type.name}.`);
+                logger.warn(`Couldn't parse ${url} for ${ObjectType[object_type]}.`);
                 return DEFAULT_ENTITY;
             }
         } catch (e) {
-            logger.warn(`Couldn't load geometry file for ${object_type.name}.`, e);
+            logger.warn(`Couldn't load geometry file for ${ObjectType[object_type]}.`, e);
             return DEFAULT_ENTITY;
         }
     });
@@ -121,7 +122,7 @@ export async function load_object_tex(object_type: ObjectType): Promise<Texture[
             const xvm = parse_xvm(cursor);
             return xvm_to_textures(xvm);
         } catch (e) {
-            logger.warn(`Couldn't load texture file for ${object_type.name}.`, e);
+            logger.warn(`Couldn't load texture file for ${ObjectType[object_type]}.`, e);
             return DEFAULT_ENTITY_TEX;
         }
     });
@@ -129,7 +130,7 @@ export async function load_object_tex(object_type: ObjectType): Promise<Texture[
 
 export async function load_npc_data(
     npc_type: NpcType,
-    type: AssetType
+    type: AssetType,
 ): Promise<{ url: string; data: ArrayBuffer }> {
     const url = npc_type_to_url(npc_type, type);
     const data = await load_array_buffer(url);
@@ -138,7 +139,7 @@ export async function load_npc_data(
 
 export async function load_object_data(
     object_type: ObjectType,
-    type: AssetType
+    type: AssetType,
 ): Promise<{ url: string; data: ArrayBuffer }> {
     const url = object_type_to_url(object_type, type);
     const data = await load_array_buffer(url);
@@ -154,7 +155,7 @@ function npc_type_to_url(npc_type: NpcType, type: AssetType): string {
     switch (npc_type) {
         // The dubswitch model is in XJ format.
         case NpcType.Dubswitch:
-            return `/npcs/${npc_type.code}.${type === AssetType.Geometry ? "xj" : "xvm"}`;
+            return `/npcs/${NpcType[npc_type]}.${type === AssetType.Geometry ? "xj" : "xvm"}`;
 
         // Episode II VR Temple
 
@@ -203,7 +204,7 @@ function npc_type_to_url(npc_type: NpcType, type: AssetType): string {
             return npc_type_to_url(NpcType.ChaosSorcerer, type);
 
         default:
-            return `/npcs/${npc_type.code}.${type === AssetType.Geometry ? "nj" : "xvm"}`;
+            return `/npcs/${NpcType[npc_type]}.${type === AssetType.Geometry ? "nj" : "xvm"}`;
     }
 }
 
@@ -226,12 +227,12 @@ function object_type_to_url(object_type: ObjectType, type: AssetType): string {
             case ObjectType.FallingRock:
             case ObjectType.DesertFixedTypeBoxBreakableCrystals:
             case ObjectType.BeeHive:
-                return `/objects/${object_type.pso_id}.nj`;
+                return `/objects/${object_data(object_type).pso_id}.nj`;
 
             default:
-                return `/objects/${object_type.pso_id}.xj`;
+                return `/objects/${object_data(object_type).pso_id}.xj`;
         }
     } else {
-        return `/objects/${object_type.pso_id}.xvm`;
+        return `/objects/${object_data(object_type).pso_id}.xvm`;
     }
 }

@@ -11,7 +11,7 @@ import {
     SkinnedMesh,
     Texture,
 } from "three";
-import { Endianness } from "../data_formats";
+import { Endianness } from "../data_formats/Endianness";
 import { ArrayBufferCursor } from "../data_formats/cursor/ArrayBufferCursor";
 import { NjModel, NjObject, parse_nj, parse_xj } from "../data_formats/parsing/ninja";
 import { NjMotion, parse_njm } from "../data_formats/parsing/ninja/motion";

@@ -1,10 +1,11 @@
 import { Input, InputNumber } from "antd";
 import { observer } from "mobx-react";
 import React, { ChangeEvent, Component, ReactNode } from "react";
-import { Episode, NpcType } from "../../domain";
 import { quest_editor_store } from "../../stores/QuestEditorStore";
 import { DisabledTextComponent } from "../DisabledTextComponent";
 import styles from "./QuestInfoComponent.css";
+import { Episode } from "../../data_formats/parsing/quest/Episode";
+import { npc_data, NpcType } from "../../data_formats/parsing/quest/npc_types";
 
 @observer
 export class QuestInfoComponent extends Component {
@@ -24,14 +25,14 @@ export class QuestInfoComponent extends Component {
 
             const extra_canadines = (npc_counts.get(NpcType.Canane) || 0) * 8;
 
-            // Sort by type ID.
-            const sorted_npc_counts = [...npc_counts].sort((a, b) => a[0].id - b[0].id);
+            // Sort by canonical order.
+            const sorted_npc_counts = [...npc_counts].sort((a, b) => a[0] - b[0]);
 
             const npc_count_rows = sorted_npc_counts.map(([npc_type, count]) => {
                 const extra = npc_type === NpcType.Canadine ? extra_canadines : 0;
                 return (
-                    <tr key={npc_type.id}>
-                        <td>{npc_type.name}:</td>
+                    <tr key={npc_type}>
+                        <td>{npc_data(npc_type).name}:</td>
                         <td>{count + extra}</td>
                     </tr>
                 );

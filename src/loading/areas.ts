@@ -1,5 +1,5 @@
 import { Object3D } from "three";
-import { Endianness } from "../data_formats";
+import { Endianness } from "../data_formats/Endianness";
 import { ArrayBufferCursor } from "../data_formats/cursor/ArrayBufferCursor";
 import { parse_area_collision_geometry } from "../data_formats/parsing/area_collision_geometry";
 import { parse_area_geometry } from "../data_formats/parsing/area_geometry";
@@ -20,46 +20,46 @@ const collision_geometry_cache = new LoadingCache<string, Promise<Object3D>>();
 export async function load_area_sections(
     episode: number,
     area_id: number,
-    area_variant: number
+    area_variant: number,
 ): Promise<Section[]> {
     return render_geometry_cache.get_or_set(`${episode}-${area_id}-${area_variant}`, () =>
-        load_area_sections_and_render_geometry(episode, area_id, area_variant)
+        load_area_sections_and_render_geometry(episode, area_id, area_variant),
     ).sections;
 }
 
 export async function load_area_render_geometry(
     episode: number,
     area_id: number,
-    area_variant: number
+    area_variant: number,
 ): Promise<Object3D> {
     return render_geometry_cache.get_or_set(`${episode}-${area_id}-${area_variant}`, () =>
-        load_area_sections_and_render_geometry(episode, area_id, area_variant)
+        load_area_sections_and_render_geometry(episode, area_id, area_variant),
     ).geometry;
 }
 
 export async function load_area_collision_geometry(
     episode: number,
     area_id: number,
-    area_variant: number
+    area_variant: number,
 ): Promise<Object3D> {
     return collision_geometry_cache.get_or_set(`${episode}-${area_id}-${area_variant}`, () =>
         get_area_asset(episode, area_id, area_variant, "collision").then(buffer =>
             area_collision_geometry_to_object_3d(
-                parse_area_collision_geometry(new ArrayBufferCursor(buffer, Endianness.Little))
-            )
-        )
+                parse_area_collision_geometry(new ArrayBufferCursor(buffer, Endianness.Little)),
+            ),
+        ),
     );
 }
 
 function load_area_sections_and_render_geometry(
     episode: number,
     area_id: number,
-    area_variant: number
+    area_variant: number,
 ): { geometry: Promise<Object3D>; sections: Promise<Section[]> } {
     const promise = get_area_asset(episode, area_id, area_variant, "render").then(buffer =>
         area_geometry_to_sections_and_object_3d(
-            parse_area_geometry(new ArrayBufferCursor(buffer, Endianness.Little))
-        )
+            parse_area_geometry(new ArrayBufferCursor(buffer, Endianness.Little)),
+        ),
     );
 
     return {
@@ -127,7 +127,7 @@ async function get_area_asset(
     episode: number,
     area_id: number,
     area_variant: number,
-    type: "render" | "collision"
+    type: "render" | "collision",
 ): Promise<ArrayBuffer> {
     const base_url = area_version_to_base_url(episode, area_id, area_variant);
     const suffix = type === "render" ? "n.rel" : "c.rel";
@@ -153,7 +153,7 @@ function area_version_to_base_url(episode: number, area_id: number, area_variant
             return `/maps/map_${base_name}${variant}`;
         } else {
             throw new Error(
-                `Unknown variant ${area_variant} of area ${area_id} in episode ${episode}.`
+                `Unknown variant ${area_variant} of area ${area_id} in episode ${episode}.`,
             );
         }
     } else {

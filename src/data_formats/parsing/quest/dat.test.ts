@@ -1,4 +1,4 @@
-import { Endianness } from "../..";
+import { Endianness } from "../../Endianness";
 import { prs_decompress } from "../../compression/prs/decompress";
 import { BufferCursor } from "../../cursor/BufferCursor";
 import { ResizableBufferCursor } from "../../cursor/ResizableBufferCursor";

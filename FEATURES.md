@@ -31,6 +31,7 @@ Features that are in ***bold italics*** are planned and not yet implemented.
 ## Area Selection
 
 - Dropdown menu to switch area
+- Add new area
 
 ## Simple Quest Properties
 

@@ -1,4 +1,4 @@
-import { Endianness } from "..";
+import { Endianness } from "../Endianness";
 import { Vec2, Vec3 } from "../vector";
 import { Cursor } from "./Cursor";
 

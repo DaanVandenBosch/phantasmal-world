@@ -1,5 +1,5 @@
 import Logger from "js-logger";
-import { Endianness } from "..";
+import { Endianness } from "../Endianness";
 import { Cursor } from "../cursor/Cursor";
 import { parse_prc } from "./prc";
 

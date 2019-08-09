@@ -3,10 +3,11 @@ import { autorun, IReactionDisposer } from "mobx";
 import { observer } from "mobx-react";
 import React, { Component, PureComponent, ReactNode } from "react";
 import { Vec3 } from "../../data_formats/vector";
-import { QuestEntity, QuestNpc } from "../../domain";
 import { quest_editor_store } from "../../stores/QuestEditorStore";
 import { DisabledTextComponent } from "../DisabledTextComponent";
 import styles from "./EntityInfoComponent.css";
+import { ObservableQuestEntity, ObservableQuestNpc } from "../../domain";
+import { entity_data, entity_type_to_string } from "../../data_formats/parsing/quest/entities";
 
 @observer
 export class EntityInfoComponent extends Component {
@@ -21,8 +22,8 @@ export class EntityInfoComponent extends Component {
                 <table className={styles.table}>
                     <tbody>
                         <tr>
-                            <th>{entity instanceof QuestNpc ? "NPC" : "Object"}:</th>
-                            <td>{entity.type.name}</td>
+                            <th>{entity instanceof ObservableQuestNpc ? "NPC" : "Object"}:</th>
+                            <td>{entity_data(entity.type).name}</td>
                         </tr>
                         <tr>
                             <th>Section:</th>
@@ -56,7 +57,7 @@ export class EntityInfoComponent extends Component {
 }
 
 type CoordProps = {
-    entity: QuestEntity;
+    entity: ObservableQuestEntity;
     position_type: "position" | "section_position";
     coord: "x" | "y" | "z";
 };
@@ -117,9 +118,11 @@ class CoordInput extends Component<CoordProps, { value: number; initial_position
                 });
             },
             {
-                name: `${this.props.entity.type.code}.${this.props.position_type}.${this.props.coord} changed`,
+                name: `${entity_type_to_string(this.props.entity.type)}.${
+                    this.props.position_type
+                }.${this.props.coord} changed`,
                 delay: 50,
-            }
+            },
         );
     }
 
@@ -132,7 +135,7 @@ class CoordInput extends Component<CoordProps, { value: number; initial_position
             quest_editor_store.push_entity_move_action(
                 this.props.entity,
                 this.state.initial_position,
-                this.props.entity.position
+                this.props.entity.position,
             );
         }
     };

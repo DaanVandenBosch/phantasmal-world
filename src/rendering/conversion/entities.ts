@@ -1,6 +1,8 @@
 import { BufferGeometry, DoubleSide, Mesh, MeshLambertMaterial, Texture } from "three";
-import { QuestEntity, QuestNpc, QuestObject } from "../../domain";
 import { create_mesh } from "./create_mesh";
+import { ObservableQuestEntity, ObservableQuestNpc, ObservableQuestObject } from "../../domain";
+import { ObjectType } from "../../data_formats/parsing/quest/object_types";
+import { NpcType } from "../../data_formats/parsing/quest/npc_types";
 
 export enum ColorType {
     Normal,
@@ -19,31 +21,37 @@ NPC_COLORS[ColorType.Hovered] = 0xff3f5f;
 NPC_COLORS[ColorType.Selected] = 0xff0054;
 
 export type EntityUserData = {
-    entity: QuestEntity;
+    entity: ObservableQuestEntity;
 };
 
 export function create_object_mesh(
-    object: QuestObject,
+    object: ObservableQuestObject,
     geometry: BufferGeometry,
-    textures: Texture[]
+    textures: Texture[],
 ): Mesh {
-    return create(object, geometry, textures, OBJECT_COLORS[ColorType.Normal], object.type.name);
+    return create(
+        object,
+        geometry,
+        textures,
+        OBJECT_COLORS[ColorType.Normal],
+        ObjectType[object.type],
+    );
 }
 
 export function create_npc_mesh(
-    npc: QuestNpc,
+    npc: ObservableQuestNpc,
     geometry: BufferGeometry,
-    textures: Texture[]
+    textures: Texture[],
 ): Mesh {
-    return create(npc, geometry, textures, NPC_COLORS[ColorType.Normal], npc.type.code);
+    return create(npc, geometry, textures, NPC_COLORS[ColorType.Normal], NpcType[npc.type]);
 }
 
 function create(
-    entity: QuestEntity,
+    entity: ObservableQuestEntity,
     geometry: BufferGeometry,
     textures: Texture[],
     color: number,
-    name: string
+    name: string,
 ): Mesh {
     const default_material = new MeshLambertMaterial({
         color,
@@ -59,10 +67,10 @@ function create(
                           map: tex,
                           side: DoubleSide,
                           alphaTest: 0.5,
-                      })
+                      }),
               )
             : default_material,
-        default_material
+        default_material,
     );
 
     mesh.name = name;

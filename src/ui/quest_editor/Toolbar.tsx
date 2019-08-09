@@ -1,20 +1,19 @@
 import { Button, Dropdown, Form, Icon, Input, Menu, Modal, Select, Upload } from "antd";
 import { ClickParam } from "antd/lib/menu";
 import { UploadChangeParam, UploadFile } from "antd/lib/upload/interface";
+import { computed } from "mobx";
 import { observer } from "mobx-react";
 import React, { ChangeEvent, Component, ReactNode } from "react";
-import { Episode } from "../../domain";
+import { area_store } from "../../stores/AreaStore";
 import { quest_editor_store } from "../../stores/QuestEditorStore";
 import { undo_manager } from "../../undo";
 import styles from "./Toolbar.css";
+import { Episode } from "../../data_formats/parsing/quest/Episode";
 
 @observer
 export class Toolbar extends Component {
     render(): ReactNode {
         const quest = quest_editor_store.current_quest;
-        const areas = quest ? Array.from(quest.area_variants).map(a => a.area) : [];
-        const area = quest_editor_store.current_area;
-        const area_id = area && area.id;
 
         return (
             <div className={styles.main}>
@@ -67,18 +66,7 @@ export class Toolbar extends Component {
                 >
                     Redo
                 </Button>
-                <Select
-                    onChange={quest_editor_store.set_current_area_id}
-                    value={area_id}
-                    style={{ width: 200 }}
-                    disabled={!quest}
-                >
-                    {areas.map(area => (
-                        <Select.Option key={area.id} value={area.id}>
-                            {area.name}
-                        </Select.Option>
-                    ))}
-                </Select>
+                <AreaComponent />
                 <SaveQuestComponent />
             </div>
         );
@@ -100,6 +88,51 @@ export class Toolbar extends Component {
 
     private redo(): void {
         undo_manager.redo();
+    }
+}
+
+@observer
+class AreaComponent extends Component {
+    @computed private get entities_per_area(): Map<number, number> {
+        const quest = quest_editor_store.current_quest;
+        const map = new Map<number, number>();
+
+        if (quest) {
+            for (const npc of quest.npcs) {
+                map.set(npc.area_id, (map.get(npc.area_id) || 0) + 1);
+            }
+
+            for (const obj of quest.objects) {
+                map.set(obj.area_id, (map.get(obj.area_id) || 0) + 1);
+            }
+        }
+
+        return map;
+    }
+
+    render(): ReactNode {
+        const quest = quest_editor_store.current_quest;
+        const areas = quest ? area_store.get_areas_for_episode(quest.episode) : [];
+        const area = quest_editor_store.current_area;
+
+        return (
+            <Select
+                onChange={quest_editor_store.set_current_area_id}
+                value={area && area.id}
+                style={{ width: 200 }}
+                disabled={!quest}
+            >
+                {areas.map(area => {
+                    const entity_count = quest && this.entities_per_area.get(area.id);
+                    return (
+                        <Select.Option key={area.id} value={area.id}>
+                            {area.name}
+                            {entity_count && ` (${entity_count})`}
+                        </Select.Option>
+                    );
+                })}
+            </Select>
+        );
     }
 }
 
@@ -137,7 +170,7 @@ class SaveQuestComponent extends Component {
 
     private ok(): void {
         quest_editor_store.save_current_quest_to_file(
-            quest_editor_store.save_dialog_filename || "untitled"
+            quest_editor_store.save_dialog_filename || "untitled",
         );
     }
 

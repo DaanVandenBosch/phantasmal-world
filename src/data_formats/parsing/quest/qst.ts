@@ -1,5 +1,5 @@
 import Logger from "js-logger";
-import { Endianness } from "../..";
+import { Endianness } from "../../Endianness";
 import { ArrayBufferCursor } from "../../cursor/ArrayBufferCursor";
 import { Cursor } from "../../cursor/Cursor";
 import { ResizableBufferCursor } from "../../cursor/ResizableBufferCursor";

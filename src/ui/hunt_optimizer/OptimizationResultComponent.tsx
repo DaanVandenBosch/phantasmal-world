@@ -2,12 +2,13 @@ import { computed } from "mobx";
 import { observer } from "mobx-react";
 import React, { Component, ReactNode } from "react";
 import { AutoSizer, Index } from "react-virtualized";
-import { Difficulty, Episode, SectionId } from "../../domain";
+import { Difficulty, SectionId } from "../../domain";
 import { hunt_optimizer_store, OptimalMethod } from "../../stores/HuntOptimizerStore";
 import { BigTable, Column } from "../BigTable";
 import { SectionIdIcon } from "../SectionIdIcon";
 import { hours_to_string } from "../time";
 import styles from "./OptimizationResultComponent.css";
+import { Episode } from "../../data_formats/parsing/quest/Episode";
 
 @observer
 export class OptimizationResultComponent extends Component {

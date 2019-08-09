@@ -1,4 +1,4 @@
-import { Endianness } from "..";
+import { Endianness } from "../Endianness";
 import { AbstractCursor } from "./AbstractCursor";
 import { Cursor } from "./Cursor";
 

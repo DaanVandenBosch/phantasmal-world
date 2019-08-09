@@ -1,23 +1,24 @@
 import Logger from "js-logger";
 import { autorun, IReactionDisposer, observable } from "mobx";
-import { HuntMethod, NpcType, Server, SimpleQuest } from "../domain";
+import { HuntMethod, Server, SimpleQuest } from "../domain";
 import { QuestDto } from "../dto";
 import { Loadable } from "../Loadable";
 import { hunt_method_persister } from "../persistence/HuntMethodPersister";
 import { ServerMap } from "./ServerMap";
+import { NpcType } from "../data_formats/parsing/quest/npc_types";
 
 const logger = Logger.get("stores/HuntMethodStore");
 
 class HuntMethodStore {
     @observable methods: ServerMap<Loadable<HuntMethod[]>> = new ServerMap(
-        server => new Loadable([], () => this.load_hunt_methods(server))
+        server => new Loadable([], () => this.load_hunt_methods(server)),
     );
 
     private storage_disposer?: IReactionDisposer;
 
     private async load_hunt_methods(server: Server): Promise<HuntMethod[]> {
         const response = await fetch(
-            `${process.env.PUBLIC_URL}/quests.${Server[server].toLowerCase()}.json`
+            `${process.env.PUBLIC_URL}/quests.${Server[server].toLowerCase()}.json`,
         );
         const quests = (await response.json()) as QuestDto[];
         const methods = new Array<HuntMethod>();
@@ -27,7 +28,7 @@ class HuntMethodStore {
             const enemy_counts = new Map<NpcType, number>();
 
             for (const [code, count] of Object.entries(quest.enemyCounts)) {
-                const npc_type = NpcType.by_code(code);
+                const npc_type = (NpcType as any)[code];
 
                 if (!npc_type) {
                     logger.error(`No NpcType found for code ${code}.`);
@@ -59,8 +60,8 @@ class HuntMethodStore {
                     `q${quest.id}`,
                     quest.name,
                     new SimpleQuest(quest.id, quest.name, quest.episode, enemy_counts),
-                    /^\d-\d.*/.test(quest.name) ? 0.75 : total_count > 400 ? 0.75 : 0.5
-                )
+                    /^\d-\d.*/.test(quest.name) ? 0.75 : total_count > 400 ? 0.75 : 0.5,
+                ),
             );
         }
 

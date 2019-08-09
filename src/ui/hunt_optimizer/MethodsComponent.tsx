@@ -1,13 +1,14 @@
 import { TimePicker } from "antd";
 import { observer } from "mobx-react";
 import moment, { Moment } from "moment";
-import React, { ReactNode, Component } from "react";
+import React, { Component, ReactNode } from "react";
 import { AutoSizer, Index, SortDirection } from "react-virtualized";
-import { Episode, HuntMethod } from "../../domain";
-import { EnemyNpcTypes, NpcType } from "../../domain/NpcType";
 import { hunt_method_store } from "../../stores/HuntMethodStore";
 import { BigTable, Column, ColumnSort } from "../BigTable";
 import styles from "./MethodsComponent.css";
+import { HuntMethod } from "../../domain";
+import { Episode } from "../../data_formats/parsing/quest/Episode";
+import { ENEMY_NPC_TYPES, npc_data, NpcType } from "../../data_formats/parsing/quest/npc_types";
 
 @observer
 export class MethodsComponent extends Component {
@@ -39,13 +40,13 @@ export class MethodsComponent extends Component {
         ];
 
         // One column per enemy type.
-        for (const enemy of EnemyNpcTypes) {
+        for (const enemy_type of ENEMY_NPC_TYPES) {
             columns.push({
-                key: enemy.code,
-                name: enemy.name,
+                key: NpcType[enemy_type],
+                name: npc_data(enemy_type).name,
                 width: 75,
                 cell_renderer: method => {
-                    const count = method.enemy_counts.get(enemy);
+                    const count = method.enemy_counts.get(enemy_type);
                     return count == null ? "" : count.toString();
                 },
                 class_name: "number",
@@ -97,7 +98,7 @@ export class MethodsComponent extends Component {
                 } else if (column.key === "time") {
                     cmp = a.time - b.time;
                 } else if (column.key) {
-                    const type = NpcType.by_code(column.key);
+                    const type = (NpcType as any)[column.key];
 
                     if (type) {
                         cmp = (a.enemy_counts.get(type) || 0) - (b.enemy_counts.get(type) || 0);

@@ -1,28 +1,46 @@
 import Logger from "js-logger";
-import { Endianness } from "../..";
 import {
-    AreaVariant,
-    Episode,
-    NpcType,
-    ObjectType,
-    Quest,
-    QuestNpc,
-    QuestObject,
-} from "../../../domain";
-import { Instruction, InstructionSegment, SegmentType } from "../../../scripting/instructions";
+    Instruction,
+    InstructionSegment,
+    Segment,
+    SegmentType,
+} from "../../../scripting/instructions";
 import { Opcode } from "../../../scripting/opcodes";
-import { area_store } from "../../../stores/AreaStore";
 import { prs_compress } from "../../compression/prs/compress";
 import { prs_decompress } from "../../compression/prs/decompress";
 import { ArrayBufferCursor } from "../../cursor/ArrayBufferCursor";
 import { Cursor } from "../../cursor/Cursor";
 import { ResizableBufferCursor } from "../../cursor/ResizableBufferCursor";
+import { Endianness } from "../../Endianness";
 import { Vec3 } from "../../vector";
+import { AreaVariant, get_area_variant } from "./areas";
 import { BinFile, parse_bin, write_bin } from "./bin";
-import { DatFile, DatNpc, DatObject, parse_dat, write_dat } from "./dat";
+import { DatFile, DatNpc, DatObject, DatUnknown, parse_dat, write_dat } from "./dat";
+import { QuestNpc, QuestObject } from "./entities";
+import { Episode } from "./Episode";
+import { object_data, pso_id_to_object_type } from "./object_types";
 import { parse_qst, QstContainedFile, write_qst } from "./qst";
+import { NpcType } from "./npc_types";
 
 const logger = Logger.get("data_formats/parsing/quest");
+
+export type Quest = {
+    readonly id: number;
+    readonly language: number;
+    readonly name: string;
+    readonly short_description: string;
+    readonly long_description: string;
+    readonly episode: Episode;
+    readonly objects: QuestObject[];
+    readonly npcs: QuestNpc[];
+    /**
+     * (Partial) raw DAT data that can't be parsed yet by Phantasmal.
+     */
+    readonly dat_unknowns: DatUnknown[];
+    readonly object_code: Segment[];
+    readonly shop_items: number[];
+    readonly area_variants: AreaVariant[];
+};
 
 /**
  * High level parsing function that delegates to lower level parsing functions.
@@ -60,14 +78,14 @@ export function parse_quest(cursor: Cursor, lenient: boolean = false): Quest | u
     }
 
     const dat_decompressed = prs_decompress(
-        new ArrayBufferCursor(dat_file.data, Endianness.Little)
+        new ArrayBufferCursor(dat_file.data, Endianness.Little),
     );
     const dat = parse_dat(dat_decompressed);
     const bin_decompressed = prs_decompress(
-        new ArrayBufferCursor(bin_file.data, Endianness.Little)
+        new ArrayBufferCursor(bin_file.data, Endianness.Little),
     );
     const bin = parse_bin(bin_decompressed, [0], lenient);
-    let episode = 1;
+    let episode = Episode.I;
     let area_variants: AreaVariant[] = [];
 
     if (bin.object_code.length) {
@@ -82,7 +100,12 @@ export function parse_quest(cursor: Cursor, lenient: boolean = false): Quest | u
 
         if (label_0_segment) {
             episode = get_episode(label_0_segment.instructions);
-            area_variants = get_area_variants(dat, episode, label_0_segment.instructions, lenient);
+            area_variants = extract_area_variants(
+                dat,
+                episode,
+                label_0_segment.instructions,
+                lenient,
+            );
         } else {
             logger.warn(`No instruction for label 0 found.`);
         }
@@ -90,20 +113,20 @@ export function parse_quest(cursor: Cursor, lenient: boolean = false): Quest | u
         logger.warn("File contains no instruction labels.");
     }
 
-    return new Quest(
-        bin.quest_id,
-        bin.language,
-        bin.quest_name,
-        bin.short_description,
-        bin.long_description,
+    return {
+        id: bin.quest_id,
+        language: bin.language,
+        name: bin.quest_name,
+        short_description: bin.short_description,
+        long_description: bin.long_description,
         episode,
+        objects: parse_obj_data(dat.objs),
+        npcs: parse_npc_data(episode, dat.npcs),
+        dat_unknowns: dat.unknowns,
+        object_code: bin.object_code,
+        shop_items: bin.shop_items,
         area_variants,
-        parse_obj_data(dat.objs),
-        parse_npc_data(episode, dat.npcs),
-        dat.unknowns,
-        bin.object_code,
-        bin.shop_items
-    );
+    };
 }
 
 export function write_quest_qst(quest: Quest, file_name: string): ArrayBuffer {
@@ -120,8 +143,8 @@ export function write_quest_qst(quest: Quest, file_name: string): ArrayBuffer {
             quest.short_description,
             quest.long_description,
             quest.object_code,
-            quest.shop_items
-        )
+            quest.shop_items,
+        ),
     );
     const ext_start = file_name.lastIndexOf(".");
     const base_file_name =
@@ -133,7 +156,7 @@ export function write_quest_qst(quest: Quest, file_name: string): ArrayBuffer {
                 name: base_file_name + ".dat",
                 id: quest.id,
                 data: prs_compress(
-                    new ResizableBufferCursor(dat, Endianness.Little)
+                    new ResizableBufferCursor(dat, Endianness.Little),
                 ).array_buffer(),
             },
             {
@@ -150,7 +173,7 @@ export function write_quest_qst(quest: Quest, file_name: string): ArrayBuffer {
  */
 function get_episode(func_0_instructions: Instruction[]): Episode {
     const set_episode = func_0_instructions.find(
-        instruction => instruction.opcode === Opcode.SET_EPISODE
+        instruction => instruction.opcode === Opcode.SET_EPISODE,
     );
 
     if (set_episode) {
@@ -165,15 +188,15 @@ function get_episode(func_0_instructions: Instruction[]): Episode {
         }
     } else {
         logger.debug("Function 0 has no set_episode instruction.");
-        return 1;
+        return Episode.I;
     }
 }
 
-function get_area_variants(
+function extract_area_variants(
     dat: DatFile,
-    episode: number,
+    episode: Episode,
     func_0_instructions: Instruction[],
-    lenient: boolean
+    lenient: boolean,
 ): AreaVariant[] {
     // Add area variants that have npcs or objects even if there are no BB_Map_Designate instructions for them.
     const area_variants = new Map<number, number>();
@@ -187,7 +210,7 @@ function get_area_variants(
     }
 
     const bb_maps = func_0_instructions.filter(
-        instruction => instruction.opcode === Opcode.BB_MAP_DESIGNATE
+        instruction => instruction.opcode === Opcode.BB_MAP_DESIGNATE,
     );
 
     for (const bb_map of bb_maps) {
@@ -196,11 +219,11 @@ function get_area_variants(
         area_variants.set(area_id, variant_id);
     }
 
-    const area_variants_array = new Array<AreaVariant>();
+    const area_variants_array: AreaVariant[] = [];
 
     for (const [area_id, variant_id] of area_variants.entries()) {
         try {
-            area_variants_array.push(area_store.get_variant(episode, area_id, variant_id));
+            area_variants_array.push(get_area_variant(episode, area_id, variant_id));
         } catch (e) {
             if (lenient) {
                 logger.error(`Unknown area variant.`, e);
@@ -216,31 +239,31 @@ function get_area_variants(
 
 function parse_obj_data(objs: DatObject[]): QuestObject[] {
     return objs.map(obj_data => {
-        return new QuestObject(
-            ObjectType.from_pso_id(obj_data.type_id),
-            obj_data.area_id,
-            obj_data.section_id,
-            obj_data.position.clone(),
-            obj_data.rotation.clone(),
-            obj_data.scale.clone(),
-            obj_data.unknown
-        );
+        return {
+            type: pso_id_to_object_type(obj_data.type_id),
+            area_id: obj_data.area_id,
+            section_id: obj_data.section_id,
+            position: obj_data.position,
+            rotation: obj_data.rotation,
+            scale: obj_data.scale,
+            unknown: obj_data.unknown,
+        };
     });
 }
 
 function parse_npc_data(episode: number, npcs: DatNpc[]): QuestNpc[] {
     return npcs.map(npc_data => {
-        return new QuestNpc(
-            get_npc_type(episode, npc_data),
-            npc_data.type_id,
-            npc_data.skin,
-            npc_data.area_id,
-            npc_data.section_id,
-            npc_data.position.clone(),
-            npc_data.rotation.clone(),
-            npc_data.scale.clone(),
-            npc_data.unknown
-        );
+        return {
+            type: get_npc_type(episode, npc_data),
+            area_id: npc_data.area_id,
+            section_id: npc_data.section_id,
+            position: npc_data.position,
+            rotation: npc_data.rotation,
+            scale: npc_data.scale,
+            unknown: npc_data.unknown,
+            pso_type_id: npc_data.type_id,
+            pso_skin: npc_data.skin,
+        };
     });
 }
 
@@ -522,11 +545,11 @@ function get_npc_type(episode: number, { type_id, scale, skin, area_id }: DatNpc
 
 function objects_to_dat_data(objects: QuestObject[]): DatObject[] {
     return objects.map(object => ({
-        type_id: object.type.pso_id!,
+        type_id: object_data(object.type).pso_id!,
         section_id: object.section_id,
-        position: object.section_position.clone(),
-        rotation: object.rotation.clone(),
-        scale: object.scale.clone(),
+        position: object.position,
+        rotation: object.rotation,
+        scale: object.scale,
         area_id: object.area_id,
         unknown: object.unknown,
     }));
@@ -551,8 +574,8 @@ function npcs_to_dat_data(npcs: QuestNpc[]): DatNpc[] {
         return {
             type_id: type_data.type_id,
             section_id: npc.section_id,
-            position: npc.section_position.clone(),
-            rotation: npc.rotation.clone(),
+            position: npc.position,
+            rotation: npc.rotation,
             scale,
             skin: type_data.skin,
             area_id: npc.area_id,
@@ -562,11 +585,11 @@ function npcs_to_dat_data(npcs: QuestNpc[]): DatNpc[] {
 }
 
 function npc_type_to_dat_data(
-    type: NpcType
+    type: NpcType,
 ): { type_id: number; skin: number; regular: boolean } | undefined {
     switch (type) {
         default:
-            throw new Error(`Unexpected type ${type.code}.`);
+            throw new Error(`Unexpected type ${NpcType[type]}.`);
 
         case NpcType.Unknown:
             return undefined;

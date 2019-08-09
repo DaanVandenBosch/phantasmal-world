@@ -1,4 +1,4 @@
-import { Endianness } from "../..";
+import { Endianness } from "../../Endianness";
 import { Cursor } from "../../cursor/Cursor";
 import { ResizableBufferCursor } from "../../cursor/ResizableBufferCursor";
 import { WritableCursor } from "../../cursor/WritableCursor";

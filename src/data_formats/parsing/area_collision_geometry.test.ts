@@ -1,7 +1,7 @@
 import { readFileSync } from "fs";
 import { parse_area_collision_geometry } from "./area_collision_geometry";
 import { BufferCursor } from "../cursor/BufferCursor";
-import { Endianness } from "..";
+import { Endianness } from "../Endianness";
 
 test("parse_area_collision_geometry", () => {
     const buf = readFileSync("test/resources/map_forest01c.rel");

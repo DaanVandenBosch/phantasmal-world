@@ -1,7 +1,6 @@
 import Logger from "js-logger";
 import { autorun, IReactionDisposer } from "mobx";
 import { Mesh, Object3D, Vector3, Raycaster, Intersection } from "three";
-import { Area, Quest, QuestEntity } from "../domain";
 import { load_area_collision_geometry, load_area_render_geometry } from "../loading/areas";
 import {
     load_npc_geometry,
@@ -12,6 +11,7 @@ import {
 import { create_npc_mesh, create_object_mesh } from "./conversion/entities";
 import { QuestRenderer } from "./QuestRenderer";
 import { AreaUserData } from "./conversion/areas";
+import { ObservableArea, ObservableQuest, ObservableQuestEntity } from "../domain";
 
 const logger = Logger.get("rendering/QuestModelManager");
 
@@ -20,13 +20,13 @@ const CAMERA_LOOKAT = new Vector3(0, 0, 0);
 const DUMMY_OBJECT = new Object3D();
 
 export class QuestModelManager {
-    private quest?: Quest;
-    private area?: Area;
+    private quest?: ObservableQuest;
+    private area?: ObservableArea;
     private entity_reaction_disposers: IReactionDisposer[] = [];
 
     constructor(private renderer: QuestRenderer) {}
 
-    async load_models(quest?: Quest, area?: Area): Promise<void> {
+    async load_models(quest?: ObservableQuest, area?: ObservableArea): Promise<void> {
         if (this.quest === quest && this.area === area) {
             return;
         }
@@ -47,13 +47,13 @@ export class QuestModelManager {
                 const collision_geometry = await load_area_collision_geometry(
                     episode,
                     area_id,
-                    variant_id
+                    variant_id,
                 );
 
                 const render_geometry = await load_area_render_geometry(
                     episode,
                     area_id,
-                    variant_id
+                    variant_id,
                 );
 
                 this.add_sections_to_collision_geometry(collision_geometry, render_geometry);
@@ -106,7 +106,7 @@ export class QuestModelManager {
 
     private add_sections_to_collision_geometry(
         collision_geom: Object3D,
-        render_geom: Object3D
+        render_geom: Object3D,
     ): void {
         const raycaster = new Raycaster();
         const origin = new Vector3();
@@ -145,7 +145,7 @@ export class QuestModelManager {
         }
     }
 
-    private update_entity_geometry(entity: QuestEntity, model: Mesh): void {
+    private update_entity_geometry(entity: ObservableQuestEntity, model: Mesh): void {
         this.renderer.add_entity_model(model);
 
         this.entity_reaction_disposers.push(
@@ -155,7 +155,7 @@ export class QuestModelManager {
                 const rot = entity.rotation;
                 model.rotation.set(rot.x, rot.y, rot.z);
                 this.renderer.schedule_render();
-            })
+            }),
         );
     }
 

@@ -1,11 +1,11 @@
 import { autorun } from "mobx";
 import { Mesh, Object3D, PerspectiveCamera, Group } from "three";
-import { QuestEntity } from "../domain";
 import { quest_editor_store } from "../stores/QuestEditorStore";
 import { QuestEntityControls } from "./QuestEntityControls";
 import { QuestModelManager } from "./QuestModelManager";
 import { Renderer } from "./Renderer";
 import { EntityUserData } from "./conversion/entities";
+import { ObservableQuestEntity } from "../domain";
 
 let renderer: QuestRenderer | undefined;
 
@@ -58,7 +58,7 @@ export class QuestRenderer extends Renderer<PerspectiveCamera> {
         return this._entity_models;
     }
 
-    private entity_to_mesh = new Map<QuestEntity, Mesh>();
+    private entity_to_mesh = new Map<ObservableQuestEntity, Mesh>();
     private entity_controls: QuestEntityControls;
 
     constructor() {
@@ -69,7 +69,7 @@ export class QuestRenderer extends Renderer<PerspectiveCamera> {
         autorun(() => {
             model_manager.load_models(
                 quest_editor_store.current_quest,
-                quest_editor_store.current_area
+                quest_editor_store.current_area,
             );
         });
 
@@ -103,7 +103,7 @@ export class QuestRenderer extends Renderer<PerspectiveCamera> {
         }
     }
 
-    get_entity_mesh(entity: QuestEntity): Mesh | undefined {
+    get_entity_mesh(entity: ObservableQuestEntity): Mesh | undefined {
         return this.entity_to_mesh.get(entity);
     }
 }

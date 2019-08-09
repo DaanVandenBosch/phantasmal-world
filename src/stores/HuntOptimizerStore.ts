@@ -3,11 +3,9 @@ import { autorun, computed, IObservableArray, observable } from "mobx";
 import {
     Difficulties,
     Difficulty,
-    Episode,
     HuntMethod,
     ItemType,
     KONDRIEU_PROB,
-    NpcType,
     RARE_ENEMY_PROB,
     SectionId,
     SectionIds,
@@ -17,6 +15,8 @@ import { application_store } from "./ApplicationStore";
 import { hunt_method_store } from "./HuntMethodStore";
 import { item_drop_stores } from "./ItemDropStore";
 import { item_type_stores } from "./ItemTypeStore";
+import { Episode } from "../data_formats/parsing/quest/Episode";
+import { npc_data, NpcType } from "../data_formats/parsing/quest/npc_types";
 
 export class WantedItem {
     @observable readonly item_type: ItemType;
@@ -55,7 +55,7 @@ export class OptimalMethod {
         method_episode: Episode,
         method_time: number,
         runs: number,
-        item_counts: Map<ItemType, number>
+        item_counts: Map<ItemType, number>,
     ) {
         this.difficulty = difficulty;
         this.section_ids = section_ids;
@@ -79,7 +79,7 @@ class HuntOptimizerStore {
     @computed get huntable_item_types(): ItemType[] {
         const item_drop_store = item_drop_stores.current.value;
         return item_type_stores.current.value.item_types.filter(
-            i => item_drop_store.enemy_drops.get_drops_for_item_type(i.id).length
+            i => item_drop_store.enemy_drops.get_drops_for_item_type(i.id).length,
         );
     }
 
@@ -100,7 +100,7 @@ class HuntOptimizerStore {
         // Initialize this set before awaiting data, so user changes don't affect this optimization
         // run from this point on.
         const wanted_items = new Set(
-            this.wanted_items.filter(w => w.amount > 0).map(w => w.item_type)
+            this.wanted_items.filter(w => w.amount > 0).map(w => w.item_type),
         );
 
         const methods = await hunt_method_store.methods.current.promise;
@@ -136,11 +136,12 @@ class HuntOptimizerStore {
             // Counts include rare enemies, so they are fractional.
             const counts = new Map<NpcType, number>();
 
-            for (const [enemy, count] of method.enemy_counts.entries()) {
-                const old_count = counts.get(enemy) || 0;
+            for (const [enemy_type, count] of method.enemy_counts.entries()) {
+                const old_count = counts.get(enemy_type) || 0;
+                const enemy = npc_data(enemy_type);
 
                 if (enemy.rare_type == null) {
-                    counts.set(enemy, old_count + count);
+                    counts.set(enemy_type, old_count + count);
                 } else {
                     let rate, rare_rate;
 
@@ -152,10 +153,10 @@ class HuntOptimizerStore {
                         rare_rate = RARE_ENEMY_PROB;
                     }
 
-                    counts.set(enemy, old_count + count * rate);
+                    counts.set(enemy_type, old_count + count * rate);
                     counts.set(
                         enemy.rare_type,
-                        (counts.get(enemy.rare_type) || 0) + count * rare_rate
+                        (counts.get(enemy.rare_type) || 0) + count * rare_rate,
                     );
                 }
             }
@@ -216,7 +217,7 @@ class HuntOptimizerStore {
                                 difficulty,
                                 section_id,
                                 method,
-                                split_pan_arms
+                                split_pan_arms,
                             );
                             variables[name] = variable;
                             variable_details.set(name, {
@@ -312,8 +313,8 @@ class HuntOptimizerStore {
                         method.episode,
                         method.time,
                         runs,
-                        items
-                    )
+                        items,
+                    ),
                 );
             }
         }
@@ -325,7 +326,7 @@ class HuntOptimizerStore {
         difficulty: Difficulty,
         section_id: SectionId,
         method: HuntMethod,
-        split_pan_arms: boolean
+        split_pan_arms: boolean,
     ): string {
         let name = `${difficulty}\t${section_id}\t${method.id}`;
         if (split_pan_arms) name += "\tspa";
@@ -334,13 +335,13 @@ class HuntOptimizerStore {
 
     private initialize_persistence = async () => {
         this.wanted_items.replace(
-            await hunt_optimizer_persister.load_wanted_items(application_store.current_server)
+            await hunt_optimizer_persister.load_wanted_items(application_store.current_server),
         );
 
         autorun(() => {
             hunt_optimizer_persister.persist_wanted_items(
                 application_store.current_server,
-                this.wanted_items
+                this.wanted_items,
             );
         });
     };
