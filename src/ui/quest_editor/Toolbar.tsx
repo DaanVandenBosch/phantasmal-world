@@ -1,7 +1,6 @@
 import { Button, Dropdown, Form, Icon, Input, Menu, Modal, Select, Upload } from "antd";
 import { ClickParam } from "antd/lib/menu";
 import { UploadChangeParam, UploadFile } from "antd/lib/upload/interface";
-import { computed } from "mobx";
 import { observer } from "mobx-react";
 import React, { ChangeEvent, Component, ReactNode } from "react";
 import { area_store } from "../../stores/AreaStore";
@@ -93,23 +92,6 @@ export class Toolbar extends Component {
 
 @observer
 class AreaComponent extends Component {
-    @computed private get entities_per_area(): Map<number, number> {
-        const quest = quest_editor_store.current_quest;
-        const map = new Map<number, number>();
-
-        if (quest) {
-            for (const npc of quest.npcs) {
-                map.set(npc.area_id, (map.get(npc.area_id) || 0) + 1);
-            }
-
-            for (const obj of quest.objects) {
-                map.set(obj.area_id, (map.get(obj.area_id) || 0) + 1);
-            }
-        }
-
-        return map;
-    }
-
     render(): ReactNode {
         const quest = quest_editor_store.current_quest;
         const areas = quest ? area_store.get_areas_for_episode(quest.episode) : [];
@@ -123,7 +105,7 @@ class AreaComponent extends Component {
                 disabled={!quest}
             >
                 {areas.map(area => {
-                    const entity_count = quest && this.entities_per_area.get(area.id);
+                    const entity_count = quest && quest.entities_per_area.get(area.id);
                     return (
                         <Select.Option key={area.id} value={area.id}>
                             {area.name}

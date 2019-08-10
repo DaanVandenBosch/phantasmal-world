@@ -94,8 +94,8 @@ export function area_collision_geometry_to_object_3d(object: CollisionObject): O
                     indices[2],
                     new Vector3(normal.x, normal.y, normal.z),
                     undefined,
-                    color_index
-                )
+                    color_index,
+                ),
             );
         }
 
@@ -115,7 +115,7 @@ export function area_collision_geometry_to_object_3d(object: CollisionObject): O
 }
 
 export function area_geometry_to_sections_and_object_3d(
-    object: RenderObject
+    object: RenderObject,
 ): [Section[], Object3D] {
     const sections: Section[] = [];
     const group = new Group();
@@ -135,7 +135,7 @@ export function area_geometry_to_sections_and_object_3d(
                 transparent: true,
                 opacity: 0.25,
                 side: DoubleSide,
-            })
+            }),
         );
         group.add(mesh);
 

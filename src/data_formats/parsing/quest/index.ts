@@ -13,7 +13,6 @@ import { Cursor } from "../../cursor/Cursor";
 import { ResizableBufferCursor } from "../../cursor/ResizableBufferCursor";
 import { Endianness } from "../../Endianness";
 import { Vec3 } from "../../vector";
-import { AreaVariant, get_area_variant } from "./areas";
 import { BinFile, parse_bin, write_bin } from "./bin";
 import { DatFile, DatNpc, DatObject, DatUnknown, parse_dat, write_dat } from "./dat";
 import { QuestNpc, QuestObject } from "./entities";
@@ -39,7 +38,7 @@ export type Quest = {
     readonly dat_unknowns: DatUnknown[];
     readonly object_code: Segment[];
     readonly shop_items: number[];
-    readonly area_variants: AreaVariant[];
+    readonly map_designations: Map<number, number>;
 };
 
 /**
@@ -86,7 +85,7 @@ export function parse_quest(cursor: Cursor, lenient: boolean = false): Quest | u
     );
     const bin = parse_bin(bin_decompressed, [0], lenient);
     let episode = Episode.I;
-    let area_variants: AreaVariant[] = [];
+    let map_designations: Map<number, number> = new Map();
 
     if (bin.object_code.length) {
         let label_0_segment: InstructionSegment | undefined;
@@ -100,12 +99,7 @@ export function parse_quest(cursor: Cursor, lenient: boolean = false): Quest | u
 
         if (label_0_segment) {
             episode = get_episode(label_0_segment.instructions);
-            area_variants = extract_area_variants(
-                dat,
-                episode,
-                label_0_segment.instructions,
-                lenient,
-            );
+            map_designations = extract_map_designations(dat, episode, label_0_segment.instructions);
         } else {
             logger.warn(`No instruction for label 0 found.`);
         }
@@ -125,7 +119,7 @@ export function parse_quest(cursor: Cursor, lenient: boolean = false): Quest | u
         dat_unknowns: dat.unknowns,
         object_code: bin.object_code,
         shop_items: bin.shop_items,
-        area_variants,
+        map_designations,
     };
 }
 
@@ -192,49 +186,20 @@ function get_episode(func_0_instructions: Instruction[]): Episode {
     }
 }
 
-function extract_area_variants(
+function extract_map_designations(
     dat: DatFile,
     episode: Episode,
     func_0_instructions: Instruction[],
-    lenient: boolean,
-): AreaVariant[] {
-    // Add area variants that have npcs or objects even if there are no BB_Map_Designate instructions for them.
-    const area_variants = new Map<number, number>();
+): Map<number, number> {
+    const map_designations = new Map<number, number>();
 
-    for (const npc of dat.npcs) {
-        area_variants.set(npc.area_id, 0);
-    }
-
-    for (const obj of dat.objs) {
-        area_variants.set(obj.area_id, 0);
-    }
-
-    const bb_maps = func_0_instructions.filter(
-        instruction => instruction.opcode === Opcode.BB_MAP_DESIGNATE,
-    );
-
-    for (const bb_map of bb_maps) {
-        const area_id: number = bb_map.args[0].value;
-        const variant_id: number = bb_map.args[2].value;
-        area_variants.set(area_id, variant_id);
-    }
-
-    const area_variants_array: AreaVariant[] = [];
-
-    for (const [area_id, variant_id] of area_variants.entries()) {
-        try {
-            area_variants_array.push(get_area_variant(episode, area_id, variant_id));
-        } catch (e) {
-            if (lenient) {
-                logger.error(`Unknown area variant.`, e);
-            } else {
-                throw e;
-            }
+    for (const inst of func_0_instructions) {
+        if (inst.opcode === Opcode.BB_MAP_DESIGNATE) {
+            map_designations.set(inst.args[0].value, inst.args[2].value);
         }
     }
 
-    // Sort by area order and then variant id.
-    return area_variants_array.sort((a, b) => a.area.order - b.area.order || a.id - b.id);
+    return map_designations;
 }
 
 function parse_obj_data(objs: DatObject[]): QuestObject[] {

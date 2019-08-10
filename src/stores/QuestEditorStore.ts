@@ -5,20 +5,20 @@ import { ArrayBufferCursor } from "../data_formats/cursor/ArrayBufferCursor";
 import { parse_quest, write_quest_qst } from "../data_formats/parsing/quest";
 import { Vec3 } from "../data_formats/vector";
 import {
-    ObservableArea,
-    ObservableQuest,
     ObservableQuestEntity,
-    Section,
-    ObservableQuestObject,
     ObservableQuestNpc,
+    ObservableQuestObject,
+    Section,
 } from "../domain";
 import { read_file } from "../read_file";
-import { SimpleUndo, UndoStack, undo_manager } from "../undo";
+import { SimpleUndo, undo_manager, UndoStack } from "../undo";
 import { application_store } from "./ApplicationStore";
 import { area_store } from "./AreaStore";
 import { create_new_quest } from "./quest_creation";
 import { Episode } from "../data_formats/parsing/quest/Episode";
 import { entity_data } from "../data_formats/parsing/quest/entities";
+import { ObservableQuest } from "../domain/ObservableQuest";
+import { ObservableArea } from "../domain/ObservableArea";
 
 const logger = Logger.get("stores/QuestEditorStore");
 
@@ -71,7 +71,7 @@ class QuestEditorStore {
     set_current_area_id = (area_id?: number) => {
         this.selected_entity = undefined;
 
-        if (area_id == null) {
+        if (area_id == undefined) {
             this.current_area = undefined;
         } else if (this.current_quest) {
             this.current_area = area_store.get_area(this.current_quest.episode, area_id);
@@ -97,9 +97,7 @@ class QuestEditorStore {
                         quest.short_description,
                         quest.long_description,
                         quest.episode,
-                        quest.area_variants.map(variant =>
-                            area_store.get_variant(quest.episode, variant.area.id, variant.id),
-                        ),
+                        quest.map_designations,
                         quest.objects.map(
                             obj =>
                                 new ObservableQuestObject(
@@ -174,7 +172,7 @@ class QuestEditorStore {
                         type: obj.type,
                         area_id: obj.area_id,
                         section_id: obj.section_id,
-                        position: obj.section_position,
+                        position: obj.position,
                         rotation: obj.rotation,
                         scale: obj.scale,
                         unknown: obj.unknown,
@@ -183,7 +181,7 @@ class QuestEditorStore {
                         type: npc.type,
                         area_id: npc.area_id,
                         section_id: npc.section_id,
-                        position: npc.section_position,
+                        position: npc.position,
                         rotation: npc.rotation,
                         scale: npc.scale,
                         unknown: npc.unknown,
@@ -193,7 +191,7 @@ class QuestEditorStore {
                     dat_unknowns: quest.dat_unknowns,
                     object_code: quest.object_code,
                     shop_items: quest.shop_items,
-                    area_variants: quest.area_variants,
+                    map_designations: quest.map_designations,
                 },
                 file_name,
             );
@@ -223,11 +221,11 @@ class QuestEditorStore {
         this.undo.push_action(
             `Move ${entity_data(entity.type).name}`,
             () => {
-                entity.position = initial_position;
+                entity.world_position = initial_position;
                 quest_editor_store.set_selected_entity(entity);
             },
             () => {
-                entity.position = new_position;
+                entity.world_position = new_position;
                 quest_editor_store.set_selected_entity(entity);
             },
         );
@@ -286,22 +284,13 @@ class QuestEditorStore {
     });
 
     private set_section_on_quest_entity = (entity: ObservableQuestEntity, sections: Section[]) => {
-        let { x, y, z } = entity.position;
-
         const section = sections.find(s => s.id === entity.section_id);
 
         if (section) {
-            const { x: sec_x, y: sec_y, z: sec_z } = section.position;
-            const rot_x = section.cos_y_axis_rotation * x + section.sin_y_axis_rotation * z;
-            const rot_z = -section.sin_y_axis_rotation * x + section.cos_y_axis_rotation * z;
-            x = rot_x + sec_x;
-            y += sec_y;
-            z = rot_z + sec_z;
+            entity.section = section;
         } else {
             logger.warn(`Section ${entity.section_id} not found.`);
         }
-
-        entity.set_position_and_section(new Vec3(x, y, z), section);
     };
 }
 

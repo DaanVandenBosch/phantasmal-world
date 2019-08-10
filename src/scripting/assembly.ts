@@ -396,7 +396,7 @@ class Assembler {
             let arg_count = 0;
 
             for (const token of this.tokens) {
-                if (token.type !== TokenType.ArgSeperator) {
+                if (token.type !== TokenType.ArgSeparator) {
                     arg_count++;
                 }
             }
@@ -510,7 +510,7 @@ class Assembler {
             const token = this.tokens[i];
             const param = params[param_i];
 
-            if (token.type === TokenType.ArgSeperator) {
+            if (token.type === TokenType.ArgSeparator) {
                 if (should_be_arg) {
                     this.add_error({
                         col: token.col,

@@ -76,7 +76,7 @@ function create(
     mesh.name = name;
     (mesh.userData as EntityUserData).entity = entity;
 
-    const { x, y, z } = entity.position;
+    const { x, y, z } = entity.world_position;
     mesh.position.set(x, y, z);
     const rot = entity.rotation;
     mesh.rotation.set(rot.x, rot.y, rot.z);

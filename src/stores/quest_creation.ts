@@ -1,11 +1,11 @@
 import { Vec3 } from "../data_formats/vector";
-import { ObservableQuest, ObservableQuestNpc, ObservableQuestObject } from "../domain";
-import { area_store } from "./AreaStore";
-import { SegmentType, Instruction } from "../scripting/instructions";
+import { ObservableQuestNpc, ObservableQuestObject } from "../domain";
+import { Instruction, SegmentType } from "../scripting/instructions";
 import { Opcode } from "../scripting/opcodes";
 import { Episode } from "../data_formats/parsing/quest/Episode";
 import { ObjectType } from "../data_formats/parsing/quest/object_types";
 import { NpcType } from "../data_formats/parsing/quest/npc_types";
+import { ObservableQuest } from "../domain/ObservableQuest";
 
 export function create_new_quest(episode: Episode): ObservableQuest {
     if (episode === Episode.II) throw new Error("Episode II not yet supported.");
@@ -18,7 +18,7 @@ export function create_new_quest(episode: Episode): ObservableQuest {
         "Created with phantasmal.world.",
         "Created with phantasmal.world.",
         episode,
-        [area_store.get_variant(episode, 0, 0)],
+        new Map().set(0, 0),
         create_default_objects(),
         create_default_npcs(),
         [],

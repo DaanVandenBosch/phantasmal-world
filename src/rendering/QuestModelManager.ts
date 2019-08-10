@@ -1,6 +1,6 @@
 import Logger from "js-logger";
 import { autorun, IReactionDisposer } from "mobx";
-import { Mesh, Object3D, Vector3, Raycaster, Intersection } from "three";
+import { Intersection, Mesh, Object3D, Raycaster, Vector3 } from "three";
 import { load_area_collision_geometry, load_area_render_geometry } from "../loading/areas";
 import {
     load_npc_geometry,
@@ -11,7 +11,10 @@ import {
 import { create_npc_mesh, create_object_mesh } from "./conversion/entities";
 import { QuestRenderer } from "./QuestRenderer";
 import { AreaUserData } from "./conversion/areas";
-import { ObservableArea, ObservableQuest, ObservableQuestEntity } from "../domain";
+import { ObservableQuestEntity } from "../domain";
+import { ObservableQuest } from "../domain/ObservableQuest";
+import { ObservableArea } from "../domain/ObservableArea";
+import { ObservableAreaVariant } from "../domain/ObservableAreaVariant";
 
 const logger = Logger.get("rendering/QuestModelManager");
 
@@ -22,17 +25,25 @@ const DUMMY_OBJECT = new Object3D();
 export class QuestModelManager {
     private quest?: ObservableQuest;
     private area?: ObservableArea;
+    private area_variant?: ObservableAreaVariant;
     private entity_reaction_disposers: IReactionDisposer[] = [];
 
     constructor(private renderer: QuestRenderer) {}
 
     async load_models(quest?: ObservableQuest, area?: ObservableArea): Promise<void> {
-        if (this.quest === quest && this.area === area) {
+        let area_variant: ObservableAreaVariant | undefined;
+
+        if (quest && area) {
+            area_variant = quest.area_variants.find(v => v.area.id === area.id);
+        }
+
+        if (this.quest === quest && this.area_variant === area_variant) {
             return;
         }
 
         this.quest = quest;
         this.area = area;
+        this.area_variant = area_variant;
 
         this.dispose_entity_reactions();
 
@@ -41,8 +52,7 @@ export class QuestModelManager {
                 // Load necessary area geometry.
                 const episode = quest.episode;
                 const area_id = area.id;
-                const variant = quest.area_variants.find(v => v.area.id === area_id);
-                const variant_id = (variant && variant.id) || 0;
+                const variant_id = area_variant ? area_variant.id : 0;
 
                 const collision_geometry = await load_area_collision_geometry(
                     episode,
@@ -58,7 +68,7 @@ export class QuestModelManager {
 
                 this.add_sections_to_collision_geometry(collision_geometry, render_geometry);
 
-                if (this.quest !== quest || this.area !== area) return;
+                if (this.quest !== quest || this.area_variant !== area_variant) return;
 
                 this.renderer.collision_geometry = collision_geometry;
                 this.renderer.render_geometry = render_geometry;
@@ -73,7 +83,7 @@ export class QuestModelManager {
                         const npc_geom = await load_npc_geometry(npc.type);
                         const npc_tex = await load_npc_textures(npc.type);
 
-                        if (this.quest !== quest || this.area !== area) return;
+                        if (this.quest !== quest || this.area_variant !== area_variant) return;
 
                         const model = create_npc_mesh(npc, npc_geom, npc_tex);
                         this.update_entity_geometry(npc, model);
@@ -85,7 +95,7 @@ export class QuestModelManager {
                         const object_geom = await load_object_geometry(object.type);
                         const object_tex = await load_object_textures(object.type);
 
-                        if (this.quest !== quest || this.area !== area) return;
+                        if (this.quest !== quest || this.area_variant !== area_variant) return;
 
                         const model = create_object_mesh(object, object_geom, object_tex);
                         this.update_entity_geometry(object, model);
@@ -150,7 +160,7 @@ export class QuestModelManager {
 
         this.entity_reaction_disposers.push(
             autorun(() => {
-                const { x, y, z } = entity.position;
+                const { x, y, z } = entity.world_position;
                 model.position.set(x, y, z);
                 const rot = entity.rotation;
                 model.rotation.set(rot.x, rot.y, rot.z);

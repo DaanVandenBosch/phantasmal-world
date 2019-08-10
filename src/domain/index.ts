@@ -1,10 +1,8 @@
-import { action, computed, IObservableArray, observable } from "mobx";
-import { DatUnknown } from "../data_formats/parsing/quest/dat";
+import { action, computed, observable } from "mobx";
 import { EntityType } from "../data_formats/parsing/quest/entities";
-import { check_episode, Episode } from "../data_formats/parsing/quest/Episode";
+import { Episode } from "../data_formats/parsing/quest/Episode";
 import { Vec3 } from "../data_formats/vector";
 import { enum_values } from "../enums";
-import { Segment } from "../scripting/instructions";
 import { ItemType } from "./items";
 import { ObjectType } from "../data_formats/parsing/quest/object_types";
 import { NpcType } from "../data_formats/parsing/quest/npc_types";
@@ -65,122 +63,6 @@ export class Section {
     }
 }
 
-export class ObservableQuest {
-    @observable private _id!: number;
-
-    get id(): number {
-        return this._id;
-    }
-
-    @action
-    set_id(id: number): void {
-        if (!Number.isInteger(id) || id < 0 || id > 4294967295)
-            throw new Error("id must be an integer greater than 0 and less than 4294967295.");
-        this._id = id;
-    }
-
-    @observable private _language!: number;
-
-    get language(): number {
-        return this._language;
-    }
-
-    @action
-    set_language(language: number): void {
-        if (!Number.isInteger(language)) throw new Error("language must be an integer.");
-        this._language = language;
-    }
-
-    @observable private _name!: string;
-
-    get name(): string {
-        return this._name;
-    }
-
-    @action
-    set_name(name: string): void {
-        if (name.length > 32) throw new Error("name can't be longer than 32 characters.");
-        this._name = name;
-    }
-
-    @observable private _short_description!: string;
-
-    get short_description(): string {
-        return this._short_description;
-    }
-
-    @action
-    set_short_description(short_description: string): void {
-        if (short_description.length > 128)
-            throw new Error("short_description can't be longer than 128 characters.");
-        this._short_description = short_description;
-    }
-
-    @observable _long_description!: string;
-
-    get long_description(): string {
-        return this._long_description;
-    }
-
-    @action
-    set_long_description(long_description: string): void {
-        if (long_description.length > 288)
-            throw new Error("long_description can't be longer than 288 characters.");
-        this._long_description = long_description;
-    }
-
-    readonly episode: Episode;
-
-    /**
-     * One variant per area.
-     */
-    @observable readonly area_variants: ObservableAreaVariant[];
-    @observable readonly objects: ObservableQuestObject[];
-    @observable readonly npcs: ObservableQuestNpc[];
-    /**
-     * (Partial) raw DAT data that can't be parsed yet by Phantasmal.
-     */
-    readonly dat_unknowns: DatUnknown[];
-    readonly object_code: Segment[];
-    readonly shop_items: number[];
-
-    constructor(
-        id: number,
-        language: number,
-        name: string,
-        short_description: string,
-        long_description: string,
-        episode: Episode,
-        area_variants: ObservableAreaVariant[],
-        objects: ObservableQuestObject[],
-        npcs: ObservableQuestNpc[],
-        dat_unknowns: DatUnknown[],
-        object_code: Segment[],
-        shop_items: number[],
-    ) {
-        check_episode(episode);
-        if (!area_variants) throw new Error("area_variants is required.");
-        if (!Array.isArray(objects)) throw new Error("objs is required.");
-        if (!Array.isArray(npcs)) throw new Error("npcs is required.");
-        if (!dat_unknowns) throw new Error("dat_unknowns is required.");
-        if (!object_code) throw new Error("object_code is required.");
-        if (!shop_items) throw new Error("shop_items is required.");
-
-        this.set_id(id);
-        this.set_language(language);
-        this.set_name(name);
-        this.set_short_description(short_description);
-        this.set_long_description(long_description);
-        this.episode = episode;
-        this.area_variants = area_variants;
-        this.objects = objects;
-        this.npcs = npcs;
-        this.dat_unknowns = dat_unknowns;
-        this.object_code = object_code;
-        this.shop_items = shop_items;
-    }
-}
-
 /**
  * Abstract class from which ObservableQuestNpc and ObservableQuestObject derive.
  */
@@ -198,7 +80,7 @@ export abstract class ObservableQuestEntity<Type extends EntityType = EntityType
     @observable.ref section?: Section;
 
     /**
-     * World position
+     * Section-relative position
      */
     @observable.ref position: Vec3;
 
@@ -207,10 +89,27 @@ export abstract class ObservableQuestEntity<Type extends EntityType = EntityType
     @observable.ref scale: Vec3;
 
     /**
-     * Section-relative position
+     * World position
      */
-    @computed get section_position(): Vec3 {
-        let { x, y, z } = this.position;
+    @computed get world_position(): Vec3 {
+        if (this.section) {
+            let { x: rel_x, y: rel_y, z: rel_z } = this.position;
+
+            const sin = -this.section.sin_y_axis_rotation;
+            const cos = this.section.cos_y_axis_rotation;
+            const rot_x = cos * rel_x - sin * rel_z;
+            const rot_z = sin * rel_x + cos * rel_z;
+            const x = rot_x + this.section.position.x;
+            const y = rel_y + this.section.position.y;
+            const z = rot_z + this.section.position.z;
+            return new Vec3(x, y, z);
+        } else {
+            return this.position;
+        }
+    }
+
+    set world_position(pos: Vec3) {
+        let { x, y, z } = pos;
 
         if (this.section) {
             const rel_x = x - this.section.position.x;
@@ -225,22 +124,7 @@ export abstract class ObservableQuestEntity<Type extends EntityType = EntityType
             z = rot_z;
         }
 
-        return new Vec3(x, y, z);
-    }
-
-    set section_position(sec_pos: Vec3) {
-        let { x: rel_x, y: rel_y, z: rel_z } = sec_pos;
-
-        if (this.section) {
-            const sin = -this.section.sin_y_axis_rotation;
-            const cos = this.section.cos_y_axis_rotation;
-            const rot_x = cos * rel_x - sin * rel_z;
-            const rot_z = sin * rel_x + cos * rel_z;
-            const x = rot_x + this.section.position.x;
-            const y = rel_y + this.section.position.y;
-            const z = rot_z + this.section.position.z;
-            this.position = new Vec3(x, y, z);
-        }
+        this.position = new Vec3(x, y, z);
     }
 
     protected constructor(
@@ -269,8 +153,8 @@ export abstract class ObservableQuestEntity<Type extends EntityType = EntityType
     }
 
     @action
-    set_position_and_section(position: Vec3, section?: Section): void {
-        this.position = position;
+    set_world_position_and_section(world_position: Vec3, section?: Section): void {
+        this.world_position = world_position;
         this.section = section;
     }
 }
@@ -324,42 +208,6 @@ export class ObservableQuestNpc extends ObservableQuestEntity<NpcType> {
         this.pso_type_id = pso_type_id;
         this.pso_skin = pso_skin;
         this.unknown = unknown;
-    }
-}
-
-export class ObservableArea {
-    /**
-     * Matches the PSO ID.
-     */
-    readonly id: number;
-    readonly name: string;
-    readonly order: number;
-    readonly area_variants: ObservableAreaVariant[];
-
-    constructor(id: number, name: string, order: number, area_variants: ObservableAreaVariant[]) {
-        if (!Number.isInteger(id) || id < 0)
-            throw new Error(`Expected id to be a non-negative integer, got ${id}.`);
-        if (!name) throw new Error("name is required.");
-        if (!area_variants) throw new Error("area_variants is required.");
-
-        this.id = id;
-        this.name = name;
-        this.order = order;
-        this.area_variants = area_variants;
-    }
-}
-
-export class ObservableAreaVariant {
-    readonly id: number;
-    readonly area: ObservableArea;
-    @observable.shallow readonly sections: IObservableArray<Section> = observable.array();
-
-    constructor(id: number, area: ObservableArea) {
-        if (!Number.isInteger(id) || id < 0)
-            throw new Error(`Expected id to be a non-negative integer, got ${id}.`);
-
-        this.id = id;
-        this.area = area;
     }
 }
 

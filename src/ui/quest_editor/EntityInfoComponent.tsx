@@ -30,17 +30,17 @@ export class EntityInfoComponent extends Component {
                             <td>{section_id}</td>
                         </tr>
                         <tr>
-                            <th colSpan={2}>World position:</th>
+                            <th colSpan={2}>Section position:</th>
                         </tr>
                         <CoordRow entity={entity} position_type="position" coord="x" />
                         <CoordRow entity={entity} position_type="position" coord="y" />
                         <CoordRow entity={entity} position_type="position" coord="z" />
                         <tr>
-                            <th colSpan={2}>Section position:</th>
+                            <th colSpan={2}>World position:</th>
                         </tr>
-                        <CoordRow entity={entity} position_type="section_position" coord="x" />
-                        <CoordRow entity={entity} position_type="section_position" coord="y" />
-                        <CoordRow entity={entity} position_type="section_position" coord="z" />
+                        <CoordRow entity={entity} position_type="world_position" coord="x" />
+                        <CoordRow entity={entity} position_type="world_position" coord="y" />
+                        <CoordRow entity={entity} position_type="world_position" coord="z" />
                     </tbody>
                 </table>
             );
@@ -58,7 +58,7 @@ export class EntityInfoComponent extends Component {
 
 type CoordProps = {
     entity: ObservableQuestEntity;
-    position_type: "position" | "section_position";
+    position_type: "position" | "world_position";
     coord: "x" | "y" | "z";
 };
 
@@ -127,15 +127,15 @@ class CoordInput extends Component<CoordProps, { value: number; initial_position
     }
 
     private focus = () => {
-        this.setState({ initial_position: this.props.entity.position });
+        this.setState({ initial_position: this.props.entity.world_position });
     };
 
     private blur = () => {
-        if (!this.state.initial_position.equals(this.props.entity.position)) {
+        if (!this.state.initial_position.equals(this.props.entity.world_position)) {
             quest_editor_store.push_entity_move_action(
                 this.props.entity,
                 this.state.initial_position,
-                this.props.entity.position,
+                this.props.entity.world_position,
             );
         }
     };

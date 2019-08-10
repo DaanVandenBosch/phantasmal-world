@@ -12,7 +12,7 @@ export enum TokenType {
     UnterminatedString,
     Ident,
     InvalidIdent,
-    ArgSeperator,
+    ArgSeparator,
 }
 
 export type Token =
@@ -29,7 +29,7 @@ export type Token =
     | UnterminatedStringToken
     | IdentToken
     | InvalidIdentToken
-    | ArgSeperatorToken;
+    | ArgSeparatorToken;
 
 export type IntToken = {
     type: TokenType.Int;
@@ -116,8 +116,8 @@ export type InvalidIdentToken = {
     len: number;
 };
 
-export type ArgSeperatorToken = {
-    type: TokenType.ArgSeperator;
+export type ArgSeparatorToken = {
+    type: TokenType.ArgSeparator;
     col: number;
     len: number;
 };
@@ -159,7 +159,7 @@ export class AssemblyLexer {
             } else if (/[-\d]/.test(char)) {
                 token = this.tokenize_number_or_label();
             } else if ("," === char) {
-                token = { type: TokenType.ArgSeperator, col: this.col, len: 1 };
+                token = { type: TokenType.ArgSeparator, col: this.col, len: 1 };
                 this.skip();
             } else if ("." === char) {
                 token = this.tokenize_section();

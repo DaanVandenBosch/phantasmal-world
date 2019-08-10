@@ -3,7 +3,7 @@ import { Endianness } from "../../Endianness";
 import { walk_qst_files } from "../../../../test/src/utils";
 import { ArrayBufferCursor } from "../../cursor/ArrayBufferCursor";
 import { BufferCursor } from "../../cursor/BufferCursor";
-import { parse_quest, Quest, write_quest_qst } from "./index";
+import { parse_quest, write_quest_qst } from "./index";
 import { ObjectType } from "./object_types";
 
 test("parse Towards the Future", () => {
@@ -21,18 +21,20 @@ test("parse Towards the Future", () => {
     expect(quest.objects[0].type).toBe(ObjectType.MenuActivation);
     expect(quest.objects[4].type).toBe(ObjectType.PlayerSet);
     expect(quest.npcs.length).toBe(216);
-    expect(testable_area_variants(quest)).toEqual([
-        [0, 0],
-        [2, 0],
-        [11, 0],
-        [5, 4],
-        [12, 0],
-        [7, 4],
-        [13, 0],
-        [8, 4],
-        [10, 4],
-        [14, 0],
-    ]);
+    expect(quest.map_designations).toEqual(
+        new Map([
+            [0, 0],
+            [2, 0],
+            [11, 0],
+            [5, 4],
+            [12, 0],
+            [7, 4],
+            [13, 0],
+            [8, 4],
+            [10, 4],
+            [14, 0],
+        ]),
+    );
 });
 
 /**
@@ -86,14 +88,7 @@ function round_trip_test(path: string, file_name: string, contents: Buffer): voi
             expect(test_npc.type).toBe(orig_npc.type);
         }
 
-        expect(test_quest.area_variants.length).toBe(orig_quest.area_variants.length);
-
-        for (let i = 0; i < orig_quest.area_variants.length; i++) {
-            const orig_area_variant = orig_quest.area_variants[i];
-            const test_area_variant = test_quest.area_variants[i];
-            expect(test_area_variant.id).toBe(orig_area_variant.id);
-            expect(test_area_variant.area.id).toBe(orig_area_variant.area.id);
-        }
+        expect(test_quest.map_designations).toEqual(orig_quest.map_designations);
 
         expect(test_quest.object_code.length).toBe(orig_quest.object_code.length);
 
@@ -101,8 +96,4 @@ function round_trip_test(path: string, file_name: string, contents: Buffer): voi
             expect(test_quest.object_code[i]).toEqual(orig_quest.object_code[i]);
         }
     });
-}
-
-function testable_area_variants(quest: Quest): any[][] {
-    return quest.area_variants.map(av => [av.area.id, av.id]);
 }

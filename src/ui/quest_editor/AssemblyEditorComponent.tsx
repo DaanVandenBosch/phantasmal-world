@@ -181,7 +181,7 @@ class MonacoComponent extends Component<MonacoProps> {
             this.disposers.push(
                 this.dispose,
                 autorun(this.update_model),
-                autorun(this.update_model_markers)
+                autorun(this.update_model_markers),
             );
         }
     }
@@ -209,7 +209,7 @@ class MonacoComponent extends Component<MonacoProps> {
         const quest = quest_editor_store.current_quest;
 
         if (quest && this.editor && this.assembly_analyser) {
-            const assembly = this.assembly_analyser.disassemble(quest.object_code);
+            const assembly = this.assembly_analyser.disassemble(quest);
             const model = editor.createModel(assembly.join("\n"), "psoasm");
 
             quest_editor_store.script_undo.action = new Action(
@@ -223,7 +223,7 @@ class MonacoComponent extends Component<MonacoProps> {
                     if (this.editor) {
                         this.editor.trigger("redo stack", "redo", undefined);
                     }
-                }
+                },
             );
 
             let initial_version = model.getAlternativeVersionId();
@@ -290,7 +290,7 @@ class MonacoComponent extends Component<MonacoProps> {
                 endLineNumber: error.line_no,
                 startColumn: error.col,
                 endColumn: error.col + error.length,
-            }))
+            })),
         );
     };
 

@@ -29,7 +29,7 @@ export class BinFile {
         readonly short_description: string,
         readonly long_description: string,
         readonly object_code: Segment[],
-        readonly shop_items: number[]
+        readonly shop_items: number[],
     ) {}
 }
 
@@ -41,7 +41,7 @@ SEGMENT_PRIORITY[SegmentType.Data] = 0;
 export function parse_bin(
     cursor: Cursor,
     entry_labels: number[] = [0],
-    lenient: boolean = false
+    lenient: boolean = false,
 ): BinFile {
     const object_code_offset = cursor.u32(); // Always 4652
     const label_offset_table_offset = cursor.u32(); // Relative offsets
@@ -80,7 +80,7 @@ export function parse_bin(
         short_description,
         long_description,
         segments,
-        shop_items
+        shop_items,
     );
 }
 
@@ -179,7 +179,7 @@ class LabelHolder {
     }
 
     get_info(
-        label: number
+        label: number,
     ): { offset: number; next?: { label: number; offset: number } } | undefined {
         const offset_and_index = this.label_map.get(label);
 
@@ -212,7 +212,7 @@ function parse_object_code(
     cursor: Cursor,
     label_holder: LabelHolder,
     entry_labels: number[],
-    lenient: boolean
+    lenient: boolean,
 ): Segment[] {
     const offset_to_segment = new Map<number, Segment>();
 
@@ -221,7 +221,7 @@ function parse_object_code(
         label_holder,
         entry_labels.reduce((m, l) => m.set(l, SegmentType.Instructions), new Map()),
         offset_to_segment,
-        lenient
+        lenient,
     );
 
     const segments: Segment[] = [];
@@ -259,7 +259,7 @@ function parse_object_code(
             // Should never happen.
             if (end_offset <= offset) {
                 logger.error(
-                    `Next offset ${end_offset} was smaller than or equal to current offset ${offset}.`
+                    `Next offset ${end_offset} was smaller than or equal to current offset ${offset}.`,
                 );
                 break;
             }
@@ -325,8 +325,8 @@ function find_and_parse_segments(
     label_holder: LabelHolder,
     labels: Map<number, SegmentType>,
     offset_to_segment: Map<number, Segment>,
-    lenient: boolean
-) {
+    lenient: boolean,
+): void {
     let start_segment_count: number;
 
     // Iteratively parse segments from label references.
@@ -359,7 +359,7 @@ function find_and_parse_segments(
                                 labels,
                                 instruction,
                                 i,
-                                SegmentType.Instructions
+                                SegmentType.Instructions,
                             );
                             break;
                         case Kind.ILabelVar:
@@ -377,27 +377,28 @@ function find_and_parse_segments(
                             get_arg_label_values(cfg, labels, instruction, i, SegmentType.String);
                             break;
                         case Kind.RegTupRef:
-                            // Never on the stack.
-                            const arg = instruction.args[i];
+                            {
+                                // Never on the stack.
+                                const arg = instruction.args[i];
 
-                            for (let j = 0; j < param.type.register_tuples.length; j++) {
-                                const reg_tup = param.type.register_tuples[j];
+                                for (let j = 0; j < param.type.register_tuples.length; j++) {
+                                    const reg_tup = param.type.register_tuples[j];
 
-                                if (reg_tup.type.kind === Kind.ILabel) {
-                                    const label_values = register_value(
-                                        cfg,
-                                        instruction,
-                                        arg.value + j
-                                    );
+                                    if (reg_tup.type.kind === Kind.ILabel) {
+                                        const label_values = register_value(
+                                            cfg,
+                                            instruction,
+                                            arg.value + j,
+                                        );
 
-                                    if (label_values.size() <= 10) {
-                                        for (const label of label_values) {
-                                            labels.set(label, SegmentType.Instructions);
+                                        if (label_values.size() <= 10) {
+                                            for (const label of label_values) {
+                                                labels.set(label, SegmentType.Instructions);
+                                            }
                                         }
                                     }
                                 }
                             }
-
                             break;
                     }
                 }
@@ -414,13 +415,13 @@ function get_arg_label_values(
     labels: Map<number, SegmentType>,
     instruction: Instruction,
     param_idx: number,
-    segment_type: SegmentType
+    segment_type: SegmentType,
 ): void {
     if (instruction.opcode.stack === StackInteraction.Pop) {
         const stack_values = stack_value(
             cfg,
             instruction,
-            instruction.opcode.params.length - param_idx - 1
+            instruction.opcode.params.length - param_idx - 1,
         );
 
         if (stack_values.size() <= 10) {
@@ -451,8 +452,8 @@ function parse_segment(
     cursor: Cursor,
     label: number,
     type: SegmentType,
-    lenient: boolean
-) {
+    lenient: boolean,
+): void {
     try {
         const info = label_holder.get_info(label);
 
@@ -492,7 +493,7 @@ function parse_segment(
                     end_offset,
                     labels,
                     info.next && info.next.label,
-                    lenient
+                    lenient,
                 );
                 break;
             case SegmentType.Data:
@@ -506,7 +507,7 @@ function parse_segment(
         }
     } catch (e) {
         if (lenient) {
-            logger.error("Couldn't fully parse object code.", e);
+            logger.error("Couldn't fully parse object code segment.", e);
         } else {
             throw e;
         }
@@ -520,8 +521,8 @@ function parse_instructions_segment(
     end_offset: number,
     labels: number[],
     next_label: number | undefined,
-    lenient: boolean
-) {
+    lenient: boolean,
+): void {
     const instructions: Instruction[] = [];
 
     const segment: InstructionSegment = {
@@ -556,7 +557,7 @@ function parse_instructions_segment(
             if (lenient) {
                 logger.error(
                     `Exception occurred while parsing arguments for instruction ${opcode.mnemonic}.`,
-                    e
+                    e,
                 );
                 instructions.push(new Instruction(opcode, []));
             } else {
@@ -586,7 +587,7 @@ function parse_instructions_segment(
                 cursor,
                 next_label,
                 SegmentType.Instructions,
-                lenient
+                lenient,
             );
         }
     }
@@ -596,8 +597,8 @@ function parse_data_segment(
     offset_to_segment: Map<number, Segment>,
     cursor: Cursor,
     end_offset: number,
-    labels: number[]
-) {
+    labels: number[],
+): void {
     const start_offset = cursor.position;
     const segment: DataSegment = {
         type: SegmentType.Data,
@@ -611,8 +612,8 @@ function parse_string_segment(
     offset_to_segment: Map<number, Segment>,
     cursor: Cursor,
     end_offset: number,
-    labels: number[]
-) {
+    labels: number[],
+): void {
     const start_offset = cursor.position;
     const segment: StringSegment = {
         type: SegmentType.String,
@@ -653,7 +654,7 @@ function parse_instruction_arguments(cursor: Cursor, opcode: Opcode): Arg[] {
                             value: cursor.string_utf16(
                                 Math.min(4096, cursor.bytes_left),
                                 true,
-                                false
+                                false,
                             ),
                             size: cursor.position - start_pos,
                         });
@@ -686,7 +687,7 @@ function parse_instruction_arguments(cursor: Cursor, opcode: Opcode): Arg[] {
 
 function write_object_code(
     cursor: WritableCursor,
-    segments: Segment[]
+    segments: Segment[],
 ): { size: number; label_offsets: number[] } {
     const start_pos = cursor.position;
     // Keep track of label offsets.
@@ -762,7 +763,7 @@ function write_object_code(
                             default:
                                 // TYPE_ANY, TYPE_VALUE and TYPE_POINTER cannot be serialized.
                                 throw new Error(
-                                    `Parameter type ${Kind[param.type.kind]} not implemented.`
+                                    `Parameter type ${Kind[param.type.kind]} not implemented.`,
                                 );
                         }
                     }

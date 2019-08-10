@@ -1,7 +1,9 @@
-import { ObservableArea, ObservableAreaVariant, Section } from "../domain";
+import { Section } from "../domain";
 import { load_area_sections } from "../loading/areas";
 import { Episode, EPISODES } from "../data_formats/parsing/quest/Episode";
 import { get_areas_for_episode } from "../data_formats/parsing/quest/areas";
+import { ObservableAreaVariant } from "../domain/ObservableAreaVariant";
+import { ObservableArea } from "../domain/ObservableArea";
 
 class AreaStore {
     private readonly areas: ObservableArea[][] = [];

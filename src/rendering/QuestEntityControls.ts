@@ -108,13 +108,13 @@ export class QuestEntityControls {
         if (this.selected && this.pick) {
             if (this.moved_since_last_mouse_down) {
                 if (e.buttons === 1) {
-                    // User is tranforming selected entity.
+                    // User is transforming selected entity.
                     // User is dragging selected entity.
                     if (e.shiftKey) {
                         // Vertical movement.
                         this.translate_vertically(this.selected, this.pick, pointer_device_pos);
                     } else {
-                        // Horizontal movement accross terrain.
+                        // Horizontal movement across terrain.
                         this.translate_horizontally(this.selected, this.pick, pointer_device_pos);
                     }
                 }
@@ -219,13 +219,13 @@ export class QuestEntityControls {
 
         if (ray.intersectPlane(plane, intersection_point)) {
             const y = intersection_point.y + pick.grab_offset.y;
-            const y_delta = y - selection.entity.position.y;
+            const y_delta = y - selection.entity.world_position.y;
             pick.drag_y += y_delta;
             pick.drag_adjust.y -= y_delta;
-            selection.entity.position = new Vec3(
-                selection.entity.position.x,
+            selection.entity.world_position = new Vec3(
+                selection.entity.world_position.x,
                 y,
-                selection.entity.position.z,
+                selection.entity.world_position.z,
             );
         }
     }
@@ -239,7 +239,7 @@ export class QuestEntityControls {
         const { intersection, section } = this.pick_terrain(pointer_position, pick);
 
         if (intersection) {
-            selection.entity.set_position_and_section(
+            selection.entity.set_world_position_and_section(
                 new Vec3(
                     intersection.point.x,
                     intersection.point.y + pick.drag_y,
@@ -254,14 +254,14 @@ export class QuestEntityControls {
             // ray.origin.add(data.dragAdjust);
             const plane = new Plane(
                 new Vector3(0, 1, 0),
-                -selection.entity.position.y + pick.grab_offset.y,
+                -selection.entity.world_position.y + pick.grab_offset.y,
             );
             const intersection_point = new Vector3();
 
             if (ray.intersectPlane(plane, intersection_point)) {
-                selection.entity.position = new Vec3(
+                selection.entity.world_position = new Vec3(
                     intersection_point.x + pick.grab_offset.x,
-                    selection.entity.position.y,
+                    selection.entity.world_position.y,
                     intersection_point.z + pick.grab_offset.z,
                 );
             }
@@ -318,7 +318,7 @@ export class QuestEntityControls {
         return {
             mesh: intersection.object as Mesh,
             entity,
-            initial_position: entity.position,
+            initial_position: entity.world_position,
             grab_offset,
             drag_adjust,
             drag_y,

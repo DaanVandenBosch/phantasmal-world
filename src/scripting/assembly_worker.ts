@@ -1,6 +1,8 @@
-import { NewObjectCodeOutput, ScriptWorkerInput } from "./assembler_messages";
+import { AssemblyWorkerInput, NewObjectCodeOutput } from "./assembly_worker_messages";
 import { assemble } from "./assembly";
 import Logger from "js-logger";
+import { SegmentType } from "./instructions";
+import { Opcode } from "./opcodes";
 
 Logger.useDefaults({
     defaultLevel: (Logger as any)[process.env["LOG_LEVEL"] || "OFF"],
@@ -9,7 +11,7 @@ Logger.useDefaults({
 const ctx: Worker = self as any;
 
 let lines: string[] = [];
-const messages: ScriptWorkerInput[] = [];
+const messages: AssemblyWorkerInput[] = [];
 let timeout: any;
 
 ctx.onmessage = (e: MessageEvent) => {
@@ -45,7 +47,7 @@ function process_messages(): void {
                         endLineNumber,
                         startColumn,
                         endColumn,
-                        new_lines[0]
+                        new_lines[0],
                     );
                 } else {
                     // Keep the left part of the first changed line.
@@ -55,7 +57,7 @@ function process_messages(): void {
                     replace_line_part_left(
                         endLineNumber,
                         endColumn,
-                        new_lines[new_lines.length - 1]
+                        new_lines[new_lines.length - 1],
                     );
 
                     // Replace all the lines in between.
@@ -63,16 +65,34 @@ function process_messages(): void {
                     replace_lines(
                         startLineNumber + 1,
                         endLineNumber - 1,
-                        new_lines.slice(1, new_lines.length - 1)
+                        new_lines.slice(1, new_lines.length - 1),
                     );
                 }
             }
         }
     }
 
+    const assembler_result = assemble(lines);
+    const map_designations = new Map<number, number>();
+
+    for (const segment of assembler_result.object_code) {
+        if (segment.labels.includes(0)) {
+            if (segment.type === SegmentType.Instructions) {
+                for (const inst of segment.instructions) {
+                    if (inst.opcode === Opcode.BB_MAP_DESIGNATE) {
+                        map_designations.set(inst.args[0].value, inst.args[2].value);
+                    }
+                }
+            }
+
+            break;
+        }
+    }
+
     const response: NewObjectCodeOutput = {
         type: "new_object_code_output",
-        ...assemble(lines),
+        map_designations,
+        ...assembler_result,
     };
     ctx.postMessage(response);
 }
@@ -81,7 +101,7 @@ function replace_line_part(
     line_no: number,
     start_col: number,
     end_col: number,
-    new_line_parts: string[]
+    new_line_parts: string[],
 ): void {
     const line = lines[line_no - 1];
     // We keep the parts of the line that weren't affected by the edit.
@@ -96,7 +116,7 @@ function replace_line_part(
             1,
             line_start + new_line_parts[0],
             ...new_line_parts.slice(1, new_line_parts.length - 1),
-            new_line_parts[new_line_parts.length - 1] + line_end
+            new_line_parts[new_line_parts.length - 1] + line_end,
         );
     }
 }
@@ -118,7 +138,7 @@ function replace_lines_and_merge_line_parts(
     end_line_no: number,
     start_col: number,
     end_col: number,
-    new_line_part: string
+    new_line_part: string,
 ): void {
     const start_line = lines[start_line_no - 1];
     const end_line = lines[end_line_no - 1];
@@ -129,6 +149,6 @@ function replace_lines_and_merge_line_parts(
     lines.splice(
         start_line_no - 1,
         end_line_no - start_line_no + 1,
-        start_line_start + new_line_part + end_line_end
+        start_line_start + new_line_part + end_line_end,
     );
 }
