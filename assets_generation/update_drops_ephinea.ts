@@ -3,8 +3,12 @@ import { writeFileSync } from "fs";
 import "isomorphic-fetch";
 import Logger from "js-logger";
 import { ASSETS_DIR } from ".";
-import { Difficulty, NpcType, SectionId, SectionIds } from "../src/domain";
-import { BoxDropDto, EnemyDropDto, ItemTypeDto } from "../src/dto";
+import { Difficulty, SectionId, SectionIds } from "../src/core/domain";
+import { BoxDropDto, EnemyDropDto, ItemTypeDto } from "../src/core/dto";
+import {
+    name_and_episode_to_npc_type,
+    NpcType,
+} from "../src/core/data_formats/parsing/quest/npc_types";
 
 const logger = Logger.get("assets_generation/update_drops_ephinea");
 
@@ -19,7 +23,7 @@ export async function update_drops_from_website(item_types: ItemTypeDto[]): Prom
     const enemy_json = JSON.stringify(
         [...normal.enemy_drops, ...hard.enemy_drops, ...vhard.enemy_drops, ...ultimate.enemy_drops],
         null,
-        4
+        4,
     );
 
     writeFileSync(`${ASSETS_DIR}/enemyDrops.ephinea.json`, enemy_json);
@@ -27,7 +31,7 @@ export async function update_drops_from_website(item_types: ItemTypeDto[]): Prom
     const box_json = JSON.stringify(
         [...normal.box_drops, ...hard.box_drops, ...vhard.box_drops, ...ultimate.box_drops],
         null,
-        4
+        4,
     );
 
     writeFileSync(`${ASSETS_DIR}/boxDrops.ephinea.json`, box_json);
@@ -38,7 +42,7 @@ export async function update_drops_from_website(item_types: ItemTypeDto[]): Prom
 async function download(
     item_types: ItemTypeDto[],
     difficulty: Difficulty,
-    difficulty_url: string = Difficulty[difficulty].toLowerCase()
+    difficulty_url: string = Difficulty[difficulty].toLowerCase(),
 ): Promise<{ enemy_drops: EnemyDropDto[]; box_drops: BoxDropDto[]; items: Set<string> }> {
     const response = await fetch(`https://ephinea.pioneer2.net/drop-charts/${difficulty_url}/`);
     const body = await response.text();
@@ -125,7 +129,7 @@ async function download(
                                 throw new Error(`No item type found with name "${item}".`);
                             }
 
-                            const npc_type = NpcType.by_name_and_episode(enemy_or_box, episode);
+                            const npc_type = name_and_episode_to_npc_type(enemy_or_box, episode);
 
                             if (!npc_type) {
                                 throw new Error(`Couldn't retrieve NpcType.`);
@@ -149,7 +153,7 @@ async function download(
                                 difficulty: Difficulty[difficulty],
                                 episode,
                                 sectionId: SectionId[section_id],
-                                enemy: npc_type.code,
+                                enemy: NpcType[npc_type],
                                 itemTypeId: item_type.id,
                                 dropRate: drop_rate_num / drop_rate_denom,
                                 rareRate: rare_rate_num / rare_rate_denom,
@@ -159,7 +163,7 @@ async function download(
                         } catch (e) {
                             logger.error(
                                 `Error while processing item ${item} of ${enemy_or_box} in episode ${episode} ${Difficulty[difficulty]}.`,
-                                e
+                                e,
                             );
                         }
                     }
@@ -167,7 +171,7 @@ async function download(
             } catch (e) {
                 logger.error(
                     `Error while processing ${enemy_or_box_text} in episode ${episode} ${difficulty}.`,
-                    e
+                    e,
                 );
             }
         });

@@ -13,13 +13,15 @@ module.exports = merge(common, {
         rules: [
             {
                 test: /\.tsx?$/,
-                use: [{
-                    loader: "ts-loader",
-                    options: {
-                        // fork-ts-checker-webpack-plugin does the type checking in a seperate process.
-                        transpileOnly: true,
-                    }
-                }],
+                use: [
+                    {
+                        loader: "ts-loader",
+                        options: {
+                            // fork-ts-checker-webpack-plugin does the type checking in a separate process.
+                            transpileOnly: true,
+                        },
+                    },
+                ],
                 include: path.resolve(__dirname, "src"),
             },
             {
@@ -30,18 +32,18 @@ module.exports = merge(common, {
                         loader: MiniCssExtractPlugin.loader,
                         options: {
                             hmr: true,
-                        }
+                        },
                     },
                     {
                         loader: "css-loader",
                         options: {
                             sourceMap: true,
                             modules: {
-                                localIdentName: '[path][name]__[local]',
+                                localIdentName: "[path][name]__[local]",
                             },
-                        }
+                        },
                     },
-                ]
+                ],
             },
             {
                 test: /\.css$/,
@@ -52,9 +54,9 @@ module.exports = merge(common, {
                         loader: "css-loader",
                         options: {
                             sourceMap: true,
-                        }
+                        },
                     },
-                ]
+                ],
             },
             {
                 test: /\.less$/,
@@ -65,7 +67,7 @@ module.exports = merge(common, {
                         loader: "css-loader",
                         options: {
                             sourceMap: true,
-                        }
+                        },
                     },
                     {
                         loader: "less-loader",
@@ -73,19 +75,19 @@ module.exports = merge(common, {
                             sourceMap: true,
                             javascriptEnabled: true,
                             modifyVars: antd_theme,
-                        }
+                        },
                     },
-                ]
+                ],
             },
             {
                 test: /\.(png|svg|jpg|gif)$/,
-                use: ["file-loader"]
+                use: ["file-loader"],
             },
             {
                 test: /\.worker\.js$/,
-                use: { loader: 'worker-loader' }
+                use: { loader: "worker-loader" },
             },
-        ]
+        ],
     },
     plugins: [
         new Dotenv({
@@ -93,5 +95,5 @@ module.exports = merge(common, {
         }),
         new ForkTsCheckerWebpackPlugin(),
         new MiniCssExtractPlugin(),
-    ]
+    ],
 });

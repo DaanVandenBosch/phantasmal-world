@@ -1,23 +1,16 @@
 import { readdirSync, readFileSync, statSync, writeFileSync } from "fs";
 import Logger from "js-logger";
 import { ASSETS_DIR, RESOURCE_DIR } from ".";
-import { Endianness } from "../src/data_formats";
-import { BufferCursor } from "../src/data_formats/cursor/BufferCursor";
-import { ItemPmt, parse_item_pmt } from "../src/data_formats/parsing/itempmt";
-import { parse_quest } from "../src/data_formats/parsing/quest";
-import { parse_unitxt, Unitxt } from "../src/data_formats/parsing/unitxt";
-import {
-    Difficulties,
-    Difficulty,
-    Episode,
-    Episodes,
-    NpcType,
-    SectionId,
-    SectionIds,
-} from "../src/domain";
-import { NpcTypes } from "../src/domain/NpcType";
-import { BoxDropDto, EnemyDropDto, ItemTypeDto, QuestDto } from "../src/dto";
+import { BufferCursor } from "../src/core/data_formats/cursor/BufferCursor";
+import { ItemPmt, parse_item_pmt } from "../src/core/data_formats/parsing/itempmt";
+import { parse_quest } from "../src/core/data_formats/parsing/quest";
+import { parse_unitxt, Unitxt } from "../src/core/data_formats/parsing/unitxt";
+import { Difficulties, Difficulty, SectionId, SectionIds } from "../src/core/domain";
+import { BoxDropDto, EnemyDropDto, ItemTypeDto, QuestDto } from "../src/core/dto";
 import { update_drops_from_website } from "./update_drops_ephinea";
+import { Episode, EPISODES } from "../src/core/data_formats/parsing/quest/Episode";
+import { npc_data, NPC_TYPES, NpcType } from "../src/core/data_formats/parsing/quest/npc_types";
+import { Endianness } from "../src/core/data_formats/Endianness";
 
 const logger = Logger.get("assets_generation/update_ephinea_data");
 
@@ -87,7 +80,7 @@ function update_quests(): void {
 
     const id_counts = quests.reduce(
         (counts, q) => counts.set(q.id, (counts.get(q.id) || 0) + 1),
-        new Map<number, number>()
+        new Map<number, number>(),
     );
 
     for (const [id, count] of id_counts.entries()) {
@@ -129,8 +122,8 @@ function process_quest(path: string, quests: QuestDto[]): void {
             const enemy_counts: { [npc_type_code: string]: number } = {};
 
             for (const npc of q.npcs) {
-                if (npc.type.enemy) {
-                    enemy_counts[npc.type.code] = (enemy_counts[npc.type.code] || 0) + 1;
+                if (npc_data(npc.type).enemy) {
+                    enemy_counts[NpcType[npc.type]] = (enemy_counts[NpcType[npc.type]] || 0) + 1;
                 }
             }
 
@@ -273,7 +266,7 @@ function update_drops(item_pt: ItemPt): void {
     const enemy_drops = new Array<EnemyDropDto>();
 
     for (const diff of Difficulties) {
-        for (const ep of Episodes) {
+        for (const ep of EPISODES) {
             for (const sid of SectionIds) {
                 enemy_drops.push(...load_enemy_drops(item_pt, diff, ep, sid));
             }
@@ -285,7 +278,7 @@ function update_drops(item_pt: ItemPt): void {
     const box_drops = new Array<BoxDropDto>();
 
     for (const diff of Difficulties) {
-        for (const ep of Episodes) {
+        for (const ep of EPISODES) {
             for (const sid of SectionIds) {
                 box_drops.push(...load_box_drops(diff, ep, sid));
             }
@@ -330,8 +323,8 @@ function load_item_pt(): ItemPt {
                 cursor.seek(1608);
                 const enemy_dar = cursor.u8_array(100);
 
-                for (const npc of NpcTypes) {
-                    if (npc.episode !== episode) continue;
+                for (const npc of NPC_TYPES) {
+                    if (npc_data(npc).episode !== episode) continue;
 
                     switch (npc) {
                         case NpcType.Dragon:
@@ -373,134 +366,134 @@ function load_item_pt(): ItemPt {
                 dar_table,
             };
 
-            for (const npc of NpcTypes) {
-                if (npc.episode !== Episode.IV) continue;
+            for (const npc of NPC_TYPES) {
+                if (npc_data(npc).episode !== Episode.IV) continue;
 
                 switch (npc) {
                     case NpcType.SandRappy:
                         dar_table.set(
                             npc,
-                            table[Episode.I][diff][sid].dar_table.get(NpcType.RagRappy)!
+                            table[Episode.I][diff][sid].dar_table.get(NpcType.RagRappy)!,
                         );
                         break;
                     case NpcType.DelRappy:
                         dar_table.set(
                             npc,
-                            table[Episode.I][diff][sid].dar_table.get(NpcType.AlRappy)!
+                            table[Episode.I][diff][sid].dar_table.get(NpcType.AlRappy)!,
                         );
                         break;
                     case NpcType.Astark:
                         dar_table.set(
                             npc,
-                            table[Episode.I][diff][sid].dar_table.get(NpcType.Hildebear)!
+                            table[Episode.I][diff][sid].dar_table.get(NpcType.Hildebear)!,
                         );
                         break;
                     case NpcType.SatelliteLizard:
                         dar_table.set(
                             npc,
-                            table[Episode.I][diff][sid].dar_table.get(NpcType.SavageWolf)!
+                            table[Episode.I][diff][sid].dar_table.get(NpcType.SavageWolf)!,
                         );
                         break;
                     case NpcType.Yowie:
                         dar_table.set(
                             npc,
-                            table[Episode.I][diff][sid].dar_table.get(NpcType.BarbarousWolf)!
+                            table[Episode.I][diff][sid].dar_table.get(NpcType.BarbarousWolf)!,
                         );
                         break;
                     case NpcType.MerissaA:
                         dar_table.set(
                             npc,
-                            table[Episode.I][diff][sid].dar_table.get(NpcType.PofuillySlime)!
+                            table[Episode.I][diff][sid].dar_table.get(NpcType.PofuillySlime)!,
                         );
                         break;
                     case NpcType.MerissaAA:
                         dar_table.set(
                             npc,
-                            table[Episode.I][diff][sid].dar_table.get(NpcType.PouillySlime)!
+                            table[Episode.I][diff][sid].dar_table.get(NpcType.PouillySlime)!,
                         );
                         break;
                     case NpcType.Girtablulu:
                         dar_table.set(
                             npc,
-                            table[Episode.II][diff][sid].dar_table.get(NpcType.Mericarol)!
+                            table[Episode.II][diff][sid].dar_table.get(NpcType.Mericarol)!,
                         );
                         break;
                     case NpcType.Zu:
                         dar_table.set(
                             npc,
-                            table[Episode.II][diff][sid].dar_table.get(NpcType.GiGue)!
+                            table[Episode.II][diff][sid].dar_table.get(NpcType.GiGue)!,
                         );
                         break;
                     case NpcType.Pazuzu:
                         dar_table.set(
                             npc,
-                            table[Episode.I][diff][sid].dar_table.get(NpcType.Hildeblue)!
+                            table[Episode.I][diff][sid].dar_table.get(NpcType.Hildeblue)!,
                         );
                         break;
                     case NpcType.Boota:
                         dar_table.set(
                             npc,
-                            table[Episode.I][diff][sid].dar_table.get(NpcType.Booma)!
+                            table[Episode.I][diff][sid].dar_table.get(NpcType.Booma)!,
                         );
                         break;
                     case NpcType.ZeBoota:
                         dar_table.set(
                             npc,
-                            table[Episode.I][diff][sid].dar_table.get(NpcType.Gobooma)!
+                            table[Episode.I][diff][sid].dar_table.get(NpcType.Gobooma)!,
                         );
                         break;
                     case NpcType.BaBoota:
                         dar_table.set(
                             npc,
-                            table[Episode.I][diff][sid].dar_table.get(NpcType.Gigobooma)!
+                            table[Episode.I][diff][sid].dar_table.get(NpcType.Gigobooma)!,
                         );
                         break;
                     case NpcType.Dorphon:
                         dar_table.set(
                             npc,
-                            table[Episode.II][diff][sid].dar_table.get(NpcType.Delbiter)!
+                            table[Episode.II][diff][sid].dar_table.get(NpcType.Delbiter)!,
                         );
                         break;
                     case NpcType.DorphonEclair:
                         dar_table.set(
                             npc,
-                            table[Episode.I][diff][sid].dar_table.get(NpcType.Hildeblue)!
+                            table[Episode.I][diff][sid].dar_table.get(NpcType.Hildeblue)!,
                         );
                         break;
                     case NpcType.Goran:
                         dar_table.set(
                             npc,
-                            table[Episode.I][diff][sid].dar_table.get(NpcType.Dimenian)!
+                            table[Episode.I][diff][sid].dar_table.get(NpcType.Dimenian)!,
                         );
                         break;
                     case NpcType.PyroGoran:
                         dar_table.set(
                             npc,
-                            table[Episode.I][diff][sid].dar_table.get(NpcType.LaDimenian)!
+                            table[Episode.I][diff][sid].dar_table.get(NpcType.LaDimenian)!,
                         );
                         break;
                     case NpcType.GoranDetonator:
                         dar_table.set(
                             npc,
-                            table[Episode.I][diff][sid].dar_table.get(NpcType.SoDimenian)!
+                            table[Episode.I][diff][sid].dar_table.get(NpcType.SoDimenian)!,
                         );
                         break;
                     case NpcType.SaintMilion:
                         dar_table.set(
                             npc,
-                            table[Episode.I][diff][sid].dar_table.get(NpcType.DarkFalz)!
+                            table[Episode.I][diff][sid].dar_table.get(NpcType.DarkFalz)!,
                         );
                         break;
                     case NpcType.Shambertin:
                         dar_table.set(
                             npc,
-                            table[Episode.I][diff][sid].dar_table.get(NpcType.DarkFalz)!
+                            table[Episode.I][diff][sid].dar_table.get(NpcType.DarkFalz)!,
                         );
                         break;
                     case NpcType.Kondrieu:
                         dar_table.set(
                             npc,
-                            table[Episode.I][diff][sid].dar_table.get(NpcType.DarkFalz)!
+                            table[Episode.I][diff][sid].dar_table.get(NpcType.DarkFalz)!,
                         );
                         break;
                 }
@@ -516,11 +509,11 @@ function load_enemy_drops(
     item_pt: ItemPt,
     difficulty: Difficulty,
     episode: Episode,
-    section_id: SectionId
+    section_id: SectionId,
 ): EnemyDropDto[] {
     const drops: EnemyDropDto[] = [];
     const drops_buf = readFileSync(
-        `${EPHINEA_RESOURCE_DIR}/login-config/drop/ep${episode}_mob_${difficulty}_${section_id}.txt`
+        `${EPHINEA_RESOURCE_DIR}/login-config/drop/ep${episode}_mob_${difficulty}_${section_id}.txt`,
     );
 
     let line_no = 0;
@@ -539,13 +532,13 @@ function load_enemy_drops(
                 const dar = item_pt[episode][difficulty][section_id].dar_table.get(enemy);
 
                 if (dar == null) {
-                    logger.error(`No DAR found for ${enemy.name}.`);
+                    logger.error(`No DAR found for ${NpcType[enemy]}.`);
                 } else if (rare_rate > 0 && item_type_id) {
                     drops.push({
                         difficulty: Difficulty[difficulty],
                         episode,
                         sectionId: SectionId[section_id],
-                        enemy: enemy.code,
+                        enemy: NpcType[enemy],
                         itemTypeId: item_type_id,
                         dropRate: dar,
                         rareRate: rare_rate,
@@ -564,11 +557,11 @@ function load_enemy_drops(
 function load_box_drops(
     difficulty: Difficulty,
     episode: Episode,
-    section_id: SectionId
+    section_id: SectionId,
 ): BoxDropDto[] {
     const drops: BoxDropDto[] = [];
     const drops_buf = readFileSync(
-        `${EPHINEA_RESOURCE_DIR}/login-config/drop/ep${episode}_box_${difficulty}_${section_id}.txt`
+        `${EPHINEA_RESOURCE_DIR}/login-config/drop/ep${episode}_box_${difficulty}_${section_id}.txt`,
     );
 
     let line_no = 0;
@@ -606,7 +599,7 @@ function load_box_drops(
 
 function get_stat_boosts(
     item_pmt: ItemPmt,
-    stat_boost_index: number
+    stat_boost_index: number,
 ): {
     atp: number;
     ata: number;

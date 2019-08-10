@@ -1,10 +1,10 @@
 import { readFileSync, writeFileSync } from "fs";
 import Logger from "js-logger";
 import { ASSETS_DIR, RESOURCE_DIR, SRC_DIR } from ".";
-import { Endianness } from "../src/data_formats";
-import { BufferCursor } from "../src/data_formats/cursor/BufferCursor";
-import { parse_rlc } from "../src/data_formats/parsing/rlc";
+import { BufferCursor } from "../src/core/data_formats/cursor/BufferCursor";
+import { parse_rlc } from "../src/core/data_formats/parsing/rlc";
 import YAML from "yaml";
+import { Endianness } from "../src/core/data_formats/Endianness";
 
 const logger = Logger.get("assets_generation/update_generic_data");
 
@@ -30,7 +30,7 @@ function extract_player_animations(): void {
     for (const file of parse_rlc(new BufferCursor(buf, Endianness.Big))) {
         writeFileSync(
             `${ASSETS_DIR}/player/animation/animation_${(i++).toString().padStart(3, "0")}.njm`,
-            new Uint8Array(file.array_buffer())
+            new Uint8Array(file.array_buffer()),
         );
     }
 
@@ -137,7 +137,7 @@ function opcode_to_code(output: string[], code: number, opcode?: any): void {
     }
 }
 
-function params_to_code(params: any[]) {
+function params_to_code(params: any[]): string {
     return params
         .map((param: any) => {
             let type: string;
@@ -181,7 +181,7 @@ function params_to_code(params: any[]) {
                     break;
                 case "reg_tup_ref":
                     type = `{ kind: Kind.RegTupRef, register_tuples: [${params_to_code(
-                        param.reg_tup
+                        param.reg_tup,
                     )}] }`;
                     break;
                 case "reg_ref_var":

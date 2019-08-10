@@ -7,7 +7,7 @@ import * as fs from "fs";
  */
 export function walk_qst_files(
     f: (path: string, file_name: string, contents: Buffer) => void,
-    dir: string = "test/resources/tethealla_v0.143_quests"
+    dir: string = "test/resources/tethealla_v0.143_quests",
 ): void {
     for (const [path, file] of get_qst_files(dir)) {
         f(path, file, fs.readFileSync(path));

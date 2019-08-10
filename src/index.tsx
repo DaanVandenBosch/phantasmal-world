@@ -1,8 +1,8 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import Logger from "js-logger";
-import styles from "./ui/index.css";
-import { ApplicationComponent } from "./ui/ApplicationComponent";
+import styles from "./core/ui/index.css";
+import { ApplicationComponent } from "./application/ui/ApplicationComponent";
 import "react-virtualized/styles.css";
 import "react-select/dist/react-select.css";
 import "react-virtualized-select/styles.css";

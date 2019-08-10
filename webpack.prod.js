@@ -27,9 +27,9 @@ module.exports = merge(common, {
                     test: /node_modules/,
                     name: "vendors",
                     chunks: "all",
-                }
-            }
-        }
+                },
+            },
+        },
     },
     module: {
         rules: [
@@ -47,19 +47,16 @@ module.exports = merge(common, {
                         loader: "css-loader",
                         options: {
                             modules: {
-                                localIdentName: '[local]--[hash:base64:5]',
-                            }
-                        }
+                                localIdentName: "[local]--[hash:base64:5]",
+                            },
+                        },
                     },
-                ]
+                ],
             },
             {
                 test: /\.css$/,
                 include: /node_modules/,
-                use: [
-                    MiniCssExtractPlugin.loader,
-                    "css-loader",
-                ]
+                use: [MiniCssExtractPlugin.loader, "css-loader"],
             },
             {
                 test: /\.less$/,
@@ -72,19 +69,19 @@ module.exports = merge(common, {
                         options: {
                             javascriptEnabled: true,
                             modifyVars: antd_theme,
-                        }
+                        },
                     },
-                ]
+                ],
             },
             {
                 test: /\.(png|svg|jpg|gif)$/,
-                use: ["file-loader"]
+                use: ["file-loader"],
             },
             {
                 test: /\.worker\.js$/,
-                use: { loader: 'worker-loader' }
+                use: { loader: "worker-loader" },
             },
-        ]
+        ],
     },
     plugins: [
         new CleanWebpackPlugin(),
@@ -92,11 +89,13 @@ module.exports = merge(common, {
             path: "./.env.prod",
         }),
         new MiniCssExtractPlugin({
-            filename: "[name].[contenthash].css"
+            filename: "[name].[contenthash].css",
         }),
-        new CopyWebpackPlugin([{
-            from: path.resolve(__dirname, "assets"),
-            to: path.resolve(__dirname, "dist/assets"),
-        }]),
-    ]
+        new CopyWebpackPlugin([
+            {
+                from: path.resolve(__dirname, "assets"),
+                to: path.resolve(__dirname, "dist/assets"),
+            },
+        ]),
+    ],
 });
