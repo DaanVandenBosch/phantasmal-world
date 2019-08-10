@@ -66,12 +66,15 @@ export class QuestRenderer extends Renderer<PerspectiveCamera> {
 
         const model_manager = new QuestModelManager(this);
 
-        autorun(() => {
-            model_manager.load_models(
-                quest_editor_store.current_quest,
-                quest_editor_store.current_area,
-            );
-        });
+        autorun(
+            () => {
+                model_manager.load_models(
+                    quest_editor_store.current_quest,
+                    quest_editor_store.current_area,
+                );
+            },
+            { name: "call load_models" },
+        );
 
         this.entity_controls = new QuestEntityControls(this);
 

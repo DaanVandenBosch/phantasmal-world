@@ -1,4 +1,4 @@
-import { observable } from "mobx";
+import { action, observable } from "mobx";
 import { editor } from "monaco-editor";
 import AssemblyWorker from "worker-loader!./assembly_worker";
 import {
@@ -38,12 +38,13 @@ export class AssemblyAnalyser {
         this.worker.terminate();
     }
 
+    @action
     private process_worker_message = (e: MessageEvent): void => {
         const message: AssemblyWorkerOutput = e.data;
 
         if (message.type === "new_object_code_output" && this.quest) {
             this.quest.object_code.splice(0, this.quest.object_code.length, ...message.object_code);
-            this.quest.map_designations = message.map_designations;
+            this.quest.set_map_designations(message.map_designations);
             this.warnings = message.warnings;
             this.errors = message.errors;
         }

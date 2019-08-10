@@ -95,34 +95,42 @@ export class ObservableQuest {
         return map;
     }
 
+    @observable.ref private _map_designations!: Map<number, number>;
+
     /**
      * Map of area IDs to area variant IDs. One designation per area.
      */
-    @observable map_designations: Map<number, number>;
+    get map_designations(): Map<number, number> {
+        return this._map_designations;
+    }
+
+    set_map_designations(map_designations: Map<number, number>): void {
+        this._map_designations = map_designations;
+    }
 
     /**
      * One variant per area.
      */
     @computed get area_variants(): ObservableAreaVariant[] {
-        const variants: ObservableAreaVariant[] = [];
+        const variants = new Map<number, ObservableAreaVariant>();
 
         for (const area_id of this.entities_per_area.keys()) {
             try {
-                variants.push(area_store.get_variant(this.episode, area_id, 0));
+                variants.set(area_id, area_store.get_variant(this.episode, area_id, 0));
             } catch (e) {
                 logger.warn(e);
             }
         }
 
-        for (const [area_id, variant_id] of this.map_designations) {
+        for (const [area_id, variant_id] of this._map_designations) {
             try {
-                variants.push(area_store.get_variant(this.episode, area_id, variant_id));
+                variants.set(area_id, area_store.get_variant(this.episode, area_id, variant_id));
             } catch (e) {
                 logger.warn(e);
             }
         }
 
-        return variants;
+        return [...variants.values()];
     }
 
     /**
@@ -160,7 +168,7 @@ export class ObservableQuest {
         this.set_short_description(short_description);
         this.set_long_description(long_description);
         this.episode = episode;
-        this.map_designations = map_designations;
+        this.set_map_designations(map_designations);
         this.objects = objects;
         this.npcs = npcs;
         this.dat_unknowns = dat_unknowns;
