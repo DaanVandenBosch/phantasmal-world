@@ -5,7 +5,6 @@ import { quest_editor_store } from "../stores/QuestEditorStore";
 import { DisabledTextComponent } from "../../core/ui/DisabledTextComponent";
 import styles from "./QuestInfoComponent.css";
 import { Episode } from "../../core/data_formats/parsing/quest/Episode";
-import { npc_data, NpcType } from "../../core/data_formats/parsing/quest/npc_types";
 
 @observer
 export class QuestInfoComponent extends Component {
@@ -16,98 +15,65 @@ export class QuestInfoComponent extends Component {
         if (quest) {
             const episode =
                 quest.episode === Episode.IV ? "IV" : quest.episode === Episode.II ? "II" : "I";
-            const npc_counts = new Map<NpcType, number>();
-
-            for (const npc of quest.npcs) {
-                const val = npc_counts.get(npc.type) || 0;
-                npc_counts.set(npc.type, val + 1);
-            }
-
-            const extra_canadines = (npc_counts.get(NpcType.Canane) || 0) * 8;
-
-            // Sort by canonical order.
-            const sorted_npc_counts = [...npc_counts].sort((a, b) => a[0] - b[0]);
-
-            const npc_count_rows = sorted_npc_counts.map(([npc_type, count]) => {
-                const extra = npc_type === NpcType.Canadine ? extra_canadines : 0;
-                return (
-                    <tr key={npc_type}>
-                        <td>{npc_data(npc_type).name}:</td>
-                        <td>{count + extra}</td>
-                    </tr>
-                );
-            });
 
             body = (
-                <>
-                    <table>
-                        <tbody>
-                            <tr>
-                                <th>Episode:</th>
-                                <td>{episode}</td>
-                            </tr>
-                            <tr>
-                                <th>ID:</th>
-                                <td>
-                                    <InputNumber
-                                        value={quest.id}
-                                        max={4294967295}
-                                        min={0}
-                                        onChange={this.id_changed}
-                                        size="small"
-                                    />
-                                </td>
-                            </tr>
-                            <tr>
-                                <th>Name:</th>
-                                <td>
-                                    <Input
-                                        value={quest.name}
-                                        maxLength={32}
-                                        onChange={this.name_changed}
-                                        size="small"
-                                    />
-                                </td>
-                            </tr>
-                            <tr>
-                                <th colSpan={2}>Short description:</th>
-                            </tr>
-                            <tr>
-                                <td colSpan={2}>
-                                    <Input.TextArea
-                                        value={quest.short_description}
-                                        maxLength={128}
-                                        rows={3}
-                                        onChange={this.short_description_changed}
-                                    />
-                                </td>
-                            </tr>
-                            <tr>
-                                <th colSpan={2}>Long description:</th>
-                            </tr>
-                            <tr>
-                                <td colSpan={2}>
-                                    <Input.TextArea
-                                        value={quest.long_description}
-                                        maxLength={288}
-                                        rows={5}
-                                        onChange={this.long_description_changed}
-                                    />
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    <div className={styles.npc_counts_container}>
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th colSpan={2}>NPC Counts</th>
-                                </tr>
-                            </thead>
-                            <tbody>{npc_count_rows}</tbody>
-                        </table>
-                    </div>
-                </>
+                <table>
+                    <tbody>
+                        <tr>
+                            <th>Episode:</th>
+                            <td>{episode}</td>
+                        </tr>
+                        <tr>
+                            <th>ID:</th>
+                            <td>
+                                <InputNumber
+                                    value={quest.id}
+                                    max={4294967295}
+                                    min={0}
+                                    onChange={this.id_changed}
+                                    size="small"
+                                />
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Name:</th>
+                            <td>
+                                <Input
+                                    value={quest.name}
+                                    maxLength={32}
+                                    onChange={this.name_changed}
+                                    size="small"
+                                />
+                            </td>
+                        </tr>
+                        <tr>
+                            <th colSpan={2}>Short description:</th>
+                        </tr>
+                        <tr>
+                            <td colSpan={2}>
+                                <Input.TextArea
+                                    value={quest.short_description}
+                                    maxLength={128}
+                                    rows={3}
+                                    onChange={this.short_description_changed}
+                                />
+                            </td>
+                        </tr>
+                        <tr>
+                            <th colSpan={2}>Long description:</th>
+                        </tr>
+                        <tr>
+                            <td colSpan={2}>
+                                <Input.TextArea
+                                    value={quest.long_description}
+                                    maxLength={288}
+                                    rows={5}
+                                    onChange={this.long_description_changed}
+                                />
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
             );
         } else {
             body = <DisabledTextComponent>No quest loaded.</DisabledTextComponent>;

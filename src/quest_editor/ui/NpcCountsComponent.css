@@ -1,0 +1,8 @@
+.main {
+    height: 100%;
+    overflow: auto;
+}
+
+.main > table {
+    margin: 5px;
+}

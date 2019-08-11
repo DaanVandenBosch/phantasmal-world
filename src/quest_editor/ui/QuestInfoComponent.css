@@ -15,9 +15,3 @@
 .main textarea {
     font-family: 'Courier New', Courier, monospace
 }
-
-.npc_counts_container {
-    overflow: auto;
-    min-height: 50px;
-    margin-top: 5px;
-}

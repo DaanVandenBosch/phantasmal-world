@@ -10,12 +10,14 @@ import styles from "./QuestEditorComponent.css";
 import { QuestInfoComponent } from "./QuestInfoComponent";
 import { QuestRendererComponent } from "./QuestRendererComponent";
 import { Toolbar } from "./Toolbar";
+import { NpcCountsComponent } from "./NpcCountsComponent";
 
 const logger = Logger.get("ui/quest_editor/QuestEditorComponent");
 
 // Don't change these ids, as they are persisted in the user's browser.
 const CMP_TO_NAME = new Map([
     [QuestInfoComponent, "quest_info"],
+    [NpcCountsComponent, "npc_counts"],
     [QuestRendererComponent, "quest_renderer"],
     [AssemblyEditorComponent, "assembly_editor"],
     [EntityInfoComponent, "entity_info"],
@@ -41,11 +43,22 @@ const DEFAULT_LAYOUT_CONTENT: ItemConfigType[] = [
         type: "row",
         content: [
             {
-                title: "Info",
-                type: "react-component",
-                component: CMP_TO_NAME.get(QuestInfoComponent),
-                isClosable: false,
+                type: "stack",
                 width: 3,
+                content: [
+                    {
+                        title: "Info",
+                        type: "react-component",
+                        component: CMP_TO_NAME.get(QuestInfoComponent),
+                        isClosable: false,
+                    },
+                    {
+                        title: "NPC Counts",
+                        type: "react-component",
+                        component: CMP_TO_NAME.get(NpcCountsComponent),
+                        isClosable: false,
+                    },
+                ],
             },
             {
                 type: "stack",
