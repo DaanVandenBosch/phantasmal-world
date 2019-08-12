@@ -10,6 +10,7 @@ import {
 import { load_array_buffer } from "../../core/loading";
 import { LoadingCache } from "./LoadingCache";
 import { Section } from "../domain/Section";
+import { Episode } from "../../core/data_formats/parsing/quest/Episode";
 
 const render_geometry_cache = new LoadingCache<
     string,
@@ -18,7 +19,7 @@ const render_geometry_cache = new LoadingCache<
 const collision_geometry_cache = new LoadingCache<string, Promise<Object3D>>();
 
 export async function load_area_sections(
-    episode: number,
+    episode: Episode,
     area_id: number,
     area_variant: number,
 ): Promise<Section[]> {
@@ -28,7 +29,7 @@ export async function load_area_sections(
 }
 
 export async function load_area_render_geometry(
-    episode: number,
+    episode: Episode,
     area_id: number,
     area_variant: number,
 ): Promise<Object3D> {
@@ -38,7 +39,7 @@ export async function load_area_render_geometry(
 }
 
 export async function load_area_collision_geometry(
-    episode: number,
+    episode: Episode,
     area_id: number,
     area_variant: number,
 ): Promise<Object3D> {
@@ -52,7 +53,7 @@ export async function load_area_collision_geometry(
 }
 
 function load_area_sections_and_render_geometry(
-    episode: number,
+    episode: Episode,
     area_id: number,
     area_variant: number,
 ): { geometry: Promise<Object3D>; sections: Promise<Section[]> } {
@@ -124,7 +125,7 @@ const area_base_names = [
 ];
 
 async function get_area_asset(
-    episode: number,
+    episode: Episode,
     area_id: number,
     area_variant: number,
     type: "render" | "collision",
@@ -134,7 +135,14 @@ async function get_area_asset(
     return load_array_buffer(base_url + suffix);
 }
 
-function area_version_to_base_url(episode: number, area_id: number, area_variant: number): string {
+function area_version_to_base_url(episode: Episode, area_id: number, area_variant: number): string {
+    // Exception for Seaside area at night variant 1.
+    // Phantasmal World 4 and Lost heart breaker use this to have two tower maps.
+    if (area_id === 16 && area_variant === 1) {
+        area_id = 17;
+        area_variant = 1;
+    }
+
     const episode_base_names = area_base_names[episode - 1];
 
     if (0 <= area_id && area_id < episode_base_names.length) {

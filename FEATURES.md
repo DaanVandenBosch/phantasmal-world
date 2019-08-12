@@ -4,7 +4,7 @@ Features that are in ***bold italics*** are planned and not yet implemented.
 
 ## Create New Quest
 
-- *Support for episodes I, II and IV*
+- ***Support for episodes I, II and IV***
 
 ## Load Quest
 
@@ -26,7 +26,7 @@ Features that are in ***bold italics*** are planned and not yet implemented.
 
 - Undo/redo stack
 - Undo/redo buttons
-- Undo/redo keybindings
+- Undo/redo key bindings
 
 ## Area Selection
 
@@ -51,7 +51,7 @@ Features that are in ***bold italics*** are planned and not yet implemented.
     - Textures
 - ***Transparency***
     - ***Order independent transparency***
-- ***Minimap***
+- ***Mini-map***
 - ***Top-down view (orthogonal view might suffice?)***
 - ***Add "shadow" to entities to more easily see where floating entities are positioned***
     - ***MVP: a single line***
@@ -93,7 +93,7 @@ Features that are in ***bold italics*** are planned and not yet implemented.
     - Strings
 - Labels
     - ***Show in outline***
-- Autocompletion
+- Auto-completion
     - Segment type (.code, .data)
     - Instructions
 - ***Go to label***
@@ -123,21 +123,16 @@ Features that are in ***bold italics*** are planned and not yet implemented.
 
 ## Non-BlueBurst Support
 
-- Support different sets of instructions (older versions had no stack)
+- ***Support different sets of instructions (older versions had no stack)***
 
 ## Bugs
 
-- [Script Object Code](#script-object-code): Correctly deal with stack arguments (e.g. when a function expects a u32, pushing a u8, u16, u32 or register value is ok) (when a function expects a register reference, arg_pushb should be used)
 - [3D View](#3d-view): Random Type Box 1 and Fixed Type Box objects aren't rendered correctly
-- [3D View](#3d-view): Some objects are only partially loaded (they consist of several seperate models)
+- [3D View](#3d-view): Some objects are only partially loaded (they consist of several separate models)
     - Forest Switch
     - Laser Fence
     - Forest Laser
     - Switch (none door)
     - Energy Barrier
-- [Script Object Code](#script-object-code): Make sure data segments are referenced by an instruction with an offset before the segment's offset
-- [Script Object Code](#script-object-code): Detect code that is both unused and incorrect and reinterpret it as data (this avoids loading and then saving the quest incorrectly)
-- [Area Selection](#area-selection): Lost heart breaker/phantasmal world 4 overwrite area 16 to have both towers
-- [Area Selection](#area-selection): Show areas that are referenced from .dat but not from script (test with Point of Disaster (709))
 - [Load Quest](#load-quest): Can't parse quest 4
 - [Load Quest](#load-quest): Can't parse quest 125 White Day

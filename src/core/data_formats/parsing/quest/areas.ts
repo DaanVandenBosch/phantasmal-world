@@ -82,7 +82,7 @@ AREAS[Episode.II] = [
     create_area(10, "Seabed Upper Levels", order++, 3),
     create_area(11, "Seabed Lower Levels", order++, 3),
     create_area(13, "Test Subject Disposal Area", order++, 1),
-    create_area(16, "Seaside Area at Night", order++, 1),
+    create_area(16, "Seaside Area at Night", order++, 2),
     create_area(17, "Control Tower", order++, 5),
 ];
 order = 0;
