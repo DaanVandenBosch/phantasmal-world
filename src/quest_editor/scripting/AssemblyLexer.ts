@@ -189,10 +189,6 @@ export class AssemblyLexer {
         return this.line.charAt(this.index);
     }
 
-    private peek_prev(): string {
-        return this.line.charAt(this.index - 1);
-    }
-
     private skip(): void {
         this.index++;
     }
@@ -213,73 +209,100 @@ export class AssemblyLexer {
         return this.line.slice(this._mark, this.index);
     }
 
+    private eat_rest_of_token(): void {
+        while (this.has_next()) {
+            const char = this.next();
+
+            if (/[\s,]/.test(char)) {
+                this.back();
+                break;
+            }
+        }
+    }
+
     private tokenize_number_or_label(): IntToken | FloatToken | InvalidNumberToken | LabelToken {
         this.mark();
         const col = this.col;
         this.skip();
         let is_label = false;
-        let is_float = false;
-        let is_hex = false;
 
         while (this.has_next()) {
             const char = this.peek();
 
-            if (/\d/.test(char)) {
+            if ("." === char || "e" === char) {
+                return this.tokenize_float(col);
+            } else if ("x" === char) {
+                return this.tokenize_hex_number(col);
+            } else if (":" === char) {
+                is_label = true;
                 this.skip();
-            } else if ("." === char) {
-                if (is_float || is_hex) {
-                    break;
-                } else {
-                    is_float = true;
-                    this.skip();
-                }
-            } else if ("x" === char && this.marked_len() === 1 && this.peek_prev() === "0") {
-                if (is_float || is_hex) {
-                    break;
-                } else {
-                    is_hex = true;
-                    this.skip();
-                }
-            } else if (/[a-fA-F]/.test(char)) {
-                if (is_hex) {
-                    this.skip();
-                } else {
-                    break;
-                }
-            } else {
-                if (char === ":" && !is_float && !is_hex) {
-                    is_label = true;
-                }
-
                 break;
+            } else if (/[\s,]/.test(char)) {
+                break;
+            } else {
+                this.skip();
             }
         }
 
-        let value: number;
-
-        if (is_float) {
-            value = parseFloat(this.slice());
-        } else if (is_hex) {
-            value = parseInt(this.slice(), 16);
-        } else {
-            value = parseInt(this.slice(), 10);
-        }
-
-        if (is_label) {
-            this.skip();
-        }
+        const value = parseInt(this.slice(), 10);
 
         return {
-            type: isNaN(value)
-                ? TokenType.InvalidNumber
-                : is_label
-                ? TokenType.Label
-                : is_float
-                ? TokenType.Float
-                : TokenType.Int,
+            type: Number.isInteger(value)
+                ? is_label
+                    ? TokenType.Label
+                    : TokenType.Int
+                : TokenType.InvalidNumber,
             col,
             len: this.marked_len(),
             value,
+        };
+    }
+
+    private tokenize_hex_number(col: number): IntToken | InvalidNumberToken {
+        this.eat_rest_of_token();
+        const hex_str = this.slice();
+
+        if (/^0x[\da-fA-F]+$/.test(hex_str)) {
+            const value = parseInt(hex_str, 16);
+
+            if (Number.isInteger(value)) {
+                return {
+                    type: TokenType.Int,
+                    col,
+                    len: this.marked_len(),
+                    value,
+                };
+            }
+        }
+
+        return {
+            type: TokenType.InvalidNumber,
+            col,
+            len: this.marked_len(),
+        };
+    }
+
+    private tokenize_float(col: number): FloatToken | InvalidNumberToken {
+        this.eat_rest_of_token();
+        const float_str = this.slice();
+
+        if (/^-?\d+(\.\d+)?(e-?\d+)?$/.test(float_str)) {
+            const value = parseFloat(float_str);
+
+            if (Number.isFinite(value)) {
+                return {
+                    type: TokenType.Float,
+                    col,
+                    len: this.marked_len(),
+                    value,
+                };
+            }
+        }
+
+        return {
+            type: TokenType.InvalidNumber,
+            col,
+            len: this.marked_len(),
         };
     }
 

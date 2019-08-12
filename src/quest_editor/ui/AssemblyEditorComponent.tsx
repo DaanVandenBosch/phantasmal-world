@@ -26,9 +26,9 @@ const ASM_SYNTAX: languages.IMonarchLanguage = {
             [/[^\s]+:/, "tag"],
 
             // Numbers.
-            [/-?\d+\.\d+/, "number.float"],
+            [/-?\d+(\.\d+)?(e-?\d+)?/, "number.float"],
             [/0x[0-9a-fA-F]+/, "number.hex"],
-            [/-?[0-9]+?/, "number"],
+            [/-?[0-9]+/, "number"],
 
             // Identifiers.
             [/[a-z][a-z0-9_=<>!]*/, "identifier"],
