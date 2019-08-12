@@ -13,6 +13,9 @@ export type QuestNpc = {
      */
     readonly position: Vec3;
     readonly rotation: Vec3;
+    /**
+     * Seemingly 3 floats, not sure what they represent.
+     */
     readonly scale: Vec3;
     /**
      * Data of which the purpose hasn't been discovered yet.
@@ -24,8 +27,12 @@ export type QuestNpc = {
 
 export type QuestObject = {
     readonly type: ObjectType;
+    readonly id: number;
+    readonly group_id: number;
     readonly area_id: number;
     readonly section_id: number;
+    readonly object_id: number;
+    readonly action: number;
     /**
      * Section-relative position
      */

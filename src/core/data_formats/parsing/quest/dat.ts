@@ -27,7 +27,12 @@ export type DatEntity = {
     unknown: number[][];
 };
 
-export type DatObject = DatEntity;
+export type DatObject = DatEntity & {
+    id: number;
+    group_id: number;
+    object_id: number;
+    action: number;
+};
 
 export type DatNpc = DatEntity & {
     skin: number;
@@ -69,7 +74,9 @@ export function parse_dat(cursor: Cursor): DatFile {
 
                 for (let i = 0; i < object_count; ++i) {
                     const type_id = cursor.u16();
-                    const unknown1 = cursor.u8_array(10);
+                    const unknown1 = cursor.u8_array(6);
+                    const id = cursor.u16();
+                    const group_id = cursor.u16();
                     const section_id = cursor.u16();
                     const unknown2 = cursor.u8_array(2);
                     const position = cursor.vec3_f32();
@@ -77,14 +84,20 @@ export function parse_dat(cursor: Cursor): DatFile {
                     const rotation_y = (cursor.i32() / 0xffff) * 2 * Math.PI;
                     const rotation_z = (cursor.i32() / 0xffff) * 2 * Math.PI;
                     const scale = cursor.vec3_f32();
-                    const unknown3 = cursor.u8_array(16);
+                    const object_id = cursor.u32();
+                    const action = cursor.u32();
+                    const unknown3 = cursor.u8_array(8);
 
                     objs.push({
                         type_id,
+                        id,
+                        group_id,
                         section_id,
                         position,
                         rotation: new Vec3(rotation_x, rotation_y, rotation_z),
                         scale,
+                        object_id,
+                        action,
                         area_id,
                         unknown: [unknown1, unknown2, unknown3],
                     });
@@ -180,10 +193,12 @@ export function write_dat({ objs, npcs, unknowns }: DatFile): ResizableBuffer {
 
             cursor.write_u16(obj.type_id);
 
-            if (obj.unknown[0].length !== 10)
-                throw new Error(`unknown[0] should be of length 10, was ${obj.unknown[0].length}`);
+            if (obj.unknown[0].length !== 6)
+                throw new Error(`unknown[0] should be of length 6, was ${obj.unknown[0].length}`);
 
             cursor.write_u8_array(obj.unknown[0]);
+            cursor.write_u16(obj.id);
+            cursor.write_u16(obj.group_id);
             cursor.write_u16(obj.section_id);
 
             if (obj.unknown[1].length !== 2)
@@ -195,9 +210,11 @@ export function write_dat({ objs, npcs, unknowns }: DatFile): ResizableBuffer {
             cursor.write_i32(Math.round((obj.rotation.y / (2 * Math.PI)) * 0xffff));
             cursor.write_i32(Math.round((obj.rotation.z / (2 * Math.PI)) * 0xffff));
             cursor.write_vec3_f32(obj.scale);
+            cursor.write_u32(obj.object_id);
+            cursor.write_u32(obj.action);
 
-            if (obj.unknown[2].length !== 16)
-                throw new Error(`unknown[2] should be of length 16, was ${obj.unknown[2].length}`);
+            if (obj.unknown[2].length !== 8)
+                throw new Error(`unknown[2] should be of length 8, was ${obj.unknown[2].length}`);
 
             cursor.write_u8_array(obj.unknown[2]);
         }

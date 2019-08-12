@@ -206,8 +206,12 @@ function parse_obj_data(objs: DatObject[]): QuestObject[] {
     return objs.map(obj_data => {
         return {
             type: pso_id_to_object_type(obj_data.type_id),
+            id: obj_data.id,
+            group_id: obj_data.group_id,
             area_id: obj_data.area_id,
             section_id: obj_data.section_id,
+            object_id: obj_data.object_id,
+            action: obj_data.action,
             position: obj_data.position,
             rotation: obj_data.rotation,
             scale: obj_data.scale,
@@ -511,10 +515,14 @@ function get_npc_type(episode: number, { type_id, scale, skin, area_id }: DatNpc
 function objects_to_dat_data(objects: QuestObject[]): DatObject[] {
     return objects.map(object => ({
         type_id: object_data(object.type).pso_id!,
+        id: object.id,
+        group_id: object.group_id,
         section_id: object.section_id,
         position: object.position,
         rotation: object.rotation,
         scale: object.scale,
+        object_id: object.object_id,
+        action: object.action,
         area_id: object.area_id,
         unknown: object.unknown,
     }));

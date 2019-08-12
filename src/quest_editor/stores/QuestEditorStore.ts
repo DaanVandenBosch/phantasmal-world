@@ -102,6 +102,10 @@ class QuestEditorStore {
                             obj =>
                                 new ObservableQuestObject(
                                     obj.type,
+                                    obj.id,
+                                    obj.group_id,
+                                    obj.object_id,
+                                    obj.action,
                                     obj.area_id,
                                     obj.section_id,
                                     obj.position,
@@ -176,6 +180,10 @@ class QuestEditorStore {
                         rotation: obj.rotation,
                         scale: obj.scale,
                         unknown: obj.unknown,
+                        id: obj.id,
+                        group_id: obj.group_id,
+                        object_id: obj.object_id,
+                        action: obj.action,
                     })),
                     npcs: quest.npcs.map(npc => ({
                         type: npc.type,

@@ -102,14 +102,22 @@ export abstract class ObservableQuestEntity<Type extends EntityType = EntityType
 }
 
 export class ObservableQuestObject extends ObservableQuestEntity<ObjectType> {
-    @observable type: ObjectType;
+    readonly id: number;
+    readonly group_id: number;
+    readonly object_id: number;
+    readonly action: number;
+
     /**
      * Data of which the purpose hasn't been discovered yet.
      */
-    unknown: number[][];
+    readonly unknown: number[][];
 
     constructor(
         type: ObjectType,
+        id: number,
+        group_id: number,
+        object_id: number,
+        action: number,
         area_id: number,
         section_id: number,
         position: Vec3,
@@ -119,19 +127,21 @@ export class ObservableQuestObject extends ObservableQuestEntity<ObjectType> {
     ) {
         super(type, area_id, section_id, position, rotation, scale);
 
-        this.type = type;
+        this.id = id;
+        this.group_id = group_id;
+        this.object_id = object_id;
+        this.action = action;
         this.unknown = unknown;
     }
 }
 
 export class ObservableQuestNpc extends ObservableQuestEntity<NpcType> {
-    @observable type: NpcType;
-    pso_type_id: number;
-    pso_skin: number;
+    readonly pso_type_id: number;
+    readonly pso_skin: number;
     /**
      * Data of which the purpose hasn't been discovered yet.
      */
-    unknown: number[][];
+    readonly unknown: number[][];
 
     constructor(
         type: NpcType,
@@ -146,7 +156,6 @@ export class ObservableQuestNpc extends ObservableQuestEntity<NpcType> {
     ) {
         super(type, area_id, section_id, position, rotation, scale);
 
-        this.type = type;
         this.pso_type_id = pso_type_id;
         this.pso_skin = pso_skin;
         this.unknown = unknown;
