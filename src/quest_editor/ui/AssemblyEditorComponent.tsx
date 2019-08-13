@@ -20,15 +20,16 @@ const ASM_SYNTAX: languages.IMonarchLanguage = {
             // Registers.
             [/r\d+/, "predefined"],
 
-            [/\.[^\s]+/, "keyword"],
-
             // Labels.
             [/[^\s]+:/, "tag"],
 
             // Numbers.
-            [/-?\d+(\.\d+)?(e-?\d+)?/, "number.float"],
             [/0x[0-9a-fA-F]+/, "number.hex"],
+            [/-?\d+(\.\d+)?(e-?\d+)?/, "number.float"],
             [/-?[0-9]+/, "number"],
+
+            // Section markers.
+            [/\.[^\s]+/, "keyword"],
 
             // Identifiers.
             [/[a-z][a-z0-9_=<>!]*/, "identifier"],
@@ -127,7 +128,7 @@ editor.defineTheme("phantasmal-world", {
         { token: "keyword", foreground: "d0a0ff", fontStyle: "bold" },
         { token: "predefined", foreground: "bbffbb" },
         { token: "number", foreground: "ffffaa" },
-        { token: "number.hex", foreground: "ddffaa" },
+        { token: "number.hex", foreground: "ffffaa" },
         { token: "string", foreground: "88ffff" },
         { token: "string.escape", foreground: "8888ff" },
     ],
