@@ -22,7 +22,6 @@ export type DatEntity = {
     section_id: number;
     position: Vec3;
     rotation: Vec3;
-    scale: Vec3;
     area_id: number;
     unknown: number[][];
 };
@@ -30,12 +29,14 @@ export type DatEntity = {
 export type DatObject = DatEntity & {
     id: number;
     group_id: number;
-    object_id: number;
-    action: number;
+    properties: number[];
 };
 
 export type DatNpc = DatEntity & {
-    skin: number;
+    scale: Vec3;
+    npc_id: number;
+    script_label: number;
+    roaming: number;
 };
 
 export type DatUnknown = {
@@ -80,13 +81,20 @@ export function parse_dat(cursor: Cursor): DatFile {
                     const section_id = cursor.u16();
                     const unknown2 = cursor.u8_array(2);
                     const position = cursor.vec3_f32();
-                    const rotation_x = (cursor.i32() / 0xffff) * 2 * Math.PI;
-                    const rotation_y = (cursor.i32() / 0xffff) * 2 * Math.PI;
-                    const rotation_z = (cursor.i32() / 0xffff) * 2 * Math.PI;
-                    const scale = cursor.vec3_f32();
-                    const object_id = cursor.u32();
-                    const action = cursor.u32();
-                    const unknown3 = cursor.u8_array(8);
+                    const rotation = new Vec3(
+                        (cursor.i32() / 0xffff) * 2 * Math.PI,
+                        (cursor.i32() / 0xffff) * 2 * Math.PI,
+                        (cursor.i32() / 0xffff) * 2 * Math.PI,
+                    );
+                    const properties = [
+                        cursor.f32(),
+                        cursor.f32(),
+                        cursor.f32(),
+                        cursor.u32(),
+                        cursor.u32(),
+                        cursor.u32(),
+                        cursor.u32(),
+                    ];
 
                     objs.push({
                         type_id,
@@ -94,12 +102,10 @@ export function parse_dat(cursor: Cursor): DatFile {
                         group_id,
                         section_id,
                         position,
-                        rotation: new Vec3(rotation_x, rotation_y, rotation_z),
-                        scale,
-                        object_id,
-                        action,
+                        rotation,
+                        properties,
                         area_id,
-                        unknown: [unknown1, unknown2, unknown3],
+                        unknown: [unknown1, unknown2],
                     });
                 }
 
@@ -126,9 +132,10 @@ export function parse_dat(cursor: Cursor): DatFile {
                     const rotation_y = (cursor.i32() / 0xffff) * 2 * Math.PI;
                     const rotation_z = (cursor.i32() / 0xffff) * 2 * Math.PI;
                     const scale = cursor.vec3_f32();
-                    const unknown3 = cursor.u8_array(8);
-                    const skin = cursor.u32();
-                    const unknown4 = cursor.u8_array(4);
+                    const npc_id = cursor.f32();
+                    const script_label = cursor.f32();
+                    const roaming = cursor.u32();
+                    const unknown3 = cursor.u8_array(4);
 
                     npcs.push({
                         type_id,
@@ -136,9 +143,11 @@ export function parse_dat(cursor: Cursor): DatFile {
                         position,
                         rotation: new Vec3(rotation_x, rotation_y, rotation_z),
                         scale,
-                        skin,
+                        npc_id,
+                        script_label,
+                        roaming,
                         area_id,
-                        unknown: [unknown1, unknown2, unknown3, unknown4],
+                        unknown: [unknown1, unknown2, unknown3],
                     });
                 }
 
@@ -188,8 +197,8 @@ export function write_dat({ objs, npcs, unknowns }: DatFile): ResizableBuffer {
         cursor.write_u32(entities_size);
 
         for (const obj of area_objs) {
-            if (obj.unknown.length !== 3)
-                throw new Error(`unknown should be of length 3, was ${obj.unknown.length}`);
+            if (obj.unknown.length !== 2)
+                throw new Error(`unknown should be of length 2, was ${obj.unknown.length}`);
 
             cursor.write_u16(obj.type_id);
 
@@ -209,14 +218,17 @@ export function write_dat({ objs, npcs, unknowns }: DatFile): ResizableBuffer {
             cursor.write_i32(Math.round((obj.rotation.x / (2 * Math.PI)) * 0xffff));
             cursor.write_i32(Math.round((obj.rotation.y / (2 * Math.PI)) * 0xffff));
             cursor.write_i32(Math.round((obj.rotation.z / (2 * Math.PI)) * 0xffff));
-            cursor.write_vec3_f32(obj.scale);
-            cursor.write_u32(obj.object_id);
-            cursor.write_u32(obj.action);
 
-            if (obj.unknown[2].length !== 8)
-                throw new Error(`unknown[2] should be of length 8, was ${obj.unknown[2].length}`);
+            if (obj.properties.length !== 7)
+                throw new Error(`properties should be of length 7, was ${obj.properties.length}`);
 
-            cursor.write_u8_array(obj.unknown[2]);
+            cursor.write_f32(obj.properties[0]);
+            cursor.write_f32(obj.properties[1]);
+            cursor.write_f32(obj.properties[2]);
+            cursor.write_u32(obj.properties[3]);
+            cursor.write_u32(obj.properties[4]);
+            cursor.write_u32(obj.properties[5]);
+            cursor.write_u32(obj.properties[6]);
         }
     }
 
@@ -234,18 +246,34 @@ export function write_dat({ objs, npcs, unknowns }: DatFile): ResizableBuffer {
         cursor.write_u32(entities_size);
 
         for (const npc of area_npcs) {
+            if (npc.unknown.length !== 3)
+                throw new Error(`unknown should be of length 3, was ${npc.unknown.length}`);
+
             cursor.write_u16(npc.type_id);
+
+            if (npc.unknown[0].length !== 10)
+                throw new Error(`unknown[0] should be of length 10, was ${npc.unknown[0].length}`);
+
             cursor.write_u8_array(npc.unknown[0]);
             cursor.write_u16(npc.section_id);
+
+            if (npc.unknown[1].length !== 6)
+                throw new Error(`unknown[1] should be of length 6, was ${npc.unknown[1].length}`);
+
             cursor.write_u8_array(npc.unknown[1]);
             cursor.write_vec3_f32(npc.position);
             cursor.write_i32(Math.round((npc.rotation.x / (2 * Math.PI)) * 0xffff));
             cursor.write_i32(Math.round((npc.rotation.y / (2 * Math.PI)) * 0xffff));
             cursor.write_i32(Math.round((npc.rotation.z / (2 * Math.PI)) * 0xffff));
             cursor.write_vec3_f32(npc.scale);
+            cursor.write_f32(npc.npc_id);
+            cursor.write_f32(npc.script_label);
+            cursor.write_u32(npc.roaming);
+
+            if (npc.unknown[2].length !== 4)
+                throw new Error(`unknown[2] should be of length 4, was ${npc.unknown[2].length}`);
+
             cursor.write_u8_array(npc.unknown[2]);
-            cursor.write_u32(npc.skin);
-            cursor.write_u8_array(npc.unknown[3]);
         }
     }
 

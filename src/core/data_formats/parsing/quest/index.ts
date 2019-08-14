@@ -17,7 +17,7 @@ import { BinFile, parse_bin, write_bin } from "./bin";
 import { DatFile, DatNpc, DatObject, DatUnknown, parse_dat, write_dat } from "./dat";
 import { QuestNpc, QuestObject } from "./entities";
 import { Episode } from "./Episode";
-import { object_data, pso_id_to_object_type } from "./object_types";
+import { object_data, ObjectType, pso_id_to_object_type } from "./object_types";
 import { parse_qst, QstContainedFile, write_qst } from "./qst";
 import { NpcType } from "./npc_types";
 
@@ -47,6 +47,7 @@ export type Quest = {
  * Always delegates to parse_qst at the moment.
  */
 export function parse_quest(cursor: Cursor, lenient: boolean = false): Quest | undefined {
+    // Extract contained .dat and .bin files.
     const qst = parse_qst(cursor);
 
     if (!qst) {
@@ -76,14 +77,23 @@ export function parse_quest(cursor: Cursor, lenient: boolean = false): Quest | u
         return;
     }
 
+    // Decompress and parse contained files.
     const dat_decompressed = prs_decompress(
         new ArrayBufferCursor(dat_file.data, Endianness.Little),
     );
     const dat = parse_dat(dat_decompressed);
+    const objects = parse_obj_data(dat.objs);
+
     const bin_decompressed = prs_decompress(
         new ArrayBufferCursor(bin_file.data, Endianness.Little),
     );
-    const bin = parse_bin(bin_decompressed, [0], lenient);
+    const bin = parse_bin(
+        bin_decompressed,
+        extract_script_entry_points(objects, dat.npcs),
+        lenient,
+    );
+
+    // Extract episode and map designations from object code.
     let episode = Episode.I;
     let map_designations: Map<number, number> = new Map();
 
@@ -114,7 +124,7 @@ export function parse_quest(cursor: Cursor, lenient: boolean = false): Quest | u
         short_description: bin.short_description,
         long_description: bin.long_description,
         episode,
-        objects: parse_obj_data(dat.objs),
+        objects,
         npcs: parse_npc_data(episode, dat.npcs),
         dat_unknowns: dat.unknowns,
         object_code: bin.object_code,
@@ -202,19 +212,57 @@ function extract_map_designations(
     return map_designations;
 }
 
+function extract_script_entry_points(objects: QuestObject[], npcs: DatNpc[]): number[] {
+    const entry_points = new Set([0]);
+
+    for (const obj of objects) {
+        const entry_point = obj.properties.get("script_label");
+
+        if (entry_point != undefined) {
+            entry_points.add(entry_point);
+        }
+
+        const entry_point_2 = obj.properties.get("script_label_2");
+
+        if (entry_point_2 != undefined) {
+            entry_points.add(entry_point_2);
+        }
+    }
+
+    for (const npc of npcs) {
+        entry_points.add(Math.round(npc.script_label));
+    }
+
+    return [...entry_points];
+}
+
 function parse_obj_data(objs: DatObject[]): QuestObject[] {
     return objs.map(obj_data => {
+        const type = pso_id_to_object_type(obj_data.type_id);
         return {
-            type: pso_id_to_object_type(obj_data.type_id),
+            type,
             id: obj_data.id,
             group_id: obj_data.group_id,
             area_id: obj_data.area_id,
             section_id: obj_data.section_id,
-            object_id: obj_data.object_id,
-            action: obj_data.action,
             position: obj_data.position,
             rotation: obj_data.rotation,
-            scale: obj_data.scale,
+            properties: new Map(
+                obj_data.properties.map((value, index) => {
+                    if (
+                        index === 3 &&
+                        (type === ObjectType.ScriptCollision || type === ObjectType.ForestConsole)
+                    ) {
+                        return ["script_label", value];
+                    } else if (index === 4 && type === ObjectType.RicoMessagePod) {
+                        return ["script_label", value];
+                    } else if (index === 5 && type === ObjectType.RicoMessagePod) {
+                        return ["script_label_2", value];
+                    } else {
+                        return [`property_${index}`, value];
+                    }
+                }),
+            ),
             unknown: obj_data.unknown,
         };
     });
@@ -231,16 +279,18 @@ function parse_npc_data(episode: number, npcs: DatNpc[]): QuestNpc[] {
             scale: npc_data.scale,
             unknown: npc_data.unknown,
             pso_type_id: npc_data.type_id,
-            pso_skin: npc_data.skin,
+            npc_id: npc_data.npc_id,
+            script_label: Math.round(npc_data.script_label),
+            roaming: npc_data.roaming,
         };
     });
 }
 
 // TODO: detect Mothmant, St. Rappy, Hallo Rappy, Egg Rappy, Death Gunner, Bulk and Recon.
-function get_npc_type(episode: number, { type_id, scale, skin, area_id }: DatNpc): NpcType {
+function get_npc_type(episode: number, { type_id, scale, roaming, area_id }: DatNpc): NpcType {
     const regular = Math.abs(scale.y - 1) > 0.00001;
 
-    switch (`${type_id}, ${skin % 3}, ${episode}`) {
+    switch (`${type_id}, ${roaming % 3}, ${episode}`) {
         case `${0x044}, 0, 1`:
             return NpcType.Booma;
         case `${0x044}, 1, 1`:
@@ -289,7 +339,7 @@ function get_npc_type(episode: number, { type_id, scale, skin, area_id }: DatNpc
             return NpcType.GoranDetonator;
     }
 
-    switch (`${type_id}, ${skin % 2}, ${episode}`) {
+    switch (`${type_id}, ${roaming % 2}, ${episode}`) {
         case `${0x040}, 0, 1`:
             return NpcType.Hildebear;
         case `${0x040}, 0, 2`:
@@ -520,9 +570,7 @@ function objects_to_dat_data(objects: QuestObject[]): DatObject[] {
         section_id: object.section_id,
         position: object.position,
         rotation: object.rotation,
-        scale: object.scale,
-        object_id: object.object_id,
-        action: object.action,
+        properties: [...object.properties.values()],
         area_id: object.area_id,
         unknown: object.unknown,
     }));
@@ -534,7 +582,7 @@ function npcs_to_dat_data(npcs: QuestNpc[]): DatNpc[] {
     return npcs.map(npc => {
         const type_data = npc_type_to_dat_data(npc.type) || {
             type_id: npc.pso_type_id,
-            skin: npc.pso_skin,
+            roaming: npc.roaming,
             regular: true,
         };
 
@@ -550,7 +598,9 @@ function npcs_to_dat_data(npcs: QuestNpc[]): DatNpc[] {
             position: npc.position,
             rotation: npc.rotation,
             scale,
-            skin: type_data.skin,
+            npc_id: npc.npc_id,
+            script_label: npc.script_label,
+            roaming: type_data.roaming,
             area_id: npc.area_id,
             unknown: npc.unknown,
         };
@@ -559,7 +609,7 @@ function npcs_to_dat_data(npcs: QuestNpc[]): DatNpc[] {
 
 function npc_type_to_dat_data(
     type: NpcType,
-): { type_id: number; skin: number; regular: boolean } | undefined {
+): { type_id: number; roaming: number; regular: boolean } | undefined {
     switch (type) {
         default:
             throw new Error(`Unexpected type ${NpcType[type]}.`);
@@ -568,269 +618,269 @@ function npc_type_to_dat_data(
             return undefined;
 
         case NpcType.FemaleFat:
-            return { type_id: 0x004, skin: 0, regular: true };
+            return { type_id: 0x004, roaming: 0, regular: true };
         case NpcType.FemaleMacho:
-            return { type_id: 0x005, skin: 0, regular: true };
+            return { type_id: 0x005, roaming: 0, regular: true };
         case NpcType.FemaleTall:
-            return { type_id: 0x007, skin: 0, regular: true };
+            return { type_id: 0x007, roaming: 0, regular: true };
         case NpcType.MaleDwarf:
-            return { type_id: 0x00a, skin: 0, regular: true };
+            return { type_id: 0x00a, roaming: 0, regular: true };
         case NpcType.MaleFat:
-            return { type_id: 0x00b, skin: 0, regular: true };
+            return { type_id: 0x00b, roaming: 0, regular: true };
         case NpcType.MaleMacho:
-            return { type_id: 0x00c, skin: 0, regular: true };
+            return { type_id: 0x00c, roaming: 0, regular: true };
         case NpcType.MaleOld:
-            return { type_id: 0x00d, skin: 0, regular: true };
+            return { type_id: 0x00d, roaming: 0, regular: true };
         case NpcType.BlueSoldier:
-            return { type_id: 0x019, skin: 0, regular: true };
+            return { type_id: 0x019, roaming: 0, regular: true };
         case NpcType.RedSoldier:
-            return { type_id: 0x01a, skin: 0, regular: true };
+            return { type_id: 0x01a, roaming: 0, regular: true };
         case NpcType.Principal:
-            return { type_id: 0x01b, skin: 0, regular: true };
+            return { type_id: 0x01b, roaming: 0, regular: true };
         case NpcType.Tekker:
-            return { type_id: 0x01c, skin: 0, regular: true };
+            return { type_id: 0x01c, roaming: 0, regular: true };
         case NpcType.GuildLady:
-            return { type_id: 0x01d, skin: 0, regular: true };
+            return { type_id: 0x01d, roaming: 0, regular: true };
         case NpcType.Scientist:
-            return { type_id: 0x01e, skin: 0, regular: true };
+            return { type_id: 0x01e, roaming: 0, regular: true };
         case NpcType.Nurse:
-            return { type_id: 0x01f, skin: 0, regular: true };
+            return { type_id: 0x01f, roaming: 0, regular: true };
         case NpcType.Irene:
-            return { type_id: 0x020, skin: 0, regular: true };
+            return { type_id: 0x020, roaming: 0, regular: true };
         case NpcType.ItemShop:
-            return { type_id: 0x0f1, skin: 0, regular: true };
+            return { type_id: 0x0f1, roaming: 0, regular: true };
         case NpcType.Nurse2:
-            return { type_id: 0x0fe, skin: 0, regular: true };
+            return { type_id: 0x0fe, roaming: 0, regular: true };
 
         case NpcType.Hildebear:
-            return { type_id: 0x040, skin: 0, regular: true };
+            return { type_id: 0x040, roaming: 0, regular: true };
         case NpcType.Hildeblue:
-            return { type_id: 0x040, skin: 1, regular: true };
+            return { type_id: 0x040, roaming: 1, regular: true };
         case NpcType.RagRappy:
-            return { type_id: 0x041, skin: 0, regular: true };
+            return { type_id: 0x041, roaming: 0, regular: true };
         case NpcType.AlRappy:
-            return { type_id: 0x041, skin: 1, regular: true };
+            return { type_id: 0x041, roaming: 1, regular: true };
         case NpcType.Monest:
-            return { type_id: 0x042, skin: 0, regular: true };
+            return { type_id: 0x042, roaming: 0, regular: true };
         case NpcType.SavageWolf:
-            return { type_id: 0x043, skin: 0, regular: true };
+            return { type_id: 0x043, roaming: 0, regular: true };
         case NpcType.BarbarousWolf:
-            return { type_id: 0x043, skin: 0, regular: false };
+            return { type_id: 0x043, roaming: 0, regular: false };
         case NpcType.Booma:
-            return { type_id: 0x044, skin: 0, regular: true };
+            return { type_id: 0x044, roaming: 0, regular: true };
         case NpcType.Gobooma:
-            return { type_id: 0x044, skin: 1, regular: true };
+            return { type_id: 0x044, roaming: 1, regular: true };
         case NpcType.Gigobooma:
-            return { type_id: 0x044, skin: 2, regular: true };
+            return { type_id: 0x044, roaming: 2, regular: true };
         case NpcType.Dragon:
-            return { type_id: 0x0c0, skin: 0, regular: true };
+            return { type_id: 0x0c0, roaming: 0, regular: true };
 
         case NpcType.GrassAssassin:
-            return { type_id: 0x060, skin: 0, regular: true };
+            return { type_id: 0x060, roaming: 0, regular: true };
         case NpcType.PoisonLily:
-            return { type_id: 0x061, skin: 0, regular: true };
+            return { type_id: 0x061, roaming: 0, regular: true };
         case NpcType.NarLily:
-            return { type_id: 0x061, skin: 1, regular: true };
+            return { type_id: 0x061, roaming: 1, regular: true };
         case NpcType.NanoDragon:
-            return { type_id: 0x062, skin: 0, regular: true };
+            return { type_id: 0x062, roaming: 0, regular: true };
         case NpcType.EvilShark:
-            return { type_id: 0x063, skin: 0, regular: true };
+            return { type_id: 0x063, roaming: 0, regular: true };
         case NpcType.PalShark:
-            return { type_id: 0x063, skin: 1, regular: true };
+            return { type_id: 0x063, roaming: 1, regular: true };
         case NpcType.GuilShark:
-            return { type_id: 0x063, skin: 2, regular: true };
+            return { type_id: 0x063, roaming: 2, regular: true };
         case NpcType.PofuillySlime:
-            return { type_id: 0x064, skin: 0, regular: true };
+            return { type_id: 0x064, roaming: 0, regular: true };
         case NpcType.PouillySlime:
-            return { type_id: 0x064, skin: 0, regular: false };
+            return { type_id: 0x064, roaming: 0, regular: false };
         case NpcType.PanArms:
-            return { type_id: 0x065, skin: 0, regular: true };
+            return { type_id: 0x065, roaming: 0, regular: true };
         case NpcType.DeRolLe:
-            return { type_id: 0x0c1, skin: 0, regular: true };
+            return { type_id: 0x0c1, roaming: 0, regular: true };
 
         case NpcType.Dubchic:
-            return { type_id: 0x080, skin: 0, regular: true };
+            return { type_id: 0x080, roaming: 0, regular: true };
         case NpcType.Gilchic:
-            return { type_id: 0x080, skin: 1, regular: true };
+            return { type_id: 0x080, roaming: 1, regular: true };
         case NpcType.Garanz:
-            return { type_id: 0x081, skin: 0, regular: true };
+            return { type_id: 0x081, roaming: 0, regular: true };
         case NpcType.SinowBeat:
-            return { type_id: 0x082, skin: 0, regular: true };
+            return { type_id: 0x082, roaming: 0, regular: true };
         case NpcType.SinowGold:
-            return { type_id: 0x082, skin: 0, regular: false };
+            return { type_id: 0x082, roaming: 0, regular: false };
         case NpcType.Canadine:
-            return { type_id: 0x083, skin: 0, regular: true };
+            return { type_id: 0x083, roaming: 0, regular: true };
         case NpcType.Canane:
-            return { type_id: 0x084, skin: 0, regular: true };
+            return { type_id: 0x084, roaming: 0, regular: true };
         case NpcType.Dubswitch:
-            return { type_id: 0x085, skin: 0, regular: true };
+            return { type_id: 0x085, roaming: 0, regular: true };
         case NpcType.VolOpt:
-            return { type_id: 0x0c5, skin: 0, regular: true };
+            return { type_id: 0x0c5, roaming: 0, regular: true };
 
         case NpcType.Delsaber:
-            return { type_id: 0x0a0, skin: 0, regular: true };
+            return { type_id: 0x0a0, roaming: 0, regular: true };
         case NpcType.ChaosSorcerer:
-            return { type_id: 0x0a1, skin: 0, regular: true };
+            return { type_id: 0x0a1, roaming: 0, regular: true };
         case NpcType.DarkGunner:
-            return { type_id: 0x0a2, skin: 0, regular: true };
+            return { type_id: 0x0a2, roaming: 0, regular: true };
         case NpcType.ChaosBringer:
-            return { type_id: 0x0a4, skin: 0, regular: true };
+            return { type_id: 0x0a4, roaming: 0, regular: true };
         case NpcType.DarkBelra:
-            return { type_id: 0x0a5, skin: 0, regular: true };
+            return { type_id: 0x0a5, roaming: 0, regular: true };
         case NpcType.Dimenian:
-            return { type_id: 0x0a6, skin: 0, regular: true };
+            return { type_id: 0x0a6, roaming: 0, regular: true };
         case NpcType.LaDimenian:
-            return { type_id: 0x0a6, skin: 1, regular: true };
+            return { type_id: 0x0a6, roaming: 1, regular: true };
         case NpcType.SoDimenian:
-            return { type_id: 0x0a6, skin: 2, regular: true };
+            return { type_id: 0x0a6, roaming: 2, regular: true };
         case NpcType.Bulclaw:
-            return { type_id: 0x0a7, skin: 0, regular: true };
+            return { type_id: 0x0a7, roaming: 0, regular: true };
         case NpcType.Claw:
-            return { type_id: 0x0a8, skin: 0, regular: true };
+            return { type_id: 0x0a8, roaming: 0, regular: true };
         case NpcType.DarkFalz:
-            return { type_id: 0x0c8, skin: 0, regular: true };
+            return { type_id: 0x0c8, roaming: 0, regular: true };
 
         case NpcType.Hildebear2:
-            return { type_id: 0x040, skin: 0, regular: true };
+            return { type_id: 0x040, roaming: 0, regular: true };
         case NpcType.Hildeblue2:
-            return { type_id: 0x040, skin: 1, regular: true };
+            return { type_id: 0x040, roaming: 1, regular: true };
         case NpcType.RagRappy2:
-            return { type_id: 0x041, skin: 0, regular: true };
+            return { type_id: 0x041, roaming: 0, regular: true };
         case NpcType.LoveRappy:
-            return { type_id: 0x041, skin: 1, regular: true };
+            return { type_id: 0x041, roaming: 1, regular: true };
         case NpcType.Monest2:
-            return { type_id: 0x042, skin: 0, regular: true };
+            return { type_id: 0x042, roaming: 0, regular: true };
         case NpcType.PoisonLily2:
-            return { type_id: 0x061, skin: 0, regular: true };
+            return { type_id: 0x061, roaming: 0, regular: true };
         case NpcType.NarLily2:
-            return { type_id: 0x061, skin: 1, regular: true };
+            return { type_id: 0x061, roaming: 1, regular: true };
         case NpcType.GrassAssassin2:
-            return { type_id: 0x060, skin: 0, regular: true };
+            return { type_id: 0x060, roaming: 0, regular: true };
         case NpcType.Dimenian2:
-            return { type_id: 0x0a6, skin: 0, regular: true };
+            return { type_id: 0x0a6, roaming: 0, regular: true };
         case NpcType.LaDimenian2:
-            return { type_id: 0x0a6, skin: 1, regular: true };
+            return { type_id: 0x0a6, roaming: 1, regular: true };
         case NpcType.SoDimenian2:
-            return { type_id: 0x0a6, skin: 2, regular: true };
+            return { type_id: 0x0a6, roaming: 2, regular: true };
         case NpcType.DarkBelra2:
-            return { type_id: 0x0a5, skin: 0, regular: true };
+            return { type_id: 0x0a5, roaming: 0, regular: true };
         case NpcType.BarbaRay:
-            return { type_id: 0x0cb, skin: 0, regular: true };
+            return { type_id: 0x0cb, roaming: 0, regular: true };
 
         case NpcType.SavageWolf2:
-            return { type_id: 0x043, skin: 0, regular: true };
+            return { type_id: 0x043, roaming: 0, regular: true };
         case NpcType.BarbarousWolf2:
-            return { type_id: 0x043, skin: 0, regular: false };
+            return { type_id: 0x043, roaming: 0, regular: false };
         case NpcType.PanArms2:
-            return { type_id: 0x065, skin: 0, regular: true };
+            return { type_id: 0x065, roaming: 0, regular: true };
         case NpcType.Dubchic2:
-            return { type_id: 0x080, skin: 0, regular: true };
+            return { type_id: 0x080, roaming: 0, regular: true };
         case NpcType.Gilchic2:
-            return { type_id: 0x080, skin: 1, regular: true };
+            return { type_id: 0x080, roaming: 1, regular: true };
         case NpcType.Garanz2:
-            return { type_id: 0x081, skin: 0, regular: true };
+            return { type_id: 0x081, roaming: 0, regular: true };
         case NpcType.Dubswitch2:
-            return { type_id: 0x085, skin: 0, regular: true };
+            return { type_id: 0x085, roaming: 0, regular: true };
         case NpcType.Delsaber2:
-            return { type_id: 0x0a0, skin: 0, regular: true };
+            return { type_id: 0x0a0, roaming: 0, regular: true };
         case NpcType.ChaosSorcerer2:
-            return { type_id: 0x0a1, skin: 0, regular: true };
+            return { type_id: 0x0a1, roaming: 0, regular: true };
         case NpcType.GolDragon:
-            return { type_id: 0x0cc, skin: 0, regular: true };
+            return { type_id: 0x0cc, roaming: 0, regular: true };
 
         case NpcType.SinowBerill:
-            return { type_id: 0x0d4, skin: 0, regular: true };
+            return { type_id: 0x0d4, roaming: 0, regular: true };
         case NpcType.SinowSpigell:
-            return { type_id: 0x0d4, skin: 1, regular: true };
+            return { type_id: 0x0d4, roaming: 1, regular: true };
         case NpcType.Merillia:
-            return { type_id: 0x0d5, skin: 0, regular: true };
+            return { type_id: 0x0d5, roaming: 0, regular: true };
         case NpcType.Meriltas:
-            return { type_id: 0x0d5, skin: 1, regular: true };
+            return { type_id: 0x0d5, roaming: 1, regular: true };
         case NpcType.Mericarol:
-            return { type_id: 0x0d6, skin: 0, regular: true };
+            return { type_id: 0x0d6, roaming: 0, regular: true };
         case NpcType.Mericus:
-            return { type_id: 0x0d6, skin: 1, regular: true };
+            return { type_id: 0x0d6, roaming: 1, regular: true };
         case NpcType.Merikle:
-            return { type_id: 0x0d6, skin: 2, regular: true };
+            return { type_id: 0x0d6, roaming: 2, regular: true };
         case NpcType.UlGibbon:
-            return { type_id: 0x0d7, skin: 0, regular: true };
+            return { type_id: 0x0d7, roaming: 0, regular: true };
         case NpcType.ZolGibbon:
-            return { type_id: 0x0d7, skin: 1, regular: true };
+            return { type_id: 0x0d7, roaming: 1, regular: true };
         case NpcType.Gibbles:
-            return { type_id: 0x0d8, skin: 0, regular: true };
+            return { type_id: 0x0d8, roaming: 0, regular: true };
         case NpcType.Gee:
-            return { type_id: 0x0d9, skin: 0, regular: true };
+            return { type_id: 0x0d9, roaming: 0, regular: true };
         case NpcType.GiGue:
-            return { type_id: 0x0da, skin: 0, regular: true };
+            return { type_id: 0x0da, roaming: 0, regular: true };
         case NpcType.GalGryphon:
-            return { type_id: 0x0c0, skin: 0, regular: true };
+            return { type_id: 0x0c0, roaming: 0, regular: true };
 
         case NpcType.Deldepth:
-            return { type_id: 0x0db, skin: 0, regular: true };
+            return { type_id: 0x0db, roaming: 0, regular: true };
         case NpcType.Delbiter:
-            return { type_id: 0x0dc, skin: 0, regular: true };
+            return { type_id: 0x0dc, roaming: 0, regular: true };
         case NpcType.Dolmolm:
-            return { type_id: 0x0dd, skin: 0, regular: true };
+            return { type_id: 0x0dd, roaming: 0, regular: true };
         case NpcType.Dolmdarl:
-            return { type_id: 0x0dd, skin: 1, regular: true };
+            return { type_id: 0x0dd, roaming: 1, regular: true };
         case NpcType.Morfos:
-            return { type_id: 0x0de, skin: 0, regular: true };
+            return { type_id: 0x0de, roaming: 0, regular: true };
         case NpcType.Recobox:
-            return { type_id: 0x0df, skin: 0, regular: true };
+            return { type_id: 0x0df, roaming: 0, regular: true };
         case NpcType.Epsilon:
-            return { type_id: 0x0e0, skin: 0, regular: true };
+            return { type_id: 0x0e0, roaming: 0, regular: true };
         case NpcType.SinowZoa:
-            return { type_id: 0x0e0, skin: 0, regular: true };
+            return { type_id: 0x0e0, roaming: 0, regular: true };
         case NpcType.SinowZele:
-            return { type_id: 0x0e0, skin: 1, regular: true };
+            return { type_id: 0x0e0, roaming: 1, regular: true };
         case NpcType.IllGill:
-            return { type_id: 0x0e1, skin: 0, regular: true };
+            return { type_id: 0x0e1, roaming: 0, regular: true };
         case NpcType.DelLily:
-            return { type_id: 0x061, skin: 0, regular: true };
+            return { type_id: 0x061, roaming: 0, regular: true };
         case NpcType.OlgaFlow:
-            return { type_id: 0x0ca, skin: 0, regular: true };
+            return { type_id: 0x0ca, roaming: 0, regular: true };
 
         case NpcType.SandRappy:
-            return { type_id: 0x041, skin: 0, regular: true };
+            return { type_id: 0x041, roaming: 0, regular: true };
         case NpcType.DelRappy:
-            return { type_id: 0x041, skin: 1, regular: true };
+            return { type_id: 0x041, roaming: 1, regular: true };
         case NpcType.Astark:
-            return { type_id: 0x110, skin: 0, regular: true };
+            return { type_id: 0x110, roaming: 0, regular: true };
         case NpcType.SatelliteLizard:
-            return { type_id: 0x111, skin: 0, regular: true };
+            return { type_id: 0x111, roaming: 0, regular: true };
         case NpcType.Yowie:
-            return { type_id: 0x111, skin: 0, regular: false };
+            return { type_id: 0x111, roaming: 0, regular: false };
         case NpcType.MerissaA:
-            return { type_id: 0x112, skin: 0, regular: true };
+            return { type_id: 0x112, roaming: 0, regular: true };
         case NpcType.MerissaAA:
-            return { type_id: 0x112, skin: 1, regular: true };
+            return { type_id: 0x112, roaming: 1, regular: true };
         case NpcType.Girtablulu:
-            return { type_id: 0x113, skin: 0, regular: true };
+            return { type_id: 0x113, roaming: 0, regular: true };
         case NpcType.Zu:
-            return { type_id: 0x114, skin: 0, regular: true };
+            return { type_id: 0x114, roaming: 0, regular: true };
         case NpcType.Pazuzu:
-            return { type_id: 0x114, skin: 1, regular: true };
+            return { type_id: 0x114, roaming: 1, regular: true };
         case NpcType.Boota:
-            return { type_id: 0x115, skin: 0, regular: true };
+            return { type_id: 0x115, roaming: 0, regular: true };
         case NpcType.ZeBoota:
-            return { type_id: 0x115, skin: 1, regular: true };
+            return { type_id: 0x115, roaming: 1, regular: true };
         case NpcType.BaBoota:
-            return { type_id: 0x115, skin: 2, regular: true };
+            return { type_id: 0x115, roaming: 2, regular: true };
         case NpcType.Dorphon:
-            return { type_id: 0x116, skin: 0, regular: true };
+            return { type_id: 0x116, roaming: 0, regular: true };
         case NpcType.DorphonEclair:
-            return { type_id: 0x116, skin: 1, regular: true };
+            return { type_id: 0x116, roaming: 1, regular: true };
         case NpcType.Goran:
-            return { type_id: 0x117, skin: 0, regular: true };
+            return { type_id: 0x117, roaming: 0, regular: true };
         case NpcType.PyroGoran:
-            return { type_id: 0x117, skin: 1, regular: true };
+            return { type_id: 0x117, roaming: 1, regular: true };
         case NpcType.GoranDetonator:
-            return { type_id: 0x117, skin: 2, regular: true };
+            return { type_id: 0x117, roaming: 2, regular: true };
         case NpcType.SaintMilion:
-            return { type_id: 0x119, skin: 0, regular: true };
+            return { type_id: 0x119, roaming: 0, regular: true };
         case NpcType.Shambertin:
-            return { type_id: 0x119, skin: 1, regular: true };
+            return { type_id: 0x119, roaming: 1, regular: true };
         case NpcType.Kondrieu:
-            return { type_id: 0x119, skin: 0, regular: false };
+            return { type_id: 0x119, roaming: 0, regular: false };
     }
 }

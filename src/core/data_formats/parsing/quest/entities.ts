@@ -22,7 +22,9 @@ export type QuestNpc = {
      */
     readonly unknown: number[][];
     readonly pso_type_id: number;
-    readonly pso_skin: number;
+    readonly npc_id: number;
+    readonly script_label: number;
+    readonly roaming: number;
 };
 
 export type QuestObject = {
@@ -31,14 +33,15 @@ export type QuestObject = {
     readonly group_id: number;
     readonly area_id: number;
     readonly section_id: number;
-    readonly object_id: number;
-    readonly action: number;
     /**
      * Section-relative position
      */
     readonly position: Vec3;
     readonly rotation: Vec3;
-    readonly scale: Vec3;
+    /**
+     * Properties that differ per object type.
+     */
+    readonly properties: Map<string, number>;
     /**
      * Data of which the purpose hasn't been discovered yet.
      */

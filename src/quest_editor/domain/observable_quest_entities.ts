@@ -28,8 +28,6 @@ export abstract class ObservableQuestEntity<Type extends EntityType = EntityType
 
     @observable.ref rotation: Vec3;
 
-    @observable.ref scale: Vec3;
-
     /**
      * World position
      */
@@ -75,7 +73,6 @@ export abstract class ObservableQuestEntity<Type extends EntityType = EntityType
         section_id: number,
         position: Vec3,
         rotation: Vec3,
-        scale: Vec3,
     ) {
         if (type == undefined) throw new Error("type is required.");
         if (!Number.isInteger(area_id) || area_id < 0)
@@ -84,14 +81,12 @@ export abstract class ObservableQuestEntity<Type extends EntityType = EntityType
             throw new Error(`Expected section_id to be a non-negative integer, got ${section_id}.`);
         if (!position) throw new Error("position is required.");
         if (!rotation) throw new Error("rotation is required.");
-        if (!scale) throw new Error("scale is required.");
 
         this.type = type;
         this.area_id = area_id;
         this._section_id = section_id;
         this.position = position;
         this.rotation = rotation;
-        this.scale = scale;
     }
 
     @action
@@ -104,8 +99,26 @@ export abstract class ObservableQuestEntity<Type extends EntityType = EntityType
 export class ObservableQuestObject extends ObservableQuestEntity<ObjectType> {
     readonly id: number;
     readonly group_id: number;
-    readonly object_id: number;
-    readonly action: number;
+
+    @observable private readonly properties: Map<string, number>;
+
+    /**
+     * @returns a copy of this object's type-specific properties.
+     */
+    props(): Map<string, number> {
+        return new Map(this.properties);
+    }
+
+    get_prop(prop: string): number | undefined {
+        return this.properties.get(prop);
+    }
+
+    @action
+    set_prop(prop: string, value: number): void {
+        if (!this.properties.has(prop)) throw new Error(`Object doesn't have property ${prop}.`);
+
+        this.properties.set(prop, value);
+    }
 
     /**
      * Data of which the purpose hasn't been discovered yet.
@@ -116,28 +129,28 @@ export class ObservableQuestObject extends ObservableQuestEntity<ObjectType> {
         type: ObjectType,
         id: number,
         group_id: number,
-        object_id: number,
-        action: number,
         area_id: number,
         section_id: number,
         position: Vec3,
         rotation: Vec3,
-        scale: Vec3,
+        properties: Map<string, number>,
         unknown: number[][],
     ) {
-        super(type, area_id, section_id, position, rotation, scale);
+        super(type, area_id, section_id, position, rotation);
 
         this.id = id;
         this.group_id = group_id;
-        this.object_id = object_id;
-        this.action = action;
+        this.properties = properties;
         this.unknown = unknown;
     }
 }
 
 export class ObservableQuestNpc extends ObservableQuestEntity<NpcType> {
     readonly pso_type_id: number;
-    readonly pso_skin: number;
+    readonly npc_id: number;
+    readonly script_label: number;
+    readonly roaming: number;
+    readonly scale: Vec3;
     /**
      * Data of which the purpose hasn't been discovered yet.
      */
@@ -146,7 +159,9 @@ export class ObservableQuestNpc extends ObservableQuestEntity<NpcType> {
     constructor(
         type: NpcType,
         pso_type_id: number,
-        pso_skin: number,
+        npc_id: number,
+        script_label: number,
+        roaming: number,
         area_id: number,
         section_id: number,
         position: Vec3,
@@ -154,10 +169,13 @@ export class ObservableQuestNpc extends ObservableQuestEntity<NpcType> {
         scale: Vec3,
         unknown: number[][],
     ) {
-        super(type, area_id, section_id, position, rotation, scale);
+        super(type, area_id, section_id, position, rotation);
 
         this.pso_type_id = pso_type_id;
-        this.pso_skin = pso_skin;
+        this.npc_id = npc_id;
+        this.script_label = script_label;
+        this.roaming = roaming;
         this.unknown = unknown;
+        this.scale = scale;
     }
 }
