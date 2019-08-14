@@ -15,6 +15,7 @@ import { ObservableQuest } from "../domain/ObservableQuest";
 import { ObservableArea } from "../domain/ObservableArea";
 import { ObservableAreaVariant } from "../domain/ObservableAreaVariant";
 import { ObservableQuestEntity } from "../domain/observable_quest_entities";
+import { area_store } from "../stores/AreaStore";
 
 const logger = Logger.get("rendering/QuestModelManager");
 
@@ -34,7 +35,9 @@ export class QuestModelManager {
         let area_variant: ObservableAreaVariant | undefined;
 
         if (quest && area) {
-            area_variant = quest.area_variants.find(v => v.area.id === area.id);
+            area_variant =
+                quest.area_variants.find(v => v.area.id === area.id) ||
+                area_store.get_variant(quest.episode, area.id, 0);
         }
 
         if (this.quest === quest && this.area_variant === area_variant) {
