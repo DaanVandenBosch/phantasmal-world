@@ -14,6 +14,23 @@ Logger.useDefaults({
     defaultLevel: (Logger as any)[process.env["LOG_LEVEL"] || "OFF"],
 });
 
+// Disable native undo/redo.
+document.addEventListener("keydown", e => {
+    const kbe = e as KeyboardEvent;
+
+    if (kbe.ctrlKey && !kbe.altKey && kbe.key.toUpperCase() === "Z") {
+        kbe.preventDefault();
+    }
+});
+// This doesn't work in FireFox:
+document.addEventListener("beforeinput", e => {
+    const ie = e as any;
+
+    if (ie.inputType === "historyUndo" || ie.inputType === "historyRedo") {
+        e.preventDefault();
+    }
+});
+
 const root_element = document.createElement("div");
 root_element.id = styles.phantasmal_world_root;
 document.body.append(root_element);

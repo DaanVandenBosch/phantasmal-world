@@ -275,7 +275,7 @@ export class QuestEntityControls {
             quest_editor_store.push_entity_move_action(
                 entity,
                 this.pick.initial_position,
-                entity.position,
+                entity.world_position,
             );
         }
 

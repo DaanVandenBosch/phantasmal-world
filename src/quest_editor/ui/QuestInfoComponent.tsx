@@ -1,10 +1,12 @@
-import { Input, InputNumber } from "antd";
 import { observer } from "mobx-react";
 import React, { ChangeEvent, Component, ReactNode } from "react";
 import { quest_editor_store } from "../stores/QuestEditorStore";
 import { DisabledTextComponent } from "../../core/ui/DisabledTextComponent";
 import styles from "./QuestInfoComponent.css";
 import { Episode } from "../../core/data_formats/parsing/quest/Episode";
+import { NumberInput } from "../../core/ui/NumberInput";
+import { TextInput } from "../../core/ui/TextInput";
+import { TextArea } from "../../core/ui/TextArea";
 
 @observer
 export class QuestInfoComponent extends Component {
@@ -26,23 +28,21 @@ export class QuestInfoComponent extends Component {
                         <tr>
                             <th>ID:</th>
                             <td>
-                                <InputNumber
+                                <NumberInput
                                     value={quest.id}
-                                    max={4294967295}
                                     min={0}
-                                    onChange={this.id_changed}
-                                    size="small"
+                                    max={4294967295}
+                                    on_change={this.id_changed}
                                 />
                             </td>
                         </tr>
                         <tr>
                             <th>Name:</th>
                             <td>
-                                <Input
+                                <TextInput
                                     value={quest.name}
-                                    maxLength={32}
-                                    onChange={this.name_changed}
-                                    size="small"
+                                    max_length={32}
+                                    on_change={this.name_changed}
                                 />
                             </td>
                         </tr>
@@ -51,11 +51,11 @@ export class QuestInfoComponent extends Component {
                         </tr>
                         <tr>
                             <td colSpan={2}>
-                                <Input.TextArea
+                                <TextArea
                                     value={quest.short_description}
-                                    maxLength={128}
+                                    max_length={128}
                                     rows={3}
-                                    onChange={this.short_description_changed}
+                                    on_change={this.short_description_changed}
                                 />
                             </td>
                         </tr>
@@ -64,11 +64,11 @@ export class QuestInfoComponent extends Component {
                         </tr>
                         <tr>
                             <td colSpan={2}>
-                                <Input.TextArea
+                                <TextArea
                                     value={quest.long_description}
-                                    maxLength={288}
+                                    max_length={288}
                                     rows={5}
-                                    onChange={this.long_description_changed}
+                                    on_change={this.long_description_changed}
                                 />
                             </td>
                         </tr>
@@ -90,7 +90,7 @@ export class QuestInfoComponent extends Component {
         const quest = quest_editor_store.current_quest;
 
         if (quest && value != undefined) {
-            quest.set_id(value);
+            quest_editor_store.push_id_edit_action(quest.id, value);
         }
     }
 
@@ -98,7 +98,7 @@ export class QuestInfoComponent extends Component {
         const quest = quest_editor_store.current_quest;
 
         if (quest) {
-            quest.set_name(e.target.value);
+            quest_editor_store.push_name_edit_action(quest.name, e.currentTarget.value);
         }
     }
 
@@ -106,7 +106,10 @@ export class QuestInfoComponent extends Component {
         const quest = quest_editor_store.current_quest;
 
         if (quest) {
-            quest.set_short_description(e.target.value);
+            quest_editor_store.push_short_description_edit_action(
+                quest.short_description,
+                e.currentTarget.value,
+            );
         }
     }
 
@@ -114,7 +117,10 @@ export class QuestInfoComponent extends Component {
         const quest = quest_editor_store.current_quest;
 
         if (quest) {
-            quest.set_long_description(e.target.value);
+            quest_editor_store.push_long_description_edit_action(
+                quest.long_description,
+                e.currentTarget.value,
+            );
         }
     }
 }

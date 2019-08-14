@@ -221,15 +221,93 @@ class QuestEditorStore {
     };
 
     @action
+    push_id_edit_action = (old_id: number, new_id: number) => {
+        const quest = quest_editor_store.current_quest;
+        if (quest) quest.set_id(new_id);
+
+        this.undo.push_action(
+            `Edit ID`,
+            () => {
+                const quest = quest_editor_store.current_quest;
+                if (quest) quest.set_id(old_id);
+            },
+            () => {
+                const quest = quest_editor_store.current_quest;
+                if (quest) quest.set_id(new_id);
+            },
+        );
+    };
+
+    @action
+    push_name_edit_action = (old_name: string, new_name: string) => {
+        const quest = quest_editor_store.current_quest;
+        if (quest) quest.set_name(new_name);
+
+        this.undo.push_action(
+            `Edit name`,
+            () => {
+                const quest = quest_editor_store.current_quest;
+                if (quest) quest.set_name(old_name);
+            },
+            () => {
+                const quest = quest_editor_store.current_quest;
+                if (quest) quest.set_name(new_name);
+            },
+        );
+    };
+
+    @action
+    push_short_description_edit_action = (
+        old_short_description: string,
+        new_short_description: string,
+    ) => {
+        const quest = quest_editor_store.current_quest;
+        if (quest) quest.set_short_description(new_short_description);
+
+        this.undo.push_action(
+            `Edit short description`,
+            () => {
+                const quest = quest_editor_store.current_quest;
+                if (quest) quest.set_short_description(old_short_description);
+            },
+            () => {
+                const quest = quest_editor_store.current_quest;
+                if (quest) quest.set_short_description(new_short_description);
+            },
+        );
+    };
+
+    @action
+    push_long_description_edit_action = (
+        old_long_description: string,
+        new_long_description: string,
+    ) => {
+        const quest = quest_editor_store.current_quest;
+        if (quest) quest.set_long_description(new_long_description);
+
+        this.undo.push_action(
+            `Edit long description`,
+            () => {
+                const quest = quest_editor_store.current_quest;
+                if (quest) quest.set_long_description(old_long_description);
+            },
+            () => {
+                const quest = quest_editor_store.current_quest;
+                if (quest) quest.set_long_description(new_long_description);
+            },
+        );
+    };
+
+    @action
     push_entity_move_action = (
         entity: ObservableQuestEntity,
-        initial_position: Vec3,
+        old_position: Vec3,
         new_position: Vec3,
     ) => {
         this.undo.push_action(
             `Move ${entity_data(entity.type).name}`,
             () => {
-                entity.world_position = initial_position;
+                entity.world_position = old_position;
                 quest_editor_store.set_selected_entity(entity);
             },
             () => {
