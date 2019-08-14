@@ -4,9 +4,9 @@ import { Intersection, Mesh, Object3D, Raycaster, Vector3 } from "three";
 import { load_area_collision_geometry, load_area_render_geometry } from "../loading/areas";
 import {
     load_npc_geometry,
-    load_npc_tex as load_npc_textures,
+    load_npc_textures,
     load_object_geometry,
-    load_object_tex as load_object_textures,
+    load_object_textures,
 } from "../loading/entities";
 import { create_npc_mesh, create_object_mesh } from "./conversion/entities";
 import { QuestRenderer } from "./QuestRenderer";
@@ -129,12 +129,12 @@ export class QuestModelManager {
             raycaster.set(origin, down);
             const intersection1 = raycaster
                 .intersectObject(render_geom, true)
-                .find(i => (i.object.userData as AreaUserData).section != null);
+                .find(i => (i.object.userData as AreaUserData).section != undefined);
 
             raycaster.set(origin, up);
             const intersection2 = raycaster
                 .intersectObject(render_geom, true)
-                .find(i => (i.object.userData as AreaUserData).section != null);
+                .find(i => (i.object.userData as AreaUserData).section != undefined);
 
             let intersection: Intersection | undefined;
 

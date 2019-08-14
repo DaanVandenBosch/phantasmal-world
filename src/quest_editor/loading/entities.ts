@@ -80,7 +80,7 @@ export async function load_npc_geometry(npc_type: NpcType): Promise<BufferGeomet
     });
 }
 
-export async function load_npc_tex(npc_type: NpcType): Promise<Texture[]> {
+export async function load_npc_textures(npc_type: NpcType): Promise<Texture[]> {
     return npc_tex_cache.get_or_set(npc_type, async () => {
         try {
             const { data } = await load_npc_data(npc_type, AssetType.Texture);
@@ -114,7 +114,7 @@ export async function load_object_geometry(object_type: ObjectType): Promise<Buf
     });
 }
 
-export async function load_object_tex(object_type: ObjectType): Promise<Texture[]> {
+export async function load_object_textures(object_type: ObjectType): Promise<Texture[]> {
     return object_tex_cache.get_or_set(object_type, async () => {
         try {
             const { data } = await load_object_data(object_type, AssetType.Texture);

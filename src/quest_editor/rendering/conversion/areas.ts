@@ -141,6 +141,7 @@ export function area_geometry_to_sections_and_object_3d(
 
         mesh.position.set(section.position.x, section.position.y, section.position.z);
         mesh.rotation.set(section.rotation.x, section.rotation.y, section.rotation.z);
+        mesh.updateMatrixWorld();
 
         if (section.id >= 0) {
             const sec = new Section(section.id, section.position, section.rotation.y);
