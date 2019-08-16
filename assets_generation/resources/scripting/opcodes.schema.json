@@ -78,6 +78,9 @@
                             "type": {
                                 "$ref": "#/definitions/param_type"
                             },
+                            "name": {
+                                "type": "string"
+                            },
                             "doc": {
                                 "type": "string"
                             },
