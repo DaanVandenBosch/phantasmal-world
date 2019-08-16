@@ -203,7 +203,7 @@ export const OPCODES: Opcode[] = [];
 export const OPCODES_BY_MNEMONIC = new Map<string, Opcode>();
 
 /**
- * Opcode for script object code. Invoked by {@link ../bin/Instruction}s.
+ * Opcode for script object code. Invoked by {@link Instruction}s.
  */
 export class Opcode {
     /**
@@ -211,7 +211,7 @@ export class Opcode {
      */
     readonly code: number;
     /**
-     * String representation of this opcde as used in assembly.
+     * String representation of this opcode as used in assembly.
      */
     readonly mnemonic: string;
     /**

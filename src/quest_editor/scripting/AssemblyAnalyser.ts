@@ -158,7 +158,32 @@ export class AssemblyAnalyser {
                                     signature += ", ";
                                 }
 
-                                const param_name = Kind[param.type.kind];
+                                let param_name: string;
+
+                                switch (param.type.kind) {
+                                    case Kind.ILabel:
+                                        param_name = "FuncLabel";
+                                        break;
+                                    case Kind.DLabel:
+                                        param_name = "DataLabel";
+                                        break;
+                                    case Kind.SLabel:
+                                        param_name = "StringLabel";
+                                        break;
+                                    case Kind.ILabelVar:
+                                        param_name = "...FuncLabel";
+                                        break;
+                                    case Kind.RegRef:
+                                    case Kind.RegTupRef:
+                                        param_name = "Register";
+                                        break;
+                                    case Kind.RegRefVar:
+                                        param_name = "...Register";
+                                        break;
+                                    default:
+                                        param_name = Kind[param.type.kind];
+                                        break;
+                                }
 
                                 parameters.push({
                                     label: [signature.length, signature.length + param_name.length],
