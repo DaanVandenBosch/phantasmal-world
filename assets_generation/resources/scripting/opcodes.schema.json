@@ -55,6 +55,10 @@
                 "type": {
                     "$ref": "#/definitions/param_type"
                 },
+                "name": {
+                    "type": "string",
+                    "description": "Parameter name."
+                },
                 "doc": {
                     "type": "string",
                     "description": "Parameter-specific documentation."

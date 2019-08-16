@@ -1,8 +1,17 @@
-import { AssemblyWorkerInput, NewObjectCodeOutput } from "./assembly_worker_messages";
+import {
+    AssemblyChangeInput,
+    AssemblyWorkerInput,
+    InputMessageType,
+    NewObjectCodeOutput,
+    OutputMessageType,
+    SignatureHelpInput,
+    SignatureHelpOutput,
+} from "./assembly_worker_messages";
 import { assemble } from "./assembly";
 import Logger from "js-logger";
 import { SegmentType } from "./instructions";
-import { Opcode } from "./opcodes";
+import { Opcode, OPCODES_BY_MNEMONIC } from "./opcodes";
+import { AssemblyLexer, IdentToken, TokenType } from "./AssemblyLexer";
 
 Logger.useDefaults({
     defaultLevel: (Logger as any)[process.env["LOG_LEVEL"] || "OFF"],
@@ -11,6 +20,7 @@ Logger.useDefaults({
 const ctx: Worker = self as any;
 
 let lines: string[] = [];
+
 const messages: AssemblyWorkerInput[] = [];
 let timeout: any;
 
@@ -31,47 +41,96 @@ function process_messages(): void {
     if (messages.length === 0) return;
 
     for (const message of messages.splice(0, messages.length)) {
-        if (message.type === "new_assembly_input") {
-            lines = message.assembly;
-        } else if (message.type === "assembly_change_input") {
-            for (const change of message.changes) {
-                const { startLineNumber, endLineNumber, startColumn, endColumn } = change.range;
-                const lines_changed = endLineNumber - startLineNumber + 1;
-                const new_lines = change.text.split("\n");
+        switch (message.type) {
+            case InputMessageType.NewAssembly:
+                lines = message.assembly;
+                assemble_and_send();
+                break;
+            case InputMessageType.AssemblyChange:
+                assembly_change(message);
+                break;
+            case InputMessageType.SignatureHelp:
+                signature_help(message);
+                break;
+        }
+    }
+}
 
-                if (lines_changed === 1) {
-                    replace_line_part(startLineNumber, startColumn, endColumn, new_lines);
-                } else if (new_lines.length === 1) {
-                    replace_lines_and_merge_line_parts(
-                        startLineNumber,
-                        endLineNumber,
-                        startColumn,
-                        endColumn,
-                        new_lines[0],
-                    );
-                } else {
-                    // Keep the left part of the first changed line.
-                    replace_line_part_right(startLineNumber, startColumn, new_lines[0]);
+function assembly_change(message: AssemblyChangeInput): void {
+    for (const change of message.changes) {
+        const { start_line_no, end_line_no, start_col, end_col, new_text } = change;
+        const lines_changed = end_line_no - start_line_no + 1;
+        const new_lines = new_text.split("\n");
 
-                    // Keep the right part of the last changed line.
-                    replace_line_part_left(
-                        endLineNumber,
-                        endColumn,
-                        new_lines[new_lines.length - 1],
-                    );
+        if (lines_changed === 1) {
+            replace_line_part(start_line_no, start_col, end_col, new_lines);
+        } else if (new_lines.length === 1) {
+            replace_lines_and_merge_line_parts(
+                start_line_no,
+                end_line_no,
+                start_col,
+                end_col,
+                new_lines[0],
+            );
+        } else {
+            // Keep the left part of the first changed line.
+            replace_line_part_right(start_line_no, start_col, new_lines[0]);
 
-                    // Replace all the lines in between.
-                    // It's important that we do this last.
-                    replace_lines(
-                        startLineNumber + 1,
-                        endLineNumber - 1,
-                        new_lines.slice(1, new_lines.length - 1),
-                    );
+            // Keep the right part of the last changed line.
+            replace_line_part_left(end_line_no, end_col, new_lines[new_lines.length - 1]);
+
+            // Replace all the lines in between.
+            // It's important that we do this last.
+            replace_lines(
+                start_line_no + 1,
+                end_line_no - 1,
+                new_lines.slice(1, new_lines.length - 1),
+            );
+        }
+    }
+
+    assemble_and_send();
+}
+
+// Hacky way of providing parameter hints.
+// We just tokenize the current line and look for the first identifier and check whether it's a valid opcode.
+function signature_help(message: SignatureHelpInput): void {
+    let opcode: Opcode | undefined;
+    let active_param = -1;
+
+    if (message.line_no < lines.length) {
+        const line = lines[message.line_no - 1];
+        const lexer = new AssemblyLexer();
+        const tokens = lexer.tokenize_line(line);
+        const ident = tokens.find(t => t.type === TokenType.Ident) as IdentToken | undefined;
+
+        if (ident) {
+            opcode = OPCODES_BY_MNEMONIC.get(ident.value);
+
+            if (opcode) {
+                for (const token of tokens) {
+                    if (token.col + token.len > message.col) {
+                        break;
+                    } else if (token.type === TokenType.Ident && active_param === -1) {
+                        active_param = 0;
+                    } else if (token.type === TokenType.ArgSeparator) {
+                        active_param++;
+                    }
                 }
             }
         }
     }
 
+    const response: SignatureHelpOutput = {
+        type: OutputMessageType.SignatureHelp,
+        id: message.id,
+        opcode,
+        active_param,
+    };
+    ctx.postMessage(response);
+}
+
+function assemble_and_send(): void {
     const assembler_result = assemble(lines);
     const map_designations = new Map<number, number>();
 
@@ -90,7 +149,7 @@ function process_messages(): void {
     }
 
     const response: NewObjectCodeOutput = {
-        type: "new_object_code_output",
+        type: OutputMessageType.NewObjectCode,
         map_designations,
         ...assembler_result,
     };

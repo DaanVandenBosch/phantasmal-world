@@ -1,12 +1,15 @@
 import { autorun } from "mobx";
-import { editor, languages, MarkerSeverity } from "monaco-editor";
+import { editor, languages, MarkerSeverity, Position } from "monaco-editor";
 import React, { Component, createRef, ReactNode } from "react";
 import { AutoSizer } from "react-virtualized";
 import { AssemblyAnalyser } from "../scripting/AssemblyAnalyser";
-import { OPCODES } from "../scripting/opcodes";
 import { quest_editor_store } from "../stores/QuestEditorStore";
 import { Action } from "../../core/undo";
 import styles from "./AssemblyEditorComponent.css";
+import CompletionList = languages.CompletionList;
+import ITextModel = editor.ITextModel;
+import IStandaloneCodeEditor = editor.IStandaloneCodeEditor;
+import SignatureHelp = languages.SignatureHelp;
 
 const ASM_SYNTAX: languages.IMonarchLanguage = {
     defaultToken: "invalid",
@@ -59,54 +62,37 @@ const ASM_SYNTAX: languages.IMonarchLanguage = {
     },
 };
 
-const INSTRUCTION_SUGGESTIONS = OPCODES.filter(opcode => opcode != null).map(opcode => {
-    return ({
-        label: opcode.mnemonic,
-        kind: languages.CompletionItemKind.Function,
-        insertText: opcode.mnemonic,
-    } as any) as languages.CompletionItem;
-});
-
-const KEYWORD_SUGGESTIONS = [
-    {
-        label: ".code",
-        kind: languages.CompletionItemKind.Keyword,
-        insertText: "code",
-    },
-    {
-        label: ".data",
-        kind: languages.CompletionItemKind.Keyword,
-        insertText: "data",
-    },
-    {
-        label: ".string",
-        kind: languages.CompletionItemKind.Keyword,
-        insertText: "string",
-    },
-] as languages.CompletionItem[];
+const assembly_analyser = new AssemblyAnalyser();
 
 languages.register({ id: "psoasm" });
+
 languages.setMonarchTokensProvider("psoasm", ASM_SYNTAX);
+
 languages.registerCompletionItemProvider("psoasm", {
-    provideCompletionItems: (model, position) => {
-        const value = model.getValueInRange({
+    provideCompletionItems(model, position): CompletionList {
+        const text = model.getValueInRange({
             startLineNumber: position.lineNumber,
             endLineNumber: position.lineNumber,
             startColumn: 1,
             endColumn: position.column,
         });
-        const suggestions = /^\s*([a-z][a-z0-9_=<>!]*)?$/.test(value)
-            ? INSTRUCTION_SUGGESTIONS
-            : /^\s*\.[a-z]+$/.test(value)
-            ? KEYWORD_SUGGESTIONS
-            : [];
-
-        return {
-            suggestions,
-            incomplete: false,
-        };
+        return assembly_analyser.provide_completion_items(text);
     },
 });
+
+languages.registerSignatureHelpProvider("psoasm", {
+    signatureHelpTriggerCharacters: [" ", ","],
+
+    signatureHelpRetriggerCharacters: [", "],
+
+    provideSignatureHelp(
+        _model: ITextModel,
+        position: Position,
+    ): Promise<SignatureHelp | undefined> {
+        return assembly_analyser.provide_signature_help(position.lineNumber, position.column);
+    },
+});
+
 languages.setLanguageConfiguration("psoasm", {
     indentationRules: {
         increaseIndentPattern: /^\s*\d+:/,
@@ -157,8 +143,7 @@ type MonacoProps = {
 
 class MonacoComponent extends Component<MonacoProps> {
     private div_ref = createRef<HTMLDivElement>();
-    private editor?: editor.IStandaloneCodeEditor;
-    private assembly_analyser?: AssemblyAnalyser;
+    private editor?: IStandaloneCodeEditor;
     private disposers: (() => void)[] = [];
 
     render(): ReactNode {
@@ -176,8 +161,6 @@ class MonacoComponent extends Component<MonacoProps> {
                 wordWrap: "on",
                 wrappingIndent: "indent",
             });
-
-            this.assembly_analyser = new AssemblyAnalyser();
 
             this.disposers.push(
                 this.dispose,
@@ -209,8 +192,8 @@ class MonacoComponent extends Component<MonacoProps> {
     private update_model = () => {
         const quest = quest_editor_store.current_quest;
 
-        if (quest && this.editor && this.assembly_analyser) {
-            const assembly = this.assembly_analyser.disassemble(quest);
+        if (quest && this.editor) {
+            const assembly = assembly_analyser.disassemble(quest);
             const model = editor.createModel(assembly.join("\n"), "psoasm");
 
             quest_editor_store.script_undo.action = new Action(
@@ -260,8 +243,7 @@ class MonacoComponent extends Component<MonacoProps> {
 
                 current_version = version;
 
-                if (!this.assembly_analyser) return;
-                this.assembly_analyser.update_assembly(e.changes);
+                assembly_analyser.update_assembly(e.changes);
             });
 
             this.disposers.push(() => disposable.dispose());
@@ -273,10 +255,11 @@ class MonacoComponent extends Component<MonacoProps> {
     };
 
     private update_model_markers = () => {
-        if (!this.editor || !this.assembly_analyser) return;
+        if (!this.editor) return;
 
-        // Reference errors here to make sure we get mobx updates.
-        this.assembly_analyser.errors.length;
+        // Reference warnings and errors here to make sure we get mobx updates.
+        assembly_analyser.warnings.length;
+        assembly_analyser.errors.length;
 
         const model = this.editor.getModel();
         if (!model) return;
@@ -284,14 +267,25 @@ class MonacoComponent extends Component<MonacoProps> {
         editor.setModelMarkers(
             model,
             "psoasm",
-            this.assembly_analyser.errors.map(error => ({
-                severity: MarkerSeverity.Error,
-                message: error.message,
-                startLineNumber: error.line_no,
-                endLineNumber: error.line_no,
-                startColumn: error.col,
-                endColumn: error.col + error.length,
-            })),
+            assembly_analyser.warnings
+                .map(warning => ({
+                    severity: MarkerSeverity.Warning,
+                    message: warning.message,
+                    startLineNumber: warning.line_no,
+                    endLineNumber: warning.line_no,
+                    startColumn: warning.col,
+                    endColumn: warning.col + warning.length,
+                }))
+                .concat(
+                    assembly_analyser.errors.map(error => ({
+                        severity: MarkerSeverity.Error,
+                        message: error.message,
+                        startLineNumber: error.line_no,
+                        endLineNumber: error.line_no,
+                        startColumn: error.col,
+                        endColumn: error.col + error.length,
+                    })),
+                ),
         );
     };
 
@@ -301,10 +295,6 @@ class MonacoComponent extends Component<MonacoProps> {
             const model = this.editor.getModel();
             if (model) model.dispose();
             this.editor = undefined;
-        }
-
-        if (this.assembly_analyser) {
-            this.assembly_analyser.dispose();
         }
     };
 }
