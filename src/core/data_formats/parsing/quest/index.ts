@@ -239,6 +239,7 @@ function extract_script_entry_points(objects: QuestObject[], npcs: DatNpc[]): nu
 function parse_obj_data(objs: DatObject[]): QuestObject[] {
     return objs.map(obj_data => {
         const type = pso_id_to_object_type(obj_data.type_id);
+
         return {
             type,
             id: obj_data.id,
@@ -251,7 +252,9 @@ function parse_obj_data(objs: DatObject[]): QuestObject[] {
                 obj_data.properties.map((value, index) => {
                     if (
                         index === 3 &&
-                        (type === ObjectType.ScriptCollision || type === ObjectType.ForestConsole)
+                        (type === ObjectType.ScriptCollision ||
+                            type === ObjectType.ForestConsole ||
+                            type === ObjectType.TalkLinkToSupport)
                     ) {
                         return ["script_label", value];
                     } else if (index === 4 && type === ObjectType.RicoMessagePod) {
