@@ -38,7 +38,7 @@ Features that are in ***bold italics*** are planned and not yet implemented.
 
 - Episode
 - Editable ID, name, short and long description
-    - ***Undo/redo***
+    - Undo/redo
 - NPC counts
 
 ## 3D View
@@ -83,7 +83,7 @@ Features that are in ***bold italics*** are planned and not yet implemented.
     - Binary data
     - Strings
 - Labels
-- ***Interpret code called from objects as code***
+- Interpret code called from NPCs and objects as code
 
 ## Script Assembly Editor
 
@@ -101,17 +101,18 @@ Features that are in ***bold italics*** are planned and not yet implemented.
     - ***Missing 0 label***
     - ***Missing floor handlers***
     - ***Missing map designations***
-    - ***Threads (thread, thread_stg) that don't start with a sync***
+    - ***Threads (thread, thread_stg) that don't have a sync***
     - ***Unreachable/unused instructions/data***
         - ***Instructions after "ret" instruction***
         - ***Unused labels***
+    - Unnecessary section markers
 - Errors
     - Invalid syntax
     - Invalid instruction
     - Invalid instruction arguments
     - ***Invalid label references***
     - ***Mark all duplicate labels (the first one is not marked at the moment)***
-- ***Instruction parameter hints***
+- Instruction parameter hints
 - ***Show instruction documentation on hover over***
 - ***Show reserved register usage on hover over***
 - ***When saving, ask user whether to really save when asm contains errors***

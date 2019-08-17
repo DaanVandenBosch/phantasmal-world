@@ -1,5 +1,5 @@
 import { autorun } from "mobx";
-import { editor, languages, MarkerSeverity, Position } from "monaco-editor";
+import { editor, languages, MarkerSeverity, MarkerTag, Position } from "monaco-editor";
 import React, { Component, createRef, ReactNode } from "react";
 import { AutoSizer } from "react-virtualized";
 import { AssemblyAnalyser } from "../scripting/AssemblyAnalyser";
@@ -10,6 +10,7 @@ import CompletionList = languages.CompletionList;
 import ITextModel = editor.ITextModel;
 import IStandaloneCodeEditor = editor.IStandaloneCodeEditor;
 import SignatureHelp = languages.SignatureHelp;
+import IMarkerData = editor.IMarkerData;
 
 const ASM_SYNTAX: languages.IMonarchLanguage = {
     defaultToken: "invalid",
@@ -268,23 +269,28 @@ class MonacoComponent extends Component<MonacoProps> {
             model,
             "psoasm",
             assembly_analyser.warnings
-                .map(warning => ({
-                    severity: MarkerSeverity.Warning,
-                    message: warning.message,
-                    startLineNumber: warning.line_no,
-                    endLineNumber: warning.line_no,
-                    startColumn: warning.col,
-                    endColumn: warning.col + warning.length,
-                }))
+                .map(
+                    (warning): IMarkerData => ({
+                        severity: MarkerSeverity.Hint,
+                        message: warning.message,
+                        startLineNumber: warning.line_no,
+                        endLineNumber: warning.line_no,
+                        startColumn: warning.col,
+                        endColumn: warning.col + warning.length,
+                        tags: [MarkerTag.Unnecessary],
+                    }),
+                )
                 .concat(
-                    assembly_analyser.errors.map(error => ({
-                        severity: MarkerSeverity.Error,
-                        message: error.message,
-                        startLineNumber: error.line_no,
-                        endLineNumber: error.line_no,
-                        startColumn: error.col,
-                        endColumn: error.col + error.length,
-                    })),
+                    assembly_analyser.errors.map(
+                        (error): IMarkerData => ({
+                            severity: MarkerSeverity.Error,
+                            message: error.message,
+                            startLineNumber: error.line_no,
+                            endLineNumber: error.line_no,
+                            startColumn: error.col,
+                            endColumn: error.col + error.length,
+                        }),
+                    ),
                 ),
         );
     };
