@@ -1,6 +1,7 @@
 import CameraControls from "camera-controls";
 import * as THREE from "three";
 import {
+    Clock,
     Color,
     Group,
     HemisphereLight,
@@ -10,7 +11,6 @@ import {
     Vector2,
     Vector3,
     WebGLRenderer,
-    Clock,
 } from "three";
 
 CameraControls.install({
@@ -21,7 +21,7 @@ CameraControls.install({
     },
 });
 
-export class Renderer<C extends PerspectiveCamera | OrthographicCamera> {
+export abstract class Renderer<C extends PerspectiveCamera | OrthographicCamera> {
     protected _debug = false;
 
     get debug(): boolean {
@@ -43,7 +43,7 @@ export class Renderer<C extends PerspectiveCamera | OrthographicCamera> {
     private light = new HemisphereLight(0xffffff, 0x505050, 1.2);
     private controls_clock = new Clock();
 
-    constructor(camera: C) {
+    protected constructor(camera: C) {
         this.camera = camera;
 
         this.dom_element.tabIndex = 0;

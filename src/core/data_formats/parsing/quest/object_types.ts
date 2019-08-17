@@ -287,6 +287,8 @@ export type ObjectTypeData = {
     readonly pso_id?: number;
 };
 
+export const OBJECT_TYPES: ObjectType[] = [];
+
 export function object_data(type: ObjectType): ObjectTypeData {
     return OBJECT_TYPE_DATA[type];
 }
@@ -864,6 +866,7 @@ function define_object_type_data(
     pso_id: number | undefined,
     name: string,
 ): void {
+    OBJECT_TYPES.push(object_type);
     OBJECT_TYPE_DATA[object_type] = {
         name,
         pso_id,

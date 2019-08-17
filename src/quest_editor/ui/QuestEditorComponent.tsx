@@ -11,6 +11,7 @@ import { QuestInfoComponent } from "./QuestInfoComponent";
 import { QuestRendererComponent } from "./QuestRendererComponent";
 import { Toolbar } from "./Toolbar";
 import { NpcCountsComponent } from "./NpcCountsComponent";
+import { AddObjectComponent } from "./AddObjectComponent";
 
 const logger = Logger.get("ui/quest_editor/QuestEditorComponent");
 
@@ -21,6 +22,7 @@ const CMP_TO_NAME = new Map([
     [QuestRendererComponent, "quest_renderer"],
     [AssemblyEditorComponent, "assembly_editor"],
     [EntityInfoComponent, "entity_info"],
+    [AddObjectComponent, "add_object"],
 ]);
 
 const DEFAULT_LAYOUT_CONFIG = {

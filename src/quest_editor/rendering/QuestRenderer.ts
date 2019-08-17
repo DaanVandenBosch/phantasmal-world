@@ -6,6 +6,8 @@ import { QuestModelManager } from "./QuestModelManager";
 import { Renderer } from "../../core/rendering/Renderer";
 import { EntityUserData } from "./conversion/entities";
 import { ObservableQuestEntity } from "../domain/observable_quest_entities";
+import { DND_OBJECT_TYPE } from "../ui/UiConstants";
+import { DragEvent } from "react";
 
 let renderer: QuestRenderer | undefined;
 

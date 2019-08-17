@@ -12,7 +12,7 @@ type Props = {
 
 export class RendererComponent extends Component<Props> {
     render(): ReactNode {
-        return <div className="RendererComponent" ref={this.modify_dom} />;
+        return <div ref={this.modify_dom} />;
     }
 
     UNSAFE_componentWillReceiveProps(props: Props): void {
