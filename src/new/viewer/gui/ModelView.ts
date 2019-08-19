@@ -1,12 +1,13 @@
 import { create_el } from "../../core/gui/dom";
 import { ResizableView } from "../../core/gui/ResizableView";
 import { ToolBar } from "../../core/gui/ToolBar";
-import { Button } from "../../core/gui/Button";
 import "./ModelView.css";
 import { model_store } from "../stores/ModelStore";
 import { Observable } from "../../core/observable/Observable";
 import { RendererView } from "../../core/gui/RendererView";
 import { ModelRenderer } from "../rendering/ModelRenderer";
+import { View } from "../../core/gui/View";
+import { FileInput } from "../../core/gui/FileInput";
 
 const MODEL_LIST_WIDTH = 100;
 const ANIMATION_LIST_WIDTH = 150;
@@ -14,8 +15,7 @@ const ANIMATION_LIST_WIDTH = 150;
 export class ModelView extends ResizableView {
     element = create_el("div", "viewer_ModelView");
 
-    private tool_bar = this.disposable(new ToolBar(new Button("Open file...")));
-
+    private tool_bar_view = this.disposable(new ToolBarView());
     private container_element = create_el("div", "viewer_ModelView_container");
     private model_list_view = this.disposable(
         new ModelSelectListView(model_store.models, model_store.current_model),
@@ -36,7 +36,7 @@ export class ModelView extends ResizableView {
             this.renderer_view.element,
         );
 
-        this.element.append(this.tool_bar.element, this.container_element);
+        this.element.append(this.tool_bar_view.element, this.container_element);
 
         model_store.current_model.set(model_store.models[5]);
     }
@@ -44,7 +44,7 @@ export class ModelView extends ResizableView {
     resize(width: number, height: number): this {
         super.resize(width, height);
 
-        const container_height = Math.max(0, height - this.tool_bar.height);
+        const container_height = Math.max(0, height - this.tool_bar_view.height);
 
         this.model_list_view.resize(MODEL_LIST_WIDTH, container_height);
         this.animation_list_view.resize(ANIMATION_LIST_WIDTH, container_height);
@@ -54,6 +54,23 @@ export class ModelView extends ResizableView {
         );
 
         return this;
+    }
+}
+
+class ToolBarView extends View {
+    private readonly open_file_button = new FileInput("Open file...", ".nj, .xj");
+    private readonly tool_bar = this.disposable(new ToolBar(this.open_file_button));
+
+    readonly element = this.tool_bar.element;
+
+    get height(): number {
+        return this.tool_bar.height;
+    }
+
+    constructor() {
+        super();
+
+        this.open_file_button.on_files_chosen = files => model_store.load_file(files[0]);
     }
 }
 

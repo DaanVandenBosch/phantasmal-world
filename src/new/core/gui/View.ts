@@ -13,5 +13,6 @@ export abstract class View implements Disposable {
     dispose(): void {
         this.element.remove();
         this.disposables.forEach(d => d.dispose());
+        this.disposables.splice(0, this.disposables.length);
     }
 }

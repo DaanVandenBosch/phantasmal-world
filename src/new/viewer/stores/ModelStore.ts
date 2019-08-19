@@ -1,14 +1,20 @@
 import { Clock } from "three";
 import { ArrayBufferCursor } from "../../../core/data_formats/cursor/ArrayBufferCursor";
 import { Endianness } from "../../../core/data_formats/Endianness";
-import { NjMotion } from "../../../core/data_formats/parsing/ninja/motion";
-import { NjObject, parse_nj } from "../../../core/data_formats/parsing/ninja";
+import { NjMotion, parse_njm } from "../../../core/data_formats/parsing/ninja/motion";
+import { NjObject, parse_nj, parse_xj } from "../../../core/data_formats/parsing/ninja";
 import { CharacterClassModel } from "../domain/CharacterClassModel";
 import { CharacterClassAnimation } from "../domain/CharacterClassAnimation";
 import { Observable } from "../../core/observable/Observable";
 import { get_player_data } from "../../../viewer/loading/player";
 import { Disposable } from "../../core/gui/Disposable";
+import { read_file } from "../../../core/read_file";
+import { create_animation_clip } from "../../../core/rendering/conversion/ninja_animation";
+import { parse_xvm } from "../../../core/data_formats/parsing/ninja/texture";
+import { xvm_to_textures } from "../../../core/rendering/conversion/ninja_textures";
+import Logger = require("js-logger");
 
+const logger = Logger.get("viewer/stores/ModelStore");
 const nj_object_cache: Map<string, Promise<NjObject>> = new Map();
 const nj_motion_cache: Map<number, Promise<NjMotion>> = new Map();
 
@@ -98,34 +104,48 @@ class ModelStore implements Disposable {
     // };
 
     // TODO: notify user of problems.
-    // load_file = async (file: File) => {
-    //     try {
-    //         const buffer = await read_file(file);
-    //         const cursor = new ArrayBufferCursor(buffer, Endianness.Little);
-    //
-    //         if (file.name.endsWith(".nj")) {
-    //             const model = parse_nj(cursor)[0];
-    //             this.set_selected(model, true);
-    //         } else if (file.name.endsWith(".xj")) {
-    //             const model = parse_xj(cursor)[0];
-    //             this.set_selected(model, false);
-    //         } else if (file.name.endsWith(".njm")) {
-    //             if (this.current_model) {
-    //                 const njm = parse_njm(cursor, this.current_bone_count);
-    //                 this.set_animation(create_animation_clip(this.current_model, njm));
-    //             }
-    //         } else if (file.name.endsWith(".xvm")) {
-    //             if (this.current_model) {
-    //                 const xvm = parse_xvm(cursor);
-    //                 this.set_textures(xvm_to_textures(xvm));
-    //             }
-    //         } else {
-    //             logger.error(`Unknown file extension in filename "${file.name}".`);
-    //         }
-    //     } catch (e) {
-    //         logger.error("Couldn't read file.", e);
-    //     }
-    // };
+    load_file = async (file: File) => {
+        try {
+            this.current_model.set(undefined);
+            this.current_nj_data.set(undefined);
+            this.current_animation.set(undefined);
+
+            const buffer = await read_file(file);
+            const cursor = new ArrayBufferCursor(buffer, Endianness.Little);
+
+            if (file.name.endsWith(".nj")) {
+                const nj_object = parse_nj(cursor)[0];
+
+                this.current_nj_data.set({
+                    nj_object,
+                    bone_count: nj_object.bone_count(),
+                    has_skeleton: true,
+                });
+            } else if (file.name.endsWith(".xj")) {
+                const nj_object = parse_xj(cursor)[0];
+
+                this.current_nj_data.set({
+                    nj_object,
+                    bone_count: 0,
+                    has_skeleton: false,
+                });
+                // } else if (file.name.endsWith(".njm")) {
+                //     if (this.current_model) {
+                //         const njm = parse_njm(cursor, this.current_bone_count);
+                //         this.set_animation(create_animation_clip(this.current_model, njm));
+                //     }
+                // } else if (file.name.endsWith(".xvm")) {
+                //     if (this.current_model) {
+                //         const xvm = parse_xvm(cursor);
+                //         this.set_textures(xvm_to_textures(xvm));
+                //     }
+            } else {
+                logger.error(`Unknown file extension in filename "${file.name}".`);
+            }
+        } catch (e) {
+            logger.error("Couldn't read file.", e);
+        }
+    };
 
     // pause_animation = () => {
     //     if (this.animation) {

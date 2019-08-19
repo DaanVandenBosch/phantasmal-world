@@ -1,4 +1,5 @@
 .core_Button {
+    display: inline-block;
     box-sizing: border-box;
     background-color: #404040;
     height: 26px;
