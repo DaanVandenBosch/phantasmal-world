@@ -1,13 +1,11 @@
 import { autorun } from "mobx";
-import { Mesh, Object3D, PerspectiveCamera, Group } from "three";
+import { Group, Mesh, Object3D, PerspectiveCamera } from "three";
 import { quest_editor_store } from "../stores/QuestEditorStore";
 import { QuestEntityControls } from "./QuestEntityControls";
 import { QuestModelManager } from "./QuestModelManager";
 import { Renderer } from "../../core/rendering/Renderer";
 import { EntityUserData } from "./conversion/entities";
 import { ObservableQuestEntity } from "../domain/observable_quest_entities";
-import { DND_OBJECT_TYPE } from "../ui/UiConstants";
-import { DragEvent } from "react";
 
 let renderer: QuestRenderer | undefined;
 
@@ -16,7 +14,7 @@ export function get_quest_renderer(): QuestRenderer {
     return renderer;
 }
 
-export class QuestRenderer extends Renderer<PerspectiveCamera> {
+export class QuestRenderer extends Renderer {
     get debug(): boolean {
         return this._debug;
     }
@@ -60,11 +58,14 @@ export class QuestRenderer extends Renderer<PerspectiveCamera> {
         return this._entity_models;
     }
 
+    private perspective_camera: PerspectiveCamera;
     private entity_to_mesh = new Map<ObservableQuestEntity, Mesh>();
     private entity_controls: QuestEntityControls;
 
     constructor() {
         super(new PerspectiveCamera(60, 1, 10, 10000));
+
+        this.perspective_camera = this.camera as PerspectiveCamera;
 
         const model_manager = new QuestModelManager(this);
 
@@ -86,8 +87,8 @@ export class QuestRenderer extends Renderer<PerspectiveCamera> {
     }
 
     set_size(width: number, height: number): void {
-        this.camera.aspect = width / height;
-        this.camera.updateProjectionMatrix();
+        this.perspective_camera.aspect = width / height;
+        this.perspective_camera.updateProjectionMatrix();
         super.set_size(width, height);
     }
 

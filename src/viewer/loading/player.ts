@@ -15,5 +15,5 @@ export async function get_player_animation_data(animation_id: number): Promise<A
 }
 
 function player_class_to_url(player_class: string, body_part: string, no?: number): string {
-    return `/player/${player_class}${body_part}${no == null ? "" : no}.nj`;
+    return `/player/${player_class}${body_part}${no == undefined ? "" : no}.nj`;
 }

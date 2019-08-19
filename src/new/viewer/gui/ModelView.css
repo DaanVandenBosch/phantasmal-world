@@ -1,0 +1,26 @@
+.viewer_ModelView_container {
+    display: flex;
+    flex-direction: row;
+}
+
+.viewer_ModelSelectListView {
+    box-sizing: border-box;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    overflow: auto;
+}
+
+.viewer_ModelSelectListView li {
+    padding: 4px 8px;
+}
+
+.viewer_ModelSelectListView li:hover {
+    color: hsl(200, 25%, 85%);
+    background-color: hsl(0, 0%, 25%);
+}
+
+.viewer_ModelSelectListView li.active {
+    color: hsl(200, 50%, 85%);
+    background-color: hsl(0, 0%, 30%);
+}

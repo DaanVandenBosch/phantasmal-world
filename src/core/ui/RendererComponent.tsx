@@ -1,9 +1,8 @@
 import React, { Component, ReactNode } from "react";
-import { OrthographicCamera, PerspectiveCamera } from "three";
 import { Renderer } from "../rendering/Renderer";
 
 type Props = {
-    renderer: Renderer<PerspectiveCamera | OrthographicCamera>;
+    renderer: Renderer;
     width: number;
     height: number;
     debug?: boolean;

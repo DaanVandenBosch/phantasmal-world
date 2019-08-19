@@ -38,9 +38,9 @@ module.exports = merge(common, {
                         loader: "css-loader",
                         options: {
                             sourceMap: true,
-                            modules: {
-                                localIdentName: "[path][name]__[local]",
-                            },
+                            // modules: {
+                            //     localIdentName: "[path][name]__[local]",
+                            // },
                         },
                     },
                 ],

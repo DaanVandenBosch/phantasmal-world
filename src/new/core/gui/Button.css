@@ -1,0 +1,20 @@
+.core_Button {
+    box-sizing: border-box;
+    background-color: #404040;
+    height: 26px;
+    padding: 2px 8px;
+    border: solid 1px #606060;
+    color: #f0f0f0;
+    outline: none;
+}
+
+.core_Button:hover {
+    background-color: #505050;
+    border-color: #707070;
+}
+
+.core_Button:active {
+    background-color: #404040;
+    border-color: #606060;
+    color: #e0e0e0;
+}

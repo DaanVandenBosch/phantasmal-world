@@ -1,0 +1,25 @@
+.core_ToolBar {
+    box-sizing: border-box;
+    padding-top: 1px;
+    border-bottom: solid var(--border-color) 1px;
+}
+
+.core_ToolBar > * {
+    margin: 2px;
+}
+
+.core_ToolBar .core_Button {
+    background-color: transparent;
+    border-color: transparent;
+}
+
+.core_ToolBar .core_Button:hover {
+    background-color: #404040;
+    border-color: #505050;
+}
+
+.core_ToolBar .core_Button:active {
+    background-color: #383838;
+    border-color: #404040;
+    color: #d0d0d0;
+}

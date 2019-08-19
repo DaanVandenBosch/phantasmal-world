@@ -1,6 +1,7 @@
 import CameraControls from "camera-controls";
 import * as THREE from "three";
 import {
+    Camera,
     Clock,
     Color,
     Group,
@@ -21,7 +22,7 @@ CameraControls.install({
     },
 });
 
-export abstract class Renderer<C extends PerspectiveCamera | OrthographicCamera> {
+export abstract class Renderer {
     protected _debug = false;
 
     get debug(): boolean {
@@ -32,7 +33,7 @@ export abstract class Renderer<C extends PerspectiveCamera | OrthographicCamera>
         this._debug = debug;
     }
 
-    readonly camera: C;
+    readonly camera: Camera;
     readonly controls: CameraControls;
     readonly scene = new Scene();
     readonly light_holder = new Group();
@@ -43,7 +44,7 @@ export abstract class Renderer<C extends PerspectiveCamera | OrthographicCamera>
     private light = new HemisphereLight(0xffffff, 0x505050, 1.2);
     private controls_clock = new Clock();
 
-    protected constructor(camera: C) {
+    protected constructor(camera: PerspectiveCamera | OrthographicCamera) {
         this.camera = camera;
 
         this.dom_element.tabIndex = 0;
@@ -98,6 +99,10 @@ export abstract class Renderer<C extends PerspectiveCamera | OrthographicCamera>
             look_at.y,
             look_at.z,
         );
+    }
+
+    dispose(): void {
+        this.renderer.dispose();
     }
 
     protected render(): void {

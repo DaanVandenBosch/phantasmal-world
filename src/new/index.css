@@ -1,0 +1,42 @@
+:root {
+    --bg-color: hsl(0, 0%, 20%);
+    --text-color: hsl(0, 0%, 85%);
+    --border-color: hsl(0, 0%, 30%);
+    --scrollbar-color: hsl(0, 0%, 17%);
+    --scrollbar-thumb-color: hsl(0, 0%, 23%);
+}
+
+* {
+    scrollbar-color: var(--scrollbar-thumb-color) var(--scrollbar-color);
+
+    /* Turn off antd animations by turning all animations off. */
+    animation-duration: 0s !important;
+    transition-duration: 0s !important;
+}
+
+::-webkit-scrollbar {
+    background-color: var(--scrollbar-color);
+}
+
+::-webkit-scrollbar-track {
+    background-color: var(--scrollbar-color);
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: var(--scrollbar-thumb-color);
+}
+
+::-webkit-scrollbar-corner {
+    background-color: var(--scrollbar-color);
+}
+
+body {
+    cursor: default;
+    user-select: none;
+    overflow: hidden;
+    margin: 0;
+    font-family: "Helvetica Neue Light", "HelveticaNeue-Light", "Helvetica Neue", Calibri, Helvetica,
+        Arial, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+}

@@ -10,12 +10,15 @@ export function get_model_renderer(): ModelRenderer {
     return renderer;
 }
 
-export class ModelRenderer extends Renderer<PerspectiveCamera> {
+export class ModelRenderer extends Renderer {
     private model?: Object3D;
     private skeleton_helper?: SkeletonHelper;
+    private perspective_camera: PerspectiveCamera;
 
     constructor() {
         super(new PerspectiveCamera(75, 1, 1, 200));
+
+        this.perspective_camera = this.camera as PerspectiveCamera;
 
         autorun(() => {
             this.set_model(model_viewer_store.current_obj3d);
@@ -40,8 +43,8 @@ export class ModelRenderer extends Renderer<PerspectiveCamera> {
     }
 
     set_size(width: number, height: number): void {
-        this.camera.aspect = width / height;
-        this.camera.updateProjectionMatrix();
+        this.perspective_camera.aspect = width / height;
+        this.perspective_camera.updateProjectionMatrix();
         super.set_size(width, height);
     }
 
@@ -51,7 +54,7 @@ export class ModelRenderer extends Renderer<PerspectiveCamera> {
             model_viewer_store.update_animation_frame();
         }
 
-        this.light_holder.quaternion.copy(this.camera.quaternion);
+        this.light_holder.quaternion.copy(this.perspective_camera.quaternion);
         super.render();
 
         if (model_viewer_store.animation && !model_viewer_store.animation.action.paused) {

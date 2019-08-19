@@ -23,11 +23,14 @@ export function get_texture_renderer(): TextureRenderer {
     return renderer;
 }
 
-export class TextureRenderer extends Renderer<OrthographicCamera> {
+export class TextureRenderer extends Renderer {
+    private ortho_camera: OrthographicCamera;
     private quad_meshes: Mesh[] = [];
 
     constructor() {
         super(new OrthographicCamera(-400, 400, 300, -300, 1, 10));
+
+        this.ortho_camera = this.camera as OrthographicCamera;
 
         this.controls.azimuthRotateSpeed = 0;
         this.controls.polarRotateSpeed = 0;
@@ -47,11 +50,11 @@ export class TextureRenderer extends Renderer<OrthographicCamera> {
     }
 
     set_size(width: number, height: number): void {
-        this.camera.left = -Math.floor(width / 2);
-        this.camera.right = Math.ceil(width / 2);
-        this.camera.top = Math.floor(height / 2);
-        this.camera.bottom = -Math.ceil(height / 2);
-        this.camera.updateProjectionMatrix();
+        this.ortho_camera.left = -Math.floor(width / 2);
+        this.ortho_camera.right = Math.ceil(width / 2);
+        this.ortho_camera.top = Math.floor(height / 2);
+        this.ortho_camera.bottom = -Math.ceil(height / 2);
+        this.ortho_camera.updateProjectionMatrix();
         super.set_size(width, height);
     }
 
