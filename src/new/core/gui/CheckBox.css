@@ -1,0 +1,6 @@
+.core_CheckBox {
+    display: inline-flex;
+    flex-direction: row;
+    height: 26px;
+    align-items: center;
+}

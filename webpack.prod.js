@@ -1,5 +1,4 @@
 const common = require("./webpack.common.js");
-const antd_theme = require("./antd_theme.js");
 const path = require("path");
 const merge = require("webpack-merge");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
@@ -19,7 +18,7 @@ module.exports = merge(common, {
             cacheGroups: {
                 styles: {
                     name: "style",
-                    test: /\.(css|less)$/,
+                    test: /\.css$/,
                     chunks: "all",
                     enforce: true,
                 },
@@ -40,38 +39,7 @@ module.exports = merge(common, {
             },
             {
                 test: /\.css$/,
-                exclude: /node_modules/,
-                use: [
-                    MiniCssExtractPlugin.loader,
-                    {
-                        loader: "css-loader",
-                        options: {
-                            modules: {
-                                localIdentName: "[local]--[hash:base64:5]",
-                            },
-                        },
-                    },
-                ],
-            },
-            {
-                test: /\.css$/,
-                include: /node_modules/,
                 use: [MiniCssExtractPlugin.loader, "css-loader"],
-            },
-            {
-                test: /\.less$/,
-                include: /antd/,
-                use: [
-                    MiniCssExtractPlugin.loader,
-                    "css-loader",
-                    {
-                        loader: "less-loader",
-                        options: {
-                            javascriptEnabled: true,
-                            modifyVars: antd_theme,
-                        },
-                    },
-                ],
             },
             {
                 test: /\.(png|svg|jpg|gif)$/,

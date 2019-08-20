@@ -2,13 +2,12 @@ import { create_el } from "./dom";
 import { View } from "./View";
 import "./FileInput.css";
 import "./Button.css";
-
-function dummy_function(): void {}
+import { Property } from "../observable/Property";
 
 export class FileInput extends View {
     private input: HTMLInputElement = create_el("input", "core_FileInput_input");
 
-    element: HTMLLabelElement = create_el("label", "core_Button");
+    element: HTMLLabelElement = create_el("label", "core_FileInput core_Button");
 
     constructor(text: string, accept: string = "") {
         super();
@@ -17,7 +16,9 @@ export class FileInput extends View {
         this.input.accept = accept;
         this.input.onchange = () => {
             if (this.input.files && this.input.files.length) {
-                this.on_files_chosen([...this.input.files!]);
+                this.files.set([...this.input.files!]);
+            } else {
+                this.files.set([]);
             }
         };
 
@@ -25,5 +26,5 @@ export class FileInput extends View {
         this.element.append(this.input);
     }
 
-    on_files_chosen: (files: File[]) => void = dummy_function;
+    readonly files = new Property<File[]>([]);
 }

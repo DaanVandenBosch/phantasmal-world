@@ -27,13 +27,13 @@ export class NavigationView extends View {
             this.element.append(button.element);
         }
 
-        this.tool_changed(gui_store.tool);
-        this.disposable(gui_store.tool_prop.observe(this.tool_changed));
+        this.tool_changed(gui_store.tool.get());
+        this.disposable(gui_store.tool.observe(this.tool_changed));
     }
 
     private click(e: MouseEvent): void {
         if (e.target instanceof HTMLLabelElement && e.target.control instanceof HTMLInputElement) {
-            gui_store.tool = (GuiTool as any)[e.target.control.value];
+            gui_store.tool.set((GuiTool as any)[e.target.control.value]);
         }
     }
 

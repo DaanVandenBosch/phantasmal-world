@@ -16,7 +16,7 @@ import { ArrayBufferCursor } from "../../core/data_formats/cursor/ArrayBufferCur
 import { NjModel, NjObject, parse_nj, parse_xj } from "../../core/data_formats/parsing/ninja";
 import { NjMotion, parse_njm } from "../../core/data_formats/parsing/ninja/motion";
 import { parse_xvm } from "../../core/data_formats/parsing/ninja/texture";
-import { get_player_animation_data, get_player_data } from "../loading/player";
+import { get_character_class_animation_data, get_character_class_data } from "../loading/character_class";
 import { read_file } from "../../core/read_file";
 import { create_skinned_mesh, create_mesh } from "../../core/rendering/conversion/create_mesh";
 import {
@@ -232,14 +232,14 @@ class ModelViewerStore {
     }
 
     private async get_all_assets(model: PlayerModel): Promise<NjObject<NjModel>> {
-        const body_data = await get_player_data(model.name, "Body");
+        const body_data = await get_character_class_data(model.name, "Body");
         const body = parse_nj(new ArrayBufferCursor(body_data, Endianness.Little))[0];
 
         if (!body) {
             throw new Error(`Couldn't parse body for player class ${model.name}.`);
         }
 
-        const head_data = await get_player_data(model.name, "Head", 0);
+        const head_data = await get_character_class_data(model.name, "Head", 0);
         const head = parse_nj(new ArrayBufferCursor(head_data, Endianness.Little))[0];
 
         if (head) {
@@ -247,7 +247,7 @@ class ModelViewerStore {
         }
 
         if (model.hair_styles_count > 0) {
-            const hair_data = await get_player_data(model.name, "Hair", 0);
+            const hair_data = await get_character_class_data(model.name, "Hair", 0);
             const hair = parse_nj(new ArrayBufferCursor(hair_data, Endianness.Little))[0];
 
             if (hair) {
@@ -255,7 +255,7 @@ class ModelViewerStore {
             }
 
             if (model.hair_styles_with_accessory.has(0)) {
-                const accessory_data = await get_player_data(model.name, "Accessory", 0);
+                const accessory_data = await get_character_class_data(model.name, "Accessory", 0);
                 const accessory = parse_nj(
                     new ArrayBufferCursor(accessory_data, Endianness.Little),
                 )[0];
@@ -275,7 +275,7 @@ class ModelViewerStore {
         if (nj_motion) {
             return nj_motion;
         } else {
-            nj_motion = get_player_animation_data(animation.id).then(motion_data =>
+            nj_motion = get_character_class_animation_data(animation.id).then(motion_data =>
                 parse_njm(
                     new ArrayBufferCursor(motion_data, Endianness.Little),
                     this.current_bone_count,

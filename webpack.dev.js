@@ -1,5 +1,4 @@
 const common = require("./webpack.common.js");
-const antd_theme = require("./antd_theme.js");
 const path = require("path");
 const merge = require("webpack-merge");
 const ForkTsCheckerWebpackPlugin = require("fork-ts-checker-webpack-plugin");
@@ -38,9 +37,6 @@ module.exports = merge(common, {
                         loader: "css-loader",
                         options: {
                             sourceMap: true,
-                            // modules: {
-                            //     localIdentName: "[path][name]__[local]",
-                            // },
                         },
                     },
                 ],
@@ -54,27 +50,6 @@ module.exports = merge(common, {
                         loader: "css-loader",
                         options: {
                             sourceMap: true,
-                        },
-                    },
-                ],
-            },
-            {
-                test: /\.less$/,
-                include: /antd/,
-                use: [
-                    MiniCssExtractPlugin.loader,
-                    {
-                        loader: "css-loader",
-                        options: {
-                            sourceMap: true,
-                        },
-                    },
-                    {
-                        loader: "less-loader",
-                        options: {
-                            sourceMap: true,
-                            javascriptEnabled: true,
-                            modifyVars: antd_theme,
                         },
                     },
                 ],

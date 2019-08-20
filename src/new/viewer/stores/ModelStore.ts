@@ -1,12 +1,14 @@
-import { Clock } from "three";
 import { ArrayBufferCursor } from "../../../core/data_formats/cursor/ArrayBufferCursor";
 import { Endianness } from "../../../core/data_formats/Endianness";
 import { NjMotion, parse_njm } from "../../../core/data_formats/parsing/ninja/motion";
 import { NjObject, parse_nj, parse_xj } from "../../../core/data_formats/parsing/ninja";
 import { CharacterClassModel } from "../domain/CharacterClassModel";
 import { CharacterClassAnimation } from "../domain/CharacterClassAnimation";
-import { Observable } from "../../core/observable/Observable";
-import { get_player_data } from "../../../viewer/loading/player";
+import { Property } from "../../core/observable/Property";
+import {
+    get_character_class_animation_data,
+    get_character_class_data,
+} from "../../../viewer/loading/character_class";
 import { Disposable } from "../../core/gui/Disposable";
 import { read_file } from "../../../core/read_file";
 import { create_animation_clip } from "../../../core/rendering/conversion/ninja_animation";
@@ -39,11 +41,9 @@ class ModelStore implements Disposable {
         .fill(undefined)
         .map((_, i) => new CharacterClassAnimation(i, `Animation ${i + 1}`));
 
-    readonly clock = new Clock();
+    readonly current_model = new Property<CharacterClassModel | undefined>(undefined);
 
-    readonly current_model = new Observable<CharacterClassModel | undefined>(undefined);
-
-    readonly current_nj_data = new Observable<
+    readonly current_nj_data = new Property<
         | {
               nj_object: NjObject;
               bone_count: number;
@@ -52,25 +52,24 @@ class ModelStore implements Disposable {
         | undefined
     >(undefined);
 
-    readonly current_animation = new Observable<CharacterClassAnimation | undefined>(undefined);
+    readonly current_animation = new Property<CharacterClassAnimation | undefined>(undefined);
 
-    // @observable.ref animation?: {
-    //     player_animation?: CharacterClassAnimation;
-    //     mixer: AnimationMixer;
-    //     clip: AnimationClip;
-    //     action: AnimationAction;
-    // };
+    readonly current_nj_motion = new Property<NjMotion | undefined>(undefined);
+
     // @observable animation_playing: boolean = false;
     // @observable animation_frame_rate: number = PSO_FRAME_RATE;
     // @observable animation_frame: number = 0;
     // @observable animation_frame_count: number = 0;
 
-    readonly show_skeleton = new Observable(false);
+    readonly show_skeleton = new Property(false);
 
     private disposables: Disposable[] = [];
 
     constructor() {
-        this.disposables.push(this.current_model.observe(this.load_model));
+        this.disposables.push(
+            this.current_model.observe(this.load_model),
+            this.current_animation.observe(this.load_animation),
+        );
     }
 
     dispose(): void {
@@ -94,26 +93,16 @@ class ModelStore implements Disposable {
     //     }
     // };
 
-    // load_animation = async (animation: CharacterClassAnimation) => {
-    //     const nj_motion = await this.get_nj_motion(animation);
-    //     const nj_data = this.current_nj_data.get();
-    //
-    //     if (nj_data) {
-    //         this.set_animation(create_animation_clip(nj_data, nj_motion), animation);
-    //     }
-    // };
-
     // TODO: notify user of problems.
     load_file = async (file: File) => {
         try {
-            this.current_model.set(undefined);
-            this.current_nj_data.set(undefined);
-            this.current_animation.set(undefined);
-
             const buffer = await read_file(file);
             const cursor = new ArrayBufferCursor(buffer, Endianness.Little);
 
             if (file.name.endsWith(".nj")) {
+                this.current_model.set(undefined);
+                this.current_nj_data.set(undefined);
+
                 const nj_object = parse_nj(cursor)[0];
 
                 this.current_nj_data.set({
@@ -122,6 +111,9 @@ class ModelStore implements Disposable {
                     has_skeleton: true,
                 });
             } else if (file.name.endsWith(".xj")) {
+                this.current_model.set(undefined);
+                this.current_nj_data.set(undefined);
+
                 const nj_object = parse_xj(cursor)[0];
 
                 this.current_nj_data.set({
@@ -129,11 +121,15 @@ class ModelStore implements Disposable {
                     bone_count: 0,
                     has_skeleton: false,
                 });
-                // } else if (file.name.endsWith(".njm")) {
-                //     if (this.current_model) {
-                //         const njm = parse_njm(cursor, this.current_bone_count);
-                //         this.set_animation(create_animation_clip(this.current_model, njm));
-                //     }
+            } else if (file.name.endsWith(".njm")) {
+                this.current_animation.set(undefined);
+                this.current_nj_motion.set(undefined);
+
+                const nj_data = this.current_nj_data.get();
+
+                if (nj_data) {
+                    this.current_nj_motion.set(parse_njm(cursor, nj_data.bone_count));
+                }
                 // } else if (file.name.endsWith(".xvm")) {
                 //     if (this.current_model) {
                 //         const xvm = parse_xvm(cursor);
@@ -175,39 +171,11 @@ class ModelStore implements Disposable {
     //     }
     // };
 
-    // set_animation = (clip: AnimationClip, animation?: CharacterClassAnimation) => {
-    //     if (!this.current_obj3d || !(this.current_obj3d instanceof SkinnedMesh)) return;
-    //
-    //     let mixer: AnimationMixer;
-    //
-    //     if (this.animation) {
-    //         this.animation.mixer.stopAllAction();
-    //         mixer = this.animation.mixer;
-    //     } else {
-    //         mixer = new AnimationMixer(this.current_obj3d);
-    //     }
-    //
-    //     this.animation = {
-    //         player_animation: animation,
-    //         mixer,
-    //         clip,
-    //         action: mixer.clipAction(clip),
-    //     };
-    //
-    //     this.clock.start();
-    //     this.animation.action.play();
-    //     this.animation_playing = true;
-    //     this.animation_frame_count = Math.round(PSO_FRAME_RATE * clip.duration) + 1;
-    // };
-
     private load_model = async (model?: CharacterClassModel) => {
+        this.current_animation.set(undefined);
+
         if (model) {
-            const nj_object = await this.get_player_nj_object(model);
-            // if (this.current_obj3d && this.animation) {
-            //     this.animation.mixer.stopAllAction();
-            //     this.animation.mixer.uncacheRoot(this.current_obj3d);
-            //     this.animation = undefined;
-            // }
+            const nj_object = await this.get_nj_object(model);
 
             this.current_nj_data.set({
                 nj_object,
@@ -220,27 +188,27 @@ class ModelStore implements Disposable {
         }
     };
 
-    private async get_player_nj_object(model: CharacterClassModel): Promise<NjObject> {
+    private async get_nj_object(model: CharacterClassModel): Promise<NjObject> {
         let nj_object = nj_object_cache.get(model.name);
 
         if (nj_object) {
             return nj_object;
         } else {
-            nj_object = this.get_all_assets(model);
+            nj_object = this.get_all_nj_objects(model);
             nj_object_cache.set(model.name, nj_object);
             return nj_object;
         }
     }
 
-    private async get_all_assets(model: CharacterClassModel): Promise<NjObject> {
-        const body_data = await get_player_data(model.name, "Body");
+    private async get_all_nj_objects(model: CharacterClassModel): Promise<NjObject> {
+        const body_data = await get_character_class_data(model.name, "Body");
         const body = parse_nj(new ArrayBufferCursor(body_data, Endianness.Little))[0];
 
         if (!body) {
             throw new Error(`Couldn't parse body for player class ${model.name}.`);
         }
 
-        const head_data = await get_player_data(model.name, "Head", 0);
+        const head_data = await get_character_class_data(model.name, "Head", 0);
         const head = parse_nj(new ArrayBufferCursor(head_data, Endianness.Little))[0];
 
         if (head) {
@@ -248,7 +216,7 @@ class ModelStore implements Disposable {
         }
 
         if (model.hair_styles_count > 0) {
-            const hair_data = await get_player_data(model.name, "Hair", 0);
+            const hair_data = await get_character_class_data(model.name, "Hair", 0);
             const hair = parse_nj(new ArrayBufferCursor(hair_data, Endianness.Little))[0];
 
             if (hair) {
@@ -256,7 +224,7 @@ class ModelStore implements Disposable {
             }
 
             if (model.hair_styles_with_accessory.has(0)) {
-                const accessory_data = await get_player_data(model.name, "Accessory", 0);
+                const accessory_data = await get_character_class_data(model.name, "Accessory", 0);
                 const accessory = parse_nj(
                     new ArrayBufferCursor(accessory_data, Endianness.Little),
                 )[0];
@@ -280,24 +248,34 @@ class ModelStore implements Disposable {
         }
     }
 
-    // private async get_nj_motion(animation: CharacterClassAnimation): Promise<NjMotion> {
-    //     let nj_motion = nj_motion_cache.get(animation.id);
-    //
-    //     if (nj_motion) {
-    //         return nj_motion;
-    //     } else {
-    //         nj_motion = get_player_animation_data(animation.id).then(motion_data =>
-    //             parse_njm(
-    //                 new ArrayBufferCursor(motion_data, Endianness.Little),
-    //                 this.current_bone_count,
-    //             ),
-    //         );
-    //
-    //         nj_motion_cache.set(animation.id, nj_motion);
-    //         return nj_motion;
-    //     }
-    // }
-    //
+    private load_animation = async (animation?: CharacterClassAnimation) => {
+        const nj_data = this.current_nj_data.get();
+
+        if (nj_data && animation) {
+            this.current_nj_motion.set(await this.get_nj_motion(animation, nj_data.bone_count));
+        } else {
+            this.current_nj_motion.set(undefined);
+        }
+    };
+
+    private async get_nj_motion(
+        animation: CharacterClassAnimation,
+        bone_count: number,
+    ): Promise<NjMotion> {
+        let nj_motion = nj_motion_cache.get(animation.id);
+
+        if (nj_motion) {
+            return nj_motion;
+        } else {
+            nj_motion = get_character_class_animation_data(animation.id).then(motion_data =>
+                parse_njm(new ArrayBufferCursor(motion_data, Endianness.Little), bone_count),
+            );
+
+            nj_motion_cache.set(animation.id, nj_motion);
+            return nj_motion;
+        }
+    }
+
     // private set_textures = (textures: Texture[]) => {
     //     this.set_obj3d(textures);
     // };

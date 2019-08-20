@@ -23,8 +23,10 @@ export class MainContentView extends ResizableView {
             this.element.append(tool_view.element);
         }
 
-        this.tool_changed(gui_store.tool, gui_store.tool);
-        this.disposable(gui_store.tool_prop.observe(this.tool_changed));
+        const tool_view = this.tool_views.get(gui_store.tool.get());
+        if (tool_view) tool_view.visible = true;
+
+        this.disposable(gui_store.tool.observe(this.tool_changed));
     }
 
     resize(width: number, height: number): this {
@@ -37,8 +39,8 @@ export class MainContentView extends ResizableView {
         return this;
     }
 
-    private tool_changed = (new_tool: GuiTool, old_tool: GuiTool) => {
-        const old_view = this.tool_views.get(old_tool);
+    private tool_changed = (new_tool: GuiTool, { old_value }: { old_value: GuiTool }) => {
+        const old_view = this.tool_views.get(old_value);
         if (old_view) old_view.visible = false;
 
         const new_view = this.tool_views.get(new_tool);
