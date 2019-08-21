@@ -1,4 +1,5 @@
 import { Disposable } from "../observable/Disposable";
+import { Disposer } from "../observable/Disposer";
 
 export abstract class View implements Disposable {
     abstract readonly element: HTMLElement;
@@ -11,19 +12,19 @@ export abstract class View implements Disposable {
         this.element.id = id;
     }
 
-    private disposable_list: Disposable[] = [];
+    private disposer = new Disposer();
 
     protected disposable<T extends Disposable>(disposable: T): T {
-        this.disposable_list.push(disposable);
+        this.disposer.add(disposable);
         return disposable;
     }
 
     protected disposables(...disposables: Disposable[]): void {
-        this.disposable_list.push(...disposables);
+        this.disposer.add(...disposables);
     }
 
     dispose(): void {
         this.element.remove();
-        this.disposable_list.splice(0, this.disposable_list.length).forEach(d => d.dispose());
+        this.disposer.dispose();
     }
 }

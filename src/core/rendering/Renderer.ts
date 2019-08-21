@@ -13,6 +13,7 @@ import {
     Vector3,
     WebGLRenderer,
 } from "three";
+import { Disposable } from "../observable/Disposable";
 
 CameraControls.install({
     // Hack to make panning and orbiting work the way we want.
@@ -22,7 +23,7 @@ CameraControls.install({
     },
 });
 
-export abstract class Renderer {
+export abstract class Renderer implements Disposable {
     protected _debug = false;
 
     get debug(): boolean {

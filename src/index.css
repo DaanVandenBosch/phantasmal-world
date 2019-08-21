@@ -9,8 +9,8 @@
     --scrollbar-color: hsl(0, 0%, 17%);
     --scrollbar-thumb-color: hsl(0, 0%, 23%);
 
-    --input-bg-color: hsl(0, 0%, 10%);
-    --input-bg-color-disabled: hsl(0, 0%, 15%);
+    --input-bg-color: hsl(0, 0%, 15%);
+    --input-bg-color-disabled: hsl(0, 0%, 20%);
 }
 
 * {

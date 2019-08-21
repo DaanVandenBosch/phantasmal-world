@@ -18,7 +18,7 @@ const MODEL_LIST_WIDTH = 100;
 const ANIMATION_LIST_WIDTH = 150;
 
 export class ModelView extends ResizableView {
-    element = create_el("div", "viewer_ModelView");
+    readonly element = create_el("div", "viewer_ModelView");
 
     private tool_bar_view = this.disposable(new ToolBarView());
     private container_element = create_el("div", "viewer_ModelView_container");

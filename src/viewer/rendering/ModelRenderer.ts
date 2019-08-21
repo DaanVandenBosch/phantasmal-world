@@ -23,10 +23,11 @@ import {
     PSO_FRAME_RATE,
 } from "../../core/rendering/conversion/ninja_animation";
 import { Renderer } from "../../core/rendering/Renderer";
+import { Disposer } from "../../core/observable/Disposer";
 
 export class ModelRenderer extends Renderer implements Disposable {
     private readonly perspective_camera: PerspectiveCamera;
-    private readonly disposables: Disposable[] = [];
+    private readonly disposer = new Disposer();
     private readonly clock = new Clock();
     private mesh?: Object3D;
     private skeleton_helper?: SkeletonHelper;
@@ -41,7 +42,7 @@ export class ModelRenderer extends Renderer implements Disposable {
 
         this.perspective_camera = this.camera as PerspectiveCamera;
 
-        this.disposables.push(
+        this.disposer.add(
             model_store.current_nj_data.observe(this.nj_data_or_xvm_changed),
             model_store.current_xvm.observe(this.nj_data_or_xvm_changed),
             model_store.current_nj_motion.observe(this.nj_motion_changed),
@@ -60,7 +61,7 @@ export class ModelRenderer extends Renderer implements Disposable {
 
     dispose(): void {
         super.dispose();
-        this.disposables.forEach(d => d.dispose());
+        this.disposer.dispose();
     }
 
     protected render(): void {
