@@ -15,7 +15,7 @@ import { gui_store, GuiTool } from "../../core/stores/GuiStore";
 import { PSO_FRAME_RATE } from "../../core/rendering/conversion/ninja_animation";
 
 const MODEL_LIST_WIDTH = 100;
-const ANIMATION_LIST_WIDTH = 150;
+const ANIMATION_LIST_WIDTH = 130;
 
 export class ModelView extends ResizableView {
     readonly element = create_el("div", "viewer_ModelView");

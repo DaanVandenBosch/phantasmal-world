@@ -15,10 +15,6 @@
 
 * {
     scrollbar-color: var(--scrollbar-thumb-color) var(--scrollbar-color);
-
-    /* Turn off antd animations by turning all animations off. */
-    animation-duration: 0s !important;
-    transition-duration: 0s !important;
 }
 
 ::-webkit-scrollbar {
@@ -42,6 +38,7 @@ body {
     user-select: none;
     overflow: hidden;
     margin: 0;
+    font-size: 15px;
     font-family: "Helvetica Neue Light", "HelveticaNeue-Light", "Helvetica Neue", Calibri, Helvetica,
         Arial, sans-serif;
     background-color: var(--bg-color);
