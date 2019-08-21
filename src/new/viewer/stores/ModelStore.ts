@@ -150,8 +150,6 @@ export class ModelStore implements Disposable {
     };
 
     private set_current_nj_data(nj_data: NjData): void {
-        this.current_model.set(undefined);
-        this._current_nj_data.set(undefined);
         this._current_xvm.set(undefined);
         this._current_nj_data.set(nj_data);
     }
