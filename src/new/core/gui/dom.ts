@@ -1,4 +1,4 @@
-import { Disposable } from "./Disposable";
+import { Disposable } from "../observable/Disposable";
 
 export function create_el<T extends HTMLElement>(
     tag_name: string,

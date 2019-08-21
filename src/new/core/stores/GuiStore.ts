@@ -1,5 +1,6 @@
-import { Property } from "../observable/Property";
-import { Disposable } from "../gui/Disposable";
+import { WritableProperty } from "../observable/WritableProperty";
+import { Disposable } from "../observable/Disposable";
+import { property } from "../observable";
 
 export enum GuiTool {
     Viewer,
@@ -15,7 +16,7 @@ const GUI_TOOL_TO_STRING = new Map([
 const STRING_TO_GUI_TOOL = new Map([...GUI_TOOL_TO_STRING.entries()].map(([k, v]) => [v, k]));
 
 class GuiStore implements Disposable {
-    tool = new Property<GuiTool>(GuiTool.Viewer);
+    readonly tool: WritableProperty<GuiTool> = property(GuiTool.Viewer);
 
     private hash_disposer = this.tool.observe(tool => {
         window.location.hash = `#/${gui_tool_to_string(tool)}`;

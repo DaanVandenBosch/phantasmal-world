@@ -15,7 +15,7 @@ import {
 } from "three";
 import { Renderer } from "../../../core/rendering/Renderer";
 import { model_store } from "../stores/ModelStore";
-import { Disposable } from "../../core/gui/Disposable";
+import { Disposable } from "../../core/observable/Disposable";
 import { create_mesh, create_skinned_mesh } from "../../../core/rendering/conversion/create_mesh";
 import { ninja_object_to_buffer_geometry } from "../../../core/rendering/conversion/ninja_geometry";
 import { NjObject } from "../../../core/data_formats/parsing/ninja";
@@ -24,6 +24,7 @@ import {
     PSO_FRAME_RATE,
 } from "../../../core/rendering/conversion/ninja_animation";
 import { NjMotion } from "../../../core/data_formats/parsing/ninja/motion";
+import { xvm_to_textures } from "../../../core/rendering/conversion/ninja_textures";
 
 export class ModelRenderer extends Renderer implements Disposable {
     private readonly perspective_camera: PerspectiveCamera;
@@ -43,9 +44,13 @@ export class ModelRenderer extends Renderer implements Disposable {
         this.perspective_camera = this.camera as PerspectiveCamera;
 
         this.disposables.push(
-            model_store.current_nj_data.observe(this.nj_object_changed),
+            model_store.current_nj_data.observe(this.nj_data_or_xvm_changed),
+            model_store.current_xvm.observe(this.nj_data_or_xvm_changed),
             model_store.current_nj_motion.observe(this.nj_motion_changed),
             model_store.show_skeleton.observe(this.show_skeleton_changed),
+            model_store.animation_playing.observe(this.animation_playing_changed),
+            model_store.animation_frame_rate.observe(this.animation_frame_rate_changed),
+            model_store.animation_frame.observe(this.animation_frame_changed),
         );
     }
 
@@ -63,18 +68,18 @@ export class ModelRenderer extends Renderer implements Disposable {
     protected render(): void {
         if (this.animation) {
             this.animation.mixer.update(this.clock.getDelta());
-            // this.update_animation_frame();
         }
 
         this.light_holder.quaternion.copy(this.perspective_camera.quaternion);
         super.render();
 
         if (this.animation && !this.animation.action.paused) {
+            this.update_animation_frame();
             this.schedule_render();
         }
     }
 
-    private nj_object_changed = (nj_data?: { nj_object: NjObject; has_skeleton: boolean }) => {
+    private nj_data_or_xvm_changed = () => {
         if (this.mesh) {
             this.scene.remove(this.mesh);
             this.mesh = undefined;
@@ -88,13 +93,15 @@ export class ModelRenderer extends Renderer implements Disposable {
             this.animation = undefined;
         }
 
+        const nj_data = model_store.current_nj_data.get();
+
         if (nj_data) {
             const { nj_object, has_skeleton } = nj_data;
 
             let mesh: Mesh;
 
-            // TODO:
-            const textures: Texture[] | undefined = Math.random() > 1 ? [] : undefined;
+            const xvm = model_store.current_xvm.get();
+            const textures = xvm ? xvm_to_textures(xvm) : undefined;
 
             const materials =
                 textures &&
@@ -159,9 +166,6 @@ export class ModelRenderer extends Renderer implements Disposable {
 
         this.clock.start();
         this.animation.action.play();
-        // TODO:
-        // this.animation_playing = true;
-        // this.animation_frame_count = Math.round(PSO_FRAME_RATE * clip.duration) + 1;
         this.schedule_render();
     };
 
@@ -172,13 +176,41 @@ export class ModelRenderer extends Renderer implements Disposable {
         }
     };
 
-    private update(): void {
-        // if (!model_viewer_store.animation_playing) {
-        //     // Reference animation_frame here to make sure we render when the user sets the frame manually.
-        //     model_viewer_store.animation_frame;
-        //     this.schedule_render();
-        // }
+    private animation_playing_changed = (playing: boolean) => {
+        if (this.animation) {
+            this.animation.action.paused = !playing;
 
-        this.schedule_render();
+            if (playing) {
+                this.clock.start();
+                this.schedule_render();
+            } else {
+                this.clock.stop();
+            }
+        }
+    };
+
+    private animation_frame_rate_changed = (frame_rate: number) => {
+        if (this.animation) {
+            this.animation.mixer.timeScale = frame_rate / PSO_FRAME_RATE;
+        }
+    };
+
+    private animation_frame_changed = (frame: number) => {
+        const nj_motion = model_store.current_nj_motion.get();
+
+        if (this.animation && nj_motion) {
+            const frame_count = nj_motion.frame_count;
+            if (frame > frame_count) frame = 1;
+            if (frame < 1) frame = frame_count;
+            this.animation.action.time = (frame - 1) / PSO_FRAME_RATE;
+            this.schedule_render();
+        }
+    };
+
+    private update_animation_frame(): void {
+        if (this.animation && !this.animation.action.paused) {
+            const time = this.animation.action.time;
+            model_store.animation_frame.set(time * PSO_FRAME_RATE + 1);
+        }
     }
 }

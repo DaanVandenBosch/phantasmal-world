@@ -2,12 +2,23 @@
     box-sizing: border-box;
     display: flex;
     flex-direction: row;
+    align-items: center;
     padding-top: 1px;
     border-bottom: solid var(--border-color) 1px;
 }
 
 .core_ToolBar > * {
-    margin: 2px;
+    margin: 2px 4px;
+}
+
+.core_ToolBar > .core_ToolBar_group {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.core_ToolBar > .core_ToolBar_group > * {
+    margin: 0 2px;
 }
 
 .core_ToolBar .core_Button {

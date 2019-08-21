@@ -4,7 +4,7 @@ import { Resizable } from "./Resizable";
 import { ResizableView } from "./ResizableView";
 
 export class LazyView extends ResizableView {
-    element = create_el("div", "core_LazyView");
+    readonly element = create_el("div", "core_LazyView");
 
     private _visible = false;
 

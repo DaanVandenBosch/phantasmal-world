@@ -1,0 +1,23 @@
+.core_Input {
+    box-sizing: border-box;
+    height: 26px;
+    padding: 0 3px;
+    border: solid 1px var(--border-color);
+    background-color: var(--input-bg-color);
+    color: var(--text-color);
+    outline: none;
+}
+
+.core_Input:hover {
+    border: solid 1px var(--border-color-hover);
+}
+
+.core_Input:focus {
+    border: solid 1px var(--border-color-focus);
+}
+
+.core_Input:disabled {
+    color: var(--text-color-disabled);
+    background-color: var(--input-bg-color-disabled);
+    border: solid 1px var(--border-color);
+}

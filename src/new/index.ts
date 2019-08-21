@@ -1,5 +1,5 @@
 import { ApplicationView } from "./application/gui/ApplicationView";
-import { Disposable } from "./core/gui/Disposable";
+import { Disposable } from "./core/observable/Disposable";
 import "./index.css";
 import { throttle } from "lodash";
 

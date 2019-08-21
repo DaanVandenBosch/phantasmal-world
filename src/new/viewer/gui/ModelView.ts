@@ -3,12 +3,15 @@ import { ResizableView } from "../../core/gui/ResizableView";
 import { ToolBar } from "../../core/gui/ToolBar";
 import "./ModelView.css";
 import { model_store } from "../stores/ModelStore";
-import { Property } from "../../core/observable/Property";
+import { WritableProperty } from "../../core/observable/WritableProperty";
 import { RendererView } from "../../core/gui/RendererView";
 import { ModelRenderer } from "../rendering/ModelRenderer";
 import { View } from "../../core/gui/View";
-import { FileInput } from "../../core/gui/FileInput";
+import { FileButton } from "../../core/gui/FileButton";
 import { CheckBox } from "../../core/gui/CheckBox";
+import { NumberInput } from "../../core/gui/NumberInput";
+import { PSO_FRAME_RATE } from "../../../core/rendering/conversion/ninja_animation";
+import { Label } from "../../core/gui/Label";
 
 const MODEL_LIST_WIDTH = 100;
 const ANIMATION_LIST_WIDTH = 150;
@@ -59,11 +62,36 @@ export class ModelView extends ResizableView {
 }
 
 class ToolBarView extends View {
-    private readonly open_file_button = new FileInput("Open file...", ".nj, .njm, .xj");
-    private readonly skeleton_checkbox = new CheckBox("Show skeleton");
+    private readonly open_file_button = new FileButton("Open file...", ".nj, .njm, .xj, .xvm");
+    private readonly skeleton_checkbox = new CheckBox(false, "Show skeleton");
+    private readonly play_animation_checkbox = new CheckBox(true, "Play animation");
+    private readonly animation_frame_rate_input = new NumberInput(
+        PSO_FRAME_RATE,
+        "Frame rate:",
+        1,
+        240,
+        1,
+    );
+    private readonly animation_frame_input = new NumberInput(
+        1,
+        "Frame:",
+        1,
+        model_store.animation_frame_count,
+        1,
+    );
+    private readonly animation_frame_count_label = new Label(
+        model_store.animation_frame_count.map(count => `/ ${count}`),
+    );
 
     private readonly tool_bar = this.disposable(
-        new ToolBar(this.open_file_button, this.skeleton_checkbox),
+        new ToolBar(
+            this.open_file_button,
+            this.skeleton_checkbox,
+            this.play_animation_checkbox,
+            this.animation_frame_rate_input,
+            this.animation_frame_input,
+            this.animation_frame_count_label,
+        ),
     );
 
     readonly element = this.tool_bar.element;
@@ -75,16 +103,32 @@ class ToolBarView extends View {
     constructor() {
         super();
 
-        this.disposable(
+        // Always-enabled controls.
+        this.disposables(
             this.open_file_button.files.observe(files => {
                 if (files.length) model_store.load_file(files[0]);
             }),
+
+            model_store.show_skeleton.bind(this.skeleton_checkbox.checked),
         );
 
-        this.disposable(
-            this.skeleton_checkbox.checked.observe(checked =>
-                model_store.show_skeleton.set(checked),
+        // Controls that are only enabled when an animation is selected.
+        const enabled = model_store.current_nj_motion.map(njm => njm != undefined);
+
+        this.disposables(
+            this.play_animation_checkbox.enabled.bind(enabled),
+            model_store.animation_playing.bind_bi(this.play_animation_checkbox.checked),
+
+            this.animation_frame_rate_input.enabled.bind(enabled),
+            model_store.animation_frame_rate.bind(this.animation_frame_rate_input.value),
+
+            this.animation_frame_input.enabled.bind(enabled),
+            model_store.animation_frame.bind(this.animation_frame_input.value),
+            this.animation_frame_input.value.bind(
+                model_store.animation_frame.map(v => Math.round(v)),
             ),
+
+            this.animation_frame_count_label.enabled.bind(enabled),
         );
     }
 }
@@ -105,7 +149,7 @@ class ModelSelectListView<T extends { name: string }> extends ResizableView {
     private selected_model?: T;
     private selected_element?: HTMLLIElement;
 
-    constructor(private models: T[], private selected: Property<T | undefined>) {
+    constructor(private models: T[], private selected: WritableProperty<T | undefined>) {
         super();
 
         this.element.onclick = this.list_click;

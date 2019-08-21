@@ -1,18 +1,29 @@
-import { Disposable } from "./Disposable";
+import { Disposable } from "../observable/Disposable";
 
 export abstract class View implements Disposable {
     abstract readonly element: HTMLElement;
 
-    private disposables: Disposable[] = [];
+    get id(): string {
+        return this.element.id;
+    }
+
+    set id(id: string) {
+        this.element.id = id;
+    }
+
+    private disposable_list: Disposable[] = [];
 
     protected disposable<T extends Disposable>(disposable: T): T {
-        this.disposables.push(disposable);
+        this.disposable_list.push(disposable);
         return disposable;
+    }
+
+    protected disposables(...disposables: Disposable[]): void {
+        this.disposable_list.push(...disposables);
     }
 
     dispose(): void {
         this.element.remove();
-        this.disposables.forEach(d => d.dispose());
-        this.disposables.splice(0, this.disposables.length);
+        this.disposable_list.splice(0, this.disposable_list.length).forEach(d => d.dispose());
     }
 }

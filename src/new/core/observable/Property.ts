@@ -1,22 +1,15 @@
 import { Observable } from "./Observable";
 
-export class Property<T> extends Observable<T, { old_value: T }> {
-    private value: T;
+export interface Property<T> extends Observable<T, PropertyMeta<T>> {
+    readonly is_property: true;
 
-    constructor(value: T) {
-        super();
-        this.value = value;
-    }
+    get(): T;
 
-    get(): T {
-        return this.value;
-    }
+    map<U>(f: (element: T) => U): Property<U>;
+}
 
-    set(value: T): void {
-        if (value !== this.value) {
-            const old_value = this.value;
-            this.value = value;
-            this.fire(value, { old_value });
-        }
-    }
+export type PropertyMeta<T> = { old_value: T };
+
+export function is_property<T>(observable: any): observable is Property<T> {
+    return (observable as any).is_property;
 }

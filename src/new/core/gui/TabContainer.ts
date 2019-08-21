@@ -16,7 +16,7 @@ type TabInfo = Tab & { tab_element: HTMLSpanElement; lazy_view: LazyView };
 const BAR_HEIGHT = 28;
 
 export class TabContainer extends ResizableView {
-    element = create_el("div", "core_TabContainer");
+    readonly element = create_el("div", "core_TabContainer");
 
     private tabs: TabInfo[] = [];
     private bar_element = create_el("div", "core_TabContainer_Bar");
