@@ -5,7 +5,7 @@ import { BufferCursor } from "../src/core/data_formats/cursor/BufferCursor";
 import { ItemPmt, parse_item_pmt } from "../src/core/data_formats/parsing/itempmt";
 import { parse_quest } from "../src/core/data_formats/parsing/quest";
 import { parse_unitxt, Unitxt } from "../src/core/data_formats/parsing/unitxt";
-import { Difficulties, Difficulty, SectionId, SectionIds } from "../src/old/core/domain";
+import { Difficulties, Difficulty, SectionId, SectionIds } from "../src/core/domain";
 import { BoxDropDto, EnemyDropDto, ItemTypeDto, QuestDto } from "../src/old/core/dto";
 import { update_drops_from_website } from "./update_drops_ephinea";
 import { Episode, EPISODES } from "../src/core/data_formats/parsing/quest/Episode";

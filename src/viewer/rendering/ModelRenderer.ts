@@ -42,7 +42,7 @@ export class ModelRenderer extends Renderer implements Disposable {
 
         this.perspective_camera = this.camera as PerspectiveCamera;
 
-        this.disposer.add(
+        this.disposer.add_all(
             model_store.current_nj_data.observe(this.nj_data_or_xvm_changed),
             model_store.current_xvm.observe(this.nj_data_or_xvm_changed),
             model_store.current_nj_motion.observe(this.nj_motion_changed),

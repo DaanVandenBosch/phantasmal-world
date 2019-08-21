@@ -26,7 +26,9 @@ export class FileButton extends View {
             }
         };
 
-        this.element.textContent = text;
-        this.element.append(this.input);
+        const inner_element = create_el("span", "core_FileButton_inner core_Button_inner");
+        inner_element.textContent = text;
+
+        this.element.append(inner_element, this.input);
     }
 }

@@ -5,7 +5,7 @@ import { LabelledControl } from "./LabelledControl";
 
 export class ToolBar extends View {
     readonly element = create_el("div", "core_ToolBar");
-    readonly height = 35;
+    readonly height = 33;
 
     constructor(...children: View[]) {
         super();

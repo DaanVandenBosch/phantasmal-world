@@ -1,5 +1,5 @@
-import { Persister } from "../../core/persistence";
-import { Server } from "../../core/domain";
+import { Persister } from "../../../core/persistence";
+import { Server } from "../../../core/domain";
 import { HuntMethod } from "../domain";
 
 const METHOD_USER_TIMES_KEY = "HuntMethodStore.methodUserTimes";

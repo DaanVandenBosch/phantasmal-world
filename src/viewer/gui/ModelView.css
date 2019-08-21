@@ -16,11 +16,11 @@
 }
 
 .viewer_ModelSelectListView li:hover {
-    color: hsl(200, 25%, 85%);
-    background-color: hsl(0, 0%, 25%);
+    color: hsl(0, 0%, 90%);
+    background-color: hsl(0, 0%, 18%);
 }
 
 .viewer_ModelSelectListView li.active {
-    color: hsl(200, 50%, 85%);
-    background-color: hsl(0, 0%, 30%);
+    color: hsl(0, 0%, 90%);
+    background-color: hsl(0, 0%, 21%);
 }

@@ -2,7 +2,7 @@ import GoldenLayout, { ContentItem, ItemConfigType } from "golden-layout";
 import Logger from "js-logger";
 import { observer } from "mobx-react";
 import React, { Component, createRef, FocusEvent, ReactNode } from "react";
-import { quest_editor_ui_persister } from "../persistence/QuestEditorUiPersister";
+import { quest_editor_ui_persister } from "../../../quest_editor/persistence/QuestEditorUiPersister";
 import { quest_editor_store } from "../stores/QuestEditorStore";
 import { AssemblyEditorComponent } from "./AssemblyEditorComponent";
 import { EntityInfoComponent } from "./EntityInfoComponent";

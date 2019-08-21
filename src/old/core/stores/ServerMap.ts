@@ -1,5 +1,5 @@
 import { computed } from "mobx";
-import { Server } from "../domain";
+import { Server } from "../../../core/domain";
 import { EnumMap } from "../../../core/enums";
 
 /**

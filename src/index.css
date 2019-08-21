@@ -1,16 +1,11 @@
 :root {
-    --bg-color: hsl(0, 0%, 20%);
-    --text-color: hsl(0, 0%, 85%);
+    --bg-color: hsl(0, 0%, 15%);
+    --text-color: hsl(0, 0%, 80%);
     --text-color-disabled: hsl(0, 0%, 55%);
-    --border-color: hsl(0, 0%, 30%);
-    --border-color-hover: hsl(0, 0%, 40%);
-    --border-color-focus: hsl(0, 0%, 50%);
+    --border-color: hsl(0, 0%, 25%);
 
-    --scrollbar-color: hsl(0, 0%, 17%);
-    --scrollbar-thumb-color: hsl(0, 0%, 23%);
-
-    --input-bg-color: hsl(0, 0%, 15%);
-    --input-bg-color-disabled: hsl(0, 0%, 20%);
+    --scrollbar-color: hsl(0, 0%, 13%);
+    --scrollbar-thumb-color: hsl(0, 0%, 17%);
 }
 
 * {

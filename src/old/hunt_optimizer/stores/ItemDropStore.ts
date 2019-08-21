@@ -1,5 +1,5 @@
 import { observable } from "mobx";
-import { Difficulties, Difficulty, SectionId, SectionIds, Server } from "../../core/domain";
+import { Difficulties, Difficulty, SectionId, SectionIds, Server } from "../../../core/domain";
 import { EnemyDropDto } from "../../core/dto";
 import { Loadable } from "../../core/Loadable";
 import { item_type_stores } from "../../core/stores/ItemTypeStore";

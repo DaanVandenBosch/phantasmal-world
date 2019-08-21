@@ -1,4 +1,4 @@
-import { enum_values } from "../../../core/enums";
+import { enum_values } from "../enums";
 
 export const RARE_ENEMY_PROB = 1 / 512;
 export const KONDRIEU_PROB = 1 / 10;

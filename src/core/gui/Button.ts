@@ -13,7 +13,10 @@ export class Button extends View {
     constructor(text: string) {
         super();
 
-        this.element.textContent = text;
+        const inner_element = create_el("span", "core_Button_inner");
+        inner_element.textContent = text;
+
+        this.element.append(inner_element);
 
         this.element.onclick = (e: MouseEvent) => this._click.emit(e, undefined);
     }

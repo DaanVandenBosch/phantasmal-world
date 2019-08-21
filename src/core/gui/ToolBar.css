@@ -7,10 +7,11 @@
 }
 
 .core_ToolBar > * {
-    margin: 2px 4px;
+    margin: 2px 1px;
 }
 
 .core_ToolBar > .core_ToolBar_group {
+    margin: 2px 3px;
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -18,20 +19,4 @@
 
 .core_ToolBar > .core_ToolBar_group > * {
     margin: 0 2px;
-}
-
-.core_ToolBar .core_Button {
-    background-color: transparent;
-    border-color: transparent;
-}
-
-.core_ToolBar .core_Button:hover {
-    background-color: #404040;
-    border-color: #505050;
-}
-
-.core_ToolBar .core_Button:active {
-    background-color: #383838;
-    border-color: #404040;
-    color: #d0d0d0;
 }

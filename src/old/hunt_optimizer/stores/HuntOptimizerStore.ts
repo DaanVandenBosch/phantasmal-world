@@ -8,7 +8,7 @@ import {
     SectionId,
     SectionIds,
     Server,
-} from "../../core/domain";
+} from "../../../core/domain";
 import { hunt_optimizer_persister } from "../persistence/HuntOptimizerPersister";
 import { hunt_method_store } from "./HuntMethodStore";
 import { item_drop_stores } from "./ItemDropStore";

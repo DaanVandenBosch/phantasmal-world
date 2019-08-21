@@ -1,7 +1,7 @@
-import { Server } from "../../core/domain";
+import { Server } from "../../../core/domain";
 import { WantedItem } from "../stores/HuntOptimizerStore";
 import { item_type_stores } from "../../core/stores/ItemTypeStore";
-import { Persister } from "../../core/persistence";
+import { Persister } from "../../../core/persistence";
 
 const WANTED_ITEMS_KEY = "HuntOptimizerStore.wantedItems";
 

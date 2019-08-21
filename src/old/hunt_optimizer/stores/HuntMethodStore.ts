@@ -1,6 +1,6 @@
 import Logger from "js-logger";
 import { autorun, IReactionDisposer, observable } from "mobx";
-import { Server } from "../../core/domain";
+import { Server } from "../../../core/domain";
 import { QuestDto } from "../../core/dto";
 import { Loadable } from "../../core/Loadable";
 import { hunt_method_persister } from "../persistence/HuntMethodPersister";

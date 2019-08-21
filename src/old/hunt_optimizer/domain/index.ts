@@ -2,7 +2,7 @@ import { Episode } from "../../../core/data_formats/parsing/quest/Episode";
 import { NpcType } from "../../../core/data_formats/parsing/quest/npc_types";
 import { computed, observable } from "mobx";
 import { ItemType } from "../../core/domain/items";
-import { Difficulty, SectionId } from "../../core/domain";
+import { Difficulty, SectionId } from "../../../core/domain";
 
 export class HuntMethod {
     readonly id: string;

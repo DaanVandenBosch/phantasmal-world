@@ -10,7 +10,7 @@ import {
 import { Loadable } from "../Loadable";
 import { ServerMap } from "./ServerMap";
 import { ItemTypeDto } from "../dto";
-import { Server } from "../domain";
+import { Server } from "../../../core/domain";
 
 export class ItemTypeStore {
     private id_to_item_type: ItemType[] = [];

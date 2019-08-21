@@ -31,7 +31,7 @@ export class TextureRenderer extends Renderer implements Disposable {
         this.controls.azimuthRotateSpeed = 0;
         this.controls.polarRotateSpeed = 0;
 
-        this.disposer.add(
+        this.disposer.add_all(
             texture_store.current_xvm.observe(xvm => {
                 this.scene.remove(...this.quad_meshes);
 

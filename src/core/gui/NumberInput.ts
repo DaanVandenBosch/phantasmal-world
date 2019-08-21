@@ -7,11 +7,16 @@ import { LabelledControl } from "./LabelledControl";
 import { is_any_property, Property } from "../observable/Property";
 
 export class NumberInput extends LabelledControl {
-    readonly element: HTMLInputElement = create_el("input", "core_NumberInput core_Input");
+    readonly element = create_el("span", "core_NumberInput core_Input");
 
     readonly value: WritableProperty<number> = property(0);
 
     readonly preferred_label_position = "left";
+
+    private readonly input: HTMLInputElement = create_el(
+        "input",
+        "core_NumberInput_inner core_Input_inner",
+    );
 
     constructor(
         value = 0,
@@ -22,29 +27,40 @@ export class NumberInput extends LabelledControl {
     ) {
         super(label);
 
-        this.element.type = "number";
-        this.element.valueAsNumber = value;
-        this.element.style.width = "50px";
+        this.input.type = "number";
+        this.input.valueAsNumber = value;
 
         this.set_prop("min", min);
         this.set_prop("max", max);
         this.set_prop("step", step);
 
-        this.element.onchange = () => this.value.set(this.element.valueAsNumber);
+        this.input.onchange = () => this.value.set(this.input.valueAsNumber);
+
+        this.element.append(this.input);
 
         this.disposables(
-            this.value.observe(value => (this.element.valueAsNumber = value)),
+            this.value.observe(value => (this.input.valueAsNumber = value)),
 
-            this.enabled.observe(enabled => (this.element.disabled = !enabled)),
+            this.enabled.observe(enabled => {
+                this.input.disabled = !enabled;
+
+                if (enabled) {
+                    this.element.classList.remove("disabled");
+                } else {
+                    this.element.classList.add("disabled");
+                }
+            }),
         );
+
+        this.element.style.width = "50px";
     }
 
     private set_prop<T>(prop: "min" | "max" | "step", value: T | Property<T>): void {
         if (is_any_property(value)) {
-            this.element[prop] = String(value.get());
-            this.disposable(value.observe(v => (this.element[prop] = String(v))));
+            this.input[prop] = String(value.get());
+            this.disposable(value.observe(v => (this.input[prop] = String(v))));
         } else {
-            this.element[prop] = String(value);
+            this.input[prop] = String(value);
         }
     }
 }

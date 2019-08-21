@@ -2,7 +2,7 @@ import { computed } from "mobx";
 import { observer } from "mobx-react";
 import React, { Component, ReactNode } from "react";
 import { AutoSizer, Index } from "react-virtualized";
-import { Difficulty, SectionId } from "../../core/domain";
+import { Difficulty, SectionId } from "../../../core/domain";
 import { hunt_optimizer_store, OptimalMethod } from "../stores/HuntOptimizerStore";
 import { BigTable, Column } from "../../core/ui/BigTable";
 import { SectionIdIcon } from "../../core/ui/SectionIdIcon";

@@ -1,7 +1,7 @@
 import Logger from "js-logger";
 import { Server } from "./domain";
 
-const logger = Logger.get("persistence/Persister");
+const logger = Logger.get("core/persistence/Persister");
 
 export abstract class Persister {
     protected persist_for_server(server: Server, key: string, data: any): void {

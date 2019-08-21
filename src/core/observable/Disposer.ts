@@ -6,7 +6,12 @@ const logger = Logger.get("core/observable/Disposer");
 export class Disposer implements Disposable {
     private readonly disposables: Disposable[] = [];
 
-    add(...disposable: Disposable[]): this {
+    add<T extends Disposable>(disposable: T): T {
+        this.disposables.push(disposable);
+        return disposable;
+    }
+
+    add_all(...disposable: Disposable[]): this {
         this.disposables.push(...disposable);
         return this;
     }

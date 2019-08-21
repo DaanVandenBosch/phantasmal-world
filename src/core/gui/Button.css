@@ -1,21 +1,30 @@
 .core_Button {
     display: inline-block;
     box-sizing: border-box;
-    background-color: #404040;
-    height: 26px;
-    padding: 2px 8px;
-    border: solid 1px #606060;
-    color: #f0f0f0;
+    padding: 0;
+    border: solid 1px hsl(0, 0%, 10%);
+    color: hsl(0, 0%, 80%);
     outline: none;
 }
 
-.core_Button:hover {
-    background-color: #505050;
-    border-color: #707070;
+.core_Button .core_Button_inner {
+    display: inline-block;
+    box-sizing: border-box;
+    background-color: hsl(0, 0%, 20%);
+    height: 24px;
+    line-height: 17px;
+    padding: 3px 8px;
+    border: solid 1px hsl(0, 0%, 35%);
 }
 
-.core_Button:active {
-    background-color: #404040;
-    border-color: #606060;
-    color: #e0e0e0;
+.core_Button:hover .core_Button_inner {
+    background-color: hsl(0, 0%, 25%);
+    border-color: hsl(0, 0%, 40%);
+    color: hsl(0, 0%, 90%);
+}
+
+.core_Button:active .core_Button_inner {
+    background-color: hsl(0, 0%, 20%);
+    border-color: hsl(0, 0%, 30%);
+    color: hsl(0, 0%, 75%);
 }

@@ -1,12 +1,14 @@
 import { create_el } from "../../core/gui/dom";
-import { View } from "../../core/gui/View";
 import { gui_store, GuiTool } from "../../core/stores/GuiStore";
 import { LazyView } from "../../core/gui/LazyView";
-import { Resizable } from "../../core/gui/Resizable";
 import { ResizableView } from "../../core/gui/ResizableView";
 
-const TOOLS: [GuiTool, () => Promise<View & Resizable>][] = [
+const TOOLS: [GuiTool, () => Promise<ResizableView>][] = [
     [GuiTool.Viewer, async () => new (await import("../../viewer/gui/ViewerView")).ViewerView()],
+    [
+        GuiTool.QuestEditor,
+        async () => new (await import("../../quest_editor/gui/QuestEditorView")).QuestEditorView(),
+    ],
 ];
 
 export class MainContentView extends ResizableView {

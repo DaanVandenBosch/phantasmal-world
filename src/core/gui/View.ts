@@ -15,12 +15,11 @@ export abstract class View implements Disposable {
     private disposer = new Disposer();
 
     protected disposable<T extends Disposable>(disposable: T): T {
-        this.disposer.add(disposable);
-        return disposable;
+        return this.disposer.add(disposable);
     }
 
     protected disposables(...disposables: Disposable[]): void {
-        this.disposer.add(...disposables);
+        this.disposer.add_all(...disposables);
     }
 
     dispose(): void {

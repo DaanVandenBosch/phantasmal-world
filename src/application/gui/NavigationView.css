@@ -3,7 +3,7 @@
     display: flex;
     flex-direction: row;
     align-items: stretch;
-    background-color: hsl(0, 0%, 12%);
+    background-color: hsl(0, 0%, 10%);
     border-bottom: solid 2px var(--bg-color);
 }
 
@@ -14,18 +14,19 @@
 .application_ToolButton label {
     box-sizing: border-box;
     display: inline-block;
-    font-size: 16px;
+    font-size: 15px;
     height: 100%;
     padding: 0 20px;
-    line-height: 40px;
+    line-height: 29px;
+    color: hsl(0, 0%, 65%);
 }
 
 .application_ToolButton label:hover {
-    color: hsl(200, 25%, 85%);
-    background-color: hsl(0, 0%, 16%);
+    color: hsl(0, 0%, 85%);
+    background-color: hsl(0, 0%, 12%);
 }
 
 .application_ToolButton input:checked + label {
-    color: hsl(200, 50%, 85%);
-    background-color: hsl(0, 0%, 20%);
+    color: hsl(0, 0%, 85%);
+    background-color: var(--bg-color);
 }

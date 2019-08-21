@@ -1,23 +1,32 @@
 .core_Input {
     box-sizing: border-box;
-    height: 26px;
+    border: solid 1px hsl(0, 0%, 25%);
+}
+
+.core_Input .core_Input_inner {
+    box-sizing: border-box;
+    width: 100%;
+    height: 24px;
     padding: 0 3px;
-    border: solid 1px var(--border-color);
-    background-color: var(--input-bg-color);
-    color: var(--text-color);
+    border: solid 1px hsl(0, 0%, 0%);
+    background-color: hsl(0, 0%, 12%);
+    color: hsl(0, 0%, 75%);
     outline: none;
 }
 
 .core_Input:hover {
-    border: solid 1px var(--border-color-hover);
+    border-color: hsl(0, 0%, 35%);
 }
 
-.core_Input:focus {
-    border: solid 1px var(--border-color-focus);
+.core_Input:focus-within {
+    border-color: hsl(0, 0%, 45%);
 }
 
-.core_Input:disabled {
+.core_Input.disabled {
+    border: solid 1px hsl(0, 0%, 20%);
+}
+
+.core_Input.disabled .core_Input_inner {
+    background-color: hsl(0, 0%, 15%);
     color: var(--text-color-disabled);
-    background-color: var(--input-bg-color-disabled);
-    border: solid 1px var(--border-color);
 }

@@ -1,5 +1,5 @@
 import React from "react";
-import { SectionId } from "../domain";
+import { SectionId } from "../../../core/domain";
 
 export function SectionIdIcon({
     section_id,
