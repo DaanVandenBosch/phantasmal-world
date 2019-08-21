@@ -41,7 +41,7 @@ export abstract class Renderer implements Disposable {
 
     private renderer = new WebGLRenderer({ antialias: true });
     private render_scheduled = false;
-    private render_stop_scheduled = false;
+    private animation_frame_handle?: number = undefined;
     private light = new HemisphereLight(0xffffff, 0x505050, 1.2);
     private controls_clock = new Clock();
 
@@ -81,11 +81,14 @@ export abstract class Renderer implements Disposable {
 
     start_rendering(): void {
         this.schedule_render();
-        requestAnimationFrame(this.call_render);
+        this.animation_frame_handle = requestAnimationFrame(this.call_render);
     }
 
     stop_rendering(): void {
-        this.render_stop_scheduled = true;
+        if (this.animation_frame_handle != undefined) {
+            cancelAnimationFrame(this.animation_frame_handle);
+            this.animation_frame_handle = undefined;
+        }
     }
 
     schedule_render = () => {
@@ -121,15 +124,10 @@ export abstract class Renderer implements Disposable {
 
         this.render_scheduled = false;
 
-        if (this.render_stop_scheduled) {
-            this.render_stop_scheduled = false;
-            return;
-        }
-
         if (should_render) {
             this.render();
         }
 
-        requestAnimationFrame(this.call_render);
+        this.animation_frame_handle = requestAnimationFrame(this.call_render);
     };
 }

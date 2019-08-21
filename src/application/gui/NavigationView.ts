@@ -10,8 +10,9 @@ const TOOLS: [GuiTool, string][] = [
 ];
 
 export class NavigationView extends View {
-    element = create_el("div", "application_NavigationView");
-    height = 30;
+    readonly element = create_el("div", "application_NavigationView");
+
+    readonly height = 30;
 
     private buttons = new Map<GuiTool, ToolButton>(
         TOOLS.map(([value, text]) => [value, this.disposable(new ToolButton(value, text))]),
