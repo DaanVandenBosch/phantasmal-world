@@ -2,14 +2,17 @@
     box-sizing: border-box;
     background-color: hsl(0, 0%, 16%);
     padding: 3px 0 0 0;
+    border-bottom: solid 1px var(--border-color);
 }
 
 .core_TabContainer_Tab {
+    box-sizing: border-box;
     display: inline-block;
-    height: 100%;
-    line-height: 25px;
+    height: calc(100% + 1px);
+    line-height: 22px;
     padding: 0 10px;
-    margin: 0 1px;
+    border: solid 1px var(--border-color);
+    margin: 0 1px -1px 1px;
     color: #c0c0c0;
     font-size: 15px;
 }
@@ -22,4 +25,5 @@
 .core_TabContainer_Tab.active {
     background-color: var(--bg-color);
     color: hsl(0, 0%, 90%);
+    border-bottom-color: var(--bg-color);
 }
