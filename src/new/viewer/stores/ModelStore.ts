@@ -15,6 +15,7 @@ import { property } from "../../core/observable";
 import { Property } from "../../core/observable/Property";
 import { PSO_FRAME_RATE } from "../../../core/rendering/conversion/ninja_animation";
 import { parse_xvm, Xvm } from "../../../core/data_formats/parsing/ninja/texture";
+import { gui_store, GuiTool } from "../../core/stores/GuiStore";
 import Logger = require("js-logger");
 
 const logger = Logger.get("viewer/stores/ModelStore");
@@ -77,6 +78,19 @@ export class ModelStore implements Disposable {
         this.disposables.push(
             this.current_model.observe(this.load_model),
             this.current_animation.observe(this.load_animation),
+        );
+
+        let prev_animation_playing = this.animation_playing.get();
+
+        this.disposables.push(
+            gui_store.tool.observe(tool => {
+                if (tool === GuiTool.Viewer) {
+                    this.animation_playing.set(prev_animation_playing);
+                } else {
+                    prev_animation_playing = this.animation_playing.get();
+                    this.animation_playing.set(false);
+                }
+            }),
         );
     }
 
