@@ -79,6 +79,7 @@ export abstract class Renderer {
     }
 
     start_rendering(): void {
+        this.schedule_render();
         requestAnimationFrame(this.call_render);
     }
 

@@ -3,8 +3,8 @@ import { writeFileSync } from "fs";
 import "isomorphic-fetch";
 import Logger from "js-logger";
 import { ASSETS_DIR } from ".";
-import { Difficulty, SectionId, SectionIds } from "../src/core/domain";
-import { BoxDropDto, EnemyDropDto, ItemTypeDto } from "../src/core/dto";
+import { Difficulty, SectionId, SectionIds } from "../src/old/core/domain";
+import { BoxDropDto, EnemyDropDto, ItemTypeDto } from "../src/old/core/dto";
 import {
     name_and_episode_to_npc_type,
     NpcType,

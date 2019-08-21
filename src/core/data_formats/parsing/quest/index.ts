@@ -4,8 +4,8 @@ import {
     InstructionSegment,
     Segment,
     SegmentType,
-} from "../../../../quest_editor/scripting/instructions";
-import { Opcode } from "../../../../quest_editor/scripting/opcodes";
+} from "../../../../old/quest_editor/scripting/instructions";
+import { Opcode } from "../../../../old/quest_editor/scripting/opcodes";
 import { prs_compress } from "../../compression/prs/compress";
 import { prs_decompress } from "../../compression/prs/decompress";
 import { ArrayBufferCursor } from "../../cursor/ArrayBufferCursor";

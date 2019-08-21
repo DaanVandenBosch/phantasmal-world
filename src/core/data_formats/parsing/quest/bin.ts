@@ -1,8 +1,8 @@
 import Logger from "js-logger";
 import { Endianness } from "../../Endianness";
-import { ControlFlowGraph } from "../../../../quest_editor/scripting/data_flow_analysis/ControlFlowGraph";
-import { register_value } from "../../../../quest_editor/scripting/data_flow_analysis/register_value";
-import { stack_value } from "../../../../quest_editor/scripting/data_flow_analysis/stack_value";
+import { ControlFlowGraph } from "../../../../old/quest_editor/scripting/data_flow_analysis/ControlFlowGraph";
+import { register_value } from "../../../../old/quest_editor/scripting/data_flow_analysis/register_value";
+import { stack_value } from "../../../../old/quest_editor/scripting/data_flow_analysis/stack_value";
 import {
     Arg,
     DataSegment,
@@ -11,13 +11,13 @@ import {
     Segment,
     SegmentType,
     StringSegment,
-} from "../../../../quest_editor/scripting/instructions";
+} from "../../../../old/quest_editor/scripting/instructions";
 import {
     Kind,
     Opcode,
     OPCODES,
     StackInteraction,
-} from "../../../../quest_editor/scripting/opcodes";
+} from "../../../../old/quest_editor/scripting/opcodes";
 import { ArrayBufferCursor } from "../../cursor/ArrayBufferCursor";
 import { Cursor } from "../../cursor/Cursor";
 import { ResizableBufferCursor } from "../../cursor/ResizableBufferCursor";
