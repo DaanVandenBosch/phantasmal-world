@@ -1,5 +1,5 @@
 import { View } from "./View";
-import { create_el } from "./dom";
+import { el } from "./dom";
 import { LazyView } from "./LazyView";
 import { Resizable } from "./Resizable";
 import { ResizableView } from "./ResizableView";
@@ -16,11 +16,11 @@ type TabInfo = Tab & { tab_element: HTMLSpanElement; lazy_view: LazyView };
 const BAR_HEIGHT = 28;
 
 export class TabContainer extends ResizableView {
-    readonly element = create_el("div", "core_TabContainer");
+    readonly element = el("div", { class: "core_TabContainer" });
 
     private tabs: TabInfo[] = [];
-    private bar_element = create_el("div", "core_TabContainer_Bar");
-    private panes_element = create_el("div", "core_TabContainer_Panes");
+    private bar_element = el("div", { class: "core_TabContainer_Bar" });
+    private panes_element = el("div", { class: "core_TabContainer_Panes" });
 
     constructor(...tabs: Tab[]) {
         super();
@@ -28,9 +28,10 @@ export class TabContainer extends ResizableView {
         this.bar_element.onclick = this.bar_click;
 
         for (const tab of tabs) {
-            const tab_element = create_el("span", "core_TabContainer_Tab", tab_element => {
-                tab_element.textContent = tab.title;
-                tab_element.dataset["key"] = tab.key;
+            const tab_element = el("span", {
+                class: "core_TabContainer_Tab",
+                text: tab.title,
+                data: { key: tab.key },
             });
             this.bar_element.append(tab_element);
 

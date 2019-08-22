@@ -1,10 +1,10 @@
-import { create_el } from "./dom";
+import { el } from "./dom";
 import { WritableProperty } from "../observable/WritableProperty";
 import { property } from "../observable";
 import { LabelledControl } from "./LabelledControl";
 
 export class CheckBox extends LabelledControl {
-    readonly element: HTMLInputElement = create_el("input", "core_CheckBox");
+    readonly element: HTMLInputElement = el("input", { class: "core_CheckBox" });
 
     readonly checked: WritableProperty<boolean> = property(false);
 
@@ -14,7 +14,7 @@ export class CheckBox extends LabelledControl {
         super(label);
 
         this.element.type = "checkbox";
-        this.element.onchange = () => this.checked.set(this.element.checked);
+        this.element.onchange = () => (this.checked.val = this.element.checked);
 
         this.disposables(
             this.checked.observe(checked => (this.element.checked = checked)),
@@ -22,6 +22,6 @@ export class CheckBox extends LabelledControl {
             this.enabled.observe(enabled => (this.element.disabled = !enabled)),
         );
 
-        this.checked.set(checked);
+        this.checked.val = checked;
     }
 }

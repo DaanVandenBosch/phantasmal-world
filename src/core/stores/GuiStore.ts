@@ -24,7 +24,7 @@ class GuiStore implements Disposable {
 
     constructor() {
         const tool = window.location.hash.slice(2);
-        this.tool.set(string_to_gui_tool(tool) || GuiTool.Viewer);
+        this.tool.val = string_to_gui_tool(tool) || GuiTool.Viewer;
     }
 
     dispose(): void {

@@ -1,6 +1,6 @@
 .core_TabContainer_Bar {
     box-sizing: border-box;
-    padding: 3px 0 0 0;
+    padding: 3px 3px 0 3px;
     border-bottom: solid 1px var(--border-color);
 }
 

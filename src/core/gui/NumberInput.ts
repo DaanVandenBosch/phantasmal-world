@@ -1,22 +1,21 @@
 import "./NumberInput.css";
 import "./Input.css";
-import { create_el } from "./dom";
+import { el } from "./dom";
 import { WritableProperty } from "../observable/WritableProperty";
 import { property } from "../observable";
 import { LabelledControl } from "./LabelledControl";
 import { is_any_property, Property } from "../observable/Property";
 
 export class NumberInput extends LabelledControl {
-    readonly element = create_el("span", "core_NumberInput core_Input");
+    readonly element = el("span", { class: "core_NumberInput core_Input" });
 
     readonly value: WritableProperty<number> = property(0);
 
     readonly preferred_label_position = "left";
 
-    private readonly input: HTMLInputElement = create_el(
-        "input",
-        "core_NumberInput_inner core_Input_inner",
-    );
+    private readonly input: HTMLInputElement = el("input", {
+        class: "core_NumberInput_inner core_Input_inner",
+    });
 
     constructor(
         value = 0,
@@ -34,7 +33,7 @@ export class NumberInput extends LabelledControl {
         this.set_prop("max", max);
         this.set_prop("step", step);
 
-        this.input.onchange = () => this.value.set(this.input.valueAsNumber);
+        this.input.onchange = () => (this.value.val = this.input.valueAsNumber);
 
         this.element.append(this.input);
 
@@ -57,7 +56,7 @@ export class NumberInput extends LabelledControl {
 
     private set_prop<T>(prop: "min" | "max" | "step", value: T | Property<T>): void {
         if (is_any_property(value)) {
-            this.input[prop] = String(value.get());
+            this.input[prop] = String(value.val);
             this.disposable(value.observe(v => (this.input[prop] = String(v))));
         } else {
             this.input[prop] = String(value);

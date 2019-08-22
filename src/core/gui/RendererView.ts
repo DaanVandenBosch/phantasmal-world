@@ -1,9 +1,9 @@
 import { ResizableView } from "./ResizableView";
-import { create_el } from "./dom";
+import { el } from "./dom";
 import { Renderer } from "../rendering/Renderer";
 
 export class RendererView extends ResizableView {
-    readonly element = create_el("div");
+    readonly element = el("div");
 
     constructor(private renderer: Renderer) {
         super();

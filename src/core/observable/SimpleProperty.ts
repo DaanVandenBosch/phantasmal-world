@@ -1,40 +1,37 @@
-import { SimpleEmitter } from "./SimpleEmitter";
 import { Disposable } from "./Disposable";
 import { Observable } from "./Observable";
 import { WritableProperty } from "./WritableProperty";
-import { Property, PropertyMeta, is_property } from "./Property";
-import { MappedProperty } from "./MappedProperty";
+import { is_property } from "./Property";
+import { AbstractProperty } from "./AbstractProperty";
 
-export class SimpleProperty<T> extends SimpleEmitter<T, PropertyMeta<T>>
-    implements WritableProperty<T> {
-    readonly is_property = true;
+export class SimpleProperty<T> extends AbstractProperty<T> implements WritableProperty<T> {
     readonly is_writable_property = true;
 
-    private value: T;
-
-    constructor(value: T) {
+    constructor(private _val: T) {
         super();
-        this.value = value;
     }
 
-    get(): T {
-        return this.value;
+    get val(): T {
+        return this._val;
     }
 
-    set(value: T): void {
-        if (value !== this.value) {
-            const old_value = this.value;
-            this.value = value;
-            this.emit(value, { old_value });
+    set val(val: T) {
+        if (val !== this._val) {
+            this._val = val;
+            this.emit();
         }
     }
 
-    bind(observable: Observable<T, any>): Disposable {
+    update(f: (value: T) => T): void {
+        this.val = f(this.val);
+    }
+
+    bind(observable: Observable<T>): Disposable {
         if (is_property(observable)) {
-            this.set(observable.get());
+            this.val = observable.val;
         }
 
-        return observable.observe(v => this.set(v));
+        return observable.observe(v => (this.val = v));
     }
 
     bind_bi(property: WritableProperty<T>): Disposable {
@@ -46,9 +43,5 @@ export class SimpleProperty<T> extends SimpleEmitter<T, PropertyMeta<T>>
                 bind_2.dispose();
             },
         };
-    }
-
-    map<U>(f: (element: T) => U): Property<U> {
-        return new MappedProperty(this, f);
     }
 }

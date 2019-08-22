@@ -1,10 +1,10 @@
 import { View } from "./View";
-import { create_el } from "./dom";
+import { el } from "./dom";
 import { Resizable } from "./Resizable";
 import { ResizableView } from "./ResizableView";
 
 export class LazyView extends ResizableView {
-    readonly element = create_el("div", "core_LazyView");
+    readonly element = el("div", { class: "core_LazyView" });
 
     private _visible = false;
 

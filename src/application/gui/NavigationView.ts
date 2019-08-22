@@ -1,4 +1,4 @@
-import { create_el } from "../../core/gui/dom";
+import { el } from "../../core/gui/dom";
 import "./NavigationView.css";
 import { gui_store, GuiTool } from "../../core/stores/GuiStore";
 import { View } from "../../core/gui/View";
@@ -10,7 +10,7 @@ const TOOLS: [GuiTool, string][] = [
 ];
 
 export class NavigationView extends View {
-    readonly element = create_el("div", "application_NavigationView");
+    readonly element = el("div", { class: "application_NavigationView" });
 
     readonly height = 30;
 
@@ -28,13 +28,13 @@ export class NavigationView extends View {
             this.element.append(button.element);
         }
 
-        this.tool_changed(gui_store.tool.get());
+        this.tool_changed(gui_store.tool.val);
         this.disposable(gui_store.tool.observe(this.tool_changed));
     }
 
     private click(e: MouseEvent): void {
         if (e.target instanceof HTMLLabelElement && e.target.control instanceof HTMLInputElement) {
-            gui_store.tool.set((GuiTool as any)[e.target.control.value]);
+            gui_store.tool.val = (GuiTool as any)[e.target.control.value];
         }
     }
 
@@ -45,10 +45,10 @@ export class NavigationView extends View {
 }
 
 class ToolButton extends View {
-    element: HTMLElement = create_el("span");
+    element: HTMLElement = el("span");
 
-    private input: HTMLInputElement = create_el("input");
-    private label: HTMLLabelElement = create_el("label");
+    private input: HTMLInputElement = el("input");
+    private label: HTMLLabelElement = el("label");
 
     constructor(tool: GuiTool, text: string) {
         super();

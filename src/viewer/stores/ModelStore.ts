@@ -91,7 +91,7 @@ export class ModelStore implements Disposable {
             const cursor = new ArrayBufferCursor(buffer, Endianness.Little);
 
             if (file.name.endsWith(".nj")) {
-                this.current_model.set(undefined);
+                this.current_model.val = undefined;
 
                 const nj_object = parse_nj(cursor)[0];
 
@@ -101,7 +101,7 @@ export class ModelStore implements Disposable {
                     has_skeleton: true,
                 });
             } else if (file.name.endsWith(".xj")) {
-                this.current_model.set(undefined);
+                this.current_model.val = undefined;
 
                 const nj_object = parse_xj(cursor)[0];
 
@@ -111,18 +111,18 @@ export class ModelStore implements Disposable {
                     has_skeleton: false,
                 });
             } else if (file.name.endsWith(".njm")) {
-                this.current_animation.set(undefined);
-                this._current_nj_motion.set(undefined);
+                this.current_animation.val = undefined;
+                this._current_nj_motion.val = undefined;
 
-                const nj_data = this.current_nj_data.get();
+                const nj_data = this.current_nj_data.val;
 
                 if (nj_data) {
-                    this._current_nj_motion.set(parse_njm(cursor, nj_data.bone_count));
+                    this.animation_playing.val = true;
+                    this._current_nj_motion.val = parse_njm(cursor, nj_data.bone_count);
                 }
             } else if (file.name.endsWith(".xvm")) {
                 if (this.current_model) {
-                    const xvm = parse_xvm(cursor);
-                    this._current_xvm.set(xvm);
+                    this._current_xvm.val = parse_xvm(cursor);
                 }
             } else {
                 logger.error(`Unknown file extension in filename "${file.name}".`);
@@ -133,7 +133,7 @@ export class ModelStore implements Disposable {
     };
 
     private load_model = async (model?: CharacterClassModel) => {
-        this.current_animation.set(undefined);
+        this.current_animation.val = undefined;
 
         if (model) {
             const nj_object = await this.get_nj_object(model);
@@ -145,13 +145,13 @@ export class ModelStore implements Disposable {
                 has_skeleton: true,
             });
         } else {
-            this._current_nj_data.set(undefined);
+            this._current_nj_data.val = undefined;
         }
     };
 
     private set_current_nj_data(nj_data: NjData): void {
-        this._current_xvm.set(undefined);
-        this._current_nj_data.set(nj_data);
+        this._current_xvm.val = undefined;
+        this._current_nj_data.val = nj_data;
     }
 
     private async get_nj_object(model: CharacterClassModel): Promise<NjObject> {
@@ -215,13 +215,13 @@ export class ModelStore implements Disposable {
     }
 
     private load_animation = async (animation?: CharacterClassAnimation) => {
-        const nj_data = this.current_nj_data.get();
+        const nj_data = this.current_nj_data.val;
 
         if (nj_data && animation) {
-            this._current_nj_motion.set(await this.get_nj_motion(animation, nj_data.bone_count));
-            this.animation_playing.set(true);
+            this._current_nj_motion.val = await this.get_nj_motion(animation, nj_data.bone_count);
+            this.animation_playing.val = true;
         } else {
-            this._current_nj_motion.set(undefined);
+            this._current_nj_motion.val = undefined;
         }
     };
 

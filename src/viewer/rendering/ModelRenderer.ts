@@ -92,14 +92,14 @@ export class ModelRenderer extends Renderer implements Disposable {
             this.animation = undefined;
         }
 
-        const nj_data = model_store.current_nj_data.get();
+        const nj_data = model_store.current_nj_data.val;
 
         if (nj_data) {
             const { nj_object, has_skeleton } = nj_data;
 
             let mesh: Mesh;
 
-            const xvm = model_store.current_xvm.get();
+            const xvm = model_store.current_xvm.val;
             const textures = xvm ? xvm_to_textures(xvm) : undefined;
 
             const materials =
@@ -129,7 +129,7 @@ export class ModelRenderer extends Renderer implements Disposable {
             this.scene.add(mesh);
 
             this.skeleton_helper = new SkeletonHelper(mesh);
-            this.skeleton_helper.visible = model_store.show_skeleton.get();
+            this.skeleton_helper.visible = model_store.show_skeleton.val;
             (this.skeleton_helper.material as any).linewidth = 3;
             this.scene.add(this.skeleton_helper);
 
@@ -147,7 +147,7 @@ export class ModelRenderer extends Renderer implements Disposable {
             mixer = this.animation.mixer;
         }
 
-        const nj_data = model_store.current_nj_data.get();
+        const nj_data = model_store.current_nj_data.val;
 
         if (!this.mesh || !(this.mesh instanceof SkinnedMesh) || !nj_motion || !nj_data) return;
 
@@ -195,7 +195,7 @@ export class ModelRenderer extends Renderer implements Disposable {
     };
 
     private animation_frame_changed = (frame: number) => {
-        const nj_motion = model_store.current_nj_motion.get();
+        const nj_motion = model_store.current_nj_motion.val;
 
         if (this.animation && nj_motion) {
             const frame_count = nj_motion.frame_count;
@@ -209,7 +209,7 @@ export class ModelRenderer extends Renderer implements Disposable {
     private update_animation_frame(): void {
         if (this.animation && !this.animation.action.paused) {
             const time = this.animation.action.time;
-            model_store.animation_frame.set(time * PSO_FRAME_RATE + 1);
+            model_store.animation_frame.val = time * PSO_FRAME_RATE + 1;
         }
     }
 }

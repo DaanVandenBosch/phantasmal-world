@@ -1,4 +1,4 @@
-import { create_el } from "../../core/gui/dom";
+import { el } from "../../core/gui/dom";
 import { gui_store, GuiTool } from "../../core/stores/GuiStore";
 import { LazyView } from "../../core/gui/LazyView";
 import { ResizableView } from "../../core/gui/ResizableView";
@@ -12,7 +12,7 @@ const TOOLS: [GuiTool, () => Promise<ResizableView>][] = [
 ];
 
 export class MainContentView extends ResizableView {
-    element = create_el("div", "application_MainContentView");
+    element = el("div", { class: "application_MainContentView" });
 
     private tool_views = new Map(
         TOOLS.map(([tool, create_view]) => [tool, this.disposable(new LazyView(create_view))]),
@@ -25,7 +25,7 @@ export class MainContentView extends ResizableView {
             this.element.append(tool_view.element);
         }
 
-        const tool_view = this.tool_views.get(gui_store.tool.get());
+        const tool_view = this.tool_views.get(gui_store.tool.val);
         if (tool_view) tool_view.visible = true;
 
         this.disposable(gui_store.tool.observe(this.tool_changed));
@@ -41,9 +41,10 @@ export class MainContentView extends ResizableView {
         return this;
     }
 
-    private tool_changed = (new_tool: GuiTool, { old_value }: { old_value: GuiTool }) => {
-        const old_view = this.tool_views.get(old_value);
-        if (old_view) old_view.visible = false;
+    private tool_changed = (new_tool: GuiTool) => {
+        for (const tool of this.tool_views.values()) {
+            tool.visible = false;
+        }
 
         const new_view = this.tool_views.get(new_tool);
         if (new_view) new_view.visible = true;

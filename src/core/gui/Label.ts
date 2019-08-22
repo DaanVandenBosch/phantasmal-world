@@ -1,12 +1,12 @@
 import { View } from "./View";
-import { create_el } from "./dom";
+import { el } from "./dom";
 import { WritableProperty } from "../observable/WritableProperty";
 import "./Label.css";
 import { property } from "../observable";
 import { Property } from "../observable/Property";
 
 export class Label extends View {
-    readonly element = create_el<HTMLLabelElement>("label", "core_Label");
+    readonly element = el<HTMLLabelElement>("label", { class: "core_Label" });
 
     set for(id: string) {
         this.element.htmlFor = id;
@@ -20,7 +20,7 @@ export class Label extends View {
         if (typeof text === "string") {
             this.element.append(text);
         } else {
-            this.element.append(text.get());
+            this.element.append(text.val);
             this.disposable(text.observe(text => (this.element.textContent = text)));
         }
 

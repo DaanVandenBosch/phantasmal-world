@@ -1,20 +1,38 @@
 import { Disposable } from "../observable/Disposable";
+import { Observable } from "../observable/Observable";
+import { is_property } from "../observable/Property";
 
-export function create_el<T extends HTMLElement>(
+export function el<T extends HTMLElement>(
     tag_name: string,
-    class_name?: string,
-    modify?: (element: T) => void,
+    attributes?: {
+        class?: string;
+        text?: string ;
+        data?: { [key: string]: string };
+    },
+    ...children: HTMLElement[]
 ): T {
     const element = document.createElement(tag_name) as T;
-    if (class_name) element.className = class_name;
-    if (modify) modify(element);
+
+    if (attributes) {
+        if (attributes.class) element.className = attributes.class;
+        if (attributes.text) element.textContent = attributes.text;
+
+        if (attributes.data) {
+            for (const [key, val] of Object.entries(attributes.data)) {
+                element.dataset[key] = val;
+            }
+        }
+    }
+
+    element.append(...children);
+
     return element;
 }
 
-export function disposable_el(element: HTMLElement): Disposable {
-    return {
-        dispose(): void {
-            element.remove();
-        },
-    };
+export function bind_hidden(element: HTMLElement, observable: Observable<boolean>): Disposable {
+    if (is_property(observable)) {
+        element.hidden = observable.val;
+    }
+
+    return observable.observe(v => (element.hidden = v));
 }

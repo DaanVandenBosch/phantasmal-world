@@ -15,7 +15,7 @@ export class TextureStore {
     load_file = async (file: File) => {
         try {
             const buffer = await read_file(file);
-            this._current_xvm.set(parse_xvm(new ArrayBufferCursor(buffer, Endianness.Little)));
+            this._current_xvm.val = parse_xvm(new ArrayBufferCursor(buffer, Endianness.Little));
         } catch (e) {
             logger.error("Couldn't read file.", e);
         }

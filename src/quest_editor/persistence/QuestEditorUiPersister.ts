@@ -4,7 +4,7 @@ import GoldenLayout from "golden-layout";
 
 const LAYOUT_CONFIG_KEY = "QuestEditorUiPersister.layout_config";
 
-class QuestEditorUiPersister extends Persister {
+export class QuestEditorUiPersister extends Persister {
     persist_layout_config = throttle(
         (config: any) => {
             this.persist(LAYOUT_CONFIG_KEY, config);
@@ -51,11 +51,11 @@ class QuestEditorUiPersister extends Persister {
             return false;
         }
 
-        if ("component" in config) {
-            if (!components.has(config.component)) {
+        if ("componentName" in config) {
+            if (!components.has(config.componentName)) {
                 return false;
             } else {
-                found.add(config.component);
+                found.add(config.componentName);
             }
         }
 

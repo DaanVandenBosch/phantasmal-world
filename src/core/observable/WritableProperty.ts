@@ -3,17 +3,24 @@ import { Observable } from "./Observable";
 import { Disposable } from "./Disposable";
 
 export interface WritableProperty<T> extends Property<T> {
-    is_writable_property: true;
+    readonly is_writable_property: true;
 
-    set(value: T): void;
+    val: T;
 
-    bind(observable: Observable<T, any>): Disposable;
+    update(f: (value: T) => T): void;
+
+    /**
+     * Bind the value of this property to the given observable.
+     *
+     * @param observable the observable who's events will be propagated to this property.
+     */
+    bind(observable: Observable<T>): Disposable;
 
     bind_bi(property: WritableProperty<T>): Disposable;
 }
 
 export function is_writable_property<T>(
-    observable: Observable<T, any>,
+    observable: Observable<T>,
 ): observable is WritableProperty<T> {
     return (observable as any).is_writable_property;
 }

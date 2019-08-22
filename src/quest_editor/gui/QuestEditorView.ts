@@ -1,20 +1,33 @@
 import { ResizableView } from "../../core/gui/ResizableView";
-import { create_el } from "../../core/gui/dom";
+import { el } from "../../core/gui/dom";
 import { ToolBarView } from "./ToolBarView";
-import GoldenLayout, { ContentItem } from "golden-layout";
+import GoldenLayout, { Container, ContentItem, ItemConfigType } from "golden-layout";
 import { quest_editor_ui_persister } from "../persistence/QuestEditorUiPersister";
-import { AssemblyEditorComponent } from "../../old/quest_editor/ui/AssemblyEditorComponent";
-import { quest_editor_store } from "../../old/quest_editor/stores/QuestEditorStore";
+import { QuesInfoView } from "./QuesInfoView";
 import Logger = require("js-logger");
+import "golden-layout/src/css/goldenlayout-base.css";
+import "../../core/gui/golden_layout_theme.css";
+import { NpcCountsView } from "./NpcCountsView";
 
 const logger = Logger.get("quest_editor/gui/QuestEditorView");
+
+// Don't change these values, as they are persisted in the user's browser.
+const VIEW_TO_NAME = new Map([
+    [QuesInfoView, "quest_info"],
+    [NpcCountsView, "npc_counts"],
+    // [QuestRendererView, "quest_renderer"],
+    // [AssemblyEditorView, "assembly_editor"],
+    // [EntityInfoView, "entity_info"],
+    // [AddObjectView, "add_object"],
+]);
 
 const DEFAULT_LAYOUT_CONFIG = {
     settings: {
         showPopoutIcon: false,
+        showMaximiseIcon: false,
     },
     dimensions: {
-        headerHeight: 28,
+        headerHeight: 22,
     },
     labels: {
         close: "Close",
@@ -24,65 +37,151 @@ const DEFAULT_LAYOUT_CONFIG = {
     },
 };
 
+const DEFAULT_LAYOUT_CONTENT: ItemConfigType[] = [
+    {
+        type: "row",
+        content: [
+            {
+                type: "stack",
+                width: 3,
+                content: [
+                    {
+                        title: "Info",
+                        type: "component",
+                        componentName: VIEW_TO_NAME.get(QuesInfoView),
+                        isClosable: false,
+                    },
+                    {
+                        title: "NPC Counts",
+                        type: "component",
+                        componentName: VIEW_TO_NAME.get(NpcCountsView),
+                        isClosable: false,
+                    },
+                ],
+            },
+            // {
+            //     type: "stack",
+            //     width: 9,
+            //     content: [
+            //         {
+            //             title: "3D View",
+            //             type: "component",
+            //             componentName: Component.QuestRenderer,
+            //             isClosable: false,
+            //         },
+            //         {
+            //             title: "Script",
+            //             type: "component",
+            //             componentName: Component.AssemblyEditor,
+            //             isClosable: false,
+            //         },
+            //     ],
+            // },
+            // {
+            //     title: "Entity",
+            //     type: "component",
+            //     componentName: Component.EntityInfo,
+            //     isClosable: false,
+            //     width: 2,
+            // },
+        ],
+    },
+];
+
 export class QuestEditorView extends ResizableView {
-    readonly element = create_el("div");
+    readonly element = el("div", { class: "quest_editor_QuestEditorView" });
 
     private readonly tool_bar_view = this.disposable(new ToolBarView());
 
-    private layout_element = create_el("div");
-    // private layout: GoldenLayout;
+    private readonly layout_element = el("div", { class: "quest_editor_gl_container" });
+    private readonly layout: Promise<GoldenLayout>;
 
     constructor() {
         super();
 
-        // const content = await quest_editor_ui_persister.load_layout_config(
-        //     [...CMP_TO_NAME.values()],
-        //     DEFAULT_LAYOUT_CONTENT,
-        // );
-        //
-        // const config: GoldenLayout.Config = {
-        //     ...DEFAULT_LAYOUT_CONFIG,
-        //     content,
-        // };
-        //
-        // try {
-        //     this.layout = new GoldenLayout(config, this.layout_element);
-        // } catch (e) {
-        //     logger.warn("Couldn't initialize golden layout with persisted layout.", e);
-        //
-        //     this.layout = new GoldenLayout(
-        //         {
-        //             ...DEFAULT_LAYOUT_CONFIG,
-        //             content: DEFAULT_LAYOUT_CONTENT,
-        //         },
-        //         this.layout_element,
-        //     );
-        // }
-        //
-        // for (const [component, name] of CMP_TO_NAME) {
-        //     this.layout.registerComponent(name, component);
-        // }
-        //
-        // this.layout.on("stateChanged", () => {
-        //     if (this.layout) {
-        //         quest_editor_ui_persister.persist_layout_config(this.layout.toConfig().content);
-        //     }
-        // });
-        //
-        // this.layout.on("stackCreated", (stack: ContentItem) => {
-        //     stack.on("activeContentItemChanged", (item: ContentItem) => {
-        //         if ("component" in item.config) {
-        //             if (item.config.component === CMP_TO_NAME.get(AssemblyEditorComponent)) {
-        //                 quest_editor_store.script_undo.make_current();
-        //             } else {
-        //                 quest_editor_store.undo.make_current();
-        //             }
-        //         }
-        //     });
-        // });
-        //
-        // this.layout.init();
-
         this.element.append(this.tool_bar_view.element, this.layout_element);
+
+        this.layout = this.init_golden_layout();
+    }
+
+    resize(width: number, height: number): this {
+        super.resize(width, height);
+
+        const layout_height = Math.max(0, height - this.tool_bar_view.height);
+        this.layout_element.style.width = `${width}px`;
+        this.layout_element.style.height = `${layout_height}px`;
+        this.layout.then(layout => layout.updateSize(width, layout_height));
+
+        return this;
+    }
+
+    dispose(): void {
+        super.dispose();
+        this.layout.then(layout => layout.destroy());
+    }
+
+    private async init_golden_layout(): Promise<GoldenLayout> {
+        const content = await quest_editor_ui_persister.load_layout_config(
+            [...VIEW_TO_NAME.values()],
+            DEFAULT_LAYOUT_CONTENT,
+        );
+
+        try {
+            return this.attempt_gl_init({
+                ...DEFAULT_LAYOUT_CONFIG,
+                content,
+            });
+        } catch (e) {
+            logger.warn("Couldn't instantiate golden layout with persisted layout.", e);
+
+            return this.attempt_gl_init({
+                ...DEFAULT_LAYOUT_CONFIG,
+                content: DEFAULT_LAYOUT_CONTENT,
+            });
+        }
+    }
+
+    private attempt_gl_init(config: GoldenLayout.Config): GoldenLayout {
+        const layout = new GoldenLayout(config, this.layout_element);
+
+        try {
+            for (const [view_ctor, name] of VIEW_TO_NAME) {
+                layout.registerComponent(name, function(container: Container) {
+                    const view = new view_ctor();
+
+                    container.on("close", () => view.dispose());
+                    container.on("resize", () => view.resize(container.width, container.height));
+
+                    view.resize(container.width, container.height);
+
+                    container.getElement().append(view.element);
+                });
+            }
+
+            layout.on("stateChanged", () => {
+                if (this.layout) {
+                    quest_editor_ui_persister.persist_layout_config(layout.toConfig().content);
+                }
+            });
+
+            layout.on("stackCreated", (stack: ContentItem) => {
+                stack.on("activeContentItemChanged", (item: ContentItem) => {
+                    // if ("component" in item.config) {
+                    //     if (item.config.component === CMP_TO_NAME.get(AssemblyEditorComponent)) {
+                    //         quest_editor_store.script_undo.make_current();
+                    //     } else {
+                    //         quest_editor_store.undo.make_current();
+                    //     }
+                    // }
+                });
+            });
+
+            layout.init();
+
+            return layout;
+        } catch (e) {
+            layout.destroy();
+            throw e;
+        }
     }
 }

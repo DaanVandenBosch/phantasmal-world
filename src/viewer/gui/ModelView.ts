@@ -1,4 +1,4 @@
-import { create_el } from "../../core/gui/dom";
+import { el } from "../../core/gui/dom";
 import { ResizableView } from "../../core/gui/ResizableView";
 import { ToolBar } from "../../core/gui/ToolBar";
 import "./ModelView.css";
@@ -18,10 +18,10 @@ const MODEL_LIST_WIDTH = 100;
 const ANIMATION_LIST_WIDTH = 130;
 
 export class ModelView extends ResizableView {
-    readonly element = create_el("div", "viewer_ModelView");
+    readonly element = el("div", { class: "viewer_ModelView" });
 
     private tool_bar_view = this.disposable(new ToolBarView());
-    private container_element = create_el("div", "viewer_ModelView_container");
+    private container_element = el("div", { class: "viewer_ModelView_container" });
     private model_list_view = this.disposable(
         new ModelSelectListView(model_store.models, model_store.current_model),
     );
@@ -43,7 +43,7 @@ export class ModelView extends ResizableView {
 
         this.element.append(this.tool_bar_view.element, this.container_element);
 
-        model_store.current_model.set(model_store.models[5]);
+        model_store.current_model.val = model_store.models[5];
 
         this.renderer_view.start_rendering();
 
@@ -147,7 +147,7 @@ class ToolBarView extends View {
 }
 
 class ModelSelectListView<T extends { name: string }> extends ResizableView {
-    element = create_el("ul", "viewer_ModelSelectListView");
+    element = el("ul", { class: "viewer_ModelSelectListView" });
 
     set borders(borders: boolean) {
         if (borders) {
@@ -169,10 +169,7 @@ class ModelSelectListView<T extends { name: string }> extends ResizableView {
 
         models.forEach((model, index) => {
             this.element.append(
-                create_el("li", undefined, li => {
-                    li.textContent = model.name;
-                    li.dataset["index"] = index.toString();
-                }),
+                el("li", { text: model.name, data: { index: index.toString() } }),
             );
         });
 
@@ -206,7 +203,7 @@ class ModelSelectListView<T extends { name: string }> extends ResizableView {
             const index = parseInt(e.target.dataset["index"]!, 10);
 
             this.selected_element = e.target;
-            this.selected.set(this.models[index]);
+            this.selected.val = this.models[index];
         }
     };
 }

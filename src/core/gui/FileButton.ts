@@ -1,17 +1,21 @@
-import { create_el } from "./dom";
-import { View } from "./View";
+import { el } from "./dom";
 import "./FileButton.css";
 import "./Button.css";
 import { property } from "../observable";
 import { Property } from "../observable/Property";
+import { Control } from "./Control";
 
-export class FileButton extends View {
-    readonly element: HTMLLabelElement = create_el("label", "core_FileButton core_Button");
+export class FileButton extends Control {
+    readonly element: HTMLLabelElement = el("label", {
+        class: "core_FileButton core_Button",
+    });
 
     private readonly _files = property<File[]>([]);
     readonly files: Property<File[]> = this._files;
 
-    private input: HTMLInputElement = create_el("input", "core_FileButton_input");
+    private input: HTMLInputElement = el("input", {
+        class: "core_FileButton_input core_Button_inner",
+    });
 
     constructor(text: string, accept: string = "") {
         super();
@@ -20,15 +24,28 @@ export class FileButton extends View {
         this.input.accept = accept;
         this.input.onchange = () => {
             if (this.input.files && this.input.files.length) {
-                this._files.set([...this.input.files!]);
+                this._files.val = [...this.input.files!];
             } else {
-                this._files.set([]);
+                this._files.val = [];
             }
         };
 
-        const inner_element = create_el("span", "core_FileButton_inner core_Button_inner");
-        inner_element.textContent = text;
+        this.element.append(
+            el("span", {
+                class: "core_FileButton_inner core_Button_inner",
+                text,
+            }),
+            this.input,
+        );
 
-        this.element.append(inner_element, this.input);
+        this.enabled.observe(enabled => {
+            this.input.disabled = !enabled;
+
+            if (enabled) {
+                this.element.classList.remove("disabled");
+            } else {
+                this.element.classList.add("disabled");
+            }
+        });
     }
 }
