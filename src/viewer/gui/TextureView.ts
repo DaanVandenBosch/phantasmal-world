@@ -1,4 +1,4 @@
-import { el } from "../../core/gui/dom";
+import { create_element } from "../../core/gui/dom";
 import { ResizableView } from "../../core/gui/ResizableView";
 import { FileButton } from "../../core/gui/FileButton";
 import { ToolBar } from "../../core/gui/ToolBar";
@@ -8,7 +8,7 @@ import { TextureRenderer } from "../rendering/TextureRenderer";
 import { gui_store, GuiTool } from "../../core/stores/GuiStore";
 
 export class TextureView extends ResizableView {
-    readonly element = el("div", { class: "viewer_TextureView" });
+    readonly element = create_element("div", { class: "viewer_TextureView" });
 
     private readonly open_file_button = new FileButton("Open file...", ".xvm");
 

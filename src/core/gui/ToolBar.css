@@ -20,3 +20,7 @@
 .core_ToolBar > .core_ToolBar_group > * {
     margin: 0 2px;
 }
+
+.core_ToolBar .core_Input {
+    height: 26px;
+}

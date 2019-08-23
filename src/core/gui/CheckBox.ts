@@ -1,10 +1,10 @@
-import { el } from "./dom";
+import { create_element } from "./dom";
 import { WritableProperty } from "../observable/WritableProperty";
 import { property } from "../observable";
 import { LabelledControl } from "./LabelledControl";
 
 export class CheckBox extends LabelledControl {
-    readonly element: HTMLInputElement = el("input", { class: "core_CheckBox" });
+    readonly element: HTMLInputElement = create_element("input", { class: "core_CheckBox" });
 
     readonly checked: WritableProperty<boolean> = property(false);
 

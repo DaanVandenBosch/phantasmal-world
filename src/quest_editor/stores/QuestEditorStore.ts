@@ -6,13 +6,19 @@ import { parse_quest } from "../../core/data_formats/parsing/quest";
 import { ArrayBufferCursor } from "../../core/data_formats/cursor/ArrayBufferCursor";
 import { Endianness } from "../../core/data_formats/Endianness";
 import { SimpleUndo, UndoStack } from "../../old/core/undo";
+import { WritableProperty } from "../../core/observable/WritableProperty";
 import Logger = require("js-logger");
 
 const logger = Logger.get("quest_editor/gui/QuestEditorStore");
 
 export class QuestEditorStore {
+    readonly debug: WritableProperty<boolean> = property(false);
+
     readonly undo = new UndoStack();
     readonly script_undo = new SimpleUndo("Text edits", () => {}, () => {});
+
+    private readonly _current_quest_filename = property<string | undefined>(undefined);
+    readonly current_quest_filename: Property<string | undefined> = this._current_quest_filename;
 
     private readonly _current_quest = property<ObservableQuest | undefined>(undefined);
     readonly current_quest: Property<ObservableQuest | undefined> = this._current_quest;
@@ -74,7 +80,7 @@ export class QuestEditorStore {
     };
 
     private set_quest(quest?: ObservableQuest, filename?: string): void {
-        // this.current_quest_filename = filename;
+        this._current_quest_filename.val = filename;
         this.undo.reset();
         this.script_undo.reset();
 

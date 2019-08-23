@@ -1,5 +1,5 @@
 import { ResizableView } from "../../core/gui/ResizableView";
-import { el } from "../../core/gui/dom";
+import { create_element } from "../../core/gui/dom";
 import { ToolBarView } from "./ToolBarView";
 import GoldenLayout, { Container, ContentItem, ItemConfigType } from "golden-layout";
 import { quest_editor_ui_persister } from "../persistence/QuestEditorUiPersister";
@@ -89,11 +89,11 @@ const DEFAULT_LAYOUT_CONTENT: ItemConfigType[] = [
 ];
 
 export class QuestEditorView extends ResizableView {
-    readonly element = el("div", { class: "quest_editor_QuestEditorView" });
+    readonly element = create_element("div", { class: "quest_editor_QuestEditorView" });
 
     private readonly tool_bar_view = this.disposable(new ToolBarView());
 
-    private readonly layout_element = el("div", { class: "quest_editor_gl_container" });
+    private readonly layout_element = create_element("div", { class: "quest_editor_gl_container" });
     private readonly layout: Promise<GoldenLayout>;
 
     constructor() {

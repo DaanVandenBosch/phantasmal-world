@@ -15,7 +15,7 @@ export class DependentProperty<T> extends AbstractMinimalProperty<T> implements 
     private _val?: T;
 
     get val(): T {
-        if (this.dependency_disposables) {
+        if (this.dependency_disposables.length) {
             return this._val as T;
         } else {
             return this.f();

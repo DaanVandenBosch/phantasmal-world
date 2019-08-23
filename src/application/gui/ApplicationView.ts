@@ -1,10 +1,10 @@
 import { NavigationView } from "./NavigationView";
 import { MainContentView } from "./MainContentView";
-import { el } from "../../core/gui/dom";
+import { create_element } from "../../core/gui/dom";
 import { ResizableView } from "../../core/gui/ResizableView";
 
 export class ApplicationView extends ResizableView {
-    element = el("div", { class: "application_ApplicationView" });
+    element = create_element("div", { class: "application_ApplicationView" });
 
     private menu_view = this.disposable(new NavigationView());
     private main_content_view = this.disposable(new MainContentView());

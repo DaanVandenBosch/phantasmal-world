@@ -1,10 +1,10 @@
 import { View } from "./View";
-import { el } from "./dom";
+import { create_element } from "./dom";
 import "./ToolBar.css";
 import { LabelledControl } from "./LabelledControl";
 
 export class ToolBar extends View {
-    readonly element = el("div", { class: "core_ToolBar" });
+    readonly element = create_element("div", { class: "core_ToolBar" });
     readonly height = 33;
 
     constructor(...children: View[]) {
@@ -14,9 +14,12 @@ export class ToolBar extends View {
 
         for (const child of children) {
             if (child instanceof LabelledControl) {
-                const group = el("div", { class: "core_ToolBar_group" });
+                const group = create_element("div", { class: "core_ToolBar_group" });
 
-                if (child.preferred_label_position === "left") {
+                if (
+                    child.preferred_label_position === "left" ||
+                    child.preferred_label_position === "top"
+                ) {
                     group.append(child.label.element, child.element);
                 } else {
                     group.append(child.element, child.label.element);

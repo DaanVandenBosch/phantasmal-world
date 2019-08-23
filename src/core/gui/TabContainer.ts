@@ -1,5 +1,5 @@
 import { View } from "./View";
-import { el } from "./dom";
+import { create_element } from "./dom";
 import { LazyView } from "./LazyView";
 import { Resizable } from "./Resizable";
 import { ResizableView } from "./ResizableView";
@@ -16,19 +16,19 @@ type TabInfo = Tab & { tab_element: HTMLSpanElement; lazy_view: LazyView };
 const BAR_HEIGHT = 28;
 
 export class TabContainer extends ResizableView {
-    readonly element = el("div", { class: "core_TabContainer" });
+    readonly element = create_element("div", { class: "core_TabContainer" });
 
     private tabs: TabInfo[] = [];
-    private bar_element = el("div", { class: "core_TabContainer_Bar" });
-    private panes_element = el("div", { class: "core_TabContainer_Panes" });
+    private bar_element = create_element("div", { class: "core_TabContainer_Bar" });
+    private panes_element = create_element("div", { class: "core_TabContainer_Panes" });
 
     constructor(...tabs: Tab[]) {
         super();
 
-        this.bar_element.onclick = this.bar_click;
+        this.bar_element.onmousedown = this.bar_mousedown;
 
         for (const tab of tabs) {
-            const tab_element = el("span", {
+            const tab_element = create_element("span", {
                 class: "core_TabContainer_Tab",
                 text: tab.title,
                 data: { key: tab.key },
@@ -72,7 +72,7 @@ export class TabContainer extends ResizableView {
         return this;
     }
 
-    private bar_click = (e: MouseEvent) => {
+    private bar_mousedown = (e: MouseEvent) => {
         if (e.target instanceof HTMLElement) {
             const key = e.target.dataset["key"];
             if (key) this.activate(key);
@@ -89,7 +89,7 @@ export class TabContainer extends ResizableView {
                 tab.tab_element.classList.remove("active");
             }
 
-            tab.lazy_view.visible = active;
+            tab.lazy_view.visible.val = active;
         }
     }
 }

@@ -1,4 +1,4 @@
-import { el } from "../../core/gui/dom";
+import { create_element } from "../../core/gui/dom";
 import { ResizableView } from "../../core/gui/ResizableView";
 import { ToolBar } from "../../core/gui/ToolBar";
 import "./ModelView.css";
@@ -18,10 +18,10 @@ const MODEL_LIST_WIDTH = 100;
 const ANIMATION_LIST_WIDTH = 130;
 
 export class ModelView extends ResizableView {
-    readonly element = el("div", { class: "viewer_ModelView" });
+    readonly element = create_element("div", { class: "viewer_ModelView" });
 
     private tool_bar_view = this.disposable(new ToolBarView());
-    private container_element = el("div", { class: "viewer_ModelView_container" });
+    private container_element = create_element("div", { class: "viewer_ModelView_container" });
     private model_list_view = this.disposable(
         new ModelSelectListView(model_store.models, model_store.current_model),
     );
@@ -78,20 +78,18 @@ class ToolBarView extends View {
     private readonly open_file_button = new FileButton("Open file...", ".nj, .njm, .xj, .xvm");
     private readonly skeleton_checkbox = new CheckBox(false, "Show skeleton");
     private readonly play_animation_checkbox = new CheckBox(true, "Play animation");
-    private readonly animation_frame_rate_input = new NumberInput(
-        PSO_FRAME_RATE,
-        "Frame rate:",
-        1,
-        240,
-        1,
-    );
-    private readonly animation_frame_input = new NumberInput(
-        1,
-        "Frame:",
-        1,
-        model_store.animation_frame_count,
-        1,
-    );
+    private readonly animation_frame_rate_input = new NumberInput(PSO_FRAME_RATE, {
+        label: "Frame rate:",
+        min: 1,
+        max: 240,
+        step: 1,
+    });
+    private readonly animation_frame_input = new NumberInput(1, {
+        label: "Frame:",
+        min: 1,
+        max: model_store.animation_frame_count,
+        step: 1,
+    });
     private readonly animation_frame_count_label = new Label(
         model_store.animation_frame_count.map(count => `/ ${count}`),
     );
@@ -147,7 +145,7 @@ class ToolBarView extends View {
 }
 
 class ModelSelectListView<T extends { name: string }> extends ResizableView {
-    element = el("ul", { class: "viewer_ModelSelectListView" });
+    element = create_element("ul", { class: "viewer_ModelSelectListView" });
 
     set borders(borders: boolean) {
         if (borders) {
@@ -169,7 +167,7 @@ class ModelSelectListView<T extends { name: string }> extends ResizableView {
 
         models.forEach((model, index) => {
             this.element.append(
-                el("li", { text: model.name, data: { index: index.toString() } }),
+                create_element("li", { text: model.name, data: { index: index.toString() } }),
             );
         });
 

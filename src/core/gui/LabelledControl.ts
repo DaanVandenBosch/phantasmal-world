@@ -2,7 +2,7 @@ import { Label } from "./Label";
 import { Control } from "./Control";
 
 export abstract class LabelledControl extends Control {
-    abstract readonly preferred_label_position: "left" | "right";
+    abstract readonly preferred_label_position: "left" | "right" | "top" | "bottom";
 
     private readonly _label_text: string;
     private _label?: Label;

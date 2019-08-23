@@ -2,16 +2,41 @@ import { Disposable } from "../observable/Disposable";
 import { Observable } from "../observable/Observable";
 import { is_property } from "../observable/Property";
 
-export function el<T extends HTMLElement>(
+export const el = {
+    div: (attributes?: {}, ...children: HTMLElement[]): HTMLDivElement =>
+        create_element("div", attributes, ...children),
+
+    table: (attributes?: {}, ...children: HTMLElement[]): HTMLTableElement =>
+        create_element("table", attributes, ...children),
+
+    tr: (attributes?: {}, ...children: HTMLElement[]): HTMLTableRowElement =>
+        create_element("tr", attributes, ...children),
+
+    th: (
+        attributes?: { text?: string; col_span?: number },
+        ...children: HTMLElement[]
+    ): HTMLTableHeaderCellElement => create_element("th", attributes, ...children),
+
+    td: (
+        attributes?: { text?: string; col_span?: number },
+        ...children: HTMLElement[]
+    ): HTMLTableCellElement => create_element("td", attributes, ...children),
+
+    textarea: (attributes?: {}, ...children: HTMLElement[]): HTMLTextAreaElement =>
+        create_element("textarea", attributes, ...children),
+};
+
+export function create_element<T extends HTMLElement>(
     tag_name: string,
     attributes?: {
         class?: string;
-        text?: string ;
+        text?: string;
         data?: { [key: string]: string };
+        col_span?: number;
     },
     ...children: HTMLElement[]
 ): T {
-    const element = document.createElement(tag_name) as T;
+    const element = document.createElement(tag_name) as HTMLTableCellElement;
 
     if (attributes) {
         if (attributes.class) element.className = attributes.class;
@@ -22,11 +47,13 @@ export function el<T extends HTMLElement>(
                 element.dataset[key] = val;
             }
         }
+
+        if (attributes.col_span) element.colSpan = attributes.col_span;
     }
 
     element.append(...children);
 
-    return element;
+    return (element as HTMLElement) as T;
 }
 
 export function bind_hidden(element: HTMLElement, observable: Observable<boolean>): Disposable {

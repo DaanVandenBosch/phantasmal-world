@@ -1,6 +1,6 @@
 import { ApplicationView } from "./application/gui/ApplicationView";
 import { Disposable } from "./core/observable/Disposable";
-import "./index.css";
+import "./core/gui/index.css";
 import { throttle } from "lodash";
 import Logger from "js-logger";
 

@@ -1,15 +1,13 @@
-.core_Input {
-    display: inline-block;
+.core_TextArea {
     box-sizing: border-box;
-    height: 24px;
+    display: inline-block;
     border: var(--input-border);
 }
 
-.core_Input .core_Input_inner {
+.core_TextArea .core_TextArea_inner {
     box-sizing: border-box;
-    width: 100%;
-    height: 100%;
-    padding: 0 3px;
+    vertical-align: top;
+    padding: 3px;
     border: var(--input-inner-border);
     background-color: var(--input-bg-color);
     color: var(--input-text-color);
@@ -17,19 +15,19 @@
     font-size: 13px;
 }
 
-.core_Input:hover {
+.core_TextArea:hover {
     border-color: var(--input-border-hover);
 }
 
-.core_Input:focus-within {
+.core_TextArea:focus-within {
     border-color: var(--input-border-focus);
 }
 
-.core_Input.disabled {
+.core_TextArea.disabled {
     border: var(--input-border-disabled);
 }
 
-.core_Input.disabled .core_Input_inner {
+.core_TextArea.disabled .core_TextArea_inner {
     color: var(--input-text-color-disabled);
     background-color: var(--input-bg-color-disabled);
 }

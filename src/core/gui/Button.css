@@ -2,15 +2,19 @@
     display: inline-flex;
     flex-direction: row;
     align-items: stretch;
+    align-content: stretch;
     box-sizing: border-box;
+    height: 26px;
     padding: 0;
     border: solid 1px hsl(0, 0%, 10%);
     color: hsl(0, 0%, 80%);
     outline: none;
+    font-size: 13px;
 }
 
 .core_Button .core_Button_inner {
-    display: flex;
+    flex: 1;
+    display: inline-flex;
     flex-direction: row;
     align-items: center;
     box-sizing: border-box;

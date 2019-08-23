@@ -1,11 +1,11 @@
-import { el } from "./dom";
+import { create_element } from "./dom";
 import "./Button.css";
 import { Observable } from "../observable/Observable";
 import { emitter } from "../observable";
 import { Control } from "./Control";
 
 export class Button extends Control {
-    readonly element: HTMLButtonElement = el("button", { class: "core_Button" });
+    readonly element: HTMLButtonElement = create_element("button", { class: "core_Button" });
 
     private readonly _click = emitter<MouseEvent>();
     readonly click: Observable<MouseEvent> = this._click;
@@ -13,7 +13,7 @@ export class Button extends Control {
     constructor(text: string) {
         super();
 
-        this.element.append(el("span", { class: "core_Button_inner", text }));
+        this.element.append(create_element("span", { class: "core_Button_inner", text }));
 
         this.enabled.observe(enabled => (this.element.disabled = !enabled));
 

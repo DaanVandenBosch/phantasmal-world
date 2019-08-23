@@ -2,6 +2,8 @@ import { Disposable } from "../observable/Disposable";
 import { Disposer } from "../observable/Disposer";
 import { Observable } from "../observable/Observable";
 import { bind_hidden } from "./dom";
+import { WritableProperty } from "../observable/WritableProperty";
+import { property } from "../observable";
 
 export abstract class View implements Disposable {
     abstract readonly element: HTMLElement;
@@ -14,7 +16,13 @@ export abstract class View implements Disposable {
         this.element.id = id;
     }
 
+    readonly visible: WritableProperty<boolean> = property(true);
+
     private disposer = new Disposer();
+
+    constructor() {
+        this.disposables(this.visible.observe(visible => (this.element.hidden = !visible)));
+    }
 
     dispose(): void {
         this.element.remove();

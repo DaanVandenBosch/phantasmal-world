@@ -1,6 +1,6 @@
 import { ResizableView } from "../../core/gui/ResizableView";
-import { el } from "../../core/gui/dom";
+import { create_element } from "../../core/gui/dom";
 
 export class NpcCountsView extends ResizableView {
-    readonly element = el("div");
+    readonly element = create_element("div");
 }

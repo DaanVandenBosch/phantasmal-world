@@ -1,4 +1,4 @@
-import { el } from "./dom";
+import { create_element } from "./dom";
 import "./FileButton.css";
 import "./Button.css";
 import { property } from "../observable";
@@ -6,14 +6,14 @@ import { Property } from "../observable/Property";
 import { Control } from "./Control";
 
 export class FileButton extends Control {
-    readonly element: HTMLLabelElement = el("label", {
+    readonly element: HTMLLabelElement = create_element("label", {
         class: "core_FileButton core_Button",
     });
 
     private readonly _files = property<File[]>([]);
     readonly files: Property<File[]> = this._files;
 
-    private input: HTMLInputElement = el("input", {
+    private input: HTMLInputElement = create_element("input", {
         class: "core_FileButton_input core_Button_inner",
     });
 
@@ -31,7 +31,7 @@ export class FileButton extends Control {
         };
 
         this.element.append(
-            el("span", {
+            create_element("span", {
                 class: "core_FileButton_inner core_Button_inner",
                 text,
             }),

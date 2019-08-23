@@ -15,5 +15,5 @@ export function is_property<T>(observable: Observable<T>): observable is Propert
 }
 
 export function is_any_property(observable: any): observable is Property<any> {
-    return (observable as any).is_property;
+    return observable && (observable as any).is_property;
 }

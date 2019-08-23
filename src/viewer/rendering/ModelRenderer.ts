@@ -36,6 +36,7 @@ export class ModelRenderer extends Renderer implements Disposable {
         clip: AnimationClip;
         action: AnimationAction;
     };
+    private update_animation_time = true;
 
     constructor() {
         super(new PerspectiveCamera(75, 1, 1, 200));
@@ -201,7 +202,11 @@ export class ModelRenderer extends Renderer implements Disposable {
             const frame_count = nj_motion.frame_count;
             if (frame > frame_count) frame = 1;
             if (frame < 1) frame = frame_count;
-            this.animation.action.time = (frame - 1) / PSO_FRAME_RATE;
+
+            if (this.update_animation_time) {
+                this.animation.action.time = (frame - 1) / PSO_FRAME_RATE;
+            }
+
             this.schedule_render();
         }
     };
@@ -209,7 +214,9 @@ export class ModelRenderer extends Renderer implements Disposable {
     private update_animation_frame(): void {
         if (this.animation && !this.animation.action.paused) {
             const time = this.animation.action.time;
+            this.update_animation_time = false;
             model_store.animation_frame.val = time * PSO_FRAME_RATE + 1;
+            this.update_animation_time = true;
         }
     }
 }

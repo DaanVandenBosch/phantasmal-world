@@ -1,29 +1,10 @@
 import { View } from "./View";
-import { el } from "./dom";
+import { create_element } from "./dom";
 import { Resizable } from "./Resizable";
 import { ResizableView } from "./ResizableView";
 
 export class LazyView extends ResizableView {
-    readonly element = el("div", { class: "core_LazyView" });
-
-    private _visible = false;
-
-    set visible(visible: boolean) {
-        if (this._visible !== visible) {
-            this._visible = visible;
-            this.element.hidden = !visible;
-
-            if (visible && !this.initialized) {
-                this.initialized = true;
-
-                this.create_view().then(view => {
-                    this.view = this.disposable(view);
-                    this.view.resize(this.width, this.height);
-                    this.element.append(view.element);
-                });
-            }
-        }
-    }
+    readonly element = create_element("div", { class: "core_LazyView" });
 
     private initialized = false;
     private view: View & Resizable | undefined;
@@ -31,7 +12,21 @@ export class LazyView extends ResizableView {
     constructor(private create_view: () => Promise<View & Resizable>) {
         super();
 
-        this.element.hidden = true;
+        this.visible.val = false;
+
+        this.disposables(
+            this.visible.observe(visible => {
+                if (visible && !this.initialized) {
+                    this.initialized = true;
+
+                    this.create_view().then(view => {
+                        this.view = this.disposable(view);
+                        this.view.resize(this.width, this.height);
+                        this.element.append(view.element);
+                    });
+                }
+            }),
+        );
     }
 
     resize(width: number, height: number): this {
