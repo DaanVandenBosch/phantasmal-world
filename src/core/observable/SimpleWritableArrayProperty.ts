@@ -10,15 +10,27 @@ export class SimpleWritableArrayProperty<T> extends AbstractProperty<T[]>
     implements WritableArrayProperty<T> {
     readonly is_property = true;
 
-    readonly is_writable_property = true;
-
     private readonly _length = property(0);
     readonly length = this._length;
 
     private readonly values: T[];
 
     get val(): T[] {
+        return this.get_val();
+    }
+
+    set val(values: T[]) {
+        this.set_val(values);
+    }
+
+    get_val(): T[] {
         return this.values;
+    }
+
+    set_val(values: T[]): T[] {
+        const replaced_values = this.values.splice(0, this.values.length, ...values);
+        this.emit(this.values);
+        return replaced_values;
     }
 
     constructor(...values: T[]) {
@@ -26,7 +38,7 @@ export class SimpleWritableArrayProperty<T> extends AbstractProperty<T[]>
         this.values = values;
     }
 
-    bind(observable: Observable<T[]>): Disposable {
+    bind_to(observable: Observable<T[]>): Disposable {
         /* TODO */ throw new Error("not implemented");
     }
 
@@ -44,12 +56,12 @@ export class SimpleWritableArrayProperty<T> extends AbstractProperty<T[]>
 
     set(index: number, value: T): void {
         this.values[index] = value;
-        this.emit();
+        this.emit(this.values);
     }
 
     clear(): void {
         this.values.splice(0, this.values.length);
-        this.emit();
+        this.emit(this.values);
     }
 
     splice(index: number, delete_count?: number): T[];
@@ -63,7 +75,7 @@ export class SimpleWritableArrayProperty<T> extends AbstractProperty<T[]>
             ret = this.values.splice(index, delete_count, ...items);
         }
 
-        this.emit();
+        this.emit(this.values);
 
         return ret;
     }

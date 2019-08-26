@@ -7,7 +7,7 @@ export class ViewerView extends ResizableView {
             {
                 title: "Models",
                 key: "model",
-                create_view: async () => new (await import("./ModelView")).ModelView(),
+                create_view: async () => new (await import("./Model3DView")).Model3DView(),
             },
             {
                 title: "Textures",

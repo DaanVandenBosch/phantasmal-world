@@ -1,7 +1,5 @@
-export class Action {
-    constructor(
-        readonly description: string,
-        readonly undo: () => void,
-        readonly redo: () => void,
-    ) {}
+export interface Action {
+    readonly description: string;
+    readonly undo: () => void;
+    readonly redo: () => void;
 }

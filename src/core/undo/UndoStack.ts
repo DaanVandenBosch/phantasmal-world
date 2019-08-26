@@ -4,6 +4,9 @@ import { Action } from "./Action";
 import { array_property, map, property } from "../observable";
 import { NOOP_UNDO } from "./noop_undo";
 import { undo_manager } from "./UndoManager";
+import Logger = require("js-logger");
+
+const logger = Logger.get("core/undo/UndoStack");
 
 /**
  * Full-fledged linear undo/redo implementation.
@@ -15,16 +18,6 @@ export class UndoStack implements Undo {
      * The index where new actions are inserted.
      */
     private readonly index = property(0);
-
-    make_current(): void {
-        undo_manager.current.val = this;
-    }
-
-    ensure_not_current(): void {
-        if (undo_manager.current.val === this) {
-            undo_manager.current.val = NOOP_UNDO;
-        }
-    }
 
     readonly can_undo = this.index.map(index => index > 0);
 
@@ -38,13 +31,25 @@ export class UndoStack implements Undo {
         return can_redo ? this.stack.get(this.index.val) : undefined;
     });
 
-    push_action(description: string, undo: () => void, redo: () => void): void {
-        this.push(new Action(description, undo, redo));
+    private undoing_or_redoing = false;
+
+    make_current(): void {
+        undo_manager.current.val = this;
     }
 
-    push(action: Action): void {
-        this.stack.splice(this.index.val, this.stack.length.val - this.index.val, action);
-        this.index.update(i => i + 1);
+    ensure_not_current(): void {
+        if (undo_manager.current.val === this) {
+            undo_manager.current.val = NOOP_UNDO;
+        }
+    }
+
+    push(action: Action): Action {
+        if (!this.undoing_or_redoing) {
+            this.stack.splice(this.index.val, Infinity, action);
+            this.index.update(i => i + 1);
+        }
+
+        return action;
     }
 
     /**
@@ -56,9 +61,17 @@ export class UndoStack implements Undo {
     }
 
     undo(): boolean {
-        if (this.can_undo) {
-            this.index.update(i => i - 1);
-            this.stack.get(this.index.val).undo();
+        if (this.can_undo.val && !this.undoing_or_redoing) {
+            try {
+                this.undoing_or_redoing = true;
+                this.index.update(i => i - 1);
+                this.stack.get(this.index.val).undo();
+            } catch (e) {
+                logger.warn("Error while undoing action.", e);
+            } finally {
+                this.undoing_or_redoing = false;
+            }
+
             return true;
         } else {
             return false;
@@ -66,9 +79,17 @@ export class UndoStack implements Undo {
     }
 
     redo(): boolean {
-        if (this.can_redo) {
-            this.stack.get(this.index.val).redo();
-            this.index.update(i => i + 1);
+        if (this.can_redo.val && !this.undoing_or_redoing) {
+            try {
+                this.undoing_or_redoing = true;
+                this.stack.get(this.index.val).redo();
+                this.index.update(i => i + 1);
+            } catch (e) {
+                logger.warn("Error while redoing action.", e);
+            } finally {
+                this.undoing_or_redoing = false;
+            }
+
             return true;
         } else {
             return false;

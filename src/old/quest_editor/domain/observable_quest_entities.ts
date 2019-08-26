@@ -2,13 +2,13 @@ import { ObjectType } from "../../../core/data_formats/parsing/quest/object_type
 import { action, computed, observable } from "mobx";
 import { Vec3 } from "../../../core/data_formats/vector";
 import { EntityType } from "../../../core/data_formats/parsing/quest/entities";
-import { Section } from "./Section";
+import { SectionModel } from "../../../quest_editor/model/SectionModel";
 import { NpcType } from "../../../core/data_formats/parsing/quest/npc_types";
 
 /**
- * Abstract class from which ObservableQuestNpc and ObservableQuestObject derive.
+ * Abstract class from which ObservableQuestNpc and QuestObjectModel derive.
  */
-export abstract class ObservableQuestEntity<Type extends EntityType = EntityType> {
+export abstract class QuestEntityModel<Type extends EntityType = EntityType> {
     readonly type: Type;
 
     @observable area_id: number;
@@ -19,7 +19,7 @@ export abstract class ObservableQuestEntity<Type extends EntityType = EntityType
         return this.section ? this.section.id : this._section_id;
     }
 
-    @observable.ref section?: Section;
+    @observable.ref section?: SectionModel;
 
     /**
      * Section-relative position
@@ -90,13 +90,13 @@ export abstract class ObservableQuestEntity<Type extends EntityType = EntityType
     }
 
     @action
-    set_world_position_and_section(world_position: Vec3, section?: Section): void {
+    set_world_position_and_section(world_position: Vec3, section?: SectionModel): void {
         this.world_position = world_position;
         this.section = section;
     }
 }
 
-export class ObservableQuestObject extends ObservableQuestEntity<ObjectType> {
+export class ObservableQuestObject extends QuestEntityModel<ObjectType> {
     readonly id: number;
     readonly group_id: number;
 
@@ -145,7 +145,7 @@ export class ObservableQuestObject extends ObservableQuestEntity<ObjectType> {
     }
 }
 
-export class ObservableQuestNpc extends ObservableQuestEntity<NpcType> {
+export class ObservableQuestNpc extends QuestEntityModel<NpcType> {
     readonly pso_type_id: number;
     readonly npc_id: number;
     readonly script_label: number;

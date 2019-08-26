@@ -1,4 +1,4 @@
-import { Property } from "./Property";
+import { PropertyChangeEvent, Property } from "./Property";
 import { Disposable } from "./Disposable";
 import { AbstractMinimalProperty } from "./AbstractMinimalProperty";
 import { DependentProperty } from "./DependentProperty";
@@ -12,6 +12,10 @@ export class FlatMappedProperty<T, U> extends AbstractMinimalProperty<U> impleme
     readonly is_property = true;
 
     get val(): U {
+        return this.get_val();
+    }
+
+    get_val(): U {
         return this.computed_property
             ? this.computed_property.val
             : this.f(this.dependency.val).val;
@@ -25,13 +29,14 @@ export class FlatMappedProperty<T, U> extends AbstractMinimalProperty<U> impleme
         super();
     }
 
-    observe(observer: (value: U) => void): Disposable {
+    observe(observer: (event: PropertyChangeEvent<U>) => void): Disposable {
         const super_disposable = super.observe(observer);
 
         if (this.dependency_disposable == undefined) {
             this.dependency_disposable = this.dependency.observe(() => {
+                const old_value = this.val;
                 this.compute_and_observe();
-                this.emit();
+                this.emit(old_value);
             });
 
             this.compute_and_observe();
@@ -62,9 +67,15 @@ export class FlatMappedProperty<T, U> extends AbstractMinimalProperty<U> impleme
 
     private compute_and_observe(): void {
         if (this.computed_disposable) this.computed_disposable.dispose();
+
         this.computed_property = this.f(this.dependency.val);
+
+        let old_value = this.computed_property.val;
+
         this.computed_disposable = this.computed_property.observe(() => {
-            this.emit();
+            const ov = old_value;
+            old_value = this.val;
+            this.emit(ov);
         });
     }
 }

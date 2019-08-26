@@ -21,12 +21,12 @@ export class Label extends View {
             this.element.append(text);
         } else {
             this.element.append(text.val);
-            this.disposable(text.observe(text => (this.element.textContent = text)));
+            this.disposable(text.observe(({ value }) => (this.element.textContent = value)));
         }
 
         this.disposables(
-            this.enabled.observe(enabled => {
-                if (enabled) {
+            this.enabled.observe(({ value }) => {
+                if (value) {
                     this.element.classList.remove("disabled");
                 } else {
                     this.element.classList.add("disabled");

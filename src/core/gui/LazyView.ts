@@ -15,8 +15,8 @@ export class LazyView extends ResizableView {
         this.visible.val = false;
 
         this.disposables(
-            this.visible.observe(visible => {
-                if (visible && !this.initialized) {
+            this.visible.observe(({ value }) => {
+                if (value && !this.initialized) {
                     this.initialized = true;
 
                     this.create_view().then(view => {

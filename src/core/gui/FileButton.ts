@@ -38,14 +38,16 @@ export class FileButton extends Control {
             this.input,
         );
 
-        this.enabled.observe(enabled => {
-            this.input.disabled = !enabled;
+        this.disposables(
+            this.enabled.observe(({ value }) => {
+                this.input.disabled = !value;
 
-            if (enabled) {
-                this.element.classList.remove("disabled");
-            } else {
-                this.element.classList.add("disabled");
-            }
-        });
+                if (value) {
+                    this.element.classList.remove("disabled");
+                } else {
+                    this.element.classList.add("disabled");
+                }
+            }),
+        );
     }
 }

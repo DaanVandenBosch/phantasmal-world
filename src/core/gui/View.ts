@@ -21,7 +21,7 @@ export abstract class View implements Disposable {
     private disposer = new Disposer();
 
     constructor() {
-        this.disposables(this.visible.observe(visible => (this.element.hidden = !visible)));
+        this.disposables(this.visible.observe(({ value }) => (this.element.hidden = !value)));
     }
 
     dispose(): void {

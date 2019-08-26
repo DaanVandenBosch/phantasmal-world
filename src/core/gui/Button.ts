@@ -15,8 +15,8 @@ export class Button extends Control {
 
         this.element.append(create_element("span", { class: "core_Button_inner", text }));
 
-        this.enabled.observe(enabled => (this.element.disabled = !enabled));
+        this.disposables(this.enabled.observe(({ value }) => (this.element.disabled = !value)));
 
-        this.element.onclick = (e: MouseEvent) => this._click.emit(e);
+        this.element.onclick = (e: MouseEvent) => this._click.emit({ value: e });
     }
 }

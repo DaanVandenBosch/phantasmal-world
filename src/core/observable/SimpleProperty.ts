@@ -5,20 +5,30 @@ import { is_property } from "./Property";
 import { AbstractProperty } from "./AbstractProperty";
 
 export class SimpleProperty<T> extends AbstractProperty<T> implements WritableProperty<T> {
-    readonly is_writable_property = true;
-
     constructor(private _val: T) {
         super();
     }
 
     get val(): T {
+        return this.get_val();
+    }
+
+    set val(value: T) {
+        this.set_val(value);
+    }
+
+    get_val(): T {
         return this._val;
     }
 
-    set val(val: T) {
+    set_val(val: T, options: { silent?: boolean } = {}): void {
         if (val !== this._val) {
+            const old_value = this._val;
             this._val = val;
-            this.emit();
+
+            if (!options.silent) {
+                this.emit(old_value);
+            }
         }
     }
 
@@ -26,17 +36,17 @@ export class SimpleProperty<T> extends AbstractProperty<T> implements WritablePr
         this.val = f(this.val);
     }
 
-    bind(observable: Observable<T>): Disposable {
+    bind_to(observable: Observable<T>): Disposable {
         if (is_property(observable)) {
             this.val = observable.val;
         }
 
-        return observable.observe(v => (this.val = v));
+        return observable.observe(event => (this.val = event.value));
     }
 
     bind_bi(property: WritableProperty<T>): Disposable {
-        const bind_1 = this.bind(property);
-        const bind_2 = property.bind(this);
+        const bind_1 = this.bind_to(property);
+        const bind_2 = property.bind_to(this);
         return {
             dispose(): void {
                 bind_1.dispose();

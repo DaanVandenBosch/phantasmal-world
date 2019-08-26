@@ -39,7 +39,7 @@ export class TextArea extends LabelledControl {
 
         this.text_element.onchange = () => (this.value.val = this.text_element.value);
 
-        this.disposables(this.value.observe(value => (this.text_element.value = value)));
+        this.disposables(this.value.observe(({ value }) => (this.text_element.value = value)));
 
         this.element.append(this.text_element);
     }

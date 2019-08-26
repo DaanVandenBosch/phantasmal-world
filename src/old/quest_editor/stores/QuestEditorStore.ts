@@ -7,14 +7,14 @@ import { Vec3 } from "../../../core/data_formats/vector";
 import { read_file } from "../../../core/read_file";
 import { SimpleUndo, UndoStack } from "../../core/undo";
 import { area_store } from "./AreaStore";
-import { create_new_quest } from "./quest_creation";
+import { create_new_quest } from "../../../quest_editor/stores/quest_creation";
 import { Episode } from "../../../core/data_formats/parsing/quest/Episode";
 import { entity_data } from "../../../core/data_formats/parsing/quest/entities";
-import { ObservableQuest } from "../domain/ObservableQuest";
-import { ObservableArea } from "../domain/ObservableArea";
-import { Section } from "../domain/Section";
+import { ObservableQuest } from "../domain/QuestModel";
+import { AreaModel } from "../../../quest_editor/model/AreaModel";
+import { SectionModel } from "../../../quest_editor/model/SectionModel";
 import {
-    ObservableQuestEntity,
+    QuestEntityModel,
     ObservableQuestNpc,
     ObservableQuestObject,
 } from "../domain/observable_quest_entities";
@@ -29,9 +29,9 @@ class QuestEditorStore {
 
     @observable current_quest_filename?: string;
     @observable current_quest?: ObservableQuest;
-    @observable current_area?: ObservableArea;
+    @observable current_area?: AreaModel;
 
-    @observable selected_entity?: ObservableQuestEntity;
+    @observable selected_entity?: QuestEntityModel;
 
     @observable save_dialog_filename?: string;
     @observable save_dialog_open: boolean = false;
@@ -58,7 +58,7 @@ class QuestEditorStore {
     };
 
     @action
-    set_selected_entity = (entity?: ObservableQuestEntity) => {
+    set_selected_entity = (entity?: QuestEntityModel) => {
         if (entity) {
             this.set_current_area_id(entity.area_id);
         }
@@ -299,7 +299,7 @@ class QuestEditorStore {
 
     @action
     push_entity_move_action = (
-        entity: ObservableQuestEntity,
+        entity: QuestEntityModel,
         old_position: Vec3,
         new_position: Vec3,
     ) => {
@@ -368,7 +368,7 @@ class QuestEditorStore {
         }
     });
 
-    private set_section_on_quest_entity = (entity: ObservableQuestEntity, sections: Section[]) => {
+    private set_section_on_quest_entity = (entity: QuestEntityModel, sections: SectionModel[]) => {
         const section = sections.find(s => s.id === entity.section_id);
 
         if (section) {

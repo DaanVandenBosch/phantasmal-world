@@ -15,7 +15,11 @@ export class QuesInfoView extends ResizableView {
     private readonly table_element = el.table();
     private readonly episode_element: HTMLElement;
     private readonly id_input = this.disposable(new NumberInput());
-    private readonly name_input = this.disposable(new TextInput());
+    private readonly name_input = this.disposable(
+        new TextInput("", {
+            max_length: 32,
+        }),
+    );
     private readonly short_description_input = this.disposable(
         new TextArea("", {
             max_length: 128,
@@ -62,17 +66,28 @@ export class QuesInfoView extends ResizableView {
         this.element.append(this.table_element, this.no_quest_element);
 
         this.disposables(
-            quest.observe(q => {
-                this.quest_disposer.dispose();
+            quest.observe(({ value: q }) => {
+                this.quest_disposer.dispose_all();
 
                 this.episode_element.textContent = q ? Episode[q.episode] : "";
 
                 if (q) {
                     this.quest_disposer.add_all(
-                        this.id_input.value.bind_bi(q.id),
-                        this.name_input.value.bind_bi(q.name),
-                        this.short_description_input.value.bind_bi(q.short_description),
-                        this.long_description_input.value.bind_bi(q.long_description),
+                        this.id_input.value.bind_to(q.id),
+                        this.id_input.value.observe(quest_editor_store.push_edit_id_action),
+
+                        this.name_input.value.bind_to(q.name),
+                        this.name_input.value.observe(quest_editor_store.push_edit_name_action),
+
+                        this.short_description_input.value.bind_to(q.short_description),
+                        this.short_description_input.value.observe(
+                            quest_editor_store.push_edit_short_description_action,
+                        ),
+
+                        this.long_description_input.value.bind_to(q.long_description),
+                        this.long_description_input.value.observe(
+                            quest_editor_store.push_edit_long_description_action,
+                        ),
                     );
                 }
             }),

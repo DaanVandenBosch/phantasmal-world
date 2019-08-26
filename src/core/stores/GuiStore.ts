@@ -18,7 +18,7 @@ const STRING_TO_GUI_TOOL = new Map([...GUI_TOOL_TO_STRING.entries()].map(([k, v]
 class GuiStore implements Disposable {
     readonly tool: WritableProperty<GuiTool> = property(GuiTool.Viewer);
 
-    private hash_disposer = this.tool.observe(tool => {
+    private hash_disposer = this.tool.observe(({ value: tool }) => {
         window.location.hash = `#/${gui_tool_to_string(tool)}`;
     });
 

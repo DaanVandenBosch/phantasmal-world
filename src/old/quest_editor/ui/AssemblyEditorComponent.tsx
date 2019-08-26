@@ -2,7 +2,7 @@ import { autorun } from "mobx";
 import { editor, languages, MarkerSeverity, MarkerTag, Position } from "monaco-editor";
 import React, { Component, createRef, ReactNode } from "react";
 import { AutoSizer } from "react-virtualized";
-import { AssemblyAnalyser } from "../scripting/AssemblyAnalyser";
+import { AssemblyAnalyser } from "../../../quest_editor/scripting/AssemblyAnalyser";
 import { quest_editor_store } from "../stores/QuestEditorStore";
 import { Action } from "../../core/undo";
 import styles from "./AssemblyEditorComponent.css";

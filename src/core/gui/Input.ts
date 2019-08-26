@@ -35,12 +35,12 @@ export abstract class Input<T> extends LabelledControl {
         this.element.append(this.input);
 
         this.disposables(
-            this.value.observe(value => this.set_input_value(value)),
+            this.value.observe(({ value }) => this.set_input_value(value)),
 
-            this.enabled.observe(enabled => {
-                this.input.disabled = !enabled;
+            this.enabled.observe(({ value }) => {
+                this.input.disabled = !value;
 
-                if (enabled) {
+                if (value) {
                     this.element.classList.remove("disabled");
                 } else {
                     this.element.classList.add("disabled");
@@ -71,7 +71,7 @@ export abstract class Input<T> extends LabelledControl {
 
         if (is_any_property(value)) {
             input[attr] = cvt(value.val);
-            this.disposable(value.observe(v => (input[attr] = cvt(v))));
+            this.disposable(value.observe(({ value }) => (input[attr] = cvt(value))));
         } else {
             input[attr] = cvt(value);
         }

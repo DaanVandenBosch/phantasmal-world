@@ -2,6 +2,7 @@ import { create_element } from "../../core/gui/dom";
 import { gui_store, GuiTool } from "../../core/stores/GuiStore";
 import { LazyView } from "../../core/gui/LazyView";
 import { ResizableView } from "../../core/gui/ResizableView";
+import { ChangeEvent } from "../../core/observable/Observable";
 
 const TOOLS: [GuiTool, () => Promise<ResizableView>][] = [
     [GuiTool.Viewer, async () => new (await import("../../viewer/gui/ViewerView")).ViewerView()],
@@ -41,7 +42,7 @@ export class MainContentView extends ResizableView {
         return this;
     }
 
-    private tool_changed = (new_tool: GuiTool) => {
+    private tool_changed = ({ value: new_tool }: ChangeEvent<GuiTool>) => {
         for (const tool of this.tool_views.values()) {
             tool.visible.val = false;
         }

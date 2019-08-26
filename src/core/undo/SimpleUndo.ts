@@ -9,12 +9,10 @@ import { undo_manager } from "./UndoManager";
  * Simply contains a single action. `can_undo` and `can_redo` must be managed manually.
  */
 export class SimpleUndo implements Undo {
-    private readonly _action: Action;
-    readonly action: Property<Action>;
+    private readonly action: Action;
 
     constructor(description: string, undo: () => void, redo: () => void) {
-        this._action = new Action(description, undo, redo);
-        this.action = property(this._action);
+        this.action = { description, undo, redo };
     }
 
     make_current(): void {
@@ -32,16 +30,16 @@ export class SimpleUndo implements Undo {
     readonly can_redo = property(false);
 
     readonly first_undo: Property<Action | undefined> = this.can_undo.map(can_undo =>
-        can_undo ? this._action : undefined,
+        can_undo ? this.action : undefined,
     );
 
     readonly first_redo: Property<Action | undefined> = this.can_redo.map(can_redo =>
-        can_redo ? this._action : undefined,
+        can_redo ? this.action : undefined,
     );
 
     undo(): boolean {
         if (this.can_undo) {
-            this._action.undo();
+            this.action.undo();
             return true;
         } else {
             return false;
@@ -50,7 +48,7 @@ export class SimpleUndo implements Undo {
 
     redo(): boolean {
         if (this.can_redo) {
-            this._action.redo();
+            this.action.redo();
             return true;
         } else {
             return false;

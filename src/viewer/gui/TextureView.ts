@@ -22,7 +22,7 @@ export class TextureView extends ResizableView {
         this.element.append(this.tool_bar.element, this.renderer_view.element);
 
         this.disposable(
-            this.open_file_button.files.observe(files => {
+            this.open_file_button.files.observe(({ value: files }) => {
                 if (files.length) texture_store.load_file(files[0]);
             }),
         );
@@ -30,7 +30,7 @@ export class TextureView extends ResizableView {
         this.renderer_view.start_rendering();
 
         this.disposable(
-            gui_store.tool.observe(tool => {
+            gui_store.tool.observe(({ value: tool }) => {
                 if (tool === GuiTool.Viewer) {
                     this.renderer_view.start_rendering();
                 } else {

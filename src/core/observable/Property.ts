@@ -1,9 +1,21 @@
-import { Observable } from "./Observable";
+import { ChangeEvent, Observable } from "./Observable";
+import { Disposable } from "./Disposable";
+
+export interface PropertyChangeEvent<T> extends ChangeEvent<T> {
+    old_value: T;
+}
 
 export interface Property<T> extends Observable<T> {
     readonly is_property: true;
 
     readonly val: T;
+
+    get_val(): T;
+
+    observe(
+        observer: (event: PropertyChangeEvent<T>) => void,
+        options?: { call_now?: boolean },
+    ): Disposable;
 
     map<U>(f: (element: T) => U): Property<U>;
 

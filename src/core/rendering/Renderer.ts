@@ -24,7 +24,7 @@ CameraControls.install({
 });
 
 export abstract class Renderer implements Disposable {
-    protected _debug = false;
+    private _debug = false;
 
     get debug(): boolean {
         return this._debug;

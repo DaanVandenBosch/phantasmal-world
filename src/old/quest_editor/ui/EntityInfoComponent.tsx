@@ -7,7 +7,7 @@ import { quest_editor_store } from "../stores/QuestEditorStore";
 import { DisabledTextComponent } from "../../core/ui/DisabledTextComponent";
 import styles from "./EntityInfoComponent.css";
 import { entity_data, entity_type_to_string } from "../../../core/data_formats/parsing/quest/entities";
-import { ObservableQuestEntity, ObservableQuestNpc } from "../domain/observable_quest_entities";
+import { QuestEntityModel, ObservableQuestNpc } from "../domain/observable_quest_entities";
 
 @observer
 export class EntityInfoComponent extends Component {
@@ -57,7 +57,7 @@ export class EntityInfoComponent extends Component {
 }
 
 type CoordProps = {
-    entity: ObservableQuestEntity;
+    entity: QuestEntityModel;
     position_type: "position" | "world_position";
     coord: "x" | "y" | "z";
 };

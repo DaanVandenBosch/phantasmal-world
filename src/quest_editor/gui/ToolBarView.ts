@@ -28,19 +28,21 @@ export class ToolBarView extends View {
         super();
 
         this.disposables(
-            this.open_file_button.files.observe(files => {
+            this.open_file_button.files.observe(({ value: files }) => {
                 if (files.length) {
                     quest_editor_store.open_file(files[0]);
                 }
             }),
 
-            this.save_as_button.enabled.bind(
+            this.save_as_button.enabled.bind_to(
                 quest_editor_store.current_quest.map(q => q != undefined),
             ),
 
-            this.undo_button.enabled.bind(undo_manager.can_undo),
+            this.undo_button.enabled.bind_to(undo_manager.can_undo),
+            this.undo_button.click.observe(() => undo_manager.undo()),
 
-            this.redo_button.enabled.bind(undo_manager.can_redo),
+            this.redo_button.enabled.bind_to(undo_manager.can_redo),
+            this.redo_button.click.observe(() => undo_manager.redo()),
         );
     }
 }

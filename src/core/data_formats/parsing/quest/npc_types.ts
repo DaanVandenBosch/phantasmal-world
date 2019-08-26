@@ -314,7 +314,7 @@ define_npc_type_data(NpcType.Scientist, "Scientist", "Scientist", "Scientist", u
 define_npc_type_data(NpcType.Nurse, "Nurse", "Nurse", "Nurse", undefined, false);
 define_npc_type_data(NpcType.Irene, "Irene", "Irene", "Irene", undefined, false);
 define_npc_type_data(NpcType.ItemShop, "Item Shop", "Item Shop", "Item Shop", undefined, false);
-define_npc_type_data(NpcType.Nurse2, "Nurse (Ep. II);", "Nurse", "Nurse", 2, false);
+define_npc_type_data(NpcType.Nurse2, "Nurse (Ep. II)", "Nurse", "Nurse", 2, false);
 
 //
 // Enemy NPCs
@@ -450,17 +450,17 @@ define_npc_type_data(NpcType.DarkFalz, "Dark Falz", "Dark Falz", "Dark Falz", 1,
 
 define_npc_type_data(
     NpcType.Hildebear2,
-    "Hildebear (Ep. II);",
+    "Hildebear (Ep. II)",
     "Hildebear",
     "Hildelt",
     2,
     true,
     NpcType.Hildeblue2,
 );
-define_npc_type_data(NpcType.Hildeblue2, "Hildeblue (Ep. II);", "Hildeblue", "Hildetorr", 2, true);
+define_npc_type_data(NpcType.Hildeblue2, "Hildeblue (Ep. II)", "Hildeblue", "Hildetorr", 2, true);
 define_npc_type_data(
     NpcType.RagRappy2,
-    "Rag Rappy (Ep. II);",
+    "Rag Rappy (Ep. II)",
     "Rag Rappy",
     "El Rappy",
     2,
@@ -471,39 +471,39 @@ define_npc_type_data(NpcType.LoveRappy, "Love Rappy", "Love Rappy", "Love Rappy"
 define_npc_type_data(NpcType.StRappy, "St. Rappy", "St. Rappy", "St. Rappy", 2, true);
 define_npc_type_data(NpcType.HalloRappy, "Hallo Rappy", "Hallo Rappy", "Hallo Rappy", 2, true);
 define_npc_type_data(NpcType.EggRappy, "Egg Rappy", "Egg Rappy", "Egg Rappy", 2, true);
-define_npc_type_data(NpcType.Monest2, "Monest (Ep. II);", "Monest", "Mothvist", 2, true);
+define_npc_type_data(NpcType.Monest2, "Monest (Ep. II)", "Monest", "Mothvist", 2, true);
 define_npc_type_data(NpcType.Mothmant2, "Mothmant", "Mothmant", "Mothvert", 2, true);
 define_npc_type_data(
     NpcType.PoisonLily2,
-    "Poison Lily (Ep. II);",
+    "Poison Lily (Ep. II)",
     "Poison Lily",
     "Ob Lily",
     2,
     true,
     NpcType.NarLily2,
 );
-define_npc_type_data(NpcType.NarLily2, "Nar Lily (Ep. II);", "Nar Lily", "Mil Lily", 2, true);
+define_npc_type_data(NpcType.NarLily2, "Nar Lily (Ep. II)", "Nar Lily", "Mil Lily", 2, true);
 define_npc_type_data(
     NpcType.GrassAssassin2,
-    "Grass Assassin (Ep. II);",
+    "Grass Assassin (Ep. II)",
     "Grass Assassin",
     "Crimson Assassin",
     2,
     true,
 );
-define_npc_type_data(NpcType.Dimenian2, "Dimenian (Ep. II);", "Dimenian", "Arlan", 2, true);
+define_npc_type_data(NpcType.Dimenian2, "Dimenian (Ep. II)", "Dimenian", "Arlan", 2, true);
 define_npc_type_data(
     NpcType.LaDimenian2,
-    "La Dimenian (Ep. II);",
+    "La Dimenian (Ep. II)",
     "La Dimenian",
     "Merlan",
     2,
     true,
 );
-define_npc_type_data(NpcType.SoDimenian2, "So Dimenian (Ep. II);", "So Dimenian", "Del-D", 2, true);
+define_npc_type_data(NpcType.SoDimenian2, "So Dimenian (Ep. II)", "So Dimenian", "Del-D", 2, true);
 define_npc_type_data(
     NpcType.DarkBelra2,
-    "Dark Belra (Ep. II);",
+    "Dark Belra (Ep. II)",
     "Dark Belra",
     "Indi Belra",
     2,
@@ -515,7 +515,7 @@ define_npc_type_data(NpcType.BarbaRay, "Barba Ray", "Barba Ray", "Barba Ray", 2,
 
 define_npc_type_data(
     NpcType.SavageWolf2,
-    "Savage Wolf (Ep. II);",
+    "Savage Wolf (Ep. II)",
     "Savage Wolf",
     "Gulgus",
     2,
@@ -523,23 +523,23 @@ define_npc_type_data(
 );
 define_npc_type_data(
     NpcType.BarbarousWolf2,
-    "Barbarous Wolf (Ep. II);",
+    "Barbarous Wolf (Ep. II)",
     "Barbarous Wolf",
     "Gulgus-Gue",
     2,
     true,
 );
-define_npc_type_data(NpcType.PanArms2, "Pan Arms (Ep. II);", "Pan Arms", "Pan Arms", 2, true);
-define_npc_type_data(NpcType.Migium2, "Migium (Ep. II);", "Migium", "Migium", 2, true);
-define_npc_type_data(NpcType.Hidoom2, "Hidoom (Ep. II);", "Hidoom", "Hidoom", 2, true);
-define_npc_type_data(NpcType.Dubchic2, "Dubchic (Ep. II);", "Dubchic", "Dubchich", 2, true);
-define_npc_type_data(NpcType.Gilchic2, "Gilchic (Ep. II);", "Gilchic", "Gilchich", 2, true);
-define_npc_type_data(NpcType.Garanz2, "Garanz (Ep. II);", "Garanz", "Baranz", 2, true);
-define_npc_type_data(NpcType.Dubswitch2, "Dubswitch (Ep. II);", "Dubswitch", "Dubswitch", 2, true);
-define_npc_type_data(NpcType.Delsaber2, "Delsaber (Ep. II);", "Delsaber", "Delsaber", 2, true);
+define_npc_type_data(NpcType.PanArms2, "Pan Arms (Ep. II)", "Pan Arms", "Pan Arms", 2, true);
+define_npc_type_data(NpcType.Migium2, "Migium (Ep. II)", "Migium", "Migium", 2, true);
+define_npc_type_data(NpcType.Hidoom2, "Hidoom (Ep. II)", "Hidoom", "Hidoom", 2, true);
+define_npc_type_data(NpcType.Dubchic2, "Dubchic (Ep. II)", "Dubchic", "Dubchich", 2, true);
+define_npc_type_data(NpcType.Gilchic2, "Gilchic (Ep. II)", "Gilchic", "Gilchich", 2, true);
+define_npc_type_data(NpcType.Garanz2, "Garanz (Ep. II)", "Garanz", "Baranz", 2, true);
+define_npc_type_data(NpcType.Dubswitch2, "Dubswitch (Ep. II)", "Dubswitch", "Dubswitch", 2, true);
+define_npc_type_data(NpcType.Delsaber2, "Delsaber (Ep. II)", "Delsaber", "Delsaber", 2, true);
 define_npc_type_data(
     NpcType.ChaosSorcerer2,
-    "Chaos Sorcerer (Ep. II);",
+    "Chaos Sorcerer (Ep. II)",
     "Chaos Sorcerer",
     "Gran Sorcerer",
     2,

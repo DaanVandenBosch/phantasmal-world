@@ -61,5 +61,5 @@ export function bind_hidden(element: HTMLElement, observable: Observable<boolean
         element.hidden = observable.val;
     }
 
-    return observable.observe(v => (element.hidden = v));
+    return observable.observe(({ value }) => (element.hidden = value));
 }

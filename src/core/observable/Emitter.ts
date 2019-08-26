@@ -1,5 +1,5 @@
-import { Observable } from "./Observable";
+import { ChangeEvent, Observable } from "./Observable";
 
-export interface Emitter<E> extends Observable<E> {
-    emit(event: E): void;
+export interface Emitter<T> extends Observable<T> {
+    emit(event: ChangeEvent<T>): void;
 }

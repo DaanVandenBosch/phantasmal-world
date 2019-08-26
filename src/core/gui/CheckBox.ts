@@ -17,9 +17,9 @@ export class CheckBox extends LabelledControl {
         this.element.onchange = () => (this.checked.val = this.element.checked);
 
         this.disposables(
-            this.checked.observe(checked => (this.element.checked = checked)),
+            this.checked.observe(({ value }) => (this.element.checked = value)),
 
-            this.enabled.observe(enabled => (this.element.disabled = !enabled)),
+            this.enabled.observe(({ value }) => (this.element.disabled = !value)),
         );
 
         this.checked.val = checked;

@@ -1,5 +1,5 @@
 import { Disposable } from "./Disposable";
-import { Property } from "./Property";
+import { PropertyChangeEvent, Property } from "./Property";
 import { Disposer } from "./Disposer";
 import { AbstractMinimalProperty } from "./AbstractMinimalProperty";
 import { FlatMappedProperty } from "./FlatMappedProperty";
@@ -15,6 +15,10 @@ export class DependentProperty<T> extends AbstractMinimalProperty<T> implements 
     private _val?: T;
 
     get val(): T {
+        return this.get_val();
+    }
+
+    get_val(): T {
         if (this.dependency_disposables.length) {
             return this._val as T;
         } else {
@@ -28,7 +32,7 @@ export class DependentProperty<T> extends AbstractMinimalProperty<T> implements 
         super();
     }
 
-    observe(observer: (event: T) => void): Disposable {
+    observe(observer: (event: PropertyChangeEvent<T>) => void): Disposable {
         const super_disposable = super.observe(observer);
 
         if (this.dependency_disposables.length === 0) {
@@ -37,8 +41,9 @@ export class DependentProperty<T> extends AbstractMinimalProperty<T> implements 
             this.dependency_disposables.add_all(
                 ...this.dependencies.map(dependency =>
                     dependency.observe(() => {
+                        const old_value = this._val!;
                         this._val = this.f();
-                        this.emit();
+                        this.emit(old_value);
                     }),
                 ),
             );
@@ -49,7 +54,7 @@ export class DependentProperty<T> extends AbstractMinimalProperty<T> implements 
                 super_disposable.dispose();
 
                 if (this.observers.length === 0) {
-                    this.dependency_disposables.dispose();
+                    this.dependency_disposables.dispose_all();
                 }
             },
         };

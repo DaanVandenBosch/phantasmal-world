@@ -1,6 +1,69 @@
 import { ResizableView } from "../../core/gui/ResizableView";
-import { create_element } from "../../core/gui/dom";
+import { el } from "../../core/gui/dom";
+import { quest_editor_store } from "../stores/QuestEditorStore";
+import { npc_data, NpcType } from "../../core/data_formats/parsing/quest/npc_types";
+import { Label } from "../../core/gui/Label";
+import { QuestModel } from "../model/QuestModel";
+import "./NpcCountsView.css";
 
 export class NpcCountsView extends ResizableView {
-    readonly element = create_element("div");
+    readonly element = el.div({ class: "quest_editor_NpcCountsView" });
+
+    private readonly table_element = el.table();
+
+    private readonly no_quest_element = el.div({ class: "quest_editor_NpcCountsView_no_quest" });
+    private readonly no_quest_label = this.disposable(
+        new Label("No quest loaded.", { enabled: false }),
+    );
+
+    constructor() {
+        super();
+
+        const quest = quest_editor_store.current_quest;
+
+        this.no_quest_element.append(this.no_quest_label.element);
+        this.bind_hidden(this.no_quest_element, quest.map(q => q != undefined));
+
+        this.no_quest_element.append(this.no_quest_label.element);
+        this.element.append(this.table_element, this.no_quest_element);
+
+        this.disposables(
+            quest.observe(({ value }) => this.update_view(value), {
+                call_now: true,
+            }),
+        );
+    }
+
+    private update_view(quest?: QuestModel): void {
+        const frag = document.createDocumentFragment();
+
+        const npc_counts = new Map<NpcType, number>();
+
+        if (quest) {
+            for (const npc of quest.npcs.val) {
+                const val = npc_counts.get(npc.type) || 0;
+                npc_counts.set(npc.type, val + 1);
+            }
+        }
+
+        const extra_canadines = (npc_counts.get(NpcType.Canane) || 0) * 8;
+
+        // Sort by canonical order.
+        const sorted_npc_counts = [...npc_counts].sort((a, b) => a[0] - b[0]);
+
+        for (const [npc_type, count] of sorted_npc_counts) {
+            const extra = npc_type === NpcType.Canadine ? extra_canadines : 0;
+
+            frag.append(
+                el.tr(
+                    {},
+                    el.th({ text: npc_data(npc_type).name + ":" }),
+                    el.td({ text: String(count + extra) }),
+                ),
+            );
+        }
+
+        this.table_element.innerHTML = "";
+        this.table_element.append(frag);
+    }
 }

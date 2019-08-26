@@ -28,8 +28,8 @@ export class NavigationView extends View {
             this.element.append(button.element);
         }
 
-        this.tool_changed(gui_store.tool.val);
-        this.disposable(gui_store.tool.observe(this.tool_changed));
+        this.mark_tool_button(gui_store.tool.val);
+        this.disposable(gui_store.tool.observe(({ value }) => this.mark_tool_button(value)));
     }
 
     private mousedown(e: MouseEvent): void {
@@ -38,7 +38,7 @@ export class NavigationView extends View {
         }
     }
 
-    private tool_changed = (tool: GuiTool) => {
+    private mark_tool_button = (tool: GuiTool) => {
         const button = this.buttons.get(tool);
         if (button) button.checked = true;
     };

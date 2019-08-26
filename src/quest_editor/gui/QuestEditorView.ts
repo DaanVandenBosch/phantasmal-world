@@ -4,10 +4,12 @@ import { ToolBarView } from "./ToolBarView";
 import GoldenLayout, { Container, ContentItem, ItemConfigType } from "golden-layout";
 import { quest_editor_ui_persister } from "../persistence/QuestEditorUiPersister";
 import { QuesInfoView } from "./QuesInfoView";
-import Logger = require("js-logger");
 import "golden-layout/src/css/goldenlayout-base.css";
 import "../../core/gui/golden_layout_theme.css";
 import { NpcCountsView } from "./NpcCountsView";
+import { QuestRendererView } from "./QuestRendererView";
+import { quest_editor_store } from "../stores/QuestEditorStore";
+import Logger = require("js-logger");
 
 const logger = Logger.get("quest_editor/gui/QuestEditorView");
 
@@ -15,7 +17,7 @@ const logger = Logger.get("quest_editor/gui/QuestEditorView");
 const VIEW_TO_NAME = new Map([
     [QuesInfoView, "quest_info"],
     [NpcCountsView, "npc_counts"],
-    // [QuestRendererView, "quest_renderer"],
+    [QuestRendererView, "quest_renderer"],
     // [AssemblyEditorView, "assembly_editor"],
     // [EntityInfoView, "entity_info"],
     // [AddObjectView, "add_object"],
@@ -59,24 +61,24 @@ const DEFAULT_LAYOUT_CONTENT: ItemConfigType[] = [
                     },
                 ],
             },
-            // {
-            //     type: "stack",
-            //     width: 9,
-            //     content: [
-            //         {
-            //             title: "3D View",
-            //             type: "component",
-            //             componentName: Component.QuestRenderer,
-            //             isClosable: false,
-            //         },
-            //         {
-            //             title: "Script",
-            //             type: "component",
-            //             componentName: Component.AssemblyEditor,
-            //             isClosable: false,
-            //         },
-            //     ],
-            // },
+            {
+                type: "stack",
+                width: 9,
+                content: [
+                    {
+                        title: "3D View",
+                        type: "component",
+                        componentName: VIEW_TO_NAME.get(QuestRendererView),
+                        isClosable: false,
+                    },
+                    // {
+                    //     title: "Script",
+                    //     type: "component",
+                    //     componentName: Component.AssemblyEditor,
+                    //     isClosable: false,
+                    // },
+                ],
+            },
             // {
             //     title: "Entity",
             //     type: "component",
@@ -150,7 +152,10 @@ export class QuestEditorView extends ResizableView {
                     const view = new view_ctor();
 
                     container.on("close", () => view.dispose());
-                    container.on("resize", () => view.resize(container.width, container.height));
+                    container.on("resize", () =>
+                        // Subtract 4 from height to work around bug in Golden Layout related to headerHeight.
+                        view.resize(container.width, container.height - 4),
+                    );
 
                     view.resize(container.width, container.height);
 
@@ -166,13 +171,13 @@ export class QuestEditorView extends ResizableView {
 
             layout.on("stackCreated", (stack: ContentItem) => {
                 stack.on("activeContentItemChanged", (item: ContentItem) => {
-                    // if ("component" in item.config) {
-                    //     if (item.config.component === CMP_TO_NAME.get(AssemblyEditorComponent)) {
-                    //         quest_editor_store.script_undo.make_current();
-                    //     } else {
-                    //         quest_editor_store.undo.make_current();
-                    //     }
-                    // }
+                    if ("componentName" in item.config) {
+                        // if (item.config.componentName === VIEW_TO_NAME.get(AssemblyEditorView)) {
+                        //     quest_editor_store.script_undo.make_current();
+                        // } else {
+                        //     quest_editor_store.undo.make_current();
+                        // }
+                    }
                 });
             });
 
