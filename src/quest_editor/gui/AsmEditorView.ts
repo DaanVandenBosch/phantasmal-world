@@ -35,6 +35,8 @@ export class AsmEditorView extends ResizableView {
             wordBasedSuggestions: false,
             wordWrap: "on",
             wrappingIndent: "indent",
+            renderIndentGuides: false,
+            folding: false,
         }),
     );
 

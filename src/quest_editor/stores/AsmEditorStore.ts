@@ -79,7 +79,7 @@ export class AsmEditorStore implements Disposable {
 
     constructor() {
         this.disposer.add_all(
-            quest_editor_store.current_quest.observe(({ value }) => this.update_model(value), {
+            quest_editor_store.current_quest.observe(({ value }) => this.quest_changed(value), {
                 call_now: true,
             }),
 
@@ -93,7 +93,8 @@ export class AsmEditorStore implements Disposable {
         this.disposer.dispose();
     }
 
-    private update_model(quest?: QuestModel): void {
+    private quest_changed(quest?: QuestModel): void {
+        this.undo.reset();
         this.model_disposer.dispose_all();
 
         if (quest) {

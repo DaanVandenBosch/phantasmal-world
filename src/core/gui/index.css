@@ -18,8 +18,8 @@
     --input-text-color: hsl(0, 0%, 75%);
     --input-text-color-disabled: var(--text-color-disabled);
     --input-border: solid 1px hsl(0, 0%, 25%);
-    --input-border-hover: hsl(0, 0%, 35%);
-    --input-border-focus: hsl(0, 0%, 45%);
+    --input-border-hover: hsl(0, 0%, 30%);
+    --input-border-focus: hsl(0, 0%, 40%);
     --input-border-disabled: solid 1px hsl(0, 0%, 20%);
 
     --input-inner-border: solid 1px hsl(0, 0%, 5%);
