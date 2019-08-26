@@ -24,6 +24,10 @@ export abstract class View implements Disposable {
         this.disposables(this.visible.observe(({ value }) => (this.element.hidden = !value)));
     }
 
+    focus(): void {
+        this.element.focus();
+    }
+
     dispose(): void {
         this.element.remove();
         this.disposer.dispose();

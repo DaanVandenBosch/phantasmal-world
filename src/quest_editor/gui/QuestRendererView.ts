@@ -3,9 +3,10 @@ import { el } from "../../core/gui/dom";
 import { RendererView } from "../../core/gui/RendererView";
 import { QuestRenderer } from "../rendering/QuestRenderer";
 import { gui_store, GuiTool } from "../../core/stores/GuiStore";
+import { quest_editor_store } from "../stores/QuestEditorStore";
 
 export class QuestRendererView extends ResizableView {
-    readonly element = el.div({ class: "quest_editor_QuestRendererView" });
+    readonly element = el.div({ class: "quest_editor_QuestRendererView", tab_index: -1 });
 
     private renderer_view = this.disposable(new RendererView(new QuestRenderer()));
 
@@ -13,6 +14,8 @@ export class QuestRendererView extends ResizableView {
         super();
 
         this.element.append(this.renderer_view.element);
+
+        this.element.addEventListener("focus", () => quest_editor_store.undo.make_current(), true);
 
         this.renderer_view.start_rendering();
 

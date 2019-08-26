@@ -3,8 +3,10 @@ import { Observable } from "../observable/Observable";
 import { is_property } from "../observable/Property";
 
 export const el = {
-    div: (attributes?: {}, ...children: HTMLElement[]): HTMLDivElement =>
-        create_element("div", attributes, ...children),
+    div: (
+        attributes?: { class?: string; tab_index?: number },
+        ...children: HTMLElement[]
+    ): HTMLDivElement => create_element("div", attributes, ...children),
 
     table: (attributes?: {}, ...children: HTMLElement[]): HTMLTableElement =>
         create_element("table", attributes, ...children),
@@ -30,6 +32,7 @@ export function create_element<T extends HTMLElement>(
     tag_name: string,
     attributes?: {
         class?: string;
+        tab_index?: number;
         text?: string;
         data?: { [key: string]: string };
         col_span?: number;
@@ -49,6 +52,8 @@ export function create_element<T extends HTMLElement>(
         }
 
         if (attributes.col_span) element.colSpan = attributes.col_span;
+
+        if (attributes.tab_index) element.tabIndex = attributes.tab_index;
     }
 
     element.append(...children);

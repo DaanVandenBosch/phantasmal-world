@@ -1,18 +1,19 @@
 import { Undo } from "./Undo";
 import { Action } from "./Action";
 import { Property } from "../observable/Property";
-import { property } from "../observable";
+import { map, property } from "../observable";
 import { NOOP_UNDO } from "./noop_undo";
 import { undo_manager } from "./UndoManager";
+import { WritableProperty } from "../observable/WritableProperty";
 
 /**
  * Simply contains a single action. `can_undo` and `can_redo` must be managed manually.
  */
 export class SimpleUndo implements Undo {
-    private readonly action: Action;
+    readonly action: WritableProperty<Action>;
 
     constructor(description: string, undo: () => void, redo: () => void) {
-        this.action = { description, undo, redo };
+        this.action = property({ description, undo, redo });
     }
 
     make_current(): void {
@@ -29,17 +30,21 @@ export class SimpleUndo implements Undo {
 
     readonly can_redo = property(false);
 
-    readonly first_undo: Property<Action | undefined> = this.can_undo.map(can_undo =>
-        can_undo ? this.action : undefined,
+    readonly first_undo: Property<Action | undefined> = map(
+        (action, can_undo) => (can_undo ? action : undefined),
+        this.action,
+        this.can_undo,
     );
 
-    readonly first_redo: Property<Action | undefined> = this.can_redo.map(can_redo =>
-        can_redo ? this.action : undefined,
+    readonly first_redo: Property<Action | undefined> = map(
+        (action, can_redo) => (can_redo ? action : undefined),
+        this.action,
+        this.can_redo,
     );
 
     undo(): boolean {
         if (this.can_undo) {
-            this.action.undo();
+            this.action.val.undo();
             return true;
         } else {
             return false;
@@ -48,7 +53,7 @@ export class SimpleUndo implements Undo {
 
     redo(): boolean {
         if (this.can_redo) {
-            this.action.redo();
+            this.action.val.redo();
             return true;
         } else {
             return false;

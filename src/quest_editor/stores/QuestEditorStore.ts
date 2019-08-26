@@ -17,7 +17,6 @@ import { Disposable } from "../../core/observable/Disposable";
 import { Disposer } from "../../core/observable/Disposer";
 import { gui_store, GuiTool } from "../../core/stores/GuiStore";
 import { UndoStack } from "../../core/undo/UndoStack";
-import { SimpleUndo } from "../../core/undo/SimpleUndo";
 import { TranslateEntityAction } from "../actions/TranslateEntityAction";
 import { EditShortDescriptionAction } from "../actions/EditShortDescriptionAction";
 import { EditLongDescriptionAction } from "../actions/EditLongDescriptionAction";
@@ -31,7 +30,6 @@ export class QuestEditorStore implements Disposable {
     readonly debug: WritableProperty<boolean> = property(false);
 
     readonly undo = new UndoStack();
-    readonly script_undo = new SimpleUndo("Text edits", () => {}, () => {});
 
     private readonly _current_quest_filename = property<string | undefined>(undefined);
     readonly current_quest_filename: Property<string | undefined> = this._current_quest_filename;
@@ -175,7 +173,6 @@ export class QuestEditorStore implements Disposable {
 
     private async set_quest(quest?: QuestModel, filename?: string): Promise<void> {
         this.undo.reset();
-        this.script_undo.reset();
 
         this._current_area.val = undefined;
         this._selected_entity.val = undefined;

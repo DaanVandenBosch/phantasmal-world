@@ -2,6 +2,7 @@
     box-sizing: border-box;
     padding: 3px;
     overflow: auto;
+    outline: none;
 }
 
 .quest_editor_QuesInfoView table {

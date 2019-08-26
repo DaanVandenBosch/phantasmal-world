@@ -21,6 +21,7 @@ import CompletionItem = languages.CompletionItem;
 import IModelContentChange = editor.IModelContentChange;
 import SignatureHelp = languages.SignatureHelp;
 import ParameterInformation = languages.ParameterInformation;
+import { Disposable } from "../../core/observable/Disposable";
 
 const INSTRUCTION_SUGGESTIONS = OPCODES.filter(opcode => opcode != null).map(opcode => {
     return ({
@@ -48,19 +49,25 @@ const KEYWORD_SUGGESTIONS = [
     },
 ] as CompletionItem[];
 
-export class AssemblyAnalyser {
-    readonly _warnings: WritableProperty<AssemblyWarning[]> = property([]);
-    readonly warnings: Property<AssemblyWarning[]> = this._warnings;
+export class AssemblyAnalyser implements Disposable {
+    readonly _issues: WritableProperty<{
+        warnings: AssemblyWarning[];
+        errors: AssemblyError[];
+    }> = property({ warnings: [], errors: [] });
 
-    readonly _errors: WritableProperty<AssemblyError[]> = property([]);
-    readonly errors: Property<AssemblyError[]> = this._errors;
+    readonly issues: Property<{
+        warnings: AssemblyWarning[];
+        errors: AssemblyError[];
+    }> = this._issues;
 
     private worker = new AssemblyWorker();
     private quest?: QuestModel;
+
     private promises = new Map<
         number,
         { resolve: (result: any) => void; reject: (error: Error) => void }
     >();
+
     private message_id = 0;
 
     constructor() {
@@ -139,8 +146,7 @@ export class AssemblyAnalyser {
                         ...message.object_code,
                     );
                     this.quest.set_map_designations(message.map_designations);
-                    this._warnings.val = message.warnings;
-                    this._errors.val = message.errors;
+                    this._issues.val = { warnings: message.warnings, errors: message.errors };
                 }
                 break;
             case OutputMessageType.SignatureHelp:

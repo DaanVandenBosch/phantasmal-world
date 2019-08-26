@@ -10,7 +10,7 @@ import "./QuesInfoView.css";
 import { Label } from "../../core/gui/Label";
 
 export class QuesInfoView extends ResizableView {
-    readonly element = el.div({ class: "quest_editor_QuesInfoView" });
+    readonly element = el.div({ class: "quest_editor_QuesInfoView", tab_index: -1 });
 
     private readonly table_element = el.table();
     private readonly episode_element: HTMLElement;
@@ -64,6 +64,8 @@ export class QuesInfoView extends ResizableView {
         this.bind_hidden(this.table_element, quest.map(q => q == undefined));
 
         this.element.append(this.table_element, this.no_quest_element);
+
+        this.element.addEventListener("focus", () => quest_editor_store.undo.make_current(), true);
 
         this.disposables(
             quest.observe(({ value: q }) => {

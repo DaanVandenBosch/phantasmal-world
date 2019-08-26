@@ -53,9 +53,6 @@ body {
     font-size: 13px;
     background-color: var(--bg-color);
     color: var(--text-color);
-}
-
-* {
     font-family: Verdana, Geneva, sans-serif;
 }
 

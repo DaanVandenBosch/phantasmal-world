@@ -8,17 +8,17 @@ import "golden-layout/src/css/goldenlayout-base.css";
 import "../../core/gui/golden_layout_theme.css";
 import { NpcCountsView } from "./NpcCountsView";
 import { QuestRendererView } from "./QuestRendererView";
-import { quest_editor_store } from "../stores/QuestEditorStore";
+import { AsmEditorView } from "./AsmEditorView";
 import Logger = require("js-logger");
 
 const logger = Logger.get("quest_editor/gui/QuestEditorView");
 
 // Don't change these values, as they are persisted in the user's browser.
-const VIEW_TO_NAME = new Map([
+const VIEW_TO_NAME = new Map<new () => ResizableView, string>([
     [QuesInfoView, "quest_info"],
     [NpcCountsView, "npc_counts"],
     [QuestRendererView, "quest_renderer"],
-    // [AssemblyEditorView, "assembly_editor"],
+    [AsmEditorView, "asm_editor"],
     // [EntityInfoView, "entity_info"],
     // [AddObjectView, "add_object"],
 ]);
@@ -71,12 +71,12 @@ const DEFAULT_LAYOUT_CONTENT: ItemConfigType[] = [
                         componentName: VIEW_TO_NAME.get(QuestRendererView),
                         isClosable: false,
                     },
-                    // {
-                    //     title: "Script",
-                    //     type: "component",
-                    //     componentName: Component.AssemblyEditor,
-                    //     isClosable: false,
-                    // },
+                    {
+                        title: "Script",
+                        type: "component",
+                        componentName: VIEW_TO_NAME.get(AsmEditorView),
+                        isClosable: false,
+                    },
                 ],
             },
             // {
@@ -97,6 +97,8 @@ export class QuestEditorView extends ResizableView {
 
     private readonly layout_element = create_element("div", { class: "quest_editor_gl_container" });
     private readonly layout: Promise<GoldenLayout>;
+
+    private readonly sub_views = new Map<string, ResizableView>();
 
     constructor() {
         super();
@@ -120,6 +122,12 @@ export class QuestEditorView extends ResizableView {
     dispose(): void {
         super.dispose();
         this.layout.then(layout => layout.destroy());
+
+        for (const view of this.sub_views.values()) {
+            view.dispose();
+        }
+
+        this.sub_views.clear();
     }
 
     private async init_golden_layout(): Promise<GoldenLayout> {
@@ -145,6 +153,7 @@ export class QuestEditorView extends ResizableView {
 
     private attempt_gl_init(config: GoldenLayout.Config): GoldenLayout {
         const layout = new GoldenLayout(config, this.layout_element);
+        const self = this;
 
         try {
             for (const [view_ctor, name] of VIEW_TO_NAME) {
@@ -159,6 +168,7 @@ export class QuestEditorView extends ResizableView {
 
                     view.resize(container.width, container.height);
 
+                    self.sub_views.set(name, view);
                     container.getElement().append(view.element);
                 });
             }
@@ -172,11 +182,8 @@ export class QuestEditorView extends ResizableView {
             layout.on("stackCreated", (stack: ContentItem) => {
                 stack.on("activeContentItemChanged", (item: ContentItem) => {
                     if ("componentName" in item.config) {
-                        // if (item.config.componentName === VIEW_TO_NAME.get(AssemblyEditorView)) {
-                        //     quest_editor_store.script_undo.make_current();
-                        // } else {
-                        //     quest_editor_store.undo.make_current();
-                        // }
+                        const view = this.sub_views.get(item.config.componentName);
+                        if (view) view.focus();
                     }
                 });
             });
