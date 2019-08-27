@@ -4,21 +4,25 @@ import "./Button.css";
 import { property } from "../observable";
 import { Property } from "../observable/Property";
 import { Control } from "./Control";
+import { WritableProperty } from "../observable/WritableProperty";
 
 export class FileButton extends Control {
     readonly element: HTMLLabelElement = create_element("label", {
         class: "core_FileButton core_Button",
     });
 
-    private readonly _files = property<File[]>([]);
-    readonly files: Property<File[]> = this._files;
+    readonly files: Property<File[]>;
 
     private input: HTMLInputElement = create_element("input", {
         class: "core_FileButton_input core_Button_inner",
     });
 
+    private readonly _files: WritableProperty<File[]> = property<File[]>([]);
+
     constructor(text: string, accept: string = "") {
         super();
+
+        this.files = this._files;
 
         this.input.type = "file";
         this.input.accept = accept;

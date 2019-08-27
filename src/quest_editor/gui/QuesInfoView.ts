@@ -1,4 +1,4 @@
-import { ResizableView } from "../../core/gui/ResizableView";
+import { ResizableWidget } from "../../core/gui/ResizableWidget";
 import { el } from "../../core/gui/dom";
 import { quest_editor_store } from "../stores/QuestEditorStore";
 import { Episode } from "../../core/data_formats/parsing/quest/Episode";
@@ -9,7 +9,7 @@ import { TextArea } from "../../core/gui/TextArea";
 import "./QuesInfoView.css";
 import { DisabledView } from "./DisabledView";
 
-export class QuesInfoView extends ResizableView {
+export class QuesInfoView extends ResizableWidget {
     readonly element = el.div({ class: "quest_editor_QuesInfoView", tab_index: -1 });
 
     private readonly table_element = el.table();

@@ -1,7 +1,7 @@
 import { TabContainer } from "../../core/gui/TabContainer";
-import { ResizableView } from "../../core/gui/ResizableView";
+import { ResizableWidget } from "../../core/gui/ResizableWidget";
 
-export class ViewerView extends ResizableView {
+export class ViewerView extends ResizableWidget {
     private tabs = this.disposable(
         new TabContainer(
             {

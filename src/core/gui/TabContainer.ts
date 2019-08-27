@@ -1,21 +1,21 @@
-import { View } from "./View";
+import { Widget } from "./Widget";
 import { create_element } from "./dom";
-import { LazyView } from "./LazyView";
+import { LazyWidget } from "./LazyWidget";
 import { Resizable } from "./Resizable";
-import { ResizableView } from "./ResizableView";
+import { ResizableWidget } from "./ResizableWidget";
 import "./TabContainer.css";
 
 export type Tab = {
     title: string;
     key: string;
-    create_view: () => Promise<View & Resizable>;
+    create_view: () => Promise<Widget & Resizable>;
 };
 
-type TabInfo = Tab & { tab_element: HTMLSpanElement; lazy_view: LazyView };
+type TabInfo = Tab & { tab_element: HTMLSpanElement; lazy_view: LazyWidget };
 
 const BAR_HEIGHT = 28;
 
-export class TabContainer extends ResizableView {
+export class TabContainer extends ResizableWidget {
     readonly element = create_element("div", { class: "core_TabContainer" });
 
     private tabs: TabInfo[] = [];
@@ -35,7 +35,7 @@ export class TabContainer extends ResizableView {
             });
             this.bar_element.append(tab_element);
 
-            const lazy_view = new LazyView(tab.create_view);
+            const lazy_view = new LazyWidget(tab.create_view);
 
             this.tabs.push({
                 ...tab,

@@ -1,4 +1,4 @@
-import { ResizableView } from "../../core/gui/ResizableView";
+import { ResizableWidget } from "../../core/gui/ResizableWidget";
 import { el } from "../../core/gui/dom";
 import { quest_editor_store } from "../stores/QuestEditorStore";
 import { npc_data, NpcType } from "../../core/data_formats/parsing/quest/npc_types";
@@ -6,7 +6,7 @@ import { QuestModel } from "../model/QuestModel";
 import "./NpcCountsView.css";
 import { DisabledView } from "./DisabledView";
 
-export class NpcCountsView extends ResizableView {
+export class NpcCountsView extends ResizableWidget {
     readonly element = el.div({ class: "quest_editor_NpcCountsView" });
 
     private readonly table_element = el.table();

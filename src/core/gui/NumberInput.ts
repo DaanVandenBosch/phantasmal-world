@@ -1,17 +1,15 @@
-import { property } from "../observable";
 import { Property } from "../observable/Property";
-import { Input } from "./Input";
+import { Input, InputOptions } from "./Input";
 import "./NumberInput.css";
 
 export class NumberInput extends Input<number> {
     readonly preferred_label_position = "left";
 
     private readonly rounding_factor: number;
-    private rounded_value: number = 0;
 
     constructor(
         value: number = 0,
-        options: {
+        options: InputOptions & {
             label?: string;
             min?: number | Property<number>;
             max?: number | Property<number>;
@@ -20,13 +18,7 @@ export class NumberInput extends Input<number> {
             round_to?: number;
         } = {},
     ) {
-        super(
-            property(value),
-            "core_NumberInput",
-            "number",
-            "core_NumberInput_inner",
-            options.label,
-        );
+        super(value, "core_NumberInput", "number", "core_NumberInput_inner", options);
 
         const { min, max, step } = options;
         this.set_attr("min", min, String);
@@ -40,18 +32,18 @@ export class NumberInput extends Input<number> {
         }
 
         this.element.style.width = `${options.width == undefined ? 54 : options.width}px`;
+
+        this.set_value(value);
     }
 
-    protected input_value_changed(): boolean {
-        return this.input.valueAsNumber !== this.rounded_value;
-    }
-
-    protected get_input_value(): number {
+    protected get_value(): number {
         return this.input.valueAsNumber;
     }
 
-    protected set_input_value(value: number): void {
-        this.input.valueAsNumber = this.rounded_value =
-            Math.round(this.rounding_factor * value) / this.rounding_factor;
+    protected set_value(value: number): void {
+        this.ignore_change(() => {
+            this.input.valueAsNumber =
+                Math.round(this.rounding_factor * value) / this.rounding_factor;
+        });
     }
 }

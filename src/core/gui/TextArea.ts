@@ -1,8 +1,16 @@
-import { LabelledControl } from "./LabelledControl";
+import { LabelledControl, LabelledControlOptions } from "./LabelledControl";
 import { el } from "./dom";
 import { property } from "../observable";
 import { WritableProperty } from "../observable/WritableProperty";
 import "./TextArea.css";
+import { WidgetProperty } from "../observable/WidgetProperty";
+
+export type TextAreaOptions = LabelledControlOptions & {
+    max_length?: number;
+    font_family?: string;
+    rows?: number;
+    cols?: number;
+};
 
 export class TextArea extends LabelledControl {
     readonly element: HTMLElement = el.div({ class: "core_TextArea" });
@@ -15,17 +23,10 @@ export class TextArea extends LabelledControl {
         class: "core_TextArea_inner",
     });
 
-    constructor(
-        value = "",
-        options?: {
-            label?: string;
-            max_length?: number;
-            font_family?: string;
-            rows?: number;
-            cols?: number;
-        },
-    ) {
-        super(options && options.label);
+    private readonly _value = new WidgetProperty<string>(this, "", this.set_value);
+
+    constructor(value = "", options?: TextAreaOptions) {
+        super(options);
 
         if (options) {
             if (options.max_length != undefined) this.text_element.maxLength = options.max_length;
@@ -35,12 +36,15 @@ export class TextArea extends LabelledControl {
             if (options.cols != undefined) this.text_element.cols = options.cols;
         }
 
-        this.value = property(value);
+        this.value = this._value;
+        this.set_value(value);
 
-        this.text_element.onchange = () => (this.value.val = this.text_element.value);
-
-        this.disposables(this.value.observe(({ value }) => (this.text_element.value = value)));
+        this.text_element.onchange = () => (this._value.val = this.text_element.value);
 
         this.element.append(this.text_element);
+    }
+
+    protected set_value(value: string): void {
+        this.text_element.value = value;
     }
 }

@@ -1,7 +1,7 @@
 import { create_element } from "../../core/gui/dom";
 import "./NavigationView.css";
 import { gui_store, GuiTool } from "../../core/stores/GuiStore";
-import { View } from "../../core/gui/View";
+import { Widget } from "../../core/gui/Widget";
 
 const TOOLS: [GuiTool, string][] = [
     [GuiTool.Viewer, "Viewer"],
@@ -9,7 +9,7 @@ const TOOLS: [GuiTool, string][] = [
     [GuiTool.HuntOptimizer, "Hunt Optimizer"],
 ];
 
-export class NavigationView extends View {
+export class NavigationView extends Widget {
     readonly element = create_element("div", { class: "application_NavigationView" });
 
     readonly height = 30;
@@ -44,7 +44,7 @@ export class NavigationView extends View {
     };
 }
 
-class ToolButton extends View {
+class ToolButton extends Widget {
     element: HTMLElement = create_element("span");
 
     private input: HTMLInputElement = create_element("input");

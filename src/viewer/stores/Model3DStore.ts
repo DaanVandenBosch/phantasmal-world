@@ -57,9 +57,9 @@ export class Model3DStore implements Disposable {
 
     readonly show_skeleton: WritableProperty<boolean> = property(false);
 
-    readonly current_animation: WritableProperty<CharacterClassAnimationModel | undefined> = property(
-        undefined,
-    );
+    readonly current_animation: WritableProperty<
+        CharacterClassAnimationModel | undefined
+    > = property(undefined);
 
     private readonly _current_nj_motion = property<NjMotion | undefined>(undefined);
     readonly current_nj_motion: Property<NjMotion | undefined> = this._current_nj_motion;

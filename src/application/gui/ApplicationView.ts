@@ -1,10 +1,10 @@
 import { NavigationView } from "./NavigationView";
 import { MainContentView } from "./MainContentView";
 import { create_element } from "../../core/gui/dom";
-import { ResizableView } from "../../core/gui/ResizableView";
+import { ResizableWidget } from "../../core/gui/ResizableWidget";
 
-export class ApplicationView extends ResizableView {
-    element = create_element("div", { class: "application_ApplicationView" });
+export class ApplicationView extends ResizableWidget {
+    readonly element = create_element("div", { class: "application_ApplicationView" });
 
     private menu_view = this.disposable(new NavigationView());
     private main_content_view = this.disposable(new MainContentView());

@@ -1,13 +1,14 @@
-import { View } from "./View";
+import { Widget } from "./Widget";
 import { create_element } from "./dom";
 import "./ToolBar.css";
 import { LabelledControl } from "./LabelledControl";
 
-export class ToolBar extends View {
+export class ToolBar extends Widget {
     readonly element = create_element("div", { class: "core_ToolBar" });
+
     readonly height = 33;
 
-    constructor(...children: View[]) {
+    constructor(...children: Widget[]) {
         super();
 
         this.element.style.height = `${this.height}px`;

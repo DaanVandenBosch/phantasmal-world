@@ -1,9 +1,12 @@
 /* eslint-disable no-dupe-class-members */
-import { LabelledControl } from "./LabelledControl";
+import { LabelledControl, LabelledControlOptions } from "./LabelledControl";
 import { create_element } from "./dom";
 import { WritableProperty } from "../observable/WritableProperty";
 import { is_any_property, Property } from "../observable/Property";
 import "./Input.css";
+import { WidgetProperty } from "../observable/WidgetProperty";
+
+export type InputOptions = LabelledControlOptions;
 
 export abstract class Input<T> extends LabelledControl {
     readonly element: HTMLElement;
@@ -12,16 +15,20 @@ export abstract class Input<T> extends LabelledControl {
 
     protected readonly input: HTMLInputElement;
 
+    private readonly _value: WidgetProperty<T>;
+    private ignore_input_change = false;
+
     protected constructor(
-        value: WritableProperty<T>,
+        value: T,
         class_name: string,
         input_type: string,
         input_class_name: string,
-        label?: string,
+        options?: InputOptions,
     ) {
-        super(label);
+        super(options);
 
-        this.value = value;
+        this._value = new WidgetProperty<T>(this, value, this.set_value);
+        this.value = this._value;
 
         this.element = create_element("span", { class: `${class_name} core_Input` });
 
@@ -30,46 +37,25 @@ export abstract class Input<T> extends LabelledControl {
         });
         this.input.type = input_type;
         this.input.onchange = () => {
-            if (this.input_value_changed()) {
-                this.value.val = this.get_input_value();
-            }
+            this._value.val = this.get_value();
         };
-        this.set_input_value(value.val);
 
         this.element.append(this.input);
-
-        this.disposables(
-            this.value.observe(({ value }) => {
-                this.set_input_value(value);
-            }),
-
-            this.enabled.observe(({ value }) => {
-                this.input.disabled = !value;
-
-                if (value) {
-                    this.element.classList.remove("disabled");
-                } else {
-                    this.element.classList.add("disabled");
-                }
-            }),
-        );
     }
 
-    set_value(value: T, options: { silent?: boolean } = {}): void {
-        this.value.set_val(value, options);
-
-        if (options.silent) {
-            this.set_input_value(value);
-        }
+    protected set_enabled(enabled: boolean): void {
+        super.set_enabled(enabled);
+        this.input.disabled = !enabled;
     }
 
-    protected input_value_changed(): boolean {
-        return true;
+    protected abstract get_value(): T;
+
+    protected abstract set_value(value: T): void;
+
+    protected ignore_change(f: () => void): void {
+        this.ignore_input_change = true;
+        f();
     }
-
-    protected abstract get_input_value(): T;
-
-    protected abstract set_input_value(value: T): void;
 
     protected set_attr<T>(attr: InputAttrsOfType<T>, value?: T | Property<T>): void;
     protected set_attr<T, U>(

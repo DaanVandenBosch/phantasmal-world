@@ -1,27 +1,36 @@
 import { create_element } from "./dom";
 import { WritableProperty } from "../observable/WritableProperty";
-import { property } from "../observable";
-import { LabelledControl } from "./LabelledControl";
+import { LabelledControl, LabelledControlOptions } from "./LabelledControl";
+import { WidgetProperty } from "../observable/WidgetProperty";
+
+export type CheckBoxOptions = LabelledControlOptions;
 
 export class CheckBox extends LabelledControl {
     readonly element: HTMLInputElement = create_element("input", { class: "core_CheckBox" });
 
-    readonly checked: WritableProperty<boolean> = property(false);
-
     readonly preferred_label_position = "right";
 
-    constructor(checked: boolean = false, label?: string) {
-        super(label);
+    readonly checked: WritableProperty<boolean>;
+
+    private readonly _checked: WidgetProperty<boolean>;
+
+    constructor(checked: boolean = false, options?: CheckBoxOptions) {
+        super(options);
+
+        this._checked = new WidgetProperty(this, checked, this.set_checked);
+        this.checked = this._checked;
+        this.set_checked(checked);
 
         this.element.type = "checkbox";
-        this.element.onchange = () => (this.checked.val = this.element.checked);
+        this.element.onchange = () => (this._checked.val = this.element.checked);
+    }
 
-        this.disposables(
-            this.checked.observe(({ value }) => (this.element.checked = value)),
+    protected set_enabled(enabled: boolean): void {
+        super.set_enabled(enabled);
+        this.element.disabled = !enabled;
+    }
 
-            this.enabled.observe(({ value }) => (this.element.disabled = !value)),
-        );
-
-        this.checked.val = checked;
+    protected set_checked(checked: boolean): void {
+        this.element.checked = checked;
     }
 }

@@ -1,7 +1,7 @@
-import { View } from "./View";
+import { Widget } from "./Widget";
 import { Resizable } from "./Resizable";
 
-export abstract class ResizableView extends View implements Resizable {
+export abstract class ResizableWidget extends Widget implements Resizable {
     protected width: number = 0;
     protected height: number = 0;
 

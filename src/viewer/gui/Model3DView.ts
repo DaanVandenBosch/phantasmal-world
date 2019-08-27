@@ -1,12 +1,12 @@
 import { create_element } from "../../core/gui/dom";
-import { ResizableView } from "../../core/gui/ResizableView";
+import { ResizableWidget } from "../../core/gui/ResizableWidget";
 import { ToolBar } from "../../core/gui/ToolBar";
 import "./Model3DView.css";
 import { model_store } from "../stores/Model3DStore";
 import { WritableProperty } from "../../core/observable/WritableProperty";
-import { RendererView } from "../../core/gui/RendererView";
+import { RendererWidget } from "../../core/gui/RendererWidget";
 import { Model3DRenderer } from "../rendering/Model3DRenderer";
-import { View } from "../../core/gui/View";
+import { Widget } from "../../core/gui/Widget";
 import { FileButton } from "../../core/gui/FileButton";
 import { CheckBox } from "../../core/gui/CheckBox";
 import { NumberInput } from "../../core/gui/NumberInput";
@@ -17,7 +17,7 @@ import { PSO_FRAME_RATE } from "../../core/rendering/conversion/ninja_animation"
 const MODEL_LIST_WIDTH = 100;
 const ANIMATION_LIST_WIDTH = 140;
 
-export class Model3DView extends ResizableView {
+export class Model3DView extends ResizableWidget {
     readonly element = create_element("div", { class: "viewer_Model3DView" });
 
     private tool_bar_view = this.disposable(new ToolBarView());
@@ -28,7 +28,7 @@ export class Model3DView extends ResizableView {
     private animation_list_view = this.disposable(
         new ModelSelectListView(model_store.animations, model_store.current_animation),
     );
-    private renderer_view = this.disposable(new RendererView(new Model3DRenderer()));
+    private renderer_view = this.disposable(new RendererWidget(new Model3DRenderer()));
 
     constructor() {
         super();
@@ -74,10 +74,10 @@ export class Model3DView extends ResizableView {
     }
 }
 
-class ToolBarView extends View {
+class ToolBarView extends Widget {
     private readonly open_file_button = new FileButton("Open file...", ".nj, .njm, .xj, .xvm");
-    private readonly skeleton_checkbox = new CheckBox(false, "Show skeleton");
-    private readonly play_animation_checkbox = new CheckBox(true, "Play animation");
+    private readonly skeleton_checkbox = new CheckBox(false, { label: "Show skeleton" });
+    private readonly play_animation_checkbox = new CheckBox(true, { label: "Play animation" });
     private readonly animation_frame_rate_input = new NumberInput(PSO_FRAME_RATE, {
         label: "Frame rate:",
         min: 1,
@@ -144,7 +144,7 @@ class ToolBarView extends View {
     }
 }
 
-class ModelSelectListView<T extends { name: string }> extends ResizableView {
+class ModelSelectListView<T extends { name: string }> extends ResizableWidget {
     element = create_element("ul", { class: "viewer_ModelSelectListView" });
 
     set borders(borders: boolean) {

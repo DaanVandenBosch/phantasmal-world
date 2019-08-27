@@ -1,4 +1,4 @@
-import { ResizableView } from "../../core/gui/ResizableView";
+import { ResizableWidget } from "../../core/gui/ResizableWidget";
 import { el } from "../../core/gui/dom";
 import { DisabledView } from "./DisabledView";
 import { quest_editor_store } from "../stores/QuestEditorStore";
@@ -11,7 +11,7 @@ import { Property } from "../../core/observable/Property";
 import { Vec3 } from "../../core/data_formats/vector";
 import { QuestEntityModel } from "../model/QuestEntityModel";
 
-export class EntityInfoView extends ResizableView {
+export class EntityInfoView extends ResizableWidget {
     readonly element = el.div({ class: "quest_editor_EntityInfoView", tab_index: -1 });
 
     private readonly no_entity_view = new DisabledView("No entity selected.");
@@ -153,9 +153,9 @@ export class EntityInfoView extends ResizableView {
         this.entity_disposer.add_all(
             pos.observe(
                 ({ value: { x, y, z } }) => {
-                    x_input.set_value(x, { silent: true });
-                    y_input.set_value(y, { silent: true });
-                    z_input.set_value(z, { silent: true });
+                    x_input.value.set_val(x, { silent: true });
+                    y_input.value.set_val(y, { silent: true });
+                    z_input.value.set_val(z, { silent: true });
                 },
                 { call_now: true },
             ),

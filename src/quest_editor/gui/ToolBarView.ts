@@ -1,11 +1,11 @@
-import { View } from "../../core/gui/View";
+import { Widget } from "../../core/gui/Widget";
 import { ToolBar } from "../../core/gui/ToolBar";
 import { FileButton } from "../../core/gui/FileButton";
 import { Button } from "../../core/gui/Button";
 import { quest_editor_store } from "../stores/QuestEditorStore";
 import { undo_manager } from "../../core/undo/UndoManager";
 
-export class ToolBarView extends View {
+export class ToolBarView extends Widget {
     private readonly open_file_button = new FileButton("Open file...", ".qst");
     private readonly save_as_button = new Button("Save as...");
     private readonly undo_button = new Button("Undo");

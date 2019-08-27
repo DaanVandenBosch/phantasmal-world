@@ -1,4 +1,4 @@
-import { ResizableView } from "../../core/gui/ResizableView";
+import { ResizableWidget } from "../../core/gui/ResizableWidget";
 import { create_element } from "../../core/gui/dom";
 import { ToolBarView } from "./ToolBarView";
 import GoldenLayout, { Container, ContentItem, ItemConfigType } from "golden-layout";
@@ -15,7 +15,7 @@ import { EntityInfoView } from "./EntityInfoView";
 const logger = Logger.get("quest_editor/gui/QuestEditorView");
 
 // Don't change these values, as they are persisted in the user's browser.
-const VIEW_TO_NAME = new Map<new () => ResizableView, string>([
+const VIEW_TO_NAME = new Map<new () => ResizableWidget, string>([
     [QuesInfoView, "quest_info"],
     [NpcCountsView, "npc_counts"],
     [QuestRendererView, "quest_renderer"],
@@ -91,7 +91,7 @@ const DEFAULT_LAYOUT_CONTENT: ItemConfigType[] = [
     },
 ];
 
-export class QuestEditorView extends ResizableView {
+export class QuestEditorView extends ResizableWidget {
     readonly element = create_element("div", { class: "quest_editor_QuestEditorView" });
 
     private readonly tool_bar_view = this.disposable(new ToolBarView());
@@ -99,7 +99,7 @@ export class QuestEditorView extends ResizableView {
     private readonly layout_element = create_element("div", { class: "quest_editor_gl_container" });
     private readonly layout: Promise<GoldenLayout>;
 
-    private readonly sub_views = new Map<string, ResizableView>();
+    private readonly sub_views = new Map<string, ResizableWidget>();
 
     constructor() {
         super();

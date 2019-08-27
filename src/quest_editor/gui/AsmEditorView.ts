@@ -1,4 +1,4 @@
-import { ResizableView } from "../../core/gui/ResizableView";
+import { ResizableWidget } from "../../core/gui/ResizableWidget";
 import { el } from "../../core/gui/dom";
 import { editor } from "monaco-editor";
 import { asm_editor_store } from "../stores/AsmEditorStore";
@@ -25,7 +25,7 @@ editor.defineTheme("phantasmal-world", {
 
 const DUMMY_MODEL = editor.createModel("", "psoasm");
 
-export class AsmEditorView extends ResizableView {
+export class AsmEditorView extends ResizableWidget {
     readonly element = el.div();
 
     private readonly editor: IStandaloneCodeEditor = this.disposable(

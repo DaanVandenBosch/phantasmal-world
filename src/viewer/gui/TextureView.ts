@@ -1,20 +1,20 @@
 import { create_element } from "../../core/gui/dom";
-import { ResizableView } from "../../core/gui/ResizableView";
+import { ResizableWidget } from "../../core/gui/ResizableWidget";
 import { FileButton } from "../../core/gui/FileButton";
 import { ToolBar } from "../../core/gui/ToolBar";
 import { texture_store } from "../stores/TextureStore";
-import { RendererView } from "../../core/gui/RendererView";
+import { RendererWidget } from "../../core/gui/RendererWidget";
 import { TextureRenderer } from "../rendering/TextureRenderer";
 import { gui_store, GuiTool } from "../../core/stores/GuiStore";
 
-export class TextureView extends ResizableView {
+export class TextureView extends ResizableWidget {
     readonly element = create_element("div", { class: "viewer_TextureView" });
 
     private readonly open_file_button = new FileButton("Open file...", ".xvm");
 
     private readonly tool_bar = this.disposable(new ToolBar(this.open_file_button));
 
-    private readonly renderer_view = this.disposable(new RendererView(new TextureRenderer()));
+    private readonly renderer_view = this.disposable(new RendererWidget(new TextureRenderer()));
 
     constructor() {
         super();
