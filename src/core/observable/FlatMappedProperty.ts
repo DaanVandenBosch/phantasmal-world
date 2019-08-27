@@ -42,6 +42,8 @@ export class FlatMappedProperty<T, U> extends AbstractMinimalProperty<U> impleme
             this.compute_and_observe();
         }
 
+        this.emit(this.get_val());
+
         return {
             dispose: () => {
                 super_disposable.dispose();

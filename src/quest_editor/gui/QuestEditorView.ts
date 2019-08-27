@@ -10,6 +10,7 @@ import { NpcCountsView } from "./NpcCountsView";
 import { QuestRendererView } from "./QuestRendererView";
 import { AsmEditorView } from "./AsmEditorView";
 import Logger = require("js-logger");
+import { EntityInfoView } from "./EntityInfoView";
 
 const logger = Logger.get("quest_editor/gui/QuestEditorView");
 
@@ -19,7 +20,7 @@ const VIEW_TO_NAME = new Map<new () => ResizableView, string>([
     [NpcCountsView, "npc_counts"],
     [QuestRendererView, "quest_renderer"],
     [AsmEditorView, "asm_editor"],
-    // [EntityInfoView, "entity_info"],
+    [EntityInfoView, "entity_info"],
     // [AddObjectView, "add_object"],
 ]);
 
@@ -79,13 +80,13 @@ const DEFAULT_LAYOUT_CONTENT: ItemConfigType[] = [
                     },
                 ],
             },
-            // {
-            //     title: "Entity",
-            //     type: "component",
-            //     componentName: Component.EntityInfo,
-            //     isClosable: false,
-            //     width: 2,
-            // },
+            {
+                title: "Entity",
+                type: "component",
+                componentName: VIEW_TO_NAME.get(EntityInfoView),
+                isClosable: false,
+                width: 2,
+            },
         ],
     },
 ];

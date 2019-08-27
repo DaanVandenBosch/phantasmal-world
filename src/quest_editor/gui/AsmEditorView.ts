@@ -23,6 +23,8 @@ editor.defineTheme("phantasmal-world", {
     },
 });
 
+const DUMMY_MODEL = editor.createModel("", "psoasm");
+
 export class AsmEditorView extends ResizableView {
     readonly element = el.div();
 
@@ -55,7 +57,7 @@ export class AsmEditorView extends ResizableView {
             asm_editor_store.model.observe(
                 ({ value: model }) => {
                     this.editor.updateOptions({ readOnly: model == undefined });
-                    this.editor.setModel(model || null);
+                    this.editor.setModel(model || DUMMY_MODEL);
                 },
                 { call_now: true },
             ),

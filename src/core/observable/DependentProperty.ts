@@ -32,7 +32,10 @@ export class DependentProperty<T> extends AbstractMinimalProperty<T> implements 
         super();
     }
 
-    observe(observer: (event: PropertyChangeEvent<T>) => void): Disposable {
+    observe(
+        observer: (event: PropertyChangeEvent<T>) => void,
+        options: { call_now?: boolean } = {},
+    ): Disposable {
         const super_disposable = super.observe(observer);
 
         if (this.dependency_disposables.length === 0) {
@@ -48,6 +51,8 @@ export class DependentProperty<T> extends AbstractMinimalProperty<T> implements 
                 ),
             );
         }
+
+        this.emit(this._val!);
 
         return {
             dispose: () => {

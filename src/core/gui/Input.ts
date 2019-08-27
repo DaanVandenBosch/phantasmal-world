@@ -29,13 +29,19 @@ export abstract class Input<T> extends LabelledControl {
             class: `${input_class_name} core_Input_inner`,
         });
         this.input.type = input_type;
-        this.input.onchange = () => (this.value.val = this.get_input_value());
+        this.input.onchange = () => {
+            if (this.input_value_changed()) {
+                this.value.val = this.get_input_value();
+            }
+        };
         this.set_input_value(value.val);
 
         this.element.append(this.input);
 
         this.disposables(
-            this.value.observe(({ value }) => this.set_input_value(value)),
+            this.value.observe(({ value }) => {
+                this.set_input_value(value);
+            }),
 
             this.enabled.observe(({ value }) => {
                 this.input.disabled = !value;
@@ -47,6 +53,18 @@ export abstract class Input<T> extends LabelledControl {
                 }
             }),
         );
+    }
+
+    set_value(value: T, options: { silent?: boolean } = {}): void {
+        this.value.set_val(value, options);
+
+        if (options.silent) {
+            this.set_input_value(value);
+        }
+    }
+
+    protected input_value_changed(): boolean {
+        return true;
     }
 
     protected abstract get_input_value(): T;

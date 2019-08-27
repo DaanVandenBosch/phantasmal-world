@@ -165,10 +165,24 @@ export class QuestEditorStore implements Disposable {
 
     push_translate_entity_action = (
         entity: QuestEntityModel,
+        old_section: SectionModel | undefined,
+        new_section: SectionModel | undefined,
         old_position: Vec3,
         new_position: Vec3,
+        world: boolean,
     ) => {
-        this.undo.push(new TranslateEntityAction(entity, old_position, new_position)).redo();
+        this.undo
+            .push(
+                new TranslateEntityAction(
+                    entity,
+                    old_section,
+                    new_section,
+                    old_position,
+                    new_position,
+                    world,
+                ),
+            )
+            .redo();
     };
 
     private async set_quest(quest?: QuestModel, filename?: string): Promise<void> {

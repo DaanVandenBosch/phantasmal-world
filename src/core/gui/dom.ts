@@ -15,7 +15,7 @@ export const el = {
         create_element("tr", attributes, ...children),
 
     th: (
-        attributes?: { text?: string; col_span?: number },
+        attributes?: { class?: string; text?: string; col_span?: number },
         ...children: HTMLElement[]
     ): HTMLTableHeaderCellElement => create_element("th", attributes, ...children),
 

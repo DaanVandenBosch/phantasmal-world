@@ -7,7 +7,7 @@ import { Disposer } from "../../core/observable/Disposer";
 import { TextInput } from "../../core/gui/TextInput";
 import { TextArea } from "../../core/gui/TextArea";
 import "./QuesInfoView.css";
-import { Label } from "../../core/gui/Label";
+import { DisabledView } from "./DisabledView";
 
 export class QuesInfoView extends ResizableView {
     readonly element = el.div({ class: "quest_editor_QuesInfoView", tab_index: -1 });
@@ -37,10 +37,7 @@ export class QuesInfoView extends ResizableView {
         }),
     );
 
-    private readonly no_quest_element = el.div({ class: "quest_editor_QuesInfoView_no_quest" });
-    private readonly no_quest_label = this.disposable(
-        new Label("No quest loaded.", { enabled: false }),
-    );
+    private readonly no_quest_view = new DisabledView("No quest loaded.");
 
     private readonly quest_disposer = this.disposable(new Disposer());
 
@@ -48,9 +45,7 @@ export class QuesInfoView extends ResizableView {
         super();
 
         const quest = quest_editor_store.current_quest;
-
-        this.no_quest_element.append(this.no_quest_label.element);
-        this.bind_hidden(this.no_quest_element, quest.map(q => q != undefined));
+        const no_quest = quest.map(q => q == undefined);
 
         this.table_element.append(
             el.tr({}, el.th({ text: "Episode:" }), (this.episode_element = el.td())),
@@ -61,13 +56,16 @@ export class QuesInfoView extends ResizableView {
             el.tr({}, el.th({ text: "Long description:", col_span: 2 })),
             el.tr({}, el.td({ col_span: 2 }, this.long_description_input.element)),
         );
-        this.bind_hidden(this.table_element, quest.map(q => q == undefined));
 
-        this.element.append(this.table_element, this.no_quest_element);
+        this.bind_hidden(this.table_element, no_quest);
+
+        this.element.append(this.table_element, this.no_quest_view.element);
 
         this.element.addEventListener("focus", () => quest_editor_store.undo.make_current(), true);
 
         this.disposables(
+            this.no_quest_view.visible.bind_to(no_quest),
+
             quest.observe(({ value: q }) => {
                 this.quest_disposer.dispose_all();
 

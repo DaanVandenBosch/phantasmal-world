@@ -24,11 +24,3 @@
 .quest_editor_QuesInfoView textarea {
     width: 100%;
 }
-
-.quest_editor_QuesInfoView_no_quest {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    height: 100%;
-}

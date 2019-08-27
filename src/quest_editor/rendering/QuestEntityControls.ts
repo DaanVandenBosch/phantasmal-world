@@ -18,6 +18,7 @@ type Highlighted = {
 };
 
 type Pick = {
+    initial_section?: SectionModel;
     initial_position: Vec3;
     grab_offset: Vector3;
     drag_adjust: Vector3;
@@ -260,7 +261,7 @@ export class QuestEntityControls implements Disposable {
                 selection.entity.set_section(section);
             }
         } else {
-            // If the cursor is not over any terrain, we translate the entity accross the horizontal plane in which the entity's origin lies.
+            // If the cursor is not over any terrain, we translate the entity across the horizontal plane in which the entity's origin lies.
             this.raycaster.setFromCamera(pointer_position, this.renderer.camera);
             const ray = this.raycaster.ray;
             // ray.origin.add(data.dragAdjust);
@@ -287,8 +288,11 @@ export class QuestEntityControls implements Disposable {
             const entity = this.selected.entity;
             quest_editor_store.push_translate_entity_action(
                 entity,
+                this.pick.initial_section,
+                entity.section.val,
                 this.pick.initial_position,
                 entity.world_position.val,
+                true,
             );
         }
 
@@ -332,6 +336,7 @@ export class QuestEntityControls implements Disposable {
         return {
             mesh: intersection.object as Mesh,
             entity,
+            initial_section: entity.section.val,
             initial_position: entity.world_position.val,
             grab_offset,
             drag_adjust,
