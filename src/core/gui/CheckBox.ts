@@ -5,9 +5,7 @@ import { WidgetProperty } from "../observable/WidgetProperty";
 
 export type CheckBoxOptions = LabelledControlOptions;
 
-export class CheckBox extends LabelledControl {
-    readonly element: HTMLInputElement = create_element("input", { class: "core_CheckBox" });
-
+export class CheckBox extends LabelledControl<HTMLInputElement> {
     readonly preferred_label_position = "right";
 
     readonly checked: WritableProperty<boolean>;
@@ -15,14 +13,15 @@ export class CheckBox extends LabelledControl {
     private readonly _checked: WidgetProperty<boolean>;
 
     constructor(checked: boolean = false, options?: CheckBoxOptions) {
-        super(options);
+        super(create_element("input", { class: "core_CheckBox" }), options);
 
         this._checked = new WidgetProperty(this, checked, this.set_checked);
         this.checked = this._checked;
         this.set_checked(checked);
 
         this.element.type = "checkbox";
-        this.element.onchange = () => (this._checked.val = this.element.checked);
+        this.element.onchange = () =>
+            this._checked.set_val(this.element.checked, { silent: false });
     }
 
     protected set_enabled(enabled: boolean): void {

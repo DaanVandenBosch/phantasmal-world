@@ -4,11 +4,15 @@ import { Observable } from "../observable/Observable";
 import { bind_hidden } from "./dom";
 import { WritableProperty } from "../observable/WritableProperty";
 import { WidgetProperty } from "../observable/WidgetProperty";
+import { Property } from "../observable/Property";
 
-export type ViewOptions = {};
+export type WidgetOptions = {
+    enabled?: boolean | Property<boolean>;
+    tooltip?: string | Property<string>;
+};
 
-export abstract class Widget implements Disposable {
-    abstract readonly element: HTMLElement;
+export abstract class Widget<E extends HTMLElement = HTMLElement> implements Disposable {
+    readonly element: E;
 
     get id(): string {
         return this.element.id;
@@ -20,16 +24,46 @@ export abstract class Widget implements Disposable {
 
     readonly visible: WritableProperty<boolean>;
     readonly enabled: WritableProperty<boolean>;
+    readonly tooltip: WritableProperty<string>;
 
     protected disposed = false;
 
-    private disposer = new Disposer();
-    private _visible = new WidgetProperty<boolean>(this, true, this.set_visible);
-    private _enabled = new WidgetProperty<boolean>(this, true, this.set_enabled);
+    private readonly disposer = new Disposer();
+    private readonly _visible: WidgetProperty<boolean> = new WidgetProperty<boolean>(
+        this,
+        true,
+        this.set_visible,
+    );
+    private readonly _enabled: WidgetProperty<boolean> = new WidgetProperty<boolean>(
+        this,
+        true,
+        this.set_enabled,
+    );
+    private readonly _tooltip: WidgetProperty<string> = new WidgetProperty<string>(
+        this,
+        "",
+        this.set_tooltip,
+    );
 
-    constructor(_options?: ViewOptions) {
+    protected constructor(element: E, options?: WidgetOptions) {
+        this.element = element;
         this.visible = this._visible;
         this.enabled = this._enabled;
+        this.tooltip = this._tooltip;
+
+        if (options) {
+            if (typeof options.enabled === "boolean") {
+                this.enabled.val = options.enabled;
+            } else if (options.enabled) {
+                this.enabled.bind_to(options.enabled);
+            }
+
+            if (typeof options.tooltip === "string") {
+                this.tooltip.val = options.tooltip;
+            } else if (options.tooltip) {
+                this.tooltip.bind_to(options.tooltip);
+            }
+        }
     }
 
     focus(): void {
@@ -54,11 +88,11 @@ export abstract class Widget implements Disposable {
         }
     }
 
-    protected bind_hidden(element: HTMLElement, observable: Observable<boolean>): void {
-        this.disposable(bind_hidden(element, observable));
+    protected set_tooltip(tooltip: string): void {
+        this.element.title = tooltip;
     }
 
-    protected bind_disabled(element: HTMLElement, observable: Observable<boolean>): void {
+    protected bind_hidden(element: HTMLElement, observable: Observable<boolean>): void {
         this.disposable(bind_hidden(element, observable));
     }
 

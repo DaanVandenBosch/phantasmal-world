@@ -1,6 +1,6 @@
 /* eslint-disable no-dupe-class-members */
 import { LabelledControl, LabelledControlOptions } from "./LabelledControl";
-import { create_element } from "./dom";
+import { create_element, el } from "./dom";
 import { WritableProperty } from "../observable/WritableProperty";
 import { is_any_property, Property } from "../observable/Property";
 import "./Input.css";
@@ -8,9 +8,7 @@ import { WidgetProperty } from "../observable/WidgetProperty";
 
 export type InputOptions = LabelledControlOptions;
 
-export abstract class Input<T> extends LabelledControl {
-    readonly element: HTMLElement;
-
+export abstract class Input<T> extends LabelledControl<HTMLElement> {
     readonly value: WritableProperty<T>;
 
     protected readonly input: HTMLInputElement;
@@ -25,19 +23,17 @@ export abstract class Input<T> extends LabelledControl {
         input_class_name: string,
         options?: InputOptions,
     ) {
-        super(options);
+        super(el.span({ class: `${class_name} core_Input` }), options);
 
         this._value = new WidgetProperty<T>(this, value, this.set_value);
         this.value = this._value;
-
-        this.element = create_element("span", { class: `${class_name} core_Input` });
 
         this.input = create_element("input", {
             class: `${input_class_name} core_Input_inner`,
         });
         this.input.type = input_type;
         this.input.onchange = () => {
-            this._value.val = this.get_value();
+            this._value.set_val(this.get_value(), { silent: false });
         };
 
         this.element.append(this.input);

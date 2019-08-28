@@ -6,12 +6,10 @@ import { gui_store, GuiTool } from "../../core/stores/GuiStore";
 import { quest_editor_store } from "../stores/QuestEditorStore";
 
 export class QuestRendererView extends ResizableWidget {
-    readonly element = el.div({ class: "quest_editor_QuestRendererView", tab_index: -1 });
-
     private renderer_view = this.disposable(new RendererWidget(new QuestRenderer()));
 
     constructor() {
-        super();
+        super(el.div({ class: "quest_editor_QuestRendererView", tab_index: -1 }));
 
         this.element.append(this.renderer_view.element);
 

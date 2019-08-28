@@ -1,13 +1,11 @@
-import { ViewOptions, Widget } from "./Widget";
+import { WidgetOptions, Widget } from "./Widget";
 import { create_element } from "./dom";
 import { WritableProperty } from "../observable/WritableProperty";
 import "./Label.css";
 import { Property } from "../observable/Property";
 import { WidgetProperty } from "../observable/WidgetProperty";
 
-export class Label extends Widget {
-    readonly element = create_element<HTMLLabelElement>("label", { class: "core_Label" });
-
+export class Label extends Widget<HTMLLabelElement> {
     set for(id: string) {
         this.element.htmlFor = id;
     }
@@ -16,8 +14,8 @@ export class Label extends Widget {
 
     private readonly _text = new WidgetProperty<string>(this, "", this.set_text);
 
-    constructor(text: string | Property<string>, options?: ViewOptions) {
-        super(options);
+    constructor(text: string | Property<string>, options?: WidgetOptions) {
+        super(create_element("label", { class: "core_Label" }), options);
 
         this.text = this._text;
 

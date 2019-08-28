@@ -8,6 +8,6 @@ export class WidgetProperty<T> extends SimpleProperty<T> {
 
     set_val(val: T, options?: { silent?: boolean }): void {
         this.set_value.call(this.widget, val);
-        super.set_val(val, options);
+        super.set_val(val, { silent: true, ...options });
     }
 }

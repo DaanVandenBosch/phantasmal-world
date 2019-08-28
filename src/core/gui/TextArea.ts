@@ -1,6 +1,5 @@
 import { LabelledControl, LabelledControlOptions } from "./LabelledControl";
 import { el } from "./dom";
-import { property } from "../observable";
 import { WritableProperty } from "../observable/WritableProperty";
 import "./TextArea.css";
 import { WidgetProperty } from "../observable/WidgetProperty";
@@ -13,8 +12,6 @@ export type TextAreaOptions = LabelledControlOptions & {
 };
 
 export class TextArea extends LabelledControl {
-    readonly element: HTMLElement = el.div({ class: "core_TextArea" });
-
     readonly preferred_label_position = "left";
 
     readonly value: WritableProperty<string>;
@@ -26,7 +23,7 @@ export class TextArea extends LabelledControl {
     private readonly _value = new WidgetProperty<string>(this, "", this.set_value);
 
     constructor(value = "", options?: TextAreaOptions) {
-        super(options);
+        super(el.div({ class: "core_TextArea" }), options);
 
         if (options) {
             if (options.max_length != undefined) this.text_element.maxLength = options.max_length;
@@ -39,7 +36,8 @@ export class TextArea extends LabelledControl {
         this.value = this._value;
         this.set_value(value);
 
-        this.text_element.onchange = () => (this._value.val = this.text_element.value);
+        this.text_element.onchange = () =>
+            this._value.set_val(this.text_element.value, { silent: false });
 
         this.element.append(this.text_element);
     }

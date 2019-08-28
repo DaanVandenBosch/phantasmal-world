@@ -6,11 +6,7 @@ import { Property } from "../observable/Property";
 import { Control } from "./Control";
 import { WritableProperty } from "../observable/WritableProperty";
 
-export class FileButton extends Control {
-    readonly element: HTMLLabelElement = create_element("label", {
-        class: "core_FileButton core_Button",
-    });
-
+export class FileButton extends Control<HTMLElement> {
     readonly files: Property<File[]>;
 
     private input: HTMLInputElement = create_element("input", {
@@ -20,7 +16,11 @@ export class FileButton extends Control {
     private readonly _files: WritableProperty<File[]> = property<File[]>([]);
 
     constructor(text: string, accept: string = "") {
-        super();
+        super(
+            create_element("label", {
+                class: "core_FileButton core_Button",
+            }),
+        );
 
         this.files = this._files;
 

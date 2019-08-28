@@ -1,7 +1,8 @@
-import { create_element } from "../../core/gui/dom";
+import { el } from "../../core/gui/dom";
 import "./NavigationView.css";
 import { gui_store, GuiTool } from "../../core/stores/GuiStore";
 import { Widget } from "../../core/gui/Widget";
+import { NavigationButton } from "./NavigationButton";
 
 const TOOLS: [GuiTool, string][] = [
     [GuiTool.Viewer, "Viewer"],
@@ -10,16 +11,14 @@ const TOOLS: [GuiTool, string][] = [
 ];
 
 export class NavigationView extends Widget {
-    readonly element = create_element("div", { class: "application_NavigationView" });
-
     readonly height = 30;
 
-    private buttons = new Map<GuiTool, ToolButton>(
-        TOOLS.map(([value, text]) => [value, this.disposable(new ToolButton(value, text))]),
+    private buttons = new Map<GuiTool, NavigationButton>(
+        TOOLS.map(([value, text]) => [value, this.disposable(new NavigationButton(value, text))]),
     );
 
     constructor() {
-        super();
+        super(el.div({ class: "application_NavigationView" }));
 
         this.element.style.height = `${this.height}px`;
         this.element.onmousedown = this.mousedown;
@@ -42,32 +41,4 @@ export class NavigationView extends Widget {
         const button = this.buttons.get(tool);
         if (button) button.checked = true;
     };
-}
-
-class ToolButton extends Widget {
-    element: HTMLElement = create_element("span");
-
-    private input: HTMLInputElement = create_element("input");
-    private label: HTMLLabelElement = create_element("label");
-
-    constructor(tool: GuiTool, text: string) {
-        super();
-
-        const tool_str = GuiTool[tool];
-
-        this.input.type = "radio";
-        this.input.name = "application_ToolButton";
-        this.input.value = tool_str;
-        this.input.id = `application_ToolButton_${tool_str}`;
-
-        this.label.append(text);
-        this.label.htmlFor = `application_ToolButton_${tool_str}`;
-
-        this.element.className = "application_ToolButton";
-        this.element.append(this.input, this.label);
-    }
-
-    set checked(checked: boolean) {
-        this.input.checked = checked;
-    }
 }

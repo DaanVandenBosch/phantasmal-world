@@ -1,4 +1,4 @@
-import { create_element } from "../../core/gui/dom";
+import { el } from "../../core/gui/dom";
 import { gui_store, GuiTool } from "../../core/stores/GuiStore";
 import { LazyWidget } from "../../core/gui/LazyWidget";
 import { ResizableWidget } from "../../core/gui/ResizableWidget";
@@ -13,14 +13,12 @@ const TOOLS: [GuiTool, () => Promise<ResizableWidget>][] = [
 ];
 
 export class MainContentView extends ResizableWidget {
-    readonly element = create_element("div", { class: "application_MainContentView" });
-
     private tool_views = new Map(
         TOOLS.map(([tool, create_view]) => [tool, this.disposable(new LazyWidget(create_view))]),
     );
 
     constructor() {
-        super();
+        super(el.div({ class: "application_MainContentView" }));
 
         for (const tool_view of this.tool_views.values()) {
             this.element.append(tool_view.element);

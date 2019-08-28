@@ -7,7 +7,6 @@
 
 .quest_editor_EntityInfoView table {
     table-layout: fixed;
-    user-select: text;
     width: 100%;
     max-width: 300px;
     margin: 0 auto;

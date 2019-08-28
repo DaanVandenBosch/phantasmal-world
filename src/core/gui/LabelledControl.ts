@@ -1,12 +1,12 @@
 import { Label } from "./Label";
 import { Control } from "./Control";
-import { ViewOptions } from "./Widget";
+import { WidgetOptions } from "./Widget";
 
-export type LabelledControlOptions = ViewOptions & {
+export type LabelledControlOptions = WidgetOptions & {
     label?: string;
 };
 
-export abstract class LabelledControl extends Control {
+export abstract class LabelledControl<E extends HTMLElement = HTMLElement> extends Control<E> {
     abstract readonly preferred_label_position: "left" | "right" | "top" | "bottom";
 
     get label(): Label {
@@ -26,8 +26,8 @@ export abstract class LabelledControl extends Control {
     private readonly _label_text: string;
     private _label?: Label;
 
-    protected constructor(options?: LabelledControlOptions) {
-        super(options);
+    protected constructor(element: E, options?: LabelledControlOptions) {
+        super(element, options);
 
         this._label_text = (options && options.label) || "";
     }

@@ -1,7 +1,8 @@
 import { Widget } from "./Widget";
 import { Resizable } from "./Resizable";
 
-export abstract class ResizableWidget extends Widget implements Resizable {
+export abstract class ResizableWidget<E extends HTMLElement = HTMLElement> extends Widget<E>
+    implements Resizable {
     protected width: number = 0;
     protected height: number = 0;
 

@@ -1,16 +1,14 @@
 import { Widget } from "./Widget";
-import { create_element } from "./dom";
+import { el } from "./dom";
 import { Resizable } from "./Resizable";
 import { ResizableWidget } from "./ResizableWidget";
 
 export class LazyWidget extends ResizableWidget {
-    readonly element = create_element("div", { class: "core_LazyView" });
-
     private initialized = false;
     private view: Widget & Resizable | undefined;
 
     constructor(private create_view: () => Promise<Widget & Resizable>) {
-        super();
+        super(el.div({ class: "core_LazyView" }));
 
         this.visible.val = false;
     }

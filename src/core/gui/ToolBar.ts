@@ -1,35 +1,39 @@
-import { Widget } from "./Widget";
+import { Widget, WidgetOptions } from "./Widget";
 import { create_element } from "./dom";
 import "./ToolBar.css";
 import { LabelledControl } from "./LabelledControl";
 
-export class ToolBar extends Widget {
-    readonly element = create_element("div", { class: "core_ToolBar" });
+export type ToolBarOptions = WidgetOptions & {
+    children?: Widget[];
+};
 
+export class ToolBar extends Widget {
     readonly height = 33;
 
-    constructor(...children: Widget[]) {
-        super();
+    constructor(options?: ToolBarOptions) {
+        super(create_element("div", { class: "core_ToolBar" }), options);
 
         this.element.style.height = `${this.height}px`;
 
-        for (const child of children) {
-            if (child instanceof LabelledControl) {
-                const group = create_element("div", { class: "core_ToolBar_group" });
+        if (options && options.children) {
+            for (const child of options.children) {
+                if (child instanceof LabelledControl) {
+                    const group = create_element("div", { class: "core_ToolBar_group" });
 
-                if (
-                    child.preferred_label_position === "left" ||
-                    child.preferred_label_position === "top"
-                ) {
-                    group.append(child.label.element, child.element);
+                    if (
+                        child.preferred_label_position === "left" ||
+                        child.preferred_label_position === "top"
+                    ) {
+                        group.append(child.label.element, child.element);
+                    } else {
+                        group.append(child.element, child.label.element);
+                    }
+
+                    this.element.append(group);
                 } else {
-                    group.append(child.element, child.label.element);
+                    this.element.append(child.element);
+                    this.disposable(child);
                 }
-
-                this.element.append(group);
-            } else {
-                this.element.append(child.element);
-                this.disposable(child);
             }
         }
     }

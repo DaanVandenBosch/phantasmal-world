@@ -6,28 +6,3 @@
     background-color: hsl(0, 0%, 10%);
     border-bottom: solid 2px var(--bg-color);
 }
-
-.application_ToolButton input {
-    display: none;
-}
-
-.application_ToolButton label {
-    box-sizing: border-box;
-    display: inline-flex;
-    flex-direction: row;
-    align-items: center;
-    font-size: 13px;
-    height: 100%;
-    padding: 0 20px;
-    color: hsl(0, 0%, 65%);
-}
-
-.application_ToolButton label:hover {
-    color: hsl(0, 0%, 85%);
-    background-color: hsl(0, 0%, 12%);
-}
-
-.application_ToolButton input:checked + label {
-    color: hsl(0, 0%, 85%);
-    background-color: var(--bg-color);
-}

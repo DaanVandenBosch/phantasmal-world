@@ -1,6 +1,6 @@
 import { ResizableWidget } from "../../core/gui/ResizableWidget";
-import { create_element } from "../../core/gui/dom";
-import { ToolBarView } from "./ToolBarView";
+import { create_element, el } from "../../core/gui/dom";
+import { QuestEditorToolBar } from "./QuestEditorToolBar";
 import GoldenLayout, { Container, ContentItem, ItemConfigType } from "golden-layout";
 import { quest_editor_ui_persister } from "../persistence/QuestEditorUiPersister";
 import { QuesInfoView } from "./QuesInfoView";
@@ -9,8 +9,8 @@ import "../../core/gui/golden_layout_theme.css";
 import { NpcCountsView } from "./NpcCountsView";
 import { QuestRendererView } from "./QuestRendererView";
 import { AsmEditorView } from "./AsmEditorView";
-import Logger = require("js-logger");
 import { EntityInfoView } from "./EntityInfoView";
+import Logger = require("js-logger");
 
 const logger = Logger.get("quest_editor/gui/QuestEditorView");
 
@@ -92,9 +92,7 @@ const DEFAULT_LAYOUT_CONTENT: ItemConfigType[] = [
 ];
 
 export class QuestEditorView extends ResizableWidget {
-    readonly element = create_element("div", { class: "quest_editor_QuestEditorView" });
-
-    private readonly tool_bar_view = this.disposable(new ToolBarView());
+    private readonly tool_bar_view = this.disposable(new QuestEditorToolBar());
 
     private readonly layout_element = create_element("div", { class: "quest_editor_gl_container" });
     private readonly layout: Promise<GoldenLayout>;
@@ -102,7 +100,7 @@ export class QuestEditorView extends ResizableWidget {
     private readonly sub_views = new Map<string, ResizableWidget>();
 
     constructor() {
-        super();
+        super(el.div({ class: "quest_editor_QuestEditorView" }));
 
         this.element.append(this.tool_bar_view.element, this.layout_element);
 

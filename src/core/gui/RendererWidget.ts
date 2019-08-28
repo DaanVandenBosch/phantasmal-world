@@ -3,10 +3,8 @@ import { create_element } from "./dom";
 import { Renderer } from "../rendering/Renderer";
 
 export class RendererWidget extends ResizableWidget {
-    readonly element = create_element("div");
-
     constructor(private renderer: Renderer) {
-        super();
+        super(create_element("div"));
 
         this.element.append(renderer.dom_element);
 

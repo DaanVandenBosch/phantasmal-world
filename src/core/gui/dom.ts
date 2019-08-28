@@ -4,9 +4,14 @@ import { is_property } from "../observable/Property";
 
 export const el = {
     div: (
-        attributes?: { class?: string; tab_index?: number },
+        attributes?: { class?: string; tab_index?: number; text?: string },
         ...children: HTMLElement[]
     ): HTMLDivElement => create_element("div", attributes, ...children),
+
+    span: (
+        attributes?: { class?: string; tab_index?: number; text?: string },
+        ...children: HTMLElement[]
+    ): HTMLSpanElement => create_element("span", attributes, ...children),
 
     table: (attributes?: {}, ...children: HTMLElement[]): HTMLTableElement =>
         create_element("table", attributes, ...children),
@@ -23,6 +28,9 @@ export const el = {
         attributes?: { text?: string; col_span?: number },
         ...children: HTMLElement[]
     ): HTMLTableCellElement => create_element("td", attributes, ...children),
+
+    button: (attributes?: {}, ...children: HTMLElement[]): HTMLButtonElement =>
+        create_element("button", attributes, ...children),
 
     textarea: (attributes?: {}, ...children: HTMLElement[]): HTMLTextAreaElement =>
         create_element("textarea", attributes, ...children),

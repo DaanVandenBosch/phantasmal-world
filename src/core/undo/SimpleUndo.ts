@@ -14,6 +14,18 @@ export class SimpleUndo implements Undo {
 
     constructor(description: string, undo: () => void, redo: () => void) {
         this.action = property({ description, undo, redo });
+
+        this.first_undo = map(
+            (action, can_undo) => (can_undo ? action : undefined),
+            this.action,
+            this.can_undo,
+        );
+
+        this.first_redo = map(
+            (action, can_redo) => (can_redo ? action : undefined),
+            this.action,
+            this.can_redo,
+        );
     }
 
     make_current(): void {
@@ -30,17 +42,9 @@ export class SimpleUndo implements Undo {
 
     readonly can_redo = property(false);
 
-    readonly first_undo: Property<Action | undefined> = map(
-        (action, can_undo) => (can_undo ? action : undefined),
-        this.action,
-        this.can_undo,
-    );
+    readonly first_undo: Property<Action | undefined>;
 
-    readonly first_redo: Property<Action | undefined> = map(
-        (action, can_redo) => (can_redo ? action : undefined),
-        this.action,
-        this.can_redo,
-    );
+    readonly first_redo: Property<Action | undefined>;
 
     undo(): boolean {
         if (this.can_undo) {
