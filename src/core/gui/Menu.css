@@ -1,0 +1,20 @@
+.core_Menu {
+    z-index: 1000;
+    position: absolute;
+    box-sizing: border-box;
+    border: var(--control-border);
+}
+
+.core_Menu .core_Menu_inner {
+    background-color: var(--control-bg-color);
+    border: var(--control-inner-border);
+}
+
+.core_Menu .core_Menu_inner > * {
+    padding: 5px 8px;
+    white-space: nowrap;
+}
+
+.core_Menu .core_Menu_inner > *:hover {
+    background-color: var(--control-bg-color-hover);
+}

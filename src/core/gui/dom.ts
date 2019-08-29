@@ -89,6 +89,7 @@ export function bind_hidden(element: HTMLElement, observable: Observable<boolean
 
 export enum Icon {
     File,
+    NewFile,
     Save,
     TriangleDown,
     Undo,
@@ -101,6 +102,9 @@ export function icon(icon: Icon): HTMLElement {
     switch (icon) {
         case Icon.File:
             icon_str = "fa-file";
+            break;
+        case Icon.NewFile:
+            icon_str = "fa-file-medical";
             break;
         case Icon.Save:
             icon_str = "fa-save";
@@ -123,12 +127,13 @@ export function disposable_listener(
     element: DocumentAndElementEventHandlers,
     event: string,
     listener: EventListenerOrEventListenerObject,
+    options?: AddEventListenerOptions,
 ): Disposable {
     element.addEventListener(event, listener);
 
     return {
         dispose(): void {
-            element.removeEventListener(event, listener);
+            element.removeEventListener(event, listener, options);
         },
     };
 }

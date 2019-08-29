@@ -55,7 +55,8 @@
 .core_Button_left,
 .core_Button_right {
     display: inline-flex;
-    align-content: stretch;
+    align-content: center;
+    font-size: 11px;
 }
 
 .core_Button_left {

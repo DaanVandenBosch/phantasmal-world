@@ -1,0 +1,9 @@
+.core_DropDownButton {
+    position: relative;
+}
+
+.core_DropDownButton .core_Menu {
+    top: 25px;
+    left: 0;
+    min-width: 100%;
+}

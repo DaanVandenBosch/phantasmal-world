@@ -7,9 +7,19 @@ import { Select } from "../../core/gui/Select";
 import { array_property } from "../../core/observable";
 import { AreaModel } from "../model/AreaModel";
 import { Icon } from "../../core/gui/dom";
+import { DropDownButton } from "../../core/gui/DropDownButton";
+import { Episode } from "../../core/data_formats/parsing/quest/Episode";
 
 export class QuestEditorToolBar extends ToolBar {
     constructor() {
+        const new_quest_button = new DropDownButton(
+            "New quest",
+            [Episode.I],
+            episode => `Episode ${Episode[episode]}`,
+            {
+                icon_left: Icon.NewFile,
+            },
+        );
         const open_file_button = new FileButton("Open file...", {
             icon_left: Icon.File,
             accept: ".qst",
@@ -41,12 +51,23 @@ export class QuestEditorToolBar extends ToolBar {
         );
 
         super({
-            children: [open_file_button, save_as_button, undo_button, redo_button, area_select],
+            children: [
+                new_quest_button,
+                open_file_button,
+                save_as_button,
+                undo_button,
+                redo_button,
+                area_select,
+            ],
         });
 
         const quest_loaded = quest_editor_store.current_quest.map(q => q != undefined);
 
         this.disposables(
+            new_quest_button.chosen.observe(({ value: episode }) =>
+                quest_editor_store.new_quest(episode),
+            ),
+
             open_file_button.files.observe(({ value: files }) => {
                 if (files.length) {
                     quest_editor_store.open_file(files[0]);

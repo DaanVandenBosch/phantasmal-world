@@ -10,6 +10,7 @@ import { AssemblyError, AssemblyWarning } from "../scripting/assembly";
 import { Observable } from "../../core/observable/Observable";
 import { emitter, property } from "../../core/observable";
 import { WritableProperty } from "../../core/observable/property/WritableProperty";
+import { Property } from "../../core/observable/property/Property";
 import SignatureHelp = languages.SignatureHelp;
 import ITextModel = editor.ITextModel;
 import CompletionList = languages.CompletionList;
@@ -59,15 +60,9 @@ languages.setLanguageConfiguration("psoasm", {
 });
 
 export class AsmEditorStore implements Disposable {
-    private readonly _model: WritableProperty<ITextModel | undefined> = property(undefined);
-    readonly model = this._model;
-
-    private readonly _did_undo = emitter<string>();
-    readonly did_undo: Observable<string> = this._did_undo;
-
-    private readonly _did_redo = emitter<string>();
-    readonly did_redo: Observable<string> = this._did_redo;
-
+    readonly model: Property<ITextModel | undefined>;
+    readonly did_undo: Observable<string>;
+    readonly did_redo: Observable<string>;
     readonly undo = new SimpleUndo(
         "Text edits",
         () => this._did_undo.emit({ value: "asm undo" }),
@@ -76,8 +71,15 @@ export class AsmEditorStore implements Disposable {
 
     private readonly disposer = new Disposer();
     private readonly model_disposer = this.disposer.add(new Disposer());
+    private readonly _model: WritableProperty<ITextModel | undefined> = property(undefined);
+    private readonly _did_undo = emitter<string>();
+    private readonly _did_redo = emitter<string>();
 
     constructor() {
+        this.model = this._model;
+        this.did_undo = this._did_undo;
+        this.did_redo = this._did_redo;
+
         this.disposer.add_all(
             quest_editor_store.current_quest.observe(({ value }) => this.quest_changed(value), {
                 call_now: true,

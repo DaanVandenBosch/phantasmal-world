@@ -22,30 +22,32 @@ import { EditShortDescriptionAction } from "../actions/EditShortDescriptionActio
 import { EditLongDescriptionAction } from "../actions/EditLongDescriptionAction";
 import { EditNameAction } from "../actions/EditNameAction";
 import { EditIdAction } from "../actions/EditIdAction";
+import { Episode } from "../../core/data_formats/parsing/quest/Episode";
+import { create_new_quest } from "./quest_creation";
 import Logger = require("js-logger");
 
 const logger = Logger.get("quest_editor/gui/QuestEditorStore");
 
 export class QuestEditorStore implements Disposable {
     readonly debug: WritableProperty<boolean> = property(false);
-
     readonly undo = new UndoStack();
-
-    private readonly _current_quest_filename = property<string | undefined>(undefined);
-    readonly current_quest_filename: Property<string | undefined> = this._current_quest_filename;
-
-    private readonly _current_quest = property<QuestModel | undefined>(undefined);
-    readonly current_quest: Property<QuestModel | undefined> = this._current_quest;
-
-    private readonly _current_area = property<AreaModel | undefined>(undefined);
-    readonly current_area: Property<AreaModel | undefined> = this._current_area;
-
-    private readonly _selected_entity = property<QuestEntityModel | undefined>(undefined);
-    readonly selected_entity: Property<QuestEntityModel | undefined> = this._selected_entity;
+    readonly current_quest_filename: Property<string | undefined>;
+    readonly current_quest: Property<QuestModel | undefined>;
+    readonly current_area: Property<AreaModel | undefined>;
+    readonly selected_entity: Property<QuestEntityModel | undefined>;
 
     private readonly disposer = new Disposer();
+    private readonly _current_quest_filename = property<string | undefined>(undefined);
+    private readonly _current_quest = property<QuestModel | undefined>(undefined);
+    private readonly _current_area = property<AreaModel | undefined>(undefined);
+    private readonly _selected_entity = property<QuestEntityModel | undefined>(undefined);
 
     constructor() {
+        this.current_quest_filename = this._current_quest_filename;
+        this.current_quest = this._current_quest;
+        this.current_area = this._current_area;
+        this.selected_entity = this._selected_entity;
+
         this.disposer.add(
             gui_store.tool.observe(
                 ({ value: tool }) => {
@@ -62,14 +64,6 @@ export class QuestEditorStore implements Disposable {
         this.disposer.dispose();
     }
 
-    set_current_area_id = (area_id?: number) => {
-        if (area_id == undefined) {
-            this.set_current_area(undefined);
-        } else if (this.current_quest.val) {
-            this.set_current_area(area_store.get_area(this.current_quest.val.episode, area_id));
-        }
-    };
-
     set_current_area = (area?: AreaModel) => {
         this._selected_entity.val = undefined;
 
@@ -85,6 +79,10 @@ export class QuestEditorStore implements Disposable {
         }
 
         this._selected_entity.val = entity;
+    };
+
+    new_quest = (episode: Episode) => {
+        this.set_quest(create_new_quest(episode));
     };
 
     // TODO: notify user of problems.
