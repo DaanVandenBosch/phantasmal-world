@@ -1,0 +1,30 @@
+.core_Select {
+    position: relative;
+    display: inline-flex;
+    width: 150px;
+}
+
+.core_Select .core_Button {
+    flex: 1;
+}
+
+.core_Select .core_Select_elements {
+    z-index: 1000;
+    position: absolute;
+    top: 25px;
+    left: 0;
+    border: var(--control-border);
+}
+
+.core_Select .core_Select_elements_inner {
+    background-color: var(--control-bg-color);
+    border: var(--control-inner-border);
+}
+
+.core_Select .core_Select_elements_inner > * {
+    padding: 5px 8px;
+}
+
+.core_Select .core_Select_elements_inner > *:hover {
+    background-color: var(--control-bg-color-hover);
+}

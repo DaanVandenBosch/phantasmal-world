@@ -1,5 +1,5 @@
-import { ArrayProperty } from "../../core/observable/ArrayProperty";
-import { WritableArrayProperty } from "../../core/observable/WritableArrayProperty";
+import { ListProperty } from "../../core/observable/property/list/ListProperty";
+import { WritableListProperty } from "../../core/observable/property/list/WritableListProperty";
 import { array_property } from "../../core/observable";
 import { AreaModel } from "./AreaModel";
 import { SectionModel } from "./SectionModel";
@@ -9,8 +9,8 @@ export class AreaVariantModel {
 
     readonly area: AreaModel;
 
-    private readonly _sections: WritableArrayProperty<SectionModel> = array_property();
-    readonly sections: ArrayProperty<SectionModel> = this._sections;
+    private readonly _sections: WritableListProperty<SectionModel> = array_property();
+    readonly sections: ListProperty<SectionModel> = this._sections;
 
     constructor(id: number, area: AreaModel) {
         if (!Number.isInteger(id) || id < 0)

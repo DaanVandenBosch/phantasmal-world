@@ -1,5 +1,5 @@
-import { ChangeEvent, Observable } from "./Observable";
-import { Disposable } from "./Disposable";
+import { ChangeEvent, Observable } from "../Observable";
+import { Disposable } from "../Disposable";
 
 export interface PropertyChangeEvent<T> extends ChangeEvent<T> {
     old_value: T;

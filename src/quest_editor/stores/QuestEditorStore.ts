@@ -1,11 +1,11 @@
 import { property } from "../../core/observable";
 import { QuestModel } from "../model/QuestModel";
-import { Property, PropertyChangeEvent } from "../../core/observable/Property";
+import { Property, PropertyChangeEvent } from "../../core/observable/property/Property";
 import { read_file } from "../../core/read_file";
 import { parse_quest } from "../../core/data_formats/parsing/quest";
 import { ArrayBufferCursor } from "../../core/data_formats/cursor/ArrayBufferCursor";
 import { Endianness } from "../../core/data_formats/Endianness";
-import { WritableProperty } from "../../core/observable/WritableProperty";
+import { WritableProperty } from "../../core/observable/property/WritableProperty";
 import { QuestObjectModel } from "../model/QuestObjectModel";
 import { QuestNpcModel } from "../model/QuestNpcModel";
 import { AreaModel } from "../model/AreaModel";
@@ -63,13 +63,17 @@ export class QuestEditorStore implements Disposable {
     }
 
     set_current_area_id = (area_id?: number) => {
+        if (area_id == undefined) {
+            this.set_current_area(undefined);
+        } else if (this.current_quest.val) {
+            this.set_current_area(area_store.get_area(this.current_quest.val.episode, area_id));
+        }
+    };
+
+    set_current_area = (area?: AreaModel) => {
         this._selected_entity.val = undefined;
 
-        if (area_id == undefined) {
-            this._current_area.val = undefined;
-        } else if (this.current_quest.val) {
-            this._current_area.val = area_store.get_area(this.current_quest.val.episode, area_id);
-        }
+        this._current_area.val = area;
     };
 
     set_selected_entity = (entity?: QuestEntityModel) => {

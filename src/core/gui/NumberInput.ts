@@ -1,4 +1,4 @@
-import { Property } from "../observable/Property";
+import { Property } from "../observable/property/Property";
 import { Input, InputOptions } from "./Input";
 import "./NumberInput.css";
 
@@ -23,6 +23,7 @@ export class NumberInput extends Input<number> {
         const { min, max, step } = options;
         this.set_attr("min", min, String);
         this.set_attr("max", max, String);
+        this.input_element.step = "any";
         this.set_attr("step", step, String);
 
         if (options.round_to != undefined && options.round_to >= 0) {
@@ -37,12 +38,12 @@ export class NumberInput extends Input<number> {
     }
 
     protected get_value(): number {
-        return this.input.valueAsNumber;
+        return this.input_element.valueAsNumber;
     }
 
     protected set_value(value: number): void {
         this.ignore_change(() => {
-            this.input.valueAsNumber =
+            this.input_element.valueAsNumber =
                 Math.round(this.rounding_factor * value) / this.rounding_factor;
         });
     }

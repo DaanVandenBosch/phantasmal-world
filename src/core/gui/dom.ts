@@ -1,15 +1,25 @@
 import { Disposable } from "../observable/Disposable";
 import { Observable } from "../observable/Observable";
-import { is_property } from "../observable/Property";
+import { is_property } from "../observable/property/Property";
 
 export const el = {
     div: (
-        attributes?: { class?: string; tab_index?: number; text?: string },
+        attributes?: {
+            class?: string;
+            tab_index?: number;
+            text?: string;
+            data?: { [key: string]: string };
+        },
         ...children: HTMLElement[]
     ): HTMLDivElement => create_element("div", attributes, ...children),
 
     span: (
-        attributes?: { class?: string; tab_index?: number; text?: string },
+        attributes?: {
+            class?: string;
+            tab_index?: number;
+            text?: string;
+            data?: { [key: string]: string };
+        },
         ...children: HTMLElement[]
     ): HTMLSpanElement => create_element("span", attributes, ...children),
 
@@ -75,4 +85,50 @@ export function bind_hidden(element: HTMLElement, observable: Observable<boolean
     }
 
     return observable.observe(({ value }) => (element.hidden = value));
+}
+
+export enum Icon {
+    File,
+    Save,
+    TriangleDown,
+    Undo,
+    Redo,
+}
+
+export function icon(icon: Icon): HTMLElement {
+    let icon_str!: string;
+
+    switch (icon) {
+        case Icon.File:
+            icon_str = "fa-file";
+            break;
+        case Icon.Save:
+            icon_str = "fa-save";
+            break;
+        case Icon.TriangleDown:
+            icon_str = "fa-caret-down";
+            break;
+        case Icon.Undo:
+            icon_str = "fa-undo";
+            break;
+        case Icon.Redo:
+            icon_str = "fa-redo";
+            break;
+    }
+
+    return el.span({ class: `fas ${icon_str}` });
+}
+
+export function disposable_listener(
+    element: DocumentAndElementEventHandlers,
+    event: string,
+    listener: EventListenerOrEventListenerObject,
+): Disposable {
+    element.addEventListener(event, listener);
+
+    return {
+        dispose(): void {
+            element.removeEventListener(event, listener);
+        },
+    };
 }

@@ -17,7 +17,7 @@ export class ToolBar extends Widget {
 
         if (options && options.children) {
             for (const child of options.children) {
-                if (child instanceof LabelledControl) {
+                if (child instanceof LabelledControl && child.label) {
                     const group = create_element("div", { class: "core_ToolBar_group" });
 
                     if (

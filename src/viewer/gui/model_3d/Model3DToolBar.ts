@@ -5,10 +5,14 @@ import { NumberInput } from "../../../core/gui/NumberInput";
 import { PSO_FRAME_RATE } from "../../../core/rendering/conversion/ninja_animation";
 import { model_store } from "../../stores/Model3DStore";
 import { Label } from "../../../core/gui/Label";
+import { Icon } from "../../../core/gui/dom";
 
 export class Model3DToolBar extends ToolBar {
     constructor() {
-        const open_file_button = new FileButton("Open file...", ".nj, .njm, .xj, .xvm");
+        const open_file_button = new FileButton("Open file...", {
+            icon_left: Icon.File,
+            accept: ".nj, .njm, .xj, .xvm",
+        });
         const skeleton_checkbox = new CheckBox(false, { label: "Show skeleton" });
         const play_animation_checkbox = new CheckBox(true, { label: "Play animation" });
         const animation_frame_rate_input = new NumberInput(PSO_FRAME_RATE, {

@@ -1,7 +1,7 @@
-import { Property } from "./Property";
 import { DependentProperty } from "./DependentProperty";
 import { FlatMappedProperty } from "./FlatMappedProperty";
 import { AbstractMinimalProperty } from "./AbstractMinimalProperty";
+import { Property } from "./Property";
 
 export abstract class AbstractProperty<T> extends AbstractMinimalProperty<T> {
     map<U>(f: (element: T) => U): Property<U> {

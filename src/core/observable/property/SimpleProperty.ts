@@ -1,8 +1,8 @@
-import { Disposable } from "./Disposable";
-import { Observable } from "./Observable";
+import { Disposable } from "../Disposable";
+import { Observable } from "../Observable";
 import { WritableProperty } from "./WritableProperty";
-import { is_property } from "./Property";
 import { AbstractProperty } from "./AbstractProperty";
+import { is_property } from "./Property";
 
 export class SimpleProperty<T> extends AbstractProperty<T> implements WritableProperty<T> {
     constructor(private _val: T) {

@@ -7,7 +7,7 @@ import { entity_data } from "../../core/data_formats/parsing/quest/entities";
 import "./EntityInfoView.css";
 import { NumberInput } from "../../core/gui/NumberInput";
 import { Disposer } from "../../core/observable/Disposer";
-import { Property } from "../../core/observable/Property";
+import { Property } from "../../core/observable/property/Property";
 import { Vec3 } from "../../core/data_formats/vector";
 import { QuestEntityModel } from "../model/QuestEntityModel";
 

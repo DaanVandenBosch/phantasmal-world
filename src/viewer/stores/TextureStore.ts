@@ -1,6 +1,6 @@
 import { property } from "../../core/observable";
 import { parse_xvm, Xvm } from "../../core/data_formats/parsing/ninja/texture";
-import { Property } from "../../core/observable/Property";
+import { Property } from "../../core/observable/property/Property";
 import { read_file } from "../../core/read_file";
 import { ArrayBufferCursor } from "../../core/data_formats/cursor/ArrayBufferCursor";
 import { Endianness } from "../../core/data_formats/Endianness";

@@ -1,9 +1,9 @@
 import { WidgetOptions, Widget } from "./Widget";
 import { create_element } from "./dom";
-import { WritableProperty } from "../observable/WritableProperty";
+import { WritableProperty } from "../observable/property/WritableProperty";
 import "./Label.css";
-import { Property } from "../observable/Property";
-import { WidgetProperty } from "../observable/WidgetProperty";
+import { Property } from "../observable/property/Property";
+import { WidgetProperty } from "../observable/property/WidgetProperty";
 
 export class Label extends Widget<HTMLLabelElement> {
     set for(id: string) {

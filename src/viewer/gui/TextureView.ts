@@ -1,4 +1,4 @@
-import { el } from "../../core/gui/dom";
+import { el, Icon } from "../../core/gui/dom";
 import { ResizableWidget } from "../../core/gui/ResizableWidget";
 import { FileButton } from "../../core/gui/FileButton";
 import { ToolBar } from "../../core/gui/ToolBar";
@@ -8,9 +8,12 @@ import { TextureRenderer } from "../rendering/TextureRenderer";
 import { gui_store, GuiTool } from "../../core/stores/GuiStore";
 
 export class TextureView extends ResizableWidget {
-    private readonly open_file_button = new FileButton("Open file...", ".xvm");
+    private readonly open_file_button = new FileButton("Open file...", {
+        icon_left: Icon.File,
+        accept: ".xvm",
+    });
 
-    private readonly tool_bar = this.disposable(new ToolBar(this.open_file_button));
+    private readonly tool_bar = this.disposable(new ToolBar({ children: [this.open_file_button] }));
 
     private readonly renderer_view = this.disposable(new RendererWidget(new TextureRenderer()));
 

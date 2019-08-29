@@ -1,6 +1,6 @@
-import { Property, PropertyChangeEvent } from "./Property";
-import { Disposable } from "./Disposable";
+import { Disposable } from "../Disposable";
 import Logger from "js-logger";
+import { Property, PropertyChangeEvent } from "./Property";
 
 const logger = Logger.get("core/observable/AbstractMinimalProperty");
 

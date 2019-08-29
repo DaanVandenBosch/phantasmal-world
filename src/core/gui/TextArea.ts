@@ -1,8 +1,8 @@
 import { LabelledControl, LabelledControlOptions } from "./LabelledControl";
 import { el } from "./dom";
-import { WritableProperty } from "../observable/WritableProperty";
+import { WritableProperty } from "../observable/property/WritableProperty";
 import "./TextArea.css";
-import { WidgetProperty } from "../observable/WidgetProperty";
+import { WidgetProperty } from "../observable/property/WidgetProperty";
 
 export type TextAreaOptions = LabelledControlOptions & {
     max_length?: number;

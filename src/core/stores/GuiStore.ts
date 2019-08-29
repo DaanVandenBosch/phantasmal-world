@@ -1,4 +1,4 @@
-import { WritableProperty } from "../observable/WritableProperty";
+import { WritableProperty } from "../observable/property/WritableProperty";
 import { Disposable } from "../observable/Disposable";
 import { property } from "../observable";
 

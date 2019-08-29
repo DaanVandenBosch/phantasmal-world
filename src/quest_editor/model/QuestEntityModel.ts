@@ -1,8 +1,8 @@
 import { EntityType } from "../../core/data_formats/parsing/quest/entities";
 import { Vec3 } from "../../core/data_formats/vector";
-import { Property } from "../../core/observable/Property";
+import { Property } from "../../core/observable/property/Property";
 import { property } from "../../core/observable";
-import { WritableProperty } from "../../core/observable/WritableProperty";
+import { WritableProperty } from "../../core/observable/property/WritableProperty";
 import { SectionModel } from "./SectionModel";
 
 export abstract class QuestEntityModel<Type extends EntityType = EntityType> {

@@ -4,11 +4,11 @@ import { NjMotion, parse_njm } from "../../core/data_formats/parsing/ninja/motio
 import { NjObject, parse_nj, parse_xj } from "../../core/data_formats/parsing/ninja";
 import { CharacterClassModel } from "../model/CharacterClassModel";
 import { CharacterClassAnimationModel } from "../model/CharacterClassAnimationModel";
-import { WritableProperty } from "../../core/observable/WritableProperty";
+import { WritableProperty } from "../../core/observable/property/WritableProperty";
 import { Disposable } from "../../core/observable/Disposable";
 import { read_file } from "../../core/read_file";
 import { property } from "../../core/observable";
-import { Property } from "../../core/observable/Property";
+import { Property } from "../../core/observable/property/Property";
 import { PSO_FRAME_RATE } from "../../core/rendering/conversion/ninja_animation";
 import { parse_xvm, Xvm } from "../../core/data_formats/parsing/ninja/texture";
 import {

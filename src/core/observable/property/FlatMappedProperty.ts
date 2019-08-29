@@ -1,7 +1,7 @@
-import { PropertyChangeEvent, Property } from "./Property";
-import { Disposable } from "./Disposable";
+import { Disposable } from "../Disposable";
 import { AbstractMinimalProperty } from "./AbstractMinimalProperty";
 import { DependentProperty } from "./DependentProperty";
+import { Property, PropertyChangeEvent } from "./Property";
 
 /**
  * Starts observing its dependency when the first observer on this property is registered.
@@ -9,8 +9,6 @@ import { DependentProperty } from "./DependentProperty";
  * This way no extra disposables need to be managed when {@link Property.flat_map} is used.
  */
 export class FlatMappedProperty<T, U> extends AbstractMinimalProperty<U> implements Property<U> {
-    readonly is_property = true;
-
     get val(): U {
         return this.get_val();
     }

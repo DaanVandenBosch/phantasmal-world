@@ -1,6 +1,6 @@
+import { Observable } from "../Observable";
+import { Disposable } from "../Disposable";
 import { Property } from "./Property";
-import { Observable } from "./Observable";
-import { Disposable } from "./Disposable";
 
 export interface WritableProperty<T> extends Property<T> {
     val: T;

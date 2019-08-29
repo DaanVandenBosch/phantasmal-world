@@ -1,6 +1,6 @@
 import { ResizableWidget } from "../../../core/gui/ResizableWidget";
 import { create_element } from "../../../core/gui/dom";
-import { WritableProperty } from "../../../core/observable/WritableProperty";
+import { WritableProperty } from "../../../core/observable/property/WritableProperty";
 import "./Model3DSelectListView.css";
 
 export class Model3DSelectListView<T extends { name: string }> extends ResizableWidget {

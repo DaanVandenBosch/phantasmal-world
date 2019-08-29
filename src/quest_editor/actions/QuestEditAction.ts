@@ -1,6 +1,6 @@
 import { Action } from "../../core/undo/Action";
 import { QuestModel } from "../model/QuestModel";
-import { PropertyChangeEvent } from "../../core/observable/Property";
+import { PropertyChangeEvent } from "../../core/observable/property/Property";
 
 export abstract class QuestEditAction<T> implements Action {
     abstract readonly description: string;

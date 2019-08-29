@@ -6,10 +6,11 @@
     box-sizing: border-box;
     height: 26px;
     padding: 0;
-    border: solid 1px hsl(0, 0%, 10%);
-    color: hsl(0, 0%, 80%);
+    border: var(--control-border);
+    color: var(--control-text-color);
     outline: none;
     font-size: 13px;
+    overflow: hidden;
 }
 
 .core_Button .core_Button_inner {
@@ -18,16 +19,17 @@
     flex-direction: row;
     align-items: center;
     box-sizing: border-box;
-    background-color: hsl(0, 0%, 20%);
+    background-color: var(--control-bg-color);
     height: 24px;
     padding: 3px 8px;
-    border: solid 1px hsl(0, 0%, 35%);
+    border: var(--control-inner-border);
+    overflow: hidden;
 }
 
 .core_Button:hover .core_Button_inner {
-    background-color: hsl(0, 0%, 25%);
+    background-color: var(--control-bg-color-hover);
     border-color: hsl(0, 0%, 40%);
-    color: hsl(0, 0%, 90%);
+    color: var(--control-text-color-hover);
 }
 
 .core_Button:active .core_Button_inner {
@@ -40,4 +42,26 @@
     background-color: hsl(0, 0%, 15%);
     border-color: hsl(0, 0%, 25%);
     color: hsl(0, 0%, 55%);
+}
+
+.core_Button_center {
+    flex: 1;
+    text-align: left;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.core_Button_left,
+.core_Button_right {
+    display: inline-flex;
+    align-content: stretch;
+}
+
+.core_Button_left {
+    padding: 0 6px 0 0;
+}
+
+.core_Button_right {
+    padding: 0 0 0 6px;
 }

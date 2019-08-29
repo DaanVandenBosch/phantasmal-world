@@ -1,7 +1,7 @@
 import { create_element } from "./dom";
-import { WritableProperty } from "../observable/WritableProperty";
+import { WritableProperty } from "../observable/property/WritableProperty";
 import { LabelledControl, LabelledControlOptions } from "./LabelledControl";
-import { WidgetProperty } from "../observable/WidgetProperty";
+import { WidgetProperty } from "../observable/property/WidgetProperty";
 
 export type CheckBoxOptions = LabelledControlOptions;
 

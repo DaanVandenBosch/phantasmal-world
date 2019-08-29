@@ -1,19 +1,15 @@
 /* eslint-disable no-dupe-class-members */
-import { WritableArrayProperty } from "./WritableArrayProperty";
-import { Disposable } from "./Disposable";
-import { WritableProperty } from "./WritableProperty";
-import { Observable } from "./Observable";
-import { property } from "./index";
-import { AbstractProperty } from "./AbstractProperty";
+import { WritableListProperty } from "./WritableListProperty";
+import { Disposable } from "../../Disposable";
+import { WritableProperty } from "../WritableProperty";
+import { Observable } from "../../Observable";
+import { property } from "../../index";
+import { AbstractProperty } from "../AbstractProperty";
+import { Property } from "../Property";
 
-export class SimpleWritableArrayProperty<T> extends AbstractProperty<T[]>
-    implements WritableArrayProperty<T> {
-    readonly is_property = true;
-
-    private readonly _length = property(0);
-    readonly length = this._length;
-
-    private readonly values: T[];
+export class SimpleWritableListProperty<T> extends AbstractProperty<T[]>
+    implements WritableListProperty<T> {
+    readonly length: Property<number>;
 
     get val(): T[] {
         return this.get_val();
@@ -33,8 +29,13 @@ export class SimpleWritableArrayProperty<T> extends AbstractProperty<T[]>
         return replaced_values;
     }
 
+    private readonly _length = property(0);
+    private readonly values: T[];
+
     constructor(...values: T[]) {
         super();
+
+        this.length = this._length;
         this.values = values;
     }
 

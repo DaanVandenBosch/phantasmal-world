@@ -1,5 +1,5 @@
 import { Input, InputOptions } from "./Input";
-import { Property } from "../observable/Property";
+import { Property } from "../observable/property/Property";
 
 export type TextInputOptions = InputOptions & {
     max_length?: number | Property<number>;
@@ -20,10 +20,10 @@ export class TextInput extends Input<string> {
     }
 
     protected get_value(): string {
-        return this.input.value;
+        return this.input_element.value;
     }
 
     protected set_value(value: string): void {
-        this.input.value = value;
+        this.input_element.value = value;
     }
 }

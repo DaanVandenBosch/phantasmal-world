@@ -3,6 +3,9 @@ import { Disposable } from "./core/observable/Disposable";
 import "./core/gui/index.css";
 import { throttle } from "lodash";
 import Logger from "js-logger";
+import "@fortawesome/fontawesome-free/js/fontawesome";
+import "@fortawesome/fontawesome-free/js/solid";
+import "@fortawesome/fontawesome-free/js/regular";
 
 Logger.useDefaults({
     defaultLevel: (Logger as any)[process.env["LOG_LEVEL"] || "OFF"],

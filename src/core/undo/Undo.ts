@@ -1,4 +1,4 @@
-import { Property } from "../observable/Property";
+import { Property } from "../observable/property/Property";
 import { Action } from "./Action";
 
 export interface Undo {

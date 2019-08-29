@@ -11,6 +11,16 @@
     --scrollbar-color: hsl(0, 0%, 13%);
     --scrollbar-thumb-color: hsl(0, 0%, 17%);
 
+    /* Controls */
+
+    --control-bg-color: hsl(0, 0%, 20%);
+    --control-bg-color-hover: hsl(0, 0%, 25%);
+    --control-text-color: hsl(0, 0%, 80%);
+    --control-text-color-hover:  hsl(0, 0%, 90%);
+    --control-border: solid 1px hsl(0, 0%, 10%);
+
+    --control-inner-border: solid 1px hsl(0, 0%, 35%);
+
     /* Inputs */
 
     --input-bg-color: hsl(0, 0%, 12%);

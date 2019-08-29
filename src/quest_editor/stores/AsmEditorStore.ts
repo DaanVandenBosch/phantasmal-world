@@ -9,7 +9,7 @@ import { ASM_SYNTAX } from "./asm_syntax";
 import { AssemblyError, AssemblyWarning } from "../scripting/assembly";
 import { Observable } from "../../core/observable/Observable";
 import { emitter, property } from "../../core/observable";
-import { WritableProperty } from "../../core/observable/WritableProperty";
+import { WritableProperty } from "../../core/observable/property/WritableProperty";
 import SignatureHelp = languages.SignatureHelp;
 import ITextModel = editor.ITextModel;
 import CompletionList = languages.CompletionList;

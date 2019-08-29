@@ -1,8 +1,8 @@
-import { Disposable } from "./Disposable";
-import { PropertyChangeEvent, Property } from "./Property";
-import { Disposer } from "./Disposer";
+import { Disposable } from "../Disposable";
+import { Disposer } from "../Disposer";
 import { AbstractMinimalProperty } from "./AbstractMinimalProperty";
 import { FlatMappedProperty } from "./FlatMappedProperty";
+import { Property, PropertyChangeEvent } from "./Property";
 
 /**
  * Starts observing its dependencies when the first observer on this property is registered.
@@ -10,8 +10,6 @@ import { FlatMappedProperty } from "./FlatMappedProperty";
  * This way no extra disposables need to be managed when e.g. {@link Property.map} is used.
  */
 export class DependentProperty<T> extends AbstractMinimalProperty<T> implements Property<T> {
-    readonly is_property = true;
-
     private _val?: T;
 
     get val(): T {
@@ -36,7 +34,7 @@ export class DependentProperty<T> extends AbstractMinimalProperty<T> implements 
         observer: (event: PropertyChangeEvent<T>) => void,
         options: { call_now?: boolean } = {},
     ): Disposable {
-        const super_disposable = super.observe(observer);
+        const super_disposable = super.observe(observer, options);
 
         if (this.dependency_disposables.length === 0) {
             this._val = this.f();

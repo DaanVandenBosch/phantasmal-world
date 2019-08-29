@@ -1,5 +1,5 @@
 import { Undo } from "./Undo";
-import { WritableArrayProperty } from "../observable/WritableArrayProperty";
+import { WritableListProperty } from "../observable/property/list/WritableListProperty";
 import { Action } from "./Action";
 import { array_property, map, property } from "../observable";
 import { NOOP_UNDO } from "./noop_undo";
@@ -12,7 +12,7 @@ const logger = Logger.get("core/undo/UndoStack");
  * Full-fledged linear undo/redo implementation.
  */
 export class UndoStack implements Undo {
-    private readonly stack: WritableArrayProperty<Action> = array_property();
+    private readonly stack: WritableListProperty<Action> = array_property();
 
     /**
      * The index where new actions are inserted.

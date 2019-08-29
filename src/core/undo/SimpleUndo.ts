@@ -1,10 +1,10 @@
 import { Undo } from "./Undo";
 import { Action } from "./Action";
-import { Property } from "../observable/Property";
+import { Property } from "../observable/property/Property";
 import { map, property } from "../observable";
 import { NOOP_UNDO } from "./noop_undo";
 import { undo_manager } from "./UndoManager";
-import { WritableProperty } from "../observable/WritableProperty";
+import { WritableProperty } from "../observable/property/WritableProperty";
 
 /**
  * Simply contains a single action. `can_undo` and `can_redo` must be managed manually.

@@ -1,10 +1,10 @@
-import { create_element } from "./dom";
+import { create_element, el, icon, Icon } from "./dom";
 import "./FileButton.css";
 import "./Button.css";
 import { property } from "../observable";
-import { Property } from "../observable/Property";
+import { Property } from "../observable/property/Property";
 import { Control } from "./Control";
-import { WritableProperty } from "../observable/WritableProperty";
+import { WritableProperty } from "../observable/property/WritableProperty";
 
 export class FileButton extends Control<HTMLElement> {
     readonly files: Property<File[]>;
@@ -15,7 +15,7 @@ export class FileButton extends Control<HTMLElement> {
 
     private readonly _files: WritableProperty<File[]> = property<File[]>([]);
 
-    constructor(text: string, accept: string = "") {
+    constructor(text: string, options?: { accept?: string; icon_left?: Icon }) {
         super(
             create_element("label", {
                 class: "core_FileButton core_Button",
@@ -25,7 +25,6 @@ export class FileButton extends Control<HTMLElement> {
         this.files = this._files;
 
         this.input.type = "file";
-        this.input.accept = accept;
         this.input.onchange = () => {
             if (this.input.files && this.input.files.length) {
                 this._files.val = [...this.input.files!];
@@ -34,13 +33,24 @@ export class FileButton extends Control<HTMLElement> {
             }
         };
 
-        this.element.append(
-            create_element("span", {
-                class: "core_FileButton_inner core_Button_inner",
-                text,
-            }),
-            this.input,
-        );
+        if (options && options.accept) this.input.accept = options.accept;
+
+        const inner_element = el.span({
+            class: "core_FileButton_inner core_Button_inner",
+        });
+
+        if (options && options.icon_left != undefined) {
+            inner_element.append(
+                el.span(
+                    { class: "core_FileButton_left core_Button_left" },
+                    icon(options.icon_left),
+                ),
+            );
+        }
+
+        inner_element.append(el.span({ text }));
+
+        this.element.append(inner_element, this.input);
 
         this.disposables(
             this.enabled.observe(({ value }) => {

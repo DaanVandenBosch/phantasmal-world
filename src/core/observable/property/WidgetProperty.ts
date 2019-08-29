@@ -1,5 +1,5 @@
 import { SimpleProperty } from "./SimpleProperty";
-import { Widget } from "../gui/Widget";
+import { Widget } from "../../gui/Widget";
 
 export class WidgetProperty<T> extends SimpleProperty<T> {
     constructor(private widget: Widget, val: T, private set_value: (this: Widget, val: T) => void) {
