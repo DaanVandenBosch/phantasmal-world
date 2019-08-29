@@ -11,8 +11,10 @@
 .core_Select .core_Select_elements {
     z-index: 1000;
     position: absolute;
+    box-sizing: border-box;
     top: 25px;
     left: 0;
+    min-width: 100%;
     border: var(--control-border);
 }
 
@@ -23,6 +25,7 @@
 
 .core_Select .core_Select_elements_inner > * {
     padding: 5px 8px;
+    white-space: nowrap;
 }
 
 .core_Select .core_Select_elements_inner > *:hover {
