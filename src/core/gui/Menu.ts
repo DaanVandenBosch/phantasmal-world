@@ -11,12 +11,18 @@ export class Menu<T> extends Widget {
 
     private readonly to_label: (element: T) => string;
     private readonly items: Property<T[]>;
+    private readonly related_element: HTMLElement;
     private readonly _selected: WidgetProperty<T | undefined>;
 
-    constructor(items: T[] | Property<T[]>, to_label: (element: T) => string) {
+    constructor(
+        items: T[] | Property<T[]>,
+        to_label: (element: T) => string,
+        related_element: HTMLElement,
+    ) {
         super(el.div({ class: "core_Menu" }));
 
-        this.element.hidden = true;
+        this.visible.val = false;
+
         this.element.onmouseup = (e: Event) => this.mouseup(e);
 
         const inner_element = el.div({ class: "core_Menu_inner" });
@@ -24,6 +30,7 @@ export class Menu<T> extends Widget {
 
         this.to_label = to_label;
         this.items = Array.isArray(items) ? property(items) : items;
+        this.related_element = related_element;
 
         this._selected = new WidgetProperty<T | undefined>(this, undefined, this.set_selected);
         this.selected = this._selected;
@@ -41,7 +48,9 @@ export class Menu<T> extends Widget {
                 { call_now: true },
             ),
 
-            disposable_listener(document, "mousedown", (e: Event) => this.document_mousedown(e)),
+            disposable_listener(document, "mousedown", (e: Event) => this.document_mousedown(e), {
+                capture: true,
+            }),
         );
     }
 
@@ -63,7 +72,11 @@ export class Menu<T> extends Widget {
     }
 
     private document_mousedown(e: Event): void {
-        if (this.visible.val && !this.element.contains(e.target as Node)) {
+        if (
+            this.visible.val &&
+            !this.element.contains(e.target as Node) &&
+            !this.related_element.contains(e.target as Node)
+        ) {
             this.visible.val = false;
         }
     }

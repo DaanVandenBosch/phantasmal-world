@@ -129,11 +129,11 @@ export function disposable_listener(
     listener: EventListenerOrEventListenerObject,
     options?: AddEventListenerOptions,
 ): Disposable {
-    element.addEventListener(event, listener);
+    element.addEventListener(event, listener, options);
 
     return {
         dispose(): void {
-            element.removeEventListener(event, listener, options);
+            element.removeEventListener(event, listener);
         },
     };
 }

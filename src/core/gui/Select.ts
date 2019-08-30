@@ -27,18 +27,20 @@ export class Select<T> extends LabelledControl {
         to_label: (element: T) => string,
         options?: SelectOptions<T>,
     ) {
+        const element = el.div({ class: "core_Select" });
         const button = new Button("", {
             icon_right: Icon.TriangleDown,
         });
-        const menu = new Menu<T>(items, to_label);
+        const menu = new Menu<T>(items, to_label, element);
 
-        super(el.div({ class: "core_Select" }, button.element, menu.element), options);
+        super(element, options);
 
         this.preferred_label_position = "left";
 
         this.to_label = to_label;
         this.button = this.disposable(button);
         this.menu = this.disposable(menu);
+        this.element.append(this.button.element, this.menu.element);
 
         this._selected = new WidgetProperty<T | undefined>(this, undefined, this.set_selected);
         this.selected = this._selected;

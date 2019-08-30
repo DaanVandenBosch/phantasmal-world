@@ -4,6 +4,7 @@
     --bg-color: hsl(0, 0%, 15%);
     --text-color: hsl(0, 0%, 80%);
     --text-color-disabled: hsl(0, 0%, 55%);
+    --font-family: Verdana, Geneva, sans-serif;
     --border-color: hsl(0, 0%, 25%);
 
     /* Scrollbars */
@@ -63,7 +64,7 @@ body {
     font-size: 13px;
     background-color: var(--bg-color);
     color: var(--text-color);
-    font-family: Verdana, Geneva, sans-serif;
+    font-family: var(--font-family);
 }
 
 #root *[hidden] {

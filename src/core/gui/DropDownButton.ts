@@ -24,16 +24,18 @@ export class DropDownButton<T> extends Control {
         to_label: (element: T) => string,
         options?: DropDownButtonOptions,
     ) {
+        const element = el.div({ class: "core_DropDownButton" });
         const button = new Button(text, {
             icon_left: options && options.icon_left,
             icon_right: Icon.TriangleDown,
         });
-        const menu = new Menu<T>(items, to_label);
+        const menu = new Menu<T>(items, to_label, element);
 
-        super(el.div({ class: "core_DropDownButton" }, button.element, menu.element), options);
+        super(element, options);
 
         this.button = this.disposable(button);
         this.menu = this.disposable(menu);
+        this.element.append(this.button.element, this.menu.element);
 
         this._chosen = emitter();
         this.chosen = this._chosen;
@@ -41,7 +43,9 @@ export class DropDownButton<T> extends Control {
         this.just_opened = false;
 
         this.disposables(
-            disposable_listener(button.element, "mousedown", e => this.button_mousedown(e)),
+            disposable_listener(button.element, "mousedown", () => this.button_mousedown(), {
+                capture: true,
+            }),
 
             button.mouseup.observe(() => this.button_mouseup()),
 
@@ -59,8 +63,7 @@ export class DropDownButton<T> extends Control {
         this.button.enabled.val = enabled;
     }
 
-    private button_mousedown(e: Event): void {
-        e.stopPropagation();
+    private button_mousedown(): void {
         this.just_opened = !this.menu.visible.val;
         this.menu.visible.val = true;
     }

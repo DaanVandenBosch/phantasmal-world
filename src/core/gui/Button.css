@@ -10,6 +10,7 @@
     color: var(--control-text-color);
     outline: none;
     font-size: 13px;
+    font-family: var(--font-family);
     overflow: hidden;
 }
 
