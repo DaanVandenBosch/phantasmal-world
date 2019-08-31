@@ -10,8 +10,9 @@
 
 #root .lm_tab {
     cursor: default;
-    height: 21px;
-    line-height: 22px;
+    display: inline-flex;
+    align-items: center;
+    height: 23px;
     padding: 0 10px;
     border: solid 1px var(--border-color);
     margin: 0 1px -1px 1px;

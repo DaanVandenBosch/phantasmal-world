@@ -6,9 +6,9 @@
 
 .core_TabContainer_Tab {
     box-sizing: border-box;
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
     height: calc(100% + 1px);
-    line-height: 22px;
     padding: 0 10px;
     border: solid 1px var(--border-color);
     margin: 0 1px -1px 1px;

@@ -32,7 +32,7 @@ const DEFAULT_LAYOUT_CONFIG = {
         showMaximiseIcon: false,
     },
     dimensions: {
-        headerHeight: 22,
+        headerHeight: 24,
     },
     labels: {
         close: "Close",
