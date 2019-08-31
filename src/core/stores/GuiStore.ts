@@ -21,34 +21,34 @@ class GuiStore implements Disposable {
     private readonly hash_disposer = this.tool.observe(({ value: tool }) => {
         window.location.hash = `#/${gui_tool_to_string(tool)}`;
     });
-    private readonly global_keyup_handlers = new Map<string, () => void>();
+    private readonly global_keydown_handlers = new Map<string, () => void>();
 
     constructor() {
         const tool = window.location.hash.slice(2);
         this.tool.val = string_to_gui_tool(tool) || GuiTool.Viewer;
 
-        window.addEventListener("keyup", this.dispatch_global_keyup);
+        window.addEventListener("keydown", this.dispatch_global_keydown);
     }
 
     dispose(): void {
         this.hash_disposer.dispose();
-        this.global_keyup_handlers.clear();
+        this.global_keydown_handlers.clear();
 
-        window.removeEventListener("keyup", this.dispatch_global_keyup);
+        window.removeEventListener("keydown", this.dispatch_global_keydown);
     }
 
-    on_global_keyup(tool: GuiTool, binding: string, handler: () => void): Disposable {
+    on_global_keydown(tool: GuiTool, binding: string, handler: () => void): Disposable {
         const key = this.handler_key(tool, binding);
-        this.global_keyup_handlers.set(key, handler);
+        this.global_keydown_handlers.set(key, handler);
 
         return {
             dispose: () => {
-                this.global_keyup_handlers.delete(key);
+                this.global_keydown_handlers.delete(key);
             },
         };
     }
 
-    private dispatch_global_keyup = (e: KeyboardEvent) => {
+    private dispatch_global_keydown = (e: KeyboardEvent) => {
         const binding_parts: string[] = [];
         if (e.ctrlKey) binding_parts.push("Ctrl");
         if (e.shiftKey) binding_parts.push("Shift");
@@ -57,8 +57,12 @@ class GuiStore implements Disposable {
 
         const binding = binding_parts.join("-");
 
-        const handler = this.global_keyup_handlers.get(this.handler_key(this.tool.val, binding));
-        if (handler) handler();
+        const handler = this.global_keydown_handlers.get(this.handler_key(this.tool.val, binding));
+
+        if (handler) {
+            e.preventDefault();
+            handler();
+        }
     };
 
     private handler_key(tool: GuiTool, binding: string): string {

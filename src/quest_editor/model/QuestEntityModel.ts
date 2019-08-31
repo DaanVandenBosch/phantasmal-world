@@ -1,7 +1,7 @@
 import { EntityType } from "../../core/data_formats/parsing/quest/entities";
 import { Vec3 } from "../../core/data_formats/vector";
 import { Property } from "../../core/observable/property/Property";
-import { property } from "../../core/observable";
+import { map, property } from "../../core/observable";
 import { WritableProperty } from "../../core/observable/property/WritableProperty";
 import { SectionModel } from "./SectionModel";
 
@@ -82,12 +82,13 @@ export abstract class QuestEntityModel<Type extends EntityType = EntityType> {
         this.position = this._position;
         this._rotation = property(rotation);
         this.rotation = this._rotation;
-        this.world_position = this.position.map(this.position_to_world_position);
+        this.world_position = map(this.position_to_world_position, this.section, this.position);
     }
 
-    private position_to_world_position = (position: Vec3): Vec3 => {
-        const section = this.section.val;
-
+    private position_to_world_position = (
+        section: SectionModel | undefined,
+        position: Vec3,
+    ): Vec3 => {
         if (section) {
             let { x: rel_x, y: rel_y, z: rel_z } = position;
 

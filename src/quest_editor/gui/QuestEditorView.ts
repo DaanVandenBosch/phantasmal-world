@@ -109,7 +109,7 @@ export class QuestEditorView extends ResizableWidget {
         this.layout = this.init_golden_layout();
 
         this.disposables(
-            gui_store.on_global_keyup(
+            gui_store.on_global_keydown(
                 GuiTool.QuestEditor,
                 "Ctrl-Alt-D",
                 () => (quest_editor_store.debug.val = !quest_editor_store.debug.val),

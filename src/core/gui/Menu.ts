@@ -51,6 +51,8 @@ export class Menu<T> extends Widget {
             disposable_listener(document, "mousedown", (e: Event) => this.document_mousedown(e), {
                 capture: true,
             }),
+
+            disposable_listener(document, "keydown", () => this.document_keydown()),
         );
     }
 
@@ -79,5 +81,9 @@ export class Menu<T> extends Widget {
         ) {
             this.visible.val = false;
         }
+    }
+
+    private document_keydown(): void {
+        this.visible.val = false;
     }
 }

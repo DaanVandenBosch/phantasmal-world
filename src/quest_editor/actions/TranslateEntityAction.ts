@@ -22,28 +22,28 @@ export class TranslateEntityAction implements Action {
     undo(): void {
         quest_editor_store.set_selected_entity(this.entity);
 
+        if (this.old_section) {
+            this.entity.set_section(this.old_section);
+        }
+
         if (this.world) {
             this.entity.set_world_position(this.old_position);
         } else {
             this.entity.set_position(this.old_position);
-        }
-
-        if (this.old_section) {
-            this.entity.set_section(this.old_section);
         }
     }
 
     redo(): void {
         quest_editor_store.set_selected_entity(this.entity);
 
+        if (this.new_section) {
+            this.entity.set_section(this.new_section);
+        }
+
         if (this.world) {
             this.entity.set_world_position(this.new_position);
         } else {
             this.entity.set_position(this.new_position);
-        }
-
-        if (this.new_section) {
-            this.entity.set_section(this.new_section);
         }
     }
 }

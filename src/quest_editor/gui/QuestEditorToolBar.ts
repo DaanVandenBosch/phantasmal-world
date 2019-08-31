@@ -106,24 +106,24 @@ export class QuestEditorToolBar extends ToolBar {
                 quest_editor_store.set_current_area(area),
             ),
 
-            gui_store.on_global_keyup(GuiTool.QuestEditor, "Ctrl-O", () =>
+            gui_store.on_global_keydown(GuiTool.QuestEditor, "Ctrl-O", () =>
                 open_file_button.click(),
             ),
 
-            gui_store.on_global_keyup(
+            gui_store.on_global_keydown(
                 GuiTool.QuestEditor,
                 "Ctrl-Shift-S",
                 quest_editor_store.save_as,
             ),
 
-            gui_store.on_global_keyup(GuiTool.QuestEditor, "Ctrl-Z", () => {
+            gui_store.on_global_keydown(GuiTool.QuestEditor, "Ctrl-Z", () => {
                 // Let Monaco handle its own key bindings.
                 if (undo_manager.current.val !== asm_editor_store.undo) {
                     undo_manager.undo();
                 }
             }),
 
-            gui_store.on_global_keyup(GuiTool.QuestEditor, "Ctrl-Shift-Z", () => {
+            gui_store.on_global_keydown(GuiTool.QuestEditor, "Ctrl-Shift-Z", () => {
                 // Let Monaco handle its own key bindings.
                 if (undo_manager.current.val !== asm_editor_store.undo) {
                     undo_manager.redo();
