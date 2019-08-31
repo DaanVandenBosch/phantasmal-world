@@ -18,17 +18,51 @@ const STRING_TO_GUI_TOOL = new Map([...GUI_TOOL_TO_STRING.entries()].map(([k, v]
 class GuiStore implements Disposable {
     readonly tool: WritableProperty<GuiTool> = property(GuiTool.Viewer);
 
-    private hash_disposer = this.tool.observe(({ value: tool }) => {
+    private readonly hash_disposer = this.tool.observe(({ value: tool }) => {
         window.location.hash = `#/${gui_tool_to_string(tool)}`;
     });
+    private readonly global_keyup_handlers = new Map<string, () => void>();
 
     constructor() {
         const tool = window.location.hash.slice(2);
         this.tool.val = string_to_gui_tool(tool) || GuiTool.Viewer;
+
+        window.addEventListener("keyup", this.dispatch_global_keyup);
     }
 
     dispose(): void {
         this.hash_disposer.dispose();
+        this.global_keyup_handlers.clear();
+
+        window.removeEventListener("keyup", this.dispatch_global_keyup);
+    }
+
+    on_global_keyup(tool: GuiTool, binding: string, handler: () => void): Disposable {
+        const key = this.handler_key(tool, binding);
+        this.global_keyup_handlers.set(key, handler);
+
+        return {
+            dispose: () => {
+                this.global_keyup_handlers.delete(key);
+            },
+        };
+    }
+
+    private dispatch_global_keyup = (e: KeyboardEvent) => {
+        const binding_parts: string[] = [];
+        if (e.ctrlKey) binding_parts.push("Ctrl");
+        if (e.shiftKey) binding_parts.push("Shift");
+        if (e.altKey) binding_parts.push("Alt");
+        binding_parts.push(e.key.toUpperCase());
+
+        const binding = binding_parts.join("-");
+
+        const handler = this.global_keyup_handlers.get(this.handler_key(this.tool.val, binding));
+        if (handler) handler();
+    };
+
+    private handler_key(tool: GuiTool, binding: string): string {
+        return `${(GuiTool as any)[tool]} -> ${binding}`;
     }
 }
 

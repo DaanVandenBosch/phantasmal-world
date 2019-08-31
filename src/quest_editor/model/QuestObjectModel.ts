@@ -5,6 +5,11 @@ import { Vec3 } from "../../core/data_formats/vector";
 export class QuestObjectModel extends QuestEntityModel<ObjectType> {
     readonly id: number;
     readonly group_id: number;
+    readonly properties: Map<string, number>;
+    /**
+     * Data of which the purpose hasn't been discovered yet.
+     */
+    readonly unknown: number[][];
 
     constructor(
         type: ObjectType,
@@ -21,5 +26,7 @@ export class QuestObjectModel extends QuestEntityModel<ObjectType> {
 
         this.id = id;
         this.group_id = group_id;
+        this.properties = properties;
+        this.unknown = unknown;
     }
 }

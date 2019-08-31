@@ -17,4 +17,5 @@
 
 .core_Menu .core_Menu_inner > *:hover {
     background-color: var(--control-bg-color-hover);
+    color: var(--control-text-color-hover);
 }

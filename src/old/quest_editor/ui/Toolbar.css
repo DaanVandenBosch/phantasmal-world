@@ -1,8 +1,0 @@
-.main {
-    display: flex;
-    padding: 6px 3px;
-}
-
-.main > * {
-    margin: 0 3px !important;
-}

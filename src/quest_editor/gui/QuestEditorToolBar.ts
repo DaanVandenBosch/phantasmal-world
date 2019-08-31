@@ -9,6 +9,9 @@ import { AreaModel } from "../model/AreaModel";
 import { Icon } from "../../core/gui/dom";
 import { DropDownButton } from "../../core/gui/DropDownButton";
 import { Episode } from "../../core/data_formats/parsing/quest/Episode";
+import { area_store } from "../stores/AreaStore";
+import { gui_store, GuiTool } from "../../core/stores/GuiStore";
+import { asm_editor_store } from "../stores/AsmEditorStore";
 
 export class QuestEditorToolBar extends ToolBar {
     constructor() {
@@ -23,31 +26,45 @@ export class QuestEditorToolBar extends ToolBar {
         const open_file_button = new FileButton("Open file...", {
             icon_left: Icon.File,
             accept: ".qst",
+            tooltip: "Open a quest file (Ctrl-O)",
         });
-        const save_as_button = new Button("Save as...", { icon_left: Icon.Save });
+        const save_as_button = new Button("Save as...", {
+            icon_left: Icon.Save,
+            tooltip: "Save this quest to new file (Ctrl-Shift-S)",
+        });
         const undo_button = new Button("Undo", {
             icon_left: Icon.Undo,
-            tooltip: undo_manager.first_undo.map(action =>
-                action ? `Undo "${action.description}"` : "Nothing to undo",
+            tooltip: undo_manager.first_undo.map(
+                action =>
+                    (action ? `Undo "${action.description}"` : "Nothing to undo") + " (Ctrl-Z)",
             ),
         });
         const redo_button = new Button("Redo", {
             icon_left: Icon.Redo,
-            tooltip: undo_manager.first_redo.map(action =>
-                action ? `Redo "${action.description}"` : "Nothing to redo",
+            tooltip: undo_manager.first_redo.map(
+                action =>
+                    (action ? `Redo "${action.description}"` : "Nothing to redo") +
+                    " (Ctrl-Shift-Z)",
             ),
         });
         const area_select = new Select<AreaModel>(
             quest_editor_store.current_quest.flat_map(quest => {
                 if (quest) {
-                    return quest.area_variants.map(variants =>
-                        variants.map(variant => variant.area),
-                    );
+                    return array_property(...area_store.get_areas_for_episode(quest.episode));
                 } else {
                     return array_property<AreaModel>();
                 }
             }),
-            element => element.name,
+            area => {
+                const quest = quest_editor_store.current_quest.val;
+
+                if (quest) {
+                    const entity_count = quest.entities_per_area.val.get(area.id);
+                    return area.name + (entity_count ? ` (${entity_count})` : "");
+                } else {
+                    return area.name;
+                }
+            },
         );
 
         super({
@@ -75,6 +92,7 @@ export class QuestEditorToolBar extends ToolBar {
             }),
 
             save_as_button.enabled.bind_to(quest_loaded),
+            save_as_button.click.observe(quest_editor_store.save_as),
 
             undo_button.enabled.bind_to(undo_manager.can_undo),
             undo_button.click.observe(() => undo_manager.undo()),
@@ -87,6 +105,30 @@ export class QuestEditorToolBar extends ToolBar {
             area_select.selected.observe(({ value: area }) =>
                 quest_editor_store.set_current_area(area),
             ),
+
+            gui_store.on_global_keyup(GuiTool.QuestEditor, "Ctrl-O", () =>
+                open_file_button.click(),
+            ),
+
+            gui_store.on_global_keyup(
+                GuiTool.QuestEditor,
+                "Ctrl-Shift-S",
+                quest_editor_store.save_as,
+            ),
+
+            gui_store.on_global_keyup(GuiTool.QuestEditor, "Ctrl-Z", () => {
+                // Let Monaco handle its own key bindings.
+                if (undo_manager.current.val !== asm_editor_store.undo) {
+                    undo_manager.undo();
+                }
+            }),
+
+            gui_store.on_global_keyup(GuiTool.QuestEditor, "Ctrl-Shift-Z", () => {
+                // Let Monaco handle its own key bindings.
+                if (undo_manager.current.val !== asm_editor_store.undo) {
+                    undo_manager.redo();
+                }
+            }),
         );
     }
 }

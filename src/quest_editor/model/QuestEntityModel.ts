@@ -10,11 +10,9 @@ export abstract class QuestEntityModel<Type extends EntityType = EntityType> {
 
     readonly area_id: number;
 
-    private readonly _section_id: WritableProperty<number>;
     readonly section_id: Property<number>;
 
-    private readonly _section: WritableProperty<SectionModel | undefined> = property(undefined);
-    readonly section: Property<SectionModel | undefined> = this._section;
+    readonly section: Property<SectionModel | undefined>;
 
     set_section(section: SectionModel): this {
         this._section.val = section;
@@ -25,14 +23,12 @@ export abstract class QuestEntityModel<Type extends EntityType = EntityType> {
     /**
      * Section-relative position
      */
-    private readonly _position: WritableProperty<Vec3>;
     readonly position: Property<Vec3>;
 
     set_position(position: Vec3): void {
         this._position.val = position;
     }
 
-    private readonly _rotation: WritableProperty<Vec3>;
     readonly rotation: Property<Vec3>;
 
     set_rotation(rotation: Vec3): void {
@@ -65,6 +61,11 @@ export abstract class QuestEntityModel<Type extends EntityType = EntityType> {
         return this;
     }
 
+    private readonly _section_id: WritableProperty<number>;
+    private readonly _section: WritableProperty<SectionModel | undefined> = property(undefined);
+    private readonly _position: WritableProperty<Vec3>;
+    private readonly _rotation: WritableProperty<Vec3>;
+
     protected constructor(
         type: Type,
         area_id: number,
@@ -74,6 +75,7 @@ export abstract class QuestEntityModel<Type extends EntityType = EntityType> {
     ) {
         this.type = type;
         this.area_id = area_id;
+        this.section = this._section;
         this._section_id = property(section_id);
         this.section_id = this._section_id;
         this._position = property(position);

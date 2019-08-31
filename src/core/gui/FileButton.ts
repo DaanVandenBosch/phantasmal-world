@@ -3,8 +3,13 @@ import "./FileButton.css";
 import "./Button.css";
 import { property } from "../observable";
 import { Property } from "../observable/property/Property";
-import { Control } from "./Control";
+import { Control, ControlOptions } from "./Control";
 import { WritableProperty } from "../observable/property/WritableProperty";
+
+export type FileButtonOptions = ControlOptions & {
+    accept?: string;
+    icon_left?: Icon;
+};
 
 export class FileButton extends Control<HTMLElement> {
     readonly files: Property<File[]>;
@@ -15,11 +20,12 @@ export class FileButton extends Control<HTMLElement> {
 
     private readonly _files: WritableProperty<File[]> = property<File[]>([]);
 
-    constructor(text: string, options?: { accept?: string; icon_left?: Icon }) {
+    constructor(text: string, options?: FileButtonOptions) {
         super(
             create_element("label", {
                 class: "core_FileButton core_Button",
             }),
+            options,
         );
 
         this.files = this._files;
@@ -63,5 +69,9 @@ export class FileButton extends Control<HTMLElement> {
                 }
             }),
         );
+    }
+
+    click(): void {
+        this.input.click();
     }
 }

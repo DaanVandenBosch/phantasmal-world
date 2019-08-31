@@ -2,7 +2,7 @@ import { property } from "../../core/observable";
 import { QuestModel } from "../model/QuestModel";
 import { Property, PropertyChangeEvent } from "../../core/observable/property/Property";
 import { read_file } from "../../core/read_file";
-import { parse_quest } from "../../core/data_formats/parsing/quest";
+import { parse_quest, write_quest_qst } from "../../core/data_formats/parsing/quest";
 import { ArrayBufferCursor } from "../../core/data_formats/cursor/ArrayBufferCursor";
 import { Endianness } from "../../core/data_formats/Endianness";
 import { WritableProperty } from "../../core/observable/property/WritableProperty";
@@ -139,6 +139,66 @@ export class QuestEditorStore implements Disposable {
         } catch (e) {
             logger.error("Couldn't read file.", e);
         }
+    };
+
+    save_as = () => {
+        const quest = this.current_quest.val;
+        if (!quest) return;
+
+        let file_name = prompt("File name:");
+        if (!file_name) return;
+
+        const buffer = write_quest_qst(
+            {
+                id: quest.id.val,
+                language: quest.language.val,
+                name: quest.name.val,
+                short_description: quest.short_description.val,
+                long_description: quest.long_description.val,
+                episode: quest.episode,
+                objects: quest.objects.val.map(obj => ({
+                    type: obj.type,
+                    area_id: obj.area_id,
+                    section_id: obj.section_id.val,
+                    position: obj.position.val,
+                    rotation: obj.rotation.val,
+                    unknown: obj.unknown,
+                    id: obj.id,
+                    group_id: obj.group_id,
+                    properties: obj.properties,
+                })),
+                npcs: quest.npcs.val.map(npc => ({
+                    type: npc.type,
+                    area_id: npc.area_id,
+                    section_id: npc.section_id.val,
+                    position: npc.position.val,
+                    rotation: npc.rotation.val,
+                    scale: npc.scale,
+                    unknown: npc.unknown,
+                    pso_type_id: npc.pso_type_id,
+                    npc_id: npc.npc_id,
+                    script_label: npc.script_label,
+                    roaming: npc.roaming,
+                })),
+                dat_unknowns: quest.dat_unknowns,
+                object_code: quest.object_code,
+                shop_items: quest.shop_items,
+                map_designations: quest.map_designations.val,
+            },
+            file_name,
+        );
+
+        if (!file_name.endsWith(".qst")) {
+            file_name += ".qst";
+        }
+
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(new Blob([buffer], { type: "application/octet-stream" }));
+        a.download = file_name;
+        document.body.appendChild(a);
+        a.click();
+        URL.revokeObjectURL(a.href);
+        document.body.removeChild(a);
     };
 
     push_edit_id_action = (event: PropertyChangeEvent<number>) => {

@@ -10,6 +10,8 @@ import { NpcCountsView } from "./NpcCountsView";
 import { QuestRendererView } from "./QuestRendererView";
 import { AsmEditorView } from "./AsmEditorView";
 import { EntityInfoView } from "./EntityInfoView";
+import { gui_store, GuiTool } from "../../core/stores/GuiStore";
+import { quest_editor_store } from "../stores/QuestEditorStore";
 import Logger = require("js-logger");
 
 const logger = Logger.get("quest_editor/gui/QuestEditorView");
@@ -105,6 +107,14 @@ export class QuestEditorView extends ResizableWidget {
         this.element.append(this.tool_bar_view.element, this.layout_element);
 
         this.layout = this.init_golden_layout();
+
+        this.disposables(
+            gui_store.on_global_keyup(
+                GuiTool.QuestEditor,
+                "Ctrl-Alt-D",
+                () => (quest_editor_store.debug.val = !quest_editor_store.debug.val),
+            ),
+        );
     }
 
     resize(width: number, height: number): this {
