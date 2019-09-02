@@ -1,7 +1,7 @@
 import { Undo } from "./Undo";
 import { WritableListProperty } from "../observable/property/list/WritableListProperty";
 import { Action } from "./Action";
-import { array_property, map, property } from "../observable";
+import { list_property, map, property } from "../observable";
 import { NOOP_UNDO } from "./noop_undo";
 import { undo_manager } from "./UndoManager";
 import Logger = require("js-logger");
@@ -12,7 +12,7 @@ const logger = Logger.get("core/undo/UndoStack");
  * Full-fledged linear undo/redo implementation.
  */
 export class UndoStack implements Undo {
-    private readonly stack: WritableListProperty<Action> = array_property();
+    private readonly stack: WritableListProperty<Action> = list_property();
 
     /**
      * The index where new actions are inserted.

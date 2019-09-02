@@ -10,6 +10,11 @@ const TOOLS: [GuiTool, () => Promise<ResizableWidget>][] = [
         GuiTool.QuestEditor,
         async () => new (await import("../../quest_editor/gui/QuestEditorView")).QuestEditorView(),
     ],
+    [
+        GuiTool.HuntOptimizer,
+        async () =>
+            new (await import("../../hunt_optimizer/gui/HuntOptimizerView")).HuntOptimizerView(),
+    ],
 ];
 
 export class MainContentView extends ResizableWidget {

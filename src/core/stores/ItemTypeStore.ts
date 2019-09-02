@@ -1,4 +1,3 @@
-import { observable } from "mobx";
 import {
     ArmorItemType,
     ItemType,
@@ -6,28 +5,33 @@ import {
     ToolItemType,
     UnitItemType,
     WeaponItemType,
-} from "../domain/items";
-import { Loadable } from "../Loadable";
+} from "../model/items";
 import { ServerMap } from "./ServerMap";
-import { ItemTypeDto } from "../dto";
-import { Server } from "../../../core/domain";
+import { ServerModel } from "../model";
+import { LoadableProperty } from "../observable/property/LoadableProperty";
+import { ItemTypeDto } from "../dto/ItemTypeDto";
 
 export class ItemTypeStore {
-    private id_to_item_type: ItemType[] = [];
+    readonly item_types: ItemType[] = [];
 
-    @observable item_types: ItemType[] = [];
+    private readonly server: ServerModel;
+    private readonly id_to_item_type: ItemType[] = [];
+
+    constructor(server: ServerModel) {
+        this.server = server;
+    }
 
     get_by_id(id: number): ItemType | undefined {
         return this.id_to_item_type[id];
     }
 
-    load = async (server: Server): Promise<ItemTypeStore> => {
+    load = async (): Promise<void> => {
         const response = await fetch(
-            `${process.env.PUBLIC_URL}/itemTypes.${Server[server].toLowerCase()}.json`,
+            `${process.env.PUBLIC_URL}/itemTypes.${ServerModel[this.server].toLowerCase()}.json`,
         );
         const data: ItemTypeDto[] = await response.json();
 
-        const item_types = new Array<ItemType>();
+        this.item_types.splice(0, Infinity);
 
         for (const item_type_dto of data) {
             let item_type: ItemType;
@@ -85,16 +89,17 @@ export class ItemTypeStore {
             }
 
             this.id_to_item_type[item_type.id] = item_type;
-            item_types.push(item_type);
+            this.item_types.push(item_type);
         }
-
-        this.item_types = item_types;
-
-        return this;
     };
 }
 
-export const item_type_stores: ServerMap<Loadable<ItemTypeStore>> = new ServerMap(server => {
-    const store = new ItemTypeStore();
-    return new Loadable(store, () => store.load(server));
-});
+export const item_type_stores: ServerMap<LoadableProperty<ItemTypeStore>> = new ServerMap(
+    server => {
+        const store = new ItemTypeStore(server);
+        return new LoadableProperty(store, async () => {
+            await store.load();
+            return store;
+        });
+    },
+);

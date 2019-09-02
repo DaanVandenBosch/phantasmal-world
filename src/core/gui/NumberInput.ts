@@ -42,9 +42,7 @@ export class NumberInput extends Input<number> {
     }
 
     protected set_value(value: number): void {
-        this.ignore_change(() => {
-            this.input_element.valueAsNumber =
-                Math.round(this.rounding_factor * value) / this.rounding_factor;
-        });
+        this.input_element.valueAsNumber =
+            Math.round(this.rounding_factor * value) / this.rounding_factor;
     }
 }

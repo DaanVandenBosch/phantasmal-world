@@ -18,11 +18,11 @@
 }
 
 .core_Input:hover {
-    border-color: var(--input-border-hover);
+    border: var(--input-border-hover);
 }
 
 .core_Input:focus-within {
-    border-color: var(--input-border-focus);
+    border: var(--input-border-focus);
 }
 
 .core_Input.disabled {

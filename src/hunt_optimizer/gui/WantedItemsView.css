@@ -1,0 +1,5 @@
+.hunt_optimizer_WantedItemsView {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+}

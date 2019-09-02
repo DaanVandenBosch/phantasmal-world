@@ -1,0 +1,91 @@
+.hunt_optimizer_MethodsForEpisodeView table {
+    display: block;
+    box-sizing: border-box;
+    overflow: auto;
+    width: 100%;
+    height: 100%;
+    background-color: var(--bg-color);
+    border-collapse: collapse;
+}
+
+.hunt_optimizer_MethodsForEpisodeView tr {
+    display: flex;
+    align-items: stretch;
+}
+
+.hunt_optimizer_MethodsForEpisodeView thead tr {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+
+.hunt_optimizer_MethodsForEpisodeView th,
+.hunt_optimizer_MethodsForEpisodeView td {
+    box-sizing: border-box;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 80px;
+    padding: 3px 6px;
+    border-right: solid 1px var(--border-color);
+    border-bottom: solid 1px var(--border-color);
+    background-color: var(--bg-color);
+}
+
+.hunt_optimizer_MethodsForEpisodeView th:first-child {
+    position: sticky;
+    left: 0;
+    width: 250px;
+}
+
+.hunt_optimizer_MethodsForEpisodeView th:nth-child(2) {
+    position: sticky;
+    left: 250px;
+    width: 60px;
+}
+
+.hunt_optimizer_MethodsForEpisodeView tbody {
+    user-select: text;
+    cursor: text;
+}
+
+.hunt_optimizer_MethodsForEpisodeView tbody th,
+.hunt_optimizer_MethodsForEpisodeView tbody td {
+    white-space: nowrap;
+}
+
+.hunt_optimizer_MethodsForEpisodeView tbody th {
+    text-align: left;
+}
+
+.hunt_optimizer_MethodsForEpisodeView tbody td {
+    text-align: right;
+}
+
+.hunt_optimizer_MethodsForEpisodeView th.input {
+    padding: 0;
+    overflow: visible;
+}
+
+.hunt_optimizer_MethodsForEpisodeView th.input .core_DurationInput {
+    z-index: 0;
+    height: 100%;
+    width: 100%;
+    border: none;
+}
+
+.hunt_optimizer_MethodsForEpisodeView th.input .core_DurationInput:hover,
+.hunt_optimizer_MethodsForEpisodeView th.input .core_DurationInput:focus-within {
+    margin: -1px;
+    height: calc(100% + 2px);
+    width: calc(100% + 2px);
+}
+
+.hunt_optimizer_MethodsForEpisodeView th.input .core_DurationInput:hover {
+    z-index: 4;
+    border: var(--input-border-hover);
+}
+
+.hunt_optimizer_MethodsForEpisodeView th.input .core_DurationInput:focus-within {
+    z-index: 6;
+    border: var(--input-border-focus);
+}

@@ -15,7 +15,7 @@ export function property<T>(value: T): WritableProperty<T> {
     return new SimpleProperty(value);
 }
 
-export function array_property<T>(...values: T[]): WritableListProperty<T> {
+export function list_property<T>(...values: T[]): WritableListProperty<T> {
     return new SimpleWritableListProperty(...values);
 }
 

@@ -13,8 +13,8 @@ export function enum_values<E>(e: any): E[] {
  * Map with a guaranteed value per enum key.
  */
 export class EnumMap<K, V> {
-    private keys: K[];
-    private values = new Map<K, V>();
+    private readonly keys: K[];
+    private readonly values = new Map<K, V>();
 
     constructor(enum_: any, initial_value: (key: K) => V) {
         this.keys = enum_values(enum_);

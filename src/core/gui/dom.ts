@@ -23,8 +23,24 @@ export const el = {
         ...children: HTMLElement[]
     ): HTMLSpanElement => create_element("span", attributes, ...children),
 
+    h2: (
+        attributes?: {
+            class?: string;
+            tab_index?: number;
+            text?: string;
+            data?: { [key: string]: string };
+        },
+        ...children: HTMLElement[]
+    ): HTMLHeadingElement => create_element("h2", attributes, ...children),
+
     table: (attributes?: {}, ...children: HTMLElement[]): HTMLTableElement =>
         create_element("table", attributes, ...children),
+
+    thead: (attributes?: {}, ...children: HTMLElement[]): HTMLTableSectionElement =>
+        create_element("thead", attributes, ...children),
+
+    tbody: (attributes?: {}, ...children: HTMLElement[]): HTMLTableSectionElement =>
+        create_element("tbody", attributes, ...children),
 
     tr: (attributes?: {}, ...children: HTMLElement[]): HTMLTableRowElement =>
         create_element("tr", attributes, ...children),

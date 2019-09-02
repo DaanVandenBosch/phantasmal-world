@@ -4,7 +4,7 @@ import { Button } from "../../core/gui/Button";
 import { quest_editor_store } from "../stores/QuestEditorStore";
 import { undo_manager } from "../../core/undo/UndoManager";
 import { Select } from "../../core/gui/Select";
-import { array_property } from "../../core/observable";
+import { list_property } from "../../core/observable";
 import { AreaModel } from "../model/AreaModel";
 import { Icon } from "../../core/gui/dom";
 import { DropDownButton } from "../../core/gui/DropDownButton";
@@ -50,9 +50,9 @@ export class QuestEditorToolBar extends ToolBar {
         const area_select = new Select<AreaModel>(
             quest_editor_store.current_quest.flat_map(quest => {
                 if (quest) {
-                    return array_property(...area_store.get_areas_for_episode(quest.episode));
+                    return list_property(...area_store.get_areas_for_episode(quest.episode));
                 } else {
-                    return array_property<AreaModel>();
+                    return list_property<AreaModel>();
                 }
             }),
             area => {

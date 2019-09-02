@@ -1,4 +1,4 @@
-import { array_property, map, property } from "../../core/observable";
+import { list_property, map, property } from "../../core/observable";
 import { WritableProperty } from "../../core/observable/property/WritableProperty";
 import { check_episode, Episode } from "../../core/data_formats/parsing/quest/Episode";
 import { QuestObjectModel } from "./QuestObjectModel";
@@ -109,7 +109,7 @@ export class QuestModel {
     private readonly _short_description: WritableProperty<string> = property("");
     private readonly _long_description: WritableProperty<string> = property("");
     private readonly _map_designations: WritableProperty<Map<number, number>>;
-    private readonly _area_variants: WritableListProperty<AreaVariantModel> = array_property();
+    private readonly _area_variants: WritableListProperty<AreaVariantModel> = list_property();
 
     constructor(
         id: number,
@@ -148,8 +148,8 @@ export class QuestModel {
         this.episode = episode;
         this._map_designations = property(map_designations);
         this.map_designations = this._map_designations;
-        this.objects = array_property(...objects);
-        this.npcs = array_property(...npcs);
+        this.objects = list_property(...objects);
+        this.npcs = list_property(...npcs);
         this.dat_unknowns = dat_unknowns;
         this.object_code = object_code;
         this.shop_items = shop_items;

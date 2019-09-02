@@ -14,7 +14,6 @@ export abstract class Input<T> extends LabelledControl<HTMLElement> {
     protected readonly input_element: HTMLInputElement;
 
     private readonly _value: WidgetProperty<T>;
-    private ignore_input_change = false;
 
     protected constructor(
         value: T,
@@ -47,11 +46,6 @@ export abstract class Input<T> extends LabelledControl<HTMLElement> {
     protected abstract get_value(): T;
 
     protected abstract set_value(value: T): void;
-
-    protected ignore_change(f: () => void): void {
-        this.ignore_input_change = true;
-        f();
-    }
 
     protected set_attr<T>(attr: InputAttrsOfType<T>, value?: T | Property<T>): void;
     protected set_attr<T, U>(

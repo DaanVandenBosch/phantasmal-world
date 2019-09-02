@@ -16,11 +16,11 @@
 }
 
 .core_TextArea:hover {
-    border-color: var(--input-border-hover);
+    border: var(--input-border-hover);
 }
 
 .core_TextArea:focus-within {
-    border-color: var(--input-border-focus);
+    border: var(--input-border-focus);
 }
 
 .core_TextArea.disabled {

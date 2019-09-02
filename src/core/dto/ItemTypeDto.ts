@@ -57,29 +57,3 @@ export type ToolItemTypeDto = {
     id: number;
     name: string;
 };
-
-export type EnemyDropDto = {
-    difficulty: string;
-    episode: number;
-    sectionId: string;
-    enemy: string;
-    itemTypeId: number;
-    dropRate: number;
-    rareRate: number;
-};
-
-export type BoxDropDto = {
-    difficulty: string;
-    episode: number;
-    sectionId: string;
-    areaId: number;
-    itemTypeId: number;
-    dropRate: number;
-};
-
-export type QuestDto = {
-    id: number;
-    name: string;
-    episode: 1 | 2 | 4;
-    enemyCounts: { [npcTypeCode: string]: number };
-};

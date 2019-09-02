@@ -1,9 +1,9 @@
 import { InputNumber } from "antd";
 import { observer } from "mobx-react";
 import React, { Component, ReactNode } from "react";
-import { ArmorItemType, ShieldItemType, WeaponItemType } from "../../core/domain/items";
+import { ArmorItemType, ShieldItemType, WeaponItemType } from "../../../core/model/items";
 import { dps_calc_store } from "../stores/DpsCalcStore";
-import { item_type_stores } from "../../core/stores/ItemTypeStore";
+import { item_type_stores } from "../../../core/stores/ItemTypeStore";
 import { BigSelect } from "../../core/ui/BigSelect";
 
 @observer

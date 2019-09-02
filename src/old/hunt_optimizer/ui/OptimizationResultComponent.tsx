@@ -2,7 +2,7 @@ import { computed } from "mobx";
 import { observer } from "mobx-react";
 import React, { Component, ReactNode } from "react";
 import { AutoSizer, Index } from "react-virtualized";
-import { Difficulty, SectionId } from "../../../core/domain";
+import { DifficultyModel, SectionIdModel } from "../../../core/model";
 import { hunt_optimizer_store, OptimalMethod } from "../stores/HuntOptimizerStore";
 import { BigTable, Column } from "../../core/ui/BigTable";
 import { SectionIdIcon } from "../../core/ui/SectionIdIcon";
@@ -28,7 +28,7 @@ export class OptimizationResultComponent extends Component {
             {
                 name: "Difficulty",
                 width: 75,
-                cell_renderer: result => Difficulty[result.difficulty],
+                cell_renderer: result => DifficultyModel[result.difficulty],
                 footer_value: "Totals:",
             },
             {
@@ -52,7 +52,7 @@ export class OptimizationResultComponent extends Component {
                         ))}
                     </div>
                 ),
-                tooltip: result => result.section_ids.map(sid => SectionId[sid]).join(", "),
+                tooltip: result => result.section_ids.map(sid => SectionIdModel[sid]).join(", "),
             },
             {
                 name: "Time/Run",

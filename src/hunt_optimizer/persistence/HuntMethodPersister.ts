@@ -1,16 +1,17 @@
-import { Persister } from "../../../core/persistence";
-import { Server } from "../../../core/domain";
-import { HuntMethod } from "../domain";
+import { Persister } from "../../core/persistence";
+import { ServerModel } from "../../core/model";
+import { HuntMethodModel } from "../model/HuntMethodModel";
+import { Duration } from "luxon";
 
 const METHOD_USER_TIMES_KEY = "HuntMethodStore.methodUserTimes";
 
 class HuntMethodPersister extends Persister {
-    persist_method_user_times(hunt_methods: HuntMethod[], server: Server): void {
+    persist_method_user_times(hunt_methods: HuntMethodModel[], server: ServerModel): void {
         const user_times: PersistedUserTimes = {};
 
         for (const method of hunt_methods) {
-            if (method.user_time != undefined) {
-                user_times[method.id] = method.user_time;
+            if (method.user_time.val != undefined) {
+                user_times[method.id] = method.user_time.val.as("hours");
             }
         }
 
@@ -18,9 +19,9 @@ class HuntMethodPersister extends Persister {
     }
 
     async load_method_user_times(
-        hunt_methods: HuntMethod[],
-        server: Server,
-    ): Promise<HuntMethod[]> {
+        hunt_methods: HuntMethodModel[],
+        server: ServerModel,
+    ): Promise<void> {
         const user_times = await this.load_for_server<PersistedUserTimes>(
             server,
             METHOD_USER_TIMES_KEY,
@@ -28,11 +29,12 @@ class HuntMethodPersister extends Persister {
 
         if (user_times) {
             for (const method of hunt_methods) {
-                method.user_time = user_times[method.id];
+                const hours = user_times[method.id];
+                method.set_user_time(
+                    hours == undefined ? undefined : Duration.fromObject({ hours }),
+                );
             }
         }
-
-        return hunt_methods;
     }
 }
 

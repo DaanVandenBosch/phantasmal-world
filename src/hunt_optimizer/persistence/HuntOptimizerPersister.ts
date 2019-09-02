@@ -1,12 +1,12 @@
-import { Server } from "../../../core/domain";
-import { WantedItem } from "../stores/HuntOptimizerStore";
+import { ServerModel } from "../../core/model";
 import { item_type_stores } from "../../core/stores/ItemTypeStore";
-import { Persister } from "../../../core/persistence";
+import { Persister } from "../../core/persistence";
+import { WantedItemModel } from "../model";
 
 const WANTED_ITEMS_KEY = "HuntOptimizerStore.wantedItems";
 
 class HuntOptimizerPersister extends Persister {
-    persist_wanted_items(server: Server, wanted_items: WantedItem[]): void {
+    persist_wanted_items(server: ServerModel, wanted_items: WantedItemModel[]): void {
         this.persist_for_server(
             server,
             WANTED_ITEMS_KEY,
@@ -19,14 +19,14 @@ class HuntOptimizerPersister extends Persister {
         );
     }
 
-    async load_wanted_items(server: Server): Promise<WantedItem[]> {
+    async load_wanted_items(server: ServerModel): Promise<WantedItemModel[]> {
         const item_store = await item_type_stores.get(server).promise;
 
         const persisted_wanted_items = await this.load_for_server<PersistedWantedItem[]>(
             server,
             WANTED_ITEMS_KEY,
         );
-        const wanted_items: WantedItem[] = [];
+        const wanted_items: WantedItemModel[] = [];
 
         if (persisted_wanted_items) {
             for (const { itemTypeId, itemKindId, amount } of persisted_wanted_items) {
@@ -36,7 +36,7 @@ class HuntOptimizerPersister extends Persister {
                         : item_store.get_by_id(itemKindId!);
 
                 if (item) {
-                    wanted_items.push(new WantedItem(item, amount));
+                    wanted_items.push(new WantedItemModel(item, amount));
                 }
             }
         }

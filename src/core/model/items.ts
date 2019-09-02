@@ -1,4 +1,6 @@
-import { observable, computed } from "mobx";
+import { Property } from "../observable/property/Property";
+import { WritableProperty } from "../observable/property/WritableProperty";
+import { property } from "../observable";
 
 //
 // Item types.
@@ -74,21 +76,40 @@ export interface Item {
 }
 
 export class WeaponItem implements Item {
-    /**
-     * Integer from 0 to 100.
-     */
-    @observable attribute: number = 0;
-    /**
-     * Integer from 0 to 100.
-     */
-    @observable hit: number = 0;
-    @observable grind: number = 0;
+    readonly type: WeaponItemType;
 
-    @computed get grind_atp(): number {
-        return 2 * this.grind;
+    /**
+     * Integer from 0 to 100.
+     */
+    readonly attribute: Property<number>;
+
+    /**
+     * Integer from 0 to 100.
+     */
+    readonly hit: Property<number>;
+
+    readonly grind: Property<number>;
+
+    readonly grind_atp: Property<number>;
+
+    private readonly _attribute: WritableProperty<number>;
+    private readonly _hit: WritableProperty<number>;
+    private readonly _grind: WritableProperty<number>;
+
+    constructor(type: WeaponItemType) {
+        this.type = type;
+
+        this._attribute = property(0);
+        this.attribute = this._attribute;
+
+        this._hit = property(0);
+        this.hit = this._hit;
+
+        this._grind = property(0);
+        this.grind = this._grind;
+
+        this.grind_atp = this.grind.map(grind => 2 * grind);
     }
-
-    constructor(readonly type: WeaponItemType) {}
 }
 
 export class ArmorItem implements Item {

@@ -3,7 +3,7 @@ import { observer } from "mobx-react";
 import React, { Component, ReactNode } from "react";
 import { AutoSizer, Column, Table, TableCellRenderer } from "react-virtualized";
 import { hunt_optimizer_store, WantedItem } from "../stores/HuntOptimizerStore";
-import { item_type_stores } from "../../core/stores/ItemTypeStore";
+import { item_type_stores } from "../../../core/stores/ItemTypeStore";
 import { BigSelect } from "../../core/ui/BigSelect";
 import styles from "./WantedItemsComponent.css";
 

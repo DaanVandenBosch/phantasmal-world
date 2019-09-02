@@ -1,6 +1,8 @@
 import { WritableProperty } from "../observable/property/WritableProperty";
 import { Disposable } from "../observable/Disposable";
 import { property } from "../observable";
+import { Property } from "../observable/property/Property";
+import { ServerModel } from "../model";
 
 export enum GuiTool {
     Viewer,
@@ -17,7 +19,9 @@ const STRING_TO_GUI_TOOL = new Map([...GUI_TOOL_TO_STRING.entries()].map(([k, v]
 
 class GuiStore implements Disposable {
     readonly tool: WritableProperty<GuiTool> = property(GuiTool.Viewer);
+    readonly server: Property<ServerModel>;
 
+    private readonly _server: WritableProperty<ServerModel> = property(ServerModel.Ephinea);
     private readonly hash_disposer = this.tool.observe(({ value: tool }) => {
         window.location.hash = `#/${gui_tool_to_string(tool)}`;
     });
@@ -26,6 +30,8 @@ class GuiStore implements Disposable {
     constructor() {
         const tool = window.location.hash.slice(2);
         this.tool.val = string_to_gui_tool(tool) || GuiTool.Viewer;
+
+        this.server = this._server;
 
         window.addEventListener("keydown", this.dispatch_global_keydown);
     }

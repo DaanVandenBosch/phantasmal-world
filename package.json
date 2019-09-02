@@ -5,6 +5,7 @@
     "license": "MIT",
     "dependencies": {
         "@types/lodash": "^4.14.132",
+        "@types/luxon": "^1.15.2",
         "@types/react": "16.8.20",
         "@types/react-dom": "16.8.4",
         "@types/react-virtualized": "^9.21.2",
@@ -15,6 +16,7 @@
         "javascript-lp-solver": "^0.4.5",
         "js-logger": "^1.6.0",
         "lodash": "^4.17.14",
+        "luxon": "^1.17.2",
         "mobx": "^5.11.0",
         "mobx-react": "^6.1.1",
         "moment": "^2.24.0",

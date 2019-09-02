@@ -1,6 +1,6 @@
 import { observable, IObservableArray, computed } from "mobx";
-import { WeaponItem, WeaponItemType, ArmorItemType, ShieldItemType } from "../../core/domain/items";
-import { item_type_stores } from "../../core/stores/ItemTypeStore";
+import { WeaponItem, WeaponItemType, ArmorItemType, ShieldItemType } from "../../../core/model/items";
+import { item_type_stores } from "../../../core/stores/ItemTypeStore";
 
 const NORMAL_DAMAGE_FACTOR = 0.2 * 0.9;
 const HEAVY_DAMAGE_FACTOR = NORMAL_DAMAGE_FACTOR * 1.89;
