@@ -110,6 +110,7 @@ export enum Icon {
     TriangleDown,
     Undo,
     Redo,
+    Remove,
 }
 
 export function icon(icon: Icon): HTMLElement {
@@ -133,6 +134,9 @@ export function icon(icon: Icon): HTMLElement {
             break;
         case Icon.Redo:
             icon_str = "fa-redo";
+            break;
+        case Icon.Remove:
+            icon_str = "fa-trash-alt";
             break;
     }
 

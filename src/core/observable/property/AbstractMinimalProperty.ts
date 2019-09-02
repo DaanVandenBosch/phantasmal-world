@@ -2,7 +2,7 @@ import { Disposable } from "../Disposable";
 import Logger from "js-logger";
 import { Property, PropertyChangeEvent } from "./Property";
 
-const logger = Logger.get("core/observable/AbstractMinimalProperty");
+const logger = Logger.get("core/observable/property/AbstractMinimalProperty");
 
 // This class exists purely because otherwise the resulting cyclic dependency graph would trip up commonjs.
 // The dependency graph is still cyclic but for some reason it's not a problem this way.

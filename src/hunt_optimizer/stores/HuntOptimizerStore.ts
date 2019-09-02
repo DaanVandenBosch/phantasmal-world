@@ -18,9 +18,9 @@ import { ListProperty } from "../../core/observable/property/list/ListProperty";
 import { list_property, map, property } from "../../core/observable";
 import { WritableListProperty } from "../../core/observable/property/list/WritableListProperty";
 import { hunt_method_stores } from "./HuntMethodStore";
-import { hunt_optimizer_persister } from "../persistence/HuntOptimizerPersister";
 import { item_drop_stores } from "./ItemDropStore";
 import { item_type_stores } from "../../core/stores/ItemTypeStore";
+import { hunt_optimizer_persister } from "../persistence/HuntOptimizerPersister";
 
 // TODO: take into account mothmants spawned from mothverts.
 // TODO: take into account split slimes.
@@ -164,7 +164,7 @@ class HuntOptimizerStore {
                         // Will contain an entry per wanted item dropped by enemies in this method/
                         // difficulty/section ID combo.
                         const variable: Variable = {
-                            time: method.time.val,
+                            time: method.time.val.as("hours"),
                         };
                         // Only add the variable if the method provides at least 1 item we want.
                         let add_variable = false;
@@ -301,14 +301,16 @@ class HuntOptimizerStore {
     }
 
     private initialize_persistence = async () => {
-        // TODO:
-        // this.wanted_items.replace(
-        //     await hunt_optimizer_persister.load_wanted_items(ServerModel.Ephinea),
-        // );
-        //
-        // autorun(() => {
-        //     hunt_optimizer_persister.persist_wanted_items(ServerModel.Ephinea, this.wanted_items.val);
-        // });
+        this._wanted_items.val = await hunt_optimizer_persister.load_wanted_items(
+            ServerModel.Ephinea,
+        );
+
+        this._wanted_items.observe_list(() => {
+            hunt_optimizer_persister.persist_wanted_items(
+                ServerModel.Ephinea,
+                this.wanted_items.val,
+            );
+        });
     };
 }
 
