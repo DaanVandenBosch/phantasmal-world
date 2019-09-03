@@ -54,7 +54,7 @@ export class FileButton extends Control<HTMLElement> {
             );
         }
 
-        inner_element.append(el.span({ text }));
+        inner_element.append(el.span({ class: "core_Button_center", text }));
 
         this.element.append(inner_element, this.input);
 

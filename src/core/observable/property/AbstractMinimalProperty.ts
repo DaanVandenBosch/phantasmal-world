@@ -17,13 +17,13 @@ export abstract class AbstractMinimalProperty<T> implements Property<T> {
 
     observe(
         observer: (change: PropertyChangeEvent<T>) => void,
-        options: { call_now?: boolean } = {},
+        options?: { call_now?: boolean },
     ): Disposable {
         if (!this.observers.includes(observer)) {
             this.observers.push(observer);
         }
 
-        if (options.call_now) {
+        if (options && options.call_now) {
             this.call_observer(observer, this.val);
         }
 

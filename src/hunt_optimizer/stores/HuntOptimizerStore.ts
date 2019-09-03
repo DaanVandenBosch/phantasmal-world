@@ -35,7 +35,9 @@ class HuntOptimizerStore {
     readonly wanted_items: ListProperty<WantedItemModel>;
     readonly result: Property<OptimalResultModel | undefined>;
 
-    private readonly _wanted_items: WritableListProperty<WantedItemModel> = list_property();
+    private readonly _wanted_items: WritableListProperty<WantedItemModel> = list_property(
+        wanted_item => [wanted_item.amount],
+    );
     private readonly _result: WritableProperty<OptimalResultModel | undefined> = property(
         undefined,
     );
@@ -67,7 +69,7 @@ class HuntOptimizerStore {
         // Initialize this set before awaiting data, so user changes don't affect this optimization
         // run from this point on.
         const wanted_items = new Set(
-            this.wanted_items.val.filter(w => w.amount > 0).map(w => w.item_type),
+            this.wanted_items.val.filter(w => w.amount.val > 0).map(w => w.item_type),
         );
 
         const methods = await hunt_method_stores.current.val.methods.promise;
@@ -77,7 +79,7 @@ class HuntOptimizerStore {
         const constraints: { [item_name: string]: { min: number } } = {};
 
         for (const wanted of this.wanted_items.val) {
-            constraints[wanted.item_type.name] = { min: wanted.amount };
+            constraints[wanted.item_type.name] = { min: wanted.amount.val };
         }
 
         // Add a variable to the LP model per method per difficulty per section ID.

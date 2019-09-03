@@ -31,11 +31,12 @@ export class Button extends Control<HTMLButtonElement> {
 
         super(el.button({ class: "core_Button" }, inner_element), options);
 
+        this.center_element = el.span({ class: "core_Button_center" });
+
         if (options && options.icon_left != undefined) {
             inner_element.append(el.span({ class: "core_Button_left" }, icon(options.icon_left)));
         }
 
-        this.center_element = el.span({ class: "core_Button_center" });
         inner_element.append(this.center_element);
 
         if (options && options.icon_right != undefined) {
@@ -71,5 +72,6 @@ export class Button extends Control<HTMLButtonElement> {
 
     protected set_text(text: string): void {
         this.center_element.textContent = text;
+        this.center_element.hidden = text === "";
     }
 }

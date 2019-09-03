@@ -6,6 +6,7 @@ import { Property } from "./property/Property";
 import { DependentProperty } from "./property/DependentProperty";
 import { WritableListProperty } from "./property/list/WritableListProperty";
 import { SimpleWritableListProperty } from "./property/list/SimpleWritableListProperty";
+import { Observable } from "./Observable";
 
 export function emitter<E>(): Emitter<E> {
     return new SimpleEmitter();
@@ -15,8 +16,11 @@ export function property<T>(value: T): WritableProperty<T> {
     return new SimpleProperty(value);
 }
 
-export function list_property<T>(...values: T[]): WritableListProperty<T> {
-    return new SimpleWritableListProperty(...values);
+export function list_property<T>(
+    extract_observables?: (element: T) => Observable<any>[],
+    ...elements: T[]
+): WritableListProperty<T> {
+    return new SimpleWritableListProperty(extract_observables, ...elements);
 }
 
 export function add(left: Property<number>, right: number): Property<number> {

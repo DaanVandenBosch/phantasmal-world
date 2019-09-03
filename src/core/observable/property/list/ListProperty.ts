@@ -39,7 +39,7 @@ export type ListReplacement<T> = {
 
 export type ListUpdate<T> = {
     readonly type: ListChangeType.Update;
-    readonly update: T[];
+    readonly updated: T[];
     readonly index: number;
 };
 
@@ -48,5 +48,8 @@ export interface ListProperty<T> extends Property<T[]> {
 
     get(index: number): T;
 
-    observe_list(observer: (change: ListPropertyChangeEvent<T>) => void): Disposable;
+    observe_list(
+        observer: (change: ListPropertyChangeEvent<T>) => void,
+        options?: { call_now?: boolean },
+    ): Disposable;
 }

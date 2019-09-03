@@ -13,7 +13,7 @@ class HuntOptimizerPersister extends Persister {
             wanted_items.map(
                 ({ item_type, amount }): PersistedWantedItem => ({
                     itemTypeId: item_type.id,
-                    amount,
+                    amount: amount.val,
                 }),
             ),
         );

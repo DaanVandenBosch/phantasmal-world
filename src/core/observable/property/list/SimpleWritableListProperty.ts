@@ -12,47 +12,78 @@ const logger = Logger.get("core/observable/property/list/SimpleWritableListPrope
 
 export class SimpleWritableListProperty<T> extends AbstractProperty<T[]>
     implements WritableListProperty<T> {
-    readonly length: Property<number>;
+    readonly length: Property<number>; // TODO: update length
 
     get val(): T[] {
         return this.get_val();
     }
 
-    set val(values: T[]) {
-        this.set_val(values);
+    set val(elements: T[]) {
+        this.set_val(elements);
     }
 
     get_val(): T[] {
-        return this.values;
+        return this.elements;
     }
 
-    set_val(values: T[]): T[] {
-        const removed = this.values.splice(0, this.values.length, ...values);
+    set_val(elements: T[]): T[] {
+        const removed = this.elements.splice(0, this.elements.length, ...elements);
         this.emit_list({
             type: ListChangeType.Replacement,
             removed,
-            inserted: values,
+            inserted: elements,
             from: 0,
             removed_to: removed.length,
-            inserted_to: values.length,
+            inserted_to: elements.length,
         });
         return removed;
     }
 
     private readonly _length = property(0);
-    private readonly values: T[];
+    private readonly elements: T[];
+    private readonly extract_observables?: (element: T) => Observable<any>[];
+    /**
+     * Internal observers which observe observables related to this list's elements so that their
+     * changes can be propagated via update events.
+     */
+    private readonly element_observers: { index: number; disposables: Disposable[] }[] = [];
+    /**
+     * External observers which are observing this list.
+     */
     private readonly list_observers: ((change: ListPropertyChangeEvent<T>) => void)[] = [];
 
-    constructor(...values: T[]) {
+    /**
+     * @param extract_observables - Extractor function called on each element in this list. Changes
+     * to the returned observables will be propagated via update events.
+     * @param elements - Initial elements of this list.
+     */
+    constructor(extract_observables?: (element: T) => Observable<any>[], ...elements: T[]) {
         super();
 
         this.length = this._length;
-        this.values = values;
+        this.elements = elements;
+        this.extract_observables = extract_observables;
     }
 
-    observe_list(observer: (change: ListPropertyChangeEvent<T>) => void): Disposable {
+    observe_list(
+        observer: (change: ListPropertyChangeEvent<T>) => void,
+        options?: { call_now?: true },
+    ): Disposable {
+        if (this.element_observers.length === 0 && this.extract_observables) {
+            this.replace_element_observers(this.elements, 0, Infinity);
+        }
+
         if (!this.list_observers.includes(observer)) {
             this.list_observers.push(observer);
+        }
+
+        if (options && options.call_now) {
+            this.call_list_observer(observer, {
+                type: ListChangeType.Insertion,
+                inserted: this.elements,
+                from: 0,
+                to: this.elements.length,
+            });
         }
 
         return {
@@ -61,6 +92,16 @@ export class SimpleWritableListProperty<T> extends AbstractProperty<T[]>
 
                 if (index !== -1) {
                     this.list_observers.splice(index, 1);
+                }
+
+                if (this.list_observers.length === 0) {
+                    for (const { disposables } of this.element_observers) {
+                        for (const disposable of disposables) {
+                            disposable.dispose();
+                        }
+                    }
+
+                    this.element_observers.splice(0, Infinity);
                 }
             },
         };
@@ -74,21 +115,21 @@ export class SimpleWritableListProperty<T> extends AbstractProperty<T[]>
         /* TODO */ throw new Error("not implemented");
     }
 
-    update(f: (value: T[]) => T[]): void {
-        this.splice(0, this.values.length, ...f(this.values));
+    update(f: (element: T[]) => T[]): void {
+        this.splice(0, this.elements.length, ...f(this.elements));
     }
 
     get(index: number): T {
-        return this.values[index];
+        return this.elements[index];
     }
 
-    set(index: number, value: T): void {
-        const removed = [this.values[index]];
-        this.values[index] = value;
+    set(index: number, element: T): void {
+        const removed = [this.elements[index]];
+        this.elements[index] = element;
         this.emit_list({
             type: ListChangeType.Replacement,
             removed,
-            inserted: [value],
+            inserted: [element],
             from: index,
             removed_to: index + 1,
             inserted_to: index + 1,
@@ -96,7 +137,7 @@ export class SimpleWritableListProperty<T> extends AbstractProperty<T[]>
     }
 
     clear(): void {
-        const removed = this.values.splice(0, this.values.length);
+        const removed = this.elements.splice(0, this.elements.length);
         this.emit_list({
             type: ListChangeType.Replacement,
             removed,
@@ -111,9 +152,9 @@ export class SimpleWritableListProperty<T> extends AbstractProperty<T[]>
         let removed: T[];
 
         if (delete_count == undefined) {
-            removed = this.values.splice(index);
+            removed = this.elements.splice(index);
         } else {
-            removed = this.values.splice(index, delete_count, ...items);
+            removed = this.elements.splice(index, delete_count, ...items);
         }
 
         this.emit_list({
@@ -129,14 +170,76 @@ export class SimpleWritableListProperty<T> extends AbstractProperty<T[]>
     }
 
     protected emit_list(change: ListPropertyChangeEvent<T>): void {
-        for (const observer of this.list_observers) {
-            try {
-                observer(change);
-            } catch (e) {
-                logger.error("Observer threw error.", e);
+        if (this.list_observers.length && this.extract_observables) {
+            switch (change.type) {
+                case ListChangeType.Insertion:
+                    this.replace_element_observers(change.inserted, change.from, 0);
+                    break;
+
+                case ListChangeType.Removal:
+                    this.replace_element_observers([], change.from, change.removed.length);
+                    break;
+
+                case ListChangeType.Replacement:
+                    this.replace_element_observers(
+                        change.inserted,
+                        change.from,
+                        change.removed.length,
+                    );
+                    break;
             }
         }
 
-        this.emit(this.values);
+        for (const observer of this.list_observers) {
+            this.call_list_observer(observer, change);
+        }
+
+        this.emit(this.elements);
+    }
+
+    private call_list_observer(
+        observer: (change: ListPropertyChangeEvent<T>) => void,
+        change: ListPropertyChangeEvent<T>,
+    ): void {
+        try {
+            observer(change);
+        } catch (e) {
+            logger.error("Observer threw error.", e);
+        }
+    }
+
+    private replace_element_observers(new_elements: T[], from: number, amount: number): void {
+        let index = from;
+
+        const removed = this.element_observers.splice(
+            from,
+            amount,
+            ...new_elements.map(element => {
+                const obj = {
+                    index,
+                    disposables: this.extract_observables!(element).map(observable =>
+                        observable.observe(() => {
+                            this.emit_list({
+                                type: ListChangeType.Update,
+                                updated: [element],
+                                index: obj.index,
+                            });
+                        }),
+                    ),
+                };
+                index++;
+                return obj;
+            }),
+        );
+
+        for (const { disposables } of removed) {
+            for (const disposable of disposables) {
+                disposable.dispose();
+            }
+        }
+
+        while (index < this.element_observers.length) {
+            this.element_observers[index].index += index;
+        }
     }
 }
