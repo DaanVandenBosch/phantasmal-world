@@ -74,10 +74,6 @@ export class WantedItemsView extends Widget {
                     }
                 }
                 break;
-
-            case ListChangeType.Update:
-                // TODO: update row
-                break;
         }
     };
 

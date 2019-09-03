@@ -12,7 +12,7 @@ const logger = Logger.get("core/observable/property/list/SimpleWritableListPrope
 
 export class SimpleWritableListProperty<T> extends AbstractProperty<T[]>
     implements WritableListProperty<T> {
-    readonly length: Property<number>; // TODO: update length
+    readonly length: Property<number>;
 
     get val(): T[] {
         return this.get_val();
@@ -28,7 +28,7 @@ export class SimpleWritableListProperty<T> extends AbstractProperty<T[]>
 
     set_val(elements: T[]): T[] {
         const removed = this.elements.splice(0, this.elements.length, ...elements);
-        this.emit_list({
+        this.finalize_update({
             type: ListChangeType.Replacement,
             removed,
             inserted: elements,
@@ -126,7 +126,7 @@ export class SimpleWritableListProperty<T> extends AbstractProperty<T[]>
     set(index: number, element: T): void {
         const removed = [this.elements[index]];
         this.elements[index] = element;
-        this.emit_list({
+        this.finalize_update({
             type: ListChangeType.Replacement,
             removed,
             inserted: [element],
@@ -138,7 +138,7 @@ export class SimpleWritableListProperty<T> extends AbstractProperty<T[]>
 
     clear(): void {
         const removed = this.elements.splice(0, this.elements.length);
-        this.emit_list({
+        this.finalize_update({
             type: ListChangeType.Replacement,
             removed,
             inserted: [],
@@ -157,7 +157,7 @@ export class SimpleWritableListProperty<T> extends AbstractProperty<T[]>
             removed = this.elements.splice(index, delete_count, ...items);
         }
 
-        this.emit_list({
+        this.finalize_update({
             type: ListChangeType.Replacement,
             removed,
             inserted: items,
@@ -169,7 +169,14 @@ export class SimpleWritableListProperty<T> extends AbstractProperty<T[]>
         return removed;
     }
 
-    protected emit_list(change: ListPropertyChangeEvent<T>): void {
+    /**
+     * Does the following in the given order:
+     * - Updates element observers
+     * - Emits ListPropertyChangeEvent
+     * - Emits PropertyChangeEvent
+     * - Sets length
+     */
+    protected finalize_update(change: ListPropertyChangeEvent<T>): void {
         if (this.list_observers.length && this.extract_observables) {
             switch (change.type) {
                 case ListChangeType.Insertion:
@@ -195,6 +202,8 @@ export class SimpleWritableListProperty<T> extends AbstractProperty<T[]>
         }
 
         this.emit(this.elements);
+
+        this._length.val = this.elements.length;
     }
 
     private call_list_observer(
@@ -219,7 +228,7 @@ export class SimpleWritableListProperty<T> extends AbstractProperty<T[]>
                     index,
                     disposables: this.extract_observables!(element).map(observable =>
                         observable.observe(() => {
-                            this.emit_list({
+                            this.finalize_update({
                                 type: ListChangeType.Update,
                                 updated: [element],
                                 index: obj.index,
