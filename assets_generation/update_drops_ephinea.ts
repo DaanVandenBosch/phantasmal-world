@@ -3,7 +3,7 @@ import { writeFileSync } from "fs";
 import "isomorphic-fetch";
 import Logger from "js-logger";
 import { ASSETS_DIR } from ".";
-import { DifficultyModel, SectionIdModel, SectionIdModels } from "../src/core/model";
+import { Difficulty, SectionId, SectionIds } from "../src/core/model";
 import {
     name_and_episode_to_npc_type,
     NpcType,
@@ -16,10 +16,10 @@ const logger = Logger.get("assets_generation/update_drops_ephinea");
 export async function update_drops_from_website(item_types: ItemTypeDto[]): Promise<void> {
     logger.info("Updating item drops.");
 
-    const normal = await download(item_types, DifficultyModel.Normal);
-    const hard = await download(item_types, DifficultyModel.Hard);
-    const vhard = await download(item_types, DifficultyModel.VHard, "very-hard");
-    const ultimate = await download(item_types, DifficultyModel.Ultimate);
+    const normal = await download(item_types, Difficulty.Normal);
+    const hard = await download(item_types, Difficulty.Hard);
+    const vhard = await download(item_types, Difficulty.VHard, "very-hard");
+    const ultimate = await download(item_types, Difficulty.Ultimate);
 
     const enemy_json = JSON.stringify(
         [...normal.enemy_drops, ...hard.enemy_drops, ...vhard.enemy_drops, ...ultimate.enemy_drops],
@@ -42,8 +42,8 @@ export async function update_drops_from_website(item_types: ItemTypeDto[]): Prom
 
 async function download(
     item_types: ItemTypeDto[],
-    difficulty: DifficultyModel,
-    difficulty_url: string = DifficultyModel[difficulty].toLowerCase(),
+    difficulty: Difficulty,
+    difficulty_url: string = Difficulty[difficulty].toLowerCase(),
 ): Promise<{ enemy_drops: EnemyDropDto[]; box_drops: BoxDropDto[]; items: Set<string> }> {
     const response = await fetch(`https://ephinea.pioneer2.net/drop-charts/${difficulty_url}/`);
     const body = await response.text();
@@ -75,7 +75,7 @@ async function download(
 
             try {
                 let enemy_or_box =
-                    enemy_or_box_text.split("/")[difficulty === DifficultyModel.Ultimate ? 1 : 0] ||
+                    enemy_or_box_text.split("/")[difficulty === Difficulty.Ultimate ? 1 : 0] ||
                     enemy_or_box_text;
 
                 if (enemy_or_box === "Halo Rappy") {
@@ -95,7 +95,7 @@ async function download(
                         return;
                     }
 
-                    const section_id = SectionIdModels[td_i - 1];
+                    const section_id = SectionIds[td_i - 1];
 
                     if (is_box) {
                         // TODO:
@@ -151,9 +151,9 @@ async function download(
                             ] = /Rare Rate: (\d+)\/(\d+(\.\d+)?)/g.exec(title)!.map(parseFloat);
 
                             data.enemy_drops.push({
-                                difficulty: DifficultyModel[difficulty],
+                                difficulty: Difficulty[difficulty],
                                 episode,
-                                sectionId: SectionIdModel[section_id],
+                                sectionId: SectionId[section_id],
                                 enemy: NpcType[npc_type],
                                 itemTypeId: item_type.id,
                                 dropRate: drop_rate_num / drop_rate_denom,
@@ -163,7 +163,7 @@ async function download(
                             data.items.add(item);
                         } catch (e) {
                             logger.error(
-                                `Error while processing item ${item} of ${enemy_or_box} in episode ${episode} ${DifficultyModel[difficulty]}.`,
+                                `Error while processing item ${item} of ${enemy_or_box} in episode ${episode} ${Difficulty[difficulty]}.`,
                                 e,
                             );
                         }

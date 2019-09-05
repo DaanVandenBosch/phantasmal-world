@@ -3,13 +3,13 @@ import { enum_values } from "../enums";
 export const RARE_ENEMY_PROB = 1 / 512;
 export const KONDRIEU_PROB = 1 / 10;
 
-export enum ServerModel {
+export enum Server {
     Ephinea = "Ephinea",
 }
 
-export const ServerModels: ServerModel[] = enum_values(ServerModel);
+export const Servers: Server[] = enum_values(Server);
 
-export enum SectionIdModel {
+export enum SectionId {
     Viridia,
     Greenill,
     Skyly,
@@ -22,13 +22,13 @@ export enum SectionIdModel {
     Whitill,
 }
 
-export const SectionIdModels: SectionIdModel[] = enum_values(SectionIdModel);
+export const SectionIds: SectionId[] = enum_values(SectionId);
 
-export enum DifficultyModel {
+export enum Difficulty {
     Normal,
     Hard,
     VHard,
     Ultimate,
 }
 
-export const DifficultyModels: DifficultyModel[] = enum_values(DifficultyModel);
+export const Difficulties: Difficulty[] = enum_values(Difficulty);

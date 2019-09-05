@@ -5,7 +5,7 @@ import { Emitter } from "./Emitter";
 import { Property } from "./property/Property";
 import { DependentProperty } from "./property/DependentProperty";
 import { WritableListProperty } from "./property/list/WritableListProperty";
-import { SimpleWritableListProperty } from "./property/list/SimpleWritableListProperty";
+import { SimpleListProperty } from "./property/list/SimpleListProperty";
 import { Observable } from "./Observable";
 
 export function emitter<E>(): Emitter<E> {
@@ -20,7 +20,7 @@ export function list_property<T>(
     extract_observables?: (element: T) => Observable<any>[],
     ...elements: T[]
 ): WritableListProperty<T> {
-    return new SimpleWritableListProperty(extract_observables, ...elements);
+    return new SimpleListProperty(extract_observables, ...elements);
 }
 
 export function add(left: Property<number>, right: number): Property<number> {
@@ -31,10 +31,27 @@ export function sub(left: Property<number>, right: number): Property<number> {
     return left.map(l => l - right);
 }
 
-export function map<R, S, T>(
-    f: (prop_1: S, prop_2: T) => R,
-    prop_1: Property<S>,
-    prop_2: Property<T>,
+export function map<R, P1, P2>(
+    f: (prop_1: P1, prop_2: P2) => R,
+    prop_1: Property<P1>,
+    prop_2: Property<P2>,
+): Property<R>;
+export function map<R, P1, P2, P3>(
+    f: (prop_1: P1, prop_2: P2, prop_3: P3) => R,
+    prop_1: Property<P1>,
+    prop_2: Property<P2>,
+    prop_3: Property<P3>,
+): Property<R>;
+export function map<R, P1, P2, P3, P4>(
+    f: (prop_1: P1, prop_2: P2, prop_3: P3, prop_4: P4) => R,
+    prop_1: Property<P1>,
+    prop_2: Property<P2>,
+    prop_3: Property<P3>,
+    prop_4: Property<P4>,
+): Property<R>;
+export function map<R>(
+    f: (...props: Property<any>[]) => R,
+    ...props: Property<any>[]
 ): Property<R> {
-    return new DependentProperty([prop_1, prop_2], () => f(prop_1.val, prop_2.val));
+    return new DependentProperty(props, () => f(...props.map(p => p.val)));
 }

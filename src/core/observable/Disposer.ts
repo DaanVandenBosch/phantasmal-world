@@ -7,9 +7,6 @@ const logger = Logger.get("core/observable/Disposer");
  * Container for disposables.
  */
 export class Disposer implements Disposable {
-    private readonly disposables: Disposable[] = [];
-    private disposed = false;
-
     /**
      * The amount of disposables contained in this disposer.
      */
@@ -17,12 +14,21 @@ export class Disposer implements Disposable {
         return this.disposables.length;
     }
 
+    get disposed(): boolean {
+        return this._disposed;
+    }
+
+    private _disposed = false;
+    private readonly disposables: Disposable[] = [];
+
     /**
      * Add a single disposable and return the given disposable.
      */
     add<T extends Disposable>(disposable: T): T {
-        this.check_not_disposed();
-        this.disposables.push(disposable);
+        if (!this._disposed) {
+            this.disposables.push(disposable);
+        }
+
         return disposable;
     }
 
@@ -30,8 +36,10 @@ export class Disposer implements Disposable {
      * Add 0 or more disposables.
      */
     add_all(...disposable: Disposable[]): this {
-        this.check_not_disposed();
-        this.disposables.push(...disposable);
+        if (!this._disposed) {
+            this.disposables.push(...disposable);
+        }
+
         return this;
     }
 
@@ -53,12 +61,6 @@ export class Disposer implements Disposable {
      */
     dispose(): void {
         this.dispose_all();
-        this.disposed = true;
-    }
-
-    private check_not_disposed(): void {
-        if (this.disposed) {
-            throw new Error("This disposer has been disposed.");
-        }
+        this._disposed = true;
     }
 }

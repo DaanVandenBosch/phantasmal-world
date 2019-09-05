@@ -5,7 +5,7 @@ import { BufferCursor } from "../src/core/data_formats/cursor/BufferCursor";
 import { ItemPmt, parse_item_pmt } from "../src/core/data_formats/parsing/itempmt";
 import { parse_quest } from "../src/core/data_formats/parsing/quest";
 import { parse_unitxt, Unitxt } from "../src/core/data_formats/parsing/unitxt";
-import { DifficultyModels, DifficultyModel, SectionIdModel, SectionIdModels } from "../src/core/model";
+import { Difficulties, Difficulty, SectionId, SectionIds } from "../src/core/model";
 import { update_drops_from_website } from "./update_drops_ephinea";
 import { Episode, EPISODES } from "../src/core/data_formats/parsing/quest/Episode";
 import { npc_data, NPC_TYPES, NpcType } from "../src/core/data_formats/parsing/quest/npc_types";
@@ -267,9 +267,9 @@ function update_drops(item_pt: ItemPt): void {
 
     const enemy_drops = new Array<EnemyDropDto>();
 
-    for (const diff of DifficultyModels) {
+    for (const diff of Difficulties) {
         for (const ep of EPISODES) {
-            for (const sid of SectionIdModels) {
+            for (const sid of SectionIds) {
                 enemy_drops.push(...load_enemy_drops(item_pt, diff, ep, sid));
             }
         }
@@ -279,9 +279,9 @@ function update_drops(item_pt: ItemPt): void {
 
     const box_drops = new Array<BoxDropDto>();
 
-    for (const diff of DifficultyModels) {
+    for (const diff of Difficulties) {
         for (const ep of EPISODES) {
-            for (const sid of SectionIdModels) {
+            for (const sid of SectionIds) {
                 box_drops.push(...load_box_drops(diff, ep, sid));
             }
         }
@@ -311,10 +311,10 @@ function load_item_pt(): ItemPt {
     for (const episode of [Episode.I, Episode.II]) {
         table[episode] = [];
 
-        for (const diff of DifficultyModels) {
+        for (const diff of Difficulties) {
             table[episode][diff] = [];
 
-            for (const sid of SectionIdModels) {
+            for (const sid of SectionIds) {
                 const dar_table = new Map<NpcType, number>();
 
                 table[episode][diff][sid] = {
@@ -358,10 +358,10 @@ function load_item_pt(): ItemPt {
 
     table[Episode.IV] = [];
 
-    for (const diff of DifficultyModels) {
+    for (const diff of Difficulties) {
         table[Episode.IV][diff] = [];
 
-        for (const sid of SectionIdModels) {
+        for (const sid of SectionIds) {
             const dar_table = new Map<NpcType, number>();
 
             table[Episode.IV][diff][sid] = {
@@ -509,9 +509,9 @@ function load_item_pt(): ItemPt {
 
 function load_enemy_drops(
     item_pt: ItemPt,
-    difficulty: DifficultyModel,
+    difficulty: Difficulty,
     episode: Episode,
-    section_id: SectionIdModel,
+    section_id: SectionId,
 ): EnemyDropDto[] {
     const drops: EnemyDropDto[] = [];
     const drops_buf = readFileSync(
@@ -537,9 +537,9 @@ function load_enemy_drops(
                     logger.error(`No DAR found for ${NpcType[enemy]}.`);
                 } else if (rare_rate > 0 && item_type_id) {
                     drops.push({
-                        difficulty: DifficultyModel[difficulty],
+                        difficulty: Difficulty[difficulty],
                         episode,
-                        sectionId: SectionIdModel[section_id],
+                        sectionId: SectionId[section_id],
                         enemy: NpcType[enemy],
                         itemTypeId: item_type_id,
                         dropRate: dar,
@@ -557,9 +557,9 @@ function load_enemy_drops(
 }
 
 function load_box_drops(
-    difficulty: DifficultyModel,
+    difficulty: Difficulty,
     episode: Episode,
-    section_id: SectionIdModel,
+    section_id: SectionId,
 ): BoxDropDto[] {
     const drops: BoxDropDto[] = [];
     const drops_buf = readFileSync(
@@ -581,9 +581,9 @@ function load_box_drops(
 
             if (drop_rate > 0 && item_type_id) {
                 drops.push({
-                    difficulty: DifficultyModel[difficulty],
+                    difficulty: Difficulty[difficulty],
                     episode,
-                    sectionId: SectionIdModel[section_id],
+                    sectionId: SectionId[section_id],
                     areaId: area_id,
                     itemTypeId: item_type_id,
                     dropRate: drop_rate,

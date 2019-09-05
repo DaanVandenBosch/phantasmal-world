@@ -11,12 +11,14 @@ import {
 import "./MethodsForEpisodeView.css";
 import { Disposer } from "../../core/observable/Disposer";
 import { DurationInput } from "../../core/gui/DurationInput";
+import { Disposable } from "../../core/observable/Disposable";
 
 export class MethodsForEpisodeView extends ResizableWidget {
     private readonly episode: Episode;
     private readonly enemy_types: NpcType[];
     private readonly tbody_element: HTMLTableSectionElement;
     private readonly time_disposer = this.disposable(new Disposer());
+    private hunt_methods_observer?: Disposable;
 
     constructor(episode: Episode) {
         super(el.div({ class: "hunt_optimizer_MethodsForEpisodeView" }));
@@ -45,16 +47,34 @@ export class MethodsForEpisodeView extends ResizableWidget {
         table_element.append(thead_element, this.tbody_element);
         this.element.append(table_element);
 
-        hunt_method_stores.current.val.methods.load();
+        this.disposable(
+            hunt_method_stores.observe_current(
+                hunt_method_store => {
+                    if (this.hunt_methods_observer) {
+                        this.hunt_methods_observer.dispose();
+                    }
 
-        this.disposables(
-            hunt_method_stores.current
-                .flat_map(current => current.methods)
-                .observe(({ value }) => this.update_table(value)),
+                    this.hunt_methods_observer = hunt_method_store.methods.observe(
+                        this.update_table,
+                        {
+                            call_now: true,
+                        },
+                    );
+                },
+                { call_now: true },
+            ),
         );
     }
 
-    private update_table(methods: HuntMethodModel[]): void {
+    dispose(): void {
+        super.dispose();
+
+        if (this.hunt_methods_observer) {
+            this.hunt_methods_observer.dispose();
+        }
+    }
+
+    private update_table = ({ value: methods }: { value: HuntMethodModel[] }) => {
         this.time_disposer.dispose_all();
         const frag = document.createDocumentFragment();
 
@@ -83,5 +103,5 @@ export class MethodsForEpisodeView extends ResizableWidget {
 
         this.tbody_element.innerHTML = "";
         this.tbody_element.append(frag);
-    }
+    };
 }

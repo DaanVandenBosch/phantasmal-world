@@ -1,12 +1,12 @@
 import { Persister } from "../../core/persistence";
-import { ServerModel } from "../../core/model";
+import { Server } from "../../core/model";
 import { HuntMethodModel } from "../model/HuntMethodModel";
 import { Duration } from "luxon";
 
 const METHOD_USER_TIMES_KEY = "HuntMethodStore.methodUserTimes";
 
 class HuntMethodPersister extends Persister {
-    persist_method_user_times(hunt_methods: HuntMethodModel[], server: ServerModel): void {
+    persist_method_user_times(hunt_methods: HuntMethodModel[], server: Server): void {
         const user_times: PersistedUserTimes = {};
 
         for (const method of hunt_methods) {
@@ -20,7 +20,7 @@ class HuntMethodPersister extends Persister {
 
     async load_method_user_times(
         hunt_methods: HuntMethodModel[],
-        server: ServerModel,
+        server: Server,
     ): Promise<void> {
         const user_times = await this.load_for_server<PersistedUserTimes>(
             server,

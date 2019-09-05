@@ -1,65 +1,19 @@
-import { Property } from "./Property";
-import { WritableProperty } from "./WritableProperty";
-import { property } from "../index";
-import { AbstractProperty } from "./AbstractProperty";
+import { Property } from "../Property";
+import { WritableProperty } from "../WritableProperty";
+import { property } from "../../index";
+import { AbstractProperty } from "../AbstractProperty";
+import { LoadableState } from "./LoadableState";
+import { LoadableProperty } from "./LoadableProperty";
 
-export enum LoadableState {
-    /**
-     * No attempt has been made to load data.
-     */
-    Uninitialized,
-
-    /**
-     * The first data load is underway.
-     */
-    Initializing,
-
-    /**
-     * Data was loaded at least once. The most recent load was successful.
-     */
-    Nominal,
-
-    /**
-     * Data was loaded at least once. The most recent load failed.
-     */
-    Error,
-
-    /**
-     * Data was loaded at least once. Another data load is underway.
-     */
-    Reloading,
-}
-
-/**
- * Represents a value that can be loaded asynchronously.
- * [state]{@link Loadable#state} represents the current state of this Loadable's value.
- */
-export class LoadableProperty<T> extends AbstractProperty<T> implements Property<T> {
-    /**
-     * When value is accessed and this Loadable is uninitialized, a load will be triggered.
-     * Will return the initial value until a load has succeeded.
-     */
+export class SimpleLoadableProperty<T> extends AbstractProperty<T> implements LoadableProperty<T> {
     get val(): T {
         return this.get_val();
     }
 
     readonly state: Property<LoadableState>;
-
-    /**
-     * True if the initial data load has happened. It may or may not have succeeded.
-     * Check [error]{@link Loadable#error} to know whether an error occurred.
-     */
     readonly is_initialized: Property<boolean>;
-
-    /**
-     * True if a data load is underway. This may be the initializing load or a later reload.
-     */
     readonly is_loading: Property<boolean>;
 
-    /**
-     * This property returns valid data as soon as possible.
-     * If the Loadable is uninitialized a data load will be triggered, otherwise the current value will be returned.
-     */
     get promise(): Promise<T> {
         // Load value on first use.
         if (this._state.val === LoadableState.Uninitialized) {
@@ -69,9 +23,6 @@ export class LoadableProperty<T> extends AbstractProperty<T> implements Property
         }
     }
 
-    /**
-     * Contains the {@link Error} object if an error occurred during the most recent data load.
-     */
     readonly error: Property<Error | undefined>;
 
     private _val: T;
@@ -100,17 +51,9 @@ export class LoadableProperty<T> extends AbstractProperty<T> implements Property
     }
 
     get_val(): T {
-        // Load value on first use.
-        if (this._state.val === LoadableState.Uninitialized) {
-            this.load_value();
-        }
-
         return this._val;
     }
 
-    /**
-     * Load the data. Initializes the Loadable if it is uninitialized.
-     */
     load(): Promise<T> {
         return this.load_value();
     }

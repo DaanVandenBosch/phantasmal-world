@@ -1,4 +1,4 @@
-import { ServerModel } from "../../core/model";
+import { Server } from "../../core/model";
 import { item_type_stores } from "../../core/stores/ItemTypeStore";
 import { Persister } from "../../core/persistence";
 import { WantedItemModel } from "../model";
@@ -6,7 +6,7 @@ import { WantedItemModel } from "../model";
 const WANTED_ITEMS_KEY = "HuntOptimizerStore.wantedItems";
 
 class HuntOptimizerPersister extends Persister {
-    persist_wanted_items(server: ServerModel, wanted_items: WantedItemModel[]): void {
+    persist_wanted_items(server: Server, wanted_items: WantedItemModel[]): void {
         this.persist_for_server(
             server,
             WANTED_ITEMS_KEY,
@@ -19,8 +19,8 @@ class HuntOptimizerPersister extends Persister {
         );
     }
 
-    async load_wanted_items(server: ServerModel): Promise<WantedItemModel[]> {
-        const item_store = await item_type_stores.get(server).promise;
+    async load_wanted_items(server: Server): Promise<WantedItemModel[]> {
+        const item_store = await item_type_stores.get(server);
 
         const persisted_wanted_items = await this.load_for_server<PersistedWantedItem[]>(
             server,

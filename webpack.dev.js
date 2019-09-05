@@ -11,7 +11,7 @@ module.exports = merge(common, {
     module: {
         rules: [
             {
-                test: /\.tsx?$/,
+                test: /\.ts$/,
                 use: [
                     {
                         loader: "ts-loader",
@@ -57,10 +57,6 @@ module.exports = merge(common, {
             {
                 test: /\.(png|svg|jpg|gif)$/,
                 use: ["file-loader"],
-            },
-            {
-                test: /\.worker\.js$/,
-                use: { loader: "worker-loader" },
             },
         ],
     },

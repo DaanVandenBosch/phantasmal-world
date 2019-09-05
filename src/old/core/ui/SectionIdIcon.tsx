@@ -1,12 +1,12 @@
 import React from "react";
-import { SectionIdModel } from "../../../core/model";
+import { SectionId } from "../../../core/model";
 
 export function SectionIdIcon({
     section_id,
     size = 28,
     title,
 }: {
-    section_id: SectionIdModel;
+    section_id: SectionId;
     size?: number;
     title?: string;
 }): JSX.Element {
@@ -17,7 +17,7 @@ export function SectionIdIcon({
                 display: "inline-block",
                 width: size,
                 height: size,
-                backgroundImage: `url(${process.env.PUBLIC_URL}/images/sectionids/${SectionIdModel[section_id]}.png)`,
+                backgroundImage: `url(${process.env.PUBLIC_URL}/images/sectionids/${SectionId[section_id]}.png)`,
                 backgroundSize: size,
             }}
         />

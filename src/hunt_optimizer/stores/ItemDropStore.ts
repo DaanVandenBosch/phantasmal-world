@@ -1,19 +1,20 @@
-import {
-    DifficultyModel,
-    DifficultyModels,
-    SectionIdModel,
-    SectionIdModels,
-    ServerModel,
-} from "../../core/model";
+import { Difficulties, Difficulty, SectionId, SectionIds, Server } from "../../core/model";
 import { item_type_stores } from "../../core/stores/ItemTypeStore";
 import { ServerMap } from "../../core/stores/ServerMap";
 import Logger from "js-logger";
 import { NpcType } from "../../core/data_formats/parsing/quest/npc_types";
 import { EnemyDrop } from "../model/ItemDrop";
-import { LoadableProperty } from "../../core/observable/property/LoadableProperty";
 import { EnemyDropDto } from "../dto/drops";
 
 const logger = Logger.get("stores/ItemDropStore");
+
+export class ItemDropStore {
+    readonly enemy_drops: EnemyDropTable;
+
+    constructor(enemy_drops: EnemyDropTable) {
+        this.enemy_drops = enemy_drops;
+    }
+}
 
 export class EnemyDropTable {
     // Mapping of difficulties to section IDs to NpcTypes to EnemyDrops.
@@ -23,27 +24,27 @@ export class EnemyDropTable {
     private item_type_to_drops: EnemyDrop[][] = [];
 
     constructor() {
-        for (let i = 0; i < DifficultyModels.length; i++) {
+        for (let i = 0; i < Difficulties.length; i++) {
             const diff_array: EnemyDrop[][] = [];
             this.table.push(diff_array);
 
-            for (let j = 0; j < SectionIdModels.length; j++) {
+            for (let j = 0; j < SectionIds.length; j++) {
                 diff_array.push([]);
             }
         }
     }
 
     get_drop(
-        difficulty: DifficultyModel,
-        section_id: SectionIdModel,
+        difficulty: Difficulty,
+        section_id: SectionId,
         npc_type: NpcType,
     ): EnemyDrop | undefined {
         return this.table[difficulty][section_id][npc_type];
     }
 
     set_drop(
-        difficulty: DifficultyModel,
-        section_id: SectionIdModel,
+        difficulty: Difficulty,
+        section_id: SectionId,
         npc_type: NpcType,
         drop: EnemyDrop,
     ): void {
@@ -64,70 +65,55 @@ export class EnemyDropTable {
     }
 }
 
-export class ItemDropStore {
-    readonly enemy_drops: EnemyDropTable = new EnemyDropTable();
+async function load(server: Server): Promise<ItemDropStore> {
+    const item_type_store = await item_type_stores.get(server);
+    const response = await fetch(
+        `${process.env.PUBLIC_URL}/enemyDrops.${Server[server].toLowerCase()}.json`,
+    );
+    const data: EnemyDropDto[] = await response.json();
+    const enemy_drops = new EnemyDropTable();
 
-    private readonly server: ServerModel;
+    for (const drop_dto of data) {
+        const npc_type = (NpcType as any)[drop_dto.enemy];
 
-    constructor(server: ServerModel) {
-        this.server = server;
-    }
+        if (!npc_type) {
+            logger.warn(
+                `Couldn't determine NpcType of episode ${drop_dto.episode} ${drop_dto.enemy}.`,
+            );
+            continue;
+        }
 
-    load = async (): Promise<void> => {
-        const item_type_store = await item_type_stores.get(this.server).promise;
-        const response = await fetch(
-            `${process.env.PUBLIC_URL}/enemyDrops.${ServerModel[this.server].toLowerCase()}.json`,
-        );
-        const data: EnemyDropDto[] = await response.json();
+        const difficulty = (Difficulty as any)[drop_dto.difficulty];
+        const item_type = item_type_store.get_by_id(drop_dto.itemTypeId);
 
-        for (const drop_dto of data) {
-            const npc_type = (NpcType as any)[drop_dto.enemy];
+        if (!item_type) {
+            logger.warn(`Couldn't find item kind ${drop_dto.itemTypeId}.`);
+            continue;
+        }
 
-            if (!npc_type) {
-                logger.warn(
-                    `Couldn't determine NpcType of episode ${drop_dto.episode} ${drop_dto.enemy}.`,
-                );
-                continue;
-            }
+        const section_id = (SectionId as any)[drop_dto.sectionId];
 
-            const difficulty = (DifficultyModel as any)[drop_dto.difficulty];
-            const item_type = item_type_store.get_by_id(drop_dto.itemTypeId);
+        if (section_id == null) {
+            logger.warn(`Couldn't find section ID ${drop_dto.sectionId}.`);
+            continue;
+        }
 
-            if (!item_type) {
-                logger.warn(`Couldn't find item kind ${drop_dto.itemTypeId}.`);
-                continue;
-            }
-
-            const section_id = (SectionIdModel as any)[drop_dto.sectionId];
-
-            if (section_id == null) {
-                logger.warn(`Couldn't find section ID ${drop_dto.sectionId}.`);
-                continue;
-            }
-
-            this.enemy_drops.set_drop(
+        enemy_drops.set_drop(
+            difficulty,
+            section_id,
+            npc_type,
+            new EnemyDrop(
                 difficulty,
                 section_id,
                 npc_type,
-                new EnemyDrop(
-                    difficulty,
-                    section_id,
-                    npc_type,
-                    item_type,
-                    drop_dto.dropRate,
-                    drop_dto.rareRate,
-                ),
-            );
-        }
-    };
+                item_type,
+                drop_dto.dropRate,
+                drop_dto.rareRate,
+            ),
+        );
+    }
+
+    return new ItemDropStore(enemy_drops);
 }
 
-export const item_drop_stores: ServerMap<LoadableProperty<ItemDropStore>> = new ServerMap(
-    server => {
-        const store = new ItemDropStore(server);
-        return new LoadableProperty(store, async () => {
-            await store.load();
-            return store;
-        });
-    },
-);
+export const item_drop_stores: ServerMap<ItemDropStore> = new ServerMap(load);

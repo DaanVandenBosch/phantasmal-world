@@ -50,7 +50,10 @@ export class QuestEditorToolBar extends ToolBar {
         const area_select = new Select<AreaModel>(
             quest_editor_store.current_quest.flat_map(quest => {
                 if (quest) {
-                    return list_property(...area_store.get_areas_for_episode(quest.episode));
+                    return list_property(
+                        undefined,
+                        ...area_store.get_areas_for_episode(quest.episode),
+                    );
                 } else {
                     return list_property<AreaModel>();
                 }

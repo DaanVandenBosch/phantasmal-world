@@ -8,9 +8,9 @@ import { Property } from "../Property";
 import { ListChangeType, ListPropertyChangeEvent } from "./ListProperty";
 import Logger from "js-logger";
 
-const logger = Logger.get("core/observable/property/list/SimpleWritableListProperty");
+const logger = Logger.get("core/observable/property/list/SimpleListProperty");
 
-export class SimpleWritableListProperty<T> extends AbstractProperty<T[]>
+export class SimpleListProperty<T> extends AbstractProperty<T[]>
     implements WritableListProperty<T> {
     readonly length: Property<number>;
 

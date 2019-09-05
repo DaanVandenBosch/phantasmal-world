@@ -1,5 +1,5 @@
 import { ItemType } from "../../core/model/items";
-import { DifficultyModel, SectionIdModel } from "../../core/model";
+import { Difficulty, SectionId } from "../../core/model";
 import { NpcType } from "../../core/data_formats/parsing/quest/npc_types";
 
 interface ItemDrop {
@@ -12,8 +12,8 @@ export class EnemyDrop implements ItemDrop {
     readonly rate: number;
 
     constructor(
-        readonly difficulty: DifficultyModel,
-        readonly section_id: SectionIdModel,
+        readonly difficulty: Difficulty,
+        readonly section_id: SectionId,
         readonly npc_type: NpcType,
         readonly item_type: ItemType,
         readonly anything_rate: number,

@@ -148,8 +148,8 @@ export class QuestModel {
         this.episode = episode;
         this._map_designations = property(map_designations);
         this.map_designations = this._map_designations;
-        this.objects = list_property(...objects);
-        this.npcs = list_property(...npcs);
+        this.objects = list_property(undefined, ...objects);
+        this.npcs = list_property(undefined, ...npcs);
         this.dat_unknowns = dat_unknowns;
         this.object_code = object_code;
         this.shop_items = shop_items;

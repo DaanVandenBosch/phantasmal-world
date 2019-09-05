@@ -1,5 +1,5 @@
 import { ItemType } from "../../core/model/items";
-import { DifficultyModel, SectionIdModel } from "../../core/model";
+import { Difficulty, SectionId } from "../../core/model";
 import { Episode } from "../../core/data_formats/parsing/quest/Episode";
 import { Duration } from "luxon";
 import { Property } from "../../core/observable/property/Property";
@@ -33,8 +33,8 @@ export class OptimalResultModel {
 
 export class OptimalMethodModel {
     constructor(
-        readonly difficulty: DifficultyModel,
-        readonly section_ids: SectionIdModel[],
+        readonly difficulty: Difficulty,
+        readonly section_ids: SectionId[],
         readonly method_name: string,
         readonly method_episode: Episode,
         readonly method_time: Duration,

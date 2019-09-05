@@ -1,20 +1,38 @@
-import { ServerModel } from "../model";
-import { EnumMap } from "../enums";
+import { Server } from "../model";
 import { Property } from "../observable/property/Property";
 import { gui_store } from "./GuiStore";
+import { memoize } from "lodash";
+import { sequential } from "../util";
+import { Disposable } from "../observable/Disposable";
 
 /**
- * Map with a guaranteed value per server.
+ * Map with a lazily-loaded, guaranteed value per server.
  */
-export class ServerMap<V> extends EnumMap<ServerModel, V> {
+export class ServerMap<T> {
     /**
-     * @returns the value for the current server as set in {@link gui_store}.
+     * The value for the current server as set in {@link gui_store}.
      */
-    readonly current: Property<V>;
+    get current(): Property<Promise<T>> {
+        if (!this._current) {
+            this._current = gui_store.server.map(server => this.get(server));
+        }
 
-    constructor(initial_value: (server: ServerModel) => V) {
-        super(ServerModel, initial_value);
+        return this._current;
+    }
 
-        this.current = gui_store.server.map(server => this.get(server));
+    private readonly get_value: (server: Server) => Promise<T>;
+    private _current?: Property<Promise<T>>;
+
+    constructor(get_value: (server: Server) => Promise<T>) {
+        this.get_value = memoize(get_value);
+    }
+
+    get(server: Server): Promise<T> {
+        return this.get_value(server);
+    }
+
+    observe_current(f: (current: T) => void, options?: { call_now?: boolean }): Disposable {
+        const seq_f = sequential(async ({ value }: { value: Promise<T> }) => f(await value));
+        return this.current.observe(seq_f, options);
     }
 }
