@@ -65,6 +65,7 @@ export class MethodsForEpisodeView extends ResizableWidget {
                         return {
                             title: npc_data(enemy_type).simple_name,
                             width: 80,
+                            text_align: "right",
                             create_cell(method: HuntMethodModel): HTMLTableDataCellElement {
                                 const count = method.enemy_counts.get(enemy_type);
                                 return el.td({ text: count == undefined ? "" : count.toString() });

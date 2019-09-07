@@ -1,4 +1,5 @@
 .core_Table {
+    position: relative;
     display: block;
     box-sizing: border-box;
     overflow: auto;
@@ -11,10 +12,16 @@
     align-items: stretch;
 }
 
+.core_Table thead  {
+    position: sticky;
+    display: inline-block;
+    top: 0;
+    z-index: 2;
+}
+
 .core_Table thead tr {
     position: sticky;
     top: 0;
-    z-index: 2;
 }
 
 .core_Table th,

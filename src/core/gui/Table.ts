@@ -12,6 +12,7 @@ export type Column<T> = {
     title: string;
     sticky?: boolean;
     width?: number;
+    text_align?: string;
     create_cell(value: T, disposer: Disposer): HTMLTableCellElement;
 };
 
@@ -43,13 +44,13 @@ export class Table<T> extends Widget<HTMLTableElement> {
                     text: column.title,
                 });
 
-                if (column.width != undefined) th.style.width = `${column.width}px`;
-
                 if (column.sticky) {
                     th.style.position = "sticky";
                     th.style.left = `${left}px`;
                     left += column.width || 0;
                 }
+
+                if (column.width != undefined) th.style.width = `${column.width}px`;
 
                 return th;
             }),
@@ -97,13 +98,15 @@ export class Table<T> extends Widget<HTMLTableElement> {
             ...this.columns.map(column => {
                 const cell = column.create_cell(value, disposer);
 
-                if (column.width != undefined) cell.style.width = `${column.width}px`;
-
                 if (column.sticky) {
                     cell.style.position = "sticky";
                     cell.style.left = `${left}px`;
                     left += column.width || 0;
                 }
+
+                if (column.width != undefined) cell.style.width = `${column.width}px`;
+
+                if (column.text_align) cell.style.textAlign = column.text_align;
 
                 return cell;
             }),
