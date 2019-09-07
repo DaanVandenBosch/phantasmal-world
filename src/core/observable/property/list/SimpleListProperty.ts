@@ -23,45 +23,43 @@ export class SimpleListProperty<T> extends AbstractProperty<T[]>
     }
 
     get_val(): T[] {
-        return this.elements;
+        return this.values;
     }
 
     set_val(elements: T[]): T[] {
-        const removed = this.elements.splice(0, this.elements.length, ...elements);
+        const removed = this.values.splice(0, this.values.length, ...elements);
         this.finalize_update({
-            type: ListChangeType.Replacement,
+            type: ListChangeType.ListChange,
+            index: 0,
             removed,
             inserted: elements,
-            from: 0,
-            removed_to: removed.length,
-            inserted_to: elements.length,
         });
         return removed;
     }
 
     private readonly _length = property(0);
-    private readonly elements: T[];
+    private readonly values: T[];
     private readonly extract_observables?: (element: T) => Observable<any>[];
     /**
-     * Internal observers which observe observables related to this list's elements so that their
+     * Internal observers which observe observables related to this list's values so that their
      * changes can be propagated via update events.
      */
-    private readonly element_observers: { index: number; disposables: Disposable[] }[] = [];
+    private readonly value_observers: { index: number; disposables: Disposable[] }[] = [];
     /**
      * External observers which are observing this list.
      */
     private readonly list_observers: ((change: ListPropertyChangeEvent<T>) => void)[] = [];
 
     /**
-     * @param extract_observables - Extractor function called on each element in this list. Changes
+     * @param extract_observables - Extractor function called on each value in this list. Changes
      * to the returned observables will be propagated via update events.
-     * @param elements - Initial elements of this list.
+     * @param values - Initial values of this list.
      */
-    constructor(extract_observables?: (element: T) => Observable<any>[], ...elements: T[]) {
+    constructor(extract_observables?: (element: T) => Observable<any>[], ...values: T[]) {
         super();
 
         this.length = this._length;
-        this.elements = elements;
+        this.values = values;
         this.extract_observables = extract_observables;
     }
 
@@ -69,8 +67,8 @@ export class SimpleListProperty<T> extends AbstractProperty<T[]>
         observer: (change: ListPropertyChangeEvent<T>) => void,
         options?: { call_now?: true },
     ): Disposable {
-        if (this.element_observers.length === 0 && this.extract_observables) {
-            this.replace_element_observers(this.elements, 0, Infinity);
+        if (this.value_observers.length === 0 && this.extract_observables) {
+            this.replace_element_observers(0, Infinity, this.values);
         }
 
         if (!this.list_observers.includes(observer)) {
@@ -79,10 +77,10 @@ export class SimpleListProperty<T> extends AbstractProperty<T[]>
 
         if (options && options.call_now) {
             this.call_list_observer(observer, {
-                type: ListChangeType.Insertion,
-                inserted: this.elements,
-                from: 0,
-                to: this.elements.length,
+                type: ListChangeType.ListChange,
+                index: 0,
+                removed: [],
+                inserted: this.values,
             });
         }
 
@@ -95,13 +93,13 @@ export class SimpleListProperty<T> extends AbstractProperty<T[]>
                 }
 
                 if (this.list_observers.length === 0) {
-                    for (const { disposables } of this.element_observers) {
+                    for (const { disposables } of this.value_observers) {
                         for (const disposable of disposables) {
                             disposable.dispose();
                         }
                     }
 
-                    this.element_observers.splice(0, Infinity);
+                    this.value_observers.splice(0, Infinity);
                 }
             },
         };
@@ -116,35 +114,31 @@ export class SimpleListProperty<T> extends AbstractProperty<T[]>
     }
 
     update(f: (element: T[]) => T[]): void {
-        this.splice(0, this.elements.length, ...f(this.elements));
+        this.splice(0, this.values.length, ...f(this.values));
     }
 
     get(index: number): T {
-        return this.elements[index];
+        return this.values[index];
     }
 
     set(index: number, element: T): void {
-        const removed = [this.elements[index]];
-        this.elements[index] = element;
+        const removed = [this.values[index]];
+        this.values[index] = element;
         this.finalize_update({
-            type: ListChangeType.Replacement,
+            type: ListChangeType.ListChange,
+            index,
             removed,
             inserted: [element],
-            from: index,
-            removed_to: index + 1,
-            inserted_to: index + 1,
         });
     }
 
     clear(): void {
-        const removed = this.elements.splice(0, this.elements.length);
+        const removed = this.values.splice(0, this.values.length);
         this.finalize_update({
-            type: ListChangeType.Replacement,
+            type: ListChangeType.ListChange,
+            index: 0,
             removed,
             inserted: [],
-            from: 0,
-            removed_to: removed.length,
-            inserted_to: 0,
         });
     }
 
@@ -152,18 +146,16 @@ export class SimpleListProperty<T> extends AbstractProperty<T[]>
         let removed: T[];
 
         if (delete_count == undefined) {
-            removed = this.elements.splice(index);
+            removed = this.values.splice(index);
         } else {
-            removed = this.elements.splice(index, delete_count, ...items);
+            removed = this.values.splice(index, delete_count, ...items);
         }
 
         this.finalize_update({
-            type: ListChangeType.Replacement,
+            type: ListChangeType.ListChange,
+            index,
             removed,
             inserted: items,
-            from: index,
-            removed_to: index + removed.length,
-            inserted_to: index + items.length,
         });
 
         return removed;
@@ -171,39 +163,27 @@ export class SimpleListProperty<T> extends AbstractProperty<T[]>
 
     /**
      * Does the following in the given order:
-     * - Updates element observers
+     * - Updates value observers
      * - Emits ListPropertyChangeEvent
      * - Emits PropertyChangeEvent
      * - Sets length
      */
     protected finalize_update(change: ListPropertyChangeEvent<T>): void {
-        if (this.list_observers.length && this.extract_observables) {
-            switch (change.type) {
-                case ListChangeType.Insertion:
-                    this.replace_element_observers(change.inserted, change.from, 0);
-                    break;
-
-                case ListChangeType.Removal:
-                    this.replace_element_observers([], change.from, change.removed.length);
-                    break;
-
-                case ListChangeType.Replacement:
-                    this.replace_element_observers(
-                        change.inserted,
-                        change.from,
-                        change.removed.length,
-                    );
-                    break;
-            }
+        if (
+            this.list_observers.length &&
+            this.extract_observables &&
+            change.type === ListChangeType.ListChange
+        ) {
+            this.replace_element_observers(change.index, change.removed.length, change.inserted);
         }
 
         for (const observer of this.list_observers) {
             this.call_list_observer(observer, change);
         }
 
-        this.emit(this.elements);
+        this.emit(this.values);
 
-        this._length.val = this.elements.length;
+        this._length.val = this.values.length;
     }
 
     private call_list_observer(
@@ -217,10 +197,10 @@ export class SimpleListProperty<T> extends AbstractProperty<T[]>
         }
     }
 
-    private replace_element_observers(new_elements: T[], from: number, amount: number): void {
+    private replace_element_observers(from: number, amount: number, new_elements: T[]): void {
         let index = from;
 
-        const removed = this.element_observers.splice(
+        const removed = this.value_observers.splice(
             from,
             amount,
             ...new_elements.map(element => {
@@ -229,7 +209,7 @@ export class SimpleListProperty<T> extends AbstractProperty<T[]>
                     disposables: this.extract_observables!(element).map(observable =>
                         observable.observe(() => {
                             this.finalize_update({
-                                type: ListChangeType.Update,
+                                type: ListChangeType.ValueChange,
                                 updated: [element],
                                 index: obj.index,
                             });
@@ -247,8 +227,8 @@ export class SimpleListProperty<T> extends AbstractProperty<T[]>
             }
         }
 
-        while (index < this.element_observers.length) {
-            this.element_observers[index].index += index;
+        while (index < this.value_observers.length) {
+            this.value_observers[index].index += index;
         }
     }
 }

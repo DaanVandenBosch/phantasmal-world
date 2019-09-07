@@ -58,50 +58,23 @@ export class WantedItemsView extends Widget {
     }
 
     private update_table = (change: ListPropertyChangeEvent<WantedItemModel>): void => {
-        switch (change.type) {
-            case ListChangeType.Insertion:
-                {
-                    const rows = change.inserted.map(this.create_row);
+        if (change.type === ListChangeType.ListChange) {
+            for (let i = 0; i < change.removed.length; i++) {
+                this.tbody_element.children[change.index].remove();
+            }
 
-                    if (change.from >= this.tbody_element.childElementCount) {
-                        this.tbody_element.append(...rows);
-                    } else {
-                        for (let i = change.from; i < change.to; i++) {
-                            this.tbody_element.children[i].insertAdjacentElement(
-                                "afterend",
-                                rows[i - change.from],
-                            );
-                        }
-                    }
+            const rows = change.inserted.map(this.create_row);
+
+            if (change.index >= this.tbody_element.childElementCount) {
+                this.tbody_element.append(...rows);
+            } else {
+                for (let i = 0; i < change.inserted.length; i++) {
+                    this.tbody_element.children[change.index + i].insertAdjacentElement(
+                        "afterend",
+                        rows[i],
+                    );
                 }
-                break;
-
-            case ListChangeType.Removal:
-                for (let i = change.from; i < change.to; i++) {
-                    this.tbody_element.children[change.from].remove();
-                }
-                break;
-
-            case ListChangeType.Replacement:
-                {
-                    const rows = change.inserted.map(this.create_row);
-
-                    for (let i = change.from; i < change.removed_to; i++) {
-                        this.tbody_element.children[change.from].remove();
-                    }
-
-                    if (change.from >= this.tbody_element.childElementCount) {
-                        this.tbody_element.append(...rows);
-                    } else {
-                        for (let i = change.from; i < change.inserted_to; i++) {
-                            this.tbody_element.children[i].insertAdjacentElement(
-                                "afterend",
-                                rows[i - change.from],
-                            );
-                        }
-                    }
-                }
-                break;
+            }
         }
     };
 

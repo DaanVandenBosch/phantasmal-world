@@ -7,6 +7,7 @@ import { WidgetProperty } from "../observable/property/WidgetProperty";
 import { Property } from "../observable/property/Property";
 
 export type WidgetOptions = {
+    class?: string;
     enabled?: boolean | Property<boolean>;
     tooltip?: string | Property<string>;
 };
@@ -52,6 +53,10 @@ export abstract class Widget<E extends HTMLElement = HTMLElement> implements Dis
         this.tooltip = this._tooltip;
 
         if (options) {
+            if (options.class) {
+                this.element.classList.add(options.class);
+            }
+
             if (typeof options.enabled === "boolean") {
                 this.enabled.val = options.enabled;
             } else if (options.enabled) {

@@ -19,7 +19,11 @@ export class Disposer implements Disposable {
     }
 
     private _disposed = false;
-    private readonly disposables: Disposable[] = [];
+    private readonly disposables: Disposable[];
+
+    constructor(...disposables: Disposable[]) {
+        this.disposables = disposables;
+    }
 
     /**
      * Add a single disposable and return the given disposable.
@@ -27,6 +31,17 @@ export class Disposer implements Disposable {
     add<T extends Disposable>(disposable: T): T {
         if (!this._disposed) {
             this.disposables.push(disposable);
+        }
+
+        return disposable;
+    }
+
+    /**
+     * Insert a single disposable at the given index and return the given disposable.
+     */
+    insert<T extends Disposable>(index: number, disposable: T): T {
+        if (!this._disposed) {
+            this.disposables.splice(index, 0, disposable);
         }
 
         return disposable;
@@ -47,13 +62,7 @@ export class Disposer implements Disposable {
      * Disposes all held disposables.
      */
     dispose_all(): void {
-        for (const disposable of this.disposables.splice(0, this.disposables.length)) {
-            try {
-                disposable.dispose();
-            } catch (e) {
-                logger.warn("Error while disposing.", e);
-            }
-        }
+        this.dispose_at(0, this.disposables.length);
     }
 
     /**
@@ -62,5 +71,15 @@ export class Disposer implements Disposable {
     dispose(): void {
         this.dispose_all();
         this._disposed = true;
+    }
+
+    dispose_at(index: number, amount: number = 1): void {
+        for (const disposable of this.disposables.splice(index, amount)) {
+            try {
+                disposable.dispose();
+            } catch (e) {
+                logger.warn("Error while disposing.", e);
+            }
+        }
     }
 }

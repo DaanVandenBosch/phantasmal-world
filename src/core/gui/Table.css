@@ -1,0 +1,72 @@
+.core_Table {
+    display: block;
+    box-sizing: border-box;
+    overflow: auto;
+    background-color: var(--bg-color);
+    border-collapse: collapse;
+}
+
+.core_Table tr {
+    display: flex;
+    align-items: stretch;
+}
+
+.core_Table thead tr {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+
+.core_Table th,
+.core_Table td {
+    box-sizing: border-box;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 3px 6px;
+    border-right: solid 1px var(--border-color);
+    border-bottom: solid 1px var(--border-color);
+    background-color: var(--bg-color);
+}
+
+.core_Table tbody {
+    user-select: text;
+    cursor: text;
+}
+
+.core_Table tbody th,
+.core_Table tbody td {
+    white-space: nowrap;
+}
+
+.core_Table tbody th {
+    text-align: left;
+}
+
+.core_Table th.input {
+    padding: 0;
+    overflow: visible;
+}
+
+.core_Table th.input .core_DurationInput {
+    z-index: 0;
+    height: 100%;
+    width: 100%;
+    border: none;
+}
+
+.core_Table th.input .core_DurationInput:hover,
+.core_Table th.input .core_DurationInput:focus-within {
+    margin: -1px;
+    height: calc(100% + 2px);
+    width: calc(100% + 2px);
+}
+
+.core_Table th.input .core_DurationInput:hover {
+    z-index: 4;
+    border: var(--input-border-hover);
+}
+
+.core_Table th.input .core_DurationInput:focus-within {
+    z-index: 6;
+    border: var(--input-border-focus);
+}

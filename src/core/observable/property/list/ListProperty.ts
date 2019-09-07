@@ -2,45 +2,23 @@ import { Property } from "../Property";
 import { Disposable } from "../../Disposable";
 
 export enum ListChangeType {
-    Insertion,
-    Removal,
-    Replacement,
-    Update,
+    ListChange,
+    ValueChange,
 }
 
-export type ListPropertyChangeEvent<T> =
-    | ListInsertion<T>
-    | ListRemoval<T>
-    | ListReplacement<T>
-    | ListUpdate<T>;
+export type ListPropertyChangeEvent<T> = ListChange<T> | ListValueChange<T>;
 
-export type ListInsertion<T> = {
-    readonly type: ListChangeType.Insertion;
-    readonly inserted: T[];
-    readonly from: number;
-    readonly to: number;
-};
-
-export type ListRemoval<T> = {
-    readonly type: ListChangeType.Removal;
-    readonly removed: T[];
-    readonly from: number;
-    readonly to: number;
-};
-
-export type ListReplacement<T> = {
-    readonly type: ListChangeType.Replacement;
-    readonly removed: T[];
-    readonly inserted: T[];
-    readonly from: number;
-    readonly removed_to: number;
-    readonly inserted_to: number;
-};
-
-export type ListUpdate<T> = {
-    readonly type: ListChangeType.Update;
-    readonly updated: T[];
+export type ListChange<T> = {
+    readonly type: ListChangeType.ListChange;
     readonly index: number;
+    readonly removed: T[];
+    readonly inserted: T[];
+};
+
+export type ListValueChange<T> = {
+    readonly type: ListChangeType.ValueChange;
+    readonly index: number;
+    readonly updated: T[];
 };
 
 export interface ListProperty<T> extends Property<T[]> {

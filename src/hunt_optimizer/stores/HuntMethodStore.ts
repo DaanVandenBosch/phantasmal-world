@@ -24,7 +24,7 @@ export class HuntMethodStore implements Disposable {
     private readonly disposer = new Disposer();
 
     constructor(server: Server, methods: HuntMethodModel[]) {
-        this.methods = list_property(undefined, ...methods);
+        this.methods = list_property(method => [method.user_time], ...methods);
 
         this.disposer.add(
             this.methods.observe_list(() =>
