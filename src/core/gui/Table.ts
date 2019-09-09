@@ -11,7 +11,7 @@ import "./Table.css";
 export type Column<T> = {
     title: string;
     sticky?: boolean;
-    width?: number;
+    width: number;
     text_align?: string;
     create_cell(value: T, disposer: Disposer): HTMLTableCellElement;
 };
@@ -47,10 +47,10 @@ export class Table<T> extends Widget<HTMLTableElement> {
                 if (column.sticky) {
                     th.style.position = "sticky";
                     th.style.left = `${left}px`;
-                    left += column.width || 0;
+                    left += column.width;
                 }
 
-                if (column.width != undefined) th.style.width = `${column.width}px`;
+                th.style.width = `${column.width}px`;
 
                 return th;
             }),
@@ -84,7 +84,10 @@ export class Table<T> extends Widget<HTMLTableElement> {
             this.tbody_element.append(...rows);
         } else {
             for (let i = 0; i < amount; i++) {
-                this.tbody_element.children[index + i].insertAdjacentElement("afterend", rows[i]);
+                this.tbody_element.children[index + i].insertAdjacentElement(
+                    "beforebegin",
+                    rows[i],
+                );
             }
         }
     };

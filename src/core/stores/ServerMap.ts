@@ -2,7 +2,7 @@ import { Server } from "../model";
 import { Property } from "../observable/property/Property";
 import { gui_store } from "./GuiStore";
 import { memoize } from "lodash";
-import { sequential } from "../util";
+import { sequential } from "../sequential";
 import { Disposable } from "../observable/Disposable";
 
 /**

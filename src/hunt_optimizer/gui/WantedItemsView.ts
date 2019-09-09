@@ -9,7 +9,6 @@ import {
 } from "../../core/observable/property/list/ListProperty";
 import { WantedItemModel } from "../model";
 import { NumberInput } from "../../core/gui/NumberInput";
-import { ToolBar } from "../../core/gui/ToolBar";
 import { hunt_optimizer_stores } from "../stores/HuntOptimizerStore";
 import { Disposable } from "../../core/observable/Disposable";
 
@@ -23,7 +22,6 @@ export class WantedItemsView extends Widget {
 
         this.element.append(
             el.h2({ text: "Wanted Items" }),
-            this.disposable(new ToolBar({ children: [new Button("Optimize")] })).element,
             el.div(
                 { class: "hunt_optimizer_WantedItemsView_table_wrapper" },
                 el.table({}, this.tbody_element),
@@ -39,9 +37,6 @@ export class WantedItemsView extends Widget {
 
                     this.wanted_items_observer = hunt_optimizer_store.wanted_items.observe_list(
                         this.update_table,
-                        {
-                            call_now: true,
-                        },
                     );
                 },
                 { call_now: true },
@@ -70,7 +65,7 @@ export class WantedItemsView extends Widget {
             } else {
                 for (let i = 0; i < change.inserted.length; i++) {
                     this.tbody_element.children[change.index + i].insertAdjacentElement(
-                        "afterend",
+                        "beforebegin",
                         rows[i],
                     );
                 }

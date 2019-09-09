@@ -63,25 +63,13 @@ export class SimpleListProperty<T> extends AbstractProperty<T[]>
         this.extract_observables = extract_observables;
     }
 
-    observe_list(
-        observer: (change: ListPropertyChangeEvent<T>) => void,
-        options?: { call_now?: true },
-    ): Disposable {
+    observe_list(observer: (change: ListPropertyChangeEvent<T>) => void): Disposable {
         if (this.value_observers.length === 0 && this.extract_observables) {
             this.replace_element_observers(0, Infinity, this.values);
         }
 
         if (!this.list_observers.includes(observer)) {
             this.list_observers.push(observer);
-        }
-
-        if (options && options.call_now) {
-            this.call_list_observer(observer, {
-                type: ListChangeType.ListChange,
-                index: 0,
-                removed: [],
-                inserted: this.values,
-            });
         }
 
         return {
