@@ -12,7 +12,7 @@
     align-items: stretch;
 }
 
-.core_Table thead  {
+.core_Table thead {
     position: sticky;
     display: inline-block;
     top: 0;
@@ -24,14 +24,21 @@
     top: 0;
 }
 
+.core_Table thead th {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    overflow: hidden;
+}
+
 .core_Table th,
 .core_Table td {
     box-sizing: border-box;
     overflow: hidden;
     text-overflow: ellipsis;
     padding: 3px 6px;
-    border-right: solid 1px var(--border-color);
-    border-bottom: solid 1px var(--border-color);
+    border-right: var(--border);
+    border-bottom: var(--border);
     background-color: var(--bg-color);
 }
 
@@ -46,6 +53,7 @@
 }
 
 .core_Table tbody th {
+    position: sticky;
     text-align: left;
 }
 

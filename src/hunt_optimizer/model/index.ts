@@ -32,6 +32,8 @@ export class OptimalResultModel {
 }
 
 export class OptimalMethodModel {
+    readonly total_time: Duration;
+
     constructor(
         readonly difficulty: Difficulty,
         readonly section_ids: SectionId[],
@@ -40,5 +42,7 @@ export class OptimalMethodModel {
         readonly method_time: Duration,
         readonly runs: number,
         readonly item_counts: Map<ItemType, number>,
-    ) {}
+    ) {
+        this.total_time = Duration.fromMillis(runs * method_time.as("milliseconds"));
+    }
 }

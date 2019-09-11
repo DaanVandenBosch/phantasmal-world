@@ -6,8 +6,8 @@ import "./Model3DSelectListView.css";
 export class Model3DSelectListView<T extends { name: string }> extends ResizableWidget {
     set borders(borders: boolean) {
         if (borders) {
-            this.element.style.borderLeft = "solid 1px var(--border-color)";
-            this.element.style.borderRight = "solid 1px var(--border-color)";
+            this.element.style.borderLeft = "var(--border)";
+            this.element.style.borderRight = "var(--border)";
         } else {
             this.element.style.borderLeft = "none";
             this.element.style.borderRight = "none";

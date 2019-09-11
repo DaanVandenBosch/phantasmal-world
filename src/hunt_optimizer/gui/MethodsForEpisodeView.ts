@@ -38,18 +38,16 @@ export class MethodsForEpisodeView extends ResizableWidget {
                         title: "Method",
                         sticky: true,
                         width: 250,
-                        create_cell(method: HuntMethodModel): HTMLTableDataCellElement {
-                            return el.th({ text: method.name });
+                        render_cell(method: HuntMethodModel) {
+                            return method.name;
                         },
                     },
                     {
                         title: "Time",
                         sticky: true,
                         width: 60,
-                        create_cell(
-                            method: HuntMethodModel,
-                            disposer: Disposer,
-                        ): HTMLTableDataCellElement {
+                        input: true,
+                        render_cell(method: HuntMethodModel, disposer: Disposer) {
                             const time_input = disposer.add(new DurationInput(method.time.val));
 
                             disposer.add(
@@ -58,7 +56,7 @@ export class MethodsForEpisodeView extends ResizableWidget {
                                 ),
                             );
 
-                            return el.th({ class: "input" }, time_input.element);
+                            return time_input.element;
                         },
                     },
                     ...this.enemy_types.map(enemy_type => {
@@ -66,9 +64,9 @@ export class MethodsForEpisodeView extends ResizableWidget {
                             title: npc_data(enemy_type).simple_name,
                             width: 80,
                             text_align: "right",
-                            create_cell(method: HuntMethodModel): HTMLTableDataCellElement {
+                            render_cell(method: HuntMethodModel) {
                                 const count = method.enemy_counts.get(enemy_type);
-                                return el.td({ text: count == undefined ? "" : count.toString() });
+                                return count == undefined ? "" : count.toString();
                             },
                         };
                     }),

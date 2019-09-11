@@ -1,7 +1,7 @@
 #root .lm_header {
     box-sizing: border-box;
     padding: 3px 0 0 0;
-    border-bottom: solid 1px var(--border-color);
+    border-bottom: var(--border);
 }
 
 #root .lm_tabs {
@@ -14,7 +14,7 @@
     align-items: center;
     height: 23px;
     padding: 0 10px;
-    border: solid 1px var(--border-color);
+    border: var(--border);
     margin: 0 1px -1px 1px;
     background-color: hsl(0, 0%, 12%);
     color: hsl(0, 0%, 75%);
@@ -38,13 +38,13 @@
 }
 
 #root .lm_splitter.lm_vertical {
-    border-top: solid 1px var(--border-color);
-    border-bottom: solid 1px var(--border-color);
+    border-top: var(--border);
+    border-bottom: var(--border);
 }
 
 #root .lm_splitter.lm_horizontal {
-    border-left: solid 1px var(--border-color);
-    border-right: solid 1px var(--border-color);
+    border-left: var(--border);
+    border-right: var(--border);
 }
 
 body .lm_dropTargetIndicator {

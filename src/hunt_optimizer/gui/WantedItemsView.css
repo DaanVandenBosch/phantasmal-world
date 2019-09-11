@@ -3,6 +3,8 @@
     flex-direction: column;
     align-items: stretch;
     overflow: hidden;
+    padding-left: 6px;
+    min-width: 200px;
 }
 
 .hunt_optimizer_WantedItemsView .hunt_optimizer_WantedItemsView_table_wrapper {
@@ -11,7 +13,11 @@
     overflow: auto;
 }
 
-
 .hunt_optimizer_WantedItemsView .hunt_optimizer_WantedItemsView_table_wrapper table {
     width: 100%;
+    border-collapse: collapse;
+}
+
+.hunt_optimizer_WantedItemsView .hunt_optimizer_WantedItemsView_table_wrapper td {
+    padding: 0 6px 3px 0;
 }

@@ -1,6 +1,7 @@
 import { Disposable } from "../observable/Disposable";
 import { Observable } from "../observable/Observable";
 import { is_property } from "../observable/property/Property";
+import { SectionId } from "../model";
 
 export const el = {
     div: (
@@ -141,6 +142,20 @@ export function icon(icon: Icon): HTMLElement {
     }
 
     return el.span({ class: `fas ${icon_str}` });
+}
+
+export function section_id_icon(section_id: SectionId, options?: { size?: number }): HTMLElement {
+    const element = el.span();
+    const size = options && options.size;
+
+    element.style.display = "inline-block";
+    element.style.width = `${size}px`;
+    element.style.height = `${size}px`;
+    element.style.backgroundImage = `url(${process.env.PUBLIC_URL}/images/sectionids/${SectionId[section_id]}.png)`;
+    element.style.backgroundSize = `${size}px`;
+    element.title = SectionId[section_id];
+
+    return element;
 }
 
 export function disposable_listener(

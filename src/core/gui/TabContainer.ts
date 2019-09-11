@@ -1,4 +1,4 @@
-import { Widget } from "./Widget";
+import { Widget, WidgetOptions } from "./Widget";
 import { create_element, el } from "./dom";
 import { LazyWidget } from "./LazyWidget";
 import { Resizable } from "./Resizable";
@@ -11,6 +11,10 @@ export type Tab = {
     create_view: () => Promise<Widget & Resizable>;
 };
 
+export type TabContainerOptions = WidgetOptions & {
+    tabs: Tab[];
+};
+
 type TabInfo = Tab & { tab_element: HTMLSpanElement; lazy_view: LazyWidget };
 
 const BAR_HEIGHT = 28;
@@ -20,12 +24,12 @@ export class TabContainer extends ResizableWidget {
     private bar_element = el.div({ class: "core_TabContainer_Bar" });
     private panes_element = el.div({ class: "core_TabContainer_Panes" });
 
-    constructor(...tabs: Tab[]) {
-        super(el.div({ class: "core_TabContainer" }));
+    constructor(options: TabContainerOptions) {
+        super(el.div({ class: "core_TabContainer" }), options);
 
         this.bar_element.onmousedown = this.bar_mousedown;
 
-        for (const tab of tabs) {
+        for (const tab of options.tabs) {
             const tab_element = create_element("span", {
                 class: "core_TabContainer_Tab",
                 text: tab.title,

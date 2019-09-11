@@ -7,13 +7,18 @@ import {
 } from "../observable/property/list/ListProperty";
 import { Disposer } from "../observable/Disposer";
 import "./Table.css";
+import Logger = require("js-logger");
+
+const logger = Logger.get("core/gui/Table");
 
 export type Column<T> = {
     title: string;
     sticky?: boolean;
     width: number;
+    input?: boolean;
     text_align?: string;
-    create_cell(value: T, disposer: Disposer): HTMLTableCellElement;
+    tooltip?: (value: T) => string;
+    render_cell(value: T, disposer: Disposer): string | HTMLElement;
 };
 
 export type TableOptions<T> = WidgetOptions & {
@@ -40,9 +45,7 @@ export class Table<T> extends Widget<HTMLTableElement> {
 
         header_tr_element.append(
             ...this.columns.map(column => {
-                const th = el.th({
-                    text: column.title,
-                });
+                const th = el.th({}, el.span({ text: column.title }));
 
                 if (column.sticky) {
                     th.style.position = "sticky";
@@ -61,6 +64,8 @@ export class Table<T> extends Widget<HTMLTableElement> {
         this.element.append(thead_element, this.tbody_element);
 
         this.disposables(this.values.observe_list(this.update_table));
+
+        this.splice_rows(0, this.values.length.val, this.values.val);
     }
 
     private update_table = (change: ListPropertyChangeEvent<T>): void => {
@@ -98,18 +103,29 @@ export class Table<T> extends Widget<HTMLTableElement> {
 
         return el.tr(
             {},
-            ...this.columns.map(column => {
-                const cell = column.create_cell(value, disposer);
+            ...this.columns.map((column, i) => {
+                const cell = column.sticky ? el.th() : el.td();
 
-                if (column.sticky) {
-                    cell.style.position = "sticky";
-                    cell.style.left = `${left}px`;
-                    left += column.width || 0;
+                try {
+                    const content = column.render_cell(value, disposer);
+
+                    cell.append(content);
+
+                    if (column.input) cell.classList.add("input");
+
+                    if (column.sticky) {
+                        cell.style.left = `${left}px`;
+                        left += column.width || 0;
+                    }
+
+                    if (column.width != undefined) cell.style.width = `${column.width}px`;
+
+                    if (column.text_align) cell.style.textAlign = column.text_align;
+
+                    if (column.tooltip) cell.title = column.tooltip(value);
+                } catch (e) {
+                    logger.warn(`Error while rendering cell for index ${index}, column ${i}.`, e);
                 }
-
-                if (column.width != undefined) cell.style.width = `${column.width}px`;
-
-                if (column.text_align) cell.style.textAlign = column.text_align;
 
                 return cell;
             }),

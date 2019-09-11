@@ -1,0 +1,10 @@
+.hunt_optimizer_OptimizationResultView {
+    display: flex;
+    flex-direction: column;
+}
+
+.hunt_optimizer_OptimizationResultView_table {
+    flex: 1;
+    border-top: var(--border);
+    border-left: var(--border);
+}

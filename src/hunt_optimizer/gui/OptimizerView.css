@@ -3,3 +3,8 @@
     align-items: stretch;
     overflow: hidden;
 }
+
+.hunt_optimizer_OptimizerView div:nth-child(2) {
+    flex: 1;
+    overflow: hidden;
+}
