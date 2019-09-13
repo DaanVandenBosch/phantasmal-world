@@ -34,6 +34,24 @@ export const el = {
         ...children: HTMLElement[]
     ): HTMLHeadingElement => create_element("h2", attributes, ...children),
 
+    a: (
+        attributes?: {
+            class?: string;
+            href?: string;
+            title?: string;
+        },
+        ...children: HTMLElement[]
+    ): HTMLAnchorElement => {
+        const element = create_element<HTMLAnchorElement>("a", attributes, ...children);
+
+        if (attributes && attributes.href && attributes.href.trimLeft().startsWith("http")) {
+            element.target = "_blank";
+            element.rel = "noopener noreferrer";
+        }
+
+        return element;
+    },
+
     table: (attributes?: {}, ...children: HTMLElement[]): HTMLTableElement =>
         create_element("table", attributes, ...children),
 
@@ -69,16 +87,20 @@ export function create_element<T extends HTMLElement>(
         class?: string;
         tab_index?: number;
         text?: string;
+        title?: string;
+        href?: string;
         data?: { [key: string]: string };
         col_span?: number;
     },
     ...children: HTMLElement[]
 ): T {
-    const element = document.createElement(tag_name) as HTMLTableCellElement;
+    const element = document.createElement(tag_name) as (HTMLTableCellElement & HTMLAnchorElement);
 
     if (attributes) {
         if (attributes.class) element.className = attributes.class;
         if (attributes.text) element.textContent = attributes.text;
+        if (attributes.title) element.title = attributes.title;
+        if (attributes.href) element.href = attributes.href;
 
         if (attributes.data) {
             for (const [key, val] of Object.entries(attributes.data)) {
@@ -113,6 +135,7 @@ export enum Icon {
     Undo,
     Redo,
     Remove,
+    GitHub,
 }
 
 export function icon(icon: Icon): HTMLElement {
@@ -120,32 +143,35 @@ export function icon(icon: Icon): HTMLElement {
 
     switch (icon) {
         case Icon.File:
-            icon_str = "fa-file";
+            icon_str = "fas fa-file";
             break;
         case Icon.NewFile:
-            icon_str = "fa-file-medical";
+            icon_str = "fas fa-file-medical";
             break;
         case Icon.Save:
-            icon_str = "fa-save";
+            icon_str = "fas fa-save";
             break;
         case Icon.TriangleUp:
-            icon_str = "fa-caret-up";
+            icon_str = "fas fa-caret-up";
             break;
         case Icon.TriangleDown:
-            icon_str = "fa-caret-down";
+            icon_str = "fas fa-caret-down";
             break;
         case Icon.Undo:
-            icon_str = "fa-undo";
+            icon_str = "fas fa-undo";
             break;
         case Icon.Redo:
-            icon_str = "fa-redo";
+            icon_str = "fas fa-redo";
             break;
         case Icon.Remove:
-            icon_str = "fa-trash-alt";
+            icon_str = "fas fa-trash-alt";
+            break;
+        case Icon.GitHub:
+            icon_str = "fab fa-github";
             break;
     }
 
-    return el.span({ class: `fas ${icon_str}` });
+    return el.span({ class: icon_str });
 }
 
 export function section_id_icon(section_id: SectionId, options?: { size?: number }): HTMLElement {

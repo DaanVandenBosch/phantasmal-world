@@ -1,4 +1,4 @@
-import { el } from "../../core/gui/dom";
+import { el, icon, Icon } from "../../core/gui/dom";
 import "./NavigationView.css";
 import { gui_store, GuiTool } from "../../core/stores/GuiStore";
 import { Widget } from "../../core/gui/Widget";
@@ -26,6 +26,19 @@ export class NavigationView extends Widget {
         for (const button of this.buttons.values()) {
             this.element.append(button.element);
         }
+
+        this.element.append(el.div({ class: "application_NavigationView_spacer" }));
+
+        this.element.append(
+            el.a(
+                {
+                    class: "application_NavigationView_github",
+                    href: "https://github.com/DaanVandenBosch/phantasmal-world",
+                    title: "GitHub",
+                },
+                icon(Icon.GitHub),
+            ),
+        );
 
         this.mark_tool_button(gui_store.tool.val);
         this.disposable(gui_store.tool.observe(({ value }) => this.mark_tool_button(value)));
