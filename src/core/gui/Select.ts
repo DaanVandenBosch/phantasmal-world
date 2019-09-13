@@ -28,7 +28,7 @@ export class Select<T> extends LabelledControl {
         options?: SelectOptions<T>,
     ) {
         const element = el.div({ class: "core_Select" });
-        const button = new Button("", {
+        const button = new Button(" ", {
             icon_right: Icon.TriangleDown,
         });
         const menu = new Menu<T>(items, to_label, element);
@@ -72,7 +72,7 @@ export class Select<T> extends LabelledControl {
     }
 
     protected set_selected(selected?: T): void {
-        this.button.text.val = selected ? this.to_label(selected) : "";
+        this.button.text.val = selected ? this.to_label(selected) : " ";
         this.menu.selected.val = selected;
     }
 
