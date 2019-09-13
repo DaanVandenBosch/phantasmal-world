@@ -1,5 +1,6 @@
 import { Property } from "../Property";
 import { Disposable } from "../../Disposable";
+import { Observable } from "../../Observable";
 
 export enum ListChangeType {
     ListChange,
@@ -22,6 +23,8 @@ export type ListValueChange<T> = {
 };
 
 export interface ListProperty<T> extends Property<T[]> {
+    readonly is_list_property: true;
+
     readonly length: Property<number>;
 
     get(index: number): T;
@@ -30,4 +33,12 @@ export interface ListProperty<T> extends Property<T[]> {
         observer: (change: ListPropertyChangeEvent<T>) => void,
         options?: { call_now?: boolean },
     ): Disposable;
+}
+
+export function is_list_property<T>(observable: Observable<T[]>): observable is ListProperty<T> {
+    return (observable as any).is_list_property;
+}
+
+export function is_any_list_property(observable: any): observable is ListProperty<any> {
+    return observable && observable.is_list_property;
 }

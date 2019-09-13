@@ -108,6 +108,7 @@ export enum Icon {
     File,
     NewFile,
     Save,
+    TriangleUp,
     TriangleDown,
     Undo,
     Redo,
@@ -126,6 +127,9 @@ export function icon(icon: Icon): HTMLElement {
             break;
         case Icon.Save:
             icon_str = "fa-save";
+            break;
+        case Icon.TriangleUp:
+            icon_str = "fa-caret-up";
             break;
         case Icon.TriangleDown:
             icon_str = "fa-caret-down";

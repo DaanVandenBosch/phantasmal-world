@@ -63,6 +63,16 @@ class HuntOptimizerStore implements Disposable {
         this.disposer.dispose();
     }
 
+    add_wanted_item(item_type: ItemType): void {
+        if (!this._wanted_items.val.find(wanted => wanted.item_type === item_type)) {
+            this._wanted_items.push(new WantedItemModel(item_type, 1));
+        }
+    }
+
+    remove_wanted_item(wanted_item: WantedItemModel): void {
+        this._wanted_items.remove(wanted_item);
+    }
+
     private optimize = (
         wanted_items: WantedItemModel[],
         methods: HuntMethodModel[],

@@ -1,5 +1,5 @@
 import { disposable_listener, el, Icon } from "./dom";
-import "./DropDownButton.css";
+import "./DropDown.css";
 import { Property } from "../observable/property/Property";
 import { Button, ButtonOptions } from "./Button";
 import { Menu } from "./Menu";
@@ -8,9 +8,9 @@ import { Observable } from "../observable/Observable";
 import { Emitter } from "../observable/Emitter";
 import { emitter } from "../observable";
 
-export type DropDownButtonOptions = ButtonOptions;
+export type DropDownOptions = ButtonOptions;
 
-export class DropDownButton<T> extends Control {
+export class DropDown<T> extends Control {
     readonly chosen: Observable<T>;
 
     private readonly button: Button;
@@ -22,9 +22,9 @@ export class DropDownButton<T> extends Control {
         text: string,
         items: T[] | Property<T[]>,
         to_label: (element: T) => string,
-        options?: DropDownButtonOptions,
+        options?: DropDownOptions,
     ) {
-        const element = el.div({ class: "core_DropDownButton" });
+        const element = el.div({ class: "core_DropDown" });
         const button = new Button(text, {
             icon_left: options && options.icon_left,
             icon_right: Icon.TriangleDown,

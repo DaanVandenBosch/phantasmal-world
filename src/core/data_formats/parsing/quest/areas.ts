@@ -60,9 +60,10 @@ AREAS[Episode.I] = [
     create_area(9, "Ruins 2", order++, 5),
     create_area(10, "Ruins 3", order++, 5),
     create_area(14, "Dark Falz", order++, 1),
-    create_area(15, "BA Ruins", order++, 3),
-    create_area(16, "BA Spaceship", order++, 3),
-    create_area(17, "Lobby", order++, 15),
+    // TODO:
+    // create_area(15, "BA Ruins", order++, 3),
+    // create_area(16, "BA Spaceship", order++, 3),
+    // create_area(17, "Lobby", order++, 15),
 ];
 order = 0;
 AREAS[Episode.II] = [

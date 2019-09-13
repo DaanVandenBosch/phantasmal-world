@@ -7,7 +7,7 @@ import { Select } from "../../core/gui/Select";
 import { list_property } from "../../core/observable";
 import { AreaModel } from "../model/AreaModel";
 import { Icon } from "../../core/gui/dom";
-import { DropDownButton } from "../../core/gui/DropDownButton";
+import { DropDown } from "../../core/gui/DropDown";
 import { Episode } from "../../core/data_formats/parsing/quest/Episode";
 import { area_store } from "../stores/AreaStore";
 import { gui_store, GuiTool } from "../../core/stores/GuiStore";
@@ -15,7 +15,7 @@ import { asm_editor_store } from "../stores/AsmEditorStore";
 
 export class QuestEditorToolBar extends ToolBar {
     constructor() {
-        const new_quest_button = new DropDownButton(
+        const new_quest_button = new DropDown(
             "New quest",
             [Episode.I],
             episode => `Episode ${Episode[episode]}`,

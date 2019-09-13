@@ -48,11 +48,11 @@ export class Menu<T> extends Widget {
                 { call_now: true },
             ),
 
-            disposable_listener(document, "mousedown", (e: Event) => this.document_mousedown(e), {
+            disposable_listener(document, "mousedown", this.document_mousedown, {
                 capture: true,
             }),
 
-            disposable_listener(document, "keydown", () => this.document_keydown()),
+            disposable_listener(document, "keydown", this.document_keydown),
         );
     }
 
@@ -70,20 +70,22 @@ export class Menu<T> extends Widget {
         if (!element) return;
 
         this.selected.set_val(element, { silent: false });
-        this.visible.val = false;
+        this.visible.set_val(false, { silent: false });
     }
 
-    private document_mousedown(e: Event): void {
+    private document_mousedown = (e: Event): void => {
         if (
             this.visible.val &&
             !this.element.contains(e.target as Node) &&
             !this.related_element.contains(e.target as Node)
         ) {
-            this.visible.val = false;
+            this.visible.set_val(false, { silent: false });
         }
-    }
+    };
 
-    private document_keydown(): void {
-        this.visible.val = false;
-    }
+    private document_keydown = (e: Event): void => {
+        if ((e as KeyboardEvent).key === "Escape") {
+            this.visible.set_val(false, { silent: false });
+        }
+    };
 }

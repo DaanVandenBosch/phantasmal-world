@@ -1,8 +1,8 @@
-.core_DropDownButton {
+.core_DropDown {
     position: relative;
 }
 
-.core_DropDownButton .core_Menu {
+.core_DropDown .core_Menu {
     top: 25px;
     left: 0;
     min-width: 100%;
