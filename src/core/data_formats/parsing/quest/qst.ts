@@ -6,7 +6,7 @@ import { ResizableBufferCursor } from "../../cursor/ResizableBufferCursor";
 import { WritableCursor } from "../../cursor/WritableCursor";
 import { ResizableBuffer } from "../../ResizableBuffer";
 
-const logger = Logger.get("data_formats/parsing/quest/qst");
+const logger = Logger.get("core/data_formats/parsing/quest/qst");
 
 export type QstContainedFile = {
     id?: number;
@@ -110,13 +110,13 @@ type QstHeader = {
     size: number;
 };
 
-/**
- * TODO: Read all headers instead of just the first 2.
- */
 function parse_headers(cursor: Cursor): QstHeader[] {
     const headers: QstHeader[] = [];
 
-    for (let i = 0; i < 2; ++i) {
+    let prev_quest_id: number | undefined;
+    let prev_file_name: string | undefined;
+
+    for (let i = 0; i < 4; ++i) {
         cursor.seek(4);
         const quest_id = cursor.u16();
         cursor.seek(38);
@@ -124,6 +124,18 @@ function parse_headers(cursor: Cursor): QstHeader[] {
         const size = cursor.u32();
         // Not sure what this is:
         const file_name_2 = cursor.string_ascii(24, true, true);
+
+        if (
+            prev_quest_id != undefined &&
+            prev_file_name != undefined &&
+            (quest_id !== prev_quest_id || file_name.slice(0, 5) !== prev_file_name.slice(0, 5))
+        ) {
+            cursor.seek(-88);
+            break;
+        }
+
+        prev_quest_id = quest_id;
+        prev_file_name = file_name;
 
         headers.push({
             quest_id,

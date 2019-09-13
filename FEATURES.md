@@ -136,5 +136,4 @@ Features that are in ***bold italics*** are planned and not yet implemented.
     - Switch (none door)
     - Energy Barrier
     - Teleporter
-- [Load Quest](#load-quest): Can't parse quest 4
 - [Load Quest](#load-quest): Can't parse quest 125 White Day

@@ -21,7 +21,7 @@ import { object_data, ObjectType, pso_id_to_object_type } from "./object_types";
 import { parse_qst, QstContainedFile, write_qst } from "./qst";
 import { NpcType } from "./npc_types";
 
-const logger = Logger.get("data_formats/parsing/quest");
+const logger = Logger.get("core/data_formats/parsing/quest");
 
 export type Quest = {
     readonly id: number;
