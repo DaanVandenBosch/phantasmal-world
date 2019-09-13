@@ -41,6 +41,25 @@ export class ComboBox<T> extends LabelledControl {
         this.input_element.onmousedown = () => {
             menu_visible.val = true;
         };
+        this.input_element.onkeydown = (e: Event) => {
+            const key = (e as KeyboardEvent).key;
+
+            switch (key) {
+                case "ArrowDown":
+                    e.preventDefault();
+                    this.menu.hover_next();
+                    break;
+
+                case "ArrowUp":
+                    e.preventDefault();
+                    this.menu.hover_prev();
+                    break;
+
+                case "Enter":
+                    this.menu.select_hovered();
+                    break;
+            }
+        };
         this.input_element.onblur = () => {
             menu_visible.val = false;
         };

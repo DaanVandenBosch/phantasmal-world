@@ -83,7 +83,9 @@ export class Select<T> extends LabelledControl {
     }
 
     private button_mouseup(): void {
-        if (!this.just_opened) {
+        if (this.just_opened) {
+            this.menu.focus();
+        } else {
             this.menu.visible.val = false;
         }
 
