@@ -49,6 +49,14 @@ export function map<R, P1, P2, P3, P4>(
     prop_3: Property<P3>,
     prop_4: Property<P4>,
 ): Property<R>;
+export function map<R, P1, P2, P3, P4, P5>(
+    f: (prop_1: P1, prop_2: P2, prop_3: P3, prop_4: P4, prop_5: P5) => R,
+    prop_1: Property<P1>,
+    prop_2: Property<P2>,
+    prop_3: Property<P3>,
+    prop_4: Property<P4>,
+    prop_5: Property<P5>,
+): Property<R>;
 export function map<R>(
     f: (...props: Property<any>[]) => R,
     ...props: Property<any>[]
