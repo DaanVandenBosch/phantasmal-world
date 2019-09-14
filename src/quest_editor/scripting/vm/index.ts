@@ -13,6 +13,7 @@ import {
     OP_SET,
     OP_SYNC,
     OP_THREAD,
+    OP_JMP,
 } from "../opcodes";
 import Logger from "js-logger";
 
@@ -74,7 +75,7 @@ export class VirtualMachine {
             );
         }
 
-        this.thread.push(new Thread(new StackElement(seg_idx!, 0), true));
+        this.thread.push(new Thread(new ExecutionLocation(seg_idx!, 0), true));
     }
 
     /**
@@ -126,17 +127,27 @@ export class VirtualMachine {
             case OP_CALL:
                 this.push_call_stack(exec, inst.args[0].value);
                 break;
+            case OP_JMP:
+                this.jump_to_label(exec, inst.args[0].value);
+                break;
             default:
                 throw new Error(`Unsupported instruction: ${inst.opcode.mnemonic}.`);
         }
 
-        if (exec.stack.length) {
-            const top = exec.stack_top();
+        // advance instruction "pointer"
+        if (exec.call_stack.length) {
+            const top = exec.call_stack_top();
             const segment = this.object_code[top.seg_idx] as InstructionSegment;
 
+            // move to next instruction
             if (++top.inst_idx >= segment.instructions.length) {
-                top.seg_idx++;
-                top.inst_idx = 0;
+                // segment ended, move to next segment
+                if (++top.seg_idx >= this.object_code.length) {
+                    // eof
+                    this.thread.splice(this.thread_idx, 1);
+                } else {
+                    top.inst_idx = 0;
+                }
             }
         }
 
@@ -189,29 +200,44 @@ export class VirtualMachine {
                     }.`,
                 );
             } else {
-                exec.stack.push(new StackElement(seg_idx, -1));
+                exec.call_stack.push(new ExecutionLocation(seg_idx, -1));
             }
         }
     }
 
     private pop_call_stack(idx: number, exec: Thread): void {
-        exec.stack.pop();
+        exec.call_stack.pop();
 
-        if (exec.stack.length >= 1) {
-            const top = exec.stack_top();
+        if (exec.call_stack.length >= 1) {
+            const top = exec.call_stack_top();
             const segment = this.object_code[top.seg_idx];
 
             if (!segment || segment.type !== SegmentType.Instructions) {
                 throw new Error(`Invalid segment index ${top.seg_idx}.`);
             }
         } else {
+            // popped off the last return address
+            // which means this is the end of the function this thread was started on
+            // which means this is the end of this thread
             this.thread.splice(idx, 1);
         }
     }
 
+    private jump_to_label(exec: Thread, label: number) {
+        const top = exec.call_stack_top();
+        const seg_idx = this.label_to_seg_idx.get(label);
+
+        if (seg_idx == undefined) {
+            logger.warn(`Invalid jump label: ${label}.`);
+        } else {
+            top.seg_idx = seg_idx;
+            top.inst_idx = -1;
+        }
+    }
+
     private get_next_instruction_from_thread(exec: Thread): Instruction {
-        if (exec.stack.length) {
-            const top = exec.stack_top();
+        if (exec.call_stack.length) {
+            const top = exec.call_stack_top();
             const segment = this.object_code[top.seg_idx];
 
             if (!segment || segment.type !== SegmentType.Instructions) {
@@ -237,7 +263,7 @@ export class VirtualMachine {
     }
 }
 
-class StackElement {
+class ExecutionLocation {
     constructor(public seg_idx: number, public inst_idx: number) {}
 }
 
@@ -245,18 +271,18 @@ class Thread {
     /**
      * Call stack. The top element describes the instruction about to be executed.
      */
-    public stack: StackElement[] = [];
+    public call_stack: ExecutionLocation[] = [];
     /**
      * Global or floor-local?
      */
     public global: boolean;
 
-    stack_top(): StackElement {
-        return this.stack[this.stack.length - 1];
+    call_stack_top(): ExecutionLocation {
+        return this.call_stack[this.call_stack.length - 1];
     }
 
-    constructor(next: StackElement, global: boolean) {
-        this.stack = [next];
+    constructor(next: ExecutionLocation, global: boolean) {
+        this.call_stack = [next];
         this.global = global;
     }
 }

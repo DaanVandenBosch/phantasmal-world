@@ -69,6 +69,10 @@ export class QuestEditorToolBar extends ToolBar {
                 }
             },
         );
+        const run_button = new Button("Run in VM", {
+            icon_left: Icon.Play,
+            tooltip: "[Experimental] Run the current quest in a virtual machine."
+        });
 
         super({
             children: [
@@ -78,6 +82,7 @@ export class QuestEditorToolBar extends ToolBar {
                 undo_button,
                 redo_button,
                 area_select,
+                run_button,
             ],
         });
 
@@ -108,6 +113,8 @@ export class QuestEditorToolBar extends ToolBar {
             area_select.selected.observe(({ value: area }) =>
                 quest_editor_store.set_current_area(area),
             ),
+
+            run_button.click.observe(() => quest_editor_store.run_current_quest_in_vm()),
 
             gui_store.on_global_keydown(GuiTool.QuestEditor, "Ctrl-O", () =>
                 open_file_button.click(),
