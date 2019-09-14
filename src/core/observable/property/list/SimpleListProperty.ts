@@ -194,6 +194,17 @@ export class SimpleListProperty<T> extends AbstractProperty<T[]>
         return removed;
     }
 
+    sort(compare: (a: T, b: T) => number): void {
+        this.values.sort(compare);
+
+        this.finalize_update({
+            type: ListChangeType.ListChange,
+            index: 0,
+            removed: this.values,
+            inserted: this.values,
+        });
+    }
+
     /**
      * Does the following in the given order:
      * - Updates value observers

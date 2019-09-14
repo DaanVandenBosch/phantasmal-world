@@ -14,4 +14,6 @@ export interface WritableListProperty<T> extends ListProperty<T>, WritableProper
     remove(...values: T[]): void;
 
     clear(): void;
+
+    sort(compare: (a: T, b: T) => number): void;
 }

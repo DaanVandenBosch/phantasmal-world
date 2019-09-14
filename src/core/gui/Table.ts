@@ -12,12 +12,14 @@ import Logger = require("js-logger");
 const logger = Logger.get("core/gui/Table");
 
 export type Column<T> = {
+    key?: string;
     title: string;
     fixed?: boolean;
     width: number;
     input?: boolean;
     text_align?: string;
     tooltip?: (value: T) => string;
+    sortable?: boolean;
     render_cell(value: T, disposer: Disposer): string | HTMLElement;
     footer?: {
         render_cell(): string;
@@ -25,10 +27,15 @@ export type Column<T> = {
     };
 };
 
+export enum SortDirection {
+    Asc,
+    Desc,
+}
+
 export type TableOptions<T> = WidgetOptions & {
     values: ListProperty<T>;
     columns: Column<T>[];
-    sort?(columns: Column<T>): void;
+    sort?(sort_columns: { column: Column<T>; direction: SortDirection }[]): void;
 };
 
 export class Table<T> extends Widget<HTMLTableElement> {
@@ -44,6 +51,8 @@ export class Table<T> extends Widget<HTMLTableElement> {
         this.values = options.values;
         this.columns = options.columns;
 
+        let sort_columns: { column: Column<T>; direction: SortDirection }[] = [];
+
         const thead_element = el.thead();
         const header_tr_element = el.tr();
 
@@ -51,8 +60,11 @@ export class Table<T> extends Widget<HTMLTableElement> {
         let has_footer = false;
 
         header_tr_element.append(
-            ...this.columns.map(column => {
-                const th = el.th({}, el.span({ text: column.title }));
+            ...this.columns.map((column, index) => {
+                const th = el.th(
+                    { data: { index: index.toString() } },
+                    el.span({ text: column.title }),
+                );
 
                 if (column.fixed) {
                     th.style.position = "sticky";
@@ -69,6 +81,50 @@ export class Table<T> extends Widget<HTMLTableElement> {
                 return th;
             }),
         );
+
+        const sort = options.sort;
+
+        if (sort) {
+            header_tr_element.onmousedown = e => {
+                if (e.target instanceof HTMLElement) {
+                    let element: HTMLElement = e.target;
+
+                    for (let i = 0; i < 5; i++) {
+                        if (element.dataset.index) {
+                            break;
+                        } else if (element.parentElement) {
+                            element = element.parentElement;
+                        } else {
+                            return;
+                        }
+                    }
+
+                    if (!element.dataset.index) return;
+
+                    const index = parseInt(element.dataset.index, 10);
+                    const column = this.columns[index];
+                    if (!column.sortable) return;
+
+                    const existing_index = sort_columns.findIndex(sc => sc.column === column);
+
+                    if (existing_index === 0) {
+                        const sc = sort_columns[0];
+                        sc.direction =
+                            sc.direction === SortDirection.Asc
+                                ? SortDirection.Desc
+                                : SortDirection.Asc;
+                    } else {
+                        if (existing_index !== -1) {
+                            sort_columns.splice(existing_index, 1);
+                        }
+
+                        sort_columns.unshift({ column, direction: SortDirection.Asc });
+                    }
+
+                    sort(sort_columns);
+                }
+            };
+        }
 
         thead_element.append(header_tr_element);
         this.tbody_element = el.tbody();

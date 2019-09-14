@@ -3,50 +3,30 @@ import { Observable } from "../observable/Observable";
 import { is_property } from "../observable/property/Property";
 import { SectionId } from "../model";
 
+type ElementAttributes = {
+    class?: string;
+    tab_index?: number;
+    text?: string;
+    title?: string;
+    data?: { [key: string]: string };
+};
+
 export const el = {
-    div: (
-        attributes?: {
-            class?: string;
-            tab_index?: number;
-            text?: string;
-            data?: { [key: string]: string };
-        },
-        ...children: HTMLElement[]
-    ): HTMLDivElement => create_element("div", attributes, ...children),
+    div: (attributes?: ElementAttributes, ...children: HTMLElement[]): HTMLDivElement =>
+        create_element("div", attributes, ...children),
 
-    span: (
-        attributes?: {
-            class?: string;
-            tab_index?: number;
-            text?: string;
-            data?: { [key: string]: string };
-        },
-        ...children: HTMLElement[]
-    ): HTMLSpanElement => create_element("span", attributes, ...children),
+    span: (attributes?: ElementAttributes, ...children: HTMLElement[]): HTMLSpanElement =>
+        create_element("span", attributes, ...children),
 
-    h2: (
-        attributes?: {
-            class?: string;
-            tab_index?: number;
-            text?: string;
-            data?: { [key: string]: string };
-        },
-        ...children: HTMLElement[]
-    ): HTMLHeadingElement => create_element("h2", attributes, ...children),
+    h2: (attributes?: ElementAttributes, ...children: HTMLElement[]): HTMLHeadingElement =>
+        create_element("h2", attributes, ...children),
 
-    p: (
-        attributes?: {
-            class?: string;
-            text?: string;
-        },
-        ...children: HTMLElement[]
-    ): HTMLParagraphElement => create_element("p", attributes, ...children),
+    p: (attributes?: ElementAttributes, ...children: HTMLElement[]): HTMLParagraphElement =>
+        create_element("p", attributes, ...children),
 
     a: (
-        attributes?: {
-            class?: string;
+        attributes?: ElementAttributes & {
             href?: string;
-            title?: string;
         },
         ...children: HTMLElement[]
     ): HTMLAnchorElement => {
@@ -60,47 +40,42 @@ export const el = {
         return element;
     },
 
-    table: (attributes?: {}, ...children: HTMLElement[]): HTMLTableElement =>
+    table: (attributes?: ElementAttributes, ...children: HTMLElement[]): HTMLTableElement =>
         create_element("table", attributes, ...children),
 
-    thead: (attributes?: {}, ...children: HTMLElement[]): HTMLTableSectionElement =>
+    thead: (attributes?: ElementAttributes, ...children: HTMLElement[]): HTMLTableSectionElement =>
         create_element("thead", attributes, ...children),
 
-    tbody: (attributes?: {}, ...children: HTMLElement[]): HTMLTableSectionElement =>
+    tbody: (attributes?: ElementAttributes, ...children: HTMLElement[]): HTMLTableSectionElement =>
         create_element("tbody", attributes, ...children),
 
-    tfoot: (attributes?: {}, ...children: HTMLElement[]): HTMLTableSectionElement =>
+    tfoot: (attributes?: ElementAttributes, ...children: HTMLElement[]): HTMLTableSectionElement =>
         create_element("tfoot", attributes, ...children),
 
-    tr: (attributes?: {}, ...children: HTMLElement[]): HTMLTableRowElement =>
+    tr: (attributes?: ElementAttributes, ...children: HTMLElement[]): HTMLTableRowElement =>
         create_element("tr", attributes, ...children),
 
     th: (
-        attributes?: { class?: string; text?: string; col_span?: number },
+        attributes?: ElementAttributes & { col_span?: number },
         ...children: HTMLElement[]
     ): HTMLTableHeaderCellElement => create_element("th", attributes, ...children),
 
     td: (
-        attributes?: { text?: string; col_span?: number },
+        attributes?: ElementAttributes & { col_span?: number },
         ...children: HTMLElement[]
     ): HTMLTableCellElement => create_element("td", attributes, ...children),
 
-    button: (attributes?: {}, ...children: HTMLElement[]): HTMLButtonElement =>
+    button: (attributes?: ElementAttributes, ...children: HTMLElement[]): HTMLButtonElement =>
         create_element("button", attributes, ...children),
 
-    textarea: (attributes?: {}, ...children: HTMLElement[]): HTMLTextAreaElement =>
+    textarea: (attributes?: ElementAttributes, ...children: HTMLElement[]): HTMLTextAreaElement =>
         create_element("textarea", attributes, ...children),
 };
 
 export function create_element<T extends HTMLElement>(
     tag_name: string,
-    attributes?: {
-        class?: string;
-        tab_index?: number;
-        text?: string;
-        title?: string;
+    attributes?: ElementAttributes & {
         href?: string;
-        data?: { [key: string]: string };
         col_span?: number;
     },
     ...children: HTMLElement[]
