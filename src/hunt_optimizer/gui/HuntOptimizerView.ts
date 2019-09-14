@@ -19,6 +19,13 @@ export class HuntOptimizerView extends TabContainer {
                         return new (await import("./MethodsView")).MethodsView();
                     },
                 },
+                {
+                    title: "Help",
+                    key: "help",
+                    create_view: async function() {
+                        return new (await import("./HelpView")).HelpView();
+                    },
+                },
             ],
         });
     }

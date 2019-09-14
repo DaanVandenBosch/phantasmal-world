@@ -62,7 +62,7 @@ export class MethodsForEpisodeView extends ResizableWidget {
                     ...this.enemy_types.map(enemy_type => {
                         return {
                             title: npc_data(enemy_type).simple_name,
-                            width: 80,
+                            width: 90,
                             text_align: "right",
                             render_cell(method: HuntMethodModel) {
                                 const count = method.enemy_counts.get(enemy_type);

@@ -34,6 +34,14 @@ export const el = {
         ...children: HTMLElement[]
     ): HTMLHeadingElement => create_element("h2", attributes, ...children),
 
+    p: (
+        attributes?: {
+            class?: string;
+            text?: string;
+        },
+        ...children: HTMLElement[]
+    ): HTMLParagraphElement => create_element("p", attributes, ...children),
+
     a: (
         attributes?: {
             class?: string;
