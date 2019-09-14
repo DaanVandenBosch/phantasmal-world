@@ -36,7 +36,7 @@ export class NavigationView extends Widget {
                 label: "Server:",
                 enabled: false,
                 selected: "Ephinea",
-                tooltip: "Only Ephinea is supported at the moment"
+                tooltip: "Only Ephinea is supported at the moment",
             }),
         );
 

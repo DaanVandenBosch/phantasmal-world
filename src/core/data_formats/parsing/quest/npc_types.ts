@@ -1,4 +1,4 @@
-import { Episode, check_episode } from "./Episode";
+import { check_episode, Episode } from "./Episode";
 
 // Make sure ObjectType does not overlap NpcType.
 export enum NpcType {
@@ -492,14 +492,7 @@ define_npc_type_data(
     true,
 );
 define_npc_type_data(NpcType.Dimenian2, "Dimenian (Ep. II)", "Dimenian", "Arlan", 2, true);
-define_npc_type_data(
-    NpcType.LaDimenian2,
-    "La Dimenian (Ep. II)",
-    "La Dimenian",
-    "Merlan",
-    2,
-    true,
-);
+define_npc_type_data(NpcType.LaDimenian2, "La Dimenian (Ep. II)", "La Dimenian", "Merlan", 2, true);
 define_npc_type_data(NpcType.SoDimenian2, "So Dimenian (Ep. II)", "So Dimenian", "Del-D", 2, true);
 define_npc_type_data(
     NpcType.DarkBelra2,
@@ -513,14 +506,7 @@ define_npc_type_data(NpcType.BarbaRay, "Barba Ray", "Barba Ray", "Barba Ray", 2,
 
 // Episode II VR Spaceship
 
-define_npc_type_data(
-    NpcType.SavageWolf2,
-    "Savage Wolf (Ep. II)",
-    "Savage Wolf",
-    "Gulgus",
-    2,
-    true,
-);
+define_npc_type_data(NpcType.SavageWolf2, "Savage Wolf (Ep. II)", "Savage Wolf", "Gulgus", 2, true);
 define_npc_type_data(
     NpcType.BarbarousWolf2,
     "Barbarous Wolf (Ep. II)",

@@ -19,8 +19,6 @@ module.exports = {
             languages: [],
         }),
         new ProvidePlugin({
-            React: "react",
-            ReactDOM: "react-dom",
             $: "jquery",
             jQuery: "jquery",
         }),

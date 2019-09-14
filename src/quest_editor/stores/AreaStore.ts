@@ -34,11 +34,7 @@ class AreaStore {
         return area;
     };
 
-    get_variant = (
-        episode: Episode,
-        area_id: number,
-        variant_id: number,
-    ): AreaVariantModel => {
+    get_variant = (episode: Episode, area_id: number, variant_id: number): AreaVariantModel => {
         const area = this.get_area(episode, area_id);
 
         const area_variant = area.area_variants[variant_id];

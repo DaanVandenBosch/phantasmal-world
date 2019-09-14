@@ -18,10 +18,7 @@ class HuntMethodPersister extends Persister {
         this.persist_for_server(server, METHOD_USER_TIMES_KEY, user_times);
     }
 
-    async load_method_user_times(
-        hunt_methods: HuntMethodModel[],
-        server: Server,
-    ): Promise<void> {
+    async load_method_user_times(hunt_methods: HuntMethodModel[], server: Server): Promise<void> {
         const user_times = await this.load_for_server<PersistedUserTimes>(
             server,
             METHOD_USER_TIMES_KEY,
