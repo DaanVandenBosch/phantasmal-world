@@ -36,7 +36,7 @@ export class MethodsForEpisodeView extends ResizableWidget {
                 columns: [
                     {
                         title: "Method",
-                        sticky: true,
+                        fixed: true,
                         width: 250,
                         render_cell(method: HuntMethodModel) {
                             return method.name;
@@ -44,7 +44,7 @@ export class MethodsForEpisodeView extends ResizableWidget {
                     },
                     {
                         title: "Time",
-                        sticky: true,
+                        fixed: true,
                         width: 60,
                         input: true,
                         render_cell(method: HuntMethodModel, disposer: Disposer) {

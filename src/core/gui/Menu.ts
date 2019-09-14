@@ -61,12 +61,14 @@ export class Menu<T> extends Widget {
     }
 
     hover_next(): void {
+        this.visible.val = true;
         this.hover_item(
             this.hovered_index != undefined ? (this.hovered_index + 1) % this.items.val.length : 0,
         );
     }
 
     hover_prev(): void {
+        this.visible.val = true;
         this.hover_item(this.hovered_index ? this.hovered_index - 1 : this.items.val.length - 1);
     }
 
@@ -78,8 +80,11 @@ export class Menu<T> extends Widget {
 
     protected set_visible(visible: boolean): void {
         super.set_visible(visible);
-        this.hover_item();
-        this.inner_element.scrollTo(0, 0);
+
+        if (this.visible.val != visible) {
+            this.hover_item();
+            this.inner_element.scrollTo(0, 0);
+        }
     }
 
     protected set_selected(): void {

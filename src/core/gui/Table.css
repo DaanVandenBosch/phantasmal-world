@@ -52,7 +52,12 @@
     white-space: nowrap;
 }
 
-.core_Table tbody th {
+.core_Table tbody th,
+.core_Table tfoot th {
+    text-align: left;
+}
+
+.core_Table th.fixed {
     position: sticky;
     text-align: left;
 }

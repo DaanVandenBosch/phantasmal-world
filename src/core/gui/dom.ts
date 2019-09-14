@@ -61,6 +61,9 @@ export const el = {
     tbody: (attributes?: {}, ...children: HTMLElement[]): HTMLTableSectionElement =>
         create_element("tbody", attributes, ...children),
 
+    tfoot: (attributes?: {}, ...children: HTMLElement[]): HTMLTableSectionElement =>
+        create_element("tfoot", attributes, ...children),
+
     tr: (attributes?: {}, ...children: HTMLElement[]): HTMLTableRowElement =>
         create_element("tr", attributes, ...children),
 
