@@ -1,5 +1,4 @@
 const common = require("./webpack.common.js");
-const antd_theme = require("./antd_theme.js");
 const path = require("path");
 const merge = require("webpack-merge");
 const ForkTsCheckerWebpackPlugin = require("fork-ts-checker-webpack-plugin");
@@ -8,11 +7,11 @@ const Dotenv = require("dotenv-webpack");
 
 module.exports = merge(common, {
     mode: "development",
-    devtool: "inline-cheap-source-map",
+    devtool: "eval-source-map",
     module: {
         rules: [
             {
-                test: /\.tsx?$/,
+                test: /\.ts$/,
                 use: [
                     {
                         loader: "ts-loader",
@@ -38,9 +37,6 @@ module.exports = merge(common, {
                         loader: "css-loader",
                         options: {
                             sourceMap: true,
-                            modules: {
-                                localIdentName: "[path][name]__[local]",
-                            },
                         },
                     },
                 ],
@@ -59,33 +55,8 @@ module.exports = merge(common, {
                 ],
             },
             {
-                test: /\.less$/,
-                include: /antd/,
-                use: [
-                    MiniCssExtractPlugin.loader,
-                    {
-                        loader: "css-loader",
-                        options: {
-                            sourceMap: true,
-                        },
-                    },
-                    {
-                        loader: "less-loader",
-                        options: {
-                            sourceMap: true,
-                            javascriptEnabled: true,
-                            modifyVars: antd_theme,
-                        },
-                    },
-                ],
-            },
-            {
                 test: /\.(png|svg|jpg|gif)$/,
                 use: ["file-loader"],
-            },
-            {
-                test: /\.worker\.js$/,
-                use: { loader: "worker-loader" },
             },
         ],
     },

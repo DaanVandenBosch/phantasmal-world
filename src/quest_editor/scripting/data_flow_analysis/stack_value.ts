@@ -10,7 +10,7 @@ import { BasicBlock, ControlFlowGraph } from "./ControlFlowGraph";
 import { ValueSet } from "./ValueSet";
 import { register_value } from "./register_value";
 
-const logger = Logger.get("scripting/data_flow_analysis/stack_value");
+const logger = Logger.get("quest_editor/scripting/data_flow_analysis/stack_value");
 
 export const MIN_STACK_VALUE = MIN_SIGNED_DWORD_VALUE;
 export const MAX_STACK_VALUE = MAX_SIGNED_DWORD_VALUE;

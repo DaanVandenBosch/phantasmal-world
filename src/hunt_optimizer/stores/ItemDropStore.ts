@@ -1,14 +1,20 @@
-import { observable } from "mobx";
-import { Difficulties, Difficulty, SectionId, SectionIds, Server } from "../../core/domain";
-import { EnemyDropDto } from "../../core/dto";
-import { Loadable } from "../../core/Loadable";
+import { Difficulties, Difficulty, SectionId, SectionIds, Server } from "../../core/model";
 import { item_type_stores } from "../../core/stores/ItemTypeStore";
 import { ServerMap } from "../../core/stores/ServerMap";
 import Logger from "js-logger";
 import { NpcType } from "../../core/data_formats/parsing/quest/npc_types";
-import { EnemyDrop } from "../domain";
+import { EnemyDrop } from "../model/ItemDrop";
+import { EnemyDropDto } from "../dto/drops";
 
 const logger = Logger.get("stores/ItemDropStore");
+
+export class ItemDropStore {
+    readonly enemy_drops: EnemyDropTable;
+
+    constructor(enemy_drops: EnemyDropTable) {
+        this.enemy_drops = enemy_drops;
+    }
+}
 
 export class EnemyDropTable {
     // Mapping of difficulties to section IDs to NpcTypes to EnemyDrops.
@@ -59,23 +65,13 @@ export class EnemyDropTable {
     }
 }
 
-export class ItemDropStore {
-    @observable.ref enemy_drops: EnemyDropTable = new EnemyDropTable();
-}
-
-export const item_drop_stores: ServerMap<Loadable<ItemDropStore>> = new ServerMap(server => {
-    const store = new ItemDropStore();
-    return new Loadable(store, () => load(store, server));
-});
-
-async function load(store: ItemDropStore, server: Server): Promise<ItemDropStore> {
-    const item_type_store = await item_type_stores.current.promise;
+async function load(server: Server): Promise<ItemDropStore> {
+    const item_type_store = await item_type_stores.get(server);
     const response = await fetch(
         `${process.env.PUBLIC_URL}/enemyDrops.${Server[server].toLowerCase()}.json`,
     );
     const data: EnemyDropDto[] = await response.json();
-
-    const drops = new EnemyDropTable();
+    const enemy_drops = new EnemyDropTable();
 
     for (const drop_dto of data) {
         const npc_type = (NpcType as any)[drop_dto.enemy];
@@ -102,7 +98,7 @@ async function load(store: ItemDropStore, server: Server): Promise<ItemDropStore
             continue;
         }
 
-        drops.set_drop(
+        enemy_drops.set_drop(
             difficulty,
             section_id,
             npc_type,
@@ -117,6 +113,7 @@ async function load(store: ItemDropStore, server: Server): Promise<ItemDropStore
         );
     }
 
-    store.enemy_drops = drops;
-    return store;
+    return new ItemDropStore(enemy_drops);
 }
+
+export const item_drop_stores: ServerMap<ItemDropStore> = new ServerMap(load);

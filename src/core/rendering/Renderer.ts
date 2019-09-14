@@ -1,6 +1,7 @@
 import CameraControls from "camera-controls";
 import * as THREE from "three";
 import {
+    Camera,
     Clock,
     Color,
     Group,
@@ -12,6 +13,7 @@ import {
     Vector3,
     WebGLRenderer,
 } from "three";
+import { Disposable } from "../observable/Disposable";
 
 CameraControls.install({
     // Hack to make panning and orbiting work the way we want.
@@ -21,8 +23,8 @@ CameraControls.install({
     },
 });
 
-export abstract class Renderer<C extends PerspectiveCamera | OrthographicCamera> {
-    protected _debug = false;
+export abstract class Renderer implements Disposable {
+    private _debug = false;
 
     get debug(): boolean {
         return this._debug;
@@ -32,18 +34,18 @@ export abstract class Renderer<C extends PerspectiveCamera | OrthographicCamera>
         this._debug = debug;
     }
 
-    readonly camera: C;
+    readonly camera: Camera;
     readonly controls: CameraControls;
     readonly scene = new Scene();
     readonly light_holder = new Group();
 
     private renderer = new WebGLRenderer({ antialias: true });
     private render_scheduled = false;
-    private render_stop_scheduled = false;
+    private animation_frame_handle?: number = undefined;
     private light = new HemisphereLight(0xffffff, 0x505050, 1.2);
     private controls_clock = new Clock();
 
-    protected constructor(camera: C) {
+    protected constructor(camera: PerspectiveCamera | OrthographicCamera) {
         this.camera = camera;
 
         this.dom_element.tabIndex = 0;
@@ -78,11 +80,15 @@ export abstract class Renderer<C extends PerspectiveCamera | OrthographicCamera>
     }
 
     start_rendering(): void {
-        requestAnimationFrame(this.call_render);
+        this.schedule_render();
+        this.animation_frame_handle = requestAnimationFrame(this.call_render);
     }
 
     stop_rendering(): void {
-        this.render_stop_scheduled = true;
+        if (this.animation_frame_handle != undefined) {
+            cancelAnimationFrame(this.animation_frame_handle);
+            this.animation_frame_handle = undefined;
+        }
     }
 
     schedule_render = () => {
@@ -100,6 +106,10 @@ export abstract class Renderer<C extends PerspectiveCamera | OrthographicCamera>
         );
     }
 
+    dispose(): void {
+        this.renderer.dispose();
+    }
+
     protected render(): void {
         this.renderer.render(this.scene, this.camera);
     }
@@ -114,15 +124,10 @@ export abstract class Renderer<C extends PerspectiveCamera | OrthographicCamera>
 
         this.render_scheduled = false;
 
-        if (this.render_stop_scheduled) {
-            this.render_stop_scheduled = false;
-            return;
-        }
-
         if (should_render) {
             this.render();
         }
 
-        requestAnimationFrame(this.call_render);
+        this.animation_frame_handle = requestAnimationFrame(this.call_render);
     };
 }

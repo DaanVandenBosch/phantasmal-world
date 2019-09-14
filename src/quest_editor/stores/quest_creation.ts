@@ -1,17 +1,18 @@
-import { Vec3 } from "../../core/data_formats/vector";
-import { Instruction, SegmentType } from "../scripting/instructions";
-import { Opcode } from "../scripting/opcodes";
 import { Episode } from "../../core/data_formats/parsing/quest/Episode";
+import { QuestModel } from "../model/QuestModel";
+import { Instruction, SegmentType } from "../scripting/instructions";
 import { ObjectType } from "../../core/data_formats/parsing/quest/object_types";
 import { NpcType } from "../../core/data_formats/parsing/quest/npc_types";
-import { ObservableQuest } from "../domain/ObservableQuest";
-import { ObservableQuestNpc, ObservableQuestObject } from "../domain/observable_quest_entities";
+import { Vec3 } from "../../core/data_formats/vector";
+import { Opcode } from "../scripting/opcodes";
+import { QuestObjectModel } from "../model/QuestObjectModel";
+import { QuestNpcModel } from "../model/QuestNpcModel";
 
-export function create_new_quest(episode: Episode): ObservableQuest {
+export function create_new_quest(episode: Episode): QuestModel {
     if (episode === Episode.II) throw new Error("Episode II not yet supported.");
     if (episode === Episode.IV) throw new Error("Episode IV not yet supported.");
 
-    return new ObservableQuest(
+    return new QuestModel(
         0,
         0,
         "Untitled",
@@ -80,9 +81,9 @@ export function create_new_quest(episode: Episode): ObservableQuest {
     );
 }
 
-function create_default_objects(): ObservableQuestObject[] {
+function create_default_objects(): QuestObjectModel[] {
     return [
-        new ObservableQuestObject(
+        new QuestObjectModel(
             ObjectType.MenuActivation,
             16384,
             0,
@@ -101,7 +102,7 @@ function create_default_objects(): ObservableQuestObject[] {
             ]),
             [[2, 0, 0, 0, 0, 0], [0, 0]],
         ),
-        new ObservableQuestObject(
+        new QuestObjectModel(
             ObjectType.MenuActivation,
             16385,
             0,
@@ -120,7 +121,7 @@ function create_default_objects(): ObservableQuestObject[] {
             ]),
             [[2, 0, 1, 0, 0, 0], [0, 0]],
         ),
-        new ObservableQuestObject(
+        new QuestObjectModel(
             ObjectType.MenuActivation,
             16386,
             0,
@@ -139,7 +140,7 @@ function create_default_objects(): ObservableQuestObject[] {
             ]),
             [[2, 0, 2, 0, 0, 0], [0, 0]],
         ),
-        new ObservableQuestObject(
+        new QuestObjectModel(
             ObjectType.MenuActivation,
             16387,
             0,
@@ -158,7 +159,7 @@ function create_default_objects(): ObservableQuestObject[] {
             ]),
             [[2, 0, 3, 0, 0, 0], [0, 0]],
         ),
-        new ObservableQuestObject(
+        new QuestObjectModel(
             ObjectType.PlayerSet,
             16388,
             0,
@@ -177,7 +178,7 @@ function create_default_objects(): ObservableQuestObject[] {
             ]),
             [[2, 0, 4, 0, 0, 0], [0, 0]],
         ),
-        new ObservableQuestObject(
+        new QuestObjectModel(
             ObjectType.PlayerSet,
             16389,
             0,
@@ -196,7 +197,7 @@ function create_default_objects(): ObservableQuestObject[] {
             ]),
             [[2, 0, 5, 0, 0, 0], [0, 0]],
         ),
-        new ObservableQuestObject(
+        new QuestObjectModel(
             ObjectType.PlayerSet,
             16390,
             0,
@@ -215,7 +216,7 @@ function create_default_objects(): ObservableQuestObject[] {
             ]),
             [[2, 0, 6, 0, 0, 0], [0, 0]],
         ),
-        new ObservableQuestObject(
+        new QuestObjectModel(
             ObjectType.PlayerSet,
             16391,
             0,
@@ -234,7 +235,7 @@ function create_default_objects(): ObservableQuestObject[] {
             ]),
             [[2, 0, 7, 0, 0, 0], [0, 0]],
         ),
-        new ObservableQuestObject(
+        new QuestObjectModel(
             ObjectType.MainRagolTeleporter,
             18264,
             0,
@@ -253,7 +254,7 @@ function create_default_objects(): ObservableQuestObject[] {
             ]),
             [[0, 0, 87, 7, 0, 0], [0, 0]],
         ),
-        new ObservableQuestObject(
+        new QuestObjectModel(
             ObjectType.PrincipalWarp,
             16393,
             0,
@@ -272,7 +273,7 @@ function create_default_objects(): ObservableQuestObject[] {
             ]),
             [[2, 0, 9, 0, 0, 0], [0, 0]],
         ),
-        new ObservableQuestObject(
+        new QuestObjectModel(
             ObjectType.MenuActivation,
             16394,
             0,
@@ -291,7 +292,7 @@ function create_default_objects(): ObservableQuestObject[] {
             ]),
             [[2, 0, 10, 0, 0, 0], [1, 0]],
         ),
-        new ObservableQuestObject(
+        new QuestObjectModel(
             ObjectType.MenuActivation,
             16395,
             0,
@@ -310,7 +311,7 @@ function create_default_objects(): ObservableQuestObject[] {
             ]),
             [[2, 0, 11, 0, 0, 0], [0, 0]],
         ),
-        new ObservableQuestObject(
+        new QuestObjectModel(
             ObjectType.PrincipalWarp,
             16396,
             0,
@@ -329,7 +330,7 @@ function create_default_objects(): ObservableQuestObject[] {
             ]),
             [[2, 0, 12, 0, 0, 0], [0, 0]],
         ),
-        new ObservableQuestObject(
+        new QuestObjectModel(
             ObjectType.TelepipeLocation,
             16397,
             0,
@@ -348,7 +349,7 @@ function create_default_objects(): ObservableQuestObject[] {
             ]),
             [[2, 0, 13, 0, 0, 0], [0, 0]],
         ),
-        new ObservableQuestObject(
+        new QuestObjectModel(
             ObjectType.TelepipeLocation,
             16398,
             0,
@@ -367,7 +368,7 @@ function create_default_objects(): ObservableQuestObject[] {
             ]),
             [[2, 0, 14, 0, 0, 0], [0, 0]],
         ),
-        new ObservableQuestObject(
+        new QuestObjectModel(
             ObjectType.TelepipeLocation,
             16399,
             0,
@@ -386,7 +387,7 @@ function create_default_objects(): ObservableQuestObject[] {
             ]),
             [[2, 0, 15, 0, 0, 0], [0, 0]],
         ),
-        new ObservableQuestObject(
+        new QuestObjectModel(
             ObjectType.TelepipeLocation,
             16400,
             0,
@@ -405,7 +406,7 @@ function create_default_objects(): ObservableQuestObject[] {
             ]),
             [[2, 0, 16, 0, 0, 0], [0, 0]],
         ),
-        new ObservableQuestObject(
+        new QuestObjectModel(
             ObjectType.MedicalCenterDoor,
             16401,
             0,
@@ -424,7 +425,7 @@ function create_default_objects(): ObservableQuestObject[] {
             ]),
             [[2, 0, 17, 0, 0, 0], [0, 0]],
         ),
-        new ObservableQuestObject(
+        new QuestObjectModel(
             ObjectType.ShopDoor,
             16402,
             0,
@@ -443,7 +444,7 @@ function create_default_objects(): ObservableQuestObject[] {
             ]),
             [[2, 0, 18, 0, 0, 0], [0, 0]],
         ),
-        new ObservableQuestObject(
+        new QuestObjectModel(
             ObjectType.MenuActivation,
             16403,
             0,
@@ -462,7 +463,7 @@ function create_default_objects(): ObservableQuestObject[] {
             ]),
             [[2, 0, 19, 0, 0, 0], [0, 0]],
         ),
-        new ObservableQuestObject(
+        new QuestObjectModel(
             ObjectType.HuntersGuildDoor,
             16404,
             0,
@@ -481,7 +482,7 @@ function create_default_objects(): ObservableQuestObject[] {
             ]),
             [[2, 0, 20, 0, 0, 0], [0, 0]],
         ),
-        new ObservableQuestObject(
+        new QuestObjectModel(
             ObjectType.TeleporterDoor,
             16405,
             0,
@@ -500,7 +501,7 @@ function create_default_objects(): ObservableQuestObject[] {
             ]),
             [[2, 0, 21, 0, 0, 0], [0, 0]],
         ),
-        new ObservableQuestObject(
+        new QuestObjectModel(
             ObjectType.PlayerSet,
             16406,
             0,
@@ -519,7 +520,7 @@ function create_default_objects(): ObservableQuestObject[] {
             ]),
             [[2, 0, 22, 0, 0, 0], [0, 0]],
         ),
-        new ObservableQuestObject(
+        new QuestObjectModel(
             ObjectType.PlayerSet,
             16407,
             0,
@@ -538,7 +539,7 @@ function create_default_objects(): ObservableQuestObject[] {
             ]),
             [[2, 0, 23, 0, 0, 0], [0, 0]],
         ),
-        new ObservableQuestObject(
+        new QuestObjectModel(
             ObjectType.PlayerSet,
             16408,
             0,
@@ -557,7 +558,7 @@ function create_default_objects(): ObservableQuestObject[] {
             ]),
             [[2, 0, 24, 0, 0, 0], [0, 0]],
         ),
-        new ObservableQuestObject(
+        new QuestObjectModel(
             ObjectType.PlayerSet,
             16409,
             0,
@@ -579,9 +580,9 @@ function create_default_objects(): ObservableQuestObject[] {
     ];
 }
 
-function create_default_npcs(): ObservableQuestNpc[] {
+function create_default_npcs(): QuestNpcModel[] {
     return [
-        new ObservableQuestNpc(
+        new QuestNpcModel(
             NpcType.GuildLady,
             29,
             1011.0010986328125,
@@ -594,7 +595,7 @@ function create_default_npcs(): ObservableQuestNpc[] {
             new Vec3(0, 0, 0),
             [[0, 0, 7, 86, 0, 0, 0, 0, 23, 87], [0, 0, 0, 0, 0, 0], [128, 238, 223, 176]],
         ),
-        new ObservableQuestNpc(
+        new QuestNpcModel(
             NpcType.FemaleFat,
             4,
             1016.0010986328125,
@@ -607,7 +608,7 @@ function create_default_npcs(): ObservableQuestNpc[] {
             new Vec3(24.000009536743164, 0, 0),
             [[0, 0, 7, 88, 0, 0, 0, 0, 23, 89], [0, 0, 0, 0, 0, 0], [128, 238, 232, 48]],
         ),
-        new ObservableQuestNpc(
+        new QuestNpcModel(
             NpcType.MaleDwarf,
             10,
             1015.0010986328125,
@@ -620,7 +621,7 @@ function create_default_npcs(): ObservableQuestNpc[] {
             new Vec3(30.000009536743164, 0, 0),
             [[0, 0, 7, 89, 0, 0, 0, 0, 23, 90], [0, 0, 0, 0, 0, 0], [128, 238, 236, 176]],
         ),
-        new ObservableQuestNpc(
+        new QuestNpcModel(
             NpcType.RedSoldier,
             26,
             1020.0010986328125,
@@ -633,7 +634,7 @@ function create_default_npcs(): ObservableQuestNpc[] {
             new Vec3(0, 0, 0),
             [[0, 0, 7, 90, 0, 0, 0, 0, 23, 91], [0, 0, 0, 0, 0, 0], [128, 238, 241, 48]],
         ),
-        new ObservableQuestNpc(
+        new QuestNpcModel(
             NpcType.BlueSoldier,
             25,
             1019.0010986328125,
@@ -646,7 +647,7 @@ function create_default_npcs(): ObservableQuestNpc[] {
             new Vec3(0, 0, 0),
             [[0, 0, 7, 91, 0, 0, 0, 0, 23, 92], [0, 0, 0, 0, 0, 0], [128, 238, 245, 176]],
         ),
-        new ObservableQuestNpc(
+        new QuestNpcModel(
             NpcType.FemaleMacho,
             5,
             1014.0010986328125,
@@ -659,7 +660,7 @@ function create_default_npcs(): ObservableQuestNpc[] {
             new Vec3(26.000009536743164, 0, 0),
             [[0, 0, 7, 92, 0, 0, 0, 0, 23, 93], [0, 0, 0, 0, 0, 0], [128, 238, 250, 48]],
         ),
-        new ObservableQuestNpc(
+        new QuestNpcModel(
             NpcType.Scientist,
             30,
             1013.0010986328125,
@@ -672,7 +673,7 @@ function create_default_npcs(): ObservableQuestNpc[] {
             new Vec3(30.000009536743164, 0, 0),
             [[0, 0, 7, 93, 0, 0, 0, 0, 23, 94], [0, 0, 0, 0, 0, 0], [128, 238, 254, 176]],
         ),
-        new ObservableQuestNpc(
+        new QuestNpcModel(
             NpcType.MaleOld,
             13,
             1012.0010986328125,
@@ -685,7 +686,7 @@ function create_default_npcs(): ObservableQuestNpc[] {
             new Vec3(30.000011444091797, 0, 0),
             [[0, 0, 7, 94, 0, 0, 0, 0, 23, 95], [0, 0, 0, 0, 0, 0], [128, 239, 3, 48]],
         ),
-        new ObservableQuestNpc(
+        new QuestNpcModel(
             NpcType.GuildLady,
             29,
             1010.0010986328125,
@@ -698,7 +699,7 @@ function create_default_npcs(): ObservableQuestNpc[] {
             new Vec3(0, 0, 0),
             [[0, 0, 7, 95, 0, 0, 0, 0, 23, 106], [0, 0, 0, 0, 0, 0], [128, 239, 100, 192]],
         ),
-        new ObservableQuestNpc(
+        new QuestNpcModel(
             NpcType.Tekker,
             28,
             1009,
@@ -711,7 +712,7 @@ function create_default_npcs(): ObservableQuestNpc[] {
             new Vec3(0, 0, 0),
             [[0, 0, 7, 97, 0, 0, 0, 0, 23, 98], [0, 0, 0, 0, 0, 0], [128, 239, 16, 176]],
         ),
-        new ObservableQuestNpc(
+        new QuestNpcModel(
             NpcType.MaleMacho,
             12,
             1006,
@@ -724,7 +725,7 @@ function create_default_npcs(): ObservableQuestNpc[] {
             new Vec3(0, 0, 0),
             [[0, 0, 7, 98, 0, 0, 0, 0, 23, 99], [0, 0, 0, 0, 0, 0], [128, 239, 21, 48]],
         ),
-        new ObservableQuestNpc(
+        new QuestNpcModel(
             NpcType.FemaleMacho,
             5,
             1008,
@@ -737,7 +738,7 @@ function create_default_npcs(): ObservableQuestNpc[] {
             new Vec3(0, 0, 0),
             [[0, 0, 7, 99, 0, 0, 0, 0, 23, 100], [0, 0, 0, 0, 0, 0], [128, 239, 25, 176]],
         ),
-        new ObservableQuestNpc(
+        new QuestNpcModel(
             NpcType.MaleFat,
             11,
             1007.0010986328125,
@@ -750,7 +751,7 @@ function create_default_npcs(): ObservableQuestNpc[] {
             new Vec3(0, 0, 0),
             [[0, 0, 7, 100, 0, 0, 0, 0, 23, 101], [0, 0, 0, 0, 0, 0], [128, 239, 30, 48]],
         ),
-        new ObservableQuestNpc(
+        new QuestNpcModel(
             NpcType.FemaleTall,
             7,
             1021.0010986328125,
@@ -763,7 +764,7 @@ function create_default_npcs(): ObservableQuestNpc[] {
             new Vec3(22.000009536743164, 0, 0),
             [[0, 0, 7, 101, 0, 0, 0, 0, 23, 102], [0, 0, 0, 0, 0, 0], [128, 239, 34, 176]],
         ),
-        new ObservableQuestNpc(
+        new QuestNpcModel(
             NpcType.Nurse,
             31,
             1017,
@@ -776,7 +777,7 @@ function create_default_npcs(): ObservableQuestNpc[] {
             new Vec3(0, 0, 0),
             [[0, 0, 7, 102, 0, 0, 0, 0, 23, 103], [0, 0, 0, 0, 0, 0], [128, 239, 39, 48]],
         ),
-        new ObservableQuestNpc(
+        new QuestNpcModel(
             NpcType.Nurse,
             31,
             1018.0010986328125,

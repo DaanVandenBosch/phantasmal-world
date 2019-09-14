@@ -1,0 +1,21 @@
+.quest_editor_NpcCountsView {
+    box-sizing: border-box;
+    padding: 3px;
+    overflow: auto;
+}
+
+.quest_editor_NpcCountsView table {
+    user-select: text;
+    width: 100%;
+    max-width: 300px;
+    margin: 0 auto;
+}
+
+.quest_editor_NpcCountsView th {
+    cursor: text;
+    text-align: left;
+}
+
+.quest_editor_NpcCountsView td {
+    cursor: text;
+}

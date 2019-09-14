@@ -1,42 +1,43 @@
 import Logger from "js-logger";
-import { autorun, IReactionDisposer } from "mobx";
 import { Intersection, Mesh, Object3D, Raycaster, Vector3 } from "three";
-import { load_area_collision_geometry, load_area_render_geometry } from "../loading/areas";
+import { QuestRenderer } from "./QuestRenderer";
+import { QuestModel } from "../model/QuestModel";
 import {
     load_npc_geometry,
     load_npc_textures,
     load_object_geometry,
     load_object_textures,
 } from "../loading/entities";
-import { create_npc_mesh, create_object_mesh } from "./conversion/entities";
-import { QuestRenderer } from "./QuestRenderer";
-import { AreaUserData } from "./conversion/areas";
-import { ObservableQuest } from "../domain/ObservableQuest";
-import { ObservableArea } from "../domain/ObservableArea";
-import { ObservableAreaVariant } from "../domain/ObservableAreaVariant";
-import { ObservableQuestEntity } from "../domain/observable_quest_entities";
+import { load_area_collision_geometry, load_area_render_geometry } from "../loading/areas";
+import { QuestEntityModel } from "../model/QuestEntityModel";
+import { Disposer } from "../../core/observable/Disposer";
+import { Disposable } from "../../core/observable/Disposable";
+import { AreaModel } from "../model/AreaModel";
+import { AreaVariantModel } from "../model/AreaVariantModel";
 import { area_store } from "../stores/AreaStore";
+import { create_npc_mesh, create_object_mesh } from "./conversion/entities";
+import { AreaUserData } from "./conversion/areas";
 
-const logger = Logger.get("rendering/QuestModelManager");
+const logger = Logger.get("quest_editor/rendering/QuestModelManager");
 
 const CAMERA_POSITION = new Vector3(0, 800, 700);
-const CAMERA_LOOKAT = new Vector3(0, 0, 0);
+const CAMERA_LOOK_AT = new Vector3(0, 0, 0);
 const DUMMY_OBJECT = new Object3D();
 
-export class QuestModelManager {
-    private quest?: ObservableQuest;
-    private area?: ObservableArea;
-    private area_variant?: ObservableAreaVariant;
-    private entity_reaction_disposers: IReactionDisposer[] = [];
+export class QuestModelManager implements Disposable {
+    private quest?: QuestModel;
+    private area?: AreaModel;
+    private area_variant?: AreaVariantModel;
+    private disposer = new Disposer();
 
     constructor(private renderer: QuestRenderer) {}
 
-    async load_models(quest?: ObservableQuest, area?: ObservableArea): Promise<void> {
-        let area_variant: ObservableAreaVariant | undefined;
+    async load_models(quest?: QuestModel, area?: AreaModel): Promise<void> {
+        let area_variant: AreaVariantModel | undefined;
 
         if (quest && area) {
             area_variant =
-                quest.area_variants.find(v => v.area.id === area.id) ||
+                quest.area_variants.val.find(v => v.area.id === area.id) ||
                 area_store.get_variant(quest.episode, area.id, 0);
         }
 
@@ -48,7 +49,7 @@ export class QuestModelManager {
         this.area = area;
         this.area_variant = area_variant;
 
-        this.dispose_entity_reactions();
+        this.disposer.dispose_all();
 
         if (quest && area) {
             try {
@@ -76,12 +77,12 @@ export class QuestModelManager {
                 this.renderer.collision_geometry = collision_geometry;
                 this.renderer.render_geometry = render_geometry;
 
-                this.renderer.reset_camera(CAMERA_POSITION, CAMERA_LOOKAT);
+                this.renderer.reset_camera(CAMERA_POSITION, CAMERA_LOOK_AT);
 
                 // Load entity models.
                 this.renderer.reset_entity_models();
 
-                for (const npc of quest.npcs) {
+                for (const npc of quest.npcs.val) {
                     if (npc.area_id === area.id) {
                         const npc_geom = await load_npc_geometry(npc.type);
                         const npc_tex = await load_npc_textures(npc.type);
@@ -93,7 +94,7 @@ export class QuestModelManager {
                     }
                 }
 
-                for (const object of quest.objects) {
+                for (const object of quest.objects.val) {
                     if (object.area_id === area.id) {
                         const object_geom = await load_object_geometry(object.type);
                         const object_tex = await load_object_textures(object.type);
@@ -115,6 +116,10 @@ export class QuestModelManager {
             this.renderer.render_geometry = DUMMY_OBJECT;
             this.renderer.reset_entity_models();
         }
+    }
+
+    dispose(): void {
+        this.disposer.dispose();
     }
 
     private add_sections_to_collision_geometry(
@@ -158,23 +163,19 @@ export class QuestModelManager {
         }
     }
 
-    private update_entity_geometry(entity: ObservableQuestEntity, model: Mesh): void {
+    private update_entity_geometry(entity: QuestEntityModel, model: Mesh): void {
         this.renderer.add_entity_model(model);
 
-        this.entity_reaction_disposers.push(
-            autorun(() => {
-                const { x, y, z } = entity.world_position;
+        this.disposer.add_all(
+            entity.world_position.observe(({ value: { x, y, z } }) => {
                 model.position.set(x, y, z);
-                const rot = entity.rotation;
-                model.rotation.set(rot.x, rot.y, rot.z);
+                this.renderer.schedule_render();
+            }),
+
+            entity.rotation.observe(({ value: { x, y, z } }) => {
+                model.rotation.set(x, y, z);
                 this.renderer.schedule_render();
             }),
         );
-    }
-
-    private dispose_entity_reactions(): void {
-        for (const disposer of this.entity_reaction_disposers) {
-            disposer();
-        }
     }
 }

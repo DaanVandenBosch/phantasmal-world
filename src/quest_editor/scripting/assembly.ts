@@ -24,7 +24,7 @@ import {
 } from "./instructions";
 import { Kind, Opcode, OPCODES_BY_MNEMONIC, Param, StackInteraction } from "./opcodes";
 
-const logger = Logger.get("scripting/assembly");
+const logger = Logger.get("quest_editor/scripting/assembly");
 
 export type AssemblyWarning = {
     line_no: number;

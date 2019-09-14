@@ -1,21 +1,24 @@
-import { autorun } from "mobx";
+import { QuestEntityModel } from "../model/QuestEntityModel";
 import { Intersection, Mesh, MeshLambertMaterial, Plane, Raycaster, Vector2, Vector3 } from "three";
 import { Vec3 } from "../../core/data_formats/vector";
-import { quest_editor_store } from "../stores/QuestEditorStore";
-import { AreaUserData } from "./conversion/areas";
-import { ColorType, EntityUserData, NPC_COLORS, OBJECT_COLORS } from "./conversion/entities";
 import { QuestRenderer } from "./QuestRenderer";
-import { Section } from "../domain/Section";
-import { ObservableQuestEntity, ObservableQuestNpc } from "../domain/observable_quest_entities";
+import { quest_editor_store } from "../stores/QuestEditorStore";
+import { ColorType, EntityUserData, NPC_COLORS, OBJECT_COLORS } from "./conversion/entities";
+import { QuestNpcModel } from "../model/QuestNpcModel";
+import { AreaUserData } from "./conversion/areas";
+import { SectionModel } from "../model/SectionModel";
+import { Disposable } from "../../core/observable/Disposable";
+import { Disposer } from "../../core/observable/Disposer";
 
 const DOWN_VECTOR = new Vector3(0, -1, 0);
 
 type Highlighted = {
-    entity: ObservableQuestEntity;
+    entity: QuestEntityModel;
     mesh: Mesh;
 };
 
 type Pick = {
+    initial_section?: SectionModel;
     initial_position: Vec3;
     grab_offset: Vector3;
     drag_adjust: Vector3;
@@ -23,11 +26,11 @@ type Pick = {
 };
 
 type PickResult = Pick & {
-    entity: ObservableQuestEntity;
+    entity: QuestEntityModel;
     mesh: Mesh;
 };
 
-export class QuestEntityControls {
+export class QuestEntityControls implements Disposable {
     private raycaster = new Raycaster();
     private selected?: Highlighted;
     private hovered?: Highlighted;
@@ -37,29 +40,33 @@ export class QuestEntityControls {
     private pick?: Pick;
     private last_pointer_position = new Vector2(0, 0);
     private moved_since_last_mouse_down = false;
+    private disposer = new Disposer();
 
     constructor(private renderer: QuestRenderer) {
-        autorun(() => {
-            const entity = quest_editor_store.selected_entity;
+        this.disposer.add(
+            quest_editor_store.selected_entity.observe(({ value: entity }) => {
+                if (!this.selected || this.selected.entity !== entity) {
+                    this.stop_transforming();
 
-            if (!this.selected || this.selected.entity !== entity) {
-                this.stop_transforming();
-
-                if (entity) {
-                    // Mesh might not be loaded yet.
-                    this.try_highlight_selected();
-                } else {
-                    this.deselect();
+                    if (entity) {
+                        // Mesh might not be loaded yet.
+                        this.try_highlight(entity);
+                    } else {
+                        this.deselect();
+                    }
                 }
-            }
-        });
+            }),
+        );
+    }
+
+    dispose(): void {
+        this.disposer.dispose();
     }
 
     /**
      * Highlights the selected entity if its mesh has been loaded.
      */
-    try_highlight_selected = () => {
-        const entity = quest_editor_store.selected_entity!;
+    try_highlight = (entity: QuestEntityModel) => {
         const mesh = this.renderer.get_entity_mesh(entity);
 
         if (mesh) {
@@ -220,13 +227,15 @@ export class QuestEntityControls {
 
         if (ray.intersectPlane(plane, intersection_point)) {
             const y = intersection_point.y + pick.grab_offset.y;
-            const y_delta = y - selection.entity.world_position.y;
+            const y_delta = y - selection.entity.world_position.val.y;
             pick.drag_y += y_delta;
             pick.drag_adjust.y -= y_delta;
-            selection.entity.world_position = new Vec3(
-                selection.entity.world_position.x,
-                y,
-                selection.entity.world_position.z,
+            selection.entity.set_world_position(
+                new Vec3(
+                    selection.entity.world_position.val.x,
+                    y,
+                    selection.entity.world_position.val.z,
+                ),
             );
         }
     }
@@ -240,30 +249,35 @@ export class QuestEntityControls {
         const { intersection, section } = this.pick_terrain(pointer_position, pick);
 
         if (intersection) {
-            selection.entity.set_world_position_and_section(
+            selection.entity.set_world_position(
                 new Vec3(
                     intersection.point.x,
                     intersection.point.y + pick.drag_y,
                     intersection.point.z,
                 ),
-                section,
             );
+
+            if (section) {
+                selection.entity.set_section(section);
+            }
         } else {
-            // If the cursor is not over any terrain, we translate the entity accross the horizontal plane in which the entity's origin lies.
+            // If the cursor is not over any terrain, we translate the entity across the horizontal plane in which the entity's origin lies.
             this.raycaster.setFromCamera(pointer_position, this.renderer.camera);
             const ray = this.raycaster.ray;
             // ray.origin.add(data.dragAdjust);
             const plane = new Plane(
                 new Vector3(0, 1, 0),
-                -selection.entity.world_position.y + pick.grab_offset.y,
+                -selection.entity.world_position.val.y + pick.grab_offset.y,
             );
             const intersection_point = new Vector3();
 
             if (ray.intersectPlane(plane, intersection_point)) {
-                selection.entity.world_position = new Vec3(
-                    intersection_point.x + pick.grab_offset.x,
-                    selection.entity.world_position.y,
-                    intersection_point.z + pick.grab_offset.z,
+                selection.entity.set_world_position(
+                    new Vec3(
+                        intersection_point.x + pick.grab_offset.x,
+                        selection.entity.world_position.val.y,
+                        intersection_point.z + pick.grab_offset.z,
+                    ),
                 );
             }
         }
@@ -272,10 +286,13 @@ export class QuestEntityControls {
     private stop_transforming = () => {
         if (this.moved_since_last_mouse_down && this.selected && this.pick) {
             const entity = this.selected.entity;
-            quest_editor_store.push_entity_move_action(
+            quest_editor_store.push_translate_entity_action(
                 entity,
+                this.pick.initial_section,
+                entity.section.val,
                 this.pick.initial_position,
-                entity.world_position,
+                entity.world_position.val,
+                true,
             );
         }
 
@@ -283,7 +300,7 @@ export class QuestEntityControls {
     };
 
     /**
-     * @param pointer_position pointer coordinates in normalized device space
+     * @param pointer_position - pointer coordinates in normalized device space
      */
     private pick_entity(pointer_position: Vector2): PickResult | undefined {
         // Find the nearest object and NPC under the pointer.
@@ -319,7 +336,8 @@ export class QuestEntityControls {
         return {
             mesh: intersection.object as Mesh,
             entity,
-            initial_position: entity.world_position,
+            initial_section: entity.section.val,
+            initial_position: entity.world_position.val,
             grab_offset,
             drag_adjust,
             drag_y,
@@ -328,13 +346,14 @@ export class QuestEntityControls {
 
     /**
      * @param pointer_pos - pointer coordinates in normalized device space
+     * @param data - entity picking data
      */
     private pick_terrain(
         pointer_pos: Vector2,
         data: Pick,
     ): {
         intersection?: Intersection;
-        section?: Section;
+        section?: SectionModel;
     } {
         this.raycaster.setFromCamera(pointer_pos, this.renderer.camera);
         this.raycaster.ray.origin.add(data.drag_adjust);
@@ -360,7 +379,7 @@ export class QuestEntityControls {
 }
 
 function set_color({ entity, mesh }: Highlighted, type: ColorType): void {
-    const color = entity instanceof ObservableQuestNpc ? NPC_COLORS[type] : OBJECT_COLORS[type];
+    const color = entity instanceof QuestNpcModel ? NPC_COLORS[type] : OBJECT_COLORS[type];
 
     if (mesh) {
         if (Array.isArray(mesh.material)) {

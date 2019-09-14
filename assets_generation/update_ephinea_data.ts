@@ -5,12 +5,14 @@ import { BufferCursor } from "../src/core/data_formats/cursor/BufferCursor";
 import { ItemPmt, parse_item_pmt } from "../src/core/data_formats/parsing/itempmt";
 import { parse_quest } from "../src/core/data_formats/parsing/quest";
 import { parse_unitxt, Unitxt } from "../src/core/data_formats/parsing/unitxt";
-import { Difficulties, Difficulty, SectionId, SectionIds } from "../src/core/domain";
-import { BoxDropDto, EnemyDropDto, ItemTypeDto, QuestDto } from "../src/core/dto";
+import { Difficulties, Difficulty, SectionId, SectionIds } from "../src/core/model";
 import { update_drops_from_website } from "./update_drops_ephinea";
 import { Episode, EPISODES } from "../src/core/data_formats/parsing/quest/Episode";
 import { npc_data, NPC_TYPES, NpcType } from "../src/core/data_formats/parsing/quest/npc_types";
 import { Endianness } from "../src/core/data_formats/Endianness";
+import { ItemTypeDto } from "../src/core/dto/ItemTypeDto";
+import { QuestDto } from "../src/hunt_optimizer/dto/QuestDto";
+import { BoxDropDto, EnemyDropDto } from "../src/hunt_optimizer/dto/drops";
 
 const logger = Logger.get("assets_generation/update_ephinea_data");
 

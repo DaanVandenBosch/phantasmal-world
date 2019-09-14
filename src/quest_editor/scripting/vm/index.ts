@@ -2,7 +2,7 @@ import { Instruction, InstructionSegment, Segment, SegmentType } from "../instru
 import { Opcode } from "../opcodes";
 import Logger from "js-logger";
 
-const logger = Logger.get("scripting/vm");
+const logger = Logger.get("quest_editor/scripting/vm");
 
 const REGISTER_COUNT = 256;
 const REGISTER_SIZE = 4;

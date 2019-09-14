@@ -1,5 +1,3 @@
-import Logger from "js-logger";
-import { autorun } from "mobx";
 import {
     Mesh,
     MeshBasicMaterial,
@@ -9,53 +7,59 @@ import {
     Vector2,
     Vector3,
 } from "three";
-import { Xvm } from "../../core/data_formats/parsing/ninja/texture";
-import { texture_viewer_store } from "../stores/TextureViewerStore";
+import { Disposable } from "../../core/observable/Disposable";
 import { Renderer } from "../../core/rendering/Renderer";
+import { Disposer } from "../../core/observable/Disposer";
+import { Xvm } from "../../core/data_formats/parsing/ninja/texture";
 import { xvm_texture_to_texture } from "../../core/rendering/conversion/ninja_textures";
+import Logger = require("js-logger");
+import { texture_store } from "../stores/TextureStore";
 
-const logger = Logger.get("rendering/TextureRenderer");
+const logger = Logger.get("viewer/rendering/TextureRenderer");
 
-let renderer: TextureRenderer | undefined;
-
-export function get_texture_renderer(): TextureRenderer {
-    if (!renderer) renderer = new TextureRenderer();
-    return renderer;
-}
-
-export class TextureRenderer extends Renderer<OrthographicCamera> {
-    private quad_meshes: Mesh[] = [];
+export class TextureRenderer extends Renderer implements Disposable {
+    private readonly ortho_camera: OrthographicCamera;
+    private readonly disposer = new Disposer();
+    private readonly quad_meshes: Mesh[] = [];
 
     constructor() {
         super(new OrthographicCamera(-400, 400, 300, -300, 1, 10));
 
+        this.ortho_camera = this.camera as OrthographicCamera;
+        this.controls.dollySpeed = -1;
+
         this.controls.azimuthRotateSpeed = 0;
         this.controls.polarRotateSpeed = 0;
 
-        autorun(() => {
-            this.scene.remove(...this.quad_meshes);
+        this.disposer.add_all(
+            texture_store.current_xvm.observe(({ value: xvm }) => {
+                this.scene.remove(...this.quad_meshes);
 
-            const xvm = texture_viewer_store.current_xvm;
+                if (xvm) {
+                    this.render_textures(xvm);
+                }
 
-            if (xvm) {
-                this.render_textures(xvm);
-            }
-
-            this.reset_camera(new Vector3(0, 0, 5), new Vector3());
-            this.schedule_render();
-        });
+                this.reset_camera(new Vector3(0, 0, 5), new Vector3());
+                this.schedule_render();
+            }),
+        );
     }
 
     set_size(width: number, height: number): void {
-        this.camera.left = -Math.floor(width / 2);
-        this.camera.right = Math.ceil(width / 2);
-        this.camera.top = Math.floor(height / 2);
-        this.camera.bottom = -Math.ceil(height / 2);
-        this.camera.updateProjectionMatrix();
+        this.ortho_camera.left = -Math.floor(width / 2);
+        this.ortho_camera.right = Math.ceil(width / 2);
+        this.ortho_camera.top = Math.floor(height / 2);
+        this.ortho_camera.bottom = -Math.ceil(height / 2);
+        this.ortho_camera.updateProjectionMatrix();
         super.set_size(width, height);
     }
 
-    private render_textures = (xvm: Xvm) => {
+    dispose(): void {
+        super.dispose();
+        this.disposer.dispose();
+    }
+
+    private render_textures(xvm: Xvm): void {
         let total_width = 10 * (xvm.textures.length - 1); // 10px spacing between textures.
         let total_height = 0;
 
@@ -98,7 +102,7 @@ export class TextureRenderer extends Renderer<OrthographicCamera> {
 
             x += 10 + tex.width;
         }
-    };
+    }
 
     private create_quad(x: number, y: number, width: number, height: number): PlaneGeometry {
         const quad = new PlaneGeometry(width, height, 1, 1);

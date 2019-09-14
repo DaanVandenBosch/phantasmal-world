@@ -2,7 +2,7 @@
     "compilerOptions": {
         "outDir": "./dist/",
         "sourceMap": true,
-        "module": "es6",
+        "module": "commonjs",
         "target": "es6",
         "lib": ["es6", "dom", "dom.iterable"],
         "allowJs": true,
@@ -12,8 +12,7 @@
         "strict": true,
         "forceConsistentCasingInFileNames": true,
         "moduleResolution": "node",
-        "jsx": "react",
-        "experimentalDecorators": true,
+        "experimentalDecorators": true
     },
     "include": ["src", "typedefs"]
 }

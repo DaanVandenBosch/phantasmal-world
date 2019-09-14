@@ -1,0 +1,9 @@
+.core_FileButton_input {
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    border: none;
+    padding: 0;
+}

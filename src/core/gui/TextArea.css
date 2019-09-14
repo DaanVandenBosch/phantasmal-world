@@ -1,0 +1,33 @@
+.core_TextArea {
+    box-sizing: border-box;
+    display: inline-block;
+    border: var(--input-border);
+}
+
+.core_TextArea .core_TextArea_inner {
+    box-sizing: border-box;
+    vertical-align: top;
+    padding: 3px;
+    border: var(--input-inner-border);
+    background-color: var(--input-bg-color);
+    color: var(--input-text-color);
+    outline: none;
+    font-size: 13px;
+}
+
+.core_TextArea:hover {
+    border: var(--input-border-hover);
+}
+
+.core_TextArea:focus-within {
+    border: var(--input-border-focus);
+}
+
+.core_TextArea.disabled {
+    border: var(--input-border-disabled);
+}
+
+.core_TextArea.disabled .core_TextArea_inner {
+    color: var(--input-text-color-disabled);
+    background-color: var(--input-bg-color-disabled);
+}

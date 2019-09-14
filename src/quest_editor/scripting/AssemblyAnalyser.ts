@@ -1,4 +1,3 @@
-import { action, observable } from "mobx";
 import { editor, languages } from "monaco-editor";
 import AssemblyWorker from "worker-loader!./assembly_worker";
 import {
@@ -11,14 +10,18 @@ import {
 } from "./assembly_worker_messages";
 import { AssemblyError, AssemblyWarning } from "./assembly";
 import { disassemble } from "./disassembly";
-import { ObservableQuest } from "../domain/ObservableQuest";
+import { QuestModel } from "../model/QuestModel";
 import { Kind, OPCODES } from "./opcodes";
+import { Property } from "../../core/observable/property/Property";
+import { property } from "../../core/observable";
+import { WritableProperty } from "../../core/observable/property/WritableProperty";
 import CompletionList = languages.CompletionList;
 import CompletionItemKind = languages.CompletionItemKind;
 import CompletionItem = languages.CompletionItem;
 import IModelContentChange = editor.IModelContentChange;
 import SignatureHelp = languages.SignatureHelp;
 import ParameterInformation = languages.ParameterInformation;
+import { Disposable } from "../../core/observable/Disposable";
 
 const INSTRUCTION_SUGGESTIONS = OPCODES.filter(opcode => opcode != null).map(opcode => {
     return ({
@@ -46,23 +49,32 @@ const KEYWORD_SUGGESTIONS = [
     },
 ] as CompletionItem[];
 
-export class AssemblyAnalyser {
-    @observable warnings: AssemblyWarning[] = [];
-    @observable errors: AssemblyError[] = [];
+export class AssemblyAnalyser implements Disposable {
+    readonly _issues: WritableProperty<{
+        warnings: AssemblyWarning[];
+        errors: AssemblyError[];
+    }> = property({ warnings: [], errors: [] });
+
+    readonly issues: Property<{
+        warnings: AssemblyWarning[];
+        errors: AssemblyError[];
+    }> = this._issues;
 
     private worker = new AssemblyWorker();
-    private quest?: ObservableQuest;
+    private quest?: QuestModel;
+
     private promises = new Map<
         number,
         { resolve: (result: any) => void; reject: (error: Error) => void }
     >();
+
     private message_id = 0;
 
     constructor() {
         this.worker.onmessage = this.process_worker_message;
     }
 
-    disassemble(quest: ObservableQuest): string[] {
+    disassemble(quest: QuestModel): string[] {
         this.quest = quest;
         const assembly = disassemble(quest.object_code);
         const message: NewAssemblyInput = { type: InputMessageType.NewAssembly, assembly };
@@ -122,7 +134,6 @@ export class AssemblyAnalyser {
         this.worker.terminate();
     }
 
-    @action
     private process_worker_message = (e: MessageEvent): void => {
         const message: AssemblyWorkerOutput = e.data;
 
@@ -135,8 +146,7 @@ export class AssemblyAnalyser {
                         ...message.object_code,
                     );
                     this.quest.set_map_designations(message.map_designations);
-                    this.warnings = message.warnings;
-                    this.errors = message.errors;
+                    this._issues.val = { warnings: message.warnings, errors: message.errors };
                 }
                 break;
             case OutputMessageType.SignatureHelp:

@@ -3,18 +3,18 @@ import { Endianness } from "../../core/data_formats/Endianness";
 import { ArrayBufferCursor } from "../../core/data_formats/cursor/ArrayBufferCursor";
 import { parse_area_collision_geometry } from "../../core/data_formats/parsing/area_collision_geometry";
 import { parse_area_geometry } from "../../core/data_formats/parsing/area_geometry";
+import { load_array_buffer } from "../../core/loading";
+import { LoadingCache } from "./LoadingCache";
+import { Episode } from "../../core/data_formats/parsing/quest/Episode";
+import { SectionModel } from "../model/SectionModel";
 import {
     area_collision_geometry_to_object_3d,
     area_geometry_to_sections_and_object_3d,
 } from "../rendering/conversion/areas";
-import { load_array_buffer } from "../../core/loading";
-import { LoadingCache } from "./LoadingCache";
-import { Section } from "../domain/Section";
-import { Episode } from "../../core/data_formats/parsing/quest/Episode";
 
 const render_geometry_cache = new LoadingCache<
     string,
-    { geometry: Promise<Object3D>; sections: Promise<Section[]> }
+    { geometry: Promise<Object3D>; sections: Promise<SectionModel[]> }
 >();
 const collision_geometry_cache = new LoadingCache<string, Promise<Object3D>>();
 
@@ -22,7 +22,7 @@ export async function load_area_sections(
     episode: Episode,
     area_id: number,
     area_variant: number,
-): Promise<Section[]> {
+): Promise<SectionModel[]> {
     return render_geometry_cache.get_or_set(`${episode}-${area_id}-${area_variant}`, () =>
         load_area_sections_and_render_geometry(episode, area_id, area_variant),
     ).sections;
@@ -56,7 +56,7 @@ function load_area_sections_and_render_geometry(
     episode: Episode,
     area_id: number,
     area_variant: number,
-): { geometry: Promise<Object3D>; sections: Promise<Section[]> } {
+): { geometry: Promise<Object3D>; sections: Promise<SectionModel[]> } {
     const promise = get_area_asset(episode, area_id, area_variant, "render").then(buffer =>
         area_geometry_to_sections_and_object_3d(
             parse_area_geometry(new ArrayBufferCursor(buffer, Endianness.Little)),

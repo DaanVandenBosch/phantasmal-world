@@ -1,0 +1,66 @@
+.core_Button {
+    display: inline-flex;
+    flex-direction: row;
+    align-items: stretch;
+    align-content: stretch;
+    box-sizing: border-box;
+    height: 26px;
+    padding: 0;
+    border: var(--control-border);
+    color: var(--control-text-color);
+    outline: none;
+    font-size: 13px;
+    font-family: var(--font-family);
+    overflow: hidden;
+}
+
+.core_Button .core_Button_inner {
+    flex: 1;
+    display: inline-flex;
+    flex-direction: row;
+    align-items: center;
+    box-sizing: border-box;
+    background-color: var(--control-bg-color);
+    height: 24px;
+    padding: 3px 5px;
+    border: var(--control-inner-border);
+    overflow: hidden;
+}
+
+.core_Button:hover .core_Button_inner {
+    background-color: var(--control-bg-color-hover);
+    border-color: hsl(0, 0%, 40%);
+    color: var(--control-text-color-hover);
+}
+
+.core_Button:active .core_Button_inner {
+    background-color: hsl(0, 0%, 20%);
+    border-color: hsl(0, 0%, 30%);
+    color: hsl(0, 0%, 75%);
+}
+
+.core_Button:disabled .core_Button_inner {
+    background-color: hsl(0, 0%, 15%);
+    border-color: hsl(0, 0%, 25%);
+    color: hsl(0, 0%, 55%);
+}
+
+.core_Button_inner > * {
+    display: inline-block;
+    margin: 0 3px;
+}
+
+.core_Button_center {
+    flex: 1;
+    text-align: left;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.core_Button_left,
+.core_Button_right {
+    display: inline-flex;
+    align-content: center;
+    font-size: 11px;
+}

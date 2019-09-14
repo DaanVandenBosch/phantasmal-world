@@ -1,4 +1,4 @@
-import { Texture, CylinderBufferGeometry, BufferGeometry } from "three";
+import { BufferGeometry, CylinderBufferGeometry, Texture } from "three";
 import Logger from "js-logger";
 import { LoadingCache } from "./LoadingCache";
 import { Endianness } from "../../core/data_formats/Endianness";

@@ -1,0 +1,23 @@
+.hunt_optimizer_WantedItemsView {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    padding: 0 6px;
+    min-width: 200px;
+}
+
+.hunt_optimizer_WantedItemsView .hunt_optimizer_WantedItemsView_table_wrapper {
+    flex: 1;
+    width: calc(100% + 6px);
+    overflow: auto;
+    margin: 4px -3px;
+}
+
+.hunt_optimizer_WantedItemsView .hunt_optimizer_WantedItemsView_table_wrapper table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.hunt_optimizer_WantedItemsView .hunt_optimizer_WantedItemsView_table_wrapper td {
+    padding: 1px 3px;
+}

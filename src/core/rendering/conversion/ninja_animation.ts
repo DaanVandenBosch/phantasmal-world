@@ -8,7 +8,7 @@ import {
     QuaternionKeyframeTrack,
     VectorKeyframeTrack,
 } from "three";
-import { NjModel, NjObject } from "../../data_formats/parsing/ninja";
+import { NjObject } from "../../data_formats/parsing/ninja";
 import {
     NjInterpolation,
     NjKeyframeTrackType,
@@ -17,10 +17,7 @@ import {
 
 export const PSO_FRAME_RATE = 30;
 
-export function create_animation_clip(
-    nj_object: NjObject<NjModel>,
-    nj_motion: NjMotion,
-): AnimationClip {
+export function create_animation_clip(nj_object: NjObject, nj_motion: NjMotion): AnimationClip {
     const interpolation =
         nj_motion.interpolation === NjInterpolation.Spline ? InterpolateSmooth : InterpolateLinear;
 

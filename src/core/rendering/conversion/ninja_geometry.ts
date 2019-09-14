@@ -11,14 +11,11 @@ const NO_TRANSLATION = new Vector3(0, 0, 0);
 const NO_ROTATION = new Quaternion(0, 0, 0, 1);
 const NO_SCALE = new Vector3(1, 1, 1);
 
-export function ninja_object_to_geometry_builder(
-    object: NjObject<NjModel>,
-    builder: GeometryBuilder,
-): void {
+export function ninja_object_to_geometry_builder(object: NjObject, builder: GeometryBuilder): void {
     new GeometryCreator(builder).to_geometry_builder(object);
 }
 
-export function ninja_object_to_buffer_geometry(object: NjObject<NjModel>): BufferGeometry {
+export function ninja_object_to_buffer_geometry(object: NjObject): BufferGeometry {
     return new GeometryCreator(new GeometryBuilder()).create_buffer_geometry(object);
 }
 
@@ -62,17 +59,17 @@ class GeometryCreator {
         this.builder = builder;
     }
 
-    to_geometry_builder(object: NjObject<NjModel>): void {
+    to_geometry_builder(object: NjObject): void {
         this.object_to_geometry(object, undefined, new Matrix4());
     }
 
-    create_buffer_geometry(object: NjObject<NjModel>): BufferGeometry {
+    create_buffer_geometry(object: NjObject): BufferGeometry {
         this.to_geometry_builder(object);
         return this.builder.build();
     }
 
     private object_to_geometry(
-        object: NjObject<NjModel>,
+        object: NjObject,
         parent_bone: Bone | undefined,
         parent_matrix: Matrix4,
     ): void {

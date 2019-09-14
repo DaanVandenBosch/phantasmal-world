@@ -1,0 +1,53 @@
+#root .lm_header {
+    box-sizing: border-box;
+    padding: 3px 0 0 0;
+    border-bottom: var(--border);
+}
+
+#root .lm_tabs {
+    padding: 0 3px;
+}
+
+#root .lm_tab {
+    cursor: default;
+    display: inline-flex;
+    align-items: center;
+    height: 23px;
+    padding: 0 10px;
+    border: var(--border);
+    margin: 0 1px -1px 1px;
+    background-color: hsl(0, 0%, 12%);
+    color: hsl(0, 0%, 75%);
+    font-size: 13px;
+}
+
+#root .lm_tab:hover {
+    background-color: hsl(0, 0%, 18%);
+    color: hsl(0, 0%, 85%);
+}
+
+#root .lm_tab.lm_active {
+    background-color: var(--bg-color);
+    color: hsl(0, 0%, 90%);
+    border-bottom-color: var(--bg-color);
+}
+
+#root .lm_splitter {
+    box-sizing: border-box;
+    background-color: hsl(0, 0%, 20%);
+}
+
+#root .lm_splitter.lm_vertical {
+    border-top: var(--border);
+    border-bottom: var(--border);
+}
+
+#root .lm_splitter.lm_horizontal {
+    border-left: var(--border);
+    border-right: var(--border);
+}
+
+body .lm_dropTargetIndicator {
+    box-sizing: border-box;
+    background-color: hsla(0, 0%, 100%, 0.2);
+}

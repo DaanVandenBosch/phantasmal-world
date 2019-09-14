@@ -18,7 +18,7 @@ export function is_xj_model(model: NjModel): model is XjModel {
     return model.type === "xj";
 }
 
-export class NjObject<M extends NjModel> {
+export class NjObject<M extends NjModel = NjModel> {
     evaluation_flags: NjEvaluationFlags;
     model: M | undefined;
     position: Vec3;

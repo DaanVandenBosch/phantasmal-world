@@ -1,12 +1,10 @@
+import { QuestEntityModel } from "../../model/QuestEntityModel";
+import { QuestObjectModel } from "../../model/QuestObjectModel";
 import { BufferGeometry, DoubleSide, Mesh, MeshLambertMaterial, Texture } from "three";
-import { create_mesh } from "../../../core/rendering/conversion/create_mesh";
 import { ObjectType } from "../../../core/data_formats/parsing/quest/object_types";
+import { QuestNpcModel } from "../../model/QuestNpcModel";
 import { NpcType } from "../../../core/data_formats/parsing/quest/npc_types";
-import {
-    ObservableQuestEntity,
-    ObservableQuestNpc,
-    ObservableQuestObject,
-} from "../../domain/observable_quest_entities";
+import { create_mesh } from "../../../core/rendering/conversion/create_mesh";
 
 export enum ColorType {
     Normal,
@@ -25,11 +23,11 @@ NPC_COLORS[ColorType.Hovered] = 0xff3f5f;
 NPC_COLORS[ColorType.Selected] = 0xff0054;
 
 export type EntityUserData = {
-    entity: ObservableQuestEntity;
+    entity: QuestEntityModel;
 };
 
 export function create_object_mesh(
-    object: ObservableQuestObject,
+    object: QuestObjectModel,
     geometry: BufferGeometry,
     textures: Texture[],
 ): Mesh {
@@ -43,7 +41,7 @@ export function create_object_mesh(
 }
 
 export function create_npc_mesh(
-    npc: ObservableQuestNpc,
+    npc: QuestNpcModel,
     geometry: BufferGeometry,
     textures: Texture[],
 ): Mesh {
@@ -51,7 +49,7 @@ export function create_npc_mesh(
 }
 
 function create(
-    entity: ObservableQuestEntity,
+    entity: QuestEntityModel,
     geometry: BufferGeometry,
     textures: Texture[],
     color: number,
@@ -80,9 +78,9 @@ function create(
     mesh.name = name;
     (mesh.userData as EntityUserData).entity = entity;
 
-    const { x, y, z } = entity.world_position;
+    const { x, y, z } = entity.world_position.val;
     mesh.position.set(x, y, z);
-    const rot = entity.rotation;
+    const rot = entity.rotation.val;
     mesh.rotation.set(rot.x, rot.y, rot.z);
 
     return mesh;

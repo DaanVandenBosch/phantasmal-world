@@ -1,96 +1,98 @@
-import Logger from "js-logger";
-import { action, flow, observable } from "mobx";
-import { Endianness } from "../../core/data_formats/Endianness";
-import { ArrayBufferCursor } from "../../core/data_formats/cursor/ArrayBufferCursor";
-import { parse_quest, write_quest_qst } from "../../core/data_formats/parsing/quest";
-import { Vec3 } from "../../core/data_formats/vector";
+import { property } from "../../core/observable";
+import { QuestModel } from "../model/QuestModel";
+import { Property, PropertyChangeEvent } from "../../core/observable/property/Property";
 import { read_file } from "../../core/read_file";
-import { SimpleUndo, undo_manager, UndoStack } from "../../core/undo";
-import { application_store } from "../../application/stores/ApplicationStore";
+import { parse_quest, write_quest_qst } from "../../core/data_formats/parsing/quest";
+import { ArrayBufferCursor } from "../../core/data_formats/cursor/ArrayBufferCursor";
+import { Endianness } from "../../core/data_formats/Endianness";
+import { WritableProperty } from "../../core/observable/property/WritableProperty";
+import { QuestObjectModel } from "../model/QuestObjectModel";
+import { QuestNpcModel } from "../model/QuestNpcModel";
+import { AreaModel } from "../model/AreaModel";
 import { area_store } from "./AreaStore";
-import { create_new_quest } from "./quest_creation";
+import { SectionModel } from "../model/SectionModel";
+import { QuestEntityModel } from "../model/QuestEntityModel";
+import { Vec3 } from "../../core/data_formats/vector";
+import { Disposable } from "../../core/observable/Disposable";
+import { Disposer } from "../../core/observable/Disposer";
+import { gui_store, GuiTool } from "../../core/stores/GuiStore";
+import { UndoStack } from "../../core/undo/UndoStack";
+import { TranslateEntityAction } from "../actions/TranslateEntityAction";
+import { EditShortDescriptionAction } from "../actions/EditShortDescriptionAction";
+import { EditLongDescriptionAction } from "../actions/EditLongDescriptionAction";
+import { EditNameAction } from "../actions/EditNameAction";
+import { EditIdAction } from "../actions/EditIdAction";
 import { Episode } from "../../core/data_formats/parsing/quest/Episode";
-import { entity_data } from "../../core/data_formats/parsing/quest/entities";
-import { ObservableQuest } from "../domain/ObservableQuest";
-import { ObservableArea } from "../domain/ObservableArea";
-import { Section } from "../domain/Section";
-import {
-    ObservableQuestEntity,
-    ObservableQuestNpc,
-    ObservableQuestObject,
-} from "../domain/observable_quest_entities";
+import { create_new_quest } from "./quest_creation";
+import Logger = require("js-logger");
 
-const logger = Logger.get("stores/QuestEditorStore");
+const logger = Logger.get("quest_editor/gui/QuestEditorStore");
 
-class QuestEditorStore {
-    @observable debug = false;
-
+export class QuestEditorStore implements Disposable {
+    readonly debug: WritableProperty<boolean> = property(false);
     readonly undo = new UndoStack();
-    readonly script_undo = new SimpleUndo("Text edits", () => {}, () => {});
+    readonly current_quest_filename: Property<string | undefined>;
+    readonly current_quest: Property<QuestModel | undefined>;
+    readonly current_area: Property<AreaModel | undefined>;
+    readonly selected_entity: Property<QuestEntityModel | undefined>;
 
-    @observable current_quest_filename?: string;
-    @observable current_quest?: ObservableQuest;
-    @observable current_area?: ObservableArea;
-
-    @observable selected_entity?: ObservableQuestEntity;
-
-    @observable save_dialog_filename?: string;
-    @observable save_dialog_open: boolean = false;
+    private readonly disposer = new Disposer();
+    private readonly _current_quest_filename = property<string | undefined>(undefined);
+    private readonly _current_quest = property<QuestModel | undefined>(undefined);
+    private readonly _current_area = property<AreaModel | undefined>(undefined);
+    private readonly _selected_entity = property<QuestEntityModel | undefined>(undefined);
 
     constructor() {
-        application_store.on_global_keyup("quest_editor", "Ctrl-Z", () => {
-            // Let Monaco handle its own key bindings.
-            if (undo_manager.current !== this.script_undo) {
-                undo_manager.undo();
-            }
-        });
-        application_store.on_global_keyup("quest_editor", "Ctrl-Shift-Z", () => {
-            // Let Monaco handle its own key bindings.
-            if (undo_manager.current !== this.script_undo) {
-                undo_manager.redo();
-            }
-        });
-        application_store.on_global_keyup("quest_editor", "Ctrl-Alt-D", this.toggle_debug);
+        this.current_quest_filename = this._current_quest_filename;
+        this.current_quest = this._current_quest;
+        this.current_area = this._current_area;
+        this.selected_entity = this._selected_entity;
+
+        this.disposer.add(
+            gui_store.tool.observe(
+                ({ value: tool }) => {
+                    if (tool === GuiTool.QuestEditor) {
+                        this.undo.make_current();
+                    }
+                },
+                { call_now: true },
+            ),
+        );
     }
 
-    @action
-    toggle_debug = () => {
-        this.debug = !this.debug;
+    dispose(): void {
+        this.disposer.dispose();
+    }
+
+    set_current_area = (area?: AreaModel) => {
+        this._selected_entity.val = undefined;
+
+        this._current_area.val = area;
     };
 
-    @action
-    set_selected_entity = (entity?: ObservableQuestEntity) => {
-        if (entity) {
-            this.set_current_area_id(entity.area_id);
+    set_selected_entity = (entity?: QuestEntityModel) => {
+        if (entity && this.current_quest.val) {
+            this._current_area.val = area_store.get_area(
+                this.current_quest.val.episode,
+                entity.area_id,
+            );
         }
 
-        this.selected_entity = entity;
+        this._selected_entity.val = entity;
     };
 
-    @action
-    set_current_area_id = (area_id?: number) => {
-        this.selected_entity = undefined;
-
-        if (area_id == undefined) {
-            this.current_area = undefined;
-        } else if (this.current_quest) {
-            this.current_area = area_store.get_area(this.current_quest.episode, area_id);
-        }
-    };
-
-    @action
     new_quest = (episode: Episode) => {
         this.set_quest(create_new_quest(episode));
     };
 
     // TODO: notify user of problems.
-    open_file = flow(function* open_file(this: QuestEditorStore, filename: string, file: File) {
+    open_file = async (file: File) => {
         try {
-            const buffer = yield read_file(file);
+            const buffer = await read_file(file);
             const quest = parse_quest(new ArrayBufferCursor(buffer, Endianness.Little));
             this.set_quest(
                 quest &&
-                    new ObservableQuest(
+                    new QuestModel(
                         quest.id,
                         quest.language,
                         quest.name,
@@ -100,7 +102,7 @@ class QuestEditorStore {
                         quest.map_designations,
                         quest.objects.map(
                             obj =>
-                                new ObservableQuestObject(
+                                new QuestObjectModel(
                                     obj.type,
                                     obj.id,
                                     obj.group_id,
@@ -114,7 +116,7 @@ class QuestEditorStore {
                         ),
                         quest.npcs.map(
                             npc =>
-                                new ObservableQuestNpc(
+                                new QuestNpcModel(
                                     npc.type,
                                     npc.pso_type_id,
                                     npc.npc_id,
@@ -132,250 +134,168 @@ class QuestEditorStore {
                         quest.object_code,
                         quest.shop_items,
                     ),
-                filename,
+                file.name,
             );
         } catch (e) {
             logger.error("Couldn't read file.", e);
         }
-    });
-
-    @action
-    open_save_dialog = () => {
-        this.save_dialog_filename = this.current_quest_filename
-            ? this.current_quest_filename.endsWith(".qst")
-                ? this.current_quest_filename.slice(0, -4)
-                : this.current_quest_filename
-            : "";
-
-        this.save_dialog_open = true;
     };
 
-    @action
-    close_save_dialog = () => {
-        this.save_dialog_open = false;
-    };
+    save_as = () => {
+        const quest = this.current_quest.val;
+        if (!quest) return;
 
-    @action
-    set_save_dialog_filename = (filename: string) => {
-        this.save_dialog_filename = filename;
-    };
+        let file_name = prompt("File name:");
+        if (!file_name) return;
 
-    save_current_quest_to_file = (file_name: string) => {
-        const quest = this.current_quest;
+        const buffer = write_quest_qst(
+            {
+                id: quest.id.val,
+                language: quest.language.val,
+                name: quest.name.val,
+                short_description: quest.short_description.val,
+                long_description: quest.long_description.val,
+                episode: quest.episode,
+                objects: quest.objects.val.map(obj => ({
+                    type: obj.type,
+                    area_id: obj.area_id,
+                    section_id: obj.section_id.val,
+                    position: obj.position.val,
+                    rotation: obj.rotation.val,
+                    unknown: obj.unknown,
+                    id: obj.id,
+                    group_id: obj.group_id,
+                    properties: obj.properties,
+                })),
+                npcs: quest.npcs.val.map(npc => ({
+                    type: npc.type,
+                    area_id: npc.area_id,
+                    section_id: npc.section_id.val,
+                    position: npc.position.val,
+                    rotation: npc.rotation.val,
+                    scale: npc.scale,
+                    unknown: npc.unknown,
+                    pso_type_id: npc.pso_type_id,
+                    npc_id: npc.npc_id,
+                    script_label: npc.script_label,
+                    roaming: npc.roaming,
+                })),
+                dat_unknowns: quest.dat_unknowns,
+                object_code: quest.object_code,
+                shop_items: quest.shop_items,
+                map_designations: quest.map_designations.val,
+            },
+            file_name,
+        );
 
-        if (quest) {
-            const buffer = write_quest_qst(
-                {
-                    id: quest.id,
-                    language: quest.language,
-                    name: quest.name,
-                    short_description: quest.short_description,
-                    long_description: quest.long_description,
-                    episode: quest.episode,
-                    objects: quest.objects.map(obj => ({
-                        type: obj.type,
-                        area_id: obj.area_id,
-                        section_id: obj.section_id,
-                        position: obj.position,
-                        rotation: obj.rotation,
-                        unknown: obj.unknown,
-                        id: obj.id,
-                        group_id: obj.group_id,
-                        properties: obj.props(),
-                    })),
-                    npcs: quest.npcs.map(npc => ({
-                        type: npc.type,
-                        area_id: npc.area_id,
-                        section_id: npc.section_id,
-                        position: npc.position,
-                        rotation: npc.rotation,
-                        scale: npc.scale,
-                        unknown: npc.unknown,
-                        pso_type_id: npc.pso_type_id,
-                        npc_id: npc.npc_id,
-                        script_label: npc.script_label,
-                        roaming: npc.roaming,
-                    })),
-                    dat_unknowns: quest.dat_unknowns,
-                    object_code: quest.object_code,
-                    shop_items: quest.shop_items,
-                    map_designations: quest.map_designations,
-                },
-                file_name,
-            );
-
-            if (!file_name.endsWith(".qst")) {
-                file_name += ".qst";
-            }
-
-            const a = document.createElement("a");
-            a.href = URL.createObjectURL(new Blob([buffer], { type: "application/octet-stream" }));
-            a.download = file_name;
-            document.body.appendChild(a);
-            a.click();
-            URL.revokeObjectURL(a.href);
-            document.body.removeChild(a);
+        if (!file_name.endsWith(".qst")) {
+            file_name += ".qst";
         }
 
-        this.save_dialog_open = false;
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(new Blob([buffer], { type: "application/octet-stream" }));
+        a.download = file_name;
+        document.body.appendChild(a);
+        a.click();
+        URL.revokeObjectURL(a.href);
+        document.body.removeChild(a);
     };
 
-    @action
-    push_id_edit_action = (old_id: number, new_id: number) => {
-        const quest = quest_editor_store.current_quest;
-        if (quest) quest.set_id(new_id);
-
-        this.undo.push_action(
-            `Edit ID`,
-            () => {
-                const quest = quest_editor_store.current_quest;
-                if (quest) quest.set_id(old_id);
-            },
-            () => {
-                const quest = quest_editor_store.current_quest;
-                if (quest) quest.set_id(new_id);
-            },
-        );
+    push_edit_id_action = (event: PropertyChangeEvent<number>) => {
+        if (this.current_quest.val) {
+            this.undo.push(new EditIdAction(this.current_quest.val, event)).redo();
+        }
     };
 
-    @action
-    push_name_edit_action = (old_name: string, new_name: string) => {
-        const quest = quest_editor_store.current_quest;
-        if (quest) quest.set_name(new_name);
-
-        this.undo.push_action(
-            `Edit name`,
-            () => {
-                const quest = quest_editor_store.current_quest;
-                if (quest) quest.set_name(old_name);
-            },
-            () => {
-                const quest = quest_editor_store.current_quest;
-                if (quest) quest.set_name(new_name);
-            },
-        );
+    push_edit_name_action = (event: PropertyChangeEvent<string>) => {
+        if (this.current_quest.val) {
+            this.undo.push(new EditNameAction(this.current_quest.val, event)).redo();
+        }
     };
 
-    @action
-    push_short_description_edit_action = (
-        old_short_description: string,
-        new_short_description: string,
-    ) => {
-        const quest = quest_editor_store.current_quest;
-        if (quest) quest.set_short_description(new_short_description);
-
-        this.undo.push_action(
-            `Edit short description`,
-            () => {
-                const quest = quest_editor_store.current_quest;
-                if (quest) quest.set_short_description(old_short_description);
-            },
-            () => {
-                const quest = quest_editor_store.current_quest;
-                if (quest) quest.set_short_description(new_short_description);
-            },
-        );
+    push_edit_short_description_action = (event: PropertyChangeEvent<string>) => {
+        if (this.current_quest.val) {
+            this.undo.push(new EditShortDescriptionAction(this.current_quest.val, event)).redo();
+        }
     };
 
-    @action
-    push_long_description_edit_action = (
-        old_long_description: string,
-        new_long_description: string,
-    ) => {
-        const quest = quest_editor_store.current_quest;
-        if (quest) quest.set_long_description(new_long_description);
-
-        this.undo.push_action(
-            `Edit long description`,
-            () => {
-                const quest = quest_editor_store.current_quest;
-                if (quest) quest.set_long_description(old_long_description);
-            },
-            () => {
-                const quest = quest_editor_store.current_quest;
-                if (quest) quest.set_long_description(new_long_description);
-            },
-        );
+    push_edit_long_description_action = (event: PropertyChangeEvent<string>) => {
+        if (this.current_quest.val) {
+            this.undo.push(new EditLongDescriptionAction(this.current_quest.val, event)).redo();
+        }
     };
 
-    @action
-    push_entity_move_action = (
-        entity: ObservableQuestEntity,
+    push_translate_entity_action = (
+        entity: QuestEntityModel,
+        old_section: SectionModel | undefined,
+        new_section: SectionModel | undefined,
         old_position: Vec3,
         new_position: Vec3,
+        world: boolean,
     ) => {
-        this.undo.push_action(
-            `Move ${entity_data(entity.type).name}`,
-            () => {
-                entity.world_position = old_position;
-                quest_editor_store.set_selected_entity(entity);
-            },
-            () => {
-                entity.world_position = new_position;
-                quest_editor_store.set_selected_entity(entity);
-            },
-        );
+        this.undo
+            .push(
+                new TranslateEntityAction(
+                    entity,
+                    old_section,
+                    new_section,
+                    old_position,
+                    new_position,
+                    world,
+                ),
+            )
+            .redo();
     };
 
-    @action
-    private set_quest = flow(function* set_quest(
-        this: QuestEditorStore,
-        quest?: ObservableQuest,
-        filename?: string,
-    ) {
-        this.current_quest_filename = filename;
+    private async set_quest(quest?: QuestModel, filename?: string): Promise<void> {
+        this.undo.reset();
 
-        if (quest !== this.current_quest) {
-            this.undo.reset();
-            this.script_undo.reset();
-            this.selected_entity = undefined;
-            this.current_quest = quest;
+        this._current_area.val = undefined;
+        this._selected_entity.val = undefined;
 
-            if (quest) {
-                this.current_area = area_store.get_area(quest.episode, 0);
-            } else {
-                this.current_area = undefined;
-            }
+        this._current_quest_filename.val = filename;
+        this._current_quest.val = quest;
 
-            if (quest) {
-                // Load section data.
-                for (const variant of quest.area_variants) {
-                    const sections = yield area_store.get_area_sections(
-                        quest.episode,
-                        variant.area.id,
-                        variant.id,
-                    );
-                    variant.sections.replace(sections);
+        if (quest) {
+            this._current_area.val = area_store.get_area(quest.episode, 0);
 
-                    for (const object of quest.objects.filter(o => o.area_id === variant.area.id)) {
-                        try {
-                            this.set_section_on_quest_entity(object, sections);
-                        } catch (e) {
-                            logger.error(e);
-                        }
-                    }
+            // Load section data.
+            for (const variant of quest.area_variants.val) {
+                const sections = await area_store.get_area_sections(
+                    quest.episode,
+                    variant.area.id,
+                    variant.id,
+                );
+                variant.sections.val.splice(0, Infinity, ...sections);
 
-                    for (const npc of quest.npcs.filter(npc => npc.area_id === variant.area.id)) {
-                        try {
-                            this.set_section_on_quest_entity(npc, sections);
-                        } catch (e) {
-                            logger.error(e);
-                        }
+                for (const object of quest.objects.val.filter(o => o.area_id === variant.area.id)) {
+                    try {
+                        this.set_section_on_quest_entity(object, sections);
+                    } catch (e) {
+                        logger.error(e);
                     }
                 }
-            } else {
-                logger.error("Couldn't parse quest file.");
-            }
-        }
-    });
 
-    private set_section_on_quest_entity = (entity: ObservableQuestEntity, sections: Section[]) => {
-        const section = sections.find(s => s.id === entity.section_id);
+                for (const npc of quest.npcs.val.filter(npc => npc.area_id === variant.area.id)) {
+                    try {
+                        this.set_section_on_quest_entity(npc, sections);
+                    } catch (e) {
+                        logger.error(e);
+                    }
+                }
+            }
+        } else {
+            logger.error("Couldn't parse quest file.");
+        }
+    }
+
+    private set_section_on_quest_entity = (entity: QuestEntityModel, sections: SectionModel[]) => {
+        const section = sections.find(s => s.id === entity.section_id.val);
 
         if (section) {
-            entity.section = section;
+            entity.set_section(section);
         } else {
-            logger.warn(`Section ${entity.section_id} not found.`);
+            logger.warn(`Section ${entity.section_id.val} not found.`);
         }
     };
 }

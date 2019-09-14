@@ -1,0 +1,26 @@
+.core_ToolBar {
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    border-bottom: var(--border);
+}
+
+.core_ToolBar > * {
+    margin: 2px 1px;
+}
+
+.core_ToolBar > .core_ToolBar_group {
+    margin: 2px 3px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.core_ToolBar > .core_ToolBar_group > * {
+    margin: 0 2px;
+}
+
+.core_ToolBar .core_Input {
+    height: 26px;
+}

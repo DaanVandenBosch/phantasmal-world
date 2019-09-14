@@ -1,4 +1,5 @@
 import {
+    Color,
     DoubleSide,
     Face3,
     Geometry,
@@ -8,13 +9,12 @@ import {
     MeshLambertMaterial,
     Object3D,
     Vector3,
-    Color,
 } from "three";
 import { CollisionObject } from "../../../core/data_formats/parsing/area_collision_geometry";
 import { RenderObject } from "../../../core/data_formats/parsing/area_geometry";
 import { GeometryBuilder } from "../../../core/rendering/conversion/GeometryBuilder";
 import { ninja_object_to_geometry_builder } from "../../../core/rendering/conversion/ninja_geometry";
-import { Section } from "../../domain/Section";
+import { SectionModel } from "../../model/SectionModel";
 
 const materials = [
     // Wall
@@ -67,7 +67,7 @@ const wireframe_materials = [
 ];
 
 export type AreaUserData = {
-    section?: Section;
+    section?: SectionModel;
 };
 
 export function area_collision_geometry_to_object_3d(object: CollisionObject): Object3D {
@@ -116,8 +116,8 @@ export function area_collision_geometry_to_object_3d(object: CollisionObject): O
 
 export function area_geometry_to_sections_and_object_3d(
     object: RenderObject,
-): [Section[], Object3D] {
-    const sections: Section[] = [];
+): [SectionModel[], Object3D] {
+    const sections: SectionModel[] = [];
     const group = new Group();
     let i = 0;
 
@@ -144,7 +144,7 @@ export function area_geometry_to_sections_and_object_3d(
         mesh.updateMatrixWorld();
 
         if (section.id >= 0) {
-            const sec = new Section(section.id, section.position, section.rotation.y);
+            const sec = new SectionModel(section.id, section.position, section.rotation.y);
             sections.push(sec);
             (mesh.userData as AreaUserData).section = sec;
         }

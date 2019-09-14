@@ -1,5 +1,5 @@
 import solver from "javascript-lp-solver";
-import { autorun, computed, IObservableArray, observable } from "mobx";
+import { ItemType } from "../../core/model/items";
 import {
     Difficulties,
     Difficulty,
@@ -7,66 +7,22 @@ import {
     RARE_ENEMY_PROB,
     SectionId,
     SectionIds,
-} from "../../core/domain";
-import { hunt_optimizer_persister } from "../persistence/HuntOptimizerPersister";
-import { application_store } from "../../application/stores/ApplicationStore";
-import { hunt_method_store } from "./HuntMethodStore";
-import { item_drop_stores } from "./ItemDropStore";
-import { item_type_stores } from "../../core/stores/ItemTypeStore";
-import { Episode } from "../../core/data_formats/parsing/quest/Episode";
+    Server,
+} from "../../core/model";
 import { npc_data, NpcType } from "../../core/data_formats/parsing/quest/npc_types";
-import { HuntMethod } from "../domain";
-import { ItemType } from "../../core/domain/items";
-
-export class WantedItem {
-    @observable readonly item_type: ItemType;
-    @observable amount: number;
-
-    constructor(item_type: ItemType, amount: number) {
-        this.item_type = item_type;
-        this.amount = amount;
-    }
-}
-
-export class OptimalResult {
-    readonly wanted_items: ItemType[];
-    readonly optimal_methods: OptimalMethod[];
-
-    constructor(wanted_items: ItemType[], optimal_methods: OptimalMethod[]) {
-        this.wanted_items = wanted_items;
-        this.optimal_methods = optimal_methods;
-    }
-}
-
-export class OptimalMethod {
-    readonly difficulty: Difficulty;
-    readonly section_ids: SectionId[];
-    readonly method_name: string;
-    readonly method_episode: Episode;
-    readonly method_time: number;
-    readonly runs: number;
-    readonly total_time: number;
-    readonly item_counts: Map<ItemType, number>;
-
-    constructor(
-        difficulty: Difficulty,
-        section_ids: SectionId[],
-        method_name: string,
-        method_episode: Episode,
-        method_time: number,
-        runs: number,
-        item_counts: Map<ItemType, number>,
-    ) {
-        this.difficulty = difficulty;
-        this.section_ids = section_ids;
-        this.method_name = method_name;
-        this.method_episode = method_episode;
-        this.method_time = method_time;
-        this.runs = runs;
-        this.total_time = runs * method_time;
-        this.item_counts = item_counts;
-    }
-}
+import { HuntMethodModel } from "../model/HuntMethodModel";
+import { Property } from "../../core/observable/property/Property";
+import { OptimalMethodModel, OptimalResultModel, WantedItemModel } from "../model";
+import { ListProperty } from "../../core/observable/property/list/ListProperty";
+import { list_property, map } from "../../core/observable";
+import { WritableListProperty } from "../../core/observable/property/list/WritableListProperty";
+import { hunt_method_stores, HuntMethodStore } from "./HuntMethodStore";
+import { item_drop_stores, ItemDropStore } from "./ItemDropStore";
+import { item_type_stores, ItemTypeStore } from "../../core/stores/ItemTypeStore";
+import { hunt_optimizer_persister } from "../persistence/HuntOptimizerPersister";
+import { ServerMap } from "../../core/stores/ServerMap";
+import { Disposable } from "../../core/observable/Disposable";
+import { Disposer } from "../../core/observable/Disposer";
 
 // TODO: take into account mothmants spawned from mothverts.
 // TODO: take into account split slimes.
@@ -75,42 +31,67 @@ export class OptimalMethod {
 // TODO: Show expected value or probability per item per method.
 //       Can be useful when deciding which item to hunt first.
 // TODO: boxes.
-class HuntOptimizerStore {
-    @computed get huntable_item_types(): ItemType[] {
-        const item_drop_store = item_drop_stores.current.value;
-        return item_type_stores.current.value.item_types.filter(
-            i => item_drop_store.enemy_drops.get_drops_for_item_type(i.id).length,
-        );
-    }
-
+class HuntOptimizerStore implements Disposable {
+    readonly huntable_item_types: ItemType[];
     // TODO: wanted items per server.
-    @observable readonly wanted_items: IObservableArray<WantedItem> = observable.array();
-    @observable result?: OptimalResult;
+    readonly wanted_items: ListProperty<WantedItemModel>;
+    readonly result: Property<OptimalResultModel | undefined>;
 
-    constructor() {
+    private readonly _wanted_items: WritableListProperty<WantedItemModel> = list_property(
+        wanted_item => [wanted_item.amount],
+    );
+    private readonly disposer = new Disposer();
+
+    constructor(
+        private readonly server: Server,
+        item_type_store: ItemTypeStore,
+        private readonly item_drop_store: ItemDropStore,
+        hunt_method_store: HuntMethodStore,
+    ) {
+        this.huntable_item_types = item_type_store.item_types.filter(
+            item_type => item_drop_store.enemy_drops.get_drops_for_item_type(item_type.id).length,
+        );
+
+        this.wanted_items = this._wanted_items;
+
+        this.result = map(this.optimize, this.wanted_items, hunt_method_store.methods);
+
         this.initialize_persistence();
     }
 
-    optimize = async () => {
-        if (!this.wanted_items.length) {
-            this.result = undefined;
-            return;
+    dispose(): void {
+        this.disposer.dispose();
+    }
+
+    add_wanted_item(item_type: ItemType): void {
+        if (!this._wanted_items.val.find(wanted => wanted.item_type === item_type)) {
+            this._wanted_items.push(new WantedItemModel(item_type, 1));
+        }
+    }
+
+    remove_wanted_item(wanted_item: WantedItemModel): void {
+        this._wanted_items.remove(wanted_item);
+    }
+
+    private optimize = (
+        wanted_items: WantedItemModel[],
+        methods: HuntMethodModel[],
+    ): OptimalResultModel | undefined => {
+        if (!wanted_items.length) {
+            return undefined;
         }
 
-        // Initialize this set before awaiting data, so user changes don't affect this optimization
-        // run from this point on.
-        const wanted_items = new Set(
-            this.wanted_items.filter(w => w.amount > 0).map(w => w.item_type),
+        const filtered_wanted_items = new Set(
+            wanted_items.filter(w => w.amount.val > 0).map(w => w.item_type),
         );
 
-        const methods = await hunt_method_store.methods.current.promise;
-        const drop_table = (await item_drop_stores.current.promise).enemy_drops;
+        const drop_table = this.item_drop_store.enemy_drops;
 
         // Add a constraint per wanted item.
         const constraints: { [item_name: string]: { min: number } } = {};
 
-        for (const wanted of this.wanted_items) {
-            constraints[wanted.item_type.name] = { min: wanted.amount };
+        for (const wanted of this.wanted_items.val) {
+            constraints[wanted.item_type.name] = { min: wanted.amount.val };
         }
 
         // Add a variable to the LP model per method per difficulty per section ID.
@@ -125,7 +106,7 @@ class HuntOptimizerStore {
         const variables: { [method_name: string]: Variable } = {};
 
         type VariableDetails = {
-            method: HuntMethod;
+            method: HuntMethodModel;
             difficulty: Difficulty;
             section_id: SectionId;
             split_pan_arms: boolean;
@@ -197,7 +178,7 @@ class HuntOptimizerStore {
                         // Will contain an entry per wanted item dropped by enemies in this method/
                         // difficulty/section ID combo.
                         const variable: Variable = {
-                            time: method.time,
+                            time: method.time.val.as("hours"),
                         };
                         // Only add the variable if the method provides at least 1 item we want.
                         let add_variable = false;
@@ -205,7 +186,7 @@ class HuntOptimizerStore {
                         for (const [npc_type, count] of counts.entries()) {
                             const drop = drop_table.get_drop(difficulty, section_id, npc_type);
 
-                            if (drop && wanted_items.has(drop.item_type)) {
+                            if (drop && filtered_wanted_items.has(drop.item_type)) {
                                 const value = variable[drop.item_type.name] || 0;
                                 variable[drop.item_type.name] = value + count * drop.rate;
                                 add_variable = true;
@@ -248,11 +229,10 @@ class HuntOptimizerStore {
         });
 
         if (!result.feasible) {
-            this.result = undefined;
-            return;
+            return undefined;
         }
 
-        const optimal_methods: OptimalMethod[] = [];
+        const optimal_methods: OptimalMethodModel[] = [];
 
         // Loop over the entries in result, ignore standard properties that aren't variables.
         for (const [variable_name, runs_or_other] of Object.entries(result)) {
@@ -266,7 +246,7 @@ class HuntOptimizerStore {
                 const items = new Map<ItemType, number>();
 
                 for (const [item_name, expected_amount] of Object.entries(variable)) {
-                    for (const item of wanted_items) {
+                    for (const item of filtered_wanted_items) {
                         if (item_name === item.name) {
                             items.set(item, runs * expected_amount);
                             break;
@@ -306,12 +286,12 @@ class HuntOptimizerStore {
                 }
 
                 optimal_methods.push(
-                    new OptimalMethod(
+                    new OptimalMethodModel(
                         difficulty,
                         section_ids,
                         method.name + (split_pan_arms ? " (Split Pan Arms)" : ""),
                         method.episode,
-                        method.time,
+                        method.time.val,
                         runs,
                         items,
                     ),
@@ -319,13 +299,13 @@ class HuntOptimizerStore {
             }
         }
 
-        this.result = new OptimalResult([...wanted_items], optimal_methods);
+        return new OptimalResultModel([...filtered_wanted_items], optimal_methods);
     };
 
     private full_method_name(
         difficulty: Difficulty,
         section_id: SectionId,
-        method: HuntMethod,
+        method: HuntMethodModel,
         split_pan_arms: boolean,
     ): string {
         let name = `${difficulty}\t${section_id}\t${method.id}`;
@@ -334,17 +314,23 @@ class HuntOptimizerStore {
     }
 
     private initialize_persistence = async () => {
-        this.wanted_items.replace(
-            await hunt_optimizer_persister.load_wanted_items(application_store.current_server),
-        );
+        this._wanted_items.val = await hunt_optimizer_persister.load_wanted_items(this.server);
 
-        autorun(() => {
-            hunt_optimizer_persister.persist_wanted_items(
-                application_store.current_server,
-                this.wanted_items,
-            );
-        });
+        this.disposer.add(
+            this._wanted_items.observe(({ value }) => {
+                hunt_optimizer_persister.persist_wanted_items(this.server, value);
+            }),
+        );
     };
 }
 
-export const hunt_optimizer_store = new HuntOptimizerStore();
+async function load(server: Server): Promise<HuntOptimizerStore> {
+    return new HuntOptimizerStore(
+        server,
+        await item_type_stores.get(server),
+        await item_drop_stores.get(server),
+        await hunt_method_stores.get(server),
+    );
+}
+
+export const hunt_optimizer_stores: ServerMap<HuntOptimizerStore> = new ServerMap(load);

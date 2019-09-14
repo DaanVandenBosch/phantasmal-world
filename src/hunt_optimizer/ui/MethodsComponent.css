@@ -1,7 +1,0 @@
-.main {
-    flex: 1;
-}
-
-.timepicker :global(.ant-time-picker-icon) {
-    display: none;
-}

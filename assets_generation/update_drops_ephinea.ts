@@ -3,12 +3,13 @@ import { writeFileSync } from "fs";
 import "isomorphic-fetch";
 import Logger from "js-logger";
 import { ASSETS_DIR } from ".";
-import { Difficulty, SectionId, SectionIds } from "../src/core/domain";
-import { BoxDropDto, EnemyDropDto, ItemTypeDto } from "../src/core/dto";
+import { Difficulty, SectionId, SectionIds } from "../src/core/model";
 import {
     name_and_episode_to_npc_type,
     NpcType,
 } from "../src/core/data_formats/parsing/quest/npc_types";
+import { ItemTypeDto } from "../src/core/dto/ItemTypeDto";
+import { BoxDropDto, EnemyDropDto } from "../src/hunt_optimizer/dto/drops";
 
 const logger = Logger.get("assets_generation/update_drops_ephinea");
 

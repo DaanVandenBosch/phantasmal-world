@@ -1,29 +1,20 @@
-import { autorun } from "mobx";
-import { Mesh, Object3D, PerspectiveCamera, Group } from "three";
-import { quest_editor_store } from "../stores/QuestEditorStore";
-import { QuestEntityControls } from "./QuestEntityControls";
-import { QuestModelManager } from "./QuestModelManager";
 import { Renderer } from "../../core/rendering/Renderer";
+import { Group, Mesh, Object3D, PerspectiveCamera } from "three";
+import { QuestEntityModel } from "../model/QuestEntityModel";
+import { quest_editor_store } from "../stores/QuestEditorStore";
+import { QuestModelManager } from "./QuestModelManager";
+import { Disposer } from "../../core/observable/Disposer";
+import { QuestEntityControls } from "./QuestEntityControls";
 import { EntityUserData } from "./conversion/entities";
-import { ObservableQuestEntity } from "../domain/observable_quest_entities";
-import { DND_OBJECT_TYPE } from "../ui/UiConstants";
-import { DragEvent } from "react";
 
-let renderer: QuestRenderer | undefined;
-
-export function get_quest_renderer(): QuestRenderer {
-    if (!renderer) renderer = new QuestRenderer();
-    return renderer;
-}
-
-export class QuestRenderer extends Renderer<PerspectiveCamera> {
+export class QuestRenderer extends Renderer {
     get debug(): boolean {
-        return this._debug;
+        return super.debug;
     }
 
     set debug(debug: boolean) {
-        if (this._debug !== debug) {
-            this._debug = debug;
+        if (this.debug !== debug) {
+            super.debug = debug;
             this._render_geometry.visible = debug;
             this.schedule_render();
         }
@@ -60,34 +51,36 @@ export class QuestRenderer extends Renderer<PerspectiveCamera> {
         return this._entity_models;
     }
 
-    private entity_to_mesh = new Map<ObservableQuestEntity, Mesh>();
-    private entity_controls: QuestEntityControls;
+    private readonly disposer = new Disposer();
+    private readonly perspective_camera: PerspectiveCamera;
+    private readonly entity_to_mesh = new Map<QuestEntityModel, Mesh>();
+    private readonly model_manager = this.disposer.add(new QuestModelManager(this));
+    private readonly entity_controls = this.disposer.add(new QuestEntityControls(this));
 
     constructor() {
         super(new PerspectiveCamera(60, 1, 10, 10000));
 
-        const model_manager = new QuestModelManager(this);
+        this.perspective_camera = this.camera as PerspectiveCamera;
 
-        autorun(
-            () => {
-                model_manager.load_models(
-                    quest_editor_store.current_quest,
-                    quest_editor_store.current_area,
-                );
-            },
-            { name: "call load_models" },
+        this.disposer.add_all(
+            quest_editor_store.current_quest.observe(this.load_models),
+            quest_editor_store.current_area.observe(this.load_models),
+            quest_editor_store.debug.observe(({ value }) => (this.debug = value)),
         );
-
-        this.entity_controls = new QuestEntityControls(this);
 
         this.dom_element.addEventListener("mousedown", this.entity_controls.on_mouse_down);
         this.dom_element.addEventListener("mouseup", this.entity_controls.on_mouse_up);
         this.dom_element.addEventListener("mousemove", this.entity_controls.on_mouse_move);
     }
 
+    dispose(): void {
+        super.dispose();
+        this.disposer.dispose();
+    }
+
     set_size(width: number, height: number): void {
-        this.camera.aspect = width / height;
-        this.camera.updateProjectionMatrix();
+        this.perspective_camera.aspect = width / height;
+        this.perspective_camera.updateProjectionMatrix();
         super.set_size(width, height);
     }
 
@@ -103,12 +96,21 @@ export class QuestRenderer extends Renderer<PerspectiveCamera> {
         this._entity_models.add(model);
         this.entity_to_mesh.set(entity, model);
 
-        if (entity === quest_editor_store.selected_entity) {
-            this.entity_controls.try_highlight_selected();
+        if (entity === quest_editor_store.selected_entity.val) {
+            this.entity_controls.try_highlight(entity);
         }
+
+        this.schedule_render();
     }
 
-    get_entity_mesh(entity: ObservableQuestEntity): Mesh | undefined {
+    get_entity_mesh(entity: QuestEntityModel): Mesh | undefined {
         return this.entity_to_mesh.get(entity);
     }
+
+    private load_models = () => {
+        this.model_manager.load_models(
+            quest_editor_store.current_quest.val,
+            quest_editor_store.current_area.val,
+        );
+    };
 }

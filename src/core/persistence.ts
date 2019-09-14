@@ -1,11 +1,11 @@
 import Logger from "js-logger";
-import { Server } from "./domain";
+import { Server } from "./model";
 
-const logger = Logger.get("persistence/Persister");
+const logger = Logger.get("core/persistence/Persister");
 
 export abstract class Persister {
     protected persist_for_server(server: Server, key: string, data: any): void {
-        this.persist(key + "." + Server[server], data);
+        this.persist(this.server_key(server, key), data);
     }
 
     protected persist(key: string, data: any): void {
@@ -17,7 +17,7 @@ export abstract class Persister {
     }
 
     protected async load_for_server<T>(server: Server, key: string): Promise<T | undefined> {
-        return this.load(key + "." + Server[server]);
+        return this.load(this.server_key(server, key));
     }
 
     protected async load<T>(key: string): Promise<T | undefined> {
@@ -28,5 +28,19 @@ export abstract class Persister {
             logger.error(`Couldn't load ${key}.`, e);
             return undefined;
         }
+    }
+
+    private server_key(server: Server, key: string): string {
+        let k = key + ".";
+
+        switch (server) {
+            case Server.Ephinea:
+                k += "Ephinea";
+                break;
+            default:
+                throw new Error(`Server ${Server[server]} not supported.`);
+        }
+
+        return k;
     }
 }
