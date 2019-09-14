@@ -6,10 +6,10 @@ import { NumberInput } from "../../core/gui/NumberInput";
 import { Disposer } from "../../core/observable/Disposer";
 import { TextInput } from "../../core/gui/TextInput";
 import { TextArea } from "../../core/gui/TextArea";
-import "./QuesInfoView.css";
+import "./QuestInfoView.css";
 import { DisabledView } from "./DisabledView";
 
-export class QuesInfoView extends ResizableWidget {
+export class QuestInfoView extends ResizableWidget {
     private readonly table_element = el.table();
     private readonly episode_element: HTMLElement;
     private readonly id_input = this.disposable(new NumberInput());
@@ -40,7 +40,7 @@ export class QuesInfoView extends ResizableWidget {
     private readonly quest_disposer = this.disposable(new Disposer());
 
     constructor() {
-        super(el.div({ class: "quest_editor_QuesInfoView", tab_index: -1 }));
+        super(el.div({ class: "quest_editor_QuestInfoView", tab_index: -1 }));
 
         const quest = quest_editor_store.current_quest;
         const no_quest = quest.map(q => q == undefined);
@@ -91,6 +91,6 @@ export class QuesInfoView extends ResizableWidget {
             }),
         );
 
-        this.finalize_construction(QuesInfoView.prototype);
+        this.finalize_construction(QuestInfoView.prototype);
     }
 }

@@ -3,7 +3,7 @@ import { create_element, el } from "../../core/gui/dom";
 import { QuestEditorToolBar } from "./QuestEditorToolBar";
 import GoldenLayout, { Container, ContentItem, ItemConfigType } from "golden-layout";
 import { quest_editor_ui_persister } from "../persistence/QuestEditorUiPersister";
-import { QuesInfoView } from "./QuesInfoView";
+import { QuestInfoView } from "./QuestInfoView";
 import "golden-layout/src/css/goldenlayout-base.css";
 import "../../core/gui/golden_layout_theme.css";
 import { NpcCountsView } from "./NpcCountsView";
@@ -18,7 +18,7 @@ const logger = Logger.get("quest_editor/gui/QuestEditorView");
 
 // Don't change these values, as they are persisted in the user's browser.
 const VIEW_TO_NAME = new Map<new () => ResizableWidget, string>([
-    [QuesInfoView, "quest_info"],
+    [QuestInfoView, "quest_info"],
     [NpcCountsView, "npc_counts"],
     [QuestRendererView, "quest_renderer"],
     [AsmEditorView, "asm_editor"],
@@ -53,7 +53,7 @@ const DEFAULT_LAYOUT_CONTENT: ItemConfigType[] = [
                     {
                         title: "Info",
                         type: "component",
-                        componentName: VIEW_TO_NAME.get(QuesInfoView),
+                        componentName: VIEW_TO_NAME.get(QuestInfoView),
                         isClosable: false,
                     },
                     {

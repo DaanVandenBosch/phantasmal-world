@@ -1,0 +1,26 @@
+.quest_editor_QuestInfoView {
+    box-sizing: border-box;
+    padding: 3px;
+    overflow: auto;
+    outline: none;
+}
+
+.quest_editor_QuestInfoView table {
+    width: 100%;
+}
+
+.quest_editor_QuestInfoView th {
+    text-align: left;
+}
+
+.quest_editor_QuestInfoView .core_TextInput {
+    width: 100%;
+}
+
+.quest_editor_QuestInfoView .core_TextArea {
+    width: 100%;
+}
+
+.quest_editor_QuestInfoView textarea {
+    width: 100%;
+}
