@@ -48,6 +48,7 @@ export class Menu<T> extends Widget {
                             el.div({ text: to_label(item), data: { index: index.toString() } }),
                         ),
                     );
+                    this.hover_item();
                 },
                 { call_now: true },
             ),
@@ -83,7 +84,7 @@ export class Menu<T> extends Widget {
 
         if (this.visible.val != visible) {
             this.hover_item();
-            this.inner_element.scrollTo(0, 0);
+            this.inner_element.scrollTop = 0;
         }
     }
 

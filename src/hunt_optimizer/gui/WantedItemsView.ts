@@ -23,12 +23,19 @@ export class WantedItemsView extends Widget {
         super(el.div({ class: "hunt_optimizer_WantedItemsView" }));
 
         const huntable_items = list_property<ItemType>();
+        const filtered_huntable_items = list_property<ItemType>();
 
         const combo_box = this.disposable(
             new ComboBox({
-                items: huntable_items,
+                items: filtered_huntable_items,
                 to_label: item_type => item_type.name,
                 placeholder_text: "Add an item",
+                filter(text: string): void {
+                    const text_lower = text.toLowerCase();
+                    filtered_huntable_items.val = huntable_items.val.filter(item_type =>
+                        item_type.name.toLowerCase().includes(text_lower),
+                    );
+                },
             }),
         );
 
@@ -60,6 +67,7 @@ export class WantedItemsView extends Widget {
                     huntable_items.val = hunt_optimizer_store.huntable_item_types
                         .slice()
                         .sort((a, b) => a.name.localeCompare(b.name));
+                    filtered_huntable_items.val = huntable_items.val;
                 },
                 { call_now: true },
             ),

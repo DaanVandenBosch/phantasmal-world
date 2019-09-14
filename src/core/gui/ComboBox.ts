@@ -10,8 +10,9 @@ import { WidgetProperty } from "../observable/property/WidgetProperty";
 
 export type ComboBoxOptions<T> = LabelledControlOptions & {
     items: T[] | Property<T[]>;
-    to_label: (item: T) => string;
+    to_label(item: T): string;
     placeholder_text?: string;
+    filter?(text: string): void;
 };
 
 export class ComboBox<T> extends LabelledControl {
@@ -41,6 +42,7 @@ export class ComboBox<T> extends LabelledControl {
         this.input_element.onmousedown = () => {
             menu_visible.val = true;
         };
+
         this.input_element.onkeydown = (e: Event) => {
             const key = (e as KeyboardEvent).key;
 
@@ -60,6 +62,24 @@ export class ComboBox<T> extends LabelledControl {
                     break;
             }
         };
+
+        const filter = options.filter;
+
+        if (filter) {
+            let input_value = "";
+
+            this.input_element.onkeyup = () => {
+                if (this.input_element.value !== input_value) {
+                    input_value = this.input_element.value;
+                    filter(input_value);
+
+                    if (this.menu.visible.val || input_value) {
+                        this.menu.hover_next();
+                    }
+                }
+            };
+        }
+
         this.input_element.onblur = () => {
             menu_visible.val = false;
         };
@@ -91,6 +111,12 @@ export class ComboBox<T> extends LabelledControl {
 
         this.disposables(
             this.menu.visible.bind_bi(menu_visible),
+
+            menu_visible.observe(({ value: visible }) => {
+                if (visible) {
+                    this.menu.hover_next();
+                }
+            }),
 
             this.menu.selected.observe(({ value }) => {
                 this.selected.set_val(value, { silent: false });
