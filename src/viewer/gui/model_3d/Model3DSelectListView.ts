@@ -45,6 +45,8 @@ export class Model3DSelectListView<T extends { name: string }> extends Resizable
                 }
             }),
         );
+
+        this.finalize_construction(Model3DSelectListView.prototype);
     }
 
     private list_click = (e: MouseEvent) => {

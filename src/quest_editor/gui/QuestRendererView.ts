@@ -26,6 +26,8 @@ export class QuestRendererView extends ResizableWidget {
                 }
             }),
         );
+
+        this.finalize_construction(QuestRendererView.prototype);
     }
 
     resize(width: number, height: number): this {

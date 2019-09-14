@@ -28,6 +28,8 @@ export class NpcCountsView extends ResizableWidget {
                 call_now: true,
             }),
         );
+
+        this.finalize_construction(NpcCountsView.prototype);
     }
 
     private update_view(quest?: QuestModel): void {

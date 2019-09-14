@@ -54,6 +54,8 @@ export class Model3DView extends ResizableWidget {
                 }
             }),
         );
+
+        this.finalize_construction(Model3DView.prototype);
     }
 
     resize(width: number, height: number): this {

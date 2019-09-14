@@ -115,6 +115,8 @@ export class QuestEditorView extends ResizableWidget {
                 () => (quest_editor_store.debug.val = !quest_editor_store.debug.val),
             ),
         );
+
+        this.finalize_construction(QuestEditorView.prototype);
     }
 
     resize(width: number, height: number): this {

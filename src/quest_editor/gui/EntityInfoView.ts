@@ -133,6 +133,8 @@ export class EntityInfoView extends ResizableWidget {
                 }
             }),
         );
+
+        this.finalize_construction(EntityInfoView.prototype);
     }
 
     dispose(): void {

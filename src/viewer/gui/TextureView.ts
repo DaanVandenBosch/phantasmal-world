@@ -39,6 +39,8 @@ export class TextureView extends ResizableWidget {
                 }
             }),
         );
+
+        this.finalize_construction(TextureView.prototype);
     }
 
     resize(width: number, height: number): this {

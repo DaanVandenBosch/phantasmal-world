@@ -97,6 +97,8 @@ export class MethodsForEpisodeView extends ResizableWidget {
                 { call_now: true },
             ),
         );
+
+        this.finalize_construction(MethodsForEpisodeView.prototype);
     }
 
     dispose(): void {

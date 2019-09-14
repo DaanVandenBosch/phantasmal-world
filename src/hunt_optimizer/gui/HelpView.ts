@@ -22,5 +22,7 @@ export class HelpView extends ResizableWidget {
                 }),
             ),
         );
+
+        this.finalize_construction(HelpView.prototype);
     }
 }

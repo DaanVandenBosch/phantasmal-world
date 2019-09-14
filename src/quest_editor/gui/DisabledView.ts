@@ -12,5 +12,7 @@ export class DisabledView extends Widget {
         this.label = this.disposable(new Label(text, { enabled: false }));
 
         this.element.append(this.label.element);
+
+        this.finalize_construction(DisabledView.prototype);
     }
 }

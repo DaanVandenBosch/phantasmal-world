@@ -64,6 +64,8 @@ export class AsmEditorView extends ResizableWidget {
 
             this.editor.onDidFocusEditorWidget(() => asm_editor_store.undo.make_current()),
         );
+
+        this.finalize_construction(AsmEditorView.prototype);
     }
 
     focus(): void {

@@ -90,5 +90,7 @@ export class QuesInfoView extends ResizableWidget {
                 }
             }),
         );
+
+        this.finalize_construction(QuesInfoView.prototype);
     }
 }

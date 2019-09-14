@@ -133,5 +133,7 @@ export class QuestEditorToolBar extends ToolBar {
                 }
             }),
         );
+
+        this.finalize_construction(QuestEditorToolBar.prototype);
     }
 }

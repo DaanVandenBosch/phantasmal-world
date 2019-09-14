@@ -21,5 +21,7 @@ export class ViewerView extends TabContainer {
                 },
             ],
         });
+
+        this.finalize_construction(ViewerView.prototype);
     }
 }
