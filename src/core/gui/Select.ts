@@ -8,7 +8,7 @@ import { WidgetProperty } from "../observable/property/WidgetProperty";
 import { Menu } from "./Menu";
 
 export type SelectOptions<T> = LabelledControlOptions & {
-    selected: T | Property<T>;
+    selected?: T | Property<T>;
 };
 
 export class Select<T> extends LabelledControl {
@@ -64,6 +64,8 @@ export class Select<T> extends LabelledControl {
                 this.selected.val = options.selected;
             }
         }
+
+        this.finalize_construction(Select.prototype);
     }
 
     protected set_enabled(enabled: boolean): void {

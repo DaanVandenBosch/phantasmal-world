@@ -72,6 +72,8 @@ export class WantedItemsView extends Widget {
                 { call_now: true },
             ),
         );
+
+        this.finalize_construction(WantedItemsView.prototype);
     }
 
     private update_table = (change: ListPropertyChangeEvent<WantedItemModel>): void => {

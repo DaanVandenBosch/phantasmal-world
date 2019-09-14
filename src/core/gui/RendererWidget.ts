@@ -9,6 +9,8 @@ export class RendererWidget extends ResizableWidget {
         this.element.append(renderer.dom_element);
 
         this.disposable(renderer);
+
+        this.finalize_construction(RendererWidget.prototype);
     }
 
     start_rendering(): void {

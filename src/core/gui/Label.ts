@@ -24,6 +24,8 @@ export class Label extends Widget<HTMLLabelElement> {
         } else {
             this.disposable(this._text.bind_to(text));
         }
+
+        this.finalize_construction(Label.prototype);
     }
 
     protected set_text(text: string): void {

@@ -13,6 +13,8 @@ export class ApplicationView extends ResizableWidget {
         this.element.id = "root";
 
         this.element.append(this.menu_view.element, this.main_content_view.element);
+
+        this.finalize_construction(ApplicationView.prototype);
     }
 
     resize(width: number, height: number): this {

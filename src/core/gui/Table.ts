@@ -28,6 +28,7 @@ export type Column<T> = {
 export type TableOptions<T> = WidgetOptions & {
     values: ListProperty<T>;
     columns: Column<T>[];
+    sort?(columns: Column<T>): void;
 };
 
 export class Table<T> extends Widget<HTMLTableElement> {
@@ -82,6 +83,8 @@ export class Table<T> extends Widget<HTMLTableElement> {
         this.disposables(this.values.observe_list(this.update_table));
 
         this.splice_rows(0, this.values.length.val, this.values.val);
+
+        this.finalize_construction(Table.prototype);
     }
 
     private update_table = (change: ListPropertyChangeEvent<T>): void => {

@@ -63,6 +63,8 @@ export class Button extends Control<HTMLButtonElement> {
         } else if (text) {
             this.text.bind_to(text);
         }
+
+        this.finalize_construction(Button.prototype);
     }
 
     protected set_enabled(enabled: boolean): void {

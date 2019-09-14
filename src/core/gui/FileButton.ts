@@ -69,6 +69,8 @@ export class FileButton extends Control<HTMLElement> {
                 }
             }),
         );
+
+        this.finalize_construction(FileButton.prototype);
     }
 
     click(): void {

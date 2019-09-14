@@ -13,6 +13,8 @@ export class DurationInput extends Input<Duration> {
         this.input_element.pattern = "(60|[0-5][0-9]):(60|[0-5][0-9])";
 
         this.set_value(value);
+
+        this.finalize_construction(DurationInput.prototype);
     }
 
     protected get_value(): Duration {

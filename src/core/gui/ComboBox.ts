@@ -123,6 +123,8 @@ export class ComboBox<T> extends LabelledControl {
                 this.input_element.focus();
             }),
         );
+
+        this.finalize_construction(ComboBox.prototype);
     }
 
     protected set_selected(selected?: T): void {

@@ -39,6 +39,8 @@ export class OptimizationResultView extends Widget {
                 { call_now: true },
             ),
         );
+
+        this.finalize_construction(OptimizationResultView.prototype);
     }
 
     dispose(): void {

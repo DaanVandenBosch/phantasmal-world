@@ -27,6 +27,8 @@ export class LazyWidget extends ResizableWidget {
                 }
             });
         }
+
+        this.finalize_construction(LazyWidget.prototype);
     }
 
     resize(width: number, height: number): this {

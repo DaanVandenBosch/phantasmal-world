@@ -3,6 +3,8 @@ import "./NavigationView.css";
 import { gui_store, GuiTool } from "../../core/stores/GuiStore";
 import { Widget } from "../../core/gui/Widget";
 import { NavigationButton } from "./NavigationButton";
+import { Select } from "../../core/gui/Select";
+import { property } from "../../core/observable";
 
 const TOOLS: [GuiTool, string][] = [
     [GuiTool.Viewer, "Viewer"],
@@ -29,7 +31,21 @@ export class NavigationView extends Widget {
 
         this.element.append(el.div({ class: "application_NavigationView_spacer" }));
 
+        const server_select = this.disposable(
+            new Select(property(["Ephinea"]), server => server, {
+                label: "Server:",
+                enabled: false,
+                selected: "Ephinea",
+                tooltip: "Only Ephinea is supported at the moment"
+            }),
+        );
+
         this.element.append(
+            el.span(
+                { class: "application_NavigationView_server" },
+                server_select.label!.element,
+                server_select.element,
+            ),
             el.a(
                 {
                     class: "application_NavigationView_github",
@@ -42,6 +58,8 @@ export class NavigationView extends Widget {
 
         this.mark_tool_button(gui_store.tool.val);
         this.disposable(gui_store.tool.observe(({ value }) => this.mark_tool_button(value)));
+
+        this.finalize_construction(NavigationView.prototype);
     }
 
     private mousedown(e: MouseEvent): void {

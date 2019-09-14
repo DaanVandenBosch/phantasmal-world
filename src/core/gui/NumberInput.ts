@@ -35,6 +35,8 @@ export class NumberInput extends Input<number> {
         this.element.style.width = `${options.width == undefined ? 54 : options.width}px`;
 
         this.set_value(value);
+
+        this.finalize_construction(NumberInput.prototype);
     }
 
     protected get_value(): number {

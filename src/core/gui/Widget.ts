@@ -5,6 +5,9 @@ import { bind_hidden } from "./dom";
 import { WritableProperty } from "../observable/property/WritableProperty";
 import { WidgetProperty } from "../observable/property/WidgetProperty";
 import { Property } from "../observable/property/Property";
+import Logger from "js-logger";
+
+const logger = Logger.get("core/gui/Widget");
 
 export type WidgetOptions = {
     class?: string;
@@ -45,6 +48,8 @@ export abstract class Widget<E extends HTMLElement = HTMLElement> implements Dis
         "",
         this.set_tooltip,
     );
+    private readonly options: WidgetOptions;
+    private construction_finalized = false;
 
     protected constructor(element: E, options?: WidgetOptions) {
         this.element = element;
@@ -52,23 +57,21 @@ export abstract class Widget<E extends HTMLElement = HTMLElement> implements Dis
         this.enabled = this._enabled;
         this.tooltip = this._tooltip;
 
-        if (options) {
-            if (options.class) {
-                this.element.classList.add(options.class);
-            }
+        this.options = options || {};
 
-            if (typeof options.enabled === "boolean") {
-                this.enabled.val = options.enabled;
-            } else if (options.enabled) {
-                this.enabled.bind_to(options.enabled);
-            }
-
-            if (typeof options.tooltip === "string") {
-                this.tooltip.val = options.tooltip;
-            } else if (options.tooltip) {
-                this.tooltip.bind_to(options.tooltip);
-            }
+        if (this.options.class) {
+            this.element.classList.add(this.options.class);
         }
+
+        setTimeout(() => {
+            if (!this.construction_finalized) {
+                logger.warn(
+                    `finalize_construction is never called for ${
+                        Object.getPrototypeOf(this).constructor.name
+                    }.`,
+                );
+            }
+        }, 0);
     }
 
     focus(): void {
@@ -79,6 +82,24 @@ export abstract class Widget<E extends HTMLElement = HTMLElement> implements Dis
         this.element.remove();
         this.disposer.dispose();
         this.disposed = true;
+    }
+
+    protected finalize_construction(proto: any): void {
+        if (Object.getPrototypeOf(this) !== proto) return;
+
+        this.construction_finalized = true;
+
+        if (typeof this.options.enabled === "boolean") {
+            this.enabled.val = this.options.enabled;
+        } else if (this.options.enabled) {
+            this.enabled.bind_to(this.options.enabled);
+        }
+
+        if (typeof this.options.tooltip === "string") {
+            this.tooltip.val = this.options.tooltip;
+        } else if (this.options.tooltip) {
+            this.tooltip.bind_to(this.options.tooltip);
+        }
     }
 
     protected set_visible(visible: boolean): void {

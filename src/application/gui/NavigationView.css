@@ -11,6 +11,15 @@
     flex: 1;
 }
 
+.application_NavigationView_server {
+    display: flex;
+    align-items: center;
+}
+
+.application_NavigationView_server > * {
+    margin: 0 2px;
+}
+
 .application_NavigationView_github {
     display: flex;
     flex-direction: row;

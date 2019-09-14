@@ -40,6 +40,8 @@ export class TextArea extends LabelledControl {
             this._value.set_val(this.text_element.value, { silent: false });
 
         this.element.append(this.text_element);
+
+        this.finalize_construction(TextArea.prototype);
     }
 
     protected set_value(value: string): void {

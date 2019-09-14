@@ -36,5 +36,7 @@ export class ToolBar extends Widget {
                 }
             }
         }
+
+        this.finalize_construction(ToolBar.prototype);
     }
 }
