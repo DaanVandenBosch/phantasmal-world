@@ -1,10 +1,12 @@
 import { ResizableWidget } from "./ResizableWidget";
-import { create_element } from "./dom";
+import { el } from "./dom";
 import { Renderer } from "../rendering/Renderer";
 
 export class RendererWidget extends ResizableWidget {
+    readonly element = el.div();
+
     constructor(private renderer: Renderer) {
-        super(create_element("div"));
+        super();
 
         this.element.append(renderer.dom_element);
 

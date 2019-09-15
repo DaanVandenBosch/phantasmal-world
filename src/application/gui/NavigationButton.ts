@@ -4,11 +4,13 @@ import { GuiTool } from "../../core/stores/GuiStore";
 import "./NavigationButton.css";
 
 export class NavigationButton extends Widget {
+    readonly element = el.span({ class: "application_NavigationButton" });
+
     private input: HTMLInputElement = create_element("input");
     private label: HTMLLabelElement = create_element("label");
 
     constructor(tool: GuiTool, text: string) {
-        super(el.span({ class: "application_NavigationButton" }));
+        super();
 
         const tool_str = GuiTool[tool];
 

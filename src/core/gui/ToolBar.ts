@@ -8,10 +8,11 @@ export type ToolBarOptions = WidgetOptions & {
 };
 
 export class ToolBar extends Widget {
+    readonly element = create_element("div", { class: "core_ToolBar" });
     readonly height = 33;
 
     constructor(options?: ToolBarOptions) {
-        super(create_element("div", { class: "core_ToolBar" }), options);
+        super(options);
 
         this.element.style.height = `${this.height}px`;
 

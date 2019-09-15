@@ -13,48 +13,50 @@ const TOOLS: [GuiTool, string][] = [
 ];
 
 export class NavigationView extends Widget {
-    readonly height = 30;
-
-    private buttons = new Map<GuiTool, NavigationButton>(
+    private readonly buttons = new Map<GuiTool, NavigationButton>(
         TOOLS.map(([value, text]) => [value, this.disposable(new NavigationButton(value, text))]),
     );
+    private readonly server_select = this.disposable(
+        new Select(property(["Ephinea"]), server => server, {
+            label: "Server:",
+            enabled: false,
+            selected: "Ephinea",
+            tooltip: "Only Ephinea is supported at the moment",
+        }),
+    );
+
+    readonly element = el.div(
+        { class: "application_NavigationView" },
+
+        ...[...this.buttons.values()].map(button => button.element),
+
+        el.div({ class: "application_NavigationView_spacer" }),
+
+        this.server_select.element,
+
+        el.span(
+            { class: "application_NavigationView_server" },
+            this.server_select.label!.element,
+            this.server_select.element,
+        ),
+
+        el.a(
+            {
+                class: "application_NavigationView_github",
+                href: "https://github.com/DaanVandenBosch/phantasmal-world",
+                title: "GitHub",
+            },
+            icon(Icon.GitHub),
+        ),
+    );
+
+    readonly height = 30;
 
     constructor() {
-        super(el.div({ class: "application_NavigationView" }));
+        super();
 
         this.element.style.height = `${this.height}px`;
         this.element.onmousedown = this.mousedown;
-
-        for (const button of this.buttons.values()) {
-            this.element.append(button.element);
-        }
-
-        this.element.append(el.div({ class: "application_NavigationView_spacer" }));
-
-        const server_select = this.disposable(
-            new Select(property(["Ephinea"]), server => server, {
-                label: "Server:",
-                enabled: false,
-                selected: "Ephinea",
-                tooltip: "Only Ephinea is supported at the moment",
-            }),
-        );
-
-        this.element.append(
-            el.span(
-                { class: "application_NavigationView_server" },
-                server_select.label!.element,
-                server_select.element,
-            ),
-            el.a(
-                {
-                    class: "application_NavigationView_github",
-                    href: "https://github.com/DaanVandenBosch/phantasmal-world",
-                    title: "GitHub",
-                },
-                icon(Icon.GitHub),
-            ),
-        );
 
         this.mark_tool_button(gui_store.tool.val);
         this.disposable(gui_store.tool.observe(({ value }) => this.mark_tool_button(value)));

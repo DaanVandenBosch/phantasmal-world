@@ -8,7 +8,7 @@ export type LabelledControlOptions = WidgetOptions & {
 
 export type LabelPosition = "left" | "right" | "top" | "bottom";
 
-export abstract class LabelledControl<E extends HTMLElement = HTMLElement> extends Control<E> {
+export abstract class LabelledControl extends Control {
     abstract readonly preferred_label_position: LabelPosition;
 
     get label(): Label | undefined {
@@ -28,8 +28,8 @@ export abstract class LabelledControl<E extends HTMLElement = HTMLElement> exten
     private readonly _label_text?: string;
     private _label?: Label;
 
-    protected constructor(element: E, options?: LabelledControlOptions) {
-        super(element, options);
+    protected constructor(options?: LabelledControlOptions) {
+        super(options);
 
         this._label_text = options && options.label;
     }

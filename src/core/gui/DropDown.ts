@@ -11,6 +11,8 @@ import { emitter } from "../observable";
 export type DropDownOptions = ButtonOptions;
 
 export class DropDown<T> extends Control {
+    readonly element = el.div({ class: "core_DropDown" });
+
     readonly chosen: Observable<T>;
 
     private readonly button: Button;
@@ -24,17 +26,15 @@ export class DropDown<T> extends Control {
         to_label: (element: T) => string,
         options?: DropDownOptions,
     ) {
-        const element = el.div({ class: "core_DropDown" });
-        const button = new Button(text, {
-            icon_left: options && options.icon_left,
-            icon_right: Icon.TriangleDown,
-        });
-        const menu = new Menu<T>(items, to_label, element);
+        super(options);
 
-        super(element, options);
-
-        this.button = this.disposable(button);
-        this.menu = this.disposable(menu);
+        this.button = this.disposable(
+            new Button(text, {
+                icon_left: options && options.icon_left,
+                icon_right: Icon.TriangleDown,
+            }),
+        );
+        this.menu = this.disposable(new Menu<T>(items, to_label, this.element));
         this.element.append(this.button.element, this.menu.element);
 
         this._chosen = emitter();
@@ -43,11 +43,11 @@ export class DropDown<T> extends Control {
         this.just_opened = false;
 
         this.disposables(
-            disposable_listener(button.element, "mousedown", () => this.button_mousedown(), {
+            disposable_listener(this.button.element, "mousedown", () => this.button_mousedown(), {
                 capture: true,
             }),
 
-            button.mouseup.observe(() => this.button_mouseup()),
+            this.button.mouseup.observe(() => this.button_mouseup()),
 
             this.menu.selected.observe(({ value }) => {
                 if (value) {

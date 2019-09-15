@@ -11,16 +11,16 @@ import "./OptimizationResultView.css";
 import { Duration } from "luxon";
 
 export class OptimizationResultView extends Widget {
+    readonly element = el.div(
+        { class: "hunt_optimizer_OptimizationResultView" },
+        el.h2({ text: "Ideal Combination of Methods" }),
+    );
+
     private results_observer?: Disposable;
     private table?: Table<OptimalMethodModel>;
 
     constructor() {
-        super(
-            el.div(
-                { class: "hunt_optimizer_OptimizationResultView" },
-                el.h2({ text: "Ideal Combination of Methods" }),
-            ),
-        );
+        super();
 
         this.disposable(
             hunt_optimizer_stores.observe_current(

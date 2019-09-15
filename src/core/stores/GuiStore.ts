@@ -25,7 +25,7 @@ class GuiStore implements Disposable {
     private readonly hash_disposer = this.tool.observe(({ value: tool }) => {
         window.location.hash = `#/${gui_tool_to_string(tool)}`;
     });
-    private readonly global_keydown_handlers = new Map<string, () => void>();
+    private readonly global_keydown_handlers = new Map<string, (e: KeyboardEvent) => void>();
 
     constructor() {
         const tool = window.location.hash.slice(2);
@@ -43,7 +43,7 @@ class GuiStore implements Disposable {
         window.removeEventListener("keydown", this.dispatch_global_keydown);
     }
 
-    on_global_keydown(tool: GuiTool, binding: string, handler: () => void): Disposable {
+    on_global_keydown(tool: GuiTool, binding: string, handler: (e: KeyboardEvent) => void): Disposable {
         const key = this.handler_key(tool, binding);
         this.global_keydown_handlers.set(key, handler);
 
@@ -67,7 +67,7 @@ class GuiStore implements Disposable {
 
         if (handler) {
             e.preventDefault();
-            handler();
+            handler(e);
         }
     };
 

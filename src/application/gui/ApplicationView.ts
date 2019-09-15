@@ -7,12 +7,16 @@ export class ApplicationView extends ResizableWidget {
     private menu_view = this.disposable(new NavigationView());
     private main_content_view = this.disposable(new MainContentView());
 
+    readonly element = el.div(
+        { class: "application_ApplicationView" },
+        this.menu_view.element,
+        this.main_content_view.element,
+    );
+
     constructor() {
-        super(el.div({ class: "application_ApplicationView" }));
+        super();
 
         this.element.id = "root";
-
-        this.element.append(this.menu_view.element, this.main_content_view.element);
 
         this.finalize_construction(ApplicationView.prototype);
     }

@@ -7,6 +7,7 @@ import { WidgetProperty } from "../observable/property/WidgetProperty";
 import "./Menu.css";
 
 export class Menu<T> extends Widget {
+    readonly element = el.div({ class: "core_Menu", tab_index: -1 });
     readonly selected: WritableProperty<T | undefined>;
 
     private readonly to_label: (element: T) => string;
@@ -22,7 +23,7 @@ export class Menu<T> extends Widget {
         to_label: (element: T) => string,
         related_element: HTMLElement,
     ) {
-        super(el.div({ class: "core_Menu", tab_index: -1 }));
+        super();
 
         this.visible.val = false;
 

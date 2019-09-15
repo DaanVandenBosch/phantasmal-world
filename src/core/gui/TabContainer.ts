@@ -20,12 +20,14 @@ type TabInfo = Tab & { tab_element: HTMLSpanElement; lazy_view: LazyWidget };
 const BAR_HEIGHT = 28;
 
 export class TabContainer extends ResizableWidget {
+    readonly element = el.div({ class: "core_TabContainer" });
+
     private tabs: TabInfo[] = [];
     private bar_element = el.div({ class: "core_TabContainer_Bar" });
     private panes_element = el.div({ class: "core_TabContainer_Panes" });
 
     constructor(options: TabContainerOptions) {
-        super(el.div({ class: "core_TabContainer" }), options);
+        super(options);
 
         this.bar_element.onmousedown = this.bar_mousedown;
 

@@ -11,7 +11,6 @@ import { DropDown } from "../../core/gui/DropDown";
 import { Episode } from "../../core/data_formats/parsing/quest/Episode";
 import { area_store } from "../stores/AreaStore";
 import { gui_store, GuiTool } from "../../core/stores/GuiStore";
-import { asm_editor_store } from "../stores/AsmEditorStore";
 
 export class QuestEditorToolBar extends ToolBar {
     constructor() {
@@ -120,17 +119,11 @@ export class QuestEditorToolBar extends ToolBar {
             ),
 
             gui_store.on_global_keydown(GuiTool.QuestEditor, "Ctrl-Z", () => {
-                // Let Monaco handle its own key bindings.
-                if (undo_manager.current.val !== asm_editor_store.undo) {
-                    undo_manager.undo();
-                }
+                undo_manager.undo();
             }),
 
             gui_store.on_global_keydown(GuiTool.QuestEditor, "Ctrl-Shift-Z", () => {
-                // Let Monaco handle its own key bindings.
-                if (undo_manager.current.val !== asm_editor_store.undo) {
-                    undo_manager.redo();
-                }
+                undo_manager.redo();
             }),
         );
 

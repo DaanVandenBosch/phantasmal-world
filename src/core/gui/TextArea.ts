@@ -12,6 +12,8 @@ export type TextAreaOptions = LabelledControlOptions & {
 };
 
 export class TextArea extends LabelledControl {
+    readonly element = el.div({ class: "core_TextArea" });
+
     readonly preferred_label_position = "left";
 
     readonly value: WritableProperty<string>;
@@ -23,7 +25,7 @@ export class TextArea extends LabelledControl {
     private readonly _value = new WidgetProperty<string>(this, "", this.set_value);
 
     constructor(value = "", options?: TextAreaOptions) {
-        super(el.div({ class: "core_TextArea" }), options);
+        super(options);
 
         if (options) {
             if (options.max_length != undefined) this.text_element.maxLength = options.max_length;

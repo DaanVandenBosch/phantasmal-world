@@ -14,13 +14,15 @@ const MODEL_LIST_WIDTH = 100;
 const ANIMATION_LIST_WIDTH = 140;
 
 export class Model3DView extends ResizableWidget {
+    readonly element = el.div({ class: "viewer_Model3DView" });
+
     private tool_bar_view: Model3DToolBar;
     private model_list_view: Model3DSelectListView<CharacterClassModel>;
     private animation_list_view: Model3DSelectListView<CharacterClassAnimationModel>;
     private renderer_view: RendererWidget;
 
     constructor() {
-        super(el.div({ class: "viewer_Model3DView" }));
+        super();
 
         this.tool_bar_view = this.disposable(new Model3DToolBar());
         this.model_list_view = this.disposable(
@@ -33,13 +35,15 @@ export class Model3DView extends ResizableWidget {
 
         this.animation_list_view.borders = true;
 
-        const container_element = el.div({ class: "viewer_Model3DView_container" });
-        container_element.append(
-            this.model_list_view.element,
-            this.animation_list_view.element,
-            this.renderer_view.element,
+        this.element.append(
+            this.tool_bar_view.element,
+            el.div(
+                { class: "viewer_Model3DView_container" },
+                this.model_list_view.element,
+                this.animation_list_view.element,
+                this.renderer_view.element,
+            ),
         );
-        this.element.append(this.tool_bar_view.element, container_element);
 
         model_store.current_model.val = model_store.models[5];
 

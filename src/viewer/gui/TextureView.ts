@@ -8,6 +8,8 @@ import { TextureRenderer } from "../rendering/TextureRenderer";
 import { gui_store, GuiTool } from "../../core/stores/GuiStore";
 
 export class TextureView extends ResizableWidget {
+    readonly element = el.div({ class: "viewer_TextureView" });
+
     private readonly open_file_button = new FileButton("Open file...", {
         icon_left: Icon.File,
         accept: ".xvm",
@@ -18,7 +20,7 @@ export class TextureView extends ResizableWidget {
     private readonly renderer_view = this.disposable(new RendererWidget(new TextureRenderer()));
 
     constructor() {
-        super(el.div({ class: "viewer_TextureView" }));
+        super();
 
         this.element.append(this.tool_bar.element, this.renderer_view.element);
 

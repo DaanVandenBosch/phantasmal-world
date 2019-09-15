@@ -38,7 +38,9 @@ export type TableOptions<T> = WidgetOptions & {
     sort?(sort_columns: { column: Column<T>; direction: SortDirection }[]): void;
 };
 
-export class Table<T> extends Widget<HTMLTableElement> {
+export class Table<T> extends Widget {
+    readonly element = el.table({ class: "core_Table" });
+
     private readonly table_disposer = this.disposable(new Disposer());
     private readonly tbody_element = el.tbody();
     private readonly footer_row_element?: HTMLTableRowElement;
@@ -46,7 +48,7 @@ export class Table<T> extends Widget<HTMLTableElement> {
     private readonly columns: Column<T>[];
 
     constructor(options: TableOptions<T>) {
-        super(el.table({ class: "core_Table" }), options);
+        super(options);
 
         this.values = options.values;
         this.columns = options.columns;

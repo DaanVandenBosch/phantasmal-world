@@ -16,6 +16,8 @@ export type ComboBoxOptions<T> = LabelledControlOptions & {
 };
 
 export class ComboBox<T> extends LabelledControl {
+    readonly element = el.span({ class: "core_ComboBox core_Input" });
+
     readonly preferred_label_position = "left";
 
     readonly selected: WritableProperty<T | undefined>;
@@ -26,7 +28,7 @@ export class ComboBox<T> extends LabelledControl {
     private readonly _selected: WidgetProperty<T | undefined>;
 
     constructor(options: ComboBoxOptions<T>) {
-        super(el.span({ class: "core_ComboBox core_Input" }), options);
+        super(options);
 
         this.to_label = options.to_label;
 
