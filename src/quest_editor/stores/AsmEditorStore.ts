@@ -196,8 +196,6 @@ export class AsmEditorStore implements Disposable {
         this.undo.reset();
         this.model_disposer.dispose_all();
 
-        this.update_assembly_settings();
-
         const quest = quest_editor_store.current_quest.val;
 
         if (quest) {
