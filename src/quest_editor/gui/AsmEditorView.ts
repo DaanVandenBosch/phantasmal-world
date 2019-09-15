@@ -1,6 +1,6 @@
 import { ResizableWidget } from "../../core/gui/ResizableWidget";
 import { el } from "../../core/gui/dom";
-import { editor } from "monaco-editor";
+import { editor, KeyCode, KeyMod } from "monaco-editor";
 import { asm_editor_store } from "../stores/AsmEditorStore";
 import IStandaloneCodeEditor = editor.IStandaloneCodeEditor;
 
@@ -44,6 +44,9 @@ export class AsmEditorView extends ResizableWidget {
                 folding: false,
             }),
         );
+
+        this.editor.addCommand(KeyMod.CtrlCmd | KeyCode.KEY_Z, () => {});
+        this.editor.addCommand(KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.KEY_Z, () => {});
 
         this.disposables(
             asm_editor_store.did_undo.observe(({ value: source }) => {

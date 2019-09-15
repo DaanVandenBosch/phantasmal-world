@@ -120,17 +120,11 @@ export class QuestEditorToolBar extends ToolBar {
             ),
 
             gui_store.on_global_keydown(GuiTool.QuestEditor, "Ctrl-Z", () => {
-                // Let Monaco handle its own key bindings.
-                if (undo_manager.current.val !== asm_editor_store.undo) {
-                    undo_manager.undo();
-                }
+                undo_manager.undo();
             }),
 
             gui_store.on_global_keydown(GuiTool.QuestEditor, "Ctrl-Shift-Z", () => {
-                // Let Monaco handle its own key bindings.
-                if (undo_manager.current.val !== asm_editor_store.undo) {
-                    undo_manager.redo();
-                }
+                undo_manager.redo();
             }),
         );
 
