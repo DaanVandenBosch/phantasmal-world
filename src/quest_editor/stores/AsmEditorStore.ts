@@ -3,7 +3,6 @@ import { AssemblyAnalyser } from "../scripting/AssemblyAnalyser";
 import { Disposable } from "../../core/observable/Disposable";
 import { Disposer } from "../../core/observable/Disposer";
 import { SimpleUndo } from "../../core/undo/SimpleUndo";
-import { QuestModel } from "../model/QuestModel";
 import { quest_editor_store } from "./QuestEditorStore";
 import { ASM_SYNTAX } from "./asm_syntax";
 import { AssemblyError, AssemblyWarning } from "../scripting/assembly";
@@ -60,48 +59,34 @@ languages.setLanguageConfiguration("psoasm", {
 });
 
 export class AsmEditorStore implements Disposable {
-    readonly model: Property<ITextModel | undefined>;
-    readonly did_undo: Observable<string>;
-    readonly did_redo: Observable<string>;
-    readonly undo = new SimpleUndo(
-        "Text edits",
-        () => this._did_undo.emit({ value: "asm undo" }),
-        () => this._did_redo.emit({ value: "asm undo" }),
-    );
-
-    readonly inline_args_mode: WritableProperty<boolean> = property(true);
-    readonly has_issues: WritableProperty<boolean> = property(false);
-
     private readonly disposer = new Disposer();
     private readonly model_disposer = this.disposer.add(new Disposer());
     private readonly _model: WritableProperty<ITextModel | undefined> = property(undefined);
     private readonly _did_undo = emitter<string>();
     private readonly _did_redo = emitter<string>();
+    private readonly _inline_args_mode: WritableProperty<boolean> = property(true);
+
+    readonly model: Property<ITextModel | undefined> = this._model;
+    readonly did_undo: Observable<string> = this._did_undo;
+    readonly did_redo: Observable<string> = this._did_redo;
+    readonly undo = new SimpleUndo(
+        "Text edits",
+        () => this._did_undo.emit({ value: "asm undo" }),
+        () => this._did_redo.emit({ value: "asm undo" }),
+    );
+    readonly inline_args_mode: Property<boolean> = this._inline_args_mode;
+    readonly has_issues: Property<boolean> = assembly_analyser.issues.map(
+        issues => issues.warnings.length + issues.errors.length > 0,
+    );
 
     constructor() {
-        this.model = this._model;
-        this.did_undo = this._did_undo;
-        this.did_redo = this._did_redo;
-
         this.disposer.add_all(
-            quest_editor_store.current_quest.observe(({ value }) => this.quest_changed(value), {
+            quest_editor_store.current_quest.observe(this.quest_changed, {
                 call_now: true,
             }),
 
             assembly_analyser.issues.observe(({ value }) => this.update_model_markers(value), {
                 call_now: true,
-            }),
-
-            this.inline_args_mode.observe(() => {
-                // don't allow changing inline args mode if there are issues
-                if (!this.has_issues.val) {
-                    this.change_inline_args_mode();
-                }
-            }),
-
-            assembly_analyser.issues.observe(({ value }) => {
-                this.has_issues.val =
-                    Boolean(value.warnings.length) || Boolean(value.errors.length);
             }),
         );
     }
@@ -109,6 +94,19 @@ export class AsmEditorStore implements Disposable {
     dispose(): void {
         this.disposer.dispose();
     }
+
+    set_inline_args_mode = (inline_args_mode: boolean): void => {
+        // don't allow changing inline args mode if there are issues
+        if (!this.has_issues.val) {
+            this._inline_args_mode.val = inline_args_mode;
+            this.update_assembly_settings();
+            this.update_model();
+        }
+    };
+
+    private quest_changed = (): void => {
+        this.update_model();
+    };
 
     /**
      * Setup features for a given editor model.
@@ -154,26 +152,6 @@ export class AsmEditorStore implements Disposable {
         );
     }
 
-    private quest_changed(quest?: QuestModel): void {
-        this.undo.reset();
-        this.model_disposer.dispose_all();
-
-        if (quest) {
-            const manual_stack = !this.inline_args_mode.val;
-
-            const assembly = assembly_analyser.disassemble(quest, manual_stack);
-            const model = this.model_disposer.add(
-                editor.createModel(assembly.join("\n"), "psoasm"),
-            );
-
-            this.setup_editor_model_features(model);
-
-            this._model.val = model;
-        } else {
-            this._model.val = undefined;
-        }
-    }
-
     private update_model_markers({
         warnings,
         errors,
@@ -214,23 +192,28 @@ export class AsmEditorStore implements Disposable {
         );
     }
 
-    private change_inline_args_mode(): void {
+    private update_model(): void {
+        this.undo.reset();
+        this.model_disposer.dispose_all();
+
         this.update_assembly_settings();
 
         const quest = quest_editor_store.current_quest.val;
 
-        if (!quest) {
-            return;
+        if (quest) {
+            const manual_stack = !this.inline_args_mode.val;
+
+            const assembly = assembly_analyser.disassemble(quest, manual_stack);
+            const model = this.model_disposer.add(
+                editor.createModel(assembly.join("\n"), "psoasm"),
+            );
+
+            this.setup_editor_model_features(model);
+
+            this._model.val = model;
+        } else {
+            this._model.val = undefined;
         }
-
-        const manual_stack = !this.inline_args_mode.val;
-
-        const assembly = assembly_analyser.disassemble(quest, manual_stack);
-        const model = this.model_disposer.add(editor.createModel(assembly.join("\n"), "psoasm"));
-
-        this.setup_editor_model_features(model);
-
-        this._model.val = model;
     }
 
     private update_assembly_settings(): void {

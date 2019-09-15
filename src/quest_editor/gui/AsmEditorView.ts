@@ -2,8 +2,8 @@ import { ResizableWidget } from "../../core/gui/ResizableWidget";
 import { el } from "../../core/gui/dom";
 import { editor, KeyCode, KeyMod } from "monaco-editor";
 import { asm_editor_store } from "../stores/AsmEditorStore";
-import IStandaloneCodeEditor = editor.IStandaloneCodeEditor;
 import { AsmEditorToolBar } from "./AsmEditorToolBar";
+import IStandaloneCodeEditor = editor.IStandaloneCodeEditor;
 
 editor.defineTheme("phantasmal-world", {
     base: "vs-dark",
@@ -28,9 +28,9 @@ const DUMMY_MODEL = editor.createModel("", "psoasm");
 
 export class AsmEditorView extends ResizableWidget {
     private readonly tool_bar_view = this.disposable(new AsmEditorToolBar());
-    readonly element = el.div();
-
     private readonly editor: IStandaloneCodeEditor;
+
+    readonly element = el.div();
 
     constructor() {
         super();

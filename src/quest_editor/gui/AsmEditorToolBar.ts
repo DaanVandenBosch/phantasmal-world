@@ -23,7 +23,11 @@ export class AsmEditorToolBar extends ToolBar {
         });
 
         this.disposables(
-            asm_editor_store.inline_args_mode.bind_to(inline_args_mode_checkbox.checked),
+            inline_args_mode_checkbox.checked.bind_to(asm_editor_store.inline_args_mode),
+
+            inline_args_mode_checkbox.checked.observe(({ value }) =>
+                asm_editor_store.set_inline_args_mode(value),
+            ),
 
             inline_args_mode_checkbox.enabled.bind_to(asm_editor_store.has_issues.map(b => !b)),
         );
