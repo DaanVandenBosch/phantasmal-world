@@ -7,8 +7,9 @@ import {
     NewAssemblyInput,
     OutputMessageType,
     SignatureHelpInput,
+    AssemblySettingsChangeInput,
 } from "./assembly_worker_messages";
-import { AssemblyError, AssemblyWarning } from "./assembly";
+import { AssemblyError, AssemblyWarning, AssemblySettings } from "./assembly";
 import { disassemble } from "./disassembly";
 import { QuestModel } from "../model/QuestModel";
 import { Kind, OPCODES } from "./opcodes";
@@ -128,6 +129,14 @@ export class AssemblyAnalyser implements Disposable {
                 }
             }, 5_000);
         });
+    }
+
+    update_settings(changed_settings: Partial<AssemblySettings>): void {
+        const message: AssemblySettingsChangeInput = {
+            type: InputMessageType.SettingsChange,
+            settings: changed_settings
+        };
+        this.worker.postMessage(message);
     }
 
     dispose(): void {

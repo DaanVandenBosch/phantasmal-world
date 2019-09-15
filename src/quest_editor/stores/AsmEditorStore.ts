@@ -69,6 +69,9 @@ export class AsmEditorStore implements Disposable {
         () => this._did_redo.emit({ value: "asm undo" }),
     );
 
+    readonly inline_args_mode: WritableProperty<boolean> = property(true);
+    readonly has_issues: WritableProperty<boolean> = property(false);
+
     private readonly disposer = new Disposer();
     private readonly model_disposer = this.disposer.add(new Disposer());
     private readonly _model: WritableProperty<ITextModel | undefined> = property(undefined);
@@ -88,6 +91,17 @@ export class AsmEditorStore implements Disposable {
             assembly_analyser.issues.observe(({ value }) => this.update_model_markers(value), {
                 call_now: true,
             }),
+
+            this.inline_args_mode.observe(() => {
+                // don't allow changing inline args mode if there are issues
+                if (!this.has_issues.val) {
+                    this.update_assembly_settings();
+                }
+            }),
+
+            assembly_analyser.issues.observe(({ value }) => {
+                this.has_issues.val = Boolean(value.warnings.length) || Boolean(value.errors.length);
+            })
         );
     }
 
@@ -187,6 +201,12 @@ export class AsmEditorStore implements Disposable {
                     ),
                 ),
         );
+    }
+
+    private update_assembly_settings(): void {
+        assembly_analyser.update_settings({
+            manual_stack: !this.inline_args_mode.val
+        });
     }
 }
 

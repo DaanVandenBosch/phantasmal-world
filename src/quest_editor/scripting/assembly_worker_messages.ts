@@ -1,4 +1,4 @@
-import { AssemblyError, AssemblyWarning } from "./assembly";
+import { AssemblyError, AssemblyWarning, AssemblySettings } from "./assembly";
 import { Segment } from "./instructions";
 import { Opcode } from "./opcodes";
 
@@ -6,9 +6,10 @@ export enum InputMessageType {
     NewAssembly,
     AssemblyChange,
     SignatureHelp,
+    SettingsChange,
 }
 
-export type AssemblyWorkerInput = NewAssemblyInput | AssemblyChangeInput | SignatureHelpInput;
+export type AssemblyWorkerInput = NewAssemblyInput | AssemblyChangeInput | SignatureHelpInput | AssemblySettingsChangeInput;
 
 export type NewAssemblyInput = {
     readonly type: InputMessageType.NewAssembly;
@@ -31,6 +32,11 @@ export type SignatureHelpInput = {
     readonly id: number;
     readonly line_no: number;
     readonly col: number;
+};
+
+export type AssemblySettingsChangeInput = {
+    readonly type: InputMessageType.SettingsChange;
+    readonly settings: Partial<AssemblySettings>;
 };
 
 export enum OutputMessageType {

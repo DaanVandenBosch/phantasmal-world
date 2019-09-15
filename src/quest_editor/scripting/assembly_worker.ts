@@ -6,8 +6,9 @@ import {
     OutputMessageType,
     SignatureHelpInput,
     SignatureHelpOutput,
+    AssemblySettingsChangeInput,
 } from "./assembly_worker_messages";
-import { assemble } from "./assembly";
+import { assemble, AssemblySettings } from "./assembly";
 import Logger from "js-logger";
 import { SegmentType } from "./instructions";
 import { Opcode, OPCODES_BY_MNEMONIC } from "./opcodes";
@@ -23,6 +24,10 @@ let lines: string[] = [];
 
 const messages: AssemblyWorkerInput[] = [];
 let timeout: any;
+
+const assembly_settings: AssemblySettings = {
+    manual_stack: false
+};
 
 ctx.onmessage = (e: MessageEvent) => {
     messages.push(e.data);
@@ -51,6 +56,9 @@ function process_messages(): void {
                 break;
             case InputMessageType.SignatureHelp:
                 signature_help(message);
+                break;
+            case InputMessageType.SettingsChange:
+                settings_change(message);
                 break;
         }
     }
@@ -130,8 +138,17 @@ function signature_help(message: SignatureHelpInput): void {
     ctx.postMessage(response);
 }
 
+/**
+ * Apply changes to settings.
+ */
+function settings_change(message: AssemblySettingsChangeInput): void {
+    if (message.settings.hasOwnProperty("manual_stack")) {
+        assembly_settings.manual_stack = Boolean(message.settings.manual_stack);
+    }
+}
+
 function assemble_and_send(): void {
-    const assembler_result = assemble(lines);
+    const assembler_result = assemble(lines, assembly_settings.manual_stack);
     const map_designations = new Map<number, number>();
 
     for (const segment of assembler_result.object_code) {
