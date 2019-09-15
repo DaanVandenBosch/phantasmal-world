@@ -134,7 +134,7 @@ export class AssemblyAnalyser implements Disposable {
     update_settings(changed_settings: Partial<AssemblySettings>): void {
         const message: AssemblySettingsChangeInput = {
             type: InputMessageType.SettingsChange,
-            settings: changed_settings
+            settings: changed_settings,
         };
         this.worker.postMessage(message);
     }

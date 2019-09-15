@@ -9,7 +9,11 @@ export enum InputMessageType {
     SettingsChange,
 }
 
-export type AssemblyWorkerInput = NewAssemblyInput | AssemblyChangeInput | SignatureHelpInput | AssemblySettingsChangeInput;
+export type AssemblyWorkerInput =
+    | NewAssemblyInput
+    | AssemblyChangeInput
+    | SignatureHelpInput
+    | AssemblySettingsChangeInput;
 
 export type NewAssemblyInput = {
     readonly type: InputMessageType.NewAssembly;

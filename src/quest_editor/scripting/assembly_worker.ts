@@ -26,7 +26,7 @@ const messages: AssemblyWorkerInput[] = [];
 let timeout: any;
 
 const assembly_settings: AssemblySettings = {
-    manual_stack: false
+    manual_stack: false,
 };
 
 ctx.onmessage = (e: MessageEvent) => {

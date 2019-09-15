@@ -100,8 +100,9 @@ export class AsmEditorStore implements Disposable {
             }),
 
             assembly_analyser.issues.observe(({ value }) => {
-                this.has_issues.val = Boolean(value.warnings.length) || Boolean(value.errors.length);
-            })
+                this.has_issues.val =
+                    Boolean(value.warnings.length) || Boolean(value.errors.length);
+            }),
         );
     }
 
@@ -225,10 +226,8 @@ export class AsmEditorStore implements Disposable {
         const manual_stack = !this.inline_args_mode.val;
 
         const assembly = assembly_analyser.disassemble(quest, manual_stack);
-        const model = this.model_disposer.add(
-            editor.createModel(assembly.join("\n"), "psoasm"),
-        );
-        
+        const model = this.model_disposer.add(editor.createModel(assembly.join("\n"), "psoasm"));
+
         this.setup_editor_model_features(model);
 
         this._model.val = model;
@@ -236,7 +235,7 @@ export class AsmEditorStore implements Disposable {
 
     private update_assembly_settings(): void {
         assembly_analyser.update_settings({
-            manual_stack: !this.inline_args_mode.val
+            manual_stack: !this.inline_args_mode.val,
         });
     }
 }
