@@ -1,4 +1,4 @@
-import { Instruction, InstructionSegment, Segment, SegmentType } from "../instructions";
+import { Instruction, InstructionSegment, Segment, SegmentType, Arg } from "../instructions";
 import {
     OP_CALL,
     OP_CLEAR,
@@ -14,6 +14,13 @@ import {
     OP_SYNC,
     OP_THREAD,
     OP_JMP,
+    OP_ARG_PUSHR,
+    OP_ARG_PUSHL,
+    OP_ARG_PUSHB,
+    OP_ARG_PUSHW,
+    OP_ARG_PUSHA,
+    OP_ARG_PUSHO,
+    OP_ARG_PUSHS,
 } from "../opcodes";
 import Logger from "js-logger";
 
@@ -130,6 +137,15 @@ export class VirtualMachine {
             case OP_JMP:
                 this.jump_to_label(exec, inst.args[0].value);
                 break;
+            case OP_ARG_PUSHR:
+            case OP_ARG_PUSHL:
+            case OP_ARG_PUSHB:
+            case OP_ARG_PUSHW:
+            case OP_ARG_PUSHA:
+            case OP_ARG_PUSHO:
+            case OP_ARG_PUSHS:
+                this.push_arg_stack(exec, inst.args[0].value);
+                break;
             default:
                 throw new Error(`Unsupported instruction: ${inst.opcode.mnemonic}.`);
         }
@@ -235,6 +251,20 @@ export class VirtualMachine {
         }
     }
 
+    private push_arg_stack(exec: Thread, arg: Arg): void {
+        exec.arg_stack.push(arg);
+    }
+
+    private pop_arg_stack(exec: Thread): Arg {
+        const arg = exec.arg_stack.pop();
+
+        if (!arg) {
+            throw new Error("Argument stack underflow.");
+        }
+
+        return arg;
+    }
+
     private get_next_instruction_from_thread(exec: Thread): Instruction {
         if (exec.call_stack.length) {
             const top = exec.call_stack_top();
@@ -272,6 +302,7 @@ class Thread {
      * Call stack. The top element describes the instruction about to be executed.
      */
     public call_stack: ExecutionLocation[] = [];
+    public arg_stack: Arg[] = [];
     /**
      * Global or floor-local?
      */
