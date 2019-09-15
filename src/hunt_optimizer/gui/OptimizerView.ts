@@ -5,8 +5,10 @@ import "./OptimizerView.css";
 import { OptimizationResultView } from "./OptimizationResultView";
 
 export class OptimizerView extends ResizableWidget {
+    readonly element = el.div({ class: "hunt_optimizer_OptimizerView" });
+
     constructor() {
-        super(el.div({ class: "hunt_optimizer_OptimizerView" }));
+        super();
 
         this.element.append(
             this.disposable(new WantedItemsView()).element,

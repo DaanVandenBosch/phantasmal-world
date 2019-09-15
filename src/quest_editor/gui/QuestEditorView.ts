@@ -94,6 +94,8 @@ const DEFAULT_LAYOUT_CONTENT: ItemConfigType[] = [
 ];
 
 export class QuestEditorView extends ResizableWidget {
+    readonly element = el.div({ class: "quest_editor_QuestEditorView" });
+
     private readonly tool_bar_view = this.disposable(new QuestEditorToolBar());
 
     private readonly layout_element = create_element("div", { class: "quest_editor_gl_container" });
@@ -102,7 +104,7 @@ export class QuestEditorView extends ResizableWidget {
     private readonly sub_views = new Map<string, ResizableWidget>();
 
     constructor() {
-        super(el.div({ class: "quest_editor_QuestEditorView" }));
+        super();
 
         this.element.append(this.tool_bar_view.element, this.layout_element);
 

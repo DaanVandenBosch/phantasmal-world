@@ -7,12 +7,14 @@ import "./NpcCountsView.css";
 import { DisabledView } from "./DisabledView";
 
 export class NpcCountsView extends ResizableWidget {
+    readonly element = el.div({ class: "quest_editor_NpcCountsView" });
+
     private readonly table_element = el.table();
 
     private readonly no_quest_view = new DisabledView("No quest loaded.");
 
     constructor() {
-        super(el.div({ class: "quest_editor_NpcCountsView" }));
+        super();
 
         this.element.append(this.table_element, this.no_quest_view.element);
 

@@ -4,6 +4,8 @@ import { WritableProperty } from "../../../core/observable/property/WritableProp
 import "./Model3DSelectListView.css";
 
 export class Model3DSelectListView<T extends { name: string }> extends ResizableWidget {
+    readonly element = create_element("ul", { class: "viewer_Model3DSelectListView" });
+
     set borders(borders: boolean) {
         if (borders) {
             this.element.style.borderLeft = "var(--border)";
@@ -18,7 +20,7 @@ export class Model3DSelectListView<T extends { name: string }> extends Resizable
     private selected_element?: HTMLLIElement;
 
     constructor(private models: T[], private selected: WritableProperty<T | undefined>) {
-        super(create_element("ul", { class: "viewer_Model3DSelectListView" }));
+        super();
 
         this.element.onclick = this.list_click;
 

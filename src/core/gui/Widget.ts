@@ -15,8 +15,8 @@ export type WidgetOptions = {
     tooltip?: string | Property<string>;
 };
 
-export abstract class Widget<E extends HTMLElement = HTMLElement> implements Disposable {
-    readonly element: E;
+export abstract class Widget implements Disposable {
+    abstract readonly element: HTMLElement;
 
     get id(): string {
         return this.element.id;
@@ -51,17 +51,12 @@ export abstract class Widget<E extends HTMLElement = HTMLElement> implements Dis
     private readonly options: WidgetOptions;
     private construction_finalized = false;
 
-    protected constructor(element: E, options?: WidgetOptions) {
-        this.element = element;
+    protected constructor(options?: WidgetOptions) {
         this.visible = this._visible;
         this.enabled = this._enabled;
         this.tooltip = this._tooltip;
 
         this.options = options || {};
-
-        if (this.options.class) {
-            this.element.classList.add(this.options.class);
-        }
 
         setTimeout(() => {
             if (!this.construction_finalized) {
@@ -87,7 +82,9 @@ export abstract class Widget<E extends HTMLElement = HTMLElement> implements Dis
     protected finalize_construction(proto: any): void {
         if (Object.getPrototypeOf(this) !== proto) return;
 
-        this.construction_finalized = true;
+        if (this.options.class) {
+            this.element.classList.add(this.options.class);
+        }
 
         if (typeof this.options.enabled === "boolean") {
             this.enabled.val = this.options.enabled;
@@ -100,6 +97,8 @@ export abstract class Widget<E extends HTMLElement = HTMLElement> implements Dis
         } else if (this.options.tooltip) {
             this.tooltip.bind_to(this.options.tooltip);
         }
+
+        this.construction_finalized = true;
     }
 
     protected set_visible(visible: boolean): void {

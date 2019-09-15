@@ -14,7 +14,8 @@ export type ButtonOptions = WidgetOptions & {
     icon_right?: Icon;
 };
 
-export class Button extends Control<HTMLButtonElement> {
+export class Button extends Control {
+    readonly element = el.button({ class: "core_Button" });
     readonly mousedown: Observable<MouseEvent>;
     readonly mouseup: Observable<MouseEvent>;
     readonly click: Observable<MouseEvent>;
@@ -27,9 +28,9 @@ export class Button extends Control<HTMLButtonElement> {
     private readonly center_element: HTMLSpanElement;
 
     constructor(text: string | Property<string>, options?: ButtonOptions) {
-        const inner_element = el.span({ class: "core_Button_inner" });
+        super(options);
 
-        super(el.button({ class: "core_Button" }, inner_element), options);
+        const inner_element = el.span({ class: "core_Button_inner" });
 
         this.center_element = el.span({ class: "core_Button_center" });
 
@@ -63,6 +64,8 @@ export class Button extends Control<HTMLButtonElement> {
         } else if (text) {
             this.text.bind_to(text);
         }
+
+        this.element.append(inner_element);
 
         this.finalize_construction(Button.prototype);
     }

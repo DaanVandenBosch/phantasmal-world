@@ -8,7 +8,9 @@ import { WidgetProperty } from "../observable/property/WidgetProperty";
 
 export type InputOptions = LabelledControlOptions;
 
-export abstract class Input<T> extends LabelledControl<HTMLElement> {
+export abstract class Input<T> extends LabelledControl {
+    readonly element: HTMLElement;
+
     readonly value: WritableProperty<T>;
 
     protected readonly input_element: HTMLInputElement;
@@ -22,7 +24,9 @@ export abstract class Input<T> extends LabelledControl<HTMLElement> {
         input_class_name: string,
         options?: InputOptions,
     ) {
-        super(el.span({ class: `${class_name} core_Input` }), options);
+        super(options);
+
+        this.element = el.span({ class: `${class_name} core_Input` });
 
         this._value = new WidgetProperty<T>(this, value, this.set_value);
         this.value = this._value;

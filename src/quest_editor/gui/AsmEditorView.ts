@@ -26,10 +26,12 @@ editor.defineTheme("phantasmal-world", {
 const DUMMY_MODEL = editor.createModel("", "psoasm");
 
 export class AsmEditorView extends ResizableWidget {
+    readonly element = el.div();
+
     private readonly editor: IStandaloneCodeEditor;
 
     constructor() {
-        super(el.div());
+        super();
 
         this.editor = this.disposable(
             editor.create(this.element, {

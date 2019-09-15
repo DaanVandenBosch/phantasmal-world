@@ -15,12 +15,14 @@ import { list_property } from "../../core/observable";
 import { ItemType } from "../../core/model/items";
 
 export class WantedItemsView extends Widget {
+    readonly element = el.div({ class: "hunt_optimizer_WantedItemsView" });
+
     private readonly tbody_element = el.tbody();
     private readonly table_disposer = this.disposable(new Disposer());
     private readonly store_disposer = this.disposable(new Disposer());
 
     constructor() {
-        super(el.div({ class: "hunt_optimizer_WantedItemsView" }));
+        super();
 
         const huntable_items = list_property<ItemType>();
         const filtered_huntable_items = list_property<ItemType>();

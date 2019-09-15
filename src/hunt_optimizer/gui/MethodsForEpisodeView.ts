@@ -16,12 +16,14 @@ import { SortDirection, Table } from "../../core/gui/Table";
 import { list_property } from "../../core/observable";
 
 export class MethodsForEpisodeView extends ResizableWidget {
+    readonly element = el.div({ class: "hunt_optimizer_MethodsForEpisodeView" });
+
     private readonly episode: Episode;
     private readonly enemy_types: NpcType[];
     private hunt_methods_observer?: Disposable;
 
     constructor(episode: Episode) {
-        super(el.div({ class: "hunt_optimizer_MethodsForEpisodeView" }));
+        super();
 
         this.episode = episode;
 

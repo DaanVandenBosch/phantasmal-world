@@ -10,6 +10,8 @@ import "./QuestInfoView.css";
 import { DisabledView } from "./DisabledView";
 
 export class QuestInfoView extends ResizableWidget {
+    readonly element = el.div({ class: "quest_editor_QuestInfoView", tab_index: -1 });
+
     private readonly table_element = el.table();
     private readonly episode_element: HTMLElement;
     private readonly id_input = this.disposable(new NumberInput());
@@ -40,7 +42,7 @@ export class QuestInfoView extends ResizableWidget {
     private readonly quest_disposer = this.disposable(new Disposer());
 
     constructor() {
-        super(el.div({ class: "quest_editor_QuestInfoView", tab_index: -1 }));
+        super();
 
         const quest = quest_editor_store.current_quest;
         const no_quest = quest.map(q => q == undefined);

@@ -12,6 +12,8 @@ import { Vec3 } from "../../core/data_formats/vector";
 import { QuestEntityModel } from "../model/QuestEntityModel";
 
 export class EntityInfoView extends ResizableWidget {
+    readonly element = el.div({ class: "quest_editor_EntityInfoView", tab_index: -1 });
+
     private readonly no_entity_view = new DisabledView("No entity selected.");
 
     private readonly table_element = el.table();
@@ -41,7 +43,7 @@ export class EntityInfoView extends ResizableWidget {
     private readonly entity_disposer = new Disposer();
 
     constructor() {
-        super(el.div({ class: "quest_editor_EntityInfoView", tab_index: -1 }));
+        super();
 
         const entity = quest_editor_store.selected_entity;
         const no_entity = entity.map(e => e == undefined);

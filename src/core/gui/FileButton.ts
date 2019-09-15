@@ -11,7 +11,11 @@ export type FileButtonOptions = ControlOptions & {
     icon_left?: Icon;
 };
 
-export class FileButton extends Control<HTMLElement> {
+export class FileButton extends Control {
+    readonly element = create_element("label", {
+        class: "core_FileButton core_Button",
+    });
+
     readonly files: Property<File[]>;
 
     private input: HTMLInputElement = create_element("input", {
@@ -21,12 +25,7 @@ export class FileButton extends Control<HTMLElement> {
     private readonly _files: WritableProperty<File[]> = property<File[]>([]);
 
     constructor(text: string, options?: FileButtonOptions) {
-        super(
-            create_element("label", {
-                class: "core_FileButton core_Button",
-            }),
-            options,
-        );
+        super(options);
 
         this.files = this._files;
 

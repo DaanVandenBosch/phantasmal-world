@@ -12,6 +12,8 @@ export type SelectOptions<T> = LabelledControlOptions & {
 };
 
 export class Select<T> extends LabelledControl {
+    readonly element = el.div({ class: "core_Select" });
+
     readonly preferred_label_position: LabelPosition;
 
     readonly selected: WritableProperty<T | undefined>;
@@ -27,19 +29,17 @@ export class Select<T> extends LabelledControl {
         to_label: (element: T) => string,
         options?: SelectOptions<T>,
     ) {
-        const element = el.div({ class: "core_Select" });
-        const button = new Button(" ", {
-            icon_right: Icon.TriangleDown,
-        });
-        const menu = new Menu<T>(items, to_label, element);
-
-        super(element, options);
+        super(options);
 
         this.preferred_label_position = "left";
 
         this.to_label = to_label;
-        this.button = this.disposable(button);
-        this.menu = this.disposable(menu);
+        this.button = this.disposable(
+            new Button(" ", {
+                icon_right: Icon.TriangleDown,
+            }),
+        );
+        this.menu = this.disposable(new Menu<T>(items, to_label, this.element));
         this.element.append(this.button.element, this.menu.element);
 
         this._selected = new WidgetProperty<T | undefined>(this, undefined, this.set_selected);
@@ -48,9 +48,9 @@ export class Select<T> extends LabelledControl {
         this.just_opened = false;
 
         this.disposables(
-            disposable_listener(button.element, "mousedown", e => this.button_mousedown(e)),
+            disposable_listener(this.button.element, "mousedown", e => this.button_mousedown(e)),
 
-            button.mouseup.observe(() => this.button_mouseup()),
+            this.button.mouseup.observe(() => this.button_mouseup()),
 
             this.menu.selected.observe(({ value }) =>
                 this._selected.set_val(value, { silent: false }),

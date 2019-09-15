@@ -11,7 +11,6 @@ import { DropDown } from "../../core/gui/DropDown";
 import { Episode } from "../../core/data_formats/parsing/quest/Episode";
 import { area_store } from "../stores/AreaStore";
 import { gui_store, GuiTool } from "../../core/stores/GuiStore";
-import { asm_editor_store } from "../stores/AsmEditorStore";
 
 export class QuestEditorToolBar extends ToolBar {
     constructor() {
