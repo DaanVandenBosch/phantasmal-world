@@ -95,7 +95,7 @@ export class AsmEditorStore implements Disposable {
             this.inline_args_mode.observe(() => {
                 // don't allow changing inline args mode if there are issues
                 if (!this.has_issues.val) {
-                    this.update_assembly_settings();
+                    this.change_inline_args_mode();
                 }
             }),
 
@@ -109,53 +109,63 @@ export class AsmEditorStore implements Disposable {
         this.disposer.dispose();
     }
 
+    /**
+     * Setup features for a given editor model.
+     * Features include undo/redo history and reassembling on change.
+     */
+    private setup_editor_model_features(model: editor.ITextModel): void {
+        let initial_version = model.getAlternativeVersionId();
+        let current_version = initial_version;
+        let last_version = initial_version;
+
+        this.model_disposer.add(
+            model.onDidChangeContent(e => {
+                const version = model.getAlternativeVersionId();
+
+                if (version < current_version) {
+                    // Undoing.
+                    this.undo.can_redo.val = true;
+
+                    if (version === initial_version) {
+                        this.undo.can_undo.val = false;
+                    }
+                } else {
+                    // Redoing.
+                    if (version <= last_version) {
+                        if (version === last_version) {
+                            this.undo.can_redo.val = false;
+                        }
+                    } else {
+                        this.undo.can_redo.val = false;
+
+                        if (current_version > last_version) {
+                            last_version = current_version;
+                        }
+                    }
+
+                    this.undo.can_undo.val = true;
+                }
+
+                current_version = version;
+
+                assembly_analyser.update_assembly(e.changes);
+            }),
+        );
+    }
+
     private quest_changed(quest?: QuestModel): void {
         this.undo.reset();
         this.model_disposer.dispose_all();
 
         if (quest) {
-            const assembly = assembly_analyser.disassemble(quest);
+            const manual_stack = !this.inline_args_mode.val;
+
+            const assembly = assembly_analyser.disassemble(quest, manual_stack);
             const model = this.model_disposer.add(
                 editor.createModel(assembly.join("\n"), "psoasm"),
             );
 
-            let initial_version = model.getAlternativeVersionId();
-            let current_version = initial_version;
-            let last_version = initial_version;
-
-            this.model_disposer.add(
-                model.onDidChangeContent(e => {
-                    const version = model.getAlternativeVersionId();
-
-                    if (version < current_version) {
-                        // Undoing.
-                        this.undo.can_redo.val = true;
-
-                        if (version === initial_version) {
-                            this.undo.can_undo.val = false;
-                        }
-                    } else {
-                        // Redoing.
-                        if (version <= last_version) {
-                            if (version === last_version) {
-                                this.undo.can_redo.val = false;
-                            }
-                        } else {
-                            this.undo.can_redo.val = false;
-
-                            if (current_version > last_version) {
-                                last_version = current_version;
-                            }
-                        }
-
-                        this.undo.can_undo.val = true;
-                    }
-
-                    current_version = version;
-
-                    assembly_analyser.update_assembly(e.changes);
-                }),
-            );
+            this.setup_editor_model_features(model);
 
             this._model.val = model;
         } else {
@@ -201,6 +211,27 @@ export class AsmEditorStore implements Disposable {
                     ),
                 ),
         );
+    }
+
+    private change_inline_args_mode(): void {
+        this.update_assembly_settings();
+
+        const quest = quest_editor_store.current_quest.val;
+
+        if (!quest) {
+            return;
+        }
+
+        const manual_stack = !this.inline_args_mode.val;
+
+        const assembly = assembly_analyser.disassemble(quest, manual_stack);
+        const model = this.model_disposer.add(
+            editor.createModel(assembly.join("\n"), "psoasm"),
+        );
+        
+        this.setup_editor_model_features(model);
+
+        this._model.val = model;
     }
 
     private update_assembly_settings(): void {

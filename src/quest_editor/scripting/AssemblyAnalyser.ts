@@ -75,9 +75,9 @@ export class AssemblyAnalyser implements Disposable {
         this.worker.onmessage = this.process_worker_message;
     }
 
-    disassemble(quest: QuestModel): string[] {
+    disassemble(quest: QuestModel, manual_stack?: boolean): string[] {
         this.quest = quest;
-        const assembly = disassemble(quest.object_code);
+        const assembly = disassemble(quest.object_code, manual_stack);
         const message: NewAssemblyInput = { type: InputMessageType.NewAssembly, assembly };
         this.worker.postMessage(message);
         return assembly;
