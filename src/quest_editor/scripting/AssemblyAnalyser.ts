@@ -7,8 +7,9 @@ import {
     NewAssemblyInput,
     OutputMessageType,
     SignatureHelpInput,
+    AssemblySettingsChangeInput,
 } from "./assembly_worker_messages";
-import { AssemblyError, AssemblyWarning } from "./assembly";
+import { AssemblyError, AssemblyWarning, AssemblySettings } from "./assembly";
 import { disassemble } from "./disassembly";
 import { QuestModel } from "../model/QuestModel";
 import { Kind, OPCODES } from "./opcodes";
@@ -74,9 +75,9 @@ export class AssemblyAnalyser implements Disposable {
         this.worker.onmessage = this.process_worker_message;
     }
 
-    disassemble(quest: QuestModel): string[] {
+    disassemble(quest: QuestModel, manual_stack?: boolean): string[] {
         this.quest = quest;
-        const assembly = disassemble(quest.object_code);
+        const assembly = disassemble(quest.object_code, manual_stack);
         const message: NewAssemblyInput = { type: InputMessageType.NewAssembly, assembly };
         this.worker.postMessage(message);
         return assembly;
@@ -128,6 +129,14 @@ export class AssemblyAnalyser implements Disposable {
                 }
             }, 5_000);
         });
+    }
+
+    update_settings(changed_settings: Partial<AssemblySettings>): void {
+        const message: AssemblySettingsChangeInput = {
+            type: InputMessageType.SettingsChange,
+            settings: changed_settings,
+        };
+        this.worker.postMessage(message);
     }
 
     dispose(): void {

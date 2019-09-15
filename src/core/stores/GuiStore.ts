@@ -43,7 +43,11 @@ class GuiStore implements Disposable {
         window.removeEventListener("keydown", this.dispatch_global_keydown);
     }
 
-    on_global_keydown(tool: GuiTool, binding: string, handler: (e: KeyboardEvent) => void): Disposable {
+    on_global_keydown(
+        tool: GuiTool,
+        binding: string,
+        handler: (e: KeyboardEvent) => void,
+    ): Disposable {
         const key = this.handler_key(tool, binding);
         this.global_keydown_handlers.set(key, handler);
 

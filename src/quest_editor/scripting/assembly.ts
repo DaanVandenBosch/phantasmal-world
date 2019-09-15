@@ -35,6 +35,10 @@ export type AssemblyWarning = {
 
 export type AssemblyError = AssemblyWarning;
 
+export type AssemblySettings = {
+    manual_stack: boolean;
+};
+
 export function assemble(
     assembly: string[],
     manual_stack: boolean = false,
