@@ -47,7 +47,15 @@ export function assemble(
     warnings: AssemblyWarning[];
     errors: AssemblyError[];
 } {
-    return new Assembler(assembly, manual_stack).assemble();
+    logger.trace("assemble start");
+
+    const result = new Assembler(assembly, manual_stack).assemble();
+
+    logger.trace(
+        `assemble end with ${result.warnings.length} warnings and ${result.errors.length} errors.`,
+    );
+
+    return result;
 }
 
 class Assembler {

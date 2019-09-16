@@ -22,7 +22,7 @@ export enum Kind {
 /**
  * Abstract super type of all types.
  */
-type AnyType =
+export type AnyType =
     | ValueType
     | RefType
     | PointerType
@@ -33,40 +33,40 @@ type AnyType =
 /**
  * Purely abstract super type of all value types.
  */
-type ValueType = ByteType | WordType | DWordType | FloatType | LabelType;
+export type ValueType = ByteType | WordType | DWordType | FloatType | LabelType;
 
 /**
  * 8-Bit integer.
  */
-type ByteType = {
+export type ByteType = {
     readonly kind: Kind.Byte;
 };
 
 /**
  * 16-Bit integer.
  */
-type WordType = {
+export type WordType = {
     readonly kind: Kind.Word;
 };
 
 /**
  * 32-Bit integer.
  */
-type DWordType = {
+export type DWordType = {
     readonly kind: Kind.DWord;
 };
 
 /**
  * 32-Bit floating point number.
  */
-type FloatType = {
+export type FloatType = {
     readonly kind: Kind.Float;
 };
 
 /**
  * Abstract super type of all label types.
  */
-type LabelType =
+export type LabelType =
     | ILabelType
     | DLabelType
     | SLabelType
@@ -79,47 +79,47 @@ type LabelType =
 /**
  * Named reference to an instruction.
  */
-type ILabelType = {
+export type ILabelType = {
     readonly kind: Kind.ILabel;
 };
 
 /**
  * Named reference to a data segment.
  */
-type DLabelType = {
+export type DLabelType = {
     readonly kind: Kind.DLabel;
 };
 
 /**
  * Named reference to a string segment.
  */
-type SLabelType = {
+export type SLabelType = {
     readonly kind: Kind.SLabel;
 };
 
 /**
  * String of arbitrary size.
  */
-type StringType = {
+export type StringType = {
     readonly kind: Kind.String;
 };
 
 /**
  * Arbitrary amount of instruction labels.
  */
-type ILabelVarType = {
+export type ILabelVarType = {
     readonly kind: Kind.ILabelVar;
 };
 
 /**
  * Purely abstract super type of all reference types.
  */
-type RefType = RegRefType | RegTupRefType | RegRefVarType;
+export type RefType = RegRefType | RegTupRefType | RegRefVarType;
 
 /**
  * Reference to one or more registers.
  */
-type RegRefType = {
+export type RegRefType = {
     readonly kind: Kind.RegRef;
 };
 
@@ -127,7 +127,7 @@ type RegRefType = {
  * Reference to a fixed amount of consecutive registers of specific types.
  * The only parameterized type.
  */
-type RegTupRefType = {
+export type RegTupRefType = {
     readonly kind: Kind.RegTupRef;
     readonly register_tuples: Param[];
 };
@@ -135,33 +135,33 @@ type RegTupRefType = {
 /**
  * Arbitrary amount of register references.
  */
-type RegRefVarType = {
+export type RegRefVarType = {
     readonly kind: Kind.RegRefVar;
 };
 
 /**
  * Raw memory pointer.
  */
-type PointerType = {
+export type PointerType = {
     readonly kind: Kind.Pointer;
 };
 
 // Singleton type constants.
 // No singleton constant for `RegTupRef` because it is parameterized.
-const TYPE_ANY: AnyType = { kind: Kind.Any };
-const TYPE_BYTE: ByteType = { kind: Kind.Byte };
-const TYPE_WORD: WordType = { kind: Kind.Word };
-const TYPE_DWORD: DWordType = { kind: Kind.DWord };
-const TYPE_FLOAT: FloatType = { kind: Kind.Float };
-const TYPE_LABEL: LabelType = { kind: Kind.Label };
-const TYPE_I_LABEL: ILabelType = { kind: Kind.ILabel };
-const TYPE_D_LABEL: DLabelType = { kind: Kind.DLabel };
-const TYPE_S_LABEL: SLabelType = { kind: Kind.SLabel };
-const TYPE_STRING: StringType = { kind: Kind.String };
-const TYPE_I_LABEL_VAR: ILabelVarType = { kind: Kind.ILabelVar };
-const TYPE_REG_REF: RegRefType = { kind: Kind.RegRef };
-const TYPE_REG_REF_VAR: RegRefVarType = { kind: Kind.RegRefVar };
-const TYPE_POINTER: PointerType = { kind: Kind.Pointer };
+export const TYPE_ANY: AnyType = { kind: Kind.Any };
+export const TYPE_BYTE: ByteType = { kind: Kind.Byte };
+export const TYPE_WORD: WordType = { kind: Kind.Word };
+export const TYPE_DWORD: DWordType = { kind: Kind.DWord };
+export const TYPE_FLOAT: FloatType = { kind: Kind.Float };
+export const TYPE_LABEL: LabelType = { kind: Kind.Label };
+export const TYPE_I_LABEL: ILabelType = { kind: Kind.ILabel };
+export const TYPE_D_LABEL: DLabelType = { kind: Kind.DLabel };
+export const TYPE_S_LABEL: SLabelType = { kind: Kind.SLabel };
+export const TYPE_STRING: StringType = { kind: Kind.String };
+export const TYPE_I_LABEL_VAR: ILabelVarType = { kind: Kind.ILabelVar };
+export const TYPE_REG_REF: RegRefType = { kind: Kind.RegRef };
+export const TYPE_REG_REF_VAR: RegRefVarType = { kind: Kind.RegRefVar };
+export const TYPE_POINTER: PointerType = { kind: Kind.Pointer };
 
 export const MIN_SIGNED_DWORD_VALUE = -Math.pow(2, 31);
 export const MAX_SIGNED_DWORD_VALUE = Math.pow(2, 31) - 1;

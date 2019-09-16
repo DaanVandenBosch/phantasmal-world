@@ -2,27 +2,27 @@ import { editor, languages } from "monaco-editor";
 import AssemblyWorker from "worker-loader!./assembly_worker";
 import {
     AssemblyChangeInput,
+    AssemblySettingsChangeInput,
     AssemblyWorkerOutput,
     InputMessageType,
     NewAssemblyInput,
     OutputMessageType,
     SignatureHelpInput,
-    AssemblySettingsChangeInput,
 } from "./assembly_worker_messages";
-import { AssemblyError, AssemblyWarning, AssemblySettings } from "./assembly";
+import { AssemblyError, AssemblySettings, AssemblyWarning } from "./assembly";
 import { disassemble } from "./disassembly";
 import { QuestModel } from "../model/QuestModel";
 import { Kind, OPCODES } from "./opcodes";
 import { Property } from "../../core/observable/property/Property";
 import { property } from "../../core/observable";
 import { WritableProperty } from "../../core/observable/property/WritableProperty";
+import { Disposable } from "../../core/observable/Disposable";
 import CompletionList = languages.CompletionList;
 import CompletionItemKind = languages.CompletionItemKind;
 import CompletionItem = languages.CompletionItem;
 import IModelContentChange = editor.IModelContentChange;
 import SignatureHelp = languages.SignatureHelp;
 import ParameterInformation = languages.ParameterInformation;
-import { Disposable } from "../../core/observable/Disposable";
 
 const INSTRUCTION_SUGGESTIONS = OPCODES.filter(opcode => opcode != null).map(opcode => {
     return ({
@@ -75,7 +75,7 @@ export class AssemblyAnalyser implements Disposable {
         this.worker.onmessage = this.process_worker_message;
     }
 
-    disassemble(quest: QuestModel, manual_stack?: boolean): string[] {
+    disassemble(quest: QuestModel, manual_stack: boolean): string[] {
         this.quest = quest;
         const assembly = disassemble(quest.object_code, manual_stack);
         const message: NewAssemblyInput = { type: InputMessageType.NewAssembly, assembly };

@@ -1,14 +1,27 @@
 import { reinterpret_i32_as_f32 } from "../../core/primitive_conversion";
 import { Arg, Segment, SegmentType } from "./instructions";
-import { Kind, Param, StackInteraction } from "./opcodes";
+import { AnyType, Kind, Param, StackInteraction } from "./opcodes";
+import Logger from "js-logger";
+
+const logger = Logger.get("quest_editor/scripting/disassembly");
+
+type ArgWithType = Arg & {
+    /**
+     * Type inferred from the specific instruction used to push this argument onto the stack.
+     */
+    type: AnyType;
+};
 
 /**
- * @param manual_stack If true, will output stack management instructions (argpush variants). Otherwise the arguments of stack management instructions will be output as arguments to the instruction that pops them from the stack.
+ * @param object_code - The object code to disassemble.
+ * @param manual_stack - If true, will output stack management instructions (argpush variants). Otherwise the arguments of stack management instructions will be output as arguments to the instruction that pops them from the stack.
  */
 export function disassemble(object_code: Segment[], manual_stack: boolean = false): string[] {
+    logger.trace("disassemble start");
+
     const lines: string[] = [];
-    const stack: Arg[] = [];
-    let section_type: SegmentType | undefined;
+    const stack: ArgWithType[] = [];
+    let section_type: SegmentType | undefined = undefined;
 
     for (const segment of object_code) {
         // Section marker.
@@ -65,7 +78,7 @@ export function disassemble(object_code: Segment[], manual_stack: boolean = fals
         } else {
             for (const instruction of segment.instructions) {
                 if (!manual_stack && instruction.opcode.stack === StackInteraction.Push) {
-                    stack.push(...instruction.args);
+                    stack.push(...add_type_to_args(instruction.opcode.params, instruction.args));
                 } else {
                     let args: string[] = [];
 
@@ -81,7 +94,11 @@ export function disassemble(object_code: Segment[], manual_stack: boolean = fals
                             );
                         }
                     } else {
-                        args = args_to_strings(instruction.opcode.params, instruction.args, false);
+                        args = args_to_strings(
+                            instruction.opcode.params,
+                            add_type_to_args(instruction.opcode.params, instruction.args),
+                            false,
+                        );
                     }
 
                     lines.push(
@@ -99,10 +116,22 @@ export function disassemble(object_code: Segment[], manual_stack: boolean = fals
         lines.push("");
     }
 
+    logger.trace(`disassemble end, line count: ${lines.length}`);
     return lines;
 }
 
-function args_to_strings(params: Param[], args: Arg[], stack: boolean): string[] {
+function add_type_to_args(params: Param[], args: Arg[]): ArgWithType[] {
+    const args_with_type: ArgWithType[] = [];
+    const len = Math.min(params.length, args.length);
+
+    for (let i = 0; i < len; i++) {
+        args_with_type.push({ ...args[i], type: params[i].type });
+    }
+
+    return args_with_type;
+}
+
+function args_to_strings(params: Param[], args: ArgWithType[], stack: boolean): string[] {
     const arg_strings: string[] = [];
 
     for (let i = 0; i < params.length; i++) {
@@ -114,35 +143,39 @@ function args_to_strings(params: Param[], args: Arg[], stack: boolean): string[]
             continue;
         }
 
-        switch (type.kind) {
-            case Kind.Float:
-                // Floats are pushed onto the stack as integers with arg_pushl.
-                if (stack) {
-                    arg_strings.push(reinterpret_i32_as_f32(arg.value).toString());
-                } else {
+        if (arg.type.kind === Kind.RegTupRef) {
+            arg_strings.push("r" + arg.value);
+        } else {
+            switch (type.kind) {
+                case Kind.Float:
+                    // Floats are pushed onto the stack as integers with arg_pushl.
+                    if (stack) {
+                        arg_strings.push(reinterpret_i32_as_f32(arg.value).toString());
+                    } else {
+                        arg_strings.push(arg.value.toString());
+                    }
+                    break;
+                case Kind.ILabelVar:
+                    for (; i < args.length; i++) {
+                        arg_strings.push(args[i].value.toString());
+                    }
+                    break;
+                case Kind.RegRefVar:
+                    for (; i < args.length; i++) {
+                        arg_strings.push("r" + args[i].value);
+                    }
+                    break;
+                case Kind.RegRef:
+                case Kind.RegTupRef:
+                    arg_strings.push("r" + arg.value);
+                    break;
+                case Kind.String:
+                    arg_strings.push(JSON.stringify(arg.value));
+                    break;
+                default:
                     arg_strings.push(arg.value.toString());
-                }
-                break;
-            case Kind.ILabelVar:
-                for (; i < args.length; i++) {
-                    arg_strings.push(args[i].value.toString());
-                }
-                break;
-            case Kind.RegRefVar:
-                for (; i < args.length; i++) {
-                    arg_strings.push("r" + args[i].value);
-                }
-                break;
-            case Kind.RegRef:
-            case Kind.RegTupRef:
-                arg_strings.push("r" + arg.value);
-                break;
-            case Kind.String:
-                arg_strings.push(JSON.stringify(arg.value));
-                break;
-            default:
-                arg_strings.push(arg.value.toString());
-                break;
+                    break;
+            }
         }
     }
 

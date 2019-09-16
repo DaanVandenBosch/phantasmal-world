@@ -99,7 +99,11 @@ export class AsmEditorStore implements Disposable {
         // don't allow changing inline args mode if there are issues
         if (!this.has_issues.val) {
             this._inline_args_mode.val = inline_args_mode;
-            this.update_assembly_settings();
+
+            assembly_analyser.update_settings({
+                manual_stack: !this.inline_args_mode.val,
+            });
+
             this.update_model();
         }
     };
@@ -212,12 +216,6 @@ export class AsmEditorStore implements Disposable {
         } else {
             this._model.val = undefined;
         }
-    }
-
-    private update_assembly_settings(): void {
-        assembly_analyser.update_settings({
-            manual_stack: !this.inline_args_mode.val,
-        });
     }
 }
 
