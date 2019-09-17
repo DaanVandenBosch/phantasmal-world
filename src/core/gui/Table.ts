@@ -1,13 +1,10 @@
 import { Widget, WidgetOptions } from "./Widget";
-import { el } from "./dom";
-import {
-    ListChangeType,
-    ListProperty,
-    ListPropertyChangeEvent,
-} from "../observable/property/list/ListProperty";
+import { bind_children_to, el } from "./dom";
+import { ListProperty } from "../observable/property/list/ListProperty";
 import { Disposer } from "../observable/Disposer";
 import "./Table.css";
 import Logger = require("js-logger");
+import { Disposable } from "../observable/Disposable";
 
 const logger = Logger.get("core/gui/Table");
 
@@ -41,7 +38,6 @@ export type TableOptions<T> = WidgetOptions & {
 export class Table<T> extends Widget {
     readonly element = el.table({ class: "core_Table" });
 
-    private readonly table_disposer = this.disposable(new Disposer());
     private readonly tbody_element = el.tbody();
     private readonly footer_row_element?: HTMLTableRowElement;
     private readonly values: ListProperty<T>;
@@ -138,77 +134,54 @@ export class Table<T> extends Widget {
             this.create_footer();
         }
 
-        this.disposables(this.values.observe_list(this.update_table));
-
-        this.splice_rows(0, this.values.length.val, this.values.val);
+        this.disposables(
+            bind_children_to(this.tbody_element, this.values, this.create_row),
+            this.values.observe(this.update_footer),
+        );
 
         this.finalize_construction(Table.prototype);
     }
 
-    private update_table = (change: ListPropertyChangeEvent<T>): void => {
-        if (change.type === ListChangeType.ListChange) {
-            this.splice_rows(change.index, change.removed.length, change.inserted);
-            this.update_footer();
-        } else if (change.type === ListChangeType.ValueChange) {
-            // TODO: update rows
-        }
-    };
-
-    private splice_rows = (index: number, amount: number, inserted: T[]) => {
-        for (let i = 0; i < amount; i++) {
-            this.tbody_element.children[index].remove();
-        }
-
-        this.table_disposer.dispose_at(index, amount);
-
-        const rows = inserted.map((value, i) => this.create_row(index + i, value));
-
-        if (index >= this.tbody_element.childElementCount) {
-            this.tbody_element.append(...rows);
-        } else {
-            for (let i = 0; i < amount; i++) {
-                this.tbody_element.children[index + i].insertAdjacentElement(
-                    "beforebegin",
-                    rows[i],
-                );
-            }
-        }
-    };
-
-    private create_row = (index: number, value: T): HTMLTableRowElement => {
-        const disposer = this.table_disposer.add(new Disposer());
+    private create_row = (value: T, index: number): [HTMLTableRowElement, Disposable] => {
+        const disposer = new Disposer();
         let left = 0;
 
-        return el.tr(
-            {},
-            ...this.columns.map((column, i) => {
-                const cell = column.fixed ? el.th() : el.td();
+        return [
+            el.tr(
+                {},
+                ...this.columns.map((column, i) => {
+                    const cell = column.fixed ? el.th() : el.td();
 
-                try {
-                    const content = column.render_cell(value, disposer);
+                    try {
+                        const content = column.render_cell(value, disposer);
 
-                    cell.append(content);
+                        cell.append(content);
 
-                    if (column.input) cell.classList.add("input");
+                        if (column.input) cell.classList.add("input");
 
-                    if (column.fixed) {
-                        cell.classList.add("fixed");
-                        cell.style.left = `${left}px`;
-                        left += column.width || 0;
+                        if (column.fixed) {
+                            cell.classList.add("fixed");
+                            cell.style.left = `${left}px`;
+                            left += column.width || 0;
+                        }
+
+                        cell.style.width = `${column.width}px`;
+
+                        if (column.text_align) cell.style.textAlign = column.text_align;
+
+                        if (column.tooltip) cell.title = column.tooltip(value);
+                    } catch (e) {
+                        logger.warn(
+                            `Error while rendering cell for index ${index}, column ${i}.`,
+                            e,
+                        );
                     }
 
-                    cell.style.width = `${column.width}px`;
-
-                    if (column.text_align) cell.style.textAlign = column.text_align;
-
-                    if (column.tooltip) cell.title = column.tooltip(value);
-                } catch (e) {
-                    logger.warn(`Error while rendering cell for index ${index}, column ${i}.`, e);
-                }
-
-                return cell;
-            }),
-        );
+                    return cell;
+                }),
+            ),
+            disposer,
+        ];
     };
 
     private create_footer(): void {
@@ -240,7 +213,7 @@ export class Table<T> extends Widget {
         this.footer_row_element!.append(...footer_cells);
     }
 
-    private update_footer(): void {
+    private update_footer = (): void => {
         if (!this.footer_row_element) return;
 
         const col_count = this.columns.length;
@@ -254,5 +227,5 @@ export class Table<T> extends Widget {
                 cell.title = column.footer.tooltip ? column.footer.tooltip() : "";
             }
         }
-    }
+    };
 }

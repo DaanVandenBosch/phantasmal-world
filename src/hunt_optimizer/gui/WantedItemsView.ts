@@ -1,24 +1,20 @@
-import { el, Icon } from "../../core/gui/dom";
+import { bind_children_to, el, Icon } from "../../core/gui/dom";
 import "./WantedItemsView.css";
 import { Button } from "../../core/gui/Button";
 import { Disposer } from "../../core/observable/Disposer";
 import { Widget } from "../../core/gui/Widget";
-import {
-    ListChangeType,
-    ListPropertyChangeEvent,
-} from "../../core/observable/property/list/ListProperty";
 import { WantedItemModel } from "../model";
 import { NumberInput } from "../../core/gui/NumberInput";
 import { hunt_optimizer_stores } from "../stores/HuntOptimizerStore";
 import { ComboBox } from "../../core/gui/ComboBox";
 import { list_property } from "../../core/observable";
 import { ItemType } from "../../core/model/items";
+import { Disposable } from "../../core/observable/Disposable";
 
 export class WantedItemsView extends Widget {
     readonly element = el.div({ class: "hunt_optimizer_WantedItemsView" });
 
     private readonly tbody_element = el.tbody();
-    private readonly table_disposer = this.disposable(new Disposer());
     private readonly store_disposer = this.disposable(new Disposer());
 
     constructor() {
@@ -56,7 +52,11 @@ export class WantedItemsView extends Widget {
                     this.store_disposer.dispose_all();
 
                     this.store_disposer.add_all(
-                        hunt_optimizer_store.wanted_items.observe_list(this.update_table),
+                        bind_children_to(
+                            this.tbody_element,
+                            hunt_optimizer_store.wanted_items,
+                            this.create_row,
+                        ),
 
                         combo_box.selected.observe(({ value: item_type }) => {
                             if (item_type) {
@@ -78,31 +78,8 @@ export class WantedItemsView extends Widget {
         this.finalize_construction(WantedItemsView.prototype);
     }
 
-    private update_table = (change: ListPropertyChangeEvent<WantedItemModel>): void => {
-        if (change.type === ListChangeType.ListChange) {
-            for (let i = 0; i < change.removed.length; i++) {
-                this.tbody_element.children[change.index].remove();
-            }
-
-            this.table_disposer.dispose_at(change.index, change.removed.length);
-
-            const rows = change.inserted.map(this.create_row);
-
-            if (change.index >= this.tbody_element.childElementCount) {
-                this.tbody_element.append(...rows);
-            } else {
-                for (let i = 0; i < change.inserted.length; i++) {
-                    this.tbody_element.children[change.index + i].insertAdjacentElement(
-                        "beforebegin",
-                        rows[i],
-                    );
-                }
-            }
-        }
-    };
-
-    private create_row = (wanted_item: WantedItemModel): HTMLTableRowElement => {
-        const row_disposer = this.table_disposer.add(new Disposer());
+    private create_row = (wanted_item: WantedItemModel): [HTMLTableRowElement, Disposable] => {
+        const row_disposer = new Disposer();
 
         const amount_input = row_disposer.add(
             new NumberInput(wanted_item.amount.val, { min: 0, step: 1 }),
@@ -121,11 +98,14 @@ export class WantedItemsView extends Widget {
             ),
         );
 
-        return el.tr(
-            {},
-            el.td({}, amount_input.element),
-            el.td({ text: wanted_item.item_type.name }),
-            el.td({}, remove_button.element),
-        );
+        return [
+            el.tr(
+                {},
+                el.td({}, amount_input.element),
+                el.td({ text: wanted_item.item_type.name }),
+                el.td({}, remove_button.element),
+            ),
+            row_disposer,
+        ];
     };
 }

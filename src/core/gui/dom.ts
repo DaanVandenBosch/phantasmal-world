@@ -2,6 +2,12 @@ import { Disposable } from "../observable/Disposable";
 import { Observable } from "../observable/Observable";
 import { is_property } from "../observable/property/Property";
 import { SectionId } from "../model";
+import {
+    ListChangeType,
+    ListProperty,
+    ListPropertyChangeEvent,
+} from "../observable/property/list/ListProperty";
+import { Disposer } from "../observable/Disposer";
 
 type ElementAttributes = {
     class?: string;
@@ -185,6 +191,59 @@ export function disposable_listener(
     return {
         dispose(): void {
             element.removeEventListener(event, listener);
+        },
+    };
+}
+
+export function bind_children_to<T>(
+    element: HTMLElement,
+    list: ListProperty<T>,
+    create_child: (value: T, index: number) => HTMLElement | [HTMLElement, Disposable],
+): Disposable {
+    const children_disposer = new Disposer();
+
+    const observer = list.observe_list((change: ListPropertyChangeEvent<T>) => {
+        if (change.type === ListChangeType.ListChange) {
+            splice_children(change.index, change.removed.length, change.inserted);
+        } else if (change.type === ListChangeType.ValueChange) {
+            // TODO: update children
+        }
+    });
+
+    function splice_children(index: number, removed_count: number, inserted: T[]): void {
+        for (let i = 0; i < removed_count; i++) {
+            element.children[index].remove();
+        }
+
+        children_disposer.dispose_at(index, removed_count);
+
+        const children = inserted.map((value, i) => {
+            const child = create_child(value, index + i);
+
+            if (Array.isArray(child)) {
+                children_disposer.insert(index + i, child[1]);
+                return child[0];
+            } else {
+                return child;
+            }
+        });
+
+        if (index >= element.childElementCount) {
+            element.append(...children);
+        } else {
+            for (let i = 0; i < removed_count; i++) {
+                element.children[index + i].insertAdjacentElement("beforebegin", children[i]);
+            }
+        }
+    }
+
+    splice_children(0, 0, list.val);
+
+    return {
+        dispose(): void {
+            observer.dispose();
+            children_disposer.dispose();
+            element.innerHTML = "";
         },
     };
 }
