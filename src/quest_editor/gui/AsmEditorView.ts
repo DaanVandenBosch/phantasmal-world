@@ -82,7 +82,8 @@ export class AsmEditorView extends ResizableWidget {
     }
 
     resize(width: number, height: number): this {
-        this.editor.layout({ width, height });
+        const editor_height = Math.max(0, height - this.tool_bar_view.height);
+        this.editor.layout({ width, height: editor_height });
         return this;
     }
 }
