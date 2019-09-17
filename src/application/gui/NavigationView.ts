@@ -32,8 +32,6 @@ export class NavigationView extends Widget {
 
         el.div({ class: "application_NavigationView_spacer" }),
 
-        this.server_select.element,
-
         el.span(
             { class: "application_NavigationView_server" },
             this.server_select.label!.element,
