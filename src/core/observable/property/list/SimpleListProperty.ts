@@ -4,7 +4,7 @@ import { WritableProperty } from "../WritableProperty";
 import { Observable } from "../../Observable";
 import { property } from "../../index";
 import { AbstractProperty } from "../AbstractProperty";
-import { Property } from "../Property";
+import { is_property, Property } from "../Property";
 import { is_list_property, ListChangeType, ListPropertyChangeEvent } from "./ListProperty";
 import Logger from "js-logger";
 
@@ -97,12 +97,18 @@ export class SimpleListProperty<T> extends AbstractProperty<T[]>
 
     bind_to(observable: Observable<T[]>): Disposable {
         if (is_list_property(observable)) {
+            this.val = observable.val;
+
             return observable.observe_list(change => {
                 if (change.type === ListChangeType.ListChange) {
                     this.splice(change.index, change.removed.length, ...change.inserted);
                 }
             });
         } else {
+            if (is_property(observable)) {
+                this.val = observable.val;
+            }
+
             return observable.observe(({ value }) => this.set_val(value));
         }
     }

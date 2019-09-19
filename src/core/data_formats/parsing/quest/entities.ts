@@ -24,7 +24,7 @@ export type QuestNpc = {
     readonly pso_type_id: number;
     readonly npc_id: number;
     readonly script_label: number;
-    readonly roaming: number;
+    readonly pso_roaming: number;
 };
 
 export type QuestObject = {
@@ -54,6 +54,10 @@ export type EntityType = NpcType | ObjectType;
 
 export function entity_type_to_string(type: EntityType): string {
     return (NpcType as any)[type] || (ObjectType as any)[type];
+}
+
+export function is_npc_type(entity_type: EntityType): entity_type is NpcType {
+    return NpcType[entity_type] != undefined;
 }
 
 export function entity_data(type: EntityType): EntityTypeData {

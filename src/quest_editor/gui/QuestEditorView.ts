@@ -12,6 +12,7 @@ import { AsmEditorView } from "./AsmEditorView";
 import { EntityInfoView } from "./EntityInfoView";
 import { gui_store, GuiTool } from "../../core/stores/GuiStore";
 import { quest_editor_store } from "../stores/QuestEditorStore";
+import { NpcListView } from "./NpcListView";
 import Logger = require("js-logger");
 
 const logger = Logger.get("quest_editor/gui/QuestEditorView");
@@ -23,7 +24,7 @@ const VIEW_TO_NAME = new Map<new () => ResizableWidget, string>([
     [QuestRendererView, "quest_renderer"],
     [AsmEditorView, "asm_editor"],
     [EntityInfoView, "entity_info"],
-    // [AddObjectView, "add_object"],
+    [NpcListView, "npc_list_view"],
 ]);
 
 const DEFAULT_LAYOUT_CONFIG = {
@@ -83,11 +84,22 @@ const DEFAULT_LAYOUT_CONTENT: ItemConfigType[] = [
                 ],
             },
             {
-                title: "Entity",
-                type: "component",
-                componentName: VIEW_TO_NAME.get(EntityInfoView),
-                isClosable: false,
+                type: "stack",
                 width: 2,
+                content: [
+                    {
+                        title: "Entity",
+                        type: "component",
+                        componentName: VIEW_TO_NAME.get(EntityInfoView),
+                        isClosable: false,
+                    },
+                    {
+                        title: "NPCs",
+                        type: "component",
+                        componentName: VIEW_TO_NAME.get(NpcListView),
+                        isClosable: false,
+                    },
+                ],
             },
         ],
     },

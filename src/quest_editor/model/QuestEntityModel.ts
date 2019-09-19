@@ -73,6 +73,12 @@ export abstract class QuestEntityModel<Type extends EntityType = EntityType> {
         position: Vec3,
         rotation: Vec3,
     ) {
+        if (type == undefined) throw new Error("type is required.");
+        if (!Number.isInteger(area_id)) throw new Error("area_id should be an integer.");
+        if (!Number.isInteger(section_id)) throw new Error("section_id should be an integer.");
+        if (!position) throw new Error("position is required.");
+        if (!rotation) throw new Error("rotation is required.");
+
         this.type = type;
         this.area_id = area_id;
         this.section = this._section;

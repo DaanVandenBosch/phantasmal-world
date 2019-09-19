@@ -46,12 +46,8 @@ class AreaStore {
         return area_variant;
     };
 
-    get_area_sections = (
-        episode: Episode,
-        area_id: number,
-        variant_id: number,
-    ): Promise<SectionModel[]> => {
-        return load_area_sections(episode, area_id, variant_id);
+    get_area_sections = (episode: Episode, variant: AreaVariantModel): Promise<SectionModel[]> => {
+        return load_area_sections(episode, variant);
     };
 }
 

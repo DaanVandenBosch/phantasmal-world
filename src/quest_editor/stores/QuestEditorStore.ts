@@ -29,26 +29,21 @@ import Logger = require("js-logger");
 const logger = Logger.get("quest_editor/gui/QuestEditorStore");
 
 export class QuestEditorStore implements Disposable {
-    readonly debug: WritableProperty<boolean> = property(false);
-    readonly undo = new UndoStack();
-    readonly current_quest_filename: Property<string | undefined>;
-    readonly current_quest: Property<QuestModel | undefined>;
-    readonly current_area: Property<AreaModel | undefined>;
-    readonly selected_entity: Property<QuestEntityModel | undefined>;
-
     private readonly disposer = new Disposer();
     private readonly _current_quest_filename = property<string | undefined>(undefined);
     private readonly _current_quest = property<QuestModel | undefined>(undefined);
     private readonly _current_area = property<AreaModel | undefined>(undefined);
     private readonly _selected_entity = property<QuestEntityModel | undefined>(undefined);
 
-    constructor() {
-        this.current_quest_filename = this._current_quest_filename;
-        this.current_quest = this._current_quest;
-        this.current_area = this._current_area;
-        this.selected_entity = this._selected_entity;
+    readonly debug: WritableProperty<boolean> = property(false);
+    readonly undo = new UndoStack();
+    readonly current_quest_filename: Property<string | undefined> = this._current_quest_filename;
+    readonly current_quest: Property<QuestModel | undefined> = this._current_quest;
+    readonly current_area: Property<AreaModel | undefined> = this._current_area;
+    readonly selected_entity: Property<QuestEntityModel | undefined> = this._selected_entity;
 
-        this.disposer.add(
+    constructor() {
+        this.disposer.add_all(
             gui_store.tool.observe(
                 ({ value: tool }) => {
                     if (tool === GuiTool.QuestEditor) {
@@ -57,6 +52,26 @@ export class QuestEditorStore implements Disposable {
                 },
                 { call_now: true },
             ),
+
+            this.current_quest
+                .flat_map(quest => (quest ? quest.npcs : property([])))
+                .observe(({ value: npcs }) => {
+                    const selected = this.selected_entity.val;
+
+                    if (selected instanceof QuestNpcModel && !npcs.includes(selected)) {
+                        this.set_selected_entity(undefined);
+                    }
+                }),
+
+            this.current_quest
+                .flat_map(quest => (quest ? quest.objects : property([])))
+                .observe(({ value: objects }) => {
+                    const selected = this.selected_entity.val;
+
+                    if (selected instanceof QuestObjectModel && !objects.includes(selected)) {
+                        this.set_selected_entity(undefined);
+                    }
+                }),
         );
     }
 
@@ -121,7 +136,7 @@ export class QuestEditorStore implements Disposable {
                                     npc.pso_type_id,
                                     npc.npc_id,
                                     npc.script_label,
-                                    npc.roaming,
+                                    npc.pso_roaming,
                                     npc.area_id,
                                     npc.section_id,
                                     npc.position,
@@ -145,7 +160,14 @@ export class QuestEditorStore implements Disposable {
         const quest = this.current_quest.val;
         if (!quest) return;
 
-        let file_name = prompt("File name:");
+        let default_file_name = this.current_quest_filename.val;
+
+        if (default_file_name) {
+            const ext_start = default_file_name.lastIndexOf(".");
+            if (ext_start !== -1) default_file_name = default_file_name.slice(0, ext_start);
+        }
+
+        let file_name = prompt("File name:", default_file_name);
         if (!file_name) return;
 
         const buffer = write_quest_qst(
@@ -178,7 +200,7 @@ export class QuestEditorStore implements Disposable {
                     pso_type_id: npc.pso_type_id,
                     npc_id: npc.npc_id,
                     script_label: npc.script_label,
-                    roaming: npc.roaming,
+                    pso_roaming: npc.pso_roaming,
                 })),
                 dat_unknowns: quest.dat_unknowns,
                 object_code: quest.object_code,
@@ -261,11 +283,7 @@ export class QuestEditorStore implements Disposable {
 
             // Load section data.
             for (const variant of quest.area_variants.val) {
-                const sections = await area_store.get_area_sections(
-                    quest.episode,
-                    variant.area.id,
-                    variant.id,
-                );
+                const sections = await area_store.get_area_sections(quest.episode, variant);
                 variant.sections.val.splice(0, Infinity, ...sections);
 
                 for (const object of quest.objects.val.filter(o => o.area_id === variant.area.id)) {

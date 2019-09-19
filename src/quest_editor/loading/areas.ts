@@ -11,6 +11,7 @@ import {
     area_collision_geometry_to_object_3d,
     area_geometry_to_sections_and_object_3d,
 } from "../rendering/conversion/areas";
+import { AreaVariantModel } from "../model/AreaVariantModel";
 
 const render_geometry_cache = new LoadingCache<
     string,
@@ -20,46 +21,47 @@ const collision_geometry_cache = new LoadingCache<string, Promise<Object3D>>();
 
 export async function load_area_sections(
     episode: Episode,
-    area_id: number,
-    area_variant: number,
+    area_variant: AreaVariantModel,
 ): Promise<SectionModel[]> {
-    return render_geometry_cache.get_or_set(`${episode}-${area_id}-${area_variant}`, () =>
-        load_area_sections_and_render_geometry(episode, area_id, area_variant),
+    return render_geometry_cache.get_or_set(
+        `${episode}-${area_variant.area.id}-${area_variant.id}`,
+        () => load_area_sections_and_render_geometry(episode, area_variant),
     ).sections;
 }
 
 export async function load_area_render_geometry(
     episode: Episode,
-    area_id: number,
-    area_variant: number,
+    area_variant: AreaVariantModel,
 ): Promise<Object3D> {
-    return render_geometry_cache.get_or_set(`${episode}-${area_id}-${area_variant}`, () =>
-        load_area_sections_and_render_geometry(episode, area_id, area_variant),
+    return render_geometry_cache.get_or_set(
+        `${episode}-${area_variant.area.id}-${area_variant.id}`,
+        () => load_area_sections_and_render_geometry(episode, area_variant),
     ).geometry;
 }
 
 export async function load_area_collision_geometry(
     episode: Episode,
-    area_id: number,
-    area_variant: number,
+    area_variant: AreaVariantModel,
 ): Promise<Object3D> {
-    return collision_geometry_cache.get_or_set(`${episode}-${area_id}-${area_variant}`, () =>
-        get_area_asset(episode, area_id, area_variant, "collision").then(buffer =>
-            area_collision_geometry_to_object_3d(
-                parse_area_collision_geometry(new ArrayBufferCursor(buffer, Endianness.Little)),
+    return collision_geometry_cache.get_or_set(
+        `${episode}-${area_variant.area.id}-${area_variant.id}`,
+        () =>
+            get_area_asset(episode, area_variant, "collision").then(buffer =>
+                area_collision_geometry_to_object_3d(
+                    parse_area_collision_geometry(new ArrayBufferCursor(buffer, Endianness.Little)),
+                ),
             ),
-        ),
     );
 }
 
 function load_area_sections_and_render_geometry(
     episode: Episode,
-    area_id: number,
-    area_variant: number,
+    area_variant: AreaVariantModel,
 ): { geometry: Promise<Object3D>; sections: Promise<SectionModel[]> } {
-    const promise = get_area_asset(episode, area_id, area_variant, "render").then(buffer =>
+    const promise = get_area_asset(episode, area_variant, "render").then(buffer =>
         area_geometry_to_sections_and_object_3d(
             parse_area_geometry(new ArrayBufferCursor(buffer, Endianness.Little)),
+            area_variant,
         ),
     );
 
@@ -126,21 +128,23 @@ const area_base_names = [
 
 async function get_area_asset(
     episode: Episode,
-    area_id: number,
-    area_variant: number,
+    area_variant: AreaVariantModel,
     type: "render" | "collision",
 ): Promise<ArrayBuffer> {
-    const base_url = area_version_to_base_url(episode, area_id, area_variant);
+    const base_url = area_version_to_base_url(episode, area_variant);
     const suffix = type === "render" ? "n.rel" : "c.rel";
     return load_array_buffer(base_url + suffix);
 }
 
-function area_version_to_base_url(episode: Episode, area_id: number, area_variant: number): string {
-    // Exception for Seaside area at night variant 1.
+function area_version_to_base_url(episode: Episode, area_variant: AreaVariantModel): string {
+    let area_id = area_variant.area.id;
+    let area_variant_id = area_variant.id;
+
+    // Exception for Seaside area at night, variant 1.
     // Phantasmal World 4 and Lost heart breaker use this to have two tower maps.
-    if (area_id === 16 && area_variant === 1) {
+    if (area_id === 16 && area_variant_id === 1) {
         area_id = 17;
-        area_variant = 1;
+        area_variant_id = 1;
     }
 
     const episode_base_names = area_base_names[episode - 1];
@@ -148,20 +152,20 @@ function area_version_to_base_url(episode: Episode, area_id: number, area_varian
     if (0 <= area_id && area_id < episode_base_names.length) {
         const [base_name, variants] = episode_base_names[area_id];
 
-        if (0 <= area_variant && area_variant < variants) {
+        if (0 <= area_variant_id && area_variant_id < variants) {
             let variant: string;
 
             if (variants === 1) {
                 variant = "";
             } else {
-                variant = String(area_variant);
-                while (variant.length < 2) variant = "0" + variant;
+                variant = String(area_variant_id);
+                variant = variant.padStart(2, "0");
             }
 
             return `/maps/map_${base_name}${variant}`;
         } else {
             throw new Error(
-                `Unknown variant ${area_variant} of area ${area_id} in episode ${episode}.`,
+                `Unknown variant ${area_variant_id} of area ${area_id} in episode ${episode}.`,
             );
         }
     } else {

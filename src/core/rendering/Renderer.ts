@@ -72,10 +72,10 @@ export abstract class Renderer implements Disposable {
         this.schedule_render();
     }
 
-    pointer_pos_to_device_coords(e: MouseEvent): Vector2 {
+    pointer_pos_to_device_coords(v: Vector2): Vector2 {
         const coords = this.renderer.getSize(new Vector2());
-        coords.width = (e.offsetX / coords.width) * 2 - 1;
-        coords.height = (e.offsetY / coords.height) * -2 + 1;
+        coords.width = (v.x / coords.width) * 2 - 1;
+        coords.height = (v.y / coords.height) * -2 + 1;
         return coords;
     }
 

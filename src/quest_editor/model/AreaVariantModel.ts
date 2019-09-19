@@ -5,11 +5,10 @@ import { AreaModel } from "./AreaModel";
 import { SectionModel } from "./SectionModel";
 
 export class AreaVariantModel {
-    readonly id: number;
-
-    readonly area: AreaModel;
-
     private readonly _sections: WritableListProperty<SectionModel> = list_property();
+
+    readonly id: number;
+    readonly area: AreaModel;
     readonly sections: ListProperty<SectionModel> = this._sections;
 
     constructor(id: number, area: AreaModel) {

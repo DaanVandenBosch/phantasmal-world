@@ -11,6 +11,7 @@ import { AreaVariantModel } from "./AreaVariantModel";
 import { area_store } from "../stores/AreaStore";
 import { ListProperty } from "../../core/observable/property/list/ListProperty";
 import { WritableListProperty } from "../../core/observable/property/list/WritableListProperty";
+import { QuestEntityModel } from "./QuestEntityModel";
 
 const logger = Logger.get("quest_editor/model/QuestModel");
 
@@ -110,6 +111,7 @@ export class QuestModel {
     private readonly _long_description: WritableProperty<string> = property("");
     private readonly _map_designations: WritableProperty<Map<number, number>>;
     private readonly _area_variants: WritableListProperty<AreaVariantModel> = list_property();
+    private readonly _npcs: WritableListProperty<QuestNpcModel>;
 
     constructor(
         id: number,
@@ -149,7 +151,8 @@ export class QuestModel {
         this._map_designations = property(map_designations);
         this.map_designations = this._map_designations;
         this.objects = list_property(undefined, ...objects);
-        this.npcs = list_property(undefined, ...npcs);
+        this._npcs = list_property(undefined, ...npcs);
+        this.npcs = this._npcs;
         this.dat_unknowns = dat_unknowns;
         this.object_code = object_code;
         this.shop_items = shop_items;
@@ -174,6 +177,18 @@ export class QuestModel {
 
         this.entities_per_area.observe(this.update_area_variants);
         this.map_designations.observe(this.update_area_variants);
+    }
+
+    add_npc(npc: QuestNpcModel): void {
+        this._npcs.push(npc);
+    }
+
+    remove_entity(entity: QuestEntityModel): void {
+        if (entity instanceof QuestNpcModel) {
+            this._npcs.remove(entity);
+        } else {
+            // TODO: objects
+        }
     }
 
     private update_area_variants = (): void => {

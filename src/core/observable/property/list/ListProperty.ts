@@ -29,10 +29,7 @@ export interface ListProperty<T> extends Property<T[]> {
 
     get(index: number): T;
 
-    observe_list(
-        observer: (change: ListPropertyChangeEvent<T>) => void,
-        options?: { call_now?: boolean },
-    ): Disposable;
+    observe_list(observer: (change: ListPropertyChangeEvent<T>) => void): Disposable;
 }
 
 export function is_list_property<T>(observable: Observable<T[]>): observable is ListProperty<T> {

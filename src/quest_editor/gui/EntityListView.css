@@ -1,0 +1,22 @@
+.quest_editor_EntityListView {
+    overflow: auto;
+}
+
+.quest_editor_EntityListView_entity_list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, 100px);
+    justify-content: center;
+}
+
+.quest_editor_EntityListView_entity {
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+    height: 100px;
+    padding: 5px;
+    border: solid 2px olivedrab;
+    background-color: darkolivegreen;
+    color: greenyellow;
+}

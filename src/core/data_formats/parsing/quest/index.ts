@@ -19,7 +19,7 @@ import { QuestNpc, QuestObject } from "./entities";
 import { Episode } from "./Episode";
 import { object_data, ObjectType, pso_id_to_object_type } from "./object_types";
 import { parse_qst, QstContainedFile, write_qst } from "./qst";
-import { NpcType } from "./npc_types";
+import { npc_data, NpcType } from "./npc_types";
 
 const logger = Logger.get("core/data_formats/parsing/quest");
 
@@ -284,7 +284,7 @@ function parse_npc_data(episode: number, npcs: DatNpc[]): QuestNpc[] {
             pso_type_id: npc_data.type_id,
             npc_id: npc_data.npc_id,
             script_label: Math.round(npc_data.script_label),
-            roaming: npc_data.roaming,
+            pso_roaming: npc_data.roaming,
         };
     });
 }
@@ -583,307 +583,29 @@ function npcs_to_dat_data(npcs: QuestNpc[]): DatNpc[] {
     const dv = new DataView(new ArrayBuffer(4));
 
     return npcs.map(npc => {
-        const type_data = npc_type_to_dat_data(npc.type) || {
-            type_id: npc.pso_type_id,
-            roaming: npc.roaming,
-            regular: true,
-        };
+        const type_data = npc_data(npc.type);
+        const type_id =
+            type_data.pso_type_id == undefined ? npc.pso_type_id : type_data.pso_type_id;
+        const roaming = type_data.pso_roaming == undefined ? npc.pso_roaming : type_data.pso_roaming;
+        const regular = type_data.pso_regular == undefined ? true : type_data.pso_regular;
 
         dv.setFloat32(0, npc.scale.y);
-        dv.setUint32(0, (dv.getUint32(0) & ~0x800000) | (type_data.regular ? 0 : 0x800000));
+        dv.setUint32(0, (dv.getUint32(0) & ~0x800000) | (regular ? 0 : 0x800000));
         const scale_y = dv.getFloat32(0);
 
         let scale = new Vec3(npc.scale.x, scale_y, npc.scale.z);
 
         return {
-            type_id: type_data.type_id,
+            type_id,
             section_id: npc.section_id,
             position: npc.position,
             rotation: npc.rotation,
             scale,
             npc_id: npc.npc_id,
             script_label: npc.script_label,
-            roaming: type_data.roaming,
+            roaming,
             area_id: npc.area_id,
             unknown: npc.unknown,
         };
     });
-}
-
-function npc_type_to_dat_data(
-    type: NpcType,
-): { type_id: number; roaming: number; regular: boolean } | undefined {
-    switch (type) {
-        default:
-            throw new Error(`Unexpected type ${NpcType[type]}.`);
-
-        case NpcType.Unknown:
-            return undefined;
-
-        case NpcType.FemaleFat:
-            return { type_id: 0x004, roaming: 0, regular: true };
-        case NpcType.FemaleMacho:
-            return { type_id: 0x005, roaming: 0, regular: true };
-        case NpcType.FemaleTall:
-            return { type_id: 0x007, roaming: 0, regular: true };
-        case NpcType.MaleDwarf:
-            return { type_id: 0x00a, roaming: 0, regular: true };
-        case NpcType.MaleFat:
-            return { type_id: 0x00b, roaming: 0, regular: true };
-        case NpcType.MaleMacho:
-            return { type_id: 0x00c, roaming: 0, regular: true };
-        case NpcType.MaleOld:
-            return { type_id: 0x00d, roaming: 0, regular: true };
-        case NpcType.BlueSoldier:
-            return { type_id: 0x019, roaming: 0, regular: true };
-        case NpcType.RedSoldier:
-            return { type_id: 0x01a, roaming: 0, regular: true };
-        case NpcType.Principal:
-            return { type_id: 0x01b, roaming: 0, regular: true };
-        case NpcType.Tekker:
-            return { type_id: 0x01c, roaming: 0, regular: true };
-        case NpcType.GuildLady:
-            return { type_id: 0x01d, roaming: 0, regular: true };
-        case NpcType.Scientist:
-            return { type_id: 0x01e, roaming: 0, regular: true };
-        case NpcType.Nurse:
-            return { type_id: 0x01f, roaming: 0, regular: true };
-        case NpcType.Irene:
-            return { type_id: 0x020, roaming: 0, regular: true };
-        case NpcType.ItemShop:
-            return { type_id: 0x0f1, roaming: 0, regular: true };
-        case NpcType.Nurse2:
-            return { type_id: 0x0fe, roaming: 0, regular: true };
-
-        case NpcType.Hildebear:
-            return { type_id: 0x040, roaming: 0, regular: true };
-        case NpcType.Hildeblue:
-            return { type_id: 0x040, roaming: 1, regular: true };
-        case NpcType.RagRappy:
-            return { type_id: 0x041, roaming: 0, regular: true };
-        case NpcType.AlRappy:
-            return { type_id: 0x041, roaming: 1, regular: true };
-        case NpcType.Monest:
-            return { type_id: 0x042, roaming: 0, regular: true };
-        case NpcType.SavageWolf:
-            return { type_id: 0x043, roaming: 0, regular: true };
-        case NpcType.BarbarousWolf:
-            return { type_id: 0x043, roaming: 0, regular: false };
-        case NpcType.Booma:
-            return { type_id: 0x044, roaming: 0, regular: true };
-        case NpcType.Gobooma:
-            return { type_id: 0x044, roaming: 1, regular: true };
-        case NpcType.Gigobooma:
-            return { type_id: 0x044, roaming: 2, regular: true };
-        case NpcType.Dragon:
-            return { type_id: 0x0c0, roaming: 0, regular: true };
-
-        case NpcType.GrassAssassin:
-            return { type_id: 0x060, roaming: 0, regular: true };
-        case NpcType.PoisonLily:
-            return { type_id: 0x061, roaming: 0, regular: true };
-        case NpcType.NarLily:
-            return { type_id: 0x061, roaming: 1, regular: true };
-        case NpcType.NanoDragon:
-            return { type_id: 0x062, roaming: 0, regular: true };
-        case NpcType.EvilShark:
-            return { type_id: 0x063, roaming: 0, regular: true };
-        case NpcType.PalShark:
-            return { type_id: 0x063, roaming: 1, regular: true };
-        case NpcType.GuilShark:
-            return { type_id: 0x063, roaming: 2, regular: true };
-        case NpcType.PofuillySlime:
-            return { type_id: 0x064, roaming: 0, regular: true };
-        case NpcType.PouillySlime:
-            return { type_id: 0x064, roaming: 0, regular: false };
-        case NpcType.PanArms:
-            return { type_id: 0x065, roaming: 0, regular: true };
-        case NpcType.DeRolLe:
-            return { type_id: 0x0c1, roaming: 0, regular: true };
-
-        case NpcType.Dubchic:
-            return { type_id: 0x080, roaming: 0, regular: true };
-        case NpcType.Gilchic:
-            return { type_id: 0x080, roaming: 1, regular: true };
-        case NpcType.Garanz:
-            return { type_id: 0x081, roaming: 0, regular: true };
-        case NpcType.SinowBeat:
-            return { type_id: 0x082, roaming: 0, regular: true };
-        case NpcType.SinowGold:
-            return { type_id: 0x082, roaming: 0, regular: false };
-        case NpcType.Canadine:
-            return { type_id: 0x083, roaming: 0, regular: true };
-        case NpcType.Canane:
-            return { type_id: 0x084, roaming: 0, regular: true };
-        case NpcType.Dubswitch:
-            return { type_id: 0x085, roaming: 0, regular: true };
-        case NpcType.VolOpt:
-            return { type_id: 0x0c5, roaming: 0, regular: true };
-
-        case NpcType.Delsaber:
-            return { type_id: 0x0a0, roaming: 0, regular: true };
-        case NpcType.ChaosSorcerer:
-            return { type_id: 0x0a1, roaming: 0, regular: true };
-        case NpcType.DarkGunner:
-            return { type_id: 0x0a2, roaming: 0, regular: true };
-        case NpcType.ChaosBringer:
-            return { type_id: 0x0a4, roaming: 0, regular: true };
-        case NpcType.DarkBelra:
-            return { type_id: 0x0a5, roaming: 0, regular: true };
-        case NpcType.Dimenian:
-            return { type_id: 0x0a6, roaming: 0, regular: true };
-        case NpcType.LaDimenian:
-            return { type_id: 0x0a6, roaming: 1, regular: true };
-        case NpcType.SoDimenian:
-            return { type_id: 0x0a6, roaming: 2, regular: true };
-        case NpcType.Bulclaw:
-            return { type_id: 0x0a7, roaming: 0, regular: true };
-        case NpcType.Claw:
-            return { type_id: 0x0a8, roaming: 0, regular: true };
-        case NpcType.DarkFalz:
-            return { type_id: 0x0c8, roaming: 0, regular: true };
-
-        case NpcType.Hildebear2:
-            return { type_id: 0x040, roaming: 0, regular: true };
-        case NpcType.Hildeblue2:
-            return { type_id: 0x040, roaming: 1, regular: true };
-        case NpcType.RagRappy2:
-            return { type_id: 0x041, roaming: 0, regular: true };
-        case NpcType.LoveRappy:
-            return { type_id: 0x041, roaming: 1, regular: true };
-        case NpcType.Monest2:
-            return { type_id: 0x042, roaming: 0, regular: true };
-        case NpcType.PoisonLily2:
-            return { type_id: 0x061, roaming: 0, regular: true };
-        case NpcType.NarLily2:
-            return { type_id: 0x061, roaming: 1, regular: true };
-        case NpcType.GrassAssassin2:
-            return { type_id: 0x060, roaming: 0, regular: true };
-        case NpcType.Dimenian2:
-            return { type_id: 0x0a6, roaming: 0, regular: true };
-        case NpcType.LaDimenian2:
-            return { type_id: 0x0a6, roaming: 1, regular: true };
-        case NpcType.SoDimenian2:
-            return { type_id: 0x0a6, roaming: 2, regular: true };
-        case NpcType.DarkBelra2:
-            return { type_id: 0x0a5, roaming: 0, regular: true };
-        case NpcType.BarbaRay:
-            return { type_id: 0x0cb, roaming: 0, regular: true };
-
-        case NpcType.SavageWolf2:
-            return { type_id: 0x043, roaming: 0, regular: true };
-        case NpcType.BarbarousWolf2:
-            return { type_id: 0x043, roaming: 0, regular: false };
-        case NpcType.PanArms2:
-            return { type_id: 0x065, roaming: 0, regular: true };
-        case NpcType.Dubchic2:
-            return { type_id: 0x080, roaming: 0, regular: true };
-        case NpcType.Gilchic2:
-            return { type_id: 0x080, roaming: 1, regular: true };
-        case NpcType.Garanz2:
-            return { type_id: 0x081, roaming: 0, regular: true };
-        case NpcType.Dubswitch2:
-            return { type_id: 0x085, roaming: 0, regular: true };
-        case NpcType.Delsaber2:
-            return { type_id: 0x0a0, roaming: 0, regular: true };
-        case NpcType.ChaosSorcerer2:
-            return { type_id: 0x0a1, roaming: 0, regular: true };
-        case NpcType.GolDragon:
-            return { type_id: 0x0cc, roaming: 0, regular: true };
-
-        case NpcType.SinowBerill:
-            return { type_id: 0x0d4, roaming: 0, regular: true };
-        case NpcType.SinowSpigell:
-            return { type_id: 0x0d4, roaming: 1, regular: true };
-        case NpcType.Merillia:
-            return { type_id: 0x0d5, roaming: 0, regular: true };
-        case NpcType.Meriltas:
-            return { type_id: 0x0d5, roaming: 1, regular: true };
-        case NpcType.Mericarol:
-            return { type_id: 0x0d6, roaming: 0, regular: true };
-        case NpcType.Mericus:
-            return { type_id: 0x0d6, roaming: 1, regular: true };
-        case NpcType.Merikle:
-            return { type_id: 0x0d6, roaming: 2, regular: true };
-        case NpcType.UlGibbon:
-            return { type_id: 0x0d7, roaming: 0, regular: true };
-        case NpcType.ZolGibbon:
-            return { type_id: 0x0d7, roaming: 1, regular: true };
-        case NpcType.Gibbles:
-            return { type_id: 0x0d8, roaming: 0, regular: true };
-        case NpcType.Gee:
-            return { type_id: 0x0d9, roaming: 0, regular: true };
-        case NpcType.GiGue:
-            return { type_id: 0x0da, roaming: 0, regular: true };
-        case NpcType.GalGryphon:
-            return { type_id: 0x0c0, roaming: 0, regular: true };
-
-        case NpcType.Deldepth:
-            return { type_id: 0x0db, roaming: 0, regular: true };
-        case NpcType.Delbiter:
-            return { type_id: 0x0dc, roaming: 0, regular: true };
-        case NpcType.Dolmolm:
-            return { type_id: 0x0dd, roaming: 0, regular: true };
-        case NpcType.Dolmdarl:
-            return { type_id: 0x0dd, roaming: 1, regular: true };
-        case NpcType.Morfos:
-            return { type_id: 0x0de, roaming: 0, regular: true };
-        case NpcType.Recobox:
-            return { type_id: 0x0df, roaming: 0, regular: true };
-        case NpcType.Epsilon:
-            return { type_id: 0x0e0, roaming: 0, regular: true };
-        case NpcType.SinowZoa:
-            return { type_id: 0x0e0, roaming: 0, regular: true };
-        case NpcType.SinowZele:
-            return { type_id: 0x0e0, roaming: 1, regular: true };
-        case NpcType.IllGill:
-            return { type_id: 0x0e1, roaming: 0, regular: true };
-        case NpcType.DelLily:
-            return { type_id: 0x061, roaming: 0, regular: true };
-        case NpcType.OlgaFlow:
-            return { type_id: 0x0ca, roaming: 0, regular: true };
-
-        case NpcType.SandRappy:
-            return { type_id: 0x041, roaming: 0, regular: true };
-        case NpcType.DelRappy:
-            return { type_id: 0x041, roaming: 1, regular: true };
-        case NpcType.Astark:
-            return { type_id: 0x110, roaming: 0, regular: true };
-        case NpcType.SatelliteLizard:
-            return { type_id: 0x111, roaming: 0, regular: true };
-        case NpcType.Yowie:
-            return { type_id: 0x111, roaming: 0, regular: false };
-        case NpcType.MerissaA:
-            return { type_id: 0x112, roaming: 0, regular: true };
-        case NpcType.MerissaAA:
-            return { type_id: 0x112, roaming: 1, regular: true };
-        case NpcType.Girtablulu:
-            return { type_id: 0x113, roaming: 0, regular: true };
-        case NpcType.Zu:
-            return { type_id: 0x114, roaming: 0, regular: true };
-        case NpcType.Pazuzu:
-            return { type_id: 0x114, roaming: 1, regular: true };
-        case NpcType.Boota:
-            return { type_id: 0x115, roaming: 0, regular: true };
-        case NpcType.ZeBoota:
-            return { type_id: 0x115, roaming: 1, regular: true };
-        case NpcType.BaBoota:
-            return { type_id: 0x115, roaming: 2, regular: true };
-        case NpcType.Dorphon:
-            return { type_id: 0x116, roaming: 0, regular: true };
-        case NpcType.DorphonEclair:
-            return { type_id: 0x116, roaming: 1, regular: true };
-        case NpcType.Goran:
-            return { type_id: 0x117, roaming: 0, regular: true };
-        case NpcType.PyroGoran:
-            return { type_id: 0x117, roaming: 1, regular: true };
-        case NpcType.GoranDetonator:
-            return { type_id: 0x117, roaming: 2, regular: true };
-        case NpcType.SaintMilion:
-            return { type_id: 0x119, roaming: 0, regular: true };
-        case NpcType.Shambertin:
-            return { type_id: 0x119, roaming: 1, regular: true };
-        case NpcType.Kondrieu:
-            return { type_id: 0x119, roaming: 0, regular: false };
-    }
 }

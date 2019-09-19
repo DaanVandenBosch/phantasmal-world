@@ -34,10 +34,6 @@ export class QuestRenderer extends Renderer {
 
     private _render_geometry = new Object3D();
 
-    get render_geometry(): Object3D {
-        return this._render_geometry;
-    }
-
     set render_geometry(render_geometry: Object3D) {
         this.scene.remove(this._render_geometry);
         this._render_geometry = render_geometry;
@@ -54,7 +50,6 @@ export class QuestRenderer extends Renderer {
     private readonly disposer = new Disposer();
     private readonly perspective_camera: PerspectiveCamera;
     private readonly entity_to_mesh = new Map<QuestEntityModel, Mesh>();
-    private readonly model_manager = this.disposer.add(new QuestModelManager(this));
     private readonly entity_controls = this.disposer.add(new QuestEntityControls(this));
 
     constructor() {
@@ -63,14 +58,10 @@ export class QuestRenderer extends Renderer {
         this.perspective_camera = this.camera as PerspectiveCamera;
 
         this.disposer.add_all(
-            quest_editor_store.current_quest.observe(this.load_models),
-            quest_editor_store.current_area.observe(this.load_models),
+            new QuestModelManager(this),
+
             quest_editor_store.debug.observe(({ value }) => (this.debug = value)),
         );
-
-        this.dom_element.addEventListener("mousedown", this.entity_controls.on_mouse_down);
-        this.dom_element.addEventListener("mouseup", this.entity_controls.on_mouse_up);
-        this.dom_element.addEventListener("mousemove", this.entity_controls.on_mouse_move);
     }
 
     dispose(): void {
@@ -89,6 +80,7 @@ export class QuestRenderer extends Renderer {
         this._entity_models = new Group();
         this.scene.add(this._entity_models);
         this.entity_to_mesh.clear();
+        this.schedule_render();
     }
 
     add_entity_model(model: Mesh): void {
@@ -103,14 +95,16 @@ export class QuestRenderer extends Renderer {
         this.schedule_render();
     }
 
+    remove_entity_model(entity: QuestEntityModel): void {
+        const mesh = this.entity_to_mesh.get(entity);
+
+        if (mesh) {
+            this._entity_models.remove(mesh);
+            this.schedule_render();
+        }
+    }
+
     get_entity_mesh(entity: QuestEntityModel): Mesh | undefined {
         return this.entity_to_mesh.get(entity);
     }
-
-    private load_models = () => {
-        this.model_manager.load_models(
-            quest_editor_store.current_quest.val,
-            quest_editor_store.current_area.val,
-        );
-    };
 }

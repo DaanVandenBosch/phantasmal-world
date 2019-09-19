@@ -15,6 +15,7 @@ import { RenderObject } from "../../../core/data_formats/parsing/area_geometry";
 import { GeometryBuilder } from "../../../core/rendering/conversion/GeometryBuilder";
 import { ninja_object_to_geometry_builder } from "../../../core/rendering/conversion/ninja_geometry";
 import { SectionModel } from "../../model/SectionModel";
+import { AreaVariantModel } from "../../model/AreaVariantModel";
 
 const materials = [
     // Wall
@@ -116,6 +117,7 @@ export function area_collision_geometry_to_object_3d(object: CollisionObject): O
 
 export function area_geometry_to_sections_and_object_3d(
     object: RenderObject,
+    area_variant: AreaVariantModel,
 ): [SectionModel[], Object3D] {
     const sections: SectionModel[] = [];
     const group = new Group();
@@ -144,7 +146,12 @@ export function area_geometry_to_sections_and_object_3d(
         mesh.updateMatrixWorld();
 
         if (section.id >= 0) {
-            const sec = new SectionModel(section.id, section.position, section.rotation.y);
+            const sec = new SectionModel(
+                section.id,
+                section.position,
+                section.rotation.y,
+                area_variant,
+            );
             sections.push(sec);
             (mesh.userData as AreaUserData).section = sec;
         }
