@@ -46,6 +46,7 @@ export class QuestEditorToolBar extends ToolBar {
                     " (Ctrl-Shift-Z)",
             ),
         });
+        // TODO: make sure select menu is updated when entity counts change.
         const area_select = new Select<AreaModel>(
             quest_editor_store.current_quest.flat_map(quest => {
                 if (quest) {

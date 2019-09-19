@@ -54,11 +54,6 @@ export class QuestModelManager implements Disposable {
     }
 
     private quest_or_area_changed = async () => {
-        this.quest_disposer.dispose_all();
-        this.npc_model_manager.remove_all();
-        this.object_model_manager.remove_all();
-        this.renderer.reset_entity_models();
-
         const quest = quest_editor_store.current_quest.val;
         const area = quest_editor_store.current_area.val;
 
@@ -71,6 +66,11 @@ export class QuestModelManager implements Disposable {
         ) {
             return;
         }
+
+        this.quest_disposer.dispose_all();
+        this.npc_model_manager.remove_all();
+        this.object_model_manager.remove_all();
+        this.renderer.reset_entity_models();
 
         // Load entity models.
         if (quest && area) {
