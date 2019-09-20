@@ -9,9 +9,13 @@ import { AreaUserData } from "./conversion/areas";
 import { SectionModel } from "../model/SectionModel";
 import { Disposable } from "../../core/observable/Disposable";
 import { Disposer } from "../../core/observable/Disposer";
-import { EntityDrag } from "../gui/EntityListView";
 import { is_npc_type } from "../../core/data_formats/parsing/quest/entities";
 import { npc_data } from "../../core/data_formats/parsing/quest/npc_types";
+import {
+    add_entity_dnd_listener,
+    EntityDragEvent,
+    remove_entity_dnd_listener,
+} from "../gui/entity_dnd";
 
 const DOWN_VECTOR = new Vector3(0, -1, 0);
 
@@ -20,11 +24,13 @@ type Highlighted = {
     mesh: Mesh;
 };
 
+enum PickMode {
+    Creating,
+    Transforming,
+}
+
 type Pick = {
-    /**
-     * Whether we picked an entity that is being created or one that has existed before.
-     */
-    creating: boolean;
+    mode: PickMode;
 
     initial_section?: SectionModel;
 
@@ -82,12 +88,20 @@ export class QuestEntityControls implements Disposable {
         renderer.dom_element.addEventListener("mousedown", this.mousedown);
         renderer.dom_element.addEventListener("mousemove", this.mousemove);
         renderer.dom_element.addEventListener("mouseup", this.mouseup);
-        renderer.dom_element.addEventListener("phantasmal-dragenter", this.dragenter);
-        renderer.dom_element.addEventListener("phantasmal-dragover", this.dragover);
-        renderer.dom_element.addEventListener("phantasmal-dragleave", this.dragleave);
+        add_entity_dnd_listener(renderer.dom_element, "dragenter", this.dragenter);
+        add_entity_dnd_listener(renderer.dom_element, "dragover", this.dragover);
+        add_entity_dnd_listener(renderer.dom_element, "dragleave", this.dragleave);
+        add_entity_dnd_listener(renderer.dom_element, "drop", this.drop);
     }
 
     dispose(): void {
+        this.renderer.dom_element.removeEventListener("mousedown", this.mousedown);
+        this.renderer.dom_element.removeEventListener("mousemove", this.mousemove);
+        this.renderer.dom_element.removeEventListener("mouseup", this.mouseup);
+        remove_entity_dnd_listener(this.renderer.dom_element, "dragenter", this.dragenter);
+        remove_entity_dnd_listener(this.renderer.dom_element, "dragover", this.dragover);
+        remove_entity_dnd_listener(this.renderer.dom_element, "dragleave", this.dragleave);
+        remove_entity_dnd_listener(this.renderer.dom_element, "drop", this.drop);
         this.disposer.dispose();
     }
 
@@ -112,9 +126,7 @@ export class QuestEntityControls implements Disposable {
         this.process_event(e);
         this.stop_transforming();
 
-        const new_pick = this.pick_entity(
-            this.renderer.pointer_pos_to_device_coords(new Vector2(e.offsetX, e.offsetY)),
-        );
+        const new_pick = this.pick_entity(this.renderer.pointer_pos_to_device_coords(e));
 
         if (new_pick) {
             // Disable camera controls while the user is transforming an entity.
@@ -132,9 +144,7 @@ export class QuestEntityControls implements Disposable {
     private mousemove = (e: MouseEvent) => {
         this.process_event(e);
 
-        const pointer_device_pos = this.renderer.pointer_pos_to_device_coords(
-            new Vector2(e.offsetX, e.offsetY),
-        );
+        const pointer_device_pos = this.renderer.pointer_pos_to_device_coords(e);
 
         if (this.selected && this.pick) {
             if (this.moved_since_last_mouse_down) {
@@ -177,16 +187,11 @@ export class QuestEntityControls implements Disposable {
         this.renderer.schedule_render();
     };
 
-    private dragenter = (e: Event) => {
+    private dragenter = (e: EntityDragEvent) => {
         const area = quest_editor_store.current_area.val;
         if (!area) return;
 
-        const detail = (e as CustomEvent<EntityDrag>).detail;
-
-        const pointer_position = this.renderer.pointer_pos_to_device_coords(
-            new Vector2(detail.offset_x, detail.offset_y),
-        );
-
+        const pointer_position = this.renderer.pointer_pos_to_device_coords(e.event);
         const { intersection, section } = this.pick_terrain(pointer_position, new Vector3());
 
         let position: Vec3 | undefined;
@@ -208,15 +213,18 @@ export class QuestEntityControls implements Disposable {
         const quest = quest_editor_store.current_quest.val;
 
         if (quest && position) {
-            if (is_npc_type(detail.entity_type)) {
-                const data = npc_data(detail.entity_type);
+            if (is_npc_type(e.entity_type)) {
+                const data = npc_data(e.entity_type);
 
-                if (data.pso_type_id !== undefined && data.pso_roaming != undefined) {
-                    detail.drag_element.style.display = "none";
-                    detail.data_transfer.dropEffect = "copy";
+                if (data.pso_type_id != undefined && data.pso_roaming != undefined) {
+                    e.drag_element.style.display = "none";
+
+                    if (e.event.dataTransfer) {
+                        e.event.dataTransfer.dropEffect = "copy";
+                    }
 
                     const npc = new QuestNpcModel(
-                        detail.entity_type,
+                        e.entity_type,
                         data.pso_type_id,
                         0,
                         0,
@@ -235,7 +243,7 @@ export class QuestEntityControls implements Disposable {
                     quest_editor_store.set_selected_entity(npc);
 
                     this.pick = {
-                        creating: true,
+                        mode: PickMode.Creating,
                         initial_section: section,
                         initial_position: position,
                         grab_offset: new Vector3(0, 0, 0),
@@ -247,83 +255,63 @@ export class QuestEntityControls implements Disposable {
         }
     };
 
-    private dragover = (e: Event) => {
+    private dragover = (e: EntityDragEvent) => {
         if (!quest_editor_store.current_area.val) return;
 
-        const detail = (e as CustomEvent<EntityDrag>).detail;
-        detail.data_transfer.dropEffect = "copy";
+        if (this.pick && this.pick.mode === PickMode.Creating) {
+            e.event.stopPropagation();
+            e.event.preventDefault();
 
-        if (this.selected && this.pick) {
-            const pointer_device_pos = this.renderer.pointer_pos_to_device_coords(
-                new Vector2(detail.offset_x, detail.offset_y),
-            );
+            if (e.event.dataTransfer) {
+                e.event.dataTransfer.dropEffect = "copy";
+            }
 
-            // TODO:
-            // if (e.buttons === 1) {
-            // User is transforming selected entity.
-            // User is dragging selected entity.
-            // if (e.shiftKey) {
-            // Vertical movement.
-            //     this.translate_vertically(this.selected, this.pick, pointer_device_pos);
-            // } else {
-            // Horizontal movement across terrain.
-            this.translate_horizontally(this.selected, this.pick, pointer_device_pos);
-            // }
-            // }
+            if (this.selected) {
+                const pointer_device_pos = this.renderer.pointer_pos_to_device_coords(e.event);
 
-            this.renderer.schedule_render();
+                if (e.event.shiftKey) {
+                    // Vertical movement.
+                    this.translate_vertically(this.selected, this.pick, pointer_device_pos);
+                } else {
+                    // Horizontal movement across terrain.
+                    this.translate_horizontally(this.selected, this.pick, pointer_device_pos);
+                }
+
+                this.renderer.schedule_render();
+            }
         }
     };
 
-    private dragleave = (e: Event) => {
+    private dragleave = (e: EntityDragEvent) => {
         if (!quest_editor_store.current_area.val) return;
 
-        const detail = (e as CustomEvent<EntityDrag>).detail;
-        if (detail.drag_element) detail.drag_element.style.display = "flex";
+        e.drag_element.style.display = "flex";
 
         const quest = quest_editor_store.current_quest.val;
 
-        if (quest && this.selected && this.selected.entity.type == detail.entity_type) {
+        if (quest && this.selected && this.pick && this.pick.mode === PickMode.Creating) {
             quest.remove_entity(this.selected.entity);
         }
     };
 
     private drop = () => {
         // TODO: push onto undo stack.
+        this.pick = undefined;
     };
 
-    private process_event(e: Event): void {
-        let offset_x: number;
-        let offset_y: number;
-
-        if (e instanceof MouseEvent) {
-            offset_x = e.offsetX;
-            offset_y = e.offsetY;
-        } else if (e instanceof CustomEvent) {
-            const detail = (e as CustomEvent<EntityDrag>).detail;
-
-            if (!("offset_x" in detail && "offset_y" in detail)) {
-                return;
-            }
-
-            offset_x = detail.offset_x;
-            offset_y = detail.offset_y;
-        } else {
-            return;
-        }
-
-        if (e.type === "mousedown" || e.type === "phantasmal-dragenter") {
+    private process_event(e: MouseEvent): void {
+        if (e.type === "mousedown") {
             this.moved_since_last_mouse_down = false;
         } else {
             if (
-                offset_x !== this.last_pointer_position.x ||
-                offset_y !== this.last_pointer_position.y
+                e.offsetX !== this.last_pointer_position.x ||
+                e.offsetY !== this.last_pointer_position.y
             ) {
                 this.moved_since_last_mouse_down = true;
             }
         }
 
-        this.last_pointer_position.set(offset_x, offset_y);
+        this.last_pointer_position.set(e.offsetX, e.offsetY);
     }
 
     /**
@@ -456,7 +444,12 @@ export class QuestEntityControls implements Disposable {
     }
 
     private stop_transforming = () => {
-        if (this.moved_since_last_mouse_down && this.selected && this.pick && !this.pick.creating) {
+        if (
+            this.moved_since_last_mouse_down &&
+            this.selected &&
+            this.pick &&
+            this.pick.mode === PickMode.Transforming
+        ) {
             const entity = this.selected.entity;
             quest_editor_store.push_translate_entity_action(
                 entity,
@@ -503,7 +496,7 @@ export class QuestEntityControls implements Disposable {
         }
 
         return {
-            creating: false,
+            mode: PickMode.Transforming,
             mesh: intersection.object as Mesh,
             entity,
             initial_section: entity.section.val,
