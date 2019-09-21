@@ -91,6 +91,7 @@ export class QuestEntityControls implements Disposable {
         );
 
         renderer.dom_element.addEventListener("mousedown", this.mousedown);
+        renderer.dom_element.addEventListener("mousemove", this.mousemove);
         add_entity_dnd_listener(renderer.dom_element, "dragenter", this.dragenter);
         add_entity_dnd_listener(renderer.dom_element, "dragover", this.dragover);
         add_entity_dnd_listener(renderer.dom_element, "dragleave", this.dragleave);
@@ -99,6 +100,7 @@ export class QuestEntityControls implements Disposable {
 
     dispose(): void {
         this.renderer.dom_element.removeEventListener("mousedown", this.mousedown);
+        this.renderer.dom_element.removeEventListener("mousemove", this.mousemove);
         document.removeEventListener("mousemove", this.doc_mousemove);
         document.removeEventListener("mouseup", this.doc_mouseup);
         remove_entity_dnd_listener(this.renderer.dom_element, "dragenter", this.dragenter);
@@ -128,6 +130,7 @@ export class QuestEntityControls implements Disposable {
     private mousedown = (e: MouseEvent) => {
         this.process_event(e);
 
+        this.renderer.dom_element.removeEventListener("mousemove", this.mousemove);
         document.addEventListener("mouseup", this.doc_mouseup);
         document.addEventListener("mousemove", this.doc_mousemove);
 
@@ -148,22 +151,22 @@ export class QuestEntityControls implements Disposable {
         this.renderer.schedule_render();
     };
 
+    private mousemove = (e: MouseEvent) => {
+        this.process_event(e);
+
+        if (!this.selected || !this.pick) {
+            // User is hovering.
+            this.mark_hovered(this.pick_entity(this.pointer_device_position));
+        }
+    };
+
     private doc_mousemove = (e: MouseEvent) => {
         this.process_event(e);
 
-        if (this.selected && this.pick) {
-            if (this.moved_since_last_mouse_down) {
-                // User is transforming selected entity.
-                if (e.buttons === 1) {
-                    this.translate_entity(e, this.selected, this.pick);
-                }
-            }
-        } else {
-            // User is hovering.
-            const new_pick = this.pick_entity(this.pointer_device_position);
-
-            if (this.mark_hovered(new_pick)) {
-                this.renderer.schedule_render();
+        if (this.selected && this.pick && this.moved_since_last_mouse_down) {
+            // User is transforming selected entity.
+            if (e.buttons === 1) {
+                this.translate_entity(e, this.selected, this.pick);
             }
         }
     };
@@ -171,6 +174,7 @@ export class QuestEntityControls implements Disposable {
     private doc_mouseup = (e: MouseEvent) => {
         this.process_event(e);
 
+        this.renderer.dom_element.addEventListener("mousemove", this.mousemove);
         document.removeEventListener("mousemove", this.doc_mousemove);
         document.removeEventListener("mouseup", this.doc_mouseup);
 
@@ -297,12 +301,7 @@ export class QuestEntityControls implements Disposable {
         this.last_pointer_position.copy(this.pointer_position);
     }
 
-    /**
-     * @returns true if a render is required.
-     */
-    private mark_hovered(selection?: Highlighted): boolean {
-        let render_required = false;
-
+    private mark_hovered(selection?: Highlighted): void {
         if (!this.selected || !selection_equals(selection, this.selected)) {
             if (!selection_equals(selection, this.hovered)) {
                 if (this.hovered) {
@@ -314,13 +313,11 @@ export class QuestEntityControls implements Disposable {
                     set_color(selection, ColorType.Hovered);
                 }
 
-                render_required = true;
+                this.renderer.schedule_render();
             }
 
             this.hovered = selection;
         }
-
-        return render_required;
     }
 
     private select(selection: Highlighted): void {
