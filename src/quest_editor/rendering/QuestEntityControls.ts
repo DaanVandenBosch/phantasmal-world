@@ -18,7 +18,8 @@ import {
 } from "../gui/entity_dnd";
 import { vec3_to_threejs } from "../../core/rendering/conversion";
 
-const DOWN_VECTOR = new Vector3(0, -1, 0);
+const UP_VECTOR = Object.freeze(new Vector3(0, 1, 0));
+const DOWN_VECTOR = Object.freeze(new Vector3(0, -1, 0));
 
 type Highlighted = {
     entity: QuestEntityModel;
@@ -54,18 +55,24 @@ type PickResult = Pick & {
 };
 
 export class QuestEntityControls implements Disposable {
-    private raycaster = new Raycaster();
     private selected?: Highlighted;
     private hovered?: Highlighted;
     /**
      * Iff defined, the user is transforming the selected entity.
      */
     private pick?: Pick;
-    private pointer_position = new Vector2(0, 0);
-    private pointer_device_position = new Vector2(0, 0);
-    private last_pointer_position = new Vector2(0, 0);
+    private readonly pointer_position = new Vector2(0, 0);
+    private readonly pointer_device_position = new Vector2(0, 0);
+    private readonly last_pointer_position = new Vector2(0, 0);
     private moved_since_last_mouse_down = false;
-    private disposer = new Disposer();
+
+    // The following properties are used during entity translation.
+    private readonly raycaster = new Raycaster();
+    private readonly plane = new Plane();
+    private readonly plane_normal = new Vector3();
+    private readonly intersection_point = new Vector3();
+
+    private readonly disposer = new Disposer();
 
     constructor(private renderer: QuestRenderer) {
         this.disposer.add(
@@ -366,16 +373,17 @@ export class QuestEntityControls implements Disposable {
         this.raycaster.setFromCamera(this.pointer_device_position, this.renderer.camera);
         const ray = this.raycaster.ray;
 
-        const negative_world_dir = this.renderer.camera.getWorldDirection(new Vector3()).negate();
-        const plane = new Plane().setFromNormalAndCoplanarPoint(
-            new Vector3(negative_world_dir.x, 0, negative_world_dir.z).normalize(),
+        this.renderer.camera.getWorldDirection(this.plane_normal);
+        this.plane_normal.negate();
+        this.plane_normal.y = 0;
+        this.plane_normal.normalize();
+        this.plane.setFromNormalAndCoplanarPoint(
+            this.plane_normal,
             vec3_to_threejs(entity.world_position.val).sub(grab_offset),
         );
 
-        const intersection_point = new Vector3();
-
-        if (ray.intersectPlane(plane, intersection_point)) {
-            const y = intersection_point.y + grab_offset.y;
+        if (ray.intersectPlane(this.plane, this.intersection_point)) {
+            const y = this.intersection_point.y + grab_offset.y;
             const y_delta = y - entity.world_position.val.y;
             drag_adjust.y -= y_delta;
             entity.set_world_position(
@@ -416,18 +424,14 @@ export class QuestEntityControls implements Disposable {
             // plane in which the entity's origin lies.
             this.raycaster.setFromCamera(this.pointer_device_position, this.renderer.camera);
             const ray = this.raycaster.ray;
-            const plane = new Plane(
-                new Vector3(0, 1, 0),
-                -entity.world_position.val.y + grab_offset.y,
-            );
-            const intersection_point = new Vector3();
+            this.plane.set(UP_VECTOR, -entity.world_position.val.y + grab_offset.y);
 
-            if (ray.intersectPlane(plane, intersection_point)) {
+            if (ray.intersectPlane(this.plane, this.intersection_point)) {
                 entity.set_world_position(
                     new Vec3(
-                        intersection_point.x + grab_offset.x,
+                        this.intersection_point.x + grab_offset.x,
                         entity.world_position.val.y,
-                        intersection_point.z + grab_offset.z,
+                        this.intersection_point.z + grab_offset.z,
                     ),
                 );
             }
