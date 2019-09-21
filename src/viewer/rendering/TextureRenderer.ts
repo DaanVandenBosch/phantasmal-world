@@ -12,24 +12,19 @@ import { Renderer } from "../../core/rendering/Renderer";
 import { Disposer } from "../../core/observable/Disposer";
 import { Xvm } from "../../core/data_formats/parsing/ninja/texture";
 import { xvm_texture_to_texture } from "../../core/rendering/conversion/ninja_textures";
-import Logger = require("js-logger");
 import { texture_store } from "../stores/TextureStore";
+import Logger = require("js-logger");
 
 const logger = Logger.get("viewer/rendering/TextureRenderer");
 
 export class TextureRenderer extends Renderer implements Disposable {
-    private readonly ortho_camera: OrthographicCamera;
     private readonly disposer = new Disposer();
     private readonly quad_meshes: Mesh[] = [];
 
+    readonly camera = new OrthographicCamera(-400, 400, 300, -300, 1, 10);
+
     constructor() {
-        super(new OrthographicCamera(-400, 400, 300, -300, 1, 10));
-
-        this.ortho_camera = this.camera as OrthographicCamera;
-        this.controls.dollySpeed = -1;
-
-        this.controls.azimuthRotateSpeed = 0;
-        this.controls.polarRotateSpeed = 0;
+        super();
 
         this.disposer.add_all(
             texture_store.current_xvm.observe(({ value: xvm }) => {
@@ -43,14 +38,19 @@ export class TextureRenderer extends Renderer implements Disposable {
                 this.schedule_render();
             }),
         );
+
+        this.init_camera_controls();
+        this.controls.dollySpeed = -1;
+        this.controls.azimuthRotateSpeed = 0;
+        this.controls.polarRotateSpeed = 0;
     }
 
     set_size(width: number, height: number): void {
-        this.ortho_camera.left = -Math.floor(width / 2);
-        this.ortho_camera.right = Math.ceil(width / 2);
-        this.ortho_camera.top = Math.floor(height / 2);
-        this.ortho_camera.bottom = -Math.ceil(height / 2);
-        this.ortho_camera.updateProjectionMatrix();
+        this.camera.left = -Math.floor(width / 2);
+        this.camera.right = Math.ceil(width / 2);
+        this.camera.top = Math.floor(height / 2);
+        this.camera.bottom = -Math.ceil(height / 2);
+        this.camera.updateProjectionMatrix();
         super.set_size(width, height);
     }
 

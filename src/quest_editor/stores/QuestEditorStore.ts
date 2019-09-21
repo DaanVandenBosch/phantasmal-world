@@ -25,6 +25,7 @@ import { EditIdAction } from "../actions/EditIdAction";
 import { Episode } from "../../core/data_formats/parsing/quest/Episode";
 import { create_new_quest } from "./quest_creation";
 import Logger = require("js-logger");
+import { CreateEntityAction } from "../actions/CreateEntityAction";
 
 const logger = Logger.get("quest_editor/gui/QuestEditorStore");
 
@@ -267,6 +268,10 @@ export class QuestEditorStore implements Disposable {
                 ),
             )
             .redo();
+    };
+
+    push_create_entity_action = (entity: QuestEntityModel) => {
+        this.undo.push(new CreateEntityAction(entity));
     };
 
     private async set_quest(quest?: QuestModel, filename?: string): Promise<void> {

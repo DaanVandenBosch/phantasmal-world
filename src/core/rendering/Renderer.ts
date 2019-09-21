@@ -1,7 +1,6 @@
 import CameraControls from "camera-controls";
 import * as THREE from "three";
 import {
-    Camera,
     Clock,
     Color,
     Group,
@@ -34,8 +33,8 @@ export abstract class Renderer implements Disposable {
         this._debug = debug;
     }
 
-    readonly camera: Camera;
-    readonly controls: CameraControls;
+    abstract readonly camera: PerspectiveCamera | OrthographicCamera;
+    readonly controls!: CameraControls;
     readonly scene = new Scene();
     readonly light_holder = new Group();
 
@@ -44,23 +43,19 @@ export abstract class Renderer implements Disposable {
     private animation_frame_handle?: number = undefined;
     private light = new HemisphereLight(0xffffff, 0x505050, 1.2);
     private controls_clock = new Clock();
+    private size = new Vector2();
 
-    protected constructor(camera: PerspectiveCamera | OrthographicCamera) {
-        this.camera = camera;
-
+    protected constructor() {
         this.dom_element.tabIndex = 0;
         this.dom_element.addEventListener("mousedown", this.on_mouse_down);
         this.dom_element.style.outline = "none";
-
-        this.controls = new CameraControls(camera, this.renderer.domElement);
-        this.controls.dampingFactor = 1;
-        this.controls.draggingDampingFactor = 1;
 
         this.scene.background = new Color(0x181818);
         this.light_holder.add(this.light);
         this.scene.add(this.light_holder);
 
         this.renderer.setPixelRatio(window.devicePixelRatio);
+        this.renderer.getSize(this.size);
     }
 
     get dom_element(): HTMLElement {
@@ -68,15 +63,13 @@ export abstract class Renderer implements Disposable {
     }
 
     set_size(width: number, height: number): void {
+        this.size.set(width, height);
         this.renderer.setSize(width, height);
         this.schedule_render();
     }
 
-    pointer_pos_to_device_coords(e: MouseEvent): Vector2 {
-        const coords = this.renderer.getSize(new Vector2());
-        coords.width = (e.offsetX / coords.width) * 2 - 1;
-        coords.height = (e.offsetY / coords.height) * -2 + 1;
-        return coords;
+    pointer_pos_to_device_coords(pos: Vector2): void {
+        pos.set((pos.x / this.size.width) * 2 - 1, (pos.y / this.size.height) * -2 + 1);
     }
 
     start_rendering(): void {
@@ -108,6 +101,16 @@ export abstract class Renderer implements Disposable {
 
     dispose(): void {
         this.renderer.dispose();
+        this.controls.dispose();
+    }
+
+    protected init_camera_controls(): void {
+        (this.controls as CameraControls) = new CameraControls(
+            this.camera,
+            this.renderer.domElement,
+        );
+        this.controls.dampingFactor = 1;
+        this.controls.draggingDampingFactor = 1;
     }
 
     protected render(): void {

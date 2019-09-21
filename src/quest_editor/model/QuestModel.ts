@@ -12,6 +12,7 @@ import { area_store } from "../stores/AreaStore";
 import { ListProperty } from "../../core/observable/property/list/ListProperty";
 import { WritableListProperty } from "../../core/observable/property/list/WritableListProperty";
 import { QuestEntityModel } from "./QuestEntityModel";
+import { entity_type_to_string } from "../../core/data_formats/parsing/quest/entities";
 
 const logger = Logger.get("quest_editor/model/QuestModel");
 
@@ -111,6 +112,7 @@ export class QuestModel {
     private readonly _long_description: WritableProperty<string> = property("");
     private readonly _map_designations: WritableProperty<Map<number, number>>;
     private readonly _area_variants: WritableListProperty<AreaVariantModel> = list_property();
+    private readonly _objects: WritableListProperty<QuestObjectModel>;
     private readonly _npcs: WritableListProperty<QuestNpcModel>;
 
     constructor(
@@ -150,7 +152,8 @@ export class QuestModel {
         this.episode = episode;
         this._map_designations = property(map_designations);
         this.map_designations = this._map_designations;
-        this.objects = list_property(undefined, ...objects);
+        this._objects = list_property(undefined, ...objects);
+        this.objects = this._objects;
         this._npcs = list_property(undefined, ...npcs);
         this.npcs = this._npcs;
         this.dat_unknowns = dat_unknowns;
@@ -179,15 +182,31 @@ export class QuestModel {
         this.map_designations.observe(this.update_area_variants);
     }
 
+    add_entity(entity: QuestEntityModel): void {
+        if (entity instanceof QuestObjectModel) {
+            this.add_object(entity);
+        } else if (entity instanceof QuestNpcModel) {
+            this.add_npc(entity);
+        } else {
+            throw new Error(`${entity_type_to_string(entity.type)} not supported.`);
+        }
+    }
+
+    add_object(object: QuestObjectModel): void {
+        this._objects.push(object);
+    }
+
     add_npc(npc: QuestNpcModel): void {
         this._npcs.push(npc);
     }
 
     remove_entity(entity: QuestEntityModel): void {
-        if (entity instanceof QuestNpcModel) {
+        if (entity instanceof QuestObjectModel) {
+            this._objects.remove(entity);
+        } else if (entity instanceof QuestNpcModel) {
             this._npcs.remove(entity);
         } else {
-            // TODO: objects
+            throw new Error(`${entity_type_to_string(entity.type)} not supported.`);
         }
     }
 

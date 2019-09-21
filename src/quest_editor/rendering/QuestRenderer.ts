@@ -8,6 +8,13 @@ import { QuestEntityControls } from "./QuestEntityControls";
 import { EntityUserData } from "./conversion/entities";
 
 export class QuestRenderer extends Renderer {
+    private _collision_geometry = new Object3D();
+    private _render_geometry = new Object3D();
+    private _entity_models = new Object3D();
+    private readonly disposer = new Disposer();
+    private readonly entity_to_mesh = new Map<QuestEntityModel, Mesh>();
+    private readonly entity_controls = this.disposer.add(new QuestEntityControls(this));
+
     get debug(): boolean {
         return super.debug;
     }
@@ -20,7 +27,7 @@ export class QuestRenderer extends Renderer {
         }
     }
 
-    private _collision_geometry = new Object3D();
+    readonly camera = new PerspectiveCamera(60, 1, 10, 10000);
 
     get collision_geometry(): Object3D {
         return this._collision_geometry;
@@ -32,8 +39,6 @@ export class QuestRenderer extends Renderer {
         this.scene.add(collision_geometry);
     }
 
-    private _render_geometry = new Object3D();
-
     set render_geometry(render_geometry: Object3D) {
         this.scene.remove(this._render_geometry);
         this._render_geometry = render_geometry;
@@ -41,27 +46,24 @@ export class QuestRenderer extends Renderer {
         this.scene.add(render_geometry);
     }
 
-    private _entity_models = new Object3D();
-
     get entity_models(): Object3D {
         return this._entity_models;
     }
 
-    private readonly disposer = new Disposer();
-    private readonly perspective_camera: PerspectiveCamera;
-    private readonly entity_to_mesh = new Map<QuestEntityModel, Mesh>();
-    private readonly entity_controls = this.disposer.add(new QuestEntityControls(this));
-
     constructor() {
-        super(new PerspectiveCamera(60, 1, 10, 10000));
-
-        this.perspective_camera = this.camera as PerspectiveCamera;
+        super();
 
         this.disposer.add_all(
             new QuestModelManager(this),
 
             quest_editor_store.debug.observe(({ value }) => (this.debug = value)),
         );
+
+        // Initialize camera-controls after QuestEntityControls to ensure correct order of event
+        // listener registration. This is a fragile work-around for the fact that camera-controls
+        // doesn't support intercepting pointer events.
+        this.init_camera_controls();
+
     }
 
     dispose(): void {
@@ -70,8 +72,8 @@ export class QuestRenderer extends Renderer {
     }
 
     set_size(width: number, height: number): void {
-        this.perspective_camera.aspect = width / height;
-        this.perspective_camera.updateProjectionMatrix();
+        this.camera.aspect = width / height;
+        this.camera.updateProjectionMatrix();
         super.set_size(width, height);
     }
 
@@ -99,6 +101,7 @@ export class QuestRenderer extends Renderer {
         const mesh = this.entity_to_mesh.get(entity);
 
         if (mesh) {
+            this.entity_to_mesh.delete(entity);
             this._entity_models.remove(mesh);
             this.schedule_render();
         }

@@ -27,7 +27,6 @@ import { Disposer } from "../../core/observable/Disposer";
 import { ChangeEvent } from "../../core/observable/Observable";
 
 export class Model3DRenderer extends Renderer implements Disposable {
-    private readonly perspective_camera: PerspectiveCamera;
     private readonly disposer = new Disposer();
     private readonly clock = new Clock();
     private mesh?: Object3D;
@@ -39,10 +38,10 @@ export class Model3DRenderer extends Renderer implements Disposable {
     };
     private update_animation_time = true;
 
-    constructor() {
-        super(new PerspectiveCamera(75, 1, 1, 200));
+    readonly camera = new PerspectiveCamera(75, 1, 1, 200);
 
-        this.perspective_camera = this.camera as PerspectiveCamera;
+    constructor() {
+        super();
 
         this.disposer.add_all(
             model_store.current_nj_data.observe(this.nj_data_or_xvm_changed),
@@ -53,11 +52,13 @@ export class Model3DRenderer extends Renderer implements Disposable {
             model_store.animation_frame_rate.observe(this.animation_frame_rate_changed),
             model_store.animation_frame.observe(this.animation_frame_changed),
         );
+
+        this.init_camera_controls();
     }
 
     set_size(width: number, height: number): void {
-        this.perspective_camera.aspect = width / height;
-        this.perspective_camera.updateProjectionMatrix();
+        this.camera.aspect = width / height;
+        this.camera.updateProjectionMatrix();
         super.set_size(width, height);
     }
 
@@ -71,7 +72,7 @@ export class Model3DRenderer extends Renderer implements Disposable {
             this.animation.mixer.update(this.clock.getDelta());
         }
 
-        this.light_holder.quaternion.copy(this.perspective_camera.quaternion);
+        this.light_holder.quaternion.copy(this.camera.quaternion);
         super.render();
 
         if (this.animation && !this.animation.action.paused) {

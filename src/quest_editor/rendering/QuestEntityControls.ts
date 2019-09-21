@@ -61,6 +61,8 @@ export class QuestEntityControls implements Disposable {
      * Iff defined, the user is transforming the selected entity.
      */
     private pick?: Pick;
+    private pointer_position = new Vector2(0, 0);
+    private pointer_device_position = new Vector2(0, 0);
     private last_pointer_position = new Vector2(0, 0);
     private moved_since_last_mouse_down = false;
     private disposer = new Disposer();
@@ -82,8 +84,6 @@ export class QuestEntityControls implements Disposable {
         );
 
         renderer.dom_element.addEventListener("mousedown", this.mousedown);
-        renderer.dom_element.addEventListener("mousemove", this.mousemove);
-        renderer.dom_element.addEventListener("mouseup", this.mouseup);
         add_entity_dnd_listener(renderer.dom_element, "dragenter", this.dragenter);
         add_entity_dnd_listener(renderer.dom_element, "dragover", this.dragover);
         add_entity_dnd_listener(renderer.dom_element, "dragleave", this.dragleave);
@@ -92,8 +92,8 @@ export class QuestEntityControls implements Disposable {
 
     dispose(): void {
         this.renderer.dom_element.removeEventListener("mousedown", this.mousedown);
-        this.renderer.dom_element.removeEventListener("mousemove", this.mousemove);
-        this.renderer.dom_element.removeEventListener("mouseup", this.mouseup);
+        document.removeEventListener("mousemove", this.doc_mousemove);
+        document.removeEventListener("mouseup", this.doc_mouseup);
         remove_entity_dnd_listener(this.renderer.dom_element, "dragenter", this.dragenter);
         remove_entity_dnd_listener(this.renderer.dom_element, "dragover", this.dragover);
         remove_entity_dnd_listener(this.renderer.dom_element, "dragleave", this.dragleave);
@@ -120,9 +120,13 @@ export class QuestEntityControls implements Disposable {
 
     private mousedown = (e: MouseEvent) => {
         this.process_event(e);
+
+        document.addEventListener("mouseup", this.doc_mouseup);
+        document.addEventListener("mousemove", this.doc_mousemove);
+
         this.stop_transforming();
 
-        const new_pick = this.pick_entity(this.renderer.pointer_pos_to_device_coords(e));
+        const new_pick = this.pick_entity(this.pointer_device_position);
 
         if (new_pick) {
             // Disable camera controls while the user is transforming an entity.
@@ -137,10 +141,8 @@ export class QuestEntityControls implements Disposable {
         this.renderer.schedule_render();
     };
 
-    private mousemove = (e: MouseEvent) => {
+    private doc_mousemove = (e: MouseEvent) => {
         this.process_event(e);
-
-        const pointer_device_pos = this.renderer.pointer_pos_to_device_coords(e);
 
         if (this.selected && this.pick) {
             if (this.moved_since_last_mouse_down) {
@@ -151,7 +153,7 @@ export class QuestEntityControls implements Disposable {
             }
         } else {
             // User is hovering.
-            const new_pick = this.pick_entity(pointer_device_pos);
+            const new_pick = this.pick_entity(this.pointer_device_position);
 
             if (this.mark_hovered(new_pick)) {
                 this.renderer.schedule_render();
@@ -159,9 +161,11 @@ export class QuestEntityControls implements Disposable {
         }
     };
 
-    // TODO: deal with mouseup outside of 3D-view
-    private mouseup = (e: MouseEvent) => {
+    private doc_mouseup = (e: MouseEvent) => {
         this.process_event(e);
+
+        document.removeEventListener("mousemove", this.doc_mousemove);
+        document.removeEventListener("mouseup", this.doc_mouseup);
 
         if (!this.moved_since_last_mouse_down && !this.pick) {
             // If the user clicks on nothing, deselect the currently selected entity.
@@ -176,6 +180,8 @@ export class QuestEntityControls implements Disposable {
     };
 
     private dragenter = (e: EntityDragEvent) => {
+        this.process_event(e.event);
+
         const area = quest_editor_store.current_area.val;
         const quest = quest_editor_store.current_quest.val;
 
@@ -208,7 +214,7 @@ export class QuestEntityControls implements Disposable {
             );
             const grab_offset = new Vector3(0, 0, 0);
             const drag_adjust = new Vector3(0, 0, 0);
-            this.translate_entity_horizontally(npc, e.event, grab_offset, drag_adjust);
+            this.translate_entity_horizontally(npc, grab_offset, drag_adjust);
             quest.add_npc(npc);
 
             quest_editor_store.set_selected_entity(npc);
@@ -224,6 +230,8 @@ export class QuestEntityControls implements Disposable {
     };
 
     private dragover = (e: EntityDragEvent) => {
+        this.process_event(e.event);
+
         if (!quest_editor_store.current_area.val) return;
 
         if (this.pick && this.pick.mode === PickMode.Creating) {
@@ -242,6 +250,8 @@ export class QuestEntityControls implements Disposable {
     };
 
     private dragleave = (e: EntityDragEvent) => {
+        this.process_event(e.event);
+
         if (!quest_editor_store.current_area.val) return;
 
         e.drag_element.style.display = "flex";
@@ -253,24 +263,31 @@ export class QuestEntityControls implements Disposable {
         }
     };
 
-    private drop = () => {
-        // TODO: push onto undo stack.
-        this.pick = undefined;
+    private drop = (e: EntityDragEvent) => {
+        this.process_event(e.event);
+
+        if (this.selected && this.pick && this.pick.mode === PickMode.Creating) {
+            quest_editor_store.push_create_entity_action(this.selected.entity);
+
+            this.pick = undefined;
+        }
     };
 
     private process_event(e: MouseEvent): void {
+        const { left, top } = this.renderer.dom_element.getBoundingClientRect();
+        this.pointer_position.set(e.clientX - left, e.clientY - top);
+        this.pointer_device_position.copy(this.pointer_position);
+        this.renderer.pointer_pos_to_device_coords(this.pointer_device_position);
+
         if (e.type === "mousedown") {
             this.moved_since_last_mouse_down = false;
-        } else {
-            if (
-                e.offsetX !== this.last_pointer_position.x ||
-                e.offsetY !== this.last_pointer_position.y
-            ) {
+        } else if (e.type === "mousemove" || e.type === "mouseup") {
+            if (!this.pointer_position.equals(this.last_pointer_position)) {
                 this.moved_since_last_mouse_down = true;
             }
         }
 
-        this.last_pointer_position.set(e.offsetX, e.offsetY);
+        this.last_pointer_position.copy(this.pointer_position);
     }
 
     /**
@@ -330,20 +347,10 @@ export class QuestEntityControls implements Disposable {
     private translate_entity(e: MouseEvent, selected: Highlighted, pick: Pick): void {
         if (e.shiftKey) {
             // Vertical movement.
-            this.translate_entity_vertically(
-                selected.entity,
-                e,
-                pick.drag_adjust,
-                pick.grab_offset,
-            );
+            this.translate_entity_vertically(selected.entity, pick.drag_adjust, pick.grab_offset);
         } else {
             // Horizontal movement across the ground.
-            this.translate_entity_horizontally(
-                selected.entity,
-                e,
-                pick.drag_adjust,
-                pick.grab_offset,
-            );
+            this.translate_entity_horizontally(selected.entity, pick.drag_adjust, pick.grab_offset);
         }
 
         this.renderer.schedule_render();
@@ -351,15 +358,12 @@ export class QuestEntityControls implements Disposable {
 
     private translate_entity_vertically(
         entity: QuestEntityModel,
-        e: MouseEvent,
         drag_adjust: Vector3,
         grab_offset: Vector3,
     ): void {
-        const pointer_position = this.renderer.pointer_pos_to_device_coords(e);
-
         // We intersect with a plane that's oriented toward the camera and that's coplanar with the
         // point where the entity was grabbed.
-        this.raycaster.setFromCamera(pointer_position, this.renderer.camera);
+        this.raycaster.setFromCamera(this.pointer_device_position, this.renderer.camera);
         const ray = this.raycaster.ray;
 
         const negative_world_dir = this.renderer.camera.getWorldDirection(new Vector3()).negate();
@@ -386,14 +390,14 @@ export class QuestEntityControls implements Disposable {
      */
     private translate_entity_horizontally(
         entity: QuestEntityModel,
-        e: MouseEvent,
         drag_adjust: Vector3,
         grab_offset: Vector3,
     ): void {
-        const pointer_position = this.renderer.pointer_pos_to_device_coords(e);
-
         // Cast ray adjusted for dragging entities.
-        const { intersection, section } = this.pick_ground(pointer_position, drag_adjust);
+        const { intersection, section } = this.pick_ground(
+            this.pointer_device_position,
+            drag_adjust,
+        );
 
         if (intersection) {
             entity.set_world_position(
@@ -410,7 +414,7 @@ export class QuestEntityControls implements Disposable {
         } else {
             // If the pointer is not over the ground, we translate the entity across the horizontal
             // plane in which the entity's origin lies.
-            this.raycaster.setFromCamera(pointer_position, this.renderer.camera);
+            this.raycaster.setFromCamera(this.pointer_device_position, this.renderer.camera);
             const ray = this.raycaster.ray;
             const plane = new Plane(
                 new Vector3(0, 1, 0),
