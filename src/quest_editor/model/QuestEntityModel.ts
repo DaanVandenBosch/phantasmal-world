@@ -15,6 +15,10 @@ export abstract class QuestEntityModel<Type extends EntityType = EntityType> {
     readonly section: Property<SectionModel | undefined>;
 
     set_section(section: SectionModel): this {
+        if (section.area_variant.area.id !== this.area_id) {
+            throw new Error(`Quest entities can't be moved across areas.`);
+        }
+
         this._section.val = section;
         this._section_id.val = section.id;
         return this;

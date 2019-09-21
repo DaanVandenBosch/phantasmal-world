@@ -16,6 +16,7 @@ import {
     EntityDragEvent,
     remove_entity_dnd_listener,
 } from "../gui/entity_dnd";
+import { vec3_to_threejs } from "../../core/rendering/conversion";
 
 const DOWN_VECTOR = new Vector3(0, -1, 0);
 
@@ -45,11 +46,6 @@ type Pick = {
      * Vector that points from the grabbing point to the terrain point directly under the model's origin.
      */
     drag_adjust: Vector3;
-
-    /**
-     * Distance to terrain.
-     */
-    drag_y: number;
 };
 
 type PickResult = Pick & {
@@ -148,19 +144,10 @@ export class QuestEntityControls implements Disposable {
 
         if (this.selected && this.pick) {
             if (this.moved_since_last_mouse_down) {
+                // User is transforming selected entity.
                 if (e.buttons === 1) {
-                    // User is transforming selected entity.
-                    // User is dragging selected entity.
-                    if (e.shiftKey) {
-                        // Vertical movement.
-                        this.translate_vertically(this.selected, this.pick, pointer_device_pos);
-                    } else {
-                        // Horizontal movement across terrain.
-                        this.translate_horizontally(this.selected, this.pick, pointer_device_pos);
-                    }
+                    this.translate_entity(e, this.selected, this.pick);
                 }
-
-                this.renderer.schedule_render();
             }
         } else {
             // User is hovering.
@@ -172,6 +159,7 @@ export class QuestEntityControls implements Disposable {
         }
     };
 
+    // TODO: deal with mouseup outside of 3D-view
     private mouseup = (e: MouseEvent) => {
         this.process_event(e);
 
@@ -189,69 +177,49 @@ export class QuestEntityControls implements Disposable {
 
     private dragenter = (e: EntityDragEvent) => {
         const area = quest_editor_store.current_area.val;
-        if (!area) return;
-
-        const pointer_position = this.renderer.pointer_pos_to_device_coords(e.event);
-        const { intersection, section } = this.pick_terrain(pointer_position, new Vector3());
-
-        let position: Vec3 | undefined;
-
-        if (intersection) {
-            position = new Vec3(intersection.point.x, intersection.point.y, intersection.point.z);
-        } else {
-            // If the cursor is not over any terrain, we translate the entity across the horizontal plane in which the origin lies.
-            this.raycaster.setFromCamera(pointer_position, this.renderer.camera);
-            const ray = this.raycaster.ray;
-            const plane = new Plane(new Vector3(0, 1, 0), 0);
-            const intersection_point = new Vector3();
-
-            if (ray.intersectPlane(plane, intersection_point)) {
-                position = new Vec3(intersection_point.x, 0, intersection_point.z);
-            }
-        }
-
         const quest = quest_editor_store.current_quest.val;
 
-        if (quest && position) {
-            if (is_npc_type(e.entity_type)) {
-                const data = npc_data(e.entity_type);
+        if (!area || !quest) return;
 
-                if (data.pso_type_id != undefined && data.pso_roaming != undefined) {
-                    e.drag_element.style.display = "none";
+        if (is_npc_type(e.entity_type)) {
+            const data = npc_data(e.entity_type);
 
-                    if (e.event.dataTransfer) {
-                        e.event.dataTransfer.dropEffect = "copy";
-                    }
+            if (data.pso_type_id == undefined || data.pso_roaming == undefined) return;
 
-                    const npc = new QuestNpcModel(
-                        e.entity_type,
-                        data.pso_type_id,
-                        0,
-                        0,
-                        data.pso_roaming,
-                        section ? section.area_variant.area.id : area.id,
-                        section ? section.id : 0,
-                        new Vec3(0, 0, 0),
-                        new Vec3(0, 0, 0),
-                        new Vec3(1, 1, 1),
-                        // TODO: do the following values make sense?
-                        [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0]],
-                    );
-                    npc.set_world_position(position);
-                    quest.add_npc(npc);
+            e.drag_element.style.display = "none";
 
-                    quest_editor_store.set_selected_entity(npc);
-
-                    this.pick = {
-                        mode: PickMode.Creating,
-                        initial_section: section,
-                        initial_position: position,
-                        grab_offset: new Vector3(0, 0, 0),
-                        drag_adjust: new Vector3(0, 0, 0),
-                        drag_y: 0,
-                    };
-                }
+            if (e.event.dataTransfer) {
+                e.event.dataTransfer.dropEffect = "copy";
             }
+
+            const npc = new QuestNpcModel(
+                e.entity_type,
+                data.pso_type_id,
+                0,
+                0,
+                data.pso_roaming,
+                area.id,
+                0,
+                new Vec3(0, 0, 0),
+                new Vec3(0, 0, 0),
+                new Vec3(1, 1, 1),
+                // TODO: do the following values make sense?
+                [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0]],
+            );
+            const grab_offset = new Vector3(0, 0, 0);
+            const drag_adjust = new Vector3(0, 0, 0);
+            this.translate_entity_horizontally(npc, e.event, grab_offset, drag_adjust);
+            quest.add_npc(npc);
+
+            quest_editor_store.set_selected_entity(npc);
+
+            this.pick = {
+                mode: PickMode.Creating,
+                initial_section: npc.section.val,
+                initial_position: npc.world_position.val,
+                grab_offset,
+                drag_adjust,
+            };
         }
     };
 
@@ -267,17 +235,8 @@ export class QuestEntityControls implements Disposable {
             }
 
             if (this.selected) {
-                const pointer_device_pos = this.renderer.pointer_pos_to_device_coords(e.event);
-
-                if (e.event.shiftKey) {
-                    // Vertical movement.
-                    this.translate_vertically(this.selected, this.pick, pointer_device_pos);
-                } else {
-                    // Horizontal movement across terrain.
-                    this.translate_horizontally(this.selected, this.pick, pointer_device_pos);
-                }
-
-                this.renderer.schedule_render();
+                // Only translation is possible while dragging in a new entity.
+                this.translate_entity(e.event, this.selected, this.pick);
             }
         }
     };
@@ -368,75 +327,103 @@ export class QuestEntityControls implements Disposable {
         quest_editor_store.set_selected_entity(undefined);
     }
 
-    private translate_vertically(
-        selection: Highlighted,
-        pick: Pick,
-        pointer_position: Vector2,
+    private translate_entity(e: MouseEvent, selected: Highlighted, pick: Pick): void {
+        if (e.shiftKey) {
+            // Vertical movement.
+            this.translate_entity_vertically(
+                selected.entity,
+                e,
+                pick.drag_adjust,
+                pick.grab_offset,
+            );
+        } else {
+            // Horizontal movement across the ground.
+            this.translate_entity_horizontally(
+                selected.entity,
+                e,
+                pick.drag_adjust,
+                pick.grab_offset,
+            );
+        }
+
+        this.renderer.schedule_render();
+    }
+
+    private translate_entity_vertically(
+        entity: QuestEntityModel,
+        e: MouseEvent,
+        drag_adjust: Vector3,
+        grab_offset: Vector3,
     ): void {
-        // We intersect with a plane that's oriented toward the camera and that's coplanar with the point where the entity was grabbed.
+        const pointer_position = this.renderer.pointer_pos_to_device_coords(e);
+
+        // We intersect with a plane that's oriented toward the camera and that's coplanar with the
+        // point where the entity was grabbed.
         this.raycaster.setFromCamera(pointer_position, this.renderer.camera);
         const ray = this.raycaster.ray;
 
         const negative_world_dir = this.renderer.camera.getWorldDirection(new Vector3()).negate();
         const plane = new Plane().setFromNormalAndCoplanarPoint(
             new Vector3(negative_world_dir.x, 0, negative_world_dir.z).normalize(),
-            selection.mesh.position.sub(pick.grab_offset),
+            vec3_to_threejs(entity.world_position.val).sub(grab_offset),
         );
 
         const intersection_point = new Vector3();
 
         if (ray.intersectPlane(plane, intersection_point)) {
-            const y = intersection_point.y + pick.grab_offset.y;
-            const y_delta = y - selection.entity.world_position.val.y;
-            pick.drag_y += y_delta;
-            pick.drag_adjust.y -= y_delta;
-            selection.entity.set_world_position(
-                new Vec3(
-                    selection.entity.world_position.val.x,
-                    y,
-                    selection.entity.world_position.val.z,
-                ),
+            const y = intersection_point.y + grab_offset.y;
+            const y_delta = y - entity.world_position.val.y;
+            drag_adjust.y -= y_delta;
+            entity.set_world_position(
+                new Vec3(entity.world_position.val.x, y, entity.world_position.val.z),
             );
         }
     }
 
-    private translate_horizontally(
-        selection: Highlighted,
-        pick: Pick,
-        pointer_position: Vector2,
+    /**
+     * If the drag-adjusted pointer is over the ground, translate an entity horizontally across the
+     * ground. Otherwise translate the entity over the horizontal plain that intersects its origin.
+     */
+    private translate_entity_horizontally(
+        entity: QuestEntityModel,
+        e: MouseEvent,
+        drag_adjust: Vector3,
+        grab_offset: Vector3,
     ): void {
+        const pointer_position = this.renderer.pointer_pos_to_device_coords(e);
+
         // Cast ray adjusted for dragging entities.
-        const { intersection, section } = this.pick_terrain(pointer_position, pick.drag_adjust);
+        const { intersection, section } = this.pick_ground(pointer_position, drag_adjust);
 
         if (intersection) {
-            selection.entity.set_world_position(
+            entity.set_world_position(
                 new Vec3(
                     intersection.point.x,
-                    intersection.point.y + pick.drag_y,
+                    intersection.point.y + grab_offset.y - drag_adjust.y,
                     intersection.point.z,
                 ),
             );
 
             if (section) {
-                selection.entity.set_section(section);
+                entity.set_section(section);
             }
         } else {
-            // If the cursor is not over any terrain, we translate the entity across the horizontal plane in which the entity's origin lies.
+            // If the pointer is not over the ground, we translate the entity across the horizontal
+            // plane in which the entity's origin lies.
             this.raycaster.setFromCamera(pointer_position, this.renderer.camera);
             const ray = this.raycaster.ray;
-            // ray.origin.add(data.dragAdjust);
             const plane = new Plane(
                 new Vector3(0, 1, 0),
-                -selection.entity.world_position.val.y + pick.grab_offset.y,
+                -entity.world_position.val.y + grab_offset.y,
             );
             const intersection_point = new Vector3();
 
             if (ray.intersectPlane(plane, intersection_point)) {
-                selection.entity.set_world_position(
+                entity.set_world_position(
                     new Vec3(
-                        intersection_point.x + pick.grab_offset.x,
-                        selection.entity.world_position.val.y,
-                        intersection_point.z + pick.grab_offset.z,
+                        intersection_point.x + grab_offset.x,
+                        entity.world_position.val.y,
+                        intersection_point.z + grab_offset.z,
                     ),
                 );
             }
@@ -481,9 +468,8 @@ export class QuestEntityControls implements Disposable {
         const entity = (intersection.object.userData as EntityUserData).entity;
         const grab_offset = intersection.object.position.clone().sub(intersection.point);
         const drag_adjust = grab_offset.clone();
-        let drag_y = 0;
 
-        // Find vertical distance to terrain.
+        // Find vertical distance to the ground.
         this.raycaster.set(intersection.object.position, DOWN_VECTOR);
         const [collision_geom_intersection] = this.raycaster.intersectObjects(
             this.renderer.collision_geometry.children,
@@ -492,7 +478,6 @@ export class QuestEntityControls implements Disposable {
 
         if (collision_geom_intersection) {
             drag_adjust.y -= collision_geom_intersection.distance;
-            drag_y += collision_geom_intersection.distance;
         }
 
         return {
@@ -503,7 +488,6 @@ export class QuestEntityControls implements Disposable {
             initial_position: entity.world_position.val,
             grab_offset,
             drag_adjust,
-            drag_y,
         };
     }
 
@@ -511,7 +495,7 @@ export class QuestEntityControls implements Disposable {
      * @param pointer_pos - pointer coordinates in normalized device space
      * @param drag_adjust - vector from origin of entity to grabbing point
      */
-    private pick_terrain(
+    private pick_ground(
         pointer_pos: Vector2,
         drag_adjust: Vector3,
     ): {
