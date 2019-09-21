@@ -2,18 +2,13 @@ import Logger from "js-logger";
 import { Intersection, Mesh, Object3D, Raycaster, Vector3 } from "three";
 import { QuestRenderer } from "./QuestRenderer";
 import { QuestModel } from "../model/QuestModel";
-import {
-    load_npc_geometry,
-    load_npc_textures,
-    load_object_geometry,
-    load_object_textures,
-} from "../loading/entities";
+import { load_entity_geometry, load_entity_textures } from "../loading/entities";
 import { load_area_collision_geometry, load_area_render_geometry } from "../loading/areas";
 import { QuestEntityModel } from "../model/QuestEntityModel";
 import { Disposer } from "../../core/observable/Disposer";
 import { Disposable } from "../../core/observable/Disposable";
 import { AreaModel } from "../model/AreaModel";
-import { create_npc_mesh, create_object_mesh } from "./conversion/entities";
+import { create_entity_mesh } from "./conversion/entities";
 import { AreaUserData } from "./conversion/areas";
 import { quest_editor_store } from "../stores/QuestEditorStore";
 import {
@@ -271,19 +266,9 @@ class EntityModelManager {
     }
 
     private async load(entity: QuestEntityModel): Promise<void> {
-        let model: Mesh;
-
-        if (entity instanceof QuestNpcModel) {
-            const npc_geom = await load_npc_geometry(entity.type);
-            const npc_tex = await load_npc_textures(entity.type);
-            model = create_npc_mesh(entity, npc_geom, npc_tex);
-        } else if (entity instanceof QuestObjectModel) {
-            const object_geom = await load_object_geometry(entity.type);
-            const object_tex = await load_object_textures(entity.type);
-            model = create_object_mesh(entity, object_geom, object_tex);
-        } else {
-            throw new Error(`Unknown entity type ${entity.type}.`);
-        }
+        const geom = await load_entity_geometry(entity.type);
+        const tex = await load_entity_textures(entity.type);
+        const model = create_entity_mesh(entity, geom, tex);
 
         // The model load might be cancelled by now.
         if (this.queue.includes(entity)) {

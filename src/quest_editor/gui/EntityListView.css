@@ -5,6 +5,8 @@
 .quest_editor_EntityListView_entity_list {
     display: grid;
     grid-template-columns: repeat(auto-fill, 100px);
+    grid-column-gap: 6px;
+    grid-row-gap: 6px;
     justify-content: center;
 }
 
@@ -12,11 +14,5 @@
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
-    justify-content: center;
     text-align: center;
-    height: 100px;
-    padding: 5px;
-    border: solid 2px olivedrab;
-    background-color: darkolivegreen;
-    color: greenyellow;
 }

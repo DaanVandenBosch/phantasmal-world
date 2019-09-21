@@ -46,6 +46,16 @@ export const el = {
         return element;
     },
 
+    img: (
+        attributes?: ElementAttributes & {
+            src?: string;
+            width?: number;
+            height?: number;
+            alt?: string;
+        },
+        ...children: HTMLImageElement[]
+    ): HTMLImageElement => create_element("img", attributes, ...children),
+
     table: (attributes?: ElementAttributes, ...children: HTMLElement[]): HTMLTableElement =>
         create_element("table", attributes, ...children),
 
@@ -82,17 +92,25 @@ export function create_element<T extends HTMLElement>(
     tag_name: string,
     attributes?: ElementAttributes & {
         href?: string;
+        src?: string;
+        width?: number;
+        height?: number;
+        alt?: string;
         col_span?: number;
     },
     ...children: HTMLElement[]
 ): T {
-    const element = document.createElement(tag_name) as (HTMLTableCellElement & HTMLAnchorElement);
+    const element = document.createElement(tag_name) as any;
 
     if (attributes) {
-        if (attributes.class) element.className = attributes.class;
-        if (attributes.text) element.textContent = attributes.text;
-        if (attributes.title) element.title = attributes.title;
-        if (attributes.href) element.href = attributes.href;
+        if (attributes.class != undefined) element.className = attributes.class;
+        if (attributes.text != undefined) element.textContent = attributes.text;
+        if (attributes.title != undefined) element.title = attributes.title;
+        if (attributes.href != undefined) element.href = attributes.href;
+        if (attributes.src != undefined) element.src = attributes.src;
+        if (attributes.width != undefined) element.width = attributes.width;
+        if (attributes.height != undefined) element.height = attributes.height;
+        if (attributes.alt != undefined) element.alt = attributes.alt;
 
         if (attributes.data) {
             for (const [key, val] of Object.entries(attributes.data)) {
@@ -100,9 +118,9 @@ export function create_element<T extends HTMLElement>(
             }
         }
 
-        if (attributes.col_span) element.colSpan = attributes.col_span;
+        if (attributes.col_span != undefined) element.colSpan = attributes.col_span;
 
-        if (attributes.tab_index) element.tabIndex = attributes.tab_index;
+        if (attributes.tab_index != undefined) element.tabIndex = attributes.tab_index;
     }
 
     element.append(...children);

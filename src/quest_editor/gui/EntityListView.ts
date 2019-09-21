@@ -4,6 +4,7 @@ import "./EntityListView.css";
 import { entity_data, EntityType } from "../../core/data_formats/parsing/quest/entities";
 import { ListProperty } from "../../core/observable/property/list/ListProperty";
 import { entity_dnd_source } from "./entity_dnd";
+import { render_entity_to_image } from "../rendering/render_entity_to_image";
 
 export abstract class EntityListView<T extends EntityType> extends ResizableWidget {
     readonly element: HTMLElement;
@@ -19,26 +20,50 @@ export abstract class EntityListView<T extends EntityType> extends ResizableWidg
             bind_children_to(list_element, entities, this.create_entity_element),
 
             entity_dnd_source(list_element, target => {
-                if (target !== list_element) {
-                    const drag_element = target.cloneNode(true) as HTMLElement;
-                    drag_element.style.width = "100px";
-                    return [drag_element, entities.get(parseInt(target.dataset.index!, 10))];
-                } else {
-                    return undefined;
-                }
+                let element: HTMLElement | null = target;
+
+                do {
+                    const index = target.dataset.index;
+
+                    if (index != undefined) {
+                        return [
+                            element.querySelector("img")!.cloneNode(true) as HTMLElement,
+                            entities.get(parseInt(index, 10)),
+                        ];
+                    }
+
+                    element = element.parentElement;
+                } while (element && element !== list_element);
+
+                return undefined;
             }),
         );
     }
 
     private create_entity_element = (entity: T, index: number): HTMLElement => {
-        const div = el.div({
+        const entity_element = el.div({
             class: "quest_editor_EntityListView_entity",
-            text: entity_data(entity).name,
             data: { index: index.toString() },
         });
+        entity_element.draggable = true;
 
-        div.draggable = true;
+        const img_element = el.img({ width: 100, height: 100 });
+        img_element.style.visibility = "hidden";
+        // Workaround for Chrome bug: when dragging an image, calling setDragImage on a DragEvent
+        // has no effect.
+        img_element.style.pointerEvents = "none";
+        entity_element.append(img_element);
 
-        return div;
+        render_entity_to_image(entity).then(url => {
+            img_element.src = url;
+            img_element.style.visibility = "visible";
+        });
+
+        const name_element = el.span({
+            text: entity_data(entity).name,
+        });
+        entity_element.append(name_element);
+
+        return entity_element;
     };
 }

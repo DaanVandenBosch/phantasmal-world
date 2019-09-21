@@ -38,12 +38,12 @@ export abstract class Renderer implements Disposable {
     readonly scene = new Scene();
     readonly light_holder = new Group();
 
-    private renderer = new WebGLRenderer({ antialias: true });
+    private readonly renderer = new WebGLRenderer({ antialias: true });
     private render_scheduled = false;
     private animation_frame_handle?: number = undefined;
-    private light = new HemisphereLight(0xffffff, 0x505050, 1.2);
-    private controls_clock = new Clock();
-    private size = new Vector2();
+    private readonly light = new HemisphereLight(0xffffff, 0x505050, 1.2);
+    private readonly controls_clock = new Clock();
+    private readonly size = new Vector2();
 
     protected constructor() {
         this.dom_element.tabIndex = 0;

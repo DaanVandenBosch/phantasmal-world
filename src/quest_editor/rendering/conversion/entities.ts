@@ -1,10 +1,11 @@
 import { QuestEntityModel } from "../../model/QuestEntityModel";
-import { QuestObjectModel } from "../../model/QuestObjectModel";
 import { BufferGeometry, DoubleSide, Mesh, MeshLambertMaterial, Texture } from "three";
-import { ObjectType } from "../../../core/data_formats/parsing/quest/object_types";
-import { QuestNpcModel } from "../../model/QuestNpcModel";
-import { NpcType } from "../../../core/data_formats/parsing/quest/npc_types";
 import { create_mesh } from "../../../core/rendering/conversion/create_mesh";
+import {
+    entity_type_to_string,
+    EntityType,
+    is_npc_type,
+} from "../../../core/data_formats/parsing/quest/entities";
 
 export enum ColorType {
     Normal,
@@ -26,37 +27,13 @@ export type EntityUserData = {
     entity: QuestEntityModel;
 };
 
-export function create_object_mesh(
-    object: QuestObjectModel,
+export function create_entity_type_mesh(
+    type: EntityType,
     geometry: BufferGeometry,
     textures: Texture[],
-): Mesh {
-    return create(
-        object,
-        geometry,
-        textures,
-        OBJECT_COLORS[ColorType.Normal],
-        ObjectType[object.type],
-    );
-}
-
-export function create_npc_mesh(
-    npc: QuestNpcModel,
-    geometry: BufferGeometry,
-    textures: Texture[],
-): Mesh {
-    return create(npc, geometry, textures, NPC_COLORS[ColorType.Normal], NpcType[npc.type]);
-}
-
-function create(
-    entity: QuestEntityModel,
-    geometry: BufferGeometry,
-    textures: Texture[],
-    color: number,
-    name: string,
 ): Mesh {
     const default_material = new MeshLambertMaterial({
-        color,
+        color: is_npc_type(type) ? NPC_COLORS[ColorType.Normal] : OBJECT_COLORS[ColorType.Normal],
         side: DoubleSide,
     });
 
@@ -75,7 +52,18 @@ function create(
         default_material,
     );
 
-    mesh.name = name;
+    mesh.name = entity_type_to_string(type);
+
+    return mesh;
+}
+
+export function create_entity_mesh(
+    entity: QuestEntityModel,
+    geometry: BufferGeometry,
+    textures: Texture[],
+): Mesh {
+    const mesh = create_entity_type_mesh(entity.type, geometry, textures);
+
     (mesh.userData as EntityUserData).entity = entity;
 
     const { x, y, z } = entity.world_position.val;

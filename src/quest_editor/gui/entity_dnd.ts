@@ -51,7 +51,7 @@ export function entity_dnd_source(
             const result = start(e.target);
 
             if (result) {
-                grab_point.set(e.offsetX + 2, e.offsetY + 2);
+                grab_point.set(e.offsetX, e.offsetY);
 
                 dragging_details = {
                     drag_element: result[0],
@@ -76,6 +76,8 @@ export function entity_dnd_source(
                         entity_data(dragging_details.entity_type).name,
                     );
                 }
+            } else {
+                e.preventDefault();
             }
         }
     }
