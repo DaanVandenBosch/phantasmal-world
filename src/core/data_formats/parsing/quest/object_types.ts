@@ -1,3 +1,5 @@
+import { Episode } from "./Episode";
+
 export enum ObjectType {
     // Make sure ObjectType does not overlap NpcType.
     Unknown = 1000,
@@ -18,7 +20,7 @@ export enum ObjectType {
     ObjRoomID,
     Sensor,
     UnknownItem16,
-    Lensflare,
+    LensFlare,
     ScriptCollision,
     HealRing,
     MapCollision,
@@ -88,7 +90,7 @@ export enum ObjectType {
     FixedTypeBox,
     EnemyBoxBrown,
     EmptyTypeBox,
-    LaserFenseEx,
+    LaserFenceEx,
     LaserSquareFenceEx,
     FloorPanel1,
     Caves4ButtonDoor,
@@ -97,11 +99,11 @@ export enum ObjectType {
     CavesSign1,
     CavesSign2,
     CavesSign3,
-    HexagalTank,
+    HexagonalTank,
     BrownPlatform,
     WarningLightObject,
     Rainbow,
-    FloatingJelifish,
+    FloatingJellyfish,
     FloatingDragonfly,
     CavesSwitchDoor,
     RobotRechargeStation,
@@ -155,7 +157,7 @@ export enum ObjectType {
     RuinsLaserFence4x4,
     RuinsLaserFence6x4,
     RuinsPoisonBlob,
-    RuinsPilarTrap,
+    RuinsPillarTrap,
     PopupTrapNoTech,
     RuinsCrystal,
     Monument,
@@ -198,10 +200,10 @@ export enum ObjectType {
     GreyWallHigh,
     TempleNormalDoor,
     BreakableWallWallButUnbreakable,
-    BrokenCilinderAndRubble,
+    BrokenCylinderAndRubble,
     ThreeBrokenWallPiecesOnFloor,
-    HighBrickCilinder,
-    LyingCilinder,
+    HighBrickCylinder,
+    LyingCylinder,
     BrickConeWithFlatTop,
     BreakableTempleWall,
     TempleMapDetect,
@@ -244,7 +246,7 @@ export enum ObjectType {
     GeeNest,
     LabComputerConsole,
     LabComputerConsoleGreenScreen,
-    ChairYelllowPillow,
+    ChairYellowPillow,
     OrangeWallWithHoleInMiddle,
     GreyWallWithHoleInMiddle,
     LongTable,
@@ -284,6 +286,12 @@ export enum ObjectType {
 
 export type ObjectTypeData = {
     readonly name: string;
+    /**
+     * The valid area IDs per episode in which this object can appear.
+     * This array can be indexed with an {@link Episode} value.
+     * If this property is defined, the object can be placed anywhere.
+     */
+    readonly area_ids?: number[][];
     readonly pso_id?: number;
 };
 
@@ -333,7 +341,7 @@ export function pso_id_to_object_type(psoId: number): ObjectType {
         case 16:
             return ObjectType.UnknownItem16;
         case 17:
-            return ObjectType.Lensflare;
+            return ObjectType.LensFlare;
         case 18:
             return ObjectType.ScriptCollision;
         case 19:
@@ -473,7 +481,7 @@ export function pso_id_to_object_type(psoId: number): ObjectType {
         case 149:
             return ObjectType.EmptyTypeBox;
         case 150:
-            return ObjectType.LaserFenseEx;
+            return ObjectType.LaserFenceEx;
         case 151:
             return ObjectType.LaserSquareFenceEx;
         case 192:
@@ -491,7 +499,7 @@ export function pso_id_to_object_type(psoId: number): ObjectType {
         case 198:
             return ObjectType.CavesSign3;
         case 199:
-            return ObjectType.HexagalTank;
+            return ObjectType.HexagonalTank;
         case 200:
             return ObjectType.BrownPlatform;
         case 201:
@@ -499,7 +507,7 @@ export function pso_id_to_object_type(psoId: number): ObjectType {
         case 203:
             return ObjectType.Rainbow;
         case 204:
-            return ObjectType.FloatingJelifish;
+            return ObjectType.FloatingJellyfish;
         case 205:
             return ObjectType.FloatingDragonfly;
         case 206:
@@ -607,7 +615,7 @@ export function pso_id_to_object_type(psoId: number): ObjectType {
         case 338:
             return ObjectType.RuinsPoisonBlob;
         case 339:
-            return ObjectType.RuinsPilarTrap;
+            return ObjectType.RuinsPillarTrap;
         case 340:
             return ObjectType.PopupTrapNoTech;
         case 341:
@@ -693,13 +701,13 @@ export function pso_id_to_object_type(psoId: number): ObjectType {
         case 417:
             return ObjectType.BreakableWallWallButUnbreakable;
         case 418:
-            return ObjectType.BrokenCilinderAndRubble;
+            return ObjectType.BrokenCylinderAndRubble;
         case 419:
             return ObjectType.ThreeBrokenWallPiecesOnFloor;
         case 420:
-            return ObjectType.HighBrickCilinder;
+            return ObjectType.HighBrickCylinder;
         case 421:
-            return ObjectType.LyingCilinder;
+            return ObjectType.LyingCylinder;
         case 422:
             return ObjectType.BrickConeWithFlatTop;
         case 423:
@@ -785,7 +793,7 @@ export function pso_id_to_object_type(psoId: number): ObjectType {
         case 690:
             return ObjectType.LabComputerConsoleGreenScreen;
         case 691:
-            return ObjectType.ChairYelllowPillow;
+            return ObjectType.ChairYellowPillow;
         case 692:
             return ObjectType.OrangeWallWithHoleInMiddle;
         case 693:
@@ -865,356 +873,496 @@ function define_object_type_data(
     object_type: ObjectType,
     pso_id: number | undefined,
     name: string,
+    area_ids: [Episode, number[]][] | undefined,
 ): void {
     OBJECT_TYPES.push(object_type);
-    OBJECT_TYPE_DATA[object_type] = {
+
+    let area_ids_per_episode: number[][] | undefined;
+
+    if (area_ids) {
+        area_ids_per_episode = [];
+
+        for (const [episode, areas] of area_ids) {
+            area_ids_per_episode[episode] = areas;
+        }
+    }
+
+    OBJECT_TYPE_DATA[object_type] = Object.freeze({
         name,
+        area_ids: area_ids_per_episode,
         pso_id,
-    };
+    });
 }
 
-define_object_type_data(ObjectType.Unknown, undefined, "Unknown");
+define_object_type_data(ObjectType.Unknown, undefined, "Unknown", undefined);
 
-define_object_type_data(ObjectType.PlayerSet, 0, "Player Set");
-define_object_type_data(ObjectType.Particle, 1, "Particle");
-define_object_type_data(ObjectType.Teleporter, 2, "Teleporter");
-define_object_type_data(ObjectType.Warp, 3, "Warp");
-define_object_type_data(ObjectType.LightCollision, 4, "Light Collision");
-define_object_type_data(ObjectType.Item, 5, "Item");
-define_object_type_data(ObjectType.EnvSound, 6, "Env Sound");
-define_object_type_data(ObjectType.FogCollision, 7, "Fog Collision");
-define_object_type_data(ObjectType.EventCollision, 8, "Event Collision");
-define_object_type_data(ObjectType.CharaCollision, 9, "Chara Collision");
-define_object_type_data(ObjectType.ElementalTrap, 10, "Elemental Trap");
-define_object_type_data(ObjectType.StatusTrap, 11, "Status Trap");
-define_object_type_data(ObjectType.HealTrap, 12, "Heal Trap");
-define_object_type_data(ObjectType.LargeElementalTrap, 13, "Large Elemental Trap");
-define_object_type_data(ObjectType.ObjRoomID, 14, "Obj Room ID");
-define_object_type_data(ObjectType.Sensor, 15, "Sensor");
-define_object_type_data(ObjectType.UnknownItem16, 16, "Unknown Item (16)");
-define_object_type_data(ObjectType.Lensflare, 17, "Lensflare");
-define_object_type_data(ObjectType.ScriptCollision, 18, "Script Collision");
-define_object_type_data(ObjectType.HealRing, 19, "Heal Ring");
-define_object_type_data(ObjectType.MapCollision, 20, "Map Collision");
-define_object_type_data(ObjectType.ScriptCollisionA, 21, "Script Collision A");
-define_object_type_data(ObjectType.ItemLight, 22, "Item Light");
-define_object_type_data(ObjectType.RadarCollision, 23, "Radar Collision");
-define_object_type_data(ObjectType.FogCollisionSW, 24, "Fog Collision SW");
-define_object_type_data(ObjectType.BossTeleporter, 25, "Boss Teleporter");
-define_object_type_data(ObjectType.ImageBoard, 26, "Image Board");
-define_object_type_data(ObjectType.QuestWarp, 27, "Quest Warp");
-define_object_type_data(ObjectType.Epilogue, 28, "Epilogue");
-define_object_type_data(ObjectType.UnknownItem29, 29, "Unknown Item (29)");
-define_object_type_data(ObjectType.UnknownItem30, 30, "Unknown Item (30)");
-define_object_type_data(ObjectType.UnknownItem31, 31, "Unknown Item (31)");
-define_object_type_data(ObjectType.BoxDetectObject, 32, "Box Detect Object");
-define_object_type_data(ObjectType.SymbolChatObject, 33, "Symbol Chat Object");
-define_object_type_data(ObjectType.TouchPlateObject, 34, "Touch plate Object");
-define_object_type_data(ObjectType.TargetableObject, 35, "Targetable Object");
-define_object_type_data(ObjectType.EffectObject, 36, "Effect object");
-define_object_type_data(ObjectType.CountDownObject, 37, "Count Down Object");
-define_object_type_data(ObjectType.UnknownItem38, 38, "Unknown Item (38)");
-define_object_type_data(ObjectType.UnknownItem39, 39, "Unknown Item (39)");
-define_object_type_data(ObjectType.UnknownItem40, 40, "Unknown Item (40)");
-define_object_type_data(ObjectType.UnknownItem41, 41, "Unknown Item (41)");
-define_object_type_data(ObjectType.MenuActivation, 64, "Menu activation");
-define_object_type_data(ObjectType.TelepipeLocation, 65, "Telepipe Location");
-define_object_type_data(ObjectType.BGMCollision, 66, "BGM Collision");
-define_object_type_data(ObjectType.MainRagolTeleporter, 67, "Main Ragol Teleporter");
-define_object_type_data(ObjectType.LobbyTeleporter, 68, "Lobby Teleporter");
-define_object_type_data(ObjectType.PrincipalWarp, 69, "Principal warp");
-define_object_type_data(ObjectType.ShopDoor, 70, "Shop Door");
-define_object_type_data(ObjectType.HuntersGuildDoor, 71, "Hunter's Guild Door");
-define_object_type_data(ObjectType.TeleporterDoor, 72, "Teleporter Door");
-define_object_type_data(ObjectType.MedicalCenterDoor, 73, "Medical Center Door");
-define_object_type_data(ObjectType.Elevator, 74, "Elevator");
-define_object_type_data(ObjectType.EasterEgg, 75, "Easter Egg");
-define_object_type_data(ObjectType.ValentinesHeart, 76, "Valentines Heart");
-define_object_type_data(ObjectType.ChristmasTree, 77, "Christmas Tree");
-define_object_type_data(ObjectType.ChristmasWreath, 78, "Christmas Wreath");
-define_object_type_data(ObjectType.HalloweenPumpkin, 79, "Halloween Pumpkin");
-define_object_type_data(ObjectType.TwentyFirstCentury, 80, "21st Century");
-define_object_type_data(ObjectType.Sonic, 81, "Sonic");
-define_object_type_data(ObjectType.WelcomeBoard, 82, "Welcome Board");
-define_object_type_data(ObjectType.Firework, 83, "Firework");
-define_object_type_data(ObjectType.LobbyScreenDoor, 84, "Lobby Screen Door");
+define_object_type_data(ObjectType.PlayerSet, 0, "Player Set", undefined);
+define_object_type_data(ObjectType.Particle, 1, "Particle", undefined);
+define_object_type_data(ObjectType.Teleporter, 2, "Teleporter", undefined);
+define_object_type_data(ObjectType.Warp, 3, "Warp", undefined);
+define_object_type_data(ObjectType.LightCollision, 4, "Light Collision", undefined);
+define_object_type_data(ObjectType.Item, 5, "Item", undefined);
+define_object_type_data(ObjectType.EnvSound, 6, "Env Sound", undefined);
+define_object_type_data(ObjectType.FogCollision, 7, "Fog Collision", undefined);
+define_object_type_data(ObjectType.EventCollision, 8, "Event Collision", undefined);
+define_object_type_data(ObjectType.CharaCollision, 9, "Chara Collision", undefined);
+define_object_type_data(ObjectType.ElementalTrap, 10, "Elemental Trap", undefined);
+define_object_type_data(ObjectType.StatusTrap, 11, "Status Trap", undefined);
+define_object_type_data(ObjectType.HealTrap, 12, "Heal Trap", undefined);
+define_object_type_data(ObjectType.LargeElementalTrap, 13, "Large Elemental Trap", undefined);
+define_object_type_data(ObjectType.ObjRoomID, 14, "Obj Room ID", undefined);
+define_object_type_data(ObjectType.Sensor, 15, "Sensor", undefined);
+define_object_type_data(ObjectType.UnknownItem16, 16, "Unknown Item (16)", undefined);
+define_object_type_data(ObjectType.LensFlare, 17, "Lens Flare", undefined);
+define_object_type_data(ObjectType.ScriptCollision, 18, "Script Collision", undefined);
+define_object_type_data(ObjectType.HealRing, 19, "Heal Ring", undefined);
+define_object_type_data(ObjectType.MapCollision, 20, "Map Collision", undefined);
+define_object_type_data(ObjectType.ScriptCollisionA, 21, "Script Collision A", undefined);
+define_object_type_data(ObjectType.ItemLight, 22, "Item Light", undefined);
+define_object_type_data(ObjectType.RadarCollision, 23, "Radar Collision", undefined);
+define_object_type_data(ObjectType.FogCollisionSW, 24, "Fog Collision SW", undefined);
+define_object_type_data(ObjectType.BossTeleporter, 25, "Boss Teleporter", undefined);
+define_object_type_data(ObjectType.ImageBoard, 26, "Image Board", undefined);
+define_object_type_data(ObjectType.QuestWarp, 27, "Quest Warp", undefined);
+define_object_type_data(ObjectType.Epilogue, 28, "Epilogue", undefined);
+define_object_type_data(ObjectType.UnknownItem29, 29, "Unknown Item (29)", undefined);
+define_object_type_data(ObjectType.UnknownItem30, 30, "Unknown Item (30)", undefined);
+define_object_type_data(ObjectType.UnknownItem31, 31, "Unknown Item (31)", undefined);
+define_object_type_data(ObjectType.BoxDetectObject, 32, "Box Detect Object", undefined);
+define_object_type_data(ObjectType.SymbolChatObject, 33, "Symbol Chat Object", undefined);
+define_object_type_data(ObjectType.TouchPlateObject, 34, "Touch plate Object", undefined);
+define_object_type_data(ObjectType.TargetableObject, 35, "Targetable Object", undefined);
+define_object_type_data(ObjectType.EffectObject, 36, "Effect object", undefined);
+define_object_type_data(ObjectType.CountDownObject, 37, "Count Down Object", undefined);
+define_object_type_data(ObjectType.UnknownItem38, 38, "Unknown Item (38)", undefined);
+define_object_type_data(ObjectType.UnknownItem39, 39, "Unknown Item (39)", undefined);
+define_object_type_data(ObjectType.UnknownItem40, 40, "Unknown Item (40)", undefined);
+define_object_type_data(ObjectType.UnknownItem41, 41, "Unknown Item (41)", undefined);
+define_object_type_data(ObjectType.MenuActivation, 64, "Menu activation", undefined);
+define_object_type_data(ObjectType.TelepipeLocation, 65, "Telepipe Location", undefined);
+define_object_type_data(ObjectType.BGMCollision, 66, "BGM Collision", undefined);
+define_object_type_data(ObjectType.MainRagolTeleporter, 67, "Main Ragol Teleporter", undefined);
+define_object_type_data(ObjectType.LobbyTeleporter, 68, "Lobby Teleporter", [[Episode.I, [17]]]);
+define_object_type_data(ObjectType.PrincipalWarp, 69, "Principal warp", undefined);
+define_object_type_data(ObjectType.ShopDoor, 70, "Shop Door", undefined);
+define_object_type_data(ObjectType.HuntersGuildDoor, 71, "Hunter's Guild Door", undefined);
+define_object_type_data(ObjectType.TeleporterDoor, 72, "Teleporter Door", undefined);
+define_object_type_data(ObjectType.MedicalCenterDoor, 73, "Medical Center Door", undefined);
+define_object_type_data(ObjectType.Elevator, 74, "Elevator", undefined);
+define_object_type_data(ObjectType.EasterEgg, 75, "Easter Egg", undefined);
+define_object_type_data(ObjectType.ValentinesHeart, 76, "Valentines Heart", undefined);
+define_object_type_data(ObjectType.ChristmasTree, 77, "Christmas Tree", undefined);
+define_object_type_data(ObjectType.ChristmasWreath, 78, "Christmas Wreath", undefined);
+define_object_type_data(ObjectType.HalloweenPumpkin, 79, "Halloween Pumpkin", undefined);
+define_object_type_data(ObjectType.TwentyFirstCentury, 80, "21st Century", undefined);
+define_object_type_data(ObjectType.Sonic, 81, "Sonic", undefined);
+define_object_type_data(ObjectType.WelcomeBoard, 82, "Welcome Board", undefined);
+define_object_type_data(ObjectType.Firework, 83, "Firework", undefined);
+define_object_type_data(ObjectType.LobbyScreenDoor, 84, "Lobby Screen Door", [[Episode.I, [17]]]);
 define_object_type_data(
     ObjectType.MainRagolTeleporterBattleInNextArea,
     85,
     "Main Ragol Teleporter (Battle in next area?)",
+    undefined,
 );
-define_object_type_data(ObjectType.LabTeleporterDoor, 86, "Lab Teleporter Door");
+define_object_type_data(ObjectType.LabTeleporterDoor, 86, "Lab Teleporter Door", [
+    [Episode.II, [0]],
+]);
 define_object_type_data(
     ObjectType.Pioneer2InvisibleTouchplate,
     87,
     "Pioneer 2 Invisible Touchplate",
+    undefined,
 );
-define_object_type_data(ObjectType.ForestDoor, 128, "Forest Door");
-define_object_type_data(ObjectType.ForestSwitch, 129, "Forest Switch");
-define_object_type_data(ObjectType.LaserFence, 130, "Laser Fence");
-define_object_type_data(ObjectType.LaserSquareFence, 131, "Laser Square Fence");
-define_object_type_data(ObjectType.ForestLaserFenceSwitch, 132, "Forest Laser Fence Switch");
-define_object_type_data(ObjectType.LightRays, 133, "Light rays");
-define_object_type_data(ObjectType.BlueButterfly, 134, "Blue Butterfly");
-define_object_type_data(ObjectType.Probe, 135, "Probe");
-define_object_type_data(ObjectType.RandomTypeBox1, 136, "Random Type Box 1");
-define_object_type_data(ObjectType.ForestWeatherStation, 137, "Forest Weather Station");
-define_object_type_data(ObjectType.Battery, 138, "Battery");
-define_object_type_data(ObjectType.ForestConsole, 139, "Forest Console");
-define_object_type_data(ObjectType.BlackSlidingDoor, 140, "Black Sliding Door");
-define_object_type_data(ObjectType.RicoMessagePod, 141, "Rico Message Pod");
-define_object_type_data(ObjectType.EnergyBarrier, 142, "Energy Barrier");
-define_object_type_data(ObjectType.ForestRisingBridge, 143, "Forest Rising Bridge");
-define_object_type_data(ObjectType.SwitchNoneDoor, 144, "Switch (none door)");
-define_object_type_data(ObjectType.EnemyBoxGrey, 145, "Enemy Box (Grey)");
-define_object_type_data(ObjectType.FixedTypeBox, 146, "Fixed Type Box");
-define_object_type_data(ObjectType.EnemyBoxBrown, 147, "Enemy Box (Brown)");
-define_object_type_data(ObjectType.EmptyTypeBox, 149, "Empty Type Box");
-define_object_type_data(ObjectType.LaserFenseEx, 150, "Laser Fense Ex");
-define_object_type_data(ObjectType.LaserSquareFenceEx, 151, "Laser Square Fence Ex");
-define_object_type_data(ObjectType.FloorPanel1, 192, "Floor Panel 1");
-define_object_type_data(ObjectType.Caves4ButtonDoor, 193, "Caves 4 Button door");
-define_object_type_data(ObjectType.CavesNormalDoor, 194, "Caves Normal door");
-define_object_type_data(ObjectType.CavesSmashingPillar, 195, "Caves Smashing Pillar");
-define_object_type_data(ObjectType.CavesSign1, 196, "Caves Sign 1");
-define_object_type_data(ObjectType.CavesSign2, 197, "Caves Sign 2");
-define_object_type_data(ObjectType.CavesSign3, 198, "Caves Sign 3");
-define_object_type_data(ObjectType.HexagalTank, 199, "Hexagal Tank");
-define_object_type_data(ObjectType.BrownPlatform, 200, "Brown Platform");
-define_object_type_data(ObjectType.WarningLightObject, 201, "Warning Light Object");
-define_object_type_data(ObjectType.Rainbow, 203, "Rainbow");
-define_object_type_data(ObjectType.FloatingJelifish, 204, "Floating Jelifish");
-define_object_type_data(ObjectType.FloatingDragonfly, 205, "Floating Dragonfly");
-define_object_type_data(ObjectType.CavesSwitchDoor, 206, "Caves Switch Door");
-define_object_type_data(ObjectType.RobotRechargeStation, 207, "Robot Recharge Station");
-define_object_type_data(ObjectType.CavesCakeShop, 208, "Caves Cake Shop");
-define_object_type_data(ObjectType.Caves1SmallRedRock, 209, "Caves 1 Small Red Rock");
-define_object_type_data(ObjectType.Caves1MediumRedRock, 210, "Caves 1 Medium Red Rock");
-define_object_type_data(ObjectType.Caves1LargeRedRock, 211, "Caves 1 Large Red Rock");
-define_object_type_data(ObjectType.Caves2SmallRock1, 212, "Caves 2 Small Rock 1");
-define_object_type_data(ObjectType.Caves2MediumRock1, 213, "Caves 2 Medium Rock 1");
-define_object_type_data(ObjectType.Caves2LargeRock1, 214, "Caves 2 Large Rock 1");
-define_object_type_data(ObjectType.Caves2SmallRock2, 215, "Caves 2 Small Rock 2");
-define_object_type_data(ObjectType.Caves2MediumRock2, 216, "Caves 2 Medium Rock 2");
-define_object_type_data(ObjectType.Caves2LargeRock2, 217, "Caves 2 Large Rock 2");
-define_object_type_data(ObjectType.Caves3SmallRock, 218, "Caves 3 Small Rock");
-define_object_type_data(ObjectType.Caves3MediumRock, 219, "Caves 3 Medium Rock");
-define_object_type_data(ObjectType.Caves3LargeRock, 220, "Caves 3 Large Rock");
-define_object_type_data(ObjectType.FloorPanel2, 222, "Floor Panel 2");
-define_object_type_data(ObjectType.DestructableRockCaves1, 223, "Destructable Rock (Caves 1)");
-define_object_type_data(ObjectType.DestructableRockCaves2, 224, "Destructable Rock (Caves 2)");
-define_object_type_data(ObjectType.DestructableRockCaves3, 225, "Destructable Rock (Caves 3)");
-define_object_type_data(ObjectType.MinesDoor, 256, "Mines Door");
-define_object_type_data(ObjectType.FloorPanel3, 257, "Floor Panel 3");
-define_object_type_data(ObjectType.MinesSwitchDoor, 258, "Mines Switch Door");
-define_object_type_data(ObjectType.LargeCryoTube, 259, "Large Cryo-Tube");
-define_object_type_data(ObjectType.ComputerLikeCalus, 260, "Computer (like calus)");
+define_object_type_data(ObjectType.ForestDoor, 128, "Forest Door", [[Episode.I, [1, 2]]]);
+define_object_type_data(ObjectType.ForestSwitch, 129, "Forest Switch", [[Episode.I, [1, 2]]]);
+define_object_type_data(ObjectType.LaserFence, 130, "Laser Fence", undefined);
+define_object_type_data(ObjectType.LaserSquareFence, 131, "Laser Square Fence", undefined);
+define_object_type_data(ObjectType.ForestLaserFenceSwitch, 132, "Forest Laser Fence Switch", [
+    [Episode.I, [1, 2]],
+]);
+define_object_type_data(ObjectType.LightRays, 133, "Light rays", undefined);
+define_object_type_data(ObjectType.BlueButterfly, 134, "Blue Butterfly", undefined);
+define_object_type_data(ObjectType.Probe, 135, "Probe", undefined);
+define_object_type_data(ObjectType.RandomTypeBox1, 136, "Random Type Box 1", undefined);
+define_object_type_data(ObjectType.ForestWeatherStation, 137, "Forest Weather Station", [
+    [Episode.I, [1, 2]],
+]);
+define_object_type_data(ObjectType.Battery, 138, "Battery", undefined);
+define_object_type_data(ObjectType.ForestConsole, 139, "Forest Console", [
+    [Episode.I, [1, 2]],
+    [Episode.II, [1, 2]],
+]);
+define_object_type_data(ObjectType.BlackSlidingDoor, 140, "Black Sliding Door", undefined);
+define_object_type_data(ObjectType.RicoMessagePod, 141, "Rico Message Pod", undefined);
+define_object_type_data(ObjectType.EnergyBarrier, 142, "Energy Barrier", undefined);
+define_object_type_data(ObjectType.ForestRisingBridge, 143, "Forest Rising Bridge", undefined);
+define_object_type_data(ObjectType.SwitchNoneDoor, 144, "Switch (none door)", undefined);
+define_object_type_data(ObjectType.EnemyBoxGrey, 145, "Enemy Box (Grey)", undefined);
+define_object_type_data(ObjectType.FixedTypeBox, 146, "Fixed Type Box", undefined);
+define_object_type_data(ObjectType.EnemyBoxBrown, 147, "Enemy Box (Brown)", undefined);
+define_object_type_data(ObjectType.EmptyTypeBox, 149, "Empty Type Box", undefined);
+define_object_type_data(ObjectType.LaserFenceEx, 150, "Laser Fence Ex", undefined);
+define_object_type_data(ObjectType.LaserSquareFenceEx, 151, "Laser Square Fence Ex", undefined);
+define_object_type_data(ObjectType.FloorPanel1, 192, "Floor Panel 1", undefined);
+define_object_type_data(ObjectType.Caves4ButtonDoor, 193, "Caves 4 Button door", undefined);
+define_object_type_data(ObjectType.CavesNormalDoor, 194, "Caves Normal door", undefined);
+define_object_type_data(ObjectType.CavesSmashingPillar, 195, "Caves Smashing Pillar", undefined);
+define_object_type_data(ObjectType.CavesSign1, 196, "Caves Sign 1", undefined);
+define_object_type_data(ObjectType.CavesSign2, 197, "Caves Sign 2", undefined);
+define_object_type_data(ObjectType.CavesSign3, 198, "Caves Sign 3", undefined);
+define_object_type_data(ObjectType.HexagonalTank, 199, "Hexagonal Tank", undefined);
+define_object_type_data(ObjectType.BrownPlatform, 200, "Brown Platform", undefined);
+define_object_type_data(ObjectType.WarningLightObject, 201, "Warning Light Object", undefined);
+define_object_type_data(ObjectType.Rainbow, 203, "Rainbow", undefined);
+define_object_type_data(ObjectType.FloatingJellyfish, 204, "Floating Jellyfish", undefined);
+define_object_type_data(ObjectType.FloatingDragonfly, 205, "Floating Dragonfly", undefined);
+define_object_type_data(ObjectType.CavesSwitchDoor, 206, "Caves Switch Door", undefined);
+define_object_type_data(ObjectType.RobotRechargeStation, 207, "Robot Recharge Station", undefined);
+define_object_type_data(ObjectType.CavesCakeShop, 208, "Caves Cake Shop", undefined);
+define_object_type_data(ObjectType.Caves1SmallRedRock, 209, "Caves 1 Small Red Rock", undefined);
+define_object_type_data(ObjectType.Caves1MediumRedRock, 210, "Caves 1 Medium Red Rock", undefined);
+define_object_type_data(ObjectType.Caves1LargeRedRock, 211, "Caves 1 Large Red Rock", undefined);
+define_object_type_data(ObjectType.Caves2SmallRock1, 212, "Caves 2 Small Rock 1", undefined);
+define_object_type_data(ObjectType.Caves2MediumRock1, 213, "Caves 2 Medium Rock 1", undefined);
+define_object_type_data(ObjectType.Caves2LargeRock1, 214, "Caves 2 Large Rock 1", undefined);
+define_object_type_data(ObjectType.Caves2SmallRock2, 215, "Caves 2 Small Rock 2", undefined);
+define_object_type_data(ObjectType.Caves2MediumRock2, 216, "Caves 2 Medium Rock 2", undefined);
+define_object_type_data(ObjectType.Caves2LargeRock2, 217, "Caves 2 Large Rock 2", undefined);
+define_object_type_data(ObjectType.Caves3SmallRock, 218, "Caves 3 Small Rock", undefined);
+define_object_type_data(ObjectType.Caves3MediumRock, 219, "Caves 3 Medium Rock", undefined);
+define_object_type_data(ObjectType.Caves3LargeRock, 220, "Caves 3 Large Rock", undefined);
+define_object_type_data(ObjectType.FloorPanel2, 222, "Floor Panel 2", undefined);
+define_object_type_data(
+    ObjectType.DestructableRockCaves1,
+    223,
+    "Destructable Rock (Caves 1)",
+    undefined,
+);
+define_object_type_data(
+    ObjectType.DestructableRockCaves2,
+    224,
+    "Destructable Rock (Caves 2)",
+    undefined,
+);
+define_object_type_data(
+    ObjectType.DestructableRockCaves3,
+    225,
+    "Destructable Rock (Caves 3)",
+    undefined,
+);
+define_object_type_data(ObjectType.MinesDoor, 256, "Mines Door", [[Episode.I, [6, 7]]]);
+define_object_type_data(ObjectType.FloorPanel3, 257, "Floor Panel 3", undefined);
+define_object_type_data(ObjectType.MinesSwitchDoor, 258, "Mines Switch Door", [
+    [Episode.I, [6, 7]],
+]);
+define_object_type_data(ObjectType.LargeCryoTube, 259, "Large Cryo-Tube", undefined);
+define_object_type_data(ObjectType.ComputerLikeCalus, 260, "Computer (like calus)", undefined);
 define_object_type_data(
     ObjectType.GreenScreenOpeningAndClosing,
     261,
     "Green Screen opening and closing",
+    undefined,
 );
-define_object_type_data(ObjectType.FloatingRobot, 262, "Floating Robot");
-define_object_type_data(ObjectType.FloatingBlueLight, 263, "Floating Blue Light");
-define_object_type_data(ObjectType.SelfDestructingObject1, 264, "Self Destructing Object 1");
-define_object_type_data(ObjectType.SelfDestructingObject2, 265, "Self Destructing Object 2");
-define_object_type_data(ObjectType.SelfDestructingObject3, 266, "Self Destructing Object 3");
-define_object_type_data(ObjectType.SparkMachine, 267, "Spark Machine");
-define_object_type_data(ObjectType.MinesLargeFlashingCrate, 268, "Mines Large Flashing Crate");
-define_object_type_data(ObjectType.RuinsSeal, 304, "Ruins Seal");
-define_object_type_data(ObjectType.RuinsTeleporter, 320, "Ruins Teleporter");
-define_object_type_data(ObjectType.RuinsWarpSiteToSite, 321, "Ruins Warp (Site to site)");
-define_object_type_data(ObjectType.RuinsSwitch, 322, "Ruins Switch");
-define_object_type_data(ObjectType.FloorPanel4, 323, "Floor Panel 4");
-define_object_type_data(ObjectType.Ruins1Door, 324, "Ruins 1 Door");
-define_object_type_data(ObjectType.Ruins3Door, 325, "Ruins 3 Door");
-define_object_type_data(ObjectType.Ruins2Door, 326, "Ruins 2 Door");
-define_object_type_data(ObjectType.Ruins11ButtonDoor, 327, "Ruins 1-1 Button Door");
-define_object_type_data(ObjectType.Ruins21ButtonDoor, 328, "Ruins 2-1 Button Door");
-define_object_type_data(ObjectType.Ruins31ButtonDoor, 329, "Ruins 3-1 Button Door");
-define_object_type_data(ObjectType.Ruins4ButtonDoor, 330, "Ruins 4-Button Door");
-define_object_type_data(ObjectType.Ruins2ButtonDoor, 331, "Ruins 2-Button Door");
-define_object_type_data(ObjectType.RuinsSensor, 332, "Ruins Sensor");
-define_object_type_data(ObjectType.RuinsFenceSwitch, 333, "Ruins Fence Switch");
-define_object_type_data(ObjectType.RuinsLaserFence4x2, 334, "Ruins Laser Fence 4x2");
-define_object_type_data(ObjectType.RuinsLaserFence6x2, 335, "Ruins Laser Fence 6x2");
-define_object_type_data(ObjectType.RuinsLaserFence4x4, 336, "Ruins Laser Fence 4x4");
-define_object_type_data(ObjectType.RuinsLaserFence6x4, 337, "Ruins Laser Fence 6x4");
-define_object_type_data(ObjectType.RuinsPoisonBlob, 338, "Ruins poison Blob");
-define_object_type_data(ObjectType.RuinsPilarTrap, 339, "Ruins Pilar Trap");
-define_object_type_data(ObjectType.PopupTrapNoTech, 340, "Popup Trap (No Tech)");
-define_object_type_data(ObjectType.RuinsCrystal, 341, "Ruins Crystal");
-define_object_type_data(ObjectType.Monument, 342, "Monument");
-define_object_type_data(ObjectType.RuinsRock1, 345, "Ruins Rock 1");
-define_object_type_data(ObjectType.RuinsRock2, 346, "Ruins Rock 2");
-define_object_type_data(ObjectType.RuinsRock3, 347, "Ruins Rock 3");
-define_object_type_data(ObjectType.RuinsRock4, 348, "Ruins Rock 4");
-define_object_type_data(ObjectType.RuinsRock5, 349, "Ruins Rock 5");
-define_object_type_data(ObjectType.RuinsRock6, 350, "Ruins Rock 6");
-define_object_type_data(ObjectType.RuinsRock7, 351, "Ruins Rock 7");
-define_object_type_data(ObjectType.Poison, 352, "Poison");
-define_object_type_data(ObjectType.FixedBoxTypeRuins, 353, "Fixed Box Type (Ruins)");
-define_object_type_data(ObjectType.RandomBoxTypeRuins, 354, "Random Box Type (Ruins)");
-define_object_type_data(ObjectType.EnemyTypeBoxYellow, 355, "Enemy Type Box (Yellow)");
-define_object_type_data(ObjectType.EnemyTypeBoxBlue, 356, "Enemy Type Box (Blue)");
-define_object_type_data(ObjectType.EmptyTypeBoxBlue, 357, "Empty Type Box (Blue)");
-define_object_type_data(ObjectType.DestructableRock, 358, "Destructable Rock");
-define_object_type_data(ObjectType.PopupTrapsTechs, 359, "Popup Traps (techs)");
-define_object_type_data(ObjectType.FlyingWhiteBird, 368, "Flying White Bird");
-define_object_type_data(ObjectType.Tower, 369, "Tower");
-define_object_type_data(ObjectType.FloatingRocks, 370, "Floating Rocks");
-define_object_type_data(ObjectType.FloatingSoul, 371, "Floating Soul");
-define_object_type_data(ObjectType.Butterfly, 372, "Butterfly");
-define_object_type_data(ObjectType.LobbyGameMenu, 384, "Lobby Game menu");
-define_object_type_data(ObjectType.LobbyWarpObject, 385, "Lobby Warp Object");
+define_object_type_data(ObjectType.FloatingRobot, 262, "Floating Robot", undefined);
+define_object_type_data(ObjectType.FloatingBlueLight, 263, "Floating Blue Light", undefined);
+define_object_type_data(
+    ObjectType.SelfDestructingObject1,
+    264,
+    "Self Destructing Object 1",
+    undefined,
+);
+define_object_type_data(
+    ObjectType.SelfDestructingObject2,
+    265,
+    "Self Destructing Object 2",
+    undefined,
+);
+define_object_type_data(
+    ObjectType.SelfDestructingObject3,
+    266,
+    "Self Destructing Object 3",
+    undefined,
+);
+define_object_type_data(ObjectType.SparkMachine, 267, "Spark Machine", undefined);
+define_object_type_data(ObjectType.MinesLargeFlashingCrate, 268, "Mines Large Flashing Crate", [
+    [Episode.I, [6, 7]],
+]);
+define_object_type_data(ObjectType.RuinsSeal, 304, "Ruins Seal", [[Episode.I, [8, 9, 10]]]);
+define_object_type_data(ObjectType.RuinsTeleporter, 320, "Ruins Teleporter", [
+    [Episode.I, [8, 9, 10]],
+]);
+define_object_type_data(ObjectType.RuinsWarpSiteToSite, 321, "Ruins Warp (Site to site)", [
+    [Episode.I, [8, 9, 10]],
+]);
+define_object_type_data(ObjectType.RuinsSwitch, 322, "Ruins Switch", [[Episode.I, [8, 9, 10]]]);
+define_object_type_data(ObjectType.FloorPanel4, 323, "Floor Panel 4", undefined);
+define_object_type_data(ObjectType.Ruins1Door, 324, "Ruins 1 Door", [[Episode.I, [8]]]);
+define_object_type_data(ObjectType.Ruins3Door, 325, "Ruins 3 Door", [[Episode.I, [10]]]);
+define_object_type_data(ObjectType.Ruins2Door, 326, "Ruins 2 Door", [[Episode.I, [9]]]);
+define_object_type_data(ObjectType.Ruins11ButtonDoor, 327, "Ruins 1-1 Button Door", [
+    [Episode.I, [8]],
+]);
+define_object_type_data(ObjectType.Ruins21ButtonDoor, 328, "Ruins 2-1 Button Door", [
+    [Episode.I, [9]],
+]);
+define_object_type_data(ObjectType.Ruins31ButtonDoor, 329, "Ruins 3-1 Button Door", [
+    [Episode.I, [10]],
+]);
+define_object_type_data(ObjectType.Ruins4ButtonDoor, 330, "Ruins 4-Button Door", [
+    [Episode.I, [8, 9, 10]],
+]);
+define_object_type_data(ObjectType.Ruins2ButtonDoor, 331, "Ruins 2-Button Door", [
+    [Episode.I, [8, 9, 10]],
+]);
+define_object_type_data(ObjectType.RuinsSensor, 332, "Ruins Sensor", [[Episode.I, [8, 9, 10]]]);
+define_object_type_data(ObjectType.RuinsFenceSwitch, 333, "Ruins Fence Switch", [
+    [Episode.I, [8, 9, 10]],
+]);
+define_object_type_data(ObjectType.RuinsLaserFence4x2, 334, "Ruins Laser Fence 4x2", [
+    [Episode.I, [8, 9, 10]],
+]);
+define_object_type_data(ObjectType.RuinsLaserFence6x2, 335, "Ruins Laser Fence 6x2", [
+    [Episode.I, [8, 9, 10]],
+]);
+define_object_type_data(ObjectType.RuinsLaserFence4x4, 336, "Ruins Laser Fence 4x4", [
+    [Episode.I, [8, 9, 10]],
+]);
+define_object_type_data(ObjectType.RuinsLaserFence6x4, 337, "Ruins Laser Fence 6x4", [
+    [Episode.I, [8, 9, 10]],
+]);
+define_object_type_data(ObjectType.RuinsPoisonBlob, 338, "Ruins poison Blob", [
+    [Episode.I, [8, 9, 10]],
+]);
+define_object_type_data(ObjectType.RuinsPillarTrap, 339, "Ruins Pillar Trap", [
+    [Episode.I, [8, 9, 10]],
+]);
+define_object_type_data(ObjectType.PopupTrapNoTech, 340, "Popup Trap (No Tech)", undefined);
+define_object_type_data(ObjectType.RuinsCrystal, 341, "Ruins Crystal", [[Episode.I, [8, 9, 10]]]);
+define_object_type_data(ObjectType.Monument, 342, "Monument", undefined);
+define_object_type_data(ObjectType.RuinsRock1, 345, "Ruins Rock 1", undefined);
+define_object_type_data(ObjectType.RuinsRock2, 346, "Ruins Rock 2", undefined);
+define_object_type_data(ObjectType.RuinsRock3, 347, "Ruins Rock 3", undefined);
+define_object_type_data(ObjectType.RuinsRock4, 348, "Ruins Rock 4", undefined);
+define_object_type_data(ObjectType.RuinsRock5, 349, "Ruins Rock 5", undefined);
+define_object_type_data(ObjectType.RuinsRock6, 350, "Ruins Rock 6", undefined);
+define_object_type_data(ObjectType.RuinsRock7, 351, "Ruins Rock 7", undefined);
+define_object_type_data(ObjectType.Poison, 352, "Poison", undefined);
+define_object_type_data(ObjectType.FixedBoxTypeRuins, 353, "Fixed Box Type (Ruins)", undefined);
+define_object_type_data(ObjectType.RandomBoxTypeRuins, 354, "Random Box Type (Ruins)", undefined);
+define_object_type_data(ObjectType.EnemyTypeBoxYellow, 355, "Enemy Type Box (Yellow)", undefined);
+define_object_type_data(ObjectType.EnemyTypeBoxBlue, 356, "Enemy Type Box (Blue)", undefined);
+define_object_type_data(ObjectType.EmptyTypeBoxBlue, 357, "Empty Type Box (Blue)", undefined);
+define_object_type_data(ObjectType.DestructableRock, 358, "Destructable Rock", undefined);
+define_object_type_data(ObjectType.PopupTrapsTechs, 359, "Popup Traps (techs)", undefined);
+define_object_type_data(ObjectType.FlyingWhiteBird, 368, "Flying White Bird", undefined);
+define_object_type_data(ObjectType.Tower, 369, "Tower", undefined);
+define_object_type_data(ObjectType.FloatingRocks, 370, "Floating Rocks", undefined);
+define_object_type_data(ObjectType.FloatingSoul, 371, "Floating Soul", undefined);
+define_object_type_data(ObjectType.Butterfly, 372, "Butterfly", undefined);
+define_object_type_data(ObjectType.LobbyGameMenu, 384, "Lobby Game menu", undefined);
+define_object_type_data(ObjectType.LobbyWarpObject, 385, "Lobby Warp Object", undefined);
 define_object_type_data(
     ObjectType.Lobby1EventObjectDefaultTree,
     386,
     "Lobby 1 Event Object (Default Tree)",
+    undefined,
 );
-define_object_type_data(ObjectType.UnknownItem387, 387, "Unknown Item (387)");
-define_object_type_data(ObjectType.UnknownItem388, 388, "Unknown Item (388)");
-define_object_type_data(ObjectType.UnknownItem389, 389, "Unknown Item (389)");
+define_object_type_data(ObjectType.UnknownItem387, 387, "Unknown Item (387)", undefined);
+define_object_type_data(ObjectType.UnknownItem388, 388, "Unknown Item (388)", undefined);
+define_object_type_data(ObjectType.UnknownItem389, 389, "Unknown Item (389)", undefined);
 define_object_type_data(
     ObjectType.LobbyEventObjectStaticPumpkin,
     390,
     "Lobby Event Object (Static Pumpkin)",
+    undefined,
 );
 define_object_type_data(
     ObjectType.LobbyEventObject3ChristmasWindows,
     391,
     "Lobby Event Object (3 Christmas Windows)",
+    undefined,
 );
 define_object_type_data(
     ObjectType.LobbyEventObjectRedAndWhiteCurtain,
     392,
     "Lobby Event Object (Red and White Curtain)",
+    undefined,
 );
-define_object_type_data(ObjectType.UnknownItem393, 393, "Unknown Item (393)");
-define_object_type_data(ObjectType.UnknownItem394, 394, "Unknown Item (394)");
-define_object_type_data(ObjectType.LobbyFishTank, 395, "Lobby Fish Tank");
+define_object_type_data(ObjectType.UnknownItem393, 393, "Unknown Item (393)", undefined);
+define_object_type_data(ObjectType.UnknownItem394, 394, "Unknown Item (394)", undefined);
+define_object_type_data(ObjectType.LobbyFishTank, 395, "Lobby Fish Tank", undefined);
 define_object_type_data(
     ObjectType.LobbyEventObjectButterflies,
     396,
     "Lobby Event Object (Butterflies)",
+    undefined,
 );
-define_object_type_data(ObjectType.UnknownItem400, 400, "Unknown Item (400)");
-define_object_type_data(ObjectType.GreyWallLow, 401, "grey wall low");
-define_object_type_data(ObjectType.SpaceshipDoor, 402, "Spaceship Door");
-define_object_type_data(ObjectType.GreyWallHigh, 403, "grey wall high");
-define_object_type_data(ObjectType.TempleNormalDoor, 416, "Temple Normal Door");
+define_object_type_data(ObjectType.UnknownItem400, 400, "Unknown Item (400)", undefined);
+define_object_type_data(ObjectType.GreyWallLow, 401, "grey wall low", undefined);
+define_object_type_data(ObjectType.SpaceshipDoor, 402, "Spaceship Door", undefined);
+define_object_type_data(ObjectType.GreyWallHigh, 403, "grey wall high", undefined);
+define_object_type_data(ObjectType.TempleNormalDoor, 416, "Temple Normal Door", undefined);
 define_object_type_data(
     ObjectType.BreakableWallWallButUnbreakable,
     417,
     '"breakable wall wall, but unbreakable"',
+    undefined,
 );
-define_object_type_data(ObjectType.BrokenCilinderAndRubble, 418, "Broken cilinder and rubble");
+define_object_type_data(
+    ObjectType.BrokenCylinderAndRubble,
+    418,
+    "Broken cylinder and rubble",
+    undefined,
+);
 define_object_type_data(
     ObjectType.ThreeBrokenWallPiecesOnFloor,
     419,
     "3 broken wall pieces on floor",
+    undefined,
 );
-define_object_type_data(ObjectType.HighBrickCilinder, 420, "high brick cilinder");
-define_object_type_data(ObjectType.LyingCilinder, 421, "lying cilinder");
-define_object_type_data(ObjectType.BrickConeWithFlatTop, 422, "brick cone with flat top");
-define_object_type_data(ObjectType.BreakableTempleWall, 423, "breakable temple wall");
-define_object_type_data(ObjectType.TempleMapDetect, 424, "Temple Map Detect");
+define_object_type_data(ObjectType.HighBrickCylinder, 420, "high brick cylinder", undefined);
+define_object_type_data(ObjectType.LyingCylinder, 421, "lying cylinder", undefined);
+define_object_type_data(
+    ObjectType.BrickConeWithFlatTop,
+    422,
+    "brick cone with flat top",
+    undefined,
+);
+define_object_type_data(ObjectType.BreakableTempleWall, 423, "breakable temple wall", undefined);
+define_object_type_data(ObjectType.TempleMapDetect, 424, "Temple Map Detect", undefined);
 define_object_type_data(
     ObjectType.SmallBrownBrickRisingBridge,
     425,
     "small brown brick rising bridge",
+    undefined,
 );
 define_object_type_data(
     ObjectType.LongRisingBridgeWithPinkHighEdges,
     426,
     "long rising bridge (with pink high edges)",
+    undefined,
 );
-define_object_type_data(ObjectType.FourSwitchTempleDoor, 427, "4 switch temple door");
-define_object_type_data(ObjectType.FourButtonSpaceshipDoor, 448, "4 button spaceship door");
-define_object_type_data(ObjectType.ItemBoxCca, 512, "item box cca");
-define_object_type_data(ObjectType.TeleporterEp2, 513, "Teleporter (Ep 2)");
-define_object_type_data(ObjectType.CCADoor, 514, "CCA Door");
-define_object_type_data(ObjectType.SpecialBoxCCA, 515, "Special Box CCA");
-define_object_type_data(ObjectType.BigCCADoor, 516, "Big CCA Door");
-define_object_type_data(ObjectType.BigCCADoorSwitch, 517, "Big CCA Door Switch");
-define_object_type_data(ObjectType.LittleRock, 518, "Little Rock");
-define_object_type_data(ObjectType.Little3StoneWall, 519, "Little 3 Stone Wall");
-define_object_type_data(ObjectType.Medium3StoneWall, 520, "Medium 3 stone wall");
-define_object_type_data(ObjectType.SpiderPlant, 521, "Spider Plant");
-define_object_type_data(ObjectType.CCAAreaTeleporter, 522, "CCA Area Teleporter");
-define_object_type_data(ObjectType.UnknownItem523, 523, "Unknown Item (523)");
-define_object_type_data(ObjectType.WhiteBird, 524, "White Bird");
-define_object_type_data(ObjectType.OrangeBird, 525, "Orange Bird");
-define_object_type_data(ObjectType.Saw, 527, "Saw");
-define_object_type_data(ObjectType.LaserDetect, 528, "Laser Detect");
-define_object_type_data(ObjectType.UnknownItem529, 529, "Unknown Item (529)");
-define_object_type_data(ObjectType.UnknownItem530, 530, "Unknown Item (530)");
-define_object_type_data(ObjectType.Seagull, 531, "Seagull");
-define_object_type_data(ObjectType.Fish, 544, "Fish");
-define_object_type_data(ObjectType.SeabedDoorWithBlueEdges, 545, "Seabed Door (with blue edges)");
+define_object_type_data(ObjectType.FourSwitchTempleDoor, 427, "4 switch temple door", undefined);
+define_object_type_data(
+    ObjectType.FourButtonSpaceshipDoor,
+    448,
+    "4 button spaceship door",
+    undefined,
+);
+define_object_type_data(ObjectType.ItemBoxCca, 512, "item box cca", undefined);
+define_object_type_data(ObjectType.TeleporterEp2, 513, "Teleporter (Ep 2)", undefined);
+define_object_type_data(ObjectType.CCADoor, 514, "CCA Door", undefined);
+define_object_type_data(ObjectType.SpecialBoxCCA, 515, "Special Box CCA", undefined);
+define_object_type_data(ObjectType.BigCCADoor, 516, "Big CCA Door", undefined);
+define_object_type_data(ObjectType.BigCCADoorSwitch, 517, "Big CCA Door Switch", undefined);
+define_object_type_data(ObjectType.LittleRock, 518, "Little Rock", undefined);
+define_object_type_data(ObjectType.Little3StoneWall, 519, "Little 3 Stone Wall", undefined);
+define_object_type_data(ObjectType.Medium3StoneWall, 520, "Medium 3 stone wall", undefined);
+define_object_type_data(ObjectType.SpiderPlant, 521, "Spider Plant", undefined);
+define_object_type_data(ObjectType.CCAAreaTeleporter, 522, "CCA Area Teleporter", undefined);
+define_object_type_data(ObjectType.UnknownItem523, 523, "Unknown Item (523)", undefined);
+define_object_type_data(ObjectType.WhiteBird, 524, "White Bird", undefined);
+define_object_type_data(ObjectType.OrangeBird, 525, "Orange Bird", undefined);
+define_object_type_data(ObjectType.Saw, 527, "Saw", undefined);
+define_object_type_data(ObjectType.LaserDetect, 528, "Laser Detect", undefined);
+define_object_type_data(ObjectType.UnknownItem529, 529, "Unknown Item (529)", undefined);
+define_object_type_data(ObjectType.UnknownItem530, 530, "Unknown Item (530)", undefined);
+define_object_type_data(ObjectType.Seagull, 531, "Seagull", undefined);
+define_object_type_data(ObjectType.Fish, 544, "Fish", undefined);
+define_object_type_data(
+    ObjectType.SeabedDoorWithBlueEdges,
+    545,
+    "Seabed Door (with blue edges)",
+    undefined,
+);
 define_object_type_data(
     ObjectType.SeabedDoorAlwaysOpenNonTriggerable,
     546,
     "Seabed door (always open, non-triggerable)",
+    undefined,
 );
-define_object_type_data(ObjectType.LittleCryotube, 547, "Little Cryotube");
-define_object_type_data(ObjectType.WideGlassWallBreakable, 548, "Wide Glass Wall (breakable)");
-define_object_type_data(ObjectType.BlueFloatingRobot, 549, "Blue floating robot");
-define_object_type_data(ObjectType.RedFloatingRobot, 550, "Red floating robot");
-define_object_type_data(ObjectType.Dolphin, 551, "Dolphin");
-define_object_type_data(ObjectType.CaptureTrap, 552, "Capture Trap");
-define_object_type_data(ObjectType.VRLink, 553, "VR link");
-define_object_type_data(ObjectType.UnknownItem576, 576, "Unknown Item (576)");
-define_object_type_data(ObjectType.WarpInBarbaRayRoom, 640, "Warp in Barba Ray Room");
-define_object_type_data(ObjectType.UnknownItem672, 672, "Unknown Item (672)");
-define_object_type_data(ObjectType.GeeNest, 688, "Gee Nest");
-define_object_type_data(ObjectType.LabComputerConsole, 689, "Lab Computer Console");
+define_object_type_data(ObjectType.LittleCryotube, 547, "Little Cryotube", undefined);
+define_object_type_data(
+    ObjectType.WideGlassWallBreakable,
+    548,
+    "Wide Glass Wall (breakable)",
+    undefined,
+);
+define_object_type_data(ObjectType.BlueFloatingRobot, 549, "Blue floating robot", undefined);
+define_object_type_data(ObjectType.RedFloatingRobot, 550, "Red floating robot", undefined);
+define_object_type_data(ObjectType.Dolphin, 551, "Dolphin", undefined);
+define_object_type_data(ObjectType.CaptureTrap, 552, "Capture Trap", undefined);
+define_object_type_data(ObjectType.VRLink, 553, "VR link", undefined);
+define_object_type_data(ObjectType.UnknownItem576, 576, "Unknown Item (576)", undefined);
+define_object_type_data(ObjectType.WarpInBarbaRayRoom, 640, "Warp in Barba Ray Room", undefined);
+define_object_type_data(ObjectType.UnknownItem672, 672, "Unknown Item (672)", undefined);
+define_object_type_data(ObjectType.GeeNest, 688, "Gee Nest", undefined);
+define_object_type_data(ObjectType.LabComputerConsole, 689, "Lab Computer Console", undefined);
 define_object_type_data(
     ObjectType.LabComputerConsoleGreenScreen,
     690,
     "Lab Computer Console (Green Screen)",
+    undefined,
 );
-define_object_type_data(ObjectType.ChairYelllowPillow, 691, "Chair, Yelllow Pillow");
+define_object_type_data(ObjectType.ChairYellowPillow, 691, "Chair, Yellow Pillow", undefined);
 define_object_type_data(
     ObjectType.OrangeWallWithHoleInMiddle,
     692,
     "orange wall with hole in middle",
+    undefined,
 );
-define_object_type_data(ObjectType.GreyWallWithHoleInMiddle, 693, "grey wall with hole in middle");
-define_object_type_data(ObjectType.LongTable, 694, "long table");
-define_object_type_data(ObjectType.GBAStation, 695, "GBA Station");
-define_object_type_data(ObjectType.TalkLinkToSupport, 696, "Talk (link to support)");
-define_object_type_data(ObjectType.InstaWarp, 697, "insta-warp");
-define_object_type_data(ObjectType.LabInvisibleObject, 698, "Lab Invisible Object");
-define_object_type_data(ObjectType.LabGlassWindowDoor, 699, "Lab Glass window Door");
-define_object_type_data(ObjectType.UnknownItem700, 700, "Unknown Item (700)");
-define_object_type_data(ObjectType.LabCelingWarp, 701, "Lab Celing Warp");
-define_object_type_data(ObjectType.Ep4LightSource, 768, "Ep4 Light Source");
-define_object_type_data(ObjectType.Cacti, 769, "cacti");
-define_object_type_data(ObjectType.BigBrownRock, 770, "Big Brown Rock");
-define_object_type_data(ObjectType.BreakableBrownRock, 771, "Breakable Brown Rock");
-define_object_type_data(ObjectType.UnknownItem832, 832, "Unknown Item (832)");
-define_object_type_data(ObjectType.UnknownItem833, 833, "Unknown Item (833)");
-define_object_type_data(ObjectType.PoisonPlant, 896, "Poison Plant");
-define_object_type_data(ObjectType.UnknownItem897, 897, "Unknown Item (897)");
-define_object_type_data(ObjectType.UnknownItem898, 898, "Unknown Item (898)");
-define_object_type_data(ObjectType.OozingDesertPlant, 899, "Oozing Desert Plant");
-define_object_type_data(ObjectType.UnknownItem901, 901, "Unknown Item (901)");
-define_object_type_data(ObjectType.BigBlackRocks, 902, "big black rocks");
-define_object_type_data(ObjectType.UnknownItem903, 903, "Unknown Item (903)");
-define_object_type_data(ObjectType.UnknownItem904, 904, "Unknown Item (904)");
-define_object_type_data(ObjectType.UnknownItem905, 905, "Unknown Item (905)");
-define_object_type_data(ObjectType.UnknownItem906, 906, "Unknown Item (906)");
-define_object_type_data(ObjectType.FallingRock, 907, "Falling Rock");
-define_object_type_data(ObjectType.DesertPlantHasCollision, 908, "Desert Plant (has collision)");
+define_object_type_data(
+    ObjectType.GreyWallWithHoleInMiddle,
+    693,
+    "grey wall with hole in middle",
+    undefined,
+);
+define_object_type_data(ObjectType.LongTable, 694, "long table", undefined);
+define_object_type_data(ObjectType.GBAStation, 695, "GBA Station", undefined);
+define_object_type_data(ObjectType.TalkLinkToSupport, 696, "Talk (link to support)", undefined);
+define_object_type_data(ObjectType.InstaWarp, 697, "insta-warp", undefined);
+define_object_type_data(ObjectType.LabInvisibleObject, 698, "Lab Invisible Object", undefined);
+define_object_type_data(ObjectType.LabGlassWindowDoor, 699, "Lab Glass window Door", undefined);
+define_object_type_data(ObjectType.UnknownItem700, 700, "Unknown Item (700)", undefined);
+define_object_type_data(ObjectType.LabCelingWarp, 701, "Lab Celing Warp", undefined);
+define_object_type_data(ObjectType.Ep4LightSource, 768, "Ep4 Light Source", undefined);
+define_object_type_data(ObjectType.Cacti, 769, "cacti", undefined);
+define_object_type_data(ObjectType.BigBrownRock, 770, "Big Brown Rock", undefined);
+define_object_type_data(ObjectType.BreakableBrownRock, 771, "Breakable Brown Rock", undefined);
+define_object_type_data(ObjectType.UnknownItem832, 832, "Unknown Item (832)", undefined);
+define_object_type_data(ObjectType.UnknownItem833, 833, "Unknown Item (833)", undefined);
+define_object_type_data(ObjectType.PoisonPlant, 896, "Poison Plant", undefined);
+define_object_type_data(ObjectType.UnknownItem897, 897, "Unknown Item (897)", undefined);
+define_object_type_data(ObjectType.UnknownItem898, 898, "Unknown Item (898)", undefined);
+define_object_type_data(ObjectType.OozingDesertPlant, 899, "Oozing Desert Plant", undefined);
+define_object_type_data(ObjectType.UnknownItem901, 901, "Unknown Item (901)", undefined);
+define_object_type_data(ObjectType.BigBlackRocks, 902, "big black rocks", undefined);
+define_object_type_data(ObjectType.UnknownItem903, 903, "Unknown Item (903)", undefined);
+define_object_type_data(ObjectType.UnknownItem904, 904, "Unknown Item (904)", undefined);
+define_object_type_data(ObjectType.UnknownItem905, 905, "Unknown Item (905)", undefined);
+define_object_type_data(ObjectType.UnknownItem906, 906, "Unknown Item (906)", undefined);
+define_object_type_data(ObjectType.FallingRock, 907, "Falling Rock", undefined);
+define_object_type_data(
+    ObjectType.DesertPlantHasCollision,
+    908,
+    "Desert Plant (has collision)",
+    undefined,
+);
 define_object_type_data(
     ObjectType.DesertFixedTypeBoxBreakableCrystals,
     909,
     "Desert Fixed Type Box (Breakable Crystals)",
+    undefined,
 );
-define_object_type_data(ObjectType.UnknownItem910, 910, "Unknown Item (910)");
-define_object_type_data(ObjectType.BeeHive, 911, "Bee Hive");
-define_object_type_data(ObjectType.UnknownItem912, 912, "Unknown Item (912)");
-define_object_type_data(ObjectType.Heat, 913, "Heat");
-define_object_type_data(ObjectType.TopOfSaintMillionEgg, 960, "Top of saint million egg");
-define_object_type_data(ObjectType.UnknownItem961, 961, "Unknown Item (961)");
+define_object_type_data(ObjectType.UnknownItem910, 910, "Unknown Item (910)", undefined);
+define_object_type_data(ObjectType.BeeHive, 911, "Bee Hive", undefined);
+define_object_type_data(ObjectType.UnknownItem912, 912, "Unknown Item (912)", undefined);
+define_object_type_data(ObjectType.Heat, 913, "Heat", undefined);
+define_object_type_data(
+    ObjectType.TopOfSaintMillionEgg,
+    960,
+    "Top of saint million egg",
+    undefined,
+);
+define_object_type_data(ObjectType.UnknownItem961, 961, "Unknown Item (961)", undefined);

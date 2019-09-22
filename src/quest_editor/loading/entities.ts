@@ -186,7 +186,7 @@ function entity_type_to_url(type: EntityType, asset_type: AssetType): string {
                 case ObjectType.TwentyFirstCentury:
                 case ObjectType.Sonic:
                 case ObjectType.WelcomeBoard:
-                case ObjectType.FloatingJelifish:
+                case ObjectType.FloatingJellyfish:
                 case ObjectType.RuinsSeal:
                 case ObjectType.Dolphin:
                 case ObjectType.Cacti:
