@@ -8,6 +8,7 @@
     grid-column-gap: 6px;
     grid-row-gap: 6px;
     justify-content: center;
+    margin: 6px;
 }
 
 .quest_editor_EntityListView_entity {

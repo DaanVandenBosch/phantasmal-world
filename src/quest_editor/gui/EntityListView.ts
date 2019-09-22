@@ -2,14 +2,17 @@ import { ResizableWidget } from "../../core/gui/ResizableWidget";
 import { bind_children_to, el } from "../../core/gui/dom";
 import "./EntityListView.css";
 import { entity_data, EntityType } from "../../core/data_formats/parsing/quest/entities";
-import { ListProperty } from "../../core/observable/property/list/ListProperty";
 import { entity_dnd_source } from "./entity_dnd";
 import { render_entity_to_image } from "../rendering/render_entity_to_image";
+import { WritableListProperty } from "../../core/observable/property/list/WritableListProperty";
+import { list_property } from "../../core/observable";
 
 export abstract class EntityListView<T extends EntityType> extends ResizableWidget {
     readonly element: HTMLElement;
 
-    protected constructor(private readonly class_name: string, entities: ListProperty<T>) {
+    protected readonly entities: WritableListProperty<T> = list_property();
+
+    protected constructor(class_name: string) {
         super();
 
         const list_element = el.div({ class: "quest_editor_EntityListView_entity_list" });
@@ -17,7 +20,7 @@ export abstract class EntityListView<T extends EntityType> extends ResizableWidg
         this.element = el.div({ class: `${class_name} quest_editor_EntityListView` }, list_element);
 
         this.disposables(
-            bind_children_to(list_element, entities, this.create_entity_element),
+            bind_children_to(list_element, this.entities, this.create_entity_element),
 
             entity_dnd_source(list_element, target => {
                 let element: HTMLElement | null = target;
@@ -28,7 +31,7 @@ export abstract class EntityListView<T extends EntityType> extends ResizableWidg
                     if (index != undefined) {
                         return [
                             element.querySelector("img")!.cloneNode(true) as HTMLElement,
-                            entities.get(parseInt(index, 10)),
+                            this.entities.get(parseInt(index, 10)),
                         ];
                     }
 

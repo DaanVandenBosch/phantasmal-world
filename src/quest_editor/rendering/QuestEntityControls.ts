@@ -17,6 +17,7 @@ import {
     remove_entity_dnd_listener,
 } from "../gui/entity_dnd";
 import { vec3_to_threejs } from "../../core/rendering/conversion";
+import { QuestObjectModel } from "../model/QuestObjectModel";
 
 const UP_VECTOR = Object.freeze(new Vector3(0, 1, 0));
 const DOWN_VECTOR = Object.freeze(new Vector3(0, -1, 0));
@@ -198,18 +199,14 @@ export class QuestEntityControls implements Disposable {
 
         if (!area || !quest) return;
 
+        let entity: QuestEntityModel;
+
         if (is_npc_type(e.entity_type)) {
             const data = npc_data(e.entity_type);
 
             if (data.pso_type_id == undefined || data.pso_roaming == undefined) return;
 
-            e.drag_element.style.display = "none";
-
-            if (e.event.dataTransfer) {
-                e.event.dataTransfer.dropEffect = "copy";
-            }
-
-            const npc = new QuestNpcModel(
+            entity = new QuestNpcModel(
                 e.entity_type,
                 data.pso_type_id,
                 0,
@@ -223,21 +220,42 @@ export class QuestEntityControls implements Disposable {
                 // TODO: do the following values make sense?
                 [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0]],
             );
-            const grab_offset = new Vector3(0, 0, 0);
-            const drag_adjust = new Vector3(0, 0, 0);
-            this.translate_entity_horizontally(npc, grab_offset, drag_adjust);
-            quest.add_npc(npc);
-
-            quest_editor_store.set_selected_entity(npc);
-
-            this.pick = {
-                mode: PickMode.Creating,
-                initial_section: npc.section.val,
-                initial_position: npc.world_position.val,
-                grab_offset,
-                drag_adjust,
-            };
+        } else {
+            entity = new QuestObjectModel(
+                e.entity_type,
+                0,
+                0,
+                area.id,
+                0,
+                new Vec3(0, 0, 0),
+                new Vec3(0, 0, 0),
+                // TODO: which default properties?
+                new Map(),
+                // TODO: do the following values make sense?
+                [[0, 0, 0, 0, 0, 0], [0, 0]],
+            );
         }
+
+        e.drag_element.style.display = "none";
+
+        if (e.event.dataTransfer) {
+            e.event.dataTransfer.dropEffect = "copy";
+        }
+
+        const grab_offset = new Vector3(0, 0, 0);
+        const drag_adjust = new Vector3(0, 0, 0);
+        this.translate_entity_horizontally(entity, grab_offset, drag_adjust);
+        quest.add_entity(entity);
+
+        quest_editor_store.set_selected_entity(entity);
+
+        this.pick = {
+            mode: PickMode.Creating,
+            initial_section: entity.section.val,
+            initial_position: entity.world_position.val,
+            grab_offset,
+            drag_adjust,
+        };
     };
 
     private dragover = (e: EntityDragEvent) => {

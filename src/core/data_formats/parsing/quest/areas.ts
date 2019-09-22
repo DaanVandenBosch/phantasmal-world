@@ -27,7 +27,7 @@ export function get_area_variant(
     const variant = area.area_variants[variant_id];
     if (!variant) throw new Error(`No area variant with id ${variant_id}.`);
 
-    return variant;
+    return Object.freeze(variant);
 }
 
 const AREAS: { [episode: number]: Area[] } = [];
@@ -39,7 +39,7 @@ function create_area(id: number, name: string, order: number, variants: number):
         area.area_variants.push({ id, area });
     }
 
-    return area;
+    return Object.freeze(area);
 }
 
 // The IDs match the PSO IDs for areas.
