@@ -20,6 +20,8 @@ const logger = Logger.get("quest_editor/loading/entities");
 
 const DEFAULT_ENTITY = new CylinderBufferGeometry(3, 3, 20);
 DEFAULT_ENTITY.translate(0, 10, 0);
+DEFAULT_ENTITY.computeBoundingBox();
+DEFAULT_ENTITY.computeBoundingSphere();
 
 const DEFAULT_ENTITY_PROMISE: Promise<BufferGeometry> = new Promise(resolve =>
     resolve(DEFAULT_ENTITY),

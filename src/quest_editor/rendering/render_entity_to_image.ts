@@ -1,4 +1,4 @@
-import { HemisphereLight, PerspectiveCamera, Scene, WebGLRenderer } from "three";
+import { HemisphereLight, PerspectiveCamera, Scene, Vector3, WebGLRenderer } from "three";
 import { EntityType } from "../../core/data_formats/parsing/quest/entities";
 import { load_entity_geometry, load_entity_textures } from "../loading/entities";
 import { create_entity_type_mesh } from "./conversion/entities";
@@ -7,9 +7,12 @@ import { sequential } from "../../core/sequential";
 const renderer = new WebGLRenderer({ alpha: true, antialias: true });
 renderer.setSize(100, 100);
 
-const camera = new PerspectiveCamera(60, 1, 10, 1000);
 const light = new HemisphereLight(0xffffff, 0x505050, 1.2);
 const scene = new Scene();
+
+const camera = new PerspectiveCamera(30, 1, 10, 1000);
+const camera_position = new Vector3(1, 1, 2).normalize();
+const camera_dist_factor = 1.3 / Math.tan(((camera.fov / 180) * Math.PI) / 2);
 
 const cache: Map<EntityType, Promise<string>> = new Map();
 
@@ -31,10 +34,14 @@ const render = sequential(
 
         scene.remove(...scene.children);
         scene.add(light);
-        scene.add(create_entity_type_mesh(entity, geometry, textures));
 
-        camera.position.set(10, 25, 20);
-        camera.lookAt(0, 10, 0);
+        const entity_model = create_entity_type_mesh(entity, geometry, textures);
+        scene.add(entity_model);
+
+        const b_sphere = entity_model.geometry.boundingSphere;
+        camera.position.copy(camera_position);
+        camera.position.multiplyScalar(b_sphere.radius * camera_dist_factor);
+        camera.lookAt(b_sphere.center);
 
         renderer.render(scene, camera);
 
