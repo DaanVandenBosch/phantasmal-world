@@ -27,7 +27,7 @@ export function get_area_variant(
     const variant = area.area_variants[variant_id];
     if (!variant) throw new Error(`No area variant with id ${variant_id}.`);
 
-    return Object.freeze(variant);
+    return variant;
 }
 
 const AREAS: { [episode: number]: Area[] } = [];
@@ -36,7 +36,7 @@ function create_area(id: number, name: string, order: number, variants: number):
     const area: Area = { id, name, order, area_variants: [] };
 
     for (let id = 0; id < variants; id++) {
-        area.area_variants.push({ id, area });
+        area.area_variants.push(Object.freeze({ id, area }));
     }
 
     return Object.freeze(area);
@@ -99,3 +99,5 @@ AREAS[Episode.IV] = [
     create_area(8, "Subterranean Desert 3", order++, 3),
     create_area(9, "Meteor Impact Site", order++, 1),
 ];
+
+Object.freeze(AREAS);

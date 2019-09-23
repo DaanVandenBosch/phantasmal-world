@@ -2163,3 +2163,7 @@ define_npc_type_data(
     0,
     false,
 );
+
+Object.freeze(NPC_TYPES);
+Object.freeze(ENEMY_NPC_TYPES);
+Object.freeze(NPC_TYPE_DATA);
