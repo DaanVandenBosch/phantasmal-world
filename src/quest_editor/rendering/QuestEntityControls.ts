@@ -379,10 +379,7 @@ class IdleState implements State {
 
             case EvtType.MouseUp: {
                 // If the user clicks on nothing, deselect the currently selected entity.
-                if (
-                    (evt.buttons === 1 || evt.buttons === 2) &&
-                    !evt.moved_since_last_pointer_down
-                ) {
+                if (!evt.moved_since_last_pointer_down) {
                     quest_editor_store.set_selected_entity(undefined);
                 }
 
