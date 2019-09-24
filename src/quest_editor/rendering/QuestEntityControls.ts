@@ -9,7 +9,7 @@ import { AreaUserData } from "./conversion/areas";
 import { SectionModel } from "../model/SectionModel";
 import { Disposable } from "../../core/observable/Disposable";
 import { Disposer } from "../../core/observable/Disposer";
-import { is_npc_type } from "../../core/data_formats/parsing/quest/entities";
+import { EntityType, is_npc_type } from "../../core/data_formats/parsing/quest/entities";
 import { npc_data } from "../../core/data_formats/parsing/quest/npc_types";
 import {
     add_entity_dnd_listener,
@@ -18,22 +18,246 @@ import {
 } from "../gui/entity_dnd";
 import { vec3_to_threejs } from "../../core/rendering/conversion";
 import { QuestObjectModel } from "../model/QuestObjectModel";
+import { AreaModel } from "../model/AreaModel";
+import { QuestModel } from "../model/QuestModel";
 
+const ZERO_VECTOR = Object.freeze(new Vector3(0, 0, 0));
 const UP_VECTOR = Object.freeze(new Vector3(0, 1, 0));
 const DOWN_VECTOR = Object.freeze(new Vector3(0, -1, 0));
 
-type Highlighted = {
-    entity: QuestEntityModel;
-    mesh: Mesh;
-};
+const raycaster = new Raycaster();
+const plane = new Plane();
+const plane_normal = new Vector3();
+const intersection_point = new Vector3();
 
-enum PickMode {
-    Creating,
-    Transforming,
+export class QuestEntityControls implements Disposable {
+    private readonly disposer = new Disposer();
+    private readonly pointer_position = new Vector2(0, 0);
+    private readonly pointer_device_position = new Vector2(0, 0);
+    private readonly last_pointer_position = new Vector2(0, 0);
+    private moved_since_last_pointer_down = false;
+    private state: State;
+    private hovered_mesh?: Mesh;
+    private selected_mesh?: Mesh;
+
+    constructor(private renderer: QuestRenderer) {
+        this.disposer.add(quest_editor_store.selected_entity.observe(this.selected_entity_changed));
+
+        renderer.dom_element.addEventListener("keydown", this.keydown);
+        renderer.dom_element.addEventListener("mousedown", this.mousedown);
+        renderer.dom_element.addEventListener("mousemove", this.mousemove);
+        add_entity_dnd_listener(renderer.dom_element, "dragenter", this.dragenter);
+        add_entity_dnd_listener(renderer.dom_element, "dragover", this.dragover);
+        add_entity_dnd_listener(renderer.dom_element, "dragleave", this.dragleave);
+        add_entity_dnd_listener(renderer.dom_element, "drop", this.drop);
+
+        this.state = new IdleState(renderer);
+    }
+
+    dispose = (): void => {
+        this.renderer.dom_element.removeEventListener("keydown", this.keydown);
+        this.renderer.dom_element.removeEventListener("mousedown", this.mousedown);
+        this.renderer.dom_element.removeEventListener("mousemove", this.mousemove);
+        document.removeEventListener("mousemove", this.mousemove);
+        document.removeEventListener("mouseup", this.mouseup);
+        remove_entity_dnd_listener(this.renderer.dom_element, "dragenter", this.dragenter);
+        remove_entity_dnd_listener(this.renderer.dom_element, "dragover", this.dragover);
+        remove_entity_dnd_listener(this.renderer.dom_element, "dragleave", this.dragleave);
+        remove_entity_dnd_listener(this.renderer.dom_element, "drop", this.drop);
+        this.disposer.dispose();
+    };
+
+    mark_selected = (entity_mesh: Mesh): void => {
+        if (entity_mesh === this.hovered_mesh) {
+            this.hovered_mesh = undefined;
+        }
+
+        if (entity_mesh !== this.selected_mesh) {
+            if (this.selected_mesh) {
+                set_color(this.selected_mesh, ColorType.Normal);
+            }
+
+            set_color(entity_mesh, ColorType.Selected);
+
+            this.renderer.schedule_render();
+        }
+
+        this.selected_mesh = entity_mesh;
+    };
+
+    private selected_entity_changed = ({ value: entity }: { value?: QuestEntityModel }) => {
+        this.state.cancel();
+
+        if (entity) {
+            const mesh = this.renderer.get_entity_mesh(entity);
+
+            // Mesh might not be loaded yet.
+            if (mesh) {
+                this.mark_selected(mesh);
+            } else {
+                this.unmark_selected();
+            }
+        } else {
+            this.unmark_selected();
+        }
+    };
+
+    private keydown = (e: KeyboardEvent) => {
+        this.state = this.state.process_event({
+            type: EvtType.KeyDown,
+            key: e.key,
+        });
+    };
+
+    private mousedown = (e: MouseEvent) => {
+        this.process_mouse_event(e);
+
+        this.state = this.state.process_event({
+            type: EvtType.MouseDown,
+            buttons: e.buttons,
+            shift_key: e.shiftKey,
+            pointer_device_position: this.pointer_device_position,
+            moved_since_last_pointer_down: this.moved_since_last_pointer_down,
+            mark_hovered: this.mark_hovered,
+        });
+
+        this.renderer.dom_element.removeEventListener("mousemove", this.mousemove);
+        document.addEventListener("mousemove", this.mousemove);
+        document.addEventListener("mouseup", this.mouseup);
+    };
+
+    private mousemove = (e: MouseEvent) => {
+        this.process_mouse_event(e);
+
+        this.state = this.state.process_event({
+            type: EvtType.MouseMove,
+            buttons: e.buttons,
+            shift_key: e.shiftKey,
+            pointer_device_position: this.pointer_device_position,
+            moved_since_last_pointer_down: this.moved_since_last_pointer_down,
+            mark_hovered: this.mark_hovered,
+        });
+    };
+
+    private mouseup = (e: MouseEvent) => {
+        this.process_mouse_event(e);
+
+        this.state = this.state.process_event({
+            type: EvtType.MouseUp,
+            buttons: e.buttons,
+            shift_key: e.shiftKey,
+            pointer_device_position: this.pointer_device_position,
+            moved_since_last_pointer_down: this.moved_since_last_pointer_down,
+            mark_hovered: this.mark_hovered,
+        });
+
+        this.renderer.dom_element.addEventListener("mousemove", this.mousemove);
+        document.removeEventListener("mousemove", this.mousemove);
+        document.removeEventListener("mouseup", this.mouseup);
+    };
+
+    private dragenter = (e: EntityDragEvent) => {
+        this.process_mouse_event(e.event);
+
+        this.state = this.state.process_event({
+            type: EvtType.EntityDragEnter,
+            shift_key: e.event.shiftKey,
+            pointer_device_position: this.pointer_device_position,
+            entity_type: e.entity_type,
+            drag_element: e.drag_element,
+            data_transfer: e.event.dataTransfer,
+            prevent_default: () => e.event.preventDefault(),
+            stop_propagation: () => e.event.stopPropagation(),
+        });
+    };
+
+    private dragover = (e: EntityDragEvent) => {
+        this.process_mouse_event(e.event);
+
+        this.state = this.state.process_event({
+            type: EvtType.EntityDragOver,
+            shift_key: e.event.shiftKey,
+            pointer_device_position: this.pointer_device_position,
+            entity_type: e.entity_type,
+            drag_element: e.drag_element,
+            data_transfer: e.event.dataTransfer,
+            prevent_default: () => e.event.preventDefault(),
+            stop_propagation: () => e.event.stopPropagation(),
+        });
+    };
+
+    private dragleave = (e: EntityDragEvent) => {
+        this.process_mouse_event(e.event);
+
+        this.state = this.state.process_event({
+            type: EvtType.EntityDragLeave,
+            shift_key: e.event.shiftKey,
+            pointer_device_position: this.pointer_device_position,
+            entity_type: e.entity_type,
+            drag_element: e.drag_element,
+            data_transfer: e.event.dataTransfer,
+            prevent_default: () => e.event.preventDefault(),
+            stop_propagation: () => e.event.stopPropagation(),
+        });
+    };
+
+    private drop = (e: EntityDragEvent) => {
+        this.process_mouse_event(e.event);
+
+        this.state = this.state.process_event({
+            type: EvtType.EntityDrop,
+        });
+    };
+
+    private process_mouse_event(e: MouseEvent): void {
+        const { left, top } = this.renderer.dom_element.getBoundingClientRect();
+        this.pointer_position.set(e.clientX - left, e.clientY - top);
+        this.pointer_device_position.copy(this.pointer_position);
+        this.renderer.pointer_pos_to_device_coords(this.pointer_device_position);
+
+        if (e.type === "mousedown") {
+            this.moved_since_last_pointer_down = false;
+        } else if (e.type === "mousemove" || e.type === "mouseup") {
+            if (!this.pointer_position.equals(this.last_pointer_position)) {
+                this.moved_since_last_pointer_down = true;
+            }
+        }
+
+        this.last_pointer_position.copy(this.pointer_position);
+    }
+
+    private mark_hovered = (entity_mesh?: Mesh): void => {
+        if (!this.selected_mesh || entity_mesh !== this.selected_mesh) {
+            if (entity_mesh !== this.hovered_mesh) {
+                if (this.hovered_mesh) {
+                    set_color(this.hovered_mesh, ColorType.Normal);
+                }
+
+                if (entity_mesh) {
+                    set_color(entity_mesh, ColorType.Hovered);
+                }
+
+                this.renderer.schedule_render();
+            }
+
+            this.hovered_mesh = entity_mesh;
+        }
+    };
+
+    private unmark_selected(): void {
+        if (this.selected_mesh) {
+            set_color(this.selected_mesh, ColorType.Normal);
+            this.renderer.schedule_render();
+        }
+
+        this.selected_mesh = undefined;
+    }
 }
 
 type Pick = {
-    mode: PickMode;
+    entity: QuestEntityModel;
+
+    mesh: Mesh;
 
     initial_section?: SectionModel;
 
@@ -50,178 +274,289 @@ type Pick = {
     drag_adjust: Vector3;
 };
 
-type PickResult = Pick & {
-    entity: QuestEntityModel;
-    mesh: Mesh;
+enum EvtType {
+    KeyDown,
+    MouseDown,
+    MouseMove,
+    MouseUp,
+    EntityDragEnter,
+    EntityDragOver,
+    EntityDragLeave,
+    EntityDrop,
+}
+
+type Evt = KeyboardEvt | MouseEvt | EntityDragEvt | EntityDropEvt;
+
+type KeyboardEvt = {
+    readonly type: EvtType.KeyDown;
+    readonly key: string;
 };
 
-export class QuestEntityControls implements Disposable {
-    private selected?: Highlighted;
-    private hovered?: Highlighted;
+type MouseEvt = {
+    readonly type: EvtType.MouseDown | EvtType.MouseMove | EvtType.MouseUp;
+    readonly buttons: number;
+    readonly shift_key: boolean;
+    readonly pointer_device_position: Vector2;
+    readonly moved_since_last_pointer_down: boolean;
+    mark_hovered(entity_mesh?: Mesh): void;
+};
+
+type EntityDragEvt = {
+    readonly type: EvtType.EntityDragEnter | EvtType.EntityDragOver | EvtType.EntityDragLeave;
+    readonly shift_key: boolean;
+    readonly pointer_device_position: Vector2;
+    readonly entity_type: EntityType;
+    readonly drag_element: HTMLElement;
+    readonly data_transfer: DataTransfer | null;
+    stop_propagation(): void;
+    prevent_default(): void;
+};
+
+type EntityDropEvt = {
+    readonly type: EvtType.EntityDrop;
+};
+
+interface State {
+    process_event(evt: Evt): State;
+
     /**
-     * Iff defined, the user is transforming the selected entity.
+     * The state object should stop doing what it's doing and revert to the idle state as soon as
+     * possible.
      */
-    private pick?: Pick;
-    private readonly pointer_position = new Vector2(0, 0);
-    private readonly pointer_device_position = new Vector2(0, 0);
-    private readonly last_pointer_position = new Vector2(0, 0);
-    private moved_since_last_mouse_down = false;
+    cancel(): void;
+}
 
-    // The following properties are used during entity translation.
-    private readonly raycaster = new Raycaster();
-    private readonly plane = new Plane();
-    private readonly plane_normal = new Vector3();
-    private readonly intersection_point = new Vector3();
+class IdleState implements State {
+    private readonly renderer: QuestRenderer;
 
-    private readonly disposer = new Disposer();
+    constructor(renderer: QuestRenderer) {
+        this.renderer = renderer;
+    }
 
-    constructor(private renderer: QuestRenderer) {
-        this.disposer.add(
-            quest_editor_store.selected_entity.observe(({ value: entity }) => {
-                if (!this.selected || this.selected.entity !== entity) {
-                    this.stop_transforming();
+    process_event(evt: Evt): State {
+        switch (evt.type) {
+            case EvtType.KeyDown: {
+                const entity = quest_editor_store.selected_entity.val;
 
-                    if (entity) {
-                        // Mesh might not be loaded yet.
-                        this.try_highlight(entity);
-                    } else {
-                        this.deselect();
+                if (entity && evt.key === "Delete") {
+                    quest_editor_store.remove_entity(entity);
+                }
+
+                return this;
+            }
+
+            case EvtType.MouseDown: {
+                const pick_result = this.pick_entity(evt.pointer_device_position);
+
+                if (pick_result) {
+                    if (evt.buttons === 1) {
+                        quest_editor_store.set_selected_entity(pick_result.entity);
+
+                        return new TranslationState(
+                            this.renderer,
+                            pick_result.entity,
+                            pick_result.initial_section,
+                            pick_result.initial_position,
+                            pick_result.drag_adjust,
+                            pick_result.grab_offset,
+                        );
+                    } else if (evt.buttons === 2) {
+                        quest_editor_store.set_selected_entity(pick_result.entity);
+
+                        return new RotationState(this.renderer);
                     }
                 }
-            }),
-        );
 
-        renderer.dom_element.addEventListener("mousedown", this.mousedown);
-        renderer.dom_element.addEventListener("mousemove", this.mousemove);
-        renderer.dom_element.addEventListener("keyup", this.keyup);
-        add_entity_dnd_listener(renderer.dom_element, "dragenter", this.dragenter);
-        add_entity_dnd_listener(renderer.dom_element, "dragover", this.dragover);
-        add_entity_dnd_listener(renderer.dom_element, "dragleave", this.dragleave);
-        add_entity_dnd_listener(renderer.dom_element, "drop", this.drop);
+                return this;
+            }
+
+            case EvtType.MouseMove: {
+                // User is hovering.
+                const pick_result = this.pick_entity(evt.pointer_device_position);
+                evt.mark_hovered(pick_result && pick_result.mesh);
+                return this;
+            }
+
+            case EvtType.MouseUp: {
+                // If the user clicks on nothing, deselect the currently selected entity.
+                if (
+                    (evt.buttons === 1 || evt.buttons === 2) &&
+                    !evt.moved_since_last_pointer_down
+                ) {
+                    quest_editor_store.set_selected_entity(undefined);
+                }
+
+                return this;
+            }
+
+            case EvtType.EntityDragEnter: {
+                const area = quest_editor_store.current_area.val;
+                const quest = quest_editor_store.current_quest.val;
+
+                if (!area || !quest) return this;
+
+                return new CreationState(this.renderer, evt, quest, area);
+            }
+
+            default:
+                return this;
+        }
     }
 
-    dispose(): void {
-        this.renderer.dom_element.removeEventListener("mousedown", this.mousedown);
-        this.renderer.dom_element.removeEventListener("mousemove", this.mousemove);
-        document.removeEventListener("mousemove", this.doc_mousemove);
-        document.removeEventListener("mouseup", this.doc_mouseup);
-        this.renderer.dom_element.removeEventListener("keyup", this.keyup);
-        remove_entity_dnd_listener(this.renderer.dom_element, "dragenter", this.dragenter);
-        remove_entity_dnd_listener(this.renderer.dom_element, "dragover", this.dragover);
-        remove_entity_dnd_listener(this.renderer.dom_element, "dragleave", this.dragleave);
-        remove_entity_dnd_listener(this.renderer.dom_element, "drop", this.drop);
-        this.disposer.dispose();
+    cancel(): void {
+        // Do nothing.
     }
 
     /**
-     * Highlights the selected entity if its mesh has been loaded.
+     * @param pointer_position - pointer coordinates in normalized device space
      */
-    try_highlight = (entity: QuestEntityModel) => {
-        const mesh = this.renderer.get_entity_mesh(entity);
+    private pick_entity(pointer_position: Vector2): Pick | undefined {
+        // Find the nearest object and NPC under the pointer.
+        raycaster.setFromCamera(pointer_position, this.renderer.camera);
+        const [intersection] = raycaster.intersectObjects(this.renderer.entity_models.children);
 
-        if (mesh) {
-            this.select({ entity, mesh });
-        } else {
-            if (this.selected) {
-                set_color(this.selected, ColorType.Normal);
+        if (!intersection) {
+            return undefined;
+        }
+
+        const entity = (intersection.object.userData as EntityUserData).entity;
+        const grab_offset = intersection.object.position.clone().sub(intersection.point);
+        const drag_adjust = grab_offset.clone();
+
+        // Find vertical distance to the ground.
+        raycaster.set(intersection.object.position, DOWN_VECTOR);
+        const [collision_geom_intersection] = raycaster.intersectObjects(
+            this.renderer.collision_geometry.children,
+            true,
+        );
+
+        if (collision_geom_intersection) {
+            drag_adjust.y -= collision_geom_intersection.distance;
+        }
+
+        return {
+            mesh: intersection.object as Mesh,
+            entity,
+            initial_section: entity.section.val,
+            initial_position: entity.world_position.val,
+            grab_offset,
+            drag_adjust,
+        };
+    }
+}
+
+class TranslationState implements State {
+    private cancelled = false;
+
+    constructor(
+        private readonly renderer: QuestRenderer,
+        private readonly entity: QuestEntityModel,
+        private readonly initial_section: SectionModel | undefined,
+        private readonly initial_position: Vec3,
+        private readonly drag_adjust: Vector3,
+        private readonly grab_offset: Vector3,
+    ) {
+        this.renderer.controls.enabled = false;
+    }
+
+    process_event(evt: Evt): State {
+        switch (evt.type) {
+            case EvtType.MouseMove: {
+                if (this.cancelled) {
+                    return new IdleState(this.renderer);
+                }
+
+                if (evt.moved_since_last_pointer_down) {
+                    translate_entity(
+                        this.renderer,
+                        this.entity,
+                        this.drag_adjust,
+                        this.grab_offset,
+                        evt.pointer_device_position,
+                        evt.shift_key,
+                    );
+                }
+
+                return this;
             }
 
-            this.selected = undefined;
-        }
-    };
+            case EvtType.MouseUp: {
+                this.renderer.controls.enabled = true;
 
-    private mousedown = (e: MouseEvent) => {
-        this.process_event(e);
+                if (!this.cancelled && evt.moved_since_last_pointer_down) {
+                    quest_editor_store.translate_entity(
+                        this.entity,
+                        this.initial_section,
+                        this.entity.section.val,
+                        this.initial_position,
+                        this.entity.world_position.val,
+                        true,
+                    );
+                }
 
-        this.renderer.dom_element.removeEventListener("mousemove", this.mousemove);
-        document.addEventListener("mouseup", this.doc_mouseup);
-        document.addEventListener("mousemove", this.doc_mousemove);
-
-        this.stop_transforming();
-
-        const new_pick = this.pick_entity(this.pointer_device_position);
-
-        if (new_pick) {
-            // Disable camera controls while the user is transforming an entity.
-            this.renderer.controls.enabled = false;
-            this.pick = new_pick;
-            this.select(new_pick);
-        } else {
-            this.renderer.controls.enabled = true;
-            this.pick = undefined;
-        }
-
-        this.renderer.schedule_render();
-    };
-
-    private mousemove = (e: MouseEvent) => {
-        this.process_event(e);
-
-        if (!this.selected || !this.pick) {
-            // User is hovering.
-            this.mark_hovered(this.pick_entity(this.pointer_device_position));
-        }
-    };
-
-    private doc_mousemove = (e: MouseEvent) => {
-        this.process_event(e);
-
-        if (this.selected && this.pick && this.moved_since_last_mouse_down) {
-            // User is transforming selected entity.
-            if (e.buttons === 1) {
-                this.translate_entity(e, this.selected, this.pick);
+                return new IdleState(this.renderer);
             }
+
+            default:
+                return this.cancelled ? new IdleState(this.renderer) : this;
         }
-    };
+    }
 
-    private doc_mouseup = (e: MouseEvent) => {
-        this.process_event(e);
-
-        this.renderer.dom_element.addEventListener("mousemove", this.mousemove);
-        document.removeEventListener("mousemove", this.doc_mousemove);
-        document.removeEventListener("mouseup", this.doc_mouseup);
-
-        if (!this.moved_since_last_mouse_down && !this.pick) {
-            // If the user clicks on nothing, deselect the currently selected entity.
-            this.deselect();
-        }
-
-        this.stop_transforming();
-        // Enable camera controls again after transforming an entity.
+    cancel(): void {
+        this.cancelled = true;
         this.renderer.controls.enabled = true;
 
-        this.renderer.schedule_render();
-    };
-
-    private keyup = (e: KeyboardEvent) => {
-        const entity = quest_editor_store.selected_entity.val;
-
-        if (entity && e.key === "Delete") {
-            quest_editor_store.remove_entity(entity);
+        if (this.initial_section) {
+            this.entity.set_section(this.initial_section);
         }
-    };
 
-    private dragenter = (e: EntityDragEvent) => {
-        this.process_event(e.event);
+        this.entity.set_world_position(this.initial_position);
+    }
+}
 
-        const area = quest_editor_store.current_area.val;
-        const quest = quest_editor_store.current_quest.val;
+// TODO: make entities rotatable with right mouse button.
+class RotationState implements State {
+    private readonly renderer: QuestRenderer;
 
-        if (!area || !quest) return;
+    constructor(renderer: QuestRenderer) {
+        this.renderer = renderer;
 
-        let entity: QuestEntityModel;
+        // Disable camera controls while the user is transforming an entity.
+        this.renderer.controls.enabled = false;
+    }
 
-        if (is_npc_type(e.entity_type)) {
-            const data = npc_data(e.entity_type);
+    process_event(): State {
+        this.renderer.controls.enabled = true;
+        return new IdleState(this.renderer);
+    }
 
-            if (data.pso_type_id == undefined || data.pso_roaming == undefined) return;
+    cancel(): void {}
+}
 
-            entity = new QuestNpcModel(
-                e.entity_type,
-                data.pso_type_id,
+class CreationState implements State {
+    private readonly renderer: QuestRenderer;
+    private readonly entity: QuestEntityModel;
+    private readonly drag_adjust = new Vector3(0, 0, 0);
+    private cancelled = false;
+
+    constructor(renderer: QuestRenderer, evt: EntityDragEvt, quest: QuestModel, area: AreaModel) {
+        this.renderer = renderer;
+
+        evt.drag_element.style.display = "none";
+
+        if (evt.data_transfer) {
+            evt.data_transfer.dropEffect = "copy";
+        }
+
+        if (is_npc_type(evt.entity_type)) {
+            const data = npc_data(evt.entity_type);
+
+            this.entity = new QuestNpcModel(
+                evt.entity_type,
+                data.pso_type_id!,
                 0,
                 0,
-                data.pso_roaming,
+                data.pso_roaming!,
                 area.id,
                 0,
                 new Vec3(0, 0, 0),
@@ -231,8 +566,8 @@ export class QuestEntityControls implements Disposable {
                 [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0]],
             );
         } else {
-            entity = new QuestObjectModel(
-                e.entity_type,
+            this.entity = new QuestObjectModel(
+                evt.entity_type,
                 0,
                 0,
                 area.id,
@@ -246,319 +581,89 @@ export class QuestEntityControls implements Disposable {
             );
         }
 
-        e.drag_element.style.display = "none";
+        translate_entity_horizontally(
+            this.renderer,
+            this.entity,
+            this.drag_adjust,
+            ZERO_VECTOR,
+            evt.pointer_device_position,
+        );
+        quest.add_entity(this.entity);
 
-        if (e.event.dataTransfer) {
-            e.event.dataTransfer.dropEffect = "copy";
-        }
+        quest_editor_store.set_selected_entity(this.entity);
+    }
 
-        const grab_offset = new Vector3(0, 0, 0);
-        const drag_adjust = new Vector3(0, 0, 0);
-        this.translate_entity_horizontally(entity, grab_offset, drag_adjust);
-        quest.add_entity(entity);
+    process_event(evt: Evt): State {
+        switch (evt.type) {
+            case EvtType.EntityDragOver: {
+                if (this.cancelled) {
+                    evt.drag_element.style.display = "flex";
 
-        quest_editor_store.set_selected_entity(entity);
+                    if (evt.data_transfer) {
+                        evt.data_transfer.dropEffect = "none";
+                    }
 
-        this.pick = {
-            mode: PickMode.Creating,
-            initial_section: entity.section.val,
-            initial_position: entity.world_position.val,
-            grab_offset,
-            drag_adjust,
-        };
-    };
+                    return new IdleState(this.renderer);
+                }
 
-    private dragover = (e: EntityDragEvent) => {
-        this.process_event(e.event);
+                evt.stop_propagation();
+                evt.prevent_default();
 
-        if (!quest_editor_store.current_area.val) return;
+                if (evt.data_transfer) {
+                    evt.data_transfer.dropEffect = "copy";
+                }
 
-        if (this.pick && this.pick.mode === PickMode.Creating) {
-            e.event.stopPropagation();
-            e.event.preventDefault();
-
-            if (e.event.dataTransfer) {
-                e.event.dataTransfer.dropEffect = "copy";
-            }
-
-            if (this.selected) {
                 // Only translation is possible while dragging in a new entity.
-                this.translate_entity(e.event, this.selected, this.pick);
+                translate_entity(
+                    this.renderer,
+                    this.entity,
+                    this.drag_adjust,
+                    ZERO_VECTOR,
+                    evt.pointer_device_position,
+                    evt.shift_key,
+                );
+
+                return this;
             }
+
+            case EvtType.EntityDragLeave: {
+                evt.drag_element.style.display = "flex";
+
+                const quest = quest_editor_store.current_quest.val;
+
+                if (quest) {
+                    quest.remove_entity(this.entity);
+                }
+
+                return new IdleState(this.renderer);
+            }
+
+            case EvtType.EntityDrop: {
+                if (!this.cancelled) {
+                    quest_editor_store.push_create_entity_action(this.entity);
+                }
+
+                return new IdleState(this.renderer);
+            }
+
+            default:
+                return this;
         }
-    };
+    }
 
-    private dragleave = (e: EntityDragEvent) => {
-        this.process_event(e.event);
-
-        if (!quest_editor_store.current_area.val) return;
-
-        e.drag_element.style.display = "flex";
+    cancel(): void {
+        this.cancelled = true;
 
         const quest = quest_editor_store.current_quest.val;
 
-        if (quest && this.selected && this.pick && this.pick.mode === PickMode.Creating) {
-            quest.remove_entity(this.selected.entity);
+        if (quest) {
+            quest.remove_entity(this.entity);
         }
-    };
-
-    private drop = (e: EntityDragEvent) => {
-        this.process_event(e.event);
-
-        if (this.selected && this.pick && this.pick.mode === PickMode.Creating) {
-            quest_editor_store.push_create_entity_action(this.selected.entity);
-
-            this.pick = undefined;
-        }
-    };
-
-    private process_event(e: MouseEvent): void {
-        const { left, top } = this.renderer.dom_element.getBoundingClientRect();
-        this.pointer_position.set(e.clientX - left, e.clientY - top);
-        this.pointer_device_position.copy(this.pointer_position);
-        this.renderer.pointer_pos_to_device_coords(this.pointer_device_position);
-
-        if (e.type === "mousedown") {
-            this.moved_since_last_mouse_down = false;
-        } else if (e.type === "mousemove" || e.type === "mouseup") {
-            if (!this.pointer_position.equals(this.last_pointer_position)) {
-                this.moved_since_last_mouse_down = true;
-            }
-        }
-
-        this.last_pointer_position.copy(this.pointer_position);
-    }
-
-    private mark_hovered(selection?: Highlighted): void {
-        if (!this.selected || !selection_equals(selection, this.selected)) {
-            if (!selection_equals(selection, this.hovered)) {
-                if (this.hovered) {
-                    set_color(this.hovered, ColorType.Normal);
-                    this.hovered = undefined;
-                }
-
-                if (selection) {
-                    set_color(selection, ColorType.Hovered);
-                }
-
-                this.renderer.schedule_render();
-            }
-
-            this.hovered = selection;
-        }
-    }
-
-    private select(selection: Highlighted): void {
-        if (selection_equals(selection, this.hovered)) {
-            this.hovered = undefined;
-        }
-
-        if (!selection_equals(selection, this.selected)) {
-            if (this.selected) {
-                set_color(this.selected, ColorType.Normal);
-            }
-
-            set_color(selection, ColorType.Selected);
-
-            this.selected = selection;
-            quest_editor_store.set_selected_entity(selection.entity);
-        } else {
-            this.selected = selection;
-        }
-    }
-
-    private deselect(): void {
-        if (this.selected) {
-            set_color(this.selected, ColorType.Normal);
-        }
-
-        this.selected = undefined;
-        quest_editor_store.set_selected_entity(undefined);
-    }
-
-    private translate_entity(e: MouseEvent, selected: Highlighted, pick: Pick): void {
-        if (e.shiftKey) {
-            // Vertical movement.
-            this.translate_entity_vertically(selected.entity, pick.drag_adjust, pick.grab_offset);
-        } else {
-            // Horizontal movement across the ground.
-            this.translate_entity_horizontally(selected.entity, pick.drag_adjust, pick.grab_offset);
-        }
-
-        this.renderer.schedule_render();
-    }
-
-    private translate_entity_vertically(
-        entity: QuestEntityModel,
-        drag_adjust: Vector3,
-        grab_offset: Vector3,
-    ): void {
-        // We intersect with a plane that's oriented toward the camera and that's coplanar with the
-        // point where the entity was grabbed.
-        this.raycaster.setFromCamera(this.pointer_device_position, this.renderer.camera);
-        const ray = this.raycaster.ray;
-
-        this.renderer.camera.getWorldDirection(this.plane_normal);
-        this.plane_normal.negate();
-        this.plane_normal.y = 0;
-        this.plane_normal.normalize();
-        this.plane.setFromNormalAndCoplanarPoint(
-            this.plane_normal,
-            vec3_to_threejs(entity.world_position.val).sub(grab_offset),
-        );
-
-        if (ray.intersectPlane(this.plane, this.intersection_point)) {
-            const y = this.intersection_point.y + grab_offset.y;
-            const y_delta = y - entity.world_position.val.y;
-            drag_adjust.y -= y_delta;
-            entity.set_world_position(
-                new Vec3(entity.world_position.val.x, y, entity.world_position.val.z),
-            );
-        }
-    }
-
-    /**
-     * If the drag-adjusted pointer is over the ground, translate an entity horizontally across the
-     * ground. Otherwise translate the entity over the horizontal plain that intersects its origin.
-     */
-    private translate_entity_horizontally(
-        entity: QuestEntityModel,
-        drag_adjust: Vector3,
-        grab_offset: Vector3,
-    ): void {
-        // Cast ray adjusted for dragging entities.
-        const { intersection, section } = this.pick_ground(
-            this.pointer_device_position,
-            drag_adjust,
-        );
-
-        if (intersection) {
-            entity.set_world_position(
-                new Vec3(
-                    intersection.point.x,
-                    intersection.point.y + grab_offset.y - drag_adjust.y,
-                    intersection.point.z,
-                ),
-            );
-
-            if (section) {
-                entity.set_section(section);
-            }
-        } else {
-            // If the pointer is not over the ground, we translate the entity across the horizontal
-            // plane in which the entity's origin lies.
-            this.raycaster.setFromCamera(this.pointer_device_position, this.renderer.camera);
-            const ray = this.raycaster.ray;
-            this.plane.set(UP_VECTOR, -entity.world_position.val.y + grab_offset.y);
-
-            if (ray.intersectPlane(this.plane, this.intersection_point)) {
-                entity.set_world_position(
-                    new Vec3(
-                        this.intersection_point.x + grab_offset.x,
-                        entity.world_position.val.y,
-                        this.intersection_point.z + grab_offset.z,
-                    ),
-                );
-            }
-        }
-    }
-
-    private stop_transforming = () => {
-        if (
-            this.moved_since_last_mouse_down &&
-            this.selected &&
-            this.pick &&
-            this.pick.mode === PickMode.Transforming
-        ) {
-            const entity = this.selected.entity;
-            quest_editor_store.translate_entity(
-                entity,
-                this.pick.initial_section,
-                entity.section.val,
-                this.pick.initial_position,
-                entity.world_position.val,
-                true,
-            );
-        }
-
-        this.pick = undefined;
-    };
-
-    /**
-     * @param pointer_position - pointer coordinates in normalized device space
-     */
-    private pick_entity(pointer_position: Vector2): PickResult | undefined {
-        // Find the nearest object and NPC under the pointer.
-        this.raycaster.setFromCamera(pointer_position, this.renderer.camera);
-        const [intersection] = this.raycaster.intersectObjects(
-            this.renderer.entity_models.children,
-        );
-
-        if (!intersection) {
-            return undefined;
-        }
-
-        const entity = (intersection.object.userData as EntityUserData).entity;
-        const grab_offset = intersection.object.position.clone().sub(intersection.point);
-        const drag_adjust = grab_offset.clone();
-
-        // Find vertical distance to the ground.
-        this.raycaster.set(intersection.object.position, DOWN_VECTOR);
-        const [collision_geom_intersection] = this.raycaster.intersectObjects(
-            this.renderer.collision_geometry.children,
-            true,
-        );
-
-        if (collision_geom_intersection) {
-            drag_adjust.y -= collision_geom_intersection.distance;
-        }
-
-        return {
-            mode: PickMode.Transforming,
-            mesh: intersection.object as Mesh,
-            entity,
-            initial_section: entity.section.val,
-            initial_position: entity.world_position.val,
-            grab_offset,
-            drag_adjust,
-        };
-    }
-
-    /**
-     * @param pointer_pos - pointer coordinates in normalized device space
-     * @param drag_adjust - vector from origin of entity to grabbing point
-     */
-    private pick_ground(
-        pointer_pos: Vector2,
-        drag_adjust: Vector3,
-    ): {
-        intersection?: Intersection;
-        section?: SectionModel;
-    } {
-        this.raycaster.setFromCamera(pointer_pos, this.renderer.camera);
-        this.raycaster.ray.origin.add(drag_adjust);
-        const intersections = this.raycaster.intersectObjects(
-            this.renderer.collision_geometry.children,
-            true,
-        );
-
-        // Don't allow entities to be placed on very steep terrain.
-        // E.g. walls.
-        // TODO: make use of the flags field in the collision data.
-        for (const intersection of intersections) {
-            if (intersection.face!.normal.y > 0.75) {
-                return {
-                    intersection,
-                    section: (intersection.object.userData as AreaUserData).section,
-                };
-            }
-        }
-
-        return {};
     }
 }
 
-function set_color({ entity, mesh }: Highlighted, type: ColorType): void {
+function set_color(mesh: Mesh, type: ColorType): void {
+    const entity = (mesh.userData as EntityUserData).entity;
     const color = entity instanceof QuestNpcModel ? NPC_COLORS[type] : OBJECT_COLORS[type];
 
     if (mesh) {
@@ -576,6 +681,137 @@ function set_color({ entity, mesh }: Highlighted, type: ColorType): void {
     }
 }
 
-function selection_equals(a?: Highlighted, b?: Highlighted): boolean {
-    return a && b ? a.entity === b.entity : a === b;
+function translate_entity(
+    renderer: QuestRenderer,
+    entity: QuestEntityModel,
+    drag_adjust: Vector3,
+    grab_offset: Vector3,
+    pointer_device_position: Vector2,
+    vertically: boolean,
+): void {
+    if (vertically) {
+        translate_entity_vertically(
+            renderer,
+            entity,
+            drag_adjust,
+            grab_offset,
+            pointer_device_position,
+        );
+    } else {
+        translate_entity_horizontally(
+            renderer,
+            entity,
+            drag_adjust,
+            grab_offset,
+            pointer_device_position,
+        );
+    }
+}
+
+/**
+ * If the drag-adjusted pointer is over the ground, translate an entity horizontally across the
+ * ground. Otherwise translate the entity over the horizontal plane that intersects its origin.
+ */
+function translate_entity_horizontally(
+    renderer: QuestRenderer,
+    entity: QuestEntityModel,
+    drag_adjust: Vector3,
+    grab_offset: Vector3,
+    pointer_device_position: Vector2,
+): void {
+    // Cast ray adjusted for dragging entities.
+    const { intersection, section } = pick_ground(renderer, pointer_device_position, drag_adjust);
+
+    if (intersection) {
+        entity.set_world_position(
+            new Vec3(
+                intersection.point.x,
+                intersection.point.y + grab_offset.y - drag_adjust.y,
+                intersection.point.z,
+            ),
+        );
+
+        if (section) {
+            entity.set_section(section);
+        }
+    } else {
+        // If the pointer is not over the ground, we translate the entity across the horizontal
+        // plane in which the entity's origin lies.
+        raycaster.setFromCamera(pointer_device_position, renderer.camera);
+        const ray = raycaster.ray;
+        plane.set(UP_VECTOR, -entity.world_position.val.y + grab_offset.y);
+
+        if (ray.intersectPlane(plane, intersection_point)) {
+            entity.set_world_position(
+                new Vec3(
+                    intersection_point.x + grab_offset.x,
+                    entity.world_position.val.y,
+                    intersection_point.z + grab_offset.z,
+                ),
+            );
+        }
+    }
+}
+
+function translate_entity_vertically(
+    renderer: QuestRenderer,
+    entity: QuestEntityModel,
+    drag_adjust: Vector3,
+    grab_offset: Vector3,
+    pointer_device_position: Vector2,
+): void {
+    // We intersect with a plane that's oriented toward the camera and that's coplanar with the
+    // point where the entity was grabbed.
+    raycaster.setFromCamera(pointer_device_position, renderer.camera);
+    const ray = raycaster.ray;
+
+    renderer.camera.getWorldDirection(plane_normal);
+    plane_normal.negate();
+    plane_normal.y = 0;
+    plane_normal.normalize();
+    plane.setFromNormalAndCoplanarPoint(
+        plane_normal,
+        vec3_to_threejs(entity.world_position.val).sub(grab_offset),
+    );
+
+    if (ray.intersectPlane(plane, intersection_point)) {
+        const y = intersection_point.y + grab_offset.y;
+        const y_delta = y - entity.world_position.val.y;
+        drag_adjust.y -= y_delta;
+        entity.set_world_position(
+            new Vec3(entity.world_position.val.x, y, entity.world_position.val.z),
+        );
+    }
+}
+
+/**
+ * @param renderer
+ * @param pointer_pos - pointer coordinates in normalized device space
+ * @param drag_adjust - vector from origin of entity to grabbing point
+ */
+function pick_ground(
+    renderer: QuestRenderer,
+    pointer_pos: Vector2,
+    drag_adjust: Vector3,
+): {
+    intersection?: Intersection;
+    section?: SectionModel;
+} {
+    raycaster.setFromCamera(pointer_pos, renderer.camera);
+    raycaster.ray.origin.add(drag_adjust);
+    const intersections = raycaster.intersectObjects(renderer.collision_geometry.children, true);
+
+    // Don't allow entities to be placed on very steep terrain.
+    // E.g. walls.
+    // TODO: make use of the flags field in the collision data.
+    for (const intersection of intersections) {
+        if (intersection.face!.normal.y > 0.75) {
+            return {
+                intersection,
+                section: (intersection.object.userData as AreaUserData).section,
+            };
+        }
+    }
+
+    return {};
 }

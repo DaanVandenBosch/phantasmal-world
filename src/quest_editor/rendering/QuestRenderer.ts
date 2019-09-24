@@ -90,7 +90,7 @@ export class QuestRenderer extends Renderer {
         this.entity_to_mesh.set(entity, model);
 
         if (entity === quest_editor_store.selected_entity.val) {
-            this.entity_controls.try_highlight(entity);
+            this.entity_controls.mark_selected(model);
         }
 
         this.schedule_render();
