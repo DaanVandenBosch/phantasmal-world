@@ -63,7 +63,6 @@ export class QuestRenderer extends Renderer {
         // listener registration. This is a fragile work-around for the fact that camera-controls
         // doesn't support intercepting pointer events.
         this.init_camera_controls();
-
     }
 
     dispose(): void {

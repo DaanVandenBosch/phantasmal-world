@@ -93,6 +93,7 @@ export class QuestEntityControls implements Disposable {
 
         renderer.dom_element.addEventListener("mousedown", this.mousedown);
         renderer.dom_element.addEventListener("mousemove", this.mousemove);
+        renderer.dom_element.addEventListener("keyup", this.keyup);
         add_entity_dnd_listener(renderer.dom_element, "dragenter", this.dragenter);
         add_entity_dnd_listener(renderer.dom_element, "dragover", this.dragover);
         add_entity_dnd_listener(renderer.dom_element, "dragleave", this.dragleave);
@@ -104,6 +105,7 @@ export class QuestEntityControls implements Disposable {
         this.renderer.dom_element.removeEventListener("mousemove", this.mousemove);
         document.removeEventListener("mousemove", this.doc_mousemove);
         document.removeEventListener("mouseup", this.doc_mouseup);
+        this.renderer.dom_element.removeEventListener("keyup", this.keyup);
         remove_entity_dnd_listener(this.renderer.dom_element, "dragenter", this.dragenter);
         remove_entity_dnd_listener(this.renderer.dom_element, "dragover", this.dragover);
         remove_entity_dnd_listener(this.renderer.dom_element, "dragleave", this.dragleave);
@@ -189,6 +191,14 @@ export class QuestEntityControls implements Disposable {
         this.renderer.controls.enabled = true;
 
         this.renderer.schedule_render();
+    };
+
+    private keyup = (e: KeyboardEvent) => {
+        const entity = quest_editor_store.selected_entity.val;
+
+        if (entity && e.key === "Delete") {
+            quest_editor_store.remove_entity(entity);
+        }
     };
 
     private dragenter = (e: EntityDragEvent) => {
@@ -461,7 +471,7 @@ export class QuestEntityControls implements Disposable {
             this.pick.mode === PickMode.Transforming
         ) {
             const entity = this.selected.entity;
-            quest_editor_store.push_translate_entity_action(
+            quest_editor_store.translate_entity(
                 entity,
                 this.pick.initial_section,
                 entity.section.val,

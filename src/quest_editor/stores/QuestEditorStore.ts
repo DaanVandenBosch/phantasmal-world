@@ -24,8 +24,9 @@ import { EditNameAction } from "../actions/EditNameAction";
 import { EditIdAction } from "../actions/EditIdAction";
 import { Episode } from "../../core/data_formats/parsing/quest/Episode";
 import { create_new_quest } from "./quest_creation";
-import Logger = require("js-logger");
 import { CreateEntityAction } from "../actions/CreateEntityAction";
+import { RemoveEntityAction } from "../actions/RemoveEntityAction";
+import Logger = require("js-logger");
 
 const logger = Logger.get("quest_editor/gui/QuestEditorStore");
 
@@ -224,31 +225,31 @@ export class QuestEditorStore implements Disposable {
         document.body.removeChild(a);
     };
 
-    push_edit_id_action = (event: PropertyChangeEvent<number>) => {
+    id_changed = (event: PropertyChangeEvent<number>) => {
         if (this.current_quest.val) {
             this.undo.push(new EditIdAction(this.current_quest.val, event)).redo();
         }
     };
 
-    push_edit_name_action = (event: PropertyChangeEvent<string>) => {
+    name_changed = (event: PropertyChangeEvent<string>) => {
         if (this.current_quest.val) {
             this.undo.push(new EditNameAction(this.current_quest.val, event)).redo();
         }
     };
 
-    push_edit_short_description_action = (event: PropertyChangeEvent<string>) => {
+    short_description_changed = (event: PropertyChangeEvent<string>) => {
         if (this.current_quest.val) {
             this.undo.push(new EditShortDescriptionAction(this.current_quest.val, event)).redo();
         }
     };
 
-    push_edit_long_description_action = (event: PropertyChangeEvent<string>) => {
+    long_description_changed = (event: PropertyChangeEvent<string>) => {
         if (this.current_quest.val) {
             this.undo.push(new EditLongDescriptionAction(this.current_quest.val, event)).redo();
         }
     };
 
-    push_translate_entity_action = (
+    translate_entity = (
         entity: QuestEntityModel,
         old_section: SectionModel | undefined,
         new_section: SectionModel | undefined,
@@ -272,6 +273,10 @@ export class QuestEditorStore implements Disposable {
 
     push_create_entity_action = (entity: QuestEntityModel) => {
         this.undo.push(new CreateEntityAction(entity));
+    };
+
+    remove_entity = (entity: QuestEntityModel) => {
+        this.undo.push(new RemoveEntityAction(entity)).redo();
     };
 
     private async set_quest(quest?: QuestModel, filename?: string): Promise<void> {

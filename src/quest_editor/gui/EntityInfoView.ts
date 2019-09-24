@@ -163,7 +163,7 @@ export class EntityInfoView extends ResizableWidget {
             ),
 
             x_input.value.observe(({ value }) =>
-                quest_editor_store.push_translate_entity_action(
+                quest_editor_store.translate_entity(
                     entity,
                     entity.section.val,
                     entity.section.val,
@@ -174,7 +174,7 @@ export class EntityInfoView extends ResizableWidget {
             ),
 
             y_input.value.observe(({ value }) =>
-                quest_editor_store.push_translate_entity_action(
+                quest_editor_store.translate_entity(
                     entity,
                     entity.section.val,
                     entity.section.val,
@@ -185,7 +185,7 @@ export class EntityInfoView extends ResizableWidget {
             ),
 
             z_input.value.observe(({ value }) =>
-                quest_editor_store.push_translate_entity_action(
+                quest_editor_store.translate_entity(
                     entity,
                     entity.section.val,
                     entity.section.val,

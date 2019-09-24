@@ -57,10 +57,12 @@ Features that are in ***bold italics*** are planned and not yet implemented.
     - ***MVP: a single line***
 - ***Show positions and radii from the relevant script instructions***
 
-## NPC/object manipulation
+## NPC/Object Manipulation
 
-- ***Creation***
-- ***Deletion***
+- Creation
+    - Drag and drop from a list of NPCs/objects
+- Deletion
+    - "Delete" key binding
 - Translation
     - Via 3D view
     - Via entity view

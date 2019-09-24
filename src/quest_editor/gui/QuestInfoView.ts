@@ -74,19 +74,19 @@ export class QuestInfoView extends ResizableWidget {
                 if (q) {
                     this.quest_disposer.add_all(
                         this.id_input.value.bind_to(q.id),
-                        this.id_input.value.observe(quest_editor_store.push_edit_id_action),
+                        this.id_input.value.observe(quest_editor_store.id_changed),
 
                         this.name_input.value.bind_to(q.name),
-                        this.name_input.value.observe(quest_editor_store.push_edit_name_action),
+                        this.name_input.value.observe(quest_editor_store.name_changed),
 
                         this.short_description_input.value.bind_to(q.short_description),
                         this.short_description_input.value.observe(
-                            quest_editor_store.push_edit_short_description_action,
+                            quest_editor_store.short_description_changed,
                         ),
 
                         this.long_description_input.value.bind_to(q.long_description),
                         this.long_description_input.value.observe(
-                            quest_editor_store.push_edit_long_description_action,
+                            quest_editor_store.long_description_changed,
                         ),
                     );
                 }
