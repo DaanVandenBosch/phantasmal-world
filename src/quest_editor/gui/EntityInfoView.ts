@@ -8,8 +8,8 @@ import "./EntityInfoView.css";
 import { NumberInput } from "../../core/gui/NumberInput";
 import { Disposer } from "../../core/observable/Disposer";
 import { Property } from "../../core/observable/property/Property";
-import { Vec3 } from "../../core/data_formats/vector";
 import { QuestEntityModel } from "../model/QuestEntityModel";
+import { Vector3 } from "three";
 
 export class EntityInfoView extends ResizableWidget {
     readonly element = el.div({ class: "quest_editor_EntityInfoView", tab_index: -1 });
@@ -146,7 +146,7 @@ export class EntityInfoView extends ResizableWidget {
 
     private observe(
         entity: QuestEntityModel,
-        pos: Property<Vec3>,
+        pos: Property<Vector3>,
         world: boolean,
         x_input: NumberInput,
         y_input: NumberInput,
@@ -168,7 +168,7 @@ export class EntityInfoView extends ResizableWidget {
                     entity.section.val,
                     entity.section.val,
                     pos.val,
-                    new Vec3(value, pos.val.y, pos.val.z),
+                    new Vector3(value, pos.val.y, pos.val.z),
                     world,
                 ),
             ),
@@ -179,7 +179,7 @@ export class EntityInfoView extends ResizableWidget {
                     entity.section.val,
                     entity.section.val,
                     pos.val,
-                    new Vec3(pos.val.x, value, pos.val.z),
+                    new Vector3(pos.val.x, value, pos.val.z),
                     world,
                 ),
             ),
@@ -190,7 +190,7 @@ export class EntityInfoView extends ResizableWidget {
                     entity.section.val,
                     entity.section.val,
                     pos.val,
-                    new Vec3(pos.val.x, pos.val.y, value),
+                    new Vector3(pos.val.x, pos.val.y, value),
                     world,
                 ),
             ),

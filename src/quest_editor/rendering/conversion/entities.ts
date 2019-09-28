@@ -66,10 +66,8 @@ export function create_entity_mesh(
 
     (mesh.userData as EntityUserData).entity = entity;
 
-    const { x, y, z } = entity.world_position.val;
-    mesh.position.set(x, y, z);
-    const rot = entity.rotation.val;
-    mesh.rotation.set(rot.x, rot.y, rot.z);
+    mesh.position.copy(entity.world_position.val);
+    mesh.rotation.copy(entity.world_rotation.val);
 
     return mesh;
 }

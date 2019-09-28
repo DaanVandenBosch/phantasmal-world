@@ -12,7 +12,6 @@ import { ArrayBufferCursor } from "../../cursor/ArrayBufferCursor";
 import { Cursor } from "../../cursor/Cursor";
 import { ResizableBufferCursor } from "../../cursor/ResizableBufferCursor";
 import { Endianness } from "../../Endianness";
-import { Vec3 } from "../../vector";
 import { BinFile, parse_bin, write_bin } from "./bin";
 import { DatFile, DatNpc, DatObject, DatUnknown, parse_dat, write_dat } from "./dat";
 import { QuestNpc, QuestObject } from "./entities";
@@ -586,14 +585,15 @@ function npcs_to_dat_data(npcs: QuestNpc[]): DatNpc[] {
         const type_data = npc_data(npc.type);
         const type_id =
             type_data.pso_type_id == undefined ? npc.pso_type_id : type_data.pso_type_id;
-        const roaming = type_data.pso_roaming == undefined ? npc.pso_roaming : type_data.pso_roaming;
+        const roaming =
+            type_data.pso_roaming == undefined ? npc.pso_roaming : type_data.pso_roaming;
         const regular = type_data.pso_regular == undefined ? true : type_data.pso_regular;
 
         dv.setFloat32(0, npc.scale.y);
         dv.setUint32(0, (dv.getUint32(0) & ~0x800000) | (regular ? 0 : 0x800000));
         const scale_y = dv.getFloat32(0);
 
-        let scale = new Vec3(npc.scale.x, scale_y, npc.scale.z);
+        const scale = { x: npc.scale.x, y: scale_y, z: npc.scale.z };
 
         return {
             type_id,

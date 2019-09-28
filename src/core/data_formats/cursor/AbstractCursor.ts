@@ -182,11 +182,11 @@ export abstract class AbstractCursor implements Cursor {
     }
 
     vec2_f32(): Vec2 {
-        return new Vec2(this.f32(), this.f32());
+        return { x: this.f32(), y: this.f32() };
     }
 
     vec3_f32(): Vec3 {
-        return new Vec3(this.f32(), this.f32(), this.f32());
+        return { x: this.f32(), y: this.f32(), z: this.f32() };
     }
 
     string_ascii(

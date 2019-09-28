@@ -282,13 +282,13 @@ class EntityModelManager {
         this.loaded_entities.push({
             entity,
             disposer: new Disposer(
-                entity.world_position.observe(({ value: { x, y, z } }) => {
-                    model.position.set(x, y, z);
+                entity.world_position.observe(({ value }) => {
+                    model.position.copy(value);
                     this.renderer.schedule_render();
                 }),
 
-                entity.rotation.observe(({ value: { x, y, z } }) => {
-                    model.rotation.set(x, y, z);
+                entity.world_rotation.observe(({ value }) => {
+                    model.rotation.copy(value);
                     this.renderer.schedule_render();
                 }),
             ),

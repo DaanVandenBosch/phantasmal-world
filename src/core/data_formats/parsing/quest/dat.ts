@@ -81,11 +81,11 @@ export function parse_dat(cursor: Cursor): DatFile {
                     const section_id = cursor.u16();
                     const unknown2 = cursor.u8_array(2);
                     const position = cursor.vec3_f32();
-                    const rotation = new Vec3(
-                        (cursor.i32() / 0xffff) * 2 * Math.PI,
-                        (cursor.i32() / 0xffff) * 2 * Math.PI,
-                        (cursor.i32() / 0xffff) * 2 * Math.PI,
-                    );
+                    const rotation = {
+                        x: (cursor.i32() / 0xffff) * 2 * Math.PI,
+                        y: (cursor.i32() / 0xffff) * 2 * Math.PI,
+                        z: (cursor.i32() / 0xffff) * 2 * Math.PI,
+                    };
                     const properties = [
                         cursor.f32(),
                         cursor.f32(),
@@ -141,7 +141,7 @@ export function parse_dat(cursor: Cursor): DatFile {
                         type_id,
                         section_id,
                         position,
-                        rotation: new Vec3(rotation_x, rotation_y, rotation_z),
+                        rotation: { x: rotation_x, y: rotation_y, z: rotation_z },
                         scale,
                         npc_id,
                         script_label,

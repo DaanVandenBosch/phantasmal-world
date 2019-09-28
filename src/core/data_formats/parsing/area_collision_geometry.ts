@@ -52,11 +52,7 @@ export function parse_area_collision_geometry(cursor: Cursor): CollisionObject {
         cursor.seek_start(vertex_table_offset);
 
         for (let i = 0; i < vertex_count; i++) {
-            const x = cursor.f32();
-            const y = cursor.f32();
-            const z = cursor.f32();
-
-            mesh.vertices.push(new Vec3(x, y, z));
+            mesh.vertices.push(cursor.vec3_f32());
         }
 
         cursor.seek_start(triangle_table_offset);
@@ -66,15 +62,13 @@ export function parse_area_collision_geometry(cursor: Cursor): CollisionObject {
             const v2 = cursor.u16();
             const v3 = cursor.u16();
             const flags = cursor.u16();
-            const n_x = cursor.f32();
-            const n_y = cursor.f32();
-            const n_z = cursor.f32();
+            const normal = cursor.vec3_f32();
             cursor.seek(16);
 
             mesh.triangles.push({
                 indices: [v1, v2, v3],
                 flags,
-                normal: new Vec3(n_x, n_y, n_z),
+                normal,
             });
         }
 

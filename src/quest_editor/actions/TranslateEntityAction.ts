@@ -1,9 +1,9 @@
 import { Action } from "../../core/undo/Action";
 import { QuestEntityModel } from "../model/QuestEntityModel";
-import { Vec3 } from "../../core/data_formats/vector";
 import { entity_data } from "../../core/data_formats/parsing/quest/entities";
 import { quest_editor_store } from "../stores/QuestEditorStore";
 import { SectionModel } from "../model/SectionModel";
+import { Vector3 } from "three";
 
 export class TranslateEntityAction implements Action {
     readonly description: string;
@@ -12,8 +12,8 @@ export class TranslateEntityAction implements Action {
         private entity: QuestEntityModel,
         private old_section: SectionModel | undefined,
         private new_section: SectionModel | undefined,
-        private old_position: Vec3,
-        private new_position: Vec3,
+        private old_position: Vector3,
+        private new_position: Vector3,
         private world: boolean,
     ) {
         this.description = `Move ${entity_data(entity.type).name}`;

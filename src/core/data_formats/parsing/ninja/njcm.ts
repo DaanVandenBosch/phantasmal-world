@@ -173,7 +173,7 @@ export function parse_njcm_model(cursor: Cursor, cached_chunk_offsets: number[])
     if (plist_offset) {
         cursor.seek_start(plist_offset);
 
-        let texture_id: number | undefined;
+        let texture_id: number | undefined = undefined;
 
         for (const chunk of parse_chunks(cursor, cached_chunk_offsets, false)) {
             if (chunk.type === NjcmChunkType.Tiny) {
@@ -372,11 +372,11 @@ function parse_vertex_chunk(
         } else if (48 <= chunk_type_id && chunk_type_id <= 50) {
             // 32-Bit vertex normal in format: reserved(2)|x(10)|y(10)|z(10)
             const normal = cursor.u32();
-            vertex.normal = new Vec3(
-                ((normal >> 20) & 0x3ff) / 0x3ff,
-                ((normal >> 10) & 0x3ff) / 0x3ff,
-                (normal & 0x3ff) / 0x3ff,
-            );
+            vertex.normal = {
+                x: ((normal >> 20) & 0x3ff) / 0x3ff,
+                y: ((normal >> 10) & 0x3ff) / 0x3ff,
+                z: (normal & 0x3ff) / 0x3ff,
+            };
 
             if (chunk_type_id >= 49) {
                 // Skip user flags and material information.
@@ -462,7 +462,7 @@ function parse_triangle_strip_chunk(
             vertices.push(vertex);
 
             if (has_tex_coords) {
-                vertex.tex_coords = new Vec2(cursor.u16() / 255, cursor.u16() / 255);
+                vertex.tex_coords = { x: cursor.u16() / 255, y: cursor.u16() / 255 };
             }
 
             // Ignore ARGB8888 color.
@@ -471,11 +471,11 @@ function parse_triangle_strip_chunk(
             }
 
             if (has_normal) {
-                vertex.normal = new Vec3(
-                    cursor.u16() / 255,
-                    cursor.u16() / 255,
-                    cursor.u16() / 255,
-                );
+                vertex.normal = {
+                    x: cursor.u16() / 255,
+                    y: cursor.u16() / 255,
+                    z: cursor.u16() / 255,
+                };
             }
 
             // Ignore double texture coordinates (Ua, Vb, Ua, Vb).

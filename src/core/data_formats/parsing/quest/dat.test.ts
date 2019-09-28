@@ -37,9 +37,11 @@ test("parse, modify and write DAT", () => {
     const test_parsed = parse_dat(orig_dat);
     orig_dat.seek_start(0);
 
-    test_parsed.objs[9].position.x = 13;
-    test_parsed.objs[9].position.y = 17;
-    test_parsed.objs[9].position.z = 19;
+    test_parsed.objs[9].position = {
+        x: 13,
+        y: 17,
+        z: 19,
+    };
 
     const test_dat = new ResizableBufferCursor(write_dat(test_parsed), Endianness.Little);
 

@@ -1,13 +1,13 @@
 import { QuestEntityModel } from "./QuestEntityModel";
 import { NpcType } from "../../core/data_formats/parsing/quest/npc_types";
-import { Vec3 } from "../../core/data_formats/vector";
+import { Euler, Vector3 } from "three";
 
 export class QuestNpcModel extends QuestEntityModel<NpcType> {
     readonly pso_type_id: number;
     readonly npc_id: number;
     readonly script_label: number;
     readonly pso_roaming: number;
-    readonly scale: Vec3;
+    readonly scale: Vector3;
     /**
      * Data of which the purpose hasn't been discovered yet.
      */
@@ -21,9 +21,9 @@ export class QuestNpcModel extends QuestEntityModel<NpcType> {
         pso_roaming: number,
         area_id: number,
         section_id: number,
-        position: Vec3,
-        rotation: Vec3,
-        scale: Vec3,
+        position: Vector3,
+        rotation: Euler,
+        scale: Vector3,
         unknown: number[][],
     ) {
         if (!Number.isInteger(pso_type_id)) throw new Error("pso_type_id should be an integer.");

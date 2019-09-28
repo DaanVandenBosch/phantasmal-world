@@ -12,7 +12,6 @@ import { AreaModel } from "../model/AreaModel";
 import { area_store } from "./AreaStore";
 import { SectionModel } from "../model/SectionModel";
 import { QuestEntityModel } from "../model/QuestEntityModel";
-import { Vec3 } from "../../core/data_formats/vector";
 import { Disposable } from "../../core/observable/Disposable";
 import { Disposer } from "../../core/observable/Disposer";
 import { gui_store, GuiTool } from "../../core/stores/GuiStore";
@@ -26,6 +25,9 @@ import { Episode } from "../../core/data_formats/parsing/quest/Episode";
 import { create_new_quest } from "./quest_creation";
 import { CreateEntityAction } from "../actions/CreateEntityAction";
 import { RemoveEntityAction } from "../actions/RemoveEntityAction";
+import { Euler, Vector3 } from "three";
+import { vec3_to_threejs } from "../../core/rendering/conversion";
+import { RotateEntityAction } from "../actions/RotateEntityAction";
 import Logger = require("js-logger");
 
 const logger = Logger.get("quest_editor/gui/QuestEditorStore");
@@ -125,8 +127,13 @@ export class QuestEditorStore implements Disposable {
                                     obj.group_id,
                                     obj.area_id,
                                     obj.section_id,
-                                    obj.position,
-                                    obj.rotation,
+                                    vec3_to_threejs(obj.position),
+                                    new Euler(
+                                        obj.rotation.x,
+                                        obj.rotation.y,
+                                        obj.rotation.z,
+                                        "ZXY",
+                                    ),
                                     obj.properties,
                                     obj.unknown,
                                 ),
@@ -141,9 +148,14 @@ export class QuestEditorStore implements Disposable {
                                     npc.pso_roaming,
                                     npc.area_id,
                                     npc.section_id,
-                                    npc.position,
-                                    npc.rotation,
-                                    npc.scale,
+                                    vec3_to_threejs(npc.position),
+                                    new Euler(
+                                        npc.rotation.x,
+                                        npc.rotation.y,
+                                        npc.rotation.z,
+                                        "ZXY",
+                                    ),
+                                    vec3_to_threejs(npc.scale),
                                     npc.unknown,
                                 ),
                         ),
@@ -253,8 +265,8 @@ export class QuestEditorStore implements Disposable {
         entity: QuestEntityModel,
         old_section: SectionModel | undefined,
         new_section: SectionModel | undefined,
-        old_position: Vec3,
-        new_position: Vec3,
+        old_position: Vector3,
+        new_position: Vector3,
         world: boolean,
     ) => {
         this.undo
@@ -269,6 +281,15 @@ export class QuestEditorStore implements Disposable {
                 ),
             )
             .redo();
+    };
+
+    rotate_entity = (
+        entity: QuestEntityModel,
+        old_rotation: Euler,
+        new_rotation: Euler,
+        world: boolean,
+    ) => {
+        this.undo.push(new RotateEntityAction(entity, old_rotation, new_rotation, world)).redo();
     };
 
     push_create_entity_action = (entity: QuestEntityModel) => {

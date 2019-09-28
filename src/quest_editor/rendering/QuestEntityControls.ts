@@ -1,6 +1,15 @@
 import { QuestEntityModel } from "../model/QuestEntityModel";
-import { Intersection, Mesh, MeshLambertMaterial, Plane, Raycaster, Vector2, Vector3 } from "three";
-import { Vec3 } from "../../core/data_formats/vector";
+import {
+    Euler,
+    Intersection,
+    Mesh,
+    MeshLambertMaterial,
+    Plane,
+    Quaternion,
+    Raycaster,
+    Vector2,
+    Vector3,
+} from "three";
 import { QuestRenderer } from "./QuestRenderer";
 import { quest_editor_store } from "../stores/QuestEditorStore";
 import { ColorType, EntityUserData, NPC_COLORS, OBJECT_COLORS } from "./conversion/entities";
@@ -16,7 +25,6 @@ import {
     EntityDragEvent,
     remove_entity_dnd_listener,
 } from "../gui/entity_dnd";
-import { vec3_to_threejs } from "../../core/rendering/conversion";
 import { QuestObjectModel } from "../model/QuestObjectModel";
 import { AreaModel } from "../model/AreaModel";
 import { QuestModel } from "../model/QuestModel";
@@ -24,11 +32,9 @@ import { QuestModel } from "../model/QuestModel";
 const ZERO_VECTOR = Object.freeze(new Vector3(0, 0, 0));
 const UP_VECTOR = Object.freeze(new Vector3(0, 1, 0));
 const DOWN_VECTOR = Object.freeze(new Vector3(0, -1, 0));
+const PI2 = 2 * Math.PI;
 
 const raycaster = new Raycaster();
-const plane = new Plane();
-const plane_normal = new Vector3();
-const intersection_point = new Vector3();
 
 export class QuestEntityControls implements Disposable {
     private readonly disposer = new Disposer();
@@ -259,10 +265,6 @@ type Pick = {
 
     mesh: Mesh;
 
-    initial_section?: SectionModel;
-
-    initial_position: Vec3;
-
     /**
      * Vector that points from the grabbing point to the model's origin.
      */
@@ -346,24 +348,27 @@ class IdleState implements State {
             }
 
             case EvtType.MouseDown: {
-                const pick_result = this.pick_entity(evt.pointer_device_position);
+                const pick = this.pick_entity(evt.pointer_device_position);
 
-                if (pick_result) {
+                if (pick) {
                     if (evt.buttons === 1) {
-                        quest_editor_store.set_selected_entity(pick_result.entity);
+                        quest_editor_store.set_selected_entity(pick.entity);
 
                         return new TranslationState(
                             this.renderer,
-                            pick_result.entity,
-                            pick_result.initial_section,
-                            pick_result.initial_position,
-                            pick_result.drag_adjust,
-                            pick_result.grab_offset,
+                            pick.entity,
+                            pick.drag_adjust,
+                            pick.grab_offset,
                         );
                     } else if (evt.buttons === 2) {
-                        quest_editor_store.set_selected_entity(pick_result.entity);
+                        quest_editor_store.set_selected_entity(pick.entity);
 
-                        return new RotationState(this.renderer);
+                        return new RotationState(
+                            this.renderer,
+                            pick.entity,
+                            pick.mesh,
+                            pick.grab_offset,
+                        );
                     }
                 }
 
@@ -434,8 +439,6 @@ class IdleState implements State {
         return {
             mesh: intersection.object as Mesh,
             entity,
-            initial_section: entity.section.val,
-            initial_position: entity.world_position.val,
             grab_offset,
             drag_adjust,
         };
@@ -443,16 +446,18 @@ class IdleState implements State {
 }
 
 class TranslationState implements State {
+    private readonly initial_section: SectionModel | undefined;
+    private readonly initial_position: Vector3;
     private cancelled = false;
 
     constructor(
         private readonly renderer: QuestRenderer,
         private readonly entity: QuestEntityModel,
-        private readonly initial_section: SectionModel | undefined,
-        private readonly initial_position: Vec3,
         private readonly drag_adjust: Vector3,
         private readonly grab_offset: Vector3,
     ) {
+        this.initial_section = entity.section.val;
+        this.initial_position = entity.world_position.val;
         this.renderer.controls.enabled = false;
     }
 
@@ -513,21 +518,68 @@ class TranslationState implements State {
 
 // TODO: make entities rotatable with right mouse button.
 class RotationState implements State {
-    private readonly renderer: QuestRenderer;
+    private readonly initial_rotation: Euler;
+    private readonly grab_point: Vector3;
+    private cancelled = false;
 
-    constructor(renderer: QuestRenderer) {
-        this.renderer = renderer;
-
-        // Disable camera controls while the user is transforming an entity.
+    constructor(
+        private readonly renderer: QuestRenderer,
+        private readonly entity: QuestEntityModel,
+        private readonly mesh: Mesh,
+        grab_offset: Vector3,
+    ) {
+        this.initial_rotation = entity.world_rotation.val;
+        this.grab_point = entity.world_position.val.clone().sub(grab_offset);
         this.renderer.controls.enabled = false;
     }
 
-    process_event(): State {
-        this.renderer.controls.enabled = true;
-        return new IdleState(this.renderer);
+    process_event(evt: Evt): State {
+        switch (evt.type) {
+            case EvtType.MouseMove: {
+                if (this.cancelled) {
+                    return new IdleState(this.renderer);
+                }
+
+                if (evt.moved_since_last_pointer_down) {
+                    rotate_entity(
+                        this.renderer,
+                        this.entity,
+                        this.mesh.quaternion,
+                        this.initial_rotation,
+                        this.grab_point,
+                        evt.pointer_device_position,
+                    );
+                }
+
+                return this;
+            }
+
+            case EvtType.MouseUp: {
+                this.renderer.controls.enabled = true;
+
+                if (!this.cancelled && evt.moved_since_last_pointer_down) {
+                    quest_editor_store.rotate_entity(
+                        this.entity,
+                        this.initial_rotation,
+                        this.entity.world_rotation.val,
+                        true,
+                    );
+                }
+
+                return new IdleState(this.renderer);
+            }
+
+            default:
+                return this.cancelled ? new IdleState(this.renderer) : this;
+        }
     }
 
-    cancel(): void {}
+    cancel(): void {
+        this.cancelled = true;
+        this.renderer.controls.enabled = true;
+
+        this.entity.set_world_rotation(this.initial_rotation);
+    }
 }
 
 class CreationState implements State {
@@ -556,9 +608,9 @@ class CreationState implements State {
                 data.pso_roaming!,
                 area.id,
                 0,
-                new Vec3(0, 0, 0),
-                new Vec3(0, 0, 0),
-                new Vec3(1, 1, 1),
+                new Vector3(0, 0, 0),
+                new Euler(0, 0, 0, "ZXY"),
+                new Vector3(1, 1, 1),
                 // TODO: do the following values make sense?
                 [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0]],
             );
@@ -569,8 +621,8 @@ class CreationState implements State {
                 0,
                 area.id,
                 0,
-                new Vec3(0, 0, 0),
-                new Vec3(0, 0, 0),
+                new Vector3(0, 0, 0),
+                new Euler(0, 0, 0, "ZXY"),
                 // TODO: which default properties?
                 new Map(),
                 // TODO: do the following values make sense?
@@ -709,77 +761,147 @@ function translate_entity(
  * If the drag-adjusted pointer is over the ground, translate an entity horizontally across the
  * ground. Otherwise translate the entity over the horizontal plane that intersects its origin.
  */
-function translate_entity_horizontally(
-    renderer: QuestRenderer,
-    entity: QuestEntityModel,
-    drag_adjust: Vector3,
-    grab_offset: Vector3,
-    pointer_device_position: Vector2,
-): void {
-    // Cast ray adjusted for dragging entities.
-    const { intersection, section } = pick_ground(renderer, pointer_device_position, drag_adjust);
+const translate_entity_horizontally = (() => {
+    const plane = new Plane();
+    const pointer_pos_on_plane = new Vector3();
 
-    if (intersection) {
-        entity.set_world_position(
-            new Vec3(
-                intersection.point.x,
-                intersection.point.y + grab_offset.y - drag_adjust.y,
-                intersection.point.z,
-            ),
+    return (
+        renderer: QuestRenderer,
+        entity: QuestEntityModel,
+        drag_adjust: Vector3,
+        grab_offset: Vector3,
+        pointer_device_position: Vector2,
+    ): void => {
+        // Cast ray adjusted for dragging entities.
+        const { intersection, section } = pick_ground(
+            renderer,
+            pointer_device_position,
+            drag_adjust,
         );
 
-        if (section) {
-            entity.set_section(section);
-        }
-    } else {
-        // If the pointer is not over the ground, we translate the entity across the horizontal
-        // plane in which the entity's origin lies.
-        raycaster.setFromCamera(pointer_device_position, renderer.camera);
-        const ray = raycaster.ray;
-        plane.set(UP_VECTOR, -entity.world_position.val.y + grab_offset.y);
-
-        if (ray.intersectPlane(plane, intersection_point)) {
+        if (intersection) {
             entity.set_world_position(
-                new Vec3(
-                    intersection_point.x + grab_offset.x,
-                    entity.world_position.val.y,
-                    intersection_point.z + grab_offset.z,
+                new Vector3(
+                    intersection.point.x,
+                    intersection.point.y + grab_offset.y - drag_adjust.y,
+                    intersection.point.z,
+                ),
+            );
+
+            if (section) {
+                entity.set_section(section);
+            }
+        } else {
+            // If the pointer is not over the ground, we translate the entity across the horizontal
+            // plane in which the entity's origin lies.
+            raycaster.setFromCamera(pointer_device_position, renderer.camera);
+            plane.set(UP_VECTOR, -entity.world_position.val.y + grab_offset.y);
+
+            if (raycaster.ray.intersectPlane(plane, pointer_pos_on_plane)) {
+                entity.set_world_position(
+                    new Vector3(
+                        pointer_pos_on_plane.x + grab_offset.x,
+                        entity.world_position.val.y,
+                        pointer_pos_on_plane.z + grab_offset.z,
+                    ),
+                );
+            }
+        }
+    };
+})();
+
+const translate_entity_vertically = (() => {
+    const plane_normal = new Vector3();
+    const plane = new Plane();
+    const pointer_pos_on_plane = new Vector3();
+    const grab_point = new Vector3();
+
+    return (
+        renderer: QuestRenderer,
+        entity: QuestEntityModel,
+        drag_adjust: Vector3,
+        grab_offset: Vector3,
+        pointer_device_position: Vector2,
+    ): void => {
+        // Intersect with a plane that's oriented towards the camera and that's coplanar with the
+        // point where the entity was grabbed.
+        raycaster.setFromCamera(pointer_device_position, renderer.camera);
+
+        renderer.camera.getWorldDirection(plane_normal);
+        plane_normal.negate();
+        plane_normal.y = 0;
+        plane_normal.normalize();
+
+        grab_point.set(
+            entity.world_position.val.x,
+            entity.world_position.val.y,
+            entity.world_position.val.z,
+        );
+        grab_point.sub(grab_offset);
+        plane.setFromNormalAndCoplanarPoint(plane_normal, grab_point);
+
+        if (raycaster.ray.intersectPlane(plane, pointer_pos_on_plane)) {
+            const y = pointer_pos_on_plane.y + grab_offset.y;
+            const y_delta = y - entity.world_position.val.y;
+            drag_adjust.y -= y_delta;
+            entity.set_world_position(
+                new Vector3(entity.world_position.val.x, y, entity.world_position.val.z),
+            );
+        }
+    };
+})();
+
+const rotate_entity = (() => {
+    const plane_normal = new Vector3();
+    const plane = new Plane();
+    const pointer_pos_on_plane = new Vector3();
+    const y_intersect = new Vector3();
+    const axis_to_grab = new Vector3();
+    const axis_to_pointer = new Vector3();
+
+    return (
+        renderer: QuestRenderer,
+        entity: QuestEntityModel,
+        rotation: Quaternion,
+        initial_rotation: Euler,
+        grab_point: Vector3,
+        pointer_device_position: Vector2,
+    ): void => {
+        // Intersect with a plane that's oriented along the entity's y-axis and that's coplanar with
+        // the point where the entity was grabbed.
+        plane_normal.copy(UP_VECTOR);
+        plane_normal.applyQuaternion(rotation);
+
+        plane.setFromNormalAndCoplanarPoint(plane_normal, grab_point);
+
+        raycaster.setFromCamera(pointer_device_position, renderer.camera);
+
+        if (raycaster.ray.intersectPlane(plane, pointer_pos_on_plane)) {
+            plane.projectPoint(entity.world_position.val, y_intersect);
+
+            // Calculate vector from the entity's y-axis to the original grab point.
+            axis_to_grab.subVectors(y_intersect, grab_point);
+
+            // Calculate vector from the entity's y-axis to the new pointer position.
+            axis_to_pointer.subVectors(y_intersect, pointer_pos_on_plane);
+
+            // Calculate the angle between the two vectors and rotate the entity around its y-axis
+            // by that angle.
+            const cos = axis_to_grab.dot(axis_to_pointer);
+            const sin = plane_normal.dot(axis_to_grab.cross(axis_to_pointer));
+            const angle = Math.atan2(sin, cos);
+
+            entity.set_world_rotation(
+                new Euler(
+                    initial_rotation.x,
+                    (initial_rotation.y + angle) % PI2,
+                    initial_rotation.z,
+                    "ZXY",
                 ),
             );
         }
-    }
-}
-
-function translate_entity_vertically(
-    renderer: QuestRenderer,
-    entity: QuestEntityModel,
-    drag_adjust: Vector3,
-    grab_offset: Vector3,
-    pointer_device_position: Vector2,
-): void {
-    // We intersect with a plane that's oriented toward the camera and that's coplanar with the
-    // point where the entity was grabbed.
-    raycaster.setFromCamera(pointer_device_position, renderer.camera);
-    const ray = raycaster.ray;
-
-    renderer.camera.getWorldDirection(plane_normal);
-    plane_normal.negate();
-    plane_normal.y = 0;
-    plane_normal.normalize();
-    plane.setFromNormalAndCoplanarPoint(
-        plane_normal,
-        vec3_to_threejs(entity.world_position.val).sub(grab_offset),
-    );
-
-    if (ray.intersectPlane(plane, intersection_point)) {
-        const y = intersection_point.y + grab_offset.y;
-        const y_delta = y - entity.world_position.val.y;
-        drag_adjust.y -= y_delta;
-        entity.set_world_position(
-            new Vec3(entity.world_position.val.x, y, entity.world_position.val.z),
-        );
-    }
-}
+    };
+})();
 
 /**
  * @param renderer

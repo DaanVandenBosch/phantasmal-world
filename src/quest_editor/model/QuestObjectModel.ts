@@ -1,6 +1,6 @@
 import { QuestEntityModel } from "./QuestEntityModel";
 import { ObjectType } from "../../core/data_formats/parsing/quest/object_types";
-import { Vec3 } from "../../core/data_formats/vector";
+import { Euler, Vector3 } from "three";
 
 export class QuestObjectModel extends QuestEntityModel<ObjectType> {
     readonly id: number;
@@ -17,8 +17,8 @@ export class QuestObjectModel extends QuestEntityModel<ObjectType> {
         group_id: number,
         area_id: number,
         section_id: number,
-        position: Vec3,
-        rotation: Vec3,
+        position: Vector3,
+        rotation: Euler,
         properties: Map<string, number>,
         unknown: number[][],
     ) {

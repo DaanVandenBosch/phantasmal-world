@@ -15,11 +15,6 @@ export type RenderSection = {
     objects: NjObject<XjModel>[];
 };
 
-export type Vertex = {
-    position: Vec3;
-    normal?: Vec3;
-};
-
 export function parse_area_geometry(cursor: Cursor): RenderObject {
     const sections: RenderSection[] = [];
 
@@ -38,11 +33,11 @@ export function parse_area_geometry(cursor: Cursor): RenderObject {
 
         const section_id = cursor.i32();
         const section_position = cursor.vec3_f32();
-        const section_rotation = new Vec3(
-            cursor.u32() * ANGLE_TO_RAD,
-            cursor.u32() * ANGLE_TO_RAD,
-            cursor.u32() * ANGLE_TO_RAD,
-        );
+        const section_rotation = {
+            x: cursor.u32() * ANGLE_TO_RAD,
+            y: cursor.u32() * ANGLE_TO_RAD,
+            z: cursor.u32() * ANGLE_TO_RAD,
+        };
 
         cursor.seek(4);
 

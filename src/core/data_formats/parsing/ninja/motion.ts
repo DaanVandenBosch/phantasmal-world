@@ -191,7 +191,7 @@ function parse_motion_data_f(cursor: Cursor, count: number): NjKeyframeF[] {
     for (let i = 0; i < count; ++i) {
         frames.push({
             frame: cursor.u32(),
-            value: new Vec3(cursor.f32(), cursor.f32(), cursor.f32()),
+            value: cursor.vec3_f32(),
         });
     }
 
@@ -209,11 +209,11 @@ function parse_motion_data_a(
     for (let i = 0; i < keyframe_count; ++i) {
         frames.push({
             frame: cursor.u16(),
-            value: new Vec3(
-                cursor.u16() * ANGLE_TO_RAD,
-                cursor.u16() * ANGLE_TO_RAD,
-                cursor.u16() * ANGLE_TO_RAD,
-            ),
+            value: {
+                x: cursor.u16() * ANGLE_TO_RAD,
+                y: cursor.u16() * ANGLE_TO_RAD,
+                z: cursor.u16() * ANGLE_TO_RAD,
+            },
         });
     }
 
@@ -237,11 +237,11 @@ function parse_motion_data_a_wide(cursor: Cursor, keyframe_count: number): NjKey
     for (let i = 0; i < keyframe_count; ++i) {
         frames.push({
             frame: cursor.u32(),
-            value: new Vec3(
-                cursor.i32() * ANGLE_TO_RAD,
-                cursor.i32() * ANGLE_TO_RAD,
-                cursor.i32() * ANGLE_TO_RAD,
-            ),
+            value: {
+                x: cursor.i32() * ANGLE_TO_RAD,
+                y: cursor.i32() * ANGLE_TO_RAD,
+                z: cursor.i32() * ANGLE_TO_RAD,
+            },
         });
     }
 

@@ -19,12 +19,12 @@ export function is_xj_model(model: NjModel): model is XjModel {
 }
 
 export class NjObject<M extends NjModel = NjModel> {
-    evaluation_flags: NjEvaluationFlags;
-    model: M | undefined;
-    position: Vec3;
-    rotation: Vec3; // Euler angles in radians.
-    scale: Vec3;
-    children: NjObject<M>[];
+    readonly evaluation_flags: NjEvaluationFlags;
+    readonly model: M | undefined;
+    readonly position: Vec3;
+    readonly rotation: Vec3; // Euler angles in radians.
+    readonly scale: Vec3;
+    readonly children: NjObject<M>[];
 
     private bone_cache = new Map<number, NjObject<M> | null>();
     private _bone_count = -1;
@@ -155,15 +155,13 @@ function parse_sibling_objects<M extends NjModel>(
     const shape_skip = (eval_flags & 0b10000000) !== 0;
 
     const model_offset = cursor.u32();
-    const pos_x = cursor.f32();
-    const pos_y = cursor.f32();
-    const pos_z = cursor.f32();
-    const rotation_x = cursor.i32() * ANGLE_TO_RAD;
-    const rotation_y = cursor.i32() * ANGLE_TO_RAD;
-    const rotation_z = cursor.i32() * ANGLE_TO_RAD;
-    const scale_x = cursor.f32();
-    const scale_y = cursor.f32();
-    const scale_z = cursor.f32();
+    const pos = cursor.vec3_f32();
+    const rotation = {
+        x: cursor.i32() * ANGLE_TO_RAD,
+        y: cursor.i32() * ANGLE_TO_RAD,
+        z: cursor.i32() * ANGLE_TO_RAD,
+    };
+    const scale = cursor.vec3_f32();
     const child_offset = cursor.u32();
     const sibling_offset = cursor.u32();
 
@@ -202,9 +200,9 @@ function parse_sibling_objects<M extends NjModel>(
             shape_skip,
         },
         model,
-        new Vec3(pos_x, pos_y, pos_z),
-        new Vec3(rotation_x, rotation_y, rotation_z),
-        new Vec3(scale_x, scale_y, scale_z),
+        pos,
+        rotation,
+        scale,
         children,
     );
 

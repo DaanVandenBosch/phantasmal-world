@@ -1,7 +1,7 @@
 import { entity_data, EntityType } from "../../core/data_formats/parsing/quest/entities";
 import { Disposable } from "../../core/observable/Disposable";
-import { Vec2 } from "../../core/data_formats/vector";
 import { el } from "../../core/gui/dom";
+import { Vector2 } from "three";
 
 export type EntityDragEvent = {
     readonly entity_type: EntityType;
@@ -11,7 +11,7 @@ export type EntityDragEvent = {
 
 let dragging_details: Omit<EntityDragEvent, "event"> | undefined = undefined;
 const listeners: Map<(e: EntityDragEvent) => void, (e: DragEvent) => void> = new Map();
-const grab_point = new Vec2(0, 0);
+const grab_point = new Vector2(0, 0);
 let drag_sources = 0;
 
 export function add_entity_dnd_listener(
