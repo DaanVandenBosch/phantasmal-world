@@ -5,6 +5,9 @@ import { WritableProperty } from "../../core/observable/property/WritablePropert
 import { SectionModel } from "./SectionModel";
 import { Euler, Quaternion, Vector3 } from "three";
 
+const q1 = new Quaternion();
+const q2 = new Quaternion();
+
 export abstract class QuestEntityModel<Type extends EntityType = EntityType> {
     readonly type: Type;
 
@@ -122,15 +125,13 @@ export abstract class QuestEntityModel<Type extends EntityType = EntityType> {
         const section = this.section.val;
 
         if (section) {
-            this._world_rotation.val = new Euler().setFromQuaternion(
-                new Quaternion()
-                    .setFromEuler(section.rotation)
-                    .multiply(new Quaternion().setFromEuler(rot)),
-                "ZXY",
-            );
+            q1.setFromEuler(rot);
+            q2.setFromEuler(section.rotation);
+            this._world_rotation.val = new Euler().setFromQuaternion(q1.multiply(q2), "ZXY");
         } else {
             this._world_rotation.val = rot;
         }
+
         return this;
     }
 
@@ -140,12 +141,10 @@ export abstract class QuestEntityModel<Type extends EntityType = EntityType> {
         const section = this.section.val;
 
         if (section) {
-            this._rotation.val = new Euler().setFromQuaternion(
-                new Quaternion()
-                    .setFromEuler(rot)
-                    .multiply(new Quaternion().setFromEuler(section.rotation).inverse()),
-                "ZXY",
-            );
+            q1.setFromEuler(rot);
+            q2.setFromEuler(section.rotation);
+            q2.inverse();
+            this._rotation.val = new Euler().setFromQuaternion(q1.multiply(q2), "ZXY");
         } else {
             this._rotation.val = rot;
         }
