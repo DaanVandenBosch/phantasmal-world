@@ -46,12 +46,13 @@ export class QuestEntityControls implements Disposable {
     private hovered_mesh?: Mesh;
     private selected_mesh?: Mesh;
 
-    constructor(private renderer: QuestRenderer) {
+    constructor(private readonly renderer: QuestRenderer) {
         this.disposer.add(quest_editor_store.selected_entity.observe(this.selected_entity_changed));
 
         renderer.dom_element.addEventListener("keydown", this.keydown);
         renderer.dom_element.addEventListener("mousedown", this.mousedown);
         renderer.dom_element.addEventListener("mousemove", this.mousemove);
+        renderer.dom_element.addEventListener("mouseleave", this.mouseleave);
         add_entity_dnd_listener(renderer.dom_element, "dragenter", this.dragenter);
         add_entity_dnd_listener(renderer.dom_element, "dragover", this.dragover);
         add_entity_dnd_listener(renderer.dom_element, "dragleave", this.dragleave);
@@ -66,6 +67,7 @@ export class QuestEntityControls implements Disposable {
         this.renderer.dom_element.removeEventListener("mousemove", this.mousemove);
         document.removeEventListener("mousemove", this.mousemove);
         document.removeEventListener("mouseup", this.mouseup);
+        this.renderer.dom_element.removeEventListener("mouseleave", this.mouseleave);
         remove_entity_dnd_listener(this.renderer.dom_element, "dragenter", this.dragenter);
         remove_entity_dnd_listener(this.renderer.dom_element, "dragover", this.dragover);
         remove_entity_dnd_listener(this.renderer.dom_element, "dragleave", this.dragleave);
@@ -160,6 +162,19 @@ export class QuestEntityControls implements Disposable {
         this.renderer.dom_element.addEventListener("mousemove", this.mousemove);
         document.removeEventListener("mousemove", this.mousemove);
         document.removeEventListener("mouseup", this.mouseup);
+    };
+
+    private mouseleave = (e: MouseEvent) => {
+        this.process_mouse_event(e);
+
+        this.state = this.state.process_event({
+            type: EvtType.MouseLeave,
+            buttons: e.buttons,
+            shift_key: e.shiftKey,
+            pointer_device_position: this.pointer_device_position,
+            moved_since_last_pointer_down: this.moved_since_last_pointer_down,
+            mark_hovered: this.mark_hovered,
+        });
     };
 
     private dragenter = (e: EntityDragEvent) => {
@@ -281,6 +296,7 @@ enum EvtType {
     MouseDown,
     MouseMove,
     MouseUp,
+    MouseLeave,
     EntityDragEnter,
     EntityDragOver,
     EntityDragLeave,
@@ -295,7 +311,7 @@ type KeyboardEvt = {
 };
 
 type MouseEvt = {
-    readonly type: EvtType.MouseDown | EvtType.MouseMove | EvtType.MouseUp;
+    readonly type: EvtType.MouseDown | EvtType.MouseMove | EvtType.MouseUp | EvtType.MouseLeave;
     readonly buttons: number;
     readonly shift_key: boolean;
     readonly pointer_device_position: Vector2;
@@ -388,6 +404,11 @@ class IdleState implements State {
                     quest_editor_store.set_selected_entity(undefined);
                 }
 
+                return this;
+            }
+
+            case EvtType.MouseLeave: {
+                evt.mark_hovered(undefined);
                 return this;
             }
 
