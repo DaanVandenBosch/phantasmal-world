@@ -66,7 +66,9 @@ Features that are in ***bold italics*** are planned and not yet implemented.
 - Translation
     - Via 3D view
     - Via entity view
-- ***Rotation***
+- Rotation
+    - Via 3D view
+    - Via entity view
 - ***Multi select and translate/rotate/edit***
 
 ## Events

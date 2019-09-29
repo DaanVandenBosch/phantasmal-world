@@ -7,9 +7,9 @@ import { entity_data } from "../../core/data_formats/parsing/quest/entities";
 import "./EntityInfoView.css";
 import { NumberInput } from "../../core/gui/NumberInput";
 import { Disposer } from "../../core/observable/Disposer";
-import { Property } from "../../core/observable/property/Property";
 import { QuestEntityModel } from "../model/QuestEntityModel";
-import { Vector3 } from "three";
+import { Euler, Vector3 } from "three";
+import { deg_to_rad, rad_to_deg } from "../../core/math";
 
 export class EntityInfoView extends ResizableWidget {
     readonly element = el.div({ class: "quest_editor_EntityInfoView", tab_index: -1 });
@@ -30,13 +30,13 @@ export class EntityInfoView extends ResizableWidget {
     private readonly pos_z_element = this.disposable(
         new NumberInput(0, { width: 80, round_to: 3 }),
     );
-    private readonly world_pos_x_element = this.disposable(
+    private readonly rot_x_element = this.disposable(
         new NumberInput(0, { width: 80, round_to: 3 }),
     );
-    private readonly world_pos_y_element = this.disposable(
+    private readonly rot_y_element = this.disposable(
         new NumberInput(0, { width: 80, round_to: 3 }),
     );
-    private readonly world_pos_z_element = this.disposable(
+    private readonly rot_z_element = this.disposable(
         new NumberInput(0, { width: 80, round_to: 3 }),
     );
 
@@ -53,7 +53,7 @@ export class EntityInfoView extends ResizableWidget {
             el.tr({}, el.th({ text: "Type:" }), (this.type_element = el.td())),
             el.tr({}, el.th({ text: "Name:" }), (this.name_element = el.td())),
             el.tr({}, el.th({ text: "Section:" }), (this.section_id_element = el.td())),
-            el.tr({}, el.th({ text: "Section position:", col_span: 2 })),
+            el.tr({}, el.th({ text: "Position:", col_span: 2 })),
             el.tr(
                 {},
                 el.th({ text: "X:", class: coord_class }),
@@ -69,21 +69,21 @@ export class EntityInfoView extends ResizableWidget {
                 el.th({ text: "Z:", class: coord_class }),
                 el.td({}, this.pos_z_element.element),
             ),
-            el.tr({}, el.th({ text: "World position:", col_span: 2 })),
+            el.tr({}, el.th({ text: "Rotation:", col_span: 2 })),
             el.tr(
                 {},
                 el.th({ text: "X:", class: coord_class }),
-                el.td({}, this.world_pos_x_element.element),
+                el.td({}, this.rot_x_element.element),
             ),
             el.tr(
                 {},
                 el.th({ text: "Y:", class: coord_class }),
-                el.td({}, this.world_pos_y_element.element),
+                el.td({}, this.rot_y_element.element),
             ),
             el.tr(
                 {},
                 el.th({ text: "Z:", class: coord_class }),
-                el.td({}, this.world_pos_z_element.element),
+                el.td({}, this.rot_z_element.element),
             ),
         );
 
@@ -115,23 +115,7 @@ export class EntityInfoView extends ResizableWidget {
                         ),
                     );
 
-                    this.observe(
-                        entity,
-                        entity.position,
-                        false,
-                        this.pos_x_element,
-                        this.pos_y_element,
-                        this.pos_z_element,
-                    );
-
-                    this.observe(
-                        entity,
-                        entity.world_position,
-                        true,
-                        this.world_pos_x_element,
-                        this.world_pos_y_element,
-                        this.world_pos_z_element,
-                    );
+                    this.observe_entity(entity);
                 }
             }),
         );
@@ -144,54 +128,89 @@ export class EntityInfoView extends ResizableWidget {
         this.entity_disposer.dispose();
     }
 
-    private observe(
-        entity: QuestEntityModel,
-        pos: Property<Vector3>,
-        world: boolean,
-        x_input: NumberInput,
-        y_input: NumberInput,
-        z_input: NumberInput,
-    ): void {
+    private observe_entity(entity: QuestEntityModel): void {
+        const pos = entity.position;
+
         this.entity_disposer.add_all(
             pos.observe(
                 ({ value: { x, y, z } }) => {
-                    x_input.value.val = x;
-                    y_input.value.val = y;
-                    z_input.value.val = z;
+                    this.pos_x_element.value.val = x;
+                    this.pos_y_element.value.val = y;
+                    this.pos_z_element.value.val = z;
                 },
                 { call_now: true },
             ),
 
-            x_input.value.observe(({ value }) =>
+            this.pos_x_element.value.observe(({ value }) =>
                 quest_editor_store.translate_entity(
                     entity,
                     entity.section.val,
                     entity.section.val,
                     pos.val,
                     new Vector3(value, pos.val.y, pos.val.z),
-                    world,
+                    false,
                 ),
             ),
 
-            y_input.value.observe(({ value }) =>
+            this.pos_y_element.value.observe(({ value }) =>
                 quest_editor_store.translate_entity(
                     entity,
                     entity.section.val,
                     entity.section.val,
                     pos.val,
                     new Vector3(pos.val.x, value, pos.val.z),
-                    world,
+                    false,
                 ),
             ),
 
-            z_input.value.observe(({ value }) =>
+            this.pos_z_element.value.observe(({ value }) =>
                 quest_editor_store.translate_entity(
                     entity,
                     entity.section.val,
                     entity.section.val,
                     pos.val,
                     new Vector3(pos.val.x, pos.val.y, value),
-                    world,
+                    false,
+                ),
+            ),
+        );
+
+        const rot = entity.rotation;
+
+        this.entity_disposer.add_all(
+            rot.observe(
+                ({ value: { x, y, z } }) => {
+                    this.rot_x_element.value.val = rad_to_deg(x);
+                    this.rot_y_element.value.val = rad_to_deg(y);
+                    this.rot_z_element.value.val = rad_to_deg(z);
+                },
+                { call_now: true },
+            ),
+
+            this.rot_x_element.value.observe(({ value }) =>
+                quest_editor_store.rotate_entity(
+                    entity,
+                    rot.val,
+                    new Euler(deg_to_rad(value), rot.val.y, rot.val.z, "ZXY"),
+                    false,
+                ),
+            ),
+
+            this.rot_y_element.value.observe(({ value }) =>
+                quest_editor_store.rotate_entity(
+                    entity,
+                    rot.val,
+                    new Euler(rot.val.x, deg_to_rad(value), rot.val.z, "ZXY"),
+                    false,
+                ),
+            ),
+
+            this.rot_z_element.value.observe(({ value }) =>
+                quest_editor_store.rotate_entity(
+                    entity,
+                    rot.val,
+                    new Euler(rot.val.x, rot.val.y, deg_to_rad(value), "ZXY"),
+                    false,
                 ),
             ),
         );
