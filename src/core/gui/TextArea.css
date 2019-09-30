@@ -9,6 +9,7 @@
     vertical-align: top;
     padding: 3px;
     border: var(--input-inner-border);
+    margin: 0;
     background-color: var(--input-bg-color);
     color: var(--input-text-color);
     outline: none;
