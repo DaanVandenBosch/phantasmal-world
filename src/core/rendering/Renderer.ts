@@ -84,7 +84,7 @@ export abstract class Renderer implements Disposable {
         }
     }
 
-    schedule_render = () => {
+    schedule_render = (): void => {
         this.render_scheduled = true;
     };
 
@@ -117,11 +117,11 @@ export abstract class Renderer implements Disposable {
         this.renderer.render(this.scene, this.camera);
     }
 
-    private on_mouse_down = (e: Event) => {
+    private on_mouse_down = (e: Event): void => {
         if (e.currentTarget) (e.currentTarget as HTMLElement).focus();
     };
 
-    private call_render = () => {
+    private call_render = (): void => {
         const controls_updated = this.controls.update(this.controls_clock.getDelta());
         const should_render = this.render_scheduled || controls_updated;
 

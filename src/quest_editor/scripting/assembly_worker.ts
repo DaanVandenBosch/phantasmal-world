@@ -1,12 +1,12 @@
 import {
     AssemblyChangeInput,
+    AssemblySettingsChangeInput,
     AssemblyWorkerInput,
     InputMessageType,
     NewObjectCodeOutput,
     OutputMessageType,
     SignatureHelpInput,
     SignatureHelpOutput,
-    AssemblySettingsChangeInput,
 } from "./assembly_worker_messages";
 import { assemble, AssemblySettings } from "./assembly";
 import Logger from "js-logger";
@@ -142,8 +142,8 @@ function signature_help(message: SignatureHelpInput): void {
  * Apply changes to settings.
  */
 function settings_change(message: AssemblySettingsChangeInput): void {
-    if (message.settings.hasOwnProperty("manual_stack")) {
-        assembly_settings.manual_stack = Boolean(message.settings.manual_stack);
+    if (message.settings.manual_stack != undefined) {
+        assembly_settings.manual_stack = message.settings.manual_stack;
     }
 }
 

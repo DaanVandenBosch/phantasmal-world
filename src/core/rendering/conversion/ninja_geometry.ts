@@ -29,7 +29,7 @@ type Vertex = {
 };
 
 class VerticesHolder {
-    private vertices_stack: Vertex[][] = [];
+    private readonly vertices_stack: Vertex[][] = [];
 
     put(vertices: Vertex[]): void {
         this.vertices_stack.push(vertices);
@@ -51,9 +51,9 @@ class VerticesHolder {
 }
 
 class GeometryCreator {
-    private vertices = new VerticesHolder();
-    private bone_id: number = 0;
-    private builder: GeometryBuilder;
+    private readonly vertices = new VerticesHolder();
+    private readonly builder: GeometryBuilder;
+    private bone_id = 0;
 
     constructor(builder: GeometryBuilder) {
         this.builder = builder;
@@ -215,7 +215,7 @@ class GeometryCreator {
         const index_offset = this.builder.vertex_count;
         const normal_matrix = new Matrix3().getNormalMatrix(matrix);
 
-        for (let { position, normal, uv } of model.vertices) {
+        for (const { position, normal, uv } of model.vertices) {
             const p = vec3_to_threejs(position).applyMatrix4(matrix);
 
             const local_n = normal ? vec3_to_threejs(normal) : new Vector3(0, 1, 0);

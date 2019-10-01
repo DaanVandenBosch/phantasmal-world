@@ -194,7 +194,7 @@ export abstract class AbstractCursor implements Cursor {
         null_terminated: boolean,
         drop_remaining: boolean,
     ): string {
-        let code_points: number[] = [];
+        const code_points: number[] = [];
 
         for (let i = 0; i < max_byte_length; i++) {
             const code_point = this.u8();
@@ -218,8 +218,8 @@ export abstract class AbstractCursor implements Cursor {
         null_terminated: boolean,
         drop_remaining: boolean,
     ): string {
-        let code_points: number[] = [];
-        let len = Math.floor(max_byte_length / 2);
+        const code_points: number[] = [];
+        const len = Math.floor(max_byte_length / 2);
 
         for (let i = 0; i < len; i++) {
             const code_point = this.u16();

@@ -68,7 +68,7 @@ export class NavigationView extends Widget {
         }
     }
 
-    private mark_tool_button = (tool: GuiTool) => {
+    private mark_tool_button = (tool: GuiTool): void => {
         const button = this.buttons.get(tool);
         if (button) button.checked = true;
     };

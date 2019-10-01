@@ -93,7 +93,7 @@ export class QuestEntityControls implements Disposable {
         this.selected_mesh = entity_mesh;
     };
 
-    private selected_entity_changed = ({ value: entity }: { value?: QuestEntityModel }) => {
+    private selected_entity_changed = ({ value: entity }: { value?: QuestEntityModel }): void => {
         this.state.cancel();
 
         if (entity) {
@@ -110,14 +110,14 @@ export class QuestEntityControls implements Disposable {
         }
     };
 
-    private keydown = (e: KeyboardEvent) => {
+    private keydown = (e: KeyboardEvent): void => {
         this.state = this.state.process_event({
             type: EvtType.KeyDown,
             key: e.key,
         });
     };
 
-    private mousedown = (e: MouseEvent) => {
+    private mousedown = (e: MouseEvent): void => {
         this.process_mouse_event(e);
 
         this.state = this.state.process_event({
@@ -134,7 +134,7 @@ export class QuestEntityControls implements Disposable {
         document.addEventListener("mouseup", this.mouseup);
     };
 
-    private mousemove = (e: MouseEvent) => {
+    private mousemove = (e: MouseEvent): void => {
         this.process_mouse_event(e);
 
         this.state = this.state.process_event({
@@ -147,7 +147,7 @@ export class QuestEntityControls implements Disposable {
         });
     };
 
-    private mouseup = (e: MouseEvent) => {
+    private mouseup = (e: MouseEvent): void => {
         this.process_mouse_event(e);
 
         this.state = this.state.process_event({
@@ -164,7 +164,7 @@ export class QuestEntityControls implements Disposable {
         document.removeEventListener("mouseup", this.mouseup);
     };
 
-    private mouseleave = (e: MouseEvent) => {
+    private mouseleave = (e: MouseEvent): void => {
         this.process_mouse_event(e);
 
         this.state = this.state.process_event({
@@ -177,7 +177,7 @@ export class QuestEntityControls implements Disposable {
         });
     };
 
-    private dragenter = (e: EntityDragEvent) => {
+    private dragenter = (e: EntityDragEvent): void => {
         this.process_mouse_event(e.event);
 
         this.state = this.state.process_event({
@@ -192,7 +192,7 @@ export class QuestEntityControls implements Disposable {
         });
     };
 
-    private dragover = (e: EntityDragEvent) => {
+    private dragover = (e: EntityDragEvent): void => {
         this.process_mouse_event(e.event);
 
         this.state = this.state.process_event({
@@ -207,7 +207,7 @@ export class QuestEntityControls implements Disposable {
         });
     };
 
-    private dragleave = (e: EntityDragEvent) => {
+    private dragleave = (e: EntityDragEvent): void => {
         this.process_mouse_event(e.event);
 
         this.state = this.state.process_event({
@@ -222,7 +222,7 @@ export class QuestEntityControls implements Disposable {
         });
     };
 
-    private drop = (e: EntityDragEvent) => {
+    private drop = (e: EntityDragEvent): void => {
         this.process_mouse_event(e.event);
         this.renderer.dom_element.focus();
 

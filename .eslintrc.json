@@ -14,18 +14,20 @@
         "node": true
     },
     "rules": {
-        "@typescript-eslint/array-type": ["warn", "array"],
+        "@typescript-eslint/array-type": [
+            "warn",
+            {
+                "default": "array",
+                "readonly": "array"
+            }
+        ],
         "@typescript-eslint/camelcase": "off",
         "@typescript-eslint/class-name-casing": "warn",
         "@typescript-eslint/explicit-function-return-type": ["warn", { "allowExpressions": true }],
         "@typescript-eslint/explicit-member-accessibility": "off",
         "@typescript-eslint/no-explicit-any": "off",
-        "@typescript-eslint/no-inferrable-types": "warn",
+        "@typescript-eslint/no-inferrable-types": "off",
         "@typescript-eslint/no-non-null-assertion": "off",
-        "@typescript-eslint/no-object-literal-type-assertion": [
-            "warn",
-            { "allowAsParameter": true }
-        ],
         "@typescript-eslint/no-parameter-properties": "off",
         "@typescript-eslint/no-use-before-define": "off",
         "@typescript-eslint/prefer-interface": "off",
@@ -33,6 +35,7 @@
         "no-constant-condition": ["warn", { "checkLoops": false }],
         "no-empty": "warn",
         "no-useless-escape": "warn",
+        "prefer-const": "warn",
         "prettier/prettier": "warn"
     },
     "parser": "@typescript-eslint/parser"

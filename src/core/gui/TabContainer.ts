@@ -78,7 +78,7 @@ export class TabContainer extends ResizableWidget {
         return this;
     }
 
-    private bar_mousedown = (e: MouseEvent) => {
+    private bar_mousedown = (e: MouseEvent): void => {
         if (e.target instanceof HTMLElement) {
             const key = e.target.dataset["key"];
             if (key) this.activate(key);

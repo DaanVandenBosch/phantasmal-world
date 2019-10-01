@@ -3,7 +3,7 @@ import { Endianness } from "../Endianness";
 import { Cursor } from "../cursor/Cursor";
 import { parse_prc } from "./prc";
 
-const logger = Logger.get("data_formats/parsing/rlc");
+const logger = Logger.get("core/data_formats/parsing/rlc");
 const MARKER = "RelChunkVer0.20";
 
 /**

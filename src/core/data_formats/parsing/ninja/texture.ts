@@ -2,7 +2,7 @@ import Logger from "js-logger";
 import { Cursor } from "../../cursor/Cursor";
 import { parse_iff } from "../iff";
 
-const logger = Logger.get("data_formats/parsing/ninja/texture");
+const logger = Logger.get("core/data_formats/parsing/ninja/texture");
 
 export type Xvm = {
     textures: XvmTexture[];

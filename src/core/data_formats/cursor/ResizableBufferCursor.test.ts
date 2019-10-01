@@ -9,8 +9,8 @@ import { ResizableBufferCursor } from "./ResizableBufferCursor";
 function test_integer_write(method_name: string): void {
     test(`${method_name} increases buffer and cursor size`, () => {
         const byte_count = parseInt(method_name.replace(/^write_[iu](\d+)$/, "$1"), 10) / 8;
-        let expected_number_1 = 98749;
-        let expected_number_2 = 7348942;
+        const expected_number_1 = 98749;
+        const expected_number_2 = 7348942;
 
         const buf = new ResizableBuffer(8);
         const cursor = new ResizableBufferCursor(buf, Endianness.Little);

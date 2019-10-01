@@ -24,7 +24,7 @@ import { ResizableBufferCursor } from "../../cursor/ResizableBufferCursor";
 import { WritableCursor } from "../../cursor/WritableCursor";
 import { ResizableBuffer } from "../../ResizableBuffer";
 
-const logger = Logger.get("data_formats/parsing/quest/bin");
+const logger = Logger.get("core/data_formats/parsing/quest/bin");
 
 export class BinFile {
     constructor(
@@ -468,7 +468,7 @@ function parse_segment(
         }
 
         // Check whether we've already parsed this segment and reparse it if necessary.
-        let segment = offset_to_segment.get(info.offset);
+        const segment = offset_to_segment.get(info.offset);
         let labels: number[];
 
         if (segment) {
@@ -552,7 +552,7 @@ function parse_instructions_segment(
                 break;
         }
 
-        let opcode = OPCODES[opcode_index];
+        const opcode = OPCODES[opcode_index];
 
         // Parse the arguments.
         try {

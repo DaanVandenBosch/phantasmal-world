@@ -83,13 +83,13 @@ export class QuestEditorStore implements Disposable {
         this.disposer.dispose();
     }
 
-    set_current_area = (area?: AreaModel) => {
+    set_current_area = (area?: AreaModel): void => {
         this._selected_entity.val = undefined;
 
         this._current_area.val = area;
     };
 
-    set_selected_entity = (entity?: QuestEntityModel) => {
+    set_selected_entity = (entity?: QuestEntityModel): void => {
         if (entity && this.current_quest.val) {
             this._current_area.val = area_store.get_area(
                 this.current_quest.val.episode,
@@ -100,12 +100,12 @@ export class QuestEditorStore implements Disposable {
         this._selected_entity.val = entity;
     };
 
-    new_quest = (episode: Episode) => {
+    new_quest = (episode: Episode): void => {
         this.set_quest(create_new_quest(episode));
     };
 
     // TODO: notify user of problems.
-    open_file = async (file: File) => {
+    open_file = async (file: File): Promise<void> => {
         try {
             const buffer = await read_file(file);
             const quest = parse_quest(new ArrayBufferCursor(buffer, Endianness.Little));
@@ -170,7 +170,7 @@ export class QuestEditorStore implements Disposable {
         }
     };
 
-    save_as = () => {
+    save_as = (): void => {
         const quest = this.current_quest.val;
         if (!quest) return;
 
@@ -237,25 +237,25 @@ export class QuestEditorStore implements Disposable {
         document.body.removeChild(a);
     };
 
-    id_changed = (event: PropertyChangeEvent<number>) => {
+    id_changed = (event: PropertyChangeEvent<number>): void => {
         if (this.current_quest.val) {
             this.undo.push(new EditIdAction(this.current_quest.val, event)).redo();
         }
     };
 
-    name_changed = (event: PropertyChangeEvent<string>) => {
+    name_changed = (event: PropertyChangeEvent<string>): void => {
         if (this.current_quest.val) {
             this.undo.push(new EditNameAction(this.current_quest.val, event)).redo();
         }
     };
 
-    short_description_changed = (event: PropertyChangeEvent<string>) => {
+    short_description_changed = (event: PropertyChangeEvent<string>): void => {
         if (this.current_quest.val) {
             this.undo.push(new EditShortDescriptionAction(this.current_quest.val, event)).redo();
         }
     };
 
-    long_description_changed = (event: PropertyChangeEvent<string>) => {
+    long_description_changed = (event: PropertyChangeEvent<string>): void => {
         if (this.current_quest.val) {
             this.undo.push(new EditLongDescriptionAction(this.current_quest.val, event)).redo();
         }
@@ -268,7 +268,7 @@ export class QuestEditorStore implements Disposable {
         old_position: Vector3,
         new_position: Vector3,
         world: boolean,
-    ) => {
+    ): void => {
         this.undo
             .push(
                 new TranslateEntityAction(
@@ -288,15 +288,15 @@ export class QuestEditorStore implements Disposable {
         old_rotation: Euler,
         new_rotation: Euler,
         world: boolean,
-    ) => {
+    ): void => {
         this.undo.push(new RotateEntityAction(entity, old_rotation, new_rotation, world)).redo();
     };
 
-    push_create_entity_action = (entity: QuestEntityModel) => {
+    push_create_entity_action = (entity: QuestEntityModel): void => {
         this.undo.push(new CreateEntityAction(entity));
     };
 
-    remove_entity = (entity: QuestEntityModel) => {
+    remove_entity = (entity: QuestEntityModel): void => {
         this.undo.push(new RemoveEntityAction(entity)).redo();
     };
 
@@ -338,7 +338,10 @@ export class QuestEditorStore implements Disposable {
         }
     }
 
-    private set_section_on_quest_entity = (entity: QuestEntityModel, sections: SectionModel[]) => {
+    private set_section_on_quest_entity = (
+        entity: QuestEntityModel,
+        sections: SectionModel[],
+    ): void => {
         const section = sections.find(s => s.id === entity.section_id.val);
 
         if (section) {

@@ -19,8 +19,8 @@ const logger = Logger.get("assets_generation/update_ephinea_data");
 Logger.useDefaults({ defaultLevel: Logger.ERROR });
 logger.setLevel(Logger.INFO);
 Logger.get("static/update_drops_ephinea").setLevel(Logger.INFO);
-Logger.get("data_formats/parsing/quest").setLevel(Logger.OFF);
-Logger.get("data_formats/parsing/quest/bin").setLevel(Logger.OFF);
+Logger.get("core/data_formats/parsing/quest").setLevel(Logger.OFF);
+Logger.get("core/data_formats/parsing/quest/bin").setLevel(Logger.OFF);
 
 /**
  * Used by static data generation scripts.
@@ -526,7 +526,7 @@ function load_enemy_drops(
         if (trimmed.startsWith("#")) continue;
 
         if (line_no % 2 == 1) {
-            let enemy = get_enemy_type(episode, Math.floor(line_no / 2));
+            const enemy = get_enemy_type(episode, Math.floor(line_no / 2));
 
             if (enemy) {
                 const rare_rate = expand_drop_rate(parseInt(prev_line, 10));

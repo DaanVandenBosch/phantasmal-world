@@ -154,7 +154,7 @@ export class ValueSet {
     }
 
     to_array(): number[] {
-        let array: number[] = [];
+        const array: number[] = [];
 
         for (const { start, end } of this.intervals) {
             for (let i = start; i <= end; i++) {
@@ -165,24 +165,23 @@ export class ValueSet {
         return array;
     }
 
-    [Symbol.iterator](): Iterator<number> {
-        const vs = this;
+    [Symbol.iterator] = (): Iterator<number> => {
         let int_i = 0;
         let value = NaN;
 
         return {
-            next(): IteratorResult<number> {
+            next: (): IteratorResult<number> => {
                 let done = true;
 
-                if (int_i < vs.intervals.length) {
+                if (int_i < this.intervals.length) {
                     if (isNaN(value)) {
-                        value = vs.intervals[int_i].start;
+                        value = this.intervals[int_i].start;
                         done = false;
-                    } else if (value > vs.intervals[int_i].end) {
+                    } else if (value > this.intervals[int_i].end) {
                         int_i++;
 
-                        if (int_i < vs.intervals.length) {
-                            value = vs.intervals[int_i].start;
+                        if (int_i < this.intervals.length) {
+                            value = this.intervals[int_i].start;
                             done = false;
                         }
                     } else {
@@ -193,5 +192,5 @@ export class ValueSet {
                 return { done, value: value++ };
             },
         };
-    }
+    };
 }

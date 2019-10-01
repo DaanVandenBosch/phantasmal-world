@@ -186,11 +186,10 @@ export class QuestEditorView extends ResizableWidget {
 
     private attempt_gl_init(config: GoldenLayout.Config): GoldenLayout {
         const layout = new GoldenLayout(config, this.layout_element);
-        const self = this;
 
         try {
             for (const [view_ctor, name] of VIEW_TO_NAME) {
-                layout.registerComponent(name, function(container: Container) {
+                layout.registerComponent(name, (container: Container) => {
                     const view = new view_ctor();
 
                     container.on("close", () => view.dispose());
@@ -201,7 +200,7 @@ export class QuestEditorView extends ResizableWidget {
 
                     view.resize(container.width, container.height);
 
-                    self.sub_views.set(name, view);
+                    this.sub_views.set(name, view);
                     container.getElement().append(view.element);
                 });
             }

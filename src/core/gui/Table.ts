@@ -3,8 +3,8 @@ import { bind_children_to, el } from "./dom";
 import { ListProperty } from "../observable/property/list/ListProperty";
 import { Disposer } from "../observable/Disposer";
 import "./Table.css";
-import Logger = require("js-logger");
 import { Disposable } from "../observable/Disposable";
+import Logger = require("js-logger");
 
 const logger = Logger.get("core/gui/Table");
 
@@ -49,7 +49,7 @@ export class Table<T> extends Widget {
         this.values = options.values;
         this.columns = options.columns;
 
-        let sort_columns: { column: Column<T>; direction: SortDirection }[] = [];
+        const sort_columns: { column: Column<T>; direction: SortDirection }[] = [];
 
         const thead_element = el.thead();
         const header_tr_element = el.tr();

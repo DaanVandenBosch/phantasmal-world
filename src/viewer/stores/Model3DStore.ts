@@ -85,7 +85,7 @@ export class Model3DStore implements Disposable {
     }
 
     // TODO: notify user of problems.
-    load_file = async (file: File) => {
+    load_file = async (file: File): Promise<void> => {
         try {
             const buffer = await read_file(file);
             const cursor = new ArrayBufferCursor(buffer, Endianness.Little);
@@ -132,7 +132,7 @@ export class Model3DStore implements Disposable {
         }
     };
 
-    private load_model = async (model?: CharacterClassModel) => {
+    private load_model = async (model?: CharacterClassModel): Promise<void> => {
         this.current_animation.val = undefined;
 
         if (model) {
@@ -214,7 +214,7 @@ export class Model3DStore implements Disposable {
         }
     }
 
-    private load_animation = async (animation?: CharacterClassAnimationModel) => {
+    private load_animation = async (animation?: CharacterClassAnimationModel): Promise<void> => {
         const nj_data = this.current_nj_data.val;
 
         if (nj_data && animation) {

@@ -182,7 +182,7 @@ class DpsCalcStore implements Disposable {
         this.disposable.dispose();
     };
 
-    add_weapon = (type: WeaponItemType) => {
+    add_weapon = (type: WeaponItemType): void => {
         this._weapons.push(new Weapon(this, new WeaponItem(type)));
     };
 }

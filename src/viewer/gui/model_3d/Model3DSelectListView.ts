@@ -51,7 +51,7 @@ export class Model3DSelectListView<T extends { name: string }> extends Resizable
         this.finalize_construction(Model3DSelectListView.prototype);
     }
 
-    private list_click = (e: MouseEvent) => {
+    private list_click = (e: MouseEvent): void => {
         if (e.target instanceof HTMLLIElement && e.target.dataset["index"]) {
             if (this.selected_element) {
                 this.selected_element.classList.remove("active");

@@ -58,7 +58,7 @@ class GuiStore implements Disposable {
         };
     }
 
-    private dispatch_global_keydown = (e: KeyboardEvent) => {
+    private dispatch_global_keydown = (e: KeyboardEvent): void => {
         const binding_parts: string[] = [];
         if (e.ctrlKey) binding_parts.push("Ctrl");
         if (e.shiftKey) binding_parts.push("Shift");

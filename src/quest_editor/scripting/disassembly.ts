@@ -16,7 +16,7 @@ type ArgWithType = Arg & {
  * @param object_code - The object code to disassemble.
  * @param manual_stack - If true, will output stack management instructions (argpush variants). Otherwise the arguments of stack management instructions will be output as arguments to the instruction that pops them from the stack.
  */
-export function disassemble(object_code: Segment[], manual_stack: boolean = false): string[] {
+export function disassemble(object_code: Segment[], manual_stack = false): string[] {
     logger.trace("disassemble start");
 
     const lines: string[] = [];

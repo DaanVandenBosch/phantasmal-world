@@ -8,7 +8,9 @@ export const NOOP_UNDO: Undo = {
     first_redo: property(undefined),
     first_undo: property(undefined),
 
-    ensure_not_current() {},
+    ensure_not_current() {
+        // This is the default Undo, so it can't ensure it's not the current Undo.
+    },
 
     make_current() {
         undo_manager.current.val = this;
@@ -18,7 +20,9 @@ export const NOOP_UNDO: Undo = {
         return false;
     },
 
-    reset() {},
+    reset() {
+        // Do nothing.
+    },
 
     undo() {
         return false;

@@ -2,7 +2,7 @@ import Logger from "js-logger";
 import { Cursor } from "../../cursor/Cursor";
 import { Vec2, Vec3 } from "../../vector";
 
-const logger = Logger.get("data_formats/parsing/ninja/xj");
+const logger = Logger.get("core/data_formats/parsing/ninja/xj");
 
 // TODO:
 // - vertex colors

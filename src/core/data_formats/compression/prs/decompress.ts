@@ -4,7 +4,7 @@ import { ResizableBufferCursor } from "../../cursor/ResizableBufferCursor";
 import { WritableCursor } from "../../cursor/WritableCursor";
 import { ResizableBuffer } from "../../ResizableBuffer";
 
-const logger = Logger.get("data_formats/compression/prs/decompress");
+const logger = Logger.get("core/data_formats/compression/prs/decompress");
 
 export function prs_decompress(cursor: Cursor): Cursor {
     const ctx = new Context(cursor);
@@ -78,7 +78,7 @@ class Context {
             this.flag_bits_left = 8;
         }
 
-        let bit = this.flags & 1;
+        const bit = this.flags & 1;
         this.flags >>>= 1;
         this.flag_bits_left -= 1;
         return bit;

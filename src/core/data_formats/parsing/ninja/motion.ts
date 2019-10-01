@@ -117,7 +117,7 @@ function parse_motion(cursor: Cursor, bone_count: number): NjMotion {
         cursor.seek_start(mdata_offset);
         mdata_offset = mdata_offset += 8 * element_count;
 
-        let motion_data: NjMotionData = {
+        const motion_data: NjMotionData = {
             tracks: [],
         };
         motion_data_list.push(motion_data);

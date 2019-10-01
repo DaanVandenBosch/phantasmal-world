@@ -73,7 +73,7 @@ export class Disposer implements Disposable {
         this._disposed = true;
     }
 
-    dispose_at(index: number, amount: number = 1): void {
+    dispose_at(index: number, amount = 1): void {
         for (const disposable of this.disposables.splice(index, amount)) {
             try {
                 disposable.dispose();

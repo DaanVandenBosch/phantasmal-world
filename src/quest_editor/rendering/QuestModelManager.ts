@@ -48,7 +48,7 @@ export class QuestModelManager implements Disposable {
         this.disposer.dispose();
     }
 
-    private quest_or_area_changed = async () => {
+    private quest_or_area_changed = async (): Promise<void> => {
         const quest = quest_editor_store.current_quest.val;
         const area = quest_editor_store.current_area.val;
 

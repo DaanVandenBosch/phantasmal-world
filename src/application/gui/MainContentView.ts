@@ -49,7 +49,7 @@ export class MainContentView extends ResizableWidget {
         return this;
     }
 
-    private tool_changed = ({ value: new_tool }: ChangeEvent<GuiTool>) => {
+    private tool_changed = ({ value: new_tool }: ChangeEvent<GuiTool>): void => {
         for (const tool of this.tool_views.values()) {
             tool.visible.val = false;
         }

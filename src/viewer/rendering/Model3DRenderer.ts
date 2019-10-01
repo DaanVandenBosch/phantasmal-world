@@ -81,7 +81,7 @@ export class Model3DRenderer extends Renderer implements Disposable {
         }
     }
 
-    private nj_data_or_xvm_changed = () => {
+    private nj_data_or_xvm_changed = (): void => {
         if (this.mesh) {
             this.scene.remove(this.mesh);
             this.mesh = undefined;
@@ -142,7 +142,7 @@ export class Model3DRenderer extends Renderer implements Disposable {
         this.schedule_render();
     };
 
-    private nj_motion_changed = ({ value: nj_motion }: ChangeEvent<NjMotion | undefined>) => {
+    private nj_motion_changed = ({ value: nj_motion }: ChangeEvent<NjMotion | undefined>): void => {
         let mixer!: AnimationMixer;
 
         if (this.animation) {
@@ -171,14 +171,14 @@ export class Model3DRenderer extends Renderer implements Disposable {
         this.schedule_render();
     };
 
-    private show_skeleton_changed = ({ value: show_skeleton }: ChangeEvent<boolean>) => {
+    private show_skeleton_changed = ({ value: show_skeleton }: ChangeEvent<boolean>): void => {
         if (this.skeleton_helper) {
             this.skeleton_helper.visible = show_skeleton;
             this.schedule_render();
         }
     };
 
-    private animation_playing_changed = ({ value: playing }: ChangeEvent<boolean>) => {
+    private animation_playing_changed = ({ value: playing }: ChangeEvent<boolean>): void => {
         if (this.animation) {
             this.animation.action.paused = !playing;
 
@@ -191,13 +191,13 @@ export class Model3DRenderer extends Renderer implements Disposable {
         }
     };
 
-    private animation_frame_rate_changed = ({ value: frame_rate }: ChangeEvent<number>) => {
+    private animation_frame_rate_changed = ({ value: frame_rate }: ChangeEvent<number>): void => {
         if (this.animation) {
             this.animation.mixer.timeScale = frame_rate / PSO_FRAME_RATE;
         }
     };
 
-    private animation_frame_changed = ({ value: frame }: ChangeEvent<number>) => {
+    private animation_frame_changed = ({ value: frame }: ChangeEvent<number>): void => {
         const nj_motion = model_store.current_nj_motion.val;
 
         if (this.animation && nj_motion) {

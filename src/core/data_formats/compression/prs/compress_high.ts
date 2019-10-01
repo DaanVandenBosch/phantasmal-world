@@ -27,7 +27,9 @@ export function prs_compress_high(src: Cursor): Cursor {
         ctx.copy_literal();
 
         while (ctx.src.bytes_left > 1) {
-            let [offset, mlen] = ctx.find_longest_match(hash_table, false);
+            const match = ctx.find_longest_match(hash_table, false);
+            const offset = match[0];
+            let mlen = match[1];
 
             if (mlen > 0) {
                 ctx.src.seek(1);

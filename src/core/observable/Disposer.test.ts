@@ -47,5 +47,9 @@ test("contained disposables should be disposed when calling dispose", () => {
 });
 
 function dummy(): Disposable {
-    return { dispose(): void {} };
+    return {
+        dispose(): void {
+            // Do nothing.
+        },
+    };
 }

@@ -41,7 +41,7 @@ export type AssemblySettings = {
 
 export function assemble(
     assembly: string[],
-    manual_stack: boolean = false,
+    manual_stack = false,
 ): {
     object_code: Segment[];
     warnings: AssemblyWarning[];
@@ -414,7 +414,7 @@ class Assembler {
             }
 
             const last_token = this.tokens[this.tokens.length - 1];
-            let error_length = last_token ? last_token.col + last_token.len - col : 0;
+            const error_length = last_token ? last_token.col + last_token.len - col : 0;
             const ins_args: [Arg, Token][] = [];
 
             if (!varargs && arg_count !== param_count) {

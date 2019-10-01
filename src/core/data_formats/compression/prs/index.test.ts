@@ -45,6 +45,7 @@ test("PRS compression and decompression, typical case", () => {
     const arrays = new Array(1000)
         .fill(pattern)
         .map(array => array.map((e: number) => e + prng.next_integer(0, 10)));
+    // eslint-disable-next-line prefer-spread
     const flattened_array = [].concat.apply([], arrays);
 
     // Compression factor: 0.933

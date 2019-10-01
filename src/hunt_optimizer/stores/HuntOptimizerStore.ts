@@ -313,7 +313,7 @@ class HuntOptimizerStore implements Disposable {
         return name;
     }
 
-    private initialize_persistence = async () => {
+    private initialize_persistence = async (): Promise<void> => {
         this._wanted_items.val = await hunt_optimizer_persister.load_wanted_items(this.server);
 
         this.disposer.add(

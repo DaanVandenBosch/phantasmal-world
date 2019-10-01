@@ -10,10 +10,10 @@ import { Observable } from "../../core/observable/Observable";
 import { emitter, property } from "../../core/observable";
 import { WritableProperty } from "../../core/observable/property/WritableProperty";
 import { Property } from "../../core/observable/property/Property";
-import SignatureHelp = languages.SignatureHelp;
 import ITextModel = editor.ITextModel;
 import CompletionList = languages.CompletionList;
 import IMarkerData = editor.IMarkerData;
+import SignatureHelpResult = languages.SignatureHelpResult;
 
 const assembly_analyser = new AssemblyAnalyser();
 
@@ -38,11 +38,22 @@ languages.registerSignatureHelpProvider("psoasm", {
 
     signatureHelpRetriggerCharacters: [", "],
 
-    provideSignatureHelp(
+    async provideSignatureHelp(
         _model: ITextModel,
         position: Position,
-    ): Promise<SignatureHelp | undefined> {
-        return assembly_analyser.provide_signature_help(position.lineNumber, position.column);
+    ): Promise<SignatureHelpResult | undefined> {
+        const value = await assembly_analyser.provide_signature_help(
+            position.lineNumber,
+            position.column,
+        );
+        return (
+            value && {
+                value,
+                dispose() {
+                    // Do nothing.
+                },
+            }
+        );
     },
 });
 
@@ -117,7 +128,7 @@ export class AsmEditorStore implements Disposable {
      * Features include undo/redo history and reassembling on change.
      */
     private setup_editor_model_features(model: editor.ITextModel): void {
-        let initial_version = model.getAlternativeVersionId();
+        const initial_version = model.getAlternativeVersionId();
         let current_version = initial_version;
         let last_version = initial_version;
 

@@ -122,7 +122,7 @@ export abstract class AbstractWritableCursor extends AbstractCursor implements W
             this.write_u8(str.codePointAt(i)!);
         }
 
-        let pad_len = byte_length - len;
+        const pad_len = byte_length - len;
 
         for (let i = 0; i < pad_len; i++) {
             this.write_u8(0);
@@ -141,7 +141,7 @@ export abstract class AbstractWritableCursor extends AbstractCursor implements W
             this.write_u16(str.codePointAt(i)!);
         }
 
-        let pad_len = max_len - len;
+        const pad_len = max_len - len;
 
         for (let i = 0; i < pad_len; i++) {
             this.write_u16(0);
