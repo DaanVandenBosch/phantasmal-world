@@ -1,6 +1,6 @@
 import { reinterpret_i32_as_f32 } from "../../core/primitive_conversion";
 import { Arg, Segment, SegmentType } from "./instructions";
-import { AnyType, Kind, Param, StackInteraction } from "./opcodes";
+import { AnyType, Kind, Opcode, Param, StackInteraction } from "./opcodes";
 import Logger from "js-logger";
 
 const logger = Logger.get("quest_editor/scripting/disassembly");
@@ -76,8 +76,21 @@ export function disassemble(object_code: Segment[], manual_stack = false): strin
         } else if (segment.type === SegmentType.String) {
             lines.push("    " + JSON.stringify(segment.value));
         } else {
+            // SegmentType.Instructions
+            let in_va_list = false;
+
             for (const instruction of segment.instructions) {
-                if (!manual_stack && instruction.opcode.stack === StackInteraction.Push) {
+                if (instruction.opcode.code === Opcode.VA_START.code) {
+                    in_va_list = true;
+                } else if (instruction.opcode.code === Opcode.VA_END.code) {
+                    in_va_list = false;
+                }
+
+                if (
+                    !manual_stack &&
+                    !in_va_list &&
+                    instruction.opcode.stack === StackInteraction.Push
+                ) {
                     stack.push(...add_type_to_args(instruction.opcode.params, instruction.args));
                 } else {
                     let args: string[] = [];

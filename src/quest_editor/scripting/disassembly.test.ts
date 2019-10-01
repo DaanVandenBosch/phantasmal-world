@@ -6,7 +6,7 @@ import { BufferCursor } from "../../core/data_formats/cursor/BufferCursor";
 import { parse_bin, write_bin } from "../../core/data_formats/parsing/quest/bin";
 import { assemble } from "./assembly";
 import { disassemble } from "./disassembly";
-import { Instruction, object_code_equal, SegmentType } from "./instructions";
+import { Instruction, object_code_equal, Segment, SegmentType } from "./instructions";
 import { Opcode } from "./opcodes";
 
 test("vararg instructions should be disassembled correctly", () => {
@@ -36,6 +36,40 @@ test("vararg instructions should be disassembled correctly", () => {
     );
 });
 
+// arg_push* instructions should always be output when in a va list whether manual stack management
+// is on or off.
+test("va list instructions should be disassembled correctly", () => {
+    const ir: Segment[] = [
+        {
+            type: SegmentType.Instructions,
+            labels: [0],
+            instructions: [
+                new Instruction(Opcode.VA_START, []),
+                new Instruction(Opcode.ARG_PUSHW, [{ value: 1337, size: 2 }]),
+                new Instruction(Opcode.VA_CALL, [{ value: 100, size: 2 }]),
+                new Instruction(Opcode.VA_END, []),
+                new Instruction(Opcode.RET, []),
+            ],
+        },
+    ];
+
+    for (const manual_stack of [true, false]) {
+        const asm = disassemble(ir, manual_stack);
+
+        expect(asm).toEqual(
+            `.code
+
+0:
+    va_start
+    arg_pushw 1337
+    va_call 100
+    va_end
+    ret
+`.split("\n"),
+        );
+    }
+});
+
 // Round-trip test.
 test("assembling disassembled object code with manual stack management should result in the same IR", () => {
     const orig_buffer = readFileSync("test/resources/quest27_e.bin");
@@ -62,7 +96,6 @@ test("assembling disassembled object code with automatic stack management should
     expect(warnings).toEqual([]);
 
     expect(object_code_equal(object_code, bin.object_code)).toBe(true);
-    // expect(object_code).toBe(bin.object_code);
 });
 
 // Round-trip test.
