@@ -53,6 +53,10 @@ export class AsmEditorView extends ResizableWidget {
 
         this.editor.addCommand(KeyMod.CtrlCmd | KeyCode.KEY_Z, () => {});
         this.editor.addCommand(KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.KEY_Z, () => {});
+        const quick_command = this.editor.getAction("editor.action.quickCommand");
+        this.editor.addCommand(KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.KEY_P, () => {
+            quick_command.run();
+        });
 
         this.disposables(
             asm_editor_store.did_undo.observe(({ value: source }) => {
