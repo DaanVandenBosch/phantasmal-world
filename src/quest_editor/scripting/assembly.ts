@@ -59,26 +59,32 @@ export function assemble(
 }
 
 class Assembler {
-    private lexer = new AssemblyLexer();
+    private readonly lexer = new AssemblyLexer();
     private line_no!: number;
     private tokens!: Token[];
     private object_code!: Segment[];
-    // The current segment.
+    /**
+     * The current segment.
+     */
     private segment?: Segment;
     private warnings!: AssemblyWarning[];
     private errors!: AssemblyError[];
-    // Encountered labels.
+    /**
+     * Encountered labels.
+     */
     private labels!: Set<number>;
     private section!: SegmentType;
     private first_section_marker = true;
+    private prev_line_had_label = false;
 
-    constructor(private assembly: string[], private manual_stack: boolean) {}
+    constructor(private readonly assembly: string[], private readonly manual_stack: boolean) {}
 
     assemble(): {
         object_code: Segment[];
         warnings: AssemblyWarning[];
         errors: AssemblyError[];
     } {
+        // Reset all state.
         this.line_no = 1;
         this.object_code = [];
         this.warnings = [];
@@ -87,16 +93,20 @@ class Assembler {
         // Need to cast SegmentType.Instructions because of TypeScript bug.
         this.section = SegmentType.Instructions as SegmentType;
         this.first_section_marker = true;
+        this.prev_line_had_label = false;
 
+        // Tokenize and assemble line by line.
         for (const line of this.assembly) {
             this.tokens = this.lexer.tokenize_line(line);
 
             if (this.tokens.length > 0) {
                 const token = this.tokens.shift()!;
+                let has_label = false;
 
                 switch (token.type) {
                     case TokenType.Label:
                         this.parse_label(token);
+                        has_label = true;
                         break;
                     case TokenType.CodeSection:
                     case TokenType.DataSection:
@@ -158,6 +168,8 @@ class Assembler {
                         });
                         break;
                 }
+
+                this.prev_line_had_label = has_label;
             }
 
             this.line_no++;
@@ -214,7 +226,7 @@ class Assembler {
 
     private add_string(str: string): void {
         if (!this.segment) {
-            // Unadressable data, technically valid.
+            // Unaddressable data, technically valid.
             const string_segment: StringSegment = {
                 labels: [],
                 type: SegmentType.String,
@@ -277,14 +289,20 @@ class Assembler {
 
         const next_token = this.tokens.shift();
 
+        if (this.prev_line_had_label) {
+            this.object_code[this.object_code.length - 1].labels.push(label);
+        }
+
         switch (this.section) {
             case SegmentType.Instructions:
-                this.segment = {
-                    type: SegmentType.Instructions,
-                    labels: [label],
-                    instructions: [],
-                };
-                this.object_code.push(this.segment);
+                if (!this.prev_line_had_label) {
+                    this.segment = {
+                        type: SegmentType.Instructions,
+                        labels: [label],
+                        instructions: [],
+                    };
+                    this.object_code.push(this.segment);
+                }
 
                 if (next_token) {
                     if (next_token.type === TokenType.Ident) {
@@ -300,12 +318,14 @@ class Assembler {
 
                 break;
             case SegmentType.Data:
-                this.segment = {
-                    type: SegmentType.Data,
-                    labels: [label],
-                    data: new ArrayBuffer(0),
-                };
-                this.object_code.push(this.segment);
+                if (!this.prev_line_had_label) {
+                    this.segment = {
+                        type: SegmentType.Data,
+                        labels: [label],
+                        data: new ArrayBuffer(0),
+                    };
+                    this.object_code.push(this.segment);
+                }
 
                 if (next_token) {
                     if (next_token.type === TokenType.Int) {
@@ -321,12 +341,14 @@ class Assembler {
 
                 break;
             case SegmentType.String:
-                this.segment = {
-                    type: SegmentType.String,
-                    labels: [label],
-                    value: "",
-                };
-                this.object_code.push(this.segment);
+                if (!this.prev_line_had_label) {
+                    this.segment = {
+                        type: SegmentType.String,
+                        labels: [label],
+                        value: "",
+                    };
+                    this.object_code.push(this.segment);
+                }
 
                 if (next_token) {
                     if (next_token.type === TokenType.String) {
@@ -529,10 +551,11 @@ class Assembler {
                         length: token.len,
                         message: "Expected an argument.",
                     });
-                } else {
-                    if (param.type.kind !== Kind.ILabelVar && param.type.kind !== Kind.RegRefVar) {
-                        param_i++;
-                    }
+                } else if (
+                    param.type.kind !== Kind.ILabelVar &&
+                    param.type.kind !== Kind.RegRefVar
+                ) {
+                    param_i++;
                 }
 
                 should_be_arg = true;
@@ -636,7 +659,7 @@ class Assembler {
 
                     switch (param.type.kind) {
                         case Kind.Byte:
-                            type_str = "a 8-bit integer";
+                            type_str = "an 8-bit integer";
                             break;
                         case Kind.Word:
                             type_str = "a 16-bit integer";

@@ -6,9 +6,67 @@ import { BufferCursor } from "../../core/data_formats/cursor/BufferCursor";
 import { parse_bin, write_bin } from "../../core/data_formats/parsing/quest/bin";
 import { assemble } from "./assembly";
 import { disassemble } from "./disassembly";
+import { Instruction, object_code_equal, SegmentType } from "./instructions";
+import { Opcode } from "./opcodes";
 
-// Roundtrip test.
-test("assembling dissambled object code with manual stack management should result in the same object code", () => {
+test("vararg instructions should be disassembled correctly", () => {
+    const asm = disassemble([
+        {
+            type: SegmentType.Instructions,
+            labels: [0],
+            instructions: [
+                new Instruction(Opcode.SWITCH_JMP, [
+                    { value: 90, size: 1 },
+                    { value: 100, size: 2 },
+                    { value: 101, size: 2 },
+                    { value: 102, size: 2 },
+                ]),
+                new Instruction(Opcode.RET, []),
+            ],
+        },
+    ]);
+
+    expect(asm).toEqual(
+        `.code
+
+0:
+    switch_jmp r90, 100, 101, 102
+    ret
+`.split("\n"),
+    );
+});
+
+// Round-trip test.
+test("assembling disassembled object code with manual stack management should result in the same IR", () => {
+    const orig_buffer = readFileSync("test/resources/quest27_e.bin");
+    const orig_bytes = prs_decompress(new BufferCursor(orig_buffer, Endianness.Little));
+    const bin = parse_bin(orig_bytes);
+
+    const { object_code, warnings, errors } = assemble(disassemble(bin.object_code, true), true);
+
+    expect(errors).toEqual([]);
+    expect(warnings).toEqual([]);
+
+    expect(object_code_equal(object_code, bin.object_code)).toBe(true);
+});
+
+// Round-trip test.
+test("assembling disassembled object code with automatic stack management should result in the same IR", () => {
+    const orig_buffer = readFileSync("test/resources/quest27_e.bin");
+    const orig_bytes = prs_decompress(new BufferCursor(orig_buffer, Endianness.Little));
+    const bin = parse_bin(orig_bytes);
+
+    const { object_code, warnings, errors } = assemble(disassemble(bin.object_code, false), false);
+
+    expect(errors).toEqual([]);
+    expect(warnings).toEqual([]);
+
+    expect(object_code_equal(object_code, bin.object_code)).toBe(true);
+    // expect(object_code).toBe(bin.object_code);
+});
+
+// Round-trip test.
+test("assembling disassembled object code with manual stack management should result in the same object code", () => {
     const orig_buffer = readFileSync("test/resources/quest27_e.bin");
     const orig_bytes = prs_decompress(new BufferCursor(orig_buffer, Endianness.Little));
     const bin = parse_bin(orig_bytes);
@@ -43,13 +101,13 @@ test("assembling dissambled object code with manual stack management should resu
     expect(matching_bytes).toBe(orig_bytes.size);
 });
 
-// Roundtrip test.
+// Round-trip test.
 test("disassembling assembled assembly code with automatic stack management should result the same assembly code", () => {
     const orig_buffer = readFileSync("test/resources/quest27_e.bin");
     const orig_bytes = prs_decompress(new BufferCursor(orig_buffer, Endianness.Little));
-    const orig_asm = disassemble(parse_bin(orig_bytes).object_code);
+    const orig_asm = disassemble(parse_bin(orig_bytes).object_code, false);
 
-    const { object_code, warnings, errors } = assemble(orig_asm);
+    const { object_code, warnings, errors } = assemble(orig_asm, false);
 
     expect(errors).toEqual([]);
     expect(warnings).toEqual([]);

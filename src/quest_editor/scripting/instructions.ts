@@ -1,4 +1,5 @@
 import { Kind, Opcode } from "./opcodes";
+import { array_buffers_equal, arrays_equal } from "../../core/util";
 
 /**
  * Instruction invocation.
@@ -83,3 +84,34 @@ export type StringSegment = {
     labels: number[];
     value: string;
 };
+
+export function object_code_equal(a: Segment[], b: Segment[]): boolean {
+    return arrays_equal(a, b, segments_equal);
+}
+
+function segments_equal(a: Segment, b: Segment): boolean {
+    if (a.type !== b.type || !arrays_equal(a.labels, b.labels)) return false;
+
+    switch (a.type) {
+        case SegmentType.Instructions:
+            return arrays_equal(
+                a.instructions,
+                (b as InstructionSegment).instructions,
+                instructions_equal,
+            );
+
+        case SegmentType.Data:
+            return array_buffers_equal(a.data, (b as DataSegment).data);
+
+        case SegmentType.String:
+            return a.value === (b as StringSegment).value;
+    }
+}
+
+function instructions_equal(a: Instruction, b: Instruction): boolean {
+    return a.opcode.code === b.opcode.code && arrays_equal(a.args, b.args, args_equal);
+}
+
+function args_equal(a: Arg, b: Arg): boolean {
+    return a.value === b.value && a.size === b.size;
+}

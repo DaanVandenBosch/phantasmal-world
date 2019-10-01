@@ -128,6 +128,20 @@ function add_type_to_args(params: Param[], args: Arg[]): ArgWithType[] {
         args_with_type.push({ ...args[i], type: params[i].type });
     }
 
+    // Deal with varargs.
+    const last_param = params[params.length - 1];
+
+    if (
+        last_param &&
+        (last_param.type.kind === Kind.ILabelVar || last_param.type.kind === Kind.RegRefVar)
+    ) {
+        const len = args.length;
+
+        for (let i = args_with_type.length; i < len; i++) {
+            args_with_type.push({ ...args[i], type: last_param.type });
+        }
+    }
+
     return args_with_type;
 }
 
@@ -138,7 +152,7 @@ function args_to_strings(params: Param[], args: ArgWithType[], stack: boolean): 
         const type = params[i].type;
         const arg = args[i];
 
-        if (arg == null) {
+        if (arg == undefined) {
             arg_strings.push("");
             continue;
         }
