@@ -224,6 +224,7 @@ export class QuestEntityControls implements Disposable {
 
     private drop = (e: EntityDragEvent) => {
         this.process_mouse_event(e.event);
+        this.renderer.dom_element.focus();
 
         this.state = this.state.process_event({
             type: EvtType.EntityDrop,
