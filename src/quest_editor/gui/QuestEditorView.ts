@@ -186,10 +186,14 @@ export class QuestEditorView extends ResizableWidget {
 
     private attempt_gl_init(config: GoldenLayout.Config): GoldenLayout {
         const layout = new GoldenLayout(config, this.layout_element);
+        // eslint-disable-next-line @typescript-eslint/no-this-alias
+        const self = this;
 
         try {
             for (const [view_ctor, name] of VIEW_TO_NAME) {
-                layout.registerComponent(name, (container: Container) => {
+                // registerComponent expects a regular function and not an arrow function.
+                // This function will be called with new.
+                layout.registerComponent(name, function(container: Container) {
                     const view = new view_ctor();
 
                     container.on("close", () => view.dispose());
@@ -200,7 +204,7 @@ export class QuestEditorView extends ResizableWidget {
 
                     view.resize(container.width, container.height);
 
-                    this.sub_views.set(name, view);
+                    self.sub_views.set(name, view);
                     container.getElement().append(view.element);
                 });
             }
