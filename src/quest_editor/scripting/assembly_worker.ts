@@ -2,6 +2,8 @@ import {
     AssemblyChangeInput,
     AssemblySettingsChangeInput,
     AssemblyWorkerInput,
+    DefinitionInput,
+    DefinitionOutput,
     InputMessageType,
     NewObjectCodeOutput,
     OutputMessageType,
@@ -56,6 +58,9 @@ function process_messages(): void {
                 break;
             case InputMessageType.SignatureHelp:
                 signature_help(message);
+                break;
+            case InputMessageType.Definition:
+                definition(message);
                 break;
             case InputMessageType.SettingsChange:
                 settings_change(message);
@@ -134,6 +139,15 @@ function signature_help(message: SignatureHelpInput): void {
         id: message.id,
         opcode,
         active_param,
+    };
+    ctx.postMessage(response);
+}
+
+function definition(message: DefinitionInput): void {
+    // TODO: provide definition
+    const response: DefinitionOutput = {
+        type: OutputMessageType.Definition,
+        id: message.id,
     };
     ctx.postMessage(response);
 }

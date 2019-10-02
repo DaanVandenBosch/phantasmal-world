@@ -14,6 +14,7 @@ import ITextModel = editor.ITextModel;
 import CompletionList = languages.CompletionList;
 import IMarkerData = editor.IMarkerData;
 import SignatureHelpResult = languages.SignatureHelpResult;
+import LocationLink = languages.LocationLink;
 
 const assembly_analyser = new AssemblyAnalyser();
 
@@ -66,6 +67,12 @@ languages.setLanguageConfiguration("psoasm", {
     surroundingPairs: [{ open: '"', close: '"' }],
     comments: {
         lineComment: "//",
+    },
+});
+
+languages.registerDefinitionProvider("psoasm", {
+    provideDefinition(_model: ITextModel, position: Position): Promise<LocationLink[]> {
+        return assembly_analyser.provide_definition(position.lineNumber, position.column);
     },
 });
 

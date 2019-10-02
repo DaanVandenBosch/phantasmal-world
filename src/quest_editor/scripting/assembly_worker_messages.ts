@@ -6,6 +6,7 @@ export enum InputMessageType {
     NewAssembly,
     AssemblyChange,
     SignatureHelp,
+    Definition,
     SettingsChange,
 }
 
@@ -13,6 +14,7 @@ export type AssemblyWorkerInput =
     | NewAssemblyInput
     | AssemblyChangeInput
     | SignatureHelpInput
+    | DefinitionInput
     | AssemblySettingsChangeInput;
 
 export type NewAssemblyInput = {
@@ -38,6 +40,13 @@ export type SignatureHelpInput = {
     readonly col: number;
 };
 
+export type DefinitionInput = {
+    readonly type: InputMessageType.Definition;
+    readonly id: number;
+    readonly line_no: number;
+    readonly col: number;
+};
+
 export type AssemblySettingsChangeInput = {
     readonly type: InputMessageType.SettingsChange;
     readonly settings: Partial<AssemblySettings>;
@@ -46,9 +55,10 @@ export type AssemblySettingsChangeInput = {
 export enum OutputMessageType {
     NewObjectCode,
     SignatureHelp,
+    Definition,
 }
 
-export type AssemblyWorkerOutput = NewObjectCodeOutput | SignatureHelpOutput;
+export type AssemblyWorkerOutput = NewObjectCodeOutput | SignatureHelpOutput | DefinitionOutput;
 
 export type NewObjectCodeOutput = {
     readonly type: OutputMessageType.NewObjectCode;
@@ -63,4 +73,9 @@ export type SignatureHelpOutput = {
     readonly id: number;
     readonly opcode?: Opcode;
     readonly active_param: number;
+};
+
+export type DefinitionOutput = {
+    readonly type: OutputMessageType.Definition;
+    readonly id: number;
 };

@@ -4,6 +4,7 @@ import {
     AssemblyChangeInput,
     AssemblySettingsChangeInput,
     AssemblyWorkerOutput,
+    DefinitionInput,
     InputMessageType,
     NewAssemblyInput,
     OutputMessageType,
@@ -23,6 +24,7 @@ import CompletionItem = languages.CompletionItem;
 import IModelContentChange = editor.IModelContentChange;
 import SignatureHelp = languages.SignatureHelp;
 import ParameterInformation = languages.ParameterInformation;
+import LocationLink = languages.LocationLink;
 
 const INSTRUCTION_SUGGESTIONS = OPCODES.filter(opcode => opcode != null).map(opcode => {
     return ({
@@ -111,24 +113,27 @@ export class AssemblyAnalyser implements Disposable {
     }
 
     async provide_signature_help(line_no: number, col: number): Promise<SignatureHelp | undefined> {
-        const id = this.message_id++;
-
-        return new Promise<SignatureHelp>((resolve, reject) => {
-            this.promises.set(id, { resolve, reject });
-            const message: SignatureHelpInput = {
+        return await this.send_and_await_response<SignatureHelpInput, SignatureHelp>(
+            "Signature help provision",
+            id => ({
                 type: InputMessageType.SignatureHelp,
                 id,
                 line_no,
                 col,
-            };
-            this.worker.postMessage(message);
+            }),
+        );
+    }
 
-            setTimeout(() => {
-                if (this.promises.delete(id)) {
-                    reject(new Error("Signature help timed out."));
-                }
-            }, 5_000);
-        });
+    async provide_definition(line_no: number, col: number): Promise<LocationLink[]> {
+        return await this.send_and_await_response<DefinitionInput, LocationLink[]>(
+            "Definition provision",
+            id => ({
+                type: InputMessageType.Definition,
+                id,
+                line_no,
+                col,
+            }),
+        );
     }
 
     update_settings(changed_settings: Partial<AssemblySettings>): void {
@@ -141,6 +146,25 @@ export class AssemblyAnalyser implements Disposable {
 
     dispose(): void {
         this.worker.terminate();
+    }
+
+    private async send_and_await_response<M, R>(
+        name: string,
+        create_request: (id: number) => M,
+    ): Promise<R> {
+        const id = this.message_id++;
+
+        return new Promise<R>((resolve, reject) => {
+            this.promises.set(id, { resolve, reject });
+            const message: M = create_request(id);
+            this.worker.postMessage(message);
+
+            setTimeout(() => {
+                if (this.promises.delete(id)) {
+                    reject(new Error(`${name} timed out.`));
+                }
+            }, 5_000);
+        });
     }
 
     private process_worker_message = (e: MessageEvent): void => {
@@ -158,6 +182,7 @@ export class AssemblyAnalyser implements Disposable {
                     this._issues.val = { warnings: message.warnings, errors: message.errors };
                 }
                 break;
+
             case OutputMessageType.SignatureHelp:
                 {
                     const promise = this.promises.get(message.id);
@@ -227,6 +252,18 @@ export class AssemblyAnalyser implements Disposable {
                         } else {
                             promise.resolve(undefined);
                         }
+                    }
+                }
+                break;
+
+            case OutputMessageType.Definition:
+                {
+                    const promise = this.promises.get(message.id);
+
+                    if (promise) {
+                        this.promises.delete(message.id);
+                        // TODO: resolve LocationLinks
+                        promise.resolve([]);
                     }
                 }
                 break;
