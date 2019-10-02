@@ -110,6 +110,7 @@ function assembly_change(message: AssemblyChangeInput): void {
 
 // Hacky way of providing parameter hints.
 // We just tokenize the current line and look for the first identifier and check whether it's a valid opcode.
+// TODO: make use of new meta information in IR.
 function signature_help(message: SignatureHelpInput): void {
     let opcode: Opcode | undefined;
     let active_param = -1;

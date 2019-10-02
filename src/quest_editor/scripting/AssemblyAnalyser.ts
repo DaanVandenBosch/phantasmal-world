@@ -273,7 +273,7 @@ export class AssemblyAnalyser implements Disposable {
 
                     if (promise) {
                         this.promises.delete(message.id);
-                        // TODO: resolve LocationLinks
+
                         const location_links: LocationLink[] = [];
 
                         if (message.line_no != undefined) {
