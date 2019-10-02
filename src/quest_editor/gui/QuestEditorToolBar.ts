@@ -69,17 +69,25 @@ export class QuestEditorToolBar extends ToolBar {
                 }
             },
         );
-
-        super({
-            children: [
-                new_quest_button,
-                open_file_button,
-                save_as_button,
-                undo_button,
-                redo_button,
-                area_select,
-            ],
+        const run_button = new Button("Run in VM", {
+            icon_left: Icon.Play,
+            tooltip: "[Experimental] Run the current quest in a virtual machine."
         });
+
+        const children = [
+            new_quest_button,
+            open_file_button,
+            save_as_button,
+            undo_button,
+            redo_button,
+            area_select,
+        ];
+
+        if (gui_store.feature_active("vm")) {
+            children.push(run_button);
+        }
+
+        super({ children });
 
         const quest_loaded = quest_editor_store.current_quest.map(q => q != undefined);
 
@@ -108,6 +116,8 @@ export class QuestEditorToolBar extends ToolBar {
             area_select.selected.observe(({ value: area }) =>
                 quest_editor_store.set_current_area(area),
             ),
+
+            run_button.click.observe(() => quest_editor_store.run_current_quest_in_vm()),
 
             gui_store.on_global_keydown(GuiTool.QuestEditor, "Ctrl-O", () =>
                 open_file_button.click(),

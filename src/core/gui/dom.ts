@@ -146,6 +146,7 @@ export enum Icon {
     Redo,
     Remove,
     GitHub,
+    Play,
 }
 
 export function icon(icon: Icon): HTMLElement {
@@ -178,6 +179,9 @@ export function icon(icon: Icon): HTMLElement {
             break;
         case Icon.GitHub:
             icon_str = "fab fa-github";
+            break;
+        case Icon.Play:
+            icon_str = "fas fa-play";
             break;
     }
 

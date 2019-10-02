@@ -28,6 +28,7 @@ import { RemoveEntityAction } from "../actions/RemoveEntityAction";
 import { Euler, Vector3 } from "three";
 import { vec3_to_threejs } from "../../core/rendering/conversion";
 import { RotateEntityAction } from "../actions/RotateEntityAction";
+import { VirtualMachine, ExecutionResult } from "../scripting/vm";
 import Logger = require("js-logger");
 
 const logger = Logger.get("quest_editor/gui/QuestEditorStore");
@@ -350,6 +351,35 @@ export class QuestEditorStore implements Disposable {
             logger.warn(`Section ${entity.section_id.val} not found.`);
         }
     };
+
+    run_current_quest_in_vm = () => {
+        logger.setLevel(logger.TRACE);
+
+        const quest = this.current_quest.val;
+
+        if (!quest) {
+            throw new Error("No quest");
+        }
+
+        const vm = new VirtualMachine();
+        vm.load_object_code(quest.object_code);
+        vm.start_thread(0);
+
+        exec_loop:
+        while (true) {
+            const exec_result = vm.execute();
+
+            switch (exec_result) {
+                case ExecutionResult.Ok:
+                    break;
+                case ExecutionResult.WaitingVsync:
+                    vm.vsync();
+                    break;
+                case ExecutionResult.Halted:
+                    break exec_loop;
+            }
+        }
+    }
 }
 
 export const quest_editor_store = new QuestEditorStore();
