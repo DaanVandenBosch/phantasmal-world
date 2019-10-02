@@ -74,17 +74,20 @@ export class QuestEditorToolBar extends ToolBar {
             tooltip: "[Experimental] Run the current quest in a virtual machine."
         });
 
-        super({
-            children: [
-                new_quest_button,
-                open_file_button,
-                save_as_button,
-                undo_button,
-                redo_button,
-                area_select,
-                run_button,
-            ],
-        });
+        const children = [
+            new_quest_button,
+            open_file_button,
+            save_as_button,
+            undo_button,
+            redo_button,
+            area_select,
+        ];
+
+        if (gui_store.feature_active("vm")) {
+            children.push(run_button);
+        }
+
+        super({ children });
 
         const quest_loaded = quest_editor_store.current_quest.map(q => q != undefined);
 
