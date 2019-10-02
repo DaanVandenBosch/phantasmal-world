@@ -1,4 +1,4 @@
-import { Instruction, InstructionSegment, Segment, SegmentType, Arg } from "../instructions";
+import { Instruction, InstructionSegment, Segment, SegmentType, Arg, new_arg } from "../instructions";
 import {
     OP_CALL,
     OP_CLEAR,
@@ -138,12 +138,18 @@ export class VirtualMachine {
                 this.jump_to_label(exec, inst.args[0].value);
                 break;
             case OP_ARG_PUSHR:
+                // deref given register ref
+                this.push_arg_stack(exec, new_arg(
+                    this.get_sint(inst.args[0].value),
+                    REGISTER_SIZE,
+                    inst.args[0].asm
+                ));
+                break;
             case OP_ARG_PUSHL:
             case OP_ARG_PUSHB:
             case OP_ARG_PUSHW:
-            case OP_ARG_PUSHA:
-            case OP_ARG_PUSHO:
             case OP_ARG_PUSHS:
+                // push arg as-is
                 this.push_arg_stack(exec, inst.args[0].value);
                 break;
             default:
