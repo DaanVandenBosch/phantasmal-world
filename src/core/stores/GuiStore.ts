@@ -23,13 +23,35 @@ class GuiStore implements Disposable {
 
     private readonly _server: WritableProperty<Server> = property(Server.Ephinea);
     private readonly hash_disposer = this.tool.observe(({ value: tool }) => {
-        window.location.hash = `#/${gui_tool_to_string(tool)}`;
+        let hash = `#/${gui_tool_to_string(tool)}`;
+
+        if (this.features.size) {
+            hash += "?features=" + [...this.features].join(",");
+        }
+
+        window.location.hash = hash;
     });
     private readonly global_keydown_handlers = new Map<string, (e: KeyboardEvent) => void>();
+    private readonly features: Set<string> = new Set();
 
     constructor() {
-        const tool = window.location.hash.slice(2);
-        this.tool.val = string_to_gui_tool(tool) || GuiTool.Viewer;
+        const url = window.location.hash.slice(2);
+        const [tool_str, params_str] = url.split("?");
+
+        this.tool.val = string_to_gui_tool(tool_str) || GuiTool.Viewer;
+
+        if (params_str) {
+            const features = params_str
+                .split("&")
+                .map(p => p.split("="))
+                .find(([key]) => key === "features");
+
+            if (features && features.length >= 2) {
+                for (const feature of features[1].split(",")) {
+                    this.features.add(feature);
+                }
+            }
+        }
 
         this.server = this._server;
 
@@ -56,6 +78,10 @@ class GuiStore implements Disposable {
                 this.global_keydown_handlers.delete(key);
             },
         };
+    }
+
+    feature_active(feature: string): boolean {
+        return this.features.has(feature);
     }
 
     private dispatch_global_keydown = (e: KeyboardEvent): void => {
