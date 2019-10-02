@@ -4,11 +4,13 @@ import { array_buffers_equal, arrays_equal } from "../../core/util";
 /**
  * Instruction invocation.
  */
-export class Instruction {
+export type Instruction = {
+    readonly opcode: Opcode;
+    readonly args: readonly Arg[];
     /**
      * Byte size of the argument list.
      */
-    readonly arg_size: number = 0;
+    readonly arg_size: number;
     /**
      * Byte size of the entire instruction, i.e. the sum of the opcode size and all argument sizes.
      */
@@ -16,36 +18,48 @@ export class Instruction {
     /**
      * Maps each parameter by index to its arguments.
      */
-    readonly param_to_args: Arg[][] = [];
+    readonly param_to_args: readonly Arg[][];
+};
 
-    constructor(readonly opcode: Opcode, readonly args: Arg[]) {
-        const len = Math.min(opcode.params.length, args.length);
+export function new_instruction(opcode: Opcode, args: Arg[]): Instruction {
+    const len = Math.min(opcode.params.length, args.length);
+    const param_to_args: Arg[][] = [];
+    let arg_size = 0;
 
-        for (let i = 0; i < len; i++) {
-            const type = opcode.params[i].type;
-            const arg = args[i];
-            this.param_to_args[i] = [];
+    for (let i = 0; i < len; i++) {
+        const type = opcode.params[i].type;
+        const arg = args[i];
+        param_to_args[i] = [];
 
-            switch (type.kind) {
-                case Kind.ILabelVar:
-                case Kind.RegRefVar:
-                    this.arg_size++;
+        switch (type.kind) {
+            case Kind.ILabelVar:
+            case Kind.RegRefVar:
+                arg_size++;
 
-                    for (let j = i; j < args.length; j++) {
-                        this.param_to_args[i].push(args[j]);
-                        this.arg_size += args[j].size;
-                    }
+                for (let j = i; j < args.length; j++) {
+                    param_to_args[i].push(args[j]);
+                    arg_size += args[j].size;
+                }
 
-                    break;
-                default:
-                    this.arg_size += arg.size;
-                    this.param_to_args[i].push(arg);
-                    break;
-            }
+                break;
+            default:
+                arg_size += arg.size;
+                param_to_args[i].push(arg);
+                break;
         }
-
-        this.size = opcode.size + this.arg_size;
     }
+
+    return {
+        opcode,
+        args,
+        arg_size,
+        size: opcode.size + arg_size,
+        param_to_args,
+    };
+}
+
+function instructions_equal(a: Instruction, b: Instruction): boolean {
+    return a.opcode.code === b.opcode.code && arrays_equal(a.args, b.args, args_equal);
 }
 
 /**
@@ -55,6 +69,10 @@ export type Arg = {
     value: any;
     size: number;
 };
+
+function args_equal(a: Arg, b: Arg): boolean {
+    return a.value === b.value && a.size === b.size;
+}
 
 export enum SegmentType {
     Instructions,
@@ -85,10 +103,6 @@ export type StringSegment = {
     value: string;
 };
 
-export function object_code_equal(a: Segment[], b: Segment[]): boolean {
-    return arrays_equal(a, b, segments_equal);
-}
-
 function segments_equal(a: Segment, b: Segment): boolean {
     if (a.type !== b.type || !arrays_equal(a.labels, b.labels)) return false;
 
@@ -108,10 +122,6 @@ function segments_equal(a: Segment, b: Segment): boolean {
     }
 }
 
-function instructions_equal(a: Instruction, b: Instruction): boolean {
-    return a.opcode.code === b.opcode.code && arrays_equal(a.args, b.args, args_equal);
-}
-
-function args_equal(a: Arg, b: Arg): boolean {
-    return a.value === b.value && a.size === b.size;
+export function segment_arrays_equal(a: Segment[], b: Segment[]): boolean {
+    return arrays_equal(a, b, segments_equal);
 }

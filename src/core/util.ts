@@ -1,6 +1,6 @@
 export function arrays_equal<T>(
-    a: T[],
-    b: T[],
+    a: readonly T[],
+    b: readonly T[],
     equal: (element_a: T, element_b: T) => boolean = (a, b) => a === b,
 ): boolean {
     const len = a.length;

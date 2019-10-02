@@ -16,8 +16,8 @@ import {
 import {
     Arg,
     DataSegment,
-    Instruction,
     InstructionSegment,
+    new_instruction,
     Segment,
     SegmentType,
     StringSegment,
@@ -194,7 +194,7 @@ class Assembler {
             this.segment = instruction_segment;
             this.object_code.push(instruction_segment);
         } else if (this.segment.type === SegmentType.Instructions) {
-            this.segment.instructions.push(new Instruction(opcode, args));
+            this.segment.instructions.push(new_instruction(opcode, args));
         } else {
             logger.error(`Line ${this.line_no}: Expected instructions segment.`);
         }
@@ -202,7 +202,7 @@ class Assembler {
 
     private add_bytes(bytes: number[]): void {
         if (!this.segment) {
-            // Unadressable data, technically valid.
+            // Unaddressable data, technically valid.
             const data_segment: DataSegment = {
                 labels: [],
                 type: SegmentType.Data,

@@ -6,7 +6,7 @@ import { BufferCursor } from "../../core/data_formats/cursor/BufferCursor";
 import { parse_bin, write_bin } from "../../core/data_formats/parsing/quest/bin";
 import { assemble } from "./assembly";
 import { disassemble } from "./disassembly";
-import { Instruction, object_code_equal, Segment, SegmentType } from "./instructions";
+import { new_instruction, segment_arrays_equal, Segment, SegmentType } from "./instructions";
 import { Opcode } from "./opcodes";
 
 test("vararg instructions should be disassembled correctly", () => {
@@ -15,13 +15,13 @@ test("vararg instructions should be disassembled correctly", () => {
             type: SegmentType.Instructions,
             labels: [0],
             instructions: [
-                new Instruction(Opcode.SWITCH_JMP, [
+                new_instruction(Opcode.SWITCH_JMP, [
                     { value: 90, size: 1 },
                     { value: 100, size: 2 },
                     { value: 101, size: 2 },
                     { value: 102, size: 2 },
                 ]),
-                new Instruction(Opcode.RET, []),
+                new_instruction(Opcode.RET, []),
             ],
         },
     ]);
@@ -44,11 +44,11 @@ test("va list instructions should be disassembled correctly", () => {
             type: SegmentType.Instructions,
             labels: [0],
             instructions: [
-                new Instruction(Opcode.VA_START, []),
-                new Instruction(Opcode.ARG_PUSHW, [{ value: 1337, size: 2 }]),
-                new Instruction(Opcode.VA_CALL, [{ value: 100, size: 2 }]),
-                new Instruction(Opcode.VA_END, []),
-                new Instruction(Opcode.RET, []),
+                new_instruction(Opcode.VA_START, []),
+                new_instruction(Opcode.ARG_PUSHW, [{ value: 1337, size: 2 }]),
+                new_instruction(Opcode.VA_CALL, [{ value: 100, size: 2 }]),
+                new_instruction(Opcode.VA_END, []),
+                new_instruction(Opcode.RET, []),
             ],
         },
     ];
@@ -81,7 +81,7 @@ test("assembling disassembled object code with manual stack management should re
     expect(errors).toEqual([]);
     expect(warnings).toEqual([]);
 
-    expect(object_code_equal(object_code, bin.object_code)).toBe(true);
+    expect(segment_arrays_equal(object_code, bin.object_code)).toBe(true);
 });
 
 // Round-trip test.
@@ -95,7 +95,7 @@ test("assembling disassembled object code with automatic stack management should
     expect(errors).toEqual([]);
     expect(warnings).toEqual([]);
 
-    expect(object_code_equal(object_code, bin.object_code)).toBe(true);
+    expect(segment_arrays_equal(object_code, bin.object_code)).toBe(true);
 });
 
 // Round-trip test.

@@ -133,7 +133,7 @@ export function disassemble(object_code: Segment[], manual_stack = false): strin
     return lines;
 }
 
-function add_type_to_args(params: Param[], args: Arg[]): ArgWithType[] {
+function add_type_to_args(params: readonly Param[], args: readonly Arg[]): ArgWithType[] {
     const args_with_type: ArgWithType[] = [];
     const len = Math.min(params.length, args.length);
 
@@ -158,7 +158,7 @@ function add_type_to_args(params: Param[], args: Arg[]): ArgWithType[] {
     return args_with_type;
 }
 
-function args_to_strings(params: Param[], args: ArgWithType[], stack: boolean): string[] {
+function args_to_strings(params: readonly Param[], args: ArgWithType[], stack: boolean): string[] {
     const arg_strings: string[] = [];
 
     for (let i = 0; i < params.length; i++) {

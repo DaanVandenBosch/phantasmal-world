@@ -8,6 +8,7 @@ import {
     DataSegment,
     Instruction,
     InstructionSegment,
+    new_instruction,
     Segment,
     SegmentType,
     StringSegment,
@@ -557,14 +558,14 @@ function parse_instructions_segment(
         // Parse the arguments.
         try {
             const args = parse_instruction_arguments(cursor, opcode);
-            instructions.push(new Instruction(opcode, args));
+            instructions.push(new_instruction(opcode, args));
         } catch (e) {
             if (lenient) {
                 logger.error(
                     `Exception occurred while parsing arguments for instruction ${opcode.mnemonic}.`,
                     e,
                 );
-                instructions.push(new Instruction(opcode, []));
+                instructions.push(new_instruction(opcode, []));
             } else {
                 throw e;
             }
