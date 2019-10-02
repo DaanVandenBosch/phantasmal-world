@@ -97,6 +97,8 @@ export class VirtualMachine {
         const exec = this.thread[this.thread_idx];
         const inst = this.get_next_instruction_from_thread(exec);
 
+        const [arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7] = inst.args.map(arg => arg.value);
+
         switch (inst.opcode) {
             case OP_NOP:
                 break;
@@ -110,37 +112,37 @@ export class VirtualMachine {
                 this.halt();
                 break;
             case OP_THREAD:
-                this.start_thread(inst.args[0].value);
+                this.start_thread(arg0);
                 break;
             case OP_LET:
-                this.set_sint(inst.args[0].value, this.get_sint(inst.args[1].value));
+                this.set_sint(arg0, this.get_sint(arg1));
                 break;
             case OP_LETI:
-                this.set_sint(inst.args[0].value, inst.args[1].value);
+                this.set_sint(arg0, arg1);
                 break;
             case OP_LETB:
             case OP_LETW:
-                this.set_uint(inst.args[0].value, inst.args[1].value);
+                this.set_uint(arg0, arg1);
                 break;
             case OP_SET:
-                this.set_sint(inst.args[0].value, 1);
+                this.set_sint(arg0, 1);
                 break;
             case OP_CLEAR:
-                this.set_sint(inst.args[0].value, 0);
+                this.set_sint(arg0, 0);
                 break;
             case OP_REV:
-                this.set_sint(inst.args[0].value, this.get_sint(inst.args[0].value) === 0 ? 1 : 0);
+                this.set_sint(arg0, this.get_sint(arg0) === 0 ? 1 : 0);
                 break;
             case OP_CALL:
-                this.push_call_stack(exec, inst.args[0].value);
+                this.push_call_stack(exec, arg0);
                 break;
             case OP_JMP:
-                this.jump_to_label(exec, inst.args[0].value);
+                this.jump_to_label(exec, arg0);
                 break;
             case OP_ARG_PUSHR:
                 // deref given register ref
                 this.push_arg_stack(exec, new_arg(
-                    this.get_sint(inst.args[0].value),
+                    this.get_sint(arg0),
                     REGISTER_SIZE,
                     inst.args[0].asm
                 ));
@@ -150,7 +152,7 @@ export class VirtualMachine {
             case OP_ARG_PUSHW:
             case OP_ARG_PUSHS:
                 // push arg as-is
-                this.push_arg_stack(exec, inst.args[0].value);
+                this.push_arg_stack(exec, arg0);
                 break;
             default:
                 throw new Error(`Unsupported instruction: ${inst.opcode.mnemonic}.`);
