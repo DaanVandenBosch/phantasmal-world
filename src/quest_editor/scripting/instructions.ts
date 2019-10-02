@@ -30,14 +30,10 @@ export type Instruction = {
     /**
      * Dimensions of the opcode's mnemonic in the related asm code.
      */
-    readonly asm: AsmToken;
+    readonly asm?: AsmToken;
 };
 
-export function new_instruction(
-    opcode: Opcode,
-    args: Arg[],
-    asm: AsmToken = { col: 0, len: 0 },
-): Instruction {
+export function new_instruction(opcode: Opcode, args: Arg[], asm?: AsmToken): Instruction {
     const len = Math.min(opcode.params.length, args.length);
     const param_to_args: Arg[][] = [];
     let arg_size = 0;
@@ -85,10 +81,10 @@ function instructions_equal(a: Instruction, b: Instruction): boolean {
 export type Arg = {
     readonly value: any;
     readonly size: number;
-    readonly asm: AsmToken;
+    readonly asm?: AsmToken;
 };
 
-export function new_arg(value: any, size: number, asm: AsmToken = { col: 0, len: 0 }): Arg {
+export function new_arg(value: any, size: number, asm?: AsmToken): Arg {
     return {
         value,
         size,
