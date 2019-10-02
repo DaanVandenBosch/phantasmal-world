@@ -6,8 +6,8 @@ import { BufferCursor } from "../../core/data_formats/cursor/BufferCursor";
 import { parse_bin, write_bin } from "../../core/data_formats/parsing/quest/bin";
 import { assemble } from "./assembly";
 import { disassemble } from "./disassembly";
-import { new_instruction, segment_arrays_equal, Segment, SegmentType } from "./instructions";
-import { Opcode } from "./opcodes";
+import { new_instruction, Segment, segment_arrays_equal, SegmentType } from "./instructions";
+import { OP_ARG_PUSHW, OP_RET, OP_SWITCH_JMP, OP_VA_CALL, OP_VA_END, OP_VA_START } from "./opcodes";
 
 test("vararg instructions should be disassembled correctly", () => {
     const asm = disassemble([
@@ -15,13 +15,13 @@ test("vararg instructions should be disassembled correctly", () => {
             type: SegmentType.Instructions,
             labels: [0],
             instructions: [
-                new_instruction(Opcode.SWITCH_JMP, [
+                new_instruction(OP_SWITCH_JMP, [
                     { value: 90, size: 1 },
                     { value: 100, size: 2 },
                     { value: 101, size: 2 },
                     { value: 102, size: 2 },
                 ]),
-                new_instruction(Opcode.RET, []),
+                new_instruction(OP_RET, []),
             ],
         },
     ]);
@@ -44,11 +44,11 @@ test("va list instructions should be disassembled correctly", () => {
             type: SegmentType.Instructions,
             labels: [0],
             instructions: [
-                new_instruction(Opcode.VA_START, []),
-                new_instruction(Opcode.ARG_PUSHW, [{ value: 1337, size: 2 }]),
-                new_instruction(Opcode.VA_CALL, [{ value: 100, size: 2 }]),
-                new_instruction(Opcode.VA_END, []),
-                new_instruction(Opcode.RET, []),
+                new_instruction(OP_VA_START, []),
+                new_instruction(OP_ARG_PUSHW, [{ value: 1337, size: 2 }]),
+                new_instruction(OP_VA_CALL, [{ value: 100, size: 2 }]),
+                new_instruction(OP_VA_END, []),
+                new_instruction(OP_RET, []),
             ],
         },
     ];

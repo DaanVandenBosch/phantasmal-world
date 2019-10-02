@@ -1,5 +1,34 @@
 import { Instruction, InstructionSegment } from "../instructions";
-import { Opcode } from "../opcodes";
+import {
+    OP_CALL,
+    OP_JMP,
+    OP_JMP_E,
+    OP_JMP_G,
+    OP_JMP_GE,
+    OP_JMP_L,
+    OP_JMP_LE,
+    OP_JMP_NE,
+    OP_JMP_OFF,
+    OP_JMP_ON,
+    OP_JMPI_E,
+    OP_JMPI_G,
+    OP_JMPI_GE,
+    OP_JMPI_L,
+    OP_JMPI_LE,
+    OP_JMPI_NE,
+    OP_RET,
+    OP_SWITCH_CALL,
+    OP_SWITCH_JMP,
+    OP_UJMP_G,
+    OP_UJMP_GE,
+    OP_UJMP_L,
+    OP_UJMP_LE,
+    OP_UJMPI_G,
+    OP_UJMPI_GE,
+    OP_UJMPI_L,
+    OP_UJMPI_LE,
+    OP_VA_CALL,
+} from "../opcodes";
 
 export enum BranchType {
     None,
@@ -81,63 +110,63 @@ export class ControlFlowGraph {
             let branch_type: BranchType;
             let branch_labels: number[];
 
-            switch (inst.opcode) {
+            switch (inst.opcode.code) {
                 // Return.
-                case Opcode.RET:
+                case OP_RET.code:
                     branch_type = BranchType.Return;
                     branch_labels = [];
                     break;
 
                 // Unconditional jump.
-                case Opcode.JMP:
+                case OP_JMP.code:
                     branch_type = BranchType.Jump;
                     branch_labels = [inst.args[0].value];
                     break;
 
                 // Conditional jumps.
-                case Opcode.JMP_ON:
-                case Opcode.JMP_OFF:
+                case OP_JMP_ON.code:
+                case OP_JMP_OFF.code:
                     branch_type = BranchType.ConditionalJump;
                     branch_labels = [inst.args[0].value];
                     break;
-                case Opcode.JMP_E:
-                case Opcode.JMPI_E:
-                case Opcode.JMP_NE:
-                case Opcode.JMPI_NE:
-                case Opcode.UJMP_G:
-                case Opcode.UJMPI_G:
-                case Opcode.JMP_G:
-                case Opcode.JMPI_G:
-                case Opcode.UJMP_L:
-                case Opcode.UJMPI_L:
-                case Opcode.JMP_L:
-                case Opcode.JMPI_L:
-                case Opcode.UJMP_GE:
-                case Opcode.UJMPI_GE:
-                case Opcode.JMP_GE:
-                case Opcode.JMPI_GE:
-                case Opcode.UJMP_LE:
-                case Opcode.UJMPI_LE:
-                case Opcode.JMP_LE:
-                case Opcode.JMPI_LE:
+                case OP_JMP_E.code:
+                case OP_JMPI_E.code:
+                case OP_JMP_NE.code:
+                case OP_JMPI_NE.code:
+                case OP_UJMP_G.code:
+                case OP_UJMPI_G.code:
+                case OP_JMP_G.code:
+                case OP_JMPI_G.code:
+                case OP_UJMP_L.code:
+                case OP_UJMPI_L.code:
+                case OP_JMP_L.code:
+                case OP_JMPI_L.code:
+                case OP_UJMP_GE.code:
+                case OP_UJMPI_GE.code:
+                case OP_JMP_GE.code:
+                case OP_JMPI_GE.code:
+                case OP_UJMP_LE.code:
+                case OP_UJMPI_LE.code:
+                case OP_JMP_LE.code:
+                case OP_JMPI_LE.code:
                     branch_type = BranchType.ConditionalJump;
                     branch_labels = [inst.args[2].value];
                     break;
-                case Opcode.SWITCH_JMP:
+                case OP_SWITCH_JMP.code:
                     branch_type = BranchType.ConditionalJump;
                     branch_labels = inst.args.slice(1).map(a => a.value);
                     break;
 
                 // Calls.
-                case Opcode.CALL:
+                case OP_CALL.code:
                     branch_type = BranchType.Call;
                     branch_labels = [inst.args[0].value];
                     break;
-                case Opcode.VA_CALL:
+                case OP_VA_CALL.code:
                     branch_type = BranchType.Call;
                     branch_labels = [inst.args[0].value];
                     break;
-                case Opcode.SWITCH_CALL:
+                case OP_SWITCH_CALL.code:
                     branch_type = BranchType.Call;
                     branch_labels = inst.args.slice(1).map(a => a.value);
                     break;
@@ -215,6 +244,7 @@ export class ControlFlowGraph {
 /**
  * Links returning blocks to their callers.
  *
+ * @param label_blocks
  * @param ret Block the caller should return to.
  * @param caller Calling block.
  */
@@ -238,6 +268,8 @@ function link_returning_blocks(
 
 /**
  * @param encountered For avoiding infinite loops.
+ * @param ret
+ * @param block
  */
 function link_returning_blocks_recurse(
     encountered: Set<BasicBlock>,

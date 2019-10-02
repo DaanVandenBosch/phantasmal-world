@@ -4,7 +4,24 @@ import {
     Kind,
     MAX_SIGNED_DWORD_VALUE,
     MIN_SIGNED_DWORD_VALUE,
-    Opcode,
+    OP_ADDI,
+    OP_CLEAR,
+    OP_DIVI,
+    OP_GET_DIFFLVL,
+    OP_GET_RANDOM,
+    OP_GET_SLOTNUMBER,
+    OP_IF_ZONE_CLEAR,
+    OP_LET,
+    OP_LETB,
+    OP_LETI,
+    OP_LETW,
+    OP_MULI,
+    OP_REV,
+    OP_SET,
+    OP_STACK_POPM,
+    OP_STACK_PUSHM,
+    OP_SUBI,
+    OP_SYNC_LETI,
     ParamAccess,
 } from "../opcodes";
 import { BasicBlock, ControlFlowGraph } from "./ControlFlowGraph";
@@ -59,31 +76,31 @@ function find_values(
         const instruction = block.segment.instructions[i];
         const args = instruction.args;
 
-        switch (instruction.opcode) {
-            case Opcode.LET:
+        switch (instruction.opcode.code) {
+            case OP_LET.code:
                 if (args[0].value === register) {
                     return find_values(ctx, new Set(path), block, i, args[1].value);
                 }
                 break;
-            case Opcode.LETI:
-            case Opcode.LETB:
-            case Opcode.LETW:
-            case Opcode.SYNC_LETI:
+            case OP_LETI.code:
+            case OP_LETB.code:
+            case OP_LETW.code:
+            case OP_SYNC_LETI.code:
                 if (args[0].value === register) {
                     return new ValueSet().set_value(args[1].value);
                 }
                 break;
-            case Opcode.SET:
+            case OP_SET.code:
                 if (args[0].value === register) {
                     return new ValueSet().set_value(1);
                 }
                 break;
-            case Opcode.CLEAR:
+            case OP_CLEAR.code:
                 if (args[0].value === register) {
                     return new ValueSet().set_value(0);
                 }
                 break;
-            case Opcode.REV:
+            case OP_REV.code:
                 if (args[0].value === register) {
                     const prev_vals = find_values(ctx, new Set(path), block, i, register);
                     const prev_size = prev_vals.size();
@@ -97,46 +114,46 @@ function find_values(
                     }
                 }
                 break;
-            case Opcode.ADDI:
+            case OP_ADDI.code:
                 if (args[0].value === register) {
                     const prev_vals = find_values(ctx, new Set(path), block, i, register);
                     return prev_vals.scalar_add(args[1].value);
                 }
                 break;
-            case Opcode.SUBI:
+            case OP_SUBI.code:
                 if (args[0].value === register) {
                     const prev_vals = find_values(ctx, new Set(path), block, i, register);
                     return prev_vals.scalar_sub(args[1].value);
                 }
                 break;
-            case Opcode.MULI:
+            case OP_MULI.code:
                 if (args[0].value === register) {
                     const prev_vals = find_values(ctx, new Set(path), block, i, register);
                     return prev_vals.scalar_mul(args[1].value);
                 }
                 break;
-            case Opcode.DIVI:
+            case OP_DIVI.code:
                 if (args[0].value === register) {
                     const prev_vals = find_values(ctx, new Set(path), block, i, register);
                     return prev_vals.scalar_div(args[1].value);
                 }
                 break;
-            case Opcode.IF_ZONE_CLEAR:
+            case OP_IF_ZONE_CLEAR.code:
                 if (args[0].value === register) {
                     return new ValueSet().set_interval(0, 1);
                 }
                 break;
-            case Opcode.GET_DIFFLVL:
+            case OP_GET_DIFFLVL.code:
                 if (args[0].value === register) {
                     return new ValueSet().set_interval(0, 2);
                 }
                 break;
-            case Opcode.GET_SLOTNUMBER:
+            case OP_GET_SLOTNUMBER.code:
                 if (args[0].value === register) {
                     return new ValueSet().set_interval(0, 3);
                 }
                 break;
-            case Opcode.GET_RANDOM:
+            case OP_GET_RANDOM.code:
                 if (args[1].value === register) {
                     // TODO: undefined values.
                     const min = find_values(ctx, new Set(path), block, i, args[0].value).min() || 0;
@@ -147,8 +164,8 @@ function find_values(
                     return new ValueSet().set_interval(min, max - 1);
                 }
                 break;
-            case Opcode.STACK_PUSHM:
-            case Opcode.STACK_POPM:
+            case OP_STACK_PUSHM.code:
+            case OP_STACK_POPM.code:
                 {
                     const min_reg = args[0].value;
                     const max_reg = args[0].value + args[1].value;

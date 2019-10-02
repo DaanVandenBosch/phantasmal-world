@@ -3,7 +3,13 @@ import { Instruction } from "../instructions";
 import {
     MAX_SIGNED_DWORD_VALUE,
     MIN_SIGNED_DWORD_VALUE,
-    Opcode,
+    OP_ARG_PUSHA,
+    OP_ARG_PUSHB,
+    OP_ARG_PUSHL,
+    OP_ARG_PUSHO,
+    OP_ARG_PUSHR,
+    OP_ARG_PUSHS,
+    OP_ARG_PUSHW,
     StackInteraction,
 } from "../opcodes";
 import { BasicBlock, ControlFlowGraph } from "./ControlFlowGraph";
@@ -66,26 +72,26 @@ function find_values(
 
         const args = instruction.args;
 
-        switch (instruction.opcode) {
-            case Opcode.ARG_PUSHR:
+        switch (instruction.opcode.code) {
+            case OP_ARG_PUSHR.code:
                 if (position === 0) {
                     return register_value(ctx.cfg, instruction, args[0].value);
                 } else {
                     position--;
                     break;
                 }
-            case Opcode.ARG_PUSHL:
-            case Opcode.ARG_PUSHB:
-            case Opcode.ARG_PUSHW:
+            case OP_ARG_PUSHL.code:
+            case OP_ARG_PUSHB.code:
+            case OP_ARG_PUSHW.code:
                 if (position === 0) {
                     return new ValueSet().set_value(args[0].value);
                 } else {
                     position--;
                     break;
                 }
-            case Opcode.ARG_PUSHA:
-            case Opcode.ARG_PUSHO:
-            case Opcode.ARG_PUSHS:
+            case OP_ARG_PUSHA.code:
+            case OP_ARG_PUSHO.code:
+            case OP_ARG_PUSHS.code:
                 if (position === 0) {
                     return new ValueSet().set_interval(MIN_STACK_VALUE, MAX_STACK_VALUE);
                 } else {

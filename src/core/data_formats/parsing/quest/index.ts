@@ -5,7 +5,7 @@ import {
     Segment,
     SegmentType,
 } from "../../../../quest_editor/scripting/instructions";
-import { Opcode } from "../../../../quest_editor/scripting/opcodes";
+import { OP_BB_MAP_DESIGNATE, OP_SET_EPISODE } from "../../../../quest_editor/scripting/opcodes";
 import { prs_compress } from "../../compression/prs/compress";
 import { prs_decompress } from "../../compression/prs/decompress";
 import { ArrayBufferCursor } from "../../cursor/ArrayBufferCursor";
@@ -176,7 +176,7 @@ export function write_quest_qst(quest: Quest, file_name: string): ArrayBuffer {
  */
 function get_episode(func_0_instructions: Instruction[]): Episode {
     const set_episode = func_0_instructions.find(
-        instruction => instruction.opcode === Opcode.SET_EPISODE,
+        instruction => instruction.opcode.code === OP_SET_EPISODE.code,
     );
 
     if (set_episode) {
@@ -203,7 +203,7 @@ function extract_map_designations(
     const map_designations = new Map<number, number>();
 
     for (const inst of func_0_instructions) {
-        if (inst.opcode === Opcode.BB_MAP_DESIGNATE) {
+        if (inst.opcode.code === OP_BB_MAP_DESIGNATE.code) {
             map_designations.set(inst.args[0].value, inst.args[2].value);
         }
     }

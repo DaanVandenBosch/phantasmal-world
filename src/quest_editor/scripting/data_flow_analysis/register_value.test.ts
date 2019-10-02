@@ -1,6 +1,6 @@
 import { assemble } from "../assembly";
 import { InstructionSegment, SegmentType } from "../instructions";
-import { Opcode } from "../opcodes";
+import { OP_ADDI, OP_DIVI, OP_MULI, OP_SUBI, Opcode } from "../opcodes";
 import { ControlFlowGraph } from "./ControlFlowGraph";
 import {
     MAX_REGISTER_VALUE,
@@ -141,10 +141,10 @@ function test_branched(opcode: Opcode, ...expected: number[]): void {
     });
 }
 
-test_branched(Opcode.ADDI, 25, 35);
-test_branched(Opcode.SUBI, -5, 5);
-test_branched(Opcode.MULI, 150, 300);
-test_branched(Opcode.DIVI, 0, 1);
+test_branched(OP_ADDI, 25, 35);
+test_branched(OP_SUBI, -5, 5);
+test_branched(OP_MULI, 150, 300);
+test_branched(OP_DIVI, 0, 1);
 
 test(`get_random`, () => {
     const im = to_instructions(`

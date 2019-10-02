@@ -15,6 +15,8 @@ import {
 } from "../../../../quest_editor/scripting/instructions";
 import {
     Kind,
+    OP_JMP,
+    OP_RET,
     Opcode,
     OPCODES,
     StackInteraction,
@@ -580,7 +582,7 @@ function parse_instructions_segment(
         for (let i = instructions.length - 1; i >= 0; i--) {
             const opcode = instructions[i].opcode;
 
-            if (opcode === Opcode.RET || opcode === Opcode.JMP) {
+            if (opcode.code === OP_RET.code || opcode.code === OP_JMP.code) {
                 drop_through = false;
                 break;
             }

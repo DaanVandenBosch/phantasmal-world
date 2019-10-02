@@ -22,7 +22,18 @@ import {
     SegmentType,
     StringSegment,
 } from "./instructions";
-import { Kind, Opcode, OPCODES_BY_MNEMONIC, Param, StackInteraction } from "./opcodes";
+import {
+    Kind,
+    OP_ARG_PUSHB,
+    OP_ARG_PUSHL,
+    OP_ARG_PUSHR,
+    OP_ARG_PUSHS,
+    OP_ARG_PUSHW,
+    Opcode,
+    OPCODES_BY_MNEMONIC,
+    Param,
+    StackInteraction,
+} from "./opcodes";
 
 const logger = Logger.get("quest_editor/scripting/assembly");
 
@@ -484,29 +495,29 @@ class Assembler {
 
                     if (token.type === TokenType.Register) {
                         if (param.type.kind === Kind.RegTupRef) {
-                            this.add_instruction(Opcode.ARG_PUSHB, [arg]);
+                            this.add_instruction(OP_ARG_PUSHB, [arg]);
                         } else {
-                            this.add_instruction(Opcode.ARG_PUSHR, [arg]);
+                            this.add_instruction(OP_ARG_PUSHR, [arg]);
                         }
                     } else {
                         switch (param.type.kind) {
                             case Kind.Byte:
                             case Kind.RegRef:
                             case Kind.RegTupRef:
-                                this.add_instruction(Opcode.ARG_PUSHB, [arg]);
+                                this.add_instruction(OP_ARG_PUSHB, [arg]);
                                 break;
                             case Kind.Word:
                             case Kind.Label:
                             case Kind.ILabel:
                             case Kind.DLabel:
                             case Kind.SLabel:
-                                this.add_instruction(Opcode.ARG_PUSHW, [arg]);
+                                this.add_instruction(OP_ARG_PUSHW, [arg]);
                                 break;
                             case Kind.DWord:
-                                this.add_instruction(Opcode.ARG_PUSHL, [arg]);
+                                this.add_instruction(OP_ARG_PUSHL, [arg]);
                                 break;
                             case Kind.Float:
-                                this.add_instruction(Opcode.ARG_PUSHL, [
+                                this.add_instruction(OP_ARG_PUSHL, [
                                     {
                                         value: reinterpret_f32_as_i32(arg.value),
                                         size: 4,
@@ -514,7 +525,7 @@ class Assembler {
                                 ]);
                                 break;
                             case Kind.String:
-                                this.add_instruction(Opcode.ARG_PUSHS, [arg]);
+                                this.add_instruction(OP_ARG_PUSHS, [arg]);
                                 break;
                             default:
                                 logger.error(

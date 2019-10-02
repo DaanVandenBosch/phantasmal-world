@@ -13,7 +13,7 @@ import {
 import { assemble, AssemblySettings } from "./assembly";
 import Logger from "js-logger";
 import { SegmentType } from "./instructions";
-import { Opcode, OPCODES_BY_MNEMONIC } from "./opcodes";
+import { OP_BB_MAP_DESIGNATE, Opcode, OPCODES_BY_MNEMONIC } from "./opcodes";
 import { AssemblyLexer, IdentToken, TokenType } from "./AssemblyLexer";
 
 Logger.useDefaults({
@@ -169,7 +169,7 @@ function assemble_and_send(): void {
         if (segment.labels.includes(0)) {
             if (segment.type === SegmentType.Instructions) {
                 for (const inst of segment.instructions) {
-                    if (inst.opcode === Opcode.BB_MAP_DESIGNATE) {
+                    if (inst.opcode.code === OP_BB_MAP_DESIGNATE.code) {
                         map_designations.set(inst.args[0].value, inst.args[2].value);
                     }
                 }

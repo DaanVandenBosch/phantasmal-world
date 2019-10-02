@@ -105,14 +105,16 @@ function update_opcodes(): void {
 function opcode_to_code(output: string[], code: number, opcode?: any): void {
     const code_str = code.toString(16).padStart(code < 256 ? 2 : 4, "0");
     const mnemonic: string = (opcode && opcode.mnemonic) || `unknown_${code_str}`;
-    const var_name = mnemonic
-        .replace("!=", "ne")
-        .replace("<=", "le")
-        .replace(">=", "ge")
-        .replace("<", "l")
-        .replace(">", "g")
-        .replace("=", "e")
-        .toUpperCase();
+    const var_name =
+        "OP_" +
+        mnemonic
+            .replace("!=", "ne")
+            .replace("<=", "le")
+            .replace(">=", "ge")
+            .replace("<", "l")
+            .replace(">", "g")
+            .replace("=", "e")
+            .toUpperCase();
 
     if (opcode) {
         const stack_interaction =
@@ -124,21 +126,21 @@ function opcode_to_code(output: string[], code: number, opcode?: any): void {
 
         const params = params_to_code(opcode.params);
 
-        output.push(`    static readonly ${var_name} = (OPCODES[0x${code_str}] = new Opcode(
-        0x${code_str},
-        "${mnemonic}",
-        ${(opcode.doc && JSON.stringify(opcode.doc)) || "undefined"},
-        [${params}],
-        ${stack_interaction}
-    ));`);
+        output.push(`export const ${var_name} = (OPCODES[0x${code_str}] = new_opcode(
+    0x${code_str},
+    "${mnemonic}",
+    ${(opcode.doc && JSON.stringify(opcode.doc)) || "undefined"},
+    [${params}],
+    ${stack_interaction}
+));`);
     } else {
-        output.push(`    static readonly ${var_name} = (OPCODES[0x${code_str}] = new Opcode(
-        0x${code_str},
-        "${mnemonic}",
-        undefined,
-        [],
-        undefined
-    ));`);
+        output.push(`export const ${var_name} = (OPCODES[0x${code_str}] = new_opcode(
+    0x${code_str},
+    "${mnemonic}",
+    undefined,
+    [],
+    undefined
+));`);
     }
 }
 

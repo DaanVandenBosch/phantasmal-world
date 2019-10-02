@@ -1,5 +1,19 @@
 import { Instruction, InstructionSegment, Segment, SegmentType } from "../instructions";
-import { Opcode } from "../opcodes";
+import {
+    OP_CALL,
+    OP_CLEAR,
+    OP_EXIT,
+    OP_LET,
+    OP_LETB,
+    OP_LETI,
+    OP_LETW,
+    OP_NOP,
+    OP_RET,
+    OP_REV,
+    OP_SET,
+    OP_SYNC,
+    OP_THREAD,
+} from "../opcodes";
 import Logger from "js-logger";
 
 const logger = Logger.get("quest_editor/scripting/vm");
@@ -76,40 +90,40 @@ export class VirtualMachine {
         const inst = this.get_next_instruction_from_thread(exec);
 
         switch (inst.opcode) {
-            case Opcode.NOP:
+            case OP_NOP:
                 break;
-            case Opcode.RET:
+            case OP_RET:
                 this.pop_call_stack(this.thread_idx, exec);
                 break;
-            case Opcode.SYNC:
+            case OP_SYNC:
                 this.thread_idx++;
                 break;
-            case Opcode.EXIT:
+            case OP_EXIT:
                 this.halt();
                 break;
-            case Opcode.THREAD:
+            case OP_THREAD:
                 this.start_thread(inst.args[0].value);
                 break;
-            case Opcode.LET:
+            case OP_LET:
                 this.set_sint(inst.args[0].value, this.get_sint(inst.args[1].value));
                 break;
-            case Opcode.LETI:
+            case OP_LETI:
                 this.set_sint(inst.args[0].value, inst.args[1].value);
                 break;
-            case Opcode.LETB:
-            case Opcode.LETW:
+            case OP_LETB:
+            case OP_LETW:
                 this.set_uint(inst.args[0].value, inst.args[1].value);
                 break;
-            case Opcode.SET:
+            case OP_SET:
                 this.set_sint(inst.args[0].value, 1);
                 break;
-            case Opcode.CLEAR:
+            case OP_CLEAR:
                 this.set_sint(inst.args[0].value, 0);
                 break;
-            case Opcode.REV:
+            case OP_REV:
                 this.set_sint(inst.args[0].value, this.get_sint(inst.args[0].value) === 0 ? 1 : 0);
                 break;
-            case Opcode.CALL:
+            case OP_CALL:
                 this.push_call_stack(exec, inst.args[0].value);
                 break;
             default:
