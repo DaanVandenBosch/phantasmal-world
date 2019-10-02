@@ -535,7 +535,11 @@ class Assembler {
     /**
      * @returns true if arguments can be translated to object code, possibly after truncation. False otherwise.
      */
-    private parse_args(params: Param[], arg_and_tokens: [Arg, Token][], stack: boolean): boolean {
+    private parse_args(
+        params: readonly Param[],
+        arg_and_tokens: [Arg, Token][],
+        stack: boolean,
+    ): boolean {
         let semi_valid = true;
         let should_be_arg = true;
         let param_i = 0;

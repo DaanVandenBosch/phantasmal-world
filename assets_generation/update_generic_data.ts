@@ -10,6 +10,9 @@ const logger = Logger.get("assets_generation/update_generic_data");
 
 Logger.useDefaults({ defaultLevel: Logger.TRACE });
 
+const OPCODES_YML_FILE = `${RESOURCE_DIR}/scripting/opcodes.yml`;
+const OPCODES_SRC_FILE = `${SRC_DIR}/quest_editor/scripting/opcodes.ts`;
+
 update();
 
 function update(): void {
@@ -41,7 +44,9 @@ function update_opcodes(): void {
     logger.info("Generating opcodes.");
 
     // Add manual code.
-    const opcodes_src = readFileSync(`${SRC_DIR}/scripting/opcodes.ts`, { encoding: "UTF-8" });
+    const opcodes_src = readFileSync(OPCODES_SRC_FILE, {
+        encoding: "UTF-8",
+    });
     const file_lines: string[] = [];
     let in_manual_code = true;
     let generated_lines_insert_point = 0;
@@ -63,7 +68,7 @@ function update_opcodes(): void {
     });
 
     // Add generated code.
-    const yml = readFileSync(`${RESOURCE_DIR}/scripting/opcodes.yml`, { encoding: "UTF-8" });
+    const yml = readFileSync(OPCODES_YML_FILE, { encoding: "UTF-8" });
     const input = YAML.parse(yml);
     const generated_lines: string[] = [];
     let i = 0;
@@ -92,7 +97,7 @@ function update_opcodes(): void {
 
     // Write final file.
     file_lines.splice(generated_lines_insert_point, 0, ...generated_lines);
-    writeFileSync(`${SRC_DIR}/scripting/opcodes.ts`, file_lines.join("\n"));
+    writeFileSync(OPCODES_SRC_FILE, file_lines.join("\n"));
 
     logger.info("Done generating opcodes.");
 }
@@ -212,7 +217,7 @@ function params_to_code(params: any[]): string {
                     break;
             }
 
-            return `new Param(${type}, ${doc}, ${access})`;
+            return `new_param(${type}, ${doc}, ${access})`;
         })
         .join(", ");
 }
