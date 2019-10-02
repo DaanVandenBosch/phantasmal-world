@@ -146,47 +146,47 @@ export class VirtualMachine {
 
         const [arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7] = inst.args.map(arg => arg.value);
 
-        switch (inst.opcode) {
-            case OP_NOP:
+        switch (inst.opcode.code) {
+            case OP_NOP.code:
                 break;
-            case OP_RET:
+            case OP_RET.code:
                 this.pop_call_stack(this.thread_idx, exec);
                 break;
-            case OP_SYNC:
+            case OP_SYNC.code:
                 this.thread_idx++;
                 break;
-            case OP_EXIT:
+            case OP_EXIT.code:
                 this.halt();
                 break;
-            case OP_THREAD:
+            case OP_THREAD.code:
                 this.start_thread(arg0);
                 break;
-            case OP_LET:
+            case OP_LET.code:
                 this.set_sint(arg0, this.get_sint(arg1));
                 break;
-            case OP_LETI:
+            case OP_LETI.code:
                 this.set_sint(arg0, arg1);
                 break;
-            case OP_LETB:
-            case OP_LETW:
+            case OP_LETB.code:
+            case OP_LETW.code:
                 this.set_uint(arg0, arg1);
                 break;
-            case OP_SET:
+            case OP_SET.code:
                 this.set_sint(arg0, 1);
                 break;
-            case OP_CLEAR:
+            case OP_CLEAR.code:
                 this.set_sint(arg0, 0);
                 break;
-            case OP_REV:
+            case OP_REV.code:
                 this.set_sint(arg0, this.get_sint(arg0) === 0 ? 1 : 0);
                 break;
-            case OP_CALL:
+            case OP_CALL.code:
                 this.push_call_stack(exec, arg0);
                 break;
-            case OP_JMP:
+            case OP_JMP.code:
                 this.jump_to_label(exec, arg0);
                 break;
-            case OP_ARG_PUSHR:
+            case OP_ARG_PUSHR.code:
                 // deref given register ref
                 this.push_arg_stack(exec, new_arg(
                     this.get_sint(arg0),
@@ -194,73 +194,73 @@ export class VirtualMachine {
                     inst.args[0].asm
                 ));
                 break;
-            case OP_ARG_PUSHL:
-            case OP_ARG_PUSHB:
-            case OP_ARG_PUSHW:
-            case OP_ARG_PUSHS:
+            case OP_ARG_PUSHL.code:
+            case OP_ARG_PUSHB.code:
+            case OP_ARG_PUSHW.code:
+            case OP_ARG_PUSHS.code:
                 // push arg as-is
                 this.push_arg_stack(exec, arg0);
                 break;
             // arithmetic operations
-            case OP_ADD:
-            case OP_FADD:
+            case OP_ADD.code:
+            case OP_FADD.code:
                 this.do_numeric_op_with_register(arg0, arg1, numeric_ops.add);
                 break;
-            case OP_ADDI:
-            case OP_FADDI:
+            case OP_ADDI.code:
+            case OP_FADDI.code:
                 this.do_numeric_op_with_literal(arg0, arg1, numeric_ops.add);
                 break;
-            case OP_SUB:
-            case OP_FSUB:
+            case OP_SUB.code:
+            case OP_FSUB.code:
                 this.do_numeric_op_with_register(arg0, arg1, numeric_ops.sub);
                 break;
-            case OP_SUBI:
-            case OP_FSUBI:
+            case OP_SUBI.code:
+            case OP_FSUBI.code:
                 this.do_numeric_op_with_literal(arg0, arg1, numeric_ops.sub);
                 break;
-            case OP_MUL:
-            case OP_FMUL:
+            case OP_MUL.code:
+            case OP_FMUL.code:
                 this.do_numeric_op_with_register(arg0, arg1, numeric_ops.mul);
                 break;
-            case OP_MULI:
-            case OP_FMULI:
+            case OP_MULI.code:
+            case OP_FMULI.code:
                 this.do_numeric_op_with_literal(arg0, arg1, numeric_ops.mul);
                 break;
-            case OP_DIV:
+            case OP_DIV.code:
                 this.do_numeric_op_with_register(arg0, arg1, numeric_ops.idiv);
                 break;
-            case OP_FDIV:
+            case OP_FDIV.code:
                 this.do_numeric_op_with_register(arg0, arg1, numeric_ops.div);
                 break;
-            case OP_DIVI:
+            case OP_DIVI.code:
                 this.do_numeric_op_with_literal(arg0, arg1, numeric_ops.idiv);
                 break;
-            case OP_FDIVI:
+            case OP_FDIVI.code:
                 this.do_numeric_op_with_literal(arg0, arg1, numeric_ops.div);
                 break;
-            case OP_MOD:
+            case OP_MOD.code:
                 this.do_numeric_op_with_register(arg0, arg1, numeric_ops.mod);
                 break;
-            case OP_MODI:
+            case OP_MODI.code:
                 this.do_numeric_op_with_literal(arg0, arg1, numeric_ops.mod);
                 break;
             // bit operations
-            case OP_AND:
+            case OP_AND.code:
                 this.do_numeric_op_with_register(arg0, arg1, numeric_ops.and);
                 break;
-            case OP_ANDI:
+            case OP_ANDI.code:
                 this.do_numeric_op_with_literal(arg0, arg1, numeric_ops.and);
                 break;
-            case OP_OR:
+            case OP_OR.code:
                 this.do_numeric_op_with_register(arg0, arg1, numeric_ops.or);
                 break;
-            case OP_ORI:
+            case OP_ORI.code:
                 this.do_numeric_op_with_literal(arg0, arg1, numeric_ops.or);
                 break;
-            case OP_XOR:
+            case OP_XOR.code:
                 this.do_numeric_op_with_register(arg0, arg1, numeric_ops.xor);
                 break;
-            case OP_XORI:
+            case OP_XORI.code:
                 this.do_numeric_op_with_literal(arg0, arg1, numeric_ops.xor);
                 break;
             default:
