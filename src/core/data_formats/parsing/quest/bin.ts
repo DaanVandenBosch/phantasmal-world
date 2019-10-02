@@ -8,6 +8,7 @@ import {
     DataSegment,
     Instruction,
     InstructionSegment,
+    new_arg,
     new_instruction,
     Segment,
     SegmentType,
@@ -638,50 +639,48 @@ function parse_instruction_arguments(cursor: Cursor, opcode: Opcode): Arg[] {
         for (const param of opcode.params) {
             switch (param.type.kind) {
                 case Kind.Byte:
-                    args.push({ value: cursor.u8(), size: 1 });
+                    args.push(new_arg(cursor.u8(), 1));
                     break;
                 case Kind.Word:
-                    args.push({ value: cursor.u16(), size: 2 });
+                    args.push(new_arg(cursor.u16(), 2));
                     break;
                 case Kind.DWord:
-                    args.push({ value: cursor.i32(), size: 4 });
+                    args.push(new_arg(cursor.i32(), 4));
                     break;
                 case Kind.Float:
-                    args.push({ value: cursor.f32(), size: 4 });
+                    args.push(new_arg(cursor.f32(), 4));
                     break;
                 case Kind.Label:
                 case Kind.ILabel:
                 case Kind.DLabel:
                 case Kind.SLabel:
-                    args.push({ value: cursor.u16(), size: 2 });
+                    args.push(new_arg(cursor.u16(), 2));
                     break;
                 case Kind.String:
                     {
                         const start_pos = cursor.position;
-                        args.push({
-                            value: cursor.string_utf16(
-                                Math.min(4096, cursor.bytes_left),
-                                true,
-                                false,
+                        args.push(
+                            new_arg(
+                                cursor.string_utf16(Math.min(4096, cursor.bytes_left), true, false),
+                                cursor.position - start_pos,
                             ),
-                            size: cursor.position - start_pos,
-                        });
+                        );
                     }
                     break;
                 case Kind.ILabelVar:
                     {
                         const arg_size = cursor.u8();
-                        args.push(...cursor.u16_array(arg_size).map(value => ({ value, size: 2 })));
+                        args.push(...cursor.u16_array(arg_size).map(value => new_arg(value, 2)));
                     }
                     break;
                 case Kind.RegRef:
                 case Kind.RegTupRef:
-                    args.push({ value: cursor.u8(), size: 1 });
+                    args.push(new_arg(cursor.u8(), 1));
                     break;
                 case Kind.RegRefVar:
                     {
                         const arg_size = cursor.u8();
-                        args.push(...cursor.u8_array(arg_size).map(value => ({ value, size: 1 })));
+                        args.push(...cursor.u8_array(arg_size).map(value => new_arg(value, 1)));
                     }
                     break;
                 default:

@@ -193,7 +193,7 @@ class Assembler {
         };
     }
 
-    private add_instruction(opcode: Opcode, args: Arg[]): void {
+    private add_instruction(opcode: Opcode, args: Arg[], token: IdentToken): void {
         if (!this.segment) {
             // Unreachable code, technically valid.
             const instruction_segment: InstructionSegment = {
@@ -205,7 +205,9 @@ class Assembler {
             this.segment = instruction_segment;
             this.object_code.push(instruction_segment);
         } else if (this.segment.type === SegmentType.Instructions) {
-            this.segment.instructions.push(new_instruction(opcode, args));
+            this.segment.instructions.push(
+                new_instruction(opcode, args, { col: token.col, len: token.len }),
+            );
         } else {
             logger.error(`Line ${this.line_no}: Expected instructions segment.`);
         }
@@ -418,7 +420,8 @@ class Assembler {
         }
     }
 
-    private parse_instruction({ col, len, value }: IdentToken): void {
+    private parse_instruction(ident_token: IdentToken): void {
+        const { col, len, value } = ident_token;
         const opcode = OPCODES_BY_MNEMONIC.get(value);
 
         if (!opcode) {
@@ -495,37 +498,45 @@ class Assembler {
 
                     if (token.type === TokenType.Register) {
                         if (param.type.kind === Kind.RegTupRef) {
-                            this.add_instruction(OP_ARG_PUSHB, [arg]);
+                            this.add_instruction(OP_ARG_PUSHB, [arg], ident_token);
                         } else {
-                            this.add_instruction(OP_ARG_PUSHR, [arg]);
+                            this.add_instruction(OP_ARG_PUSHR, [arg], ident_token);
                         }
                     } else {
                         switch (param.type.kind) {
                             case Kind.Byte:
                             case Kind.RegRef:
                             case Kind.RegTupRef:
-                                this.add_instruction(OP_ARG_PUSHB, [arg]);
+                                this.add_instruction(OP_ARG_PUSHB, [arg], ident_token);
                                 break;
                             case Kind.Word:
                             case Kind.Label:
                             case Kind.ILabel:
                             case Kind.DLabel:
                             case Kind.SLabel:
-                                this.add_instruction(OP_ARG_PUSHW, [arg]);
+                                this.add_instruction(OP_ARG_PUSHW, [arg], ident_token);
                                 break;
                             case Kind.DWord:
-                                this.add_instruction(OP_ARG_PUSHL, [arg]);
+                                this.add_instruction(OP_ARG_PUSHL, [arg], ident_token);
                                 break;
                             case Kind.Float:
-                                this.add_instruction(OP_ARG_PUSHL, [
-                                    {
-                                        value: reinterpret_f32_as_i32(arg.value),
-                                        size: 4,
-                                    },
-                                ]);
+                                this.add_instruction(
+                                    OP_ARG_PUSHL,
+                                    [
+                                        {
+                                            value: reinterpret_f32_as_i32(arg.value),
+                                            size: 4,
+                                            asm: {
+                                                col: token.col,
+                                                len: token.len,
+                                            },
+                                        },
+                                    ],
+                                    ident_token,
+                                );
                                 break;
                             case Kind.String:
-                                this.add_instruction(OP_ARG_PUSHS, [arg]);
+                                this.add_instruction(OP_ARG_PUSHS, [arg], ident_token);
                                 break;
                             default:
                                 logger.error(
@@ -539,7 +550,7 @@ class Assembler {
                 }
             }
 
-            this.add_instruction(opcode, ins_args.map(([arg]) => arg));
+            this.add_instruction(opcode, ins_args.map(([arg]) => arg), ident_token);
         }
     }
 
@@ -616,6 +627,10 @@ class Assembler {
                                     {
                                         value: token.value,
                                         size: 4,
+                                        asm: {
+                                            col: token.col,
+                                            len: token.len,
+                                        },
                                     },
                                     token,
                                 ]);
@@ -633,6 +648,10 @@ class Assembler {
                                 {
                                     value: token.value,
                                     size: 4,
+                                    asm: {
+                                        col: token.col,
+                                        len: token.len,
+                                    },
                                 },
                                 token,
                             ]);
@@ -656,6 +675,10 @@ class Assembler {
                                 {
                                     value: token.value,
                                     size: 2 * token.value.length + 2,
+                                    asm: {
+                                        col: token.col,
+                                        len: token.len,
+                                    },
                                 },
                                 token,
                             ]);
@@ -752,6 +775,10 @@ class Assembler {
                 {
                     value,
                     size,
+                    asm: {
+                        col: token.col,
+                        len: token.len,
+                    },
                 },
                 token,
             ]);
@@ -772,6 +799,10 @@ class Assembler {
                 {
                     value,
                     size: 1,
+                    asm: {
+                        col: token.col,
+                        len: token.len,
+                    },
                 },
                 token,
             ]);

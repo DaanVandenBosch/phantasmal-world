@@ -6,7 +6,13 @@ import { BufferCursor } from "../../core/data_formats/cursor/BufferCursor";
 import { parse_bin, write_bin } from "../../core/data_formats/parsing/quest/bin";
 import { assemble } from "./assembly";
 import { disassemble } from "./disassembly";
-import { new_instruction, Segment, segment_arrays_equal, SegmentType } from "./instructions";
+import {
+    new_arg,
+    new_instruction,
+    Segment,
+    segment_arrays_equal,
+    SegmentType,
+} from "./instructions";
 import { OP_ARG_PUSHW, OP_RET, OP_SWITCH_JMP, OP_VA_CALL, OP_VA_END, OP_VA_START } from "./opcodes";
 
 test("vararg instructions should be disassembled correctly", () => {
@@ -16,10 +22,10 @@ test("vararg instructions should be disassembled correctly", () => {
             labels: [0],
             instructions: [
                 new_instruction(OP_SWITCH_JMP, [
-                    { value: 90, size: 1 },
-                    { value: 100, size: 2 },
-                    { value: 101, size: 2 },
-                    { value: 102, size: 2 },
+                    new_arg(90, 1),
+                    new_arg(100, 2),
+                    new_arg(101, 2),
+                    new_arg(102, 2),
                 ]),
                 new_instruction(OP_RET, []),
             ],
@@ -45,8 +51,8 @@ test("va list instructions should be disassembled correctly", () => {
             labels: [0],
             instructions: [
                 new_instruction(OP_VA_START, []),
-                new_instruction(OP_ARG_PUSHW, [{ value: 1337, size: 2 }]),
-                new_instruction(OP_VA_CALL, [{ value: 100, size: 2 }]),
+                new_instruction(OP_ARG_PUSHW, [new_arg(1337, 2)]),
+                new_instruction(OP_VA_CALL, [new_arg(100, 2)]),
                 new_instruction(OP_VA_END, []),
                 new_instruction(OP_RET, []),
             ],

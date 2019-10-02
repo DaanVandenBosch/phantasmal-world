@@ -2,6 +2,14 @@ import { Kind, Opcode } from "./opcodes";
 import { array_buffers_equal, arrays_equal } from "../../core/util";
 
 /**
+ * Dimensions of related assembly code.
+ */
+export type AsmToken = {
+    readonly col: number;
+    readonly len: number;
+};
+
+/**
  * Instruction invocation.
  */
 export type Instruction = {
@@ -19,9 +27,17 @@ export type Instruction = {
      * Maps each parameter by index to its arguments.
      */
     readonly param_to_args: readonly Arg[][];
+    /**
+     * Dimensions of the opcode's mnemonic in the related asm code.
+     */
+    readonly asm: AsmToken;
 };
 
-export function new_instruction(opcode: Opcode, args: Arg[]): Instruction {
+export function new_instruction(
+    opcode: Opcode,
+    args: Arg[],
+    asm: AsmToken = { col: 0, len: 0 },
+): Instruction {
     const len = Math.min(opcode.params.length, args.length);
     const param_to_args: Arg[][] = [];
     let arg_size = 0;
@@ -55,6 +71,7 @@ export function new_instruction(opcode: Opcode, args: Arg[]): Instruction {
         arg_size,
         size: opcode.size + arg_size,
         param_to_args,
+        asm,
     };
 }
 
@@ -66,9 +83,18 @@ function instructions_equal(a: Instruction, b: Instruction): boolean {
  * Instruction argument.
  */
 export type Arg = {
-    value: any;
-    size: number;
+    readonly value: any;
+    readonly size: number;
+    readonly asm: AsmToken;
 };
+
+export function new_arg(value: any, size: number, asm: AsmToken = { col: 0, len: 0 }): Arg {
+    return {
+        value,
+        size,
+        asm,
+    };
+}
 
 function args_equal(a: Arg, b: Arg): boolean {
     return a.value === b.value && a.size === b.size;
