@@ -111,7 +111,7 @@ function signature_help(message: SignatureHelpInput): void {
     let opcode: Opcode | undefined;
     let active_param = -1;
 
-    if (message.line_no < lines.length) {
+    if (message.line_no <= lines.length) {
         const line = lines[message.line_no - 1];
         const lexer = new AssemblyLexer();
         const tokens = lexer.tokenize_line(line);
