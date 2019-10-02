@@ -21,6 +21,30 @@ import {
     OP_ARG_PUSHA,
     OP_ARG_PUSHO,
     OP_ARG_PUSHS,
+    OP_ADD,
+    OP_ADDI,
+    OP_SUB,
+    OP_SUBI,
+    OP_FADD,
+    OP_FADDI,
+    OP_FSUB,
+    OP_FSUBI,
+    OP_FMUL,
+    OP_MUL,
+    OP_MULI,
+    OP_FMULI,
+    OP_DIV,
+    OP_FDIV,
+    OP_DIVI,
+    OP_FDIVI,
+    OP_MOD,
+    OP_MODI,
+    OP_AND,
+    OP_ANDI,
+    OP_OR,
+    OP_ORI,
+    OP_XOR,
+    OP_XORI,
 } from "../opcodes";
 import Logger from "js-logger";
 
@@ -34,6 +58,29 @@ export enum ExecutionResult {
     WaitingVsync,
     Halted,
 }
+
+type BinaryNumericOperation = (a: number, b: number) => number;
+
+const numeric_ops: Record<"add" |
+                          "sub" |
+                          "mul" |
+                          "div" |
+                          "idiv" |
+                          "mod" |
+                          "and" |
+                          "or" |
+                          "xor",
+                          BinaryNumericOperation> = {
+    add: (a, b) => a + b,
+    sub: (a, b) => a - b,
+    mul: (a, b) => a * b,
+    div: (a, b) => a / b,
+    idiv: (a, b) => Math.floor(a / b),
+    mod: (a, b) => a % b,
+    and: (a, b) => a & b,
+    or: (a, b) => a | b,
+    xor: (a, b) => a ^ b,
+};
 
 export class VirtualMachine {
     private register_store = new ArrayBuffer(REGISTER_SIZE * REGISTER_COUNT);
@@ -154,6 +201,68 @@ export class VirtualMachine {
                 // push arg as-is
                 this.push_arg_stack(exec, arg0);
                 break;
+            // arithmetic operations
+            case OP_ADD:
+            case OP_FADD:
+                this.do_numeric_op_with_register(arg0, arg1, numeric_ops.add);
+                break;
+            case OP_ADDI:
+            case OP_FADDI:
+                this.do_numeric_op_with_literal(arg0, arg1, numeric_ops.add);
+                break;
+            case OP_SUB:
+            case OP_FSUB:
+                this.do_numeric_op_with_register(arg0, arg1, numeric_ops.sub);
+                break;
+            case OP_SUBI:
+            case OP_FSUBI:
+                this.do_numeric_op_with_literal(arg0, arg1, numeric_ops.sub);
+                break;
+            case OP_MUL:
+            case OP_FMUL:
+                this.do_numeric_op_with_register(arg0, arg1, numeric_ops.mul);
+                break;
+            case OP_MULI:
+            case OP_FMULI:
+                this.do_numeric_op_with_literal(arg0, arg1, numeric_ops.mul);
+                break;
+            case OP_DIV:
+                this.do_numeric_op_with_register(arg0, arg1, numeric_ops.idiv);
+                break;
+            case OP_FDIV:
+                this.do_numeric_op_with_register(arg0, arg1, numeric_ops.div);
+                break;
+            case OP_DIVI:
+                this.do_numeric_op_with_literal(arg0, arg1, numeric_ops.idiv);
+                break;
+            case OP_FDIVI:
+                this.do_numeric_op_with_literal(arg0, arg1, numeric_ops.div);
+                break;
+            case OP_MOD:
+                this.do_numeric_op_with_register(arg0, arg1, numeric_ops.mod);
+                break;
+            case OP_MODI:
+                this.do_numeric_op_with_literal(arg0, arg1, numeric_ops.mod);
+                break;
+            // bit operations
+            case OP_AND:
+                this.do_numeric_op_with_register(arg0, arg1, numeric_ops.and);
+                break;
+            case OP_ANDI:
+                this.do_numeric_op_with_literal(arg0, arg1, numeric_ops.and);
+                break;
+            case OP_OR:
+                this.do_numeric_op_with_register(arg0, arg1, numeric_ops.or);
+                break;
+            case OP_ORI:
+                this.do_numeric_op_with_literal(arg0, arg1, numeric_ops.or);
+                break;
+            case OP_XOR:
+                this.do_numeric_op_with_register(arg0, arg1, numeric_ops.xor);
+                break;
+            case OP_XORI:
+                this.do_numeric_op_with_literal(arg0, arg1, numeric_ops.xor);
+                break;
             default:
                 throw new Error(`Unsupported instruction: ${inst.opcode.mnemonic}.`);
         }
@@ -207,6 +316,14 @@ export class VirtualMachine {
 
     private set_uint(reg: number, value: number): void {
         this.registers.setUint32(REGISTER_SIZE * reg, value);
+    }
+
+    private do_numeric_op_with_register(reg1: number, reg2: number, op: BinaryNumericOperation): void {
+        this.do_numeric_op_with_literal(reg1, this.get_sint(reg2), op);
+    }
+
+    private do_numeric_op_with_literal(reg: number, literal: number, op: BinaryNumericOperation): void {
+        this.set_sint(reg, op(this.get_sint(reg), literal));
     }
 
     private push_call_stack(exec: Thread, label: number): void {
