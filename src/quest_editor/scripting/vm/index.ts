@@ -205,7 +205,7 @@ export class VirtualMachine {
             case OP_ARG_PUSHW.code:
             case OP_ARG_PUSHS.code:
                 // push arg as-is
-                this.push_arg_stack(exec, arg0);
+                this.push_arg_stack(exec, inst.args[0]);
                 break;
             // arithmetic operations
             case OP_ADD.code:
