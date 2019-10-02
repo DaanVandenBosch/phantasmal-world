@@ -50,6 +50,7 @@ export function create_new_quest(episode: Episode): QuestModel {
                     ]),
                     new_instruction(OP_RET, []),
                 ],
+                asm: { labels: [] },
             },
             {
                 labels: [150],
@@ -85,6 +86,7 @@ export function create_new_quest(episode: Episode): QuestModel {
                     new_instruction(OP_P_SETPOS, []),
                     new_instruction(OP_RET, []),
                 ],
+                asm: { labels: [] },
             },
         ],
         [],

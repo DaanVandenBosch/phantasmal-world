@@ -538,6 +538,7 @@ function parse_instructions_segment(
         type: SegmentType.Instructions,
         labels,
         instructions,
+        asm: { labels: [] },
     };
     offset_to_segment.set(cursor.position, segment);
 
@@ -613,6 +614,7 @@ function parse_data_segment(
         type: SegmentType.Data,
         labels,
         data: cursor.array_buffer(end_offset - start_offset),
+        asm: { labels: [] },
     };
     offset_to_segment.set(start_offset, segment);
 }
@@ -628,6 +630,7 @@ function parse_string_segment(
         type: SegmentType.String,
         labels,
         value: cursor.string_utf16(end_offset - start_offset, true, true),
+        asm: { labels: [] },
     };
     offset_to_segment.set(start_offset, segment);
 }

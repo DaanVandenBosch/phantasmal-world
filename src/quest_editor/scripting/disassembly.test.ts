@@ -29,6 +29,7 @@ test("vararg instructions should be disassembled correctly", () => {
                 ]),
                 new_instruction(OP_RET, []),
             ],
+            asm: { labels: [] },
         },
     ]);
 
@@ -56,6 +57,7 @@ test("va list instructions should be disassembled correctly", () => {
                 new_instruction(OP_VA_END, []),
                 new_instruction(OP_RET, []),
             ],
+            asm: { labels: [] },
         },
     ];
 
