@@ -12,8 +12,8 @@ import {
 } from "./assembly_worker_messages";
 import { assemble, AssemblySettings } from "./assembly";
 import Logger from "js-logger";
-import { SegmentType } from "./instructions";
-import { OP_BB_MAP_DESIGNATE, Opcode, OPCODES_BY_MNEMONIC } from "./opcodes";
+import { AsmToken, Segment, SegmentType } from "./instructions";
+import { Kind, OP_BB_MAP_DESIGNATE, Opcode, OPCODES_BY_MNEMONIC } from "./opcodes";
 import { AssemblyLexer, IdentToken, TokenType } from "./AssemblyLexer";
 
 Logger.useDefaults({
@@ -23,6 +23,9 @@ Logger.useDefaults({
 const ctx: Worker = self as any;
 
 let lines: string[] = [];
+let object_code: Segment[] = [];
+const line_no_to_instructions: { segment_index: number; instruction_indices: number[] }[] = [];
+const label_to_segment_cache: Map<number, Segment | null> = new Map();
 
 const messages: AssemblyWorkerInput[] = [];
 let timeout: any;
@@ -144,10 +147,27 @@ function signature_help(message: SignatureHelpInput): void {
 }
 
 function definition(message: DefinitionInput): void {
-    // TODO: provide definition
+    const label = find_label_reference_at(message.line_no, message.col);
+    let asm: AsmToken | undefined;
+
+    if (label != undefined) {
+        const segment = get_segment_by_label(label);
+
+        // TODO: use actual label position instead of position of first instruction.
+        if (segment && segment.type === SegmentType.Instructions) {
+            for (const ins of segment.instructions) {
+                if (ins.asm) {
+                    asm = ins.asm;
+                    break;
+                }
+            }
+        }
+    }
+
     const response: DefinitionOutput = {
         type: OutputMessageType.Definition,
         id: message.id,
+        ...asm,
     };
     ctx.postMessage(response);
 }
@@ -163,11 +183,19 @@ function settings_change(message: AssemblySettingsChangeInput): void {
 
 function assemble_and_send(): void {
     const assembler_result = assemble(lines, assembly_settings.manual_stack);
+
+    object_code = assembler_result.object_code;
+    label_to_segment_cache.clear();
+    line_no_to_instructions.splice(0, Infinity);
+
     const map_designations = new Map<number, number>();
 
-    for (const segment of assembler_result.object_code) {
-        if (segment.labels.includes(0)) {
-            if (segment.type === SegmentType.Instructions) {
+    for (let i = 0; i < object_code.length; i++) {
+        const segment = object_code[i];
+
+        if (segment.type === SegmentType.Instructions) {
+            // Set map designations.
+            if (segment.labels.includes(0)) {
                 for (const inst of segment.instructions) {
                     if (inst.opcode.code === OP_BB_MAP_DESIGNATE.code) {
                         map_designations.set(inst.args[0].value, inst.args[2].value);
@@ -175,7 +203,20 @@ function assemble_and_send(): void {
                 }
             }
 
-            break;
+            // Index instructions by text position.
+            for (let j = 0; j < segment.instructions.length; j++) {
+                const ins = segment.instructions[j];
+
+                if (ins.asm) {
+                    add_index(ins.asm.line_no, i, j);
+                }
+
+                for (const arg of ins.args) {
+                    if (arg.asm) {
+                        add_index(arg.asm.line_no, i, j);
+                    }
+                }
+            }
         }
     }
 
@@ -241,4 +282,77 @@ function replace_lines_and_merge_line_parts(
         end_line_no - start_line_no + 1,
         start_line_start + new_line_part + end_line_end,
     );
+}
+
+// TODO: make the code work with stack-based instructions
+function find_label_reference_at(line_no: number, col: number): number | undefined {
+    const handle = line_no_to_instructions[line_no];
+    if (!handle) return undefined;
+
+    const segment = object_code[handle.segment_index];
+    if (!segment || segment.type !== SegmentType.Instructions) return undefined;
+
+    for (const index of handle.instruction_indices) {
+        const ins = segment.instructions[index];
+
+        if (ins) {
+            const params = ins.opcode.params;
+
+            for (let i = 0; i < ins.args.length; i++) {
+                const param = i < params.length ? params[i] : params[params.length];
+                const arg = ins.args[i];
+
+                if (
+                    (param.type.kind === Kind.ILabel ||
+                        param.type.kind === Kind.DLabel ||
+                        param.type.kind === Kind.SLabel ||
+                        param.type.kind === Kind.ILabelVar) &&
+                    position_inside(line_no, col, arg.asm)
+                ) {
+                    return arg.value;
+                }
+            }
+        }
+    }
+
+    return undefined;
+}
+
+function get_segment_by_label(label: number): Segment | undefined {
+    let segment = label_to_segment_cache.get(label);
+
+    // Strict comparison because null has special meaning.
+    if (segment === undefined) {
+        segment = null;
+
+        for (const seg of object_code) {
+            if (seg.labels.includes(label)) {
+                segment = seg;
+                break;
+            }
+        }
+
+        label_to_segment_cache.set(label, segment);
+    }
+
+    return segment || undefined;
+}
+
+function add_index(line_no: number, segment_index: number, instruction_index: number): void {
+    let handle = line_no_to_instructions[line_no];
+
+    if (!handle) {
+        handle = { segment_index, instruction_indices: [] };
+        line_no_to_instructions[line_no] = handle;
+    }
+
+    handle.instruction_indices.push(instruction_index);
+}
+
+function position_inside(line_no: number, col: number, asm?: AsmToken): boolean {
+    if (asm) {
+        return line_no === asm.line_no && col >= asm.col && col <= asm.col + asm.len;
+    } else {
+        return false;
+    }
 }

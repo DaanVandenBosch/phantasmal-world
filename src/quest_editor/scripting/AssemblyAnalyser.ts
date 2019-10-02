@@ -1,4 +1,4 @@
-import { editor, languages } from "monaco-editor";
+import { editor, languages, Uri } from "monaco-editor";
 import AssemblyWorker from "worker-loader!./assembly_worker";
 import {
     AssemblyChangeInput,
@@ -68,7 +68,11 @@ export class AssemblyAnalyser implements Disposable {
 
     private promises = new Map<
         number,
-        { resolve: (result: any) => void; reject: (error: Error) => void }
+        {
+            uri: Uri;
+            resolve: (result: any) => void;
+            reject: (error: Error) => void;
+        }
     >();
 
     private message_id = 0;
@@ -112,9 +116,14 @@ export class AssemblyAnalyser implements Disposable {
         };
     }
 
-    async provide_signature_help(line_no: number, col: number): Promise<SignatureHelp | undefined> {
+    async provide_signature_help(
+        uri: Uri,
+        line_no: number,
+        col: number,
+    ): Promise<SignatureHelp | undefined> {
         return await this.send_and_await_response<SignatureHelpInput, SignatureHelp>(
             "Signature help provision",
+            uri,
             id => ({
                 type: InputMessageType.SignatureHelp,
                 id,
@@ -124,9 +133,10 @@ export class AssemblyAnalyser implements Disposable {
         );
     }
 
-    async provide_definition(line_no: number, col: number): Promise<LocationLink[]> {
+    async provide_definition(uri: Uri, line_no: number, col: number): Promise<LocationLink[]> {
         return await this.send_and_await_response<DefinitionInput, LocationLink[]>(
             "Definition provision",
+            uri,
             id => ({
                 type: InputMessageType.Definition,
                 id,
@@ -150,12 +160,13 @@ export class AssemblyAnalyser implements Disposable {
 
     private async send_and_await_response<M, R>(
         name: string,
+        uri: Uri,
         create_request: (id: number) => M,
     ): Promise<R> {
         const id = this.message_id++;
 
         return new Promise<R>((resolve, reject) => {
-            this.promises.set(id, { resolve, reject });
+            this.promises.set(id, { uri, resolve, reject });
             const message: M = create_request(id);
             this.worker.postMessage(message);
 
@@ -263,7 +274,21 @@ export class AssemblyAnalyser implements Disposable {
                     if (promise) {
                         this.promises.delete(message.id);
                         // TODO: resolve LocationLinks
-                        promise.resolve([]);
+                        const location_links: LocationLink[] = [];
+
+                        if (message.line_no != undefined) {
+                            location_links.push({
+                                uri: promise.uri,
+                                range: {
+                                    startLineNumber: message.line_no,
+                                    startColumn: message.col!,
+                                    endLineNumber: message.line_no,
+                                    endColumn: message.col! + message.len!,
+                                },
+                            });
+                        }
+
+                        promise.resolve(location_links);
                     }
                 }
                 break;

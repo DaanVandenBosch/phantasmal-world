@@ -206,7 +206,11 @@ class Assembler {
             this.object_code.push(instruction_segment);
         } else if (this.segment.type === SegmentType.Instructions) {
             this.segment.instructions.push(
-                new_instruction(opcode, args, { col: token.col, len: token.len }),
+                new_instruction(opcode, args, {
+                    line_no: this.line_no,
+                    col: token.col,
+                    len: token.len,
+                }),
             );
         } else {
             logger.error(`Line ${this.line_no}: Expected instructions segment.`);
@@ -527,6 +531,7 @@ class Assembler {
                                             value: reinterpret_f32_as_i32(arg.value),
                                             size: 4,
                                             asm: {
+                                                line_no: this.line_no,
                                                 col: token.col,
                                                 len: token.len,
                                             },
@@ -628,6 +633,7 @@ class Assembler {
                                         value: token.value,
                                         size: 4,
                                         asm: {
+                                            line_no: this.line_no,
                                             col: token.col,
                                             len: token.len,
                                         },
@@ -648,10 +654,7 @@ class Assembler {
                                 {
                                     value: token.value,
                                     size: 4,
-                                    asm: {
-                                        col: token.col,
-                                        len: token.len,
-                                    },
+                                    asm: { line_no: this.line_no, col: token.col, len: token.len },
                                 },
                                 token,
                             ]);
@@ -675,10 +678,7 @@ class Assembler {
                                 {
                                     value: token.value,
                                     size: 2 * token.value.length + 2,
-                                    asm: {
-                                        col: token.col,
-                                        len: token.len,
-                                    },
+                                    asm: { line_no: this.line_no, col: token.col, len: token.len },
                                 },
                                 token,
                             ]);
@@ -775,10 +775,7 @@ class Assembler {
                 {
                     value,
                     size,
-                    asm: {
-                        col: token.col,
-                        len: token.len,
-                    },
+                    asm: { line_no: this.line_no, col: token.col, len: token.len },
                 },
                 token,
             ]);
@@ -799,10 +796,7 @@ class Assembler {
                 {
                     value,
                     size: 1,
-                    asm: {
-                        col: token.col,
-                        len: token.len,
-                    },
+                    asm: { line_no: this.line_no, col: token.col, len: token.len },
                 },
                 token,
             ]);

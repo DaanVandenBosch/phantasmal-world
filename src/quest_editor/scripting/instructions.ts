@@ -5,6 +5,7 @@ import { array_buffers_equal, arrays_equal } from "../../core/util";
  * Dimensions of related assembly code.
  */
 export type AsmToken = {
+    readonly line_no: number;
     readonly col: number;
     readonly len: number;
 };

@@ -40,10 +40,11 @@ languages.registerSignatureHelpProvider("psoasm", {
     signatureHelpRetriggerCharacters: [", "],
 
     async provideSignatureHelp(
-        _model: ITextModel,
+        model: ITextModel,
         position: Position,
     ): Promise<SignatureHelpResult | undefined> {
         const value = await assembly_analyser.provide_signature_help(
+            model.uri,
             position.lineNumber,
             position.column,
         );
@@ -71,8 +72,12 @@ languages.setLanguageConfiguration("psoasm", {
 });
 
 languages.registerDefinitionProvider("psoasm", {
-    provideDefinition(_model: ITextModel, position: Position): Promise<LocationLink[]> {
-        return assembly_analyser.provide_definition(position.lineNumber, position.column);
+    provideDefinition(model: ITextModel, position: Position): Promise<LocationLink[]> {
+        return assembly_analyser.provide_definition(
+            model.uri,
+            position.lineNumber,
+            position.column,
+        );
     },
 });
 

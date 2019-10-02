@@ -78,4 +78,7 @@ export type SignatureHelpOutput = {
 export type DefinitionOutput = {
     readonly type: OutputMessageType.Definition;
     readonly id: number;
+    readonly line_no?: number;
+    readonly col?: number;
+    readonly len?: number;
 };
