@@ -200,6 +200,9 @@ class Assembler {
                 labels: [],
                 type: SegmentType.Instructions,
                 instructions: [],
+                asm: {
+                    labels: [],
+                },
             };
 
             this.segment = instruction_segment;
@@ -224,6 +227,9 @@ class Assembler {
                 labels: [],
                 type: SegmentType.Data,
                 data: new Uint8Array(bytes).buffer,
+                asm: {
+                    labels: [],
+                },
             };
 
             this.segment = data_segment;
@@ -248,6 +254,9 @@ class Assembler {
                 labels: [],
                 type: SegmentType.String,
                 value: str,
+                asm: {
+                    labels: [],
+                },
             };
 
             this.segment = string_segment;
@@ -306,8 +315,12 @@ class Assembler {
 
         const next_token = this.tokens.shift();
 
+        const asm = { line_no: this.line_no, col, len };
+
         if (this.prev_line_had_label) {
-            this.object_code[this.object_code.length - 1].labels.push(label);
+            const segment = this.object_code[this.object_code.length - 1];
+            segment.labels.push(label);
+            segment.asm.labels.push(asm);
         }
 
         switch (this.section) {
@@ -317,6 +330,7 @@ class Assembler {
                         type: SegmentType.Instructions,
                         labels: [label],
                         instructions: [],
+                        asm: { labels: [asm] },
                     };
                     this.object_code.push(this.segment);
                 }
@@ -334,12 +348,16 @@ class Assembler {
                 }
 
                 break;
+
             case SegmentType.Data:
                 if (!this.prev_line_had_label) {
                     this.segment = {
                         type: SegmentType.Data,
                         labels: [label],
                         data: new ArrayBuffer(0),
+                        asm: {
+                            labels: [asm],
+                        },
                     };
                     this.object_code.push(this.segment);
                 }
@@ -357,12 +375,16 @@ class Assembler {
                 }
 
                 break;
+
             case SegmentType.String:
                 if (!this.prev_line_had_label) {
                     this.segment = {
                         type: SegmentType.String,
                         labels: [label],
                         value: "",
+                        asm: {
+                            labels: [asm],
+                        },
                     };
                     this.object_code.push(this.segment);
                 }

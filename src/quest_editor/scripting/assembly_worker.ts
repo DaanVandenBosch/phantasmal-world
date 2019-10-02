@@ -153,14 +153,8 @@ function definition(message: DefinitionInput): void {
     if (label != undefined) {
         const segment = get_segment_by_label(label);
 
-        // TODO: use actual label position instead of position of first instruction.
-        if (segment && segment.type === SegmentType.Instructions) {
-            for (const ins of segment.instructions) {
-                if (ins.asm) {
-                    asm = ins.asm;
-                    break;
-                }
-            }
+        if (segment && segment.asm.labels.length) {
+            asm = segment.asm.labels[0];
         }
     }
 
@@ -299,7 +293,7 @@ function find_label_reference_at(line_no: number, col: number): number | undefin
             const params = ins.opcode.params;
 
             for (let i = 0; i < ins.args.length; i++) {
-                const param = i < params.length ? params[i] : params[params.length];
+                const param = i < params.length ? params[i] : params[params.length - 1];
                 const arg = ins.args[i];
 
                 if (

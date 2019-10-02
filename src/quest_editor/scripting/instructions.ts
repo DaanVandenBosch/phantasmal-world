@@ -114,18 +114,27 @@ export type InstructionSegment = {
     type: SegmentType.Instructions;
     labels: number[];
     instructions: Instruction[];
+    asm: {
+        labels: AsmToken[];
+    };
 };
 
 export type DataSegment = {
     type: SegmentType.Data;
     labels: number[];
     data: ArrayBuffer;
+    asm: {
+        labels: AsmToken[];
+    };
 };
 
 export type StringSegment = {
     type: SegmentType.String;
     labels: number[];
     value: string;
+    asm: {
+        labels: AsmToken[];
+    };
 };
 
 function segments_equal(a: Segment, b: Segment): boolean {
