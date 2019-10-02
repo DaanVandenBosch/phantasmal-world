@@ -38,8 +38,6 @@ class GuiStore implements Disposable {
         const url = window.location.hash.slice(2);
         const [tool_str, params_str] = url.split("?");
 
-        this.tool.val = string_to_gui_tool(tool_str) || GuiTool.Viewer;
-
         if (params_str) {
             const features = params_str
                 .split("&")
@@ -52,6 +50,8 @@ class GuiStore implements Disposable {
                 }
             }
         }
+
+        this.tool.val = string_to_gui_tool(tool_str) || GuiTool.Viewer;
 
         this.server = this._server;
 

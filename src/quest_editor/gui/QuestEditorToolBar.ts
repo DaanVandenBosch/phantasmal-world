@@ -71,7 +71,7 @@ export class QuestEditorToolBar extends ToolBar {
         );
         const run_button = new Button("Run in VM", {
             icon_left: Icon.Play,
-            tooltip: "[Experimental] Run the current quest in a virtual machine."
+            tooltip: "[Experimental] Run the current quest in a virtual machine (F5)",
         });
 
         const children = [
@@ -117,7 +117,7 @@ export class QuestEditorToolBar extends ToolBar {
                 quest_editor_store.set_current_area(area),
             ),
 
-            run_button.click.observe(() => quest_editor_store.run_current_quest_in_vm()),
+            run_button.click.observe(quest_editor_store.run_current_quest_in_vm),
 
             gui_store.on_global_keydown(GuiTool.QuestEditor, "Ctrl-O", () =>
                 open_file_button.click(),
@@ -136,6 +136,12 @@ export class QuestEditorToolBar extends ToolBar {
             gui_store.on_global_keydown(GuiTool.QuestEditor, "Ctrl-Shift-Z", () => {
                 undo_manager.redo();
             }),
+
+            gui_store.on_global_keydown(
+                GuiTool.QuestEditor,
+                "F5",
+                quest_editor_store.run_current_quest_in_vm,
+            ),
         );
 
         this.finalize_construction(QuestEditorToolBar.prototype);

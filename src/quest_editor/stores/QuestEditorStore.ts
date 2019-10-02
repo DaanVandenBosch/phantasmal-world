@@ -352,7 +352,7 @@ export class QuestEditorStore implements Disposable {
         }
     };
 
-    run_current_quest_in_vm = () => {
+    run_current_quest_in_vm = (): void => {
         logger.setLevel(logger.TRACE);
 
         const quest = this.current_quest.val;
@@ -365,8 +365,7 @@ export class QuestEditorStore implements Disposable {
         vm.load_object_code(quest.object_code);
         vm.start_thread(0);
 
-        exec_loop:
-        while (true) {
+        exec_loop: while (true) {
             const exec_result = vm.execute();
 
             switch (exec_result) {
@@ -379,7 +378,7 @@ export class QuestEditorStore implements Disposable {
                     break exec_loop;
             }
         }
-    }
+    };
 }
 
 export const quest_editor_store = new QuestEditorStore();
