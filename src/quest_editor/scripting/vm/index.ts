@@ -45,6 +45,8 @@ import {
     OP_ORI,
     OP_XOR,
     OP_XORI,
+    OP_SHIFT_LEFT,
+    OP_SHIFT_RIGHT,
 } from "../opcodes";
 import Logger from "js-logger";
 
@@ -69,7 +71,9 @@ const numeric_ops: Record<"add" |
                           "mod" |
                           "and" |
                           "or" |
-                          "xor",
+                          "xor" |
+                          "shl" |
+                          "shr",
                           BinaryNumericOperation> = {
     add: (a, b) => a + b,
     sub: (a, b) => a - b,
@@ -80,6 +84,8 @@ const numeric_ops: Record<"add" |
     and: (a, b) => a & b,
     or: (a, b) => a | b,
     xor: (a, b) => a ^ b,
+    shl: (a, b) => a << b,
+    shr: (a, b) => a >>> b,
 };
 
 export class VirtualMachine {
@@ -262,6 +268,13 @@ export class VirtualMachine {
                 break;
             case OP_XORI.code:
                 this.do_numeric_op_with_literal(arg0, arg1, numeric_ops.xor);
+                break;
+            // shift operations
+            case OP_SHIFT_LEFT.code:
+                this.do_numeric_op_with_register(arg0, arg1, numeric_ops.shl);
+                break;
+            case OP_SHIFT_RIGHT.code:
+                this.do_numeric_op_with_register(arg0, arg1, numeric_ops.shr);
                 break;
             default:
                 throw new Error(`Unsupported instruction: ${inst.opcode.mnemonic}.`);
