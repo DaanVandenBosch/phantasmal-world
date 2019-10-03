@@ -1,52 +1,57 @@
-import { Instruction, InstructionSegment, Segment, SegmentType, Arg, new_arg } from "../instructions";
 import {
+    Arg,
+    Instruction,
+    InstructionSegment,
+    new_arg,
+    Segment,
+    SegmentType,
+} from "../instructions";
+import {
+    OP_ADD,
+    OP_ADDI,
+    OP_AND,
+    OP_ANDI,
+    OP_ARG_PUSHB,
+    OP_ARG_PUSHL,
+    OP_ARG_PUSHR,
+    OP_ARG_PUSHS,
+    OP_ARG_PUSHW,
     OP_CALL,
     OP_CLEAR,
+    OP_DIV,
+    OP_DIVI,
     OP_EXIT,
+    OP_FADD,
+    OP_FADDI,
+    OP_FDIV,
+    OP_FDIVI,
+    OP_FMUL,
+    OP_FMULI,
+    OP_FSUB,
+    OP_FSUBI,
+    OP_JMP,
     OP_LET,
     OP_LETB,
     OP_LETI,
     OP_LETW,
+    OP_MOD,
+    OP_MODI,
+    OP_MUL,
+    OP_MULI,
     OP_NOP,
+    OP_OR,
+    OP_ORI,
     OP_RET,
     OP_REV,
     OP_SET,
-    OP_SYNC,
-    OP_THREAD,
-    OP_JMP,
-    OP_ARG_PUSHR,
-    OP_ARG_PUSHL,
-    OP_ARG_PUSHB,
-    OP_ARG_PUSHW,
-    OP_ARG_PUSHA,
-    OP_ARG_PUSHO,
-    OP_ARG_PUSHS,
-    OP_ADD,
-    OP_ADDI,
-    OP_SUB,
-    OP_SUBI,
-    OP_FADD,
-    OP_FADDI,
-    OP_FSUB,
-    OP_FSUBI,
-    OP_FMUL,
-    OP_MUL,
-    OP_MULI,
-    OP_FMULI,
-    OP_DIV,
-    OP_FDIV,
-    OP_DIVI,
-    OP_FDIVI,
-    OP_MOD,
-    OP_MODI,
-    OP_AND,
-    OP_ANDI,
-    OP_OR,
-    OP_ORI,
-    OP_XOR,
-    OP_XORI,
     OP_SHIFT_LEFT,
     OP_SHIFT_RIGHT,
+    OP_SUB,
+    OP_SUBI,
+    OP_SYNC,
+    OP_THREAD,
+    OP_XOR,
+    OP_XORI,
 } from "../opcodes";
 import Logger from "js-logger";
 
@@ -63,18 +68,10 @@ export enum ExecutionResult {
 
 type BinaryNumericOperation = (a: number, b: number) => number;
 
-const numeric_ops: Record<"add" |
-                          "sub" |
-                          "mul" |
-                          "div" |
-                          "idiv" |
-                          "mod" |
-                          "and" |
-                          "or" |
-                          "xor" |
-                          "shl" |
-                          "shr",
-                          BinaryNumericOperation> = {
+const numeric_ops: Record<
+    "add" | "sub" | "mul" | "div" | "idiv" | "mod" | "and" | "or" | "xor" | "shl" | "shr",
+    BinaryNumericOperation
+> = {
     add: (a, b) => a + b,
     sub: (a, b) => a - b,
     mul: (a, b) => a * b,
@@ -194,11 +191,7 @@ export class VirtualMachine {
                 break;
             case OP_ARG_PUSHR.code:
                 // deref given register ref
-                this.push_arg_stack(exec, new_arg(
-                    this.get_sint(arg0),
-                    REGISTER_SIZE,
-                    inst.args[0].asm
-                ));
+                this.push_arg_stack(exec, new_arg(this.get_sint(arg0), REGISTER_SIZE));
                 break;
             case OP_ARG_PUSHL.code:
             case OP_ARG_PUSHB.code:
@@ -331,11 +324,19 @@ export class VirtualMachine {
         this.registers.setUint32(REGISTER_SIZE * reg, value);
     }
 
-    private do_numeric_op_with_register(reg1: number, reg2: number, op: BinaryNumericOperation): void {
+    private do_numeric_op_with_register(
+        reg1: number,
+        reg2: number,
+        op: BinaryNumericOperation,
+    ): void {
         this.do_numeric_op_with_literal(reg1, this.get_sint(reg2), op);
     }
 
-    private do_numeric_op_with_literal(reg: number, literal: number, op: BinaryNumericOperation): void {
+    private do_numeric_op_with_literal(
+        reg: number,
+        literal: number,
+        op: BinaryNumericOperation,
+    ): void {
         this.set_sint(reg, op(this.get_sint(reg), literal));
     }
 
@@ -377,7 +378,7 @@ export class VirtualMachine {
         }
     }
 
-    private jump_to_label(exec: Thread, label: number) {
+    private jump_to_label(exec: Thread, label: number): void {
         const top = exec.call_stack_top();
         const seg_idx = this.label_to_seg_idx.get(label);
 
