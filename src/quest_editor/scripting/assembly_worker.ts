@@ -24,7 +24,10 @@ const ctx: Worker = self as any;
 
 let lines: string[] = [];
 let object_code: Segment[] = [];
-const line_no_to_instructions: { segment_index: number; instruction_indices: number[] }[] = [];
+const line_no_to_instructions: {
+    segment_index: number;
+    instruction_indices: number[];
+}[] = [];
 const label_to_segment_cache: Map<number, Segment | null> = new Map();
 
 const messages: AssemblyWorkerInput[] = [];
@@ -148,14 +151,18 @@ function signature_help(message: SignatureHelpInput): void {
 }
 
 function definition(message: DefinitionInput): void {
-    const label = find_label_reference_at(message.line_no, message.col);
+    const label = get_label_reference_at(message.line_no, message.col);
     let asm: AsmToken | undefined;
 
     if (label != undefined) {
         const segment = get_segment_by_label(label);
 
-        if (segment && segment.asm.labels.length) {
-            asm = segment.asm.labels[0];
+        if (segment) {
+            const index = segment.labels.indexOf(label);
+
+            if (index !== -1) {
+                asm = segment.asm.labels[index];
+            }
         }
     }
 
@@ -203,12 +210,12 @@ function assemble_and_send(): void {
                 const ins = segment.instructions[j];
 
                 if (ins.asm) {
-                    add_index(ins.asm.line_no, i, j);
-                }
+                    if (ins.asm.mnemonic) {
+                        add_index(ins.asm.mnemonic.line_no, i, j);
+                    }
 
-                for (const arg of ins.args) {
-                    if (arg.asm) {
-                        add_index(arg.asm.line_no, i, j);
+                    for (const arg_asm of ins.asm.args) {
+                        add_index(arg_asm.line_no, i, j);
                     }
                 }
             }
@@ -280,7 +287,7 @@ function replace_lines_and_merge_line_parts(
 }
 
 // TODO: make the code work with stack-based instructions
-function find_label_reference_at(line_no: number, col: number): number | undefined {
+function get_label_reference_at(line_no: number, col: number): number | undefined {
     const handle = line_no_to_instructions[line_no];
     if (!handle) return undefined;
 
@@ -290,21 +297,36 @@ function find_label_reference_at(line_no: number, col: number): number | undefin
     for (const index of handle.instruction_indices) {
         const ins = segment.instructions[index];
 
-        if (ins) {
+        if (ins && ins.asm) {
             const params = ins.opcode.params;
 
-            for (let i = 0; i < ins.args.length; i++) {
+            for (let i = 0; i < ins.asm.args.length; i++) {
                 const param = i < params.length ? params[i] : params[params.length - 1];
-                const arg = ins.args[i];
+                const arg_asm = ins.asm.args[i];
 
                 if (
                     (param.type.kind === Kind.ILabel ||
                         param.type.kind === Kind.DLabel ||
                         param.type.kind === Kind.SLabel ||
                         param.type.kind === Kind.ILabelVar) &&
-                    position_inside(line_no, col, arg.asm)
+                    position_inside(line_no, col, arg_asm)
                 ) {
-                    return arg.value;
+                    return ins.args[i].value;
+                }
+            }
+
+            for (let i = 0; i < ins.asm.stack_args.length; i++) {
+                const param = i < params.length ? params[i] : params[params.length - 1];
+                const arg_asm = ins.asm.stack_args[i];
+
+                if (
+                    (param.type.kind === Kind.ILabel ||
+                        param.type.kind === Kind.DLabel ||
+                        param.type.kind === Kind.SLabel ||
+                        param.type.kind === Kind.ILabelVar) &&
+                    position_inside(line_no, col, arg_asm)
+                ) {
+                    return arg_asm.value;
                 }
             }
         }

@@ -2,15 +2,6 @@ import { Kind, Opcode } from "./opcodes";
 import { array_buffers_equal, arrays_equal } from "../../core/util";
 
 /**
- * Dimensions of related assembly code.
- */
-export type AsmToken = {
-    readonly line_no: number;
-    readonly col: number;
-    readonly len: number;
-};
-
-/**
  * Instruction invocation.
  */
 export type Instruction = {
@@ -28,13 +19,10 @@ export type Instruction = {
      * Maps each parameter by index to its arguments.
      */
     readonly param_to_args: readonly Arg[][];
-    /**
-     * Dimensions of the opcode's mnemonic in the related asm code.
-     */
-    readonly asm?: AsmToken;
+    readonly asm?: InstructionAsm;
 };
 
-export function new_instruction(opcode: Opcode, args: Arg[], asm?: AsmToken): Instruction {
+export function new_instruction(opcode: Opcode, args: Arg[], asm?: InstructionAsm): Instruction {
     const len = Math.min(opcode.params.length, args.length);
     const param_to_args: Arg[][] = [];
     let arg_size = 0;
@@ -82,20 +70,36 @@ function instructions_equal(a: Instruction, b: Instruction): boolean {
 export type Arg = {
     readonly value: any;
     readonly size: number;
-    readonly asm?: AsmToken;
 };
 
-export function new_arg(value: any, size: number, asm?: AsmToken): Arg {
+export function new_arg(value: any, size: number): Arg {
     return {
         value,
         size,
-        asm,
     };
 }
 
 function args_equal(a: Arg, b: Arg): boolean {
     return a.value === b.value && a.size === b.size;
 }
+
+/**
+ * Position and length of related assembly code.
+ */
+export type AsmToken = {
+    readonly line_no: number;
+    readonly col: number;
+    readonly len: number;
+};
+
+/**
+ * Information about the related assembly code.
+ */
+export type InstructionAsm = {
+    mnemonic?: AsmToken;
+    args: AsmToken[];
+    stack_args: (AsmToken & { value: number })[];
+};
 
 export enum SegmentType {
     Instructions,

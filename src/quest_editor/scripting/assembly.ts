@@ -193,7 +193,14 @@ class Assembler {
         };
     }
 
-    private add_instruction(opcode: Opcode, args: Arg[], token: IdentToken): void {
+    private add_instruction(
+        opcode: Opcode,
+        args: Arg[],
+        stack_args: Arg[],
+        token: Token | undefined,
+        arg_tokens: Token[],
+        stack_arg_tokens: Token[],
+    ): void {
         if (!this.segment) {
             // Unreachable code, technically valid.
             const instruction_segment: InstructionSegment = {
@@ -210,9 +217,22 @@ class Assembler {
         } else if (this.segment.type === SegmentType.Instructions) {
             this.segment.instructions.push(
                 new_instruction(opcode, args, {
-                    line_no: this.line_no,
-                    col: token.col,
-                    len: token.len,
+                    mnemonic: token && {
+                        line_no: this.line_no,
+                        col: token.col,
+                        len: token.len,
+                    },
+                    args: arg_tokens.map(arg_t => ({
+                        line_no: this.line_no,
+                        col: arg_t.col,
+                        len: arg_t.len,
+                    })),
+                    stack_args: stack_arg_tokens.map((arg_t, i) => ({
+                        line_no: this.line_no,
+                        col: arg_t.col,
+                        len: arg_t.len,
+                        value: stack_args[i].value,
+                    })),
                 }),
             );
         } else {
@@ -477,7 +497,10 @@ class Assembler {
 
             const last_token = this.tokens[this.tokens.length - 1];
             const error_length = last_token ? last_token.col + last_token.len - col : 0;
-            const ins_args: [Arg, Token][] = [];
+            // Inline arguments.
+            const ins_arg_and_tokens: [Arg, Token][] = [];
+            // Stack arguments.
+            const stack_arg_and_tokens: [Arg, Token][] = [];
 
             if (!varargs && arg_count !== param_count) {
                 this.add_error({
@@ -501,69 +524,101 @@ class Assembler {
                 return;
             } else if (opcode.stack !== StackInteraction.Pop) {
                 // Inline arguments.
-                if (!this.parse_args(opcode.params, ins_args, false)) {
+                if (!this.parse_args(opcode.params, ins_arg_and_tokens, false)) {
                     return;
                 }
             } else {
-                // Stack arguments.
-                const stack_args: [Arg, Token][] = [];
-
-                if (!this.parse_args(opcode.params, stack_args, true)) {
+                if (!this.parse_args(opcode.params, stack_arg_and_tokens, true)) {
                     return;
                 }
 
                 for (let i = 0; i < opcode.params.length; i++) {
                     const param = opcode.params[i];
-                    const arg_and_token = stack_args[i];
+                    const arg_and_token = stack_arg_and_tokens[i];
 
                     if (arg_and_token == undefined) {
                         continue;
                     }
 
-                    const [arg, token] = arg_and_token;
+                    const [arg, arg_token] = arg_and_token;
 
-                    if (token.type === TokenType.Register) {
+                    if (arg_token.type === TokenType.Register) {
                         if (param.type.kind === Kind.RegTupRef) {
-                            this.add_instruction(OP_ARG_PUSHB, [arg], ident_token);
+                            this.add_instruction(
+                                OP_ARG_PUSHB,
+                                [arg],
+                                [],
+                                undefined,
+                                [arg_token],
+                                [],
+                            );
                         } else {
-                            this.add_instruction(OP_ARG_PUSHR, [arg], ident_token);
+                            this.add_instruction(
+                                OP_ARG_PUSHR,
+                                [arg],
+                                [],
+                                undefined,
+                                [arg_token],
+                                [],
+                            );
                         }
                     } else {
                         switch (param.type.kind) {
                             case Kind.Byte:
                             case Kind.RegRef:
                             case Kind.RegTupRef:
-                                this.add_instruction(OP_ARG_PUSHB, [arg], ident_token);
+                                this.add_instruction(
+                                    OP_ARG_PUSHB,
+                                    [arg],
+                                    [],
+                                    undefined,
+                                    [arg_token],
+                                    [],
+                                );
                                 break;
                             case Kind.Word:
                             case Kind.Label:
                             case Kind.ILabel:
                             case Kind.DLabel:
                             case Kind.SLabel:
-                                this.add_instruction(OP_ARG_PUSHW, [arg], ident_token);
+                                this.add_instruction(
+                                    OP_ARG_PUSHW,
+                                    [arg],
+                                    [],
+                                    undefined,
+                                    [arg_token],
+                                    [],
+                                );
                                 break;
                             case Kind.DWord:
-                                this.add_instruction(OP_ARG_PUSHL, [arg], ident_token);
+                                this.add_instruction(
+                                    OP_ARG_PUSHL,
+                                    [arg],
+                                    [],
+                                    undefined,
+                                    [arg_token],
+                                    [],
+                                );
                                 break;
                             case Kind.Float:
                                 this.add_instruction(
                                     OP_ARG_PUSHL,
-                                    [
-                                        {
-                                            value: reinterpret_f32_as_i32(arg.value),
-                                            size: 4,
-                                            asm: {
-                                                line_no: this.line_no,
-                                                col: token.col,
-                                                len: token.len,
-                                            },
-                                        },
-                                    ],
-                                    ident_token,
+                                    [{ value: reinterpret_f32_as_i32(arg.value), size: 4 }],
+                                    [],
+                                    undefined,
+                                    [arg_token],
+                                    [],
                                 );
                                 break;
                             case Kind.String:
-                                this.add_instruction(OP_ARG_PUSHS, [arg], ident_token);
+                                this.add_instruction(
+                                    OP_ARG_PUSHS,
+                                    [arg],
+                                    [],
+                                    undefined,
+                                    [arg_token],
+                                    [],
+                                );
                                 break;
                             default:
                                 logger.error(
@@ -577,7 +632,30 @@ class Assembler {
                 }
             }
 
-            this.add_instruction(opcode, ins_args.map(([arg]) => arg), ident_token);
+            const args: Arg[] = [];
+            const arg_tokens: Token[] = [];
+
+            const stack_args: Arg[] = [];
+            const stack_arg_tokens: Token[] = [];
+
+            for (const [arg, token] of ins_arg_and_tokens) {
+                args.push(arg);
+                arg_tokens.push(token);
+            }
+
+            for (const [arg, token] of stack_arg_and_tokens) {
+                stack_args.push(arg);
+                stack_arg_tokens.push(token);
+            }
+
+            this.add_instruction(
+                opcode,
+                args,
+                stack_args,
+                ident_token,
+                arg_tokens,
+                stack_arg_tokens,
+            );
         }
     }
 
@@ -654,11 +732,6 @@ class Assembler {
                                     {
                                         value: token.value,
                                         size: 4,
-                                        asm: {
-                                            line_no: this.line_no,
-                                            col: token.col,
-                                            len: token.len,
-                                        },
                                     },
                                     token,
                                 ]);
@@ -676,7 +749,6 @@ class Assembler {
                                 {
                                     value: token.value,
                                     size: 4,
-                                    asm: { line_no: this.line_no, col: token.col, len: token.len },
                                 },
                                 token,
                             ]);
@@ -700,7 +772,6 @@ class Assembler {
                                 {
                                     value: token.value,
                                     size: 2 * token.value.length + 2,
-                                    asm: { line_no: this.line_no, col: token.col, len: token.len },
                                 },
                                 token,
                             ]);
@@ -797,7 +868,6 @@ class Assembler {
                 {
                     value,
                     size,
-                    asm: { line_no: this.line_no, col: token.col, len: token.len },
                 },
                 token,
             ]);
@@ -818,7 +888,6 @@ class Assembler {
                 {
                     value,
                     size: 1,
-                    asm: { line_no: this.line_no, col: token.col, len: token.len },
                 },
                 token,
             ]);
