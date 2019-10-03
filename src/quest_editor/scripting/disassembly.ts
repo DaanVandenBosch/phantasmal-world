@@ -74,7 +74,7 @@ export function disassemble(object_code: Segment[], manual_stack = false): strin
                 lines.push(line);
             }
         } else if (segment.type === SegmentType.String) {
-            lines.push("    " + JSON.stringify(segment.value));
+            lines.push("    " + string_segment_to_string(segment.value));
         } else {
             // SegmentType.Instructions
             let in_va_list = false;
@@ -207,4 +207,8 @@ function args_to_strings(params: readonly Param[], args: ArgWithType[], stack: b
     }
 
     return arg_strings;
+}
+
+function string_segment_to_string(str: string): string {
+    return JSON.stringify(str.replace(/<cr>/g, "\n"));
 }

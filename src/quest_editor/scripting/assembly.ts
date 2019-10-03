@@ -945,6 +945,6 @@ class Assembler {
             });
         }
 
-        this.add_string(token.value);
+        this.add_string(token.value.replace(/\n/g, "<cr>"));
     }
 }
