@@ -420,6 +420,10 @@
     border-bottom-color: var(--bg-color);
 }
 
+#root .lm_content {
+    overflow: visible;
+}
+
 #root .lm_splitter {
     box-sizing: border-box;
     background-color: hsl(0, 0%, 20%);
