@@ -109,10 +109,7 @@ const numeric_ops: Record<
 
 type ComparisonOperation = (a: number, b: number) => boolean;
 
-const comparison_ops: Record<
-    "eq" | "neq" | "gt" | "lt" | "gte" | "lte",
-    ComparisonOperation
-> = {
+const comparison_ops: Record<"eq" | "neq" | "gt" | "lt" | "gte" | "lte", ComparisonOperation> = {
     eq: (a, b) => a === b,
     neq: (a, b) => a !== b,
     gt: (a, b) => a > b,
@@ -136,7 +133,7 @@ function andfold<T, A>(fn: (acc: A, cur: T) => A | null, init: A, lst: T[]): A |
             acc = new_val;
         }
     }
-    
+
     return acc;
 }
 
@@ -228,9 +225,15 @@ export class VirtualMachine {
         const [arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7] = arg_vals;
 
         // helper for conditional jump opcodes
-        const conditional_jump_args:
-            (cond: ComparisonOperation) => [Thread, number, ComparisonOperation, number, number]
-            = (cond) => [exec, arg2, cond, arg0, arg1];
+        const conditional_jump_args: (
+            cond: ComparisonOperation,
+        ) => [Thread, number, ComparisonOperation, number, number] = cond => [
+            exec,
+            arg2,
+            cond,
+            arg0,
+            arg1,
+        ];
 
         switch (inst.opcode.code) {
             case OP_NOP.code:
@@ -355,71 +358,123 @@ export class VirtualMachine {
             // conditional jumps
             case OP_JMP_ON.code:
                 // all eq 1?
-                this.conditional_jump(exec, arg0, comparison_ops.eq, 1, ...rest(arg_vals).map(reg => this.get_sint(reg)));
+                this.conditional_jump(
+                    exec,
+                    arg0,
+                    comparison_ops.eq,
+                    1,
+                    ...rest(arg_vals).map(reg => this.get_sint(reg)),
+                );
                 break;
             case OP_JMP_OFF.code:
                 // all eq 0?
-                this.conditional_jump(exec, arg0, comparison_ops.eq, 0, ...rest(arg_vals).map(reg => this.get_sint(reg)));
+                this.conditional_jump(
+                    exec,
+                    arg0,
+                    comparison_ops.eq,
+                    0,
+                    ...rest(arg_vals).map(reg => this.get_sint(reg)),
+                );
                 break;
             case OP_JMP_E.code:
-                this.signed_conditional_jump_with_register(...conditional_jump_args(comparison_ops.eq));
+                this.signed_conditional_jump_with_register(
+                    ...conditional_jump_args(comparison_ops.eq),
+                );
                 break;
             case OP_JMPI_E.code:
-                this.signed_conditional_jump_with_literal(...conditional_jump_args(comparison_ops.eq));
+                this.signed_conditional_jump_with_literal(
+                    ...conditional_jump_args(comparison_ops.eq),
+                );
                 break;
             case OP_JMP_NE.code:
-                this.signed_conditional_jump_with_register(...conditional_jump_args(comparison_ops.neq));
+                this.signed_conditional_jump_with_register(
+                    ...conditional_jump_args(comparison_ops.neq),
+                );
                 break;
             case OP_JMPI_NE.code:
-                this.signed_conditional_jump_with_literal(...conditional_jump_args(comparison_ops.neq));
+                this.signed_conditional_jump_with_literal(
+                    ...conditional_jump_args(comparison_ops.neq),
+                );
                 break;
             case OP_UJMP_G.code:
-                this.unsigned_conditional_jump_with_register(...conditional_jump_args(comparison_ops.gt));
+                this.unsigned_conditional_jump_with_register(
+                    ...conditional_jump_args(comparison_ops.gt),
+                );
                 break;
             case OP_UJMPI_G.code:
-                this.unsigned_conditional_jump_with_literal(...conditional_jump_args(comparison_ops.gt));
+                this.unsigned_conditional_jump_with_literal(
+                    ...conditional_jump_args(comparison_ops.gt),
+                );
                 break;
             case OP_JMP_G.code:
-                this.signed_conditional_jump_with_register(...conditional_jump_args(comparison_ops.gt));
+                this.signed_conditional_jump_with_register(
+                    ...conditional_jump_args(comparison_ops.gt),
+                );
                 break;
             case OP_JMPI_G.code:
-                this.signed_conditional_jump_with_literal(...conditional_jump_args(comparison_ops.gt));
+                this.signed_conditional_jump_with_literal(
+                    ...conditional_jump_args(comparison_ops.gt),
+                );
                 break;
             case OP_UJMP_L.code:
-                this.unsigned_conditional_jump_with_register(...conditional_jump_args(comparison_ops.lt));
+                this.unsigned_conditional_jump_with_register(
+                    ...conditional_jump_args(comparison_ops.lt),
+                );
                 break;
             case OP_UJMPI_L.code:
-                this.unsigned_conditional_jump_with_literal(...conditional_jump_args(comparison_ops.lt));
+                this.unsigned_conditional_jump_with_literal(
+                    ...conditional_jump_args(comparison_ops.lt),
+                );
                 break;
             case OP_JMP_L.code:
-                this.signed_conditional_jump_with_register(...conditional_jump_args(comparison_ops.lt));
+                this.signed_conditional_jump_with_register(
+                    ...conditional_jump_args(comparison_ops.lt),
+                );
                 break;
             case OP_JMPI_L.code:
-                this.signed_conditional_jump_with_literal(...conditional_jump_args(comparison_ops.lt));
+                this.signed_conditional_jump_with_literal(
+                    ...conditional_jump_args(comparison_ops.lt),
+                );
                 break;
             case OP_UJMP_GE.code:
-                this.unsigned_conditional_jump_with_register(...conditional_jump_args(comparison_ops.gte));
+                this.unsigned_conditional_jump_with_register(
+                    ...conditional_jump_args(comparison_ops.gte),
+                );
                 break;
             case OP_UJMPI_GE.code:
-                this.unsigned_conditional_jump_with_literal(...conditional_jump_args(comparison_ops.gte));
+                this.unsigned_conditional_jump_with_literal(
+                    ...conditional_jump_args(comparison_ops.gte),
+                );
                 break;
             case OP_JMP_GE.code:
-                this.signed_conditional_jump_with_register(...conditional_jump_args(comparison_ops.gte));
+                this.signed_conditional_jump_with_register(
+                    ...conditional_jump_args(comparison_ops.gte),
+                );
                 break;
             case OP_JMPI_GE.code:
-                this.signed_conditional_jump_with_literal(...conditional_jump_args(comparison_ops.gte));
+                this.signed_conditional_jump_with_literal(
+                    ...conditional_jump_args(comparison_ops.gte),
+                );
                 break;
             case OP_UJMP_LE.code:
-                this.unsigned_conditional_jump_with_register(...conditional_jump_args(comparison_ops.lte));
+                this.unsigned_conditional_jump_with_register(
+                    ...conditional_jump_args(comparison_ops.lte),
+                );
                 break;
             case OP_UJMPI_LE.code:
-                this.unsigned_conditional_jump_with_literal(...conditional_jump_args(comparison_ops.lte));
+                this.unsigned_conditional_jump_with_literal(
+                    ...conditional_jump_args(comparison_ops.lte),
+                );
                 break;
             case OP_JMP_LE.code:
-                this.signed_conditional_jump_with_register(...conditional_jump_args(comparison_ops.lte));
+                this.signed_conditional_jump_with_register(
+                    ...conditional_jump_args(comparison_ops.lte),
+                );
                 break;
             case OP_JMPI_LE.code:
-                this.signed_conditional_jump_with_literal(...conditional_jump_args(comparison_ops.lte));
+                this.signed_conditional_jump_with_literal(
+                    ...conditional_jump_args(comparison_ops.lte),
+                );
                 break;
             default:
                 throw new Error(`Unsupported instruction: ${inst.opcode.mnemonic}.`);
@@ -541,7 +596,6 @@ export class VirtualMachine {
         if (seg_idx == undefined) {
             logger.warn(`Invalid jump label: ${label}.`);
         } else {
-            console.log("Jumping to " + label);
             top.seg_idx = seg_idx;
             top.inst_idx = -1;
         }
@@ -593,8 +647,12 @@ export class VirtualMachine {
         condition: ComparisonOperation,
         ...vals: number[]
     ): void {
-        console.log(`Conditional jump to ${label} with vals "${vals}" using comparator: `, condition);
-        const chain_cmp = andsecond.bind<null, ComparisonOperation, Parameters<ComparisonOperation>, any>(null, condition);
+        const chain_cmp = andsecond.bind<
+            null,
+            ComparisonOperation,
+            Parameters<ComparisonOperation>,
+            any
+        >(null, condition);
         if (andreduce(chain_cmp, vals) !== null) {
             this.jump_to_label(exec, label);
         }
