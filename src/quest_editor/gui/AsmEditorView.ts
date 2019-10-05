@@ -3,6 +3,7 @@ import { el } from "../../core/gui/dom";
 import { editor, KeyCode, KeyMod } from "monaco-editor";
 import { asm_editor_store } from "../stores/AsmEditorStore";
 import { AsmEditorToolBar } from "./AsmEditorToolBar";
+import { EditorHistory } from "./EditorHistory";
 import IStandaloneCodeEditor = editor.IStandaloneCodeEditor;
 
 editor.defineTheme("phantasmal-world", {
@@ -29,6 +30,7 @@ const DUMMY_MODEL = editor.createModel("", "psoasm");
 export class AsmEditorView extends ResizableWidget {
     private readonly tool_bar_view = this.disposable(new AsmEditorToolBar());
     private readonly editor: IStandaloneCodeEditor;
+    private readonly history: EditorHistory;
 
     readonly element = el.div();
 
@@ -51,13 +53,25 @@ export class AsmEditorView extends ResizableWidget {
             }),
         );
 
-        this.editor.addCommand(KeyMod.CtrlCmd | KeyCode.KEY_Z, () => {});
-        this.editor.addCommand(KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.KEY_Z, () => {});
-        const quick_command = this.editor.getAction("editor.action.quickCommand");
-        this.editor.addCommand(KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.KEY_P, () => {
-            quick_command.run();
-        });
+        this.history = this.disposable(new EditorHistory(this.editor));
 
+        // Commands and actions.
+        this.editor.addCommand(KeyMod.CtrlCmd | KeyCode.KEY_Z, () => {});
+
+        this.editor.addCommand(KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.KEY_Z, () => {});
+
+        const quick_command = this.editor.getAction("editor.action.quickCommand");
+
+        this.disposables(
+            this.editor.addAction({
+                id: "editor.action.quickCommand",
+                label: "Command Palette",
+                keybindings: [KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.KEY_P],
+                run: () => quick_command.run(),
+            }),
+        );
+
+        // Undo/Redo
         this.disposables(
             asm_editor_store.did_undo.observe(({ value: source }) => {
                 this.editor.trigger(source, "undo", undefined);
@@ -71,6 +85,7 @@ export class AsmEditorView extends ResizableWidget {
                 ({ value: model }) => {
                     this.editor.updateOptions({ readOnly: model == undefined });
                     this.editor.setModel(model || DUMMY_MODEL);
+                    this.history.reset();
                 },
                 { call_now: true },
             ),
