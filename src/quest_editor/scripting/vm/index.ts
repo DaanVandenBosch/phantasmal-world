@@ -74,6 +74,10 @@ import {
     OP_UJMPI_LE,
     OP_JMP_LE,
     OP_JMPI_LE,
+    OP_STACK_POP,
+    OP_STACK_PUSH,
+    OP_STACK_PUSHM,
+    OP_STACK_POPM,
 } from "../opcodes";
 import Logger from "js-logger";
 
@@ -81,6 +85,7 @@ const logger = Logger.get("quest_editor/scripting/vm");
 
 const REGISTER_COUNT = 256;
 const REGISTER_SIZE = 4;
+const VARIABLE_STACK_LENGTH = 16; // TODO: verify this value
 
 export enum ExecutionResult {
     Ok,
@@ -476,6 +481,19 @@ export class VirtualMachine {
                     ...conditional_jump_args(comparison_ops.lte),
                 );
                 break;
+            // variable stack operations
+            case OP_STACK_PUSH.code:
+                this.push_variable_stack(exec, arg0, 1);
+                break;
+            case OP_STACK_POP.code:
+                this.pop_variable_stack(exec, arg0, 1);
+                break;
+            case OP_STACK_PUSHM.code:
+                this.push_variable_stack(exec, arg0, arg1);
+                break;
+            case OP_STACK_POPM.code:
+                this.pop_variable_stack(exec, arg0, arg1);
+                break;
             default:
                 throw new Error(`Unsupported instruction: ${inst.opcode.mnemonic}.`);
         }
@@ -672,6 +690,38 @@ export class VirtualMachine {
         return arg;
     }
 
+    private push_variable_stack(exec: Thread, base_reg: number, num_push: number): void {
+        const end = base_reg + num_push;
+
+        if (end > REGISTER_COUNT) {
+            throw new Error("Variable stack: Invalid register");
+        }
+
+        if (exec.variable_stack.length + num_push > VARIABLE_STACK_LENGTH) {
+            throw new Error("Variable stack: Stack overflow");
+        }
+
+        for (let r = base_reg; r < end; r++) {
+            exec.variable_stack.push(this.get_uint(r));
+        }
+    }
+
+    private pop_variable_stack(exec: Thread, base_reg: number, num_pop: number): void {
+        const end = base_reg + num_pop;
+
+        if (end > REGISTER_COUNT) {
+            throw new Error("Variable stack: Invalid register");
+        }
+
+        if (exec.variable_stack.length < num_pop) {
+            throw new Error("Variable stack: Stack underflow");
+        }
+
+        for (let r = end - 1; r >= base_reg; r--) {
+            this.set_uint(r, exec.variable_stack.pop()!);
+        }
+    }
+
     private get_next_instruction_from_thread(exec: Thread): Instruction {
         if (exec.call_stack.length) {
             const top = exec.call_stack_top();
@@ -710,6 +760,7 @@ class Thread {
      */
     public call_stack: ExecutionLocation[] = [];
     public arg_stack: Arg[] = [];
+    public variable_stack: number[] = [];
     /**
      * Global or floor-local?
      */
