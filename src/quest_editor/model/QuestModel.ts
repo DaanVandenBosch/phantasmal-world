@@ -17,58 +17,25 @@ import { entity_type_to_string } from "../../core/data_formats/parsing/quest/ent
 const logger = Logger.get("quest_editor/model/QuestModel");
 
 export class QuestModel {
-    readonly id: Property<number>;
+    private readonly _id: WritableProperty<number> = property(0);
+    private readonly _language: WritableProperty<number> = property(0);
+    private readonly _name: WritableProperty<string> = property("");
+    private readonly _short_description: WritableProperty<string> = property("");
+    private readonly _long_description: WritableProperty<string> = property("");
+    private readonly _map_designations: WritableProperty<Map<number, number>>;
+    private readonly _area_variants: WritableListProperty<AreaVariantModel> = list_property();
+    private readonly _objects: WritableListProperty<QuestObjectModel>;
+    private readonly _npcs: WritableListProperty<QuestNpcModel>;
 
-    set_id(id: number): this {
-        if (id < 0) throw new Error(`id should be greater than or equal to 0, was ${id}.`);
+    readonly id: Property<number> = this._id;
 
-        this._id.val = id;
-        return this;
-    }
+    readonly language: Property<number> = this._language;
 
-    readonly language: Property<number>;
+    readonly name: Property<string> = this._name;
 
-    set_language(language: number): this {
-        if (language < 0)
-            throw new Error(`language should be greater than or equal to 0, was ${language}.`);
+    readonly short_description: Property<string> = this._short_description;
 
-        this._language.val = language;
-        return this;
-    }
-
-    readonly name: Property<string>;
-
-    set_name(name: string): this {
-        if (name.length > 32)
-            throw new Error(`name can't be longer than 32 characters, got "${name}".`);
-
-        this._name.val = name;
-        return this;
-    }
-
-    readonly short_description: Property<string>;
-
-    set_short_description(short_description: string): this {
-        if (short_description.length > 128)
-            throw new Error(
-                `short_description can't be longer than 128 characters, got "${short_description}".`,
-            );
-
-        this._short_description.val = short_description;
-        return this;
-    }
-
-    readonly long_description: Property<string>;
-
-    set_long_description(long_description: string): this {
-        if (long_description.length > 288)
-            throw new Error(
-                `long_description can't be longer than 288 characters, got "${long_description}".`,
-            );
-
-        this._long_description.val = long_description;
-        return this;
-    }
+    readonly long_description: Property<string> = this._long_description;
 
     readonly episode: Episode;
 
@@ -82,15 +49,10 @@ export class QuestModel {
      */
     readonly map_designations: Property<Map<number, number>>;
 
-    set_map_designations(map_designations: Map<number, number>): this {
-        this._map_designations.val = map_designations;
-        return this;
-    }
-
     /**
      * One variant per area.
      */
-    readonly area_variants: ListProperty<AreaVariantModel>;
+    readonly area_variants: ListProperty<AreaVariantModel> = this._area_variants;
 
     readonly objects: ListProperty<QuestObjectModel>;
 
@@ -104,16 +66,6 @@ export class QuestModel {
     readonly object_code: Segment[];
 
     readonly shop_items: number[];
-
-    private readonly _id: WritableProperty<number> = property(0);
-    private readonly _language: WritableProperty<number> = property(0);
-    private readonly _name: WritableProperty<string> = property("");
-    private readonly _short_description: WritableProperty<string> = property("");
-    private readonly _long_description: WritableProperty<string> = property("");
-    private readonly _map_designations: WritableProperty<Map<number, number>>;
-    private readonly _area_variants: WritableListProperty<AreaVariantModel> = list_property();
-    private readonly _objects: WritableListProperty<QuestObjectModel>;
-    private readonly _npcs: WritableListProperty<QuestNpcModel>;
 
     constructor(
         id: number,
@@ -136,13 +88,6 @@ export class QuestModel {
         if (!Array.isArray(dat_unknowns)) throw new Error("dat_unknowns is required.");
         if (!Array.isArray(object_code)) throw new Error("object_code is required.");
         if (!Array.isArray(shop_items)) throw new Error("shop_items is required.");
-
-        this.id = this._id;
-        this.language = this._language;
-        this.name = this._name;
-        this.short_description = this._short_description;
-        this.long_description = this._long_description;
-        this.area_variants = this._area_variants;
 
         this.set_id(id);
         this.set_language(language);
@@ -180,6 +125,54 @@ export class QuestModel {
 
         this.entities_per_area.observe(this.update_area_variants);
         this.map_designations.observe(this.update_area_variants);
+    }
+
+    set_id(id: number): this {
+        if (id < 0) throw new Error(`id should be greater than or equal to 0, was ${id}.`);
+
+        this._id.val = id;
+        return this;
+    }
+
+    set_language(language: number): this {
+        if (language < 0)
+            throw new Error(`language should be greater than or equal to 0, was ${language}.`);
+
+        this._language.val = language;
+        return this;
+    }
+
+    set_name(name: string): this {
+        if (name.length > 32)
+            throw new Error(`name can't be longer than 32 characters, got "${name}".`);
+
+        this._name.val = name;
+        return this;
+    }
+
+    set_short_description(short_description: string): this {
+        if (short_description.length > 128)
+            throw new Error(
+                `short_description can't be longer than 128 characters, got "${short_description}".`,
+            );
+
+        this._short_description.val = short_description;
+        return this;
+    }
+
+    set_long_description(long_description: string): this {
+        if (long_description.length > 288)
+            throw new Error(
+                `long_description can't be longer than 288 characters, got "${long_description}".`,
+            );
+
+        this._long_description.val = long_description;
+        return this;
+    }
+
+    set_map_designations(map_designations: Map<number, number>): this {
+        this._map_designations.val = map_designations;
+        return this;
     }
 
     add_entity(entity: QuestEntityModel): void {

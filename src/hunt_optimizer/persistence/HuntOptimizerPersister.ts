@@ -6,7 +6,7 @@ import { WantedItemModel } from "../model";
 const WANTED_ITEMS_KEY = "HuntOptimizerStore.wantedItems";
 
 class HuntOptimizerPersister extends Persister {
-    persist_wanted_items(server: Server, wanted_items: WantedItemModel[]): void {
+    persist_wanted_items(server: Server, wanted_items: readonly WantedItemModel[]): void {
         this.persist_for_server(
             server,
             WANTED_ITEMS_KEY,

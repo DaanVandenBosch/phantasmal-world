@@ -37,7 +37,7 @@ export class NpcCountsView extends ResizableWidget {
         this.finalize_construction(NpcCountsView.prototype);
     }
 
-    private update_view(npcs: QuestNpcModel[]): void {
+    private update_view(npcs: readonly QuestNpcModel[]): void {
         const frag = document.createDocumentFragment();
 
         const npc_counts = new Map<NpcType, number>();

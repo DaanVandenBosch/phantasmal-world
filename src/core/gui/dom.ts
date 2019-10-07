@@ -232,7 +232,7 @@ export function bind_children_to<T>(
         }
     });
 
-    function splice_children(index: number, removed_count: number, inserted: T[]): void {
+    function splice_children(index: number, removed_count: number, inserted: readonly T[]): void {
         for (let i = 0; i < removed_count; i++) {
             element.children[index].remove();
         }

@@ -74,8 +74,8 @@ class HuntOptimizerStore implements Disposable {
     }
 
     private optimize = (
-        wanted_items: WantedItemModel[],
-        methods: HuntMethodModel[],
+        wanted_items: readonly WantedItemModel[],
+        methods: readonly HuntMethodModel[],
     ): OptimalResultModel | undefined => {
         if (!wanted_items.length) {
             return undefined;

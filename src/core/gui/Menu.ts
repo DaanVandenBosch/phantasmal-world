@@ -11,7 +11,7 @@ export class Menu<T> extends Widget {
     readonly selected: WritableProperty<T | undefined>;
 
     private readonly to_label: (element: T) => string;
-    private readonly items: Property<T[]>;
+    private readonly items: Property<readonly T[]>;
     private readonly inner_element = el.div({ class: "core_Menu_inner" });
     private readonly related_element: HTMLElement;
     private readonly _selected: WidgetProperty<T | undefined>;
@@ -19,7 +19,7 @@ export class Menu<T> extends Widget {
     private hovered_element?: HTMLElement;
 
     constructor(
-        items: T[] | Property<T[]>,
+        items: readonly T[] | Property<readonly T[]>,
         to_label: (element: T) => string,
         related_element: HTMLElement,
     ) {
@@ -34,7 +34,7 @@ export class Menu<T> extends Widget {
         this.element.append(this.inner_element);
 
         this.to_label = to_label;
-        this.items = Array.isArray(items) ? property(items) : items;
+        this.items = Array.isArray(items) ? property(items) : (items as Property<readonly T[]>);
         this.related_element = related_element;
 
         this._selected = new WidgetProperty<T | undefined>(this, undefined, this.set_selected);

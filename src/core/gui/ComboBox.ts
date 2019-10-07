@@ -9,7 +9,7 @@ import { WritableProperty } from "../observable/property/WritableProperty";
 import { WidgetProperty } from "../observable/property/WidgetProperty";
 
 export type ComboBoxOptions<T> = LabelledControlOptions & {
-    items: T[] | Property<T[]>;
+    items: readonly T[] | Property<readonly T[]>;
     to_label(item: T): string;
     placeholder_text?: string;
     filter?(text: string): void;

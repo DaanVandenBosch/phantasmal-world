@@ -12,17 +12,17 @@ export type ListPropertyChangeEvent<T> = ListChange<T> | ListValueChange<T>;
 export type ListChange<T> = {
     readonly type: ListChangeType.ListChange;
     readonly index: number;
-    readonly removed: T[];
-    readonly inserted: T[];
+    readonly removed: readonly T[];
+    readonly inserted: readonly T[];
 };
 
 export type ListValueChange<T> = {
     readonly type: ListChangeType.ValueChange;
     readonly index: number;
-    readonly updated: T[];
+    readonly updated: readonly T[];
 };
 
-export interface ListProperty<T> extends Property<T[]> {
+export interface ListProperty<T> extends Property<readonly T[]> {
     readonly is_list_property: true;
 
     readonly length: Property<number>;
@@ -32,10 +32,8 @@ export interface ListProperty<T> extends Property<T[]> {
     observe_list(observer: (change: ListPropertyChangeEvent<T>) => void): Disposable;
 }
 
-export function is_list_property<T>(observable: Observable<T[]>): observable is ListProperty<T> {
+export function is_list_property<T>(
+    observable: Observable<readonly T[]>,
+): observable is ListProperty<T> {
     return (observable as any).is_list_property;
-}
-
-export function is_any_list_property(observable: any): observable is ListProperty<any> {
-    return observable && observable.is_list_property;
 }

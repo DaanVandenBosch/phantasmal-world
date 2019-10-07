@@ -10,17 +10,17 @@ import Logger from "js-logger";
 
 const logger = Logger.get("core/observable/property/list/SimpleListProperty");
 
-export class SimpleListProperty<T> extends AbstractProperty<T[]>
+export class SimpleListProperty<T> extends AbstractProperty<readonly T[]>
     implements WritableListProperty<T> {
     readonly is_list_property = true;
 
     readonly length: Property<number>;
 
-    get val(): T[] {
+    get val(): readonly T[] {
         return this.get_val();
     }
 
-    set val(values: T[]) {
+    set val(values: readonly T[]) {
         this.set_val(values);
     }
 
@@ -28,7 +28,7 @@ export class SimpleListProperty<T> extends AbstractProperty<T[]>
         return this.values;
     }
 
-    set_val(values: T[]): T[] {
+    set_val(values: readonly T[]): T[] {
         const removed = this.values.splice(0, this.values.length, ...values);
         this.finalize_update({
             type: ListChangeType.ListChange,
@@ -95,9 +95,9 @@ export class SimpleListProperty<T> extends AbstractProperty<T[]>
         };
     }
 
-    bind_to(observable: Observable<T[]>): Disposable {
+    bind_to(observable: Observable<readonly T[]>): Disposable {
         if (is_list_property(observable)) {
-            this.val = observable.val;
+            this.set_val(observable.val);
 
             return observable.observe_list(change => {
                 if (change.type === ListChangeType.ListChange) {
@@ -106,14 +106,14 @@ export class SimpleListProperty<T> extends AbstractProperty<T[]>
             });
         } else {
             if (is_property(observable)) {
-                this.val = observable.val;
+                this.set_val(observable.val);
             }
 
             return observable.observe(({ value }) => this.set_val(value));
         }
     }
 
-    bind_bi(property: WritableProperty<T[]>): Disposable {
+    bind_bi(property: WritableProperty<readonly T[]>): Disposable {
         const bind_1 = this.bind_to(property);
         const bind_2 = property.bind_to(this);
         return {
@@ -253,7 +253,11 @@ export class SimpleListProperty<T> extends AbstractProperty<T[]>
         }
     }
 
-    private replace_element_observers(from: number, amount: number, new_elements: T[]): void {
+    private replace_element_observers(
+        from: number,
+        amount: number,
+        new_elements: readonly T[],
+    ): void {
         let index = from;
 
         const removed = this.value_observers.splice(

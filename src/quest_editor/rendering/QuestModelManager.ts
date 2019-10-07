@@ -237,7 +237,7 @@ class EntityModelManager {
         }
     }
 
-    remove(entities: QuestEntityModel[]): void {
+    remove(entities: readonly QuestEntityModel[]): void {
         for (const entity of entities) {
             const queue_index = this.queue.indexOf(entity);
 

@@ -25,7 +25,7 @@ export class Select<T> extends LabelledControl {
     private just_opened: boolean;
 
     constructor(
-        items: T[] | Property<T[]>,
+        items: readonly T[] | Property<readonly T[]>,
         to_label: (element: T) => string,
         options?: SelectOptions<T>,
     ) {
