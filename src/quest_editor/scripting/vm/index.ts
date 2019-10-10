@@ -83,6 +83,7 @@ import Logger from "js-logger";
 
 const logger = Logger.get("quest_editor/scripting/vm");
 
+const REGISTERS_BASE_ADDRESS = 0x00a954b0;
 const REGISTER_COUNT = 256;
 const REGISTER_SIZE = 4;
 const VARIABLE_STACK_LENGTH = 16; // TODO: verify this value
@@ -164,8 +165,169 @@ function rest<T>(lst: T[]): T[] {
     return lst.slice(1);
 }
 
+type Range = [number, number];
+
+function ranges_overlap(a: Range, b: Range): boolean {
+    return a[0] <= b[1] && b[0] <= a[1];
+}
+
+/**
+ * Represents a single location in memory.
+ */
+class VirtualMachineMemorySlot {
+    constructor(public readonly buffer: ArrayBuffer, public readonly byte_offset: number) {}
+}
+
+/**
+ * Maps memory addresses to buffers.
+ */
+class VirtualMachineMemory {
+    private allocated_ranges: Range[] = [];
+    private ranges_sorted: boolean = true;
+    private memory: Map<number, VirtualMachineMemorySlot> = new Map();
+
+    private sort_ranges() {
+        this.allocated_ranges.sort((a, b) => a[0] - b[0]);
+
+        this.ranges_sorted = true;
+    }
+
+    /**
+     * Would a buffer of the given size fit at the given address?
+     */
+    private will_fit(address: number, size: number): boolean {
+        const fit_range: Range = [address, address + size - 1];
+
+        if (!this.ranges_sorted) {
+            this.sort_ranges();
+        }
+
+        // check if it would overlap any already allocated space
+        for (const alloc_range of this.allocated_ranges) {
+            if (ranges_overlap(alloc_range, fit_range)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Returns an address where a buffer of the given size would fit.
+     */
+    private find_free_space(size: number): number {
+        let address = 0;
+
+        // nothing yet allocated, we can place it wherever
+        if (this.allocated_ranges.length < 1) {
+            return address;
+        }
+
+        if (!this.ranges_sorted) {
+            this.sort_ranges();
+        }
+
+        // check if buffer could fit in between allocated buffers
+        for (const alloc_range of this.allocated_ranges) {
+            if (!ranges_overlap(alloc_range, [address, address + size - 1])) {
+                return address;
+            }
+
+            address = alloc_range[1] + 1;
+        }
+
+        // just place it at the end
+        return address;
+    }
+
+    /**
+     * Allocate a buffer of the given size at the given address.
+     * If the address is omitted a suitable location is chosen.
+     * @returns The address of the buffer.
+     */
+    public allocate(size: number, address?: number): number {
+        if (size <= 0) {
+            throw new Error("Allocation failed: The size of the buffer must be greater than 0");
+        }
+
+        // check if given address is good or find an address if none was given
+        if (address === undefined) {
+            address = this.find_free_space(size);
+        } else {
+            if (!this.will_fit(address, size)) {
+                throw new Error(
+                    "Allocation failed: Cannot fit a buffer of the given size at the given address",
+                );
+            }
+        }
+
+        // save the range of allocated memory
+        this.allocated_ranges.push([address, address + size - 1]);
+        this.ranges_sorted = false;
+
+        // the actual buffer
+        const buf = new ArrayBuffer(size);
+
+        // set addresses to correct buffer offsets
+        for (let offset = 0; offset < size; offset++) {
+            this.memory.set(address + offset, new VirtualMachineMemorySlot(buf, offset));
+        }
+
+        return address;
+    }
+
+    /**
+     * Free the memory allocated for the buffer at the given address.
+     */
+    public free(address: number) {
+        // check if address is a valid allocated buffer
+        let range: Range | null = null;
+        let range_idx = -1;
+
+        for (let i = 0; i < this.allocated_ranges.length; i++) {
+            const cur = this.allocated_ranges[i];
+            if (cur[0] === address) {
+                range = cur;
+                range_idx = i;
+                break;
+            }
+        }
+
+        if (range === null) {
+            throw new Error("Free failed: Given address is not the start of an allocated buffer");
+        }
+
+        const [alloc_start, alloc_end] = range;
+
+        // remove addresses
+        for (let addr = alloc_start; addr <= alloc_end; addr++) {
+            this.memory.delete(addr);
+        }
+
+        // remove range
+        this.allocated_ranges.splice(range_idx, 1);
+    }
+
+    /**
+     * Gets the memory at the given address. Returns null if
+     * there is nothing allocated at the given address.
+     */
+    public get(address: number): VirtualMachineMemorySlot | null {
+        if (this.memory.has(address)) {
+            return this.memory.get(address)!;
+        }
+
+        return null;
+    }
+}
+
 export class VirtualMachine {
-    private register_store = new ArrayBuffer(REGISTER_SIZE * REGISTER_COUNT);
+    private memory = new VirtualMachineMemory();
+    private registers_address = this.memory.allocate(
+        REGISTER_SIZE * REGISTER_COUNT,
+        REGISTERS_BASE_ADDRESS,
+    );
+    private register_store = this.memory.get(this.registers_address)!.buffer;
     private register_uint8_view = new Uint8Array(this.register_store);
     private registers = new DataView(this.register_store);
     private object_code: Segment[] = [];
@@ -747,6 +909,10 @@ export class VirtualMachine {
 
     private clear_registers(): void {
         this.register_uint8_view.fill(0);
+    }
+
+    private get_register_address(reg: number): number {
+        return this.registers_address + reg * REGISTER_SIZE;
     }
 }
 
