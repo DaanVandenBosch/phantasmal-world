@@ -1,11 +1,4 @@
-import {
-    Arg,
-    Instruction,
-    InstructionSegment,
-    new_arg,
-    Segment,
-    SegmentType,
-} from "../instructions";
+import { Instruction, InstructionSegment, Segment, SegmentType } from "../instructions";
 import {
     OP_ADD,
     OP_ADDI,
@@ -14,7 +7,6 @@ import {
     OP_ARG_PUSHB,
     OP_ARG_PUSHL,
     OP_ARG_PUSHR,
-    OP_ARG_PUSHS,
     OP_ARG_PUSHW,
     OP_CALL,
     OP_CLEAR,
@@ -78,6 +70,8 @@ import {
     OP_STACK_PUSH,
     OP_STACK_PUSHM,
     OP_STACK_POPM,
+    Param,
+    Kind,
 } from "../opcodes";
 import Logger from "js-logger";
 
@@ -87,6 +81,8 @@ const REGISTERS_BASE_ADDRESS = 0x00a954b0;
 const REGISTER_COUNT = 256;
 const REGISTER_SIZE = 4;
 const VARIABLE_STACK_LENGTH = 16; // TODO: verify this value
+const ARG_STACK_SLOT_SIZE = 4;
+const ARG_STACK_LENGTH = 8;
 
 export enum ExecutionResult {
     Ok,
@@ -171,11 +167,63 @@ function ranges_overlap(a: Range, b: Range): boolean {
     return a[0] <= b[1] && b[0] <= a[1];
 }
 
+class VirtualMachineMemoryBuffer extends ArrayBuffer {
+    /**
+     * The memory this buffer belongs to.
+     */
+    public readonly memory: VirtualMachineMemory;
+    /**
+     * The memory address of this buffer.
+     */
+    public readonly address: number;
+
+    constructor(memory: VirtualMachineMemory, address: number, size: number) {
+        super(size);
+        this.memory = memory;
+        this.address = address;
+    }
+
+    public get_offset(byte_offset: number): VirtualMachineMemorySlot | null {
+        return this.memory.get(this.address + byte_offset);
+    }
+
+    public free(): void {
+        this.memory.free(this.address);
+    }
+}
+
 /**
  * Represents a single location in memory.
  */
 class VirtualMachineMemorySlot {
-    constructor(public readonly buffer: ArrayBuffer, public readonly byte_offset: number) {}
+    /**
+     * The memory this slot belongs to.
+     */
+    public readonly memory: VirtualMachineMemory;
+    /**
+     * The memory address this slots represents.
+     */
+    public readonly address: number;
+    /**
+     * The allocated buffer this slot is a part of.
+     */
+    public readonly buffer: VirtualMachineMemoryBuffer;
+    /**
+     * The offset that this slot represents in the buffer.
+     */
+    public readonly byte_offset: number;
+
+    constructor(
+        memory: VirtualMachineMemory,
+        address: number,
+        buffer: VirtualMachineMemoryBuffer,
+        byte_offset: number,
+    ) {
+        this.memory = memory;
+        this.address = address;
+        this.buffer = buffer;
+        this.byte_offset = byte_offset;
+    }
 }
 
 /**
@@ -186,7 +234,7 @@ class VirtualMachineMemory {
     private ranges_sorted: boolean = true;
     private memory: Map<number, VirtualMachineMemorySlot> = new Map();
 
-    private sort_ranges() {
+    private sort_ranges(): void {
         this.allocated_ranges.sort((a, b) => a[0] - b[0]);
 
         this.ranges_sorted = true;
@@ -243,9 +291,9 @@ class VirtualMachineMemory {
     /**
      * Allocate a buffer of the given size at the given address.
      * If the address is omitted a suitable location is chosen.
-     * @returns The address of the buffer.
+     * @returns The allocated buffer.
      */
-    public allocate(size: number, address?: number): number {
+    public allocate(size: number, address?: number): VirtualMachineMemoryBuffer {
         if (size <= 0) {
             throw new Error("Allocation failed: The size of the buffer must be greater than 0");
         }
@@ -266,20 +314,23 @@ class VirtualMachineMemory {
         this.ranges_sorted = false;
 
         // the actual buffer
-        const buf = new ArrayBuffer(size);
+        const buf = new VirtualMachineMemoryBuffer(this, address, size);
 
         // set addresses to correct buffer offsets
         for (let offset = 0; offset < size; offset++) {
-            this.memory.set(address + offset, new VirtualMachineMemorySlot(buf, offset));
+            this.memory.set(
+                address + offset,
+                new VirtualMachineMemorySlot(this, address, buf, offset),
+            );
         }
 
-        return address;
+        return buf;
     }
 
     /**
      * Free the memory allocated for the buffer at the given address.
      */
-    public free(address: number) {
+    public free(address: number): void {
         // check if address is a valid allocated buffer
         let range: Range | null = null;
         let range_idx = -1;
@@ -323,11 +374,10 @@ class VirtualMachineMemory {
 
 export class VirtualMachine {
     private memory = new VirtualMachineMemory();
-    private registers_address = this.memory.allocate(
+    private register_store = this.memory.allocate(
         REGISTER_SIZE * REGISTER_COUNT,
         REGISTERS_BASE_ADDRESS,
-    );
-    private register_store = this.memory.get(this.registers_address)!.buffer;
+    )!;
     private register_uint8_view = new Uint8Array(this.register_store);
     private registers = new DataView(this.register_store);
     private object_code: Segment[] = [];
@@ -373,7 +423,18 @@ export class VirtualMachine {
             );
         }
 
-        this.thread.push(new Thread(new ExecutionLocation(seg_idx!, 0), true));
+        this.thread.push(
+            new Thread(
+                new ExecutionLocation(seg_idx!, 0),
+                this.memory.allocate(ARG_STACK_SLOT_SIZE * ARG_STACK_LENGTH),
+                true,
+            ),
+        );
+    }
+
+    private dispose_thread(thread_idx: number): void {
+        this.thread[thread_idx].dispose();
+        this.thread.splice(thread_idx, 1);
     }
 
     /**
@@ -389,6 +450,7 @@ export class VirtualMachine {
         const inst = this.get_next_instruction_from_thread(exec);
 
         const arg_vals = inst.args.map(arg => arg.value);
+        // eslint-disable-next-line
         const [arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7] = arg_vals;
 
         // helper for conditional jump opcodes
@@ -444,14 +506,16 @@ export class VirtualMachine {
                 break;
             case OP_ARG_PUSHR.code:
                 // deref given register ref
-                this.push_arg_stack(exec, new_arg(this.get_sint(arg0), REGISTER_SIZE));
+                exec.push_arg(this.get_sint(arg0), Kind.DWord);
                 break;
             case OP_ARG_PUSHL.code:
+                exec.push_arg(inst.args[0].value, Kind.DWord);
+                break;
             case OP_ARG_PUSHB.code:
+                exec.push_arg(inst.args[0].value, Kind.Byte);
+                break;
             case OP_ARG_PUSHW.code:
-            case OP_ARG_PUSHS.code:
-                // push arg as-is
-                this.push_arg_stack(exec, inst.args[0]);
+                exec.push_arg(inst.args[0].value, Kind.Word);
                 break;
             // arithmetic operations
             case OP_ADD.code:
@@ -670,7 +734,7 @@ export class VirtualMachine {
                 // segment ended, move to next segment
                 if (++top.seg_idx >= this.object_code.length) {
                     // eof
-                    this.thread.splice(this.thread_idx, 1);
+                    this.dispose_thread(this.thread_idx);
                 } else {
                     top.inst_idx = 0;
                 }
@@ -838,20 +902,6 @@ export class VirtualMachine {
         }
     }
 
-    private push_arg_stack(exec: Thread, arg: Arg): void {
-        exec.arg_stack.push(arg);
-    }
-
-    private pop_arg_stack(exec: Thread): Arg {
-        const arg = exec.arg_stack.pop();
-
-        if (!arg) {
-            throw new Error("Argument stack underflow.");
-        }
-
-        return arg;
-    }
-
     private push_variable_stack(exec: Thread, base_reg: number, num_push: number): void {
         const end = base_reg + num_push;
 
@@ -912,7 +962,7 @@ export class VirtualMachine {
     }
 
     private get_register_address(reg: number): number {
-        return this.registers_address + reg * REGISTER_SIZE;
+        return this.register_store.address + reg * REGISTER_SIZE;
     }
 }
 
@@ -920,24 +970,90 @@ class ExecutionLocation {
     constructor(public seg_idx: number, public inst_idx: number) {}
 }
 
+type ArgStackTypeList = [Kind, Kind, Kind, Kind, Kind, Kind, Kind, Kind];
+
 class Thread {
     /**
      * Call stack. The top element describes the instruction about to be executed.
      */
     public call_stack: ExecutionLocation[] = [];
-    public arg_stack: Arg[] = [];
+
+    private arg_stack_buf: VirtualMachineMemoryBuffer;
+    private arg_stack_counter: number = 0;
+    private arg_stack: DataView;
+    private arg_stack_types: ArgStackTypeList = Array(ARG_STACK_LENGTH).fill(
+        Kind.Any,
+    ) as ArgStackTypeList;
+
     public variable_stack: number[] = [];
     /**
      * Global or floor-local?
      */
     public global: boolean;
 
-    call_stack_top(): ExecutionLocation {
+    constructor(
+        next: ExecutionLocation,
+        arg_stack_buf: VirtualMachineMemoryBuffer,
+        global: boolean,
+    ) {
+        this.call_stack = [next];
+        this.global = global;
+
+        this.arg_stack_buf = arg_stack_buf;
+        this.arg_stack = new DataView(arg_stack_buf);
+    }
+
+    public call_stack_top(): ExecutionLocation {
         return this.call_stack[this.call_stack.length - 1];
     }
 
-    constructor(next: ExecutionLocation, global: boolean) {
-        this.call_stack = [next];
-        this.global = global;
+    public push_arg(data: number, type: Kind): void {
+        if (this.arg_stack_counter >= ARG_STACK_LENGTH) {
+            throw new Error("Argument stack: Stack overflow");
+        }
+
+        this.arg_stack.setUint32(this.arg_stack_counter * ARG_STACK_SLOT_SIZE, data, true);
+        this.arg_stack_types[this.arg_stack_counter] = type;
+
+        this.arg_stack_counter++;
+    }
+
+    public fetch_args(params: readonly Param[]): number[] {
+        const args: number[] = [];
+
+        if (params.length !== this.arg_stack_counter) {
+            logger.warn("Argument stack: Argument count mismatch");
+        }
+
+        for (let i = 0; i < params.length; i++) {
+            const param = params[i];
+
+            if (param.type.kind !== this.arg_stack_types[i]) {
+                logger.warn("Argument stack: Argument type mismatch");
+            }
+
+            switch (param.type.kind) {
+                case Kind.Byte:
+                    args.push(this.arg_stack.getUint8(i));
+                    break;
+                case Kind.Word:
+                    args.push(this.arg_stack.getUint16(i, true));
+                    break;
+                case Kind.DWord:
+                case Kind.String:
+                    args.push(this.arg_stack.getUint32(i, true));
+                    break;
+                default:
+                    throw new Error(`Unhandled param kind: Kind.${Kind[param.type.kind]}`);
+            }
+        }
+
+        this.arg_stack_counter = 0;
+
+        return args;
+    }
+
+    public dispose(): void {
+        this.arg_stack_buf.free();
     }
 }
