@@ -1,7 +1,7 @@
 import { Vec3 } from "../../vector";
 import { npc_data, NpcType, NpcTypeData } from "./npc_types";
 import { object_data, ObjectType, ObjectTypeData } from "./object_types";
-import { DatWave } from "./dat";
+import { DatEvent } from "./dat";
 
 export type QuestNpc = {
     readonly type: NpcType;
@@ -47,7 +47,7 @@ export type QuestObject = {
     readonly unknown: readonly number[][];
 };
 
-export type QuestWave = DatWave;
+export type QuestEvent = DatEvent;
 
 export type EntityTypeData = NpcTypeData | ObjectTypeData;
 

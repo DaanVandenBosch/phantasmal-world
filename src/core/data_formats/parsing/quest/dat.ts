@@ -15,7 +15,7 @@ const NPC_SIZE = 72;
 export type DatFile = {
     readonly objs: readonly DatObject[];
     readonly npcs: readonly DatNpc[];
-    readonly waves: readonly DatWave[];
+    readonly waves: readonly DatEvent[];
     readonly unknowns: readonly DatUnknown[];
 };
 
@@ -41,47 +41,47 @@ export type DatNpc = DatEntity & {
     readonly roaming: number;
 };
 
-export type DatWave = {
+export type DatEvent = {
     readonly id: number;
     readonly section_id: number;
     readonly wave: number;
     readonly delay: number;
-    readonly actions: readonly DatWaveAction[];
+    readonly actions: readonly DatEventAction[];
     readonly area_id: number;
     readonly unknown: number;
 };
 
-export enum DatWaveActionType {
+export enum DatEventActionType {
     SpawnNpcs = 0x8,
     Unlock = 0xa,
     Lock = 0xb,
     SpawnWave = 0xc,
 }
 
-export type DatWaveAction =
-    | DatWaveActionSpawnNpcs
-    | DatWaveActionUnlock
-    | DatWaveActionLock
-    | DatWaveActionSpawnWave;
+export type DatEventAction =
+    | DatEventActionSpawnNpcs
+    | DatEventActionUnlock
+    | DatEventActionLock
+    | DatEventActionSpawnWave;
 
-export type DatWaveActionSpawnNpcs = {
-    readonly type: DatWaveActionType.SpawnNpcs;
+export type DatEventActionSpawnNpcs = {
+    readonly type: DatEventActionType.SpawnNpcs;
     readonly section_id: number;
     readonly appear_flag: number;
 };
 
-export type DatWaveActionUnlock = {
-    readonly type: DatWaveActionType.Unlock;
+export type DatEventActionUnlock = {
+    readonly type: DatEventActionType.Unlock;
     readonly door_id: number;
 };
 
-export type DatWaveActionLock = {
-    readonly type: DatWaveActionType.Lock;
+export type DatEventActionLock = {
+    readonly type: DatEventActionType.Lock;
     readonly door_id: number;
 };
 
-export type DatWaveActionSpawnWave = {
-    readonly type: DatWaveActionType.SpawnWave;
+export type DatEventActionSpawnWave = {
+    readonly type: DatEventActionType.SpawnWave;
     readonly wave_id: number;
 };
 
@@ -96,7 +96,7 @@ export type DatUnknown = {
 export function parse_dat(cursor: Cursor): DatFile {
     const objs: DatObject[] = [];
     const npcs: DatNpc[] = [];
-    const waves: DatWave[] = [];
+    const waves: DatEvent[] = [];
     const unknowns: DatUnknown[] = [];
 
     while (cursor.bytes_left) {
@@ -249,7 +249,7 @@ function parse_npcs(cursor: Cursor, area_id: number, npcs: DatNpc[]): void {
     }
 }
 
-function parse_waves(cursor: Cursor, area_id: number, waves: DatWave[]): void {
+function parse_waves(cursor: Cursor, area_id: number, waves: DatEvent[]): void {
     const actions_offset = cursor.u32();
     cursor.seek(4); // Always 0x10
     const wave_count = cursor.u32();
@@ -312,8 +312,8 @@ function parse_waves(cursor: Cursor, area_id: number, waves: DatWave[]): void {
     cursor.seek_start(actions_offset + actions_cursor.position);
 }
 
-function parse_wave_actions(cursor: Cursor): DatWaveAction[] {
-    const actions: DatWaveAction[] = [];
+function parse_wave_actions(cursor: Cursor): DatEventAction[] {
+    const actions: DatEventAction[] = [];
 
     outer: while (cursor.bytes_left) {
         const type = cursor.u8();
@@ -322,31 +322,31 @@ function parse_wave_actions(cursor: Cursor): DatWaveAction[] {
             case 1:
                 break outer;
 
-            case DatWaveActionType.SpawnNpcs:
+            case DatEventActionType.SpawnNpcs:
                 actions.push({
-                    type: DatWaveActionType.SpawnNpcs,
+                    type: DatEventActionType.SpawnNpcs,
                     section_id: cursor.u16(),
                     appear_flag: cursor.u16(),
                 });
                 break;
 
-            case DatWaveActionType.Unlock:
+            case DatEventActionType.Unlock:
                 actions.push({
-                    type: DatWaveActionType.Unlock,
+                    type: DatEventActionType.Unlock,
                     door_id: cursor.u16(),
                 });
                 break;
 
-            case DatWaveActionType.Lock:
+            case DatEventActionType.Lock:
                 actions.push({
-                    type: DatWaveActionType.Lock,
+                    type: DatEventActionType.Lock,
                     door_id: cursor.u16(),
                 });
                 break;
 
-            case DatWaveActionType.SpawnWave:
+            case DatEventActionType.SpawnWave:
                 actions.push({
-                    type: DatWaveActionType.SpawnWave,
+                    type: DatEventActionType.SpawnWave,
                     wave_id: cursor.u32(),
                 });
                 break;
@@ -458,7 +458,7 @@ function write_npcs(cursor: WritableCursor, npcs: readonly DatNpc[]): void {
     }
 }
 
-function write_waves(cursor: WritableCursor, waves: readonly DatWave[]): void {
+function write_waves(cursor: WritableCursor, waves: readonly DatEvent[]): void {
     const grouped_waves = groupBy(waves, wave => wave.area_id);
     const wave_area_ids = Object.keys(grouped_waves)
         .map(key => parseInt(key, 10))
@@ -506,20 +506,20 @@ function write_waves(cursor: WritableCursor, waves: readonly DatWave[]): void {
                 cursor.write_u8(action.type);
 
                 switch (action.type) {
-                    case DatWaveActionType.SpawnNpcs:
+                    case DatEventActionType.SpawnNpcs:
                         cursor.write_u16(action.section_id);
                         cursor.write_u16(action.appear_flag);
                         break;
 
-                    case DatWaveActionType.Unlock:
+                    case DatEventActionType.Unlock:
                         cursor.write_u16(action.door_id);
                         break;
 
-                    case DatWaveActionType.Lock:
+                    case DatEventActionType.Lock:
                         cursor.write_u16(action.door_id);
                         break;
 
-                    case DatWaveActionType.SpawnWave:
+                    case DatEventActionType.SpawnWave:
                         cursor.write_u32(action.wave_id);
                         break;
 

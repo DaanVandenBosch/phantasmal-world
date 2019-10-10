@@ -14,7 +14,7 @@ import { ResizableBufferCursor } from "../../cursor/ResizableBufferCursor";
 import { Endianness } from "../../Endianness";
 import { parse_bin, write_bin } from "./bin";
 import { DatFile, DatNpc, DatObject, DatUnknown, parse_dat, write_dat } from "./dat";
-import { QuestNpc, QuestObject, QuestWave } from "./entities";
+import { QuestNpc, QuestObject, QuestEvent } from "./entities";
 import { Episode } from "./Episode";
 import { object_data, ObjectType, pso_id_to_object_type } from "./object_types";
 import { parse_qst, QstContainedFile, write_qst } from "./qst";
@@ -32,7 +32,7 @@ export type Quest = {
     readonly episode: Episode;
     readonly objects: readonly QuestObject[];
     readonly npcs: readonly QuestNpc[];
-    readonly waves: readonly QuestWave[];
+    readonly waves: readonly QuestEvent[];
     /**
      * (Partial) raw DAT data that can't be parsed yet by Phantasmal.
      */

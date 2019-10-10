@@ -29,14 +29,14 @@ import { Euler, Vector3 } from "three";
 import { vec3_to_threejs } from "../../core/rendering/conversion";
 import { RotateEntityAction } from "../actions/RotateEntityAction";
 import { ExecutionResult, VirtualMachine } from "../scripting/vm";
-import { QuestWaveModel } from "../model/QuestWaveModel";
-import { DatWaveActionType } from "../../core/data_formats/parsing/quest/dat";
+import { QuestEventModel } from "../model/QuestEventModel";
+import { DatEventActionType } from "../../core/data_formats/parsing/quest/dat";
 import {
-    QuestWaveActionLockModel,
-    QuestWaveActionSpawnNpcsModel,
-    QuestWaveActionSpawnWaveModel,
-    QuestWaveActionUnlockModel,
-} from "../model/QuestWaveActionModel";
+    QuestEventActionLockModel,
+    QuestEventActionSpawnNpcsModel,
+    QuestEventActionSpawnWaveModel,
+    QuestEventActionUnlockModel,
+} from "../model/QuestEventActionModel";
 import Logger = require("js-logger");
 
 const logger = Logger.get("quest_editor/gui/QuestEditorStore");
@@ -170,26 +170,26 @@ export class QuestEditorStore implements Disposable {
                         ),
                         quest.waves.map(
                             wave =>
-                                new QuestWaveModel(
+                                new QuestEventModel(
                                     wave.id,
                                     wave.section_id,
                                     wave.wave,
                                     wave.delay,
                                     wave.actions.map(action => {
                                         switch (action.type) {
-                                            case DatWaveActionType.SpawnNpcs:
-                                                return new QuestWaveActionSpawnNpcsModel(
+                                            case DatEventActionType.SpawnNpcs:
+                                                return new QuestEventActionSpawnNpcsModel(
                                                     action.section_id,
                                                     action.appear_flag,
                                                 );
-                                            case DatWaveActionType.Unlock:
-                                                return new QuestWaveActionUnlockModel(
+                                            case DatEventActionType.Unlock:
+                                                return new QuestEventActionUnlockModel(
                                                     action.door_id,
                                                 );
-                                            case DatWaveActionType.Lock:
-                                                return new QuestWaveActionLockModel(action.door_id);
-                                            case DatWaveActionType.SpawnWave:
-                                                return new QuestWaveActionSpawnWaveModel(
+                                            case DatEventActionType.Lock:
+                                                return new QuestEventActionLockModel(action.door_id);
+                                            case DatEventActionType.SpawnWave:
+                                                return new QuestEventActionSpawnWaveModel(
                                                     action.wave_id,
                                                 );
                                         }
@@ -261,25 +261,25 @@ export class QuestEditorStore implements Disposable {
                     wave: wave.wave,
                     delay: wave.delay,
                     actions: wave.actions.map(action => {
-                        if (action instanceof QuestWaveActionSpawnNpcsModel) {
+                        if (action instanceof QuestEventActionSpawnNpcsModel) {
                             return {
-                                type: DatWaveActionType.SpawnNpcs,
+                                type: DatEventActionType.SpawnNpcs,
                                 section_id: action.section_id,
                                 appear_flag: action.appear_flag,
                             };
-                        } else if (action instanceof QuestWaveActionUnlockModel) {
+                        } else if (action instanceof QuestEventActionUnlockModel) {
                             return {
-                                type: DatWaveActionType.Unlock,
+                                type: DatEventActionType.Unlock,
                                 door_id: action.door_id,
                             };
-                        } else if (action instanceof QuestWaveActionLockModel) {
+                        } else if (action instanceof QuestEventActionLockModel) {
                             return {
-                                type: DatWaveActionType.Lock,
+                                type: DatEventActionType.Lock,
                                 door_id: action.door_id,
                             };
-                        } else if (action instanceof QuestWaveActionSpawnWaveModel) {
+                        } else if (action instanceof QuestEventActionSpawnWaveModel) {
                             return {
-                                type: DatWaveActionType.SpawnWave,
+                                type: DatEventActionType.SpawnWave,
                                 wave_id: action.wave_id,
                             };
                         } else {

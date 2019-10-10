@@ -1,6 +1,6 @@
-export abstract class QuestWaveActionModel {}
+export abstract class QuestEventActionModel {}
 
-export class QuestWaveActionSpawnNpcsModel extends QuestWaveActionModel {
+export class QuestEventActionSpawnNpcsModel extends QuestEventActionModel {
     readonly section_id: number;
     readonly appear_flag: number;
 
@@ -12,7 +12,7 @@ export class QuestWaveActionSpawnNpcsModel extends QuestWaveActionModel {
     }
 }
 
-export class QuestWaveActionUnlockModel extends QuestWaveActionModel {
+export class QuestEventActionUnlockModel extends QuestEventActionModel {
     readonly door_id: number;
 
     constructor(door_id: number) {
@@ -22,7 +22,7 @@ export class QuestWaveActionUnlockModel extends QuestWaveActionModel {
     }
 }
 
-export class QuestWaveActionLockModel extends QuestWaveActionModel {
+export class QuestEventActionLockModel extends QuestEventActionModel {
     readonly door_id: number;
 
     constructor(door_id: number) {
@@ -32,7 +32,7 @@ export class QuestWaveActionLockModel extends QuestWaveActionModel {
     }
 }
 
-export class QuestWaveActionSpawnWaveModel extends QuestWaveActionModel {
+export class QuestEventActionSpawnWaveModel extends QuestEventActionModel {
     readonly wave_id: number;
 
     constructor(wave_id: number) {

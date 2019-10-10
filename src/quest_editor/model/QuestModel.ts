@@ -13,7 +13,7 @@ import { ListProperty } from "../../core/observable/property/list/ListProperty";
 import { WritableListProperty } from "../../core/observable/property/list/WritableListProperty";
 import { QuestEntityModel } from "./QuestEntityModel";
 import { entity_type_to_string } from "../../core/data_formats/parsing/quest/entities";
-import { QuestWaveModel } from "./QuestWaveModel";
+import { QuestEventModel } from "./QuestEventModel";
 
 const logger = Logger.get("quest_editor/model/QuestModel");
 
@@ -27,7 +27,7 @@ export class QuestModel {
     private readonly _area_variants: WritableListProperty<AreaVariantModel> = list_property();
     private readonly _objects: WritableListProperty<QuestObjectModel>;
     private readonly _npcs: WritableListProperty<QuestNpcModel>;
-    private readonly _waves: WritableListProperty<QuestWaveModel>;
+    private readonly _waves: WritableListProperty<QuestEventModel>;
 
     readonly id: Property<number> = this._id;
 
@@ -60,7 +60,7 @@ export class QuestModel {
 
     readonly npcs: ListProperty<QuestNpcModel>;
 
-    readonly waves: ListProperty<QuestWaveModel>;
+    readonly waves: ListProperty<QuestEventModel>;
 
     /**
      * (Partial) raw DAT data that can't be parsed yet by Phantasmal.
@@ -81,7 +81,7 @@ export class QuestModel {
         map_designations: Map<number, number>,
         objects: readonly QuestObjectModel[],
         npcs: readonly QuestNpcModel[],
-        waves: readonly QuestWaveModel[],
+        waves: readonly QuestEventModel[],
         dat_unknowns: readonly DatUnknown[],
         object_code: readonly Segment[],
         shop_items: readonly number[],

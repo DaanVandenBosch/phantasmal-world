@@ -1,11 +1,11 @@
-import { QuestWaveActionModel } from "./QuestWaveActionModel";
+import { QuestEventActionModel } from "./QuestEventActionModel";
 
-export class QuestWaveModel {
+export class QuestEventModel {
     readonly id: number;
     readonly section_id: number;
     readonly wave: number;
     readonly delay: number;
-    readonly actions: readonly QuestWaveActionModel[];
+    readonly actions: readonly QuestEventActionModel[];
     readonly area_id: number;
     readonly unknown: number;
 
@@ -14,7 +14,7 @@ export class QuestWaveModel {
         section_id: number,
         wave: number,
         delay: number,
-        actions: readonly QuestWaveActionModel[],
+        actions: readonly QuestEventActionModel[],
         area_id: number,
         unknown: number,
     ) {

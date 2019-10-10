@@ -73,9 +73,16 @@ Features that are in ***bold italics*** are planned and not yet implemented.
 
 ## Events
 
-- ***Create events***
-- ***Delete events***
-- ***Edit events***
+- ***Event chain list***
+- ***Add chain of events***
+- ***Add event to chain***
+- ***Delete event***
+    - ***Delete coupled NPCs if requested***
+- ***Edit event section***
+
+### Event Actions
+
+- ***Add/Delete***
 
 ## Script Object Code
 
@@ -121,10 +128,6 @@ Features that are in ***bold italics*** are planned and not yet implemented.
 - ***Show reserved register usage on hover over***
 - ***When saving, ask user whether to really save when asm contains errors***
 - ***Theme selection***
-
-## Enemy Waves
-
-- ***Figure out how they work***
 
 ## Non-BlueBurst Support
 
