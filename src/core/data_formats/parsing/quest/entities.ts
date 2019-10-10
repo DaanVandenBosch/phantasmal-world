@@ -1,8 +1,7 @@
 import { Vec3 } from "../../vector";
 import { npc_data, NpcType, NpcTypeData } from "./npc_types";
 import { object_data, ObjectType, ObjectTypeData } from "./object_types";
-
-export type QuestEntity = QuestNpc | QuestObject;
+import { DatWave } from "./dat";
 
 export type QuestNpc = {
     readonly type: NpcType;
@@ -20,7 +19,7 @@ export type QuestNpc = {
     /**
      * Data of which the purpose hasn't been discovered yet.
      */
-    readonly unknown: number[][];
+    readonly unknown: readonly number[][];
     readonly pso_type_id: number;
     readonly npc_id: number;
     readonly script_label: number;
@@ -45,8 +44,10 @@ export type QuestObject = {
     /**
      * Data of which the purpose hasn't been discovered yet.
      */
-    readonly unknown: number[][];
+    readonly unknown: readonly number[][];
 };
+
+export type QuestWave = DatWave;
 
 export type EntityTypeData = NpcTypeData | ObjectTypeData;
 

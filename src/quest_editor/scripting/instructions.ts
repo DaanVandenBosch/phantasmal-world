@@ -160,6 +160,6 @@ function segments_equal(a: Segment, b: Segment): boolean {
     }
 }
 
-export function segment_arrays_equal(a: Segment[], b: Segment[]): boolean {
+export function segment_arrays_equal(a: readonly Segment[], b: readonly Segment[]): boolean {
     return arrays_equal(a, b, segments_equal);
 }

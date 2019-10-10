@@ -30,17 +30,15 @@ import { ResizableBuffer } from "../../ResizableBuffer";
 
 const logger = Logger.get("core/data_formats/parsing/quest/bin");
 
-export class BinFile {
-    constructor(
-        readonly quest_id: number,
-        readonly language: number,
-        readonly quest_name: string,
-        readonly short_description: string,
-        readonly long_description: string,
-        readonly object_code: Segment[],
-        readonly shop_items: number[],
-    ) {}
-}
+export type BinFile = {
+    readonly quest_id: number;
+    readonly language: number;
+    readonly quest_name: string;
+    readonly short_description: string;
+    readonly long_description: string;
+    readonly object_code: readonly Segment[];
+    readonly shop_items: readonly number[];
+};
 
 const SEGMENT_PRIORITY: number[] = [];
 SEGMENT_PRIORITY[SegmentType.Instructions] = 2;
@@ -82,15 +80,15 @@ export function parse_bin(
 
     const segments = parse_object_code(object_code, label_holder, entry_labels, lenient);
 
-    return new BinFile(
+    return {
         quest_id,
         language,
         quest_name,
         short_description,
         long_description,
-        segments,
+        object_code: segments,
         shop_items,
-    );
+    };
 }
 
 export function write_bin(bin: BinFile): ArrayBuffer {
@@ -697,7 +695,7 @@ function parse_instruction_arguments(cursor: Cursor, opcode: Opcode): Arg[] {
 
 function write_object_code(
     cursor: WritableCursor,
-    segments: Segment[],
+    segments: readonly Segment[],
 ): { size: number; label_offsets: number[] } {
     const start_pos = cursor.position;
     // Keep track of label offsets.

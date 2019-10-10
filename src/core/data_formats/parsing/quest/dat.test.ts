@@ -2,7 +2,7 @@ import { Endianness } from "../../Endianness";
 import { prs_decompress } from "../../compression/prs/decompress";
 import { BufferCursor } from "../../cursor/BufferCursor";
 import { ResizableBufferCursor } from "../../cursor/ResizableBufferCursor";
-import { parse_dat, write_dat } from "./dat";
+import { DatFile, parse_dat, write_dat } from "./dat";
 import { readFileSync } from "fs";
 
 /**
@@ -37,13 +37,25 @@ test("parse, modify and write DAT", () => {
     const test_parsed = parse_dat(orig_dat);
     orig_dat.seek_start(0);
 
-    test_parsed.objs[9].position = {
-        x: 13,
-        y: 17,
-        z: 19,
+    const test_updated: DatFile = {
+        ...test_parsed,
+        objs: test_parsed.objs.map((obj, i) => {
+            if (i === 9) {
+                return {
+                    ...obj,
+                    position: {
+                        x: 13,
+                        y: 17,
+                        z: 19,
+                    },
+                };
+            } else {
+                return obj;
+            }
+        }),
     };
 
-    const test_dat = new ResizableBufferCursor(write_dat(test_parsed), Endianness.Little);
+    const test_dat = new ResizableBufferCursor(write_dat(test_updated), Endianness.Little);
 
     expect(test_dat.size).toBe(orig_dat.size);
 

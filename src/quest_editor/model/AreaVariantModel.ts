@@ -18,4 +18,9 @@ export class AreaVariantModel {
         this.id = id;
         this.area = area;
     }
+
+    set_sections(sections: readonly SectionModel[]): this {
+        this._sections.val = sections;
+        return this;
+    }
 }

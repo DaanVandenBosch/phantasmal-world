@@ -12,7 +12,7 @@ export class ResizableBufferCursor extends AbstractWritableCursor implements Wri
 
     set size(size: number) {
         if (size > this._size) {
-            this.ensure_size(size - this._size);
+            this.ensure_size(size - this.position);
         } else {
             this._size = size;
         }

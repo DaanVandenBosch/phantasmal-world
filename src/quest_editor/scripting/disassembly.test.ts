@@ -117,9 +117,7 @@ test("assembling disassembled object code with manual stack management should re
     expect(errors).toEqual([]);
     expect(warnings).toEqual([]);
 
-    bin.object_code.splice(0, bin.object_code.length, ...object_code);
-
-    const test_bytes = new ArrayBufferCursor(write_bin(bin), Endianness.Little);
+    const test_bytes = new ArrayBufferCursor(write_bin({ ...bin, object_code }), Endianness.Little);
 
     orig_bytes.seek_start(0);
     expect(test_bytes.size).toBe(orig_bytes.size);

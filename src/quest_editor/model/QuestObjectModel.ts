@@ -9,7 +9,7 @@ export class QuestObjectModel extends QuestEntityModel<ObjectType> {
     /**
      * Data of which the purpose hasn't been discovered yet.
      */
-    readonly unknown: number[][];
+    readonly unknown: readonly number[][];
 
     constructor(
         type: ObjectType,
@@ -20,7 +20,7 @@ export class QuestObjectModel extends QuestEntityModel<ObjectType> {
         position: Vector3,
         rotation: Euler,
         properties: Map<string, number>,
-        unknown: number[][],
+        unknown: readonly number[][],
     ) {
         super(type, area_id, section_id, position, rotation);
 

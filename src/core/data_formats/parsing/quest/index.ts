@@ -12,9 +12,9 @@ import { ArrayBufferCursor } from "../../cursor/ArrayBufferCursor";
 import { Cursor } from "../../cursor/Cursor";
 import { ResizableBufferCursor } from "../../cursor/ResizableBufferCursor";
 import { Endianness } from "../../Endianness";
-import { BinFile, parse_bin, write_bin } from "./bin";
+import { parse_bin, write_bin } from "./bin";
 import { DatFile, DatNpc, DatObject, DatUnknown, parse_dat, write_dat } from "./dat";
-import { QuestNpc, QuestObject } from "./entities";
+import { QuestNpc, QuestObject, QuestWave } from "./entities";
 import { Episode } from "./Episode";
 import { object_data, ObjectType, pso_id_to_object_type } from "./object_types";
 import { parse_qst, QstContainedFile, write_qst } from "./qst";
@@ -29,14 +29,15 @@ export type Quest = {
     readonly short_description: string;
     readonly long_description: string;
     readonly episode: Episode;
-    readonly objects: QuestObject[];
-    readonly npcs: QuestNpc[];
+    readonly objects: readonly QuestObject[];
+    readonly npcs: readonly QuestNpc[];
+    readonly waves: readonly QuestWave[];
     /**
      * (Partial) raw DAT data that can't be parsed yet by Phantasmal.
      */
-    readonly dat_unknowns: DatUnknown[];
-    readonly object_code: Segment[];
-    readonly shop_items: number[];
+    readonly dat_unknowns: readonly DatUnknown[];
+    readonly object_code: readonly Segment[];
+    readonly shop_items: readonly number[];
     readonly map_designations: Map<number, number>;
 };
 
@@ -125,6 +126,7 @@ export function parse_quest(cursor: Cursor, lenient: boolean = false): Quest | u
         episode,
         objects,
         npcs: parse_npc_data(episode, dat.npcs),
+        waves: dat.waves,
         dat_unknowns: dat.unknowns,
         object_code: bin.object_code,
         shop_items: bin.shop_items,
@@ -136,19 +138,18 @@ export function write_quest_qst(quest: Quest, file_name: string): ArrayBuffer {
     const dat = write_dat({
         objs: objects_to_dat_data(quest.objects),
         npcs: npcs_to_dat_data(quest.npcs),
+        waves: quest.waves,
         unknowns: quest.dat_unknowns,
     });
-    const bin = write_bin(
-        new BinFile(
-            quest.id,
-            quest.language,
-            quest.name,
-            quest.short_description,
-            quest.long_description,
-            quest.object_code,
-            quest.shop_items,
-        ),
-    );
+    const bin = write_bin({
+        quest_id: quest.id,
+        language: quest.language,
+        quest_name: quest.name,
+        short_description: quest.short_description,
+        long_description: quest.long_description,
+        object_code: quest.object_code,
+        shop_items: quest.shop_items,
+    });
     const ext_start = file_name.lastIndexOf(".");
     const base_file_name =
         ext_start === -1 ? file_name.slice(0, 11) : file_name.slice(0, Math.min(11, ext_start));
@@ -211,7 +212,10 @@ function extract_map_designations(
     return map_designations;
 }
 
-function extract_script_entry_points(objects: QuestObject[], npcs: DatNpc[]): number[] {
+function extract_script_entry_points(
+    objects: readonly QuestObject[],
+    npcs: readonly DatNpc[],
+): number[] {
     const entry_points = new Set([0]);
 
     for (const obj of objects) {
@@ -235,7 +239,7 @@ function extract_script_entry_points(objects: QuestObject[], npcs: DatNpc[]): nu
     return [...entry_points];
 }
 
-function parse_obj_data(objs: DatObject[]): QuestObject[] {
+function parse_obj_data(objs: readonly DatObject[]): QuestObject[] {
     return objs.map(obj_data => {
         const type = pso_id_to_object_type(obj_data.type_id);
 
@@ -270,7 +274,7 @@ function parse_obj_data(objs: DatObject[]): QuestObject[] {
     });
 }
 
-function parse_npc_data(episode: number, npcs: DatNpc[]): QuestNpc[] {
+function parse_npc_data(episode: number, npcs: readonly DatNpc[]): QuestNpc[] {
     return npcs.map(npc_data => {
         return {
             type: get_npc_type(episode, npc_data),
@@ -564,7 +568,7 @@ function get_npc_type(episode: number, { type_id, scale, roaming, area_id }: Dat
     return NpcType.Unknown;
 }
 
-function objects_to_dat_data(objects: QuestObject[]): DatObject[] {
+function objects_to_dat_data(objects: readonly QuestObject[]): DatObject[] {
     return objects.map(object => ({
         type_id: object_data(object.type).pso_id!,
         id: object.id,
@@ -578,7 +582,8 @@ function objects_to_dat_data(objects: QuestObject[]): DatObject[] {
     }));
 }
 
-function npcs_to_dat_data(npcs: QuestNpc[]): DatNpc[] {
+function npcs_to_dat_data(npcs: readonly QuestNpc[]): DatNpc[] {
+    // TODO: use primitive reinterpretation functions instead of DataView.
     const dv = new DataView(new ArrayBuffer(4));
 
     return npcs.map(npc => {

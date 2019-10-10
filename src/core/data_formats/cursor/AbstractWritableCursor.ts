@@ -54,14 +54,14 @@ export abstract class AbstractWritableCursor extends AbstractCursor implements W
         return this;
     }
 
-    write_u8_array(array: number[]): this {
+    write_u8_array(array: readonly number[]): this {
         this.ensure_size(array.length);
         new Uint8Array(this.backing_buffer, this.offset + this.position).set(new Uint8Array(array));
         this._position += array.length;
         return this;
     }
 
-    write_u16_array(array: number[]): this {
+    write_u16_array(array: readonly number[]): this {
         this.ensure_size(2 * array.length);
         const len = array.length;
 
@@ -72,7 +72,7 @@ export abstract class AbstractWritableCursor extends AbstractCursor implements W
         return this;
     }
 
-    write_u32_array(array: number[]): this {
+    write_u32_array(array: readonly number[]): this {
         this.ensure_size(4 * array.length);
         const len = array.length;
 

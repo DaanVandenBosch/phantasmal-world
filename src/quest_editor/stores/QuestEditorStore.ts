@@ -28,7 +28,15 @@ import { RemoveEntityAction } from "../actions/RemoveEntityAction";
 import { Euler, Vector3 } from "three";
 import { vec3_to_threejs } from "../../core/rendering/conversion";
 import { RotateEntityAction } from "../actions/RotateEntityAction";
-import { VirtualMachine, ExecutionResult } from "../scripting/vm";
+import { ExecutionResult, VirtualMachine } from "../scripting/vm";
+import { QuestWaveModel } from "../model/QuestWaveModel";
+import { DatWaveActionType } from "../../core/data_formats/parsing/quest/dat";
+import {
+    QuestWaveActionLockModel,
+    QuestWaveActionSpawnNpcsModel,
+    QuestWaveActionSpawnWaveModel,
+    QuestWaveActionUnlockModel,
+} from "../model/QuestWaveActionModel";
 import Logger = require("js-logger");
 
 const logger = Logger.get("quest_editor/gui/QuestEditorStore");
@@ -160,6 +168,36 @@ export class QuestEditorStore implements Disposable {
                                     npc.unknown,
                                 ),
                         ),
+                        quest.waves.map(
+                            wave =>
+                                new QuestWaveModel(
+                                    wave.id,
+                                    wave.section_id,
+                                    wave.wave,
+                                    wave.delay,
+                                    wave.actions.map(action => {
+                                        switch (action.type) {
+                                            case DatWaveActionType.SpawnNpcs:
+                                                return new QuestWaveActionSpawnNpcsModel(
+                                                    action.section_id,
+                                                    action.appear_flag,
+                                                );
+                                            case DatWaveActionType.Unlock:
+                                                return new QuestWaveActionUnlockModel(
+                                                    action.door_id,
+                                                );
+                                            case DatWaveActionType.Lock:
+                                                return new QuestWaveActionLockModel(action.door_id);
+                                            case DatWaveActionType.SpawnWave:
+                                                return new QuestWaveActionSpawnWaveModel(
+                                                    action.wave_id,
+                                                );
+                                        }
+                                    }),
+                                    wave.area_id,
+                                    wave.unknown,
+                                ),
+                        ),
                         quest.dat_unknowns,
                         quest.object_code,
                         quest.shop_items,
@@ -216,6 +254,44 @@ export class QuestEditorStore implements Disposable {
                     npc_id: npc.npc_id,
                     script_label: npc.script_label,
                     pso_roaming: npc.pso_roaming,
+                })),
+                waves: quest.waves.val.map(wave => ({
+                    id: wave.id,
+                    section_id: wave.section_id,
+                    wave: wave.wave,
+                    delay: wave.delay,
+                    actions: wave.actions.map(action => {
+                        if (action instanceof QuestWaveActionSpawnNpcsModel) {
+                            return {
+                                type: DatWaveActionType.SpawnNpcs,
+                                section_id: action.section_id,
+                                appear_flag: action.appear_flag,
+                            };
+                        } else if (action instanceof QuestWaveActionUnlockModel) {
+                            return {
+                                type: DatWaveActionType.Unlock,
+                                door_id: action.door_id,
+                            };
+                        } else if (action instanceof QuestWaveActionLockModel) {
+                            return {
+                                type: DatWaveActionType.Lock,
+                                door_id: action.door_id,
+                            };
+                        } else if (action instanceof QuestWaveActionSpawnWaveModel) {
+                            return {
+                                type: DatWaveActionType.SpawnWave,
+                                wave_id: action.wave_id,
+                            };
+                        } else {
+                            throw new Error(
+                                `Unknown wave action type ${
+                                    Object.getPrototypeOf(action).constructor
+                                }`,
+                            );
+                        }
+                    }),
+                    area_id: wave.area_id,
+                    unknown: wave.unknown,
                 })),
                 dat_unknowns: quest.dat_unknowns,
                 object_code: quest.object_code,
@@ -316,7 +392,7 @@ export class QuestEditorStore implements Disposable {
             // Load section data.
             for (const variant of quest.area_variants.val) {
                 const sections = await area_store.get_area_sections(quest.episode, variant);
-                variant.sections.val.splice(0, Infinity, ...sections);
+                variant.set_sections(sections);
 
                 for (const object of quest.objects.val.filter(o => o.area_id === variant.area.id)) {
                     try {

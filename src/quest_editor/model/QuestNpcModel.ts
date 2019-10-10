@@ -11,7 +11,7 @@ export class QuestNpcModel extends QuestEntityModel<NpcType> {
     /**
      * Data of which the purpose hasn't been discovered yet.
      */
-    readonly unknown: number[][];
+    readonly unknown: readonly number[][];
 
     constructor(
         type: NpcType,
@@ -24,7 +24,7 @@ export class QuestNpcModel extends QuestEntityModel<NpcType> {
         position: Vector3,
         rotation: Euler,
         scale: Vector3,
-        unknown: number[][],
+        unknown: readonly number[][],
     ) {
         if (!Number.isInteger(pso_type_id)) throw new Error("pso_type_id should be an integer.");
         if (!Number.isFinite(npc_id)) throw new Error("npc_id should be a number.");
