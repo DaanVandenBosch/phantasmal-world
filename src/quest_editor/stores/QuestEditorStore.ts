@@ -26,17 +26,9 @@ import { create_new_quest } from "./quest_creation";
 import { CreateEntityAction } from "../actions/CreateEntityAction";
 import { RemoveEntityAction } from "../actions/RemoveEntityAction";
 import { Euler, Vector3 } from "three";
-import { vec3_to_threejs } from "../../core/rendering/conversion";
 import { RotateEntityAction } from "../actions/RotateEntityAction";
 import { ExecutionResult, VirtualMachine } from "../scripting/vm";
-import { QuestEventModel } from "../model/QuestEventModel";
-import { DatEventActionType } from "../../core/data_formats/parsing/quest/dat";
-import {
-    QuestEventActionLockModel,
-    QuestEventActionSpawnNpcsModel,
-    QuestEventActionSpawnWaveModel,
-    QuestEventActionUnlockModel,
-} from "../model/QuestEventActionModel";
+import { convert_quest_from_model, convert_quest_to_model } from "./model_conversion";
 import Logger = require("js-logger");
 
 const logger = Logger.get("quest_editor/gui/QuestEditorStore");
@@ -118,92 +110,7 @@ export class QuestEditorStore implements Disposable {
         try {
             const buffer = await read_file(file);
             const quest = parse_quest(new ArrayBufferCursor(buffer, Endianness.Little));
-            this.set_quest(
-                quest &&
-                    new QuestModel(
-                        quest.id,
-                        quest.language,
-                        quest.name,
-                        quest.short_description,
-                        quest.long_description,
-                        quest.episode,
-                        quest.map_designations,
-                        quest.objects.map(
-                            obj =>
-                                new QuestObjectModel(
-                                    obj.type,
-                                    obj.id,
-                                    obj.group_id,
-                                    obj.area_id,
-                                    obj.section_id,
-                                    vec3_to_threejs(obj.position),
-                                    new Euler(
-                                        obj.rotation.x,
-                                        obj.rotation.y,
-                                        obj.rotation.z,
-                                        "ZXY",
-                                    ),
-                                    obj.properties,
-                                    obj.unknown,
-                                ),
-                        ),
-                        quest.npcs.map(
-                            npc =>
-                                new QuestNpcModel(
-                                    npc.type,
-                                    npc.pso_type_id,
-                                    npc.npc_id,
-                                    npc.script_label,
-                                    npc.pso_roaming,
-                                    npc.area_id,
-                                    npc.section_id,
-                                    vec3_to_threejs(npc.position),
-                                    new Euler(
-                                        npc.rotation.x,
-                                        npc.rotation.y,
-                                        npc.rotation.z,
-                                        "ZXY",
-                                    ),
-                                    vec3_to_threejs(npc.scale),
-                                    npc.unknown,
-                                ),
-                        ),
-                        quest.waves.map(
-                            wave =>
-                                new QuestEventModel(
-                                    wave.id,
-                                    wave.section_id,
-                                    wave.wave,
-                                    wave.delay,
-                                    wave.actions.map(action => {
-                                        switch (action.type) {
-                                            case DatEventActionType.SpawnNpcs:
-                                                return new QuestEventActionSpawnNpcsModel(
-                                                    action.section_id,
-                                                    action.appear_flag,
-                                                );
-                                            case DatEventActionType.Unlock:
-                                                return new QuestEventActionUnlockModel(
-                                                    action.door_id,
-                                                );
-                                            case DatEventActionType.Lock:
-                                                return new QuestEventActionLockModel(action.door_id);
-                                            case DatEventActionType.SpawnWave:
-                                                return new QuestEventActionSpawnWaveModel(
-                                                    action.wave_id,
-                                                );
-                                        }
-                                    }),
-                                    wave.area_id,
-                                    wave.unknown,
-                                ),
-                        ),
-                        quest.dat_unknowns,
-                        quest.object_code,
-                        quest.shop_items,
-                    ),
-                file.name,
-            );
+            this.set_quest(quest && convert_quest_to_model(quest), file.name);
         } catch (e) {
             logger.error("Couldn't read file.", e);
         }
@@ -223,83 +130,7 @@ export class QuestEditorStore implements Disposable {
         let file_name = prompt("File name:", default_file_name);
         if (!file_name) return;
 
-        const buffer = write_quest_qst(
-            {
-                id: quest.id.val,
-                language: quest.language.val,
-                name: quest.name.val,
-                short_description: quest.short_description.val,
-                long_description: quest.long_description.val,
-                episode: quest.episode,
-                objects: quest.objects.val.map(obj => ({
-                    type: obj.type,
-                    area_id: obj.area_id,
-                    section_id: obj.section_id.val,
-                    position: obj.position.val,
-                    rotation: obj.rotation.val,
-                    unknown: obj.unknown,
-                    id: obj.id,
-                    group_id: obj.group_id,
-                    properties: obj.properties,
-                })),
-                npcs: quest.npcs.val.map(npc => ({
-                    type: npc.type,
-                    area_id: npc.area_id,
-                    section_id: npc.section_id.val,
-                    position: npc.position.val,
-                    rotation: npc.rotation.val,
-                    scale: npc.scale,
-                    unknown: npc.unknown,
-                    pso_type_id: npc.pso_type_id,
-                    npc_id: npc.npc_id,
-                    script_label: npc.script_label,
-                    pso_roaming: npc.pso_roaming,
-                })),
-                waves: quest.waves.val.map(wave => ({
-                    id: wave.id,
-                    section_id: wave.section_id,
-                    wave: wave.wave,
-                    delay: wave.delay,
-                    actions: wave.actions.map(action => {
-                        if (action instanceof QuestEventActionSpawnNpcsModel) {
-                            return {
-                                type: DatEventActionType.SpawnNpcs,
-                                section_id: action.section_id,
-                                appear_flag: action.appear_flag,
-                            };
-                        } else if (action instanceof QuestEventActionUnlockModel) {
-                            return {
-                                type: DatEventActionType.Unlock,
-                                door_id: action.door_id,
-                            };
-                        } else if (action instanceof QuestEventActionLockModel) {
-                            return {
-                                type: DatEventActionType.Lock,
-                                door_id: action.door_id,
-                            };
-                        } else if (action instanceof QuestEventActionSpawnWaveModel) {
-                            return {
-                                type: DatEventActionType.SpawnWave,
-                                wave_id: action.wave_id,
-                            };
-                        } else {
-                            throw new Error(
-                                `Unknown wave action type ${
-                                    Object.getPrototypeOf(action).constructor
-                                }`,
-                            );
-                        }
-                    }),
-                    area_id: wave.area_id,
-                    unknown: wave.unknown,
-                })),
-                dat_unknowns: quest.dat_unknowns,
-                object_code: quest.object_code,
-                shop_items: quest.shop_items,
-                map_designations: quest.map_designations.val,
-            },
-            file_name,
-        );
+        const buffer = write_quest_qst(convert_quest_from_model(quest), file_name);
 
         if (!file_name.endsWith(".qst")) {
             file_name += ".qst";

@@ -31,13 +31,3 @@ export class QuestEventActionLockModel extends QuestEventActionModel {
         this.door_id = door_id;
     }
 }
-
-export class QuestEventActionSpawnWaveModel extends QuestEventActionModel {
-    readonly wave_id: number;
-
-    constructor(wave_id: number) {
-        super();
-
-        this.wave_id = wave_id;
-    }
-}

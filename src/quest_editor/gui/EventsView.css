@@ -1,0 +1,33 @@
+.quest_editor_EventsView {
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.quest_editor_EventsView_chain {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 3px;
+}
+
+.quest_editor_EventsView_chain_arrow {
+    font-size: 18px; /* For icon */
+    margin: 3px;
+}
+
+.quest_editor_EventsView_event:last-of-type .quest_editor_EventsView_chain_arrow {
+    color: var(--text-color-disabled);
+}
+
+.quest_editor_EventsView_event {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+.quest_editor_EventsView_event th {
+    text-align: left;
+}

@@ -55,14 +55,14 @@ export enum DatEventActionType {
     SpawnNpcs = 0x8,
     Unlock = 0xa,
     Lock = 0xb,
-    SpawnWave = 0xc,
+    TriggerEvent = 0xc,
 }
 
 export type DatEventAction =
     | DatEventActionSpawnNpcs
     | DatEventActionUnlock
     | DatEventActionLock
-    | DatEventActionSpawnWave;
+    | DatEventActionTriggerEvent;
 
 export type DatEventActionSpawnNpcs = {
     readonly type: DatEventActionType.SpawnNpcs;
@@ -80,9 +80,9 @@ export type DatEventActionLock = {
     readonly door_id: number;
 };
 
-export type DatEventActionSpawnWave = {
-    readonly type: DatEventActionType.SpawnWave;
-    readonly wave_id: number;
+export type DatEventActionTriggerEvent = {
+    readonly type: DatEventActionType.TriggerEvent;
+    readonly event_id: number;
 };
 
 export type DatUnknown = {
@@ -344,10 +344,10 @@ function parse_wave_actions(cursor: Cursor): DatEventAction[] {
                 });
                 break;
 
-            case DatEventActionType.SpawnWave:
+            case DatEventActionType.TriggerEvent:
                 actions.push({
-                    type: DatEventActionType.SpawnWave,
-                    wave_id: cursor.u32(),
+                    type: DatEventActionType.TriggerEvent,
+                    event_id: cursor.u32(),
                 });
                 break;
 
@@ -519,8 +519,8 @@ function write_waves(cursor: WritableCursor, waves: readonly DatEvent[]): void {
                         cursor.write_u16(action.door_id);
                         break;
 
-                    case DatEventActionType.SpawnWave:
-                        cursor.write_u32(action.wave_id);
+                    case DatEventActionType.TriggerEvent:
+                        cursor.write_u32(action.event_id);
                         break;
 
                     default:

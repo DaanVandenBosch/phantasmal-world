@@ -32,7 +32,7 @@ export type Quest = {
     readonly episode: Episode;
     readonly objects: readonly QuestObject[];
     readonly npcs: readonly QuestNpc[];
-    readonly waves: readonly QuestEvent[];
+    readonly events: readonly QuestEvent[];
     /**
      * (Partial) raw DAT data that can't be parsed yet by Phantasmal.
      */
@@ -127,7 +127,7 @@ export function parse_quest(cursor: Cursor, lenient: boolean = false): Quest | u
         episode,
         objects,
         npcs: parse_npc_data(episode, dat.npcs),
-        waves: dat.waves,
+        events: dat.waves,
         dat_unknowns: dat.unknowns,
         object_code: bin.object_code,
         shop_items: bin.shop_items,
@@ -139,7 +139,7 @@ export function write_quest_qst(quest: Quest, file_name: string): ArrayBuffer {
     const dat = write_dat({
         objs: objects_to_dat_data(quest.objects),
         npcs: npcs_to_dat_data(quest.npcs),
-        waves: quest.waves,
+        waves: quest.events,
         unknowns: quest.dat_unknowns,
     });
     const bin = write_bin({

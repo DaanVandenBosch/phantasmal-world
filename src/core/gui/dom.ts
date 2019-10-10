@@ -103,24 +103,28 @@ export function create_element<T extends HTMLElement>(
     const element = document.createElement(tag_name) as any;
 
     if (attributes) {
-        if (attributes.class != undefined) element.className = attributes.class;
-        if (attributes.text != undefined) element.textContent = attributes.text;
-        if (attributes.title != undefined) element.title = attributes.title;
-        if (attributes.href != undefined) element.href = attributes.href;
-        if (attributes.src != undefined) element.src = attributes.src;
-        if (attributes.width != undefined) element.width = attributes.width;
-        if (attributes.height != undefined) element.height = attributes.height;
-        if (attributes.alt != undefined) element.alt = attributes.alt;
+        if (attributes instanceof HTMLElement) {
+            element.append(attributes);
+        } else {
+            if (attributes.class != undefined) element.className = attributes.class;
+            if (attributes.text != undefined) element.textContent = attributes.text;
+            if (attributes.title != undefined) element.title = attributes.title;
+            if (attributes.href != undefined) element.href = attributes.href;
+            if (attributes.src != undefined) element.src = attributes.src;
+            if (attributes.width != undefined) element.width = attributes.width;
+            if (attributes.height != undefined) element.height = attributes.height;
+            if (attributes.alt != undefined) element.alt = attributes.alt;
 
-        if (attributes.data) {
-            for (const [key, val] of Object.entries(attributes.data)) {
-                element.dataset[key] = val;
+            if (attributes.data) {
+                for (const [key, val] of Object.entries(attributes.data)) {
+                    element.dataset[key] = val;
+                }
             }
+
+            if (attributes.col_span != undefined) element.colSpan = attributes.col_span;
+
+            if (attributes.tab_index != undefined) element.tabIndex = attributes.tab_index;
         }
-
-        if (attributes.col_span != undefined) element.colSpan = attributes.col_span;
-
-        if (attributes.tab_index != undefined) element.tabIndex = attributes.tab_index;
     }
 
     element.append(...children);
@@ -137,39 +141,41 @@ export function bind_hidden(element: HTMLElement, observable: Observable<boolean
 }
 
 export enum Icon {
+    ArrowDown,
     File,
+    GitHub,
     NewFile,
-    Save,
-    TriangleUp,
-    TriangleDown,
-    Undo,
+    Play,
+    Plus,
     Redo,
     Remove,
-    GitHub,
-    Play,
+    Save,
+    TriangleDown,
+    TriangleUp,
+    Undo,
 }
 
 export function icon(icon: Icon): HTMLElement {
     let icon_str!: string;
 
     switch (icon) {
+        case Icon.ArrowDown:
+            icon_str = "fas fa-arrow-down";
+            break;
         case Icon.File:
             icon_str = "fas fa-file";
+            break;
+        case Icon.GitHub:
+            icon_str = "fab fa-github";
             break;
         case Icon.NewFile:
             icon_str = "fas fa-file-medical";
             break;
-        case Icon.Save:
-            icon_str = "fas fa-save";
+        case Icon.Play:
+            icon_str = "fas fa-play";
             break;
-        case Icon.TriangleUp:
-            icon_str = "fas fa-caret-up";
-            break;
-        case Icon.TriangleDown:
-            icon_str = "fas fa-caret-down";
-            break;
-        case Icon.Undo:
-            icon_str = "fas fa-undo";
+        case Icon.Plus:
+            icon_str = "fas fa-plus";
             break;
         case Icon.Redo:
             icon_str = "fas fa-redo";
@@ -177,11 +183,17 @@ export function icon(icon: Icon): HTMLElement {
         case Icon.Remove:
             icon_str = "fas fa-trash-alt";
             break;
-        case Icon.GitHub:
-            icon_str = "fab fa-github";
+        case Icon.Save:
+            icon_str = "fas fa-save";
             break;
-        case Icon.Play:
-            icon_str = "fas fa-play";
+        case Icon.TriangleDown:
+            icon_str = "fas fa-caret-down";
+            break;
+        case Icon.TriangleUp:
+            icon_str = "fas fa-caret-up";
+            break;
+        case Icon.Undo:
+            icon_str = "fas fa-undo";
             break;
     }
 

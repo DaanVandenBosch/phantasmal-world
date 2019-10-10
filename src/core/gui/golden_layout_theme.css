@@ -32,6 +32,10 @@
     border-bottom-color: var(--bg-color);
 }
 
+#root .lm_header .lm_controls > li {
+    cursor: default;
+}
+
 #root .lm_content {
     overflow: visible;
 }

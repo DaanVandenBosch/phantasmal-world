@@ -14,6 +14,7 @@ import { gui_store, GuiTool } from "../../core/stores/GuiStore";
 import { quest_editor_store } from "../stores/QuestEditorStore";
 import { NpcListView } from "./NpcListView";
 import { ObjectListView } from "./ObjectListView";
+import { EventsView } from "./EventsView";
 import Logger = require("js-logger");
 
 const logger = Logger.get("quest_editor/gui/QuestEditorView");
@@ -28,6 +29,10 @@ const VIEW_TO_NAME = new Map<new () => ResizableWidget, string>([
     [NpcListView, "npc_list_view"],
     [ObjectListView, "object_list_view"],
 ]);
+
+if (gui_store.feature_active("events")) {
+    VIEW_TO_NAME.set(EventsView, "events_view");
+}
 
 const DEFAULT_LAYOUT_CONFIG = {
     settings: {
@@ -50,19 +55,30 @@ const DEFAULT_LAYOUT_CONTENT: ItemConfigType[] = [
         type: "row",
         content: [
             {
-                type: "stack",
-                width: 3,
+                type: "column",
+                width: 2,
                 content: [
                     {
-                        title: "Info",
-                        type: "component",
-                        componentName: VIEW_TO_NAME.get(QuestInfoView),
-                        isClosable: false,
+                        type: "stack",
+                        content: [
+                            {
+                                title: "Info",
+                                type: "component",
+                                componentName: VIEW_TO_NAME.get(QuestInfoView),
+                                isClosable: false,
+                            },
+                            {
+                                title: "NPC Counts",
+                                type: "component",
+                                componentName: VIEW_TO_NAME.get(NpcCountsView),
+                                isClosable: false,
+                            },
+                        ],
                     },
                     {
-                        title: "NPC Counts",
+                        title: "Entity",
                         type: "component",
-                        componentName: VIEW_TO_NAME.get(NpcCountsView),
+                        componentName: VIEW_TO_NAME.get(EntityInfoView),
                         isClosable: false,
                     },
                 ],
@@ -90,12 +106,6 @@ const DEFAULT_LAYOUT_CONTENT: ItemConfigType[] = [
                 width: 2,
                 content: [
                     {
-                        title: "Entity",
-                        type: "component",
-                        componentName: VIEW_TO_NAME.get(EntityInfoView),
-                        isClosable: false,
-                    },
-                    {
                         title: "NPCs",
                         type: "component",
                         componentName: VIEW_TO_NAME.get(NpcListView),
@@ -107,6 +117,16 @@ const DEFAULT_LAYOUT_CONTENT: ItemConfigType[] = [
                         componentName: VIEW_TO_NAME.get(ObjectListView),
                         isClosable: false,
                     },
+                    ...(gui_store.feature_active("events")
+                        ? [
+                              {
+                                  title: "Events",
+                                  type: "component",
+                                  componentName: VIEW_TO_NAME.get(EventsView),
+                                  isClosable: false,
+                              },
+                          ]
+                        : []),
                 ],
             },
         ],

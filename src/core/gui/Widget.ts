@@ -82,6 +82,7 @@ export abstract class Widget implements Disposable {
     protected finalize_construction(proto: any): void {
         if (Object.getPrototypeOf(this) !== proto) return;
 
+        // At this point we know `this.element` is initialized.
         if (this.options.class) {
             this.element.classList.add(this.options.class);
         }
