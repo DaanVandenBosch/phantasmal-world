@@ -19,6 +19,7 @@ import { Episode } from "./Episode";
 import { object_data, ObjectType, pso_id_to_object_type } from "./object_types";
 import { parse_qst, QstContainedFile, write_qst } from "./qst";
 import { npc_data, NpcType } from "./npc_types";
+import { reinterpret_f32_as_i32, reinterpret_i32_as_f32 } from "../../../primitive_conversion";
 
 const logger = Logger.get("core/data_formats/parsing/quest");
 
@@ -583,9 +584,6 @@ function objects_to_dat_data(objects: readonly QuestObject[]): DatObject[] {
 }
 
 function npcs_to_dat_data(npcs: readonly QuestNpc[]): DatNpc[] {
-    // TODO: use primitive reinterpretation functions instead of DataView.
-    const dv = new DataView(new ArrayBuffer(4));
-
     return npcs.map(npc => {
         const type_data = npc_data(npc.type);
         const type_id =
@@ -594,9 +592,9 @@ function npcs_to_dat_data(npcs: readonly QuestNpc[]): DatNpc[] {
             type_data.pso_roaming == undefined ? npc.pso_roaming : type_data.pso_roaming;
         const regular = type_data.pso_regular == undefined ? true : type_data.pso_regular;
 
-        dv.setFloat32(0, npc.scale.y);
-        dv.setUint32(0, (dv.getUint32(0) & ~0x800000) | (regular ? 0 : 0x800000));
-        const scale_y = dv.getFloat32(0);
+        const scale_y = reinterpret_i32_as_f32(
+            (reinterpret_f32_as_i32(npc.scale.y) & ~0x800000) | (regular ? 0 : 0x800000),
+        );
 
         const scale = { x: npc.scale.x, y: scale_y, z: npc.scale.z };
 
