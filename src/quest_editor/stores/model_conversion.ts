@@ -6,6 +6,7 @@ import { Euler } from "three";
 import { QuestNpcModel } from "../model/QuestNpcModel";
 import { QuestEventModel } from "../model/QuestEventModel";
 import {
+    DatEventAction,
     DatEventActionTriggerEvent,
     DatEventActionType,
 } from "../../core/data_formats/parsing/quest/dat";
@@ -130,6 +131,56 @@ export function convert_quest_to_model(quest: Quest): QuestModel {
 }
 
 export function convert_quest_from_model(quest: QuestModel): Quest {
+    const events: QuestEvent[] = [];
+
+    for (const chain of quest.event_chains.val) {
+        for (let i = 0; i < chain.events.length.val; i++) {
+            const event = chain.events.get(i);
+            const next_event: QuestEventModel | undefined = chain.events.get(i + 1);
+
+            const actions: DatEventAction[] = event.actions.map(action => {
+                if (action instanceof QuestEventActionSpawnNpcsModel) {
+                    return {
+                        type: DatEventActionType.SpawnNpcs,
+                        section_id: action.section_id,
+                        appear_flag: action.appear_flag,
+                    };
+                } else if (action instanceof QuestEventActionUnlockModel) {
+                    return {
+                        type: DatEventActionType.Unlock,
+                        door_id: action.door_id,
+                    };
+                } else if (action instanceof QuestEventActionLockModel) {
+                    return {
+                        type: DatEventActionType.Lock,
+                        door_id: action.door_id,
+                    };
+                } else {
+                    throw new Error(
+                        `Unknown event action type ${Object.getPrototypeOf(action).constructor}`,
+                    );
+                }
+            });
+
+            if (next_event) {
+                actions.push({
+                    type: DatEventActionType.TriggerEvent,
+                    event_id: next_event.id,
+                });
+            }
+
+            events.push({
+                id: event.id,
+                section_id: event.section_id,
+                wave: event.wave,
+                delay: event.delay,
+                actions,
+                area_id: event.area_id,
+                unknown: event.unknown,
+            });
+        }
+    }
+
     return {
         id: quest.id.val,
         language: quest.language.val,
@@ -161,42 +212,7 @@ export function convert_quest_from_model(quest: QuestModel): Quest {
             script_label: npc.script_label,
             pso_roaming: npc.pso_roaming,
         })),
-        events: quest.waves.val.map(wave => ({
-            id: wave.id,
-            section_id: wave.section_id,
-            wave: wave.wave,
-            delay: wave.delay,
-            actions: wave.actions.map(action => {
-                if (action instanceof QuestEventActionSpawnNpcsModel) {
-                    return {
-                        type: DatEventActionType.SpawnNpcs,
-                        section_id: action.section_id,
-                        appear_flag: action.appear_flag,
-                    };
-                } else if (action instanceof QuestEventActionUnlockModel) {
-                    return {
-                        type: DatEventActionType.Unlock,
-                        door_id: action.door_id,
-                    };
-                } else if (action instanceof QuestEventActionLockModel) {
-                    return {
-                        type: DatEventActionType.Lock,
-                        door_id: action.door_id,
-                    };
-                } else if (action instanceof QuestEventActionTriggerEventModel) {
-                    return {
-                        type: DatEventActionType.TriggerEvent,
-                        wave_id: action.wave_id,
-                    };
-                } else {
-                    throw new Error(
-                        `Unknown event action type ${Object.getPrototypeOf(action).constructor}`,
-                    );
-                }
-            }),
-            area_id: wave.area_id,
-            unknown: wave.unknown,
-        })),
+        events,
         dat_unknowns: quest.dat_unknowns,
         object_code: quest.object_code,
         shop_items: quest.shop_items,

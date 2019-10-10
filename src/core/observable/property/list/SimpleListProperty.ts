@@ -39,7 +39,7 @@ export class SimpleListProperty<T> extends AbstractProperty<readonly T[]>
         return removed;
     }
 
-    private readonly _length = property(0);
+    private readonly _length: WritableProperty<number>;
     private readonly values: T[];
     private readonly extract_observables?: (element: T) => Observable<any>[];
     /**
@@ -60,6 +60,7 @@ export class SimpleListProperty<T> extends AbstractProperty<readonly T[]>
     constructor(extract_observables?: (element: T) => Observable<any>[], ...values: T[]) {
         super();
 
+        this._length = property(values.length);
         this.length = this._length;
         this.values = values;
         this.extract_observables = extract_observables;

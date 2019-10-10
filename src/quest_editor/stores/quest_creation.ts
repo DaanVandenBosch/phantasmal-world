@@ -17,7 +17,7 @@ import {
 import { QuestObjectModel } from "../model/QuestObjectModel";
 import { QuestNpcModel } from "../model/QuestNpcModel";
 import { Euler, Vector3 } from "three";
-import { QuestEventModel } from "../model/QuestEventModel";
+import { QuestEventChainModel } from "../model/QuestEventChainModel";
 
 export function create_new_quest(episode: Episode): QuestModel {
     if (episode === Episode.II) throw new Error("Episode II not yet supported.");
@@ -33,7 +33,7 @@ export function create_new_quest(episode: Episode): QuestModel {
         new Map().set(0, 0),
         create_default_objects(),
         create_default_npcs(),
-        create_default_waves(),
+        create_default_event_chains(),
         [],
         [
             {
@@ -807,6 +807,6 @@ function create_default_npcs(): QuestNpcModel[] {
     ];
 }
 
-function create_default_waves(): QuestEventModel[] {
+function create_default_event_chains(): QuestEventChainModel[] {
     return [];
 }
