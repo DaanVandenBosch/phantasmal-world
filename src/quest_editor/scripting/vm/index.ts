@@ -74,6 +74,9 @@ import {
     OP_STACK_POPM,
     Param,
     Kind,
+    OP_WINDOW_MSG,
+    OP_ADD_MSG,
+    OP_WINEND,
 } from "../opcodes";
 import Logger from "js-logger";
 import { ArrayBufferCursor } from "../../../core/data_formats/cursor/ArrayBufferCursor";
@@ -396,6 +399,7 @@ export class VirtualMachine {
     private label_to_seg_idx: Map<number, number> = new Map();
     private thread: Thread[] = [];
     private thread_idx = 0;
+    private window_msg_open = false;
 
     /**
      * Halts and resets the VM, then loads new object code.
@@ -748,6 +752,30 @@ export class VirtualMachine {
             case OP_STACK_POPM.code:
                 this.pop_variable_stack(exec, arg0, arg1);
                 break;
+            case OP_WINDOW_MSG.code:
+                if (!this.window_msg_open) {
+                    const args = exec.fetch_args(inst.opcode.params);
+                    const str = this.deref_string(args[0]);
+
+                    this.window_msg_open = true;
+                    console.group("window_msg");
+                    console.log(str);
+                }
+                break;
+            case OP_ADD_MSG.code:
+                if (this.window_msg_open) {
+                    const args = exec.fetch_args(inst.opcode.params);
+                    const str = this.deref_string(args[0]);
+
+                    console.log(str);
+                }
+                break;
+            case OP_WINEND.code:
+                if (this.window_msg_open) {
+                    this.window_msg_open = false;
+                    console.groupEnd();
+                }
+                break;
             default:
                 throw new Error(`Unsupported instruction: ${inst.opcode.mnemonic}.`);
         }
@@ -991,6 +1019,18 @@ export class VirtualMachine {
 
     private get_register_address(reg: number): number {
         return this.registers.address + reg * REGISTER_SIZE;
+    }
+
+    private deref_string(address: number): string {
+        const slot = this.memory.get(address);
+
+        let str: string = "";
+
+        if (slot !== undefined) {
+            str = slot.buffer.string_utf16_at(slot.byte_offset, Infinity, true);
+        }
+
+        return str;
     }
 }
 
