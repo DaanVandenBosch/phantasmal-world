@@ -74,6 +74,8 @@ import {
     Kind,
 } from "../opcodes";
 import Logger from "js-logger";
+import { ArrayBufferCursor } from "../../../core/data_formats/cursor/ArrayBufferCursor";
+import { Endianness } from "../../../core/data_formats/Endianness";
 
 const logger = Logger.get("quest_editor/scripting/vm");
 
@@ -167,7 +169,7 @@ function ranges_overlap(a: Range, b: Range): boolean {
     return a[0] <= b[1] && b[0] <= a[1];
 }
 
-class VirtualMachineMemoryBuffer extends ArrayBuffer {
+class VirtualMachineMemoryBuffer extends ArrayBufferCursor {
     /**
      * The memory this buffer belongs to.
      */
@@ -178,7 +180,7 @@ class VirtualMachineMemoryBuffer extends ArrayBuffer {
     public readonly address: number;
 
     constructor(memory: VirtualMachineMemory, address: number, size: number) {
-        super(size);
+        super(new ArrayBuffer(size), Endianness.Little);
         this.memory = memory;
         this.address = address;
     }
@@ -189,6 +191,10 @@ class VirtualMachineMemoryBuffer extends ArrayBuffer {
 
     public free(): void {
         this.memory.free(this.address);
+    }
+
+    public zero(): void {
+        new Uint32Array(this.backing_buffer).fill(0);
     }
 }
 
@@ -374,12 +380,10 @@ class VirtualMachineMemory {
 
 export class VirtualMachine {
     private memory = new VirtualMachineMemory();
-    private register_store = this.memory.allocate(
+    private registers = this.memory.allocate(
         REGISTER_SIZE * REGISTER_COUNT,
         REGISTERS_BASE_ADDRESS,
     )!;
-    private register_uint8_view = new Uint8Array(this.register_store);
-    private registers = new DataView(this.register_store);
     private object_code: Segment[] = [];
     private label_to_seg_idx: Map<number, number> = new Map();
     private thread: Thread[] = [];
@@ -764,19 +768,19 @@ export class VirtualMachine {
     }
 
     private get_sint(reg: number): number {
-        return this.registers.getInt32(REGISTER_SIZE * reg);
+        return this.registers.i32_at(REGISTER_SIZE * reg);
     }
 
     private set_sint(reg: number, value: number): void {
-        this.registers.setInt32(REGISTER_SIZE * reg, value);
+        this.registers.write_i32_at(REGISTER_SIZE * reg, value);
     }
 
     private get_uint(reg: number): number {
-        return this.registers.getUint32(REGISTER_SIZE * reg);
+        return this.registers.u32_at(REGISTER_SIZE * reg);
     }
 
     private set_uint(reg: number, value: number): void {
-        this.registers.setUint32(REGISTER_SIZE * reg, value);
+        this.registers.write_u32_at(REGISTER_SIZE * reg, value);
     }
 
     private do_numeric_op_with_register(
@@ -958,11 +962,11 @@ export class VirtualMachine {
     }
 
     private clear_registers(): void {
-        this.register_uint8_view.fill(0);
+        this.registers.zero();
     }
 
     private get_register_address(reg: number): number {
-        return this.register_store.address + reg * REGISTER_SIZE;
+        return this.registers.address + reg * REGISTER_SIZE;
     }
 }
 
@@ -978,9 +982,8 @@ class Thread {
      */
     public call_stack: ExecutionLocation[] = [];
 
-    private arg_stack_buf: VirtualMachineMemoryBuffer;
+    private arg_stack: VirtualMachineMemoryBuffer;
     private arg_stack_counter: number = 0;
-    private arg_stack: DataView;
     private arg_stack_types: ArgStackTypeList = Array(ARG_STACK_LENGTH).fill(
         Kind.Any,
     ) as ArgStackTypeList;
@@ -993,14 +996,13 @@ class Thread {
 
     constructor(
         next: ExecutionLocation,
-        arg_stack_buf: VirtualMachineMemoryBuffer,
+        arg_stack: VirtualMachineMemoryBuffer,
         global: boolean,
     ) {
         this.call_stack = [next];
         this.global = global;
 
-        this.arg_stack_buf = arg_stack_buf;
-        this.arg_stack = new DataView(arg_stack_buf);
+        this.arg_stack = arg_stack;
     }
 
     public call_stack_top(): ExecutionLocation {
@@ -1012,7 +1014,7 @@ class Thread {
             throw new Error("Argument stack: Stack overflow");
         }
 
-        this.arg_stack.setUint32(this.arg_stack_counter * ARG_STACK_SLOT_SIZE, data, true);
+        this.arg_stack.write_u32_at(this.arg_stack_counter * ARG_STACK_SLOT_SIZE, data);
         this.arg_stack_types[this.arg_stack_counter] = type;
 
         this.arg_stack_counter++;
@@ -1034,14 +1036,14 @@ class Thread {
 
             switch (param.type.kind) {
                 case Kind.Byte:
-                    args.push(this.arg_stack.getUint8(i));
+                    args.push(this.arg_stack.u8_at(i * ARG_STACK_SLOT_SIZE));
                     break;
                 case Kind.Word:
-                    args.push(this.arg_stack.getUint16(i, true));
+                    args.push(this.arg_stack.u16_at(i * ARG_STACK_SLOT_SIZE));
                     break;
                 case Kind.DWord:
                 case Kind.String:
-                    args.push(this.arg_stack.getUint32(i, true));
+                    args.push(this.arg_stack.u32_at(i * ARG_STACK_SLOT_SIZE));
                     break;
                 default:
                     throw new Error(`Unhandled param kind: Kind.${Kind[param.type.kind]}`);
@@ -1054,6 +1056,6 @@ class Thread {
     }
 
     public dispose(): void {
-        this.arg_stack_buf.free();
+        this.arg_stack.free();
     }
 }
