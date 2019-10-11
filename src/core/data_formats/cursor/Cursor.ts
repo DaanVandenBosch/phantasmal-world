@@ -169,6 +169,24 @@ export interface Cursor {
         drop_remaining: boolean,
     ): string;
 
+    /**
+     * Reads an ASCII-encoded string at the given absolute offset. Doesn't increment position.
+     */
+    string_ascii_at(
+        offset: number,
+        max_byte_length: number,
+        null_terminated: boolean,
+    ): string;
+
+    /**
+     * Reads an UTF-16-encoded string at the given absolute offset. Doesn't increment position.
+     */
+    string_utf16_at(
+        offset: number,
+        max_byte_length: number,
+        null_terminated: boolean,
+    ): string;
+
     array_buffer(size?: number): ArrayBuffer;
 
     copy_to_uint8_array(array: Uint8Array, size?: number): this;

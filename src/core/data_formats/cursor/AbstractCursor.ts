@@ -238,6 +238,47 @@ export abstract class AbstractCursor implements Cursor {
         return String.fromCodePoint(...code_points);
     }
 
+    string_ascii_at(
+        offset: number,
+        max_byte_length: number,
+        null_terminated: boolean,
+    ): string {
+        const code_points: number[] = [];
+
+        for (let i = 0; i < max_byte_length; i++) {
+            const code_point = this.u8_at(offset + i);
+
+            if (null_terminated && code_point === 0) {
+                break;
+            }
+
+            code_points.push(code_point);
+        }
+
+        return String.fromCodePoint(...code_points);
+    }
+
+    string_utf16_at(
+        offset: number,
+        max_byte_length: number,
+        null_terminated: boolean,
+    ): string {
+        const code_points: number[] = [];
+        const len = Math.floor(max_byte_length / 2);
+
+        for (let i = 0; i < len; i++) {
+            const code_point = this.u16_at(offset + i * 2);
+
+            if (null_terminated && code_point === 0) {
+                break;
+            }
+
+            code_points.push(code_point);
+        }
+
+        return String.fromCodePoint(...code_points);
+    }
+
     array_buffer(size: number = this.size - this.position): ArrayBuffer {
         this.check_size("size", size, size);
         const r = this.backing_buffer.slice(
