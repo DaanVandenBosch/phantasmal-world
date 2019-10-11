@@ -63,8 +63,8 @@ export class ResizableBufferCursor extends AbstractWritableCursor implements Wri
         return wrapper;
     }
 
-    protected ensure_size(size: number): void {
-        const needed = this.position + size - this._size;
+    protected ensure_size(size: number, offset: number = this.position): void {
+        const needed = offset + size - this._size;
 
         if (needed > 0) {
             this._size += needed;

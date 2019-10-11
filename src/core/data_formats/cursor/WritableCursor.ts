@@ -81,4 +81,74 @@ export interface WritableCursor extends Cursor {
      * Writes characters of str without writing more than byte_length bytes. If less than byte_length bytes can be written this way, nul bytes will be inserted until byte_length bytes have been written.
      */
     write_string_utf16(str: string, byte_length: number): this;
+
+    /**
+     * Writes an unsigned 8-bit integer at the given absolute offset. Doesn't increment position.
+     */
+    write_u8_at(offset: number, value: number): this;
+
+    /**
+     * Writes an unsigned 16-bit integer at the given absolute offset. Doesn't increment position.
+     */
+    write_u16_at(offset: number, value: number): this;
+
+    /**
+     * Writes an unsigned 32-bit integer at the given absolute offset. Doesn't increment position.
+     */
+    write_u32_at(offset: number, value: number): this;
+
+    /**
+     * Writes a signed 8-bit integer at the given absolute offset. Doesn't increment position.
+     */
+    write_i8_at(offset: number, value: number): this;
+
+    /**
+     * Writes a signed 16-bit integer at the given absolute offset. Doesn't increment position.
+     */
+    write_i16_at(offset: number, value: number): this;
+
+    /**
+     * Writes a signed 32-bit integer at the given absolute offset. Doesn't increment position.
+     */
+    write_i32_at(offset: number, value: number): this;
+
+    /**
+     * Writes a 32-bit floating point number at the given absolute offset. Doesn't increment position.
+     */
+    write_f32_at(offset: number, value: number): this;
+
+    /**
+     * Writes an array of unsigned 8-bit integers at the given absolute offset. Doesn't increment position.
+     */
+    write_u8_array_at(offset: number, array: number[]): this;
+
+    /**
+     * Writes an array of unsigned 16-bit integers at the given absolute offset. Doesn't increment position.
+     */
+    write_u16_array_at(offset: number, array: number[]): this;
+
+    /**
+     * Writes an array of unsigned 32-bit integers at the given absolute offset. Doesn't increment position.
+     */
+    write_u32_array_at(offset: number, array: number[]): this;
+
+    /**
+     * Writes two 32-bit floating point numbers at the given absolute offset. Doesn't increment position.
+     */
+    write_vec2_f32_at(offset: number, value: Vec2): this;
+
+    /**
+     * Writes three 32-bit floating point numbers at the given absolute offset. Doesn't increment position.
+     */
+    write_vec3_f32_at(offset: number, value: Vec3): this;
+
+    /**
+     * Writes byte_length characters of str at the given absolute offset. If str is shorter than byte_length, nul bytes will be inserted until byte_length bytes have been written. Doesn't increment position.
+     */
+    write_string_ascii_at(offset: number, str: string, byte_length: number): this;
+
+    /**
+     * Writes characters of str without writing more than byte_length bytes. If less than byte_length bytes can be written this way, nul bytes will be inserted until byte_length bytes have been written. Doesn't increment position.
+     */
+    write_string_utf16_at(offset: number, str: string, byte_length: number): this;
 }
