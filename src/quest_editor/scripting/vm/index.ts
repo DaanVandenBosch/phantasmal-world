@@ -815,6 +815,10 @@ export class VirtualMachine {
      * Halts execution of all threads.
      */
     halt(): void {
+        for (const thread of this.thread) {
+            thread.dispose();
+        }
+
         this.thread = [];
         this.thread_idx = 0;
     }
