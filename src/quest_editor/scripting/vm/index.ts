@@ -8,6 +8,8 @@ import {
     OP_ARG_PUSHL,
     OP_ARG_PUSHR,
     OP_ARG_PUSHW,
+    OP_ARG_PUSHA,
+    OP_ARG_PUSHS,
     OP_CALL,
     OP_CLEAR,
     OP_DIV,
@@ -85,6 +87,8 @@ const REGISTER_SIZE = 4;
 const VARIABLE_STACK_LENGTH = 16; // TODO: verify this value
 const ARG_STACK_SLOT_SIZE = 4;
 const ARG_STACK_LENGTH = 8;
+const STRING_ARG_STORE_ADDRESS = 0x00a92700;
+const STRING_ARG_STORE_SIZE = 1024; // TODO: verify this value
 
 export enum ExecutionResult {
     Ok,
@@ -384,6 +388,10 @@ export class VirtualMachine {
         REGISTER_SIZE * REGISTER_COUNT,
         REGISTERS_BASE_ADDRESS,
     )!;
+    private string_arg_store = this.memory.allocate(
+        STRING_ARG_STORE_SIZE,
+        STRING_ARG_STORE_ADDRESS,
+    );
     private object_code: Segment[] = [];
     private label_to_seg_idx: Map<number, number> = new Map();
     private thread: Thread[] = [];
@@ -520,6 +528,22 @@ export class VirtualMachine {
                 break;
             case OP_ARG_PUSHW.code:
                 exec.push_arg(inst.args[0].value, Kind.Word);
+                break;
+            case OP_ARG_PUSHA.code:
+                // push address of register
+                exec.push_arg(this.get_register_address(inst.args[0].value), Kind.DWord);
+                break;
+            case OP_ARG_PUSHS.code:
+                {
+                    // store string and push its address
+                    const string_arg = arg0 as string;
+                    this.string_arg_store.write_string_utf16_at(
+                        0,
+                        string_arg,
+                        string_arg.length * 2,
+                    );
+                    exec.push_arg(this.string_arg_store.address, Kind.String);
+                }
                 break;
             // arithmetic operations
             case OP_ADD.code:
@@ -994,11 +1018,7 @@ class Thread {
      */
     public global: boolean;
 
-    constructor(
-        next: ExecutionLocation,
-        arg_stack: VirtualMachineMemoryBuffer,
-        global: boolean,
-    ) {
+    constructor(next: ExecutionLocation, arg_stack: VirtualMachineMemoryBuffer, global: boolean) {
         this.call_stack = [next];
         this.global = global;
 
