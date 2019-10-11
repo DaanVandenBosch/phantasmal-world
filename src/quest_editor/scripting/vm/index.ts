@@ -123,14 +123,14 @@ const comparison_ops: Record<"eq" | "neq" | "gt" | "lt" | "gte" | "lte", Compari
 /**
  * Short-circuiting fold.
  */
-function andfold<T, A>(fn: (acc: A, cur: T) => A | null, init: A, lst: T[]): A | null {
+function andfold<T, A>(fn: (acc: A, cur: T) => A | undefined, init: A, lst: T[]): A | undefined {
     let acc = init;
 
     for (const item of lst) {
         const new_val = fn(acc, item);
 
-        if (new_val === null) {
-            return null;
+        if (new_val === undefined) {
+            return undefined;
         } else {
             acc = new_val;
         }
@@ -142,19 +142,19 @@ function andfold<T, A>(fn: (acc: A, cur: T) => A | null, init: A, lst: T[]): A |
 /**
  * Short-circuiting reduce.
  */
-function andreduce<T>(fn: (acc: T, cur: T) => T | null, lst: T[]): T | null {
+function andreduce<T>(fn: (acc: T, cur: T) => T | undefined, lst: T[]): T | undefined {
     return andfold(fn, lst[0], lst.slice(1));
 }
 
 /**
  * Applies the given arguments to the given function.
- * Returns the second argument if the function returns a truthy value, else null.
+ * Returns the second argument if the function returns a truthy value, else undefined.
  */
-function andsecond<T>(fn: (first: T, second: T) => any, first: T, second: T): T | null {
+function andsecond<T>(fn: (first: T, second: T) => any, first: T, second: T): T | undefined {
     if (fn(first, second)) {
         return second;
     }
-    return null;
+    return undefined;
 }
 
 function rest<T>(lst: T[]): T[] {
@@ -183,7 +183,7 @@ class VirtualMachineMemoryBuffer extends ArrayBuffer {
         this.address = address;
     }
 
-    public get_offset(byte_offset: number): VirtualMachineMemorySlot | null {
+    public get_offset(byte_offset: number): VirtualMachineMemorySlot | undefined {
         return this.memory.get(this.address + byte_offset);
     }
 
@@ -332,7 +332,7 @@ class VirtualMachineMemory {
      */
     public free(address: number): void {
         // check if address is a valid allocated buffer
-        let range: Range | null = null;
+        let range: Range | undefined = undefined;
         let range_idx = -1;
 
         for (let i = 0; i < this.allocated_ranges.length; i++) {
@@ -344,7 +344,7 @@ class VirtualMachineMemory {
             }
         }
 
-        if (range === null) {
+        if (range === undefined) {
             throw new Error("Free failed: Given address is not the start of an allocated buffer");
         }
 
@@ -360,15 +360,15 @@ class VirtualMachineMemory {
     }
 
     /**
-     * Gets the memory at the given address. Returns null if
+     * Gets the memory at the given address. Returns undefined if
      * there is nothing allocated at the given address.
      */
-    public get(address: number): VirtualMachineMemorySlot | null {
+    public get(address: number): VirtualMachineMemorySlot | undefined {
         if (this.memory.has(address)) {
             return this.memory.get(address)!;
         }
 
-        return null;
+        return undefined;
     }
 }
 
@@ -897,7 +897,7 @@ export class VirtualMachine {
             Parameters<ComparisonOperation>,
             any
         >(null, condition);
-        if (andreduce(chain_cmp, vals) !== null) {
+        if (andreduce(chain_cmp, vals) !== undefined) {
             this.jump_to_label(exec, label);
         }
     }
