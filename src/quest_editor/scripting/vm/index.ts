@@ -248,8 +248,10 @@ export class VirtualMachine {
                 this.set_register_signed(arg0, arg1);
                 break;
             case OP_LETB.code:
+                this.set_register_byte(arg0, arg1);
+                break;
             case OP_LETW.code:
-                this.set_register_unsigned(arg0, arg1);
+                this.set_register_word(arg0, arg1);
                 break;
             case OP_LETA.code:
                 this.set_register_unsigned(arg0, this.get_register_address(arg0));
@@ -594,6 +596,22 @@ export class VirtualMachine {
 
     private set_register_unsigned(reg: number, value: number): void {
         this.registers.write_u32_at(REGISTER_SIZE * reg, value);
+    }
+
+    public get_register_word(reg: number): number {
+        return this.registers.u16_at(REGISTER_SIZE * reg);
+    }
+
+    private set_register_word(reg: number, value: number): void {
+        this.registers.write_u16_at(REGISTER_SIZE * reg, value);
+    }
+    
+    public get_register_byte(reg: number): number {
+        return this.registers.u8_at(REGISTER_SIZE * reg);
+    }
+
+    public set_register_byte(reg: number, value: number): void {
+        this.registers.write_u8_at(REGISTER_SIZE * reg, value)
     }
 
     public get_register_float(reg: number): number {
