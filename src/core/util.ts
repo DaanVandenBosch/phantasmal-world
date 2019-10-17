@@ -26,3 +26,18 @@ export function array_buffers_equal(a: ArrayBuffer, b: ArrayBuffer): boolean {
 
     return true;
 }
+
+/**
+ * Returns the given filename without the file extension.
+ */
+export function basename(filename: string): string {
+    const dot_idx = filename.lastIndexOf(".");
+
+    // < 0 means filenames doesn't contain any "."
+    // also skip index 0 because that would mean the basename is empty
+    if (dot_idx > 1) {
+        return filename.slice(0, dot_idx);
+    }
+
+    return filename;
+}

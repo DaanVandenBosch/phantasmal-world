@@ -5,6 +5,7 @@ import { Cursor } from "../../cursor/Cursor";
 import { ResizableBufferCursor } from "../../cursor/ResizableBufferCursor";
 import { WritableCursor } from "../../cursor/WritableCursor";
 import { ResizableBuffer } from "../../ResizableBuffer";
+import { basename } from "../../../util";
 
 const logger = Logger.get("core/data_formats/parsing/quest/qst");
 
@@ -128,7 +129,7 @@ function parse_headers(cursor: Cursor): QstHeader[] {
         if (
             prev_quest_id != undefined &&
             prev_file_name != undefined &&
-            (quest_id !== prev_quest_id || file_name.slice(0, 5) !== prev_file_name.slice(0, 5))
+            (quest_id !== prev_quest_id || basename(file_name) !== basename(prev_file_name))
         ) {
             cursor.seek(-88);
             break;
