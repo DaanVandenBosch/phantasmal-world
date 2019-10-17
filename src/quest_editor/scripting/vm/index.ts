@@ -1,4 +1,4 @@
-import { Instruction, InstructionSegment, Segment, SegmentType } from "../instructions";
+import { Instruction, InstructionSegment, Segment, SegmentType, AsmToken } from "../instructions";
 import {
     OP_ADD,
     OP_ADDI,
@@ -89,6 +89,9 @@ import {
     andsecond,
     andreduce,
 } from "./utils";
+import { VirtualMachineIO } from "./io";
+import { VMIOStub } from "./VMIOStub";
+import { Source } from "webpack-sources";
 
 const logger = Logger.get("quest_editor/scripting/vm");
 
@@ -122,6 +125,8 @@ export class VirtualMachine {
     private thread: Thread[] = [];
     private thread_idx = 0;
     private window_msg_open = false;
+
+    constructor(private io: VirtualMachineIO = new VMIOStub()) {}
 
     /**
      * Halts and resets the VM, then loads new object code.
@@ -163,6 +168,7 @@ export class VirtualMachine {
 
         this.thread.push(
             new Thread(
+                this.io,
                 new ExecutionLocation(seg_idx!, 0),
                 this.memory.allocate(ARG_STACK_SLOT_SIZE * ARG_STACK_LENGTH),
                 true,
@@ -177,15 +183,29 @@ export class VirtualMachine {
 
     /**
      * Executes the next instruction if one is scheduled.
-     *
-     * @returns true if an instruction was executed, false otherwise.
      */
     execute(): ExecutionResult {
+        let srcloc: AsmToken | undefined;
+        try {
+            const exec = this.thread[this.thread_idx];
+            const inst = this.get_next_instruction_from_thread(exec);
+
+            if (inst.asm && inst.asm.mnemonic) {
+                srcloc = inst.asm.mnemonic;
+            }
+
+            return this.execute_instruction(exec, inst);
+        } catch (err) {
+            this.halt();
+            this.io.error(err, srcloc);
+
+            return ExecutionResult.Halted;
+        }
+    }
+
+    private execute_instruction(exec: Thread, inst: Instruction): ExecutionResult {
         if (this.thread.length === 0) return ExecutionResult.Halted;
         if (this.thread_idx >= this.thread.length) return ExecutionResult.WaitingVsync;
-
-        const exec = this.thread[this.thread_idx];
-        const inst = this.get_next_instruction_from_thread(exec);
 
         const arg_vals = inst.args.map(arg => arg.value);
         // eslint-disable-next-line
@@ -480,8 +500,7 @@ export class VirtualMachine {
                     const str = this.deref_string(args[0]);
 
                     this.window_msg_open = true;
-                    console.group("window_msg");
-                    console.log(str);
+                    this.io.window_msg(str);
                 }
                 break;
             case OP_ADD_MSG.code:
@@ -489,13 +508,13 @@ export class VirtualMachine {
                     const args = exec.fetch_args(inst.opcode.params);
                     const str = this.deref_string(args[0]);
 
-                    console.log(str);
+                    this.io.add_msg(str);
                 }
                 break;
             case OP_WINEND.code:
                 if (this.window_msg_open) {
                     this.window_msg_open = false;
-                    console.groupEnd();
+                    this.io.winend();
                 }
                 break;
             default:
@@ -581,12 +600,12 @@ export class VirtualMachine {
         const seg_idx = this.label_to_seg_idx.get(label);
 
         if (seg_idx == undefined) {
-            logger.warn(`Invalid label called: ${label}.`);
+            this.io.warning(`Invalid label called: ${label}.`);
         } else {
             const segment = this.object_code[seg_idx];
 
             if (segment.type !== SegmentType.Instructions) {
-                logger.warn(
+                this.io.warning(
                     `Label ${label} points to a ${SegmentType[segment.type]} segment, expecting ${
                         SegmentType[SegmentType.Instructions]
                     }.`,
@@ -620,7 +639,7 @@ export class VirtualMachine {
         const seg_idx = this.label_to_seg_idx.get(label);
 
         if (seg_idx == undefined) {
-            logger.warn(`Invalid jump label: ${label}.`);
+            this.io.warning(`Invalid jump label: ${label}.`);
         } else {
             top.seg_idx = seg_idx;
             top.inst_idx = -1;
@@ -784,7 +803,12 @@ class Thread {
      */
     public global: boolean;
 
-    constructor(next: ExecutionLocation, arg_stack: VirtualMachineMemoryBuffer, global: boolean) {
+    constructor(
+        public io: VirtualMachineIO,
+        next: ExecutionLocation,
+        arg_stack: VirtualMachineMemoryBuffer,
+        global: boolean,
+    ) {
         this.call_stack = [next];
         this.global = global;
 
@@ -810,14 +834,14 @@ class Thread {
         const args: number[] = [];
 
         if (params.length !== this.arg_stack_counter) {
-            logger.warn("Argument stack: Argument count mismatch");
+            this.io.warning("Argument stack: Argument count mismatch");
         }
 
         for (let i = 0; i < params.length; i++) {
             const param = params[i];
 
             if (param.type.kind !== this.arg_stack_types[i]) {
-                logger.warn("Argument stack: Argument type mismatch");
+                this.io.warning("Argument stack: Argument type mismatch");
             }
 
             switch (param.type.kind) {
@@ -832,7 +856,7 @@ class Thread {
                     args.push(this.arg_stack.u32_at(i * ARG_STACK_SLOT_SIZE));
                     break;
                 default:
-                    throw new Error(`Unhandled param kind: Kind.${Kind[param.type.kind]}`);
+                    throw new Error(`Argument stack: Unhandled param kind: Kind.${Kind[param.type.kind]}`);
             }
         }
 
