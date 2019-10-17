@@ -101,6 +101,7 @@ const ARG_STACK_SLOT_SIZE = 4;
 const ARG_STACK_LENGTH = 8;
 const STRING_ARG_STORE_ADDRESS = 0x00a92700;
 const STRING_ARG_STORE_SIZE = 1024; // TODO: verify this value
+const FLOAT_EPSILON = 1.19e-07;
 
 export enum ExecutionResult {
     Ok,
@@ -635,6 +636,9 @@ export class VirtualMachine {
         literal: number,
         op: BinaryNumericOperation,
     ): void {
+        if ((op === numeric_ops.div || op === numeric_ops.idiv) && literal === 0) {
+            throw new Error("Division by zero");
+        }
         this.set_register_signed(reg, op(this.get_register_signed(reg), literal));
     }
 
