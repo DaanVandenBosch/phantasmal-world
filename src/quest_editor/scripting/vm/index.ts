@@ -238,23 +238,23 @@ export class VirtualMachine {
                 this.start_thread(arg0);
                 break;
             case OP_LET.code:
-                this.set_sint(arg0, this.get_sint(arg1));
+                this.set_register_signed(arg0, this.get_register_signed(arg1));
                 break;
             case OP_LETI.code:
-                this.set_sint(arg0, arg1);
+                this.set_register_signed(arg0, arg1);
                 break;
             case OP_LETB.code:
             case OP_LETW.code:
-                this.set_uint(arg0, arg1);
+                this.set_register_unsigned(arg0, arg1);
                 break;
             case OP_SET.code:
-                this.set_sint(arg0, 1);
+                this.set_register_signed(arg0, 1);
                 break;
             case OP_CLEAR.code:
-                this.set_sint(arg0, 0);
+                this.set_register_signed(arg0, 0);
                 break;
             case OP_REV.code:
-                this.set_sint(arg0, this.get_sint(arg0) === 0 ? 1 : 0);
+                this.set_register_signed(arg0, this.get_register_signed(arg0) === 0 ? 1 : 0);
                 break;
             case OP_CALL.code:
                 this.push_call_stack(exec, arg0);
@@ -264,7 +264,7 @@ export class VirtualMachine {
                 break;
             case OP_ARG_PUSHR.code:
                 // deref given register ref
-                exec.push_arg(this.get_sint(arg0), Kind.DWord);
+                exec.push_arg(this.get_register_signed(arg0), Kind.DWord);
                 break;
             case OP_ARG_PUSHL.code:
                 exec.push_arg(inst.args[0].value, Kind.DWord);
@@ -368,7 +368,7 @@ export class VirtualMachine {
                     arg0,
                     comparison_ops.eq,
                     1,
-                    ...rest(arg_vals).map(reg => this.get_sint(reg)),
+                    ...rest(arg_vals).map(reg => this.get_register_signed(reg)),
                 );
                 break;
             case OP_JMP_OFF.code:
@@ -378,7 +378,7 @@ export class VirtualMachine {
                     arg0,
                     comparison_ops.eq,
                     0,
-                    ...rest(arg_vals).map(reg => this.get_sint(reg)),
+                    ...rest(arg_vals).map(reg => this.get_register_signed(reg)),
                 );
                 break;
             case OP_JMP_E.code:
@@ -564,19 +564,19 @@ export class VirtualMachine {
         this.thread_idx = 0;
     }
 
-    private get_sint(reg: number): number {
+    public get_register_signed(reg: number): number {
         return this.registers.i32_at(REGISTER_SIZE * reg);
     }
 
-    private set_sint(reg: number, value: number): void {
+    private set_register_signed(reg: number, value: number): void {
         this.registers.write_i32_at(REGISTER_SIZE * reg, value);
     }
 
-    private get_uint(reg: number): number {
+    public get_register_unsigned(reg: number): number {
         return this.registers.u32_at(REGISTER_SIZE * reg);
     }
 
-    private set_uint(reg: number, value: number): void {
+    private set_register_unsigned(reg: number, value: number): void {
         this.registers.write_u32_at(REGISTER_SIZE * reg, value);
     }
 
@@ -585,7 +585,7 @@ export class VirtualMachine {
         reg2: number,
         op: BinaryNumericOperation,
     ): void {
-        this.do_numeric_op_with_literal(reg1, this.get_sint(reg2), op);
+        this.do_numeric_op_with_literal(reg1, this.get_register_signed(reg2), op);
     }
 
     private do_numeric_op_with_literal(
@@ -593,7 +593,7 @@ export class VirtualMachine {
         literal: number,
         op: BinaryNumericOperation,
     ): void {
-        this.set_sint(reg, op(this.get_sint(reg), literal));
+        this.set_register_signed(reg, op(this.get_register_signed(reg), literal));
     }
 
     private push_call_stack(exec: Thread, label: number): void {
@@ -653,7 +653,7 @@ export class VirtualMachine {
         reg1: number,
         reg2: number,
     ): void {
-        this.conditional_jump(exec, label, condition, this.get_sint(reg1), this.get_sint(reg2));
+        this.conditional_jump(exec, label, condition, this.get_register_signed(reg1), this.get_register_signed(reg2));
     }
 
     private signed_conditional_jump_with_literal(
@@ -663,7 +663,7 @@ export class VirtualMachine {
         reg: number,
         literal: number,
     ): void {
-        this.conditional_jump(exec, label, condition, this.get_sint(reg), literal);
+        this.conditional_jump(exec, label, condition, this.get_register_signed(reg), literal);
     }
 
     private unsigned_conditional_jump_with_register(
@@ -673,7 +673,7 @@ export class VirtualMachine {
         reg1: number,
         reg2: number,
     ): void {
-        this.conditional_jump(exec, label, condition, this.get_uint(reg1), this.get_uint(reg2));
+        this.conditional_jump(exec, label, condition, this.get_register_unsigned(reg1), this.get_register_unsigned(reg2));
     }
 
     private unsigned_conditional_jump_with_literal(
@@ -683,7 +683,7 @@ export class VirtualMachine {
         reg: number,
         literal: number,
     ): void {
-        this.conditional_jump(exec, label, condition, this.get_uint(reg), literal);
+        this.conditional_jump(exec, label, condition, this.get_register_unsigned(reg), literal);
     }
 
     private conditional_jump(
@@ -715,7 +715,7 @@ export class VirtualMachine {
         }
 
         for (let r = base_reg; r < end; r++) {
-            exec.variable_stack.push(this.get_uint(r));
+            exec.variable_stack.push(this.get_register_unsigned(r));
         }
     }
 
@@ -731,7 +731,7 @@ export class VirtualMachine {
         }
 
         for (let r = end - 1; r >= base_reg; r--) {
-            this.set_uint(r, exec.variable_stack.pop()!);
+            this.set_register_unsigned(r, exec.variable_stack.pop()!);
         }
     }
 
