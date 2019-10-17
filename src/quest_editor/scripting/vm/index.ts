@@ -308,74 +308,87 @@ export class VirtualMachine {
                     exec.push_arg(this.string_arg_store.address, Kind.String);
                 }
                 break;
-            // arithmetic operations
+            // integer arithmetic operations
             case OP_ADD.code:
-            case OP_FADD.code:
-                this.do_numeric_op_with_register(arg0, arg1, numeric_ops.add);
+                this.do_integer_op_with_register(arg0, arg1, numeric_ops.add);
                 break;
             case OP_ADDI.code:
-            case OP_FADDI.code:
-                this.do_numeric_op_with_literal(arg0, arg1, numeric_ops.add);
+                this.do_integer_op_with_literal(arg0, arg1, numeric_ops.add);
                 break;
             case OP_SUB.code:
-            case OP_FSUB.code:
-                this.do_numeric_op_with_register(arg0, arg1, numeric_ops.sub);
+                this.do_integer_op_with_register(arg0, arg1, numeric_ops.sub);
                 break;
             case OP_SUBI.code:
-            case OP_FSUBI.code:
-                this.do_numeric_op_with_literal(arg0, arg1, numeric_ops.sub);
+                this.do_integer_op_with_literal(arg0, arg1, numeric_ops.sub);
                 break;
             case OP_MUL.code:
-            case OP_FMUL.code:
-                this.do_numeric_op_with_register(arg0, arg1, numeric_ops.mul);
+                this.do_integer_op_with_register(arg0, arg1, numeric_ops.mul);
                 break;
             case OP_MULI.code:
-            case OP_FMULI.code:
-                this.do_numeric_op_with_literal(arg0, arg1, numeric_ops.mul);
+                this.do_integer_op_with_literal(arg0, arg1, numeric_ops.mul);
                 break;
             case OP_DIV.code:
-                this.do_numeric_op_with_register(arg0, arg1, numeric_ops.idiv);
-                break;
-            case OP_FDIV.code:
-                this.do_numeric_op_with_register(arg0, arg1, numeric_ops.div);
+                this.do_integer_op_with_register(arg0, arg1, numeric_ops.idiv);
                 break;
             case OP_DIVI.code:
-                this.do_numeric_op_with_literal(arg0, arg1, numeric_ops.idiv);
-                break;
-            case OP_FDIVI.code:
-                this.do_numeric_op_with_literal(arg0, arg1, numeric_ops.div);
+                this.do_integer_op_with_literal(arg0, arg1, numeric_ops.idiv);
                 break;
             case OP_MOD.code:
-                this.do_numeric_op_with_register(arg0, arg1, numeric_ops.mod);
+                this.do_integer_op_with_register(arg0, arg1, numeric_ops.mod);
                 break;
             case OP_MODI.code:
-                this.do_numeric_op_with_literal(arg0, arg1, numeric_ops.mod);
+                this.do_integer_op_with_literal(arg0, arg1, numeric_ops.mod);
+                break;
+            // float arithmetic operations
+            case OP_FADD.code:
+                this.do_float_op_with_register(arg0, arg1, numeric_ops.add);
+                break;
+            case OP_FADDI.code:
+                this.do_float_op_with_literal(arg0, arg1, numeric_ops.add);
+                break;
+            case OP_FSUB.code:
+                this.do_float_op_with_register(arg0, arg1, numeric_ops.sub);
+                break;
+            case OP_FSUBI.code:
+                this.do_float_op_with_literal(arg0, arg1, numeric_ops.sub);
+                break;
+            case OP_FMUL.code:
+                this.do_float_op_with_register(arg0, arg1, numeric_ops.mul);
+                break;
+            case OP_FMULI.code:
+                this.do_float_op_with_literal(arg0, arg1, numeric_ops.mul);
+                break;
+            case OP_FDIV.code:
+                this.do_float_op_with_register(arg0, arg1, numeric_ops.div);
+                break;
+            case OP_FDIVI.code:
+                this.do_float_op_with_literal(arg0, arg1, numeric_ops.div);
                 break;
             // bit operations
             case OP_AND.code:
-                this.do_numeric_op_with_register(arg0, arg1, numeric_ops.and);
+                this.do_integer_op_with_register(arg0, arg1, numeric_ops.and);
                 break;
             case OP_ANDI.code:
-                this.do_numeric_op_with_literal(arg0, arg1, numeric_ops.and);
+                this.do_integer_op_with_literal(arg0, arg1, numeric_ops.and);
                 break;
             case OP_OR.code:
-                this.do_numeric_op_with_register(arg0, arg1, numeric_ops.or);
+                this.do_integer_op_with_register(arg0, arg1, numeric_ops.or);
                 break;
             case OP_ORI.code:
-                this.do_numeric_op_with_literal(arg0, arg1, numeric_ops.or);
+                this.do_integer_op_with_literal(arg0, arg1, numeric_ops.or);
                 break;
             case OP_XOR.code:
-                this.do_numeric_op_with_register(arg0, arg1, numeric_ops.xor);
+                this.do_integer_op_with_register(arg0, arg1, numeric_ops.xor);
                 break;
             case OP_XORI.code:
-                this.do_numeric_op_with_literal(arg0, arg1, numeric_ops.xor);
+                this.do_integer_op_with_literal(arg0, arg1, numeric_ops.xor);
                 break;
             // shift operations
             case OP_SHIFT_LEFT.code:
-                this.do_numeric_op_with_register(arg0, arg1, numeric_ops.shl);
+                this.do_integer_op_with_register(arg0, arg1, numeric_ops.shl);
                 break;
             case OP_SHIFT_RIGHT.code:
-                this.do_numeric_op_with_register(arg0, arg1, numeric_ops.shr);
+                this.do_integer_op_with_register(arg0, arg1, numeric_ops.shr);
                 break;
             // conditional jumps
             case OP_JMP_ON.code:
@@ -623,15 +636,15 @@ export class VirtualMachine {
         this.registers.write_f32_at(REGISTER_SIZE * reg, value);
     }
 
-    private do_numeric_op_with_register(
+    private do_integer_op_with_register(
         reg1: number,
         reg2: number,
         op: BinaryNumericOperation,
     ): void {
-        this.do_numeric_op_with_literal(reg1, this.get_register_signed(reg2), op);
+        this.do_integer_op_with_literal(reg1, this.get_register_signed(reg2), op);
     }
 
-    private do_numeric_op_with_literal(
+    private do_integer_op_with_literal(
         reg: number,
         literal: number,
         op: BinaryNumericOperation,
@@ -640,6 +653,25 @@ export class VirtualMachine {
             throw new Error("Division by zero");
         }
         this.set_register_signed(reg, op(this.get_register_signed(reg), literal));
+    }
+
+    private do_float_op_with_register(
+        reg1: number,
+        reg2: number,
+        op: BinaryNumericOperation,
+    ): void {
+        this.do_float_op_with_literal(reg1, this.get_register_float(reg2), op);
+    }
+
+    private do_float_op_with_literal(
+        reg: number,
+        literal: number,
+        op: BinaryNumericOperation,
+    ): void {
+        if ((op === numeric_ops.div || op === numeric_ops.idiv) && literal === 0) {
+            throw new Error("Division by zero");
+        }
+        this.set_register_float(reg, op(this.get_register_float(reg), literal));
     }
 
     private push_call_stack(exec: Thread, label: number): void {
