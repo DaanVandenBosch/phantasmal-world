@@ -1,4 +1,6 @@
 import * as fs from "fs";
+import { InstructionSegment, SegmentType } from "../../src/quest_editor/scripting/instructions";
+import { assemble } from "../../src/quest_editor/scripting/assembly";
 
 /**
  * Applies f to all QST files in a directory.
@@ -45,4 +47,15 @@ export function get_qst_files(dir: string): [string, string][] {
     }
 
     return files;
+}
+
+export function to_instructions(assembly: string, manual_stack?: boolean): InstructionSegment[] {
+    const { object_code, warnings, errors } = assemble(assembly.split("\n"), manual_stack);
+
+    expect(warnings).toEqual([]);
+    expect(errors).toEqual([]);
+
+    return object_code.filter(
+        segment => segment.type === SegmentType.Instructions,
+    ) as InstructionSegment[];
 }

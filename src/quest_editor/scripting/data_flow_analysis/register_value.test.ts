@@ -1,5 +1,3 @@
-import { assemble } from "../assembly";
-import { InstructionSegment, SegmentType } from "../instructions";
 import { OP_ADDI, OP_DIVI, OP_MULI, OP_SUBI, Opcode } from "../opcodes";
 import { ControlFlowGraph } from "./ControlFlowGraph";
 import {
@@ -8,6 +6,7 @@ import {
     register_value,
     REGISTER_VALUES,
 } from "./register_value";
+import { to_instructions } from "../../../../test/src/utils";
 
 test(`trivial case`, () => {
     const im = to_instructions(`
@@ -174,14 +173,3 @@ test(`get_random`, () => {
     expect(v2.size()).toBe(5);
     expect(v2.to_array()).toEqual([20, 21, 22, 23, 24]);
 });
-
-function to_instructions(assembly: string): InstructionSegment[] {
-    const { object_code, warnings, errors } = assemble(assembly.split("\n"));
-
-    expect(warnings).toEqual([]);
-    expect(errors).toEqual([]);
-
-    return object_code.filter(
-        segment => segment.type === SegmentType.Instructions,
-    ) as InstructionSegment[];
-}
