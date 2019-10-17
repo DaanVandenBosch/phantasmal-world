@@ -72,13 +72,11 @@ import {
     OP_STACK_PUSH,
     OP_STACK_PUSHM,
     OP_STACK_POPM,
-    Param,
     Kind,
     OP_WINDOW_MSG,
     OP_ADD_MSG,
     OP_WINEND,
 } from "../opcodes";
-import Logger from "js-logger";
 import { VirtualMachineMemoryBuffer, VirtualMachineMemory } from "./memory";
 import {
     ComparisonOperation,
@@ -91,9 +89,6 @@ import {
 } from "./utils";
 import { VirtualMachineIO } from "./io";
 import { VMIOStub } from "./VMIOStub";
-import { Source } from "webpack-sources";
-
-const logger = Logger.get("quest_editor/scripting/vm");
 
 const REGISTERS_BASE_ADDRESS = 0x00a954b0;
 const REGISTER_COUNT = 256;
