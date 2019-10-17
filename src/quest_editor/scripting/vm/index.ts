@@ -344,25 +344,25 @@ export class VirtualMachine {
                 this.do_float_op_with_register(arg0, arg1, numeric_ops.add);
                 break;
             case OP_FADDI.code:
-                this.do_float_op_with_literal(arg0, arg1, numeric_ops.add);
+                this.do_float_op_with_literal(arg0, Math.fround(arg1), numeric_ops.add);
                 break;
             case OP_FSUB.code:
                 this.do_float_op_with_register(arg0, arg1, numeric_ops.sub);
                 break;
             case OP_FSUBI.code:
-                this.do_float_op_with_literal(arg0, arg1, numeric_ops.sub);
+                this.do_float_op_with_literal(arg0, Math.fround(arg1), numeric_ops.sub);
                 break;
             case OP_FMUL.code:
                 this.do_float_op_with_register(arg0, arg1, numeric_ops.mul);
                 break;
             case OP_FMULI.code:
-                this.do_float_op_with_literal(arg0, arg1, numeric_ops.mul);
+                this.do_float_op_with_literal(arg0, Math.fround(arg1), numeric_ops.mul);
                 break;
             case OP_FDIV.code:
                 this.do_float_op_with_register(arg0, arg1, numeric_ops.div);
                 break;
             case OP_FDIVI.code:
-                this.do_float_op_with_literal(arg0, arg1, numeric_ops.div);
+                this.do_float_op_with_literal(arg0, Math.fround(arg1), numeric_ops.div);
                 break;
             // bit operations
             case OP_AND.code:
