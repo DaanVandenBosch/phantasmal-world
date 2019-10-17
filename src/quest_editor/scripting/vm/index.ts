@@ -76,6 +76,9 @@ import {
     OP_WINDOW_MSG,
     OP_ADD_MSG,
     OP_WINEND,
+    OP_LETA,
+    OP_FLET,
+    OP_FLETI,
 } from "../opcodes";
 import { VirtualMachineMemoryBuffer, VirtualMachineMemory } from "./memory";
 import {
@@ -237,6 +240,7 @@ export class VirtualMachine {
             case OP_THREAD.code:
                 this.start_thread(arg0);
                 break;
+            // integer lets
             case OP_LET.code:
                 this.set_register_signed(arg0, this.get_register_signed(arg1));
                 break;
@@ -246,6 +250,16 @@ export class VirtualMachine {
             case OP_LETB.code:
             case OP_LETW.code:
                 this.set_register_unsigned(arg0, arg1);
+                break;
+            case OP_LETA.code:
+                this.set_register_unsigned(arg0, this.get_register_address(arg0));
+                break;
+            // float lets
+            case OP_FLET.code:
+                this.set_register_float(arg0, this.get_register_float(arg1));
+                break;
+            case OP_FLETI.code:
+                this.set_register_float(arg0, arg1);
                 break;
             case OP_SET.code:
                 this.set_register_signed(arg0, 1);
@@ -580,6 +594,14 @@ export class VirtualMachine {
 
     private set_register_unsigned(reg: number, value: number): void {
         this.registers.write_u32_at(REGISTER_SIZE * reg, value);
+    }
+
+    public get_register_float(reg: number): number {
+        return this.registers.f32_at(REGISTER_SIZE * reg);
+    }
+
+    private set_register_float(reg: number, value: number): void {
+        this.registers.write_f32_at(REGISTER_SIZE * reg, value);
     }
 
     private do_numeric_op_with_register(
