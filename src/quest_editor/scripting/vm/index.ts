@@ -496,7 +496,7 @@ export class VirtualMachine {
                 break;
             case OP_WINDOW_MSG.code:
                 if (!this.window_msg_open) {
-                    const args = exec.fetch_args(inst.opcode.params);
+                    const args = exec.fetch_args(inst);
                     const str = this.deref_string(args[0]);
 
                     this.window_msg_open = true;
@@ -505,7 +505,7 @@ export class VirtualMachine {
                 break;
             case OP_ADD_MSG.code:
                 if (this.window_msg_open) {
-                    const args = exec.fetch_args(inst.opcode.params);
+                    const args = exec.fetch_args(inst);
                     const str = this.deref_string(args[0]);
 
                     this.io.add_msg(str);
@@ -600,12 +600,12 @@ export class VirtualMachine {
         const seg_idx = this.label_to_seg_idx.get(label);
 
         if (seg_idx == undefined) {
-            this.io.warning(`Invalid label called: ${label}.`);
+            throw new Error(`Invalid label called: ${label}.`);
         } else {
             const segment = this.object_code[seg_idx];
 
             if (segment.type !== SegmentType.Instructions) {
-                this.io.warning(
+                throw new Error(
                     `Label ${label} points to a ${SegmentType[segment.type]} segment, expecting ${
                         SegmentType[SegmentType.Instructions]
                     }.`,
@@ -639,7 +639,7 @@ export class VirtualMachine {
         const seg_idx = this.label_to_seg_idx.get(label);
 
         if (seg_idx == undefined) {
-            this.io.warning(`Invalid jump label: ${label}.`);
+            throw new Error(`Invalid jump label: ${label}.`);
         } else {
             top.seg_idx = seg_idx;
             top.inst_idx = -1;
@@ -830,18 +830,19 @@ class Thread {
         this.arg_stack_counter++;
     }
 
-    public fetch_args(params: readonly Param[]): number[] {
+    public fetch_args(inst: Instruction): number[] {
         const args: number[] = [];
+        const srcloc: AsmToken | undefined = inst.asm && inst.asm.mnemonic;
 
-        if (params.length !== this.arg_stack_counter) {
-            this.io.warning("Argument stack: Argument count mismatch");
+        if (inst.opcode.params.length !== this.arg_stack_counter) {
+            this.io.warning("Argument stack: Argument count mismatch", srcloc);
         }
 
-        for (let i = 0; i < params.length; i++) {
-            const param = params[i];
+        for (let i = 0; i < inst.opcode.params.length; i++) {
+            const param = inst.opcode.params[i];
 
             if (param.type.kind !== this.arg_stack_types[i]) {
-                this.io.warning("Argument stack: Argument type mismatch");
+                this.io.warning("Argument stack: Argument type mismatch", srcloc);
             }
 
             switch (param.type.kind) {
@@ -856,7 +857,9 @@ class Thread {
                     args.push(this.arg_stack.u32_at(i * ARG_STACK_SLOT_SIZE));
                     break;
                 default:
-                    throw new Error(`Argument stack: Unhandled param kind: Kind.${Kind[param.type.kind]}`);
+                    throw new Error(
+                        `Argument stack: Unhandled param kind: Kind.${Kind[param.type.kind]}`,
+                    );
             }
         }
 
