@@ -17,5 +17,5 @@ export class VMIOStub implements VirtualMachineIO {
     @stub winend(): void {}
     @stub mesend(): void {}
     @stub warning(msg: string, srcloc?: AsmToken): void {}
-    @stub error(msg: string, srcloc?: AsmToken): void {}
+    @stub error(err: Error, srcloc?: AsmToken): void {}
 }

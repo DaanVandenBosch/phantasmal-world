@@ -30,7 +30,7 @@ export interface VirtualMachineMetaIO {
      * patterns that could possibly cause problems or have unintended effects.
      */
     warning(msg: string, srcloc?: AsmToken): void;
-    error(msg: string, srcloc?: AsmToken): void;
+    error(err: Error, srcloc?: AsmToken): void;
 }
 
 /**

@@ -196,6 +196,10 @@ export class VirtualMachine {
 
             return this.execute_instruction(exec, inst);
         } catch (err) {
+            if (!(err instanceof Error)) {
+                err = new Error(String(err));
+            }
+
             this.halt();
             this.io.error(err, srcloc);
 
@@ -653,7 +657,13 @@ export class VirtualMachine {
         reg1: number,
         reg2: number,
     ): void {
-        this.conditional_jump(exec, label, condition, this.get_register_signed(reg1), this.get_register_signed(reg2));
+        this.conditional_jump(
+            exec,
+            label,
+            condition,
+            this.get_register_signed(reg1),
+            this.get_register_signed(reg2),
+        );
     }
 
     private signed_conditional_jump_with_literal(
@@ -673,7 +683,13 @@ export class VirtualMachine {
         reg1: number,
         reg2: number,
     ): void {
-        this.conditional_jump(exec, label, condition, this.get_register_unsigned(reg1), this.get_register_unsigned(reg2));
+        this.conditional_jump(
+            exec,
+            label,
+            condition,
+            this.get_register_unsigned(reg1),
+            this.get_register_unsigned(reg2),
+        );
     }
 
     private unsigned_conditional_jump_with_literal(

@@ -4,7 +4,8 @@ import { to_instructions } from "../../../../test/src/utils";
 
 test("basic window_msg output", () => {
     const messages = ["foo", "bar", "buz"];
-    const segments = to_instructions(`
+    const segments = to_instructions(
+        `
         .code
         0:
             arg_pushs "${messages[0]}"
@@ -14,7 +15,9 @@ test("basic window_msg output", () => {
             arg_pushs "${messages[2]}"
             add_msg
             winend
-    `, true);
+    `,
+        true,
+    );
 
     class TestIO extends VMIOStub {
         window_msg = jest.fn((msg: string) => {
@@ -27,8 +30,8 @@ test("basic window_msg output", () => {
 
         winend = jest.fn(() => {});
 
-        error = jest.fn((msg: string, loc: any) => {
-            throw msg;
+        error = jest.fn((err: Error, loc: any) => {
+            throw err;
         });
     }
 
