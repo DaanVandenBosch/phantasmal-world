@@ -69,6 +69,37 @@ test("integer arithmetic opcodes", () => {
     expect(() => compute_arithmetic_with_register("div", 1, 0)).toThrow();
 });
 
+// TODO: add more fp tests
+test("floating point arithmetic opcodes", () => {
+    class TestIO extends VMIOStub {
+        error = jest.fn((err: Error, srcloc: any) => {
+            throw err;
+        });
+    }
+
+    const precision = 9;
+    const obj_code = to_instructions(`
+        0:
+            fleti r100, 0.3
+            fsubi r100, 0.2
+            fsubi r100, 0.1
+            fleti r101, 1.0
+            fdiv r101, r100
+    `);
+
+    const vm = new VirtualMachine(new TestIO());
+    vm.load_object_code(obj_code);
+    vm.start_thread(0);
+    
+    let last_result: ExecutionResult;
+    do {
+        last_result = vm.execute();
+    } while (last_result !== ExecutionResult.Halted);
+
+    expect(vm.get_register_float(100)).toBeCloseTo(7.4505806e-09, precision);
+    expect(vm.get_register_float(101)).toBeCloseTo(134217728, precision);
+});
+
 test("basic window_msg output", () => {
     const messages = ["foo", "bar", "buz"];
     const segments = to_instructions(
