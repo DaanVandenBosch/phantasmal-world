@@ -128,7 +128,8 @@ export class VirtualMachine {
      */
     load_object_code(object_code: Segment[]): void {
         this.halt();
-        this.clear_registers();
+        this.registers.zero();
+        this.string_arg_store.zero();
         this.object_code = object_code;
         this.label_to_seg_idx.clear();
         let i = 0;
@@ -559,6 +560,8 @@ export class VirtualMachine {
             thread.dispose();
         }
 
+        this.window_msg_open = false;
+
         this.thread = [];
         this.thread_idx = 0;
     }
@@ -767,10 +770,6 @@ export class VirtualMachine {
         } else {
             throw new Error(`Call stack is empty.`);
         }
-    }
-
-    private clear_registers(): void {
-        this.registers.zero();
     }
 
     private get_register_address(reg: number): number {
