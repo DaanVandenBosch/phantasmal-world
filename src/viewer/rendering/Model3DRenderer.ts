@@ -217,7 +217,7 @@ export class Model3DRenderer extends Renderer implements Disposable {
         if (this.animation && !this.animation.action.paused) {
             const time = this.animation.action.time;
             this.update_animation_time = false;
-            model_store.animation_frame.val = time * PSO_FRAME_RATE + 1;
+            model_store.set_animation_frame(time * PSO_FRAME_RATE + 1);
             this.update_animation_time = true;
         }
     }

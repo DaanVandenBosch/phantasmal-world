@@ -8,7 +8,7 @@
         "@types/luxon": "^1.15.2",
         "camera-controls": "^1.14.1",
         "golden-layout": "^1.5.9",
-        "javascript-lp-solver": "^0.4.5",
+        "javascript-lp-solver": "0.4.17",
         "js-logger": "^1.6.0",
         "lodash": "^4.17.15",
         "luxon": "^1.19.3",
