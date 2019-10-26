@@ -104,15 +104,15 @@ Features that are in ***bold italics*** are planned and not yet implemented.
     - Strings
 - Labels
     - ***Show in outline***
+    - Go to label
 - Auto-completion
     - Segment type (.code, .data)
     - Instructions
-- ***Go to label***
 - ***Warnings***
     - ***Missing 0 label***
     - ***Missing floor handlers***
     - ***Missing map designations***
-    - ***Threads (thread, thread_stg) that don't have a sync***
+    - ***Infinite loops without sync***
     - ***Unreachable/unused instructions/data***
         - ***Instructions after "ret" instruction***
         - ***Unused labels***
@@ -144,3 +144,4 @@ Features that are in ***bold italics*** are planned and not yet implemented.
     - Energy Barrier
     - Teleporter
 - [Load Quest](#load-quest): Can't parse quest 125 White Day
+- [Area Selection](#area-selection): Entity numbers don't update in select widget when adding/deleting entities.
