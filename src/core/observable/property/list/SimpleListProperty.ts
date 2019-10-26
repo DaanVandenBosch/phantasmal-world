@@ -114,17 +114,6 @@ export class SimpleListProperty<T> extends AbstractProperty<readonly T[]>
         }
     }
 
-    bind_bi(property: WritableProperty<readonly T[]>): Disposable {
-        const bind_1 = this.bind_to(property);
-        const bind_2 = property.bind_to(this);
-        return {
-            dispose(): void {
-                bind_1.dispose();
-                bind_2.dispose();
-            },
-        };
-    }
-
     update(f: (element: T[]) => T[]): void {
         this.splice(0, this.values.length, ...f(this.values));
     }

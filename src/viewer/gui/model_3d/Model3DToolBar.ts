@@ -48,7 +48,7 @@ export class Model3DToolBar extends ToolBar {
                 if (files.length) model_store.load_file(files[0]);
             }),
 
-            model_store.show_skeleton.bind_to(skeleton_checkbox.checked),
+            skeleton_checkbox.checked.observe(({ value }) => model_store.set_show_skeleton(value)),
         );
 
         // Controls that are only enabled when an animation is selected.
@@ -56,15 +56,22 @@ export class Model3DToolBar extends ToolBar {
 
         this.disposables(
             play_animation_checkbox.enabled.bind_to(enabled),
-            model_store.animation_playing.bind_bi(play_animation_checkbox.checked),
+            play_animation_checkbox.checked.bind_to(model_store.animation_playing),
+            play_animation_checkbox.checked.observe(({ value }) =>
+                model_store.set_animation_playing(value),
+            ),
 
             animation_frame_rate_input.enabled.bind_to(enabled),
-            model_store.animation_frame_rate.bind_to(animation_frame_rate_input.value),
+            animation_frame_rate_input.value.observe(({ value }) =>
+                model_store.set_animation_frame_rate(value),
+            ),
 
             animation_frame_input.enabled.bind_to(enabled),
-            model_store.animation_frame.bind_to(animation_frame_input.value),
             animation_frame_input.value.bind_to(
                 model_store.animation_frame.map(v => Math.round(v)),
+            ),
+            animation_frame_input.value.observe(({ value }) =>
+                model_store.set_animation_frame(value),
             ),
 
             animation_frame_count_label.enabled.bind_to(enabled),

@@ -15,6 +15,4 @@ export interface WritableProperty<T> extends Property<T> {
      * @param observable the observable who's events will be propagated to this property.
      */
     bind_to(observable: Observable<T>): Disposable;
-
-    bind_bi(property: WritableProperty<T>): Disposable;
 }

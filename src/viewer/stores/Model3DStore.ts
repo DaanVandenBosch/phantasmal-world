@@ -28,7 +28,22 @@ export type NjData = {
 };
 
 export class Model3DStore implements Disposable {
-    readonly models: CharacterClassModel[] = [
+    private readonly _current_model: WritableProperty<CharacterClassModel | undefined> = property(
+        undefined,
+    );
+    private readonly _current_nj_data = property<NjData | undefined>(undefined);
+    private readonly _current_xvm = property<Xvm | undefined>(undefined);
+    private readonly _show_skeleton: WritableProperty<boolean> = property(false);
+    private readonly _current_animation: WritableProperty<
+        CharacterClassAnimationModel | undefined
+    > = property(undefined);
+    private readonly _current_nj_motion = property<NjMotion | undefined>(undefined);
+    private readonly _animation_playing: WritableProperty<boolean> = property(true);
+    private readonly _animation_frame_rate: WritableProperty<number> = property(PSO_FRAME_RATE);
+    private readonly _animation_frame: WritableProperty<number> = property(0);
+    private readonly disposables: Disposable[] = [];
+
+    readonly models: readonly CharacterClassModel[] = [
         new CharacterClassModel("HUmar", 1, 10, new Set([6])),
         new CharacterClassModel("HUnewearl", 1, 10, new Set()),
         new CharacterClassModel("HUcast", 5, 0, new Set()),
@@ -43,35 +58,23 @@ export class Model3DStore implements Disposable {
         new CharacterClassModel("FOnewearl", 1, 10, new Set([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])),
     ];
 
-    readonly animations: CharacterClassAnimationModel[] = new Array(572)
+    readonly animations: readonly CharacterClassAnimationModel[] = new Array(572)
         .fill(undefined)
         .map((_, i) => new CharacterClassAnimationModel(i, `Animation ${i + 1}`));
 
-    readonly current_model: WritableProperty<CharacterClassModel | undefined> = property(undefined);
-
-    private readonly _current_nj_data = property<NjData | undefined>(undefined);
+    readonly current_model: Property<CharacterClassModel | undefined> = this._current_model;
     readonly current_nj_data: Property<NjData | undefined> = this._current_nj_data;
-
-    private readonly _current_xvm = property<Xvm | undefined>(undefined);
     readonly current_xvm: Property<Xvm | undefined> = this._current_xvm;
-
-    readonly show_skeleton: WritableProperty<boolean> = property(false);
-
-    readonly current_animation: WritableProperty<
-        CharacterClassAnimationModel | undefined
-    > = property(undefined);
-
-    private readonly _current_nj_motion = property<NjMotion | undefined>(undefined);
+    readonly show_skeleton: Property<boolean> = this._show_skeleton;
+    readonly current_animation: Property<CharacterClassAnimationModel | undefined> = this
+        ._current_animation;
     readonly current_nj_motion: Property<NjMotion | undefined> = this._current_nj_motion;
-
-    readonly animation_playing: WritableProperty<boolean> = property(true);
-    readonly animation_frame_rate: WritableProperty<number> = property(PSO_FRAME_RATE);
-    readonly animation_frame: WritableProperty<number> = property(0);
+    readonly animation_playing: Property<boolean> = this._animation_playing;
+    readonly animation_frame_rate: Property<number> = this._animation_frame_rate;
+    readonly animation_frame: Property<number> = this._animation_frame;
     readonly animation_frame_count: Property<number> = this.current_nj_motion.map(njm =>
         njm ? njm.frame_count : 0,
     );
-
-    private disposables: Disposable[] = [];
 
     constructor() {
         this.disposables.push(
@@ -84,6 +87,38 @@ export class Model3DStore implements Disposable {
         this.disposables.forEach(d => d.dispose());
     }
 
+    set_current_model = (current_model: CharacterClassModel): void => {
+        this._current_model.val = current_model;
+    };
+
+    clear_current_model = (): void => {
+        this._current_model.val = undefined;
+    };
+
+    set_show_skeleton = (show_skeleton: boolean): void => {
+        this._show_skeleton.val = show_skeleton;
+    };
+
+    set_current_animation = (animation: CharacterClassAnimationModel): void => {
+        this._current_animation.val = animation;
+    };
+
+    clear_current_animation = (): void => {
+        this._current_animation.val = undefined;
+    };
+
+    set_animation_playing = (playing: boolean): void => {
+        this._animation_playing.val = playing;
+    };
+
+    set_animation_frame_rate = (frame_rate: number): void => {
+        this._animation_frame_rate.val = frame_rate;
+    };
+
+    set_animation_frame = (frame: number): void => {
+        this._animation_frame.val = frame;
+    };
+
     // TODO: notify user of problems.
     load_file = async (file: File): Promise<void> => {
         try {
@@ -91,7 +126,7 @@ export class Model3DStore implements Disposable {
             const cursor = new ArrayBufferCursor(buffer, Endianness.Little);
 
             if (file.name.endsWith(".nj")) {
-                this.current_model.val = undefined;
+                this.clear_current_model();
 
                 const nj_object = parse_nj(cursor)[0];
 
@@ -101,7 +136,7 @@ export class Model3DStore implements Disposable {
                     has_skeleton: true,
                 });
             } else if (file.name.endsWith(".xj")) {
-                this.current_model.val = undefined;
+                this.clear_current_model();
 
                 const nj_object = parse_xj(cursor)[0];
 
@@ -111,13 +146,13 @@ export class Model3DStore implements Disposable {
                     has_skeleton: false,
                 });
             } else if (file.name.endsWith(".njm")) {
-                this.current_animation.val = undefined;
+                this.clear_current_animation();
                 this._current_nj_motion.val = undefined;
 
                 const nj_data = this.current_nj_data.val;
 
                 if (nj_data) {
-                    this.animation_playing.val = true;
+                    this.set_animation_playing(true);
                     this._current_nj_motion.val = parse_njm(cursor, nj_data.bone_count);
                 }
             } else if (file.name.endsWith(".xvm")) {
@@ -133,7 +168,7 @@ export class Model3DStore implements Disposable {
     };
 
     private load_model = async (model?: CharacterClassModel): Promise<void> => {
-        this.current_animation.val = undefined;
+        this.clear_current_animation();
 
         if (model) {
             const nj_object = await this.get_nj_object(model);
@@ -219,7 +254,7 @@ export class Model3DStore implements Disposable {
 
         if (nj_data && animation) {
             this._current_nj_motion.val = await this.get_nj_motion(animation, nj_data.bone_count);
-            this.animation_playing.val = true;
+            this.set_animation_playing(true);
         } else {
             this._current_nj_motion.val = undefined;
         }

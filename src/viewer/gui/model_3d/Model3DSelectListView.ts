@@ -1,7 +1,7 @@
 import { ResizableWidget } from "../../../core/gui/ResizableWidget";
 import { create_element } from "../../../core/gui/dom";
-import { WritableProperty } from "../../../core/observable/property/WritableProperty";
 import "./Model3DSelectListView.css";
+import { Property } from "../../../core/observable/property/Property";
 
 export class Model3DSelectListView<T extends { name: string }> extends ResizableWidget {
     readonly element = create_element("ul", { class: "viewer_Model3DSelectListView" });
@@ -19,7 +19,11 @@ export class Model3DSelectListView<T extends { name: string }> extends Resizable
     private selected_model?: T;
     private selected_element?: HTMLLIElement;
 
-    constructor(private models: T[], private selected: WritableProperty<T | undefined>) {
+    constructor(
+        private models: readonly T[],
+        private selected: Property<T | undefined>,
+        private set_selected: (selected: T) => void,
+    ) {
         super();
 
         this.element.onclick = this.list_click;
@@ -62,7 +66,7 @@ export class Model3DSelectListView<T extends { name: string }> extends Resizable
             const index = parseInt(e.target.dataset["index"]!, 10);
 
             this.selected_element = e.target;
-            this.selected.val = this.models[index];
+            this.set_selected(this.models[index]);
         }
     };
 }

@@ -43,15 +43,4 @@ export class SimpleProperty<T> extends AbstractProperty<T> implements WritablePr
 
         return observable.observe(event => (this.val = event.value));
     }
-
-    bind_bi(property: WritableProperty<T>): Disposable {
-        const bind_1 = this.bind_to(property);
-        const bind_2 = property.bind_to(this);
-        return {
-            dispose(): void {
-                bind_1.dispose();
-                bind_2.dispose();
-            },
-        };
-    }
 }

@@ -4,7 +4,6 @@ import "./ComboBox.css";
 import "./Input.css";
 import { Menu } from "./Menu";
 import { Property } from "../observable/property/Property";
-import { property } from "../observable";
 import { WritableProperty } from "../observable/property/WritableProperty";
 import { WidgetProperty } from "../observable/property/WidgetProperty";
 
@@ -35,14 +34,12 @@ export class ComboBox<T> extends LabelledControl {
         this._selected = new WidgetProperty<T | undefined>(this, undefined, this.set_selected);
         this.selected = this._selected;
 
-        const menu_visible = property(false);
-
         this.menu = this.disposable(new Menu(options.items, options.to_label, this.element));
         this.menu.element.onmousedown = e => e.preventDefault();
 
         this.input_element.placeholder = options.placeholder_text || "";
         this.input_element.onmousedown = () => {
-            menu_visible.val = true;
+            this.menu.visible.set_val(true, { silent: false });
         };
 
         this.input_element.onkeydown = (e: Event) => {
@@ -83,14 +80,14 @@ export class ComboBox<T> extends LabelledControl {
         }
 
         this.input_element.onblur = () => {
-            menu_visible.val = false;
+            this.menu.visible.set_val(false, { silent: false });
         };
 
         const down_arrow_element = el.span({}, icon(Icon.TriangleDown));
-        this.bind_hidden(down_arrow_element, menu_visible);
+        this.bind_hidden(down_arrow_element, this.menu.visible);
 
         const up_arrow_element = el.span({}, icon(Icon.TriangleUp));
-        this.bind_hidden(up_arrow_element, menu_visible.map(v => !v));
+        this.bind_hidden(up_arrow_element, this.menu.visible.map(v => !v));
 
         const button_element = el.span(
             { class: "core_ComboBox_button" },
@@ -99,7 +96,7 @@ export class ComboBox<T> extends LabelledControl {
         );
         button_element.onmousedown = e => {
             e.preventDefault();
-            menu_visible.val = !menu_visible.val;
+            this.menu.visible.set_val(!this.menu.visible.val, { silent: false });
         };
 
         this.element.append(
@@ -112,9 +109,7 @@ export class ComboBox<T> extends LabelledControl {
         );
 
         this.disposables(
-            this.menu.visible.bind_bi(menu_visible),
-
-            menu_visible.observe(({ value: visible }) => {
+            this.menu.visible.observe(({ value: visible }) => {
                 if (visible) {
                     this.menu.hover_next();
                 }

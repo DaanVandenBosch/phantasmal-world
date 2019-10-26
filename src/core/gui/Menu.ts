@@ -65,14 +65,14 @@ export class Menu<T> extends Widget {
     }
 
     hover_next(): void {
-        this.visible.val = true;
+        this.visible.set_val(true, { silent: false });
         this.hover_item(
             this.hovered_index != undefined ? (this.hovered_index + 1) % this.items.val.length : 0,
         );
     }
 
     hover_prev(): void {
-        this.visible.val = true;
+        this.visible.set_val(true, { silent: false });
         this.hover_item(this.hovered_index ? this.hovered_index - 1 : this.items.val.length - 1);
     }
 

@@ -26,10 +26,18 @@ export class Model3DView extends ResizableWidget {
 
         this.tool_bar_view = this.disposable(new Model3DToolBar());
         this.model_list_view = this.disposable(
-            new Model3DSelectListView(model_store.models, model_store.current_model),
+            new Model3DSelectListView(
+                model_store.models,
+                model_store.current_model,
+                model_store.set_current_model,
+            ),
         );
         this.animation_list_view = this.disposable(
-            new Model3DSelectListView(model_store.animations, model_store.current_animation),
+            new Model3DSelectListView(
+                model_store.animations,
+                model_store.current_animation,
+                model_store.set_current_animation,
+            ),
         );
         this.renderer_view = this.disposable(new RendererWidget(new Model3DRenderer()));
 
@@ -45,7 +53,7 @@ export class Model3DView extends ResizableWidget {
             ),
         );
 
-        model_store.current_model.val = model_store.models[5];
+        model_store.set_current_model(model_store.models[5]);
 
         this.renderer_view.start_rendering();
 
