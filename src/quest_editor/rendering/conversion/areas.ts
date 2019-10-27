@@ -29,17 +29,17 @@ const materials = [
     }),
     // Ground
     new MeshLambertMaterial({
-        color: 0xa0a0a0,
+        color: 0xc0c0c0,
         side: DoubleSide,
     }),
     // Vegetation
     new MeshLambertMaterial({
-        color: 0x50b070,
+        color: 0x60c080,
         side: DoubleSide,
     }),
     // Section transition zone
     new MeshLambertMaterial({
-        color: 0x604080,
+        color: 0x8040a0,
         side: DoubleSide,
     }),
 ];

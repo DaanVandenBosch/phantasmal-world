@@ -1,11 +1,19 @@
 import { QuestEntityModel } from "../../model/QuestEntityModel";
-import { BufferGeometry, DoubleSide, Mesh, MeshLambertMaterial, Texture } from "three";
+import {
+    BufferGeometry,
+    DoubleSide,
+    Mesh,
+    MeshBasicMaterial,
+    MeshLambertMaterial,
+    Texture,
+} from "three";
 import { create_mesh } from "../../../core/rendering/conversion/create_mesh";
 import {
     entity_type_to_string,
     EntityType,
     is_npc_type,
 } from "../../../core/data_formats/parsing/quest/entities";
+import { NpcType } from "../../../core/data_formats/parsing/quest/npc_types";
 
 export enum ColorType {
     Normal,
@@ -42,10 +50,14 @@ export function create_entity_type_mesh(
         textures.length
             ? textures.map(
                   tex =>
-                      new MeshLambertMaterial({
+                      new MeshBasicMaterial({
                           map: tex,
                           side: DoubleSide,
-                          alphaTest: 0.5,
+                          // TODO: figure out why these NPC types don't render correctly when
+                          //       transparency is turned on.
+                          transparent:
+                              type !== NpcType.PofuillySlime && type !== NpcType.PouillySlime,
+                          alphaTest: 0.01,
                       }),
               )
             : default_material,
