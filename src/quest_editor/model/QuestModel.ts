@@ -131,8 +131,8 @@ export class QuestModel {
             this.objects,
         );
 
-        this.entities_per_area.observe(this.update_area_variants);
-        this.map_designations.observe(this.update_area_variants);
+        this.entities_per_area.observe(this.update_area_variants, { call_now: true });
+        this.map_designations.observe(this.update_area_variants, { call_now: true });
     }
 
     set_id(id: number): this {
