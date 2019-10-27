@@ -24,7 +24,7 @@ export abstract class AbstractMinimalProperty<T> implements Property<T> {
         }
 
         if (options && options.call_now) {
-            this.call_observer(observer, this.val);
+            this.call_observer(observer, this.val, this.val);
         }
 
         return {
@@ -43,14 +43,20 @@ export abstract class AbstractMinimalProperty<T> implements Property<T> {
     abstract flat_map<U>(f: (element: T) => Property<U>): Property<U>;
 
     protected emit(old_value: T): void {
+        const value = this.val;
+
         for (const observer of this.observers) {
-            this.call_observer(observer, old_value);
+            this.call_observer(observer, value, old_value);
         }
     }
 
-    private call_observer(observer: (event: PropertyChangeEvent<T>) => void, old_value: T): void {
+    private call_observer(
+        observer: (event: PropertyChangeEvent<T>) => void,
+        value: T,
+        old_value: T,
+    ): void {
         try {
-            observer({ value: this.val, old_value });
+            observer({ value, old_value });
         } catch (e) {
             logger.error("Observer threw error.", e);
         }

@@ -30,6 +30,8 @@ export interface ListProperty<T> extends Property<readonly T[]> {
     get(index: number): T;
 
     observe_list(observer: (change: ListPropertyChangeEvent<T>) => void): Disposable;
+
+    filtered(predicate: (value: T) => boolean): ListProperty<T>;
 }
 
 export function is_list_property<T>(

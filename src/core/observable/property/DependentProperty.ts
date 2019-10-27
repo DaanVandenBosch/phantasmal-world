@@ -50,8 +50,6 @@ export class DependentProperty<T> extends AbstractMinimalProperty<T> implements 
             );
         }
 
-        this.emit(this._val!);
-
         return {
             dispose: () => {
                 super_disposable.dispose();
