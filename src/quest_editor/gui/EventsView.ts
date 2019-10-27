@@ -17,23 +17,29 @@ export class EventsView extends ResizableWidget {
         super();
 
         this.disposables(
-            quest_editor_store.current_quest.observe(({ value: quest }) => {
-                this.quest_disposer.dispose_all();
-
-                if (quest) {
-                    this.quest_disposer.add(
-                        bind_children_to(
-                            this.element,
-                            quest.event_chains,
-                            this.create_chain_element,
-                        ),
-                    );
-                }
-            }),
+            quest_editor_store.current_quest.observe(this.update),
+            quest_editor_store.current_area.observe(this.update),
         );
 
         this.finalize_construction(EventsView.prototype);
     }
+
+    private update = (): void => {
+        this.quest_disposer.dispose_all();
+
+        const quest = quest_editor_store.current_quest.val;
+        const area = quest_editor_store.current_area.val;
+
+        if (quest && area) {
+            this.quest_disposer.add(
+                bind_children_to(
+                    this.element,
+                    quest.event_chains.filtered(chain => chain.events.get(0).area_id === area.id),
+                    this.create_chain_element,
+                ),
+            );
+        }
+    };
 
     private create_chain_element = (chain: QuestEventChainModel): [HTMLElement, Disposable] => {
         const disposer = new Disposer();
