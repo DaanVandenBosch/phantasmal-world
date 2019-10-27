@@ -3,7 +3,7 @@ import { PropertyChangeEvent } from "../Property";
 import { Disposable } from "../../Disposable";
 import { AbstractListProperty } from "./AbstractListProperty";
 
-export class DependentListProperty<T> extends AbstractListProperty<T> implements ListProperty<T> {
+export class DependentListProperty<T> extends AbstractListProperty<T> {
     private readonly dependency: ListProperty<T>;
     private readonly transform: (values: readonly T[]) => T[];
     private dependency_disposable?: Disposable;

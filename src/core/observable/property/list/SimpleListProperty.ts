@@ -20,7 +20,7 @@ export class SimpleListProperty<T> extends AbstractListProperty<T>
 
     /**
      * @param extract_observables - Extractor function called on each value in this list. Changes
-     * to the returned observables will be propagated via update events.
+     * to the returned observables will be propagated via ValueChange events.
      * @param values - Initial values of this list.
      */
     constructor(extract_observables?: (element: T) => Observable<any>[], ...values: T[]) {

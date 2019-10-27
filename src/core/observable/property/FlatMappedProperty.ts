@@ -27,8 +27,11 @@ export class FlatMappedProperty<T, U> extends AbstractMinimalProperty<U> impleme
         super();
     }
 
-    observe(observer: (event: PropertyChangeEvent<U>) => void): Disposable {
-        const super_disposable = super.observe(observer);
+    observe(
+        observer: (event: PropertyChangeEvent<U>) => void,
+        options?: { call_now?: boolean },
+    ): Disposable {
+        const super_disposable = super.observe(observer, options);
 
         if (this.dependency_disposable == undefined) {
             this.dependency_disposable = this.dependency.observe(() => {
@@ -39,8 +42,6 @@ export class FlatMappedProperty<T, U> extends AbstractMinimalProperty<U> impleme
 
             this.compute_and_observe();
         }
-
-        this.emit(this.get_val());
 
         return {
             dispose: () => {
