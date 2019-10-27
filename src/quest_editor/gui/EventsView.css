@@ -1,15 +1,22 @@
 .quest_editor_EventsView {
+    box-sizing: border-box;
     overflow-y: auto;
     display: flex;
-    flex-direction: column;
-    align-items: center;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: start;
+    justify-content: center;
+    padding: 4px;
 }
 
 .quest_editor_EventsView_chain {
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin: 3px;
+    padding: 6px 12px;
+    border: var(--border);
+    margin: 4px;
+    background-color: hsl(0, 0%, 17%);
 }
 
 .quest_editor_EventsView_chain_arrow {
