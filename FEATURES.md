@@ -49,7 +49,7 @@ Features that are in ***bold italics*** are planned and not yet implemented.
         - ***Textures***
 - NPC/object geometry
     - Textures
-- ***Transparency***
+- Transparency
     - ***Order independent transparency***
 - ***Mini-map***
 - ***Top-down view (orthogonal view might suffice?)***
