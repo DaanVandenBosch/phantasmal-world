@@ -1,11 +1,16 @@
 import { QuestEventActionModel } from "./QuestEventActionModel";
+import { WritableListProperty } from "../../core/observable/property/list/WritableListProperty";
+import { list_property } from "../../core/observable";
+import { ListProperty } from "../../core/observable/property/list/ListProperty";
 
 export class QuestEventModel {
+    private readonly _actions: WritableListProperty<QuestEventActionModel> = list_property();
+
     readonly id: number;
     readonly section_id: number;
     readonly wave: number;
     readonly delay: number;
-    readonly actions: readonly QuestEventActionModel[];
+    readonly actions: ListProperty<QuestEventActionModel> = this._actions;
     readonly area_id: number;
     readonly unknown: number;
 
@@ -14,7 +19,6 @@ export class QuestEventModel {
         section_id: number,
         wave: number,
         delay: number,
-        actions: readonly QuestEventActionModel[],
         area_id: number,
         unknown: number,
     ) {
@@ -22,7 +26,6 @@ export class QuestEventModel {
         if (!Number.isInteger(section_id)) throw new Error("section_id should be an integer.");
         if (!Number.isInteger(wave)) throw new Error("wave should be an integer.");
         if (!Number.isInteger(delay)) throw new Error("delay should be an integer.");
-        if (!Array.isArray(actions)) throw new Error("actions should be an array.");
         if (!Number.isInteger(area_id)) throw new Error("area_id should be an integer.");
         if (!Number.isInteger(unknown)) throw new Error("unknown should be an integer.");
 
@@ -30,8 +33,11 @@ export class QuestEventModel {
         this.section_id = section_id;
         this.wave = wave;
         this.delay = delay;
-        this.actions = actions;
         this.area_id = area_id;
         this.unknown = unknown;
+    }
+
+    add_action(action: QuestEventActionModel): void {
+        this._actions.push(action);
     }
 }

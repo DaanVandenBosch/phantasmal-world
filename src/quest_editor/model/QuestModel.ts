@@ -13,7 +13,7 @@ import { ListProperty } from "../../core/observable/property/list/ListProperty";
 import { WritableListProperty } from "../../core/observable/property/list/WritableListProperty";
 import { QuestEntityModel } from "./QuestEntityModel";
 import { entity_type_to_string } from "../../core/data_formats/parsing/quest/entities";
-import { QuestEventChainModel } from "./QuestEventChainModel";
+import { QuestEventDagModel } from "./QuestEventDagModel";
 
 const logger = Logger.get("quest_editor/model/QuestModel");
 
@@ -27,7 +27,7 @@ export class QuestModel {
     private readonly _area_variants: WritableListProperty<AreaVariantModel> = list_property();
     private readonly _objects: WritableListProperty<QuestObjectModel>;
     private readonly _npcs: WritableListProperty<QuestNpcModel>;
-    private readonly _event_chains: WritableListProperty<QuestEventChainModel>;
+    private readonly _event_dags: WritableListProperty<QuestEventDagModel>;
 
     readonly id: Property<number> = this._id;
 
@@ -60,7 +60,7 @@ export class QuestModel {
 
     readonly npcs: ListProperty<QuestNpcModel>;
 
-    readonly event_chains: ListProperty<QuestEventChainModel>;
+    readonly event_dags: ListProperty<QuestEventDagModel>;
 
     /**
      * (Partial) raw DAT data that can't be parsed yet by Phantasmal.
@@ -81,7 +81,7 @@ export class QuestModel {
         map_designations: Map<number, number>,
         objects: readonly QuestObjectModel[],
         npcs: readonly QuestNpcModel[],
-        event_chains: readonly QuestEventChainModel[],
+        event_dags: readonly QuestEventDagModel[],
         dat_unknowns: readonly DatUnknown[],
         object_code: readonly Segment[],
         shop_items: readonly number[],
@@ -90,7 +90,7 @@ export class QuestModel {
         if (!map_designations) throw new Error("map_designations is required.");
         if (!Array.isArray(objects)) throw new Error("objs is required.");
         if (!Array.isArray(npcs)) throw new Error("npcs is required.");
-        if (!Array.isArray(event_chains)) throw new Error("event_chains is required.");
+        if (!Array.isArray(event_dags)) throw new Error("event_dags is required.");
         if (!Array.isArray(dat_unknowns)) throw new Error("dat_unknowns is required.");
         if (!Array.isArray(object_code)) throw new Error("object_code is required.");
         if (!Array.isArray(shop_items)) throw new Error("shop_items is required.");
@@ -107,8 +107,8 @@ export class QuestModel {
         this.objects = this._objects;
         this._npcs = list_property(undefined, ...npcs);
         this.npcs = this._npcs;
-        this._event_chains = list_property(undefined, ...event_chains);
-        this.event_chains = this._event_chains;
+        this._event_dags = list_property(undefined, ...event_dags);
+        this.event_dags = this._event_dags;
         this.dat_unknowns = dat_unknowns;
         this.object_code = object_code;
         this.shop_items = shop_items;

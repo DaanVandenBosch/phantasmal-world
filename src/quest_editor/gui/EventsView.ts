@@ -1,7 +1,7 @@
 import { ResizableWidget } from "../../core/gui/ResizableWidget";
 import { bind_children_to, el, icon, Icon } from "../../core/gui/dom";
 import { quest_editor_store } from "../stores/QuestEditorStore";
-import { QuestEventChainModel } from "../model/QuestEventChainModel";
+import { QuestEventDagModel } from "../model/QuestEventDagModel";
 import { Disposer } from "../../core/observable/Disposer";
 import { NumberInput } from "../../core/gui/NumberInput";
 import "./EventsView.css";
@@ -34,18 +34,18 @@ export class EventsView extends ResizableWidget {
             this.quest_disposer.add(
                 bind_children_to(
                     this.element,
-                    quest.event_chains.filtered(chain => chain.events.get(0).area_id === area.id),
+                    quest.event_dags.filtered(dag => dag.root_events.get(0).area_id === area.id),
                     this.create_chain_element,
                 ),
             );
         }
     };
 
-    private create_chain_element = (chain: QuestEventChainModel): [HTMLElement, Disposable] => {
+    private create_chain_element = (dag: QuestEventDagModel): [HTMLElement, Disposable] => {
         const disposer = new Disposer();
         const element = el.div(
             { class: "quest_editor_EventsView_chain" },
-            ...chain.events.val.map(event =>
+            ...dag.events.map(event =>
                 el.div(
                     { class: "quest_editor_EventsView_event" },
                     el.table(
