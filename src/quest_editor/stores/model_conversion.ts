@@ -88,6 +88,9 @@ function build_event_dags(dat_events: readonly DatEvent[]): QuestEventDagModel[]
 
         if (data && data.event) {
             event_model = data.event;
+            logger.warn(
+                `Ignored duplicate event #${data.event.id} for section ${data.event.section_id} of area ${data.event.area_id}.`,
+            );
         } else {
             event_model = new QuestEventModel(
                 event.id,
