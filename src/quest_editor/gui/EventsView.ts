@@ -114,7 +114,6 @@ export class EventsView extends ResizableWidget {
 
                         break;
                     }
-                    console.log(`${event.id} -> ${child.id}`, low_pos, high_pos, `depth: ${depth}`);
 
                     for (let i = low_pos; i < high_pos; i++) {
                         used_depths[i][depth] = true;
@@ -133,7 +132,6 @@ export class EventsView extends ResizableWidget {
                 }
             }
 
-            console.log(used_depths);
             element.style.marginLeft = `${SPACING * max_depth}px`;
         });
 
