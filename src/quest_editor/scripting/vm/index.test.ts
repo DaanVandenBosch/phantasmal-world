@@ -1,7 +1,12 @@
+/**
+ * @jest-environment jsdom
+ */
+
 import { VirtualMachine, ExecutionResult } from ".";
 import { VMIOStub } from "./VMIOStub";
 import { to_instructions } from "../../../../test/src/utils";
 import { Segment } from "../instructions";
+import { srand } from "./windows";
 
 test("integer arithmetic opcodes", () => {
     class TestIO extends VMIOStub {
@@ -157,4 +162,46 @@ test("basic window_msg output", () => {
     expect(io.add_msg).toBeCalledTimes(2);
     expect(io.winend).toBeCalledTimes(1);
     expect(io.error).toBeCalledTimes(0);
+});
+
+test("opcode get_random", () => {
+    const result_reg = 102;
+    const obj_code = to_instructions(`
+    .code
+    0:
+        leti r100, 0
+        leti r101, 65535
+        get_random r100, r${result_reg}
+        get_random r100, r${result_reg}
+        get_random r100, r${result_reg}
+        get_random r100, r${result_reg}
+        get_random r100, r${result_reg}
+        get_random r100, r${result_reg}
+        get_random r100, r${result_reg}
+    `);
+
+    const vm = new VirtualMachine();
+    srand(123);
+    vm.load_object_code(obj_code);
+    vm.start_thread(0);
+
+    // run `let`s
+    expect(vm.execute()).toBe(ExecutionResult.Ok);
+    expect(vm.execute()).toBe(ExecutionResult.Ok);
+
+    // test correct get_random sequence
+    expect(vm.execute()).toBe(ExecutionResult.Ok);
+    expect(vm.get_register_unsigned(result_reg)).toBe(879);
+    expect(vm.execute()).toBe(ExecutionResult.Ok);
+    expect(vm.get_register_unsigned(result_reg)).toBe(38105);
+    expect(vm.execute()).toBe(ExecutionResult.Ok);
+    expect(vm.get_register_unsigned(result_reg)).toBe(46149);
+    expect(vm.execute()).toBe(ExecutionResult.Ok);
+    expect(vm.get_register_unsigned(result_reg)).toBe(26207);
+    expect(vm.execute()).toBe(ExecutionResult.Ok);
+    expect(vm.get_register_unsigned(result_reg)).toBe(64725);
+    expect(vm.execute()).toBe(ExecutionResult.Ok);
+    expect(vm.get_register_unsigned(result_reg)).toBe(6529);
+    expect(vm.execute()).toBe(ExecutionResult.Halted);
+    expect(vm.get_register_unsigned(result_reg)).toBe(61497);
 });

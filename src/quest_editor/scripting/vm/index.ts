@@ -79,6 +79,8 @@ import {
     OP_LETA,
     OP_FLET,
     OP_FLETI,
+    OP_GET_RANDOM,
+    OP_GETTIME,
 } from "../opcodes";
 import { VirtualMachineMemoryBuffer, VirtualMachineMemory } from "./memory";
 import {
@@ -92,6 +94,7 @@ import {
 } from "./utils";
 import { VirtualMachineIO } from "./io";
 import { VMIOStub } from "./VMIOStub";
+import { rand, srand, GetTickCount } from "./windows";
 
 const REGISTERS_BASE_ADDRESS = 0x00a954b0;
 const REGISTER_COUNT = 256;
@@ -101,7 +104,7 @@ const ARG_STACK_SLOT_SIZE = 4;
 const ARG_STACK_LENGTH = 8;
 const STRING_ARG_STORE_ADDRESS = 0x00a92700;
 const STRING_ARG_STORE_SIZE = 1024; // TODO: verify this value
-const FLOAT_EPSILON = 1.19e-07;
+const FLOAT_EPSILON = 1.19e-7;
 
 export enum ExecutionResult {
     Ok,
@@ -125,7 +128,9 @@ export class VirtualMachine {
     private thread_idx = 0;
     private window_msg_open = false;
 
-    constructor(private io: VirtualMachineIO = new VMIOStub()) {}
+    constructor(private io: VirtualMachineIO = new VMIOStub()) {
+        srand(GetTickCount());
+    }
 
     /**
      * Halts and resets the VM, then loads new object code.
@@ -541,10 +546,29 @@ export class VirtualMachine {
                     this.io.add_msg(str);
                 }
                 break;
+            case OP_GETTIME.code:
+                this.set_register_unsigned(arg0, Math.floor(Date.now() / 1000));
+                break;
             case OP_WINEND.code:
                 if (this.window_msg_open) {
                     this.window_msg_open = false;
                     this.io.winend();
+                }
+                break;
+            case OP_GET_RANDOM.code:
+                {
+                    const low = this.get_register_signed(arg0);
+                    const hi = this.get_register_signed(arg0 + 1);
+
+                    const r = rand();
+                    let result = Math.floor(Math.fround(r / 32768.0) * hi);
+
+                    // intentional. this is how the game does it.
+                    if (low >= result) {
+                        result = low;
+                    }
+
+                    this.set_register_signed(arg1, result);
                 }
                 break;
             default:
@@ -619,13 +643,13 @@ export class VirtualMachine {
     private set_register_word(reg: number, value: number): void {
         this.registers.write_u16_at(REGISTER_SIZE * reg, value);
     }
-    
+
     public get_register_byte(reg: number): number {
         return this.registers.u8_at(REGISTER_SIZE * reg);
     }
 
     public set_register_byte(reg: number, value: number): void {
-        this.registers.write_u8_at(REGISTER_SIZE * reg, value)
+        this.registers.write_u8_at(REGISTER_SIZE * reg, value);
     }
 
     public get_register_float(reg: number): number {
