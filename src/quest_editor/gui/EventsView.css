@@ -9,7 +9,14 @@
     padding: 4px;
 }
 
-.quest_editor_EventsView_chain {
+.quest_editor_EventsView_dag {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.quest_editor_EventsView_event {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -19,22 +26,14 @@
     background-color: hsl(0, 0%, 17%);
 }
 
-.quest_editor_EventsView_chain_arrow {
-    font-size: 18px; /* For icon */
-    margin: 3px;
-}
-
-.quest_editor_EventsView_event:last-of-type .quest_editor_EventsView_chain_arrow {
-    color: var(--text-color-disabled);
-}
-
-.quest_editor_EventsView_event {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 100%;
-}
-
 .quest_editor_EventsView_event th {
     text-align: left;
+}
+
+.quest_editor_EventsView_edge {
+    box-sizing: border-box;
+    position: absolute;
+    border-left: solid 2px var(--border-color);
+    border-top: solid 2px var(--border-color);
+    border-bottom: solid 2px var(--border-color);
 }

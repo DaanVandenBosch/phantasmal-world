@@ -11,29 +11,19 @@ export class QuestEventModel {
     readonly wave: number;
     readonly delay: number;
     readonly actions: ListProperty<QuestEventActionModel> = this._actions;
-    readonly area_id: number;
     readonly unknown: number;
 
-    constructor(
-        id: number,
-        section_id: number,
-        wave: number,
-        delay: number,
-        area_id: number,
-        unknown: number,
-    ) {
+    constructor(id: number, section_id: number, wave: number, delay: number, unknown: number) {
         if (!Number.isInteger(id)) throw new Error("id should be an integer.");
         if (!Number.isInteger(section_id)) throw new Error("section_id should be an integer.");
         if (!Number.isInteger(wave)) throw new Error("wave should be an integer.");
         if (!Number.isInteger(delay)) throw new Error("delay should be an integer.");
-        if (!Number.isInteger(area_id)) throw new Error("area_id should be an integer.");
         if (!Number.isInteger(unknown)) throw new Error("unknown should be an integer.");
 
         this.id = id;
         this.section_id = section_id;
         this.wave = wave;
         this.delay = delay;
-        this.area_id = area_id;
         this.unknown = unknown;
     }
 

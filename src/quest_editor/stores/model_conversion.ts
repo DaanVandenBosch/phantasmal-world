@@ -70,47 +70,42 @@ export function convert_quest_to_model(quest: Quest): QuestModel {
 
 function build_event_dags(dat_events: readonly DatEvent[]): QuestEventDagModel[] {
     // Build up a temporary data structure with partial data.
-    // Maps id, section id and area id to data.
-    const data_map = new Map<
-        string,
+    // Maps event id and area id to data.
+    const data_map = new Map<string,
         {
             event?: QuestEventModel;
+            area_id: number;
             parents: QuestEventModel[];
             child_ids: number[];
-        }
-    >();
+        }>();
 
     for (const event of dat_events) {
-        const key = `${event.id}-${event.section_id}-${event.area_id}`;
+        const key = `${event.id}-${event.area_id}`;
         let data = data_map.get(key);
 
-        let event_model: QuestEventModel;
-
         if (data && data.event) {
-            event_model = data.event;
-            logger.warn(
-                `Ignored duplicate event #${data.event.id} for section ${data.event.section_id} of area ${data.event.area_id}.`,
-            );
-        } else {
-            event_model = new QuestEventModel(
-                event.id,
-                event.section_id,
-                event.wave,
-                event.delay,
-                event.area_id,
-                event.unknown,
-            );
+            logger.warn(`Ignored duplicate event #${event.id} for area ${event.area_id}.`);
+            continue;
+        }
 
-            if (data) {
-                data.event = event_model;
-            } else {
-                data = {
-                    event: event_model,
-                    parents: [],
-                    child_ids: [],
-                };
-                data_map.set(key, data);
-            }
+        const event_model = new QuestEventModel(
+            event.id,
+            event.section_id,
+            event.wave,
+            event.delay,
+            event.unknown,
+        );
+
+        if (data) {
+            data.event = event_model;
+        } else {
+            data = {
+                event: event_model,
+                area_id: event.area_id,
+                parents: [],
+                child_ids: [],
+            };
+            data_map.set(key, data);
         }
 
         for (const action of event.actions) {
@@ -126,22 +121,22 @@ function build_event_dags(dat_events: readonly DatEvent[]): QuestEventDagModel[]
                 case DatEventActionType.Lock:
                     event_model.add_action(new QuestEventActionLockModel(action.door_id));
                     break;
-                case DatEventActionType.TriggerEvent:
-                    {
-                        data.child_ids.push(action.event_id);
+                case DatEventActionType.TriggerEvent: {
+                    data.child_ids.push(action.event_id);
 
-                        const child_key = `${action.event_id}-${event.section_id}-${event.area_id}`;
-                        const child_data = data_map.get(child_key);
+                    const child_key = `${action.event_id}-${event.area_id}`;
+                    const child_data = data_map.get(child_key);
 
-                        if (child_data) {
-                            child_data.parents.push(event_model);
-                        } else {
-                            data_map.set(child_key, {
-                                parents: [event_model],
-                                child_ids: [],
-                            });
-                        }
+                    if (child_data) {
+                        child_data.parents.push(event_model);
+                    } else {
+                        data_map.set(child_key, {
+                            area_id: event.area_id,
+                            parents: [event_model],
+                            child_ids: [],
+                        });
                     }
+                }
                     break;
                 default:
                     logger.warn(`Unknown event action type: ${(action as any).type}.`);
@@ -153,16 +148,14 @@ function build_event_dags(dat_events: readonly DatEvent[]): QuestEventDagModel[]
     // Convert temporary structure to complete data structure used to build DAGs. Events that call
     // nonexistent events are filtered out. This final structure is completely sound.
     const event_to_full_data = new Map<QuestEventModel, QuestEventDagModelMeta>();
-    const root_events: QuestEventModel[] = [];
+    const root_events: { event: QuestEventModel; area_id: number }[] = [];
 
     for (const data of data_map.values()) {
         if (data.event) {
             const children: QuestEventModel[] = [];
 
             for (const child_id of data.child_ids) {
-                const child = data_map.get(
-                    `${child_id}-${data.event.section_id}-${data.event.area_id}`,
-                )!;
+                const child = data_map.get(`${child_id}-${data.area_id}`)!;
 
                 if (child.event) {
                     children.push(child.event);
@@ -177,7 +170,7 @@ function build_event_dags(dat_events: readonly DatEvent[]): QuestEventDagModel[]
             });
 
             if (data.parents.length === 0) {
-                root_events.push(data.event);
+                root_events.push({ event: data.event, area_id: data.area_id });
             }
         }
     }
@@ -186,7 +179,7 @@ function build_event_dags(dat_events: readonly DatEvent[]): QuestEventDagModel[]
     const event_dags: QuestEventDagModel[] = [];
 
     while (root_events.length) {
-        const event = root_events.shift()!;
+        const { event, area_id } = root_events.shift()!;
 
         const dag_events: QuestEventModel[] = [];
         const dag_root_events: QuestEventModel[] = [];
@@ -203,14 +196,14 @@ function build_event_dags(dat_events: readonly DatEvent[]): QuestEventDagModel[]
         );
 
         for (const event of dag_root_events) {
-            const i = root_events.indexOf(event);
+            const i = root_events.findIndex(r => r.event === event);
 
             if (i !== -1) {
                 root_events.splice(i, 1);
             }
         }
 
-        event_dags.push(new QuestEventDagModel(dag_events, dag_root_events, dag_meta));
+        event_dags.push(new QuestEventDagModel(area_id, dag_events, dag_root_events, dag_meta));
     }
 
     return event_dags;
@@ -328,7 +321,7 @@ function convert_quest_events_from_model(event_dags: readonly QuestEventDagModel
                 wave: event.wave,
                 delay: event.delay,
                 actions,
-                area_id: event.area_id,
+                area_id: event_dag.area_id,
                 unknown: event.unknown,
             });
         }
