@@ -81,6 +81,7 @@ import {
     OP_FLETI,
     OP_GET_RANDOM,
     OP_GETTIME,
+    OP_SET_EPISODE,
 } from "../opcodes";
 import { VirtualMachineMemoryBuffer, VirtualMachineMemory } from "./memory";
 import {
@@ -95,6 +96,9 @@ import {
 import { VirtualMachineIO } from "./io";
 import { VMIOStub } from "./VMIOStub";
 import { rand, srand, GetTickCount } from "./windows";
+import { QuestModel } from "../../model/QuestModel";
+import { convert_quest_from_model } from "../../stores/model_conversion";
+import { Episode } from "../../../core/data_formats/parsing/quest/Episode";
 
 const REGISTERS_BASE_ADDRESS = 0x00a954b0;
 const REGISTER_COUNT = 256;
@@ -105,11 +109,23 @@ const ARG_STACK_LENGTH = 8;
 const STRING_ARG_STORE_ADDRESS = 0x00a92700;
 const STRING_ARG_STORE_SIZE = 1024; // TODO: verify this value
 const FLOAT_EPSILON = 1.19e-7;
+const ENTRY_SEGMENT = 0;
 
 export enum ExecutionResult {
     Ok,
     WaitingVsync,
     Halted,
+}
+
+function encode_episode_number(ep: Episode): number {
+    switch (ep) {
+        case Episode.I:
+            return 0;
+        case Episode.II:
+            return 1;
+        case Episode.IV:
+            return 2;
+    }
 }
 
 export class VirtualMachine {
@@ -122,25 +138,41 @@ export class VirtualMachine {
         STRING_ARG_STORE_SIZE,
         STRING_ARG_STORE_ADDRESS,
     );
-    private object_code: Segment[] = [];
+    private quest?: QuestModel;
+    private object_code: readonly Segment[] = [];
     private label_to_seg_idx: Map<number, number> = new Map();
     private thread: Thread[] = [];
     private thread_idx = 0;
     private window_msg_open = false;
+    private set_episode_called = false;
 
     constructor(private io: VirtualMachineIO = new VMIOStub()) {
         srand(GetTickCount());
     }
 
     /**
-     * Halts and resets the VM, then loads new object code.
+     * Halts and resets the VM, then loads new quest.
      */
-    load_object_code(object_code: Segment[]): void {
+    load_quest(quest_model: QuestModel): void {
+        const quest = convert_quest_from_model(quest_model);
+        this.load_object_code(quest.object_code);
+    }
+
+    /**
+     * Halts and resets the VM, then loads new object code.
+     * Opcodes which use quest data outside the object code
+     * will not work if calling this method directly.
+     * Use {@link VirtualMachine.load_quest} if full functionality is needed.
+     */
+    load_object_code(object_code: readonly Segment[]): void {
         this.halt();
+        this.quest = undefined;
         this.registers.zero();
         this.string_arg_store.zero();
         this.object_code = object_code;
         this.label_to_seg_idx.clear();
+        this.set_episode_called = false;
+
         let i = 0;
 
         for (const segment of this.object_code) {
@@ -199,7 +231,7 @@ export class VirtualMachine {
                 srcloc = inst.asm.mnemonic;
             }
 
-            return this.execute_instruction(exec, inst);
+            return this.execute_instruction(exec, inst, srcloc);
         } catch (err) {
             if (!(err instanceof Error)) {
                 err = new Error(String(err));
@@ -212,7 +244,11 @@ export class VirtualMachine {
         }
     }
 
-    private execute_instruction(exec: Thread, inst: Instruction): ExecutionResult {
+    private execute_instruction(
+        exec: Thread,
+        inst: Instruction,
+        srcloc?: AsmToken,
+    ): ExecutionResult {
         if (this.thread.length === 0) return ExecutionResult.Halted;
         if (this.thread_idx >= this.thread.length) return ExecutionResult.WaitingVsync;
 
@@ -571,6 +607,37 @@ export class VirtualMachine {
                     this.set_register_signed(arg1, result);
                 }
                 break;
+            case OP_SET_EPISODE.code:
+                if (this.set_episode_called) {
+                    this.io.warning("Calling set_episode more than once is not supported.", srcloc);
+                    break;
+                }
+
+                this.set_episode_called = true;
+
+                if (this.get_current_segment_idx() !== ENTRY_SEGMENT) {
+                    this.io.warning(
+                        `Calling set_episode outside of segment ${ENTRY_SEGMENT} is not supported.`,
+                        srcloc,
+                    );
+                    break;
+                }
+
+                if (!this.quest) {
+                    this.missing_quest_data_warning(OP_SET_EPISODE.mnemonic, srcloc);
+                    break;
+                }
+
+                if (encode_episode_number(this.quest.episode) !== arg0) {
+                    this.io.warning(
+                        "Calling set_episode with an argument that does not" +
+                            "match the quest's designated episode is not supported.",
+                        srcloc,
+                    );
+                    break;
+                }
+
+                break;
             default:
                 throw new Error(`Unsupported instruction: ${inst.opcode.mnemonic}.`);
         }
@@ -886,6 +953,17 @@ export class VirtualMachine {
         }
 
         return str;
+    }
+
+    private get_current_segment_idx(): number {
+        return this.thread[this.thread_idx].call_stack_top().seg_idx;
+    }
+
+    private missing_quest_data_warning(info: string, srcloc?: AsmToken): void {
+        this.io.warning(
+            `Opcode execution failed because the VM was missing quest data: ${info}`,
+            srcloc,
+        );
     }
 }
 
