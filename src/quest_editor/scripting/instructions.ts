@@ -64,6 +64,17 @@ function instructions_equal(a: Instruction, b: Instruction): boolean {
     return a.opcode.code === b.opcode.code && arrays_equal(a.args, b.args, args_equal);
 }
 
+export function clone_instruction(instr: Instruction): Instruction {
+    return {
+        opcode: instr.opcode,
+        args: instr.args.map(arg => ({ ...arg })),
+        arg_size: instr.arg_size,
+        size: instr.size,
+        param_to_args: instr.param_to_args.map(args => args.map(arg => ({ ...arg }))),
+        asm: instr.asm,
+    };
+}
+
 /**
  * Instruction argument.
  */
@@ -162,4 +173,30 @@ function segments_equal(a: Segment, b: Segment): boolean {
 
 export function segment_arrays_equal(a: readonly Segment[], b: readonly Segment[]): boolean {
     return arrays_equal(a, b, segments_equal);
+}
+
+export function clone_segment(seg: Segment): Segment {
+    const clone: Partial<Segment> = {
+        type: seg.type,
+        labels: seg.labels.slice(),
+        asm: {
+            labels: seg.asm.labels.map(label => ({ ...label })),
+        },
+    };
+
+    switch (clone.type) {
+        case SegmentType.Instructions:
+            clone.instructions = (seg as InstructionSegment).instructions.map(instr =>
+                clone_instruction(instr),
+            );
+            break;
+        case SegmentType.Data:
+            clone.data = (seg as DataSegment).data.slice(0);
+            break;
+        case SegmentType.String:
+            clone.value = (seg as StringSegment).value;
+            break;
+    }
+
+    return clone as Segment;
 }

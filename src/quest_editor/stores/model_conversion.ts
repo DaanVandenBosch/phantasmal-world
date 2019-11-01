@@ -18,6 +18,7 @@ import {
 import { QuestEventDagModel, QuestEventDagModelMeta } from "../model/QuestEventDagModel";
 import { QuestEvent } from "../../core/data_formats/parsing/quest/entities";
 import Logger from "js-logger";
+import { clone_segment } from "../scripting/instructions";
 
 const logger = Logger.get("quest_editor/stores/model_conversion");
 
@@ -251,20 +252,20 @@ export function convert_quest_from_model(quest: QuestModel): Quest {
             type: obj.type,
             area_id: obj.area_id,
             section_id: obj.section_id.val,
-            position: obj.position.val,
-            rotation: obj.rotation.val,
+            position: obj.position.val.clone(),
+            rotation: obj.rotation.val.clone(),
             unknown: obj.unknown,
             id: obj.id,
             group_id: obj.group_id,
-            properties: obj.properties,
+            properties: new Map(obj.properties),
         })),
         npcs: quest.npcs.val.map(npc => ({
             type: npc.type,
             area_id: npc.area_id,
             section_id: npc.section_id.val,
-            position: npc.position.val,
-            rotation: npc.rotation.val,
-            scale: npc.scale,
+            position: npc.position.val.clone(),
+            rotation: npc.rotation.val.clone(),
+            scale: npc.scale.clone(),
             unknown: npc.unknown,
             pso_type_id: npc.pso_type_id,
             npc_id: npc.npc_id,
@@ -272,10 +273,10 @@ export function convert_quest_from_model(quest: QuestModel): Quest {
             pso_roaming: npc.pso_roaming,
         })),
         events: convert_quest_events_from_model(quest.event_dags.val),
-        dat_unknowns: quest.dat_unknowns,
-        object_code: quest.object_code,
-        shop_items: quest.shop_items,
-        map_designations: quest.map_designations.val,
+        dat_unknowns: quest.dat_unknowns.map(unk => ({...unk})),
+        object_code: quest.object_code.map(seg => clone_segment(seg)),
+        shop_items: quest.shop_items.slice(),
+        map_designations: new Map(quest.map_designations.val),
     };
 }
 
