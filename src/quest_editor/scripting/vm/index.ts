@@ -639,7 +639,8 @@ export class VirtualMachine {
 
                 break;
             default:
-                throw new Error(`Unsupported instruction: ${inst.opcode.mnemonic}.`);
+                this.io.warning(`Unsupported instruction: ${inst.opcode.mnemonic}.`);
+                break;
         }
 
         // advance instruction "pointer"
