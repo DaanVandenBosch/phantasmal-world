@@ -530,7 +530,14 @@ body .lm_dropTargetIndicator {
     padding: 4px;
 }
 
-.quest_editor_EventsView_chain {
+.quest_editor_EventsView_dag {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.quest_editor_EventsView_event {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -540,24 +547,20 @@ body .lm_dropTargetIndicator {
     background-color: hsl(0, 0%, 17%);
 }
 
-.quest_editor_EventsView_chain_arrow {
-    font-size: 18px; /* For icon */
-    margin: 3px;
-}
-
-.quest_editor_EventsView_event:last-of-type .quest_editor_EventsView_chain_arrow {
-    color: var(--text-color-disabled);
-}
-
-.quest_editor_EventsView_event {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 100%;
-}
-
 .quest_editor_EventsView_event th {
     text-align: left;
+}
+
+.quest_editor_EventsView_edge_container {
+    position: absolute;
+}
+
+.quest_editor_EventsView_edge {
+    box-sizing: border-box;
+    position: absolute;
+    border-left: solid 2px var(--border-color);
+    border-top: solid 2px var(--border-color);
+    border-bottom: solid 2px var(--border-color);
 }
 
 .hunt_optimizer_WantedItemsView {
@@ -753,7 +756,8 @@ body .lm_dropTargetIndicator {
     --text-color: hsl(0, 0%, 80%);
     --text-color-disabled: hsl(0, 0%, 55%);
     --font-family: Verdana, Geneva, sans-serif;
-    --border: solid 1px hsl(0, 0%, 25%);
+    --border-color: hsl(0, 0%, 25%);
+    --border: solid 1px var(--border-color);
 
     /* Scrollbars */
 
@@ -765,7 +769,7 @@ body .lm_dropTargetIndicator {
     --control-bg-color: hsl(0, 0%, 20%);
     --control-bg-color-hover: hsl(0, 0%, 25%);
     --control-text-color: hsl(0, 0%, 80%);
-    --control-text-color-hover:  hsl(0, 0%, 90%);
+    --control-text-color-hover: hsl(0, 0%, 90%);
     --control-border: solid 1px hsl(0, 0%, 10%);
 
     --control-inner-border: solid 1px hsl(0, 0%, 35%);
