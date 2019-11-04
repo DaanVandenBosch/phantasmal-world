@@ -63,13 +63,25 @@ export abstract class AbstractListProperty<T> extends AbstractProperty<readonly 
         return this.val[index];
     }
 
-    observe_list(observer: (change: ListPropertyChangeEvent<T>) => void): Disposable {
+    observe_list(
+        observer: (change: ListPropertyChangeEvent<T>) => void,
+        options?: { call_now?: boolean },
+    ): Disposable {
         if (this.value_observers.length === 0 && this.extract_observables) {
             this.replace_element_observers(0, Infinity, this.val);
         }
 
         if (!this.list_observers.includes(observer)) {
             this.list_observers.push(observer);
+        }
+
+        if (options && options.call_now) {
+            this.call_list_observer(observer, {
+                type: ListChangeType.ListChange,
+                index: 0,
+                removed: [],
+                inserted: this.val,
+            });
         }
 
         return {

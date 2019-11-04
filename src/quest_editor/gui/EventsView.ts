@@ -1,5 +1,5 @@
 import { ResizableWidget } from "../../core/gui/ResizableWidget";
-import { bind_children_to, el } from "../../core/gui/dom";
+import { el } from "../../core/gui/dom";
 import { quest_editor_store } from "../stores/QuestEditorStore";
 import { QuestEventDagModel } from "../model/QuestEventDagModel";
 import { Disposer } from "../../core/observable/Disposer";
@@ -7,9 +7,25 @@ import { NumberInput } from "../../core/gui/NumberInput";
 import "./EventsView.css";
 import { Disposable } from "../../core/observable/Disposable";
 import { defer } from "lodash";
+import {
+    ListChangeType,
+    ListPropertyChangeEvent,
+} from "../../core/observable/property/list/ListProperty";
+
+type DagGuiData = {
+    dag: QuestEventDagModel;
+    element: HTMLElement;
+    edge_container_element: HTMLElement;
+    disposer: Disposer;
+    /**
+     * Maps event IDs to GUI data.
+     */
+    event_gui_data: Map<number, { element: HTMLDivElement; position: number }>;
+};
 
 export class EventsView extends ResizableWidget {
-    private readonly quest_disposer = this.disposable(new Disposer());
+    private readonly dag_gui_data: DagGuiData[] = [];
+    private event_dags_observer?: Disposable;
 
     readonly element = el.div({ class: "quest_editor_EventsView" });
 
@@ -24,29 +40,99 @@ export class EventsView extends ResizableWidget {
         this.finalize_construction(EventsView.prototype);
     }
 
+    resize(width: number, height: number): this {
+        super.resize(width, height);
+        this.update_edges();
+        return this;
+    }
+
+    focus(): void {
+        super.focus();
+        this.update_edges();
+    }
+
+    dispose(): void {
+        super.dispose();
+
+        if (this.event_dags_observer) {
+            this.event_dags_observer.dispose();
+        }
+
+        for (const { disposer } of this.dag_gui_data) {
+            disposer.dispose();
+        }
+    }
+
     private update = (): void => {
-        this.quest_disposer.dispose_all();
+        if (this.event_dags_observer) {
+            this.event_dags_observer.dispose();
+        }
 
         const quest = quest_editor_store.current_quest.val;
         const area = quest_editor_store.current_area.val;
 
         if (quest && area) {
-            this.quest_disposer.add(
-                bind_children_to(
-                    this.element,
-                    quest.event_dags.filtered(dag => dag.area_id === area.id),
-                    this.create_dag_element,
-                ),
-            );
+            const event_dags = quest.event_dags.filtered(dag => dag.area_id === area.id);
+            this.event_dags_observer = event_dags.observe_list(this.observe_event_dags);
+            this.redraw_event_dags(event_dags.val);
+        } else {
+            this.event_dags_observer = undefined;
+            this.redraw_event_dags([]);
         }
     };
 
-    private create_dag_element = (dag: QuestEventDagModel): [HTMLElement, Disposable] => {
-        const disposer = new Disposer();
-        const element = el.div({ class: "quest_editor_EventsView_dag" });
-        const event_elements = new Map<number, { element: HTMLDivElement; position: number }>();
+    private redraw_event_dags = (event_dags: readonly QuestEventDagModel[]): void => {
+        this.element.innerHTML = "";
 
-        // Render events.
+        for (const removed of this.dag_gui_data.splice(0, this.dag_gui_data.length)) {
+            removed.disposer.dispose();
+        }
+
+        let index = 0;
+
+        for (const dag of event_dags) {
+            const data = this.create_dag_ui_data(dag);
+            this.dag_gui_data.splice(index, 0, data);
+            this.element.append(data.element);
+
+            index++;
+        }
+
+        defer(this.update_edges);
+    };
+
+    private observe_event_dags = (change: ListPropertyChangeEvent<QuestEventDagModel>): void => {
+        if (change.type === ListChangeType.ListChange) {
+            for (const removed of this.dag_gui_data.splice(change.index, change.removed.length)) {
+                removed.element.remove();
+                removed.disposer.dispose();
+            }
+
+            let index = change.index;
+
+            for (const dag of change.inserted) {
+                const data = this.create_dag_ui_data(dag);
+                this.dag_gui_data.splice(index, 0, data);
+                this.element.insertBefore(data.element, this.element.children.item(index));
+
+                index++;
+            }
+
+            defer(this.update_edges);
+        }
+    };
+
+    private create_dag_ui_data = (dag: QuestEventDagModel): DagGuiData => {
+        const disposer = new Disposer();
+        const event_gui_data = new Map<number, { element: HTMLDivElement; position: number }>();
+
+        const element = el.div({ class: "quest_editor_EventsView_dag" });
+
+        const edge_container_element = el.div({
+            class: "quest_editor_EventsView_edge_container",
+        });
+        element.append(edge_container_element);
+
         dag.events.forEach((event, i) => {
             const event_element = el.div(
                 { class: "quest_editor_EventsView_event" },
@@ -70,27 +156,38 @@ export class EventsView extends ResizableWidget {
             );
 
             element.append(event_element);
-            event_elements.set(event.id, { element: event_element, position: i });
+            event_gui_data.set(event.id, { element: event_element, position: i });
         });
 
-        // Render edges.
-        defer(() => {
-            const SPACING = 8;
+        return {
+            dag,
+            element,
+            edge_container_element,
+            disposer,
+            event_gui_data,
+        };
+    };
+
+    private update_edges = (): void => {
+        const SPACING = 8;
+        let max_depth = 0;
+
+        for (const { dag, edge_container_element, event_gui_data } of this.dag_gui_data) {
+            edge_container_element.innerHTML = "";
+
             const used_depths: boolean[][] = Array(dag.events.length - 1);
 
             for (let i = 0; i < used_depths.length; i++) {
                 used_depths[i] = [];
             }
 
-            let max_depth = 0;
-
             for (const event of dag.events) {
-                const { element: event_element, position } = event_elements.get(event.id)!;
+                const { element: event_element, position } = event_gui_data.get(event.id)!;
 
                 const y_offset = event_element.offsetTop + event_element.offsetHeight;
 
                 for (const child of dag.get_children(event)) {
-                    const { element: child_element, position: child_position } = event_elements.get(
+                    const { element: child_element, position: child_position } = event_gui_data.get(
                         child.id,
                     )!;
                     const child_y_offset = child_element.offsetTop;
@@ -128,13 +225,13 @@ export class EventsView extends ResizableWidget {
                     edge_element.style.width = `${width}px`;
                     edge_element.style.height = `${height}px`;
 
-                    element.append(edge_element);
+                    edge_container_element.append(edge_element);
                 }
             }
+        }
 
+        for (const { element } of this.dag_gui_data) {
             element.style.marginLeft = `${SPACING * max_depth}px`;
-        });
-
-        return [element, disposer];
+        }
     };
 }

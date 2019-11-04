@@ -44,8 +44,11 @@ export class DependentListProperty<T> extends AbstractListProperty<T> {
         };
     }
 
-    observe_list(observer: (change: ListPropertyChangeEvent<T>) => void): Disposable {
-        const super_disposable = super.observe_list(observer);
+    observe_list(
+        observer: (change: ListPropertyChangeEvent<T>) => void,
+        options?: { call_now?: boolean },
+    ): Disposable {
+        const super_disposable = super.observe_list(observer, options);
 
         this.init_dependency_disposable();
 

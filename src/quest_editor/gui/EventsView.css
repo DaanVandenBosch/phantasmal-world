@@ -30,6 +30,10 @@
     text-align: left;
 }
 
+.quest_editor_EventsView_edge_container {
+    position: absolute;
+}
+
 .quest_editor_EventsView_edge {
     box-sizing: border-box;
     position: absolute;

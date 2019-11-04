@@ -29,7 +29,10 @@ export interface ListProperty<T> extends Property<readonly T[]> {
 
     get(index: number): T;
 
-    observe_list(observer: (change: ListPropertyChangeEvent<T>) => void): Disposable;
+    observe_list(
+        observer: (change: ListPropertyChangeEvent<T>) => void,
+        options?: { call_now?: boolean },
+    ): Disposable;
 
     filtered(predicate: (value: T) => boolean): ListProperty<T>;
 }
