@@ -811,7 +811,12 @@ const translate_entity_horizontally = (() => {
             );
 
             if (section) {
+                const old_rotation = entity.world_rotation.val;
+
                 entity.set_section(section);
+
+                // Make sure entity's world-relative orientation stays constant when translating manually.
+                entity.set_world_rotation(old_rotation);
             }
         } else {
             // If the pointer is not over the ground, we translate the entity across the horizontal

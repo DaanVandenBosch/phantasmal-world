@@ -6,6 +6,7 @@ import { SectionModel } from "./SectionModel";
 import { Euler, Quaternion, Vector3 } from "three";
 import { floor_mod } from "../../core/math";
 
+// These quaternions are used as temporary variables.
 const q1 = new Quaternion();
 const q2 = new Quaternion();
 
