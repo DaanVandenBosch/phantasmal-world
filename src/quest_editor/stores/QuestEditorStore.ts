@@ -1,11 +1,10 @@
-import { property } from "../../core/observable";
+import { property, list_property } from "../../core/observable";
 import { QuestModel } from "../model/QuestModel";
 import { Property, PropertyChangeEvent } from "../../core/observable/property/Property";
 import { read_file } from "../../core/read_file";
 import { parse_quest, write_quest_qst } from "../../core/data_formats/parsing/quest";
 import { ArrayBufferCursor } from "../../core/data_formats/cursor/ArrayBufferCursor";
 import { Endianness } from "../../core/data_formats/Endianness";
-import { WritableProperty } from "../../core/observable/property/WritableProperty";
 import { QuestObjectModel } from "../model/QuestObjectModel";
 import { QuestNpcModel } from "../model/QuestNpcModel";
 import { AreaModel } from "../model/AreaModel";
@@ -30,16 +29,54 @@ import { RotateEntityAction } from "../actions/RotateEntityAction";
 import { convert_quest_from_model, convert_quest_to_model } from "./model_conversion";
 import { QuestRunner } from "../QuestRunner";
 import Logger = require("js-logger");
+import { MessageLogStore, LogMessage, LogLevel, LogGroup } from "../../core/gui/MessageLog";
+import { ListProperty } from "../../core/observable/property/list/ListProperty";
+import { WritableProperty } from "../../core/observable/property/WritableProperty";
 
 const logger = Logger.get("quest_editor/gui/QuestEditorStore");
 
-export class QuestEditorStore implements Disposable {
+export class QuestEditorStore implements Disposable, MessageLogStore {
     private readonly disposer = new Disposer();
+    private readonly quest_runner = new QuestRunner();
+
+    /**
+     * Log levels as Record<name, LogLevel>
+     */
+    private readonly log_levels_map = (function<KT extends readonly string[]>(names: KT) {
+        type K = KT[keyof KT & number];
+        return names.reduce<Record<K, LogLevel>>(
+            (accum, name: K, idx) => {
+                accum[name] = {
+                    name: name,
+                    value: idx,
+                };
+                return accum;
+            },
+            {} as Record<K, LogLevel>,
+        );
+    })(
+        // Log level names in order of importance
+        ["Debug", "Info", "Warning", "Error"] as const,
+    );
+
+    /**
+     * Log levels as LogLevel[]
+     */
+    readonly log_levels = Object.values(this.log_levels_map);
+    private readonly default_log_level = this.log_levels_map.Info;
+
+    private log_group_key_counter = 0;
+    private readonly _log_groups = list_property<LogGroup>();
+    private readonly default_log_group: LogGroup = this.add_log_group("Default");
+
     private readonly _current_quest_filename = property<string | undefined>(undefined);
     private readonly _current_quest = property<QuestModel | undefined>(undefined);
     private readonly _current_area = property<AreaModel | undefined>(undefined);
     private readonly _selected_entity = property<QuestEntityModel | undefined>(undefined);
-    private readonly quest_runner = new QuestRunner();
+    private readonly _log_messages = list_property<LogMessage>();
+    private readonly _log_level = property<LogLevel>(this.default_log_level);
+    private readonly _log_group = property<LogGroup>(this.default_log_group);
+    private readonly _show_all_log_groups = property<boolean>(true);
 
     readonly debug: WritableProperty<boolean> = property(false);
     readonly undo = new UndoStack();
@@ -47,6 +84,10 @@ export class QuestEditorStore implements Disposable {
     readonly current_quest: Property<QuestModel | undefined> = this._current_quest;
     readonly current_area: Property<AreaModel | undefined> = this._current_area;
     readonly selected_entity: Property<QuestEntityModel | undefined> = this._selected_entity;
+    readonly log_messages: ListProperty<LogMessage>;
+    readonly log_level: Property<LogLevel> = this._log_level;
+    readonly log_group: Property<LogGroup> = this._log_group;
+    readonly log_groups: ListProperty<LogGroup> = this._log_groups;
 
     constructor() {
         this.disposer.add_all(
@@ -78,7 +119,16 @@ export class QuestEditorStore implements Disposable {
                         this.set_selected_entity(undefined);
                     }
                 }),
+
+            // force refresh
+            this._log_level.observe(() => (this._log_messages.val = this._log_messages.val)),
+            this._log_group.observe(() => (this._log_messages.val = this._log_messages.val)),
+            this._show_all_log_groups.observe(
+                () => (this._log_messages.val = this._log_messages.val),
+            ),
         );
+
+        this.log_messages = this._log_messages.filtered(this.log_message_predicate);
     }
 
     dispose(): void {
@@ -267,6 +317,89 @@ export class QuestEditorStore implements Disposable {
             this.quest_runner.run(quest);
         }
     };
+
+    private log_message_predicate = (msg: LogMessage): boolean => {
+        return (
+            (this._show_all_log_groups.val || msg.log_group.key === this.log_group.val.key) &&
+            msg.log_level.value >= this.log_level.val.value
+        );
+    };
+
+    public set_log_level(level_arg: LogLevel): void {
+        const level = this.log_levels.find(lvl => lvl.value === level_arg.value);
+
+        if (!level) {
+            throw new Error(`Invalid argument: No such log level "${level_arg.name}"`);
+        }
+
+        this._log_level.val = level;
+    }
+
+    public set_log_group(group_arg: LogGroup): void {
+        const group = this._log_groups.val.find(grp => grp.key === group_arg.key);
+
+        if (!group) {
+            throw new Error(`Invalid argument: No such log group "${group_arg.name}"`);
+        }
+
+        this._show_all_log_groups.val = false;
+        this._log_group.val = group;
+    }
+
+    public show_all_log_groups(): void {
+        if (!this._show_all_log_groups.val) {
+            this._show_all_log_groups.val = true;
+        }
+    }
+
+    private add_log_group(name: string): LogGroup {
+        const new_group: LogGroup = {
+            name: name,
+            key: this.log_group_key_counter++,
+        };
+        this._log_groups.push(new_group);
+        return new_group;
+    }
+
+    private add_log_message(items: any[], level: LogLevel, group: LogGroup): void {
+        this._log_messages.push({
+            formatted_timestamp: new Date().toISOString(),
+            message_contents: items.join(" "),
+            log_level: level,
+            log_group: group,
+        });
+    }
+
+    public get_logger(group_name?: string) {
+        let group = this.default_log_group;
+
+        // find existing or create new
+        if (group_name !== undefined) {
+            const found = this.log_groups.val.find(grp => grp.name === group_name);
+
+            if (found) {
+                group = found;
+            } else {
+                group = this.add_log_group(group_name);
+            }
+        }
+
+        // logger object bound to log group
+        return {
+            debug: (...items: any[]): void => {
+                this.add_log_message(items, this.log_levels_map.Debug, group);
+            },
+            info: (...items: any[]): void => {
+                this.add_log_message(items, this.log_levels_map.Info, group);
+            },
+            warning: (...items: any[]): void => {
+                this.add_log_message(items, this.log_levels_map.Warning, group);
+            },
+            error: (...items: any[]): void => {
+                this.add_log_message(items, this.log_levels_map.Error, group);
+            },
+        };
+    }
 }
 
 export const quest_editor_store = new QuestEditorStore();

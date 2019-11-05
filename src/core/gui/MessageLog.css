@@ -1,0 +1,38 @@
+.MessageLog {
+    display: flex;
+    flex-direction: column;
+}
+
+.MessageLog_settings {
+    justify-content: end;
+}
+
+.MessageLog_list_container {
+    overflow: auto;
+}
+
+.MessageLog_message_list {
+    font-family: monospace;
+    cursor: auto;
+    user-select: text;
+    margin-top: 0.2em;
+    margin-bottom: 0.2em;
+}
+
+.MessageLog_message {
+    display: flex;
+    padding-left: 0.5em;
+    padding-right: 0.5em;
+}
+
+.MessageLog_message > * + * {
+    margin-left: 1ch;
+}
+
+.MessageLog_message > .MessageLog_message_timestamp {
+    color: var(--text-color-disabled);
+}
+
+.MessageLog_message > .MessageLog_message_contents {
+    overflow-wrap: anywhere;
+}

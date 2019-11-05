@@ -16,6 +16,7 @@ import { NpcListView } from "./NpcListView";
 import { ObjectListView } from "./ObjectListView";
 import { EventsView } from "./EventsView";
 import Logger = require("js-logger");
+import { QuestMessageLogView } from "./QuestMessageLogView";
 
 const logger = Logger.get("quest_editor/gui/QuestEditorView");
 
@@ -28,6 +29,7 @@ const VIEW_TO_NAME = new Map<new () => ResizableWidget, string>([
     [EntityInfoView, "entity_info"],
     [NpcListView, "npc_list_view"],
     [ObjectListView, "object_list_view"],
+    [QuestMessageLogView, "message_log_view"],
 ]);
 
 if (gui_store.feature_active("events")) {
@@ -37,7 +39,8 @@ if (gui_store.feature_active("events")) {
 const DEFAULT_LAYOUT_CONFIG = {
     settings: {
         showPopoutIcon: false,
-        showMaximiseIcon: false,
+        showMaximiseIcon: true,
+        showCloseIcon: true,
     },
     dimensions: {
         headerHeight: 24,
@@ -98,6 +101,12 @@ const DEFAULT_LAYOUT_CONTENT: ItemConfigType[] = [
                         type: "component",
                         componentName: VIEW_TO_NAME.get(AsmEditorView),
                         isClosable: false,
+                    },
+                    {
+                        title: "Log",
+                        type: "component",
+                        componentName: VIEW_TO_NAME.get(QuestMessageLogView),
+                        isClosable: true,
                     },
                 ],
             },
