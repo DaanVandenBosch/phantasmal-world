@@ -117,7 +117,7 @@ export class QuestEditorToolBar extends ToolBar {
                 quest_editor_store.set_current_area(area),
             ),
 
-            run_button.click.observe(quest_editor_store.run_current_quest_in_vm),
+            run_button.click.observe(quest_editor_store.run_current_quest),
 
             gui_store.on_global_keydown(GuiTool.QuestEditor, "Ctrl-O", () =>
                 open_file_button.click(),
@@ -140,7 +140,7 @@ export class QuestEditorToolBar extends ToolBar {
             gui_store.on_global_keydown(
                 GuiTool.QuestEditor,
                 "F5",
-                quest_editor_store.run_current_quest_in_vm,
+                quest_editor_store.run_current_quest,
             ),
         );
 

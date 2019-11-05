@@ -27,8 +27,8 @@ import { CreateEntityAction } from "../actions/CreateEntityAction";
 import { RemoveEntityAction } from "../actions/RemoveEntityAction";
 import { Euler, Vector3 } from "three";
 import { RotateEntityAction } from "../actions/RotateEntityAction";
-import { ExecutionResult, VirtualMachine } from "../scripting/vm";
 import { convert_quest_from_model, convert_quest_to_model } from "./model_conversion";
+import { QuestRunner } from "../QuestRunner";
 import Logger = require("js-logger");
 
 const logger = Logger.get("quest_editor/gui/QuestEditorStore");
@@ -39,6 +39,7 @@ export class QuestEditorStore implements Disposable {
     private readonly _current_quest = property<QuestModel | undefined>(undefined);
     private readonly _current_area = property<AreaModel | undefined>(undefined);
     private readonly _selected_entity = property<QuestEntityModel | undefined>(undefined);
+    private readonly quest_runner = new QuestRunner();
 
     readonly debug: WritableProperty<boolean> = property(false);
     readonly undo = new UndoStack();
@@ -259,31 +260,11 @@ export class QuestEditorStore implements Disposable {
         }
     };
 
-    run_current_quest_in_vm = (): void => {
-        logger.setLevel(logger.TRACE);
-
+    run_current_quest = (): void => {
         const quest = this.current_quest.val;
 
-        if (!quest) {
-            throw new Error("No quest");
-        }
-
-        const vm = new VirtualMachine();
-        vm.load_object_code(quest.object_code);
-        vm.start_thread(0);
-
-        exec_loop: while (true) {
-            const exec_result = vm.execute();
-
-            switch (exec_result) {
-                case ExecutionResult.Ok:
-                    break;
-                case ExecutionResult.WaitingVsync:
-                    vm.vsync();
-                    break;
-                case ExecutionResult.Halted:
-                    break exec_loop;
-            }
+        if (quest) {
+            this.quest_runner.run(quest);
         }
     };
 }
