@@ -36,6 +36,20 @@
     cursor: default;
 }
 
+#root .lm_header .lm_controls .lm_close {
+    /* a white 9x9 X shape */
+    background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAkAAAAJCAYAAADgkQYQAAAAQUlEQVR4nHXOQQ4AMAgCQeT/f6aXpsGK3jSTuCVJAAr7iBdoAwCKd0nwfaAdHbYERw5b44+E8JoBjEYGMBq5gAYP3usUDu2IvoUAAAAASUVORK5CYII=);
+    background-position: center center;
+    background-repeat: no-repeat;
+    cursor: pointer;
+    opacity: 0.4;
+    transition: opacity 300ms ease;
+}
+
+#root .lm_header .lm_controls .lm_close:hover {
+    opacity: 1;
+}
+
 #root .lm_content {
     overflow: visible;
 }
