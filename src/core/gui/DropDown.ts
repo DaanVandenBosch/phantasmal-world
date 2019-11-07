@@ -22,7 +22,7 @@ export class DropDown<T> extends Control {
 
     constructor(
         text: string,
-        items: T[] | Property<T[]>,
+        items: readonly T[] | Property<readonly T[]>,
         to_label: (element: T) => string,
         options?: DropDownOptions,
     ) {
