@@ -2,9 +2,13 @@ import { ExecutionResult, VirtualMachine } from "./scripting/vm";
 import { QuestModel } from "./model/QuestModel";
 import { VirtualMachineIO } from "./scripting/vm/io";
 import { AsmToken } from "./scripting/instructions";
-import Logger from "js-logger";
+import { quest_editor_store } from "./stores/QuestEditorStore";
 
-const logger = Logger.get("quest_editor/QuestRunner");
+const logger = quest_editor_store.get_logger("quest_editor/QuestRunner");
+
+function srcloc_to_string(srcloc: AsmToken): string {
+    return `[${srcloc.line_no}:${srcloc.col}]`;
+}
 
 export class QuestRunner {
     private readonly vm: VirtualMachine;
@@ -62,11 +66,11 @@ export class QuestRunner {
             mesend: (): void => {},
 
             warning: (msg: string, srcloc?: AsmToken): void => {
-                logger.warn(msg);
+                logger.warning(msg, srcloc && srcloc_to_string(srcloc));
             },
 
             error: (err: Error, srcloc?: AsmToken): void => {
-                logger.error(err);
+                logger.error(err, srcloc && srcloc_to_string(srcloc));
             },
         };
     };

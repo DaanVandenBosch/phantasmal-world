@@ -27,7 +27,6 @@ import { RemoveEntityAction } from "../actions/RemoveEntityAction";
 import { Euler, Vector3 } from "three";
 import { RotateEntityAction } from "../actions/RotateEntityAction";
 import { convert_quest_from_model, convert_quest_to_model } from "./model_conversion";
-import { QuestRunner } from "../QuestRunner";
 import Logger = require("js-logger");
 import { MessageLogStore, LogMessage, LogLevel, LogGroup } from "../../core/gui/MessageLog";
 import { ListProperty } from "../../core/observable/property/list/ListProperty";
@@ -37,7 +36,6 @@ const logger = Logger.get("quest_editor/gui/QuestEditorStore");
 
 export class QuestEditorStore implements Disposable, MessageLogStore {
     private readonly disposer = new Disposer();
-    private readonly quest_runner = new QuestRunner();
 
     /**
      * Log levels as Record<name, LogLevel>
@@ -311,11 +309,15 @@ export class QuestEditorStore implements Disposable, MessageLogStore {
     };
 
     run_current_quest = (): void => {
-        const quest = this.current_quest.val;
+        // workaround for circular dependency
+        import("../QuestRunner").then(({ QuestRunner }) => {
+            const quest = this.current_quest.val;
+            const quest_runner = new QuestRunner();
 
-        if (quest) {
-            this.quest_runner.run(quest);
-        }
+            if (quest) {
+                quest_runner.run(quest);
+            }
+        });
     };
 
     private log_message_predicate = (msg: LogMessage): boolean => {
