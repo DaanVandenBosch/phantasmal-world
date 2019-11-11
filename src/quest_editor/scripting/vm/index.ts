@@ -367,7 +367,7 @@ export class VirtualMachine {
                     this.string_arg_store.write_string_utf16_at(
                         0,
                         string_arg,
-                        string_arg.length * 2,
+                        string_arg.length * 2 + 2,
                     );
                     exec.push_arg(this.string_arg_store.address, Kind.String);
                 }
