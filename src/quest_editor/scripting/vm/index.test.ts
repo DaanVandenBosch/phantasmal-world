@@ -205,3 +205,38 @@ test("opcode get_random", () => {
     expect(vm.execute()).toBe(ExecutionResult.Halted);
     expect(vm.get_register_unsigned(result_reg)).toBe(61497);
 });
+
+test("opcode list", () => {
+    const list_items = [
+        "a", "b", "c", "d"
+    ];
+    const list_text = list_items.join("\\n");
+    class TestIO extends VMIOStub {
+        constructor() {
+            super();
+        }
+
+        list = jest.fn((items: string[]) => {
+            expect(items).toEqual(list_items);
+        });
+    }
+
+    const select_idx = 2;
+    const result_reg = 100;
+    const obj_code = to_instructions(`
+    .code
+    0:
+        list r${result_reg}, "${list_text}"
+        ret
+    `);
+
+    const vm = new VirtualMachine(new TestIO());
+    vm.load_object_code(obj_code);
+    vm.start_thread(0);
+
+    expect(vm.execute()).toBe(ExecutionResult.Ok); // arg_pushb
+    expect(vm.execute()).toBe(ExecutionResult.Ok); // arg_pushs
+    expect(vm.execute()).toBe(ExecutionResult.WaitingSelection); // list
+    vm.list_select(select_idx);
+    expect(vm.get_register_unsigned(result_reg)).toBe(select_idx);
+});
