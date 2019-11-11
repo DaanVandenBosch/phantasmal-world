@@ -236,6 +236,9 @@ export class VirtualMachine {
      */
     execute(): ExecutionResult {
         let srcloc: AsmToken | undefined;
+
+        if (this.thread.length === 0) return ExecutionResult.Halted;
+
         try {
             const exec = this.thread[this.thread_idx];
             const inst = this.get_next_instruction_from_thread(exec);
@@ -262,7 +265,6 @@ export class VirtualMachine {
         inst: Instruction,
         srcloc?: AsmToken,
     ): ExecutionResult {
-        if (this.thread.length === 0) return ExecutionResult.Halted;
         if (this.thread_idx >= this.thread.length) return ExecutionResult.WaitingVsync;
 
         let result = ExecutionResult.Ok;
@@ -694,8 +696,6 @@ export class VirtualMachine {
             }
         }
 
-        if (this.thread.length === 0) return ExecutionResult.Halted;
-        if (this.thread_idx >= this.thread.length) return ExecutionResult.WaitingVsync;
         return result;
     }
 
