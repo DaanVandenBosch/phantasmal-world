@@ -151,12 +151,18 @@ test("basic window_msg output", () => {
         exec_results.push(last_result);
     } while (last_result !== ExecutionResult.Halted);
 
-    expect(exec_results).toHaveLength(segments[0].instructions.length);
-    expect(exec_results).toEqual(
-        Array(segments[0].instructions.length - 1)
-            .fill(ExecutionResult.Ok)
-            .concat(ExecutionResult.Halted),
-    );
+    // one result for each instruction and one extra for the halt signal
+    expect(exec_results).toHaveLength(segments[0].instructions.length + 1);
+    expect(exec_results).toEqual([
+        ExecutionResult.Ok,
+        ExecutionResult.WaitingInput,
+        ExecutionResult.Ok,
+        ExecutionResult.WaitingInput,
+        ExecutionResult.Ok,
+        ExecutionResult.WaitingInput,
+        ExecutionResult.Ok,
+        ExecutionResult.Halted,
+    ]);
 
     expect(io.window_msg).toBeCalledTimes(1);
     expect(io.add_msg).toBeCalledTimes(2);
@@ -202,8 +208,9 @@ test("opcode get_random", () => {
     expect(vm.get_register_unsigned(result_reg)).toBe(64725);
     expect(vm.execute()).toBe(ExecutionResult.Ok);
     expect(vm.get_register_unsigned(result_reg)).toBe(6529);
-    expect(vm.execute()).toBe(ExecutionResult.Halted);
+    expect(vm.execute()).toBe(ExecutionResult.Ok);
     expect(vm.get_register_unsigned(result_reg)).toBe(61497);
+    expect(vm.execute()).toBe(ExecutionResult.Halted);
 });
 
 test("opcode list", () => {
@@ -227,7 +234,6 @@ test("opcode list", () => {
     .code
     0:
         list r${result_reg}, "${list_text}"
-        ret
     `);
 
     const vm = new VirtualMachine(new TestIO());
