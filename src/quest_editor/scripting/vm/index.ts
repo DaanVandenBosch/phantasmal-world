@@ -1078,16 +1078,22 @@ class Thread {
                 this.io.warning("Argument stack: Argument type mismatch", srcloc);
             }
 
+            const arg_slot_offset = i * ARG_STACK_SLOT_SIZE;
             switch (param.type.kind) {
                 case Kind.Byte:
-                    args.push(this.arg_stack.u8_at(i * ARG_STACK_SLOT_SIZE));
+                    args.push(this.arg_stack.u8_at(arg_slot_offset));
                     break;
                 case Kind.Word:
-                    args.push(this.arg_stack.u16_at(i * ARG_STACK_SLOT_SIZE));
+                    args.push(this.arg_stack.u16_at(arg_slot_offset));
                     break;
                 case Kind.DWord:
                 case Kind.String:
-                    args.push(this.arg_stack.u32_at(i * ARG_STACK_SLOT_SIZE));
+                    args.push(this.arg_stack.u32_at(arg_slot_offset));
+                    break;
+                case Kind.RegTupRef:
+                    if (param.type.register_tuples.length > 0) {
+                        args.push(this.arg_stack.u8_at(arg_slot_offset));
+                    }
                     break;
                 default:
                     throw new Error(
