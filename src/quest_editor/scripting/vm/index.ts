@@ -82,6 +82,7 @@ import {
     OP_GET_RANDOM,
     OP_GETTIME,
     OP_SET_EPISODE,
+    OP_LIST,
 } from "../opcodes";
 import { VirtualMachineMemoryBuffer, VirtualMachineMemory } from "./memory";
 import {
@@ -110,11 +111,21 @@ const STRING_ARG_STORE_ADDRESS = 0x00a92700;
 const STRING_ARG_STORE_SIZE = 1024; // TODO: verify this value
 const FLOAT_EPSILON = 1.19e-7;
 const ENTRY_SEGMENT = 0;
+const LIST_ITEM_DELIMITER = "\n";
 
 export enum ExecutionResult {
     Ok,
     WaitingVsync,
     Halted,
+    /**
+     * Waiting for any keypress. No method call required.
+     */
+    WaitingInput,
+    /**
+     * Waiting for a value to be selected in a list.
+     * Call `list_select` to set selection.
+     */
+    WaitingSelection,
 }
 
 function encode_episode_number(ep: Episode): number {
@@ -145,6 +156,8 @@ export class VirtualMachine {
     private thread_idx = 0;
     private window_msg_open = false;
     private set_episode_called = false;
+    private list_open = false;
+    private selection_reg = 0;
 
     constructor(private io: VirtualMachineIO = new VMIOStub()) {
         srand(GetTickCount());
@@ -252,6 +265,8 @@ export class VirtualMachine {
         if (this.thread.length === 0) return ExecutionResult.Halted;
         if (this.thread_idx >= this.thread.length) return ExecutionResult.WaitingVsync;
 
+        let result = ExecutionResult.Ok;
+
         const arg_vals = inst.args.map(arg => arg.value);
         // eslint-disable-next-line
         const [arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7] = arg_vals;
@@ -266,6 +281,12 @@ export class VirtualMachine {
             arg0,
             arg1,
         ];
+
+        // previous instruction must've been `list`.
+        // list may not exist after the instruction
+        if (this.list_open) {
+            this.list_open = false;
+        }
 
         switch (inst.opcode.code) {
             case OP_NOP.code:
@@ -565,11 +586,23 @@ export class VirtualMachine {
             case OP_STACK_POPM.code:
                 this.pop_variable_stack(exec, arg0, arg1);
                 break;
+            case OP_LIST.code:
+                if (!this.window_msg_open) {
+                    const args = exec.fetch_args(inst);
+                    const list_items = this.deref_string(args[1]).split(LIST_ITEM_DELIMITER);
+
+                    result = ExecutionResult.WaitingSelection;
+                    this.list_open = true;
+                    this.selection_reg = args[0];
+                    this.io.list(list_items);
+                }
+                break;
             case OP_WINDOW_MSG.code:
                 if (!this.window_msg_open) {
                     const args = exec.fetch_args(inst);
                     const str = this.deref_string(args[0]);
 
+                    result = ExecutionResult.WaitingInput;
                     this.window_msg_open = true;
                     this.io.window_msg(str);
                 }
@@ -579,6 +612,7 @@ export class VirtualMachine {
                     const args = exec.fetch_args(inst);
                     const str = this.deref_string(args[0]);
 
+                    result = ExecutionResult.WaitingInput;
                     this.io.add_msg(str);
                 }
                 break;
@@ -662,7 +696,7 @@ export class VirtualMachine {
 
         if (this.thread.length === 0) return ExecutionResult.Halted;
         if (this.thread_idx >= this.thread.length) return ExecutionResult.WaitingVsync;
-        return ExecutionResult.Ok;
+        return result;
     }
 
     /**
@@ -965,6 +999,16 @@ export class VirtualMachine {
             `Opcode execution failed because the VM was missing quest data: ${info}`,
             srcloc,
         );
+    }
+
+    /**
+     * When the list opcode is used, call this method to select a value in the list.
+     */
+    public list_select(idx: number): void {
+        if (!this.list_open) {
+            throw new Error("list_select may not be called if there is no list open");
+        }
+        this.set_register_unsigned(this.selection_reg, idx);
     }
 }
 

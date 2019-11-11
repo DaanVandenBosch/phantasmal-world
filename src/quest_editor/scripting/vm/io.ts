@@ -3,12 +3,7 @@ import { AsmToken } from "../instructions";
 /**
  * The virtual machine calls these methods when it requires input.
  */
-export interface VirtualMachineInput {
-    /**
-     * End the current message and move to the next message.
-     */
-    advance_msg(): Promise<any>;
-}
+export interface VirtualMachineInput {}
 
 /**
  * The virtual machine calls these methods when it outputs something.
@@ -19,6 +14,7 @@ export interface VirtualMachineOutput {
     add_msg(msg: string): void;
     winend(): void;
     mesend(): void;
+    list(list_items: string[]): void;
 }
 
 /**

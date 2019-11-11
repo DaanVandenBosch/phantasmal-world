@@ -26,6 +26,10 @@ export class QuestRunner {
         this.vm.load_object_code(quest.object_code);
         this.vm.start_thread(0);
 
+        this.schedule_frame();
+    }
+
+    private schedule_frame(): void {
         this.animation_frame = requestAnimationFrame(this.execution_loop);
     }
 
@@ -38,17 +42,26 @@ export class QuestRunner {
             result = this.vm.execute();
         } while (result == ExecutionResult.Ok);
 
-        if (result === ExecutionResult.WaitingVsync) {
-            this.animation_frame = requestAnimationFrame(this.execution_loop);
+        switch (result) {
+            case ExecutionResult.WaitingVsync:
+                this.schedule_frame();
+                break;
+            case ExecutionResult.WaitingInput:
+                // TODO: implement input from gui
+                this.schedule_frame();
+                break;
+            case ExecutionResult.WaitingSelection:
+                // TODO: implement input from gui
+                this.vm.list_select(0);
+                this.schedule_frame();
+                break;
+            case ExecutionResult.Halted:
+                break;
         }
     };
 
     private create_vm_io = (): VirtualMachineIO => {
         return {
-            async advance_msg(): Promise<any> {
-                throw new Error("Not implemented.");
-            },
-
             window_msg: (msg: string): void => {
                 logger.info(`window_msg "${msg}"`);
             },
@@ -64,6 +77,10 @@ export class QuestRunner {
             winend: (): void => {},
 
             mesend: (): void => {},
+
+            list: (list_items: string[]): void => {
+                logger.info(`list "[${list_items}]"`);
+            },
 
             warning: (msg: string, srcloc?: AsmToken): void => {
                 logger.warning(msg, srcloc && srcloc_to_string(srcloc));
