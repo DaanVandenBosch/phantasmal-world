@@ -56,7 +56,7 @@ class PrcDecryptor {
             }
         }
 
-        return out_cursor;
+        return out_cursor.seek_start(0);
     }
 
     private construct_keys(key: number): void {

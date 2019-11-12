@@ -32,6 +32,7 @@ export function parse_rlc(cursor: Cursor): Cursor[] {
 
         const file = cursor.take(size);
         file.endianness = Endianness.Little;
+        file.seek_start(0);
         files.push(parse_prc(file));
 
         cursor.seek_start(prev_pos);
