@@ -2413,7 +2413,15 @@ opcodes:
           - type: dword
             doc: Player slot.
             access: read
-
+  - code: 0xf882
+    mnemonic: get_pl_job
+    doc: Sets the value of <pl_job> to the given player's job (Hunter/Ranger/Force).
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            doc: Player slot.
+            access: read
   - code: 0xf883
     params:
       - type: reg_tup_ref

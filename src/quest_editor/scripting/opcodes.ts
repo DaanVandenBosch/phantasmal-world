@@ -4688,11 +4688,20 @@ export const OP_GET_PL_NAME = (OPCODES[0xf881] = new_opcode(
     ],
     undefined,
 ));
-export const OP_UNKNOWN_F882 = (OPCODES[0xf882] = new_opcode(
+export const OP_GET_PL_JOB = (OPCODES[0xf882] = new_opcode(
     0xf882,
-    "unknown_f882",
-    undefined,
-    [],
+    "get_pl_job",
+    "Sets the value of <pl_job> to the given player's job (Hunter/Ranger/Force).",
+    [
+        new_param(
+            {
+                kind: Kind.RegTupRef,
+                register_tuples: [new_param(TYPE_DWORD, "Player slot.", ParamAccess.Read)],
+            },
+            undefined,
+            undefined,
+        ),
+    ],
     undefined,
 ));
 export const OP_UNKNOWN_F883 = (OPCODES[0xf883] = new_opcode(
