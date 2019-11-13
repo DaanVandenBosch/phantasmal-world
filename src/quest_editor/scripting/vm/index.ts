@@ -185,6 +185,8 @@ export class VirtualMachine {
         this.object_code = object_code;
         this.label_to_seg_idx.clear();
         this.set_episode_called = false;
+        this.list_open = false;
+        this.selection_reg = 0;
 
         let i = 0;
 
