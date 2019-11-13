@@ -7,7 +7,7 @@ import { quest_editor_store } from "./QuestEditorStore";
 import { ASM_SYNTAX } from "./asm_syntax";
 import { AssemblyError, AssemblyWarning } from "../scripting/assembly";
 import { Observable } from "../../core/observable/Observable";
-import { emitter, property } from "../../core/observable";
+import { emitter, property, list_property } from "../../core/observable";
 import { WritableProperty } from "../../core/observable/property/WritableProperty";
 import { Property } from "../../core/observable/property/Property";
 import ITextModel = editor.ITextModel;
@@ -15,6 +15,8 @@ import CompletionList = languages.CompletionList;
 import IMarkerData = editor.IMarkerData;
 import SignatureHelpResult = languages.SignatureHelpResult;
 import LocationLink = languages.LocationLink;
+import { WritableListProperty } from "../../core/observable/property/list/WritableListProperty";
+import { ListProperty } from "../../core/observable/property/list/ListProperty";
 
 const assembly_analyser = new AssemblyAnalyser();
 
@@ -88,6 +90,7 @@ export class AsmEditorStore implements Disposable {
     private readonly _did_undo = emitter<string>();
     private readonly _did_redo = emitter<string>();
     private readonly _inline_args_mode: WritableProperty<boolean> = property(true);
+    private readonly _breakpoints: WritableListProperty<number> = list_property();
 
     readonly model: Property<ITextModel | undefined> = this._model;
     readonly did_undo: Observable<string> = this._did_undo;
@@ -101,6 +104,7 @@ export class AsmEditorStore implements Disposable {
     readonly has_issues: Property<boolean> = assembly_analyser.issues.map(
         issues => issues.warnings.length + issues.errors.length > 0,
     );
+    readonly breakpoints: ListProperty<number> = this._breakpoints;
 
     constructor() {
         this.disposer.add_all(
@@ -238,6 +242,16 @@ export class AsmEditorStore implements Disposable {
             this._model.val = model;
         } else {
             this._model.val = undefined;
+        }
+    }
+
+    public toggle_breakpoint(line_num: number): void {
+        const i = this._breakpoints.val.indexOf(line_num);
+
+        if (i === -1) {
+            this._breakpoints.push(line_num);
+        } else {
+            this._breakpoints.splice(i, 1);
         }
     }
 }

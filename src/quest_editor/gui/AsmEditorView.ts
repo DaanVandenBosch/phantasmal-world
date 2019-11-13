@@ -1,10 +1,12 @@
 import { ResizableWidget } from "../../core/gui/ResizableWidget";
 import { el } from "../../core/gui/dom";
-import { editor, KeyCode, KeyMod } from "monaco-editor";
+import { editor, KeyCode, KeyMod, Range } from "monaco-editor";
 import { asm_editor_store } from "../stores/AsmEditorStore";
 import { AsmEditorToolBar } from "./AsmEditorToolBar";
 import { EditorHistory } from "./EditorHistory";
 import IStandaloneCodeEditor = editor.IStandaloneCodeEditor;
+import "./AsmEditorView.css";
+import { ListChangeType } from "../../core/observable/property/list/ListProperty";
 
 editor.defineTheme("phantasmal-world", {
     base: "vs-dark",
@@ -31,6 +33,7 @@ export class AsmEditorView extends ResizableWidget {
     private readonly tool_bar_view = this.disposable(new AsmEditorToolBar());
     private readonly editor: IStandaloneCodeEditor;
     private readonly history: EditorHistory;
+    private editor_decoration_ids: string[] = [];
 
     readonly element = el.div();
 
@@ -50,6 +53,7 @@ export class AsmEditorView extends ResizableWidget {
                 wrappingIndent: "indent",
                 renderIndentGuides: false,
                 folding: false,
+                glyphMargin: true,
             }),
         );
 
@@ -90,7 +94,40 @@ export class AsmEditorView extends ResizableWidget {
                 { call_now: true },
             ),
 
+            asm_editor_store.breakpoints.observe_list(change => {
+                if (change.type === ListChangeType.ListChange) {
+                    // update breakpoint icons
+                    this.editor_decoration_ids = this.editor.deltaDecorations(
+                        this.editor_decoration_ids,
+                        asm_editor_store.breakpoints.val.map(line_num => ({
+                            range: new Range(line_num, 0, line_num, 0),
+                            options: {
+                                glyphMarginClassName:
+                                    "quest_editor_AsmEditorView_breakpoint-enabled",
+                                glyphMarginHoverMessage: {
+                                    value: "Breakpoint"
+                                }
+                            },
+                        })),
+                    );
+                }
+            }),
+
             this.editor.onDidFocusEditorWidget(() => asm_editor_store.undo.make_current()),
+
+            this.editor.onMouseDown(e => {
+                switch (e.target.type) {
+                    case editor.MouseTargetType.GUTTER_GLYPH_MARGIN:
+                        const pos = e.target.position;
+                        if (!pos) {
+                            return;
+                        }
+                        asm_editor_store.toggle_breakpoint(pos.lineNumber);
+                        break;
+                    default:
+                        break;
+                }
+            }),
         );
 
         this.finalize_construction(AsmEditorView.prototype);
