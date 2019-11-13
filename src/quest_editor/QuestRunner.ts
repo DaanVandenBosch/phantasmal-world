@@ -3,6 +3,7 @@ import { QuestModel } from "./model/QuestModel";
 import { VirtualMachineIO } from "./scripting/vm/io";
 import { AsmToken } from "./scripting/instructions";
 import { quest_editor_store } from "./stores/QuestEditorStore";
+import { asm_editor_store } from "./stores/AsmEditorStore";
 
 const logger = quest_editor_store.get_logger("quest_editor/QuestRunner");
 
@@ -34,29 +35,34 @@ export class QuestRunner {
     }
 
     private execution_loop = (): void => {
-        this.vm.vsync();
-
         let result: ExecutionResult;
 
-        do {
+        exec_loop:
+        while (true) {
             result = this.vm.execute();
-        } while (result == ExecutionResult.Ok);
 
-        switch (result) {
-            case ExecutionResult.WaitingVsync:
-                this.schedule_frame();
-                break;
-            case ExecutionResult.WaitingInput:
-                // TODO: implement input from gui
-                this.schedule_frame();
-                break;
-            case ExecutionResult.WaitingSelection:
-                // TODO: implement input from gui
-                this.vm.list_select(0);
-                this.schedule_frame();
-                break;
-            case ExecutionResult.Halted:
-                break;
+            const srcloc = this.vm.get_current_source_location();
+            if (srcloc && asm_editor_store.breakpoints.val.includes(srcloc.line_no)) {
+                break exec_loop;
+            }
+
+            switch (result) {
+                case ExecutionResult.WaitingVsync:
+                    this.vm.vsync();
+                    this.schedule_frame();
+                    break;
+                case ExecutionResult.WaitingInput:
+                    // TODO: implement input from gui
+                    this.schedule_frame();
+                    break;
+                case ExecutionResult.WaitingSelection:
+                    // TODO: implement input from gui
+                    this.vm.list_select(0);
+                    this.schedule_frame();
+                    break;
+                case ExecutionResult.Halted:
+                    break exec_loop;
+            }
         }
     };
 

@@ -158,6 +158,7 @@ export class VirtualMachine {
     private set_episode_called = false;
     private list_open = false;
     private selection_reg = 0;
+    private cur_srcloc?: AsmToken;
 
     constructor(private io: VirtualMachineIO = new VMIOStub()) {
         srand(GetTickCount());
@@ -187,6 +188,7 @@ export class VirtualMachine {
         this.set_episode_called = false;
         this.list_open = false;
         this.selection_reg = 0;
+        this.cur_srcloc = undefined;
 
         let i = 0;
 
@@ -239,7 +241,10 @@ export class VirtualMachine {
     execute(): ExecutionResult {
         let srcloc: AsmToken | undefined;
 
-        if (this.thread.length === 0) return ExecutionResult.Halted;
+        if (this.thread.length === 0) {
+            this.cur_srcloc = undefined;
+            return ExecutionResult.Halted
+        }
 
         try {
             const exec = this.thread[this.thread_idx];
@@ -248,6 +253,8 @@ export class VirtualMachine {
             if (inst.asm && inst.asm.mnemonic) {
                 srcloc = inst.asm.mnemonic;
             }
+
+            this.cur_srcloc = srcloc;
 
             return this.execute_instruction(exec, inst, srcloc);
         } catch (err) {
@@ -1140,6 +1147,10 @@ export class VirtualMachine {
         }
 
         return template;
+    }
+
+    public get_current_source_location(): AsmToken | undefined {
+        return this.cur_srcloc;
     }
 }
 
