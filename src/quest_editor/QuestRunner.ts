@@ -43,6 +43,7 @@ export class QuestRunner {
 
             const srcloc = this.vm.get_current_source_location();
             if (srcloc && asm_editor_store.breakpoints.val.includes(srcloc.line_no)) {
+                asm_editor_store.set_execution_location(srcloc.line_no);
                 break exec_loop;
             }
 
@@ -61,6 +62,7 @@ export class QuestRunner {
                     this.schedule_frame();
                     break;
                 case ExecutionResult.Halted:
+                    asm_editor_store.unset_execution_location();
                     break exec_loop;
             }
         }

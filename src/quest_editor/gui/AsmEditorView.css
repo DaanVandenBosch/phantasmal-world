@@ -24,3 +24,7 @@
     /* a red circle */
     background: var(--red-circle-svg);
 }
+
+.quest_editor_AsmEditorView_execution-location {
+    background: hsla(80, 100%, 60%, 0.3);
+}

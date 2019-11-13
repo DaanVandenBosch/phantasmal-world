@@ -91,6 +91,7 @@ export class AsmEditorStore implements Disposable {
     private readonly _did_redo = emitter<string>();
     private readonly _inline_args_mode: WritableProperty<boolean> = property(true);
     private readonly _breakpoints: WritableListProperty<number> = list_property();
+    private readonly _execution_location: WritableProperty<number | undefined> = property(undefined);
 
     readonly model: Property<ITextModel | undefined> = this._model;
     readonly did_undo: Observable<string> = this._did_undo;
@@ -105,6 +106,7 @@ export class AsmEditorStore implements Disposable {
         issues => issues.warnings.length + issues.errors.length > 0,
     );
     readonly breakpoints: ListProperty<number> = this._breakpoints;
+    readonly execution_location: Property<number | undefined> = this._execution_location;
 
     constructor() {
         this.disposer.add_all(
@@ -253,6 +255,14 @@ export class AsmEditorStore implements Disposable {
         } else {
             this._breakpoints.splice(i, 1);
         }
+    }
+
+    public set_execution_location(line_num: number): void {
+        this._execution_location.val = line_num;
+    }
+
+    public unset_execution_location(): void {
+        this._execution_location.val = undefined;
     }
 }
 
