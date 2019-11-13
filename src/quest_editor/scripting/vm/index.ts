@@ -361,9 +361,10 @@ export class VirtualMachine {
                 exec.push_arg(this.get_register_address(inst.args[0].value), Kind.DWord);
                 break;
             case OP_ARG_PUSHS.code:
-                {
+                if (typeof arg0 === "string") {
+                    // process tags
+                    const string_arg = this.parse_template_string(arg0);
                     // store string and push its address
-                    const string_arg = arg0 as string;
                     this.string_arg_store.write_string_utf16_at(
                         0,
                         string_arg,
@@ -1009,6 +1010,134 @@ export class VirtualMachine {
             throw new Error("list_select may not be called if there is no list open");
         }
         this.set_register_unsigned(this.selection_reg, idx);
+    }
+
+    private parse_template_string(template: string): string {
+        const exact_tags: Record<string, string | (() => string)> = {
+            // TODO: get real values for these
+            "hero name": "PLACEHOLDER",
+            "hero job": "PLACEHOLDER",
+            "name hero": "PLACEHOLDER",
+            "name job": "PLACEHOLDER",
+            // intentionally hardcoded
+            time: "01:12",
+            // used in cmode
+            "award item": "PLACEHOLDER",
+            "challenge title": "PLACEHOLDER",
+            // set by opcode get_pl_name
+            pl_name: "PLACEHOLDER",
+            pl_job: "PLACEHOLDER",
+            last_word: "PLACEHOLDER",
+            last_chat: "PLACEHOLDER",
+            team_name: "PLACEHOLDER",
+            // does not appear to be used in any sega quests
+            meseta_slot_prize: "PLACEHOLDER",
+        };
+        const pattern_tags: [RegExp, (arg: string) => string][] = [
+            [
+                /^color ([0-9]+)$/,
+                arg => {
+                    // TODO: decide how to handle this
+                    return `<color ${arg}>`;
+                },
+            ],
+            [
+                /^r([0-9]{1,3})$/,
+                arg => {
+                    const num = parseInt(arg);
+
+                    if (isNaN(num)) {
+                        return "";
+                    }
+
+                    return this.get_register_unsigned(num).toString();
+                },
+            ],
+            [
+                /^f([0-9]{1,3})$/,
+                arg => {
+                    const num = parseInt(arg);
+
+                    if (isNaN(num)) {
+                        return "";
+                    }
+
+                    return this.get_register_float(num).toFixed(6);
+                },
+            ],
+        ];
+
+        const tag_start_char = "<";
+        const tag_end_char = ">";
+
+        let tag_open = false;
+        let tag_start_idx = -1;
+
+        let i = 0;
+        let len = template.length;
+        // iterate through template
+        while (i < len) {
+            const char = template[i];
+
+            // end of tag
+            if (tag_open && char === tag_end_char) {
+                tag_open = false;
+
+                // extract key from tag
+                const tag_end_idx = i;
+                const key = template.slice(tag_start_idx + 1, tag_end_idx);
+
+                // get value
+                let val: string | (() => string) | undefined = undefined;
+
+                // check if matches pattern
+                for (const [pattern, handler] of pattern_tags) {
+                    const match = pattern.exec(key);
+                    if (match && match[1] !== undefined) {
+                        val = handler(match[1]);
+                        break;
+                    }
+                }
+
+                // check if matches tag
+                if (val === undefined) {
+                    val = exact_tags[key];
+                }
+
+                // not a valid tag, replace with empty string
+                if (val === undefined) {
+                    val = "";
+                }
+                // run function and memoize result
+                else if (typeof val === "function") {
+                    const memo = val();
+                    exact_tags[key] = memo;
+                    val = memo;
+                }
+
+                // replace tag with value in template
+                template = template.slice(0, tag_start_idx) + val + template.slice(tag_end_idx + 1);
+
+                // adjust position
+                const offset = val.length - (key.length + 2);
+                i += offset;
+                len += offset;
+            }
+            // mark start of tag
+            else if (char === tag_start_char) {
+                tag_open = true;
+                tag_start_idx = i;
+            }
+
+            i++;
+        }
+
+        // remove open tag if it was not closed until the end
+        if (tag_open) {
+            template = template.slice(0, tag_start_idx);
+        }
+
+        return template;
     }
 }
 
