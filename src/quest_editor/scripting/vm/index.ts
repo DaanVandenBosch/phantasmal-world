@@ -205,12 +205,8 @@ export class VirtualMachine {
      * Schedules concurrent execution of the code at the given label.
      */
     start_thread(label: number): void {
-        const seg_idx = this.label_to_seg_idx.get(label);
-        const segment = seg_idx == undefined ? undefined : this.object_code[seg_idx];
-
-        if (segment == undefined) {
-            throw new Error(`Unknown label ${label}.`);
-        }
+        const seg_idx = this.get_segment_index_by_label(label);
+        const segment = this.object_code[seg_idx];
 
         if (segment.type !== SegmentType.Instructions) {
             throw new Error(
@@ -243,7 +239,7 @@ export class VirtualMachine {
 
         if (this.thread.length === 0) {
             this.cur_srcloc = undefined;
-            return ExecutionResult.Halted
+            return ExecutionResult.Halted;
         }
 
         try {
@@ -661,7 +657,11 @@ export class VirtualMachine {
 
                 this.set_episode_called = true;
 
-                if (this.get_current_execution_location().seg_idx !== ENTRY_SEGMENT) {
+                if (
+                    !this.object_code[
+                        this.get_current_execution_location().seg_idx
+                    ].labels.includes(ENTRY_SEGMENT)
+                ) {
                     this.io.warning(
                         `Calling set_episode outside of segment ${ENTRY_SEGMENT} is not supported.`,
                         srcloc,
@@ -811,22 +811,17 @@ export class VirtualMachine {
     }
 
     private push_call_stack(exec: Thread, label: number): void {
-        const seg_idx = this.label_to_seg_idx.get(label);
+        const seg_idx = this.get_segment_index_by_label(label);
+        const segment = this.object_code[seg_idx];
 
-        if (seg_idx == undefined) {
-            throw new Error(`Invalid label called: ${label}.`);
+        if (segment.type !== SegmentType.Instructions) {
+            throw new Error(
+                `Label ${label} points to a ${SegmentType[segment.type]} segment, expecting ${
+                    SegmentType[SegmentType.Instructions]
+                }.`,
+            );
         } else {
-            const segment = this.object_code[seg_idx];
-
-            if (segment.type !== SegmentType.Instructions) {
-                throw new Error(
-                    `Label ${label} points to a ${SegmentType[segment.type]} segment, expecting ${
-                        SegmentType[SegmentType.Instructions]
-                    }.`,
-                );
-            } else {
-                exec.call_stack.push(new ExecutionLocation(seg_idx, -1));
-            }
+            exec.call_stack.push(new ExecutionLocation(seg_idx, -1));
         }
     }
 
@@ -850,14 +845,10 @@ export class VirtualMachine {
 
     private jump_to_label(exec: Thread, label: number): void {
         const top = exec.call_stack_top();
-        const seg_idx = this.label_to_seg_idx.get(label);
+        const seg_idx = this.get_segment_index_by_label(label);
 
-        if (seg_idx == undefined) {
-            throw new Error(`Invalid jump label: ${label}.`);
-        } else {
-            top.seg_idx = seg_idx;
-            top.inst_idx = -1;
-        }
+        top.seg_idx = seg_idx;
+        top.inst_idx = -1;
     }
 
     private signed_conditional_jump_with_register(
@@ -1151,6 +1142,14 @@ export class VirtualMachine {
 
     public get_current_source_location(): AsmToken | undefined {
         return this.cur_srcloc;
+    }
+
+    public get_segment_index_by_label(label: number): number {
+        if (!this.label_to_seg_idx.has(label)) {
+            throw new Error(`Invalid argument: No such label ${label}.`);
+        }
+
+        return this.label_to_seg_idx.get(label)!;
     }
 }
 
