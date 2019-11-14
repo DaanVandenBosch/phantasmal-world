@@ -73,6 +73,22 @@ export class QuestEditorToolBar extends ToolBar {
             icon_left: Icon.Play,
             tooltip: "[Experimental] Run the current quest in a virtual machine (F5)",
         });
+        const resume_button = new Button("Resume", {
+            icon_left: Icon.SquareArrowRight,
+            tooltip: "Resume execution"
+        });
+        const step_over_button = new Button("Step over", {
+            icon_left: Icon.LongArrowRight,
+            tooltip: "Execute the next line and step over any function calls",
+        });
+        const step_in_button = new Button("Step in", {
+            icon_left: Icon.LevelDown,
+            tooltip: "Execute the next line and step inside any function calls"
+        });
+        const step_out_button = new Button("Step out", {
+            icon_left: Icon.LevelUp,
+            tooltip: "Execute until outside of current call frame"
+        });
 
         const children = [
             new_quest_button,
@@ -84,7 +100,7 @@ export class QuestEditorToolBar extends ToolBar {
         ];
 
         if (gui_store.feature_active("vm")) {
-            children.push(run_button);
+            children.push(run_button, resume_button, step_over_button, step_in_button, step_out_button);
         }
 
         super({ children });

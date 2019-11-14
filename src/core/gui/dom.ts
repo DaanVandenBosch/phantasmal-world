@@ -153,6 +153,10 @@ export enum Icon {
     TriangleDown,
     TriangleUp,
     Undo,
+    SquareArrowRight,
+    LevelDown,
+    LevelUp,
+    LongArrowRight,
 }
 
 export function icon(icon: Icon): HTMLElement {
@@ -194,6 +198,18 @@ export function icon(icon: Icon): HTMLElement {
             break;
         case Icon.Undo:
             icon_str = "fas fa-undo";
+            break;
+        case Icon.SquareArrowRight:
+            icon_str = "far fa-caret-square-right";
+            break;
+        case Icon.LongArrowRight:
+            icon_str = "fas fa-long-arrow-alt-right";
+            break;
+        case Icon.LevelDown:
+            icon_str = "fas fa-level-down-alt";
+            break;
+        case Icon.LevelUp:
+            icon_str = "fas fa-level-up-alt";
             break;
     }
 
