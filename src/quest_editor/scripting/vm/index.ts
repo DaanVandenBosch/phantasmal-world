@@ -661,7 +661,7 @@ export class VirtualMachine {
 
                 this.set_episode_called = true;
 
-                if (this.get_current_segment_idx() !== ENTRY_SEGMENT) {
+                if (this.get_current_execution_location().seg_idx !== ENTRY_SEGMENT) {
                     this.io.warning(
                         `Calling set_episode outside of segment ${ENTRY_SEGMENT} is not supported.`,
                         srcloc,
@@ -1000,8 +1000,8 @@ export class VirtualMachine {
         return str;
     }
 
-    private get_current_segment_idx(): number {
-        return this.thread[this.thread_idx].call_stack_top().seg_idx;
+    public get_current_execution_location(): Readonly<ExecutionLocation> {
+        return this.thread[this.thread_idx].call_stack_top();
     }
 
     private missing_quest_data_warning(info: string, srcloc?: AsmToken): void {
@@ -1154,7 +1154,7 @@ export class VirtualMachine {
     }
 }
 
-class ExecutionLocation {
+export class ExecutionLocation {
     constructor(public seg_idx: number, public inst_idx: number) {}
 }
 
