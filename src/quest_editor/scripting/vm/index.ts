@@ -84,7 +84,6 @@ import {
     OP_SET_EPISODE,
     OP_LIST,
 } from "../opcodes";
-import { VirtualMachineMemoryBuffer, VirtualMachineMemory } from "./memory";
 import {
     ComparisonOperation,
     numeric_ops,
@@ -100,8 +99,9 @@ import { rand, srand, GetTickCount } from "./windows";
 import { QuestModel } from "../../model/QuestModel";
 import { convert_quest_from_model } from "../../stores/model_conversion";
 import { Episode } from "../../../core/data_formats/parsing/quest/Episode";
+import { ArrayBufferCursor } from "../../../core/data_formats/cursor/ArrayBufferCursor";
+import { Endianness } from "../../../core/data_formats/Endianness";
 
-const REGISTERS_BASE_ADDRESS = 0x00a954b0;
 const REGISTER_COUNT = 256;
 const REGISTER_SIZE = 4;
 const VARIABLE_STACK_LENGTH = 16; // TODO: verify this value
@@ -139,16 +139,19 @@ function encode_episode_number(ep: Episode): number {
     }
 }
 
+class ZeroableBuffer extends ArrayBufferCursor {
+    constructor(size: number, endianness: Endianness) {
+        super(new ArrayBuffer(size), endianness);
+    }
+
+    public zero(): void {
+        new Uint32Array(this.backing_buffer).fill(0);
+    }
+}
+
 export class VirtualMachine {
-    private memory = new VirtualMachineMemory();
-    private registers = this.memory.allocate(
-        REGISTER_SIZE * REGISTER_COUNT,
-        REGISTERS_BASE_ADDRESS,
-    )!;
-    private string_arg_store = this.memory.allocate(
-        STRING_ARG_STORE_SIZE,
-        STRING_ARG_STORE_ADDRESS,
-    );
+    private registers = new ZeroableBuffer(REGISTER_COUNT * REGISTER_SIZE, Endianness.Little);
+    private string_arg_store = "";
     private quest?: QuestModel;
     private object_code: readonly Segment[] = [];
     private label_to_seg_idx: Map<number, number> = new Map();
@@ -183,7 +186,7 @@ export class VirtualMachine {
         this.halt();
         this.quest = undefined;
         this.registers.zero();
-        this.string_arg_store.zero();
+        this.string_arg_store = "";
         this.object_code = object_code;
         this.label_to_seg_idx.clear();
         this.set_episode_called = false;
@@ -217,12 +220,7 @@ export class VirtualMachine {
             );
         }
 
-        const thread = new Thread(
-            this.io,
-            new ExecutionLocation(seg_idx!, 0),
-            this.memory.allocate(ARG_STACK_SLOT_SIZE * ARG_STACK_LENGTH),
-            true,
-        );
+        const thread = new Thread(this.io, new ExecutionLocation(seg_idx!, 0), true);
 
         this.thread.push(thread);
 
@@ -232,7 +230,6 @@ export class VirtualMachine {
     }
 
     private dispose_thread(thread_idx: number): void {
-        this.thread[thread_idx].dispose();
         this.thread.splice(thread_idx, 1);
 
         if (this.thread.length === 0) {
@@ -418,12 +415,8 @@ export class VirtualMachine {
                     // process tags
                     const string_arg = this.parse_template_string(arg0);
                     // store string and push its address
-                    this.string_arg_store.write_string_utf16_at(
-                        0,
-                        string_arg,
-                        string_arg.length * 2 + 2,
-                    );
-                    exec.push_arg(this.string_arg_store.address, Kind.String);
+                    this.string_arg_store = string_arg.slice(0, STRING_ARG_STORE_SIZE / 2);
+                    exec.push_arg(STRING_ARG_STORE_ADDRESS, Kind.String);
                 }
                 break;
             // integer arithmetic operations
@@ -757,10 +750,6 @@ export class VirtualMachine {
      * Halts execution of all threads.
      */
     halt(): void {
-        for (const thread of this.thread) {
-            thread.dispose();
-        }
-
         this.cur_srcloc = undefined;
         this._halted = true;
         this.window_msg_open = false;
@@ -1013,19 +1002,19 @@ export class VirtualMachine {
     }
 
     private get_register_address(reg: number): number {
-        return this.registers.address + reg * REGISTER_SIZE;
+        return reg * REGISTER_SIZE;
     }
 
     private deref_string(address: number): string {
-        const slot = this.memory.get(address);
-
-        let str: string = "";
-
-        if (slot !== undefined) {
-            str = slot.buffer.string_utf16_at(slot.byte_offset, Infinity, true);
+        if (address === STRING_ARG_STORE_ADDRESS) {
+            return this.string_arg_store;
         }
 
-        return str;
+        if (address > 0 && address < REGISTER_COUNT * REGISTER_SIZE) {
+            return this.registers.string_utf16_at(address, REGISTER_COUNT * REGISTER_SIZE, true);
+        }
+
+        throw new Error(`Failed to dereference string: Invalid address ${address}`);
     }
 
     public get_current_execution_location(): Readonly<ExecutionLocation> {
@@ -1202,7 +1191,10 @@ class Thread {
      */
     public call_stack: ExecutionLocation[] = [];
 
-    private arg_stack: VirtualMachineMemoryBuffer;
+    private arg_stack: ZeroableBuffer = new ZeroableBuffer(
+        ARG_STACK_LENGTH * ARG_STACK_SLOT_SIZE,
+        Endianness.Little,
+    );
     private arg_stack_counter: number = 0;
     private arg_stack_types: ArgStackTypeList = Array(ARG_STACK_LENGTH).fill(
         Kind.Any,
@@ -1214,16 +1206,9 @@ class Thread {
      */
     public global: boolean;
 
-    constructor(
-        public io: VirtualMachineIO,
-        next: ExecutionLocation,
-        arg_stack: VirtualMachineMemoryBuffer,
-        global: boolean,
-    ) {
+    constructor(public io: VirtualMachineIO, next: ExecutionLocation, global: boolean) {
         this.call_stack = [next];
         this.global = global;
-
-        this.arg_stack = arg_stack;
     }
 
     public call_stack_top(): ExecutionLocation {
@@ -1283,9 +1268,5 @@ class Thread {
         this.arg_stack_counter = 0;
 
         return args;
-    }
-
-    public dispose(): void {
-        this.arg_stack.free();
     }
 }
