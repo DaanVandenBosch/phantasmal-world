@@ -98,14 +98,17 @@ export class SimpleListProperty<T> extends AbstractListProperty<T>
     remove(...values: T[]): void {
         for (const value of values) {
             const index = this.values.indexOf(value);
-            this.values.splice(index, 1);
 
-            this.finalize_update({
-                type: ListChangeType.ListChange,
-                index,
-                removed: [value],
-                inserted: [],
-            });
+            if (index > -1) {
+                this.values.splice(index, 1);
+
+                this.finalize_update({
+                    type: ListChangeType.ListChange,
+                    index,
+                    removed: [value],
+                    inserted: [],
+                });
+            }
         }
     }
 
