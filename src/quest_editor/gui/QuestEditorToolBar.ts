@@ -107,6 +107,8 @@ export class QuestEditorToolBar extends ToolBar {
 
         const quest_loaded = quest_editor_store.current_quest.map(q => q != undefined);
 
+        const step_controls_enabled = quest_editor_store.quest_runner.paused.map(paused => paused && quest_editor_store.quest_runner.running.val && quest_loaded.val);
+
         this.disposables(
             new_quest_button.chosen.observe(({ value: episode }) =>
                 quest_editor_store.new_quest(episode),
@@ -134,6 +136,24 @@ export class QuestEditorToolBar extends ToolBar {
             ),
 
             run_button.click.observe(quest_editor_store.run_current_quest),
+
+            resume_button.click.observe(() => quest_editor_store.quest_runner?.resume()),
+
+            step_over_button.click.observe(() => quest_editor_store.quest_runner?.step_over()),
+
+            step_in_button.click.observe(() => quest_editor_store.quest_runner?.step_in()),
+
+            step_out_button.click.observe(() => quest_editor_store.quest_runner?.step_out()),
+
+            run_button.enabled.bind_to(quest_loaded),
+
+            resume_button.enabled.bind_to(step_controls_enabled),
+
+            step_over_button.enabled.bind_to(step_controls_enabled),
+
+            step_in_button.enabled.bind_to(step_controls_enabled),
+
+            step_out_button.enabled.bind_to(step_controls_enabled),
 
             gui_store.on_global_keydown(GuiTool.QuestEditor, "Ctrl-O", () =>
                 open_file_button.click(),
