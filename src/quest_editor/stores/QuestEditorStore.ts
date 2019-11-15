@@ -31,12 +31,20 @@ import Logger = require("js-logger");
 import { MessageLogStore, LogMessage, LogLevel, LogGroup } from "../../core/gui/MessageLog";
 import { ListProperty } from "../../core/observable/property/list/ListProperty";
 import { WritableProperty } from "../../core/observable/property/WritableProperty";
+import { QuestRunner } from "../QuestRunner";
 
 const logger = Logger.get("quest_editor/gui/QuestEditorStore");
 
+export interface Logger {
+    debug(...items: any[]): void;
+    info(...items: any[]): void;
+    warning(...items: any[]): void;
+    error(...items: any[]): void;
+}
+
 export class QuestEditorStore implements Disposable, MessageLogStore {
     private readonly disposer = new Disposer();
-
+    public readonly quest_runner: QuestRunner = new QuestRunner();
     /**
      * Log levels as Record<name, LogLevel>
      */
@@ -309,15 +317,11 @@ export class QuestEditorStore implements Disposable, MessageLogStore {
     };
 
     run_current_quest = (): void => {
-        // workaround for circular dependency
-        import("../QuestRunner").then(({ QuestRunner }) => {
-            const quest = this.current_quest.val;
-            const quest_runner = new QuestRunner();
+        const quest = this.current_quest.val;
 
-            if (quest) {
-                quest_runner.run(quest);
-            }
-        });
+        if (quest) {
+            this.quest_runner.run(quest);
+        }
     };
 
     private log_message_predicate = (msg: LogMessage): boolean => {
@@ -372,7 +376,7 @@ export class QuestEditorStore implements Disposable, MessageLogStore {
         });
     }
 
-    public get_logger(group_name?: string) {
+    public get_logger(group_name?: string): Logger {
         let group = this.default_log_group;
 
         // find existing or create new

@@ -2,16 +2,20 @@ import { ExecutionResult, VirtualMachine, ExecutionLocation } from "./scripting/
 import { QuestModel } from "./model/QuestModel";
 import { VirtualMachineIO } from "./scripting/vm/io";
 import { AsmToken, SegmentType, InstructionSegment, Segment, Instruction } from "./scripting/instructions";
-import { quest_editor_store } from "./stores/QuestEditorStore";
-import { asm_editor_store } from "./stores/AsmEditorStore";
+import { quest_editor_store, Logger } from "./stores/QuestEditorStore";
 import { defined, assert } from "../core/util";
 import {
     OP_CALL,
     OP_VA_CALL,
     OP_SWITCH_CALL,
 } from "./scripting/opcodes";
+import { WritableProperty } from "../core/observable/property/WritableProperty";
+import { property } from "../core/observable";
+import { Property } from "../core/observable/property/Property";
+import { AsmEditorStore } from "./stores/AsmEditorStore";
 
-const logger = quest_editor_store.get_logger("quest_editor/QuestRunner");
+let asm_editor_store: AsmEditorStore | undefined;
+let logger: Logger | undefined;
 
 function srcloc_to_string(srcloc: AsmToken): string {
     return `[${srcloc.line_no}:${srcloc.col}]`;
@@ -31,11 +35,34 @@ export class QuestRunner {
     private readonly stepping_breakpoints: number[] = [];
     private break_on_next = false;
 
+    private readonly _running: WritableProperty<boolean> = property(false);
+    private readonly _paused: WritableProperty<boolean> = property(false);
+    /**
+     * There is a quest loaded and it is currently running.
+     */
+    public readonly running: Property<boolean> = this._running;
+    /**
+     * A quest is running but the execution is currently paused.
+     */
+    public readonly paused: Property<boolean> = this._paused;
+
     constructor() {
         this.vm = new VirtualMachine(this.create_vm_io());
     }
 
     run(quest: QuestModel): void {
+        if (logger === undefined) {
+            // defer creation of logger to prevent problems caused by circular dependency with QuestEditorStore
+            logger = quest_editor_store.get_logger("quest_editor/QuestRunner");
+        }
+
+        if (asm_editor_store === undefined) {
+            // same here... circular dependency problem
+            import("./stores/AsmEditorStore").then(imports => {
+                asm_editor_store = imports.asm_editor_store;
+            });
+        }
+
         if (this.animation_frame != undefined) {
             cancelAnimationFrame(this.animation_frame);
         }
@@ -44,6 +71,8 @@ export class QuestRunner {
 
         this.vm.load_object_code(quest.object_code);
         this.vm.start_thread(0);
+
+        this._running.val = true;
 
         this.schedule_frame();
     }
@@ -106,6 +135,10 @@ export class QuestRunner {
         }
     }
 
+    public step_out(): void {
+
+    }
+
     private schedule_frame(): void {
         this.animation_frame = requestAnimationFrame(this.execution_loop);
     }
@@ -113,57 +146,70 @@ export class QuestRunner {
     private execution_loop = (): void => {
         let result: ExecutionResult;
 
+        let need_emit_unpause = this.paused.val;
+
         exec_loop: while (true) {
             result = this.vm.execute();
 
             const srcloc = this.vm.get_current_source_location();
             if (srcloc) {
+                // check if need to break
                 const hit_breakpoint =
                     this.break_on_next ||
-                    asm_editor_store.breakpoints.val.includes(srcloc.line_no) ||
+                    asm_editor_store?.breakpoints.val.includes(srcloc.line_no) ||
                     this.stepping_breakpoints.includes(srcloc.line_no);
+
+                this.break_on_next = false;
+
                 if (hit_breakpoint) {
                     this.stepping_breakpoints.length = 0;
-                    asm_editor_store.set_execution_location(srcloc.line_no);
+                    asm_editor_store?.set_execution_location(srcloc.line_no);
                     break exec_loop;
                 }
             }
 
-            this.break_on_next = false;
+            // first instruction after pause did not break, set state to unpaused
+            if (need_emit_unpause) {
+                need_emit_unpause = false;
+                this._paused.val = false;
+            }
 
             switch (result) {
                 case ExecutionResult.WaitingVsync:
                     this.vm.vsync();
                     this.schedule_frame();
-                    break;
+                    break exec_loop;
                 case ExecutionResult.WaitingInput:
                     // TODO: implement input from gui
                     this.schedule_frame();
-                    break;
+                    break exec_loop;
                 case ExecutionResult.WaitingSelection:
                     // TODO: implement input from gui
                     this.vm.list_select(0);
                     this.schedule_frame();
-                    break;
+                    break exec_loop;
                 case ExecutionResult.Halted:
-                    asm_editor_store.unset_execution_location();
+                    this._running.val = false;
+                    asm_editor_store?.unset_execution_location();
                     break exec_loop;
             }
         }
+
+        this._paused.val = true;
     };
 
     private create_vm_io = (): VirtualMachineIO => {
         return {
             window_msg: (msg: string): void => {
-                logger.info(`window_msg "${msg}"`);
+                logger?.info(`window_msg "${msg}"`);
             },
 
             message: (msg: string): void => {
-                logger.info(`message "${msg}"`);
+                logger?.info(`message "${msg}"`);
             },
 
             add_msg: (msg: string): void => {
-                logger.info(`add_msg "${msg}"`);
+                logger?.info(`add_msg "${msg}"`);
             },
 
             winend: (): void => {},
@@ -171,15 +217,15 @@ export class QuestRunner {
             mesend: (): void => {},
 
             list: (list_items: string[]): void => {
-                logger.info(`list "[${list_items}]"`);
+                logger?.info(`list "[${list_items}]"`);
             },
 
             warning: (msg: string, srcloc?: AsmToken): void => {
-                logger.warning(msg, srcloc && srcloc_to_string(srcloc));
+                logger?.warning(msg, srcloc && srcloc_to_string(srcloc));
             },
 
             error: (err: Error, srcloc?: AsmToken): void => {
-                logger.error(err, srcloc && srcloc_to_string(srcloc));
+                logger?.error(err, srcloc && srcloc_to_string(srcloc));
             },
         };
     };
