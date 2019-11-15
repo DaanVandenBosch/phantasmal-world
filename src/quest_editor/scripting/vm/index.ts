@@ -159,6 +159,7 @@ export class VirtualMachine {
     private list_open = false;
     private selection_reg = 0;
     private cur_srcloc?: AsmToken;
+    private _halted = true;
 
     constructor(private io: VirtualMachineIO = new VMIOStub()) {
         srand(GetTickCount());
@@ -216,29 +217,81 @@ export class VirtualMachine {
             );
         }
 
-        this.thread.push(
-            new Thread(
-                this.io,
-                new ExecutionLocation(seg_idx!, 0),
-                this.memory.allocate(ARG_STACK_SLOT_SIZE * ARG_STACK_LENGTH),
-                true,
-            ),
+        const thread = new Thread(
+            this.io,
+            new ExecutionLocation(seg_idx!, 0),
+            this.memory.allocate(ARG_STACK_SLOT_SIZE * ARG_STACK_LENGTH),
+            true,
         );
+
+        this.thread.push(thread);
+
+        this._halted = false;
+
+        this.update_source_location(thread);
     }
 
     private dispose_thread(thread_idx: number): void {
         this.thread[thread_idx].dispose();
         this.thread.splice(thread_idx, 1);
+
+        if (this.thread.length === 0) {
+            this.halt();
+        }
+    }
+
+    private update_source_location(exec: Thread) {
+        const inst = this.get_next_instruction_from_thread(exec);
+
+        if (inst.asm && inst.asm.mnemonic) {
+            this.cur_srcloc = inst.asm.mnemonic;
+        }
+    }
+
+    /**
+     * Move to next instruction.
+     */
+    public advance(): void {
+        if (this._halted) {
+            return;
+        }
+
+        const exec = this.thread[this.thread_idx];
+        if (exec.call_stack.length) {
+            const top = exec.call_stack_top();
+            const segment = this.object_code[top.seg_idx] as InstructionSegment;
+
+            // move to next instruction
+            if (++top.inst_idx >= segment.instructions.length) {
+                // segment ended, move to next segment
+                if (++top.seg_idx >= this.object_code.length) {
+                    // eof
+                    this.dispose_thread(this.thread_idx);
+                } else {
+                    top.inst_idx = 0;
+                }
+            }
+        }
+
+        if (this.thread.length === 0) {
+            this.halt();
+        } else {
+            this.update_source_location(exec);
+        }
+    }
+
+    public get halted(): boolean {
+        return this._halted;
     }
 
     /**
      * Executes the next instruction if one is scheduled.
+     * @param auto_advance Should the instruction pointer be automatically advanced.
      */
-    execute(): ExecutionResult {
+    execute(auto_advance: boolean = true): ExecutionResult {
         let srcloc: AsmToken | undefined;
 
-        if (this.thread.length === 0) {
-            this.cur_srcloc = undefined;
+        if (this._halted) {
             return ExecutionResult.Halted;
         }
 
@@ -246,13 +299,7 @@ export class VirtualMachine {
             const exec = this.thread[this.thread_idx];
             const inst = this.get_next_instruction_from_thread(exec);
 
-            if (inst.asm && inst.asm.mnemonic) {
-                srcloc = inst.asm.mnemonic;
-            }
-
-            this.cur_srcloc = srcloc;
-
-            return this.execute_instruction(exec, inst, srcloc);
+            return this.execute_instruction(auto_advance, exec, inst, srcloc);
         } catch (err) {
             if (!(err instanceof Error)) {
                 err = new Error(String(err));
@@ -266,6 +313,7 @@ export class VirtualMachine {
     }
 
     private execute_instruction(
+        auto_advance: boolean,
         exec: Thread,
         inst: Instruction,
         srcloc?: AsmToken,
@@ -689,21 +737,8 @@ export class VirtualMachine {
                 break;
         }
 
-        // advance instruction "pointer"
-        if (exec.call_stack.length) {
-            const top = exec.call_stack_top();
-            const segment = this.object_code[top.seg_idx] as InstructionSegment;
-
-            // move to next instruction
-            if (++top.inst_idx >= segment.instructions.length) {
-                // segment ended, move to next segment
-                if (++top.seg_idx >= this.object_code.length) {
-                    // eof
-                    this.dispose_thread(this.thread_idx);
-                } else {
-                    top.inst_idx = 0;
-                }
-            }
+        if (auto_advance) {
+            this.advance();
         }
 
         return result;
@@ -726,6 +761,8 @@ export class VirtualMachine {
             thread.dispose();
         }
 
+        this.cur_srcloc = undefined;
+        this._halted = true;
         this.window_msg_open = false;
 
         this.thread = [];
@@ -839,7 +876,7 @@ export class VirtualMachine {
             // popped off the last return address
             // which means this is the end of the function this thread was started on
             // which means this is the end of this thread
-            this.thread.splice(idx, 1);
+            this.dispose_thread(idx);
         }
     }
 

@@ -45,6 +45,11 @@ export class QuestRunner {
      * A quest is running but the execution is currently paused.
      */
     public readonly paused: Property<boolean> = this._paused;
+    /**
+     * Have we executed since last advancing the instruction pointer?
+     */
+    private executed_since_advance = false;
+    private first_frame = true;
 
     constructor() {
         this.vm = new VirtualMachine(this.create_vm_io());
@@ -73,6 +78,9 @@ export class QuestRunner {
         this.vm.start_thread(0);
 
         this._running.val = true;
+        this._paused.val = false;
+        this.executed_since_advance = false;
+        this.first_frame = true;
 
         this.schedule_frame();
     }
@@ -110,6 +118,8 @@ export class QuestRunner {
                 this.stepping_breakpoints.push(dst_instr.asm.mnemonic.line_no);
             }
         }
+
+        this.schedule_frame();
     }
 
     public step_in(): void {
@@ -139,6 +149,12 @@ export class QuestRunner {
 
     }
 
+    public stop(): void {
+        this._running.val = false;
+        this._paused.val = false;
+        asm_editor_store?.unset_execution_location();
+    }
+
     private schedule_frame(): void {
         this.animation_frame = requestAnimationFrame(this.execution_loop);
     }
@@ -149,30 +165,45 @@ export class QuestRunner {
         let need_emit_unpause = this.paused.val;
 
         exec_loop: while (true) {
-            result = this.vm.execute();
+            if (this.first_frame || this.executed_since_advance) {
+                if (!this.first_frame) {
+                    this.vm.advance();
+                    
+                    if (this.vm.halted) {
+                        this.stop();
+                        break exec_loop;
+                    }
+                }
 
-            const srcloc = this.vm.get_current_source_location();
-            if (srcloc) {
-                // check if need to break
-                const hit_breakpoint =
-                    this.break_on_next ||
-                    asm_editor_store?.breakpoints.val.includes(srcloc.line_no) ||
-                    this.stepping_breakpoints.includes(srcloc.line_no);
+                this.executed_since_advance = false;
 
-                this.break_on_next = false;
+                const srcloc = this.vm.get_current_source_location();
 
-                if (hit_breakpoint) {
-                    this.stepping_breakpoints.length = 0;
-                    asm_editor_store?.set_execution_location(srcloc.line_no);
-                    break exec_loop;
+                if (srcloc) {
+                    // check if need to break
+                    const hit_breakpoint =
+                        this.break_on_next ||
+                        asm_editor_store?.breakpoints.val.includes(srcloc.line_no) ||
+                        this.stepping_breakpoints.includes(srcloc.line_no);
+
+                    this.break_on_next = false;
+
+                    if (hit_breakpoint) {
+                        this.stepping_breakpoints.length = 0;
+                        asm_editor_store?.set_execution_location(srcloc.line_no);
+                        break exec_loop;
+                    }
+                }
+
+                // first instruction after pause did not break, set state to unpaused
+                if (need_emit_unpause) {
+                    need_emit_unpause = false;
+                    this._paused.val = false;
                 }
             }
 
-            // first instruction after pause did not break, set state to unpaused
-            if (need_emit_unpause) {
-                need_emit_unpause = false;
-                this._paused.val = false;
-            }
+            result = this.vm.execute(false);
+            this.executed_since_advance = true;
 
             switch (result) {
                 case ExecutionResult.WaitingVsync:
@@ -189,12 +220,12 @@ export class QuestRunner {
                     this.schedule_frame();
                     break exec_loop;
                 case ExecutionResult.Halted:
-                    this._running.val = false;
-                    asm_editor_store?.unset_execution_location();
+                    this.stop();
                     break exec_loop;
             }
         }
 
+        this.first_frame = false;
         this._paused.val = true;
     };
 
