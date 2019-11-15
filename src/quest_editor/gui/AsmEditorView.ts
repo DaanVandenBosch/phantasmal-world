@@ -29,90 +29,12 @@ editor.defineTheme("phantasmal-world", {
 
 const DUMMY_MODEL = editor.createModel("", "psoasm");
 
-/**
- * Merge Monaco decorations into one.
- */
-function merge_monaco_decorations(
-    ...decos: readonly editor.IModelDeltaDecoration[]
-): editor.IModelDeltaDecoration {
-    if (decos.length === 0) {
-        throw new Error("At least 1 argument is required.");
-    }
-
-    const merged: any = Object.assign({}, decos[0]);
-    merged.options = Object.assign({}, decos[0].options);
-
-    if (decos.length === 1) {
-        return merged;
-    }
-
-    for (let i = 1; i < decos.length; i++) {
-        const deco = decos[i];
-        for (const key of Object.keys(deco.options)) {
-            if (deco.options.hasOwnProperty(key)) {
-                const val = (deco.options as any)[key];
-
-                switch (typeof val) {
-                    case "object":
-                    case "boolean":
-                    case "number":
-                    case "string":
-                        merged.options[key] = val;
-                        break;
-                    default:
-                        break;
-                }
-            }
-        }
-    }
-
-    return merged;
-}
-/**
- * Monaco doesn't normally support having more than one decoration per line.
- * This function enables multiple decorations per line by merging them.
- */
-function update_monaco_decorations(
-    editor: IStandaloneCodeEditor,
-    deco_opts: editor.IModelDecorationOptions,
-    ...line_nums: readonly number[]
-): void {
-    const old_decos: string[] = [];
-    const delta_decos: editor.IModelDeltaDecoration[] = [];
-
-    if (line_nums.length < 1) {
-        return;
-    }
-
-    for (const line_num of line_nums) {
-        const update_deco = {
-            range: new Range(line_num, 0, line_num, 0),
-            options: deco_opts,
-        };
-
-        const cur_decos = editor.getLineDecorations(line_num);
-        if (cur_decos) {
-            // save current decos for replacement
-            for (const deco of cur_decos) {
-                old_decos.push(deco.id);
-            }
-
-            // merge current and new decos
-            delta_decos.push(merge_monaco_decorations(...cur_decos, update_deco));
-        } else {
-            // nothing to update on this line
-            delta_decos.push(update_deco);
-        }
-    }
-
-    // commit changes
-    editor.deltaDecorations(old_decos, delta_decos);
-}
-
 export class AsmEditorView extends ResizableWidget {
     private readonly tool_bar_view = this.disposable(new AsmEditorToolBar());
     private readonly editor: IStandaloneCodeEditor;
     private readonly history: EditorHistory;
+    private breakpoint_decoration_ids: string[] = [];
+    private execloc_decoration_id: string | undefined;
 
     readonly element = el.div();
 
@@ -169,33 +91,53 @@ export class AsmEditorView extends ResizableWidget {
                     this.editor.updateOptions({ readOnly: model == undefined });
                     this.editor.setModel(model || DUMMY_MODEL);
                     this.history.reset();
+                    
+                    this.breakpoint_decoration_ids = [];
+                    this.execloc_decoration_id = "";
+
+                    asm_editor_store.clear_breakpoints();
                 },
                 { call_now: true },
             ),
 
             asm_editor_store.breakpoints.observe_list(change => {
                 if (change.type === ListChangeType.ListChange) {
+
                     // remove
-                    update_monaco_decorations(
-                        this.editor,
-                        {
-                            glyphMarginClassName: null,
-                            glyphMarginHoverMessage: null,
-                        },
-                        ...change.removed,
-                    );
+                    for (const line_num of change.removed) {
+                        const cur_decos = this.editor.getLineDecorations(line_num);
+                        // find decoration on line
+                        if (cur_decos) {
+                            for (const deco of cur_decos) {
+                                const idx = this.breakpoint_decoration_ids.indexOf(deco.id);
+
+                                if (idx > -1) {
+                                    // remove decoration
+                                    this.editor.deltaDecorations([deco.id], []);
+                                    this.breakpoint_decoration_ids.splice(idx, 1);
+                                    break;
+                                }
+                            }
+                        }
+                    }
 
                     // add
-                    update_monaco_decorations(
-                        this.editor,
-                        {
-                            glyphMarginClassName: "quest_editor_AsmEditorView_breakpoint-enabled",
-                            glyphMarginHoverMessage: {
-                                value: "Breakpoint",
-                            },
-                        },
-                        ...change.inserted,
-                    );
+                    for (const line_num of change.inserted) {
+                        const cur_decos = this.editor.getLineDecorations(line_num);
+                        // don't allow duplicates
+                        if (!cur_decos?.some(deco => this.breakpoint_decoration_ids.includes(deco.id))) {
+                            // add new decoration, don't overwrite anything, save decoration id
+                            this.breakpoint_decoration_ids.push(this.editor.deltaDecorations([], [{
+                                range: new Range(line_num, 0, line_num, 0),
+                                options: {
+                                    glyphMarginClassName: "quest_editor_AsmEditorView_breakpoint-enabled",
+                                    glyphMarginHoverMessage: {
+                                        value: "Breakpoint"
+                                    }
+                                }
+                            }])[0]);
+                        }
+                    }
                 }
             }),
 
@@ -203,28 +145,24 @@ export class AsmEditorView extends ResizableWidget {
                 const old_line_num = e.old_value;
                 const new_line_num = e.value;
 
-                // unset old
-                if (old_line_num !== undefined) {
-                    update_monaco_decorations(
-                        this.editor,
-                        {
-                            className: null,
-                            isWholeLine: false,
-                        },
-                        old_line_num,
-                    );
+                // remove old
+                if (old_line_num !== undefined && this.execloc_decoration_id !== undefined) {
+                    const old_line_decos = this.editor.getLineDecorations(old_line_num);
+
+                    if (old_line_decos) {
+                        this.editor.deltaDecorations([this.execloc_decoration_id], []);
+                    }
                 }
 
-                // set new
+                // add new
                 if (new_line_num !== undefined) {
-                    update_monaco_decorations(
-                        this.editor,
-                        {
+                    this.execloc_decoration_id = this.editor.deltaDecorations([], [{
+                        range: new Range(new_line_num, 0, new_line_num, 0),
+                        options: {
                             className: "quest_editor_AsmEditorView_execution-location",
                             isWholeLine: true,
-                        },
-                        new_line_num,
-                    );
+                        }
+                    }])[0];
                 }
             }),
 

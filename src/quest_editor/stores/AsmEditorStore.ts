@@ -91,7 +91,9 @@ export class AsmEditorStore implements Disposable {
     private readonly _did_redo = emitter<string>();
     private readonly _inline_args_mode: WritableProperty<boolean> = property(true);
     private readonly _breakpoints: WritableListProperty<number> = list_property();
-    private readonly _execution_location: WritableProperty<number | undefined> = property(undefined);
+    private readonly _execution_location: WritableProperty<number | undefined> = property(
+        undefined,
+    );
 
     readonly model: Property<ITextModel | undefined> = this._model;
     readonly did_undo: Observable<string> = this._did_undo;
@@ -181,6 +183,69 @@ export class AsmEditorStore implements Disposable {
                 current_version = version;
 
                 assembly_analyser.update_assembly(e.changes);
+
+                // update breakpoints
+                for (const change of e.changes) {
+                    // empty text means something was deleted
+                    if (change.text === "") {
+                        const num_removed_lines =
+                            change.range.endLineNumber - change.range.startLineNumber;
+
+                        if (num_removed_lines > 0) {
+                            // if a line that has a decoration is removed
+                            // monaco will automatically move the decoration
+                            // to the line before the change.
+                            // we need to reflect this in the state as well.
+                            // move breakpoints that were in removed lines
+                            // backwards by the number of removed lines.
+                            for (
+                                let line_num = change.range.startLineNumber + 1;
+                                line_num <= change.range.endLineNumber;
+                                line_num++
+                            ) {
+                                // line numbers can't go less than 1
+                                const new_line_num = Math.max(line_num - num_removed_lines, 1);
+                                const breakpoint_idx = this._breakpoints.val.indexOf(line_num);
+
+                                // don't add breakpoint if one already exists
+                                if (
+                                    breakpoint_idx > -1 &&
+                                    !this._breakpoints.val.includes(new_line_num)
+                                ) {
+                                    this._breakpoints.splice(breakpoint_idx, 1, new_line_num);
+                                }
+                            }
+
+                            // move breakpoints that are after the affected
+                            // lines backwards by the number of removed lines
+                            for (let i = 0; i < this._breakpoints.val.length; i++) {
+                                if (this._breakpoints.val[i] > change.range.endLineNumber) {
+                                    this._breakpoints.splice(
+                                        i,
+                                        1,
+                                        this._breakpoints.val[i] - num_removed_lines,
+                                    );
+                                }
+                            }
+                        }
+                    } else {
+                        const num_added_lines = change.text.split("\n").length - 1;
+
+                        if (num_added_lines > 0) {
+                            // move breakpoints that are after the affected lines
+                            // forwards by the number of added lines
+                            for (let i = 0; i < this.breakpoints.val.length; i++) {
+                                if (this._breakpoints.val[i] > change.range.endLineNumber) {
+                                    this._breakpoints.splice(
+                                        i,
+                                        1,
+                                        this._breakpoints.val[i] + num_added_lines,
+                                    );
+                                }
+                            }
+                        }
+                    }
+                }
             }),
         );
     }
@@ -255,6 +320,10 @@ export class AsmEditorStore implements Disposable {
         } else {
             this._breakpoints.splice(i, 1);
         }
+    }
+
+    public clear_breakpoints(): void {
+        this._breakpoints.splice(0);
     }
 
     public set_execution_location(line_num: number): void {
