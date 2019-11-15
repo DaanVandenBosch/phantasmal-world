@@ -150,6 +150,7 @@ export class QuestRunner {
     }
 
     public stop(): void {
+        this.vm.halt();
         this._running.val = false;
         this._paused.val = false;
         asm_editor_store?.unset_execution_location();

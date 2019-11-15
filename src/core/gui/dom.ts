@@ -157,6 +157,7 @@ export enum Icon {
     LevelDown,
     LevelUp,
     LongArrowRight,
+    Stop,
 }
 
 export function icon(icon: Icon): HTMLElement {
@@ -210,6 +211,9 @@ export function icon(icon: Icon): HTMLElement {
             break;
         case Icon.LevelUp:
             icon_str = "fas fa-level-up-alt";
+            break;
+        case Icon.Stop:
+            icon_str = "fas fa-stop";
             break;
     }
 

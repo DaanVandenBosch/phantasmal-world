@@ -75,7 +75,7 @@ export class QuestEditorToolBar extends ToolBar {
         });
         const resume_button = new Button("Resume", {
             icon_left: Icon.SquareArrowRight,
-            tooltip: "Resume execution"
+            tooltip: "Resume execution",
         });
         const step_over_button = new Button("Step over", {
             icon_left: Icon.LongArrowRight,
@@ -83,11 +83,15 @@ export class QuestEditorToolBar extends ToolBar {
         });
         const step_in_button = new Button("Step in", {
             icon_left: Icon.LevelDown,
-            tooltip: "Execute the next line and step inside any function calls"
+            tooltip: "Execute the next line and step inside any function calls",
         });
         const step_out_button = new Button("Step out", {
             icon_left: Icon.LevelUp,
-            tooltip: "Execute until outside of current call frame"
+            tooltip: "Execute until outside of current call frame",
+        });
+        const stop_button = new Button("Stop", {
+            icon_left: Icon.Stop,
+            tooltip: "Stop execution",
         });
 
         const children = [
@@ -100,14 +104,23 @@ export class QuestEditorToolBar extends ToolBar {
         ];
 
         if (gui_store.feature_active("vm")) {
-            children.push(run_button, resume_button, step_over_button, step_in_button, step_out_button);
+            children.push(
+                run_button,
+                resume_button,
+                step_over_button,
+                step_in_button,
+                step_out_button,
+                stop_button,
+            );
         }
 
         super({ children });
 
         const quest_loaded = quest_editor_store.current_quest.map(q => q != undefined);
 
-        const step_controls_enabled = quest_editor_store.quest_runner.paused.map(paused => paused && quest_editor_store.quest_runner.running.val && quest_loaded.val);
+        const step_controls_enabled = quest_editor_store.quest_runner.paused.map(
+            paused => paused && quest_editor_store.quest_runner.running.val && quest_loaded.val,
+        );
 
         this.disposables(
             new_quest_button.chosen.observe(({ value: episode }) =>
@@ -137,13 +150,15 @@ export class QuestEditorToolBar extends ToolBar {
 
             run_button.click.observe(quest_editor_store.run_current_quest),
 
-            resume_button.click.observe(() => quest_editor_store.quest_runner?.resume()),
+            resume_button.click.observe(() => quest_editor_store.quest_runner.resume()),
 
-            step_over_button.click.observe(() => quest_editor_store.quest_runner?.step_over()),
+            step_over_button.click.observe(() => quest_editor_store.quest_runner.step_over()),
 
-            step_in_button.click.observe(() => quest_editor_store.quest_runner?.step_in()),
+            step_in_button.click.observe(() => quest_editor_store.quest_runner.step_in()),
 
-            step_out_button.click.observe(() => quest_editor_store.quest_runner?.step_out()),
+            step_out_button.click.observe(() => quest_editor_store.quest_runner.step_out()),
+
+            stop_button.click.observe(() => quest_editor_store.quest_runner.stop()),
 
             run_button.enabled.bind_to(quest_loaded),
 
@@ -154,6 +169,8 @@ export class QuestEditorToolBar extends ToolBar {
             step_in_button.enabled.bind_to(step_controls_enabled),
 
             step_out_button.enabled.bind_to(step_controls_enabled),
+
+            stop_button.enabled.bind_to(step_controls_enabled),
 
             gui_store.on_global_keydown(GuiTool.QuestEditor, "Ctrl-O", () =>
                 open_file_button.click(),
