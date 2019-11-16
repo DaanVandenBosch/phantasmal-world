@@ -242,6 +242,8 @@ export class VirtualMachine {
 
         if (inst.asm && inst.asm.mnemonic) {
             this.cur_srcloc = inst.asm.mnemonic;
+        } else {
+            this.cur_srcloc = undefined;
         }
     }
 
