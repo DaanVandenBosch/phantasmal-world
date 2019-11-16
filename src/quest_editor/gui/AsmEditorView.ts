@@ -7,6 +7,7 @@ import { EditorHistory } from "./EditorHistory";
 import IStandaloneCodeEditor = editor.IStandaloneCodeEditor;
 import "./AsmEditorView.css";
 import { ListChangeType } from "../../core/observable/property/list/ListProperty";
+import { quest_editor_store } from "../stores/QuestEditorStore";
 
 editor.defineTheme("phantasmal-world", {
     base: "vs-dark",
@@ -88,7 +89,7 @@ export class AsmEditorView extends ResizableWidget {
 
             asm_editor_store.model.observe(
                 ({ value: model }) => {
-                    this.editor.updateOptions({ readOnly: model == undefined });
+                    this.editor.updateOptions({ readOnly: model == undefined && !quest_editor_store.quest_runner.running.val });
                     this.editor.setModel(model || DUMMY_MODEL);
                     this.history.reset();
                     
@@ -99,6 +100,9 @@ export class AsmEditorView extends ResizableWidget {
                 },
                 { call_now: true },
             ),
+
+            // disable editor when quest is running
+            quest_editor_store.quest_runner.running.observe(({value}) => this.editor.updateOptions({readOnly: value})),
 
             asm_editor_store.breakpoints.observe_list(change => {
                 if (change.type === ListChangeType.ListChange) {
