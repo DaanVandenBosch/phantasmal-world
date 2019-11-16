@@ -50,16 +50,13 @@ export class QuestEditorStore implements Disposable, MessageLogStore {
      */
     private readonly log_levels_map = (function<KT extends readonly string[]>(names: KT) {
         type K = KT[keyof KT & number];
-        return names.reduce<Record<K, LogLevel>>(
-            (accum, name: K, idx) => {
-                accum[name] = {
-                    name: name,
-                    value: idx,
-                };
-                return accum;
-            },
-            {} as Record<K, LogLevel>,
-        );
+        return names.reduce<Record<K, LogLevel>>((accum, name: K, idx) => {
+            accum[name] = {
+                name: name,
+                value: idx,
+            };
+            return accum;
+        }, {} as Record<K, LogLevel>);
     })(
         // Log level names in order of importance
         ["Debug", "Info", "Warning", "Error"] as const,
@@ -127,11 +124,13 @@ export class QuestEditorStore implements Disposable, MessageLogStore {
                 }),
 
             // force refresh
+            /* eslint-disable no-self-assign */
             this._log_level.observe(() => (this._log_messages.val = this._log_messages.val)),
             this._log_group.observe(() => (this._log_messages.val = this._log_messages.val)),
             this._show_all_log_groups.observe(
                 () => (this._log_messages.val = this._log_messages.val),
             ),
+            /* eslint-enable no-self-assign */
         );
 
         this.log_messages = this._log_messages.filtered(this.log_message_predicate);

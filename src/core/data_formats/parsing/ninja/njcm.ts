@@ -55,7 +55,8 @@ type NjcmChunk = {
     | NjcmVertexChunk
     | NjcmVolumeChunk
     | NjcmStripChunk
-    | NjcmEndChunk);
+    | NjcmEndChunk
+);
 
 type NjcmUnknownChunk = {
     type: NjcmChunkType.Unknown;

@@ -190,7 +190,12 @@ class GeometryCreator {
                         }
                     }
 
-                    const bones = [[0, 0], [0, 0], [0, 0], [0, 0]];
+                    const bones = [
+                        [0, 0],
+                        [0, 0],
+                        [0, 0],
+                        [0, 0],
+                    ];
 
                     for (let j = vertices.length - 1; j >= 0; j--) {
                         const vertex = vertices[j];

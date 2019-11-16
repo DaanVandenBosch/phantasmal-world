@@ -2,6 +2,7 @@ import { stub } from "../../../core/decorators";
 import { AsmToken } from "../instructions";
 import { VirtualMachineIO } from "./io";
 
+/* eslint-disable */
 /**
  * All methods of VirtualMachineIO implemented as stubs.
  */
@@ -15,3 +16,4 @@ export class VMIOStub implements VirtualMachineIO {
     @stub warning(msg: string, srcloc?: AsmToken): void {}
     @stub error(err: Error, srcloc?: AsmToken): void {}
 }
+/* eslint-enable */

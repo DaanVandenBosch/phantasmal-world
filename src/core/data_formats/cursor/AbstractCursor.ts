@@ -238,11 +238,7 @@ export abstract class AbstractCursor implements Cursor {
         return String.fromCodePoint(...code_points);
     }
 
-    string_ascii_at(
-        offset: number,
-        max_byte_length: number,
-        null_terminated: boolean,
-    ): string {
+    string_ascii_at(offset: number, max_byte_length: number, null_terminated: boolean): string {
         const code_points: number[] = [];
 
         for (let i = 0; i < max_byte_length; i++) {
@@ -258,11 +254,7 @@ export abstract class AbstractCursor implements Cursor {
         return String.fromCodePoint(...code_points);
     }
 
-    string_utf16_at(
-        offset: number,
-        max_byte_length: number,
-        null_terminated: boolean,
-    ): string {
+    string_utf16_at(offset: number, max_byte_length: number, null_terminated: boolean): string {
         const code_points: number[] = [];
         const len = Math.floor(max_byte_length / 2);
 

@@ -51,7 +51,7 @@ export function defined<T>(value: T | undefined): asserts value is T {
 export function assert(condition: any, msg?: string): asserts condition {
     if (!condition) {
         let full_msg = "Assertion Error";
-        
+
         if (msg) {
             full_msg += ": " + msg;
         }

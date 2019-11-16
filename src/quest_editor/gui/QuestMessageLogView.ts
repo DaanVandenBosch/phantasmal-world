@@ -1,4 +1,3 @@
-import { ResizableWidget } from "../../core/gui/ResizableWidget";
 import { quest_editor_store } from "../stores/QuestEditorStore";
 import { MessageLog } from "../../core/gui/MessageLog";
 import "./QuestMessageLogView.css";

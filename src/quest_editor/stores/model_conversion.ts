@@ -72,13 +72,15 @@ export function convert_quest_to_model(quest: Quest): QuestModel {
 function build_event_dags(dat_events: readonly DatEvent[]): QuestEventDagModel[] {
     // Build up a temporary data structure with partial data.
     // Maps event id and area id to data.
-    const data_map = new Map<string,
+    const data_map = new Map<
+        string,
         {
             event?: QuestEventModel;
             area_id: number;
             parents: QuestEventModel[];
             child_ids: number[];
-        }>();
+        }
+    >();
 
     for (const event of dat_events) {
         const key = `${event.id}-${event.area_id}`;
@@ -122,22 +124,23 @@ function build_event_dags(dat_events: readonly DatEvent[]): QuestEventDagModel[]
                 case DatEventActionType.Lock:
                     event_model.add_action(new QuestEventActionLockModel(action.door_id));
                     break;
-                case DatEventActionType.TriggerEvent: {
-                    data.child_ids.push(action.event_id);
+                case DatEventActionType.TriggerEvent:
+                    {
+                        data.child_ids.push(action.event_id);
 
-                    const child_key = `${action.event_id}-${event.area_id}`;
-                    const child_data = data_map.get(child_key);
+                        const child_key = `${action.event_id}-${event.area_id}`;
+                        const child_data = data_map.get(child_key);
 
-                    if (child_data) {
-                        child_data.parents.push(event_model);
-                    } else {
-                        data_map.set(child_key, {
-                            area_id: event.area_id,
-                            parents: [event_model],
-                            child_ids: [],
-                        });
+                        if (child_data) {
+                            child_data.parents.push(event_model);
+                        } else {
+                            data_map.set(child_key, {
+                                area_id: event.area_id,
+                                parents: [event_model],
+                                child_ids: [],
+                            });
+                        }
                     }
-                }
                     break;
                 default:
                     logger.warn(`Unknown event action type: ${(action as any).type}.`);
@@ -273,7 +276,7 @@ export function convert_quest_from_model(quest: QuestModel): Quest {
             pso_roaming: npc.pso_roaming,
         })),
         events: convert_quest_events_from_model(quest.event_dags.val),
-        dat_unknowns: quest.dat_unknowns.map(unk => ({...unk})),
+        dat_unknowns: quest.dat_unknowns.map(unk => ({ ...unk })),
         object_code: quest.object_code.map(seg => clone_segment(seg)),
         shop_items: quest.shop_items.slice(),
         map_designations: new Map(quest.map_designations.val),

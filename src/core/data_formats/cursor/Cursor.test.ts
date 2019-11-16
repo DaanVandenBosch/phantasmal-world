@@ -61,7 +61,13 @@ test_all(
     "simple properties and invariants",
     () => [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
     (cursor, endianness) => {
-        for (const [seek_to, expected_pos] of [[0, 0], [3, 3], [5, 8], [2, 10], [-10, 0]]) {
+        for (const [seek_to, expected_pos] of [
+            [0, 0],
+            [3, 3],
+            [5, 8],
+            [2, 10],
+            [-10, 0],
+        ]) {
             cursor.seek(seek_to);
 
             expect(cursor.size).toBe(10);

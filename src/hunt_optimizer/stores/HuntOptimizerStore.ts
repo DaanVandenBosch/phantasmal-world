@@ -37,9 +37,9 @@ class HuntOptimizerStore implements Disposable {
     readonly wanted_items: ListProperty<WantedItemModel>;
     readonly result: Property<OptimalResultModel | undefined>;
 
-    private readonly _wanted_items: WritableListProperty<WantedItemModel> = list_property(
-        wanted_item => [wanted_item.amount],
-    );
+    private readonly _wanted_items: WritableListProperty<
+        WantedItemModel
+    > = list_property(wanted_item => [wanted_item.amount]);
     private readonly disposer = new Disposer();
 
     constructor(

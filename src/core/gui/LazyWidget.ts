@@ -7,7 +7,7 @@ export class LazyWidget extends ResizableWidget {
     readonly element = el.div({ class: "core_LazyView" });
 
     private initialized = false;
-    private view: Widget & Resizable | undefined;
+    private view: (Widget & Resizable) | undefined;
 
     constructor(private create_view: () => Promise<Widget & Resizable>) {
         super();

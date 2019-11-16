@@ -634,7 +634,11 @@ class CreationState implements State {
                 new Euler(0, 0, 0, "ZXY"),
                 new Vector3(1, 1, 1),
                 // TODO: do the following values make sense?
-                [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0]],
+                [
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0],
+                ],
             );
         } else {
             this.entity = new QuestObjectModel(
@@ -648,7 +652,10 @@ class CreationState implements State {
                 // TODO: which default properties?
                 new Map(),
                 // TODO: do the following values make sense?
-                [[0, 0, 0, 0, 0, 0], [0, 0]],
+                [
+                    [0, 0, 0, 0, 0, 0],
+                    [0, 0],
+                ],
             );
         }
 

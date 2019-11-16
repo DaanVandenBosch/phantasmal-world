@@ -172,20 +172,12 @@ export interface Cursor {
     /**
      * Reads an ASCII-encoded string at the given absolute offset. Doesn't increment position.
      */
-    string_ascii_at(
-        offset: number,
-        max_byte_length: number,
-        null_terminated: boolean,
-    ): string;
+    string_ascii_at(offset: number, max_byte_length: number, null_terminated: boolean): string;
 
     /**
      * Reads an UTF-16-encoded string at the given absolute offset. Doesn't increment position.
      */
-    string_utf16_at(
-        offset: number,
-        max_byte_length: number,
-        null_terminated: boolean,
-    ): string;
+    string_utf16_at(offset: number, max_byte_length: number, null_terminated: boolean): string;
 
     array_buffer(size?: number): ArrayBuffer;
 

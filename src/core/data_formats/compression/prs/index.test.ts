@@ -36,7 +36,10 @@ test("PRS compression and decompression, worst case", () => {
     const prng = new Prng();
 
     // Compression factor: 1.125
-    test_with_bytes(new Array(10000).fill(0).map(() => prng.next_integer(0, 255)), 11253);
+    test_with_bytes(
+        new Array(10000).fill(0).map(() => prng.next_integer(0, 255)),
+        11253,
+    );
 });
 
 test("PRS compression and decompression, typical case", () => {

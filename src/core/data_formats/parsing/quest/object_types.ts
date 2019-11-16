@@ -1125,7 +1125,10 @@ define_object_type_data(ObjectType.MedicalCenterDoor, 73, "Medical Center Door",
     [Episode.I, [0]],
     [Episode.IV, [0]],
 ]);
-define_object_type_data(ObjectType.Elevator, 74, "Elevator", [[Episode.I, [0]], [Episode.IV, [0]]]);
+define_object_type_data(ObjectType.Elevator, 74, "Elevator", [
+    [Episode.I, [0]],
+    [Episode.IV, [0]],
+]);
 define_object_type_data(ObjectType.EasterEgg, 75, "Easter Egg", [
     [Episode.I, [0]],
     [Episode.II, [0]],
@@ -1179,7 +1182,11 @@ define_object_type_data(
     ObjectType.MainRagolTeleporterBattleInNextArea,
     85,
     "Main Ragol Teleporter (Battle in next area?)",
-    [[Episode.I, [0]], [Episode.II, [0]], [Episode.IV, [0]]],
+    [
+        [Episode.I, [0]],
+        [Episode.II, [0]],
+        [Episode.IV, [0]],
+    ],
 );
 define_object_type_data(ObjectType.LabTeleporterDoor, 86, "Lab Teleporter Door", [
     [Episode.II, [0]],
@@ -1188,7 +1195,11 @@ define_object_type_data(
     ObjectType.Pioneer2InvisibleTouchplate,
     87,
     "Pioneer 2 Invisible Touchplate",
-    [[Episode.I, [0]], [Episode.II, [0]], [Episode.IV, [0]]],
+    [
+        [Episode.I, [0]],
+        [Episode.II, [0]],
+        [Episode.IV, [0]],
+    ],
 );
 define_object_type_data(ObjectType.ForestDoor, 128, "Forest Door", [[Episode.I, [1, 2]]]);
 define_object_type_data(ObjectType.ForestSwitch, 129, "Forest Switch", [
@@ -1388,7 +1399,10 @@ define_object_type_data(
     ObjectType.GreenScreenOpeningAndClosing,
     261,
     "Green Screen opening and closing",
-    [[Episode.I, [6, 7]], [Episode.II, [17]]],
+    [
+        [Episode.I, [6, 7]],
+        [Episode.II, [17]],
+    ],
 );
 define_object_type_data(ObjectType.FloatingRobot, 262, "Floating Robot", [[Episode.I, [6, 7]]]);
 define_object_type_data(ObjectType.FloatingBlueLight, 263, "Floating Blue Light", [
@@ -1575,7 +1589,10 @@ define_object_type_data(
     ObjectType.BreakableWallWallButUnbreakable,
     417,
     '"breakable wall wall, but unbreakable"',
-    [[Episode.I, [17]], [Episode.II, [1, 2]]],
+    [
+        [Episode.I, [17]],
+        [Episode.II, [1, 2]],
+    ],
 );
 define_object_type_data(ObjectType.BrokenCylinderAndRubble, 418, "Broken cylinder and rubble", [
     [Episode.I, [17]],
@@ -1585,7 +1602,10 @@ define_object_type_data(
     ObjectType.ThreeBrokenWallPiecesOnFloor,
     419,
     "3 broken wall pieces on floor",
-    [[Episode.I, [17]], [Episode.II, [1, 2]]],
+    [
+        [Episode.I, [17]],
+        [Episode.II, [1, 2]],
+    ],
 );
 define_object_type_data(ObjectType.HighBrickCylinder, 420, "high brick cylinder", [
     [Episode.I, [17]],
@@ -1612,13 +1632,19 @@ define_object_type_data(
     ObjectType.SmallBrownBrickRisingBridge,
     425,
     "small brown brick rising bridge",
-    [[Episode.I, [17]], [Episode.II, [1, 2]]],
+    [
+        [Episode.I, [17]],
+        [Episode.II, [1, 2]],
+    ],
 );
 define_object_type_data(
     ObjectType.LongRisingBridgeWithPinkHighEdges,
     426,
     "long rising bridge (with pink high edges)",
-    [[Episode.I, [17]], [Episode.II, [1, 2]]],
+    [
+        [Episode.I, [17]],
+        [Episode.II, [1, 2]],
+    ],
 );
 define_object_type_data(ObjectType.FourSwitchTempleDoor, 427, "4 switch temple door", [
     [Episode.II, [1, 2]],

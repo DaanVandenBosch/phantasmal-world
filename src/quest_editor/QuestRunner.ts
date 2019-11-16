@@ -1,7 +1,7 @@
 import { ExecutionResult, VirtualMachine, ExecutionLocation } from "./scripting/vm";
 import { QuestModel } from "./model/QuestModel";
 import { VirtualMachineIO } from "./scripting/vm/io";
-import { AsmToken, SegmentType, InstructionSegment, Segment, Instruction } from "./scripting/instructions";
+import { AsmToken, SegmentType, InstructionSegment, Instruction } from "./scripting/instructions";
 import { quest_editor_store, Logger } from "./stores/QuestEditorStore";
 import { defined, assert } from "../core/util";
 import {
@@ -25,10 +25,6 @@ let logger: Logger | undefined;
 
 function srcloc_to_string(srcloc: AsmToken): string {
     return `[${srcloc.line_no}:${srcloc.col}]`;
-}
-
-function execloc_to_string(execloc: ExecutionLocation) {
-    return `[${execloc.seg_idx}:${execloc.inst_idx}]`;
 }
 
 export class QuestRunner {
@@ -134,7 +130,7 @@ export class QuestRunner {
             const dst_segment = this.get_instruction_segment_by_label(dst_label);
             const dst_instr = dst_segment.instructions[0];
             const dst_srcloc = this.get_source_location(dst_instr);
-            
+
             if (dst_srcloc) {
                 this.stepping_breakpoints.push(dst_srcloc.line_no);
             }
@@ -144,7 +140,7 @@ export class QuestRunner {
     }
 
     public step_out(): void {
-
+        // unimplemented
     }
 
     public stop(): void {
@@ -164,10 +160,10 @@ export class QuestRunner {
         let need_emit_unpause = this.paused.val;
 
         exec_loop: while (true) {
-            if (this.first_frame || this.executed_since_advance) {
+            if (this.first_frame || this.executed_since_advance) {
                 if (!this.first_frame) {
                     this.vm.advance();
-                    
+
                     this.executed_since_advance = false;
 
                     if (this.vm.halted) {
@@ -281,7 +277,7 @@ export class QuestRunner {
         return this.get_instruction_segment_by_index(seg_idx);
     }
 
-    private get_step_innable_instruction_label_argument(instr: Instruction): number | undefined {
+    private get_step_innable_instruction_label_argument(instr: Instruction): number | undefined {
         switch (instr.opcode.code) {
             case OP_VA_CALL.code:
             case OP_CALL.code:
@@ -317,7 +313,7 @@ export class QuestRunner {
         return dst_srcloc;
     }
 
-    private get_next_source_location(execloc: ExecutionLocation): AsmToken | undefined {
+    private get_next_source_location(execloc: ExecutionLocation): AsmToken | undefined {
         defined(this.quest);
 
         const next_loc = new ExecutionLocation(execloc.seg_idx, execloc.inst_idx);
@@ -339,7 +335,7 @@ export class QuestRunner {
         if (next_loc.seg_idx >= this.quest.object_code.length) {
             return undefined;
         }
-        
+
         const dst_instr = segment.instructions[next_loc.inst_idx];
         return this.get_source_location(dst_instr);
     }

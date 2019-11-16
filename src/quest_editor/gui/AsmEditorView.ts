@@ -89,10 +89,13 @@ export class AsmEditorView extends ResizableWidget {
 
             asm_editor_store.model.observe(
                 ({ value: model }) => {
-                    this.editor.updateOptions({ readOnly: model == undefined && !quest_editor_store.quest_runner.running.val });
+                    this.editor.updateOptions({
+                        readOnly:
+                            model == undefined && !quest_editor_store.quest_runner.running.val,
+                    });
                     this.editor.setModel(model || DUMMY_MODEL);
                     this.history.reset();
-                    
+
                     this.breakpoint_decoration_ids = [];
                     this.execloc_decoration_id = "";
 
@@ -102,11 +105,12 @@ export class AsmEditorView extends ResizableWidget {
             ),
 
             // disable editor when quest is running
-            quest_editor_store.quest_runner.running.observe(({value}) => this.editor.updateOptions({readOnly: value})),
+            quest_editor_store.quest_runner.running.observe(({ value }) =>
+                this.editor.updateOptions({ readOnly: value }),
+            ),
 
             asm_editor_store.breakpoints.observe_list(change => {
                 if (change.type === ListChangeType.ListChange) {
-
                     // remove
                     for (const line_num of change.removed) {
                         const cur_decos = this.editor.getLineDecorations(line_num);
@@ -129,17 +133,29 @@ export class AsmEditorView extends ResizableWidget {
                     for (const line_num of change.inserted) {
                         const cur_decos = this.editor.getLineDecorations(line_num);
                         // don't allow duplicates
-                        if (!cur_decos?.some(deco => this.breakpoint_decoration_ids.includes(deco.id))) {
+                        if (
+                            !cur_decos?.some(deco =>
+                                this.breakpoint_decoration_ids.includes(deco.id),
+                            )
+                        ) {
                             // add new decoration, don't overwrite anything, save decoration id
-                            this.breakpoint_decoration_ids.push(this.editor.deltaDecorations([], [{
-                                range: new Range(line_num, 0, line_num, 0),
-                                options: {
-                                    glyphMarginClassName: "quest_editor_AsmEditorView_breakpoint-enabled",
-                                    glyphMarginHoverMessage: {
-                                        value: "Breakpoint"
-                                    }
-                                }
-                            }])[0]);
+                            this.breakpoint_decoration_ids.push(
+                                this.editor.deltaDecorations(
+                                    [],
+                                    [
+                                        {
+                                            range: new Range(line_num, 0, line_num, 0),
+                                            options: {
+                                                glyphMarginClassName:
+                                                    "quest_editor_AsmEditorView_breakpoint-enabled",
+                                                glyphMarginHoverMessage: {
+                                                    value: "Breakpoint",
+                                                },
+                                            },
+                                        },
+                                    ],
+                                )[0],
+                            );
                         }
                     }
                 }
@@ -160,13 +176,18 @@ export class AsmEditorView extends ResizableWidget {
 
                 // add new
                 if (new_line_num !== undefined) {
-                    this.execloc_decoration_id = this.editor.deltaDecorations([], [{
-                        range: new Range(new_line_num, 0, new_line_num, 0),
-                        options: {
-                            className: "quest_editor_AsmEditorView_execution-location",
-                            isWholeLine: true,
-                        }
-                    }])[0];
+                    this.execloc_decoration_id = this.editor.deltaDecorations(
+                        [],
+                        [
+                            {
+                                range: new Range(new_line_num, 0, new_line_num, 0),
+                                options: {
+                                    className: "quest_editor_AsmEditorView_execution-location",
+                                    isWholeLine: true,
+                                },
+                            },
+                        ],
+                    )[0];
                 }
             }),
 
@@ -175,11 +196,13 @@ export class AsmEditorView extends ResizableWidget {
             this.editor.onMouseDown(e => {
                 switch (e.target.type) {
                     case editor.MouseTargetType.GUTTER_GLYPH_MARGIN:
-                        const pos = e.target.position;
-                        if (!pos) {
-                            return;
+                        {
+                            const pos = e.target.position;
+                            if (!pos) {
+                                return;
+                            }
+                            asm_editor_store.toggle_breakpoint(pos.lineNumber);
                         }
-                        asm_editor_store.toggle_breakpoint(pos.lineNumber);
                         break;
                     default:
                         break;

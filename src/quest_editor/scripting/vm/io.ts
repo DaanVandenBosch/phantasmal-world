@@ -3,7 +3,10 @@ import { AsmToken } from "../instructions";
 /**
  * The virtual machine calls these methods when it requires input.
  */
-export interface VirtualMachineInput {}
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface VirtualMachineInput {
+    // unimplemented
+}
 
 /**
  * The virtual machine calls these methods when it outputs something.

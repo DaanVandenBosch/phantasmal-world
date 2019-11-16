@@ -109,7 +109,6 @@ const ARG_STACK_SLOT_SIZE = 4;
 const ARG_STACK_LENGTH = 8;
 const STRING_ARG_STORE_ADDRESS = 0x00a92700;
 const STRING_ARG_STORE_SIZE = 1024; // TODO: verify this value
-const FLOAT_EPSILON = 1.19e-7;
 const ENTRY_SEGMENT = 0;
 const LIST_ITEM_DELIMITER = "\n";
 
@@ -237,7 +236,7 @@ export class VirtualMachine {
         }
     }
 
-    private update_source_location(exec: Thread) {
+    private update_source_location(exec: Thread): void {
         const inst = this.get_next_instruction_from_thread(exec);
 
         if (inst.asm && inst.asm.mnemonic) {
@@ -299,7 +298,9 @@ export class VirtualMachine {
             const inst = this.get_next_instruction_from_thread(exec);
 
             return this.execute_instruction(auto_advance, exec, inst, srcloc);
-        } catch (err) {
+        } catch (thrown) {
+            let err = thrown;
+
             if (!(err instanceof Error)) {
                 err = new Error(String(err));
             }

@@ -114,7 +114,10 @@ function create_default_objects(): QuestObjectModel[] {
                 ["property_5", 0],
                 ["property_6", 2365279104],
             ]),
-            [[2, 0, 0, 0, 0, 0], [0, 0]],
+            [
+                [2, 0, 0, 0, 0, 0],
+                [0, 0],
+            ],
         ),
         new QuestObjectModel(
             ObjectType.MenuActivation,
@@ -133,7 +136,10 @@ function create_default_objects(): QuestObjectModel[] {
                 ["property_5", 0],
                 ["property_6", 2365279264],
             ]),
-            [[2, 0, 1, 0, 0, 0], [0, 0]],
+            [
+                [2, 0, 1, 0, 0, 0],
+                [0, 0],
+            ],
         ),
         new QuestObjectModel(
             ObjectType.MenuActivation,
@@ -152,7 +158,10 @@ function create_default_objects(): QuestObjectModel[] {
                 ["property_5", 10],
                 ["property_6", 2365279424],
             ]),
-            [[2, 0, 2, 0, 0, 0], [0, 0]],
+            [
+                [2, 0, 2, 0, 0, 0],
+                [0, 0],
+            ],
         ),
         new QuestObjectModel(
             ObjectType.MenuActivation,
@@ -171,7 +180,10 @@ function create_default_objects(): QuestObjectModel[] {
                 ["property_5", 0],
                 ["property_6", 2365279584],
             ]),
-            [[2, 0, 3, 0, 0, 0], [0, 0]],
+            [
+                [2, 0, 3, 0, 0, 0],
+                [0, 0],
+            ],
         ),
         new QuestObjectModel(
             ObjectType.PlayerSet,
@@ -190,7 +202,10 @@ function create_default_objects(): QuestObjectModel[] {
                 ["property_5", 0],
                 ["property_6", 2365279744],
             ]),
-            [[2, 0, 4, 0, 0, 0], [0, 0]],
+            [
+                [2, 0, 4, 0, 0, 0],
+                [0, 0],
+            ],
         ),
         new QuestObjectModel(
             ObjectType.PlayerSet,
@@ -209,7 +224,10 @@ function create_default_objects(): QuestObjectModel[] {
                 ["property_5", 0],
                 ["property_6", 2365279904],
             ]),
-            [[2, 0, 5, 0, 0, 0], [0, 0]],
+            [
+                [2, 0, 5, 0, 0, 0],
+                [0, 0],
+            ],
         ),
         new QuestObjectModel(
             ObjectType.PlayerSet,
@@ -228,7 +246,10 @@ function create_default_objects(): QuestObjectModel[] {
                 ["property_5", 0],
                 ["property_6", 2365280064],
             ]),
-            [[2, 0, 6, 0, 0, 0], [0, 0]],
+            [
+                [2, 0, 6, 0, 0, 0],
+                [0, 0],
+            ],
         ),
         new QuestObjectModel(
             ObjectType.PlayerSet,
@@ -247,7 +268,10 @@ function create_default_objects(): QuestObjectModel[] {
                 ["property_5", 0],
                 ["property_6", 2365280224],
             ]),
-            [[2, 0, 7, 0, 0, 0], [0, 0]],
+            [
+                [2, 0, 7, 0, 0, 0],
+                [0, 0],
+            ],
         ),
         new QuestObjectModel(
             ObjectType.MainRagolTeleporter,
@@ -266,7 +290,10 @@ function create_default_objects(): QuestObjectModel[] {
                 ["property_5", 0],
                 ["property_6", 2365227216],
             ]),
-            [[0, 0, 87, 7, 0, 0], [0, 0]],
+            [
+                [0, 0, 87, 7, 0, 0],
+                [0, 0],
+            ],
         ),
         new QuestObjectModel(
             ObjectType.PrincipalWarp,
@@ -285,7 +312,10 @@ function create_default_objects(): QuestObjectModel[] {
                 ["property_5", 65536],
                 ["property_6", 2365280688],
             ]),
-            [[2, 0, 9, 0, 0, 0], [0, 0]],
+            [
+                [2, 0, 9, 0, 0, 0],
+                [0, 0],
+            ],
         ),
         new QuestObjectModel(
             ObjectType.MenuActivation,
@@ -304,7 +334,10 @@ function create_default_objects(): QuestObjectModel[] {
                 ["property_5", 0],
                 ["property_6", 2365280992],
             ]),
-            [[2, 0, 10, 0, 0, 0], [1, 0]],
+            [
+                [2, 0, 10, 0, 0, 0],
+                [1, 0],
+            ],
         ),
         new QuestObjectModel(
             ObjectType.MenuActivation,
@@ -323,7 +356,10 @@ function create_default_objects(): QuestObjectModel[] {
                 ["property_5", 0],
                 ["property_6", 2365281152],
             ]),
-            [[2, 0, 11, 0, 0, 0], [0, 0]],
+            [
+                [2, 0, 11, 0, 0, 0],
+                [0, 0],
+            ],
         ),
         new QuestObjectModel(
             ObjectType.PrincipalWarp,
@@ -342,7 +378,10 @@ function create_default_objects(): QuestObjectModel[] {
                 ["property_5", 0],
                 ["property_6", 2365281312],
             ]),
-            [[2, 0, 12, 0, 0, 0], [0, 0]],
+            [
+                [2, 0, 12, 0, 0, 0],
+                [0, 0],
+            ],
         ),
         new QuestObjectModel(
             ObjectType.TelepipeLocation,
@@ -361,7 +400,10 @@ function create_default_objects(): QuestObjectModel[] {
                 ["property_5", 0],
                 ["property_6", 2365281616],
             ]),
-            [[2, 0, 13, 0, 0, 0], [0, 0]],
+            [
+                [2, 0, 13, 0, 0, 0],
+                [0, 0],
+            ],
         ),
         new QuestObjectModel(
             ObjectType.TelepipeLocation,
@@ -380,7 +422,10 @@ function create_default_objects(): QuestObjectModel[] {
                 ["property_5", 0],
                 ["property_6", 2365281808],
             ]),
-            [[2, 0, 14, 0, 0, 0], [0, 0]],
+            [
+                [2, 0, 14, 0, 0, 0],
+                [0, 0],
+            ],
         ),
         new QuestObjectModel(
             ObjectType.TelepipeLocation,
@@ -399,7 +444,10 @@ function create_default_objects(): QuestObjectModel[] {
                 ["property_5", 0],
                 ["property_6", 2365282000],
             ]),
-            [[2, 0, 15, 0, 0, 0], [0, 0]],
+            [
+                [2, 0, 15, 0, 0, 0],
+                [0, 0],
+            ],
         ),
         new QuestObjectModel(
             ObjectType.TelepipeLocation,
@@ -418,7 +466,10 @@ function create_default_objects(): QuestObjectModel[] {
                 ["property_5", 10],
                 ["property_6", 2365282192],
             ]),
-            [[2, 0, 16, 0, 0, 0], [0, 0]],
+            [
+                [2, 0, 16, 0, 0, 0],
+                [0, 0],
+            ],
         ),
         new QuestObjectModel(
             ObjectType.MedicalCenterDoor,
@@ -437,7 +488,10 @@ function create_default_objects(): QuestObjectModel[] {
                 ["property_5", 0],
                 ["property_6", 2365282384],
             ]),
-            [[2, 0, 17, 0, 0, 0], [0, 0]],
+            [
+                [2, 0, 17, 0, 0, 0],
+                [0, 0],
+            ],
         ),
         new QuestObjectModel(
             ObjectType.ShopDoor,
@@ -456,7 +510,10 @@ function create_default_objects(): QuestObjectModel[] {
                 ["property_5", 0],
                 ["property_6", 2365282640],
             ]),
-            [[2, 0, 18, 0, 0, 0], [0, 0]],
+            [
+                [2, 0, 18, 0, 0, 0],
+                [0, 0],
+            ],
         ),
         new QuestObjectModel(
             ObjectType.MenuActivation,
@@ -475,7 +532,10 @@ function create_default_objects(): QuestObjectModel[] {
                 ["property_5", 0],
                 ["property_6", 2365282896],
             ]),
-            [[2, 0, 19, 0, 0, 0], [0, 0]],
+            [
+                [2, 0, 19, 0, 0, 0],
+                [0, 0],
+            ],
         ),
         new QuestObjectModel(
             ObjectType.HuntersGuildDoor,
@@ -494,7 +554,10 @@ function create_default_objects(): QuestObjectModel[] {
                 ["property_5", 0],
                 ["property_6", 2365283056],
             ]),
-            [[2, 0, 20, 0, 0, 0], [0, 0]],
+            [
+                [2, 0, 20, 0, 0, 0],
+                [0, 0],
+            ],
         ),
         new QuestObjectModel(
             ObjectType.TeleporterDoor,
@@ -513,7 +576,10 @@ function create_default_objects(): QuestObjectModel[] {
                 ["property_5", 0],
                 ["property_6", 2365283312],
             ]),
-            [[2, 0, 21, 0, 0, 0], [0, 0]],
+            [
+                [2, 0, 21, 0, 0, 0],
+                [0, 0],
+            ],
         ),
         new QuestObjectModel(
             ObjectType.PlayerSet,
@@ -532,7 +598,10 @@ function create_default_objects(): QuestObjectModel[] {
                 ["property_5", 0],
                 ["property_6", 2365283568],
             ]),
-            [[2, 0, 22, 0, 0, 0], [0, 0]],
+            [
+                [2, 0, 22, 0, 0, 0],
+                [0, 0],
+            ],
         ),
         new QuestObjectModel(
             ObjectType.PlayerSet,
@@ -551,7 +620,10 @@ function create_default_objects(): QuestObjectModel[] {
                 ["property_5", 0],
                 ["property_6", 2365283728],
             ]),
-            [[2, 0, 23, 0, 0, 0], [0, 0]],
+            [
+                [2, 0, 23, 0, 0, 0],
+                [0, 0],
+            ],
         ),
         new QuestObjectModel(
             ObjectType.PlayerSet,
@@ -570,7 +642,10 @@ function create_default_objects(): QuestObjectModel[] {
                 ["property_5", 0],
                 ["property_6", 2365283888],
             ]),
-            [[2, 0, 24, 0, 0, 0], [0, 0]],
+            [
+                [2, 0, 24, 0, 0, 0],
+                [0, 0],
+            ],
         ),
         new QuestObjectModel(
             ObjectType.PlayerSet,
@@ -589,7 +664,10 @@ function create_default_objects(): QuestObjectModel[] {
                 ["property_5", 0],
                 ["property_6", 2365284048],
             ]),
-            [[2, 0, 25, 0, 0, 0], [0, 0]],
+            [
+                [2, 0, 25, 0, 0, 0],
+                [0, 0],
+            ],
         ),
     ];
 }
@@ -607,7 +685,11 @@ function create_default_npcs(): QuestNpcModel[] {
             new Vector3(-49.0010986328125, 0, 50.996429443359375),
             new Euler(0, 2.3562304434156633, 0, "ZXY"),
             new Vector3(0, 0, 0),
-            [[0, 0, 7, 86, 0, 0, 0, 0, 23, 87], [0, 0, 0, 0, 0, 0], [128, 238, 223, 176]],
+            [
+                [0, 0, 7, 86, 0, 0, 0, 0, 23, 87],
+                [0, 0, 0, 0, 0, 0],
+                [128, 238, 223, 176],
+            ],
         ),
         new QuestNpcModel(
             NpcType.FemaleFat,
@@ -620,7 +702,11 @@ function create_default_npcs(): QuestNpcModel[] {
             new Vector3(167.99769592285156, 0, 83.99686431884766),
             new Euler(0, 3.927050739026106, 0, "ZXY"),
             new Vector3(24.000009536743164, 0, 0),
-            [[0, 0, 7, 88, 0, 0, 0, 0, 23, 89], [0, 0, 0, 0, 0, 0], [128, 238, 232, 48]],
+            [
+                [0, 0, 7, 88, 0, 0, 0, 0, 23, 89],
+                [0, 0, 0, 0, 0, 0],
+                [128, 238, 232, 48],
+            ],
         ),
         new QuestNpcModel(
             NpcType.MaleDwarf,
@@ -633,7 +719,11 @@ function create_default_npcs(): QuestNpcModel[] {
             new Vector3(156.0028839111328, 0, -49.99967575073242),
             new Euler(0, 5.497871034636549, 0, "ZXY"),
             new Vector3(30.000009536743164, 0, 0),
-            [[0, 0, 7, 89, 0, 0, 0, 0, 23, 90], [0, 0, 0, 0, 0, 0], [128, 238, 236, 176]],
+            [
+                [0, 0, 7, 89, 0, 0, 0, 0, 23, 90],
+                [0, 0, 0, 0, 0, 0],
+                [128, 238, 236, 176],
+            ],
         ),
         new QuestNpcModel(
             NpcType.RedSoldier,
@@ -646,7 +736,11 @@ function create_default_npcs(): QuestNpcModel[] {
             new Vector3(237.9988250732422, 0, -14.0001220703125),
             new Euler(0, 5.497871034636549, 0, "ZXY"),
             new Vector3(0, 0, 0),
-            [[0, 0, 7, 90, 0, 0, 0, 0, 23, 91], [0, 0, 0, 0, 0, 0], [128, 238, 241, 48]],
+            [
+                [0, 0, 7, 90, 0, 0, 0, 0, 23, 91],
+                [0, 0, 0, 0, 0, 0],
+                [128, 238, 241, 48],
+            ],
         ),
         new QuestNpcModel(
             NpcType.BlueSoldier,
@@ -659,7 +753,11 @@ function create_default_npcs(): QuestNpcModel[] {
             new Vector3(238.00379943847656, 0, 63.00413513183594),
             new Euler(0, 3.927050739026106, 0, "ZXY"),
             new Vector3(0, 0, 0),
-            [[0, 0, 7, 91, 0, 0, 0, 0, 23, 92], [0, 0, 0, 0, 0, 0], [128, 238, 245, 176]],
+            [
+                [0, 0, 7, 91, 0, 0, 0, 0, 23, 92],
+                [0, 0, 0, 0, 0, 0],
+                [128, 238, 245, 176],
+            ],
         ),
         new QuestNpcModel(
             NpcType.FemaleMacho,
@@ -672,7 +770,11 @@ function create_default_npcs(): QuestNpcModel[] {
             new Vector3(-2.001882553100586, 0, 35.0036506652832),
             new Euler(0, 3.141640591220885, 0, "ZXY"),
             new Vector3(26.000009536743164, 0, 0),
-            [[0, 0, 7, 92, 0, 0, 0, 0, 23, 93], [0, 0, 0, 0, 0, 0], [128, 238, 250, 48]],
+            [
+                [0, 0, 7, 92, 0, 0, 0, 0, 23, 93],
+                [0, 0, 0, 0, 0, 0],
+                [128, 238, 250, 48],
+            ],
         ),
         new QuestNpcModel(
             NpcType.Scientist,
@@ -685,7 +787,11 @@ function create_default_npcs(): QuestNpcModel[] {
             new Vector3(-147.0000457763672, 0, -7.996537208557129),
             new Euler(0, 2.577127047485882, 0, "ZXY"),
             new Vector3(30.000009536743164, 0, 0),
-            [[0, 0, 7, 93, 0, 0, 0, 0, 23, 94], [0, 0, 0, 0, 0, 0], [128, 238, 254, 176]],
+            [
+                [0, 0, 7, 93, 0, 0, 0, 0, 23, 94],
+                [0, 0, 0, 0, 0, 0],
+                [128, 238, 254, 176],
+            ],
         ),
         new QuestNpcModel(
             NpcType.MaleOld,
@@ -698,7 +804,11 @@ function create_default_npcs(): QuestNpcModel[] {
             new Vector3(-219.99710083007812, 0, -100.0008316040039),
             new Euler(0, 0, 0, "ZXY"),
             new Vector3(30.000011444091797, 0, 0),
-            [[0, 0, 7, 94, 0, 0, 0, 0, 23, 95], [0, 0, 0, 0, 0, 0], [128, 239, 3, 48]],
+            [
+                [0, 0, 7, 94, 0, 0, 0, 0, 23, 95],
+                [0, 0, 0, 0, 0, 0],
+                [128, 239, 3, 48],
+            ],
         ),
         new QuestNpcModel(
             NpcType.GuildLady,
@@ -711,7 +821,11 @@ function create_default_npcs(): QuestNpcModel[] {
             new Vector3(-262.5099792480469, 0, -24.53999900817871),
             new Euler(0, 1.963525369513053, 0, "ZXY"),
             new Vector3(0, 0, 0),
-            [[0, 0, 7, 95, 0, 0, 0, 0, 23, 106], [0, 0, 0, 0, 0, 0], [128, 239, 100, 192]],
+            [
+                [0, 0, 7, 95, 0, 0, 0, 0, 23, 106],
+                [0, 0, 0, 0, 0, 0],
+                [128, 239, 100, 192],
+            ],
         ),
         new QuestNpcModel(
             NpcType.Tekker,
@@ -724,7 +838,11 @@ function create_default_npcs(): QuestNpcModel[] {
             new Vector3(-43.70983123779297, 2.5999999046325684, -52.78248596191406),
             new Euler(0, 0.7854101478052212, 0, "ZXY"),
             new Vector3(0, 0, 0),
-            [[0, 0, 7, 97, 0, 0, 0, 0, 23, 98], [0, 0, 0, 0, 0, 0], [128, 239, 16, 176]],
+            [
+                [0, 0, 7, 97, 0, 0, 0, 0, 23, 98],
+                [0, 0, 0, 0, 0, 0],
+                [128, 239, 16, 176],
+            ],
         ),
         new QuestNpcModel(
             NpcType.MaleMacho,
@@ -737,7 +855,11 @@ function create_default_npcs(): QuestNpcModel[] {
             new Vector3(0.33990478515625, 2.5999999046325684, -84.71995544433594),
             new Euler(0, 0, 0, "ZXY"),
             new Vector3(0, 0, 0),
-            [[0, 0, 7, 98, 0, 0, 0, 0, 23, 99], [0, 0, 0, 0, 0, 0], [128, 239, 21, 48]],
+            [
+                [0, 0, 7, 98, 0, 0, 0, 0, 23, 99],
+                [0, 0, 0, 0, 0, 0],
+                [128, 239, 21, 48],
+            ],
         ),
         new QuestNpcModel(
             NpcType.FemaleMacho,
@@ -750,7 +872,11 @@ function create_default_npcs(): QuestNpcModel[] {
             new Vector3(43.87113952636719, 2.5999996662139893, -74.80299377441406),
             new Euler(0, -0.5645135437350027, 0, "ZXY"),
             new Vector3(0, 0, 0),
-            [[0, 0, 7, 99, 0, 0, 0, 0, 23, 100], [0, 0, 0, 0, 0, 0], [128, 239, 25, 176]],
+            [
+                [0, 0, 7, 99, 0, 0, 0, 0, 23, 100],
+                [0, 0, 0, 0, 0, 0],
+                [128, 239, 25, 176],
+            ],
         ),
         new QuestNpcModel(
             NpcType.MaleFat,
@@ -763,7 +889,11 @@ function create_default_npcs(): QuestNpcModel[] {
             new Vector3(75.88380432128906, 2.5999996662139893, -42.69328308105469),
             new Euler(0, -1.0308508189943528, 0, "ZXY"),
             new Vector3(0, 0, 0),
-            [[0, 0, 7, 100, 0, 0, 0, 0, 23, 101], [0, 0, 0, 0, 0, 0], [128, 239, 30, 48]],
+            [
+                [0, 0, 7, 100, 0, 0, 0, 0, 23, 101],
+                [0, 0, 0, 0, 0, 0],
+                [128, 239, 30, 48],
+            ],
         ),
         new QuestNpcModel(
             NpcType.FemaleTall,
@@ -776,7 +906,11 @@ function create_default_npcs(): QuestNpcModel[] {
             new Vector3(16.003997802734375, 0, 5.995697021484375),
             new Euler(0, -1.1781152217078317, 0, "ZXY"),
             new Vector3(22.000009536743164, 0, 0),
-            [[0, 0, 7, 101, 0, 0, 0, 0, 23, 102], [0, 0, 0, 0, 0, 0], [128, 239, 34, 176]],
+            [
+                [0, 0, 7, 101, 0, 0, 0, 0, 23, 102],
+                [0, 0, 0, 0, 0, 0],
+                [128, 239, 34, 176],
+            ],
         ),
         new QuestNpcModel(
             NpcType.Nurse,
@@ -789,7 +923,11 @@ function create_default_npcs(): QuestNpcModel[] {
             new Vector3(0.3097381591796875, 3, -105.3865966796875),
             new Euler(0, 0, 0, "ZXY"),
             new Vector3(0, 0, 0),
-            [[0, 0, 7, 102, 0, 0, 0, 0, 23, 103], [0, 0, 0, 0, 0, 0], [128, 239, 39, 48]],
+            [
+                [0, 0, 7, 102, 0, 0, 0, 0, 23, 103],
+                [0, 0, 0, 0, 0, 0],
+                [128, 239, 39, 48],
+            ],
         ),
         new QuestNpcModel(
             NpcType.Nurse,
@@ -802,7 +940,11 @@ function create_default_npcs(): QuestNpcModel[] {
             new Vector3(53.499176025390625, 0, -26.496688842773438),
             new Euler(0, 5.497871034636549, 0, "ZXY"),
             new Vector3(18.000009536743164, 0, 0),
-            [[0, 0, 7, 103, 0, 0, 0, 0, 23, 104], [0, 0, 0, 0, 0, 0], [128, 239, 43, 176]],
+            [
+                [0, 0, 7, 103, 0, 0, 0, 0, 23, 104],
+                [0, 0, 0, 0, 0, 0],
+                [128, 239, 43, 176],
+            ],
         ),
     ];
 }

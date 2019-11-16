@@ -10,7 +10,7 @@ import { srand } from "./windows";
 
 test("integer arithmetic opcodes", () => {
     class TestIO extends VMIOStub {
-        error = jest.fn((err: Error, srcloc: any) => {
+        error = jest.fn((err: Error) => {
             throw err;
         });
     }
@@ -77,7 +77,7 @@ test("integer arithmetic opcodes", () => {
 // TODO: add more fp tests
 test("floating point arithmetic opcodes", () => {
     class TestIO extends VMIOStub {
-        error = jest.fn((err: Error, srcloc: any) => {
+        error = jest.fn((err: Error) => {
             throw err;
         });
     }
@@ -95,13 +95,13 @@ test("floating point arithmetic opcodes", () => {
     const vm = new VirtualMachine(new TestIO());
     vm.load_object_code(obj_code);
     vm.start_thread(0);
-    
+
     let last_result: ExecutionResult;
     do {
         last_result = vm.execute();
     } while (last_result !== ExecutionResult.Halted);
 
-    expect(vm.get_register_float(100)).toBeCloseTo(7.4505806e-09, precision);
+    expect(vm.get_register_float(100)).toBeCloseTo(7.4505806e-9, precision);
     expect(vm.get_register_float(101)).toBeCloseTo(134217728, precision);
 });
 
@@ -133,7 +133,7 @@ test("basic window_msg output", () => {
 
         winend = jest.fn(() => {});
 
-        error = jest.fn((err: Error, loc: any) => {
+        error = jest.fn((err: Error) => {
             throw err;
         });
     }
@@ -214,9 +214,7 @@ test("opcode get_random", () => {
 });
 
 test("opcode list", () => {
-    const list_items = [
-        "a", "b", "c", "d"
-    ];
+    const list_items = ["a", "b", "c", "d"];
     const list_text = list_items.join("\\n");
     class TestIO extends VMIOStub {
         constructor() {
