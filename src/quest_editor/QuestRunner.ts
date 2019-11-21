@@ -50,8 +50,7 @@ export class QuestRunner {
     /**
      * Have we executed since last advancing the instruction pointer?
      */
-    private executed_since_advance = false;
-    private first_frame = true;
+    private executed_since_advance = true;
 
     constructor() {
         this.vm = new VirtualMachine(this.create_vm_io());
@@ -81,8 +80,7 @@ export class QuestRunner {
 
         this._running.val = true;
         this._paused.val = false;
-        this.executed_since_advance = false;
-        this.first_frame = true;
+        this.executed_since_advance = true;
 
         this.schedule_frame();
     }
@@ -160,16 +158,14 @@ export class QuestRunner {
         let need_emit_unpause = this.paused.val;
 
         exec_loop: while (true) {
-            if (this.first_frame || this.executed_since_advance) {
-                if (!this.first_frame) {
-                    this.vm.advance();
+            if (this.executed_since_advance) {
+                this.vm.advance();
 
-                    this.executed_since_advance = false;
+                this.executed_since_advance = false;
 
-                    if (this.vm.halted) {
-                        this.stop();
-                        break exec_loop;
-                    }
+                if (this.vm.halted) {
+                    this.stop();
+                    break exec_loop;
                 }
 
                 const srcloc = this.vm.get_current_source_location();
@@ -199,7 +195,6 @@ export class QuestRunner {
 
             result = this.vm.execute(false);
             this.executed_since_advance = true;
-            this.first_frame = false;
 
             switch (result) {
                 case ExecutionResult.WaitingVsync:
@@ -221,7 +216,6 @@ export class QuestRunner {
             }
         }
 
-        this.first_frame = false;
         this._paused.val = true;
     };
 

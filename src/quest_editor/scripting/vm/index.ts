@@ -219,13 +219,11 @@ export class VirtualMachine {
             );
         }
 
-        const thread = new Thread(this.io, new ExecutionLocation(seg_idx!, 0), true);
+        const thread = new Thread(this.io, new ExecutionLocation(seg_idx!, -1), true);
 
         this.thread.push(thread);
 
         this._halted = false;
-
-        this.update_source_location(thread);
     }
 
     private dispose_thread(thread_idx: number): void {
@@ -288,6 +286,14 @@ export class VirtualMachine {
      */
     execute(auto_advance: boolean = true): ExecutionResult {
         let srcloc: AsmToken | undefined;
+
+        if (this._halted) {
+            return ExecutionResult.Halted;
+        }
+
+        if (auto_advance) {
+            this.advance();
+        }
 
         if (this._halted) {
             return ExecutionResult.Halted;
@@ -733,9 +739,7 @@ export class VirtualMachine {
                 break;
         }
 
-        if (auto_advance) {
-            this.advance();
-        }
+        if (this.thread_idx >= this.thread.length) return ExecutionResult.WaitingVsync;
 
         return result;
     }
