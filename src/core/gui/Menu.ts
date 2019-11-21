@@ -169,7 +169,7 @@ export class Menu<T> extends Widget {
 
     private select_item(index: number): void {
         const item = this.items.val[index];
-        if (!item) return;
+        if (item === undefined) return;
 
         this.selected.set_val(item, { silent: false });
         this.visible.set_val(false, { silent: false });
