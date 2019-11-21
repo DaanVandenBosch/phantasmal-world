@@ -6,7 +6,7 @@ import { is_any_property, Property } from "../observable/property/Property";
 import "./Input.css";
 import { WidgetProperty } from "../observable/property/WidgetProperty";
 
-export type InputOptions = LabelledControlOptions;
+export type InputOptions = { readonly?: boolean } & LabelledControlOptions;
 
 export abstract class Input<T> extends LabelledControl {
     readonly element: HTMLElement;
@@ -38,6 +38,12 @@ export abstract class Input<T> extends LabelledControl {
         this.input_element.onchange = () => {
             this._value.set_val(this.get_value(), { silent: false });
         };
+
+        if (options) {
+            if (options.readonly) {
+                this.set_attr("readOnly", true);
+            }
+        }
 
         this.element.append(this.input_element);
     }
