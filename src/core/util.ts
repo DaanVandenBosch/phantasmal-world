@@ -59,3 +59,17 @@ export function assert(condition: any, msg?: string): asserts condition {
         throw new Error(full_msg);
     }
 }
+
+export function number_to_hex_string(
+    num: number,
+    min_len: number = 8,
+    prefix: string = "0x",
+): string {
+    let result = num.toString(16);
+
+    if (result.length < min_len) {
+        result = "0".repeat(min_len - result.length) + result;
+    }
+
+    return prefix + result;
+}

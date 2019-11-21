@@ -1,0 +1,31 @@
+.quest_editor_RegistersView {
+    font-family: monospace;
+}
+
+.quest_editor_RegistersView_container {
+    overflow: auto;
+    height: 97%;
+}
+
+.quest_editor_RegistersView_list {
+    padding: 0.5em;
+    column-width: 9.8em;
+}
+
+.quest_editor_RegistersView_register {
+    display: flex;
+    align-items: baseline;
+}
+
+.quest_editor_RegistersView_register > .core_Label {
+    width: 2.8em;
+}
+
+.quest_editor_RegistersView_value {
+    width: 7em;
+}
+
+.quest_editor_RegistersView_value > .core_TextInput_inner {
+    text-align: right;
+    font-family: monospace;
+}

@@ -102,7 +102,7 @@ import { Episode } from "../../../core/data_formats/parsing/quest/Episode";
 import { ArrayBufferCursor } from "../../../core/data_formats/cursor/ArrayBufferCursor";
 import { Endianness } from "../../../core/data_formats/Endianness";
 
-const REGISTER_COUNT = 256;
+export const REGISTER_COUNT = 256;
 const REGISTER_SIZE = 4;
 const VARIABLE_STACK_LENGTH = 16; // TODO: verify this value
 const ARG_STACK_SLOT_SIZE = 4;

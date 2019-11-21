@@ -28,7 +28,7 @@ function srcloc_to_string(srcloc: AsmToken): string {
 }
 
 export class QuestRunner {
-    private readonly vm: VirtualMachine;
+    public readonly vm: VirtualMachine;
     private quest?: QuestModel;
     private animation_frame?: number;
     /**

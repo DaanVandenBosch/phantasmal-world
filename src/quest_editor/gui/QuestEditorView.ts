@@ -17,6 +17,7 @@ import { ObjectListView } from "./ObjectListView";
 import { EventsView } from "./EventsView";
 import Logger = require("js-logger");
 import { QuestMessageLogView } from "./QuestMessageLogView";
+import { RegistersView } from "./RegistersView";
 
 const logger = Logger.get("quest_editor/gui/QuestEditorView");
 
@@ -30,6 +31,7 @@ const VIEW_TO_NAME = new Map<new () => ResizableWidget, string>([
     [NpcListView, "npc_list_view"],
     [ObjectListView, "object_list_view"],
     [QuestMessageLogView, "message_log_view"],
+    [RegistersView, "registers_view"],
 ]);
 
 if (gui_store.feature_active("events")) {
@@ -106,7 +108,13 @@ const DEFAULT_LAYOUT_CONTENT: ItemConfigType[] = [
                         title: "Log",
                         type: "component",
                         componentName: VIEW_TO_NAME.get(QuestMessageLogView),
-                        isClosable: true,
+                        isClosable: false,
+                    },
+                    {
+                        title: "Registers",
+                        type: "component",
+                        componentName: VIEW_TO_NAME.get(RegistersView),
+                        isClosable: false,
                     },
                 ],
             },
