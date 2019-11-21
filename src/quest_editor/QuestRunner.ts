@@ -155,7 +155,7 @@ export class QuestRunner {
     private execution_loop = (): void => {
         let result: ExecutionResult;
 
-        let need_emit_unpause = this.paused.val;
+        this._paused.val = false;
 
         exec_loop: while (true) {
             if (this.executed_since_advance) {
@@ -184,12 +184,6 @@ export class QuestRunner {
                         asm_editor_store?.set_execution_location(srcloc.line_no);
                         break exec_loop;
                     }
-                }
-
-                // first instruction after pause did not break, set state to unpaused
-                if (need_emit_unpause) {
-                    need_emit_unpause = false;
-                    this._paused.val = false;
                 }
             }
 
