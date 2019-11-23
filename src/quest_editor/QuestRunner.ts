@@ -52,6 +52,9 @@ export class QuestRunner {
      */
     private executed_since_advance = true;
 
+    private execution_counter = 0;
+    private readonly execution_max_count = 100000;
+
     constructor() {
         this.vm = new VirtualMachine(this.create_vm_io());
     }
@@ -81,6 +84,7 @@ export class QuestRunner {
         this._running.val = true;
         this._paused.val = false;
         this.executed_since_advance = true;
+        this.execution_counter = 0;
 
         this.schedule_frame();
     }
@@ -190,6 +194,13 @@ export class QuestRunner {
             result = this.vm.execute(false);
             this.executed_since_advance = true;
 
+            // limit execution to prevent the browser from freezing
+            if (++this.execution_counter >= this.execution_max_count) {
+                this.stop();
+                logger?.error("Terminated: Maximum execution count reached.");
+                break exec_loop;
+            }
+
             switch (result) {
                 case ExecutionResult.WaitingVsync:
                     this.vm.vsync();
@@ -211,6 +222,7 @@ export class QuestRunner {
         }
 
         this._paused.val = true;
+        this.execution_counter = 0;
     };
 
     private create_vm_io = (): VirtualMachineIO => {
