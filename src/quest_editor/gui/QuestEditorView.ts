@@ -30,12 +30,15 @@ const VIEW_TO_NAME = new Map<new () => ResizableWidget, string>([
     [EntityInfoView, "entity_info"],
     [NpcListView, "npc_list_view"],
     [ObjectListView, "object_list_view"],
-    [QuestMessageLogView, "message_log_view"],
-    [RegistersView, "registers_view"],
 ]);
 
 if (gui_store.feature_active("events")) {
     VIEW_TO_NAME.set(EventsView, "events_view");
+}
+
+if (gui_store.feature_active("vm")) {
+    VIEW_TO_NAME.set(QuestMessageLogView, "message_log_view");
+    VIEW_TO_NAME.set(RegistersView, "registers_view");
 }
 
 const DEFAULT_LAYOUT_CONFIG = {
