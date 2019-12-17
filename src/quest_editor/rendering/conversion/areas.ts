@@ -25,7 +25,6 @@ const materials = [
         color: 0x80c0d0,
         transparent: true,
         opacity: 0.25,
-        visible: false,
     }),
     // Ground
     new MeshLambertMaterial({
@@ -50,7 +49,6 @@ const wireframe_materials = [
         wireframe: true,
         transparent: true,
         opacity: 0.3,
-        visible: false,
     }),
     // Ground
     new MeshBasicMaterial({
@@ -90,16 +88,19 @@ export function area_collision_geometry_to_object_3d(object: CollisionObject): O
             const is_ground = flags & 0b1;
             const color_index = is_section_transition ? 3 : is_vegetation ? 2 : is_ground ? 1 : 0;
 
-            geom.faces.push(
-                new Face3(
-                    indices[0],
-                    indices[1],
-                    indices[2],
-                    new Vector3(normal.x, normal.y, normal.z),
-                    undefined,
-                    color_index,
-                ),
-            );
+            // Filter out walls.
+            if (color_index !== 0) {
+                geom.faces.push(
+                    new Face3(
+                        indices[0],
+                        indices[1],
+                        indices[2],
+                        new Vector3(normal.x, normal.y, normal.z),
+                        undefined,
+                        color_index,
+                    ),
+                );
+            }
         }
 
         geom.computeBoundingBox();

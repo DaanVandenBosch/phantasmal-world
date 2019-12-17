@@ -809,14 +809,6 @@ const translate_entity_horizontally = (() => {
         );
 
         if (intersection) {
-            entity.set_world_position(
-                new Vector3(
-                    intersection.point.x,
-                    intersection.point.y + grab_offset.y - drag_adjust.y,
-                    intersection.point.z,
-                ),
-            );
-
             if (section) {
                 const old_rotation = entity.world_rotation.val;
 
@@ -825,6 +817,14 @@ const translate_entity_horizontally = (() => {
                 // Make sure entity's world-relative orientation stays constant when translating manually.
                 entity.set_world_rotation(old_rotation);
             }
+
+            entity.set_world_position(
+                new Vector3(
+                    intersection.point.x,
+                    intersection.point.y + grab_offset.y - drag_adjust.y,
+                    intersection.point.z,
+                ),
+            );
         } else {
             // If the pointer is not over the ground, we translate the entity across the horizontal
             // plane in which the entity's origin lies.
