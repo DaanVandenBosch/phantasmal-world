@@ -104,18 +104,22 @@ const DEFAULT_LAYOUT_CONTENT: ItemConfigType[] = [
                         componentName: VIEW_TO_NAME.get(AsmEditorView),
                         isClosable: false,
                     },
-                    {
-                        title: "Log",
-                        type: "component",
-                        componentName: VIEW_TO_NAME.get(QuestMessageLogView),
-                        isClosable: false,
-                    },
-                    {
-                        title: "Registers",
-                        type: "component",
-                        componentName: VIEW_TO_NAME.get(RegistersView),
-                        isClosable: false,
-                    },
+                    ...(gui_store.feature_active("vm")
+                        ? [
+                              {
+                                  title: "Log",
+                                  type: "component",
+                                  componentName: VIEW_TO_NAME.get(QuestMessageLogView),
+                                  isClosable: false,
+                              },
+                              {
+                                  title: "Registers",
+                                  type: "component",
+                                  componentName: VIEW_TO_NAME.get(RegistersView),
+                                  isClosable: false,
+                              },
+                          ]
+                        : []),
                 ],
             },
             {

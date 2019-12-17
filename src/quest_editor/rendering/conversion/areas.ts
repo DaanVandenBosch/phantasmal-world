@@ -103,16 +103,18 @@ export function area_collision_geometry_to_object_3d(object: CollisionObject): O
             }
         }
 
-        geom.computeBoundingBox();
-        geom.computeBoundingSphere();
+        if (geom.faces.length) {
+            geom.computeBoundingBox();
+            geom.computeBoundingSphere();
 
-        const mesh = new Mesh(geom, materials);
-        mesh.renderOrder = 1;
-        group.add(mesh);
+            const mesh = new Mesh(geom, materials);
+            mesh.renderOrder = 1;
+            group.add(mesh);
 
-        const wireframe_mesh = new Mesh(geom, wireframe_materials);
-        wireframe_mesh.renderOrder = 2;
-        group.add(wireframe_mesh);
+            const wireframe_mesh = new Mesh(geom, wireframe_materials);
+            wireframe_mesh.renderOrder = 2;
+            group.add(wireframe_mesh);
+        }
     }
 
     return group;
