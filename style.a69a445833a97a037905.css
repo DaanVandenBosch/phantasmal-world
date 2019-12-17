@@ -424,6 +424,20 @@
     cursor: default;
 }
 
+#root .lm_header .lm_controls .lm_close {
+    /* a white 9x9 X shape */
+    background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAkAAAAJCAYAAADgkQYQAAAAQUlEQVR4nHXOQQ4AMAgCQeT/f6aXpsGK3jSTuCVJAAr7iBdoAwCKd0nwfaAdHbYERw5b44+E8JoBjEYGMBq5gAYP3usUDu2IvoUAAAAASUVORK5CYII=);
+    background-position: center center;
+    background-repeat: no-repeat;
+    cursor: pointer;
+    opacity: 0.4;
+    transition: opacity 300ms ease;
+}
+
+#root .lm_header .lm_controls .lm_close:hover {
+    opacity: 1;
+}
+
 #root .lm_content {
     overflow: visible;
 }
@@ -468,6 +482,37 @@ body .lm_dropTargetIndicator {
 
 .quest_editor_NpcCountsView td {
     cursor: text;
+}
+
+:root {
+    --red-circle-svg: url("data:image/svg+xml;charset=utf-8,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M8 4c.367 0 .721.048 1.063.145a3.943 3.943 0 0 1 1.762 1.031 3.944 3.944 0 0 1 1.03 1.762c.097.34.145.695.145 1.062 0 .367-.048.721-.145 1.063a3.94 3.94 0 0 1-1.03 1.765 4.017 4.017 0 0 1-1.762 1.031C8.72 11.953 8.367 12 8 12s-.721-.047-1.063-.14a4.056 4.056 0 0 1-1.765-1.032A4.055 4.055 0 0 1 4.14 9.062 3.992 3.992 0 0 1 4 8c0-.367.047-.721.14-1.063.097-.34.232-.658.407-.953A4.089 4.089 0 0 1 5.98 4.546a3.94 3.94 0 0 1 .957-.401A3.89 3.89 0 0 1 8 4z' fill='%23E51400'/%3E%3C/svg%3E") 50% no-repeat;
+}
+
+.monaco-editor .margin-view-overlays > div:after {
+    cursor: pointer;
+    content: "";
+    position: absolute;
+    left: 0;
+    /* width of parent - width of icon */
+    right: 50px;
+    top: 0;
+    bottom: 0;
+    visibility: hidden;
+    opacity: 0.5;
+    background: var(--red-circle-svg);
+}
+
+.monaco-editor .margin-view-overlays > div:hover:after {
+    visibility: visible;
+}
+
+.quest_editor_AsmEditorView_breakpoint-enabled {
+    /* a red circle */
+    background: var(--red-circle-svg);
+}
+
+.quest_editor_AsmEditorView_execution-location {
+    background: hsla(80, 100%, 60%, 0.3);
 }
 
 .quest_editor_EntityInfoView {
@@ -561,6 +606,85 @@ body .lm_dropTargetIndicator {
     border-left: solid 2px var(--border-color);
     border-top: solid 2px var(--border-color);
     border-bottom: solid 2px var(--border-color);
+}
+
+.MessageLog {
+    display: flex;
+    flex-direction: column;
+}
+
+.MessageLog_settings {
+    justify-content: end;
+}
+
+.MessageLog_list_container {
+    overflow: auto;
+}
+
+.MessageLog_message_list {
+    font-family: monospace;
+    cursor: auto;
+    user-select: text;
+    margin-top: 0.2em;
+    margin-bottom: 0.2em;
+}
+
+.MessageLog_message {
+    display: flex;
+    padding-left: 0.5em;
+    padding-right: 0.5em;
+}
+
+.MessageLog_message > * + * {
+    margin-left: 1ch;
+}
+
+.MessageLog_message > .MessageLog_message_timestamp {
+    color: var(--text-color-disabled);
+}
+
+.MessageLog_message > .MessageLog_message_contents {
+    overflow-wrap: anywhere;
+}
+
+.quest_editor_QuestMessageLogView .MessageLog_Error_message {
+    background-color: hsla(0, 80%, 50%, 0.3);
+}
+
+.quest_editor_QuestMessageLogView .MessageLog_Warning_message {
+    background-color: hsla(30, 80%, 50%, 0.3);
+}
+
+.quest_editor_RegistersView {
+    font-family: monospace;
+}
+
+.quest_editor_RegistersView_container {
+    overflow: auto;
+    height: 97%;
+}
+
+.quest_editor_RegistersView_list {
+    padding: 0.5em;
+    column-width: 9.8em;
+}
+
+.quest_editor_RegistersView_register {
+    display: flex;
+    align-items: baseline;
+}
+
+.quest_editor_RegistersView_register > .core_Label {
+    width: 2.8em;
+}
+
+.quest_editor_RegistersView_value {
+    width: 7em;
+}
+
+.quest_editor_RegistersView_value > .core_TextInput_inner {
+    text-align: right;
+    font-family: monospace;
 }
 
 .hunt_optimizer_WantedItemsView {
