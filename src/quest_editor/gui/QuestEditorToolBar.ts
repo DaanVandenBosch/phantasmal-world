@@ -4,7 +4,7 @@ import { Button } from "../../core/gui/Button";
 import { quest_editor_store } from "../stores/QuestEditorStore";
 import { undo_manager } from "../../core/undo/UndoManager";
 import { Select } from "../../core/gui/Select";
-import { list_property } from "../../core/observable";
+import { list_property, map } from "../../core/observable";
 import { AreaModel } from "../model/AreaModel";
 import { Icon } from "../../core/gui/dom";
 import { DropDown } from "../../core/gui/DropDown";
@@ -136,13 +136,27 @@ export class QuestEditorToolBar extends ToolBar {
             save_as_button.enabled.bind_to(quest_loaded),
             save_as_button.click.observe(quest_editor_store.save_as),
 
-            undo_button.enabled.bind_to(undo_manager.can_undo),
+            undo_button.enabled.bind_to(
+                map(
+                    (c, r) => c && !r,
+                    undo_manager.can_undo,
+                    quest_editor_store.quest_runner.running,
+                ),
+            ),
             undo_button.click.observe(() => undo_manager.undo()),
 
-            redo_button.enabled.bind_to(undo_manager.can_redo),
+            redo_button.enabled.bind_to(
+                map(
+                    (c, r) => c && !r,
+                    undo_manager.can_redo,
+                    quest_editor_store.quest_runner.running,
+                ),
+            ),
             redo_button.click.observe(() => undo_manager.redo()),
 
-            area_select.enabled.bind_to(quest_loaded),
+            area_select.enabled.bind_to(
+                map((q, r) => q && !r, quest_loaded, quest_editor_store.quest_runner.running),
+            ),
             area_select.selected.bind_to(quest_editor_store.current_area),
             area_select.selected.observe(({ value: area }) =>
                 quest_editor_store.set_current_area(area),

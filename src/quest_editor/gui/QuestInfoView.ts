@@ -88,11 +88,22 @@ export class QuestInfoView extends ResizableWidget {
                         this.long_description_input.value.observe(
                             quest_editor_store.long_description_changed,
                         ),
+
+                        this.enabled.bind_to(quest_editor_store.quest_runner.running.map(r => !r)),
                     );
                 }
             }),
         );
 
         this.finalize_construction(QuestInfoView.prototype);
+    }
+
+    protected set_enabled(enabled: boolean): void {
+        super.set_enabled(enabled);
+
+        this.id_input.enabled.val = enabled;
+        this.name_input.enabled.val = enabled;
+        this.short_description_input.enabled.val = enabled;
+        this.long_description_input.enabled.val = enabled;
     }
 }

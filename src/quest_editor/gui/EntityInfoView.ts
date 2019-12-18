@@ -118,6 +118,8 @@ export class EntityInfoView extends ResizableWidget {
                     this.observe_entity(entity);
                 }
             }),
+
+            this.enabled.bind_to(quest_editor_store.quest_runner.running.map(r => !r)),
         );
 
         this.finalize_construction(EntityInfoView.prototype);
@@ -126,6 +128,18 @@ export class EntityInfoView extends ResizableWidget {
     dispose(): void {
         super.dispose();
         this.entity_disposer.dispose();
+    }
+
+    protected set_enabled(enabled: boolean): void {
+        super.set_enabled(enabled);
+
+        this.pos_x_element.enabled.val = enabled;
+        this.pos_y_element.enabled.val = enabled;
+        this.pos_z_element.enabled.val = enabled;
+
+        this.rot_x_element.enabled.val = enabled;
+        this.rot_y_element.enabled.val = enabled;
+        this.rot_z_element.enabled.val = enabled;
     }
 
     private observe_entity(entity: QuestEntityModel): void {

@@ -105,11 +105,6 @@ export class AsmEditorView extends ResizableWidget {
                 { call_now: true },
             ),
 
-            // disable editor when quest is running
-            quest_editor_store.quest_runner.running.observe(({ value }) =>
-                this.editor.updateOptions({ readOnly: value }),
-            ),
-
             asm_editor_store.breakpoints.observe_list(change => {
                 if (change.type === ListChangeType.ListChange) {
                     // remove
@@ -209,6 +204,8 @@ export class AsmEditorView extends ResizableWidget {
                         break;
                 }
             }),
+
+            this.enabled.bind_to(quest_editor_store.quest_runner.running.map(r => !r)),
         );
 
         this.finalize_construction(AsmEditorView.prototype);
@@ -222,5 +219,12 @@ export class AsmEditorView extends ResizableWidget {
         const editor_height = Math.max(0, height - this.tool_bar_view.height);
         this.editor.layout({ width, height: editor_height });
         return this;
+    }
+
+    protected set_enabled(enabled: boolean): void {
+        super.set_enabled(enabled);
+
+        this.tool_bar_view.enabled.val = enabled;
+        this.editor.updateOptions({ readOnly: !enabled });
     }
 }

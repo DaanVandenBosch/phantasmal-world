@@ -6,6 +6,7 @@ import { entity_dnd_source } from "./entity_dnd";
 import { render_entity_to_image } from "../rendering/render_entity_to_image";
 import { WritableListProperty } from "../../core/observable/property/list/WritableListProperty";
 import { list_property } from "../../core/observable";
+import { quest_editor_store } from "../stores/QuestEditorStore";
 
 export abstract class EntityListView<T extends EntityType> extends ResizableWidget {
     readonly element: HTMLElement;
@@ -23,6 +24,8 @@ export abstract class EntityListView<T extends EntityType> extends ResizableWidg
             bind_children_to(list_element, this.entities, this.create_entity_element),
 
             entity_dnd_source(list_element, target => {
+                if (!this.enabled.val) return undefined;
+
                 let element: HTMLElement | null = target;
 
                 do {
@@ -40,6 +43,8 @@ export abstract class EntityListView<T extends EntityType> extends ResizableWidg
 
                 return undefined;
             }),
+
+            this.enabled.bind_to(quest_editor_store.quest_runner.running.map(r => !r)),
         );
     }
 

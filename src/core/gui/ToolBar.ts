@@ -8,6 +8,8 @@ export type ToolBarOptions = WidgetOptions & {
 };
 
 export class ToolBar extends Widget {
+    private readonly children: readonly Widget[];
+
     readonly element = create_element("div", { class: "core_ToolBar" });
     readonly height = 33;
 
@@ -15,29 +17,36 @@ export class ToolBar extends Widget {
         super(options);
 
         this.element.style.height = `${this.height}px`;
+        this.children = (options && options.children) || [];
 
-        if (options && options.children) {
-            for (const child of options.children) {
-                if (child instanceof LabelledControl && child.label) {
-                    const group = create_element("div", { class: "core_ToolBar_group" });
+        for (const child of this.children) {
+            if (child instanceof LabelledControl && child.label) {
+                const group = create_element("div", { class: "core_ToolBar_group" });
 
-                    if (
-                        child.preferred_label_position === "left" ||
-                        child.preferred_label_position === "top"
-                    ) {
-                        group.append(child.label.element, child.element);
-                    } else {
-                        group.append(child.element, child.label.element);
-                    }
-
-                    this.element.append(group);
+                if (
+                    child.preferred_label_position === "left" ||
+                    child.preferred_label_position === "top"
+                ) {
+                    group.append(child.label.element, child.element);
                 } else {
-                    this.element.append(child.element);
-                    this.disposable(child);
+                    group.append(child.element, child.label.element);
                 }
+
+                this.element.append(group);
+            } else {
+                this.element.append(child.element);
+                this.disposable(child);
             }
         }
 
         this.finalize_construction(ToolBar.prototype);
+    }
+
+    protected set_enabled(enabled: boolean): void {
+        super.set_enabled(enabled);
+
+        for (const child of this.children) {
+            child.enabled.val = enabled;
+        }
     }
 }

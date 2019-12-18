@@ -35,6 +35,7 @@ export class EventsView extends ResizableWidget {
         this.disposables(
             quest_editor_store.current_quest.observe(this.update),
             quest_editor_store.current_area.observe(this.update),
+            this.enabled.bind_to(quest_editor_store.quest_runner.running.map(r => !r)),
         );
 
         this.finalize_construction(EventsView.prototype);
