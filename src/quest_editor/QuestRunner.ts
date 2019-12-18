@@ -2,7 +2,6 @@ import { ExecutionResult, VirtualMachine, ExecutionLocation } from "./scripting/
 import { QuestModel } from "./model/QuestModel";
 import { VirtualMachineIO } from "./scripting/vm/io";
 import { AsmToken, SegmentType, InstructionSegment, Instruction } from "./scripting/instructions";
-import { quest_editor_store, Logger } from "./stores/QuestEditorStore";
 import { defined, assert } from "../core/util";
 import {
     OP_CALL,
@@ -19,16 +18,15 @@ import { WritableProperty } from "../core/observable/property/WritableProperty";
 import { property } from "../core/observable";
 import { Property } from "../core/observable/property/Property";
 import { AsmEditorStore } from "./stores/AsmEditorStore";
+import Logger from "js-logger";
+import { log_store } from "./stores/LogStore";
 
 let asm_editor_store: AsmEditorStore | undefined;
-let logger: Logger | undefined;
-
-function srcloc_to_string(srcloc: AsmToken): string {
-    return `[${srcloc.line_no}:${srcloc.col}]`;
-}
+const logger = Logger.get("quest_editor/QuestRunner");
 
 export class QuestRunner {
-    public readonly vm: VirtualMachine;
+    private quest_logger = log_store.get_logger("quest_editor/QuestRunner");
+    readonly vm: VirtualMachine;
     private quest?: QuestModel;
     private animation_frame?: number;
     /**
@@ -42,11 +40,11 @@ export class QuestRunner {
     /**
      * There is a quest loaded and it is currently running.
      */
-    public readonly running: Property<boolean> = this._running;
+    readonly running: Property<boolean> = this._running;
     /**
      * A quest is running but the execution is currently paused.
      */
-    public readonly paused: Property<boolean> = this._paused;
+    readonly paused: Property<boolean> = this._paused;
     /**
      * Have we executed since last advancing the instruction pointer?
      */
@@ -60,11 +58,6 @@ export class QuestRunner {
     }
 
     run(quest: QuestModel): void {
-        if (logger === undefined) {
-            // defer creation of logger to prevent problems caused by circular dependency with QuestEditorStore
-            logger = quest_editor_store.get_logger("quest_editor/QuestRunner");
-        }
-
         if (asm_editor_store === undefined) {
             // same here... circular dependency problem
             import("./stores/AsmEditorStore").then(imports => {
@@ -169,7 +162,7 @@ export class QuestRunner {
 
                 if (this.vm.halted) {
                     this.stop();
-                    break exec_loop;
+                    break;
                 }
 
                 const srcloc = this.vm.get_current_source_location();
@@ -186,7 +179,7 @@ export class QuestRunner {
                     if (hit_breakpoint) {
                         this.stepping_breakpoints.length = 0;
                         asm_editor_store?.set_execution_location(srcloc.line_no);
-                        break exec_loop;
+                        break;
                     }
                 }
             }
@@ -197,8 +190,8 @@ export class QuestRunner {
             // limit execution to prevent the browser from freezing
             if (++this.execution_counter >= this.execution_max_count) {
                 this.stop();
-                logger?.error("Terminated: Maximum execution count reached.");
-                break exec_loop;
+                logger.error("Terminated: Maximum execution count reached.");
+                break;
             }
 
             switch (result) {
@@ -226,17 +219,21 @@ export class QuestRunner {
     };
 
     private create_vm_io = (): VirtualMachineIO => {
+        function srcloc_to_string(srcloc?: AsmToken): string {
+            return srcloc ? ` [${srcloc.line_no}:${srcloc.col}]` : " ";
+        }
+
         return {
             window_msg: (msg: string): void => {
-                logger?.info(`window_msg "${msg}"`);
+                this.quest_logger.info(`window_msg "${msg}"`);
             },
 
             message: (msg: string): void => {
-                logger?.info(`message "${msg}"`);
+                this.quest_logger.info(`message "${msg}"`);
             },
 
             add_msg: (msg: string): void => {
-                logger?.info(`add_msg "${msg}"`);
+                this.quest_logger.info(`add_msg "${msg}"`);
             },
 
             winend: (): void => {},
@@ -244,15 +241,15 @@ export class QuestRunner {
             mesend: (): void => {},
 
             list: (list_items: string[]): void => {
-                logger?.info(`list "[${list_items}]"`);
+                this.quest_logger.info(`list "[${list_items}]"`);
             },
 
             warning: (msg: string, srcloc?: AsmToken): void => {
-                logger?.warning(msg, srcloc && srcloc_to_string(srcloc));
+                this.quest_logger.warning(msg + srcloc_to_string(srcloc));
             },
 
             error: (err: Error, srcloc?: AsmToken): void => {
-                logger?.error(err, srcloc && srcloc_to_string(srcloc));
+                this.quest_logger.error(err + srcloc_to_string(srcloc));
             },
         };
     };

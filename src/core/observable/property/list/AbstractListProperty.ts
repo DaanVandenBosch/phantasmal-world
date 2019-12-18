@@ -105,7 +105,9 @@ export abstract class AbstractListProperty<T> extends AbstractProperty<readonly 
         };
     }
 
-    abstract filtered(predicate: (value: T) => boolean): ListProperty<T>;
+    abstract filtered(
+        predicate: ((value: T) => boolean) | Property<(value: T) => boolean>,
+    ): ListProperty<T>;
 
     protected abstract compute_length(): number;
 

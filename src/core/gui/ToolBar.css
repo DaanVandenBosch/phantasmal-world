@@ -4,6 +4,7 @@
     flex-direction: row;
     align-items: center;
     border-bottom: var(--border);
+    padding: 0 2px;
 }
 
 .core_ToolBar > * {

@@ -1,0 +1,46 @@
+.quest_editor_LogView {
+    display: flex;
+    flex-direction: column;
+}
+
+.quest_editor_LogView_settings {
+    justify-content: end;
+}
+
+.quest_editor_LogView_list_container {
+    overflow: auto;
+}
+
+.quest_editor_LogView_message_list {
+    font-family: monospace;
+    cursor: auto;
+    user-select: text;
+    margin-top: 0.2em;
+    margin-bottom: 0.2em;
+}
+
+.quest_editor_LogView_message {
+    display: flex;
+    padding-left: 0.5em;
+    padding-right: 0.5em;
+}
+
+.quest_editor_LogView_message > * + * {
+    margin-left: 1ch;
+}
+
+.quest_editor_LogView_message > .quest_editor_LogView_message_timestamp {
+    color: var(--text-color-disabled);
+}
+
+.quest_editor_LogView_message > .quest_editor_LogView_message_contents {
+    overflow-wrap: anywhere;
+}
+
+.quest_editor_LogView .quest_editor_LogView_Error_message {
+    background-color: hsla(0, 80%, 50%, 0.3);
+}
+
+.quest_editor_LogView .quest_editor_LogView_Warning_message {
+    background-color: hsla(30, 80%, 50%, 0.3);
+}
