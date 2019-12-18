@@ -214,6 +214,7 @@
     flex-direction: row;
     align-items: center;
     border-bottom: var(--border);
+    padding: 0 2px;
 }
 
 .core_ToolBar > * {
@@ -608,58 +609,8 @@ body .lm_dropTargetIndicator {
     border-bottom: solid 2px var(--border-color);
 }
 
-.MessageLog {
-    display: flex;
-    flex-direction: column;
-}
-
-.MessageLog_settings {
-    justify-content: end;
-}
-
-.MessageLog_list_container {
-    overflow: auto;
-}
-
-.MessageLog_message_list {
-    font-family: monospace;
-    cursor: auto;
-    user-select: text;
-    margin-top: 0.2em;
-    margin-bottom: 0.2em;
-}
-
-.MessageLog_message {
-    display: flex;
-    padding-left: 0.5em;
-    padding-right: 0.5em;
-}
-
-.MessageLog_message > * + * {
-    margin-left: 1ch;
-}
-
-.MessageLog_message > .MessageLog_message_timestamp {
-    color: var(--text-color-disabled);
-}
-
-.MessageLog_message > .MessageLog_message_contents {
-    overflow-wrap: anywhere;
-}
-
-.quest_editor_QuestMessageLogView .MessageLog_Error_message {
-    background-color: hsla(0, 80%, 50%, 0.3);
-}
-
-.quest_editor_QuestMessageLogView .MessageLog_Warning_message {
-    background-color: hsla(30, 80%, 50%, 0.3);
-}
-
-.quest_editor_RegistersView {
-    font-family: monospace;
-}
-
 .quest_editor_RegistersView_container {
+    font-family: monospace;
     overflow: auto;
     height: 97%;
 }
@@ -685,6 +636,53 @@ body .lm_dropTargetIndicator {
 .quest_editor_RegistersView_value > .core_TextInput_inner {
     text-align: right;
     font-family: monospace;
+}
+
+.quest_editor_LogView {
+    display: flex;
+    flex-direction: column;
+}
+
+.quest_editor_LogView_settings {
+    justify-content: end;
+}
+
+.quest_editor_LogView_list_container {
+    overflow: auto;
+}
+
+.quest_editor_LogView_message_list {
+    font-family: monospace;
+    cursor: auto;
+    user-select: text;
+    margin-top: 0.2em;
+    margin-bottom: 0.2em;
+}
+
+.quest_editor_LogView_message {
+    display: flex;
+    padding-left: 0.5em;
+    padding-right: 0.5em;
+}
+
+.quest_editor_LogView_message > * + * {
+    margin-left: 1ch;
+}
+
+.quest_editor_LogView_message > .quest_editor_LogView_message_timestamp {
+    color: var(--text-color-disabled);
+}
+
+.quest_editor_LogView_message > .quest_editor_LogView_message_contents {
+    overflow-wrap: anywhere;
+}
+
+.quest_editor_LogView .quest_editor_LogView_Error_message {
+    background-color: hsla(0, 80%, 50%, 0.3);
+}
+
+.quest_editor_LogView .quest_editor_LogView_Warning_message {
+    background-color: hsla(30, 80%, 50%, 0.3);
 }
 
 .hunt_optimizer_WantedItemsView {
