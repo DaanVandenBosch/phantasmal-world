@@ -7,16 +7,16 @@ import { quest_editor_store } from "./QuestEditorStore";
 import { ASM_SYNTAX } from "./asm_syntax";
 import { AssemblyError, AssemblyWarning } from "../scripting/assembly";
 import { Observable } from "../../core/observable/Observable";
-import { emitter, property, list_property } from "../../core/observable";
+import { emitter, property } from "../../core/observable";
 import { WritableProperty } from "../../core/observable/property/WritableProperty";
 import { Property } from "../../core/observable/property/Property";
+import { ListProperty } from "../../core/observable/property/list/ListProperty";
 import ITextModel = editor.ITextModel;
 import CompletionList = languages.CompletionList;
 import IMarkerData = editor.IMarkerData;
 import SignatureHelpResult = languages.SignatureHelpResult;
 import LocationLink = languages.LocationLink;
-import { WritableListProperty } from "../../core/observable/property/list/WritableListProperty";
-import { ListProperty } from "../../core/observable/property/list/ListProperty";
+import IModelContentChange = editor.IModelContentChange;
 
 const assembly_analyser = new AssemblyAnalyser();
 
@@ -90,10 +90,6 @@ export class AsmEditorStore implements Disposable {
     private readonly _did_undo = emitter<string>();
     private readonly _did_redo = emitter<string>();
     private readonly _inline_args_mode: WritableProperty<boolean> = property(true);
-    private readonly _breakpoints: WritableListProperty<number> = list_property();
-    private readonly _execution_location: WritableProperty<number | undefined> = property(
-        undefined,
-    );
 
     readonly model: Property<ITextModel | undefined> = this._model;
     readonly did_undo: Observable<string> = this._did_undo;
@@ -107,8 +103,9 @@ export class AsmEditorStore implements Disposable {
     readonly has_issues: Property<boolean> = assembly_analyser.issues.map(
         issues => issues.warnings.length + issues.errors.length > 0,
     );
-    readonly breakpoints: ListProperty<number> = this._breakpoints;
-    readonly execution_location: Property<number | undefined> = this._execution_location;
+    readonly breakpoints: ListProperty<number> = quest_editor_store.quest_runner.breakpoints;
+    readonly execution_location: Property<number | undefined> =
+        quest_editor_store.quest_runner.breakpoint_location;
 
     constructor() {
         this.disposer.add_all(
@@ -184,68 +181,7 @@ export class AsmEditorStore implements Disposable {
 
                 assembly_analyser.update_assembly(e.changes);
 
-                // update breakpoints
-                for (const change of e.changes) {
-                    // empty text means something was deleted
-                    if (change.text === "") {
-                        const num_removed_lines =
-                            change.range.endLineNumber - change.range.startLineNumber;
-
-                        if (num_removed_lines > 0) {
-                            // if a line that has a decoration is removed
-                            // monaco will automatically move the decoration
-                            // to the line before the change.
-                            // we need to reflect this in the state as well.
-                            // move breakpoints that were in removed lines
-                            // backwards by the number of removed lines.
-                            for (
-                                let line_num = change.range.startLineNumber + 1;
-                                line_num <= change.range.endLineNumber;
-                                line_num++
-                            ) {
-                                // line numbers can't go less than 1
-                                const new_line_num = Math.max(line_num - num_removed_lines, 1);
-                                const breakpoint_idx = this._breakpoints.val.indexOf(line_num);
-
-                                // don't add breakpoint if one already exists
-                                if (
-                                    breakpoint_idx > -1 &&
-                                    !this._breakpoints.val.includes(new_line_num)
-                                ) {
-                                    this._breakpoints.splice(breakpoint_idx, 1, new_line_num);
-                                }
-                            }
-
-                            // move breakpoints that are after the affected
-                            // lines backwards by the number of removed lines
-                            for (let i = 0; i < this._breakpoints.val.length; i++) {
-                                if (this._breakpoints.val[i] > change.range.endLineNumber) {
-                                    this._breakpoints.splice(
-                                        i,
-                                        1,
-                                        this._breakpoints.val[i] - num_removed_lines,
-                                    );
-                                }
-                            }
-                        }
-                    } else {
-                        const num_added_lines = change.text.split("\n").length - 1;
-
-                        if (num_added_lines > 0) {
-                            // move breakpoints that are after the affected lines
-                            // forwards by the number of added lines
-                            for (let i = 0; i < this.breakpoints.val.length; i++) {
-                                if (this._breakpoints.val[i] > change.range.endLineNumber) {
-                                    this._breakpoints.splice(
-                                        i,
-                                        1,
-                                        this._breakpoints.val[i] + num_added_lines,
-                                    );
-                                }
-                            }
-                        }
-                    }
-                }
+                this.update_breakpoints(e.changes);
             }),
         );
     }
@@ -312,26 +248,65 @@ export class AsmEditorStore implements Disposable {
         }
     }
 
-    public toggle_breakpoint(line_num: number): void {
-        const i = this._breakpoints.val.indexOf(line_num);
+    private update_breakpoints(changes: IModelContentChange[]): void {
+        for (const change of changes) {
+            const new_breakpoints: number[] = [];
 
-        if (i === -1) {
-            this._breakpoints.push(line_num);
-        } else {
-            this._breakpoints.splice(i, 1);
+            // Empty text means something was deleted.
+            if (change.text === "") {
+                const num_removed_lines = change.range.endLineNumber - change.range.startLineNumber;
+
+                if (num_removed_lines > 0) {
+                    // if a line that has a decoration is removed
+                    // monaco will automatically move the decoration
+                    // to the line before the change.
+                    // we need to reflect this in the state as well.
+                    // move breakpoints that were in removed lines
+                    // backwards by the number of removed lines.
+                    for (
+                        let line_num = change.range.startLineNumber + 1;
+                        line_num <= change.range.endLineNumber;
+                        line_num++
+                    ) {
+                        // Line numbers can't go lower than 1.
+                        const new_line_num = Math.max(line_num - num_removed_lines, 1);
+
+                        quest_editor_store.quest_runner.remove_breakpoint(line_num);
+                        quest_editor_store.quest_runner.set_breakpoint(new_line_num);
+                    }
+
+                    // Move breakpoints that are after the affected lines backwards by the
+                    // number of removed lines.
+                    for (let i = 0; i < this.breakpoints.val.length; i++) {
+                        const breakpoint = this.breakpoints.val[i];
+
+                        if (breakpoint > change.range.endLineNumber) {
+                            quest_editor_store.quest_runner.remove_breakpoint(breakpoint);
+                            new_breakpoints.push(breakpoint - num_removed_lines);
+                        }
+                    }
+                }
+            } else {
+                const num_added_lines = change.text.split("\n").length - 1;
+
+                if (num_added_lines > 0) {
+                    // move breakpoints that are after the affected lines
+                    // forwards by the number of added lines
+                    for (let i = 0; i < this.breakpoints.val.length; i++) {
+                        const breakpoint = this.breakpoints.val[i];
+
+                        if (breakpoint > change.range.endLineNumber) {
+                            quest_editor_store.quest_runner.remove_breakpoint(breakpoint);
+                            new_breakpoints.push(breakpoint + num_added_lines);
+                        }
+                    }
+                }
+            }
+
+            for (const breakpoint of new_breakpoints) {
+                quest_editor_store.quest_runner.set_breakpoint(breakpoint);
+            }
         }
-    }
-
-    public clear_breakpoints(): void {
-        this._breakpoints.splice(0);
-    }
-
-    public set_execution_location(line_num: number): void {
-        this._execution_location.val = line_num;
-    }
-
-    public unset_execution_location(): void {
-        this._execution_location.val = undefined;
     }
 }
 

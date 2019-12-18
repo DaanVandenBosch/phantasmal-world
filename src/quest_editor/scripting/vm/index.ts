@@ -1,15 +1,17 @@
-import { Instruction, InstructionSegment, Segment, SegmentType, AsmToken } from "../instructions";
+import { AsmToken, Instruction, InstructionSegment, Segment, SegmentType } from "../instructions";
 import {
+    Kind,
     OP_ADD,
+    OP_ADD_MSG,
     OP_ADDI,
     OP_AND,
     OP_ANDI,
+    OP_ARG_PUSHA,
     OP_ARG_PUSHB,
     OP_ARG_PUSHL,
     OP_ARG_PUSHR,
-    OP_ARG_PUSHW,
-    OP_ARG_PUSHA,
     OP_ARG_PUSHS,
+    OP_ARG_PUSHW,
     OP_CALL,
     OP_CLEAR,
     OP_DIV,
@@ -19,15 +21,35 @@ import {
     OP_FADDI,
     OP_FDIV,
     OP_FDIVI,
+    OP_FLET,
+    OP_FLETI,
     OP_FMUL,
     OP_FMULI,
     OP_FSUB,
     OP_FSUBI,
+    OP_GET_RANDOM,
+    OP_GETTIME,
     OP_JMP,
+    OP_JMP_E,
+    OP_JMP_G,
+    OP_JMP_GE,
+    OP_JMP_L,
+    OP_JMP_LE,
+    OP_JMP_NE,
+    OP_JMP_OFF,
+    OP_JMP_ON,
+    OP_JMPI_E,
+    OP_JMPI_G,
+    OP_JMPI_GE,
+    OP_JMPI_L,
+    OP_JMPI_LE,
+    OP_JMPI_NE,
     OP_LET,
+    OP_LETA,
     OP_LETB,
     OP_LETI,
     OP_LETW,
+    OP_LIST,
     OP_MOD,
     OP_MODI,
     OP_MUL,
@@ -38,64 +60,42 @@ import {
     OP_RET,
     OP_REV,
     OP_SET,
+    OP_SET_EPISODE,
     OP_SHIFT_LEFT,
     OP_SHIFT_RIGHT,
+    OP_STACK_POP,
+    OP_STACK_POPM,
+    OP_STACK_PUSH,
+    OP_STACK_PUSHM,
     OP_SUB,
     OP_SUBI,
     OP_SYNC,
     OP_THREAD,
+    OP_UJMP_G,
+    OP_UJMP_GE,
+    OP_UJMP_L,
+    OP_UJMP_LE,
+    OP_UJMPI_G,
+    OP_UJMPI_GE,
+    OP_UJMPI_L,
+    OP_UJMPI_LE,
+    OP_WINDOW_MSG,
+    OP_WINEND,
     OP_XOR,
     OP_XORI,
-    OP_JMP_E,
-    OP_JMPI_E,
-    OP_JMP_ON,
-    OP_JMP_OFF,
-    OP_JMP_NE,
-    OP_JMPI_NE,
-    OP_UJMP_G,
-    OP_UJMPI_G,
-    OP_JMP_G,
-    OP_JMPI_G,
-    OP_UJMP_L,
-    OP_UJMPI_L,
-    OP_JMP_L,
-    OP_JMPI_L,
-    OP_UJMP_GE,
-    OP_UJMPI_GE,
-    OP_JMP_GE,
-    OP_JMPI_GE,
-    OP_UJMP_LE,
-    OP_UJMPI_LE,
-    OP_JMP_LE,
-    OP_JMPI_LE,
-    OP_STACK_POP,
-    OP_STACK_PUSH,
-    OP_STACK_PUSHM,
-    OP_STACK_POPM,
-    Kind,
-    OP_WINDOW_MSG,
-    OP_ADD_MSG,
-    OP_WINEND,
-    OP_LETA,
-    OP_FLET,
-    OP_FLETI,
-    OP_GET_RANDOM,
-    OP_GETTIME,
-    OP_SET_EPISODE,
-    OP_LIST,
 } from "../opcodes";
 import {
+    andreduce,
+    andsecond,
+    BinaryNumericOperation,
+    comparison_ops,
     ComparisonOperation,
     numeric_ops,
-    comparison_ops,
     rest,
-    BinaryNumericOperation,
-    andsecond,
-    andreduce,
 } from "./utils";
 import { VirtualMachineIO } from "./io";
 import { VMIOStub } from "./VMIOStub";
-import { rand, srand, GetTickCount } from "./windows";
+import { GetTickCount, rand, srand } from "./windows";
 import { QuestModel } from "../../model/QuestModel";
 import { convert_quest_from_model } from "../../stores/model_conversion";
 import { Episode } from "../../../core/data_formats/parsing/quest/Episode";
@@ -152,7 +152,7 @@ export class VirtualMachine {
     private registers = new ZeroableBuffer(REGISTER_COUNT * REGISTER_SIZE, Endianness.Little);
     private string_arg_store = "";
     private quest?: QuestModel;
-    private object_code: readonly Segment[] = [];
+    private _object_code: readonly Segment[] = [];
     private label_to_seg_idx: Map<number, number> = new Map();
     private thread: Thread[] = [];
     private thread_idx = 0;
@@ -162,6 +162,10 @@ export class VirtualMachine {
     private selection_reg = 0;
     private cur_srcloc?: AsmToken;
     private _halted = true;
+
+    get object_code(): readonly Segment[] {
+        return this._object_code;
+    }
 
     constructor(private io: VirtualMachineIO = new VMIOStub()) {
         srand(GetTickCount());
@@ -186,7 +190,7 @@ export class VirtualMachine {
         this.quest = undefined;
         this.registers.zero();
         this.string_arg_store = "";
-        this.object_code = object_code;
+        this._object_code = object_code;
         this.label_to_seg_idx.clear();
         this.set_episode_called = false;
         this.list_open = false;
@@ -195,7 +199,7 @@ export class VirtualMachine {
 
         let i = 0;
 
-        for (const segment of this.object_code) {
+        for (const segment of this._object_code) {
             for (const label of segment.labels) {
                 this.label_to_seg_idx.set(label, i);
             }
@@ -209,7 +213,7 @@ export class VirtualMachine {
      */
     start_thread(label: number): void {
         const seg_idx = this.get_segment_index_by_label(label);
-        const segment = this.object_code[seg_idx];
+        const segment = this._object_code[seg_idx];
 
         if (segment.type !== SegmentType.Instructions) {
             throw new Error(
@@ -255,12 +259,12 @@ export class VirtualMachine {
         const exec = this.thread[this.thread_idx];
         if (exec.call_stack.length) {
             const top = exec.call_stack_top();
-            const segment = this.object_code[top.seg_idx] as InstructionSegment;
+            const segment = this._object_code[top.seg_idx] as InstructionSegment;
 
             // move to next instruction
             if (++top.inst_idx >= segment.instructions.length) {
                 // segment ended, move to next segment
-                if (++top.seg_idx >= this.object_code.length) {
+                if (++top.seg_idx >= this._object_code.length) {
                     // eof
                     this.dispose_thread(this.thread_idx);
                 } else {
@@ -282,10 +286,10 @@ export class VirtualMachine {
 
     /**
      * Executes the next instruction if one is scheduled.
-     * @param auto_advance Should the instruction pointer be automatically advanced.
+     * @param auto_advance - Should the instruction pointer be automatically advanced.
      */
     execute(auto_advance: boolean = true): ExecutionResult {
-        let srcloc: AsmToken | undefined;
+        const srcloc: AsmToken | undefined = undefined;
 
         if (this._halted) {
             return ExecutionResult.Halted;
@@ -708,7 +712,7 @@ export class VirtualMachine {
                 this.set_episode_called = true;
 
                 if (
-                    !this.object_code[
+                    !this._object_code[
                         this.get_current_execution_location().seg_idx
                     ].labels.includes(ENTRY_SEGMENT)
                 ) {
@@ -845,7 +849,7 @@ export class VirtualMachine {
 
     private push_call_stack(exec: Thread, label: number): void {
         const seg_idx = this.get_segment_index_by_label(label);
-        const segment = this.object_code[seg_idx];
+        const segment = this._object_code[seg_idx];
 
         if (segment.type !== SegmentType.Instructions) {
             throw new Error(
@@ -863,7 +867,7 @@ export class VirtualMachine {
 
         if (exec.call_stack.length >= 1) {
             const top = exec.call_stack_top();
-            const segment = this.object_code[top.seg_idx];
+            const segment = this._object_code[top.seg_idx];
 
             if (!segment || segment.type !== SegmentType.Instructions) {
                 throw new Error(`Invalid segment index ${top.seg_idx}.`);
@@ -878,9 +882,7 @@ export class VirtualMachine {
 
     private jump_to_label(exec: Thread, label: number): void {
         const top = exec.call_stack_top();
-        const seg_idx = this.get_segment_index_by_label(label);
-
-        top.seg_idx = seg_idx;
+        top.seg_idx = this.get_segment_index_by_label(label);
         top.inst_idx = -1;
     }
 
@@ -988,7 +990,7 @@ export class VirtualMachine {
     private get_next_instruction_from_thread(exec: Thread): Instruction {
         if (exec.call_stack.length) {
             const top = exec.call_stack_top();
-            const segment = this.object_code[top.seg_idx];
+            const segment = this._object_code[top.seg_idx];
 
             if (!segment || segment.type !== SegmentType.Instructions) {
                 throw new Error(`Invalid segment index ${top.seg_idx}.`);

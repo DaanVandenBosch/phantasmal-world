@@ -99,7 +99,7 @@ export class AsmEditorView extends ResizableWidget {
                     this.breakpoint_decoration_ids = [];
                     this.execloc_decoration_id = "";
 
-                    asm_editor_store.clear_breakpoints();
+                    quest_editor_store.quest_runner.clear_breakpoints();
                 },
                 { call_now: true },
             ),
@@ -201,7 +201,7 @@ export class AsmEditorView extends ResizableWidget {
                             if (!pos) {
                                 return;
                             }
-                            asm_editor_store.toggle_breakpoint(pos.lineNumber);
+                            quest_editor_store.quest_runner.toggle_breakpoint(pos.lineNumber);
                         }
                         break;
                     default:

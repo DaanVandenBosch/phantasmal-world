@@ -1,42 +1,44 @@
-import { ExecutionResult, VirtualMachine, ExecutionLocation } from "./scripting/vm";
+import { ExecutionResult, VirtualMachine } from "./scripting/vm";
 import { QuestModel } from "./model/QuestModel";
 import { VirtualMachineIO } from "./scripting/vm/io";
-import { AsmToken, SegmentType, InstructionSegment, Instruction } from "./scripting/instructions";
-import { defined, assert } from "../core/util";
-import {
-    OP_CALL,
-    OP_VA_CALL,
-    OP_SWITCH_CALL,
-    OP_ARG_PUSHB,
-    OP_ARG_PUSHL,
-    OP_ARG_PUSHR,
-    OP_ARG_PUSHW,
-    OP_ARG_PUSHA,
-    OP_ARG_PUSHS,
-} from "./scripting/opcodes";
+import { AsmToken } from "./scripting/instructions";
 import { WritableProperty } from "../core/observable/property/WritableProperty";
-import { property } from "../core/observable";
+import { list_property, property } from "../core/observable";
 import { Property } from "../core/observable/property/Property";
-import { AsmEditorStore } from "./stores/AsmEditorStore";
 import Logger from "js-logger";
 import { log_store } from "./stores/LogStore";
+import { Debugger } from "./scripting/vm/Debugger";
+import { WritableListProperty } from "../core/observable/property/list/WritableListProperty";
+import { ListProperty } from "../core/observable/property/list/ListProperty";
 
-let asm_editor_store: AsmEditorStore | undefined;
 const logger = Logger.get("quest_editor/QuestRunner");
 
+/**
+ * Orchestrates everything related to emulating a quest run. Delegates to {@link VirtualMachine}
+ * and {@link Debugger}.
+ */
 export class QuestRunner {
     private quest_logger = log_store.get_logger("quest_editor/QuestRunner");
-    readonly vm: VirtualMachine;
     private quest?: QuestModel;
     private animation_frame?: number;
-    /**
-     * Invisible breakpoints that help with stepping over/in/out.
-     */
-    private readonly stepping_breakpoints: number[] = [];
-    private break_on_next = false;
 
     private readonly _running: WritableProperty<boolean> = property(false);
     private readonly _paused: WritableProperty<boolean> = property(false);
+    private readonly _breakpoints: WritableListProperty<number> = list_property();
+    private readonly _breakpoint_location: WritableProperty<number | undefined> = property(
+        undefined,
+    );
+    /**
+     * Have we executed since last advancing the instruction pointer?
+     */
+    private executed_since_advance = true;
+
+    private execution_counter = 0;
+    private readonly execution_max_count = 100_000;
+    private readonly debugger: Debugger;
+
+    // TODO: make vm private again.
+    readonly vm: VirtualMachine;
     /**
      * There is a quest loaded and it is currently running.
      */
@@ -45,26 +47,15 @@ export class QuestRunner {
      * A quest is running but the execution is currently paused.
      */
     readonly paused: Property<boolean> = this._paused;
-    /**
-     * Have we executed since last advancing the instruction pointer?
-     */
-    private executed_since_advance = true;
-
-    private execution_counter = 0;
-    private readonly execution_max_count = 100000;
+    readonly breakpoints: ListProperty<number> = this._breakpoints;
+    readonly breakpoint_location: Property<number | undefined> = this._breakpoint_location;
 
     constructor() {
         this.vm = new VirtualMachine(this.create_vm_io());
+        this.debugger = new Debugger(this.vm);
     }
 
     run(quest: QuestModel): void {
-        if (asm_editor_store === undefined) {
-            // same here... circular dependency problem
-            import("./stores/AsmEditorStore").then(imports => {
-                asm_editor_store = imports.asm_editor_store;
-            });
-        }
-
         if (this.animation_frame != undefined) {
             cancelAnimationFrame(this.animation_frame);
         }
@@ -82,67 +73,50 @@ export class QuestRunner {
         this.schedule_frame();
     }
 
-    public resume(): void {
+    resume(): void {
         this.schedule_frame();
     }
 
-    public step_over(): void {
-        const execloc = this.vm.get_current_execution_location();
-
-        const src_segment = this.get_instruction_segment_by_index(execloc.seg_idx);
-        const src_instr = src_segment.instructions[execloc.inst_idx];
-        const dst_label = this.get_step_innable_instruction_label_argument(src_instr);
-
-        // nothing to step over, just break on next instruction
-        if (dst_label === undefined) {
-            this.break_on_next = true;
-        }
-        // set a breakpoint on the next line
-        else {
-            const dst_srcloc = this.get_next_source_location(execloc);
-
-            // set breakpoint
-            if (dst_srcloc) {
-                this.stepping_breakpoints.push(dst_srcloc.line_no);
-            }
-        }
-
+    step_over(): void {
+        this.debugger.step_over();
         this.schedule_frame();
     }
 
-    public step_in(): void {
-        const execloc = this.vm.get_current_execution_location();
-        const src_segment = this.get_instruction_segment_by_index(execloc.seg_idx);
-        const src_instr = src_segment.instructions[execloc.inst_idx];
-        const dst_label = this.get_step_innable_instruction_label_argument(src_instr);
-
-        // not a step-innable instruction, behave like step-over
-        if (dst_label === undefined) {
-            this.step_over();
-        }
-        // can step-in
-        else {
-            const dst_segment = this.get_instruction_segment_by_label(dst_label);
-            const dst_instr = dst_segment.instructions[0];
-            const dst_srcloc = this.get_source_location(dst_instr);
-
-            if (dst_srcloc) {
-                this.stepping_breakpoints.push(dst_srcloc.line_no);
-            }
-
-            this.schedule_frame();
-        }
+    step_in(): void {
+        this.debugger.step_in();
+        this.schedule_frame();
     }
 
-    public step_out(): void {
-        // unimplemented
+    step_out(): void {
+        this.debugger.step_out();
+        this.schedule_frame();
     }
 
-    public stop(): void {
+    stop(): void {
         this.vm.halt();
         this._running.val = false;
         this._paused.val = false;
-        asm_editor_store?.unset_execution_location();
+        this._breakpoint_location.val = undefined;
+    }
+
+    set_breakpoint(line_no: number): void {
+        this.debugger.set_breakpoint(line_no);
+        this._breakpoints.splice(0, Infinity, ...this.debugger.breakpoints);
+    }
+
+    remove_breakpoint(line_no: number): void {
+        this.debugger.remove_breakpoint(line_no);
+        this._breakpoints.splice(0, Infinity, ...this.debugger.breakpoints);
+    }
+
+    toggle_breakpoint(line_no: number): void {
+        this.debugger.toggle_breakpoint(line_no);
+        this._breakpoints.splice(0, Infinity, ...this.debugger.breakpoints);
+    }
+
+    clear_breakpoints(): void {
+        this.debugger.clear_breakpoints();
+        this._breakpoints.splice(0, Infinity, ...this.debugger.breakpoints);
     }
 
     private schedule_frame(): void {
@@ -169,16 +143,10 @@ export class QuestRunner {
 
                 if (srcloc) {
                     // check if need to break
-                    const hit_breakpoint =
-                        this.break_on_next ||
-                        asm_editor_store?.breakpoints.val.includes(srcloc.line_no) ||
-                        this.stepping_breakpoints.includes(srcloc.line_no);
-
-                    this.break_on_next = false;
+                    const hit_breakpoint = this.debugger.breakpoint_hit(srcloc);
 
                     if (hit_breakpoint) {
-                        this.stepping_breakpoints.length = 0;
-                        asm_editor_store?.set_execution_location(srcloc.line_no);
+                        this._breakpoint_location.val = srcloc.line_no;
                         break;
                     }
                 }
@@ -253,87 +221,4 @@ export class QuestRunner {
             },
         };
     };
-
-    private get_instruction_segment_by_index(index: number): InstructionSegment {
-        defined(this.quest);
-
-        const segment = this.quest.object_code[index];
-
-        assert(
-            segment.type === SegmentType.Instructions,
-            `Expected segment ${index} to be of type ${
-                SegmentType[SegmentType.Instructions]
-            }, but was ${SegmentType[segment.type]}.`,
-        );
-
-        return segment;
-    }
-
-    private get_instruction_segment_by_label(label: number): InstructionSegment {
-        const seg_idx = this.vm.get_segment_index_by_label(label);
-        return this.get_instruction_segment_by_index(seg_idx);
-    }
-
-    private get_step_innable_instruction_label_argument(instr: Instruction): number | undefined {
-        switch (instr.opcode.code) {
-            case OP_VA_CALL.code:
-            case OP_CALL.code:
-                return instr.args[0].value;
-            case OP_SWITCH_CALL.code:
-                return instr.args[1].value;
-        }
-    }
-
-    private is_arg_push_opcode(instr: Instruction): boolean {
-        switch (instr.opcode.code) {
-            case OP_ARG_PUSHB.code:
-            case OP_ARG_PUSHL.code:
-            case OP_ARG_PUSHR.code:
-            case OP_ARG_PUSHW.code:
-            case OP_ARG_PUSHA.code:
-            case OP_ARG_PUSHS.code:
-                return true;
-        }
-        return false;
-    }
-
-    private get_source_location(instr: Instruction): AsmToken | undefined {
-        let dst_srcloc = instr.asm?.mnemonic;
-
-        // use the location of the arg of the arg_push opcode instead
-        if (asm_editor_store?.inline_args_mode.val) {
-            if (this.is_arg_push_opcode(instr)) {
-                dst_srcloc = instr.asm?.args[0];
-            }
-        }
-
-        return dst_srcloc;
-    }
-
-    private get_next_source_location(execloc: ExecutionLocation): AsmToken | undefined {
-        defined(this.quest);
-
-        const next_loc = new ExecutionLocation(execloc.seg_idx, execloc.inst_idx);
-        const segment = this.quest.object_code[next_loc.seg_idx];
-
-        // can't go to non-code segments
-        if (segment.type !== SegmentType.Instructions) {
-            return undefined;
-        }
-
-        // move to next instruction
-        // move to next segment if segment ended
-        if (++next_loc.inst_idx >= segment.instructions.length) {
-            next_loc.seg_idx++;
-            next_loc.inst_idx = 0;
-        }
-
-        // no more segments
-        if (next_loc.seg_idx >= this.quest.object_code.length) {
-            return undefined;
-        }
-
-        const dst_instr = segment.instructions[next_loc.inst_idx];
-        return this.get_source_location(dst_instr);
-    }
 }
