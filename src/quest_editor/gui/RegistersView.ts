@@ -3,11 +3,11 @@ import { quest_editor_store } from "../stores/QuestEditorStore";
 import { el } from "../../core/gui/dom";
 import { REGISTER_COUNT } from "../scripting/vm";
 import { TextInput } from "../../core/gui/TextInput";
-import { DropDown } from "../../core/gui/DropDown";
 import { ToolBar } from "../../core/gui/ToolBar";
 import { CheckBox } from "../../core/gui/CheckBox";
 import { number_to_hex_string } from "../../core/util";
 import "./RegistersView.css";
+import { Select } from "../../core/gui/Select";
 
 enum RegisterDisplayType {
     Signed,
@@ -20,9 +20,8 @@ enum RegisterDisplayType {
 type RegisterGetterFunction = (register: number) => number;
 
 export class RegistersView extends ResizableWidget {
-    private readonly type_dropdown = this.disposable(
-        new DropDown(
-            "Display type",
+    private readonly type_select = this.disposable(
+        new Select(
             [
                 RegisterDisplayType.Signed,
                 RegisterDisplayType.Unsigned,
@@ -33,6 +32,7 @@ export class RegistersView extends ResizableWidget {
             type => RegisterDisplayType[type],
             {
                 tooltip: "Select which data type register values should be displayed as.",
+                label: "Display type:",
             },
         ),
     );
@@ -49,7 +49,7 @@ export class RegistersView extends ResizableWidget {
 
     private readonly settings_bar = this.disposable(
         new ToolBar({
-            children: [this.type_dropdown, this.hex_checkbox],
+            children: [this.type_select, this.hex_checkbox],
         }),
     );
 
@@ -67,6 +67,8 @@ export class RegistersView extends ResizableWidget {
 
     constructor() {
         super();
+
+        this.type_select.selected.val = RegisterDisplayType.Unsigned;
 
         // create register elements
         const register_els: TextInput[] = Array(REGISTER_COUNT);
@@ -110,9 +112,11 @@ export class RegistersView extends ResizableWidget {
                 this.update(should_use_placeholders(), this.hex_checkbox.checked.val),
             ),
 
-            this.type_dropdown.chosen.observe(change => {
-                this.register_getter = this.get_register_getter(change.value);
-                this.update(should_use_placeholders(), this.hex_checkbox.checked.val);
+            this.type_select.selected.observe(({ value }) => {
+                if (value != undefined) {
+                    this.register_getter = this.get_register_getter(value);
+                    this.update(should_use_placeholders(), this.hex_checkbox.checked.val);
+                }
             }),
 
             this.hex_checkbox.checked.observe(change =>
@@ -123,10 +127,10 @@ export class RegistersView extends ResizableWidget {
         this.finalize_construction(RegistersView.prototype);
     }
 
-    private get_register_getter(typ: RegisterDisplayType): RegisterGetterFunction {
+    private get_register_getter(type: RegisterDisplayType): RegisterGetterFunction {
         let getter: RegisterGetterFunction;
 
-        switch (typ) {
+        switch (type) {
             case RegisterDisplayType.Signed:
                 getter = quest_editor_store.quest_runner.vm.get_register_signed;
                 break;

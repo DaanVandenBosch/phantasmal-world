@@ -1,8 +1,5 @@
-.quest_editor_RegistersView {
-    font-family: monospace;
-}
-
 .quest_editor_RegistersView_container {
+    font-family: monospace;
     overflow: auto;
     height: 97%;
 }
