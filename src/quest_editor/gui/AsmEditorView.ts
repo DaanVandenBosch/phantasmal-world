@@ -8,6 +8,7 @@ import IStandaloneCodeEditor = editor.IStandaloneCodeEditor;
 import "./AsmEditorView.css";
 import { ListChangeType } from "../../core/observable/property/list/ListProperty";
 import { quest_editor_store } from "../stores/QuestEditorStore";
+import { gui_store } from "../../core/stores/GuiStore";
 
 editor.defineTheme("phantasmal-world", {
     base: "vs-dark",
@@ -55,7 +56,7 @@ export class AsmEditorView extends ResizableWidget {
                 wrappingIndent: "indent",
                 renderIndentGuides: false,
                 folding: false,
-                glyphMargin: true,
+                glyphMargin: gui_store.feature_active("vm"),
             }),
         );
 
