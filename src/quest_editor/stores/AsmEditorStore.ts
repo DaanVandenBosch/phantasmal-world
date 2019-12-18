@@ -271,15 +271,14 @@ export class AsmEditorStore implements Disposable {
                         // Line numbers can't go lower than 1.
                         const new_line_num = Math.max(line_num - num_removed_lines, 1);
 
-                        quest_editor_store.quest_runner.remove_breakpoint(line_num);
-                        quest_editor_store.quest_runner.set_breakpoint(new_line_num);
+                        if (quest_editor_store.quest_runner.remove_breakpoint(line_num)) {
+                            new_breakpoints.push(new_line_num);
+                        }
                     }
 
                     // Move breakpoints that are after the affected lines backwards by the
                     // number of removed lines.
-                    for (let i = 0; i < this.breakpoints.val.length; i++) {
-                        const breakpoint = this.breakpoints.val[i];
-
+                    for (const breakpoint of this.breakpoints.val) {
                         if (breakpoint > change.range.endLineNumber) {
                             quest_editor_store.quest_runner.remove_breakpoint(breakpoint);
                             new_breakpoints.push(breakpoint - num_removed_lines);
@@ -292,9 +291,7 @@ export class AsmEditorStore implements Disposable {
                 if (num_added_lines > 0) {
                     // move breakpoints that are after the affected lines
                     // forwards by the number of added lines
-                    for (let i = 0; i < this.breakpoints.val.length; i++) {
-                        const breakpoint = this.breakpoints.val[i];
-
+                    for (const breakpoint of this.breakpoints.val) {
                         if (breakpoint > change.range.endLineNumber) {
                             quest_editor_store.quest_runner.remove_breakpoint(breakpoint);
                             new_breakpoints.push(breakpoint + num_added_lines);

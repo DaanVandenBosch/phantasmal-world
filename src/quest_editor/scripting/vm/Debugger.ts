@@ -79,17 +79,23 @@ export class Debugger {
         throw new Error("Not implemented.");
     };
 
-    set_breakpoint(line_no: number): void {
+    set_breakpoint(line_no: number): boolean {
         if (!this._breakpoints.includes(line_no)) {
             this._breakpoints.push(line_no);
+            return true;
+        } else {
+            return false;
         }
     }
 
-    remove_breakpoint(line_no: number): void {
+    remove_breakpoint(line_no: number): boolean {
         const index = this._breakpoints.indexOf(line_no);
 
         if (index != -1) {
             this._breakpoints.splice(index, 1);
+            return true;
+        } else {
+            return false;
         }
     }
 

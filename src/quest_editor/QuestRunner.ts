@@ -99,14 +99,22 @@ export class QuestRunner {
         this._breakpoint_location.val = undefined;
     }
 
-    set_breakpoint(line_no: number): void {
-        this.debugger.set_breakpoint(line_no);
+    /**
+     * @returns false if there already was a breakpoint.
+     */
+    set_breakpoint(line_no: number): boolean {
+        const set = this.debugger.set_breakpoint(line_no);
         this._breakpoints.splice(0, Infinity, ...this.debugger.breakpoints);
+        return set;
     }
 
-    remove_breakpoint(line_no: number): void {
-        this.debugger.remove_breakpoint(line_no);
+    /**
+     * @returns false if there was no breakpoint to remove.
+     */
+    remove_breakpoint(line_no: number): boolean {
+        const removed = this.debugger.remove_breakpoint(line_no);
         this._breakpoints.splice(0, Infinity, ...this.debugger.breakpoints);
+        return removed;
     }
 
     toggle_breakpoint(line_no: number): void {
