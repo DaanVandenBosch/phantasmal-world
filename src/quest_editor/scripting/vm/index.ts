@@ -83,6 +83,7 @@ import {
     OP_WINEND,
     OP_XOR,
     OP_XORI,
+    StackInteraction,
 } from "../opcodes";
 import {
     andreduce,
@@ -307,7 +308,7 @@ export class VirtualMachine {
             const exec = this.thread[this.thread_idx];
             const inst = this.get_next_instruction_from_thread(exec);
 
-            return this.execute_instruction(auto_advance, exec, inst, srcloc);
+            return this.execute_instruction(exec, inst, srcloc);
         } catch (thrown) {
             let err = thrown;
 
@@ -323,7 +324,6 @@ export class VirtualMachine {
     }
 
     private execute_instruction(
-        auto_advance: boolean,
         exec: Thread,
         inst: Instruction,
         srcloc?: AsmToken,
@@ -352,6 +352,8 @@ export class VirtualMachine {
         if (this.list_open) {
             this.list_open = false;
         }
+
+        const stack_args = exec.fetch_args(inst);
 
         switch (inst.opcode.code) {
             case OP_NOP.code:
@@ -650,19 +652,17 @@ export class VirtualMachine {
                 break;
             case OP_LIST.code:
                 if (!this.window_msg_open) {
-                    const args = exec.fetch_args(inst);
-                    const list_items = this.deref_string(args[1]).split(LIST_ITEM_DELIMITER);
+                    const list_items = this.deref_string(stack_args[1]).split(LIST_ITEM_DELIMITER);
 
                     result = ExecutionResult.WaitingSelection;
                     this.list_open = true;
-                    this.selection_reg = args[0];
+                    this.selection_reg = stack_args[0];
                     this.io.list(list_items);
                 }
                 break;
             case OP_WINDOW_MSG.code:
                 if (!this.window_msg_open) {
-                    const args = exec.fetch_args(inst);
-                    const str = this.deref_string(args[0]);
+                    const str = this.deref_string(stack_args[0]);
 
                     result = ExecutionResult.WaitingInput;
                     this.window_msg_open = true;
@@ -671,8 +671,7 @@ export class VirtualMachine {
                 break;
             case OP_ADD_MSG.code:
                 if (this.window_msg_open) {
-                    const args = exec.fetch_args(inst);
-                    const str = this.deref_string(args[0]);
+                    const str = this.deref_string(stack_args[0]);
 
                     result = ExecutionResult.WaitingInput;
                     this.io.add_msg(str);
@@ -1236,6 +1235,8 @@ class Thread {
     }
 
     public fetch_args(inst: Instruction): number[] {
+        if (inst.opcode.stack !== StackInteraction.Pop) return [];
+
         const args: number[] = [];
         const srcloc: AsmToken | undefined = inst.asm && inst.asm.mnemonic;
 
@@ -1256,6 +1257,9 @@ class Thread {
                     args.push(this.arg_stack.u8_at(arg_slot_offset));
                     break;
                 case Kind.Word:
+                case Kind.ILabel:
+                case Kind.DLabel:
+                case Kind.SLabel:
                     args.push(this.arg_stack.u16_at(arg_slot_offset));
                     break;
                 case Kind.DWord:
