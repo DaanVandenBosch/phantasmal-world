@@ -1,7 +1,7 @@
 import { ResizableWidget } from "../../core/gui/ResizableWidget";
 import { quest_editor_store } from "../stores/QuestEditorStore";
 import { el } from "../../core/gui/dom";
-import { REGISTER_COUNT } from "../scripting/vm";
+import { REGISTER_COUNT } from "../scripting/vm/VirtualMachine";
 import { TextInput } from "../../core/gui/TextInput";
 import { ToolBar } from "../../core/gui/ToolBar";
 import { CheckBox } from "../../core/gui/CheckBox";

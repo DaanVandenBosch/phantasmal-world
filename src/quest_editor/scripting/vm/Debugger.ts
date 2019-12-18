@@ -1,4 +1,4 @@
-import { ExecutionLocation, VirtualMachine } from "./index";
+import { VirtualMachine } from "./VirtualMachine";
 import { AsmToken, Instruction, InstructionSegment, SegmentType } from "../instructions";
 import { assert } from "../../../core/util";
 import {
@@ -12,6 +12,7 @@ import {
     OP_SWITCH_CALL,
     OP_VA_CALL,
 } from "../opcodes";
+import { ExecutionLocation } from "./Thread";
 
 /**
  * Contains all logic pertaining to breakpoints and stepping through code.

@@ -83,7 +83,6 @@ import {
     OP_WINEND,
     OP_XOR,
     OP_XORI,
-    StackInteraction,
 } from "../opcodes";
 import {
     andreduce,
@@ -96,18 +95,17 @@ import {
 } from "./utils";
 import { VirtualMachineIO } from "./io";
 import { VMIOStub } from "./VMIOStub";
-import { GetTickCount, rand, srand } from "./windows";
 import { QuestModel } from "../../model/QuestModel";
 import { convert_quest_from_model } from "../../stores/model_conversion";
 import { Episode } from "../../../core/data_formats/parsing/quest/Episode";
 import { ArrayBufferCursor } from "../../../core/data_formats/cursor/ArrayBufferCursor";
 import { Endianness } from "../../../core/data_formats/Endianness";
+import { ExecutionLocation, Thread } from "./Thread";
+import { Random } from "./Random";
 
 export const REGISTER_COUNT = 256;
 const REGISTER_SIZE = 4;
 const VARIABLE_STACK_LENGTH = 16; // TODO: verify this value
-const ARG_STACK_SLOT_SIZE = 4;
-const ARG_STACK_LENGTH = 8;
 const STRING_ARG_STORE_ADDRESS = 0x00a92700;
 const STRING_ARG_STORE_SIZE = 1024; // TODO: verify this value
 const ENTRY_SEGMENT = 0;
@@ -168,9 +166,10 @@ export class VirtualMachine {
         return this._object_code;
     }
 
-    constructor(private io: VirtualMachineIO = new VMIOStub()) {
-        srand(GetTickCount());
-    }
+    constructor(
+        private io: VirtualMachineIO = new VMIOStub(),
+        private random: Random = new Random(),
+    ) {}
 
     /**
      * Halts and resets the VM, then loads new quest.
@@ -334,7 +333,7 @@ export class VirtualMachine {
 
         const arg_vals = inst.args.map(arg => arg.value);
         // eslint-disable-next-line
-        const [arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7] = arg_vals;
+        const [arg0, arg1, arg2] = arg_vals;
 
         // helper for conditional jump opcodes
         const conditional_jump_args: (
@@ -691,7 +690,7 @@ export class VirtualMachine {
                     const low = this.get_register_signed(arg0);
                     const hi = this.get_register_signed(arg0 + 1);
 
-                    const r = rand();
+                    const r = this.random.next();
                     let result = Math.floor(Math.fround(r / 32768.0) * hi);
 
                     // intentional. this is how the game does it.
@@ -1184,102 +1183,5 @@ export class VirtualMachine {
         }
 
         return this.label_to_seg_idx.get(label)!;
-    }
-}
-
-export class ExecutionLocation {
-    constructor(public seg_idx: number, public inst_idx: number) {}
-}
-
-type ArgStackTypeList = [Kind, Kind, Kind, Kind, Kind, Kind, Kind, Kind];
-
-class Thread {
-    /**
-     * Call stack. The top element describes the instruction about to be executed.
-     */
-    public call_stack: ExecutionLocation[] = [];
-
-    private arg_stack: ZeroableBuffer = new ZeroableBuffer(
-        ARG_STACK_LENGTH * ARG_STACK_SLOT_SIZE,
-        Endianness.Little,
-    );
-    private arg_stack_counter: number = 0;
-    private arg_stack_types: ArgStackTypeList = Array(ARG_STACK_LENGTH).fill(
-        Kind.Any,
-    ) as ArgStackTypeList;
-
-    public variable_stack: number[] = [];
-    /**
-     * Global or floor-local?
-     */
-    public global: boolean;
-
-    constructor(public io: VirtualMachineIO, next: ExecutionLocation, global: boolean) {
-        this.call_stack = [next];
-        this.global = global;
-    }
-
-    public call_stack_top(): ExecutionLocation {
-        return this.call_stack[this.call_stack.length - 1];
-    }
-
-    public push_arg(data: number, type: Kind): void {
-        if (this.arg_stack_counter >= ARG_STACK_LENGTH) {
-            throw new Error("Argument stack: Stack overflow");
-        }
-
-        this.arg_stack.write_u32_at(this.arg_stack_counter * ARG_STACK_SLOT_SIZE, data);
-        this.arg_stack_types[this.arg_stack_counter] = type;
-
-        this.arg_stack_counter++;
-    }
-
-    public fetch_args(inst: Instruction): number[] {
-        if (inst.opcode.stack !== StackInteraction.Pop) return [];
-
-        const args: number[] = [];
-        const srcloc: AsmToken | undefined = inst.asm && inst.asm.mnemonic;
-
-        if (inst.opcode.params.length !== this.arg_stack_counter) {
-            this.io.warning("Argument stack: Argument count mismatch", srcloc);
-        }
-
-        for (let i = 0; i < inst.opcode.params.length; i++) {
-            const param = inst.opcode.params[i];
-
-            if (param.type.kind !== this.arg_stack_types[i]) {
-                this.io.warning("Argument stack: Argument type mismatch", srcloc);
-            }
-
-            const arg_slot_offset = i * ARG_STACK_SLOT_SIZE;
-            switch (param.type.kind) {
-                case Kind.Byte:
-                    args.push(this.arg_stack.u8_at(arg_slot_offset));
-                    break;
-                case Kind.Word:
-                case Kind.ILabel:
-                case Kind.DLabel:
-                case Kind.SLabel:
-                    args.push(this.arg_stack.u16_at(arg_slot_offset));
-                    break;
-                case Kind.DWord:
-                case Kind.String:
-                    args.push(this.arg_stack.u32_at(arg_slot_offset));
-                    break;
-                case Kind.RegTupRef:
-                    if (param.type.register_tuples.length > 0) {
-                        args.push(this.arg_stack.u8_at(arg_slot_offset));
-                    }
-                    break;
-                default:
-                    throw new Error(
-                        `Argument stack: Unhandled param kind: Kind.${Kind[param.type.kind]}`,
-                    );
-            }
-        }
-
-        this.arg_stack_counter = 0;
-
-        return args;
     }
 }

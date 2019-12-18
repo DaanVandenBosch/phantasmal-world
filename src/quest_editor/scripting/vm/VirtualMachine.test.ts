@@ -2,11 +2,11 @@
  * @jest-environment jsdom
  */
 
-import { VirtualMachine, ExecutionResult } from ".";
+import { ExecutionResult, VirtualMachine } from "./VirtualMachine";
 import { VMIOStub } from "./VMIOStub";
 import { to_instructions } from "../../../../test/src/utils";
 import { Segment } from "../instructions";
-import { srand } from "./windows";
+import { Random } from "./Random";
 
 test("integer arithmetic opcodes", () => {
     class TestIO extends VMIOStub {
@@ -186,8 +186,7 @@ test("opcode get_random", () => {
         get_random r100, r${result_reg}
     `);
 
-    const vm = new VirtualMachine();
-    srand(123);
+    const vm = new VirtualMachine(undefined, new Random(123));
     vm.load_object_code(obj_code);
     vm.start_thread(0);
 
@@ -216,6 +215,7 @@ test("opcode get_random", () => {
 test("opcode list", () => {
     const list_items = ["a", "b", "c", "d"];
     const list_text = list_items.join("\\n");
+
     class TestIO extends VMIOStub {
         constructor() {
             super();

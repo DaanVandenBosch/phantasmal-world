@@ -1,4 +1,4 @@
-import { ExecutionResult, VirtualMachine } from "./scripting/vm";
+import { ExecutionResult, VirtualMachine } from "./scripting/vm/VirtualMachine";
 import { QuestModel } from "./model/QuestModel";
 import { VirtualMachineIO } from "./scripting/vm/io";
 import { AsmToken } from "./scripting/instructions";
