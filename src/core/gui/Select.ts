@@ -74,7 +74,7 @@ export class Select<T> extends LabelledControl {
     }
 
     protected set_selected(selected?: T): void {
-        this.button.text.val = selected ? this.to_label(selected) : " ";
+        this.button.text.val = selected != undefined ? this.to_label(selected) : " ";
         this.menu.selected.val = selected;
     }
 

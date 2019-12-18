@@ -34,7 +34,7 @@ export interface ListProperty<T> extends Property<readonly T[]> {
         options?: { call_now?: boolean },
     ): Disposable;
 
-    filtered(predicate: (value: T) => boolean): ListProperty<T>;
+    filtered(predicate: ((value: T) => boolean) | Property<(value: T) => boolean>): ListProperty<T>;
 }
 
 export function is_list_property<T>(

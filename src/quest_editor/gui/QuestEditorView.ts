@@ -15,13 +15,13 @@ import { quest_editor_store } from "../stores/QuestEditorStore";
 import { NpcListView } from "./NpcListView";
 import { ObjectListView } from "./ObjectListView";
 import { EventsView } from "./EventsView";
-import Logger = require("js-logger");
-import { QuestMessageLogView } from "./QuestMessageLogView";
 import { RegistersView } from "./RegistersView";
+import { LogView } from "./LogView";
+import Logger = require("js-logger");
 
 const logger = Logger.get("quest_editor/gui/QuestEditorView");
 
-// Don't change these values, as they are persisted in the user's browser.
+// Don't change the values of this map, as they are persisted in the user's browser.
 const VIEW_TO_NAME = new Map<new () => ResizableWidget, string>([
     [QuestInfoView, "quest_info"],
     [NpcCountsView, "npc_counts"],
@@ -37,7 +37,7 @@ if (gui_store.feature_active("events")) {
 }
 
 if (gui_store.feature_active("vm")) {
-    VIEW_TO_NAME.set(QuestMessageLogView, "message_log_view");
+    VIEW_TO_NAME.set(LogView, "log_view");
     VIEW_TO_NAME.set(RegistersView, "registers_view");
 }
 
@@ -112,7 +112,7 @@ const DEFAULT_LAYOUT_CONTENT: ItemConfigType[] = [
                               {
                                   title: "Log",
                                   type: "component",
-                                  componentName: VIEW_TO_NAME.get(QuestMessageLogView),
+                                  componentName: VIEW_TO_NAME.get(LogView),
                                   isClosable: false,
                               },
                               {
