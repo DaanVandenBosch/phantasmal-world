@@ -38,7 +38,7 @@ export class EventsView extends ResizableWidget {
             this.enabled.bind_to(quest_editor_store.quest_runner.running.map(r => !r)),
         );
 
-        this.finalize_construction(EventsView.prototype);
+        this.finalize_construction();
     }
 
     resize(width: number, height: number): this {

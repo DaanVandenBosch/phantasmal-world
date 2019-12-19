@@ -44,7 +44,10 @@ export class DependentProperty<T> extends AbstractMinimalProperty<T> implements 
                     dependency.observe(() => {
                         const old_value = this._val!;
                         this._val = this.f();
-                        this.emit(old_value);
+
+                        if (this._val !== old_value) {
+                            this.emit(old_value);
+                        }
                     }),
                 ),
             );

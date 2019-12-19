@@ -15,6 +15,6 @@ export class OptimizerView extends ResizableWidget {
             this.disposable(new OptimizationResultView()).element,
         );
 
-        this.finalize_construction(OptimizerView.prototype);
+        this.finalize_construction();
     }
 }

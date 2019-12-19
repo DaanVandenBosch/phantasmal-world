@@ -42,7 +42,7 @@ export class TextureView extends ResizableWidget {
             }),
         );
 
-        this.finalize_construction(TextureView.prototype);
+        this.finalize_construction();
     }
 
     resize(width: number, height: number): this {

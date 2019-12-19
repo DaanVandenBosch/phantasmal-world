@@ -57,9 +57,6 @@ export function map<R, P1, P2, P3, P4, P5>(
     prop_4: Property<P4>,
     prop_5: Property<P5>,
 ): Property<R>;
-export function map<R>(
-    f: (...props: Property<any>[]) => R,
-    ...props: Property<any>[]
-): Property<R> {
+export function map<R>(f: (...props: any[]) => R, ...props: Property<any>[]): Property<R> {
     return new DependentProperty(props, () => f(...props.map(p => p.val)));
 }

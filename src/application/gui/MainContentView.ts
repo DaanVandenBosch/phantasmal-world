@@ -36,7 +36,7 @@ export class MainContentView extends ResizableWidget {
 
         this.disposable(gui_store.tool.observe(this.tool_changed));
 
-        this.finalize_construction(MainContentView.prototype);
+        this.finalize_construction();
     }
 
     resize(width: number, height: number): this {

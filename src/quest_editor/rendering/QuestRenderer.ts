@@ -50,11 +50,11 @@ export class QuestRenderer extends Renderer {
         return this._entity_models;
     }
 
-    constructor() {
+    constructor(ModelManager: new (renderer: QuestRenderer) => QuestModelManager) {
         super();
 
         this.disposer.add_all(
-            new QuestModelManager(this),
+            new ModelManager(this),
 
             quest_editor_store.debug.observe(({ value }) => (this.debug = value)),
         );

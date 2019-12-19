@@ -77,6 +77,6 @@ export class Model3DToolBar extends ToolBar {
             animation_frame_count_label.enabled.bind_to(enabled),
         );
 
-        this.finalize_construction(Model3DToolBar.prototype);
+        this.finalize_construction();
     }
 }

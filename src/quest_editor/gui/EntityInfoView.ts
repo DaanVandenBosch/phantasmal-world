@@ -122,7 +122,7 @@ export class EntityInfoView extends ResizableWidget {
             this.enabled.bind_to(quest_editor_store.quest_runner.running.map(r => !r)),
         );
 
-        this.finalize_construction(EntityInfoView.prototype);
+        this.finalize_construction();
     }
 
     dispose(): void {

@@ -18,7 +18,7 @@ export class TextInput extends Input<string> {
 
         this.set_value(value);
 
-        this.finalize_construction(TextInput.prototype);
+        this.finalize_construction();
     }
 
     protected get_value(): string {

@@ -36,7 +36,7 @@ export class NumberInput extends Input<number> {
 
         this.set_value(value);
 
-        this.finalize_construction(NumberInput.prototype);
+        this.finalize_construction();
     }
 
     protected get_value(): number {

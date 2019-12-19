@@ -13,7 +13,7 @@ export class NpcListView extends EntityListView<NpcType> {
         );
 
         this.filter_npcs();
-        this.finalize_construction(NpcListView.prototype);
+        this.finalize_construction();
     }
 
     private filter_npcs = (): void => {

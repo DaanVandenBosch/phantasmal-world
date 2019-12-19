@@ -37,7 +37,10 @@ export class FlatMappedProperty<T, U> extends AbstractMinimalProperty<U> impleme
             this.dependency_disposable = this.dependency.observe(() => {
                 const old_value = this.val;
                 this.compute_and_observe();
-                this.emit(old_value);
+
+                if (this.val !== old_value) {
+                    this.emit(old_value);
+                }
             });
 
             this.compute_and_observe();

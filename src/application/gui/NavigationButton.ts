@@ -24,7 +24,7 @@ export class NavigationButton extends Widget {
 
         this.element.append(this.input, this.label);
 
-        this.finalize_construction(NavigationButton.prototype);
+        this.finalize_construction();
     }
 
     set checked(checked: boolean) {

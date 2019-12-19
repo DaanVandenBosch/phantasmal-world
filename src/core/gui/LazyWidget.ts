@@ -30,7 +30,7 @@ export class LazyWidget extends ResizableWidget {
             });
         }
 
-        this.finalize_construction(LazyWidget.prototype);
+        this.finalize_construction();
     }
 
     resize(width: number, height: number): this {

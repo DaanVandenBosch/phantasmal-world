@@ -75,7 +75,7 @@ export class WantedItemsView extends Widget {
             ),
         );
 
-        this.finalize_construction(WantedItemsView.prototype);
+        this.finalize_construction();
     }
 
     private create_row = (wanted_item: WantedItemModel): [HTMLTableRowElement, Disposable] => {

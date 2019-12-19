@@ -32,6 +32,6 @@ export class AsmEditorToolBar extends ToolBar {
             inline_args_mode_checkbox.enabled.bind_to(asm_editor_store.has_issues.map(b => !b)),
         );
 
-        this.finalize_construction(AsmEditorToolBar.prototype);
+        this.finalize_construction();
     }
 }

@@ -7,7 +7,7 @@ import { QuestInfoView } from "./QuestInfoView";
 import "golden-layout/src/css/goldenlayout-base.css";
 import "../../core/gui/golden_layout_theme.css";
 import { NpcCountsView } from "./NpcCountsView";
-import { QuestRendererView } from "./QuestRendererView";
+import { QuestEditorRendererView } from "./QuestEditorRendererView";
 import { AsmEditorView } from "./AsmEditorView";
 import { EntityInfoView } from "./EntityInfoView";
 import { gui_store, GuiTool } from "../../core/stores/GuiStore";
@@ -17,6 +17,7 @@ import { ObjectListView } from "./ObjectListView";
 import { EventsView } from "./EventsView";
 import { RegistersView } from "./RegistersView";
 import { LogView } from "./LogView";
+import { QuestRunnerRendererView } from "./QuestRunnerRendererView";
 import Logger = require("js-logger");
 
 const logger = Logger.get("quest_editor/gui/QuestEditorView");
@@ -25,7 +26,7 @@ const logger = Logger.get("quest_editor/gui/QuestEditorView");
 const VIEW_TO_NAME = new Map<new () => ResizableWidget, string>([
     [QuestInfoView, "quest_info"],
     [NpcCountsView, "npc_counts"],
-    [QuestRendererView, "quest_renderer"],
+    [QuestEditorRendererView, "quest_renderer"],
     [AsmEditorView, "asm_editor"],
     [EntityInfoView, "entity_info"],
     [NpcListView, "npc_list_view"],
@@ -37,9 +38,12 @@ if (gui_store.feature_active("events")) {
 }
 
 if (gui_store.feature_active("vm")) {
+    VIEW_TO_NAME.set(QuestRunnerRendererView, "quest_runner");
     VIEW_TO_NAME.set(LogView, "log_view");
     VIEW_TO_NAME.set(RegistersView, "registers_view");
 }
+
+const VIEW_WHITE_LIST = [...VIEW_TO_NAME.values()].filter(view => view !== "quest_runner");
 
 const DEFAULT_LAYOUT_CONFIG = {
     settings: {
@@ -96,9 +100,10 @@ const DEFAULT_LAYOUT_CONTENT: ItemConfigType[] = [
                 width: 9,
                 content: [
                     {
+                        id: VIEW_TO_NAME.get(QuestEditorRendererView),
                         title: "3D View",
                         type: "component",
-                        componentName: VIEW_TO_NAME.get(QuestRendererView),
+                        componentName: VIEW_TO_NAME.get(QuestEditorRendererView),
                         isClosable: false,
                     },
                     {
@@ -180,9 +185,39 @@ export class QuestEditorView extends ResizableWidget {
                 "Ctrl-Alt-D",
                 () => (quest_editor_store.debug.val = !quest_editor_store.debug.val),
             ),
+
+            quest_editor_store.quest_runner.running.observe(async ({ value: running }) => {
+                const layout = await this.layout;
+
+                if (quest_editor_store.quest_runner.running.val === running) {
+                    const runner_items = layout.root.getItemsById(
+                        VIEW_TO_NAME.get(QuestRunnerRendererView)!,
+                    );
+
+                    if (running) {
+                        if (runner_items.length === 0) {
+                            const renderer_item = layout.root.getItemsById(
+                                VIEW_TO_NAME.get(QuestEditorRendererView)!,
+                            )[0];
+
+                            renderer_item.parent.addChild({
+                                id: VIEW_TO_NAME.get(QuestRunnerRendererView),
+                                title: "Quest",
+                                type: "component",
+                                componentName: VIEW_TO_NAME.get(QuestRunnerRendererView),
+                                isClosable: false,
+                            });
+                        }
+                    } else {
+                        for (const item of runner_items) {
+                            item.remove();
+                        }
+                    }
+                }
+            }),
         );
 
-        this.finalize_construction(QuestEditorView.prototype);
+        this.finalize_construction();
     }
 
     resize(width: number, height: number): this {
@@ -209,7 +244,7 @@ export class QuestEditorView extends ResizableWidget {
 
     private async init_golden_layout(): Promise<GoldenLayout> {
         const content = await quest_editor_ui_persister.load_layout_config(
-            [...VIEW_TO_NAME.values()],
+            VIEW_WHITE_LIST,
             DEFAULT_LAYOUT_CONTENT,
         );
 

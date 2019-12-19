@@ -22,6 +22,6 @@ export class HelpView extends ResizableWidget {
 
     constructor() {
         super();
-        this.finalize_construction(HelpView.prototype);
+        this.finalize_construction();
     }
 }

@@ -34,7 +34,7 @@ export class NpcCountsView extends ResizableWidget {
                 }),
         );
 
-        this.finalize_construction(NpcCountsView.prototype);
+        this.finalize_construction();
     }
 
     private update_view(npcs: readonly QuestNpcModel[]): void {

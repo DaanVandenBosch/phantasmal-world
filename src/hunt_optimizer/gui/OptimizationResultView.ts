@@ -40,7 +40,7 @@ export class OptimizationResultView extends Widget {
             ),
         );
 
-        this.finalize_construction(OptimizationResultView.prototype);
+        this.finalize_construction();
     }
 
     dispose(): void {

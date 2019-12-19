@@ -1,66 +1,68 @@
 import Logger from "js-logger";
 import { Intersection, Mesh, Object3D, Raycaster, Vector3 } from "three";
 import { QuestRenderer } from "./QuestRenderer";
-import { QuestModel } from "../model/QuestModel";
 import { load_entity_geometry, load_entity_textures } from "../loading/entities";
 import { load_area_collision_geometry, load_area_render_geometry } from "../loading/areas";
 import { QuestEntityModel } from "../model/QuestEntityModel";
 import { Disposer } from "../../core/observable/Disposer";
 import { Disposable } from "../../core/observable/Disposable";
-import { AreaModel } from "../model/AreaModel";
 import { create_entity_mesh } from "./conversion/entities";
 import { AreaUserData } from "./conversion/areas";
-import { quest_editor_store } from "../stores/QuestEditorStore";
 import {
     ListChangeType,
+    ListProperty,
     ListPropertyChangeEvent,
 } from "../../core/observable/property/list/ListProperty";
 import { QuestNpcModel } from "../model/QuestNpcModel";
 import { QuestObjectModel } from "../model/QuestObjectModel";
 import { entity_type_to_string } from "../../core/data_formats/parsing/quest/entities";
+import { Episode } from "../../core/data_formats/parsing/quest/Episode";
+import { AreaVariantModel } from "../model/AreaVariantModel";
 
 const logger = Logger.get("quest_editor/rendering/QuestModelManager");
 
-const CAMERA_POSITION = new Vector3(0, 800, 700);
-const CAMERA_LOOK_AT = new Vector3(0, 0, 0);
+const CAMERA_POSITION = Object.freeze(new Vector3(0, 800, 700));
+const CAMERA_LOOK_AT = Object.freeze(new Vector3(0, 0, 0));
 const DUMMY_OBJECT = new Object3D();
 
-export class QuestModelManager implements Disposable {
-    private readonly disposer = new Disposer();
+export type AreaVariantDetails = {
+    readonly episode: Episode | undefined;
+    readonly area_variant: AreaVariantModel | undefined;
+    readonly npcs: ListProperty<QuestNpcModel>;
+    readonly objects: ListProperty<QuestObjectModel>;
+};
+
+/**
+ * Loads the necessary area and entity 3D models into {@link QuestRenderer}.
+ */
+export abstract class QuestModelManager implements Disposable {
+    protected readonly disposer = new Disposer();
+
     private readonly quest_disposer = this.disposer.add(new Disposer());
     private readonly area_model_manager: AreaModelManager;
     private readonly npc_model_manager: EntityModelManager;
     private readonly object_model_manager: EntityModelManager;
 
-    constructor(private readonly renderer: QuestRenderer) {
+    protected constructor(private readonly renderer: QuestRenderer) {
         this.area_model_manager = new AreaModelManager(this.renderer);
         this.npc_model_manager = new EntityModelManager(this.renderer);
         this.object_model_manager = new EntityModelManager(this.renderer);
-
-        this.disposer.add_all(
-            quest_editor_store.current_quest.observe(this.quest_or_area_changed),
-
-            quest_editor_store.current_area.observe(this.quest_or_area_changed),
-        );
     }
 
     dispose(): void {
         this.disposer.dispose();
     }
 
-    private quest_or_area_changed = async (): Promise<void> => {
-        const quest = quest_editor_store.current_quest.val;
-        const area = quest_editor_store.current_area.val;
+    /**
+     * Called when an area variant needs to be loaded.
+     */
+    protected abstract get_area_variant_details(): AreaVariantDetails;
 
+    protected area_variant_changed = async (): Promise<void> => {
         // Load area model.
-        await this.area_model_manager.load(quest, area);
+        const { episode, area_variant, npcs, objects } = this.get_area_variant_details();
 
-        if (
-            quest !== quest_editor_store.current_quest.val ||
-            area !== quest_editor_store.current_area.val
-        ) {
-            return;
-        }
+        await this.area_model_manager.load(episode, area_variant);
 
         this.quest_disposer.dispose_all();
         this.npc_model_manager.remove_all();
@@ -68,39 +70,25 @@ export class QuestModelManager implements Disposable {
         this.renderer.reset_entity_models();
 
         // Load entity models.
-        if (quest && area) {
-            this.npc_model_manager.add(quest.npcs.val.filter(entity => entity.area_id === area.id));
-            this.object_model_manager.add(
-                quest.objects.val.filter(entity => entity.area_id === area.id),
-            );
-            this.quest_disposer.add_all(
-                quest.npcs.observe_list(this.npcs_changed),
-                quest.objects.observe_list(this.objects_changed),
-            );
-        }
+        this.quest_disposer.add_all(
+            npcs.observe_list(this.npcs_changed, { call_now: true }),
+            objects.observe_list(this.objects_changed, { call_now: true }),
+        );
     };
 
     private npcs_changed = (change: ListPropertyChangeEvent<QuestNpcModel>): void => {
-        const area = quest_editor_store.current_area.val;
-
-        if (change.type === ListChangeType.ListChange && area) {
+        if (change.type === ListChangeType.ListChange) {
             this.npc_model_manager.remove(change.removed);
 
-            this.npc_model_manager.add(
-                change.inserted.filter(entity => entity.area_id === area.id),
-            );
+            this.npc_model_manager.add(change.inserted);
         }
     };
 
     private objects_changed = (change: ListPropertyChangeEvent<QuestObjectModel>): void => {
-        const area = quest_editor_store.current_area.val;
-
-        if (change.type === ListChangeType.ListChange && area) {
+        if (change.type === ListChangeType.ListChange) {
             this.object_model_manager.remove(change.removed);
 
-            this.object_model_manager.add(
-                change.inserted.filter(entity => entity.area_id === area.id),
-            );
+            this.object_model_manager.add(change.inserted);
         }
     };
 }
@@ -108,35 +96,27 @@ export class QuestModelManager implements Disposable {
 class AreaModelManager {
     private readonly raycaster = new Raycaster();
     private readonly origin = new Vector3();
-    private readonly down = new Vector3(0, -1, 0);
-    private readonly up = new Vector3(0, 1, 0);
-    private quest?: QuestModel;
-    private area?: AreaModel;
+    private readonly down = Object.freeze(new Vector3(0, -1, 0));
+    private readonly up = Object.freeze(new Vector3(0, 1, 0));
+    private area_variant?: AreaVariantModel;
 
     constructor(private readonly renderer: QuestRenderer) {}
 
-    async load(quest?: QuestModel, area?: AreaModel): Promise<void> {
-        this.quest = quest;
-        this.area = area;
+    async load(episode?: Episode, area_variant?: AreaVariantModel): Promise<void> {
+        this.area_variant = area_variant;
 
-        if (!quest || !area) {
+        if (episode == undefined || area_variant == undefined) {
             this.renderer.collision_geometry = DUMMY_OBJECT;
             this.renderer.render_geometry = DUMMY_OBJECT;
             return;
         }
 
         try {
-            const area_variant =
-                quest.area_variants.val.find(v => v.area.id === area.id) || area.area_variants[0];
-
-            // Load necessary area geometry.
-            const episode = quest.episode;
-
             const collision_geometry = await load_area_collision_geometry(episode, area_variant);
-            if (this.should_cancel(quest, area)) return;
+            if (this.should_cancel(area_variant)) return;
 
             const render_geometry = await load_area_render_geometry(episode, area_variant);
-            if (this.should_cancel(quest, area)) return;
+            if (this.should_cancel(area_variant)) return;
 
             this.add_sections_to_collision_geometry(collision_geometry, render_geometry);
 
@@ -145,7 +125,10 @@ class AreaModelManager {
 
             this.renderer.reset_camera(CAMERA_POSITION, CAMERA_LOOK_AT);
         } catch (e) {
-            logger.error(`Couldn't load area models for quest ${quest.id}, ${area.name}.`, e);
+            logger.error(
+                `Couldn't load models for area ${area_variant.area.id}, variant ${area_variant.id}.`,
+                e,
+            );
 
             this.renderer.collision_geometry = DUMMY_OBJECT;
             this.renderer.render_geometry = DUMMY_OBJECT;
@@ -155,8 +138,8 @@ class AreaModelManager {
     /**
      * Ensures that {@link load} is reentrant.
      */
-    private should_cancel(quest: QuestModel, area: AreaModel): boolean {
-        return this.quest !== quest || this.area !== area;
+    private should_cancel(area_variant: AreaVariantModel): boolean {
+        return this.area_variant !== area_variant;
     }
 
     private add_sections_to_collision_geometry(
@@ -206,7 +189,7 @@ class EntityModelManager {
 
     constructor(private readonly renderer: QuestRenderer) {}
 
-    async add(entities: QuestEntityModel[]): Promise<void> {
+    async add(entities: readonly QuestEntityModel[]): Promise<void> {
         this.queue.push(...entities);
 
         if (!this.loading) {

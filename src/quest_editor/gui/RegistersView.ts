@@ -124,7 +124,7 @@ export class RegistersView extends ResizableWidget {
             ),
         );
 
-        this.finalize_construction(RegistersView.prototype);
+        this.finalize_construction();
     }
 
     private get_register_getter(type: RegisterDisplayType): RegisterGetterFunction {

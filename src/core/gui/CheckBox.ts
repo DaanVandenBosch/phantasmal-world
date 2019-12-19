@@ -25,7 +25,7 @@ export class CheckBox extends LabelledControl {
         this.element.onchange = () =>
             this._checked.set_val(this.element.checked, { silent: false });
 
-        this.finalize_construction(CheckBox.prototype);
+        this.finalize_construction();
     }
 
     protected set_enabled(enabled: boolean): void {

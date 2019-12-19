@@ -139,7 +139,7 @@ export class Table<T> extends Widget {
             this.values.observe(this.update_footer),
         );
 
-        this.finalize_construction(Table.prototype);
+        this.finalize_construction();
     }
 
     private create_row = (value: T, index: number): [HTMLTableRowElement, Disposable] => {

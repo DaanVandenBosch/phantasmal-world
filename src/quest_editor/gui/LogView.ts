@@ -73,7 +73,7 @@ export class LogView extends ResizableWidget {
         this.element.appendChild(this.settings_bar.element);
         this.element.appendChild(this.list_container);
 
-        this.finalize_construction(this.constructor.prototype);
+        this.finalize_construction();
     }
 
     /**

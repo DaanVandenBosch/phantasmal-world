@@ -135,6 +135,10 @@ function encode_episode_number(ep: Episode): number {
     }
 }
 
+/**
+ * This class emulates the PSO script engine. It's in charge of memory, threading and executing
+ * instructions.
+ */
 export class VirtualMachine {
     private registers = new Memory(REGISTER_COUNT * REGISTER_SIZE, Endianness.Little);
     private string_arg_store = "";

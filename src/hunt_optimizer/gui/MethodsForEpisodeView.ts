@@ -141,7 +141,7 @@ export class MethodsForEpisodeView extends ResizableWidget {
             ),
         );
 
-        this.finalize_construction(MethodsForEpisodeView.prototype);
+        this.finalize_construction();
     }
 
     dispose(): void {

@@ -59,7 +59,7 @@ export class NavigationView extends Widget {
         this.mark_tool_button(gui_store.tool.val);
         this.disposable(gui_store.tool.observe(({ value }) => this.mark_tool_button(value)));
 
-        this.finalize_construction(NavigationView.prototype);
+        this.finalize_construction();
     }
 
     private mousedown(e: MouseEvent): void {

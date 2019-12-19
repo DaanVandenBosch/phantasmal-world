@@ -15,6 +15,6 @@ export class DisabledView extends Widget {
 
         this.element.append(this.label.element);
 
-        this.finalize_construction(DisabledView.prototype);
+        this.finalize_construction();
     }
 }

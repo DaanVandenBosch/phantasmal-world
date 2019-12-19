@@ -208,7 +208,7 @@ export class AsmEditorView extends ResizableWidget {
             this.enabled.bind_to(quest_editor_store.quest_runner.running.map(r => !r)),
         );
 
-        this.finalize_construction(AsmEditorView.prototype);
+        this.finalize_construction();
     }
 
     focus(): void {

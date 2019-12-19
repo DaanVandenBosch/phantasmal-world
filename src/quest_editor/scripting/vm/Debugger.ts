@@ -129,6 +129,10 @@ export class Debugger {
         return break_now;
     }
 
+    reset(): void {
+        this.stepping_breakpoints.splice(0, Infinity);
+    }
+
     private get_instruction_segment_by_label(label: number): InstructionSegment {
         const seg_idx = this.vm.get_segment_index_by_label(label);
         return this.get_instruction_segment_by_index(seg_idx);

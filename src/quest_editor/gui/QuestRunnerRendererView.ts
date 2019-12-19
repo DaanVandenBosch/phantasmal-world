@@ -3,19 +3,19 @@ import { el } from "../../core/gui/dom";
 import { RendererWidget } from "../../core/gui/RendererWidget";
 import { QuestRenderer } from "../rendering/QuestRenderer";
 import { gui_store, GuiTool } from "../../core/stores/GuiStore";
-import { quest_editor_store } from "../stores/QuestEditorStore";
+import { QuestRunnerModelManager } from "../rendering/QuestRunnerModelManager";
 
-export class QuestRendererView extends ResizableWidget {
-    readonly element = el.div({ class: "quest_editor_QuestRendererView", tab_index: -1 });
+export class QuestRunnerRendererView extends ResizableWidget {
+    readonly element = el.div({ class: "quest_editor_QuestRunnerRendererView", tab_index: -1 });
 
-    private renderer_view = this.disposable(new RendererWidget(new QuestRenderer()));
+    private renderer_view = this.disposable(
+        new RendererWidget(new QuestRenderer(QuestRunnerModelManager)),
+    );
 
     constructor() {
         super();
 
         this.element.append(this.renderer_view.element);
-
-        this.element.addEventListener("focus", () => quest_editor_store.undo.make_current(), true);
 
         this.renderer_view.start_rendering();
 
@@ -29,7 +29,7 @@ export class QuestRendererView extends ResizableWidget {
             }),
         );
 
-        this.finalize_construction(QuestRendererView.prototype);
+        this.finalize_construction();
     }
 
     resize(width: number, height: number): this {

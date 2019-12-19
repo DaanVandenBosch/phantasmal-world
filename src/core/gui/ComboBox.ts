@@ -124,7 +124,7 @@ export class ComboBox<T> extends LabelledControl {
             }),
         );
 
-        this.finalize_construction(ComboBox.prototype);
+        this.finalize_construction();
     }
 
     protected set_selected(selected?: T): void {

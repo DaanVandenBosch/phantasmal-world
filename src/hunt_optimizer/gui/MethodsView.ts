@@ -31,6 +31,6 @@ export class MethodsView extends TabContainer {
             ],
         });
 
-        this.finalize_construction(MethodsView.prototype);
+        this.finalize_construction();
     }
 }

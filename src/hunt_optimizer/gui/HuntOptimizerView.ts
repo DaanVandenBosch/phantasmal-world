@@ -29,6 +29,6 @@ export class HuntOptimizerView extends TabContainer {
             ],
         });
 
-        this.finalize_construction(HuntOptimizerView.prototype);
+        this.finalize_construction();
     }
 }

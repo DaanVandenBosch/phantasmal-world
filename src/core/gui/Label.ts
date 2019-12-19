@@ -27,7 +27,7 @@ export class Label extends Widget {
             this.disposable(this._text.bind_to(text));
         }
 
-        this.finalize_construction(Label.prototype);
+        this.finalize_construction();
     }
 
     protected set_text(text: string): void {
