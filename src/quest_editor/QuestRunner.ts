@@ -62,7 +62,7 @@ export class QuestRunner {
 
         this.quest = quest;
 
-        this.vm.load_object_code(quest.object_code);
+        this.vm.load_object_code(quest.object_code, quest.episode);
         this.vm.start_thread(0);
 
         this._running.val = true;

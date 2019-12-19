@@ -95,8 +95,6 @@ import {
 } from "./utils";
 import { VirtualMachineIO } from "./io";
 import { VMIOStub } from "./VMIOStub";
-import { QuestModel } from "../../model/QuestModel";
-import { convert_quest_from_model } from "../../stores/model_conversion";
 import { Episode } from "../../../core/data_formats/parsing/quest/Episode";
 import { Endianness } from "../../../core/data_formats/Endianness";
 import { ExecutionLocation, Thread } from "./Thread";
@@ -140,8 +138,8 @@ function encode_episode_number(ep: Episode): number {
 export class VirtualMachine {
     private registers = new Memory(REGISTER_COUNT * REGISTER_SIZE, Endianness.Little);
     private string_arg_store = "";
-    private quest?: QuestModel;
     private _object_code: readonly Segment[] = [];
+    private episode: Episode = Episode.I;
     private label_to_seg_idx: Map<number, number> = new Map();
     private thread: Thread[] = [];
     private thread_idx = 0;
@@ -162,25 +160,14 @@ export class VirtualMachine {
     ) {}
 
     /**
-     * Halts and resets the VM, then loads new quest.
-     */
-    load_quest(quest_model: QuestModel): void {
-        const quest = convert_quest_from_model(quest_model);
-        this.load_object_code(quest.object_code);
-    }
-
-    /**
      * Halts and resets the VM, then loads new object code.
-     * Opcodes which use quest data outside the object code
-     * will not work if calling this method directly.
-     * Use {@link VirtualMachine.load_quest} if full functionality is needed.
      */
-    load_object_code(object_code: readonly Segment[]): void {
+    load_object_code(object_code: readonly Segment[], episode: Episode): void {
         this.halt();
-        this.quest = undefined;
         this.registers.zero();
         this.string_arg_store = "";
         this._object_code = object_code;
+        this.episode = episode;
         this.label_to_seg_idx.clear();
         this.set_episode_called = false;
         this.list_open = false;
@@ -711,12 +698,7 @@ export class VirtualMachine {
                     break;
                 }
 
-                if (!this.quest) {
-                    this.missing_quest_data_warning(OP_SET_EPISODE.mnemonic, srcloc);
-                    break;
-                }
-
-                if (encode_episode_number(this.quest.episode) !== arg0) {
+                if (encode_episode_number(this.episode) !== arg0) {
                     this.io.warning(
                         "Calling set_episode with an argument that does not" +
                             "match the quest's designated episode is not supported.",
@@ -1016,13 +998,6 @@ export class VirtualMachine {
 
     public get_current_execution_location(): Readonly<ExecutionLocation> {
         return this.thread[this.thread_idx].call_stack_top();
-    }
-
-    private missing_quest_data_warning(info: string, srcloc?: AsmToken): void {
-        this.io.warning(
-            `Opcode execution failed because the VM was missing quest data: ${info}`,
-            srcloc,
-        );
     }
 
     /**
