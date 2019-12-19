@@ -41,6 +41,14 @@ export enum QuestRunnerState {
 
 export type GameState = {
     readonly episode: Episode;
+    /**
+     * Maps area ids to function labels.
+     */
+    readonly floor_handlers: Map<number, number>;
+    /**
+     * Maps area ids to area variants.
+     */
+    readonly area_variants: Map<number, AreaVariantModel>;
     readonly current_area_variant: Property<AreaVariantModel | undefined>;
     readonly npcs: ListProperty<QuestNpcModel>;
     readonly objects: ListProperty<QuestObjectModel>;
@@ -59,7 +67,6 @@ export class QuestRunner {
     );
 
     private initial_area_id = 0;
-    private initial_area_variant_id = 0;
 
     private readonly _breakpoints: WritableListProperty<number> = list_property();
     private readonly _breakpoint_location: WritableProperty<number | undefined> = property(
@@ -76,6 +83,8 @@ export class QuestRunner {
 
     private readonly _game_state = {
         episode: Episode.I,
+        floor_handlers: new Map<number, number>(),
+        area_variants: new Map<number, AreaVariantModel>(),
         current_area_variant: property<AreaVariantModel | undefined>(undefined),
         npcs: list_property<QuestNpcModel>(),
         objects: list_property<QuestObjectModel>(),
@@ -187,13 +196,17 @@ export class QuestRunner {
     }
 
     private schedule_frame(): void {
-        this.animation_frame = requestAnimationFrame(this.execution_loop);
+        if (this.animation_frame == undefined) {
+            this.animation_frame = requestAnimationFrame(this.execution_loop);
+        }
     }
 
     /**
      * Executes instructions until all threads have yielded or a breakpoint is hit.
      */
     private execution_loop = (): void => {
+        this.animation_frame = undefined;
+
         this.vm.vsync();
 
         const prev_state = this._state.val;
@@ -273,17 +286,11 @@ export class QuestRunner {
                 this._state.val === QuestRunnerState.StartupPaused
             )
         ) {
-            const quest = this.quest;
-            defined(quest);
-
-            const area_variant = area_store.get_variant(
-                this._game_state.episode,
-                this.initial_area_id,
-                this.initial_area_variant_id,
-            );
-            this._game_state.current_area_variant.val = area_variant;
-            this._game_state.objects.push(
-                ...quest.objects.val.filter(obj => obj.area_id === area_variant.area.id),
+            // At this point we know function 0 has run. All area variants have been designated and
+            // all floor handlers have been registered.
+            this.run_floor_handler(
+                this._game_state.area_variants.get(this.initial_area_id) ||
+                    area_store.get_variant(this._game_state.episode, this.initial_area_id, 0),
             );
         }
     };
@@ -294,6 +301,10 @@ export class QuestRunner {
         }
 
         return {
+            set_floor_handler: (area_id: number, label: number) => {
+                this._game_state.floor_handlers.set(area_id, label);
+            },
+
             window_msg: (msg: string): void => {
                 this.quest_logger.info(`window_msg "${msg}"`);
             },
@@ -323,4 +334,23 @@ export class QuestRunner {
             },
         };
     };
+
+    private run_floor_handler(area_variant: AreaVariantModel): void {
+        const quest = this.quest;
+        defined(quest);
+
+        const area_id = area_variant.area.id;
+
+        this._game_state.current_area_variant.val = area_variant;
+        this._game_state.objects.push(...quest.objects.val.filter(obj => obj.area_id === area_id));
+
+        const label = this._game_state.floor_handlers.get(area_id);
+
+        if (label == undefined) {
+            this.quest_logger.debug(`No floor handler registered for floor ${area_id}.`);
+        } else {
+            this.vm.start_thread(label);
+            this.schedule_frame();
+        }
+    }
 }

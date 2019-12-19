@@ -235,7 +235,7 @@ export function section_id_icon(section_id: SectionId, options?: { size?: number
 }
 
 export function disposable_listener(
-    element: DocumentAndElementEventHandlers,
+    element: EventTarget,
     event: string,
     listener: EventListenerOrEventListenerObject,
     options?: AddEventListenerOptions,

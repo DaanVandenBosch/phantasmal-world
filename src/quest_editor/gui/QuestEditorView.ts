@@ -1,5 +1,5 @@
 import { ResizableWidget } from "../../core/gui/ResizableWidget";
-import { create_element, el } from "../../core/gui/dom";
+import { create_element, disposable_listener, el } from "../../core/gui/dom";
 import { QuestEditorToolBar } from "./QuestEditorToolBar";
 import GoldenLayout, { Container, ContentItem, ItemConfigType } from "golden-layout";
 import { quest_editor_ui_persister } from "../persistence/QuestEditorUiPersister";
@@ -169,6 +169,7 @@ export class QuestEditorView extends ResizableWidget {
 
     private readonly layout_element = create_element("div", { class: "quest_editor_gl_container" });
     private readonly layout: Promise<GoldenLayout>;
+    private loaded_layout: GoldenLayout | undefined;
 
     private readonly sub_views = new Map<string, ResizableWidget>();
 
@@ -178,6 +179,8 @@ export class QuestEditorView extends ResizableWidget {
         this.element.append(this.tool_bar_view.element, this.layout_element);
 
         this.layout = this.init_golden_layout();
+
+        this.layout.then(layout => (this.loaded_layout = layout));
 
         this.disposables(
             gui_store.on_global_keydown(
@@ -213,6 +216,14 @@ export class QuestEditorView extends ResizableWidget {
                             item.remove();
                         }
                     }
+                }
+            }),
+
+            disposable_listener(window, "beforeunload", e => {
+                if (quest_editor_store.quest_runner.running.val) {
+                    quest_editor_store.quest_runner.stop();
+                    e.preventDefault();
+                    e.returnValue = false;
                 }
             }),
         );
@@ -289,9 +300,7 @@ export class QuestEditorView extends ResizableWidget {
             }
 
             layout.on("stateChanged", () => {
-                if (this.layout) {
-                    quest_editor_ui_persister.persist_layout_config(layout.toConfig().content);
-                }
+                quest_editor_ui_persister.persist_layout_config(layout.toConfig().content);
             });
 
             layout.on("stackCreated", (stack: ContentItem) => {

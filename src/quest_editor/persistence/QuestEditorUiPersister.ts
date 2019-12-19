@@ -10,7 +10,7 @@ export class QuestEditorUiPersister extends Persister {
             this.persist(LAYOUT_CONFIG_KEY, config);
         },
         500,
-        { leading: false, trailing: true },
+        { leading: true, trailing: true },
     );
 
     async load_layout_config(

@@ -12,6 +12,7 @@ export interface VirtualMachineInput {
  * The virtual machine calls these methods when it outputs something.
  */
 export interface VirtualMachineOutput {
+    set_floor_handler(area_id: number, label: number): void;
     window_msg(msg: string): void;
     message(msg: string): void;
     add_msg(msg: string): void;

@@ -69,7 +69,7 @@ export class QuestEditorToolBar extends ToolBar {
                 }
             },
         );
-        const run_button = new Button("Run in VM", {
+        const run_button = new Button("Debug", {
             icon_left: Icon.Play,
             tooltip: "[Experimental] Run the current quest in a virtual machine (F5)",
         });

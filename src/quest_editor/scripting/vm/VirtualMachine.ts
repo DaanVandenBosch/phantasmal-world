@@ -61,6 +61,7 @@ import {
     OP_REV,
     OP_SET,
     OP_SET_EPISODE,
+    OP_SET_FLOOR_HANDLER,
     OP_SHIFT_LEFT,
     OP_SHIFT_RIGHT,
     OP_STACK_POP,
@@ -250,7 +251,7 @@ export class VirtualMachine {
      * Move to next instruction.
      */
     advance(): void {
-        if (this._halted) {
+        if (this._halted || this.thread_idx >= this.thread.length) {
             return;
         }
 
@@ -290,7 +291,7 @@ export class VirtualMachine {
             return ExecutionResult.Halted;
         }
 
-        if (this.thread_idx < this.thread.length) {
+        if (this.thread_idx >= this.thread.length) {
             return ExecutionResult.Suspended;
         }
 
@@ -683,6 +684,9 @@ export class VirtualMachine {
                     this.window_msg_open = false;
                     this.io.winend();
                 }
+                break;
+            case OP_SET_FLOOR_HANDLER.code:
+                this.io.set_floor_handler(stack_args[0], stack_args[1]);
                 break;
             case OP_GET_RANDOM.code:
                 {
