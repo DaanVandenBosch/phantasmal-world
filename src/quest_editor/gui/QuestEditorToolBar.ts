@@ -174,7 +174,7 @@ export class QuestEditorToolBar extends ToolBar {
             step_out_button.enabled.bind_to(step_controls_enabled),
 
             stop_button.click.observe(() => quest_editor_store.quest_runner.stop()),
-            stop_button.enabled.bind_to(step_controls_enabled),
+            stop_button.enabled.bind_to(quest_editor_store.quest_runner.running),
 
             gui_store.on_global_keydown(GuiTool.QuestEditor, "Ctrl-O", () =>
                 open_file_button.click(),

@@ -100,8 +100,10 @@ import { Endianness } from "../../../core/data_formats/Endianness";
 import { ExecutionLocation, Thread } from "./Thread";
 import { Random } from "./Random";
 import { Memory } from "./Memory";
+import Logger from "js-logger";
 
 export const REGISTER_COUNT = 256;
+
 const REGISTER_SIZE = 4;
 const VARIABLE_STACK_LENGTH = 16; // TODO: verify this value
 const STRING_ARG_STORE_ADDRESS = 0x00a92700;
@@ -109,10 +111,21 @@ const STRING_ARG_STORE_SIZE = 1024; // TODO: verify this value
 const ENTRY_SEGMENT = 0;
 const LIST_ITEM_DELIMITER = "\n";
 
+const logger = Logger.get("quest_editor/scripting/vm/VirtualMachine");
+
 export enum ExecutionResult {
+    /**
+     * Ready to execute next instruction.
+     */
     Ok,
+    /**
+     * There are no live threads.
+     */
+    Suspended,
+    /**
+     * All running threads have yielded.
+     */
     WaitingVsync,
-    Halted,
     /**
      * Waiting for any keypress. No method call required.
      */
@@ -122,6 +135,7 @@ export enum ExecutionResult {
      * Call `list_select` to set selection.
      */
     WaitingSelection,
+    Halted,
 }
 
 function encode_episode_number(ep: Episode): number {
@@ -168,6 +182,9 @@ export class VirtualMachine {
      */
     load_object_code(object_code: readonly Segment[], episode: Episode): void {
         this.halt();
+
+        logger.debug("Starting.");
+
         this.registers.zero();
         this.string_arg_store = "";
         this._object_code = object_code;
@@ -214,8 +231,8 @@ export class VirtualMachine {
     private dispose_thread(thread_idx: number): void {
         this.thread.splice(thread_idx, 1);
 
-        if (this.thread.length === 0) {
-            this.halt();
+        if (this.thread_idx >= thread_idx && this.thread_idx > 0) {
+            this.thread_idx--;
         }
     }
 
@@ -232,12 +249,13 @@ export class VirtualMachine {
     /**
      * Move to next instruction.
      */
-    public advance(): void {
+    advance(): void {
         if (this._halted) {
             return;
         }
 
         const exec = this.thread[this.thread_idx];
+
         if (exec.call_stack.length) {
             const top = exec.call_stack_top();
             const segment = this._object_code[top.seg_idx] as InstructionSegment;
@@ -254,14 +272,10 @@ export class VirtualMachine {
             }
         }
 
-        if (this.thread.length === 0) {
-            this.halt();
-        } else {
-            this.update_source_location(exec);
-        }
+        this.update_source_location(exec);
     }
 
-    public get halted(): boolean {
+    get halted(): boolean {
         return this._halted;
     }
 
@@ -274,6 +288,10 @@ export class VirtualMachine {
 
         if (this._halted) {
             return ExecutionResult.Halted;
+        }
+
+        if (this.thread_idx < this.thread.length) {
+            return ExecutionResult.Suspended;
         }
 
         if (auto_advance) {
@@ -735,12 +753,16 @@ export class VirtualMachine {
      * Halts execution of all threads.
      */
     halt(): void {
-        this.cur_srcloc = undefined;
-        this._halted = true;
-        this.window_msg_open = false;
+        if (!this._halted) {
+            logger.debug("Halting.");
 
-        this.thread = [];
-        this.thread_idx = 0;
+            this.cur_srcloc = undefined;
+            this._halted = true;
+            this.window_msg_open = false;
+
+            this.thread = [];
+            this.thread_idx = 0;
+        }
     }
 
     public get_register_signed(reg: number): number {

@@ -239,6 +239,9 @@ export class QuestRunner {
             }
 
             switch (result) {
+                case ExecutionResult.Suspended:
+                    this._state.val = QuestRunnerState.Running;
+                    break exec_loop;
                 case ExecutionResult.WaitingVsync:
                     this._state.val = QuestRunnerState.Running;
                     this.schedule_frame();
