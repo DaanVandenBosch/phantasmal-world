@@ -21,7 +21,6 @@ export class QuestEditorModelManager extends QuestModelManager {
     }
 
     protected get_area_variant_details(): AreaVariantDetails {
-        console.log("get_area_variant_details")
         const quest = quest_editor_store.current_quest.val;
         const area = quest_editor_store.current_area.val;
 
