@@ -89,9 +89,11 @@ export class QuestRunner {
 
         reset() {
             this.episode = Episode.I;
+            this.floor_handlers = new Map<number, number>();
+            this.area_variants = new Map<number, AreaVariantModel>();
             this.current_area_variant.val = undefined;
-            this.npcs = list_property();
-            this.objects = list_property();
+            this.npcs.clear();
+            this.objects.clear();
         },
     };
 
