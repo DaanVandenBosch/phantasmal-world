@@ -98,10 +98,10 @@ import { VMIOStub } from "./VMIOStub";
 import { QuestModel } from "../../model/QuestModel";
 import { convert_quest_from_model } from "../../stores/model_conversion";
 import { Episode } from "../../../core/data_formats/parsing/quest/Episode";
-import { ArrayBufferCursor } from "../../../core/data_formats/cursor/ArrayBufferCursor";
 import { Endianness } from "../../../core/data_formats/Endianness";
 import { ExecutionLocation, Thread } from "./Thread";
 import { Random } from "./Random";
+import { Memory } from "./Memory";
 
 export const REGISTER_COUNT = 256;
 const REGISTER_SIZE = 4;
@@ -137,18 +137,8 @@ function encode_episode_number(ep: Episode): number {
     }
 }
 
-class ZeroableBuffer extends ArrayBufferCursor {
-    constructor(size: number, endianness: Endianness) {
-        super(new ArrayBuffer(size), endianness);
-    }
-
-    public zero(): void {
-        new Uint32Array(this.backing_buffer).fill(0);
-    }
-}
-
 export class VirtualMachine {
-    private registers = new ZeroableBuffer(REGISTER_COUNT * REGISTER_SIZE, Endianness.Little);
+    private registers = new Memory(REGISTER_COUNT * REGISTER_SIZE, Endianness.Little);
     private string_arg_store = "";
     private quest?: QuestModel;
     private _object_code: readonly Segment[] = [];

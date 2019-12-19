@@ -1,6 +1,8 @@
 import { Kind, StackInteraction } from "../opcodes";
 import { VirtualMachineIO } from "./io";
 import { AsmToken, Instruction } from "../instructions";
+import { Memory } from "./Memory";
+import { Endianness } from "../../../core/data_formats/Endianness";
 
 const ARG_STACK_SLOT_SIZE = 4;
 const ARG_STACK_LENGTH = 8;
@@ -12,7 +14,7 @@ export class ExecutionLocation {
 type ArgStackTypeList = [Kind, Kind, Kind, Kind, Kind, Kind, Kind, Kind];
 
 export class Thread {
-    private arg_stack = new DataView(new ArrayBuffer(ARG_STACK_LENGTH * ARG_STACK_SLOT_SIZE));
+    private arg_stack = new Memory(ARG_STACK_LENGTH * ARG_STACK_SLOT_SIZE, Endianness.Little);
     private arg_stack_counter: number = 0;
     private arg_stack_types: ArgStackTypeList = Array(ARG_STACK_LENGTH).fill(
         Kind.Any,
@@ -43,7 +45,7 @@ export class Thread {
             throw new Error("Argument stack: Stack overflow");
         }
 
-        this.arg_stack.setUint32(this.arg_stack_counter * ARG_STACK_SLOT_SIZE, data, true);
+        this.arg_stack.write_u32_at(this.arg_stack_counter * ARG_STACK_SLOT_SIZE, data);
         this.arg_stack_types[this.arg_stack_counter] = type;
 
         this.arg_stack_counter++;
@@ -69,21 +71,21 @@ export class Thread {
             const arg_slot_offset = i * ARG_STACK_SLOT_SIZE;
             switch (param.type.kind) {
                 case Kind.Byte:
-                    args.push(this.arg_stack.getUint8(arg_slot_offset));
+                    args.push(this.arg_stack.u8_at(arg_slot_offset));
                     break;
                 case Kind.Word:
                 case Kind.ILabel:
                 case Kind.DLabel:
                 case Kind.SLabel:
-                    args.push(this.arg_stack.getUint16(arg_slot_offset, true));
+                    args.push(this.arg_stack.u16_at(arg_slot_offset));
                     break;
                 case Kind.DWord:
                 case Kind.String:
-                    args.push(this.arg_stack.getUint32(arg_slot_offset, true));
+                    args.push(this.arg_stack.u32_at(arg_slot_offset));
                     break;
                 case Kind.RegTupRef:
                     if (param.type.register_tuples.length > 0) {
-                        args.push(this.arg_stack.getUint8(arg_slot_offset));
+                        args.push(this.arg_stack.u8_at(arg_slot_offset));
                     }
                     break;
                 default:
