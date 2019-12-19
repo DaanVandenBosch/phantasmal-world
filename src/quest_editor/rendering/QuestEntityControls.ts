@@ -37,6 +37,7 @@ export class QuestEntityControls implements Disposable {
 
     /**
      * Whether entity transformations, deletions, etc. are enabled or not.
+     * Hover over and selection still work when this is set to false.
      */
     set enabled(enabled: boolean) {
         this._enabled = enabled;

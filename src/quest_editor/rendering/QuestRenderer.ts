@@ -59,7 +59,7 @@ export class QuestRenderer extends Renderer {
     }
 
     /**
-     * Initialize camera-controls after QuestEntityControls to ensure correct order of event
+     * Initialize camera-controls after {@link QuestEntityControls} to ensure correct order of event
      * listener registration. This is a fragile work-around for the fact that camera-controls
      * doesn't support intercepting pointer events.
      */

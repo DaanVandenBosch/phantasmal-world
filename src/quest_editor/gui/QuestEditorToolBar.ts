@@ -131,9 +131,10 @@ export class QuestEditorToolBar extends ToolBar {
                 }
             }),
 
-            save_as_button.enabled.bind_to(quest_loaded),
             save_as_button.click.observe(quest_editor_store.save_as),
+            save_as_button.enabled.bind_to(quest_loaded),
 
+            undo_button.click.observe(() => undo_manager.undo()),
             undo_button.enabled.bind_to(
                 map(
                     (c, r) => c && !r,
@@ -141,8 +142,8 @@ export class QuestEditorToolBar extends ToolBar {
                     quest_editor_store.quest_runner.running,
                 ),
             ),
-            undo_button.click.observe(() => undo_manager.undo()),
 
+            redo_button.click.observe(() => undo_manager.redo()),
             redo_button.enabled.bind_to(
                 map(
                     (c, r) => c && !r,
@@ -150,15 +151,12 @@ export class QuestEditorToolBar extends ToolBar {
                     quest_editor_store.quest_runner.running,
                 ),
             ),
-            redo_button.click.observe(() => undo_manager.redo()),
 
-            area_select.enabled.bind_to(
-                map((q, r) => q && !r, quest_loaded, quest_editor_store.quest_runner.running),
-            ),
             area_select.selected.bind_to(quest_editor_store.current_area),
             area_select.selected.observe(({ value: area }) =>
                 quest_editor_store.set_current_area(area),
             ),
+            area_select.enabled.bind_to(quest_loaded),
 
             run_button.click.observe(quest_editor_store.run_current_quest),
             run_button.enabled.bind_to(quest_loaded),
