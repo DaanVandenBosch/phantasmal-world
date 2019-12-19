@@ -12,7 +12,10 @@ import {
     OP_SWITCH_CALL,
     OP_VA_CALL,
 } from "../opcodes";
-import { ExecutionLocation } from "./Thread";
+import { CallStackElement } from "./Thread";
+import Logger from "js-logger";
+
+const logger = Logger.get("quest_editor/scripting/vm/Debugger");
 
 /**
  * Contains all logic pertaining to breakpoints and stepping through code.
@@ -32,8 +35,8 @@ export class Debugger {
         this.vm = vm;
     }
 
-    step_over = (): void => {
-        const execloc = this.vm.get_current_execution_location();
+    step_over(): void {
+        const execloc = this.vm.get_current_call_stack_element();
 
         const src_segment = this.get_instruction_segment_by_index(execloc.seg_idx);
         const src_instr = src_segment.instructions[execloc.inst_idx];
@@ -52,10 +55,10 @@ export class Debugger {
                 this.stepping_breakpoints.push(dst_srcloc.line_no);
             }
         }
-    };
+    }
 
-    step_in = (): void => {
-        const execloc = this.vm.get_current_execution_location();
+    step_in(): void {
+        const execloc = this.vm.get_current_call_stack_element();
         const src_segment = this.get_instruction_segment_by_index(execloc.seg_idx);
         const src_instr = src_segment.instructions[execloc.inst_idx];
         const dst_label = this.get_step_innable_instruction_label_argument(src_instr);
@@ -74,11 +77,11 @@ export class Debugger {
                 this.stepping_breakpoints.push(dst_srcloc.line_no);
             }
         }
-    };
+    }
 
-    step_out = (): void => {
+    step_out(): void {
         throw new Error("Not implemented.");
-    };
+    }
 
     set_breakpoint(line_no: number): boolean {
         if (!this._breakpoints.includes(line_no)) {
@@ -114,19 +117,25 @@ export class Debugger {
         this._breakpoints.splice(0, Infinity);
     }
 
-    breakpoint_hit(srcloc: AsmToken): boolean {
-        const break_now =
+    should_pause(srcloc: AsmToken): boolean {
+        const breakpoint_hit = this._breakpoints.includes(srcloc.line_no);
+
+        if (breakpoint_hit) {
+            logger.debug(`Breakpoint hit at line ${srcloc.line_no}.`);
+        }
+
+        const pause =
             this.break_on_next ||
-            this._breakpoints.includes(srcloc.line_no) ||
+            breakpoint_hit ||
             this.stepping_breakpoints.includes(srcloc.line_no);
 
         this.break_on_next = false;
 
-        if (break_now) {
+        if (pause) {
             this.stepping_breakpoints.length = 0;
         }
 
-        return break_now;
+        return pause;
     }
 
     reset(): void {
@@ -161,8 +170,8 @@ export class Debugger {
         }
     }
 
-    private get_next_source_location(execloc: ExecutionLocation): AsmToken | undefined {
-        const next_loc = new ExecutionLocation(execloc.seg_idx, execloc.inst_idx);
+    private get_next_source_location(execloc: CallStackElement): AsmToken | undefined {
+        const next_loc = new CallStackElement(execloc.seg_idx, execloc.inst_idx);
         const segment = this.vm.object_code[next_loc.seg_idx];
 
         // can't go to non-code segments

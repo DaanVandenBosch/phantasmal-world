@@ -12,6 +12,7 @@ import {
     OP_ARG_PUSHR,
     OP_ARG_PUSHS,
     OP_ARG_PUSHW,
+    OP_BB_MAP_DESIGNATE,
     OP_CALL,
     OP_CLEAR,
     OP_DIV,
@@ -94,11 +95,10 @@ import {
     numeric_ops,
     rest,
 } from "./utils";
-import { VirtualMachineIO } from "./io";
-import { VMIOStub } from "./VMIOStub";
+import { DefaultVirtualMachineIO, VirtualMachineIO } from "./io";
 import { Episode } from "../../../core/data_formats/parsing/quest/Episode";
 import { Endianness } from "../../../core/data_formats/Endianness";
-import { ExecutionLocation, Thread } from "./Thread";
+import { CallStackElement, Thread } from "./Thread";
 import { Random } from "./Random";
 import { Memory } from "./Memory";
 import Logger from "js-logger";
@@ -167,14 +167,14 @@ export class VirtualMachine {
     private list_open = false;
     private selection_reg = 0;
     private cur_srcloc?: AsmToken;
-    private _halted = true;
+    private halted = true;
 
     get object_code(): readonly Segment[] {
         return this._object_code;
     }
 
     constructor(
-        private io: VirtualMachineIO = new VMIOStub(),
+        private io: VirtualMachineIO = new DefaultVirtualMachineIO(),
         private random: Random = new Random(),
     ) {}
 
@@ -222,62 +222,41 @@ export class VirtualMachine {
             );
         }
 
-        const thread = new Thread(this.io, new ExecutionLocation(seg_idx!, -1), true);
+        const thread = new Thread(this.io, new CallStackElement(seg_idx!, -1), true);
 
         this.thread.push(thread);
 
-        this._halted = false;
-    }
-
-    private dispose_thread(thread_idx: number): void {
-        this.thread.splice(thread_idx, 1);
-
-        if (this.thread_idx >= thread_idx && this.thread_idx > 0) {
-            this.thread_idx--;
-        }
-    }
-
-    private update_source_location(exec: Thread): void {
-        const inst = this.get_next_instruction_from_thread(exec);
-
-        if (inst.asm && inst.asm.mnemonic) {
-            this.cur_srcloc = inst.asm.mnemonic;
-        } else {
-            this.cur_srcloc = undefined;
-        }
+        this.halted = false;
     }
 
     /**
      * Move to next instruction.
      */
     advance(): void {
-        if (this._halted || this.thread_idx >= this.thread.length) {
+        if (this.halted || this.thread_idx >= this.thread.length) {
             return;
         }
 
-        const exec = this.thread[this.thread_idx];
+        const thread = this.thread[this.thread_idx];
 
-        if (exec.call_stack.length) {
-            const top = exec.call_stack_top();
+        if (thread.call_stack.length) {
+            const top = thread.call_stack_top();
             const segment = this._object_code[top.seg_idx] as InstructionSegment;
 
-            // move to next instruction
+            // Move to the next instruction.
             if (++top.inst_idx >= segment.instructions.length) {
-                // segment ended, move to next segment
+                // Segment ended, move to the next segment.
                 if (++top.seg_idx >= this._object_code.length) {
-                    // eof
+                    // Reached EOF.
                     this.dispose_thread(this.thread_idx);
+                    return;
                 } else {
                     top.inst_idx = 0;
                 }
             }
         }
 
-        this.update_source_location(exec);
-    }
-
-    get halted(): boolean {
-        return this._halted;
+        this.update_source_location(thread);
     }
 
     /**
@@ -287,27 +266,23 @@ export class VirtualMachine {
     execute(auto_advance: boolean = true): ExecutionResult {
         const srcloc: AsmToken | undefined = undefined;
 
-        if (this._halted) {
+        if (this.halted) {
             return ExecutionResult.Halted;
-        }
-
-        if (this.thread_idx >= this.thread.length) {
-            return ExecutionResult.Suspended;
         }
 
         if (auto_advance) {
             this.advance();
         }
 
-        if (this._halted) {
-            return ExecutionResult.Halted;
+        if (this.thread_idx >= this.thread.length) {
+            return ExecutionResult.Suspended;
         }
 
         try {
-            const exec = this.thread[this.thread_idx];
-            const inst = this.get_next_instruction_from_thread(exec);
+            const thread = this.thread[this.thread_idx];
+            const inst = this.get_next_instruction_from_thread(thread);
 
-            return this.execute_instruction(exec, inst, srcloc);
+            return this.execute_instruction(thread, inst, srcloc);
         } catch (thrown) {
             let err = thrown;
 
@@ -322,6 +297,75 @@ export class VirtualMachine {
         }
     }
 
+    /**
+     * Signal to the VM that a vsync has happened.
+     */
+    vsync(): void {
+        if (this.thread_idx >= this.thread.length) {
+            this.thread_idx = 0;
+        }
+    }
+
+    /**
+     * Halts execution of all threads.
+     */
+    halt(): void {
+        if (!this.halted) {
+            logger.debug("Halting.");
+
+            this.cur_srcloc = undefined;
+            this.halted = true;
+            this.window_msg_open = false;
+
+            this.thread = [];
+            this.thread_idx = 0;
+        }
+    }
+
+    get_current_call_stack_element(): Readonly<CallStackElement> {
+        return this.thread[this.thread_idx].call_stack_top();
+    }
+
+    get_current_source_location(): AsmToken | undefined {
+        return this.cur_srcloc;
+    }
+
+    get_segment_index_by_label(label: number): number {
+        if (!this.label_to_seg_idx.has(label)) {
+            throw new Error(`Invalid argument: No such label ${label}.`);
+        }
+
+        return this.label_to_seg_idx.get(label)!;
+    }
+
+    /**
+     * When the list opcode is used, call this method to select a value in the list.
+     */
+    list_select(idx: number): void {
+        if (!this.list_open) {
+            throw new Error("list_select may not be called if there is no list open");
+        }
+        this.set_register_unsigned(this.selection_reg, idx);
+    }
+
+    private dispose_thread(thread_idx: number): void {
+        this.thread.splice(thread_idx, 1);
+
+        if (this.thread_idx >= thread_idx && this.thread_idx > 0) {
+            this.thread_idx--;
+        }
+    }
+
+    private update_source_location(thread: Thread): void {
+        const inst = this.get_next_instruction_from_thread(thread);
+
+        if (inst.asm && inst.asm.mnemonic) {
+            this.cur_srcloc = inst.asm.mnemonic;
+        } else {
+            this.cur_srcloc = undefined;
+        }
+    }
+
     private execute_instruction(
         exec: Thread,
         inst: Instruction,
@@ -333,7 +377,7 @@ export class VirtualMachine {
 
         const arg_vals = inst.args.map(arg => arg.value);
         // eslint-disable-next-line
-        const [arg0, arg1, arg2] = arg_vals;
+        const [arg0, arg1, arg2, arg3] = arg_vals;
 
         // helper for conditional jump opcodes
         const conditional_jump_args: (
@@ -714,7 +758,7 @@ export class VirtualMachine {
 
                 if (
                     !this._object_code[
-                        this.get_current_execution_location().seg_idx
+                        this.get_current_call_stack_element().seg_idx
                     ].labels.includes(ENTRY_SEGMENT)
                 ) {
                     this.io.warning(
@@ -734,6 +778,9 @@ export class VirtualMachine {
                 }
 
                 break;
+            case OP_BB_MAP_DESIGNATE.code:
+                this.io.bb_map_designate(arg0, arg1, arg2, arg3);
+                break;
             default:
                 this.io.warning(`Unsupported instruction: ${inst.opcode.mnemonic}.`);
                 break;
@@ -742,31 +789,6 @@ export class VirtualMachine {
         if (this.thread_idx >= this.thread.length) return ExecutionResult.WaitingVsync;
 
         return result;
-    }
-
-    /**
-     * Signal to the VM that a vsync has happened.
-     */
-    vsync(): void {
-        if (this.thread_idx >= this.thread.length) {
-            this.thread_idx = 0;
-        }
-    }
-
-    /**
-     * Halts execution of all threads.
-     */
-    halt(): void {
-        if (!this._halted) {
-            logger.debug("Halting.");
-
-            this.cur_srcloc = undefined;
-            this._halted = true;
-            this.window_msg_open = false;
-
-            this.thread = [];
-            this.thread_idx = 0;
-        }
     }
 
     public get_register_signed(reg: number): number {
@@ -858,7 +880,7 @@ export class VirtualMachine {
                 }.`,
             );
         } else {
-            exec.call_stack.push(new ExecutionLocation(seg_idx, -1));
+            exec.call_stack.push(new CallStackElement(seg_idx, -1));
         }
     }
 
@@ -987,13 +1009,18 @@ export class VirtualMachine {
         }
     }
 
-    private get_next_instruction_from_thread(exec: Thread): Instruction {
-        if (exec.call_stack.length) {
-            const top = exec.call_stack_top();
+    private get_next_instruction_from_thread(thread: Thread): Instruction {
+        if (thread.call_stack.length) {
+            const top = thread.call_stack_top();
+
+            if (top.seg_idx >= this._object_code.length) {
+                throw new Error(`Invalid segment index ${top.seg_idx}.`);
+            }
+
             const segment = this._object_code[top.seg_idx];
 
-            if (!segment || segment.type !== SegmentType.Instructions) {
-                throw new Error(`Invalid segment index ${top.seg_idx}.`);
+            if (segment.type !== SegmentType.Instructions) {
+                throw new Error(`Segment ${top.seg_idx} is not an instructions segment.`);
             }
 
             const inst = segment.instructions[top.inst_idx];
@@ -1024,20 +1051,6 @@ export class VirtualMachine {
         }
 
         throw new Error(`Failed to dereference string: Invalid address ${address}`);
-    }
-
-    public get_current_execution_location(): Readonly<ExecutionLocation> {
-        return this.thread[this.thread_idx].call_stack_top();
-    }
-
-    /**
-     * When the list opcode is used, call this method to select a value in the list.
-     */
-    public list_select(idx: number): void {
-        if (!this.list_open) {
-            throw new Error("list_select may not be called if there is no list open");
-        }
-        this.set_register_unsigned(this.selection_reg, idx);
     }
 
     private parse_template_string(template: string): string {
@@ -1166,17 +1179,5 @@ export class VirtualMachine {
         }
 
         return template;
-    }
-
-    public get_current_source_location(): AsmToken | undefined {
-        return this.cur_srcloc;
-    }
-
-    public get_segment_index_by_label(label: number): number {
-        if (!this.label_to_seg_idx.has(label)) {
-            throw new Error(`Invalid argument: No such label ${label}.`);
-        }
-
-        return this.label_to_seg_idx.get(label)!;
     }
 }

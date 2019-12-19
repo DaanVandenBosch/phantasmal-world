@@ -69,9 +69,7 @@ export class QuestRunner {
     private initial_area_id = 0;
 
     private readonly _breakpoints: WritableListProperty<number> = list_property();
-    private readonly _breakpoint_location: WritableProperty<number | undefined> = property(
-        undefined,
-    );
+    private readonly _pause_location: WritableProperty<number | undefined> = property(undefined);
     /**
      * Have we executed since last advancing the instruction pointer?
      */
@@ -112,7 +110,7 @@ export class QuestRunner {
         state => state === QuestRunnerState.StartupPaused || state === QuestRunnerState.Paused,
     );
     readonly breakpoints: ListProperty<number> = this._breakpoints;
-    readonly breakpoint_location: Property<number | undefined> = this._breakpoint_location;
+    readonly pause_location: Property<number | undefined> = this._pause_location;
 
     readonly game_state: GameState = this._game_state;
 
@@ -163,7 +161,7 @@ export class QuestRunner {
     stop(): void {
         this.vm.halt();
         this._state.val = QuestRunnerState.Stopped;
-        this._breakpoint_location.val = undefined;
+        this._pause_location.val = undefined;
         this._game_state.reset();
     }
 
@@ -214,30 +212,26 @@ export class QuestRunner {
         exec_loop: while (true) {
             if (this.executed_since_advance) {
                 this.vm.advance();
-
                 this.executed_since_advance = false;
-
-                if (this.vm.halted) {
-                    this.stop();
-                    break exec_loop;
-                }
 
                 const srcloc = this.vm.get_current_source_location();
 
                 if (srcloc) {
-                    // Check if need to break.
-                    const hit_breakpoint = this.debugger.breakpoint_hit(srcloc);
+                    // Check whether we need to pause.
+                    const should_pause = this.debugger.should_pause(srcloc);
 
-                    if (hit_breakpoint) {
+                    if (should_pause) {
                         this._state.val =
                             prev_state === QuestRunnerState.Startup
                                 ? QuestRunnerState.StartupPaused
                                 : QuestRunnerState.Paused;
-                        this._breakpoint_location.val = srcloc.line_no;
+                        this._pause_location.val = srcloc.line_no;
                         break exec_loop;
                     }
                 }
             }
+
+            this._pause_location.val = undefined;
 
             const result = this.vm.execute(false);
             this.executed_since_advance = true;
@@ -301,6 +295,17 @@ export class QuestRunner {
         }
 
         return {
+            bb_map_designate: (
+                area_id: number,
+                map_number: number,
+                area_variant_id: number,
+            ): void => {
+                this._game_state.area_variants.set(
+                    area_id,
+                    area_store.get_variant(this._game_state.episode, area_id, area_variant_id),
+                );
+            },
+
             set_floor_handler: (area_id: number, label: number) => {
                 this._game_state.floor_handlers.set(area_id, label);
             },
@@ -350,7 +355,6 @@ export class QuestRunner {
             this.quest_logger.debug(`No floor handler registered for floor ${area_id}.`);
         } else {
             this.vm.start_thread(label);
-            this.schedule_frame();
         }
     }
 }

@@ -3,14 +3,14 @@
  */
 
 import { ExecutionResult, VirtualMachine } from "./VirtualMachine";
-import { VMIOStub } from "./VMIOStub";
 import { to_instructions } from "../../../../test/src/utils";
 import { Segment } from "../instructions";
 import { Random } from "./Random";
 import { Episode } from "../../../core/data_formats/parsing/quest/Episode";
+import { DefaultVirtualMachineIO } from "./io";
 
 test("integer arithmetic opcodes", () => {
-    class TestIO extends VMIOStub {
+    class TestIO extends DefaultVirtualMachineIO {
         error = jest.fn((err: Error) => {
             throw err;
         });
@@ -26,7 +26,7 @@ test("integer arithmetic opcodes", () => {
         let last_result: ExecutionResult;
         do {
             last_result = vm.execute();
-        } while (last_result !== ExecutionResult.Halted);
+        } while (last_result === ExecutionResult.Ok);
 
         return vm.get_register_signed(result_reg);
     }
@@ -77,7 +77,7 @@ test("integer arithmetic opcodes", () => {
 
 // TODO: add more fp tests
 test("floating point arithmetic opcodes", () => {
-    class TestIO extends VMIOStub {
+    class TestIO extends DefaultVirtualMachineIO {
         error = jest.fn((err: Error) => {
             throw err;
         });
@@ -100,7 +100,7 @@ test("floating point arithmetic opcodes", () => {
     let last_result: ExecutionResult;
     do {
         last_result = vm.execute();
-    } while (last_result !== ExecutionResult.Halted);
+    } while (last_result === ExecutionResult.Ok);
 
     expect(vm.get_register_float(100)).toBeCloseTo(7.4505806e-9, precision);
     expect(vm.get_register_float(101)).toBeCloseTo(134217728, precision);
@@ -123,7 +123,7 @@ test("basic window_msg output", () => {
         true,
     );
 
-    class TestIO extends VMIOStub {
+    class TestIO extends DefaultVirtualMachineIO {
         window_msg = jest.fn((msg: string) => {
             expect(msg).toBe(messages.shift());
         });
@@ -150,7 +150,7 @@ test("basic window_msg output", () => {
     do {
         last_result = vm.execute();
         exec_results.push(last_result);
-    } while (last_result !== ExecutionResult.Halted);
+    } while (last_result === ExecutionResult.Ok || last_result === ExecutionResult.WaitingInput);
 
     // one result for each instruction and one extra for the halt signal
     expect(exec_results).toHaveLength(segments[0].instructions.length + 1);
@@ -162,7 +162,7 @@ test("basic window_msg output", () => {
         ExecutionResult.Ok,
         ExecutionResult.WaitingInput,
         ExecutionResult.Ok,
-        ExecutionResult.Halted,
+        ExecutionResult.Suspended,
     ]);
 
     expect(io.window_msg).toBeCalledTimes(1);
@@ -210,14 +210,14 @@ test("opcode get_random", () => {
     expect(vm.get_register_unsigned(result_reg)).toBe(6529);
     expect(vm.execute()).toBe(ExecutionResult.Ok);
     expect(vm.get_register_unsigned(result_reg)).toBe(61497);
-    expect(vm.execute()).toBe(ExecutionResult.Halted);
+    expect(vm.execute()).toBe(ExecutionResult.Suspended);
 });
 
 test("opcode list", () => {
     const list_items = ["a", "b", "c", "d"];
     const list_text = list_items.join("\\n");
 
-    class TestIO extends VMIOStub {
+    class TestIO extends DefaultVirtualMachineIO {
         constructor() {
             super();
         }
