@@ -7,6 +7,7 @@ import { VMIOStub } from "./VMIOStub";
 import { to_instructions } from "../../../../test/src/utils";
 import { Segment } from "../instructions";
 import { Random } from "./Random";
+import { Episode } from "../../../core/data_formats/parsing/quest/Episode";
 
 test("integer arithmetic opcodes", () => {
     class TestIO extends VMIOStub {
@@ -19,7 +20,7 @@ test("integer arithmetic opcodes", () => {
     const vm = new VirtualMachine(new TestIO());
 
     function compute_arithmetic(obj_code: Segment[]): number {
-        vm.load_object_code(obj_code);
+        vm.load_object_code(obj_code, Episode.I);
         vm.start_thread(0);
 
         let last_result: ExecutionResult;
@@ -93,7 +94,7 @@ test("floating point arithmetic opcodes", () => {
     `);
 
     const vm = new VirtualMachine(new TestIO());
-    vm.load_object_code(obj_code);
+    vm.load_object_code(obj_code, Episode.I);
     vm.start_thread(0);
 
     let last_result: ExecutionResult;
@@ -141,7 +142,7 @@ test("basic window_msg output", () => {
     const io = new TestIO();
     const vm = new VirtualMachine(io);
 
-    vm.load_object_code(segments);
+    vm.load_object_code(segments, Episode.I);
     vm.start_thread(0);
 
     const exec_results: ExecutionResult[] = [];
@@ -187,7 +188,7 @@ test("opcode get_random", () => {
     `);
 
     const vm = new VirtualMachine(undefined, new Random(123));
-    vm.load_object_code(obj_code);
+    vm.load_object_code(obj_code, Episode.I);
     vm.start_thread(0);
 
     // run `let`s
@@ -235,7 +236,7 @@ test("opcode list", () => {
     `);
 
     const vm = new VirtualMachine(new TestIO());
-    vm.load_object_code(obj_code);
+    vm.load_object_code(obj_code, Episode.I);
     vm.start_thread(0);
 
     expect(vm.execute()).toBe(ExecutionResult.Ok); // arg_pushb
