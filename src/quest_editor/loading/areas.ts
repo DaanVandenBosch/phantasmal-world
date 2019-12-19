@@ -1,8 +1,11 @@
 import { Object3D } from "three";
 import { Endianness } from "../../core/data_formats/Endianness";
 import { ArrayBufferCursor } from "../../core/data_formats/cursor/ArrayBufferCursor";
-import { parse_area_collision_geometry } from "../../core/data_formats/parsing/area_collision_geometry";
-import { parse_area_geometry } from "../../core/data_formats/parsing/area_geometry";
+import {
+    CollisionObject,
+    parse_area_collision_geometry,
+} from "../../core/data_formats/parsing/area_collision_geometry";
+import { parse_area_geometry, RenderObject } from "../../core/data_formats/parsing/area_geometry";
 import { load_array_buffer } from "../../core/loading";
 import { LoadingCache } from "./LoadingCache";
 import { Episode } from "../../core/data_formats/parsing/quest/Episode";
@@ -13,62 +16,61 @@ import {
 } from "../rendering/conversion/areas";
 import { AreaVariantModel } from "../model/AreaVariantModel";
 
-const render_geometry_cache = new LoadingCache<
-    string,
-    { geometry: Promise<Object3D>; sections: Promise<SectionModel[]> }
->();
-const collision_geometry_cache = new LoadingCache<string, Promise<Object3D>>();
+const render_object_cache = new LoadingCache<string, Promise<RenderObject>>();
+const collision_object_cache = new LoadingCache<string, Promise<CollisionObject>>();
+const area_sections_cache = new LoadingCache<string, Promise<SectionModel[]>>();
 
 export async function load_area_sections(
     episode: Episode,
     area_variant: AreaVariantModel,
 ): Promise<SectionModel[]> {
-    return render_geometry_cache.get_or_set(
-        `${episode}-${area_variant.area.id}-${area_variant.id}`,
-        () => load_area_sections_and_render_geometry(episode, area_variant),
-    ).sections;
+    const key = `${episode}-${area_variant.area.id}-${area_variant.id}`;
+
+    return await area_sections_cache.get_or_set(key, async () => {
+        return area_geometry_to_sections_and_object_3d(
+            await render_object_cache.get_or_set(key, () =>
+                load_render_object(episode, area_variant),
+            ),
+            area_variant,
+        )[0];
+    });
 }
 
 export async function load_area_render_geometry(
     episode: Episode,
     area_variant: AreaVariantModel,
 ): Promise<Object3D> {
-    return render_geometry_cache.get_or_set(
-        `${episode}-${area_variant.area.id}-${area_variant.id}`,
-        () => load_area_sections_and_render_geometry(episode, area_variant),
-    ).geometry;
+    const key = `${episode}-${area_variant.area.id}-${area_variant.id}`;
+
+    const render_object = await render_object_cache.get_or_set(key, () =>
+        load_render_object(episode, area_variant),
+    );
+
+    // Do not cache this call, multiple renderers need their own copy of the data.
+    return area_geometry_to_sections_and_object_3d(render_object, area_variant)[1];
 }
 
 export async function load_area_collision_geometry(
     episode: Episode,
     area_variant: AreaVariantModel,
 ): Promise<Object3D> {
-    return collision_geometry_cache.get_or_set(
-        `${episode}-${area_variant.area.id}-${area_variant.id}`,
-        () =>
-            get_area_asset(episode, area_variant, "collision").then(buffer =>
-                area_collision_geometry_to_object_3d(
-                    parse_area_collision_geometry(new ArrayBufferCursor(buffer, Endianness.Little)),
-                ),
-            ),
-    );
+    const key = `${episode}-${area_variant.area.id}-${area_variant.id}`;
+
+    const collision_object = await collision_object_cache.get_or_set(key, async () => {
+        const buffer = await get_area_asset(episode, area_variant, "collision");
+        return parse_area_collision_geometry(new ArrayBufferCursor(buffer, Endianness.Little));
+    });
+
+    // Do not cache this call, multiple renderers need their own copy of the data.
+    return area_collision_geometry_to_object_3d(collision_object);
 }
 
-function load_area_sections_and_render_geometry(
+async function load_render_object(
     episode: Episode,
     area_variant: AreaVariantModel,
-): { geometry: Promise<Object3D>; sections: Promise<SectionModel[]> } {
-    const promise = get_area_asset(episode, area_variant, "render").then(buffer =>
-        area_geometry_to_sections_and_object_3d(
-            parse_area_geometry(new ArrayBufferCursor(buffer, Endianness.Little)),
-            area_variant,
-        ),
-    );
-
-    return {
-        geometry: promise.then(([, object_3d]) => object_3d),
-        sections: promise.then(([sections]) => sections),
-    };
+): Promise<RenderObject> {
+    const buffer = await get_area_asset(episode, area_variant, "render");
+    return parse_area_geometry(new ArrayBufferCursor(buffer, Endianness.Little));
 }
 
 const area_base_names = [
