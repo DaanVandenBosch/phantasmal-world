@@ -224,7 +224,8 @@ export class QuestRunner {
 
                     if (should_pause) {
                         this._state.val =
-                            prev_state === QuestRunnerState.Startup
+                            prev_state === QuestRunnerState.Startup ||
+                            prev_state === QuestRunnerState.StartupPaused
                                 ? QuestRunnerState.StartupPaused
                                 : QuestRunnerState.Paused;
                         this._pause_location.val = srcloc.line_no;
