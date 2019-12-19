@@ -1,45 +1,32 @@
-import { ResizableWidget } from "../../core/gui/ResizableWidget";
-import { el } from "../../core/gui/dom";
-import { RendererWidget } from "../../core/gui/RendererWidget";
 import { QuestRenderer } from "../rendering/QuestRenderer";
-import { gui_store, GuiTool } from "../../core/stores/GuiStore";
 import { quest_editor_store } from "../stores/QuestEditorStore";
 import { QuestEditorModelManager } from "../rendering/QuestEditorModelManager";
+import { QuestRendererView } from "./QuestRendererView";
+import { QuestEntityControls } from "../rendering/QuestEntityControls";
 
-export class QuestEditorRendererView extends ResizableWidget {
-    readonly element = el.div({ class: "quest_editor_QuestEditorRendererView", tab_index: -1 });
-
-    private renderer_view = this.disposable(
-        new RendererWidget(new QuestRenderer(QuestEditorModelManager)),
-    );
+export class QuestEditorRendererView extends QuestRendererView {
+    private readonly entity_controls: QuestEntityControls;
 
     constructor() {
-        super();
-
-        this.element.append(this.renderer_view.element);
+        super("quest_editor_QuestEditorRendererView", new QuestRenderer(QuestEditorModelManager));
 
         this.element.addEventListener("focus", () => quest_editor_store.undo.make_current(), true);
 
-        this.renderer_view.start_rendering();
+        this.entity_controls = this.disposable(new QuestEntityControls(this.renderer));
 
         this.disposables(
-            gui_store.tool.observe(({ value: tool }) => {
-                if (tool === GuiTool.QuestEditor) {
-                    this.renderer_view.start_rendering();
-                } else {
-                    this.renderer_view.stop_rendering();
-                }
-            }),
+            quest_editor_store.selected_entity.observe(
+                ({ value }) => (this.renderer.selected_entity = value),
+            ),
+
+            quest_editor_store.quest_runner.running.observe(
+                ({ value: running }) => (this.entity_controls.enabled = !running),
+                { call_now: true },
+            ),
         );
 
+        this.renderer.init_camera_controls();
+
         this.finalize_construction();
-    }
-
-    resize(width: number, height: number): this {
-        super.resize(width, height);
-
-        this.renderer_view.resize(width, height);
-
-        return this;
     }
 }

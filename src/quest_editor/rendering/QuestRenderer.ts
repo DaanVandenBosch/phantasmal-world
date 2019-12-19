@@ -1,11 +1,10 @@
 import { Renderer } from "../../core/rendering/Renderer";
-import { Group, Mesh, Object3D, PerspectiveCamera } from "three";
+import { Group, Mesh, MeshLambertMaterial, Object3D, PerspectiveCamera } from "three";
 import { QuestEntityModel } from "../model/QuestEntityModel";
-import { quest_editor_store } from "../stores/QuestEditorStore";
 import { QuestModelManager } from "./QuestModelManager";
 import { Disposer } from "../../core/observable/Disposer";
-import { QuestEntityControls } from "./QuestEntityControls";
-import { EntityUserData } from "./conversion/entities";
+import { ColorType, EntityUserData, NPC_COLORS, OBJECT_COLORS } from "./conversion/entities";
+import { QuestNpcModel } from "../model/QuestNpcModel";
 
 export class QuestRenderer extends Renderer {
     private _collision_geometry = new Object3D();
@@ -13,7 +12,8 @@ export class QuestRenderer extends Renderer {
     private _entity_models = new Object3D();
     private readonly disposer = new Disposer();
     private readonly entity_to_mesh = new Map<QuestEntityModel, Mesh>();
-    private readonly entity_controls = this.disposer.add(new QuestEntityControls(this));
+    private hovered_mesh?: Mesh;
+    private selected_mesh?: Mesh;
 
     get debug(): boolean {
         return super.debug;
@@ -50,19 +50,21 @@ export class QuestRenderer extends Renderer {
         return this._entity_models;
     }
 
+    selected_entity: QuestEntityModel | undefined;
+
     constructor(ModelManager: new (renderer: QuestRenderer) => QuestModelManager) {
         super();
 
-        this.disposer.add_all(
-            new ModelManager(this),
+        this.disposer.add(new ModelManager(this));
+    }
 
-            quest_editor_store.debug.observe(({ value }) => (this.debug = value)),
-        );
-
-        // Initialize camera-controls after QuestEntityControls to ensure correct order of event
-        // listener registration. This is a fragile work-around for the fact that camera-controls
-        // doesn't support intercepting pointer events.
-        this.init_camera_controls();
+    /**
+     * Initialize camera-controls after QuestEntityControls to ensure correct order of event
+     * listener registration. This is a fragile work-around for the fact that camera-controls
+     * doesn't support intercepting pointer events.
+     */
+    init_camera_controls(): void {
+        super.init_camera_controls();
     }
 
     dispose(): void {
@@ -89,8 +91,8 @@ export class QuestRenderer extends Renderer {
         this._entity_models.add(model);
         this.entity_to_mesh.set(entity, model);
 
-        if (entity === quest_editor_store.selected_entity.val) {
-            this.entity_controls.mark_selected(model);
+        if (entity === this.selected_entity) {
+            this.mark_selected(model);
         }
 
         this.schedule_render();
@@ -108,5 +110,69 @@ export class QuestRenderer extends Renderer {
 
     get_entity_mesh(entity: QuestEntityModel): Mesh | undefined {
         return this.entity_to_mesh.get(entity);
+    }
+
+    mark_selected(entity_mesh: Mesh): void {
+        if (entity_mesh === this.hovered_mesh) {
+            this.hovered_mesh = undefined;
+        }
+
+        if (entity_mesh !== this.selected_mesh) {
+            if (this.selected_mesh) {
+                set_color(this.selected_mesh, ColorType.Normal);
+            }
+
+            set_color(entity_mesh, ColorType.Selected);
+
+            this.schedule_render();
+        }
+
+        this.selected_mesh = entity_mesh;
+    }
+
+    mark_hovered(entity_mesh?: Mesh): void {
+        if (!this.selected_mesh || entity_mesh !== this.selected_mesh) {
+            if (entity_mesh !== this.hovered_mesh) {
+                if (this.hovered_mesh) {
+                    set_color(this.hovered_mesh, ColorType.Normal);
+                }
+
+                if (entity_mesh) {
+                    set_color(entity_mesh, ColorType.Hovered);
+                }
+
+                this.schedule_render();
+            }
+
+            this.hovered_mesh = entity_mesh;
+        }
+    }
+
+    unmark_selected(): void {
+        if (this.selected_mesh) {
+            set_color(this.selected_mesh, ColorType.Normal);
+            this.schedule_render();
+        }
+
+        this.selected_mesh = undefined;
+    }
+}
+
+function set_color(mesh: Mesh, type: ColorType): void {
+    const entity = (mesh.userData as EntityUserData).entity;
+    const color = entity instanceof QuestNpcModel ? NPC_COLORS[type] : OBJECT_COLORS[type];
+
+    if (mesh) {
+        if (Array.isArray(mesh.material)) {
+            for (const mat of mesh.material as MeshLambertMaterial[]) {
+                if (type === ColorType.Normal && mat.map) {
+                    mat.color.set(0xffffff);
+                } else {
+                    mat.color.set(color);
+                }
+            }
+        } else {
+            (mesh.material as MeshLambertMaterial).color.set(color);
+        }
     }
 }
