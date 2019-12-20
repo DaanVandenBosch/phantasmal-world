@@ -22,6 +22,8 @@ export class StackFrame {
 }
 
 export class Thread {
+    private static next_id = 0;
+
     private readonly _call_stack: StackFrame[];
     private arg_stack = new Memory(ARG_STACK_LENGTH * ARG_STACK_SLOT_SIZE, Endianness.Little);
     private arg_stack_counter: number = 0;
@@ -32,11 +34,17 @@ export class Thread {
     private _step_frame?: StackFrame;
 
     /**
+     * Unique thread ID.
+     */
+    readonly id = Thread.next_id++;
+
+    /**
      * Call stack. The top frame contains a pointer to the instruction about to be executed.
      */
     readonly call_stack: readonly Readonly<StackFrame>[];
 
     readonly variable_stack: number[] = [];
+
     /**
      * Global or floor-local?
      */

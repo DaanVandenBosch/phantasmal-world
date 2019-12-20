@@ -316,6 +316,8 @@ export class VirtualMachine {
                     }
                 }
 
+                this.paused = false;
+
                 const result = this.execute_instruction(thread, inst_ptr);
 
                 // Advance to the next instruction.
