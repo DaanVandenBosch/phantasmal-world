@@ -260,7 +260,7 @@ export class QuestEditorStore implements Disposable {
         }
     };
 
-    run_current_quest = (): void => {
+    debug_current_quest = (): void => {
         const quest = this.current_quest.val;
 
         if (quest) {

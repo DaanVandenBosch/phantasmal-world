@@ -136,7 +136,7 @@ export class QuestRunner {
         this.schedule_frame();
     }
 
-    step_in(): void {
+    step_into(): void {
         this.debugger.step_in();
         this.schedule_frame();
     }

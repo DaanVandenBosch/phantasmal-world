@@ -69,29 +69,29 @@ export class QuestEditorToolBar extends ToolBar {
                 }
             },
         );
-        const run_button = new Button("Debug", {
+        const debug_button = new Button("Debug", {
             icon_left: Icon.Play,
-            tooltip: "[Experimental] Run the current quest in a virtual machine (F5)",
+            tooltip: "Debug the current quest in a virtual machine (F5)",
         });
-        const resume_button = new Button("Resume", {
+        const resume_button = new Button("Continue", {
             icon_left: Icon.SquareArrowRight,
-            tooltip: "Resume execution",
+            tooltip: "Resume execution (F6)",
         });
         const step_over_button = new Button("Step over", {
             icon_left: Icon.LongArrowRight,
-            tooltip: "Execute the next line and step over any function calls",
+            tooltip: "Execute the next line and step over any function calls (F8)",
         });
-        const step_in_button = new Button("Step in", {
+        const step_in_button = new Button("Step into", {
             icon_left: Icon.LevelDown,
-            tooltip: "Execute the next line and step inside any function calls",
+            tooltip: "Execute the next line and step inside any function calls (F7)",
         });
         const step_out_button = new Button("Step out", {
             icon_left: Icon.LevelUp,
-            tooltip: "Execute until outside of current call frame",
+            tooltip: "Execute until outside of current call frame (Shift-F8)",
         });
         const stop_button = new Button("Stop", {
             icon_left: Icon.Stop,
-            tooltip: "Stop execution",
+            tooltip: "Stop execution (Shift-F5)",
         });
 
         const children = [
@@ -105,7 +105,7 @@ export class QuestEditorToolBar extends ToolBar {
 
         if (gui_store.feature_active("vm")) {
             children.push(
-                run_button,
+                debug_button,
                 resume_button,
                 step_over_button,
                 step_in_button,
@@ -158,8 +158,8 @@ export class QuestEditorToolBar extends ToolBar {
             ),
             area_select.enabled.bind_to(quest_loaded),
 
-            run_button.click.observe(quest_editor_store.run_current_quest),
-            run_button.enabled.bind_to(quest_loaded),
+            debug_button.click.observe(quest_editor_store.debug_current_quest),
+            debug_button.enabled.bind_to(quest_loaded),
 
             resume_button.click.observe(() => quest_editor_store.quest_runner.resume()),
             resume_button.enabled.bind_to(step_controls_enabled),
@@ -167,7 +167,7 @@ export class QuestEditorToolBar extends ToolBar {
             step_over_button.click.observe(() => quest_editor_store.quest_runner.step_over()),
             step_over_button.enabled.bind_to(step_controls_enabled),
 
-            step_in_button.click.observe(() => quest_editor_store.quest_runner.step_in()),
+            step_in_button.click.observe(() => quest_editor_store.quest_runner.step_into()),
             step_in_button.enabled.bind_to(step_controls_enabled),
 
             step_out_button.click.observe(() => quest_editor_store.quest_runner.step_out()),
@@ -197,7 +197,27 @@ export class QuestEditorToolBar extends ToolBar {
             gui_store.on_global_keydown(
                 GuiTool.QuestEditor,
                 "F5",
-                quest_editor_store.run_current_quest,
+                quest_editor_store.debug_current_quest,
+            ),
+
+            gui_store.on_global_keydown(GuiTool.QuestEditor, "Shift-F5", () =>
+                quest_editor_store.quest_runner.stop(),
+            ),
+
+            gui_store.on_global_keydown(GuiTool.QuestEditor, "F6", () =>
+                quest_editor_store.quest_runner.resume(),
+            ),
+
+            gui_store.on_global_keydown(GuiTool.QuestEditor, "F8", () =>
+                quest_editor_store.quest_runner.step_over(),
+            ),
+
+            gui_store.on_global_keydown(GuiTool.QuestEditor, "F7", () =>
+                quest_editor_store.quest_runner.step_into(),
+            ),
+
+            gui_store.on_global_keydown(GuiTool.QuestEditor, "Shift-F8", () =>
+                quest_editor_store.quest_runner.step_out(),
             ),
         );
 
