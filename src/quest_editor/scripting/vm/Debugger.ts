@@ -8,10 +8,6 @@ import { InstructionPointer } from "./InstructionPointer";
 export class Debugger {
     private readonly vm: VirtualMachine;
     private readonly _breakpoints: Breakpoint[] = [];
-    /**
-     * Invisible breakpoint to help with stepping over/in/out.
-     */
-    private stepping_breakpoint?: Breakpoint;
 
     readonly breakpoints: readonly Breakpoint[] = this._breakpoints;
 
@@ -20,9 +16,6 @@ export class Debugger {
     }
 
     resume(): void {
-        this.stepping_breakpoint?.deactivate();
-        this.stepping_breakpoint = undefined;
-
         this.vm.resume({ type: PauseAtType.NextBreakPoint });
     }
 
@@ -79,9 +72,6 @@ export class Debugger {
     }
 
     reset(): void {
-        this.stepping_breakpoint?.deactivate();
-        this.stepping_breakpoint = undefined;
-
         for (const bp of this._breakpoints) {
             bp.activate();
         }
