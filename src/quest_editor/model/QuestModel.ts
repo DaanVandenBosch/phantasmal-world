@@ -14,6 +14,7 @@ import { WritableListProperty } from "../../core/observable/property/list/Writab
 import { QuestEntityModel } from "./QuestEntityModel";
 import { entity_type_to_string } from "../../core/data_formats/parsing/quest/entities";
 import { QuestEventDagModel } from "./QuestEventDagModel";
+import { assert, required } from "../../core/util";
 
 const logger = Logger.get("quest_editor/model/QuestModel");
 
@@ -87,13 +88,13 @@ export class QuestModel {
         shop_items: readonly number[],
     ) {
         check_episode(episode);
-        if (!map_designations) throw new Error("map_designations is required.");
-        if (!Array.isArray(objects)) throw new Error("objs is required.");
-        if (!Array.isArray(npcs)) throw new Error("npcs is required.");
-        if (!Array.isArray(event_dags)) throw new Error("event_dags is required.");
-        if (!Array.isArray(dat_unknowns)) throw new Error("dat_unknowns is required.");
-        if (!Array.isArray(object_code)) throw new Error("object_code is required.");
-        if (!Array.isArray(shop_items)) throw new Error("shop_items is required.");
+        required(map_designations, "map_designations");
+        required(Array.isArray(objects), "objs");
+        required(Array.isArray(npcs), "npcs");
+        required(Array.isArray(event_dags), "event_dags");
+        required(Array.isArray(dat_unknowns), "dat_unknowns");
+        required(Array.isArray(object_code), "object_code");
+        required(Array.isArray(shop_items), "shop_items");
 
         this.set_id(id);
         this.set_language(language);
@@ -136,43 +137,41 @@ export class QuestModel {
     }
 
     set_id(id: number): this {
-        if (id < 0) throw new Error(`id should be greater than or equal to 0, was ${id}.`);
+        assert(id >= 0, `id should be greater than or equal to 0, was ${id}.`);
 
         this._id.val = id;
         return this;
     }
 
     set_language(language: number): this {
-        if (language < 0)
-            throw new Error(`language should be greater than or equal to 0, was ${language}.`);
+        assert(language >= 0, `language should be greater than or equal to 0, was ${language}.`);
 
         this._language.val = language;
         return this;
     }
 
     set_name(name: string): this {
-        if (name.length > 32)
-            throw new Error(`name can't be longer than 32 characters, got "${name}".`);
+        assert(name.length <= 32, `name can't be longer than 32 characters, got "${name}".`);
 
         this._name.val = name;
         return this;
     }
 
     set_short_description(short_description: string): this {
-        if (short_description.length > 128)
-            throw new Error(
-                `short_description can't be longer than 128 characters, got "${short_description}".`,
-            );
+        assert(
+            short_description.length <= 128,
+            `short_description can't be longer than 128 characters, got "${short_description}".`,
+        );
 
         this._short_description.val = short_description;
         return this;
     }
 
     set_long_description(long_description: string): this {
-        if (long_description.length > 288)
-            throw new Error(
-                `long_description can't be longer than 288 characters, got "${long_description}".`,
-            );
+        assert(
+            long_description.length <= 288,
+            `long_description can't be longer than 288 characters, got "${long_description}".`,
+        );
 
         this._long_description.val = long_description;
         return this;

@@ -1,4 +1,4 @@
-import { AsmToken, Instruction, InstructionSegment, Segment, SegmentType } from "../instructions";
+import { Segment, SegmentType } from "../instructions";
 import {
     Kind,
     OP_ADD,
@@ -98,10 +98,11 @@ import {
 import { DefaultVirtualMachineIO, VirtualMachineIO } from "./io";
 import { Episode } from "../../../core/data_formats/parsing/quest/Episode";
 import { Endianness } from "../../../core/data_formats/Endianness";
-import { CallStackElement, Thread } from "./Thread";
 import { Random } from "./Random";
 import { Memory } from "./Memory";
 import Logger from "js-logger";
+import { InstructionPointer } from "./InstructionPointer";
+import { StackFrame, Thread } from "./Thread";
 
 export const REGISTER_COUNT = 256;
 
@@ -116,15 +117,16 @@ const logger = Logger.get("quest_editor/scripting/vm/VirtualMachine");
 
 export enum ExecutionResult {
     /**
-     * Ready to execute next instruction.
-     */
-    Ok,
-    /**
-     * There are no live threads.
+     * There are no live threads, nothing to do.
      */
     Suspended,
     /**
-     * All running threads have yielded.
+     * Execution is paused due to hitting a breakpoint or because the VM is executing in
+     * stepping mode.
+     */
+    Paused,
+    /**
+     * All threads have yielded.
      */
     WaitingVsync,
     /**
@@ -136,6 +138,10 @@ export enum ExecutionResult {
      * Call `list_select` to set selection.
      */
     WaitingSelection,
+    /**
+     * Execution has halted because the VM encountered an `exit` instruction, a fatal error was
+     * raised or the VM was halted from outside.
+     */
     Halted,
 }
 
@@ -150,27 +156,58 @@ function encode_episode_number(ep: Episode): number {
     }
 }
 
+export enum PauseAtType {
+    NextBreakPoint,
+    Instruction,
+    StackFrame,
+}
+
+export type PauseAt = PauseAtNextBreakPoint | PauseAtNextInstruction | PauseAtStackFrame;
+
+export type PauseAtNextBreakPoint = {
+    type: PauseAtType.NextBreakPoint;
+};
+
+export type PauseAtNextInstruction = {
+    type: PauseAtType.Instruction;
+};
+
+export type PauseAtStackFrame = {
+    type: PauseAtType.StackFrame;
+    frame: StackFrame;
+};
+
 /**
  * This class emulates the PSO script engine. It's in charge of memory, threading and executing
  * instructions.
  */
 export class VirtualMachine {
-    private registers = new Memory(REGISTER_COUNT * REGISTER_SIZE, Endianness.Little);
+    private readonly registers = new Memory(REGISTER_COUNT * REGISTER_SIZE, Endianness.Little);
     private string_arg_store = "";
     private _object_code: readonly Segment[] = [];
     private episode: Episode = Episode.I;
-    private label_to_seg_idx: Map<number, number> = new Map();
-    private thread: Thread[] = [];
+    private readonly label_to_seg_idx: Map<number, number> = new Map();
+    private threads: Thread[] = [];
     private thread_idx = 0;
     private window_msg_open = false;
     private set_episode_called = false;
     private list_open = false;
     private selection_reg = 0;
-    private cur_srcloc?: AsmToken;
-    private halted = true;
+    private _halted = true;
+    /**
+     * Did a thread switch occur after the previous instruction?
+     */
+    private thread_switched = false;
+    private readonly breakpoints: InstructionPointer[] = [];
+    private pause_at: PauseAt = { type: PauseAtType.NextBreakPoint };
+    private should_pause = true;
 
     get object_code(): readonly Segment[] {
         return this._object_code;
+    }
+
+    get halted(): boolean {
+        return this._halted;
     }
 
     constructor(
@@ -186,15 +223,8 @@ export class VirtualMachine {
 
         logger.debug("Starting.");
 
-        this.registers.zero();
-        this.string_arg_store = "";
         this._object_code = object_code;
         this.episode = episode;
-        this.label_to_seg_idx.clear();
-        this.set_episode_called = false;
-        this.list_open = false;
-        this.selection_reg = 0;
-        this.cur_srcloc = undefined;
 
         let i = 0;
 
@@ -205,6 +235,8 @@ export class VirtualMachine {
 
             i++;
         }
+
+        this._halted = false;
     }
 
     /**
@@ -222,67 +254,93 @@ export class VirtualMachine {
             );
         }
 
-        const thread = new Thread(this.io, new CallStackElement(seg_idx!, -1), true);
-
-        this.thread.push(thread);
-
-        this.halted = false;
+        this.threads.push(
+            new Thread(this.io, new InstructionPointer(seg_idx!, 0, this.object_code), true),
+        );
     }
 
     /**
-     * Move to next instruction.
+     * Executes instructions while possible.
      */
-    advance(): void {
-        if (this.halted || this.thread_idx >= this.thread.length) {
-            return;
-        }
-
-        const thread = this.thread[this.thread_idx];
-
-        if (thread.call_stack.length) {
-            const top = thread.call_stack_top();
-            const segment = this._object_code[top.seg_idx] as InstructionSegment;
-
-            // Move to the next instruction.
-            if (++top.inst_idx >= segment.instructions.length) {
-                // Segment ended, move to the next segment.
-                if (++top.seg_idx >= this._object_code.length) {
-                    // Reached EOF.
-                    this.dispose_thread(this.thread_idx);
-                    return;
-                } else {
-                    top.inst_idx = 0;
-                }
-            }
-        }
-
-        this.update_source_location(thread);
-    }
-
-    /**
-     * Executes the next instruction if one is scheduled.
-     * @param auto_advance - Should the instruction pointer be automatically advanced.
-     */
-    execute(auto_advance: boolean = true): ExecutionResult {
-        const srcloc: AsmToken | undefined = undefined;
-
-        if (this.halted) {
+    execute(): ExecutionResult {
+        if (this._halted) {
             return ExecutionResult.Halted;
         }
 
-        if (auto_advance) {
-            this.advance();
-        }
-
-        if (this.thread_idx >= this.thread.length) {
-            return ExecutionResult.Suspended;
-        }
+        let inst_ptr: InstructionPointer | undefined;
 
         try {
-            const thread = this.thread[this.thread_idx];
-            const inst = this.get_next_instruction_from_thread(thread);
+            // Limit amount of instructions executed to prevent infinite loops.
+            let execution_counter = 0;
 
-            return this.execute_instruction(thread, inst, srcloc);
+            while (execution_counter++ < 100_000) {
+                // Get current instruction.
+                const thread = this.current_thread();
+
+                if (!thread) {
+                    return ExecutionResult.Suspended;
+                }
+
+                const frame = thread.current_stack_frame();
+                inst_ptr = frame.instruction_pointer;
+                const inst = inst_ptr.instruction;
+
+                if (this.should_pause) {
+                    switch (this.pause_at.type) {
+                        case PauseAtType.NextBreakPoint:
+                            if (this.breakpoints.findIndex(bp => bp.equals(inst_ptr!)) !== -1) {
+                                return ExecutionResult.Paused;
+                            }
+                            break;
+
+                        case PauseAtType.Instruction:
+                            if (this.thread_switched) {
+                                this.pause_at = { type: PauseAtType.NextBreakPoint };
+                            } else if (inst.asm?.mnemonic) {
+                                return ExecutionResult.Paused;
+                            }
+                            break;
+
+                        case PauseAtType.StackFrame:
+                            if (this.thread_switched) {
+                                this.pause_at = { type: PauseAtType.NextBreakPoint };
+                            } else if (frame.idx <= this.pause_at.frame.idx && inst.asm?.mnemonic) {
+                                return ExecutionResult.Paused;
+                            }
+                            break;
+                    }
+                }
+
+                this.should_pause = true;
+
+                const result = this.execute_instruction(thread, inst_ptr);
+
+                // Advance to the next instruction.
+                // TODO: OP_VA_CALL and OP_SWITCH_CALL.
+                if (inst.opcode.code !== OP_CALL.code) {
+                    const thread = this.current_thread();
+
+                    if (!thread) {
+                        return ExecutionResult.Suspended;
+                    }
+
+                    const next = thread.current_stack_frame().instruction_pointer.next();
+
+                    if (next) {
+                        thread.set_current_instruction_pointer(next);
+                    } else {
+                        // Reached EOF.
+                        thread.pop_call_stack();
+                        this.dispose_thread(this.thread_idx);
+                    }
+                }
+
+                if (result != undefined) return result;
+            }
+
+            throw new Error(
+                "Maximum execution count reached. The code probably contains an infinite loop.",
+            );
         } catch (thrown) {
             let err = thrown;
 
@@ -291,7 +349,7 @@ export class VirtualMachine {
             }
 
             this.halt();
-            this.io.error(err, srcloc);
+            this.io.error(err, inst_ptr?.source_location);
 
             return ExecutionResult.Halted;
         }
@@ -301,7 +359,7 @@ export class VirtualMachine {
      * Signal to the VM that a vsync has happened.
      */
     vsync(): void {
-        if (this.thread_idx >= this.thread.length) {
+        if (this.thread_idx >= this.threads.length) {
             this.thread_idx = 0;
         }
     }
@@ -310,24 +368,32 @@ export class VirtualMachine {
      * Halts execution of all threads.
      */
     halt(): void {
-        if (!this.halted) {
+        if (!this._halted) {
             logger.debug("Halting.");
 
-            this.cur_srcloc = undefined;
-            this.halted = true;
-            this.window_msg_open = false;
-
-            this.thread = [];
+            this.registers.zero();
+            this.string_arg_store = "";
+            this.label_to_seg_idx.clear();
+            this.threads = [];
             this.thread_idx = 0;
+            this.window_msg_open = false;
+            this.set_episode_called = false;
+            this.list_open = false;
+            this.selection_reg = 0;
+            this._halted = true;
+            this.thread_switched = false;
+            this.breakpoints.splice(0, Infinity);
+            this.pause_at = { type: PauseAtType.NextBreakPoint };
+            this.should_pause = true;
         }
     }
 
-    get_current_call_stack_element(): Readonly<CallStackElement> {
-        return this.thread[this.thread_idx].call_stack_top();
+    get_current_stack_frame(): StackFrame | undefined {
+        return this.current_thread()?.current_stack_frame();
     }
 
-    get_current_source_location(): AsmToken | undefined {
-        return this.cur_srcloc;
+    get_current_instruction_pointer(): InstructionPointer | undefined {
+        return this.get_current_stack_frame()?.instruction_pointer;
     }
 
     get_segment_index_by_label(label: number): number {
@@ -348,42 +414,60 @@ export class VirtualMachine {
         this.set_register_unsigned(this.selection_reg, idx);
     }
 
+    set_breakpoint(breakpoint: InstructionPointer): void {
+        if (this.breakpoints.findIndex(bp => bp.equals(breakpoint)) === -1) {
+            this.breakpoints.push(breakpoint);
+        }
+    }
+
+    remove_breakpoint(breakpoint: InstructionPointer): void {
+        const index = this.breakpoints.findIndex(bp => bp.equals(breakpoint));
+
+        if (index !== -1) {
+            this.breakpoints.splice(index, 1);
+        }
+    }
+
+    /**
+     * Resume executing after having paused.
+     */
+    resume(pause_at: PauseAt): void {
+        this.pause_at = pause_at;
+        this.should_pause = false;
+    }
+
+    private current_thread(): Thread | undefined {
+        return this.threads[this.thread_idx];
+    }
+
     private dispose_thread(thread_idx: number): void {
-        this.thread.splice(thread_idx, 1);
+        this.threads.splice(thread_idx, 1);
 
         if (this.thread_idx >= thread_idx && this.thread_idx > 0) {
             this.thread_idx--;
         }
-    }
 
-    private update_source_location(thread: Thread): void {
-        const inst = this.get_next_instruction_from_thread(thread);
-
-        if (inst.asm && inst.asm.mnemonic) {
-            this.cur_srcloc = inst.asm.mnemonic;
-        } else {
-            this.cur_srcloc = undefined;
-        }
+        this.thread_switched = true;
     }
 
     private execute_instruction(
-        exec: Thread,
-        inst: Instruction,
-        srcloc?: AsmToken,
-    ): ExecutionResult {
-        if (this.thread_idx >= this.thread.length) return ExecutionResult.WaitingVsync;
+        thread: Thread,
+        inst_pointer: InstructionPointer,
+    ): ExecutionResult | undefined {
+        const inst = inst_pointer.instruction;
+        const srcloc = inst.asm?.mnemonic;
 
-        let result = ExecutionResult.Ok;
+        let result: ExecutionResult | undefined = undefined;
+        this.thread_switched = false;
 
         const arg_vals = inst.args.map(arg => arg.value);
-        // eslint-disable-next-line
         const [arg0, arg1, arg2, arg3] = arg_vals;
 
         // helper for conditional jump opcodes
         const conditional_jump_args: (
             cond: ComparisonOperation,
         ) => [Thread, number, ComparisonOperation, number, number] = cond => [
-            exec,
+            thread,
             arg2,
             cond,
             arg0,
@@ -396,16 +480,17 @@ export class VirtualMachine {
             this.list_open = false;
         }
 
-        const stack_args = exec.fetch_args(inst);
+        const stack_args = thread.fetch_args(inst);
 
         switch (inst.opcode.code) {
             case OP_NOP.code:
                 break;
             case OP_RET.code:
-                this.pop_call_stack(this.thread_idx, exec);
+                this.pop_call_stack(this.thread_idx);
                 break;
             case OP_SYNC.code:
                 this.thread_idx++;
+                this.thread_switched = true;
                 break;
             case OP_EXIT.code:
                 this.halt();
@@ -446,27 +531,27 @@ export class VirtualMachine {
                 this.set_register_signed(arg0, this.get_register_signed(arg0) === 0 ? 1 : 0);
                 break;
             case OP_CALL.code:
-                this.push_call_stack(exec, arg0);
+                this.push_call_stack(thread, arg0);
                 break;
             case OP_JMP.code:
-                this.jump_to_label(exec, arg0);
+                this.jump_to_label(thread, arg0);
                 break;
             case OP_ARG_PUSHR.code:
                 // deref given register ref
-                exec.push_arg(this.get_register_signed(arg0), Kind.DWord);
+                thread.push_arg(this.get_register_signed(arg0), Kind.DWord);
                 break;
             case OP_ARG_PUSHL.code:
-                exec.push_arg(inst.args[0].value, Kind.DWord);
+                thread.push_arg(inst.args[0].value, Kind.DWord);
                 break;
             case OP_ARG_PUSHB.code:
-                exec.push_arg(inst.args[0].value, Kind.Byte);
+                thread.push_arg(inst.args[0].value, Kind.Byte);
                 break;
             case OP_ARG_PUSHW.code:
-                exec.push_arg(inst.args[0].value, Kind.Word);
+                thread.push_arg(inst.args[0].value, Kind.Word);
                 break;
             case OP_ARG_PUSHA.code:
                 // push address of register
-                exec.push_arg(this.get_register_address(inst.args[0].value), Kind.DWord);
+                thread.push_arg(this.get_register_address(inst.args[0].value), Kind.DWord);
                 break;
             case OP_ARG_PUSHS.code:
                 if (typeof arg0 === "string") {
@@ -474,7 +559,7 @@ export class VirtualMachine {
                     const string_arg = this.parse_template_string(arg0);
                     // store string and push its address
                     this.string_arg_store = string_arg.slice(0, STRING_ARG_STORE_SIZE / 2);
-                    exec.push_arg(STRING_ARG_STORE_ADDRESS, Kind.String);
+                    thread.push_arg(STRING_ARG_STORE_ADDRESS, Kind.String);
                 }
                 break;
             // integer arithmetic operations
@@ -563,7 +648,7 @@ export class VirtualMachine {
             case OP_JMP_ON.code:
                 // all eq 1?
                 this.conditional_jump(
-                    exec,
+                    thread,
                     arg0,
                     comparison_ops.eq,
                     1,
@@ -573,7 +658,7 @@ export class VirtualMachine {
             case OP_JMP_OFF.code:
                 // all eq 0?
                 this.conditional_jump(
-                    exec,
+                    thread,
                     arg0,
                     comparison_ops.eq,
                     0,
@@ -682,16 +767,16 @@ export class VirtualMachine {
                 break;
             // variable stack operations
             case OP_STACK_PUSH.code:
-                this.push_variable_stack(exec, arg0, 1);
+                this.push_variable_stack(thread, arg0, 1);
                 break;
             case OP_STACK_POP.code:
-                this.pop_variable_stack(exec, arg0, 1);
+                this.pop_variable_stack(thread, arg0, 1);
                 break;
             case OP_STACK_PUSHM.code:
-                this.push_variable_stack(exec, arg0, arg1);
+                this.push_variable_stack(thread, arg0, arg1);
                 break;
             case OP_STACK_POPM.code:
-                this.pop_variable_stack(exec, arg0, arg1);
+                this.pop_variable_stack(thread, arg0, arg1);
                 break;
             case OP_LIST.code:
                 if (!this.window_msg_open) {
@@ -756,11 +841,7 @@ export class VirtualMachine {
 
                 this.set_episode_called = true;
 
-                if (
-                    !this._object_code[
-                        this.get_current_call_stack_element().seg_idx
-                    ].labels.includes(ENTRY_SEGMENT)
-                ) {
+                if (!this._object_code[inst_pointer.seg_idx].labels.includes(ENTRY_SEGMENT)) {
                     this.io.warning(
                         `Calling set_episode outside of segment ${ENTRY_SEGMENT} is not supported.`,
                         srcloc,
@@ -786,7 +867,7 @@ export class VirtualMachine {
                 break;
         }
 
-        if (this.thread_idx >= this.thread.length) return ExecutionResult.WaitingVsync;
+        if (this.thread_idx >= this.threads.length) return ExecutionResult.WaitingVsync;
 
         return result;
     }
@@ -869,7 +950,7 @@ export class VirtualMachine {
         this.set_register_float(reg, op(this.get_register_float(reg), literal));
     }
 
-    private push_call_stack(exec: Thread, label: number): void {
+    private push_call_stack(thread: Thread, label: number): void {
         const seg_idx = this.get_segment_index_by_label(label);
         const segment = this._object_code[seg_idx];
 
@@ -880,21 +961,14 @@ export class VirtualMachine {
                 }.`,
             );
         } else {
-            exec.call_stack.push(new CallStackElement(seg_idx, -1));
+            thread.push_frame(new InstructionPointer(seg_idx, 0, this.object_code));
         }
     }
 
-    private pop_call_stack(idx: number, exec: Thread): void {
-        exec.call_stack.pop();
+    private pop_call_stack(idx: number): void {
+        this.threads[idx].pop_call_stack();
 
-        if (exec.call_stack.length >= 1) {
-            const top = exec.call_stack_top();
-            const segment = this._object_code[top.seg_idx];
-
-            if (!segment || segment.type !== SegmentType.Instructions) {
-                throw new Error(`Invalid segment index ${top.seg_idx}.`);
-            }
-        } else {
+        if (this.threads[idx].call_stack.length === 0) {
             // popped off the last return address
             // which means this is the end of the function this thread was started on
             // which means this is the end of this thread
@@ -902,10 +976,10 @@ export class VirtualMachine {
         }
     }
 
-    private jump_to_label(exec: Thread, label: number): void {
-        const top = exec.call_stack_top();
-        top.seg_idx = this.get_segment_index_by_label(label);
-        top.inst_idx = -1;
+    private jump_to_label(thread: Thread, label: number): void {
+        thread.set_current_instruction_pointer(
+            new InstructionPointer(this.get_segment_index_by_label(label), 0, this.object_code),
+        );
     }
 
     private signed_conditional_jump_with_register(
@@ -1006,34 +1080,6 @@ export class VirtualMachine {
 
         for (let r = end - 1; r >= base_reg; r--) {
             this.set_register_unsigned(r, exec.variable_stack.pop()!);
-        }
-    }
-
-    private get_next_instruction_from_thread(thread: Thread): Instruction {
-        if (thread.call_stack.length) {
-            const top = thread.call_stack_top();
-
-            if (top.seg_idx >= this._object_code.length) {
-                throw new Error(`Invalid segment index ${top.seg_idx}.`);
-            }
-
-            const segment = this._object_code[top.seg_idx];
-
-            if (segment.type !== SegmentType.Instructions) {
-                throw new Error(`Segment ${top.seg_idx} is not an instructions segment.`);
-            }
-
-            const inst = segment.instructions[top.inst_idx];
-
-            if (!inst) {
-                throw new Error(
-                    `Invalid instruction index ${top.inst_idx} for segment ${top.seg_idx}.`,
-                );
-            }
-
-            return inst;
-        } else {
-            throw new Error(`Call stack is empty.`);
         }
     }
 

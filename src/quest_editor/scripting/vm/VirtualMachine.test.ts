@@ -22,12 +22,7 @@ test("integer arithmetic opcodes", () => {
     function compute_arithmetic(obj_code: Segment[]): number {
         vm.load_object_code(obj_code, Episode.I);
         vm.start_thread(0);
-
-        let last_result: ExecutionResult;
-        do {
-            last_result = vm.execute();
-        } while (last_result === ExecutionResult.Ok);
-
+        expect(vm.execute()).toBe(ExecutionResult.Suspended);
         return vm.get_register_signed(result_reg);
     }
 
@@ -97,11 +92,7 @@ test("floating point arithmetic opcodes", () => {
     vm.load_object_code(obj_code, Episode.I);
     vm.start_thread(0);
 
-    let last_result: ExecutionResult;
-    do {
-        last_result = vm.execute();
-    } while (last_result === ExecutionResult.Ok);
-
+    expect(vm.execute()).toBe(ExecutionResult.Suspended);
     expect(vm.get_register_float(100)).toBeCloseTo(7.4505806e-9, precision);
     expect(vm.get_register_float(101)).toBeCloseTo(134217728, precision);
 });
@@ -123,13 +114,15 @@ test("basic window_msg output", () => {
         true,
     );
 
+    const messages_added: string[] = [];
+
     class TestIO extends DefaultVirtualMachineIO {
         window_msg = jest.fn((msg: string) => {
-            expect(msg).toBe(messages.shift());
+            messages_added.push(msg);
         });
 
         add_msg = jest.fn((msg: string) => {
-            expect(msg).toBe(messages.shift());
+            messages_added.push(msg);
         });
 
         winend = jest.fn(() => {});
@@ -150,20 +143,16 @@ test("basic window_msg output", () => {
     do {
         last_result = vm.execute();
         exec_results.push(last_result);
-    } while (last_result === ExecutionResult.Ok || last_result === ExecutionResult.WaitingInput);
+    } while (last_result === ExecutionResult.WaitingInput);
 
-    // one result for each instruction and one extra for the halt signal
-    expect(exec_results).toHaveLength(segments[0].instructions.length + 1);
     expect(exec_results).toEqual([
-        ExecutionResult.Ok,
         ExecutionResult.WaitingInput,
-        ExecutionResult.Ok,
         ExecutionResult.WaitingInput,
-        ExecutionResult.Ok,
         ExecutionResult.WaitingInput,
-        ExecutionResult.Ok,
         ExecutionResult.Suspended,
     ]);
+
+    expect(messages_added).toEqual(messages);
 
     expect(io.window_msg).toBeCalledTimes(1);
     expect(io.add_msg).toBeCalledTimes(2);
@@ -172,45 +161,33 @@ test("basic window_msg output", () => {
 });
 
 test("opcode get_random", () => {
-    const result_reg = 102;
     const obj_code = to_instructions(`
     .code
     0:
         leti r100, 0
         leti r101, 65535
-        get_random r100, r${result_reg}
-        get_random r100, r${result_reg}
-        get_random r100, r${result_reg}
-        get_random r100, r${result_reg}
-        get_random r100, r${result_reg}
-        get_random r100, r${result_reg}
-        get_random r100, r${result_reg}
+        get_random r100, r102
+        get_random r100, r103
+        get_random r100, r104
+        get_random r100, r105
+        get_random r100, r106
+        get_random r100, r107
+        get_random r100, r108
     `);
 
     const vm = new VirtualMachine(undefined, new Random(123));
     vm.load_object_code(obj_code, Episode.I);
     vm.start_thread(0);
 
-    // run `let`s
-    expect(vm.execute()).toBe(ExecutionResult.Ok);
-    expect(vm.execute()).toBe(ExecutionResult.Ok);
-
     // test correct get_random sequence
-    expect(vm.execute()).toBe(ExecutionResult.Ok);
-    expect(vm.get_register_unsigned(result_reg)).toBe(879);
-    expect(vm.execute()).toBe(ExecutionResult.Ok);
-    expect(vm.get_register_unsigned(result_reg)).toBe(38105);
-    expect(vm.execute()).toBe(ExecutionResult.Ok);
-    expect(vm.get_register_unsigned(result_reg)).toBe(46149);
-    expect(vm.execute()).toBe(ExecutionResult.Ok);
-    expect(vm.get_register_unsigned(result_reg)).toBe(26207);
-    expect(vm.execute()).toBe(ExecutionResult.Ok);
-    expect(vm.get_register_unsigned(result_reg)).toBe(64725);
-    expect(vm.execute()).toBe(ExecutionResult.Ok);
-    expect(vm.get_register_unsigned(result_reg)).toBe(6529);
-    expect(vm.execute()).toBe(ExecutionResult.Ok);
-    expect(vm.get_register_unsigned(result_reg)).toBe(61497);
     expect(vm.execute()).toBe(ExecutionResult.Suspended);
+    expect(vm.get_register_unsigned(102)).toBe(879);
+    expect(vm.get_register_unsigned(103)).toBe(38105);
+    expect(vm.get_register_unsigned(104)).toBe(46149);
+    expect(vm.get_register_unsigned(105)).toBe(26207);
+    expect(vm.get_register_unsigned(106)).toBe(64725);
+    expect(vm.get_register_unsigned(107)).toBe(6529);
+    expect(vm.get_register_unsigned(108)).toBe(61497);
 });
 
 test("opcode list", () => {
@@ -239,9 +216,7 @@ test("opcode list", () => {
     vm.load_object_code(obj_code, Episode.I);
     vm.start_thread(0);
 
-    expect(vm.execute()).toBe(ExecutionResult.Ok); // arg_pushb
-    expect(vm.execute()).toBe(ExecutionResult.Ok); // arg_pushs
-    expect(vm.execute()).toBe(ExecutionResult.WaitingSelection); // list
+    expect(vm.execute()).toBe(ExecutionResult.WaitingSelection);
     vm.list_select(select_idx);
     expect(vm.get_register_unsigned(result_reg)).toBe(select_idx);
 });

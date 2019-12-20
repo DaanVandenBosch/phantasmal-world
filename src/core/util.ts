@@ -60,6 +60,10 @@ export function assert(condition: any, msg?: string): asserts condition {
     }
 }
 
+export function required(condition: any, name: string): asserts condition {
+    assert(condition, `${name} is required.`);
+}
+
 export function number_to_hex_string(
     num: number,
     min_len: number = 8,

@@ -5,9 +5,8 @@ import { AsmToken } from "./scripting/instructions";
 import { WritableProperty } from "../core/observable/property/WritableProperty";
 import { list_property, property } from "../core/observable";
 import { Property } from "../core/observable/property/Property";
-import Logger from "js-logger";
 import { log_store } from "./stores/LogStore";
-import { Debugger } from "./scripting/vm/Debugger";
+import { Breakpoint, Debugger } from "./scripting/vm/Debugger";
 import { WritableListProperty } from "../core/observable/property/list/WritableListProperty";
 import { ListProperty } from "../core/observable/property/list/ListProperty";
 import { AreaVariantModel } from "./model/AreaVariantModel";
@@ -16,8 +15,6 @@ import { area_store } from "./stores/AreaStore";
 import { QuestNpcModel } from "./model/QuestNpcModel";
 import { QuestObjectModel } from "./model/QuestObjectModel";
 import { defined } from "../core/util";
-
-const logger = Logger.get("quest_editor/QuestRunner");
 
 export enum QuestRunnerState {
     /**
@@ -68,15 +65,9 @@ export class QuestRunner {
 
     private initial_area_id = 0;
 
-    private readonly _breakpoints: WritableListProperty<number> = list_property();
+    private readonly _breakpoints: WritableListProperty<Breakpoint> = list_property();
     private readonly _pause_location: WritableProperty<number | undefined> = property(undefined);
-    /**
-     * Have we executed since last advancing the instruction pointer?
-     */
-    private executed_since_advance = true;
 
-    private execution_counter = 0;
-    private readonly execution_max_count = 100_000;
     private readonly debugger: Debugger;
 
     private readonly _game_state = {
@@ -111,7 +102,7 @@ export class QuestRunner {
     readonly paused: Property<boolean> = this._state.map(
         state => state === QuestRunnerState.StartupPaused || state === QuestRunnerState.Paused,
     );
-    readonly breakpoints: ListProperty<number> = this._breakpoints;
+    readonly breakpoints: ListProperty<Breakpoint> = this._breakpoints;
     readonly pause_location: Property<number | undefined> = this._pause_location;
 
     readonly game_state: GameState = this._game_state;
@@ -126,22 +117,20 @@ export class QuestRunner {
             cancelAnimationFrame(this.animation_frame);
         }
 
-        this.debugger.reset();
-
         this.quest = quest;
         this._game_state.reset();
 
         this.vm.load_object_code(quest.object_code, quest.episode);
         this.vm.start_thread(0);
+        this.debugger.reset();
 
         this._state.val = QuestRunnerState.Startup;
-        this.executed_since_advance = true;
-        this.execution_counter = 0;
 
         this.schedule_frame();
     }
 
     resume(): void {
+        this.debugger.resume();
         this.schedule_frame();
     }
 
@@ -162,6 +151,7 @@ export class QuestRunner {
 
     stop(): void {
         this.vm.halt();
+        this.debugger.reset();
         this._state.val = QuestRunnerState.Stopped;
         this._pause_location.val = undefined;
         this._game_state.reset();
@@ -210,70 +200,51 @@ export class QuestRunner {
         this.vm.vsync();
 
         const prev_state = this._state.val;
+        const result = this.vm.execute();
 
-        exec_loop: while (true) {
-            if (this.executed_since_advance) {
-                this.vm.advance();
-                this.executed_since_advance = false;
+        let pause_location: number | undefined;
 
-                const srcloc = this.vm.get_current_source_location();
+        switch (result) {
+            case ExecutionResult.Suspended:
+                this._state.val = QuestRunnerState.Running;
+                break;
 
-                if (srcloc) {
-                    // Check whether we need to pause.
-                    const should_pause = this.debugger.should_pause(srcloc);
+            case ExecutionResult.Paused:
+                this._state.val =
+                    prev_state === QuestRunnerState.Startup ||
+                    prev_state === QuestRunnerState.StartupPaused
+                        ? QuestRunnerState.StartupPaused
+                        : QuestRunnerState.Paused;
 
-                    if (should_pause) {
-                        this._state.val =
-                            prev_state === QuestRunnerState.Startup ||
-                            prev_state === QuestRunnerState.StartupPaused
-                                ? QuestRunnerState.StartupPaused
-                                : QuestRunnerState.Paused;
-                        this._pause_location.val = srcloc.line_no;
-                        break exec_loop;
-                    }
-                }
-            }
+                pause_location = this.vm.get_current_instruction_pointer()?.source_location
+                    ?.line_no;
 
-            this._pause_location.val = undefined;
+                break;
 
-            const result = this.vm.execute(false);
-            this.executed_since_advance = true;
+            case ExecutionResult.WaitingVsync:
+                this._state.val = QuestRunnerState.Running;
+                this.schedule_frame();
+                break;
 
-            // Limit amount of instructions executed to prevent infinite loops.
-            if (++this.execution_counter >= this.execution_max_count) {
+            case ExecutionResult.WaitingInput:
+                // TODO: implement input from gui
+                this._state.val = QuestRunnerState.Running;
+                this.schedule_frame();
+                break;
+
+            case ExecutionResult.WaitingSelection:
+                // TODO: implement input from gui
+                this.vm.list_select(0);
+                this._state.val = QuestRunnerState.Running;
+                this.schedule_frame();
+                break;
+
+            case ExecutionResult.Halted:
                 this.stop();
-                logger.error(
-                    "Terminated: Maximum execution count reached. The code probably contains an infinite loop.",
-                );
-                break exec_loop;
-            }
-
-            switch (result) {
-                case ExecutionResult.Suspended:
-                    this._state.val = QuestRunnerState.Running;
-                    break exec_loop;
-                case ExecutionResult.WaitingVsync:
-                    this._state.val = QuestRunnerState.Running;
-                    this.schedule_frame();
-                    break exec_loop;
-                case ExecutionResult.WaitingInput:
-                    // TODO: implement input from gui
-                    this._state.val = QuestRunnerState.Running;
-                    this.schedule_frame();
-                    break exec_loop;
-                case ExecutionResult.WaitingSelection:
-                    // TODO: implement input from gui
-                    this.vm.list_select(0);
-                    this._state.val = QuestRunnerState.Running;
-                    this.schedule_frame();
-                    break exec_loop;
-                case ExecutionResult.Halted:
-                    this.stop();
-                    break exec_loop;
-            }
+                break;
         }
 
-        this.execution_counter = 0;
+        this._pause_location.val = pause_location;
 
         if (
             (prev_state === QuestRunnerState.Startup ||
@@ -358,6 +329,7 @@ export class QuestRunner {
             this.quest_logger.debug(`No floor handler registered for floor ${area_id}.`);
         } else {
             this.vm.start_thread(label);
+            this.schedule_frame();
         }
     }
 }

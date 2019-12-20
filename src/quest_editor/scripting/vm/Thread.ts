@@ -3,17 +3,19 @@ import { VirtualMachineIO } from "./io";
 import { AsmToken, Instruction } from "../instructions";
 import { Memory } from "./Memory";
 import { Endianness } from "../../../core/data_formats/Endianness";
+import { InstructionPointer } from "./InstructionPointer";
 
 const ARG_STACK_SLOT_SIZE = 4;
 const ARG_STACK_LENGTH = 8;
 
-export class CallStackElement {
-    constructor(public seg_idx: number, public inst_idx: number) {}
-}
-
 type ArgStackTypeList = [Kind, Kind, Kind, Kind, Kind, Kind, Kind, Kind];
 
+export class StackFrame {
+    constructor(public idx: number, public instruction_pointer: InstructionPointer) {}
+}
+
 export class Thread {
+    private readonly _call_stack: StackFrame[];
     private arg_stack = new Memory(ARG_STACK_LENGTH * ARG_STACK_SLOT_SIZE, Endianness.Little);
     private arg_stack_counter: number = 0;
     private arg_stack_types: ArgStackTypeList = Array(ARG_STACK_LENGTH).fill(
@@ -21,9 +23,9 @@ export class Thread {
     ) as ArgStackTypeList;
 
     /**
-     * Call stack. The top element describes the instruction about to be executed.
+     * Call stack. The top frame contains a pointer to the instruction about to be executed.
      */
-    readonly call_stack: CallStackElement[] = [];
+    readonly call_stack: readonly Readonly<StackFrame>[];
 
     readonly variable_stack: number[] = [];
     /**
@@ -31,13 +33,30 @@ export class Thread {
      */
     readonly global: boolean;
 
-    constructor(public io: VirtualMachineIO, next: CallStackElement, global: boolean) {
-        this.call_stack = [next];
+    constructor(public io: VirtualMachineIO, entry_point: InstructionPointer, global: boolean) {
+        this._call_stack = [new StackFrame(0, entry_point)];
+        this.call_stack = this._call_stack;
         this.global = global;
     }
 
-    call_stack_top(): CallStackElement {
-        return this.call_stack[this.call_stack.length - 1];
+    current_stack_frame(): StackFrame {
+        return this._call_stack[this._call_stack.length - 1];
+    }
+
+    set_current_instruction_pointer(instruction_pointer: InstructionPointer): void {
+        if (this._call_stack.length) {
+            this._call_stack[this._call_stack.length - 1].instruction_pointer = instruction_pointer;
+        } else {
+            this.push_frame(instruction_pointer);
+        }
+    }
+
+    push_frame(instruction_pointer: InstructionPointer): void {
+        this._call_stack.push(new StackFrame(this.call_stack.length, instruction_pointer));
+    }
+
+    pop_call_stack(): void {
+        this._call_stack.pop();
     }
 
     push_arg(data: number, type: Kind): void {

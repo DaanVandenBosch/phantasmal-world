@@ -108,8 +108,8 @@ export class AsmEditorView extends ResizableWidget {
             asm_editor_store.breakpoints.observe_list(change => {
                 if (change.type === ListChangeType.ListChange) {
                     // remove
-                    for (const line_num of change.removed) {
-                        const cur_decos = this.editor.getLineDecorations(line_num);
+                    for (const breakpoint of change.removed) {
+                        const cur_decos = this.editor.getLineDecorations(breakpoint.line_no);
                         // find decoration on line
                         if (cur_decos) {
                             for (const deco of cur_decos) {
@@ -126,8 +126,8 @@ export class AsmEditorView extends ResizableWidget {
                     }
 
                     // add
-                    for (const line_num of change.inserted) {
-                        const cur_decos = this.editor.getLineDecorations(line_num);
+                    for (const breakpoint of change.inserted) {
+                        const cur_decos = this.editor.getLineDecorations(breakpoint.line_no);
                         // don't allow duplicates
                         if (
                             !cur_decos?.some(deco =>
@@ -140,7 +140,12 @@ export class AsmEditorView extends ResizableWidget {
                                     [],
                                     [
                                         {
-                                            range: new Range(line_num, 0, line_num, 0),
+                                            range: new Range(
+                                                breakpoint.line_no,
+                                                0,
+                                                breakpoint.line_no,
+                                                0,
+                                            ),
                                             options: {
                                                 glyphMarginClassName:
                                                     "quest_editor_AsmEditorView_breakpoint-enabled",

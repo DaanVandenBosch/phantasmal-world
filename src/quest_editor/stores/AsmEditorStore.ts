@@ -17,6 +17,7 @@ import IMarkerData = editor.IMarkerData;
 import SignatureHelpResult = languages.SignatureHelpResult;
 import LocationLink = languages.LocationLink;
 import IModelContentChange = editor.IModelContentChange;
+import { Breakpoint } from "../scripting/vm/Debugger";
 
 const assembly_analyser = new AssemblyAnalyser();
 
@@ -103,7 +104,7 @@ export class AsmEditorStore implements Disposable {
     readonly has_issues: Property<boolean> = assembly_analyser.issues.map(
         issues => issues.warnings.length + issues.errors.length > 0,
     );
-    readonly breakpoints: ListProperty<number> = quest_editor_store.quest_runner.breakpoints;
+    readonly breakpoints: ListProperty<Breakpoint> = quest_editor_store.quest_runner.breakpoints;
     readonly execution_location: Property<number | undefined> =
         quest_editor_store.quest_runner.pause_location;
 
@@ -279,9 +280,9 @@ export class AsmEditorStore implements Disposable {
                     // Move breakpoints that are after the affected lines backwards by the
                     // number of removed lines.
                     for (const breakpoint of this.breakpoints.val) {
-                        if (breakpoint > change.range.endLineNumber) {
-                            quest_editor_store.quest_runner.remove_breakpoint(breakpoint);
-                            new_breakpoints.push(breakpoint - num_removed_lines);
+                        if (breakpoint.line_no > change.range.endLineNumber) {
+                            quest_editor_store.quest_runner.remove_breakpoint(breakpoint.line_no);
+                            new_breakpoints.push(breakpoint.line_no - num_removed_lines);
                         }
                     }
                 }
@@ -292,9 +293,9 @@ export class AsmEditorStore implements Disposable {
                     // move breakpoints that are after the affected lines
                     // forwards by the number of added lines
                     for (const breakpoint of this.breakpoints.val) {
-                        if (breakpoint > change.range.endLineNumber) {
-                            quest_editor_store.quest_runner.remove_breakpoint(breakpoint);
-                            new_breakpoints.push(breakpoint + num_added_lines);
+                        if (breakpoint.line_no > change.range.endLineNumber) {
+                            quest_editor_store.quest_runner.remove_breakpoint(breakpoint.line_no);
+                            new_breakpoints.push(breakpoint.line_no + num_added_lines);
                         }
                     }
                 }

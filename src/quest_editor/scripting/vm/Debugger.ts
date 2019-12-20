@@ -1,82 +1,41 @@
-import { VirtualMachine } from "./VirtualMachine";
-import { AsmToken, Instruction, InstructionSegment, SegmentType } from "../instructions";
-import { assert } from "../../../core/util";
-import {
-    OP_ARG_PUSHA,
-    OP_ARG_PUSHB,
-    OP_ARG_PUSHL,
-    OP_ARG_PUSHR,
-    OP_ARG_PUSHS,
-    OP_ARG_PUSHW,
-    OP_CALL,
-    OP_SWITCH_CALL,
-    OP_VA_CALL,
-} from "../opcodes";
-import { CallStackElement } from "./Thread";
-import Logger from "js-logger";
-
-const logger = Logger.get("quest_editor/scripting/vm/Debugger");
+import { PauseAtType, VirtualMachine } from "./VirtualMachine";
+import { SegmentType } from "../instructions";
+import { InstructionPointer } from "./InstructionPointer";
 
 /**
- * Contains all logic pertaining to breakpoints and stepping through code.
+ * Ensures consistency between source-level breakpoints and VM breakpoints.
  */
 export class Debugger {
     private readonly vm: VirtualMachine;
-    private break_on_next = false;
+    private readonly _breakpoints: Breakpoint[] = [];
     /**
-     * Invisible breakpoints that help with stepping over/in/out.
+     * Invisible breakpoint to help with stepping over/in/out.
      */
-    private readonly stepping_breakpoints: number[] = [];
-    private readonly _breakpoints: number[] = [];
+    private stepping_breakpoint?: Breakpoint;
 
-    readonly breakpoints: readonly number[] = this._breakpoints;
+    readonly breakpoints: readonly Breakpoint[] = this._breakpoints;
 
     constructor(vm: VirtualMachine) {
         this.vm = vm;
     }
 
+    resume(): void {
+        this.stepping_breakpoint?.deactivate();
+        this.stepping_breakpoint = undefined;
+
+        this.vm.resume({ type: PauseAtType.NextBreakPoint });
+    }
+
     step_over(): void {
-        const execloc = this.vm.get_current_call_stack_element();
+        const frame = this.vm.get_current_stack_frame();
 
-        const src_segment = this.get_instruction_segment_by_index(execloc.seg_idx);
-        const src_instr = src_segment.instructions[execloc.inst_idx];
-        const dst_label = this.get_step_innable_instruction_label_argument(src_instr);
-
-        // nothing to step over, just break on next instruction
-        if (dst_label === undefined) {
-            this.break_on_next = true;
-        }
-        // set a breakpoint on the next line
-        else {
-            const dst_srcloc = this.get_next_source_location(execloc);
-
-            // set breakpoint
-            if (dst_srcloc) {
-                this.stepping_breakpoints.push(dst_srcloc.line_no);
-            }
+        if (frame) {
+            this.vm.resume({ type: PauseAtType.StackFrame, frame });
         }
     }
 
     step_in(): void {
-        const execloc = this.vm.get_current_call_stack_element();
-        const src_segment = this.get_instruction_segment_by_index(execloc.seg_idx);
-        const src_instr = src_segment.instructions[execloc.inst_idx];
-        const dst_label = this.get_step_innable_instruction_label_argument(src_instr);
-
-        // not a step-innable instruction, behave like step-over
-        if (dst_label === undefined) {
-            this.step_over();
-        }
-        // can step-in
-        else {
-            const dst_segment = this.get_instruction_segment_by_label(dst_label);
-            const dst_instr = dst_segment.instructions[0];
-            const dst_srcloc = this.get_source_location(dst_instr);
-
-            if (dst_srcloc) {
-                this.stepping_breakpoints.push(dst_srcloc.line_no);
-            }
-        }
+        this.vm.resume({ type: PauseAtType.Instruction });
     }
 
     step_out(): void {
@@ -84,8 +43,8 @@ export class Debugger {
     }
 
     set_breakpoint(line_no: number): boolean {
-        if (!this._breakpoints.includes(line_no)) {
-            this._breakpoints.push(line_no);
+        if (this._breakpoints.findIndex(bp => bp.line_no === line_no) === -1) {
+            this._breakpoints.push(new Breakpoint(line_no, undefined, this.vm));
             return true;
         } else {
             return false;
@@ -93,10 +52,10 @@ export class Debugger {
     }
 
     remove_breakpoint(line_no: number): boolean {
-        const index = this._breakpoints.indexOf(line_no);
+        const index = this._breakpoints.findIndex(bp => bp.line_no === line_no);
 
         if (index != -1) {
-            this._breakpoints.splice(index, 1);
+            this._breakpoints.splice(index, 1)[0].deactivate();
             return true;
         } else {
             return false;
@@ -104,118 +63,79 @@ export class Debugger {
     }
 
     toggle_breakpoint(line_no: number): void {
-        const index = this._breakpoints.indexOf(line_no);
+        const index = this._breakpoints.findIndex(bp => bp.line_no === line_no);
 
         if (index == -1) {
-            this._breakpoints.push(line_no);
+            this._breakpoints.push(new Breakpoint(line_no, undefined, this.vm));
         } else {
-            this._breakpoints.splice(index, 1);
+            this._breakpoints.splice(index, 1)[0].deactivate();
         }
     }
 
     clear_breakpoints(): void {
-        this._breakpoints.splice(0, Infinity);
-    }
-
-    should_pause(srcloc: AsmToken): boolean {
-        const breakpoint_hit = this._breakpoints.includes(srcloc.line_no);
-
-        if (breakpoint_hit) {
-            logger.debug(`Breakpoint hit at line ${srcloc.line_no}.`);
+        for (const bp of this._breakpoints.splice(0, Infinity)) {
+            bp.deactivate();
         }
-
-        const pause =
-            this.break_on_next ||
-            breakpoint_hit ||
-            this.stepping_breakpoints.includes(srcloc.line_no);
-
-        this.break_on_next = false;
-
-        if (pause) {
-            this.stepping_breakpoints.length = 0;
-        }
-
-        return pause;
     }
 
     reset(): void {
-        this.stepping_breakpoints.splice(0, Infinity);
+        this.stepping_breakpoint?.deactivate();
+        this.stepping_breakpoint = undefined;
+
+        for (const bp of this._breakpoints) {
+            bp.activate();
+        }
     }
+}
 
-    private get_instruction_segment_by_label(label: number): InstructionSegment {
-        const seg_idx = this.vm.get_segment_index_by_label(label);
-        return this.get_instruction_segment_by_index(seg_idx);
-    }
-
-    private get_instruction_segment_by_index(index: number): InstructionSegment {
-        const segment = this.vm.object_code[index];
-
-        assert(
-            segment.type === SegmentType.Instructions,
-            `Expected segment ${index} to be of type ${
-                SegmentType[SegmentType.Instructions]
-            }, but was ${SegmentType[segment.type]}.`,
-        );
-
-        return segment;
-    }
-
-    private get_step_innable_instruction_label_argument(inst: Instruction): number | undefined {
-        switch (inst.opcode.code) {
-            case OP_VA_CALL.code:
-            case OP_CALL.code:
-                return inst.args[0].value;
-            case OP_SWITCH_CALL.code:
-                return inst.args[1].value;
+export class Breakpoint {
+    constructor(
+        readonly line_no: number,
+        private ptr: InstructionPointer | undefined,
+        private vm: VirtualMachine,
+    ) {
+        if (ptr == undefined) {
+            this.activate();
+        } else {
+            this.vm.set_breakpoint(ptr);
         }
     }
 
-    private get_next_source_location(execloc: CallStackElement): AsmToken | undefined {
-        const next_loc = new CallStackElement(execloc.seg_idx, execloc.inst_idx);
-        const segment = this.vm.object_code[next_loc.seg_idx];
-
-        // can't go to non-code segments
-        if (segment.type !== SegmentType.Instructions) {
-            return undefined;
-        }
-
-        // move to next instruction
-        // move to next segment if segment ended
-        if (++next_loc.inst_idx >= segment.instructions.length) {
-            next_loc.seg_idx++;
-            next_loc.inst_idx = 0;
-        }
-
-        // no more segments
-        if (next_loc.seg_idx >= this.vm.object_code.length) {
-            return undefined;
-        }
-
-        const dst_instr = segment.instructions[next_loc.inst_idx];
-        return this.get_source_location(dst_instr);
+    get active(): boolean {
+        return this.ptr != undefined;
     }
 
-    private get_source_location(inst: Instruction): AsmToken | undefined {
-        let dst_srcloc = inst.asm?.mnemonic;
+    activate(): void {
+        this.ptr = this.line_no_to_inst_pointer(this.line_no);
 
-        // use the location of the arg of the arg_push opcode instead
-        if (this.is_arg_push_opcode(inst)) {
-            dst_srcloc = inst.asm?.args[0];
+        if (this.ptr) {
+            this.vm.set_breakpoint(this.ptr);
         }
-
-        return dst_srcloc;
     }
 
-    private is_arg_push_opcode(inst: Instruction): boolean {
-        switch (inst.opcode.code) {
-            case OP_ARG_PUSHB.code:
-            case OP_ARG_PUSHL.code:
-            case OP_ARG_PUSHR.code:
-            case OP_ARG_PUSHW.code:
-            case OP_ARG_PUSHA.code:
-            case OP_ARG_PUSHS.code:
-                return true;
+    deactivate(): void {
+        if (this.ptr) {
+            this.vm.remove_breakpoint(this.ptr);
         }
-        return false;
+    }
+
+    private line_no_to_inst_pointer(line_no: number): InstructionPointer | undefined {
+        if (this.vm.halted) return undefined;
+
+        for (let seg_idx = 0; seg_idx < this.vm.object_code.length; seg_idx++) {
+            const segment = this.vm.object_code[seg_idx];
+
+            if (segment.type === SegmentType.Instructions) {
+                for (let inst_idx = 0; inst_idx < segment.instructions.length; inst_idx++) {
+                    const inst = segment.instructions[inst_idx];
+
+                    if (inst.asm?.mnemonic?.line_no === line_no) {
+                        return new InstructionPointer(seg_idx, inst_idx, this.vm.object_code);
+                    }
+                }
+            }
+        }
+
+        return undefined;
     }
 }
