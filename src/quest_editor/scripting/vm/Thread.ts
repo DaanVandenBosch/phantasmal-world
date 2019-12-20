@@ -10,6 +10,13 @@ const ARG_STACK_LENGTH = 8;
 
 type ArgStackTypeList = [Kind, Kind, Kind, Kind, Kind, Kind, Kind, Kind];
 
+export enum StepMode {
+    BreakPoint,
+    Over,
+    In,
+    Out,
+}
+
 export class StackFrame {
     constructor(public idx: number, public instruction_pointer: InstructionPointer) {}
 }
@@ -21,6 +28,8 @@ export class Thread {
     private arg_stack_types: ArgStackTypeList = Array(ARG_STACK_LENGTH).fill(
         Kind.Any,
     ) as ArgStackTypeList;
+    private _step_mode: StepMode = StepMode.BreakPoint;
+    private _step_frame?: StackFrame;
 
     /**
      * Call stack. The top frame contains a pointer to the instruction about to be executed.
@@ -32,6 +41,22 @@ export class Thread {
      * Global or floor-local?
      */
     readonly global: boolean;
+
+    get step_mode(): StepMode {
+        return this._step_mode;
+    }
+
+    set step_mode(step_mode: StepMode) {
+        this._step_mode = step_mode;
+        this._step_frame = this.current_stack_frame();
+    }
+
+    /**
+     * The frame from which the current {@link StepMode} was entered.
+     */
+    get step_frame(): StackFrame | undefined {
+        return this._step_frame;
+    }
 
     constructor(public io: VirtualMachineIO, entry_point: InstructionPointer, global: boolean) {
         this._call_stack = [new StackFrame(0, entry_point)];

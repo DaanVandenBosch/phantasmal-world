@@ -102,7 +102,7 @@ import { Random } from "./Random";
 import { Memory } from "./Memory";
 import Logger from "js-logger";
 import { InstructionPointer } from "./InstructionPointer";
-import { StackFrame, Thread } from "./Thread";
+import { StackFrame, StepMode, Thread } from "./Thread";
 
 export const REGISTER_COUNT = 256;
 
@@ -156,27 +156,6 @@ function encode_episode_number(ep: Episode): number {
     }
 }
 
-export enum PauseAtType {
-    NextBreakPoint,
-    Instruction,
-    StackFrame,
-}
-
-export type PauseAt = PauseAtNextBreakPoint | PauseAtNextInstruction | PauseAtStackFrame;
-
-export type PauseAtNextBreakPoint = {
-    type: PauseAtType.NextBreakPoint;
-};
-
-export type PauseAtNextInstruction = {
-    type: PauseAtType.Instruction;
-};
-
-export type PauseAtStackFrame = {
-    type: PauseAtType.StackFrame;
-    frame: StackFrame;
-};
-
 /**
  * This class emulates the PSO script engine. It's in charge of memory, threading and executing
  * instructions.
@@ -194,13 +173,8 @@ export class VirtualMachine {
     private list_open = false;
     private selection_reg = 0;
     private _halted = true;
-    /**
-     * Did a thread switch occur after the previous instruction?
-     */
-    private thread_switched = false;
+    private paused = false;
     private readonly breakpoints: InstructionPointer[] = [];
-    private pause_at: PauseAt = { type: PauseAtType.NextBreakPoint };
-    private should_pause = true;
 
     get object_code(): readonly Segment[] {
         return this._object_code;
@@ -208,6 +182,16 @@ export class VirtualMachine {
 
     get halted(): boolean {
         return this._halted;
+    }
+
+    set step_mode(step_mode: StepMode) {
+        if (step_mode != undefined) {
+            const thread = this.current_thread();
+
+            if (thread) {
+                thread.step_mode = step_mode;
+            }
+        }
     }
 
     constructor(
@@ -275,6 +259,11 @@ export class VirtualMachine {
 
             while (execution_counter++ < 100_000) {
                 // Get current instruction.
+
+                if (this.threads.length >= 1 && this.thread_idx >= this.threads.length) {
+                    return ExecutionResult.WaitingVsync;
+                }
+
                 const thread = this.current_thread();
 
                 if (!thread) {
@@ -285,57 +274,75 @@ export class VirtualMachine {
                 inst_ptr = frame.instruction_pointer;
                 const inst = inst_ptr.instruction;
 
-                if (this.should_pause) {
-                    switch (this.pause_at.type) {
-                        case PauseAtType.NextBreakPoint:
+                // Check whether we need to pause only if we're not already paused. In that case
+                // we're resuming.
+                if (!this.paused) {
+                    switch (thread.step_mode) {
+                        case StepMode.BreakPoint:
                             if (this.breakpoints.findIndex(bp => bp.equals(inst_ptr!)) !== -1) {
+                                this.paused = true;
                                 return ExecutionResult.Paused;
                             }
                             break;
 
-                        case PauseAtType.Instruction:
-                            if (this.thread_switched) {
-                                this.pause_at = { type: PauseAtType.NextBreakPoint };
-                            } else if (inst.asm?.mnemonic) {
+                        case StepMode.Over:
+                            if (
+                                thread.step_frame &&
+                                frame.idx <= thread.step_frame.idx &&
+                                inst.asm?.mnemonic
+                            ) {
+                                this.paused = true;
                                 return ExecutionResult.Paused;
                             }
                             break;
 
-                        case PauseAtType.StackFrame:
-                            if (this.thread_switched) {
-                                this.pause_at = { type: PauseAtType.NextBreakPoint };
-                            } else if (frame.idx <= this.pause_at.frame.idx && inst.asm?.mnemonic) {
+                        case StepMode.In:
+                            if (inst.asm?.mnemonic) {
+                                this.paused = true;
+                                return ExecutionResult.Paused;
+                            }
+                            break;
+
+                        case StepMode.Out:
+                            if (
+                                thread.step_frame &&
+                                frame.idx < thread.step_frame.idx &&
+                                inst.asm?.mnemonic
+                            ) {
+                                this.paused = true;
                                 return ExecutionResult.Paused;
                             }
                             break;
                     }
                 }
-
-                this.should_pause = true;
 
                 const result = this.execute_instruction(thread, inst_ptr);
 
                 // Advance to the next instruction.
                 // TODO: OP_VA_CALL and OP_SWITCH_CALL.
-                if (inst.opcode.code !== OP_CALL.code) {
+                if (result === ExecutionResult.WaitingVsync || inst.opcode.code !== OP_CALL.code) {
                     const thread = this.current_thread();
 
-                    if (!thread) {
-                        return ExecutionResult.Suspended;
-                    }
+                    if (thread) {
+                        const next = thread.current_stack_frame().instruction_pointer.next();
 
-                    const next = thread.current_stack_frame().instruction_pointer.next();
+                        if (next) {
+                            thread.set_current_instruction_pointer(next);
+                        } else {
+                            // Reached EOF.
+                            thread.pop_call_stack();
+                            this.dispose_thread(this.thread_idx);
+                        }
 
-                    if (next) {
-                        thread.set_current_instruction_pointer(next);
-                    } else {
-                        // Reached EOF.
-                        thread.pop_call_stack();
-                        this.dispose_thread(this.thread_idx);
+                        if (result === ExecutionResult.WaitingVsync) {
+                            this.thread_idx++;
+                        }
                     }
                 }
 
-                if (result != undefined) return result;
+                if (result != undefined) {
+                    return result;
+                }
             }
 
             throw new Error(
@@ -381,10 +388,8 @@ export class VirtualMachine {
             this.list_open = false;
             this.selection_reg = 0;
             this._halted = true;
-            this.thread_switched = false;
+            this.paused = false;
             this.breakpoints.splice(0, Infinity);
-            this.pause_at = { type: PauseAtType.NextBreakPoint };
-            this.should_pause = true;
         }
     }
 
@@ -428,14 +433,6 @@ export class VirtualMachine {
         }
     }
 
-    /**
-     * Resume executing after having paused.
-     */
-    resume(pause_at: PauseAt): void {
-        this.pause_at = pause_at;
-        this.should_pause = false;
-    }
-
     private current_thread(): Thread | undefined {
         return this.threads[this.thread_idx];
     }
@@ -446,8 +443,6 @@ export class VirtualMachine {
         if (this.thread_idx >= thread_idx && this.thread_idx > 0) {
             this.thread_idx--;
         }
-
-        this.thread_switched = true;
     }
 
     private execute_instruction(
@@ -458,7 +453,6 @@ export class VirtualMachine {
         const srcloc = inst.asm?.mnemonic;
 
         let result: ExecutionResult | undefined = undefined;
-        this.thread_switched = false;
 
         const arg_vals = inst.args.map(arg => arg.value);
         const [arg0, arg1, arg2, arg3] = arg_vals;
@@ -489,8 +483,7 @@ export class VirtualMachine {
                 this.pop_call_stack(this.thread_idx);
                 break;
             case OP_SYNC.code:
-                this.thread_idx++;
-                this.thread_switched = true;
+                result = ExecutionResult.WaitingVsync;
                 break;
             case OP_EXIT.code:
                 this.halt();
@@ -866,8 +859,6 @@ export class VirtualMachine {
                 this.io.warning(`Unsupported instruction: ${inst.opcode.mnemonic}.`);
                 break;
         }
-
-        if (this.thread_idx >= this.threads.length) return ExecutionResult.WaitingVsync;
 
         return result;
     }

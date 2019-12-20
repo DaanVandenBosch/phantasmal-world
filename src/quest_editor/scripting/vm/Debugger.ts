@@ -1,6 +1,7 @@
-import { PauseAtType, VirtualMachine } from "./VirtualMachine";
+import { VirtualMachine } from "./VirtualMachine";
 import { SegmentType } from "../instructions";
 import { InstructionPointer } from "./InstructionPointer";
+import { StepMode } from "./Thread";
 
 /**
  * Ensures consistency between source-level breakpoints and VM breakpoints.
@@ -16,23 +17,19 @@ export class Debugger {
     }
 
     resume(): void {
-        this.vm.resume({ type: PauseAtType.NextBreakPoint });
+        this.vm.step_mode = StepMode.BreakPoint;
     }
 
     step_over(): void {
-        const frame = this.vm.get_current_stack_frame();
-
-        if (frame) {
-            this.vm.resume({ type: PauseAtType.StackFrame, frame });
-        }
+        this.vm.step_mode = StepMode.Over;
     }
 
     step_in(): void {
-        this.vm.resume({ type: PauseAtType.Instruction });
+        this.vm.step_mode = StepMode.In;
     }
 
     step_out(): void {
-        throw new Error("Not implemented.");
+        this.vm.step_mode = StepMode.Out;
     }
 
     set_breakpoint(line_no: number): boolean {

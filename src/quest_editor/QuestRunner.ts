@@ -22,11 +22,6 @@ export enum QuestRunnerState {
      */
     Stopped,
     /**
-     * Function 0 is running.
-     */
-    Startup,
-    StartupPaused,
-    /**
      * Quest has started up and is running nominally.
      */
     Running,
@@ -59,6 +54,7 @@ export class QuestRunner {
     private quest_logger = log_store.get_logger("quest_editor/QuestRunner");
     private quest?: QuestModel;
     private animation_frame?: number;
+    private startup = true;
     private readonly _state: WritableProperty<QuestRunnerState> = property(
         QuestRunnerState.Stopped,
     );
@@ -100,7 +96,7 @@ export class QuestRunner {
      * A quest is running but execution is currently paused.
      */
     readonly paused: Property<boolean> = this._state.map(
-        state => state === QuestRunnerState.StartupPaused || state === QuestRunnerState.Paused,
+        state => state === QuestRunnerState.Paused,
     );
     readonly breakpoints: ListProperty<Breakpoint> = this._breakpoints;
     readonly pause_location: Property<number | undefined> = this._pause_location;
@@ -118,13 +114,14 @@ export class QuestRunner {
         }
 
         this.quest = quest;
+        this.startup = true;
         this._game_state.reset();
 
         this.vm.load_object_code(quest.object_code, quest.episode);
         this.vm.start_thread(0);
         this.debugger.reset();
 
-        this._state.val = QuestRunnerState.Startup;
+        this._state.val = QuestRunnerState.Running;
 
         this.schedule_frame();
     }
@@ -199,7 +196,6 @@ export class QuestRunner {
 
         this.vm.vsync();
 
-        const prev_state = this._state.val;
         const result = this.vm.execute();
 
         let pause_location: number | undefined;
@@ -210,11 +206,7 @@ export class QuestRunner {
                 break;
 
             case ExecutionResult.Paused:
-                this._state.val =
-                    prev_state === QuestRunnerState.Startup ||
-                    prev_state === QuestRunnerState.StartupPaused
-                        ? QuestRunnerState.StartupPaused
-                        : QuestRunnerState.Paused;
+                this._state.val = QuestRunnerState.Paused;
 
                 pause_location = this.vm.get_current_instruction_pointer()?.source_location
                     ?.line_no;
@@ -246,14 +238,8 @@ export class QuestRunner {
 
         this._pause_location.val = pause_location;
 
-        if (
-            (prev_state === QuestRunnerState.Startup ||
-                prev_state === QuestRunnerState.StartupPaused) &&
-            !(
-                this._state.val === QuestRunnerState.Startup ||
-                this._state.val === QuestRunnerState.StartupPaused
-            )
-        ) {
+        if (this.startup && this._state.val === QuestRunnerState.Running) {
+            this.startup = false;
             // At this point we know function 0 has run. All area variants have been designated and
             // all floor handlers have been registered.
             this.run_floor_handler(
