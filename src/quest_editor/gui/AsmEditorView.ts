@@ -189,6 +189,8 @@ export class AsmEditorView extends ResizableWidget {
                             },
                         ],
                     )[0];
+
+                    this.editor.revealLineInCenterIfOutsideViewport(new_line_num);
                 }
             }),
 
