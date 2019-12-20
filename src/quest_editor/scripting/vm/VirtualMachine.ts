@@ -73,6 +73,7 @@ import {
     OP_SUBI,
     OP_SYNC,
     OP_THREAD,
+    OP_THREAD_STG,
     OP_UJMP_G,
     OP_UJMP_GE,
     OP_UJMP_L,
@@ -90,7 +91,6 @@ import {
     andreduce,
     andsecond,
     BinaryNumericOperation,
-    comparison_ops,
     ComparisonOperation,
     numeric_ops,
     rest,
@@ -225,8 +225,11 @@ export class VirtualMachine {
 
     /**
      * Schedules concurrent execution of the code at the given label.
+     *
+     * @param label - instruction label to start thread execution at.
+     * @param area_id - if an area_id is passed in, the thread is floor-local.
      */
-    start_thread(label: number): void {
+    start_thread(label: number, area_id?: number): void {
         const seg_idx = this.get_segment_index_by_label(label);
         const segment = this._object_code[seg_idx];
 
@@ -239,7 +242,7 @@ export class VirtualMachine {
         }
 
         this.threads.push(
-            new Thread(this.io, new InstructionPointer(seg_idx!, 0, this.object_code), true),
+            new Thread(this.io, new InstructionPointer(seg_idx!, 0, this.object_code), area_id),
         );
     }
 
@@ -257,9 +260,8 @@ export class VirtualMachine {
             // Limit amount of instructions executed to prevent infinite loops.
             let execution_counter = 0;
 
-            while (execution_counter++ < 100_000) {
-                // Get current instruction.
-
+            while (execution_counter++ < 1_000) {
+                // Check whether VM is waiting for vsync or is suspended.
                 if (this.threads.length >= 1 && this.thread_idx >= this.threads.length) {
                     return ExecutionResult.WaitingVsync;
                 }
@@ -270,12 +272,13 @@ export class VirtualMachine {
                     return ExecutionResult.Suspended;
                 }
 
-                const frame = thread.current_stack_frame();
+                // Get current instruction.
+                const frame = thread.current_stack_frame()!;
                 inst_ptr = frame.instruction_pointer;
                 const inst = inst_ptr.instruction;
 
-                // Check whether we need to pause only if we're not already paused. In that case
-                // we're resuming.
+                // Check whether the VM needs to pause only if it's not already paused. In that case
+                // it's resuming.
                 if (!this.paused) {
                     switch (thread.step_mode) {
                         case StepMode.BreakPoint:
@@ -316,33 +319,13 @@ export class VirtualMachine {
                     }
                 }
 
+                // Not paused, the next instruction can be executed.
                 this.paused = false;
 
                 const result = this.execute_instruction(thread, inst_ptr);
 
-                // Advance to the next instruction.
-                // TODO: OP_VA_CALL and OP_SWITCH_CALL.
-                if (result === ExecutionResult.WaitingVsync || inst.opcode.code !== OP_CALL.code) {
-                    const thread = this.current_thread();
-
-                    if (thread) {
-                        const next = thread.current_stack_frame().instruction_pointer.next();
-
-                        if (next) {
-                            thread.set_current_instruction_pointer(next);
-                        } else {
-                            // Reached EOF.
-                            thread.pop_call_stack();
-                            this.dispose_thread(this.thread_idx);
-                        }
-
-                        if (result === ExecutionResult.WaitingVsync) {
-                            this.thread_idx++;
-                        }
-                    }
-                }
-
-                if (result != undefined) {
+                // Only return WaitingVsync when all threads have yielded.
+                if (result != undefined && result !== ExecutionResult.WaitingVsync) {
                     return result;
                 }
             }
@@ -357,8 +340,11 @@ export class VirtualMachine {
                 err = new Error(String(err));
             }
 
-            this.halt();
-            this.io.error(err, inst_ptr?.source_location);
+            try {
+                this.io.error(err, inst_ptr?.source_location);
+            } finally {
+                this.halt();
+            }
 
             return ExecutionResult.Halted;
         }
@@ -439,11 +425,29 @@ export class VirtualMachine {
         return this.threads[this.thread_idx];
     }
 
-    private dispose_thread(thread_idx: number): void {
+    private terminate_thread(thread_idx: number): void {
         this.threads.splice(thread_idx, 1);
 
         if (this.thread_idx >= thread_idx && this.thread_idx > 0) {
             this.thread_idx--;
+        }
+    }
+
+    /**
+     * Advance to the next instruction.
+     */
+    private advance(thread: Thread): void {
+        const frame = thread.current_stack_frame();
+        if (!frame) return; // Thread already terminated.
+
+        const next = frame.instruction_pointer.next();
+
+        if (next) {
+            thread.set_current_instruction_pointer(next);
+        } else {
+            // Reached EOF.
+            thread.pop_call_stack();
+            this.terminate_thread(this.thread_idx);
         }
     }
 
@@ -455,20 +459,10 @@ export class VirtualMachine {
         const srcloc = inst.asm?.mnemonic;
 
         let result: ExecutionResult | undefined = undefined;
+        let advance = true;
 
         const arg_vals = inst.args.map(arg => arg.value);
         const [arg0, arg1, arg2, arg3] = arg_vals;
-
-        // helper for conditional jump opcodes
-        const conditional_jump_args: (
-            cond: ComparisonOperation,
-        ) => [Thread, number, ComparisonOperation, number, number] = cond => [
-            thread,
-            arg2,
-            cond,
-            arg0,
-            arg1,
-        ];
 
         // previous instruction must've been `list`.
         // list may not exist after the instruction
@@ -486,6 +480,9 @@ export class VirtualMachine {
                 break;
             case OP_SYNC.code:
                 result = ExecutionResult.WaitingVsync;
+                this.advance(thread);
+                this.thread_idx++;
+                advance = false;
                 break;
             case OP_EXIT.code:
                 this.halt();
@@ -527,6 +524,7 @@ export class VirtualMachine {
                 break;
             case OP_CALL.code:
                 this.push_call_stack(thread, arg0);
+                advance = false;
                 break;
             case OP_JMP.code:
                 this.jump_to_label(thread, arg0);
@@ -645,120 +643,102 @@ export class VirtualMachine {
                 this.conditional_jump(
                     thread,
                     arg0,
-                    comparison_ops.eq,
+                    (a, b) => a === b,
                     1,
                     ...rest(arg_vals).map(reg => this.get_register_signed(reg)),
                 );
+                advance = false;
                 break;
             case OP_JMP_OFF.code:
                 // all eq 0?
                 this.conditional_jump(
                     thread,
                     arg0,
-                    comparison_ops.eq,
+                    (a, b) => a === b,
                     0,
                     ...rest(arg_vals).map(reg => this.get_register_signed(reg)),
                 );
+                advance = false;
                 break;
             case OP_JMP_E.code:
-                this.signed_conditional_jump_with_register(
-                    ...conditional_jump_args(comparison_ops.eq),
-                );
+                this.signed_cond_jump_with_register(thread, arg2, (a, b) => a === b, arg0, arg1);
+                advance = false;
                 break;
             case OP_JMPI_E.code:
-                this.signed_conditional_jump_with_literal(
-                    ...conditional_jump_args(comparison_ops.eq),
-                );
+                this.signed_cond_jump_with_literal(thread, arg2, (a, b) => a === b, arg0, arg1);
+                advance = false;
                 break;
             case OP_JMP_NE.code:
-                this.signed_conditional_jump_with_register(
-                    ...conditional_jump_args(comparison_ops.neq),
-                );
+                this.signed_cond_jump_with_register(thread, arg2, (a, b) => a !== b, arg0, arg1);
+                advance = false;
                 break;
             case OP_JMPI_NE.code:
-                this.signed_conditional_jump_with_literal(
-                    ...conditional_jump_args(comparison_ops.neq),
-                );
+                this.signed_cond_jump_with_literal(thread, arg2, (a, b) => a !== b, arg0, arg1);
+                advance = false;
                 break;
             case OP_UJMP_G.code:
-                this.unsigned_conditional_jump_with_register(
-                    ...conditional_jump_args(comparison_ops.gt),
-                );
+                this.unsigned_cond_jump_with_register(thread, arg2, (a, b) => a > b, arg0, arg1);
+                advance = false;
                 break;
             case OP_UJMPI_G.code:
-                this.unsigned_conditional_jump_with_literal(
-                    ...conditional_jump_args(comparison_ops.gt),
-                );
+                this.unsigned_cond_jump_with_literal(thread, arg2, (a, b) => a > b, arg0, arg1);
+                advance = false;
                 break;
             case OP_JMP_G.code:
-                this.signed_conditional_jump_with_register(
-                    ...conditional_jump_args(comparison_ops.gt),
-                );
+                this.signed_cond_jump_with_register(thread, arg2, (a, b) => a > b, arg0, arg1);
+                advance = false;
                 break;
             case OP_JMPI_G.code:
-                this.signed_conditional_jump_with_literal(
-                    ...conditional_jump_args(comparison_ops.gt),
-                );
+                this.signed_cond_jump_with_literal(thread, arg2, (a, b) => a > b, arg0, arg1);
+                advance = false;
                 break;
             case OP_UJMP_L.code:
-                this.unsigned_conditional_jump_with_register(
-                    ...conditional_jump_args(comparison_ops.lt),
-                );
+                this.unsigned_cond_jump_with_register(thread, arg2, (a, b) => a < b, arg0, arg1);
+                advance = false;
                 break;
             case OP_UJMPI_L.code:
-                this.unsigned_conditional_jump_with_literal(
-                    ...conditional_jump_args(comparison_ops.lt),
-                );
+                this.unsigned_cond_jump_with_literal(thread, arg2, (a, b) => a < b, arg0, arg1);
+                advance = false;
                 break;
             case OP_JMP_L.code:
-                this.signed_conditional_jump_with_register(
-                    ...conditional_jump_args(comparison_ops.lt),
-                );
+                this.signed_cond_jump_with_register(thread, arg2, (a, b) => a < b, arg0, arg1);
+                advance = false;
                 break;
             case OP_JMPI_L.code:
-                this.signed_conditional_jump_with_literal(
-                    ...conditional_jump_args(comparison_ops.lt),
-                );
+                this.signed_cond_jump_with_literal(thread, arg2, (a, b) => a < b, arg0, arg1);
+                advance = false;
                 break;
             case OP_UJMP_GE.code:
-                this.unsigned_conditional_jump_with_register(
-                    ...conditional_jump_args(comparison_ops.gte),
-                );
+                this.unsigned_cond_jump_with_register(thread, arg2, (a, b) => a >= b, arg0, arg1);
+                advance = false;
                 break;
             case OP_UJMPI_GE.code:
-                this.unsigned_conditional_jump_with_literal(
-                    ...conditional_jump_args(comparison_ops.gte),
-                );
+                this.unsigned_cond_jump_with_literal(thread, arg2, (a, b) => a >= b, arg0, arg1);
+                advance = false;
                 break;
             case OP_JMP_GE.code:
-                this.signed_conditional_jump_with_register(
-                    ...conditional_jump_args(comparison_ops.gte),
-                );
+                this.signed_cond_jump_with_register(thread, arg2, (a, b) => a >= b, arg0, arg1);
+                advance = false;
                 break;
             case OP_JMPI_GE.code:
-                this.signed_conditional_jump_with_literal(
-                    ...conditional_jump_args(comparison_ops.gte),
-                );
+                this.signed_cond_jump_with_literal(thread, arg2, (a, b) => a >= b, arg0, arg1);
+                advance = false;
                 break;
             case OP_UJMP_LE.code:
-                this.unsigned_conditional_jump_with_register(
-                    ...conditional_jump_args(comparison_ops.lte),
-                );
+                this.unsigned_cond_jump_with_register(thread, arg2, (a, b) => a <= b, arg0, arg1);
+                advance = false;
                 break;
             case OP_UJMPI_LE.code:
-                this.unsigned_conditional_jump_with_literal(
-                    ...conditional_jump_args(comparison_ops.lte),
-                );
+                this.unsigned_cond_jump_with_literal(thread, arg2, (a, b) => a <= b, arg0, arg1);
+                advance = false;
                 break;
             case OP_JMP_LE.code:
-                this.signed_conditional_jump_with_register(
-                    ...conditional_jump_args(comparison_ops.lte),
-                );
+                this.signed_cond_jump_with_register(thread, arg2, (a, b) => a <= b, arg0, arg1);
+                advance = false;
                 break;
             case OP_JMPI_LE.code:
-                this.signed_conditional_jump_with_literal(
-                    ...conditional_jump_args(comparison_ops.lte),
-                );
+                this.signed_cond_jump_with_literal(thread, arg2, (a, b) => a <= b, arg0, arg1);
+                advance = false;
                 break;
             // variable stack operations
             case OP_STACK_PUSH.code:
@@ -812,6 +792,9 @@ export class VirtualMachine {
             case OP_SET_FLOOR_HANDLER.code:
                 this.io.set_floor_handler(stack_args[0], stack_args[1]);
                 break;
+            case OP_THREAD_STG.code:
+                this.start_thread(arg0);
+                break;
             case OP_GET_RANDOM.code:
                 {
                     const low = this.get_register_signed(arg0);
@@ -860,6 +843,10 @@ export class VirtualMachine {
             default:
                 this.io.warning(`Unsupported instruction: ${inst.opcode.mnemonic}.`);
                 break;
+        }
+
+        if (advance) {
+            this.advance(thread);
         }
 
         return result;
@@ -965,7 +952,7 @@ export class VirtualMachine {
             // popped off the last return address
             // which means this is the end of the function this thread was started on
             // which means this is the end of this thread
-            this.dispose_thread(idx);
+            this.terminate_thread(idx);
         }
     }
 
@@ -975,7 +962,7 @@ export class VirtualMachine {
         );
     }
 
-    private signed_conditional_jump_with_register(
+    private signed_cond_jump_with_register(
         exec: Thread,
         label: number,
         condition: ComparisonOperation,
@@ -991,7 +978,7 @@ export class VirtualMachine {
         );
     }
 
-    private signed_conditional_jump_with_literal(
+    private signed_cond_jump_with_literal(
         exec: Thread,
         label: number,
         condition: ComparisonOperation,
@@ -1001,7 +988,7 @@ export class VirtualMachine {
         this.conditional_jump(exec, label, condition, this.get_register_signed(reg), literal);
     }
 
-    private unsigned_conditional_jump_with_register(
+    private unsigned_cond_jump_with_register(
         exec: Thread,
         label: number,
         condition: ComparisonOperation,
@@ -1017,7 +1004,7 @@ export class VirtualMachine {
         );
     }
 
-    private unsigned_conditional_jump_with_literal(
+    private unsigned_cond_jump_with_literal(
         exec: Thread,
         label: number,
         condition: ComparisonOperation,
@@ -1028,7 +1015,7 @@ export class VirtualMachine {
     }
 
     private conditional_jump(
-        exec: Thread,
+        thread: Thread,
         label: number,
         condition: ComparisonOperation,
         ...vals: number[]
@@ -1039,8 +1026,11 @@ export class VirtualMachine {
             Parameters<ComparisonOperation>,
             any
         >(null, condition);
+
         if (andreduce(chain_cmp, vals) !== undefined) {
-            this.jump_to_label(exec, label);
+            this.jump_to_label(thread, label);
+        } else {
+            this.advance(thread);
         }
     }
 

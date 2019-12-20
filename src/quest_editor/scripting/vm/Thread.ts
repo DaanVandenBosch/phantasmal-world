@@ -46,9 +46,9 @@ export class Thread {
     readonly variable_stack: number[] = [];
 
     /**
-     * Global or floor-local?
+     * Floor-local threads have an area_id.
      */
-    readonly global: boolean;
+    readonly area_id?: number;
 
     get step_mode(): StepMode {
         return this._step_mode;
@@ -66,13 +66,16 @@ export class Thread {
         return this._step_frame;
     }
 
-    constructor(public io: VirtualMachineIO, entry_point: InstructionPointer, global: boolean) {
+    constructor(public io: VirtualMachineIO, entry_point: InstructionPointer, area_id?: number) {
         this._call_stack = [new StackFrame(0, entry_point)];
         this.call_stack = this._call_stack;
-        this.global = global;
+        this.area_id = area_id;
     }
 
-    current_stack_frame(): StackFrame {
+    /**
+     * @returns undefined when the thread has been terminated.
+     */
+    current_stack_frame(): StackFrame | undefined {
         return this._call_stack[this._call_stack.length - 1];
     }
 

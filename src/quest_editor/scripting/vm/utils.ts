@@ -19,18 +19,6 @@ export const numeric_ops: Record<
 
 export type ComparisonOperation = (a: number, b: number) => boolean;
 
-export const comparison_ops: Record<
-    "eq" | "neq" | "gt" | "lt" | "gte" | "lte",
-    ComparisonOperation
-> = {
-    eq: (a, b) => a === b,
-    neq: (a, b) => a !== b,
-    gt: (a, b) => a > b,
-    lt: (a, b) => a < b,
-    gte: (a, b) => a >= b,
-    lte: (a, b) => a <= b,
-};
-
 /**
  * Short-circuiting fold.
  */
@@ -74,10 +62,4 @@ export function andsecond<T>(fn: (first: T, second: T) => any, first: T, second:
 
 export function rest<T>(lst: T[]): T[] {
     return lst.slice(1);
-}
-
-export type Range = [number, number];
-
-export function ranges_overlap(a: Range, b: Range): boolean {
-    return a[0] <= b[1] && b[0] <= a[1];
 }
