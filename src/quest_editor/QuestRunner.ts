@@ -284,6 +284,11 @@ export class QuestRunner {
 
             winend: (): void => {},
 
+            p_dead_v3: (): boolean => {
+                // Players never die.
+                return false;
+            },
+
             mesend: (): void => {},
 
             list: (list_items: string[]): void => {

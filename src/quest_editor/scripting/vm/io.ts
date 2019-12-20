@@ -26,6 +26,7 @@ export interface VirtualMachineOutput {
     message(msg: string): void;
     add_msg(msg: string): void;
     winend(): void;
+    p_dead_v3(player_slot: number): boolean;
     mesend(): void;
     list(list_items: string[]): void;
 }
@@ -73,6 +74,11 @@ export class DefaultVirtualMachineIO implements VirtualMachineIO {
 
     winend(): void {
         logger.warn("winend");
+    }
+
+    p_dead_v3(player_slot: number): boolean {
+        logger.warn(`p_dead_v3(${player_slot})`);
+        return false;
     }
 
     mesend(): void {

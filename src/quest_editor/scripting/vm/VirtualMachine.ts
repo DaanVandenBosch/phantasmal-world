@@ -58,6 +58,7 @@ import {
     OP_NOP,
     OP_OR,
     OP_ORI,
+    OP_P_DEAD_V3,
     OP_RET,
     OP_REV,
     OP_SET,
@@ -788,6 +789,9 @@ export class VirtualMachine {
                     this.window_msg_open = false;
                     this.io.winend();
                 }
+                break;
+            case OP_P_DEAD_V3.code:
+                this.set_register_signed(stack_args[0], this.io.p_dead_v3(stack_args[1]) ? 1 : 0);
                 break;
             case OP_SET_FLOOR_HANDLER.code:
                 this.io.set_floor_handler(stack_args[0], stack_args[1]);
