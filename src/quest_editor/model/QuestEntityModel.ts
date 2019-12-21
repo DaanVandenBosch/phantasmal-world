@@ -5,7 +5,7 @@ import { WritableProperty } from "../../core/observable/property/WritablePropert
 import { SectionModel } from "./SectionModel";
 import { Euler, Quaternion, Vector3 } from "three";
 import { floor_mod } from "../../core/math";
-import { assert, require_integer, defined } from "../../core/util";
+import { defined, require_integer } from "../../core/util";
 
 // These quaternions are used as temporary variables to avoid memory allocation.
 const q1 = new Quaternion();

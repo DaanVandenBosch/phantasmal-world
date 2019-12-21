@@ -11,11 +11,8 @@ import { property } from "../../core/observable";
 import { Property } from "../../core/observable/property/Property";
 import { PSO_FRAME_RATE } from "../../core/rendering/conversion/ninja_animation";
 import { parse_xvm, Xvm } from "../../core/data_formats/parsing/ninja/texture";
-import {
-    get_character_class_animation_data,
-    get_character_class_data,
-} from "../loading/character_class";
 import Logger = require("js-logger");
+import { CharacterClassAssetLoader } from "../loading/CharacterClassAssetLoader";
 
 const logger = Logger.get("viewer/stores/ModelStore");
 const nj_object_cache: Map<string, Promise<NjObject>> = new Map();
@@ -76,7 +73,7 @@ export class Model3DStore implements Disposable {
         njm ? njm.frame_count : 0,
     );
 
-    constructor() {
+    constructor(private readonly asset_loader: CharacterClassAssetLoader) {
         this.disposables.push(
             this.current_model.observe(({ value }) => this.load_model(value)),
             this.current_animation.observe(({ value }) => this.load_animation(value)),
@@ -202,14 +199,14 @@ export class Model3DStore implements Disposable {
     }
 
     private async get_all_nj_objects(model: CharacterClassModel): Promise<NjObject> {
-        const body_data = await get_character_class_data(model.name, "Body");
+        const body_data = await this.asset_loader.load_geometry(model.name, "Body");
         const body = parse_nj(new ArrayBufferCursor(body_data, Endianness.Little))[0];
 
         if (!body) {
             throw new Error(`Couldn't parse body for player class ${model.name}.`);
         }
 
-        const head_data = await get_character_class_data(model.name, "Head", 0);
+        const head_data = await this.asset_loader.load_geometry(model.name, "Head", 0);
         const head = parse_nj(new ArrayBufferCursor(head_data, Endianness.Little))[0];
 
         if (head) {
@@ -217,7 +214,7 @@ export class Model3DStore implements Disposable {
         }
 
         if (model.hair_styles_count > 0) {
-            const hair_data = await get_character_class_data(model.name, "Hair", 0);
+            const hair_data = await this.asset_loader.load_geometry(model.name, "Hair", 0);
             const hair = parse_nj(new ArrayBufferCursor(hair_data, Endianness.Little))[0];
 
             if (hair) {
@@ -225,7 +222,11 @@ export class Model3DStore implements Disposable {
             }
 
             if (model.hair_styles_with_accessory.has(0)) {
-                const accessory_data = await get_character_class_data(model.name, "Accessory", 0);
+                const accessory_data = await this.asset_loader.load_geometry(
+                    model.name,
+                    "Accessory",
+                    0,
+                );
                 const accessory = parse_nj(
                     new ArrayBufferCursor(accessory_data, Endianness.Little),
                 )[0];
@@ -269,9 +270,11 @@ export class Model3DStore implements Disposable {
         if (nj_motion) {
             return nj_motion;
         } else {
-            nj_motion = get_character_class_animation_data(animation.id).then(motion_data =>
-                parse_njm(new ArrayBufferCursor(motion_data, Endianness.Little), bone_count),
-            );
+            nj_motion = this.asset_loader
+                .load_animation(animation.id)
+                .then(motion_data =>
+                    parse_njm(new ArrayBufferCursor(motion_data, Endianness.Little), bone_count),
+                );
 
             nj_motion_cache.set(animation.id, nj_motion);
             return nj_motion;

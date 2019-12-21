@@ -8,13 +8,13 @@ import { Segment } from "../scripting/instructions";
 import { Property } from "../../core/observable/property/Property";
 import Logger from "js-logger";
 import { AreaVariantModel } from "./AreaVariantModel";
-import { area_store } from "../stores/AreaStore";
 import { ListProperty } from "../../core/observable/property/list/ListProperty";
 import { WritableListProperty } from "../../core/observable/property/list/WritableListProperty";
 import { QuestEntityModel } from "./QuestEntityModel";
 import { entity_type_to_string } from "../../core/data_formats/parsing/quest/entities";
 import { QuestEventDagModel } from "./QuestEventDagModel";
 import { assert, defined, require_array } from "../../core/util";
+import { AreaStore } from "../stores/AreaStore";
 
 const logger = Logger.get("quest_editor/model/QuestModel");
 
@@ -73,6 +73,7 @@ export class QuestModel {
     readonly shop_items: readonly number[];
 
     constructor(
+        private readonly area_store: AreaStore,
         id: number,
         language: number,
         name: string,
@@ -215,7 +216,7 @@ export class QuestModel {
 
         for (const area_id of this.entities_per_area.val.keys()) {
             try {
-                variants.set(area_id, area_store.get_variant(this.episode, area_id, 0));
+                variants.set(area_id, this.area_store.get_variant(this.episode, area_id, 0));
             } catch (e) {
                 logger.warn(e);
             }
@@ -223,7 +224,10 @@ export class QuestModel {
 
         for (const [area_id, variant_id] of this.map_designations.val) {
             try {
-                variants.set(area_id, area_store.get_variant(this.episode, area_id, variant_id));
+                variants.set(
+                    area_id,
+                    this.area_store.get_variant(this.episode, area_id, variant_id),
+                );
             } catch (e) {
                 logger.warn(e);
             }

@@ -18,12 +18,14 @@ import { QuestObjectModel } from "../model/QuestObjectModel";
 import { QuestNpcModel } from "../model/QuestNpcModel";
 import { Euler, Vector3 } from "three";
 import { QuestEventDagModel } from "../model/QuestEventDagModel";
+import { AreaStore } from "./AreaStore";
 
-export function create_new_quest(episode: Episode): QuestModel {
+export function create_new_quest(area_store: AreaStore, episode: Episode): QuestModel {
     if (episode === Episode.II) throw new Error("Episode II not yet supported.");
     if (episode === Episode.IV) throw new Error("Episode IV not yet supported.");
 
     return new QuestModel(
+        area_store,
         0,
         0,
         "Untitled",

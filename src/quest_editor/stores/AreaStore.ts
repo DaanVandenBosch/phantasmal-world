@@ -2,13 +2,13 @@ import { AreaModel } from "../model/AreaModel";
 import { AreaVariantModel } from "../model/AreaVariantModel";
 import { Episode, EPISODES } from "../../core/data_formats/parsing/quest/Episode";
 import { SectionModel } from "../model/SectionModel";
-import { load_area_sections } from "../loading/areas";
 import { get_areas_for_episode } from "../../core/data_formats/parsing/quest/areas";
+import { AreaAssetLoader } from "../loading/AreaAssetLoader";
 
-class AreaStore {
+export class AreaStore {
     private readonly areas: AreaModel[][] = [];
 
-    constructor() {
+    constructor(private readonly area_asset_loader: AreaAssetLoader) {
         for (const episode of EPISODES) {
             this.areas[episode] = get_areas_for_episode(episode).map(area => {
                 const observable_area = new AreaModel(area.id, area.name, area.order, []);
@@ -47,8 +47,6 @@ class AreaStore {
     };
 
     get_area_sections = (episode: Episode, variant: AreaVariantModel): Promise<SectionModel[]> => {
-        return load_area_sections(episode, variant);
+        return this.area_asset_loader.load_sections(episode, variant);
     };
 }
-
-export const area_store = new AreaStore();

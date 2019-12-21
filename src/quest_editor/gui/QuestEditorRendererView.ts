@@ -4,11 +4,18 @@ import { QuestEditorModelManager } from "../rendering/QuestEditorModelManager";
 import { QuestRendererView } from "./QuestRendererView";
 import { QuestEntityControls } from "../rendering/QuestEntityControls";
 import { GuiStore } from "../../core/stores/GuiStore";
+import { AreaAssetLoader } from "../loading/AreaAssetLoader";
+import { EntityAssetLoader } from "../loading/EntityAssetLoader";
 
 export class QuestEditorRendererView extends QuestRendererView {
     private readonly entity_controls: QuestEntityControls;
 
-    constructor(gui_store: GuiStore, quest_editor_store: QuestEditorStore) {
+    constructor(
+        gui_store: GuiStore,
+        quest_editor_store: QuestEditorStore,
+        area_asset_loader: AreaAssetLoader,
+        entity_asset_loader: EntityAssetLoader,
+    ) {
         super(
             gui_store,
             quest_editor_store,
@@ -19,6 +26,8 @@ export class QuestEditorRendererView extends QuestRendererView {
                         quest_editor_store.current_quest,
                         quest_editor_store.current_area,
                         renderer,
+                        area_asset_loader,
+                        entity_asset_loader,
                     ),
             ),
         );

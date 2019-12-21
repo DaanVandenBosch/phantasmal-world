@@ -6,14 +6,16 @@ import { EnemyDrop } from "../model/ItemDrop";
 import { EnemyDropDto } from "../dto/drops";
 import { GuiStore } from "../../core/stores/GuiStore";
 import { ItemTypeStore } from "../../core/stores/ItemTypeStore";
+import { HttpClient } from "../../core/HttpClient";
 
 const logger = Logger.get("stores/ItemDropStore");
 
 export function load_item_drop_stores(
+    http_client: HttpClient,
     gui_store: GuiStore,
     item_type_stores: ServerMap<ItemTypeStore>,
 ): ServerMap<ItemDropStore> {
-    return new ServerMap(gui_store, create_loader(item_type_stores));
+    return new ServerMap(gui_store, create_loader(http_client, item_type_stores));
 }
 
 export class ItemDropStore {
@@ -74,14 +76,14 @@ export class EnemyDropTable {
 }
 
 function create_loader(
+    http_client: HttpClient,
     item_type_stores: ServerMap<ItemTypeStore>,
 ): (server: Server) => Promise<ItemDropStore> {
     return async server => {
         const item_type_store = await item_type_stores.get(server);
-        const response = await fetch(
-            `${process.env.PUBLIC_URL}/enemyDrops.${Server[server].toLowerCase()}.json`,
-        );
-        const data: EnemyDropDto[] = await response.json();
+        const data: EnemyDropDto[] = await http_client
+            .get(`/enemyDrops.${Server[server].toLowerCase()}.json`)
+            .json();
         const enemy_drops = new EnemyDropTable();
 
         for (const drop_dto of data) {

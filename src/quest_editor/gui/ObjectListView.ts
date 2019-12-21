@@ -6,10 +6,14 @@ import {
 } from "../../core/data_formats/parsing/quest/object_types";
 import { Episode } from "../../core/data_formats/parsing/quest/Episode";
 import { QuestEditorStore } from "../stores/QuestEditorStore";
+import { EntityImageRenderer } from "../rendering/EntityImageRenderer";
 
 export class ObjectListView extends EntityListView<ObjectType> {
-    constructor(private readonly quest_editor_store: QuestEditorStore) {
-        super(quest_editor_store, "quest_editor_ObjectListView");
+    constructor(
+        private readonly quest_editor_store: QuestEditorStore,
+        entity_image_renderer: EntityImageRenderer,
+    ) {
+        super(quest_editor_store, entity_image_renderer, "quest_editor_ObjectListView");
 
         this.disposables(
             quest_editor_store.current_quest.observe(this.filter_objects),

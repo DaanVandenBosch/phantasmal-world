@@ -12,6 +12,7 @@ import { Disposable } from "../../core/observable/Disposable";
 import { Disposer } from "../../core/observable/Disposer";
 import { GuiStore } from "../../core/stores/GuiStore";
 import { ServerMap } from "../../core/stores/ServerMap";
+import { HttpClient } from "../../core/HttpClient";
 
 const logger = Logger.get("hunt_optimizer/stores/HuntMethodStore");
 
@@ -20,10 +21,11 @@ const DEFAULT_GOVERNMENT_TEST_DURATION = Duration.fromObject({ minutes: 45 });
 const DEFAULT_LARGE_ENEMY_COUNT_DURATION = Duration.fromObject({ minutes: 45 });
 
 export function load_hunt_method_stores(
+    http_client: HttpClient,
     gui_store: GuiStore,
     hunt_method_persister: HuntMethodPersister,
 ): ServerMap<HuntMethodStore> {
-    return new ServerMap(gui_store, create_loader(hunt_method_persister));
+    return new ServerMap(gui_store, create_loader(http_client, hunt_method_persister));
 }
 
 export class HuntMethodStore implements Disposable {
@@ -51,13 +53,13 @@ export class HuntMethodStore implements Disposable {
 }
 
 function create_loader(
+    http_client: HttpClient,
     hunt_method_persister: HuntMethodPersister,
 ): (server: Server) => Promise<HuntMethodStore> {
     return async server => {
-        const response = await fetch(
-            `${process.env.PUBLIC_URL}/quests.${Server[server].toLowerCase()}.json`,
-        );
-        const quests = (await response.json()) as QuestDto[];
+        const quests: QuestDto[] = await http_client
+            .get(`/quests.${Server[server].toLowerCase()}.json`)
+            .json();
         const methods: HuntMethodModel[] = [];
 
         for (const quest of quests) {

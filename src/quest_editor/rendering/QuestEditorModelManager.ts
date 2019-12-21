@@ -8,6 +8,8 @@ import { list_property } from "../../core/observable";
 import { Property } from "../../core/observable/property/Property";
 import { QuestModel } from "../model/QuestModel";
 import { AreaModel } from "../model/AreaModel";
+import { AreaAssetLoader } from "../loading/AreaAssetLoader";
+import { EntityAssetLoader } from "../loading/EntityAssetLoader";
 
 /**
  * Model loader used while editing a quest.
@@ -17,8 +19,10 @@ export class QuestEditorModelManager extends QuestModelManager {
         private readonly current_quest: Property<QuestModel | undefined>,
         private readonly current_area: Property<AreaModel | undefined>,
         renderer: QuestRenderer,
+        area_asset_loader: AreaAssetLoader,
+        entity_asset_loader: EntityAssetLoader,
     ) {
-        super(renderer);
+        super(renderer, area_asset_loader, entity_asset_loader);
 
         this.disposer.add_all(
             current_quest.observe(this.area_variant_changed),

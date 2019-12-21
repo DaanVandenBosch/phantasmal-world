@@ -6,7 +6,6 @@ import {
     parse_area_collision_geometry,
 } from "../../core/data_formats/parsing/area_collision_geometry";
 import { parse_area_geometry, RenderObject } from "../../core/data_formats/parsing/area_geometry";
-import { load_array_buffer } from "../../core/loading";
 import { LoadingCache } from "./LoadingCache";
 import { Episode } from "../../core/data_formats/parsing/quest/Episode";
 import { SectionModel } from "../model/SectionModel";
@@ -15,62 +14,74 @@ import {
     area_geometry_to_sections_and_object_3d,
 } from "../rendering/conversion/areas";
 import { AreaVariantModel } from "../model/AreaVariantModel";
+import { HttpClient } from "../../core/HttpClient";
 
-const render_object_cache = new LoadingCache<string, Promise<RenderObject>>();
-const collision_object_cache = new LoadingCache<string, Promise<CollisionObject>>();
-const area_sections_cache = new LoadingCache<string, Promise<SectionModel[]>>();
+export class AreaAssetLoader {
+    private readonly render_object_cache = new LoadingCache<string, Promise<RenderObject>>();
+    private readonly collision_object_cache = new LoadingCache<string, Promise<CollisionObject>>();
+    private readonly area_sections_cache = new LoadingCache<string, Promise<SectionModel[]>>();
 
-export async function load_area_sections(
-    episode: Episode,
-    area_variant: AreaVariantModel,
-): Promise<SectionModel[]> {
-    const key = `${episode}-${area_variant.area.id}-${area_variant.id}`;
+    constructor(private readonly http_client: HttpClient) {}
 
-    return await area_sections_cache.get_or_set(key, async () => {
-        return area_geometry_to_sections_and_object_3d(
-            await render_object_cache.get_or_set(key, () =>
-                load_render_object(episode, area_variant),
-            ),
-            area_variant,
-        )[0];
-    });
-}
+    async load_sections(episode: Episode, area_variant: AreaVariantModel): Promise<SectionModel[]> {
+        const key = `${episode}-${area_variant.area.id}-${area_variant.id}`;
 
-export async function load_area_render_geometry(
-    episode: Episode,
-    area_variant: AreaVariantModel,
-): Promise<Object3D> {
-    const key = `${episode}-${area_variant.area.id}-${area_variant.id}`;
+        return await this.area_sections_cache.get_or_set(key, async () => {
+            return area_geometry_to_sections_and_object_3d(
+                await this.render_object_cache.get_or_set(key, () =>
+                    this.load_render_object(episode, area_variant),
+                ),
+                area_variant,
+            )[0];
+        });
+    }
 
-    const render_object = await render_object_cache.get_or_set(key, () =>
-        load_render_object(episode, area_variant),
-    );
+    async load_render_geometry(
+        episode: Episode,
+        area_variant: AreaVariantModel,
+    ): Promise<Object3D> {
+        const key = `${episode}-${area_variant.area.id}-${area_variant.id}`;
 
-    // Do not cache this call, multiple renderers need their own copy of the data.
-    return area_geometry_to_sections_and_object_3d(render_object, area_variant)[1];
-}
+        const render_object = await this.render_object_cache.get_or_set(key, () =>
+            this.load_render_object(episode, area_variant),
+        );
 
-export async function load_area_collision_geometry(
-    episode: Episode,
-    area_variant: AreaVariantModel,
-): Promise<Object3D> {
-    const key = `${episode}-${area_variant.area.id}-${area_variant.id}`;
+        // Do not cache this call, multiple renderers need their own copy of the data.
+        return area_geometry_to_sections_and_object_3d(render_object, area_variant)[1];
+    }
 
-    const collision_object = await collision_object_cache.get_or_set(key, async () => {
-        const buffer = await get_area_asset(episode, area_variant, "collision");
-        return parse_area_collision_geometry(new ArrayBufferCursor(buffer, Endianness.Little));
-    });
+    async load_collision_geometry(
+        episode: Episode,
+        area_variant: AreaVariantModel,
+    ): Promise<Object3D> {
+        const key = `${episode}-${area_variant.area.id}-${area_variant.id}`;
 
-    // Do not cache this call, multiple renderers need their own copy of the data.
-    return area_collision_geometry_to_object_3d(collision_object);
-}
+        const collision_object = await this.collision_object_cache.get_or_set(key, async () => {
+            const buffer = await this.get_area_asset(episode, area_variant, "collision");
+            return parse_area_collision_geometry(new ArrayBufferCursor(buffer, Endianness.Little));
+        });
 
-async function load_render_object(
-    episode: Episode,
-    area_variant: AreaVariantModel,
-): Promise<RenderObject> {
-    const buffer = await get_area_asset(episode, area_variant, "render");
-    return parse_area_geometry(new ArrayBufferCursor(buffer, Endianness.Little));
+        // Do not cache this call, multiple renderers need their own copy of the data.
+        return area_collision_geometry_to_object_3d(collision_object);
+    }
+
+    private async load_render_object(
+        episode: Episode,
+        area_variant: AreaVariantModel,
+    ): Promise<RenderObject> {
+        const buffer = await this.get_area_asset(episode, area_variant, "render");
+        return parse_area_geometry(new ArrayBufferCursor(buffer, Endianness.Little));
+    }
+
+    private async get_area_asset(
+        episode: Episode,
+        area_variant: AreaVariantModel,
+        type: "render" | "collision",
+    ): Promise<ArrayBuffer> {
+        const base_url = area_version_to_base_url(episode, area_variant);
+        const suffix = type === "render" ? "n.rel" : "c.rel";
+        return this.http_client.get(base_url + suffix).array_buffer();
+    }
 }
 
 const area_base_names = [
@@ -127,16 +138,6 @@ const area_base_names = [
         ["boss09_00", 1],
     ],
 ];
-
-async function get_area_asset(
-    episode: Episode,
-    area_variant: AreaVariantModel,
-    type: "render" | "collision",
-): Promise<ArrayBuffer> {
-    const base_url = area_version_to_base_url(episode, area_variant);
-    const suffix = type === "render" ? "n.rel" : "c.rel";
-    return load_array_buffer(base_url + suffix);
-}
 
 function area_version_to_base_url(episode: Episode, area_variant: AreaVariantModel): string {
     let area_id = area_variant.area.id;

@@ -19,12 +19,14 @@ import { QuestEventDagModel, QuestEventDagModelMeta } from "../model/QuestEventD
 import { QuestEvent } from "../../core/data_formats/parsing/quest/entities";
 import Logger from "js-logger";
 import { clone_segment } from "../scripting/instructions";
+import { AreaStore } from "./AreaStore";
 
 const logger = Logger.get("quest_editor/stores/model_conversion");
 
-export function convert_quest_to_model(quest: Quest): QuestModel {
+export function convert_quest_to_model(area_store: AreaStore, quest: Quest): QuestModel {
     // Create quest model.
     return new QuestModel(
+        area_store,
         quest.id,
         quest.language,
         quest.name,

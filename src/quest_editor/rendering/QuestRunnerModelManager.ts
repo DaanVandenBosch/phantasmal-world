@@ -1,13 +1,20 @@
 import { QuestRenderer } from "./QuestRenderer";
 import { AreaVariantDetails, QuestModelManager } from "./QuestModelManager";
 import { QuestRunner } from "../QuestRunner";
+import { AreaAssetLoader } from "../loading/AreaAssetLoader";
+import { EntityAssetLoader } from "../loading/EntityAssetLoader";
 
 /**
  * Model loader used while running a quest.
  */
 export class QuestRunnerModelManager extends QuestModelManager {
-    constructor(private readonly quest_runner: QuestRunner, renderer: QuestRenderer) {
-        super(renderer);
+    constructor(
+        private readonly quest_runner: QuestRunner,
+        renderer: QuestRenderer,
+        area_asset_loader: AreaAssetLoader,
+        entity_asset_loader: EntityAssetLoader,
+    ) {
+        super(renderer, area_asset_loader, entity_asset_loader);
 
         this.disposer.add_all(
             this.quest_runner.game_state.current_area_variant.observe(this.area_variant_changed, {

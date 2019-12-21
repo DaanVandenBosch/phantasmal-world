@@ -8,7 +8,6 @@ import { Endianness } from "../../core/data_formats/Endianness";
 import { QuestObjectModel } from "../model/QuestObjectModel";
 import { QuestNpcModel } from "../model/QuestNpcModel";
 import { AreaModel } from "../model/AreaModel";
-import { area_store } from "./AreaStore";
 import { SectionModel } from "../model/SectionModel";
 import { QuestEntityModel } from "../model/QuestEntityModel";
 import { Disposable } from "../../core/observable/Disposable";
@@ -29,6 +28,7 @@ import { RotateEntityAction } from "../actions/RotateEntityAction";
 import { convert_quest_from_model, convert_quest_to_model } from "./model_conversion";
 import { WritableProperty } from "../../core/observable/property/WritableProperty";
 import { QuestRunner } from "../QuestRunner";
+import { AreaStore } from "./AreaStore";
 import Logger = require("js-logger");
 
 const logger = Logger.get("quest_editor/gui/QuestEditorStore");
@@ -40,7 +40,7 @@ export class QuestEditorStore implements Disposable {
     private readonly _current_area = property<AreaModel | undefined>(undefined);
     private readonly _selected_entity = property<QuestEntityModel | undefined>(undefined);
 
-    readonly quest_runner: QuestRunner = new QuestRunner();
+    readonly quest_runner: QuestRunner;
     readonly debug: WritableProperty<boolean> = property(false);
     readonly undo = new UndoStack();
     readonly current_quest_filename: Property<string | undefined> = this._current_quest_filename;
@@ -48,7 +48,9 @@ export class QuestEditorStore implements Disposable {
     readonly current_area: Property<AreaModel | undefined> = this._current_area;
     readonly selected_entity: Property<QuestEntityModel | undefined> = this._selected_entity;
 
-    constructor(gui_store: GuiStore) {
+    constructor(gui_store: GuiStore, private readonly area_store: AreaStore) {
+        this.quest_runner = new QuestRunner(area_store);
+
         this.disposer.add_all(
             gui_store.tool.observe(
                 ({ value: tool }) => {
@@ -82,6 +84,7 @@ export class QuestEditorStore implements Disposable {
     }
 
     dispose(): void {
+        this.quest_runner.stop();
         this.disposer.dispose();
     }
 
@@ -93,7 +96,7 @@ export class QuestEditorStore implements Disposable {
 
     set_selected_entity = (entity?: QuestEntityModel): void => {
         if (entity && this.current_quest.val) {
-            this._current_area.val = area_store.get_area(
+            this._current_area.val = this.area_store.get_area(
                 this.current_quest.val.episode,
                 entity.area_id,
             );
@@ -103,7 +106,7 @@ export class QuestEditorStore implements Disposable {
     };
 
     new_quest = (episode: Episode): void => {
-        this.set_quest(create_new_quest(episode));
+        this.set_quest(create_new_quest(this.area_store, episode));
     };
 
     // TODO: notify user of problems.
@@ -111,7 +114,7 @@ export class QuestEditorStore implements Disposable {
         try {
             const buffer = await read_file(file);
             const quest = parse_quest(new ArrayBufferCursor(buffer, Endianness.Little));
-            this.set_quest(quest && convert_quest_to_model(quest), file.name);
+            this.set_quest(quest && convert_quest_to_model(this.area_store, quest), file.name);
         } catch (e) {
             logger.error("Couldn't read file.", e);
         }
@@ -222,11 +225,11 @@ export class QuestEditorStore implements Disposable {
         this._current_quest.val = quest;
 
         if (quest) {
-            this._current_area.val = area_store.get_area(quest.episode, 0);
+            this._current_area.val = this.area_store.get_area(quest.episode, 0);
 
             // Load section data.
             for (const variant of quest.area_variants.val) {
-                const sections = await area_store.get_area_sections(quest.episode, variant);
+                const sections = await this.area_store.get_area_sections(quest.episode, variant);
                 variant.set_sections(sections);
 
                 for (const object of quest.objects.val.filter(o => o.area_id === variant.area.id)) {

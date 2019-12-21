@@ -11,10 +11,10 @@ import { WritableListProperty } from "../core/observable/property/list/WritableL
 import { ListProperty } from "../core/observable/property/list/ListProperty";
 import { AreaVariantModel } from "./model/AreaVariantModel";
 import { Episode } from "../core/data_formats/parsing/quest/Episode";
-import { area_store } from "./stores/AreaStore";
 import { QuestNpcModel } from "./model/QuestNpcModel";
 import { QuestObjectModel } from "./model/QuestObjectModel";
 import { defined } from "../core/util";
+import { AreaStore } from "./stores/AreaStore";
 
 export enum QuestRunnerState {
     /**
@@ -103,7 +103,7 @@ export class QuestRunner {
 
     readonly game_state: GameState = this._game_state;
 
-    constructor() {
+    constructor(private readonly area_store: AreaStore) {
         this.vm = new VirtualMachine(this.create_vm_io());
         this.debugger = new Debugger(this.vm);
     }
@@ -244,7 +244,7 @@ export class QuestRunner {
             // all floor handlers have been registered.
             this.run_floor_handler(
                 this._game_state.area_variants.get(this.initial_area_id) ||
-                    area_store.get_variant(this._game_state.episode, this.initial_area_id, 0),
+                    this.area_store.get_variant(this._game_state.episode, this.initial_area_id, 0),
             );
         }
     };
@@ -262,7 +262,7 @@ export class QuestRunner {
             ): void => {
                 this._game_state.area_variants.set(
                     area_id,
-                    area_store.get_variant(this._game_state.episode, area_id, area_variant_id),
+                    this.area_store.get_variant(this._game_state.episode, area_id, area_variant_id),
                 );
             },
 
@@ -282,14 +282,18 @@ export class QuestRunner {
                 this.quest_logger.info(`add_msg "${msg}"`);
             },
 
-            winend: (): void => {},
+            winend: (): void => {
+                // TODO
+            },
 
             p_dead_v3: (): boolean => {
                 // Players never die.
                 return false;
             },
 
-            mesend: (): void => {},
+            mesend: (): void => {
+                // TODO
+            },
 
             list: (list_items: string[]): void => {
                 this.quest_logger.info(`list "[${list_items}]"`);

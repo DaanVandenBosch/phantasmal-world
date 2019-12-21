@@ -8,12 +8,12 @@ import { AreaModel } from "../model/AreaModel";
 import { Icon } from "../../core/gui/dom";
 import { DropDown } from "../../core/gui/DropDown";
 import { Episode } from "../../core/data_formats/parsing/quest/Episode";
-import { area_store } from "../stores/AreaStore";
 import { GuiStore, GuiTool } from "../../core/stores/GuiStore";
 import { QuestEditorStore } from "../stores/QuestEditorStore";
+import { AreaStore } from "../stores/AreaStore";
 
 export class QuestEditorToolBar extends ToolBar {
-    constructor(gui_store: GuiStore, quest_editor_store: QuestEditorStore) {
+    constructor(gui_store: GuiStore, area_store: AreaStore, quest_editor_store: QuestEditorStore) {
         const new_quest_button = new DropDown(
             "New quest",
             [Episode.I],

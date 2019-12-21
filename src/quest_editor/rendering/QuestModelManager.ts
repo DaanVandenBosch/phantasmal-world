@@ -1,8 +1,6 @@
 import Logger from "js-logger";
 import { Intersection, Mesh, Object3D, Raycaster, Vector3 } from "three";
 import { QuestRenderer } from "./QuestRenderer";
-import { load_entity_geometry, load_entity_textures } from "../loading/entities";
-import { load_area_collision_geometry, load_area_render_geometry } from "../loading/areas";
 import { QuestEntityModel } from "../model/QuestEntityModel";
 import { Disposer } from "../../core/observable/Disposer";
 import { Disposable } from "../../core/observable/Disposable";
@@ -18,6 +16,8 @@ import { QuestObjectModel } from "../model/QuestObjectModel";
 import { entity_type_to_string } from "../../core/data_formats/parsing/quest/entities";
 import { Episode } from "../../core/data_formats/parsing/quest/Episode";
 import { AreaVariantModel } from "../model/AreaVariantModel";
+import { EntityAssetLoader } from "../loading/EntityAssetLoader";
+import { AreaAssetLoader } from "../loading/AreaAssetLoader";
 
 const logger = Logger.get("quest_editor/rendering/QuestModelManager");
 
@@ -43,10 +43,14 @@ export abstract class QuestModelManager implements Disposable {
     private readonly npc_model_manager: EntityModelManager;
     private readonly object_model_manager: EntityModelManager;
 
-    protected constructor(private readonly renderer: QuestRenderer) {
-        this.area_model_manager = new AreaModelManager(this.renderer);
-        this.npc_model_manager = new EntityModelManager(this.renderer);
-        this.object_model_manager = new EntityModelManager(this.renderer);
+    protected constructor(
+        private readonly renderer: QuestRenderer,
+        private readonly area_asset_loader: AreaAssetLoader,
+        private readonly entity_asset_loader: EntityAssetLoader,
+    ) {
+        this.area_model_manager = new AreaModelManager(this.renderer, area_asset_loader);
+        this.npc_model_manager = new EntityModelManager(this.renderer, entity_asset_loader);
+        this.object_model_manager = new EntityModelManager(this.renderer, entity_asset_loader);
     }
 
     dispose(): void {
@@ -100,7 +104,10 @@ class AreaModelManager {
     private readonly up = Object.freeze(new Vector3(0, 1, 0));
     private area_variant?: AreaVariantModel;
 
-    constructor(private readonly renderer: QuestRenderer) {}
+    constructor(
+        private readonly renderer: QuestRenderer,
+        private readonly area_asset_loader: AreaAssetLoader,
+    ) {}
 
     async load(episode?: Episode, area_variant?: AreaVariantModel): Promise<void> {
         this.area_variant = area_variant;
@@ -112,10 +119,16 @@ class AreaModelManager {
         }
 
         try {
-            const collision_geometry = await load_area_collision_geometry(episode, area_variant);
+            const collision_geometry = await this.area_asset_loader.load_collision_geometry(
+                episode,
+                area_variant,
+            );
             if (this.should_cancel(area_variant)) return;
 
-            const render_geometry = await load_area_render_geometry(episode, area_variant);
+            const render_geometry = await this.area_asset_loader.load_render_geometry(
+                episode,
+                area_variant,
+            );
             if (this.should_cancel(area_variant)) return;
 
             this.add_sections_to_collision_geometry(collision_geometry, render_geometry);
@@ -187,7 +200,10 @@ class EntityModelManager {
     }[] = [];
     private loading = false;
 
-    constructor(private readonly renderer: QuestRenderer) {}
+    constructor(
+        private readonly renderer: QuestRenderer,
+        private readonly entity_asset_loader: EntityAssetLoader,
+    ) {}
 
     async add(entities: readonly QuestEntityModel[]): Promise<void> {
         this.queue.push(...entities);
@@ -249,8 +265,8 @@ class EntityModelManager {
     }
 
     private async load(entity: QuestEntityModel): Promise<void> {
-        const geom = await load_entity_geometry(entity.type);
-        const tex = await load_entity_textures(entity.type);
+        const geom = await this.entity_asset_loader.load_geometry(entity.type);
+        const tex = await this.entity_asset_loader.load_textures(entity.type);
         const model = create_entity_mesh(entity, geom, tex);
 
         // The model load might be cancelled by now.

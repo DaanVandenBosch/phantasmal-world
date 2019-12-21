@@ -632,7 +632,6 @@ class CreationState implements State {
                 // TODO: do the following values make sense?
                 [
                     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0],
                     [0, 0, 0, 0],
                 ],
             );

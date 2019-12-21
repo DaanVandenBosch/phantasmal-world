@@ -1,10 +1,14 @@
 import { QuestNpcModel } from "./QuestNpcModel";
 import { npc_data, NpcType } from "../../core/data_formats/parsing/quest/npc_types";
-import { area_store } from "../stores/AreaStore";
 import { Episode } from "../../core/data_formats/parsing/quest/Episode";
 import { Euler, Vector3 } from "three";
 import { SectionModel } from "./SectionModel";
 import { QuestEntityModel } from "./QuestEntityModel";
+import { AreaStore } from "../stores/AreaStore";
+import { DummyClient } from "../../core/HttpClient";
+import { AreaAssetLoader } from "../loading/AreaAssetLoader";
+
+const area_store = new AreaStore(new AreaAssetLoader(new DummyClient()));
 
 test("After changing section, world position should change accordingly.", () => {
     const entity = create_entity();

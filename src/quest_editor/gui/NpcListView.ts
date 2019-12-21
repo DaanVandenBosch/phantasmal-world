@@ -2,10 +2,14 @@ import { EntityListView } from "./EntityListView";
 import { npc_data, NPC_TYPES, NpcType } from "../../core/data_formats/parsing/quest/npc_types";
 import { QuestEditorStore } from "../stores/QuestEditorStore";
 import { Episode } from "../../core/data_formats/parsing/quest/Episode";
+import { EntityImageRenderer } from "../rendering/EntityImageRenderer";
 
 export class NpcListView extends EntityListView<NpcType> {
-    constructor(private readonly quest_editor_store: QuestEditorStore) {
-        super(quest_editor_store, "quest_editor_NpcListView");
+    constructor(
+        private readonly quest_editor_store: QuestEditorStore,
+        entity_image_renderer: EntityImageRenderer,
+    ) {
+        super(quest_editor_store, entity_image_renderer, "quest_editor_NpcListView");
 
         this.disposables(
             quest_editor_store.current_quest.observe(this.filter_npcs),

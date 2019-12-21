@@ -3,17 +3,21 @@ import { bind_children_to, el } from "../../core/gui/dom";
 import "./EntityListView.css";
 import { entity_data, EntityType } from "../../core/data_formats/parsing/quest/entities";
 import { entity_dnd_source } from "./entity_dnd";
-import { render_entity_to_image } from "../rendering/render_entity_to_image";
 import { WritableListProperty } from "../../core/observable/property/list/WritableListProperty";
 import { list_property } from "../../core/observable";
 import { QuestEditorStore } from "../stores/QuestEditorStore";
+import { EntityImageRenderer } from "../rendering/EntityImageRenderer";
 
 export abstract class EntityListView<T extends EntityType> extends ResizableWidget {
     readonly element: HTMLElement;
 
     protected readonly entities: WritableListProperty<T> = list_property();
 
-    protected constructor(quest_editor_store: QuestEditorStore, class_name: string) {
+    protected constructor(
+        quest_editor_store: QuestEditorStore,
+        private readonly entity_image_renderer: EntityImageRenderer,
+        class_name: string,
+    ) {
         super();
 
         const list_element = el.div({ class: "quest_editor_EntityListView_entity_list" });
@@ -62,7 +66,7 @@ export abstract class EntityListView<T extends EntityType> extends ResizableWidg
         img_element.style.pointerEvents = "none";
         entity_element.append(img_element);
 
-        render_entity_to_image(entity).then(url => {
+        this.entity_image_renderer.render(entity).then(url => {
             img_element.src = url;
             img_element.style.visibility = "visible";
         });
