@@ -110,15 +110,15 @@ export class GeometryBuilder {
         const data = geom.userData as BuilderData;
         data.created_by_geometry_builder = true;
 
-        geom.addAttribute("position", new Float32BufferAttribute(this.positions, 3));
-        geom.addAttribute("normal", new Float32BufferAttribute(this.normals, 3));
-        geom.addAttribute("uv", new Float32BufferAttribute(this.uvs, 2));
+        geom.setAttribute("position", new Float32BufferAttribute(this.positions, 3));
+        geom.setAttribute("normal", new Float32BufferAttribute(this.normals, 3));
+        geom.setAttribute("uv", new Float32BufferAttribute(this.uvs, 2));
 
         geom.setIndex(new Uint16BufferAttribute(this.indices, 1));
 
         if (this.bone_indices.length && this.bones.length) {
-            geom.addAttribute("skinIndex", new Uint16BufferAttribute(this.bone_indices, 4));
-            geom.addAttribute("skinWeight", new Float32BufferAttribute(this.bone_weights, 4));
+            geom.setAttribute("skinIndex", new Uint16BufferAttribute(this.bone_indices, 4));
+            geom.setAttribute("skinWeight", new Float32BufferAttribute(this.bone_weights, 4));
             data.bones = this.bones;
         } else {
             data.bones = [];
