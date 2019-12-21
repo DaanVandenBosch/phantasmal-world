@@ -5,12 +5,20 @@ import { WritableProperty } from "../../core/observable/property/WritablePropert
 import { SectionModel } from "./SectionModel";
 import { Euler, Quaternion, Vector3 } from "three";
 import { floor_mod } from "../../core/math";
+import { assert, require_integer, defined } from "../../core/util";
 
-// These quaternions are used as temporary variables.
+// These quaternions are used as temporary variables to avoid memory allocation.
 const q1 = new Quaternion();
 const q2 = new Quaternion();
 
 export abstract class QuestEntityModel<Type extends EntityType = EntityType> {
+    private readonly _section_id: WritableProperty<number>;
+    private readonly _section: WritableProperty<SectionModel | undefined> = property(undefined);
+    private readonly _position: WritableProperty<Vector3>;
+    private readonly _world_position: WritableProperty<Vector3>;
+    private readonly _rotation: WritableProperty<Euler>;
+    private readonly _world_rotation: WritableProperty<Euler>;
+
     readonly type: Type;
 
     readonly area_id: number;
@@ -33,13 +41,6 @@ export abstract class QuestEntityModel<Type extends EntityType = EntityType> {
 
     readonly world_rotation: Property<Euler>;
 
-    private readonly _section_id: WritableProperty<number>;
-    private readonly _section: WritableProperty<SectionModel | undefined> = property(undefined);
-    private readonly _position: WritableProperty<Vector3>;
-    private readonly _world_position: WritableProperty<Vector3>;
-    private readonly _rotation: WritableProperty<Euler>;
-    private readonly _world_rotation: WritableProperty<Euler>;
-
     protected constructor(
         type: Type,
         area_id: number,
@@ -47,11 +48,11 @@ export abstract class QuestEntityModel<Type extends EntityType = EntityType> {
         position: Vector3,
         rotation: Euler,
     ) {
-        if (type == undefined) throw new Error("type is required.");
-        if (!Number.isInteger(area_id)) throw new Error("area_id should be an integer.");
-        if (!Number.isInteger(section_id)) throw new Error("section_id should be an integer.");
-        if (!position) throw new Error("position is required.");
-        if (!rotation) throw new Error("rotation is required.");
+        defined(type, "type");
+        require_integer(area_id, "area_id");
+        require_integer(section_id, "section_id");
+        defined(position, "position");
+        defined(rotation, "rotation");
 
         this.type = type;
         this.area_id = area_id;

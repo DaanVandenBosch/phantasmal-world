@@ -6,6 +6,7 @@ import { ResizableBufferCursor } from "../../cursor/ResizableBufferCursor";
 import { ResizableBuffer } from "../../ResizableBuffer";
 import { Vec3 } from "../../vector";
 import { WritableCursor } from "../../cursor/WritableCursor";
+import { assert } from "../../../util";
 
 const logger = Logger.get("core/data_formats/parsing/quest/dat");
 
@@ -35,6 +36,8 @@ export type DatObject = DatEntity & {
 };
 
 export type DatNpc = DatEntity & {
+    readonly wave: number;
+    readonly wave2: number;
     readonly scale: Vec3;
     readonly npc_id: number;
     readonly script_label: number;
@@ -223,7 +226,8 @@ function parse_npcs(cursor: Cursor, area_id: number, npcs: DatNpc[]): void {
         const type_id = cursor.u16();
         const unknown1 = cursor.u8_array(10);
         const section_id = cursor.u16();
-        const unknown2 = cursor.u8_array(6);
+        const wave = cursor.u16();
+        const wave2 = cursor.u32();
         const position = cursor.vec3_f32();
         const rotation_x = (cursor.i32() / 0xffff) * 2 * Math.PI;
         const rotation_y = (cursor.i32() / 0xffff) * 2 * Math.PI;
@@ -232,11 +236,13 @@ function parse_npcs(cursor: Cursor, area_id: number, npcs: DatNpc[]): void {
         const npc_id = cursor.f32();
         const script_label = cursor.f32();
         const roaming = cursor.u32();
-        const unknown3 = cursor.u8_array(4);
+        const unknown2 = cursor.u8_array(4);
 
         npcs.push({
             type_id,
             section_id,
+            wave,
+            wave2,
             position,
             rotation: { x: rotation_x, y: rotation_y, z: rotation_z },
             scale,
@@ -244,7 +250,7 @@ function parse_npcs(cursor: Cursor, area_id: number, npcs: DatNpc[]): void {
             script_label,
             roaming,
             area_id,
-            unknown: [unknown1, unknown2, unknown3],
+            unknown: [unknown1, unknown2],
         });
     }
 }
@@ -375,21 +381,27 @@ function write_objects(cursor: WritableCursor, objs: readonly DatObject[]): void
         cursor.write_u32(entities_size);
 
         for (const obj of area_objs) {
-            if (obj.unknown.length !== 2)
-                throw new Error(`unknown should be of length 2, was ${obj.unknown.length}`);
+            assert(
+                obj.unknown.length === 2,
+                () => `unknown should be of length 2, was ${obj.unknown.length}`,
+            );
 
             cursor.write_u16(obj.type_id);
 
-            if (obj.unknown[0].length !== 6)
-                throw new Error(`unknown[0] should be of length 6, was ${obj.unknown[0].length}`);
+            assert(
+                obj.unknown[0].length === 6,
+                () => `unknown[0] should be of length 6, was ${obj.unknown[0].length}`,
+            );
 
             cursor.write_u8_array(obj.unknown[0]);
             cursor.write_u16(obj.id);
             cursor.write_u16(obj.group_id);
             cursor.write_u16(obj.section_id);
 
-            if (obj.unknown[1].length !== 2)
-                throw new Error(`unknown[1] should be of length 2, was ${obj.unknown[1].length}`);
+            assert(
+                obj.unknown[1].length === 2,
+                () => `unknown[1] should be of length 2, was ${obj.unknown[1].length}`,
+            );
 
             cursor.write_u8_array(obj.unknown[1]);
             cursor.write_vec3_f32(obj.position);
@@ -397,8 +409,10 @@ function write_objects(cursor: WritableCursor, objs: readonly DatObject[]): void
             cursor.write_i32(Math.round((obj.rotation.y / (2 * Math.PI)) * 0xffff));
             cursor.write_i32(Math.round((obj.rotation.z / (2 * Math.PI)) * 0xffff));
 
-            if (obj.properties.length !== 7)
-                throw new Error(`properties should be of length 7, was ${obj.properties.length}`);
+            assert(
+                obj.properties.length === 7,
+                () => `properties should be of length 7, was ${obj.properties.length}`,
+            );
 
             cursor.write_f32(obj.properties[0]);
             cursor.write_f32(obj.properties[1]);
@@ -426,21 +440,22 @@ function write_npcs(cursor: WritableCursor, npcs: readonly DatNpc[]): void {
         cursor.write_u32(entities_size);
 
         for (const npc of area_npcs) {
-            if (npc.unknown.length !== 3)
-                throw new Error(`unknown should be of length 3, was ${npc.unknown.length}`);
+            assert(
+                npc.unknown.length === 2,
+                () => `unknown should be of length 2, was ${npc.unknown.length}`,
+            );
 
             cursor.write_u16(npc.type_id);
 
-            if (npc.unknown[0].length !== 10)
-                throw new Error(`unknown[0] should be of length 10, was ${npc.unknown[0].length}`);
+            assert(
+                npc.unknown[0].length === 10,
+                () => `unknown[0] should be of length 10, was ${npc.unknown[0].length}`,
+            );
 
             cursor.write_u8_array(npc.unknown[0]);
             cursor.write_u16(npc.section_id);
-
-            if (npc.unknown[1].length !== 6)
-                throw new Error(`unknown[1] should be of length 6, was ${npc.unknown[1].length}`);
-
-            cursor.write_u8_array(npc.unknown[1]);
+            cursor.write_u16(npc.wave);
+            cursor.write_u32(npc.wave2);
             cursor.write_vec3_f32(npc.position);
             cursor.write_i32(Math.round((npc.rotation.x / (2 * Math.PI)) * 0xffff));
             cursor.write_i32(Math.round((npc.rotation.y / (2 * Math.PI)) * 0xffff));
@@ -450,10 +465,12 @@ function write_npcs(cursor: WritableCursor, npcs: readonly DatNpc[]): void {
             cursor.write_f32(npc.script_label);
             cursor.write_u32(npc.roaming);
 
-            if (npc.unknown[2].length !== 4)
-                throw new Error(`unknown[2] should be of length 4, was ${npc.unknown[2].length}`);
+            assert(
+                npc.unknown[1].length === 4,
+                () => `unknown[1] should be of length 4, was ${npc.unknown[1].length}`,
+            );
 
-            cursor.write_u8_array(npc.unknown[2]);
+            cursor.write_u8_array(npc.unknown[1]);
         }
     }
 }

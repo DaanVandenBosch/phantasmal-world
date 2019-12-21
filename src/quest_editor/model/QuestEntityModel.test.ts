@@ -44,11 +44,13 @@ function create_entity(): QuestEntityModel {
         1,
         0,
         0,
+        0,
+        0,
         area_store.get_area(Episode.I, 0).id,
         20,
         new Vector3(5, 5, 5),
         new Euler(0, 0, 0, "ZXY"),
         new Vector3(1, 1, 1),
-        [Array(10).fill(0xdead), Array(6).fill(0xdead), Array(4).fill(0xdead)],
+        [Array(10).fill(0xdead), Array(4).fill(0xdead)],
     );
 }

@@ -42,26 +42,42 @@ export function basename(filename: string): string {
     return filename;
 }
 
-export function defined<T>(value: T | undefined): asserts value is T {
-    if (value === undefined) {
-        throw new Error("Assertion Error: value is undefined.");
-    }
-}
-
-export function assert(condition: any, msg?: string): asserts condition {
+export function assert(condition: any, msg?: string | (() => string)): asserts condition {
     if (!condition) {
         let full_msg = "Assertion Error";
 
         if (msg) {
-            full_msg += ": " + msg;
+            full_msg += ": " + (msg instanceof Function ? msg() : msg);
         }
 
         throw new Error(full_msg);
     }
 }
 
-export function required(condition: any, name: string): asserts condition {
-    assert(condition, `${name} is required.`);
+/**
+ * Asserts that `value` is not null and not undefined.
+ */
+export function defined<T>(value: T | undefined | null, name: string): asserts value is T {
+    assert(value != undefined, () => `${name} should not be null or undefined (was ${value}).`);
+}
+
+export function require_finite(value: number, name: string): void {
+    assert(Number.isFinite(value), () => `${name} should be a finite number (was ${value}).`);
+}
+
+export function require_integer(value: number, name: string): void {
+    assert(Number.isInteger(value), () => `${name} should be an integer (was ${value}).`);
+}
+
+export function require_non_negative_integer(value: number, name: string): void {
+    assert(
+        Number.isInteger(value) && value >= 0,
+        () => `${name} should be a non-negative integer (was ${value}).`,
+    );
+}
+
+export function require_array<T>(value: readonly T[], name: string): void {
+    assert(Array.isArray(value), () => `${name} should be an array (was ${value}).`);
 }
 
 export function number_to_hex_string(

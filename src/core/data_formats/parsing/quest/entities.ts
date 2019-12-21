@@ -7,6 +7,8 @@ export type QuestNpc = {
     readonly type: NpcType;
     readonly area_id: number;
     readonly section_id: number;
+    readonly wave: number;
+    readonly pso_wave2: number;
     /**
      * Section-relative position
      */
@@ -54,7 +56,7 @@ export type EntityTypeData = NpcTypeData | ObjectTypeData;
 export type EntityType = NpcType | ObjectType;
 
 export function entity_type_to_string(type: EntityType): string {
-    return (NpcType as any)[type] || (ObjectType as any)[type];
+    return (NpcType as any)[type] ?? (ObjectType as any)[type];
 }
 
 export function is_npc_type(entity_type: EntityType): entity_type is NpcType {
@@ -62,5 +64,5 @@ export function is_npc_type(entity_type: EntityType): entity_type is NpcType {
 }
 
 export function entity_data(type: EntityType): EntityTypeData {
-    return npc_data(type as NpcType) || object_data(type as ObjectType);
+    return npc_data(type as NpcType) ?? object_data(type as ObjectType);
 }

@@ -281,6 +281,8 @@ function parse_npc_data(episode: number, npcs: readonly DatNpc[]): QuestNpc[] {
             type: get_npc_type(episode, npc_data),
             area_id: npc_data.area_id,
             section_id: npc_data.section_id,
+            wave: npc_data.wave,
+            pso_wave2: npc_data.wave2,
             position: npc_data.position,
             rotation: npc_data.rotation,
             scale: npc_data.scale,
@@ -600,6 +602,8 @@ function npcs_to_dat_data(npcs: readonly QuestNpc[]): DatNpc[] {
 
         return {
             type_id,
+            wave: npc.wave,
+            wave2: npc.pso_wave2,
             section_id: npc.section_id,
             position: npc.position,
             rotation: npc.rotation,

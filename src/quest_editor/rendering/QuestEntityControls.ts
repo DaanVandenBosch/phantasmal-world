@@ -594,6 +594,8 @@ class CreationState implements State {
                 data.pso_type_id!,
                 0,
                 0,
+                0,
+                0,
                 data.pso_roaming!,
                 area.id,
                 0,

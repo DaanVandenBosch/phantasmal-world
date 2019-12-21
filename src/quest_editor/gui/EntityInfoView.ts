@@ -21,6 +21,7 @@ export class EntityInfoView extends ResizableWidget {
     private readonly type_element: HTMLTableCellElement;
     private readonly name_element: HTMLTableCellElement;
     private readonly section_id_element: HTMLTableCellElement;
+    private readonly wave_element: HTMLTableCellElement;
     private readonly pos_x_element = this.disposable(
         new NumberInput(0, { width: 80, round_to: 3 }),
     );
@@ -53,6 +54,7 @@ export class EntityInfoView extends ResizableWidget {
             el.tr({}, el.th({ text: "Type:" }), (this.type_element = el.td())),
             el.tr({}, el.th({ text: "Name:" }), (this.name_element = el.td())),
             el.tr({}, el.th({ text: "Section:" }), (this.section_id_element = el.td())),
+            el.tr({}, el.th({ text: "Wave:" }), (this.wave_element = el.td())),
             el.tr({}, el.th({ text: "Position:", col_span: 2 })),
             el.tr(
                 {},
@@ -100,8 +102,7 @@ export class EntityInfoView extends ResizableWidget {
                 this.entity_disposer.dispose_all();
 
                 if (entity) {
-                    this.type_element.innerText =
-                        entity instanceof QuestNpcModel ? "NPC" : "Object";
+                    // Generic entity properties.
                     const name = entity_data(entity.type).name;
                     this.name_element.innerText = name;
                     this.name_element.title = name;
@@ -114,6 +115,23 @@ export class EntityInfoView extends ResizableWidget {
                             { call_now: true },
                         ),
                     );
+
+                    if (entity instanceof QuestNpcModel) {
+                        // NPC properties.
+                        this.type_element.innerText = "NPC";
+
+                        this.entity_disposer.add(
+                            entity.wave.observe(
+                                ({ value: wave }) => {
+                                    this.wave_element.innerText = wave.toString();
+                                },
+                                { call_now: true },
+                            ),
+                        );
+                    } else {
+                        // Object properties
+                        this.type_element.innerText = "Object";
+                    }
 
                     this.observe_entity(entity);
                 }

@@ -307,7 +307,7 @@ export class QuestRunner {
 
     private run_floor_handler(area_variant: AreaVariantModel): void {
         const quest = this.quest;
-        defined(quest);
+        defined(quest, "quest");
 
         const area_id = area_variant.area.id;
 

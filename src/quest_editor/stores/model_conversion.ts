@@ -52,6 +52,8 @@ export function convert_quest_to_model(quest: Quest): QuestModel {
                     npc.type,
                     npc.pso_type_id,
                     npc.npc_id,
+                    npc.wave,
+                    npc.pso_wave2,
                     npc.script_label,
                     npc.pso_roaming,
                     npc.area_id,
@@ -64,7 +66,7 @@ export function convert_quest_to_model(quest: Quest): QuestModel {
         ),
         build_event_dags(quest.events),
         quest.dat_unknowns,
-        quest.object_code,
+        quest.object_code.slice(),
         quest.shop_items,
     );
 }
@@ -266,6 +268,8 @@ export function convert_quest_from_model(quest: QuestModel): Quest {
             type: npc.type,
             area_id: npc.area_id,
             section_id: npc.section_id.val,
+            wave: npc.wave.val,
+            pso_wave2: npc.pso_wave2,
             position: npc.position.val.clone(),
             rotation: npc.rotation.val.clone(),
             scale: npc.scale.clone(),

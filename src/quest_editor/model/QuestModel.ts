@@ -14,7 +14,7 @@ import { WritableListProperty } from "../../core/observable/property/list/Writab
 import { QuestEntityModel } from "./QuestEntityModel";
 import { entity_type_to_string } from "../../core/data_formats/parsing/quest/entities";
 import { QuestEventDagModel } from "./QuestEventDagModel";
-import { assert, required } from "../../core/util";
+import { assert, defined, require_array } from "../../core/util";
 
 const logger = Logger.get("quest_editor/model/QuestModel");
 
@@ -66,11 +66,11 @@ export class QuestModel {
     /**
      * (Partial) raw DAT data that can't be parsed yet by Phantasmal.
      */
-    readonly dat_unknowns: DatUnknown[];
+    readonly dat_unknowns: readonly DatUnknown[];
 
     readonly object_code: Segment[];
 
-    readonly shop_items: number[];
+    readonly shop_items: readonly number[];
 
     constructor(
         id: number,
@@ -84,17 +84,17 @@ export class QuestModel {
         npcs: readonly QuestNpcModel[],
         event_dags: readonly QuestEventDagModel[],
         dat_unknowns: readonly DatUnknown[],
-        object_code: readonly Segment[],
+        object_code: Segment[],
         shop_items: readonly number[],
     ) {
         check_episode(episode);
-        required(map_designations, "map_designations");
-        required(Array.isArray(objects), "objs");
-        required(Array.isArray(npcs), "npcs");
-        required(Array.isArray(event_dags), "event_dags");
-        required(Array.isArray(dat_unknowns), "dat_unknowns");
-        required(Array.isArray(object_code), "object_code");
-        required(Array.isArray(shop_items), "shop_items");
+        defined(map_designations, "map_designations");
+        require_array(objects, "objs");
+        require_array(npcs, "npcs");
+        require_array(event_dags, "event_dags");
+        require_array(dat_unknowns, "dat_unknowns");
+        require_array(object_code, "object_code");
+        require_array(shop_items, "shop_items");
 
         this.set_id(id);
         this.set_language(language);
