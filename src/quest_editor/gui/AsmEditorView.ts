@@ -55,9 +55,8 @@ export class AsmEditorView extends ResizableWidget {
             editor.create(this.element, {
                 theme: "phantasmal-world",
                 scrollBeyondLastLine: false,
-                autoIndent: true,
+                autoIndent: "full",
                 fontSize: 13,
-                wordBasedSuggestions: false,
                 wordWrap: "on",
                 wrappingIndent: "indent",
                 renderIndentGuides: false,
@@ -69,9 +68,13 @@ export class AsmEditorView extends ResizableWidget {
         this.history = this.disposable(new EditorHistory(this.editor));
 
         // Commands and actions.
-        this.editor.addCommand(KeyMod.CtrlCmd | KeyCode.KEY_Z, () => {});
+        this.editor.addCommand(KeyMod.CtrlCmd | KeyCode.KEY_Z, () => {
+            // Do nothing.
+        });
 
-        this.editor.addCommand(KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.KEY_Z, () => {});
+        this.editor.addCommand(KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.KEY_Z, () => {
+            // Do nothing.
+        });
 
         const quick_command = this.editor.getAction("editor.action.quickCommand");
 

@@ -42,7 +42,7 @@ module.exports = merge(common, {
                 use: [MiniCssExtractPlugin.loader, "css-loader"],
             },
             {
-                test: /\.(png|svg|jpg|gif)$/,
+                test: /\.(gif|jpg|png|svg|ttf)$/,
                 use: ["file-loader"],
             },
         ],

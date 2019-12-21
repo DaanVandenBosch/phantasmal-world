@@ -1,5 +1,4 @@
 import {
-    AnimationAction,
     AnimationClip,
     AnimationMixer,
     Clock,
@@ -34,7 +33,6 @@ export class Model3DRenderer extends Renderer implements Disposable {
     private animation?: {
         mixer: AnimationMixer;
         clip: AnimationClip;
-        action: AnimationAction;
     };
     private update_animation_time = true;
 
@@ -75,7 +73,7 @@ export class Model3DRenderer extends Renderer implements Disposable {
         this.light_holder.quaternion.copy(this.camera.quaternion);
         super.render();
 
-        if (this.animation && !this.animation.action.paused) {
+        if (this.animation && !this.animation.mixer.clipAction(this.animation.clip).paused) {
             this.update_animation_frame();
             this.schedule_render();
         }
@@ -163,11 +161,10 @@ export class Model3DRenderer extends Renderer implements Disposable {
         this.animation = {
             mixer,
             clip,
-            action: mixer.clipAction(clip),
         };
 
         this.clock.start();
-        this.animation.action.play();
+        this.animation.mixer.clipAction(this.animation.clip).play();
         this.schedule_render();
     };
 
@@ -180,7 +177,7 @@ export class Model3DRenderer extends Renderer implements Disposable {
 
     private animation_playing_changed = ({ value: playing }: ChangeEvent<boolean>): void => {
         if (this.animation) {
-            this.animation.action.paused = !playing;
+            this.animation.mixer.clipAction(this.animation.clip).paused = !playing;
 
             if (playing) {
                 this.clock.start();
@@ -206,7 +203,8 @@ export class Model3DRenderer extends Renderer implements Disposable {
             if (frame < 1) frame = frame_count;
 
             if (this.update_animation_time) {
-                this.animation.action.time = (frame - 1) / PSO_FRAME_RATE;
+                this.animation.mixer.clipAction(this.animation.clip).time =
+                    (frame - 1) / PSO_FRAME_RATE;
             }
 
             this.schedule_render();
@@ -214,11 +212,14 @@ export class Model3DRenderer extends Renderer implements Disposable {
     };
 
     private update_animation_frame(): void {
-        if (this.animation && !this.animation.action.paused) {
-            const time = this.animation.action.time;
-            this.update_animation_time = false;
-            this.model_3d_store.set_animation_frame(time * PSO_FRAME_RATE + 1);
-            this.update_animation_time = true;
+        if (this.animation) {
+            const action = this.animation.mixer.clipAction(this.animation.clip);
+
+            if (!action.paused) {
+                this.update_animation_time = false;
+                this.model_3d_store.set_animation_frame(action.time * PSO_FRAME_RATE + 1);
+                this.update_animation_time = true;
+            }
         }
     }
 }
