@@ -8,7 +8,7 @@ import {
     Vector3,
 } from "three";
 import { Disposable } from "../../core/observable/Disposable";
-import { Renderer } from "../../core/rendering/Renderer";
+import { DisposableThreeRenderer, Renderer } from "../../core/rendering/Renderer";
 import { Disposer } from "../../core/observable/Disposer";
 import { Xvm } from "../../core/data_formats/parsing/ninja/texture";
 import { xvm_texture_to_texture } from "../../core/rendering/conversion/ninja_textures";
@@ -23,8 +23,8 @@ export class TextureRenderer extends Renderer implements Disposable {
 
     readonly camera = new OrthographicCamera(-400, 400, 300, -300, 1, 10);
 
-    constructor(texture_store: TextureStore) {
-        super();
+    constructor(three_renderer: DisposableThreeRenderer, texture_store: TextureStore) {
+        super(three_renderer);
 
         this.disposer.add_all(
             texture_store.current_xvm.observe(({ value: xvm }) => {

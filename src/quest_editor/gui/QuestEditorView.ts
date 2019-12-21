@@ -18,12 +18,13 @@ import { RegistersView } from "./RegistersView";
 import { LogView } from "./LogView";
 import { QuestRunnerRendererView } from "./QuestRunnerRendererView";
 import { QuestEditorStore } from "../stores/QuestEditorStore";
-import Logger = require("js-logger");
 import { AsmEditorStore } from "../stores/AsmEditorStore";
 import { AreaStore } from "../stores/AreaStore";
 import { EntityImageRenderer } from "../rendering/EntityImageRenderer";
 import { AreaAssetLoader } from "../loading/AreaAssetLoader";
 import { EntityAssetLoader } from "../loading/EntityAssetLoader";
+import { DisposableThreeRenderer } from "../../core/rendering/Renderer";
+import Logger = require("js-logger");
 
 const logger = Logger.get("quest_editor/gui/QuestEditorView");
 
@@ -73,6 +74,7 @@ export class QuestEditorView extends ResizableWidget {
         area_asset_loader: AreaAssetLoader,
         entity_asset_loader: EntityAssetLoader,
         entity_image_renderer: EntityImageRenderer,
+        create_three_renderer: () => DisposableThreeRenderer,
     ) {
         super();
 
@@ -99,6 +101,7 @@ export class QuestEditorView extends ResizableWidget {
                             quest_editor_store,
                             area_asset_loader,
                             entity_asset_loader,
+                            create_three_renderer(),
                         ),
                 },
             ],
@@ -150,6 +153,7 @@ export class QuestEditorView extends ResizableWidget {
                         quest_editor_store,
                         area_asset_loader,
                         entity_asset_loader,
+                        create_three_renderer(),
                     ),
             });
             this.view_map.set(LogView, { name: "log_view", create: () => new LogView() });

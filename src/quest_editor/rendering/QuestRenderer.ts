@@ -1,4 +1,4 @@
-import { Renderer } from "../../core/rendering/Renderer";
+import { DisposableThreeRenderer, Renderer } from "../../core/rendering/Renderer";
 import { Group, Mesh, MeshLambertMaterial, Object3D, PerspectiveCamera } from "three";
 import { QuestEntityModel } from "../model/QuestEntityModel";
 import { QuestModelManager } from "./QuestModelManager";
@@ -52,8 +52,11 @@ export class QuestRenderer extends Renderer {
 
     selected_entity: QuestEntityModel | undefined;
 
-    constructor(create_model_manager: (renderer: QuestRenderer) => QuestModelManager) {
-        super();
+    constructor(
+        three_renderer: DisposableThreeRenderer,
+        create_model_manager: (renderer: QuestRenderer) => QuestModelManager,
+    ) {
+        super(three_renderer);
 
         this.disposer.add(create_model_manager(this));
     }

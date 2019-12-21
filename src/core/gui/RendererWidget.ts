@@ -3,12 +3,12 @@ import { el } from "./dom";
 import { Renderer } from "../rendering/Renderer";
 
 export class RendererWidget extends ResizableWidget {
-    readonly element = el.div();
+    readonly element = el.div({ class: "core_RendererWidget" });
 
     constructor(private renderer: Renderer) {
         super();
 
-        this.element.append(renderer.dom_element);
+        this.element.append(renderer.canvas_element);
 
         this.disposable(renderer);
 

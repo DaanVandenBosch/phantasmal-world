@@ -5,10 +5,10 @@ import { Euler, Vector3 } from "three";
 import { SectionModel } from "./SectionModel";
 import { QuestEntityModel } from "./QuestEntityModel";
 import { AreaStore } from "../stores/AreaStore";
-import { DummyClient } from "../../core/HttpClient";
+import { StubHttpClient } from "../../core/HttpClient";
 import { AreaAssetLoader } from "../loading/AreaAssetLoader";
 
-const area_store = new AreaStore(new AreaAssetLoader(new DummyClient()));
+const area_store = new AreaStore(new AreaAssetLoader(new StubHttpClient()));
 
 test("After changing section, world position should change accordingly.", () => {
     const entity = create_entity();

@@ -168,14 +168,19 @@ export class Model3DStore implements Disposable {
         this.clear_current_animation();
 
         if (model) {
-            const nj_object = await this.get_nj_object(model);
+            try {
+                const nj_object = await this.get_nj_object(model);
 
-            this.set_current_nj_data({
-                nj_object,
-                // Ignore the bones from the head parts.
-                bone_count: model ? 64 : nj_object.bone_count(),
-                has_skeleton: true,
-            });
+                this.set_current_nj_data({
+                    nj_object,
+                    // Ignore the bones from the head parts.
+                    bone_count: model ? 64 : nj_object.bone_count(),
+                    has_skeleton: true,
+                });
+            } catch (e) {
+                logger.error(`Couldn't load model for ${model.name}.`);
+                this._current_nj_data.val = undefined;
+            }
         } else {
             this._current_nj_data.val = undefined;
         }
@@ -254,8 +259,16 @@ export class Model3DStore implements Disposable {
         const nj_data = this.current_nj_data.val;
 
         if (nj_data && animation) {
-            this._current_nj_motion.val = await this.get_nj_motion(animation, nj_data.bone_count);
-            this.set_animation_playing(true);
+            try {
+                this._current_nj_motion.val = await this.get_nj_motion(
+                    animation,
+                    nj_data.bone_count,
+                );
+                this.set_animation_playing(true);
+            } catch (e) {
+                logger.error(`Couldn't load animation "${animation.name}".`);
+                this._current_nj_motion.val = undefined;
+            }
         } else {
             this._current_nj_motion.val = undefined;
         }

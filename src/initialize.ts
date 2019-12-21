@@ -5,8 +5,12 @@ import { load_item_type_stores } from "./core/stores/ItemTypeStore";
 import { load_item_drop_stores } from "./hunt_optimizer/stores/ItemDropStore";
 import { ApplicationView } from "./application/gui/ApplicationView";
 import { throttle } from "lodash";
+import { DisposableThreeRenderer } from "./core/rendering/Renderer";
 
-export function initialize(http_client: HttpClient): Disposable {
+export function initialize(
+    http_client: HttpClient,
+    create_three_renderer: () => DisposableThreeRenderer,
+): Disposable {
     // Disable native undo/redo.
     document.addEventListener("beforeinput", before_input);
     // Work-around for FireFox:
@@ -27,7 +31,11 @@ export function initialize(http_client: HttpClient): Disposable {
         [
             GuiTool.Viewer,
             async () => {
-                return (await import("./viewer/index")).initialize_viewer(http_client, gui_store);
+                return (await import("./viewer/index")).initialize_viewer(
+                    http_client,
+                    gui_store,
+                    create_three_renderer,
+                );
             },
         ],
         [
@@ -36,6 +44,7 @@ export function initialize(http_client: HttpClient): Disposable {
                 return (await import("./quest_editor/index")).initialize_quest_editor(
                     http_client,
                     gui_store,
+                    create_three_renderer,
                 );
             },
         ],

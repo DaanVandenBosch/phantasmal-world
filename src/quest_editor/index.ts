@@ -7,10 +7,12 @@ import { AreaAssetLoader } from "./loading/AreaAssetLoader";
 import { HttpClient } from "../core/HttpClient";
 import { EntityImageRenderer } from "./rendering/EntityImageRenderer";
 import { EntityAssetLoader } from "./loading/EntityAssetLoader";
+import { DisposableThreeRenderer } from "../core/rendering/Renderer";
 
 export function initialize_quest_editor(
     http_client: HttpClient,
     gui_store: GuiStore,
+    create_three_renderer: () => DisposableThreeRenderer,
 ): QuestEditorView {
     // Asset Loaders
     const area_asset_loader = new AreaAssetLoader(http_client);
@@ -33,5 +35,6 @@ export function initialize_quest_editor(
         area_asset_loader,
         entity_asset_loader,
         entity_image_renderer,
+        create_three_renderer,
     );
 }

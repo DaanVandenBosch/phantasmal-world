@@ -125,7 +125,7 @@ test("basic window_msg output", () => {
             messages_added.push(msg);
         });
 
-        winend = jest.fn(() => {});
+        winend = jest.fn(() => {}); // eslint-disable-line
 
         error = jest.fn((err: Error) => {
             throw err;

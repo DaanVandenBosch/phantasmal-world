@@ -6,6 +6,7 @@ import { QuestEntityControls } from "../rendering/QuestEntityControls";
 import { GuiStore } from "../../core/stores/GuiStore";
 import { AreaAssetLoader } from "../loading/AreaAssetLoader";
 import { EntityAssetLoader } from "../loading/EntityAssetLoader";
+import { DisposableThreeRenderer } from "../../core/rendering/Renderer";
 
 export class QuestEditorRendererView extends QuestRendererView {
     private readonly entity_controls: QuestEntityControls;
@@ -15,12 +16,14 @@ export class QuestEditorRendererView extends QuestRendererView {
         quest_editor_store: QuestEditorStore,
         area_asset_loader: AreaAssetLoader,
         entity_asset_loader: EntityAssetLoader,
+        three_renderer: DisposableThreeRenderer,
     ) {
         super(
             gui_store,
             quest_editor_store,
             "quest_editor_QuestEditorRendererView",
             new QuestRenderer(
+                three_renderer,
                 renderer =>
                     new QuestEditorModelManager(
                         quest_editor_store.current_quest,

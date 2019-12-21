@@ -51,29 +51,29 @@ export class QuestEntityControls implements Disposable {
     ) {
         this.disposer.add(quest_editor_store.selected_entity.observe(this.selected_entity_changed));
 
-        renderer.dom_element.addEventListener("keydown", this.keydown);
-        renderer.dom_element.addEventListener("mousedown", this.mousedown);
-        renderer.dom_element.addEventListener("mousemove", this.mousemove);
-        renderer.dom_element.addEventListener("mouseleave", this.mouseleave);
-        add_entity_dnd_listener(renderer.dom_element, "dragenter", this.dragenter);
-        add_entity_dnd_listener(renderer.dom_element, "dragover", this.dragover);
-        add_entity_dnd_listener(renderer.dom_element, "dragleave", this.dragleave);
-        add_entity_dnd_listener(renderer.dom_element, "drop", this.drop);
+        renderer.canvas_element.addEventListener("keydown", this.keydown);
+        renderer.canvas_element.addEventListener("mousedown", this.mousedown);
+        renderer.canvas_element.addEventListener("mousemove", this.mousemove);
+        renderer.canvas_element.addEventListener("mouseleave", this.mouseleave);
+        add_entity_dnd_listener(renderer.canvas_element, "dragenter", this.dragenter);
+        add_entity_dnd_listener(renderer.canvas_element, "dragover", this.dragover);
+        add_entity_dnd_listener(renderer.canvas_element, "dragleave", this.dragleave);
+        add_entity_dnd_listener(renderer.canvas_element, "drop", this.drop);
 
         this.state = new IdleState(this.quest_editor_store, renderer, this._enabled);
     }
 
     dispose = (): void => {
-        this.renderer.dom_element.removeEventListener("keydown", this.keydown);
-        this.renderer.dom_element.removeEventListener("mousedown", this.mousedown);
-        this.renderer.dom_element.removeEventListener("mousemove", this.mousemove);
+        this.renderer.canvas_element.removeEventListener("keydown", this.keydown);
+        this.renderer.canvas_element.removeEventListener("mousedown", this.mousedown);
+        this.renderer.canvas_element.removeEventListener("mousemove", this.mousemove);
         document.removeEventListener("mousemove", this.mousemove);
         document.removeEventListener("mouseup", this.mouseup);
-        this.renderer.dom_element.removeEventListener("mouseleave", this.mouseleave);
-        remove_entity_dnd_listener(this.renderer.dom_element, "dragenter", this.dragenter);
-        remove_entity_dnd_listener(this.renderer.dom_element, "dragover", this.dragover);
-        remove_entity_dnd_listener(this.renderer.dom_element, "dragleave", this.dragleave);
-        remove_entity_dnd_listener(this.renderer.dom_element, "drop", this.drop);
+        this.renderer.canvas_element.removeEventListener("mouseleave", this.mouseleave);
+        remove_entity_dnd_listener(this.renderer.canvas_element, "dragenter", this.dragenter);
+        remove_entity_dnd_listener(this.renderer.canvas_element, "dragover", this.dragover);
+        remove_entity_dnd_listener(this.renderer.canvas_element, "dragleave", this.dragleave);
+        remove_entity_dnd_listener(this.renderer.canvas_element, "drop", this.drop);
         this.disposer.dispose();
     };
 
@@ -113,7 +113,7 @@ export class QuestEntityControls implements Disposable {
             mark_hovered: this.mark_hovered,
         });
 
-        this.renderer.dom_element.removeEventListener("mousemove", this.mousemove);
+        this.renderer.canvas_element.removeEventListener("mousemove", this.mousemove);
         document.addEventListener("mousemove", this.mousemove);
         document.addEventListener("mouseup", this.mouseup);
     };
@@ -143,7 +143,7 @@ export class QuestEntityControls implements Disposable {
             mark_hovered: this.mark_hovered,
         });
 
-        this.renderer.dom_element.addEventListener("mousemove", this.mousemove);
+        this.renderer.canvas_element.addEventListener("mousemove", this.mousemove);
         document.removeEventListener("mousemove", this.mousemove);
         document.removeEventListener("mouseup", this.mouseup);
     };
@@ -208,7 +208,7 @@ export class QuestEntityControls implements Disposable {
 
     private drop = (e: EntityDragEvent): void => {
         this.process_mouse_event(e.event);
-        this.renderer.dom_element.focus();
+        this.renderer.canvas_element.focus();
 
         this.state = this.state.process_event({
             type: EvtType.EntityDrop,
@@ -216,7 +216,7 @@ export class QuestEntityControls implements Disposable {
     };
 
     private process_mouse_event(e: MouseEvent): void {
-        const { left, top } = this.renderer.dom_element.getBoundingClientRect();
+        const { left, top } = this.renderer.canvas_element.getBoundingClientRect();
         this.pointer_position.set(e.clientX - left, e.clientY - top);
         this.pointer_device_position.copy(this.pointer_position);
         this.renderer.pointer_pos_to_device_coords(this.pointer_device_position);

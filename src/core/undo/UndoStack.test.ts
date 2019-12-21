@@ -6,9 +6,11 @@ test("simple properties and invariants", () => {
     expect(stack.can_undo.val).toBe(false);
     expect(stack.can_redo.val).toBe(false);
 
+    /* eslint-disable */
     stack.push({ description: "", undo: () => {}, redo: () => {} });
     stack.push({ description: "", undo: () => {}, redo: () => {} });
     stack.push({ description: "", undo: () => {}, redo: () => {} });
+    /* eslint-enable */
 
     expect(stack.can_undo.val).toBe(true);
     expect(stack.can_redo.val).toBe(false);

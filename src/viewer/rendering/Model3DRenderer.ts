@@ -20,7 +20,7 @@ import {
     create_animation_clip,
     PSO_FRAME_RATE,
 } from "../../core/rendering/conversion/ninja_animation";
-import { Renderer } from "../../core/rendering/Renderer";
+import { DisposableThreeRenderer, Renderer } from "../../core/rendering/Renderer";
 import { Disposer } from "../../core/observable/Disposer";
 import { ChangeEvent } from "../../core/observable/Observable";
 import { Model3DStore } from "../stores/Model3DStore";
@@ -38,8 +38,11 @@ export class Model3DRenderer extends Renderer implements Disposable {
 
     readonly camera = new PerspectiveCamera(75, 1, 1, 200);
 
-    constructor(private readonly model_3d_store: Model3DStore) {
-        super();
+    constructor(
+        three_renderer: DisposableThreeRenderer,
+        private readonly model_3d_store: Model3DStore,
+    ) {
+        super(three_renderer);
 
         this.disposer.add_all(
             model_3d_store.current_nj_data.observe(this.nj_data_or_xvm_changed),

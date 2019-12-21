@@ -5,6 +5,7 @@ import { GuiStore } from "../../core/stores/GuiStore";
 import { QuestEditorStore } from "../stores/QuestEditorStore";
 import { AreaAssetLoader } from "../loading/AreaAssetLoader";
 import { EntityAssetLoader } from "../loading/EntityAssetLoader";
+import { DisposableThreeRenderer } from "../../core/rendering/Renderer";
 
 export class QuestRunnerRendererView extends QuestRendererView {
     constructor(
@@ -12,12 +13,14 @@ export class QuestRunnerRendererView extends QuestRendererView {
         quest_editor_store: QuestEditorStore,
         area_asset_loader: AreaAssetLoader,
         entity_asset_loader: EntityAssetLoader,
+        three_renderer: DisposableThreeRenderer,
     ) {
         super(
             gui_store,
             quest_editor_store,
             "quest_editor_QuestRunnerRendererView",
             new QuestRenderer(
+                three_renderer,
                 renderer =>
                     new QuestRunnerModelManager(
                         quest_editor_store.quest_runner,

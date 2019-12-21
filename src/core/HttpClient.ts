@@ -29,7 +29,7 @@ export class FetchClient implements HttpClient {
 /**
  * This client simple throws an error when used.
  */
-export class DummyClient implements HttpClient {
+export class StubHttpClient implements HttpClient {
     get(url: string): HttpResponse {
         return {
             json<T>(): Promise<T> {

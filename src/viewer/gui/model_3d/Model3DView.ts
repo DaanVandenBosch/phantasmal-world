@@ -9,6 +9,7 @@ import { Model3DSelectListView } from "./Model3DSelectListView";
 import { CharacterClassModel } from "../../model/CharacterClassModel";
 import { CharacterClassAnimationModel } from "../../model/CharacterClassAnimationModel";
 import { Model3DStore } from "../../stores/Model3DStore";
+import { DisposableThreeRenderer } from "../../../core/rendering/Renderer";
 
 const MODEL_LIST_WIDTH = 100;
 const ANIMATION_LIST_WIDTH = 140;
@@ -21,7 +22,11 @@ export class Model3DView extends ResizableWidget {
     private animation_list_view: Model3DSelectListView<CharacterClassAnimationModel>;
     private renderer_view: RendererWidget;
 
-    constructor(gui_store: GuiStore, model_3d_store: Model3DStore) {
+    constructor(
+        gui_store: GuiStore,
+        model_3d_store: Model3DStore,
+        three_renderer: DisposableThreeRenderer,
+    ) {
         super();
 
         this.tool_bar_view = this.disposable(new Model3DToolBar(model_3d_store));
@@ -40,7 +45,7 @@ export class Model3DView extends ResizableWidget {
             ),
         );
         this.renderer_view = this.disposable(
-            new RendererWidget(new Model3DRenderer(model_3d_store)),
+            new RendererWidget(new Model3DRenderer(three_renderer, model_3d_store)),
         );
 
         this.animation_list_view.borders = true;

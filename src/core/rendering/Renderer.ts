@@ -10,7 +10,6 @@ import {
     Scene,
     Vector2,
     Vector3,
-    WebGLRenderer,
 } from "three";
 import { Disposable } from "../observable/Disposable";
 
@@ -21,6 +20,8 @@ CameraControls.install({
         MOUSE: { ...THREE.MOUSE, LEFT: THREE.MOUSE.RIGHT, RIGHT: THREE.MOUSE.LEFT },
     },
 });
+
+export interface DisposableThreeRenderer extends THREE.Renderer, Disposable {}
 
 export abstract class Renderer implements Disposable {
     private _debug = false;
@@ -38,27 +39,25 @@ export abstract class Renderer implements Disposable {
     readonly scene = new Scene();
     readonly light_holder = new Group();
 
-    private readonly renderer = new WebGLRenderer({ antialias: true, alpha: true });
+    private readonly renderer: DisposableThreeRenderer;
     private render_scheduled = false;
     private animation_frame_handle?: number = undefined;
     private readonly light = new HemisphereLight(0xffffff, 0x505050, 1.0);
     private readonly controls_clock = new Clock();
-    private readonly size = new Vector2();
+    private readonly size = new Vector2(0, 0);
 
-    protected constructor() {
-        this.dom_element.tabIndex = 0;
-        this.dom_element.addEventListener("mousedown", this.on_mouse_down);
-        this.dom_element.style.outline = "none";
+    protected constructor(three_renderer: DisposableThreeRenderer) {
+        this.renderer = three_renderer;
+        this.renderer.domElement.tabIndex = 0;
+        this.renderer.domElement.addEventListener("mousedown", this.on_mouse_down);
+        this.renderer.domElement.style.outline = "none";
 
         this.scene.background = new Color(0x181818);
         this.light_holder.add(this.light);
         this.scene.add(this.light_holder);
-
-        this.renderer.setPixelRatio(window.devicePixelRatio);
-        this.renderer.getSize(this.size);
     }
 
-    get dom_element(): HTMLElement {
+    get canvas_element(): HTMLCanvasElement {
         return this.renderer.domElement;
     }
 
