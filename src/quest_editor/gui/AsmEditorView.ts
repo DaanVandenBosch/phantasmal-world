@@ -91,8 +91,7 @@ export class AsmEditorView extends ResizableWidget {
             asm_editor_store.model.observe(
                 ({ value: model }) => {
                     this.editor.updateOptions({
-                        readOnly:
-                            model == undefined && !quest_editor_store.quest_runner.running.val,
+                        readOnly: !this.enabled.val || !model,
                     });
                     this.editor.setModel(model || DUMMY_MODEL);
                     this.history.reset();
@@ -232,6 +231,6 @@ export class AsmEditorView extends ResizableWidget {
         super.set_enabled(enabled);
 
         this.tool_bar_view.enabled.val = enabled;
-        this.editor.updateOptions({ readOnly: !enabled });
+        this.editor.updateOptions({ readOnly: !enabled || !asm_editor_store.model.val });
     }
 }
