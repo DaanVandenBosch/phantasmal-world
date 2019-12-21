@@ -8,19 +8,13 @@
 .quest_editor_EntityInfoView table {
     table-layout: fixed;
     width: 100%;
-    max-width: 300px;
+    max-width: 180px;
     margin: 0 auto;
 }
 
 .quest_editor_EntityInfoView th {
     width: 80px;
     text-align: left;
-}
-
-.quest_editor_EntityInfoView td {
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    overflow: hidden;
 }
 
 .quest_editor_EntityInfoView th.quest_editor_EntityInfoView_coord {
