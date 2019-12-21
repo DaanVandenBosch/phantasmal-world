@@ -4,7 +4,8 @@ Features that are in ***bold italics*** are planned and not yet implemented.
 
 ## Create New Quest
 
-- ***Support for episodes I, II and IV***
+- Load a new quest with minimal script and default entities
+- Support for episodes I, ***II*** and IV
 
 ## Load Quest
 
@@ -15,8 +16,8 @@ Features that are in ***bold italics*** are planned and not yet implemented.
 
 ## Save Quest
 
-- Save as button
-    - Save as dialog to choose name
+- "Save as" button
+    - "Save as" dialog to choose name
 - Support for .qst (BB, ***GC***, ***PC***, ***DC***)
 - ***Notify user when and why quest saving fails***
 - Custom text-based format
@@ -73,9 +74,7 @@ Features that are in ***bold italics*** are planned and not yet implemented.
 
 ## Events
 
-- ***Event chain list***
-- ***Add chain of events***
-- ***Add event to chain***
+- ***Event graph***
 - ***Delete event***
     - ***Delete coupled NPCs if requested***
 - ***Edit event section***
@@ -128,6 +127,18 @@ Features that are in ***bold italics*** are planned and not yet implemented.
 - ***Show reserved register usage on hover over***
 - ***When saving, ask user whether to really save when asm contains errors***
 - ***Theme selection***
+
+## Debugger
+
+- Start debugging by clicking "Debug" or pressing F5
+- Stop debugging by clicking "Stop" or pressing Shift-F5
+- Step with "Step over", "Step into" and "Step out"
+- Continue to next breakpoint with "Continue" (F6)
+- Set breakpoints in the script editor
+- Register viewer
+- Log window
+- ***Virtual machine to execute the script***
+- ***Quest runner to interact with the game world***
 
 ## Non-BlueBurst Support
 

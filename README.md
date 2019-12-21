@@ -13,7 +13,7 @@ See [features](./FEATURES.md) for a list of features, planned features and bugs.
 3. `cd` to the project directory
 4. Install dependencies with `yarn`
 5. Launch server on [http://localhost:1623/](http://localhost:1623/) with `yarn start`
-6. src/index.ts is the application's entry point
+6. [src/index.ts](src/index.ts) is the application's entry point
 
 ### Unit Tests
 
