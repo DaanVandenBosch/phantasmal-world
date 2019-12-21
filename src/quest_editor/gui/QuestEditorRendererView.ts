@@ -1,18 +1,33 @@
 import { QuestRenderer } from "../rendering/QuestRenderer";
-import { quest_editor_store } from "../stores/QuestEditorStore";
+import { QuestEditorStore } from "../stores/QuestEditorStore";
 import { QuestEditorModelManager } from "../rendering/QuestEditorModelManager";
 import { QuestRendererView } from "./QuestRendererView";
 import { QuestEntityControls } from "../rendering/QuestEntityControls";
+import { GuiStore } from "../../core/stores/GuiStore";
 
 export class QuestEditorRendererView extends QuestRendererView {
     private readonly entity_controls: QuestEntityControls;
 
-    constructor() {
-        super("quest_editor_QuestEditorRendererView", new QuestRenderer(QuestEditorModelManager));
+    constructor(gui_store: GuiStore, quest_editor_store: QuestEditorStore) {
+        super(
+            gui_store,
+            quest_editor_store,
+            "quest_editor_QuestEditorRendererView",
+            new QuestRenderer(
+                renderer =>
+                    new QuestEditorModelManager(
+                        quest_editor_store.current_quest,
+                        quest_editor_store.current_area,
+                        renderer,
+                    ),
+            ),
+        );
 
         this.element.addEventListener("focus", () => quest_editor_store.undo.make_current(), true);
 
-        this.entity_controls = this.disposable(new QuestEntityControls(this.renderer));
+        this.entity_controls = this.disposable(
+            new QuestEntityControls(quest_editor_store, this.renderer),
+        );
 
         this.disposables(
             quest_editor_store.selected_entity.observe(

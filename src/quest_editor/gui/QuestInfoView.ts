@@ -1,6 +1,5 @@
 import { ResizableWidget } from "../../core/gui/ResizableWidget";
 import { el } from "../../core/gui/dom";
-import { quest_editor_store } from "../stores/QuestEditorStore";
 import { Episode } from "../../core/data_formats/parsing/quest/Episode";
 import { NumberInput } from "../../core/gui/NumberInput";
 import { Disposer } from "../../core/observable/Disposer";
@@ -8,6 +7,7 @@ import { TextInput } from "../../core/gui/TextInput";
 import { TextArea } from "../../core/gui/TextArea";
 import "./QuestInfoView.css";
 import { DisabledView } from "./DisabledView";
+import { QuestEditorStore } from "../stores/QuestEditorStore";
 
 export class QuestInfoView extends ResizableWidget {
     readonly element = el.div({ class: "quest_editor_QuestInfoView", tab_index: -1 });
@@ -41,7 +41,7 @@ export class QuestInfoView extends ResizableWidget {
 
     private readonly quest_disposer = this.disposable(new Disposer());
 
-    constructor() {
+    constructor(quest_editor_store: QuestEditorStore) {
         super();
 
         const quest = quest_editor_store.current_quest;

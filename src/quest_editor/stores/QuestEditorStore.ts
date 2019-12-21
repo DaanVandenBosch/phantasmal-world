@@ -13,7 +13,7 @@ import { SectionModel } from "../model/SectionModel";
 import { QuestEntityModel } from "../model/QuestEntityModel";
 import { Disposable } from "../../core/observable/Disposable";
 import { Disposer } from "../../core/observable/Disposer";
-import { gui_store, GuiTool } from "../../core/stores/GuiStore";
+import { GuiStore, GuiTool } from "../../core/stores/GuiStore";
 import { UndoStack } from "../../core/undo/UndoStack";
 import { TranslateEntityAction } from "../actions/TranslateEntityAction";
 import { EditShortDescriptionAction } from "../actions/EditShortDescriptionAction";
@@ -48,7 +48,7 @@ export class QuestEditorStore implements Disposable {
     readonly current_area: Property<AreaModel | undefined> = this._current_area;
     readonly selected_entity: Property<QuestEntityModel | undefined> = this._selected_entity;
 
-    constructor() {
+    constructor(gui_store: GuiStore) {
         this.disposer.add_all(
             gui_store.tool.observe(
                 ({ value: tool }) => {
@@ -181,6 +181,7 @@ export class QuestEditorStore implements Disposable {
         this.undo
             .push(
                 new TranslateEntityAction(
+                    this,
                     entity,
                     old_section,
                     new_section,
@@ -198,15 +199,17 @@ export class QuestEditorStore implements Disposable {
         new_rotation: Euler,
         world: boolean,
     ): void => {
-        this.undo.push(new RotateEntityAction(entity, old_rotation, new_rotation, world)).redo();
+        this.undo
+            .push(new RotateEntityAction(this, entity, old_rotation, new_rotation, world))
+            .redo();
     };
 
     push_create_entity_action = (entity: QuestEntityModel): void => {
-        this.undo.push(new CreateEntityAction(entity));
+        this.undo.push(new CreateEntityAction(this, entity));
     };
 
     remove_entity = (entity: QuestEntityModel): void => {
-        this.undo.push(new RemoveEntityAction(entity)).redo();
+        this.undo.push(new RemoveEntityAction(this, entity)).redo();
     };
 
     private async set_quest(quest?: QuestModel, filename?: string): Promise<void> {
@@ -268,5 +271,3 @@ export class QuestEditorStore implements Disposable {
         }
     };
 }
-
-export const quest_editor_store = new QuestEditorStore();

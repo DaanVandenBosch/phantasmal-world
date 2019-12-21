@@ -9,6 +9,11 @@ import {
 import { ServerMap } from "./ServerMap";
 import { Server } from "../model";
 import { ItemTypeDto } from "../dto/ItemTypeDto";
+import { GuiStore } from "./GuiStore";
+
+export function load_item_type_stores(gui_store: GuiStore): ServerMap<ItemTypeStore> {
+    return new ServerMap(gui_store, load);
+}
 
 export class ItemTypeStore {
     readonly item_types: ItemType[];
@@ -91,5 +96,3 @@ async function load(server: Server): Promise<ItemTypeStore> {
 
     return new ItemTypeStore(item_types, id_to_item_type);
 }
-
-export const item_type_stores: ServerMap<ItemTypeStore> = new ServerMap(load);

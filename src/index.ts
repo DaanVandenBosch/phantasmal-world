@@ -7,9 +7,12 @@ import "@fortawesome/fontawesome-free/js/fontawesome";
 import "@fortawesome/fontawesome-free/js/solid";
 import "@fortawesome/fontawesome-free/js/regular";
 import "@fortawesome/fontawesome-free/js/brands";
+import { GuiStore, GuiTool } from "./core/stores/GuiStore";
+import { load_item_type_stores } from "./core/stores/ItemTypeStore";
+import { load_item_drop_stores } from "./hunt_optimizer/stores/ItemDropStore";
 
 Logger.useDefaults({
-    defaultLevel: (Logger as any)[process.env["LOG_LEVEL"] || "OFF"],
+    defaultLevel: (Logger as any)[process.env["LOG_LEVEL"] ?? "OFF"],
 });
 
 function initialize(): Disposable {
@@ -23,8 +26,36 @@ function initialize(): Disposable {
     document.addEventListener("dragover", dragover);
     document.addEventListener("drop", drop);
 
-    // Initialize view.
-    const application_view = new ApplicationView();
+    // Initialize core stores shared by several submodules.
+    const gui_store = new GuiStore();
+    const item_type_stores = load_item_type_stores(gui_store);
+    const item_drop_stores = load_item_drop_stores(gui_store, item_type_stores);
+
+    // Initialize application view.
+    const application_view = new ApplicationView(gui_store, [
+        [
+            GuiTool.Viewer,
+            async () => {
+                return (await import("./viewer/index")).initialize_viewer(gui_store);
+            },
+        ],
+        [
+            GuiTool.QuestEditor,
+            async () => {
+                return (await import("./quest_editor/index")).initialize_quest_editor(gui_store);
+            },
+        ],
+        [
+            GuiTool.HuntOptimizer,
+            async () => {
+                return (await import("./hunt_optimizer/index")).initialize_hunt_optimizer(
+                    gui_store,
+                    item_type_stores,
+                    item_drop_stores,
+                );
+            },
+        ],
+    ]);
 
     // Resize the view on window resize.
     const resize = throttle(

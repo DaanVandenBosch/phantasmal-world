@@ -1,14 +1,14 @@
 import { el } from "../../../core/gui/dom";
 import { ResizableWidget } from "../../../core/gui/ResizableWidget";
 import "./Model3DView.css";
-import { gui_store, GuiTool } from "../../../core/stores/GuiStore";
+import { GuiStore, GuiTool } from "../../../core/stores/GuiStore";
 import { RendererWidget } from "../../../core/gui/RendererWidget";
-import { model_store } from "../../stores/Model3DStore";
 import { Model3DRenderer } from "../../rendering/Model3DRenderer";
 import { Model3DToolBar } from "./Model3DToolBar";
 import { Model3DSelectListView } from "./Model3DSelectListView";
 import { CharacterClassModel } from "../../model/CharacterClassModel";
 import { CharacterClassAnimationModel } from "../../model/CharacterClassAnimationModel";
+import { Model3DStore } from "../../stores/Model3DStore";
 
 const MODEL_LIST_WIDTH = 100;
 const ANIMATION_LIST_WIDTH = 140;
@@ -21,25 +21,27 @@ export class Model3DView extends ResizableWidget {
     private animation_list_view: Model3DSelectListView<CharacterClassAnimationModel>;
     private renderer_view: RendererWidget;
 
-    constructor() {
+    constructor(gui_store: GuiStore, model_3d_store: Model3DStore) {
         super();
 
-        this.tool_bar_view = this.disposable(new Model3DToolBar());
+        this.tool_bar_view = this.disposable(new Model3DToolBar(model_3d_store));
         this.model_list_view = this.disposable(
             new Model3DSelectListView(
-                model_store.models,
-                model_store.current_model,
-                model_store.set_current_model,
+                model_3d_store.models,
+                model_3d_store.current_model,
+                model_3d_store.set_current_model,
             ),
         );
         this.animation_list_view = this.disposable(
             new Model3DSelectListView(
-                model_store.animations,
-                model_store.current_animation,
-                model_store.set_current_animation,
+                model_3d_store.animations,
+                model_3d_store.current_animation,
+                model_3d_store.set_current_animation,
             ),
         );
-        this.renderer_view = this.disposable(new RendererWidget(new Model3DRenderer()));
+        this.renderer_view = this.disposable(
+            new RendererWidget(new Model3DRenderer(model_3d_store)),
+        );
 
         this.animation_list_view.borders = true;
 
@@ -53,7 +55,7 @@ export class Model3DView extends ResizableWidget {
             ),
         );
 
-        model_store.set_current_model(model_store.models[5]);
+        model_3d_store.set_current_model(model_3d_store.models[5]);
 
         this.renderer_view.start_rendering();
 

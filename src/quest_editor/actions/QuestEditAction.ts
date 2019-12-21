@@ -5,10 +5,10 @@ import { PropertyChangeEvent } from "../../core/observable/property/Property";
 export abstract class QuestEditAction<T> implements Action {
     abstract readonly description: string;
 
-    protected new: T;
-    protected old: T;
+    protected readonly new: T;
+    protected readonly old: T;
 
-    constructor(protected quest: QuestModel, event: PropertyChangeEvent<T>) {
+    constructor(protected readonly quest: QuestModel, event: PropertyChangeEvent<T>) {
         this.new = event.value;
         this.old = event.old_value;
     }

@@ -16,13 +16,32 @@ import { OptimalMethodModel, OptimalResultModel, WantedItemModel } from "../mode
 import { ListProperty } from "../../core/observable/property/list/ListProperty";
 import { list_property, map } from "../../core/observable";
 import { WritableListProperty } from "../../core/observable/property/list/WritableListProperty";
-import { hunt_method_stores, HuntMethodStore } from "./HuntMethodStore";
-import { item_drop_stores, ItemDropStore } from "./ItemDropStore";
-import { item_type_stores, ItemTypeStore } from "../../core/stores/ItemTypeStore";
-import { hunt_optimizer_persister } from "../persistence/HuntOptimizerPersister";
-import { ServerMap } from "../../core/stores/ServerMap";
+import { HuntMethodStore } from "./HuntMethodStore";
+import { ItemDropStore } from "./ItemDropStore";
+import { ItemTypeStore } from "../../core/stores/ItemTypeStore";
 import { Disposable } from "../../core/observable/Disposable";
 import { Disposer } from "../../core/observable/Disposer";
+import { ServerMap } from "../../core/stores/ServerMap";
+import { GuiStore } from "../../core/stores/GuiStore";
+import { HuntOptimizerPersister } from "../persistence/HuntOptimizerPersister";
+
+export function load_hunt_optimizer_stores(
+    gui_store: GuiStore,
+    hunt_optimizer_persister: HuntOptimizerPersister,
+    item_type_stores: ServerMap<ItemTypeStore>,
+    item_drop_stores: ServerMap<ItemDropStore>,
+    hunt_method_stores: ServerMap<HuntMethodStore>,
+): ServerMap<HuntOptimizerStore> {
+    return new ServerMap(
+        gui_store,
+        create_loader(
+            hunt_optimizer_persister,
+            item_type_stores,
+            item_drop_stores,
+            hunt_method_stores,
+        ),
+    );
+}
 
 // TODO: take into account mothmants spawned from mothverts.
 // TODO: take into account split slimes.
@@ -31,7 +50,7 @@ import { Disposer } from "../../core/observable/Disposer";
 // TODO: Show expected value or probability per item per method.
 //       Can be useful when deciding which item to hunt first.
 // TODO: boxes.
-class HuntOptimizerStore implements Disposable {
+export class HuntOptimizerStore implements Disposable {
     readonly huntable_item_types: ItemType[];
     // TODO: wanted items per server.
     readonly wanted_items: ListProperty<WantedItemModel>;
@@ -43,6 +62,7 @@ class HuntOptimizerStore implements Disposable {
     private readonly disposer = new Disposer();
 
     constructor(
+        private readonly hunt_optimizer_persister: HuntOptimizerPersister,
         private readonly server: Server,
         item_type_store: ItemTypeStore,
         private readonly item_drop_store: ItemDropStore,
@@ -314,23 +334,28 @@ class HuntOptimizerStore implements Disposable {
     }
 
     private initialize_persistence = async (): Promise<void> => {
-        this._wanted_items.val = await hunt_optimizer_persister.load_wanted_items(this.server);
+        this._wanted_items.val = await this.hunt_optimizer_persister.load_wanted_items(this.server);
 
         this.disposer.add(
             this._wanted_items.observe(({ value }) => {
-                hunt_optimizer_persister.persist_wanted_items(this.server, value);
+                this.hunt_optimizer_persister.persist_wanted_items(this.server, value);
             }),
         );
     };
 }
 
-async function load(server: Server): Promise<HuntOptimizerStore> {
-    return new HuntOptimizerStore(
-        server,
-        await item_type_stores.get(server),
-        await item_drop_stores.get(server),
-        await hunt_method_stores.get(server),
-    );
+function create_loader(
+    hunt_optimizer_persister: HuntOptimizerPersister,
+    item_type_stores: ServerMap<ItemTypeStore>,
+    item_drop_stores: ServerMap<ItemDropStore>,
+    hunt_method_stores: ServerMap<HuntMethodStore>,
+): (server: Server) => Promise<HuntOptimizerStore> {
+    return async server =>
+        new HuntOptimizerStore(
+            hunt_optimizer_persister,
+            server,
+            await item_type_stores.get(server),
+            await item_drop_stores.get(server),
+            await hunt_method_stores.get(server),
+        );
 }
-
-export const hunt_optimizer_stores: ServerMap<HuntOptimizerStore> = new ServerMap(load);

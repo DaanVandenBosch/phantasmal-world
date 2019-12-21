@@ -1,6 +1,6 @@
 import { el, icon, Icon } from "../../core/gui/dom";
 import "./NavigationView.css";
-import { gui_store, GuiTool } from "../../core/stores/GuiStore";
+import { GuiStore, GuiTool } from "../../core/stores/GuiStore";
 import { Widget } from "../../core/gui/Widget";
 import { NavigationButton } from "./NavigationButton";
 import { Select } from "../../core/gui/Select";
@@ -50,7 +50,7 @@ export class NavigationView extends Widget {
 
     readonly height = 30;
 
-    constructor() {
+    constructor(private readonly gui_store: GuiStore) {
         super();
 
         this.element.style.height = `${this.height}px`;
@@ -62,11 +62,11 @@ export class NavigationView extends Widget {
         this.finalize_construction();
     }
 
-    private mousedown(e: MouseEvent): void {
+    private mousedown = (e: MouseEvent): void => {
         if (e.target instanceof HTMLLabelElement && e.target.control instanceof HTMLInputElement) {
-            gui_store.tool.val = (GuiTool as any)[e.target.control.value];
+            this.gui_store.tool.val = (GuiTool as any)[e.target.control.value];
         }
-    }
+    };
 
     private mark_tool_button = (tool: GuiTool): void => {
         const button = this.buttons.get(tool);

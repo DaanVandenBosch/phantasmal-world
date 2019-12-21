@@ -5,7 +5,7 @@ import { Duration } from "luxon";
 
 const METHOD_USER_TIMES_KEY = "HuntMethodStore.methodUserTimes";
 
-class HuntMethodPersister extends Persister {
+export class HuntMethodPersister extends Persister {
     persist_method_user_times(hunt_methods: readonly HuntMethodModel[], server: Server): void {
         const user_times: PersistedUserTimes = {};
 
@@ -39,5 +39,3 @@ class HuntMethodPersister extends Persister {
 }
 
 type PersistedUserTimes = { [method_id: string]: number };
-
-export const hunt_method_persister = new HuntMethodPersister();

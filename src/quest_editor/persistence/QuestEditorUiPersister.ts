@@ -14,7 +14,7 @@ export class QuestEditorUiPersister extends Persister {
     );
 
     async load_layout_config(
-        components: string[],
+        components: readonly string[],
         default_config: GoldenLayout.ItemConfigType[],
     ): Promise<any> {
         const config = await this.load<GoldenLayout.ItemConfigType[]>(LAYOUT_CONFIG_KEY);
@@ -28,7 +28,7 @@ export class QuestEditorUiPersister extends Persister {
 
     private verify_layout_config(
         config: GoldenLayout.ItemConfigType[],
-        components: string[],
+        components: readonly string[],
     ): boolean {
         const set = new Set(components);
 

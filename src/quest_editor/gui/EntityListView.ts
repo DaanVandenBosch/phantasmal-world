@@ -6,14 +6,14 @@ import { entity_dnd_source } from "./entity_dnd";
 import { render_entity_to_image } from "../rendering/render_entity_to_image";
 import { WritableListProperty } from "../../core/observable/property/list/WritableListProperty";
 import { list_property } from "../../core/observable";
-import { quest_editor_store } from "../stores/QuestEditorStore";
+import { QuestEditorStore } from "../stores/QuestEditorStore";
 
 export abstract class EntityListView<T extends EntityType> extends ResizableWidget {
     readonly element: HTMLElement;
 
     protected readonly entities: WritableListProperty<T> = list_property();
 
-    protected constructor(class_name: string) {
+    protected constructor(quest_editor_store: QuestEditorStore, class_name: string) {
         super();
 
         const list_element = el.div({ class: "quest_editor_EntityListView_entity_list" });

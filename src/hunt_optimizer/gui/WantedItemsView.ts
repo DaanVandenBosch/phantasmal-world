@@ -5,11 +5,12 @@ import { Disposer } from "../../core/observable/Disposer";
 import { Widget } from "../../core/gui/Widget";
 import { WantedItemModel } from "../model";
 import { NumberInput } from "../../core/gui/NumberInput";
-import { hunt_optimizer_stores } from "../stores/HuntOptimizerStore";
 import { ComboBox } from "../../core/gui/ComboBox";
 import { list_property } from "../../core/observable";
 import { ItemType } from "../../core/model/items";
 import { Disposable } from "../../core/observable/Disposable";
+import { ServerMap } from "../../core/stores/ServerMap";
+import { HuntOptimizerStore } from "../stores/HuntOptimizerStore";
 
 export class WantedItemsView extends Widget {
     readonly element = el.div({ class: "hunt_optimizer_WantedItemsView" });
@@ -17,7 +18,7 @@ export class WantedItemsView extends Widget {
     private readonly tbody_element = el.tbody();
     private readonly store_disposer = this.disposable(new Disposer());
 
-    constructor() {
+    constructor(private readonly hunt_optimizer_stores: ServerMap<HuntOptimizerStore>) {
         super();
 
         const huntable_items = list_property<ItemType>();
@@ -94,7 +95,7 @@ export class WantedItemsView extends Widget {
 
         row_disposer.add(
             remove_button.click.observe(async () =>
-                (await hunt_optimizer_stores.current.val).remove_wanted_item(wanted_item),
+                (await this.hunt_optimizer_stores.current.val).remove_wanted_item(wanted_item),
             ),
         );
 

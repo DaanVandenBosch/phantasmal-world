@@ -1,7 +1,6 @@
 import { ToolBar } from "../../core/gui/ToolBar";
 import { FileButton } from "../../core/gui/FileButton";
 import { Button } from "../../core/gui/Button";
-import { quest_editor_store } from "../stores/QuestEditorStore";
 import { undo_manager } from "../../core/undo/UndoManager";
 import { Select } from "../../core/gui/Select";
 import { list_property, map } from "../../core/observable";
@@ -10,10 +9,11 @@ import { Icon } from "../../core/gui/dom";
 import { DropDown } from "../../core/gui/DropDown";
 import { Episode } from "../../core/data_formats/parsing/quest/Episode";
 import { area_store } from "../stores/AreaStore";
-import { gui_store, GuiTool } from "../../core/stores/GuiStore";
+import { GuiStore, GuiTool } from "../../core/stores/GuiStore";
+import { QuestEditorStore } from "../stores/QuestEditorStore";
 
 export class QuestEditorToolBar extends ToolBar {
-    constructor() {
+    constructor(gui_store: GuiStore, quest_editor_store: QuestEditorStore) {
         const new_quest_button = new DropDown(
             "New quest",
             [Episode.I],

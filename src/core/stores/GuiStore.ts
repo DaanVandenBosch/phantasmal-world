@@ -17,7 +17,7 @@ const GUI_TOOL_TO_STRING = new Map([
 ]);
 const STRING_TO_GUI_TOOL = new Map([...GUI_TOOL_TO_STRING.entries()].map(([k, v]) => [v, k]));
 
-class GuiStore implements Disposable {
+export class GuiStore implements Disposable {
     readonly tool: WritableProperty<GuiTool> = property(GuiTool.Viewer);
     readonly server: Property<Server>;
 
@@ -105,8 +105,6 @@ class GuiStore implements Disposable {
         return `${(GuiTool as any)[tool]} -> ${binding}`;
     }
 }
-
-export const gui_store = new GuiStore();
 
 function string_to_gui_tool(tool: string): GuiTool | undefined {
     return STRING_TO_GUI_TOOL.get(tool);

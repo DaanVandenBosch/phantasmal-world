@@ -2,10 +2,10 @@ import { el, Icon } from "../../core/gui/dom";
 import { ResizableWidget } from "../../core/gui/ResizableWidget";
 import { FileButton } from "../../core/gui/FileButton";
 import { ToolBar } from "../../core/gui/ToolBar";
-import { texture_store } from "../stores/TextureStore";
 import { RendererWidget } from "../../core/gui/RendererWidget";
 import { TextureRenderer } from "../rendering/TextureRenderer";
-import { gui_store, GuiTool } from "../../core/stores/GuiStore";
+import { GuiStore, GuiTool } from "../../core/stores/GuiStore";
+import { TextureStore } from "../stores/TextureStore";
 
 export class TextureView extends ResizableWidget {
     readonly element = el.div({ class: "viewer_TextureView" });
@@ -17,10 +17,14 @@ export class TextureView extends ResizableWidget {
 
     private readonly tool_bar = this.disposable(new ToolBar({ children: [this.open_file_button] }));
 
-    private readonly renderer_view = this.disposable(new RendererWidget(new TextureRenderer()));
+    private readonly renderer_view: RendererWidget;
 
-    constructor() {
+    constructor(gui_store: GuiStore, texture_store: TextureStore) {
         super();
+
+        this.renderer_view = this.disposable(
+            new RendererWidget(new TextureRenderer(texture_store)),
+        );
 
         this.element.append(this.tool_bar.element, this.renderer_view.element);
 

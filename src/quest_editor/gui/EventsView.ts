@@ -1,6 +1,5 @@
 import { ResizableWidget } from "../../core/gui/ResizableWidget";
 import { el } from "../../core/gui/dom";
-import { quest_editor_store } from "../stores/QuestEditorStore";
 import { QuestEventDagModel } from "../model/QuestEventDagModel";
 import { Disposer } from "../../core/observable/Disposer";
 import { NumberInput } from "../../core/gui/NumberInput";
@@ -11,6 +10,7 @@ import {
     ListChangeType,
     ListPropertyChangeEvent,
 } from "../../core/observable/property/list/ListProperty";
+import { QuestEditorStore } from "../stores/QuestEditorStore";
 
 type DagGuiData = {
     dag: QuestEventDagModel;
@@ -29,7 +29,7 @@ export class EventsView extends ResizableWidget {
 
     readonly element = el.div({ class: "quest_editor_EventsView" });
 
-    constructor() {
+    constructor(private readonly quest_editor_store: QuestEditorStore) {
         super();
 
         this.disposables(
@@ -69,8 +69,8 @@ export class EventsView extends ResizableWidget {
             this.event_dags_observer.dispose();
         }
 
-        const quest = quest_editor_store.current_quest.val;
-        const area = quest_editor_store.current_area.val;
+        const quest = this.quest_editor_store.current_quest.val;
+        const area = this.quest_editor_store.current_area.val;
 
         if (quest && area) {
             const event_dags = quest.event_dags.filtered(dag => dag.area_id === area.id);
@@ -169,6 +169,10 @@ export class EventsView extends ResizableWidget {
         };
     };
 
+    /**
+     * This method does measurements of the event elements. So it should be called after the event
+     * elements have been added to the DOM and have been *laid out* by the browser.
+     */
     private update_edges = (): void => {
         const SPACING = 8;
         let max_depth = 0;

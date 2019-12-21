@@ -1,11 +1,16 @@
 import { Server } from "../../core/model";
-import { item_type_stores } from "../../core/stores/ItemTypeStore";
 import { Persister } from "../../core/persistence";
 import { WantedItemModel } from "../model";
+import { ItemTypeStore } from "../../core/stores/ItemTypeStore";
+import { ServerMap } from "../../core/stores/ServerMap";
 
 const WANTED_ITEMS_KEY = "HuntOptimizerStore.wantedItems";
 
-class HuntOptimizerPersister extends Persister {
+export class HuntOptimizerPersister extends Persister {
+    constructor(private readonly item_type_stores: ServerMap<ItemTypeStore>) {
+        super();
+    }
+
     persist_wanted_items(server: Server, wanted_items: readonly WantedItemModel[]): void {
         this.persist_for_server(
             server,
@@ -20,7 +25,7 @@ class HuntOptimizerPersister extends Persister {
     }
 
     async load_wanted_items(server: Server): Promise<WantedItemModel[]> {
-        const item_store = await item_type_stores.get(server);
+        const item_store = await this.item_type_stores.get(server);
 
         const persisted_wanted_items = await this.load_for_server<PersistedWantedItem[]>(
             server,
@@ -50,5 +55,3 @@ type PersistedWantedItem = {
     itemKindId?: number; // Legacy name, not persisted, only checked when loading.
     amount: number;
 };
-
-export const hunt_optimizer_persister = new HuntOptimizerPersister();

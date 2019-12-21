@@ -21,5 +21,3 @@ export class TextureStore {
         }
     };
 }
-
-export const texture_store = new TextureStore();

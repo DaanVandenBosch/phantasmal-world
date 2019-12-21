@@ -1,5 +1,5 @@
-import { WeaponItem, WeaponItemType, ArmorItemType, ShieldItemType } from "../../core/model/items";
-import { item_type_stores, ItemTypeStore } from "../../core/stores/ItemTypeStore";
+import { ArmorItemType, ShieldItemType, WeaponItem, WeaponItemType } from "../../core/model/items";
+import { ItemTypeStore } from "../../core/stores/ItemTypeStore";
 import { Property } from "../../core/observable/property/Property";
 import { list_property, map, property } from "../../core/observable";
 import { WritableProperty } from "../../core/observable/property/WritableProperty";
@@ -7,6 +7,7 @@ import { ListProperty } from "../../core/observable/property/list/ListProperty";
 import { WritableListProperty } from "../../core/observable/property/list/WritableListProperty";
 import { sequential } from "../../core/sequential";
 import { Disposable } from "../../core/observable/Disposable";
+import { ServerMap } from "../../core/stores/ServerMap";
 
 const NORMAL_DAMAGE_FACTOR = 0.2 * 0.9;
 const HEAVY_DAMAGE_FACTOR = NORMAL_DAMAGE_FACTOR * 1.89;
@@ -14,7 +15,7 @@ const HEAVY_DAMAGE_FACTOR = NORMAL_DAMAGE_FACTOR * 1.89;
 // const VJAYA_DAMAGE_FACTOR = NORMAL_DAMAGE_FACTOR * 5.56;
 // const CRIT_FACTOR = 1.5;
 
-class Weapon {
+export class Weapon {
     readonly shifta_atp: Property<number> = this.store.shifta_factor.map(shifta_factor => {
         if (this.item.type.min_atp === this.item.type.max_atp) {
             return 0;
@@ -92,7 +93,7 @@ class Weapon {
     constructor(private readonly store: DpsCalcStore, readonly item: WeaponItem) {}
 }
 
-class DpsCalcStore implements Disposable {
+export class DpsCalcStore implements Disposable {
     private readonly _weapon_types: WritableListProperty<WeaponItemType> = list_property();
     private readonly _armor_types: WritableListProperty<ArmorItemType> = list_property();
     private readonly _shield_types: WritableListProperty<ShieldItemType> = list_property();
@@ -154,7 +155,7 @@ class DpsCalcStore implements Disposable {
 
     readonly enemy_dfp: Property<number> = this._enemy_dfp;
 
-    constructor() {
+    constructor(item_type_stores: ServerMap<ItemTypeStore>) {
         this.disposable = item_type_stores.current.observe(
             sequential(async ({ value: item_type_store }: { value: Promise<ItemTypeStore> }) => {
                 const weapon_types: WeaponItemType[] = [];
@@ -186,5 +187,3 @@ class DpsCalcStore implements Disposable {
         this._weapons.push(new Weapon(this, new WeaponItem(type)));
     };
 }
-
-export const dps_calc_store = new DpsCalcStore();

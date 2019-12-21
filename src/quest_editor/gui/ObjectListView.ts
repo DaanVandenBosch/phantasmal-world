@@ -4,12 +4,12 @@ import {
     OBJECT_TYPES,
     ObjectType,
 } from "../../core/data_formats/parsing/quest/object_types";
-import { quest_editor_store } from "../stores/QuestEditorStore";
 import { Episode } from "../../core/data_formats/parsing/quest/Episode";
+import { QuestEditorStore } from "../stores/QuestEditorStore";
 
 export class ObjectListView extends EntityListView<ObjectType> {
-    constructor() {
-        super("quest_editor_ObjectListView");
+    constructor(private readonly quest_editor_store: QuestEditorStore) {
+        super(quest_editor_store, "quest_editor_ObjectListView");
 
         this.disposables(
             quest_editor_store.current_quest.observe(this.filter_objects),
@@ -21,8 +21,8 @@ export class ObjectListView extends EntityListView<ObjectType> {
     }
 
     private filter_objects = (): void => {
-        const quest = quest_editor_store.current_quest.val;
-        const area = quest_editor_store.current_area.val;
+        const quest = this.quest_editor_store.current_quest.val;
+        const area = this.quest_editor_store.current_area.val;
 
         const episode = quest ? quest.episode : Episode.I;
         const area_id = area ? area.id : 0;

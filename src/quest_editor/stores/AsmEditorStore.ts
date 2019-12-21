@@ -3,7 +3,6 @@ import { AssemblyAnalyser } from "../scripting/AssemblyAnalyser";
 import { Disposable } from "../../core/observable/Disposable";
 import { Disposer } from "../../core/observable/Disposer";
 import { SimpleUndo } from "../../core/undo/SimpleUndo";
-import { quest_editor_store } from "./QuestEditorStore";
 import { ASM_SYNTAX } from "./asm_syntax";
 import { AssemblyError, AssemblyWarning } from "../scripting/assembly";
 import { Observable } from "../../core/observable/Observable";
@@ -18,6 +17,7 @@ import SignatureHelpResult = languages.SignatureHelpResult;
 import LocationLink = languages.LocationLink;
 import IModelContentChange = editor.IModelContentChange;
 import { Breakpoint } from "../scripting/vm/Debugger";
+import { QuestEditorStore } from "./QuestEditorStore";
 
 const assembly_analyser = new AssemblyAnalyser();
 
@@ -104,11 +104,13 @@ export class AsmEditorStore implements Disposable {
     readonly has_issues: Property<boolean> = assembly_analyser.issues.map(
         issues => issues.warnings.length + issues.errors.length > 0,
     );
-    readonly breakpoints: ListProperty<Breakpoint> = quest_editor_store.quest_runner.breakpoints;
-    readonly execution_location: Property<number | undefined> =
-        quest_editor_store.quest_runner.pause_location;
+    readonly breakpoints: ListProperty<Breakpoint>;
+    readonly execution_location: Property<number | undefined>;
 
-    constructor() {
+    constructor(private readonly quest_editor_store: QuestEditorStore) {
+        this.breakpoints = quest_editor_store.quest_runner.breakpoints;
+        this.execution_location = quest_editor_store.quest_runner.pause_location;
+
         this.disposer.add_all(
             quest_editor_store.current_quest.observe(this.quest_changed, {
                 call_now: true,
@@ -231,7 +233,7 @@ export class AsmEditorStore implements Disposable {
         this.undo.reset();
         this.model_disposer.dispose_all();
 
-        const quest = quest_editor_store.current_quest.val;
+        const quest = this.quest_editor_store.current_quest.val;
 
         if (quest) {
             const manual_stack = !this.inline_args_mode.val;
@@ -272,7 +274,7 @@ export class AsmEditorStore implements Disposable {
                         // Line numbers can't go lower than 1.
                         const new_line_num = Math.max(line_num - num_removed_lines, 1);
 
-                        if (quest_editor_store.quest_runner.remove_breakpoint(line_num)) {
+                        if (this.quest_editor_store.quest_runner.remove_breakpoint(line_num)) {
                             new_breakpoints.push(new_line_num);
                         }
                     }
@@ -281,7 +283,9 @@ export class AsmEditorStore implements Disposable {
                     // number of removed lines.
                     for (const breakpoint of this.breakpoints.val) {
                         if (breakpoint.line_no > change.range.endLineNumber) {
-                            quest_editor_store.quest_runner.remove_breakpoint(breakpoint.line_no);
+                            this.quest_editor_store.quest_runner.remove_breakpoint(
+                                breakpoint.line_no,
+                            );
                             new_breakpoints.push(breakpoint.line_no - num_removed_lines);
                         }
                     }
@@ -294,7 +298,9 @@ export class AsmEditorStore implements Disposable {
                     // forwards by the number of added lines
                     for (const breakpoint of this.breakpoints.val) {
                         if (breakpoint.line_no > change.range.endLineNumber) {
-                            quest_editor_store.quest_runner.remove_breakpoint(breakpoint.line_no);
+                            this.quest_editor_store.quest_runner.remove_breakpoint(
+                                breakpoint.line_no,
+                            );
                             new_breakpoints.push(breakpoint.line_no + num_added_lines);
                         }
                     }
@@ -302,10 +308,8 @@ export class AsmEditorStore implements Disposable {
             }
 
             for (const breakpoint of new_breakpoints) {
-                quest_editor_store.quest_runner.set_breakpoint(breakpoint);
+                this.quest_editor_store.quest_runner.set_breakpoint(breakpoint);
             }
         }
     }
 }
-
-export const asm_editor_store = new AsmEditorStore();

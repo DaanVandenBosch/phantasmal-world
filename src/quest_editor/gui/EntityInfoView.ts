@@ -1,7 +1,6 @@
 import { ResizableWidget } from "../../core/gui/ResizableWidget";
 import { el } from "../../core/gui/dom";
 import { DisabledView } from "./DisabledView";
-import { quest_editor_store } from "../stores/QuestEditorStore";
 import { QuestNpcModel } from "../model/QuestNpcModel";
 import { entity_data } from "../../core/data_formats/parsing/quest/entities";
 import "./EntityInfoView.css";
@@ -10,6 +9,7 @@ import { Disposer } from "../../core/observable/Disposer";
 import { QuestEntityModel } from "../model/QuestEntityModel";
 import { Euler, Vector3 } from "three";
 import { deg_to_rad, rad_to_deg } from "../../core/math";
+import { QuestEditorStore } from "../stores/QuestEditorStore";
 
 export class EntityInfoView extends ResizableWidget {
     readonly element = el.div({ class: "quest_editor_EntityInfoView", tab_index: -1 });
@@ -43,7 +43,7 @@ export class EntityInfoView extends ResizableWidget {
 
     private readonly entity_disposer = new Disposer();
 
-    constructor() {
+    constructor(private readonly quest_editor_store: QuestEditorStore) {
         super();
 
         const entity = quest_editor_store.selected_entity;
@@ -174,7 +174,7 @@ export class EntityInfoView extends ResizableWidget {
             ),
 
             this.pos_x_element.value.observe(({ value }) =>
-                quest_editor_store.translate_entity(
+                this.quest_editor_store.translate_entity(
                     entity,
                     entity.section.val,
                     entity.section.val,
@@ -185,7 +185,7 @@ export class EntityInfoView extends ResizableWidget {
             ),
 
             this.pos_y_element.value.observe(({ value }) =>
-                quest_editor_store.translate_entity(
+                this.quest_editor_store.translate_entity(
                     entity,
                     entity.section.val,
                     entity.section.val,
@@ -196,7 +196,7 @@ export class EntityInfoView extends ResizableWidget {
             ),
 
             this.pos_z_element.value.observe(({ value }) =>
-                quest_editor_store.translate_entity(
+                this.quest_editor_store.translate_entity(
                     entity,
                     entity.section.val,
                     entity.section.val,
@@ -220,7 +220,7 @@ export class EntityInfoView extends ResizableWidget {
             ),
 
             this.rot_x_element.value.observe(({ value }) =>
-                quest_editor_store.rotate_entity(
+                this.quest_editor_store.rotate_entity(
                     entity,
                     rot.val,
                     new Euler(deg_to_rad(value), rot.val.y, rot.val.z, "ZXY"),
@@ -229,7 +229,7 @@ export class EntityInfoView extends ResizableWidget {
             ),
 
             this.rot_y_element.value.observe(({ value }) =>
-                quest_editor_store.rotate_entity(
+                this.quest_editor_store.rotate_entity(
                     entity,
                     rot.val,
                     new Euler(rot.val.x, deg_to_rad(value), rot.val.z, "ZXY"),
@@ -238,7 +238,7 @@ export class EntityInfoView extends ResizableWidget {
             ),
 
             this.rot_z_element.value.observe(({ value }) =>
-                quest_editor_store.rotate_entity(
+                this.quest_editor_store.rotate_entity(
                     entity,
                     rot.val,
                     new Euler(rot.val.x, rot.val.y, deg_to_rad(value), "ZXY"),

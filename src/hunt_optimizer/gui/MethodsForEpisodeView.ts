@@ -1,7 +1,6 @@
 import { ResizableWidget } from "../../core/gui/ResizableWidget";
 import { Episode } from "../../core/data_formats/parsing/quest/Episode";
 import { el } from "../../core/gui/dom";
-import { hunt_method_stores } from "../stores/HuntMethodStore";
 import { HuntMethodModel } from "../model/HuntMethodModel";
 import {
     ENEMY_NPC_TYPES,
@@ -14,6 +13,8 @@ import { DurationInput } from "../../core/gui/DurationInput";
 import { Disposable } from "../../core/observable/Disposable";
 import { SortDirection, Table } from "../../core/gui/Table";
 import { list_property } from "../../core/observable";
+import { ServerMap } from "../../core/stores/ServerMap";
+import { HuntMethodStore } from "../stores/HuntMethodStore";
 
 export class MethodsForEpisodeView extends ResizableWidget {
     readonly element = el.div({ class: "hunt_optimizer_MethodsForEpisodeView" });
@@ -22,7 +23,7 @@ export class MethodsForEpisodeView extends ResizableWidget {
     private readonly enemy_types: NpcType[];
     private hunt_methods_observer?: Disposable;
 
-    constructor(episode: Episode) {
+    constructor(hunt_method_stores: ServerMap<HuntMethodStore>, episode: Episode) {
         super();
 
         this.episode = episode;

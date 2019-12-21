@@ -1,28 +1,34 @@
 import { QuestRenderer } from "./QuestRenderer";
-import { quest_editor_store } from "../stores/QuestEditorStore";
 import { AreaVariantDetails, QuestModelManager } from "./QuestModelManager";
 import { AreaVariantModel } from "../model/AreaVariantModel";
 import { QuestNpcModel } from "../model/QuestNpcModel";
 import { QuestObjectModel } from "../model/QuestObjectModel";
 import { ListProperty } from "../../core/observable/property/list/ListProperty";
 import { list_property } from "../../core/observable";
+import { Property } from "../../core/observable/property/Property";
+import { QuestModel } from "../model/QuestModel";
+import { AreaModel } from "../model/AreaModel";
 
 /**
  * Model loader used while editing a quest.
  */
 export class QuestEditorModelManager extends QuestModelManager {
-    constructor(renderer: QuestRenderer) {
+    constructor(
+        private readonly current_quest: Property<QuestModel | undefined>,
+        private readonly current_area: Property<AreaModel | undefined>,
+        renderer: QuestRenderer,
+    ) {
         super(renderer);
 
         this.disposer.add_all(
-            quest_editor_store.current_quest.observe(this.area_variant_changed),
-            quest_editor_store.current_area.observe(this.area_variant_changed),
+            current_quest.observe(this.area_variant_changed),
+            current_area.observe(this.area_variant_changed),
         );
     }
 
     protected get_area_variant_details(): AreaVariantDetails {
-        const quest = quest_editor_store.current_quest.val;
-        const area = quest_editor_store.current_area.val;
+        const quest = this.current_quest.val;
+        const area = this.current_area.val;
 
         let area_variant: AreaVariantModel | undefined;
         let npcs: ListProperty<QuestNpcModel>;

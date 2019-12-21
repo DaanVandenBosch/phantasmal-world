@@ -278,5 +278,3 @@ export class Model3DStore implements Disposable {
         }
     }
 }
-
-export const model_store = new Model3DStore();

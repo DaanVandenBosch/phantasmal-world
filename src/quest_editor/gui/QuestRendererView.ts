@@ -1,9 +1,9 @@
 import { ResizableWidget } from "../../core/gui/ResizableWidget";
 import { RendererWidget } from "../../core/gui/RendererWidget";
 import { QuestRenderer } from "../rendering/QuestRenderer";
-import { gui_store, GuiTool } from "../../core/stores/GuiStore";
-import { quest_editor_store } from "../stores/QuestEditorStore";
+import { GuiStore, GuiTool } from "../../core/stores/GuiStore";
 import { el } from "../../core/gui/dom";
+import { QuestEditorStore } from "../stores/QuestEditorStore";
 
 export abstract class QuestRendererView extends ResizableWidget {
     private readonly renderer_view: RendererWidget;
@@ -12,7 +12,12 @@ export abstract class QuestRendererView extends ResizableWidget {
 
     readonly element: HTMLElement;
 
-    protected constructor(className: string, renderer: QuestRenderer) {
+    protected constructor(
+        gui_store: GuiStore,
+        quest_editor_store: QuestEditorStore,
+        className: string,
+        renderer: QuestRenderer,
+    ) {
         super();
 
         this.element = el.div({ class: className, tab_index: -1 });

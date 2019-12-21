@@ -1,23 +1,24 @@
 import { Action } from "../../core/undo/Action";
 import { QuestEntityModel } from "../model/QuestEntityModel";
 import { entity_data } from "../../core/data_formats/parsing/quest/entities";
-import { quest_editor_store } from "../stores/QuestEditorStore";
 import { Euler } from "three";
+import { QuestEditorStore } from "../stores/QuestEditorStore";
 
 export class RotateEntityAction implements Action {
     readonly description: string;
 
     constructor(
-        private entity: QuestEntityModel,
-        private old_rotation: Euler,
-        private new_rotation: Euler,
-        private world: boolean,
+        private readonly quest_editor_store: QuestEditorStore,
+        private readonly entity: QuestEntityModel,
+        private readonly old_rotation: Euler,
+        private readonly new_rotation: Euler,
+        private readonly world: boolean,
     ) {
         this.description = `Rotate ${entity_data(entity.type).name}`;
     }
 
     undo(): void {
-        quest_editor_store.set_selected_entity(this.entity);
+        this.quest_editor_store.set_selected_entity(this.entity);
 
         if (this.world) {
             this.entity.set_world_rotation(this.old_rotation);
@@ -27,7 +28,7 @@ export class RotateEntityAction implements Action {
     }
 
     redo(): void {
-        quest_editor_store.set_selected_entity(this.entity);
+        this.quest_editor_store.set_selected_entity(this.entity);
 
         if (this.world) {
             this.entity.set_world_rotation(this.new_rotation);

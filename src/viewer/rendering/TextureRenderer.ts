@@ -12,7 +12,7 @@ import { Renderer } from "../../core/rendering/Renderer";
 import { Disposer } from "../../core/observable/Disposer";
 import { Xvm } from "../../core/data_formats/parsing/ninja/texture";
 import { xvm_texture_to_texture } from "../../core/rendering/conversion/ninja_textures";
-import { texture_store } from "../stores/TextureStore";
+import { TextureStore } from "../stores/TextureStore";
 import Logger = require("js-logger");
 
 const logger = Logger.get("viewer/rendering/TextureRenderer");
@@ -23,7 +23,7 @@ export class TextureRenderer extends Renderer implements Disposable {
 
     readonly camera = new OrthographicCamera(-400, 400, 300, -300, 1, 10);
 
-    constructor() {
+    constructor(texture_store: TextureStore) {
         super();
 
         this.disposer.add_all(

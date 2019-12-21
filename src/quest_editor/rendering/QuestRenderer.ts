@@ -52,10 +52,10 @@ export class QuestRenderer extends Renderer {
 
     selected_entity: QuestEntityModel | undefined;
 
-    constructor(ModelManager: new (renderer: QuestRenderer) => QuestModelManager) {
+    constructor(create_model_manager: (renderer: QuestRenderer) => QuestModelManager) {
         super();
 
-        this.disposer.add(new ModelManager(this));
+        this.disposer.add(create_model_manager(this));
     }
 
     /**

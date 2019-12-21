@@ -12,7 +12,6 @@ import {
     SkinnedMesh,
     Vector3,
 } from "three";
-import { model_store } from "../stores/Model3DStore";
 import { Disposable } from "../../core/observable/Disposable";
 import { NjMotion } from "../../core/data_formats/parsing/ninja/motion";
 import { xvm_to_textures } from "../../core/rendering/conversion/ninja_textures";
@@ -25,6 +24,7 @@ import {
 import { Renderer } from "../../core/rendering/Renderer";
 import { Disposer } from "../../core/observable/Disposer";
 import { ChangeEvent } from "../../core/observable/Observable";
+import { Model3DStore } from "../stores/Model3DStore";
 
 export class Model3DRenderer extends Renderer implements Disposable {
     private readonly disposer = new Disposer();
@@ -40,17 +40,17 @@ export class Model3DRenderer extends Renderer implements Disposable {
 
     readonly camera = new PerspectiveCamera(75, 1, 1, 200);
 
-    constructor() {
+    constructor(private readonly model_3d_store: Model3DStore) {
         super();
 
         this.disposer.add_all(
-            model_store.current_nj_data.observe(this.nj_data_or_xvm_changed),
-            model_store.current_xvm.observe(this.nj_data_or_xvm_changed),
-            model_store.current_nj_motion.observe(this.nj_motion_changed),
-            model_store.show_skeleton.observe(this.show_skeleton_changed),
-            model_store.animation_playing.observe(this.animation_playing_changed),
-            model_store.animation_frame_rate.observe(this.animation_frame_rate_changed),
-            model_store.animation_frame.observe(this.animation_frame_changed),
+            model_3d_store.current_nj_data.observe(this.nj_data_or_xvm_changed),
+            model_3d_store.current_xvm.observe(this.nj_data_or_xvm_changed),
+            model_3d_store.current_nj_motion.observe(this.nj_motion_changed),
+            model_3d_store.show_skeleton.observe(this.show_skeleton_changed),
+            model_3d_store.animation_playing.observe(this.animation_playing_changed),
+            model_3d_store.animation_frame_rate.observe(this.animation_frame_rate_changed),
+            model_3d_store.animation_frame.observe(this.animation_frame_changed),
         );
 
         this.init_camera_controls();
@@ -95,14 +95,14 @@ export class Model3DRenderer extends Renderer implements Disposable {
             this.animation = undefined;
         }
 
-        const nj_data = model_store.current_nj_data.val;
+        const nj_data = this.model_3d_store.current_nj_data.val;
 
         if (nj_data) {
             const { nj_object, has_skeleton } = nj_data;
 
             let mesh: Mesh;
 
-            const xvm = model_store.current_xvm.val;
+            const xvm = this.model_3d_store.current_xvm.val;
             const textures = xvm ? xvm_to_textures(xvm) : undefined;
 
             const materials =
@@ -132,7 +132,7 @@ export class Model3DRenderer extends Renderer implements Disposable {
             this.scene.add(mesh);
 
             this.skeleton_helper = new SkeletonHelper(mesh);
-            this.skeleton_helper.visible = model_store.show_skeleton.val;
+            this.skeleton_helper.visible = this.model_3d_store.show_skeleton.val;
             (this.skeleton_helper.material as any).linewidth = 3;
             this.scene.add(this.skeleton_helper);
 
@@ -150,7 +150,7 @@ export class Model3DRenderer extends Renderer implements Disposable {
             mixer = this.animation.mixer;
         }
 
-        const nj_data = model_store.current_nj_data.val;
+        const nj_data = this.model_3d_store.current_nj_data.val;
 
         if (!this.mesh || !(this.mesh instanceof SkinnedMesh) || !nj_motion || !nj_data) return;
 
@@ -198,7 +198,7 @@ export class Model3DRenderer extends Renderer implements Disposable {
     };
 
     private animation_frame_changed = ({ value: frame }: ChangeEvent<number>): void => {
-        const nj_motion = model_store.current_nj_motion.val;
+        const nj_motion = this.model_3d_store.current_nj_motion.val;
 
         if (this.animation && nj_motion) {
             const frame_count = nj_motion.frame_count;
@@ -217,7 +217,7 @@ export class Model3DRenderer extends Renderer implements Disposable {
         if (this.animation && !this.animation.action.paused) {
             const time = this.animation.action.time;
             this.update_animation_time = false;
-            model_store.set_animation_frame(time * PSO_FRAME_RATE + 1);
+            this.model_3d_store.set_animation_frame(time * PSO_FRAME_RATE + 1);
             this.update_animation_time = true;
         }
     }

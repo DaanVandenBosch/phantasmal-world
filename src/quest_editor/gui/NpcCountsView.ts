@@ -1,11 +1,11 @@
 import { ResizableWidget } from "../../core/gui/ResizableWidget";
 import { el } from "../../core/gui/dom";
-import { quest_editor_store } from "../stores/QuestEditorStore";
 import { npc_data, NpcType } from "../../core/data_formats/parsing/quest/npc_types";
 import "./NpcCountsView.css";
 import { DisabledView } from "./DisabledView";
 import { property } from "../../core/observable";
 import { QuestNpcModel } from "../model/QuestNpcModel";
+import { QuestEditorStore } from "../stores/QuestEditorStore";
 
 export class NpcCountsView extends ResizableWidget {
     readonly element = el.div({ class: "quest_editor_NpcCountsView" });
@@ -14,7 +14,7 @@ export class NpcCountsView extends ResizableWidget {
 
     private readonly no_quest_view = new DisabledView("No quest loaded.");
 
-    constructor() {
+    constructor(quest_editor_store: QuestEditorStore) {
         super();
 
         this.element.append(this.table_element, this.no_quest_view.element);

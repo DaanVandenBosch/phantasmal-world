@@ -1,7 +1,6 @@
 import { Widget } from "../../core/gui/Widget";
 import { el, section_id_icon } from "../../core/gui/dom";
 import { Column, Table } from "../../core/gui/Table";
-import { hunt_optimizer_stores } from "../stores/HuntOptimizerStore";
 import { Disposable } from "../../core/observable/Disposable";
 import { list_property } from "../../core/observable";
 import { OptimalMethodModel, OptimalResultModel } from "../model";
@@ -9,6 +8,8 @@ import { Difficulty } from "../../core/model";
 import { Episode } from "../../core/data_formats/parsing/quest/Episode";
 import "./OptimizationResultView.css";
 import { Duration } from "luxon";
+import { ServerMap } from "../../core/stores/ServerMap";
+import { HuntOptimizerStore } from "../stores/HuntOptimizerStore";
 
 export class OptimizationResultView extends Widget {
     readonly element = el.div(
@@ -19,7 +20,7 @@ export class OptimizationResultView extends Widget {
     private results_observer?: Disposable;
     private table?: Table<OptimalMethodModel>;
 
-    constructor() {
+    constructor(hunt_optimizer_stores: ServerMap<HuntOptimizerStore>) {
         super();
 
         this.disposable(

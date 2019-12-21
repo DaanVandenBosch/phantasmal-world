@@ -1,9 +1,9 @@
 import { ToolBar } from "../../core/gui/ToolBar";
 import { CheckBox } from "../../core/gui/CheckBox";
-import { asm_editor_store } from "../stores/AsmEditorStore";
+import { AsmEditorStore } from "../stores/AsmEditorStore";
 
 export class AsmEditorToolBar extends ToolBar {
-    constructor() {
+    constructor(asm_editor_store: AsmEditorStore) {
         const inline_args_mode_checkbox = new CheckBox(true, {
             label: "Inline args mode",
             tooltip: asm_editor_store.has_issues.map(has_issues => {

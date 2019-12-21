@@ -1,31 +1,23 @@
 import { el } from "../../core/gui/dom";
-import { gui_store, GuiTool } from "../../core/stores/GuiStore";
+import { GuiStore, GuiTool } from "../../core/stores/GuiStore";
 import { LazyWidget } from "../../core/gui/LazyWidget";
 import { ResizableWidget } from "../../core/gui/ResizableWidget";
 import { ChangeEvent } from "../../core/observable/Observable";
 
-const TOOLS: [GuiTool, () => Promise<ResizableWidget>][] = [
-    [GuiTool.Viewer, async () => new (await import("../../viewer/gui/ViewerView")).ViewerView()],
-    [
-        GuiTool.QuestEditor,
-        async () => new (await import("../../quest_editor/gui/QuestEditorView")).QuestEditorView(),
-    ],
-    [
-        GuiTool.HuntOptimizer,
-        async () =>
-            new (await import("../../hunt_optimizer/gui/HuntOptimizerView")).HuntOptimizerView(),
-    ],
-];
-
 export class MainContentView extends ResizableWidget {
     readonly element = el.div({ class: "application_MainContentView" });
 
-    private tool_views = new Map(
-        TOOLS.map(([tool, create_view]) => [tool, this.disposable(new LazyWidget(create_view))]),
-    );
+    private tool_views: Map<GuiTool, LazyWidget>;
 
-    constructor() {
+    constructor(gui_store: GuiStore, tool_views: [GuiTool, () => Promise<ResizableWidget>][]) {
         super();
+
+        this.tool_views = new Map(
+            tool_views.map(([tool, create_view]) => [
+                tool,
+                this.disposable(new LazyWidget(create_view)),
+            ]),
+        );
 
         for (const tool_view of this.tool_views.values()) {
             this.element.append(tool_view.element);

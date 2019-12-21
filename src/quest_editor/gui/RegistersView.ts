@@ -1,5 +1,4 @@
 import { ResizableWidget } from "../../core/gui/ResizableWidget";
-import { quest_editor_store } from "../stores/QuestEditorStore";
 import { el } from "../../core/gui/dom";
 import { REGISTER_COUNT } from "../scripting/vm/VirtualMachine";
 import { TextInput } from "../../core/gui/TextInput";
@@ -8,6 +7,7 @@ import { CheckBox } from "../../core/gui/CheckBox";
 import { number_to_hex_string } from "../../core/util";
 import "./RegistersView.css";
 import { Select } from "../../core/gui/Select";
+import { QuestRunner } from "../QuestRunner";
 
 enum RegisterDisplayType {
     Signed,
@@ -65,7 +65,7 @@ export class RegistersView extends ResizableWidget {
         this.container_element,
     );
 
-    constructor() {
+    constructor(private readonly quest_runner: QuestRunner) {
         super();
 
         this.type_select.selected.val = RegisterDisplayType.Unsigned;
@@ -96,8 +96,7 @@ export class RegistersView extends ResizableWidget {
         // predicate that indicates whether to display
         // placeholder text or the actual register values
         const should_use_placeholders = (): boolean =>
-            !quest_editor_store.quest_runner.paused.val ||
-            !quest_editor_store.quest_runner.running.val;
+            !this.quest_runner.paused.val || !this.quest_runner.running.val;
 
         // set initial values
         this.update(should_use_placeholders(), this.hex_checkbox.checked.val);
@@ -105,10 +104,10 @@ export class RegistersView extends ResizableWidget {
         this.disposables(
             // check if values need to be updated
             // when QuestRunner execution state changes
-            quest_editor_store.quest_runner.running.observe(() =>
+            this.quest_runner.running.observe(() =>
                 this.update(should_use_placeholders(), this.hex_checkbox.checked.val),
             ),
-            quest_editor_store.quest_runner.paused.observe(() =>
+            this.quest_runner.paused.observe(() =>
                 this.update(should_use_placeholders(), this.hex_checkbox.checked.val),
             ),
 
@@ -132,23 +131,23 @@ export class RegistersView extends ResizableWidget {
 
         switch (type) {
             case RegisterDisplayType.Signed:
-                getter = quest_editor_store.quest_runner.vm.get_register_signed;
+                getter = this.quest_runner.vm.get_register_signed;
                 break;
             case RegisterDisplayType.Unsigned:
-                getter = quest_editor_store.quest_runner.vm.get_register_unsigned;
+                getter = this.quest_runner.vm.get_register_unsigned;
                 break;
             case RegisterDisplayType.Word:
-                getter = quest_editor_store.quest_runner.vm.get_register_word;
+                getter = this.quest_runner.vm.get_register_word;
                 break;
             case RegisterDisplayType.Byte:
-                getter = quest_editor_store.quest_runner.vm.get_register_byte;
+                getter = this.quest_runner.vm.get_register_byte;
                 break;
             case RegisterDisplayType.Float:
-                getter = quest_editor_store.quest_runner.vm.get_register_float;
+                getter = this.quest_runner.vm.get_register_float;
                 break;
         }
 
-        return getter.bind(quest_editor_store.quest_runner.vm);
+        return getter.bind(this.quest_runner.vm);
     }
 
     private update(use_placeholders: boolean, use_hex: boolean): void {
@@ -162,7 +161,7 @@ export class RegistersView extends ResizableWidget {
         } else if (use_hex) {
             for (let i = 0; i < REGISTER_COUNT; i++) {
                 const reg_el = this.register_els[i];
-                const reg_val = quest_editor_store.quest_runner.vm.get_register_unsigned(i);
+                const reg_val = this.quest_runner.vm.get_register_unsigned(i);
 
                 reg_el.value.set_val(number_to_hex_string(reg_val), { silent: true });
             }

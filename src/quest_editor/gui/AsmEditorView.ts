@@ -1,14 +1,14 @@
 import { ResizableWidget } from "../../core/gui/ResizableWidget";
 import { el } from "../../core/gui/dom";
 import { editor, KeyCode, KeyMod, Range } from "monaco-editor";
-import { asm_editor_store } from "../stores/AsmEditorStore";
 import { AsmEditorToolBar } from "./AsmEditorToolBar";
 import { EditorHistory } from "./EditorHistory";
-import IStandaloneCodeEditor = editor.IStandaloneCodeEditor;
 import "./AsmEditorView.css";
 import { ListChangeType } from "../../core/observable/property/list/ListProperty";
-import { quest_editor_store } from "../stores/QuestEditorStore";
-import { gui_store } from "../../core/stores/GuiStore";
+import { GuiStore } from "../../core/stores/GuiStore";
+import { AsmEditorStore } from "../stores/AsmEditorStore";
+import { QuestRunner } from "../QuestRunner";
+import IStandaloneCodeEditor = editor.IStandaloneCodeEditor;
 
 editor.defineTheme("phantasmal-world", {
     base: "vs-dark",
@@ -32,7 +32,7 @@ editor.defineTheme("phantasmal-world", {
 const DUMMY_MODEL = editor.createModel("", "psoasm");
 
 export class AsmEditorView extends ResizableWidget {
-    private readonly tool_bar_view = this.disposable(new AsmEditorToolBar());
+    private readonly tool_bar_view: AsmEditorToolBar;
     private readonly editor: IStandaloneCodeEditor;
     private readonly history: EditorHistory;
     private breakpoint_decoration_ids: string[] = [];
@@ -40,8 +40,14 @@ export class AsmEditorView extends ResizableWidget {
 
     readonly element = el.div();
 
-    constructor() {
+    constructor(
+        gui_store: GuiStore,
+        quest_runner: QuestRunner,
+        private readonly asm_editor_store: AsmEditorStore,
+    ) {
         super();
+
+        this.tool_bar_view = this.disposable(new AsmEditorToolBar(asm_editor_store));
 
         this.element.append(this.tool_bar_view.element);
 
@@ -99,7 +105,7 @@ export class AsmEditorView extends ResizableWidget {
                     this.breakpoint_decoration_ids = [];
                     this.execloc_decoration_id = "";
 
-                    quest_editor_store.quest_runner.clear_breakpoints();
+                    quest_runner.clear_breakpoints();
                 },
                 { call_now: true },
             ),
@@ -203,7 +209,7 @@ export class AsmEditorView extends ResizableWidget {
                             if (!pos) {
                                 return;
                             }
-                            quest_editor_store.quest_runner.toggle_breakpoint(pos.lineNumber);
+                            quest_runner.toggle_breakpoint(pos.lineNumber);
                         }
                         break;
                     default:
@@ -211,7 +217,7 @@ export class AsmEditorView extends ResizableWidget {
                 }
             }),
 
-            this.enabled.bind_to(quest_editor_store.quest_runner.running.map(r => !r)),
+            this.enabled.bind_to(quest_runner.running.map(r => !r)),
         );
 
         this.finalize_construction();
@@ -231,6 +237,6 @@ export class AsmEditorView extends ResizableWidget {
         super.set_enabled(enabled);
 
         this.tool_bar_view.enabled.val = enabled;
-        this.editor.updateOptions({ readOnly: !enabled || !asm_editor_store.model.val });
+        this.editor.updateOptions({ readOnly: !enabled || !this.asm_editor_store.model.val });
     }
 }
