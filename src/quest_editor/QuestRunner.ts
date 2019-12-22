@@ -13,7 +13,6 @@ import { AreaVariantModel } from "./model/AreaVariantModel";
 import { Episode } from "../core/data_formats/parsing/quest/Episode";
 import { QuestNpcModel } from "./model/QuestNpcModel";
 import { QuestObjectModel } from "./model/QuestObjectModel";
-import { defined } from "../core/util";
 import { AreaStore } from "./stores/AreaStore";
 
 export enum QuestRunnerState {
@@ -31,20 +30,31 @@ export enum QuestRunnerState {
     Paused,
 }
 
-export type GameState = {
-    readonly episode: Episode;
+class GameStateInternal {
+    episode = Episode.I;
     /**
      * Maps area ids to function labels.
      */
-    readonly floor_handlers: Map<number, number>;
+    readonly floor_handlers = new Map<number, number>();
     /**
      * Maps area ids to area variants.
      */
-    readonly area_variants: Map<number, AreaVariantModel>;
-    readonly current_area_variant: Property<AreaVariantModel | undefined>;
-    readonly npcs: ListProperty<QuestNpcModel>;
-    readonly objects: ListProperty<QuestObjectModel>;
-};
+    readonly area_variants = new Map<number, AreaVariantModel>();
+    readonly current_area_variant = property<AreaVariantModel | undefined>(undefined);
+    readonly npcs = list_property<QuestNpcModel>();
+    readonly objects = list_property<QuestObjectModel>();
+
+    reset(): void {
+        this.episode = Episode.I;
+        this.floor_handlers.clear();
+        this.area_variants.clear();
+        this.current_area_variant.val = undefined;
+        this.npcs.clear();
+        this.objects.clear();
+    }
+}
+
+export type GameState = Readonly<GameStateInternal>;
 
 /**
  * Orchestrates everything related to emulating a quest run. Drives a {@link VirtualMachine}
@@ -52,7 +62,6 @@ export type GameState = {
  */
 export class QuestRunner {
     private quest_logger = log_store.get_logger("quest_editor/QuestRunner");
-    private quest?: QuestModel;
     private animation_frame?: number;
     private startup = true;
     private readonly _state: WritableProperty<QuestRunnerState> = property(
@@ -60,29 +69,15 @@ export class QuestRunner {
     );
 
     private initial_area_id = 0;
+    private readonly npcs: QuestNpcModel[] = [];
+    private readonly objects: QuestObjectModel[] = [];
 
     private readonly _breakpoints: WritableListProperty<Breakpoint> = list_property();
     private readonly _pause_location: WritableProperty<number | undefined> = property(undefined);
 
     private readonly debugger: Debugger;
 
-    private readonly _game_state = {
-        episode: Episode.I,
-        floor_handlers: new Map<number, number>(),
-        area_variants: new Map<number, AreaVariantModel>(),
-        current_area_variant: property<AreaVariantModel | undefined>(undefined),
-        npcs: list_property<QuestNpcModel>(),
-        objects: list_property<QuestObjectModel>(),
-
-        reset() {
-            this.episode = Episode.I;
-            this.floor_handlers = new Map<number, number>();
-            this.area_variants = new Map<number, AreaVariantModel>();
-            this.current_area_variant.val = undefined;
-            this.npcs.clear();
-            this.objects.clear();
-        },
-    };
+    private readonly _game_state = new GameStateInternal();
 
     // TODO: make vm private again.
     readonly vm: VirtualMachine;
@@ -111,10 +106,14 @@ export class QuestRunner {
     run(quest: QuestModel): void {
         if (this.animation_frame != undefined) {
             cancelAnimationFrame(this.animation_frame);
+            this.animation_frame = undefined;
         }
 
-        this.quest = quest;
         this.startup = true;
+        this.initial_area_id = 0;
+        this.npcs.splice(0, this.npcs.length, ...quest.npcs.val);
+        this.objects.splice(0, this.objects.length, ...quest.objects.val);
+        this._pause_location.val = undefined;
         this._game_state.reset();
 
         this.vm.load_object_code(quest.object_code, quest.episode);
@@ -151,6 +150,8 @@ export class QuestRunner {
         this.debugger.reset();
         this._state.val = QuestRunnerState.Stopped;
         this._pause_location.val = undefined;
+        this.npcs.splice(0, this.npcs.length);
+        this.objects.splice(0, this.objects.length);
         this._game_state.reset();
     }
 
@@ -310,13 +311,10 @@ export class QuestRunner {
     };
 
     private run_floor_handler(area_variant: AreaVariantModel): void {
-        const quest = this.quest;
-        defined(quest, "quest");
-
         const area_id = area_variant.area.id;
 
         this._game_state.current_area_variant.val = area_variant;
-        this._game_state.objects.push(...quest.objects.val.filter(obj => obj.area_id === area_id));
+        this._game_state.objects.push(...this.objects.filter(obj => obj.area_id === area_id));
 
         const label = this._game_state.floor_handlers.get(area_id);
 

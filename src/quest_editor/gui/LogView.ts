@@ -5,6 +5,8 @@ import "./LogView.css";
 import { log_store, LogLevel, LogLevels, LogMessage } from "../stores/LogStore";
 import { Select } from "../../core/gui/Select";
 
+const AUTOSCROLL_TRESHOLD = 5;
+
 export class LogView extends ResizableWidget {
     readonly element = el.div({ class: "quest_editor_LogView", tab_index: -1 });
 
@@ -15,7 +17,7 @@ export class LogView extends ResizableWidget {
     private readonly level_filter: Select<LogLevel>;
     private readonly settings_bar: ToolBar;
 
-    private was_scrolled_to_bottom = true;
+    private should_scroll_to_bottom = true;
 
     constructor() {
         super();
@@ -37,25 +39,15 @@ export class LogView extends ResizableWidget {
             }),
         );
 
-        this.disposables(
-            // before update, save scroll state
-            log_store.log_messages.observe_list(() => {
-                this.was_scrolled_to_bottom = this.is_scrolled_to_bottom();
-            }),
+        this.list_container.addEventListener("scroll", this.scrolled);
 
-            // do update
+        this.disposables(
             bind_children_to(
                 this.list_element,
                 log_store.log_messages,
                 this.create_message_element,
+                { after: this.scroll_to_bottom },
             ),
-
-            // after update, scroll if was scrolled
-            log_store.log_messages.observe_list(() => {
-                if (this.was_scrolled_to_bottom) {
-                    this.scroll_to_bottom();
-                }
-            }),
 
             this.level_filter.selected.observe(
                 ({ value }) => value != undefined && log_store.set_log_level(value),
@@ -76,39 +68,23 @@ export class LogView extends ResizableWidget {
         this.finalize_construction();
     }
 
-    /**
-     * How far away from the bottom the scrolling is allowed to
-     * be for autoscroll to still happen.
-     *
-     * @return threshold in pixels
-     */
-    private get_autoscroll_treshold(): number {
-        const some_msg = this.list_element.firstElementChild;
-
-        if (!some_msg) {
-            return 0;
-        }
-
-        // half of the height of a message
-        return some_msg.clientHeight / 2;
-    }
-
-    private is_scrolled_to_bottom(): boolean {
-        return (
+    private scrolled = (): void => {
+        this.should_scroll_to_bottom =
             this.list_container.scrollTop >=
             this.list_container.scrollHeight -
                 this.list_container.offsetHeight -
-                this.get_autoscroll_treshold()
-        );
-    }
+                AUTOSCROLL_TRESHOLD;
+    };
 
-    private scroll_to_bottom(): void {
-        this.list_container.scrollTo({
-            top: this.list_container.scrollHeight,
-            left: 0,
-            behavior: "auto",
-        });
-    }
+    private scroll_to_bottom = (): void => {
+        if (this.should_scroll_to_bottom) {
+            this.list_container.scrollTo({
+                top: this.list_container.scrollHeight,
+                left: 0,
+                behavior: "auto",
+            });
+        }
+    };
 
     private create_message_element = (msg: LogMessage): HTMLElement => {
         return el.div(
@@ -120,7 +96,7 @@ export class LogView extends ResizableWidget {
             },
             el.div({
                 class: "quest_editor_LogView_message_timestamp",
-                text: msg.formatted_timestamp,
+                text: msg.time.toFormat("hh:mm:ss.SSS"),
             }),
             el.div({
                 class: "quest_editor_LogView_message_level",

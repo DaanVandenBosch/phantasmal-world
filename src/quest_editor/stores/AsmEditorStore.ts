@@ -105,11 +105,11 @@ export class AsmEditorStore implements Disposable {
         issues => issues.warnings.length + issues.errors.length > 0,
     );
     readonly breakpoints: ListProperty<Breakpoint>;
-    readonly execution_location: Property<number | undefined>;
+    readonly pause_location: Property<number | undefined>;
 
     constructor(private readonly quest_editor_store: QuestEditorStore) {
         this.breakpoints = quest_editor_store.quest_runner.breakpoints;
-        this.execution_location = quest_editor_store.quest_runner.pause_location;
+        this.pause_location = quest_editor_store.quest_runner.pause_location;
 
         this.disposer.add_all(
             quest_editor_store.current_quest.observe(this.quest_changed, {

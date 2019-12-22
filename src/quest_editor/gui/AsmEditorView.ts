@@ -170,7 +170,7 @@ export class AsmEditorView extends ResizableWidget {
                 }
             }),
 
-            asm_editor_store.execution_location.observe(e => {
+            asm_editor_store.pause_location.observe(e => {
                 const old_line_num = e.old_value;
                 const new_line_num = e.value;
 

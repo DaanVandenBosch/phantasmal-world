@@ -5,6 +5,7 @@ import { Disposable } from "../../core/observable/Disposable";
 import { Disposer } from "../../core/observable/Disposer";
 import Logger from "js-logger";
 import { enum_values } from "../../core/enums";
+import { DateTime } from "luxon";
 
 export type QuestLogger = {
     readonly debug: (message: string) => void;
@@ -24,7 +25,7 @@ export enum LogLevel {
 export const LogLevels = enum_values<LogLevel>(LogLevel);
 
 export type LogMessage = {
-    readonly formatted_timestamp: string;
+    readonly time: DateTime;
     readonly message: string;
     readonly level: LogLevel;
 };
@@ -52,25 +53,25 @@ export class LogStore implements Disposable {
         this._log_level.val = log_level;
     }
 
-    private add_log_message(message: string, level: LogLevel, name: string): void {
+    private add_log_message(message: string, level: LogLevel, logger_name: string): void {
         this._log_messages.push({
-            formatted_timestamp: new Date().toISOString(),
+            time: DateTime.local(),
             message,
             level,
         });
 
         switch (level) {
             case LogLevel.Debug:
-                Logger.get(name).debug(message);
+                Logger.get(logger_name).debug(message);
                 break;
             case LogLevel.Info:
-                Logger.get(name).info(message);
+                Logger.get(logger_name).info(message);
                 break;
             case LogLevel.Warning:
-                Logger.get(name).warn(message);
+                Logger.get(logger_name).warn(message);
                 break;
             case LogLevel.Error:
-                Logger.get(name).error(message);
+                Logger.get(logger_name).error(message);
                 break;
         }
     }

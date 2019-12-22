@@ -253,6 +253,9 @@ export function bind_children_to<T>(
     element: HTMLElement,
     list: ListProperty<T>,
     create_child: (value: T, index: number) => HTMLElement | [HTMLElement, Disposable],
+    options?: {
+        after?: () => void;
+    },
 ): Disposable {
     const children_disposer = new Disposer();
 
@@ -289,6 +292,8 @@ export function bind_children_to<T>(
                 element.children[index + i].insertAdjacentElement("beforebegin", children[i]);
             }
         }
+
+        options?.after?.();
     }
 
     splice_children(0, 0, list.val);
