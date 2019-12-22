@@ -1,8 +1,7 @@
 import { ResizableWidget } from "../../core/gui/ResizableWidget";
-import { create_element, disposable_listener, el } from "../../core/gui/dom";
+import { create_element, el } from "../../core/gui/dom";
 import { QuestEditorToolBar } from "./QuestEditorToolBar";
 import GoldenLayout, { Container, ContentItem, ItemConfigType } from "golden-layout";
-import { quest_editor_ui_persister } from "../persistence/QuestEditorUiPersister";
 import { QuestInfoView } from "./QuestInfoView";
 import "golden-layout/src/css/goldenlayout-base.css";
 import "../../core/gui/golden_layout_theme.css";
@@ -24,6 +23,7 @@ import { EntityImageRenderer } from "../rendering/EntityImageRenderer";
 import { AreaAssetLoader } from "../loading/AreaAssetLoader";
 import { EntityAssetLoader } from "../loading/EntityAssetLoader";
 import { DisposableThreeRenderer } from "../../core/rendering/Renderer";
+import { QuestEditorUiPersister } from "../persistence/QuestEditorUiPersister";
 import Logger = require("js-logger");
 
 const logger = Logger.get("quest_editor/gui/QuestEditorView");
@@ -56,8 +56,6 @@ export class QuestEditorView extends ResizableWidget {
         { name: string; create(): ResizableWidget }
     >;
 
-    private readonly view_white_list: readonly string[];
-
     private readonly tool_bar: QuestEditorToolBar;
 
     private readonly layout_element = create_element("div", { class: "quest_editor_gl_container" });
@@ -74,6 +72,7 @@ export class QuestEditorView extends ResizableWidget {
         area_asset_loader: AreaAssetLoader,
         entity_asset_loader: EntityAssetLoader,
         entity_image_renderer: EntityImageRenderer,
+        private readonly quest_editor_ui_persister: QuestEditorUiPersister,
         create_three_renderer: () => DisposableThreeRenderer,
     ) {
         super();
@@ -163,10 +162,6 @@ export class QuestEditorView extends ResizableWidget {
             });
         }
 
-        this.view_white_list = [...this.view_map.values()]
-            .map(({ name }) => name)
-            .filter(name => name !== "quest_runner");
-
         this.tool_bar = this.disposable(
             new QuestEditorToolBar(gui_store, area_store, quest_editor_store),
         );
@@ -213,14 +208,6 @@ export class QuestEditorView extends ResizableWidget {
                     }
                 }
             }),
-
-            disposable_listener(window, "beforeunload", e => {
-                if (quest_editor_store.quest_runner.running.val) {
-                    quest_editor_store.quest_runner.stop();
-                    e.preventDefault();
-                    e.returnValue = false;
-                }
-            }),
         );
 
         this.finalize_construction();
@@ -251,24 +238,31 @@ export class QuestEditorView extends ResizableWidget {
     private async init_golden_layout(): Promise<GoldenLayout> {
         const default_layout_content = this.get_default_layout_content();
 
-        const content = await quest_editor_ui_persister.load_layout_config(
-            this.view_white_list,
-            default_layout_content,
-        );
-
         try {
-            return this.attempt_gl_init({
-                ...DEFAULT_LAYOUT_CONFIG,
-                content,
-            });
+            const content = await this.quest_editor_ui_persister.load_layout_config(
+                default_layout_content,
+            );
+
+            if (content) {
+                const gl = this.attempt_gl_init({
+                    ...DEFAULT_LAYOUT_CONFIG,
+                    content,
+                });
+
+                logger.info("Instantiated golden layout with persisted layout.");
+
+                return gl;
+            }
         } catch (e) {
             logger.warn("Couldn't instantiate golden layout with persisted layout.", e);
-
-            return this.attempt_gl_init({
-                ...DEFAULT_LAYOUT_CONFIG,
-                content: default_layout_content,
-            });
         }
+
+        logger.info("Instantiating golden layout with default layout.");
+
+        return this.attempt_gl_init({
+            ...DEFAULT_LAYOUT_CONFIG,
+            content: default_layout_content,
+        });
     }
 
     private attempt_gl_init(config: GoldenLayout.Config): GoldenLayout {
@@ -298,7 +292,7 @@ export class QuestEditorView extends ResizableWidget {
             }
 
             layout.on("stateChanged", () => {
-                quest_editor_ui_persister.persist_layout_config(layout.toConfig().content);
+                this.quest_editor_ui_persister.persist_layout_config(layout.toConfig().content);
             });
 
             layout.on("stackCreated", (stack: ContentItem) => {

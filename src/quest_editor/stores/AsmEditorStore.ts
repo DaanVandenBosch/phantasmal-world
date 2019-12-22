@@ -18,6 +18,7 @@ import LocationLink = languages.LocationLink;
 import IModelContentChange = editor.IModelContentChange;
 import { Breakpoint } from "../scripting/vm/Debugger";
 import { QuestEditorStore } from "./QuestEditorStore";
+import { disposable_listener } from "../../core/gui/dom";
 
 const assembly_analyser = new AssemblyAnalyser();
 
@@ -118,6 +119,13 @@ export class AsmEditorStore implements Disposable {
 
             assembly_analyser.issues.observe(({ value }) => this.update_model_markers(value), {
                 call_now: true,
+            }),
+
+            disposable_listener(window, "beforeunload", e => {
+                if (this.undo.can_undo.val) {
+                    e.preventDefault();
+                    e.returnValue = false;
+                }
             }),
         );
     }

@@ -30,6 +30,7 @@ import { WritableProperty } from "../../core/observable/property/WritablePropert
 import { QuestRunner } from "../QuestRunner";
 import { AreaStore } from "./AreaStore";
 import Logger = require("js-logger");
+import { disposable_listener } from "../../core/gui/dom";
 
 const logger = Logger.get("quest_editor/gui/QuestEditorStore");
 
@@ -80,6 +81,15 @@ export class QuestEditorStore implements Disposable {
                         this.set_selected_entity(undefined);
                     }
                 }),
+
+            disposable_listener(window, "beforeunload", e => {
+                this.quest_runner.stop();
+
+                if (this.undo.can_undo.val) {
+                    e.preventDefault();
+                    e.returnValue = false;
+                }
+            }),
         );
     }
 

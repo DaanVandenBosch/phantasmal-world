@@ -10,7 +10,7 @@ import { WebGLRenderer } from "three";
 import { DisposableThreeRenderer } from "./core/rendering/Renderer";
 
 Logger.useDefaults({
-    defaultLevel: (Logger as any)[process.env["LOG_LEVEL"] ?? "OFF"],
+    defaultLevel: (Logger as any)[process.env["LOG_LEVEL"] ?? "INFO"],
 });
 
 function create_three_renderer(): DisposableThreeRenderer {

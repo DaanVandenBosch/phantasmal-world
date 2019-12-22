@@ -1,74 +1,141 @@
-import { Persister } from "../../core/persistence";
+import { Persister } from "../../core/Persister";
 import { throttle } from "lodash";
-import GoldenLayout from "golden-layout";
+import { ComponentConfig, ItemConfigType } from "golden-layout";
 
 const LAYOUT_CONFIG_KEY = "QuestEditorUiPersister.layout_config";
 
 export class QuestEditorUiPersister extends Persister {
     persist_layout_config = throttle(
-        (config: any) => {
-            this.persist(LAYOUT_CONFIG_KEY, config);
+        (config: ItemConfigType[]) => {
+            this.persist(LAYOUT_CONFIG_KEY, this.to_persisted_item_config(config));
         },
         500,
-        { leading: true, trailing: true },
+        { leading: false, trailing: true },
     );
 
     async load_layout_config(
-        components: readonly string[],
-        default_config: GoldenLayout.ItemConfigType[],
-    ): Promise<any> {
-        const config = await this.load<GoldenLayout.ItemConfigType[]>(LAYOUT_CONFIG_KEY);
+        default_config: ItemConfigType[],
+    ): Promise<ItemConfigType[] | undefined> {
+        const config = await this.load<ItemConfigType[]>(LAYOUT_CONFIG_KEY);
 
-        if (config && this.verify_layout_config(config, components)) {
-            return config;
-        } else {
-            return default_config;
-        }
-    }
+        if (config) {
+            const components = this.extract_components(default_config);
+            const verified_config = this.sanitized_layout_config(
+                this.from_persisted_item_config(config),
+                components,
+            );
 
-    private verify_layout_config(
-        config: GoldenLayout.ItemConfigType[],
-        components: readonly string[],
-    ): boolean {
-        const set = new Set(components);
-
-        for (const child of config) {
-            if (!this.verify_layout_child(child, set, new Set(), true)) {
-                return false;
+            if (verified_config) {
+                return verified_config;
             }
         }
 
-        return true;
+        return undefined;
     }
 
-    private verify_layout_child(
-        config: GoldenLayout.ItemConfigType,
-        components: Set<string>,
+    private sanitized_layout_config(
+        config: ItemConfigType[],
+        components: Map<string, ComponentConfig>,
+    ): ItemConfigType[] | undefined {
+        const found = new Set<string>();
+
+        const sanitized_config = config.map(child =>
+            this.sanitize_layout_child(child, components, found),
+        );
+
+        if (found.size !== components.size) {
+            // A component was added, use default layout instead of persisted layout.
+            return undefined;
+        }
+
+        // Filter out removed components.
+        return sanitized_config.filter(item => item) as ItemConfigType[];
+    }
+
+    /**
+     * Removed old components and adds titles and ids to current components.
+     * Modifies the given ItemConfigType object.
+     */
+    private sanitize_layout_child(
+        config: ItemConfigType,
+        components: Map<string, ComponentConfig>,
         found: Set<string>,
-        first: boolean,
-    ): boolean {
+    ): ItemConfigType | undefined {
         if (!config) {
-            return false;
+            return undefined;
         }
 
-        if ("componentName" in config) {
-            if (!components.has(config.componentName)) {
-                return false;
-            } else {
-                found.add(config.componentName);
+        if (config.type === "component" && "componentName" in config) {
+            const component = components.get(config.componentName);
+
+            // Remove deprecated components.
+            if (!component) {
+                return undefined;
             }
+
+            found.add(config.componentName);
+            config.id = component.id;
+            config.title = component.title;
         }
 
         if (config.content) {
-            for (const child of config.content) {
-                if (!this.verify_layout_child(child, components, found, false)) {
-                    return false;
-                }
+            config.content = config.content
+                .map(child => this.sanitize_layout_child(child, components, found))
+                .filter(item => item) as ItemConfigType[];
+        }
+
+        return config;
+    }
+
+    private extract_components(
+        config: ItemConfigType[],
+        map: Map<string, ComponentConfig> = new Map(),
+    ): Map<string, ComponentConfig> {
+        for (const child of config) {
+            if ("componentName" in child) {
+                map.set(child.componentName, child);
+            }
+
+            if (child.content) {
+                this.extract_components(child.content, map);
             }
         }
 
-        return first ? components.size === found.size : true;
+        return map;
+    }
+
+    private to_persisted_item_config(config: ItemConfigType[]): PersistedItemConfig[] {
+        return config.map(item => ({
+            id: item.id,
+            type: item.type,
+            componentName: "componentName" in item ? item.componentName : undefined,
+            width: item.width,
+            height: item.height,
+            content: item.content && this.to_persisted_item_config(item.content),
+        }));
+    }
+
+    /**
+     * This simply makes a copy to ensure legacy properties are removed.
+     */
+    private from_persisted_item_config(config: PersistedItemConfig[]): ItemConfigType[] {
+        return config.map(item => ({
+            id: item.id,
+            type: item.type,
+            componentName: item.componentName,
+            width: item.width,
+            height: item.height,
+            content: item.content && this.from_persisted_item_config(item.content),
+            isClosable: false,
+        }));
     }
 }
 
-export const quest_editor_ui_persister = new QuestEditorUiPersister();
+type PersistedItemConfig = {
+    id?: string | string[];
+    type: string;
+    componentName?: string;
+    width?: number;
+    height?: number;
+    content?: PersistedItemConfig[];
+};

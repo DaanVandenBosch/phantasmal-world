@@ -17,7 +17,7 @@ import { Kind, OP_BB_MAP_DESIGNATE, Opcode, OPCODES_BY_MNEMONIC } from "./opcode
 import { AssemblyLexer, IdentToken, TokenType } from "./AssemblyLexer";
 
 Logger.useDefaults({
-    defaultLevel: (Logger as any)[process.env["LOG_LEVEL"] || "OFF"],
+    defaultLevel: (Logger as any)[process.env["LOG_LEVEL"] || "INFO"],
 });
 
 const ctx: Worker = self as any;

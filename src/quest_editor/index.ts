@@ -8,6 +8,7 @@ import { HttpClient } from "../core/HttpClient";
 import { EntityImageRenderer } from "./rendering/EntityImageRenderer";
 import { EntityAssetLoader } from "./loading/EntityAssetLoader";
 import { DisposableThreeRenderer } from "../core/rendering/Renderer";
+import { QuestEditorUiPersister } from "./persistence/QuestEditorUiPersister";
 
 export function initialize_quest_editor(
     http_client: HttpClient,
@@ -23,6 +24,9 @@ export function initialize_quest_editor(
     const quest_editor_store = new QuestEditorStore(gui_store, area_store);
     const asm_editor_store = new AsmEditorStore(quest_editor_store);
 
+    // Persisters
+    const quest_editor_ui_persister = new QuestEditorUiPersister();
+
     // Entity Image Renderer
     const entity_image_renderer = new EntityImageRenderer(entity_asset_loader);
 
@@ -35,6 +39,7 @@ export function initialize_quest_editor(
         area_asset_loader,
         entity_asset_loader,
         entity_image_renderer,
+        quest_editor_ui_persister,
         create_three_renderer,
     );
 }

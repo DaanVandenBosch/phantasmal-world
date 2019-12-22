@@ -33,6 +33,8 @@ export abstract class Persister {
     private server_key(server: Server, key: string): string {
         let k = key + ".";
 
+        // Do this manually per server type instead of just appending e.g. `Server[server]` to
+        // ensure the persisted key never changes.
         switch (server) {
             case Server.Ephinea:
                 k += "Ephinea";

@@ -1,4 +1,4 @@
-import { Persister } from "../../core/persistence";
+import { Persister } from "../../core/Persister";
 import { Server } from "../../core/model";
 import { HuntMethodModel } from "../model/HuntMethodModel";
 import { Duration } from "luxon";
