@@ -10,6 +10,9 @@ import "./OptimizationResultView.css";
 import { Duration } from "luxon";
 import { ServerMap } from "../../core/stores/ServerMap";
 import { HuntOptimizerStore } from "../stores/HuntOptimizerStore";
+import Logger from "js-logger";
+
+const logger = Logger.get("hunt_optimizer/gui/OptimizationResultView");
 
 export class OptimizationResultView extends Widget {
     readonly element = el.div(
@@ -24,18 +27,24 @@ export class OptimizationResultView extends Widget {
         super();
 
         this.disposable(
-            hunt_optimizer_stores.observe_current(
-                hunt_optimizer_store => {
-                    if (this.results_observer) {
-                        this.results_observer.dispose();
-                    }
+            hunt_optimizer_stores.current.observe(
+                async ({ value }) => {
+                    try {
+                        const hunt_optimizer_store = await value;
 
-                    this.results_observer = hunt_optimizer_store.result.observe(
-                        ({ value }) => this.update_table(value),
-                        {
-                            call_now: true,
-                        },
-                    );
+                        if (this.results_observer) {
+                            this.results_observer.dispose();
+                        }
+
+                        this.results_observer = hunt_optimizer_store.result.observe(
+                            ({ value }) => this.update_table(value),
+                            {
+                                call_now: true,
+                            },
+                        );
+                    } catch (e) {
+                        logger.error("Couldn't load hunt optimizer store.", e);
+                    }
                 },
                 { call_now: true },
             ),

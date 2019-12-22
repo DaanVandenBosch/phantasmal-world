@@ -25,7 +25,7 @@ import { ServerMap } from "../../core/stores/ServerMap";
 import { GuiStore } from "../../core/stores/GuiStore";
 import { HuntOptimizerPersister } from "../persistence/HuntOptimizerPersister";
 
-export function load_hunt_optimizer_stores(
+export function create_hunt_optimizer_stores(
     gui_store: GuiStore,
     hunt_optimizer_persister: HuntOptimizerPersister,
     item_type_stores: ServerMap<ItemTypeStore>,

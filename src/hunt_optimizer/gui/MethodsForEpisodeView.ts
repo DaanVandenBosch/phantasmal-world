@@ -15,6 +15,9 @@ import { SortDirection, Table } from "../../core/gui/Table";
 import { list_property } from "../../core/observable";
 import { ServerMap } from "../../core/stores/ServerMap";
 import { HuntMethodStore } from "../stores/HuntMethodStore";
+import Logger from "js-logger";
+
+const logger = Logger.get("hunt_optimizer/gui/MethodsForEpisodeView");
 
 export class MethodsForEpisodeView extends ResizableWidget {
     readonly element = el.div({ class: "hunt_optimizer_MethodsForEpisodeView" });
@@ -121,22 +124,28 @@ export class MethodsForEpisodeView extends ResizableWidget {
         this.element.append(table.element);
 
         this.disposable(
-            hunt_method_stores.observe_current(
-                hunt_method_store => {
-                    if (this.hunt_methods_observer) {
-                        this.hunt_methods_observer.dispose();
-                    }
+            hunt_method_stores.current.observe(
+                async ({ value }) => {
+                    try {
+                        const hunt_method_store = await value;
 
-                    this.hunt_methods_observer = hunt_method_store.methods.observe(
-                        ({ value }) => {
-                            hunt_methods.val = value.filter(
-                                method => method.episode === this.episode,
-                            );
-                        },
-                        {
-                            call_now: true,
-                        },
-                    );
+                        if (this.hunt_methods_observer) {
+                            this.hunt_methods_observer.dispose();
+                        }
+
+                        this.hunt_methods_observer = hunt_method_store.methods.observe(
+                            ({ value }) => {
+                                hunt_methods.val = value.filter(
+                                    method => method.episode === this.episode,
+                                );
+                            },
+                            {
+                                call_now: true,
+                            },
+                        );
+                    } catch (e) {
+                        logger.error("Couldn't load hunt optimizer store.", e);
+                    }
                 },
                 { call_now: true },
             ),

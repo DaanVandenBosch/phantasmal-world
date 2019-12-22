@@ -5,5 +5,6 @@ module.exports = {
     setupFiles: ["./test/src/setup.js"],
     moduleNameMapper: {
         "\\.(css|gif|jpg|png|svg|ttf)$": "<rootDir>/src/__mocks__/static_files.js",
+        "monaco-editor": "<rootDir>/node_modules/monaco-editor/dev/vs/editor/editor.main.js",
     },
 };

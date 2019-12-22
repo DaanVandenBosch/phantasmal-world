@@ -10,7 +10,7 @@ import { HttpClient } from "../../core/HttpClient";
 
 const logger = Logger.get("stores/ItemDropStore");
 
-export function load_item_drop_stores(
+export function create_item_drop_stores(
     http_client: HttpClient,
     gui_store: GuiStore,
     item_type_stores: ServerMap<ItemTypeStore>,

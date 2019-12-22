@@ -1,8 +1,6 @@
 import { Server } from "../model";
 import { Property } from "../observable/property/Property";
 import { memoize } from "lodash";
-import { sequential } from "../sequential";
-import { Disposable } from "../observable/Disposable";
 import { GuiStore } from "./GuiStore";
 
 /**
@@ -29,10 +27,5 @@ export class ServerMap<T> {
 
     get(server: Server): Promise<T> {
         return this.get_value(server);
-    }
-
-    observe_current(f: (current: T) => void, options?: { call_now?: boolean }): Disposable {
-        const seq_f = sequential(async ({ value }: { value: Promise<T> }) => f(await value));
-        return this.current.observe(seq_f, options);
     }
 }

@@ -1,8 +1,8 @@
 import { HttpClient } from "./core/HttpClient";
 import { Disposable } from "./core/observable/Disposable";
 import { GuiStore, GuiTool } from "./core/stores/GuiStore";
-import { load_item_type_stores } from "./core/stores/ItemTypeStore";
-import { load_item_drop_stores } from "./hunt_optimizer/stores/ItemDropStore";
+import { create_item_type_stores } from "./core/stores/ItemTypeStore";
+import { create_item_drop_stores } from "./hunt_optimizer/stores/ItemDropStore";
 import { ApplicationView } from "./application/gui/ApplicationView";
 import { throttle } from "lodash";
 import { DisposableThreeRenderer } from "./core/rendering/Renderer";
@@ -23,8 +23,8 @@ export function initialize(
 
     // Initialize core stores shared by several submodules.
     const gui_store = new GuiStore();
-    const item_type_stores = load_item_type_stores(http_client, gui_store);
-    const item_drop_stores = load_item_drop_stores(http_client, gui_store, item_type_stores);
+    const item_type_stores = create_item_type_stores(http_client, gui_store);
+    const item_drop_stores = create_item_drop_stores(http_client, gui_store, item_type_stores);
 
     // Initialize application view.
     const application_view = new ApplicationView(gui_store, [

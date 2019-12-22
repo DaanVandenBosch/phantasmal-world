@@ -12,7 +12,7 @@ import { ItemTypeDto } from "../dto/ItemTypeDto";
 import { GuiStore } from "./GuiStore";
 import { HttpClient } from "../HttpClient";
 
-export function load_item_type_stores(
+export function create_item_type_stores(
     http_client: HttpClient,
     gui_store: GuiStore,
 ): ServerMap<ItemTypeStore> {

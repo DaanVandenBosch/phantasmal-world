@@ -20,7 +20,7 @@ const DEFAULT_DURATION = Duration.fromObject({ minutes: 30 });
 const DEFAULT_GOVERNMENT_TEST_DURATION = Duration.fromObject({ minutes: 45 });
 const DEFAULT_LARGE_ENEMY_COUNT_DURATION = Duration.fromObject({ minutes: 45 });
 
-export function load_hunt_method_stores(
+export function create_hunt_method_stores(
     http_client: HttpClient,
     gui_store: GuiStore,
     hunt_method_persister: HuntMethodPersister,

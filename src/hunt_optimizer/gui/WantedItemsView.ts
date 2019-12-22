@@ -11,6 +11,9 @@ import { ItemType } from "../../core/model/items";
 import { Disposable } from "../../core/observable/Disposable";
 import { ServerMap } from "../../core/stores/ServerMap";
 import { HuntOptimizerStore } from "../stores/HuntOptimizerStore";
+import Logger from "js-logger";
+
+const logger = Logger.get("hunt_optimizer/gui/WantedItemsView");
 
 export class WantedItemsView extends Widget {
     readonly element = el.div({ class: "hunt_optimizer_WantedItemsView" });
@@ -48,29 +51,34 @@ export class WantedItemsView extends Widget {
         );
 
         this.disposables(
-            hunt_optimizer_stores.observe_current(
-                hunt_optimizer_store => {
-                    this.store_disposer.dispose_all();
+            hunt_optimizer_stores.current.observe(
+                async ({ value }) => {
+                    try {
+                        const hunt_optimizer_store = await value;
+                        this.store_disposer.dispose_all();
 
-                    this.store_disposer.add_all(
-                        bind_children_to(
-                            this.tbody_element,
-                            hunt_optimizer_store.wanted_items,
-                            this.create_row,
-                        ),
+                        this.store_disposer.add_all(
+                            bind_children_to(
+                                this.tbody_element,
+                                hunt_optimizer_store.wanted_items,
+                                this.create_row,
+                            ),
 
-                        combo_box.selected.observe(({ value: item_type }) => {
-                            if (item_type) {
-                                hunt_optimizer_store.add_wanted_item(item_type);
-                                combo_box.selected.val = undefined;
-                            }
-                        }),
-                    );
+                            combo_box.selected.observe(({ value: item_type }) => {
+                                if (item_type) {
+                                    hunt_optimizer_store.add_wanted_item(item_type);
+                                    combo_box.selected.val = undefined;
+                                }
+                            }),
+                        );
 
-                    huntable_items.val = hunt_optimizer_store.huntable_item_types
-                        .slice()
-                        .sort((a, b) => a.name.localeCompare(b.name));
-                    filtered_huntable_items.val = huntable_items.val;
+                        huntable_items.val = hunt_optimizer_store.huntable_item_types
+                            .slice()
+                            .sort((a, b) => a.name.localeCompare(b.name));
+                        filtered_huntable_items.val = huntable_items.val;
+                    } catch (e) {
+                        logger.error("Couldn't load hunt optimizer store.", e);
+                    }
                 },
                 { call_now: true },
             ),

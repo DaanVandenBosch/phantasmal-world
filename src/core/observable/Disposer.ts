@@ -7,6 +7,9 @@ const logger = Logger.get("core/observable/Disposer");
  * Container for disposables.
  */
 export class Disposer implements Disposable {
+    private _disposed = false;
+    private readonly disposables: Disposable[];
+
     /**
      * The amount of disposables contained in this disposer.
      */
@@ -17,9 +20,6 @@ export class Disposer implements Disposable {
     get disposed(): boolean {
         return this._disposed;
     }
-
-    private _disposed = false;
-    private readonly disposables: Disposable[];
 
     constructor(...disposables: Disposable[]) {
         this.disposables = disposables;
