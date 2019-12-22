@@ -233,12 +233,13 @@ export class QuestEditorStore implements Disposable {
     };
 
     event_delay_changed = (event: QuestEventModel, e: PropertyChangeEvent<number>): void => {
-        console.log("changing event", event, e);
         this.undo.push(new EditEventDelayAction(event, e.old_value, e.value)).redo();
     };
 
     private async set_quest(quest?: QuestModel, filename?: string): Promise<void> {
         this.undo.reset();
+
+        this.quest_runner.stop();
 
         this._current_area.val = undefined;
         this._selected_entity.val = undefined;
