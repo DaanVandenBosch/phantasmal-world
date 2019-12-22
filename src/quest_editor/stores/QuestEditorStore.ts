@@ -31,6 +31,9 @@ import { QuestRunner } from "../QuestRunner";
 import { AreaStore } from "./AreaStore";
 import Logger = require("js-logger");
 import { disposable_listener } from "../../core/gui/dom";
+import { QuestEventModel } from "../model/QuestEventModel";
+import { EditEventSectionIdAction } from "../actions/EditEventSectionIdAction";
+import { EditEventDelayAction } from "../actions/EditEventDelayAction";
 
 const logger = Logger.get("quest_editor/gui/QuestEditorStore");
 
@@ -223,6 +226,15 @@ export class QuestEditorStore implements Disposable {
 
     remove_entity = (entity: QuestEntityModel): void => {
         this.undo.push(new RemoveEntityAction(this, entity)).redo();
+    };
+
+    event_section_id_changed = (event: QuestEventModel, e: PropertyChangeEvent<number>): void => {
+        this.undo.push(new EditEventSectionIdAction(event, e.old_value, e.value)).redo();
+    };
+
+    event_delay_changed = (event: QuestEventModel, e: PropertyChangeEvent<number>): void => {
+        console.log("changing event", event, e);
+        this.undo.push(new EditEventDelayAction(event, e.old_value, e.value)).redo();
     };
 
     private async set_quest(quest?: QuestModel, filename?: string): Promise<void> {

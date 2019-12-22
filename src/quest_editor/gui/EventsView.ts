@@ -32,6 +32,8 @@ export class EventsView extends ResizableWidget {
     constructor(private readonly quest_editor_store: QuestEditorStore) {
         super();
 
+        this.element.addEventListener("focus", () => quest_editor_store.undo.make_current(), true);
+
         this.disposables(
             quest_editor_store.current_quest.observe(this.update),
             quest_editor_store.current_area.observe(this.update),
@@ -134,25 +136,34 @@ export class EventsView extends ResizableWidget {
         });
         element.append(edge_container_element);
 
+        const inputs_enabled = this.quest_editor_store.quest_runner.running.map(r => !r);
+
         dag.events.forEach((event, i) => {
+            const section_id_input = disposer.add(new NumberInput(event.section_id.val));
+
+            const delay_input = disposer.add(new NumberInput(event.delay.val));
+
+            disposer.add_all(
+                section_id_input.value.bind_to(event.section_id),
+                section_id_input.value.observe(e =>
+                    this.quest_editor_store.event_section_id_changed(event, e),
+                ),
+                section_id_input.enabled.bind_to(inputs_enabled),
+
+                delay_input.value.bind_to(event.delay),
+                delay_input.value.observe(e =>
+                    this.quest_editor_store.event_delay_changed(event, e),
+                ),
+                delay_input.enabled.bind_to(inputs_enabled),
+            );
+
             const event_element = el.div(
                 { class: "quest_editor_EventsView_event" },
                 el.table(
                     el.tr(el.th({ text: "ID:" }), el.td({ text: event.id.toString() })),
-                    el.tr(
-                        el.th({ text: "Section:" }),
-                        el.td(
-                            disposer.add(new NumberInput(event.section_id, { enabled: false }))
-                                .element,
-                        ),
-                    ),
+                    el.tr(el.th({ text: "Section:" }), el.td(section_id_input.element)),
                     el.tr(el.th({ text: "Wave:" }), el.td({ text: event.wave.toString() })),
-                    el.tr(
-                        el.th({ text: "Delay:" }),
-                        el.td(
-                            disposer.add(new NumberInput(event.delay, { enabled: false })).element,
-                        ),
-                    ),
+                    el.tr(el.th({ text: "Delay:" }), el.td(delay_input.element)),
                 ),
             );
 

@@ -97,9 +97,7 @@ export class QuestRunner {
     }
 
     run(quest: QuestModel): void {
-        if (this.running.val) {
-            this.stop();
-        }
+        this.stop();
 
         this.quest_logger.info("Starting debugger.");
         this.startup = true;
@@ -137,6 +135,10 @@ export class QuestRunner {
     }
 
     stop(): void {
+        if (!this.running.val) {
+            return;
+        }
+
         this.quest_logger.info("Stopping debugger.");
 
         if (this.animation_frame != undefined) {
