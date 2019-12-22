@@ -373,7 +373,7 @@ export class QuestEditorView extends ResizableWidget {
                             ...(this.gui_store.feature_active("vm")
                                 ? [
                                       {
-                                          title: "Log",
+                                          title: "Debug Log",
                                           type: "component",
                                           componentName: this.view_map.get(LogView)!.name,
                                           isClosable: false,

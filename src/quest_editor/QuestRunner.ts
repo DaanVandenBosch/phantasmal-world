@@ -43,22 +43,13 @@ class GameStateInternal {
     readonly current_area_variant = property<AreaVariantModel | undefined>(undefined);
     readonly npcs = list_property<QuestNpcModel>();
     readonly objects = list_property<QuestObjectModel>();
-
-    reset(): void {
-        this.episode = Episode.I;
-        this.floor_handlers.clear();
-        this.area_variants.clear();
-        this.current_area_variant.val = undefined;
-        this.npcs.clear();
-        this.objects.clear();
-    }
 }
 
 export type GameState = Readonly<GameStateInternal>;
 
 /**
- * Orchestrates everything related to emulating a quest run. Drives a {@link VirtualMachine}
- * and delegates to {@link Debugger}.
+ * Orchestrates everything related to emulating a quest run. Drives a {@link VirtualMachine} and
+ * delegates to {@link Debugger}.
  */
 export class QuestRunner {
     private quest_logger = log_store.get_logger("quest_editor/QuestRunner");
@@ -77,7 +68,7 @@ export class QuestRunner {
 
     private readonly debugger: Debugger;
 
-    private readonly _game_state = new GameStateInternal();
+    private _game_state = new GameStateInternal();
 
     // TODO: make vm private again.
     readonly vm: VirtualMachine;
@@ -96,7 +87,9 @@ export class QuestRunner {
     readonly breakpoints: ListProperty<Breakpoint> = this._breakpoints;
     readonly pause_location: Property<number | undefined> = this._pause_location;
 
-    readonly game_state: GameState = this._game_state;
+    get game_state(): GameState {
+        return this._game_state;
+    }
 
     constructor(private readonly area_store: AreaStore) {
         this.vm = new VirtualMachine(this.create_vm_io());
@@ -104,17 +97,15 @@ export class QuestRunner {
     }
 
     run(quest: QuestModel): void {
-        if (this.animation_frame != undefined) {
-            cancelAnimationFrame(this.animation_frame);
-            this.animation_frame = undefined;
+        if (this.running.val) {
+            this.stop();
         }
 
+        this.quest_logger.info("Starting debugger.");
         this.startup = true;
         this.initial_area_id = 0;
         this.npcs.splice(0, this.npcs.length, ...quest.npcs.val);
         this.objects.splice(0, this.objects.length, ...quest.objects.val);
-        this._pause_location.val = undefined;
-        this._game_state.reset();
 
         this.vm.load_object_code(quest.object_code, quest.episode);
         this.vm.start_thread(0);
@@ -146,13 +137,20 @@ export class QuestRunner {
     }
 
     stop(): void {
+        this.quest_logger.info("Stopping debugger.");
+
+        if (this.animation_frame != undefined) {
+            cancelAnimationFrame(this.animation_frame);
+            this.animation_frame = undefined;
+        }
+
         this.vm.halt();
         this.debugger.reset();
         this._state.val = QuestRunnerState.Stopped;
         this._pause_location.val = undefined;
         this.npcs.splice(0, this.npcs.length);
         this.objects.splice(0, this.objects.length);
-        this._game_state.reset();
+        this._game_state = new GameStateInternal();
     }
 
     /**
