@@ -157,7 +157,7 @@ export class QuestEditorUiPersister extends Persister {
             height: item.height,
             activeItemIndex: item.activeItemIndex,
             content: item.content && this.from_persisted_item_config(item.content),
-            isClosable: false,
+            isClosable: item.type === "component" ? false : undefined,
         }));
     }
 }
