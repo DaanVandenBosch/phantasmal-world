@@ -108,9 +108,10 @@ export class QuestEditorUiPersister extends Persister {
         return config.map(item => ({
             id: item.id,
             type: item.type,
-            componentName: "componentName" in item ? item.componentName : undefined,
+            componentName: (item as any).componentName,
             width: item.width,
             height: item.height,
+            activeItemIndex: (item as any).activeItemIndex,
             content: item.content && this.to_persisted_item_config(item.content),
         }));
     }
@@ -125,6 +126,7 @@ export class QuestEditorUiPersister extends Persister {
             componentName: item.componentName,
             width: item.width,
             height: item.height,
+            activeItemIndex: item.activeItemIndex,
             content: item.content && this.from_persisted_item_config(item.content),
             isClosable: false,
         }));
@@ -137,5 +139,9 @@ type PersistedItemConfig = {
     componentName?: string;
     width?: number;
     height?: number;
+    /**
+     * Used by stacks.
+     */
+    activeItemIndex?: number;
     content?: PersistedItemConfig[];
 };
