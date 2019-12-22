@@ -544,6 +544,7 @@ export class VirtualMachine {
                 break;
             case OP_JMP.code:
                 this.jump_to_label(thread, arg0);
+                advance = false;
                 break;
             case OP_ARG_PUSHR.code:
                 // deref given register ref
