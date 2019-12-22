@@ -96,7 +96,7 @@ export class LogView extends ResizableWidget {
             },
             el.div({
                 class: "quest_editor_LogView_message_timestamp",
-                text: msg.time.toFormat("hh:mm:ss.SSS"),
+                text: msg.time.toTimeString().slice(0, 8),
             }),
             el.div({
                 class: "quest_editor_LogView_message_level",

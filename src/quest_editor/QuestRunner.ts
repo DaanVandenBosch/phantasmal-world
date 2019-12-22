@@ -1,7 +1,6 @@
 import { ExecutionResult, VirtualMachine } from "./scripting/vm/VirtualMachine";
 import { QuestModel } from "./model/QuestModel";
 import { VirtualMachineIO } from "./scripting/vm/io";
-import { AsmToken } from "./scripting/instructions";
 import { WritableProperty } from "../core/observable/property/WritableProperty";
 import { list_property, property } from "../core/observable";
 import { Property } from "../core/observable/property/Property";
@@ -14,6 +13,8 @@ import { Episode } from "../core/data_formats/parsing/quest/Episode";
 import { QuestNpcModel } from "./model/QuestNpcModel";
 import { QuestObjectModel } from "./model/QuestObjectModel";
 import { AreaStore } from "./stores/AreaStore";
+import { InstructionPointer } from "./scripting/vm/InstructionPointer";
+import { clone_segment } from "./scripting/instructions";
 
 export enum QuestRunnerState {
     /**
@@ -31,7 +32,8 @@ export enum QuestRunnerState {
 }
 
 class GameStateInternal {
-    episode = Episode.I;
+    constructor(public episode: Episode) {}
+
     /**
      * Maps area ids to function labels.
      */
@@ -68,7 +70,7 @@ export class QuestRunner {
 
     private readonly debugger: Debugger;
 
-    private _game_state = new GameStateInternal();
+    private _game_state = new GameStateInternal(Episode.I);
 
     // TODO: make vm private again.
     readonly vm: VirtualMachine;
@@ -99,14 +101,21 @@ export class QuestRunner {
     run(quest: QuestModel): void {
         this.stop();
 
+        // Runner state.
         this.quest_logger.info("Starting debugger.");
         this.startup = true;
         this.initial_area_id = 0;
         this.npcs.splice(0, this.npcs.length, ...quest.npcs.val);
         this.objects.splice(0, this.objects.length, ...quest.objects.val);
 
-        this.vm.load_object_code(quest.object_code, quest.episode);
+        // Current game state.
+        this._game_state = new GameStateInternal(quest.episode);
+
+        // Virtual machine.
+        this.vm.load_object_code(quest.object_code.map(clone_segment), this.game_state.episode);
         this.vm.start_thread(0);
+
+        // Debugger.
         this.debugger.reset();
 
         this._state.val = QuestRunnerState.Running;
@@ -152,7 +161,7 @@ export class QuestRunner {
         this._pause_location.val = undefined;
         this.npcs.splice(0, this.npcs.length);
         this.objects.splice(0, this.objects.length);
-        this._game_state = new GameStateInternal();
+        this._game_state = new GameStateInternal(Episode.I);
     }
 
     /**
@@ -251,8 +260,22 @@ export class QuestRunner {
     };
 
     private create_vm_io = (): VirtualMachineIO => {
-        function srcloc_to_string(srcloc?: AsmToken): string {
-            return srcloc ? ` [${srcloc.line_no}:${srcloc.col}]` : " ";
+        function message_with_inst_ptr(message: string, inst_ptr?: InstructionPointer): string {
+            const msg = [message];
+
+            if (inst_ptr) {
+                const { instruction, source_location } = inst_ptr;
+
+                msg.push(` [${instruction.opcode.mnemonic}`);
+
+                if (source_location) {
+                    msg.push(` ${source_location.line_no}:${source_location.col}`);
+                }
+
+                msg.push("]");
+            }
+
+            return msg.join("");
         }
 
         return {
@@ -300,12 +323,12 @@ export class QuestRunner {
                 this.quest_logger.info(`list "[${list_items}]"`);
             },
 
-            warning: (msg: string, srcloc?: AsmToken): void => {
-                this.quest_logger.warning(msg + srcloc_to_string(srcloc));
+            warning: (msg: string, inst_ptr?: InstructionPointer): void => {
+                this.quest_logger.warning(message_with_inst_ptr(msg, inst_ptr));
             },
 
-            error: (err: Error, srcloc?: AsmToken): void => {
-                this.quest_logger.error(err + srcloc_to_string(srcloc));
+            error: (err: Error, inst_ptr?: InstructionPointer): void => {
+                this.quest_logger.error(message_with_inst_ptr(err.message, inst_ptr));
             },
         };
     };

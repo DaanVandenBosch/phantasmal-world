@@ -84,7 +84,7 @@ class Assembler {
      * Encountered labels.
      */
     private labels!: Set<number>;
-    private section!: SegmentType;
+    private section: SegmentType = SegmentType.Instructions;
     private first_section_marker = true;
     private prev_line_had_label = false;
 

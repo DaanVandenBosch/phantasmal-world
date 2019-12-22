@@ -162,11 +162,16 @@ function encode_episode_number(ep: Episode): number {
  * instructions.
  */
 export class VirtualMachine {
+    // Quest details.
+
+    private episode: Episode = Episode.I;
+    private _object_code: readonly Segment[] = [];
+    private readonly label_to_seg_idx: Map<number, number> = new Map();
+
+    // VM state.
+
     private readonly registers = new Memory(REGISTER_COUNT * REGISTER_SIZE, Endianness.Little);
     private string_arg_store = "";
-    private _object_code: readonly Segment[] = [];
-    private episode: Episode = Episode.I;
-    private readonly label_to_seg_idx: Map<number, number> = new Map();
     private threads: Thread[] = [];
     private thread_idx = 0;
     private window_msg_open = false;
@@ -174,8 +179,17 @@ export class VirtualMachine {
     private list_open = false;
     private selection_reg = 0;
     private _halted = true;
-    private paused = false;
+
+    // Debugging.
+
     private readonly breakpoints: InstructionPointer[] = [];
+    private paused = false;
+
+    /**
+     * Set of unsupported opcodes that have already been logged. Each unsupported opcode will only
+     * be logged once to avoid flooding the log with duplicate log messages.
+     */
+    private readonly unsupported_opcodes_logged: Set<number> = new Set();
 
     get object_code(): readonly Segment[] {
         return this._object_code;
@@ -261,7 +275,7 @@ export class VirtualMachine {
             // Limit amount of instructions executed to prevent infinite loops.
             let execution_counter = 0;
 
-            while (execution_counter++ < 1_000) {
+            while (execution_counter++ < 10_000) {
                 // Check whether VM is waiting for vsync or is suspended.
                 if (this.threads.length >= 1 && this.thread_idx >= this.threads.length) {
                     return ExecutionResult.WaitingVsync;
@@ -323,7 +337,7 @@ export class VirtualMachine {
                 // Not paused, the next instruction can be executed.
                 this.paused = false;
 
-                const result = this.execute_instruction(thread, inst_ptr);
+                const result = this.execute_instruction(thread, inst_ptr, execution_counter);
 
                 // Only return WaitingVsync when all threads have yielded.
                 if (result != undefined && result !== ExecutionResult.WaitingVsync) {
@@ -342,7 +356,7 @@ export class VirtualMachine {
             }
 
             try {
-                this.io.error(err, inst_ptr?.source_location);
+                this.io.error(err, inst_ptr);
             } finally {
                 this.halt();
             }
@@ -379,6 +393,7 @@ export class VirtualMachine {
             this._halted = true;
             this.paused = false;
             this.breakpoints.splice(0, Infinity);
+            this.unsupported_opcodes_logged.clear();
         }
     }
 
@@ -454,10 +469,10 @@ export class VirtualMachine {
 
     private execute_instruction(
         thread: Thread,
-        inst_pointer: InstructionPointer,
+        inst_ptr: InstructionPointer,
+        execution_counter: number,
     ): ExecutionResult | undefined {
-        const inst = inst_pointer.instruction;
-        const srcloc = inst.asm?.mnemonic;
+        const inst = inst_ptr.instruction;
 
         let result: ExecutionResult | undefined = undefined;
         let advance = true;
@@ -471,7 +486,7 @@ export class VirtualMachine {
             this.list_open = false;
         }
 
-        const stack_args = thread.fetch_args(inst);
+        const stack_args = thread.fetch_args(inst_ptr);
 
         switch (inst.opcode.code) {
             case OP_NOP.code:
@@ -817,16 +832,19 @@ export class VirtualMachine {
                 break;
             case OP_SET_EPISODE.code:
                 if (this.set_episode_called) {
-                    this.io.warning("Calling set_episode more than once is not supported.", srcloc);
+                    this.io.warning(
+                        "Calling set_episode more than once is not supported.",
+                        inst_ptr,
+                    );
                     break;
                 }
 
                 this.set_episode_called = true;
 
-                if (!this._object_code[inst_pointer.seg_idx].labels.includes(ENTRY_SEGMENT)) {
+                if (!this._object_code[inst_ptr.seg_idx].labels.includes(ENTRY_SEGMENT)) {
                     this.io.warning(
                         `Calling set_episode outside of segment ${ENTRY_SEGMENT} is not supported.`,
-                        srcloc,
+                        inst_ptr,
                     );
                     break;
                 }
@@ -835,7 +853,7 @@ export class VirtualMachine {
                     this.io.warning(
                         "Calling set_episode with an argument that does not" +
                             "match the quest's designated episode is not supported.",
-                        srcloc,
+                        inst_ptr,
                     );
                     break;
                 }
@@ -845,7 +863,10 @@ export class VirtualMachine {
                 this.io.bb_map_designate(arg0, arg1, arg2, arg3);
                 break;
             default:
-                this.io.warning(`Unsupported instruction: ${inst.opcode.mnemonic}.`);
+                if (!this.unsupported_opcodes_logged.has(inst.opcode.code)) {
+                    this.unsupported_opcodes_logged.add(inst.opcode.code);
+                    this.io.warning(`Unsupported instruction.`, inst_ptr);
+                }
                 break;
         }
 

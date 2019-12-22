@@ -1,6 +1,5 @@
 import { Kind, StackInteraction } from "../opcodes";
 import { VirtualMachineIO } from "./io";
-import { AsmToken, Instruction } from "../instructions";
 import { Memory } from "./Memory";
 import { Endianness } from "../../../core/data_formats/Endianness";
 import { InstructionPointer } from "./InstructionPointer";
@@ -106,20 +105,20 @@ export class Thread {
         this.arg_stack_counter++;
     }
 
-    fetch_args(inst: Instruction): number[] {
+    fetch_args(inst_ptr: InstructionPointer): number[] {
+        const inst = inst_ptr.instruction;
         if (inst.opcode.stack !== StackInteraction.Pop) return [];
 
         const args: number[] = [];
-        const srcloc: AsmToken | undefined = inst.asm && inst.asm.mnemonic;
 
         if (inst.opcode.params.length !== this.arg_stack_counter) {
-            this.io.warning("Argument stack: Argument count mismatch.", srcloc);
+            this.io.warning("Argument stack: Argument count mismatch.", inst_ptr);
         }
 
         for (let i = 0; i < inst.opcode.params.length; i++) {
             const param = inst.opcode.params[i];
 
-            this.check_arg_type(param.type.kind, this.arg_stack_types[i], srcloc);
+            this.check_arg_type(param.type.kind, this.arg_stack_types[i], inst_ptr);
 
             const arg_slot_offset = i * ARG_STACK_SLOT_SIZE;
             switch (param.type.kind) {
@@ -153,7 +152,11 @@ export class Thread {
         return args;
     }
 
-    private check_arg_type(param_kind: Kind, stack_kind: Kind, srcloc?: AsmToken): void {
+    private check_arg_type(
+        param_kind: Kind,
+        stack_kind: Kind,
+        inst_ptr?: InstructionPointer,
+    ): void {
         let match: boolean;
 
         switch (param_kind) {
@@ -185,7 +188,7 @@ export class Thread {
         if (!match) {
             this.io.warning(
                 `Argument stack: Argument type mismatch, expected ${Kind[param_kind]} but received ${Kind[stack_kind]}.`,
-                srcloc,
+                inst_ptr,
             );
         }
     }

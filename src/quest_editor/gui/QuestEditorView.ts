@@ -195,7 +195,7 @@ export class QuestEditorView extends ResizableWidget {
 
                             renderer_item.parent.addChild({
                                 id: this.view_map.get(QuestRunnerRendererView)!.name,
-                                title: "Quest",
+                                title: "Debug 3D View",
                                 type: "component",
                                 componentName: this.view_map.get(QuestRunnerRendererView)!.name,
                                 isClosable: false,

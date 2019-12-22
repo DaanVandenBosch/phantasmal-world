@@ -65,17 +65,46 @@ export class QuestEditorUiPersister extends Persister {
             return undefined;
         }
 
-        if (config.type === "component" && "componentName" in config) {
-            const component = components.get(config.componentName);
+        switch (config.type) {
+            case "component":
+                {
+                    // Remove corrupted components.
+                    if (!("componentName" in config)) {
+                        return undefined;
+                    }
 
-            // Remove deprecated components.
-            if (!component) {
-                return undefined;
-            }
+                    const component = components.get(config.componentName);
 
-            found.add(config.componentName);
-            config.id = component.id;
-            config.title = component.title;
+                    // Remove deprecated components.
+                    if (!component) {
+                        return undefined;
+                    }
+
+                    found.add(config.componentName);
+                    config.id = component.id;
+                    config.title = component.title;
+                }
+                break;
+
+            case "stack":
+                {
+                    // Remove empty stacks.
+                    if (config.content == undefined || config.content.length === 0) {
+                        return undefined;
+                    }
+
+                    // Remove corrupted activeItemIndex properties.
+                    const cfg = config as any;
+
+                    if (
+                        cfg.activeItemIndex != undefined &&
+                        cfg.content != undefined &&
+                        cfg.activeItemIndex >= cfg.content.length
+                    ) {
+                        cfg.activeItemIndex = undefined;
+                    }
+                }
+                break;
         }
 
         if (config.content) {

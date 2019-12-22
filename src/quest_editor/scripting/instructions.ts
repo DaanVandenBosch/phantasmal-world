@@ -107,9 +107,9 @@ export type AsmToken = {
  * Information about the related assembly code.
  */
 export type InstructionAsm = {
-    mnemonic?: AsmToken;
-    args: AsmToken[];
-    stack_args: (AsmToken & { value: number })[];
+    readonly mnemonic?: AsmToken;
+    readonly args: AsmToken[];
+    readonly stack_args: (AsmToken & { readonly value: number })[];
 };
 
 export enum SegmentType {
@@ -176,27 +176,32 @@ export function segment_arrays_equal(a: readonly Segment[], b: readonly Segment[
 }
 
 export function clone_segment(seg: Segment): Segment {
-    const clone: Partial<Segment> = {
-        type: seg.type,
-        labels: seg.labels.slice(),
-        asm: {
-            labels: seg.asm.labels.map(label => ({ ...label })),
-        },
+    const labels = seg.labels.slice();
+    const asm = {
+        labels: seg.asm.labels.map(label => ({ ...label })),
     };
 
-    switch (clone.type) {
+    switch (seg.type) {
         case SegmentType.Instructions:
-            clone.instructions = (seg as InstructionSegment).instructions.map(instr =>
-                clone_instruction(instr),
-            );
-            break;
+            return {
+                type: SegmentType.Instructions,
+                labels,
+                instructions: seg.instructions.map(instr => clone_instruction(instr)),
+                asm,
+            };
         case SegmentType.Data:
-            clone.data = (seg as DataSegment).data.slice(0);
-            break;
+            return {
+                type: SegmentType.Data,
+                labels,
+                data: seg.data.slice(0),
+                asm,
+            };
         case SegmentType.String:
-            clone.value = (seg as StringSegment).value;
-            break;
+            return {
+                type: SegmentType.String,
+                labels,
+                value: seg.value,
+                asm,
+            };
     }
-
-    return clone as Segment;
 }

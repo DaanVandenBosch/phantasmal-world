@@ -1,5 +1,6 @@
 import { AsmToken } from "../instructions";
 import Logger from "js-logger";
+import { InstructionPointer } from "./InstructionPointer";
 
 const logger = Logger.get("quest_editor/scripting/vm/io");
 
@@ -39,8 +40,8 @@ export interface VirtualMachineMetaIO {
      * The virtual machine emits warning messages about suspicious execution
      * patterns that could possibly cause problems or have unintended effects.
      */
-    warning(msg: string, srcloc?: AsmToken): void;
-    error(err: Error, srcloc?: AsmToken): void;
+    warning(msg: string, inst_ptr?: InstructionPointer): void;
+    error(err: Error, inst_ptr?: InstructionPointer): void;
 }
 
 /**
@@ -89,12 +90,12 @@ export class DefaultVirtualMachineIO implements VirtualMachineIO {
         logger.warn(`list([${list_items.map(i => `"${i}"`).join(", ")}])`);
     }
 
-    warning(msg: string, srcloc?: AsmToken): void {
-        logger.warn(msg + this.srcloc_to_string(srcloc));
+    warning(msg: string, inst_ptr?: InstructionPointer): void {
+        logger.warn(msg + this.srcloc_to_string(inst_ptr?.source_location));
     }
 
-    error(err: Error, srcloc?: AsmToken): void {
-        logger.error(err + this.srcloc_to_string(srcloc));
+    error(err: Error, inst_ptr?: InstructionPointer): void {
+        logger.error(err + this.srcloc_to_string(inst_ptr?.source_location));
     }
 
     private srcloc_to_string(srcloc?: AsmToken): string {

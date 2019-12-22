@@ -40,7 +40,7 @@ export class AreaStore {
         const area_variant = area.area_variants[variant_id];
         if (!area_variant)
             throw new Error(
-                `Area variant id ${variant_id} for area ${area_id} of episode ${episode} is invalid.`,
+                `Area variant id ${variant_id} for area ${area_id} of episode ${Episode[episode]} is invalid.`,
             );
 
         return area_variant;

@@ -8,18 +8,19 @@
     flex: 1;
     overflow: auto;
     background-color: #181818;
-    cursor: text;
     user-select: text;
 }
 
 .quest_editor_LogView_message_list {
     font-family: monospace;
     margin: 2px 0;
+    cursor: text;
 }
 
 .quest_editor_LogView_message {
     display: flex;
     padding: 0 2px;
+    white-space: pre;
 }
 
 .quest_editor_LogView_message > * {

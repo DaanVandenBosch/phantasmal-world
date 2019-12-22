@@ -327,9 +327,9 @@ function convert_quest_events_from_model(event_dags: readonly QuestEventDagModel
 
             events.push({
                 id: event.id,
-                section_id: event.section_id,
+                section_id: event.section_id.val,
                 wave: event.wave,
-                delay: event.delay,
+                delay: event.delay.val,
                 actions,
                 area_id: event_dag.area_id,
                 unknown: event.unknown,
