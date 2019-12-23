@@ -1,6 +1,6 @@
 import { ResizableWidget } from "../../core/gui/ResizableWidget";
 import { el } from "../../core/gui/dom";
-import { DisabledView } from "./DisabledView";
+import { UnavailableView } from "./UnavailableView";
 import { QuestNpcModel } from "../model/QuestNpcModel";
 import { entity_data } from "../../core/data_formats/parsing/quest/entities";
 import "./EntityInfoView.css";
@@ -14,7 +14,7 @@ import { QuestEditorStore } from "../stores/QuestEditorStore";
 export class EntityInfoView extends ResizableWidget {
     readonly element = el.div({ class: "quest_editor_EntityInfoView", tab_index: -1 });
 
-    private readonly no_entity_view = new DisabledView("No entity selected.");
+    private readonly no_entity_view = new UnavailableView("No entity selected.");
 
     private readonly table_element = el.table();
 

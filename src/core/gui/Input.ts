@@ -35,9 +35,9 @@ export abstract class Input<T> extends LabelledControl {
             class: `${input_class_name} core_Input_inner`,
         });
         this.input_element.type = input_type;
-        this.input_element.onchange = () => {
+        this.input_element.addEventListener("change", () => {
             this._value.set_val(this.get_value(), { silent: false });
-        };
+        });
 
         if (options) {
             if (options.readonly) {

@@ -40,7 +40,8 @@ export class NumberInput extends Input<number> {
     }
 
     protected get_value(): number {
-        return this.input_element.valueAsNumber;
+        // Don't use valueAsNumber until jsdom supports it.
+        return parseFloat(this.input_element.value);
     }
 
     protected set_value(value: number): void {

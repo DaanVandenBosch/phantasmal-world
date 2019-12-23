@@ -2,7 +2,6 @@ import { Undo } from "./Undo";
 import { Action } from "./Action";
 import { Property } from "../observable/property/Property";
 import { map, property } from "../observable";
-import { NOOP_UNDO } from "./noop_undo";
 import { undo_manager } from "./UndoManager";
 import { WritableProperty } from "../observable/property/WritableProperty";
 
@@ -30,12 +29,6 @@ export class SimpleUndo implements Undo {
 
     make_current(): void {
         undo_manager.current.val = this;
-    }
-
-    ensure_not_current(): void {
-        if (undo_manager.current.val === this) {
-            undo_manager.current.val = NOOP_UNDO;
-        }
     }
 
     readonly can_undo = property(false);

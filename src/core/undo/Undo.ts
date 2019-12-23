@@ -4,8 +4,6 @@ import { Action } from "./Action";
 export interface Undo {
     make_current(): void;
 
-    ensure_not_current(): void;
-
     readonly can_undo: Property<boolean>;
 
     readonly can_redo: Property<boolean>;

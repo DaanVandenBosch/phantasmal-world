@@ -25,6 +25,7 @@ import { EntityAssetLoader } from "../loading/EntityAssetLoader";
 import { DisposableThreeRenderer } from "../../core/rendering/Renderer";
 import { QuestEditorUiPersister } from "../persistence/QuestEditorUiPersister";
 import Logger = require("js-logger");
+import { QuestInfoController } from "../controllers/QuestInfoController";
 
 const logger = Logger.get("quest_editor/gui/QuestEditorView");
 
@@ -84,7 +85,10 @@ export class QuestEditorView extends ResizableWidget {
         >([
             [
                 QuestInfoView,
-                { name: "quest_info", create: () => new QuestInfoView(quest_editor_store) },
+                {
+                    name: "quest_info",
+                    create: () => new QuestInfoView(new QuestInfoController(quest_editor_store)),
+                },
             ],
             [
                 NpcCountsView,

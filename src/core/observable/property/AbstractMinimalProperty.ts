@@ -19,9 +19,7 @@ export abstract class AbstractMinimalProperty<T> implements Property<T> {
         observer: (change: PropertyChangeEvent<T>) => void,
         options?: { call_now?: boolean },
     ): Disposable {
-        if (!this.observers.includes(observer)) {
-            this.observers.push(observer);
-        }
+        this.observers.push(observer);
 
         if (options && options.call_now) {
             this.call_observer(observer, this.val, this.val);

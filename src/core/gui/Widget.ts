@@ -10,6 +10,7 @@ import Logger from "js-logger";
 const logger = Logger.get("core/gui/Widget");
 
 export type WidgetOptions = {
+    id?: string;
     class?: string;
     enabled?: boolean | Property<boolean>;
     tooltip?: string | Property<string>;
@@ -83,6 +84,10 @@ export abstract class Widget implements Disposable {
         if (Object.getPrototypeOf(this) !== this.constructor.prototype) return;
 
         // At this point we know `this.element` is initialized.
+        if (this.options.id) {
+            this.element.id = this.options.id;
+        }
+
         if (this.options.class) {
             this.element.classList.add(this.options.class);
         }

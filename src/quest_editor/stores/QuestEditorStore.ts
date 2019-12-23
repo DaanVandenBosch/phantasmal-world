@@ -15,10 +15,6 @@ import { Disposer } from "../../core/observable/Disposer";
 import { GuiStore, GuiTool } from "../../core/stores/GuiStore";
 import { UndoStack } from "../../core/undo/UndoStack";
 import { TranslateEntityAction } from "../actions/TranslateEntityAction";
-import { EditShortDescriptionAction } from "../actions/EditShortDescriptionAction";
-import { EditLongDescriptionAction } from "../actions/EditLongDescriptionAction";
-import { EditNameAction } from "../actions/EditNameAction";
-import { EditIdAction } from "../actions/EditIdAction";
 import { Episode } from "../../core/data_formats/parsing/quest/Episode";
 import { create_new_quest } from "./quest_creation";
 import { CreateEntityAction } from "../actions/CreateEntityAction";
@@ -29,11 +25,11 @@ import { convert_quest_from_model, convert_quest_to_model } from "./model_conver
 import { WritableProperty } from "../../core/observable/property/WritableProperty";
 import { QuestRunner } from "../QuestRunner";
 import { AreaStore } from "./AreaStore";
-import Logger = require("js-logger");
 import { disposable_listener } from "../../core/gui/dom";
 import { QuestEventModel } from "../model/QuestEventModel";
 import { EditEventSectionIdAction } from "../actions/EditEventSectionIdAction";
 import { EditEventDelayAction } from "../actions/EditEventDelayAction";
+import Logger = require("js-logger");
 
 const logger = Logger.get("quest_editor/gui/QuestEditorStore");
 
@@ -118,9 +114,8 @@ export class QuestEditorStore implements Disposable {
         this._selected_entity.val = entity;
     };
 
-    new_quest = (episode: Episode): void => {
+    new_quest = async (episode: Episode): Promise<void> =>
         this.set_quest(create_new_quest(this.area_store, episode));
-    };
 
     // TODO: notify user of problems.
     open_file = async (file: File): Promise<void> => {
@@ -160,30 +155,6 @@ export class QuestEditorStore implements Disposable {
         a.click();
         URL.revokeObjectURL(a.href);
         document.body.removeChild(a);
-    };
-
-    id_changed = (event: PropertyChangeEvent<number>): void => {
-        if (this.current_quest.val) {
-            this.undo.push(new EditIdAction(this.current_quest.val, event)).redo();
-        }
-    };
-
-    name_changed = (event: PropertyChangeEvent<string>): void => {
-        if (this.current_quest.val) {
-            this.undo.push(new EditNameAction(this.current_quest.val, event)).redo();
-        }
-    };
-
-    short_description_changed = (event: PropertyChangeEvent<string>): void => {
-        if (this.current_quest.val) {
-            this.undo.push(new EditShortDescriptionAction(this.current_quest.val, event)).redo();
-        }
-    };
-
-    long_description_changed = (event: PropertyChangeEvent<string>): void => {
-        if (this.current_quest.val) {
-            this.undo.push(new EditLongDescriptionAction(this.current_quest.val, event)).redo();
-        }
     };
 
     translate_entity = (

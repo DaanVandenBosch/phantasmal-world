@@ -6,22 +6,26 @@ import { Disposer } from "../../core/observable/Disposer";
 import { TextInput } from "../../core/gui/TextInput";
 import { TextArea } from "../../core/gui/TextArea";
 import "./QuestInfoView.css";
-import { DisabledView } from "./DisabledView";
-import { QuestEditorStore } from "../stores/QuestEditorStore";
+import { UnavailableView } from "./UnavailableView";
+import { QuestInfoController } from "../controllers/QuestInfoController";
 
 export class QuestInfoView extends ResizableWidget {
     readonly element = el.div({ class: "quest_editor_QuestInfoView", tab_index: -1 });
 
     private readonly table_element = el.table();
     private readonly episode_element: HTMLElement;
-    private readonly id_input = this.disposable(new NumberInput());
+    private readonly id_input = this.disposable(
+        new NumberInput(0, { id: "quest_editor_QuestInfoView_id" }),
+    );
     private readonly name_input = this.disposable(
         new TextInput("", {
+            id: "quest_editor_QuestInfoView_name",
             max_length: 32,
         }),
     );
     private readonly short_description_input = this.disposable(
         new TextArea("", {
+            id: "quest_editor_QuestInfoView_short_description",
             max_length: 128,
             font_family: '"Courier New", monospace',
             cols: 25,
@@ -30,6 +34,7 @@ export class QuestInfoView extends ResizableWidget {
     );
     private readonly long_description_input = this.disposable(
         new TextArea("", {
+            id: "quest_editor_QuestInfoView_long_description",
             max_length: 288,
             font_family: '"Courier New", monospace',
             cols: 25,
@@ -37,15 +42,14 @@ export class QuestInfoView extends ResizableWidget {
         }),
     );
 
-    private readonly no_quest_view = new DisabledView("No quest loaded.");
+    private readonly unavailable_view = new UnavailableView("No quest loaded.");
 
     private readonly quest_disposer = this.disposable(new Disposer());
 
-    constructor(quest_editor_store: QuestEditorStore) {
+    constructor(ctrl: QuestInfoController) {
         super();
 
-        const quest = quest_editor_store.current_quest;
-        const no_quest = quest.map(q => q == undefined);
+        const quest = ctrl.current_quest;
 
         this.table_element.append(
             el.tr({}, el.th({ text: "Episode:" }), (this.episode_element = el.td())),
@@ -57,14 +61,14 @@ export class QuestInfoView extends ResizableWidget {
             el.tr({}, el.td({ col_span: 2 }, this.long_description_input.element)),
         );
 
-        this.bind_hidden(this.table_element, no_quest);
+        this.bind_hidden(this.table_element, ctrl.unavailable);
 
-        this.element.append(this.table_element, this.no_quest_view.element);
+        this.element.append(this.table_element, this.unavailable_view.element);
 
-        this.element.addEventListener("focus", () => quest_editor_store.undo.make_current(), true);
+        this.element.addEventListener("focus", ctrl.focused, true);
 
         this.disposables(
-            this.no_quest_view.visible.bind_to(no_quest),
+            this.unavailable_view.visible.bind_to(ctrl.unavailable),
 
             quest.observe(({ value: q }) => {
                 this.quest_disposer.dispose_all();
@@ -74,22 +78,18 @@ export class QuestInfoView extends ResizableWidget {
                 if (q) {
                     this.quest_disposer.add_all(
                         this.id_input.value.bind_to(q.id),
-                        this.id_input.value.observe(quest_editor_store.id_changed),
+                        this.id_input.value.observe(ctrl.id_changed),
 
                         this.name_input.value.bind_to(q.name),
-                        this.name_input.value.observe(quest_editor_store.name_changed),
+                        this.name_input.value.observe(ctrl.name_changed),
 
                         this.short_description_input.value.bind_to(q.short_description),
-                        this.short_description_input.value.observe(
-                            quest_editor_store.short_description_changed,
-                        ),
+                        this.short_description_input.value.observe(ctrl.short_description_changed),
 
                         this.long_description_input.value.bind_to(q.long_description),
-                        this.long_description_input.value.observe(
-                            quest_editor_store.long_description_changed,
-                        ),
+                        this.long_description_input.value.observe(ctrl.long_description_changed),
 
-                        this.enabled.bind_to(quest_editor_store.quest_runner.running.map(r => !r)),
+                        this.enabled.bind_to(ctrl.enabled),
                     );
                 }
             }),
