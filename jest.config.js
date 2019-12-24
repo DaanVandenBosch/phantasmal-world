@@ -1,7 +1,7 @@
 module.exports = {
     preset: "ts-jest",
     moduleDirectories: ["node_modules"],
-    setupFiles: ["./test/src/setup.js"],
+    setupFiles: ["./test/src/setup.js", "jest-canvas-mock"],
     roots: ["./src", "./test"],
     moduleNameMapper: {
         "\\.(css|gif|jpg|png|svg|ttf)$": "<rootDir>/src/__mocks__/static_files.js",

@@ -143,12 +143,22 @@ export class LogManager {
 
     static with_default_handler<T>(handler: LogHandler, f: () => T): T {
         const orig_handler = this.default_handler;
+        let is_promise = false;
 
         try {
             this.default_handler = handler;
-            return f();
+            const r = f();
+
+            if (r instanceof Promise) {
+                is_promise = true;
+                return (r.finally(() => (this.default_handler = orig_handler)) as unknown) as T;
+            } else {
+                return r;
+            }
         } finally {
-            this.default_handler = orig_handler;
+            if (!is_promise) {
+                this.default_handler = orig_handler;
+            }
         }
     }
 }
