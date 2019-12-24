@@ -3,7 +3,7 @@ import { Control } from "./Control";
 import { WidgetOptions } from "./Widget";
 
 export type LabelledControlOptions = WidgetOptions & {
-    label?: string;
+    readonly label?: string;
 };
 
 export type LabelPosition = "left" | "right" | "top" | "bottom";

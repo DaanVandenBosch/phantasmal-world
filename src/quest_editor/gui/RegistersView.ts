@@ -21,20 +21,18 @@ type RegisterGetterFunction = (register: number) => number;
 
 export class RegistersView extends ResizableWidget {
     private readonly type_select = this.disposable(
-        new Select(
-            [
+        new Select({
+            label: "Display type:",
+            tooltip: "Select which data type register values should be displayed as.",
+            items: [
                 RegisterDisplayType.Signed,
                 RegisterDisplayType.Unsigned,
                 RegisterDisplayType.Word,
                 RegisterDisplayType.Byte,
                 RegisterDisplayType.Float,
             ],
-            type => RegisterDisplayType[type],
-            {
-                tooltip: "Select which data type register values should be displayed as.",
-                label: "Display type:",
-            },
-        ),
+            to_label: type => RegisterDisplayType[type],
+        }),
     );
     private register_getter: RegisterGetterFunction = this.get_register_getter(
         RegisterDisplayType.Unsigned,

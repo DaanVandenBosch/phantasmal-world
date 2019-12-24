@@ -6,7 +6,7 @@ import { is_any_property, Property } from "../observable/property/Property";
 import "./Input.css";
 import { WidgetProperty } from "../observable/property/WidgetProperty";
 
-export type InputOptions = { readonly?: boolean } & LabelledControlOptions;
+export type InputOptions = { readonly readonly?: boolean } & LabelledControlOptions;
 
 export abstract class Input<T> extends LabelledControl {
     readonly element: HTMLElement;

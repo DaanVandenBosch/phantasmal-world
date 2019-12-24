@@ -87,30 +87,28 @@ export class QuestEditorUiPersister extends Persister {
                 break;
 
             case "stack":
-                {
-                    // Remove empty stacks.
-                    if (config.content == undefined || config.content.length === 0) {
-                        return undefined;
-                    }
-
-                    // Remove corrupted activeItemIndex properties.
-                    const cfg = config as any;
-
-                    if (
-                        cfg.activeItemIndex != undefined &&
-                        cfg.content != undefined &&
-                        cfg.activeItemIndex >= cfg.content.length
-                    ) {
-                        cfg.activeItemIndex = undefined;
-                    }
+                // Remove empty stacks.
+                if (config.content == undefined || config.content.length === 0) {
+                    return undefined;
                 }
                 break;
         }
 
+        // Sanitize child items.
         if (config.content) {
             config.content = config.content
                 .map(child => this.sanitize_layout_child(child, components, found))
                 .filter(item => item) as ItemConfigType[];
+        }
+
+        // Remove corrupted activeItemIndex properties.
+        const cfg = config as any;
+
+        if (
+            cfg.activeItemIndex != undefined &&
+            (cfg.content == undefined || cfg.activeItemIndex >= cfg.content.length)
+        ) {
+            cfg.activeItemIndex = undefined;
         }
 
         return config;

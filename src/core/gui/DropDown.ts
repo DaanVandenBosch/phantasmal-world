@@ -8,7 +8,11 @@ import { Observable } from "../observable/Observable";
 import { Emitter } from "../observable/Emitter";
 import { emitter } from "../observable";
 
-export type DropDownOptions = ButtonOptions;
+export type DropDownOptions<T> = ButtonOptions & {
+    readonly text: string;
+    readonly items: readonly T[] | Property<readonly T[]>;
+    readonly to_label: (element: T) => string;
+};
 
 export class DropDown<T> extends Control {
     readonly element = el.div({ class: "core_DropDown" });
@@ -20,21 +24,22 @@ export class DropDown<T> extends Control {
     private readonly _chosen: Emitter<T>;
     private just_opened: boolean;
 
-    constructor(
-        text: string,
-        items: readonly T[] | Property<readonly T[]>,
-        to_label: (element: T) => string,
-        options?: DropDownOptions,
-    ) {
+    constructor(options: DropDownOptions<T>) {
         super(options);
 
         this.button = this.disposable(
-            new Button(text, {
+            new Button(options.text, {
                 icon_left: options && options.icon_left,
                 icon_right: Icon.TriangleDown,
             }),
         );
-        this.menu = this.disposable(new Menu<T>(items, to_label, this.element));
+        this.menu = this.disposable(
+            new Menu<T>({
+                items: options.items,
+                to_label: options.to_label,
+                related_element: this.element,
+            }),
+        );
         this.element.append(this.button.element, this.menu.element);
 
         this._chosen = emitter();

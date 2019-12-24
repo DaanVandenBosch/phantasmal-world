@@ -17,15 +17,8 @@ import { RegistersView } from "./RegistersView";
 import { LogView } from "./LogView";
 import { QuestRunnerRendererView } from "./QuestRunnerRendererView";
 import { QuestEditorStore } from "../stores/QuestEditorStore";
-import { AsmEditorStore } from "../stores/AsmEditorStore";
-import { AreaStore } from "../stores/AreaStore";
-import { EntityImageRenderer } from "../rendering/EntityImageRenderer";
-import { AreaAssetLoader } from "../loading/AreaAssetLoader";
-import { EntityAssetLoader } from "../loading/EntityAssetLoader";
-import { DisposableThreeRenderer } from "../../core/rendering/Renderer";
 import { QuestEditorUiPersister } from "../persistence/QuestEditorUiPersister";
 import Logger = require("js-logger");
-import { QuestInfoController } from "../controllers/QuestInfoController";
 
 const logger = Logger.get("quest_editor/gui/QuestEditorView");
 
@@ -57,8 +50,6 @@ export class QuestEditorView extends ResizableWidget {
         { name: string; create(): ResizableWidget }
     >;
 
-    private readonly tool_bar: QuestEditorToolBar;
-
     private readonly layout_element = create_element("div", { class: "quest_editor_gl_container" });
     private readonly layout: Promise<GoldenLayout>;
     private loaded_layout: GoldenLayout | undefined;
@@ -67,14 +58,19 @@ export class QuestEditorView extends ResizableWidget {
 
     constructor(
         private readonly gui_store: GuiStore,
-        area_store: AreaStore,
         quest_editor_store: QuestEditorStore,
-        asm_editor_store: AsmEditorStore,
-        area_asset_loader: AreaAssetLoader,
-        entity_asset_loader: EntityAssetLoader,
-        entity_image_renderer: EntityImageRenderer,
         private readonly quest_editor_ui_persister: QuestEditorUiPersister,
-        create_three_renderer: () => DisposableThreeRenderer,
+        private readonly tool_bar: QuestEditorToolBar,
+        create_quest_info_view: () => QuestInfoView,
+        create_npc_counts_view: () => NpcCountsView,
+        create_editor_renderer_view: () => QuestEditorRendererView,
+        create_asm_editor_view: () => AsmEditorView,
+        create_entity_info_view: () => EntityInfoView,
+        create_npc_list_view: () => NpcListView,
+        create_object_list_view: () => ObjectListView,
+        create_events_view: () => EventsView,
+        create_quest_runner_renderer_view: () => QuestRunnerRendererView,
+        create_registers_view: () => RegistersView,
     ) {
         super();
 
@@ -87,55 +83,37 @@ export class QuestEditorView extends ResizableWidget {
                 QuestInfoView,
                 {
                     name: "quest_info",
-                    create: () => new QuestInfoView(new QuestInfoController(quest_editor_store)),
+                    create: create_quest_info_view,
                 },
             ],
-            [
-                NpcCountsView,
-                { name: "npc_counts", create: () => new NpcCountsView(quest_editor_store) },
-            ],
+            [NpcCountsView, { name: "npc_counts", create: create_npc_counts_view }],
             [
                 QuestEditorRendererView,
                 {
                     name: "quest_renderer",
-                    create: () =>
-                        new QuestEditorRendererView(
-                            gui_store,
-                            quest_editor_store,
-                            area_asset_loader,
-                            entity_asset_loader,
-                            create_three_renderer(),
-                        ),
+                    create: create_editor_renderer_view,
                 },
             ],
             [
                 AsmEditorView,
                 {
                     name: "asm_editor",
-                    create: () =>
-                        new AsmEditorView(
-                            gui_store,
-                            quest_editor_store.quest_runner,
-                            asm_editor_store,
-                        ),
+                    create: create_asm_editor_view,
                 },
             ],
-            [
-                EntityInfoView,
-                { name: "entity_info", create: () => new EntityInfoView(quest_editor_store) },
-            ],
+            [EntityInfoView, { name: "entity_info", create: create_entity_info_view }],
             [
                 NpcListView,
                 {
                     name: "npc_list_view",
-                    create: () => new NpcListView(quest_editor_store, entity_image_renderer),
+                    create: create_npc_list_view,
                 },
             ],
             [
                 ObjectListView,
                 {
                     name: "object_list_view",
-                    create: () => new ObjectListView(quest_editor_store, entity_image_renderer),
+                    create: create_object_list_view,
                 },
             ],
         ]);
@@ -143,32 +121,21 @@ export class QuestEditorView extends ResizableWidget {
         if (gui_store.feature_active("events")) {
             this.view_map.set(EventsView, {
                 name: "events_view",
-                create: () => new EventsView(quest_editor_store),
+                create: create_events_view,
             });
         }
 
         if (gui_store.feature_active("vm")) {
             this.view_map.set(QuestRunnerRendererView, {
                 name: "quest_runner",
-                create: () =>
-                    new QuestRunnerRendererView(
-                        gui_store,
-                        quest_editor_store,
-                        area_asset_loader,
-                        entity_asset_loader,
-                        create_three_renderer(),
-                    ),
+                create: create_quest_runner_renderer_view,
             });
             this.view_map.set(LogView, { name: "log_view", create: () => new LogView() });
             this.view_map.set(RegistersView, {
                 name: "registers_view",
-                create: () => new RegistersView(quest_editor_store.quest_runner),
+                create: create_registers_view,
             });
         }
-
-        this.tool_bar = this.disposable(
-            new QuestEditorToolBar(gui_store, area_store, quest_editor_store),
-        );
 
         this.element.append(this.tool_bar.element, this.layout_element);
 
@@ -271,8 +238,7 @@ export class QuestEditorView extends ResizableWidget {
 
     private attempt_gl_init(config: GoldenLayout.Config): GoldenLayout {
         const layout = new GoldenLayout(config, this.layout_element);
-        // eslint-disable-next-line @typescript-eslint/no-this-alias
-        const self = this;
+        const sub_views = this.sub_views;
 
         try {
             for (const { name, create } of this.view_map.values()) {
@@ -290,7 +256,7 @@ export class QuestEditorView extends ResizableWidget {
 
                     view.resize(container.width, container.height);
 
-                    self.sub_views.set(name, view);
+                    sub_views.set(name, view);
                     container.getElement().append(view.element);
                 });
             }

@@ -68,9 +68,15 @@ export class Debugger {
         }
     }
 
-    reset(): void {
+    activate_breakpoints(): void {
         for (const bp of this._breakpoints) {
             bp.activate();
+        }
+    }
+
+    deactivate_breakpoints(): void {
+        for (const bp of this._breakpoints) {
+            bp.deactivate();
         }
     }
 }

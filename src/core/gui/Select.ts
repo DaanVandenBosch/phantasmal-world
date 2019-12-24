@@ -8,7 +8,9 @@ import { WidgetProperty } from "../observable/property/WidgetProperty";
 import { Menu } from "./Menu";
 
 export type SelectOptions<T> = LabelledControlOptions & {
-    selected?: T | Property<T>;
+    readonly items: readonly T[] | Property<readonly T[]>;
+    readonly to_label: (element: T) => string;
+    readonly selected?: T | Property<T>;
 };
 
 export class Select<T> extends LabelledControl {
@@ -24,22 +26,24 @@ export class Select<T> extends LabelledControl {
     private readonly _selected: WidgetProperty<T | undefined>;
     private just_opened: boolean;
 
-    constructor(
-        items: readonly T[] | Property<readonly T[]>,
-        to_label: (element: T) => string,
-        options?: SelectOptions<T>,
-    ) {
+    constructor(options: SelectOptions<T>) {
         super(options);
 
         this.preferred_label_position = "left";
 
-        this.to_label = to_label;
+        this.to_label = options.to_label;
         this.button = this.disposable(
             new Button(" ", {
                 icon_right: Icon.TriangleDown,
             }),
         );
-        this.menu = this.disposable(new Menu<T>(items, to_label, this.element));
+        this.menu = this.disposable(
+            new Menu<T>({
+                items: options.items,
+                to_label: this.to_label,
+                related_element: this.element,
+            }),
+        );
         this.element.append(this.button.element, this.menu.element);
 
         this._selected = new WidgetProperty<T | undefined>(this, undefined, this.set_selected);

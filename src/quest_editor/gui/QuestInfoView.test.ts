@@ -5,7 +5,11 @@ import { QuestInfoController } from "../controllers/QuestInfoController";
 import { undo_manager } from "../../core/undo/UndoManager";
 import { QuestInfoView } from "./QuestInfoView";
 import { Episode } from "../../core/data_formats/parsing/quest/Episode";
-import { create_quest_editor_store } from "../../../test/src/quest_editor/stores/create_quest_editor_store";
+import {
+    create_area_store,
+    create_quest_editor_store,
+} from "../../../test/src/quest_editor/stores/store_creation";
+import { create_new_quest } from "../stores/quest_creation";
 
 test("Renders correctly without a current quest.", () => {
     const view = new QuestInfoView(new QuestInfoController(create_quest_editor_store()));
@@ -13,15 +17,17 @@ test("Renders correctly without a current quest.", () => {
     expect(view.element).toMatchSnapshot('should render a "No quest loaded." view');
 });
 
-test("Renders correctly with a current quest.", () => {
+test("Renders correctly with a current quest.", async () => {
+    const area_store = create_area_store();
     const store = create_quest_editor_store();
     const view = new QuestInfoView(new QuestInfoController(store));
-    store.new_quest(Episode.I);
+
+    await store.set_quest(create_new_quest(area_store, Episode.I));
 
     expect(view.element).toMatchSnapshot("should render property inputs");
 });
 
-test("When its element is focused the store's undo stack should become the current stack.", () => {
+test("When the view's element is focused the store's undo stack should become the current stack.", () => {
     const store = create_quest_editor_store();
     const view = new QuestInfoView(new QuestInfoController(store));
 
@@ -30,27 +36,4 @@ test("When its element is focused the store's undo stack should become the curre
     view.element.focus();
 
     expect(undo_manager.current.val).toBe(store.undo);
-});
-
-test("When a property's input value changes, this should be reflected in the current quest object.", async () => {
-    const store = create_quest_editor_store();
-    const view = new QuestInfoView(new QuestInfoController(store));
-
-    await store.new_quest(Episode.I);
-
-    for (const [prop, value] of [
-        ["id", 3004],
-        ["name", "Correct Horse Battery Staple"],
-        ["short_description", "This is a short description."],
-        ["long_description", "This is a somewhat longer description."],
-    ]) {
-        const input = view.element.querySelector(
-            `#quest_editor_QuestInfoView_${prop} input, #quest_editor_QuestInfoView_${prop} textarea`,
-        ) as HTMLInputElement;
-
-        input.value = String(value);
-        input.dispatchEvent(new Event("change"));
-
-        expect((store.current_quest.val as any)[prop].val).toBe(value);
-    }
 });

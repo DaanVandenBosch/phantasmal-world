@@ -1,10 +1,6 @@
 import { property } from "../../core/observable";
 import { QuestModel } from "../model/QuestModel";
 import { Property, PropertyChangeEvent } from "../../core/observable/property/Property";
-import { read_file } from "../../core/read_file";
-import { parse_quest, write_quest_qst } from "../../core/data_formats/parsing/quest";
-import { ArrayBufferCursor } from "../../core/data_formats/cursor/ArrayBufferCursor";
-import { Endianness } from "../../core/data_formats/Endianness";
 import { QuestObjectModel } from "../model/QuestObjectModel";
 import { QuestNpcModel } from "../model/QuestNpcModel";
 import { AreaModel } from "../model/AreaModel";
@@ -15,13 +11,10 @@ import { Disposer } from "../../core/observable/Disposer";
 import { GuiStore, GuiTool } from "../../core/stores/GuiStore";
 import { UndoStack } from "../../core/undo/UndoStack";
 import { TranslateEntityAction } from "../actions/TranslateEntityAction";
-import { Episode } from "../../core/data_formats/parsing/quest/Episode";
-import { create_new_quest } from "./quest_creation";
 import { CreateEntityAction } from "../actions/CreateEntityAction";
 import { RemoveEntityAction } from "../actions/RemoveEntityAction";
 import { Euler, Vector3 } from "three";
 import { RotateEntityAction } from "../actions/RotateEntityAction";
-import { convert_quest_from_model, convert_quest_to_model } from "./model_conversion";
 import { WritableProperty } from "../../core/observable/property/WritableProperty";
 import { QuestRunner } from "../QuestRunner";
 import { AreaStore } from "./AreaStore";
@@ -35,7 +28,6 @@ const logger = Logger.get("quest_editor/gui/QuestEditorStore");
 
 export class QuestEditorStore implements Disposable {
     private readonly disposer = new Disposer();
-    private readonly _current_quest_filename = property<string | undefined>(undefined);
     private readonly _current_quest = property<QuestModel | undefined>(undefined);
     private readonly _current_area = property<AreaModel | undefined>(undefined);
     private readonly _selected_entity = property<QuestEntityModel | undefined>(undefined);
@@ -43,7 +35,6 @@ export class QuestEditorStore implements Disposable {
     readonly quest_runner: QuestRunner;
     readonly debug: WritableProperty<boolean> = property(false);
     readonly undo = new UndoStack();
-    readonly current_quest_filename: Property<string | undefined> = this._current_quest_filename;
     readonly current_quest: Property<QuestModel | undefined> = this._current_quest;
     readonly current_area: Property<AreaModel | undefined> = this._current_area;
     readonly selected_entity: Property<QuestEntityModel | undefined> = this._selected_entity;
@@ -114,49 +105,6 @@ export class QuestEditorStore implements Disposable {
         this._selected_entity.val = entity;
     };
 
-    new_quest = async (episode: Episode): Promise<void> =>
-        this.set_quest(create_new_quest(this.area_store, episode));
-
-    // TODO: notify user of problems.
-    open_file = async (file: File): Promise<void> => {
-        try {
-            const buffer = await read_file(file);
-            const quest = parse_quest(new ArrayBufferCursor(buffer, Endianness.Little));
-            this.set_quest(quest && convert_quest_to_model(this.area_store, quest), file.name);
-        } catch (e) {
-            logger.error("Couldn't read file.", e);
-        }
-    };
-
-    save_as = (): void => {
-        const quest = this.current_quest.val;
-        if (!quest) return;
-
-        let default_file_name = this.current_quest_filename.val;
-
-        if (default_file_name) {
-            const ext_start = default_file_name.lastIndexOf(".");
-            if (ext_start !== -1) default_file_name = default_file_name.slice(0, ext_start);
-        }
-
-        let file_name = prompt("File name:", default_file_name);
-        if (!file_name) return;
-
-        const buffer = write_quest_qst(convert_quest_from_model(quest), file_name);
-
-        if (!file_name.endsWith(".qst")) {
-            file_name += ".qst";
-        }
-
-        const a = document.createElement("a");
-        a.href = URL.createObjectURL(new Blob([buffer], { type: "application/octet-stream" }));
-        a.download = file_name;
-        document.body.appendChild(a);
-        a.click();
-        URL.revokeObjectURL(a.href);
-        document.body.removeChild(a);
-    };
-
     translate_entity = (
         entity: QuestEntityModel,
         old_section: SectionModel | undefined,
@@ -207,7 +155,7 @@ export class QuestEditorStore implements Disposable {
         this.undo.push(new EditEventDelayAction(event, e.old_value, e.value)).redo();
     };
 
-    private async set_quest(quest?: QuestModel, filename?: string): Promise<void> {
+    async set_quest(quest?: QuestModel): Promise<void> {
         this.undo.reset();
 
         this.quest_runner.stop();
@@ -215,7 +163,6 @@ export class QuestEditorStore implements Disposable {
         this._current_area.val = undefined;
         this._selected_entity.val = undefined;
 
-        this._current_quest_filename.val = filename;
         this._current_quest.val = quest;
 
         if (quest) {
@@ -242,8 +189,6 @@ export class QuestEditorStore implements Disposable {
                     }
                 }
             }
-        } else {
-            logger.error("Couldn't parse quest file.");
         }
     }
 
@@ -257,14 +202,6 @@ export class QuestEditorStore implements Disposable {
             entity.set_section(section);
         } else {
             logger.warn(`Section ${entity.section_id.val} not found.`);
-        }
-    };
-
-    debug_current_quest = (): void => {
-        const quest = this.current_quest.val;
-
-        if (quest) {
-            this.quest_runner.run(quest);
         }
     };
 }

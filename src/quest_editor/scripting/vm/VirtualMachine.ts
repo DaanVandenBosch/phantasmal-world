@@ -225,6 +225,7 @@ export class VirtualMachine {
         this._object_code = object_code;
         this.episode = episode;
 
+        this.label_to_seg_idx.clear();
         let i = 0;
 
         for (const segment of this._object_code) {
@@ -337,7 +338,7 @@ export class VirtualMachine {
                 // Not paused, the next instruction can be executed.
                 this.paused = false;
 
-                const result = this.execute_instruction(thread, inst_ptr, execution_counter);
+                const result = this.execute_instruction(thread, inst_ptr);
 
                 // Only return WaitingVsync when all threads have yielded.
                 if (result != undefined && result !== ExecutionResult.WaitingVsync) {
@@ -383,7 +384,6 @@ export class VirtualMachine {
 
             this.registers.zero();
             this.string_arg_store = "";
-            this.label_to_seg_idx.clear();
             this.threads = [];
             this.thread_idx = 0;
             this.window_msg_open = false;
@@ -401,7 +401,7 @@ export class VirtualMachine {
         return this.current_thread()?.current_stack_frame();
     }
 
-    get_current_instruction_pointer(): InstructionPointer | undefined {
+    get_instruction_pointer(): InstructionPointer | undefined {
         return this.get_current_stack_frame()?.instruction_pointer;
     }
 
@@ -470,7 +470,6 @@ export class VirtualMachine {
     private execute_instruction(
         thread: Thread,
         inst_ptr: InstructionPointer,
-        execution_counter: number,
     ): ExecutionResult | undefined {
         const inst = inst_ptr.instruction;
 

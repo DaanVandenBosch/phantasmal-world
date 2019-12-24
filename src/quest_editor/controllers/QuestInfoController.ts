@@ -1,4 +1,4 @@
-import { Property, PropertyChangeEvent } from "../../core/observable/property/Property";
+import { Property } from "../../core/observable/property/Property";
 import { EditIdAction } from "../actions/EditIdAction";
 import { EditNameAction } from "../actions/EditNameAction";
 import { EditShortDescriptionAction } from "../actions/EditShortDescriptionAction";
@@ -21,30 +21,50 @@ export class QuestInfoController {
         this.store.undo.make_current();
     };
 
-    id_changed = (event: PropertyChangeEvent<number>): void => {
-        if (this.current_quest.val) {
-            this.store.undo.push(new EditIdAction(this.current_quest.val, event)).redo();
+    set_id = (id: number): void => {
+        const quest = this.current_quest.val;
+
+        if (quest) {
+            this.store.undo.push(new EditIdAction(quest, quest.id.val, id)).redo();
         }
     };
 
-    name_changed = (event: PropertyChangeEvent<string>): void => {
-        if (this.current_quest.val) {
-            this.store.undo.push(new EditNameAction(this.current_quest.val, event)).redo();
+    set_name = (name: string): void => {
+        const quest = this.current_quest.val;
+
+        if (quest) {
+            this.store.undo.push(new EditNameAction(quest, quest.name.val, name)).redo();
         }
     };
 
-    short_description_changed = (event: PropertyChangeEvent<string>): void => {
-        if (this.current_quest.val) {
+    set_short_description = (short_description: string): void => {
+        const quest = this.current_quest.val;
+
+        if (quest) {
             this.store.undo
-                .push(new EditShortDescriptionAction(this.current_quest.val, event))
+                .push(
+                    new EditShortDescriptionAction(
+                        quest,
+                        quest.short_description.val,
+                        short_description,
+                    ),
+                )
                 .redo();
         }
     };
 
-    long_description_changed = (event: PropertyChangeEvent<string>): void => {
-        if (this.current_quest.val) {
+    set_long_description = (long_description: string): void => {
+        const quest = this.current_quest.val;
+
+        if (quest) {
             this.store.undo
-                .push(new EditLongDescriptionAction(this.current_quest.val, event))
+                .push(
+                    new EditLongDescriptionAction(
+                        quest,
+                        quest.long_description.val,
+                        long_description,
+                    ),
+                )
                 .redo();
         }
     };

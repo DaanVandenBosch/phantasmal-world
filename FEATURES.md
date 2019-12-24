@@ -155,4 +155,3 @@ Features that are in ***bold italics*** are planned and not yet implemented.
     - Energy Barrier
     - Teleporter
 - [Load Quest](#load-quest): Can't parse quest 125 White Day
-- [Area Selection](#area-selection): Entity numbers don't update in select widget when adding/deleting entities.

@@ -116,7 +116,7 @@ export class QuestRunner {
         this.vm.start_thread(0);
 
         // Debugger.
-        this.debugger.reset();
+        this.debugger.activate_breakpoints();
 
         this._state.val = QuestRunnerState.Running;
 
@@ -156,7 +156,7 @@ export class QuestRunner {
         }
 
         this.vm.halt();
-        this.debugger.reset();
+        this.debugger.deactivate_breakpoints();
         this._state.val = QuestRunnerState.Stopped;
         this._pause_location.val = undefined;
         this.npcs.splice(0, this.npcs.length);
@@ -217,10 +217,7 @@ export class QuestRunner {
 
             case ExecutionResult.Paused:
                 this._state.val = QuestRunnerState.Paused;
-
-                pause_location = this.vm.get_current_instruction_pointer()?.source_location
-                    ?.line_no;
-
+                pause_location = this.vm.get_instruction_pointer()?.source_location?.line_no;
                 break;
 
             case ExecutionResult.WaitingVsync:

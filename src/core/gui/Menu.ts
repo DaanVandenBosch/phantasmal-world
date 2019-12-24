@@ -1,10 +1,16 @@
 import { disposable_listener, el } from "./dom";
 import { Widget } from "./Widget";
-import { Property } from "../observable/property/Property";
+import { is_any_property, Property } from "../observable/property/Property";
 import { property } from "../observable";
 import { WritableProperty } from "../observable/property/WritableProperty";
 import { WidgetProperty } from "../observable/property/WidgetProperty";
 import "./Menu.css";
+
+export type MenuOptions<T> = {
+    readonly items: readonly T[] | Property<readonly T[]>;
+    readonly to_label: (element: T) => string;
+    readonly related_element: HTMLElement;
+};
 
 export class Menu<T> extends Widget {
     readonly element = el.div({ class: "core_Menu", tab_index: -1 });
@@ -18,11 +24,7 @@ export class Menu<T> extends Widget {
     private hovered_index?: number;
     private hovered_element?: HTMLElement;
 
-    constructor(
-        items: readonly T[] | Property<readonly T[]>,
-        to_label: (element: T) => string,
-        related_element: HTMLElement,
-    ) {
+    constructor(options: MenuOptions<T>) {
         super();
 
         this.visible.val = false;
@@ -33,9 +35,9 @@ export class Menu<T> extends Widget {
         this.inner_element.onmouseover = this.inner_mouseover;
         this.element.append(this.inner_element);
 
-        this.to_label = to_label;
-        this.items = Array.isArray(items) ? property(items) : (items as Property<readonly T[]>);
-        this.related_element = related_element;
+        this.to_label = options.to_label;
+        this.items = is_any_property(options.items) ? options.items : property(options.items);
+        this.related_element = options.related_element;
 
         this._selected = new WidgetProperty<T | undefined>(this, undefined, this.set_selected);
         this.selected = this._selected;
@@ -46,7 +48,10 @@ export class Menu<T> extends Widget {
                     this.inner_element.innerHTML = "";
                     this.inner_element.append(
                         ...items.map((item, index) =>
-                            el.div({ text: to_label(item), data: { index: index.toString() } }),
+                            el.div({
+                                text: this.to_label(item),
+                                data: { index: index.toString() },
+                            }),
                         ),
                     );
                     this.hover_item();

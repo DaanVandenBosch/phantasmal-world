@@ -4,7 +4,6 @@ import { GuiStore, GuiTool } from "../../core/stores/GuiStore";
 import { Widget } from "../../core/gui/Widget";
 import { NavigationButton } from "./NavigationButton";
 import { Select } from "../../core/gui/Select";
-import { property } from "../../core/observable";
 
 const TOOLS: [GuiTool, string][] = [
     [GuiTool.Viewer, "Viewer"],
@@ -17,8 +16,10 @@ export class NavigationView extends Widget {
         TOOLS.map(([value, text]) => [value, this.disposable(new NavigationButton(value, text))]),
     );
     private readonly server_select = this.disposable(
-        new Select(property(["Ephinea"]), server => server, {
+        new Select({
             label: "Server:",
+            items: ["Ephinea"],
+            to_label: server => server,
             enabled: false,
             selected: "Ephinea",
             tooltip: "Only Ephinea is supported at the moment",

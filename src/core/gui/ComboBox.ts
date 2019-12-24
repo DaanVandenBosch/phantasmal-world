@@ -34,7 +34,13 @@ export class ComboBox<T> extends LabelledControl {
         this._selected = new WidgetProperty<T | undefined>(this, undefined, this.set_selected);
         this.selected = this._selected;
 
-        this.menu = this.disposable(new Menu(options.items, options.to_label, this.element));
+        this.menu = this.disposable(
+            new Menu({
+                items: options.items,
+                to_label: options.to_label,
+                related_element: this.element,
+            }),
+        );
         this.menu.element.onmousedown = e => e.preventDefault();
 
         this.input_element.placeholder = options.placeholder_text || "";

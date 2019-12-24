@@ -1,24 +1,14 @@
 import { Episode } from "../../core/data_formats/parsing/quest/Episode";
 import { QuestModel } from "../model/QuestModel";
-import { new_arg, new_instruction, SegmentType } from "../scripting/instructions";
 import { ObjectType } from "../../core/data_formats/parsing/quest/object_types";
 import { NpcType } from "../../core/data_formats/parsing/quest/npc_types";
-import {
-    OP_ARG_PUSHL,
-    OP_ARG_PUSHR,
-    OP_ARG_PUSHW,
-    OP_BB_MAP_DESIGNATE,
-    OP_LETI,
-    OP_P_SETPOS,
-    OP_RET,
-    OP_SET_EPISODE,
-    OP_SET_FLOOR_HANDLER,
-} from "../scripting/opcodes";
 import { QuestObjectModel } from "../model/QuestObjectModel";
 import { QuestNpcModel } from "../model/QuestNpcModel";
 import { Euler, Vector3 } from "three";
 import { QuestEventDagModel } from "../model/QuestEventDagModel";
 import { AreaStore } from "./AreaStore";
+import { assemble } from "../scripting/assembly";
+import { Segment } from "../scripting/instructions";
 
 export function create_new_quest(area_store: AreaStore, episode: Episode): QuestModel {
     if (episode === Episode.II) throw new Error("Episode II not yet supported.");
@@ -37,62 +27,7 @@ export function create_new_quest(area_store: AreaStore, episode: Episode): Quest
         create_default_npcs(),
         create_default_event_chains(),
         [],
-        [
-            {
-                labels: [0],
-                type: SegmentType.Instructions,
-                instructions: [
-                    new_instruction(OP_SET_EPISODE, [new_arg(0, 4)]),
-                    new_instruction(OP_ARG_PUSHL, [new_arg(0, 4)]),
-                    new_instruction(OP_ARG_PUSHW, [new_arg(150, 2)]),
-                    new_instruction(OP_SET_FLOOR_HANDLER, []),
-                    new_instruction(OP_BB_MAP_DESIGNATE, [
-                        new_arg(0, 1),
-                        new_arg(0, 2),
-                        new_arg(0, 1),
-                        new_arg(0, 1),
-                    ]),
-                    new_instruction(OP_RET, []),
-                ],
-                asm: { labels: [] },
-            },
-            {
-                labels: [150],
-                type: SegmentType.Instructions,
-                instructions: [
-                    new_instruction(OP_LETI, [new_arg(60, 1), new_arg(237, 4)]),
-                    new_instruction(OP_LETI, [new_arg(61, 1), new_arg(0, 4)]),
-                    new_instruction(OP_LETI, [new_arg(62, 1), new_arg(333, 4)]),
-                    new_instruction(OP_LETI, [new_arg(63, 1), new_arg(-15, 4)]),
-                    new_instruction(OP_ARG_PUSHL, [new_arg(0, 4)]),
-                    new_instruction(OP_ARG_PUSHR, [new_arg(60, 1)]),
-                    new_instruction(OP_P_SETPOS, []),
-                    new_instruction(OP_LETI, [new_arg(60, 1), new_arg(255, 4)]),
-                    new_instruction(OP_LETI, [new_arg(61, 1), new_arg(0, 4)]),
-                    new_instruction(OP_LETI, [new_arg(62, 1), new_arg(338, 4)]),
-                    new_instruction(OP_LETI, [new_arg(63, 1), new_arg(-43, 4)]),
-                    new_instruction(OP_ARG_PUSHL, [new_arg(1, 4)]),
-                    new_instruction(OP_ARG_PUSHR, [new_arg(60, 1)]),
-                    new_instruction(OP_P_SETPOS, []),
-                    new_instruction(OP_LETI, [new_arg(60, 1), new_arg(222, 4)]),
-                    new_instruction(OP_LETI, [new_arg(61, 1), new_arg(0, 4)]),
-                    new_instruction(OP_LETI, [new_arg(62, 1), new_arg(322, 4)]),
-                    new_instruction(OP_LETI, [new_arg(63, 1), new_arg(25, 4)]),
-                    new_instruction(OP_ARG_PUSHL, [new_arg(2, 4)]),
-                    new_instruction(OP_ARG_PUSHR, [new_arg(60, 1)]),
-                    new_instruction(OP_P_SETPOS, []),
-                    new_instruction(OP_LETI, [new_arg(60, 1), new_arg(248, 4)]),
-                    new_instruction(OP_LETI, [new_arg(61, 1), new_arg(0, 4)]),
-                    new_instruction(OP_LETI, [new_arg(62, 1), new_arg(323, 4)]),
-                    new_instruction(OP_LETI, [new_arg(63, 1), new_arg(-20, 4)]),
-                    new_instruction(OP_ARG_PUSHL, [new_arg(3, 4)]),
-                    new_instruction(OP_ARG_PUSHR, [new_arg(60, 1)]),
-                    new_instruction(OP_P_SETPOS, []),
-                    new_instruction(OP_RET, []),
-                ],
-                asm: { labels: [] },
-            },
-        ],
+        create_default_object_code(),
         [],
     );
 }
@@ -969,4 +904,38 @@ function create_default_npcs(): QuestNpcModel[] {
 
 function create_default_event_chains(): QuestEventDagModel[] {
     return [];
+}
+
+function create_default_object_code(): Segment[] {
+    return assemble(
+        `.code
+
+0:
+    set_episode 0
+    set_floor_handler 0, 150
+    bb_map_designate 0, 0, 0, 0
+    ret
+150:
+    leti r60, 237
+    leti r61, 0
+    leti r62, 333
+    leti r63, -15
+    p_setpos 0, r60
+    leti r60, 255
+    leti r61, 0
+    leti r62, 338
+    leti r63, -43
+    p_setpos 1, r60
+    leti r60, 222
+    leti r61, 0
+    leti r62, 322
+    leti r63, 25
+    p_setpos 2, r60
+    leti r60, 248
+    leti r61, 0
+    leti r62, 323
+    leti r63, -20
+    p_setpos 3, r60
+    ret`.split("\n"),
+    ).object_code;
 }

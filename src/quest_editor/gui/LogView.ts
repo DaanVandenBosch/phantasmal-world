@@ -26,9 +26,11 @@ export class LogView extends ResizableWidget {
         this.list_element = el.div({ class: "quest_editor_LogView_message_list" });
 
         this.level_filter = this.disposable(
-            new Select(LogLevels, level => LogLevel[level], {
+            new Select({
                 class: "quest_editor_LogView_level_filter",
                 label: "Level:",
+                items: LogLevels,
+                to_label: level => LogLevel[level],
             }),
         );
 

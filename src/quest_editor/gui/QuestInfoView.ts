@@ -14,18 +14,14 @@ export class QuestInfoView extends ResizableWidget {
 
     private readonly table_element = el.table();
     private readonly episode_element: HTMLElement;
-    private readonly id_input = this.disposable(
-        new NumberInput(0, { id: "quest_editor_QuestInfoView_id" }),
-    );
+    private readonly id_input = this.disposable(new NumberInput(0));
     private readonly name_input = this.disposable(
         new TextInput("", {
-            id: "quest_editor_QuestInfoView_name",
             max_length: 32,
         }),
     );
     private readonly short_description_input = this.disposable(
         new TextArea("", {
-            id: "quest_editor_QuestInfoView_short_description",
             max_length: 128,
             font_family: '"Courier New", monospace',
             cols: 25,
@@ -34,7 +30,6 @@ export class QuestInfoView extends ResizableWidget {
     );
     private readonly long_description_input = this.disposable(
         new TextArea("", {
-            id: "quest_editor_QuestInfoView_long_description",
             max_length: 288,
             font_family: '"Courier New", monospace',
             cols: 25,
@@ -78,16 +73,20 @@ export class QuestInfoView extends ResizableWidget {
                 if (q) {
                     this.quest_disposer.add_all(
                         this.id_input.value.bind_to(q.id),
-                        this.id_input.value.observe(ctrl.id_changed),
+                        this.id_input.value.observe(({ value }) => ctrl.set_id(value)),
 
                         this.name_input.value.bind_to(q.name),
-                        this.name_input.value.observe(ctrl.name_changed),
+                        this.name_input.value.observe(({ value }) => ctrl.set_name(value)),
 
                         this.short_description_input.value.bind_to(q.short_description),
-                        this.short_description_input.value.observe(ctrl.short_description_changed),
+                        this.short_description_input.value.observe(({ value }) =>
+                            ctrl.set_short_description(value),
+                        ),
 
                         this.long_description_input.value.bind_to(q.long_description),
-                        this.long_description_input.value.observe(ctrl.long_description_changed),
+                        this.long_description_input.value.observe(({ value }) =>
+                            ctrl.set_long_description(value),
+                        ),
 
                         this.enabled.bind_to(ctrl.enabled),
                     );
