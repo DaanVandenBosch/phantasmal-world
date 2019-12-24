@@ -386,16 +386,6 @@ h2 {
     background-color: hsl(0, 0%, 21%);
 }
 
-.core_DropDown {
-    position: relative;
-}
-
-.core_DropDown .core_Menu {
-    top: 25px;
-    left: 0;
-    min-width: 100%;
-}
-
 .core_TextArea {
     box-sizing: border-box;
     display: inline-block;
@@ -458,7 +448,7 @@ h2 {
     width: 100%;
 }
 
-.quest_editor_DisabledView {
+.quest_editor_UnavailableView {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -754,6 +744,16 @@ body .lm_dropTargetIndicator {
 
 .quest_editor_LogView .quest_editor_LogView_Warning_message .quest_editor_LogView_message_level {
     color: hsl(30, 80%, 50%);
+}
+
+.core_DropDown {
+    position: relative;
+}
+
+.core_DropDown .core_Menu {
+    top: 25px;
+    left: 0;
+    min-width: 100%;
 }
 
 .hunt_optimizer_WantedItemsView {
