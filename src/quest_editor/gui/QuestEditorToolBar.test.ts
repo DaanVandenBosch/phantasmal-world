@@ -1,6 +1,3 @@
-/**
- * @jest-environment jsdom
- */
 import { QuestEditorToolBarController } from "../controllers/QuestEditorToolBarController";
 import { QuestEditorToolBar } from "./QuestEditorToolBar";
 import { GuiStore } from "../../core/stores/GuiStore";

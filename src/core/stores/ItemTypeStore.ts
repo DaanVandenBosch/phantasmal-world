@@ -6,23 +6,25 @@ import {
     UnitItemType,
     WeaponItemType,
 } from "../model/items";
-import { ServerMap } from "./ServerMap";
 import { Server } from "../model";
 import { ItemTypeDto } from "../dto/ItemTypeDto";
 import { GuiStore } from "./GuiStore";
 import { HttpClient } from "../HttpClient";
+import { DisposableServerMap } from "./DisposableServerMap";
+import { Store } from "./Store";
 
 export function create_item_type_stores(
     http_client: HttpClient,
     gui_store: GuiStore,
-): ServerMap<ItemTypeStore> {
-    return new ServerMap(gui_store, create_loader(http_client));
+): DisposableServerMap<ItemTypeStore> {
+    return new DisposableServerMap(gui_store, create_loader(http_client));
 }
 
-export class ItemTypeStore {
+export class ItemTypeStore extends Store {
     readonly item_types: ItemType[];
 
     constructor(item_types: ItemType[], private readonly id_to_item_type: ItemType[]) {
+        super();
         this.item_types = item_types;
     }
 

@@ -1,4 +1,3 @@
-import Logger from "js-logger";
 import { reinterpret_f32_as_i32 } from "../../core/primitive_conversion";
 import {
     AssemblyLexer,
@@ -34,8 +33,9 @@ import {
     Param,
     StackInteraction,
 } from "./opcodes";
+import { LogManager } from "../../core/Logger";
 
-const logger = Logger.get("quest_editor/scripting/assembly");
+const logger = LogManager.get("quest_editor/scripting/assembly");
 
 export type AssemblyWarning = {
     line_no: number;

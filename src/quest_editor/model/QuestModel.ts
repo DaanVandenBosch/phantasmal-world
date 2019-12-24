@@ -6,7 +6,6 @@ import { QuestNpcModel } from "./QuestNpcModel";
 import { DatUnknown } from "../../core/data_formats/parsing/quest/dat";
 import { Segment } from "../scripting/instructions";
 import { Property } from "../../core/observable/property/Property";
-import Logger from "js-logger";
 import { AreaVariantModel } from "./AreaVariantModel";
 import { ListProperty } from "../../core/observable/property/list/ListProperty";
 import { WritableListProperty } from "../../core/observable/property/list/WritableListProperty";
@@ -15,8 +14,9 @@ import { entity_type_to_string } from "../../core/data_formats/parsing/quest/ent
 import { QuestEventDagModel } from "./QuestEventDagModel";
 import { assert, defined, require_array } from "../../core/util";
 import { AreaStore } from "../stores/AreaStore";
+import { LogManager } from "../../core/Logger";
 
-const logger = Logger.get("quest_editor/model/QuestModel");
+const logger = LogManager.get("quest_editor/model/QuestModel");
 
 export class QuestModel {
     private readonly _id: WritableProperty<number> = property(0);

@@ -9,14 +9,13 @@
         "camera-controls": "^1.16.2",
         "golden-layout": "^1.5.9",
         "javascript-lp-solver": "0.4.17",
-        "js-logger": "^1.6.0",
         "lodash": "^4.17.15",
         "luxon": "^1.21.3",
         "monaco-editor": "^0.19.0",
         "three": "^0.111.0"
     },
     "scripts": {
-        "start": "webpack-dev-server --port 1623 --config webpack.dev.js",
+        "start": "webpack-dev-server --config webpack.dev.js",
         "build": "webpack --config webpack.prod.js",
         "test": "jest",
         "update_generic_data": "ts-node --project=tsconfig-scripts.json assets_generation/update_generic_data.ts",

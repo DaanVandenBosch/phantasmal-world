@@ -3,9 +3,9 @@ import { WritableListProperty } from "../observable/property/list/WritableListPr
 import { Action } from "./Action";
 import { list_property, map, property } from "../observable";
 import { undo_manager } from "./UndoManager";
-import Logger = require("js-logger");
+import { LogManager } from "../Logger";
 
-const logger = Logger.get("core/undo/UndoStack");
+const logger = LogManager.get("core/undo/UndoStack");
 
 /**
  * Full-fledged linear undo/redo implementation.

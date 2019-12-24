@@ -1,10 +1,10 @@
-import Logger from "js-logger";
 import { Cursor } from "../../cursor/Cursor";
 import { ResizableBufferCursor } from "../../cursor/ResizableBufferCursor";
 import { WritableCursor } from "../../cursor/WritableCursor";
 import { ResizableBuffer } from "../../ResizableBuffer";
+import { LogManager } from "../../../Logger";
 
-const logger = Logger.get("core/data_formats/compression/prs/decompress");
+const logger = LogManager.get("core/data_formats/compression/prs/decompress");
 
 export function prs_decompress(cursor: Cursor): Cursor {
     const ctx = new Context(cursor);

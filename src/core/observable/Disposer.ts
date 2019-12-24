@@ -1,7 +1,7 @@
 import { Disposable } from "./Disposable";
-import Logger = require("js-logger");
+import { LogManager } from "../Logger";
 
-const logger = Logger.get("core/observable/Disposer");
+const logger = LogManager.get("core/observable/Disposer");
 
 /**
  * Container for disposables.
@@ -29,7 +29,9 @@ export class Disposer implements Disposable {
      * Add a single disposable and return the given disposable.
      */
     add<T extends Disposable>(disposable: T): T {
-        if (!this._disposed) {
+        if (this.disposed) {
+            disposable.dispose();
+        } else {
             this.disposables.push(disposable);
         }
 

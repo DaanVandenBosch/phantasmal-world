@@ -1,6 +1,3 @@
-/**
- * @jest-environment jsdom
- */
 import { QuestInfoController } from "../controllers/QuestInfoController";
 import { undo_manager } from "../../core/undo/UndoManager";
 import { QuestInfoView } from "./QuestInfoView";

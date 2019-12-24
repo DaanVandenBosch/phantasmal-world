@@ -1,6 +1,5 @@
 import { create_element, el, icon, Icon } from "./dom";
 import "./FileButton.css";
-import "./Button.css";
 import { property } from "../observable";
 import { Property } from "../observable/property/Property";
 import { Control, ControlOptions } from "./Control";

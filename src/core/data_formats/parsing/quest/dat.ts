@@ -1,4 +1,3 @@
-import Logger from "js-logger";
 import { groupBy } from "lodash";
 import { Endianness } from "../../Endianness";
 import { Cursor } from "../../cursor/Cursor";
@@ -7,8 +6,9 @@ import { ResizableBuffer } from "../../ResizableBuffer";
 import { Vec3 } from "../../vector";
 import { WritableCursor } from "../../cursor/WritableCursor";
 import { assert } from "../../../util";
+import { LogManager } from "../../../Logger";
 
-const logger = Logger.get("core/data_formats/parsing/quest/dat");
+const logger = LogManager.get("core/data_formats/parsing/quest/dat");
 
 const OBJECT_SIZE = 68;
 const NPC_SIZE = 72;

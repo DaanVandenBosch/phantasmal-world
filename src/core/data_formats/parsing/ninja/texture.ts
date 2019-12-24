@@ -1,8 +1,8 @@
-import Logger from "js-logger";
 import { Cursor } from "../../cursor/Cursor";
 import { parse_iff } from "../iff";
+import { LogManager } from "../../../Logger";
 
-const logger = Logger.get("core/data_formats/parsing/ninja/texture");
+const logger = LogManager.get("core/data_formats/parsing/ninja/texture");
 
 export type Xvm = {
     textures: XvmTexture[];

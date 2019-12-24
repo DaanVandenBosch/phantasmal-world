@@ -33,12 +33,12 @@ export class StubHttpClient implements HttpClient {
     get(url: string): HttpResponse {
         return {
             json<T>(): Promise<T> {
-                throw new Error(`Dummy client's json method invoked for get request to "${url}".`);
+                throw new Error(`Stub client's json method invoked for get request to "${url}".`);
             },
 
             array_buffer(): Promise<ArrayBuffer> {
                 throw new Error(
-                    `Dummy client's array_buffer method invoked for get request to "${url}".`,
+                    `Stub client's array_buffer method invoked for get request to "${url}".`,
                 );
             },
         };

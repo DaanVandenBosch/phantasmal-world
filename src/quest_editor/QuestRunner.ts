@@ -54,7 +54,7 @@ export type GameState = Readonly<GameStateInternal>;
  * delegates to {@link Debugger}.
  */
 export class QuestRunner {
-    private quest_logger = log_store.get_logger("quest_editor/QuestRunner");
+    private logger = log_store.get_logger("quest_editor/QuestRunner");
     private animation_frame?: number;
     private startup = true;
     private readonly _state: WritableProperty<QuestRunnerState> = property(
@@ -102,7 +102,7 @@ export class QuestRunner {
         this.stop();
 
         // Runner state.
-        this.quest_logger.info("Starting debugger.");
+        this.logger.info("Starting debugger.");
         this.startup = true;
         this.initial_area_id = 0;
         this.npcs.splice(0, this.npcs.length, ...quest.npcs.val);
@@ -148,7 +148,7 @@ export class QuestRunner {
             return;
         }
 
-        this.quest_logger.info("Stopping debugger.");
+        this.logger.info("Stopping debugger.");
 
         if (this.animation_frame != undefined) {
             cancelAnimationFrame(this.animation_frame);
@@ -292,15 +292,15 @@ export class QuestRunner {
             },
 
             window_msg: (msg: string): void => {
-                this.quest_logger.info(`window_msg "${msg}"`);
+                this.logger.info(`window_msg "${msg}"`);
             },
 
             message: (msg: string): void => {
-                this.quest_logger.info(`message "${msg}"`);
+                this.logger.info(`message "${msg}"`);
             },
 
             add_msg: (msg: string): void => {
-                this.quest_logger.info(`add_msg "${msg}"`);
+                this.logger.info(`add_msg "${msg}"`);
             },
 
             winend: (): void => {
@@ -317,15 +317,15 @@ export class QuestRunner {
             },
 
             list: (list_items: string[]): void => {
-                this.quest_logger.info(`list "[${list_items}]"`);
+                this.logger.info(`list "[${list_items}]"`);
             },
 
             warning: (msg: string, inst_ptr?: InstructionPointer): void => {
-                this.quest_logger.warning(message_with_inst_ptr(msg, inst_ptr));
+                this.logger.warn(message_with_inst_ptr(msg, inst_ptr));
             },
 
             error: (err: Error, inst_ptr?: InstructionPointer): void => {
-                this.quest_logger.error(message_with_inst_ptr(err.message, inst_ptr));
+                this.logger.error(message_with_inst_ptr(err.message, inst_ptr));
             },
         };
     };
@@ -339,7 +339,7 @@ export class QuestRunner {
         const label = this._game_state.floor_handlers.get(area_id);
 
         if (label == undefined) {
-            this.quest_logger.debug(`No floor handler registered for floor ${area_id}.`);
+            this.logger.debug(`No floor handler registered for floor ${area_id}.`);
         } else {
             this.vm.start_thread(label);
             this.schedule_frame();

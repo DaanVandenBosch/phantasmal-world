@@ -1,4 +1,3 @@
-import Logger from "js-logger";
 import { Server } from "../../core/model";
 import { QuestDto } from "../dto/QuestDto";
 import { NpcType } from "../../core/data_formats/parsing/quest/npc_types";
@@ -8,13 +7,13 @@ import { HuntMethodPersister } from "../persistence/HuntMethodPersister";
 import { Duration } from "luxon";
 import { ListProperty } from "../../core/observable/property/list/ListProperty";
 import { list_property } from "../../core/observable";
-import { Disposable } from "../../core/observable/Disposable";
-import { Disposer } from "../../core/observable/Disposer";
 import { GuiStore } from "../../core/stores/GuiStore";
-import { ServerMap } from "../../core/stores/ServerMap";
 import { HttpClient } from "../../core/HttpClient";
+import { Store } from "../../core/stores/Store";
+import { DisposableServerMap } from "../../core/stores/DisposableServerMap";
+import { LogManager } from "../../core/Logger";
 
-const logger = Logger.get("hunt_optimizer/stores/HuntMethodStore");
+const logger = LogManager.get("hunt_optimizer/stores/HuntMethodStore");
 
 const DEFAULT_DURATION = Duration.fromObject({ minutes: 30 });
 const DEFAULT_GOVERNMENT_TEST_DURATION = Duration.fromObject({ minutes: 45 });
@@ -24,31 +23,27 @@ export function create_hunt_method_stores(
     http_client: HttpClient,
     gui_store: GuiStore,
     hunt_method_persister: HuntMethodPersister,
-): ServerMap<HuntMethodStore> {
-    return new ServerMap(gui_store, create_loader(http_client, hunt_method_persister));
+): DisposableServerMap<HuntMethodStore> {
+    return new DisposableServerMap(gui_store, create_loader(http_client, hunt_method_persister));
 }
 
-export class HuntMethodStore implements Disposable {
+export class HuntMethodStore extends Store {
     readonly methods: ListProperty<HuntMethodModel>;
-
-    private readonly disposer = new Disposer();
 
     constructor(
         hunt_method_persister: HuntMethodPersister,
         server: Server,
         methods: HuntMethodModel[],
     ) {
+        super();
+
         this.methods = list_property(method => [method.user_time], ...methods);
 
-        this.disposer.add(
+        this.disposables(
             this.methods.observe_list(() =>
                 hunt_method_persister.persist_method_user_times(this.methods.val, server),
             ),
         );
-    }
-
-    dispose(): void {
-        this.disposer.dispose();
     }
 }
 

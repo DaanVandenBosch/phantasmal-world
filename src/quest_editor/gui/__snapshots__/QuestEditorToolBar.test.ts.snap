@@ -1,0 +1,181 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Renders correctly. 1`] = `
+<div
+  class="core_ToolBar"
+  style="height: 33px;"
+>
+  <div
+    class="core_DropDown"
+  >
+    <button
+      class="core_Button"
+    >
+      <span
+        class="core_Button_inner"
+      >
+        <span
+          class="core_Button_left"
+        >
+          <span
+            class="fas fa-file-medical"
+          />
+        </span>
+        <span
+          class="core_Button_center"
+        >
+          New quest
+        </span>
+        <span
+          class="core_Button_right"
+        >
+          <span
+            class="fas fa-caret-down"
+          />
+        </span>
+      </span>
+    </button>
+    <div
+      class="core_Menu"
+      hidden=""
+      tabindex="-1"
+    >
+      <div
+        class="core_Menu_inner"
+      >
+        <div
+          data-index="0"
+        >
+          Episode I
+        </div>
+      </div>
+    </div>
+  </div>
+  <label
+    class="core_FileButton core_Button"
+    title="Open a quest file (Ctrl-O)"
+  >
+    <span
+      class="core_FileButton_inner core_Button_inner"
+    >
+      <span
+        class="core_FileButton_left core_Button_left"
+      >
+        <span
+          class="fas fa-file"
+        />
+      </span>
+      <span
+        class="core_Button_center"
+      >
+        Open file...
+      </span>
+    </span>
+    <input
+      accept=".qst"
+      class="core_FileButton_input core_Button_inner"
+      type="file"
+    />
+  </label>
+  <button
+    class="core_Button disabled"
+    disabled=""
+    title="Save this quest to new file (Ctrl-Shift-S)"
+  >
+    <span
+      class="core_Button_inner"
+    >
+      <span
+        class="core_Button_left"
+      >
+        <span
+          class="fas fa-save"
+        />
+      </span>
+      <span
+        class="core_Button_center"
+      >
+        Save as...
+      </span>
+    </span>
+  </button>
+  <button
+    class="core_Button disabled"
+    disabled=""
+    title="Nothing to undo (Ctrl-Z)"
+  >
+    <span
+      class="core_Button_inner"
+    >
+      <span
+        class="core_Button_left"
+      >
+        <span
+          class="fas fa-undo"
+        />
+      </span>
+      <span
+        class="core_Button_center"
+      >
+        Undo
+      </span>
+    </span>
+  </button>
+  <button
+    class="core_Button disabled"
+    disabled=""
+    title="Nothing to redo (Ctrl-Shift-Z)"
+  >
+    <span
+      class="core_Button_inner"
+    >
+      <span
+        class="core_Button_left"
+      >
+        <span
+          class="fas fa-redo"
+        />
+      </span>
+      <span
+        class="core_Button_center"
+      >
+        Redo
+      </span>
+    </span>
+  </button>
+  <div
+    class="core_Select disabled"
+  >
+    <button
+      class="core_Button disabled"
+      disabled=""
+    >
+      <span
+        class="core_Button_inner"
+      >
+        <span
+          class="core_Button_center"
+        >
+           
+        </span>
+        <span
+          class="core_Button_right"
+        >
+          <span
+            class="fas fa-caret-down"
+          />
+        </span>
+      </span>
+    </button>
+    <div
+      class="core_Menu"
+      hidden=""
+      tabindex="-1"
+    >
+      <div
+        class="core_Menu_inner"
+      />
+    </div>
+  </div>
+</div>
+`;

@@ -1,4 +1,3 @@
-/* eslint-disable no-dupe-class-members */
 import { LabelledControl, LabelledControlOptions } from "./LabelledControl";
 import { create_element, el } from "./dom";
 import { WritableProperty } from "../observable/property/WritableProperty";
@@ -57,13 +56,7 @@ export abstract class Input<T> extends LabelledControl {
 
     protected abstract set_value(value: T): void;
 
-    protected set_attr<T>(attr: InputAttrsOfType<T>, value?: T | Property<T>): void;
-    protected set_attr<T, U>(
-        attr: InputAttrsOfType<U>,
-        value: T | Property<T> | undefined,
-        convert: (value: T) => U,
-    ): void;
-    protected set_attr<T, U>(
+    protected set_attr<T, U = T>(
         attr: InputAttrsOfType<U>,
         value?: T | Property<T>,
         convert?: (value: T) => U,

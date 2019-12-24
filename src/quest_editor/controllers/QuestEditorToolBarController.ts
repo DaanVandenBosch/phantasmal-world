@@ -13,10 +13,10 @@ import { parse_quest, write_quest_qst } from "../../core/data_formats/parsing/qu
 import { ArrayBufferCursor } from "../../core/data_formats/cursor/ArrayBufferCursor";
 import { Endianness } from "../../core/data_formats/Endianness";
 import { convert_quest_from_model, convert_quest_to_model } from "../stores/model_conversion";
-import Logger from "js-logger";
 import { create_element } from "../../core/gui/dom";
+import { LogManager } from "../../core/Logger";
 
-const logger = Logger.get("quest_editor/controllers/QuestEditorToolBarController");
+const logger = LogManager.get("quest_editor/controllers/QuestEditorToolBarController");
 
 export type AreaAndLabel = { readonly area: AreaModel; readonly label: string };
 

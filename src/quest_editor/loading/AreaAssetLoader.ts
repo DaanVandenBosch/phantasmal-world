@@ -15,13 +15,20 @@ import {
 } from "../rendering/conversion/areas";
 import { AreaVariantModel } from "../model/AreaVariantModel";
 import { HttpClient } from "../../core/HttpClient";
+import { Disposable } from "../../core/observable/Disposable";
 
-export class AreaAssetLoader {
+export class AreaAssetLoader implements Disposable {
     private readonly render_object_cache = new LoadingCache<string, Promise<RenderObject>>();
     private readonly collision_object_cache = new LoadingCache<string, Promise<CollisionObject>>();
     private readonly area_sections_cache = new LoadingCache<string, Promise<SectionModel[]>>();
 
     constructor(private readonly http_client: HttpClient) {}
+
+    dispose(): void {
+        this.render_object_cache.purge_all();
+        this.collision_object_cache.purge_all();
+        this.area_sections_cache.purge_all();
+    }
 
     async load_sections(episode: Episode, area_variant: AreaVariantModel): Promise<SectionModel[]> {
         const key = `${episode}-${area_variant.area.id}-${area_variant.id}`;

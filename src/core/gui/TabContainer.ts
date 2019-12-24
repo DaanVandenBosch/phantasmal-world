@@ -39,7 +39,7 @@ export class TabContainer extends ResizableWidget {
             });
             this.bar_element.append(tab_element);
 
-            const lazy_view = new LazyWidget(tab.create_view);
+            const lazy_view = this.disposable(new LazyWidget(tab.create_view));
 
             this.tabs.push({
                 ...tab,
@@ -48,7 +48,6 @@ export class TabContainer extends ResizableWidget {
             });
 
             this.panes_element.append(lazy_view.element);
-            this.disposable(lazy_view);
         }
 
         if (this.tabs.length) {

@@ -18,9 +18,9 @@ import { LogView } from "./LogView";
 import { QuestRunnerRendererView } from "./QuestRunnerRendererView";
 import { QuestEditorStore } from "../stores/QuestEditorStore";
 import { QuestEditorUiPersister } from "../persistence/QuestEditorUiPersister";
-import Logger = require("js-logger");
+import { LogManager } from "../../core/Logger";
 
-const logger = Logger.get("quest_editor/gui/QuestEditorView");
+const logger = LogManager.get("quest_editor/gui/QuestEditorView");
 
 const DEFAULT_LAYOUT_CONFIG = {
     settings: {

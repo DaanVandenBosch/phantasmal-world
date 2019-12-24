@@ -15,9 +15,9 @@ import { SortDirection, Table } from "../../core/gui/Table";
 import { list_property } from "../../core/observable";
 import { ServerMap } from "../../core/stores/ServerMap";
 import { HuntMethodStore } from "../stores/HuntMethodStore";
-import Logger from "js-logger";
+import { LogManager } from "../../core/Logger";
 
-const logger = Logger.get("hunt_optimizer/gui/MethodsForEpisodeView");
+const logger = LogManager.get("hunt_optimizer/gui/MethodsForEpisodeView");
 
 export class MethodsForEpisodeView extends ResizableWidget {
     readonly element = el.div({ class: "hunt_optimizer_MethodsForEpisodeView" });

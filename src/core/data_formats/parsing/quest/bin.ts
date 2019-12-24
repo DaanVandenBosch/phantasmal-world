@@ -1,4 +1,3 @@
-import Logger from "js-logger";
 import { Endianness } from "../../Endianness";
 import { ControlFlowGraph } from "../../../../quest_editor/scripting/data_flow_analysis/ControlFlowGraph";
 import { register_value } from "../../../../quest_editor/scripting/data_flow_analysis/register_value";
@@ -27,8 +26,9 @@ import { Cursor } from "../../cursor/Cursor";
 import { ResizableBufferCursor } from "../../cursor/ResizableBufferCursor";
 import { WritableCursor } from "../../cursor/WritableCursor";
 import { ResizableBuffer } from "../../ResizableBuffer";
+import { LogManager } from "../../../Logger";
 
-const logger = Logger.get("core/data_formats/parsing/quest/bin");
+const logger = LogManager.get("core/data_formats/parsing/quest/bin");
 
 export type BinFile = {
     readonly quest_id: number;

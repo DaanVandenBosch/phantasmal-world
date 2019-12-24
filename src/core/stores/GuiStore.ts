@@ -3,6 +3,8 @@ import { Disposable } from "../observable/Disposable";
 import { property } from "../observable";
 import { Property } from "../observable/property/Property";
 import { Server } from "../model";
+import { Store } from "./Store";
+import { disposable_listener } from "../gui/dom";
 
 export enum GuiTool {
     Viewer,
@@ -17,24 +19,17 @@ const GUI_TOOL_TO_STRING = new Map([
 ]);
 const STRING_TO_GUI_TOOL = new Map([...GUI_TOOL_TO_STRING.entries()].map(([k, v]) => [v, k]));
 
-export class GuiStore implements Disposable {
-    readonly tool: WritableProperty<GuiTool> = property(GuiTool.Viewer);
-    readonly server: Property<Server>;
-
+export class GuiStore extends Store {
     private readonly _server: WritableProperty<Server> = property(Server.Ephinea);
-    private readonly hash_disposer = this.tool.observe(({ value: tool }) => {
-        let hash = `#/${gui_tool_to_string(tool)}`;
-
-        if (this.features.size) {
-            hash += "?features=" + [...this.features].join(",");
-        }
-
-        window.location.hash = hash;
-    });
     private readonly global_keydown_handlers = new Map<string, (e: KeyboardEvent) => void>();
     private readonly features: Set<string> = new Set();
 
+    readonly tool: WritableProperty<GuiTool> = property(GuiTool.Viewer);
+    readonly server: Property<Server> = this._server;
+
     constructor() {
+        super();
+
         const url = window.location.hash.slice(2);
         const [tool_str, params_str] = url.split("?");
 
@@ -51,18 +46,21 @@ export class GuiStore implements Disposable {
             }
         }
 
+        this.disposables(
+            this.tool.observe(({ value: tool }) => {
+                let hash = `#/${gui_tool_to_string(tool)}`;
+
+                if (this.features.size) {
+                    hash += "?features=" + [...this.features].join(",");
+                }
+
+                window.location.hash = hash;
+            }),
+
+            disposable_listener(window, "keydown", this.dispatch_global_keydown),
+        );
+
         this.tool.val = string_to_gui_tool(tool_str) || GuiTool.Viewer;
-
-        this.server = this._server;
-
-        window.addEventListener("keydown", this.dispatch_global_keydown);
-    }
-
-    dispose(): void {
-        this.hash_disposer.dispose();
-        this.global_keydown_handlers.clear();
-
-        window.removeEventListener("keydown", this.dispatch_global_keydown);
     }
 
     on_global_keydown(

@@ -1,5 +1,4 @@
 import { BufferGeometry, CylinderBufferGeometry, Texture } from "three";
-import Logger from "js-logger";
 import { LoadingCache } from "./LoadingCache";
 import { Endianness } from "../../core/data_formats/Endianness";
 import { ArrayBufferCursor } from "../../core/data_formats/cursor/ArrayBufferCursor";
@@ -15,16 +14,47 @@ import {
     is_npc_type,
 } from "../../core/data_formats/parsing/quest/entities";
 import { HttpClient } from "../../core/HttpClient";
+import { Disposable } from "../../core/observable/Disposable";
+import { LogManager } from "../../core/Logger";
 
-const logger = Logger.get("quest_editor/loading/EntityAssetLoader");
+const logger = LogManager.get("quest_editor/loading/EntityAssetLoader");
 
-export class EntityAssetLoader {
-    constructor(private readonly http_client: HttpClient) {}
+const DEFAULT_ENTITY = new CylinderBufferGeometry(3, 3, 20);
+DEFAULT_ENTITY.translate(0, 10, 0);
+DEFAULT_ENTITY.computeBoundingBox();
+DEFAULT_ENTITY.computeBoundingSphere();
+
+const DEFAULT_ENTITY_PROMISE: Promise<BufferGeometry> = new Promise(resolve =>
+    resolve(DEFAULT_ENTITY),
+);
+
+const DEFAULT_ENTITY_TEX: Texture[] = [];
+
+const DEFAULT_ENTITY_TEX_PROMISE: Promise<Texture[]> = new Promise(resolve =>
+    resolve(DEFAULT_ENTITY_TEX),
+);
+
+export class EntityAssetLoader implements Disposable {
+    private disposed = false;
+    private readonly geom_cache = new LoadingCache<EntityType, Promise<BufferGeometry>>();
+    private readonly tex_cache = new LoadingCache<EntityType, Promise<Texture[]>>();
+
+    constructor(private readonly http_client: HttpClient) {
+        this.warm_up_caches();
+    }
+
+    dispose(): void {
+        this.disposed = true;
+        this.geom_cache.purge_all();
+        this.tex_cache.purge_all();
+    }
 
     async load_geometry(type: EntityType): Promise<BufferGeometry> {
-        return geom_cache.get_or_set(type, async () => {
+        return this.geom_cache.get_or_set(type, async () => {
             try {
                 const { url, data } = await this.load_data(type, AssetType.Geometry);
+                if (this.disposed) return DEFAULT_ENTITY;
+
                 const cursor = new ArrayBufferCursor(data, Endianness.Little);
                 const nj_objects = url.endsWith(".nj") ? parse_nj(cursor) : parse_xj(cursor);
 
@@ -42,9 +72,11 @@ export class EntityAssetLoader {
     }
 
     async load_textures(type: EntityType): Promise<Texture[]> {
-        return tex_cache.get_or_set(type, async () => {
+        return this.tex_cache.get_or_set(type, async () => {
             try {
                 const { data } = await this.load_data(type, AssetType.Texture);
+                if (this.disposed) return DEFAULT_ENTITY_TEX;
+
                 const cursor = new ArrayBufferCursor(data, Endianness.Little);
                 const xvm = parse_xvm(cursor);
                 return xvm_to_textures(xvm);
@@ -63,103 +95,89 @@ export class EntityAssetLoader {
         const data = await this.http_client.get(url).array_buffer();
         return { url, data };
     }
-}
 
-const DEFAULT_ENTITY = new CylinderBufferGeometry(3, 3, 20);
-DEFAULT_ENTITY.translate(0, 10, 0);
-DEFAULT_ENTITY.computeBoundingBox();
-DEFAULT_ENTITY.computeBoundingSphere();
+    /**
+     * Warms up the caches with default data for all entities without assets.
+     */
+    private warm_up_caches(): void {
+        for (const type of [
+            NpcType.Unknown,
+            NpcType.Migium,
+            NpcType.Hidoom,
+            NpcType.DeathGunner,
+            NpcType.StRappy,
+            NpcType.HalloRappy,
+            NpcType.EggRappy,
+            NpcType.Migium2,
+            NpcType.Hidoom2,
+            NpcType.Recon,
 
-const DEFAULT_ENTITY_PROMISE: Promise<BufferGeometry> = new Promise(resolve =>
-    resolve(DEFAULT_ENTITY),
-);
-
-const DEFAULT_ENTITY_TEX: Texture[] = [];
-
-const DEFAULT_ENTITY_TEX_PROMISE: Promise<Texture[]> = new Promise(resolve =>
-    resolve(DEFAULT_ENTITY_TEX),
-);
-
-const geom_cache = new LoadingCache<EntityType, Promise<BufferGeometry>>();
-
-const tex_cache = new LoadingCache<EntityType, Promise<Texture[]>>();
-
-for (const type of [
-    NpcType.Unknown,
-    NpcType.Migium,
-    NpcType.Hidoom,
-    NpcType.DeathGunner,
-    NpcType.StRappy,
-    NpcType.HalloRappy,
-    NpcType.EggRappy,
-    NpcType.Migium2,
-    NpcType.Hidoom2,
-    NpcType.Recon,
-
-    ObjectType.Unknown,
-    ObjectType.PlayerSet,
-    ObjectType.Particle,
-    ObjectType.LightCollision,
-    ObjectType.EnvSound,
-    ObjectType.FogCollision,
-    ObjectType.EventCollision,
-    ObjectType.CharaCollision,
-    ObjectType.ObjRoomID,
-    ObjectType.LensFlare,
-    ObjectType.ScriptCollision,
-    ObjectType.MapCollision,
-    ObjectType.ScriptCollisionA,
-    ObjectType.ItemLight,
-    ObjectType.RadarCollision,
-    ObjectType.FogCollisionSW,
-    ObjectType.ImageBoard,
-    ObjectType.UnknownItem29,
-    ObjectType.UnknownItem30,
-    ObjectType.UnknownItem31,
-    ObjectType.MenuActivation,
-    ObjectType.BoxDetectObject,
-    ObjectType.SymbolChatObject,
-    ObjectType.TouchPlateObject,
-    ObjectType.TargetableObject,
-    ObjectType.EffectObject,
-    ObjectType.CountDownObject,
-    ObjectType.UnknownItem38,
-    ObjectType.UnknownItem39,
-    ObjectType.UnknownItem40,
-    ObjectType.UnknownItem41,
-    ObjectType.TelepipeLocation,
-    ObjectType.BGMCollision,
-    ObjectType.Pioneer2InvisibleTouchplate,
-    ObjectType.TempleMapDetect,
-    ObjectType.Firework,
-    ObjectType.MainRagolTeleporterBattleInNextArea,
-    ObjectType.Rainbow,
-    ObjectType.FloatingBlueLight,
-    ObjectType.PopupTrapNoTech,
-    ObjectType.Poison,
-    ObjectType.EnemyTypeBoxYellow,
-    ObjectType.EnemyTypeBoxBlue,
-    ObjectType.EmptyTypeBoxBlue,
-    ObjectType.FloatingRocks,
-    ObjectType.FloatingSoul,
-    ObjectType.Butterfly,
-    ObjectType.UnknownItem400,
-    ObjectType.CCAAreaTeleporter,
-    ObjectType.UnknownItem523,
-    ObjectType.WhiteBird,
-    ObjectType.OrangeBird,
-    ObjectType.UnknownItem529,
-    ObjectType.UnknownItem530,
-    ObjectType.Seagull,
-    ObjectType.UnknownItem576,
-    ObjectType.WarpInBarbaRayRoom,
-    ObjectType.UnknownItem672,
-    ObjectType.InstaWarp,
-    ObjectType.LabInvisibleObject,
-    ObjectType.UnknownItem700,
-]) {
-    geom_cache.set(type, DEFAULT_ENTITY_PROMISE);
-    tex_cache.set(type, DEFAULT_ENTITY_TEX_PROMISE);
+            ObjectType.Unknown,
+            ObjectType.PlayerSet,
+            ObjectType.Particle,
+            ObjectType.LightCollision,
+            ObjectType.EnvSound,
+            ObjectType.FogCollision,
+            ObjectType.EventCollision,
+            ObjectType.CharaCollision,
+            ObjectType.ObjRoomID,
+            ObjectType.LensFlare,
+            ObjectType.ScriptCollision,
+            ObjectType.MapCollision,
+            ObjectType.ScriptCollisionA,
+            ObjectType.ItemLight,
+            ObjectType.RadarCollision,
+            ObjectType.FogCollisionSW,
+            ObjectType.ImageBoard,
+            ObjectType.UnknownItem29,
+            ObjectType.UnknownItem30,
+            ObjectType.UnknownItem31,
+            ObjectType.MenuActivation,
+            ObjectType.BoxDetectObject,
+            ObjectType.SymbolChatObject,
+            ObjectType.TouchPlateObject,
+            ObjectType.TargetableObject,
+            ObjectType.EffectObject,
+            ObjectType.CountDownObject,
+            ObjectType.UnknownItem38,
+            ObjectType.UnknownItem39,
+            ObjectType.UnknownItem40,
+            ObjectType.UnknownItem41,
+            ObjectType.TelepipeLocation,
+            ObjectType.BGMCollision,
+            ObjectType.Pioneer2InvisibleTouchplate,
+            ObjectType.TempleMapDetect,
+            ObjectType.Firework,
+            ObjectType.MainRagolTeleporterBattleInNextArea,
+            ObjectType.Rainbow,
+            ObjectType.FloatingBlueLight,
+            ObjectType.PopupTrapNoTech,
+            ObjectType.Poison,
+            ObjectType.EnemyTypeBoxYellow,
+            ObjectType.EnemyTypeBoxBlue,
+            ObjectType.EmptyTypeBoxBlue,
+            ObjectType.FloatingRocks,
+            ObjectType.FloatingSoul,
+            ObjectType.Butterfly,
+            ObjectType.UnknownItem400,
+            ObjectType.CCAAreaTeleporter,
+            ObjectType.UnknownItem523,
+            ObjectType.WhiteBird,
+            ObjectType.OrangeBird,
+            ObjectType.UnknownItem529,
+            ObjectType.UnknownItem530,
+            ObjectType.Seagull,
+            ObjectType.UnknownItem576,
+            ObjectType.WarpInBarbaRayRoom,
+            ObjectType.UnknownItem672,
+            ObjectType.InstaWarp,
+            ObjectType.LabInvisibleObject,
+            ObjectType.UnknownItem700,
+        ]) {
+            this.geom_cache.set(type, DEFAULT_ENTITY_PROMISE);
+            this.tex_cache.set(type, DEFAULT_ENTITY_TEX_PROMISE);
+        }
+    }
 }
 
 enum AssetType {

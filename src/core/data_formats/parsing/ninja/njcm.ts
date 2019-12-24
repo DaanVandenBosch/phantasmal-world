@@ -1,8 +1,8 @@
-import Logger from "js-logger";
 import { Cursor } from "../../cursor/Cursor";
 import { Vec2, Vec3 } from "../../vector";
+import { LogManager } from "../../../Logger";
 
-const logger = Logger.get("core/data_formats/parsing/ninja/njcm");
+const logger = LogManager.get("core/data_formats/parsing/ninja/njcm");
 
 // TODO:
 // - colors

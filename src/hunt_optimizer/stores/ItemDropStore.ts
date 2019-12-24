@@ -1,27 +1,30 @@
 import { Difficulties, Difficulty, SectionId, SectionIds, Server } from "../../core/model";
 import { ServerMap } from "../../core/stores/ServerMap";
-import Logger from "js-logger";
 import { NpcType } from "../../core/data_formats/parsing/quest/npc_types";
 import { EnemyDrop } from "../model/ItemDrop";
 import { EnemyDropDto } from "../dto/drops";
 import { GuiStore } from "../../core/stores/GuiStore";
 import { ItemTypeStore } from "../../core/stores/ItemTypeStore";
 import { HttpClient } from "../../core/HttpClient";
+import { DisposableServerMap } from "../../core/stores/DisposableServerMap";
+import { Store } from "../../core/stores/Store";
+import { LogManager } from "../../core/Logger";
 
-const logger = Logger.get("stores/ItemDropStore");
+const logger = LogManager.get("stores/ItemDropStore");
 
 export function create_item_drop_stores(
     http_client: HttpClient,
     gui_store: GuiStore,
     item_type_stores: ServerMap<ItemTypeStore>,
-): ServerMap<ItemDropStore> {
-    return new ServerMap(gui_store, create_loader(http_client, item_type_stores));
+): DisposableServerMap<ItemDropStore> {
+    return new DisposableServerMap(gui_store, create_loader(http_client, item_type_stores));
 }
 
-export class ItemDropStore {
+export class ItemDropStore extends Store {
     readonly enemy_drops: EnemyDropTable;
 
     constructor(enemy_drops: EnemyDropTable) {
+        super();
         this.enemy_drops = enemy_drops;
     }
 }

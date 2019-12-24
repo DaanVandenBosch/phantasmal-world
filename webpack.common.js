@@ -9,7 +9,20 @@ module.exports = {
         path: path.resolve(__dirname, "dist"),
     },
     resolve: {
-        extensions: [".js", ".ts", ".tsx"],
+        extensions: [".js", ".ts"],
+    },
+    module: {
+        rules: [
+            {
+                test: /^worker-loader!/,
+                loader: "worker-loader",
+                options: { name: "worker.[hash].js" },
+            },
+            {
+                test: /\.(gif|jpg|png|svg|ttf)$/,
+                loader: "file-loader",
+            },
+        ],
     },
     plugins: [
         new HtmlWebpackPlugin({

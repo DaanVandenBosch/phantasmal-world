@@ -1,8 +1,8 @@
 import { AsmToken } from "../instructions";
-import Logger from "js-logger";
 import { InstructionPointer } from "./InstructionPointer";
+import { LogManager } from "../../../core/Logger";
 
-const logger = Logger.get("quest_editor/scripting/vm/io");
+const logger = LogManager.get("quest_editor/scripting/vm/io");
 
 /**
  * The virtual machine calls these methods when it requires input.

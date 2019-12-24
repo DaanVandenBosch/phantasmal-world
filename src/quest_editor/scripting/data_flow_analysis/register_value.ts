@@ -1,4 +1,3 @@
-import Logger from "js-logger";
 import { Instruction } from "../instructions";
 import {
     Kind,
@@ -26,8 +25,9 @@ import {
 } from "../opcodes";
 import { BasicBlock, ControlFlowGraph } from "./ControlFlowGraph";
 import { ValueSet } from "./ValueSet";
+import { LogManager } from "../../../core/Logger";
 
-const logger = Logger.get("quest_editor/scripting/data_flow_analysis/register_value");
+const logger = LogManager.get("quest_editor/scripting/data_flow_analysis/register_value");
 
 export const MIN_REGISTER_VALUE = MIN_SIGNED_DWORD_VALUE;
 export const MAX_REGISTER_VALUE = MAX_SIGNED_DWORD_VALUE;

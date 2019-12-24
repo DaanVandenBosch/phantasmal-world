@@ -1,9 +1,9 @@
-import Logger from "js-logger";
 import { Endianness } from "../Endianness";
 import { Cursor } from "../cursor/Cursor";
 import { parse_prc } from "./prc";
+import { LogManager } from "../../Logger";
 
-const logger = Logger.get("core/data_formats/parsing/rlc");
+const logger = LogManager.get("core/data_formats/parsing/rlc");
 const MARKER = "RelChunkVer0.20";
 
 /**

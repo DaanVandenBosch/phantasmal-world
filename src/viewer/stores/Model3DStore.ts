@@ -5,16 +5,16 @@ import { NjObject, parse_nj, parse_xj } from "../../core/data_formats/parsing/ni
 import { CharacterClassModel } from "../model/CharacterClassModel";
 import { CharacterClassAnimationModel } from "../model/CharacterClassAnimationModel";
 import { WritableProperty } from "../../core/observable/property/WritableProperty";
-import { Disposable } from "../../core/observable/Disposable";
 import { read_file } from "../../core/read_file";
 import { property } from "../../core/observable";
 import { Property } from "../../core/observable/property/Property";
 import { PSO_FRAME_RATE } from "../../core/rendering/conversion/ninja_animation";
 import { parse_xvm, Xvm } from "../../core/data_formats/parsing/ninja/texture";
-import Logger = require("js-logger");
 import { CharacterClassAssetLoader } from "../loading/CharacterClassAssetLoader";
+import { Store } from "../../core/stores/Store";
+import { LogManager } from "../../core/Logger";
 
-const logger = Logger.get("viewer/stores/ModelStore");
+const logger = LogManager.get("viewer/stores/ModelStore");
 const nj_object_cache: Map<string, Promise<NjObject>> = new Map();
 const nj_motion_cache: Map<number, Promise<NjMotion>> = new Map();
 
@@ -24,7 +24,7 @@ export type NjData = {
     has_skeleton: boolean;
 };
 
-export class Model3DStore implements Disposable {
+export class Model3DStore extends Store {
     private readonly _current_model: WritableProperty<CharacterClassModel | undefined> = property(
         undefined,
     );
@@ -38,7 +38,6 @@ export class Model3DStore implements Disposable {
     private readonly _animation_playing: WritableProperty<boolean> = property(true);
     private readonly _animation_frame_rate: WritableProperty<number> = property(PSO_FRAME_RATE);
     private readonly _animation_frame: WritableProperty<number> = property(0);
-    private readonly disposables: Disposable[] = [];
 
     readonly models: readonly CharacterClassModel[] = [
         new CharacterClassModel("HUmar", 1, 10, new Set([6])),
@@ -74,14 +73,12 @@ export class Model3DStore implements Disposable {
     );
 
     constructor(private readonly asset_loader: CharacterClassAssetLoader) {
-        this.disposables.push(
+        super();
+
+        this.disposables(
             this.current_model.observe(({ value }) => this.load_model(value)),
             this.current_animation.observe(({ value }) => this.load_animation(value)),
         );
-    }
-
-    dispose(): void {
-        this.disposables.forEach(d => d.dispose());
     }
 
     set_current_model = (current_model: CharacterClassModel): void => {

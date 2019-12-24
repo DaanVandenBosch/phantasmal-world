@@ -1,6 +1,3 @@
-/**
- * @jest-environment jsdom
- */
 import {
     create_area_store,
     create_quest_editor_store,

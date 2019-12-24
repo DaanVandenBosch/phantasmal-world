@@ -2,12 +2,11 @@
     "compilerOptions": {
         "outDir": "./dist/",
         "sourceMap": true,
-        "module": "commonjs",
+        "module": "esnext",
         "target": "es6",
         "lib": ["es6", "dom", "dom.iterable"],
         "allowJs": true,
         "skipLibCheck": true,
-        "allowSyntheticDefaultImports": true,
         "esModuleInterop": true,
         "strict": true,
         "forceConsistentCasingInFileNames": true,

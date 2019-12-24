@@ -5,9 +5,9 @@ import { bind_hidden } from "./dom";
 import { WritableProperty } from "../observable/property/WritableProperty";
 import { WidgetProperty } from "../observable/property/WidgetProperty";
 import { Property } from "../observable/property/Property";
-import Logger from "js-logger";
+import { LogManager } from "../Logger";
 
-const logger = Logger.get("core/gui/Widget");
+const logger = LogManager.get("core/gui/Widget");
 
 export type WidgetOptions = {
     id?: string;

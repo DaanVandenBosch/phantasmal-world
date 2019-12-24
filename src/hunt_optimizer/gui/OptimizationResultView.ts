@@ -10,9 +10,9 @@ import "./OptimizationResultView.css";
 import { Duration } from "luxon";
 import { ServerMap } from "../../core/stores/ServerMap";
 import { HuntOptimizerStore } from "../stores/HuntOptimizerStore";
-import Logger from "js-logger";
+import { LogManager } from "../../core/Logger";
 
-const logger = Logger.get("hunt_optimizer/gui/OptimizationResultView");
+const logger = LogManager.get("hunt_optimizer/gui/OptimizationResultView");
 
 export class OptimizationResultView extends Widget {
     readonly element = el.div(
@@ -31,6 +31,7 @@ export class OptimizationResultView extends Widget {
                 async ({ value }) => {
                     try {
                         const hunt_optimizer_store = await value;
+                        if (this.disposed) return;
 
                         if (this.results_observer) {
                             this.results_observer.dispose();

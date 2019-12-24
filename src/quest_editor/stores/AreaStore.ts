@@ -4,11 +4,14 @@ import { Episode, EPISODES } from "../../core/data_formats/parsing/quest/Episode
 import { SectionModel } from "../model/SectionModel";
 import { get_areas_for_episode } from "../../core/data_formats/parsing/quest/areas";
 import { AreaAssetLoader } from "../loading/AreaAssetLoader";
+import { Store } from "../../core/stores/Store";
 
-export class AreaStore {
+export class AreaStore extends Store {
     private readonly areas: AreaModel[][] = [];
 
     constructor(private readonly area_asset_loader: AreaAssetLoader) {
+        super();
+
         for (const episode of EPISODES) {
             this.areas[episode] = get_areas_for_episode(episode).map(area => {
                 const observable_area = new AreaModel(area.id, area.name, area.order, []);

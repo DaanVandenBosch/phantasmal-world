@@ -1,11 +1,9 @@
-/**
- * @jest-environment jsdom
- */
 import { GuiStore } from "../../core/stores/GuiStore";
 import { create_area_store } from "../../../test/src/quest_editor/stores/store_creation";
 import { QuestEditorStore } from "../stores/QuestEditorStore";
 import { QuestEditorToolBarController } from "./QuestEditorToolBarController";
 import { Episode } from "../../core/data_formats/parsing/quest/Episode";
+import { next_animation_frame } from "../../../test/src/utils";
 
 test("Some widgets should only be enabled when a quest is loaded.", async () => {
     const gui_store = new GuiStore();
@@ -59,7 +57,3 @@ test("Debugging controls should be enabled and disabled at the right times.", as
         ctrl.stop();
     }
 });
-
-function next_animation_frame(): Promise<void> {
-    return new Promise(resolve => requestAnimationFrame(() => resolve()));
-}

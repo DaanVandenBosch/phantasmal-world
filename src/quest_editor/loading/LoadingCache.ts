@@ -15,4 +15,8 @@ export class LoadingCache<K, V> {
 
         return v;
     }
+
+    purge_all(): void {
+        this.map.clear();
+    }
 }

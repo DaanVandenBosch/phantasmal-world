@@ -1,4 +1,3 @@
-import Logger from "js-logger";
 import { Intersection, Mesh, Object3D, Raycaster, Vector3 } from "three";
 import { QuestRenderer } from "./QuestRenderer";
 import { QuestEntityModel } from "../model/QuestEntityModel";
@@ -18,8 +17,9 @@ import { Episode } from "../../core/data_formats/parsing/quest/Episode";
 import { AreaVariantModel } from "../model/AreaVariantModel";
 import { EntityAssetLoader } from "../loading/EntityAssetLoader";
 import { AreaAssetLoader } from "../loading/AreaAssetLoader";
+import { LogManager } from "../../core/Logger";
 
-const logger = Logger.get("quest_editor/rendering/QuestModelManager");
+const logger = LogManager.get("quest_editor/rendering/QuestModelManager");
 
 const CAMERA_POSITION = Object.freeze(new Vector3(0, 800, 700));
 const CAMERA_LOOK_AT = Object.freeze(new Vector3(0, 0, 0));
@@ -55,6 +55,9 @@ export abstract class QuestModelManager implements Disposable {
 
     dispose(): void {
         this.disposer.dispose();
+        this.npc_model_manager.remove_all();
+        this.object_model_manager.remove_all();
+        this.renderer.reset_entity_models();
     }
 
     /**
@@ -266,13 +269,13 @@ class EntityModelManager {
 
     private async load(entity: QuestEntityModel): Promise<void> {
         const geom = await this.entity_asset_loader.load_geometry(entity.type);
-        const tex = await this.entity_asset_loader.load_textures(entity.type);
-        const model = create_entity_mesh(entity, geom, tex);
+        if (!this.queue.includes(entity)) return; // Could be cancelled by now.
 
-        // The model load might be cancelled by now.
-        if (this.queue.includes(entity)) {
-            this.update_entity_geometry(entity, model);
-        }
+        const tex = await this.entity_asset_loader.load_textures(entity.type);
+        if (!this.queue.includes(entity)) return; // Could be cancelled by now.
+
+        const model = create_entity_mesh(entity, geom, tex);
+        this.update_entity_geometry(entity, model);
     }
 
     private update_entity_geometry(entity: QuestEntityModel, model: Mesh): void {

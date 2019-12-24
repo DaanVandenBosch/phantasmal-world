@@ -4,11 +4,12 @@ import { Property } from "../../core/observable/property/Property";
 import { read_file } from "../../core/read_file";
 import { ArrayBufferCursor } from "../../core/data_formats/cursor/ArrayBufferCursor";
 import { Endianness } from "../../core/data_formats/Endianness";
-import Logger = require("js-logger");
+import { Store } from "../../core/stores/Store";
+import { LogManager } from "../../core/Logger";
 
-const logger = Logger.get("viewer/stores/TextureStore");
+const logger = LogManager.get("viewer/stores/TextureStore");
 
-export class TextureStore {
+export class TextureStore extends Store {
     private readonly _current_xvm = property<Xvm | undefined>(undefined);
     readonly current_xvm: Property<Xvm | undefined> = this._current_xvm;
 

@@ -1,9 +1,9 @@
 import { reinterpret_i32_as_f32 } from "../../core/primitive_conversion";
 import { Arg, Segment, SegmentType } from "./instructions";
 import { AnyType, Kind, OP_VA_END, OP_VA_START, Param, StackInteraction } from "./opcodes";
-import Logger from "js-logger";
+import { LogManager } from "../../core/Logger";
 
-const logger = Logger.get("quest_editor/scripting/disassembly");
+const logger = LogManager.get("quest_editor/scripting/disassembly");
 
 type ArgWithType = Arg & {
     /**

@@ -19,11 +19,11 @@ import { WritableListProperty } from "../../core/observable/property/list/Writab
 import { HuntMethodStore } from "./HuntMethodStore";
 import { ItemDropStore } from "./ItemDropStore";
 import { ItemTypeStore } from "../../core/stores/ItemTypeStore";
-import { Disposable } from "../../core/observable/Disposable";
-import { Disposer } from "../../core/observable/Disposer";
 import { ServerMap } from "../../core/stores/ServerMap";
 import { GuiStore } from "../../core/stores/GuiStore";
 import { HuntOptimizerPersister } from "../persistence/HuntOptimizerPersister";
+import { DisposableServerMap } from "../../core/stores/DisposableServerMap";
+import { Store } from "../../core/stores/Store";
 
 export function create_hunt_optimizer_stores(
     gui_store: GuiStore,
@@ -31,8 +31,8 @@ export function create_hunt_optimizer_stores(
     item_type_stores: ServerMap<ItemTypeStore>,
     item_drop_stores: ServerMap<ItemDropStore>,
     hunt_method_stores: ServerMap<HuntMethodStore>,
-): ServerMap<HuntOptimizerStore> {
-    return new ServerMap(
+): DisposableServerMap<HuntOptimizerStore> {
+    return new DisposableServerMap(
         gui_store,
         create_loader(
             hunt_optimizer_persister,
@@ -50,16 +50,15 @@ export function create_hunt_optimizer_stores(
 // TODO: Show expected value or probability per item per method.
 //       Can be useful when deciding which item to hunt first.
 // TODO: boxes.
-export class HuntOptimizerStore implements Disposable {
-    readonly huntable_item_types: ItemType[];
-    // TODO: wanted items per server.
-    readonly wanted_items: ListProperty<WantedItemModel>;
-    readonly result: Property<OptimalResultModel | undefined>;
-
+export class HuntOptimizerStore extends Store {
     private readonly _wanted_items: WritableListProperty<
         WantedItemModel
     > = list_property(wanted_item => [wanted_item.amount]);
-    private readonly disposer = new Disposer();
+
+    readonly huntable_item_types: ItemType[];
+    // TODO: wanted items per server.
+    readonly wanted_items: ListProperty<WantedItemModel> = this._wanted_items;
+    readonly result: Property<OptimalResultModel | undefined>;
 
     constructor(
         private readonly hunt_optimizer_persister: HuntOptimizerPersister,
@@ -68,19 +67,15 @@ export class HuntOptimizerStore implements Disposable {
         private readonly item_drop_store: ItemDropStore,
         hunt_method_store: HuntMethodStore,
     ) {
+        super();
+
         this.huntable_item_types = item_type_store.item_types.filter(
             item_type => item_drop_store.enemy_drops.get_drops_for_item_type(item_type.id).length,
         );
 
-        this.wanted_items = this._wanted_items;
-
         this.result = map(this.optimize, this.wanted_items, hunt_method_store.methods);
 
         this.initialize_persistence();
-    }
-
-    dispose(): void {
-        this.disposer.dispose();
     }
 
     add_wanted_item(item_type: ItemType): void {
@@ -336,7 +331,7 @@ export class HuntOptimizerStore implements Disposable {
     private initialize_persistence = async (): Promise<void> => {
         this._wanted_items.val = await this.hunt_optimizer_persister.load_wanted_items(this.server);
 
-        this.disposer.add(
+        this.disposable(
             this._wanted_items.observe(({ value }) => {
                 this.hunt_optimizer_persister.persist_wanted_items(this.server, value);
             }),

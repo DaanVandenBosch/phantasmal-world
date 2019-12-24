@@ -4,9 +4,9 @@ import { ListProperty } from "../observable/property/list/ListProperty";
 import { Disposer } from "../observable/Disposer";
 import "./Table.css";
 import { Disposable } from "../observable/Disposable";
-import Logger = require("js-logger");
+import { LogManager } from "../Logger";
 
-const logger = Logger.get("core/gui/Table");
+const logger = LogManager.get("core/gui/Table");
 
 export type Column<T> = {
     key?: string;

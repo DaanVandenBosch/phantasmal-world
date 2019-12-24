@@ -234,17 +234,60 @@ export function section_id_icon(section_id: SectionId, options?: { size?: number
     return element;
 }
 
+export function disposable_listener<K extends keyof GlobalEventHandlersEventMap>(
+    target: GlobalEventHandlers,
+    type: K,
+    listener: (this: GlobalEventHandlers, ev: GlobalEventHandlersEventMap[K]) => any,
+    options?: AddEventListenerOptions,
+): Disposable;
+export function disposable_listener<K extends keyof WindowEventHandlersEventMap>(
+    target: WindowEventHandlers,
+    type: K,
+    listener: (this: WindowEventHandlers, ev: WindowEventHandlersEventMap[K]) => any,
+    options?: AddEventListenerOptions,
+): Disposable;
+export function disposable_listener<K extends keyof DocumentAndElementEventHandlersEventMap>(
+    target: DocumentAndElementEventHandlers,
+    type: K,
+    listener: (
+        this: DocumentAndElementEventHandlers,
+        ev: DocumentAndElementEventHandlersEventMap[K],
+    ) => any,
+    options?: AddEventListenerOptions,
+): Disposable;
 export function disposable_listener(
-    element: EventTarget,
-    event: string,
+    target:
+        | GlobalEventHandlers
+        | DocumentAndElementEventHandlers
+        | WindowEventHandlers
+        | EventTarget,
+    type: string,
     listener: EventListenerOrEventListenerObject,
     options?: AddEventListenerOptions,
 ): Disposable {
-    element.addEventListener(event, listener, options);
+    target.addEventListener(type, listener, options);
 
     return {
         dispose(): void {
-            element.removeEventListener(event, listener);
+            target.removeEventListener(type, listener);
+        },
+    };
+}
+
+/**
+ * More lax definition of {@link disposable_listener} for custom and experimental event types.
+ */
+export function disposable_custom_listener(
+    target: EventTarget,
+    type: string,
+    listener: EventListenerOrEventListenerObject,
+    options?: AddEventListenerOptions,
+): Disposable {
+    target.addEventListener(type, listener, options);
+
+    return {
+        dispose(): void {
+            target.removeEventListener(type, listener);
         },
     };
 }

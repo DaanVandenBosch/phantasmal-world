@@ -8,19 +8,18 @@ const Dotenv = require("dotenv-webpack");
 module.exports = merge(common, {
     mode: "development",
     devtool: "eval-source-map",
+    devServer: {
+        port: 1623,
+    },
     module: {
         rules: [
             {
                 test: /\.ts$/,
-                use: [
-                    {
-                        loader: "ts-loader",
-                        options: {
-                            // fork-ts-checker-webpack-plugin does the type checking in a separate process.
-                            transpileOnly: true,
-                        },
-                    },
-                ],
+                loader: "ts-loader",
+                options: {
+                    // fork-ts-checker-webpack-plugin does the type checking in a separate process.
+                    transpileOnly: true,
+                },
                 include: path.resolve(__dirname, "src"),
             },
             {
@@ -30,6 +29,7 @@ module.exports = merge(common, {
                     {
                         loader: MiniCssExtractPlugin.loader,
                         options: {
+                            esModule: true,
                             hmr: true,
                         },
                     },
@@ -54,10 +54,6 @@ module.exports = merge(common, {
                     },
                 ],
             },
-            {
-                test: /\.(gif|jpg|png|svg|ttf)$/,
-                use: ["file-loader"],
-            },
         ],
     },
     plugins: [
@@ -65,6 +61,8 @@ module.exports = merge(common, {
             path: "./.env.dev",
         }),
         new ForkTsCheckerWebpackPlugin(),
-        new MiniCssExtractPlugin(),
+        new MiniCssExtractPlugin({
+            ignoreOrder: true,
+        }),
     ],
 });

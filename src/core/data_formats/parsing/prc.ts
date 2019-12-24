@@ -1,9 +1,9 @@
-import Logger from "js-logger";
 import { prs_decompress } from "../compression/prs/decompress";
 import { Cursor } from "../cursor/Cursor";
 import { prc_decrypt } from "../encryption/prc";
+import { LogManager } from "../../Logger";
 
-const logger = Logger.get("core/data_formats/parsing/prc");
+const logger = LogManager.get("core/data_formats/parsing/prc");
 
 /**
  * Decrypts and decompresses a .prc file.

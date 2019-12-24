@@ -1,4 +1,3 @@
-import Logger from "js-logger";
 import {
     Instruction,
     InstructionSegment,
@@ -20,8 +19,9 @@ import { object_data, ObjectType, pso_id_to_object_type } from "./object_types";
 import { parse_qst, QstContainedFile, write_qst } from "./qst";
 import { npc_data, NpcType } from "./npc_types";
 import { reinterpret_f32_as_i32, reinterpret_i32_as_f32 } from "../../../primitive_conversion";
+import { LogManager } from "../../../Logger";
 
-const logger = Logger.get("core/data_formats/parsing/quest");
+const logger = LogManager.get("core/data_formats/parsing/quest");
 
 export type Quest = {
     readonly id: number;

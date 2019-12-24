@@ -39,6 +39,6 @@
     color: hsl(0, 80%, 50%);
 }
 
-.quest_editor_LogView .quest_editor_LogView_Warning_message .quest_editor_LogView_message_level {
+.quest_editor_LogView .quest_editor_LogView_Warn_message .quest_editor_LogView_message_level {
     color: hsl(30, 80%, 50%);
 }

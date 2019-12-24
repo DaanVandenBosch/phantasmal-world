@@ -2,6 +2,16 @@ import * as fs from "fs";
 import { InstructionSegment, SegmentType } from "../../src/quest_editor/scripting/instructions";
 import { assemble } from "../../src/quest_editor/scripting/assembly";
 
+export async function timeout(millis: number): Promise<void> {
+    return new Promise(resolve => {
+        setTimeout(() => resolve(), millis);
+    });
+}
+
+export function next_animation_frame(): Promise<void> {
+    return new Promise(resolve => requestAnimationFrame(() => resolve()));
+}
+
 /**
  * Applies f to all QST files in a directory.
  * f is called with the path to the file, the file name and the content of the file.

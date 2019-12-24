@@ -6,8 +6,6 @@ import { QuestNpcModel } from "../model/QuestNpcModel";
 import { AreaModel } from "../model/AreaModel";
 import { SectionModel } from "../model/SectionModel";
 import { QuestEntityModel } from "../model/QuestEntityModel";
-import { Disposable } from "../../core/observable/Disposable";
-import { Disposer } from "../../core/observable/Disposer";
 import { GuiStore, GuiTool } from "../../core/stores/GuiStore";
 import { UndoStack } from "../../core/undo/UndoStack";
 import { TranslateEntityAction } from "../actions/TranslateEntityAction";
@@ -22,12 +20,12 @@ import { disposable_listener } from "../../core/gui/dom";
 import { QuestEventModel } from "../model/QuestEventModel";
 import { EditEventSectionIdAction } from "../actions/EditEventSectionIdAction";
 import { EditEventDelayAction } from "../actions/EditEventDelayAction";
-import Logger = require("js-logger");
+import { Store } from "../../core/stores/Store";
+import { LogManager } from "../../core/Logger";
 
-const logger = Logger.get("quest_editor/gui/QuestEditorStore");
+const logger = LogManager.get("quest_editor/gui/QuestEditorStore");
 
-export class QuestEditorStore implements Disposable {
-    private readonly disposer = new Disposer();
+export class QuestEditorStore extends Store {
     private readonly _current_quest = property<QuestModel | undefined>(undefined);
     private readonly _current_area = property<AreaModel | undefined>(undefined);
     private readonly _selected_entity = property<QuestEntityModel | undefined>(undefined);
@@ -40,9 +38,11 @@ export class QuestEditorStore implements Disposable {
     readonly selected_entity: Property<QuestEntityModel | undefined> = this._selected_entity;
 
     constructor(gui_store: GuiStore, private readonly area_store: AreaStore) {
+        super();
+
         this.quest_runner = new QuestRunner(area_store);
 
-        this.disposer.add_all(
+        this.disposables(
             gui_store.tool.observe(
                 ({ value: tool }) => {
                     if (tool === GuiTool.QuestEditor) {
@@ -85,7 +85,7 @@ export class QuestEditorStore implements Disposable {
 
     dispose(): void {
         this.quest_runner.stop();
-        this.disposer.dispose();
+        super.dispose();
     }
 
     set_current_area = (area?: AreaModel): void => {

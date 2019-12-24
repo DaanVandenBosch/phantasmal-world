@@ -22,7 +22,9 @@ export class LazyWidget extends ResizableWidget {
             this.initialized = true;
 
             this.create_view().then(view => {
-                if (!this.disposed) {
+                if (this.disposed) {
+                    view.dispose();
+                } else {
                     this.view = this.disposable(view);
                     this.view.resize(this.width, this.height);
                     this.element.append(view.element);

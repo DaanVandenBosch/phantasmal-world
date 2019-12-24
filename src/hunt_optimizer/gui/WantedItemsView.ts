@@ -11,9 +11,9 @@ import { ItemType } from "../../core/model/items";
 import { Disposable } from "../../core/observable/Disposable";
 import { ServerMap } from "../../core/stores/ServerMap";
 import { HuntOptimizerStore } from "../stores/HuntOptimizerStore";
-import Logger from "js-logger";
+import { LogManager } from "../../core/Logger";
 
-const logger = Logger.get("hunt_optimizer/gui/WantedItemsView");
+const logger = LogManager.get("hunt_optimizer/gui/WantedItemsView");
 
 export class WantedItemsView extends Widget {
     readonly element = el.div({ class: "hunt_optimizer_WantedItemsView" });

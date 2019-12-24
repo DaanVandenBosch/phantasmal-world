@@ -34,16 +34,12 @@ module.exports = merge(common, {
         rules: [
             {
                 test: /\.ts$/,
-                use: "ts-loader",
+                loader: "ts-loader",
                 include: path.resolve(__dirname, "src"),
             },
             {
                 test: /\.css$/,
                 use: [MiniCssExtractPlugin.loader, "css-loader"],
-            },
-            {
-                test: /\.(gif|jpg|png|svg|ttf)$/,
-                use: ["file-loader"],
             },
         ],
     },
@@ -53,6 +49,7 @@ module.exports = merge(common, {
             path: "./.env.prod",
         }),
         new MiniCssExtractPlugin({
+            ignoreOrder: true,
             filename: "[name].[contenthash].css",
         }),
         new CopyWebpackPlugin([

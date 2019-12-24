@@ -101,9 +101,9 @@ import { Episode } from "../../../core/data_formats/parsing/quest/Episode";
 import { Endianness } from "../../../core/data_formats/Endianness";
 import { Random } from "./Random";
 import { Memory } from "./Memory";
-import Logger from "js-logger";
 import { InstructionPointer } from "./InstructionPointer";
 import { StackFrame, StepMode, Thread } from "./Thread";
+import { LogManager } from "../../../core/Logger";
 
 export const REGISTER_COUNT = 256;
 
@@ -114,7 +114,7 @@ const STRING_ARG_STORE_SIZE = 1024; // TODO: verify this value
 const ENTRY_SEGMENT = 0;
 const LIST_ITEM_DELIMITER = "\n";
 
-const logger = Logger.get("quest_editor/scripting/vm/VirtualMachine");
+const logger = LogManager.get("quest_editor/scripting/vm/VirtualMachine");
 
 export enum ExecutionResult {
     /**

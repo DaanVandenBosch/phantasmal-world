@@ -13,9 +13,9 @@ import { Disposer } from "../../core/observable/Disposer";
 import { Xvm } from "../../core/data_formats/parsing/ninja/texture";
 import { xvm_texture_to_texture } from "../../core/rendering/conversion/ninja_textures";
 import { TextureStore } from "../stores/TextureStore";
-import Logger = require("js-logger");
+import { LogManager } from "../../core/Logger";
 
-const logger = Logger.get("viewer/rendering/TextureRenderer");
+const logger = LogManager.get("viewer/rendering/TextureRenderer");
 
 export class TextureRenderer extends Renderer implements Disposable {
     private readonly disposer = new Disposer();

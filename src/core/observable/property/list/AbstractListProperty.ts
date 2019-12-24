@@ -3,9 +3,9 @@ import { AbstractProperty } from "../AbstractProperty";
 import { Disposable } from "../../Disposable";
 import { Observable } from "../../Observable";
 import { Property } from "../Property";
-import Logger from "js-logger";
+import { LogManager } from "../../../Logger";
 
-const logger = Logger.get("core/observable/property/list/AbstractListProperty");
+const logger = LogManager.get("core/observable/property/list/AbstractListProperty");
 
 class LengthProperty extends AbstractProperty<number> {
     private length = 0;

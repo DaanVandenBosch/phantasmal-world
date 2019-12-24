@@ -1,4 +1,3 @@
-import Logger from "js-logger";
 import { Endianness } from "../../Endianness";
 import { ArrayBufferCursor } from "../../cursor/ArrayBufferCursor";
 import { Cursor } from "../../cursor/Cursor";
@@ -6,8 +5,9 @@ import { ResizableBufferCursor } from "../../cursor/ResizableBufferCursor";
 import { WritableCursor } from "../../cursor/WritableCursor";
 import { ResizableBuffer } from "../../ResizableBuffer";
 import { basename } from "../../../util";
+import { LogManager } from "../../../Logger";
 
-const logger = Logger.get("core/data_formats/parsing/quest/qst");
+const logger = LogManager.get("core/data_formats/parsing/quest/qst");
 
 export type QstContainedFile = {
     id?: number;
@@ -114,8 +114,8 @@ type QstHeader = {
 function parse_headers(cursor: Cursor): QstHeader[] {
     const headers: QstHeader[] = [];
 
-    let prev_quest_id: number | undefined;
-    let prev_file_name: string | undefined;
+    let prev_quest_id: number | undefined = undefined;
+    let prev_file_name: string | undefined = undefined;
 
     for (let i = 0; i < 4; ++i) {
         cursor.seek(4);

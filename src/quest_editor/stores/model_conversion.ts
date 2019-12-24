@@ -17,11 +17,11 @@ import {
 } from "../model/QuestEventActionModel";
 import { QuestEventDagModel, QuestEventDagModelMeta } from "../model/QuestEventDagModel";
 import { QuestEvent } from "../../core/data_formats/parsing/quest/entities";
-import Logger from "js-logger";
 import { clone_segment } from "../scripting/instructions";
 import { AreaStore } from "./AreaStore";
+import { LogManager } from "../../core/Logger";
 
-const logger = Logger.get("quest_editor/stores/model_conversion");
+const logger = LogManager.get("quest_editor/stores/model_conversion");
 
 export function convert_quest_to_model(area_store: AreaStore, quest: Quest): QuestModel {
     // Create quest model.

@@ -1,6 +1,5 @@
 import { editor, languages, MarkerSeverity, MarkerTag, Position } from "monaco-editor";
 import { AssemblyAnalyser } from "../scripting/AssemblyAnalyser";
-import { Disposable } from "../../core/observable/Disposable";
 import { Disposer } from "../../core/observable/Disposer";
 import { SimpleUndo } from "../../core/undo/SimpleUndo";
 import { ASM_SYNTAX } from "./asm_syntax";
@@ -10,15 +9,16 @@ import { emitter, property } from "../../core/observable";
 import { WritableProperty } from "../../core/observable/property/WritableProperty";
 import { Property } from "../../core/observable/property/Property";
 import { ListProperty } from "../../core/observable/property/list/ListProperty";
+import { Breakpoint } from "../scripting/vm/Debugger";
+import { QuestEditorStore } from "./QuestEditorStore";
+import { disposable_listener } from "../../core/gui/dom";
+import { Store } from "../../core/stores/Store";
 import ITextModel = editor.ITextModel;
 import CompletionList = languages.CompletionList;
 import IMarkerData = editor.IMarkerData;
 import SignatureHelpResult = languages.SignatureHelpResult;
 import LocationLink = languages.LocationLink;
 import IModelContentChange = editor.IModelContentChange;
-import { Breakpoint } from "../scripting/vm/Debugger";
-import { QuestEditorStore } from "./QuestEditorStore";
-import { disposable_listener } from "../../core/gui/dom";
 
 const assembly_analyser = new AssemblyAnalyser();
 
@@ -85,9 +85,8 @@ languages.registerDefinitionProvider("psoasm", {
     },
 });
 
-export class AsmEditorStore implements Disposable {
-    private readonly disposer = new Disposer();
-    private readonly model_disposer = this.disposer.add(new Disposer());
+export class AsmEditorStore extends Store {
+    private readonly model_disposer = this.disposable(new Disposer());
     private readonly _model: WritableProperty<ITextModel | undefined> = property(undefined);
     private readonly _did_undo = emitter<string>();
     private readonly _did_redo = emitter<string>();
@@ -109,10 +108,12 @@ export class AsmEditorStore implements Disposable {
     readonly pause_location: Property<number | undefined>;
 
     constructor(private readonly quest_editor_store: QuestEditorStore) {
+        super();
+
         this.breakpoints = quest_editor_store.quest_runner.breakpoints;
         this.pause_location = quest_editor_store.quest_runner.pause_location;
 
-        this.disposer.add_all(
+        this.disposables(
             quest_editor_store.current_quest.observe(this.quest_changed, {
                 call_now: true,
             }),
@@ -128,10 +129,6 @@ export class AsmEditorStore implements Disposable {
                 }
             }),
         );
-    }
-
-    dispose(): void {
-        this.disposer.dispose();
     }
 
     set_inline_args_mode = (inline_args_mode: boolean): void => {

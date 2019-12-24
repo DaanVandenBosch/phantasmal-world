@@ -11,14 +11,9 @@ import {
     SignatureHelpOutput,
 } from "./assembly_worker_messages";
 import { assemble, AssemblySettings } from "./assembly";
-import Logger from "js-logger";
 import { AsmToken, Segment, SegmentType } from "./instructions";
 import { Kind, OP_BB_MAP_DESIGNATE, Opcode, OPCODES_BY_MNEMONIC } from "./opcodes";
 import { AssemblyLexer, IdentToken, TokenType } from "./AssemblyLexer";
-
-Logger.useDefaults({
-    defaultLevel: (Logger as any)[process.env["LOG_LEVEL"] || "INFO"],
-});
 
 const ctx: Worker = self as any;
 
