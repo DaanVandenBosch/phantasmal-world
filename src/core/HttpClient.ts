@@ -1,11 +1,13 @@
+import { DisposablePromise } from "./DisposablePromise";
+
 export interface HttpClient {
     get(url: string): HttpResponse;
 }
 
 export interface HttpResponse {
-    json<T>(): Promise<T>;
+    json<T>(): DisposablePromise<T>;
 
-    array_buffer(): Promise<ArrayBuffer>;
+    array_buffer(): DisposablePromise<ArrayBuffer>;
 }
 
 /**
@@ -13,14 +15,35 @@ export interface HttpResponse {
  */
 export class FetchClient implements HttpClient {
     get(url: string): HttpResponse {
-        const response = fetch(process.env.PUBLIC_URL + url);
+        const aborter = new AbortController();
+        const response = fetch(process.env.PUBLIC_URL + url, { signal: aborter.signal });
         return {
-            async json<T>(): Promise<T> {
-                return (await response).json();
+            json<T>(): DisposablePromise<T> {
+                return new DisposablePromise(
+                    (resolve, reject) => {
+                        response
+                            .then(r => r.json())
+                            .then(
+                                json => resolve(json),
+                                error => reject(error),
+                            );
+                    },
+                    () => aborter.abort(),
+                );
             },
 
-            async array_buffer(): Promise<ArrayBuffer> {
-                return (await response).arrayBuffer();
+            array_buffer(): DisposablePromise<ArrayBuffer> {
+                return new DisposablePromise(
+                    (resolve, reject) => {
+                        response
+                            .then(r => r.arrayBuffer())
+                            .then(
+                                buf => resolve(buf),
+                                error => reject(error),
+                            );
+                    },
+                    () => aborter.abort(),
+                );
             },
         };
     }
@@ -32,11 +55,11 @@ export class FetchClient implements HttpClient {
 export class StubHttpClient implements HttpClient {
     get(url: string): HttpResponse {
         return {
-            json<T>(): Promise<T> {
+            json<T>(): DisposablePromise<T> {
                 throw new Error(`Stub client's json method invoked for get request to "${url}".`);
             },
 
-            array_buffer(): Promise<ArrayBuffer> {
+            array_buffer(): DisposablePromise<ArrayBuffer> {
                 throw new Error(
                     `Stub client's array_buffer method invoked for get request to "${url}".`,
                 );

@@ -1,5 +1,6 @@
 import { AreaVariantModel } from "./AreaVariantModel";
 import { Euler, Quaternion, Vector3 } from "three";
+import { euler_from_quat } from "./euler";
 
 export class SectionModel {
     readonly id: number;
@@ -18,9 +19,7 @@ export class SectionModel {
         this.id = id;
         this.position = position;
         this.rotation = rotation;
-        this.inverse_rotation = new Euler().setFromQuaternion(
-            new Quaternion().setFromEuler(rotation).inverse(),
-        );
+        this.inverse_rotation = euler_from_quat(new Quaternion().setFromEuler(rotation).inverse());
         this.area_variant = area_variant;
     }
 }

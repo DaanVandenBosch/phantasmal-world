@@ -16,6 +16,8 @@ import {
 import { HttpClient } from "../../core/HttpClient";
 import { Disposable } from "../../core/observable/Disposable";
 import { LogManager } from "../../core/Logger";
+import { DisposablePromise } from "../../core/DisposablePromise";
+import { Disposer } from "../../core/observable/Disposer";
 
 const logger = LogManager.get("quest_editor/loading/EntityAssetLoader");
 
@@ -24,76 +26,80 @@ DEFAULT_ENTITY.translate(0, 10, 0);
 DEFAULT_ENTITY.computeBoundingBox();
 DEFAULT_ENTITY.computeBoundingSphere();
 
-const DEFAULT_ENTITY_PROMISE: Promise<BufferGeometry> = new Promise(resolve =>
-    resolve(DEFAULT_ENTITY),
+const DEFAULT_ENTITY_PROMISE: DisposablePromise<BufferGeometry> = DisposablePromise.resolve(
+    DEFAULT_ENTITY,
 );
 
 const DEFAULT_ENTITY_TEX: Texture[] = [];
 
-const DEFAULT_ENTITY_TEX_PROMISE: Promise<Texture[]> = new Promise(resolve =>
-    resolve(DEFAULT_ENTITY_TEX),
+const DEFAULT_ENTITY_TEX_PROMISE: DisposablePromise<Texture[]> = DisposablePromise.resolve(
+    DEFAULT_ENTITY_TEX,
 );
 
 export class EntityAssetLoader implements Disposable {
-    private disposed = false;
-    private readonly geom_cache = new LoadingCache<EntityType, Promise<BufferGeometry>>();
-    private readonly tex_cache = new LoadingCache<EntityType, Promise<Texture[]>>();
+    private readonly disposer = new Disposer();
+    private readonly geom_cache = this.disposer.add(new LoadingCache<EntityType, BufferGeometry>());
+    private readonly tex_cache = this.disposer.add(new LoadingCache<EntityType, Texture[]>());
 
     constructor(private readonly http_client: HttpClient) {
         this.warm_up_caches();
     }
 
     dispose(): void {
-        this.disposed = true;
-        this.geom_cache.purge_all();
-        this.tex_cache.purge_all();
+        this.disposer.dispose();
     }
 
-    async load_geometry(type: EntityType): Promise<BufferGeometry> {
-        return this.geom_cache.get_or_set(type, async () => {
-            try {
-                const { url, data } = await this.load_data(type, AssetType.Geometry);
-                if (this.disposed) return DEFAULT_ENTITY;
+    load_geometry(type: EntityType): DisposablePromise<BufferGeometry> {
+        return this.geom_cache.get_or_set(type, () =>
+            this.load_data(type, AssetType.Geometry)
+                .then(({ url, data }) => {
+                    const cursor = new ArrayBufferCursor(data, Endianness.Little);
+                    const nj_objects = url.endsWith(".nj") ? parse_nj(cursor) : parse_xj(cursor);
 
-                const cursor = new ArrayBufferCursor(data, Endianness.Little);
-                const nj_objects = url.endsWith(".nj") ? parse_nj(cursor) : parse_xj(cursor);
-
-                if (nj_objects.length) {
-                    return ninja_object_to_buffer_geometry(nj_objects[0]);
-                } else {
-                    logger.warn(`Couldn't parse ${url} for ${entity_type_to_string(type)}.`);
+                    if (nj_objects.length) {
+                        return ninja_object_to_buffer_geometry(nj_objects[0]);
+                    } else {
+                        logger.warn(`Couldn't parse ${url} for ${entity_type_to_string(type)}.`);
+                        return DEFAULT_ENTITY;
+                    }
+                })
+                .catch(e => {
+                    logger.warn(
+                        `Couldn't load geometry file for ${entity_type_to_string(type)}.`,
+                        e,
+                    );
                     return DEFAULT_ENTITY;
-                }
-            } catch (e) {
-                logger.warn(`Couldn't load geometry file for ${entity_type_to_string(type)}.`, e);
-                return DEFAULT_ENTITY;
-            }
-        });
+                }),
+        );
     }
 
-    async load_textures(type: EntityType): Promise<Texture[]> {
-        return this.tex_cache.get_or_set(type, async () => {
-            try {
-                const { data } = await this.load_data(type, AssetType.Texture);
-                if (this.disposed) return DEFAULT_ENTITY_TEX;
-
-                const cursor = new ArrayBufferCursor(data, Endianness.Little);
-                const xvm = parse_xvm(cursor);
-                return xvm_to_textures(xvm);
-            } catch (e) {
-                logger.warn(`Couldn't load texture file for ${entity_type_to_string(type)}.`, e);
-                return DEFAULT_ENTITY_TEX;
-            }
-        });
+    load_textures(type: EntityType): DisposablePromise<Texture[]> {
+        return this.tex_cache.get_or_set(type, () =>
+            this.load_data(type, AssetType.Texture)
+                .then(({ data }) => {
+                    const cursor = new ArrayBufferCursor(data, Endianness.Little);
+                    const xvm = parse_xvm(cursor);
+                    return xvm_to_textures(xvm);
+                })
+                .catch(e => {
+                    logger.warn(
+                        `Couldn't load texture file for ${entity_type_to_string(type)}.`,
+                        e,
+                    );
+                    return DEFAULT_ENTITY_TEX;
+                }),
+        );
     }
 
-    async load_data(
+    load_data(
         type: EntityType,
         asset_type: AssetType,
-    ): Promise<{ url: string; data: ArrayBuffer }> {
+    ): DisposablePromise<{ url: string; data: ArrayBuffer }> {
         const url = entity_type_to_url(type, asset_type);
-        const data = await this.http_client.get(url).array_buffer();
-        return { url, data };
+        return this.http_client
+            .get(url)
+            .array_buffer()
+            .then(data => ({ url, data }));
     }
 
     /**

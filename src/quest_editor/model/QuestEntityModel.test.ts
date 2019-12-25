@@ -1,12 +1,13 @@
 import { QuestNpcModel } from "./QuestNpcModel";
 import { npc_data, NpcType } from "../../core/data_formats/parsing/quest/npc_types";
 import { Episode } from "../../core/data_formats/parsing/quest/Episode";
-import { Euler, Vector3 } from "three";
+import { Vector3 } from "three";
 import { SectionModel } from "./SectionModel";
 import { QuestEntityModel } from "./QuestEntityModel";
 import { AreaStore } from "../stores/AreaStore";
 import { StubHttpClient } from "../../core/HttpClient";
 import { AreaAssetLoader } from "../loading/AreaAssetLoader";
+import { euler } from "./euler";
 
 const area_store = new AreaStore(new AreaAssetLoader(new StubHttpClient()));
 
@@ -21,7 +22,7 @@ test("After changing section, world position should change accordingly.", () => 
         new SectionModel(
             20,
             new Vector3(7, 7, 7),
-            new Euler(0, 0, 0, "ZXY"),
+            euler(0, 0, 0),
             area_store.get_variant(Episode.I, 0, 0),
         ),
     );
@@ -33,7 +34,7 @@ test("After changing section, world position should change accordingly.", () => 
         new SectionModel(
             30,
             new Vector3(11, 11, 11),
-            new Euler(0, 0, 0, "ZXY"),
+            euler(0, 0, 0),
             area_store.get_variant(Episode.I, 0, 0),
         ),
     );
@@ -53,7 +54,7 @@ function create_entity(): QuestEntityModel {
         area_store.get_area(Episode.I, 0).id,
         20,
         new Vector3(5, 5, 5),
-        new Euler(0, 0, 0, "ZXY"),
+        euler(0, 0, 0),
         new Vector3(1, 1, 1),
         [Array(10).fill(0xdead), Array(4).fill(0xdead)],
     );

@@ -1,11 +1,14 @@
-export class LoadingCache<K, V> {
-    private map = new Map<K, V>();
+import { DisposablePromise } from "../../core/DisposablePromise";
+import { Disposable } from "../../core/observable/Disposable";
 
-    set(key: K, value: V): void {
+export class LoadingCache<K, V> implements Disposable {
+    private map = new Map<K, DisposablePromise<V>>();
+
+    set(key: K, value: DisposablePromise<V>): void {
         this.map.set(key, value);
     }
 
-    get_or_set(key: K, new_value: () => V): V {
+    get_or_set(key: K, new_value: () => DisposablePromise<V>): DisposablePromise<V> {
         let v = this.map.get(key);
 
         if (v === undefined) {
@@ -16,7 +19,15 @@ export class LoadingCache<K, V> {
         return v;
     }
 
-    purge_all(): void {
+    dispose(): void {
+        for (const value of this.values()) {
+            value.dispose();
+        }
+
         this.map.clear();
+    }
+
+    values(): IterableIterator<DisposablePromise<V>> {
+        return this.map.values();
     }
 }

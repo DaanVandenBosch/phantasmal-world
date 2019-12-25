@@ -18,6 +18,7 @@ import { QuestObjectModel } from "../model/QuestObjectModel";
 import { AreaModel } from "../model/AreaModel";
 import { QuestModel } from "../model/QuestModel";
 import { QuestEditorStore } from "../stores/QuestEditorStore";
+import { euler } from "../model/euler";
 
 const ZERO_VECTOR = Object.freeze(new Vector3(0, 0, 0));
 const UP_VECTOR = Object.freeze(new Vector3(0, 1, 0));
@@ -627,7 +628,7 @@ class CreationState implements State {
                 area.id,
                 0,
                 new Vector3(0, 0, 0),
-                new Euler(0, 0, 0, "ZXY"),
+                euler(0, 0, 0),
                 new Vector3(1, 1, 1),
                 // TODO: do the following values make sense?
                 [
@@ -643,7 +644,7 @@ class CreationState implements State {
                 area.id,
                 0,
                 new Vector3(0, 0, 0),
-                new Euler(0, 0, 0, "ZXY"),
+                euler(0, 0, 0),
                 // TODO: which default properties?
                 new Map(),
                 // TODO: do the following values make sense?

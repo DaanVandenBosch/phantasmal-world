@@ -132,12 +132,20 @@ export function create_element<T extends HTMLElement>(
     return (element as HTMLElement) as T;
 }
 
-export function bind_hidden(element: HTMLElement, observable: Observable<boolean>): Disposable {
+export function bind_attr<E extends Element, A extends keyof E>(
+    element: E,
+    attribute: A,
+    observable: Observable<E[A]>,
+): Disposable {
     if (is_property(observable)) {
-        element.hidden = observable.val;
+        element[attribute] = observable.val;
     }
 
-    return observable.observe(({ value }) => (element.hidden = value));
+    return observable.observe(({ value }) => (element[attribute] = value));
+}
+
+export function bind_hidden(element: HTMLElement, observable: Observable<boolean>): Disposable {
+    return bind_attr(element, "hidden", observable);
 }
 
 export enum Icon {

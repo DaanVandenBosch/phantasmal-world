@@ -1,17 +1,20 @@
 import { HttpClient, HttpResponse } from "../../../src/core/HttpClient";
 import * as fs from "fs";
+import { DisposablePromise } from "../../../src/core/DisposablePromise";
 
 export class FileSystemHttpClient implements HttpClient {
     get(url: string): HttpResponse {
         return {
-            async json<T>(): Promise<T> {
-                const buf = await fs.promises.readFile(`./assets${url}`);
-                return JSON.parse(buf.toString());
+            json<T>(): DisposablePromise<T> {
+                return DisposablePromise.wrap(fs.promises.readFile(`./assets${url}`)).then(buf =>
+                    JSON.parse(buf.toString()),
+                );
             },
 
-            async array_buffer(): Promise<ArrayBuffer> {
-                const buf = await fs.promises.readFile(`./assets${url}`);
-                return buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength);
+            array_buffer(): DisposablePromise<ArrayBuffer> {
+                return DisposablePromise.wrap(fs.promises.readFile(`./assets${url}`)).then(buf =>
+                    buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength),
+                );
             },
         };
     }

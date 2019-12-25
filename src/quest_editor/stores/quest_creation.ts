@@ -9,6 +9,7 @@ import { QuestEventDagModel } from "../model/QuestEventDagModel";
 import { AreaStore } from "./AreaStore";
 import { assemble } from "../scripting/assembly";
 import { Segment } from "../scripting/instructions";
+import { euler } from "../model/euler";
 
 export function create_new_quest(area_store: AreaStore, episode: Episode): QuestModel {
     if (episode === Episode.II) throw new Error("Episode II not yet supported.");
@@ -41,7 +42,7 @@ function create_default_objects(): QuestObjectModel[] {
             0,
             10,
             new Vector3(-16.313568115234375, 3, -579.5118408203125),
-            new Euler(0.0009587526218325454, 0, 0, "ZXY"),
+            euler(0.0009587526218325454, 0, 0),
             new Map([
                 ["property_0", 1],
                 ["property_1", 1],
@@ -63,7 +64,7 @@ function create_default_objects(): QuestObjectModel[] {
             0,
             10,
             new Vector3(-393.07318115234375, 10, -12.964752197265625),
-            new Euler(0, 0, 0, "ZXY"),
+            euler(0, 0, 0),
             new Map([
                 ["property_0", 9.183549615799121e-41],
                 ["property_1", 1.0000011920928955],
@@ -85,7 +86,7 @@ function create_default_objects(): QuestObjectModel[] {
             0,
             10,
             new Vector3(-458.60699462890625, 10, -51.270660400390625),
-            new Euler(0, 0, 0, "ZXY"),
+            euler(0, 0, 0),
             new Map([
                 ["property_0", 1],
                 ["property_1", 1],
@@ -107,7 +108,7 @@ function create_default_objects(): QuestObjectModel[] {
             0,
             10,
             new Vector3(-430.19696044921875, 10, -24.490447998046875),
-            new Euler(0, 0, 0, "ZXY"),
+            euler(0, 0, 0),
             new Map([
                 ["property_0", 1],
                 ["property_1", 1],
@@ -129,7 +130,7 @@ function create_default_objects(): QuestObjectModel[] {
             0,
             10,
             new Vector3(0.995330810546875, 0, -37.0010986328125),
-            new Euler(0, 4.712460886831327, 0, "ZXY"),
+            euler(0, 4.712460886831327, 0),
             new Map([
                 ["property_0", 0],
                 ["property_1", 1],
@@ -151,7 +152,7 @@ function create_default_objects(): QuestObjectModel[] {
             0,
             10,
             new Vector3(3.0009307861328125, 0, -23.99688720703125),
-            new Euler(0, 4.859725289544806, 0, "ZXY"),
+            euler(0, 4.859725289544806, 0),
             new Map([
                 ["property_0", 1.000000238418579],
                 ["property_1", 1],
@@ -173,7 +174,7 @@ function create_default_objects(): QuestObjectModel[] {
             0,
             10,
             new Vector3(2.0015106201171875, 0, -50.00386047363281),
-            new Euler(0, 4.565196484117848, 0, "ZXY"),
+            euler(0, 4.565196484117848, 0),
             new Map([
                 ["property_0", 2.000002384185791],
                 ["property_1", 1],
@@ -195,7 +196,7 @@ function create_default_objects(): QuestObjectModel[] {
             0,
             10,
             new Vector3(4.9973907470703125, 0, -61.99664306640625),
-            new Euler(0, 4.368843947166543, 0, "ZXY"),
+            euler(0, 4.368843947166543, 0),
             new Map([
                 ["property_0", 3.0000007152557373],
                 ["property_1", 1],
@@ -217,7 +218,7 @@ function create_default_objects(): QuestObjectModel[] {
             0,
             10,
             new Vector3(132.00314331054688, 1.000000238418579, -265.002197265625),
-            new Euler(0, 0.49088134237826325, 0, "ZXY"),
+            euler(0, 0.49088134237826325, 0),
             new Map([
                 ["property_0", 1.000000238418579],
                 ["property_1", 1],
@@ -239,7 +240,7 @@ function create_default_objects(): QuestObjectModel[] {
             0,
             10,
             new Vector3(-228, 0, -2020.99951171875),
-            new Euler(0, 2.9452880542695796, 0, "ZXY"),
+            euler(0, 2.9452880542695796, 0),
             new Map([
                 ["property_0", -10.000004768371582],
                 ["property_1", 0],
@@ -261,7 +262,7 @@ function create_default_objects(): QuestObjectModel[] {
             0,
             10,
             new Vector3(-41.000030517578125, 0, 42.37322998046875),
-            new Euler(0, 0, 0, "ZXY"),
+            euler(0, 0, 0),
             new Map([
                 ["property_0", 1],
                 ["property_1", 1],
@@ -283,7 +284,7 @@ function create_default_objects(): QuestObjectModel[] {
             0,
             10,
             new Vector3(-479.21673583984375, 8.781256675720215, -322.465576171875),
-            new Euler(6.28328118244177, 0.0009587526218325454, 0, "ZXY"),
+            euler(6.28328118244177, 0.0009587526218325454, 0),
             new Map([
                 ["property_0", 1],
                 ["property_1", 1],
@@ -305,7 +306,7 @@ function create_default_objects(): QuestObjectModel[] {
             0,
             10,
             new Vector3(-228, 0, -351.0015869140625),
-            new Euler(0, 0, 0, "ZXY"),
+            euler(0, 0, 0),
             new Map([
                 ["property_0", 10.000006675720215],
                 ["property_1", 0],
@@ -327,7 +328,7 @@ function create_default_objects(): QuestObjectModel[] {
             0,
             10,
             new Vector3(-561.88232421875, 0, -406.8829345703125),
-            new Euler(0, 0, 0, "ZXY"),
+            euler(0, 0, 0),
             new Map([
                 ["property_0", 1],
                 ["property_1", 1],
@@ -349,7 +350,7 @@ function create_default_objects(): QuestObjectModel[] {
             0,
             10,
             new Vector3(-547.8557739257812, 0, -444.8822326660156),
-            new Euler(0, 0, 0, "ZXY"),
+            euler(0, 0, 0),
             new Map([
                 ["property_0", 1],
                 ["property_1", 1],
@@ -371,7 +372,7 @@ function create_default_objects(): QuestObjectModel[] {
             0,
             10,
             new Vector3(-486.441650390625, 0, -497.4501647949219),
-            new Euler(0, 0, 0, "ZXY"),
+            euler(0, 0, 0),
             new Map([
                 ["property_0", 9.183549615799121e-41],
                 ["property_1", 1.0000011920928955],
@@ -393,7 +394,7 @@ function create_default_objects(): QuestObjectModel[] {
             0,
             10,
             new Vector3(-522.4052734375, 0, -474.1882629394531),
-            new Euler(0, 0, 0, "ZXY"),
+            euler(0, 0, 0),
             new Map([
                 ["property_0", 1],
                 ["property_1", 1],
@@ -415,7 +416,7 @@ function create_default_objects(): QuestObjectModel[] {
             0,
             10,
             new Vector3(-34.49853515625, 0, -384.4951171875),
-            new Euler(0, 5.497871034636549, 0, "ZXY"),
+            euler(0, 5.497871034636549, 0),
             new Map([
                 ["property_0", 3.0000007152557373],
                 ["property_1", 1],
@@ -437,7 +438,7 @@ function create_default_objects(): QuestObjectModel[] {
             0,
             10,
             new Vector3(-393.0031433105469, 0, -143.49981689453125),
-            new Euler(0, 3.141640591220885, 0, "ZXY"),
+            euler(0, 3.141640591220885, 0),
             new Map([
                 ["property_0", 3.0000007152557373],
                 ["property_1", 1],
@@ -459,7 +460,7 @@ function create_default_objects(): QuestObjectModel[] {
             0,
             10,
             new Vector3(-355.17462158203125, 0, -43.15193176269531),
-            new Euler(0, 0, 0, "ZXY"),
+            euler(0, 0, 0),
             new Map([
                 ["property_0", 1.000000238418579],
                 ["property_1", 1],
@@ -481,7 +482,7 @@ function create_default_objects(): QuestObjectModel[] {
             0,
             10,
             new Vector3(-43.00239562988281, 0, -118.00120544433594),
-            new Euler(0, 3.141640591220885, 0, "ZXY"),
+            euler(0, 3.141640591220885, 0),
             new Map([
                 ["property_0", 3.0000007152557373],
                 ["property_1", 1],
@@ -503,7 +504,7 @@ function create_default_objects(): QuestObjectModel[] {
             0,
             10,
             new Vector3(26.000823974609375, 0, -265.99810791015625),
-            new Euler(0, 3.141640591220885, 0, "ZXY"),
+            euler(0, 3.141640591220885, 0),
             new Map([
                 ["property_0", 3.0000007152557373],
                 ["property_1", 1],
@@ -525,7 +526,7 @@ function create_default_objects(): QuestObjectModel[] {
             0,
             10,
             new Vector3(57.81005859375, 0, -268.5472412109375),
-            new Euler(0, 4.712460886831327, 0, "ZXY"),
+            euler(0, 4.712460886831327, 0),
             new Map([
                 ["property_0", 0],
                 ["property_1", 1],
@@ -547,7 +548,7 @@ function create_default_objects(): QuestObjectModel[] {
             0,
             10,
             new Vector3(66.769287109375, 0, -252.3748779296875),
-            new Euler(0, 4.712460886831327, 0, "ZXY"),
+            euler(0, 4.712460886831327, 0),
             new Map([
                 ["property_0", 1.000000238418579],
                 ["property_1", 1],
@@ -569,7 +570,7 @@ function create_default_objects(): QuestObjectModel[] {
             0,
             10,
             new Vector3(67.36819458007812, 0, -284.9297180175781),
-            new Euler(0, 4.712460886831327, 0, "ZXY"),
+            euler(0, 4.712460886831327, 0),
             new Map([
                 ["property_0", 2.000000476837158],
                 ["property_1", 1],
@@ -591,7 +592,7 @@ function create_default_objects(): QuestObjectModel[] {
             0,
             10,
             new Vector3(77.10488891601562, 0, -269.2830505371094),
-            new Euler(0, 4.712460886831327, 0, "ZXY"),
+            euler(0, 4.712460886831327, 0),
             new Map([
                 ["property_0", 3.0000007152557373],
                 ["property_1", 1],
@@ -622,7 +623,7 @@ function create_default_npcs(): QuestNpcModel[] {
             0,
             10,
             new Vector3(-49.0010986328125, 0, 50.996429443359375),
-            new Euler(0, 2.3562304434156633, 0, "ZXY"),
+            euler(0, 2.3562304434156633, 0),
             new Vector3(0, 0, 0),
             [
                 [0, 0, 7, 86, 0, 0, 0, 0, 23, 87],
@@ -640,7 +641,7 @@ function create_default_npcs(): QuestNpcModel[] {
             0,
             20,
             new Vector3(167.99769592285156, 0, 83.99686431884766),
-            new Euler(0, 3.927050739026106, 0, "ZXY"),
+            euler(0, 3.927050739026106, 0),
             new Vector3(24.000009536743164, 0, 0),
             [
                 [0, 0, 7, 88, 0, 0, 0, 0, 23, 89],
@@ -658,7 +659,7 @@ function create_default_npcs(): QuestNpcModel[] {
             0,
             20,
             new Vector3(156.0028839111328, 0, -49.99967575073242),
-            new Euler(0, 5.497871034636549, 0, "ZXY"),
+            euler(0, 5.497871034636549, 0),
             new Vector3(30.000009536743164, 0, 0),
             [
                 [0, 0, 7, 89, 0, 0, 0, 0, 23, 90],
@@ -676,7 +677,7 @@ function create_default_npcs(): QuestNpcModel[] {
             0,
             20,
             new Vector3(237.9988250732422, 0, -14.0001220703125),
-            new Euler(0, 5.497871034636549, 0, "ZXY"),
+            euler(0, 5.497871034636549, 0),
             new Vector3(0, 0, 0),
             [
                 [0, 0, 7, 90, 0, 0, 0, 0, 23, 91],
@@ -694,7 +695,7 @@ function create_default_npcs(): QuestNpcModel[] {
             0,
             20,
             new Vector3(238.00379943847656, 0, 63.00413513183594),
-            new Euler(0, 3.927050739026106, 0, "ZXY"),
+            euler(0, 3.927050739026106, 0),
             new Vector3(0, 0, 0),
             [
                 [0, 0, 7, 91, 0, 0, 0, 0, 23, 92],
@@ -712,7 +713,7 @@ function create_default_npcs(): QuestNpcModel[] {
             0,
             20,
             new Vector3(-2.001882553100586, 0, 35.0036506652832),
-            new Euler(0, 3.141640591220885, 0, "ZXY"),
+            euler(0, 3.141640591220885, 0),
             new Vector3(26.000009536743164, 0, 0),
             [
                 [0, 0, 7, 92, 0, 0, 0, 0, 23, 93],
@@ -730,7 +731,7 @@ function create_default_npcs(): QuestNpcModel[] {
             0,
             20,
             new Vector3(-147.0000457763672, 0, -7.996537208557129),
-            new Euler(0, 2.577127047485882, 0, "ZXY"),
+            euler(0, 2.577127047485882, 0),
             new Vector3(30.000009536743164, 0, 0),
             [
                 [0, 0, 7, 93, 0, 0, 0, 0, 23, 94],
@@ -748,7 +749,7 @@ function create_default_npcs(): QuestNpcModel[] {
             0,
             20,
             new Vector3(-219.99710083007812, 0, -100.0008316040039),
-            new Euler(0, 0, 0, "ZXY"),
+            euler(0, 0, 0),
             new Vector3(30.000011444091797, 0, 0),
             [
                 [0, 0, 7, 94, 0, 0, 0, 0, 23, 95],
@@ -766,7 +767,7 @@ function create_default_npcs(): QuestNpcModel[] {
             0,
             20,
             new Vector3(-262.5099792480469, 0, -24.53999900817871),
-            new Euler(0, 1.963525369513053, 0, "ZXY"),
+            euler(0, 1.963525369513053, 0),
             new Vector3(0, 0, 0),
             [
                 [0, 0, 7, 95, 0, 0, 0, 0, 23, 106],
@@ -784,7 +785,7 @@ function create_default_npcs(): QuestNpcModel[] {
             0,
             30,
             new Vector3(-43.70983123779297, 2.5999999046325684, -52.78248596191406),
-            new Euler(0, 0.7854101478052212, 0, "ZXY"),
+            euler(0, 0.7854101478052212, 0),
             new Vector3(0, 0, 0),
             [
                 [0, 0, 7, 97, 0, 0, 0, 0, 23, 98],
@@ -802,7 +803,7 @@ function create_default_npcs(): QuestNpcModel[] {
             0,
             30,
             new Vector3(0.33990478515625, 2.5999999046325684, -84.71995544433594),
-            new Euler(0, 0, 0, "ZXY"),
+            euler(0, 0, 0),
             new Vector3(0, 0, 0),
             [
                 [0, 0, 7, 98, 0, 0, 0, 0, 23, 99],
@@ -874,7 +875,7 @@ function create_default_npcs(): QuestNpcModel[] {
             0,
             40,
             new Vector3(0.3097381591796875, 3, -105.3865966796875),
-            new Euler(0, 0, 0, "ZXY"),
+            euler(0, 0, 0),
             new Vector3(0, 0, 0),
             [
                 [0, 0, 7, 102, 0, 0, 0, 0, 23, 103],
@@ -892,7 +893,7 @@ function create_default_npcs(): QuestNpcModel[] {
             0,
             40,
             new Vector3(53.499176025390625, 0, -26.496688842773438),
-            new Euler(0, 5.497871034636549, 0, "ZXY"),
+            euler(0, 5.497871034636549, 0),
             new Vector3(18.000009536743164, 0, 0),
             [
                 [0, 0, 7, 103, 0, 0, 0, 0, 23, 104],

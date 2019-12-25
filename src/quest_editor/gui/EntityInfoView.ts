@@ -1,15 +1,10 @@
 import { ResizableWidget } from "../../core/gui/ResizableWidget";
-import { el } from "../../core/gui/dom";
+import { bind_attr, el } from "../../core/gui/dom";
 import { UnavailableView } from "./UnavailableView";
-import { QuestNpcModel } from "../model/QuestNpcModel";
-import { entity_data } from "../../core/data_formats/parsing/quest/entities";
 import "./EntityInfoView.css";
 import { NumberInput } from "../../core/gui/NumberInput";
-import { Disposer } from "../../core/observable/Disposer";
-import { QuestEntityModel } from "../model/QuestEntityModel";
-import { Euler, Vector3 } from "three";
-import { deg_to_rad, rad_to_deg } from "../../core/math";
-import { QuestEditorStore } from "../stores/QuestEditorStore";
+import { rad_to_deg } from "../../core/math";
+import { EntityInfoController } from "../controllers/EntityInfoController";
 
 export class EntityInfoView extends ResizableWidget {
     readonly element = el.div({ class: "quest_editor_EntityInfoView", tab_index: -1 });
@@ -22,6 +17,7 @@ export class EntityInfoView extends ResizableWidget {
     private readonly name_element: HTMLTableCellElement;
     private readonly section_id_element: HTMLTableCellElement;
     private readonly wave_element: HTMLTableCellElement;
+    private readonly wave_row_element: HTMLTableRowElement;
     private readonly pos_x_element = this.disposable(
         new NumberInput(0, { width: 80, round_to: 3 }),
     );
@@ -41,20 +37,20 @@ export class EntityInfoView extends ResizableWidget {
         new NumberInput(0, { width: 80, round_to: 3 }),
     );
 
-    private readonly entity_disposer = new Disposer();
-
-    constructor(private readonly quest_editor_store: QuestEditorStore) {
+    constructor(private readonly ctrl: EntityInfoController) {
         super();
 
-        const entity = quest_editor_store.selected_entity;
-        const no_entity = entity.map(e => e == undefined);
         const coord_class = "quest_editor_EntityInfoView_coord";
 
         this.table_element.append(
             el.tr({}, el.th({ text: "Type:" }), (this.type_element = el.td())),
             el.tr({}, el.th({ text: "Name:" }), (this.name_element = el.td())),
             el.tr({}, el.th({ text: "Section:" }), (this.section_id_element = el.td())),
-            el.tr({}, el.th({ text: "Wave:" }), (this.wave_element = el.td())),
+            (this.wave_row_element = el.tr(
+                {},
+                el.th({ text: "Wave:" }),
+                (this.wave_element = el.td()),
+            )),
             el.tr({}, el.th({ text: "Position:", col_span: 2 })),
             el.tr(
                 {},
@@ -91,61 +87,48 @@ export class EntityInfoView extends ResizableWidget {
 
         this.element.append(this.table_element, this.no_entity_view.element);
 
-        this.element.addEventListener("focus", () => quest_editor_store.undo.make_current(), true);
-
-        this.bind_hidden(this.table_element, no_entity);
+        this.element.addEventListener("focus", ctrl.focused, true);
 
         this.disposables(
-            this.no_entity_view.visible.bind_to(no_entity),
+            bind_attr(this.table_element, "hidden", ctrl.unavailable),
+            this.no_entity_view.visible.bind_to(ctrl.unavailable),
 
-            entity.observe(({ value: entity }) => {
-                this.entity_disposer.dispose_all();
+            bind_attr(this.type_element, "textContent", ctrl.type),
+            bind_attr(this.name_element, "textContent", ctrl.name),
+            bind_attr(this.section_id_element, "textContent", ctrl.section_id),
+            bind_attr(this.wave_element, "textContent", ctrl.wave),
+            bind_attr(this.wave_row_element, "hidden", ctrl.wave_hidden),
 
-                if (entity) {
-                    // Generic entity properties.
-                    const name = entity_data(entity.type).name;
-                    this.name_element.innerText = name;
-                    this.name_element.title = name;
+            ctrl.position.observe(
+                ({ value: { x, y, z } }) => {
+                    this.pos_x_element.value.val = x;
+                    this.pos_y_element.value.val = y;
+                    this.pos_z_element.value.val = z;
+                },
+                { call_now: true },
+            ),
 
-                    this.entity_disposer.add(
-                        entity.section_id.observe(
-                            ({ value: section_id }) => {
-                                this.section_id_element.innerText = section_id.toString();
-                            },
-                            { call_now: true },
-                        ),
-                    );
+            ctrl.rotation.observe(
+                ({ value: { x, y, z } }) => {
+                    this.rot_x_element.value.val = rad_to_deg(x);
+                    this.rot_y_element.value.val = rad_to_deg(y);
+                    this.rot_z_element.value.val = rad_to_deg(z);
+                },
+                { call_now: true },
+            ),
 
-                    if (entity instanceof QuestNpcModel) {
-                        // NPC properties.
-                        this.type_element.innerText = "NPC";
+            this.pos_x_element.value.observe(({ value }) => ctrl.set_pos_x(value)),
+            this.pos_y_element.value.observe(({ value }) => ctrl.set_pos_y(value)),
+            this.pos_z_element.value.observe(({ value }) => ctrl.set_pos_z(value)),
 
-                        this.entity_disposer.add(
-                            entity.wave.observe(
-                                ({ value: wave }) => {
-                                    this.wave_element.innerText = wave.toString();
-                                },
-                                { call_now: true },
-                            ),
-                        );
-                    } else {
-                        // Object properties
-                        this.type_element.innerText = "Object";
-                    }
+            this.rot_x_element.value.observe(({ value }) => ctrl.set_rot_x(value)),
+            this.rot_y_element.value.observe(({ value }) => ctrl.set_rot_y(value)),
+            this.rot_z_element.value.observe(({ value }) => ctrl.set_rot_z(value)),
 
-                    this.observe_entity(entity);
-                }
-            }),
-
-            this.enabled.bind_to(quest_editor_store.quest_runner.running.map(r => !r)),
+            this.enabled.bind_to(ctrl.enabled),
         );
 
         this.finalize_construction();
-    }
-
-    dispose(): void {
-        super.dispose();
-        this.entity_disposer.dispose();
     }
 
     protected set_enabled(enabled: boolean): void {
@@ -158,93 +141,5 @@ export class EntityInfoView extends ResizableWidget {
         this.rot_x_element.enabled.val = enabled;
         this.rot_y_element.enabled.val = enabled;
         this.rot_z_element.enabled.val = enabled;
-    }
-
-    private observe_entity(entity: QuestEntityModel): void {
-        const pos = entity.position;
-
-        this.entity_disposer.add_all(
-            pos.observe(
-                ({ value: { x, y, z } }) => {
-                    this.pos_x_element.value.val = x;
-                    this.pos_y_element.value.val = y;
-                    this.pos_z_element.value.val = z;
-                },
-                { call_now: true },
-            ),
-
-            this.pos_x_element.value.observe(({ value }) =>
-                this.quest_editor_store.translate_entity(
-                    entity,
-                    entity.section.val,
-                    entity.section.val,
-                    pos.val,
-                    new Vector3(value, pos.val.y, pos.val.z),
-                    false,
-                ),
-            ),
-
-            this.pos_y_element.value.observe(({ value }) =>
-                this.quest_editor_store.translate_entity(
-                    entity,
-                    entity.section.val,
-                    entity.section.val,
-                    pos.val,
-                    new Vector3(pos.val.x, value, pos.val.z),
-                    false,
-                ),
-            ),
-
-            this.pos_z_element.value.observe(({ value }) =>
-                this.quest_editor_store.translate_entity(
-                    entity,
-                    entity.section.val,
-                    entity.section.val,
-                    pos.val,
-                    new Vector3(pos.val.x, pos.val.y, value),
-                    false,
-                ),
-            ),
-        );
-
-        const rot = entity.rotation;
-
-        this.entity_disposer.add_all(
-            rot.observe(
-                ({ value: { x, y, z } }) => {
-                    this.rot_x_element.value.val = rad_to_deg(x);
-                    this.rot_y_element.value.val = rad_to_deg(y);
-                    this.rot_z_element.value.val = rad_to_deg(z);
-                },
-                { call_now: true },
-            ),
-
-            this.rot_x_element.value.observe(({ value }) =>
-                this.quest_editor_store.rotate_entity(
-                    entity,
-                    rot.val,
-                    new Euler(deg_to_rad(value), rot.val.y, rot.val.z, "ZXY"),
-                    false,
-                ),
-            ),
-
-            this.rot_y_element.value.observe(({ value }) =>
-                this.quest_editor_store.rotate_entity(
-                    entity,
-                    rot.val,
-                    new Euler(rot.val.x, deg_to_rad(value), rot.val.z, "ZXY"),
-                    false,
-                ),
-            ),
-
-            this.rot_z_element.value.observe(({ value }) =>
-                this.quest_editor_store.rotate_entity(
-                    entity,
-                    rot.val,
-                    new Euler(rot.val.x, rot.val.y, deg_to_rad(value), "ZXY"),
-                    false,
-                ),
-            ),
-        );
     }
 }

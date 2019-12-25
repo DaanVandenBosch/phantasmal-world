@@ -2,7 +2,6 @@ import { Quest } from "../../core/data_formats/parsing/quest";
 import { QuestModel } from "../model/QuestModel";
 import { QuestObjectModel } from "../model/QuestObjectModel";
 import { vec3_to_threejs } from "../../core/rendering/conversion";
-import { Euler } from "three";
 import { QuestNpcModel } from "../model/QuestNpcModel";
 import { QuestEventModel } from "../model/QuestEventModel";
 import {
@@ -20,6 +19,7 @@ import { QuestEvent } from "../../core/data_formats/parsing/quest/entities";
 import { clone_segment } from "../scripting/instructions";
 import { AreaStore } from "./AreaStore";
 import { LogManager } from "../../core/Logger";
+import { euler } from "../model/euler";
 
 const logger = LogManager.get("quest_editor/stores/model_conversion");
 
@@ -43,7 +43,7 @@ export function convert_quest_to_model(area_store: AreaStore, quest: Quest): Que
                     obj.area_id,
                     obj.section_id,
                     vec3_to_threejs(obj.position),
-                    new Euler(obj.rotation.x, obj.rotation.y, obj.rotation.z, "ZXY"),
+                    euler(obj.rotation.x, obj.rotation.y, obj.rotation.z),
                     obj.properties,
                     obj.unknown,
                 ),
@@ -61,7 +61,7 @@ export function convert_quest_to_model(area_store: AreaStore, quest: Quest): Que
                     npc.area_id,
                     npc.section_id,
                     vec3_to_threejs(npc.position),
-                    new Euler(npc.rotation.x, npc.rotation.y, npc.rotation.z, "ZXY"),
+                    euler(npc.rotation.x, npc.rotation.y, npc.rotation.z),
                     vec3_to_threejs(npc.scale),
                     npc.unknown,
                 ),

@@ -5,13 +5,16 @@ import { EditShortDescriptionAction } from "../actions/EditShortDescriptionActio
 import { EditLongDescriptionAction } from "../actions/EditLongDescriptionAction";
 import { QuestModel } from "../model/QuestModel";
 import { QuestEditorStore } from "../stores/QuestEditorStore";
+import { Controller } from "../../core/controllers/Controller";
 
-export class QuestInfoController {
+export class QuestInfoController extends Controller {
     readonly current_quest: Property<QuestModel | undefined>;
     readonly enabled: Property<boolean>;
     readonly unavailable: Property<boolean>;
 
     constructor(private readonly store: QuestEditorStore) {
+        super();
+
         this.current_quest = store.current_quest;
         this.enabled = store.quest_runner.running.map(r => !r);
         this.unavailable = this.current_quest.map(q => q == undefined);

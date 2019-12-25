@@ -1,7 +1,7 @@
 import { Disposable } from "../observable/Disposable";
 import { Disposer } from "../observable/Disposer";
 import { Observable } from "../observable/Observable";
-import { bind_hidden } from "./dom";
+import { bind_attr, bind_hidden } from "./dom";
 import { WritableProperty } from "../observable/property/WritableProperty";
 import { WidgetProperty } from "../observable/property/WidgetProperty";
 import { Property } from "../observable/property/Property";

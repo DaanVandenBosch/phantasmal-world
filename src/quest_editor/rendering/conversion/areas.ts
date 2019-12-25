@@ -1,7 +1,6 @@
 import {
     Color,
     DoubleSide,
-    Euler,
     Face3,
     Geometry,
     Group,
@@ -18,6 +17,7 @@ import { ninja_object_to_geometry_builder } from "../../../core/rendering/conver
 import { SectionModel } from "../../model/SectionModel";
 import { AreaVariantModel } from "../../model/AreaVariantModel";
 import { vec3_to_threejs } from "../../../core/rendering/conversion";
+import { euler } from "../../model/euler";
 
 const materials = [
     // Wall
@@ -154,7 +154,7 @@ export function area_geometry_to_sections_and_object_3d(
             const sec = new SectionModel(
                 section.id,
                 vec3_to_threejs(section.position),
-                new Euler(section.rotation.x, section.rotation.y, section.rotation.z, "ZXY"),
+                euler(section.rotation.x, section.rotation.y, section.rotation.z),
                 area_variant,
             );
             sections.push(sec);

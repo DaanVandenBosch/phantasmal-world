@@ -16,75 +16,90 @@ import {
 import { AreaVariantModel } from "../model/AreaVariantModel";
 import { HttpClient } from "../../core/HttpClient";
 import { Disposable } from "../../core/observable/Disposable";
+import { DisposablePromise } from "../../core/DisposablePromise";
+import { Disposer } from "../../core/observable/Disposer";
 
 export class AreaAssetLoader implements Disposable {
-    private readonly render_object_cache = new LoadingCache<string, Promise<RenderObject>>();
-    private readonly collision_object_cache = new LoadingCache<string, Promise<CollisionObject>>();
-    private readonly area_sections_cache = new LoadingCache<string, Promise<SectionModel[]>>();
+    private readonly disposer = new Disposer();
+    private readonly render_object_cache = this.disposer.add(
+        new LoadingCache<string, RenderObject>(),
+    );
+    private readonly collision_object_cache = this.disposer.add(
+        new LoadingCache<string, CollisionObject>(),
+    );
+    private readonly area_sections_cache = this.disposer.add(
+        new LoadingCache<string, SectionModel[]>(),
+    );
 
     constructor(private readonly http_client: HttpClient) {}
 
     dispose(): void {
-        this.render_object_cache.purge_all();
-        this.collision_object_cache.purge_all();
-        this.area_sections_cache.purge_all();
+        this.disposer.dispose();
     }
 
-    async load_sections(episode: Episode, area_variant: AreaVariantModel): Promise<SectionModel[]> {
+    load_sections(
+        episode: Episode,
+        area_variant: AreaVariantModel,
+    ): DisposablePromise<SectionModel[]> {
         const key = `${episode}-${area_variant.area.id}-${area_variant.id}`;
 
-        return await this.area_sections_cache.get_or_set(key, async () => {
-            return area_geometry_to_sections_and_object_3d(
-                await this.render_object_cache.get_or_set(key, () =>
-                    this.load_render_object(episode, area_variant),
+        return this.area_sections_cache.get_or_set(key, () =>
+            this.render_object_cache
+                .get_or_set(key, () => this.load_render_object(episode, area_variant))
+                .then(
+                    render_object =>
+                        area_geometry_to_sections_and_object_3d(render_object, area_variant)[0],
                 ),
-                area_variant,
-            )[0];
-        });
-    }
-
-    async load_render_geometry(
-        episode: Episode,
-        area_variant: AreaVariantModel,
-    ): Promise<Object3D> {
-        const key = `${episode}-${area_variant.area.id}-${area_variant.id}`;
-
-        const render_object = await this.render_object_cache.get_or_set(key, () =>
-            this.load_render_object(episode, area_variant),
         );
-
-        // Do not cache this call, multiple renderers need their own copy of the data.
-        return area_geometry_to_sections_and_object_3d(render_object, area_variant)[1];
     }
 
-    async load_collision_geometry(
+    load_render_geometry(
         episode: Episode,
         area_variant: AreaVariantModel,
-    ): Promise<Object3D> {
+    ): DisposablePromise<Object3D> {
         const key = `${episode}-${area_variant.area.id}-${area_variant.id}`;
 
-        const collision_object = await this.collision_object_cache.get_or_set(key, async () => {
-            const buffer = await this.get_area_asset(episode, area_variant, "collision");
-            return parse_area_collision_geometry(new ArrayBufferCursor(buffer, Endianness.Little));
-        });
-
-        // Do not cache this call, multiple renderers need their own copy of the data.
-        return area_collision_geometry_to_object_3d(collision_object);
+        return this.render_object_cache
+            .get_or_set(key, () => this.load_render_object(episode, area_variant))
+            .then(
+                render_object =>
+                    // Do not cache this call, multiple renderers need their own copy of the data.
+                    area_geometry_to_sections_and_object_3d(render_object, area_variant)[1],
+            );
     }
 
-    private async load_render_object(
+    load_collision_geometry(
         episode: Episode,
         area_variant: AreaVariantModel,
-    ): Promise<RenderObject> {
-        const buffer = await this.get_area_asset(episode, area_variant, "render");
-        return parse_area_geometry(new ArrayBufferCursor(buffer, Endianness.Little));
+    ): DisposablePromise<Object3D> {
+        const key = `${episode}-${area_variant.area.id}-${area_variant.id}`;
+
+        return this.collision_object_cache
+            .get_or_set(key, () =>
+                this.get_area_asset(episode, area_variant, "collision").then(buffer =>
+                    parse_area_collision_geometry(new ArrayBufferCursor(buffer, Endianness.Little)),
+                ),
+            )
+            .then(collision_object =>
+                // Do not cache this call, multiple renderers need their own copy of the data.
+                area_collision_geometry_to_object_3d(collision_object),
+            );
     }
 
-    private async get_area_asset(
+    private load_render_object(
+        episode: Episode,
+        area_variant: AreaVariantModel,
+    ): DisposablePromise<RenderObject> {
+        return this.get_area_asset(episode, area_variant, "render").then(buffer =>
+            parse_area_geometry(new ArrayBufferCursor(buffer, Endianness.Little)),
+        );
+    }
+
+    private get_area_asset(
         episode: Episode,
         area_variant: AreaVariantModel,
         type: "render" | "collision",
-    ): Promise<ArrayBuffer> {
+    ): DisposablePromise<ArrayBuffer> {
         const base_url = area_version_to_base_url(episode, area_variant);
         const suffix = type === "render" ? "n.rel" : "c.rel";
         return this.http_client.get(base_url + suffix).array_buffer();

@@ -6,6 +6,7 @@ import { SectionModel } from "./SectionModel";
 import { Euler, Quaternion, Vector3 } from "three";
 import { floor_mod } from "../../core/math";
 import { defined, require_integer } from "../../core/util";
+import { euler_from_quat } from "./euler";
 
 // These quaternions are used as temporary variables to avoid memory allocation.
 const q1 = new Quaternion();
@@ -132,9 +133,7 @@ export abstract class QuestEntityModel<Type extends EntityType = EntityType> {
         if (section) {
             q1.setFromEuler(rot);
             q2.setFromEuler(section.rotation);
-            this._world_rotation.val = floor_mod_euler(
-                new Euler().setFromQuaternion(q1.multiply(q2), "ZXY"),
-            );
+            this._world_rotation.val = floor_mod_euler(euler_from_quat(q1.multiply(q2)));
         } else {
             this._world_rotation.val = rot;
         }
@@ -154,9 +153,7 @@ export abstract class QuestEntityModel<Type extends EntityType = EntityType> {
             q2.setFromEuler(section.rotation);
             q2.inverse();
 
-            this._rotation.val = floor_mod_euler(
-                new Euler().setFromQuaternion(q1.multiply(q2), "ZXY"),
-            );
+            this._rotation.val = floor_mod_euler(euler_from_quat(q1.multiply(q2)));
         } else {
             this._rotation.val = rot;
         }

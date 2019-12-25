@@ -24,6 +24,7 @@ import { RegistersView } from "./gui/RegistersView";
 import { QuestInfoController } from "./controllers/QuestInfoController";
 import { Disposer } from "../core/observable/Disposer";
 import { Disposable } from "../core/observable/Disposable";
+import { EntityInfoController } from "./controllers/EntityInfoController";
 
 export function initialize_quest_editor(
     http_client: HttpClient,
@@ -71,7 +72,7 @@ export function initialize_quest_editor(
                     create_three_renderer(),
                 ),
             () => new AsmEditorView(gui_store, quest_editor_store.quest_runner, asm_editor_store),
-            () => new EntityInfoView(quest_editor_store),
+            () => new EntityInfoView(new EntityInfoController(quest_editor_store)),
             () => new NpcListView(quest_editor_store, entity_image_renderer),
             () => new ObjectListView(quest_editor_store, entity_image_renderer),
             () => new EventsView(quest_editor_store),
