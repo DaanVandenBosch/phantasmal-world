@@ -1,4 +1,5 @@
 .quest_editor_EntityListView {
+    outline: none;
     overflow: auto;
 }
 

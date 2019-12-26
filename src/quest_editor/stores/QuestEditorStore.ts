@@ -1,6 +1,6 @@
 import { property } from "../../core/observable";
 import { QuestModel } from "../model/QuestModel";
-import { Property, PropertyChangeEvent } from "../../core/observable/property/Property";
+import { Property } from "../../core/observable/property/Property";
 import { QuestObjectModel } from "../model/QuestObjectModel";
 import { QuestNpcModel } from "../model/QuestNpcModel";
 import { AreaModel } from "../model/AreaModel";
@@ -17,9 +17,6 @@ import { WritableProperty } from "../../core/observable/property/WritablePropert
 import { QuestRunner } from "../QuestRunner";
 import { AreaStore } from "./AreaStore";
 import { disposable_listener } from "../../core/gui/dom";
-import { QuestEventModel } from "../model/QuestEventModel";
-import { EditEventSectionIdAction } from "../actions/EditEventSectionIdAction";
-import { EditEventDelayAction } from "../actions/EditEventDelayAction";
 import { Store } from "../../core/stores/Store";
 import { LogManager } from "../../core/Logger";
 
@@ -145,14 +142,6 @@ export class QuestEditorStore extends Store {
 
     remove_entity = (entity: QuestEntityModel): void => {
         this.undo.push(new RemoveEntityAction(this, entity)).redo();
-    };
-
-    event_section_id_changed = (event: QuestEventModel, e: PropertyChangeEvent<number>): void => {
-        this.undo.push(new EditEventSectionIdAction(event, e.old_value, e.value)).redo();
-    };
-
-    event_delay_changed = (event: QuestEventModel, e: PropertyChangeEvent<number>): void => {
-        this.undo.push(new EditEventDelayAction(event, e.old_value, e.value)).redo();
     };
 
     async set_quest(quest?: QuestModel): Promise<void> {

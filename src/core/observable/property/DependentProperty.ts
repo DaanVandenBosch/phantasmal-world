@@ -1,7 +1,8 @@
 import { Disposable } from "../Disposable";
 import { Disposer } from "../Disposer";
 import { AbstractMinimalProperty } from "./AbstractMinimalProperty";
-import { Property, PropertyChangeEvent } from "./Property";
+import { Property } from "./Property";
+import { ChangeEvent } from "../Observable";
 
 /**
  * Starts observing its dependencies when the first observer on this property is registered.
@@ -29,12 +30,14 @@ export abstract class DependentProperty<T> extends AbstractMinimalProperty<T> {
     }
 
     observe(
-        observer: (event: PropertyChangeEvent<T>) => void,
+        observer: (event: ChangeEvent<T>) => void,
         options: { call_now?: boolean } = {},
     ): Disposable {
         const super_disposable = super.observe(observer, options);
 
         if (this.dependency_disposer.length === 0) {
+            this._val = this.compute_value();
+
             this.dependency_disposer.add_all(
                 ...this.dependencies.map(dependency =>
                     dependency.observe(() => {
@@ -42,13 +45,11 @@ export abstract class DependentProperty<T> extends AbstractMinimalProperty<T> {
                         this._val = this.compute_value();
 
                         if (this._val !== old_value) {
-                            this.emit(old_value);
+                            this.emit();
                         }
                     }),
                 ),
             );
-
-            this._val = this.compute_value();
         }
 
         return {

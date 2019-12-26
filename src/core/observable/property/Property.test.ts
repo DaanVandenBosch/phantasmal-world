@@ -4,9 +4,9 @@ import { list_property } from "../index";
 import { FlatMappedProperty } from "./FlatMappedProperty";
 import { SimpleListProperty } from "./list/SimpleListProperty";
 import { MappedListProperty } from "./list/MappedListProperty";
-import { is_property, Property, PropertyChangeEvent } from "./Property";
-import { is_list_property } from "./list/ListProperty";
+import { is_property, Property } from "./Property";
 import { FlatMappedListProperty } from "./list/FlatMappedListProperty";
+import { ChangeEvent } from "../Observable";
 
 // This suite tests every implementation of Property.
 
@@ -25,7 +25,7 @@ function test_property(
 
     test(`${name} should call observers immediately if added with call_now set to true`, () => {
         const { property } = create();
-        const events: PropertyChangeEvent<any>[] = [];
+        const events: ChangeEvent<any>[] = [];
 
         property.observe(event => events.push(event), { call_now: true });
 
@@ -34,56 +34,52 @@ function test_property(
 
     test(`${name} should propagate updates to mapped properties`, () => {
         const { property, emit } = create();
+
         let i = 0;
         const mapped = property.map(() => i++);
-        const events: PropertyChangeEvent<any>[] = [];
+        const initial_value = mapped.val;
+        const events: ChangeEvent<any>[] = [];
 
         mapped.observe(event => events.push(event));
 
         emit();
 
         expect(events.length).toBe(1);
+        expect(mapped.val !== initial_value).toBe(true);
     });
 
     test(`${name} should propagate updates to flat mapped properties`, () => {
         const { property, emit } = create();
+
         let i = 0;
         const flat_mapped = property.flat_map(() => new SimpleProperty(i++));
-        const events: PropertyChangeEvent<any>[] = [];
+        const initial_value = flat_mapped.val;
+        const events: ChangeEvent<any>[] = [];
 
         flat_mapped.observe(event => events.push(event));
 
         emit();
 
         expect(events.length).toBe(1);
+        expect(flat_mapped.val !== initial_value).toBe(true);
     });
 
-    test(`${name} should correctly set value and old_value in emitted PropertyChangeEvents`, () => {
+    test(`${name} should correctly set value in emitted ChangeEvents`, () => {
         const { property, emit } = create();
 
-        const events: PropertyChangeEvent<any>[] = [];
+        const events: ChangeEvent<any>[] = [];
 
         property.observe(event => events.push(event));
-
-        const initial_value = property.val;
 
         emit();
 
         expect(events.length).toBe(1);
         expect(events[0].value).toBe(property.val);
 
-        if (!is_list_property(property)) {
-            expect(events[0].old_value).toBe(initial_value);
-        }
-
         emit();
 
         expect(events.length).toBe(2);
         expect(events[1].value).toBe(property.val);
-
-        if (!is_list_property(property)) {
-            expect(events[1].old_value).toBe(events[0].value);
-        }
     });
 }
 
@@ -155,4 +151,15 @@ test_property(`${FlatMappedListProperty.name} (nested property emits)`, () => {
         property,
         emit: () => list.get(0).push(10),
     };
+});
+
+test("aaaaaaaaaaaaaaaaaaargh", () => {
+    const property: Property<{ x?: Property<number> }> = new SimpleProperty({});
+    const flat_mapped = property.flat_map(p => p.x ?? new SimpleProperty(13));
+
+    expect(flat_mapped.val).toBe(13);
+
+    property.val.x = new SimpleProperty(17);
+
+    expect(flat_mapped.val).toBe(17);
 });

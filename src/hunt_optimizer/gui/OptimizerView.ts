@@ -1,13 +1,13 @@
 import { ResizableWidget } from "../../core/gui/ResizableWidget";
-import { el } from "../../core/gui/dom";
 import { WantedItemsView } from "./WantedItemsView";
 import "./OptimizerView.css";
 import { OptimizationResultView } from "./OptimizationResultView";
 import { ServerMap } from "../../core/stores/ServerMap";
 import { HuntOptimizerStore } from "../stores/HuntOptimizerStore";
+import { div } from "../../core/gui/dom";
 
 export class OptimizerView extends ResizableWidget {
-    readonly element = el.div({ class: "hunt_optimizer_OptimizerView" });
+    readonly element = div({ className: "hunt_optimizer_OptimizerView" });
 
     constructor(hunt_optimizer_stores: ServerMap<HuntOptimizerStore>) {
         super();

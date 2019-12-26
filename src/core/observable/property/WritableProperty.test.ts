@@ -1,7 +1,7 @@
 import { SimpleProperty } from "./SimpleProperty";
 import { SimpleListProperty } from "./list/SimpleListProperty";
-import { PropertyChangeEvent } from "./Property";
 import { WritableProperty } from "./WritableProperty";
+import { ChangeEvent } from "../Observable";
 
 // This suite tests every implementation of WritableProperty.
 
@@ -13,9 +13,9 @@ function test_writable_property<T>(
         create_val: () => T;
     },
 ): void {
-    test(`${name} should emit a PropertyChangeEvent when val is modified`, () => {
+    test(`${name} should emit a ChangeEvent when val is modified`, () => {
         const { property, create_val } = create();
-        const events: PropertyChangeEvent<T>[] = [];
+        const events: ChangeEvent<T>[] = [];
 
         property.observe(event => events.push(event));
 

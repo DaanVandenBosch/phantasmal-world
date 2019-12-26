@@ -6,7 +6,7 @@ export enum ListChangeType {
     ValueChange,
 }
 
-export type ListPropertyChangeEvent<T> = ListChange<T> | ListValueChange<T>;
+export type ListChangeEvent<T> = ListChange<T> | ListValueChange<T>;
 
 export type ListChange<T> = {
     readonly type: ListChangeType.ListChange;
@@ -29,7 +29,7 @@ export interface ListProperty<T> extends Property<readonly T[]> {
     get(index: number): T;
 
     observe_list(
-        observer: (change: ListPropertyChangeEvent<T>) => void,
+        observer: (change: ListChangeEvent<T>) => void,
         options?: { call_now?: boolean },
     ): Disposable;
 

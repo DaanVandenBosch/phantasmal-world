@@ -1,4 +1,4 @@
-import { bind_children_to, el } from "../../core/gui/dom";
+import { bind_children_to, div } from "../../core/gui/dom";
 import { ResizableWidget } from "../../core/gui/ResizableWidget";
 import { ToolBar } from "../../core/gui/ToolBar";
 import "./LogView.css";
@@ -9,7 +9,7 @@ import { LogEntry, LogLevel, LogLevels, time_to_string } from "../../core/Logger
 const AUTOSCROLL_TRESHOLD = 5;
 
 export class LogView extends ResizableWidget {
-    readonly element = el.div({ class: "quest_editor_LogView", tab_index: -1 });
+    readonly element = div({ className: "quest_editor_LogView", tabIndex: -1 });
 
     // container is needed to get a scrollbar in the right place
     private readonly list_container: HTMLElement;
@@ -23,8 +23,8 @@ export class LogView extends ResizableWidget {
     constructor() {
         super();
 
-        this.list_container = el.div({ class: "quest_editor_LogView_list_container" });
-        this.list_element = el.div({ class: "quest_editor_LogView_message_list" });
+        this.list_container = div({ className: "quest_editor_LogView_list_container" });
+        this.list_element = div({ className: "quest_editor_LogView_message_list" });
 
         this.level_filter = this.disposable(
             new Select({
@@ -87,25 +87,16 @@ export class LogView extends ResizableWidget {
     };
 
     private create_message_element = ({ time, level, message }: LogEntry): HTMLElement => {
-        return el.div(
+        return div(
             {
-                class: [
+                className: [
                     "quest_editor_LogView_message",
                     "quest_editor_LogView_" + LogLevel[level] + "_message",
                 ].join(" "),
             },
-            el.div({
-                class: "quest_editor_LogView_message_timestamp",
-                text: time_to_string(time),
-            }),
-            el.div({
-                class: "quest_editor_LogView_message_level",
-                text: "[" + LogLevel[level] + "]",
-            }),
-            el.div({
-                class: "quest_editor_LogView_message_contents",
-                text: message,
-            }),
+            div({ className: "quest_editor_LogView_message_timestamp" }, time_to_string(time)),
+            div({ className: "quest_editor_LogView_message_level" }, "[" + LogLevel[level] + "]"),
+            div({ className: "quest_editor_LogView_message_contents" }, message),
         );
     };
 }

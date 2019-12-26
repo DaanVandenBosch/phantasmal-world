@@ -1,4 +1,3 @@
-import { el } from "../../../core/gui/dom";
 import { ResizableWidget } from "../../../core/gui/ResizableWidget";
 import "./Model3DView.css";
 import { GuiStore, GuiTool } from "../../../core/stores/GuiStore";
@@ -10,12 +9,13 @@ import { CharacterClassModel } from "../../model/CharacterClassModel";
 import { CharacterClassAnimationModel } from "../../model/CharacterClassAnimationModel";
 import { Model3DStore } from "../../stores/Model3DStore";
 import { DisposableThreeRenderer } from "../../../core/rendering/Renderer";
+import { div } from "../../../core/gui/dom";
 
 const MODEL_LIST_WIDTH = 100;
 const ANIMATION_LIST_WIDTH = 140;
 
 export class Model3DView extends ResizableWidget {
-    readonly element = el.div({ class: "viewer_Model3DView" });
+    readonly element = div({ className: "viewer_Model3DView" });
 
     private tool_bar_view: Model3DToolBar;
     private model_list_view: Model3DSelectListView<CharacterClassModel>;
@@ -52,8 +52,8 @@ export class Model3DView extends ResizableWidget {
 
         this.element.append(
             this.tool_bar_view.element,
-            el.div(
-                { class: "viewer_Model3DView_container" },
+            div(
+                { className: "viewer_Model3DView_container" },
                 this.model_list_view.element,
                 this.animation_list_view.element,
                 this.renderer_view.element,

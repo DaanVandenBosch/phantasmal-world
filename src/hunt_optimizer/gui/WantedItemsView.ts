@@ -1,4 +1,4 @@
-import { bind_children_to, el, Icon } from "../../core/gui/dom";
+import { bind_children_to, div, h2, Icon, table, tbody, td, tr } from "../../core/gui/dom";
 import "./WantedItemsView.css";
 import { Button } from "../../core/gui/Button";
 import { Disposer } from "../../core/observable/Disposer";
@@ -16,9 +16,9 @@ import { LogManager } from "../../core/Logger";
 const logger = LogManager.get("hunt_optimizer/gui/WantedItemsView");
 
 export class WantedItemsView extends Widget {
-    readonly element = el.div({ class: "hunt_optimizer_WantedItemsView" });
+    readonly element = div({ className: "hunt_optimizer_WantedItemsView" });
 
-    private readonly tbody_element = el.tbody();
+    private readonly tbody_element = tbody();
     private readonly store_disposer = this.disposable(new Disposer());
 
     constructor(private readonly hunt_optimizer_stores: ServerMap<HuntOptimizerStore>) {
@@ -42,11 +42,11 @@ export class WantedItemsView extends Widget {
         );
 
         this.element.append(
-            el.h2({ text: "Wanted Items" }),
+            h2("Wanted Items"),
             combo_box.element,
-            el.div(
-                { class: "hunt_optimizer_WantedItemsView_table_wrapper" },
-                el.table({}, this.tbody_element),
+            div(
+                { className: "hunt_optimizer_WantedItemsView_table_wrapper" },
+                table(this.tbody_element),
             ),
         );
 
@@ -108,12 +108,7 @@ export class WantedItemsView extends Widget {
         );
 
         return [
-            el.tr(
-                {},
-                el.td({}, amount_input.element),
-                el.td({ text: wanted_item.item_type.name }),
-                el.td({}, remove_button.element),
-            ),
+            tr(td(amount_input.element), td(wanted_item.item_type.name), td(remove_button.element)),
             row_disposer,
         ];
     };

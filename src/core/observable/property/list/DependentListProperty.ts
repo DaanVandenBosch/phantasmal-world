@@ -1,8 +1,9 @@
-import { ListChangeType, ListPropertyChangeEvent } from "./ListProperty";
-import { Property, PropertyChangeEvent } from "../Property";
+import { ListChangeType, ListChangeEvent } from "./ListProperty";
+import { Property } from "../Property";
 import { Disposable } from "../../Disposable";
 import { AbstractListProperty } from "./AbstractListProperty";
 import { Disposer } from "../../Disposer";
+import { ChangeEvent } from "../../Observable";
 
 /**
  * Starts observing its dependencies when the first observer on this property is registered.
@@ -30,7 +31,7 @@ export abstract class DependentListProperty<T> extends AbstractListProperty<T> {
     }
 
     observe(
-        observer: (event: PropertyChangeEvent<readonly T[]>) => void,
+        observer: (event: ChangeEvent<readonly T[]>) => void,
         options: { call_now?: boolean } = {},
     ): Disposable {
         const super_disposable = super.observe(observer, options);
@@ -46,7 +47,7 @@ export abstract class DependentListProperty<T> extends AbstractListProperty<T> {
     }
 
     observe_list(
-        observer: (change: ListPropertyChangeEvent<T>) => void,
+        observer: (change: ListChangeEvent<T>) => void,
         options?: { call_now?: boolean },
     ): Disposable {
         const super_disposable = super.observe_list(observer, options);
@@ -73,6 +74,8 @@ export abstract class DependentListProperty<T> extends AbstractListProperty<T> {
 
     private init_dependency_disposables(): void {
         if (this.dependency_disposer.length === 0) {
+            this.values = this.compute_values();
+
             this.dependency_disposer.add_all(
                 ...this.dependencies.map(dependency =>
                     dependency.observe(() => {
@@ -88,8 +91,6 @@ export abstract class DependentListProperty<T> extends AbstractListProperty<T> {
                     }),
                 ),
             );
-
-            this.values = this.compute_values();
         }
     }
 

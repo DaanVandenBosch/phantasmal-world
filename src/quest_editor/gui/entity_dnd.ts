@@ -1,7 +1,7 @@
 import { entity_data, EntityType } from "../../core/data_formats/parsing/quest/entities";
 import { Disposable } from "../../core/observable/Disposable";
-import { el } from "../../core/gui/dom";
 import { Vector2 } from "three";
+import { div } from "../../core/gui/dom";
 
 export type EntityDragEvent = {
     readonly entity_type: EntityType;
@@ -69,7 +69,7 @@ export function entity_dnd_source(
 
                 if (e.dataTransfer) {
                     e.dataTransfer.effectAllowed = "copy";
-                    e.dataTransfer.setDragImage(el.div(), 0, 0);
+                    e.dataTransfer.setDragImage(div(), 0, 0);
                     // setData is necessary for FireFox.
                     e.dataTransfer.setData(
                         "phantasmal-entity",

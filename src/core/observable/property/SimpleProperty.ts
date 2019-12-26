@@ -23,11 +23,10 @@ export class SimpleProperty<T> extends AbstractProperty<T> implements WritablePr
 
     set_val(val: T, options: { silent?: boolean } = {}): void {
         if (val !== this._val) {
-            const old_value = this._val;
             this._val = val;
 
             if (!options.silent) {
-                this.emit(old_value);
+                this.emit();
             }
         }
     }
@@ -37,7 +36,7 @@ export class SimpleProperty<T> extends AbstractProperty<T> implements WritablePr
     }
 
     bind_to(observable: Observable<T>): Disposable {
-        if (is_property(observable)) {
+        if (is_property<T>(observable)) {
             this.val = observable.val;
         }
 

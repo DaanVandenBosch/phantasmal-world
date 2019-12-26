@@ -1,4 +1,4 @@
-import { disposable_listener, el, Icon } from "./dom";
+import { disposable_listener, div, Icon } from "./dom";
 import "./DropDown.css";
 import { Property } from "../observable/property/Property";
 import { Button, ButtonOptions } from "./Button";
@@ -15,7 +15,7 @@ export type DropDownOptions<T> = ButtonOptions & {
 };
 
 export class DropDown<T> extends Control {
-    readonly element = el.div({ class: "core_DropDown" });
+    readonly element = div({ className: "core_DropDown" });
 
     readonly chosen: Observable<T>;
 

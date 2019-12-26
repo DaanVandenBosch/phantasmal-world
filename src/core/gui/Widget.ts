@@ -1,7 +1,7 @@
 import { Disposable } from "../observable/Disposable";
 import { Disposer } from "../observable/Disposer";
 import { Observable } from "../observable/Observable";
-import { bind_attr, bind_hidden } from "./dom";
+import { bind_hidden } from "./dom";
 import { WritableProperty } from "../observable/property/WritableProperty";
 import { WidgetProperty } from "../observable/property/WidgetProperty";
 import { Property } from "../observable/property/Property";
@@ -61,7 +61,7 @@ export abstract class Widget implements Disposable {
 
         setTimeout(() => {
             if (!this.construction_finalized) {
-                logger.warn(
+                logger.error(
                     `finalize_construction is never called for ${
                         Object.getPrototypeOf(this).constructor.name
                     }.`,

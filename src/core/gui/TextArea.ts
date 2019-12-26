@@ -1,8 +1,8 @@
 import { LabelledControl, LabelledControlOptions } from "./LabelledControl";
-import { el } from "./dom";
 import { WritableProperty } from "../observable/property/WritableProperty";
 import "./TextArea.css";
 import { WidgetProperty } from "../observable/property/WidgetProperty";
+import { div, textarea } from "./dom";
 
 export type TextAreaOptions = LabelledControlOptions & {
     max_length?: number;
@@ -12,14 +12,14 @@ export type TextAreaOptions = LabelledControlOptions & {
 };
 
 export class TextArea extends LabelledControl {
-    readonly element = el.div({ class: "core_TextArea" });
+    readonly element = div({ className: "core_TextArea" });
 
     readonly preferred_label_position = "left";
 
     readonly value: WritableProperty<string>;
 
-    private readonly text_element: HTMLTextAreaElement = el.textarea({
-        class: "core_TextArea_inner",
+    private readonly text_element: HTMLTextAreaElement = textarea({
+        className: "core_TextArea_inner",
     });
 
     private readonly _value = new WidgetProperty<string>(this, "", this.set_value);

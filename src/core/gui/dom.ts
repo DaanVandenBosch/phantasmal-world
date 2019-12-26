@@ -3,133 +3,177 @@ import { Observable } from "../observable/Observable";
 import { is_property } from "../observable/property/Property";
 import { SectionId } from "../model";
 import {
+    ListChangeEvent,
     ListChangeType,
     ListProperty,
-    ListPropertyChangeEvent,
 } from "../observable/property/list/ListProperty";
 import { Disposer } from "../observable/Disposer";
 
-type ElementAttributes = {
-    class?: string;
-    tab_index?: number;
-    text?: string;
-    title?: string;
-    data?: { [key: string]: string };
-};
+type Attributes<E> = Partial<E> & { data?: { [key: string]: string } };
 
-export const el = {
-    div: (attributes?: ElementAttributes, ...children: HTMLElement[]): HTMLDivElement =>
-        create_element("div", attributes, ...children),
+type Child = string | Node;
 
-    span: (attributes?: ElementAttributes, ...children: HTMLElement[]): HTMLSpanElement =>
-        create_element("span", attributes, ...children),
+export function a(
+    attributes?: Attributes<HTMLAnchorElement>,
+    ...children: Child[]
+): HTMLAnchorElement {
+    const element = create_element("a", attributes, ...children);
 
-    h2: (attributes?: ElementAttributes, ...children: HTMLElement[]): HTMLHeadingElement =>
-        create_element("h2", attributes, ...children),
+    if (attributes && attributes.href && attributes.href.trimLeft().startsWith("http")) {
+        element.target = "_blank";
+        element.rel = "noopener noreferrer";
+    }
 
-    p: (attributes?: ElementAttributes, ...children: HTMLElement[]): HTMLParagraphElement =>
-        create_element("p", attributes, ...children),
+    return element;
+}
 
-    a: (
-        attributes?: ElementAttributes & {
-            href?: string;
-        },
-        ...children: HTMLElement[]
-    ): HTMLAnchorElement => {
-        const element = create_element<HTMLAnchorElement>("a", attributes, ...children);
+export function button(
+    attributes?: Attributes<HTMLButtonElement>,
+    ...children: Child[]
+): HTMLButtonElement {
+    return create_element("button", attributes, ...children);
+}
 
-        if (attributes && attributes.href && attributes.href.trimLeft().startsWith("http")) {
-            element.target = "_blank";
-            element.rel = "noopener noreferrer";
-        }
+export function div(attributes?: Attributes<HTMLDivElement>, ...children: Child[]): HTMLDivElement {
+    return create_element("div", attributes, ...children);
+}
 
-        return element;
-    },
+export function h2(
+    attributes?: Attributes<HTMLHeadingElement>,
+    ...children: Child[]
+): HTMLHeadingElement {
+    return create_element("h2", attributes, ...children);
+}
 
-    img: (
-        attributes?: ElementAttributes & {
-            src?: string;
-            width?: number;
-            height?: number;
-            alt?: string;
-        },
-        ...children: HTMLImageElement[]
-    ): HTMLImageElement => create_element("img", attributes, ...children),
+export function input(
+    attributes?: Attributes<HTMLInputElement>,
+    ...children: HTMLImageElement[]
+): HTMLInputElement {
+    return create_element("input", attributes, ...children);
+}
 
-    table: (attributes?: ElementAttributes, ...children: HTMLElement[]): HTMLTableElement =>
-        create_element("table", attributes, ...children),
+export function img(
+    attributes?: Attributes<HTMLImageElement>,
+    ...children: HTMLImageElement[]
+): HTMLImageElement {
+    return create_element("img", attributes, ...children);
+}
 
-    thead: (attributes?: ElementAttributes, ...children: HTMLElement[]): HTMLTableSectionElement =>
-        create_element("thead", attributes, ...children),
+export function label(
+    attributes?: Attributes<HTMLLabelElement>,
+    ...children: Child[]
+): HTMLLabelElement {
+    return create_element("label", attributes, ...children);
+}
 
-    tbody: (attributes?: ElementAttributes, ...children: HTMLElement[]): HTMLTableSectionElement =>
-        create_element("tbody", attributes, ...children),
+export function li(attributes?: Attributes<HTMLLIElement>, ...children: Child[]): HTMLLIElement {
+    return create_element("li", attributes, ...children);
+}
 
-    tfoot: (attributes?: ElementAttributes, ...children: HTMLElement[]): HTMLTableSectionElement =>
-        create_element("tfoot", attributes, ...children),
+export function p(
+    attributes?: Attributes<HTMLParagraphElement>,
+    ...children: Child[]
+): HTMLParagraphElement {
+    return create_element("p", attributes, ...children);
+}
 
-    tr: (attributes?: ElementAttributes, ...children: HTMLElement[]): HTMLTableRowElement =>
-        create_element("tr", attributes, ...children),
+export function span(
+    attributes?: Attributes<HTMLSpanElement>,
+    ...children: Child[]
+): HTMLSpanElement {
+    return create_element("span", attributes, ...children);
+}
 
-    th: (
-        attributes?: ElementAttributes & { col_span?: number },
-        ...children: HTMLElement[]
-    ): HTMLTableHeaderCellElement => create_element("th", attributes, ...children),
+export function table(
+    attributes?: Attributes<HTMLTableElement>,
+    ...children: Child[]
+): HTMLTableElement {
+    return create_element("table", attributes, ...children);
+}
 
-    td: (
-        attributes?: ElementAttributes & { col_span?: number },
-        ...children: HTMLElement[]
-    ): HTMLTableCellElement => create_element("td", attributes, ...children),
+export function tbody(
+    attributes?: Attributes<HTMLTableSectionElement>,
+    ...children: Child[]
+): HTMLTableSectionElement {
+    return create_element("tbody", attributes, ...children);
+}
 
-    button: (attributes?: ElementAttributes, ...children: HTMLElement[]): HTMLButtonElement =>
-        create_element("button", attributes, ...children),
+export function td(
+    attributes?: Attributes<HTMLTableCellElement>,
+    ...children: Child[]
+): HTMLTableCellElement {
+    return create_element("td", attributes, ...children);
+}
 
-    textarea: (attributes?: ElementAttributes, ...children: HTMLElement[]): HTMLTextAreaElement =>
-        create_element("textarea", attributes, ...children),
-};
+export function textarea(
+    attributes?: Attributes<HTMLTextAreaElement>,
+    ...children: Child[]
+): HTMLTextAreaElement {
+    return create_element("textarea", attributes, ...children);
+}
 
-export function create_element<T extends HTMLElement>(
+export function tfoot(
+    attributes?: Attributes<HTMLTableSectionElement>,
+    ...children: Child[]
+): HTMLTableSectionElement {
+    return create_element("tfoot", attributes, ...children);
+}
+
+export function th(
+    attributes?: Attributes<HTMLTableHeaderCellElement>,
+    ...children: Child[]
+): HTMLTableHeaderCellElement {
+    return create_element("th", attributes, ...children);
+}
+
+export function thead(
+    attributes?: Attributes<HTMLTableSectionElement>,
+    ...children: Child[]
+): HTMLTableSectionElement {
+    return create_element("thead", attributes, ...children);
+}
+
+export function tr(
+    attributes?: Attributes<HTMLTableRowElement>,
+    ...children: Child[]
+): HTMLTableRowElement {
+    return create_element("tr", attributes, ...children);
+}
+
+export function ul(
+    attributes?: Attributes<HTMLUListElement>,
+    ...children: Child[]
+): HTMLUListElement {
+    return create_element("ul", attributes, ...children);
+}
+
+function create_element<E extends HTMLElement>(
     tag_name: string,
-    attributes?: ElementAttributes & {
-        href?: string;
-        src?: string;
-        width?: number;
-        height?: number;
-        alt?: string;
-        col_span?: number;
-    },
-    ...children: HTMLElement[]
-): T {
-    const element = document.createElement(tag_name) as any;
+    attributes?: Attributes<E>,
+    ...children: Child[]
+): E {
+    const element = (document.createElement(tag_name) as any) as E;
 
     if (attributes) {
-        if (attributes instanceof HTMLElement) {
+        // noinspection SuspiciousTypeOfGuard
+        if (attributes instanceof Element || typeof attributes === "string") {
             element.append(attributes);
         } else {
-            if (attributes.class != undefined) element.className = attributes.class;
-            if (attributes.text != undefined) element.textContent = attributes.text;
-            if (attributes.title != undefined) element.title = attributes.title;
-            if (attributes.href != undefined) element.href = attributes.href;
-            if (attributes.src != undefined) element.src = attributes.src;
-            if (attributes.width != undefined) element.width = attributes.width;
-            if (attributes.height != undefined) element.height = attributes.height;
-            if (attributes.alt != undefined) element.alt = attributes.alt;
+            const data = attributes.data;
+            delete attributes.data;
+            Object.assign(element, attributes);
 
-            if (attributes.data) {
-                for (const [key, val] of Object.entries(attributes.data)) {
+            if (data) {
+                for (const [key, val] of Object.entries(data)) {
                     element.dataset[key] = val;
                 }
             }
-
-            if (attributes.col_span != undefined) element.colSpan = attributes.col_span;
-
-            if (attributes.tab_index != undefined) element.tabIndex = attributes.tab_index;
         }
     }
 
     element.append(...children);
 
-    return (element as HTMLElement) as T;
+    return element;
 }
 
 export function bind_attr<E extends Element, A extends keyof E>(
@@ -137,7 +181,7 @@ export function bind_attr<E extends Element, A extends keyof E>(
     attribute: A,
     observable: Observable<E[A]>,
 ): Disposable {
-    if (is_property(observable)) {
+    if (is_property<E[A]>(observable)) {
         element[attribute] = observable.val;
     }
 
@@ -225,11 +269,11 @@ export function icon(icon: Icon): HTMLElement {
             break;
     }
 
-    return el.span({ class: icon_str });
+    return span({ className: icon_str });
 }
 
 export function section_id_icon(section_id: SectionId, options?: { size?: number }): HTMLElement {
-    const element = el.span();
+    const element = span();
     const size = options && options.size;
 
     element.style.display = "inline-block";
@@ -310,7 +354,7 @@ export function bind_children_to<T>(
 ): Disposable {
     const children_disposer = new Disposer();
 
-    const observer = list.observe_list((change: ListPropertyChangeEvent<T>) => {
+    const observer = list.observe_list((change: ListChangeEvent<T>) => {
         if (change.type === ListChangeType.ListChange) {
             splice_children(change.index, change.removed.length, change.inserted);
         } else if (change.type === ListChangeType.ValueChange) {

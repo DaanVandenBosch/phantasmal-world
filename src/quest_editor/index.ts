@@ -26,6 +26,7 @@ import { Disposer } from "../core/observable/Disposer";
 import { Disposable } from "../core/observable/Disposable";
 import { EntityInfoController } from "./controllers/EntityInfoController";
 import { NpcCountsController } from "./controllers/NpcCountsController";
+import { EventsController } from "./controllers/EventsController";
 
 export function initialize_quest_editor(
     http_client: HttpClient,
@@ -78,7 +79,7 @@ export function initialize_quest_editor(
             () => new EntityInfoView(disposer.add(new EntityInfoController(quest_editor_store))),
             () => new NpcListView(quest_editor_store, entity_image_renderer),
             () => new ObjectListView(quest_editor_store, entity_image_renderer),
-            () => new EventsView(quest_editor_store),
+            () => new EventsView(disposer.add(new EventsController(quest_editor_store))),
             () =>
                 new QuestRunnerRendererView(
                     gui_store,

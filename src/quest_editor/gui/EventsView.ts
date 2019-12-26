@@ -1,16 +1,13 @@
 import { ResizableWidget } from "../../core/gui/ResizableWidget";
-import { el } from "../../core/gui/dom";
 import { QuestEventDagModel } from "../model/QuestEventDagModel";
 import { Disposer } from "../../core/observable/Disposer";
-import { NumberInput } from "../../core/gui/NumberInput";
 import "./EventsView.css";
-import { Disposable } from "../../core/observable/Disposable";
+import { EventsController } from "../controllers/EventsController";
+import { UnavailableView } from "./UnavailableView";
+import { bind_attr, div, table, td, th, tr } from "../../core/gui/dom";
+import { ListChangeEvent, ListChangeType } from "../../core/observable/property/list/ListProperty";
 import { defer } from "lodash";
-import {
-    ListChangeType,
-    ListPropertyChangeEvent,
-} from "../../core/observable/property/list/ListProperty";
-import { QuestEditorStore } from "../stores/QuestEditorStore";
+import { NumberInput } from "../../core/gui/NumberInput";
 
 type DagGuiData = {
     dag: QuestEventDagModel;
@@ -25,19 +22,28 @@ type DagGuiData = {
 
 export class EventsView extends ResizableWidget {
     private readonly dag_gui_data: DagGuiData[] = [];
-    private event_dags_observer?: Disposable;
 
-    readonly element = el.div({ class: "quest_editor_EventsView" });
+    private readonly container_element = div({ className: "quest_editor_EventsView_container" });
+    private readonly unavailable_view = new UnavailableView("No quest loaded.");
 
-    constructor(private readonly quest_editor_store: QuestEditorStore) {
+    readonly element = div(
+        { className: "quest_editor_EventsView", tabIndex: -1 },
+        this.container_element,
+        this.unavailable_view.element,
+    );
+
+    constructor(private readonly ctrl: EventsController) {
         super();
 
-        this.element.addEventListener("focus", () => quest_editor_store.undo.make_current(), true);
+        this.element.addEventListener("focus", ctrl.focused, true);
 
         this.disposables(
-            quest_editor_store.current_quest.observe(this.update),
-            quest_editor_store.current_area.observe(this.update),
-            this.enabled.bind_to(quest_editor_store.quest_runner.running.map(r => !r)),
+            bind_attr(this.container_element, "hidden", ctrl.unavailable),
+            this.unavailable_view.visible.bind_to(ctrl.unavailable),
+
+            this.enabled.bind_to(ctrl.enabled),
+
+            ctrl.event_dags.observe_list(this.observe_event_dags),
         );
 
         this.finalize_construction();
@@ -57,54 +63,12 @@ export class EventsView extends ResizableWidget {
     dispose(): void {
         super.dispose();
 
-        if (this.event_dags_observer) {
-            this.event_dags_observer.dispose();
-        }
-
         for (const { disposer } of this.dag_gui_data) {
             disposer.dispose();
         }
     }
 
-    private update = (): void => {
-        if (this.event_dags_observer) {
-            this.event_dags_observer.dispose();
-        }
-
-        const quest = this.quest_editor_store.current_quest.val;
-        const area = this.quest_editor_store.current_area.val;
-
-        if (quest && area) {
-            const event_dags = quest.event_dags.filtered(dag => dag.area_id === area.id);
-            this.event_dags_observer = event_dags.observe_list(this.observe_event_dags);
-            this.redraw_event_dags(event_dags.val);
-        } else {
-            this.event_dags_observer = undefined;
-            this.redraw_event_dags([]);
-        }
-    };
-
-    private redraw_event_dags = (event_dags: readonly QuestEventDagModel[]): void => {
-        this.element.innerHTML = "";
-
-        for (const removed of this.dag_gui_data.splice(0, this.dag_gui_data.length)) {
-            removed.disposer.dispose();
-        }
-
-        let index = 0;
-
-        for (const dag of event_dags) {
-            const data = this.create_dag_ui_data(dag);
-            this.dag_gui_data.splice(index, 0, data);
-            this.element.append(data.element);
-
-            index++;
-        }
-
-        defer(this.update_edges);
-    };
-
-    private observe_event_dags = (change: ListPropertyChangeEvent<QuestEventDagModel>): void => {
+    private observe_event_dags = (change: ListChangeEvent<QuestEventDagModel>): void => {
         if (change.type === ListChangeType.ListChange) {
             for (const removed of this.dag_gui_data.splice(change.index, change.removed.length)) {
                 removed.element.remove();
@@ -116,7 +80,10 @@ export class EventsView extends ResizableWidget {
             for (const dag of change.inserted) {
                 const data = this.create_dag_ui_data(dag);
                 this.dag_gui_data.splice(index, 0, data);
-                this.element.insertBefore(data.element, this.element.children.item(index));
+                this.container_element.insertBefore(
+                    data.element,
+                    this.container_element.children.item(index),
+                );
 
                 index++;
             }
@@ -129,14 +96,12 @@ export class EventsView extends ResizableWidget {
         const disposer = new Disposer();
         const event_gui_data = new Map<number, { element: HTMLDivElement; position: number }>();
 
-        const element = el.div({ class: "quest_editor_EventsView_dag" });
+        const element = div({ className: "quest_editor_EventsView_dag" });
 
-        const edge_container_element = el.div({
-            class: "quest_editor_EventsView_edge_container",
+        const edge_container_element = div({
+            className: "quest_editor_EventsView_edge_container",
         });
         element.append(edge_container_element);
-
-        const inputs_enabled = this.quest_editor_store.quest_runner.running.map(r => !r);
 
         dag.events.forEach((event, i) => {
             const section_id_input = disposer.add(new NumberInput(event.section_id.val));
@@ -145,25 +110,21 @@ export class EventsView extends ResizableWidget {
 
             disposer.add_all(
                 section_id_input.value.bind_to(event.section_id),
-                section_id_input.value.observe(e =>
-                    this.quest_editor_store.event_section_id_changed(event, e),
-                ),
-                section_id_input.enabled.bind_to(inputs_enabled),
+                section_id_input.value.observe(e => this.ctrl.set_section_id(event, e.value)),
+                section_id_input.enabled.bind_to(this.ctrl.enabled),
 
                 delay_input.value.bind_to(event.delay),
-                delay_input.value.observe(e =>
-                    this.quest_editor_store.event_delay_changed(event, e),
-                ),
-                delay_input.enabled.bind_to(inputs_enabled),
+                delay_input.value.observe(e => this.ctrl.set_delay(event, e.value)),
+                delay_input.enabled.bind_to(this.ctrl.enabled),
             );
 
-            const event_element = el.div(
-                { class: "quest_editor_EventsView_event" },
-                el.table(
-                    el.tr(el.th({ text: "ID:" }), el.td({ text: event.id.toString() })),
-                    el.tr(el.th({ text: "Section:" }), el.td(section_id_input.element)),
-                    el.tr(el.th({ text: "Wave:" }), el.td({ text: event.wave.toString() })),
-                    el.tr(el.th({ text: "Delay:" }), el.td(delay_input.element)),
+            const event_element = div(
+                { className: "quest_editor_EventsView_event" },
+                table(
+                    tr(th("ID:"), td(event.id.toString())),
+                    tr(th("Section:"), td(section_id_input.element)),
+                    tr(th("Wave:"), td(event.wave.toString())),
+                    tr(th("Delay:"), td(delay_input.element)),
                 ),
             );
 
@@ -182,7 +143,7 @@ export class EventsView extends ResizableWidget {
 
     /**
      * This method does measurements of the event elements. So it should be called after the event
-     * elements have been added to the DOM and have been *laid out* by the browser.
+     * elements have been added to the DOM and have been laid out by the browser.
      */
     private update_edges = (): void => {
         const SPACING = 8;
@@ -208,7 +169,7 @@ export class EventsView extends ResizableWidget {
                     )!;
                     const child_y_offset = child_element.offsetTop;
 
-                    const edge_element = el.div({ class: "quest_editor_EventsView_edge" });
+                    const edge_element = div({ className: "quest_editor_EventsView_edge" });
 
                     const top = Math.min(y_offset, child_y_offset) - 20;
                     const height = Math.max(y_offset, child_y_offset) - top + 20;

@@ -1,5 +1,5 @@
 import { ResizableWidget } from "../../core/gui/ResizableWidget";
-import { bind_children_to, el } from "../../core/gui/dom";
+import { bind_children_to, div, img, span } from "../../core/gui/dom";
 import "./EntityListView.css";
 import { entity_data, EntityType } from "../../core/data_formats/parsing/quest/entities";
 import { entity_dnd_source } from "./entity_dnd";
@@ -20,9 +20,12 @@ export abstract class EntityListView<T extends EntityType> extends ResizableWidg
     ) {
         super();
 
-        const list_element = el.div({ class: "quest_editor_EntityListView_entity_list" });
+        const list_element = div({ className: "quest_editor_EntityListView_entity_list" });
 
-        this.element = el.div({ class: `${class_name} quest_editor_EntityListView` }, list_element);
+        this.element = div(
+            { className: `${class_name} quest_editor_EntityListView`, tabIndex: -1 },
+            list_element,
+        );
 
         this.disposables(
             bind_children_to(list_element, this.entities, this.create_entity_element),
@@ -53,13 +56,13 @@ export abstract class EntityListView<T extends EntityType> extends ResizableWidg
     }
 
     private create_entity_element = (entity: T, index: number): HTMLElement => {
-        const entity_element = el.div({
-            class: "quest_editor_EntityListView_entity",
+        const entity_element = div({
+            className: "quest_editor_EntityListView_entity",
             data: { index: index.toString() },
         });
         entity_element.draggable = true;
 
-        const img_element = el.img({ width: 100, height: 100 });
+        const img_element = img({ width: 100, height: 100 });
         img_element.style.visibility = "hidden";
         // Workaround for Chrome bug: when dragging an image, calling setDragImage on a DragEvent
         // has no effect.
@@ -71,9 +74,7 @@ export abstract class EntityListView<T extends EntityType> extends ResizableWidg
             img_element.style.visibility = "visible";
         });
 
-        const name_element = el.span({
-            text: entity_data(entity).name,
-        });
+        const name_element = span(entity_data(entity).name);
         entity_element.append(name_element);
 
         return entity_element;

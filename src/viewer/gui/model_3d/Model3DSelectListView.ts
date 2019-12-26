@@ -1,10 +1,10 @@
 import { ResizableWidget } from "../../../core/gui/ResizableWidget";
-import { create_element } from "../../../core/gui/dom";
 import "./Model3DSelectListView.css";
 import { Property } from "../../../core/observable/property/Property";
+import { li, ul } from "../../../core/gui/dom";
 
 export class Model3DSelectListView<T extends { name: string }> extends ResizableWidget {
-    readonly element = create_element("ul", { class: "viewer_Model3DSelectListView" });
+    readonly element = ul({ className: "viewer_Model3DSelectListView" });
 
     set borders(borders: boolean) {
         if (borders) {
@@ -29,9 +29,7 @@ export class Model3DSelectListView<T extends { name: string }> extends Resizable
         this.element.onclick = this.list_click;
 
         models.forEach((model, index) => {
-            this.element.append(
-                create_element("li", { text: model.name, data: { index: index.toString() } }),
-            );
+            this.element.append(li({ data: { index: index.toString() } }, model.name));
         });
 
         this.disposable(

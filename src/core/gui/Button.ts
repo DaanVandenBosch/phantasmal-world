@@ -1,4 +1,4 @@
-import { el, Icon, icon } from "./dom";
+import { button, Icon, icon, span } from "./dom";
 import "./Button.css";
 import { Observable } from "../observable/Observable";
 import { emitter } from "../observable";
@@ -15,7 +15,7 @@ export type ButtonOptions = WidgetOptions & {
 };
 
 export class Button extends Control {
-    readonly element = el.button({ class: "core_Button" });
+    readonly element = button({ className: "core_Button" });
     readonly mousedown: Observable<MouseEvent>;
     readonly mouseup: Observable<MouseEvent>;
     readonly click: Observable<MouseEvent>;
@@ -30,18 +30,20 @@ export class Button extends Control {
     constructor(text: string | Property<string>, options?: ButtonOptions) {
         super(options);
 
-        const inner_element = el.span({ class: "core_Button_inner" });
+        const inner_element = span({ className: "core_Button_inner" });
 
-        this.center_element = el.span({ class: "core_Button_center" });
+        this.center_element = span({ className: "core_Button_center" });
 
         if (options && options.icon_left != undefined) {
-            inner_element.append(el.span({ class: "core_Button_left" }, icon(options.icon_left)));
+            inner_element.append(span({ className: "core_Button_left" }, icon(options.icon_left)));
         }
 
         inner_element.append(this.center_element);
 
         if (options && options.icon_right != undefined) {
-            inner_element.append(el.span({ class: "core_Button_right" }, icon(options.icon_right)));
+            inner_element.append(
+                span({ className: "core_Button_right" }, icon(options.icon_right)),
+            );
         }
 
         this._mousedown = emitter<MouseEvent>();

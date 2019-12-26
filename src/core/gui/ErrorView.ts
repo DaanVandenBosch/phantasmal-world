@@ -1,7 +1,7 @@
 import { ResizableWidget } from "./ResizableWidget";
-import { el } from "./dom";
 import { UnavailableView } from "../../quest_editor/gui/UnavailableView";
 import "./ErrorView.css";
+import { div } from "./dom";
 
 export class ErrorView extends ResizableWidget {
     readonly element: HTMLElement;
@@ -9,11 +9,11 @@ export class ErrorView extends ResizableWidget {
     constructor(message: string) {
         super();
 
-        this.element = el.div(
-            {
-                class: "core_ErrorView",
-            },
+        this.element = div(
+            { className: "core_ErrorView" },
             this.disposable(new UnavailableView(message)).element,
         );
+
+        this.finalize_construction();
     }
 }

@@ -1,7 +1,8 @@
 import { Disposable } from "../Disposable";
 import { MappedProperty } from "./MappedProperty";
-import { Property, PropertyChangeEvent } from "./Property";
+import { Property } from "./Property";
 import { DependentProperty } from "./DependentProperty";
+import { ChangeEvent } from "../Observable";
 
 export class FlatMappedProperty<T> extends DependentProperty<T> {
     private computed_property?: Property<T>;
@@ -15,7 +16,7 @@ export class FlatMappedProperty<T> extends DependentProperty<T> {
     }
 
     observe(
-        observer: (event: PropertyChangeEvent<T>) => void,
+        observer: (event: ChangeEvent<T>) => void,
         options?: { call_now?: boolean },
     ): Disposable {
         const super_disposable = super.observe(observer, options);
@@ -46,10 +47,8 @@ export class FlatMappedProperty<T> extends DependentProperty<T> {
 
         this.computed_property = this.compute();
 
-        const old_value = this.computed_property.val;
-
         this.computed_disposable = this.computed_property.observe(() => {
-            this.emit(old_value);
+            this.emit();
         });
 
         return this.computed_property.val;

@@ -1,4 +1,4 @@
-import { ListChangeType, ListProperty, ListPropertyChangeEvent } from "./ListProperty";
+import { ListChangeType, ListProperty, ListChangeEvent } from "./ListProperty";
 import { AbstractProperty } from "../AbstractProperty";
 import { Disposable } from "../../Disposable";
 import { Observable } from "../../Observable";
@@ -28,7 +28,7 @@ class LengthProperty extends AbstractProperty<number> {
 
         if (old_length !== length) {
             this.length = length;
-            this.emit(old_length);
+            this.emit();
         }
     }
 }
@@ -49,7 +49,7 @@ export abstract class AbstractListProperty<T> extends AbstractProperty<readonly 
     /**
      * External observers which are observing this list.
      */
-    protected readonly list_observers: ((change: ListPropertyChangeEvent<T>) => void)[] = [];
+    protected readonly list_observers: ((change: ListChangeEvent<T>) => void)[] = [];
 
     protected constructor(extract_observables?: (element: T) => Observable<any>[]) {
         super();
@@ -64,7 +64,7 @@ export abstract class AbstractListProperty<T> extends AbstractProperty<readonly 
     }
 
     observe_list(
-        observer: (change: ListPropertyChangeEvent<T>) => void,
+        observer: (change: ListChangeEvent<T>) => void,
         options?: { call_now?: boolean },
     ): Disposable {
         if (this.value_observers.length === 0 && this.extract_observables) {
@@ -114,11 +114,11 @@ export abstract class AbstractListProperty<T> extends AbstractProperty<readonly 
     /**
      * Does the following in the given order:
      * - Updates value observers
-     * - Emits length PropertyChangeEvent if necessary
+     * - Emits length ChangeEvent if necessary
      * - Emits ListPropertyChangeEvent
-     * - Emits PropertyChangeEvent
+     * - Emits ChangeEvent
      */
-    protected finalize_update(change: ListPropertyChangeEvent<T>): void {
+    protected finalize_update(change: ListChangeEvent<T>): void {
         if (
             this.list_observers.length &&
             this.extract_observables &&
@@ -133,12 +133,12 @@ export abstract class AbstractListProperty<T> extends AbstractProperty<readonly 
             this.call_list_observer(observer, change);
         }
 
-        this.emit(this.val);
+        this.emit();
     }
 
     private call_list_observer(
-        observer: (change: ListPropertyChangeEvent<T>) => void,
-        change: ListPropertyChangeEvent<T>,
+        observer: (change: ListChangeEvent<T>) => void,
+        change: ListChangeEvent<T>,
     ): void {
         try {
             observer(change);

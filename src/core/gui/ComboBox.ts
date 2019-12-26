@@ -1,5 +1,5 @@
 import { LabelledControl, LabelledControlOptions } from "./LabelledControl";
-import { create_element, el, Icon, icon } from "./dom";
+import { Icon, icon, input, span } from "./dom";
 import "./ComboBox.css";
 import "./Input.css";
 import { Menu } from "./Menu";
@@ -15,7 +15,7 @@ export type ComboBoxOptions<T> = LabelledControlOptions & {
 };
 
 export class ComboBox<T> extends LabelledControl {
-    readonly element = el.span({ class: "core_ComboBox core_Input" });
+    readonly element = span({ className: "core_ComboBox core_Input" });
 
     readonly preferred_label_position = "left";
 
@@ -23,7 +23,7 @@ export class ComboBox<T> extends LabelledControl {
 
     private readonly to_label: (element: T) => string;
     private readonly menu: Menu<T>;
-    private readonly input_element: HTMLInputElement = create_element("input");
+    private readonly input_element: HTMLInputElement = input();
     private readonly _selected: WidgetProperty<T | undefined>;
 
     constructor(options: ComboBoxOptions<T>) {
@@ -89,17 +89,17 @@ export class ComboBox<T> extends LabelledControl {
             this.menu.visible.set_val(false, { silent: false });
         };
 
-        const down_arrow_element = el.span({}, icon(Icon.TriangleDown));
+        const down_arrow_element = span(icon(Icon.TriangleDown));
         this.bind_hidden(down_arrow_element, this.menu.visible);
 
-        const up_arrow_element = el.span({}, icon(Icon.TriangleUp));
+        const up_arrow_element = span(icon(Icon.TriangleUp));
         this.bind_hidden(
             up_arrow_element,
             this.menu.visible.map(v => !v),
         );
 
-        const button_element = el.span(
-            { class: "core_ComboBox_button" },
+        const button_element = span(
+            { className: "core_ComboBox_button" },
             down_arrow_element,
             up_arrow_element,
         );
@@ -109,8 +109,8 @@ export class ComboBox<T> extends LabelledControl {
         };
 
         this.element.append(
-            el.span(
-                { class: "core_ComboBox_inner core_Input_inner" },
+            span(
+                { className: "core_ComboBox_inner core_Input_inner" },
                 this.input_element,
                 button_element,
             ),

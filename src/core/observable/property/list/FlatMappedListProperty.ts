@@ -1,10 +1,11 @@
 import { Disposable } from "../../Disposable";
 import { MappedProperty } from "../MappedProperty";
-import { is_property, Property, PropertyChangeEvent } from "../Property";
-import { ListProperty, ListPropertyChangeEvent } from "./ListProperty";
+import { is_property, Property } from "../Property";
+import { ListProperty, ListChangeEvent } from "./ListProperty";
 import { FlatMappedProperty } from "../FlatMappedProperty";
 import { DependentListProperty } from "./DependentListProperty";
 import { MappedListProperty } from "./MappedListProperty";
+import { ChangeEvent } from "../../Observable";
 
 export class FlatMappedListProperty<T> extends DependentListProperty<T> {
     private computed_property?: ListProperty<T>;
@@ -18,7 +19,7 @@ export class FlatMappedListProperty<T> extends DependentListProperty<T> {
     }
 
     observe(
-        observer: (event: PropertyChangeEvent<readonly T[]>) => void,
+        observer: (event: ChangeEvent<readonly T[]>) => void,
         options?: { call_now?: boolean },
     ): Disposable {
         const super_disposable = super.observe(observer, options);
@@ -37,7 +38,7 @@ export class FlatMappedListProperty<T> extends DependentListProperty<T> {
     }
 
     observe_list(
-        observer: (change: ListPropertyChangeEvent<T>) => void,
+        observer: (change: ListChangeEvent<T>) => void,
         options?: { call_now?: boolean },
     ): Disposable {
         const super_disposable = super.observe_list(observer, options);
@@ -72,10 +73,8 @@ export class FlatMappedListProperty<T> extends DependentListProperty<T> {
 
         this.computed_property = this.compute();
 
-        const old_value = this.computed_property.val;
-
         this.computed_disposable = this.computed_property.observe(() => {
-            this.emit(old_value);
+            this.emit();
         });
 
         return this.computed_property.val;

@@ -1,11 +1,11 @@
-import { el } from "../../core/gui/dom";
 import { GuiStore, GuiTool } from "../../core/stores/GuiStore";
 import { LazyWidget } from "../../core/gui/LazyWidget";
 import { ResizableWidget } from "../../core/gui/ResizableWidget";
 import { ChangeEvent } from "../../core/observable/Observable";
+import { div } from "../../core/gui/dom";
 
 export class MainContentView extends ResizableWidget {
-    readonly element = el.div({ class: "application_MainContentView" });
+    readonly element = div({ className: "application_MainContentView" });
 
     private tool_views: Map<GuiTool, LazyWidget>;
 

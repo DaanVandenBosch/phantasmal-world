@@ -1,13 +1,13 @@
 import { ResizableWidget } from "../../core/gui/ResizableWidget";
-import { bind_attr, el } from "../../core/gui/dom";
+import { bind_attr, div, table, td, th, tr } from "../../core/gui/dom";
 import "./NpcCountsView.css";
 import { UnavailableView } from "./UnavailableView";
 import { NameWithCount, NpcCountsController } from "../controllers/NpcCountsController";
 
 export class NpcCountsView extends ResizableWidget {
-    readonly element = el.div({ class: "quest_editor_NpcCountsView" });
+    readonly element = div({ className: "quest_editor_NpcCountsView" });
 
-    private readonly table_element = el.table();
+    private readonly table_element = table();
 
     private readonly unavailable_view = new UnavailableView("No quest loaded.");
 
@@ -31,7 +31,7 @@ export class NpcCountsView extends ResizableWidget {
         const frag = document.createDocumentFragment();
 
         for (const { name, count } of npcs) {
-            frag.append(el.tr({}, el.th({ text: name + ":" }), el.td({ text: String(count) })));
+            frag.append(tr(th(name + ":"), td(String(count))));
         }
 
         this.table_element.innerHTML = "";

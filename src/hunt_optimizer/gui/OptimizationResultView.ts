@@ -1,5 +1,5 @@
 import { Widget } from "../../core/gui/Widget";
-import { el, section_id_icon } from "../../core/gui/dom";
+import { div, h2, section_id_icon, span } from "../../core/gui/dom";
 import { Column, Table } from "../../core/gui/Table";
 import { Disposable } from "../../core/observable/Disposable";
 import { list_property } from "../../core/observable";
@@ -15,9 +15,9 @@ import { LogManager } from "../../core/Logger";
 const logger = LogManager.get("hunt_optimizer/gui/OptimizationResultView");
 
 export class OptimizationResultView extends Widget {
-    readonly element = el.div(
-        { class: "hunt_optimizer_OptimizationResultView" },
-        el.h2({ text: "Ideal Combination of Methods" }),
+    readonly element = div(
+        { className: "hunt_optimizer_OptimizationResultView" },
+        h2("Ideal Combination of Methods"),
     );
 
     private results_observer?: Disposable;
@@ -116,8 +116,7 @@ export class OptimizationResultView extends Widget {
                 fixed: true,
                 width: 90,
                 render_cell(value: OptimalMethodModel) {
-                    const element = el.span(
-                        {},
+                    const element = span(
                         ...value.section_ids.map(sid => section_id_icon(sid, { size: 17 })),
                     );
                     element.style.display = "flex";

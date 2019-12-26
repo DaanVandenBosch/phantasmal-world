@@ -1,10 +1,10 @@
 import { Widget } from "./Widget";
-import { el } from "./dom";
 import { Resizable } from "./Resizable";
 import { ResizableWidget } from "./ResizableWidget";
+import { div } from "./dom";
 
 export class LazyWidget extends ResizableWidget {
-    readonly element = el.div({ class: "core_LazyView" });
+    readonly element = div({ className: "core_LazyView" });
 
     private initialized = false;
     private view: (Widget & Resizable) | undefined;

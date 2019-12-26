@@ -1,5 +1,5 @@
 import { Widget, WidgetOptions } from "./Widget";
-import { bind_children_to, el } from "./dom";
+import { bind_children_to, span, table, tbody, td, tfoot, th, thead, tr } from "./dom";
 import { ListProperty } from "../observable/property/list/ListProperty";
 import { Disposer } from "../observable/Disposer";
 import "./Table.css";
@@ -36,9 +36,9 @@ export type TableOptions<T> = WidgetOptions & {
 };
 
 export class Table<T> extends Widget {
-    readonly element = el.table({ class: "core_Table" });
+    readonly element = table({ className: "core_Table" });
 
-    private readonly tbody_element = el.tbody();
+    private readonly tbody_element = tbody();
     private readonly footer_row_element?: HTMLTableRowElement;
     private readonly values: ListProperty<T>;
     private readonly columns: Column<T>[];
@@ -51,32 +51,29 @@ export class Table<T> extends Widget {
 
         const sort_columns: { column: Column<T>; direction: SortDirection }[] = [];
 
-        const thead_element = el.thead();
-        const header_tr_element = el.tr();
+        const thead_element = thead();
+        const header_tr_element = tr();
 
         let left = 0;
         let has_footer = false;
 
         header_tr_element.append(
             ...this.columns.map((column, index) => {
-                const th = el.th(
-                    { data: { index: index.toString() } },
-                    el.span({ text: column.title }),
-                );
+                const th_element = th({ data: { index: index.toString() } }, span(column.title));
 
                 if (column.fixed) {
-                    th.style.position = "sticky";
-                    th.style.left = `${left}px`;
+                    th_element.style.position = "sticky";
+                    th_element.style.left = `${left}px`;
                     left += column.width;
                 }
 
-                th.style.width = `${column.width}px`;
+                th_element.style.width = `${column.width}px`;
 
                 if (column.footer) {
                     has_footer = true;
                 }
 
-                return th;
+                return th_element;
             }),
         );
 
@@ -125,12 +122,12 @@ export class Table<T> extends Widget {
         }
 
         thead_element.append(header_tr_element);
-        this.tbody_element = el.tbody();
+        this.tbody_element = tbody();
         this.element.append(thead_element, this.tbody_element);
 
         if (has_footer) {
-            this.footer_row_element = el.tr();
-            this.element.append(el.tfoot({}, this.footer_row_element));
+            this.footer_row_element = tr();
+            this.element.append(tfoot({}, this.footer_row_element));
             this.create_footer();
         }
 
@@ -147,10 +144,9 @@ export class Table<T> extends Widget {
         let left = 0;
 
         return [
-            el.tr(
-                {},
+            tr(
                 ...this.columns.map((column, i) => {
-                    const cell = column.fixed ? el.th() : el.td();
+                    const cell = column.fixed ? th() : td();
 
                     try {
                         const content = column.render_cell(value, disposer);
@@ -190,7 +186,7 @@ export class Table<T> extends Widget {
 
         for (let i = 0; i < this.columns.length; i++) {
             const column = this.columns[i];
-            const cell = el.th();
+            const cell = th();
 
             cell.style.width = `${column.width}px`;
 

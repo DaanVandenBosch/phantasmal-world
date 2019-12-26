@@ -13,8 +13,8 @@ import { parse_quest, write_quest_qst } from "../../core/data_formats/parsing/qu
 import { ArrayBufferCursor } from "../../core/data_formats/cursor/ArrayBufferCursor";
 import { Endianness } from "../../core/data_formats/Endianness";
 import { convert_quest_from_model, convert_quest_to_model } from "../stores/model_conversion";
-import { create_element } from "../../core/gui/dom";
 import { LogManager } from "../../core/Logger";
+import { input } from "../../core/gui/dom";
 
 const logger = LogManager.get("quest_editor/controllers/QuestEditorToolBarController");
 
@@ -97,14 +97,14 @@ export class QuestEditorToolBarController extends Controller {
             }),
 
             gui_store.on_global_keydown(GuiTool.QuestEditor, "Ctrl-O", () => {
-                const input: HTMLInputElement = create_element("input");
-                input.type = "file";
-                input.onchange = () => {
-                    if (input.files && input.files.length) {
-                        this.open_file(input.files[0]);
+                const input_element = input();
+                input_element.type = "file";
+                input_element.onchange = () => {
+                    if (input_element.files && input_element.files.length) {
+                        this.open_file(input_element.files[0]);
                     }
                 };
-                input.click();
+                input_element.click();
             }),
 
             gui_store.on_global_keydown(GuiTool.QuestEditor, "Ctrl-Shift-S", this.save_as),

@@ -1,4 +1,12 @@
 .quest_editor_EventsView {
+    outline: none;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.quest_editor_EventsView_container {
+    flex: 1;
     box-sizing: border-box;
     overflow-y: auto;
     display: flex;

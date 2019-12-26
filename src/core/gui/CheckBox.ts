@@ -1,12 +1,12 @@
-import { create_element } from "./dom";
 import { WritableProperty } from "../observable/property/WritableProperty";
 import { LabelledControl, LabelledControlOptions } from "./LabelledControl";
 import { WidgetProperty } from "../observable/property/WidgetProperty";
+import { input } from "./dom";
 
 export type CheckBoxOptions = LabelledControlOptions;
 
 export class CheckBox extends LabelledControl {
-    readonly element = create_element<HTMLInputElement>("input", { class: "core_CheckBox" });
+    readonly element = input({ className: "core_CheckBox" });
 
     readonly preferred_label_position = "right";
 

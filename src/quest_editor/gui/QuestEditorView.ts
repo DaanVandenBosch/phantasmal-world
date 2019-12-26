@@ -1,5 +1,4 @@
 import { ResizableWidget } from "../../core/gui/ResizableWidget";
-import { create_element, el } from "../../core/gui/dom";
 import { QuestEditorToolBar } from "./QuestEditorToolBar";
 import GoldenLayout, { Container, ContentItem, ItemConfigType } from "golden-layout";
 import { QuestInfoView } from "./QuestInfoView";
@@ -20,6 +19,7 @@ import { QuestEditorStore } from "../stores/QuestEditorStore";
 import { QuestEditorUiPersister } from "../persistence/QuestEditorUiPersister";
 import { LogManager } from "../../core/Logger";
 import { ErrorView } from "../../core/gui/ErrorView";
+import { div } from "../../core/gui/dom";
 
 const logger = LogManager.get("quest_editor/gui/QuestEditorView");
 
@@ -41,7 +41,7 @@ const DEFAULT_LAYOUT_CONFIG = {
 };
 
 export class QuestEditorView extends ResizableWidget {
-    readonly element = el.div({ class: "quest_editor_QuestEditorView" });
+    readonly element = div({ className: "quest_editor_QuestEditorView" });
 
     /**
      * Maps views to names and creation functions.
@@ -51,7 +51,7 @@ export class QuestEditorView extends ResizableWidget {
         { name: string; create(): ResizableWidget }
     >;
 
-    private readonly layout_element = create_element("div", { class: "quest_editor_gl_container" });
+    private readonly layout_element = div({ className: "quest_editor_gl_container" });
     private readonly layout: Promise<GoldenLayout>;
     private loaded_layout: GoldenLayout | undefined;
 

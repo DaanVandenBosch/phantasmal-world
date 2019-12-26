@@ -1,5 +1,5 @@
 import { SimpleListProperty } from "./SimpleListProperty";
-import { ListChangeType, ListPropertyChangeEvent } from "./ListProperty";
+import { ListChangeType, ListChangeEvent } from "./ListProperty";
 
 test("constructor", () => {
     const list = new SimpleListProperty<number>(undefined, 1, 2, 3);
@@ -9,7 +9,7 @@ test("constructor", () => {
 });
 
 test("push", () => {
-    const changes: ListPropertyChangeEvent<number>[] = [];
+    const changes: ListChangeEvent<number>[] = [];
     const list = new SimpleListProperty<number>();
 
     list.observe_list(change => changes.push(change));

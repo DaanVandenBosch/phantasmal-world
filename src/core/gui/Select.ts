@@ -1,5 +1,5 @@
 import { LabelledControl, LabelledControlOptions, LabelPosition } from "./LabelledControl";
-import { disposable_listener, el, Icon } from "./dom";
+import { disposable_listener, div, Icon } from "./dom";
 import "./Select.css";
 import { is_property, Property } from "../observable/property/Property";
 import { Button } from "./Button";
@@ -14,7 +14,7 @@ export type SelectOptions<T> = LabelledControlOptions & {
 };
 
 export class Select<T> extends LabelledControl {
-    readonly element = el.div({ class: "core_Select" });
+    readonly element = div({ className: "core_Select" });
 
     readonly preferred_label_position: LabelPosition;
 

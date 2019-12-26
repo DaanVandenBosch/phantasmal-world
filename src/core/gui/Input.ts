@@ -1,9 +1,9 @@
 import { LabelledControl, LabelledControlOptions } from "./LabelledControl";
-import { create_element, el } from "./dom";
 import { WritableProperty } from "../observable/property/WritableProperty";
 import { is_property, Property } from "../observable/property/Property";
 import "./Input.css";
 import { WidgetProperty } from "../observable/property/WidgetProperty";
+import { input, span } from "./dom";
 
 export type InputOptions = { readonly readonly?: boolean } & LabelledControlOptions;
 
@@ -25,13 +25,13 @@ export abstract class Input<T> extends LabelledControl {
     ) {
         super(options);
 
-        this.element = el.span({ class: `${class_name} core_Input` });
+        this.element = span({ className: `${class_name} core_Input` });
 
         this._value = new WidgetProperty<T>(this, value, this.set_value);
         this.value = this._value;
 
-        this.input_element = create_element("input", {
-            class: `${input_class_name} core_Input_inner`,
+        this.input_element = input({
+            className: `${input_class_name} core_Input_inner`,
         });
         this.input_element.type = input_type;
         this.input_element.addEventListener("change", () => {

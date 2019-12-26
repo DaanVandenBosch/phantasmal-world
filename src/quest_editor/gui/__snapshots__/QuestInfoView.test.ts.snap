@@ -25,7 +25,8 @@ exports[`Renders correctly with a current quest.: should render property inputs 
         >
           <input
             class="core_NumberInput_inner core_Input_inner"
-            step="any"
+            min="0"
+            step="1"
             type="number"
           />
         </span>
@@ -134,7 +135,8 @@ exports[`Renders correctly without a current quest.: should render a "No quest l
         >
           <input
             class="core_NumberInput_inner core_Input_inner"
-            step="any"
+            min="0"
+            step="1"
             type="number"
           />
         </span>

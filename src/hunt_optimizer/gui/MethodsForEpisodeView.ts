@@ -1,6 +1,5 @@
 import { ResizableWidget } from "../../core/gui/ResizableWidget";
 import { Episode } from "../../core/data_formats/parsing/quest/Episode";
-import { el } from "../../core/gui/dom";
 import { HuntMethodModel } from "../model/HuntMethodModel";
 import {
     ENEMY_NPC_TYPES,
@@ -16,11 +15,12 @@ import { list_property } from "../../core/observable";
 import { ServerMap } from "../../core/stores/ServerMap";
 import { HuntMethodStore } from "../stores/HuntMethodStore";
 import { LogManager } from "../../core/Logger";
+import { div } from "../../core/gui/dom";
 
 const logger = LogManager.get("hunt_optimizer/gui/MethodsForEpisodeView");
 
 export class MethodsForEpisodeView extends ResizableWidget {
-    readonly element = el.div({ class: "hunt_optimizer_MethodsForEpisodeView" });
+    readonly element = div({ className: "hunt_optimizer_MethodsForEpisodeView" });
 
     private readonly episode: Episode;
     private readonly enemy_types: NpcType[];

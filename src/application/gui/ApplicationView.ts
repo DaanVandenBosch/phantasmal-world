@@ -1,8 +1,8 @@
 import { NavigationView } from "./NavigationView";
 import { MainContentView } from "./MainContentView";
-import { el } from "../../core/gui/dom";
 import { ResizableWidget } from "../../core/gui/ResizableWidget";
 import { GuiStore, GuiTool } from "../../core/stores/GuiStore";
+import { div } from "../../core/gui/dom";
 
 /**
  * The top-level view which contains all other views.
@@ -19,8 +19,8 @@ export class ApplicationView extends ResizableWidget {
         this.menu_view = this.disposable(new NavigationView(gui_store));
         this.main_content_view = this.disposable(new MainContentView(gui_store, tool_views));
 
-        this.element = el.div(
-            { class: "application_ApplicationView" },
+        this.element = div(
+            { className: "application_ApplicationView" },
             this.menu_view.element,
             this.main_content_view.element,
         );

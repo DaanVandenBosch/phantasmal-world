@@ -1,4 +1,4 @@
-import { disposable_listener, el } from "./dom";
+import { disposable_listener, div } from "./dom";
 import { Widget } from "./Widget";
 import { is_property, Property } from "../observable/property/Property";
 import { property } from "../observable";
@@ -13,12 +13,12 @@ export type MenuOptions<T> = {
 };
 
 export class Menu<T> extends Widget {
-    readonly element = el.div({ class: "core_Menu", tab_index: -1 });
+    readonly element = div({ className: "core_Menu", tabIndex: -1 });
     readonly selected: WritableProperty<T | undefined>;
 
     private readonly to_label: (element: T) => string;
     private readonly items: Property<readonly T[]>;
-    private readonly inner_element = el.div({ class: "core_Menu_inner" });
+    private readonly inner_element = div({ className: "core_Menu_inner" });
     private readonly related_element: HTMLElement;
     private readonly _selected: WidgetProperty<T | undefined>;
     private hovered_index?: number;
@@ -48,10 +48,7 @@ export class Menu<T> extends Widget {
                     this.inner_element.innerHTML = "";
                     this.inner_element.append(
                         ...items.map((item, index) =>
-                            el.div({
-                                text: this.to_label(item),
-                                data: { index: index.toString() },
-                            }),
+                            div({ data: { index: index.toString() } }, this.to_label(item)),
                         ),
                     );
                     this.hover_item();

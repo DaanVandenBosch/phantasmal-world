@@ -1,10 +1,6 @@
 import { ChangeEvent, Observable } from "../Observable";
 import { Disposable } from "../Disposable";
 
-export interface PropertyChangeEvent<T> extends ChangeEvent<T> {
-    old_value: T;
-}
-
 export interface Property<T> extends Observable<T> {
     readonly is_property: true;
 
@@ -13,7 +9,7 @@ export interface Property<T> extends Observable<T> {
     get_val(): T;
 
     observe(
-        observer: (event: PropertyChangeEvent<T>) => void,
+        observer: (event: ChangeEvent<T>) => void,
         options?: { call_now?: boolean },
     ): Disposable;
 

@@ -1,13 +1,13 @@
 import { Widget } from "../../core/gui/Widget";
-import { create_element, el } from "../../core/gui/dom";
 import { GuiTool } from "../../core/stores/GuiStore";
 import "./NavigationButton.css";
+import { input, label, span } from "../../core/gui/dom";
 
 export class NavigationButton extends Widget {
-    readonly element = el.span({ class: "application_NavigationButton" });
+    readonly element = span({ className: "application_NavigationButton" });
 
-    private input: HTMLInputElement = create_element("input");
-    private label: HTMLLabelElement = create_element("label");
+    private input: HTMLInputElement = input();
+    private label: HTMLLabelElement = label();
 
     constructor(tool: GuiTool, text: string) {
         super();

@@ -1,5 +1,4 @@
 import { ResizableWidget } from "../../core/gui/ResizableWidget";
-import { el } from "../../core/gui/dom";
 import { editor, KeyCode, KeyMod, Range } from "monaco-editor";
 import { AsmEditorToolBar } from "./AsmEditorToolBar";
 import { EditorHistory } from "./EditorHistory";
@@ -8,6 +7,7 @@ import { ListChangeType } from "../../core/observable/property/list/ListProperty
 import { GuiStore } from "../../core/stores/GuiStore";
 import { AsmEditorStore } from "../stores/AsmEditorStore";
 import { QuestRunner } from "../QuestRunner";
+import { div } from "../../core/gui/dom";
 import IStandaloneCodeEditor = editor.IStandaloneCodeEditor;
 
 editor.defineTheme("phantasmal-world", {
@@ -37,8 +37,9 @@ export class AsmEditorView extends ResizableWidget {
     private readonly history: EditorHistory;
     private breakpoint_decoration_ids: string[] = [];
     private execloc_decoration_id: string | undefined;
+    private old_pause_location?: number;
 
-    readonly element = el.div();
+    readonly element = div();
 
     constructor(
         gui_store: GuiStore,
@@ -171,8 +172,9 @@ export class AsmEditorView extends ResizableWidget {
             }),
 
             asm_editor_store.pause_location.observe(e => {
-                const old_line_num = e.old_value;
+                const old_line_num = this.old_pause_location;
                 const new_line_num = e.value;
+                this.old_pause_location = new_line_num;
 
                 // remove old
                 if (old_line_num !== undefined && this.execloc_decoration_id !== undefined) {

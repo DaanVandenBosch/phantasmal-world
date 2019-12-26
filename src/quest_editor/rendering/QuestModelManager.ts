@@ -8,7 +8,7 @@ import { AreaUserData } from "./conversion/areas";
 import {
     ListChangeType,
     ListProperty,
-    ListPropertyChangeEvent,
+    ListChangeEvent,
 } from "../../core/observable/property/list/ListProperty";
 import { QuestNpcModel } from "../model/QuestNpcModel";
 import { QuestObjectModel } from "../model/QuestObjectModel";
@@ -83,7 +83,7 @@ export abstract class QuestModelManager implements Disposable {
         );
     };
 
-    private npcs_changed = (change: ListPropertyChangeEvent<QuestNpcModel>): void => {
+    private npcs_changed = (change: ListChangeEvent<QuestNpcModel>): void => {
         if (change.type === ListChangeType.ListChange) {
             this.npc_model_manager.remove(change.removed);
 
@@ -91,7 +91,7 @@ export abstract class QuestModelManager implements Disposable {
         }
     };
 
-    private objects_changed = (change: ListPropertyChangeEvent<QuestObjectModel>): void => {
+    private objects_changed = (change: ListChangeEvent<QuestObjectModel>): void => {
         if (change.type === ListChangeType.ListChange) {
             this.object_model_manager.remove(change.removed);
 

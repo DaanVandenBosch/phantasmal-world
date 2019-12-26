@@ -1,4 +1,4 @@
-import { el, icon, Icon } from "../../core/gui/dom";
+import { a, div, icon, Icon, span } from "../../core/gui/dom";
 import "./NavigationView.css";
 import { GuiStore, GuiTool } from "../../core/stores/GuiStore";
 import { Widget } from "../../core/gui/Widget";
@@ -26,22 +26,22 @@ export class NavigationView extends Widget {
         }),
     );
 
-    readonly element = el.div(
-        { class: "application_NavigationView" },
+    readonly element = div(
+        { className: "application_NavigationView" },
 
         ...[...this.buttons.values()].map(button => button.element),
 
-        el.div({ class: "application_NavigationView_spacer" }),
+        div({ className: "application_NavigationView_spacer" }),
 
-        el.span(
-            { class: "application_NavigationView_server" },
+        span(
+            { className: "application_NavigationView_server" },
             this.server_select.label!.element,
             this.server_select.element,
         ),
 
-        el.a(
+        a(
             {
-                class: "application_NavigationView_github",
+                className: "application_NavigationView_github",
                 href: "https://github.com/DaanVandenBosch/phantasmal-world",
                 title: "GitHub",
             },

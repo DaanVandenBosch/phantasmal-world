@@ -1,4 +1,4 @@
-import { el, Icon } from "../../core/gui/dom";
+import { div, Icon } from "../../core/gui/dom";
 import { ResizableWidget } from "../../core/gui/ResizableWidget";
 import { FileButton } from "../../core/gui/FileButton";
 import { ToolBar } from "../../core/gui/ToolBar";
@@ -9,7 +9,7 @@ import { TextureStore } from "../stores/TextureStore";
 import { DisposableThreeRenderer } from "../../core/rendering/Renderer";
 
 export class TextureView extends ResizableWidget {
-    readonly element = el.div({ class: "viewer_TextureView" });
+    readonly element = div({ className: "viewer_TextureView" });
 
     private readonly open_file_button = new FileButton("Open file...", {
         icon_left: Icon.File,

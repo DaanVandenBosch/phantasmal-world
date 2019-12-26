@@ -1,7 +1,7 @@
 import { Widget, WidgetOptions } from "./Widget";
-import { create_element } from "./dom";
 import "./ToolBar.css";
 import { LabelledControl } from "./LabelledControl";
+import { div } from "./dom";
 
 export type ToolBarOptions = WidgetOptions & {
     children?: Widget[];
@@ -10,7 +10,7 @@ export type ToolBarOptions = WidgetOptions & {
 export class ToolBar extends Widget {
     private readonly children: readonly Widget[];
 
-    readonly element = create_element("div", { class: "core_ToolBar" });
+    readonly element = div({ className: "core_ToolBar" });
     readonly height = 33;
 
     constructor(options?: ToolBarOptions) {
@@ -21,7 +21,7 @@ export class ToolBar extends Widget {
 
         for (const child of this.children) {
             if (child instanceof LabelledControl && child.label) {
-                const group = create_element("div", { class: "core_ToolBar_group" });
+                const group = div({ className: "core_ToolBar_group" });
 
                 if (
                     child.preferred_label_position === "left" ||

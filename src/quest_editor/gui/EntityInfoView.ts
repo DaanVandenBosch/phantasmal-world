@@ -1,5 +1,5 @@
 import { ResizableWidget } from "../../core/gui/ResizableWidget";
-import { bind_attr, el } from "../../core/gui/dom";
+import { bind_attr, div, table, td, th, tr } from "../../core/gui/dom";
 import { UnavailableView } from "./UnavailableView";
 import "./EntityInfoView.css";
 import { NumberInput } from "../../core/gui/NumberInput";
@@ -7,11 +7,11 @@ import { rad_to_deg } from "../../core/math";
 import { EntityInfoController } from "../controllers/EntityInfoController";
 
 export class EntityInfoView extends ResizableWidget {
-    readonly element = el.div({ class: "quest_editor_EntityInfoView", tab_index: -1 });
+    readonly element = div({ className: "quest_editor_EntityInfoView", tabIndex: -1 });
 
     private readonly no_entity_view = new UnavailableView("No entity selected.");
 
-    private readonly table_element = el.table();
+    private readonly table_element = table();
 
     private readonly type_element: HTMLTableCellElement;
     private readonly name_element: HTMLTableCellElement;
@@ -43,46 +43,18 @@ export class EntityInfoView extends ResizableWidget {
         const coord_class = "quest_editor_EntityInfoView_coord";
 
         this.table_element.append(
-            el.tr({}, el.th({ text: "Type:" }), (this.type_element = el.td())),
-            el.tr({}, el.th({ text: "Name:" }), (this.name_element = el.td())),
-            el.tr({}, el.th({ text: "Section:" }), (this.section_id_element = el.td())),
-            (this.wave_row_element = el.tr(
-                {},
-                el.th({ text: "Wave:" }),
-                (this.wave_element = el.td()),
-            )),
-            el.tr({}, el.th({ text: "Position:", col_span: 2 })),
-            el.tr(
-                {},
-                el.th({ text: "X:", class: coord_class }),
-                el.td({}, this.pos_x_element.element),
-            ),
-            el.tr(
-                {},
-                el.th({ text: "Y:", class: coord_class }),
-                el.td({}, this.pos_y_element.element),
-            ),
-            el.tr(
-                {},
-                el.th({ text: "Z:", class: coord_class }),
-                el.td({}, this.pos_z_element.element),
-            ),
-            el.tr({}, el.th({ text: "Rotation:", col_span: 2 })),
-            el.tr(
-                {},
-                el.th({ text: "X:", class: coord_class }),
-                el.td({}, this.rot_x_element.element),
-            ),
-            el.tr(
-                {},
-                el.th({ text: "Y:", class: coord_class }),
-                el.td({}, this.rot_y_element.element),
-            ),
-            el.tr(
-                {},
-                el.th({ text: "Z:", class: coord_class }),
-                el.td({}, this.rot_z_element.element),
-            ),
+            tr(th("Type:"), (this.type_element = td())),
+            tr(th("Name:"), (this.name_element = td())),
+            tr(th("Section:"), (this.section_id_element = td())),
+            (this.wave_row_element = tr(th("Wave:"), (this.wave_element = td()))),
+            tr(th({ colSpan: 2 }, "Position:")),
+            tr(th({ className: coord_class }, "X:"), td(this.pos_x_element.element)),
+            tr(th({ className: coord_class }, "Y:"), td(this.pos_y_element.element)),
+            tr(th({ className: coord_class }, "Z:"), td(this.pos_z_element.element)),
+            tr(th({ colSpan: 2 }, "Rotation:")),
+            tr(th({ className: coord_class }, "X:"), td(this.rot_x_element.element)),
+            tr(th({ className: coord_class }, "Y:"), td(this.rot_y_element.element)),
+            tr(th({ className: coord_class }, "Z:"), td(this.rot_z_element.element)),
         );
 
         this.element.append(this.table_element, this.no_entity_view.element);

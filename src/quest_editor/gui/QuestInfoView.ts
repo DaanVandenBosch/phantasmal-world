@@ -1,5 +1,4 @@
 import { ResizableWidget } from "../../core/gui/ResizableWidget";
-import { el } from "../../core/gui/dom";
 import { Episode } from "../../core/data_formats/parsing/quest/Episode";
 import { NumberInput } from "../../core/gui/NumberInput";
 import { Disposer } from "../../core/observable/Disposer";
@@ -8,13 +7,14 @@ import { TextArea } from "../../core/gui/TextArea";
 import "./QuestInfoView.css";
 import { UnavailableView } from "./UnavailableView";
 import { QuestInfoController } from "../controllers/QuestInfoController";
+import { div, table, td, th, tr } from "../../core/gui/dom";
 
 export class QuestInfoView extends ResizableWidget {
-    readonly element = el.div({ class: "quest_editor_QuestInfoView", tab_index: -1 });
+    readonly element = div({ className: "quest_editor_QuestInfoView", tabIndex: -1 });
 
-    private readonly table_element = el.table();
+    private readonly table_element = table();
     private readonly episode_element: HTMLElement;
-    private readonly id_input = this.disposable(new NumberInput(0));
+    private readonly id_input = this.disposable(new NumberInput(0, { min: 0, step: 1 }));
     private readonly name_input = this.disposable(
         new TextInput("", {
             max_length: 32,
@@ -47,13 +47,13 @@ export class QuestInfoView extends ResizableWidget {
         const quest = ctrl.current_quest;
 
         this.table_element.append(
-            el.tr({}, el.th({ text: "Episode:" }), (this.episode_element = el.td())),
-            el.tr({}, el.th({ text: "ID:" }), el.td({}, this.id_input.element)),
-            el.tr({}, el.th({ text: "Name:" }), el.td({}, this.name_input.element)),
-            el.tr({}, el.th({ text: "Short description:", col_span: 2 })),
-            el.tr({}, el.td({ col_span: 2 }, this.short_description_input.element)),
-            el.tr({}, el.th({ text: "Long description:", col_span: 2 })),
-            el.tr({}, el.td({ col_span: 2 }, this.long_description_input.element)),
+            tr(th("Episode:"), (this.episode_element = td())),
+            tr(th("ID:"), td(this.id_input.element)),
+            tr(th("Name:"), td(this.name_input.element)),
+            tr(th({ colSpan: 2 }, "Short description:")),
+            tr(td({ colSpan: 2 }, this.short_description_input.element)),
+            tr(th({ colSpan: 2 }, "Long description:")),
+            tr(td({ colSpan: 2 }, this.long_description_input.element)),
         );
 
         this.bind_hidden(this.table_element, ctrl.unavailable);

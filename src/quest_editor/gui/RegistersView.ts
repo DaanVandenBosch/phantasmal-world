@@ -1,5 +1,4 @@
 import { ResizableWidget } from "../../core/gui/ResizableWidget";
-import { el } from "../../core/gui/dom";
 import { REGISTER_COUNT } from "../scripting/vm/VirtualMachine";
 import { TextInput } from "../../core/gui/TextInput";
 import { ToolBar } from "../../core/gui/ToolBar";
@@ -8,6 +7,7 @@ import { number_to_hex_string } from "../../core/util";
 import "./RegistersView.css";
 import { Select } from "../../core/gui/Select";
 import { QuestRunner } from "../QuestRunner";
+import { div } from "../../core/gui/dom";
 
 enum RegisterDisplayType {
     Signed,
@@ -52,13 +52,13 @@ export class RegistersView extends ResizableWidget {
     );
 
     private readonly register_els: TextInput[];
-    private readonly list_element = el.div({ class: "quest_editor_RegistersView_list" });
-    private readonly container_element = el.div(
-        { class: "quest_editor_RegistersView_container" },
+    private readonly list_element = div({ className: "quest_editor_RegistersView_list" });
+    private readonly container_element = div(
+        { className: "quest_editor_RegistersView_container" },
         this.list_element,
     );
-    public readonly element = el.div(
-        { class: "quest_editor_RegistersView" },
+    public readonly element = div(
+        { className: "quest_editor_RegistersView" },
         this.settings_bar.element,
         this.container_element,
     );
@@ -79,8 +79,8 @@ export class RegistersView extends ResizableWidget {
                 }),
             );
 
-            const wrapper_el = el.div(
-                { class: "quest_editor_RegistersView_register" },
+            const wrapper_el = div(
+                { className: "quest_editor_RegistersView_register" },
                 value_el.label!.element,
                 value_el.element,
             );

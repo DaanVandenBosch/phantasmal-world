@@ -2,7 +2,7 @@ import {
     is_list_property,
     ListChangeType,
     ListProperty,
-    ListPropertyChangeEvent,
+    ListChangeEvent,
 } from "./ListProperty";
 import { SimpleListProperty } from "./SimpleListProperty";
 import { MappedListProperty } from "./MappedListProperty";
@@ -27,7 +27,7 @@ function test_list_property(
     test(`${name} should propagate list changes to a filtered list`, () => {
         const { property, emit_list_change } = create();
         const filtered = property.filtered(() => true);
-        const events: ListPropertyChangeEvent<any>[] = [];
+        const events: ListChangeEvent<any>[] = [];
 
         filtered.observe_list(event => events.push(event));
 

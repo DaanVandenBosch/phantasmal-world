@@ -1,6 +1,7 @@
 import { Disposable } from "../Disposable";
-import { Property, PropertyChangeEvent } from "./Property";
+import { Property } from "./Property";
 import { LogManager } from "../../Logger";
+import { ChangeEvent } from "../Observable";
 
 const logger = LogManager.get("core/observable/property/AbstractMinimalProperty");
 
@@ -13,16 +14,16 @@ export abstract class AbstractMinimalProperty<T> implements Property<T> {
 
     abstract get_val(): T;
 
-    protected readonly observers: ((change: PropertyChangeEvent<T>) => void)[] = [];
+    protected readonly observers: ((change: ChangeEvent<T>) => void)[] = [];
 
     observe(
-        observer: (change: PropertyChangeEvent<T>) => void,
+        observer: (change: ChangeEvent<T>) => void,
         options?: { call_now?: boolean },
     ): Disposable {
         this.observers.push(observer);
 
         if (options && options.call_now) {
-            this.call_observer(observer, this.val, this.val);
+            this.call_observer(observer, this.val);
         }
 
         return {
@@ -40,21 +41,17 @@ export abstract class AbstractMinimalProperty<T> implements Property<T> {
 
     abstract flat_map<U>(f: (element: T) => Property<U>): Property<U>;
 
-    protected emit(old_value: T): void {
+    protected emit(): void {
         const value = this.val;
 
         for (const observer of this.observers) {
-            this.call_observer(observer, value, old_value);
+            this.call_observer(observer, value);
         }
     }
 
-    private call_observer(
-        observer: (event: PropertyChangeEvent<T>) => void,
-        value: T,
-        old_value: T,
-    ): void {
+    private call_observer(observer: (event: ChangeEvent<T>) => void, value: T): void {
         try {
-            observer({ value, old_value });
+            observer({ value });
         } catch (e) {
             logger.error("Observer threw error.", e);
         }
