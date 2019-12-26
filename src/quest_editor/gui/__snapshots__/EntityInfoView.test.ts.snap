@@ -1,0 +1,535 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Renders correctly with an entity selected.: should render a table of editable properties 1`] = `
+<div
+  class="quest_editor_EntityInfoView"
+  tabindex="-1"
+>
+  <table>
+    <tr>
+      <th>
+        Type:
+      </th>
+      <td>
+        NPC
+      </td>
+    </tr>
+    <tr>
+      <th>
+        Name:
+      </th>
+      <td>
+        Guild Lady
+      </td>
+    </tr>
+    <tr>
+      <th>
+        Section:
+      </th>
+      <td>
+        10
+      </td>
+    </tr>
+    <tr>
+      <th>
+        Wave:
+      </th>
+      <td>
+        0
+      </td>
+    </tr>
+    <tr>
+      <th
+        colspan="2"
+      >
+        Position:
+      </th>
+    </tr>
+    <tr>
+      <th
+        class="quest_editor_EntityInfoView_coord"
+      >
+        X:
+      </th>
+      <td>
+        <span
+          class="core_NumberInput core_Input"
+          style="width: 80px;"
+        >
+          <input
+            class="core_NumberInput_inner core_Input_inner"
+            step="any"
+            type="number"
+          />
+        </span>
+      </td>
+    </tr>
+    <tr>
+      <th
+        class="quest_editor_EntityInfoView_coord"
+      >
+        Y:
+      </th>
+      <td>
+        <span
+          class="core_NumberInput core_Input"
+          style="width: 80px;"
+        >
+          <input
+            class="core_NumberInput_inner core_Input_inner"
+            step="any"
+            type="number"
+          />
+        </span>
+      </td>
+    </tr>
+    <tr>
+      <th
+        class="quest_editor_EntityInfoView_coord"
+      >
+        Z:
+      </th>
+      <td>
+        <span
+          class="core_NumberInput core_Input"
+          style="width: 80px;"
+        >
+          <input
+            class="core_NumberInput_inner core_Input_inner"
+            step="any"
+            type="number"
+          />
+        </span>
+      </td>
+    </tr>
+    <tr>
+      <th
+        colspan="2"
+      >
+        Rotation:
+      </th>
+    </tr>
+    <tr>
+      <th
+        class="quest_editor_EntityInfoView_coord"
+      >
+        X:
+      </th>
+      <td>
+        <span
+          class="core_NumberInput core_Input"
+          style="width: 80px;"
+        >
+          <input
+            class="core_NumberInput_inner core_Input_inner"
+            step="any"
+            type="number"
+          />
+        </span>
+      </td>
+    </tr>
+    <tr>
+      <th
+        class="quest_editor_EntityInfoView_coord"
+      >
+        Y:
+      </th>
+      <td>
+        <span
+          class="core_NumberInput core_Input"
+          style="width: 80px;"
+        >
+          <input
+            class="core_NumberInput_inner core_Input_inner"
+            step="any"
+            type="number"
+          />
+        </span>
+      </td>
+    </tr>
+    <tr>
+      <th
+        class="quest_editor_EntityInfoView_coord"
+      >
+        Z:
+      </th>
+      <td>
+        <span
+          class="core_NumberInput core_Input"
+          style="width: 80px;"
+        >
+          <input
+            class="core_NumberInput_inner core_Input_inner"
+            step="any"
+            type="number"
+          />
+        </span>
+      </td>
+    </tr>
+  </table>
+  <div
+    class="quest_editor_UnavailableView"
+    hidden=""
+  >
+    <label
+      class="core_Label disabled"
+    >
+      No entity selected.
+    </label>
+  </div>
+</div>
+`;
+
+exports[`Renders correctly without an entity selected.: should render a "No entity selected." view 1`] = `
+<div
+  class="quest_editor_EntityInfoView"
+  tabindex="-1"
+>
+  <table
+    hidden=""
+  >
+    <tr>
+      <th>
+        Type:
+      </th>
+      <td>
+        Object
+      </td>
+    </tr>
+    <tr>
+      <th>
+        Name:
+      </th>
+      <td />
+    </tr>
+    <tr>
+      <th>
+        Section:
+      </th>
+      <td />
+    </tr>
+    <tr
+      hidden=""
+    >
+      <th>
+        Wave:
+      </th>
+      <td />
+    </tr>
+    <tr>
+      <th
+        colspan="2"
+      >
+        Position:
+      </th>
+    </tr>
+    <tr>
+      <th
+        class="quest_editor_EntityInfoView_coord"
+      >
+        X:
+      </th>
+      <td>
+        <span
+          class="core_NumberInput core_Input"
+          style="width: 80px;"
+        >
+          <input
+            class="core_NumberInput_inner core_Input_inner"
+            step="any"
+            type="number"
+          />
+        </span>
+      </td>
+    </tr>
+    <tr>
+      <th
+        class="quest_editor_EntityInfoView_coord"
+      >
+        Y:
+      </th>
+      <td>
+        <span
+          class="core_NumberInput core_Input"
+          style="width: 80px;"
+        >
+          <input
+            class="core_NumberInput_inner core_Input_inner"
+            step="any"
+            type="number"
+          />
+        </span>
+      </td>
+    </tr>
+    <tr>
+      <th
+        class="quest_editor_EntityInfoView_coord"
+      >
+        Z:
+      </th>
+      <td>
+        <span
+          class="core_NumberInput core_Input"
+          style="width: 80px;"
+        >
+          <input
+            class="core_NumberInput_inner core_Input_inner"
+            step="any"
+            type="number"
+          />
+        </span>
+      </td>
+    </tr>
+    <tr>
+      <th
+        colspan="2"
+      >
+        Rotation:
+      </th>
+    </tr>
+    <tr>
+      <th
+        class="quest_editor_EntityInfoView_coord"
+      >
+        X:
+      </th>
+      <td>
+        <span
+          class="core_NumberInput core_Input"
+          style="width: 80px;"
+        >
+          <input
+            class="core_NumberInput_inner core_Input_inner"
+            step="any"
+            type="number"
+          />
+        </span>
+      </td>
+    </tr>
+    <tr>
+      <th
+        class="quest_editor_EntityInfoView_coord"
+      >
+        Y:
+      </th>
+      <td>
+        <span
+          class="core_NumberInput core_Input"
+          style="width: 80px;"
+        >
+          <input
+            class="core_NumberInput_inner core_Input_inner"
+            step="any"
+            type="number"
+          />
+        </span>
+      </td>
+    </tr>
+    <tr>
+      <th
+        class="quest_editor_EntityInfoView_coord"
+      >
+        Z:
+      </th>
+      <td>
+        <span
+          class="core_NumberInput core_Input"
+          style="width: 80px;"
+        >
+          <input
+            class="core_NumberInput_inner core_Input_inner"
+            step="any"
+            type="number"
+          />
+        </span>
+      </td>
+    </tr>
+  </table>
+  <div
+    class="quest_editor_UnavailableView"
+  >
+    <label
+      class="core_Label disabled"
+    >
+      No entity selected.
+    </label>
+  </div>
+</div>
+`;
+
+exports[`Renders correctly without an entity selected.: should render a "No entity selected." view 2`] = `
+<div
+  class="quest_editor_EntityInfoView"
+  tabindex="-1"
+>
+  <table
+    hidden=""
+  >
+    <tr>
+      <th>
+        Type:
+      </th>
+      <td>
+        Object
+      </td>
+    </tr>
+    <tr>
+      <th>
+        Name:
+      </th>
+      <td />
+    </tr>
+    <tr>
+      <th>
+        Section:
+      </th>
+      <td />
+    </tr>
+    <tr
+      hidden=""
+    >
+      <th>
+        Wave:
+      </th>
+      <td />
+    </tr>
+    <tr>
+      <th
+        colspan="2"
+      >
+        Position:
+      </th>
+    </tr>
+    <tr>
+      <th
+        class="quest_editor_EntityInfoView_coord"
+      >
+        X:
+      </th>
+      <td>
+        <span
+          class="core_NumberInput core_Input"
+          style="width: 80px;"
+        >
+          <input
+            class="core_NumberInput_inner core_Input_inner"
+            step="any"
+            type="number"
+          />
+        </span>
+      </td>
+    </tr>
+    <tr>
+      <th
+        class="quest_editor_EntityInfoView_coord"
+      >
+        Y:
+      </th>
+      <td>
+        <span
+          class="core_NumberInput core_Input"
+          style="width: 80px;"
+        >
+          <input
+            class="core_NumberInput_inner core_Input_inner"
+            step="any"
+            type="number"
+          />
+        </span>
+      </td>
+    </tr>
+    <tr>
+      <th
+        class="quest_editor_EntityInfoView_coord"
+      >
+        Z:
+      </th>
+      <td>
+        <span
+          class="core_NumberInput core_Input"
+          style="width: 80px;"
+        >
+          <input
+            class="core_NumberInput_inner core_Input_inner"
+            step="any"
+            type="number"
+          />
+        </span>
+      </td>
+    </tr>
+    <tr>
+      <th
+        colspan="2"
+      >
+        Rotation:
+      </th>
+    </tr>
+    <tr>
+      <th
+        class="quest_editor_EntityInfoView_coord"
+      >
+        X:
+      </th>
+      <td>
+        <span
+          class="core_NumberInput core_Input"
+          style="width: 80px;"
+        >
+          <input
+            class="core_NumberInput_inner core_Input_inner"
+            step="any"
+            type="number"
+          />
+        </span>
+      </td>
+    </tr>
+    <tr>
+      <th
+        class="quest_editor_EntityInfoView_coord"
+      >
+        Y:
+      </th>
+      <td>
+        <span
+          class="core_NumberInput core_Input"
+          style="width: 80px;"
+        >
+          <input
+            class="core_NumberInput_inner core_Input_inner"
+            step="any"
+            type="number"
+          />
+        </span>
+      </td>
+    </tr>
+    <tr>
+      <th
+        class="quest_editor_EntityInfoView_coord"
+      >
+        Z:
+      </th>
+      <td>
+        <span
+          class="core_NumberInput core_Input"
+          style="width: 80px;"
+        >
+          <input
+            class="core_NumberInput_inner core_Input_inner"
+            step="any"
+            type="number"
+          />
+        </span>
+      </td>
+    </tr>
+  </table>
+  <div
+    class="quest_editor_UnavailableView"
+  >
+    <label
+      class="core_Label disabled"
+    >
+      No entity selected.
+    </label>
+  </div>
+</div>
+`;

@@ -51,7 +51,10 @@ export class DisposablePromise<T> implements Promise<T>, Disposable {
     ) {
         this.init_handler = init;
         this.disposal_handler = dispose;
-        setTimeout(this.initialize, 0);
+
+        if (this.state === State.Initializing) {
+            this.init_handler(this.resolve, this.reject);
+        }
     }
 
     then<TResult1 = T, TResult2 = never>(
@@ -121,12 +124,6 @@ export class DisposablePromise<T> implements Promise<T>, Disposable {
         }
     }
 
-    private initialize = (): void => {
-        if (this.state === State.Initializing) {
-            this.init_handler(this.resolve, this.reject);
-        }
-    };
-
     private resolve = (value: T): void => {
         if (!this.settled) {
             this.state = State.Resolved;
@@ -168,7 +165,7 @@ export class DisposablePromise<T> implements Promise<T>, Disposable {
     private add_resolution_listener(listener: (value: T) => void): void {
         if (this.state === State.Resolved) {
             // Just call the listener without adding it to the list.
-            setTimeout(() => listener(this.value!), 0);
+            listener(this.value!);
         } else if (!this.settled) {
             this.resolution_listeners.push(listener);
         }
@@ -177,7 +174,7 @@ export class DisposablePromise<T> implements Promise<T>, Disposable {
     private add_rejection_listener(listener: (error: Error) => void): void {
         if (this.state === State.Rejected) {
             // Just call the listener without adding it to the list.
-            setTimeout(() => listener(this.error!), 0);
+            listener(this.error!);
         } else if (!this.settled) {
             this.rejection_listeners.push(listener);
         }
@@ -186,7 +183,7 @@ export class DisposablePromise<T> implements Promise<T>, Disposable {
     private add_settlement_listener(listener: () => void): void {
         if (this.settled) {
             // Just call the listener without adding it to the list.
-            setTimeout(() => listener(), 0);
+            listener();
         } else if (this.state !== State.Disposed) {
             this.settlement_listeners.push(listener);
         }
