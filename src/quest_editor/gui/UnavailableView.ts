@@ -11,10 +11,10 @@ export class UnavailableView extends Widget {
 
     private readonly label: Label;
 
-    constructor(text: string) {
+    constructor(message: string) {
         super();
 
-        this.label = this.disposable(new Label(text, { enabled: false }));
+        this.label = this.disposable(new Label(message, { enabled: false }));
 
         this.element.append(this.label.element);
 

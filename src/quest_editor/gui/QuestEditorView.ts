@@ -19,6 +19,7 @@ import { QuestRunnerRendererView } from "./QuestRunnerRendererView";
 import { QuestEditorStore } from "../stores/QuestEditorStore";
 import { QuestEditorUiPersister } from "../persistence/QuestEditorUiPersister";
 import { LogManager } from "../../core/Logger";
+import { ErrorView } from "../../core/gui/ErrorView";
 
 const logger = LogManager.get("quest_editor/gui/QuestEditorView");
 
@@ -245,7 +246,15 @@ export class QuestEditorView extends ResizableWidget {
                 // registerComponent expects a regular function and not an arrow function. This
                 // function will be called with new.
                 layout.registerComponent(name, function(container: Container) {
-                    const view = create();
+                    let view: ResizableWidget;
+
+                    try {
+                        view = create();
+                    } catch (e) {
+                        logger.error(`Couldn't instantiate "${name}".`, e);
+
+                        view = new ErrorView("Something went wrong while creating this window.");
+                    }
 
                     container.on("close", () => view.dispose());
                     container.on("resize", () =>
