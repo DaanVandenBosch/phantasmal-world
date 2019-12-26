@@ -1,17 +1,11 @@
 import { Disposable } from "./observable/Disposable";
 
-enum State {
-    Initializing,
-    Resolving,
-    Resolved,
-    Rejected,
-    Disposed,
-}
-
-export class DisposablePromise<T> implements Promise<T>, Disposable {
-    static resolve<S, T extends S = S>(value: T | PromiseLike<T>): DisposablePromise<S> {
+export class DisposablePromise<T> extends Promise<T> implements Disposable {
+    static resolve<T>(value?: T | PromiseLike<T>): DisposablePromise<T> {
         return new DisposablePromise((resolve, reject) => {
-            if ("then" in value) {
+            if (value === undefined) {
+                new DisposablePromise(() => undefined);
+            } else if ("then" in value) {
                 value.then(resolve, reject);
             } else {
                 resolve(value);
@@ -19,173 +13,77 @@ export class DisposablePromise<T> implements Promise<T>, Disposable {
         });
     }
 
-    static wrap<T>(promise: Promise<T>): DisposablePromise<T> {
-        return new DisposablePromise((resolve, reject) => {
-            promise.then(resolve).catch(reject);
-        });
+    static wrap<T>(promise: Promise<T>, dispose?: () => void): DisposablePromise<T> {
+        if (promise instanceof DisposablePromise) {
+            return promise;
+        } else {
+            return new DisposablePromise((resolve, reject) => {
+                promise.then(resolve).catch(reject);
+            }, dispose);
+        }
     }
 
-    private state = State.Initializing;
-    private value?: T;
-    private error?: Error;
+    private disposed: boolean;
 
-    private readonly init_handler: (
-        resolve: (value: T) => void,
-        reject: (error: Error) => void,
-    ) => void;
     private readonly disposal_handler?: () => void;
 
-    private resolution_listeners: ((value: T) => void)[] = [];
-    private rejection_listeners: ((error: Error) => void)[] = [];
-    private settlement_listeners: (() => void)[] = [];
-
-    private get settled(): boolean {
-        return this.state !== State.Initializing && this.state !== State.Resolving;
-    }
-
-    readonly [Symbol.toStringTag]: string = "DisposablePromise";
-
     constructor(
-        init: (resolve: (value: T) => void, reject: (error: Error) => void) => void,
+        executor: (
+            resolve: (value?: T | PromiseLike<T>) => void,
+            reject: (reason?: any) => void,
+        ) => void,
         dispose?: () => void,
     ) {
-        this.init_handler = init;
+        let resolve_fn: (value?: T | PromiseLike<T> | undefined) => void;
+        let reject_fn: (value?: T | PromiseLike<T> | undefined) => void;
+
+        super((resolve, reject) => {
+            resolve_fn = resolve;
+            reject_fn = reject;
+        });
+
+        this.disposed = false;
         this.disposal_handler = dispose;
 
-        if (this.state === State.Initializing) {
-            this.init_handler(this.resolve, this.reject);
-        }
+        executor(
+            value => {
+                if (!this.disposed) {
+                    resolve_fn(value);
+                }
+            },
+            reason => {
+                if (!this.disposed) {
+                    reject_fn(reason);
+                }
+            },
+        );
     }
 
     then<TResult1 = T, TResult2 = never>(
         onfulfilled?: ((value: T) => PromiseLike<TResult1> | TResult1) | undefined | null,
         onrejected?: ((reason: any) => PromiseLike<TResult2> | TResult2) | undefined | null,
     ): DisposablePromise<TResult1 | TResult2> {
-        return new DisposablePromise(
-            (resolve, reject) => {
-                if (onfulfilled != undefined) {
-                    this.add_resolution_listener(async value => resolve(await onfulfilled(value)));
-                } else {
-                    this.add_resolution_listener(resolve as any);
-                }
-
-                if (onrejected != undefined) {
-                    this.add_rejection_listener(async error => resolve(await onrejected(error)));
-                } else {
-                    this.add_rejection_listener(reject);
-                }
-            },
-            () => this.dispose(),
-        );
+        return DisposablePromise.wrap(super.then(onfulfilled, onrejected), () => this.dispose());
     }
 
     catch<TResult = never>(
         onrejected?: ((reason: any) => PromiseLike<TResult> | TResult) | undefined | null,
     ): DisposablePromise<T | TResult> {
-        return new DisposablePromise(
-            resolve => {
-                this.add_resolution_listener(resolve);
-
-                if (onrejected != undefined) {
-                    this.add_rejection_listener(async error => resolve(await onrejected(error)));
-                }
-            },
-            () => this.dispose(),
-        );
+        return DisposablePromise.wrap(super.catch(onrejected), () => this.dispose());
     }
 
     finally(onfinally?: (() => void) | undefined | null): DisposablePromise<T> {
-        return new DisposablePromise(
-            () => {
-                if (onfinally != undefined) {
-                    this.add_settlement_listener(this.finally);
-                }
-            },
-            () => this.dispose(),
-        );
+        return DisposablePromise.wrap(super.finally(onfinally), () => this.dispose());
     }
 
     /**
-     * Cancels future resolution. After calling this method, any then, catch or finally handlers
-     * will not be called.
+     * Cancels the promise. After calling this method, any then, catch or finally handlers will not
+     * be called.
      */
     dispose(): void {
-        if (!this.settled) {
-            this.state = State.Disposed;
-
-            // Remove listeners without calling them.
-            this.resolution_listeners.splice(0);
-            this.rejection_listeners.splice(0);
-            this.settlement_listeners.splice(0);
-
+        if (!this.disposed) {
+            this.disposed = true;
             this.disposal_handler?.();
-        } else {
-            this.state = State.Disposed;
-        }
-    }
-
-    private resolve = (value: T): void => {
-        if (!this.settled) {
-            this.state = State.Resolved;
-            this.value = value;
-
-            // Remove listeners and call the resolution and settlement listeners.
-            this.rejection_listeners.splice(0);
-            this.settlement_listeners.splice(0);
-
-            for (const listener of this.resolution_listeners.splice(0)) {
-                listener(value);
-            }
-
-            for (const listener of this.settlement_listeners.splice(0)) {
-                listener();
-            }
-        }
-    };
-
-    private reject = (error: Error): void => {
-        if (!this.settled) {
-            this.state = State.Rejected;
-            this.error = error;
-
-            // Remove listeners and call the rejection and settlement listeners.
-            this.resolution_listeners.splice(0);
-            this.settlement_listeners.splice(0);
-
-            for (const listener of this.rejection_listeners.splice(0)) {
-                listener(error);
-            }
-
-            for (const listener of this.settlement_listeners.splice(0)) {
-                listener();
-            }
-        }
-    };
-
-    private add_resolution_listener(listener: (value: T) => void): void {
-        if (this.state === State.Resolved) {
-            // Just call the listener without adding it to the list.
-            listener(this.value!);
-        } else if (!this.settled) {
-            this.resolution_listeners.push(listener);
-        }
-    }
-
-    private add_rejection_listener(listener: (error: Error) => void): void {
-        if (this.state === State.Rejected) {
-            // Just call the listener without adding it to the list.
-            listener(this.error!);
-        } else if (!this.settled) {
-            this.rejection_listeners.push(listener);
-        }
-    }
-
-    private add_settlement_listener(listener: () => void): void {
-        if (this.settled) {
-            // Just call the listener without adding it to the list.
-            listener();
-        } else if (this.state !== State.Disposed) {
-            this.settlement_listeners.push(listener);
         }
     }
 }
