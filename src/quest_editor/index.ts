@@ -25,6 +25,7 @@ import { QuestInfoController } from "./controllers/QuestInfoController";
 import { Disposer } from "../core/observable/Disposer";
 import { Disposable } from "../core/observable/Disposable";
 import { EntityInfoController } from "./controllers/EntityInfoController";
+import { NpcCountsController } from "./controllers/NpcCountsController";
 
 export function initialize_quest_editor(
     http_client: HttpClient,
@@ -58,11 +59,13 @@ export function initialize_quest_editor(
             quest_editor_ui_persister,
             disposer.add(
                 new QuestEditorToolBar(
-                    new QuestEditorToolBarController(gui_store, area_store, quest_editor_store),
+                    disposer.add(
+                        new QuestEditorToolBarController(gui_store, area_store, quest_editor_store),
+                    ),
                 ),
             ),
-            () => new QuestInfoView(new QuestInfoController(quest_editor_store)),
-            () => new NpcCountsView(quest_editor_store),
+            () => new QuestInfoView(disposer.add(new QuestInfoController(quest_editor_store))),
+            () => new NpcCountsView(disposer.add(new NpcCountsController(quest_editor_store))),
             () =>
                 new QuestEditorRendererView(
                     gui_store,
@@ -72,7 +75,7 @@ export function initialize_quest_editor(
                     create_three_renderer(),
                 ),
             () => new AsmEditorView(gui_store, quest_editor_store.quest_runner, asm_editor_store),
-            () => new EntityInfoView(new EntityInfoController(quest_editor_store)),
+            () => new EntityInfoView(disposer.add(new EntityInfoController(quest_editor_store))),
             () => new NpcListView(quest_editor_store, entity_image_renderer),
             () => new ObjectListView(quest_editor_store, entity_image_renderer),
             () => new EventsView(quest_editor_store),

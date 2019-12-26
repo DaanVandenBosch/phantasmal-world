@@ -1,67 +1,37 @@
 import { ResizableWidget } from "../../core/gui/ResizableWidget";
-import { el } from "../../core/gui/dom";
-import { npc_data, NpcType } from "../../core/data_formats/parsing/quest/npc_types";
+import { bind_attr, el } from "../../core/gui/dom";
 import "./NpcCountsView.css";
 import { UnavailableView } from "./UnavailableView";
-import { property } from "../../core/observable";
-import { QuestNpcModel } from "../model/QuestNpcModel";
-import { QuestEditorStore } from "../stores/QuestEditorStore";
+import { NameWithCount, NpcCountsController } from "../controllers/NpcCountsController";
 
 export class NpcCountsView extends ResizableWidget {
     readonly element = el.div({ class: "quest_editor_NpcCountsView" });
 
     private readonly table_element = el.table();
 
-    private readonly no_quest_view = new UnavailableView("No quest loaded.");
+    private readonly unavailable_view = new UnavailableView("No quest loaded.");
 
-    constructor(quest_editor_store: QuestEditorStore) {
+    constructor(ctrl: NpcCountsController) {
         super();
 
-        this.element.append(this.table_element, this.no_quest_view.element);
-
-        const quest = quest_editor_store.current_quest;
-        const no_quest = quest.map(q => q == undefined);
-
-        this.bind_hidden(this.table_element, no_quest);
+        this.element.append(this.table_element, this.unavailable_view.element);
 
         this.disposables(
-            this.no_quest_view.visible.bind_to(no_quest),
+            bind_attr(this.table_element, "hidden", ctrl.unavailable),
 
-            quest
-                .flat_map(quest => (quest ? quest.npcs : property([])))
-                .observe(({ value: npcs }) => this.update_view(npcs), {
-                    call_now: true,
-                }),
+            this.unavailable_view.visible.bind_to(ctrl.unavailable),
+
+            ctrl.npc_counts.observe(({ value }) => this.update_view(value), { call_now: true }),
         );
 
         this.finalize_construction();
     }
 
-    private update_view(npcs: readonly QuestNpcModel[]): void {
+    private update_view(npcs: readonly NameWithCount[]): void {
         const frag = document.createDocumentFragment();
 
-        const npc_counts = new Map<NpcType, number>();
-
-        for (const npc of npcs) {
-            const val = npc_counts.get(npc.type) || 0;
-            npc_counts.set(npc.type, val + 1);
-        }
-
-        const extra_canadines = (npc_counts.get(NpcType.Canane) || 0) * 8;
-
-        // Sort by canonical order.
-        const sorted_npc_counts = [...npc_counts].sort((a, b) => a[0] - b[0]);
-
-        for (const [npc_type, count] of sorted_npc_counts) {
-            const extra = npc_type === NpcType.Canadine ? extra_canadines : 0;
-
-            frag.append(
-                el.tr(
-                    {},
-                    el.th({ text: npc_data(npc_type).name + ":" }),
-                    el.td({ text: String(count + extra) }),
-                ),
-            );
+        for (const { name, count } of npcs) {
+            frag.append(el.tr({}, el.th({ text: name + ":" }), el.td({ text: String(count) })));
         }
 
         this.table_element.innerHTML = "";
