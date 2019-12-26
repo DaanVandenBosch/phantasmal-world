@@ -1,11 +1,12 @@
 import { SimpleProperty } from "./SimpleProperty";
-import { DependentProperty } from "./DependentProperty";
+import { MappedProperty } from "./MappedProperty";
 import { list_property } from "../index";
 import { FlatMappedProperty } from "./FlatMappedProperty";
 import { SimpleListProperty } from "./list/SimpleListProperty";
-import { DependentListProperty } from "./list/DependentListProperty";
+import { MappedListProperty } from "./list/MappedListProperty";
 import { is_property, Property, PropertyChangeEvent } from "./Property";
 import { is_list_property } from "./list/ListProperty";
+import { FlatMappedListProperty } from "./list/FlatMappedListProperty";
 
 // This suite tests every implementation of Property.
 
@@ -94,9 +95,9 @@ test_property(SimpleProperty.name, () => {
     };
 });
 
-test_property(DependentProperty.name, () => {
+test_property(MappedProperty.name, () => {
     const p = new SimpleProperty(0);
-    const property = new DependentProperty([p], () => 2 * p.val);
+    const property = new MappedProperty([p], () => 2 * p.val);
     return {
         property,
         emit: () => (p.val += 2),
@@ -104,20 +105,20 @@ test_property(DependentProperty.name, () => {
 });
 
 test_property(`${FlatMappedProperty.name} (dependent property emits)`, () => {
-    const p = new SimpleProperty({ x: new SimpleProperty(5) });
-    const property = new FlatMappedProperty([p], () => p.val.x);
+    const p = new SimpleProperty(new SimpleProperty(5));
+    const property = new FlatMappedProperty([p], () => p.val);
     return {
         property,
-        emit: () => (p.val = { x: new SimpleProperty(p.val.x.val + 5) }),
+        emit: () => (p.val = new SimpleProperty(p.val.val + 5)),
     };
 });
 
 test_property(`${FlatMappedProperty.name} (nested property emits)`, () => {
-    const p = new SimpleProperty({ x: new SimpleProperty(5) });
-    const property = new FlatMappedProperty([p], () => p.val.x);
+    const p = new SimpleProperty(new SimpleProperty(5));
+    const property = new FlatMappedProperty([p], () => p.val);
     return {
         property,
-        emit: () => (p.val.x.val += 5),
+        emit: () => (p.val.val += 5),
     };
 });
 
@@ -129,11 +130,29 @@ test_property(SimpleListProperty.name, () => {
     };
 });
 
-test_property(DependentListProperty.name, () => {
+test_property(MappedListProperty.name, () => {
     const list = list_property<number>();
-    const property = new DependentListProperty(list, x => x.map(v => 2 * v));
+    const property = new MappedListProperty([list], () => list.val.map(v => 2 * v));
     return {
         property,
         emit: () => list.push(10),
+    };
+});
+
+test_property(`${FlatMappedListProperty.name} (dependent property emits)`, () => {
+    const list = list_property(undefined, list_property(undefined, 5));
+    const property = new FlatMappedListProperty([list], () => list.get(0));
+    return {
+        property,
+        emit: () => list.set(0, list_property(undefined, 5, 10)),
+    };
+});
+
+test_property(`${FlatMappedListProperty.name} (nested property emits)`, () => {
+    const list = list_property(undefined, list_property(undefined, 5));
+    const property = new FlatMappedListProperty([list], () => list.get(0));
+    return {
+        property,
+        emit: () => list.get(0).push(10),
     };
 });

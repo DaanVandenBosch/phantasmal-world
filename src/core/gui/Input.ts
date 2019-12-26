@@ -1,7 +1,7 @@
 import { LabelledControl, LabelledControlOptions } from "./LabelledControl";
 import { create_element, el } from "./dom";
 import { WritableProperty } from "../observable/property/WritableProperty";
-import { is_any_property, Property } from "../observable/property/Property";
+import { is_property, Property } from "../observable/property/Property";
 import "./Input.css";
 import { WidgetProperty } from "../observable/property/WidgetProperty";
 
@@ -66,7 +66,7 @@ export abstract class Input<T> extends LabelledControl {
         const input = this.input_element as any;
         const cvt = convert ? convert : (v: T) => (v as any) as U;
 
-        if (is_any_property(value)) {
+        if (is_property(value)) {
             input[attr] = cvt(value.val);
             this.disposable(value.observe(({ value }) => (input[attr] = cvt(value))));
         } else {

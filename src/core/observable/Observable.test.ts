@@ -1,11 +1,11 @@
 import { ChangeEvent, Observable } from "./Observable";
 import { SimpleEmitter } from "./SimpleEmitter";
 import { SimpleProperty } from "./property/SimpleProperty";
-import { DependentProperty } from "./property/DependentProperty";
+import { MappedProperty } from "./property/MappedProperty";
 import { list_property, property } from "./index";
 import { FlatMappedProperty } from "./property/FlatMappedProperty";
 import { SimpleListProperty } from "./property/list/SimpleListProperty";
-import { DependentListProperty } from "./property/list/DependentListProperty";
+import { MappedListProperty } from "./property/list/MappedListProperty";
 
 // This suite tests every implementation of Observable.
 
@@ -73,9 +73,9 @@ test_observable(SimpleProperty.name, () => {
     };
 });
 
-test_observable(DependentProperty.name, () => {
+test_observable(MappedProperty.name, () => {
     const p = property(0);
-    const observable = new DependentProperty([p], () => 2 * p.val);
+    const observable = new MappedProperty([p], () => 2 * p.val);
     return {
         observable,
         emit: () => (p.val += 2),
@@ -108,9 +108,9 @@ test_observable(SimpleListProperty.name, () => {
     };
 });
 
-test_observable(DependentListProperty.name, () => {
+test_observable(MappedListProperty.name, () => {
     const list = list_property<number>();
-    const observable = new DependentListProperty(list, x => x.map(v => 2 * v));
+    const observable = new MappedListProperty([list], () => list.val.map(v => 2 * v));
     return {
         observable,
         emit: () => list.push(10),

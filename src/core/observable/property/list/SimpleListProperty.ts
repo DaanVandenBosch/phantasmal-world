@@ -1,10 +1,10 @@
 import { WritableListProperty } from "./WritableListProperty";
 import { Disposable } from "../../Disposable";
 import { Observable } from "../../Observable";
-import { is_any_property, is_property, Property } from "../Property";
+import { is_property, Property } from "../Property";
 import { is_list_property, ListChangeType, ListProperty } from "./ListProperty";
 import { AbstractListProperty } from "./AbstractListProperty";
-import { DependentListProperty } from "./DependentListProperty";
+import { MappedListProperty } from "./MappedListProperty";
 
 export class SimpleListProperty<T> extends AbstractListProperty<T>
     implements WritableListProperty<T> {
@@ -47,18 +47,15 @@ export class SimpleListProperty<T> extends AbstractListProperty<T>
     filtered(
         predicate: ((value: T) => boolean) | Property<(value: T) => boolean>,
     ): ListProperty<T> {
-        if (is_any_property(predicate)) {
-            return new DependentListProperty(
-                this,
-                predicate.map(p => values => values.filter(p)),
-            );
+        if (is_property(predicate)) {
+            return new MappedListProperty([this, predicate], () => this.val.filter(predicate.val));
         } else {
-            return new DependentListProperty(this, values => values.filter(predicate));
+            return new MappedListProperty([this], () => this.val.filter(predicate));
         }
     }
 
     bind_to(observable: Observable<readonly T[]>): Disposable {
-        if (is_list_property(observable)) {
+        if (is_list_property<T>(observable)) {
             this.set_val(observable.val);
 
             return observable.observe_list(change => {
@@ -67,7 +64,7 @@ export class SimpleListProperty<T> extends AbstractListProperty<T>
                 }
             });
         } else {
-            if (is_property(observable)) {
+            if (is_property<readonly T[]>(observable)) {
                 this.set_val(observable.val);
             }
 

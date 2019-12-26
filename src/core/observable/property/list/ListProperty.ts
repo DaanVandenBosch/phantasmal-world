@@ -1,6 +1,5 @@
 import { Property } from "../Property";
 import { Disposable } from "../../Disposable";
-import { Observable } from "../../Observable";
 
 export enum ListChangeType {
     ListChange,
@@ -37,8 +36,6 @@ export interface ListProperty<T> extends Property<readonly T[]> {
     filtered(predicate: ((value: T) => boolean) | Property<(value: T) => boolean>): ListProperty<T>;
 }
 
-export function is_list_property<T>(
-    observable: Observable<readonly T[]>,
-): observable is ListProperty<T> {
-    return (observable as any).is_list_property;
+export function is_list_property<T>(observable: any): observable is ListProperty<T> {
+    return observable != undefined && (observable as any).is_list_property;
 }

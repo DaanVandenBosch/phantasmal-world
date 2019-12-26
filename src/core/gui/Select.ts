@@ -1,7 +1,7 @@
 import { LabelledControl, LabelledControlOptions, LabelPosition } from "./LabelledControl";
 import { disposable_listener, el, Icon } from "./dom";
 import "./Select.css";
-import { is_any_property, Property } from "../observable/property/Property";
+import { is_property, Property } from "../observable/property/Property";
 import { Button } from "./Button";
 import { WritableProperty } from "../observable/property/WritableProperty";
 import { WidgetProperty } from "../observable/property/WidgetProperty";
@@ -62,7 +62,7 @@ export class Select<T> extends LabelledControl {
         );
 
         if (options) {
-            if (is_any_property(options.selected)) {
+            if (is_property(options.selected)) {
                 this.selected.bind_to(options.selected);
             } else if (options.selected) {
                 this.selected.val = options.selected;

@@ -22,10 +22,6 @@ export interface Property<T> extends Observable<T> {
     flat_map<U>(f: (element: T) => Property<U>): Property<U>;
 }
 
-export function is_property<T>(observable: Observable<T>): observable is Property<T> {
-    return (observable as any).is_property;
-}
-
-export function is_any_property(observable: any): observable is Property<any> {
-    return observable && observable.is_property;
+export function is_property<T>(observable: any): observable is Property<T> {
+    return observable != undefined && (observable as any).is_property;
 }

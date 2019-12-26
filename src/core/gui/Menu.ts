@@ -1,6 +1,6 @@
 import { disposable_listener, el } from "./dom";
 import { Widget } from "./Widget";
-import { is_any_property, Property } from "../observable/property/Property";
+import { is_property, Property } from "../observable/property/Property";
 import { property } from "../observable";
 import { WritableProperty } from "../observable/property/WritableProperty";
 import { WidgetProperty } from "../observable/property/WidgetProperty";
@@ -36,7 +36,7 @@ export class Menu<T> extends Widget {
         this.element.append(this.inner_element);
 
         this.to_label = options.to_label;
-        this.items = is_any_property(options.items) ? options.items : property(options.items);
+        this.items = is_property(options.items) ? options.items : property(options.items);
         this.related_element = options.related_element;
 
         this._selected = new WidgetProperty<T | undefined>(this, undefined, this.set_selected);

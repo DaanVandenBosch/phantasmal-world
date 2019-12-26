@@ -5,8 +5,9 @@ import {
     ListPropertyChangeEvent,
 } from "./ListProperty";
 import { SimpleListProperty } from "./SimpleListProperty";
-import { DependentListProperty } from "./DependentListProperty";
+import { MappedListProperty } from "./MappedListProperty";
 import { list_property } from "../../index";
+import { FlatMappedListProperty } from "./FlatMappedListProperty";
 
 // This suite tests every implementation of ListProperty.
 
@@ -45,11 +46,29 @@ test_list_property(SimpleListProperty.name, () => {
     };
 });
 
-test_list_property(DependentListProperty.name, () => {
+test_list_property(MappedListProperty.name, () => {
     const list = list_property<number>();
-    const property = new DependentListProperty(list, x => x.map(v => 2 * v));
+    const property = new MappedListProperty([list], () => list.val.map(v => 2 * v));
     return {
         property,
         emit_list_change: () => list.push(10),
+    };
+});
+
+test_list_property(`${FlatMappedListProperty.name} (dependent property emits)`, () => {
+    const list = list_property(undefined, list_property(undefined, 5));
+    const property = new FlatMappedListProperty([list], () => list.get(0));
+    return {
+        property,
+        emit_list_change: () => list.set(0, list_property(undefined, 5, 10)),
+    };
+});
+
+test_list_property(`${FlatMappedListProperty.name} (nested property emits)`, () => {
+    const list = list_property(undefined, list_property(undefined, 5));
+    const property = new FlatMappedListProperty([list], () => list.get(0));
+    return {
+        property,
+        emit_list_change: () => list.get(0).push(10),
     };
 });

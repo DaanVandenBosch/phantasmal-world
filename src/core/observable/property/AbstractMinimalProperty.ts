@@ -4,8 +4,8 @@ import { LogManager } from "../../Logger";
 
 const logger = LogManager.get("core/observable/property/AbstractMinimalProperty");
 
-// This class exists purely because otherwise the resulting cyclic dependency graph would trip up commonjs.
-// The dependency graph is still cyclic but for some reason it's not a problem this way.
+// This class exists purely because otherwise the resulting cyclic dependency graph would trip up
+// webpack. The dependency graph is still cyclic but for some reason it's not a problem this way.
 export abstract class AbstractMinimalProperty<T> implements Property<T> {
     readonly is_property = true;
 
