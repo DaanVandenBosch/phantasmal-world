@@ -69,6 +69,6 @@ export class DependentProperty<T> extends AbstractMinimalProperty<T> implements 
     }
 
     flat_map<U>(f: (element: T) => Property<U>): Property<U> {
-        return new FlatMappedProperty(this, value => f(value));
+        return new FlatMappedProperty([this], () => f(this.val));
     }
 }

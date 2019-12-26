@@ -84,7 +84,7 @@ test_observable(DependentProperty.name, () => {
 
 test_observable(`${FlatMappedProperty.name} (dependent property emits)`, () => {
     const p = property({ x: property(5) });
-    const observable = new FlatMappedProperty(p, v => v.x);
+    const observable = new FlatMappedProperty([p], () => p.val.x);
     return {
         observable,
         emit: () => (p.val = { x: property(p.val.x.val + 5) }),
@@ -93,7 +93,7 @@ test_observable(`${FlatMappedProperty.name} (dependent property emits)`, () => {
 
 test_observable(`${FlatMappedProperty.name} (nested property emits)`, () => {
     const p = property({ x: property(5) });
-    const observable = new FlatMappedProperty(p, v => v.x);
+    const observable = new FlatMappedProperty([p], () => p.val.x);
     return {
         observable,
         emit: () => (p.val.x.val += 5),

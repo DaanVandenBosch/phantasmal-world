@@ -7,6 +7,7 @@ import { DependentProperty } from "./property/DependentProperty";
 import { WritableListProperty } from "./property/list/WritableListProperty";
 import { SimpleListProperty } from "./property/list/SimpleListProperty";
 import { Observable } from "./Observable";
+import { FlatMappedProperty } from "./property/FlatMappedProperty";
 
 export function emitter<E>(): Emitter<E> {
     return new SimpleEmitter();
@@ -59,4 +60,37 @@ export function map<R, P1, P2, P3, P4, P5>(
 ): Property<R>;
 export function map<R>(f: (...props: any[]) => R, ...props: Property<any>[]): Property<R> {
     return new DependentProperty(props, () => f(...props.map(p => p.val)));
+}
+
+export function flat_map<R, P1, P2>(
+    f: (prop_1: P1, prop_2: P2) => Property<R>,
+    prop_1: Property<P1>,
+    prop_2: Property<P2>,
+): Property<R>;
+export function flat_map<R, P1, P2, P3>(
+    f: (prop_1: P1, prop_2: P2, prop_3: P3) => Property<R>,
+    prop_1: Property<P1>,
+    prop_2: Property<P2>,
+    prop_3: Property<P3>,
+): Property<R>;
+export function flat_map<R, P1, P2, P3, P4>(
+    f: (prop_1: P1, prop_2: P2, prop_3: P3, prop_4: P4) => Property<R>,
+    prop_1: Property<P1>,
+    prop_2: Property<P2>,
+    prop_3: Property<P3>,
+    prop_4: Property<P4>,
+): Property<R>;
+export function flat_map<R, P1, P2, P3, P4, P5>(
+    f: (prop_1: P1, prop_2: P2, prop_3: P3, prop_4: P4, prop_5: P5) => Property<R>,
+    prop_1: Property<P1>,
+    prop_2: Property<P2>,
+    prop_3: Property<P3>,
+    prop_4: Property<P4>,
+    prop_5: Property<P5>,
+): Property<R>;
+export function flat_map<R>(
+    f: (...props: any[]) => Property<R>,
+    ...props: Property<any>[]
+): Property<R> {
+    return new FlatMappedProperty(props, () => f(...props.map(p => p.val)));
 }
