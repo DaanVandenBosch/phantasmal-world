@@ -11,6 +11,14 @@ export class FlatMappedListProperty<T> extends DependentListProperty<T> {
     private computed_property?: ListProperty<T>;
     private computed_disposable?: Disposable;
 
+    get_val(): readonly T[] {
+        if (this.should_recompute() || !this.computed_property) {
+            return super.get_val();
+        } else {
+            return this.computed_property.val;
+        }
+    }
+
     constructor(
         dependencies: readonly Property<any>[],
         private readonly compute: () => ListProperty<T>,
@@ -69,7 +77,7 @@ export class FlatMappedListProperty<T> extends DependentListProperty<T> {
     }
 
     protected compute_values(): readonly T[] {
-        if (this.computed_disposable) this.computed_disposable.dispose();
+        this.computed_disposable?.dispose();
 
         this.computed_property = this.compute();
 

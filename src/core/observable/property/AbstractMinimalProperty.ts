@@ -37,9 +37,9 @@ export abstract class AbstractMinimalProperty<T> implements Property<T> {
         };
     }
 
-    abstract map<U>(f: (element: T) => U): Property<U>;
+    abstract map<U>(transform: (value: T) => U): Property<U>;
 
-    abstract flat_map<U>(f: (element: T) => Property<U>): Property<U>;
+    abstract flat_map<U>(transform: (value: T) => Property<U>): Property<U>;
 
     protected emit(): void {
         const value = this.val;

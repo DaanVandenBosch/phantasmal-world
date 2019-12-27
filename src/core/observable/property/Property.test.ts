@@ -152,14 +152,3 @@ test_property(`${FlatMappedListProperty.name} (nested property emits)`, () => {
         emit: () => list.get(0).push(10),
     };
 });
-
-test("aaaaaaaaaaaaaaaaaaargh", () => {
-    const property: Property<{ x?: Property<number> }> = new SimpleProperty({});
-    const flat_mapped = property.flat_map(p => p.x ?? new SimpleProperty(13));
-
-    expect(flat_mapped.val).toBe(13);
-
-    property.val.x = new SimpleProperty(17);
-
-    expect(flat_mapped.val).toBe(17);
-});

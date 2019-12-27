@@ -4,11 +4,11 @@ import { AbstractMinimalProperty } from "./AbstractMinimalProperty";
 import { Property } from "./Property";
 
 export abstract class AbstractProperty<T> extends AbstractMinimalProperty<T> {
-    map<U>(f: (element: T) => U): Property<U> {
-        return new MappedProperty([this], () => f(this.val));
+    map<U>(transform: (value: T) => U): Property<U> {
+        return new MappedProperty([this], () => transform(this.val));
     }
 
-    flat_map<U>(f: (element: T) => Property<U>): Property<U> {
-        return new FlatMappedProperty([this], () => f(this.val));
+    flat_map<U>(transform: (value: T) => Property<U>): Property<U> {
+        return new FlatMappedProperty([this], () => transform(this.val));
     }
 }

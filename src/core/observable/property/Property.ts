@@ -13,9 +13,9 @@ export interface Property<T> extends Observable<T> {
         options?: { call_now?: boolean },
     ): Disposable;
 
-    map<U>(f: (element: T) => U): Property<U>;
+    map<U>(transform: (value: T) => U): Property<U>;
 
-    flat_map<U>(f: (element: T) => Property<U>): Property<U>;
+    flat_map<U>(transform: (value: T) => Property<U>): Property<U>;
 }
 
 export function is_property<T>(observable: any): observable is Property<T> {

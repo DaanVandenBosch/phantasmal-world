@@ -8,6 +8,14 @@ export class FlatMappedProperty<T> extends DependentProperty<T> {
     private computed_property?: Property<T>;
     private computed_disposable?: Disposable;
 
+    get_val(): T {
+        if (this.should_recompute() || !this.computed_property) {
+            return super.get_val();
+        } else {
+            return this.computed_property.val;
+        }
+    }
+
     constructor(
         dependencies: readonly Property<any>[],
         private readonly compute: () => Property<T>,
@@ -34,16 +42,16 @@ export class FlatMappedProperty<T> extends DependentProperty<T> {
         };
     }
 
-    map<U>(transform: (element: T) => U): Property<U> {
+    map<U>(transform: (value: T) => U): Property<U> {
         return new MappedProperty([this], () => transform(this.val));
     }
 
-    flat_map<U>(transform: (element: T) => Property<U>): Property<U> {
+    flat_map<U>(transform: (value: T) => Property<U>): Property<U> {
         return new FlatMappedProperty([this], () => transform(this.val));
     }
 
     protected compute_value(): T {
-        if (this.computed_disposable) this.computed_disposable.dispose();
+        this.computed_disposable?.dispose();
 
         this.computed_property = this.compute();
 

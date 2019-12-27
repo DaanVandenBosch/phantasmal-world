@@ -18,7 +18,7 @@ export abstract class DependentProperty<T> extends AbstractMinimalProperty<T> {
     }
 
     get_val(): T {
-        if (this.dependency_disposer.length === 0) {
+        if (this.should_recompute()) {
             this._val = this.compute_value();
         }
 
@@ -31,10 +31,8 @@ export abstract class DependentProperty<T> extends AbstractMinimalProperty<T> {
 
     observe(
         observer: (event: ChangeEvent<T>) => void,
-        options: { call_now?: boolean } = {},
+        options?: { call_now?: boolean },
     ): Disposable {
-        const super_disposable = super.observe(observer, options);
-
         if (this.dependency_disposer.length === 0) {
             this._val = this.compute_value();
 
@@ -52,6 +50,8 @@ export abstract class DependentProperty<T> extends AbstractMinimalProperty<T> {
             );
         }
 
+        const super_disposable = super.observe(observer, options);
+
         return {
             dispose: () => {
                 super_disposable.dispose();
@@ -61,6 +61,10 @@ export abstract class DependentProperty<T> extends AbstractMinimalProperty<T> {
                 }
             },
         };
+    }
+
+    protected should_recompute(): boolean {
+        return this.dependency_disposer.length === 0;
     }
 
     protected abstract compute_value(): T;

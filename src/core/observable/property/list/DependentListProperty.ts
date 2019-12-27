@@ -19,7 +19,7 @@ export abstract class DependentListProperty<T> extends AbstractListProperty<T> {
     }
 
     get_val(): readonly T[] {
-        if (this.dependency_disposer.length === 0) {
+        if (this.should_recompute()) {
             this.values = this.compute_values();
         }
 
@@ -34,9 +34,9 @@ export abstract class DependentListProperty<T> extends AbstractListProperty<T> {
         observer: (event: ChangeEvent<readonly T[]>) => void,
         options: { call_now?: boolean } = {},
     ): Disposable {
-        const super_disposable = super.observe(observer, options);
-
         this.init_dependency_disposables();
+
+        const super_disposable = super.observe(observer, options);
 
         return {
             dispose: () => {
@@ -62,8 +62,12 @@ export abstract class DependentListProperty<T> extends AbstractListProperty<T> {
         };
     }
 
+    protected should_recompute(): boolean {
+        return this.dependency_disposer.length === 0;
+    }
+
     protected compute_length(): number {
-        if (this.dependency_disposer.length === 0) {
+        if (this.should_recompute()) {
             this.values = this.compute_values();
         }
 

@@ -7,8 +7,8 @@ import { property } from "../../core/observable";
 import { Euler, Vector3 } from "three";
 import { deg_to_rad } from "../../core/math";
 
-const DUMMY_VECTOR = new Vector3();
-const DUMMY_EULER = new Euler();
+const DUMMY_VECTOR = Object.freeze(new Vector3());
+const DUMMY_EULER = Object.freeze(new Euler());
 
 export class EntityInfoController extends Controller {
     readonly unavailable: Property<boolean>;
