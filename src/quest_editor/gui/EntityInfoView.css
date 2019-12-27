@@ -8,15 +8,17 @@
 .quest_editor_EntityInfoView table {
     table-layout: fixed;
     width: 100%;
-    max-width: 180px;
     margin: 0 auto;
 }
 
 .quest_editor_EntityInfoView th {
-    width: 80px;
     text-align: left;
 }
 
 .quest_editor_EntityInfoView th.quest_editor_EntityInfoView_coord {
     padding-left: 10px;
+}
+
+.quest_editor_EntityInfoView .core_NumberInput {
+    width: 100%;
 }

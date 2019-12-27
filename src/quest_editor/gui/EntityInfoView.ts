@@ -18,24 +18,12 @@ export class EntityInfoView extends ResizableWidget {
     private readonly section_id_element: HTMLTableCellElement;
     private readonly wave_element: HTMLTableCellElement;
     private readonly wave_row_element: HTMLTableRowElement;
-    private readonly pos_x_element = this.disposable(
-        new NumberInput(0, { width: 80, round_to: 3 }),
-    );
-    private readonly pos_y_element = this.disposable(
-        new NumberInput(0, { width: 80, round_to: 3 }),
-    );
-    private readonly pos_z_element = this.disposable(
-        new NumberInput(0, { width: 80, round_to: 3 }),
-    );
-    private readonly rot_x_element = this.disposable(
-        new NumberInput(0, { width: 80, round_to: 3 }),
-    );
-    private readonly rot_y_element = this.disposable(
-        new NumberInput(0, { width: 80, round_to: 3 }),
-    );
-    private readonly rot_z_element = this.disposable(
-        new NumberInput(0, { width: 80, round_to: 3 }),
-    );
+    private readonly pos_x_element = this.disposable(new NumberInput(0, { round_to: 3 }));
+    private readonly pos_y_element = this.disposable(new NumberInput(0, { round_to: 3 }));
+    private readonly pos_z_element = this.disposable(new NumberInput(0, { round_to: 3 }));
+    private readonly rot_x_element = this.disposable(new NumberInput(0, { round_to: 3 }));
+    private readonly rot_y_element = this.disposable(new NumberInput(0, { round_to: 3 }));
+    private readonly rot_z_element = this.disposable(new NumberInput(0, { round_to: 3 }));
 
     constructor(private readonly ctrl: EntityInfoController) {
         super();

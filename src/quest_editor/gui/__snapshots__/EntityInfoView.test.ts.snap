@@ -54,7 +54,6 @@ exports[`Renders correctly with an entity selected.: should render a table of ed
       <td>
         <span
           class="core_NumberInput core_Input"
-          style="width: 80px;"
         >
           <input
             class="core_NumberInput_inner core_Input_inner"
@@ -73,7 +72,6 @@ exports[`Renders correctly with an entity selected.: should render a table of ed
       <td>
         <span
           class="core_NumberInput core_Input"
-          style="width: 80px;"
         >
           <input
             class="core_NumberInput_inner core_Input_inner"
@@ -92,7 +90,6 @@ exports[`Renders correctly with an entity selected.: should render a table of ed
       <td>
         <span
           class="core_NumberInput core_Input"
-          style="width: 80px;"
         >
           <input
             class="core_NumberInput_inner core_Input_inner"
@@ -118,7 +115,6 @@ exports[`Renders correctly with an entity selected.: should render a table of ed
       <td>
         <span
           class="core_NumberInput core_Input"
-          style="width: 80px;"
         >
           <input
             class="core_NumberInput_inner core_Input_inner"
@@ -137,7 +133,6 @@ exports[`Renders correctly with an entity selected.: should render a table of ed
       <td>
         <span
           class="core_NumberInput core_Input"
-          style="width: 80px;"
         >
           <input
             class="core_NumberInput_inner core_Input_inner"
@@ -156,7 +151,6 @@ exports[`Renders correctly with an entity selected.: should render a table of ed
       <td>
         <span
           class="core_NumberInput core_Input"
-          style="width: 80px;"
         >
           <input
             class="core_NumberInput_inner core_Input_inner"
@@ -232,7 +226,6 @@ exports[`Renders correctly without an entity selected.: should render a "No enti
       <td>
         <span
           class="core_NumberInput core_Input"
-          style="width: 80px;"
         >
           <input
             class="core_NumberInput_inner core_Input_inner"
@@ -251,7 +244,6 @@ exports[`Renders correctly without an entity selected.: should render a "No enti
       <td>
         <span
           class="core_NumberInput core_Input"
-          style="width: 80px;"
         >
           <input
             class="core_NumberInput_inner core_Input_inner"
@@ -270,7 +262,6 @@ exports[`Renders correctly without an entity selected.: should render a "No enti
       <td>
         <span
           class="core_NumberInput core_Input"
-          style="width: 80px;"
         >
           <input
             class="core_NumberInput_inner core_Input_inner"
@@ -296,7 +287,6 @@ exports[`Renders correctly without an entity selected.: should render a "No enti
       <td>
         <span
           class="core_NumberInput core_Input"
-          style="width: 80px;"
         >
           <input
             class="core_NumberInput_inner core_Input_inner"
@@ -315,7 +305,6 @@ exports[`Renders correctly without an entity selected.: should render a "No enti
       <td>
         <span
           class="core_NumberInput core_Input"
-          style="width: 80px;"
         >
           <input
             class="core_NumberInput_inner core_Input_inner"
@@ -334,7 +323,6 @@ exports[`Renders correctly without an entity selected.: should render a "No enti
       <td>
         <span
           class="core_NumberInput core_Input"
-          style="width: 80px;"
         >
           <input
             class="core_NumberInput_inner core_Input_inner"
@@ -409,7 +397,6 @@ exports[`Renders correctly without an entity selected.: should render a "No enti
       <td>
         <span
           class="core_NumberInput core_Input"
-          style="width: 80px;"
         >
           <input
             class="core_NumberInput_inner core_Input_inner"
@@ -428,7 +415,6 @@ exports[`Renders correctly without an entity selected.: should render a "No enti
       <td>
         <span
           class="core_NumberInput core_Input"
-          style="width: 80px;"
         >
           <input
             class="core_NumberInput_inner core_Input_inner"
@@ -447,7 +433,6 @@ exports[`Renders correctly without an entity selected.: should render a "No enti
       <td>
         <span
           class="core_NumberInput core_Input"
-          style="width: 80px;"
         >
           <input
             class="core_NumberInput_inner core_Input_inner"
@@ -473,7 +458,6 @@ exports[`Renders correctly without an entity selected.: should render a "No enti
       <td>
         <span
           class="core_NumberInput core_Input"
-          style="width: 80px;"
         >
           <input
             class="core_NumberInput_inner core_Input_inner"
@@ -492,7 +476,6 @@ exports[`Renders correctly without an entity selected.: should render a "No enti
       <td>
         <span
           class="core_NumberInput core_Input"
-          style="width: 80px;"
         >
           <input
             class="core_NumberInput_inner core_Input_inner"
@@ -511,7 +494,6 @@ exports[`Renders correctly without an entity selected.: should render a "No enti
       <td>
         <span
           class="core_NumberInput core_Input"
-          style="width: 80px;"
         >
           <input
             class="core_NumberInput_inner core_Input_inner"

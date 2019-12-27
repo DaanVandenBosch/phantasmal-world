@@ -32,7 +32,9 @@ export class NumberInput extends Input<number> {
             this.rounding_factor = 1;
         }
 
-        this.element.style.width = `${options.width == undefined ? 54 : options.width}px`;
+        if (options.width != undefined) {
+            this.element.style.width = `${options.width}px`;
+        }
 
         this.set_value(value);
 

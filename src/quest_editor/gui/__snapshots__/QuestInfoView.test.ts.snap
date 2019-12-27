@@ -21,7 +21,6 @@ exports[`Renders correctly with a current quest.: should render property inputs 
       <td>
         <span
           class="core_NumberInput core_Input"
-          style="width: 54px;"
         >
           <input
             class="core_NumberInput_inner core_Input_inner"
@@ -131,7 +130,6 @@ exports[`Renders correctly without a current quest.: should render a "No quest l
       <td>
         <span
           class="core_NumberInput core_Input"
-          style="width: 54px;"
         >
           <input
             class="core_NumberInput_inner core_Input_inner"
