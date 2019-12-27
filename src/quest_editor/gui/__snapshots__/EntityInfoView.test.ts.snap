@@ -35,7 +35,7 @@ exports[`Renders correctly with an entity selected.: should render a table of ed
         Wave:
       </th>
       <td>
-        0
+        None
       </td>
     </tr>
     <tr>

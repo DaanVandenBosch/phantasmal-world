@@ -1,5 +1,5 @@
 import { QuestRenderer } from "./QuestRenderer";
-import { AreaVariantDetails, QuestModelManager } from "./QuestModelManager";
+import { AreaVariantDetails, Quest3DModelManager } from "./Quest3DModelManager";
 import { AreaVariantModel } from "../model/AreaVariantModel";
 import { QuestNpcModel } from "../model/QuestNpcModel";
 import { QuestObjectModel } from "../model/QuestObjectModel";
@@ -10,19 +10,21 @@ import { QuestModel } from "../model/QuestModel";
 import { AreaModel } from "../model/AreaModel";
 import { AreaAssetLoader } from "../loading/AreaAssetLoader";
 import { EntityAssetLoader } from "../loading/EntityAssetLoader";
+import { WaveModel } from "../model/WaveModel";
 
 /**
  * Model loader used while editing a quest.
  */
-export class QuestEditorModelManager extends QuestModelManager {
+export class QuestEditorModelManager extends Quest3DModelManager {
     constructor(
         private readonly current_quest: Property<QuestModel | undefined>,
         private readonly current_area: Property<AreaModel | undefined>,
+        current_wave: Property<WaveModel | undefined>,
         renderer: QuestRenderer,
         area_asset_loader: AreaAssetLoader,
         entity_asset_loader: EntityAssetLoader,
     ) {
-        super(renderer, area_asset_loader, entity_asset_loader);
+        super(current_wave, renderer, area_asset_loader, entity_asset_loader);
 
         this.disposer.add_all(
             current_quest.observe(this.area_variant_changed),

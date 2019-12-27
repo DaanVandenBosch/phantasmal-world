@@ -34,7 +34,9 @@ export class EntityInfoController extends Controller {
             e == undefined ? property("") : e.section_id.map(id => id.toString()),
         );
         this.wave = entity.flat_map(e =>
-            e instanceof QuestNpcModel ? e.wave.map(w => w.toString()) : property(""),
+            e instanceof QuestNpcModel
+                ? e.wave.flat_map(w => w?.id?.map(w => w.toString()) ?? property("None"))
+                : property(""),
         );
         this.wave_hidden = entity.map(e => !(e instanceof QuestNpcModel));
         this.position = entity.flat_map(e => e?.position ?? property(DUMMY_VECTOR));

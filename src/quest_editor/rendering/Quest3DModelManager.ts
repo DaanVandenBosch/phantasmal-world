@@ -18,6 +18,9 @@ import { AreaVariantModel } from "../model/AreaVariantModel";
 import { EntityAssetLoader } from "../loading/EntityAssetLoader";
 import { AreaAssetLoader } from "../loading/AreaAssetLoader";
 import { LogManager } from "../../core/Logger";
+import { Property } from "../../core/observable/property/Property";
+import { WaveModel } from "../model/WaveModel";
+import { map } from "../../core/observable";
 
 const logger = LogManager.get("quest_editor/rendering/QuestModelManager");
 
@@ -35,22 +38,31 @@ export type AreaVariantDetails = {
 /**
  * Loads the necessary area and entity 3D models into {@link QuestRenderer}.
  */
-export abstract class QuestModelManager implements Disposable {
+export abstract class Quest3DModelManager implements Disposable {
     protected readonly disposer = new Disposer();
 
     private readonly quest_disposer = this.disposer.add(new Disposer());
-    private readonly area_model_manager: AreaModelManager;
-    private readonly npc_model_manager: EntityModelManager;
-    private readonly object_model_manager: EntityModelManager;
+    private readonly area_model_manager: Area3DModelManager;
+    private readonly npc_model_manager: Entity3DModelManager;
+    private readonly object_model_manager: Entity3DModelManager;
 
     protected constructor(
+        current_wave: Property<WaveModel | undefined>,
         private readonly renderer: QuestRenderer,
         private readonly area_asset_loader: AreaAssetLoader,
         private readonly entity_asset_loader: EntityAssetLoader,
     ) {
-        this.area_model_manager = new AreaModelManager(this.renderer, area_asset_loader);
-        this.npc_model_manager = new EntityModelManager(this.renderer, entity_asset_loader);
-        this.object_model_manager = new EntityModelManager(this.renderer, entity_asset_loader);
+        this.area_model_manager = new Area3DModelManager(this.renderer, area_asset_loader);
+        this.npc_model_manager = new Entity3DModelManager(
+            current_wave,
+            this.renderer,
+            entity_asset_loader,
+        );
+        this.object_model_manager = new Entity3DModelManager(
+            current_wave,
+            this.renderer,
+            entity_asset_loader,
+        );
     }
 
     dispose(): void {
@@ -100,7 +112,7 @@ export abstract class QuestModelManager implements Disposable {
     };
 }
 
-class AreaModelManager {
+class Area3DModelManager {
     private readonly raycaster = new Raycaster();
     private readonly origin = new Vector3();
     private readonly down = Object.freeze(new Vector3(0, -1, 0));
@@ -195,7 +207,7 @@ class AreaModelManager {
     }
 }
 
-class EntityModelManager {
+class Entity3DModelManager {
     private readonly queue: QuestEntityModel[] = [];
     private readonly loaded_entities: {
         entity: QuestEntityModel;
@@ -204,6 +216,7 @@ class EntityModelManager {
     private loading = false;
 
     constructor(
+        private readonly current_wave: Property<WaveModel | undefined>,
         private readonly renderer: QuestRenderer,
         private readonly entity_asset_loader: EntityAssetLoader,
     ) {}
@@ -281,19 +294,35 @@ class EntityModelManager {
     private update_entity_geometry(entity: QuestEntityModel, model: Mesh): void {
         this.renderer.add_entity_model(model);
 
+        const disposer = new Disposer(
+            entity.world_position.observe(({ value }) => {
+                model.position.copy(value);
+                this.renderer.schedule_render();
+            }),
+
+            entity.world_rotation.observe(({ value }) => {
+                model.rotation.copy(value);
+                this.renderer.schedule_render();
+            }),
+        );
+
+        if (entity instanceof QuestNpcModel) {
+            disposer.add(
+                map(
+                    (current_wave, entity_wave) =>
+                        current_wave == undefined || current_wave === entity_wave,
+                    this.current_wave,
+                    entity.wave,
+                ).observe(({ value }) => {
+                    model.visible = value;
+                    this.renderer.schedule_render();
+                }),
+            );
+        }
+
         this.loaded_entities.push({
             entity,
-            disposer: new Disposer(
-                entity.world_position.observe(({ value }) => {
-                    model.position.copy(value);
-                    this.renderer.schedule_render();
-                }),
-
-                entity.world_rotation.observe(({ value }) => {
-                    model.rotation.copy(value);
-                    this.renderer.schedule_render();
-                }),
-            ),
+            disposer,
         });
     }
 }

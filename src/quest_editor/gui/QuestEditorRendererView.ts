@@ -28,6 +28,7 @@ export class QuestEditorRendererView extends QuestRendererView {
                     new QuestEditorModelManager(
                         quest_editor_store.current_quest,
                         quest_editor_store.current_area,
+                        quest_editor_store.current_wave,
                         renderer,
                         area_asset_loader,
                         entity_asset_loader,

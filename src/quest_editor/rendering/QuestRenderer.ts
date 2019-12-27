@@ -1,7 +1,7 @@
 import { DisposableThreeRenderer, Renderer } from "../../core/rendering/Renderer";
 import { Group, Mesh, MeshLambertMaterial, Object3D, PerspectiveCamera } from "three";
 import { QuestEntityModel } from "../model/QuestEntityModel";
-import { QuestModelManager } from "./QuestModelManager";
+import { Quest3DModelManager } from "./Quest3DModelManager";
 import { Disposer } from "../../core/observable/Disposer";
 import { ColorType, EntityUserData, NPC_COLORS, OBJECT_COLORS } from "./conversion/entities";
 import { QuestNpcModel } from "../model/QuestNpcModel";
@@ -54,7 +54,7 @@ export class QuestRenderer extends Renderer {
 
     constructor(
         three_renderer: DisposableThreeRenderer,
-        create_model_manager: (renderer: QuestRenderer) => QuestModelManager,
+        create_model_manager: (renderer: QuestRenderer) => Quest3DModelManager,
     ) {
         super(three_renderer);
 

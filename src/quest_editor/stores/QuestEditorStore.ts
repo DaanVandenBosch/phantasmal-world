@@ -19,12 +19,14 @@ import { AreaStore } from "./AreaStore";
 import { disposable_listener } from "../../core/gui/dom";
 import { Store } from "../../core/stores/Store";
 import { LogManager } from "../../core/Logger";
+import { WaveModel } from "../model/WaveModel";
 
 const logger = LogManager.get("quest_editor/gui/QuestEditorStore");
 
 export class QuestEditorStore extends Store {
     private readonly _current_quest = property<QuestModel | undefined>(undefined);
     private readonly _current_area = property<AreaModel | undefined>(undefined);
+    private readonly _current_wave = property<WaveModel | undefined>(undefined);
     private readonly _selected_entity = property<QuestEntityModel | undefined>(undefined);
 
     readonly quest_runner: QuestRunner;
@@ -32,6 +34,7 @@ export class QuestEditorStore extends Store {
     readonly undo = new UndoStack();
     readonly current_quest: Property<QuestModel | undefined> = this._current_quest;
     readonly current_area: Property<AreaModel | undefined> = this._current_area;
+    readonly current_wave: Property<WaveModel | undefined> = this._current_wave;
     readonly selected_entity: Property<QuestEntityModel | undefined> = this._selected_entity;
 
     constructor(gui_store: GuiStore, private readonly area_store: AreaStore) {
@@ -87,8 +90,19 @@ export class QuestEditorStore extends Store {
 
     set_current_area = (area?: AreaModel): void => {
         this._selected_entity.val = undefined;
-
         this._current_area.val = area;
+    };
+
+    set_current_wave = (wave?: WaveModel): void => {
+        if (wave) {
+            const entity = this.selected_entity.val;
+
+            if (entity && entity instanceof QuestNpcModel && entity.wave.val !== wave) {
+                this.set_selected_entity(undefined);
+            }
+        }
+
+        this._current_wave.val = wave;
     };
 
     set_selected_entity = (entity?: QuestEntityModel): void => {

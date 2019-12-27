@@ -89,10 +89,10 @@ export class ComboBox<T> extends LabelledControl {
             this.menu.visible.set_val(false, { silent: false });
         };
 
-        const down_arrow_element = span(icon(Icon.TriangleDown));
+        const down_arrow_element = icon(Icon.TriangleDown);
         this.bind_hidden(down_arrow_element, this.menu.visible);
 
-        const up_arrow_element = span(icon(Icon.TriangleUp));
+        const up_arrow_element = icon(Icon.TriangleUp);
         this.bind_hidden(
             up_arrow_element,
             this.menu.visible.map(v => !v),

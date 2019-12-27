@@ -9,9 +9,9 @@ import {
 } from "../observable/property/list/ListProperty";
 import { Disposer } from "../observable/Disposer";
 
-type Attributes<E> = Partial<E> & { data?: { [key: string]: string } };
+export type Attributes<E> = Partial<E> & { data?: { [key: string]: string } };
 
-type Child = string | Node;
+export type Child = string | Node;
 
 export function a(
     attributes?: Attributes<HTMLAnchorElement>,
@@ -156,7 +156,7 @@ function create_element<E extends HTMLElement>(
 
     if (attributes) {
         // noinspection SuspiciousTypeOfGuard
-        if (attributes instanceof Element || typeof attributes === "string") {
+        if (attributes instanceof Node || typeof attributes === "string") {
             element.append(attributes);
         } else {
             const data = attributes.data;
@@ -194,22 +194,23 @@ export function bind_hidden(element: HTMLElement, observable: Observable<boolean
 
 export enum Icon {
     ArrowDown,
+    Eye,
     File,
     GitHub,
+    LevelDown,
+    LevelUp,
+    LongArrowRight,
     NewFile,
     Play,
     Plus,
     Redo,
     Remove,
     Save,
+    SquareArrowRight,
+    Stop,
     TriangleDown,
     TriangleUp,
     Undo,
-    SquareArrowRight,
-    LevelDown,
-    LevelUp,
-    LongArrowRight,
-    Stop,
 }
 
 export function icon(icon: Icon): HTMLElement {
@@ -219,11 +220,23 @@ export function icon(icon: Icon): HTMLElement {
         case Icon.ArrowDown:
             icon_str = "fas fa-arrow-down";
             break;
+        case Icon.Eye:
+            icon_str = "far fa-eye";
+            break;
         case Icon.File:
             icon_str = "fas fa-file";
             break;
         case Icon.GitHub:
             icon_str = "fab fa-github";
+            break;
+        case Icon.LevelDown:
+            icon_str = "fas fa-level-down-alt";
+            break;
+        case Icon.LevelUp:
+            icon_str = "fas fa-level-up-alt";
+            break;
+        case Icon.LongArrowRight:
+            icon_str = "fas fa-long-arrow-alt-right";
             break;
         case Icon.NewFile:
             icon_str = "fas fa-file-medical";
@@ -243,6 +256,12 @@ export function icon(icon: Icon): HTMLElement {
         case Icon.Save:
             icon_str = "fas fa-save";
             break;
+        case Icon.Stop:
+            icon_str = "fas fa-stop";
+            break;
+        case Icon.SquareArrowRight:
+            icon_str = "far fa-caret-square-right";
+            break;
         case Icon.TriangleDown:
             icon_str = "fas fa-caret-down";
             break;
@@ -252,24 +271,11 @@ export function icon(icon: Icon): HTMLElement {
         case Icon.Undo:
             icon_str = "fas fa-undo";
             break;
-        case Icon.SquareArrowRight:
-            icon_str = "far fa-caret-square-right";
-            break;
-        case Icon.LongArrowRight:
-            icon_str = "fas fa-long-arrow-alt-right";
-            break;
-        case Icon.LevelDown:
-            icon_str = "fas fa-level-down-alt";
-            break;
-        case Icon.LevelUp:
-            icon_str = "fas fa-level-up-alt";
-            break;
-        case Icon.Stop:
-            icon_str = "fas fa-stop";
-            break;
     }
 
-    return span({ className: icon_str });
+    // Wrap the span in another span, because Font Awesome will replace the inner element. This way
+    // the returned element will stay valid.
+    return span(span({ className: icon_str }));
 }
 
 export function section_id_icon(section_id: SectionId, options?: { size?: number }): HTMLElement {

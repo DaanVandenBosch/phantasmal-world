@@ -7,6 +7,7 @@ import { flat_map_to_list, list_property } from "../../core/observable";
 import { QuestEventModel } from "../model/QuestEventModel";
 import { EditEventSectionIdAction } from "../actions/EditEventSectionIdAction";
 import { EditEventDelayAction } from "../actions/EditEventDelayAction";
+import { WaveModel } from "../model/WaveModel";
 
 export class EventsController extends Controller {
     readonly event_dags: ListProperty<QuestEventDagModel>;
@@ -40,6 +41,14 @@ export class EventsController extends Controller {
         this.store.undo
             .push(new EditEventSectionIdAction(event, event.section_id.val, section_id))
             .redo();
+    };
+
+    toggle_current_wave = (wave: WaveModel): void => {
+        if (this.store.current_wave.val === wave) {
+            this.store.set_current_wave(undefined);
+        } else {
+            this.store.set_current_wave(wave);
+        }
     };
 
     set_delay = (event: QuestEventModel, delay: number): void => {

@@ -34,6 +34,8 @@ export interface ListProperty<T> extends Property<readonly T[]> {
     ): Disposable;
 
     filtered(predicate: ((value: T) => boolean) | Property<(value: T) => boolean>): ListProperty<T>;
+
+    [Symbol.iterator](): IterableIterator<T>;
 }
 
 export function is_list_property<T>(observable: any): observable is ListProperty<T> {

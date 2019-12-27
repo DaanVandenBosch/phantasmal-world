@@ -4,16 +4,16 @@ import { Disposer } from "../../core/observable/Disposer";
 import "./EventsView.css";
 import { EventsController } from "../controllers/EventsController";
 import { UnavailableView } from "./UnavailableView";
-import { bind_attr, div, table, td, th, tr } from "../../core/gui/dom";
-import { ListChangeEvent, ListChangeType } from "../../core/observable/property/list/ListProperty";
-import { defer } from "lodash";
+import { bind_attr, bind_children_to, div, Icon, table, td, th, tr } from "../../core/gui/dom";
 import { NumberInput } from "../../core/gui/NumberInput";
+import { QuestEventModel } from "../model/QuestEventModel";
+import { Disposable } from "../../core/observable/Disposable";
+import { Button } from "../../core/gui/Button";
 
 type DagGuiData = {
     dag: QuestEventDagModel;
     element: HTMLElement;
     edge_container_element: HTMLElement;
-    disposer: Disposer;
     /**
      * Maps event IDs to GUI data.
      */
@@ -43,7 +43,9 @@ export class EventsView extends ResizableWidget {
 
             this.enabled.bind_to(ctrl.enabled),
 
-            ctrl.event_dags.observe_list(this.observe_event_dags),
+            bind_children_to(this.container_element, ctrl.event_dags, this.create_dag_element, {
+                after: this.update_edges,
+            }),
         );
 
         this.finalize_construction();
@@ -60,85 +62,84 @@ export class EventsView extends ResizableWidget {
         this.update_edges();
     }
 
-    dispose(): void {
-        super.dispose();
-
-        for (const { disposer } of this.dag_gui_data) {
-            disposer.dispose();
-        }
-    }
-
-    private observe_event_dags = (change: ListChangeEvent<QuestEventDagModel>): void => {
-        if (change.type === ListChangeType.ListChange) {
-            for (const removed of this.dag_gui_data.splice(change.index, change.removed.length)) {
-                removed.element.remove();
-                removed.disposer.dispose();
-            }
-
-            let index = change.index;
-
-            for (const dag of change.inserted) {
-                const data = this.create_dag_ui_data(dag);
-                this.dag_gui_data.splice(index, 0, data);
-                this.container_element.insertBefore(
-                    data.element,
-                    this.container_element.children.item(index),
-                );
-
-                index++;
-            }
-
-            defer(this.update_edges);
-        }
-    };
-
-    private create_dag_ui_data = (dag: QuestEventDagModel): DagGuiData => {
-        const disposer = new Disposer();
-        const event_gui_data = new Map<number, { element: HTMLDivElement; position: number }>();
-
-        const element = div({ className: "quest_editor_EventsView_dag" });
-
+    private create_dag_element = (
+        dag: QuestEventDagModel,
+        index: number,
+    ): [HTMLElement, Disposable] => {
+        const event_container_element = div({
+            className: "quest_editor_EventsView_event_container",
+        });
         const edge_container_element = div({
             className: "quest_editor_EventsView_edge_container",
         });
-        element.append(edge_container_element);
+        const dag_element = div(
+            { className: "quest_editor_EventsView_dag" },
+            edge_container_element,
+            event_container_element,
+        );
 
-        dag.events.forEach((event, i) => {
-            const section_id_input = disposer.add(new NumberInput(event.section_id.val));
-
-            const delay_input = disposer.add(new NumberInput(event.delay.val));
-
-            disposer.add_all(
-                section_id_input.value.bind_to(event.section_id),
-                section_id_input.value.observe(e => this.ctrl.set_section_id(event, e.value)),
-                section_id_input.enabled.bind_to(this.ctrl.enabled),
-
-                delay_input.value.bind_to(event.delay),
-                delay_input.value.observe(e => this.ctrl.set_delay(event, e.value)),
-                delay_input.enabled.bind_to(this.ctrl.enabled),
-            );
-
-            const event_element = div(
-                { className: "quest_editor_EventsView_event" },
-                table(
-                    tr(th("ID:"), td(event.id.toString())),
-                    tr(th("Section:"), td(section_id_input.element)),
-                    tr(th("Wave:"), td(event.wave.toString())),
-                    tr(th("Delay:"), td(delay_input.element)),
-                ),
-            );
-
-            element.append(event_element);
-            event_gui_data.set(event.id, { element: event_element, position: i });
+        const gui_data = (this.dag_gui_data[index] = {
+            dag,
+            element: dag_element,
+            edge_container_element,
+            event_gui_data: new Map<number, { element: HTMLDivElement; position: number }>(),
         });
 
-        return {
-            dag,
-            element,
-            edge_container_element,
-            disposer,
-            event_gui_data,
-        };
+        const disposer = new Disposer(
+            bind_children_to(
+                event_container_element,
+                dag.events,
+                this.create_event_element(gui_data),
+            ),
+            {
+                dispose: () => {
+                    this.dag_gui_data.splice(index, 1);
+                },
+            },
+        );
+
+        return [dag_element, disposer];
+    };
+
+    private create_event_element = (gui_data: DagGuiData) => (
+        event: QuestEventModel,
+        index: number,
+    ): [HTMLElement, Disposer] => {
+        const disposer = new Disposer();
+
+        const section_id_input = disposer.add(
+            new NumberInput(event.section_id.val, { min: 0, step: 1 }),
+        );
+        const wave_node = document.createTextNode(event.wave.id.val.toString());
+        const wave_button = disposer.add(new Button("", { icon_left: Icon.Eye }));
+        const delay_input = disposer.add(new NumberInput(event.delay.val, { min: 0, step: 1 }));
+
+        disposer.add_all(
+            section_id_input.value.bind_to(event.section_id),
+            section_id_input.value.observe(e => this.ctrl.set_section_id(event, e.value)),
+            section_id_input.enabled.bind_to(this.ctrl.enabled),
+
+            event.wave.id.observe(({ value }) => (wave_node.data = value.toString())),
+            wave_button.click.observe(() => this.ctrl.toggle_current_wave(event.wave)),
+
+            delay_input.value.bind_to(event.delay),
+            delay_input.value.observe(e => this.ctrl.set_delay(event, e.value)),
+            delay_input.enabled.bind_to(this.ctrl.enabled),
+        );
+
+        const event_element = div(
+            { className: "quest_editor_EventsView_event" },
+            table(
+                tr(th("ID:"), td(event.id.toString())),
+                tr(th("Section:"), td(section_id_input.element)),
+                tr(th("Wave:"), td(wave_node as Node, " ", wave_button.element)),
+                tr(th("Delay:"), td(delay_input.element)),
+            ),
+        );
+
+        gui_data.event_gui_data.set(event.id, { element: event_element, position: index });
+
+        return [event_element, disposer];
     };
 
     /**
@@ -152,13 +153,13 @@ export class EventsView extends ResizableWidget {
         for (const { dag, edge_container_element, event_gui_data } of this.dag_gui_data) {
             edge_container_element.innerHTML = "";
 
-            const used_depths: boolean[][] = Array(dag.events.length - 1);
+            const used_depths: boolean[][] = Array(dag.events.length.val - 1);
 
             for (let i = 0; i < used_depths.length; i++) {
                 used_depths[i] = [];
             }
 
-            for (const event of dag.events) {
+            for (const event of dag.events.val) {
                 const { element: event_element, position } = event_gui_data.get(event.id)!;
 
                 const y_offset = event_element.offsetTop + event_element.offsetHeight;

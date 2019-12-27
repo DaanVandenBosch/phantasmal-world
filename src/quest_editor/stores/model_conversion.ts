@@ -14,17 +14,19 @@ import {
     QuestEventActionSpawnNpcsModel,
     QuestEventActionUnlockModel,
 } from "../model/QuestEventActionModel";
-import { QuestEventDagModel, QuestEventDagModelMeta } from "../model/QuestEventDagModel";
-import { QuestEvent } from "../../core/data_formats/parsing/quest/entities";
+import { QuestEventDagModel, QuestEventDagMeta } from "../model/QuestEventDagModel";
+import { QuestEvent, QuestNpc } from "../../core/data_formats/parsing/quest/entities";
 import { clone_segment } from "../scripting/instructions";
 import { AreaStore } from "./AreaStore";
 import { LogManager } from "../../core/Logger";
 import { euler } from "../model/euler";
+import { WaveModel } from "../model/WaveModel";
 
 const logger = LogManager.get("quest_editor/stores/model_conversion");
 
 export function convert_quest_to_model(area_store: AreaStore, quest: Quest): QuestModel {
-    // Create quest model.
+    const wave_cache = new Map<string, WaveModel>();
+
     return new QuestModel(
         area_store,
         quest.id,
@@ -48,32 +50,56 @@ export function convert_quest_to_model(area_store: AreaStore, quest: Quest): Que
                     obj.unknown,
                 ),
         ),
-        quest.npcs.map(
-            npc =>
-                new QuestNpcModel(
-                    npc.type,
-                    npc.pso_type_id,
-                    npc.npc_id,
-                    npc.wave,
-                    npc.pso_wave2,
-                    npc.script_label,
-                    npc.pso_roaming,
-                    npc.area_id,
-                    npc.section_id,
-                    vec3_to_threejs(npc.position),
-                    euler(npc.rotation.x, npc.rotation.y, npc.rotation.z),
-                    vec3_to_threejs(npc.scale),
-                    npc.unknown,
-                ),
-        ),
-        build_event_dags(quest.events),
+        quest.npcs.map(npc => convert_npc_to_model(wave_cache, npc)),
+        build_event_dags(wave_cache, quest.events),
         quest.dat_unknowns,
         quest.object_code.slice(),
         quest.shop_items,
     );
 }
 
-function build_event_dags(dat_events: readonly DatEvent[]): QuestEventDagModel[] {
+function convert_npc_to_model(wave_cache: Map<string, WaveModel>, npc: QuestNpc): QuestNpcModel {
+    const wave =
+        npc.wave === 0 ? undefined : get_wave(wave_cache, npc.area_id, npc.section_id, npc.wave);
+
+    return new QuestNpcModel(
+        npc.type,
+        npc.pso_type_id,
+        npc.npc_id,
+        wave,
+        npc.pso_wave2,
+        npc.script_label,
+        npc.pso_roaming,
+        npc.area_id,
+        npc.section_id,
+        vec3_to_threejs(npc.position),
+        euler(npc.rotation.x, npc.rotation.y, npc.rotation.z),
+        vec3_to_threejs(npc.scale),
+        npc.unknown,
+    );
+}
+
+function get_wave(
+    wave_cache: Map<string, WaveModel>,
+    area_id: number,
+    section_id: number,
+    wave_id: number,
+): WaveModel {
+    const wave_key = `${area_id}-${section_id}-${wave_id}`;
+    let wave = wave_cache.get(wave_key);
+
+    if (!wave) {
+        wave = new WaveModel(wave_id, area_id, section_id);
+        wave_cache.set(wave_key, wave);
+    }
+
+    return wave;
+}
+
+function build_event_dags(
+    wave_cache: Map<string, WaveModel>,
+    dat_events: readonly DatEvent[],
+): QuestEventDagModel[] {
     // Build up a temporary data structure with partial data.
     // Maps event id and area id to data.
     const data_map = new Map<
@@ -95,10 +121,12 @@ function build_event_dags(dat_events: readonly DatEvent[]): QuestEventDagModel[]
             continue;
         }
 
+        const wave = get_wave(wave_cache, event.area_id, event.section_id, event.wave);
+
         const event_model = new QuestEventModel(
             event.id,
             event.section_id,
-            event.wave,
+            wave,
             event.delay,
             event.unknown,
         );
@@ -155,7 +183,7 @@ function build_event_dags(dat_events: readonly DatEvent[]): QuestEventDagModel[]
 
     // Convert temporary structure to complete data structure used to build DAGs. Events that call
     // nonexistent events are filtered out. This final structure is completely sound.
-    const event_to_full_data = new Map<QuestEventModel, QuestEventDagModelMeta>();
+    const event_to_full_data = new Map<QuestEventModel, QuestEventDagMeta>();
     const root_events: { event: QuestEventModel; area_id: number }[] = [];
 
     for (const data of data_map.values()) {
@@ -191,7 +219,7 @@ function build_event_dags(dat_events: readonly DatEvent[]): QuestEventDagModel[]
 
         const dag_events: QuestEventModel[] = [];
         const dag_root_events: QuestEventModel[] = [];
-        const dag_meta: Map<QuestEventModel, QuestEventDagModelMeta> = new Map();
+        const dag_meta: Map<QuestEventModel, QuestEventDagMeta> = new Map();
 
         // Start from a root event and find all connected events.
         find_dag_events(
@@ -218,10 +246,10 @@ function build_event_dags(dat_events: readonly DatEvent[]): QuestEventDagModel[]
 }
 
 function find_dag_events(
-    full_data: Map<QuestEventModel, QuestEventDagModelMeta>,
+    full_data: Map<QuestEventModel, QuestEventDagMeta>,
     dag_events: QuestEventModel[],
     dag_root_events: QuestEventModel[],
-    dag_meta: Map<QuestEventModel, QuestEventDagModelMeta>,
+    dag_meta: Map<QuestEventModel, QuestEventDagMeta>,
     event: QuestEventModel,
     visited: Set<QuestEventModel>,
 ): void {
@@ -270,8 +298,8 @@ export function convert_quest_from_model(quest: QuestModel): Quest {
             type: npc.type,
             area_id: npc.area_id,
             section_id: npc.section_id.val,
-            wave: npc.wave.val,
-            pso_wave2: npc.pso_wave2,
+            wave: npc.wave.val?.id.val ?? 0,
+            pso_wave2: npc.pso_wave2.val,
             position: npc.position.val.clone(),
             rotation: npc.rotation.val.clone(),
             scale: npc.scale.clone(),
@@ -328,7 +356,7 @@ function convert_quest_events_from_model(event_dags: readonly QuestEventDagModel
             events.push({
                 id: event.id,
                 section_id: event.section_id.val,
-                wave: event.wave,
+                wave: event.wave.id.val,
                 delay: event.delay.val,
                 actions,
                 area_id: event_dag.area_id,

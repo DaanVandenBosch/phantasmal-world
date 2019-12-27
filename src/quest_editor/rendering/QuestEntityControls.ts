@@ -621,7 +621,7 @@ class CreationState implements State {
                 evt.entity_type,
                 data.pso_type_id!,
                 0,
-                0,
+                undefined,
                 0,
                 0,
                 data.pso_roaming!,

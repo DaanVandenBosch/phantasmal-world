@@ -105,6 +105,10 @@ export abstract class AbstractListProperty<T> extends AbstractProperty<readonly 
         };
     }
 
+    [Symbol.iterator](): IterableIterator<T> {
+        return this.val[Symbol.iterator]();
+    }
+
     abstract filtered(
         predicate: ((value: T) => boolean) | Property<(value: T) => boolean>,
     ): ListProperty<T>;

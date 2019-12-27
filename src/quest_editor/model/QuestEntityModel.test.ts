@@ -47,7 +47,7 @@ function create_entity(): QuestEntityModel {
         NpcType.AlRappy,
         npc_data(NpcType.AlRappy).pso_type_id!!,
         1,
-        0,
+        undefined,
         0,
         0,
         0,
