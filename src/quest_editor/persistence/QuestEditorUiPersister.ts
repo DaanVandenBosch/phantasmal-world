@@ -1,4 +1,4 @@
-import { Persister } from "../../core/Persister";
+import { Persister } from "../../core/persistence/Persister";
 import { throttle } from "lodash";
 import { ComponentConfig, ItemConfigType } from "golden-layout";
 

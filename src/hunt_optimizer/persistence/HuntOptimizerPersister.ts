@@ -1,5 +1,5 @@
 import { Server } from "../../core/model";
-import { Persister } from "../../core/Persister";
+import { Persister } from "../../core/persistence/Persister";
 import { WantedItemModel } from "../model";
 import { ItemTypeStore } from "../../core/stores/ItemTypeStore";
 import { ServerMap } from "../../core/stores/ServerMap";

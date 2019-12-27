@@ -3,6 +3,7 @@ import { MainContentView } from "./MainContentView";
 import { ResizableWidget } from "../../core/gui/ResizableWidget";
 import { GuiStore, GuiTool } from "../../core/stores/GuiStore";
 import { div } from "../../core/gui/dom";
+import "./ApplicationView.css";
 
 /**
  * The top-level view which contains all other views.

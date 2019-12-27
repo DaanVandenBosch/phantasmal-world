@@ -1,5 +1,5 @@
-import { Server } from "./model";
-import { LogManager } from "./Logger";
+import { Server } from "../model";
+import { LogManager } from "../Logger";
 
 const logger = LogManager.get("core/persistence/Persister");
 

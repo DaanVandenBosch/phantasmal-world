@@ -1,7 +1,7 @@
 import { Server } from "../../core/model";
 import { HuntMethodModel } from "../model/HuntMethodModel";
 import { Duration } from "luxon";
-import { Persister } from "../../core/Persister";
+import { Persister } from "../../core/persistence/Persister";
 
 const METHOD_USER_TIMES_KEY = "HuntMethodStore.methodUserTimes";
 

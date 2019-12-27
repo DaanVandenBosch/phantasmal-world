@@ -85,11 +85,5 @@ export function number_to_hex_string(
     min_len: number = 8,
     prefix: string = "0x",
 ): string {
-    let result = num.toString(16);
-
-    if (result.length < min_len) {
-        result = "0".repeat(min_len - result.length) + result;
-    }
-
-    return prefix + result;
+    return prefix + num.toString(16).padStart(min_len, "0");
 }

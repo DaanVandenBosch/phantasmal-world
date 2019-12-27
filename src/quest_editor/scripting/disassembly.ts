@@ -2,6 +2,7 @@ import { reinterpret_i32_as_f32 } from "../../core/primitive_conversion";
 import { Arg, Segment, SegmentType } from "./instructions";
 import { AnyType, Kind, OP_VA_END, OP_VA_START, Param, StackInteraction } from "./opcodes";
 import { LogManager } from "../../core/Logger";
+import { number_to_hex_string } from "../../core/util";
 
 const logger = LogManager.get("quest_editor/scripting/disassembly");
 
@@ -60,7 +61,7 @@ export function disassemble(object_code: readonly Segment[], manual_stack = fals
             let line = "    ";
 
             for (let i = 0; i < bytes.length; i++) {
-                line += "0x" + bytes[i].toString(16).padStart(2, "0");
+                line += number_to_hex_string(bytes[i], 2);
 
                 if (i % 16 === 15) {
                     lines.push(line);
