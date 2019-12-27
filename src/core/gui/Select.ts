@@ -33,7 +33,8 @@ export class Select<T> extends LabelledControl {
 
         this.to_label = options.to_label;
         this.button = this.disposable(
-            new Button(" ", {
+            new Button({
+                text: " ",
                 icon_right: Icon.TriangleDown,
             }),
         );

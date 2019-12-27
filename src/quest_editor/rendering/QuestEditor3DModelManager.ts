@@ -15,7 +15,7 @@ import { WaveModel } from "../model/WaveModel";
 /**
  * Model loader used while editing a quest.
  */
-export class QuestEditorModelManager extends Quest3DModelManager {
+export class QuestEditor3DModelManager extends Quest3DModelManager {
     constructor(
         private readonly current_quest: Property<QuestModel | undefined>,
         private readonly current_area: Property<AreaModel | undefined>,

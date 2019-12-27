@@ -99,7 +99,7 @@ export class WantedItemsView extends Widget {
             amount_input.value.observe(({ value }) => wanted_item.set_amount(value)),
         );
 
-        const remove_button = row_disposer.add(new Button("", { icon_left: Icon.Remove }));
+        const remove_button = row_disposer.add(new Button({ icon_left: Icon.Remove }));
 
         row_disposer.add(
             remove_button.click.observe(async () =>

@@ -10,6 +10,7 @@ import { WritableProperty } from "../observable/property/WritableProperty";
 import { WidgetProperty } from "../observable/property/WidgetProperty";
 
 export type ButtonOptions = WidgetOptions & {
+    text?: string | Property<string>;
     icon_left?: Icon;
     icon_right?: Icon;
 };
@@ -27,20 +28,20 @@ export class Button extends Control {
     private readonly _text: WidgetProperty<string>;
     private readonly center_element: HTMLSpanElement;
 
-    constructor(text: string | Property<string>, options?: ButtonOptions) {
+    constructor(options?: ButtonOptions) {
         super(options);
 
         const inner_element = span({ className: "core_Button_inner" });
 
         this.center_element = span({ className: "core_Button_center" });
 
-        if (options && options.icon_left != undefined) {
+        if (options?.icon_left != undefined) {
             inner_element.append(span({ className: "core_Button_left" }, icon(options.icon_left)));
         }
 
         inner_element.append(this.center_element);
 
-        if (options && options.icon_right != undefined) {
+        if (options?.icon_right != undefined) {
             inner_element.append(
                 span({ className: "core_Button_right" }, icon(options.icon_right)),
             );
@@ -61,10 +62,12 @@ export class Button extends Control {
         this._text = new WidgetProperty<string>(this, "", this.set_text);
         this.text = this._text;
 
-        if (typeof text === "string") {
-            this.text.val = text;
-        } else if (text) {
-            this.text.bind_to(text);
+        if (typeof options?.text === "string") {
+            this.text.val = options.text;
+        } else if (options?.text) {
+            this.text.bind_to(options.text);
+        } else {
+            this.text.val = "";
         }
 
         this.element.append(inner_element);

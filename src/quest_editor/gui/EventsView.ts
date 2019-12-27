@@ -9,6 +9,7 @@ import { NumberInput } from "../../core/gui/NumberInput";
 import { QuestEventModel } from "../model/QuestEventModel";
 import { Disposable } from "../../core/observable/Disposable";
 import { Button } from "../../core/gui/Button";
+import { ToolBar } from "../../core/gui/ToolBar";
 
 type DagGuiData = {
     dag: QuestEventDagModel;
@@ -23,17 +24,29 @@ type DagGuiData = {
 export class EventsView extends ResizableWidget {
     private readonly dag_gui_data: DagGuiData[] = [];
 
-    private readonly container_element = div({ className: "quest_editor_EventsView_container" });
+    private readonly dag_container_element: HTMLElement;
+    private readonly container_element: HTMLElement;
+    private readonly add_event_button: Button;
     private readonly unavailable_view = new UnavailableView("No quest loaded.");
 
-    readonly element = div(
-        { className: "quest_editor_EventsView", tabIndex: -1 },
-        this.container_element,
-        this.unavailable_view.element,
-    );
+    readonly element: HTMLElement;
 
     constructor(private readonly ctrl: EventsController) {
         super();
+
+        this.element = div(
+            { className: "quest_editor_EventsView", tabIndex: -1 },
+            (this.container_element = div(
+                { className: "quest_editor_EventsView_container" },
+                this.disposable(
+                    new ToolBar((this.add_event_button = new Button({ text: "Add event" }))),
+                ).element,
+                (this.dag_container_element = div({
+                    className: "quest_editor_EventsView_dag_container",
+                })),
+            )),
+            this.unavailable_view.element,
+        );
 
         this.element.addEventListener("focus", ctrl.focused, true);
 
@@ -43,7 +56,9 @@ export class EventsView extends ResizableWidget {
 
             this.enabled.bind_to(ctrl.enabled),
 
-            bind_children_to(this.container_element, ctrl.event_dags, this.create_dag_element, {
+            this.add_event_button.click.observe(ctrl.add_event),
+
+            bind_children_to(this.dag_container_element, ctrl.event_dags, this.create_dag_element, {
                 after: this.update_edges,
             }),
         );
@@ -107,18 +122,11 @@ export class EventsView extends ResizableWidget {
     ): [HTMLElement, Disposer] => {
         const disposer = new Disposer();
 
-        const section_id_input = disposer.add(
-            new NumberInput(event.section_id.val, { min: 0, step: 1 }),
-        );
         const wave_node = document.createTextNode(event.wave.id.val.toString());
-        const wave_button = disposer.add(new Button("", { icon_left: Icon.Eye }));
+        const wave_button = disposer.add(new Button({ icon_left: Icon.Eye }));
         const delay_input = disposer.add(new NumberInput(event.delay.val, { min: 0, step: 1 }));
 
         disposer.add_all(
-            section_id_input.value.bind_to(event.section_id),
-            section_id_input.value.observe(e => this.ctrl.set_section_id(event, e.value)),
-            section_id_input.enabled.bind_to(this.ctrl.enabled),
-
             event.wave.id.observe(({ value }) => (wave_node.data = value.toString())),
             wave_button.click.observe(() => this.ctrl.toggle_current_wave(event.wave)),
 
@@ -131,7 +139,7 @@ export class EventsView extends ResizableWidget {
             { className: "quest_editor_EventsView_event" },
             table(
                 tr(th("ID:"), td(event.id.toString())),
-                tr(th("Section:"), td(section_id_input.element)),
+                tr(th("Section:"), td(event.section_id.toString())),
                 tr(th("Wave:"), td(wave_node as Node, " ", wave_button.element)),
                 tr(th("Delay:"), td(delay_input.element)),
             ),

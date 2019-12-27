@@ -16,7 +16,7 @@ export class TextureView extends ResizableWidget {
         accept: ".xvm",
     });
 
-    private readonly tool_bar = this.disposable(new ToolBar({ children: [this.open_file_button] }));
+    private readonly tool_bar = this.disposable(new ToolBar(this.open_file_button));
 
     private readonly renderer_view: RendererWidget;
 

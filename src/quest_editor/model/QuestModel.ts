@@ -15,6 +15,7 @@ import { QuestEventDagModel } from "./QuestEventDagModel";
 import { assert, defined, require_array } from "../../core/util";
 import { AreaStore } from "../stores/AreaStore";
 import { LogManager } from "../../core/Logger";
+import { QuestEventModel } from "./QuestEventModel";
 
 const logger = LogManager.get("quest_editor/model/QuestModel");
 
@@ -209,6 +210,10 @@ export class QuestModel {
         } else {
             throw new Error(`${entity_type_to_string(entity.type)} not supported.`);
         }
+    }
+
+    add_event_dag(event_dag: QuestEventDagModel): void {
+        this._event_dags.push(event_dag);
     }
 
     private update_area_variants = (): void => {

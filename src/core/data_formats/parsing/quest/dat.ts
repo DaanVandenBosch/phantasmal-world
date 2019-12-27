@@ -16,7 +16,7 @@ const NPC_SIZE = 72;
 export type DatFile = {
     readonly objs: readonly DatObject[];
     readonly npcs: readonly DatNpc[];
-    readonly waves: readonly DatEvent[];
+    readonly events: readonly DatEvent[];
     readonly unknowns: readonly DatUnknown[];
 };
 
@@ -99,7 +99,7 @@ export type DatUnknown = {
 export function parse_dat(cursor: Cursor): DatFile {
     const objs: DatObject[] = [];
     const npcs: DatNpc[] = [];
-    const waves: DatEvent[] = [];
+    const events: DatEvent[] = [];
     const unknowns: DatUnknown[] = [];
 
     while (cursor.bytes_left) {
@@ -125,9 +125,9 @@ export function parse_dat(cursor: Cursor): DatFile {
             } else if (entity_type === 2) {
                 parse_npcs(entities_cursor, area_id, npcs);
             } else if (entity_type === 3) {
-                parse_waves(entities_cursor, area_id, waves);
+                parse_events(entities_cursor, area_id, events);
             } else {
-                // Unknown entity types 4 and 5.
+                // Unknown entity types 4 and 5 (challenge mode).
                 unknowns.push({
                     entity_type,
                     total_size,
@@ -145,10 +145,10 @@ export function parse_dat(cursor: Cursor): DatFile {
         }
     }
 
-    return { objs, npcs, waves, unknowns };
+    return { objs, npcs, events, unknowns };
 }
 
-export function write_dat({ objs, npcs, waves, unknowns }: DatFile): ResizableBuffer {
+export function write_dat({ objs, npcs, events, unknowns }: DatFile): ResizableBuffer {
     const buffer = new ResizableBuffer(
         objs.length * (16 + OBJECT_SIZE) +
             npcs.length * (16 + NPC_SIZE) +
@@ -160,7 +160,7 @@ export function write_dat({ objs, npcs, waves, unknowns }: DatFile): ResizableBu
 
     write_npcs(cursor, npcs);
 
-    write_waves(cursor, waves);
+    write_events(cursor, events);
 
     for (const unknown of unknowns) {
         cursor.write_u32(unknown.entity_type);
@@ -255,14 +255,14 @@ function parse_npcs(cursor: Cursor, area_id: number, npcs: DatNpc[]): void {
     }
 }
 
-function parse_waves(cursor: Cursor, area_id: number, waves: DatEvent[]): void {
+function parse_events(cursor: Cursor, area_id: number, events: DatEvent[]): void {
     const actions_offset = cursor.u32();
     cursor.seek(4); // Always 0x10
-    const wave_count = cursor.u32();
+    const event_count = cursor.u32();
     cursor.seek(3); // Always 0
-    const wave_type = cursor.u8();
+    const event_type = cursor.u8();
 
-    if (wave_type === 0x32) {
+    if (event_type === 0x32) {
         throw new Error("Can't parse challenge mode quests yet.");
     }
 
@@ -270,19 +270,19 @@ function parse_waves(cursor: Cursor, area_id: number, waves: DatEvent[]): void {
     const actions_cursor = cursor.take(cursor.bytes_left);
     cursor.seek_start(16);
 
-    for (let i = 0; i < wave_count; ++i) {
+    for (let i = 0; i < event_count; ++i) {
         const id = cursor.u32();
         cursor.seek(4); // Always 0x100
         const section_id = cursor.u16();
         const wave = cursor.u16();
         const delay = cursor.u16();
         const unknown = cursor.u16(); // "wavesetting"?
-        const wave_actions_offset = cursor.u32();
+        const event_actions_offset = cursor.u32();
 
-        actions_cursor.seek_start(wave_actions_offset);
-        const actions = parse_wave_actions(actions_cursor);
+        actions_cursor.seek_start(event_actions_offset);
+        const actions = parse_event_actions(actions_cursor);
 
-        waves.push({
+        events.push({
             id,
             section_id,
             wave,
@@ -295,7 +295,7 @@ function parse_waves(cursor: Cursor, area_id: number, waves: DatEvent[]): void {
 
     if (cursor.position !== actions_offset) {
         logger.warn(
-            `Read ${cursor.position - 16} bytes of wave data instead of expected ${actions_offset -
+            `Read ${cursor.position - 16} bytes of event data instead of expected ${actions_offset -
                 16}.`,
         );
     }
@@ -318,7 +318,7 @@ function parse_waves(cursor: Cursor, area_id: number, waves: DatEvent[]): void {
     cursor.seek_start(actions_offset + actions_cursor.position);
 }
 
-function parse_wave_actions(cursor: Cursor): DatEventAction[] {
+function parse_event_actions(cursor: Cursor): DatEventAction[] {
     const actions: DatEventAction[] = [];
 
     outer: while (cursor.bytes_left) {
@@ -358,7 +358,7 @@ function parse_wave_actions(cursor: Cursor): DatEventAction[] {
                 break;
 
             default:
-                logger.warn(`Unexpected wave action type ${type}.`);
+                logger.warn(`Unexpected event action type ${type}.`);
                 break outer;
         }
     }
@@ -475,14 +475,14 @@ function write_npcs(cursor: WritableCursor, npcs: readonly DatNpc[]): void {
     }
 }
 
-function write_waves(cursor: WritableCursor, waves: readonly DatEvent[]): void {
-    const grouped_waves = groupBy(waves, wave => wave.area_id);
-    const wave_area_ids = Object.keys(grouped_waves)
+function write_events(cursor: WritableCursor, events: readonly DatEvent[]): void {
+    const grouped_events = groupBy(events, event => event.area_id);
+    const event_area_ids = Object.keys(grouped_events)
         .map(key => parseInt(key, 10))
         .sort((a, b) => a - b);
 
-    for (const area_id of wave_area_ids) {
-        const area_waves = grouped_waves[area_id];
+    for (const area_id of event_area_ids) {
+        const area_events = grouped_events[area_id];
 
         // Standard header.
         cursor.write_u32(3); // Entity type
@@ -492,34 +492,34 @@ function write_waves(cursor: WritableCursor, waves: readonly DatEvent[]): void {
         const entities_size_offset = cursor.position;
         cursor.write_u32(0); // Placeholder for the entities size.
 
-        // Wave header.
+        // Event header.
         const start_pos = cursor.position;
-        // TODO: actual wave size is dependent on the wave type (challenge mode).
+        // TODO: actual event size is dependent on the event type (challenge mode).
         // Absolute offset.
-        const actions_offset = start_pos + 16 + 20 * area_waves.length;
+        const actions_offset = start_pos + 16 + 20 * area_events.length;
         cursor.size = Math.max(actions_offset, cursor.size);
 
         cursor.write_u32(actions_offset - start_pos);
         cursor.write_u32(0x10);
-        cursor.write_u32(area_waves.length);
-        cursor.write_u32(0); // TODO: write wave type (challenge mode).
+        cursor.write_u32(area_events.length);
+        cursor.write_u32(0); // TODO: write event type (challenge mode).
 
         // Relative offset.
-        let wave_actions_offset = 0;
+        let event_actions_offset = 0;
 
-        for (const wave of area_waves) {
-            cursor.write_u32(wave.id);
+        for (const event of area_events) {
+            cursor.write_u32(event.id);
             cursor.write_u32(0x10000);
-            cursor.write_u16(wave.section_id);
-            cursor.write_u16(wave.wave);
-            cursor.write_u16(wave.delay);
-            cursor.write_u16(wave.unknown);
-            cursor.write_u32(wave_actions_offset);
-            const next_wave_pos = cursor.position;
+            cursor.write_u16(event.section_id);
+            cursor.write_u16(event.wave);
+            cursor.write_u16(event.delay);
+            cursor.write_u16(event.unknown);
+            cursor.write_u32(event_actions_offset);
+            const next_event_pos = cursor.position;
 
-            cursor.seek_start(actions_offset + wave_actions_offset);
+            cursor.seek_start(actions_offset + event_actions_offset);
 
-            for (const action of wave.actions) {
+            for (const action of event.actions) {
                 cursor.write_u8(action.type);
 
                 switch (action.type) {
@@ -542,19 +542,19 @@ function write_waves(cursor: WritableCursor, waves: readonly DatEvent[]): void {
 
                     default:
                         // Need to cast because TypeScript infers action to be `never`.
-                        throw new Error(`Unknown wave action type ${(action as any).type}.`);
+                        throw new Error(`Unknown event action type ${(action as any).type}.`);
                 }
             }
 
-            // End of wave actions.
+            // End of event actions.
             cursor.write_u8(1);
 
-            wave_actions_offset = cursor.position - actions_offset;
+            event_actions_offset = cursor.position - actions_offset;
 
-            cursor.seek_start(next_wave_pos);
+            cursor.seek_start(next_event_pos);
         }
 
-        cursor.seek_start(actions_offset + wave_actions_offset);
+        cursor.seek_start(actions_offset + event_actions_offset);
 
         while ((cursor.position - actions_offset) % 4 !== 0) {
             cursor.write_u8(0xff);

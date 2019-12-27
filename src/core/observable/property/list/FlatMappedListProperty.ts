@@ -82,7 +82,7 @@ export class FlatMappedListProperty<T> extends DependentListProperty<T> {
         this.computed_property = this.compute();
 
         this.computed_disposable = this.computed_property.observe(() => {
-            this.emit();
+            this.recompute_and_emit();
         });
 
         return this.computed_property.val;

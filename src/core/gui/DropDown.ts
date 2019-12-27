@@ -28,7 +28,8 @@ export class DropDown<T> extends Control {
         super(options);
 
         this.button = this.disposable(
-            new Button(options.text, {
+            new Button({
+                text: options.text,
                 icon_left: options && options.icon_left,
                 icon_right: Icon.TriangleDown,
             }),

@@ -24,18 +24,21 @@ export class QuestEditorToolBar extends ToolBar {
             accept: ".qst",
             tooltip: "Open a quest file (Ctrl-O)",
         });
-        const save_as_button = new Button("Save as...", {
+        const save_as_button = new Button({
+            text: "Save as...",
             icon_left: Icon.Save,
             tooltip: "Save this quest to new file (Ctrl-Shift-S)",
         });
-        const undo_button = new Button("Undo", {
+        const undo_button = new Button({
+            text: "Undo",
             icon_left: Icon.Undo,
             tooltip: undo_manager.first_undo.map(
                 action =>
                     (action ? `Undo "${action.description}"` : "Nothing to undo") + " (Ctrl-Z)",
             ),
         });
-        const redo_button = new Button("Redo", {
+        const redo_button = new Button({
+            text: "Redo",
             icon_left: Icon.Redo,
             tooltip: undo_manager.first_redo.map(
                 action =>
@@ -48,27 +51,33 @@ export class QuestEditorToolBar extends ToolBar {
             items: ctrl.areas,
             to_label: ({ label }) => label,
         });
-        const debug_button = new Button("Debug", {
+        const debug_button = new Button({
+            text: "Debug",
             icon_left: Icon.Play,
             tooltip: "Debug the current quest in a virtual machine (F5)",
         });
-        const resume_button = new Button("Continue", {
+        const resume_button = new Button({
+            text: "Continue",
             icon_left: Icon.SquareArrowRight,
             tooltip: "Resume execution (F6)",
         });
-        const step_over_button = new Button("Step over", {
+        const step_over_button = new Button({
+            text: "Step over",
             icon_left: Icon.LongArrowRight,
             tooltip: "Execute the next line and step over any function calls (F8)",
         });
-        const step_in_button = new Button("Step into", {
+        const step_in_button = new Button({
+            text: "Step into",
             icon_left: Icon.LevelDown,
             tooltip: "Execute the next line and step inside any function calls (F7)",
         });
-        const step_out_button = new Button("Step out", {
+        const step_out_button = new Button({
+            text: "Step out",
             icon_left: Icon.LevelUp,
             tooltip: "Execute until outside of current call frame (Shift-F8)",
         });
-        const stop_button = new Button("Stop", {
+        const stop_button = new Button({
+            text: "Stop",
             icon_left: Icon.Stop,
             tooltip: "Stop execution (Shift-F5)",
         });
@@ -93,7 +102,7 @@ export class QuestEditorToolBar extends ToolBar {
             );
         }
 
-        super({ children });
+        super(...children);
 
         this.disposables(
             new_quest_button.chosen.observe(({ value: episode }) => ctrl.create_new_quest(episode)),

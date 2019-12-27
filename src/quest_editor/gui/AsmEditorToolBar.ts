@@ -18,9 +18,7 @@ export class AsmEditorToolBar extends ToolBar {
             }),
         });
 
-        super({
-            children: [inline_args_mode_checkbox],
-        });
+        super(inline_args_mode_checkbox);
 
         this.disposables(
             inline_args_mode_checkbox.checked.bind_to(asm_editor_store.inline_args_mode),

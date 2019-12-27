@@ -46,9 +46,7 @@ export class RegistersView extends ResizableWidget {
     );
 
     private readonly settings_bar = this.disposable(
-        new ToolBar({
-            children: [this.type_select, this.hex_checkbox],
-        }),
+        new ToolBar(this.type_select, this.hex_checkbox),
     );
 
     private readonly register_els: TextInput[];

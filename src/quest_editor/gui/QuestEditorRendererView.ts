@@ -1,6 +1,6 @@
 import { QuestRenderer } from "../rendering/QuestRenderer";
 import { QuestEditorStore } from "../stores/QuestEditorStore";
-import { QuestEditorModelManager } from "../rendering/QuestEditorModelManager";
+import { QuestEditor3DModelManager } from "../rendering/QuestEditor3DModelManager";
 import { QuestRendererView } from "./QuestRendererView";
 import { QuestEntityControls } from "../rendering/QuestEntityControls";
 import { GuiStore } from "../../core/stores/GuiStore";
@@ -25,7 +25,7 @@ export class QuestEditorRendererView extends QuestRendererView {
             new QuestRenderer(
                 three_renderer,
                 renderer =>
-                    new QuestEditorModelManager(
+                    new QuestEditor3DModelManager(
                         quest_editor_store.current_quest,
                         quest_editor_store.current_area,
                         quest_editor_store.current_wave,

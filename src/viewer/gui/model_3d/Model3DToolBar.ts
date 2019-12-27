@@ -31,16 +31,14 @@ export class Model3DToolBar extends ToolBar {
             model_3d_store.animation_frame_count.map(count => `/ ${count}`),
         );
 
-        super({
-            children: [
-                open_file_button,
-                skeleton_checkbox,
-                play_animation_checkbox,
-                animation_frame_rate_input,
-                animation_frame_input,
-                animation_frame_count_label,
-            ],
-        });
+        super(
+            open_file_button,
+            skeleton_checkbox,
+            play_animation_checkbox,
+            animation_frame_rate_input,
+            animation_frame_input,
+            animation_frame_count_label,
+        );
 
         // Always-enabled controls.
         this.disposables(

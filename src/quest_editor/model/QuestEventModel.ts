@@ -8,12 +8,11 @@ import { defined, require_integer, require_non_negative_integer } from "../../co
 import { WaveModel } from "./WaveModel";
 
 export class QuestEventModel {
-    private readonly _section_id: WritableProperty<number>;
     private readonly _delay: WritableProperty<number>;
     private readonly _actions: WritableListProperty<QuestEventActionModel> = list_property();
 
     readonly id: number;
-    readonly section_id: Property<number>;
+    readonly section_id: number;
     readonly wave: WaveModel;
     readonly delay: Property<number>;
     readonly actions: ListProperty<QuestEventActionModel> = this._actions;
@@ -27,17 +26,11 @@ export class QuestEventModel {
         require_integer(unknown, "unknown");
 
         this.id = id;
-        this._section_id = property(section_id);
-        this.section_id = this._section_id;
+        this.section_id = section_id;
         this.wave = wave;
         this._delay = property(delay);
         this.delay = this._delay;
         this.unknown = unknown;
-    }
-
-    set_section_id(section_id: number): void {
-        require_non_negative_integer(section_id, "section_id");
-        this._section_id.val = section_id;
     }
 
     set_delay(delay: number): void {

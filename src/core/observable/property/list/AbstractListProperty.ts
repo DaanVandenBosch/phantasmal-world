@@ -119,7 +119,7 @@ export abstract class AbstractListProperty<T> extends AbstractProperty<readonly 
      * Does the following in the given order:
      * - Updates value observers
      * - Emits length ChangeEvent if necessary
-     * - Emits ListPropertyChangeEvent
+     * - Emits ListChangeEvent
      * - Emits ChangeEvent
      */
     protected finalize_update(change: ListChangeEvent<T>): void {

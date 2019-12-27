@@ -76,6 +76,18 @@ export abstract class DependentListProperty<T> extends AbstractListProperty<T> {
 
     protected abstract compute_values(): readonly T[];
 
+    protected recompute_and_emit(): void {
+        const removed = this.values!;
+        this.values = this.compute_values();
+
+        this.finalize_update({
+            type: ListChangeType.ListChange,
+            index: 0,
+            removed,
+            inserted: this.values,
+        });
+    }
+
     private init_dependency_disposables(): void {
         if (this.dependency_disposer.length === 0) {
             this.values = this.compute_values();
@@ -83,15 +95,7 @@ export abstract class DependentListProperty<T> extends AbstractListProperty<T> {
             this.dependency_disposer.add_all(
                 ...this.dependencies.map(dependency =>
                     dependency.observe(() => {
-                        const removed = this.values!;
-                        this.values = this.compute_values();
-
-                        this.finalize_update({
-                            type: ListChangeType.ListChange,
-                            index: 0,
-                            removed,
-                            inserted: this.values,
-                        });
+                        this.recompute_and_emit();
                     }),
                 ),
             );

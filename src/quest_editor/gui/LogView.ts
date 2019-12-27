@@ -36,10 +36,7 @@ export class LogView extends ResizableWidget {
         );
 
         this.settings_bar = this.disposable(
-            new ToolBar({
-                class: "quest_editor_LogView_settings",
-                children: [this.level_filter],
-            }),
+            new ToolBar({ class: "quest_editor_LogView_settings" }, this.level_filter),
         );
 
         this.list_container.addEventListener("scroll", this.scrolled);

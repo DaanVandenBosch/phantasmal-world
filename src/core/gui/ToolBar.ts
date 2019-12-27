@@ -3,23 +3,23 @@ import "./ToolBar.css";
 import { LabelledControl } from "./LabelledControl";
 import { div } from "./dom";
 
-export type ToolBarOptions = WidgetOptions & {
-    children?: Widget[];
-};
-
 export class ToolBar extends Widget {
     private readonly children: readonly Widget[];
 
     readonly element = div({ className: "core_ToolBar" });
     readonly height = 33;
 
-    constructor(options?: ToolBarOptions) {
-        super(options);
+    constructor(options?: WidgetOptions, ...children: Widget[]) {
+        // noinspection SuspiciousTypeOfGuard
+        super(options instanceof Widget ? undefined : options);
 
         this.element.style.height = `${this.height}px`;
-        this.children = (options && options.children) || [];
+        // noinspection SuspiciousTypeOfGuard
+        this.children = options instanceof Widget ? [options, ...children] : children;
 
         for (const child of this.children) {
+            this.disposable(child);
+
             if (child instanceof LabelledControl && child.label) {
                 const group = div({ className: "core_ToolBar_group" });
 
@@ -35,7 +35,6 @@ export class ToolBar extends Widget {
                 this.element.append(group);
             } else {
                 this.element.append(child.element);
-                this.disposable(child);
             }
         }
 

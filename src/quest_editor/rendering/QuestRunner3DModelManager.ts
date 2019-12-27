@@ -6,9 +6,9 @@ import { EntityAssetLoader } from "../loading/EntityAssetLoader";
 import { property } from "../../core/observable";
 
 /**
- * Model loader used while running a quest.
+ * Model loader used while debugging a quest.
  */
-export class QuestRunnerModelManager extends Quest3DModelManager {
+export class QuestRunner3DModelManager extends Quest3DModelManager {
     constructor(
         private readonly quest_runner: QuestRunner,
         renderer: QuestRenderer,

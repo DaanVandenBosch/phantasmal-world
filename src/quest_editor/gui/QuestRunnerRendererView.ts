@@ -1,5 +1,5 @@
 import { QuestRenderer } from "../rendering/QuestRenderer";
-import { QuestRunnerModelManager } from "../rendering/QuestRunnerModelManager";
+import { QuestRunner3DModelManager } from "../rendering/QuestRunner3DModelManager";
 import { QuestRendererView } from "./QuestRendererView";
 import { GuiStore } from "../../core/stores/GuiStore";
 import { QuestEditorStore } from "../stores/QuestEditorStore";
@@ -22,7 +22,7 @@ export class QuestRunnerRendererView extends QuestRendererView {
             new QuestRenderer(
                 three_renderer,
                 renderer =>
-                    new QuestRunnerModelManager(
+                    new QuestRunner3DModelManager(
                         quest_editor_store.quest_runner,
                         renderer,
                         area_asset_loader,

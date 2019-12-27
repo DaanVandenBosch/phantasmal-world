@@ -5,7 +5,6 @@ import { QuestEventDagModel } from "../model/QuestEventDagModel";
 import { ListProperty } from "../../core/observable/property/list/ListProperty";
 import { flat_map_to_list, list_property } from "../../core/observable";
 import { QuestEventModel } from "../model/QuestEventModel";
-import { EditEventSectionIdAction } from "../actions/EditEventSectionIdAction";
 import { EditEventDelayAction } from "../actions/EditEventDelayAction";
 import { WaveModel } from "../model/WaveModel";
 
@@ -37,10 +36,74 @@ export class EventsController extends Controller {
         this.store.undo.make_current();
     };
 
-    set_section_id = (event: QuestEventModel, section_id: number): void => {
-        this.store.undo
-            .push(new EditEventSectionIdAction(event, event.section_id.val, section_id))
-            .redo();
+    add_event = (): void => {
+        const quest = this.store.current_quest.val;
+        const area = this.store.current_area.val;
+
+        if (quest && area) {
+            const section_id = this.store.selected_entity.val?.section_id?.val ?? 1;
+
+            const event_ids: number[] = [];
+            const wave_ids: number[] = [];
+
+            for (const dag of quest.event_dags) {
+                for (const event of dag.events) {
+                    if (event.wave.area_id.val === area.id) {
+                        event_ids.push(event.id);
+
+                        if (event.wave.section_id.val === section_id) {
+                            wave_ids.push(event.wave.id.val);
+                        }
+                    }
+                }
+            }
+
+            event_ids.sort((a, b) => a - b);
+            wave_ids.sort((a, b) => a - b);
+
+            // Find the first available wave id.
+            let wave_id: number = wave_ids.length === 0 ? 1 : 0;
+
+            for (const existing_wave_id of wave_ids) {
+                if (++wave_id !== existing_wave_id) {
+                    break;
+                }
+            }
+
+            // Create id based on section id and wave id.
+            const id_str = `${section_id}${wave_id}`;
+            let id = parseInt(id_str, 10);
+
+            // Make sure id is unique.
+            let existing_index: number = 0;
+
+            while (true) {
+                existing_index = event_ids.indexOf(id, existing_index);
+
+                if (existing_index === -1) {
+                    break;
+                } else {
+                    id++;
+                }
+            }
+
+            const event = new QuestEventModel(
+                id,
+                section_id,
+                new WaveModel(wave_id, area.id, section_id),
+                30,
+                0, // TODO: what is a sensible value for event.unknown?
+            );
+
+            quest.add_event_dag(
+                new QuestEventDagModel(
+                    area.id,
+                    [event],
+                    [event],
+                    new Map([[event, { parents: [], children: [] }]]),
+                ),
+            );
+        }
     };
 
     toggle_current_wave = (wave: WaveModel): void => {
