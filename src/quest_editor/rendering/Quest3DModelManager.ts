@@ -313,10 +313,13 @@ class Entity3DModelManager {
                         current_wave == undefined || current_wave === entity_wave,
                     this.current_wave,
                     entity.wave,
-                ).observe(({ value }) => {
-                    model.visible = value;
-                    this.renderer.schedule_render();
-                }),
+                ).observe(
+                    ({ value }) => {
+                        model.visible = value;
+                        this.renderer.schedule_render();
+                    },
+                    { call_now: true },
+                ),
             );
         }
 
