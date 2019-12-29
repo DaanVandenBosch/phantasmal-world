@@ -19,6 +19,10 @@ import { AreaModel } from "../model/AreaModel";
 import { QuestModel } from "../model/QuestModel";
 import { QuestEditorStore } from "../stores/QuestEditorStore";
 import { euler } from "../model/euler";
+import { CreateEntityAction } from "../actions/CreateEntityAction";
+import { RotateEntityAction } from "../actions/RotateEntityAction";
+import { RemoveEntityAction } from "../actions/RemoveEntityAction";
+import { TranslateEntityAction } from "../actions/TranslateEntityAction";
 
 const ZERO_VECTOR = Object.freeze(new Vector3(0, 0, 0));
 const UP_VECTOR = Object.freeze(new Vector3(0, 1, 0));
@@ -321,7 +325,13 @@ class IdleState implements State {
                     const entity = this.quest_editor_store.selected_entity.val;
 
                     if (entity && evt.key === "Delete") {
-                        this.quest_editor_store.remove_entity(entity);
+                        const quest = this.quest_editor_store.current_quest.val;
+
+                        if (quest) {
+                            this.quest_editor_store.undo.push(
+                                new RemoveEntityAction(this.quest_editor_store, quest, entity),
+                            );
+                        }
                     }
                 }
 
@@ -492,14 +502,19 @@ class TranslationState implements State {
                 this.renderer.controls.enabled = true;
 
                 if (!this.cancelled && evt.moved_since_last_pointer_down) {
-                    this.quest_editor_store.translate_entity(
-                        this.entity,
-                        this.initial_section,
-                        this.entity.section.val,
-                        this.initial_position,
-                        this.entity.world_position.val,
-                        true,
-                    );
+                    this.quest_editor_store.undo
+                        .push(
+                            new TranslateEntityAction(
+                                this.quest_editor_store,
+                                this.entity,
+                                this.initial_section,
+                                this.entity.section.val,
+                                this.initial_position,
+                                this.entity.world_position.val,
+                                true,
+                            ),
+                        )
+                        .redo();
                 }
 
                 return new IdleState(this.quest_editor_store, this.renderer, true);
@@ -567,11 +582,14 @@ class RotationState implements State {
                 this.renderer.controls.enabled = true;
 
                 if (!this.cancelled && evt.moved_since_last_pointer_down) {
-                    this.quest_editor_store.rotate_entity(
-                        this.entity,
-                        this.initial_rotation,
-                        this.entity.world_rotation.val,
-                        true,
+                    this.quest_editor_store.undo.push(
+                        new RotateEntityAction(
+                            this.quest_editor_store,
+                            this.entity,
+                            this.initial_rotation,
+                            this.entity.world_rotation.val,
+                            true,
+                        ),
                     );
                 }
 
@@ -714,7 +732,13 @@ class CreationState implements State {
 
             case EvtType.EntityDrop: {
                 if (!this.cancelled) {
-                    this.quest_editor_store.push_create_entity_action(this.entity);
+                    const quest = this.quest_editor_store.current_quest.val;
+
+                    if (quest) {
+                        this.quest_editor_store.undo.push(
+                            new CreateEntityAction(this.quest_editor_store, quest, this.entity),
+                        );
+                    }
                 }
 
                 return new IdleState(this.quest_editor_store, this.renderer, true);

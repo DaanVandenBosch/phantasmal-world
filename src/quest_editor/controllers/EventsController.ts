@@ -7,6 +7,7 @@ import { flat_map_to_list, list_property } from "../../core/observable";
 import { QuestEventModel } from "../model/QuestEventModel";
 import { EditEventDelayAction } from "../actions/EditEventDelayAction";
 import { WaveModel } from "../model/WaveModel";
+import { RemoveEventAction } from "../actions/RemoveEventAction";
 
 export class EventsController extends Controller {
     readonly event_dags: ListProperty<QuestEventDagModel>;
@@ -35,6 +36,10 @@ export class EventsController extends Controller {
     focused = (): void => {
         this.store.undo.make_current();
     };
+
+    is_selected(event: QuestEventModel): Property<boolean> {
+        return this.store.selected_wave.map(selected => event.wave === selected);
+    }
 
     add_event = (): void => {
         const quest = this.store.current_quest.val;
@@ -106,11 +111,17 @@ export class EventsController extends Controller {
         }
     };
 
-    toggle_current_wave = (wave: WaveModel): void => {
-        if (this.store.current_wave.val === wave) {
-            this.store.set_current_wave(undefined);
-        } else {
-            this.store.set_current_wave(wave);
+    remove_event = (event_dag: QuestEventDagModel, event: QuestEventModel): void => {
+        const quest = this.store.current_quest.val;
+
+        if (quest) {
+            this.store.undo.push(new RemoveEventAction(this.store, quest, event_dag, event)).redo();
+        }
+    };
+
+    set_selected_wave = (wave?: WaveModel): void => {
+        if (this.enabled.val) {
+            this.store.set_selected_wave(wave);
         }
     };
 

@@ -24,31 +24,6 @@
     padding: 4px;
 }
 
-.quest_editor_EventsView_dag {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-}
-
-.quest_editor_EventsView_event {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 6px 12px;
-    border: var(--border);
-    margin: 4px;
-    background-color: hsl(0, 0%, 17%);
-}
-
-.quest_editor_EventsView_event th {
-    text-align: left;
-}
-
-.quest_editor_EventsView_edge_container {
-    position: absolute;
-}
-
 .quest_editor_EventsView_edge {
     box-sizing: border-box;
     position: absolute;

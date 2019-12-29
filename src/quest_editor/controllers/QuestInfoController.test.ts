@@ -13,7 +13,7 @@ test("When a property's input value changes, this should be reflected in the cur
         const store = create_quest_editor_store(disposer, area_store);
         const ctrl = disposer.add(new QuestInfoController(store));
 
-        await store.set_quest(create_new_quest(area_store, Episode.I));
+        await store.set_current_quest(create_new_quest(area_store, Episode.I));
 
         ctrl.set_id(3004);
         expect(store.current_quest.val!.id.val).toBe(3004);

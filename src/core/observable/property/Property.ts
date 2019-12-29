@@ -19,5 +19,5 @@ export interface Property<T> extends Observable<T> {
 }
 
 export function is_property<T>(observable: any): observable is Property<T> {
-    return observable != undefined && (observable as any).is_property;
+    return observable != undefined && observable.is_property;
 }

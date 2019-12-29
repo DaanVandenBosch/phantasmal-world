@@ -22,7 +22,7 @@ test("Renders correctly with a current quest.", () =>
         const store = create_quest_editor_store(disposer, area_store);
         const view = disposer.add(new NpcCountsView(disposer.add(new NpcCountsController(store))));
 
-        store.set_quest(create_new_quest(area_store, Episode.I));
+        store.set_current_quest(create_new_quest(area_store, Episode.I));
 
         expect(view.element).toMatchSnapshot("Should render a table with NPC names and counts.");
     }));

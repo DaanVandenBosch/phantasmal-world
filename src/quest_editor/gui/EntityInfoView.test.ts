@@ -19,7 +19,7 @@ test("Renders correctly without an entity selected.", () => {
 
         expect(view.element).toMatchSnapshot('should render a "No entity selected." view');
 
-        store.set_quest(create_new_quest(area_store, Episode.I));
+        store.set_current_quest(create_new_quest(area_store, Episode.I));
 
         expect(view.element).toMatchSnapshot('should render a "No entity selected." view');
     });
@@ -34,7 +34,7 @@ test("Renders correctly with an entity selected.", () => {
         );
 
         const quest = create_new_quest(area_store, Episode.I);
-        store.set_quest(quest);
+        store.set_current_quest(quest);
         store.set_selected_entity(quest.npcs.get(0));
 
         expect(view.element).toMatchSnapshot("should render a table of editable properties");

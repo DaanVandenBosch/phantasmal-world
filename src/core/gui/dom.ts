@@ -3,6 +3,7 @@ import { Observable } from "../observable/Observable";
 import { is_property } from "../observable/property/Property";
 import { SectionId } from "../model";
 import {
+    ListChange,
     ListChangeEvent,
     ListChangeType,
     ListProperty,
@@ -351,53 +352,57 @@ export function disposable_custom_listener(
 }
 
 export function bind_children_to<T>(
-    element: HTMLElement,
+    element: Element,
     list: ListProperty<T>,
-    create_child: (value: T, index: number) => HTMLElement | [HTMLElement, Disposable],
+    create_child: (value: T, index: number) => Element | [Element, Disposable],
     options?: {
-        after?: () => void;
+        after?: (change: ListChangeEvent<T>) => void;
     },
 ): Disposable {
     const children_disposer = new Disposer();
 
-    const observer = list.observe_list((change: ListChangeEvent<T>) => {
-        if (change.type === ListChangeType.ListChange) {
-            splice_children(change.index, change.removed.length, change.inserted);
-        } else if (change.type === ListChangeType.ValueChange) {
-            // TODO: update children
+    const observer = list.observe_list(
+        (change: ListChangeEvent<T>) => {
+            if (change.type === ListChangeType.ListChange) {
+                splice_children(change);
+            } else if (change.type === ListChangeType.ValueChange) {
+                // TODO: update children
+            }
+
+            options?.after?.(change);
+        },
+        { call_now: true },
+    );
+
+    function splice_children(change: ListChange<T>): void {
+        for (let i = 0; i < change.removed.length; i++) {
+            element.children[change.index].remove();
         }
-    });
 
-    function splice_children(index: number, removed_count: number, inserted: readonly T[]): void {
-        for (let i = 0; i < removed_count; i++) {
-            element.children[index].remove();
-        }
+        children_disposer.dispose_at(change.index, change.removed.length);
 
-        children_disposer.dispose_at(index, removed_count);
-
-        const children = inserted.map((value, i) => {
-            const child = create_child(value, index + i);
+        const children = change.inserted.map((value, i) => {
+            const child = create_child(value, change.index + i);
 
             if (Array.isArray(child)) {
-                children_disposer.insert(index + i, child[1]);
+                children_disposer.insert(change.index + i, child[1]);
                 return child[0];
             } else {
                 return child;
             }
         });
 
-        if (index >= element.childElementCount) {
+        if (change.index >= element.childElementCount) {
             element.append(...children);
         } else {
-            for (let i = 0; i < removed_count; i++) {
-                element.children[index + i].insertAdjacentElement("beforebegin", children[i]);
+            for (let i = 0; i < children.length; i++) {
+                element.children[change.index + i].insertAdjacentElement(
+                    "beforebegin",
+                    children[i],
+                );
             }
         }
-
-        options?.after?.();
     }
-
-    splice_children(0, 0, list.val);
 
     return {
         dispose(): void {

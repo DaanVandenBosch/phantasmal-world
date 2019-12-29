@@ -103,7 +103,7 @@ export class QuestNpcModel extends QuestEntityModel<NpcType> {
         this.scale = scale;
     }
 
-    set_wave(wave: WaveModel): this {
+    set_wave(wave?: WaveModel): this {
         this._wave.val = wave;
         return this;
     }

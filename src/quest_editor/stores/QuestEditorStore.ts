@@ -8,11 +8,6 @@ import { SectionModel } from "../model/SectionModel";
 import { QuestEntityModel } from "../model/QuestEntityModel";
 import { GuiStore, GuiTool } from "../../core/stores/GuiStore";
 import { UndoStack } from "../../core/undo/UndoStack";
-import { TranslateEntityAction } from "../actions/TranslateEntityAction";
-import { CreateEntityAction } from "../actions/CreateEntityAction";
-import { RemoveEntityAction } from "../actions/RemoveEntityAction";
-import { Euler, Vector3 } from "three";
-import { RotateEntityAction } from "../actions/RotateEntityAction";
 import { WritableProperty } from "../../core/observable/property/WritableProperty";
 import { QuestRunner } from "../QuestRunner";
 import { AreaStore } from "./AreaStore";
@@ -26,7 +21,7 @@ const logger = LogManager.get("quest_editor/gui/QuestEditorStore");
 export class QuestEditorStore extends Store {
     private readonly _current_quest = property<QuestModel | undefined>(undefined);
     private readonly _current_area = property<AreaModel | undefined>(undefined);
-    private readonly _current_wave = property<WaveModel | undefined>(undefined);
+    private readonly _selected_wave = property<WaveModel | undefined>(undefined);
     private readonly _selected_entity = property<QuestEntityModel | undefined>(undefined);
 
     readonly quest_runner: QuestRunner;
@@ -34,7 +29,7 @@ export class QuestEditorStore extends Store {
     readonly undo = new UndoStack();
     readonly current_quest: Property<QuestModel | undefined> = this._current_quest;
     readonly current_area: Property<AreaModel | undefined> = this._current_area;
-    readonly current_wave: Property<WaveModel | undefined> = this._current_wave;
+    readonly selected_wave: Property<WaveModel | undefined> = this._selected_wave;
     readonly selected_entity: Property<QuestEntityModel | undefined> = this._selected_entity;
 
     constructor(gui_store: GuiStore, private readonly area_store: AreaStore) {
@@ -93,7 +88,7 @@ export class QuestEditorStore extends Store {
         this._current_area.val = area;
     };
 
-    set_current_wave = (wave?: WaveModel): void => {
+    set_selected_wave = (wave?: WaveModel): void => {
         if (wave) {
             const entity = this.selected_entity.val;
 
@@ -102,7 +97,7 @@ export class QuestEditorStore extends Store {
             }
         }
 
-        this._current_wave.val = wave;
+        this._selected_wave.val = wave;
     };
 
     set_selected_entity = (entity?: QuestEntityModel): void => {
@@ -116,49 +111,7 @@ export class QuestEditorStore extends Store {
         this._selected_entity.val = entity;
     };
 
-    translate_entity = (
-        entity: QuestEntityModel,
-        old_section: SectionModel | undefined,
-        new_section: SectionModel | undefined,
-        old_position: Vector3,
-        new_position: Vector3,
-        world: boolean,
-    ): void => {
-        this.undo
-            .push(
-                new TranslateEntityAction(
-                    this,
-                    entity,
-                    old_section,
-                    new_section,
-                    old_position,
-                    new_position,
-                    world,
-                ),
-            )
-            .redo();
-    };
-
-    rotate_entity = (
-        entity: QuestEntityModel,
-        old_rotation: Euler,
-        new_rotation: Euler,
-        world: boolean,
-    ): void => {
-        this.undo
-            .push(new RotateEntityAction(this, entity, old_rotation, new_rotation, world))
-            .redo();
-    };
-
-    push_create_entity_action = (entity: QuestEntityModel): void => {
-        this.undo.push(new CreateEntityAction(this, entity));
-    };
-
-    remove_entity = (entity: QuestEntityModel): void => {
-        this.undo.push(new RemoveEntityAction(this, entity)).redo();
-    };
-
-    async set_quest(quest?: QuestModel): Promise<void> {
+    async set_current_quest(quest?: QuestModel): Promise<void> {
         this.undo.reset();
 
         this.quest_runner.stop();

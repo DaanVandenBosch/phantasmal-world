@@ -20,7 +20,7 @@ test("When input values change, this should be reflected in the selected entity.
         const entity = quest.objects.get(0);
         entity.set_position(new Vector3(0, 0, 0));
         entity.set_rotation(euler(0, 0, 0));
-        store.set_quest(quest);
+        store.set_current_quest(quest);
         store.set_selected_entity(entity);
 
         ctrl.set_pos_x(9834.834);

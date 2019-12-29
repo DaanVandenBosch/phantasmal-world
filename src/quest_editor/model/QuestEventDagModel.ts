@@ -48,4 +48,76 @@ export class QuestEventDagModel {
     get_children(event: QuestEventModel): readonly QuestEventModel[] {
         return this.meta.get(event)?.children ?? [];
     }
+
+    remove_event(event: QuestEventModel): void {
+        const meta = this.meta.get(event);
+
+        if (meta) {
+            const children = meta.children.slice();
+
+            for (const child of children) {
+                this.remove_child(event, child);
+            }
+
+            if (meta.parents.length) {
+                for (const parent of meta.parents) {
+                    // Connect event's parents to its children.
+                    for (const child of children) {
+                        this.add_child(parent, child);
+                    }
+
+                    this.remove_parent(event, parent);
+                }
+            } else {
+                this._root_events.remove(event);
+            }
+
+            this.meta.delete(event);
+        }
+
+        this._events.remove(event);
+    }
+
+    private remove_child(event: QuestEventModel, child: QuestEventModel): void {
+        const child_meta = this.meta.get(child);
+
+        if (child_meta) {
+            const index = child_meta.parents.indexOf(event);
+
+            if (index !== -1) {
+                child_meta.parents.splice(index, 1);
+            }
+
+            if (child_meta.parents.length === 0) {
+                this._root_events.push(child);
+            }
+        }
+    }
+
+    private remove_parent(event: QuestEventModel, parent: QuestEventModel): void {
+        const parent_meta = this.meta.get(parent);
+
+        if (parent_meta) {
+            const index = parent_meta.children.indexOf(event);
+
+            if (index !== -1) {
+                parent_meta.children.splice(index, 1);
+            }
+        }
+    }
+
+    private add_child(event: QuestEventModel, child: QuestEventModel): void {
+        const meta = this.meta.get(event);
+
+        if (meta && !meta.children.includes(child)) {
+            meta.children.push(child);
+        }
+
+        const child_meta = this.meta.get(child);
+
+        if (child_meta && !child_meta.parents.includes(event)) {
+            child_meta.parents.push(event);
+            this._root_events.remove(child);
+        }
+    }
 }

@@ -6,6 +6,9 @@ import { entity_data } from "../../core/data_formats/parsing/quest/entities";
 import { property } from "../../core/observable";
 import { Euler, Vector3 } from "three";
 import { deg_to_rad } from "../../core/math";
+import { TranslateEntityAction } from "../actions/TranslateEntityAction";
+import { RotateEntityAction } from "../actions/RotateEntityAction";
+import { euler } from "../model/euler";
 
 const DUMMY_VECTOR = Object.freeze(new Vector3());
 const DUMMY_EULER = Object.freeze(new Euler());
@@ -52,14 +55,19 @@ export class EntityInfoController extends Controller {
 
         if (entity) {
             const pos = entity.position.val;
-            this.store.translate_entity(
-                entity,
-                entity.section.val,
-                entity.section.val,
-                pos,
-                new Vector3(x, pos.y, pos.z),
-                false,
-            );
+            this.store.undo
+                .push(
+                    new TranslateEntityAction(
+                        this.store,
+                        entity,
+                        entity.section.val,
+                        entity.section.val,
+                        pos,
+                        new Vector3(x, pos.y, pos.z),
+                        false,
+                    ),
+                )
+                .redo();
         }
     }
 
@@ -68,14 +76,19 @@ export class EntityInfoController extends Controller {
 
         if (entity) {
             const pos = entity.position.val;
-            this.store.translate_entity(
-                entity,
-                entity.section.val,
-                entity.section.val,
-                pos,
-                new Vector3(pos.x, y, pos.z),
-                false,
-            );
+            this.store.undo
+                .push(
+                    new TranslateEntityAction(
+                        this.store,
+                        entity,
+                        entity.section.val,
+                        entity.section.val,
+                        pos,
+                        new Vector3(pos.x, y, pos.z),
+                        false,
+                    ),
+                )
+                .redo();
         }
     }
 
@@ -84,14 +97,19 @@ export class EntityInfoController extends Controller {
 
         if (entity) {
             const pos = entity.position.val;
-            this.store.translate_entity(
-                entity,
-                entity.section.val,
-                entity.section.val,
-                pos,
-                new Vector3(pos.x, pos.y, z),
-                false,
-            );
+            this.store.undo
+                .push(
+                    new TranslateEntityAction(
+                        this.store,
+                        entity,
+                        entity.section.val,
+                        entity.section.val,
+                        pos,
+                        new Vector3(pos.x, pos.y, z),
+                        false,
+                    ),
+                )
+                .redo();
         }
     }
 
@@ -100,12 +118,17 @@ export class EntityInfoController extends Controller {
 
         if (entity) {
             const rot = entity.rotation.val;
-            this.store.rotate_entity(
-                entity,
-                rot,
-                new Euler(deg_to_rad(x), rot.y, rot.z, "ZXY"),
-                false,
-            );
+            this.store.undo
+                .push(
+                    new RotateEntityAction(
+                        this.store,
+                        entity,
+                        rot,
+                        euler(deg_to_rad(x), rot.y, rot.z),
+                        false,
+                    ),
+                )
+                .redo();
         }
     }
 
@@ -114,12 +137,17 @@ export class EntityInfoController extends Controller {
 
         if (entity) {
             const rot = entity.rotation.val;
-            this.store.rotate_entity(
-                entity,
-                rot,
-                new Euler(rot.x, deg_to_rad(y), rot.z, "ZXY"),
-                false,
-            );
+            this.store.undo
+                .push(
+                    new RotateEntityAction(
+                        this.store,
+                        entity,
+                        rot,
+                        euler(rot.x, deg_to_rad(y), rot.z),
+                        false,
+                    ),
+                )
+                .redo();
         }
     }
 
@@ -128,12 +156,17 @@ export class EntityInfoController extends Controller {
 
         if (entity) {
             const rot = entity.rotation.val;
-            this.store.rotate_entity(
-                entity,
-                rot,
-                new Euler(rot.x, rot.y, deg_to_rad(z), "ZXY"),
-                false,
-            );
+            this.store.undo
+                .push(
+                    new RotateEntityAction(
+                        this.store,
+                        entity,
+                        rot,
+                        euler(rot.x, rot.y, deg_to_rad(z)),
+                        false,
+                    ),
+                )
+                .redo();
         }
     }
 }

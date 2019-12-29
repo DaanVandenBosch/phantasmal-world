@@ -17,22 +17,6 @@ export type WidgetOptions = {
 };
 
 export abstract class Widget implements Disposable {
-    abstract readonly element: HTMLElement;
-
-    get id(): string {
-        return this.element.id;
-    }
-
-    set id(id: string) {
-        this.element.id = id;
-    }
-
-    readonly visible: WritableProperty<boolean>;
-    readonly enabled: WritableProperty<boolean>;
-    readonly tooltip: WritableProperty<string>;
-
-    protected disposed = false;
-
     private readonly disposer = new Disposer();
     private readonly _visible: WidgetProperty<boolean> = new WidgetProperty<boolean>(
         this,
@@ -52,12 +36,26 @@ export abstract class Widget implements Disposable {
     private readonly options: WidgetOptions;
     private construction_finalized = false;
 
-    protected constructor(options?: WidgetOptions) {
-        this.visible = this._visible;
-        this.enabled = this._enabled;
-        this.tooltip = this._tooltip;
+    abstract readonly element: HTMLElement;
 
-        this.options = options || {};
+    get id(): string {
+        return this.element.id;
+    }
+
+    set id(id: string) {
+        this.element.id = id;
+    }
+
+    get disposed(): boolean {
+        return this.disposer.disposed;
+    }
+
+    readonly visible: WritableProperty<boolean> = this._visible;
+    readonly enabled: WritableProperty<boolean> = this._enabled;
+    readonly tooltip: WritableProperty<string> = this._tooltip;
+
+    protected constructor(options: WidgetOptions = {}) {
+        this.options = options;
 
         setTimeout(() => {
             if (!this.construction_finalized) {
@@ -77,7 +75,6 @@ export abstract class Widget implements Disposable {
     dispose(): void {
         this.element.remove();
         this.disposer.dispose();
-        this.disposed = true;
     }
 
     protected finalize_construction(): void {

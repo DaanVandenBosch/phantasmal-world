@@ -216,6 +216,20 @@ export class QuestModel {
         this._event_dags.push(event_dag);
     }
 
+    remove_event(event_dag: QuestEventDagModel, event: QuestEventModel): void {
+        for (const npc of this.npcs) {
+            if (npc.wave.val === event.wave) {
+                npc.set_wave(undefined);
+            }
+        }
+
+        event_dag.remove_event(event);
+
+        if (event_dag.events.length.val === 0) {
+            this._event_dags.remove(event_dag);
+        }
+    }
+
     private update_area_variants = (): void => {
         const variants = new Map<number, AreaVariantModel>();
 

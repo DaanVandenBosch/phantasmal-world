@@ -1,0 +1,10 @@
+.quest_editor_EventDagView {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.quest_editor_EventDagView_edge_container {
+    position: absolute;
+}

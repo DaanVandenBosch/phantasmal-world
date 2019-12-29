@@ -39,5 +39,5 @@ export interface ListProperty<T> extends Property<readonly T[]> {
 }
 
 export function is_list_property<T>(observable: any): observable is ListProperty<T> {
-    return observable != undefined && (observable as any).is_list_property;
+    return observable != undefined && observable.is_list_property;
 }

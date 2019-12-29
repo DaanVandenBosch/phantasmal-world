@@ -132,7 +132,7 @@ export class QuestEditorToolBarController extends Controller {
     }
 
     create_new_quest = async (episode: Episode): Promise<void> =>
-        this.quest_editor_store.set_quest(create_new_quest(this.area_store, episode));
+        this.quest_editor_store.set_current_quest(create_new_quest(this.area_store, episode));
 
     // TODO: notify user of problems.
     open_file = async (file: File): Promise<void> => {
@@ -144,7 +144,7 @@ export class QuestEditorToolBarController extends Controller {
                 logger.error("Couldn't parse quest file.");
             }
 
-            await this.quest_editor_store.set_quest(
+            await this.quest_editor_store.set_current_quest(
                 quest && convert_quest_to_model(this.area_store, quest),
             );
 

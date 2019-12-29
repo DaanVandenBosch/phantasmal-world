@@ -26,7 +26,7 @@ test("Renders correctly with a current quest.", () =>
         const store = create_quest_editor_store(disposer);
         const view = disposer.add(new QuestInfoView(disposer.add(new QuestInfoController(store))));
 
-        await store.set_quest(create_new_quest(area_store, Episode.I));
+        await store.set_current_quest(create_new_quest(area_store, Episode.I));
 
         expect(view.element).toMatchSnapshot("should render property inputs");
     }));
