@@ -1,17 +1,24 @@
 import { ResizableWidget } from "../../core/gui/ResizableWidget";
-import { QuestEventDagModel } from "../model/QuestEventDagModel";
 import "./EventsView.css";
 import { EventsController } from "../controllers/EventsController";
 import { UnavailableView } from "./UnavailableView";
 import { bind_attr, bind_children_to, disposable_listener, div } from "../../core/gui/dom";
 import { Button } from "../../core/gui/Button";
 import { ToolBar } from "../../core/gui/ToolBar";
-import { EventDagView } from "./EventDagView";
+import { EventSubGraphView } from "./EventSubGraphView";
 import { property } from "../../core/observable";
-import { ListChangeEvent, ListChangeType } from "../../core/observable/property/list/ListProperty";
+import {
+    ListChangeEvent,
+    ListChangeType,
+    ListProperty,
+} from "../../core/observable/property/list/ListProperty";
+import { QuestEventModel } from "../model/QuestEventModel";
 
 export class EventsView extends ResizableWidget {
-    private readonly dag_views: Map<QuestEventDagModel, EventDagView> = new Map();
+    private readonly sub_graph_views: Map<
+        ListProperty<QuestEventModel>,
+        EventSubGraphView
+    > = new Map();
     private readonly dag_container_element: HTMLElement;
     private readonly container_element: HTMLElement;
     private readonly add_event_button: Button;
@@ -48,9 +55,14 @@ export class EventsView extends ResizableWidget {
 
             this.add_event_button.click.observe(ctrl.add_event),
 
-            bind_children_to(this.dag_container_element, ctrl.event_dags, this.create_dag_element, {
-                after: this.after_event_dags_changed,
-            }),
+            bind_children_to(
+                this.dag_container_element,
+                ctrl.event_sub_graphs,
+                this.create_sub_graph_element,
+                {
+                    after: this.after_event_dags_changed,
+                },
+            ),
 
             disposable_listener(this.element, "focus", () => {
                 ctrl.focused();
@@ -67,11 +79,11 @@ export class EventsView extends ResizableWidget {
     dispose(): void {
         super.dispose();
 
-        for (const dag_view of this.dag_views.values()) {
+        for (const dag_view of this.sub_graph_views.values()) {
             dag_view.dispose();
         }
 
-        this.dag_views.clear();
+        this.sub_graph_views.clear();
     }
 
     resize(width: number, height: number): this {
@@ -85,29 +97,36 @@ export class EventsView extends ResizableWidget {
         this.update_edges();
     }
 
-    private create_dag_element = (dag: QuestEventDagModel): HTMLElement => {
-        let dag_view = this.dag_views.get(dag);
+    private create_sub_graph_element = (sub_graph: ListProperty<QuestEventModel>): HTMLElement => {
+        let sub_graph_view = this.sub_graph_views.get(sub_graph);
 
-        if (!dag_view) {
-            dag_view = new EventDagView(this.ctrl, dag, this.max_edge_depth);
-            this.dag_views.set(dag, dag_view);
+        if (!sub_graph_view) {
+            sub_graph_view = new EventSubGraphView(
+                this.ctrl,
+                this.ctrl.event_dag.val!,
+                sub_graph,
+                this.max_edge_depth,
+            );
+            this.sub_graph_views.set(sub_graph, sub_graph_view);
         }
 
-        return dag_view.element;
+        return sub_graph_view.element;
     };
 
     private update_edges = (): void => {
-        for (const dag_view of this.dag_views.values()) {
+        for (const dag_view of this.sub_graph_views.values()) {
             if (dag_view.element.parentNode) {
                 dag_view.update_edges();
             }
         }
     };
 
-    private after_event_dags_changed = (change: ListChangeEvent<QuestEventDagModel>): void => {
+    private after_event_dags_changed = (
+        change: ListChangeEvent<ListProperty<QuestEventModel>>,
+    ): void => {
         if (change.type === ListChangeType.ListChange) {
             for (const dag of change.inserted) {
-                this.dag_views.get(dag)?.update_edges();
+                this.sub_graph_views.get(dag)?.update_edges();
             }
         }
     };

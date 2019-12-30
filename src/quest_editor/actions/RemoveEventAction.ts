@@ -6,8 +6,8 @@ import { QuestModel } from "../model/QuestModel";
 import { QuestNpcModel } from "../model/QuestNpcModel";
 
 export class RemoveEventAction implements Action {
-    private readonly children: readonly QuestEventModel[];
     private readonly parents: readonly QuestEventModel[];
+    private readonly children: readonly QuestEventModel[];
     /**
      * The event's parents will be connected to the event's children.
      */
@@ -17,11 +17,6 @@ export class RemoveEventAction implements Action {
      */
     private readonly npcs: readonly QuestNpcModel[];
     private readonly event_index: number;
-    /**
-     * The entire DAG will be removed from the quest if this event is the last one in it. Remember
-     * whether this happened so we can restore the DAG too if needed.
-     */
-    private readonly dag_index?: number;
 
     readonly description: string;
 
@@ -33,8 +28,8 @@ export class RemoveEventAction implements Action {
     ) {
         this.description = `Delete event ${event.id}`;
 
-        this.children = event_dag.get_children(event).slice();
         this.parents = event_dag.get_parents(event).slice();
+        this.children = event_dag.get_children(event).slice();
 
         for (const parent of this.parents) {
             const siblings = event_dag.get_children(parent);
@@ -48,25 +43,14 @@ export class RemoveEventAction implements Action {
 
         this.npcs = quest.npcs.val.filter(npc => npc.wave.val === event.wave);
 
-        if (event_dag.events.length.val === 1) {
-            this.dag_index = quest.event_dags.val.indexOf(event_dag);
-        }
-
-        this.event_index = event_dag.events.val.indexOf(event);
+        this.event_index = event_dag.get_index(event);
     }
 
     undo(): void {
-        // Do forced removal of edges before adding the event to ensure the events list property
-        // emits a change event after the new edges have been removed. This hack is necessary
-        // because the DAG doesn't emit any events when edges are added or removed.
+        this.quest.insert_event(this.event_index, this.event, this.parents, this.children);
+
         for (const { parent, child } of this.new_edges) {
-            this.event_dag.remove_edge(parent, child, true);
-        }
-
-        this.event_dag.add_event_at(this.event_index, this.event, this.children, this.parents);
-
-        if (this.dag_index != undefined) {
-            this.quest.add_event_dag_at(this.dag_index, this.event_dag);
+            this.event_dag.remove_edge(parent, child);
         }
 
         for (const npc of this.npcs) {

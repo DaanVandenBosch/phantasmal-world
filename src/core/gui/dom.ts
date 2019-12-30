@@ -376,7 +376,7 @@ export function bind_children_to<T>(
 
     function splice_children(change: ListChange<T>): void {
         for (let i = 0; i < change.removed.length; i++) {
-            element.children[change.index].remove();
+            element.children[change.index]?.remove();
         }
 
         children_disposer.dispose_at(change.index, change.removed.length);

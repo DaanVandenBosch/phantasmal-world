@@ -4,14 +4,13 @@ import { NumberInput } from "../../core/gui/NumberInput";
 import { QuestEventModel } from "../model/QuestEventModel";
 import "./EventView.css";
 import { EventsController } from "../controllers/EventsController";
-import { QuestEventDagModel } from "../model/QuestEventDagModel";
 
 export class EventView extends Widget {
     private readonly delay_input: NumberInput;
 
     readonly element: HTMLElement;
 
-    constructor(ctrl: EventsController, dag: QuestEventDagModel, event: QuestEventModel) {
+    constructor(ctrl: EventsController, event: QuestEventModel) {
         super();
 
         const wave_node = document.createTextNode(event.wave.id.val.toString());
@@ -49,7 +48,7 @@ export class EventView extends Widget {
 
             disposable_listener(this.element, "keyup", evt => {
                 if (evt.key === "Delete") {
-                    ctrl.remove_event(dag, event);
+                    ctrl.remove_event(event);
                 }
             }),
 

@@ -3,14 +3,15 @@ import { QuestEditorStore } from "../stores/QuestEditorStore";
 import { Property } from "../../core/observable/property/Property";
 import { QuestEventDagModel } from "../model/QuestEventDagModel";
 import { ListProperty } from "../../core/observable/property/list/ListProperty";
-import { flat_map_to_list, list_property } from "../../core/observable";
+import { flat_map_to_list, list_property, map } from "../../core/observable";
 import { QuestEventModel } from "../model/QuestEventModel";
 import { EditEventDelayAction } from "../actions/EditEventDelayAction";
 import { WaveModel } from "../model/WaveModel";
 import { RemoveEventAction } from "../actions/RemoveEventAction";
 
 export class EventsController extends Controller {
-    readonly event_dags: ListProperty<QuestEventDagModel>;
+    readonly event_dag: Property<QuestEventDagModel | undefined>;
+    readonly event_sub_graphs: ListProperty<ListProperty<QuestEventModel>>;
     readonly enabled: Property<boolean>;
     readonly unavailable: Property<boolean>;
 
@@ -20,16 +21,21 @@ export class EventsController extends Controller {
         this.enabled = store.quest_runner.running.map(r => !r);
         this.unavailable = store.current_quest.map(q => q == undefined);
 
-        this.event_dags = flat_map_to_list(
+        this.event_dag = map(
             (quest, area) => {
                 if (quest && area) {
-                    return quest.event_dags.filtered(dag => dag.area_id === area.id);
+                    return quest.event_dags.get(area.id);
                 } else {
-                    return list_property();
+                    return undefined;
                 }
             },
             store.current_quest,
             store.current_area,
+        );
+
+        this.event_sub_graphs = flat_map_to_list(
+            dag => dag?.connected_sub_graphs ?? list_property(),
+            this.event_dag,
         );
     }
 
@@ -51,8 +57,8 @@ export class EventsController extends Controller {
             const event_ids: number[] = [];
             const wave_ids: number[] = [];
 
-            for (const dag of quest.event_dags) {
-                for (const event of dag.events) {
+            for (const sub_graph of this.event_sub_graphs) {
+                for (const event of sub_graph) {
                     if (event.wave.area_id.val === area.id) {
                         event_ids.push(event.id);
 
@@ -67,12 +73,16 @@ export class EventsController extends Controller {
             wave_ids.sort((a, b) => a - b);
 
             // Find the first available wave id.
-            let wave_id: number = wave_ids.length === 0 ? 1 : 0;
+            let wave_id: number = 0;
 
             for (const existing_wave_id of wave_ids) {
                 if (++wave_id !== existing_wave_id) {
                     break;
                 }
+            }
+
+            if (wave_id === wave_ids.length) {
+                wave_id++;
             }
 
             // Create id based on section id and wave id.
@@ -92,29 +102,26 @@ export class EventsController extends Controller {
                 }
             }
 
-            const event = new QuestEventModel(
-                id,
-                section_id,
-                new WaveModel(wave_id, area.id, section_id),
-                30,
-                0, // TODO: what is a sensible value for event.unknown?
-            );
-
-            quest.add_event_dag(
-                new QuestEventDagModel(
-                    area.id,
-                    [event],
-                    new Map([[event, { parents: [], children: [] }]]),
+            quest.add_event(
+                new QuestEventModel(
+                    id,
+                    section_id,
+                    new WaveModel(wave_id, area.id, section_id),
+                    30,
+                    0, // TODO: what is a sensible value for event.unknown?
                 ),
+                [],
+                [],
             );
         }
     };
 
-    remove_event = (event_dag: QuestEventDagModel, event: QuestEventModel): void => {
+    remove_event = (event: QuestEventModel): void => {
         const quest = this.store.current_quest.val;
+        const dag = this.event_dag.val;
 
-        if (quest) {
-            this.store.undo.push(new RemoveEventAction(this.store, quest, event_dag, event)).redo();
+        if (quest && dag) {
+            this.store.undo.push(new RemoveEventAction(this.store, quest, dag, event)).redo();
         }
     };
 

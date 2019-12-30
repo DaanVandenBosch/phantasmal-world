@@ -26,7 +26,7 @@ export function create_new_quest(area_store: AreaStore, episode: Episode): Quest
         new Map().set(0, 0),
         create_default_objects(),
         create_default_npcs(),
-        create_default_event_chains(),
+        create_default_event_dags(),
         [],
         create_default_object_code(),
         [],
@@ -903,8 +903,8 @@ function create_default_npcs(): QuestNpcModel[] {
     ];
 }
 
-function create_default_event_chains(): QuestEventDagModel[] {
-    return [];
+function create_default_event_dags(): Map<number, QuestEventDagModel> {
+    return new Map();
 }
 
 function create_default_object_code(): Segment[] {

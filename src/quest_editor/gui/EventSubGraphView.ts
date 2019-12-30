@@ -5,9 +5,13 @@ import { QuestEventModel } from "../model/QuestEventModel";
 import { EventView } from "./EventView";
 import { EventsController } from "../controllers/EventsController";
 import { Disposable } from "../../core/observable/Disposable";
-import "./EventDagView.css";
+import "./EventSubGraphView.css";
 import { Disposer } from "../../core/observable/Disposer";
-import { ListChangeEvent, ListChangeType } from "../../core/observable/property/list/ListProperty";
+import {
+    ListChangeEvent,
+    ListChangeType,
+    ListProperty,
+} from "../../core/observable/property/list/ListProperty";
 import { WritableProperty } from "../../core/observable/property/WritableProperty";
 import { LogManager } from "../../core/Logger";
 
@@ -16,7 +20,7 @@ const logger = LogManager.get("quest_editor/gui/EventDagView");
 const EDGE_HORIZONTAL_SPACING = 8;
 const EDGE_VERTICAL_SPACING = 20;
 
-export class EventDagView extends Widget {
+export class EventSubGraphView extends Widget {
     /**
      * Maps event IDs to GUI data.
      */
@@ -26,15 +30,15 @@ export class EventDagView extends Widget {
     > = new Map();
 
     private readonly event_container_element = div({
-        className: "quest_editor_EventDagView_event_container",
+        className: "quest_editor_EventSubGraphView_event_container",
     });
 
     private readonly edge_container_element = div({
-        className: "quest_editor_EventDagView_edge_container",
+        className: "quest_editor_EventSubGraphView_edge_container",
     });
 
     readonly element = div(
-        { className: "quest_editor_EventDagView" },
+        { className: "quest_editor_EventSubGraphView" },
         this.edge_container_element,
         this.event_container_element,
     );
@@ -42,6 +46,7 @@ export class EventDagView extends Widget {
     constructor(
         private readonly ctrl: EventsController,
         private readonly dag: QuestEventDagModel,
+        private readonly sub_graph: ListProperty<QuestEventModel>,
         private readonly max_edge_depth: WritableProperty<number>,
     ) {
         super();
@@ -54,7 +59,7 @@ export class EventDagView extends Widget {
                 { call_now: true },
             ),
 
-            bind_children_to(this.event_container_element, dag.events, this.create_event_element, {
+            bind_children_to(this.event_container_element, sub_graph, this.create_event_element, {
                 after: this.after_events_changed,
             }),
         );
@@ -69,17 +74,17 @@ export class EventDagView extends Widget {
     update_edges = (): void => {
         this.edge_container_element.innerHTML = "";
 
-        if (this.dag.events.length.val === 0) return;
+        if (this.sub_graph.length.val === 0) return;
 
         // Each edge has a different depth (higher depth means further distance from event nodes).
         // Keep track of the used depths here, to ensure edges never overlap.
-        const used_depths: boolean[][] = Array(this.dag.events.length.val - 1);
+        const used_depths: boolean[][] = Array(this.sub_graph.length.val - 1);
 
         for (let i = 0; i < used_depths.length; i++) {
             used_depths[i] = [];
         }
 
-        for (const event of this.dag.events.val) {
+        for (const event of this.sub_graph) {
             const data = this.event_gui_data.get(event);
 
             if (!data) {
@@ -134,7 +139,7 @@ export class EventDagView extends Widget {
 
                 const width = EDGE_HORIZONTAL_SPACING * depth;
 
-                const edge_element = div({ className: "quest_editor_EventDagView_edge" });
+                const edge_element = div({ className: "quest_editor_EventSubGraphView_edge" });
 
                 edge_element.style.left = `${4 - width}px`;
                 edge_element.style.top = `${top}px`;
@@ -156,7 +161,7 @@ export class EventDagView extends Widget {
     ): [HTMLElement, Disposable] => {
         const disposer = new Disposer();
 
-        const event_view = disposer.add(new EventView(this.ctrl, this.dag, event));
+        const event_view = disposer.add(new EventView(this.ctrl, event));
 
         this.event_gui_data.set(event, {
             element: event_view.element,
@@ -172,7 +177,7 @@ export class EventDagView extends Widget {
 
     private after_events_changed = (change: ListChangeEvent<QuestEventModel>): void => {
         if (change.type === ListChangeType.ListChange) {
-            this.dag.events.val.forEach((event, i) => {
+            this.sub_graph.val.forEach((event, i) => {
                 this.event_gui_data.get(event)!.position = i;
             });
 

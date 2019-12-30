@@ -14,7 +14,7 @@ import {
     QuestEventActionSpawnNpcsModel,
     QuestEventActionUnlockModel,
 } from "../model/QuestEventActionModel";
-import { QuestEventDagModel, QuestEventDagMeta } from "../model/QuestEventDagModel";
+import { QuestEventDagModel } from "../model/QuestEventDagModel";
 import { QuestEvent, QuestNpc } from "../../core/data_formats/parsing/quest/entities";
 import { clone_segment } from "../scripting/instructions";
 import { AreaStore } from "./AreaStore";
@@ -99,7 +99,7 @@ function get_wave(
 function build_event_dags(
     wave_cache: Map<string, WaveModel>,
     dat_events: readonly DatEvent[],
-): QuestEventDagModel[] {
+): Map<number, QuestEventDagModel> {
     // Build up a temporary data structure with partial data.
     // Maps event id and area id to data.
     const data_map = new Map<
@@ -181,98 +181,41 @@ function build_event_dags(
         }
     }
 
-    // Convert temporary structure to complete data structure used to build DAGs. Events that call
-    // nonexistent events are filtered out. This final structure is completely sound.
-    const event_to_full_data = new Map<QuestEventModel, QuestEventDagMeta>();
-    const root_events: { event: QuestEventModel; area_id: number }[] = [];
+    // Convert temporary structure to DAG. Events that call nonexistent events are filtered out.
 
+    // Maps area IDs to DAGs.
+    const event_dags: Map<number, QuestEventDagModel> = new Map();
+
+    // Add nodes to the DAG.
+    for (const { area_id, event } of data_map.values()) {
+        if (event) {
+            let dag = event_dags.get(area_id);
+
+            if (!dag) {
+                dag = new QuestEventDagModel(area_id);
+                event_dags.set(area_id, dag);
+            }
+
+            dag.add_event(event, [], []);
+        }
+    }
+
+    // Add edges to the DAG.
     for (const data of data_map.values()) {
         if (data.event) {
-            const children: QuestEventModel[] = [];
-
             for (const child_id of data.child_ids) {
                 const child = data_map.get(`${child_id}-${data.area_id}`)!;
 
                 if (child.event) {
-                    children.push(child.event);
+                    event_dags.get(data.area_id)!.add_edge(data.event, child.event);
                 } else {
                     logger.warn(`Event ${data.event.id} calls nonexistent event ${child_id}.`);
                 }
             }
-
-            event_to_full_data.set(data.event, {
-                parents: data.parents,
-                children,
-            });
-
-            if (data.parents.length === 0) {
-                root_events.push({ event: data.event, area_id: data.area_id });
-            }
         }
-    }
-
-    // Build DAGs from final complete data structure.
-    const event_dags: QuestEventDagModel[] = [];
-
-    while (root_events.length) {
-        const { event, area_id } = root_events.shift()!;
-
-        const dag_events: QuestEventModel[] = [];
-        const dag_root_events: QuestEventModel[] = [];
-        const dag_meta: Map<QuestEventModel, QuestEventDagMeta> = new Map();
-
-        // Start from a root event and find all connected events.
-        find_dag_events(
-            event_to_full_data,
-            dag_events,
-            dag_root_events,
-            dag_meta,
-            event,
-            new Set(),
-        );
-
-        for (const event of dag_root_events) {
-            const i = root_events.findIndex(r => r.event === event);
-
-            if (i !== -1) {
-                root_events.splice(i, 1);
-            }
-        }
-
-        event_dags.push(new QuestEventDagModel(area_id, dag_events, dag_meta));
     }
 
     return event_dags;
-}
-
-function find_dag_events(
-    full_data: Map<QuestEventModel, QuestEventDagMeta>,
-    dag_events: QuestEventModel[],
-    dag_root_events: QuestEventModel[],
-    dag_meta: Map<QuestEventModel, QuestEventDagMeta>,
-    event: QuestEventModel,
-    visited: Set<QuestEventModel>,
-): void {
-    if (visited.has(event)) return;
-
-    visited.add(event);
-
-    const data = full_data.get(event)!;
-
-    dag_events.push(event);
-    dag_meta.set(event, data);
-
-    if (data.parents.length === 0) {
-        dag_root_events.push(event);
-    }
-
-    for (const parent of data.parents) {
-        find_dag_events(full_data, dag_events, dag_root_events, dag_meta, parent, visited);
-    }
-
-    for (const child of data.children) {
-        find_dag_events(full_data, dag_events, dag_root_events, dag_meta, child, visited);
-    }
 }
 
 export function convert_quest_from_model(quest: QuestModel): Quest {
@@ -309,7 +252,7 @@ export function convert_quest_from_model(quest: QuestModel): Quest {
             script_label: npc.script_label,
             pso_roaming: npc.pso_roaming,
         })),
-        events: convert_quest_events_from_model(quest.event_dags.val),
+        events: convert_quest_events_from_model(quest.event_dags),
         dat_unknowns: quest.dat_unknowns.map(unk => ({ ...unk })),
         object_code: quest.object_code.map(seg => clone_segment(seg)),
         shop_items: quest.shop_items.slice(),
@@ -317,51 +260,57 @@ export function convert_quest_from_model(quest: QuestModel): Quest {
     };
 }
 
-function convert_quest_events_from_model(event_dags: readonly QuestEventDagModel[]): QuestEvent[] {
+function convert_quest_events_from_model(
+    event_dags: Map<number, QuestEventDagModel>,
+): QuestEvent[] {
     const events: QuestEvent[] = [];
 
-    for (const event_dag of event_dags) {
-        for (const event of event_dag.events) {
-            const actions: DatEventAction[] = event.actions.val.map(action => {
-                if (action instanceof QuestEventActionSpawnNpcsModel) {
-                    return {
-                        type: DatEventActionType.SpawnNpcs,
-                        section_id: action.section_id,
-                        appear_flag: action.appear_flag,
-                    };
-                } else if (action instanceof QuestEventActionUnlockModel) {
-                    return {
-                        type: DatEventActionType.Unlock,
-                        door_id: action.door_id,
-                    };
-                } else if (action instanceof QuestEventActionLockModel) {
-                    return {
-                        type: DatEventActionType.Lock,
-                        door_id: action.door_id,
-                    };
-                } else {
-                    throw new Error(
-                        `Unknown event action type ${Object.getPrototypeOf(action).constructor}`,
-                    );
-                }
-            });
+    for (const event_dag of event_dags.values()) {
+        for (const sub_graph of event_dag.connected_sub_graphs) {
+            for (const event of sub_graph) {
+                const actions: DatEventAction[] = event.actions.val.map(action => {
+                    if (action instanceof QuestEventActionSpawnNpcsModel) {
+                        return {
+                            type: DatEventActionType.SpawnNpcs,
+                            section_id: action.section_id,
+                            appear_flag: action.appear_flag,
+                        };
+                    } else if (action instanceof QuestEventActionUnlockModel) {
+                        return {
+                            type: DatEventActionType.Unlock,
+                            door_id: action.door_id,
+                        };
+                    } else if (action instanceof QuestEventActionLockModel) {
+                        return {
+                            type: DatEventActionType.Lock,
+                            door_id: action.door_id,
+                        };
+                    } else {
+                        throw new Error(
+                            `Unknown event action type ${
+                                Object.getPrototypeOf(action).constructor
+                            }`,
+                        );
+                    }
+                });
 
-            for (const child_event of event_dag.get_children(event)) {
-                actions.push({
-                    type: DatEventActionType.TriggerEvent,
-                    event_id: child_event.id,
+                for (const child_event of event_dag.get_children(event)) {
+                    actions.push({
+                        type: DatEventActionType.TriggerEvent,
+                        event_id: child_event.id,
+                    });
+                }
+
+                events.push({
+                    id: event.id,
+                    section_id: event.section_id,
+                    wave: event.wave.id.val,
+                    delay: event.delay.val,
+                    actions,
+                    area_id: event_dag.area_id,
+                    unknown: event.unknown,
                 });
             }
-
-            events.push({
-                id: event.id,
-                section_id: event.section_id,
-                wave: event.wave.id.val,
-                delay: event.delay.val,
-                actions,
-                area_id: event_dag.area_id,
-                unknown: event.unknown,
-            });
         }
     }
 

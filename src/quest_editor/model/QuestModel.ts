@@ -29,7 +29,6 @@ export class QuestModel {
     private readonly _area_variants: WritableListProperty<AreaVariantModel> = list_property();
     private readonly _objects: WritableListProperty<QuestObjectModel>;
     private readonly _npcs: WritableListProperty<QuestNpcModel>;
-    private readonly _event_dags: WritableListProperty<QuestEventDagModel>;
 
     readonly id: Property<number> = this._id;
 
@@ -62,7 +61,10 @@ export class QuestModel {
 
     readonly npcs: ListProperty<QuestNpcModel>;
 
-    readonly event_dags: ListProperty<QuestEventDagModel>;
+    /**
+     * Maps area IDs to event DAGs.
+     */
+    readonly event_dags: Map<number, QuestEventDagModel>;
 
     /**
      * (Partial) raw DAT data that can't be parsed yet by Phantasmal.
@@ -84,7 +86,7 @@ export class QuestModel {
         map_designations: Map<number, number>,
         objects: readonly QuestObjectModel[],
         npcs: readonly QuestNpcModel[],
-        event_dags: readonly QuestEventDagModel[],
+        event_dags: Map<number, QuestEventDagModel>,
         dat_unknowns: readonly DatUnknown[],
         object_code: Segment[],
         shop_items: readonly number[],
@@ -93,7 +95,7 @@ export class QuestModel {
         defined(map_designations, "map_designations");
         require_array(objects, "objs");
         require_array(npcs, "npcs");
-        require_array(event_dags, "event_dags");
+        defined(event_dags, "event_dags");
         require_array(dat_unknowns, "dat_unknowns");
         require_array(object_code, "object_code");
         require_array(shop_items, "shop_items");
@@ -110,8 +112,7 @@ export class QuestModel {
         this.objects = this._objects;
         this._npcs = list_property(undefined, ...npcs);
         this.npcs = this._npcs;
-        this._event_dags = list_property(undefined, ...event_dags);
-        this.event_dags = this._event_dags;
+        this.event_dags = event_dags;
         this.dat_unknowns = dat_unknowns;
         this.object_code = object_code;
         this.shop_items = shop_items;
@@ -212,12 +213,37 @@ export class QuestModel {
         }
     }
 
-    add_event_dag(event_dag: QuestEventDagModel): void {
-        this._event_dags.push(event_dag);
+    insert_event(
+        index: number,
+        event: QuestEventModel,
+        parents: readonly QuestEventModel[],
+        children: readonly QuestEventModel[],
+    ): void {
+        const area_id = event.wave.area_id.val;
+        let dag = this.event_dags.get(area_id);
+
+        if (!dag) {
+            dag = new QuestEventDagModel(area_id);
+            this.event_dags.set(area_id, dag);
+        }
+
+        dag.insert_event(index, event, parents, children);
     }
 
-    add_event_dag_at(index: number, event_dag: QuestEventDagModel): void {
-        this._event_dags.splice(index, 0, event_dag);
+    add_event(
+        event: QuestEventModel,
+        parents: readonly QuestEventModel[],
+        children: readonly QuestEventModel[],
+    ): void {
+        const area_id = event.wave.area_id.val;
+        let dag = this.event_dags.get(area_id);
+
+        if (!dag) {
+            dag = new QuestEventDagModel(area_id);
+            this.event_dags.set(area_id, dag);
+        }
+
+        dag.add_event(event, parents, children);
     }
 
     remove_event(event_dag: QuestEventDagModel, event: QuestEventModel): void {
@@ -228,10 +254,6 @@ export class QuestModel {
         }
 
         event_dag.remove_event(event);
-
-        if (event_dag.events.length.val === 0) {
-            this._event_dags.remove(event_dag);
-        }
     }
 
     private update_area_variants = (): void => {
