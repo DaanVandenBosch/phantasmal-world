@@ -49,40 +49,94 @@ export class QuestEventDagModel {
         return this.meta.get(event)?.children ?? [];
     }
 
+    get_parents(event: QuestEventModel): readonly QuestEventModel[] {
+        return this.meta.get(event)?.parents ?? [];
+    }
+
+    add_event_at(
+        index: number,
+        event: QuestEventModel,
+        children: readonly QuestEventModel[],
+        parents: readonly QuestEventModel[],
+    ): void {
+        this.remove_event(event);
+
+        this.meta.set(event, { children: [], parents: [] });
+
+        if (children.length === 0) {
+            this._root_events.push(event);
+        } else {
+            for (const child of children) {
+                this.add_edge(event, child);
+            }
+        }
+
+        for (const parent of parents) {
+            this.add_edge(parent, event);
+        }
+
+        this._events.splice(index, 0, event);
+    }
+
     remove_event(event: QuestEventModel): void {
         const meta = this.meta.get(event);
 
         if (meta) {
-            const children = meta.children.slice();
-
-            for (const child of children) {
-                this.remove_child(event, child);
+            // Remove the edges from the event to its children.
+            while (meta.children.length) {
+                this.remove_edge(event, meta.children[0]);
             }
 
+            // Remove the edges from the event to its parents.
             if (meta.parents.length) {
-                for (const parent of meta.parents) {
-                    // Connect event's parents to its children.
-                    for (const child of children) {
-                        this.add_child(parent, child);
-                    }
-
-                    this.remove_parent(event, parent);
+                while (meta.parents.length) {
+                    this.remove_edge(meta.parents[0], event);
                 }
             } else {
                 this._root_events.remove(event);
             }
 
             this.meta.delete(event);
+            this._events.remove(event);
         }
-
-        this._events.remove(event);
     }
 
-    private remove_child(event: QuestEventModel, child: QuestEventModel): void {
+    /**
+     * Add a parent-child relationship between two events.
+     */
+    add_edge(parent: QuestEventModel, child: QuestEventModel): void {
+        const parent_meta = this.meta.get(parent);
+
+        if (parent_meta && !parent_meta.children.includes(child)) {
+            parent_meta.children.push(child);
+        }
+
+        const child_meta = this.meta.get(child);
+
+        if (child_meta && !child_meta.parents.includes(parent)) {
+            child_meta.parents.push(parent);
+            this._root_events.remove(child);
+        }
+    }
+
+    /**
+     * Remove a parent-child relationship between two events.
+     */
+    remove_edge(parent: QuestEventModel, child: QuestEventModel): void {
+        const parent_meta = this.meta.get(parent);
+
+        if (parent_meta) {
+            const index = parent_meta.children.indexOf(child);
+
+            if (index !== -1) {
+                parent_meta.children.splice(index, 1);
+            }
+        }
+
         const child_meta = this.meta.get(child);
 
         if (child_meta) {
-            const index = child_meta.parents.indexOf(event);
+            const index = child_meta.parents.indexOf(parent);
 
             if (index !== -1) {
                 child_meta.parents.splice(index, 1);
@@ -91,33 +145,6 @@ export class QuestEventDagModel {
             if (child_meta.parents.length === 0) {
                 this._root_events.push(child);
             }
-        }
-    }
-
-    private remove_parent(event: QuestEventModel, parent: QuestEventModel): void {
-        const parent_meta = this.meta.get(parent);
-
-        if (parent_meta) {
-            const index = parent_meta.children.indexOf(event);
-
-            if (index !== -1) {
-                parent_meta.children.splice(index, 1);
-            }
-        }
-    }
-
-    private add_child(event: QuestEventModel, child: QuestEventModel): void {
-        const meta = this.meta.get(event);
-
-        if (meta && !meta.children.includes(child)) {
-            meta.children.push(child);
-        }
-
-        const child_meta = this.meta.get(child);
-
-        if (child_meta && !child_meta.parents.includes(event)) {
-            child_meta.parents.push(event);
-            this._root_events.remove(child);
         }
     }
 }

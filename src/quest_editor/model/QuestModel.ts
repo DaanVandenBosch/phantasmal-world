@@ -216,6 +216,10 @@ export class QuestModel {
         this._event_dags.push(event_dag);
     }
 
+    add_event_dag_at(index: number, event_dag: QuestEventDagModel): void {
+        this._event_dags.splice(index, 0, event_dag);
+    }
+
     remove_event(event_dag: QuestEventDagModel, event: QuestEventModel): void {
         for (const npc of this.npcs) {
             if (npc.wave.val === event.wave) {

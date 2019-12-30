@@ -23,11 +23,3 @@
     justify-content: center;
     padding: 4px;
 }
-
-.quest_editor_EventsView_edge {
-    box-sizing: border-box;
-    position: absolute;
-    border-left: solid 2px var(--border-color);
-    border-top: solid 2px var(--border-color);
-    border-bottom: solid 2px var(--border-color);
-}

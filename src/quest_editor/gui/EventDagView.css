@@ -8,3 +8,11 @@
 .quest_editor_EventDagView_edge_container {
     position: absolute;
 }
+
+.quest_editor_EventDagView_edge {
+    box-sizing: border-box;
+    position: absolute;
+    border-left: solid 2px var(--border-color);
+    border-top: solid 2px var(--border-color);
+    border-bottom: solid 2px var(--border-color);
+}

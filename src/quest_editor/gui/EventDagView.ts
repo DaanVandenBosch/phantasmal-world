@@ -9,6 +9,9 @@ import "./EventDagView.css";
 import { Disposer } from "../../core/observable/Disposer";
 import { ListChangeEvent, ListChangeType } from "../../core/observable/property/list/ListProperty";
 import { WritableProperty } from "../../core/observable/property/WritableProperty";
+import { LogManager } from "../../core/Logger";
+
+const logger = LogManager.get("quest_editor/gui/EventDagView");
 
 const EDGE_HORIZONTAL_SPACING = 8;
 const EDGE_VERTICAL_SPACING = 20;
@@ -77,28 +80,43 @@ export class EventDagView extends Widget {
         }
 
         for (const event of this.dag.events.val) {
-            const { element: event_element, position } = this.event_gui_data.get(event)!;
+            const data = this.event_gui_data.get(event);
 
-            const y_offset = event_element.offsetTop + event_element.offsetHeight;
+            if (!data) {
+                logger.warn(`No GUI data for event ${event.id}.`);
+                continue;
+            }
+
+            const { element: event_element, position } = data;
+
+            const y_offset =
+                event_element.offsetTop + event_element.offsetHeight - EDGE_VERTICAL_SPACING;
 
             for (const child of this.dag.get_children(event)) {
-                const {
-                    element: child_element,
-                    position: child_position,
-                } = this.event_gui_data.get(child)!;
-                const child_y_offset = child_element.offsetTop;
+                const child_data = this.event_gui_data.get(child);
 
-                const edge_element = div({ className: "quest_editor_EventsView_edge" });
+                if (!child_data) {
+                    logger.warn(`No GUI data for child event ${child.id}.`);
+                    continue;
+                }
 
-                const top = Math.min(y_offset, child_y_offset) - EDGE_VERTICAL_SPACING;
-                const height = Math.max(y_offset, child_y_offset) - top + EDGE_VERTICAL_SPACING;
+                const { element: child_element, position: child_position } = child_data;
+                const child_y_offset = child_element.offsetTop + EDGE_VERTICAL_SPACING;
+
+                const top = Math.min(y_offset, child_y_offset);
+                const height = Math.max(y_offset, child_y_offset) - top;
 
                 let depth = 1;
+                const downwards = child_position > position;
                 const low_pos = Math.min(position, child_position);
                 const high_pos = Math.max(position, child_position);
 
                 outer: while (true) {
-                    for (let i = low_pos; i < high_pos; i++) {
+                    for (
+                        let i = downwards ? low_pos : Math.max(0, low_pos - 1);
+                        i < high_pos;
+                        i++
+                    ) {
                         if (used_depths[i][depth]) {
                             depth++;
                             continue outer;
@@ -116,10 +134,16 @@ export class EventDagView extends Widget {
 
                 const width = EDGE_HORIZONTAL_SPACING * depth;
 
+                const edge_element = div({ className: "quest_editor_EventDagView_edge" });
+
                 edge_element.style.left = `${4 - width}px`;
                 edge_element.style.top = `${top}px`;
                 edge_element.style.width = `${width}px`;
                 edge_element.style.height = `${height}px`;
+
+                // Add the child and parent id for debugging purposes.
+                edge_element.dataset["parent"] = event.id.toString();
+                edge_element.dataset["child"] = child.id.toString();
 
                 this.edge_container_element.append(edge_element);
             }
@@ -148,11 +172,9 @@ export class EventDagView extends Widget {
 
     private after_events_changed = (change: ListChangeEvent<QuestEventModel>): void => {
         if (change.type === ListChangeType.ListChange) {
-            const data = [...this.event_gui_data.values()];
-
-            for (let i = change.index + change.inserted.length; i < data.length; i++) {
-                data[i].position = i;
-            }
+            this.dag.events.val.forEach((event, i) => {
+                this.event_gui_data.get(event)!.position = i;
+            });
 
             this.update_edges();
         }
