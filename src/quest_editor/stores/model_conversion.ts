@@ -239,7 +239,7 @@ function build_event_dags(
             }
         }
 
-        event_dags.push(new QuestEventDagModel(area_id, dag_events, dag_root_events, dag_meta));
+        event_dags.push(new QuestEventDagModel(area_id, dag_events, dag_meta));
     }
 
     return event_dags;

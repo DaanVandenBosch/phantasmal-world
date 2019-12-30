@@ -104,7 +104,6 @@ export class EventsController extends Controller {
                 new QuestEventDagModel(
                     area.id,
                     [event],
-                    [event],
                     new Map([[event, { parents: [], children: [] }]]),
                 ),
             );

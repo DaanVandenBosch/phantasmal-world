@@ -56,8 +56,11 @@ export class RemoveEventAction implements Action {
     }
 
     undo(): void {
+        // Do forced removal of edges before adding the event to ensure the events list property
+        // emits a change event after the new edges have been removed. This hack is necessary
+        // because the DAG doesn't emit any events when edges are added or removed.
         for (const { parent, child } of this.new_edges) {
-            this.event_dag.remove_edge(parent, child);
+            this.event_dag.remove_edge(parent, child, true);
         }
 
         this.event_dag.add_event_at(this.event_index, this.event, this.children, this.parents);

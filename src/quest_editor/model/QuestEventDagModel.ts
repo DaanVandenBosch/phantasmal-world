@@ -2,7 +2,7 @@ import { QuestEventModel } from "./QuestEventModel";
 import { ListProperty } from "../../core/observable/property/list/ListProperty";
 import { WritableListProperty } from "../../core/observable/property/list/WritableListProperty";
 import { list_property } from "../../core/observable";
-import { defined, require_array, require_non_negative_integer } from "../../core/util";
+import { assert, defined, require_array, require_non_negative_integer } from "../../core/util";
 
 export type QuestEventDagMeta = {
     readonly parents: QuestEventModel[];
@@ -11,37 +11,32 @@ export type QuestEventDagMeta = {
 
 /**
  * Events can call each other and form a directed acyclic graph (DAG) this way.
+ * This DAG enforces connectivity.
  */
 export class QuestEventDagModel {
     private readonly _events: WritableListProperty<QuestEventModel>;
-    private readonly _root_events: WritableListProperty<QuestEventModel>;
     private meta: Map<QuestEventModel, QuestEventDagMeta>;
 
     readonly area_id: number;
 
     readonly events: ListProperty<QuestEventModel>;
 
-    /**
-     * The root nodes of the DAG. These events are not called from any other events.
-     */
-    readonly root_events: ListProperty<QuestEventModel>;
-
     constructor(
         area_id: number,
         events: QuestEventModel[],
-        root_events: QuestEventModel[],
         meta: Map<QuestEventModel, QuestEventDagMeta>,
     ) {
         require_non_negative_integer(area_id, "area_id");
         require_array(events, "events");
-        require_array(root_events, "root_events");
+        assert(
+            meta.size === events.length,
+            "meta and events should contain the same amount of elements",
+        );
         defined(meta, "meta");
 
         this.area_id = area_id;
         this._events = list_property(undefined, ...events);
         this.events = this._events;
-        this._root_events = list_property(undefined, ...root_events);
-        this.root_events = this._root_events;
         this.meta = meta;
     }
 
@@ -59,16 +54,28 @@ export class QuestEventDagModel {
         children: readonly QuestEventModel[],
         parents: readonly QuestEventModel[],
     ): void {
+        // An event can only be added without parents if it will become the root event.
+        if (children.length === 0) {
+            assert(
+                this.events.length.val === 0 || parents.length >= 1,
+                "an event should have at least one parent",
+            );
+        } else {
+            for (const child of children) {
+                const child_meta = this.meta.get(child);
+
+                if (child_meta && child_meta.parents.length > 0) {
+                    assert(parents.length >= 1, "an event should have at least one parent");
+                }
+            }
+        }
+
         this.remove_event(event);
 
         this.meta.set(event, { children: [], parents: [] });
 
-        if (children.length === 0) {
-            this._root_events.push(event);
-        } else {
-            for (const child of children) {
-                this.add_edge(event, child);
-            }
+        for (const child of children) {
+            this.add_edge(event, child);
         }
 
         for (const parent of parents) {
@@ -82,18 +89,31 @@ export class QuestEventDagModel {
         const meta = this.meta.get(event);
 
         if (meta) {
+            // If the event has no parents (i.e. is the root event) and one or less children, we can
+            // proceed without verifying edges. Otherwise we need to ensure its children have at
+            // least one other parent.
+            if (meta.parents.length === 0) {
+                assert(
+                    meta.children.length <= 1,
+                    "event's children should have at least one other parent before removing event",
+                );
+            } else {
+                for (const child of meta.children) {
+                    assert(
+                        this.meta.get(child)!.parents.length > 1,
+                        "event's children should have at least one other parent before removing event",
+                    );
+                }
+            }
+
             // Remove the edges from the event to its children.
             while (meta.children.length) {
-                this.remove_edge(event, meta.children[0]);
+                this.internal_remove_edge(event, meta, meta.children[0], undefined);
             }
 
             // Remove the edges from the event to its parents.
-            if (meta.parents.length) {
-                while (meta.parents.length) {
-                    this.remove_edge(meta.parents[0], event);
-                }
-            } else {
-                this._root_events.remove(event);
+            while (meta.parents.length) {
+                this.internal_remove_edge(meta.parents[0], undefined, event, meta);
             }
 
             this.meta.delete(event);
@@ -115,16 +135,35 @@ export class QuestEventDagModel {
 
         if (child_meta && !child_meta.parents.includes(parent)) {
             child_meta.parents.push(parent);
-            this._root_events.remove(child);
         }
     }
 
     /**
      * Remove a parent-child relationship between two events.
      */
-    remove_edge(parent: QuestEventModel, child: QuestEventModel): void {
-        const parent_meta = this.meta.get(parent);
+    remove_edge(parent: QuestEventModel, child: QuestEventModel, force: boolean = false): void {
+        const child_meta = this.meta.get(child);
 
+        if (child_meta && !force) {
+            const index = child_meta.parents.indexOf(parent);
+
+            if (index !== -1) {
+                assert(
+                    child_meta.parents.length > 1,
+                    "child should have at least one other parent before removing the relationship between parent and child",
+                );
+            }
+        }
+
+        this.internal_remove_edge(parent, undefined, child, child_meta);
+    }
+
+    private internal_remove_edge(
+        parent: QuestEventModel,
+        parent_meta: QuestEventDagMeta | undefined = this.meta.get(parent),
+        child: QuestEventModel,
+        child_meta: QuestEventDagMeta | undefined = this.meta.get(child),
+    ): void {
         if (parent_meta) {
             const index = parent_meta.children.indexOf(child);
 
@@ -133,17 +172,11 @@ export class QuestEventDagModel {
             }
         }
 
-        const child_meta = this.meta.get(child);
-
         if (child_meta) {
             const index = child_meta.parents.indexOf(parent);
 
             if (index !== -1) {
                 child_meta.parents.splice(index, 1);
-            }
-
-            if (child_meta.parents.length === 0) {
-                this._root_events.push(child);
             }
         }
     }
