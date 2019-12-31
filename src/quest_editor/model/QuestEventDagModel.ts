@@ -21,23 +21,25 @@ export type QuestEventDagModelChange =
     | QuestEventDagModelEdgeRemoved;
 
 export type QuestEventDagModelNodeAdded = {
-    type: QuestEventDagModelChangeType.NodeAdded;
+    readonly type: QuestEventDagModelChangeType.NodeAdded;
+    readonly event: QuestEventModel;
 };
 
 export type QuestEventDagModelNodeRemoved = {
-    type: QuestEventDagModelChangeType.NodeRemoved;
+    readonly type: QuestEventDagModelChangeType.NodeRemoved;
+    readonly event: QuestEventModel;
 };
 
 export type QuestEventDagModelEdgeAdded = {
-    type: QuestEventDagModelChangeType.EdgeAdded;
-    parent: QuestEventModel;
-    child: QuestEventModel;
+    readonly type: QuestEventDagModelChangeType.EdgeAdded;
+    readonly parent: QuestEventModel;
+    readonly child: QuestEventModel;
 };
 
 export type QuestEventDagModelEdgeRemoved = {
-    type: QuestEventDagModelChangeType.EdgeRemoved;
-    parent: QuestEventModel;
-    child: QuestEventModel;
+    readonly type: QuestEventDagModelChangeType.EdgeRemoved;
+    readonly parent: QuestEventModel;
+    readonly child: QuestEventModel;
 };
 
 type QuestEventDagMeta = {
@@ -115,6 +117,11 @@ export class QuestEventDagModel implements Observable<QuestEventDagModelChange> 
         for (const child of children) {
             this.add_edge(event, child);
         }
+
+        this.emit({
+            type: QuestEventDagModelChangeType.NodeAdded,
+            event,
+        });
     }
 
     insert_event(
@@ -145,6 +152,11 @@ export class QuestEventDagModel implements Observable<QuestEventDagModelChange> 
         for (const child of children) {
             this.add_edge(event, child);
         }
+
+        this.emit({
+            type: QuestEventDagModelChangeType.NodeAdded,
+            event,
+        });
     }
 
     remove_event(event: QuestEventModel): void {
@@ -184,6 +196,11 @@ export class QuestEventDagModel implements Observable<QuestEventDagModelChange> 
             for (let i = index; i < this.events.length; i++) {
                 this.meta.get(this.events[i])!.index = i;
             }
+
+            this.emit({
+                type: QuestEventDagModelChangeType.NodeRemoved,
+                event,
+            });
         }
     }
 
@@ -294,7 +311,7 @@ export class QuestEventDagModel implements Observable<QuestEventDagModelChange> 
                 child_meta.sub_graph = sub_graph;
             }
 
-            this.emit({ type: QuestEventDagModelChangeType.EdgeAdded, parent, child });
+            this.emit({ type: QuestEventDagModelChangeType.EdgeRemoved, parent, child });
         }
     }
 

@@ -1,6 +1,6 @@
 import { Widget } from "../../core/gui/Widget";
 import { bind_children_to, div } from "../../core/gui/dom";
-import { QuestEventDagModel } from "../model/QuestEventDagModel";
+import { QuestEventDagModel, QuestEventDagModelChangeType } from "../model/QuestEventDagModel";
 import { QuestEventModel } from "../model/QuestEventModel";
 import { EventView } from "./EventView";
 import { EventsController } from "../controllers/EventsController";
@@ -15,7 +15,7 @@ import {
 import { WritableProperty } from "../../core/observable/property/WritableProperty";
 import { LogManager } from "../../core/Logger";
 
-const logger = LogManager.get("quest_editor/gui/EventDagView");
+const logger = LogManager.get("quest_editor/gui/EventSubGraphView");
 
 const EDGE_HORIZONTAL_SPACING = 8;
 const EDGE_VERTICAL_SPACING = 20;
@@ -61,6 +61,15 @@ export class EventSubGraphView extends Widget {
 
             bind_children_to(this.event_container_element, sub_graph, this.create_event_element, {
                 after: this.after_events_changed,
+            }),
+
+            dag.observe(({ value: change }) => {
+                if (
+                    change.type === QuestEventDagModelChangeType.EdgeAdded ||
+                    change.type === QuestEventDagModelChangeType.EdgeRemoved
+                ) {
+                    this.update_edges();
+                }
             }),
         );
 
