@@ -117,14 +117,14 @@ export class QuestEditorView extends ResizableWidget {
                     create: create_object_list_view,
                 },
             ],
+            [
+                EventsView,
+                {
+                    name: "events_view",
+                    create: create_events_view,
+                },
+            ],
         ]);
-
-        if (gui_store.feature_active("events")) {
-            this.view_map.set(EventsView, {
-                name: "events_view",
-                create: create_events_view,
-            });
-        }
 
         if (gui_store.feature_active("vm")) {
             this.view_map.set(QuestRunnerRendererView, {
@@ -377,16 +377,12 @@ export class QuestEditorView extends ResizableWidget {
                                 componentName: this.view_map.get(ObjectListView)!.name,
                                 isClosable: false,
                             },
-                            ...(this.gui_store.feature_active("events")
-                                ? [
-                                      {
-                                          title: "Events",
-                                          type: "component",
-                                          componentName: this.view_map.get(EventsView)!.name,
-                                          isClosable: false,
-                                      },
-                                  ]
-                                : []),
+                            {
+                                title: "Events",
+                                type: "component",
+                                componentName: this.view_map.get(EventsView)!.name,
+                                isClosable: false,
+                            },
                         ],
                     },
                 ],
