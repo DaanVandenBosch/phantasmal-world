@@ -826,7 +826,7 @@ body .lm_dropTargetIndicator {
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 6px 12px;
+    padding: 4px 8px;
     border: var(--border);
     margin: 4px;
     background-color: hsl(0, 0%, 17%);
@@ -845,8 +845,26 @@ body .lm_dropTargetIndicator {
     color: hsl(0, 0%, 90%);
 }
 
+.quest_editor_EventView > table {
+    min-width: 170px;
+}
+
 .quest_editor_EventView th {
     text-align: left;
+}
+
+.quest_editor_EventView_actions {
+    margin-left: 4px;
+}
+
+.core_DropDown {
+    position: relative;
+}
+
+.core_DropDown .core_Menu {
+    top: 25px;
+    left: 0;
+    min-width: 100%;
 }
 
 .quest_editor_EventSubGraphView {
@@ -967,16 +985,6 @@ body .lm_dropTargetIndicator {
     height: 1px;
     border: none;
     padding: 0;
-}
-
-.core_DropDown {
-    position: relative;
-}
-
-.core_DropDown .core_Menu {
-    top: 25px;
-    left: 0;
-    min-width: 100%;
 }
 
 .viewer_Model3DSelectListView {
