@@ -9,6 +9,13 @@ import { EditEventDelayAction } from "../actions/EditEventDelayAction";
 import { WaveModel } from "../model/WaveModel";
 import { RemoveEventAction } from "../actions/RemoveEventAction";
 import { CreateEventAction } from "../actions/CreateEventAction";
+import {
+    QuestEventActionLockModel,
+    QuestEventActionModel,
+    QuestEventActionSpawnNpcsModel,
+    QuestEventActionType,
+    QuestEventActionUnlockModel,
+} from "../model/QuestEventActionModel";
 
 export class EventsController extends Controller {
     readonly event_dag: Property<QuestEventDagModel | undefined>;
@@ -164,4 +171,22 @@ export class EventsController extends Controller {
     set_delay = (event: QuestEventModel, delay: number): void => {
         this.store.undo.push(new EditEventDelayAction(event, event.delay.val, delay)).redo();
     };
+
+    add_action(event: QuestEventModel, type: QuestEventActionType): void {
+        let action: QuestEventActionModel;
+
+        switch (type) {
+            case QuestEventActionType.SpawnNpcs:
+                action = new QuestEventActionSpawnNpcsModel(0, 0);
+                break;
+            case QuestEventActionType.Unlock:
+                action = new QuestEventActionUnlockModel(0);
+                break;
+            case QuestEventActionType.Lock:
+                action = new QuestEventActionLockModel(0);
+                break;
+        }
+
+        event.add_action(action);
+    }
 }

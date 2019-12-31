@@ -11,7 +11,7 @@ import { emitter } from "../observable";
 export type DropDownOptions<T> = ButtonOptions & {
     readonly text: string;
     readonly items: readonly T[] | Property<readonly T[]>;
-    readonly to_label: (element: T) => string;
+    readonly to_label?: (element: T) => string;
 };
 
 export class DropDown<T> extends Control {
@@ -56,7 +56,7 @@ export class DropDown<T> extends Control {
             this.button.mouseup.observe(() => this.button_mouseup()),
 
             this.menu.selected.observe(({ value }) => {
-                if (value) {
+                if (value !== undefined) {
                     this._chosen.emit({ value });
                     this.menu.selected.val = undefined;
                 }

@@ -12,6 +12,7 @@ import {
 import {
     QuestEventActionLockModel,
     QuestEventActionSpawnNpcsModel,
+    QuestEventActionType,
     QuestEventActionUnlockModel,
 } from "../model/QuestEventActionModel";
 import { QuestEventDagModel } from "../model/QuestEventDagModel";
@@ -268,26 +269,23 @@ function convert_quest_events_from_model(
     for (const event_dag of event_dags.values()) {
         for (const event of event_dag.events) {
             const actions: DatEventAction[] = event.actions.val.map(action => {
-                if (action instanceof QuestEventActionSpawnNpcsModel) {
-                    return {
-                        type: DatEventActionType.SpawnNpcs,
-                        section_id: action.section_id,
-                        appear_flag: action.appear_flag,
-                    };
-                } else if (action instanceof QuestEventActionUnlockModel) {
-                    return {
-                        type: DatEventActionType.Unlock,
-                        door_id: action.door_id.val,
-                    };
-                } else if (action instanceof QuestEventActionLockModel) {
-                    return {
-                        type: DatEventActionType.Lock,
-                        door_id: action.door_id.val,
-                    };
-                } else {
-                    throw new Error(
-                        `Unknown event action type ${Object.getPrototypeOf(action).constructor}`,
-                    );
+                switch (action.type) {
+                    case QuestEventActionType.SpawnNpcs:
+                        return {
+                            type: DatEventActionType.SpawnNpcs,
+                            section_id: action.section_id,
+                            appear_flag: action.appear_flag,
+                        };
+                    case QuestEventActionType.Unlock:
+                        return {
+                            type: DatEventActionType.Unlock,
+                            door_id: action.door_id.val,
+                        };
+                    case QuestEventActionType.Lock:
+                        return {
+                            type: DatEventActionType.Lock,
+                            door_id: action.door_id.val,
+                        };
                 }
             });
 

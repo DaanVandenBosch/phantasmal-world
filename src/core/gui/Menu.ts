@@ -8,7 +8,7 @@ import "./Menu.css";
 
 export type MenuOptions<T> = {
     readonly items: readonly T[] | Property<readonly T[]>;
-    readonly to_label: (element: T) => string;
+    readonly to_label?: (item: T) => string;
     readonly related_element: HTMLElement;
 };
 
@@ -16,7 +16,7 @@ export class Menu<T> extends Widget {
     readonly element = div({ className: "core_Menu", tabIndex: -1 });
     readonly selected: WritableProperty<T | undefined>;
 
-    private readonly to_label: (element: T) => string;
+    private readonly to_label: (item: T) => string;
     private readonly items: Property<readonly T[]>;
     private readonly inner_element = div({ className: "core_Menu_inner" });
     private readonly related_element: HTMLElement;
@@ -35,7 +35,7 @@ export class Menu<T> extends Widget {
         this.inner_element.onmouseover = this.inner_mouseover;
         this.element.append(this.inner_element);
 
-        this.to_label = options.to_label;
+        this.to_label = options.to_label ?? (item => String(item));
         this.items = is_property(options.items) ? options.items : property(options.items);
         this.related_element = options.related_element;
 

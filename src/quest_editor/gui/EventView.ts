@@ -4,7 +4,6 @@ import {
     bind_children_to,
     disposable_listener,
     div,
-    span,
     table,
     td,
     th,
@@ -15,13 +14,13 @@ import { QuestEventModel } from "../model/QuestEventModel";
 import "./EventView.css";
 import { EventsController } from "../controllers/EventsController";
 import {
-    QuestEventActionLockModel,
     QuestEventActionModel,
-    QuestEventActionSpawnNpcsModel,
-    QuestEventActionUnlockModel,
+    QuestEventActionType,
+    QuestEventActionTypes,
 } from "../model/QuestEventActionModel";
 import { Disposer } from "../../core/observable/Disposer";
 import { property } from "../../core/observable";
+import { DropDown } from "../../core/gui/DropDown";
 
 export class EventView extends Widget {
     private readonly inputs_enabled = property(true);
@@ -37,6 +36,22 @@ export class EventView extends Widget {
             new NumberInput(event.delay.val, { min: 0, step: 1, enabled: this.inputs_enabled }),
         );
         const action_table = table({ className: "quest_editor_EventView_actions" });
+        const add_action_dropdown: DropDown<QuestEventActionType> = this.disposable(
+            new DropDown({
+                text: "Add action",
+                items: QuestEventActionTypes,
+                to_label(type: QuestEventActionType): string {
+                    switch (type) {
+                        case QuestEventActionType.SpawnNpcs:
+                            return "Spawn NPCs";
+                        case QuestEventActionType.Unlock:
+                            return "Unlock door";
+                        case QuestEventActionType.Lock:
+                            return "Lock door";
+                    }
+                },
+            }),
+        );
 
         this.element = div(
             { tabIndex: 0 },
@@ -47,6 +62,7 @@ export class EventView extends Widget {
                 tr(th("Delay:"), td(this.delay_input.element)),
                 tr(th({ colSpan: 2 }, "Actions:")),
                 tr(td({ colSpan: 2 }, action_table)),
+                tr(td({ colSpan: 2 }, add_action_dropdown.element)),
             ),
         );
 
@@ -80,6 +96,8 @@ export class EventView extends Widget {
             this.delay_input.value.observe(e => ctrl.set_delay(event, e.value)),
 
             bind_children_to(action_table, event.actions, this.create_action_element),
+
+            add_action_dropdown.chosen.observe(({ value }) => ctrl.add_action(event, value)),
         );
 
         this.finalize_construction();
@@ -97,21 +115,22 @@ export class EventView extends Widget {
         let label: string;
         let node: Node;
 
-        if (action instanceof QuestEventActionSpawnNpcsModel) {
+        if (action.type === QuestEventActionType.SpawnNpcs) {
             label = "Spawn:";
-            node = span(
-                disposer.add(
-                    new NumberInput(action.section_id, { min: 0, step: 1, enabled: false }),
-                ).element,
-                disposer.add(
-                    new NumberInput(action.appear_flag, { min: 0, step: 1, enabled: false }),
-                ).element,
+            node = div(
+                div(
+                    disposer.add(
+                        new NumberInput(action.section_id, { min: 0, step: 1, enabled: false }),
+                    ).element,
+                ),
+                div(
+                    disposer.add(
+                        new NumberInput(action.appear_flag, { min: 0, step: 1, enabled: false }),
+                    ).element,
+                ),
             );
-        } else if (
-            action instanceof QuestEventActionUnlockModel ||
-            action instanceof QuestEventActionLockModel
-        ) {
-            label = action instanceof QuestEventActionUnlockModel ? "Unlock:" : "Lock:";
+        } else {
+            label = action.type === QuestEventActionType.Unlock ? "Unlock:" : "Lock:";
             const input = disposer.add(
                 new NumberInput(action.door_id.val, {
                     min: 0,
@@ -125,8 +144,6 @@ export class EventView extends Widget {
                 input.value.bind_to(action.door_id),
                 input.value.observe(({ value }) => action.set_door_id(value)),
             );
-        } else {
-            throw new Error(`Unsupported action type ${action.constructor.name}.`);
         }
 
         return [tr(th(label), td(node)), disposer];
