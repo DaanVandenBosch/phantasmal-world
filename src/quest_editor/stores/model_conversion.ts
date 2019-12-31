@@ -266,51 +266,47 @@ function convert_quest_events_from_model(
     const events: QuestEvent[] = [];
 
     for (const event_dag of event_dags.values()) {
-        for (const sub_graph of event_dag.connected_sub_graphs) {
-            for (const event of sub_graph) {
-                const actions: DatEventAction[] = event.actions.val.map(action => {
-                    if (action instanceof QuestEventActionSpawnNpcsModel) {
-                        return {
-                            type: DatEventActionType.SpawnNpcs,
-                            section_id: action.section_id,
-                            appear_flag: action.appear_flag,
-                        };
-                    } else if (action instanceof QuestEventActionUnlockModel) {
-                        return {
-                            type: DatEventActionType.Unlock,
-                            door_id: action.door_id,
-                        };
-                    } else if (action instanceof QuestEventActionLockModel) {
-                        return {
-                            type: DatEventActionType.Lock,
-                            door_id: action.door_id,
-                        };
-                    } else {
-                        throw new Error(
-                            `Unknown event action type ${
-                                Object.getPrototypeOf(action).constructor
-                            }`,
-                        );
-                    }
-                });
-
-                for (const child_event of event_dag.get_children(event)) {
-                    actions.push({
-                        type: DatEventActionType.TriggerEvent,
-                        event_id: child_event.id,
-                    });
+        for (const event of event_dag.events) {
+            const actions: DatEventAction[] = event.actions.val.map(action => {
+                if (action instanceof QuestEventActionSpawnNpcsModel) {
+                    return {
+                        type: DatEventActionType.SpawnNpcs,
+                        section_id: action.section_id,
+                        appear_flag: action.appear_flag,
+                    };
+                } else if (action instanceof QuestEventActionUnlockModel) {
+                    return {
+                        type: DatEventActionType.Unlock,
+                        door_id: action.door_id,
+                    };
+                } else if (action instanceof QuestEventActionLockModel) {
+                    return {
+                        type: DatEventActionType.Lock,
+                        door_id: action.door_id,
+                    };
+                } else {
+                    throw new Error(
+                        `Unknown event action type ${Object.getPrototypeOf(action).constructor}`,
+                    );
                 }
+            });
 
-                events.push({
-                    id: event.id,
-                    section_id: event.section_id,
-                    wave: event.wave.id.val,
-                    delay: event.delay.val,
-                    actions,
-                    area_id: event_dag.area_id,
-                    unknown: event.unknown,
+            for (const child_event of event_dag.get_children(event)) {
+                actions.push({
+                    type: DatEventActionType.TriggerEvent,
+                    event_id: child_event.id,
                 });
             }
+
+            events.push({
+                id: event.id,
+                section_id: event.section_id,
+                wave: event.wave.id.val,
+                delay: event.delay.val,
+                actions,
+                area_id: event_dag.area_id,
+                unknown: event.unknown,
+            });
         }
     }
 

@@ -59,13 +59,13 @@ type QuestEventDagMeta = {
  * Events can call each other and form a directed acyclic graph (DAG) this way.
  */
 export class QuestEventDagModel implements Observable<QuestEventDagModelChange> {
-    private readonly events: QuestEventModel[] = [];
     private readonly _connected_sub_graphs: WritableListProperty<
         WritableListProperty<QuestEventModel>
     > = list_property();
     private readonly meta: Map<QuestEventModel, QuestEventDagMeta> = new Map();
     private readonly emitter: Emitter<QuestEventDagModelChange> = emitter();
 
+    readonly events: QuestEventModel[] = [];
     /**
      * The ordering within each sub graph is the same as the ordering within this graph. The
      * ordering of the sub graphs is based on the first event of each sub graph.
@@ -81,16 +81,20 @@ export class QuestEventDagModel implements Observable<QuestEventDagModelChange> 
         return this.emitter.observe(observer);
     }
 
+    get_index(event: QuestEventModel): number {
+        return this.meta.get(event)!.index;
+    }
+
+    get_sub_graph(event: QuestEventModel): ListProperty<QuestEventModel> {
+        return this.meta.get(event)!.sub_graph;
+    }
+
     get_children(event: QuestEventModel): readonly QuestEventModel[] {
         return this.meta.get(event)!.children;
     }
 
     get_parents(event: QuestEventModel): readonly QuestEventModel[] {
         return this.meta.get(event)!.parents;
-    }
-
-    get_index(event: QuestEventModel): number {
-        return this.meta.get(event)!.index;
     }
 
     add_event(

@@ -53,20 +53,23 @@ export class EventsController extends Controller {
         const area = this.store.current_area.val;
 
         if (quest && area) {
-            const section_id = this.store.selected_entity.val?.section_id?.val ?? 1;
+            const event_dag = quest.get_event_dag_or_create(area.id);
+
+            const parent = event_dag.events.find(
+                event => event.wave === this.store.selected_wave.val,
+            );
+
+            const section_id =
+                parent?.section_id ?? this.store.selected_entity.val?.section_id?.val ?? 1;
 
             const event_ids: number[] = [];
             const wave_ids: number[] = [];
 
-            for (const sub_graph of this.event_sub_graphs) {
-                for (const event of sub_graph) {
-                    if (event.wave.area_id.val === area.id) {
-                        event_ids.push(event.id);
+            for (const event of event_dag.events) {
+                event_ids.push(event.id);
 
-                        if (event.wave.section_id.val === section_id) {
-                            wave_ids.push(event.wave.id.val);
-                        }
-                    }
+                if (event.wave.section_id.val === section_id) {
+                    wave_ids.push(event.wave.id.val);
                 }
             }
 
@@ -86,8 +89,31 @@ export class EventsController extends Controller {
                 wave_id++;
             }
 
-            // Create id based on section id and wave id.
-            const id_str = `${section_id}${wave_id}`;
+            // Generate id.
+            let id_str: string;
+
+            if (parent) {
+                // Generate id based on first ancestor id and amount of its child events.
+                let ancestor = parent;
+
+                while (true) {
+                    // Always choose the first parent.
+                    const [p] = event_dag.get_parents(ancestor);
+
+                    if (p) {
+                        ancestor = p;
+                    } else {
+                        break;
+                    }
+                }
+
+                const sub_graph_size = event_dag.get_sub_graph(ancestor).length.val;
+                id_str = `${ancestor.id}${sub_graph_size}`;
+            } else {
+                // Generate id based on section id and wave id.
+                id_str = `${section_id}${wave_id}`;
+            }
+
             let id = parseInt(id_str, 10);
 
             // Make sure id is unique.
@@ -103,8 +129,6 @@ export class EventsController extends Controller {
                 }
             }
 
-            const event_dag = quest.get_event_dag_or_create(area.id);
-
             this.store.undo
                 .push(
                     new CreateEventAction(
@@ -117,6 +141,7 @@ export class EventsController extends Controller {
                             30,
                             0, // TODO: what is a sensible value for event.unknown?
                         ),
+                        parent,
                     ),
                 )
                 .redo();

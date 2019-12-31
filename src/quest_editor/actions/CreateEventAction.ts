@@ -10,6 +10,7 @@ export class CreateEventAction implements Action {
         private readonly quest: QuestModel,
         private readonly event_dag: QuestEventDagModel,
         private readonly event: QuestEventModel,
+        private readonly parent_event?: QuestEventModel,
     ) {
         this.description = `Add event ${event.id}`;
     }
@@ -19,6 +20,6 @@ export class CreateEventAction implements Action {
     }
 
     redo(): void {
-        this.quest.add_event(this.event, [], []);
+        this.quest.add_event(this.event, this.parent_event ? [this.parent_event] : [], []);
     }
 }
