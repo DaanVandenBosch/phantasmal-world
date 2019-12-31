@@ -97,6 +97,16 @@ export class EventsView extends ResizableWidget {
         this.update_edges();
     }
 
+    protected set_enabled(enabled: boolean): void {
+        super.set_enabled(enabled);
+
+        for (const dag_view of this.sub_graph_views.values()) {
+            if (dag_view.element.parentNode) {
+                dag_view.enabled.val = enabled;
+            }
+        }
+    }
+
     private create_sub_graph_element = (sub_graph: ListProperty<QuestEventModel>): HTMLElement => {
         let sub_graph_view = this.sub_graph_views.get(sub_graph);
 

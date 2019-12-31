@@ -26,7 +26,7 @@ export class EventSubGraphView extends Widget {
      */
     private readonly event_gui_data: Map<
         QuestEventModel,
-        { element: HTMLElement; position: number }
+        { event_view: EventView; position: number }
     > = new Map();
 
     private readonly event_container_element = div({
@@ -76,6 +76,14 @@ export class EventSubGraphView extends Widget {
         this.finalize_construction();
     }
 
+    protected set_enabled(enabled: boolean): void {
+        super.set_enabled(enabled);
+
+        for (const { event_view } of this.event_gui_data.values()) {
+            event_view.enabled.val = enabled;
+        }
+    }
+
     /**
      * This method does measurements of the event elements. So it should be called after the event
      * elements have been added to the DOM and have been laid out by the browser.
@@ -101,7 +109,8 @@ export class EventSubGraphView extends Widget {
                 continue;
             }
 
-            const { element: event_element, position } = data;
+            const { event_view, position } = data;
+            const event_element = event_view.element;
 
             const y_offset =
                 event_element.offsetTop + event_element.offsetHeight - EDGE_VERTICAL_SPACING;
@@ -114,7 +123,8 @@ export class EventSubGraphView extends Widget {
                     continue;
                 }
 
-                const { element: child_element, position: child_position } = child_data;
+                const { event_view: child_event_view, position: child_position } = child_data;
+                const child_element = child_event_view.element;
                 const child_y_offset = child_element.offsetTop + EDGE_VERTICAL_SPACING;
 
                 const top = Math.min(y_offset, child_y_offset);
@@ -173,7 +183,7 @@ export class EventSubGraphView extends Widget {
         const event_view = disposer.add(new EventView(this.ctrl, event));
 
         this.event_gui_data.set(event, {
-            element: event_view.element,
+            event_view,
             position: index,
         });
 

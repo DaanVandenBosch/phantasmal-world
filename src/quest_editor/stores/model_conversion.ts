@@ -277,12 +277,12 @@ function convert_quest_events_from_model(
                 } else if (action instanceof QuestEventActionUnlockModel) {
                     return {
                         type: DatEventActionType.Unlock,
-                        door_id: action.door_id,
+                        door_id: action.door_id.val,
                     };
                 } else if (action instanceof QuestEventActionLockModel) {
                     return {
                         type: DatEventActionType.Lock,
-                        door_id: action.door_id,
+                        door_id: action.door_id.val,
                     };
                 } else {
                     throw new Error(

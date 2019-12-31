@@ -158,9 +158,7 @@ export class EventsController extends Controller {
     };
 
     set_selected_wave = (wave?: WaveModel): void => {
-        if (this.enabled.val) {
-            this.store.set_selected_wave(wave);
-        }
+        this.store.set_selected_wave(wave);
     };
 
     set_delay = (event: QuestEventModel, delay: number): void => {

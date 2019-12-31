@@ -84,6 +84,10 @@ export class QuestEditorStore extends Store {
     }
 
     set_current_area = (area?: AreaModel): void => {
+        if (area && area.id !== this.selected_wave.val?.area_id?.val) {
+            this.set_selected_wave(undefined);
+        }
+
         this._selected_entity.val = undefined;
         this._current_area.val = area;
     };
