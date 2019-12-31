@@ -16,6 +16,9 @@ export type WidgetOptions = {
     tooltip?: string | Property<string>;
 };
 
+/**
+ * A user interface element.
+ */
 export abstract class Widget implements Disposable {
     private readonly disposer = new Disposer();
     private readonly _visible: WidgetProperty<boolean> = new WidgetProperty<boolean>(

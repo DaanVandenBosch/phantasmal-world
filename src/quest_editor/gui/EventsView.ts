@@ -41,7 +41,7 @@ export class EventsView extends ResizableWidget {
                     new ToolBar((this.add_event_button = new Button({ text: "Add event" }))),
                 ).element,
                 (this.dag_container_element = div({
-                    className: "quest_editor_EventsView_dag_container",
+                    className: "quest_editor_EventsView_sub_graph_container",
                 })),
             )),
             this.unavailable_view.element,

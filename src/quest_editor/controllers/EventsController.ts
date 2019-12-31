@@ -8,6 +8,7 @@ import { QuestEventModel } from "../model/QuestEventModel";
 import { EditEventDelayAction } from "../actions/EditEventDelayAction";
 import { WaveModel } from "../model/WaveModel";
 import { RemoveEventAction } from "../actions/RemoveEventAction";
+import { CreateEventAction } from "../actions/CreateEventAction";
 
 export class EventsController extends Controller {
     readonly event_dag: Property<QuestEventDagModel | undefined>;
@@ -102,17 +103,23 @@ export class EventsController extends Controller {
                 }
             }
 
-            quest.add_event(
-                new QuestEventModel(
-                    id,
-                    section_id,
-                    new WaveModel(wave_id, area.id, section_id),
-                    30,
-                    0, // TODO: what is a sensible value for event.unknown?
-                ),
-                [],
-                [],
-            );
+            const event_dag = quest.get_event_dag_or_create(area.id);
+
+            this.store.undo
+                .push(
+                    new CreateEventAction(
+                        quest,
+                        event_dag,
+                        new QuestEventModel(
+                            id,
+                            section_id,
+                            new WaveModel(wave_id, area.id, section_id),
+                            30,
+                            0, // TODO: what is a sensible value for event.unknown?
+                        ),
+                    ),
+                )
+                .redo();
         }
     };
 

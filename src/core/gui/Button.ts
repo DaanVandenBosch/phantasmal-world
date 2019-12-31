@@ -16,29 +16,28 @@ export type ButtonOptions = WidgetOptions & {
 };
 
 export class Button extends Control {
-    readonly element = button({ className: "core_Button" });
-    readonly mousedown: Observable<MouseEvent>;
-    readonly mouseup: Observable<MouseEvent>;
-    readonly click: Observable<MouseEvent>;
-    readonly text: WritableProperty<string>;
-
     private readonly _mousedown: Emitter<MouseEvent>;
     private readonly _mouseup: Emitter<MouseEvent>;
     private readonly _click: Emitter<MouseEvent>;
     private readonly _text: WidgetProperty<string>;
     private readonly center_element: HTMLSpanElement;
 
+    readonly element = button({ className: "core_Button" });
+    readonly mousedown: Observable<MouseEvent>;
+    readonly mouseup: Observable<MouseEvent>;
+    readonly click: Observable<MouseEvent>;
+    readonly text: WritableProperty<string>;
+
     constructor(options?: ButtonOptions) {
         super(options);
 
         const inner_element = span({ className: "core_Button_inner" });
 
-        this.center_element = span({ className: "core_Button_center" });
-
         if (options?.icon_left != undefined) {
             inner_element.append(span({ className: "core_Button_left" }, icon(options.icon_left)));
         }
 
+        this.center_element = span({ className: "core_Button_center" });
         inner_element.append(this.center_element);
 
         if (options?.icon_right != undefined) {

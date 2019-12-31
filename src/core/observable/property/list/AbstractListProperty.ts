@@ -80,7 +80,7 @@ export abstract class AbstractListProperty<T> extends AbstractProperty<readonly 
                 type: ListChangeType.ListChange,
                 index: 0,
                 removed: [],
-                inserted: this.val,
+                inserted: this.val.slice(),
             });
         }
 
@@ -185,10 +185,9 @@ export abstract class AbstractListProperty<T> extends AbstractProperty<readonly 
             }
         }
 
-        const shift = new_elements.length - amount;
-
         while (index < this.value_observers.length) {
-            this.value_observers[index++].index += shift;
+            this.value_observers[index].index = index;
+            index++;
         }
     }
 }

@@ -6,7 +6,7 @@ export interface WritableListProperty<T> extends ListProperty<T>, WritableProper
 
     set(index: number, value: T): void;
 
-    push(...values: T[]): number;
+    push(...values: readonly T[]): number;
 
     splice(index: number, delete_count?: number): T[];
     splice(index: number, delete_count: number, ...values: readonly T[]): T[];

@@ -12,7 +12,8 @@ import { ChangeEvent } from "../../Observable";
  */
 export abstract class DependentListProperty<T> extends AbstractListProperty<T> {
     private dependency_disposer = new Disposer();
-    private values?: readonly T[];
+
+    protected values: T[] = [];
 
     get val(): readonly T[] {
         return this.get_val();
@@ -23,7 +24,7 @@ export abstract class DependentListProperty<T> extends AbstractListProperty<T> {
             this.values = this.compute_values();
         }
 
-        return this.values as T[];
+        return this.values;
     }
 
     protected constructor(private dependencies: readonly Property<any>[]) {
@@ -71,20 +72,20 @@ export abstract class DependentListProperty<T> extends AbstractListProperty<T> {
             this.values = this.compute_values();
         }
 
-        return this.values!.length;
+        return this.values.length;
     }
 
-    protected abstract compute_values(): readonly T[];
+    protected abstract compute_values(): T[];
 
     protected recompute_and_emit(): void {
-        const removed = this.values!;
+        const removed = this.values.slice();
         this.values = this.compute_values();
 
         this.finalize_update({
             type: ListChangeType.ListChange,
             index: 0,
             removed,
-            inserted: this.values,
+            inserted: this.values.slice(),
         });
     }
 

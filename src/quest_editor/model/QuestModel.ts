@@ -230,6 +230,17 @@ export class QuestModel {
         dag.insert_event(index, event, parents, children);
     }
 
+    get_event_dag_or_create(area_id: number): QuestEventDagModel {
+        let dag = this.event_dags.get(area_id);
+
+        if (!dag) {
+            dag = new QuestEventDagModel(area_id);
+            this.event_dags.set(area_id, dag);
+        }
+
+        return dag;
+    }
+
     add_event(
         event: QuestEventModel,
         parents: readonly QuestEventModel[],

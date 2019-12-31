@@ -9,6 +9,9 @@ import {
     ListProperty,
 } from "../observable/property/list/ListProperty";
 import { Disposer } from "../observable/Disposer";
+import { LogManager } from "../Logger";
+
+const logger = LogManager.get("core/gui/dom");
 
 export type Attributes<E> = Partial<E> & { data?: { [key: string]: string } };
 
@@ -376,7 +379,17 @@ export function bind_children_to<T>(
 
     function splice_children(change: ListChange<T>): void {
         for (let i = 0; i < change.removed.length; i++) {
-            element.children[change.index]?.remove();
+            const child_element = element.children[change.index];
+
+            if (child_element) {
+                child_element.remove();
+            } else {
+                logger.warn(
+                    `Expected an element for removal at child index ${
+                        change.index
+                    } of ${node_to_string(element)} (child count: ${element.childElementCount}).`,
+                );
+            }
         }
 
         children_disposer.dispose_at(change.index, change.removed.length);
@@ -411,4 +424,21 @@ export function bind_children_to<T>(
             element.innerHTML = "";
         },
     };
+}
+
+function node_to_string(node: Node): string {
+    const str = ["<", node.nodeName.toLowerCase()];
+
+    if (node instanceof Element) {
+        if (node.id) {
+            str.push(' id="', node.id, '"');
+        }
+
+        if (node.className) {
+            str.push(' className="', node.className, '"');
+        }
+    }
+
+    str.push("/>");
+    return str.join("");
 }

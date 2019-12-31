@@ -1,7 +1,7 @@
 import { Disposable } from "../../Disposable";
 import { MappedProperty } from "../MappedProperty";
 import { is_property, Property } from "../Property";
-import { ListProperty, ListChangeEvent } from "./ListProperty";
+import { ListChangeEvent, ListChangeType, ListProperty } from "./ListProperty";
 import { FlatMappedProperty } from "../FlatMappedProperty";
 import { DependentListProperty } from "./DependentListProperty";
 import { MappedListProperty } from "./MappedListProperty";
@@ -76,15 +76,23 @@ export class FlatMappedListProperty<T> extends DependentListProperty<T> {
         }
     }
 
-    protected compute_values(): readonly T[] {
+    protected compute_values(): T[] {
         this.computed_disposable?.dispose();
 
         this.computed_property = this.compute();
 
-        this.computed_disposable = this.computed_property.observe(() => {
-            this.recompute_and_emit();
+        this.computed_disposable = this.computed_property.observe_list(change_event => {
+            if (change_event.type === ListChangeType.ListChange) {
+                this.values.splice(
+                    change_event.index,
+                    change_event.removed.length,
+                    ...change_event.inserted,
+                );
+            }
+
+            this.finalize_update(change_event);
         });
 
-        return this.computed_property.val;
+        return this.computed_property.val.slice();
     }
 }

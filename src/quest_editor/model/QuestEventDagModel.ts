@@ -62,7 +62,7 @@ export class QuestEventDagModel implements Observable<QuestEventDagModelChange> 
     private readonly events: QuestEventModel[] = [];
     private readonly _connected_sub_graphs: WritableListProperty<
         WritableListProperty<QuestEventModel>
-    > = list_property(element => [element]);
+    > = list_property();
     private readonly meta: Map<QuestEventModel, QuestEventDagMeta> = new Map();
     private readonly emitter: Emitter<QuestEventDagModelChange> = emitter();
 

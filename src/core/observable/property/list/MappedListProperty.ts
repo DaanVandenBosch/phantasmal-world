@@ -3,9 +3,10 @@ import { is_property, Property } from "../Property";
 import { DependentListProperty } from "./DependentListProperty";
 
 export class MappedListProperty<T> extends DependentListProperty<T> {
+    // noinspection JSUnusedGlobalSymbols
     constructor(
         dependencies: readonly Property<any>[],
-        protected readonly compute_values: () => readonly T[],
+        protected readonly compute_values: () => T[],
     ) {
         super(dependencies);
     }

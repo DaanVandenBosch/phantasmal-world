@@ -39,7 +39,7 @@ export class SimpleListProperty<T> extends AbstractListProperty<T>
             type: ListChangeType.ListChange,
             index: 0,
             removed,
-            inserted: values,
+            inserted: values.slice(),
         });
         return removed;
     }
@@ -87,7 +87,7 @@ export class SimpleListProperty<T> extends AbstractListProperty<T>
         });
     }
 
-    push(...values: T[]): number {
+    push(...values: readonly T[]): number {
         const index = this.values.length;
         this.values.push(...values);
 
@@ -95,7 +95,7 @@ export class SimpleListProperty<T> extends AbstractListProperty<T>
             type: ListChangeType.ListChange,
             index,
             removed: [],
-            inserted: values,
+            inserted: values.slice(),
         });
 
         return this.length.val;
@@ -128,7 +128,7 @@ export class SimpleListProperty<T> extends AbstractListProperty<T>
         });
     }
 
-    splice(index: number, delete_count?: number, ...values: T[]): T[] {
+    splice(index: number, delete_count?: number, ...values: readonly T[]): T[] {
         let removed: T[];
 
         if (delete_count == undefined) {
@@ -141,20 +141,21 @@ export class SimpleListProperty<T> extends AbstractListProperty<T>
             type: ListChangeType.ListChange,
             index,
             removed,
-            inserted: values,
+            inserted: values.slice(),
         });
 
         return removed;
     }
 
     sort(compare: (a: T, b: T) => number): void {
+        const removed = this.values.slice();
         this.values.sort(compare);
 
         this.finalize_update({
             type: ListChangeType.ListChange,
             index: 0,
-            removed: this.values,
-            inserted: this.values,
+            removed,
+            inserted: this.values.slice(),
         });
     }
 

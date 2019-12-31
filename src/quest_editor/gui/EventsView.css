@@ -12,7 +12,7 @@
     height: 100%;
 }
 
-.quest_editor_EventsView_dag_container {
+.quest_editor_EventsView_sub_graph_container {
     flex: 1;
     box-sizing: border-box;
     overflow-y: auto;
