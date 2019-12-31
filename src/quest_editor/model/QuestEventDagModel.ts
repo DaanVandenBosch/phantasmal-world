@@ -134,16 +134,16 @@ export class QuestEventDagModel implements Observable<QuestEventDagModelChange> 
 
         const sub_graph = list_property(undefined, event);
 
-        this.meta.set(event, { index, sub_graph, children: [], parents: [] });
+        this.meta.set(event, { index, sub_graph, parents: [], children: [] });
         this.events.splice(index, 0, event);
-
-        // Make sure we push the sub graph onto the list of sub graphs after adding the event to the
-        // events list to ensure connected_sub_graph observers see consistent state.
-        this._connected_sub_graphs.push(sub_graph);
 
         for (let i = index + 1; i < this.events.length; i++) {
             this.meta.get(this.events[i])!.index = i;
         }
+
+        // Make sure we push the sub graph onto the list of sub graphs after adding the event to the
+        // events list to ensure connected_sub_graph observers see consistent state.
+        this.insert_sub_graph(index, sub_graph);
 
         for (const parent of parents) {
             this.add_edge(parent, event);
@@ -293,21 +293,7 @@ export class QuestEventDagModel implements Observable<QuestEventDagModelChange> 
                     parent_meta.sub_graph.remove(event);
                 }
 
-                const sub_graph_idx = this.meta.get(sub_graph.get(0))!.index;
-                let insertion_idx = 0;
-
-                while (insertion_idx < this._connected_sub_graphs.length.val) {
-                    const first_event = this._connected_sub_graphs.get(insertion_idx).get(0);
-                    const idx = this.meta.get(first_event)!.index;
-
-                    if (idx > sub_graph_idx) {
-                        break;
-                    } else {
-                        insertion_idx++;
-                    }
-                }
-
-                this._connected_sub_graphs.splice(insertion_idx, 0, sub_graph);
+                this.insert_sub_graph(this.meta.get(sub_graph.get(0))!.index, sub_graph);
                 child_meta.sub_graph = sub_graph;
             }
 
@@ -352,6 +338,26 @@ export class QuestEventDagModel implements Observable<QuestEventDagModelChange> 
         }
 
         return false;
+    }
+
+    private insert_sub_graph(
+        index: number,
+        sub_graph: WritableListProperty<QuestEventModel>,
+    ): void {
+        let insertion_idx = 0;
+
+        while (insertion_idx < this._connected_sub_graphs.length.val) {
+            const first_event = this._connected_sub_graphs.get(insertion_idx).get(0);
+            const idx = this.meta.get(first_event)!.index;
+
+            if (idx > index) {
+                break;
+            } else {
+                insertion_idx++;
+            }
+        }
+
+        this._connected_sub_graphs.splice(insertion_idx, 0, sub_graph);
     }
 
     private emit(change: QuestEventDagModelChange): void {

@@ -91,7 +91,32 @@ test("Adding an event with a connecting edge should join two sub graphs.", () =>
     expect(dag.connected_sub_graphs.get(0).val).toEqual([event1, event2, event3]);
 });
 
-test("Inserting an event should result in a correct graph.", () => {
+test("Inserting an event in a disconnected sub graph should result in a correct graph.", () => {
+    const dag = new QuestEventDagModel(1);
+    const event1 = new QuestEventModel(1, 1, new WaveModel(1, 1, 1), 30, 0);
+    const event2 = new QuestEventModel(2, 1, new WaveModel(2, 1, 1), 30, 0);
+    const event3 = new QuestEventModel(3, 1, new WaveModel(3, 1, 1), 30, 0);
+
+    dag.add_event(event1, [], []);
+    dag.add_event(event2, [], []);
+    dag.insert_event(1, event3, [], []);
+
+    expect(dag.get_children(event1)).toEqual([]);
+    expect(dag.get_parents(event1)).toEqual([]);
+
+    expect(dag.get_children(event2)).toEqual([]);
+    expect(dag.get_parents(event2)).toEqual([]);
+
+    expect(dag.get_children(event3)).toEqual([]);
+    expect(dag.get_parents(event3)).toEqual([]);
+
+    expect(dag.connected_sub_graphs.length.val).toBe(3);
+    expect(dag.connected_sub_graphs.get(0).val).toEqual([event1]);
+    expect(dag.connected_sub_graphs.get(1).val).toEqual([event3]);
+    expect(dag.connected_sub_graphs.get(2).val).toEqual([event2]);
+});
+
+test("Inserting an event with a parent and a child should result in a correct graph.", () => {
     const dag = new QuestEventDagModel(1);
     const event1 = new QuestEventModel(1, 1, new WaveModel(1, 1, 1), 30, 0);
     const event2 = new QuestEventModel(2, 1, new WaveModel(2, 1, 1), 30, 0);
