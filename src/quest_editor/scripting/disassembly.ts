@@ -61,7 +61,7 @@ export function disassemble(object_code: readonly Segment[], manual_stack = fals
             let line = "    ";
 
             for (let i = 0; i < bytes.length; i++) {
-                line += number_to_hex_string(bytes[i], 2);
+                line += "0x" + number_to_hex_string(bytes[i], 2);
 
                 if (i % 16 === 15) {
                     lines.push(line);

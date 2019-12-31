@@ -35,7 +35,7 @@ export class RegistersView extends ResizableWidget {
         }),
     );
     private register_getter: RegisterGetterFunction = this.get_register_getter(
-        RegisterDisplayType.Unsigned,
+        RegisterDisplayType.Signed,
     );
 
     private readonly hex_checkbox = this.disposable(
@@ -65,7 +65,7 @@ export class RegistersView extends ResizableWidget {
     constructor(private readonly quest_runner: QuestRunner) {
         super();
 
-        this.type_select.selected.val = RegisterDisplayType.Unsigned;
+        this.type_select.selected.val = RegisterDisplayType.Signed;
 
         // create register elements
         const register_els: TextInput[] = Array(REGISTER_COUNT);

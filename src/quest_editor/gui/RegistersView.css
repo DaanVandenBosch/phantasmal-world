@@ -10,7 +10,7 @@
 
 .quest_editor_RegistersView_list {
     display: grid;
-    grid-template-columns: repeat(auto-fill, 80px);
+    grid-template-columns: repeat(auto-fill, 124px);
     justify-content: center;
     /* One pixel extra padding-top because .quest_editor_RegistersView_register has -1px margin-top. */
     padding: 7px 6px 6px 6px;
@@ -25,13 +25,13 @@
 .quest_editor_RegistersView_register > .core_Label {
     box-sizing: border-box;
     font-family: monospace;
-    width: 50%;
+    width: 40px;
     padding-right: 1px;
     text-align: right;
 }
 
 .quest_editor_RegistersView_register .quest_editor_RegistersView_value {
-    width: 50%;
+    width: 84px;
 }
 
 .quest_editor_RegistersView_register .quest_editor_RegistersView_value > .core_TextInput_inner {

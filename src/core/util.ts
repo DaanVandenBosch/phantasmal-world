@@ -80,10 +80,6 @@ export function require_array<T>(value: readonly T[], name: string): void {
     assert(Array.isArray(value), () => `${name} should be an array (was ${value}).`);
 }
 
-export function number_to_hex_string(
-    num: number,
-    min_len: number = 8,
-    prefix: string = "0x",
-): string {
-    return prefix + num.toString(16).padStart(min_len, "0");
+export function number_to_hex_string(num: number, min_len: number = 8): string {
+    return num.toString(16).padStart(min_len, "0");
 }
