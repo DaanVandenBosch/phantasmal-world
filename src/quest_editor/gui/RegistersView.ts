@@ -55,7 +55,8 @@ export class RegistersView extends ResizableWidget {
         { className: "quest_editor_RegistersView_container" },
         this.list_element,
     );
-    public readonly element = div(
+
+    readonly element = div(
         { className: "quest_editor_RegistersView" },
         this.settings_bar.element,
         this.container_element,
@@ -72,7 +73,7 @@ export class RegistersView extends ResizableWidget {
             const value_el = this.disposable(
                 new TextInput("", {
                     class: "quest_editor_RegistersView_value",
-                    label: "r" + i,
+                    label: `r${i}:`,
                     readonly: true,
                 }),
             );
