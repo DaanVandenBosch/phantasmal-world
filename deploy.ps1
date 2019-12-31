@@ -27,3 +27,7 @@ git commit -m "Release $version."
 git push
 
 Set-Location ..
+
+Write-Output ""
+Write-Output "Deployed release $version successfully."
+Write-Output ""
