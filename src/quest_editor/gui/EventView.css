@@ -21,6 +21,10 @@
     color: hsl(0, 0%, 90%);
 }
 
+.quest_editor_EventView > table {
+    min-width: 170px;
+}
+
 .quest_editor_EventView th {
     text-align: left;
 }

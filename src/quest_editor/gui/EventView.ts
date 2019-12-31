@@ -4,6 +4,7 @@ import {
     bind_children_to,
     disposable_listener,
     div,
+    Icon,
     table,
     td,
     th,
@@ -21,6 +22,7 @@ import {
 import { Disposer } from "../../core/observable/Disposer";
 import { property } from "../../core/observable";
 import { DropDown } from "../../core/gui/DropDown";
+import { Button } from "../../core/gui/Button";
 
 export class EventView extends Widget {
     private readonly inputs_enabled = property(true);
@@ -28,7 +30,7 @@ export class EventView extends Widget {
 
     readonly element: HTMLElement;
 
-    constructor(ctrl: EventsController, event: QuestEventModel) {
+    constructor(private readonly ctrl: EventsController, private readonly event: QuestEventModel) {
         super();
 
         const wave_node = document.createTextNode(event.wave.id.val.toString());
@@ -146,6 +148,12 @@ export class EventView extends Widget {
             );
         }
 
-        return [tr(th(label), td(node)), disposer];
+        const remove_button = disposer.add(new Button({ icon_left: Icon.Remove }));
+
+        disposer.add_all(
+            remove_button.click.observe(() => this.ctrl.remove_action(this.event, action)),
+        );
+
+        return [tr(th(label), td(node), td(remove_button.element)), disposer];
     };
 }

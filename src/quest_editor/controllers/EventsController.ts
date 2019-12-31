@@ -189,4 +189,8 @@ export class EventsController extends Controller {
 
         event.add_action(action);
     }
+
+    remove_action(event: QuestEventModel, action: QuestEventActionModel): void {
+        event.remove_action(action);
+    }
 }

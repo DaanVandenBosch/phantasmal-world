@@ -41,4 +41,8 @@ export class QuestEventModel {
     add_action(action: QuestEventActionModel): void {
         this._actions.push(action);
     }
+
+    remove_action(action: QuestEventActionModel): void {
+        this._actions.remove(action);
+    }
 }
