@@ -19,7 +19,8 @@ export function initialize_viewer(
             const { CharacterClassAssetLoader } = await import(
                 "./loading/CharacterClassAssetLoader"
             );
-            const store = new Model3DStore(new CharacterClassAssetLoader(http_client));
+            const asset_loader = disposer.add(new CharacterClassAssetLoader(http_client));
+            const store = new Model3DStore(asset_loader);
 
             if (disposer.disposed) {
                 store.dispose();

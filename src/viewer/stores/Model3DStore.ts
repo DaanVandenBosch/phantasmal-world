@@ -15,8 +15,6 @@ import { Store } from "../../core/stores/Store";
 import { LogManager } from "../../core/Logger";
 
 const logger = LogManager.get("viewer/stores/ModelStore");
-const nj_object_cache: Map<string, Promise<NjObject>> = new Map();
-const nj_motion_cache: Map<number, Promise<NjMotion>> = new Map();
 
 export type NjData = {
     nj_object: NjObject;
@@ -166,7 +164,7 @@ export class Model3DStore extends Store {
 
         if (model) {
             try {
-                const nj_object = await this.get_nj_object(model);
+                const nj_object = await this.asset_loader.load_geometry(model);
 
                 this.set_current_nj_data({
                     nj_object,
@@ -188,77 +186,13 @@ export class Model3DStore extends Store {
         this._current_nj_data.val = nj_data;
     }
 
-    private async get_nj_object(model: CharacterClassModel): Promise<NjObject> {
-        let nj_object = nj_object_cache.get(model.name);
-
-        if (nj_object) {
-            return nj_object;
-        } else {
-            nj_object = this.get_all_nj_objects(model);
-            nj_object_cache.set(model.name, nj_object);
-            return nj_object;
-        }
-    }
-
-    private async get_all_nj_objects(model: CharacterClassModel): Promise<NjObject> {
-        const body_data = await this.asset_loader.load_geometry(model.name, "Body");
-        const body = parse_nj(new ArrayBufferCursor(body_data, Endianness.Little))[0];
-
-        if (!body) {
-            throw new Error(`Couldn't parse body for player class ${model.name}.`);
-        }
-
-        const head_data = await this.asset_loader.load_geometry(model.name, "Head", 0);
-        const head = parse_nj(new ArrayBufferCursor(head_data, Endianness.Little))[0];
-
-        if (head) {
-            this.add_to_bone(body, head, 59);
-        }
-
-        if (model.hair_styles_count > 0) {
-            const hair_data = await this.asset_loader.load_geometry(model.name, "Hair", 0);
-            const hair = parse_nj(new ArrayBufferCursor(hair_data, Endianness.Little))[0];
-
-            if (hair) {
-                this.add_to_bone(body, hair, 59);
-            }
-
-            if (model.hair_styles_with_accessory.has(0)) {
-                const accessory_data = await this.asset_loader.load_geometry(
-                    model.name,
-                    "Accessory",
-                    0,
-                );
-                const accessory = parse_nj(
-                    new ArrayBufferCursor(accessory_data, Endianness.Little),
-                )[0];
-
-                if (accessory) {
-                    this.add_to_bone(body, accessory, 59);
-                }
-            }
-        }
-
-        return body;
-    }
-
-    private add_to_bone(object: NjObject, head_part: NjObject, bone_id: number): void {
-        const bone = object.get_bone(bone_id);
-
-        if (bone) {
-            bone.evaluation_flags.hidden = false;
-            bone.evaluation_flags.break_child_trace = false;
-            bone.children.push(head_part);
-        }
-    }
-
     private load_animation = async (animation?: CharacterClassAnimationModel): Promise<void> => {
         const nj_data = this.current_nj_data.val;
 
         if (nj_data && animation) {
             try {
-                this._current_nj_motion.val = await this.get_nj_motion(
-                    animation,
+                this._current_nj_motion.val = await this.asset_loader.load_animation(
+                    animation.id,
                     nj_data.bone_count,
                 );
                 this.set_animation_playing(true);
@@ -270,24 +204,4 @@ export class Model3DStore extends Store {
             this._current_nj_motion.val = undefined;
         }
     };
-
-    private async get_nj_motion(
-        animation: CharacterClassAnimationModel,
-        bone_count: number,
-    ): Promise<NjMotion> {
-        let nj_motion = nj_motion_cache.get(animation.id);
-
-        if (nj_motion) {
-            return nj_motion;
-        } else {
-            nj_motion = this.asset_loader
-                .load_animation(animation.id)
-                .then(motion_data =>
-                    parse_njm(new ArrayBufferCursor(motion_data, Endianness.Little), bone_count),
-                );
-
-            nj_motion_cache.set(animation.id, nj_motion);
-            return nj_motion;
-        }
-    }
 }
