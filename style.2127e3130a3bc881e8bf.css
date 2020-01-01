@@ -22,6 +22,7 @@
     --control-border: solid 1px hsl(0, 0%, 10%);
 
     --control-inner-border: solid 1px hsl(0, 0%, 35%);
+    --control-inner-border-focus: solid 1px hsl(0, 0%, 50%);
 
     /* Inputs */
 
@@ -197,6 +198,10 @@ h2 {
     background-color: hsl(0, 0%, 20%);
     border-color: hsl(0, 0%, 30%);
     color: hsl(0, 0%, 75%);
+}
+
+.core_Button:focus-within .core_Button_inner {
+    border: var(--control-inner-border-focus);
 }
 
 .core_Button:disabled .core_Button_inner {
