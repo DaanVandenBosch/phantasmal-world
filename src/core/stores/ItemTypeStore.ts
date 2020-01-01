@@ -36,7 +36,7 @@ export class ItemTypeStore extends Store {
 function create_loader(http_client: HttpClient): (server: Server) => Promise<ItemTypeStore> {
     return async server => {
         const data: ItemTypeDto[] = await http_client
-            .get(`/itemTypes.${Server[server].toLowerCase()}.json`)
+            .get(`/item_types.${Server[server].toLowerCase()}.json`)
             .json();
         const item_types: ItemType[] = [];
         const id_to_item_type: ItemType[] = [];
@@ -49,11 +49,11 @@ function create_loader(http_client: HttpClient): (server: Server) => Promise<Ite
                     item_type = new WeaponItemType(
                         item_type_dto.id,
                         item_type_dto.name,
-                        item_type_dto.minAtp,
-                        item_type_dto.maxAtp,
+                        item_type_dto.min_atp,
+                        item_type_dto.max_atp,
                         item_type_dto.ata,
-                        item_type_dto.maxGrind,
-                        item_type_dto.requiredAtp,
+                        item_type_dto.max_grind,
+                        item_type_dto.required_atp,
                     );
                     break;
                 case "armor":
@@ -62,10 +62,10 @@ function create_loader(http_client: HttpClient): (server: Server) => Promise<Ite
                         item_type_dto.name,
                         item_type_dto.atp,
                         item_type_dto.ata,
-                        item_type_dto.minEvp,
-                        item_type_dto.maxEvp,
-                        item_type_dto.minDfp,
-                        item_type_dto.maxDfp,
+                        item_type_dto.min_evp,
+                        item_type_dto.max_evp,
+                        item_type_dto.min_dfp,
+                        item_type_dto.max_dfp,
                         item_type_dto.mst,
                         item_type_dto.hp,
                         item_type_dto.lck,
@@ -77,10 +77,10 @@ function create_loader(http_client: HttpClient): (server: Server) => Promise<Ite
                         item_type_dto.name,
                         item_type_dto.atp,
                         item_type_dto.ata,
-                        item_type_dto.minEvp,
-                        item_type_dto.maxEvp,
-                        item_type_dto.minDfp,
-                        item_type_dto.maxDfp,
+                        item_type_dto.min_evp,
+                        item_type_dto.max_evp,
+                        item_type_dto.min_dfp,
+                        item_type_dto.max_dfp,
                         item_type_dto.mst,
                         item_type_dto.hp,
                         item_type_dto.lck,

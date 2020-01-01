@@ -9,11 +9,11 @@ export type WeaponItemTypeDto = {
     class: "weapon";
     id: number;
     name: string;
-    minAtp: number;
-    maxAtp: number;
+    min_atp: number;
+    max_atp: number;
     ata: number;
-    maxGrind: number;
-    requiredAtp: number;
+    max_grind: number;
+    required_atp: number;
 };
 
 export type ArmorItemTypeDto = {
@@ -22,10 +22,10 @@ export type ArmorItemTypeDto = {
     name: string;
     atp: number;
     ata: number;
-    minEvp: number;
-    maxEvp: number;
-    minDfp: number;
-    maxDfp: number;
+    min_evp: number;
+    max_evp: number;
+    min_dfp: number;
+    max_dfp: number;
     mst: number;
     hp: number;
     lck: number;
@@ -37,10 +37,10 @@ export type ShieldItemTypeDto = {
     name: string;
     atp: number;
     ata: number;
-    minEvp: number;
-    maxEvp: number;
-    minDfp: number;
-    maxDfp: number;
+    min_evp: number;
+    max_evp: number;
+    min_dfp: number;
+    max_dfp: number;
     mst: number;
     hp: number;
     lck: number;

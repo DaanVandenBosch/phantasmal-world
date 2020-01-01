@@ -9,6 +9,22 @@ import { LogManager } from "../../../Logger";
 
 const logger = LogManager.get("core/data_formats/parsing/quest/qst");
 
+export enum Version {
+    PC,
+    /**
+     * Dreamcast/GameCube
+     */
+    DC_GC,
+    /**
+     * BlueBurst
+     */
+    BB,
+    /**
+     * Dreamcast Download
+     */
+    DC_DOWNLOAD,
+}
+
 export type QstContainedFile = {
     id?: number;
     name: string;
@@ -17,7 +33,7 @@ export type QstContainedFile = {
 };
 
 export type ParseQstResult = {
-    version: string;
+    version: Version;
     files: QstContainedFile[];
 };
 
@@ -27,7 +43,7 @@ export type ParseQstResult = {
  */
 export function parse_qst(cursor: Cursor): ParseQstResult | undefined {
     // A .qst file contains two 88-byte headers that describe the embedded .dat and .bin files.
-    let version = "PC";
+    let version = Version.PC;
 
     // Detect version.
     const version_a = cursor.u8();
@@ -35,16 +51,16 @@ export function parse_qst(cursor: Cursor): ParseQstResult | undefined {
     const version_b = cursor.u8();
 
     if (version_a === 0x44) {
-        version = "Dreamcast/GameCube";
+        version = Version.DC_GC;
     } else if (version_a === 0x58) {
         if (version_b === 0x44) {
-            version = "Blue Burst";
+            version = Version.BB;
         }
     } else if (version_a === 0xa6) {
-        version = "Dreamcast download";
+        version = Version.DC_DOWNLOAD;
     }
 
-    if (version === "Blue Burst") {
+    if (version === Version.BB) {
         // Read headers and contained files.
         cursor.seek_start(0);
 
@@ -66,7 +82,7 @@ export function parse_qst(cursor: Cursor): ParseQstResult | undefined {
             files,
         };
     } else {
-        logger.error(`Can't parse ${version} QST files.`);
+        logger.error(`Can't parse ${Version[version]} QST files.`);
         return undefined;
     }
 }
@@ -79,7 +95,7 @@ export type QstContainedFileParam = {
 };
 
 export type WriteQstParams = {
-    version?: string;
+    version?: Version;
     files: QstContainedFileParam[];
 };
 

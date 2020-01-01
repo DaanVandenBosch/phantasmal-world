@@ -61,7 +61,7 @@ function create_loader(
             let total_enemy_count = 0;
             const enemy_counts = new Map<NpcType, number>();
 
-            for (const [code, count] of Object.entries(quest.enemyCounts)) {
+            for (const [code, count] of Object.entries(quest.enemy_counts)) {
                 const npc_type = (NpcType as any)[code];
 
                 if (!npc_type) {

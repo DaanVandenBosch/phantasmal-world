@@ -85,7 +85,7 @@ function create_loader(
     return async server => {
         const item_type_store = await item_type_stores.get(server);
         const data: EnemyDropDto[] = await http_client
-            .get(`/enemyDrops.${Server[server].toLowerCase()}.json`)
+            .get(`/enemy_drops.${Server[server].toLowerCase()}.json`)
             .json();
         const enemy_drops = new EnemyDropTable();
 
@@ -100,17 +100,17 @@ function create_loader(
             }
 
             const difficulty = (Difficulty as any)[drop_dto.difficulty];
-            const item_type = item_type_store.get_by_id(drop_dto.itemTypeId);
+            const item_type = item_type_store.get_by_id(drop_dto.item_type_id);
 
             if (!item_type) {
-                logger.warn(`Couldn't find item kind ${drop_dto.itemTypeId}.`);
+                logger.warn(`Couldn't find item kind ${drop_dto.item_type_id}.`);
                 continue;
             }
 
-            const section_id = (SectionId as any)[drop_dto.sectionId];
+            const section_id = (SectionId as any)[drop_dto.section_id];
 
             if (section_id == null) {
-                logger.warn(`Couldn't find section ID ${drop_dto.sectionId}.`);
+                logger.warn(`Couldn't find section ID ${drop_dto.section_id}.`);
                 continue;
             }
 
@@ -123,8 +123,8 @@ function create_loader(
                     section_id,
                     npc_type,
                     item_type,
-                    drop_dto.dropRate,
-                    drop_dto.rareRate,
+                    drop_dto.drop_rate,
+                    drop_dto.rare_rate,
                 ),
             );
         }

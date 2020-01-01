@@ -69,7 +69,6 @@ async function update(): Promise<void> {
  *  - Knight of Coral
  *  - Knight of Coral Advent
  *  - CAL's Clock Challenge
- *  - The Value of Money (quest3_e.dat, can't be parsed, luckily doesn't have enemies)
  * Note: The MA4R quests use a random area variation per area from the ABC MA quests. E.g. MA4-1R will use a random caves 2 variation from MA4-1A, MA4-1B or MA4-1C. Same for mines 2 and ruins 2.
  */
 function update_quests(): void {
@@ -133,7 +132,7 @@ function process_quest(path: string, quests: QuestDto[]): void {
                 id: q.id,
                 name: q.name,
                 episode: q.episode,
-                enemyCounts: enemy_counts,
+                enemy_counts: enemy_counts,
             });
         } else {
             logger.error(`Couldn't process ${path}.`);
@@ -176,11 +175,11 @@ function update_items(item_names: string[]): ItemTypeDto[] {
                     class: "weapon",
                     id,
                     name: item_names[weapon.id],
-                    minAtp: weapon.min_atp,
-                    maxAtp: weapon.max_atp,
+                    min_atp: weapon.min_atp,
+                    max_atp: weapon.max_atp,
                     ata: weapon.ata,
-                    maxGrind: weapon.max_grind,
-                    requiredAtp: weapon.req_atp,
+                    max_grind: weapon.max_grind,
+                    required_atp: weapon.req_atp,
                 });
             }
         });
@@ -193,16 +192,16 @@ function update_items(item_names: string[]): ItemTypeDto[] {
             ids.add(id);
 
             const stats = get_stat_boosts(item_pmt, armor.stat_boost);
-            stats.minEvp += armor.evp;
-            stats.minDfp += armor.dfp;
+            stats.min_evp += armor.evp;
+            stats.min_dfp += armor.dfp;
 
             item_types.push({
                 class: "armor",
                 id,
                 name: item_names[armor.id],
                 ...stats,
-                maxEvp: stats.minEvp + armor.evp_range,
-                maxDfp: stats.minDfp + armor.dfp_range,
+                max_evp: stats.min_evp + armor.evp_range,
+                max_dfp: stats.min_dfp + armor.dfp_range,
             });
         }
     });
@@ -214,16 +213,16 @@ function update_items(item_names: string[]): ItemTypeDto[] {
             ids.add(id);
 
             const stats = get_stat_boosts(item_pmt, shield.stat_boost);
-            stats.minEvp += shield.evp;
-            stats.minDfp += shield.dfp;
+            stats.min_evp += shield.evp;
+            stats.min_dfp += shield.dfp;
 
             item_types.push({
                 class: "shield",
                 id,
                 name: item_names[shield.id],
                 ...stats,
-                maxEvp: stats.minEvp + shield.evp_range,
-                maxDfp: stats.minDfp + shield.dfp_range,
+                max_evp: stats.min_evp + shield.evp_range,
+                max_dfp: stats.min_dfp + shield.dfp_range,
             });
         }
     });
@@ -256,7 +255,7 @@ function update_items(item_names: string[]): ItemTypeDto[] {
         });
     });
 
-    writeFileSync(`${ASSETS_DIR}/itemTypes.ephinea.json`, JSON.stringify(item_types, null, 4));
+    writeFileSync(`${ASSETS_DIR}/item_types.ephinea.json`, JSON.stringify(item_types, null, 4));
 
     logger.info("Done updating item type data.");
     return item_types;
@@ -275,7 +274,7 @@ function update_drops(item_pt: ItemPt): void {
         }
     }
 
-    writeFileSync(`${ASSETS_DIR}/enemyDrops.ephinea.json`, JSON.stringify(enemy_drops, null, 4));
+    writeFileSync(`${ASSETS_DIR}/enemy_drops.ephinea.json`, JSON.stringify(enemy_drops, null, 4));
 
     const box_drops = new Array<BoxDropDto>();
 
@@ -287,7 +286,7 @@ function update_drops(item_pt: ItemPt): void {
         }
     }
 
-    writeFileSync(`${ASSETS_DIR}/boxDrops.ephinea.json`, JSON.stringify(box_drops, null, 4));
+    writeFileSync(`${ASSETS_DIR}/box_drops.ephinea.json`, JSON.stringify(box_drops, null, 4));
 
     logger.info("Done updating drop data.");
 }
@@ -331,7 +330,7 @@ function load_item_pt(): ItemPt {
                     switch (npc) {
                         case NpcType.Dragon:
                         case NpcType.DeRolLe:
-                        case NpcType.VolOptPart2:
+                        case NpcType.VolOptPart1:
                         case NpcType.DarkFalz:
                         case NpcType.BarbaRay:
                         case NpcType.GolDragon:
@@ -539,11 +538,11 @@ function load_enemy_drops(
                     drops.push({
                         difficulty: Difficulty[difficulty],
                         episode,
-                        sectionId: SectionId[section_id],
+                        section_id: SectionId[section_id],
                         enemy: NpcType[enemy],
-                        itemTypeId: item_type_id,
-                        dropRate: dar,
-                        rareRate: rare_rate,
+                        item_type_id: item_type_id,
+                        drop_rate: dar,
+                        rare_rate: rare_rate,
                     });
                 }
             }
@@ -583,10 +582,10 @@ function load_box_drops(
                 drops.push({
                     difficulty: Difficulty[difficulty],
                     episode,
-                    sectionId: SectionId[section_id],
-                    areaId: area_id,
-                    itemTypeId: item_type_id,
-                    dropRate: drop_rate,
+                    section_id: SectionId[section_id],
+                    area_id: area_id,
+                    item_type_id: item_type_id,
+                    drop_rate: drop_rate,
                 });
             }
         }
@@ -605,8 +604,8 @@ function get_stat_boosts(
 ): {
     atp: number;
     ata: number;
-    minEvp: number;
-    minDfp: number;
+    min_evp: number;
+    min_dfp: number;
     mst: number;
     hp: number;
     lck: number;
@@ -683,7 +682,7 @@ function get_stat_boosts(
             break;
     }
 
-    return { atp, ata, minEvp: min_evp, minDfp: min_dfp, mst, hp, lck };
+    return { atp, ata, min_evp, min_dfp, mst, hp, lck };
 }
 
 function get_enemy_type(episode: Episode, index: number): NpcType | undefined {
@@ -739,7 +738,7 @@ function get_enemy_type(episode: Episode, index: number): NpcType | undefined {
 
             NpcType.Dragon,
             NpcType.DeRolLe,
-            NpcType.VolOptPart2,
+            NpcType.VolOptPart1,
             NpcType.DarkFalz,
 
             undefined,

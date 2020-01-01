@@ -1,18 +1,18 @@
 export type EnemyDropDto = {
     difficulty: string;
     episode: number;
-    sectionId: string;
+    section_id: string;
     enemy: string;
-    itemTypeId: number;
-    dropRate: number;
-    rareRate: number;
+    item_type_id: number;
+    drop_rate: number;
+    rare_rate: number;
 };
 
 export type BoxDropDto = {
     difficulty: string;
     episode: number;
-    sectionId: string;
-    areaId: number;
-    itemTypeId: number;
-    dropRate: number;
+    section_id: string;
+    area_id: number;
+    item_type_id: number;
+    drop_rate: number;
 };

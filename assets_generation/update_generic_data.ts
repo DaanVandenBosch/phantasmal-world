@@ -1,14 +1,14 @@
 import { readFileSync, writeFileSync } from "fs";
-import Logger from "js-logger";
 import { ASSETS_DIR, RESOURCE_DIR, SRC_DIR } from ".";
 import { BufferCursor } from "../src/core/data_formats/cursor/BufferCursor";
 import { parse_rlc } from "../src/core/data_formats/parsing/rlc";
-import YAML from "yaml";
+import * as yaml from "yaml";
 import { Endianness } from "../src/core/data_formats/Endianness";
+import { LogLevel, LogManager } from "../src/core/Logger";
 
-const logger = Logger.get("assets_generation/update_generic_data");
+const logger = LogManager.get("assets_generation/update_generic_data");
 
-Logger.useDefaults({ defaultLevel: Logger.TRACE });
+LogManager.default_level = LogLevel.Trace;
 
 const OPCODES_YML_FILE = `${RESOURCE_DIR}/scripting/opcodes.yml`;
 const OPCODES_SRC_FILE = `${SRC_DIR}/quest_editor/scripting/opcodes.ts`;
@@ -69,7 +69,7 @@ function update_opcodes(): void {
 
     // Add generated code.
     const yml = readFileSync(OPCODES_YML_FILE, { encoding: "UTF-8" });
-    const input = YAML.parse(yml);
+    const input = yaml.parse(yml);
     const generated_lines: string[] = [];
     let i = 0;
 

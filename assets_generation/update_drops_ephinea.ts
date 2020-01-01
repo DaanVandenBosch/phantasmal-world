@@ -1,7 +1,6 @@
-import cheerio from "cheerio";
+import * as cheerio from "cheerio";
 import { writeFileSync } from "fs";
-import "isomorphic-fetch";
-import Logger from "js-logger";
+import fetch from "node-fetch";
 import { ASSETS_DIR } from ".";
 import { Difficulty, SectionId, SectionIds } from "../src/core/model";
 import {
@@ -10,8 +9,9 @@ import {
 } from "../src/core/data_formats/parsing/quest/npc_types";
 import { ItemTypeDto } from "../src/core/dto/ItemTypeDto";
 import { BoxDropDto, EnemyDropDto } from "../src/hunt_optimizer/dto/drops";
+import { LogManager } from "../src/core/Logger";
 
-const logger = Logger.get("assets_generation/update_drops_ephinea");
+const logger = LogManager.get("assets_generation/update_drops_ephinea");
 
 export async function update_drops_from_website(item_types: ItemTypeDto[]): Promise<void> {
     logger.info("Updating item drops.");
@@ -27,7 +27,7 @@ export async function update_drops_from_website(item_types: ItemTypeDto[]): Prom
         4,
     );
 
-    writeFileSync(`${ASSETS_DIR}/enemyDrops.ephinea.json`, enemy_json);
+    writeFileSync(`${ASSETS_DIR}/enemy_drops.ephinea.json`, enemy_json);
 
     const box_json = JSON.stringify(
         [...normal.box_drops, ...hard.box_drops, ...vhard.box_drops, ...ultimate.box_drops],
@@ -35,7 +35,7 @@ export async function update_drops_from_website(item_types: ItemTypeDto[]): Prom
         4,
     );
 
-    writeFileSync(`${ASSETS_DIR}/boxDrops.ephinea.json`, box_json);
+    writeFileSync(`${ASSETS_DIR}/box_drops.ephinea.json`, box_json);
 
     logger.info("Done updating item drops.");
 }
@@ -136,9 +136,10 @@ async function download(
                                 throw new Error(`Couldn't retrieve NpcType.`);
                             }
 
-                            const title = $("font abbr", td)
-                                .attr("title")
-                                .replace("\r", "");
+                            const title = ($("font abbr", td).attr("title") ?? "").replace(
+                                "\r",
+                                "",
+                            );
                             const [
                                 ,
                                 drop_rate_num,
@@ -153,11 +154,11 @@ async function download(
                             data.enemy_drops.push({
                                 difficulty: Difficulty[difficulty],
                                 episode,
-                                sectionId: SectionId[section_id],
+                                section_id: SectionId[section_id],
                                 enemy: NpcType[npc_type],
-                                itemTypeId: item_type.id,
-                                dropRate: drop_rate_num / drop_rate_denom,
-                                rareRate: rare_rate_num / rare_rate_denom,
+                                item_type_id: item_type.id,
+                                drop_rate: drop_rate_num / drop_rate_denom,
+                                rare_rate: rare_rate_num / rare_rate_denom,
                             });
 
                             data.items.add(item);

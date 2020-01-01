@@ -279,8 +279,14 @@ function parse_events(cursor: Cursor, area_id: number, events: DatEvent[]): void
         const unknown = cursor.u16(); // "wavesetting"?
         const event_actions_offset = cursor.u32();
 
-        actions_cursor.seek_start(event_actions_offset);
-        const actions = parse_event_actions(actions_cursor);
+        let actions: DatEventAction[] = [];
+
+        if (event_actions_offset < actions_cursor.size) {
+            actions_cursor.seek_start(event_actions_offset);
+            actions = parse_event_actions(actions_cursor);
+        } else {
+            logger.warn(`Invalid event actions offset ${event_actions_offset} for event ${id}.`);
+        }
 
         events.push({
             id,

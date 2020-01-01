@@ -3,7 +3,7 @@
         "id": 401,
         "name": "1-1:Planet Ragol",
         "episode": 1,
-        "enemyCounts": {
+        "enemy_counts": {
             "BarbarousWolf": 4,
             "SavageWolf": 36,
             "Gobooma": 7,
@@ -17,7 +17,7 @@
         "id": 402,
         "name": "1-2:Torrential Woods",
         "episode": 1,
-        "enemyCounts": {
+        "enemy_counts": {
             "SavageWolf": 19,
             "BarbarousWolf": 7,
             "Booma": 35,
@@ -32,7 +32,7 @@
         "id": 403,
         "name": "1-3:Subterranean Den",
         "episode": 1,
-        "enemyCounts": {
+        "enemy_counts": {
             "SavageWolf": 33,
             "Gobooma": 32,
             "RagRappy": 12,
@@ -48,7 +48,7 @@
         "id": 404,
         "name": "2-1:Infernal Cavern",
         "episode": 1,
-        "enemyCounts": {
+        "enemy_counts": {
             "PoisonLily": 37,
             "PalShark": 18,
             "EvilShark": 114,
@@ -61,7 +61,7 @@
         "id": 405,
         "name": "2-2:Deep Within",
         "episode": 1,
-        "enemyCounts": {
+        "enemy_counts": {
             "EvilShark": 165,
             "PalShark": 31,
             "PoisonLily": 59,
@@ -75,7 +75,7 @@
         "id": 406,
         "name": "2-3:The Mutation",
         "episode": 1,
-        "enemyCounts": {
+        "enemy_counts": {
             "EvilShark": 89,
             "PalShark": 42,
             "GuilShark": 24,
@@ -90,7 +90,7 @@
         "id": 407,
         "name": "2-4:Waterway Shadow",
         "episode": 1,
-        "enemyCounts": {
+        "enemy_counts": {
             "PoisonLily": 40,
             "EvilShark": 165,
             "PalShark": 87,
@@ -106,7 +106,7 @@
         "id": 408,
         "name": "3-1:The Facility",
         "episode": 1,
-        "enemyCounts": {
+        "enemy_counts": {
             "SinowBeat": 12,
             "Canadine": 31,
             "Gilchic": 115,
@@ -120,7 +120,7 @@
         "id": 409,
         "name": "3-2:Machines Attack",
         "episode": 1,
-        "enemyCounts": {
+        "enemy_counts": {
             "SinowBeat": 14,
             "Canadine": 43,
             "Gilchic": 60,
@@ -135,7 +135,7 @@
         "id": 410,
         "name": "3-3:Central Control",
         "episode": 1,
-        "enemyCounts": {
+        "enemy_counts": {
             "SinowBeat": 16,
             "Gilchic": 93,
             "Canadine": 66,
@@ -144,14 +144,15 @@
             "Dubchic": 11,
             "Dubswitch": 3,
             "Garanz": 4,
-            "VolOpt": 1
+            "VolOptPart1": 1,
+            "VolOptPart2": 1
         }
     },
     {
         "id": 411,
         "name": "4-1:The Lost Ruins",
         "episode": 1,
-        "enemyCounts": {
+        "enemy_counts": {
             "SinowBeat": 8,
             "Canadine": 33,
             "Gilchic": 42,
@@ -174,7 +175,7 @@
         "id": 412,
         "name": "4-2:Buried Relics",
         "episode": 1,
-        "enemyCounts": {
+        "enemy_counts": {
             "Delsaber": 31,
             "LaDimenian": 55,
             "DarkGunner": 20,
@@ -189,7 +190,7 @@
         "id": 413,
         "name": "4-3:Hero & Daughter",
         "episode": 1,
-        "enemyCounts": {
+        "enemy_counts": {
             "Dimenian": 75,
             "LaDimenian": 50,
             "Claw": 122,
@@ -206,7 +207,7 @@
         "id": 414,
         "name": "4-4:The Tomb Stirs",
         "episode": 1,
-        "enemyCounts": {
+        "enemy_counts": {
             "Claw": 55,
             "ChaosBringer": 10,
             "Bulclaw": 7,
@@ -222,7 +223,7 @@
         "id": 415,
         "name": "4-5:Dark Inheritance",
         "episode": 1,
-        "enemyCounts": {
+        "enemy_counts": {
             "Dimenian": 111,
             "LaDimenian": 78,
             "Claw": 143,
@@ -240,7 +241,7 @@
         "id": 10,
         "name": "Addicting Food",
         "episode": 1,
-        "enemyCounts": {
+        "enemy_counts": {
             "PoisonLily": 64,
             "PalShark": 38,
             "EvilShark": 195,
@@ -255,13 +256,13 @@
         "id": 143,
         "name": "AOL CUP -Sunset Base-",
         "episode": 1,
-        "enemyCounts": {}
+        "enemy_counts": {}
     },
     {
         "id": 4,
         "name": "Battle Training",
         "episode": 1,
-        "enemyCounts": {
+        "enemy_counts": {
             "BarbarousWolf": 2,
             "SavageWolf": 12,
             "Gobooma": 3,
@@ -274,7 +275,7 @@
         "id": 13,
         "name": "Black Paper",
         "episode": 1,
-        "enemyCounts": {
+        "enemy_counts": {
             "EvilShark": 94,
             "PalShark": 31,
             "PoisonLily": 22,
@@ -289,7 +290,7 @@
         "id": 26,
         "name": "Central Dome Fire Swirl",
         "episode": 1,
-        "enemyCounts": {
+        "enemy_counts": {
             "Gigobooma": 34,
             "Gobooma": 19,
             "Booma": 9,
@@ -303,7 +304,7 @@
         "id": 900,
         "name": "Christmas Fiasco",
         "episode": 1,
-        "enemyCounts": {
+        "enemy_counts": {
             "EvilShark": 28,
             "PalShark": 28,
             "GuilShark": 32,
@@ -334,7 +335,7 @@
         "id": 2,
         "name": "Claiming a Stake",
         "episode": 1,
-        "enemyCounts": {
+        "enemy_counts": {
             "Monest": 1,
             "Booma": 19,
             "RagRappy": 5,
@@ -346,7 +347,7 @@
         "id": 1300,
         "name": "Dark Research 2.0",
         "episode": 1,
-        "enemyCounts": {
+        "enemy_counts": {
             "DarkBelra": 106,
             "LaDimenian": 155,
             "Delsaber": 127,
@@ -363,7 +364,7 @@
         "id": 23,
         "name": "Doc's Secret Plan",
         "episode": 1,
-        "enemyCounts": {
+        "enemy_counts": {
             "Dimenian": 47,
             "LaDimenian": 7,
             "SoDimenian": 1,
@@ -378,7 +379,7 @@
         "id": 20,
         "name": "Dr. Osto's Research",
         "episode": 1,
-        "enemyCounts": {
+        "enemy_counts": {
             "Gilchic": 27,
             "Canadine": 15,
             "Dubchic": 13,
@@ -391,7 +392,7 @@
         "id": 108,
         "name": "Endless Nightmare #1",
         "episode": 1,
-        "enemyCounts": {
+        "enemy_counts": {
             "Monest": 4,
             "Booma": 60,
             "RagRappy": 19,
@@ -406,7 +407,7 @@
         "id": 109,
         "name": "Endless Nightmare #2",
         "episode": 1,
-        "enemyCounts": {
+        "enemy_counts": {
             "PoisonLily": 32,
             "EvilShark": 152,
             "GuilShark": 28,
@@ -420,7 +421,7 @@
         "id": 110,
         "name": "Endless Nightmare #3",
         "episode": 1,
-        "enemyCounts": {
+        "enemy_counts": {
             "Canadine": 68,
             "Gilchic": 108,
             "SinowBeat": 48,
@@ -435,7 +436,7 @@
         "id": 111,
         "name": "Endless Nightmare #4",
         "episode": 1,
-        "enemyCounts": {
+        "enemy_counts": {
             "Claw": 90,
             "Dimenian": 49,
             "Delsaber": 44,
@@ -452,7 +453,7 @@
         "id": 8,
         "name": "Forest of Sorrow",
         "episode": 1,
-        "enemyCounts": {
+        "enemy_counts": {
             "SavageWolf": 14,
             "BarbarousWolf": 7,
             "Booma": 26,
@@ -467,7 +468,7 @@
         "id": 907,
         "name": "Forsaken Friends",
         "episode": 1,
-        "enemyCounts": {
+        "enemy_counts": {
             "Gilchic": 37,
             "Dubchic": 23,
             "Garanz": 22,
@@ -493,7 +494,7 @@
         "id": 119,
         "name": "Fragments of a Memory",
         "episode": 1,
-        "enemyCounts": {
+        "enemy_counts": {
             "Delsaber": 81,
             "DarkBelra": 38,
             "Bulclaw": 86,
@@ -511,7 +512,7 @@
         "id": 25,
         "name": "From the Depths",
         "episode": 1,
-        "enemyCounts": {
+        "enemy_counts": {
             "Dimenian": 41,
             "DarkGunner": 17,
             "ChaosBringer": 6,
@@ -528,7 +529,7 @@
         "id": 35,
         "name": "Gallon's Plan",
         "episode": 1,
-        "enemyCounts": {
+        "enemy_counts": {
             "RagRappy": 54,
             "SavageWolf": 28,
             "Monest": 10,
@@ -540,7 +541,7 @@
         "id": 138,
         "name": "Gallon's Treachery",
         "episode": 1,
-        "enemyCounts": {
+        "enemy_counts": {
             "PoisonLily": 22,
             "EvilShark": 16,
             "GuilShark": 14,
@@ -561,13 +562,13 @@
         "id": 126,
         "name": "Good Luck!",
         "episode": 1,
-        "enemyCounts": {}
+        "enemy_counts": {}
     },
     {
         "id": 9,
         "name": "Gran Squall",
         "episode": 1,
-        "enemyCounts": {
+        "enemy_counts": {
             "Monest": 7,
             "Booma": 24,
             "RagRappy": 15,
@@ -582,7 +583,7 @@
         "id": 5,
         "name": "Journalistic Pursuit",
         "episode": 1,
-        "enemyCounts": {
+        "enemy_counts": {
             "SavageWolf": 12,
             "Gobooma": 10,
             "Booma": 20,
@@ -597,7 +598,7 @@
         "id": 18,
         "name": "Knowing One's Heart",
         "episode": 1,
-        "enemyCounts": {
+        "enemy_counts": {
             "SinowBeat": 5,
             "Canadine": 21,
             "Gilchic": 22,
@@ -609,7 +610,7 @@
         "id": 141,
         "name": "Labyrinthine Trial",
         "episode": 1,
-        "enemyCounts": {
+        "enemy_counts": {
             "GrassAssassin": 14,
             "EvilShark": 38,
             "PoisonLily": 17,
@@ -623,7 +624,7 @@
         "id": 16,
         "name": "Letter from Lionel",
         "episode": 1,
-        "enemyCounts": {
+        "enemy_counts": {
             "SavageWolf": 19,
             "Gobooma": 15,
             "RagRappy": 17,
@@ -646,7 +647,7 @@
         "id": 105,
         "name": "Lost HEAT SWORD",
         "episode": 1,
-        "enemyCounts": {
+        "enemy_counts": {
             "Booma": 34,
             "SavageWolf": 26,
             "BarbarousWolf": 7,
@@ -662,7 +663,7 @@
         "id": 120,
         "name": "Lost HELL PALLASCH",
         "episode": 1,
-        "enemyCounts": {
+        "enemy_counts": {
             "Delsaber": 62,
             "Bulclaw": 55,
             "Claw": 87,
@@ -680,7 +681,7 @@
         "id": 106,
         "name": "Lost ICE SPINNER",
         "episode": 1,
-        "enemyCounts": {
+        "enemy_counts": {
             "EvilShark": 129,
             "PalShark": 65,
             "NanoDragon": 26,
@@ -696,7 +697,7 @@
         "id": 107,
         "name": "Lost SOUL BLADE",
         "episode": 1,
-        "enemyCounts": {
+        "enemy_counts": {
             "SinowBeat": 70,
             "SinowGold": 37,
             "Gilchic": 85,
@@ -705,14 +706,15 @@
             "Dubswitch": 4,
             "Dubchic": 17,
             "Garanz": 26,
-            "VolOpt": 1
+            "VolOptPart1": 1,
+            "VolOptPart2": 1
         }
     },
     {
         "id": 1,
         "name": "Magnitude of Metal",
         "episode": 1,
-        "enemyCounts": {
+        "enemy_counts": {
             "Booma": 16,
             "RagRappy": 4,
             "SavageWolf": 1
@@ -722,7 +724,7 @@
         "id": 237,
         "name": "MAXIMUM ATTACK 1 Ver2",
         "episode": 1,
-        "enemyCounts": {
+        "enemy_counts": {
             "Booma": 59,
             "Hildebear": 11,
             "BarbarousWolf": 18,
@@ -749,7 +751,7 @@
         "id": 144,
         "name": "Maximum Attack 4th Stage -1A-",
         "episode": 1,
-        "enemyCounts": {
+        "enemy_counts": {
             "PoisonLily": 63,
             "NanoDragon": 14,
             "PalShark": 21,
@@ -780,7 +782,7 @@
         "id": 145,
         "name": "Maximum Attack 4th Stage -1B-",
         "episode": 1,
-        "enemyCounts": {
+        "enemy_counts": {
             "GrassAssassin": 28,
             "GuilShark": 32,
             "NanoDragon": 22,
@@ -811,7 +813,7 @@
         "id": 146,
         "name": "Maximum Attack 4th Stage -1C-",
         "episode": 1,
-        "enemyCounts": {
+        "enemy_counts": {
             "GrassAssassin": 28,
             "GuilShark": 32,
             "NanoDragon": 22,
@@ -843,7 +845,7 @@
         "id": 931,
         "name": "Maximum Attack E: Caves",
         "episode": 1,
-        "enemyCounts": {
+        "enemy_counts": {
             "EvilShark": 28,
             "PoisonLily": 46,
             "PofuillySlime": 4,
@@ -857,7 +859,7 @@
         "id": 930,
         "name": "Maximum Attack E: Forest",
         "episode": 1,
-        "enemyCounts": {
+        "enemy_counts": {
             "RagRappy": 16,
             "Booma": 22,
             "Gigobooma": 37,
@@ -872,7 +874,7 @@
         "id": 932,
         "name": "Maximum Attack E: Mines",
         "episode": 1,
-        "enemyCounts": {
+        "enemy_counts": {
             "Gilchic": 42,
             "Canadine": 33,
             "Canane": 4,
@@ -887,7 +889,7 @@
         "id": 933,
         "name": "Maximum Attack E: Ruins",
         "episode": 1,
-        "enemyCounts": {
+        "enemy_counts": {
             "Dimenian": 32,
             "LaDimenian": 33,
             "SoDimenian": 18,
@@ -903,7 +905,7 @@
         "id": 1305,
         "name": "Maximum Attack S",
         "episode": 1,
-        "enemyCounts": {
+        "enemy_counts": {
             "EvilShark": 17,
             "PalShark": 18,
             "PanArms": 20,
@@ -930,7 +932,7 @@
         "id": 1308,
         "name": "Mine Offensive",
         "episode": 1,
-        "enemyCounts": {
+        "enemy_counts": {
             "Garanz": 50,
             "SinowBeat": 26,
             "SinowGold": 20,
@@ -944,7 +946,7 @@
         "id": 101,
         "name": "Mop-up Operation #1",
         "episode": 1,
-        "enemyCounts": {
+        "enemy_counts": {
             "Gigobooma": 36,
             "SavageWolf": 10,
             "BarbarousWolf": 5,
@@ -957,7 +959,7 @@
         "id": 102,
         "name": "Mop-up Operation #2",
         "episode": 1,
-        "enemyCounts": {
+        "enemy_counts": {
             "PalShark": 21,
             "EvilShark": 72,
             "PoisonLily": 9,
@@ -970,7 +972,7 @@
         "id": 103,
         "name": "Mop-up Operation #3",
         "episode": 1,
-        "enemyCounts": {
+        "enemy_counts": {
             "Canadine": 39,
             "SinowGold": 7,
             "SinowBeat": 17,
@@ -985,7 +987,7 @@
         "id": 104,
         "name": "Mop-up Operation #4",
         "episode": 1,
-        "enemyCounts": {
+        "enemy_counts": {
             "SoDimenian": 33,
             "DarkBelra": 12,
             "Claw": 50,
@@ -1000,7 +1002,7 @@
         "id": 7,
         "name": "Native Research",
         "episode": 1,
-        "enemyCounts": {
+        "enemy_counts": {
             "BarbarousWolf": 4,
             "SavageWolf": 10,
             "Gobooma": 13,
@@ -1015,7 +1017,7 @@
         "id": 1303,
         "name": "Random Attack Xrd Stage",
         "episode": 1,
-        "enemyCounts": {
+        "enemy_counts": {
             "EvilShark": 24,
             "PalShark": 30,
             "GuilShark": 34,
@@ -1042,7 +1044,8 @@
             "ChaosBringer": 49,
             "Dragon": 1,
             "DeRolLe": 1,
-            "VolOpt": 1,
+            "VolOptPart1": 1,
+            "VolOptPart2": 1,
             "DarkFalz": 1,
             "Delsaber": 21,
             "Hildebear": 17
@@ -1052,7 +1055,7 @@
         "id": 137,
         "name": "Rappy's Holiday",
         "episode": 1,
-        "enemyCounts": {
+        "enemy_counts": {
             "Booma": 20,
             "BarbarousWolf": 20,
             "Gigobooma": 13,
@@ -1066,7 +1069,7 @@
         "id": 904,
         "name": "Rescue from Ragol",
         "episode": 1,
-        "enemyCounts": {
+        "enemy_counts": {
             "Booma": 86,
             "Gobooma": 90,
             "BarbarousWolf": 51,
@@ -1089,7 +1092,7 @@
         "id": 14,
         "name": "Secret Delivery",
         "episode": 1,
-        "enemyCounts": {
+        "enemy_counts": {
             "PoisonLily": 18,
             "EvilShark": 59,
             "PalShark": 9,
@@ -1103,7 +1106,7 @@
         "id": 24,
         "name": "Seek my Master",
         "episode": 1,
-        "enemyCounts": {
+        "enemy_counts": {
             "Claw": 86,
             "Delsaber": 21,
             "Dimenian": 43,
@@ -1120,7 +1123,7 @@
         "id": 1304,
         "name": "Simulator 2.0",
         "episode": 1,
-        "enemyCounts": {
+        "enemy_counts": {
             "SavageWolf": 5,
             "BarbarousWolf": 5,
             "Booma": 4,
@@ -1152,7 +1155,7 @@
         "id": 15,
         "name": "Soul of a Blacksmith",
         "episode": 1,
-        "enemyCounts": {
+        "enemy_counts": {
             "SavageWolf": 28,
             "Gobooma": 29,
             "RagRappy": 11,
@@ -1176,7 +1179,7 @@
         "id": 22,
         "name": "Soul of Steel",
         "episode": 1,
-        "enemyCounts": {
+        "enemy_counts": {
             "Gilchic": 22,
             "Garanz": 1,
             "SinowBeat": 2,
@@ -1196,13 +1199,13 @@
         "id": 127,
         "name": "Sugoroku",
         "episode": 1,
-        "enemyCounts": {}
+        "enemy_counts": {}
     },
     {
         "id": 6,
         "name": "The Fake in Yellow",
         "episode": 1,
-        "enemyCounts": {
+        "enemy_counts": {
             "RagRappy": 47
         }
     },
@@ -1210,7 +1213,7 @@
         "id": 17,
         "name": "The Grave's Butler",
         "episode": 1,
-        "enemyCounts": {
+        "enemy_counts": {
             "PoisonLily": 22,
             "GrassAssassin": 9,
             "PalShark": 7,
@@ -1224,7 +1227,7 @@
         "id": 11,
         "name": "The Lost Bride",
         "episode": 1,
-        "enemyCounts": {
+        "enemy_counts": {
             "PoisonLily": 20,
             "EvilShark": 33,
             "GuilShark": 5,
@@ -1238,7 +1241,7 @@
         "id": 19,
         "name": "The Retired Hunter",
         "episode": 1,
-        "enemyCounts": {
+        "enemy_counts": {
             "RagRappy": 8,
             "Monest": 2,
             "SavageWolf": 7,
@@ -1258,10 +1261,16 @@
         }
     },
     {
+        "id": 3,
+        "name": "The Value of Money",
+        "episode": 1,
+        "enemy_counts": {}
+    },
+    {
         "id": 117,
         "name": "Today's Rate",
         "episode": 1,
-        "enemyCounts": {
+        "enemy_counts": {
             "PoisonLily": 52,
             "GuilShark": 53,
             "PofuillySlime": 5,
@@ -1282,7 +1291,7 @@
         "id": 118,
         "name": "Towards the Future",
         "episode": 1,
-        "enemyCounts": {
+        "enemy_counts": {
             "RagRappy": 1,
             "Hildebear": 4,
             "Booma": 12,
@@ -1313,7 +1322,8 @@
             "SoDimenian": 4,
             "Dragon": 1,
             "DeRolLe": 1,
-            "VolOpt": 1,
+            "VolOptPart1": 1,
+            "VolOptPart2": 1,
             "DarkFalz": 1
         }
     },
@@ -1321,7 +1331,7 @@
         "id": 161,
         "name": "Tyrell's Ego",
         "episode": 1,
-        "enemyCounts": {
+        "enemy_counts": {
             "Monest": 16,
             "Gobooma": 41,
             "Gigobooma": 17,
@@ -1356,7 +1366,8 @@
             "DarkGunner": 31,
             "Dragon": 1,
             "DeRolLe": 1,
-            "VolOpt": 1,
+            "VolOptPart1": 1,
+            "VolOptPart2": 1,
             "DarkFalz": 1
         }
     },
@@ -1364,7 +1375,7 @@
         "id": 21,
         "name": "Unsealed Door",
         "episode": 1,
-        "enemyCounts": {
+        "enemy_counts": {
             "Canadine": 38,
             "Gilchic": 97,
             "SinowBeat": 6,
@@ -1379,7 +1390,7 @@
         "id": 12,
         "name": "Waterfall Tears",
         "episode": 1,
-        "enemyCounts": {
+        "enemy_counts": {
             "EvilShark": 37,
             "PalShark": 6,
             "GrassAssassin": 6,
@@ -1392,7 +1403,7 @@
         "id": 451,
         "name": "5-1:Test/VR Temple 1",
         "episode": 2,
-        "enemyCounts": {
+        "enemy_counts": {
             "PoisonLily2": 31,
             "Dimenian2": 17,
             "LaDimenian2": 33,
@@ -1406,7 +1417,7 @@
         "id": 452,
         "name": "5-2:Test/VR Temple 2",
         "episode": 2,
-        "enemyCounts": {
+        "enemy_counts": {
             "RagRappy2": 23,
             "Dimenian2": 21,
             "GrassAssassin2": 17,
@@ -1422,7 +1433,7 @@
         "id": 453,
         "name": "5-3:Test/VR Temple 3",
         "episode": 2,
-        "enemyCounts": {
+        "enemy_counts": {
             "DarkBelra2": 9,
             "Monest2": 4,
             "Dimenian2": 17,
@@ -1438,7 +1449,7 @@
         "id": 454,
         "name": "5-4:Test/VR Temple 4",
         "episode": 2,
-        "enemyCounts": {
+        "enemy_counts": {
             "PoisonLily2": 61,
             "Dimenian2": 14,
             "LaDimenian2": 47,
@@ -1454,7 +1465,7 @@
         "id": 455,
         "name": "5-5:Test/VR Temple 5",
         "episode": 2,
-        "enemyCounts": {
+        "enemy_counts": {
             "RagRappy2": 26,
             "Dimenian2": 21,
             "GrassAssassin2": 16,
@@ -1471,7 +1482,7 @@
         "id": 456,
         "name": "6-1:Test/Spaceship 1",
         "episode": 2,
-        "enemyCounts": {
+        "enemy_counts": {
             "Gilchic2": 54,
             "BarbarousWolf2": 24,
             "SavageWolf2": 32,
@@ -1484,7 +1495,7 @@
         "id": 457,
         "name": "6-2:Test/Spaceship 2",
         "episode": 2,
-        "enemyCounts": {
+        "enemy_counts": {
             "Gilchic2": 84,
             "BarbarousWolf2": 24,
             "SavageWolf2": 50,
@@ -1500,7 +1511,7 @@
         "id": 458,
         "name": "6-3:Test/Spaceship 3",
         "episode": 2,
-        "enemyCounts": {
+        "enemy_counts": {
             "Dubchic2": 16,
             "Dubswitch2": 5,
             "Garanz2": 1,
@@ -1516,7 +1527,7 @@
         "id": 459,
         "name": "6-4:Test/Spaceship 4",
         "episode": 2,
-        "enemyCounts": {
+        "enemy_counts": {
             "Gilchic2": 87,
             "BarbarousWolf2": 36,
             "SavageWolf2": 39,
@@ -1532,7 +1543,7 @@
         "id": 460,
         "name": "6-5:Test/Spaceship 5",
         "episode": 2,
-        "enemyCounts": {
+        "enemy_counts": {
             "Gilchic2": 92,
             "BarbarousWolf2": 32,
             "SavageWolf2": 41,
@@ -1549,7 +1560,7 @@
         "id": 461,
         "name": "7-1:From the Past",
         "episode": 2,
-        "enemyCounts": {
+        "enemy_counts": {
             "UlGibbon": 20,
             "Gee": 20,
             "ZolGibbon": 3,
@@ -1563,7 +1574,7 @@
         "id": 462,
         "name": "7-2:Seeking Clues",
         "episode": 2,
-        "enemyCounts": {
+        "enemy_counts": {
             "Merillia": 37,
             "Meriltas": 19,
             "UlGibbon": 25,
@@ -1578,7 +1589,7 @@
         "id": 463,
         "name": "7-3:Silent Beach",
         "episode": 2,
-        "enemyCounts": {
+        "enemy_counts": {
             "Merillia": 29,
             "ZolGibbon": 45,
             "Meriltas": 8,
@@ -1593,7 +1604,7 @@
         "id": 464,
         "name": "7-4:Central Control",
         "episode": 2,
-        "enemyCounts": {
+        "enemy_counts": {
             "SinowBerill": 11,
             "ZolGibbon": 18,
             "UlGibbon": 17,
@@ -1610,7 +1621,7 @@
         "id": 465,
         "name": "7-5:Isle of Mutants",
         "episode": 2,
-        "enemyCounts": {
+        "enemy_counts": {
             "ZolGibbon": 56,
             "SinowBerill": 11,
             "Gee": 132,
@@ -1628,7 +1639,7 @@
         "id": 466,
         "name": "8-1:Below the Waves",
         "episode": 2,
-        "enemyCounts": {
+        "enemy_counts": {
             "Dolmolm": 35,
             "Dolmdarl": 17,
             "SinowZoa": 23,
@@ -1642,7 +1653,7 @@
         "id": 467,
         "name": "8-2:Desire's End",
         "episode": 2,
-        "enemyCounts": {
+        "enemy_counts": {
             "Morfos": 25,
             "Dolmdarl": 43,
             "Recobox": 28,
@@ -1657,7 +1668,7 @@
         "id": 468,
         "name": "8-3:Purple Lamplight",
         "episode": 2,
-        "enemyCounts": {
+        "enemy_counts": {
             "Recobox": 41,
             "SinowZoa": 39,
             "Delbiter": 7,
@@ -1673,7 +1684,7 @@
         "id": 1321,
         "name": "A New Hope",
         "episode": 2,
-        "enemyCounts": {
+        "enemy_counts": {
             "Dimenian2": 48,
             "LaDimenian2": 41,
             "SoDimenian2": 54,
@@ -1713,7 +1724,7 @@
         "id": 486,
         "name": "Blue Star Memories",
         "episode": 2,
-        "enemyCounts": {
+        "enemy_counts": {
             "Dimenian2": 45,
             "LaDimenian2": 36,
             "RagRappy2": 31,
@@ -1739,7 +1750,7 @@
         "id": 901,
         "name": "Christmas Fiasco",
         "episode": 2,
-        "enemyCounts": {
+        "enemy_counts": {
             "SavageWolf2": 18,
             "BarbarousWolf2": 28,
             "Gilchic2": 35,
@@ -1774,7 +1785,7 @@
         "id": 1318,
         "name": "Dolmolm Research",
         "episode": 2,
-        "enemyCounts": {
+        "enemy_counts": {
             "DarkBelra2": 18,
             "SoDimenian2": 32,
             "LaDimenian2": 22,
@@ -1798,7 +1809,7 @@
         "id": 201,
         "name": "Dream Messenger",
         "episode": 2,
-        "enemyCounts": {
+        "enemy_counts": {
             "Gee": 49,
             "UlGibbon": 8,
             "ZolGibbon": 1,
@@ -1809,7 +1820,7 @@
         "id": 1309,
         "name": "Gal Da Val's Darkness",
         "episode": 2,
-        "enemyCounts": {
+        "enemy_counts": {
             "SavageWolf2": 21,
             "BarbarousWolf2": 16,
             "Gilchic2": 41,
@@ -1837,7 +1848,7 @@
         "id": 673,
         "name": "Hollow Phantasm: Seabed",
         "episode": 2,
-        "enemyCounts": {
+        "enemy_counts": {
             "Dolmolm": 39,
             "Dolmdarl": 38,
             "SinowZoa": 21,
@@ -1851,7 +1862,7 @@
         "id": 238,
         "name": "MAXIMUM ATTACK 2 Ver2",
         "episode": 2,
-        "enemyCounts": {
+        "enemy_counts": {
             "SoDimenian2": 27,
             "LaDimenian2": 21,
             "Dimenian2": 20,
@@ -1894,7 +1905,7 @@
         "id": 241,
         "name": "Maximum Attack 4th Stage -2A-",
         "episode": 2,
-        "enemyCounts": {
+        "enemy_counts": {
             "ZolGibbon": 41,
             "UlGibbon": 29,
             "SinowBerill": 20,
@@ -1918,7 +1929,7 @@
         "id": 242,
         "name": "Maximum Attack 4th Stage -2B-",
         "episode": 2,
-        "enemyCounts": {
+        "enemy_counts": {
             "ZolGibbon": 27,
             "UlGibbon": 16,
             "SinowBerill": 25,
@@ -1943,7 +1954,7 @@
         "id": 243,
         "name": "Maximum Attack 4th Stage -2C-",
         "episode": 2,
-        "enemyCounts": {
+        "enemy_counts": {
             "ZolGibbon": 26,
             "UlGibbon": 14,
             "SinowBerill": 22,
@@ -1973,7 +1984,7 @@
         "id": 936,
         "name": "Maximum Attack E: CCA",
         "episode": 2,
-        "enemyCounts": {
+        "enemy_counts": {
             "Meriltas": 13,
             "Merillia": 16,
             "ZolGibbon": 19,
@@ -1992,7 +2003,7 @@
         "id": 944,
         "name": "Maximum Attack E: Gal Da Val",
         "episode": 2,
-        "enemyCounts": {
+        "enemy_counts": {
             "Meriltas": 8,
             "Merillia": 7,
             "ZolGibbon": 16,
@@ -2023,7 +2034,7 @@
         "id": 937,
         "name": "Maximum Attack E: Seabed",
         "episode": 2,
-        "enemyCounts": {
+        "enemy_counts": {
             "Dolmolm": 27,
             "Dolmdarl": 25,
             "SinowZoa": 17,
@@ -2038,7 +2049,7 @@
         "id": 935,
         "name": "Maximum Attack E: Spaceship",
         "episode": 2,
-        "enemyCounts": {
+        "enemy_counts": {
             "Gilchic2": 61,
             "SavageWolf2": 23,
             "PanArms2": 8,
@@ -2053,7 +2064,7 @@
         "id": 934,
         "name": "Maximum Attack E: Temple",
         "episode": 2,
-        "enemyCounts": {
+        "enemy_counts": {
             "GrassAssassin2": 20,
             "PoisonLily2": 43,
             "Dimenian2": 15,
@@ -2068,7 +2079,7 @@
         "id": 938,
         "name": "Maximum Attack E: Tower",
         "episode": 2,
-        "enemyCounts": {
+        "enemy_counts": {
             "IllGill": 19,
             "DelLily": 24,
             "Mericarol": 7,
@@ -2085,7 +2096,7 @@
         "id": 943,
         "name": "Maximum Attack E: VR",
         "episode": 2,
-        "enemyCounts": {
+        "enemy_counts": {
             "GrassAssassin2": 20,
             "PoisonLily2": 31,
             "Dimenian2": 15,
@@ -2110,7 +2121,7 @@
         "id": 1306,
         "name": "Maximum Attack S",
         "episode": 2,
-        "enemyCounts": {
+        "enemy_counts": {
             "Merillia": 59,
             "Meriltas": 45,
             "UlGibbon": 48,
@@ -2129,7 +2140,7 @@
         "id": 233,
         "name": "Phantasmal World #1",
         "episode": 2,
-        "enemyCounts": {
+        "enemy_counts": {
             "SinowBerill": 25,
             "Gee": 122,
             "SinowSpigell": 7,
@@ -2145,7 +2156,7 @@
         "id": 234,
         "name": "Phantasmal World #2",
         "episode": 2,
-        "enemyCounts": {
+        "enemy_counts": {
             "UlGibbon": 114,
             "ZolGibbon": 26,
             "SinowBerill": 24,
@@ -2160,7 +2171,7 @@
         "id": 235,
         "name": "Phantasmal World #3",
         "episode": 2,
-        "enemyCounts": {
+        "enemy_counts": {
             "Dolmolm": 103,
             "Dolmdarl": 57,
             "Deldepth": 31,
@@ -2175,7 +2186,7 @@
         "id": 236,
         "name": "Phantasmal World #4",
         "episode": 2,
-        "enemyCounts": {
+        "enemy_counts": {
             "Gibbles": 20,
             "Recobox": 20,
             "GiGue": 22,
@@ -2192,7 +2203,7 @@
         "id": 1311,
         "name": "Raid on Central Tower",
         "episode": 2,
-        "enemyCounts": {
+        "enemy_counts": {
             "SinowZele": 1,
             "SinowZoa": 1,
             "Delbiter": 32,
@@ -2211,7 +2222,7 @@
         "id": 1323,
         "name": "Random Attack Xrd Stage",
         "episode": 2,
-        "enemyCounts": {
+        "enemy_counts": {
             "Dimenian2": 42,
             "DarkBelra2": 29,
             "PoisonLily2": 60,
@@ -2263,7 +2274,7 @@
         "id": 203,
         "name": "Reach for the Dream",
         "episode": 2,
-        "enemyCounts": {
+        "enemy_counts": {
             "SavageWolf2": 4,
             "PanArms2": 2,
             "Delsaber2": 7,
@@ -2277,7 +2288,7 @@
         "id": 231,
         "name": "Respective Tomorrow",
         "episode": 2,
-        "enemyCounts": {
+        "enemy_counts": {
             "Dimenian2": 18,
             "PoisonLily2": 19,
             "RagRappy2": 10,
@@ -2324,7 +2335,7 @@
         "id": 1310,
         "name": "Revisiting Darkness",
         "episode": 2,
-        "enemyCounts": {
+        "enemy_counts": {
             "Hildebear2": 15,
             "Dimenian2": 19,
             "GrassAssassin2": 6,
@@ -2349,7 +2360,7 @@
         "id": 27,
         "name": "Seat of the Heart",
         "episode": 2,
-        "enemyCounts": {
+        "enemy_counts": {
             "SoDimenian2": 12,
             "LaDimenian2": 11,
             "Dimenian2": 12,
@@ -2388,7 +2399,7 @@
         "id": 223,
         "name": "The East Tower",
         "episode": 2,
-        "enemyCounts": {
+        "enemy_counts": {
             "Meriltas": 16,
             "UlGibbon": 6,
             "ZolGibbon": 9,
@@ -2411,7 +2422,7 @@
         "id": 1319,
         "name": "The Military Strikes Back",
         "episode": 2,
-        "enemyCounts": {
+        "enemy_counts": {
             "SoDimenian2": 55,
             "Dimenian2": 48,
             "LaDimenian2": 41,
@@ -2451,7 +2462,7 @@
         "id": 224,
         "name": "The West Tower",
         "episode": 2,
-        "enemyCounts": {
+        "enemy_counts": {
             "Recobox": 36,
             "SinowZele": 6,
             "SinowZoa": 7,
@@ -2472,7 +2483,7 @@
         "id": 701,
         "name": "9-1:Missing Research",
         "episode": 4,
-        "enemyCounts": {
+        "enemy_counts": {
             "Boota": 67,
             "ZeBoota": 48,
             "SatelliteLizard": 40,
@@ -2487,7 +2498,7 @@
         "id": 702,
         "name": "9-2:Data Retrieval",
         "episode": 4,
-        "enemyCounts": {
+        "enemy_counts": {
             "ZeBoota": 21,
             "Boota": 48,
             "BaBoota": 24,
@@ -2502,7 +2513,7 @@
         "id": 703,
         "name": "9-3:Reality & Truth",
         "episode": 4,
-        "enemyCounts": {
+        "enemy_counts": {
             "Boota": 21,
             "ZeBoota": 22,
             "SatelliteLizard": 31,
@@ -2518,7 +2529,7 @@
         "id": 704,
         "name": "9-4:Pursuit",
         "episode": 4,
-        "enemyCounts": {
+        "enemy_counts": {
             "SandRappy": 30,
             "Boota": 45,
             "ZeBoota": 55,
@@ -2534,7 +2545,7 @@
         "id": 705,
         "name": "9-5:The Chosen (1/2)",
         "episode": 4,
-        "enemyCounts": {
+        "enemy_counts": {
             "SatelliteLizard": 46,
             "Astark": 5,
             "Dorphon": 2,
@@ -2554,7 +2565,7 @@
         "id": 706,
         "name": "9-6:The Chosen (2/2)",
         "episode": 4,
-        "enemyCounts": {
+        "enemy_counts": {
             "Yowie": 19,
             "PyroGoran": 34,
             "MerissaA": 34,
@@ -2570,7 +2581,7 @@
         "id": 707,
         "name": "9-7:Sacred Ground",
         "episode": 4,
-        "enemyCounts": {
+        "enemy_counts": {
             "MerissaA": 29,
             "Yowie": 11,
             "SatelliteLizard": 39,
@@ -2586,7 +2597,7 @@
         "id": 708,
         "name": "9-8:The Final Cycle",
         "episode": 4,
-        "enemyCounts": {
+        "enemy_counts": {
             "Goran": 57,
             "PyroGoran": 61,
             "Yowie": 63,
@@ -2603,7 +2614,7 @@
         "id": 313,
         "name": "Beyond the Horizon",
         "episode": 4,
-        "enemyCounts": {
+        "enemy_counts": {
             "Zu": 74,
             "SandRappy": 131,
             "Boota": 45,
@@ -2624,7 +2635,7 @@
         "id": 31,
         "name": "Black Paper's Dangerous Deal",
         "episode": 4,
-        "enemyCounts": {
+        "enemy_counts": {
             "SandRappy": 47,
             "DelRappy": 1,
             "Dorphon": 11,
@@ -2637,7 +2648,7 @@
         "id": 34,
         "name": "Black Paper's Dangerous Deal 2",
         "episode": 4,
-        "enemyCounts": {
+        "enemy_counts": {
             "GoranDetonator": 5,
             "MerissaAA": 3,
             "PyroGoran": 14,
@@ -2656,7 +2667,7 @@
         "id": 902,
         "name": "Christmas Fiasco",
         "episode": 4,
-        "enemyCounts": {
+        "enemy_counts": {
             "Boota": 11,
             "Zu": 74,
             "Astark": 19,
@@ -2677,7 +2688,7 @@
         "id": 675,
         "name": "Hollow Wasteland: Wilderness",
         "episode": 4,
-        "enemyCounts": {
+        "enemy_counts": {
             "Boota": 11,
             "ZeBoota": 11,
             "BaBoota": 23,
@@ -2693,7 +2704,7 @@
         "id": 306,
         "name": "LOGiN presents 勇場のマッチレース",
         "episode": 4,
-        "enemyCounts": {
+        "enemy_counts": {
             "ZeBoota": 51,
             "Yowie": 70,
             "Boota": 59,
@@ -2714,7 +2725,7 @@
         "id": 314,
         "name": "MAXIMUM ATTACK 3 Ver2",
         "episode": 4,
-        "enemyCounts": {
+        "enemy_counts": {
             "BaBoota": 47,
             "Zu": 46,
             "SatelliteLizard": 122,
@@ -2735,7 +2746,7 @@
         "id": 303,
         "name": "Maximum Attack 4th Stage -A-",
         "episode": 4,
-        "enemyCounts": {
+        "enemy_counts": {
             "BaBoota": 16,
             "SandRappy": 57,
             "SatelliteLizard": 68,
@@ -2755,7 +2766,7 @@
         "id": 304,
         "name": "Maximum Attack 4th Stage -B-",
         "episode": 4,
-        "enemyCounts": {
+        "enemy_counts": {
             "Yowie": 50,
             "SandRappy": 60,
             "SatelliteLizard": 58,
@@ -2776,7 +2787,7 @@
         "id": 305,
         "name": "Maximum Attack 4th Stage -C-",
         "episode": 4,
-        "enemyCounts": {
+        "enemy_counts": {
             "ZeBoota": 22,
             "Yowie": 74,
             "SandRappy": 73,
@@ -2797,7 +2808,7 @@
         "id": 939,
         "name": "Maximum Attack E: Crater",
         "episode": 4,
-        "enemyCounts": {
+        "enemy_counts": {
             "SandRappy": 18,
             "Zu": 8,
             "Boota": 24,
@@ -2813,7 +2824,7 @@
         "id": 940,
         "name": "Maximum Attack E: Desert",
         "episode": 4,
-        "enemyCounts": {
+        "enemy_counts": {
             "GoranDetonator": 19,
             "Goran": 24,
             "SatelliteLizard": 30,
@@ -2829,7 +2840,7 @@
         "id": 945,
         "name": "Maximum Attack E: Episode 4",
         "episode": 4,
-        "enemyCounts": {
+        "enemy_counts": {
             "SandRappy": 31,
             "Zu": 26,
             "Boota": 24,
@@ -2851,7 +2862,7 @@
         "id": 1307,
         "name": "Maximum Attack S",
         "episode": 4,
-        "enemyCounts": {
+        "enemy_counts": {
             "Zu": 98,
             "Astark": 20,
             "Boota": 15,
@@ -2872,7 +2883,7 @@
         "id": 816,
         "name": "New Mop-Up Operation #1",
         "episode": 4,
-        "enemyCounts": {
+        "enemy_counts": {
             "Astark": 22,
             "Yowie": 20,
             "SandRappy": 37,
@@ -2888,7 +2899,7 @@
         "id": 817,
         "name": "New Mop-Up Operation #2",
         "episode": 4,
-        "enemyCounts": {
+        "enemy_counts": {
             "BaBoota": 14,
             "Astark": 11,
             "SandRappy": 20,
@@ -2904,7 +2915,7 @@
         "id": 818,
         "name": "New Mop-Up Operation #3",
         "episode": 4,
-        "enemyCounts": {
+        "enemy_counts": {
             "Goran": 108,
             "GoranDetonator": 16,
             "PyroGoran": 55,
@@ -2919,7 +2930,7 @@
         "id": 819,
         "name": "New Mop-Up Operation #4",
         "episode": 4,
-        "enemyCounts": {
+        "enemy_counts": {
             "GoranDetonator": 3,
             "PyroGoran": 40,
             "Goran": 46,
@@ -2934,7 +2945,7 @@
         "id": 820,
         "name": "New Mop-Up Operation #5",
         "episode": 4,
-        "enemyCounts": {
+        "enemy_counts": {
             "Yowie": 40,
             "SatelliteLizard": 38,
             "SandRappy": 11,
@@ -2950,7 +2961,7 @@
         "id": 33,
         "name": "Pioneer Spirit",
         "episode": 4,
-        "enemyCounts": {
+        "enemy_counts": {
             "SandRappy": 41,
             "SatelliteLizard": 25,
             "Boota": 8,
@@ -2971,7 +2982,7 @@
         "id": 709,
         "name": "Point of Disaster",
         "episode": 4,
-        "enemyCounts": {
+        "enemy_counts": {
             "Yowie": 31,
             "SatelliteLizard": 50,
             "ZeBoota": 8,
@@ -2993,7 +3004,7 @@
         "id": 32,
         "name": "The Restless Lion",
         "episode": 4,
-        "enemyCounts": {
+        "enemy_counts": {
             "SatelliteLizard": 16,
             "Yowie": 13,
             "PyroGoran": 10,
@@ -3008,7 +3019,7 @@
         "id": 710,
         "name": "The Robots' Reckoning",
         "episode": 4,
-        "enemyCounts": {
+        "enemy_counts": {
             "SandRappy": 38,
             "Astark": 35,
             "Yowie": 73,
@@ -3028,7 +3039,7 @@
         "id": 811,
         "name": "War of Limits 1",
         "episode": 4,
-        "enemyCounts": {
+        "enemy_counts": {
             "Zu": 12,
             "SandRappy": 42,
             "Astark": 42,
@@ -3044,7 +3055,7 @@
         "id": 812,
         "name": "War of Limits 2",
         "episode": 4,
-        "enemyCounts": {
+        "enemy_counts": {
             "SandRappy": 37,
             "Dorphon": 3,
             "ZeBoota": 74,
@@ -3060,7 +3071,7 @@
         "id": 813,
         "name": "War of Limits 3",
         "episode": 4,
-        "enemyCounts": {
+        "enemy_counts": {
             "Boota": 85,
             "Goran": 87,
             "PyroGoran": 26,
@@ -3075,7 +3086,7 @@
         "id": 814,
         "name": "War of Limits 4",
         "episode": 4,
-        "enemyCounts": {
+        "enemy_counts": {
             "GoranDetonator": 16,
             "MerissaA": 28,
             "SandRappy": 26,
@@ -3091,7 +3102,7 @@
         "id": 815,
         "name": "War of Limits 5",
         "episode": 4,
-        "enemyCounts": {
+        "enemy_counts": {
             "Zu": 15,
             "MerissaA": 11,
             "GoranDetonator": 7,
@@ -3107,7 +3118,7 @@
         "id": 30,
         "name": "Warrior's Pride",
         "episode": 4,
-        "enemyCounts": {
+        "enemy_counts": {
             "SandRappy": 61,
             "Yowie": 53,
             "Boota": 35,
@@ -3123,7 +3134,7 @@
         "id": 36,
         "name": "荒野の果てに",
         "episode": 4,
-        "enemyCounts": {
+        "enemy_counts": {
             "Astark": 14,
             "SandRappy": 56,
             "BaBoota": 47,
