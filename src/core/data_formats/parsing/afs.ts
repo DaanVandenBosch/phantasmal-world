@@ -3,7 +3,7 @@ import { LogManager } from "../../Logger";
 
 const logger = LogManager.get("core/data_formats/parsing/afs");
 
-const AFS = 0x41465300;
+const AFS = 0x00534641;
 
 type AfsFileEntry = {
     readonly offset: number;

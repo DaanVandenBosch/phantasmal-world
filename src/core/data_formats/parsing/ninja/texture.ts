@@ -5,10 +5,10 @@ import { LogManager } from "../../../Logger";
 const logger = LogManager.get("core/data_formats/parsing/ninja/texture");
 
 export type Xvm = {
-    textures: XvmTexture[];
+    textures: XvrTexture[];
 };
 
-export type XvmTexture = {
+export type XvrTexture = {
     id: number;
     format: [number, number];
     width: number;
@@ -24,34 +24,7 @@ type Header = {
 const XVMH = 0x484d5658;
 const XVRT = 0x54525658;
 
-export function parse_xvm(cursor: Cursor): Xvm {
-    const chunks = parse_iff(cursor);
-    const header_chunk = chunks.find(chunk => chunk.type === XVMH);
-    const header = header_chunk && parse_header(header_chunk.data);
-
-    const textures = chunks
-        .filter(chunk => chunk.type === XVRT)
-        .map(chunk => parse_texture(chunk.data));
-
-    if (!header) {
-        logger.warn("No header found.");
-    } else if (header.texture_count !== textures.length) {
-        logger.warn(
-            `Found ${textures.length} textures instead of ${header.texture_count} as defined in the header.`,
-        );
-    }
-
-    return { textures };
-}
-
-function parse_header(cursor: Cursor): Header {
-    const texture_count = cursor.u16();
-    return {
-        texture_count,
-    };
-}
-
-function parse_texture(cursor: Cursor): XvmTexture {
+export function parse_xvr(cursor: Cursor): XvrTexture {
     const format_1 = cursor.u32();
     const format_2 = cursor.u32();
     const id = cursor.u32();
@@ -67,5 +40,30 @@ function parse_texture(cursor: Cursor): XvmTexture {
         height,
         size,
         data,
+    };
+}
+
+export function parse_xvm(cursor: Cursor): Xvm {
+    const chunks = parse_iff(cursor);
+    const header_chunk = chunks.find(chunk => chunk.type === XVMH);
+    const header = header_chunk && parse_header(header_chunk.data);
+
+    const textures = chunks
+        .filter(chunk => chunk.type === XVRT)
+        .map(chunk => parse_xvr(chunk.data));
+
+    if (header && header.texture_count !== textures.length) {
+        logger.warn(
+            `Found ${textures.length} textures instead of ${header.texture_count} as defined in the header.`,
+        );
+    }
+
+    return { textures };
+}
+
+function parse_header(cursor: Cursor): Header {
+    const texture_count = cursor.u16();
+    return {
+        texture_count,
     };
 }

@@ -13,7 +13,7 @@ export class TextureView extends ResizableWidget {
 
     private readonly open_file_button = new FileButton("Open file...", {
         icon_left: Icon.File,
-        accept: ".xvm",
+        accept: ".afs, .xvm",
     });
 
     private readonly tool_bar = this.disposable(new ToolBar(this.open_file_button));
@@ -41,7 +41,7 @@ export class TextureView extends ResizableWidget {
 
         this.renderer_view.start_rendering();
 
-        this.disposable(
+        this.disposables(
             gui_store.tool.observe(({ value: tool }) => {
                 if (tool === GuiTool.Viewer) {
                     this.renderer_view.start_rendering();

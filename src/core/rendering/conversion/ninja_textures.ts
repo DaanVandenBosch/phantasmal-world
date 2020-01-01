@@ -7,13 +7,13 @@ import {
     Texture,
     CompressedPixelFormat,
 } from "three";
-import { Xvm, XvmTexture } from "../../data_formats/parsing/ninja/texture";
+import { Xvm, XvrTexture } from "../../data_formats/parsing/ninja/texture";
 
 export function xvm_to_textures(xvm: Xvm): Texture[] {
-    return xvm.textures.map(xvm_texture_to_texture);
+    return xvm.textures.map(xvr_texture_to_texture);
 }
 
-export function xvm_texture_to_texture(tex: XvmTexture): Texture {
+export function xvr_texture_to_texture(tex: XvrTexture): Texture {
     let format: CompressedPixelFormat;
     let data_size: number;
 

@@ -3,19 +3,13 @@ import {
     MeshBasicMaterial,
     OrthographicCamera,
     PlaneGeometry,
-    Texture,
     Vector2,
     Vector3,
 } from "three";
 import { Disposable } from "../../core/observable/Disposable";
 import { DisposableThreeRenderer, Renderer } from "../../core/rendering/Renderer";
 import { Disposer } from "../../core/observable/Disposer";
-import { Xvm } from "../../core/data_formats/parsing/ninja/texture";
-import { xvm_texture_to_texture } from "../../core/rendering/conversion/ninja_textures";
-import { TextureStore } from "../stores/TextureStore";
-import { LogManager } from "../../core/Logger";
-
-const logger = LogManager.get("viewer/rendering/TextureRenderer");
+import { TextureStore, TextureWithSize } from "../stores/TextureStore";
 
 export class TextureRenderer extends Renderer implements Disposable {
     private readonly disposer = new Disposer();
@@ -27,12 +21,10 @@ export class TextureRenderer extends Renderer implements Disposable {
         super(three_renderer);
 
         this.disposer.add_all(
-            texture_store.current_xvm.observe(({ value: xvm }) => {
+            texture_store.textures.observe(({ value: textures }) => {
                 this.scene.remove(...this.quad_meshes);
 
-                if (xvm) {
-                    this.render_textures(xvm);
-                }
+                this.render_textures(textures);
 
                 this.reset_camera(new Vector3(0, 0, 5), new Vector3());
                 this.schedule_render();
@@ -59,11 +51,11 @@ export class TextureRenderer extends Renderer implements Disposable {
         this.disposer.dispose();
     }
 
-    private render_textures(xvm: Xvm): void {
-        let total_width = 10 * (xvm.textures.length - 1); // 10px spacing between textures.
+    private render_textures(textures: readonly TextureWithSize[]): void {
+        let total_width = 10 * (textures.length - 1); // 10px spacing between textures.
         let total_height = 0;
 
-        for (const tex of xvm.textures) {
+        for (const tex of textures) {
             total_width += tex.width;
             total_height = Math.max(total_height, tex.height);
         }
@@ -71,15 +63,7 @@ export class TextureRenderer extends Renderer implements Disposable {
         let x = -Math.floor(total_width / 2);
         const y = -Math.floor(total_height / 2);
 
-        for (const tex of xvm.textures) {
-            let tex_3js: Texture | undefined;
-
-            try {
-                tex_3js = xvm_texture_to_texture(tex);
-            } catch (e) {
-                logger.warn("Couldn't convert XVM texture.", e);
-            }
-
+        for (const tex of textures) {
             const quad_mesh = new Mesh(
                 this.create_quad(
                     x,
@@ -87,9 +71,9 @@ export class TextureRenderer extends Renderer implements Disposable {
                     tex.width,
                     tex.height,
                 ),
-                tex_3js
+                tex.texture
                     ? new MeshBasicMaterial({
-                          map: tex_3js,
+                          map: tex.texture,
                           transparent: true,
                       })
                     : new MeshBasicMaterial({

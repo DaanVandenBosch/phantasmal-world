@@ -42,6 +42,18 @@ export function basename(filename: string): string {
     return filename;
 }
 
+export function filename_extension(filename: string): string {
+    const dot_idx = filename.lastIndexOf(".");
+
+    // < 0 means filenames doesn't contain any "."
+    // also skip index 0 because that would mean the basename is empty
+    if (dot_idx > 1) {
+        return filename.slice(dot_idx + 1);
+    }
+
+    return filename;
+}
+
 export function assert(condition: any, msg?: string | (() => string)): asserts condition {
     if (!condition) {
         let full_msg = "Assertion Error";
