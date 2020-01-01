@@ -39,6 +39,10 @@
     color: hsl(0, 0%, 75%);
 }
 
+.core_Button:focus-within .core_Button_inner {
+    border: var(--control-inner-border-focus);
+}
+
 .core_Button:disabled .core_Button_inner {
     background-color: hsl(0, 0%, 15%);
     border-color: hsl(0, 0%, 25%);

@@ -19,6 +19,8 @@ export class Button extends Control {
     private readonly _mousedown: Emitter<MouseEvent>;
     private readonly _mouseup: Emitter<MouseEvent>;
     private readonly _click: Emitter<MouseEvent>;
+    private readonly _keydown: Emitter<KeyboardEvent>;
+    private readonly _keyup: Emitter<KeyboardEvent>;
     private readonly _text: WidgetProperty<string>;
     private readonly center_element: HTMLSpanElement;
 
@@ -26,6 +28,8 @@ export class Button extends Control {
     readonly mousedown: Observable<MouseEvent>;
     readonly mouseup: Observable<MouseEvent>;
     readonly click: Observable<MouseEvent>;
+    readonly keydown: Observable<KeyboardEvent>;
+    readonly keyup: Observable<KeyboardEvent>;
     readonly text: WritableProperty<string>;
 
     constructor(options?: ButtonOptions) {
@@ -57,6 +61,14 @@ export class Button extends Control {
         this._click = emitter<MouseEvent>();
         this.click = this._click;
         this.element.onclick = (e: MouseEvent) => this._click.emit({ value: e });
+
+        this._keydown = emitter<KeyboardEvent>();
+        this.keydown = this._keydown;
+        this.element.onkeydown = (e: KeyboardEvent) => this._keydown.emit({ value: e });
+
+        this._keyup = emitter<KeyboardEvent>();
+        this.keyup = this._keyup;
+        this.element.onkeyup = (e: KeyboardEvent) => this._keyup.emit({ value: e });
 
         this._text = new WidgetProperty<string>(this, "", this.set_text);
         this.text = this._text;

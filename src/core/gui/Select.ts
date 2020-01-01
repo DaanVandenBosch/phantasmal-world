@@ -53,13 +53,15 @@ export class Select<T> extends LabelledControl {
         this.just_opened = false;
 
         this.disposables(
-            disposable_listener(this.button.element, "mousedown", e => this.button_mousedown(e)),
+            disposable_listener(this.button.element, "mousedown", this.button_mousedown),
 
-            this.button.mouseup.observe(() => this.button_mouseup()),
+            this.button.mouseup.observe(this.button_mouseup),
 
-            this.menu.selected.observe(({ value }) =>
-                this._selected.set_val(value, { silent: false }),
-            ),
+            this.button.keydown.observe(this.button_keydown),
+
+            this.menu.selected.observe(({ value }) => {
+                this._selected.set_val(value, { silent: false });
+            }),
         );
 
         if (options) {
@@ -83,13 +85,13 @@ export class Select<T> extends LabelledControl {
         this.menu.selected.val = selected;
     }
 
-    private button_mousedown(e: Event): void {
+    private button_mousedown = (e: Event): void => {
         e.stopPropagation();
         this.just_opened = !this.menu.visible.val;
         this.menu.visible.val = true;
-    }
+    };
 
-    private button_mouseup(): void {
+    private button_mouseup = (): void => {
         if (this.just_opened) {
             this.menu.focus();
         } else {
@@ -97,5 +99,15 @@ export class Select<T> extends LabelledControl {
         }
 
         this.just_opened = false;
-    }
+    };
+
+    private button_keydown = ({ value: evt }: { value: KeyboardEvent }): void => {
+        if (evt.key === "Enter" || evt.key === " ") {
+            evt.preventDefault();
+            this.just_opened = !this.menu.visible.val;
+            this.menu.visible.val = true;
+            this.menu.focus();
+            this.menu.hover_next();
+        }
+    };
 }

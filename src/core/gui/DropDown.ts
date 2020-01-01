@@ -35,7 +35,7 @@ export class DropDown<T> extends Control {
             }),
         );
         this.menu = this.disposable(
-            new Menu<T>({
+            new Menu({
                 items: options.items,
                 to_label: options.to_label,
                 related_element: this.element,
@@ -49,11 +49,13 @@ export class DropDown<T> extends Control {
         this.just_opened = false;
 
         this.disposables(
-            disposable_listener(this.button.element, "mousedown", () => this.button_mousedown(), {
+            disposable_listener(this.button.element, "mousedown", this.button_mousedown, {
                 capture: true,
             }),
 
-            this.button.mouseup.observe(() => this.button_mouseup()),
+            this.button.mouseup.observe(this.button_mouseup),
+
+            this.button.keydown.observe(this.button_keydown),
 
             this.menu.selected.observe(({ value }) => {
                 if (value !== undefined) {
@@ -71,12 +73,12 @@ export class DropDown<T> extends Control {
         this.button.enabled.val = enabled;
     }
 
-    private button_mousedown(): void {
+    private button_mousedown = (): void => {
         this.just_opened = !this.menu.visible.val;
         this.menu.visible.val = true;
-    }
+    };
 
-    private button_mouseup(): void {
+    private button_mouseup = (): void => {
         if (this.just_opened) {
             this.menu.focus();
         } else {
@@ -84,5 +86,15 @@ export class DropDown<T> extends Control {
         }
 
         this.just_opened = false;
-    }
+    };
+
+    private button_keydown = ({ value: evt }: { value: KeyboardEvent }): void => {
+        if (evt.key === "Enter" || evt.key === " ") {
+            evt.preventDefault();
+            this.just_opened = !this.menu.visible.val;
+            this.menu.visible.val = true;
+            this.menu.focus();
+            this.menu.hover_next();
+        }
+    };
 }

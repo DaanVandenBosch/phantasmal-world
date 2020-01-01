@@ -23,6 +23,7 @@ export class Menu<T> extends Widget {
     private readonly _selected: WidgetProperty<T | undefined>;
     private hovered_index?: number;
     private hovered_element?: HTMLElement;
+    private previously_focused_element?: Element;
 
     constructor(options: MenuOptions<T>) {
         super();
@@ -31,6 +32,7 @@ export class Menu<T> extends Widget {
 
         this.element.onmouseup = this.mouseup;
         this.element.onkeydown = this.keydown;
+        this.element.onblur = this.blur;
 
         this.inner_element.onmouseover = this.inner_mouseover;
         this.element.append(this.inner_element);
@@ -66,6 +68,11 @@ export class Menu<T> extends Widget {
         this.finalize_construction();
     }
 
+    focus(): void {
+        this.previously_focused_element = document.activeElement ?? undefined;
+        this.element.focus();
+    }
+
     hover_next(): void {
         this.visible.set_val(true, { silent: false });
         this.hover_item(
@@ -90,6 +97,10 @@ export class Menu<T> extends Widget {
         if (this.visible.val != visible) {
             this.hover_item();
             this.inner_element.scrollTop = 0;
+
+            if (!visible && this.previously_focused_element instanceof HTMLElement) {
+                this.previously_focused_element.focus();
+            }
         }
     }
 
@@ -106,22 +117,29 @@ export class Menu<T> extends Widget {
         this.select_item(parseInt(index_str, 10));
     };
 
-    private keydown = (e: Event): void => {
-        const key = (e as KeyboardEvent).key;
+    private keydown = (evt: Event): void => {
+        const key = (evt as KeyboardEvent).key;
 
         switch (key) {
             case "ArrowDown":
+                evt.preventDefault();
                 this.hover_next();
                 break;
 
             case "ArrowUp":
+                evt.preventDefault();
                 this.hover_prev();
                 break;
 
             case "Enter":
+                evt.preventDefault();
                 this.select_hovered();
                 break;
         }
+    };
+
+    private blur = (): void => {
+        this.visible.val = false;
     };
 
     private inner_mouseover = (e: Event): void => {
