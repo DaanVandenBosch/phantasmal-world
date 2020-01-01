@@ -1,5 +1,4 @@
 import { readdirSync, readFileSync, statSync, writeFileSync } from "fs";
-import Logger from "js-logger";
 import { ASSETS_DIR, RESOURCE_DIR } from ".";
 import { BufferCursor } from "../src/core/data_formats/cursor/BufferCursor";
 import { ItemPmt, parse_item_pmt } from "../src/core/data_formats/parsing/itempmt";
@@ -13,14 +12,15 @@ import { Endianness } from "../src/core/data_formats/Endianness";
 import { ItemTypeDto } from "../src/core/dto/ItemTypeDto";
 import { QuestDto } from "../src/hunt_optimizer/dto/QuestDto";
 import { BoxDropDto, EnemyDropDto } from "../src/hunt_optimizer/dto/drops";
+import { LogLevel, LogManager } from "../src/core/Logger";
 
-const logger = Logger.get("assets_generation/update_ephinea_data");
+const logger = LogManager.get("assets_generation/update_ephinea_data");
 
-Logger.useDefaults({ defaultLevel: Logger.ERROR });
-logger.setLevel(Logger.INFO);
-Logger.get("static/update_drops_ephinea").setLevel(Logger.INFO);
-Logger.get("core/data_formats/parsing/quest").setLevel(Logger.OFF);
-Logger.get("core/data_formats/parsing/quest/bin").setLevel(Logger.OFF);
+LogManager.default_level = LogLevel.Error;
+logger.level = LogLevel.Info;
+LogManager.get("static/update_drops_ephinea").level = LogLevel.Info;
+LogManager.get("core/data_formats/parsing/quest").level = LogLevel.Off;
+LogManager.get("core/data_formats/parsing/quest/bin").level = LogLevel.Off;
 
 /**
  * Used by static data generation scripts.
@@ -331,7 +331,7 @@ function load_item_pt(): ItemPt {
                     switch (npc) {
                         case NpcType.Dragon:
                         case NpcType.DeRolLe:
-                        case NpcType.VolOpt:
+                        case NpcType.VolOptPart2:
                         case NpcType.DarkFalz:
                         case NpcType.BarbaRay:
                         case NpcType.GolDragon:
@@ -739,7 +739,7 @@ function get_enemy_type(episode: Episode, index: number): NpcType | undefined {
 
             NpcType.Dragon,
             NpcType.DeRolLe,
-            NpcType.VolOpt,
+            NpcType.VolOptPart2,
             NpcType.DarkFalz,
 
             undefined,
@@ -954,8 +954,10 @@ function npc_type_to_pt_index(type: NpcType): number | undefined {
             return 29;
         case NpcType.Dubswitch:
             return undefined;
-        case NpcType.VolOpt:
+        case NpcType.VolOptPart1:
             return 46;
+        case NpcType.VolOptPart2:
+            return undefined;
 
         // Episode I Ruins
 

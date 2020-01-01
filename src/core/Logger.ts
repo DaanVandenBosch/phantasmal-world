@@ -8,6 +8,7 @@ export enum LogLevel {
     Info,
     Warn,
     Error,
+    Off,
 }
 
 export const LogLevels = enum_values<LogLevel>(LogLevel);

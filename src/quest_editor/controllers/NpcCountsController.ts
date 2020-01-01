@@ -25,8 +25,11 @@ export class NpcCountsController extends Controller {
         const npc_counts = new Map<NpcType, number>();
 
         for (const npc of npcs) {
-            const val = npc_counts.get(npc.type) || 0;
-            npc_counts.set(npc.type, val + 1);
+            // Don't count Vol Opt twice.
+            if (npc.type !== NpcType.VolOptPart2) {
+                const val = npc_counts.get(npc.type) || 0;
+                npc_counts.set(npc.type, val + 1);
+            }
         }
 
         const extra_canadines = (npc_counts.get(NpcType.Canane) || 0) * 8;

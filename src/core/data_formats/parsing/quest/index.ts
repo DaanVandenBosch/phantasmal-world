@@ -492,10 +492,10 @@ function get_npc_type(episode: number, { type_id, scale, roaming, area_id }: Dat
             return NpcType.GalGryphon;
         case `${0x0c1}, 1`:
             return NpcType.DeRolLe;
-        // TODO:
-        // case `${0x0C2}, 1`: return NpcType.VolOptPart1;
+        case `${0x0c2}, 1`:
+            return NpcType.VolOptPart1;
         case `${0x0c5}, 1`:
-            return NpcType.VolOpt;
+            return NpcType.VolOptPart2;
         case `${0x0c8}, 1`:
             return NpcType.DarkFalz;
         case `${0x0ca}, 2`:

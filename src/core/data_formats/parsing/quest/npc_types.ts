@@ -75,7 +75,8 @@ export enum NpcType {
     Canadine,
     Canane,
     Dubswitch,
-    VolOpt,
+    VolOptPart1,
+    VolOptPart2,
 
     // Episode I Ruins
 
@@ -976,8 +977,21 @@ define_npc_type_data(
     true,
 );
 define_npc_type_data(
-    NpcType.VolOpt,
+    NpcType.VolOptPart1,
+    "Vol Opt (Part 1)",
     "Vol Opt",
+    "Vol Opt ver.2",
+    1,
+    true,
+    undefined,
+    [13],
+    0x0c2,
+    0,
+    true,
+);
+define_npc_type_data(
+    NpcType.VolOptPart2,
+    "Vol Opt (Part 2)",
     "Vol Opt",
     "Vol Opt ver.2",
     1,
