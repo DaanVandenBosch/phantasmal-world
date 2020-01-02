@@ -1,9 +1,10 @@
 import { walk_qst_files } from "../../../../../test/src/utils";
-import { parse_qst, Version, write_qst } from "./qst";
+import { parse_qst, write_qst } from "./qst";
 import { Endianness } from "../../Endianness";
 import { BufferCursor } from "../../cursor/BufferCursor";
 import { ArrayBufferCursor } from "../../cursor/ArrayBufferCursor";
 import * as fs from "fs";
+import { Version } from "./Version";
 
 test("Parse a GC quest.", () => {
     const buf = fs.readFileSync("test/resources/lost_heat_sword_gc.qst");

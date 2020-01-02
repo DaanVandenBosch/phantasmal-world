@@ -20,6 +20,7 @@ import { parse_qst, QstContainedFile, write_qst } from "./qst";
 import { npc_data, NpcType } from "./npc_types";
 import { reinterpret_f32_as_i32, reinterpret_i32_as_f32 } from "../../../primitive_conversion";
 import { LogManager } from "../../../Logger";
+import { Version } from "./Version";
 
 const logger = LogManager.get("core/data_formats/parsing/quest");
 
@@ -90,6 +91,7 @@ export function parse_quest(cursor: Cursor, lenient: boolean = false): Quest | u
     );
     const bin = parse_bin(
         bin_decompressed,
+        qst.version === Version.DC || qst.version === Version.GC ? 1 : 2,
         extract_script_entry_points(objects, dat.npcs),
         lenient,
     );

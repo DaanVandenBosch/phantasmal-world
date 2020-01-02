@@ -6,6 +6,7 @@ import { WritableCursor } from "../../cursor/WritableCursor";
 import { ResizableBuffer } from "../../ResizableBuffer";
 import { basename, defined } from "../../../util";
 import { LogManager } from "../../../Logger";
+import { Version } from "./Version";
 
 const logger = LogManager.get("core/data_formats/parsing/quest/qst");
 
@@ -14,22 +15,6 @@ const PC_GC_HEADER_SIZE = 60;
 const ONLINE_QUEST = 0x44;
 const DOWNLOAD_QUEST = 0xa6;
 const CHUNK_BODY_SIZE = 1024;
-
-export enum Version {
-    /**
-     * Dreamcast
-     */
-    DC,
-    /**
-     * GameCube
-     */
-    GC,
-    PC,
-    /**
-     * BlueBurst
-     */
-    BB,
-}
 
 export type QstContainedFile = {
     readonly id?: number;

@@ -27,6 +27,7 @@ import { ResizableBufferCursor } from "../../cursor/ResizableBufferCursor";
 import { WritableCursor } from "../../cursor/WritableCursor";
 import { ResizableBuffer } from "../../ResizableBuffer";
 import { LogManager } from "../../../Logger";
+import { Version } from "./Version";
 
 const logger = LogManager.get("core/data_formats/parsing/quest/bin");
 
@@ -47,18 +48,35 @@ SEGMENT_PRIORITY[SegmentType.Data] = 0;
 
 export function parse_bin(
     cursor: Cursor,
+    version: Version,
     entry_labels: number[] = [0],
     lenient: boolean = false,
 ): BinFile {
-    const object_code_offset = cursor.u32(); // Always 4652
+    const object_code_offset = cursor.u32();
     const label_offset_table_offset = cursor.u32(); // Relative offsets
     const size = cursor.u32();
-    cursor.seek(4); // Always seems to be 0xFFFFFFFF
-    const quest_id = cursor.u32();
-    const language = cursor.u32();
-    const quest_name = cursor.string_utf16(64, true, true);
-    const short_description = cursor.string_utf16(256, true, true);
-    const long_description = cursor.string_utf16(576, true, true);
+    cursor.seek(4); // Always seems to be 0xFFFFFFFF for BB.
+    const dc_gc_format = version === Version.DC || version === Version.GC;
+    let quest_id: number;
+    let language: number;
+
+    if (dc_gc_format) {
+        language = cursor.u16();
+        quest_id = cursor.u16();
+    } else {
+        quest_id = cursor.u32();
+        language = cursor.u32();
+    }
+
+    const quest_name = dc_gc_format
+        ? cursor.string_ascii(32, true, true)
+        : cursor.string_utf16(64, true, true);
+    const short_description = dc_gc_format
+        ? cursor.string_ascii(128, true, true)
+        : cursor.string_utf16(256, true, true);
+    const long_description = dc_gc_format
+        ? cursor.string_ascii(288, true, true)
+        : cursor.string_utf16(576, true, true);
 
     if (size !== cursor.size) {
         logger.warn(`Value ${size} in bin size field does not match actual size ${cursor.size}.`);
@@ -78,7 +96,13 @@ export function parse_bin(
         .seek_start(object_code_offset)
         .take(label_offset_table_offset - object_code_offset);
 
-    const segments = parse_object_code(object_code, label_holder, entry_labels, lenient);
+    const segments = parse_object_code(
+        object_code,
+        label_holder,
+        entry_labels,
+        lenient,
+        dc_gc_format,
+    );
 
     return {
         quest_id,
@@ -220,6 +244,7 @@ function parse_object_code(
     label_holder: LabelHolder,
     entry_labels: number[],
     lenient: boolean,
+    dc_gc_format: boolean,
 ): Segment[] {
     const offset_to_segment = new Map<number, Segment>();
 
@@ -229,6 +254,7 @@ function parse_object_code(
         entry_labels.reduce((m, l) => m.set(l, SegmentType.Instructions), new Map()),
         offset_to_segment,
         lenient,
+        dc_gc_format,
     );
 
     const segments: Segment[] = [];
@@ -333,6 +359,7 @@ function find_and_parse_segments(
     labels: Map<number, SegmentType>,
     offset_to_segment: Map<number, Segment>,
     lenient: boolean,
+    dc_gc_format: boolean,
 ): void {
     let start_segment_count: number;
 
@@ -341,7 +368,15 @@ function find_and_parse_segments(
         start_segment_count = offset_to_segment.size;
 
         for (const [label, type] of labels) {
-            parse_segment(offset_to_segment, label_holder, cursor, label, type, lenient);
+            parse_segment(
+                offset_to_segment,
+                label_holder,
+                cursor,
+                label,
+                type,
+                lenient,
+                dc_gc_format,
+            );
         }
 
         // Find label references.
@@ -460,6 +495,7 @@ function parse_segment(
     label: number,
     type: SegmentType,
     lenient: boolean,
+    dc_gc_format: boolean,
 ): void {
     try {
         const info = label_holder.get_info(label);
@@ -501,13 +537,14 @@ function parse_segment(
                     labels,
                     info.next && info.next.label,
                     lenient,
+                    dc_gc_format,
                 );
                 break;
             case SegmentType.Data:
                 parse_data_segment(offset_to_segment, cursor, end_offset, labels);
                 break;
             case SegmentType.String:
-                parse_string_segment(offset_to_segment, cursor, end_offset, labels);
+                parse_string_segment(offset_to_segment, cursor, end_offset, labels, dc_gc_format);
                 break;
             default:
                 throw new Error(`Segment type ${SegmentType[type]} not implemented.`);
@@ -529,6 +566,7 @@ function parse_instructions_segment(
     labels: number[],
     next_label: number | undefined,
     lenient: boolean,
+    dc_gc_format: boolean,
 ): void {
     const instructions: Instruction[] = [];
 
@@ -559,7 +597,7 @@ function parse_instructions_segment(
 
         // Parse the arguments.
         try {
-            const args = parse_instruction_arguments(cursor, opcode);
+            const args = parse_instruction_arguments(cursor, opcode, dc_gc_format);
             instructions.push(new_instruction(opcode, args));
         } catch (e) {
             if (lenient) {
@@ -596,6 +634,7 @@ function parse_instructions_segment(
                 next_label,
                 SegmentType.Instructions,
                 lenient,
+                dc_gc_format,
             );
         }
     }
@@ -622,18 +661,21 @@ function parse_string_segment(
     cursor: Cursor,
     end_offset: number,
     labels: number[],
+    dc_gc_format: boolean,
 ): void {
     const start_offset = cursor.position;
     const segment: StringSegment = {
         type: SegmentType.String,
         labels,
-        value: cursor.string_utf16(end_offset - start_offset, true, true),
+        value: dc_gc_format
+            ? cursor.string_ascii(end_offset - start_offset, true, true)
+            : cursor.string_utf16(end_offset - start_offset, true, true),
         asm: { labels: [] },
     };
     offset_to_segment.set(start_offset, segment);
 }
 
-function parse_instruction_arguments(cursor: Cursor, opcode: Opcode): Arg[] {
+function parse_instruction_arguments(cursor: Cursor, opcode: Opcode, dc_gc_format: boolean): Arg[] {
     const args: Arg[] = [];
 
     if (opcode.stack !== StackInteraction.Pop) {
@@ -660,9 +702,12 @@ function parse_instruction_arguments(cursor: Cursor, opcode: Opcode): Arg[] {
                 case Kind.String:
                     {
                         const start_pos = cursor.position;
+                        const max_bytes = Math.min(4096, cursor.bytes_left);
                         args.push(
                             new_arg(
-                                cursor.string_utf16(Math.min(4096, cursor.bytes_left), true, false),
+                                dc_gc_format
+                                    ? cursor.string_ascii(max_bytes, true, false)
+                                    : cursor.string_utf16(max_bytes, true, false),
                                 cursor.position - start_pos,
                             ),
                         );
