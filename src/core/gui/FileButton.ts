@@ -7,6 +7,7 @@ import { WritableProperty } from "../observable/property/WritableProperty";
 
 export type FileButtonOptions = ControlOptions & {
     accept?: string;
+    multiple?: boolean;
     icon_left?: Icon;
 };
 
@@ -37,19 +38,23 @@ export class FileButton extends Control {
             }
         };
 
-        if (options && options.accept) this.input.accept = options.accept;
-
         const inner_element = span({
             className: "core_FileButton_inner core_Button_inner",
         });
 
-        if (options && options.icon_left != undefined) {
-            inner_element.append(
-                span(
-                    { className: "core_FileButton_left core_Button_left" },
-                    icon(options.icon_left),
-                ),
-            );
+        if (options) {
+            if (options.accept != undefined) this.input.accept = options.accept;
+
+            if (options.multiple != undefined) this.input.multiple = options.multiple;
+
+            if (options.icon_left != undefined) {
+                inner_element.append(
+                    span(
+                        { className: "core_FileButton_left core_Button_left" },
+                        icon(options.icon_left),
+                    ),
+                );
+            }
         }
 
         inner_element.append(span({ className: "core_Button_center" }, text));

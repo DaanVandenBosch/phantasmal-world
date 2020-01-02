@@ -9,12 +9,18 @@ import { Controller } from "../../core/controllers/Controller";
 import { Episode } from "../../core/data_formats/parsing/quest/Episode";
 import { create_new_quest } from "../stores/quest_creation";
 import { read_file } from "../../core/read_file";
-import { parse_quest, write_quest_qst } from "../../core/data_formats/parsing/quest";
+import {
+    parse_bin_dat_to_quest,
+    parse_qst_to_quest,
+    Quest,
+    write_quest_qst,
+} from "../../core/data_formats/parsing/quest";
 import { ArrayBufferCursor } from "../../core/data_formats/cursor/ArrayBufferCursor";
 import { Endianness } from "../../core/data_formats/Endianness";
 import { convert_quest_from_model, convert_quest_to_model } from "../stores/model_conversion";
 import { LogManager } from "../../core/Logger";
 import { input } from "../../core/gui/dom";
+import { basename } from "../../core/util";
 
 const logger = LogManager.get("quest_editor/controllers/QuestEditorToolBarController");
 
@@ -99,9 +105,10 @@ export class QuestEditorToolBarController extends Controller {
             gui_store.on_global_keydown(GuiTool.QuestEditor, "Ctrl-O", () => {
                 const input_element = input();
                 input_element.type = "file";
+                input_element.multiple = true;
                 input_element.onchange = () => {
                     if (input_element.files && input_element.files.length) {
-                        this.open_file(input_element.files[0]);
+                        this.open_files(Array.prototype.slice.apply(input_element.files));
                     }
                 };
                 input_element.click();
@@ -135,10 +142,30 @@ export class QuestEditorToolBarController extends Controller {
         this.quest_editor_store.set_current_quest(create_new_quest(this.area_store, episode));
 
     // TODO: notify user of problems.
-    open_file = async (file: File): Promise<void> => {
+    open_files = async (files: File[]): Promise<void> => {
         try {
-            const buffer = await read_file(file);
-            const quest = parse_quest(new ArrayBufferCursor(buffer, Endianness.Little));
+            let quest: Quest | undefined;
+
+            const qst = files.find(f => f.name.toLowerCase().endsWith(".qst"));
+
+            if (qst) {
+                const buffer = await read_file(qst);
+                quest = parse_qst_to_quest(new ArrayBufferCursor(buffer, Endianness.Little));
+                this.quest_filename = qst.name;
+            } else {
+                const bin = files.find(f => f.name.toLowerCase().endsWith(".bin"));
+                const dat = files.find(f => f.name.toLowerCase().endsWith(".dat"));
+
+                if (bin && dat) {
+                    const bin_buffer = await read_file(bin);
+                    const dat_buffer = await read_file(dat);
+                    quest = parse_bin_dat_to_quest(
+                        new ArrayBufferCursor(bin_buffer, Endianness.Little),
+                        new ArrayBufferCursor(dat_buffer, Endianness.Little),
+                    );
+                    this.quest_filename = bin.name || dat.name;
+                }
+            }
 
             if (!quest) {
                 logger.error("Couldn't parse quest file.");
@@ -147,8 +174,6 @@ export class QuestEditorToolBarController extends Controller {
             await this.quest_editor_store.set_current_quest(
                 quest && convert_quest_to_model(this.area_store, quest),
             );
-
-            this.quest_filename = file.name;
         } catch (e) {
             logger.error("Couldn't read file.", e);
         }
@@ -162,12 +187,7 @@ export class QuestEditorToolBarController extends Controller {
         const quest = this.quest_editor_store.current_quest.val;
         if (!quest) return;
 
-        let default_file_name = this.quest_filename;
-
-        if (default_file_name) {
-            const ext_start = default_file_name.lastIndexOf(".");
-            if (ext_start !== -1) default_file_name = default_file_name.slice(0, ext_start);
-        }
+        const default_file_name = this.quest_filename && basename(this.quest_filename);
 
         let file_name = prompt("File name:", default_file_name);
         if (!file_name) return;

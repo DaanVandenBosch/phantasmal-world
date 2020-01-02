@@ -2,7 +2,7 @@ import { readdirSync, readFileSync, statSync, writeFileSync } from "fs";
 import { ASSETS_DIR, RESOURCE_DIR } from ".";
 import { BufferCursor } from "../src/core/data_formats/cursor/BufferCursor";
 import { ItemPmt, parse_item_pmt } from "../src/core/data_formats/parsing/itempmt";
-import { parse_quest } from "../src/core/data_formats/parsing/quest";
+import { parse_qst_to_quest } from "../src/core/data_formats/parsing/quest";
 import { parse_unitxt, Unitxt } from "../src/core/data_formats/parsing/unitxt";
 import { Difficulties, Difficulty, SectionId, SectionIds } from "../src/core/model";
 import { update_drops_from_website } from "./update_drops_ephinea";
@@ -111,7 +111,7 @@ function process_quest_dir(path: string, quests: QuestDto[]): void {
 function process_quest(path: string, quests: QuestDto[]): void {
     try {
         const buf = readFileSync(path);
-        const q = parse_quest(new BufferCursor(buf, Endianness.Little), true);
+        const q = parse_qst_to_quest(new BufferCursor(buf, Endianness.Little), true);
 
         if (q) {
             logger.trace(`Processing quest "${q.name}".`);

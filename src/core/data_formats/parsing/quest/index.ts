@@ -20,7 +20,6 @@ import { parse_qst, QstContainedFile, write_qst } from "./qst";
 import { npc_data, NpcType } from "./npc_types";
 import { reinterpret_f32_as_i32, reinterpret_i32_as_f32 } from "../../../primitive_conversion";
 import { LogManager } from "../../../Logger";
-import { Version } from "./Version";
 
 const logger = LogManager.get("core/data_formats/parsing/quest");
 
@@ -43,55 +42,19 @@ export type Quest = {
     readonly map_designations: Map<number, number>;
 };
 
-/**
- * High level parsing function that delegates to lower level parsing functions.
- *
- * Always delegates to parse_qst at the moment.
- */
-export function parse_quest(cursor: Cursor, lenient: boolean = false): Quest | undefined {
-    // Extract contained .dat and .bin files.
-    const qst = parse_qst(cursor);
-
-    if (!qst) {
-        return;
-    }
-
-    let dat_file: QstContainedFile | undefined;
-    let bin_file: QstContainedFile | undefined;
-
-    for (const file of qst.files) {
-        const file_name = file.filename.trim().toLowerCase();
-
-        if (file_name.endsWith(".dat")) {
-            dat_file = file;
-        } else if (file_name.endsWith(".bin")) {
-            bin_file = file;
-        }
-    }
-
-    if (!dat_file) {
-        logger.error("File contains no DAT file.");
-        return;
-    }
-
-    if (!bin_file) {
-        logger.error("File contains no BIN file.");
-        return;
-    }
-
-    // Decompress and parse contained files.
-    const dat_decompressed = prs_decompress(
-        new ArrayBufferCursor(dat_file.data, Endianness.Little),
-    );
+export function parse_bin_dat_to_quest(
+    bin_cursor: Cursor,
+    dat_cursor: Cursor,
+    lenient: boolean = false,
+): Quest | undefined {
+    // Decompress and parse files.
+    const dat_decompressed = prs_decompress(dat_cursor);
     const dat = parse_dat(dat_decompressed);
     const objects = parse_obj_data(dat.objs);
 
-    const bin_decompressed = prs_decompress(
-        new ArrayBufferCursor(bin_file.data, Endianness.Little),
-    );
+    const bin_decompressed = prs_decompress(bin_cursor);
     const bin = parse_bin(
         bin_decompressed,
-        qst.version === Version.DC || qst.version === Version.GC ? 1 : 2,
         extract_script_entry_points(objects, dat.npcs),
         lenient,
     );
@@ -135,6 +98,44 @@ export function parse_quest(cursor: Cursor, lenient: boolean = false): Quest | u
         shop_items: bin.shop_items,
         map_designations,
     };
+}
+
+export function parse_qst_to_quest(cursor: Cursor, lenient: boolean = false): Quest | undefined {
+    // Extract contained .dat and .bin files.
+    const qst = parse_qst(cursor);
+
+    if (!qst) {
+        return;
+    }
+
+    let dat_file: QstContainedFile | undefined;
+    let bin_file: QstContainedFile | undefined;
+
+    for (const file of qst.files) {
+        const file_name = file.filename.trim().toLowerCase();
+
+        if (file_name.endsWith(".dat")) {
+            dat_file = file;
+        } else if (file_name.endsWith(".bin")) {
+            bin_file = file;
+        }
+    }
+
+    if (!dat_file) {
+        logger.error("File contains no DAT file.");
+        return;
+    }
+
+    if (!bin_file) {
+        logger.error("File contains no BIN file.");
+        return;
+    }
+
+    return parse_bin_dat_to_quest(
+        new ArrayBufferCursor(bin_file.data, Endianness.Little),
+        new ArrayBufferCursor(dat_file.data, Endianness.Little),
+        lenient,
+    );
 }
 
 export function write_quest_qst(quest: Quest, file_name: string): ArrayBuffer {

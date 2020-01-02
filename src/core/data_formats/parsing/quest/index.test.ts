@@ -3,13 +3,13 @@ import { Endianness } from "../../Endianness";
 import { walk_qst_files } from "../../../../../test/src/utils";
 import { ArrayBufferCursor } from "../../cursor/ArrayBufferCursor";
 import { BufferCursor } from "../../cursor/BufferCursor";
-import { parse_quest, write_quest_qst } from "./index";
+import { parse_qst_to_quest, write_quest_qst } from "./index";
 import { ObjectType } from "./object_types";
 
 test("parse Towards the Future", () => {
     const buffer = readFileSync("test/resources/quest118_e.qst");
     const cursor = new BufferCursor(buffer, Endianness.Little);
-    const quest = parse_quest(cursor)!;
+    const quest = parse_qst_to_quest(cursor)!;
 
     expect(quest.name).toBe("Towards the Future");
     expect(quest.short_description).toBe("Challenge the\nnew simulator.");
@@ -58,9 +58,9 @@ if (process.env["RUN_ALL_TESTS"] === "true") {
 
 function round_trip_test(path: string, file_name: string, contents: Buffer): void {
     test(`parse_quest and write_quest_qst ${path}`, () => {
-        const orig_quest = parse_quest(new BufferCursor(contents, Endianness.Little))!;
+        const orig_quest = parse_qst_to_quest(new BufferCursor(contents, Endianness.Little))!;
         const test_bin = write_quest_qst(orig_quest, file_name);
-        const test_quest = parse_quest(new ArrayBufferCursor(test_bin, Endianness.Little))!;
+        const test_quest = parse_qst_to_quest(new ArrayBufferCursor(test_bin, Endianness.Little))!;
 
         expect(test_quest.name).toBe(orig_quest.name);
         expect(test_quest.short_description).toBe(orig_quest.short_description);

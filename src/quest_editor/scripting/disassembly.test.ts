@@ -14,7 +14,6 @@ import {
     SegmentType,
 } from "./instructions";
 import { OP_ARG_PUSHW, OP_RET, OP_SWITCH_JMP, OP_VA_CALL, OP_VA_END, OP_VA_START } from "./opcodes";
-import { Version } from "../../core/data_formats/parsing/quest/Version";
 
 test("vararg instructions should be disassembled correctly", () => {
     const asm = disassemble([
@@ -83,7 +82,7 @@ test("va list instructions should be disassembled correctly", () => {
 test("assembling disassembled object code with manual stack management should result in the same IR", () => {
     const orig_buffer = readFileSync("test/resources/quest27_e.bin");
     const orig_bytes = prs_decompress(new BufferCursor(orig_buffer, Endianness.Little));
-    const bin = parse_bin(orig_bytes, Version.BB);
+    const bin = parse_bin(orig_bytes);
 
     const { object_code, warnings, errors } = assemble(disassemble(bin.object_code, true), true);
 
@@ -97,7 +96,7 @@ test("assembling disassembled object code with manual stack management should re
 test("assembling disassembled object code with automatic stack management should result in the same IR", () => {
     const orig_buffer = readFileSync("test/resources/quest27_e.bin");
     const orig_bytes = prs_decompress(new BufferCursor(orig_buffer, Endianness.Little));
-    const bin = parse_bin(orig_bytes, Version.BB);
+    const bin = parse_bin(orig_bytes);
 
     const { object_code, warnings, errors } = assemble(disassemble(bin.object_code, false), false);
 
@@ -111,7 +110,7 @@ test("assembling disassembled object code with automatic stack management should
 test("assembling disassembled object code with manual stack management should result in the same object code", () => {
     const orig_buffer = readFileSync("test/resources/quest27_e.bin");
     const orig_bytes = prs_decompress(new BufferCursor(orig_buffer, Endianness.Little));
-    const bin = parse_bin(orig_bytes, Version.BB);
+    const bin = parse_bin(orig_bytes);
 
     const { object_code, warnings, errors } = assemble(disassemble(bin.object_code, true), true);
 
@@ -145,7 +144,7 @@ test("assembling disassembled object code with manual stack management should re
 test("disassembling assembled assembly code with automatic stack management should result the same assembly code", () => {
     const orig_buffer = readFileSync("test/resources/quest27_e.bin");
     const orig_bytes = prs_decompress(new BufferCursor(orig_buffer, Endianness.Little));
-    const orig_asm = disassemble(parse_bin(orig_bytes, Version.BB).object_code, false);
+    const orig_asm = disassemble(parse_bin(orig_bytes).object_code, false);
 
     const { object_code, warnings, errors } = assemble(orig_asm, false);
 

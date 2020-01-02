@@ -27,7 +27,6 @@ import { ResizableBufferCursor } from "../../cursor/ResizableBufferCursor";
 import { WritableCursor } from "../../cursor/WritableCursor";
 import { ResizableBuffer } from "../../ResizableBuffer";
 import { LogManager } from "../../../Logger";
-import { Version } from "./Version";
 
 const logger = LogManager.get("core/data_formats/parsing/quest/bin");
 
@@ -48,15 +47,16 @@ SEGMENT_PRIORITY[SegmentType.Data] = 0;
 
 export function parse_bin(
     cursor: Cursor,
-    version: Version,
     entry_labels: number[] = [0],
     lenient: boolean = false,
 ): BinFile {
+    const dc_gc_format = cursor.u8_at(0) !== 4652;
+
     const object_code_offset = cursor.u32();
     const label_offset_table_offset = cursor.u32(); // Relative offsets
     const size = cursor.u32();
     cursor.seek(4); // Always seems to be 0xFFFFFFFF for BB.
-    const dc_gc_format = version === Version.DC || version === Version.GC;
+
     let quest_id: number;
     let language: number;
 

@@ -12,7 +12,7 @@ import { Version } from "./Version";
 function test_quest(path: string): void {
     const orig_buffer = readFileSync(path);
     const orig_bin = prs_decompress(new BufferCursor(orig_buffer, Endianness.Little));
-    const test_buffer = write_bin(parse_bin(orig_bin, Version.BB));
+    const test_buffer = write_bin(parse_bin(orig_bin));
     const test_bin = new ArrayBufferCursor(test_buffer, Endianness.Little);
 
     orig_bin.seek_start(0);
