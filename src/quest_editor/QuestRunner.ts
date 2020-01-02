@@ -276,11 +276,7 @@ export class QuestRunner {
         }
 
         return {
-            bb_map_designate: (
-                area_id: number,
-                map_number: number,
-                area_variant_id: number,
-            ): void => {
+            map_designate: (area_id: number, area_variant_id: number): void => {
                 this._game_state.area_variants.set(
                     area_id,
                     this.area_store.get_variant(this._game_state.episode, area_id, area_variant_id),

@@ -16,12 +16,7 @@ export interface VirtualMachineInput {
  * The virtual machine calls these methods when it outputs something.
  */
 export interface VirtualMachineOutput {
-    bb_map_designate(
-        area_id: number,
-        map_number: number,
-        area_variant_id: number,
-        unknown: number,
-    ): void;
+    map_designate(area_id: number, area_variant_id: number): void;
     set_floor_handler(area_id: number, label: number): void;
     window_msg(msg: string): void;
     message(msg: string): void;
@@ -53,7 +48,7 @@ export interface VirtualMachineIO
         VirtualMachineMetaIO {}
 
 export class DefaultVirtualMachineIO implements VirtualMachineIO {
-    bb_map_designate(area_id: number, area_variant_id: number): void {
+    map_designate(area_id: number, area_variant_id: number): void {
         logger.warn(`bb_map_designate(${area_id}, ${area_variant_id})`);
     }
 

@@ -51,6 +51,8 @@ import {
     OP_LETI,
     OP_LETW,
     OP_LIST,
+    OP_MAP_DESIGNATE,
+    OP_MAP_DESIGNATE_EX,
     OP_MOD,
     OP_MODI,
     OP_MUL,
@@ -477,7 +479,7 @@ export class VirtualMachine {
         let advance = true;
 
         const arg_vals = inst.args.map(arg => arg.value);
-        const [arg0, arg1, arg2, arg3] = arg_vals;
+        const [arg0, arg1, arg2] = arg_vals;
 
         // previous instruction must've been `list`.
         // list may not exist after the instruction
@@ -814,6 +816,18 @@ export class VirtualMachine {
             case OP_THREAD_STG.code:
                 this.start_thread(arg0);
                 break;
+            case OP_MAP_DESIGNATE.code:
+                this.io.map_designate(
+                    this.get_register_signed(arg0),
+                    this.get_register_signed(arg0 + 2),
+                );
+                break;
+            case OP_MAP_DESIGNATE_EX.code:
+                this.io.map_designate(
+                    this.get_register_signed(arg0),
+                    this.get_register_signed(arg0 + 3),
+                );
+                break;
             case OP_GET_RANDOM.code:
                 {
                     const low = this.get_register_signed(arg0);
@@ -860,7 +874,7 @@ export class VirtualMachine {
 
                 break;
             case OP_BB_MAP_DESIGNATE.code:
-                this.io.bb_map_designate(arg0, arg1, arg2, arg3);
+                this.io.map_designate(arg0, arg2);
                 break;
             default:
                 if (!this.unsupported_opcodes_logged.has(inst.opcode.code)) {
