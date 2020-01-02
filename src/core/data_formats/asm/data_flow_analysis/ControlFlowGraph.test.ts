@@ -1,4 +1,4 @@
-import { assemble } from "../assembly";
+import { assemble } from "../../../../quest_editor/scripting/assembly";
 import { InstructionSegment, SegmentType } from "../instructions";
 import { BranchType, ControlFlowGraph } from "./ControlFlowGraph";
 

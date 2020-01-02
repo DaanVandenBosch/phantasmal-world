@@ -10,8 +10,8 @@ const logger = LogManager.get("assets_generation/update_generic_data");
 
 LogManager.default_level = LogLevel.Trace;
 
-const OPCODES_YML_FILE = `${RESOURCE_DIR}/scripting/opcodes.yml`;
-const OPCODES_SRC_FILE = `${SRC_DIR}/quest_editor/scripting/opcodes.ts`;
+const OPCODES_YML_FILE = `${RESOURCE_DIR}/asm/opcodes.yml`;
+const OPCODES_SRC_FILE = `${SRC_DIR}/core/data_formats/asm/opcodes.ts`;
 
 update();
 

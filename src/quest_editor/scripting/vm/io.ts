@@ -1,4 +1,4 @@
-import { AsmToken } from "../instructions";
+import { AsmToken } from "../../../core/data_formats/asm/instructions";
 import { InstructionPointer } from "./InstructionPointer";
 import { LogManager } from "../../../core/Logger";
 

@@ -66,6 +66,12 @@ export abstract class AbstractWritableCursor extends AbstractCursor implements W
         return this;
     }
 
+    write_i32_array(array: readonly number[]): this {
+        this.write_i32_array_at(this.position, array);
+        this._position += array.length * 4;
+        return this;
+    }
+
     write_vec2_f32(value: Vec2): this {
         this.write_vec2_f32_at(this.position, value);
         this._position += 8;
@@ -168,6 +174,17 @@ export abstract class AbstractWritableCursor extends AbstractCursor implements W
 
         for (let i = 0; i < len; i++) {
             this.write_u32_at(offset + i * 4, array[i]);
+        }
+
+        return this;
+    }
+
+    write_i32_array_at(offset: number, array: readonly number[]): this {
+        this.ensure_size(4 * array.length, offset);
+        const len = array.length;
+
+        for (let i = 0; i < len; i++) {
+            this.write_i32_at(offset + i * 4, array[i]);
         }
 
         return this;

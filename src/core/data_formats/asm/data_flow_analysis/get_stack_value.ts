@@ -13,10 +13,10 @@ import {
 } from "../opcodes";
 import { BasicBlock, ControlFlowGraph } from "./ControlFlowGraph";
 import { ValueSet } from "./ValueSet";
-import { register_value } from "./register_value";
-import { LogManager } from "../../../core/Logger";
+import { get_register_value } from "./get_register_value";
+import { LogManager } from "../../../Logger";
 
-const logger = LogManager.get("quest_editor/scripting/data_flow_analysis/stack_value");
+const logger = LogManager.get("core/data_formats/asm/data_flow_analysis/stack_value");
 
 export const MIN_STACK_VALUE = MIN_SIGNED_DWORD_VALUE;
 export const MAX_STACK_VALUE = MAX_SIGNED_DWORD_VALUE;
@@ -24,7 +24,7 @@ export const MAX_STACK_VALUE = MAX_SIGNED_DWORD_VALUE;
 /**
  * Computes the possible values of a stack element at the nth position from the top right before a specific instruction.
  */
-export function stack_value(
+export function get_stack_value(
     cfg: ControlFlowGraph,
     instruction: Instruction,
     position: number,
@@ -75,7 +75,7 @@ function find_values(
         switch (instruction.opcode.code) {
             case OP_ARG_PUSHR.code:
                 if (position === 0) {
-                    return register_value(ctx.cfg, instruction, args[0].value);
+                    return get_register_value(ctx.cfg, instruction, args[0].value);
                 } else {
                     position--;
                     break;

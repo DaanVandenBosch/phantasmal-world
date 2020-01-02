@@ -1,5 +1,5 @@
 import * as fs from "fs";
-import { InstructionSegment, SegmentType } from "../../src/quest_editor/scripting/instructions";
+import { InstructionSegment, SegmentType } from "../../src/core/data_formats/asm/instructions";
 import { assemble } from "../../src/quest_editor/scripting/assembly";
 
 export async function timeout(millis: number): Promise<void> {

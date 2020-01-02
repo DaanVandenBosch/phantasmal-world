@@ -1,4 +1,4 @@
-import { Segment, SegmentType } from "../instructions";
+import { Segment, SegmentType } from "../../../core/data_formats/asm/instructions";
 import {
     Kind,
     OP_ADD,
@@ -87,7 +87,7 @@ import {
     OP_WINEND,
     OP_XOR,
     OP_XORI,
-} from "../opcodes";
+} from "../../../core/data_formats/asm/opcodes";
 import {
     andreduce,
     andsecond,

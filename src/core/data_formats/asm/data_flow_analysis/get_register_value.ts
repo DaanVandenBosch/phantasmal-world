@@ -25,9 +25,9 @@ import {
 } from "../opcodes";
 import { BasicBlock, ControlFlowGraph } from "./ControlFlowGraph";
 import { ValueSet } from "./ValueSet";
-import { LogManager } from "../../../core/Logger";
+import { LogManager } from "../../../Logger";
 
-const logger = LogManager.get("quest_editor/scripting/data_flow_analysis/register_value");
+const logger = LogManager.get("core/data_formats/asm/data_flow_analysis/register_value");
 
 export const MIN_REGISTER_VALUE = MIN_SIGNED_DWORD_VALUE;
 export const MAX_REGISTER_VALUE = MAX_SIGNED_DWORD_VALUE;
@@ -36,7 +36,7 @@ export const REGISTER_VALUES = Math.pow(2, 32);
 /**
  * Computes the possible values of a register right before a specific instruction.
  */
-export function register_value(
+export function get_register_value(
     cfg: ControlFlowGraph,
     instruction: Instruction,
     register: number,

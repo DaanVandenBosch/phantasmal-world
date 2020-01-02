@@ -139,21 +139,48 @@ test_integer_read("i32");
 
 test_all(
     "u8_array",
-    () => [1, 2, 3, 4, 5, 6, 7, 8],
+    () => [1, 2, 0xff, 4, 5, 6, 7, 8],
     cursor => {
-        expect(cursor.u8_array(3)).toEqual([1, 2, 3]);
-        expect(cursor.seek_start(2).u8_array(4)).toEqual([3, 4, 5, 6]);
+        expect(cursor.u8_array(3)).toEqual([1, 2, 0xff]);
+        expect(cursor.seek_start(2).u8_array(4)).toEqual([0xff, 4, 5, 6]);
         expect(cursor.seek_start(5).u8_array(3)).toEqual([6, 7, 8]);
     },
 );
 
 test_all(
     "u16_array",
-    () => [1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8],
+    () => [1, 1, 2, 2, 0xff, 0xff, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8],
     cursor => {
-        expect(cursor.u16_array(3)).toEqual([0x0101, 0x0202, 0x0303]);
-        expect(cursor.seek_start(4).u16_array(4)).toEqual([0x0303, 0x0404, 0x0505, 0x0606]);
+        expect(cursor.u16_array(3)).toEqual([0x0101, 0x0202, 0xffff]);
+        expect(cursor.seek_start(4).u16_array(4)).toEqual([0xffff, 0x0404, 0x0505, 0x0606]);
         expect(cursor.seek_start(10).u16_array(3)).toEqual([0x0606, 0x0707, 0x0808]);
+    },
+);
+
+test_all(
+    "u32_array",
+    // prettier-ignore
+    () => [1, 1, 1, 1, 2, 2, 2, 2, 0xff, 0xff, 0xff, 0xff, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8],
+    cursor => {
+        expect(cursor.u32_array(3)).toEqual([0x01010101, 0x02020202, 0xffffffff]);
+        expect(cursor.seek_start(8).u32_array(4)).toEqual([
+            0xffffffff,
+            0x04040404,
+            0x05050505,
+            0x06060606,
+        ]);
+        expect(cursor.seek_start(20).u32_array(3)).toEqual([0x06060606, 0x07070707, 0x08080808]);
+    },
+);
+
+test_all(
+    "i32_array",
+    // prettier-ignore
+    () => [1, 1, 1, 1, 2, 2, 2, 2, 0xff, 0xff, 0xff, 0xff, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8],
+    cursor => {
+        expect(cursor.i32_array(3)).toEqual([0x01010101, 0x02020202, -1]);
+        expect(cursor.seek_start(8).i32_array(4)).toEqual([-1, 0x04040404, 0x05050505, 0x06060606]);
+        expect(cursor.seek_start(20).i32_array(3)).toEqual([0x06060606, 0x07070707, 0x08080808]);
     },
 );
 

@@ -1,10 +1,5 @@
-import {
-    Instruction,
-    InstructionSegment,
-    Segment,
-    SegmentType,
-} from "../../../../quest_editor/scripting/instructions";
-import { OP_BB_MAP_DESIGNATE, OP_SET_EPISODE } from "../../../../quest_editor/scripting/opcodes";
+import { InstructionSegment, Segment, SegmentType } from "../../asm/instructions";
+import { OP_SET_EPISODE } from "../../asm/opcodes";
 import { prs_compress } from "../../compression/prs/compress";
 import { prs_decompress } from "../../compression/prs/decompress";
 import { ArrayBufferCursor } from "../../cursor/ArrayBufferCursor";
@@ -12,7 +7,7 @@ import { Cursor } from "../../cursor/Cursor";
 import { ResizableBufferCursor } from "../../cursor/ResizableBufferCursor";
 import { Endianness } from "../../Endianness";
 import { parse_bin, write_bin } from "./bin";
-import { DatFile, DatNpc, DatObject, DatUnknown, parse_dat, write_dat } from "./dat";
+import { DatNpc, DatObject, DatUnknown, parse_dat, write_dat } from "./dat";
 import { QuestEvent, QuestNpc, QuestObject } from "./entities";
 import { Episode } from "./Episode";
 import { object_data, ObjectType, pso_id_to_object_type } from "./object_types";
@@ -20,6 +15,8 @@ import { parse_qst, QstContainedFile, write_qst } from "./qst";
 import { npc_data, NpcType } from "./npc_types";
 import { reinterpret_f32_as_i32, reinterpret_i32_as_f32 } from "../../../primitive_conversion";
 import { LogManager } from "../../../Logger";
+import { parse_object_code, write_object_code } from "./object_code";
+import { get_map_designations } from "../../asm/data_flow_analysis/get_map_designations";
 
 const logger = LogManager.get("core/data_formats/parsing/quest");
 
@@ -48,34 +45,42 @@ export function parse_bin_dat_to_quest(
     lenient: boolean = false,
 ): Quest | undefined {
     // Decompress and parse files.
+    const bin_decompressed = prs_decompress(bin_cursor);
+    const { bin, dc_gc_format } = parse_bin(bin_decompressed);
+
     const dat_decompressed = prs_decompress(dat_cursor);
     const dat = parse_dat(dat_decompressed);
     const objects = parse_obj_data(dat.objs);
-
-    const bin_decompressed = prs_decompress(bin_cursor);
-    const bin = parse_bin(
-        bin_decompressed,
-        extract_script_entry_points(objects, dat.npcs),
-        lenient,
-    );
 
     // Extract episode and map designations from object code.
     let episode = Episode.I;
     let map_designations: Map<number, number> = new Map();
 
-    if (bin.object_code.length) {
+    const object_code = parse_object_code(
+        bin.object_code,
+        bin.label_offsets,
+        extract_script_entry_points(objects, dat.npcs),
+        lenient,
+        dc_gc_format,
+    );
+
+    if (object_code.length) {
+        const instruction_segments = object_code.filter(
+            s => s.type === SegmentType.Instructions,
+        ) as InstructionSegment[];
+
         let label_0_segment: InstructionSegment | undefined;
 
-        for (const segment of bin.object_code) {
-            if (segment.type === SegmentType.Instructions && segment.labels.includes(0)) {
+        for (const segment of instruction_segments) {
+            if (segment.labels.includes(0)) {
                 label_0_segment = segment;
                 break;
             }
         }
 
         if (label_0_segment) {
-            episode = get_episode(label_0_segment.instructions);
-            map_designations = extract_map_designations(dat, episode, label_0_segment.instructions);
+            episode = get_episode(label_0_segment);
+            map_designations = get_map_designations(instruction_segments, label_0_segment);
         } else {
             logger.warn(`No instruction for label 0 found.`);
         }
@@ -94,7 +99,7 @@ export function parse_bin_dat_to_quest(
         npcs: parse_npc_data(episode, dat.npcs),
         events: dat.events,
         dat_unknowns: dat.unknowns,
-        object_code: bin.object_code,
+        object_code,
         shop_items: bin.shop_items,
         map_designations,
     };
@@ -145,15 +150,20 @@ export function write_quest_qst(quest: Quest, file_name: string): ArrayBuffer {
         events: quest.events,
         unknowns: quest.dat_unknowns,
     });
+
+    const { object_code, label_offsets } = write_object_code(quest.object_code);
+
     const bin = write_bin({
         quest_id: quest.id,
         language: quest.language,
         quest_name: quest.name,
         short_description: quest.short_description,
         long_description: quest.long_description,
-        object_code: quest.object_code,
+        object_code,
+        label_offsets,
         shop_items: quest.shop_items,
     });
+
     const ext_start = file_name.lastIndexOf(".");
     const base_file_name =
         ext_start === -1 ? file_name.slice(0, 11) : file_name.slice(0, Math.min(11, ext_start));
@@ -179,8 +189,8 @@ export function write_quest_qst(quest: Quest, file_name: string): ArrayBuffer {
 /**
  * Defaults to episode I.
  */
-function get_episode(func_0_instructions: Instruction[]): Episode {
-    const set_episode = func_0_instructions.find(
+function get_episode(func_0_segment: InstructionSegment): Episode {
+    const set_episode = func_0_segment.instructions.find(
         instruction => instruction.opcode.code === OP_SET_EPISODE.code,
     );
 
@@ -198,22 +208,6 @@ function get_episode(func_0_instructions: Instruction[]): Episode {
         logger.debug("Function 0 has no set_episode instruction.");
         return Episode.I;
     }
-}
-
-function extract_map_designations(
-    dat: DatFile,
-    episode: Episode,
-    func_0_instructions: Instruction[],
-): Map<number, number> {
-    const map_designations = new Map<number, number>();
-
-    for (const inst of func_0_instructions) {
-        if (inst.opcode.code === OP_BB_MAP_DESIGNATE.code) {
-            map_designations.set(inst.args[0].value, inst.args[2].value);
-        }
-    }
-
-    return map_designations;
 }
 
 function extract_script_entry_points(

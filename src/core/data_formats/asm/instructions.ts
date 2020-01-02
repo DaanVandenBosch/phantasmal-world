@@ -1,5 +1,5 @@
 import { Kind, Opcode } from "./opcodes";
-import { array_buffers_equal, arrays_equal } from "../../core/util";
+import { array_buffers_equal, arrays_equal } from "../../util";
 
 /**
  * Instruction invocation.

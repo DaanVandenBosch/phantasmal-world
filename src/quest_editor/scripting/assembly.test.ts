@@ -1,5 +1,5 @@
 import { assemble } from "./assembly";
-import { InstructionSegment, SegmentType } from "./instructions";
+import { InstructionSegment, SegmentType } from "../../core/data_formats/asm/instructions";
 import {
     OP_ARG_PUSHB,
     OP_ARG_PUSHL,
@@ -10,7 +10,7 @@ import {
     OP_SET_EPISODE,
     OP_SET_FLOOR_HANDLER,
     OP_SET_MAINWARP,
-} from "./opcodes";
+} from "../../core/data_formats/asm/opcodes";
 
 test("basic script", () => {
     const { object_code, warnings, errors } = assemble(

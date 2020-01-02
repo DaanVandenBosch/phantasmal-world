@@ -4,7 +4,6 @@ import { prs_decompress } from "../../compression/prs/decompress";
 import { ArrayBufferCursor } from "../../cursor/ArrayBufferCursor";
 import { BufferCursor } from "../../cursor/BufferCursor";
 import { parse_bin, write_bin } from "./bin";
-import { Version } from "./Version";
 
 /**
  * Parse a file, convert the resulting structure to BIN again and check whether the end result is equal to the original.
@@ -12,7 +11,7 @@ import { Version } from "./Version";
 function test_quest(path: string): void {
     const orig_buffer = readFileSync(path);
     const orig_bin = prs_decompress(new BufferCursor(orig_buffer, Endianness.Little));
-    const test_buffer = write_bin(parse_bin(orig_bin));
+    const test_buffer = write_bin(parse_bin(orig_bin).bin);
     const test_bin = new ArrayBufferCursor(test_buffer, Endianness.Little);
 
     orig_bin.seek_start(0);

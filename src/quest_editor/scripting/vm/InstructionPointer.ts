@@ -1,4 +1,4 @@
-import { AsmToken, Instruction, InstructionSegment, Segment, SegmentType } from "../instructions";
+import { AsmToken, Instruction, InstructionSegment, Segment, SegmentType } from "../../../core/data_formats/asm/instructions";
 import { assert } from "../../../core/util";
 
 export class InstructionPointer {

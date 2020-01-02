@@ -8,7 +8,7 @@ import { Euler, Vector3 } from "three";
 import { QuestEventDagModel } from "../model/QuestEventDagModel";
 import { AreaStore } from "./AreaStore";
 import { assemble } from "../scripting/assembly";
-import { Segment } from "../scripting/instructions";
+import { Segment } from "../../core/data_formats/asm/instructions";
 import { euler } from "../model/euler";
 
 export function create_new_quest(area_store: AreaStore, episode: Episode): QuestModel {

@@ -14,7 +14,7 @@ import { QuestNpcModel } from "./model/QuestNpcModel";
 import { QuestObjectModel } from "./model/QuestObjectModel";
 import { AreaStore } from "./stores/AreaStore";
 import { InstructionPointer } from "./scripting/vm/InstructionPointer";
-import { clone_segment } from "./scripting/instructions";
+import { clone_segment } from "../core/data_formats/asm/instructions";
 
 export enum QuestRunnerState {
     /**

@@ -59,8 +59,8 @@ if (process.env["RUN_ALL_TESTS"] === "true") {
 function round_trip_test(path: string, file_name: string, contents: Buffer): void {
     test(`parse_quest and write_quest_qst ${path}`, () => {
         const orig_quest = parse_qst_to_quest(new BufferCursor(contents, Endianness.Little))!;
-        const test_bin = write_quest_qst(orig_quest, file_name);
-        const test_quest = parse_qst_to_quest(new ArrayBufferCursor(test_bin, Endianness.Little))!;
+        const test_qst = write_quest_qst(orig_quest, file_name);
+        const test_quest = parse_qst_to_quest(new ArrayBufferCursor(test_qst, Endianness.Little))!;
 
         expect(test_quest.name).toBe(orig_quest.name);
         expect(test_quest.short_description).toBe(orig_quest.short_description);

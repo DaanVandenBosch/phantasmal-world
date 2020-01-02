@@ -58,6 +58,11 @@ export interface WritableCursor extends Cursor {
     write_u32_array(array: number[]): this;
 
     /**
+     * Writes an array of signed 32-bit integers and increments position by four times the array's length.
+     */
+    write_i32_array(array: readonly number[]): this;
+
+    /**
      * Writes two 32-bit floating point numbers and increments position by 8.
      */
     write_vec2_f32(value: Vec2): this;
@@ -131,6 +136,11 @@ export interface WritableCursor extends Cursor {
      * Writes an array of unsigned 32-bit integers at the given absolute offset. Doesn't increment position.
      */
     write_u32_array_at(offset: number, array: number[]): this;
+
+    /**
+     * Writes an array of signed 32-bit integers at the given absolute offset. Doesn't increment position.
+     */
+    write_i32_array_at(offset: number, array: readonly number[]): this;
 
     /**
      * Writes two 32-bit floating point numbers at the given absolute offset. Doesn't increment position.

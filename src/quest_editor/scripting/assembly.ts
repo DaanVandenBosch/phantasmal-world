@@ -20,7 +20,7 @@ import {
     Segment,
     SegmentType,
     StringSegment,
-} from "./instructions";
+} from "../../core/data_formats/asm/instructions";
 import {
     Kind,
     OP_ARG_PUSHB,
@@ -32,7 +32,7 @@ import {
     OPCODES_BY_MNEMONIC,
     Param,
     StackInteraction,
-} from "./opcodes";
+} from "../../core/data_formats/asm/opcodes";
 import { LogManager } from "../../core/Logger";
 
 const logger = LogManager.get("quest_editor/scripting/assembly");

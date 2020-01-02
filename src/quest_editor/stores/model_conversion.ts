@@ -17,7 +17,7 @@ import {
 } from "../model/QuestEventActionModel";
 import { QuestEventDagModel } from "../model/QuestEventDagModel";
 import { QuestEvent, QuestNpc } from "../../core/data_formats/parsing/quest/entities";
-import { clone_segment } from "../scripting/instructions";
+import { clone_segment } from "../../core/data_formats/asm/instructions";
 import { AreaStore } from "./AreaStore";
 import { LogManager } from "../../core/Logger";
 import { euler } from "../model/euler";

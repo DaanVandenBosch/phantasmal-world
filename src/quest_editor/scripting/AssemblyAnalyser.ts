@@ -13,7 +13,7 @@ import {
 import { AssemblyError, AssemblySettings, AssemblyWarning } from "./assembly";
 import { disassemble } from "./disassembly";
 import { QuestModel } from "../model/QuestModel";
-import { Kind, OPCODES } from "./opcodes";
+import { Kind, OPCODES } from "../../core/data_formats/asm/opcodes";
 import { Property } from "../../core/observable/property/Property";
 import { property } from "../../core/observable";
 import { WritableProperty } from "../../core/observable/property/WritableProperty";

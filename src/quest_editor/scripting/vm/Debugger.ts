@@ -1,5 +1,5 @@
 import { VirtualMachine } from "./VirtualMachine";
-import { SegmentType } from "../instructions";
+import { SegmentType } from "../../../core/data_formats/asm/instructions";
 import { InstructionPointer } from "./InstructionPointer";
 import { StepMode } from "./Thread";
 

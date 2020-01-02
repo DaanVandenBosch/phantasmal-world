@@ -1,6 +1,6 @@
 import { AssemblyError, AssemblyWarning, AssemblySettings } from "./assembly";
-import { Segment } from "./instructions";
-import { Opcode } from "./opcodes";
+import { Segment } from "../../core/data_formats/asm/instructions";
+import { Opcode } from "../../core/data_formats/asm/opcodes";
 
 export enum InputMessageType {
     NewAssembly,

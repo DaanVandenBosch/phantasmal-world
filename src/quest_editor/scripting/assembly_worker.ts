@@ -11,9 +11,15 @@ import {
     SignatureHelpOutput,
 } from "./assembly_worker_messages";
 import { assemble, AssemblySettings } from "./assembly";
-import { AsmToken, Segment, SegmentType } from "./instructions";
-import { Kind, OP_BB_MAP_DESIGNATE, Opcode, OPCODES_BY_MNEMONIC } from "./opcodes";
+import {
+    AsmToken,
+    InstructionSegment,
+    Segment,
+    SegmentType,
+} from "../../core/data_formats/asm/instructions";
+import { Kind, Opcode, OPCODES_BY_MNEMONIC } from "../../core/data_formats/asm/opcodes";
 import { AssemblyLexer, IdentToken, TokenType } from "./AssemblyLexer";
+import { get_map_designations } from "../../core/data_formats/asm/data_flow_analysis/get_map_designations";
 
 const ctx: Worker = self as any;
 
@@ -185,33 +191,31 @@ function assemble_and_send(): void {
     label_to_segment_cache.clear();
     line_no_to_instructions.splice(0, Infinity);
 
-    const map_designations = new Map<number, number>();
+    let map_designations = new Map<number, number>();
 
-    for (let i = 0; i < object_code.length; i++) {
-        const segment = object_code[i];
+    const instruction_segments = object_code.filter(
+        s => s.type === SegmentType.Instructions,
+    ) as InstructionSegment[];
 
-        if (segment.type === SegmentType.Instructions) {
-            // Set map designations.
-            if (segment.labels.includes(0)) {
-                for (const inst of segment.instructions) {
-                    if (inst.opcode.code === OP_BB_MAP_DESIGNATE.code) {
-                        map_designations.set(inst.args[0].value, inst.args[2].value);
-                    }
+    for (let i = 0; i < instruction_segments.length; i++) {
+        const segment = instruction_segments[i];
+
+        // Set map designations.
+        if (segment.labels.includes(0)) {
+            map_designations = get_map_designations(instruction_segments, segment);
+        }
+
+        // Index instructions by text position.
+        for (let j = 0; j < segment.instructions.length; j++) {
+            const ins = segment.instructions[j];
+
+            if (ins.asm) {
+                if (ins.asm.mnemonic) {
+                    add_index(ins.asm.mnemonic.line_no, i, j);
                 }
-            }
 
-            // Index instructions by text position.
-            for (let j = 0; j < segment.instructions.length; j++) {
-                const ins = segment.instructions[j];
-
-                if (ins.asm) {
-                    if (ins.asm.mnemonic) {
-                        add_index(ins.asm.mnemonic.line_no, i, j);
-                    }
-
-                    for (const arg_asm of ins.asm.args) {
-                        add_index(arg_asm.line_no, i, j);
-                    }
+                for (const arg_asm of ins.asm.args) {
+                    add_index(arg_asm.line_no, i, j);
                 }
             }
         }

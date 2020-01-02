@@ -1,4 +1,4 @@
-import { Kind, StackInteraction } from "../opcodes";
+import { Kind, StackInteraction } from "../../../core/data_formats/asm/opcodes";
 import { VirtualMachineIO } from "./io";
 import { Memory } from "./Memory";
 import { Endianness } from "../../../core/data_formats/Endianness";

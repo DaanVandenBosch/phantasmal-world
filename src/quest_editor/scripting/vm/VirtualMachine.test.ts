@@ -4,7 +4,7 @@
 
 import { ExecutionResult, VirtualMachine } from "./VirtualMachine";
 import { to_instructions } from "../../../../test/src/utils";
-import { Segment } from "../instructions";
+import { Segment } from "../../../core/data_formats/asm/instructions";
 import { Random } from "./Random";
 import { Episode } from "../../../core/data_formats/parsing/quest/Episode";
 import { DefaultVirtualMachineIO } from "./io";

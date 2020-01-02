@@ -4,7 +4,7 @@ import { check_episode, Episode } from "../../core/data_formats/parsing/quest/Ep
 import { QuestObjectModel } from "./QuestObjectModel";
 import { QuestNpcModel } from "./QuestNpcModel";
 import { DatUnknown } from "../../core/data_formats/parsing/quest/dat";
-import { Segment } from "../scripting/instructions";
+import { Segment } from "../../core/data_formats/asm/instructions";
 import { Property } from "../../core/observable/property/Property";
 import { AreaVariantModel } from "./AreaVariantModel";
 import { ListProperty } from "../../core/observable/property/list/ListProperty";

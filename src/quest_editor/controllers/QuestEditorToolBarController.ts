@@ -107,9 +107,7 @@ export class QuestEditorToolBarController extends Controller {
                 input_element.type = "file";
                 input_element.multiple = true;
                 input_element.onchange = () => {
-                    if (input_element.files && input_element.files.length) {
-                        this.open_files(Array.prototype.slice.apply(input_element.files));
-                    }
+                    this.open_files(Array.prototype.slice.apply(input_element.files));
                 };
                 input_element.click();
             }),
@@ -144,6 +142,8 @@ export class QuestEditorToolBarController extends Controller {
     // TODO: notify user of problems.
     open_files = async (files: File[]): Promise<void> => {
         try {
+            if (files.length === 0) return;
+
             let quest: Quest | undefined;
 
             const qst = files.find(f => f.name.toLowerCase().endsWith(".qst"));
@@ -152,6 +152,10 @@ export class QuestEditorToolBarController extends Controller {
                 const buffer = await read_file(qst);
                 quest = parse_qst_to_quest(new ArrayBufferCursor(buffer, Endianness.Little));
                 this.quest_filename = qst.name;
+
+                if (!quest) {
+                    logger.error("Couldn't parse quest file.");
+                }
             } else {
                 const bin = files.find(f => f.name.toLowerCase().endsWith(".bin"));
                 const dat = files.find(f => f.name.toLowerCase().endsWith(".dat"));
@@ -164,11 +168,11 @@ export class QuestEditorToolBarController extends Controller {
                         new ArrayBufferCursor(dat_buffer, Endianness.Little),
                     );
                     this.quest_filename = bin.name || dat.name;
-                }
-            }
 
-            if (!quest) {
-                logger.error("Couldn't parse quest file.");
+                    if (!quest) {
+                        logger.error("Couldn't parse quest file.");
+                    }
+                }
             }
 
             await this.quest_editor_store.set_current_quest(
