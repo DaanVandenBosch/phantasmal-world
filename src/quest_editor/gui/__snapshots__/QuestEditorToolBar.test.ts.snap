@@ -78,8 +78,9 @@ exports[`Renders correctly. 1`] = `
       </span>
     </span>
     <input
-      accept=".qst"
+      accept=".bin, .dat, .qst"
       class="core_FileButton_input core_Button_inner"
+      multiple=""
       type="file"
     />
   </label>

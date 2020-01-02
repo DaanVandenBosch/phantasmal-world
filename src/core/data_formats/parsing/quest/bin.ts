@@ -50,12 +50,12 @@ export function parse_bin(
     entry_labels: number[] = [0],
     lenient: boolean = false,
 ): BinFile {
-    const dc_gc_format = cursor.u8_at(0) !== 4652;
-
     const object_code_offset = cursor.u32();
     const label_offset_table_offset = cursor.u32(); // Relative offsets
     const size = cursor.u32();
     cursor.seek(4); // Always seems to be 0xFFFFFFFF for BB.
+
+    const dc_gc_format = object_code_offset !== 4652;
 
     let quest_id: number;
     let language: number;
@@ -300,7 +300,7 @@ function parse_object_code(
             // Should never happen either.
             if (!segment) {
                 logger.error(`Couldn't create segment for offset ${offset}.`);
-                continue;
+                break;
             }
         }
 
