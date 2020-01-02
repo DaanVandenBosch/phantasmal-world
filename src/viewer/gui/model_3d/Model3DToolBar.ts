@@ -11,7 +11,7 @@ export class Model3DToolBar extends ToolBar {
     constructor(model_3d_store: Model3DStore) {
         const open_file_button = new FileButton("Open file...", {
             icon_left: Icon.File,
-            accept: ".nj, .njm, .xj, .xvm",
+            accept: ".afs, .nj, .njm, .xj, .xvm",
         });
         const skeleton_checkbox = new CheckBox(false, { label: "Show skeleton" });
         const play_animation_checkbox = new CheckBox(true, { label: "Play animation" });

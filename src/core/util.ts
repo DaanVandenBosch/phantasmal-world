@@ -27,6 +27,16 @@ export function array_buffers_equal(a: ArrayBuffer, b: ArrayBuffer): boolean {
     return true;
 }
 
+export function create_array<T>(length: number, value: (index: number) => T): T[] {
+    const array = Array(length);
+
+    for (let i = 0; i < length; i++) {
+        array[i] = value(i);
+    }
+
+    return array;
+}
+
 /**
  * Returns the given filename without the file extension.
  */

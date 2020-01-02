@@ -6,13 +6,16 @@ import { CharacterClassModel } from "../model/CharacterClassModel";
 import { CharacterClassAnimationModel } from "../model/CharacterClassAnimationModel";
 import { WritableProperty } from "../../core/observable/property/WritableProperty";
 import { read_file } from "../../core/read_file";
-import { property } from "../../core/observable";
+import { list_property, property } from "../../core/observable";
 import { Property } from "../../core/observable/property/Property";
 import { PSO_FRAME_RATE } from "../../core/rendering/conversion/ninja_animation";
-import { parse_xvm, Xvm } from "../../core/data_formats/parsing/ninja/texture";
+import { parse_xvm, XvrTexture } from "../../core/data_formats/parsing/ninja/texture";
 import { CharacterClassAssetLoader } from "../loading/CharacterClassAssetLoader";
 import { Store } from "../../core/stores/Store";
 import { LogManager } from "../../core/Logger";
+import { ListProperty } from "../../core/observable/property/list/ListProperty";
+import { parse_afs } from "../../core/data_formats/parsing/afs";
+import { SectionIds } from "../../core/model";
 
 const logger = LogManager.get("viewer/stores/ModelStore");
 
@@ -27,7 +30,7 @@ export class Model3DStore extends Store {
         undefined,
     );
     private readonly _current_nj_data = property<NjData | undefined>(undefined);
-    private readonly _current_xvm = property<Xvm | undefined>(undefined);
+    private readonly _current_textures = list_property<XvrTexture | undefined>();
     private readonly _show_skeleton: WritableProperty<boolean> = property(false);
     private readonly _current_animation: WritableProperty<
         CharacterClassAnimationModel | undefined
@@ -38,18 +41,112 @@ export class Model3DStore extends Store {
     private readonly _animation_frame: WritableProperty<number> = property(0);
 
     readonly models: readonly CharacterClassModel[] = [
-        new CharacterClassModel("HUmar", 1, 10, new Set([6])),
-        new CharacterClassModel("HUnewearl", 1, 10, new Set()),
-        new CharacterClassModel("HUcast", 5, 0, new Set()),
-        new CharacterClassModel("HUcaseal", 5, 0, new Set()),
-        new CharacterClassModel("RAmar", 1, 10, new Set([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])),
-        new CharacterClassModel("RAmarl", 1, 10, new Set([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])),
-        new CharacterClassModel("RAcast", 5, 0, new Set()),
-        new CharacterClassModel("RAcaseal", 5, 0, new Set()),
-        new CharacterClassModel("FOmar", 1, 10, new Set([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])),
-        new CharacterClassModel("FOmarl", 1, 10, new Set([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])),
-        new CharacterClassModel("FOnewm", 1, 10, new Set([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])),
-        new CharacterClassModel("FOnewearl", 1, 10, new Set([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])),
+        new CharacterClassModel({
+            name: "HUmar",
+            head_style_count: 1,
+            hair_style_count: 10,
+            hair_styles_with_accessory: new Set([6]),
+            section_id_tex_id: 126,
+            body_tex_ids: [0, 1, 2, 108],
+            head_tex_ids: [54, 55],
+            hair_tex_ids: [94, 95],
+        }),
+        new CharacterClassModel({
+            name: "HUnewearl",
+            head_style_count: 1,
+            hair_style_count: 10,
+            hair_styles_with_accessory: new Set(),
+            section_id_tex_id: 299,
+            body_tex_ids: [],
+        }),
+        new CharacterClassModel({
+            name: "HUcast",
+            head_style_count: 5,
+            hair_style_count: 0,
+            hair_styles_with_accessory: new Set(),
+            section_id_tex_id: 275,
+            body_tex_ids: [],
+        }),
+        new CharacterClassModel({
+            name: "HUcaseal",
+            head_style_count: 5,
+            hair_style_count: 0,
+            hair_styles_with_accessory: new Set(),
+            section_id_tex_id: 375,
+            body_tex_ids: [0, 1, 2],
+            head_tex_ids: [3, 4],
+        }),
+        new CharacterClassModel({
+            name: "RAmar",
+            head_style_count: 1,
+            hair_style_count: 10,
+            hair_styles_with_accessory: new Set([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]),
+            section_id_tex_id: 197,
+            body_tex_ids: [],
+        }),
+        new CharacterClassModel({
+            name: "RAmarl",
+            head_style_count: 1,
+            hair_style_count: 10,
+            hair_styles_with_accessory: new Set([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]),
+            section_id_tex_id: 322,
+            body_tex_ids: [15, 1, 0],
+            head_tex_ids: [288],
+            hair_tex_ids: [308, 309],
+            accessory_tex_ids: [undefined, undefined, 8],
+        }),
+        new CharacterClassModel({
+            name: "RAcast",
+            head_style_count: 5,
+            hair_style_count: 0,
+            hair_styles_with_accessory: new Set(),
+            section_id_tex_id: 300,
+            body_tex_ids: [0, 1, 2, 3, 275],
+            head_tex_ids: [4],
+        }),
+        new CharacterClassModel({
+            name: "RAcaseal",
+            head_style_count: 5,
+            hair_style_count: 0,
+            hair_styles_with_accessory: new Set(),
+            section_id_tex_id: 375,
+            body_tex_ids: [],
+        }),
+        new CharacterClassModel({
+            name: "FOmar",
+            head_style_count: 1,
+            hair_style_count: 10,
+            hair_styles_with_accessory: new Set([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]),
+            section_id_tex_id: 310,
+            body_tex_ids: [12, 13, 14, 0],
+            head_tex_ids: [276, 272],
+            hair_tex_ids: [undefined, 296, 297],
+            accessory_tex_ids: [4],
+        }),
+        new CharacterClassModel({
+            name: "FOmarl",
+            head_style_count: 1,
+            hair_style_count: 10,
+            hair_styles_with_accessory: new Set([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]),
+            section_id_tex_id: 326,
+            body_tex_ids: [],
+        }),
+        new CharacterClassModel({
+            name: "FOnewm",
+            head_style_count: 1,
+            hair_style_count: 10,
+            hair_styles_with_accessory: new Set([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]),
+            section_id_tex_id: 344,
+            body_tex_ids: [],
+        }),
+        new CharacterClassModel({
+            name: "FOnewearl",
+            head_style_count: 1,
+            hair_style_count: 10,
+            hair_styles_with_accessory: new Set([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]),
+            section_id_tex_id: 505,
+            body_tex_ids: [],
+        }),
     ];
 
     readonly animations: readonly CharacterClassAnimationModel[] = new Array(572)
@@ -58,7 +155,7 @@ export class Model3DStore extends Store {
 
     readonly current_model: Property<CharacterClassModel | undefined> = this._current_model;
     readonly current_nj_data: Property<NjData | undefined> = this._current_nj_data;
-    readonly current_xvm: Property<Xvm | undefined> = this._current_xvm;
+    readonly current_textures: ListProperty<XvrTexture | undefined> = this._current_textures;
     readonly show_skeleton: Property<boolean> = this._show_skeleton;
     readonly current_animation: Property<CharacterClassAnimationModel | undefined> = this
         ._current_animation;
@@ -77,6 +174,8 @@ export class Model3DStore extends Store {
             this.current_model.observe(({ value }) => this.load_model(value)),
             this.current_animation.observe(({ value }) => this.load_animation(value)),
         );
+
+        this.set_current_model(this.models[[3, 5, 6, 8][Math.floor(Math.random() * 4)]]);
     }
 
     set_current_model = (current_model: CharacterClassModel): void => {
@@ -149,7 +248,20 @@ export class Model3DStore extends Store {
                 }
             } else if (file.name.endsWith(".xvm")) {
                 if (this.current_model) {
-                    this._current_xvm.val = parse_xvm(cursor);
+                    this._current_textures.val = parse_xvm(cursor).textures;
+                }
+            } else if (file.name.endsWith(".afs")) {
+                if (this.current_model) {
+                    const files = parse_afs(cursor);
+                    const textures: XvrTexture[] = [];
+
+                    for (const file of files) {
+                        textures.push(
+                            ...parse_xvm(new ArrayBufferCursor(file, Endianness.Little)).textures,
+                        );
+                    }
+
+                    this._current_textures.val = textures;
                 }
             } else {
                 logger.error(`Unknown file extension in filename "${file.name}".`);
@@ -172,6 +284,20 @@ export class Model3DStore extends Store {
                     bone_count: model ? 64 : nj_object.bone_count(),
                     has_skeleton: true,
                 });
+
+                const textures = await this.asset_loader.load_textures(model);
+
+                this._current_textures.val = [
+                    textures[
+                        model.section_id_tex_ids[Math.floor(Math.random() * SectionIds.length)]
+                    ],
+                    ...[
+                        ...model.body_tex_ids,
+                        ...model.head_tex_ids,
+                        ...model.hair_tex_ids,
+                        ...model.accessory_tex_ids,
+                    ].map(id => (id == undefined ? undefined : textures[id])),
+                ];
             } catch (e) {
                 logger.error(`Couldn't load model for ${model.name}.`);
                 this._current_nj_data.val = undefined;
@@ -182,7 +308,7 @@ export class Model3DStore extends Store {
     };
 
     private set_current_nj_data(nj_data: NjData): void {
-        this._current_xvm.val = undefined;
+        this._current_textures.clear();
         this._current_nj_data.val = nj_data;
     }
 

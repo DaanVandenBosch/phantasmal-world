@@ -3,13 +3,19 @@ import {
     MeshBasicMaterial,
     OrthographicCamera,
     PlaneGeometry,
+    Texture,
     Vector2,
     Vector3,
 } from "three";
 import { Disposable } from "../../core/observable/Disposable";
 import { DisposableThreeRenderer, Renderer } from "../../core/rendering/Renderer";
 import { Disposer } from "../../core/observable/Disposer";
-import { TextureStore, TextureWithSize } from "../stores/TextureStore";
+import { TextureStore } from "../stores/TextureStore";
+import { XvrTexture } from "../../core/data_formats/parsing/ninja/texture";
+import { xvr_texture_to_texture } from "../../core/rendering/conversion/ninja_textures";
+import { LogManager } from "../../core/Logger";
+
+const logger = LogManager.get("viewer/rendering/TextureRenderer");
 
 export class TextureRenderer extends Renderer implements Disposable {
     private readonly disposer = new Disposer();
@@ -51,7 +57,7 @@ export class TextureRenderer extends Renderer implements Disposable {
         this.disposer.dispose();
     }
 
-    private render_textures(textures: readonly TextureWithSize[]): void {
+    private render_textures(textures: readonly XvrTexture[]): void {
         let total_width = 10 * (textures.length - 1); // 10px spacing between textures.
         let total_height = 0;
 
@@ -64,6 +70,14 @@ export class TextureRenderer extends Renderer implements Disposable {
         const y = -Math.floor(total_height / 2);
 
         for (const tex of textures) {
+            let texture: Texture | undefined = undefined;
+
+            try {
+                texture = xvr_texture_to_texture(tex);
+            } catch (e) {
+                logger.error("Couldn't convert XVR texture.", e);
+            }
+
             const quad_mesh = new Mesh(
                 this.create_quad(
                     x,
@@ -71,9 +85,9 @@ export class TextureRenderer extends Renderer implements Disposable {
                     tex.width,
                     tex.height,
                 ),
-                tex.texture
+                texture
                     ? new MeshBasicMaterial({
-                          map: tex.texture,
+                          map: texture,
                           transparent: true,
                       })
                     : new MeshBasicMaterial({

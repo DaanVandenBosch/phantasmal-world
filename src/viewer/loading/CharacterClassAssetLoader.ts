@@ -7,9 +7,18 @@ import { NjMotion, parse_njm } from "../../core/data_formats/parsing/ninja/motio
 import { Disposable } from "../../core/observable/Disposable";
 import { DisposablePromise } from "../../core/DisposablePromise";
 import { CharacterClassModel } from "../model/CharacterClassModel";
+import { parse_xvm, XvrTexture } from "../../core/data_formats/parsing/ninja/texture";
+import { parse_afs } from "../../core/data_formats/parsing/afs";
 
 export class CharacterClassAssetLoader implements Disposable {
-    private readonly nj_object_cache: Map<string, DisposablePromise<NjObject>> = new Map();
+    private readonly nj_object_cache: Map<
+        string,
+        DisposablePromise<NjObject<NjcmModel>>
+    > = new Map();
+    private readonly xvr_texture_cache: Map<
+        string,
+        DisposablePromise<readonly XvrTexture[]>
+    > = new Map();
     private readonly nj_motion_cache: Map<number, DisposablePromise<NjMotion>> = new Map();
 
     constructor(private readonly http_client: HttpClient) {}
@@ -27,7 +36,7 @@ export class CharacterClassAssetLoader implements Disposable {
         this.nj_motion_cache.clear();
     }
 
-    load_geometry(model: CharacterClassModel): DisposablePromise<NjObject> {
+    load_geometry(model: CharacterClassModel): Promise<NjObject<NjcmModel>> {
         let nj_object = this.nj_object_cache.get(model.name);
 
         if (!nj_object) {
@@ -41,25 +50,36 @@ export class CharacterClassAssetLoader implements Disposable {
     /**
      * Loads the separate body parts and joins them together at the right bones.
      */
-    private load_all_nj_objects(model: CharacterClassModel): DisposablePromise<NjObject> {
+    private load_all_nj_objects(
+        model: CharacterClassModel,
+    ): DisposablePromise<NjObject<NjcmModel>> {
         return this.load_body_part_geometry(model.name, "Body").then(body => {
             if (!body) {
                 throw new Error(`Couldn't load body for player class ${model.name}.`);
             }
 
             return this.load_body_part_geometry(model.name, "Head", 0).then(head => {
-                if (head) {
-                    this.add_to_bone(body, head, 59);
+                if (!head) {
+                    return body;
                 }
 
-                if (model.hair_styles_count === 0) {
+                // Shift by 1 for the section ID and once for every body texture ID.
+                let shift = 1 + model.body_tex_ids.length;
+                this.shift_texture_ids(head, shift);
+                this.add_to_bone(body, head, 59);
+
+                if (model.hair_style_count === 0) {
                     return body;
                 }
 
                 return this.load_body_part_geometry(model.name, "Hair", 0).then(hair => {
-                    if (hair) {
-                        this.add_to_bone(body, hair, 59);
+                    if (!hair) {
+                        return body;
                     }
+
+                    shift += model.head_tex_ids.length;
+                    this.shift_texture_ids(hair, shift);
+                    this.add_to_bone(head, hair, 0);
 
                     if (!model.hair_styles_with_accessory.has(0)) {
                         return body;
@@ -68,7 +88,9 @@ export class CharacterClassAssetLoader implements Disposable {
                     return this.load_body_part_geometry(model.name, "Accessory", 0).then(
                         accessory => {
                             if (accessory) {
-                                this.add_to_bone(body, accessory, 59);
+                                shift += model.hair_tex_ids.length;
+                                this.shift_texture_ids(accessory, shift);
+                                this.add_to_bone(hair, accessory, 0);
                             }
 
                             return body;
@@ -90,14 +112,54 @@ export class CharacterClassAssetLoader implements Disposable {
             .then(buffer => parse_nj(new ArrayBufferCursor(buffer, Endianness.Little))[0]);
     }
 
+    /**
+     * Shift texture IDs so that the IDs of different body parts don't overlap.
+     */
+    private shift_texture_ids(nj_object: NjObject<NjcmModel>, shift: number): void {
+        if (nj_object.model) {
+            for (const mesh of nj_object.model.meshes) {
+                if (mesh.texture_id != undefined) {
+                    mesh.texture_id += shift;
+                }
+            }
+        }
+
+        for (const child of nj_object.children) {
+            this.shift_texture_ids(child, shift);
+        }
+    }
+
     private add_to_bone(object: NjObject, head_part: NjObject, bone_id: number): void {
         const bone = object.get_bone(bone_id);
 
         if (bone) {
             bone.evaluation_flags.hidden = false;
             bone.evaluation_flags.break_child_trace = false;
-            bone.children.push(head_part);
+            bone.add_child(head_part);
         }
+    }
+
+    load_textures(model: CharacterClassModel): Promise<readonly XvrTexture[]> {
+        let xvr_texture = this.xvr_texture_cache.get(model.name);
+
+        if (!xvr_texture) {
+            xvr_texture = this.http_client
+                .get(`/player/${model.name}Tex.afs`)
+                .array_buffer()
+                .then(buffer => {
+                    const afs = parse_afs(new ArrayBufferCursor(buffer, Endianness.Little));
+                    const textures: XvrTexture[] = [];
+
+                    for (const file of afs) {
+                        const xvm = parse_xvm(new ArrayBufferCursor(file, Endianness.Little));
+                        textures.push(...xvm.textures);
+                    }
+
+                    return textures;
+                });
+        }
+
+        return xvr_texture;
     }
 
     load_animation(animation_id: number, bone_count: number): Promise<NjMotion> {

@@ -4,6 +4,7 @@ import {
     Clock,
     DoubleSide,
     Mesh,
+    MeshBasicMaterial,
     MeshLambertMaterial,
     Object3D,
     PerspectiveCamera,
@@ -13,7 +14,7 @@ import {
 } from "three";
 import { Disposable } from "../../core/observable/Disposable";
 import { NjMotion } from "../../core/data_formats/parsing/ninja/motion";
-import { xvm_to_textures } from "../../core/rendering/conversion/ninja_textures";
+import { xvr_texture_to_texture } from "../../core/rendering/conversion/ninja_textures";
 import { create_mesh, create_skinned_mesh } from "../../core/rendering/conversion/create_mesh";
 import { ninja_object_to_buffer_geometry } from "../../core/rendering/conversion/ninja_geometry";
 import {
@@ -24,6 +25,19 @@ import { DisposableThreeRenderer, Renderer } from "../../core/rendering/Renderer
 import { Disposer } from "../../core/observable/Disposer";
 import { ChangeEvent } from "../../core/observable/Observable";
 import { Model3DStore } from "../stores/Model3DStore";
+import { LogManager } from "../../core/Logger";
+
+const logger = LogManager.get("viewer/rendering/Model3DRenderer");
+
+const DEFAULT_MATERIAL = new MeshLambertMaterial({
+    color: 0xffffff,
+    side: DoubleSide,
+});
+const DEFAULT_SKINNED_MATERIAL = new MeshLambertMaterial({
+    skinning: true,
+    color: 0xffffff,
+    side: DoubleSide,
+});
 
 export class Model3DRenderer extends Renderer implements Disposable {
     private readonly disposer = new Disposer();
@@ -46,7 +60,7 @@ export class Model3DRenderer extends Renderer implements Disposable {
 
         this.disposer.add_all(
             model_3d_store.current_nj_data.observe(this.nj_data_or_xvm_changed),
-            model_3d_store.current_xvm.observe(this.nj_data_or_xvm_changed),
+            model_3d_store.current_textures.observe(this.nj_data_or_xvm_changed),
             model_3d_store.current_nj_motion.observe(this.nj_motion_changed),
             model_3d_store.show_skeleton.observe(this.show_skeleton_changed),
             model_3d_store.animation_playing.observe(this.animation_playing_changed),
@@ -103,25 +117,45 @@ export class Model3DRenderer extends Renderer implements Disposable {
 
             let mesh: Mesh;
 
-            const xvm = this.model_3d_store.current_xvm.val;
-            const textures = xvm ? xvm_to_textures(xvm) : undefined;
+            const textures = this.model_3d_store.current_textures.val.map(tex => {
+                if (tex) {
+                    try {
+                        return xvr_texture_to_texture(tex);
+                    } catch (e) {
+                        logger.error("Couldn't convert XVR texture.", e);
+                    }
+                }
 
-            const materials =
-                textures &&
-                textures.map(
-                    tex =>
-                        new MeshLambertMaterial({
-                            skinning: has_skeleton,
-                            map: tex,
-                            side: DoubleSide,
-                            alphaTest: 0.5,
-                        }),
-                );
+                return undefined;
+            });
+
+            const materials = textures.map(tex =>
+                tex
+                    ? new MeshBasicMaterial({
+                          skinning: has_skeleton,
+                          map: tex,
+                          side: DoubleSide,
+                          alphaTest: 0.1,
+                          transparent: true,
+                      })
+                    : new MeshLambertMaterial({
+                          skinning: has_skeleton,
+                          side: DoubleSide,
+                      }),
+            );
 
             if (has_skeleton) {
-                mesh = create_skinned_mesh(ninja_object_to_buffer_geometry(nj_object), materials);
+                mesh = create_skinned_mesh(
+                    ninja_object_to_buffer_geometry(nj_object),
+                    materials,
+                    DEFAULT_SKINNED_MATERIAL,
+                );
             } else {
-                mesh = create_mesh(ninja_object_to_buffer_geometry(nj_object), materials);
+                mesh = create_mesh(
+                    ninja_object_to_buffer_geometry(nj_object),
+                    materials,
+                    DEFAULT_MATERIAL,
+                );
             }
 
             // Make sure we rotate around the center of the model instead of its origin.

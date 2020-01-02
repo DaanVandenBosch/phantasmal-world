@@ -27,6 +27,27 @@ export type NjcmVertex = {
     calc_continue: boolean;
 };
 
+export type NjcmTriangleStrip = {
+    ignore_light: boolean;
+    ignore_specular: boolean;
+    ignore_ambient: boolean;
+    use_alpha: boolean;
+    double_side: boolean;
+    flat_shading: boolean;
+    environment_mapping: boolean;
+    clockwise_winding: boolean;
+    has_tex_coords: boolean;
+    has_normal: boolean;
+    texture_id?: number;
+    vertices: NjcmMeshVertex[];
+};
+
+export type NjcmMeshVertex = {
+    index: number;
+    normal?: Vec3;
+    tex_coords?: Vec2;
+};
+
 enum NjcmChunkType {
     Unknown,
     Null,
@@ -122,27 +143,6 @@ type NjcmChunkVertex = {
     bone_weight: number;
     bone_weight_status: number;
     calc_continue: boolean;
-};
-
-type NjcmTriangleStrip = {
-    ignore_light: boolean;
-    ignore_specular: boolean;
-    ignore_ambient: boolean;
-    use_alpha: boolean;
-    double_side: boolean;
-    flat_shading: boolean;
-    environment_mapping: boolean;
-    clockwise_winding: boolean;
-    has_tex_coords: boolean;
-    has_normal: boolean;
-    texture_id?: number;
-    vertices: NjcmMeshVertex[];
-};
-
-type NjcmMeshVertex = {
-    index: number;
-    normal?: Vec3;
-    tex_coords?: Vec2;
 };
 
 export function parse_njcm_model(cursor: Cursor, cached_chunk_offsets: number[]): NjcmModel {

@@ -60,8 +60,6 @@ export class Model3DView extends ResizableWidget {
             ),
         );
 
-        model_3d_store.set_current_model(model_3d_store.models[5]);
-
         this.renderer_view.start_rendering();
 
         this.disposable(

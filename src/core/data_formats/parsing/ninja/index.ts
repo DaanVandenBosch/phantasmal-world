@@ -19,14 +19,16 @@ export function is_xj_model(model: NjModel): model is XjModel {
 }
 
 export class NjObject<M extends NjModel = NjModel> {
+    private readonly _children: NjObject<M>[];
+
     readonly evaluation_flags: NjEvaluationFlags;
     readonly model: M | undefined;
     readonly position: Vec3;
     readonly rotation: Vec3; // Euler angles in radians.
     readonly scale: Vec3;
-    readonly children: NjObject<M>[];
+    readonly children: readonly NjObject<M>[];
 
-    private bone_cache = new Map<number, NjObject<M> | null>();
+    private readonly bone_cache = new Map<number, NjObject<M> | null>();
     private _bone_count = -1;
 
     constructor(
@@ -42,13 +44,14 @@ export class NjObject<M extends NjModel = NjModel> {
         this.position = position;
         this.rotation = rotation;
         this.scale = scale;
-        this.children = children;
+        this._children = children;
+        this.children = this._children;
     }
 
     bone_count(): number {
         if (this._bone_count === -1) {
             const id_ref: [number] = [0];
-            this.get_bone_internal(this, Infinity, id_ref);
+            this.get_bone_internal(this, Number.MAX_SAFE_INTEGER, id_ref);
             this._bone_count = id_ref[0];
         }
 
@@ -58,13 +61,19 @@ export class NjObject<M extends NjModel = NjModel> {
     get_bone(bone_id: number): NjObject<M> | undefined {
         let bone = this.bone_cache.get(bone_id);
 
-        // Strict check because null means there's no bone with this id.
+        // Strict === check because null means there's no bone with this id.
         if (bone === undefined) {
             bone = this.get_bone_internal(this, bone_id, [0]);
             this.bone_cache.set(bone_id, bone || null);
         }
 
         return bone || undefined;
+    }
+
+    add_child(child: NjObject<M>): void {
+        this._bone_count = -1;
+        this.bone_cache.clear();
+        this._children.push(child);
     }
 
     private get_bone_internal(
