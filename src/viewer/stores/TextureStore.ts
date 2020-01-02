@@ -26,7 +26,7 @@ export class TextureStore extends Store {
 
     load_file = async (file: File): Promise<void> => {
         try {
-            const ext = filename_extension(file.name);
+            const ext = filename_extension(file.name).toLowerCase();
             const buffer = await read_file(file);
 
             if (ext === "xvm") {

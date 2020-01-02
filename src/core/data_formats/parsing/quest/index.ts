@@ -13,7 +13,7 @@ import { ResizableBufferCursor } from "../../cursor/ResizableBufferCursor";
 import { Endianness } from "../../Endianness";
 import { parse_bin, write_bin } from "./bin";
 import { DatFile, DatNpc, DatObject, DatUnknown, parse_dat, write_dat } from "./dat";
-import { QuestNpc, QuestObject, QuestEvent } from "./entities";
+import { QuestEvent, QuestNpc, QuestObject } from "./entities";
 import { Episode } from "./Episode";
 import { object_data, ObjectType, pso_id_to_object_type } from "./object_types";
 import { parse_qst, QstContainedFile, write_qst } from "./qst";
@@ -59,7 +59,7 @@ export function parse_quest(cursor: Cursor, lenient: boolean = false): Quest | u
     let bin_file: QstContainedFile | undefined;
 
     for (const file of qst.files) {
-        const file_name = file.name.trim().toLowerCase();
+        const file_name = file.filename.trim().toLowerCase();
 
         if (file_name.endsWith(".dat")) {
             dat_file = file;
@@ -158,14 +158,14 @@ export function write_quest_qst(quest: Quest, file_name: string): ArrayBuffer {
     return write_qst({
         files: [
             {
-                name: base_file_name + ".dat",
+                filename: base_file_name + ".dat",
                 id: quest.id,
                 data: prs_compress(
                     new ResizableBufferCursor(dat, Endianness.Little),
                 ).array_buffer(),
             },
             {
-                name: base_file_name + ".bin",
+                filename: base_file_name + ".bin",
                 id: quest.id,
                 data: prs_compress(new ArrayBufferCursor(bin, Endianness.Little)).array_buffer(),
             },
