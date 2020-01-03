@@ -202,8 +202,13 @@ class GeometryCreator {
                         bones[vertex.bone_weight_status] = [vertex.bone_id, vertex.bone_weight];
                     }
 
+                    const total_weight = bones.reduce((total, [, weight]) => total + weight, 0);
+
                     for (const [bone_index, bone_weight] of bones) {
-                        this.builder.add_bone_weight(bone_index, bone_weight);
+                        this.builder.add_bone_weight(
+                            bone_index,
+                            total_weight > 0 ? bone_weight / total_weight : bone_weight,
+                        );
                     }
                 }
             }

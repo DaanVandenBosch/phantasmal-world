@@ -33,21 +33,24 @@ export class Model3DSelectListView<T extends { name: string }> extends Resizable
         });
 
         this.disposable(
-            selected.observe(({ value: model }) => {
-                if (this.selected_element) {
-                    this.selected_element.classList.remove("active");
-                    this.selected_element = undefined;
-                }
-
-                if (model && model !== this.selected_model) {
-                    const index = this.models.indexOf(model);
-
-                    if (index !== -1) {
-                        this.selected_element = this.element.childNodes[index] as HTMLLIElement;
-                        this.selected_element.classList.add("active");
+            selected.observe(
+                ({ value: model }) => {
+                    if (this.selected_element) {
+                        this.selected_element.classList.remove("active");
+                        this.selected_element = undefined;
                     }
-                }
-            }),
+
+                    if (model && model !== this.selected_model) {
+                        const index = this.models.indexOf(model);
+
+                        if (index !== -1) {
+                            this.selected_element = this.element.childNodes[index] as HTMLLIElement;
+                            this.selected_element.classList.add("active");
+                        }
+                    }
+                },
+                { call_now: true },
+            ),
         );
 
         this.finalize_construction();

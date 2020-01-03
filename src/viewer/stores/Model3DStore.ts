@@ -195,7 +195,7 @@ export class Model3DStore extends Store {
             this.current_animation.observe(({ value }) => this.load_animation(value)),
         );
 
-        this.set_current_model(this.models[[3, 5, 6, 8][Math.floor(Math.random() * 4)]]);
+        this.set_current_model(this.models[Math.floor(Math.random() * this.models.length)]);
     }
 
     set_current_model = (current_model: CharacterClassModel): void => {
