@@ -9,9 +9,9 @@ export class CharacterClassModel {
     /**
      * Can be indexed with {@link SectionId}
      */
-    readonly section_id_tex_ids: number[];
+    readonly section_id_tex_ids: readonly number[];
     readonly body_tex_ids: readonly number[];
-    readonly head_tex_ids: readonly number[];
+    readonly head_tex_ids: readonly (number | undefined)[];
     readonly hair_tex_ids: readonly (number | undefined)[];
     readonly accessory_tex_ids: readonly (number | undefined)[];
 
@@ -22,7 +22,7 @@ export class CharacterClassModel {
         hair_styles_with_accessory: Set<number>;
         section_id_tex_id: number;
         body_tex_ids: number[];
-        head_tex_ids?: number[];
+        head_tex_ids?: (number | undefined)[];
         hair_tex_ids?: (number | undefined)[];
         accessory_tex_ids?: (number | undefined)[];
     }) {

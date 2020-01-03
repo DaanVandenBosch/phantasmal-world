@@ -57,7 +57,9 @@ export class Model3DStore extends Store {
             hair_style_count: 10,
             hair_styles_with_accessory: new Set(),
             section_id_tex_id: 299,
-            body_tex_ids: [],
+            body_tex_ids: [13, 0, 1, 2, 3, 277, 281],
+            head_tex_ids: [235, 239],
+            hair_tex_ids: [260, 259],
         }),
         new CharacterClassModel({
             name: "HUcast",
@@ -65,7 +67,10 @@ export class Model3DStore extends Store {
             hair_style_count: 0,
             hair_styles_with_accessory: new Set(),
             section_id_tex_id: 275,
-            body_tex_ids: [],
+            body_tex_ids: [0, 1, 2, 250],
+            // Eyes don't look correct because NJCM material chunks (which contain alpha blending
+            // details) aren't parsed yet. Material.blending should be AdditiveBlending.
+            head_tex_ids: [3, 4],
         }),
         new CharacterClassModel({
             name: "HUcaseal",
@@ -82,7 +87,10 @@ export class Model3DStore extends Store {
             hair_style_count: 10,
             hair_styles_with_accessory: new Set([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]),
             section_id_tex_id: 197,
-            body_tex_ids: [],
+            body_tex_ids: [4, 5, 6, 179],
+            head_tex_ids: [126, 127],
+            hair_tex_ids: [166, 167],
+            accessory_tex_ids: [undefined, undefined, 2],
         }),
         new CharacterClassModel({
             name: "RAmarl",
@@ -110,7 +118,9 @@ export class Model3DStore extends Store {
             hair_style_count: 0,
             hair_styles_with_accessory: new Set(),
             section_id_tex_id: 375,
-            body_tex_ids: [],
+            body_tex_ids: [350, 0, 1, 2],
+            head_tex_ids: [3],
+            hair_tex_ids: [4],
         }),
         new CharacterClassModel({
             name: "FOmar",
@@ -129,7 +139,10 @@ export class Model3DStore extends Store {
             hair_style_count: 10,
             hair_styles_with_accessory: new Set([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]),
             section_id_tex_id: 326,
-            body_tex_ids: [],
+            body_tex_ids: [0, 2, 1, 322],
+            head_tex_ids: [288],
+            hair_tex_ids: [undefined, undefined, 308],
+            accessory_tex_ids: [3, 4],
         }),
         new CharacterClassModel({
             name: "FOnewm",
@@ -137,7 +150,11 @@ export class Model3DStore extends Store {
             hair_style_count: 10,
             hair_styles_with_accessory: new Set([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]),
             section_id_tex_id: 344,
-            body_tex_ids: [],
+            body_tex_ids: [4, 340, 0, 5],
+            head_tex_ids: [306, 310],
+            hair_tex_ids: [undefined, undefined, 330],
+            // ID 16 for glasses is incorrect but looks decent.
+            accessory_tex_ids: [6, 16, 330],
         }),
         new CharacterClassModel({
             name: "FOnewearl",
@@ -145,7 +162,10 @@ export class Model3DStore extends Store {
             hair_style_count: 10,
             hair_styles_with_accessory: new Set([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]),
             section_id_tex_id: 505,
-            body_tex_ids: [],
+            body_tex_ids: [1, 0, 2, 501],
+            head_tex_ids: [472, 468],
+            hair_tex_ids: [undefined, undefined, 492],
+            accessory_tex_ids: [12, 13],
         }),
     ];
 

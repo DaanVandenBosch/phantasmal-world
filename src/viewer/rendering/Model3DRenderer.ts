@@ -1,4 +1,5 @@
 import {
+    AdditiveBlending,
     AnimationClip,
     AnimationMixer,
     Clock,
