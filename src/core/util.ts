@@ -14,6 +14,22 @@ export function arrays_equal<T>(
     return true;
 }
 
+/**
+ * @param min - The minimum value, inclusive.
+ * @param max - The maximum value, exclusive.
+ * @returns A random integer between `min` and `max`.
+ */
+export function random_integer(min: number, max: number): number {
+    return min + Math.floor(Math.random() * (max - min));
+}
+
+/**
+ * @returns A random element from `array`.
+ */
+export function random_array_element<T>(array: readonly T[]): T {
+    return array[random_integer(0, array.length)];
+}
+
 export function array_buffers_equal(a: ArrayBuffer, b: ArrayBuffer): boolean {
     if (a.byteLength !== b.byteLength) return false;
 
@@ -25,16 +41,6 @@ export function array_buffers_equal(a: ArrayBuffer, b: ArrayBuffer): boolean {
     }
 
     return true;
-}
-
-export function create_array<T>(length: number, value: (index: number) => T): T[] {
-    const array = Array(length);
-
-    for (let i = 0; i < length; i++) {
-        array[i] = value(i);
-    }
-
-    return array;
 }
 
 /**

@@ -2,7 +2,21 @@ import { ArrayBufferCursor } from "../../core/data_formats/cursor/ArrayBufferCur
 import { Endianness } from "../../core/data_formats/Endianness";
 import { NjMotion, parse_njm } from "../../core/data_formats/parsing/ninja/motion";
 import { NjObject, parse_nj, parse_xj } from "../../core/data_formats/parsing/ninja";
-import { CharacterClassModel } from "../model/CharacterClassModel";
+import {
+    CharacterClassModel,
+    FOMAR,
+    FOMARL,
+    FONEWEARL,
+    FONEWM,
+    HUCASEAL,
+    HUCAST,
+    HUMAR,
+    HUNEWEARL,
+    RACASEAL,
+    RACAST,
+    RAMAR,
+    RAMARL,
+} from "../model/CharacterClassModel";
 import { CharacterClassAnimationModel } from "../model/CharacterClassAnimationModel";
 import { WritableProperty } from "../../core/observable/property/WritableProperty";
 import { read_file } from "../../core/read_file";
@@ -15,6 +29,7 @@ import { Store } from "../../core/stores/Store";
 import { LogManager } from "../../core/Logger";
 import { ListProperty } from "../../core/observable/property/list/ListProperty";
 import { parse_afs } from "../../core/data_formats/parsing/afs";
+import { random_array_element, random_integer } from "../../core/util";
 import { SectionIds } from "../../core/model";
 
 const logger = LogManager.get("viewer/stores/ModelStore");
@@ -41,132 +56,18 @@ export class Model3DStore extends Store {
     private readonly _animation_frame: WritableProperty<number> = property(0);
 
     readonly models: readonly CharacterClassModel[] = [
-        new CharacterClassModel({
-            name: "HUmar",
-            head_style_count: 1,
-            hair_style_count: 10,
-            hair_styles_with_accessory: new Set([6]),
-            section_id_tex_id: 126,
-            body_tex_ids: [0, 1, 2, 108],
-            head_tex_ids: [54, 55],
-            hair_tex_ids: [94, 95],
-        }),
-        new CharacterClassModel({
-            name: "HUnewearl",
-            head_style_count: 1,
-            hair_style_count: 10,
-            hair_styles_with_accessory: new Set(),
-            section_id_tex_id: 299,
-            body_tex_ids: [13, 0, 1, 2, 3, 277, 281],
-            head_tex_ids: [235, 239],
-            hair_tex_ids: [260, 259],
-        }),
-        new CharacterClassModel({
-            name: "HUcast",
-            head_style_count: 5,
-            hair_style_count: 0,
-            hair_styles_with_accessory: new Set(),
-            section_id_tex_id: 275,
-            body_tex_ids: [0, 1, 2, 250],
-            // Eyes don't look correct because NJCM material chunks (which contain alpha blending
-            // details) aren't parsed yet. Material.blending should be AdditiveBlending.
-            head_tex_ids: [3, 4],
-        }),
-        new CharacterClassModel({
-            name: "HUcaseal",
-            head_style_count: 5,
-            hair_style_count: 0,
-            hair_styles_with_accessory: new Set(),
-            section_id_tex_id: 375,
-            body_tex_ids: [0, 1, 2],
-            head_tex_ids: [3, 4],
-        }),
-        new CharacterClassModel({
-            name: "RAmar",
-            head_style_count: 1,
-            hair_style_count: 10,
-            hair_styles_with_accessory: new Set([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]),
-            section_id_tex_id: 197,
-            body_tex_ids: [4, 5, 6, 179],
-            head_tex_ids: [126, 127],
-            hair_tex_ids: [166, 167],
-            accessory_tex_ids: [undefined, undefined, 2],
-        }),
-        new CharacterClassModel({
-            name: "RAmarl",
-            head_style_count: 1,
-            hair_style_count: 10,
-            hair_styles_with_accessory: new Set([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]),
-            section_id_tex_id: 322,
-            body_tex_ids: [15, 1, 0],
-            head_tex_ids: [288],
-            hair_tex_ids: [308, 309],
-            accessory_tex_ids: [undefined, undefined, 8],
-        }),
-        new CharacterClassModel({
-            name: "RAcast",
-            head_style_count: 5,
-            hair_style_count: 0,
-            hair_styles_with_accessory: new Set(),
-            section_id_tex_id: 300,
-            body_tex_ids: [0, 1, 2, 3, 275],
-            head_tex_ids: [4],
-        }),
-        new CharacterClassModel({
-            name: "RAcaseal",
-            head_style_count: 5,
-            hair_style_count: 0,
-            hair_styles_with_accessory: new Set(),
-            section_id_tex_id: 375,
-            body_tex_ids: [350, 0, 1, 2],
-            head_tex_ids: [3],
-            hair_tex_ids: [4],
-        }),
-        new CharacterClassModel({
-            name: "FOmar",
-            head_style_count: 1,
-            hair_style_count: 10,
-            hair_styles_with_accessory: new Set([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]),
-            section_id_tex_id: 310,
-            body_tex_ids: [12, 13, 14, 0],
-            head_tex_ids: [276, 272],
-            hair_tex_ids: [undefined, 296, 297],
-            accessory_tex_ids: [4],
-        }),
-        new CharacterClassModel({
-            name: "FOmarl",
-            head_style_count: 1,
-            hair_style_count: 10,
-            hair_styles_with_accessory: new Set([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]),
-            section_id_tex_id: 326,
-            body_tex_ids: [0, 2, 1, 322],
-            head_tex_ids: [288],
-            hair_tex_ids: [undefined, undefined, 308],
-            accessory_tex_ids: [3, 4],
-        }),
-        new CharacterClassModel({
-            name: "FOnewm",
-            head_style_count: 1,
-            hair_style_count: 10,
-            hair_styles_with_accessory: new Set([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]),
-            section_id_tex_id: 344,
-            body_tex_ids: [4, 340, 0, 5],
-            head_tex_ids: [306, 310],
-            hair_tex_ids: [undefined, undefined, 330],
-            // ID 16 for glasses is incorrect but looks decent.
-            accessory_tex_ids: [6, 16, 330],
-        }),
-        new CharacterClassModel({
-            name: "FOnewearl",
-            head_style_count: 1,
-            hair_style_count: 10,
-            hair_styles_with_accessory: new Set([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]),
-            section_id_tex_id: 505,
-            body_tex_ids: [1, 0, 2, 501],
-            head_tex_ids: [472, 468],
-            hair_tex_ids: [undefined, undefined, 492],
-            accessory_tex_ids: [12, 13],
-        }),
+        HUMAR,
+        HUNEWEARL,
+        HUCAST,
+        HUCASEAL,
+        RAMAR,
+        RAMARL,
+        RACAST,
+        RACASEAL,
+        FOMAR,
+        FOMARL,
+        FONEWM,
+        FONEWEARL,
     ];
 
     readonly animations: readonly CharacterClassAnimationModel[] = new Array(572)
@@ -195,27 +96,19 @@ export class Model3DStore extends Store {
             this.current_animation.observe(({ value }) => this.load_animation(value)),
         );
 
-        this.set_current_model(this.models[Math.floor(Math.random() * this.models.length)]);
+        this.set_current_model(random_array_element(this.models));
     }
 
-    set_current_model = (current_model: CharacterClassModel): void => {
+    set_current_model = (current_model?: CharacterClassModel): void => {
         this._current_model.val = current_model;
-    };
-
-    clear_current_model = (): void => {
-        this._current_model.val = undefined;
     };
 
     set_show_skeleton = (show_skeleton: boolean): void => {
         this._show_skeleton.val = show_skeleton;
     };
 
-    set_current_animation = (animation: CharacterClassAnimationModel): void => {
+    set_current_animation = (animation?: CharacterClassAnimationModel): void => {
         this._current_animation.val = animation;
-    };
-
-    clear_current_animation = (): void => {
-        this._current_animation.val = undefined;
     };
 
     set_animation_playing = (playing: boolean): void => {
@@ -237,7 +130,8 @@ export class Model3DStore extends Store {
             const cursor = new ArrayBufferCursor(buffer, Endianness.Little);
 
             if (file.name.endsWith(".nj")) {
-                this.clear_current_model();
+                this.set_current_model(undefined);
+                this._current_textures.clear();
 
                 const nj_object = parse_nj(cursor)[0];
 
@@ -247,7 +141,8 @@ export class Model3DStore extends Store {
                     has_skeleton: true,
                 });
             } else if (file.name.endsWith(".xj")) {
-                this.clear_current_model();
+                this.set_current_model(undefined);
+                this._current_textures.clear();
 
                 const nj_object = parse_xj(cursor)[0];
 
@@ -257,7 +152,7 @@ export class Model3DStore extends Store {
                     has_skeleton: false,
                 });
             } else if (file.name.endsWith(".njm")) {
-                this.clear_current_animation();
+                this.set_current_animation(undefined);
                 this._current_nj_motion.val = undefined;
 
                 const nj_data = this.current_nj_data.val;
@@ -267,22 +162,18 @@ export class Model3DStore extends Store {
                     this._current_nj_motion.val = parse_njm(cursor, nj_data.bone_count);
                 }
             } else if (file.name.endsWith(".xvm")) {
-                if (this.current_model) {
-                    this._current_textures.val = parse_xvm(cursor).textures;
-                }
+                this._current_textures.val = parse_xvm(cursor).textures;
             } else if (file.name.endsWith(".afs")) {
-                if (this.current_model) {
-                    const files = parse_afs(cursor);
-                    const textures: XvrTexture[] = [];
+                const files = parse_afs(cursor);
+                const textures: XvrTexture[] = [];
 
-                    for (const file of files) {
-                        textures.push(
-                            ...parse_xvm(new ArrayBufferCursor(file, Endianness.Little)).textures,
-                        );
-                    }
-
-                    this._current_textures.val = textures;
+                for (const file of files) {
+                    textures.push(
+                        ...parse_xvm(new ArrayBufferCursor(file, Endianness.Little)).textures,
+                    );
                 }
+
+                this._current_textures.val = textures;
             } else {
                 logger.error(`Unknown file extension in filename "${file.name}".`);
             }
@@ -292,11 +183,19 @@ export class Model3DStore extends Store {
     };
 
     private load_model = async (model?: CharacterClassModel): Promise<void> => {
-        this.clear_current_animation();
+        this.set_current_animation(undefined);
 
         if (model) {
             try {
+                this.set_current_nj_data(undefined);
+
                 const nj_object = await this.asset_loader.load_geometry(model);
+
+                this._current_textures.val = await this.asset_loader.load_textures(
+                    model,
+                    random_array_element(SectionIds),
+                    random_integer(0, model.body_style_count),
+                );
 
                 this.set_current_nj_data({
                     nj_object,
@@ -304,20 +203,6 @@ export class Model3DStore extends Store {
                     bone_count: model ? 64 : nj_object.bone_count(),
                     has_skeleton: true,
                 });
-
-                const textures = await this.asset_loader.load_textures(model);
-
-                this._current_textures.val = [
-                    textures[
-                        model.section_id_tex_ids[Math.floor(Math.random() * SectionIds.length)]
-                    ],
-                    ...[
-                        ...model.body_tex_ids,
-                        ...model.head_tex_ids,
-                        ...model.hair_tex_ids,
-                        ...model.accessory_tex_ids,
-                    ].map(id => (id == undefined ? undefined : textures[id])),
-                ];
             } catch (e) {
                 logger.error(`Couldn't load model for ${model.name}.`);
                 this._current_nj_data.val = undefined;
@@ -327,8 +212,7 @@ export class Model3DStore extends Store {
         }
     };
 
-    private set_current_nj_data(nj_data: NjData): void {
-        this._current_textures.clear();
+    private set_current_nj_data(nj_data?: NjData): void {
         this._current_nj_data.val = nj_data;
     }
 

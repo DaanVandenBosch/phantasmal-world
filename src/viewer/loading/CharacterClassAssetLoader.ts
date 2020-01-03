@@ -6,9 +6,24 @@ import { NjcmModel } from "../../core/data_formats/parsing/ninja/njcm";
 import { NjMotion, parse_njm } from "../../core/data_formats/parsing/ninja/motion";
 import { Disposable } from "../../core/observable/Disposable";
 import { DisposablePromise } from "../../core/DisposablePromise";
-import { CharacterClassModel } from "../model/CharacterClassModel";
+import {
+    CharacterClassModel,
+    FOMAR,
+    FOMARL,
+    FONEWEARL,
+    FONEWM,
+    HUCASEAL,
+    HUCAST,
+    HUMAR,
+    HUNEWEARL,
+    RACASEAL,
+    RACAST,
+    RAMAR,
+    RAMARL,
+} from "../model/CharacterClassModel";
 import { parse_xvm, XvrTexture } from "../../core/data_formats/parsing/ninja/texture";
 import { parse_afs } from "../../core/data_formats/parsing/afs";
+import { SectionId } from "../../core/model";
 
 export class CharacterClassAssetLoader implements Disposable {
     private readonly nj_object_cache: Map<
@@ -53,6 +68,8 @@ export class CharacterClassAssetLoader implements Disposable {
     private load_all_nj_objects(
         model: CharacterClassModel,
     ): DisposablePromise<NjObject<NjcmModel>> {
+        const tex_ids = texture_ids(model, SectionId.Viridia, 0);
+
         return this.load_body_part_geometry(model.name, "Body").then(body => {
             if (!body) {
                 throw new Error(`Couldn't load body for player class ${model.name}.`);
@@ -64,7 +81,7 @@ export class CharacterClassAssetLoader implements Disposable {
                 }
 
                 // Shift by 1 for the section ID and once for every body texture ID.
-                let shift = 1 + model.body_tex_ids.length;
+                let shift = 1 + tex_ids.body.length;
                 this.shift_texture_ids(head, shift);
                 this.add_to_bone(body, head, 59);
 
@@ -77,7 +94,7 @@ export class CharacterClassAssetLoader implements Disposable {
                         return body;
                     }
 
-                    shift += model.head_tex_ids.length;
+                    shift += tex_ids.head.length;
                     this.shift_texture_ids(hair, shift);
                     this.add_to_bone(head, hair, 0);
 
@@ -88,7 +105,7 @@ export class CharacterClassAssetLoader implements Disposable {
                     return this.load_body_part_geometry(model.name, "Accessory", 0).then(
                         accessory => {
                             if (accessory) {
-                                shift += model.hair_tex_ids.length;
+                                shift += tex_ids.hair.length;
                                 this.shift_texture_ids(accessory, shift);
                                 this.add_to_bone(hair, accessory, 0);
                             }
@@ -139,11 +156,15 @@ export class CharacterClassAssetLoader implements Disposable {
         }
     }
 
-    load_textures(model: CharacterClassModel): Promise<readonly XvrTexture[]> {
-        let xvr_texture = this.xvr_texture_cache.get(model.name);
+    async load_textures(
+        model: CharacterClassModel,
+        section_id: SectionId,
+        body: number,
+    ): Promise<readonly (XvrTexture | undefined)[]> {
+        let xvr_textures = this.xvr_texture_cache.get(model.name);
 
-        if (!xvr_texture) {
-            xvr_texture = this.http_client
+        if (!xvr_textures) {
+            xvr_textures = this.http_client
                 .get(`/player/${model.name}Tex.afs`)
                 .array_buffer()
                 .then(buffer => {
@@ -159,7 +180,16 @@ export class CharacterClassAssetLoader implements Disposable {
                 });
         }
 
-        return xvr_texture;
+        const tex = await xvr_textures;
+        const tex_ids = texture_ids(model, section_id, body);
+
+        return [
+            tex_ids.section_id,
+            ...tex_ids.body,
+            ...tex_ids.head,
+            ...tex_ids.hair,
+            ...tex_ids.accessories,
+        ].map(idx => (idx == undefined ? undefined : tex[idx]));
     }
 
     load_animation(animation_id: number, bone_count: number): Promise<NjMotion> {
@@ -180,4 +210,152 @@ export class CharacterClassAssetLoader implements Disposable {
 
 function character_class_to_url(player_class: string, body_part: string, no?: number): string {
     return `/player/${player_class}${body_part}${no == null ? "" : no}.nj`;
+}
+
+function texture_ids(
+    model: CharacterClassModel,
+    section_id: SectionId,
+    body: number,
+): {
+    section_id: number;
+    body: number[];
+    head: number[];
+    hair: (number | undefined)[];
+    accessories: (number | undefined)[];
+} {
+    switch (model) {
+        case HUMAR: {
+            const body_idx = body * 3;
+            return {
+                section_id: section_id + 126,
+                body: [body_idx, body_idx + 1, body_idx + 2, body + 108],
+                head: [54, 55],
+                hair: [94, 95],
+                accessories: [],
+            };
+        }
+        case HUNEWEARL: {
+            const body_idx = body * 13;
+            return {
+                section_id: section_id + 299,
+                body: [
+                    body_idx + 13,
+                    body_idx,
+                    body_idx + 1,
+                    body_idx + 2,
+                    body_idx + 3,
+                    277,
+                    body + 281,
+                ],
+                head: [235, 239],
+                hair: [260, 259],
+                accessories: [],
+            };
+        }
+        case HUCAST: {
+            const body_idx = body * 5;
+            return {
+                section_id: section_id + 275,
+                body: [body_idx, body_idx + 1, body_idx + 2, body + 250],
+                // Eyes don't look correct because NJCM material chunks (which contain alpha blending
+                // details) aren't parsed yet. Material.blending should be AdditiveBlending.
+                head: [body_idx + 3, body_idx + 4],
+                hair: [],
+                accessories: [],
+            };
+        }
+        case HUCASEAL: {
+            const body_idx = body * 5;
+            return {
+                section_id: section_id + 375,
+                body: [body_idx, body_idx + 1, body_idx + 2],
+                head: [body_idx + 3, body_idx + 4],
+                hair: [],
+                accessories: [],
+            };
+        }
+        case RAMAR: {
+            const body_idx = body * 7;
+            return {
+                section_id: section_id + 197,
+                body: [body_idx + 4, body_idx + 5, body_idx + 6, body + 179],
+                head: [126, 127],
+                hair: [166, 167],
+                accessories: [undefined, undefined, body_idx + 2],
+            };
+        }
+        case RAMARL: {
+            const body_idx = body * 16;
+            return {
+                section_id: section_id + 322,
+                body: [body_idx + 15, body_idx + 1, body_idx],
+                head: [288],
+                hair: [308, 309],
+                accessories: [undefined, undefined, body_idx + 8],
+            };
+        }
+        case RACAST: {
+            const body_idx = body * 5;
+            return {
+                section_id: section_id + 300,
+                body: [body_idx, body_idx + 1, body_idx + 2, body_idx + 3, body + 275],
+                head: [body_idx + 4],
+                hair: [],
+                accessories: [],
+            };
+        }
+        case RACASEAL: {
+            const body_idx = body * 5;
+            return {
+                section_id: section_id + 375,
+                body: [body + 350, body_idx, body_idx + 1, body_idx + 2],
+                head: [body_idx + 3],
+                hair: [body_idx + 4],
+                accessories: [],
+            };
+        }
+        case FOMAR: {
+            const body_idx = body === 0 ? 0 : body * 15 + 2;
+            return {
+                section_id: section_id + 310,
+                body: [body_idx + 12, body_idx + 13, body_idx + 14, body_idx],
+                head: [276, 272],
+                hair: [undefined, 296, 297],
+                accessories: [body_idx + 4],
+            };
+        }
+        case FOMARL: {
+            const body_idx = body * 16;
+            return {
+                section_id: section_id + 310,
+                body: [body_idx, body_idx + 2, body_idx + 1, 322 /*hands*/],
+                head: [288],
+                hair: [undefined, undefined, 308],
+                accessories: [body_idx + 3, body_idx + 4],
+            };
+        }
+        case FONEWM: {
+            const body_idx = body * 17;
+            return {
+                section_id: section_id + 344,
+                body: [body_idx + 4, 340 /*hands*/, body_idx, body_idx + 5],
+                head: [306, 310],
+                hair: [undefined, undefined, 330],
+                // ID 16 for glasses is incorrect but looks decent.
+                accessories: [body_idx + 6, body_idx + 16, 330],
+            };
+        }
+        case FONEWEARL: {
+            const body_idx = body * 26;
+            return {
+                section_id: section_id + 505,
+                body: [body_idx + 1, body_idx, body_idx + 2, 501 /*hands*/],
+                head: [472, 468],
+                hair: [undefined, undefined, 492],
+                accessories: [body_idx + 12, body_idx + 13],
+            };
+        }
+        default:
+            throw new Error(`No textures for character class ${model.name}.`);
+    }
 }
