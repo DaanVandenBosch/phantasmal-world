@@ -1,3 +1,6 @@
+// Import polyfills before anything else.
+import "core-js/stable";
+
 import "./core/gui/index.css";
 import "@fortawesome/fontawesome-free/js/fontawesome";
 import "@fortawesome/fontawesome-free/js/solid";

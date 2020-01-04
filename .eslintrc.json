@@ -7,20 +7,16 @@
         "plugin:prettier/recommended"
     ],
     "plugins": ["@typescript-eslint", "prettier"],
+    "root": true,
     "env": {
         "browser": true,
         "es6": true,
         "jest": true,
         "node": true
     },
+    "ignorePatterns": ["webpack.*.js"],
     "rules": {
-        "@typescript-eslint/array-type": [
-            "warn",
-            {
-                "default": "array",
-                "readonly": "array"
-            }
-        ],
+        "@typescript-eslint/array-type": ["warn", { "default": "array", "readonly": "array" }],
         "@typescript-eslint/camelcase": "off",
         "@typescript-eslint/class-name-casing": "warn",
         "@typescript-eslint/explicit-function-return-type": ["warn", { "allowExpressions": true }],

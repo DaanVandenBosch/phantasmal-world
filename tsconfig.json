@@ -4,7 +4,7 @@
         "sourceMap": true,
         "module": "esnext",
         "target": "es6",
-        "lib": ["es6", "dom", "dom.iterable", "es2018.promise"],
+        "lib": ["esnext", "dom", "dom.iterable"],
         "allowJs": true,
         "skipLibCheck": true,
         "esModuleInterop": true,
