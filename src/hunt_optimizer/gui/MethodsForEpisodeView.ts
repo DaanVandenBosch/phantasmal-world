@@ -1,4 +1,3 @@
-import { ResizableWidget } from "../../core/gui/ResizableWidget";
 import { Episode } from "../../core/data_formats/parsing/quest/Episode";
 import { HuntMethodModel } from "../model/HuntMethodModel";
 import {
@@ -16,10 +15,11 @@ import { ServerMap } from "../../core/stores/ServerMap";
 import { HuntMethodStore } from "../stores/HuntMethodStore";
 import { LogManager } from "../../core/Logger";
 import { div } from "../../core/gui/dom";
+import { ResizableView } from "../../core/gui/ResizableView";
 
 const logger = LogManager.get("hunt_optimizer/gui/MethodsForEpisodeView");
 
-export class MethodsForEpisodeView extends ResizableWidget {
+export class MethodsForEpisodeView extends ResizableView {
     readonly element = div({ className: "hunt_optimizer_MethodsForEpisodeView" });
 
     private readonly episode: Episode;
@@ -35,7 +35,7 @@ export class MethodsForEpisodeView extends ResizableWidget {
 
         const hunt_methods = list_property<HuntMethodModel>();
 
-        const table = this.disposable(
+        const table = this.add(
             new Table({
                 class: "hunt_optimizer_MethodsForEpisodeView_table",
                 values: hunt_methods,
@@ -123,7 +123,7 @@ export class MethodsForEpisodeView extends ResizableWidget {
 
         this.element.append(table.element);
 
-        this.disposable(
+        this.disposables(
             hunt_method_stores.current.observe(
                 async ({ value }) => {
                     try {

@@ -6,9 +6,22 @@ import { PSO_FRAME_RATE } from "../../../core/rendering/conversion/ninja_animati
 import { Label } from "../../../core/gui/Label";
 import { Icon } from "../../../core/gui/dom";
 import { Model3DStore } from "../../stores/Model3DStore";
+import { View } from "../../../core/gui/View";
 
-export class Model3DToolBar extends ToolBar {
+export class Model3DToolBarView extends View {
+    private readonly toolbar: ToolBar;
+
+    get element(): HTMLElement {
+        return this.toolbar.element;
+    }
+
+    get height(): number {
+        return this.toolbar.height;
+    }
+
     constructor(model_3d_store: Model3DStore) {
+        super();
+
         const open_file_button = new FileButton("Open file...", {
             icon_left: Icon.File,
             accept: ".afs, .nj, .njm, .xj, .xvm",
@@ -31,13 +44,15 @@ export class Model3DToolBar extends ToolBar {
             model_3d_store.animation_frame_count.map(count => `/ ${count}`),
         );
 
-        super(
-            open_file_button,
-            skeleton_checkbox,
-            play_animation_checkbox,
-            animation_frame_rate_input,
-            animation_frame_input,
-            animation_frame_count_label,
+        this.toolbar = this.add(
+            new ToolBar(
+                open_file_button,
+                skeleton_checkbox,
+                play_animation_checkbox,
+                animation_frame_rate_input,
+                animation_frame_input,
+                animation_frame_count_label,
+            ),
         );
 
         // Always-enabled controls.

@@ -1,5 +1,5 @@
 import { LabelledControl, LabelledControlOptions } from "./LabelledControl";
-import { Icon, icon, input, span } from "./dom";
+import { bind_attr, Icon, icon, input, span } from "./dom";
 import "./ComboBox.css";
 import "./Input.css";
 import { Menu } from "./Menu";
@@ -90,14 +90,7 @@ export class ComboBox<T> extends LabelledControl {
         };
 
         const down_arrow_element = icon(Icon.TriangleDown);
-        this.bind_hidden(down_arrow_element, this.menu.visible);
-
         const up_arrow_element = icon(Icon.TriangleUp);
-        this.bind_hidden(
-            up_arrow_element,
-            this.menu.visible.map(v => !v),
-        );
-
         const button_element = span(
             { className: "core_ComboBox_button" },
             down_arrow_element,
@@ -128,6 +121,14 @@ export class ComboBox<T> extends LabelledControl {
                 this.selected.set_val(value, { silent: false });
                 this.input_element.focus();
             }),
+
+            bind_attr(
+                up_arrow_element,
+                "hidden",
+                this.menu.visible.map(v => !v),
+            ),
+
+            bind_attr(down_arrow_element, "hidden", this.menu.visible),
         );
 
         this.finalize_construction();

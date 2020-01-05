@@ -90,6 +90,8 @@ export function initialize_application(
 
     resize();
     document.body.append(application_view.element);
+    application_view.activate();
+
     disposer.add(disposable_listener(window, "resize", resize));
 
     return {

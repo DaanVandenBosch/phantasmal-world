@@ -13,6 +13,7 @@ export function initialize_viewer(
     const disposer = new Disposer();
 
     const view = new ViewerView(
+        gui_store,
         async () => {
             const { Model3DStore } = await import("./stores/Model3DStore");
             const { Model3DView } = await import("./gui/model_3d/Model3DView");
@@ -42,7 +43,7 @@ export function initialize_viewer(
                 disposer.add(store);
             }
 
-            return new TextureView(gui_store, store, create_three_renderer());
+            return new TextureView(store, create_three_renderer());
         },
     );
 

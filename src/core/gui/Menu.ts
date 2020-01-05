@@ -14,6 +14,7 @@ export type MenuOptions<T> = {
 
 export class Menu<T> extends Widget {
     readonly element = div({ className: "core_Menu", tabIndex: -1 });
+    readonly children: readonly Widget[] = [];
     readonly selected: WritableProperty<T | undefined>;
 
     private readonly to_label: (item: T) => string;

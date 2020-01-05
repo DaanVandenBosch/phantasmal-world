@@ -4,10 +4,9 @@ import { LabelledControl } from "./LabelledControl";
 import { div } from "./dom";
 
 export class ToolBar extends Widget {
-    private readonly children: readonly Widget[];
-
     readonly element = div({ className: "core_ToolBar" });
     readonly height = 33;
+    readonly children: readonly Widget[];
 
     constructor(options?: WidgetOptions, ...children: Widget[]) {
         // noinspection SuspiciousTypeOfGuard

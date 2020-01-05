@@ -1,4 +1,3 @@
-import { ResizableWidget } from "../../core/gui/ResizableWidget";
 import "./EventsView.css";
 import { EventsController } from "../controllers/EventsController";
 import { UnavailableView } from "./UnavailableView";
@@ -13,8 +12,9 @@ import {
     ListProperty,
 } from "../../core/observable/property/list/ListProperty";
 import { QuestEventModel } from "../model/QuestEventModel";
+import { ResizableView } from "../../core/gui/ResizableView";
 
-export class EventsView extends ResizableWidget {
+export class EventsView extends ResizableView {
     private readonly sub_graph_views: Map<
         ListProperty<QuestEventModel>,
         EventSubGraphView
@@ -37,9 +37,8 @@ export class EventsView extends ResizableWidget {
             { className: "quest_editor_EventsView", tabIndex: -1 },
             (this.container_element = div(
                 { className: "quest_editor_EventsView_container" },
-                this.disposable(
-                    new ToolBar((this.add_event_button = new Button({ text: "Add event" }))),
-                ).element,
+                this.add(new ToolBar((this.add_event_button = new Button({ text: "Add event" }))))
+                    .element,
                 (this.dag_container_element = div({
                     className: "quest_editor_EventsView_sub_graph_container",
                 })),

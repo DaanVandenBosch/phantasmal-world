@@ -20,18 +20,25 @@ const GUI_TOOL_TO_STRING = new Map([
 const STRING_TO_GUI_TOOL = new Map([...GUI_TOOL_TO_STRING.entries()].map(([k, v]) => [v, k]));
 
 export class GuiStore extends Store {
+    private readonly _tool: WritableProperty<GuiTool> = property(GuiTool.Viewer);
+    private readonly _path: WritableProperty<string> = property("");
     private readonly _server: WritableProperty<Server> = property(Server.Ephinea);
     private readonly global_keydown_handlers = new Map<string, (e: KeyboardEvent) => void>();
     private readonly features: Set<string> = new Set();
 
-    readonly tool: WritableProperty<GuiTool> = property(GuiTool.Viewer);
+    readonly tool: Property<GuiTool> = this._tool;
+    readonly path: Property<string> = this._path;
     readonly server: Property<Server> = this._server;
 
     constructor() {
         super();
 
         const url = window.location.hash.slice(2);
-        const [tool_str, params_str] = url.split("?");
+        const [full_path, params_str] = url.split("?");
+
+        const first_slash_idx = full_path.indexOf("/");
+        const tool_str = first_slash_idx === -1 ? full_path : full_path.slice(0, first_slash_idx);
+        const path = first_slash_idx === -1 ? "" : full_path.slice(first_slash_idx);
 
         if (params_str) {
             const features = params_str
@@ -46,21 +53,35 @@ export class GuiStore extends Store {
             }
         }
 
-        this.disposables(
-            this.tool.observe(({ value: tool }) => {
-                let hash = `#/${gui_tool_to_string(tool)}`;
+        this.disposables(disposable_listener(window, "keydown", this.dispatch_global_keydown));
 
-                if (this.features.size) {
-                    hash += "?features=" + [...this.features].join(",");
-                }
+        this.set_tool(string_to_gui_tool(tool_str) ?? GuiTool.Viewer, path);
+    }
 
-                window.location.hash = hash;
-            }),
+    set_tool(tool: GuiTool, path: string = ""): void {
+        this._path.val = path;
+        this._tool.val = tool;
+        this.update_location();
+    }
 
-            disposable_listener(window, "keydown", this.dispatch_global_keydown),
-        );
+    /**
+     * Updates the path to `path_prefix` if the current path doesn't start with `path_prefix`.
+     */
+    set_path_prefix(path_prefix: string): void {
+        if (!this.path.val.startsWith(path_prefix)) {
+            this._path.val = path_prefix;
+            this.update_location();
+        }
+    }
 
-        this.tool.val = string_to_gui_tool(tool_str) || GuiTool.Viewer;
+    private update_location(): void {
+        let hash = `#/${gui_tool_to_string(this.tool.val)}${this.path.val}`;
+
+        if (this.features.size) {
+            hash += "?features=" + [...this.features].join(",");
+        }
+
+        window.location.hash = hash;
     }
 
     on_global_keydown(

@@ -1,4 +1,3 @@
-import { ResizableWidget } from "../../core/gui/ResizableWidget";
 import { QuestEditorToolBar } from "./QuestEditorToolBar";
 import GoldenLayout, { Container, ContentItem, ItemConfigType } from "golden-layout";
 import { QuestInfoView } from "./QuestInfoView";
@@ -18,8 +17,11 @@ import { QuestRunnerRendererView } from "./QuestRunnerRendererView";
 import { QuestEditorStore } from "../stores/QuestEditorStore";
 import { QuestEditorUiPersister } from "../persistence/QuestEditorUiPersister";
 import { LogManager } from "../../core/Logger";
-import { ErrorView } from "../../core/gui/ErrorView";
+import { ErrorWidget } from "../../core/gui/ErrorWidget";
 import { div } from "../../core/gui/dom";
+import { ResizableView } from "../../core/gui/ResizableView";
+import { Widget } from "../../core/gui/Widget";
+import { Resizable } from "../../core/gui/Resizable";
 
 const logger = LogManager.get("quest_editor/gui/QuestEditorView");
 
@@ -40,22 +42,22 @@ const DEFAULT_LAYOUT_CONFIG = {
     },
 };
 
-export class QuestEditorView extends ResizableWidget {
+export class QuestEditorView extends ResizableView {
     readonly element = div({ className: "quest_editor_QuestEditorView" });
 
     /**
      * Maps views to names and creation functions.
      */
     private readonly view_map: Map<
-        new (...args: never) => ResizableWidget,
-        { name: string; create(): ResizableWidget }
+        new (...args: never) => Widget & Resizable,
+        { name: string; create(): Widget & Resizable }
     >;
 
     private readonly layout_element = div({ className: "quest_editor_gl_container" });
     private readonly layout: Promise<GoldenLayout>;
     private loaded_layout: GoldenLayout | undefined;
 
-    private readonly sub_views = new Map<string, ResizableWidget>();
+    private readonly sub_views = new Map<string, Widget & Resizable>();
 
     constructor(
         private readonly gui_store: GuiStore,
@@ -77,8 +79,8 @@ export class QuestEditorView extends ResizableWidget {
 
         // Don't change the values of this map, as they are persisted in the user's browser.
         this.view_map = new Map<
-            new (...args: never) => ResizableWidget,
-            { name: string; create(): ResizableWidget }
+            new (...args: never) => Widget & Resizable,
+            { name: string; create(): Widget & Resizable }
         >([
             [
                 QuestInfoView,
@@ -185,6 +187,22 @@ export class QuestEditorView extends ResizableWidget {
         this.finalize_construction();
     }
 
+    activate(): void {
+        super.activate();
+
+        for (const sub_view of this.sub_views.values()) {
+            sub_view.activate();
+        }
+    }
+
+    deactivate(): void {
+        for (const sub_view of this.sub_views.values()) {
+            sub_view.deactivate();
+        }
+
+        super.deactivate();
+    }
+
     resize(width: number, height: number): this {
         super.resize(width, height);
 
@@ -239,21 +257,25 @@ export class QuestEditorView extends ResizableWidget {
 
     private attempt_gl_init(config: GoldenLayout.Config): GoldenLayout {
         const layout = new GoldenLayout(config, this.layout_element);
-        const sub_views = this.sub_views;
+        const self = this; // eslint-disable-line @typescript-eslint/no-this-alias
 
         try {
             for (const { name, create } of this.view_map.values()) {
                 // registerComponent expects a regular function and not an arrow function. This
                 // function will be called with new.
                 layout.registerComponent(name, function(container: Container) {
-                    let view: ResizableWidget;
+                    let view: Widget & Resizable;
 
                     try {
                         view = create();
+
+                        if (self.active) {
+                            view.activate();
+                        }
                     } catch (e) {
                         logger.error(`Couldn't instantiate "${name}".`, e);
 
-                        view = new ErrorView("Something went wrong while creating this window.");
+                        view = new ErrorWidget("Something went wrong while creating this window.");
                     }
 
                     container.on("close", () => view.dispose());
@@ -265,7 +287,7 @@ export class QuestEditorView extends ResizableWidget {
 
                     view.resize(container.width, container.height);
 
-                    sub_views.set(name, view);
+                    self.sub_views.set(name, view);
                     container.getElement().append(view.element);
                 });
             }

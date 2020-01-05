@@ -1,4 +1,3 @@
-import { ResizableWidget } from "../../core/gui/ResizableWidget";
 import { bind_children_to, div, img, span } from "../../core/gui/dom";
 import "./EntityListView.css";
 import { entity_data, EntityType } from "../../core/data_formats/parsing/quest/entities";
@@ -7,8 +6,9 @@ import { WritableListProperty } from "../../core/observable/property/list/Writab
 import { list_property } from "../../core/observable";
 import { QuestEditorStore } from "../stores/QuestEditorStore";
 import { EntityImageRenderer } from "../rendering/EntityImageRenderer";
+import { ResizableView } from "../../core/gui/ResizableView";
 
-export abstract class EntityListView<T extends EntityType> extends ResizableWidget {
+export abstract class EntityListView<T extends EntityType> extends ResizableView {
     readonly element: HTMLElement;
 
     protected readonly entities: WritableListProperty<T> = list_property();

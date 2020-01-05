@@ -1,7 +1,5 @@
 import { Disposable } from "../observable/Disposable";
 import { Disposer } from "../observable/Disposer";
-import { Observable } from "../observable/Observable";
-import { bind_hidden } from "./dom";
 import { WritableProperty } from "../observable/property/WritableProperty";
 import { WidgetProperty } from "../observable/property/WidgetProperty";
 import { Property } from "../observable/property/Property";
@@ -21,6 +19,9 @@ export type WidgetOptions = {
  */
 export abstract class Widget implements Disposable {
     private readonly disposer = new Disposer();
+
+    private _active = false;
+
     private readonly _visible: WidgetProperty<boolean> = new WidgetProperty<boolean>(
         this,
         true,
@@ -49,12 +50,32 @@ export abstract class Widget implements Disposable {
         this.element.id = id;
     }
 
+    /**
+     * An active widget might, for example, run an animation loop.
+     */
+    get active(): boolean {
+        return this._active;
+    }
+
+    abstract readonly children: readonly Widget[];
+
     get disposed(): boolean {
         return this.disposer.disposed;
     }
 
+    /**
+     * An invisible widget typically sets the hidden attribute on its {@link element}.
+     */
     readonly visible: WritableProperty<boolean> = this._visible;
+    /**
+     * A disabled widget typically sets the disabled attribute on its {@link element} and adds the
+     * `disabled` class to it.
+     */
     readonly enabled: WritableProperty<boolean> = this._enabled;
+    /**
+     * The {@link tooltip} property typically corresponds to the `tooltip` attribute of its
+     * {@link element}.
+     */
     readonly tooltip: WritableProperty<string> = this._tooltip;
 
     protected constructor(options: WidgetOptions = {}) {
@@ -71,15 +92,48 @@ export abstract class Widget implements Disposable {
         }, 0);
     }
 
+    /**
+     * Activate this widget. This call will also be propagated to the relevant children.
+     */
+    activate(): void {
+        this._active = true;
+
+        for (const child of this.children) {
+            child.activate();
+        }
+    }
+
+    /**
+     * Deactivate this widget. This call will also be propagated to the relevant children.
+     */
+    deactivate(): void {
+        this._active = false;
+
+        for (const child of this.children) {
+            child.deactivate();
+        }
+    }
+
+    /**
+     * Move focus to this widget.
+     */
     focus(): void {
         this.element.focus();
     }
 
+    /**
+     * Removes the widget's {@link element} from the DOM and disposes all its held disposables.
+     */
     dispose(): void {
         this.element.remove();
         this.disposer.dispose();
     }
 
+    /**
+     * Every concrete subclass of {@link Widget} should call this method at the end of its
+     * constructor. When this method is called, we can refer to abstract properties that are
+     * provided by subclasses.
+     */
     protected finalize_construction(): void {
         if (Object.getPrototypeOf(this) !== this.constructor.prototype) return;
 
@@ -123,15 +177,15 @@ export abstract class Widget implements Disposable {
         this.element.title = tooltip;
     }
 
-    protected bind_hidden(element: HTMLElement, observable: Observable<boolean>): void {
-        this.disposable(bind_hidden(element, observable));
-    }
-
     protected disposable<T extends Disposable>(disposable: T): T {
         return this.disposer.add(disposable);
     }
 
     protected disposables(...disposables: Disposable[]): void {
         this.disposer.add_all(...disposables);
+    }
+
+    protected remove_disposable(disposable: Disposable): void {
+        this.disposer.remove(disposable);
     }
 }

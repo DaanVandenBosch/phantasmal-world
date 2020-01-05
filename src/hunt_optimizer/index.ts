@@ -32,7 +32,9 @@ export function initialize_hunt_optimizer(
         ),
     );
 
-    const view = disposer.add(new HuntOptimizerView(hunt_optimizer_stores, hunt_method_stores));
+    const view = disposer.add(
+        new HuntOptimizerView(gui_store, hunt_optimizer_stores, hunt_method_stores),
+    );
 
     return {
         view,

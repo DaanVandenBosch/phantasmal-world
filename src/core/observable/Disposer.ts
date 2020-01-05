@@ -1,5 +1,6 @@
 import { Disposable } from "./Disposable";
 import { LogManager } from "../Logger";
+import { array_remove } from "../util";
 
 const logger = LogManager.get("core/observable/Disposer");
 
@@ -58,6 +59,14 @@ export class Disposer implements Disposable {
         }
 
         return this;
+    }
+
+    /**
+     * Removes and disposes the given disposable.
+     */
+    remove(disposable: Disposable): void {
+        array_remove(this.disposables, disposable);
+        disposable.dispose();
     }
 
     /**

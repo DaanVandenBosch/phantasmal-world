@@ -1,9 +1,9 @@
 import { a, div, icon, Icon, span } from "../../core/gui/dom";
 import "./NavigationView.css";
 import { GuiStore, GuiTool } from "../../core/stores/GuiStore";
-import { Widget } from "../../core/gui/Widget";
 import { NavigationButton } from "./NavigationButton";
 import { Select } from "../../core/gui/Select";
+import { View } from "../../core/gui/View";
 
 const TOOLS: [GuiTool, string][] = [
     [GuiTool.Viewer, "Viewer"],
@@ -11,11 +11,11 @@ const TOOLS: [GuiTool, string][] = [
     [GuiTool.HuntOptimizer, "Hunt Optimizer"],
 ];
 
-export class NavigationView extends Widget {
+export class NavigationView extends View {
     private readonly buttons = new Map<GuiTool, NavigationButton>(
-        TOOLS.map(([value, text]) => [value, this.disposable(new NavigationButton(value, text))]),
+        TOOLS.map(([value, text]) => [value, this.add(new NavigationButton(value, text))]),
     );
-    private readonly server_select = this.disposable(
+    private readonly server_select = this.add(
         new Select({
             label: "Server:",
             items: ["Ephinea"],
@@ -57,15 +57,16 @@ export class NavigationView extends Widget {
         this.element.style.height = `${this.height}px`;
         this.element.onmousedown = this.mousedown;
 
-        this.mark_tool_button(gui_store.tool.val);
-        this.disposable(gui_store.tool.observe(({ value }) => this.mark_tool_button(value)));
+        this.disposables(
+            gui_store.tool.observe(({ value }) => this.mark_tool_button(value), { call_now: true }),
+        );
 
         this.finalize_construction();
     }
 
     private mousedown = (e: MouseEvent): void => {
         if (e.target instanceof HTMLLabelElement && e.target.control instanceof HTMLInputElement) {
-            this.gui_store.tool.val = (GuiTool as any)[e.target.control.value];
+            this.gui_store.set_tool((GuiTool as any)[e.target.control.value]);
         }
     };
 

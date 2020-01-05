@@ -69,7 +69,6 @@ export function initialize_quest_editor(
             () => new NpcCountsView(disposer.add(new NpcCountsController(quest_editor_store))),
             () =>
                 new QuestEditorRendererView(
-                    gui_store,
                     quest_editor_store,
                     area_asset_loader,
                     entity_asset_loader,
@@ -82,7 +81,6 @@ export function initialize_quest_editor(
             () => new EventsView(disposer.add(new EventsController(quest_editor_store))),
             () =>
                 new QuestRunnerRendererView(
-                    gui_store,
                     quest_editor_store,
                     area_asset_loader,
                     entity_asset_loader,

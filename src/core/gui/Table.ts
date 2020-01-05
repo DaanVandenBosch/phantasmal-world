@@ -36,12 +36,13 @@ export type TableOptions<T> = WidgetOptions & {
 };
 
 export class Table<T> extends Widget {
-    readonly element = table({ className: "core_Table" });
-
     private readonly tbody_element = tbody();
     private readonly footer_row_element?: HTMLTableRowElement;
     private readonly values: ListProperty<T>;
     private readonly columns: Column<T>[];
+
+    readonly element = table({ className: "core_Table" });
+    readonly children: readonly Widget[] = [];
 
     constructor(options: TableOptions<T>) {
         super(options);

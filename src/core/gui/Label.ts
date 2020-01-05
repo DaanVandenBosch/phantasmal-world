@@ -6,20 +6,19 @@ import { WidgetProperty } from "../observable/property/WidgetProperty";
 import { label } from "./dom";
 
 export class Label extends Widget {
+    private readonly _text = new WidgetProperty<string>(this, "", this.set_text);
+
     readonly element = label({ className: "core_Label" });
+    readonly children: readonly Widget[] = [];
 
     set for(id: string) {
         this.element.htmlFor = id;
     }
 
-    readonly text: WritableProperty<string>;
-
-    private readonly _text = new WidgetProperty<string>(this, "", this.set_text);
+    readonly text: WritableProperty<string> = this._text;
 
     constructor(text: string | Property<string>, options?: WidgetOptions) {
         super(options);
-
-        this.text = this._text;
 
         if (typeof text === "string") {
             this.set_text(text);

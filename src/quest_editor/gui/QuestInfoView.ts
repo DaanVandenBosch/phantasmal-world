@@ -1,4 +1,3 @@
-import { ResizableWidget } from "../../core/gui/ResizableWidget";
 import { Episode } from "../../core/data_formats/parsing/quest/Episode";
 import { NumberInput } from "../../core/gui/NumberInput";
 import { Disposer } from "../../core/observable/Disposer";
@@ -7,20 +6,21 @@ import { TextArea } from "../../core/gui/TextArea";
 import "./QuestInfoView.css";
 import { UnavailableView } from "./UnavailableView";
 import { QuestInfoController } from "../controllers/QuestInfoController";
-import { div, table, td, th, tr } from "../../core/gui/dom";
+import { bind_attr, div, table, td, th, tr } from "../../core/gui/dom";
+import { ResizableView } from "../../core/gui/ResizableView";
 
-export class QuestInfoView extends ResizableWidget {
+export class QuestInfoView extends ResizableView {
     readonly element = div({ className: "quest_editor_QuestInfoView", tabIndex: -1 });
 
     private readonly table_element = table();
     private readonly episode_element: HTMLElement;
-    private readonly id_input = this.disposable(new NumberInput(0, { min: 0, step: 1 }));
-    private readonly name_input = this.disposable(
+    private readonly id_input = this.add(new NumberInput(0, { min: 0, step: 1 }));
+    private readonly name_input = this.add(
         new TextInput("", {
             max_length: 32,
         }),
     );
-    private readonly short_description_input = this.disposable(
+    private readonly short_description_input = this.add(
         new TextArea("", {
             max_length: 128,
             font_family: '"Courier New", monospace',
@@ -28,7 +28,7 @@ export class QuestInfoView extends ResizableWidget {
             rows: 5,
         }),
     );
-    private readonly long_description_input = this.disposable(
+    private readonly long_description_input = this.add(
         new TextArea("", {
             max_length: 288,
             font_family: '"Courier New", monospace',
@@ -37,7 +37,7 @@ export class QuestInfoView extends ResizableWidget {
         }),
     );
 
-    private readonly unavailable_view = new UnavailableView("No quest loaded.");
+    private readonly unavailable_view = this.add(new UnavailableView("No quest loaded."));
 
     private readonly quest_disposer = this.disposable(new Disposer());
 
@@ -56,14 +56,14 @@ export class QuestInfoView extends ResizableWidget {
             tr(td({ colSpan: 2 }, this.long_description_input.element)),
         );
 
-        this.bind_hidden(this.table_element, ctrl.unavailable);
-
         this.element.append(this.table_element, this.unavailable_view.element);
 
         this.element.addEventListener("focus", ctrl.focused, true);
 
         this.disposables(
             this.unavailable_view.visible.bind_to(ctrl.unavailable),
+
+            bind_attr(this.table_element, "hidden", ctrl.unavailable),
 
             quest.observe(({ value: q }) => {
                 this.quest_disposer.dispose_all();

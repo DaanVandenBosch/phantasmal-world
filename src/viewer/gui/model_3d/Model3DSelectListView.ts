@@ -1,9 +1,9 @@
-import { ResizableWidget } from "../../../core/gui/ResizableWidget";
 import "./Model3DSelectListView.css";
 import { Property } from "../../../core/observable/property/Property";
 import { li, ul } from "../../../core/gui/dom";
+import { ResizableView } from "../../../core/gui/ResizableView";
 
-export class Model3DSelectListView<T extends { name: string }> extends ResizableWidget {
+export class Model3DSelectListView<T extends { name: string }> extends ResizableView {
     readonly element = ul({ className: "viewer_Model3DSelectListView" });
 
     set borders(borders: boolean) {
@@ -32,7 +32,7 @@ export class Model3DSelectListView<T extends { name: string }> extends Resizable
             this.element.append(li({ data: { index: index.toString() } }, model.name));
         });
 
-        this.disposable(
+        this.disposables(
             selected.observe(
                 ({ value: model }) => {
                     if (this.selected_element) {

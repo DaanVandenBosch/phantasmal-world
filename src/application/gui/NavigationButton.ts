@@ -1,9 +1,9 @@
-import { Widget } from "../../core/gui/Widget";
 import { GuiTool } from "../../core/stores/GuiStore";
 import "./NavigationButton.css";
 import { input, label, span } from "../../core/gui/dom";
+import { Control } from "../../core/gui/Control";
 
-export class NavigationButton extends Widget {
+export class NavigationButton extends Control {
     readonly element = span({ className: "application_NavigationButton" });
 
     private input: HTMLInputElement = input();

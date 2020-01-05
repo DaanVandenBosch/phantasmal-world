@@ -192,10 +192,6 @@ export function bind_attr<E extends Element, A extends keyof E>(
     return observable.observe(({ value }) => (element[attribute] = value));
 }
 
-export function bind_hidden(element: HTMLElement, observable: Observable<boolean>): Disposable {
-    return bind_attr(element, "hidden", observable);
-}
-
 export enum Icon {
     ArrowDown,
     Eye,

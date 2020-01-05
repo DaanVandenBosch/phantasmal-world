@@ -74,14 +74,19 @@ Features that are in ***bold italics*** are planned and not yet implemented.
 
 ## Events
 
-- ***Event graph***
-- ***Delete event***
+- Event graph
+- Add events
+- Delete event
     - ***Delete coupled NPCs if requested***
-- ***Edit event section***
+- ***Add parent-child relationship***
+- ***Remove parent-child relationship***
+- Edit event delay
 
 ### Event Actions
 
-- ***Add/Delete***
+- Add/Delete
+- Lock/unlock doors
+- ***Spawn NPCs***
 
 ## Script Object Code
 
@@ -132,7 +137,7 @@ Features that are in ***bold italics*** are planned and not yet implemented.
 
 - Start debugging by clicking "Debug" or pressing F5
 - Stop debugging by clicking "Stop" or pressing Shift-F5
-- Step with "Step over", "Step into" and "Step out"
+- Step with "Step over" (F8), "Step into" (F7) and "Step out" (Shift-F8)
 - Continue to next breakpoint with "Continue" (F6)
 - Set breakpoints in the script editor
 - Register viewer
@@ -146,8 +151,9 @@ Features that are in ***bold italics*** are planned and not yet implemented.
 
 ## Bugs
 
-- [3D View](#3d-view): Random Type Box 1 and Fixed Type Box objects aren't rendered correctly
-- [3D View](#3d-view): Some objects are only partially loaded (they consist of several separate models)
+- [3D View](#3d-view): Some objects are only partially loaded (they consist of several separate models), e.g.:
+    - Random Type Box 1
+    - Fixed Type Box
     - Forest Switch
     - Laser Fence
     - Forest Laser
@@ -155,3 +161,4 @@ Features that are in ***bold italics*** are planned and not yet implemented.
     - Energy Barrier
     - Teleporter
 - [Load Quest](#load-quest): Can't parse quest 125 White Day
+- [Script Assembly Editor](#script-assembly-editor): Go to definition doesn't work in RT (#231)

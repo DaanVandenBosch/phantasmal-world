@@ -1,4 +1,3 @@
-import { Widget } from "../../core/gui/Widget";
 import { div, h2, section_id_icon, span } from "../../core/gui/dom";
 import { Column, Table } from "../../core/gui/Table";
 import { Disposable } from "../../core/observable/Disposable";
@@ -11,10 +10,11 @@ import { Duration } from "luxon";
 import { ServerMap } from "../../core/stores/ServerMap";
 import { HuntOptimizerStore } from "../stores/HuntOptimizerStore";
 import { LogManager } from "../../core/Logger";
+import { View } from "../../core/gui/View";
 
 const logger = LogManager.get("hunt_optimizer/gui/OptimizationResultView");
 
-export class OptimizationResultView extends Widget {
+export class OptimizationResultView extends View {
     readonly element = div(
         { className: "hunt_optimizer_OptimizationResultView" },
         h2("Ideal Combination of Methods"),
@@ -34,14 +34,16 @@ export class OptimizationResultView extends Widget {
                         if (this.disposed) return;
 
                         if (this.results_observer) {
-                            this.results_observer.dispose();
+                            this.remove_disposable(this.results_observer);
                         }
 
-                        this.results_observer = hunt_optimizer_store.result.observe(
-                            ({ value }) => this.update_table(value),
-                            {
-                                call_now: true,
-                            },
+                        this.results_observer = this.disposable(
+                            hunt_optimizer_store.result.observe(
+                                ({ value }) => this.update_table(value),
+                                {
+                                    call_now: true,
+                                },
+                            ),
                         );
                     } catch (e) {
                         logger.error("Couldn't load hunt optimizer store.", e);
@@ -54,21 +56,9 @@ export class OptimizationResultView extends Widget {
         this.finalize_construction();
     }
 
-    dispose(): void {
-        super.dispose();
-
-        if (this.results_observer) {
-            this.results_observer.dispose();
-        }
-
-        if (this.table) {
-            this.table.dispose();
-        }
-    }
-
     private update_table(result?: OptimalResultModel): void {
         if (this.table) {
-            this.table.dispose();
+            this.remove(this.table);
         }
 
         let total_runs = 0;
@@ -203,11 +193,15 @@ export class OptimizationResultView extends Widget {
             }
         }
 
-        this.table = new Table({
-            class: "hunt_optimizer_OptimizationResultView_table",
-            values: result ? list_property(undefined, ...result.optimal_methods) : list_property(),
-            columns,
-        });
+        this.table = this.add(
+            new Table<OptimalMethodModel>({
+                class: "hunt_optimizer_OptimizationResultView_table",
+                values: result
+                    ? list_property(undefined, ...result.optimal_methods)
+                    : list_property(),
+                columns,
+            }),
+        );
 
         this.element.append(this.table.element);
     }

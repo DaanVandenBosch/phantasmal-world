@@ -1,15 +1,15 @@
-import { ResizableWidget } from "../../core/gui/ResizableWidget";
 import { bind_attr, div, table, td, th, tr } from "../../core/gui/dom";
 import "./NpcCountsView.css";
 import { UnavailableView } from "./UnavailableView";
 import { NameWithCount, NpcCountsController } from "../controllers/NpcCountsController";
+import { ResizableView } from "../../core/gui/ResizableView";
 
-export class NpcCountsView extends ResizableWidget {
+export class NpcCountsView extends ResizableView {
     readonly element = div({ className: "quest_editor_NpcCountsView" });
 
     private readonly table_element = table();
 
-    private readonly unavailable_view = new UnavailableView("No quest loaded.");
+    private readonly unavailable_view = this.add(new UnavailableView("No quest loaded."));
 
     constructor(ctrl: NpcCountsController) {
         super();

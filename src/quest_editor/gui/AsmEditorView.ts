@@ -1,4 +1,3 @@
-import { ResizableWidget } from "../../core/gui/ResizableWidget";
 import { editor, KeyCode, KeyMod, Range } from "monaco-editor";
 import { AsmEditorToolBar } from "./AsmEditorToolBar";
 import { EditorHistory } from "./EditorHistory";
@@ -8,6 +7,7 @@ import { GuiStore } from "../../core/stores/GuiStore";
 import { AsmEditorStore } from "../stores/AsmEditorStore";
 import { QuestRunner } from "../QuestRunner";
 import { div } from "../../core/gui/dom";
+import { ResizableView } from "../../core/gui/ResizableView";
 import IStandaloneCodeEditor = editor.IStandaloneCodeEditor;
 
 editor.defineTheme("phantasmal-world", {
@@ -31,7 +31,7 @@ editor.defineTheme("phantasmal-world", {
 
 const DUMMY_MODEL = editor.createModel("", "psoasm");
 
-export class AsmEditorView extends ResizableWidget {
+export class AsmEditorView extends ResizableView {
     private readonly tool_bar_view: AsmEditorToolBar;
     private readonly editor: IStandaloneCodeEditor;
     private readonly history: EditorHistory;
@@ -48,7 +48,7 @@ export class AsmEditorView extends ResizableWidget {
     ) {
         super();
 
-        this.tool_bar_view = this.disposable(new AsmEditorToolBar(asm_editor_store));
+        this.tool_bar_view = this.add(new AsmEditorToolBar(asm_editor_store));
 
         this.element.append(this.tool_bar_view.element);
 

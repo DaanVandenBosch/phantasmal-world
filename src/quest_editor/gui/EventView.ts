@@ -1,4 +1,3 @@
-import { Widget } from "../../core/gui/Widget";
 import {
     bind_attr,
     bind_children_to,
@@ -23,8 +22,9 @@ import { Disposer } from "../../core/observable/Disposer";
 import { property } from "../../core/observable";
 import { DropDown } from "../../core/gui/DropDown";
 import { Button } from "../../core/gui/Button";
+import { View } from "../../core/gui/View";
 
-export class EventView extends Widget {
+export class EventView extends View {
     private readonly inputs_enabled = property(true);
     private readonly delay_input: NumberInput;
 
@@ -34,11 +34,11 @@ export class EventView extends Widget {
         super();
 
         const wave_node = document.createTextNode(event.wave.id.val.toString());
-        this.delay_input = this.disposable(
+        this.delay_input = this.add(
             new NumberInput(event.delay.val, { min: 0, step: 1, enabled: this.inputs_enabled }),
         );
         const action_table = table({ className: "quest_editor_EventView_actions" });
-        const add_action_dropdown: DropDown<QuestEventActionType> = this.disposable(
+        const add_action_dropdown: DropDown<QuestEventActionType> = this.add(
             new DropDown({
                 text: "Add action",
                 items: QuestEventActionTypes,

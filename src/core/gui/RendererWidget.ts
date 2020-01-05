@@ -1,9 +1,11 @@
 import { ResizableWidget } from "./ResizableWidget";
 import { Renderer } from "../rendering/Renderer";
 import { div } from "./dom";
+import { Widget } from "./Widget";
 
 export class RendererWidget extends ResizableWidget {
     readonly element = div({ className: "core_RendererWidget" });
+    readonly children: readonly Widget[] = [];
 
     constructor(private renderer: Renderer) {
         super();

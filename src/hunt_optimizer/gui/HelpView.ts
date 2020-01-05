@@ -1,8 +1,8 @@
-import { ResizableWidget } from "../../core/gui/ResizableWidget";
 import "./HelpView.css";
 import { div, p } from "../../core/gui/dom";
+import { ResizableView } from "../../core/gui/ResizableView";
 
-export class HelpView extends ResizableWidget {
+export class HelpView extends ResizableView {
     readonly element = div(
         { className: "hunt_optimizer_HelpView" },
         p(

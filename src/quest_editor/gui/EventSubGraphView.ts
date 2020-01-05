@@ -1,4 +1,3 @@
-import { Widget } from "../../core/gui/Widget";
 import { bind_children_to, div } from "../../core/gui/dom";
 import { QuestEventDagModel, QuestEventDagModelChangeType } from "../model/QuestEventDagModel";
 import { QuestEventModel } from "../model/QuestEventModel";
@@ -14,13 +13,14 @@ import {
 } from "../../core/observable/property/list/ListProperty";
 import { WritableProperty } from "../../core/observable/property/WritableProperty";
 import { LogManager } from "../../core/Logger";
+import { View } from "../../core/gui/View";
 
 const logger = LogManager.get("quest_editor/gui/EventSubGraphView");
 
 const EDGE_HORIZONTAL_SPACING = 8;
 const EDGE_VERTICAL_SPACING = 20;
 
-export class EventSubGraphView extends Widget {
+export class EventSubGraphView extends View {
     /**
      * Maps event IDs to GUI data.
      */

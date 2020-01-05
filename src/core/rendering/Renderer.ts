@@ -72,8 +72,10 @@ export abstract class Renderer implements Disposable {
     }
 
     start_rendering(): void {
-        this.schedule_render();
-        this.animation_frame_handle = requestAnimationFrame(this.call_render);
+        if (this.animation_frame_handle == undefined) {
+            this.schedule_render();
+            this.animation_frame_handle = requestAnimationFrame(this.call_render);
+        }
     }
 
     stop_rendering(): void {

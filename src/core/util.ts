@@ -15,6 +15,26 @@ export function arrays_equal<T>(
 }
 
 /**
+ * Removes 0 or more elements from `array`.
+ *
+ * @returns The number of removed elements.
+ */
+export function array_remove<T>(array: T[], ...elements: T[]): number {
+    let count = 0;
+
+    for (const element of elements) {
+        const index = array.indexOf(element);
+
+        if (index !== -1) {
+            array.splice(index, 1);
+            count++;
+        }
+    }
+
+    return count;
+}
+
+/**
  * @param min - The minimum value, inclusive.
  * @param max - The maximum value, exclusive.
  * @returns A random integer between `min` and `max`.

@@ -1,14 +1,14 @@
 import { bind_children_to, div } from "../../core/gui/dom";
-import { ResizableWidget } from "../../core/gui/ResizableWidget";
 import { ToolBar } from "../../core/gui/ToolBar";
 import "./LogView.css";
 import { log_store } from "../stores/LogStore";
 import { Select } from "../../core/gui/Select";
 import { LogEntry, LogLevel, LogLevels, time_to_string } from "../../core/Logger";
+import { ResizableView } from "../../core/gui/ResizableView";
 
 const AUTOSCROLL_TRESHOLD = 5;
 
-export class LogView extends ResizableWidget {
+export class LogView extends ResizableView {
     readonly element = div({ className: "quest_editor_LogView", tabIndex: -1 });
 
     // container is needed to get a scrollbar in the right place
@@ -26,7 +26,7 @@ export class LogView extends ResizableWidget {
         this.list_container = div({ className: "quest_editor_LogView_list_container" });
         this.list_element = div({ className: "quest_editor_LogView_message_list" });
 
-        this.level_filter = this.disposable(
+        this.level_filter = this.add(
             new Select({
                 class: "quest_editor_LogView_level_filter",
                 label: "Level:",
@@ -35,7 +35,7 @@ export class LogView extends ResizableWidget {
             }),
         );
 
-        this.settings_bar = this.disposable(
+        this.settings_bar = this.add(
             new ToolBar({ class: "quest_editor_LogView_settings" }, this.level_filter),
         );
 

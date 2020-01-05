@@ -15,17 +15,16 @@ module.exports = merge(common, {
         moduleIds: "hashed",
         runtimeChunk: "single",
         splitChunks: {
+            chunks: "all",
             cacheGroups: {
                 styles: {
                     name: "style",
                     test: /\.css$/,
-                    chunks: "all",
                     enforce: true,
                 },
                 vendor: {
                     test: /node_modules/,
                     name: "vendors",
-                    chunks: "all",
                 },
             },
         },

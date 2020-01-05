@@ -2,7 +2,6 @@ import { bind_children_to, div, h2, Icon, table, tbody, td, tr } from "../../cor
 import "./WantedItemsView.css";
 import { Button } from "../../core/gui/Button";
 import { Disposer } from "../../core/observable/Disposer";
-import { Widget } from "../../core/gui/Widget";
 import { WantedItemModel } from "../model";
 import { NumberInput } from "../../core/gui/NumberInput";
 import { ComboBox } from "../../core/gui/ComboBox";
@@ -12,14 +11,15 @@ import { Disposable } from "../../core/observable/Disposable";
 import { ServerMap } from "../../core/stores/ServerMap";
 import { HuntOptimizerStore } from "../stores/HuntOptimizerStore";
 import { LogManager } from "../../core/Logger";
+import { View } from "../../core/gui/View";
 
 const logger = LogManager.get("hunt_optimizer/gui/WantedItemsView");
 
-export class WantedItemsView extends Widget {
-    readonly element = div({ className: "hunt_optimizer_WantedItemsView" });
-
+export class WantedItemsView extends View {
     private readonly tbody_element = tbody();
     private readonly store_disposer = this.disposable(new Disposer());
+
+    readonly element = div({ className: "hunt_optimizer_WantedItemsView" });
 
     constructor(private readonly hunt_optimizer_stores: ServerMap<HuntOptimizerStore>) {
         super();
@@ -27,7 +27,7 @@ export class WantedItemsView extends Widget {
         const huntable_items = list_property<ItemType>();
         const filtered_huntable_items = list_property<ItemType>();
 
-        const combo_box = this.disposable(
+        const combo_box = this.add(
             new ComboBox({
                 items: filtered_huntable_items,
                 to_label: item_type => item_type.name,

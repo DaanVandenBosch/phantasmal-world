@@ -10,6 +10,8 @@ import { Observable } from "./Observable";
 import { FlatMappedProperty } from "./property/FlatMappedProperty";
 import { ListProperty } from "./property/list/ListProperty";
 import { FlatMappedListProperty } from "./property/list/FlatMappedListProperty";
+import { Disposable } from "./Disposable";
+import { Disposer } from "./Disposer";
 
 export function emitter<E>(): Emitter<E> {
     return new SimpleEmitter();
@@ -32,6 +34,43 @@ export function add(left: Property<number>, right: number): Property<number> {
 
 export function sub(left: Property<number>, right: number): Property<number> {
     return left.map(l => l - right);
+}
+
+export function observe<P1>(observer: (prop_1: P1) => void, prop_1: Property<P1>): Disposable;
+export function observe<P1, P2>(
+    observer: (prop_1: P1, prop_2: P2) => void,
+    prop_1: Property<P1>,
+    prop_2: Property<P2>,
+): Disposable;
+export function observe<P1, P2, P3>(
+    observer: (prop_1: P1, prop_2: P2, prop_3: P3) => void,
+    prop_1: Property<P1>,
+    prop_2: Property<P2>,
+    prop_3: Property<P3>,
+): Disposable;
+export function observe<P1, P2, P3, P4>(
+    observer: (prop_1: P1, prop_2: P2, prop_3: P3, prop_4: P4) => void,
+    prop_1: Property<P1>,
+    prop_2: Property<P2>,
+    prop_3: Property<P3>,
+    prop_4: Property<P4>,
+): Disposable;
+export function observe<P1, P2, P3, P4, P5>(
+    observer: (prop_1: P1, prop_2: P2, prop_3: P3, prop_4: P4, prop_5: P5) => void,
+    prop_1: Property<P1>,
+    prop_2: Property<P2>,
+    prop_3: Property<P3>,
+    prop_4: Property<P4>,
+    prop_5: Property<P5>,
+): Disposable;
+export function observe(
+    observer: (...props: any[]) => void,
+    ...props: Property<any>[]
+): Disposable {
+    const observer_function = (prop: Property<any>): Disposable =>
+        prop.observe(() => observer(...props.map(p => p.val)));
+
+    return new Disposer(...props.map(observer_function));
 }
 
 export function map<R, P1>(transform: (prop_1: P1) => R, prop_1: Property<P1>): Property<R>;

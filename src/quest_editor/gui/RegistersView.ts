@@ -1,4 +1,3 @@
-import { ResizableWidget } from "../../core/gui/ResizableWidget";
 import { REGISTER_COUNT } from "../scripting/vm/VirtualMachine";
 import { TextInput } from "../../core/gui/TextInput";
 import { ToolBar } from "../../core/gui/ToolBar";
@@ -8,6 +7,7 @@ import "./RegistersView.css";
 import { Select } from "../../core/gui/Select";
 import { QuestRunner } from "../QuestRunner";
 import { div } from "../../core/gui/dom";
+import { ResizableView } from "../../core/gui/ResizableView";
 
 enum RegisterDisplayType {
     Signed,
@@ -19,8 +19,8 @@ enum RegisterDisplayType {
 
 type RegisterGetterFunction = (register: number) => number;
 
-export class RegistersView extends ResizableWidget {
-    private readonly type_select = this.disposable(
+export class RegistersView extends ResizableView {
+    private readonly type_select = this.add(
         new Select({
             label: "Display type:",
             tooltip: "Select which data type register values should be displayed as.",
@@ -38,16 +38,14 @@ export class RegistersView extends ResizableWidget {
         RegisterDisplayType.Signed,
     );
 
-    private readonly hex_checkbox = this.disposable(
+    private readonly hex_checkbox = this.add(
         new CheckBox(false, {
             label: "Hex",
             tooltip: "Display register values in hexadecimal.",
         }),
     );
 
-    private readonly settings_bar = this.disposable(
-        new ToolBar(this.type_select, this.hex_checkbox),
-    );
+    private readonly settings_bar = this.add(new ToolBar(this.type_select, this.hex_checkbox));
 
     private readonly register_els: TextInput[];
     private readonly list_element = div({ className: "quest_editor_RegistersView_list" });
@@ -70,7 +68,7 @@ export class RegistersView extends ResizableWidget {
         // create register elements
         const register_els: TextInput[] = Array(REGISTER_COUNT);
         for (let i = 0; i < REGISTER_COUNT; i++) {
-            const value_el = this.disposable(
+            const value_el = this.add(
                 new TextInput("", {
                     class: "quest_editor_RegistersView_value",
                     label: `r${i}:`,

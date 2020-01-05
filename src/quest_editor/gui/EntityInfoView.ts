@@ -1,12 +1,12 @@
-import { ResizableWidget } from "../../core/gui/ResizableWidget";
 import { bind_attr, div, table, td, th, tr } from "../../core/gui/dom";
 import { UnavailableView } from "./UnavailableView";
 import "./EntityInfoView.css";
 import { NumberInput } from "../../core/gui/NumberInput";
 import { rad_to_deg } from "../../core/math";
 import { EntityInfoController } from "../controllers/EntityInfoController";
+import { ResizableView } from "../../core/gui/ResizableView";
 
-export class EntityInfoView extends ResizableWidget {
+export class EntityInfoView extends ResizableView {
     readonly element = div({ className: "quest_editor_EntityInfoView", tabIndex: -1 });
 
     private readonly no_entity_view = new UnavailableView("No entity selected.");
@@ -18,12 +18,12 @@ export class EntityInfoView extends ResizableWidget {
     private readonly section_id_element: HTMLTableCellElement;
     private readonly wave_element: HTMLTableCellElement;
     private readonly wave_row_element: HTMLTableRowElement;
-    private readonly pos_x_element = this.disposable(new NumberInput(0, { round_to: 3 }));
-    private readonly pos_y_element = this.disposable(new NumberInput(0, { round_to: 3 }));
-    private readonly pos_z_element = this.disposable(new NumberInput(0, { round_to: 3 }));
-    private readonly rot_x_element = this.disposable(new NumberInput(0, { round_to: 3 }));
-    private readonly rot_y_element = this.disposable(new NumberInput(0, { round_to: 3 }));
-    private readonly rot_z_element = this.disposable(new NumberInput(0, { round_to: 3 }));
+    private readonly pos_x_element = this.add(new NumberInput(0, { round_to: 3 }));
+    private readonly pos_y_element = this.add(new NumberInput(0, { round_to: 3 }));
+    private readonly pos_z_element = this.add(new NumberInput(0, { round_to: 3 }));
+    private readonly rot_x_element = this.add(new NumberInput(0, { round_to: 3 }));
+    private readonly rot_y_element = this.add(new NumberInput(0, { round_to: 3 }));
+    private readonly rot_z_element = this.add(new NumberInput(0, { round_to: 3 }));
 
     constructor(private readonly ctrl: EntityInfoController) {
         super();
