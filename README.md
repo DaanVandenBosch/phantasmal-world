@@ -8,12 +8,12 @@ See [features](./FEATURES.md) for a list of features, planned features and bugs.
 
 ### Getting Started
 
-1. Install Node.js ([https://nodejs.org/]())
-2. Install Yarn ([https://yarnpkg.com/]())
+1. Install Node.js ([https://nodejs.org/](https://nodejs.org/))
+2. Install Yarn ([https://yarnpkg.com/](https://yarnpkg.com/))
 3. `cd` to the project directory
 4. Install dependencies with `yarn`
-5. Launch server on [http://localhost:1623/]() with `yarn start`
-6. [src/index.ts]() is the application's entry point
+5. Launch server on [http://localhost:1623/](http://localhost:1623/) with `yarn start`
+6. [src/index.ts](src/index.ts) is the application's entry point
 
 ### Exploring the Code Base
 
@@ -55,9 +55,11 @@ shared state such as the currently selected entity in the quest editor.
 
 #### Some Interesting Parts of the Code Base
 
-Phantasmal contains parsers for many of the client's formats in [src/core/data_formats](). The
-[src/quest_editor/scripting]() directory contains an assembler, disassembler, (partly implemented)
-virtual machine and data flow analysis for the PSO scripting byte code.
+Phantasmal contains parsers for many of the client's formats in [src/core/data_formats](
+src/core/data_formats). [src/core/data_formats/asm](src/core/data_formats/asm) contains a
+model of the PSO scripting byte code and data flow analysis for it. The
+[src/quest_editor/scripting](src/quest_editor/scripting) directory contains an assembler,
+disassembler and (partly implemented) virtual machine.
 
 ### Unit Tests
 
