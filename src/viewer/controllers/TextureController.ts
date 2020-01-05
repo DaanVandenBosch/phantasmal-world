@@ -1,18 +1,18 @@
-import { list_property } from "../../core/observable";
-import { parse_xvm, XvrTexture } from "../../core/data_formats/parsing/ninja/texture";
+import { Controller } from "../../core/controllers/Controller";
+import { filename_extension } from "../../core/util";
 import { read_file } from "../../core/read_file";
+import { parse_xvm, XvrTexture } from "../../core/data_formats/parsing/ninja/texture";
 import { ArrayBufferCursor } from "../../core/data_formats/cursor/ArrayBufferCursor";
 import { Endianness } from "../../core/data_formats/Endianness";
-import { Store } from "../../core/stores/Store";
+import { parse_afs } from "../../core/data_formats/parsing/afs";
 import { LogManager } from "../../core/Logger";
 import { WritableListProperty } from "../../core/observable/property/list/WritableListProperty";
+import { list_property } from "../../core/observable";
 import { ListProperty } from "../../core/observable/property/list/ListProperty";
-import { filename_extension } from "../../core/util";
-import { parse_afs } from "../../core/data_formats/parsing/afs";
 
-const logger = LogManager.get("viewer/stores/TextureStore");
+const logger = LogManager.get("viewer/controllers/TextureController");
 
-export class TextureStore extends Store {
+export class TextureController extends Controller {
     private readonly _textures: WritableListProperty<XvrTexture> = list_property();
     readonly textures: ListProperty<XvrTexture> = this._textures;
 

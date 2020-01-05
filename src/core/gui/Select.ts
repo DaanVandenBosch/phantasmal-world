@@ -9,7 +9,7 @@ import { Menu } from "./Menu";
 
 export type SelectOptions<T> = LabelledControlOptions & {
     readonly items: readonly T[] | Property<readonly T[]>;
-    readonly to_label: (element: T) => string;
+    readonly to_label?: (element: T) => string;
     readonly selected?: T | Property<T>;
 };
 
@@ -31,7 +31,7 @@ export class Select<T> extends LabelledControl {
 
         this.preferred_label_position = "left";
 
-        this.to_label = options.to_label;
+        this.to_label = options.to_label ?? String;
         this.button = this.disposable(
             new Button({
                 text: " ",

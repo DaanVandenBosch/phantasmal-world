@@ -1,5 +1,5 @@
 import { TabContainer } from "../../core/gui/TabContainer";
-import { Model3DView } from "./model_3d/Model3DView";
+import { ModelView } from "./model/ModelView";
 import { TextureView } from "./TextureView";
 import { ResizableView } from "../../core/gui/ResizableView";
 import { GuiStore } from "../../core/stores/GuiStore";
@@ -13,7 +13,7 @@ export class ViewerView extends ResizableView {
 
     constructor(
         gui_store: GuiStore,
-        create_model_3d_view: () => Promise<Model3DView>,
+        create_model_view: () => Promise<ModelView>,
         create_texture_view: () => Promise<TextureView>,
     ) {
         super();
@@ -24,13 +24,13 @@ export class ViewerView extends ResizableView {
                 tabs: [
                     {
                         title: "Models",
-                        key: "models",
+                        key: "model",
                         path: "/models",
-                        create_view: create_model_3d_view,
+                        create_view: create_model_view,
                     },
                     {
                         title: "Textures",
-                        key: "textures",
+                        key: "texture",
                         path: "/textures",
                         create_view: create_texture_view,
                     },

@@ -8,9 +8,11 @@ import { throttle } from "lodash";
 import { DisposableThreeRenderer } from "../core/rendering/Renderer";
 import { Disposer } from "../core/observable/Disposer";
 import { disposable_custom_listener, disposable_listener } from "../core/gui/dom";
+import { Random } from "../core/Random";
 
 export function initialize_application(
     http_client: HttpClient,
+    random: Random,
     create_three_renderer: () => DisposableThreeRenderer,
 ): Disposable {
     const disposer = new Disposer();
@@ -43,7 +45,7 @@ export function initialize_application(
                 async () => {
                     const { initialize_viewer } = await import("../viewer");
                     const viewer = disposer.add(
-                        initialize_viewer(http_client, gui_store, create_three_renderer),
+                        initialize_viewer(http_client, random, gui_store, create_three_renderer),
                     );
 
                     return viewer.view;

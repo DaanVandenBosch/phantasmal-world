@@ -4,9 +4,18 @@ import { HttpClient } from "../core/HttpClient";
 import { DisposableThreeRenderer } from "../core/rendering/Renderer";
 import { Disposable } from "../core/observable/Disposable";
 import { Disposer } from "../core/observable/Disposer";
+import { TextureRenderer } from "./rendering/TextureRenderer";
+import { ModelRenderer } from "./rendering/ModelRenderer";
+import { Random } from "../core/Random";
+import { ModelToolBarView } from "./gui/model/ModelToolBarView";
+import { ModelStore } from "./stores/ModelStore";
+import { ModelToolBarController } from "./controllers/model/ModelToolBarController";
+import { CharacterClassOptionsView } from "./gui/model/CharacterClassOptionsView";
+import { CharacterClassOptionsController } from "./controllers/model/CharacterClassOptionsController";
 
 export function initialize_viewer(
     http_client: HttpClient,
+    random: Random,
     gui_store: GuiStore,
     create_three_renderer: () => DisposableThreeRenderer,
 ): { view: ViewerView } & Disposable {
@@ -14,36 +23,36 @@ export function initialize_viewer(
 
     const view = new ViewerView(
         gui_store,
+
         async () => {
-            const { Model3DStore } = await import("./stores/Model3DStore");
-            const { Model3DView } = await import("./gui/model_3d/Model3DView");
+            const { ModelController } = await import("./controllers/model/ModelController");
+            const { ModelView } = await import("./gui/model/ModelView");
             const { CharacterClassAssetLoader } = await import(
                 "./loading/CharacterClassAssetLoader"
             );
             const asset_loader = disposer.add(new CharacterClassAssetLoader(http_client));
-            const store = new Model3DStore(asset_loader);
+            const store = disposer.add(new ModelStore(asset_loader, random));
+            const model_controller = new ModelController(store);
+            const model_tool_bar_controller = new ModelToolBarController(store);
+            const character_class_options_controller = new CharacterClassOptionsController(store);
 
-            if (disposer.disposed) {
-                store.dispose();
-            } else {
-                disposer.add(store);
-            }
-
-            return new Model3DView(gui_store, store, create_three_renderer());
+            return new ModelView(
+                model_controller,
+                new ModelToolBarView(model_tool_bar_controller),
+                new CharacterClassOptionsView(character_class_options_controller),
+                new ModelRenderer(store, create_three_renderer()),
+            );
         },
 
         async () => {
-            const { TextureStore } = await import("./stores/TextureStore");
+            const { TextureController } = await import("./controllers/TextureController");
             const { TextureView } = await import("./gui/TextureView");
-            const store = new TextureStore();
+            const controller = disposer.add(new TextureController());
 
-            if (disposer.disposed) {
-                store.dispose();
-            } else {
-                disposer.add(store);
-            }
-
-            return new TextureView(store, create_three_renderer());
+            return new TextureView(
+                controller,
+                new TextureRenderer(controller, create_three_renderer()),
+            );
         },
     );
 

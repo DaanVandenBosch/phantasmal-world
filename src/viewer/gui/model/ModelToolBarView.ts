@@ -5,10 +5,10 @@ import { NumberInput } from "../../../core/gui/NumberInput";
 import { PSO_FRAME_RATE } from "../../../core/rendering/conversion/ninja_animation";
 import { Label } from "../../../core/gui/Label";
 import { Icon } from "../../../core/gui/dom";
-import { Model3DStore } from "../../stores/Model3DStore";
 import { View } from "../../../core/gui/View";
+import { ModelToolBarController } from "../../controllers/model/ModelToolBarController";
 
-export class Model3DToolBarView extends View {
+export class ModelToolBarView extends View {
     private readonly toolbar: ToolBar;
 
     get element(): HTMLElement {
@@ -19,7 +19,7 @@ export class Model3DToolBarView extends View {
         return this.toolbar.height;
     }
 
-    constructor(model_3d_store: Model3DStore) {
+    constructor(ctrl: ModelToolBarController) {
         super();
 
         const open_file_button = new FileButton("Open file...", {
@@ -37,12 +37,10 @@ export class Model3DToolBarView extends View {
         const animation_frame_input = new NumberInput(1, {
             label: "Frame:",
             min: 1,
-            max: model_3d_store.animation_frame_count,
+            max: ctrl.animation_frame_count,
             step: 1,
         });
-        const animation_frame_count_label = new Label(
-            model_3d_store.animation_frame_count.map(count => `/ ${count}`),
-        );
+        const animation_frame_count_label = new Label(ctrl.animation_frame_count_label);
 
         this.toolbar = this.add(
             new ToolBar(
@@ -58,36 +56,30 @@ export class Model3DToolBarView extends View {
         // Always-enabled controls.
         this.disposables(
             open_file_button.files.observe(({ value: files }) => {
-                if (files.length) model_3d_store.load_file(files[0]);
+                if (files.length) ctrl.load_file(files[0]);
             }),
 
-            skeleton_checkbox.checked.observe(({ value }) =>
-                model_3d_store.set_show_skeleton(value),
-            ),
+            skeleton_checkbox.checked.observe(({ value }) => ctrl.set_show_skeleton(value)),
         );
 
         // Controls that are only enabled when an animation is selected.
-        const enabled = model_3d_store.current_nj_motion.map(njm => njm != undefined);
+        const enabled = ctrl.animation_controls_enabled;
 
         this.disposables(
             play_animation_checkbox.enabled.bind_to(enabled),
-            play_animation_checkbox.checked.bind_to(model_3d_store.animation_playing),
+            play_animation_checkbox.checked.bind_to(ctrl.animation_playing),
             play_animation_checkbox.checked.observe(({ value }) =>
-                model_3d_store.set_animation_playing(value),
+                ctrl.set_animation_playing(value),
             ),
 
             animation_frame_rate_input.enabled.bind_to(enabled),
             animation_frame_rate_input.value.observe(({ value }) =>
-                model_3d_store.set_animation_frame_rate(value),
+                ctrl.set_animation_frame_rate(value),
             ),
 
             animation_frame_input.enabled.bind_to(enabled),
-            animation_frame_input.value.bind_to(
-                model_3d_store.animation_frame.map(v => Math.round(v)),
-            ),
-            animation_frame_input.value.observe(({ value }) =>
-                model_3d_store.set_animation_frame(value),
-            ),
+            animation_frame_input.value.bind_to(ctrl.animation_frame),
+            animation_frame_input.value.observe(({ value }) => ctrl.set_animation_frame(value)),
 
             animation_frame_count_label.enabled.bind_to(enabled),
         );

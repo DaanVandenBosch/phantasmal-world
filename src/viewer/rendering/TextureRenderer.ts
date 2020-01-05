@@ -10,10 +10,10 @@ import {
 import { Disposable } from "../../core/observable/Disposable";
 import { DisposableThreeRenderer, Renderer } from "../../core/rendering/Renderer";
 import { Disposer } from "../../core/observable/Disposer";
-import { TextureStore } from "../stores/TextureStore";
 import { XvrTexture } from "../../core/data_formats/parsing/ninja/texture";
 import { xvr_texture_to_texture } from "../../core/rendering/conversion/ninja_textures";
 import { LogManager } from "../../core/Logger";
+import { TextureController } from "../controllers/TextureController";
 
 const logger = LogManager.get("viewer/rendering/TextureRenderer");
 
@@ -23,11 +23,11 @@ export class TextureRenderer extends Renderer implements Disposable {
 
     readonly camera = new OrthographicCamera(-400, 400, 300, -300, 1, 10);
 
-    constructor(three_renderer: DisposableThreeRenderer, texture_store: TextureStore) {
+    constructor(ctrl: TextureController, three_renderer: DisposableThreeRenderer) {
         super(three_renderer);
 
         this.disposer.add_all(
-            texture_store.textures.observe(({ value: textures }) => {
+            ctrl.textures.observe(({ value: textures }) => {
                 this.scene.remove(...this.quad_meshes);
 
                 this.render_textures(textures);

@@ -327,7 +327,7 @@ function texture_ids(
         case FOMARL: {
             const body_idx = body * 16;
             return {
-                section_id: section_id + 310,
+                section_id: section_id + 326,
                 body: [body_idx, body_idx + 2, body_idx + 1, 322 /*hands*/],
                 head: [288],
                 hair: [undefined, undefined, 308],

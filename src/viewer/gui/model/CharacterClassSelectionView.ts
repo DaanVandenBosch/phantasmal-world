@@ -1,35 +1,30 @@
-import "./Model3DSelectListView.css";
+import "./CharacterClassSelectionView.css";
 import { Property } from "../../../core/observable/property/Property";
 import { li, ul } from "../../../core/gui/dom";
 import { ResizableView } from "../../../core/gui/ResizableView";
 
-export class Model3DSelectListView<T extends { name: string }> extends ResizableView {
-    readonly element = ul({ className: "viewer_Model3DSelectListView" });
-
-    set borders(borders: boolean) {
-        if (borders) {
-            this.element.style.borderLeft = "var(--border)";
-            this.element.style.borderRight = "var(--border)";
-        } else {
-            this.element.style.borderLeft = "none";
-            this.element.style.borderRight = "none";
-        }
-    }
-
+export class CharacterClassSelectionView<T extends { name: string }> extends ResizableView {
     private selected_model?: T;
     private selected_element?: HTMLLIElement;
 
+    readonly element = ul({ className: "viewer_model_CharacterClassSelectionView" });
+
     constructor(
-        private models: readonly T[],
+        private character_classes: readonly T[],
         private selected: Property<T | undefined>,
         private set_selected: (selected: T) => void,
+        private border_left: boolean,
     ) {
         super();
 
         this.element.onclick = this.list_click;
 
-        models.forEach((model, index) => {
-            this.element.append(li({ data: { index: index.toString() } }, model.name));
+        if (border_left) {
+            this.element.style.borderLeft = "var(--border)";
+        }
+
+        character_classes.forEach((character_class, index) => {
+            this.element.append(li({ data: { index: index.toString() } }, character_class.name));
         });
 
         this.disposables(
@@ -41,7 +36,7 @@ export class Model3DSelectListView<T extends { name: string }> extends Resizable
                     }
 
                     if (model && model !== this.selected_model) {
-                        const index = this.models.indexOf(model);
+                        const index = this.character_classes.indexOf(model);
 
                         if (index !== -1) {
                             this.selected_element = this.element.childNodes[index] as HTMLLIElement;
@@ -67,7 +62,7 @@ export class Model3DSelectListView<T extends { name: string }> extends Resizable
             const index = parseInt(e.target.dataset["index"]!, 10);
 
             this.selected_element = e.target;
-            this.set_selected(this.models[index]);
+            this.set_selected(this.character_classes[index]);
         }
     };
 }

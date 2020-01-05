@@ -1,4 +1,4 @@
-.viewer_Model3DSelectListView {
+.viewer_model_CharacterClassSelectionView {
     box-sizing: border-box;
     list-style: none;
     padding: 0;
@@ -6,16 +6,16 @@
     overflow: auto;
 }
 
-.viewer_Model3DSelectListView li {
+.viewer_model_CharacterClassSelectionView li {
     padding: 4px 8px;
 }
 
-.viewer_Model3DSelectListView li:hover {
+.viewer_model_CharacterClassSelectionView li:hover {
     color: hsl(0, 0%, 90%);
     background-color: hsl(0, 0%, 18%);
 }
 
-.viewer_Model3DSelectListView li.active {
+.viewer_model_CharacterClassSelectionView li.active {
     color: hsl(0, 0%, 90%);
     background-color: hsl(0, 0%, 21%);
 }

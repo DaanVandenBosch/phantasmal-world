@@ -3,9 +3,8 @@ import { FileButton } from "../../core/gui/FileButton";
 import { ToolBar } from "../../core/gui/ToolBar";
 import { RendererWidget } from "../../core/gui/RendererWidget";
 import { TextureRenderer } from "../rendering/TextureRenderer";
-import { TextureStore } from "../stores/TextureStore";
-import { DisposableThreeRenderer } from "../../core/rendering/Renderer";
 import { ResizableView } from "../../core/gui/ResizableView";
+import { TextureController } from "../controllers/TextureController";
 
 export class TextureView extends ResizableView {
     readonly element = div({ className: "viewer_TextureView" });
@@ -19,18 +18,16 @@ export class TextureView extends ResizableView {
 
     private readonly renderer_view: RendererWidget;
 
-    constructor(texture_store: TextureStore, three_renderer: DisposableThreeRenderer) {
+    constructor(ctrl: TextureController, renderer: TextureRenderer) {
         super();
 
-        this.renderer_view = this.add(
-            new RendererWidget(new TextureRenderer(three_renderer, texture_store)),
-        );
+        this.renderer_view = this.add(new RendererWidget(renderer));
 
         this.element.append(this.tool_bar.element, this.renderer_view.element);
 
         this.disposables(
             this.open_file_button.files.observe(({ value: files }) => {
-                if (files.length) texture_store.load_file(files[0]);
+                if (files.length) ctrl.load_file(files[0]);
             }),
         );
 

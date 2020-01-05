@@ -1,8 +1,9 @@
 import { initialize_application } from "./index";
-import { DisposableThreeRenderer } from "../core/rendering/Renderer";
 import { LogHandler, LogLevel, LogManager } from "../core/Logger";
 import { FileSystemHttpClient } from "../../test/src/core/FileSystemHttpClient";
 import { timeout } from "../../test/src/utils";
+import { StubThreeRenderer } from "../../test/src/core/rendering/StubThreeRenderer";
+import { Random } from "../core/Random";
 
 for (const path of [undefined, "/viewer", "/quest_editor", "/hunt_optimizer"]) {
     const with_path = path == undefined ? "without specific path" : `with path ${path}`;
@@ -23,7 +24,8 @@ for (const path of [undefined, "/viewer", "/quest_editor", "/hunt_optimizer"]) {
 
             const app = initialize_application(
                 new FileSystemHttpClient(),
-                () => new StubRenderer(),
+                new Random(() => 0.27),
+                () => new StubThreeRenderer(),
             );
 
             expect(app).toBeDefined();
@@ -36,14 +38,4 @@ for (const path of [undefined, "/viewer", "/quest_editor", "/hunt_optimizer"]) {
             expect(logged_errors).toEqual([]);
         });
     });
-}
-
-class StubRenderer implements DisposableThreeRenderer {
-    domElement: HTMLCanvasElement = document.createElement("canvas");
-
-    dispose(): void {} // eslint-disable-line
-
-    render(): void {} // eslint-disable-line
-
-    setSize(): void {} // eslint-disable-line
 }
