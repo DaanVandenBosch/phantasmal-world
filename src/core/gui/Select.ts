@@ -6,6 +6,7 @@ import { Button } from "./Button";
 import { WritableProperty } from "../observable/property/WritableProperty";
 import { WidgetProperty } from "../observable/property/WidgetProperty";
 import { Menu } from "./Menu";
+import { property } from "../observable";
 
 export type SelectOptions<T> = LabelledControlOptions & {
     readonly items: readonly T[] | Property<readonly T[]>;
@@ -20,6 +21,7 @@ export class Select<T> extends LabelledControl {
 
     readonly selected: WritableProperty<T | undefined>;
 
+    private readonly items: Property<readonly T[]>;
     private readonly to_label: (element: T) => string;
     private readonly button: Button;
     private readonly menu: Menu<T>;
@@ -31,6 +33,7 @@ export class Select<T> extends LabelledControl {
 
         this.preferred_label_position = "left";
 
+        this.items = is_property(options.items) ? options.items : property(options.items);
         this.to_label = options.to_label ?? String;
         this.button = this.disposable(
             new Button({
@@ -40,7 +43,7 @@ export class Select<T> extends LabelledControl {
         );
         this.menu = this.disposable(
             new Menu<T>({
-                items: options.items,
+                items: this.items,
                 to_label: this.to_label,
                 related_element: this.element,
             }),
@@ -81,7 +84,7 @@ export class Select<T> extends LabelledControl {
     }
 
     protected set_selected(selected?: T): void {
-        this.button.text.val = selected != undefined ? this.to_label(selected) : " ";
+        this.button.text.val = selected !== undefined ? this.to_label(selected) : " ";
         this.menu.selected.val = selected;
     }
 
@@ -102,12 +105,37 @@ export class Select<T> extends LabelledControl {
     };
 
     private button_keydown = ({ value: evt }: { value: KeyboardEvent }): void => {
-        if (evt.key === "Enter" || evt.key === " ") {
-            evt.preventDefault();
-            this.just_opened = !this.menu.visible.val;
-            this.menu.visible.val = true;
-            this.menu.focus();
-            this.menu.hover_next();
+        switch (evt.key) {
+            case "Enter":
+            case " ":
+                evt.preventDefault();
+                this.just_opened = !this.menu.visible.val;
+                this.menu.visible.val = true;
+                this.menu.focus();
+                this.menu.hover_next();
+                break;
+
+            case "ArrowUp":
+                {
+                    if (this._selected.val === undefined) break;
+
+                    const index = this.items.val.indexOf(this._selected.val) - 1;
+                    if (index < 0) break;
+
+                    this._selected.set_val(this.items.val[index], { silent: false });
+                }
+                break;
+
+            case "ArrowDown":
+                {
+                    if (this._selected.val === undefined) break;
+
+                    const index = this.items.val.indexOf(this._selected.val) + 1;
+                    if (index >= this.items.val.length) break;
+
+                    this._selected.set_val(this.items.val[index], { silent: false });
+                }
+                break;
         }
     };
 }
