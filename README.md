@@ -56,21 +56,22 @@ shared state such as the currently selected entity in the quest editor.
 #### Some Interesting Parts of the Code Base
 
 Phantasmal contains parsers for many of the client's formats in [src/core/data_formats](
-src/core/data_formats). [src/core/data_formats/asm](src/core/data_formats/asm) contains a
-model of the PSO scripting byte code and data flow analysis for it. The
-[src/quest_editor/scripting](src/quest_editor/scripting) directory contains an assembler,
-disassembler and (partly implemented) virtual machine.
+src/core/data_formats). A model of the PSO scripting byte code and data flow analysis for it can be
+found in [src/core/data_formats/asm](src/core/data_formats/asm). The [src/quest_editor/scripting](
+src/quest_editor/scripting) directory contains an assembler, disassembler and (partly implemented)
+virtual machine.
 
 ### Unit Tests
 
 Run the unit tests with `yarn test` or `yarn test --watch` if you want the relevant tests to be
 re-run whenever a file is changed. The testing framework used is Jest.
 
-### Linting and Code Formatting
+### Code Style, Linting and Formatting
 
-ESLint and Prettier are used for linting and formatting.
+Class names are in `PascalCase` and all other identifiers are in `snake_case`.
 
-Run with `yarn lint` and/or configure your editor to use the ESLint/Prettier configuration.
+ESLint and Prettier are used for linting and formatting. Run with `yarn lint` and/or configure your
+editor to use the ESLint/Prettier configuration.
 
 ### Production Build
 
