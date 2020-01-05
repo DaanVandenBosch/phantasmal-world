@@ -1,6 +1,6 @@
 import { Controller } from "../../core/controllers/Controller";
 import { filename_extension } from "../../core/util";
-import { read_file } from "../../core/read_file";
+import { read_file } from "../../core/files";
 import { parse_xvm, XvrTexture } from "../../core/data_formats/parsing/ninja/texture";
 import { ArrayBufferCursor } from "../../core/data_formats/cursor/ArrayBufferCursor";
 import { Endianness } from "../../core/data_formats/Endianness";

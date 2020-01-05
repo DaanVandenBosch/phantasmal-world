@@ -9,8 +9,9 @@ import { TextureController } from "../controllers/TextureController";
 export class TextureView extends ResizableView {
     readonly element = div({ className: "viewer_TextureView" });
 
-    private readonly open_file_button = new FileButton("Open file...", {
+    private readonly open_file_button = new FileButton({
         icon_left: Icon.File,
+        text: "Open file...",
         accept: ".afs, .xvm",
     });
 

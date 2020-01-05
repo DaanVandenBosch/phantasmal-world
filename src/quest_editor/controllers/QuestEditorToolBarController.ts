@@ -8,7 +8,7 @@ import { undo_manager } from "../../core/undo/UndoManager";
 import { Controller } from "../../core/controllers/Controller";
 import { Episode } from "../../core/data_formats/parsing/quest/Episode";
 import { create_new_quest } from "../stores/quest_creation";
-import { read_file } from "../../core/read_file";
+import { open_files, read_file } from "../../core/files";
 import {
     parse_bin_dat_to_quest,
     parse_qst_to_quest,
@@ -19,7 +19,6 @@ import { ArrayBufferCursor } from "../../core/data_formats/cursor/ArrayBufferCur
 import { Endianness } from "../../core/data_formats/Endianness";
 import { convert_quest_from_model, convert_quest_to_model } from "../stores/model_conversion";
 import { LogManager } from "../../core/Logger";
-import { input } from "../../core/gui/dom";
 import { basename } from "../../core/util";
 
 const logger = LogManager.get("quest_editor/controllers/QuestEditorToolBarController");
@@ -102,14 +101,9 @@ export class QuestEditorToolBarController extends Controller {
                 this.quest_filename = undefined;
             }),
 
-            gui_store.on_global_keydown(GuiTool.QuestEditor, "Ctrl-O", () => {
-                const input_element = input();
-                input_element.type = "file";
-                input_element.multiple = true;
-                input_element.onchange = () => {
-                    this.open_files(Array.prototype.slice.apply(input_element.files));
-                };
-                input_element.click();
+            gui_store.on_global_keydown(GuiTool.QuestEditor, "Ctrl-O", async () => {
+                const files = await open_files({ accept: ".bin, .dat, .qst", multiple: true });
+                this.parse_files(files);
             }),
 
             gui_store.on_global_keydown(GuiTool.QuestEditor, "Ctrl-Shift-S", this.save_as),
@@ -140,7 +134,7 @@ export class QuestEditorToolBarController extends Controller {
         this.quest_editor_store.set_current_quest(create_new_quest(this.area_store, episode));
 
     // TODO: notify user of problems.
-    open_files = async (files: File[]): Promise<void> => {
+    parse_files = async (files: File[]): Promise<void> => {
         try {
             if (files.length === 0) return;
 

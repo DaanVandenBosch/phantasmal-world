@@ -1,7 +1,7 @@
 import { Controller } from "../../../core/controllers/Controller";
 import { Property } from "../../../core/observable/property/Property";
 import { ModelStore } from "../../stores/ModelStore";
-import { read_file } from "../../../core/read_file";
+import { read_file } from "../../../core/files";
 import { ArrayBufferCursor } from "../../../core/data_formats/cursor/ArrayBufferCursor";
 import { Endianness } from "../../../core/data_formats/Endianness";
 import { parse_nj, parse_xj } from "../../../core/data_formats/parsing/ninja";

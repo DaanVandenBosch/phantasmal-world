@@ -11,13 +11,13 @@ export class CharacterClassOptionsView extends ResizableView {
     constructor(ctrl: CharacterClassOptionsController) {
         super();
 
-        const section_id_select: Select<SectionId> = this.add(
+        const section_id_select: Select<SectionId | undefined> = this.add(
             new Select({
                 class: "viewer_model_CharacterClassOptionsView_section_id",
                 label: "Section ID:",
                 items: SectionIds,
                 selected: ctrl.current_section_id,
-                to_label: section_id => SectionId[section_id],
+                to_label: section_id => (section_id == undefined ? "" : SectionId[section_id]),
                 enabled: ctrl.enabled,
             }),
         );

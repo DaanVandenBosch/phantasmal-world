@@ -22,8 +22,9 @@ export class ModelToolBarView extends View {
     constructor(ctrl: ModelToolBarController) {
         super();
 
-        const open_file_button = new FileButton("Open file...", {
+        const open_file_button = new FileButton({
             icon_left: Icon.File,
+            text: "Open file...",
             accept: ".afs, .nj, .njm, .xj, .xvm",
         });
         const skeleton_checkbox = new CheckBox(false, { label: "Show skeleton" });

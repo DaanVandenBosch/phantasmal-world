@@ -8,14 +8,14 @@ exports[`Renders correctly without textures.: Should render a toolbar and a rend
     class="core_ToolBar"
     style="height: 33px;"
   >
-    <label
-      class="core_FileButton core_Button"
+    <button
+      class="core_Button core_FileButton"
     >
       <span
-        class="core_FileButton_inner core_Button_inner"
+        class="core_Button_inner"
       >
         <span
-          class="core_FileButton_left core_Button_left"
+          class="core_Button_left"
         >
           <span>
             <span
@@ -29,12 +29,7 @@ exports[`Renders correctly without textures.: Should render a toolbar and a rend
           Open file...
         </span>
       </span>
-      <input
-        accept=".afs, .xvm"
-        class="core_FileButton_input core_Button_inner"
-        type="file"
-      />
-    </label>
+    </button>
   </div>
   <div
     class="core_RendererWidget"

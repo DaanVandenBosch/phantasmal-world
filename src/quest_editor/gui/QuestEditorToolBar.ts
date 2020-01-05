@@ -19,8 +19,9 @@ export class QuestEditorToolBar extends ToolBar {
             items: [Episode.I],
             to_label: episode => `Episode ${Episode[episode]}`,
         });
-        const open_file_button = new FileButton("Open file...", {
+        const open_file_button = new FileButton({
             icon_left: Icon.File,
+            text: "Open file...",
             accept: ".bin, .dat, .qst",
             multiple: true,
             tooltip: "Open a quest file (Ctrl-O)",
@@ -108,7 +109,7 @@ export class QuestEditorToolBar extends ToolBar {
         this.disposables(
             new_quest_button.chosen.observe(({ value: episode }) => ctrl.create_new_quest(episode)),
 
-            open_file_button.files.observe(({ value: files }) => ctrl.open_files(files)),
+            open_file_button.files.observe(({ value: files }) => ctrl.parse_files(files)),
 
             save_as_button.click.observe(ctrl.save_as),
             save_as_button.enabled.bind_to(ctrl.can_save),

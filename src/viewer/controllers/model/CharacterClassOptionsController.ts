@@ -6,7 +6,7 @@ import { SectionId } from "../../../core/model";
 
 export class CharacterClassOptionsController extends Controller {
     readonly enabled: Property<boolean>;
-    readonly current_section_id: Property<SectionId>;
+    readonly current_section_id: Property<SectionId | undefined>;
     readonly current_body_options: Property<readonly number[]>;
     readonly current_body: Property<number | undefined>;
 
