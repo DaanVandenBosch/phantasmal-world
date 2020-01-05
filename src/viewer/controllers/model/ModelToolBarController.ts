@@ -56,13 +56,9 @@ export class ModelToolBarController extends Controller {
             const cursor = new ArrayBufferCursor(buffer, Endianness.Little);
 
             if (file.name.endsWith(".nj")) {
-                const nj_object = parse_nj(cursor)[0];
-
-                this.store.set_current_nj_object(nj_object);
+                this.store.set_current_nj_object(parse_nj(cursor)[0]);
             } else if (file.name.endsWith(".xj")) {
-                const nj_object = parse_xj(cursor)[0];
-
-                this.store.set_current_nj_object(nj_object);
+                this.store.set_current_nj_object(parse_xj(cursor)[0]);
             } else if (file.name.endsWith(".njm")) {
                 this.store.set_current_animation(undefined);
                 this.store.set_current_nj_motion(undefined);

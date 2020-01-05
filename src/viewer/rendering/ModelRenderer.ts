@@ -25,6 +25,7 @@ import { Disposer } from "../../core/observable/Disposer";
 import { ChangeEvent } from "../../core/observable/Observable";
 import { LogManager } from "../../core/Logger";
 import { ModelStore } from "../stores/ModelStore";
+import { CharacterClassModel } from "../model/CharacterClassModel";
 
 const logger = LogManager.get("viewer/rendering/ModelRenderer");
 
@@ -37,10 +38,13 @@ const DEFAULT_SKINNED_MATERIAL = new MeshLambertMaterial({
     color: 0xffffff,
     side: DoubleSide,
 });
+const CAMERA_POSITION = Object.freeze(new Vector3(0, 10, 20));
+const CAMERA_LOOKAT = Object.freeze(new Vector3(0, 0, 0));
 
 export class ModelRenderer extends Renderer implements Disposable {
     private readonly disposer = new Disposer();
     private readonly clock = new Clock();
+    private character_class_active: boolean;
     private mesh?: Object3D;
     private skeleton_helper?: SkeletonHelper;
     private animation?: {
@@ -54,7 +58,10 @@ export class ModelRenderer extends Renderer implements Disposable {
     constructor(private readonly store: ModelStore, three_renderer: DisposableThreeRenderer) {
         super(three_renderer);
 
+        this.character_class_active = store.current_character_class.val != undefined;
+
         this.disposer.add_all(
+            store.current_character_class.observe(this.current_character_class_changed),
             store.current_nj_object.observe(this.nj_object_or_xvm_changed),
             store.current_textures.observe(this.nj_object_or_xvm_changed),
             store.current_nj_motion.observe(this.nj_motion_changed),
@@ -65,7 +72,7 @@ export class ModelRenderer extends Renderer implements Disposable {
         );
 
         this.init_camera_controls();
-        this.reset_camera(new Vector3(0, 10, 20), new Vector3(0, 0, 0));
+        this.reset_camera(CAMERA_POSITION, CAMERA_LOOKAT);
     }
 
     set_size(width: number, height: number): void {
@@ -92,6 +99,18 @@ export class ModelRenderer extends Renderer implements Disposable {
             this.schedule_render();
         }
     }
+
+    private current_character_class_changed = (
+        change: ChangeEvent<CharacterClassModel | undefined>,
+    ): void => {
+        const character_class_active = change.value != undefined;
+
+        if (this.character_class_active !== character_class_active) {
+            this.reset_camera(CAMERA_POSITION, CAMERA_LOOKAT);
+        }
+
+        this.character_class_active = character_class_active;
+    };
 
     private nj_object_or_xvm_changed = (): void => {
         if (this.mesh) {

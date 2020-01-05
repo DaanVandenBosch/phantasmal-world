@@ -30,12 +30,6 @@ import { NjObject } from "../../core/data_formats/parsing/ninja";
 
 const logger = LogManager.get("viewer/stores/ModelStore");
 
-export type NjData = {
-    readonly nj_object: NjObject;
-    readonly bone_count: number;
-    readonly has_skeleton: boolean;
-};
-
 export class ModelStore extends Store {
     // Character classes and their animations.
     private readonly _current_character_class: WritableProperty<
