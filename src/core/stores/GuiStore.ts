@@ -5,6 +5,8 @@ import { Property } from "../observable/property/Property";
 import { Server } from "../model";
 import { Store } from "./Store";
 import { disposable_listener } from "../gui/dom";
+import { assert, map_get_or_put } from "../util";
+import { Observable } from "../observable/Observable";
 
 export enum GuiTool {
     Viewer,
@@ -22,6 +24,19 @@ const STRING_TO_GUI_TOOL = new Map([...GUI_TOOL_TO_STRING.entries()].map(([k, v]
 export class GuiStore extends Store {
     private readonly _tool: WritableProperty<GuiTool> = property(GuiTool.Viewer);
     private readonly _path: WritableProperty<string> = property("");
+
+    /**
+     * Path prefixed with tool path.
+     */
+    private get full_path(): string {
+        return `/${gui_tool_to_string(this.tool.val)}${this.path.val}`;
+    }
+
+    /**
+     * Maps full paths to maps of parameters and their values. In other words we keep track of
+     * parameter values per {@link full_path}.
+     */
+    private readonly parameters: Map<string, Map<string, string>> = new Map();
     private readonly _server: WritableProperty<Server> = property(Server.Ephinea);
     private readonly global_keydown_handlers = new Map<string, (e: KeyboardEvent) => void>();
     private readonly features: Set<string> = new Set();
@@ -33,29 +48,33 @@ export class GuiStore extends Store {
     constructor() {
         super();
 
-        const url = window.location.hash.slice(2);
+        const url = window.location.hash.slice(1);
         const [full_path, params_str] = url.split("?");
+        const second_slash_idx = full_path.indexOf("/", 1);
+        const tool_str = second_slash_idx === -1 ? full_path : full_path.slice(1, second_slash_idx);
 
-        const first_slash_idx = full_path.indexOf("/");
-        const tool_str = first_slash_idx === -1 ? full_path : full_path.slice(0, first_slash_idx);
-        const path = first_slash_idx === -1 ? "" : full_path.slice(first_slash_idx);
+        const tool = string_to_gui_tool(tool_str) ?? GuiTool.Viewer;
+        const path = second_slash_idx === -1 ? "" : full_path.slice(second_slash_idx);
 
         if (params_str) {
-            const features = params_str
-                .split("&")
-                .map(p => p.split("="))
-                .find(([key]) => key === "features");
+            const params = new Map<string, string>();
 
-            if (features && features.length >= 2) {
-                for (const feature of features[1].split(",")) {
-                    this.features.add(feature);
+            for (const [param, value] of params_str.split("&").map(p => p.split("=", 2))) {
+                if (param === "features") {
+                    for (const feature of value.split(",")) {
+                        this.features.add(feature);
+                    }
+                } else {
+                    params.set(param, value);
                 }
             }
+
+            this.parameters.set(full_path, params);
         }
 
         this.disposables(disposable_listener(window, "keydown", this.dispatch_global_keydown));
 
-        this.set_tool(string_to_gui_tool(tool_str) ?? GuiTool.Viewer, path);
+        this.set_tool(tool, path);
     }
 
     set_tool(tool: GuiTool, path: string = ""): void {
@@ -74,14 +93,62 @@ export class GuiStore extends Store {
         }
     }
 
-    private update_location(): void {
-        let hash = `#/${gui_tool_to_string(this.tool.val)}${this.path.val}`;
+    get_parameter(tool: GuiTool, path: string, parameter: string): string | undefined {
+        return map_get_or_put(
+            this.parameters,
+            `/${gui_tool_to_string(tool)}${path}`,
+            () => new Map(),
+        ).get(parameter);
+    }
 
-        if (this.features.size) {
-            hash += "?features=" + [...this.features].join(",");
+    bind_parameter(
+        tool: GuiTool,
+        path: string,
+        parameter: string,
+        observable: Observable<string | undefined>,
+    ): Disposable {
+        assert(
+            parameter !== "features",
+            "features can't be bound because it is a global parameter.",
+        );
+
+        const params: Map<string, string> = map_get_or_put(
+            this.parameters,
+            this.full_path,
+            () => new Map(),
+        );
+
+        return observable.observe(({ value }) => {
+            if (this.tool.val !== tool || this.path.val !== path) return;
+
+            if (value === undefined) {
+                params.delete(parameter);
+            } else {
+                params.set(parameter, value);
+            }
+
+            this.update_location();
+        });
+    }
+
+    private update_location(): void {
+        const params_array: [string, string][] = [];
+        const params = this.parameters.get(this.full_path);
+
+        if (params) {
+            for (const [param, value] of params.entries()) {
+                params_array.push([param, value]);
+            }
         }
 
-        window.location.hash = hash;
+        if (this.features.size) {
+            params_array.push(["features", [...this.features].join(",")]);
+        }
+
+        const param_str =
+            params_array.length === 0 ? "" : "?" + params_array.map(kv => kv.join("=")).join("&");
+
+        window.location.hash = `#${this.full_path}${param_str}`;
     }
 
     on_global_keydown(

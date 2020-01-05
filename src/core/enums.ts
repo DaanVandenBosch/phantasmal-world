@@ -9,22 +9,13 @@ export function enum_values<E>(e: any): E[] {
     }
 }
 
-/**
- * Map with a guaranteed value per enum key.
- */
-export class EnumMap<K, V> {
-    private readonly keys: K[];
-    private readonly values = new Map<K, V>();
+export function string_to_enum<E>(e: any, str: string): E | undefined {
+    if (str === "") return undefined;
 
-    constructor(enum_: any, initial_value: (key: K) => V) {
-        this.keys = enum_values(enum_);
+    // Filter out strings that start with a digit to avoid index `e` with a number string which
+    // could result in return a string.
+    const first_char_code = str.charCodeAt(0);
+    if (48 <= first_char_code && first_char_code <= 57) return undefined;
 
-        for (const key of this.keys) {
-            this.values.set(key, initial_value(key));
-        }
-    }
-
-    get(key: K): V {
-        return this.values.get(key)!;
-    }
+    return e[str];
 }

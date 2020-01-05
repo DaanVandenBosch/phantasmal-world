@@ -47,6 +47,17 @@ export function array_buffers_equal(a: ArrayBuffer, b: ArrayBuffer): boolean {
     return true;
 }
 
+export function map_get_or_put<K, V>(map: Map<K, V>, key: K, get_default: () => V): V {
+    let value = map.get(key);
+
+    if (value === undefined) {
+        value = get_default();
+        map.set(key, value);
+    }
+
+    return value;
+}
+
 /**
  * Returns the given filename without the file extension.
  */

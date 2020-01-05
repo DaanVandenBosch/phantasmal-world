@@ -31,7 +31,7 @@ export function initialize_viewer(
                 "./loading/CharacterClassAssetLoader"
             );
             const asset_loader = disposer.add(new CharacterClassAssetLoader(http_client));
-            const store = disposer.add(new ModelStore(asset_loader, random));
+            const store = disposer.add(new ModelStore(gui_store, asset_loader, random));
             const model_controller = new ModelController(store);
             const model_tool_bar_controller = new ModelToolBarController(store);
             const character_class_options_controller = new CharacterClassOptionsController(store);

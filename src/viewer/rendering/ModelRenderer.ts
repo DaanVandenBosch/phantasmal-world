@@ -39,7 +39,7 @@ const DEFAULT_SKINNED_MATERIAL = new MeshLambertMaterial({
     side: DoubleSide,
 });
 const CAMERA_POSITION = Object.freeze(new Vector3(0, 10, 20));
-const CAMERA_LOOKAT = Object.freeze(new Vector3(0, 0, 0));
+const CAMERA_LOOK_AT = Object.freeze(new Vector3(0, 0, 0));
 
 export class ModelRenderer extends Renderer implements Disposable {
     private readonly disposer = new Disposer();
@@ -72,7 +72,7 @@ export class ModelRenderer extends Renderer implements Disposable {
         );
 
         this.init_camera_controls();
-        this.reset_camera(CAMERA_POSITION, CAMERA_LOOKAT);
+        this.reset_camera(CAMERA_POSITION, CAMERA_LOOK_AT);
     }
 
     set_size(width: number, height: number): void {
@@ -106,7 +106,7 @@ export class ModelRenderer extends Renderer implements Disposable {
         const character_class_active = change.value != undefined;
 
         if (this.character_class_active !== character_class_active) {
-            this.reset_camera(CAMERA_POSITION, CAMERA_LOOKAT);
+            this.reset_camera(CAMERA_POSITION, CAMERA_LOOK_AT);
         }
 
         this.character_class_active = character_class_active;

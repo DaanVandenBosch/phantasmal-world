@@ -27,6 +27,8 @@ import { Random } from "../../core/Random";
 import { SectionId, SectionIds } from "../../core/model";
 import { LogManager } from "../../core/Logger";
 import { NjObject } from "../../core/data_formats/parsing/ninja";
+import { GuiStore, GuiTool } from "../../core/stores/GuiStore";
+import { string_to_enum } from "../../core/enums";
 
 const logger = LogManager.get("viewer/stores/ModelStore");
 
@@ -35,8 +37,10 @@ export class ModelStore extends Store {
     private readonly _current_character_class: WritableProperty<
         CharacterClassModel | undefined
     > = property(undefined);
-    private readonly _current_section_id: WritableProperty<SectionId>;
-    private readonly _current_body: WritableProperty<number | undefined> = property(0);
+    private readonly _current_section_id: WritableProperty<SectionId | undefined> = property(
+        undefined,
+    );
+    private readonly _current_body: WritableProperty<number | undefined> = property(undefined);
     private readonly _current_animation: WritableProperty<
         CharacterClassAnimationModel | undefined
     > = property(undefined);
@@ -69,7 +73,7 @@ export class ModelStore extends Store {
     ];
     readonly current_character_class: Property<CharacterClassModel | undefined> = this
         ._current_character_class;
-    readonly current_section_id: Property<SectionId>;
+    readonly current_section_id: Property<SectionId | undefined> = this._current_section_id;
     readonly current_body: Property<number | undefined> = this._current_body;
     readonly animations: readonly CharacterClassAnimationModel[] = new Array(572)
         .fill(undefined)
@@ -92,13 +96,11 @@ export class ModelStore extends Store {
     readonly animation_frame: Property<number> = this._animation_frame;
 
     constructor(
+        gui_store: GuiStore,
         private readonly asset_loader: CharacterClassAssetLoader,
         private readonly random: Random,
     ) {
         super();
-
-        this._current_section_id = property(random.sample_array(SectionIds));
-        this.current_section_id = this._current_section_id;
 
         this.disposables(
             this.current_character_class.observe(this.load_character_class_model),
@@ -107,18 +109,70 @@ export class ModelStore extends Store {
             this.current_animation.observe(this.load_animation),
         );
 
-        const character_class = random.sample_array(this.character_classes);
-        this.set_current_character_class(character_class);
+        // Parameters.
+        this.disposables(
+            gui_store.bind_parameter(
+                GuiTool.Viewer,
+                "/models",
+                "model",
+                this.current_character_class.map(cc => (cc === undefined ? undefined : cc.name)),
+            ),
+            gui_store.bind_parameter(
+                GuiTool.Viewer,
+                "/models",
+                "section_id",
+                this.current_section_id.map(section_id =>
+                    section_id === undefined ? undefined : SectionId[section_id],
+                ),
+            ),
+            gui_store.bind_parameter(
+                GuiTool.Viewer,
+                "/models",
+                "body",
+                this.current_body.map(body => (body === undefined ? undefined : String(body + 1))),
+            ),
+        );
+
+        const model = gui_store.get_parameter(GuiTool.Viewer, "/models", "model");
+        let character_class = this.character_classes.find(cc => cc.name === model);
+
+        if (character_class == undefined) {
+            character_class = random.sample_array(this.character_classes);
+        }
+
+        const body_arg = gui_store.get_parameter(GuiTool.Viewer, "/models", "body");
+        let body = body_arg == undefined ? undefined : parseInt(body_arg, 10);
+
+        if (body == undefined || !Number.isInteger(body)) {
+            body = random.integer(0, character_class.body_style_count);
+        } else {
+            body--;
+        }
+
+        const section_id_arg = gui_store.get_parameter(GuiTool.Viewer, "/models", "section_id");
+        const section_id =
+            section_id_arg === undefined
+                ? undefined
+                : string_to_enum<SectionId>(SectionId, section_id_arg);
+
+        this._current_section_id.val = section_id ?? random.sample_array(SectionIds);
+        this._current_body.val = body;
+        this._current_character_class.val = character_class;
     }
 
     set_current_character_class = (character_class?: CharacterClassModel): void => {
         if (this._current_character_class.val !== character_class) {
+            if (character_class == undefined) {
+                this.set_current_body(undefined);
+            } else {
+                const body = this.current_body.val;
+
+                if (body === undefined || body >= character_class?.body_style_count) {
+                    this.set_current_body(character_class.body_style_count - 1);
+                }
+            }
+
             this._current_character_class.val = character_class;
-            this.set_current_body(
-                character_class
-                    ? this.random.integer(0, character_class.body_style_count)
-                    : undefined,
-            );
 
             if (this.current_animation.val == undefined) {
                 this.set_current_nj_motion(undefined);
@@ -177,6 +231,9 @@ export class ModelStore extends Store {
         const character_class = this.current_character_class.val;
         if (character_class == undefined) return;
 
+        const section_id = this.current_section_id.val;
+        if (section_id == undefined) return;
+
         const body = this.current_body.val;
         if (body == undefined) return;
 
@@ -187,7 +244,7 @@ export class ModelStore extends Store {
 
             this._current_textures.val = await this.asset_loader.load_textures(
                 character_class,
-                this.current_section_id.val,
+                section_id,
                 body,
             );
 

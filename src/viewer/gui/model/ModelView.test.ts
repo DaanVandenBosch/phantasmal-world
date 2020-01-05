@@ -11,11 +11,13 @@ import { ModelToolBarView } from "./ModelToolBarView";
 import { ModelToolBarController } from "../../controllers/model/ModelToolBarController";
 import { CharacterClassOptionsView } from "./CharacterClassOptionsView";
 import { CharacterClassOptionsController } from "../../controllers/model/CharacterClassOptionsController";
+import { GuiStore } from "../../../core/stores/GuiStore";
 
 test("Renders correctly.", () =>
     with_disposer(disposer => {
         const store = disposer.add(
             new ModelStore(
+                disposer.add(new GuiStore()),
                 disposer.add(new CharacterClassAssetLoader(new FileSystemHttpClient())),
                 new Random(() => 0.04),
             ),
