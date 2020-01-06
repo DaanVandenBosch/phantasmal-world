@@ -20,7 +20,7 @@ export class FileButton extends Button {
         this.element.classList.add("core_FileButton");
 
         this.disposables(
-            this.click.observe(async () => {
+            this.onclick.observe(async () => {
                 this._files.val = await open_files(options);
             }),
         );

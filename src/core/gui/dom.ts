@@ -42,6 +42,13 @@ export function div(attributes?: Attributes<HTMLDivElement>, ...children: Child[
     return create_element("div", attributes, ...children);
 }
 
+export function h1(
+    attributes?: Attributes<HTMLHeadingElement>,
+    ...children: Child[]
+): HTMLHeadingElement {
+    return create_element("h1", attributes, ...children);
+}
+
 export function h2(
     attributes?: Attributes<HTMLHeadingElement>,
     ...children: Child[]
@@ -79,6 +86,10 @@ export function p(
     ...children: Child[]
 ): HTMLParagraphElement {
     return create_element("p", attributes, ...children);
+}
+
+export function section(attributes?: Attributes<HTMLElement>, ...children: Child[]): HTMLElement {
+    return create_element("section", attributes, ...children);
 }
 
 export function span(

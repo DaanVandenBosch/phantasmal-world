@@ -4,11 +4,12 @@ import { BufferCursor } from "../src/core/data_formats/cursor/BufferCursor";
 import { parse_rlc } from "../src/core/data_formats/parsing/rlc";
 import * as yaml from "yaml";
 import { Endianness } from "../src/core/data_formats/Endianness";
-import { LogLevel, LogManager } from "../src/core/Logger";
+import { LogManager } from "../src/core/Logger";
+import { Severity } from "../src/core/Severity";
 
 const logger = LogManager.get("assets_generation/update_generic_data");
 
-LogManager.default_level = LogLevel.Trace;
+LogManager.default_severity = Severity.Trace;
 
 const OPCODES_YML_FILE = `${RESOURCE_DIR}/asm/opcodes.yml`;
 const OPCODES_SRC_FILE = `${SRC_DIR}/core/data_formats/asm/opcodes.ts`;

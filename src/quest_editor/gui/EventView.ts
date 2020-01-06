@@ -151,7 +151,7 @@ export class EventView extends View {
         const remove_button = disposer.add(new Button({ icon_left: Icon.Remove }));
 
         disposer.add_all(
-            remove_button.click.observe(() => this.ctrl.remove_action(this.event, action)),
+            remove_button.onclick.observe(() => this.ctrl.remove_action(this.event, action)),
         );
 
         return [tr(th(label), td(node), td(remove_button.element)), disposer];

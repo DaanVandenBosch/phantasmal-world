@@ -1,9 +1,10 @@
 import { initialize_application } from "./index";
-import { LogHandler, LogLevel, LogManager } from "../core/Logger";
+import { LogHandler, LogManager } from "../core/Logger";
 import { FileSystemHttpClient } from "../../test/src/core/FileSystemHttpClient";
 import { timeout } from "../../test/src/utils";
 import { StubThreeRenderer } from "../../test/src/core/rendering/StubThreeRenderer";
 import { Random } from "../core/Random";
+import { Severity } from "../core/Severity";
 
 for (const path of [undefined, "/viewer", "/quest_editor", "/hunt_optimizer"]) {
     const with_path = path == undefined ? "without specific path" : `with path ${path}`;
@@ -11,8 +12,8 @@ for (const path of [undefined, "/viewer", "/quest_editor", "/hunt_optimizer"]) {
     test(`Initialization and shutdown ${with_path} should succeed without throwing or logging errors.`, async () => {
         const logged_errors: string[] = [];
 
-        const handler: LogHandler = ({ level, message }) => {
-            if (level >= LogLevel.Error) {
+        const handler: LogHandler = ({ severity, message }) => {
+            if (severity >= Severity.Error) {
                 logged_errors.push(message);
             }
         };

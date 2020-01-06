@@ -1,54 +1,35 @@
-import { enum_values } from "./enums";
-import { assert } from "./util";
-
-// Log level names in order of importance.
-export enum LogLevel {
-    Trace,
-    Debug,
-    Info,
-    Warn,
-    Error,
-    Off,
-}
-
-export const LogLevels = enum_values<LogLevel>(LogLevel);
-
-export function log_level_from_string(str: string): LogLevel {
-    const level = (LogLevel as any)[str.slice(0, 1).toUpperCase() + str.slice(1).toLowerCase()];
-    assert(level != undefined, () => `"${str}" is not a valid log level.`);
-    return level;
-}
+import { Severity, severity_from_string } from "./Severity";
 
 export type LogEntry = {
     readonly time: Date;
     readonly message: string;
-    readonly level: LogLevel;
+    readonly severity: Severity;
     readonly logger: Logger;
     readonly cause?: any;
 };
 
 export type LogHandler = (entry: LogEntry, logger_name: string) => void;
 
-function default_log_handler({ time, message, level, logger, cause }: LogEntry): void {
-    const str = `${time_to_string(time)} [${LogLevel[level]}] ${logger.name} - ${message}`;
+function default_log_handler({ time, message, severity, logger, cause }: LogEntry): void {
+    const str = `${time_to_string(time)} [${Severity[severity]}] ${logger.name} - ${message}`;
 
     /* eslint-disable no-console */
     let method: (...args: any[]) => void;
 
-    switch (level) {
-        case LogLevel.Trace:
+    switch (severity) {
+        case Severity.Trace:
             method = console.trace;
             break;
-        case LogLevel.Debug:
+        case Severity.Debug:
             method = console.debug;
             break;
-        case LogLevel.Info:
+        case Severity.Info:
             method = console.info;
             break;
-        case LogLevel.Warn:
+        case Severity.Warn:
             method = console.warn;
             break;
-        case LogLevel.Error:
+        case Severity.Error:
             method = console.error;
             break;
         default:
@@ -76,14 +57,14 @@ function time_part_to_string(value: number, n: number): string {
 }
 
 export class Logger {
-    private _level?: LogLevel;
+    private _severity?: Severity;
 
-    get level(): LogLevel {
-        return this._level ?? LogManager.default_level;
+    get severity(): Severity {
+        return this._severity ?? LogManager.default_severity;
     }
 
-    set level(level: LogLevel) {
-        this._level = level;
+    set severity(severity: Severity) {
+        this._severity = severity;
     }
 
     private _handler?: LogHandler;
@@ -99,28 +80,28 @@ export class Logger {
     constructor(readonly name: string) {}
 
     trace = (message: string, cause?: any): void => {
-        this.handle(LogLevel.Trace, message, cause);
+        this.log(Severity.Trace, message, cause);
     };
 
     debug = (message: string, cause?: any): void => {
-        this.handle(LogLevel.Debug, message, cause);
+        this.log(Severity.Debug, message, cause);
     };
 
     info = (message: string, cause?: any): void => {
-        this.handle(LogLevel.Info, message, cause);
+        this.log(Severity.Info, message, cause);
     };
 
     warn = (message: string, cause?: any): void => {
-        this.handle(LogLevel.Warn, message, cause);
+        this.log(Severity.Warn, message, cause);
     };
 
     error = (message: string, cause?: any): void => {
-        this.handle(LogLevel.Error, message, cause);
+        this.log(Severity.Error, message, cause);
     };
 
-    private handle(level: LogLevel, message: string, cause?: any): void {
-        if (level >= this.level) {
-            this.handler({ time: new Date(), message, level, logger: this, cause }, this.name);
+    log(severity: Severity, message: string, cause?: any): void {
+        if (severity >= this.severity) {
+            this.handler({ time: new Date(), message, severity, logger: this, cause }, this.name);
         }
     }
 }
@@ -128,7 +109,7 @@ export class Logger {
 export class LogManager {
     private static readonly loggers = new Map<string, Logger>();
 
-    static default_level: LogLevel = log_level_from_string(process.env["LOG_LEVEL"] ?? "Info");
+    static default_severity: Severity = severity_from_string(process.env["LOG_LEVEL"] ?? "Info");
     static default_handler: LogHandler = default_log_handler;
 
     static get(name: string): Logger {

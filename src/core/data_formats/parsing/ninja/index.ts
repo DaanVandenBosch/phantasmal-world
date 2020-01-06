@@ -3,6 +3,7 @@ import { Vec3 } from "../../vector";
 import { parse_iff } from "../iff";
 import { NjcmModel, parse_njcm_model } from "./njcm";
 import { parse_xj_model, XjModel } from "./xj";
+import { Result, success } from "../../../Result";
 
 export const ANGLE_TO_RAD = (2 * Math.PI) / 0xffff;
 
@@ -113,14 +114,14 @@ export type NjEvaluationFlags = {
 /**
  * Parses an NJCM file.
  */
-export function parse_nj(cursor: Cursor): NjObject<NjcmModel>[] {
+export function parse_nj(cursor: Cursor): Result<NjObject<NjcmModel>[]> {
     return parse_ninja(cursor, parse_njcm_model, []);
 }
 
 /**
  * Parses an NJCM file.
  */
-export function parse_xj(cursor: Cursor): NjObject<XjModel>[] {
+export function parse_xj(cursor: Cursor): Result<NjObject<XjModel>[]> {
     return parse_ninja(cursor, parse_xj_model, undefined);
 }
 
@@ -135,16 +136,22 @@ function parse_ninja<M extends NjModel>(
     cursor: Cursor,
     parse_model: (cursor: Cursor, context: any) => M,
     context: any,
-): NjObject<M>[] {
+): Result<NjObject<M>[]> {
+    const parse_iff_result = parse_iff(cursor);
+
+    if (!parse_iff_result.success) {
+        return parse_iff_result;
+    }
+
     // POF0 and other chunks types are ignored.
-    const njcm_chunks = parse_iff(cursor).filter(chunk => chunk.type === NJCM);
+    const njcm_chunks = parse_iff_result.value.filter(chunk => chunk.type === NJCM);
     const objects: NjObject<M>[] = [];
 
     for (const chunk of njcm_chunks) {
         objects.push(...parse_sibling_objects(chunk.data, parse_model, context));
     }
 
-    return objects;
+    return success(objects, parse_iff_result.problems);
 }
 
 // TODO: cache model and object offsets so we don't reparse the same data.

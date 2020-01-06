@@ -24,6 +24,7 @@ import {
 import { parse_xvm, XvrTexture } from "../../core/data_formats/parsing/ninja/texture";
 import { parse_afs } from "../../core/data_formats/parsing/afs";
 import { SectionId } from "../../core/model";
+import { unwrap } from "../../core/Result";
 
 export class CharacterClassAssetLoader implements Disposable {
     private readonly nj_object_cache: Map<
@@ -126,7 +127,7 @@ export class CharacterClassAssetLoader implements Disposable {
         return this.http_client
             .get(character_class_to_url(player_class, body_part, no))
             .array_buffer()
-            .then(buffer => parse_nj(new ArrayBufferCursor(buffer, Endianness.Little))[0]);
+            .then(buffer => unwrap(parse_nj(new ArrayBufferCursor(buffer, Endianness.Little)))[0]);
     }
 
     /**
@@ -174,8 +175,8 @@ export class CharacterClassAssetLoader implements Disposable {
                     for (const file of afs) {
                         const xvm = parse_xvm(new ArrayBufferCursor(file, Endianness.Little));
 
-                        if (xvm) {
-                            textures.push(...xvm.textures);
+                        if (xvm.success) {
+                            textures.push(...xvm.value.textures);
                         }
                     }
 

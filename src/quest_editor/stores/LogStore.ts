@@ -3,27 +3,28 @@ import { Property } from "../../core/observable/property/Property";
 import { list_property, property } from "../../core/observable";
 import { Disposable } from "../../core/observable/Disposable";
 import { Disposer } from "../../core/observable/Disposer";
-import { LogEntry, Logger, LogHandler, LogLevel, LogManager } from "../../core/Logger";
+import { LogEntry, Logger, LogHandler, LogManager } from "../../core/Logger";
+import { Severity } from "../../core/Severity";
 
-const logger = LogManager.get("quest_editor/stroes/LogStore");
+const logger = LogManager.get("quest_editor/stores/LogStore");
 
 export class LogStore implements Disposable {
     private readonly disposer = new Disposer();
-    private readonly default_log_level = LogLevel.Info;
+    private readonly default_log_severity = Severity.Info;
 
     private readonly log_buffer: LogEntry[] = [];
     private readonly logger_name_buffer: string[] = [];
 
-    private readonly _level = property<LogLevel>(this.default_log_level);
+    private readonly _severity = property<Severity>(this.default_log_severity);
     private readonly _log = list_property<LogEntry>();
 
     private readonly handler: LogHandler = (entry: LogEntry, logger_name: string): void => {
         this.buffer_log_entry(entry, logger_name);
     };
 
-    readonly level: Property<LogLevel> = this._level;
+    readonly severity: Property<Severity> = this._severity;
     readonly log: ListProperty<LogEntry> = this._log.filtered(
-        this.level.map(level => message => message.level >= level),
+        this.severity.map(severity => message => message.severity >= severity),
     );
 
     get_logger(name: string): Logger {
@@ -36,8 +37,8 @@ export class LogStore implements Disposable {
         this.disposer.dispose();
     }
 
-    set_level(log_level: LogLevel): void {
-        this._level.val = log_level;
+    set_severity(severity: Severity): void {
+        this._severity.val = severity;
     }
 
     private buffer_log_entry(entry: LogEntry, logger_name: string): void {
@@ -64,7 +65,7 @@ export class LogStore implements Disposable {
                 this.log_buffer.splice(DROP_THRESHOLD_HALF, drop_len, {
                     time: new Date(),
                     message: `...dropped ${drop_len} messages...`,
-                    level: LogLevel.Warn,
+                    severity: Severity.Warn,
                     logger,
                 });
                 this.logger_name_buffer.splice(

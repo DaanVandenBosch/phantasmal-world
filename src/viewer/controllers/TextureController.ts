@@ -17,6 +17,7 @@ export class TextureController extends Controller {
     private readonly _textures: WritableListProperty<XvrTexture> = list_property();
     readonly textures: ListProperty<XvrTexture> = this._textures;
 
+    // TODO: notify user of problems.
     load_file = async (file: File): Promise<void> => {
         try {
             const ext = filename_extension(file.name).toLowerCase();
@@ -25,8 +26,8 @@ export class TextureController extends Controller {
             if (ext === "xvm") {
                 const xvm = parse_xvm(new ArrayBufferCursor(buffer, Endianness.Little));
 
-                if (xvm) {
-                    this._textures.splice(0, Infinity, ...xvm.textures);
+                if (xvm.success) {
+                    this._textures.splice(0, Infinity, ...xvm.value.textures);
                 }
             } else if (ext === "afs") {
                 const afs = parse_afs(new ArrayBufferCursor(buffer, Endianness.Little));
@@ -36,13 +37,13 @@ export class TextureController extends Controller {
                     const cursor = new ArrayBufferCursor(buffer, Endianness.Little);
                     const xvm = parse_xvm(cursor);
 
-                    if (xvm) {
-                        textures.push(...xvm.textures);
+                    if (xvm.success) {
+                        textures.push(...xvm.value.textures);
                     } else {
                         const xvm = parse_xvm(prs_decompress(cursor.seek_start(0)));
 
-                        if (xvm) {
-                            textures.push(...xvm.textures);
+                        if (xvm.success) {
+                            textures.push(...xvm.value.textures);
                         }
                     }
                 }

@@ -1,6 +1,8 @@
 import { Cursor } from "../../cursor/Cursor";
-import { parse_iff } from "../iff";
+import { parse_iff, parse_iff_headers } from "../iff";
 import { LogManager } from "../../../Logger";
+import { Result, result_builder } from "../../../Result";
+import { Severity } from "../../../Severity";
 
 const logger = LogManager.get("core/data_formats/parsing/ninja/texture");
 
@@ -43,8 +45,26 @@ export function parse_xvr(cursor: Cursor): XvrTexture {
     };
 }
 
-export function parse_xvm(cursor: Cursor): Xvm | undefined {
-    const chunks = parse_iff(cursor);
+export function is_xvm(cursor: Cursor): boolean {
+    const iff_result = parse_iff_headers(cursor, true);
+
+    if (!iff_result.success) {
+        return false;
+    }
+
+    return iff_result.value.find(chunk => chunk.type === XVMH || chunk.type === XVRT) != undefined;
+}
+
+export function parse_xvm(cursor: Cursor): Result<Xvm> {
+    const iff_result = parse_iff(cursor);
+
+    if (!iff_result.success) {
+        return iff_result;
+    }
+
+    const result = result_builder<Xvm>(logger);
+    result.add_result(iff_result);
+    const chunks = iff_result.value;
     const header_chunk = chunks.find(chunk => chunk.type === XVMH);
     const header = header_chunk && parse_header(header_chunk.data);
 
@@ -53,16 +73,24 @@ export function parse_xvm(cursor: Cursor): Xvm | undefined {
         .map(chunk => parse_xvr(chunk.data));
 
     if (!header && textures.length === 0) {
-        return undefined;
+        result.add_problem(
+            Severity.Error,
+            "Corrupted XVM file.",
+            "No header and no XVRT chunks found.",
+        );
+
+        return result.failure();
     }
 
     if (header && header.texture_count !== textures.length) {
-        logger.warn(
+        result.add_problem(
+            Severity.Warn,
+            "Corrupted XVM file.",
             `Found ${textures.length} textures instead of ${header.texture_count} as defined in the header.`,
         );
     }
 
-    return { textures };
+    return result.success({ textures });
 }
 
 function parse_header(cursor: Cursor): Header {

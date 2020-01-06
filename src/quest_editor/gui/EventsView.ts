@@ -52,7 +52,7 @@ export class EventsView extends ResizableView {
 
             this.enabled.bind_to(ctrl.enabled),
 
-            this.add_event_button.click.observe(ctrl.add_event),
+            this.add_event_button.onclick.observe(ctrl.add_event),
 
             bind_children_to(
                 this.dag_container_element,

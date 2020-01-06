@@ -58,9 +58,9 @@ export class Select<T> extends LabelledControl {
         this.disposables(
             disposable_listener(this.button.element, "mousedown", this.button_mousedown),
 
-            this.button.mouseup.observe(this.button_mouseup),
+            this.button.onmouseup.observe(this.button_mouseup),
 
-            this.button.keydown.observe(this.button_keydown),
+            this.button.onkeydown.observe(this.button_keydown),
 
             this.menu.selected.observe(({ value }) => {
                 this._selected.set_val(value, { silent: false });

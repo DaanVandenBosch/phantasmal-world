@@ -3,8 +3,9 @@ import { ToolBar } from "../../core/gui/ToolBar";
 import "./LogView.css";
 import { log_store } from "../stores/LogStore";
 import { Select } from "../../core/gui/Select";
-import { LogEntry, LogLevel, LogLevels, time_to_string } from "../../core/Logger";
+import { LogEntry, time_to_string } from "../../core/Logger";
 import { ResizableView } from "../../core/gui/ResizableView";
+import { Severities, Severity } from "../../core/Severity";
 
 const AUTOSCROLL_TRESHOLD = 5;
 
@@ -15,7 +16,7 @@ export class LogView extends ResizableView {
     private readonly list_container: HTMLElement;
     private readonly list_element: HTMLElement;
 
-    private readonly level_filter: Select<LogLevel>;
+    private readonly level_filter: Select<Severity>;
     private readonly settings_bar: ToolBar;
 
     private should_scroll_to_bottom = true;
@@ -30,8 +31,8 @@ export class LogView extends ResizableView {
             new Select({
                 class: "quest_editor_LogView_level_filter",
                 label: "Level:",
-                items: LogLevels,
-                to_label: level => LogLevel[level],
+                items: Severities,
+                to_label: level => Severity[level],
             }),
         );
 
@@ -47,10 +48,10 @@ export class LogView extends ResizableView {
             }),
 
             this.level_filter.selected.observe(
-                ({ value }) => value != undefined && log_store.set_level(value),
+                ({ value }) => value != undefined && log_store.set_severity(value),
             ),
 
-            log_store.level.observe(
+            log_store.severity.observe(
                 ({ value }) => {
                     this.level_filter.selected.val = value;
                 },
@@ -83,16 +84,16 @@ export class LogView extends ResizableView {
         }
     };
 
-    private create_message_element = ({ time, level, message }: LogEntry): HTMLElement => {
+    private create_message_element = ({ time, severity, message }: LogEntry): HTMLElement => {
         return div(
             {
                 className: [
                     "quest_editor_LogView_message",
-                    "quest_editor_LogView_" + LogLevel[level] + "_message",
+                    "quest_editor_LogView_" + Severity[severity] + "_message",
                 ].join(" "),
             },
             div({ className: "quest_editor_LogView_message_timestamp" }, time_to_string(time)),
-            div({ className: "quest_editor_LogView_message_level" }, "[" + LogLevel[level] + "]"),
+            div({ className: "quest_editor_LogView_message_level" }, "[" + Severity[severity] + "]"),
             div({ className: "quest_editor_LogView_message_contents" }, message),
         );
     };

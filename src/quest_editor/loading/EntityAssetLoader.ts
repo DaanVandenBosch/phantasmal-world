@@ -56,8 +56,8 @@ export class EntityAssetLoader implements Disposable {
                     const cursor = new ArrayBufferCursor(data, Endianness.Little);
                     const nj_objects = url.endsWith(".nj") ? parse_nj(cursor) : parse_xj(cursor);
 
-                    if (nj_objects.length) {
-                        return ninja_object_to_buffer_geometry(nj_objects[0]);
+                    if (nj_objects.success && nj_objects.value.length) {
+                        return ninja_object_to_buffer_geometry(nj_objects.value[0]);
                     } else {
                         logger.warn(`Couldn't parse ${url} for ${entity_type_to_string(type)}.`);
                         return DEFAULT_ENTITY;
@@ -79,7 +79,7 @@ export class EntityAssetLoader implements Disposable {
                 .then(({ data }) => {
                     const cursor = new ArrayBufferCursor(data, Endianness.Little);
                     const xvm = parse_xvm(cursor);
-                    return xvm === undefined ? [] : xvm_to_textures(xvm);
+                    return xvm.success ? xvm_to_textures(xvm.value) : [];
                 })
                 .catch(e => {
                     logger.warn(

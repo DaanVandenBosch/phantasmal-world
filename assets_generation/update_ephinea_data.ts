@@ -12,15 +12,16 @@ import { Endianness } from "../src/core/data_formats/Endianness";
 import { ItemTypeDto } from "../src/core/dto/ItemTypeDto";
 import { QuestDto } from "../src/hunt_optimizer/dto/QuestDto";
 import { BoxDropDto, EnemyDropDto } from "../src/hunt_optimizer/dto/drops";
-import { LogLevel, LogManager } from "../src/core/Logger";
+import { LogManager } from "../src/core/Logger";
+import { Severity } from "../src/core/Severity";
 
 const logger = LogManager.get("assets_generation/update_ephinea_data");
 
-LogManager.default_level = LogLevel.Error;
-logger.level = LogLevel.Info;
-LogManager.get("static/update_drops_ephinea").level = LogLevel.Info;
-LogManager.get("core/data_formats/parsing/quest").level = LogLevel.Off;
-LogManager.get("core/data_formats/parsing/quest/bin").level = LogLevel.Off;
+LogManager.default_severity = Severity.Error;
+logger.severity = Severity.Info;
+LogManager.get("static/update_drops_ephinea").severity = Severity.Info;
+LogManager.get("core/data_formats/parsing/quest").severity = Severity.Off;
+LogManager.get("core/data_formats/parsing/quest/bin").severity = Severity.Off;
 
 /**
  * Used by static data generation scripts.

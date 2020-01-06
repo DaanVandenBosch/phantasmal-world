@@ -102,7 +102,7 @@ export class WantedItemsView extends View {
         const remove_button = row_disposer.add(new Button({ icon_left: Icon.Remove }));
 
         row_disposer.add(
-            remove_button.click.observe(async () =>
+            remove_button.onclick.observe(async () =>
                 (await this.hunt_optimizer_stores.current.val).remove_wanted_item(wanted_item),
             ),
         );

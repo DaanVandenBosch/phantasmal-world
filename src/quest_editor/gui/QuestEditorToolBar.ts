@@ -111,35 +111,35 @@ export class QuestEditorToolBar extends ToolBar {
 
             open_file_button.files.observe(({ value: files }) => ctrl.parse_files(files)),
 
-            save_as_button.click.observe(ctrl.save_as),
+            save_as_button.onclick.observe(ctrl.save_as),
             save_as_button.enabled.bind_to(ctrl.can_save),
 
-            undo_button.click.observe(() => undo_manager.undo()),
+            undo_button.onclick.observe(() => undo_manager.undo()),
             undo_button.enabled.bind_to(ctrl.can_undo),
 
-            redo_button.click.observe(() => undo_manager.redo()),
+            redo_button.onclick.observe(() => undo_manager.redo()),
             redo_button.enabled.bind_to(ctrl.can_redo),
 
             area_select.selected.bind_to(ctrl.current_area),
             area_select.selected.observe(({ value }) => ctrl.set_area(value!)),
             area_select.enabled.bind_to(ctrl.can_select_area),
 
-            debug_button.click.observe(ctrl.debug),
+            debug_button.onclick.observe(ctrl.debug),
             debug_button.enabled.bind_to(ctrl.can_debug),
 
-            resume_button.click.observe(ctrl.resume),
+            resume_button.onclick.observe(ctrl.resume),
             resume_button.enabled.bind_to(ctrl.can_step),
 
-            step_over_button.click.observe(ctrl.step_over),
+            step_over_button.onclick.observe(ctrl.step_over),
             step_over_button.enabled.bind_to(ctrl.can_step),
 
-            step_in_button.click.observe(ctrl.step_in),
+            step_in_button.onclick.observe(ctrl.step_in),
             step_in_button.enabled.bind_to(ctrl.can_step),
 
-            step_out_button.click.observe(ctrl.step_out),
+            step_out_button.onclick.observe(ctrl.step_out),
             step_out_button.enabled.bind_to(ctrl.can_step),
 
-            stop_button.click.observe(ctrl.stop),
+            stop_button.onclick.observe(ctrl.stop),
             stop_button.enabled.bind_to(ctrl.can_stop),
         );
 

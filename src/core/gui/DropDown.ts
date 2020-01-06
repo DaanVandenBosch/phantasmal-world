@@ -53,9 +53,9 @@ export class DropDown<T> extends Control {
                 capture: true,
             }),
 
-            this.button.mouseup.observe(this.button_mouseup),
+            this.button.onmouseup.observe(this.button_mouseup),
 
-            this.button.keydown.observe(this.button_keydown),
+            this.button.onkeydown.observe(this.button_keydown),
 
             this.menu.selected.observe(({ value }) => {
                 if (value !== undefined) {

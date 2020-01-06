@@ -3,7 +3,6 @@ import "./Button.css";
 import { Observable } from "../observable/Observable";
 import { emitter } from "../observable";
 import { Control } from "./Control";
-import { Emitter } from "../observable/Emitter";
 import { WidgetOptions } from "./Widget";
 import { Property } from "../observable/property/Property";
 import { WritableProperty } from "../observable/property/WritableProperty";
@@ -16,20 +15,16 @@ export type ButtonOptions = WidgetOptions & {
 };
 
 export class Button extends Control {
-    private readonly _mousedown: Emitter<MouseEvent>;
-    private readonly _mouseup: Emitter<MouseEvent>;
-    private readonly _click: Emitter<MouseEvent>;
-    private readonly _keydown: Emitter<KeyboardEvent>;
-    private readonly _keyup: Emitter<KeyboardEvent>;
+    private readonly _onmouseup = emitter<MouseEvent>();
+    private readonly _onclick = emitter<MouseEvent>();
+    private readonly _onkeydown = emitter<KeyboardEvent>();
     private readonly _text: WidgetProperty<string>;
     private readonly center_element: HTMLSpanElement;
 
     readonly element = button({ className: "core_Button" });
-    readonly mousedown: Observable<MouseEvent>;
-    readonly mouseup: Observable<MouseEvent>;
-    readonly click: Observable<MouseEvent>;
-    readonly keydown: Observable<KeyboardEvent>;
-    readonly keyup: Observable<KeyboardEvent>;
+    readonly onmouseup: Observable<MouseEvent> = this._onmouseup;
+    readonly onclick: Observable<MouseEvent> = this._onclick;
+    readonly onkeydown: Observable<KeyboardEvent> = this._onkeydown;
     readonly text: WritableProperty<string>;
 
     constructor(options?: ButtonOptions) {
@@ -50,25 +45,9 @@ export class Button extends Control {
             );
         }
 
-        this._mousedown = emitter<MouseEvent>();
-        this.mousedown = this._mousedown;
-        this.element.onmousedown = (e: MouseEvent) => this._mousedown.emit({ value: e });
-
-        this._mouseup = emitter<MouseEvent>();
-        this.mouseup = this._mouseup;
-        this.element.onmouseup = (e: MouseEvent) => this._mouseup.emit({ value: e });
-
-        this._click = emitter<MouseEvent>();
-        this.click = this._click;
-        this.element.onclick = (e: MouseEvent) => this._click.emit({ value: e });
-
-        this._keydown = emitter<KeyboardEvent>();
-        this.keydown = this._keydown;
-        this.element.onkeydown = (e: KeyboardEvent) => this._keydown.emit({ value: e });
-
-        this._keyup = emitter<KeyboardEvent>();
-        this.keyup = this._keyup;
-        this.element.onkeyup = (e: KeyboardEvent) => this._keyup.emit({ value: e });
+        this.element.onmouseup = (e: MouseEvent) => this._onmouseup.emit({ value: e });
+        this.element.onclick = (e: MouseEvent) => this._onclick.emit({ value: e });
+        this.element.onkeydown = (e: KeyboardEvent) => this._onkeydown.emit({ value: e });
 
         this._text = new WidgetProperty<string>(this, "", this.set_text);
         this.text = this._text;

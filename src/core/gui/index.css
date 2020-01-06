@@ -6,7 +6,9 @@
     --text-color-disabled: hsl(0, 0%, 55%);
     --font-family: Verdana, Geneva, sans-serif;
     --border-color: hsl(0, 0%, 25%);
+    --border-color-focus: hsl(0, 0%, 35%);
     --border: solid 1px var(--border-color);
+    --border-focus: solid 1px var(--border-color-focus);
 
     /* Scrollbars */
 
