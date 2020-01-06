@@ -238,8 +238,6 @@ export class ModelStore extends Store {
         if (body == undefined) return;
 
         try {
-            this._current_nj_object.val = undefined;
-
             const nj_object = await this.asset_loader.load_geometry(character_class);
 
             this._current_textures.val = await this.asset_loader.load_textures(
