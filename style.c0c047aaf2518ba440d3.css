@@ -6,7 +6,9 @@
     --text-color-disabled: hsl(0, 0%, 55%);
     --font-family: Verdana, Geneva, sans-serif;
     --border-color: hsl(0, 0%, 25%);
+    --border-color-focus: hsl(0, 0%, 35%);
     --border: solid 1px var(--border-color);
+    --border-focus: solid 1px var(--border-color-focus);
 
     /* Scrollbars */
 
@@ -596,6 +598,49 @@ body .lm_dropTargetIndicator {
     height: 26px;
 }
 
+.core_ResultPopup {
+    display: flex;
+    flex-direction: column;
+    outline: none;
+    position: fixed;
+    background-color: var(--bg-color);
+    border: var(--border);
+    padding: 10px;
+    box-shadow: black 0 0 10px -2px;
+}
+
+.core_ResultPopup:focus-within {
+    border: var(--border-focus);
+}
+
+.core_ResultPopup h1 {
+    font-size: 20px;
+    margin: 0 0 10px 0;
+    padding-bottom: 4px;
+    border-bottom: var(--border);
+}
+
+.core_ResultPopup_description {
+    user-select: text;
+    cursor: text;
+}
+
+.core_ResultPopup_body {
+    user-select: text;
+    overflow: auto;
+    margin: 4px 0;
+}
+
+.core_ResultPopup_body ul {
+    cursor: text;
+}
+
+.core_ResultPopup_footer {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+}
+
 .viewer_model_CharacterClassOptionsView {
     box-sizing: border-box;
     border-left: var(--border);
@@ -869,7 +914,7 @@ body .lm_dropTargetIndicator {
     color: hsl(0, 80%, 50%);
 }
 
-.quest_editor_LogView .quest_editor_LogView_Warn_message .quest_editor_LogView_message_level {
+.quest_editor_LogView .quest_editor_LogView_Warning_message .quest_editor_LogView_message_level {
     color: hsl(30, 80%, 50%);
 }
 
