@@ -11,8 +11,7 @@ import { parse_afs } from "../../../core/data_formats/parsing/afs";
 import { LogManager } from "../../../core/Logger";
 import { prs_decompress } from "../../../core/data_formats/compression/prs/decompress";
 import { show_problems_popup } from "../../../core/gui/ProblemsPopup";
-import { failure, Result, result_builder } from "../../../core/Result";
-import { Severity } from "../../../core/Severity";
+import { Result, result_builder } from "../../../core/Result";
 
 const logger = LogManager.get("viewer/controllers/model/ModelToolBarController");
 
