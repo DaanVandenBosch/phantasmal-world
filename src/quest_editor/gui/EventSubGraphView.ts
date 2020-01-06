@@ -105,7 +105,7 @@ export class EventSubGraphView extends View {
             const data = this.event_gui_data.get(event);
 
             if (!data) {
-                logger.warn(`No GUI data for event ${event.id}.`);
+                logger.warning(`No GUI data for event ${event.id}.`);
                 continue;
             }
 
@@ -119,7 +119,7 @@ export class EventSubGraphView extends View {
                 const child_data = this.event_gui_data.get(child);
 
                 if (!child_data) {
-                    logger.warn(`No GUI data for child event ${child.id}.`);
+                    logger.warning(`No GUI data for child event ${child.id}.`);
                     continue;
                 }
 

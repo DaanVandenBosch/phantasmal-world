@@ -47,7 +47,7 @@ export function parse_bin(cursor: Cursor): { bin: BinFile; dc_gc_format: boolean
         : cursor.string_utf16(576, true, true);
 
     if (size !== cursor.size) {
-        logger.warn(`Value ${size} in bin size field does not match actual size ${cursor.size}.`);
+        logger.warning(`Value ${size} in bin size field does not match actual size ${cursor.size}.`);
     }
 
     cursor.seek(4); // Skip padding.

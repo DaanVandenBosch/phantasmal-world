@@ -244,7 +244,7 @@ export class QuestEditorView extends ResizableView {
                 return gl;
             }
         } catch (e) {
-            logger.warn("Couldn't instantiate golden layout with persisted layout.", e);
+            logger.warning("Couldn't instantiate golden layout with persisted layout.", e);
         }
 
         logger.info("Instantiating golden layout with default layout.");

@@ -58,7 +58,7 @@ export function parse_xj_model(cursor: Cursor): XjModel {
 
     if (vertex_info_count >= 1) {
         if (vertex_info_count > 1) {
-            logger.warn(`Vertex info count of ${vertex_info_count} was larger than expected.`);
+            logger.warning(`Vertex info count of ${vertex_info_count} was larger than expected.`);
         }
 
         model.vertices.push(...parse_vertex_info_table(cursor, vertex_info_table_offset));
@@ -116,7 +116,7 @@ function parse_vertex_info_table(cursor: Cursor, vertex_info_table_offset: numbe
                 uv = cursor.vec2_f32();
                 break;
             default:
-                logger.warn(`Unknown vertex type ${vertex_type} with size ${vertex_size}.`);
+                logger.warning(`Unknown vertex type ${vertex_type} with size ${vertex_size}.`);
                 break;
         }
 

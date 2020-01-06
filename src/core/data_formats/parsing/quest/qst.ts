@@ -326,7 +326,7 @@ function parse_files(
         }
 
         if (file.chunk_nos.has(chunk_no)) {
-            logger.warn(
+            logger.warning(
                 `File chunk number ${chunk_no} of file ${file_name} was already encountered, overwriting previous chunk.`,
             );
         } else {
@@ -338,7 +338,7 @@ function parse_files(
         cursor.seek(-CHUNK_BODY_SIZE - 4);
 
         if (size > CHUNK_BODY_SIZE) {
-            logger.warn(
+            logger.warning(
                 `Data segment size of ${size} is larger than expected maximum size, reading just ${CHUNK_BODY_SIZE} bytes.`,
             );
             size = CHUNK_BODY_SIZE;
@@ -361,7 +361,7 @@ function parse_files(
     }
 
     if (cursor.bytes_left) {
-        logger.warn(`${cursor.bytes_left} Bytes left in file.`);
+        logger.warning(`${cursor.bytes_left} Bytes left in file.`);
     }
 
     for (const file of files.values()) {
@@ -371,7 +371,7 @@ function parse_files(
 
         // Check whether the expected size was correct.
         if (file.expected_size != null && file.cursor.size !== file.expected_size) {
-            logger.warn(
+            logger.warning(
                 `File ${file.name} has an actual size of ${file.cursor.size} instead of the expected size ${file.expected_size}.`,
             );
         }
@@ -382,7 +382,7 @@ function parse_files(
 
         for (let chunk_no = 0; chunk_no < expected_chunk_count; ++chunk_no) {
             if (!file.chunk_nos.has(chunk_no)) {
-                logger.warn(`File ${file.name} is missing chunk ${chunk_no}.`);
+                logger.warning(`File ${file.name} is missing chunk ${chunk_no}.`);
             }
         }
     }

@@ -15,7 +15,7 @@ export function parse_rlc(cursor: Cursor): Cursor[] {
     const marker = cursor.string_ascii(16, true, true);
 
     if (marker !== MARKER) {
-        logger.warn(`First 16 bytes where "${marker}" instead of expected "${MARKER}".`);
+        logger.warning(`First 16 bytes where "${marker}" instead of expected "${MARKER}".`);
     }
 
     const table_size = cursor.u32();

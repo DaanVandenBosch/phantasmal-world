@@ -1,4 +1,4 @@
-.core_ProblemsPopup {
+.core_ResultPopup {
     display: flex;
     flex-direction: column;
     outline: none;
@@ -9,33 +9,33 @@
     box-shadow: black 0 0 10px -2px;
 }
 
-.core_ProblemsPopup:focus-within {
+.core_ResultPopup:focus-within {
     border: var(--border-focus);
 }
 
-.core_ProblemsPopup h1 {
+.core_ResultPopup h1 {
     font-size: 20px;
     margin: 0 0 10px 0;
     padding-bottom: 4px;
     border-bottom: var(--border);
 }
 
-.core_ProblemsPopup_description {
+.core_ResultPopup_description {
     user-select: text;
     cursor: text;
 }
 
-.core_ProblemsPopup_body {
+.core_ResultPopup_body {
     user-select: text;
     overflow: auto;
     margin: 4px 0;
 }
 
-.core_ProblemsPopup_body ul {
+.core_ResultPopup_body ul {
     cursor: text;
 }
 
-.core_ProblemsPopup_footer {
+.core_ResultPopup_footer {
     display: flex;
     flex-direction: row;
     justify-content: flex-end;

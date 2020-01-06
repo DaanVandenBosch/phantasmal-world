@@ -1,15 +1,14 @@
 import { ResizableWidget } from "./ResizableWidget";
 import { Widget } from "./Widget";
 import { div, h1, li, section, ul } from "./dom";
-import { Problem } from "../Result";
+import { Problem, Result } from "../Result";
 import { Button } from "./Button";
-import { Disposable } from "../observable/Disposable";
-import "./ProblemsPopup.css";
+import "./ResultPopup.css";
 
 const POPUP_WIDTH = 500;
 const POPUP_HEIGHT = 500;
 
-export class ProblemsPopup extends ResizableWidget {
+export class ResultPopup extends ResizableWidget {
     private x = 0;
     private y = 0;
     private prev_mouse_x = 0;
@@ -19,20 +18,20 @@ export class ProblemsPopup extends ResizableWidget {
     readonly children: readonly Widget[] = [];
     readonly dismiss_button = this.disposable(new Button({ text: "Dismiss" }));
 
-    constructor(description: string, problems: readonly Problem[] = []) {
+    constructor(title: string, description: string, problems: readonly Problem[] = []) {
         super();
 
         let header_element: HTMLElement;
 
         this.element = section(
-            { className: "core_ProblemsPopup", tabIndex: 0 },
-            (header_element = h1("Problems")),
-            div({ className: "core_ProblemsPopup_description" }, description),
+            { className: "core_ResultPopup", tabIndex: 0 },
+            (header_element = h1(title)),
+            div({ className: "core_ResultPopup_description" }, description),
             div(
-                { className: "core_ProblemsPopup_body" },
+                { className: "core_ResultPopup_body" },
                 ul(...problems.map(problem => li(problem.ui_message))),
             ),
-            div({ className: "core_ProblemsPopup_footer" }, this.dismiss_button.element),
+            div({ className: "core_ResultPopup_footer" }, this.dismiss_button.element),
         );
 
         this.element.style.width = `${POPUP_WIDTH}px`;
@@ -45,6 +44,8 @@ export class ProblemsPopup extends ResizableWidget {
 
         this.element.addEventListener("keydown", this.keydown);
         header_element.addEventListener("mousedown", this.mousedown);
+
+        this.disposables(this.dismiss_button.onclick.observe(() => this.dispose()));
 
         this.finalize_construction();
     }
@@ -85,19 +86,28 @@ export class ProblemsPopup extends ResizableWidget {
     };
 }
 
-export function show_problems_popup(
-    description: string,
-    problems?: readonly Problem[],
-): Disposable {
-    const popup = new ProblemsPopup(description, problems);
-    const onclick = popup.dismiss_button.onclick.observe(() => popup.dispose());
-    document.body.append(popup.element);
-    popup.focus();
+/**
+ * Shows a popup if `result` failed or succeeded with problems.
+ *
+ * @param result
+ * @param problems_message - Message to show if problems occurred when result is successful.
+ * @param error_message - Message to show if result failed.
+ */
+export function show_result_popup(
+    result: Result<unknown>,
+    problems_message: string,
+    error_message: string,
+): void {
+    let popup: ResultPopup | undefined;
 
-    return {
-        dispose() {
-            onclick.dispose();
-            popup.dispose();
-        },
-    };
+    if (!result.success) {
+        popup = new ResultPopup("Error", error_message, result.problems);
+    } else if (result.problems.length) {
+        popup = new ResultPopup("Problems", problems_message, result.problems);
+    }
+
+    if (popup) {
+        document.body.append(popup.element);
+        popup.focus();
+    }
 }

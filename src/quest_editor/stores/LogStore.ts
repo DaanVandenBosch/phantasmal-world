@@ -65,7 +65,7 @@ export class LogStore implements Disposable {
                 this.log_buffer.splice(DROP_THRESHOLD_HALF, drop_len, {
                     time: new Date(),
                     message: `...dropped ${drop_len} messages...`,
-                    severity: Severity.Warn,
+                    severity: Severity.Warning,
                     logger,
                 });
                 this.logger_name_buffer.splice(

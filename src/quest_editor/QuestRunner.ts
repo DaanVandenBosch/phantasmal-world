@@ -317,7 +317,7 @@ export class QuestRunner {
             },
 
             warning: (msg: string, inst_ptr?: InstructionPointer): void => {
-                this.logger.warn(message_with_inst_ptr(msg, inst_ptr));
+                this.logger.warning(message_with_inst_ptr(msg, inst_ptr));
             },
 
             error: (err: Error, inst_ptr?: InstructionPointer): void => {

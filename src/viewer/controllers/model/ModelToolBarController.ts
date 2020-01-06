@@ -10,8 +10,9 @@ import { is_xvm, parse_xvm, XvrTexture } from "../../../core/data_formats/parsin
 import { parse_afs } from "../../../core/data_formats/parsing/afs";
 import { LogManager } from "../../../core/Logger";
 import { prs_decompress } from "../../../core/data_formats/compression/prs/decompress";
-import { show_problems_popup } from "../../../core/gui/ProblemsPopup";
-import { Result, result_builder } from "../../../core/Result";
+import { failure, Result, result_builder, success } from "../../../core/Result";
+import { show_result_popup } from "../../../core/gui/ResultPopup";
+import { Severity } from "../../../core/Severity";
 
 const logger = LogManager.get("viewer/controllers/model/ModelToolBarController");
 
@@ -53,22 +54,23 @@ export class ModelToolBarController extends Controller {
     };
 
     load_file = async (file: File): Promise<void> => {
+        let result: Result<unknown>;
+
         try {
             const buffer = await read_file(file);
             const cursor = new ArrayBufferCursor(buffer, Endianness.Little);
-            let result: Result<any> | undefined;
 
             if (file.name.endsWith(".nj")) {
-                result = parse_nj(cursor);
+                const nj_result = (result = parse_nj(cursor));
 
-                if (result.success) {
-                    this.store.set_current_nj_object(result.value[0]);
+                if (nj_result.success) {
+                    this.store.set_current_nj_object(nj_result.value[0]);
                 }
             } else if (file.name.endsWith(".xj")) {
-                result = parse_xj(cursor);
+                const xj_result = (result = parse_xj(cursor));
 
-                if (result.success) {
-                    this.store.set_current_nj_object(result.value[0]);
+                if (xj_result.success) {
+                    this.store.set_current_nj_object(xj_result.value[0]);
                 }
             } else if (file.name.endsWith(".njm")) {
                 this.store.set_current_animation(undefined);
@@ -79,61 +81,65 @@ export class ModelToolBarController extends Controller {
                 if (nj_object) {
                     this.set_animation_playing(true);
                     this.store.set_current_nj_motion(parse_njm(cursor, nj_object.bone_count()));
+                    result = success(undefined);
+                } else {
+                    result = failure([
+                        { severity: Severity.Error, ui_message: "No model to animate" },
+                    ]);
                 }
             } else if (file.name.endsWith(".xvm")) {
-                result = parse_xvm(cursor);
+                const xvm_result = (result = parse_xvm(cursor));
 
-                if (result.success) {
-                    this.store.set_current_textures(result.value.textures);
+                if (xvm_result.success) {
+                    this.store.set_current_textures(xvm_result.value.textures);
                 } else {
                     this.store.set_current_textures([]);
                 }
             } else if (file.name.endsWith(".afs")) {
-                const files = parse_afs(cursor);
                 const rb = result_builder(logger);
+                const afs_result = parse_afs(cursor);
+                rb.add_result(afs_result);
 
-                const textures: XvrTexture[] = files.flatMap(file => {
-                    const cursor = new ArrayBufferCursor(file, Endianness.Little);
-
-                    if (is_xvm(cursor)) {
-                        const xvm_result = parse_xvm(cursor);
-                        rb.add_result(xvm_result);
-                        return xvm_result.value?.textures ?? [];
-                    } else {
-                        const xvm_result = parse_xvm(prs_decompress(cursor.seek_start(0)));
-                        rb.add_result(xvm_result);
-                        return xvm_result.value?.textures ?? [];
-                    }
-                });
-
-                if (textures.length) {
-                    result = rb.success(textures);
-                } else {
+                if (!afs_result.success) {
                     result = rb.failure();
-                }
-
-                this.store.set_current_textures(textures);
-            } else {
-                logger.error(`Unsupported file extension in filename "${file.name}".`);
-                show_problems_popup("Unsupported file type.");
-            }
-
-            if (result) {
-                let description: string;
-
-                if (result.success) {
-                    description = `Encountered some problems while opening "${file.name}".`;
                 } else {
-                    description = `Couldn't open "${file.name}" because of these problems.`;
-                }
+                    const textures: XvrTexture[] = afs_result.value.flatMap(file => {
+                        const cursor = new ArrayBufferCursor(file, Endianness.Little);
 
-                if (result.problems.length) {
-                    show_problems_popup(description, result.problems);
+                        if (is_xvm(cursor)) {
+                            const xvm_result = parse_xvm(cursor);
+                            rb.add_result(xvm_result);
+                            return xvm_result.value?.textures ?? [];
+                        } else {
+                            const xvm_result = parse_xvm(prs_decompress(cursor.seek_start(0)));
+                            rb.add_result(xvm_result);
+                            return xvm_result.value?.textures ?? [];
+                        }
+                    });
+
+                    if (textures.length) {
+                        result = rb.success(textures);
+                    } else {
+                        result = rb.failure();
+                    }
+
+                    this.store.set_current_textures(textures);
                 }
+            } else {
+                logger.debug(`Unsupported file extension in filename "${file.name}".`);
+                result = failure([
+                    { severity: Severity.Error, ui_message: "Unsupported file type." },
+                ]);
             }
         } catch (e) {
             logger.error("Couldn't read file.", e);
-            show_problems_popup(`Couldn't open "${file.name}".`);
+            result = failure();
         }
+
+        show_result_popup(
+            result,
+            `Encountered some problems while opening "${file.name}".`,
+            `Couldn't open "${file.name}".`,
+        );
     };
 }

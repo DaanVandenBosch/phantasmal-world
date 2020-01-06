@@ -1,14 +1,11 @@
 import { Cursor } from "../cursor/Cursor";
 import { LogManager } from "../../Logger";
+import { Result, result_builder } from "../../Result";
+import { Severity } from "../../Severity";
 
 const logger = LogManager.get("core/data_formats/parsing/afs");
 
 const AFS = 0x00534641;
-
-type AfsFileEntry = {
-    readonly offset: number;
-    readonly size: number;
-};
 
 /**
  * AFS is a trivial archive format used by SEGA for e.g. player character textures.
@@ -16,12 +13,25 @@ type AfsFileEntry = {
  * @param cursor - The AFS archive
  * @returns the contained files
  */
-export function parse_afs(cursor: Cursor): ArrayBuffer[] {
+export function parse_afs(cursor: Cursor): Result<ArrayBuffer[]> {
+    const result = result_builder<ArrayBuffer[]>(logger);
+
+    if (cursor.bytes_left < 8) {
+        return result
+            .add_problem(
+                Severity.Error,
+                "AFS archive is corrupted.",
+                "Too small to be an AFS archive.",
+            )
+            .failure();
+    }
+
     const magic = cursor.u32();
 
     if (magic !== AFS) {
-        logger.error("Not an AFS archive.");
-        return [];
+        return result
+            .add_problem(Severity.Error, "AFS archive is corrupted.", "Magic bytes not present.")
+            .failure();
     }
 
     const file_count = cursor.u16();
@@ -29,21 +39,41 @@ export function parse_afs(cursor: Cursor): ArrayBuffer[] {
     // Skip two unused bytes (are these just part of the file count field?).
     cursor.seek(2);
 
-    const file_entries: AfsFileEntry[] = [];
+    const files: ArrayBuffer[] = [];
 
-    for (let i = 0; i < file_count; i++) {
+    for (let i = 1; i <= file_count; i++) {
+        if (cursor.bytes_left < 8) {
+            result.add_problem(
+                Severity.Warning,
+                `AFS file entry ${i} is invalid.`,
+                `Couldn't read file entry ${i}, only ${cursor.bytes_left} bytes left.`,
+            );
+
+            break;
+        }
+
         const offset = cursor.u32();
         const size = cursor.u32();
 
-        file_entries.push({ offset, size });
+        if (offset > cursor.size) {
+            result.add_problem(
+                Severity.Warning,
+                `AFS file entry ${i} is invalid.`,
+                `Invalid file offset ${offset} for entry ${i}.`,
+            );
+        } else if (offset + size > cursor.size) {
+            result.add_problem(
+                Severity.Warning,
+                `AFS file entry ${i} is invalid.`,
+                `File size ${size} (offset: ${offset}) of entry ${i} too large.`,
+            );
+        } else {
+            const start_pos = cursor.position;
+            cursor.seek_start(offset);
+            files.push(cursor.array_buffer(size));
+            cursor.seek_start(start_pos);
+        }
     }
 
-    const files: ArrayBuffer[] = [];
-
-    for (const { offset, size } of file_entries) {
-        cursor.seek_start(offset);
-        files.push(cursor.array_buffer(size));
-    }
-
-    return files;
+    return result.success(files);
 }

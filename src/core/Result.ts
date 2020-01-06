@@ -11,12 +11,15 @@ export type Success<T> = {
 
 export type Failure = {
     readonly success: false;
-    readonly value?: undefined;
+    readonly value?: never;
     readonly problems: readonly Problem[];
 };
 
 export type Problem = {
     readonly severity: Severity;
+    /**
+     * Readable message meant for users.
+     */
     readonly ui_message: string;
 };
 

@@ -89,7 +89,7 @@ export class Disposer implements Disposable {
             try {
                 disposable.dispose();
             } catch (e) {
-                logger.warn("Error while disposing.", e);
+                logger.warning("Error while disposing.", e);
             }
         }
     }

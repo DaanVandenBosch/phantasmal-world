@@ -244,7 +244,7 @@ function internal_parse_object_code(
                 segment.labels.sort((a, b) => a - b);
             }
         } else {
-            logger.warn(`Label ${label} with offset ${offset} does not point to anything.`);
+            logger.warning(`Label ${label} with offset ${offset} does not point to anything.`);
         }
     }
 
@@ -410,7 +410,7 @@ function parse_segment(
         const info = label_holder.get_info(label);
 
         if (info == undefined) {
-            logger.warn(`Label ${label} is not registered in the label table.`);
+            logger.warning(`Label ${label} is not registered in the label table.`);
             return;
         }
 

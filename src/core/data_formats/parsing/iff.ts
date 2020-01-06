@@ -60,7 +60,7 @@ function parse<T>(
 
             if (!silent) {
                 result.add_problem(
-                    chunks.length === 0 ? Severity.Error : Severity.Warn,
+                    chunks.length === 0 ? Severity.Error : Severity.Warning,
                     "Invalid IFF format.",
                     `Size ${size} was too large (only ${cursor.bytes_left} bytes left) at position ${size_pos}.`,
                 );

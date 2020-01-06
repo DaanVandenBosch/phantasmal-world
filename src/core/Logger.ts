@@ -26,7 +26,7 @@ function default_log_handler({ time, message, severity, logger, cause }: LogEntr
         case Severity.Info:
             method = console.info;
             break;
-        case Severity.Warn:
+        case Severity.Warning:
             method = console.warn;
             break;
         case Severity.Error:
@@ -91,8 +91,8 @@ export class Logger {
         this.log(Severity.Info, message, cause);
     };
 
-    warn = (message: string, cause?: any): void => {
-        this.log(Severity.Warn, message, cause);
+    warning = (message: string, cause?: any): void => {
+        this.log(Severity.Warning, message, cause);
     };
 
     error = (message: string, cause?: any): void => {

@@ -49,44 +49,44 @@ export interface VirtualMachineIO
 
 export class DefaultVirtualMachineIO implements VirtualMachineIO {
     map_designate(area_id: number, area_variant_id: number): void {
-        logger.warn(`bb_map_designate(${area_id}, ${area_variant_id})`);
+        logger.warning(`bb_map_designate(${area_id}, ${area_variant_id})`);
     }
 
     set_floor_handler(area_id: number, label: number): void {
-        logger.warn(`set_floor_handler(${area_id}, ${label})`);
+        logger.warning(`set_floor_handler(${area_id}, ${label})`);
     }
 
     window_msg(msg: string): void {
-        logger.warn(`window_msg("${msg}")`);
+        logger.warning(`window_msg("${msg}")`);
     }
 
     message(msg: string): void {
-        logger.warn(`message("${msg}")`);
+        logger.warning(`message("${msg}")`);
     }
 
     add_msg(msg: string): void {
-        logger.warn(`add_msg("${msg}")`);
+        logger.warning(`add_msg("${msg}")`);
     }
 
     winend(): void {
-        logger.warn("winend");
+        logger.warning("winend");
     }
 
     p_dead_v3(player_slot: number): boolean {
-        logger.warn(`p_dead_v3(${player_slot})`);
+        logger.warning(`p_dead_v3(${player_slot})`);
         return false;
     }
 
     mesend(): void {
-        logger.warn("mesend");
+        logger.warning("mesend");
     }
 
     list(list_items: string[]): void {
-        logger.warn(`list([${list_items.map(i => `"${i}"`).join(", ")}])`);
+        logger.warning(`list([${list_items.map(i => `"${i}"`).join(", ")}])`);
     }
 
     warning(msg: string, inst_ptr?: InstructionPointer): void {
-        logger.warn(msg + this.srcloc_to_string(inst_ptr?.source_location));
+        logger.warning(msg + this.srcloc_to_string(inst_ptr?.source_location));
     }
 
     error(err: Error, inst_ptr?: InstructionPointer): void {

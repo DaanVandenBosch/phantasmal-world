@@ -47,12 +47,12 @@ export function parse_xvr(cursor: Cursor): XvrTexture {
 
 export function is_xvm(cursor: Cursor): boolean {
     const iff_result = parse_iff_headers(cursor, true);
+    cursor.seek_start(0);
 
-    if (!iff_result.success) {
-        return false;
-    }
-
-    return iff_result.value.find(chunk => chunk.type === XVMH || chunk.type === XVRT) != undefined;
+    return (
+        iff_result.success &&
+        iff_result.value.find(chunk => chunk.type === XVMH || chunk.type === XVRT) != undefined
+    );
 }
 
 export function parse_xvm(cursor: Cursor): Result<Xvm> {
@@ -84,7 +84,7 @@ export function parse_xvm(cursor: Cursor): Result<Xvm> {
 
     if (header && header.texture_count !== textures.length) {
         result.add_problem(
-            Severity.Warn,
+            Severity.Warning,
             "Corrupted XVM file.",
             `Found ${textures.length} textures instead of ${header.texture_count} as defined in the header.`,
         );

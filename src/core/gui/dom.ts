@@ -391,7 +391,7 @@ export function bind_children_to<T>(
             if (child_element) {
                 child_element.remove();
             } else {
-                logger.warn(
+                logger.warning(
                     `Expected an element for removal at child index ${
                         change.index
                     } of ${node_to_string(element)} (child count: ${element.childElementCount}).`,

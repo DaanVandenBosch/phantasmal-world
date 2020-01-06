@@ -274,7 +274,7 @@ export class QuestModel {
             try {
                 variants.set(area_id, this.area_store.get_variant(this.episode, area_id, 0));
             } catch (e) {
-                logger.warn(e);
+                logger.warning(e);
             }
         }
 
@@ -285,7 +285,7 @@ export class QuestModel {
                     this.area_store.get_variant(this.episode, area_id, variant_id),
                 );
             } catch (e) {
-                logger.warn(e);
+                logger.warning(e);
             }
         }
 

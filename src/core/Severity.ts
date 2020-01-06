@@ -6,7 +6,7 @@ export enum Severity {
     Trace,
     Debug,
     Info,
-    Warn,
+    Warning,
     Error,
     Off,
 }

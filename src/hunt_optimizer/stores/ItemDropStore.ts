@@ -93,7 +93,7 @@ function create_loader(
             const npc_type = (NpcType as any)[drop_dto.enemy];
 
             if (!npc_type) {
-                logger.warn(
+                logger.warning(
                     `Couldn't determine NpcType of episode ${drop_dto.episode} ${drop_dto.enemy}.`,
                 );
                 continue;
@@ -103,14 +103,14 @@ function create_loader(
             const item_type = item_type_store.get_by_id(drop_dto.item_type_id);
 
             if (!item_type) {
-                logger.warn(`Couldn't find item kind ${drop_dto.item_type_id}.`);
+                logger.warning(`Couldn't find item kind ${drop_dto.item_type_id}.`);
                 continue;
             }
 
             const section_id = (SectionId as any)[drop_dto.section_id];
 
             if (section_id == null) {
-                logger.warn(`Couldn't find section ID ${drop_dto.section_id}.`);
+                logger.warning(`Couldn't find section ID ${drop_dto.section_id}.`);
                 continue;
             }
 

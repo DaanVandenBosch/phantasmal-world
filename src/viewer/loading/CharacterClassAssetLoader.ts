@@ -169,14 +169,16 @@ export class CharacterClassAssetLoader implements Disposable {
                 .get(`/player/${model.name}Tex.afs`)
                 .array_buffer()
                 .then(buffer => {
-                    const afs = parse_afs(new ArrayBufferCursor(buffer, Endianness.Little));
+                    const afs_result = parse_afs(new ArrayBufferCursor(buffer, Endianness.Little));
                     const textures: XvrTexture[] = [];
 
-                    for (const file of afs) {
-                        const xvm = parse_xvm(new ArrayBufferCursor(file, Endianness.Little));
+                    if (afs_result.success) {
+                        for (const file of afs_result.value) {
+                            const xvm = parse_xvm(new ArrayBufferCursor(file, Endianness.Little));
 
-                        if (xvm.success) {
-                            textures.push(...xvm.value.textures);
+                            if (xvm.success) {
+                                textures.push(...xvm.value.textures);
+                            }
                         }
                     }
 

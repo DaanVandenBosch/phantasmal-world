@@ -82,10 +82,10 @@ export function parse_bin_dat_to_quest(
             episode = get_episode(label_0_segment);
             map_designations = get_map_designations(instruction_segments, label_0_segment);
         } else {
-            logger.warn(`No instruction for label 0 found.`);
+            logger.warning(`No instruction for label 0 found.`);
         }
     } else {
-        logger.warn("File contains no instruction labels.");
+        logger.warning("File contains no instruction labels.");
     }
 
     return {
