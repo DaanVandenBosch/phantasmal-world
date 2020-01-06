@@ -51,7 +51,8 @@ export class GuiStore extends Store {
         const url = window.location.hash.slice(1);
         const [full_path, params_str] = url.split("?");
         const second_slash_idx = full_path.indexOf("/", 1);
-        const tool_str = second_slash_idx === -1 ? full_path : full_path.slice(1, second_slash_idx);
+        const tool_str =
+            second_slash_idx === -1 ? full_path.slice(1) : full_path.slice(1, second_slash_idx);
 
         const tool = string_to_gui_tool(tool_str) ?? GuiTool.Viewer;
         const path = second_slash_idx === -1 ? "" : full_path.slice(second_slash_idx);
