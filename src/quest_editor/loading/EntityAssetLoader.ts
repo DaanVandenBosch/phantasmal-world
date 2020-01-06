@@ -79,7 +79,7 @@ export class EntityAssetLoader implements Disposable {
                 .then(({ data }) => {
                     const cursor = new ArrayBufferCursor(data, Endianness.Little);
                     const xvm = parse_xvm(cursor);
-                    return xvm_to_textures(xvm);
+                    return xvm === undefined ? [] : xvm_to_textures(xvm);
                 })
                 .catch(e => {
                     logger.warn(

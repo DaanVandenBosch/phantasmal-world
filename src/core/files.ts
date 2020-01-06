@@ -1,7 +1,7 @@
 import { input } from "./gui/dom";
 
 export function open_files(options?: { accept?: string; multiple?: boolean }): Promise<File[]> {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
         const el = input({ type: "file" });
         el.accept = options?.accept ?? "";
         el.multiple = options?.multiple ?? false;

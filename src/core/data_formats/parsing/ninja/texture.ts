@@ -43,7 +43,7 @@ export function parse_xvr(cursor: Cursor): XvrTexture {
     };
 }
 
-export function parse_xvm(cursor: Cursor): Xvm {
+export function parse_xvm(cursor: Cursor): Xvm | undefined {
     const chunks = parse_iff(cursor);
     const header_chunk = chunks.find(chunk => chunk.type === XVMH);
     const header = header_chunk && parse_header(header_chunk.data);
@@ -51,6 +51,10 @@ export function parse_xvm(cursor: Cursor): Xvm {
     const textures = chunks
         .filter(chunk => chunk.type === XVRT)
         .map(chunk => parse_xvr(chunk.data));
+
+    if (!header && textures.length === 0) {
+        return undefined;
+    }
 
     if (header && header.texture_count !== textures.length) {
         logger.warn(

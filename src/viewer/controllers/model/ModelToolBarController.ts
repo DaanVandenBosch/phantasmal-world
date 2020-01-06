@@ -70,11 +70,12 @@ export class ModelToolBarController extends Controller {
                     this.store.set_current_nj_motion(parse_njm(cursor, nj_object.bone_count()));
                 }
             } else if (file.name.endsWith(".xvm")) {
-                this.store.set_current_textures(parse_xvm(cursor).textures);
+                this.store.set_current_textures(parse_xvm(cursor)?.textures ?? []);
             } else if (file.name.endsWith(".afs")) {
                 const files = parse_afs(cursor);
                 const textures: XvrTexture[] = files.flatMap(
-                    file => parse_xvm(new ArrayBufferCursor(file, Endianness.Little)).textures,
+                    file =>
+                        parse_xvm(new ArrayBufferCursor(file, Endianness.Little))?.textures ?? [],
                 );
 
                 this.store.set_current_textures(textures);

@@ -26,7 +26,7 @@ export function parse_afs(cursor: Cursor): ArrayBuffer[] {
 
     const file_count = cursor.u16();
 
-    // Skip two unused bytes.
+    // Skip two unused bytes (are these just part of the file count field?).
     cursor.seek(2);
 
     const file_entries: AfsFileEntry[] = [];

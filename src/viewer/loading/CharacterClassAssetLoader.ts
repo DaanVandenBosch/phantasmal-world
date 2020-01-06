@@ -173,7 +173,10 @@ export class CharacterClassAssetLoader implements Disposable {
 
                     for (const file of afs) {
                         const xvm = parse_xvm(new ArrayBufferCursor(file, Endianness.Little));
-                        textures.push(...xvm.textures);
+
+                        if (xvm) {
+                            textures.push(...xvm.textures);
+                        }
                     }
 
                     return textures;

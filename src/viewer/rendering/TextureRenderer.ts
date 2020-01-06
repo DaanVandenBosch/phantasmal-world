@@ -38,7 +38,6 @@ export class TextureRenderer extends Renderer implements Disposable {
         );
 
         this.init_camera_controls();
-        this.controls.dollySpeed = -1;
         this.controls.azimuthRotateSpeed = 0;
         this.controls.polarRotateSpeed = 0;
     }
