@@ -1,53 +1,60 @@
 import { ResizableWidget } from "./ResizableWidget";
 import { Widget } from "./Widget";
 import { div, h1, li, section, ul } from "./dom";
-import { Problem, Result } from "../Result";
+import { Result } from "../Result";
 import { Button } from "./Button";
-import "./ResultPopup.css";
+import "./Dialog.css";
 
-const POPUP_WIDTH = 500;
-const POPUP_HEIGHT = 500;
+const DIALOG_WIDTH = 500;
+const DIALOG_MAX_HEIGHT = 500;
 
-export class ResultPopup extends ResizableWidget {
+export class Dialog extends ResizableWidget {
     private x = 0;
     private y = 0;
     private prev_mouse_x = 0;
     private prev_mouse_y = 0;
+    private readonly overlay_element: HTMLElement;
 
     readonly element: HTMLElement;
     readonly children: readonly Widget[] = [];
     readonly dismiss_button = this.disposable(new Button({ text: "Dismiss" }));
 
-    constructor(title: string, description: string, problems: readonly Problem[] = []) {
+    constructor(title: string, description: string, content: Node | string) {
         super();
 
         let header_element: HTMLElement;
 
         this.element = section(
-            { className: "core_ResultPopup", tabIndex: 0 },
+            { className: "core_Dialog", tabIndex: 0 },
             (header_element = h1(title)),
-            div({ className: "core_ResultPopup_description" }, description),
-            div(
-                { className: "core_ResultPopup_body" },
-                ul(...problems.map(problem => li(problem.ui_message))),
-            ),
-            div({ className: "core_ResultPopup_footer" }, this.dismiss_button.element),
+            div({ className: "core_Dialog_description" }, description),
+            div({ className: "core_Dialog_body" }, content),
+            div({ className: "core_Dialog_footer" }, this.dismiss_button.element),
         );
 
-        this.element.style.width = `${POPUP_WIDTH}px`;
-        this.element.style.maxHeight = `${POPUP_HEIGHT}px`;
+        this.element.style.width = `${DIALOG_WIDTH}px`;
+        this.element.style.maxHeight = `${DIALOG_MAX_HEIGHT}px`;
 
         this.set_position(
-            (window.innerWidth - POPUP_WIDTH) / 2,
-            (window.innerHeight - POPUP_HEIGHT) / 2,
+            (window.innerWidth - DIALOG_WIDTH) / 2,
+            (window.innerHeight - DIALOG_MAX_HEIGHT) / 2,
         );
 
         this.element.addEventListener("keydown", this.keydown);
         header_element.addEventListener("mousedown", this.mousedown);
 
+        this.overlay_element = div({ className: "core_Dialog_modal_overlay", tabIndex: -1 });
+        this.overlay_element.addEventListener("focus", () => this.element.focus());
+        document.body.append(this.overlay_element);
+
         this.disposables(this.dismiss_button.onclick.observe(() => this.dispose()));
 
         this.finalize_construction();
+    }
+
+    dispose(): void {
+        super.dispose();
+        this.overlay_element.remove();
     }
 
     set_position(x: number, y: number): void {
@@ -87,27 +94,33 @@ export class ResultPopup extends ResizableWidget {
 }
 
 /**
- * Shows a popup if `result` failed or succeeded with problems.
+ * Shows a dialog window if `result` failed or succeeded with problems.
  *
  * @param result
  * @param problems_message - Message to show if problems occurred when result is successful.
  * @param error_message - Message to show if result failed.
  */
-export function show_result_popup(
+export function show_result_dialog(
     result: Result<unknown>,
     problems_message: string,
     error_message: string,
 ): void {
-    let popup: ResultPopup | undefined;
+    let dialog: Dialog | undefined;
 
     if (!result.success) {
-        popup = new ResultPopup("Error", error_message, result.problems);
+        dialog = new Dialog("Error", error_message, create_result_body(result));
     } else if (result.problems.length) {
-        popup = new ResultPopup("Problems", problems_message, result.problems);
+        dialog = new Dialog("Problems", problems_message, create_result_body(result));
     }
 
-    if (popup) {
-        document.body.append(popup.element);
-        popup.focus();
+    if (dialog) {
+        document.body.append(dialog.element);
+        dialog.focus();
     }
+}
+
+function create_result_body(result: Result<unknown>): HTMLElement {
+    const body = ul(...result.problems.map(problem => li(problem.ui_message)));
+    body.style.cursor = "text";
+    return body;
 }
