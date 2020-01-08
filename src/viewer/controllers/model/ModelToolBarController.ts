@@ -12,7 +12,6 @@ import { LogManager } from "../../../core/Logger";
 import { prs_decompress } from "../../../core/data_formats/compression/prs/decompress";
 import { failure, Result, result_builder, success } from "../../../core/Result";
 import { Severity } from "../../../core/Severity";
-import { show_result_dialog } from "../../../core/gui/Dialog";
 
 const logger = LogManager.get("viewer/controllers/model/ModelToolBarController");
 
@@ -53,7 +52,7 @@ export class ModelToolBarController extends Controller {
         this.store.set_animation_frame(frame);
     };
 
-    load_file = async (file: File): Promise<void> => {
+    load_file = async (file: File): Promise<Result<unknown>> => {
         let result: Result<unknown>;
 
         try {
@@ -136,10 +135,6 @@ export class ModelToolBarController extends Controller {
             result = failure();
         }
 
-        show_result_dialog(
-            result,
-            `Encountered some problems while opening "${file.name}".`,
-            `Couldn't open "${file.name}".`,
-        );
+        return result;
     };
 }

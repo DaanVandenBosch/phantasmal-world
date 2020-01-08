@@ -12,7 +12,6 @@ import { ListProperty } from "../../core/observable/property/list/ListProperty";
 import { prs_decompress } from "../../core/data_formats/compression/prs/decompress";
 import { failure, Result, result_builder } from "../../core/Result";
 import { Severity } from "../../core/Severity";
-import { show_result_dialog } from "../../core/gui/Dialog";
 
 const logger = LogManager.get("viewer/controllers/TextureController");
 
@@ -20,7 +19,7 @@ export class TextureController extends Controller {
     private readonly _textures: WritableListProperty<XvrTexture> = list_property();
     readonly textures: ListProperty<XvrTexture> = this._textures;
 
-    load_file = async (file: File): Promise<void> => {
+    load_file = async (file: File): Promise<Result<unknown>> => {
         let result: Result<unknown>;
 
         try {
@@ -75,10 +74,6 @@ export class TextureController extends Controller {
             result = failure();
         }
 
-        show_result_dialog(
-            result,
-            `Encountered some problems while opening "${file.name}".`,
-            `Couldn't open "${file.name}".`,
-        );
+        return result;
     };
 }

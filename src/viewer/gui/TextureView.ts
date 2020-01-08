@@ -5,6 +5,7 @@ import { RendererWidget } from "../../core/gui/RendererWidget";
 import { TextureRenderer } from "../rendering/TextureRenderer";
 import { ResizableView } from "../../core/gui/ResizableView";
 import { TextureController } from "../controllers/TextureController";
+import { Dialog, show_result_in_dialog } from "../../core/gui/Dialog";
 
 export class TextureView extends ResizableView {
     readonly element = div({ className: "viewer_TextureView" });
@@ -26,9 +27,21 @@ export class TextureView extends ResizableView {
 
         this.element.append(this.tool_bar.element, this.renderer_view.element);
 
+        const dialog = this.disposable(new Dialog());
+
         this.disposables(
-            this.open_file_button.files.observe(({ value: files }) => {
-                if (files.length) ctrl.load_file(files[0]);
+            this.open_file_button.files.observe(async ({ value: files }) => {
+                if (files.length) {
+                    const file = files[0];
+                    const result = await ctrl.load_file(file);
+
+                    show_result_in_dialog(
+                        dialog,
+                        result,
+                        `Encountered some problems while opening "${file.name}".`,
+                        `Couldn't open "${file.name}".`,
+                    );
+                }
             }),
         );
 

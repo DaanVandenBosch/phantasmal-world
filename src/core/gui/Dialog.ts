@@ -8,29 +8,52 @@ import "./Dialog.css";
 const DIALOG_WIDTH = 500;
 const DIALOG_MAX_HEIGHT = 500;
 
+/**
+ * A popup window with a title, description, body and dismiss button.
+ */
 export class Dialog extends ResizableWidget {
     private x = 0;
     private y = 0;
     private prev_mouse_x = 0;
     private prev_mouse_y = 0;
     private readonly overlay_element: HTMLElement;
+    private readonly header_element = h1();
+    private readonly description_element = div({ className: "core_Dialog_description" });
+    private readonly content_element = div({ className: "core_Dialog_body" });
+    private readonly dismiss_button = this.disposable(new Button({ text: "Dismiss" }));
+    private readonly footer_element = div(
+        { className: "core_Dialog_footer" },
+        this.dismiss_button.element,
+    );
 
-    readonly element: HTMLElement;
+    readonly element: HTMLElement = section(
+        { className: "core_Dialog", tabIndex: 0 },
+        this.header_element,
+        this.description_element,
+        this.content_element,
+        this.footer_element,
+    );
     readonly children: readonly Widget[] = [];
-    readonly dismiss_button = this.disposable(new Button({ text: "Dismiss" }));
 
-    constructor(title: string, description: string, content: Node | string) {
+    set title(title: string) {
+        this.header_element.textContent = title;
+    }
+
+    set description(description: string) {
+        this.description_element.textContent = description;
+    }
+
+    set content(content: Node | string) {
+        this.content_element.textContent = "";
+        this.content_element.append(content);
+    }
+
+    constructor(title: string = "", description: string = "", content: Node | string = "") {
         super();
 
-        let header_element: HTMLElement;
-
-        this.element = section(
-            { className: "core_Dialog", tabIndex: 0 },
-            (header_element = h1(title)),
-            div({ className: "core_Dialog_description" }, description),
-            div({ className: "core_Dialog_body" }, content),
-            div({ className: "core_Dialog_footer" }, this.dismiss_button.element),
-        );
+        this.title = title;
+        this.description = description;
+        this.content = content;
 
         this.element.style.width = `${DIALOG_WIDTH}px`;
         this.element.style.maxHeight = `${DIALOG_MAX_HEIGHT}px`;
@@ -41,13 +64,12 @@ export class Dialog extends ResizableWidget {
         );
 
         this.element.addEventListener("keydown", this.keydown);
-        header_element.addEventListener("mousedown", this.mousedown);
+        this.header_element.addEventListener("mousedown", this.mousedown);
 
         this.overlay_element = div({ className: "core_Dialog_modal_overlay", tabIndex: -1 });
         this.overlay_element.addEventListener("focus", () => this.element.focus());
-        document.body.append(this.overlay_element);
 
-        this.disposables(this.dismiss_button.onclick.observe(() => this.dispose()));
+        this.disposables(this.dismiss_button.onclick.observe(() => this.hide()));
 
         this.finalize_construction();
     }
@@ -55,6 +77,17 @@ export class Dialog extends ResizableWidget {
     dispose(): void {
         super.dispose();
         this.overlay_element.remove();
+    }
+
+    show(): void {
+        document.body.append(this.overlay_element);
+        document.body.append(this.element);
+        this.focus();
+    }
+
+    hide(): void {
+        this.overlay_element.remove();
+        this.element.remove();
     }
 
     set_position(x: number, y: number): void {
@@ -88,34 +121,35 @@ export class Dialog extends ResizableWidget {
 
     private keydown = (evt: KeyboardEvent): void => {
         if (evt.key === "Escape") {
-            this.dispose();
+            this.hide();
         }
     };
 }
 
 /**
- * Shows a dialog window if `result` failed or succeeded with problems.
+ * Shows the details of a result in a dialog window if the result failed or succeeded with problems.
  *
+ * @param dialog
  * @param result
  * @param problems_message - Message to show if problems occurred when result is successful.
  * @param error_message - Message to show if result failed.
  */
-export function show_result_dialog(
+export function show_result_in_dialog(
+    dialog: Dialog,
     result: Result<unknown>,
     problems_message: string,
     error_message: string,
 ): void {
-    let dialog: Dialog | undefined;
+    dialog.content = create_result_body(result);
 
     if (!result.success) {
-        dialog = new Dialog("Error", error_message, create_result_body(result));
+        dialog.title = "Error";
+        dialog.description = error_message;
+        dialog.show();
     } else if (result.problems.length) {
-        dialog = new Dialog("Problems", problems_message, create_result_body(result));
-    }
-
-    if (dialog) {
-        document.body.append(dialog.element);
-        dialog.focus();
+        dialog.title = "Problems";
+        dialog.description = problems_message;
+        dialog.show();
     }
 }
 

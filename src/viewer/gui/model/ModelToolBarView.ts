@@ -7,6 +7,7 @@ import { Label } from "../../../core/gui/Label";
 import { Icon } from "../../../core/gui/dom";
 import { View } from "../../../core/gui/View";
 import { ModelToolBarController } from "../../controllers/model/ModelToolBarController";
+import { Dialog, show_result_in_dialog } from "../../../core/gui/Dialog";
 
 export class ModelToolBarView extends View {
     private readonly toolbar: ToolBar;
@@ -54,10 +55,21 @@ export class ModelToolBarView extends View {
             ),
         );
 
+        const dialog = this.disposable(new Dialog());
+
         // Always-enabled controls.
         this.disposables(
-            open_file_button.files.observe(({ value: files }) => {
-                if (files.length) ctrl.load_file(files[0]);
+            open_file_button.files.observe(async ({ value: files }) => {
+                if (files.length) {
+                    const file = files[0];
+                    const result = await ctrl.load_file(file);
+                    show_result_in_dialog(
+                        dialog,
+                        result,
+                        `Encountered some problems while opening "${file.name}".`,
+                        `Couldn't open "${file.name}".`,
+                    );
+                }
             }),
 
             skeleton_checkbox.checked.observe(({ value }) => ctrl.set_show_skeleton(value)),
