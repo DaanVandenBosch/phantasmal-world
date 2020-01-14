@@ -3,16 +3,32 @@ import { FileButton } from "../../core/gui/FileButton";
 import { Button } from "../../core/gui/Button";
 import { undo_manager } from "../../core/undo/UndoManager";
 import { Select } from "../../core/gui/Select";
-import { Icon } from "../../core/gui/dom";
+import { div, Icon } from "../../core/gui/dom";
 import { DropDown } from "../../core/gui/DropDown";
 import { Episode } from "../../core/data_formats/parsing/quest/Episode";
 import {
     AreaAndLabel,
     QuestEditorToolBarController,
 } from "../controllers/QuestEditorToolBarController";
+import { View } from "../../core/gui/View";
+import { Dialog } from "../../core/gui/Dialog";
+import { TextInput } from "../../core/gui/TextInput";
+import "./QuestEditorToolBarView.css";
 
-export class QuestEditorToolBar extends ToolBar {
+export class QuestEditorToolBarView extends View {
+    private readonly toolbar: ToolBar;
+
+    get element(): HTMLElement {
+        return this.toolbar.element;
+    }
+
+    get height(): number {
+        return this.toolbar.height;
+    }
+
     constructor(ctrl: QuestEditorToolBarController) {
+        super();
+
         const new_quest_button = new DropDown({
             text: "New quest",
             icon_left: Icon.NewFile,
@@ -104,15 +120,46 @@ export class QuestEditorToolBar extends ToolBar {
             );
         }
 
-        super(...children);
+        this.toolbar = this.disposable(new ToolBar(...children));
+
+        // "Save As" dialog.
+        const filename_input = this.disposable(new TextInput("", { label: "File name:" }));
+        const save_button = this.disposable(new Button({ text: "Save" }));
+        const cancel_button = this.disposable(new Button({ text: "Cancel" }));
+
+        const save_as_dialog = this.disposable(
+            new Dialog({
+                title: "Save As",
+                visible: ctrl.save_as_dialog_visible,
+                content: div(
+                    { className: "quest_editor_QuestEditorToolBarView_save_as_dialog_content" },
+                    filename_input.label!.element,
+                    filename_input.element,
+                ),
+                footer: [save_button.element, cancel_button.element],
+            }),
+        );
+
+        save_as_dialog.element.addEventListener("keydown", evt => {
+            if (evt.key === "Enter") {
+                ctrl.save_as();
+            }
+        });
 
         this.disposables(
             new_quest_button.chosen.observe(({ value: episode }) => ctrl.create_new_quest(episode)),
 
             open_file_button.files.observe(({ value: files }) => ctrl.parse_files(files)),
 
-            save_as_button.onclick.observe(ctrl.save_as),
+            save_as_button.onclick.observe(ctrl.save_as_clicked),
             save_as_button.enabled.bind_to(ctrl.can_save),
+
+            save_as_dialog.ondismiss.observe(ctrl.dismiss_save_as_dialog),
+
+            filename_input.value.observe(({ value }) => ctrl.set_filename(value)),
+
+            save_button.onclick.observe(ctrl.save_as),
+            cancel_button.onclick.observe(ctrl.dismiss_save_as_dialog),
 
             undo_button.onclick.observe(() => undo_manager.undo()),
             undo_button.enabled.bind_to(ctrl.can_undo),

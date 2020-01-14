@@ -8,10 +8,11 @@ import { LogManager } from "../Logger";
 const logger = LogManager.get("core/gui/Widget");
 
 export type WidgetOptions = {
-    id?: string;
-    class?: string;
-    enabled?: boolean | Property<boolean>;
-    tooltip?: string | Property<string>;
+    readonly id?: string;
+    readonly class?: string;
+    readonly visible?: boolean | Property<boolean>;
+    readonly enabled?: boolean | Property<boolean>;
+    readonly tooltip?: string | Property<string>;
 };
 
 /**
@@ -144,6 +145,12 @@ export abstract class Widget implements Disposable {
 
         if (this.options.class) {
             this.element.classList.add(this.options.class);
+        }
+
+        if (typeof this.options.visible === "boolean") {
+            this.visible.val = this.options.visible;
+        } else if (this.options.visible) {
+            this.visible.bind_to(this.options.visible);
         }
 
         if (typeof this.options.enabled === "boolean") {

@@ -5,7 +5,7 @@ import { RendererWidget } from "../../core/gui/RendererWidget";
 import { TextureRenderer } from "../rendering/TextureRenderer";
 import { ResizableView } from "../../core/gui/ResizableView";
 import { TextureController } from "../controllers/TextureController";
-import { Dialog, show_result_in_dialog } from "../../core/gui/Dialog";
+import { ResultDialog } from "../../core/gui/ResultDialog";
 
 export class TextureView extends ResizableView {
     readonly element = div({ className: "viewer_TextureView" });
@@ -27,22 +27,23 @@ export class TextureView extends ResizableView {
 
         this.element.append(this.tool_bar.element, this.renderer_view.element);
 
-        const dialog = this.disposable(new Dialog());
+        const dialog = this.disposable(
+            new ResultDialog({
+                visible: ctrl.result_dialog_visible,
+                result: ctrl.result,
+                problems_message: ctrl.result_problems_message,
+                error_message: ctrl.result_error_message,
+            }),
+        );
 
         this.disposables(
-            this.open_file_button.files.observe(async ({ value: files }) => {
+            this.open_file_button.files.observe(({ value: files }) => {
                 if (files.length) {
-                    const file = files[0];
-                    const result = await ctrl.load_file(file);
-
-                    show_result_in_dialog(
-                        dialog,
-                        result,
-                        `Encountered some problems while opening "${file.name}".`,
-                        `Couldn't open "${file.name}".`,
-                    );
+                    ctrl.load_file(files[0]);
                 }
             }),
+
+            dialog.ondismiss.observe(ctrl.dismiss_result_dialog),
         );
 
         this.finalize_construction();

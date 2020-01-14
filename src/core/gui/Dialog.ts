@@ -1,12 +1,23 @@
 import { ResizableWidget } from "./ResizableWidget";
-import { Widget } from "./Widget";
-import { div, h1, li, section, ul } from "./dom";
-import { Result } from "../Result";
-import { Button } from "./Button";
+import { Widget, WidgetOptions } from "./Widget";
+import { Child, div, h1, section } from "./dom";
 import "./Dialog.css";
+import { is_property, Property } from "../observable/property/Property";
+import { WidgetProperty } from "../observable/property/WidgetProperty";
+import { WritableProperty } from "../observable/property/WritableProperty";
+import { Emitter } from "../observable/Emitter";
+import { Observable } from "../observable/Observable";
+import { emitter } from "../observable";
 
 const DIALOG_WIDTH = 500;
 const DIALOG_MAX_HEIGHT = 500;
+
+export type DialogOptions = WidgetOptions & {
+    readonly title?: string | Property<string>;
+    readonly description?: string | Property<string>;
+    readonly content?: Child | Property<Child>;
+    readonly footer?: readonly Child[];
+};
 
 /**
  * A popup window with a title, description, body and dismiss button.
@@ -16,60 +27,75 @@ export class Dialog extends ResizableWidget {
     private y = 0;
     private prev_mouse_x = 0;
     private prev_mouse_y = 0;
-    private readonly overlay_element: HTMLElement;
-    private readonly header_element = h1();
-    private readonly description_element = div({ className: "core_Dialog_description" });
-    private readonly content_element = div({ className: "core_Dialog_body" });
-    private readonly dismiss_button = this.disposable(new Button({ text: "Dismiss" }));
-    private readonly footer_element = div(
-        { className: "core_Dialog_footer" },
-        this.dismiss_button.element,
-    );
 
-    readonly element: HTMLElement = section(
-        { className: "core_Dialog", tabIndex: 0 },
-        this.header_element,
-        this.description_element,
-        this.content_element,
-        this.footer_element,
-    );
+    private _title = new WidgetProperty<string>(this, "", this.set_title);
+    private _description = new WidgetProperty<string>(this, "", this.set_description);
+    private _content = new WidgetProperty<Child>(this, "", this.set_content);
+
+    private readonly overlay_element: HTMLElement;
+    private readonly header_element: HTMLElement;
+    private readonly description_element: HTMLElement;
+    private readonly content_element: HTMLElement;
+
+    protected readonly _ondismiss: Emitter<Event> = emitter();
+
+    readonly element: HTMLElement;
     readonly children: readonly Widget[] = [];
 
-    set title(title: string) {
-        this.header_element.textContent = title;
-    }
+    readonly title: WritableProperty<string> = this._title;
+    readonly description: WritableProperty<string> = this._description;
+    readonly content: WritableProperty<Child> = this._content;
 
-    set description(description: string) {
-        this.description_element.textContent = description;
-    }
+    /**
+     * Emits an event when the user presses the escape key.
+     */
+    readonly ondismiss: Observable<Event> = this._ondismiss;
 
-    set content(content: Node | string) {
-        this.content_element.textContent = "";
-        this.content_element.append(content);
-    }
+    constructor(options?: DialogOptions) {
+        super(options);
 
-    constructor(title: string = "", description: string = "", content: Node | string = "") {
-        super();
-
-        this.title = title;
-        this.description = description;
-        this.content = content;
+        this.element = section(
+            { className: "core_Dialog", tabIndex: 0 },
+            (this.header_element = h1()),
+            (this.description_element = div({ className: "core_Dialog_description" })),
+            (this.content_element = div({ className: "core_Dialog_body" })),
+            div({ className: "core_Dialog_footer" }, ...(options?.footer ?? [])),
+        );
 
         this.element.style.width = `${DIALOG_WIDTH}px`;
         this.element.style.maxHeight = `${DIALOG_MAX_HEIGHT}px`;
+
+        this.element.addEventListener("keydown", evt => this.keydown(evt));
+
+        if (options) {
+            if (typeof options.title === "string") {
+                this.title.val = options.title;
+            } else if (options.title) {
+                this.title.bind_to(options.title);
+            }
+
+            if (typeof options.description === "string") {
+                this.description.val = options.description;
+            } else if (options.description) {
+                this.description.bind_to(options.description);
+            }
+
+            if (is_property(options.content)) {
+                this.content.bind_to(options.content);
+            } else if (options.content != undefined) {
+                this.content.val = options.content;
+            }
+        }
 
         this.set_position(
             (window.innerWidth - DIALOG_WIDTH) / 2,
             (window.innerHeight - DIALOG_MAX_HEIGHT) / 2,
         );
 
-        this.element.addEventListener("keydown", this.keydown);
         this.header_element.addEventListener("mousedown", this.mousedown);
 
         this.overlay_element = div({ className: "core_Dialog_modal_overlay", tabIndex: -1 });
-        this.overlay_element.addEventListener("focus", () => this.element.focus());
-
-        this.disposables(this.dismiss_button.onclick.observe(() => this.hide()));
+        this.overlay_element.addEventListener("focus", () => this.focus());
 
         this.finalize_construction();
     }
@@ -79,21 +105,62 @@ export class Dialog extends ResizableWidget {
         this.overlay_element.remove();
     }
 
-    show(): void {
-        document.body.append(this.overlay_element);
-        document.body.append(this.element);
-        this.focus();
+    focus(): void {
+        (this.first_focusable_child(this.element) || this.element).focus();
     }
 
-    hide(): void {
-        this.overlay_element.remove();
-        this.element.remove();
+    private first_focusable_child(element: HTMLElement): HTMLElement | undefined {
+        for (const child of element.children) {
+            if (child instanceof HTMLElement) {
+                if (child.tabIndex >= 0) {
+                    return child;
+                } else {
+                    const element = this.first_focusable_child(child);
+
+                    if (element) {
+                        return element;
+                    }
+                }
+            }
+        }
+
+        return undefined;
     }
 
     set_position(x: number, y: number): void {
         this.x = x;
         this.y = y;
         this.element.style.transform = `translate(${Math.floor(x)}px, ${Math.floor(y)}px)`;
+    }
+
+    protected set_visible(visible: boolean): void {
+        if (visible) {
+            document.body.append(this.overlay_element);
+            document.body.append(this.element);
+            this.focus();
+        } else {
+            this.overlay_element.remove();
+            this.element.remove();
+        }
+    }
+
+    private set_title(title: string): void {
+        this.header_element.textContent = title;
+    }
+
+    private set_description(description: string): void {
+        if (description === "") {
+            this.description_element.hidden = true;
+            this.description_element.textContent = "";
+        } else {
+            this.description_element.hidden = false;
+            this.description_element.textContent = description;
+        }
+    }
+
+    private set_content(content: Child): void {
+        this.content_element.textContent = "";
+        this.content_element.append(content);
     }
 
     private mousedown = (evt: MouseEvent): void => {
@@ -119,42 +186,9 @@ export class Dialog extends ResizableWidget {
         window.removeEventListener("mouseup", this.window_mouseup);
     };
 
-    private keydown = (evt: KeyboardEvent): void => {
+    private keydown(evt: KeyboardEvent): void {
         if (evt.key === "Escape") {
-            this.hide();
+            this._ondismiss.emit({ value: evt });
         }
-    };
-}
-
-/**
- * Shows the details of a result in a dialog window if the result failed or succeeded with problems.
- *
- * @param dialog
- * @param result
- * @param problems_message - Message to show if problems occurred when result is successful.
- * @param error_message - Message to show if result failed.
- */
-export function show_result_in_dialog(
-    dialog: Dialog,
-    result: Result<unknown>,
-    problems_message: string,
-    error_message: string,
-): void {
-    dialog.content = create_result_body(result);
-
-    if (!result.success) {
-        dialog.title = "Error";
-        dialog.description = error_message;
-        dialog.show();
-    } else if (result.problems.length) {
-        dialog.title = "Problems";
-        dialog.description = problems_message;
-        dialog.show();
     }
-}
-
-function create_result_body(result: Result<unknown>): HTMLElement {
-    const body = ul(...result.problems.map(problem => li(problem.ui_message)));
-    body.style.cursor = "text";
-    return body;
 }

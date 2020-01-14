@@ -1,4 +1,4 @@
-import { QuestEditorToolBar } from "./QuestEditorToolBar";
+import { QuestEditorToolBarView } from "./QuestEditorToolBarView";
 import GoldenLayout, { Container, ContentItem, ItemConfigType } from "golden-layout";
 import { QuestInfoView } from "./QuestInfoView";
 import "golden-layout/src/css/goldenlayout-base.css";
@@ -63,7 +63,7 @@ export class QuestEditorView extends ResizableView {
         private readonly gui_store: GuiStore,
         quest_editor_store: QuestEditorStore,
         private readonly quest_editor_ui_persister: QuestEditorUiPersister,
-        private readonly tool_bar: QuestEditorToolBar,
+        private readonly tool_bar: QuestEditorToolBarView,
         create_quest_info_view: () => QuestInfoView,
         create_npc_counts_view: () => NpcCountsView,
         create_editor_renderer_view: () => QuestEditorRendererView,

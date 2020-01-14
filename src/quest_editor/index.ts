@@ -9,7 +9,7 @@ import { EntityImageRenderer } from "./rendering/EntityImageRenderer";
 import { EntityAssetLoader } from "./loading/EntityAssetLoader";
 import { DisposableThreeRenderer } from "../core/rendering/Renderer";
 import { QuestEditorUiPersister } from "./persistence/QuestEditorUiPersister";
-import { QuestEditorToolBar } from "./gui/QuestEditorToolBar";
+import { QuestEditorToolBarView } from "./gui/QuestEditorToolBarView";
 import { QuestEditorToolBarController } from "./controllers/QuestEditorToolBarController";
 import { QuestInfoView } from "./gui/QuestInfoView";
 import { NpcCountsView } from "./gui/NpcCountsView";
@@ -59,7 +59,7 @@ export function initialize_quest_editor(
             quest_editor_store,
             quest_editor_ui_persister,
             disposer.add(
-                new QuestEditorToolBar(
+                new QuestEditorToolBarView(
                     disposer.add(
                         new QuestEditorToolBarController(gui_store, area_store, quest_editor_store),
                     ),

@@ -7,7 +7,7 @@ import { Label } from "../../../core/gui/Label";
 import { Icon } from "../../../core/gui/dom";
 import { View } from "../../../core/gui/View";
 import { ModelToolBarController } from "../../controllers/model/ModelToolBarController";
-import { Dialog, show_result_in_dialog } from "../../../core/gui/Dialog";
+import { ResultDialog } from "../../../core/gui/ResultDialog";
 
 export class ModelToolBarView extends View {
     private readonly toolbar: ToolBar;
@@ -55,24 +55,26 @@ export class ModelToolBarView extends View {
             ),
         );
 
-        const dialog = this.disposable(new Dialog());
+        const dialog = this.disposable(
+            new ResultDialog({
+                visible: ctrl.result_dialog_visible,
+                result: ctrl.result,
+                problems_message: ctrl.result_problems_message,
+                error_message: ctrl.result_error_message,
+            }),
+        );
 
         // Always-enabled controls.
         this.disposables(
-            open_file_button.files.observe(async ({ value: files }) => {
+            open_file_button.files.observe(({ value: files }) => {
                 if (files.length) {
-                    const file = files[0];
-                    const result = await ctrl.load_file(file);
-                    show_result_in_dialog(
-                        dialog,
-                        result,
-                        `Encountered some problems while opening "${file.name}".`,
-                        `Couldn't open "${file.name}".`,
-                    );
+                    ctrl.load_file(files[0]);
                 }
             }),
 
             skeleton_checkbox.checked.observe(({ value }) => ctrl.set_show_skeleton(value)),
+
+            dialog.ondismiss.observe(ctrl.dismiss_result_dialog),
         );
 
         // Controls that are only enabled when an animation is selected.

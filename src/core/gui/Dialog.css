@@ -38,6 +38,10 @@
     justify-content: flex-end;
 }
 
+.core_Dialog_footer > * {
+    margin-left: 2px;
+}
+
 .core_Dialog_modal_overlay {
     outline: none;
     z-index: 10;

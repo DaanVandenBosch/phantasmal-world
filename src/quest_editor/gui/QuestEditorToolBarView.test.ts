@@ -1,5 +1,5 @@
 import { QuestEditorToolBarController } from "../controllers/QuestEditorToolBarController";
-import { QuestEditorToolBar } from "./QuestEditorToolBar";
+import { QuestEditorToolBarView } from "./QuestEditorToolBarView";
 import { GuiStore } from "../../core/stores/GuiStore";
 import { create_area_store } from "../../../test/src/quest_editor/stores/store_creation";
 import { QuestEditorStore } from "../stores/QuestEditorStore";
@@ -11,7 +11,7 @@ test("Renders correctly.", () =>
         const area_store = create_area_store(disposer);
         const quest_editor_store = disposer.add(new QuestEditorStore(gui_store, area_store));
         const tool_bar = disposer.add(
-            new QuestEditorToolBar(
+            new QuestEditorToolBarView(
                 disposer.add(
                     new QuestEditorToolBarController(gui_store, area_store, quest_editor_store),
                 ),

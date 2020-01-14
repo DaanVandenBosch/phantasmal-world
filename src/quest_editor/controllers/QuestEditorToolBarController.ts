@@ -2,7 +2,7 @@ import { GuiStore, GuiTool } from "../../core/stores/GuiStore";
 import { AreaStore } from "../stores/AreaStore";
 import { QuestEditorStore } from "../stores/QuestEditorStore";
 import { AreaModel } from "../model/AreaModel";
-import { list_property, map } from "../../core/observable";
+import { list_property, map, property } from "../../core/observable";
 import { Property } from "../../core/observable/property/Property";
 import { undo_manager } from "../../core/undo/UndoManager";
 import { Controller } from "../../core/controllers/Controller";
@@ -26,7 +26,8 @@ const logger = LogManager.get("quest_editor/controllers/QuestEditorToolBarContro
 export type AreaAndLabel = { readonly area: AreaModel; readonly label: string };
 
 export class QuestEditorToolBarController extends Controller {
-    private quest_filename?: string;
+    private _save_as_dialog_visible = property(false);
+    private _filename = property("");
 
     readonly vm_feature_active: boolean;
     readonly areas: Property<readonly AreaAndLabel[]>;
@@ -38,6 +39,8 @@ export class QuestEditorToolBarController extends Controller {
     readonly can_debug: Property<boolean>;
     readonly can_step: Property<boolean>;
     readonly can_stop: Property<boolean>;
+    readonly save_as_dialog_visible: Property<boolean> = this._save_as_dialog_visible;
+    readonly filename: Property<string> = this._filename;
 
     constructor(
         gui_store: GuiStore,
@@ -97,16 +100,14 @@ export class QuestEditorToolBarController extends Controller {
         this.can_stop = quest_editor_store.quest_runner.running;
 
         this.disposables(
-            quest_editor_store.current_quest.observe(() => {
-                this.quest_filename = undefined;
-            }),
+            quest_editor_store.current_quest.observe(() => this.set_filename("")),
 
             gui_store.on_global_keydown(GuiTool.QuestEditor, "Ctrl-O", async () => {
                 const files = await open_files({ accept: ".bin, .dat, .qst", multiple: true });
                 this.parse_files(files);
             }),
 
-            gui_store.on_global_keydown(GuiTool.QuestEditor, "Ctrl-Shift-S", this.save_as),
+            gui_store.on_global_keydown(GuiTool.QuestEditor, "Ctrl-Shift-S", this.save_as_clicked),
 
             gui_store.on_global_keydown(GuiTool.QuestEditor, "Ctrl-Z", () => {
                 undo_manager.undo();
@@ -145,7 +146,7 @@ export class QuestEditorToolBarController extends Controller {
             if (qst) {
                 const buffer = await read_file(qst);
                 quest = parse_qst_to_quest(new ArrayBufferCursor(buffer, Endianness.Little));
-                this.quest_filename = qst.name;
+                this.set_filename(basename(qst.name));
 
                 if (!quest) {
                     logger.error("Couldn't parse quest file.");
@@ -161,7 +162,7 @@ export class QuestEditorToolBarController extends Controller {
                         new ArrayBufferCursor(bin_buffer, Endianness.Little),
                         new ArrayBufferCursor(dat_buffer, Endianness.Little),
                     );
-                    this.quest_filename = bin.name || dat.name;
+                    this.set_filename(basename(bin.name || dat.name));
 
                     if (!quest) {
                         logger.error("Couldn't parse quest file.");
@@ -181,28 +182,40 @@ export class QuestEditorToolBarController extends Controller {
         this.quest_editor_store.set_current_area(area);
     };
 
+    save_as_clicked = (): void => {
+        if (this.quest_editor_store.current_quest.val) {
+            this._save_as_dialog_visible.val = true;
+        }
+    };
+
     save_as = (): void => {
         const quest = this.quest_editor_store.current_quest.val;
         if (!quest) return;
 
-        const default_file_name = this.quest_filename && basename(this.quest_filename);
+        let filename = this.filename.val;
+        const buffer = write_quest_qst(convert_quest_from_model(quest), filename);
 
-        let file_name = prompt("File name:", default_file_name);
-        if (!file_name) return;
-
-        const buffer = write_quest_qst(convert_quest_from_model(quest), file_name);
-
-        if (!file_name.endsWith(".qst")) {
-            file_name += ".qst";
+        if (!filename.endsWith(".qst")) {
+            filename += ".qst";
         }
 
         const a = document.createElement("a");
         a.href = URL.createObjectURL(new Blob([buffer], { type: "application/octet-stream" }));
-        a.download = file_name;
+        a.download = filename;
         document.body.appendChild(a);
         a.click();
         URL.revokeObjectURL(a.href);
         document.body.removeChild(a);
+
+        this.dismiss_save_as_dialog();
+    };
+
+    dismiss_save_as_dialog = (): void => {
+        this._save_as_dialog_visible.val = false;
+    };
+
+    set_filename = (filename: string): void => {
+        this._filename.val = filename;
     };
 
     debug = (): void => {

@@ -37,6 +37,11 @@ export abstract class Input<T> extends LabelledControl {
         this.input_element.addEventListener("change", () => {
             this._value.set_val(this.get_value(), { silent: false });
         });
+        this.input_element.addEventListener("keydown", evt => {
+            if (evt.key === "Enter") {
+                this._value.set_val(this.get_value(), { silent: false });
+            }
+        });
 
         if (options) {
             if (options.readonly) {

@@ -1,0 +1,5 @@
+.quest_editor_QuestEditorToolBarView_save_as_dialog_content {
+    display: grid;
+    grid-template-columns: 100px max-content;
+    align-items: center;
+}
