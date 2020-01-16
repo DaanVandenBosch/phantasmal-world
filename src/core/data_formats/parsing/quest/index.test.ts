@@ -5,6 +5,12 @@ import { ArrayBufferCursor } from "../../cursor/ArrayBufferCursor";
 import { BufferCursor } from "../../cursor/BufferCursor";
 import { parse_qst_to_quest, write_quest_qst } from "./index";
 import { ObjectType } from "./object_types";
+import {
+    DataSegment,
+    InstructionSegment,
+    SegmentType,
+    StringSegment,
+} from "../../asm/instructions";
 
 test("parse Towards the Future", () => {
     const buffer = readFileSync("test/resources/quest118_e.qst");
@@ -104,6 +110,35 @@ function round_trip_test(path: string, file_name: string, contents: Buffer): voi
         expect(test_quest.object_code.length).toBe(orig_quest.object_code.length);
 
         for (let i = 0; i < orig_quest.object_code.length; i++) {
+            const orig_segment = orig_quest.object_code[i];
+            const test_segment = test_quest.object_code[i];
+
+            expect(test_segment.type).toBe(orig_segment.type);
+            expect(test_segment.labels).toEqual(orig_segment.labels);
+
+            switch (orig_segment.type) {
+                case SegmentType.Instructions:
+                    expect((test_segment as InstructionSegment).instructions.length).toBe(
+                        orig_segment.instructions.length,
+                    );
+
+                    for (let j = 0; j < orig_segment.instructions.length; j++) {
+                        const orig_inst = orig_segment.instructions[j];
+                        const test_inst = (test_segment as InstructionSegment).instructions[j];
+
+                        expect(test_inst.opcode.code).toBe(orig_inst.opcode.code);
+                        expect(test_inst.args).toEqual(orig_inst.args);
+                    }
+
+                    break;
+                case SegmentType.Data:
+                    expect((test_segment as DataSegment).data).toEqual(orig_segment.data);
+                    break;
+                case SegmentType.String:
+                    expect((test_segment as StringSegment).value).toBe(orig_segment.value);
+                    break;
+            }
+
             expect(test_quest.object_code[i]).toEqual(orig_quest.object_code[i]);
         }
     });

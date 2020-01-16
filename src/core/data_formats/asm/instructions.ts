@@ -1,5 +1,6 @@
 import { Kind, Opcode } from "./opcodes";
 import { array_buffers_equal, arrays_equal } from "../../util";
+import { BinFormat } from "../parsing/quest/BinFormat";
 
 /**
  * Instruction invocation.
@@ -7,14 +8,6 @@ import { array_buffers_equal, arrays_equal } from "../../util";
 export type Instruction = {
     readonly opcode: Opcode;
     readonly args: readonly Arg[];
-    /**
-     * Byte size of the argument list.
-     */
-    readonly arg_size: number;
-    /**
-     * Byte size of the entire instruction, i.e. the sum of the opcode size and all argument sizes.
-     */
-    readonly size: number;
     /**
      * Maps each parameter by index to its arguments.
      */
@@ -25,7 +18,6 @@ export type Instruction = {
 export function new_instruction(opcode: Opcode, args: Arg[], asm?: InstructionAsm): Instruction {
     const len = Math.min(opcode.params.length, args.length);
     const param_to_args: Arg[][] = [];
-    let arg_size = 0;
 
     for (let i = 0; i < len; i++) {
         const type = opcode.params[i].type;
@@ -35,16 +27,12 @@ export function new_instruction(opcode: Opcode, args: Arg[], asm?: InstructionAs
         switch (type.kind) {
             case Kind.ILabelVar:
             case Kind.RegRefVar:
-                arg_size++;
-
                 for (let j = i; j < args.length; j++) {
                     param_to_args[i].push(args[j]);
-                    arg_size += args[j].size;
                 }
 
                 break;
             default:
-                arg_size += arg.size;
                 param_to_args[i].push(arg);
                 break;
         }
@@ -53,11 +41,60 @@ export function new_instruction(opcode: Opcode, args: Arg[], asm?: InstructionAs
     return {
         opcode,
         args,
-        arg_size,
-        size: opcode.size + arg_size,
         param_to_args,
         asm,
     };
+}
+
+/**
+ * @returns The byte size of the entire instruction, i.e. the sum of the opcode size and all
+ * argument sizes.
+ */
+export function instruction_size(instruction: Instruction, format: BinFormat): number {
+    const opcode = instruction.opcode;
+    const p_len = Math.min(opcode.params.length, instruction.param_to_args.length);
+    let arg_size = 0;
+
+    for (let i = 0; i < p_len; i++) {
+        const type = opcode.params[i].type;
+        const args = instruction.param_to_args[i];
+
+        switch (type.kind) {
+            case Kind.Byte:
+            case Kind.RegRef:
+            case Kind.RegTupRef:
+                arg_size++;
+                break;
+            case Kind.Word:
+            case Kind.Label:
+            case Kind.ILabel:
+            case Kind.DLabel:
+            case Kind.SLabel:
+                arg_size += 2;
+                break;
+            case Kind.DWord:
+            case Kind.Float:
+                arg_size += 4;
+                break;
+            case Kind.String:
+                if (format == BinFormat.DC_GC) {
+                    arg_size += (args[0].value as string).length + 1;
+                } else {
+                    arg_size += 2 * (args[0].value as string).length + 2;
+                }
+                break;
+            case Kind.ILabelVar:
+                arg_size += 1 + 2 * args.length;
+                break;
+            case Kind.RegRefVar:
+                arg_size += 1 + args.length;
+                break;
+            default:
+                throw new Error(`Parameter type ${Kind[type.kind]} not implemented.`);
+        }
+    }
+
+    return opcode.size + arg_size;
 }
 
 function instructions_equal(a: Instruction, b: Instruction): boolean {
@@ -68,8 +105,6 @@ export function clone_instruction(instr: Instruction): Instruction {
     return {
         opcode: instr.opcode,
         args: instr.args.map(arg => ({ ...arg })),
-        arg_size: instr.arg_size,
-        size: instr.size,
         param_to_args: instr.param_to_args.map(args => args.map(arg => ({ ...arg }))),
         asm: instr.asm,
     };
@@ -80,18 +115,14 @@ export function clone_instruction(instr: Instruction): Instruction {
  */
 export type Arg = {
     readonly value: any;
-    readonly size: number;
 };
 
-export function new_arg(value: any, size: number): Arg {
-    return {
-        value,
-        size,
-    };
+export function new_arg(value: any): Arg {
+    return { value };
 }
 
 function args_equal(a: Arg, b: Arg): boolean {
-    return a.value === b.value && a.size === b.size;
+    return a.value === b.value;
 }
 
 /**

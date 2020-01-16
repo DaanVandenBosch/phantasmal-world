@@ -2,6 +2,7 @@ import {
     Arg,
     DataSegment,
     Instruction,
+    instruction_size,
     InstructionSegment,
     new_arg,
     new_instruction,
@@ -110,9 +111,15 @@ export function write_object_code(
                                 break;
                             case Kind.String:
                                 if (format === BinFormat.DC_GC) {
-                                    cursor.write_string_ascii(arg.value, arg.size);
+                                    cursor.write_string_ascii(
+                                        arg.value,
+                                        (arg.value as string).length + 1,
+                                    );
                                 } else {
-                                    cursor.write_string_utf16(arg.value, arg.size);
+                                    cursor.write_string_utf16(
+                                        arg.value,
+                                        2 * (arg.value as string).length + 2,
+                                    );
                                 }
                                 break;
                             case Kind.ILabelVar:
@@ -229,7 +236,7 @@ function internal_parse_object_code(
         switch (segment.type) {
             case SegmentType.Instructions:
                 for (const instruction of segment.instructions) {
-                    offset += instruction.size;
+                    offset += instruction_size(instruction, format);
                 }
 
                 break;
@@ -595,33 +602,31 @@ function parse_instruction_arguments(cursor: Cursor, opcode: Opcode, format: Bin
         for (const param of opcode.params) {
             switch (param.type.kind) {
                 case Kind.Byte:
-                    args.push(new_arg(cursor.u8(), 1));
+                    args.push(new_arg(cursor.u8()));
                     break;
                 case Kind.Word:
-                    args.push(new_arg(cursor.u16(), 2));
+                    args.push(new_arg(cursor.u16()));
                     break;
                 case Kind.DWord:
-                    args.push(new_arg(cursor.i32(), 4));
+                    args.push(new_arg(cursor.i32()));
                     break;
                 case Kind.Float:
-                    args.push(new_arg(cursor.f32(), 4));
+                    args.push(new_arg(cursor.f32()));
                     break;
                 case Kind.Label:
                 case Kind.ILabel:
                 case Kind.DLabel:
                 case Kind.SLabel:
-                    args.push(new_arg(cursor.u16(), 2));
+                    args.push(new_arg(cursor.u16()));
                     break;
                 case Kind.String:
                     {
-                        const start_pos = cursor.position;
                         const max_bytes = Math.min(4096, cursor.bytes_left);
                         args.push(
                             new_arg(
                                 format === BinFormat.DC_GC
                                     ? cursor.string_ascii(max_bytes, true, false)
                                     : cursor.string_utf16(max_bytes, true, false),
-                                cursor.position - start_pos,
                             ),
                         );
                     }
@@ -629,17 +634,17 @@ function parse_instruction_arguments(cursor: Cursor, opcode: Opcode, format: Bin
                 case Kind.ILabelVar:
                     {
                         const arg_size = cursor.u8();
-                        args.push(...cursor.u16_array(arg_size).map(value => new_arg(value, 2)));
+                        args.push(...cursor.u16_array(arg_size).map(value => new_arg(value)));
                     }
                     break;
                 case Kind.RegRef:
                 case Kind.RegTupRef:
-                    args.push(new_arg(cursor.u8(), 1));
+                    args.push(new_arg(cursor.u8()));
                     break;
                 case Kind.RegRefVar:
                     {
                         const arg_size = cursor.u8();
-                        args.push(...cursor.u8_array(arg_size).map(value => new_arg(value, 1)));
+                        args.push(...cursor.u8_array(arg_size).map(value => new_arg(value)));
                     }
                     break;
                 default:

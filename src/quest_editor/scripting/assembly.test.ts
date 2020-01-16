@@ -37,7 +37,7 @@ test("basic script", () => {
     expect(segment_0.instructions.length).toBe(9);
 
     expect(segment_0.instructions[0].opcode).toBe(OP_SET_EPISODE);
-    expect(segment_0.instructions[0].args).toEqual([{ value: 0, size: 4 }]);
+    expect(segment_0.instructions[0].args).toEqual([{ value: 0 }]);
     expect(segment_0.instructions[0].asm).toEqual({
         mnemonic: { line_no: 2, col: 10, len: 11 },
         args: [{ line_no: 2, col: 22, len: 1 }],
@@ -46,10 +46,10 @@ test("basic script", () => {
 
     expect(segment_0.instructions[1].opcode).toBe(OP_BB_MAP_DESIGNATE);
     expect(segment_0.instructions[1].args).toEqual([
-        { value: 1, size: 1 },
-        { value: 2, size: 2 },
-        { value: 3, size: 1 },
-        { value: 4, size: 1 },
+        { value: 1 },
+        { value: 2 },
+        { value: 3 },
+        { value: 4 },
     ]);
     expect(segment_0.instructions[1].asm).toEqual({
         mnemonic: { line_no: 3, col: 10, len: 16 },
@@ -63,13 +63,13 @@ test("basic script", () => {
     });
 
     expect(segment_0.instructions[2].opcode).toBe(OP_ARG_PUSHL);
-    expect(segment_0.instructions[2].args).toEqual([{ value: 0, size: 4 }]);
+    expect(segment_0.instructions[2].args).toEqual([{ value: 0 }]);
     expect(segment_0.instructions[2].asm).toEqual({
         args: [{ line_no: 4, col: 28, len: 1 }],
         stack_args: [],
     });
     expect(segment_0.instructions[3].opcode).toBe(OP_ARG_PUSHW);
-    expect(segment_0.instructions[3].args).toEqual([{ value: 150, size: 2 }]);
+    expect(segment_0.instructions[3].args).toEqual([{ value: 150 }]);
     expect(segment_0.instructions[3].asm).toEqual({
         args: [{ line_no: 4, col: 31, len: 3 }],
         stack_args: [],
@@ -86,13 +86,13 @@ test("basic script", () => {
     });
 
     expect(segment_0.instructions[5].opcode).toBe(OP_ARG_PUSHL);
-    expect(segment_0.instructions[5].args).toEqual([{ value: 1, size: 4 }]);
+    expect(segment_0.instructions[5].args).toEqual([{ value: 1 }]);
     expect(segment_0.instructions[5].asm).toEqual({
         args: [{ line_no: 5, col: 28, len: 1 }],
         stack_args: [],
     });
     expect(segment_0.instructions[6].opcode).toBe(OP_ARG_PUSHW);
-    expect(segment_0.instructions[6].args).toEqual([{ value: 151, size: 2 }]);
+    expect(segment_0.instructions[6].args).toEqual([{ value: 151 }]);
     expect(segment_0.instructions[6].asm).toEqual({
         args: [{ line_no: 5, col: 31, len: 3 }],
         stack_args: [],
@@ -117,7 +117,7 @@ test("basic script", () => {
     expect(segment_1.instructions.length).toBe(3);
 
     expect(segment_1.instructions[0].opcode).toBe(OP_ARG_PUSHL);
-    expect(segment_1.instructions[0].args).toEqual([{ value: 1, size: 4 }]);
+    expect(segment_1.instructions[0].args).toEqual([{ value: 1 }]);
     expect(segment_1.instructions[0].asm).toEqual({
         args: [{ line_no: 7, col: 23, len: 1 }],
         stack_args: [],
@@ -163,7 +163,7 @@ test("pass the value of a register via the stack", () => {
     expect(segment_0.instructions.length).toBe(4);
 
     expect(segment_0.instructions[1].opcode).toBe(OP_ARG_PUSHR);
-    expect(segment_0.instructions[1].args).toEqual([{ value: 255, size: 1 }]);
+    expect(segment_0.instructions[1].args).toEqual([{ value: 255 }]);
 });
 
 test("pass a register reference via the stack", () => {
@@ -186,8 +186,8 @@ test("pass a register reference via the stack", () => {
     expect(segment_0.instructions.length).toBe(4);
 
     expect(segment_0.instructions[0].opcode).toBe(OP_ARG_PUSHB);
-    expect(segment_0.instructions[0].args).toEqual([{ value: 200, size: 1 }]);
+    expect(segment_0.instructions[0].args).toEqual([{ value: 200 }]);
 
     expect(segment_0.instructions[1].opcode).toBe(OP_ARG_PUSHL);
-    expect(segment_0.instructions[1].args).toEqual([{ value: 3, size: 4 }]);
+    expect(segment_0.instructions[1].args).toEqual([{ value: 3 }]);
 });

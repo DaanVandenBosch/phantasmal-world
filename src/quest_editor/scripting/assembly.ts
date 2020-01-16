@@ -603,7 +603,7 @@ class Assembler {
                             case Kind.Float:
                                 this.add_instruction(
                                     OP_ARG_PUSHL,
-                                    [{ value: reinterpret_f32_as_i32(arg.value), size: 4 }],
+                                    [{ value: reinterpret_f32_as_i32(arg.value) }],
                                     [],
                                     undefined,
                                     [arg_token],
@@ -728,13 +728,7 @@ class Assembler {
                                 break;
                             case Kind.Float:
                                 match = true;
-                                arg_and_tokens.push([
-                                    {
-                                        value: token.value,
-                                        size: 4,
-                                    },
-                                    token,
-                                ]);
+                                arg_and_tokens.push([{ value: token.value }, token]);
                                 break;
                             default:
                                 match = false;
@@ -745,13 +739,7 @@ class Assembler {
                         match = param.type.kind === Kind.Float;
 
                         if (match) {
-                            arg_and_tokens.push([
-                                {
-                                    value: token.value,
-                                    size: 4,
-                                },
-                                token,
-                            ]);
+                            arg_and_tokens.push([{ value: token.value }, token]);
                         }
 
                         break;
@@ -768,13 +756,7 @@ class Assembler {
                         match = param.type.kind === Kind.String;
 
                         if (match) {
-                            arg_and_tokens.push([
-                                {
-                                    value: token.value,
-                                    size: 2 * token.value.length + 2,
-                                },
-                                token,
-                            ]);
+                            arg_and_tokens.push([{ value: token.value }, token]);
                         }
 
                         break;
@@ -864,13 +846,7 @@ class Assembler {
                 message: `${bit_size}-Bit integer can't be greater than ${max_value}.`,
             });
         } else {
-            arg_and_tokens.push([
-                {
-                    value,
-                    size,
-                },
-                token,
-            ]);
+            arg_and_tokens.push([{ value }, token]);
         }
     }
 
@@ -884,13 +860,7 @@ class Assembler {
                 message: `Invalid register reference, expected r0-r255.`,
             });
         } else {
-            arg_and_tokens.push([
-                {
-                    value,
-                    size: 1,
-                },
-                token,
-            ]);
+            arg_and_tokens.push([{ value }, token]);
         }
     }
 

@@ -34,10 +34,10 @@ test("vararg instructions should be disassembled correctly", () => {
             labels: [0],
             instructions: [
                 new_instruction(OP_SWITCH_JMP, [
-                    new_arg(90, 1),
-                    new_arg(100, 2),
-                    new_arg(101, 2),
-                    new_arg(102, 2),
+                    new_arg(90),
+                    new_arg(100),
+                    new_arg(101),
+                    new_arg(102),
                 ]),
                 new_instruction(OP_RET, []),
             ],
@@ -64,8 +64,8 @@ test("va list instructions should be disassembled correctly", () => {
             labels: [0],
             instructions: [
                 new_instruction(OP_VA_START, []),
-                new_instruction(OP_ARG_PUSHW, [new_arg(1337, 2)]),
-                new_instruction(OP_VA_CALL, [new_arg(100, 2)]),
+                new_instruction(OP_ARG_PUSHW, [new_arg(1337)]),
+                new_instruction(OP_VA_CALL, [new_arg(100)]),
                 new_instruction(OP_VA_END, []),
                 new_instruction(OP_RET, []),
             ],
