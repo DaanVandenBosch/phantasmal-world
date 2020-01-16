@@ -58,7 +58,7 @@ function find_values(
     position: number,
 ): ValueSet {
     if (++ctx.iterations > 100) {
-        logger.warning("Too many iterations.");
+        logger.warn("Too many iterations.");
         return new ValueSet().set_interval(MIN_STACK_VALUE, MAX_STACK_VALUE);
     }
 

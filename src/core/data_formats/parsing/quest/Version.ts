@@ -7,9 +7,14 @@ export enum Version {
      * GameCube
      */
     GC,
+    /**
+     * Desktop
+     */
     PC,
     /**
      * BlueBurst
      */
     BB,
 }
+
+export const VERSIONS: Version[] = [Version.DC, Version.GC, Version.PC, Version.BB];

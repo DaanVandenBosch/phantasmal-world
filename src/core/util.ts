@@ -64,7 +64,7 @@ export function map_get_or_put<K, V>(map: Map<K, V>, key: K, get_default: () => 
 export function basename(filename: string): string {
     const dot_idx = filename.lastIndexOf(".");
 
-    // < 0 means filenames doesn't contain any "."
+    // < 0 means filename doesn't contain any "."
     // also skip index 0 because that would mean the basename is empty
     if (dot_idx > 1) {
         return filename.slice(0, dot_idx);
@@ -76,7 +76,7 @@ export function basename(filename: string): string {
 export function filename_extension(filename: string): string {
     const dot_idx = filename.lastIndexOf(".");
 
-    // < 0 means filenames doesn't contain any "."
+    // < 0 means filename doesn't contain any "."
     // also skip index 0 because that would mean the basename is empty
     if (dot_idx > 1) {
         return filename.slice(dot_idx + 1);

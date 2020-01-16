@@ -59,12 +59,12 @@ export class EntityAssetLoader implements Disposable {
                     if (nj_objects.success && nj_objects.value.length) {
                         return ninja_object_to_buffer_geometry(nj_objects.value[0]);
                     } else {
-                        logger.warning(`Couldn't parse ${url} for ${entity_type_to_string(type)}.`);
+                        logger.warn(`Couldn't parse ${url} for ${entity_type_to_string(type)}.`);
                         return DEFAULT_ENTITY;
                     }
                 })
                 .catch(e => {
-                    logger.warning(
+                    logger.warn(
                         `Couldn't load geometry file for ${entity_type_to_string(type)}.`,
                         e,
                     );
@@ -82,7 +82,7 @@ export class EntityAssetLoader implements Disposable {
                     return xvm.success ? xvm_to_textures(xvm.value) : [];
                 })
                 .catch(e => {
-                    logger.warning(
+                    logger.warn(
                         `Couldn't load texture file for ${entity_type_to_string(type)}.`,
                         e,
                     );

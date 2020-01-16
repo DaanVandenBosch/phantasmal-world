@@ -134,6 +134,7 @@ export class Menu<T> extends Widget {
 
             case "Enter":
                 evt.preventDefault();
+                evt.stopPropagation();
                 this.select_hovered();
                 break;
         }

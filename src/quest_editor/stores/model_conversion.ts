@@ -118,7 +118,7 @@ function build_event_dags(
         let data = data_map.get(key);
 
         if (data && data.event) {
-            logger.warning(`Ignored duplicate event #${event.id} for area ${event.area_id}.`);
+            logger.warn(`Ignored duplicate event #${event.id} for area ${event.area_id}.`);
             continue;
         }
 
@@ -176,7 +176,7 @@ function build_event_dags(
                     }
                     break;
                 default:
-                    logger.warning(`Unknown event action type: ${(action as any).type}.`);
+                    logger.warn(`Unknown event action type: ${(action as any).type}.`);
                     break;
             }
         }
@@ -210,7 +210,7 @@ function build_event_dags(
                 if (child.event) {
                     event_dags.get(data.area_id)!.add_edge(data.event, child.event);
                 } else {
-                    logger.warning(`Event ${data.event.id} calls nonexistent event ${child_id}.`);
+                    logger.warn(`Event ${data.event.id} calls nonexistent event ${child_id}.`);
                 }
             }
         }

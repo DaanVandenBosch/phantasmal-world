@@ -109,6 +109,7 @@ export class Select<T> extends LabelledControl {
             case "Enter":
             case " ":
                 evt.preventDefault();
+                evt.stopPropagation();
                 this.just_opened = !this.menu.visible.val;
                 this.menu.visible.val = true;
                 this.menu.focus();

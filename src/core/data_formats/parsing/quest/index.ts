@@ -17,6 +17,9 @@ import { reinterpret_f32_as_i32, reinterpret_i32_as_f32 } from "../../../primiti
 import { LogManager } from "../../../Logger";
 import { parse_object_code, write_object_code } from "./object_code";
 import { get_map_designations } from "../../asm/data_flow_analysis/get_map_designations";
+import { basename } from "../../../util";
+import { version_to_bin_format } from "./BinFormat";
+import { Version } from "./Version";
 
 const logger = LogManager.get("core/data_formats/parsing/quest");
 
@@ -46,7 +49,7 @@ export function parse_bin_dat_to_quest(
 ): Quest | undefined {
     // Decompress and parse files.
     const bin_decompressed = prs_decompress(bin_cursor);
-    const { bin, dc_gc_format } = parse_bin(bin_decompressed);
+    const { bin, format } = parse_bin(bin_decompressed);
 
     const dat_decompressed = prs_decompress(dat_cursor);
     const dat = parse_dat(dat_decompressed);
@@ -61,7 +64,7 @@ export function parse_bin_dat_to_quest(
         bin.label_offsets,
         extract_script_entry_points(objects, dat.npcs),
         lenient,
-        dc_gc_format,
+        format,
     );
 
     if (object_code.length) {
@@ -82,10 +85,10 @@ export function parse_bin_dat_to_quest(
             episode = get_episode(label_0_segment);
             map_designations = get_map_designations(instruction_segments, label_0_segment);
         } else {
-            logger.warning(`No instruction for label 0 found.`);
+            logger.warn(`No instruction for label 0 found.`);
         }
     } else {
-        logger.warning("File contains no instruction labels.");
+        logger.warn("File contains no instruction labels.");
     }
 
     return {
@@ -105,7 +108,10 @@ export function parse_bin_dat_to_quest(
     };
 }
 
-export function parse_qst_to_quest(cursor: Cursor, lenient: boolean = false): Quest | undefined {
+export function parse_qst_to_quest(
+    cursor: Cursor,
+    lenient: boolean = false,
+): { quest: Quest; version: Version; online: boolean } | undefined {
     // Extract contained .dat and .bin files.
     const qst = parse_qst(cursor);
 
@@ -136,14 +142,21 @@ export function parse_qst_to_quest(cursor: Cursor, lenient: boolean = false): Qu
         return;
     }
 
-    return parse_bin_dat_to_quest(
+    const quest = parse_bin_dat_to_quest(
         new ArrayBufferCursor(bin_file.data, Endianness.Little),
         new ArrayBufferCursor(dat_file.data, Endianness.Little),
         lenient,
     );
+
+    return quest && { quest, version: qst.version, online: qst.online };
 }
 
-export function write_quest_qst(quest: Quest, file_name: string): ArrayBuffer {
+export function write_quest_qst(
+    quest: Quest,
+    file_name: string,
+    version: Version,
+    online: boolean,
+): ArrayBuffer {
     const dat = write_dat({
         objs: objects_to_dat_data(quest.objects),
         npcs: npcs_to_dat_data(quest.npcs),
@@ -151,35 +164,43 @@ export function write_quest_qst(quest: Quest, file_name: string): ArrayBuffer {
         unknowns: quest.dat_unknowns,
     });
 
-    const { object_code, label_offsets } = write_object_code(quest.object_code);
+    const { object_code, label_offsets } = write_object_code(
+        quest.object_code,
+        version_to_bin_format(version),
+    );
 
-    const bin = write_bin({
-        quest_id: quest.id,
-        language: quest.language,
-        quest_name: quest.name,
-        short_description: quest.short_description,
-        long_description: quest.long_description,
-        object_code,
-        label_offsets,
-        shop_items: quest.shop_items,
-    });
+    const bin = write_bin(
+        {
+            quest_id: quest.id,
+            language: quest.language,
+            quest_name: quest.name,
+            short_description: quest.short_description,
+            long_description: quest.long_description,
+            object_code,
+            label_offsets,
+            shop_items: quest.shop_items,
+        },
+        version_to_bin_format(version),
+    );
 
-    const ext_start = file_name.lastIndexOf(".");
-    const base_file_name =
-        ext_start === -1 ? file_name.slice(0, 11) : file_name.slice(0, Math.min(11, ext_start));
+    const base_file_name = basename(file_name).slice(0, 11);
 
     return write_qst({
+        version,
+        online,
         files: [
             {
-                filename: base_file_name + ".dat",
                 id: quest.id,
+                filename: base_file_name + ".dat",
+                quest_name: quest.name,
                 data: prs_compress(
                     new ResizableBufferCursor(dat, Endianness.Little),
                 ).array_buffer(),
             },
             {
-                filename: base_file_name + ".bin",
                 id: quest.id,
+                filename: base_file_name + ".bin",
+                quest_name: quest.name,
                 data: prs_compress(new ArrayBufferCursor(bin, Endianness.Little)).array_buffer(),
             },
         ],
@@ -195,14 +216,18 @@ function get_episode(func_0_segment: InstructionSegment): Episode {
     );
 
     if (set_episode) {
-        switch (set_episode.args[0].value) {
-            default:
+        const episode = set_episode.args[0].value;
+
+        switch (episode) {
             case 0:
                 return Episode.I;
             case 1:
                 return Episode.II;
             case 2:
                 return Episode.IV;
+            default:
+                logger.warn(`Unknown episode ${episode} in function 0 set_episode instruction.`);
+                return Episode.I;
         }
     } else {
         logger.debug("Function 0 has no set_episode instruction.");

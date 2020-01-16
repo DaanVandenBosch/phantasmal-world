@@ -14,6 +14,7 @@ import { View } from "../../core/gui/View";
 import { Dialog } from "../../core/gui/Dialog";
 import { TextInput } from "../../core/gui/TextInput";
 import "./QuestEditorToolBarView.css";
+import { Version, VERSIONS } from "../../core/data_formats/parsing/quest/Version";
 
 export class QuestEditorToolBarView extends View {
     private readonly toolbar: ToolBar;
@@ -123,7 +124,28 @@ export class QuestEditorToolBarView extends View {
         this.toolbar = this.disposable(new ToolBar(...children));
 
         // "Save As" dialog.
-        const filename_input = this.disposable(new TextInput("", { label: "File name:" }));
+        const filename_input = this.disposable(
+            new TextInput(ctrl.filename.val, { label: "File name:" }),
+        );
+        const version_select = this.disposable(
+            new Select({
+                label: "Version:",
+                items: VERSIONS,
+                selected: ctrl.version,
+                to_label: version => {
+                    switch (version) {
+                        case Version.DC:
+                            return "Dreamcast";
+                        case Version.GC:
+                            return "GameCube";
+                        case Version.PC:
+                            return "PC";
+                        case Version.BB:
+                            return "BlueBurst";
+                    }
+                },
+            }),
+        );
         const save_button = this.disposable(new Button({ text: "Save" }));
         const cancel_button = this.disposable(new Button({ text: "Cancel" }));
 
@@ -135,6 +157,8 @@ export class QuestEditorToolBarView extends View {
                     { className: "quest_editor_QuestEditorToolBarView_save_as_dialog_content" },
                     filename_input.label!.element,
                     filename_input.element,
+                    version_select.label!.element,
+                    version_select.element,
                 ),
                 footer: [save_button.element, cancel_button.element],
             }),
@@ -156,7 +180,14 @@ export class QuestEditorToolBarView extends View {
 
             save_as_dialog.ondismiss.observe(ctrl.dismiss_save_as_dialog),
 
+            filename_input.value.bind_to(ctrl.filename),
             filename_input.value.observe(({ value }) => ctrl.set_filename(value)),
+
+            version_select.selected.observe(({ value }) => {
+                if (value != undefined) {
+                    ctrl.set_version(value);
+                }
+            }),
 
             save_button.onclick.observe(ctrl.save_as),
             cancel_button.onclick.observe(ctrl.dismiss_save_as_dialog),

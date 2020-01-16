@@ -15,7 +15,7 @@ export function parse_prc(cursor: Cursor): Cursor {
     const out = prs_decompress(prc_decrypt(key, cursor));
 
     if (out.size !== size) {
-        logger.warning(
+        logger.warn(
             `Size of decrypted, decompressed file was ${out.size} instead of expected ${size}.`,
         );
     }

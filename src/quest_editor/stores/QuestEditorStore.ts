@@ -161,7 +161,7 @@ export class QuestEditorStore extends Store {
         if (section) {
             entity.set_section(section);
         } else {
-            logger.warning(`Section ${entity.section_id.val} not found.`);
+            logger.warn(`Section ${entity.section_id.val} not found.`);
         }
     };
 }

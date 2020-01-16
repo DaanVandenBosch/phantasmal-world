@@ -27,8 +27,7 @@
 }
 
 .core_Dialog_body {
-    user-select: text;
-    overflow: auto;
+    flex: 1;
     margin: 4px 0;
 }
 

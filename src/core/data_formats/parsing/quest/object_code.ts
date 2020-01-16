@@ -19,6 +19,7 @@ import { Endianness } from "../../Endianness";
 import { LogManager } from "../../../Logger";
 import { ResizableBufferCursor } from "../../cursor/ResizableBufferCursor";
 import { ResizableBuffer } from "../../ResizableBuffer";
+import { BinFormat } from "./BinFormat";
 
 const logger = LogManager.get("core/data_formats/parsing/quest/object_code");
 
@@ -32,19 +33,20 @@ export function parse_object_code(
     label_offsets: readonly number[],
     entry_labels: readonly number[],
     lenient: boolean,
-    dc_gc_format: boolean,
+    format: BinFormat,
 ): Segment[] {
     return internal_parse_object_code(
         new ArrayBufferCursor(object_code, Endianness.Little),
         new LabelHolder(label_offsets),
         entry_labels,
         lenient,
-        dc_gc_format,
+        format,
     );
 }
 
 export function write_object_code(
     segments: readonly Segment[],
+    format: BinFormat,
 ): { object_code: ArrayBuffer; label_offsets: number[] } {
     const cursor = new ResizableBufferCursor(
         new ResizableBuffer(100 * segments.length),
@@ -107,7 +109,11 @@ export function write_object_code(
                                 cursor.write_u16(arg.value);
                                 break;
                             case Kind.String:
-                                cursor.write_string_utf16(arg.value, arg.size);
+                                if (format === BinFormat.DC_GC) {
+                                    cursor.write_string_ascii(arg.value, arg.size);
+                                } else {
+                                    cursor.write_string_utf16(arg.value, arg.size);
+                                }
                                 break;
                             case Kind.ILabelVar:
                                 cursor.write_u8(args.length);
@@ -132,8 +138,13 @@ export function write_object_code(
             }
         } else if (segment.type === SegmentType.String) {
             // String segments should be multiples of 4 bytes.
-            const byte_length = 4 * Math.ceil((segment.value.length + 1) / 2);
-            cursor.write_string_utf16(segment.value, byte_length);
+            if (format === BinFormat.DC_GC) {
+                const byte_length = 4 * Math.ceil((segment.value.length + 1) / 4);
+                cursor.write_string_ascii(segment.value, byte_length);
+            } else {
+                const byte_length = 4 * Math.ceil((segment.value.length + 1) / 2);
+                cursor.write_string_utf16(segment.value, byte_length);
+            }
         } else {
             cursor.write_cursor(new ArrayBufferCursor(segment.data, cursor.endianness));
         }
@@ -153,7 +164,7 @@ function internal_parse_object_code(
     label_holder: LabelHolder,
     entry_labels: readonly number[],
     lenient: boolean,
-    dc_gc_format: boolean,
+    format: BinFormat,
 ): Segment[] {
     const offset_to_segment = new Map<number, Segment>();
 
@@ -163,7 +174,7 @@ function internal_parse_object_code(
         entry_labels.reduce((m, l) => m.set(l, SegmentType.Instructions), new Map()),
         offset_to_segment,
         lenient,
-        dc_gc_format,
+        format,
     );
 
     const segments: Segment[] = [];
@@ -244,7 +255,7 @@ function internal_parse_object_code(
                 segment.labels.sort((a, b) => a - b);
             }
         } else {
-            logger.warning(`Label ${label} with offset ${offset} does not point to anything.`);
+            logger.warn(`Label ${label} with offset ${offset} does not point to anything.`);
         }
     }
 
@@ -268,7 +279,7 @@ function find_and_parse_segments(
     labels: Map<number, SegmentType>,
     offset_to_segment: Map<number, Segment>,
     lenient: boolean,
-    dc_gc_format: boolean,
+    format: BinFormat,
 ): void {
     let start_segment_count: number;
 
@@ -277,15 +288,7 @@ function find_and_parse_segments(
         start_segment_count = offset_to_segment.size;
 
         for (const [label, type] of labels) {
-            parse_segment(
-                offset_to_segment,
-                label_holder,
-                cursor,
-                label,
-                type,
-                lenient,
-                dc_gc_format,
-            );
+            parse_segment(offset_to_segment, label_holder, cursor, label, type, lenient, format);
         }
 
         // Find label references.
@@ -404,13 +407,13 @@ function parse_segment(
     label: number,
     type: SegmentType,
     lenient: boolean,
-    dc_gc_format: boolean,
+    format: BinFormat,
 ): void {
     try {
         const info = label_holder.get_info(label);
 
         if (info == undefined) {
-            logger.warning(`Label ${label} is not registered in the label table.`);
+            logger.warn(`Label ${label} is not registered in the label table.`);
             return;
         }
 
@@ -446,14 +449,14 @@ function parse_segment(
                     labels,
                     info.next && info.next.label,
                     lenient,
-                    dc_gc_format,
+                    format,
                 );
                 break;
             case SegmentType.Data:
                 parse_data_segment(offset_to_segment, cursor, end_offset, labels);
                 break;
             case SegmentType.String:
-                parse_string_segment(offset_to_segment, cursor, end_offset, labels, dc_gc_format);
+                parse_string_segment(offset_to_segment, cursor, end_offset, labels, format);
                 break;
             default:
                 throw new Error(`Segment type ${SegmentType[type]} not implemented.`);
@@ -475,7 +478,7 @@ function parse_instructions_segment(
     labels: number[],
     next_label: number | undefined,
     lenient: boolean,
-    dc_gc_format: boolean,
+    format: BinFormat,
 ): void {
     const instructions: Instruction[] = [];
 
@@ -506,7 +509,7 @@ function parse_instructions_segment(
 
         // Parse the arguments.
         try {
-            const args = parse_instruction_arguments(cursor, opcode, dc_gc_format);
+            const args = parse_instruction_arguments(cursor, opcode, format);
             instructions.push(new_instruction(opcode, args));
         } catch (e) {
             if (lenient) {
@@ -543,7 +546,7 @@ function parse_instructions_segment(
                 next_label,
                 SegmentType.Instructions,
                 lenient,
-                dc_gc_format,
+                format,
             );
         }
     }
@@ -570,21 +573,22 @@ function parse_string_segment(
     cursor: Cursor,
     end_offset: number,
     labels: number[],
-    dc_gc_format: boolean,
+    format: BinFormat,
 ): void {
     const start_offset = cursor.position;
     const segment: StringSegment = {
         type: SegmentType.String,
         labels,
-        value: dc_gc_format
-            ? cursor.string_ascii(end_offset - start_offset, true, true)
-            : cursor.string_utf16(end_offset - start_offset, true, true),
+        value:
+            format === BinFormat.DC_GC
+                ? cursor.string_ascii(end_offset - start_offset, true, true)
+                : cursor.string_utf16(end_offset - start_offset, true, true),
         asm: { labels: [] },
     };
     offset_to_segment.set(start_offset, segment);
 }
 
-function parse_instruction_arguments(cursor: Cursor, opcode: Opcode, dc_gc_format: boolean): Arg[] {
+function parse_instruction_arguments(cursor: Cursor, opcode: Opcode, format: BinFormat): Arg[] {
     const args: Arg[] = [];
 
     if (opcode.stack !== StackInteraction.Pop) {
@@ -614,7 +618,7 @@ function parse_instruction_arguments(cursor: Cursor, opcode: Opcode, dc_gc_forma
                         const max_bytes = Math.min(4096, cursor.bytes_left);
                         args.push(
                             new_arg(
-                                dc_gc_format
+                                format === BinFormat.DC_GC
                                     ? cursor.string_ascii(max_bytes, true, false)
                                     : cursor.string_utf16(max_bytes, true, false),
                                 cursor.position - start_pos,

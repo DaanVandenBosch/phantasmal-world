@@ -91,7 +91,7 @@ export class Logger {
         this.log(Severity.Info, message, cause);
     };
 
-    warning = (message: string, cause?: any): void => {
+    warn = (message: string, cause?: any): void => {
         this.log(Severity.Warning, message, cause);
     };
 

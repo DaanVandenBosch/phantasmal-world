@@ -68,7 +68,7 @@ function find_values(
     register: number,
 ): ValueSet {
     if (++ctx.iterations > 100) {
-        logger.warning("Too many iterations.");
+        logger.warn("Too many iterations.");
         return new ValueSet().set_interval(MIN_REGISTER_VALUE, MAX_REGISTER_VALUE);
     }
 

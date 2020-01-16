@@ -302,7 +302,7 @@ function parse_chunks(
                 type: NjcmChunkType.Unknown,
                 type_id,
             });
-            logger.warning(`Unknown chunk type ${type_id} at offset ${chunk_start_position}.`);
+            logger.warn(`Unknown chunk type ${type_id} at offset ${chunk_start_position}.`);
         }
 
         cursor.seek_start(chunk_start_position + size);
@@ -317,7 +317,7 @@ function parse_vertex_chunk(
     flags: number,
 ): NjcmChunkVertex[] {
     if (chunk_type_id < 32 || chunk_type_id > 50) {
-        logger.warning(`Unknown vertex chunk type ${chunk_type_id}.`);
+        logger.warn(`Unknown vertex chunk type ${chunk_type_id}.`);
         return [];
     }
 

@@ -168,7 +168,7 @@ export class Table<T> extends Widget {
 
                         if (column.tooltip) cell.title = column.tooltip(value);
                     } catch (e) {
-                        logger.warning(
+                        logger.warn(
                             `Error while rendering cell for index ${index}, column ${i}.`,
                             e,
                         );

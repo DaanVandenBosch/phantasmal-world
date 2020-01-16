@@ -60,7 +60,7 @@ export class UndoStack implements Undo {
                 this.index.update(i => i - 1);
                 this.stack.get(this.index.val).undo();
             } catch (e) {
-                logger.warning("Error while undoing action.", e);
+                logger.warn("Error while undoing action.", e);
             } finally {
                 this.undoing_or_redoing = false;
             }
@@ -78,7 +78,7 @@ export class UndoStack implements Undo {
                 this.stack.get(this.index.val).redo();
                 this.index.update(i => i + 1);
             } catch (e) {
-                logger.warning("Error while redoing action.", e);
+                logger.warn("Error while redoing action.", e);
             } finally {
                 this.undoing_or_redoing = false;
             }

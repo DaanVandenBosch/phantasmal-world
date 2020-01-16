@@ -25,7 +25,7 @@ export function get_map_designations(
                     const area_id = get_register_value(cfg, inst, inst.args[0].value);
 
                     if (area_id.size() !== 1) {
-                        logger.warning(`Couldn't determine area ID for map_designate instruction.`);
+                        logger.warn(`Couldn't determine area ID for map_designate instruction.`);
                         continue;
                     }
 
@@ -34,7 +34,7 @@ export function get_map_designations(
                     const variant_id = get_register_value(cfg, inst, variant_id_register);
 
                     if (variant_id.size() !== 1) {
-                        logger.warning(
+                        logger.warn(
                             `Couldn't determine area variant ID for map_designate instruction.`,
                         );
                         continue;

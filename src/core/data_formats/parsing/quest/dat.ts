@@ -138,7 +138,7 @@ export function parse_dat(cursor: Cursor): DatFile {
             }
 
             if (entities_cursor.bytes_left) {
-                logger.warning(
+                logger.warn(
                     `Read ${entities_cursor.position} bytes instead of expected ${entities_cursor.size} for entity type ${entity_type}.`,
                 );
             }
@@ -285,7 +285,7 @@ function parse_events(cursor: Cursor, area_id: number, events: DatEvent[]): void
             actions_cursor.seek_start(event_actions_offset);
             actions = parse_event_actions(actions_cursor);
         } else {
-            logger.warning(`Invalid event actions offset ${event_actions_offset} for event ${id}.`);
+            logger.warn(`Invalid event actions offset ${event_actions_offset} for event ${id}.`);
         }
 
         events.push({
@@ -300,7 +300,7 @@ function parse_events(cursor: Cursor, area_id: number, events: DatEvent[]): void
     }
 
     if (cursor.position !== actions_offset) {
-        logger.warning(
+        logger.warn(
             `Read ${cursor.position - 16} bytes of event data instead of expected ${actions_offset -
                 16}.`,
         );
@@ -364,7 +364,7 @@ function parse_event_actions(cursor: Cursor): DatEventAction[] {
                 break;
 
             default:
-                logger.warning(`Unexpected event action type ${type}.`);
+                logger.warn(`Unexpected event action type ${type}.`);
                 break outer;
         }
     }

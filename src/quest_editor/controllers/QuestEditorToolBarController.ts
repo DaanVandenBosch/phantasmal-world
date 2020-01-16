@@ -20,6 +20,7 @@ import { Endianness } from "../../core/data_formats/Endianness";
 import { convert_quest_from_model, convert_quest_to_model } from "../stores/model_conversion";
 import { LogManager } from "../../core/Logger";
 import { basename } from "../../core/util";
+import { Version } from "../../core/data_formats/parsing/quest/Version";
 
 const logger = LogManager.get("quest_editor/controllers/QuestEditorToolBarController");
 
@@ -28,6 +29,7 @@ export type AreaAndLabel = { readonly area: AreaModel; readonly label: string };
 export class QuestEditorToolBarController extends Controller {
     private _save_as_dialog_visible = property(false);
     private _filename = property("");
+    private _version = property(Version.BB);
 
     readonly vm_feature_active: boolean;
     readonly areas: Property<readonly AreaAndLabel[]>;
@@ -41,6 +43,7 @@ export class QuestEditorToolBarController extends Controller {
     readonly can_stop: Property<boolean>;
     readonly save_as_dialog_visible: Property<boolean> = this._save_as_dialog_visible;
     readonly filename: Property<string> = this._filename;
+    readonly version: Property<Version> = this._version;
 
     constructor(
         gui_store: GuiStore,
@@ -100,8 +103,6 @@ export class QuestEditorToolBarController extends Controller {
         this.can_stop = quest_editor_store.quest_runner.running;
 
         this.disposables(
-            quest_editor_store.current_quest.observe(() => this.set_filename("")),
-
             gui_store.on_global_keydown(GuiTool.QuestEditor, "Ctrl-O", async () => {
                 const files = await open_files({ accept: ".bin, .dat, .qst", multiple: true });
                 this.parse_files(files);
@@ -131,8 +132,11 @@ export class QuestEditorToolBarController extends Controller {
         );
     }
 
-    create_new_quest = async (episode: Episode): Promise<void> =>
+    create_new_quest = async (episode: Episode): Promise<void> => {
+        this.set_filename("");
+        this.set_version(Version.BB);
         this.quest_editor_store.set_current_quest(create_new_quest(this.area_store, episode));
+    };
 
     // TODO: notify user of problems.
     parse_files = async (files: File[]): Promise<void> => {
@@ -145,7 +149,15 @@ export class QuestEditorToolBarController extends Controller {
 
             if (qst) {
                 const buffer = await read_file(qst);
-                quest = parse_qst_to_quest(new ArrayBufferCursor(buffer, Endianness.Little));
+                const parse_result = parse_qst_to_quest(
+                    new ArrayBufferCursor(buffer, Endianness.Little),
+                );
+
+                if (parse_result) {
+                    quest = parse_result.quest;
+                    this.set_version(parse_result.version);
+                }
+
                 this.set_filename(basename(qst.name));
 
                 if (!quest) {
@@ -192,8 +204,11 @@ export class QuestEditorToolBarController extends Controller {
         const quest = this.quest_editor_store.current_quest.val;
         if (!quest) return;
 
+        const format = this.version.val;
+        if (format === undefined) return;
+
         let filename = this.filename.val;
-        const buffer = write_quest_qst(convert_quest_from_model(quest), filename);
+        const buffer = write_quest_qst(convert_quest_from_model(quest), filename, format, true);
 
         if (!filename.endsWith(".qst")) {
             filename += ".qst";
@@ -216,6 +231,10 @@ export class QuestEditorToolBarController extends Controller {
 
     set_filename = (filename: string): void => {
         this._filename.val = filename;
+    };
+
+    set_version = (version: Version): void => {
+        this._version.val = version;
     };
 
     debug = (): void => {

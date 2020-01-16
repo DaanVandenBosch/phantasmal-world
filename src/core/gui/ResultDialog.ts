@@ -2,7 +2,7 @@ import { Dialog } from "./Dialog";
 import { Button } from "./Button";
 import { Result } from "../Result";
 import { is_property, Property } from "../observable/property/Property";
-import { li, ul } from "./dom";
+import { div, li, ul } from "./dom";
 import { property } from "../observable";
 import { WidgetOptions } from "./Widget";
 
@@ -75,7 +75,15 @@ export class ResultDialog extends Dialog {
 }
 
 function create_result_body(result: Result<unknown>): HTMLElement {
-    const body = ul(...result.problems.map(problem => li(problem.ui_message)));
-    body.style.cursor = "text";
+    const body = div();
+    body.style.overflow = "auto";
+    body.style.userSelect = "text";
+    body.style.height = "100%";
+    body.style.maxHeight = "400px"; // Workaround for chrome bug.
+
+    const list_element = ul(...result.problems.map(problem => li(problem.ui_message)));
+    list_element.style.cursor = "text";
+    body.append(list_element);
+
     return body;
 }

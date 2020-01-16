@@ -4,17 +4,27 @@ import { Cursor } from "../../cursor/Cursor";
 import { ResizableBufferCursor } from "../../cursor/ResizableBufferCursor";
 import { WritableCursor } from "../../cursor/WritableCursor";
 import { ResizableBuffer } from "../../ResizableBuffer";
-import { basename, defined } from "../../../util";
+import { assert, basename, defined } from "../../../util";
 import { LogManager } from "../../../Logger";
 import { Version } from "./Version";
 
 const logger = LogManager.get("core/data_formats/parsing/quest/qst");
 
+// .qst format
+const DC_GC_PC_HEADER_SIZE = 60;
 const BB_HEADER_SIZE = 88;
-const PC_GC_HEADER_SIZE = 60;
 const ONLINE_QUEST = 0x44;
 const DOWNLOAD_QUEST = 0xa6;
+
+// Chunks
 const CHUNK_BODY_SIZE = 1024;
+const DC_GC_PC_CHUNK_HEADER_SIZE = 20;
+const DC_GC_PC_CHUNK_TRAILER_SIZE = 4;
+const DC_GC_PC_CHUNK_SIZE =
+    CHUNK_BODY_SIZE + DC_GC_PC_CHUNK_HEADER_SIZE + DC_GC_PC_CHUNK_TRAILER_SIZE;
+const BB_CHUNK_HEADER_SIZE = 24;
+const BB_CHUNK_TRAILER_SIZE = 8;
+const BB_CHUNK_SIZE = CHUNK_BODY_SIZE + BB_CHUNK_HEADER_SIZE + BB_CHUNK_TRAILER_SIZE;
 
 export type QstContainedFile = {
     readonly id?: number;
@@ -23,7 +33,7 @@ export type QstContainedFile = {
     readonly data: ArrayBuffer;
 };
 
-export type ParseQstResult = {
+export type QstContent = {
     readonly version: Version;
     readonly online: boolean;
     readonly files: readonly QstContainedFile[];
@@ -33,8 +43,8 @@ export type ParseQstResult = {
  * Low level parsing function for .qst files.
  * Can only read the Blue Burst format.
  */
-export function parse_qst(cursor: Cursor): ParseQstResult | undefined {
-    // A .qst file contains two 88-byte headers that describe the embedded .dat and .bin files.
+export function parse_qst(cursor: Cursor): QstContent | undefined {
+    // A .qst file contains two headers that describe the embedded .dat and .bin files.
     // Read headers and contained files.
     const headers = parse_headers(cursor);
 
@@ -52,7 +62,7 @@ export function parse_qst(cursor: Cursor): ParseQstResult | undefined {
         if (version != undefined && header.version !== version) {
             logger.error(
                 `Corrupt .qst file, header version ${Version[header.version]} for file ${
-                    header.file_name
+                    header.filename
                 } doesn't match the previous header's version ${Version[version]}.`,
             );
             return undefined;
@@ -62,7 +72,7 @@ export function parse_qst(cursor: Cursor): ParseQstResult | undefined {
             logger.error(
                 `Corrupt .qst file, header type ${
                     header.online ? '"online"' : '"download"'
-                } for file ${header.file_name} doesn't match the previous header's type ${
+                } for file ${header.filename} doesn't match the previous header's type ${
                     online ? '"online"' : '"download"'
                 }.`,
             );
@@ -76,7 +86,7 @@ export function parse_qst(cursor: Cursor): ParseQstResult | undefined {
     defined(version, "version");
     defined(online, "online");
 
-    const files = parse_files(cursor, version, new Map(headers.map(h => [h.file_name, h])));
+    const files = parse_files(cursor, version, new Map(headers.map(h => [h.filename, h])));
 
     return {
         version,
@@ -85,31 +95,33 @@ export function parse_qst(cursor: Cursor): ParseQstResult | undefined {
     };
 }
 
-export type QstContainedFileParam = {
-    readonly id?: number;
-    readonly filename: string;
-    readonly quest_name?: string;
-    readonly data: ArrayBuffer;
-};
+export function write_qst({ version, online, files }: QstContent): ArrayBuffer {
+    let file_header_size: number;
+    let chunk_size: number;
 
-export type WriteQstParams = {
-    readonly version?: Version;
-    readonly files: readonly QstContainedFileParam[];
-};
+    switch (version) {
+        case Version.DC:
+        case Version.GC:
+        case Version.PC:
+            file_header_size = DC_GC_PC_HEADER_SIZE;
+            chunk_size = DC_GC_PC_CHUNK_SIZE;
+            break;
 
-/**
- * Always uses Blue Burst format.
- */
-export function write_qst(params: WriteQstParams): ArrayBuffer {
-    const files = params.files;
+        case Version.BB:
+            file_header_size = BB_HEADER_SIZE;
+            chunk_size = BB_CHUNK_SIZE;
+            break;
+    }
+
     const total_size = files
-        .map(f => 88 + Math.ceil(f.data.byteLength / 1024) * 1056)
+        .map(f => file_header_size + Math.ceil(f.data.byteLength / CHUNK_BODY_SIZE) * chunk_size)
         .reduce((a, b) => a + b);
+
     const buffer = new ArrayBuffer(total_size);
     const cursor = new ArrayBufferCursor(buffer, Endianness.Little);
 
-    write_file_headers(cursor, files);
-    write_file_chunks(cursor, files);
+    write_file_headers(cursor, files, version, online, file_header_size);
+    write_file_chunks(cursor, files, version);
 
     if (cursor.position !== total_size) {
         throw new Error(`Expected a final file size of ${total_size}, but got ${cursor.position}.`);
@@ -123,7 +135,7 @@ type QstHeader = {
     readonly online: boolean;
     readonly quest_id: number;
     readonly name: string;
-    readonly file_name: string;
+    readonly filename: string;
     readonly size: number;
 };
 
@@ -131,13 +143,13 @@ function parse_headers(cursor: Cursor): QstHeader[] {
     const headers: QstHeader[] = [];
 
     let prev_quest_id: number | undefined = undefined;
-    let prev_file_name: string | undefined = undefined;
+    let prev_filename: string | undefined = undefined;
 
     // .qst files should have two headers, some malformed files have more.
     for (let i = 0; i < 4; ++i) {
         // Detect version and whether it's an online or download quest.
-        let version;
-        let online;
+        let version: Version;
+        let online: boolean;
 
         const version_a = cursor.u8();
         cursor.seek(1);
@@ -147,10 +159,10 @@ function parse_headers(cursor: Cursor): QstHeader[] {
         if (version_a === BB_HEADER_SIZE && version_b === ONLINE_QUEST) {
             version = Version.BB;
             online = true;
-        } else if (version_a === PC_GC_HEADER_SIZE && version_b === ONLINE_QUEST) {
+        } else if (version_a === DC_GC_PC_HEADER_SIZE && version_b === ONLINE_QUEST) {
             version = Version.PC;
             online = true;
-        } else if (version_b === PC_GC_HEADER_SIZE) {
+        } else if (version_b === DC_GC_PC_HEADER_SIZE) {
             const pos = cursor.position;
             cursor.seek(35);
 
@@ -177,7 +189,7 @@ function parse_headers(cursor: Cursor): QstHeader[] {
         let header_size;
         let quest_id: number;
         let name: string;
-        let file_name: string;
+        let filename: string;
         let size: number;
 
         switch (version) {
@@ -187,7 +199,8 @@ function parse_headers(cursor: Cursor): QstHeader[] {
                 header_size = cursor.u16();
                 name = cursor.string_ascii(32, true, true);
                 cursor.seek(3);
-                file_name = cursor.string_ascii(16, true, true);
+                filename = cursor.string_ascii(16, true, true);
+                cursor.seek(1);
                 size = cursor.u32();
                 break;
 
@@ -197,7 +210,7 @@ function parse_headers(cursor: Cursor): QstHeader[] {
                 header_size = cursor.u16();
                 name = cursor.string_ascii(32, true, true);
                 cursor.seek(4);
-                file_name = cursor.string_ascii(16, true, true);
+                filename = cursor.string_ascii(16, true, true);
                 size = cursor.u32();
                 break;
 
@@ -207,7 +220,7 @@ function parse_headers(cursor: Cursor): QstHeader[] {
                 quest_id = cursor.u8();
                 name = cursor.string_ascii(32, true, true);
                 cursor.seek(4);
-                file_name = cursor.string_ascii(16, true, true);
+                filename = cursor.string_ascii(16, true, true);
                 size = cursor.u32();
                 break;
 
@@ -216,7 +229,7 @@ function parse_headers(cursor: Cursor): QstHeader[] {
                 cursor.seek(2); // Skip online/download.
                 quest_id = cursor.u16();
                 cursor.seek(38);
-                file_name = cursor.string_ascii(16, true, true);
+                filename = cursor.string_ascii(16, true, true);
                 size = cursor.u32();
                 name = cursor.string_ascii(24, true, true);
                 break;
@@ -226,22 +239,22 @@ function parse_headers(cursor: Cursor): QstHeader[] {
         // Some malformed .qst files have extra headers.
         if (
             prev_quest_id != undefined &&
-            prev_file_name != undefined &&
-            (quest_id !== prev_quest_id || basename(file_name) !== basename(prev_file_name))
+            prev_filename != undefined &&
+            (quest_id !== prev_quest_id || basename(filename) !== basename(prev_filename))
         ) {
             cursor.seek(-header_size);
             break;
         }
 
         prev_quest_id = quest_id;
-        prev_file_name = file_name;
+        prev_filename = filename;
 
         headers.push({
             version,
             online,
             quest_id,
             name,
-            file_name,
+            filename,
             size,
         });
     }
@@ -273,13 +286,13 @@ function parse_files(
         case Version.DC:
         case Version.GC:
         case Version.PC:
-            chunk_size = CHUNK_BODY_SIZE + 24;
-            trailer_size = 4;
+            chunk_size = DC_GC_PC_CHUNK_SIZE;
+            trailer_size = DC_GC_PC_CHUNK_TRAILER_SIZE;
             break;
 
         case Version.BB:
-            chunk_size = CHUNK_BODY_SIZE + 32;
-            trailer_size = 8;
+            chunk_size = BB_CHUNK_SIZE;
+            trailer_size = BB_CHUNK_TRAILER_SIZE;
             break;
     }
 
@@ -317,7 +330,7 @@ function parse_files(
                 name: file_name,
                 expected_size: header?.size,
                 cursor: new ResizableBufferCursor(
-                    new ResizableBuffer(header?.size ?? 10 * 1024),
+                    new ResizableBuffer(header?.size ?? 10 * CHUNK_BODY_SIZE),
                     Endianness.Little,
                 ),
                 chunk_nos: new Set(),
@@ -326,7 +339,7 @@ function parse_files(
         }
 
         if (file.chunk_nos.has(chunk_no)) {
-            logger.warning(
+            logger.warn(
                 `File chunk number ${chunk_no} of file ${file_name} was already encountered, overwriting previous chunk.`,
             );
         } else {
@@ -338,7 +351,7 @@ function parse_files(
         cursor.seek(-CHUNK_BODY_SIZE - 4);
 
         if (size > CHUNK_BODY_SIZE) {
-            logger.warning(
+            logger.warn(
                 `Data segment size of ${size} is larger than expected maximum size, reading just ${CHUNK_BODY_SIZE} bytes.`,
             );
             size = CHUNK_BODY_SIZE;
@@ -361,7 +374,7 @@ function parse_files(
     }
 
     if (cursor.bytes_left) {
-        logger.warning(`${cursor.bytes_left} Bytes left in file.`);
+        logger.warn(`${cursor.bytes_left} Bytes left in file.`);
     }
 
     for (const file of files.values()) {
@@ -371,7 +384,7 @@ function parse_files(
 
         // Check whether the expected size was correct.
         if (file.expected_size != null && file.cursor.size !== file.expected_size) {
-            logger.warning(
+            logger.warn(
                 `File ${file.name} has an actual size of ${file.cursor.size} instead of the expected size ${file.expected_size}.`,
             );
         }
@@ -382,7 +395,7 @@ function parse_files(
 
         for (let chunk_no = 0; chunk_no < expected_chunk_count; ++chunk_no) {
             if (!file.chunk_nos.has(chunk_no)) {
-                logger.warning(`File ${file.name} is missing chunk ${chunk_no}.`);
+                logger.warn(`File ${file.name} is missing chunk ${chunk_no}.`);
             }
         }
     }
@@ -402,49 +415,93 @@ function parse_files(
     return contained_files;
 }
 
-function write_file_headers(cursor: WritableCursor, files: readonly QstContainedFileParam[]): void {
+function write_file_headers(
+    cursor: WritableCursor,
+    files: readonly QstContainedFile[],
+    version: Version,
+    online: boolean,
+    header_size: number,
+): void {
+    let max_id: number;
+    let max_quest_name_length: number;
+
+    if (version === Version.BB) {
+        max_id = 0xffff;
+        max_quest_name_length = 23;
+    } else {
+        max_id = 0xff;
+        max_quest_name_length = 31;
+    }
+
     for (const file of files) {
-        if (file.filename.length > 15) {
-            throw new Error(`File ${file.filename} has a name longer than 15 characters.`);
+        assert(
+            file.id == undefined || (0 <= file.id && file.id <= max_id),
+            () => `Quest ID should be between 0 and ${max_id}, inclusive.`,
+        );
+        assert(
+            file.quest_name == undefined || file.quest_name.length <= max_quest_name_length,
+            () =>
+                `File ${file.filename} has a quest name longer than ${max_quest_name_length} characters (${file.quest_name}).`,
+        );
+        assert(
+            file.filename.length <= 15,
+            () => `File ${file.filename} has a filename longer than 15 characters.`,
+        );
+
+        switch (version) {
+            case Version.DC:
+                cursor.write_u8(online ? ONLINE_QUEST : DOWNLOAD_QUEST);
+                cursor.write_u8(file.id ?? 0);
+                cursor.write_u16(header_size);
+                cursor.write_string_ascii(file.quest_name ?? file.filename, 32);
+                cursor.write_u8(0);
+                cursor.write_u8(0);
+                cursor.write_u8(0);
+                cursor.write_string_ascii(file.filename, 16);
+                cursor.write_u8(0);
+                cursor.write_u32(file.data.byteLength);
+                break;
+
+            case Version.GC:
+                cursor.write_u8(online ? ONLINE_QUEST : DOWNLOAD_QUEST);
+                cursor.write_u8(file.id ?? 0);
+                cursor.write_u16(header_size);
+                cursor.write_string_ascii(file.quest_name ?? file.filename, 32);
+                cursor.write_u32(0);
+                cursor.write_string_ascii(file.filename, 16);
+                cursor.write_u32(file.data.byteLength);
+                break;
+
+            case Version.PC:
+                cursor.write_u16(header_size);
+                cursor.write_u8(online ? ONLINE_QUEST : DOWNLOAD_QUEST);
+                cursor.write_u8(file.id ?? 0);
+                cursor.write_string_ascii(file.quest_name ?? file.filename, 32);
+                cursor.write_u32(0);
+                cursor.write_string_ascii(file.filename, 16);
+                cursor.write_u32(file.data.byteLength);
+                break;
+
+            case Version.BB:
+                cursor.write_u16(header_size);
+                cursor.write_u16(online ? ONLINE_QUEST : DOWNLOAD_QUEST);
+                cursor.write_u16(file.id ?? 0);
+                for (let i = 0; i < 38; i++) cursor.write_u8(0);
+                cursor.write_string_ascii(file.filename, 16);
+                cursor.write_u32(file.data.byteLength);
+                cursor.write_string_ascii(file.quest_name ?? file.filename, 24);
+                break;
         }
-
-        cursor.write_u16(88); // Header size.
-        cursor.write_u16(0x44); // Magic number.
-        cursor.write_u16(file.id || 0);
-
-        for (let i = 0; i < 38; ++i) {
-            cursor.write_u8(0);
-        }
-
-        cursor.write_string_ascii(file.filename, 16);
-        cursor.write_u32(file.data.byteLength);
-
-        let file_name_2: string;
-
-        if (file.quest_name == null) {
-            // Not sure this makes sense.
-            const dot_pos = file.filename.lastIndexOf(".");
-            file_name_2 =
-                dot_pos === -1
-                    ? file.filename + "_j"
-                    : file.filename.slice(0, dot_pos) + "_j" + file.filename.slice(dot_pos);
-        } else {
-            file_name_2 = file.quest_name;
-        }
-
-        if (file_name_2.length > 24) {
-            throw Error(
-                `File ${file.filename} has a file_name_2 length (${file_name_2}) longer than 24 characters.`,
-            );
-        }
-
-        cursor.write_string_ascii(file_name_2, 24);
     }
 }
 
-function write_file_chunks(cursor: WritableCursor, files: readonly QstContainedFileParam[]): void {
-    // Files are interleaved in 1056 byte chunks.
-    // Each chunk has a 24 byte header, 1024 byte data segment and an 8 byte trailer.
+function write_file_chunks(
+    cursor: WritableCursor,
+    files: readonly QstContainedFile[],
+    version: Version,
+): void {
+    // Files are interleaved in chunks. Each chunk has a header, fixed-size data segment and a
+    // trailer.
     const files_to_chunk = files.map(file => ({
         no: 0,
         data: new ArrayBufferCursor(file.data, Endianness.Little),
@@ -461,6 +518,7 @@ function write_file_chunks(cursor: WritableCursor, files: readonly QstContainedF
                         file_to_chunk.data,
                         file_to_chunk.no++,
                         file_to_chunk.name,
+                        version,
                     )
                 ) {
                     done++;
@@ -470,7 +528,7 @@ function write_file_chunks(cursor: WritableCursor, files: readonly QstContainedF
     }
 
     for (const file_to_chunk of files_to_chunk) {
-        const expected_chunks = Math.ceil(file_to_chunk.data.size / 1024);
+        const expected_chunks = Math.ceil(file_to_chunk.data.size / CHUNK_BODY_SIZE);
 
         if (file_to_chunk.no !== expected_chunks) {
             throw new Error(
@@ -481,29 +539,51 @@ function write_file_chunks(cursor: WritableCursor, files: readonly QstContainedF
 }
 
 /**
- * @returns true if there are bytes left to write in data, false otherwise.
+ * @returns true if there are bytes left to write in `data`, false otherwise.
  */
 function write_file_chunk(
     cursor: WritableCursor,
     data: Cursor,
     chunk_no: number,
     name: string,
+    version: Version,
 ): boolean {
-    cursor.write_u8_array([28, 4, 19, 0]);
-    cursor.write_u8(chunk_no);
-    cursor.write_u8_array([0, 0, 0]);
+    switch (version) {
+        case Version.DC:
+        case Version.GC:
+            cursor.write_u8(0);
+            cursor.write_u8(chunk_no);
+            cursor.write_u16(0);
+            break;
+
+        case Version.PC:
+            cursor.write_u8(0);
+            cursor.write_u8(0);
+            cursor.write_u8(0);
+            cursor.write_u8(chunk_no);
+            break;
+
+        case Version.BB:
+            cursor.write_u8_array([28, 4, 19, 0]);
+            cursor.write_u32(chunk_no);
+            break;
+    }
+
     cursor.write_string_ascii(name, 16);
 
-    const size = Math.min(1024, data.bytes_left);
+    const size = Math.min(CHUNK_BODY_SIZE, data.bytes_left);
     cursor.write_cursor(data.take(size));
 
     // Padding.
-    for (let i = size; i < 1024; ++i) {
+    for (let i = size; i < CHUNK_BODY_SIZE; ++i) {
         cursor.write_u8(0);
     }
 
     cursor.write_u32(size);
-    cursor.write_u32(0);
+
+    if (version === Version.BB) {
+        cursor.write_u32(0);
+    }
 
     return data.bytes_left > 0;
 }

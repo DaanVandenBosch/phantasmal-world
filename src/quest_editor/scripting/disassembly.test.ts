@@ -25,6 +25,7 @@ import {
     parse_object_code,
     write_object_code,
 } from "../../core/data_formats/parsing/quest/object_code";
+import { BinFormat } from "../../core/data_formats/parsing/quest/BinFormat";
 
 test("vararg instructions should be disassembled correctly", () => {
     const asm = disassemble([
@@ -99,7 +100,7 @@ test("assembling disassembled object code with manual stack management should re
         bin.label_offsets,
         [0],
         false,
-        false,
+        BinFormat.BB,
     );
 
     const { object_code, warnings, errors } = assemble(disassemble(orig_object_code, true), true);
@@ -120,7 +121,7 @@ test("assembling disassembled object code with automatic stack management should
         bin.label_offsets,
         [0],
         false,
-        false,
+        BinFormat.BB,
     );
 
     const { object_code, warnings, errors } = assemble(disassemble(orig_object_code, false), false);
@@ -135,13 +136,13 @@ test("assembling disassembled object code with automatic stack management should
 test("assembling disassembled object code with manual stack management should result in the same object code", () => {
     const orig_buffer = readFileSync("test/resources/quest27_e.bin");
     const orig_bytes = prs_decompress(new BufferCursor(orig_buffer, Endianness.Little));
-    const { bin } = parse_bin(orig_bytes);
+    const { bin, format } = parse_bin(orig_bytes);
     const orig_object_code = parse_object_code(
         bin.object_code,
         bin.label_offsets,
         [0],
         false,
-        false,
+        BinFormat.BB,
     );
 
     const { object_code, warnings, errors } = assemble(disassemble(orig_object_code, true), true);
@@ -150,7 +151,7 @@ test("assembling disassembled object code with manual stack management should re
     expect(warnings).toEqual([]);
 
     const test_bytes = new ArrayBufferCursor(
-        write_bin({ ...bin, ...write_object_code(object_code).object_code }),
+        write_bin({ ...bin, ...write_object_code(object_code, format).object_code }, BinFormat.BB),
         Endianness.Little,
     );
 
@@ -185,7 +186,7 @@ test("disassembling assembled assembly code with automatic stack management shou
         bin.label_offsets,
         [0],
         false,
-        false,
+        BinFormat.BB,
     );
     const orig_asm = disassemble(orig_object_code, false);
 
