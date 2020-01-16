@@ -234,7 +234,17 @@ export class QuestEditorToolBarController extends Controller {
     };
 
     set_version = (version: Version): void => {
-        this._version.val = version;
+        // We only support GC and BB at the moment.
+        switch (version) {
+            case Version.DC:
+            case Version.GC:
+                this._version.val = Version.GC;
+                break;
+            case Version.PC:
+            case Version.BB:
+                this._version.val = Version.BB;
+                break;
+        }
     };
 
     debug = (): void => {

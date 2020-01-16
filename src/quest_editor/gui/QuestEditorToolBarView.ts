@@ -14,7 +14,7 @@ import { View } from "../../core/gui/View";
 import { Dialog } from "../../core/gui/Dialog";
 import { TextInput } from "../../core/gui/TextInput";
 import "./QuestEditorToolBarView.css";
-import { Version, VERSIONS } from "../../core/data_formats/parsing/quest/Version";
+import { Version } from "../../core/data_formats/parsing/quest/Version";
 
 export class QuestEditorToolBarView extends View {
     private readonly toolbar: ToolBar;
@@ -130,7 +130,7 @@ export class QuestEditorToolBarView extends View {
         const version_select = this.disposable(
             new Select({
                 label: "Version:",
-                items: VERSIONS,
+                items: [Version.GC, Version.BB],
                 selected: ctrl.version,
                 to_label: version => {
                     switch (version) {
