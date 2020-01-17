@@ -258,7 +258,7 @@ export enum ObjectType {
     UnknownItem700,
     LabCeilingWarp,
     Ep4LightSource,
-    Cacti,
+    Cactus,
     BigBrownRock,
     BreakableBrownRock,
     UnknownItem832,
@@ -816,7 +816,7 @@ export function pso_id_to_object_type(psoId: number): ObjectType {
         case 768:
             return ObjectType.Ep4LightSource;
         case 769:
-            return ObjectType.Cacti;
+            return ObjectType.Cactus;
         case 770:
             return ObjectType.BigBrownRock;
         case 771:
@@ -1798,7 +1798,7 @@ define_object_type_data(ObjectType.LabCeilingWarp, 701, "Lab Ceiling Warp", [[Ep
 define_object_type_data(ObjectType.Ep4LightSource, 768, "Ep4 Light Source", [
     [Episode.IV, [1, 2, 3, 4, 5, 6, 7, 8, 9]],
 ]);
-define_object_type_data(ObjectType.Cacti, 769, "cacti", [[Episode.IV, [1, 2, 3, 4, 5, 6, 7, 8]]]);
+define_object_type_data(ObjectType.Cactus, 769, "Cactus", [[Episode.IV, [1, 2, 3, 4, 5, 6, 7, 8]]]);
 define_object_type_data(ObjectType.BigBrownRock, 770, "Big Brown Rock", [
     [Episode.IV, [1, 2, 3, 4, 5, 6, 7, 8]],
 ]);

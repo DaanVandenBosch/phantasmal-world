@@ -3,7 +3,7 @@ import { LoadingCache } from "./LoadingCache";
 import { Endianness } from "../../core/data_formats/Endianness";
 import { ArrayBufferCursor } from "../../core/data_formats/cursor/ArrayBufferCursor";
 import { ninja_object_to_buffer_geometry } from "../../core/rendering/conversion/ninja_geometry";
-import { parse_nj, parse_xj } from "../../core/data_formats/parsing/ninja";
+import { NjObject, parse_nj, parse_xj } from "../../core/data_formats/parsing/ninja";
 import { parse_xvm } from "../../core/data_formats/parsing/ninja/texture";
 import { xvm_to_textures } from "../../core/rendering/conversion/ninja_textures";
 import { object_data, ObjectType } from "../../core/data_formats/parsing/quest/object_types";
@@ -32,6 +32,7 @@ const DEFAULT_ENTITY_TEX: Texture[] = [];
 
 const DEFAULT_ENTITY_TEX_PROMISE = DisposablePromise.resolve<Texture[]>(DEFAULT_ENTITY_TEX);
 
+// TODO: load correct parts for entities that can have different geometries.
 export class EntityAssetLoader implements Disposable {
     private readonly disposer = new Disposer();
     private readonly geom_cache = this.disposer.add(new LoadingCache<EntityType, BufferGeometry>());
@@ -46,32 +47,54 @@ export class EntityAssetLoader implements Disposable {
     }
 
     load_geometry(type: EntityType): DisposablePromise<BufferGeometry> {
-        return this.geom_cache.get_or_set(type, () =>
-            this.load_data(type, AssetType.Geometry)
-                .then(({ url, data }) => {
-                    const cursor = new ArrayBufferCursor(data, Endianness.Little);
-                    const nj_objects = url.endsWith(".nj") ? parse_nj(cursor) : parse_xj(cursor);
+        return this.geom_cache.get_or_set(type, () => {
+            return DisposablePromise.all(
+                geometry_parts(type).map(no =>
+                    this.load_data(type, AssetType.Geometry, no)
+                        .then(({ url, data }) => {
+                            const cursor = new ArrayBufferCursor(data, Endianness.Little);
+                            const nj_objects = url.endsWith(".nj")
+                                ? parse_nj(cursor)
+                                : parse_xj(cursor);
 
-                    if (nj_objects.success && nj_objects.value.length) {
-                        return ninja_object_to_buffer_geometry(nj_objects.value[0]);
-                    } else {
-                        logger.warn(`Couldn't parse ${url} for ${entity_type_to_string(type)}.`);
-                        return DEFAULT_ENTITY;
-                    }
-                })
-                .catch(e => {
-                    logger.warn(
-                        `Couldn't load geometry file for ${entity_type_to_string(type)}.`,
-                        e,
-                    );
+                            if (nj_objects.success && nj_objects.value.length) {
+                                return nj_objects.value;
+                            } else {
+                                logger.warn(
+                                    `Couldn't parse ${url} for ${entity_type_to_string(type)}.`,
+                                );
+                                return [];
+                            }
+                        })
+                        .catch(e => {
+                            logger.warn(
+                                `Couldn't load geometry file for ${entity_type_to_string(type)}.`,
+                                e,
+                            );
+                            return [];
+                        }),
+                ),
+            ).then((nj_object_arrays: NjObject[][]) => {
+                const nj_objects = nj_object_arrays.flat();
+                const nj_object = nj_objects[0];
+
+                for (let i = 1; i < nj_objects.length; i++) {
+                    nj_object.evaluation_flags.break_child_trace = false;
+                    nj_object.add_child(nj_objects[i]);
+                }
+
+                if (nj_object) {
+                    return ninja_object_to_buffer_geometry(nj_object);
+                } else {
                     return DEFAULT_ENTITY;
-                }),
-        );
+                }
+            });
+        });
     }
 
     load_textures(type: EntityType): DisposablePromise<Texture[]> {
         return this.tex_cache.get_or_set(type, () =>
-            this.load_data(type, AssetType.Texture)
+            this.load_data(type, AssetType.Texture, texture_part(type))
                 .then(({ data }) => {
                     const cursor = new ArrayBufferCursor(data, Endianness.Little);
                     const xvm = parse_xvm(cursor);
@@ -90,8 +113,9 @@ export class EntityAssetLoader implements Disposable {
     private load_data(
         type: EntityType,
         asset_type: AssetType,
+        no?: number,
     ): DisposablePromise<{ url: string; data: ArrayBuffer }> {
-        const url = entity_type_to_url(type, asset_type);
+        const url = entity_type_to_url(type, asset_type, no);
         return this.http_client
             .get(url)
             .array_buffer()
@@ -158,7 +182,6 @@ export class EntityAssetLoader implements Disposable {
             ObjectType.EnemyTypeBoxYellow,
             ObjectType.EnemyTypeBoxBlue,
             ObjectType.EmptyTypeBoxBlue,
-            ObjectType.FloatingRocks,
             ObjectType.FloatingSoul,
             ObjectType.Butterfly,
             ObjectType.UnknownItem400,
@@ -175,10 +198,142 @@ export class EntityAssetLoader implements Disposable {
             ObjectType.InstaWarp,
             ObjectType.LabInvisibleObject,
             ObjectType.UnknownItem700,
+            ObjectType.Ep4LightSource,
+            ObjectType.BreakableBrownRock,
+            ObjectType.UnknownItem897,
+            ObjectType.UnknownItem898,
+            ObjectType.OozingDesertPlant,
+            ObjectType.UnknownItem901,
+            ObjectType.UnknownItem903,
+            ObjectType.UnknownItem904,
+            ObjectType.UnknownItem905,
+            ObjectType.UnknownItem906,
+            ObjectType.DesertPlantHasCollision,
+            ObjectType.UnknownItem910,
+            ObjectType.UnknownItem912,
+            ObjectType.Heat,
+            ObjectType.TopOfSaintMillionEgg,
+            ObjectType.UnknownItem961,
         ]) {
             this.geom_cache.set(type, DEFAULT_ENTITY_PROMISE);
             this.tex_cache.set(type, DEFAULT_ENTITY_TEX_PROMISE);
         }
+    }
+}
+
+function geometry_parts(type: EntityType): (number | undefined)[] {
+    switch (type) {
+        case ObjectType.Teleporter:
+            return [undefined, 2];
+        case ObjectType.Warp:
+            return [undefined, 2];
+        case ObjectType.BossTeleporter:
+            return [undefined, 2];
+        case ObjectType.QuestWarp:
+            return [undefined, 2];
+        case ObjectType.Epilogue:
+            return [undefined, 2];
+        case ObjectType.MainRagolTeleporter:
+            return [undefined, 2];
+        case ObjectType.PrincipalWarp:
+            return [undefined, 2];
+        case ObjectType.TeleporterDoor:
+            return [undefined, 2];
+        case ObjectType.EasterEgg:
+            return [undefined, 2];
+        case ObjectType.ValentinesHeart:
+            return [undefined, 2, 3];
+        case ObjectType.ChristmasTree:
+            return [undefined, 2, 3, 4];
+        case ObjectType.TwentyFirstCentury:
+            return [undefined, 2];
+        case ObjectType.WelcomeBoard:
+            return [undefined]; // TODO: position part 2 correctly.
+        case ObjectType.ForestDoor:
+            return [undefined, 2, 3, 4, 5];
+        case ObjectType.ForestSwitch:
+            return [undefined, 2, 3];
+        case ObjectType.LaserFence:
+            return [undefined, 2];
+        case ObjectType.LaserSquareFence:
+            return [undefined, 2];
+        case ObjectType.ForestLaserFenceSwitch:
+            return [undefined, 2, 3];
+        case ObjectType.Probe:
+            return [0]; // TODO: use correct part.
+        case ObjectType.RandomTypeBox1:
+            return [undefined, 2, 3];
+        case ObjectType.BlackSlidingDoor:
+            return [undefined, 2];
+        case ObjectType.EnergyBarrier:
+            return [undefined, 2];
+        case ObjectType.SwitchNoneDoor:
+            return [undefined, 2];
+        case ObjectType.EnemyBoxGrey:
+            return [undefined, 2, 3];
+        case ObjectType.FixedTypeBox:
+            return [undefined, 2, 3, 4];
+        case ObjectType.EnemyBoxBrown:
+            return [undefined, 2, 3, 4];
+        case ObjectType.LaserFenceEx:
+            return [undefined, 2];
+        case ObjectType.LaserSquareFenceEx:
+            return [undefined, 2];
+        case ObjectType.CavesSmashingPillar:
+            return [undefined, 3]; // What's part 2 for?
+        case ObjectType.RobotRechargeStation:
+            return [undefined, 2];
+        case ObjectType.RuinsTeleporter:
+            return [undefined, 2, 3, 4];
+        case ObjectType.RuinsWarpSiteToSite:
+            return [undefined, 2];
+        case ObjectType.RuinsSwitch:
+            return [undefined, 2];
+        case ObjectType.RuinsPillarTrap:
+            return [undefined, 2, 3, 4];
+        case ObjectType.RuinsCrystal:
+            return [undefined, 2, 3];
+        case ObjectType.FixedBoxTypeRuins:
+            return [undefined, 2, 3];
+        case ObjectType.RandomBoxTypeRuins:
+            return [undefined, 2, 3];
+        case ObjectType.FloatingRocks:
+            return [0];
+        case ObjectType.ItemBoxCca:
+            return [undefined, 2, 3, 4];
+        case ObjectType.TeleporterEp2:
+            return [undefined, 2];
+        case ObjectType.CCADoor:
+            return [undefined, 2];
+        case ObjectType.SpecialBoxCCA:
+            return [undefined, 2, 3, 4];
+        case ObjectType.BigCCADoor:
+            return [undefined, 2, 3, 4];
+        case ObjectType.BigCCADoorSwitch:
+            return [undefined, 2];
+        case ObjectType.LaserDetect:
+            return [undefined, 2]; // TODO: use correct part.
+        case ObjectType.LabCeilingWarp:
+            return [undefined, 2];
+        case ObjectType.BigBrownRock:
+            return [0]; // TODO: use correct part.
+        case ObjectType.BigBlackRocks:
+            return [undefined];
+        case ObjectType.BeeHive:
+            return [undefined, 0, 1];
+        default:
+            return [undefined];
+    }
+}
+
+function texture_part(type: EntityType): number | undefined {
+    switch (type) {
+        case ObjectType.FloatingRocks:
+            return 0; // TODO: use correct part.
+        case ObjectType.BigBrownRock:
+            return 0; // TODO: use correct part.
+        default:
+            return undefined;
     }
 }
 
@@ -266,7 +421,7 @@ function entity_type_to_url(type: EntityType, asset_type: AssetType, no?: number
                 case ObjectType.FloatingJellyfish:
                 case ObjectType.RuinsSeal:
                 case ObjectType.Dolphin:
-                case ObjectType.Cacti:
+                case ObjectType.Cactus:
                 case ObjectType.BigBrownRock:
                 case ObjectType.PoisonPlant:
                 case ObjectType.BigBlackRocks:
