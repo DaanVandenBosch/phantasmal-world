@@ -26,15 +26,11 @@ DEFAULT_ENTITY.translate(0, 10, 0);
 DEFAULT_ENTITY.computeBoundingBox();
 DEFAULT_ENTITY.computeBoundingSphere();
 
-const DEFAULT_ENTITY_PROMISE: DisposablePromise<BufferGeometry> = DisposablePromise.resolve(
-    DEFAULT_ENTITY,
-);
+const DEFAULT_ENTITY_PROMISE = DisposablePromise.resolve<BufferGeometry>(DEFAULT_ENTITY);
 
 const DEFAULT_ENTITY_TEX: Texture[] = [];
 
-const DEFAULT_ENTITY_TEX_PROMISE: DisposablePromise<Texture[]> = DisposablePromise.resolve(
-    DEFAULT_ENTITY_TEX,
-);
+const DEFAULT_ENTITY_TEX_PROMISE = DisposablePromise.resolve<Texture[]>(DEFAULT_ENTITY_TEX);
 
 export class EntityAssetLoader implements Disposable {
     private readonly disposer = new Disposer();
@@ -91,7 +87,7 @@ export class EntityAssetLoader implements Disposable {
         );
     }
 
-    load_data(
+    private load_data(
         type: EntityType,
         asset_type: AssetType,
     ): DisposablePromise<{ url: string; data: ArrayBuffer }> {
@@ -191,7 +187,14 @@ enum AssetType {
     Texture,
 }
 
-function entity_type_to_url(type: EntityType, asset_type: AssetType): string {
+/**
+ * @param type
+ * @param asset_type
+ * @param no - Asset number. Some entities have multiple assets that need to be combined.
+ */
+function entity_type_to_url(type: EntityType, asset_type: AssetType, no?: number): string {
+    const no_str = no == undefined ? "" : `-${no}`;
+
     if (is_npc_type(type)) {
         switch (type) {
             // The dubswitch model is in XJ format.
@@ -201,53 +204,55 @@ function entity_type_to_url(type: EntityType, asset_type: AssetType): string {
             // Episode II VR Temple
 
             case NpcType.Hildebear2:
-                return entity_type_to_url(NpcType.Hildebear, asset_type);
+                return entity_type_to_url(NpcType.Hildebear, asset_type, no);
             case NpcType.Hildeblue2:
-                return entity_type_to_url(NpcType.Hildeblue, asset_type);
+                return entity_type_to_url(NpcType.Hildeblue, asset_type, no);
             case NpcType.RagRappy2:
-                return entity_type_to_url(NpcType.RagRappy, asset_type);
+                return entity_type_to_url(NpcType.RagRappy, asset_type, no);
             case NpcType.Monest2:
-                return entity_type_to_url(NpcType.Monest, asset_type);
+                return entity_type_to_url(NpcType.Monest, asset_type, no);
             case NpcType.Mothmant2:
-                return entity_type_to_url(NpcType.Mothmant, asset_type);
+                return entity_type_to_url(NpcType.Mothmant, asset_type, no);
             case NpcType.PoisonLily2:
-                return entity_type_to_url(NpcType.PoisonLily, asset_type);
+                return entity_type_to_url(NpcType.PoisonLily, asset_type, no);
             case NpcType.NarLily2:
-                return entity_type_to_url(NpcType.NarLily, asset_type);
+                return entity_type_to_url(NpcType.NarLily, asset_type, no);
             case NpcType.GrassAssassin2:
-                return entity_type_to_url(NpcType.GrassAssassin, asset_type);
+                return entity_type_to_url(NpcType.GrassAssassin, asset_type, no);
             case NpcType.Dimenian2:
-                return entity_type_to_url(NpcType.Dimenian, asset_type);
+                return entity_type_to_url(NpcType.Dimenian, asset_type, no);
             case NpcType.LaDimenian2:
-                return entity_type_to_url(NpcType.LaDimenian, asset_type);
+                return entity_type_to_url(NpcType.LaDimenian, asset_type, no);
             case NpcType.SoDimenian2:
-                return entity_type_to_url(NpcType.SoDimenian, asset_type);
+                return entity_type_to_url(NpcType.SoDimenian, asset_type, no);
             case NpcType.DarkBelra2:
-                return entity_type_to_url(NpcType.DarkBelra, asset_type);
+                return entity_type_to_url(NpcType.DarkBelra, asset_type, no);
 
             // Episode II VR Spaceship
 
             case NpcType.SavageWolf2:
-                return entity_type_to_url(NpcType.SavageWolf, asset_type);
+                return entity_type_to_url(NpcType.SavageWolf, asset_type, no);
             case NpcType.BarbarousWolf2:
-                return entity_type_to_url(NpcType.BarbarousWolf, asset_type);
+                return entity_type_to_url(NpcType.BarbarousWolf, asset_type, no);
             case NpcType.PanArms2:
-                return entity_type_to_url(NpcType.PanArms, asset_type);
+                return entity_type_to_url(NpcType.PanArms, asset_type, no);
             case NpcType.Dubchic2:
-                return entity_type_to_url(NpcType.Dubchic, asset_type);
+                return entity_type_to_url(NpcType.Dubchic, asset_type, no);
             case NpcType.Gilchic2:
-                return entity_type_to_url(NpcType.Gilchic, asset_type);
+                return entity_type_to_url(NpcType.Gilchic, asset_type, no);
             case NpcType.Garanz2:
-                return entity_type_to_url(NpcType.Garanz, asset_type);
+                return entity_type_to_url(NpcType.Garanz, asset_type, no);
             case NpcType.Dubswitch2:
-                return entity_type_to_url(NpcType.Dubswitch, asset_type);
+                return entity_type_to_url(NpcType.Dubswitch, asset_type, no);
             case NpcType.Delsaber2:
-                return entity_type_to_url(NpcType.Delsaber, asset_type);
+                return entity_type_to_url(NpcType.Delsaber, asset_type, no);
             case NpcType.ChaosSorcerer2:
-                return entity_type_to_url(NpcType.ChaosSorcerer, asset_type);
+                return entity_type_to_url(NpcType.ChaosSorcerer, asset_type, no);
 
             default:
-                return `/npcs/${NpcType[type]}.${asset_type === AssetType.Geometry ? "nj" : "xvm"}`;
+                return `/npcs/${NpcType[type]}${no_str}.${
+                    asset_type === AssetType.Geometry ? "nj" : "xvm"
+                }`;
         }
     } else {
         if (asset_type === AssetType.Geometry) {
@@ -268,13 +273,13 @@ function entity_type_to_url(type: EntityType, asset_type: AssetType): string {
                 case ObjectType.FallingRock:
                 case ObjectType.DesertFixedTypeBoxBreakableCrystals:
                 case ObjectType.BeeHive:
-                    return `/objects/${object_data(type).pso_id}.nj`;
+                    return `/objects/${object_data(type).pso_id}${no_str}.nj`;
 
                 default:
-                    return `/objects/${object_data(type).pso_id}.xj`;
+                    return `/objects/${object_data(type).pso_id}${no_str}.xj`;
             }
         } else {
-            return `/objects/${object_data(type).pso_id}.xvm`;
+            return `/objects/${object_data(type).pso_id}${no_str}.xvm`;
         }
     }
 }

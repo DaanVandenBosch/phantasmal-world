@@ -6,13 +6,13 @@ export class FileSystemHttpClient implements HttpClient {
     get(url: string): HttpResponse {
         return {
             json<T>(): DisposablePromise<T> {
-                return DisposablePromise.wrap(fs.promises.readFile(`./assets${url}`)).then(buf =>
+                return DisposablePromise.resolve(fs.promises.readFile(`./assets${url}`)).then(buf =>
                     JSON.parse(buf.toString()),
                 );
             },
 
             array_buffer(): DisposablePromise<ArrayBuffer> {
-                return DisposablePromise.wrap(fs.promises.readFile(`./assets${url}`)).then(buf =>
+                return DisposablePromise.resolve(fs.promises.readFile(`./assets${url}`)).then(buf =>
                     buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength),
                 );
             },
