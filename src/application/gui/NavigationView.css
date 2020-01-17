@@ -20,6 +20,11 @@
     margin: 0 2px;
 }
 
+.application_NavigationView_time {
+    display: flex;
+    align-items: center;
+}
+
 .application_NavigationView_github {
     display: flex;
     flex-direction: row;

@@ -5,6 +5,7 @@ import { timeout } from "../../test/src/utils";
 import { StubThreeRenderer } from "../../test/src/core/rendering/StubThreeRenderer";
 import { Random } from "../core/Random";
 import { Severity } from "../core/Severity";
+import { StubClock } from "../../test/src/core/StubClock";
 
 for (const path of [undefined, "/viewer", "/quest_editor", "/hunt_optimizer"]) {
     const with_path = path == undefined ? "without specific path" : `with path ${path}`;
@@ -26,6 +27,7 @@ for (const path of [undefined, "/viewer", "/quest_editor", "/hunt_optimizer"]) {
             const app = initialize_application(
                 new FileSystemHttpClient(),
                 new Random(() => 0.27),
+                new StubClock(new Date("2020-01-01T15:40:20Z")),
                 () => new StubThreeRenderer(),
             );
 

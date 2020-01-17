@@ -11,6 +11,7 @@ import { FetchClient } from "./core/HttpClient";
 import { WebGLRenderer } from "three";
 import { DisposableThreeRenderer } from "./core/rendering/Renderer";
 import { Random } from "./core/Random";
+import { DateClock } from "./core/Clock";
 
 function create_three_renderer(): DisposableThreeRenderer {
     const renderer = new WebGLRenderer({ antialias: true, alpha: true });
@@ -18,4 +19,4 @@ function create_three_renderer(): DisposableThreeRenderer {
     return renderer;
 }
 
-initialize_application(new FetchClient(), new Random(), create_three_renderer);
+initialize_application(new FetchClient(), new Random(), new DateClock(), create_three_renderer);

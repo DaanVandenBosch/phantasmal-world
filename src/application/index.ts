@@ -9,10 +9,15 @@ import { DisposableThreeRenderer } from "../core/rendering/Renderer";
 import { Disposer } from "../core/observable/Disposer";
 import { disposable_custom_listener, disposable_listener } from "../core/gui/dom";
 import { Random } from "../core/Random";
+import { NavigationController } from "./controllers/NavigationController";
+import { NavigationView } from "./gui/NavigationView";
+import { MainContentView } from "./gui/MainContentView";
+import { Clock } from "../core/Clock";
 
 export function initialize_application(
     http_client: HttpClient,
     random: Random,
+    clock: Clock,
     create_three_renderer: () => DisposableThreeRenderer,
 ): Disposable {
     const disposer = new Disposer();
@@ -37,48 +42,59 @@ export function initialize_application(
         create_item_drop_stores(http_client, gui_store, item_type_stores),
     );
 
+    // Controllers.
+    const navigation_controller = disposer.add(new NavigationController(gui_store, clock));
+
     // Initialize application view.
     const application_view = disposer.add(
-        new ApplicationView(gui_store, [
-            [
-                GuiTool.Viewer,
-                async () => {
-                    const { initialize_viewer } = await import("../viewer");
-                    const viewer = disposer.add(
-                        initialize_viewer(http_client, random, gui_store, create_three_renderer),
-                    );
+        new ApplicationView(
+            new NavigationView(navigation_controller),
+            new MainContentView(gui_store, [
+                [
+                    GuiTool.Viewer,
+                    async () => {
+                        const { initialize_viewer } = await import("../viewer");
+                        const viewer = disposer.add(
+                            initialize_viewer(
+                                http_client,
+                                random,
+                                gui_store,
+                                create_three_renderer,
+                            ),
+                        );
 
-                    return viewer.view;
-                },
-            ],
-            [
-                GuiTool.QuestEditor,
-                async () => {
-                    const { initialize_quest_editor } = await import("../quest_editor");
-                    const quest_editor = disposer.add(
-                        initialize_quest_editor(http_client, gui_store, create_three_renderer),
-                    );
+                        return viewer.view;
+                    },
+                ],
+                [
+                    GuiTool.QuestEditor,
+                    async () => {
+                        const { initialize_quest_editor } = await import("../quest_editor");
+                        const quest_editor = disposer.add(
+                            initialize_quest_editor(http_client, gui_store, create_three_renderer),
+                        );
 
-                    return quest_editor.view;
-                },
-            ],
-            [
-                GuiTool.HuntOptimizer,
-                async () => {
-                    const { initialize_hunt_optimizer } = await import("../hunt_optimizer");
-                    const hunt_optimizer = disposer.add(
-                        initialize_hunt_optimizer(
-                            http_client,
-                            gui_store,
-                            item_type_stores,
-                            item_drop_stores,
-                        ),
-                    );
+                        return quest_editor.view;
+                    },
+                ],
+                [
+                    GuiTool.HuntOptimizer,
+                    async () => {
+                        const { initialize_hunt_optimizer } = await import("../hunt_optimizer");
+                        const hunt_optimizer = disposer.add(
+                            initialize_hunt_optimizer(
+                                http_client,
+                                gui_store,
+                                item_type_stores,
+                                item_drop_stores,
+                            ),
+                        );
 
-                    return hunt_optimizer.view;
-                },
-            ],
-        ]),
+                        return hunt_optimizer.view;
+                    },
+                ],
+            ]),
+        ),
     );
 
     // Resize the view on window resize.

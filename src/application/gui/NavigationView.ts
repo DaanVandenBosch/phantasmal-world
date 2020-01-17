@@ -1,9 +1,10 @@
 import { a, div, icon, Icon, span } from "../../core/gui/dom";
 import "./NavigationView.css";
-import { GuiStore, GuiTool } from "../../core/stores/GuiStore";
+import { GuiTool } from "../../core/stores/GuiStore";
 import { NavigationButton } from "./NavigationButton";
 import { Select } from "../../core/gui/Select";
 import { View } from "../../core/gui/View";
+import { NavigationController } from "../controllers/NavigationController";
 
 const TOOLS: [GuiTool, string][] = [
     [GuiTool.Viewer, "Viewer"],
@@ -25,6 +26,10 @@ export class NavigationView extends View {
             tooltip: "Only Ephinea is supported at the moment",
         }),
     );
+    private readonly time_element = span({
+        className: "application_NavigationView_time",
+        title: "Internet time in beats",
+    });
 
     readonly element = div(
         { className: "application_NavigationView" },
@@ -39,11 +44,13 @@ export class NavigationView extends View {
             this.server_select.element,
         ),
 
+        this.time_element,
+
         a(
             {
                 className: "application_NavigationView_github",
                 href: "https://github.com/DaanVandenBosch/phantasmal-world",
-                title: "GitHub",
+                title: "Phantasmal World is open source, code available on GitHub",
             },
             icon(Icon.GitHub),
         ),
@@ -51,14 +58,18 @@ export class NavigationView extends View {
 
     readonly height = 30;
 
-    constructor(private readonly gui_store: GuiStore) {
+    constructor(private readonly ctrl: NavigationController) {
         super();
 
         this.element.style.height = `${this.height}px`;
-        this.element.onmousedown = this.mousedown;
+        this.element.addEventListener("mousedown", this.mousedown);
 
         this.disposables(
-            gui_store.tool.observe(({ value }) => this.mark_tool_button(value), { call_now: true }),
+            ctrl.tool.observe(({ value }) => this.mark_tool_button(value), { call_now: true }),
+
+            ctrl.internet_time.observe(({ value }) => (this.time_element.textContent = value), {
+                call_now: true,
+            }),
         );
 
         this.finalize_construction();
@@ -66,7 +77,7 @@ export class NavigationView extends View {
 
     private mousedown = (e: MouseEvent): void => {
         if (e.target instanceof HTMLLabelElement && e.target.control instanceof HTMLInputElement) {
-            this.gui_store.set_tool((GuiTool as any)[e.target.control.value]);
+            this.ctrl.set_tool((GuiTool as any)[e.target.control.value]);
         }
     };
 
