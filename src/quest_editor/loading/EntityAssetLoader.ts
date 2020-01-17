@@ -262,7 +262,7 @@ function geometry_parts(type: EntityType): (number | undefined)[] {
         case ObjectType.Probe:
             return [0]; // TODO: use correct part.
         case ObjectType.RandomTypeBox1:
-            return [undefined, 2, 3];
+            return [2]; // What are the other two parts for?
         case ObjectType.BlackSlidingDoor:
             return [undefined, 2];
         case ObjectType.EnergyBarrier:
@@ -270,11 +270,11 @@ function geometry_parts(type: EntityType): (number | undefined)[] {
         case ObjectType.SwitchNoneDoor:
             return [undefined, 2];
         case ObjectType.EnemyBoxGrey:
-            return [undefined, 2, 3];
+            return [2]; // What are the other two parts for?
         case ObjectType.FixedTypeBox:
-            return [undefined, 2, 3, 4];
+            return [3]; // What are the other three parts for?
         case ObjectType.EnemyBoxBrown:
-            return [undefined, 2, 3, 4];
+            return [3]; // What are the other three parts for?
         case ObjectType.LaserFenceEx:
             return [undefined, 2];
         case ObjectType.LaserSquareFenceEx:
@@ -293,20 +293,16 @@ function geometry_parts(type: EntityType): (number | undefined)[] {
             return [undefined, 2, 3, 4];
         case ObjectType.RuinsCrystal:
             return [undefined, 2, 3];
-        case ObjectType.FixedBoxTypeRuins:
-            return [undefined, 2, 3];
-        case ObjectType.RandomBoxTypeRuins:
-            return [undefined, 2, 3];
         case ObjectType.FloatingRocks:
             return [0];
         case ObjectType.ItemBoxCca:
-            return [undefined, 2, 3, 4];
+            return [undefined, 3]; // What are the other two parts for?
         case ObjectType.TeleporterEp2:
             return [undefined, 2];
         case ObjectType.CCADoor:
             return [undefined, 2];
         case ObjectType.SpecialBoxCCA:
-            return [undefined, 2, 3, 4];
+            return [undefined, 4]; // What are the other two parts for?
         case ObjectType.BigCCADoor:
             return [undefined, 2, 3, 4];
         case ObjectType.BigCCADoorSwitch:
