@@ -3,7 +3,6 @@ import {
     AnimationMixer,
     Clock,
     DoubleSide,
-    MeshBasicMaterial,
     MeshLambertMaterial,
     Object3D,
     PerspectiveCamera,
@@ -14,7 +13,7 @@ import {
 import { Disposable } from "../../core/observable/Disposable";
 import { NjMotion } from "../../core/data_formats/parsing/ninja/motion";
 import { xvr_texture_to_texture } from "../../core/rendering/conversion/ninja_textures";
-import { create_mesh, create_skinned_mesh } from "../../core/rendering/conversion/create_mesh";
+import { create_mesh } from "../../core/rendering/conversion/create_mesh";
 import { ninja_object_to_buffer_geometry } from "../../core/rendering/conversion/ninja_geometry";
 import {
     create_animation_clip,
@@ -150,24 +149,12 @@ export class ModelRenderer extends Renderer implements Disposable {
             const geometry = ninja_object_to_buffer_geometry(nj_object);
             const has_skeleton = geometry.getAttribute("skinIndex") != undefined;
 
-            const materials = textures.map(tex =>
-                tex
-                    ? new MeshBasicMaterial({
-                          skinning: has_skeleton,
-                          map: tex,
-                          side: DoubleSide,
-                          alphaTest: 0.1,
-                          transparent: true,
-                      })
-                    : new MeshLambertMaterial({
-                          skinning: has_skeleton,
-                          side: DoubleSide,
-                      }),
+            this.mesh = create_mesh(
+                geometry,
+                textures,
+                has_skeleton ? DEFAULT_SKINNED_MATERIAL : DEFAULT_MATERIAL,
+                has_skeleton,
             );
-
-            this.mesh = has_skeleton
-                ? create_skinned_mesh(geometry, materials, DEFAULT_SKINNED_MATERIAL)
-                : create_mesh(geometry, materials, DEFAULT_MATERIAL);
 
             // Make sure we rotate around the center of the model instead of its origin.
             const bb = geometry.boundingBox;

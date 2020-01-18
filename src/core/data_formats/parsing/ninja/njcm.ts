@@ -39,6 +39,8 @@ export type NjcmTriangleStrip = {
     has_tex_coords: boolean;
     has_normal: boolean;
     texture_id?: number;
+    src_alpha?: number;
+    dst_alpha?: number;
     vertices: NjcmMeshVertex[];
 };
 
@@ -89,6 +91,8 @@ type NjcmNullChunk = {
 
 type NjcmBitsChunk = {
     type: NjcmChunkType.Bits;
+    src_alpha: number;
+    dst_alpha: number;
 };
 
 type NjcmCachePolygonListChunk = {
@@ -116,6 +120,11 @@ type NjcmTinyChunk = {
 
 type NjcmMaterialChunk = {
     type: NjcmChunkType.Material;
+    src_alpha: number;
+    dst_alpha: number;
+    diffuse?: NjcmArgb;
+    ambient?: NjcmArgb;
+    specular?: NjcmErgb;
 };
 
 type NjcmVertexChunk = {
@@ -143,6 +152,26 @@ type NjcmChunkVertex = {
     bone_weight: number;
     bone_weight_status: number;
     calc_continue: boolean;
+};
+
+/**
+ * Channels are in range [0, 1].
+ */
+type NjcmArgb = {
+    a: number;
+    r: number;
+    g: number;
+    b: number;
+};
+
+/**
+ * Channels are not normalized.
+ */
+type NjcmErgb = {
+    e: number;
+    r: number;
+    g: number;
+    b: number;
 };
 
 export function parse_njcm_model(cursor: Cursor, cached_chunk_offsets: number[]): NjcmModel {
@@ -175,16 +204,34 @@ export function parse_njcm_model(cursor: Cursor, cached_chunk_offsets: number[])
         cursor.seek_start(plist_offset);
 
         let texture_id: number | undefined = undefined;
+        let src_alpha: number | undefined = undefined;
+        let dst_alpha: number | undefined = undefined;
 
         for (const chunk of parse_chunks(cursor, cached_chunk_offsets, false)) {
-            if (chunk.type === NjcmChunkType.Tiny) {
-                texture_id = chunk.texture_id;
-            } else if (chunk.type === NjcmChunkType.Strip) {
-                for (const strip of chunk.triangle_strips) {
-                    strip.texture_id = texture_id;
-                }
+            switch (chunk.type) {
+                case NjcmChunkType.Bits:
+                    src_alpha = chunk.src_alpha;
+                    dst_alpha = chunk.dst_alpha;
+                    break;
 
-                meshes.push(...chunk.triangle_strips);
+                case NjcmChunkType.Tiny:
+                    texture_id = chunk.texture_id;
+                    break;
+
+                case NjcmChunkType.Material:
+                    src_alpha = chunk.src_alpha;
+                    dst_alpha = chunk.dst_alpha;
+                    break;
+
+                case NjcmChunkType.Strip:
+                    for (const strip of chunk.triangle_strips) {
+                        strip.texture_id = texture_id;
+                        strip.src_alpha = src_alpha;
+                        strip.dst_alpha = dst_alpha;
+                    }
+
+                    meshes.push(...chunk.triangle_strips);
+                    break;
             }
         }
     }
@@ -222,6 +269,8 @@ function parse_chunks(
             chunks.push({
                 type: NjcmChunkType.Bits,
                 type_id,
+                src_alpha: (flags >>> 3) & 0b111,
+                dst_alpha: flags & 0b111,
             });
         } else if (type_id === 4) {
             const cache_index = flags;
@@ -265,9 +314,46 @@ function parse_chunks(
             });
         } else if (17 <= type_id && type_id <= 31) {
             size = 2 + 2 * cursor.u16();
+
+            let diffuse: NjcmArgb | undefined;
+            let ambient: NjcmArgb | undefined;
+            let specular: NjcmErgb | undefined;
+
+            if ((flags & 0b1) !== 0) {
+                diffuse = {
+                    b: cursor.u8() / 255,
+                    g: cursor.u8() / 255,
+                    r: cursor.u8() / 255,
+                    a: cursor.u8() / 255,
+                };
+            }
+
+            if ((flags & 0b10) !== 0) {
+                ambient = {
+                    b: cursor.u8() / 255,
+                    g: cursor.u8() / 255,
+                    r: cursor.u8() / 255,
+                    a: cursor.u8() / 255,
+                };
+            }
+
+            if ((flags & 0b100) !== 0) {
+                specular = {
+                    b: cursor.u8(),
+                    g: cursor.u8(),
+                    r: cursor.u8(),
+                    e: cursor.u8(),
+                };
+            }
+
             chunks.push({
                 type: NjcmChunkType.Material,
                 type_id,
+                src_alpha: (flags >>> 3) & 0b111,
+                dst_alpha: flags & 0b111,
+                diffuse,
+                ambient,
+                specular,
             });
         } else if (32 <= type_id && type_id <= 50) {
             size = 2 + 4 * cursor.u16();

@@ -217,6 +217,8 @@ class GeometryCreator {
                 start_index_count,
                 this.builder.index_count - start_index_count,
                 mesh.texture_id,
+                mesh.use_alpha,
+                mesh.src_alpha !== 4 || mesh.dst_alpha !== 5,
             );
         }
     }

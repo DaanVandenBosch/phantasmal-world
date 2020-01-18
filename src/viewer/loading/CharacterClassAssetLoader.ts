@@ -263,8 +263,6 @@ function texture_ids(
             return {
                 section_id: section_id + 275,
                 body: [body_idx, body_idx + 1, body_idx + 2, body + 250],
-                // Eyes don't look correct because NJCM material chunks (which contain alpha blending
-                // details) aren't parsed yet. Material.blending should be AdditiveBlending.
                 head: [body_idx + 3, body_idx + 4],
                 hair: [],
                 accessories: [],

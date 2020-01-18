@@ -1,30 +1,66 @@
 import {
+    Bone,
     BufferGeometry,
     Float32BufferAttribute,
     Uint16BufferAttribute,
     Vector3,
-    Bone,
 } from "three";
+import { map_get_or_put } from "../../util";
 
 export type BuilderData = {
-    created_by_geometry_builder: boolean;
-    /**
-     * Maps material indices to normalized material indices.
-     */
-    normalized_material_indices: Map<number, number>;
-    bones: Bone[];
+    readonly created_by_geometry_builder: boolean;
+    readonly materials: BuilderMaterial[];
+    readonly bones: Bone[];
 };
 
 export type BuilderVec2 = {
-    x: number;
-    y: number;
+    readonly x: number;
+    readonly y: number;
 };
 
 export type BuilderVec3 = {
-    x: number;
-    y: number;
-    z: number;
+    readonly x: number;
+    readonly y: number;
+    readonly z: number;
 };
+
+export type BuilderMaterial = {
+    readonly texture_id?: number;
+    readonly alpha: boolean;
+    readonly additive_blending: boolean;
+};
+
+/**
+ * Maps various material properties to material IDs.
+ */
+export class MaterialMap {
+    private readonly materials: BuilderMaterial[] = [{ alpha: false, additive_blending: false }];
+    private readonly map = new Map<number, number>();
+
+    /**
+     * Returns an index to an existing material if one exists for the given arguments. Otherwise
+     * adds a new material and returns its index.
+     */
+    add_material(
+        texture_id?: number,
+        alpha: boolean = false,
+        additive_blending: boolean = false,
+    ): number {
+        if (texture_id == undefined) {
+            return 0;
+        } else {
+            const key = (texture_id << 2) | (alpha ? 0b10 : 0) | (additive_blending ? 1 : 0);
+            return map_get_or_put(this.map, key, () => {
+                this.materials.push({ texture_id, alpha, additive_blending });
+                return this.materials.length - 1;
+            });
+        }
+    }
+
+    get_materials(): BuilderMaterial[] {
+        return this.materials;
+    }
+}
 
 type VertexGroup = {
     offset: number;
@@ -33,18 +69,18 @@ type VertexGroup = {
 };
 
 export class GeometryBuilder {
-    private positions: number[] = [];
-    private normals: number[] = [];
-    private uvs: number[] = [];
-    private indices: number[] = [];
-    private bones: Bone[] = [];
-    private bone_indices: number[] = [];
-    private bone_weights: number[] = [];
-    private groups: VertexGroup[] = [];
+    private readonly positions: number[] = [];
+    private readonly normals: number[] = [];
+    private readonly uvs: number[] = [];
+    private readonly indices: number[] = [];
+    private readonly bones: Bone[] = [];
+    private readonly bone_indices: number[] = [];
+    private readonly bone_weights: number[] = [];
+    private readonly groups: VertexGroup[] = [];
     /**
      * Will contain all material indices used in {@link this.groups} and -1 for the dummy material.
      */
-    private material_indices = new Set<number>([-1]);
+    private readonly material_map = new MaterialMap();
 
     get vertex_count(): number {
         return this.positions.length / 3;
@@ -89,26 +125,29 @@ export class GeometryBuilder {
         this.bone_weights.push(weight);
     }
 
-    add_group(offset: number, size: number, material_index?: number): void {
+    add_group(
+        offset: number,
+        size: number,
+        texture_id?: number,
+        alpha: boolean = false,
+        additive_blending: boolean = false,
+    ): void {
         const last_group = this.groups[this.groups.length - 1];
-        const mat_idx = material_index == null ? -1 : material_index;
+        const material_index = this.material_map.add_material(texture_id, alpha, additive_blending);
 
-        if (last_group && last_group.material_index === mat_idx) {
+        if (last_group && last_group.material_index === material_index) {
             last_group.size += size;
         } else {
             this.groups.push({
                 offset,
                 size,
-                material_index: mat_idx,
+                material_index,
             });
-            this.material_indices.add(mat_idx);
         }
     }
 
     build(): BufferGeometry {
         const geom = new BufferGeometry();
-        const data = geom.userData as BuilderData;
-        data.created_by_geometry_builder = true;
 
         geom.setAttribute("position", new Float32BufferAttribute(this.positions, 3));
         geom.setAttribute("normal", new Float32BufferAttribute(this.normals, 3));
@@ -116,28 +155,28 @@ export class GeometryBuilder {
 
         geom.setIndex(new Uint16BufferAttribute(this.indices, 1));
 
+        let bones: Bone[];
+
         if (this.bone_indices.length && this.bones.length) {
             geom.setAttribute("skinIndex", new Uint16BufferAttribute(this.bone_indices, 4));
             geom.setAttribute("skinWeight", new Float32BufferAttribute(this.bone_weights, 4));
-            data.bones = this.bones;
+            bones = this.bones;
         } else {
-            data.bones = [];
+            bones = [];
         }
 
-        // Normalize material indices.
-        const normalized_mat_idxs = new Map<number, number>();
-        let i = 0;
-
-        for (const mat_idx of [...this.material_indices].sort((a, b) => a - b)) {
-            normalized_mat_idxs.set(mat_idx, i++);
-        }
-
-        // Use normalized material indices in Three.js groups.
         for (const group of this.groups) {
-            geom.addGroup(group.offset, group.size, normalized_mat_idxs.get(group.material_index));
+            geom.addGroup(group.offset, group.size, group.material_index);
         }
 
-        data.normalized_material_indices = normalized_mat_idxs;
+        // noinspection UnnecessaryLocalVariableJS
+        const data: BuilderData = {
+            created_by_geometry_builder: true,
+            materials: this.material_map.get_materials(),
+            bones,
+        };
+
+        geom.userData = data;
 
         geom.computeBoundingSphere();
         geom.computeBoundingBox();

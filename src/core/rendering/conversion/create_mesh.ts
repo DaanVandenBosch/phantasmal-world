@@ -1,82 +1,78 @@
 import {
+    AdditiveBlending,
     BufferGeometry,
     DoubleSide,
     Material,
     Mesh,
+    MeshBasicMaterial,
     MeshLambertMaterial,
     Skeleton,
     SkinnedMesh,
+    Texture,
 } from "three";
 import { BuilderData } from "./GeometryBuilder";
+import { MeshBasicMaterialParameters } from "three/src/materials/MeshBasicMaterial";
 
 const DUMMY_MATERIAL = new MeshLambertMaterial({
     color: 0x00ff00,
     side: DoubleSide,
 });
-const DEFAULT_MATERIAL = new MeshLambertMaterial({
-    color: 0xff00ff,
-    side: DoubleSide,
-});
-const DEFAULT_SKINNED_MATERIAL = new MeshLambertMaterial({
-    skinning: true,
-    color: 0xff00ff,
-    side: DoubleSide,
-});
 
 export function create_mesh(
     geometry: BufferGeometry,
-    material?: Material | Material[],
-    default_material: Material = DEFAULT_MATERIAL,
-): Mesh {
-    return create(geometry, material, default_material, Mesh);
-}
-
-export function create_skinned_mesh(
-    geometry: BufferGeometry,
-    material?: Material | Material[],
-    default_material: Material = DEFAULT_SKINNED_MATERIAL,
-): SkinnedMesh {
-    return create(geometry, material, default_material, SkinnedMesh);
-}
-
-function create<M extends Mesh>(
-    geometry: BufferGeometry,
-    material: Material | Material[] | undefined,
+    textures: (Texture | undefined)[],
     default_material: Material,
-    mesh_constructor: new (geometry: BufferGeometry, material: Material | Material[]) => M,
-): M {
-    const {
-        created_by_geometry_builder,
-        normalized_material_indices: mat_idxs,
-        bones,
-    } = geometry.userData as BuilderData;
+    skinning: boolean,
+): Mesh {
+    const { created_by_geometry_builder, materials, bones } = geometry.userData as BuilderData;
 
     let mat: Material | Material[];
 
-    if (Array.isArray(material)) {
-        if (created_by_geometry_builder) {
-            mat = [DUMMY_MATERIAL];
+    if (textures.length && created_by_geometry_builder) {
+        mat = [DUMMY_MATERIAL];
 
-            for (const [idx, normalized_idx] of mat_idxs.entries()) {
-                if (normalized_idx > 0) {
-                    mat[normalized_idx] = material[idx] || default_material;
+        for (let i = 1; i < materials.length; i++) {
+            const { texture_id, alpha, additive_blending } = materials[i];
+            const tex = texture_id == undefined ? undefined : textures[texture_id];
+
+            if (tex) {
+                const mat_params: MeshBasicMaterialParameters = {
+                    skinning,
+                    map: tex,
+                    side: DoubleSide,
+                };
+
+                if (alpha) {
+                    mat_params.transparent = true;
+                    mat_params.alphaTest = 0.01;
                 }
+
+                if (additive_blending) {
+                    mat_params.transparent = true;
+                    mat_params.alphaTest = 0.01;
+                    mat_params.blending = AdditiveBlending;
+                }
+
+                mat.push(new MeshBasicMaterial(mat_params));
+            } else {
+                mat.push(
+                    new MeshLambertMaterial({
+                        skinning,
+                        side: DoubleSide,
+                    }),
+                );
             }
-        } else {
-            mat = material;
         }
-    } else if (material) {
-        mat = material;
     } else {
         mat = default_material;
     }
 
-    const mesh = new mesh_constructor(geometry, mat);
-
-    if (created_by_geometry_builder && bones.length && mesh instanceof SkinnedMesh) {
+    if (created_by_geometry_builder && bones.length && skinning) {
+        const mesh = new SkinnedMesh(geometry, mat);
         mesh.add(bones[0]);
         mesh.bind(new Skeleton(bones));
+        return mesh;
+    } else {
+        return new Mesh(geometry, mat);
     }
-
-    return mesh;
 }
