@@ -28,17 +28,17 @@ const materials = [
     }),
     // Ground
     new MeshLambertMaterial({
-        color: 0xc0c0c0,
+        color: 0x405050,
         side: DoubleSide,
     }),
     // Vegetation
     new MeshLambertMaterial({
-        color: 0x60c080,
+        color: 0x306040,
         side: DoubleSide,
     }),
     // Section transition zone
     new MeshLambertMaterial({
-        color: 0x8040a0,
+        color: 0x402050,
         side: DoubleSide,
     }),
 ];
@@ -52,17 +52,17 @@ const wireframe_materials = [
     }),
     // Ground
     new MeshBasicMaterial({
-        color: 0xd0d0d0,
+        color: 0x506060,
         wireframe: true,
     }),
     // Vegetation
     new MeshBasicMaterial({
-        color: 0x80e0a0,
+        color: 0x405050,
         wireframe: true,
     }),
     // Section transition zone
     new MeshBasicMaterial({
-        color: 0x9070b0,
+        color: 0x503060,
         wireframe: true,
     }),
 ];

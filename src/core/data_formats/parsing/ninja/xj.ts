@@ -28,8 +28,8 @@ export type XjMesh = {
 };
 
 export type XjMaterialProperties = {
-    alpha_src?: number;
-    alpha_dst?: number;
+    src_alpha?: number;
+    dst_alpha?: number;
     texture_id?: number;
     diffuse_r?: number;
     diffuse_g?: number;
@@ -177,8 +177,8 @@ function parse_triangle_strip_material_properties(
 
         switch (type) {
             case 2:
-                props.alpha_src = cursor.u32();
-                props.alpha_dst = cursor.u32();
+                props.src_alpha = cursor.u32();
+                props.dst_alpha = cursor.u32();
                 break;
             case 3:
                 props.texture_id = cursor.u32();

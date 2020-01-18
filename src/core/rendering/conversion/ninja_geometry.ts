@@ -239,6 +239,8 @@ class GeometryCreator {
         }
 
         let current_mat_idx: number | undefined;
+        let current_src_alpha: number | undefined;
+        let current_dst_alpha: number | undefined;
 
         for (const mesh of model.meshes) {
             const start_index_count = this.builder.index_count;
@@ -288,14 +290,24 @@ class GeometryCreator {
                 clockwise = !clockwise;
             }
 
-            if (mesh.material_properties.texture_id != null) {
+            if (mesh.material_properties.texture_id != undefined) {
                 current_mat_idx = mesh.material_properties.texture_id;
+            }
+
+            if (mesh.material_properties.src_alpha != undefined) {
+                current_src_alpha = mesh.material_properties.src_alpha;
+            }
+
+            if (mesh.material_properties.dst_alpha != undefined) {
+                current_dst_alpha = mesh.material_properties.dst_alpha;
             }
 
             this.builder.add_group(
                 start_index_count,
                 this.builder.index_count - start_index_count,
                 current_mat_idx,
+                true,
+                current_src_alpha !== 4 || current_dst_alpha !== 5,
             );
         }
     }
