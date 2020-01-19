@@ -1,17 +1,11 @@
 import { ViewerView } from "./gui/ViewerView";
 import { GuiStore } from "../core/stores/GuiStore";
 import { HttpClient } from "../core/HttpClient";
-import { DisposableThreeRenderer } from "../core/rendering/Renderer";
+import { DisposableThreeRenderer } from "../core/rendering/ThreeRenderer";
 import { Disposable } from "../core/observable/Disposable";
 import { Disposer } from "../core/observable/Disposer";
-import { TextureRenderer } from "./rendering/TextureRenderer";
-import { ModelRenderer } from "./rendering/ModelRenderer";
 import { Random } from "../core/Random";
-import { ModelToolBarView } from "./gui/model/ModelToolBarView";
-import { ModelStore } from "./stores/ModelStore";
-import { ModelToolBarController } from "./controllers/model/ModelToolBarController";
-import { CharacterClassOptionsView } from "./gui/model/CharacterClassOptionsView";
-import { CharacterClassOptionsController } from "./controllers/model/CharacterClassOptionsController";
+import { Renderer } from "../core/rendering/Renderer";
 
 export function initialize_viewer(
     http_client: HttpClient,
@@ -26,10 +20,23 @@ export function initialize_viewer(
 
         async () => {
             const { ModelController } = await import("./controllers/model/ModelController");
+            const { ModelRenderer } = await import("./rendering/ModelRenderer");
             const { ModelView } = await import("./gui/model/ModelView");
             const { CharacterClassAssetLoader } = await import(
                 "./loading/CharacterClassAssetLoader"
             );
+            const { ModelToolBarView } = await import("./gui/model/ModelToolBarView");
+            const { ModelStore } = await import("./stores/ModelStore");
+            const { ModelToolBarController } = await import(
+                "./controllers/model/ModelToolBarController"
+            );
+            const { CharacterClassOptionsView } = await import(
+                "./gui/model/CharacterClassOptionsView"
+            );
+            const { CharacterClassOptionsController } = await import(
+                "./controllers/model/CharacterClassOptionsController"
+            );
+
             const asset_loader = disposer.add(new CharacterClassAssetLoader(http_client));
             const store = disposer.add(new ModelStore(gui_store, asset_loader, random));
             const model_controller = new ModelController(store);
@@ -47,12 +54,20 @@ export function initialize_viewer(
         async () => {
             const { TextureController } = await import("./controllers/TextureController");
             const { TextureView } = await import("./gui/TextureView");
+
             const controller = disposer.add(new TextureController());
 
-            return new TextureView(
-                controller,
-                new TextureRenderer(controller, create_three_renderer()),
-            );
+            let renderer: Renderer;
+
+            if (gui_store.feature_active("renderer")) {
+                const { WebglTextureRenderer } = await import("./rendering/WebglTextureRenderer");
+                renderer = new WebglTextureRenderer(controller);
+            } else {
+                const { TextureRenderer } = await import("./rendering/TextureRenderer");
+                renderer = new TextureRenderer(controller, create_three_renderer());
+            }
+
+            return new TextureView(controller, renderer);
         },
     );
 

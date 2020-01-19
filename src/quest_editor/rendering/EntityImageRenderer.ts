@@ -4,7 +4,7 @@ import { create_entity_type_mesh } from "./conversion/entities";
 import { sequential } from "../../core/sequential";
 import { EntityAssetLoader } from "../loading/EntityAssetLoader";
 import { Disposable } from "../../core/observable/Disposable";
-import { DisposableThreeRenderer } from "../../core/rendering/Renderer";
+import { DisposableThreeRenderer } from "../../core/rendering/ThreeRenderer";
 import { LoadingCache } from "../loading/LoadingCache";
 import { DisposablePromise } from "../../core/DisposablePromise";
 

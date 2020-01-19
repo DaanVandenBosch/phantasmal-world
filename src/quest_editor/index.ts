@@ -7,7 +7,7 @@ import { AreaAssetLoader } from "./loading/AreaAssetLoader";
 import { HttpClient } from "../core/HttpClient";
 import { EntityImageRenderer } from "./rendering/EntityImageRenderer";
 import { EntityAssetLoader } from "./loading/EntityAssetLoader";
-import { DisposableThreeRenderer } from "../core/rendering/Renderer";
+import { DisposableThreeRenderer } from "../core/rendering/ThreeRenderer";
 import { QuestEditorUiPersister } from "./persistence/QuestEditorUiPersister";
 import { QuestEditorToolBarView } from "./gui/QuestEditorToolBarView";
 import { QuestEditorToolBarController } from "./controllers/QuestEditorToolBarController";

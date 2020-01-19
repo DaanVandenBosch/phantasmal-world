@@ -1,4 +1,4 @@
-import { DisposableThreeRenderer } from "../../../../src/core/rendering/Renderer";
+import { DisposableThreeRenderer } from "../../../../src/core/rendering/ThreeRenderer";
 
 export class StubThreeRenderer implements DisposableThreeRenderer {
     domElement: HTMLCanvasElement = document.createElement("canvas");

@@ -1,7 +1,7 @@
 import { ResizableWidget } from "./ResizableWidget";
-import { Renderer } from "../rendering/Renderer";
 import { div } from "./dom";
 import { Widget } from "./Widget";
+import { Renderer } from "../rendering/Renderer";
 
 export class RendererWidget extends ResizableWidget {
     readonly element = div({ className: "core_RendererWidget" });

@@ -19,7 +19,7 @@ import {
     create_animation_clip,
     PSO_FRAME_RATE,
 } from "../../core/rendering/conversion/ninja_animation";
-import { DisposableThreeRenderer, Renderer } from "../../core/rendering/Renderer";
+import { DisposableThreeRenderer, ThreeRenderer } from "../../core/rendering/ThreeRenderer";
 import { Disposer } from "../../core/observable/Disposer";
 import { ChangeEvent } from "../../core/observable/Observable";
 import { LogManager } from "../../core/Logger";
@@ -40,7 +40,7 @@ const DEFAULT_SKINNED_MATERIAL = new MeshLambertMaterial({
 const CAMERA_POSITION = Object.freeze(new Vector3(0, 10, 20));
 const CAMERA_LOOK_AT = Object.freeze(new Vector3(0, 0, 0));
 
-export class ModelRenderer extends Renderer implements Disposable {
+export class ModelRenderer extends ThreeRenderer implements Disposable {
     private readonly disposer = new Disposer();
     private readonly clock = new Clock();
     private character_class_active: boolean;

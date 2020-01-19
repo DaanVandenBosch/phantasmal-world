@@ -4,7 +4,7 @@ import { QuestRendererView } from "./QuestRendererView";
 import { QuestEditorStore } from "../stores/QuestEditorStore";
 import { AreaAssetLoader } from "../loading/AreaAssetLoader";
 import { EntityAssetLoader } from "../loading/EntityAssetLoader";
-import { DisposableThreeRenderer } from "../../core/rendering/Renderer";
+import { DisposableThreeRenderer } from "../../core/rendering/ThreeRenderer";
 
 export class QuestRunnerRendererView extends QuestRendererView {
     constructor(

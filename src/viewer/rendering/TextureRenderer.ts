@@ -8,7 +8,7 @@ import {
     Vector3,
 } from "three";
 import { Disposable } from "../../core/observable/Disposable";
-import { DisposableThreeRenderer, Renderer } from "../../core/rendering/Renderer";
+import { DisposableThreeRenderer, ThreeRenderer } from "../../core/rendering/ThreeRenderer";
 import { Disposer } from "../../core/observable/Disposer";
 import { XvrTexture } from "../../core/data_formats/parsing/ninja/texture";
 import { xvr_texture_to_texture } from "../../core/rendering/conversion/ninja_textures";
@@ -17,7 +17,7 @@ import { TextureController } from "../controllers/TextureController";
 
 const logger = LogManager.get("viewer/rendering/TextureRenderer");
 
-export class TextureRenderer extends Renderer implements Disposable {
+export class TextureRenderer extends ThreeRenderer implements Disposable {
     private readonly disposer = new Disposer();
     private readonly quad_meshes: Mesh[] = [];
 
