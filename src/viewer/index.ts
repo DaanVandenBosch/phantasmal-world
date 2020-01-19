@@ -60,8 +60,8 @@ export function initialize_viewer(
             let renderer: Renderer;
 
             if (gui_store.feature_active("renderer")) {
-                const { WebglTextureRenderer } = await import("./rendering/WebglTextureRenderer");
-                renderer = new WebglTextureRenderer(controller);
+                const { TextureWebglRenderer } = await import("./rendering/TextureWebglRenderer");
+                renderer = new TextureWebglRenderer(controller);
             } else {
                 const { TextureRenderer } = await import("./rendering/TextureRenderer");
                 renderer = new TextureRenderer(controller, create_three_renderer());

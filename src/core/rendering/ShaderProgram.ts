@@ -1,6 +1,5 @@
-import { Matrix4 } from "../math";
+import { Mat4 } from "../math";
 import { GL, VERTEX_POS_LOC, VERTEX_TEX_LOC } from "./VertexFormat";
-import { Texture } from "./Texture";
 
 export class ShaderProgram {
     private readonly gl: GL;
@@ -51,13 +50,12 @@ export class ShaderProgram {
         }
     }
 
-    set_transform(matrix: Matrix4): void {
+    set_transform_uniform(matrix: Mat4): void {
         this.gl.uniformMatrix4fv(this.transform_loc, true, matrix.data);
     }
 
-    set_texture(texture: Texture): void {
-        const gl = this.gl;
-        gl.uniform1i(this.tex_sampler_loc, 0);
+    set_texture_uniform(unit: GLenum): void {
+        this.gl.uniform1i(this.tex_sampler_loc, unit - this.gl.TEXTURE0);
     }
 
     bind(): void {

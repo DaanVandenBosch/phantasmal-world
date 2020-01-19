@@ -25,14 +25,26 @@ export function floor_mod(dividend: number, divisor: number): number {
     return ((dividend % divisor) + divisor) % divisor;
 }
 
-export class Matrix4 {
-    static of(...values: readonly number[]): Matrix4 {
-        return new Matrix4(new Float32Array(values));
+export class Vec2 {
+    constructor(public x: number, public y: number) {}
+}
+
+export function vec2_diff(v: Vec2, w: Vec2): Vec2 {
+    return new Vec2(v.x - w.x, v.y - w.y);
+}
+
+export class Vec3 {
+    constructor(public x: number, public y: number, public z: number) {}
+}
+
+export class Mat4 {
+    static of(...values: readonly number[]): Mat4 {
+        return new Mat4(new Float32Array(values));
     }
 
-    static identity(): Matrix4 {
+    static identity(): Mat4 {
         // prettier-ignore
-        return Matrix4.of(
+        return Mat4.of(
             1, 0, 0, 0,
             0, 1, 0, 0,
             0, 0, 1, 0,
@@ -45,9 +57,19 @@ export class Matrix4 {
     }
 }
 
-export function matrix4_product(a: Matrix4, b: Matrix4): Matrix4 {
-    const array = new Float32Array(16);
+export function mat4_product(a: Mat4, b: Mat4): Mat4 {
+    const c = new Mat4(new Float32Array(16));
+    mat4_product_into_array(c.data, a, b);
+    return c;
+}
 
+export function mat4_multiply(a: Mat4, b: Mat4): void {
+    const array = new Float32Array(16);
+    mat4_product_into_array(array, a, b);
+    a.data.set(array);
+}
+
+function mat4_product_into_array(array: Float32Array, a: Mat4, b: Mat4): void {
     for (let i = 0; i < 4; i++) {
         for (let j = 0; j < 4; j++) {
             for (let k = 0; k < 4; k++) {
@@ -55,6 +77,8 @@ export function matrix4_product(a: Matrix4, b: Matrix4): Matrix4 {
             }
         }
     }
+}
 
-    return new Matrix4(array);
+export class Quat {
+    constructor(public x: number, public y: number, public z: number, public w: number) {}
 }

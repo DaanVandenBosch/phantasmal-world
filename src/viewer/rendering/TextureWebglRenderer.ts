@@ -10,7 +10,7 @@ import { Texture, TextureFormat } from "../../core/rendering/Texture";
 
 const logger = LogManager.get("viewer/rendering/WebglTextureRenderer");
 
-export class WebglTextureRenderer extends WebglRenderer {
+export class TextureWebglRenderer extends WebglRenderer {
     private readonly disposer = new Disposer();
 
     constructor(ctrl: TextureController) {
@@ -18,7 +18,9 @@ export class WebglTextureRenderer extends WebglRenderer {
 
         this.disposer.add_all(
             ctrl.textures.observe(({ value: textures }) => {
-                this.render_textures(textures);
+                this.scene.delete();
+                this.camera.reset();
+                this.create_quads(textures);
                 this.schedule_render();
             }),
         );
@@ -29,9 +31,7 @@ export class WebglTextureRenderer extends WebglRenderer {
         this.disposer.dispose();
     }
 
-    private render_textures(textures: readonly XvrTexture[]): void {
-        this.scene.delete();
-
+    private create_quads(textures: readonly XvrTexture[]): void {
         let total_width = 10 * (textures.length - 1); // 10px spacing between textures.
         let total_height = 0;
 
