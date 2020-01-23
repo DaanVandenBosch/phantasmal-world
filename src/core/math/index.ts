@@ -37,9 +37,23 @@ export class Vec3 {
     constructor(public x: number, public y: number, public z: number) {}
 }
 
+/**
+ * Stores data in column-major order.
+ */
 export class Mat4 {
-    static of(...values: readonly number[]): Mat4 {
-        return new Mat4(new Float32Array(values));
+    // prettier-ignore
+    static of(
+        m00: number, m01: number, m02: number, m03: number,
+        m10: number, m11: number, m12: number, m13: number,
+        m20: number, m21: number, m22: number, m23: number,
+        m30: number, m31: number, m32: number, m33: number,
+    ): Mat4 {
+        return new Mat4(new Float32Array([
+            m00, m10, m20, m30,
+            m01, m11, m21, m31,
+            m02, m12, m22, m32,
+            m03, m13, m23, m33,
+        ]));
     }
 
     static identity(): Mat4 {
@@ -73,7 +87,7 @@ function mat4_product_into_array(array: Float32Array, a: Mat4, b: Mat4): void {
     for (let i = 0; i < 4; i++) {
         for (let j = 0; j < 4; j++) {
             for (let k = 0; k < 4; k++) {
-                array[i * 4 + j] += a.data[i * 4 + k] * b.data[k * 4 + j];
+                array[i + j * 4] += a.data[i + k * 4] * b.data[k + j * 4];
             }
         }
     }

@@ -1,31 +1,32 @@
-import { Renderer } from "./Renderer";
-import { Mat4, mat4_product, Vec2, vec2_diff } from "../math";
-import { ShaderProgram } from "./ShaderProgram";
-import { GL } from "./VertexFormat";
-import { Scene } from "./Scene";
+import { Mat4, mat4_product, Vec2, vec2_diff } from "../../math";
+import { ShaderProgram } from "../ShaderProgram";
+import { GL, VertexFormat } from "../VertexFormat";
+import { WebglScene } from "./WebglScene";
 import {
     POS_FRAG_SHADER_SOURCE,
     POS_TEX_FRAG_SHADER_SOURCE,
     POS_TEX_VERTEX_SHADER_SOURCE,
     POS_VERTEX_SHADER_SOURCE,
-} from "./shader_sources";
-import { Camera } from "./Camera";
+} from "../shader_sources";
+import { Camera } from "../Camera";
+import { MeshBuilder } from "../MeshBuilder";
+import { Texture } from "../Texture";
+import { GlRenderer } from "../GlRenderer";
+import { WebglMesh } from "./WebglMesh";
 
-export class WebglRenderer extends Renderer {
+export class WebglRenderer implements GlRenderer<WebglMesh> {
     private readonly gl: GL;
     private readonly shader_programs: ShaderProgram[];
     private animation_frame?: number;
-    private projection!: Mat4;
+    private projection_mat!: Mat4;
     private pointer_pos?: Vec2;
 
-    protected readonly scene: Scene;
+    protected readonly scene: WebglScene;
     protected readonly camera = new Camera();
 
     readonly canvas_element: HTMLCanvasElement;
 
     constructor() {
-        super();
-
         this.canvas_element = document.createElement("canvas");
 
         const gl = this.canvas_element.getContext("webgl2");
@@ -45,7 +46,7 @@ export class WebglRenderer extends Renderer {
             new ShaderProgram(gl, POS_TEX_VERTEX_SHADER_SOURCE, POS_TEX_FRAG_SHADER_SOURCE),
         ];
 
-        this.scene = new Scene(gl);
+        this.scene = new WebglScene(gl);
 
         this.set_size(800, 600);
 
@@ -85,7 +86,7 @@ export class WebglRenderer extends Renderer {
         this.gl.viewport(0, 0, width, height);
 
         // prettier-ignore
-        this.projection = Mat4.of(
+        this.projection_mat = Mat4.of(
             2/width, 0,        0,    0,
             0,       2/height, 0,    0,
             0,       0,        2/10, 0,
@@ -95,13 +96,27 @@ export class WebglRenderer extends Renderer {
         this.schedule_render();
     }
 
+    mesh_builder(vertex_format: VertexFormat): MeshBuilder<WebglMesh> {
+        return new MeshBuilder(this, vertex_format);
+    }
+
+    mesh(
+        vertex_format: VertexFormat,
+        vertex_data: ArrayBuffer,
+        index_data: ArrayBuffer,
+        index_count: number,
+        texture: Texture,
+    ): WebglMesh {
+        return new WebglMesh(vertex_format, vertex_data, index_data, index_count, texture);
+    }
+
     private render = (): void => {
         this.animation_frame = undefined;
         const gl = this.gl;
 
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-        const camera_project_mat = mat4_product(this.projection, this.camera.transform.mat4);
+        const camera_project_mat = mat4_product(this.projection_mat, this.camera.transform.mat4);
 
         this.scene.traverse((node, parent_mat) => {
             const mat = mat4_product(parent_mat, node.transform.mat4);

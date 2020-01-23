@@ -27,7 +27,7 @@ export interface DisposableThreeRenderer extends THREE.Renderer, Disposable {}
 /**
  * Uses THREE.js for rendering.
  */
-export abstract class ThreeRenderer extends Renderer {
+export abstract class ThreeRenderer implements Renderer {
     private _debug = false;
 
     get debug(): boolean {
@@ -51,7 +51,6 @@ export abstract class ThreeRenderer extends Renderer {
     private readonly size = new Vector2(0, 0);
 
     protected constructor(three_renderer: DisposableThreeRenderer) {
-        super();
         this.renderer = three_renderer;
         this.renderer.domElement.tabIndex = 0;
         this.renderer.domElement.addEventListener("mousedown", this.on_mouse_down);

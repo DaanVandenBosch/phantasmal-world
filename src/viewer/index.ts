@@ -59,7 +59,10 @@ export function initialize_viewer(
 
             let renderer: Renderer;
 
-            if (gui_store.feature_active("renderer")) {
+            if (gui_store.feature_active("webgpu")) {
+                const { TextureWebgpuRenderer } = await import("./rendering/TextureWebgpuRenderer");
+                renderer = new TextureWebgpuRenderer(controller);
+            } else if (gui_store.feature_active("webgl")) {
                 const { TextureWebglRenderer } = await import("./rendering/TextureWebglRenderer");
                 renderer = new TextureWebglRenderer(controller);
             } else {

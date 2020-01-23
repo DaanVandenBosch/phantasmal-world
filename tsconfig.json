@@ -5,6 +5,7 @@
         "module": "esnext",
         "target": "es6",
         "lib": ["esnext", "dom", "dom.iterable"],
+        "typeRoots": ["node_modules/@types", "node_modules/@webgpu"],
         "allowJs": true,
         "skipLibCheck": true,
         "esModuleInterop": true,

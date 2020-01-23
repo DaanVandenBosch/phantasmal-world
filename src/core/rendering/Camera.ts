@@ -46,9 +46,9 @@ export class Camera {
     }
 
     private update_transform(): void {
-        this._transform.data[3] = -this.look_at.x;
-        this._transform.data[7] = -this.look_at.y;
-        this._transform.data[11] = -this.look_at.z;
+        this._transform.data[12] = -this.look_at.x;
+        this._transform.data[13] = -this.look_at.y;
+        this._transform.data[14] = -this.look_at.z;
         this._transform.data[0] = this._zoom;
         this._transform.data[5] = this._zoom;
         this._transform.data[10] = this._zoom;

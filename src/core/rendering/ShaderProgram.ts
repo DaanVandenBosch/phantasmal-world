@@ -51,7 +51,7 @@ export class ShaderProgram {
     }
 
     set_transform_uniform(matrix: Mat4): void {
-        this.gl.uniformMatrix4fv(this.transform_loc, true, matrix.data);
+        this.gl.uniformMatrix4fv(this.transform_loc, false, matrix.data);
     }
 
     set_texture_uniform(unit: GLenum): void {

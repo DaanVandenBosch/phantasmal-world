@@ -17,6 +17,7 @@
     "ignorePatterns": ["webpack.*.js"],
     "rules": {
         "@typescript-eslint/array-type": ["warn", { "default": "array", "readonly": "array" }],
+        "@typescript-eslint/ban-ts-ignore": "off",
         "@typescript-eslint/camelcase": "off",
         "@typescript-eslint/class-name-casing": "warn",
         "@typescript-eslint/explicit-function-return-type": ["warn", { "allowExpressions": true }],

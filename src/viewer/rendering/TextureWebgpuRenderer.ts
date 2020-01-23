@@ -1,16 +1,16 @@
 import { Disposer } from "../../core/observable/Disposer";
 import { LogManager } from "../../core/Logger";
 import { TextureController } from "../controllers/TextureController";
-import { WebglRenderer } from "../../core/rendering/webgl/WebglRenderer";
 import { XvrTexture } from "../../core/data_formats/parsing/ninja/texture";
-import { TranslateTransform } from "../../core/rendering/Transform";
 import { VertexFormat } from "../../core/rendering/VertexFormat";
 import { Texture, TextureFormat } from "../../core/rendering/Texture";
-import { WebglMesh } from "../../core/rendering/webgl/WebglMesh";
+import { WebgpuRenderer } from "../../core/rendering/webgpu/WebgpuRenderer";
+import { WebgpuMesh } from "../../core/rendering/webgpu/WebgpuMesh";
+import { TranslateTransform } from "../../core/rendering/Transform";
 
-const logger = LogManager.get("viewer/rendering/TextureWebglRenderer");
+const logger = LogManager.get("viewer/rendering/webgpu/TextureWebgpuRenderer");
 
-export class TextureWebglRenderer extends WebglRenderer {
+export class TextureWebgpuRenderer extends WebgpuRenderer {
     private readonly disposer = new Disposer();
 
     constructor(ctrl: TextureController) {
@@ -18,7 +18,7 @@ export class TextureWebglRenderer extends WebglRenderer {
 
         this.disposer.add_all(
             ctrl.textures.observe(({ value: textures }) => {
-                this.scene.delete();
+                this.scene?.destroy();
                 this.camera.reset();
                 this.create_quads(textures);
                 this.schedule_render();
@@ -47,7 +47,7 @@ export class TextureWebglRenderer extends WebglRenderer {
             try {
                 const quad_mesh = this.create_quad(tex);
 
-                this.scene.root_node.add_child(
+                this.scene?.root_node.add_child(
                     quad_mesh,
                     new TranslateTransform(x, y + (total_height - tex.height) / 2, 0),
                 );
@@ -59,12 +59,12 @@ export class TextureWebglRenderer extends WebglRenderer {
         }
     }
 
-    private create_quad(tex: XvrTexture): WebglMesh {
-        return this.mesh_builder(VertexFormat.PosTex)
-            .vertex(0, 0, 0, 0, 1)
-            .vertex(tex.width, 0, 0, 1, 1)
-            .vertex(tex.width, tex.height, 0, 1, 0)
-            .vertex(0, tex.height, 0, 0, 0)
+    private create_quad(tex: XvrTexture): WebgpuMesh {
+        return this.mesh_builder(VertexFormat.Pos)
+            .vertex(0, 0, 0)
+            .vertex(tex.width, 0, 0)
+            .vertex(tex.width, tex.height, 0)
+            .vertex(0, tex.height, 0)
 
             .triangle(0, 1, 2)
             .triangle(2, 3, 0)
