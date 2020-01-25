@@ -1,62 +1,52 @@
-import {
-    Mesh,
-    MeshBasicMaterial,
-    OrthographicCamera,
-    PlaneGeometry,
-    Texture,
-    Vector2,
-    Vector3,
-} from "three";
-import { Disposable } from "../../core/observable/Disposable";
-import { DisposableThreeRenderer, ThreeRenderer } from "../../core/rendering/ThreeRenderer";
 import { Disposer } from "../../core/observable/Disposer";
-import { XvrTexture } from "../../core/data_formats/parsing/ninja/texture";
-import { xvr_texture_to_texture } from "../../core/rendering/conversion/ninja_textures";
 import { LogManager } from "../../core/Logger";
 import { TextureController } from "../controllers/TextureController";
+import { XvrTexture } from "../../core/data_formats/parsing/ninja/texture";
+import { TranslateTransform } from "../../core/rendering/Transform";
+import { VertexFormat } from "../../core/rendering/VertexFormat";
+import { Texture, TextureFormat } from "../../core/rendering/Texture";
+import { Mesh } from "../../core/rendering/Mesh";
+import { GfxRenderer } from "../../core/rendering/GfxRenderer";
+import { Renderer } from "../../core/rendering/Renderer";
 
 const logger = LogManager.get("viewer/rendering/TextureRenderer");
 
-export class TextureRenderer extends ThreeRenderer implements Disposable {
+export class TextureRenderer implements Renderer {
     private readonly disposer = new Disposer();
-    private readonly quad_meshes: Mesh[] = [];
 
-    readonly camera = new OrthographicCamera(-400, 400, 300, -300, 1, 10);
+    readonly canvas_element: HTMLCanvasElement;
 
-    constructor(ctrl: TextureController, three_renderer: DisposableThreeRenderer) {
-        super(three_renderer);
+    constructor(ctrl: TextureController, private readonly renderer: GfxRenderer) {
+        this.canvas_element = renderer.canvas_element;
 
         this.disposer.add_all(
             ctrl.textures.observe(({ value: textures }) => {
-                this.scene.remove(...this.quad_meshes);
-
-                this.render_textures(textures);
-
-                this.reset_camera(new Vector3(0, 0, 5), new Vector3());
-                this.schedule_render();
+                renderer.scene.destroy();
+                renderer.camera.reset();
+                this.create_quads(textures);
+                renderer.schedule_render();
             }),
         );
-
-        this.init_camera_controls();
-        this.controls.azimuthRotateSpeed = 0;
-        this.controls.polarRotateSpeed = 0;
-    }
-
-    set_size(width: number, height: number): void {
-        this.camera.left = -Math.floor(width / 2);
-        this.camera.right = Math.ceil(width / 2);
-        this.camera.top = Math.floor(height / 2);
-        this.camera.bottom = -Math.ceil(height / 2);
-        this.camera.updateProjectionMatrix();
-        super.set_size(width, height);
     }
 
     dispose(): void {
-        super.dispose();
+        this.renderer.dispose();
         this.disposer.dispose();
     }
 
-    private render_textures(textures: readonly XvrTexture[]): void {
+    start_rendering(): void {
+        this.renderer.start_rendering();
+    }
+
+    stop_rendering(): void {
+        this.renderer.stop_rendering();
+    }
+
+    set_size(width: number, height: number): void {
+        this.renderer.set_size(width, height);
+    }
+
+    private create_quads(textures: readonly XvrTexture[]): void {
         let total_width = 10 * (textures.length - 1); // 10px spacing between textures.
         let total_height = 0;
 
@@ -69,47 +59,61 @@ export class TextureRenderer extends ThreeRenderer implements Disposable {
         const y = -Math.floor(total_height / 2);
 
         for (const tex of textures) {
-            let texture: Texture | undefined = undefined;
-
             try {
-                texture = xvr_texture_to_texture(tex);
+                const quad_mesh = this.create_quad(tex);
+
+                this.renderer.scene.root_node.add_child(
+                    quad_mesh,
+                    new TranslateTransform(x, y + (total_height - tex.height) / 2, 0),
+                );
             } catch (e) {
-                logger.error("Couldn't convert XVR texture.", e);
+                logger.error("Couldn't create quad for texture.", e);
             }
-
-            const quad_mesh = new Mesh(
-                this.create_quad(
-                    x,
-                    y + Math.floor((total_height - tex.height) / 2),
-                    tex.width,
-                    tex.height,
-                ),
-                texture
-                    ? new MeshBasicMaterial({
-                          map: texture,
-                          transparent: true,
-                      })
-                    : new MeshBasicMaterial({
-                          color: 0xff00ff,
-                      }),
-            );
-
-            this.quad_meshes.push(quad_mesh);
-            this.scene.add(quad_mesh);
 
             x += 10 + tex.width;
         }
     }
 
-    private create_quad(x: number, y: number, width: number, height: number): PlaneGeometry {
-        const quad = new PlaneGeometry(width, height, 1, 1);
-        quad.faceVertexUvs = [
-            [
-                [new Vector2(0, 0), new Vector2(0, 1), new Vector2(1, 0)],
-                [new Vector2(0, 1), new Vector2(1, 1), new Vector2(1, 0)],
-            ],
-        ];
-        quad.translate(x + width / 2, y + height / 2, -5);
-        return quad;
+    private create_quad(tex: XvrTexture): Mesh {
+        return this.renderer
+            .mesh_builder(VertexFormat.PosTex)
+            .vertex(0, 0, 0, 0, 1)
+            .vertex(tex.width, 0, 0, 1, 1)
+            .vertex(tex.width, tex.height, 0, 1, 0)
+            .vertex(0, tex.height, 0, 0, 0)
+
+            .triangle(0, 1, 2)
+            .triangle(2, 3, 0)
+
+            .texture(this.xvr_texture_to_texture(tex))
+
+            .build();
+    }
+
+    private xvr_texture_to_texture(tex: XvrTexture): Texture {
+        let format: TextureFormat;
+        let data_size: number;
+
+        // Ignore mipmaps.
+        switch (tex.format[1]) {
+            case 6:
+                format = TextureFormat.RGBA_S3TC_DXT1;
+                data_size = (tex.width * tex.height) / 2;
+                break;
+            case 7:
+                format = TextureFormat.RGBA_S3TC_DXT3;
+                data_size = tex.width * tex.height;
+                break;
+            default:
+                throw new Error(`Format ${tex.format.join(", ")} not supported.`);
+        }
+
+        return new Texture(
+            this.renderer.gfx!,
+            format,
+            tex.width,
+            tex.height,
+            tex.data.slice(0, data_size),
+        );
     }
 }

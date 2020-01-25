@@ -1,5 +1,3 @@
-export type GL = WebGL2RenderingContext;
-
 export enum VertexFormat {
     Pos,
     PosTex,

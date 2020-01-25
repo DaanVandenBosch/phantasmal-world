@@ -2,9 +2,9 @@ import { Texture } from "./Texture";
 import { vertex_format_size, vertex_format_tex_offset, VertexFormat } from "./VertexFormat";
 import { assert } from "../util";
 import { Mesh } from "./Mesh";
-import { GlRenderer } from "./GlRenderer";
+import { Gfx } from "./Gfx";
 
-export class MeshBuilder<MeshType extends Mesh> {
+export class MeshBuilder {
     private readonly vertex_data: {
         x: number;
         y: number;
@@ -15,10 +15,7 @@ export class MeshBuilder<MeshType extends Mesh> {
     private readonly index_data: number[] = [];
     private _texture?: Texture;
 
-    constructor(
-        private readonly renderer: GlRenderer<MeshType>,
-        private readonly format: VertexFormat,
-    ) {}
+    constructor(private readonly gfx: Gfx, private readonly format: VertexFormat) {}
 
     vertex(x: number, y: number, z: number, u?: number, v?: number): this {
         switch (this.format) {
@@ -44,7 +41,7 @@ export class MeshBuilder<MeshType extends Mesh> {
         return this;
     }
 
-    build(): MeshType {
+    build(): Mesh {
         const v_size = vertex_format_size(this.format);
         const v_tex_offset = vertex_format_tex_offset(this.format);
         const v_data = new ArrayBuffer(this.vertex_data.length * v_size);
@@ -67,7 +64,8 @@ export class MeshBuilder<MeshType extends Mesh> {
         const i_data = new Uint16Array(2 * Math.ceil(this.index_data.length / 2));
         i_data.set(this.index_data);
 
-        return this.renderer.mesh(
+        return new Mesh(
+            this.gfx,
             this.format,
             v_data,
             i_data,

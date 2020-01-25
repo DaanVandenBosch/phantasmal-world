@@ -1,67 +1,39 @@
 import { LogManager } from "../../Logger";
-import { MeshBuilder } from "../MeshBuilder";
 import { vertex_format_size, VertexFormat } from "../VertexFormat";
-import { Texture } from "../Texture";
-import { GlRenderer } from "../GlRenderer";
-import { WebgpuMesh } from "./WebgpuMesh";
-import { WebgpuScene } from "./WebgpuScene";
-import { Camera } from "../Camera";
-import { Disposable } from "../../observable/Disposable";
-import { Mat4, mat4_product, Vec2, vec2_diff } from "../../math";
-import { IdentityTransform } from "../Transform";
+import { GfxRenderer } from "../GfxRenderer";
+import { mat4_product } from "../../math";
+import { WebgpuGfx, WebgpuMesh } from "./WebgpuGfx";
+import { ShaderLoader } from "./ShaderLoader";
+import { HttpClient } from "../../HttpClient";
 
 const logger = LogManager.get("core/rendering/webgpu/WebgpuRenderer");
-
-const VERTEX_SHADER_SOURCE = `#version 450
-
-layout(set = 0, binding = 0) uniform Uniforms {
-    mat4 mvp_mat;
-} uniforms;
-
-layout(location = 0) in vec3 pos;
-
-void main() {
-    gl_Position = uniforms.mvp_mat * vec4(pos, 1.0);
-}
-`;
-
-const FRAG_SHADER_SOURCE = `#version 450
-
-layout(location = 0) out vec4 out_color;
-
-void main() {
-    out_color = vec4(0.0, 0.4, 0.8, 1.0);
-}
-`;
 
 /**
  * Uses the experimental WebGPU API for rendering.
  */
-export class WebgpuRenderer implements GlRenderer<WebgpuMesh> {
+export class WebgpuRenderer extends GfxRenderer {
     private disposed: boolean = false;
-    /**
-     * Is defined when an animation frame is scheduled.
-     */
-    private animation_frame?: number;
     /**
      * Is defined when the renderer is fully initialized.
      */
-    private renderer?: InitializedRenderer;
+    private gpu?: {
+        gfx: WebgpuGfx;
+        device: GPUDevice;
+        swap_chain: GPUSwapChain;
+        pipeline: GPURenderPipeline;
+    };
     private width = 800;
     private height = 600;
-    private pointer_pos?: Vec2;
+    private shader_loader: ShaderLoader;
 
-    protected scene?: WebgpuScene;
-    protected readonly camera = new Camera();
+    get gfx(): WebgpuGfx {
+        return this.gpu!.gfx;
+    }
 
-    readonly canvas_element: HTMLCanvasElement = document.createElement("canvas");
+    constructor(http_client: HttpClient) {
+        super();
 
-    constructor() {
-        this.canvas_element.width = this.width;
-        this.canvas_element.height = this.height;
-
-        this.canvas_element.addEventListener("mousedown", this.mousedown);
-        this.canvas_element.addEventListener("wheel", this.wheel, { passive: true });
+        this.shader_loader = new ShaderLoader(http_client);
 
         this.initialize();
     }
@@ -82,37 +54,84 @@ export class WebgpuRenderer implements GlRenderer<WebgpuMesh> {
 
             const adapter = await window.navigator.gpu.requestAdapter();
             const device = await adapter.requestDevice();
-            const glslang_module = await import(
-                // @ts-ignore
-                /* webpackIgnore: true */ "https://unpkg.com/@webgpu/glslang@0.0.7/web/glslang.js"
-            );
-            const glslang = await glslang_module.default();
+            const vertex_shader_source = await this.shader_loader.load("vertex_shader.vert");
+            const fragment_shader_source = await this.shader_loader.load("fragment_shader.frag");
 
             if (!this.disposed) {
-                this.renderer = new InitializedRenderer(
-                    this.canvas_element,
-                    context,
+                const swap_chain_format = "bgra8unorm";
+
+                const swap_chain = context.configureSwapChain({
+                    device: device,
+                    format: swap_chain_format,
+                });
+
+                const bind_group_layout = device.createBindGroupLayout({
+                    bindings: [
+                        {
+                            binding: 0,
+                            visibility: GPUShaderStage.VERTEX, // eslint-disable-line no-undef
+                            type: "uniform-buffer",
+                        },
+                        {
+                            binding: 1,
+                            visibility: GPUShaderStage.FRAGMENT, // eslint-disable-line no-undef
+                            type: "sampler",
+                        },
+                        {
+                            binding: 2,
+                            visibility: GPUShaderStage.FRAGMENT, // eslint-disable-line no-undef
+                            type: "sampled-texture",
+                        },
+                    ],
+                });
+
+                const pipeline = device.createRenderPipeline({
+                    layout: device.createPipelineLayout({ bindGroupLayouts: [bind_group_layout] }),
+                    vertexStage: {
+                        module: device.createShaderModule({
+                            code: vertex_shader_source,
+                        }),
+                        entryPoint: "main",
+                    },
+                    fragmentStage: {
+                        module: device.createShaderModule({
+                            code: fragment_shader_source,
+                        }),
+                        entryPoint: "main",
+                    },
+                    primitiveTopology: "triangle-list",
+                    colorStates: [{ format: swap_chain_format }],
+                    vertexState: {
+                        indexFormat: "uint16",
+                        vertexBuffers: [
+                            {
+                                arrayStride: vertex_format_size(VertexFormat.PosTex),
+                                stepMode: "vertex",
+                                attributes: [
+                                    {
+                                        format: "float3",
+                                        offset: 0,
+                                        shaderLocation: 0,
+                                    },
+                                    {
+                                        format: "ushort2norm",
+                                        offset: 12,
+                                        shaderLocation: 1,
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                });
+
+                this.gpu = {
+                    gfx: new WebgpuGfx(device, bind_group_layout),
                     device,
-                    glslang,
-                    this.camera,
-                );
-                this.renderer.set_size(this.width, this.height);
+                    swap_chain,
+                    pipeline,
+                };
 
-                this.scene = this.renderer.scene;
-
-                this.scene.root_node.add_child(
-                    this.mesh_builder(VertexFormat.Pos)
-                        .vertex(1, 1, 0.5)
-                        .vertex(-1, 1, 0.5)
-                        .vertex(-1, -1, 0.5)
-                        .vertex(1, -1, 0.5)
-                        .triangle(0, 1, 2)
-                        .triangle(0, 2, 3)
-                        .build(),
-                    new IdentityTransform(),
-                );
-
-                this.schedule_render();
+                this.set_size(this.width, this.height);
             }
         } catch (e) {
             logger.error("Failed to initialize WebGPU renderer.", e);
@@ -121,204 +140,64 @@ export class WebgpuRenderer implements GlRenderer<WebgpuMesh> {
 
     dispose(): void {
         this.disposed = true;
-        this.renderer?.dispose();
+        super.dispose();
     }
-
-    start_rendering(): void {
-        this.schedule_render();
-    }
-
-    stop_rendering(): void {
-        if (this.animation_frame != undefined) {
-            cancelAnimationFrame(this.animation_frame);
-        }
-
-        this.animation_frame = undefined;
-    }
-
-    schedule_render = (): void => {
-        if (this.animation_frame == undefined) {
-            this.animation_frame = requestAnimationFrame(this.render);
-        }
-    };
 
     set_size(width: number, height: number): void {
         this.width = width;
         this.height = height;
-        this.renderer?.set_size(width, height);
-        this.schedule_render();
-    }
 
-    mesh_builder(vertex_format: VertexFormat): MeshBuilder<WebgpuMesh> {
-        return new MeshBuilder(this, vertex_format);
-    }
-
-    mesh(
-        vertex_format: VertexFormat,
-        vertex_data: ArrayBuffer,
-        index_data: ArrayBuffer,
-        index_count: number,
-        texture?: Texture,
-    ): WebgpuMesh {
-        return new WebgpuMesh(vertex_format, vertex_data, index_data, index_count, texture);
-    }
-
-    private render = (): void => {
-        this.animation_frame = undefined;
-        this.renderer?.render();
-    };
-
-    private mousedown = (evt: MouseEvent): void => {
-        if (evt.buttons === 1) {
-            this.pointer_pos = new Vec2(evt.clientX, evt.clientY);
-
-            window.addEventListener("mousemove", this.mousemove);
-            window.addEventListener("mouseup", this.mouseup);
-        }
-    };
-
-    private mousemove = (evt: MouseEvent): void => {
-        if (evt.buttons === 1) {
-            const new_pos = new Vec2(evt.clientX, evt.clientY);
-            const diff = vec2_diff(new_pos, this.pointer_pos!);
-            this.camera.pan(-diff.x, diff.y, 0);
-            this.pointer_pos = new_pos;
-            this.schedule_render();
-        }
-    };
-
-    private mouseup = (): void => {
-        this.pointer_pos = undefined;
-
-        window.removeEventListener("mousemove", this.mousemove);
-        window.removeEventListener("mouseup", this.mouseup);
-    };
-
-    private wheel = (evt: WheelEvent): void => {
-        if (evt.deltaY < 0) {
-            this.camera.zoom(1.1);
-        } else {
-            this.camera.zoom(0.9);
+        // There seems to be a bug in chrome's WebGPU implementation that requires you to set a
+        // canvas element's width and height after it's added to the DOM.
+        if (this.gpu) {
+            this.canvas_element.width = width;
+            this.canvas_element.height = height;
         }
 
-        this.schedule_render();
-    };
-}
+        super.set_size(width, height);
+    }
 
-class InitializedRenderer implements Disposable {
-    private readonly swap_chain: GPUSwapChain;
-    private readonly pipeline: GPURenderPipeline;
-    private projection_mat: Mat4 = Mat4.identity();
+    protected render(): void {
+        if (this.gpu) {
+            const { device, swap_chain, pipeline } = this.gpu;
 
-    readonly scene: WebgpuScene;
+            const command_encoder = device.createCommandEncoder();
+            const texture_view = swap_chain.getCurrentTexture().createView();
 
-    constructor(
-        private readonly canvas_element: HTMLCanvasElement,
-        private readonly context: GPUCanvasContext,
-        private readonly device: GPUDevice,
-        private readonly glslang: any,
-        private readonly camera: Camera,
-    ) {
-        const swap_chain_format = "bgra8unorm";
-
-        this.swap_chain = context.configureSwapChain({
-            device: device,
-            format: swap_chain_format,
-        });
-
-        const bind_group_layout = device.createBindGroupLayout({
-            bindings: [
-                {
-                    binding: 0,
-                    visibility: GPUShaderStage.VERTEX, // eslint-disable-line no-undef
-                    type: "uniform-buffer",
-                },
-            ],
-        });
-
-        this.pipeline = device.createRenderPipeline({
-            layout: device.createPipelineLayout({ bindGroupLayouts: [bind_group_layout] }),
-            vertexStage: {
-                module: device.createShaderModule({
-                    code: glslang.compileGLSL(VERTEX_SHADER_SOURCE, "vertex", true),
-                }),
-                entryPoint: "main",
-            },
-            fragmentStage: {
-                module: device.createShaderModule({
-                    code: glslang.compileGLSL(FRAG_SHADER_SOURCE, "fragment", true),
-                }),
-                entryPoint: "main",
-            },
-            primitiveTopology: "triangle-list",
-            colorStates: [{ format: swap_chain_format }],
-            vertexState: {
-                indexFormat: "uint16",
-                vertexBuffers: [
+            const pass_encoder = command_encoder.beginRenderPass({
+                colorAttachments: [
                     {
-                        arrayStride: vertex_format_size(VertexFormat.Pos),
-                        stepMode: "vertex",
-                        attributes: [
-                            {
-                                format: "float3",
-                                offset: 0,
-                                shaderLocation: 0,
-                            },
-                        ],
+                        attachment: texture_view,
+                        loadValue: { r: 0.1, g: 0.1, b: 0.1, a: 1 },
                     },
                 ],
-            },
-        });
+            });
 
-        this.scene = new WebgpuScene(device, bind_group_layout);
-    }
+            pass_encoder.setPipeline(pipeline);
 
-    set_size(width: number, height: number): void {
-        this.canvas_element.width = width;
-        this.canvas_element.height = height;
+            const camera_project_mat = mat4_product(
+                this.projection_mat,
+                this.camera.transform.mat4,
+            );
 
-        // prettier-ignore
-        this.projection_mat = Mat4.of(
-            2/width, 0,        0,    0,
-            0,       2/height, 0,    0,
-            0,       0,        2/10, 0,
-            0,       0,        0,    1,
-        );
-    }
+            this.scene.traverse((node, parent_mat) => {
+                const mat = mat4_product(parent_mat, node.transform.mat4);
 
-    render(): void {
-        const command_encoder = this.device.createCommandEncoder();
-        const texture_view = this.swap_chain.getCurrentTexture().createView();
+                if (node.mesh) {
+                    const gfx_mesh = node.mesh.gfx_mesh as WebgpuMesh;
+                    gfx_mesh.uniform_buffer.setSubData(0, mat.data);
+                    pass_encoder.setBindGroup(0, gfx_mesh.bind_group);
+                    pass_encoder.setVertexBuffer(0, gfx_mesh.vertex_buffer);
+                    pass_encoder.setIndexBuffer(gfx_mesh.index_buffer);
+                    pass_encoder.drawIndexed(node.mesh.index_count, 1, 0, 0, 0);
+                }
 
-        const pass_encoder = command_encoder.beginRenderPass({
-            colorAttachments: [
-                {
-                    attachment: texture_view,
-                    loadValue: { r: 0.1, g: 0.1, b: 0.1, a: 1 },
-                },
-            ],
-        });
+                return mat;
+            }, camera_project_mat);
 
-        pass_encoder.setPipeline(this.pipeline);
+            pass_encoder.endPass();
 
-        const camera_project_mat = mat4_product(this.projection_mat, this.camera.transform.mat4);
-
-        this.scene.traverse((node, parent_mat) => {
-            const mat = mat4_product(parent_mat, node.transform.mat4);
-
-            if (node.mesh) {
-                node.mesh.render(pass_encoder, mat);
-            }
-
-            return mat;
-        }, camera_project_mat);
-
-        pass_encoder.endPass();
-
-        this.device.defaultQueue.submit([command_encoder.finish()]);
-    }
-
-    dispose(): void {
-        this.scene.destroy();
+            device.defaultQueue.submit([command_encoder.finish()]);
+        }
     }
 }

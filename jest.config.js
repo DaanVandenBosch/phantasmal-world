@@ -8,4 +8,9 @@ module.exports = {
         "^monaco-editor$": "<rootDir>/node_modules/monaco-editor/esm/vs/editor/editor.main.js",
         "^worker-loader!": "<rootDir>/src/__mocks__/webworkers.js",
     },
+    globals: {
+        "ts-jest": {
+            isolatedModules: true,
+        },
+    },
 };

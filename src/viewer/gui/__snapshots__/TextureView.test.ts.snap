@@ -35,8 +35,8 @@ exports[`Renders correctly without textures.: Should render a toolbar and a rend
     class="core_RendererWidget"
   >
     <canvas
-      style="outline: none;"
-      tabindex="0"
+      height="600"
+      width="800"
     />
   </div>
 </div>

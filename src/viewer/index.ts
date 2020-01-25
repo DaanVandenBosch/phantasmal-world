@@ -54,20 +54,18 @@ export function initialize_viewer(
         async () => {
             const { TextureController } = await import("./controllers/TextureController");
             const { TextureView } = await import("./gui/TextureView");
+            const { TextureRenderer } = await import("./rendering/TextureRenderer");
 
             const controller = disposer.add(new TextureController());
 
             let renderer: Renderer;
 
             if (gui_store.feature_active("webgpu")) {
-                const { TextureWebgpuRenderer } = await import("./rendering/TextureWebgpuRenderer");
-                renderer = new TextureWebgpuRenderer(controller);
-            } else if (gui_store.feature_active("webgl")) {
-                const { TextureWebglRenderer } = await import("./rendering/TextureWebglRenderer");
-                renderer = new TextureWebglRenderer(controller);
+                const { WebgpuRenderer } = await import("../core/rendering/webgpu/WebgpuRenderer");
+                renderer = new TextureRenderer(controller, new WebgpuRenderer(http_client));
             } else {
-                const { TextureRenderer } = await import("./rendering/TextureRenderer");
-                renderer = new TextureRenderer(controller, create_three_renderer());
+                const { WebglRenderer } = await import("../core/rendering/webgl/WebglRenderer");
+                renderer = new TextureRenderer(controller, new WebglRenderer());
             }
 
             return new TextureView(controller, renderer);

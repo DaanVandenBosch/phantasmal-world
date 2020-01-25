@@ -1,33 +1,20 @@
-import { Mat4, mat4_product, Vec2, vec2_diff } from "../../math";
+import { mat4_product } from "../../math";
 import { ShaderProgram } from "../ShaderProgram";
-import { GL, VertexFormat } from "../VertexFormat";
-import { WebglScene } from "./WebglScene";
-import {
-    POS_FRAG_SHADER_SOURCE,
-    POS_TEX_FRAG_SHADER_SOURCE,
-    POS_TEX_VERTEX_SHADER_SOURCE,
-    POS_VERTEX_SHADER_SOURCE,
-} from "../shader_sources";
-import { Camera } from "../Camera";
-import { MeshBuilder } from "../MeshBuilder";
-import { Texture } from "../Texture";
-import { GlRenderer } from "../GlRenderer";
-import { WebglMesh } from "./WebglMesh";
+import pos_vert_shader_source from "./pos.vert";
+import pos_frag_shader_source from "./pos.frag";
+import pos_tex_vert_shader_source from "./pos_tex.vert";
+import pos_tex_frag_shader_source from "./pos_tex.frag";
+import { GfxRenderer } from "../GfxRenderer";
+import { WebglGfx, WebglMesh } from "./WebglGfx";
 
-export class WebglRenderer implements GlRenderer<WebglMesh> {
-    private readonly gl: GL;
+export class WebglRenderer extends GfxRenderer {
+    private readonly gl: WebGL2RenderingContext;
     private readonly shader_programs: ShaderProgram[];
-    private animation_frame?: number;
-    private projection_mat!: Mat4;
-    private pointer_pos?: Vec2;
 
-    protected readonly scene: WebglScene;
-    protected readonly camera = new Camera();
-
-    readonly canvas_element: HTMLCanvasElement;
+    readonly gfx: WebglGfx;
 
     constructor() {
-        this.canvas_element = document.createElement("canvas");
+        super();
 
         const gl = this.canvas_element.getContext("webgl2");
 
@@ -36,22 +23,18 @@ export class WebglRenderer implements GlRenderer<WebglMesh> {
         }
 
         this.gl = gl;
+        this.gfx = new WebglGfx(gl);
 
         gl.enable(gl.DEPTH_TEST);
         gl.enable(gl.CULL_FACE);
         gl.clearColor(0.1, 0.1, 0.1, 1);
 
         this.shader_programs = [
-            new ShaderProgram(gl, POS_VERTEX_SHADER_SOURCE, POS_FRAG_SHADER_SOURCE),
-            new ShaderProgram(gl, POS_TEX_VERTEX_SHADER_SOURCE, POS_TEX_FRAG_SHADER_SOURCE),
+            new ShaderProgram(gl, pos_vert_shader_source, pos_frag_shader_source),
+            new ShaderProgram(gl, pos_tex_vert_shader_source, pos_tex_frag_shader_source),
         ];
 
-        this.scene = new WebglScene(gl);
-
         this.set_size(800, 600);
-
-        this.canvas_element.addEventListener("mousedown", this.mousedown);
-        this.canvas_element.addEventListener("wheel", this.wheel, { passive: true });
     }
 
     dispose(): void {
@@ -59,59 +42,18 @@ export class WebglRenderer implements GlRenderer<WebglMesh> {
             program.delete();
         }
 
-        this.scene.delete();
+        super.dispose();
     }
-
-    start_rendering(): void {
-        this.schedule_render();
-    }
-
-    stop_rendering(): void {
-        if (this.animation_frame != undefined) {
-            cancelAnimationFrame(this.animation_frame);
-        }
-
-        this.animation_frame = undefined;
-    }
-
-    schedule_render = (): void => {
-        if (this.animation_frame == undefined) {
-            this.animation_frame = requestAnimationFrame(this.render);
-        }
-    };
 
     set_size(width: number, height: number): void {
         this.canvas_element.width = width;
         this.canvas_element.height = height;
         this.gl.viewport(0, 0, width, height);
 
-        // prettier-ignore
-        this.projection_mat = Mat4.of(
-            2/width, 0,        0,    0,
-            0,       2/height, 0,    0,
-            0,       0,        2/10, 0,
-            0,       0,        0,    1,
-        );
-
-        this.schedule_render();
+        super.set_size(width, height);
     }
 
-    mesh_builder(vertex_format: VertexFormat): MeshBuilder<WebglMesh> {
-        return new MeshBuilder(this, vertex_format);
-    }
-
-    mesh(
-        vertex_format: VertexFormat,
-        vertex_data: ArrayBuffer,
-        index_data: ArrayBuffer,
-        index_count: number,
-        texture: Texture,
-    ): WebglMesh {
-        return new WebglMesh(vertex_format, vertex_data, index_data, index_count, texture);
-    }
-
-    private render = (): void => {
-        this.animation_frame = undefined;
+    protected render(): void {
         const gl = this.gl;
 
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -127,55 +69,23 @@ export class WebglRenderer implements GlRenderer<WebglMesh> {
 
                 program.set_transform_uniform(mat);
 
-                if (node.mesh.texture) {
+                if (node.mesh.texture?.gfx_texture) {
                     gl.activeTexture(gl.TEXTURE0);
-                    node.mesh.texture.bind(gl);
+                    gl.bindTexture(gl.TEXTURE_2D, node.mesh.texture.gfx_texture as WebGLTexture);
                     program.set_texture_uniform(gl.TEXTURE0);
                 }
 
-                node.mesh.render(gl);
+                const gfx_mesh = node.mesh.gfx_mesh as WebglMesh;
+                gl.bindVertexArray(gfx_mesh.vao);
+                gl.drawElements(gl.TRIANGLES, node.mesh.index_count, gl.UNSIGNED_SHORT, 0);
+                gl.bindVertexArray(null);
 
-                node.mesh.texture?.unbind(gl);
+                gl.bindTexture(gl.TEXTURE_2D, null);
+
                 program.unbind();
             }
 
             return mat;
         }, camera_project_mat);
-    };
-
-    private mousedown = (evt: MouseEvent): void => {
-        if (evt.buttons === 1) {
-            this.pointer_pos = new Vec2(evt.clientX, evt.clientY);
-
-            window.addEventListener("mousemove", this.mousemove);
-            window.addEventListener("mouseup", this.mouseup);
-        }
-    };
-
-    private mousemove = (evt: MouseEvent): void => {
-        if (evt.buttons === 1) {
-            const new_pos = new Vec2(evt.clientX, evt.clientY);
-            const diff = vec2_diff(new_pos, this.pointer_pos!);
-            this.camera.pan(-diff.x, diff.y, 0);
-            this.pointer_pos = new_pos;
-            this.schedule_render();
-        }
-    };
-
-    private mouseup = (): void => {
-        this.pointer_pos = undefined;
-
-        window.removeEventListener("mousemove", this.mousemove);
-        window.removeEventListener("mouseup", this.mouseup);
-    };
-
-    private wheel = (evt: WheelEvent): void => {
-        if (evt.deltaY < 0) {
-            this.camera.zoom(1.1);
-        } else {
-            this.camera.zoom(0.9);
-        }
-
-        this.schedule_render();
-    };
+    }
 }

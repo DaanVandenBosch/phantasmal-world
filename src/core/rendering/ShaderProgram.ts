@@ -1,13 +1,13 @@
 import { Mat4 } from "../math";
-import { GL, VERTEX_POS_LOC, VERTEX_TEX_LOC } from "./VertexFormat";
+import { VERTEX_POS_LOC, VERTEX_TEX_LOC } from "./VertexFormat";
 
 export class ShaderProgram {
-    private readonly gl: GL;
+    private readonly gl: WebGL2RenderingContext;
     private readonly program: WebGLProgram;
     private readonly transform_loc: WebGLUniformLocation;
     private readonly tex_sampler_loc: WebGLUniformLocation | null;
 
-    constructor(gl: GL, vertex_source: string, frag_source: string) {
+    constructor(gl: WebGL2RenderingContext, vertex_source: string, frag_source: string) {
         this.gl = gl;
         const program = gl.createProgram();
         if (program == null) throw new Error("Failed to create program.");
@@ -71,7 +71,7 @@ export class ShaderProgram {
     }
 }
 
-function create_shader(gl: GL, type: GLenum, source: string): WebGLShader {
+function create_shader(gl: WebGL2RenderingContext, type: GLenum, source: string): WebGLShader {
     const shader = gl.createShader(type);
     if (shader == null) throw new Error(`Failed to create shader of type ${type}.`);
 

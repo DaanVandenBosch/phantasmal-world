@@ -14,13 +14,12 @@ module.exports = {
     module: {
         rules: [
             {
-                test: /^worker-loader!/,
-                loader: "worker-loader",
-                options: { name: "worker.[hash].js" },
-            },
-            {
                 test: /\.(gif|jpg|png|svg|ttf)$/,
                 loader: "file-loader",
+            },
+            {
+                test: /\.(vert|frag)$/,
+                loader: "raw-loader",
             },
         ],
     },
