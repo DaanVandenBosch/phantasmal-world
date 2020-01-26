@@ -1,11 +1,11 @@
 import { ViewerView } from "./gui/ViewerView";
 import { GuiStore } from "../core/stores/GuiStore";
 import { HttpClient } from "../core/HttpClient";
-import { DisposableThreeRenderer } from "../core/rendering/ThreeRenderer";
 import { Disposable } from "../core/observable/Disposable";
 import { Disposer } from "../core/observable/Disposer";
 import { Random } from "../core/Random";
 import { Renderer } from "../core/rendering/Renderer";
+import { DisposableThreeRenderer } from "../core/rendering/ThreeRenderer";
 
 export function initialize_viewer(
     http_client: HttpClient,
@@ -20,7 +20,6 @@ export function initialize_viewer(
 
         async () => {
             const { ModelController } = await import("./controllers/model/ModelController");
-            const { ModelRenderer } = await import("./rendering/ModelRenderer");
             const { ModelView } = await import("./gui/model/ModelView");
             const { CharacterClassAssetLoader } = await import(
                 "./loading/CharacterClassAssetLoader"
@@ -43,17 +42,35 @@ export function initialize_viewer(
             const model_tool_bar_controller = new ModelToolBarController(store);
             const character_class_options_controller = new CharacterClassOptionsController(store);
 
+            let renderer: Renderer;
+
+            if (gui_store.feature_active("webgpu")) {
+                const { WebgpuRenderer } = await import("../core/rendering/webgpu/WebgpuRenderer");
+                const { ModelGfxRenderer } = await import("./rendering/ModelGfxRenderer");
+
+                renderer = new ModelGfxRenderer(store, new WebgpuRenderer(true, http_client));
+            } else if (gui_store.feature_active("webgl")) {
+                const { WebglRenderer } = await import("../core/rendering/webgl/WebglRenderer");
+                const { ModelGfxRenderer } = await import("./rendering/ModelGfxRenderer");
+
+                renderer = new ModelGfxRenderer(store, new WebglRenderer(true));
+            } else {
+                const { ModelRenderer } = await import("./rendering/ModelRenderer");
+
+                renderer = new ModelRenderer(store, create_three_renderer());
+            }
+
             return new ModelView(
                 model_controller,
                 new ModelToolBarView(model_tool_bar_controller),
                 new CharacterClassOptionsView(character_class_options_controller),
-                new ModelRenderer(store, create_three_renderer()),
+                renderer,
             );
         },
 
         async () => {
-            const { TextureController } = await import("./controllers/TextureController");
-            const { TextureView } = await import("./gui/TextureView");
+            const { TextureController } = await import("./controllers/texture/TextureController");
+            const { TextureView } = await import("./gui/texture/TextureView");
             const { TextureRenderer } = await import("./rendering/TextureRenderer");
 
             const controller = disposer.add(new TextureController());
@@ -62,10 +79,10 @@ export function initialize_viewer(
 
             if (gui_store.feature_active("webgpu")) {
                 const { WebgpuRenderer } = await import("../core/rendering/webgpu/WebgpuRenderer");
-                renderer = new TextureRenderer(controller, new WebgpuRenderer(http_client));
+                renderer = new TextureRenderer(controller, new WebgpuRenderer(false, http_client));
             } else {
                 const { WebglRenderer } = await import("../core/rendering/webgl/WebglRenderer");
-                renderer = new TextureRenderer(controller, new WebglRenderer());
+                renderer = new TextureRenderer(controller, new WebglRenderer(false));
             }
 
             return new TextureView(controller, renderer);

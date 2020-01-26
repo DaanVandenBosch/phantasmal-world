@@ -12,9 +12,9 @@ import {
 } from "three";
 import { Disposable } from "../../core/observable/Disposable";
 import { NjMotion } from "../../core/data_formats/parsing/ninja/motion";
-import { xvr_texture_to_texture } from "../../core/rendering/conversion/ninja_textures";
+import { xvr_texture_to_three_texture } from "../../core/rendering/conversion/ninja_textures";
 import { create_mesh } from "../../core/rendering/conversion/create_mesh";
-import { ninja_object_to_buffer_geometry } from "../../core/rendering/conversion/ninja_geometry";
+import { ninja_object_to_buffer_geometry } from "../../core/rendering/conversion/ninja_three_geometry";
 import {
     create_animation_clip,
     PSO_FRAME_RATE,
@@ -137,7 +137,7 @@ export class ModelRenderer extends ThreeRenderer implements Disposable {
             const textures = this.store.current_textures.val.map(tex => {
                 if (tex) {
                     try {
-                        return xvr_texture_to_texture(tex);
+                        return xvr_texture_to_three_texture(tex);
                     } catch (e) {
                         logger.error("Couldn't convert XVR texture.", e);
                     }

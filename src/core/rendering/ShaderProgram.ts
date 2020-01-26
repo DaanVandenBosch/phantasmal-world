@@ -1,10 +1,12 @@
-import { Mat4 } from "../math";
-import { VERTEX_POS_LOC, VERTEX_TEX_LOC } from "./VertexFormat";
+import { Mat3, Mat4 } from "../math/linear_algebra";
+import { VERTEX_NORMAL_LOC, VERTEX_POS_LOC, VERTEX_TEX_LOC } from "./VertexFormat";
 
 export class ShaderProgram {
     private readonly gl: WebGL2RenderingContext;
     private readonly program: WebGLProgram;
-    private readonly transform_loc: WebGLUniformLocation;
+    private readonly mat_projection_loc: WebGLUniformLocation;
+    private readonly mat_camera_loc: WebGLUniformLocation;
+    private readonly mat_normal_loc: WebGLUniformLocation | null;
     private readonly tex_sampler_loc: WebGLUniformLocation | null;
 
     constructor(gl: WebGL2RenderingContext, vertex_source: string, frag_source: string) {
@@ -24,6 +26,7 @@ export class ShaderProgram {
             gl.attachShader(program, frag_shader);
 
             gl.bindAttribLocation(program, VERTEX_POS_LOC, "pos");
+            gl.bindAttribLocation(program, VERTEX_NORMAL_LOC, "normal");
             gl.bindAttribLocation(program, VERTEX_TEX_LOC, "tex");
             gl.linkProgram(program);
 
@@ -32,9 +35,9 @@ export class ShaderProgram {
                 throw new Error("Shader linking failed. Program log:\n" + log);
             }
 
-            const transform_loc = gl.getUniformLocation(program, "transform");
-            if (transform_loc == null) throw new Error("Couldn't get transform uniform location.");
-            this.transform_loc = transform_loc;
+            this.mat_projection_loc = this.get_required_uniform_location(program, "mat_projection");
+            this.mat_camera_loc = this.get_required_uniform_location(program, "mat_camera");
+            this.mat_normal_loc = gl.getUniformLocation(program, "mat_normal");
 
             this.tex_sampler_loc = gl.getUniformLocation(program, "tex_sampler");
 
@@ -50,8 +53,16 @@ export class ShaderProgram {
         }
     }
 
-    set_transform_uniform(matrix: Mat4): void {
-        this.gl.uniformMatrix4fv(this.transform_loc, false, matrix.data);
+    set_mat_projection_uniform(matrix: Mat4): void {
+        this.gl.uniformMatrix4fv(this.mat_projection_loc, false, matrix.data);
+    }
+
+    set_mat_camera_uniform(matrix: Mat4): void {
+        this.gl.uniformMatrix4fv(this.mat_camera_loc, false, matrix.data);
+    }
+
+    set_mat_normal_uniform(matrix: Mat3): void {
+        this.gl.uniformMatrix3fv(this.mat_normal_loc, false, matrix.data);
     }
 
     set_texture_uniform(unit: GLenum): void {
@@ -68,6 +79,15 @@ export class ShaderProgram {
 
     delete(): void {
         this.gl.deleteProgram(this.program);
+    }
+
+    private get_required_uniform_location(
+        program: WebGLProgram,
+        uniform: string,
+    ): WebGLUniformLocation {
+        const loc = this.gl.getUniformLocation(program, uniform);
+        if (loc == null) throw new Error(`Couldn't get ${uniform} uniform location.`);
+        return loc;
     }
 }
 

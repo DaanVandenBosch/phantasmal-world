@@ -1,10 +1,9 @@
 import { Renderer } from "./Renderer";
-import { VertexFormat } from "./VertexFormat";
-import { MeshBuilder } from "./MeshBuilder";
 import { Scene } from "./Scene";
 import { Camera } from "./Camera";
 import { Gfx } from "./Gfx";
-import { Mat4, Vec2, vec2_diff } from "../math";
+import { Mat4, Vec2, vec2_diff } from "../math/linear_algebra";
+import { deg_to_rad } from "../math";
 
 export abstract class GfxRenderer implements Renderer {
     private pointer_pos?: Vec2;
@@ -20,7 +19,7 @@ export abstract class GfxRenderer implements Renderer {
     readonly camera = new Camera();
     readonly canvas_element: HTMLCanvasElement = document.createElement("canvas");
 
-    protected constructor() {
+    protected constructor(private readonly perspective_projection: boolean) {
         this.canvas_element.width = 800;
         this.canvas_element.height = 600;
         this.canvas_element.addEventListener("mousedown", this.mousedown);
@@ -28,17 +27,42 @@ export abstract class GfxRenderer implements Renderer {
     }
 
     dispose(): void {
-        this.scene.destroy();
+        this.destroy_scene();
     }
 
     set_size(width: number, height: number): void {
-        // prettier-ignore
-        this.projection_mat = Mat4.of(
-            2/width, 0,        0,    0,
-            0,       2/height, 0,    0,
-            0,       0,        2/10, 0,
-            0,       0,        0,    1,
-        );
+        if (this.perspective_projection) {
+            const fov = 75;
+            const aspect = width / height;
+
+            const n = 0.1;
+            const f = 2000;
+            const t = n * Math.tan(deg_to_rad(0.5 * fov));
+            const b = -t;
+            const r = aspect * t;
+            const l = -r;
+
+            // prettier-ignore
+            this.projection_mat = Mat4.of(
+                2*n / (r-l),           0,  (r+l) / (r-l),                0,
+                          0, 2*n / (t-b),  (t+b) / (t-b),                0,
+                          0,           0, -(f+n) / (f-n), -(2*f*n) / (f-n),
+                          0,           0,             -1,                0,
+            );
+        } else {
+            const w = width;
+            const h = height;
+            const n = -1000;
+            const f = 1000;
+
+            // prettier-ignore
+            this.projection_mat = Mat4.of(
+                2/w,   0,       0, 0,
+                  0, 2/h,       0, 0,
+                  0,   0, 2/(n-f), 0,
+                  0,   0,       0, 1,
+            );
+        }
 
         this.schedule_render();
     }
@@ -68,8 +92,18 @@ export abstract class GfxRenderer implements Renderer {
 
     protected abstract render(): void;
 
-    mesh_builder(vertex_format: VertexFormat): MeshBuilder {
-        return new MeshBuilder(this.gfx, vertex_format);
+    /**
+     * Destroys all GPU objects related to the scene and resets the scene.
+     */
+    destroy_scene(): void {
+        this.scene.traverse(node => {
+            node.mesh?.destroy(this.gfx);
+            node.mesh?.texture?.destroy();
+            node.mesh = undefined;
+        }, undefined);
+
+        this.scene.root_node.clear_children();
+        this.scene.root_node.transform = Mat4.identity();
     }
 
     private mousedown = (evt: MouseEvent): void => {
@@ -99,10 +133,18 @@ export abstract class GfxRenderer implements Renderer {
     };
 
     private wheel = (evt: WheelEvent): void => {
-        if (evt.deltaY < 0) {
-            this.camera.zoom(1.1);
+        if (this.perspective_projection) {
+            if (evt.deltaY < 0) {
+                this.camera.pan(0, 0, -10);
+            } else {
+                this.camera.pan(0, 0, 10);
+            }
         } else {
-            this.camera.zoom(0.9);
+            if (evt.deltaY < 0) {
+                this.camera.zoom(1.1);
+            } else {
+                this.camera.zoom(0.9);
+            }
         }
 
         this.schedule_render();

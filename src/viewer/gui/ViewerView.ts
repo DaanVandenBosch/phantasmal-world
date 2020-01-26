@@ -1,6 +1,6 @@
 import { TabContainer } from "../../core/gui/TabContainer";
 import { ModelView } from "./model/ModelView";
-import { TextureView } from "./TextureView";
+import { TextureView } from "./texture/TextureView";
 import { ResizableView } from "../../core/gui/ResizableView";
 import { GuiStore } from "../../core/stores/GuiStore";
 

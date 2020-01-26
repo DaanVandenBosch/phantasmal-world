@@ -1,11 +1,11 @@
-import { div, Icon } from "../../core/gui/dom";
-import { FileButton } from "../../core/gui/FileButton";
-import { ToolBar } from "../../core/gui/ToolBar";
-import { RendererWidget } from "../../core/gui/RendererWidget";
-import { ResizableView } from "../../core/gui/ResizableView";
-import { TextureController } from "../controllers/TextureController";
-import { ResultDialog } from "../../core/gui/ResultDialog";
-import { Renderer } from "../../core/rendering/Renderer";
+import { div, Icon } from "../../../core/gui/dom";
+import { FileButton } from "../../../core/gui/FileButton";
+import { ToolBar } from "../../../core/gui/ToolBar";
+import { RendererWidget } from "../../../core/gui/RendererWidget";
+import { ResizableView } from "../../../core/gui/ResizableView";
+import { TextureController } from "../../controllers/texture/TextureController";
+import { ResultDialog } from "../../../core/gui/ResultDialog";
+import { Renderer } from "../../../core/rendering/Renderer";
 
 export class TextureView extends ResizableView {
     readonly element = div({ className: "viewer_TextureView" });

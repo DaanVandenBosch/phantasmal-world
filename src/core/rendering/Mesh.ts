@@ -1,12 +1,33 @@
 import { VertexFormat } from "./VertexFormat";
 import { Texture } from "./Texture";
 import { Gfx } from "./Gfx";
+import {
+    MeshBuilder,
+    PosNormMeshBuilder,
+    PosNormTexMeshBuilder,
+    PosTexMeshBuilder,
+} from "./MeshBuilder";
 
 export class Mesh {
+    /* eslint-disable no-dupe-class-members */
+    static builder(format: VertexFormat.PosNorm): PosNormMeshBuilder;
+    static builder(format: VertexFormat.PosTex): PosTexMeshBuilder;
+    static builder(format: VertexFormat.PosNormTex): PosNormTexMeshBuilder;
+    static builder(format: VertexFormat): MeshBuilder {
+        switch (format) {
+            case VertexFormat.PosNorm:
+                return new PosNormMeshBuilder();
+            case VertexFormat.PosTex:
+                return new PosTexMeshBuilder();
+            case VertexFormat.PosNormTex:
+                return new PosNormTexMeshBuilder();
+        }
+    }
+    /* eslint-enable no-dupe-class-members */
+
     gfx_mesh: unknown;
 
     constructor(
-        private readonly gfx: Gfx,
         readonly format: VertexFormat,
         readonly vertex_data: ArrayBuffer,
         readonly index_data: ArrayBuffer,
@@ -14,17 +35,20 @@ export class Mesh {
         readonly texture?: Texture,
     ) {}
 
-    upload(): void {
+    upload(gfx: Gfx): void {
         this.texture?.upload();
-        this.gfx_mesh = this.gfx.create_gfx_mesh(
-            this.format,
-            this.vertex_data,
-            this.index_data,
-            this.texture,
-        );
+
+        if (this.gfx_mesh == undefined) {
+            this.gfx_mesh = gfx.create_gfx_mesh(
+                this.format,
+                this.vertex_data,
+                this.index_data,
+                this.texture,
+            );
+        }
     }
 
-    destroy(): void {
-        this.gfx.destroy_gfx_mesh(this.gfx_mesh);
+    destroy(gfx: Gfx): void {
+        gfx.destroy_gfx_mesh(this.gfx_mesh);
     }
 }

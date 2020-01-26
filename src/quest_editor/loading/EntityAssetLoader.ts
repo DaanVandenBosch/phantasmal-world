@@ -2,10 +2,10 @@ import { BufferGeometry, CylinderBufferGeometry, Texture } from "three";
 import { LoadingCache } from "./LoadingCache";
 import { Endianness } from "../../core/data_formats/Endianness";
 import { ArrayBufferCursor } from "../../core/data_formats/cursor/ArrayBufferCursor";
-import { ninja_object_to_buffer_geometry } from "../../core/rendering/conversion/ninja_geometry";
+import { ninja_object_to_buffer_geometry } from "../../core/rendering/conversion/ninja_three_geometry";
 import { NjObject, parse_nj, parse_xj } from "../../core/data_formats/parsing/ninja";
 import { parse_xvm } from "../../core/data_formats/parsing/ninja/texture";
-import { xvm_to_textures } from "../../core/rendering/conversion/ninja_textures";
+import { xvm_to_three_textures } from "../../core/rendering/conversion/ninja_textures";
 import { object_data, ObjectType } from "../../core/data_formats/parsing/quest/object_types";
 import { NpcType } from "../../core/data_formats/parsing/quest/npc_types";
 import {
@@ -98,7 +98,7 @@ export class EntityAssetLoader implements Disposable {
                 .then(({ data }) => {
                     const cursor = new ArrayBufferCursor(data, Endianness.Little);
                     const xvm = parse_xvm(cursor);
-                    return xvm.success ? xvm_to_textures(xvm.value) : [];
+                    return xvm.success ? xvm_to_three_textures(xvm.value) : [];
                 })
                 .catch(e => {
                     logger.warn(

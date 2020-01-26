@@ -1,19 +1,19 @@
-import { Controller } from "../../core/controllers/Controller";
-import { filename_extension } from "../../core/util";
-import { read_file } from "../../core/files";
-import { is_xvm, parse_xvm, XvrTexture } from "../../core/data_formats/parsing/ninja/texture";
-import { ArrayBufferCursor } from "../../core/data_formats/cursor/ArrayBufferCursor";
-import { Endianness } from "../../core/data_formats/Endianness";
-import { parse_afs } from "../../core/data_formats/parsing/afs";
-import { LogManager } from "../../core/Logger";
-import { WritableListProperty } from "../../core/observable/property/list/WritableListProperty";
-import { list_property, property } from "../../core/observable";
-import { ListProperty } from "../../core/observable/property/list/ListProperty";
-import { prs_decompress } from "../../core/data_formats/compression/prs/decompress";
-import { failure, Result, result_builder } from "../../core/Result";
-import { Severity } from "../../core/Severity";
-import { Property } from "../../core/observable/property/Property";
-import { WritableProperty } from "../../core/observable/property/WritableProperty";
+import { Controller } from "../../../core/controllers/Controller";
+import { filename_extension } from "../../../core/util";
+import { read_file } from "../../../core/files";
+import { is_xvm, parse_xvm, XvrTexture } from "../../../core/data_formats/parsing/ninja/texture";
+import { ArrayBufferCursor } from "../../../core/data_formats/cursor/ArrayBufferCursor";
+import { Endianness } from "../../../core/data_formats/Endianness";
+import { parse_afs } from "../../../core/data_formats/parsing/afs";
+import { LogManager } from "../../../core/Logger";
+import { WritableListProperty } from "../../../core/observable/property/list/WritableListProperty";
+import { list_property, property } from "../../../core/observable";
+import { ListProperty } from "../../../core/observable/property/list/ListProperty";
+import { prs_decompress } from "../../../core/data_formats/compression/prs/decompress";
+import { failure, Result, result_builder } from "../../../core/Result";
+import { Severity } from "../../../core/Severity";
+import { Property } from "../../../core/observable/property/Property";
+import { WritableProperty } from "../../../core/observable/property/WritableProperty";
 
 const logger = LogManager.get("viewer/controllers/TextureController");
 

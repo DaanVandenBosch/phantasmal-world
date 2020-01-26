@@ -7,7 +7,7 @@ export class StubGfxRenderer extends GfxRenderer {
     }
 
     constructor() {
-        super();
+        super(false);
     }
 
     protected render(): void {} // eslint-disable-line

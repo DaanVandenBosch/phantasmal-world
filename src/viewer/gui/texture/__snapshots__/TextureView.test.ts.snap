@@ -1,0 +1,43 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Renders correctly without textures.: Should render a toolbar and a renderer widget. 1`] = `
+<div
+  class="viewer_TextureView"
+>
+  <div
+    class="core_ToolBar"
+    style="height: 33px;"
+  >
+    <button
+      class="core_Button core_FileButton"
+    >
+      <span
+        class="core_Button_inner"
+      >
+        <span
+          class="core_Button_left"
+        >
+          <span>
+            <span
+              class="fas fa-file"
+            />
+          </span>
+        </span>
+        <span
+          class="core_Button_center"
+        >
+          Open file...
+        </span>
+      </span>
+    </button>
+  </div>
+  <div
+    class="core_RendererWidget"
+  >
+    <canvas
+      height="600"
+      width="800"
+    />
+  </div>
+</div>
+`;

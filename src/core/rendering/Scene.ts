@@ -1,28 +1,14 @@
-import { IdentityTransform, Transform } from "./Transform";
 import { Mesh } from "./Mesh";
+import { Mat4 } from "../math/linear_algebra";
 
 export class Scene {
-    readonly root_node = new Node(this, undefined, new IdentityTransform());
+    readonly root_node = new SceneNode(undefined, Mat4.identity());
 
-    /**
-     * Destroys all GPU objects related to this scene and resets the scene.
-     */
-    destroy(): void {
-        this.traverse(node => {
-            node.mesh?.destroy();
-            node.mesh?.texture?.destroy();
-            node.mesh = undefined;
-        }, undefined);
-
-        this.root_node.clear_children();
-        this.root_node.transform = new IdentityTransform();
-    }
-
-    traverse<T>(f: (node: Node, data: T) => T, data: T): void {
+    traverse<T>(f: (node: SceneNode, data: T) => T, data: T): void {
         this.traverse_node(this.root_node, f, data);
     }
 
-    private traverse_node<T>(node: Node, f: (node: Node, data: T) => T, data: T): void {
+    private traverse_node<T>(node: SceneNode, f: (node: SceneNode, data: T) => T, data: T): void {
         const child_data = f(node, data);
 
         for (const child of node.children) {
@@ -31,22 +17,19 @@ export class Scene {
     }
 }
 
-export class Node {
-    private readonly _children: Node[] = [];
+export class SceneNode {
+    private readonly _children: SceneNode[];
 
-    get children(): readonly Node[] {
+    get children(): readonly SceneNode[] {
         return this._children;
     }
 
-    constructor(
-        private readonly scene: Scene,
-        public mesh: Mesh | undefined,
-        public transform: Transform,
-    ) {}
+    constructor(public mesh: Mesh | undefined, public transform: Mat4, ...children: SceneNode[]) {
+        this._children = children;
+    }
 
-    add_child(mesh: Mesh | undefined, transform: Transform): void {
-        this._children.push(new Node(this.scene, mesh, transform));
-        mesh?.upload();
+    add_child(child: SceneNode): void {
+        this._children.push(child);
     }
 
     clear_children(): void {

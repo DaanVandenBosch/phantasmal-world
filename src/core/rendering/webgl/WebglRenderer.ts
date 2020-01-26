@@ -1,7 +1,7 @@
-import { mat4_product } from "../../math";
+import { mat4_product } from "../../math/linear_algebra";
 import { ShaderProgram } from "../ShaderProgram";
-import pos_vert_shader_source from "./pos.vert";
-import pos_frag_shader_source from "./pos.frag";
+import pos_norm_vert_shader_source from "./pos_norm.vert";
+import pos_norm_frag_shader_source from "./pos_norm.frag";
 import pos_tex_vert_shader_source from "./pos_tex.vert";
 import pos_tex_frag_shader_source from "./pos_tex.frag";
 import { GfxRenderer } from "../GfxRenderer";
@@ -13,8 +13,8 @@ export class WebglRenderer extends GfxRenderer {
 
     readonly gfx: WebglGfx;
 
-    constructor() {
-        super();
+    constructor(perspective_projection: boolean) {
+        super(perspective_projection);
 
         const gl = this.canvas_element.getContext("webgl2");
 
@@ -30,7 +30,7 @@ export class WebglRenderer extends GfxRenderer {
         gl.clearColor(0.1, 0.1, 0.1, 1);
 
         this.shader_programs = [
-            new ShaderProgram(gl, pos_vert_shader_source, pos_frag_shader_source),
+            new ShaderProgram(gl, pos_norm_vert_shader_source, pos_norm_frag_shader_source),
             new ShaderProgram(gl, pos_tex_vert_shader_source, pos_tex_frag_shader_source),
         ];
 
@@ -58,16 +58,16 @@ export class WebglRenderer extends GfxRenderer {
 
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-        const camera_project_mat = mat4_product(this.projection_mat, this.camera.transform.mat4);
-
         this.scene.traverse((node, parent_mat) => {
-            const mat = mat4_product(parent_mat, node.transform.mat4);
+            const mat = mat4_product(parent_mat, node.transform);
 
             if (node.mesh) {
                 const program = this.shader_programs[node.mesh.format];
                 program.bind();
 
-                program.set_transform_uniform(mat);
+                program.set_mat_projection_uniform(this.projection_mat);
+                program.set_mat_camera_uniform(mat);
+                program.set_mat_normal_uniform(mat.normal_mat3());
 
                 if (node.mesh.texture?.gfx_texture) {
                     gl.activeTexture(gl.TEXTURE0);
@@ -86,6 +86,6 @@ export class WebglRenderer extends GfxRenderer {
             }
 
             return mat;
-        }, camera_project_mat);
+        }, this.camera.mat4);
     }
 }

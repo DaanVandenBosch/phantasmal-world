@@ -1,6 +1,5 @@
 import "./ModelView.css";
 import { RendererWidget } from "../../../core/gui/RendererWidget";
-import { ModelRenderer } from "../../rendering/ModelRenderer";
 import { ModelToolBarView } from "./ModelToolBarView";
 import { CharacterClassSelectionView } from "./CharacterClassSelectionView";
 import { CharacterClassModel } from "../../model/CharacterClassModel";
@@ -9,6 +8,7 @@ import { ModelController } from "../../controllers/model/ModelController";
 import { div } from "../../../core/gui/dom";
 import { ResizableView } from "../../../core/gui/ResizableView";
 import { CharacterClassOptionsView } from "./CharacterClassOptionsView";
+import { Renderer } from "../../../core/rendering/Renderer";
 
 const CHARACTER_CLASS_SELECTION_WIDTH = 100;
 const CHARACTER_CLASS_OPTIONS_WIDTH = 220;
@@ -27,7 +27,7 @@ export class ModelView extends ResizableView {
         ctrl: ModelController,
         tool_bar_view: ModelToolBarView,
         options_view: CharacterClassOptionsView,
-        renderer: ModelRenderer,
+        renderer: Renderer,
     ) {
         super();
 

@@ -1,13 +1,14 @@
 import { Disposer } from "../../core/observable/Disposer";
 import { LogManager } from "../../core/Logger";
-import { TextureController } from "../controllers/TextureController";
+import { TextureController } from "../controllers/texture/TextureController";
 import { XvrTexture } from "../../core/data_formats/parsing/ninja/texture";
-import { TranslateTransform } from "../../core/rendering/Transform";
 import { VertexFormat } from "../../core/rendering/VertexFormat";
-import { Texture, TextureFormat } from "../../core/rendering/Texture";
 import { Mesh } from "../../core/rendering/Mesh";
 import { GfxRenderer } from "../../core/rendering/GfxRenderer";
 import { Renderer } from "../../core/rendering/Renderer";
+import { xvr_texture_to_texture } from "../../core/rendering/conversion/ninja_textures";
+import { Mat4, Vec2, Vec3 } from "../../core/math/linear_algebra";
+import { SceneNode } from "../../core/rendering/Scene";
 
 const logger = LogManager.get("viewer/rendering/TextureRenderer");
 
@@ -21,7 +22,7 @@ export class TextureRenderer implements Renderer {
 
         this.disposer.add_all(
             ctrl.textures.observe(({ value: textures }) => {
-                renderer.scene.destroy();
+                renderer.destroy_scene();
                 renderer.camera.reset();
                 this.create_quads(textures);
                 renderer.schedule_render();
@@ -61,10 +62,13 @@ export class TextureRenderer implements Renderer {
         for (const tex of textures) {
             try {
                 const quad_mesh = this.create_quad(tex);
+                quad_mesh.upload(this.renderer.gfx);
 
                 this.renderer.scene.root_node.add_child(
-                    quad_mesh,
-                    new TranslateTransform(x, y + (total_height - tex.height) / 2, 0),
+                    new SceneNode(
+                        quad_mesh,
+                        Mat4.translation(x, y + (total_height - tex.height) / 2, 0),
+                    ),
                 );
             } catch (e) {
                 logger.error("Couldn't create quad for texture.", e);
@@ -75,45 +79,18 @@ export class TextureRenderer implements Renderer {
     }
 
     private create_quad(tex: XvrTexture): Mesh {
-        return this.renderer
-            .mesh_builder(VertexFormat.PosTex)
-            .vertex(0, 0, 0, 0, 1)
-            .vertex(tex.width, 0, 0, 1, 1)
-            .vertex(tex.width, tex.height, 0, 1, 0)
-            .vertex(0, tex.height, 0, 0, 0)
+        return Mesh.builder(VertexFormat.PosTex)
+
+            .vertex(new Vec3(0, 0, 0), new Vec2(0, 1))
+            .vertex(new Vec3(tex.width, 0, 0), new Vec2(1, 1))
+            .vertex(new Vec3(tex.width, tex.height, 0), new Vec2(1, 0))
+            .vertex(new Vec3(0, tex.height, 0), new Vec2(0, 0))
 
             .triangle(0, 1, 2)
             .triangle(2, 3, 0)
 
-            .texture(this.xvr_texture_to_texture(tex))
+            .texture(xvr_texture_to_texture(this.renderer.gfx, tex))
 
             .build();
-    }
-
-    private xvr_texture_to_texture(tex: XvrTexture): Texture {
-        let format: TextureFormat;
-        let data_size: number;
-
-        // Ignore mipmaps.
-        switch (tex.format[1]) {
-            case 6:
-                format = TextureFormat.RGBA_S3TC_DXT1;
-                data_size = (tex.width * tex.height) / 2;
-                break;
-            case 7:
-                format = TextureFormat.RGBA_S3TC_DXT3;
-                data_size = tex.width * tex.height;
-                break;
-            default:
-                throw new Error(`Format ${tex.format.join(", ")} not supported.`);
-        }
-
-        return new Texture(
-            this.renderer.gfx!,
-            format,
-            tex.width,
-            tex.height,
-            tex.data.slice(0, data_size),
-        );
     }
 }

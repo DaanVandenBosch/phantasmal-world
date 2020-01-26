@@ -1,8 +1,10 @@
 import { Gfx } from "../Gfx";
 import { Texture, TextureFormat } from "../Texture";
 import {
+    vertex_format_normal_offset,
     vertex_format_size,
     vertex_format_tex_offset,
+    VERTEX_NORMAL_LOC,
     VERTEX_POS_LOC,
     VERTEX_TEX_LOC,
     VertexFormat,
@@ -48,6 +50,20 @@ export class WebglGfx implements Gfx<WebglMesh, WebGLTexture> {
 
             gl.vertexAttribPointer(VERTEX_POS_LOC, 3, gl.FLOAT, true, vertex_size, 0);
             gl.enableVertexAttribArray(VERTEX_POS_LOC);
+
+            const normal_offset = vertex_format_normal_offset(format);
+
+            if (normal_offset !== -1) {
+                gl.vertexAttribPointer(
+                    VERTEX_NORMAL_LOC,
+                    3,
+                    gl.FLOAT,
+                    true,
+                    vertex_size,
+                    normal_offset,
+                );
+                gl.enableVertexAttribArray(VERTEX_NORMAL_LOC);
+            }
 
             const tex_offset = vertex_format_tex_offset(format);
 
