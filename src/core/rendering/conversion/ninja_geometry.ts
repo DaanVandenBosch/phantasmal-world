@@ -64,7 +64,7 @@ class NodeCreator {
         const { position, rotation, scale } = object;
 
         const matrix = Mat4.compose(
-            no_translate ? NO_TRANSLATION : position,
+            no_translate ? NO_TRANSLATION : vec3_to_math(position),
             no_rotate
                 ? NO_ROTATION
                 : Quat.euler_angles(
@@ -73,7 +73,7 @@ class NodeCreator {
                       rotation.z,
                       zxy_rotation_order ? EulerOrder.ZXY : EulerOrder.ZYX,
                   ),
-            no_scale ? NO_SCALE : scale,
+            no_scale ? NO_SCALE : vec3_to_math(scale),
         );
 
         let mesh: Mesh | undefined;
@@ -129,7 +129,7 @@ class NodeCreator {
                     const normal = vertex.normal ?? mesh_vertex.normal ?? DEFAULT_NORMAL;
                     const index = builder.vertex_count;
 
-                    builder.vertex(vertex.position, normal);
+                    builder.vertex(vertex.position, vec3_to_math(normal));
 
                     if (index >= 2) {
                         if (i % 2 === (mesh.clockwise_winding ? 1 : 0)) {
