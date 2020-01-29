@@ -6,6 +6,7 @@ import pos_tex_vert_shader_source from "./pos_tex.vert";
 import pos_tex_frag_shader_source from "./pos_tex.frag";
 import { GfxRenderer } from "../GfxRenderer";
 import { WebglGfx, WebglMesh } from "./WebglGfx";
+import { Projection } from "../Camera";
 
 export class WebglRenderer extends GfxRenderer {
     private readonly gl: WebGL2RenderingContext;
@@ -13,8 +14,8 @@ export class WebglRenderer extends GfxRenderer {
 
     readonly gfx: WebglGfx;
 
-    constructor(perspective_projection: boolean) {
-        super(perspective_projection);
+    constructor(projection: Projection) {
+        super(projection);
 
         const gl = this.canvas_element.getContext("webgl2");
 
@@ -65,7 +66,7 @@ export class WebglRenderer extends GfxRenderer {
                 const program = this.shader_programs[node.mesh.format];
                 program.bind();
 
-                program.set_mat_projection_uniform(this.projection_mat);
+                program.set_mat_projection_uniform(this.camera.projection_mat4);
                 program.set_mat_camera_uniform(mat);
                 program.set_mat_normal_uniform(mat.normal_mat3());
 
@@ -86,6 +87,6 @@ export class WebglRenderer extends GfxRenderer {
             }
 
             return mat;
-        }, this.camera.mat4);
+        }, this.camera.view_mat4);
     }
 }

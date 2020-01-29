@@ -6,6 +6,7 @@ import { Disposer } from "../core/observable/Disposer";
 import { Random } from "../core/Random";
 import { Renderer } from "../core/rendering/Renderer";
 import { DisposableThreeRenderer } from "../core/rendering/ThreeRenderer";
+import { Projection } from "../core/rendering/Camera";
 
 export function initialize_viewer(
     http_client: HttpClient,
@@ -48,12 +49,15 @@ export function initialize_viewer(
                 const { WebgpuRenderer } = await import("../core/rendering/webgpu/WebgpuRenderer");
                 const { ModelGfxRenderer } = await import("./rendering/ModelGfxRenderer");
 
-                renderer = new ModelGfxRenderer(store, new WebgpuRenderer(true, http_client));
+                renderer = new ModelGfxRenderer(
+                    store,
+                    new WebgpuRenderer(Projection.Perspective, http_client),
+                );
             } else if (gui_store.feature_active("webgl")) {
                 const { WebglRenderer } = await import("../core/rendering/webgl/WebglRenderer");
                 const { ModelGfxRenderer } = await import("./rendering/ModelGfxRenderer");
 
-                renderer = new ModelGfxRenderer(store, new WebglRenderer(true));
+                renderer = new ModelGfxRenderer(store, new WebglRenderer(Projection.Perspective));
             } else {
                 const { ModelRenderer } = await import("./rendering/ModelRenderer");
 
@@ -79,10 +83,16 @@ export function initialize_viewer(
 
             if (gui_store.feature_active("webgpu")) {
                 const { WebgpuRenderer } = await import("../core/rendering/webgpu/WebgpuRenderer");
-                renderer = new TextureRenderer(controller, new WebgpuRenderer(false, http_client));
+                renderer = new TextureRenderer(
+                    controller,
+                    new WebgpuRenderer(Projection.Orthographic, http_client),
+                );
             } else {
                 const { WebglRenderer } = await import("../core/rendering/webgl/WebglRenderer");
-                renderer = new TextureRenderer(controller, new WebglRenderer(false));
+                renderer = new TextureRenderer(
+                    controller,
+                    new WebglRenderer(Projection.Orthographic),
+                );
             }
 
             return new TextureView(controller, renderer);

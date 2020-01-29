@@ -5,6 +5,7 @@ import { mat4_product } from "../../math/linear_algebra";
 import { WebgpuGfx, WebgpuMesh } from "./WebgpuGfx";
 import { ShaderLoader } from "./ShaderLoader";
 import { HttpClient } from "../../HttpClient";
+import { Projection } from "../Camera";
 
 const logger = LogManager.get("core/rendering/webgpu/WebgpuRenderer");
 
@@ -30,8 +31,8 @@ export class WebgpuRenderer extends GfxRenderer {
         return this.gpu!.gfx;
     }
 
-    constructor(perspective_projection: boolean, http_client: HttpClient) {
-        super(perspective_projection);
+    constructor(projection: Projection, http_client: HttpClient) {
+        super(projection);
 
         this.shader_loader = new ShaderLoader(http_client);
 
@@ -175,7 +176,7 @@ export class WebgpuRenderer extends GfxRenderer {
 
             pass_encoder.setPipeline(pipeline);
 
-            const camera_project_mat = mat4_product(this.projection_mat, this.camera.mat4);
+            const camera_project_mat = mat4_product(this.camera.projection_mat4, this.camera.view_mat4);
 
             this.scene.traverse((node, parent_mat) => {
                 const mat = mat4_product(parent_mat, node.transform);

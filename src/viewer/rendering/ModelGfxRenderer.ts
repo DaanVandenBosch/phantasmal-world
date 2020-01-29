@@ -12,7 +12,7 @@ export class ModelGfxRenderer implements Renderer {
     constructor(private readonly store: ModelStore, private readonly renderer: GfxRenderer) {
         this.canvas_element = renderer.canvas_element;
 
-        renderer.camera.pan(0, 0, 50);
+        renderer.camera.pan(0, 0, -50);
 
         this.disposer.add_all(store.current_nj_object.observe(this.nj_object_or_xvm_changed));
     }

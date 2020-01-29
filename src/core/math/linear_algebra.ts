@@ -19,6 +19,24 @@ export function vec2_diff(v: Vec2, w: Vec2): Vec2 {
 
 export class Vec3 {
     constructor(public x: number, public y: number, public z: number) {}
+
+    magnitude(): number {
+        return Math.sqrt(this.x * this.x + this.y * this.y + this.z * this.z);
+    }
+}
+
+export function vec3_diff(v: Vec3, w: Vec3): Vec3 {
+    return new Vec3(v.x - w.x, v.y - w.y, v.z - v.z);
+}
+
+/**
+ * Computes the distance between points p and q. Equivalent to `vec3_diff(p, q).magnitude()`.
+ */
+export function vec3_dist(p: Vec3, q: Vec3): number {
+    const x = p.x - q.x;
+    const y = p.y - q.y;
+    const z = p.z - q.z;
+    return Math.sqrt(x * x + y * y + z * z);
 }
 
 /**
@@ -273,6 +291,34 @@ export class Mat4 {
 
     set(i: number, j: number, value: number): void {
         this.data[i + j * 4] = value;
+    }
+
+    // prettier-ignore
+    set_all(
+        m00: number, m01: number, m02: number, m03: number,
+        m10: number, m11: number, m12: number, m13: number,
+        m20: number, m21: number, m22: number, m23: number,
+        m30: number, m31: number, m32: number, m33: number,
+    ):void {
+        this.data[0] = m00;
+        this.data[1] = m10;
+        this.data[2] = m20;
+        this.data[3] = m30;
+
+        this.data[4] = m01;
+        this.data[5] = m11;
+        this.data[6] = m21;
+        this.data[7] = m31;
+
+        this.data[8] = m02;
+        this.data[9] = m12;
+        this.data[10] = m22;
+        this.data[11] = m32;
+
+        this.data[12] = m03;
+        this.data[13] = m13;
+        this.data[14] = m23;
+        this.data[15] = m33;
     }
 
     clone(): Mat4 {
