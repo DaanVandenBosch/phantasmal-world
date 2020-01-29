@@ -356,6 +356,30 @@ h2 {
     background-color: hsl(0, 0%, 21%);
 }
 
+.viewer_model_CharacterClassOptionsView {
+    box-sizing: border-box;
+    border-left: var(--border);
+    border-right: var(--border);
+    padding: 0 2px;
+}
+
+.viewer_model_CharacterClassOptionsView table {
+    table-layout: fixed;
+    width: 100%;
+}
+
+.viewer_model_CharacterClassOptionsView td:first-child {
+    width: 80px;
+}
+
+.viewer_model_CharacterClassOptionsView_section_id {
+    width: 100%;
+}
+
+.viewer_model_CharacterClassOptionsView_body {
+    width: 60px;
+}
+
 .hunt_optimizer_HelpView p {
     margin: 1em;
     max-width: 600px;
@@ -921,30 +945,6 @@ body .lm_dropTargetIndicator {
     background-color: black;
     opacity: 50%;
     backdrop-filter: blur(5px);
-}
-
-.viewer_model_CharacterClassOptionsView {
-    box-sizing: border-box;
-    border-left: var(--border);
-    border-right: var(--border);
-    padding: 0 2px;
-}
-
-.viewer_model_CharacterClassOptionsView table {
-    table-layout: fixed;
-    width: 100%;
-}
-
-.viewer_model_CharacterClassOptionsView td:first-child {
-    width: 80px;
-}
-
-.viewer_model_CharacterClassOptionsView_section_id {
-    width: 100%;
-}
-
-.viewer_model_CharacterClassOptionsView_body {
-    width: 60px;
 }
 
 .quest_editor_QuestEditorToolBarView_save_as_dialog_content {
