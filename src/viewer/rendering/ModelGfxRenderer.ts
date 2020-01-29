@@ -2,10 +2,7 @@ import { ModelStore } from "../stores/ModelStore";
 import { Disposer } from "../../core/observable/Disposer";
 import { Renderer } from "../../core/rendering/Renderer";
 import { GfxRenderer } from "../../core/rendering/GfxRenderer";
-import { LogManager } from "../../core/Logger";
 import { ninja_object_to_node } from "../../core/rendering/conversion/ninja_geometry";
-
-const logger = LogManager.get("viewer/rendering/ModelRenderer");
 
 export class ModelGfxRenderer implements Renderer {
     private readonly disposer = new Disposer();

@@ -5,7 +5,6 @@
         "module": "esnext",
         "target": "es6",
         "lib": ["esnext", "dom", "dom.iterable"],
-        "typeRoots": ["node_modules/@types", "node_modules/@webgpu"],
         "allowJs": true,
         "skipLibCheck": true,
         "esModuleInterop": true,
@@ -14,5 +13,10 @@
         "moduleResolution": "node",
         "experimentalDecorators": true
     },
-    "include": ["src", "typedefs"]
+    "include": [
+        "src",
+        "typedefs",
+        // Adding WebGPU types via "typeRoots" doesn't work for an unknown reason.
+        "node_modules/@webgpu/types/dist/index.d.ts"
+    ]
 }

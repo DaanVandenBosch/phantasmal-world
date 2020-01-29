@@ -135,9 +135,9 @@ export abstract class GfxRenderer implements Renderer {
     private wheel = (evt: WheelEvent): void => {
         if (this.perspective_projection) {
             if (evt.deltaY < 0) {
-                this.camera.pan(0, 0, -10);
+                this.camera.pan(0, 0, -5);
             } else {
-                this.camera.pan(0, 0, 10);
+                this.camera.pan(0, 0, 5);
             }
         } else {
             if (evt.deltaY < 0) {

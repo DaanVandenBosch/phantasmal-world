@@ -11,24 +11,6 @@ module.exports = merge(common, {
     output: {
         filename: "[name].[contenthash].js",
     },
-    optimization: {
-        moduleIds: "hashed",
-        runtimeChunk: "single",
-        splitChunks: {
-            chunks: "all",
-            cacheGroups: {
-                styles: {
-                    name: "style",
-                    test: /\.css$/,
-                    enforce: true,
-                },
-                vendor: {
-                    test: /node_modules/,
-                    name: "vendors",
-                },
-            },
-        },
-    },
     module: {
         rules: [
             {
