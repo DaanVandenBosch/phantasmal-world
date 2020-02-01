@@ -23,14 +23,11 @@ export class NjObject<M extends NjModel = NjModel> {
     private readonly _children: NjObject<M>[];
 
     readonly evaluation_flags: NjEvaluationFlags;
-    readonly model: M | undefined;
+    readonly model?: M;
     readonly position: Vec3;
     readonly rotation: Vec3; // Euler angles in radians.
     readonly scale: Vec3;
     readonly children: readonly NjObject<M>[];
-
-    private readonly bone_cache = new Map<number, NjObject<M> | null>();
-    private _bone_count = -1;
 
     constructor(
         evaluation_flags: NjEvaluationFlags,
@@ -50,31 +47,21 @@ export class NjObject<M extends NjModel = NjModel> {
     }
 
     bone_count(): number {
-        if (this._bone_count === -1) {
-            const id_ref: [number] = [0];
-            this.get_bone_internal(this, Number.MAX_SAFE_INTEGER, id_ref);
-            this._bone_count = id_ref[0];
-        }
-
-        return this._bone_count;
+        const id_ref: [number] = [0];
+        this.get_bone_internal(this, Number.MAX_SAFE_INTEGER, id_ref);
+        return id_ref[0];
     }
 
     get_bone(bone_id: number): NjObject<M> | undefined {
-        let bone = this.bone_cache.get(bone_id);
-
-        // Strict === check because null means there's no bone with this id.
-        if (bone === undefined) {
-            bone = this.get_bone_internal(this, bone_id, [0]);
-            this.bone_cache.set(bone_id, bone || null);
-        }
-
-        return bone || undefined;
+        return this.get_bone_internal(this, bone_id, [0]);
     }
 
     add_child(child: NjObject<M>): void {
-        this._bone_count = -1;
-        this.bone_cache.clear();
         this._children.push(child);
+    }
+
+    clear_children(): void {
+        this._children.splice(0);
     }
 
     private get_bone_internal(
@@ -84,7 +71,6 @@ export class NjObject<M extends NjModel = NjModel> {
     ): NjObject<M> | undefined {
         if (!object.evaluation_flags.skip) {
             const id = id_ref[0]++;
-            this.bone_cache.set(id, object);
 
             if (id === bone_id) {
                 return object;

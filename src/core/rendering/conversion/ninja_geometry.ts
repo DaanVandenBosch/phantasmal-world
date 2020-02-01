@@ -3,10 +3,16 @@ import { NjcmModel } from "../../data_formats/parsing/ninja/njcm";
 import { XjModel } from "../../data_formats/parsing/ninja/xj";
 import { vec3_to_math } from "./index";
 import { Mesh } from "../Mesh";
-import { SceneNode } from "../Scene";
 import { VertexFormat } from "../VertexFormat";
 import { EulerOrder, Quat } from "../../math/quaternions";
-import { Mat4, Vec2, Vec3 } from "../../math/linear_algebra";
+import {
+    mat3_vec3_multiply,
+    Mat4,
+    mat4_product,
+    mat4_vec3_multiply,
+    Vec2,
+    Vec3,
+} from "../../math/linear_algebra";
 
 const DEFAULT_NORMAL = new Vec3(0, 1, 0);
 const DEFAULT_UV = new Vec2(0, 0);
@@ -14,8 +20,8 @@ const NO_TRANSLATION = new Vec3(0, 0, 0);
 const NO_ROTATION = new Quat(1, 0, 0, 0);
 const NO_SCALE = new Vec3(1, 1, 1);
 
-export function ninja_object_to_node(object: NjObject): SceneNode {
-    return new NodeCreator().to_node(object);
+export function ninja_object_to_mesh(object: NjObject): Mesh {
+    return new MeshCreator().to_mesh(object);
 }
 
 type Vertex = {
@@ -48,10 +54,16 @@ class VerticesHolder {
     }
 }
 
-class NodeCreator {
+class MeshCreator {
     private readonly vertices = new VerticesHolder();
+    private readonly builder = Mesh.builder(VertexFormat.PosNorm);
 
-    to_node(object: NjObject): SceneNode {
+    to_mesh(object: NjObject): Mesh {
+        this.object_to_mesh(object, Mat4.identity());
+        return this.builder.build();
+    }
+
+    private object_to_mesh(object: NjObject, parent_matrix: Mat4): void {
         const {
             no_translate,
             no_rotate,
@@ -63,48 +75,54 @@ class NodeCreator {
         } = object.evaluation_flags;
         const { position, rotation, scale } = object;
 
-        const matrix = Mat4.compose(
-            no_translate ? NO_TRANSLATION : vec3_to_math(position),
-            no_rotate
-                ? NO_ROTATION
-                : Quat.euler_angles(
-                      rotation.x,
-                      rotation.y,
-                      rotation.z,
-                      zxy_rotation_order ? EulerOrder.ZXY : EulerOrder.ZYX,
-                  ),
-            no_scale ? NO_SCALE : vec3_to_math(scale),
+        const matrix = mat4_product(
+            parent_matrix,
+            Mat4.compose(
+                no_translate ? NO_TRANSLATION : vec3_to_math(position),
+                no_rotate
+                    ? NO_ROTATION
+                    : Quat.euler_angles(
+                          rotation.x,
+                          rotation.y,
+                          rotation.z,
+                          zxy_rotation_order ? EulerOrder.ZXY : EulerOrder.ZYX,
+                      ),
+                no_scale ? NO_SCALE : vec3_to_math(scale),
+            ),
         );
 
-        let mesh: Mesh | undefined;
-
         if (object.model && !hidden) {
-            mesh = this.model_to_mesh(object.model);
+            this.model_to_mesh(object.model, matrix);
         }
-
-        const node = new SceneNode(mesh, matrix);
 
         if (!break_child_trace) {
             for (const child of object.children) {
-                node.add_child(this.to_node(child));
+                this.object_to_mesh(child, matrix);
             }
         }
-
-        return node;
     }
 
-    private model_to_mesh(model: NjModel): Mesh {
+    private model_to_mesh(model: NjModel, matrix: Mat4): void {
         if (is_njcm_model(model)) {
-            return this.njcm_model_to_mesh(model);
+            this.njcm_model_to_mesh(model, matrix);
         } else {
-            return this.xj_model_to_mesh(model);
+            this.xj_model_to_mesh(model, matrix);
         }
     }
 
-    private njcm_model_to_mesh(model: NjcmModel): Mesh {
+    private njcm_model_to_mesh(model: NjcmModel, matrix: Mat4): void {
+        const normal_matrix = matrix.normal_mat3();
+
         const new_vertices = model.vertices.map(vertex => {
             const position = vec3_to_math(vertex.position);
-            const normal = vertex.normal ? vec3_to_math(vertex.normal) : DEFAULT_NORMAL;
+            mat4_vec3_multiply(matrix, position);
+
+            let normal: Vec3 | undefined = undefined;
+
+            if (vertex.normal) {
+                normal = vec3_to_math(vertex.normal);
+                mat3_vec3_multiply(normal_matrix, normal);
+            }
 
             return {
                 position,
@@ -117,8 +135,6 @@ class NodeCreator {
 
         this.vertices.put(new_vertices);
 
-        const builder = Mesh.builder(VertexFormat.PosNorm);
-
         for (const mesh of model.meshes) {
             for (let i = 0; i < mesh.vertices.length; ++i) {
                 const mesh_vertex = mesh.vertices[i];
@@ -126,50 +142,55 @@ class NodeCreator {
 
                 if (vertices.length) {
                     const vertex = vertices[0];
-                    const normal = vertex.normal ?? mesh_vertex.normal ?? DEFAULT_NORMAL;
-                    const index = builder.vertex_count;
+                    const normal =
+                        vertex.normal ??
+                        (mesh_vertex.normal ? vec3_to_math(mesh_vertex.normal) : DEFAULT_NORMAL);
+                    const index = this.builder.vertex_count;
 
-                    builder.vertex(vertex.position, vec3_to_math(normal));
+                    this.builder.vertex(vertex.position, normal);
 
                     if (index >= 2) {
                         if (i % 2 === (mesh.clockwise_winding ? 1 : 0)) {
-                            builder.triangle(index - 2, index - 1, index);
+                            this.builder.triangle(index - 2, index - 1, index);
                         } else {
-                            builder.triangle(index - 2, index, index - 1);
+                            this.builder.triangle(index - 2, index, index - 1);
                         }
                     }
                 }
             }
         }
-
-        return builder.build();
     }
 
-    private xj_model_to_mesh(model: XjModel): Mesh {
-        const builder = Mesh.builder(VertexFormat.PosNorm);
+    private xj_model_to_mesh(model: XjModel, matrix: Mat4): void {
+        const index_offset = this.builder.vertex_count;
+        const normal_matrix = matrix.normal_mat3();
 
         for (const { position, normal } of model.vertices) {
-            builder.vertex(vec3_to_math(position), normal ? vec3_to_math(normal) : DEFAULT_NORMAL);
+            const p = vec3_to_math(position);
+            mat4_vec3_multiply(matrix, p);
+
+            const n = normal ? vec3_to_math(normal) : new Vec3(0, 1, 0);
+            mat3_vec3_multiply(normal_matrix, n);
+
+            this.builder.vertex(p, n);
         }
 
         for (const mesh of model.meshes) {
             let clockwise = false;
 
             for (let j = 2; j < mesh.indices.length; ++j) {
-                const a = mesh.indices[j - 2];
-                const b = mesh.indices[j - 1];
-                const c = mesh.indices[j];
+                const a = index_offset + mesh.indices[j - 2];
+                const b = index_offset + mesh.indices[j - 1];
+                const c = index_offset + mesh.indices[j];
 
                 if (clockwise) {
-                    builder.triangle(b, a, c);
+                    this.builder.triangle(b, a, c);
                 } else {
-                    builder.triangle(a, b, c);
+                    this.builder.triangle(a, b, c);
                 }
 
                 clockwise = !clockwise;
             }
         }
-
-        return builder.build();
     }
 }

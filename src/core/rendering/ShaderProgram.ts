@@ -5,7 +5,7 @@ export class ShaderProgram {
     private readonly gl: WebGL2RenderingContext;
     private readonly program: WebGLProgram;
     private readonly mat_projection_loc: WebGLUniformLocation;
-    private readonly mat_camera_loc: WebGLUniformLocation;
+    private readonly mat_model_view_loc: WebGLUniformLocation;
     private readonly mat_normal_loc: WebGLUniformLocation | null;
     private readonly tex_sampler_loc: WebGLUniformLocation | null;
 
@@ -36,7 +36,7 @@ export class ShaderProgram {
             }
 
             this.mat_projection_loc = this.get_required_uniform_location(program, "mat_projection");
-            this.mat_camera_loc = this.get_required_uniform_location(program, "mat_camera");
+            this.mat_model_view_loc = this.get_required_uniform_location(program, "mat_model_view");
             this.mat_normal_loc = gl.getUniformLocation(program, "mat_normal");
 
             this.tex_sampler_loc = gl.getUniformLocation(program, "tex_sampler");
@@ -57,8 +57,8 @@ export class ShaderProgram {
         this.gl.uniformMatrix4fv(this.mat_projection_loc, false, matrix.data);
     }
 
-    set_mat_camera_uniform(matrix: Mat4): void {
-        this.gl.uniformMatrix4fv(this.mat_camera_loc, false, matrix.data);
+    set_mat_model_view_uniform(matrix: Mat4): void {
+        this.gl.uniformMatrix4fv(this.mat_model_view_loc, false, matrix.data);
     }
 
     set_mat_normal_uniform(matrix: Mat3): void {

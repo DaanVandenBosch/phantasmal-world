@@ -25,8 +25,8 @@ export class Camera {
         return 2 * Math.atan(Math.tan(0.5 * this.fov) / this._zoom);
     }
 
-    readonly view_mat4 = Mat4.identity();
-    readonly projection_mat4 = Mat4.identity();
+    readonly view_matrix = Mat4.identity();
+    readonly projection_matrix = Mat4.identity();
 
     constructor(
         private viewport_width: number,
@@ -49,7 +49,7 @@ export class Camera {
                     const f = 100;
 
                     // prettier-ignore
-                    this.projection_mat4.set_all(
+                    this.projection_matrix.set_all(
                         2/w,   0,       0, 0,
                           0, 2/h,       0, 0,
                           0,   0, 2/(n-f), 0,
@@ -69,7 +69,7 @@ export class Camera {
                     const w /* width */ = 2 * aspect * t;
 
                     // prettier-ignore
-                    this.projection_mat4.set_all(
+                    this.projection_matrix.set_all(
                         2*n / w,       0,             0,             0,
                               0, 2*n / h,             0,             0,
                               0,       0, (n+f) / (n-f), 2*n*f / (n-f),
@@ -141,11 +141,11 @@ export class Camera {
     }
 
     private update_matrix(): void {
-        this.view_mat4.data[12] = -this.position.x;
-        this.view_mat4.data[13] = -this.position.y;
-        this.view_mat4.data[14] = -this.position.z;
-        this.view_mat4.data[0] = this._zoom;
-        this.view_mat4.data[5] = this._zoom;
-        this.view_mat4.data[10] = this._zoom;
+        this.view_matrix.data[12] = -this.position.x;
+        this.view_matrix.data[13] = -this.position.y;
+        this.view_matrix.data[14] = -this.position.z;
+        this.view_matrix.data[0] = this._zoom;
+        this.view_matrix.data[5] = this._zoom;
+        this.view_matrix.data[10] = this._zoom;
     }
 }

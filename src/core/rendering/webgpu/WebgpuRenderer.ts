@@ -176,7 +176,7 @@ export class WebgpuRenderer extends GfxRenderer {
 
             pass_encoder.setPipeline(pipeline);
 
-            const camera_project_mat = mat4_product(this.camera.projection_mat4, this.camera.view_mat4);
+            const camera_project_mat = mat4_product(this.camera.projection_matrix, this.camera.view_matrix);
 
             this.scene.traverse((node, parent_mat) => {
                 const mat = mat4_product(parent_mat, node.transform);

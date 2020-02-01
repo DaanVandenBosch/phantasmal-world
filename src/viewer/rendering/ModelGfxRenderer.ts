@@ -2,7 +2,9 @@ import { ModelStore } from "../stores/ModelStore";
 import { Disposer } from "../../core/observable/Disposer";
 import { Renderer } from "../../core/rendering/Renderer";
 import { GfxRenderer } from "../../core/rendering/GfxRenderer";
-import { ninja_object_to_node } from "../../core/rendering/conversion/ninja_geometry";
+import { ninja_object_to_mesh } from "../../core/rendering/conversion/ninja_geometry";
+import { SceneNode } from "../../core/rendering/Scene";
+import { Mat4 } from "../../core/math/linear_algebra";
 
 export class ModelGfxRenderer implements Renderer {
     private readonly disposer = new Disposer();
@@ -73,7 +75,7 @@ export class ModelGfxRenderer implements Renderer {
 
         if (nj_object) {
             // Convert textures and geometry.
-            const node = ninja_object_to_node(nj_object);
+            const node = new SceneNode(ninja_object_to_mesh(nj_object), Mat4.identity());
             this.renderer.scene.root_node.add_child(node);
 
             this.renderer.scene.traverse(node => {

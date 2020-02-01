@@ -169,7 +169,7 @@ class GeometryCreator {
 
                 if (vertices.length) {
                     const vertex = vertices[0];
-                    const normal = vertex.normal || mesh_vertex.normal || DEFAULT_NORMAL;
+                    const normal = vertex.normal ?? mesh_vertex.normal ?? DEFAULT_NORMAL;
                     const index = this.builder.vertex_count;
 
                     this.builder.add_vertex(

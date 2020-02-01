@@ -246,6 +246,24 @@ export class ModelStore extends Store {
                 body,
             );
 
+            // nj_object.children[0].children[0].children[0].clear_children();
+            // nj_object.children[0].children[0].children[1].clear_children();
+            // nj_object.children[0].children[0].children[2].clear_children();
+            // nj_object.children[0].children[0].children[3].clear_children();
+            // nj_object.children[0].children[0].children[4].clear_children();
+            // nj_object.children[0].children[0].children[5].children[0].children[0].clear_children();
+            // nj_object.children[0].children[0].children[5].children[0].children[1].clear_children();
+            // nj_object.children[0].children[0].children[5].children[0].children[2].clear_children();
+            // nj_object.children[0].children[0].children[5].children[0].children[3].children[0].clear_children();
+            // const model = nj_object.children[0].children[0].children[5].children[0].children[3]
+            //     .children[0].model!;
+            // model.meshes.splice(0, 1);
+            // model.meshes.splice(1);
+            // console.log(
+            //     nj_object.children[0].children[0].children[5].children[0].children[3].children[0]
+            //         .model,
+            // );
+
             this._current_nj_object.val = nj_object;
         } catch (e) {
             logger.error(`Couldn't load model for ${character_class.name}.`);
