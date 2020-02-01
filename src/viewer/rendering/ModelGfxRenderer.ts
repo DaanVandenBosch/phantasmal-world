@@ -12,9 +12,42 @@ export class ModelGfxRenderer implements Renderer {
     constructor(private readonly store: ModelStore, private readonly renderer: GfxRenderer) {
         this.canvas_element = renderer.canvas_element;
 
-        renderer.camera.pan(0, 0, -50);
+        renderer.camera.pan(0, 0, 50);
 
         this.disposer.add_all(store.current_nj_object.observe(this.nj_object_or_xvm_changed));
+
+        // TODO: remove
+        // const cube = cube_mesh();
+        // cube.upload(this.renderer.gfx);
+        //
+        // this.renderer.scene.root_node.add_child(
+        //     new SceneNode(
+        //         undefined,
+        //         Mat4.identity(),
+        //         new SceneNode(
+        //             cube,
+        //             Mat4.compose(
+        //                 new Vec3(-3, 0, 0),
+        //                 quat_product(
+        //                     Quat.euler_angles(Math.PI / 6, 0, 0, EulerOrder.ZYX),
+        //                     Quat.euler_angles(0, -Math.PI / 6, 0, EulerOrder.ZYX),
+        //                 ),
+        //                 new Vec3(1, 1, 1),
+        //             ),
+        //         ),
+        //         new SceneNode(
+        //             cube,
+        //             Mat4.compose(
+        //                 new Vec3(3, 0, 0),
+        //                 quat_product(
+        //                     Quat.euler_angles(-Math.PI / 6, 0, 0, EulerOrder.ZYX),
+        //                     Quat.euler_angles(0, Math.PI / 6, 0, EulerOrder.ZYX),
+        //                 ),
+        //                 new Vec3(1, 1, 1),
+        //             ),
+        //         ),
+        //     ),
+        // );
     }
 
     dispose(): void {

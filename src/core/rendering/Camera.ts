@@ -7,7 +7,9 @@ export enum Projection {
 }
 
 export class Camera {
-    // Only applicable in perspective mode.
+    /**
+     * Only applicable in perspective mode.
+     */
     private readonly fov = deg_to_rad(75);
     private readonly position: Vec3 = new Vec3(0, 0, 0);
     private readonly look_at: Vec3 = new Vec3(0, 0, 0);
@@ -16,15 +18,15 @@ export class Camera {
     private z_rot: number = 0;
     private _zoom: number = 1;
 
-    readonly view_mat4 = Mat4.identity();
-    readonly projection_mat4 = Mat4.identity();
-
     /**
      * Effective field of view in radians. Only applicable in perspective mode.
      */
-    get effective_fov(): number {
+    private get effective_fov(): number {
         return 2 * Math.atan(Math.tan(0.5 * this.fov) / this._zoom);
     }
+
+    readonly view_mat4 = Mat4.identity();
+    readonly projection_mat4 = Mat4.identity();
 
     constructor(
         private viewport_width: number,
@@ -43,8 +45,8 @@ export class Camera {
                 {
                     const w = width;
                     const h = height;
-                    const n = -1000;
-                    const f = 1000;
+                    const n = 0;
+                    const f = 100;
 
                     // prettier-ignore
                     this.projection_mat4.set_all(
@@ -60,19 +62,18 @@ export class Camera {
                 {
                     const aspect = width / height;
 
-                    const n = 0.1;
-                    const f = 2000;
-                    const t = n * Math.tan(0.5 * this.fov);
-                    const b = -t;
-                    const r = aspect * t;
-                    const l = -r;
+                    const n /* near */ = 0.1;
+                    const f /* far */ = 2000;
+                    const t /* top */ = (n * Math.tan(0.5 * this.fov)) / this._zoom;
+                    const h /* height */ = 2 * t;
+                    const w /* width */ = 2 * aspect * t;
 
                     // prettier-ignore
                     this.projection_mat4.set_all(
-                        2*n / (r-l),           0, (l+r) / (l-r),               0,
-                                  0, 2*n / (t-b), (b+t) / (b-t),               0,
-                                  0,           0, (f+n) / (n-f), (2*f*n) / (f-n),
-                                  0,           0,             1,               0,
+                        2*n / w,       0,             0,             0,
+                              0, 2*n / h,             0,             0,
+                              0,       0, (n+f) / (n-f), 2*n*f / (n-f),
+                              0,       0,            -1,             0,
                     );
                 }
                 break;
@@ -80,9 +81,21 @@ export class Camera {
     }
 
     pan(x: number, y: number, z: number): this {
-        const pan_factor =
-            (3 * vec3_dist(this.position, this.look_at) * Math.tan(0.5 * this.effective_fov)) /
-            this.viewport_width;
+        let pan_factor: number;
+
+        switch (this.projection) {
+            case Projection.Orthographic:
+                pan_factor = 1;
+                break;
+
+            case Projection.Perspective:
+                pan_factor =
+                    (3 *
+                        vec3_dist(this.position, this.look_at) *
+                        Math.tan(0.5 * this.effective_fov)) /
+                    this.viewport_width;
+                break;
+        }
 
         x *= pan_factor;
         y *= pan_factor;
@@ -128,9 +141,9 @@ export class Camera {
     }
 
     private update_matrix(): void {
-        this.view_mat4.data[12] = this._zoom * -this.position.x;
-        this.view_mat4.data[13] = this._zoom * -this.position.y;
-        this.view_mat4.data[14] = this._zoom * -this.position.z;
+        this.view_mat4.data[12] = -this.position.x;
+        this.view_mat4.data[13] = -this.position.y;
+        this.view_mat4.data[14] = -this.position.z;
         this.view_mat4.data[0] = this._zoom;
         this.view_mat4.data[5] = this._zoom;
         this.view_mat4.data[10] = this._zoom;

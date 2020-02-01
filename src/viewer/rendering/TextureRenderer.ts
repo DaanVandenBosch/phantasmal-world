@@ -20,6 +20,8 @@ export class TextureRenderer implements Renderer {
     constructor(ctrl: TextureController, private readonly renderer: GfxRenderer) {
         this.canvas_element = renderer.canvas_element;
 
+        renderer.camera.pan(0, 0, 10);
+
         this.disposer.add_all(
             ctrl.textures.observe(({ value: textures }) => {
                 renderer.destroy_scene();

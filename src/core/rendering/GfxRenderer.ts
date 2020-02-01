@@ -111,9 +111,9 @@ export abstract class GfxRenderer implements Renderer {
 
             case Projection.Perspective:
                 if (evt.deltaY < 0) {
-                    this.camera.pan(0, 0, 5);
-                } else {
                     this.camera.pan(0, 0, -5);
+                } else {
+                    this.camera.pan(0, 0, 5);
                 }
                 break;
         }
