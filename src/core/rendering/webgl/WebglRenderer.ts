@@ -29,7 +29,6 @@ export class WebglRenderer extends GfxRenderer {
         this.gfx = new WebglGfx(gl);
 
         gl.enable(gl.DEPTH_TEST);
-        // gl.enable(gl.CULL_FACE);
         gl.clearColor(0.1, 0.1, 0.1, 1);
 
         this.shader_programs = [];

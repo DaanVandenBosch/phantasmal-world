@@ -149,7 +149,7 @@ class MeshCreator {
 
                     this.builder.vertex(vertex.position, normal);
 
-                    if (index >= 2) {
+                    if (i >= 2) {
                         if (i % 2 === (mesh.clockwise_winding ? 1 : 0)) {
                             this.builder.triangle(index - 2, index - 1, index);
                         } else {
