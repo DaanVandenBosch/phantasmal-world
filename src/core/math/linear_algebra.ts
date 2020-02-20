@@ -23,20 +23,54 @@ export class Vec3 {
     magnitude(): number {
         return Math.sqrt(this.x * this.x + this.y * this.y + this.z * this.z);
     }
+
+    normalize(): void {
+        const inv_mag = 1 / this.magnitude();
+        this.x *= inv_mag;
+        this.y *= inv_mag;
+        this.z *= inv_mag;
+    }
 }
 
-export function vec3_diff(v: Vec3, w: Vec3): Vec3 {
-    return new Vec3(v.x - w.x, v.y - w.y, v.z - v.z);
+export function vec3_sub(v: Vec3, w: Vec3): Vec3 {
+    return new Vec3(v.x - w.x, v.y - w.y, v.z - w.z);
 }
 
 /**
- * Computes the distance between points p and q. Equivalent to `vec3_diff(p, q).magnitude()`.
+ * Computes the distance between points `p` and `q`. Equivalent to `vec3_diff(p, q).magnitude()`.
  */
 export function vec3_dist(p: Vec3, q: Vec3): number {
     const x = p.x - q.x;
     const y = p.y - q.y;
     const z = p.z - q.z;
     return Math.sqrt(x * x + y * y + z * z);
+}
+
+/**
+ * Computes the cross product of `p` and `q`.
+ */
+export function vec3_cross(p: Vec3, q: Vec3): Vec3 {
+    return new Vec3(p.y * q.z - p.z * q.y, p.z * q.x - p.x * q.z, p.x * q.y - p.y * q.x);
+}
+
+/**
+ * Computes the dot product of `p` and `q`.
+ */
+export function vec3_dot(p: Vec3, q: Vec3): number {
+    return p.x * q.x + p.y * q.y + p.z * q.z;
+}
+
+/**
+ * Computes the cross product of `p` and `q` and stores it in `result`.
+ */
+export function vec3_cross_into(p: Vec3, q: Vec3, result: Vec3): void {
+    const x = p.y * q.z - p.z * q.y;
+    const y = p.z * q.x - p.x * q.z;
+    const z = p.x * q.y - p.y * q.x;
+
+    result.x = x;
+    result.y = y;
+    result.z = z;
 }
 
 /**
@@ -167,16 +201,16 @@ export class Mat3 {
     }
 }
 
-export function mat3_product(a: Mat3, b: Mat3): Mat3 {
+export function mat3_multiply(a: Mat3, b: Mat3): Mat3 {
     const c = new Mat3(new Float32Array(9));
     mat3_product_into_array(c.data, a, b);
     return c;
 }
 
-export function mat3_multiply(a: Mat3, b: Mat3): void {
+export function mat3_multiply_into(a: Mat3, b: Mat3, result: Mat3): void {
     const array = new Float32Array(9);
     mat3_product_into_array(array, a, b);
-    a.data.set(array);
+    result.data.set(array);
 }
 
 function mat3_product_into_array(array: Float32Array, a: Mat3, b: Mat3): void {
@@ -190,15 +224,16 @@ function mat3_product_into_array(array: Float32Array, a: Mat3, b: Mat3): void {
 }
 
 /**
- * Computes the product of `m` and `v` and stores the result in `v`.
+ * Computes the product of `m` and `v` and stores it in `result`.
  */
-export function mat3_vec3_multiply(m: Mat3, v: Vec3): void {
+export function mat3_vec3_multiply_into(m: Mat3, v: Vec3, result: Vec3): void {
     const x = m.get(0, 0) * v.x + m.get(0, 1) * v.y + m.get(0, 2) * v.z;
     const y = m.get(1, 0) * v.x + m.get(1, 1) * v.y + m.get(1, 2) * v.z;
     const z = m.get(2, 0) * v.x + m.get(2, 1) * v.y + m.get(2, 2) * v.z;
-    v.x = x;
-    v.y = y;
-    v.z = z;
+
+    result.x = x;
+    result.y = y;
+    result.z = z;
 }
 
 /**
@@ -321,6 +356,38 @@ export class Mat4 {
         this.data[15] = m33;
     }
 
+    /**
+     * Transposes this matrix in-place.
+     */
+    transpose(): void {
+        let tmp: number;
+        const m = this.data;
+
+        tmp = m[1];
+        m[1] = m[4];
+        m[4] = tmp;
+
+        tmp = m[2];
+        m[2] = m[8];
+        m[8] = tmp;
+
+        tmp = m[6];
+        m[6] = m[9];
+        m[9] = tmp;
+
+        tmp = m[3];
+        m[3] = m[12];
+        m[12] = tmp;
+
+        tmp = m[7];
+        m[7] = m[13];
+        m[13] = tmp;
+
+        tmp = m[11];
+        m[11] = m[14];
+        m[14] = tmp;
+    }
+
     clone(): Mat4 {
         return new Mat4(new Float32Array(this.data));
     }
@@ -341,19 +408,19 @@ export class Mat4 {
     }
 }
 
-export function mat4_product(a: Mat4, b: Mat4): Mat4 {
+export function mat4_multiply(a: Mat4, b: Mat4): Mat4 {
     const c = new Mat4(new Float32Array(16));
     mat4_product_into_array(c.data, a, b);
     return c;
 }
 
 /**
- * Computes the product of `a` and `b` and stores the result in `a`.
+ * Computes the product of `a` and `b` and stores it in `result`.
  */
-export function mat4_multiply(a: Mat4, b: Mat4): void {
+export function mat4_multiply_into(a: Mat4, b: Mat4, result: Mat4): void {
     const array = new Float32Array(16);
     mat4_product_into_array(array, a, b);
-    a.data.set(array);
+    result.data.set(array);
 }
 
 function mat4_product_into_array(array: Float32Array, a: Mat4, b: Mat4): void {
@@ -367,13 +434,13 @@ function mat4_product_into_array(array: Float32Array, a: Mat4, b: Mat4): void {
 }
 
 /**
- * Computes the product of `m` and `v` and stores the result in `v`. Assumes `m` is affine.
+ * Computes the product of `m` and `v` and stores it in `result`. Assumes `m` is affine.
  */
-export function mat4_vec3_multiply(m: Mat4, v: Vec3): void {
+export function mat4_vec3_multiply_into(m: Mat4, v: Vec3, result: Vec3): void {
     const x = m.get(0, 0) * v.x + m.get(0, 1) * v.y + m.get(0, 2) * v.z + m.get(0, 3);
     const y = m.get(1, 0) * v.x + m.get(1, 1) * v.y + m.get(1, 2) * v.z + m.get(1, 3);
     const z = m.get(2, 0) * v.x + m.get(2, 1) * v.y + m.get(2, 2) * v.z + m.get(2, 3);
-    v.x = x;
-    v.y = y;
-    v.z = z;
+    result.x = x;
+    result.y = y;
+    result.z = z;
 }

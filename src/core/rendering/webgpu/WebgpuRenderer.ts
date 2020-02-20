@@ -1,7 +1,7 @@
 import { LogManager } from "../../Logger";
 import { vertex_format_size, VertexFormat } from "../VertexFormat";
 import { GfxRenderer } from "../GfxRenderer";
-import { mat4_product } from "../../math/linear_algebra";
+import { mat4_multiply } from "../../math/linear_algebra";
 import { WebgpuGfx, WebgpuMesh } from "./WebgpuGfx";
 import { ShaderLoader } from "./ShaderLoader";
 import { HttpClient } from "../../HttpClient";
@@ -23,8 +23,6 @@ export class WebgpuRenderer extends GfxRenderer {
         swap_chain: GPUSwapChain;
         pipeline: GPURenderPipeline;
     };
-    private width = 800;
-    private height = 600;
     private shader_loader: ShaderLoader;
 
     get gfx(): WebgpuGfx {
@@ -145,9 +143,6 @@ export class WebgpuRenderer extends GfxRenderer {
     }
 
     set_size(width: number, height: number): void {
-        this.width = width;
-        this.height = height;
-
         // There seems to be a bug in chrome's WebGPU implementation that requires you to set a
         // canvas element's width and height after it's added to the DOM.
         if (this.gpu) {
@@ -176,10 +171,13 @@ export class WebgpuRenderer extends GfxRenderer {
 
             pass_encoder.setPipeline(pipeline);
 
-            const camera_project_mat = mat4_product(this.camera.projection_matrix, this.camera.view_matrix);
+            const camera_project_mat = mat4_multiply(
+                this.camera.projection_matrix,
+                this.camera.view_matrix,
+            );
 
             this.scene.traverse((node, parent_mat) => {
-                const mat = mat4_product(parent_mat, node.transform);
+                const mat = mat4_multiply(parent_mat, node.transform);
 
                 if (node.mesh) {
                     const gfx_mesh = node.mesh.gfx_mesh as WebgpuMesh;

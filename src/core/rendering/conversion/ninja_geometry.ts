@@ -6,10 +6,10 @@ import { Mesh } from "../Mesh";
 import { VertexFormat } from "../VertexFormat";
 import { EulerOrder, Quat } from "../../math/quaternions";
 import {
-    mat3_vec3_multiply,
+    mat3_vec3_multiply_into,
     Mat4,
-    mat4_product,
-    mat4_vec3_multiply,
+    mat4_multiply,
+    mat4_vec3_multiply_into,
     Vec2,
     Vec3,
 } from "../../math/linear_algebra";
@@ -75,7 +75,7 @@ class MeshCreator {
         } = object.evaluation_flags;
         const { position, rotation, scale } = object;
 
-        const matrix = mat4_product(
+        const matrix = mat4_multiply(
             parent_matrix,
             Mat4.compose(
                 no_translate ? NO_TRANSLATION : vec3_to_math(position),
@@ -115,13 +115,13 @@ class MeshCreator {
 
         const new_vertices = model.vertices.map(vertex => {
             const position = vec3_to_math(vertex.position);
-            mat4_vec3_multiply(matrix, position);
+            mat4_vec3_multiply_into(matrix, position, position);
 
             let normal: Vec3 | undefined = undefined;
 
             if (vertex.normal) {
                 normal = vec3_to_math(vertex.normal);
-                mat3_vec3_multiply(normal_matrix, normal);
+                mat3_vec3_multiply_into(normal_matrix, normal, normal);
             }
 
             return {
@@ -167,10 +167,10 @@ class MeshCreator {
 
         for (const { position, normal } of model.vertices) {
             const p = vec3_to_math(position);
-            mat4_vec3_multiply(matrix, p);
+            mat4_vec3_multiply_into(matrix, p, p);
 
             const n = normal ? vec3_to_math(normal) : new Vec3(0, 1, 0);
-            mat3_vec3_multiply(normal_matrix, n);
+            mat3_vec3_multiply_into(normal_matrix, n, n);
 
             this.builder.vertex(p, n);
         }

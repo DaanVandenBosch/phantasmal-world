@@ -11,18 +11,21 @@ export abstract class GfxRenderer implements Renderer {
      */
     private animation_frame?: number;
 
+    protected width: number = 800;
+    protected height: number = 600;
+
     abstract readonly gfx: Gfx;
     readonly scene = new Scene();
     readonly camera: Camera;
     readonly canvas_element: HTMLCanvasElement = document.createElement("canvas");
 
     protected constructor(projection: Projection) {
-        this.canvas_element.width = 800;
-        this.canvas_element.height = 600;
+        this.canvas_element.width = this.width;
+        this.canvas_element.height = this.height;
         this.canvas_element.addEventListener("mousedown", this.mousedown);
         this.canvas_element.addEventListener("wheel", this.wheel, { passive: true });
 
-        this.camera = new Camera(this.canvas_element.width, this.canvas_element.height, projection);
+        this.camera = new Camera(this.width, this.height, projection);
     }
 
     dispose(): void {
@@ -30,6 +33,8 @@ export abstract class GfxRenderer implements Renderer {
     }
 
     set_size(width: number, height: number): void {
+        this.width = width;
+        this.height = height;
         this.camera.set_viewport(width, height);
         this.schedule_render();
     }
@@ -74,25 +79,30 @@ export abstract class GfxRenderer implements Renderer {
     }
 
     private mousedown = (evt: MouseEvent): void => {
-        if (evt.buttons === 1) {
-            this.pointer_pos = new Vec2(evt.clientX, evt.clientY);
+        this.pointer_pos = new Vec2(evt.clientX, evt.clientY);
 
-            window.addEventListener("mousemove", this.mousemove);
-            window.addEventListener("mouseup", this.mouseup);
-        }
+        window.addEventListener("mousemove", this.mousemove);
+        window.addEventListener("mouseup", this.mouseup);
+        window.addEventListener("contextmenu", this.contextmenu);
     };
 
     private mousemove = (evt: MouseEvent): void => {
+        const new_pos = new Vec2(evt.clientX, evt.clientY);
+        const diff = vec2_diff(new_pos, this.pointer_pos!);
+
         if (evt.buttons === 1) {
-            const new_pos = new Vec2(evt.clientX, evt.clientY);
-            const diff = vec2_diff(new_pos, this.pointer_pos!);
             this.camera.pan(-diff.x, diff.y, 0);
-            this.pointer_pos = new_pos;
-            this.schedule_render();
+        } else if (evt.buttons === 2) {
+            this.camera.rotate(-diff.x / (20 * Math.PI), -diff.y / (20 * Math.PI));
         }
+
+        this.pointer_pos = new_pos;
+        this.schedule_render();
     };
 
-    private mouseup = (): void => {
+    private mouseup = (evt: MouseEvent): void => {
+        evt.preventDefault();
+
         this.pointer_pos = undefined;
 
         window.removeEventListener("mousemove", this.mousemove);
@@ -119,5 +129,10 @@ export abstract class GfxRenderer implements Renderer {
         }
 
         this.schedule_render();
+    };
+
+    private contextmenu = (evt: Event): void => {
+        evt.preventDefault();
+        window.removeEventListener("contextmenu", this.contextmenu);
     };
 }

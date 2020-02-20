@@ -39,6 +39,12 @@ export class Quat {
     }
 
     constructor(public w: number, public x: number, public y: number, public z: number) {}
+
+    conjugate(): void {
+        this.x *= -1;
+        this.y *= -1;
+        this.z *= -1;
+    }
 }
 
 export function quat_product(p: Quat, q: Quat): Quat {

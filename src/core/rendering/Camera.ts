@@ -1,5 +1,5 @@
-import { Mat4, Vec3, vec3_dist } from "../math/linear_algebra";
-import { deg_to_rad } from "../math";
+import { Mat4, Vec3, vec3_cross, vec3_dot, vec3_sub } from "../math/linear_algebra";
+import { clamp, deg_to_rad } from "../math";
 
 export enum Projection {
     Orthographic,
@@ -11,11 +11,13 @@ export class Camera {
      * Only applicable in perspective mode.
      */
     private readonly fov = deg_to_rad(75);
-    private readonly position: Vec3 = new Vec3(0, 0, 0);
-    private readonly look_at: Vec3 = new Vec3(0, 0, 0);
-    private x_rot: number = 0;
-    private y_rot: number = 0;
-    private z_rot: number = 0;
+    private readonly target: Vec3 = new Vec3(0, 0, 0);
+
+    // Spherical coordinates.
+    private radius = 0;
+    private azimuth = 0;
+    private polar = Math.PI / 2;
+
     private _zoom: number = 1;
 
     /**
@@ -90,22 +92,26 @@ export class Camera {
 
             case Projection.Perspective:
                 pan_factor =
-                    (3 *
-                        vec3_dist(this.position, this.look_at) *
-                        Math.tan(0.5 * this.effective_fov)) /
-                    this.viewport_width;
+                    (3 * this.radius * Math.tan(0.5 * this.effective_fov)) / this.viewport_width;
                 break;
         }
 
         x *= pan_factor;
         y *= pan_factor;
 
-        this.position.x += x;
-        this.position.y += y;
-        this.position.z += z;
-        this.look_at.x += x;
-        this.look_at.y += y;
+        this.target.x += x;
+        this.target.y += y;
 
+        this.radius += z;
+
+        this.update_matrix();
+        return this;
+    }
+
+    rotate(azimuth: number, polar: number): this {
+        this.azimuth += azimuth;
+        const max_pole_dist = Math.PI / 1800; // tenth of a degree.
+        this.polar = clamp(this.polar + polar, max_pole_dist, Math.PI - max_pole_dist);
         this.update_matrix();
         return this;
     }
@@ -115,37 +121,48 @@ export class Camera {
      */
     zoom(factor: number): this {
         this._zoom *= factor;
-        this.position.x *= factor;
-        this.position.y *= factor;
-        this.position.z *= factor;
-        this.look_at.x *= factor;
-        this.look_at.y *= factor;
-        this.look_at.z *= factor;
+        this.target.x *= factor;
+        this.target.y *= factor;
+        this.target.z *= factor;
         this.update_matrix();
         return this;
     }
 
     reset(): this {
-        this.position.x = 0;
-        this.position.y = 0;
-        this.position.z = 0;
-        this.look_at.x = 0;
-        this.look_at.y = 0;
-        this.look_at.z = 0;
-        this.x_rot = 0;
-        this.y_rot = 0;
-        this.z_rot = 0;
+        this.target.x = 0;
+        this.target.y = 0;
+        this.target.z = 0;
         this._zoom = 1;
         this.update_matrix();
         return this;
     }
 
     private update_matrix(): void {
-        this.view_matrix.data[12] = -this.position.x;
-        this.view_matrix.data[13] = -this.position.y;
-        this.view_matrix.data[14] = -this.position.z;
-        this.view_matrix.data[0] = this._zoom;
-        this.view_matrix.data[5] = this._zoom;
-        this.view_matrix.data[10] = this._zoom;
+        // Convert spherical coordinates to cartesian coordinates.
+        const radius_sin_polar = this.radius * Math.sin(this.polar);
+        const camera_pos = new Vec3(
+            this.target.x + radius_sin_polar * Math.sin(this.azimuth),
+            this.target.y + this.radius * Math.cos(this.polar),
+            this.target.z + radius_sin_polar * Math.cos(this.azimuth),
+        );
+
+        // Compute forward (z-axis), right (x-axis) and up (y-axis) vectors.
+        const forward = vec3_sub(camera_pos, this.target);
+        forward.normalize();
+
+        const right = vec3_cross(new Vec3(0, 1, 0), forward);
+        right.normalize();
+
+        const up = vec3_cross(forward, right);
+
+        const zoom = this._zoom;
+
+        // prettier-ignore
+        this.view_matrix.set_all(
+            right.x * zoom,   right.y,   right.z, -vec3_dot(  right, camera_pos),
+                 up.x,      up.y* zoom,      up.z, -vec3_dot(     up, camera_pos),
+            forward.x, forward.y, forward.z* zoom, -vec3_dot(forward, camera_pos),
+                    0,         0,         0,                              1,
+        );
     }
 }
