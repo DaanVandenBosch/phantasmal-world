@@ -20,8 +20,8 @@ Features that are in ***bold italics*** are planned but not yet implemented.
     - "Save as" dialog to choose name
 - Support for .qst (BB, ***GC***, ***PC***, ***DC***)
 - ***Notify user when and why quest saving fails***
-- Custom text-based format
-    - Usable with SCM tools
+- ***Custom text-based format***
+    - ***Usable with SCM tools***
 
 ## Undo/Redo
 
@@ -34,6 +34,7 @@ Features that are in ***bold italics*** are planned but not yet implemented.
 - Dropdown menu to switch area
 - Change area variant by editing assembly
     - Update 3D view automatically
+- ***Easy navigation between far apart rooms***
 
 ## Simple Quest Properties
 
@@ -71,6 +72,7 @@ Features that are in ***bold italics*** are planned but not yet implemented.
     - Via 3D view
     - Via entity view
 - ***Multi select and translate/rotate/edit***
+- ***Edit entity-specific properties***
 
 ## Events
 
@@ -87,6 +89,7 @@ Features that are in ***bold italics*** are planned but not yet implemented.
 - Add/Delete
 - Lock/unlock doors
 - ***Spawn NPCs***
+- ***Reorder actions***
 
 ## Script Object Code
 
