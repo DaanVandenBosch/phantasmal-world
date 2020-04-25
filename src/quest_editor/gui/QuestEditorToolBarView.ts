@@ -15,6 +15,7 @@ import { Dialog } from "../../core/gui/Dialog";
 import { TextInput } from "../../core/gui/TextInput";
 import "./QuestEditorToolBarView.css";
 import { Version } from "../../core/data_formats/parsing/quest/Version";
+import { ResultDialog } from "../../core/gui/ResultDialog";
 
 export class QuestEditorToolBarView extends View {
     private readonly toolbar: ToolBar;
@@ -100,6 +101,14 @@ export class QuestEditorToolBarView extends View {
             icon_left: Icon.Stop,
             tooltip: "Stop execution (Shift-F5)",
         });
+        const dialog = this.disposable(
+            new ResultDialog({
+                visible: ctrl.result_dialog_visible,
+                result: ctrl.result,
+                problems_message: ctrl.result_problems_message,
+                error_message: ctrl.result_error_message,
+            }),
+        );
 
         const children = [
             new_quest_button,
@@ -219,6 +228,8 @@ export class QuestEditorToolBarView extends View {
 
             stop_button.onclick.observe(ctrl.stop),
             stop_button.enabled.bind_to(ctrl.can_stop),
+
+            dialog.ondismiss.observe(ctrl.dismiss_result_dialog),
         );
 
         this.finalize_construction();

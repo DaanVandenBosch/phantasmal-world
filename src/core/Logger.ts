@@ -104,32 +104,6 @@ export class Logger {
             this.handler({ time: new Date(), message, severity, logger: this, cause }, this.name);
         }
     }
-
-    showTrace = (message: string, cause?: any): void => {
-        this.showLog(Severity.Trace, message, cause);
-    };
-
-    showDebug = (message: string, cause?: any): void => {
-        this.showLog(Severity.Debug, message, cause);
-    };
-
-    showInfo = (message: string, cause?: any): void => {
-        this.showLog(Severity.Info, message, cause);
-    };
-
-    showWarn = (message: string, cause?: any): void => {
-        this.showLog(Severity.Warning, message, cause);
-    };
-
-    showError = (message: string, cause?: any): void => {
-        this.showLog(Severity.Error, message, cause);
-    };
-
-    //for graphically showing errors and other messages, assume we always want this to show, otherwise we wouldn't call it.
-    //Instead of doing an alert, we should have some better styled area, like a dismissable bar at the top of the screen with the error.
-    showLog(severity: Severity, message: string, cause?: any): void {
-        alert('Message: ' + message + '\r\n\r\nCause: ' + cause.message);
-    }
 }
 
 export class LogManager {
