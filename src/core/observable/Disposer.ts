@@ -43,7 +43,9 @@ export class Disposer implements Disposable {
      * Insert a single disposable at the given index and return the given disposable.
      */
     insert<T extends Disposable>(index: number, disposable: T): T {
-        if (!this._disposed) {
+        if (this._disposed) {
+            disposable.dispose();
+        } else {
             this.disposables.splice(index, 0, disposable);
         }
 
@@ -53,9 +55,13 @@ export class Disposer implements Disposable {
     /**
      * Add 0 or more disposables.
      */
-    add_all(...disposable: Disposable[]): this {
-        if (!this._disposed) {
-            this.disposables.push(...disposable);
+    add_all(...disposables: Disposable[]): this {
+        if (this._disposed) {
+            for (const disposable of disposables) {
+                disposable.dispose();
+            }
+        } else {
+            this.disposables.push(...disposables);
         }
 
         return this;

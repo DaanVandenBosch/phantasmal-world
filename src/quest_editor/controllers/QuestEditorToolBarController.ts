@@ -22,7 +22,7 @@ import { LogManager } from "../../core/Logger";
 import { basename } from "../../core/util";
 import { Version } from "../../core/data_formats/parsing/quest/Version";
 import { WritableProperty } from "../../core/observable/property/WritableProperty";
-import { Result, failure } from "../../core/Result";
+import { failure, Result } from "../../core/Result";
 import { Severity } from "../../core/Severity";
 
 const logger = LogManager.get("quest_editor/controllers/QuestEditorToolBarController");
@@ -151,7 +151,6 @@ export class QuestEditorToolBarController extends Controller {
         this.quest_editor_store.set_current_quest(create_new_quest(this.area_store, episode));
     };
 
-    // TODO: notify user of problems.
     parse_files = async (files: File[]): Promise<void> => {
         try {
             if (files.length === 0) return;
@@ -183,11 +182,11 @@ export class QuestEditorToolBarController extends Controller {
                         new ArrayBufferCursor(dat_buffer, Endianness.Little),
                     );
                     if (!quest) {
-                        throw new Error("Couldn't parse bin or dat file.");
+                        throw new Error("Couldn't parse .bin or .dat file.");
                     }
                     this.set_filename(basename(bin.name || dat.name));
                 } else {
-                    throw new Error("Invalid File Type.");
+                    throw new Error("Please select one .bin and one .dat file.");
                 }
             }
 
@@ -196,9 +195,7 @@ export class QuestEditorToolBarController extends Controller {
             );
         } catch (e) {
             logger.error("Couldn't read file.", e);
-            this.set_result(
-                failure([{ severity: Severity.Error, ui_message: e.message }]),
-            );
+            this.set_result(failure([{ severity: Severity.Error, ui_message: e.message }]));
         }
     };
 
