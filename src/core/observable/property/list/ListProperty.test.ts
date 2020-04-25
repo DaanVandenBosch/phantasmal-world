@@ -1,9 +1,4 @@
-import {
-    is_list_property,
-    ListChangeType,
-    ListProperty,
-    ListChangeEvent,
-} from "./ListProperty";
+import { is_list_property, ListChangeType, ListProperty, ListChangeEvent } from "./ListProperty";
 import { SimpleListProperty } from "./SimpleListProperty";
 import { MappedListProperty } from "./MappedListProperty";
 import { list_property } from "../../index";

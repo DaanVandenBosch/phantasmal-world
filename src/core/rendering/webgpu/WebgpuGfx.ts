@@ -28,7 +28,7 @@ export class WebgpuGfx implements Gfx<WebgpuMesh, GPUTexture> {
 
         const bind_group = this.device.createBindGroup({
             layout: this.bind_group_layout,
-            bindings: [
+            entries: [
                 {
                     binding: 0,
                     resource: {
@@ -111,8 +111,8 @@ export class WebgpuGfx implements Gfx<WebgpuMesh, GPUTexture> {
             usage: GPUTextureUsage.COPY_DST | GPUTextureUsage.SAMPLED, // eslint-disable-line no-undef
         });
 
-        const row_pitch = Math.ceil((4 * width) / 256) * 256;
-        const data_size = row_pitch * height;
+        const bytes_per_row = Math.ceil((4 * width) / 256) * 256;
+        const data_size = bytes_per_row * height;
 
         const buffer = this.device.createBuffer({
             size: data_size,
@@ -130,7 +130,7 @@ export class WebgpuGfx implements Gfx<WebgpuMesh, GPUTexture> {
 
             for (let y = 0; y < height; y++) {
                 for (let x = 0; x < width; x++) {
-                    const idx = 4 * x + row_pitch * y;
+                    const idx = 4 * x + bytes_per_row * y;
 
                     buffer_data[idx] = orig_data[orig_idx];
                     buffer_data[idx + 1] = orig_data[orig_idx + 1];
@@ -148,8 +148,8 @@ export class WebgpuGfx implements Gfx<WebgpuMesh, GPUTexture> {
         command_encoder.copyBufferToTexture(
             {
                 buffer,
-                rowPitch: row_pitch,
-                imageHeight: 0,
+                bytesPerRow: bytes_per_row,
+                rowsPerImage: 0,
             },
             {
                 texture,

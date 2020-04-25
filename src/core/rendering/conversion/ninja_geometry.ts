@@ -10,12 +10,10 @@ import {
     Mat4,
     mat4_multiply,
     mat4_vec3_multiply_into,
-    Vec2,
     Vec3,
 } from "../../math/linear_algebra";
 
 const DEFAULT_NORMAL = new Vec3(0, 1, 0);
-const DEFAULT_UV = new Vec2(0, 0);
 const NO_TRANSLATION = new Vec3(0, 0, 0);
 const NO_ROTATION = new Quat(1, 0, 0, 0);
 const NO_SCALE = new Vec3(1, 1, 1);
@@ -71,7 +69,6 @@ class MeshCreator {
             hidden,
             break_child_trace,
             zxy_rotation_order,
-            skip,
         } = object.evaluation_flags;
         const { position, rotation, scale } = object;
 

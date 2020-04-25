@@ -93,7 +93,7 @@ export class LogView extends ResizableView {
                 ].join(" "),
             },
             div({ className: "quest_editor_LogView_message_timestamp" }, time_to_string(time)),
-            div({ className: "quest_editor_LogView_message_level" }, "[" + Severity[severity] + "]"),
+            div({ className: "quest_editor_LogView_message_level" }, `[${Severity[severity]}]`),
             div({ className: "quest_editor_LogView_message_contents" }, message),
         );
     };

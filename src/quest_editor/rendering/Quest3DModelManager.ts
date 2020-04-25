@@ -175,7 +175,7 @@ class Area3DModelManager {
         render_geom: Object3D,
     ): void {
         for (const collision_area of collision_geom.children) {
-            (collision_area as Mesh).geometry.boundingBox.getCenter(this.origin);
+            (collision_area as Mesh).geometry.boundingBox!.getCenter(this.origin);
 
             this.raycaster.set(this.origin, this.down);
             const intersection1 = this.raycaster

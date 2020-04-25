@@ -1,6 +1,13 @@
 import { reinterpret_i32_as_f32 } from "../../core/primitive_conversion";
 import { Arg, Segment, SegmentType } from "../../core/data_formats/asm/instructions";
-import { AnyType, Kind, OP_VA_END, OP_VA_START, Param, StackInteraction } from "../../core/data_formats/asm/opcodes";
+import {
+    AnyType,
+    Kind,
+    OP_VA_END,
+    OP_VA_START,
+    Param,
+    StackInteraction,
+} from "../../core/data_formats/asm/opcodes";
 import { LogManager } from "../../core/Logger";
 import { number_to_hex_string } from "../../core/util";
 

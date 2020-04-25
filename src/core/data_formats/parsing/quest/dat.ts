@@ -113,8 +113,9 @@ export function parse_dat(cursor: Cursor): DatFile {
         } else {
             if (entities_size !== total_size - 16) {
                 throw Error(
-                    `Malformed DAT file. Expected an entities size of ${total_size -
-                        16}, got ${entities_size}.`,
+                    `Malformed DAT file. Expected an entities size of ${
+                        total_size - 16
+                    }, got ${entities_size}.`,
                 );
             }
 
@@ -301,8 +302,9 @@ function parse_events(cursor: Cursor, area_id: number, events: DatEvent[]): void
 
     if (cursor.position !== actions_offset) {
         logger.warn(
-            `Read ${cursor.position - 16} bytes of event data instead of expected ${actions_offset -
-                16}.`,
+            `Read ${cursor.position - 16} bytes of event data instead of expected ${
+                actions_offset - 16
+            }.`,
         );
     }
 

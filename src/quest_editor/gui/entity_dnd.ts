@@ -63,8 +63,9 @@ export function entity_dnd_source(
                 dragging_details.drag_element.style.zIndex = "500";
                 dragging_details.drag_element.style.top = "0";
                 dragging_details.drag_element.style.left = "0";
-                dragging_details.drag_element.style.transform = `translate(${e.clientX -
-                    grab_point.x}px, ${e.clientY - grab_point.y}px)`;
+                dragging_details.drag_element.style.transform = `translate(${
+                    e.clientX - grab_point.x
+                }px, ${e.clientY - grab_point.y}px)`;
                 document.body.append(dragging_details.drag_element);
 
                 if (e.dataTransfer) {
@@ -109,8 +110,9 @@ function dragover(e: DragEvent): void {
     }
 
     if (dragging_details) {
-        dragging_details.drag_element.style.transform = `translate(${e.clientX -
-            grab_point.x}px, ${e.clientY - grab_point.y}px)`;
+        dragging_details.drag_element.style.transform = `translate(${e.clientX - grab_point.x}px, ${
+            e.clientY - grab_point.y
+        }px)`;
     }
 }
 

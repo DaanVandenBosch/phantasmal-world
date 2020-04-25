@@ -46,7 +46,7 @@ export class EntityImageRenderer implements Disposable {
                     const entity_model = create_entity_type_mesh(entity, geometry, textures);
                     scene.add(entity_model);
 
-                    const b_sphere = entity_model.geometry.boundingSphere;
+                    const b_sphere = entity_model.geometry.boundingSphere!;
                     camera.position.copy(camera_position);
                     camera.position.multiplyScalar(b_sphere.radius * camera_dist_factor);
                     camera.lookAt(b_sphere.center);

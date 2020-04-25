@@ -14,7 +14,7 @@ export class MethodsView extends TabContainer {
                     title: "Episode I",
                     key: "episode_1",
                     path: "/methods/episode_1",
-                    create_view: async function() {
+                    create_view: async () => {
                         return new MethodsForEpisodeView(hunt_method_stores, Episode.I);
                     },
                 },
@@ -22,7 +22,7 @@ export class MethodsView extends TabContainer {
                     title: "Episode II",
                     key: "episode_2",
                     path: "/methods/episode_2",
-                    create_view: async function() {
+                    create_view: async () => {
                         return new MethodsForEpisodeView(hunt_method_stores, Episode.II);
                     },
                 },
@@ -30,7 +30,7 @@ export class MethodsView extends TabContainer {
                     title: "Episode IV",
                     key: "episode_4",
                     path: "/methods/episode_4",
-                    create_view: async function() {
+                    create_view: async () => {
                         return new MethodsForEpisodeView(hunt_method_stores, Episode.IV);
                     },
                 },

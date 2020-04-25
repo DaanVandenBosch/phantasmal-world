@@ -157,7 +157,7 @@ export class ModelRenderer extends ThreeRenderer implements Disposable {
             );
 
             // Make sure we rotate around the center of the model instead of its origin.
-            const bb = geometry.boundingBox;
+            const bb = geometry.boundingBox!;
             const height = bb.max.y - bb.min.y;
             this.mesh.translateY(-height / 2 - bb.min.y);
 

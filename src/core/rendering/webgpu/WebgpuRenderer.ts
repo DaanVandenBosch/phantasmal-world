@@ -65,7 +65,7 @@ export class WebgpuRenderer extends GfxRenderer {
                 });
 
                 const bind_group_layout = device.createBindGroupLayout({
-                    bindings: [
+                    entries: [
                         {
                             binding: 0,
                             visibility: GPUShaderStage.VERTEX, // eslint-disable-line no-undef

@@ -126,11 +126,10 @@ class Context {
         if (!this.flag_bits_left--) {
             // Write out the flags to their position in the file, and store the next flags byte position.
             const pos = this.dst.position;
-            this.dst
-                .seek_start(this.flag_offset)
-                .write_u8(this.flags)
-                .seek_start(pos)
-                .write_u8(0); // Placeholder for the next flags byte.
+            this.dst.seek_start(this.flag_offset);
+            this.dst.write_u8(this.flags);
+            this.dst.seek_start(pos);
+            this.dst.write_u8(0); // Placeholder for the next flags byte.
             this.flag_offset = pos;
             this.flag_bits_left = 7;
         }
@@ -153,10 +152,9 @@ class Context {
     write_final_flags(): void {
         this.flags >>>= this.flag_bits_left;
         const pos = this.dst.position;
-        this.dst
-            .seek_start(this.flag_offset)
-            .write_u8(this.flags)
-            .seek_start(pos);
+        this.dst.seek_start(this.flag_offset);
+        this.dst.write_u8(this.flags);
+        this.dst.seek_start(pos);
     }
 
     write_eof(): void {

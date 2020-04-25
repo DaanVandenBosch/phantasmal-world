@@ -257,12 +257,10 @@ class GeometryCreator {
                 const nb = this.builder.get_normal(b);
                 const nc = this.builder.get_normal(c);
 
-                // Calculate a surface normal and reverse the vertex winding if at least 2 of the vertex normals point in the opposite direction.
-                // This hack fixes the winding for most models.
-                const normal = pb
-                    .clone()
-                    .sub(pa)
-                    .cross(pc.clone().sub(pa));
+                // Calculate a surface normal and reverse the vertex winding if at least 2 of the
+                // vertex normals point in the opposite direction. This hack fixes the winding for
+                // most models.
+                const normal = pb.clone().sub(pa).cross(pc.clone().sub(pa));
 
                 if (clockwise) {
                     normal.negate();

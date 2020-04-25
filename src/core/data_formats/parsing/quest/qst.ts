@@ -367,8 +367,9 @@ function parse_files(
 
         if (cursor.position !== start_position + chunk_size) {
             throw new Error(
-                `Read ${cursor.position -
-                    start_position} file chunk message bytes instead of expected ${chunk_size}.`,
+                `Read ${
+                    cursor.position - start_position
+                } file chunk message bytes instead of expected ${chunk_size}.`,
             );
         }
     }

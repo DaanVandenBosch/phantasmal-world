@@ -34,11 +34,7 @@ test_integer_write("write_i32");
 
 test("write, seek backwards then take", () => {
     const cursor = new ResizableBufferCursor(new ResizableBuffer(0), Endianness.Little);
-    cursor
-        .write_u32(1)
-        .write_u32(2)
-        .write_u32(3)
-        .write_u32(4);
+    cursor.write_u32(1).write_u32(2).write_u32(3).write_u32(4);
 
     cursor.seek(-8);
     const new_cursor = cursor.take(8);

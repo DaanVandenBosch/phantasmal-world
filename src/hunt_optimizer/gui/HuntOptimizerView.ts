@@ -27,7 +27,7 @@ export class HuntOptimizerView extends ResizableView {
                         title: "Optimize",
                         key: "optimize",
                         path: "/optimize",
-                        create_view: async function() {
+                        create_view: async () => {
                             return new (await import("./OptimizerView")).OptimizerView(
                                 hunt_optimizer_stores,
                             );
@@ -37,7 +37,7 @@ export class HuntOptimizerView extends ResizableView {
                         title: "Methods",
                         key: "methods",
                         path: "/methods",
-                        create_view: async function() {
+                        create_view: async () => {
                             return new (await import("./MethodsView")).MethodsView(
                                 gui_store,
                                 hunt_method_stores,
@@ -48,7 +48,7 @@ export class HuntOptimizerView extends ResizableView {
                         title: "Help",
                         key: "help",
                         path: "/help",
-                        create_view: async function() {
+                        create_view: async () => {
                             return new (await import("./HelpView")).HelpView();
                         },
                     },

@@ -263,7 +263,7 @@ export class QuestEditorView extends ResizableView {
             for (const { name, create } of this.view_map.values()) {
                 // registerComponent expects a regular function and not an arrow function. This
                 // function will be called with new.
-                layout.registerComponent(name, function(container: Container) {
+                layout.registerComponent(name, function (container: Container) {
                     let view: Widget & Resizable;
 
                     try {

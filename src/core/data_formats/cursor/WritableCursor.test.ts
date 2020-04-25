@@ -57,11 +57,7 @@ test_all(
     (cursor, endianness) => {
         expect(cursor.position).toBe(0);
 
-        cursor
-            .write_u8(99)
-            .write_u8(99)
-            .write_u8(99)
-            .write_u8(99);
+        cursor.write_u8(99).write_u8(99).write_u8(99).write_u8(99);
         cursor.seek(-1);
 
         expect(cursor.size).toBe(cursor.position + cursor.bytes_left);
@@ -176,11 +172,7 @@ test_all(
     "write, seek backwards then take",
     () => new Array<number>(16).fill(0),
     cursor => {
-        cursor
-            .write_u32(1)
-            .write_u32(2)
-            .write_u32(3)
-            .write_u32(4);
+        cursor.write_u32(1).write_u32(2).write_u32(3).write_u32(4);
 
         cursor.seek(-8);
         const new_cursor = cursor.take(8);
