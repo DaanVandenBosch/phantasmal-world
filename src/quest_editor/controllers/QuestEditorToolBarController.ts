@@ -152,17 +152,12 @@ export class QuestEditorToolBarController extends Controller {
                 const parse_result = parse_qst_to_quest(
                     new ArrayBufferCursor(buffer, Endianness.Little),
                 );
-
-                if (parse_result) {
-                    quest = parse_result.quest;
-                    this.set_version(parse_result.version);
+                if (!parse_result || !parse_result.quest) {
+                    throw new Error("Couldn't parse quest file.");
                 }
-
+                quest = parse_result.quest;
+                this.set_version(parse_result.version);
                 this.set_filename(basename(qst.name));
-
-                if (!quest) {
-                    logger.error("Couldn't parse quest file.");
-                }
             } else {
                 const bin = files.find(f => f.name.toLowerCase().endsWith(".bin"));
                 const dat = files.find(f => f.name.toLowerCase().endsWith(".dat"));
@@ -174,11 +169,12 @@ export class QuestEditorToolBarController extends Controller {
                         new ArrayBufferCursor(bin_buffer, Endianness.Little),
                         new ArrayBufferCursor(dat_buffer, Endianness.Little),
                     );
-                    this.set_filename(basename(bin.name || dat.name));
-
                     if (!quest) {
-                        logger.error("Couldn't parse quest file.");
+                        throw new Error("Couldn't parse bin or dat file.");
                     }
+                    this.set_filename(basename(bin.name || dat.name));
+                } else {
+                    throw new Error("Invalid File Type.");
                 }
             }
 
@@ -186,7 +182,7 @@ export class QuestEditorToolBarController extends Controller {
                 quest && convert_quest_to_model(this.area_store, quest),
             );
         } catch (e) {
-            logger.error("Couldn't read file.", e);
+            logger.showError("Couldn't read file.", e);
         }
     };
 
