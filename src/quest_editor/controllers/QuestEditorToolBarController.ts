@@ -131,6 +131,10 @@ export class QuestEditorToolBarController extends Controller {
                 undo_manager.redo();
             }),
 
+            gui_store.on_global_keydown(GuiTool.QuestEditor, "Ctrl-Y", () => {
+                undo_manager.redo();
+            }),
+
             gui_store.on_global_keydown(GuiTool.QuestEditor, "F5", this.debug),
 
             gui_store.on_global_keydown(GuiTool.QuestEditor, "Shift-F5", this.stop),

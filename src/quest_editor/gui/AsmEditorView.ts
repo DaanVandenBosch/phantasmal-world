@@ -68,15 +68,6 @@ export class AsmEditorView extends ResizableView {
 
         this.history = this.disposable(new EditorHistory(this.editor));
 
-        // Commands and actions.
-        this.editor.addCommand(KeyMod.CtrlCmd | KeyCode.KEY_Z, () => {
-            // Do nothing.
-        });
-
-        this.editor.addCommand(KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.KEY_Z, () => {
-            // Do nothing.
-        });
-
         const quick_command = this.editor.getAction("editor.action.quickCommand");
 
         this.disposables(
@@ -88,7 +79,6 @@ export class AsmEditorView extends ResizableView {
             }),
         );
 
-        // Undo/Redo
         this.disposables(
             asm_editor_store.did_undo.observe(({ value: source }) => {
                 this.editor.trigger(source, "undo", undefined);
