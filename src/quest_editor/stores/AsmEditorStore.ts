@@ -98,7 +98,7 @@ export class AsmEditorStore extends Store {
     readonly undo = new SimpleUndo(
         "Text edits",
         () => this._did_undo.emit({ value: "asm undo" }),
-        () => this._did_redo.emit({ value: "asm undo" }),
+        () => this._did_redo.emit({ value: "asm redo" }),
     );
     readonly inline_args_mode: Property<boolean> = this._inline_args_mode;
     readonly has_issues: Property<boolean> = assembly_analyser.issues.map(

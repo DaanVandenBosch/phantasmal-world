@@ -1,6 +1,6 @@
 # Feature Overview
 
-Features that are in ***bold italics*** are planned and not yet implemented.
+Features that are in ***bold italics*** are planned but not yet implemented.
 
 ## Create New Quest
 
@@ -11,7 +11,7 @@ Features that are in ***bold italics*** are planned and not yet implemented.
 
 - Open file button
 - Support for .qst (BB, ***GC***, ***PC***, ***DC***)
-- ***Notify user when and why quest loading fails***
+- Notify user when and why quest loading fails
     - ***Deal with missing DAT or BIN file in QST container file***
 
 ## Save Quest
@@ -151,14 +151,6 @@ Features that are in ***bold italics*** are planned and not yet implemented.
 
 ## Bugs
 
-- [3D View](#3d-view): Some objects are only partially loaded (they consist of several separate models), e.g.:
-    - Random Type Box 1
-    - Fixed Type Box
-    - Forest Switch
-    - Laser Fence
-    - Forest Laser
-    - Switch (none door)
-    - Energy Barrier
-    - Teleporter
+- [NPC/Object Manipulation](#npcobject-manipulation): Entities in NPCs/Objects panels with additive blending aren't rendered correctly.
 - [Load Quest](#load-quest): Can't parse quest 125 White Day
 - [Script Assembly Editor](#script-assembly-editor): Go to definition doesn't work in RT (#231)
