@@ -105,6 +105,9 @@ export class RegistersView extends ResizableView {
             this.quest_runner.paused.observe(() =>
                 this.update(should_use_placeholders(), this.hex_checkbox.checked.val),
             ),
+            this.quest_runner.pause_location.observe(() =>
+                this.update(should_use_placeholders(), this.hex_checkbox.checked.val),
+            ),
 
             this.type_select.selected.observe(({ value }) => {
                 if (value != undefined) {
