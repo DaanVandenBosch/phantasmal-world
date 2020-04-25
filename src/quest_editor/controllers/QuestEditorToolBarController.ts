@@ -186,7 +186,7 @@ export class QuestEditorToolBarController extends Controller {
                     }
                     this.set_filename(basename(bin.name || dat.name));
                 } else {
-                    throw new Error("Please select one .bin and one .dat file.");
+                    throw new Error("Please select one .qst file or one .bin and one .dat file.");
                 }
             }
 
