@@ -111,7 +111,7 @@ export class QuestEditorToolBarController extends Controller {
             quest_editor_store.quest_runner.running,
         );
 
-        this.can_step = quest_editor_store.quest_runner.paused;3
+        this.can_step = quest_editor_store.quest_runner.paused;
 
         this.can_stop = quest_editor_store.quest_runner.running;
 
