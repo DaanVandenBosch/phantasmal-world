@@ -11,7 +11,7 @@ import { DisposablePromise } from "../../core/DisposablePromise";
 const light = new HemisphereLight(0xffffff, 0x505050, 1.2);
 const scene = new Scene();
 
-const camera = new PerspectiveCamera(30, 1, 10, 1000);
+const camera = new PerspectiveCamera(30, 1, 10, 2000);
 const camera_position = new Vector3(1, 1, 2).normalize();
 const camera_dist_factor = 1.3 / Math.tan(((camera.fov / 180) * Math.PI) / 2);
 

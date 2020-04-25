@@ -155,3 +155,19 @@ Features that are in ***bold italics*** are planned but not yet implemented.
 - [Load Quest](#load-quest): Can't parse quest 125 White Day
 - [Script Assembly Editor](#script-assembly-editor): Go to definition doesn't work in RT (#231)
 - When a modal dialog is open, global keybindings should be disabled
+- Entities with rendering issues:
+    - Caves 4 Button door
+    - Pofuilly Slime
+    - Pouilly Slime
+    - Easter Egg
+    - Christmas Tree
+    - Halloween Pumpkin
+    - 21st Century
+    - Light rays - used in forest and CCA
+    - Big CCA Door Switch
+    - Laser Detect - used in CCA
+    - Wide Glass Wall (breakable) - used in Seabed
+    - item box cca
+    - Desert Fixed Type Box (Breakable Crystals)
+    - Merissa A
+    - Merissa AA
