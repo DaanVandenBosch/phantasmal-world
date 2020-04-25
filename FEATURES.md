@@ -154,3 +154,4 @@ Features that are in ***bold italics*** are planned but not yet implemented.
 - [NPC/Object Manipulation](#npcobject-manipulation): Entities in NPCs/Objects panels with additive blending aren't rendered correctly.
 - [Load Quest](#load-quest): Can't parse quest 125 White Day
 - [Script Assembly Editor](#script-assembly-editor): Go to definition doesn't work in RT (#231)
+- When a modal dialog is open, global keybindings should be disabled
