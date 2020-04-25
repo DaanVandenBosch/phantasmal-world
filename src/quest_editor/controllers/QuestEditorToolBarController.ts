@@ -21,15 +21,28 @@ import { convert_quest_from_model, convert_quest_to_model } from "../stores/mode
 import { LogManager } from "../../core/Logger";
 import { basename } from "../../core/util";
 import { Version } from "../../core/data_formats/parsing/quest/Version";
+import { WritableProperty } from "../../core/observable/property/WritableProperty";
+import { Result, failure } from "../../core/Result";
+import { Severity } from "../../core/Severity";
 
 const logger = LogManager.get("quest_editor/controllers/QuestEditorToolBarController");
 
 export type AreaAndLabel = { readonly area: AreaModel; readonly label: string };
 
 export class QuestEditorToolBarController extends Controller {
+    private readonly _result_dialog_visible = property(false);
+    private readonly _result: WritableProperty<Result<unknown> | undefined> = property(undefined);
+    private readonly _result_problems_message = property("");
+    private readonly _result_error_message = property("");
+
     private _save_as_dialog_visible = property(false);
     private _filename = property("");
     private _version = property(Version.BB);
+
+    readonly result_dialog_visible: Property<boolean> = this._result_dialog_visible;
+    readonly result: Property<Result<unknown> | undefined> = this._result;
+    readonly result_problems_message: Property<string> = this._result_problems_message;
+    readonly result_error_message: Property<string> = this._result_error_message;
 
     readonly vm_feature_active: boolean;
     readonly areas: Property<readonly AreaAndLabel[]>;
@@ -152,17 +165,12 @@ export class QuestEditorToolBarController extends Controller {
                 const parse_result = parse_qst_to_quest(
                     new ArrayBufferCursor(buffer, Endianness.Little),
                 );
-
-                if (parse_result) {
-                    quest = parse_result.quest;
-                    this.set_version(parse_result.version);
+                if (!parse_result || !parse_result.quest) {
+                    throw new Error("Couldn't parse quest file.");
                 }
-
+                quest = parse_result.quest;
+                this.set_version(parse_result.version);
                 this.set_filename(basename(qst.name));
-
-                if (!quest) {
-                    logger.error("Couldn't parse quest file.");
-                }
             } else {
                 const bin = files.find(f => f.name.toLowerCase().endsWith(".bin"));
                 const dat = files.find(f => f.name.toLowerCase().endsWith(".dat"));
@@ -174,11 +182,12 @@ export class QuestEditorToolBarController extends Controller {
                         new ArrayBufferCursor(bin_buffer, Endianness.Little),
                         new ArrayBufferCursor(dat_buffer, Endianness.Little),
                     );
-                    this.set_filename(basename(bin.name || dat.name));
-
                     if (!quest) {
-                        logger.error("Couldn't parse quest file.");
+                        throw new Error("Couldn't parse bin or dat file.");
                     }
+                    this.set_filename(basename(bin.name || dat.name));
+                } else {
+                    throw new Error("Invalid File Type.");
                 }
             }
 
@@ -187,6 +196,9 @@ export class QuestEditorToolBarController extends Controller {
             );
         } catch (e) {
             logger.error("Couldn't read file.", e);
+            this.set_result(
+                failure([{ severity: Severity.Error, ui_message: e.message }]),
+            );
         }
     };
 
@@ -274,4 +286,16 @@ export class QuestEditorToolBarController extends Controller {
     stop = (): void => {
         this.quest_editor_store.quest_runner.stop();
     };
+
+    dismiss_result_dialog = (): void => {
+        this._result_dialog_visible.val = false;
+    };
+
+    private set_result(result: Result<unknown>): void {
+        this._result.val = result;
+
+        if (result.problems.length) {
+            this._result_dialog_visible.val = true;
+        }
+    }
 }
