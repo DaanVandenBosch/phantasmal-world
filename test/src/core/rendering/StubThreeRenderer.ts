@@ -1,11 +1,11 @@
 import { DisposableThreeRenderer } from "../../../../src/core/rendering/ThreeRenderer";
 
-export class StubThreeRenderer implements DisposableThreeRenderer {
-    domElement: HTMLCanvasElement = document.createElement("canvas");
+export const STUB_THREE_RENDERER: DisposableThreeRenderer = {
+    domElement: document.createElement("canvas"),
 
-    dispose(): void {} // eslint-disable-line
+    dispose(): void {}, // eslint-disable-line
 
-    render(): void {} // eslint-disable-line
+    render(): void {}, // eslint-disable-line
 
-    setSize(): void {} // eslint-disable-line
-}
+    setSize(): void {}, // eslint-disable-line
+} as any;

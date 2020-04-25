@@ -4,7 +4,7 @@ import { CharacterClassAssetLoader } from "../../loading/CharacterClassAssetLoad
 import { FileSystemHttpClient } from "../../../../test/src/core/FileSystemHttpClient";
 import { ModelView } from "./ModelView";
 import { ModelRenderer } from "../../rendering/ModelRenderer";
-import { StubThreeRenderer } from "../../../../test/src/core/rendering/StubThreeRenderer";
+import { STUB_THREE_RENDERER } from "../../../../test/src/core/rendering/StubThreeRenderer";
 import { Random } from "../../../core/Random";
 import { ModelStore } from "../../stores/ModelStore";
 import { ModelToolBarView } from "./ModelToolBarView";
@@ -26,8 +26,9 @@ test("Renders correctly.", () =>
             disposer.add(new ModelController(store)),
             new ModelToolBarView(disposer.add(new ModelToolBarController(store))),
             new CharacterClassOptionsView(disposer.add(new CharacterClassOptionsController(store))),
-            new ModelRenderer(store, new StubThreeRenderer()),
+            new ModelRenderer(store, STUB_THREE_RENDERER),
         );
 
         expect(view.element).toMatchSnapshot();
-    }));
+    })
+);

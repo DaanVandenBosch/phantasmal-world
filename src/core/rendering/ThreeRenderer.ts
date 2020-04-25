@@ -22,7 +22,7 @@ CameraControls.install({
     },
 });
 
-export interface DisposableThreeRenderer extends THREE.Renderer, Disposable {}
+export interface DisposableThreeRenderer extends THREE.WebGLRenderer, Disposable {}
 
 /**
  * Uses THREE.js for rendering.

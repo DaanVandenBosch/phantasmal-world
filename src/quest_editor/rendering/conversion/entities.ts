@@ -1,5 +1,5 @@
 import { QuestEntityModel } from "../../model/QuestEntityModel";
-import { BufferGeometry, DoubleSide, Mesh, MeshLambertMaterial, Texture } from "three";
+import { BufferGeometry, DoubleSide, Material, Mesh, MeshLambertMaterial, Texture } from "three";
 import { create_mesh } from "../../../core/rendering/conversion/create_mesh";
 import {
     entity_type_to_string,
@@ -31,12 +31,11 @@ export function create_entity_type_mesh(
     type: EntityType,
     geometry: BufferGeometry,
     textures: Texture[],
-): Mesh {
-    const default_material = new MeshLambertMaterial({
+    default_material: Material = new MeshLambertMaterial({
         color: is_npc_type(type) ? NPC_COLORS[ColorType.Normal] : OBJECT_COLORS[ColorType.Normal],
         side: DoubleSide,
-    });
-
+    }),
+): Mesh {
     const mesh = create_mesh(geometry, textures, default_material, false);
     mesh.name = entity_type_to_string(type);
     return mesh;
