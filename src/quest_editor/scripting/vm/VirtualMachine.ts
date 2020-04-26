@@ -464,6 +464,10 @@ export class VirtualMachine {
             thread.set_current_instruction_pointer(next);
         } else {
             // Reached EOF.
+            // Game will crash if call stack is not empty.
+            if (thread.call_stack.length > 0) {
+                throw new Error("Reached EOF but call stack was not empty");
+            }
             thread.pop_call_stack();
             this.terminate_thread(this.thread_idx);
         }
