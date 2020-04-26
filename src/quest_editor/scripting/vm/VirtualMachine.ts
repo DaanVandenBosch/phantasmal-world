@@ -865,7 +865,7 @@ export class VirtualMachine {
 
                 if (encode_episode_number(this.episode) !== arg0) {
                     this.io.warning(
-                        "Calling set_episode with an argument that does not" +
+                        "Calling set_episode with an argument that does not " +
                             "match the quest's designated episode is not supported.",
                         inst_ptr,
                     );
