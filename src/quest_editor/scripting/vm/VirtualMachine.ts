@@ -657,11 +657,11 @@ export class VirtualMachine {
                 break;
             // conditional jumps
             case OP_JMP_ON.code:
-                // all eq 1?
+                // all nonzero?
                 this.conditional_jump(
                     thread,
                     arg0,
-                    (a, b) => a === b,
+                    (_, b) => b !== 0,
                     1,
                     ...rest(arg_vals).map(reg => this.get_register_signed(reg)),
                 );
