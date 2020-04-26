@@ -1,10 +1,10 @@
 import { Mesh } from "./Mesh";
-import { VertexFormat } from "./VertexFormat";
+import { VertexFormatType } from "./VertexFormat";
 import { Vec3 } from "../math/linear_algebra";
 
 export function cube_mesh(): Mesh {
     return (
-        Mesh.builder(VertexFormat.PosNorm)
+        Mesh.builder(VertexFormatType.PosNorm)
             // Front
             .vertex(new Vec3(1, 1, -1), new Vec3(0, 0, -1))
             .vertex(new Vec3(-1, 1, -1), new Vec3(0, 0, -1))

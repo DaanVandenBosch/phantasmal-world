@@ -1,13 +1,11 @@
 import { Gfx } from "../Gfx";
 import { Texture, TextureFormat } from "../Texture";
 import {
-    vertex_format_normal_offset,
-    vertex_format_size,
-    vertex_format_tex_offset,
+    VERTEX_FORMATS,
     VERTEX_NORMAL_LOC,
     VERTEX_POS_LOC,
     VERTEX_TEX_LOC,
-    VertexFormat,
+    VertexFormatType,
 } from "../VertexFormat";
 
 export type WebglMesh = {
@@ -20,7 +18,7 @@ export class WebglGfx implements Gfx<WebglMesh, WebGLTexture> {
     constructor(private readonly gl: WebGL2RenderingContext) {}
 
     create_gfx_mesh(
-        format: VertexFormat,
+        format_type: VertexFormatType,
         vertex_data: ArrayBuffer,
         index_data: ArrayBuffer,
         texture?: Texture,
@@ -46,35 +44,32 @@ export class WebglGfx implements Gfx<WebglMesh, WebGLTexture> {
             gl.bindBuffer(gl.ARRAY_BUFFER, vertex_buffer);
             gl.bufferData(gl.ARRAY_BUFFER, vertex_data, gl.STATIC_DRAW);
 
-            const vertex_size = vertex_format_size(format);
+            const format = VERTEX_FORMATS[format_type];
+            const vertex_size = format.size;
 
             gl.vertexAttribPointer(VERTEX_POS_LOC, 3, gl.FLOAT, true, vertex_size, 0);
             gl.enableVertexAttribArray(VERTEX_POS_LOC);
 
-            const normal_offset = vertex_format_normal_offset(format);
-
-            if (normal_offset !== -1) {
+            if (format.normal_offset != undefined) {
                 gl.vertexAttribPointer(
                     VERTEX_NORMAL_LOC,
                     3,
                     gl.FLOAT,
                     true,
                     vertex_size,
-                    normal_offset,
+                    format.normal_offset,
                 );
                 gl.enableVertexAttribArray(VERTEX_NORMAL_LOC);
             }
 
-            const tex_offset = vertex_format_tex_offset(format);
-
-            if (tex_offset !== -1) {
+            if (format.tex_offset != undefined) {
                 gl.vertexAttribPointer(
                     VERTEX_TEX_LOC,
                     2,
                     gl.UNSIGNED_SHORT,
                     true,
                     vertex_size,
-                    tex_offset,
+                    format.tex_offset,
                 );
                 gl.enableVertexAttribArray(VERTEX_TEX_LOC);
             }

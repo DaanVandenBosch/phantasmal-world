@@ -7,7 +7,7 @@ export enum Server {
     Ephinea = "Ephinea",
 }
 
-export const Servers: Server[] = enum_values(Server);
+export const Servers: readonly Server[] = enum_values(Server);
 
 export enum SectionId {
     Viridia,
@@ -22,7 +22,7 @@ export enum SectionId {
     Whitill,
 }
 
-export const SectionIds: SectionId[] = enum_values(SectionId);
+export const SectionIds: readonly SectionId[] = enum_values(SectionId);
 
 export enum Difficulty {
     Normal,
@@ -31,4 +31,4 @@ export enum Difficulty {
     Ultimate,
 }
 
-export const Difficulties: Difficulty[] = enum_values(Difficulty);
+export const Difficulties: readonly Difficulty[] = enum_values(Difficulty);

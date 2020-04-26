@@ -11,7 +11,7 @@ export enum Severity {
     Off,
 }
 
-export const Severities = enum_values<Severity>(Severity);
+export const Severities: readonly Severity[] = enum_values(Severity);
 
 export function severity_from_string(str: string): Severity {
     const severity = (Severity as any)[str.slice(0, 1).toUpperCase() + str.slice(1).toLowerCase()];

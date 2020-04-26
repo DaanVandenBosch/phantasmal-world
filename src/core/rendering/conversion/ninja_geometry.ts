@@ -3,7 +3,7 @@ import { NjcmModel } from "../../data_formats/parsing/ninja/njcm";
 import { XjModel } from "../../data_formats/parsing/ninja/xj";
 import { vec3_to_math } from "./index";
 import { Mesh } from "../Mesh";
-import { VertexFormat } from "../VertexFormat";
+import { VertexFormatType } from "../VertexFormat";
 import { EulerOrder, Quat } from "../../math/quaternions";
 import {
     mat3_vec3_multiply_into,
@@ -54,7 +54,7 @@ class VerticesHolder {
 
 class MeshCreator {
     private readonly vertices = new VerticesHolder();
-    private readonly builder = Mesh.builder(VertexFormat.PosNorm);
+    private readonly builder = Mesh.builder(VertexFormatType.PosNorm);
 
     to_mesh(object: NjObject): Mesh {
         this.object_to_mesh(object, Mat4.identity());

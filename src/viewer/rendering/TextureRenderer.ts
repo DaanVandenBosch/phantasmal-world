@@ -2,7 +2,7 @@ import { Disposer } from "../../core/observable/Disposer";
 import { LogManager } from "../../core/Logger";
 import { TextureController } from "../controllers/texture/TextureController";
 import { XvrTexture } from "../../core/data_formats/parsing/ninja/texture";
-import { VertexFormat } from "../../core/rendering/VertexFormat";
+import { VertexFormatType } from "../../core/rendering/VertexFormat";
 import { Mesh } from "../../core/rendering/Mesh";
 import { GfxRenderer } from "../../core/rendering/GfxRenderer";
 import { Renderer } from "../../core/rendering/Renderer";
@@ -81,7 +81,7 @@ export class TextureRenderer implements Renderer {
     }
 
     private create_quad(tex: XvrTexture): Mesh {
-        return Mesh.builder(VertexFormat.PosTex)
+        return Mesh.builder(VertexFormatType.PosTex)
 
             .vertex(new Vec3(0, 0, 0), new Vec2(0, 1))
             .vertex(new Vec3(tex.width, 0, 0), new Vec2(1, 1))

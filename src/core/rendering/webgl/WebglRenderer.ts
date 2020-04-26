@@ -7,7 +7,7 @@ import pos_tex_frag_shader_source from "./pos_tex.frag";
 import { GfxRenderer } from "../GfxRenderer";
 import { WebglGfx, WebglMesh } from "./WebglGfx";
 import { Projection } from "../Camera";
-import { VertexFormat } from "../VertexFormat";
+import { VertexFormat, VertexFormatType } from "../VertexFormat";
 import { SceneNode } from "../Scene";
 
 export class WebglRenderer extends GfxRenderer {
@@ -17,7 +17,7 @@ export class WebglRenderer extends GfxRenderer {
     readonly gfx: WebglGfx;
 
     constructor(projection: Projection) {
-        super(projection);
+        super(document.createElement("canvas"), projection);
 
         const gl = this.canvas_element.getContext("webgl2");
 
@@ -32,12 +32,12 @@ export class WebglRenderer extends GfxRenderer {
         gl.clearColor(0.1, 0.1, 0.1, 1);
 
         this.shader_programs = [];
-        this.shader_programs[VertexFormat.PosNorm] = new ShaderProgram(
+        this.shader_programs[VertexFormatType.PosNorm] = new ShaderProgram(
             gl,
             pos_norm_vert_shader_source,
             pos_norm_frag_shader_source,
         );
-        this.shader_programs[VertexFormat.PosTex] = new ShaderProgram(
+        this.shader_programs[VertexFormatType.PosTex] = new ShaderProgram(
             gl,
             pos_tex_vert_shader_source,
             pos_tex_frag_shader_source,

@@ -1,9 +1,9 @@
 import { Texture, TextureFormat } from "./Texture";
-import { VertexFormat } from "./VertexFormat";
+import { VertexFormatType } from "./VertexFormat";
 
 export interface Gfx<GfxMesh = unknown, GfxTexture = unknown> {
     create_gfx_mesh(
-        format: VertexFormat,
+        format: VertexFormatType,
         vertex_data: ArrayBuffer,
         index_data: ArrayBuffer,
         texture?: Texture,

@@ -17,9 +17,10 @@ export abstract class GfxRenderer implements Renderer {
     abstract readonly gfx: Gfx;
     readonly scene = new Scene();
     readonly camera: Camera;
-    readonly canvas_element: HTMLCanvasElement = document.createElement("canvas");
+    readonly canvas_element: HTMLCanvasElement;
 
-    protected constructor(projection: Projection) {
+    protected constructor(canvas_element: HTMLCanvasElement, projection: Projection) {
+        this.canvas_element = canvas_element;
         this.canvas_element.width = this.width;
         this.canvas_element.height = this.height;
         this.canvas_element.addEventListener("mousedown", this.mousedown);

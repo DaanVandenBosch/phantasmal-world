@@ -1,6 +1,7 @@
 import { Gfx } from "../Gfx";
 import { Texture, TextureFormat } from "../Texture";
-import { VertexFormat } from "../VertexFormat";
+import { VERTEX_FORMATS, VertexFormatType } from "../VertexFormat";
+import { assert } from "../../util";
 
 export type WebgpuMesh = {
     readonly uniform_buffer: GPUBuffer;
@@ -12,29 +13,38 @@ export type WebgpuMesh = {
 export class WebgpuGfx implements Gfx<WebgpuMesh, GPUTexture> {
     constructor(
         private readonly device: GPUDevice,
-        private readonly bind_group_layout: GPUBindGroupLayout,
+        private readonly bind_group_layouts: readonly GPUBindGroupLayout[],
     ) {}
 
     create_gfx_mesh(
-        format: VertexFormat,
+        format_type: VertexFormatType,
         vertex_data: ArrayBuffer,
         index_data: ArrayBuffer,
         texture?: Texture,
     ): WebgpuMesh {
+        const format = VERTEX_FORMATS[format_type];
+
         const uniform_buffer = this.device.createBuffer({
-            size: 4 * 16,
+            size: format.uniform_buffer_size,
             usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.UNIFORM, // eslint-disable-line no-undef
         });
 
-        const bind_group = this.device.createBindGroup({
-            layout: this.bind_group_layout,
-            entries: [
-                {
-                    binding: 0,
-                    resource: {
-                        buffer: uniform_buffer,
-                    },
+        const bind_group_entries: GPUBindGroupEntry[] = [
+            {
+                binding: 0,
+                resource: {
+                    buffer: uniform_buffer,
                 },
+            },
+        ];
+
+        if (format.tex_offset != undefined) {
+            assert(
+                texture,
+                () => `Vertex format ${VertexFormatType[format_type]} requires a texture.`,
+            );
+
+            bind_group_entries.push(
                 {
                     binding: 1,
                     resource: this.device.createSampler({
@@ -44,24 +54,29 @@ export class WebgpuGfx implements Gfx<WebgpuMesh, GPUTexture> {
                 },
                 {
                     binding: 2,
-                    resource: (texture!.gfx_texture as GPUTexture).createView(),
+                    resource: (texture.gfx_texture as GPUTexture).createView(),
                 },
-            ],
+            );
+        }
+
+        const bind_group = this.device.createBindGroup({
+            layout: this.bind_group_layouts[format_type],
+            entries: bind_group_entries,
         });
 
-        const vertex_buffer = this.device.createBuffer({
+        const [vertex_buffer, vertex_array_buffer] = this.device.createBufferMapped({
             size: vertex_data.byteLength,
-            usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.VERTEX, // eslint-disable-line no-undef
+            usage: GPUBufferUsage.VERTEX, // eslint-disable-line no-undef
         });
+        new Uint8Array(vertex_array_buffer).set(new Uint8Array(vertex_data));
+        vertex_buffer.unmap();
 
-        vertex_buffer.setSubData(0, new Uint8Array(vertex_data));
-
-        const index_buffer = this.device.createBuffer({
+        const [index_buffer, index_array_buffer] = this.device.createBufferMapped({
             size: index_data.byteLength,
-            usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.INDEX, // eslint-disable-line no-undef
+            usage: GPUBufferUsage.INDEX, // eslint-disable-line no-undef
         });
-
-        index_buffer.setSubData(0, new Uint16Array(index_data));
+        new Uint8Array(index_array_buffer).set(new Uint8Array(index_data));
+        index_buffer.unmap();
 
         return {
             uniform_buffer,
@@ -85,20 +100,19 @@ export class WebgpuGfx implements Gfx<WebgpuMesh, GPUTexture> {
         height: number,
         data: ArrayBuffer,
     ): GPUTexture {
-        if (format === TextureFormat.RGBA_S3TC_DXT1 || format === TextureFormat.RGBA_S3TC_DXT3) {
-            // Chrome's WebGPU implementation doesn't support compressed textures yet. Use a dummy
-            // texture instead.
-            const ab = new ArrayBuffer(16);
-            const ba = new Uint32Array(ab);
+        let texture_format: string;
+        let bytes_per_pixel: number;
 
-            ba[0] = 0xffff0000;
-            ba[1] = 0xff00ff00;
-            ba[2] = 0xff0000ff;
-            ba[3] = 0xff00ffff;
+        switch (format) {
+            case TextureFormat.RGBA_S3TC_DXT1:
+                texture_format = "bc1-rgba-unorm";
+                bytes_per_pixel = 2;
+                break;
 
-            width = 2;
-            height = 2;
-            data = ab;
+            case TextureFormat.RGBA_S3TC_DXT3:
+                texture_format = "bc2-rgba-unorm";
+                bytes_per_pixel = 4;
+                break;
         }
 
         const texture = this.device.createTexture({
@@ -107,17 +121,13 @@ export class WebgpuGfx implements Gfx<WebgpuMesh, GPUTexture> {
                 height,
                 depth: 1,
             },
-            format: "rgba8unorm",
+            format: (texture_format as any) as GPUTextureFormat,
             usage: GPUTextureUsage.COPY_DST | GPUTextureUsage.SAMPLED, // eslint-disable-line no-undef
         });
 
+        // Bytes per row must be a multiple of 256.
         const bytes_per_row = Math.ceil((4 * width) / 256) * 256;
         const data_size = bytes_per_row * height;
-
-        const buffer = this.device.createBuffer({
-            size: data_size,
-            usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC, // eslint-disable-line no-undef
-        });
 
         let buffer_data: Uint8Array;
 
@@ -130,19 +140,23 @@ export class WebgpuGfx implements Gfx<WebgpuMesh, GPUTexture> {
 
             for (let y = 0; y < height; y++) {
                 for (let x = 0; x < width; x++) {
-                    const idx = 4 * x + bytes_per_row * y;
+                    const idx = bytes_per_pixel * x + bytes_per_row * y;
 
-                    buffer_data[idx] = orig_data[orig_idx];
-                    buffer_data[idx + 1] = orig_data[orig_idx + 1];
-                    buffer_data[idx + 2] = orig_data[orig_idx + 2];
-                    buffer_data[idx + 3] = orig_data[orig_idx + 3];
+                    for (let i = 0; i < bytes_per_pixel; i++) {
+                        buffer_data[idx + i] = orig_data[orig_idx + i];
+                    }
 
-                    orig_idx += 4;
+                    orig_idx += bytes_per_pixel;
                 }
             }
         }
 
-        buffer.setSubData(0, buffer_data);
+        const [buffer, array_buffer] = this.device.createBufferMapped({
+            size: data_size,
+            usage: GPUBufferUsage.COPY_SRC, // eslint-disable-line no-undef
+        });
+        new Uint8Array(array_buffer).set(buffer_data);
+        buffer.unmap();
 
         const command_encoder = this.device.createCommandEncoder();
         command_encoder.copyBufferToTexture(

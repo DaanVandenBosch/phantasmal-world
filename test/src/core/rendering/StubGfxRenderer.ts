@@ -8,7 +8,7 @@ export class StubGfxRenderer extends GfxRenderer {
     }
 
     constructor() {
-        super(Projection.Orthographic);
+        super(document.createElement("canvas"), Projection.Orthographic);
     }
 
     protected render(): void {} // eslint-disable-line

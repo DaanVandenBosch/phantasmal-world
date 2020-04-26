@@ -46,12 +46,14 @@ export function initialize_viewer(
             let renderer: Renderer;
 
             if (gui_store.feature_active("webgpu")) {
-                const { WebgpuRenderer } = await import("../core/rendering/webgpu/WebgpuRenderer");
+                const { create_webgpu_renderer } = await import(
+                    "../core/rendering/webgpu/WebgpuRenderer"
+                );
                 const { ModelGfxRenderer } = await import("./rendering/ModelGfxRenderer");
 
                 renderer = new ModelGfxRenderer(
                     store,
-                    new WebgpuRenderer(Projection.Perspective, http_client),
+                    await create_webgpu_renderer(Projection.Perspective, http_client),
                 );
             } else if (gui_store.feature_active("webgl")) {
                 const { WebglRenderer } = await import("../core/rendering/webgl/WebglRenderer");
@@ -82,10 +84,12 @@ export function initialize_viewer(
             let renderer: Renderer;
 
             if (gui_store.feature_active("webgpu")) {
-                const { WebgpuRenderer } = await import("../core/rendering/webgpu/WebgpuRenderer");
+                const { create_webgpu_renderer } = await import(
+                    "../core/rendering/webgpu/WebgpuRenderer"
+                );
                 renderer = new TextureRenderer(
                     controller,
-                    new WebgpuRenderer(Projection.Orthographic, http_client),
+                    await create_webgpu_renderer(Projection.Orthographic, http_client),
                 );
             } else {
                 const { WebglRenderer } = await import("../core/rendering/webgl/WebglRenderer");

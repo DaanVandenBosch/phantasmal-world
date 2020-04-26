@@ -1,7 +1,8 @@
-import glsl_module, { ShaderStage } from "@webgpu/glslang";
+/* eslint-disable no-console */
+import glsl_module, { Glslang, ShaderStage } from "@webgpu/glslang";
 import * as fs from "fs";
 import { RESOURCE_DIR, ASSETS_DIR } from "./index";
-const glsl = glsl_module();
+const glsl = (glsl_module() as any) as Glslang;
 
 const SHADER_RESOURCES_DIR = `${RESOURCE_DIR}/shaders`;
 const SHADER_ASSETS_DIR = `${ASSETS_DIR}/shaders`;
@@ -16,6 +17,8 @@ function compile_shader(source_file: string, shader_stage: ShaderStage): void {
 }
 
 for (const file of fs.readdirSync(SHADER_RESOURCES_DIR)) {
+    console.info(`Compiling ${file}.`);
+
     let shader_stage: ShaderStage;
 
     switch (file.slice(-4)) {

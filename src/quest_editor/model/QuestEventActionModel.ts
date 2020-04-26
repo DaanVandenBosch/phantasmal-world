@@ -10,7 +10,9 @@ export enum QuestEventActionType {
     Lock,
 }
 
-export const QuestEventActionTypes = enum_values<QuestEventActionType>(QuestEventActionType);
+export const QuestEventActionTypes: readonly QuestEventActionType[] = enum_values(
+    QuestEventActionType,
+);
 
 export type QuestEventActionModel =
     | QuestEventActionSpawnNpcsModel

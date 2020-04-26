@@ -1,4 +1,4 @@
-import { VertexFormat } from "./VertexFormat";
+import { VertexFormatType } from "./VertexFormat";
 import { Texture } from "./Texture";
 import { Gfx } from "./Gfx";
 import {
@@ -10,16 +10,16 @@ import {
 
 export class Mesh {
     /* eslint-disable no-dupe-class-members */
-    static builder(format: VertexFormat.PosNorm): PosNormMeshBuilder;
-    static builder(format: VertexFormat.PosTex): PosTexMeshBuilder;
-    static builder(format: VertexFormat.PosNormTex): PosNormTexMeshBuilder;
-    static builder(format: VertexFormat): MeshBuilder {
+    static builder(format: VertexFormatType.PosNorm): PosNormMeshBuilder;
+    static builder(format: VertexFormatType.PosTex): PosTexMeshBuilder;
+    static builder(format: VertexFormatType.PosNormTex): PosNormTexMeshBuilder;
+    static builder(format: VertexFormatType): MeshBuilder {
         switch (format) {
-            case VertexFormat.PosNorm:
+            case VertexFormatType.PosNorm:
                 return new PosNormMeshBuilder();
-            case VertexFormat.PosTex:
+            case VertexFormatType.PosTex:
                 return new PosTexMeshBuilder();
-            case VertexFormat.PosNormTex:
+            case VertexFormatType.PosNormTex:
                 return new PosNormTexMeshBuilder();
         }
     }
@@ -28,7 +28,7 @@ export class Mesh {
     gfx_mesh: unknown;
 
     constructor(
-        readonly format: VertexFormat,
+        readonly format: VertexFormatType,
         readonly vertex_data: ArrayBuffer,
         readonly index_data: ArrayBuffer,
         readonly index_count: number,
