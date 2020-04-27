@@ -473,6 +473,10 @@ export class VirtualMachine {
         return this.threads.map(thread => thread.id);
     }
 
+    get_current_thread_id(): number | undefined {
+        return this.current_thread()?.id;
+    }
+
     private current_thread(): Thread | undefined {
         return this.threads[this.thread_idx];
     }
