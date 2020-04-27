@@ -73,6 +73,7 @@ export class QuestRunner {
     private readonly _debugging_thread_id: WritableProperty<number | undefined> = property(
         undefined,
     );
+    private readonly _active_thread_id: WritableProperty<number | undefined> = property(undefined);
 
     private readonly debugger: Debugger;
 
@@ -96,6 +97,7 @@ export class QuestRunner {
     readonly pause_location: Property<number | undefined> = this._pause_location;
     readonly thread_ids: ListProperty<number> = this._thread_ids;
     readonly debugging_thread_id: Property<number | undefined> = this._debugging_thread_id;
+    readonly active_thread_id: Property<number | undefined> = this._active_thread_id;
 
     get game_state(): GameState {
         return this._game_state;
@@ -168,6 +170,7 @@ export class QuestRunner {
         this._state.val = QuestRunnerState.Stopped;
         this._pause_location.val = undefined;
         this._debugging_thread_id.val = undefined;
+        this._active_thread_id.val = undefined;
         this._thread_ids.clear();
         this.npcs.splice(0, this.npcs.length);
         this.objects.splice(0, this.objects.length);
@@ -326,8 +329,9 @@ export class QuestRunner {
     };
 
     private update_thread_info(): void {
-        this._thread_ids.splice(0, this._thread_ids.length.val, ...this.vm.get_thread_ids());
         this._debugging_thread_id.val = this.vm.get_debugging_thread_id();
+        this._active_thread_id.val = this.vm.get_current_thread_id();
+        this._thread_ids.splice(0, this._thread_ids.length.val, ...this.vm.get_thread_ids());
     }
 
     private create_vm_io = (): VirtualMachineIO => {

@@ -57,6 +57,7 @@ export class QuestEditorToolBarController extends Controller {
     readonly can_stop: Property<boolean>;
     readonly thread_ids: ListProperty<number>;
     readonly debugging_thread_id: Property<number | undefined>;
+    readonly active_thread_id: Property<number | undefined>;
     readonly can_select_thread: Property<boolean>;
     readonly save_as_dialog_visible: Property<boolean> = this._save_as_dialog_visible;
     readonly filename: Property<string> = this._filename;
@@ -121,6 +122,7 @@ export class QuestEditorToolBarController extends Controller {
 
         this.thread_ids = quest_editor_store.quest_runner.thread_ids;
         this.debugging_thread_id = quest_editor_store.quest_runner.debugging_thread_id;
+        this.active_thread_id = quest_editor_store.quest_runner.active_thread_id;
         this.can_select_thread = quest_editor_store.quest_runner.thread_ids.map(
             ids => ids.length > 0 && quest_editor_store.quest_runner.running.val,
         );

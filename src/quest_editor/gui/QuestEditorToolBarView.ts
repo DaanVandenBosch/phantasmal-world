@@ -113,7 +113,10 @@ export class QuestEditorToolBarView extends View {
         const thread_select = this.disposable(
             new Select({
                 items: ctrl.thread_ids,
-                to_label: num => "Thread #" + num,
+                to_label: id => {
+                    const status = ctrl.active_thread_id.val === id ? "Active" : "Yielded";
+                    return `Thread #${id} (${status})`;
+                },
             }),
         );
 
@@ -238,7 +241,9 @@ export class QuestEditorToolBarView extends View {
             stop_button.enabled.bind_to(ctrl.can_stop),
 
             thread_select.selected.observe(({ value }) => ctrl.select_thread(value!)),
-            thread_select.selected.bind_to(ctrl.debugging_thread_id),
+            thread_select.selected.bind_to(
+                ctrl.active_thread_id.map(_ => ctrl.debugging_thread_id.val),
+            ),
             thread_select.enabled.bind_to(ctrl.can_select_thread),
 
             dialog.ondismiss.observe(ctrl.dismiss_result_dialog),
