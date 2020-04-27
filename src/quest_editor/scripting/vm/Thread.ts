@@ -192,4 +192,8 @@ export class Thread {
             );
         }
     }
+
+    static reset_id_counter(): void {
+        this.next_id = 0;
+    }
 }

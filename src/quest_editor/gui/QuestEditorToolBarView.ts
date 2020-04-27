@@ -16,6 +16,7 @@ import { TextInput } from "../../core/gui/TextInput";
 import "./QuestEditorToolBarView.css";
 import { Version } from "../../core/data_formats/parsing/quest/Version";
 import { ResultDialog } from "../../core/gui/ResultDialog";
+import { Widget } from "../../core/gui/Widget";
 
 export class QuestEditorToolBarView extends View {
     private readonly toolbar: ToolBar;
@@ -109,8 +110,14 @@ export class QuestEditorToolBarView extends View {
                 error_message: ctrl.result_error_message,
             }),
         );
+        const thread_select = this.disposable(
+            new Select({
+                items: ctrl.thread_ids,
+                to_label: num => "Thread #" + num,
+            }),
+        );
 
-        const children = [
+        const children: Widget[] = [
             new_quest_button,
             open_file_button,
             save_as_button,
@@ -127,6 +134,7 @@ export class QuestEditorToolBarView extends View {
                 step_in_button,
                 step_out_button,
                 stop_button,
+                thread_select,
             );
         }
 
@@ -228,6 +236,10 @@ export class QuestEditorToolBarView extends View {
 
             stop_button.onclick.observe(ctrl.stop),
             stop_button.enabled.bind_to(ctrl.can_stop),
+
+            thread_select.selected.observe(({ value }) => ctrl.select_thread(value!)),
+            thread_select.selected.bind_to(ctrl.debugging_thread_id),
+            thread_select.enabled.bind_to(ctrl.can_select_thread),
 
             dialog.ondismiss.observe(ctrl.dismiss_result_dialog),
         );

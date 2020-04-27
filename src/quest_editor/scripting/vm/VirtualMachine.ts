@@ -104,7 +104,7 @@ import { Endianness } from "../../../core/data_formats/Endianness";
 import { Random } from "./Random";
 import { Memory } from "./Memory";
 import { InstructionPointer } from "./InstructionPointer";
-import { StackFrame, StepMode, Thread } from "./Thread";
+import { StepMode, Thread } from "./Thread";
 import { LogManager } from "../../../core/Logger";
 
 export const REGISTER_COUNT = 256;
@@ -186,6 +186,7 @@ export class VirtualMachine {
 
     private readonly breakpoints: InstructionPointer[] = [];
     private paused = false;
+    private debugging_thread_id: number | undefined = undefined;
 
     /**
      * Set of unsupported opcodes that have already been logged. Each unsupported opcode will only
@@ -203,7 +204,7 @@ export class VirtualMachine {
 
     set step_mode(step_mode: StepMode) {
         if (step_mode != undefined) {
-            const thread = this.current_thread();
+            const thread = this.threads.find(thread => thread.id === this.debugging_thread_id);
 
             if (thread) {
                 thread.step_mode = step_mode;
@@ -259,9 +260,15 @@ export class VirtualMachine {
             );
         }
 
-        this.threads.push(
-            new Thread(this.io, new InstructionPointer(seg_idx!, 0, this.object_code), area_id),
+        const thread = new Thread(
+            this.io,
+            new InstructionPointer(seg_idx!, 0, this.object_code),
+            area_id,
         );
+        if (this.debugging_thread_id === undefined) {
+            this.debugging_thread_id = thread.id;
+        }
+        this.threads.push(thread);
     }
 
     /**
@@ -290,6 +297,9 @@ export class VirtualMachine {
                     return ExecutionResult.Suspended;
                 }
 
+                // This thread is the one currently selected for debugging?
+                const debugging_current_thread = thread.id === this.debugging_thread_id;
+
                 // Get current instruction.
                 const frame = thread.current_stack_frame()!;
                 inst_ptr = frame.instruction_pointer;
@@ -299,15 +309,19 @@ export class VirtualMachine {
                 // it's resuming.
                 if (!this.paused) {
                     switch (thread.step_mode) {
+                        // Always pause on breakpoints regardless of selected thread.
                         case StepMode.BreakPoint:
                             if (this.breakpoints.findIndex(bp => bp.equals(inst_ptr!)) !== -1) {
                                 this.paused = true;
+                                this.debugging_thread_id = thread.id;
                                 return ExecutionResult.Paused;
                             }
                             break;
 
+                        // Only pause on steps if we are in the currently selected thread.
                         case StepMode.Over:
                             if (
+                                debugging_current_thread &&
                                 thread.step_frame &&
                                 frame.idx <= thread.step_frame.idx &&
                                 inst.asm?.mnemonic
@@ -318,7 +332,7 @@ export class VirtualMachine {
                             break;
 
                         case StepMode.In:
-                            if (inst.asm?.mnemonic) {
+                            if (debugging_current_thread && inst.asm?.mnemonic) {
                                 this.paused = true;
                                 return ExecutionResult.Paused;
                             }
@@ -326,6 +340,7 @@ export class VirtualMachine {
 
                         case StepMode.Out:
                             if (
+                                debugging_current_thread &&
                                 thread.step_frame &&
                                 frame.idx < thread.step_frame.idx &&
                                 inst.asm?.mnemonic
@@ -395,16 +410,21 @@ export class VirtualMachine {
             this._halted = true;
             this.paused = false;
             this.breakpoints.splice(0, Infinity);
+            this.debugging_thread_id = undefined;
             this.unsupported_opcodes_logged.clear();
+            Thread.reset_id_counter();
         }
     }
 
-    get_current_stack_frame(): StackFrame | undefined {
-        return this.current_thread()?.current_stack_frame();
-    }
-
-    get_instruction_pointer(): InstructionPointer | undefined {
-        return this.get_current_stack_frame()?.instruction_pointer;
+    /**
+     * @param thread_id - If argument not given returns current thread's instruction pointer.
+     */
+    get_instruction_pointer(thread_id?: number): InstructionPointer | undefined {
+        const thread =
+            thread_id === undefined
+                ? this.current_thread()
+                : this.threads.find(thread => thread.id === thread_id);
+        return thread?.current_stack_frame()?.instruction_pointer;
     }
 
     get_segment_index_by_label(label: number): number {
@@ -439,16 +459,42 @@ export class VirtualMachine {
         }
     }
 
+    set_debugging_thread(thread_id: number): void {
+        if (this.threads.find(thread => thread.id === thread_id)) {
+            this.debugging_thread_id = thread_id;
+        }
+    }
+
+    get_debugging_thread_id(): number | undefined {
+        return this.debugging_thread_id;
+    }
+
+    get_thread_ids(): number[] {
+        return this.threads.map(thread => thread.id);
+    }
+
     private current_thread(): Thread | undefined {
         return this.threads[this.thread_idx];
     }
 
     private terminate_thread(thread_idx: number): void {
+        const thread = this.threads[thread_idx];
+
         this.threads.splice(thread_idx, 1);
+
+        if (thread.id === this.debugging_thread_id) {
+            if (this.threads.length === 0) {
+                this.debugging_thread_id = undefined;
+            } else {
+                this.debugging_thread_id = this.threads[0].id;
+            }
+        }
 
         if (this.thread_idx >= thread_idx && this.thread_idx > 0) {
             this.thread_idx--;
         }
+
+        logger.debug(`Thread #${thread.id} terminated.`);
     }
 
     /**

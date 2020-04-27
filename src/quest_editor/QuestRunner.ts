@@ -67,6 +67,10 @@ export class QuestRunner {
 
     private readonly _breakpoints: WritableListProperty<Breakpoint> = list_property();
     private readonly _pause_location: WritableProperty<number | undefined> = property(undefined);
+    private readonly _thread_ids: WritableListProperty<number> = list_property();
+    private readonly _debugging_thread_id: WritableProperty<number | undefined> = property(
+        undefined,
+    );
 
     private readonly debugger: Debugger;
 
@@ -88,6 +92,8 @@ export class QuestRunner {
     );
     readonly breakpoints: ListProperty<Breakpoint> = this._breakpoints;
     readonly pause_location: Property<number | undefined> = this._pause_location;
+    readonly thread_ids: ListProperty<number> = this._thread_ids;
+    readonly debugging_thread_id: Property<number | undefined> = this._debugging_thread_id;
 
     get game_state(): GameState {
         return this._game_state;
@@ -159,6 +165,8 @@ export class QuestRunner {
         this.debugger.deactivate_breakpoints();
         this._state.val = QuestRunnerState.Stopped;
         this._pause_location.val = undefined;
+        this._debugging_thread_id.val = undefined;
+        this._thread_ids.clear();
         this.npcs.splice(0, this.npcs.length);
         this.objects.splice(0, this.objects.length);
         this._game_state = new GameStateInternal(Episode.I);
@@ -192,6 +200,17 @@ export class QuestRunner {
         this._breakpoints.splice(0, Infinity, ...this.debugger.breakpoints);
     }
 
+    set_debugging_thread(thread_id: number): void {
+        if (this.thread_ids.val.indexOf(thread_id) > -1) {
+            this._debugging_thread_id.val = thread_id;
+            this.vm.set_debugging_thread(thread_id);
+
+            this._pause_location.val = this.vm.get_instruction_pointer(
+                this.debugging_thread_id.val,
+            )?.source_location?.line_no;
+        }
+    }
+
     private schedule_frame(): void {
         if (this.animation_frame == undefined) {
             this.animation_frame = requestAnimationFrame(this.execution_loop);
@@ -213,11 +232,13 @@ export class QuestRunner {
         switch (result) {
             case ExecutionResult.Suspended:
                 this._state.val = QuestRunnerState.Running;
+                this.update_thread_info();
                 break;
 
             case ExecutionResult.Paused:
                 this._state.val = QuestRunnerState.Paused;
                 pause_location = this.vm.get_instruction_pointer()?.source_location?.line_no;
+                this.update_thread_info();
                 break;
 
             case ExecutionResult.WaitingVsync:
@@ -255,6 +276,11 @@ export class QuestRunner {
             );
         }
     };
+
+    private update_thread_info(): void {
+        this._thread_ids.splice(0, this._thread_ids.length.val, ...this.vm.get_thread_ids());
+        this._debugging_thread_id.val = this.vm.get_debugging_thread_id();
+    }
 
     private create_vm_io = (): VirtualMachineIO => {
         function message_with_inst_ptr(message: string, inst_ptr?: InstructionPointer): string {

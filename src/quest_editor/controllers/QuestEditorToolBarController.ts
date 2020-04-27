@@ -24,6 +24,7 @@ import { Version } from "../../core/data_formats/parsing/quest/Version";
 import { WritableProperty } from "../../core/observable/property/WritableProperty";
 import { failure, Result } from "../../core/Result";
 import { Severity } from "../../core/Severity";
+import { ListProperty } from "../../core/observable/property/list/ListProperty";
 
 const logger = LogManager.get("quest_editor/controllers/QuestEditorToolBarController");
 
@@ -54,6 +55,9 @@ export class QuestEditorToolBarController extends Controller {
     readonly can_debug: Property<boolean>;
     readonly can_step: Property<boolean>;
     readonly can_stop: Property<boolean>;
+    readonly thread_ids: ListProperty<number>;
+    readonly debugging_thread_id: Property<number | undefined>;
+    readonly can_select_thread: Property<boolean>;
     readonly save_as_dialog_visible: Property<boolean> = this._save_as_dialog_visible;
     readonly filename: Property<string> = this._filename;
     readonly version: Property<Version> = this._version;
@@ -114,6 +118,12 @@ export class QuestEditorToolBarController extends Controller {
         this.can_step = quest_editor_store.quest_runner.paused;
 
         this.can_stop = quest_editor_store.quest_runner.running;
+
+        this.thread_ids = quest_editor_store.quest_runner.thread_ids;
+        this.debugging_thread_id = quest_editor_store.quest_runner.debugging_thread_id;
+        this.can_select_thread = quest_editor_store.quest_runner.thread_ids.map(
+            ids => ids.length > 0 && quest_editor_store.quest_runner.running.val,
+        );
 
         this.disposables(
             gui_store.on_global_keydown(GuiTool.QuestEditor, "Ctrl-O", async () => {
@@ -290,6 +300,10 @@ export class QuestEditorToolBarController extends Controller {
 
     dismiss_result_dialog = (): void => {
         this._result_dialog_visible.val = false;
+    };
+
+    select_thread = (thread_id: number): void => {
+        this.quest_editor_store.quest_runner.set_debugging_thread(thread_id);
     };
 
     private set_result(result: Result<unknown>): void {
