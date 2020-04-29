@@ -49,4 +49,10 @@ export class TextArea extends LabelledControl {
     protected set_value(value: string): void {
         this.text_element.value = value;
     }
+
+    protected set_enabled(enabled: boolean): void {
+        super.set_enabled(enabled);
+
+        this.text_element.disabled = !enabled;
+    }
 }
