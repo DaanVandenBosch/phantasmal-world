@@ -1,8 +1,7 @@
 import { Label } from "./Label";
-import { Control } from "./Control";
-import { WidgetOptions } from "./Widget";
+import { Control, ControlOptions } from "./Control";
 
-export type LabelledControlOptions = WidgetOptions & {
+export type LabelledControlOptions = ControlOptions & {
     readonly label?: string;
 };
 

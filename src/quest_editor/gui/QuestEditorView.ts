@@ -157,6 +157,7 @@ export class QuestEditorView extends ResizableView {
                 const layout = await this.layout;
 
                 if (quest_editor_store.quest_runner.running.val === running) {
+                    // Should return at most 1 item, but we loop over the array just to be sure.
                     const runner_items = layout.root.getItemsById(
                         this.view_map.get(QuestRunnerRendererView)!.name,
                     );

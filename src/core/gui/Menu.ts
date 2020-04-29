@@ -190,6 +190,7 @@ export class Menu<T> extends Widget {
     }
 
     private select_item(index: number): void {
+        if (!this.enabled.val) return;
         const item = this.items.val[index];
         if (item === undefined) return;
 

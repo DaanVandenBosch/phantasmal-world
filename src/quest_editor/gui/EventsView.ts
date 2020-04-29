@@ -99,6 +99,10 @@ export class EventsView extends ResizableView {
     protected set_enabled(enabled: boolean): void {
         super.set_enabled(enabled);
 
+        for (const child of this.children) {
+            child.enabled.val = enabled;
+        }
+
         for (const dag_view of this.sub_graph_views.values()) {
             if (dag_view.element.parentNode) {
                 dag_view.enabled.val = enabled;

@@ -2,16 +2,15 @@ import { button, Icon, icon, span } from "./dom";
 import "./Button.css";
 import { Observable } from "../observable/Observable";
 import { emitter } from "../observable";
-import { Control } from "./Control";
-import { WidgetOptions } from "./Widget";
+import { Control, ControlOptions } from "./Control";
 import { Property } from "../observable/property/Property";
 import { WritableProperty } from "../observable/property/WritableProperty";
 import { WidgetProperty } from "../observable/property/WidgetProperty";
 
-export type ButtonOptions = WidgetOptions & {
-    text?: string | Property<string>;
-    icon_left?: Icon;
-    icon_right?: Icon;
+export type ButtonOptions = ControlOptions & {
+    readonly text?: string | Property<string>;
+    readonly icon_left?: Icon;
+    readonly icon_right?: Icon;
 };
 
 export class Button extends Control {

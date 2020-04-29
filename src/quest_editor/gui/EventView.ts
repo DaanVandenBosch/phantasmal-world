@@ -42,6 +42,7 @@ export class EventView extends View {
             new DropDown({
                 text: "Add action",
                 items: QuestEventActionTypes,
+                enabled: this.inputs_enabled,
                 to_label(type: QuestEventActionType): string {
                     switch (type) {
                         case QuestEventActionType.SpawnNpcs:
@@ -148,7 +149,12 @@ export class EventView extends View {
             );
         }
 
-        const remove_button = disposer.add(new Button({ icon_left: Icon.Remove }));
+        const remove_button = disposer.add(
+            new Button({
+                icon_left: Icon.Remove,
+                enabled: this.inputs_enabled,
+            }),
+        );
 
         disposer.add_all(
             remove_button.onclick.observe(() => this.ctrl.remove_action(this.event, action)),

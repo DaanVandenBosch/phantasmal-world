@@ -81,6 +81,7 @@ export class Select<T> extends LabelledControl {
     protected set_enabled(enabled: boolean): void {
         super.set_enabled(enabled);
         this.button.enabled.val = enabled;
+        this.menu.enabled.val = enabled;
     }
 
     protected set_selected(selected?: T): void {

@@ -134,6 +134,12 @@ export class ComboBox<T> extends LabelledControl {
         this.finalize_construction();
     }
 
+    protected set_enabled(enabled: boolean): void {
+        super.set_enabled(enabled);
+        this.input_element.disabled = !enabled;
+        this.menu.enabled.val = enabled;
+    }
+
     protected set_selected(selected?: T): void {
         this.input_element.value = selected ? this.to_label(selected) : "";
         this.menu.selected.val = selected;

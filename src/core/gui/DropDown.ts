@@ -1,15 +1,16 @@
 import { disposable_listener, div, Icon } from "./dom";
 import "./DropDown.css";
 import { Property } from "../observable/property/Property";
-import { Button, ButtonOptions } from "./Button";
+import { Button } from "./Button";
 import { Menu } from "./Menu";
-import { Control } from "./Control";
+import { Control, ControlOptions } from "./Control";
 import { Observable } from "../observable/Observable";
 import { Emitter } from "../observable/Emitter";
 import { emitter } from "../observable";
 
-export type DropDownOptions<T> = ButtonOptions & {
+export type DropDownOptions<T> = ControlOptions & {
     readonly text: string;
+    readonly icon_left?: Icon;
     readonly items: readonly T[] | Property<readonly T[]>;
     readonly to_label?: (element: T) => string;
 };
@@ -71,6 +72,7 @@ export class DropDown<T> extends Control {
     protected set_enabled(enabled: boolean): void {
         super.set_enabled(enabled);
         this.button.enabled.val = enabled;
+        this.menu.enabled.val = enabled;
     }
 
     private button_mousedown = (): void => {
