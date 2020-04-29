@@ -1,4 +1,11 @@
-import { editor, languages, MarkerSeverity, MarkerTag, Position } from "monaco-editor";
+import {
+    editor,
+    languages,
+    MarkerSeverity,
+    MarkerTag,
+    Position,
+    IMarkdownString,
+} from "monaco-editor";
 import { AssemblyAnalyser } from "../scripting/AssemblyAnalyser";
 import { Disposer } from "../../core/observable/Disposer";
 import { SimpleUndo } from "../../core/undo/SimpleUndo";
@@ -18,6 +25,7 @@ import CompletionList = languages.CompletionList;
 import IMarkerData = editor.IMarkerData;
 import SignatureHelpResult = languages.SignatureHelpResult;
 import LocationLink = languages.LocationLink;
+import Hover = languages.Hover;
 import IModelContentChange = editor.IModelContentChange;
 
 const assembly_analyser = new AssemblyAnalyser();
@@ -82,6 +90,74 @@ languages.registerDefinitionProvider("psoasm", {
             position.lineNumber,
             position.column,
         );
+    },
+});
+
+languages.registerHoverProvider("psoasm", {
+    async provideHover(model: ITextModel, position: Position): Promise<Hover | undefined> {
+        const help = await assembly_analyser.provide_signature_help(
+            model.uri,
+            position.lineNumber,
+            position.column,
+        );
+
+        if (!help) {
+            return;
+        }
+
+        const sig = help.signatures[help.activeSignature];
+        const param = sig.parameters[help.activeParameter];
+
+        if (!sig || !sig.documentation) {
+            return;
+        }
+
+        const contents: IMarkdownString[] = [];
+
+        // Instruction signature. Parameter highlighted if possible.
+        if (param && Array.isArray(param.label)) {
+            // TODO: Figure out how to underline this instead of bolding
+            // to make it match the look of the signature help.
+            contents.push({
+                value:
+                    sig.label.slice(0, param.label[0]) +
+                    "__" +
+                    sig.label.slice(param.label[0], param.label[1]) +
+                    "__" +
+                    sig.label.slice(param.label[1]),
+            });
+        } else {
+            contents.push({
+                value: sig.label,
+            });
+        }
+
+        // Put the parameter doc and the instruction doc
+        // in the same string to match the look of the signature help.
+        let doc = "";
+
+        // Parameter doc.
+        if (param && param.documentation) {
+            doc =
+                typeof param.documentation === "string"
+                    ? param.documentation
+                    : param.documentation.value;
+
+            // TODO: Figure out how add an empty line here
+            // to make it match the look of the signature help.
+            doc += "\n\n";
+        }
+
+        // Instruction doc.
+        doc += typeof sig.documentation === "string" ? sig.documentation : sig.documentation.value;
+
+        contents.push({
+            value: doc,
+        });
+
+        return {
+            contents,
+        };
     },
 });
 

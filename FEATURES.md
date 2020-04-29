@@ -131,7 +131,7 @@ Features that are in ***bold italics*** are planned but not yet implemented.
     - ***Invalid label references***
     - ***Mark all duplicate labels (the first one is not marked at the moment)***
 - Instruction parameter hints
-- ***Show instruction documentation on hover over***
+- Show instruction documentation on hover over
 - ***Show reserved register usage on hover over***
 - ***When saving, ask user whether to really save when asm contains errors***
 - ***Theme selection***
