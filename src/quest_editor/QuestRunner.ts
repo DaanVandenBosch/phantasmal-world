@@ -60,8 +60,6 @@ export class QuestRunner {
     private readonly _state: WritableProperty<QuestRunnerState> = property(
         QuestRunnerState.Stopped,
     );
-    // Runner will ignore pauses until after this line number is hit.
-    private ignore_pauses_until_after_line: number | undefined = undefined;
 
     private initial_area_id = 0;
     private readonly npcs: QuestNpcModel[] = [];
@@ -175,7 +173,6 @@ export class QuestRunner {
         this.npcs.splice(0, this.npcs.length);
         this.objects.splice(0, this.objects.length);
         this._game_state = new GameStateInternal(Episode.I);
-        this.ignore_pauses_until_after_line = undefined;
     }
 
     /**
@@ -220,22 +217,10 @@ export class QuestRunner {
             // Exists in source?
             if (ip && ip.source_location) {
                 this._pause_location.val = ip.source_location.line_no;
-
-                // If switching away from the thread that is currently being executed
-                // the VM will pause on the same instruction on the next step which
-                // would look strange to the user. Let's skip that pause to make it look normal.
-                if (thread_id !== this.vm.get_current_thread_id()) {
-                    this.ignore_pauses_until_after_line = ip.source_location.line_no;
-                } else {
-                    this.ignore_pauses_until_after_line = undefined;
-                }
             }
             // No source location. Belongs to another instruction?
             else if (ip && ip.instruction.asm && ip.instruction.asm.args.length > 0) {
-                // Don't pause until after we hit the actual source location.
-                // This is because pausing on hidden instructions would look strange to the user.
-                this.ignore_pauses_until_after_line = this._pause_location.val =
-                    ip.instruction.asm.args[0].line_no;
+                this._pause_location.val = ip.instruction.asm.args[0].line_no;
             }
             // No source location can be inferred.
             else {
@@ -266,30 +251,12 @@ export class QuestRunner {
             case ExecutionResult.Suspended:
                 this._state.val = QuestRunnerState.Running;
                 this.update_thread_info();
-                this.ignore_pauses_until_after_line = undefined;
                 break;
 
             case ExecutionResult.Paused:
-                {
-                    const line = this.vm.get_instruction_pointer()?.source_location?.line_no;
-
-                    // Pause.
-                    if (this.ignore_pauses_until_after_line === undefined) {
-                        this._state.val = QuestRunnerState.Paused;
-                        pause_location = line;
-                        this.update_thread_info();
-                    }
-                    // Ignore pause and keep running.
-                    else {
-                        // Allow pausing if reached line.
-                        if (this.ignore_pauses_until_after_line === line) {
-                            this.ignore_pauses_until_after_line = undefined;
-                        }
-
-                        this._state.val = QuestRunnerState.Running;
-                        this.schedule_frame();
-                    }
-                }
+                this._state.val = QuestRunnerState.Paused;
+                pause_location = this.vm.get_instruction_pointer()?.source_location?.line_no;
+                this.update_thread_info();
                 break;
 
             case ExecutionResult.WaitingVsync:

@@ -242,7 +242,7 @@ export class QuestEditorToolBarView extends View {
 
             thread_select.selected.observe(({ value }) => ctrl.select_thread(value!)),
             thread_select.selected.bind_to(
-                ctrl.active_thread_id.map(_ => ctrl.debugging_thread_id.val),
+                ctrl.active_thread_id.map(() => ctrl.debugging_thread_id.val),
             ),
             thread_select.enabled.bind_to(ctrl.can_select_thread),
 
