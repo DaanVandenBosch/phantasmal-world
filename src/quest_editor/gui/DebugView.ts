@@ -54,13 +54,6 @@ export class DebugView extends ResizableView {
             icon_left: Icon.Stop,
             tooltip: "Stop execution (Shift-F5)",
         });
-        const severity_filter = new Select({
-            class: "quest_editor_DebugView_severity",
-            label: "Severity:",
-            items: Severities,
-            selected: ctrl.severity,
-            to_label: severity => Severity[severity],
-        });
         // TODO: ensure label is up-to-date.
         const thread_select = new Select({
             label: "Thread:",
@@ -69,6 +62,13 @@ export class DebugView extends ResizableView {
                 const status = ctrl.active_thread_id.val === id ? "Active" : "Yielded";
                 return `Thread #${id} (${status})`;
             },
+        });
+        const severity_filter = new Select({
+            class: "quest_editor_DebugView_severity",
+            label: "Log:",
+            items: Severities,
+            selected: ctrl.severity,
+            to_label: severity => Severity[severity],
         });
 
         this.settings_bar = this.add(
@@ -80,8 +80,8 @@ export class DebugView extends ResizableView {
                 step_in_button,
                 step_out_button,
                 stop_button,
-                severity_filter,
                 thread_select,
+                severity_filter,
             ),
         );
 
@@ -126,13 +126,13 @@ export class DebugView extends ResizableView {
             stop_button.onclick.observe(ctrl.stop),
             stop_button.enabled.bind_to(ctrl.can_stop),
 
-            severity_filter.selected.observe(
-                ({ value }) => value != undefined && ctrl.set_severity(value),
-            ),
-
             thread_select.selected.observe(({ value }) => ctrl.select_thread(value!)),
             thread_select.selected.bind_to(ctrl.debugging_thread_id),
             thread_select.enabled.bind_to(ctrl.can_select_thread),
+
+            severity_filter.selected.observe(
+                ({ value }) => value != undefined && ctrl.set_severity(value),
+            ),
         );
 
         this.finalize_construction();
