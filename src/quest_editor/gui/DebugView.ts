@@ -37,17 +37,17 @@ export class DebugView extends ResizableView {
         const step_over_button = new Button({
             text: "Step over",
             icon_left: Icon.LongArrowRight,
-            tooltip: "Execute the next line and step over any function calls (F8)",
+            tooltip: "Execute the next line and step over any function calls (F10)",
         });
         const step_in_button = new Button({
             text: "Step into",
             icon_left: Icon.LevelDown,
-            tooltip: "Execute the next line and step inside any function calls (F7)",
+            tooltip: "Execute the next line and step inside any function calls (F11)",
         });
         const step_out_button = new Button({
             text: "Step out",
             icon_left: Icon.LevelUp,
-            tooltip: "Execute until outside of current call frame (Shift-F8)",
+            tooltip: "Execute until outside of current call frame (Shift-F11)",
         });
         const stop_button = new Button({
             text: "Stop",

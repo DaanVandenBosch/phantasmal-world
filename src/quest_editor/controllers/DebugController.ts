@@ -6,7 +6,6 @@ import { GuiStore, GuiTool } from "../../core/stores/GuiStore";
 import { LogEntry } from "../../core/Logger";
 import { LogStore } from "../stores/LogStore";
 import { Severity } from "../../core/Severity";
-import { property } from "../../core/observable";
 
 export class DebugController extends Controller {
     readonly can_debug: Property<boolean>;
@@ -52,11 +51,11 @@ export class DebugController extends Controller {
 
             gui_store.on_global_keydown(GuiTool.QuestEditor, "F6", this.resume),
 
-            gui_store.on_global_keydown(GuiTool.QuestEditor, "F8", this.step_over),
+            gui_store.on_global_keydown(GuiTool.QuestEditor, "F10", this.step_over),
 
-            gui_store.on_global_keydown(GuiTool.QuestEditor, "F7", this.step_in),
+            gui_store.on_global_keydown(GuiTool.QuestEditor, "F11", this.step_in),
 
-            gui_store.on_global_keydown(GuiTool.QuestEditor, "Shift-F8", this.step_out),
+            gui_store.on_global_keydown(GuiTool.QuestEditor, "Shift-F11", this.step_out),
         );
     }
 
