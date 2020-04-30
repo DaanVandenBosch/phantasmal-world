@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-empty-function,@typescript-eslint/explicit-function-return-type */
 class Editor {
     addCommand() {}
     getAction() {}
@@ -72,6 +73,7 @@ exports.languages = {
     registerSignatureHelpProvider() {},
     setLanguageConfiguration() {},
     registerDefinitionProvider() {},
+    registerHoverProvider() {},
 };
 
 exports.KeyMod = {

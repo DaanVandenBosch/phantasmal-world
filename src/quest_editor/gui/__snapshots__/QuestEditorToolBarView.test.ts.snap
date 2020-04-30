@@ -177,7 +177,7 @@ exports[`Renders correctly. 1`] = `
       </span>
     </button>
     <div
-      class="core_Menu"
+      class="core_Menu disabled"
       hidden=""
       tabindex="-1"
     >

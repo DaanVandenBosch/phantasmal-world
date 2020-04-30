@@ -4,7 +4,6 @@ import { VirtualMachineIO } from "./scripting/vm/io";
 import { WritableProperty } from "../core/observable/property/WritableProperty";
 import { list_property, property } from "../core/observable";
 import { Property } from "../core/observable/property/Property";
-import { log_store } from "./stores/LogStore";
 import { Breakpoint, Debugger } from "./scripting/vm/Debugger";
 import { WritableListProperty } from "../core/observable/property/list/WritableListProperty";
 import { ListProperty } from "../core/observable/property/list/ListProperty";
@@ -15,6 +14,9 @@ import { QuestObjectModel } from "./model/QuestObjectModel";
 import { AreaStore } from "./stores/AreaStore";
 import { InstructionPointer } from "./scripting/vm/InstructionPointer";
 import { clone_segment } from "../core/data_formats/asm/instructions";
+import { Logger } from "../core/Logger";
+import { LogStore } from "./stores/LogStore";
+import { Severity } from "../core/Severity";
 
 export enum QuestRunnerState {
     /**
@@ -54,7 +56,7 @@ export type GameState = Readonly<GameStateInternal>;
  * delegates to {@link Debugger}.
  */
 export class QuestRunner {
-    private logger = log_store.get_logger("quest_editor/QuestRunner");
+    private logger: Logger;
     private animation_frame?: number;
     private startup = true;
     private readonly _state: WritableProperty<QuestRunnerState> = property(
@@ -101,7 +103,9 @@ export class QuestRunner {
         return this._game_state;
     }
 
-    constructor(private readonly area_store: AreaStore) {
+    constructor(private readonly area_store: AreaStore, log_store: LogStore) {
+        this.logger = log_store.get_logger("quest_editor/QuestRunner");
+        this.logger.severity = Severity.Trace;
         this.vm = new VirtualMachine(this.create_vm_io());
         this.debugger = new Debugger(this.vm);
     }

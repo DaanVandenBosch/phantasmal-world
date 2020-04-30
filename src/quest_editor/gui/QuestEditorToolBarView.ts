@@ -16,7 +16,6 @@ import { TextInput } from "../../core/gui/TextInput";
 import "./QuestEditorToolBarView.css";
 import { Version } from "../../core/data_formats/parsing/quest/Version";
 import { ResultDialog } from "../../core/gui/ResultDialog";
-import { Widget } from "../../core/gui/Widget";
 
 export class QuestEditorToolBarView extends View {
     private readonly toolbar: ToolBar;
@@ -72,36 +71,6 @@ export class QuestEditorToolBarView extends View {
             items: ctrl.areas,
             to_label: ({ label }) => label,
         });
-        const debug_button = new Button({
-            text: "Debug",
-            icon_left: Icon.Play,
-            tooltip: "Debug the current quest in a virtual machine (F5)",
-        });
-        const resume_button = new Button({
-            text: "Continue",
-            icon_left: Icon.SquareArrowRight,
-            tooltip: "Resume execution (F6)",
-        });
-        const step_over_button = new Button({
-            text: "Step over",
-            icon_left: Icon.LongArrowRight,
-            tooltip: "Execute the next line and step over any function calls (F8)",
-        });
-        const step_in_button = new Button({
-            text: "Step into",
-            icon_left: Icon.LevelDown,
-            tooltip: "Execute the next line and step inside any function calls (F7)",
-        });
-        const step_out_button = new Button({
-            text: "Step out",
-            icon_left: Icon.LevelUp,
-            tooltip: "Execute until outside of current call frame (Shift-F8)",
-        });
-        const stop_button = new Button({
-            text: "Stop",
-            icon_left: Icon.Stop,
-            tooltip: "Stop execution (Shift-F5)",
-        });
         const dialog = this.disposable(
             new ResultDialog({
                 visible: ctrl.result_dialog_visible,
@@ -110,38 +79,17 @@ export class QuestEditorToolBarView extends View {
                 error_message: ctrl.result_error_message,
             }),
         );
-        const thread_select = this.disposable(
-            new Select({
-                items: ctrl.thread_ids,
-                to_label: id => {
-                    const status = ctrl.active_thread_id.val === id ? "Active" : "Yielded";
-                    return `Thread #${id} (${status})`;
-                },
-            }),
+
+        this.toolbar = this.disposable(
+            new ToolBar(
+                new_quest_button,
+                open_file_button,
+                save_as_button,
+                undo_button,
+                redo_button,
+                area_select,
+            ),
         );
-
-        const children: Widget[] = [
-            new_quest_button,
-            open_file_button,
-            save_as_button,
-            undo_button,
-            redo_button,
-            area_select,
-        ];
-
-        if (ctrl.vm_feature_active) {
-            children.push(
-                debug_button,
-                resume_button,
-                step_over_button,
-                step_in_button,
-                step_out_button,
-                stop_button,
-                thread_select,
-            );
-        }
-
-        this.toolbar = this.disposable(new ToolBar(...children));
 
         // "Save As" dialog.
         const filename_input = this.disposable(
@@ -221,30 +169,6 @@ export class QuestEditorToolBarView extends View {
             area_select.selected.bind_to(ctrl.current_area),
             area_select.selected.observe(({ value }) => ctrl.set_area(value!)),
             area_select.enabled.bind_to(ctrl.can_select_area),
-
-            debug_button.onclick.observe(ctrl.debug),
-            debug_button.enabled.bind_to(ctrl.can_debug),
-
-            resume_button.onclick.observe(ctrl.resume),
-            resume_button.enabled.bind_to(ctrl.can_step),
-
-            step_over_button.onclick.observe(ctrl.step_over),
-            step_over_button.enabled.bind_to(ctrl.can_step),
-
-            step_in_button.onclick.observe(ctrl.step_in),
-            step_in_button.enabled.bind_to(ctrl.can_step),
-
-            step_out_button.onclick.observe(ctrl.step_out),
-            step_out_button.enabled.bind_to(ctrl.can_step),
-
-            stop_button.onclick.observe(ctrl.stop),
-            stop_button.enabled.bind_to(ctrl.can_stop),
-
-            thread_select.selected.observe(({ value }) => ctrl.select_thread(value!)),
-            thread_select.selected.bind_to(
-                ctrl.active_thread_id.map(() => ctrl.debugging_thread_id.val),
-            ),
-            thread_select.enabled.bind_to(ctrl.can_select_thread),
 
             dialog.ondismiss.observe(ctrl.dismiss_result_dialog),
         );

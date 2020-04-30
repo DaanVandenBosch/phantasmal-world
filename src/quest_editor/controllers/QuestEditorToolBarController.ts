@@ -24,7 +24,6 @@ import { Version } from "../../core/data_formats/parsing/quest/Version";
 import { WritableProperty } from "../../core/observable/property/WritableProperty";
 import { failure, Result } from "../../core/Result";
 import { Severity } from "../../core/Severity";
-import { ListProperty } from "../../core/observable/property/list/ListProperty";
 
 const logger = LogManager.get("quest_editor/controllers/QuestEditorToolBarController");
 
@@ -45,20 +44,12 @@ export class QuestEditorToolBarController extends Controller {
     readonly result_problems_message: Property<string> = this._result_problems_message;
     readonly result_error_message: Property<string> = this._result_error_message;
 
-    readonly vm_feature_active: boolean;
     readonly areas: Property<readonly AreaAndLabel[]>;
     readonly current_area: Property<AreaAndLabel>;
     readonly can_save: Property<boolean>;
     readonly can_undo: Property<boolean>;
     readonly can_redo: Property<boolean>;
     readonly can_select_area: Property<boolean>;
-    readonly can_debug: Property<boolean>;
-    readonly can_step: Property<boolean>;
-    readonly can_stop: Property<boolean>;
-    readonly thread_ids: ListProperty<number>;
-    readonly debugging_thread_id: Property<number | undefined>;
-    readonly active_thread_id: Property<number | undefined>;
-    readonly can_select_thread: Property<boolean>;
     readonly save_as_dialog_visible: Property<boolean> = this._save_as_dialog_visible;
     readonly filename: Property<string> = this._filename;
     readonly version: Property<Version> = this._version;
@@ -69,8 +60,6 @@ export class QuestEditorToolBarController extends Controller {
         private readonly quest_editor_store: QuestEditorStore,
     ) {
         super();
-
-        this.vm_feature_active = gui_store.feature_active("vm");
 
         // Ensure the areas list is updated when entities are added or removed (the count in the
         // label should update).
@@ -102,7 +91,6 @@ export class QuestEditorToolBarController extends Controller {
         const quest_loaded = quest_editor_store.current_quest.map(q => q != undefined);
         this.can_save = quest_loaded;
         this.can_select_area = quest_loaded;
-        this.can_debug = quest_loaded;
 
         this.can_undo = map(
             (c, r) => c && !r,
@@ -114,17 +102,6 @@ export class QuestEditorToolBarController extends Controller {
             (c, r) => c && !r,
             undo_manager.can_redo,
             quest_editor_store.quest_runner.running,
-        );
-
-        this.can_step = quest_editor_store.quest_runner.paused;
-
-        this.can_stop = quest_editor_store.quest_runner.running;
-
-        this.thread_ids = quest_editor_store.quest_runner.thread_ids;
-        this.debugging_thread_id = quest_editor_store.quest_runner.debugging_thread_id;
-        this.active_thread_id = quest_editor_store.quest_runner.active_thread_id;
-        this.can_select_thread = quest_editor_store.quest_runner.thread_ids.map(
-            ids => ids.length > 0 && quest_editor_store.quest_runner.running.val,
         );
 
         this.disposables(
@@ -146,18 +123,6 @@ export class QuestEditorToolBarController extends Controller {
             gui_store.on_global_keydown(GuiTool.QuestEditor, "Ctrl-Y", () => {
                 undo_manager.redo();
             }),
-
-            gui_store.on_global_keydown(GuiTool.QuestEditor, "F5", this.debug),
-
-            gui_store.on_global_keydown(GuiTool.QuestEditor, "Shift-F5", this.stop),
-
-            gui_store.on_global_keydown(GuiTool.QuestEditor, "F6", this.resume),
-
-            gui_store.on_global_keydown(GuiTool.QuestEditor, "F8", this.step_over),
-
-            gui_store.on_global_keydown(GuiTool.QuestEditor, "F7", this.step_in),
-
-            gui_store.on_global_keydown(GuiTool.QuestEditor, "Shift-F8", this.step_out),
         );
     }
 
@@ -272,40 +237,8 @@ export class QuestEditorToolBarController extends Controller {
         }
     };
 
-    debug = (): void => {
-        const quest = this.quest_editor_store.current_quest.val;
-
-        if (quest) {
-            this.quest_editor_store.quest_runner.run(quest);
-        }
-    };
-
-    resume = (): void => {
-        this.quest_editor_store.quest_runner.resume();
-    };
-
-    step_over = (): void => {
-        this.quest_editor_store.quest_runner.step_over();
-    };
-
-    step_in = (): void => {
-        this.quest_editor_store.quest_runner.step_into();
-    };
-
-    step_out = (): void => {
-        this.quest_editor_store.quest_runner.step_out();
-    };
-
-    stop = (): void => {
-        this.quest_editor_store.quest_runner.stop();
-    };
-
     dismiss_result_dialog = (): void => {
         this._result_dialog_visible.val = false;
-    };
-
-    select_thread = (thread_id: number): void => {
-        this.quest_editor_store.quest_runner.set_debugging_thread(thread_id);
     };
 
     private set_result(result: Result<unknown>): void {

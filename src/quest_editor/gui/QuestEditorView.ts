@@ -12,7 +12,7 @@ import { NpcListView } from "./NpcListView";
 import { ObjectListView } from "./ObjectListView";
 import { EventsView } from "./EventsView";
 import { RegistersView } from "./RegistersView";
-import { LogView } from "./LogView";
+import { DebugView } from "./DebugView";
 import { QuestRunnerRendererView } from "./QuestRunnerRendererView";
 import { QuestEditorStore } from "../stores/QuestEditorStore";
 import { QuestEditorUiPersister } from "../persistence/QuestEditorUiPersister";
@@ -73,6 +73,7 @@ export class QuestEditorView extends ResizableView {
         create_object_list_view: () => ObjectListView,
         create_events_view: () => EventsView,
         create_quest_runner_renderer_view: () => QuestRunnerRendererView,
+        create_debug_view: () => DebugView,
         create_registers_view: () => RegistersView,
     ) {
         super();
@@ -133,7 +134,7 @@ export class QuestEditorView extends ResizableView {
                 name: "quest_runner",
                 create: create_quest_runner_renderer_view,
             });
-            this.view_map.set(LogView, { name: "log_view", create: () => new LogView() });
+            this.view_map.set(DebugView, { name: "log_view", create: create_debug_view });
             this.view_map.set(RegistersView, {
                 name: "registers_view",
                 create: create_registers_view,
@@ -369,9 +370,9 @@ export class QuestEditorView extends ResizableView {
                             ...(this.gui_store.feature_active("vm")
                                 ? [
                                       {
-                                          title: "Debug Log",
+                                          title: "Debug",
                                           type: "component",
-                                          componentName: this.view_map.get(LogView)!.name,
+                                          componentName: this.view_map.get(DebugView)!.name,
                                           isClosable: false,
                                       },
                                       {

@@ -15,6 +15,7 @@ import { disposable_listener } from "../../core/gui/dom";
 import { Store } from "../../core/stores/Store";
 import { LogManager } from "../../core/Logger";
 import { WaveModel } from "../model/WaveModel";
+import { LogStore } from "./LogStore";
 
 const logger = LogManager.get("quest_editor/gui/QuestEditorStore");
 
@@ -32,10 +33,10 @@ export class QuestEditorStore extends Store {
     readonly selected_wave: Property<WaveModel | undefined> = this._selected_wave;
     readonly selected_entity: Property<QuestEntityModel | undefined> = this._selected_entity;
 
-    constructor(gui_store: GuiStore, private readonly area_store: AreaStore) {
+    constructor(gui_store: GuiStore, private readonly area_store: AreaStore, log_store: LogStore) {
         super();
 
-        this.quest_runner = new QuestRunner(area_store);
+        this.quest_runner = new QuestRunner(area_store, log_store);
 
         this.disposables(
             gui_store.tool.observe(

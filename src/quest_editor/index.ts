@@ -27,6 +27,9 @@ import { Disposable } from "../core/observable/Disposable";
 import { EntityInfoController } from "./controllers/EntityInfoController";
 import { NpcCountsController } from "./controllers/NpcCountsController";
 import { EventsController } from "./controllers/EventsController";
+import { DebugView } from "./gui/DebugView";
+import { DebugController } from "./controllers/DebugController";
+import { LogStore } from "./stores/LogStore";
 
 export function initialize_quest_editor(
     http_client: HttpClient,
@@ -41,7 +44,8 @@ export function initialize_quest_editor(
 
     // Stores
     const area_store = disposer.add(new AreaStore(area_asset_loader));
-    const quest_editor_store = disposer.add(new QuestEditorStore(gui_store, area_store));
+    const log_store = disposer.add(new LogStore());
+    const quest_editor_store = disposer.add(new QuestEditorStore(gui_store, area_store, log_store));
     const asm_editor_store = disposer.add(new AsmEditorStore(quest_editor_store));
 
     // Persisters
@@ -85,6 +89,10 @@ export function initialize_quest_editor(
                     area_asset_loader,
                     entity_asset_loader,
                     create_three_renderer(),
+                ),
+            () =>
+                new DebugView(
+                    disposer.add(new DebugController(gui_store, quest_editor_store, log_store)),
                 ),
             () => new RegistersView(quest_editor_store.quest_runner),
         ),

@@ -57,10 +57,7 @@ export function parse_xj_model(cursor: Cursor): XjModel {
     };
 
     if (vertex_info_count >= 1) {
-        if (vertex_info_count > 1) {
-            logger.warn(`Vertex info count of ${vertex_info_count} was larger than expected.`);
-        }
-
+        // TODO: parse all vertex info tables.
         model.vertices.push(...parse_vertex_info_table(cursor, vertex_info_table_offset));
     }
 

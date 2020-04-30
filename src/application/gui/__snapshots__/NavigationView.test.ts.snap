@@ -92,7 +92,7 @@ exports[`Should render correctly.: It should render a button per tool, the selec
         </span>
       </button>
       <div
-        class="core_Menu"
+        class="core_Menu disabled"
         hidden=""
         tabindex="-1"
       >

@@ -1,21 +1,17 @@
 import { ListProperty } from "../../core/observable/property/list/ListProperty";
 import { Property } from "../../core/observable/property/Property";
 import { list_property, property } from "../../core/observable";
-import { Disposable } from "../../core/observable/Disposable";
-import { Disposer } from "../../core/observable/Disposer";
 import { LogEntry, Logger, LogHandler, LogManager } from "../../core/Logger";
 import { Severity } from "../../core/Severity";
+import { Store } from "../../core/stores/Store";
 
 const logger = LogManager.get("quest_editor/stores/LogStore");
 
-export class LogStore implements Disposable {
-    private readonly disposer = new Disposer();
-    private readonly default_log_severity = Severity.Info;
-
+export class LogStore extends Store {
     private readonly log_buffer: LogEntry[] = [];
     private readonly logger_name_buffer: string[] = [];
 
-    private readonly _severity = property<Severity>(this.default_log_severity);
+    private readonly _severity = property<Severity>(Severity.Info);
     private readonly _log = list_property<LogEntry>();
 
     private readonly handler: LogHandler = (entry: LogEntry, logger_name: string): void => {
@@ -31,10 +27,6 @@ export class LogStore implements Disposable {
         const logger = LogManager.get(name);
         logger.handler = this.handler;
         return logger;
-    }
-
-    dispose(): void {
-        this.disposer.dispose();
     }
 
     set_severity(severity: Severity): void {
@@ -101,5 +93,3 @@ export class LogStore implements Disposable {
         });
     }
 }
-
-export const log_store = new LogStore();

@@ -1,0 +1,48 @@
+.quest_editor_DebugView {
+    display: flex;
+    flex-direction: column;
+    outline: none;
+}
+
+.quest_editor_DebugView_severity {
+    width: 150px;
+}
+
+.quest_editor_DebugView_list_container {
+    flex: 1;
+    overflow: auto;
+    background-color: #181818;
+    user-select: text;
+}
+
+.quest_editor_DebugView_message_list {
+    font-family: monospace;
+    margin: 2px 0;
+    cursor: text;
+}
+
+.quest_editor_DebugView_message {
+    display: flex;
+    padding: 0 2px;
+    white-space: pre;
+}
+
+.quest_editor_DebugView_message > * {
+    padding: 0 2px;
+}
+
+.quest_editor_DebugView_message > .quest_editor_DebugView_message_timestamp {
+    color: var(--text-color-disabled);
+}
+
+.quest_editor_DebugView_message > .quest_editor_DebugView_message_contents {
+    overflow-wrap: anywhere;
+}
+
+.quest_editor_DebugView .quest_editor_DebugView_Error_message .quest_editor_DebugView_message_severity {
+    color: hsl(0, 80%, 50%);
+}
+
+.quest_editor_DebugView .quest_editor_DebugView_Warning_message .quest_editor_DebugView_message_severity {
+    color: hsl(30, 80%, 50%);
+}
