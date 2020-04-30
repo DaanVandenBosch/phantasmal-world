@@ -19,10 +19,10 @@ See [features](./FEATURES.md) for a list of features, planned features and bugs.
 
 The code base is divided up into a [core](src/core) module, an [application](src/application) module
 and a module per tool (e.g. [quest_editor](src/quest_editor)). The core module contains the base
-code that the other modules depend on. The application module contains the [main application view](
-src/application/gui/ApplicationView.ts) that provides navigation between the different tools. The
-application view lazily loads and initializes the necessary modules. Each other module represents
-a tool such as the quest editor or the hunt optimizer.
+code that the other modules depend on. The application module contains the
+[main application view](src/application/gui/ApplicationView.ts) that provides navigation between the
+different tools. The application view lazily loads and initializes the necessary modules. Each other
+module represents a tool such as the quest editor or the hunt optimizer.
 
 #### Submodules
 
@@ -31,9 +31,12 @@ common submodules such as controllers, gui, model and stores and some module-spe
 
 ##### GUI
 
-The gui submodule contains views which contain minimal logic. They simply display what their
-controller provides and forward user input to it. Their only dependency is the DOM and a single
-controller.
+The gui submodule contains views with minimal logic. They simply display what their controller
+provides and forward user input to it. Their only dependency is the DOM and a single controller.
+Keeping logic out of the views makes the UI easier to test. We don't really need to test the views
+as they don't contain complex code, just testing the controller layer gives us confidence that the
+UI works. The only automatic tests for the gui layer are
+[snapshot tests](https://jestjs.io/docs/en/snapshot-testing).
 
 ##### Controllers
 
@@ -55,11 +58,11 @@ shared state such as the currently selected entity in the quest editor.
 
 #### Some Interesting Parts of the Code Base
 
-Phantasmal contains parsers for many of the client's formats in [src/core/data_formats](
-src/core/data_formats). A model of the PSO scripting byte code and data flow analysis for it can be
-found in [src/core/data_formats/asm](src/core/data_formats/asm). The [src/quest_editor/scripting](
-src/quest_editor/scripting) directory contains an assembler, disassembler and (partly implemented)
-virtual machine.
+Phantasmal contains parsers for many of the client's formats in
+[src/core/data_formats](src/core/data_formats). A model of the PSO scripting byte code and data flow
+analysis for it can be found in [src/core/data_formats/asm](src/core/data_formats/asm). The
+[src/quest_editor/scripting](src/quest_editor/scripting) directory contains an assembler,
+disassembler and (partly implemented) virtual machine.
 
 ### Unit Tests
 
