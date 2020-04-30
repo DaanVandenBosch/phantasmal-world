@@ -4,8 +4,12 @@
     outline: none;
 }
 
-.quest_editor_DebugView_severity {
-    width: 150px;
+.quest_editor_DebugView_thread_select {
+    width: 200px;
+}
+
+.quest_editor_DebugView_severity_select {
+    max-width: 90px;
 }
 
 .quest_editor_DebugView_list_container {

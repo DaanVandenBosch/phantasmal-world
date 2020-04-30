@@ -30,32 +30,28 @@ export class DebugView extends ResizableView {
             tooltip: "Debug the current quest in a virtual machine (F5)",
         });
         const resume_button = new Button({
-            text: "Continue",
             icon_left: Icon.SquareArrowRight,
-            tooltip: "Resume execution (F6)",
+            tooltip: "Continue (F6)",
         });
         const step_over_button = new Button({
-            text: "Step over",
             icon_left: Icon.LongArrowRight,
-            tooltip: "Execute the next line and step over any function calls (F10)",
+            tooltip: "Step over (F10)",
         });
         const step_in_button = new Button({
-            text: "Step into",
             icon_left: Icon.LevelDown,
-            tooltip: "Execute the next line and step inside any function calls (F11)",
+            tooltip: "Step into (F11)",
         });
         const step_out_button = new Button({
-            text: "Step out",
             icon_left: Icon.LevelUp,
-            tooltip: "Execute until outside of current call frame (Shift-F11)",
+            tooltip: "Step out (Shift-F11)",
         });
         const stop_button = new Button({
-            text: "Stop",
             icon_left: Icon.Stop,
             tooltip: "Stop execution (Shift-F5)",
         });
         // TODO: ensure label is up-to-date.
         const thread_select = new Select({
+            class: "quest_editor_DebugView_thread_select",
             label: "Thread:",
             items: ctrl.thread_ids,
             to_label: id => {
@@ -63,8 +59,8 @@ export class DebugView extends ResizableView {
                 return `Thread #${id} (${status})`;
             },
         });
-        const severity_filter = new Select({
-            class: "quest_editor_DebugView_severity",
+        const severity_select = new Select({
+            class: "quest_editor_DebugView_severity_select",
             label: "Log:",
             items: Severities,
             selected: ctrl.severity,
@@ -81,7 +77,7 @@ export class DebugView extends ResizableView {
                 step_out_button,
                 stop_button,
                 thread_select,
-                severity_filter,
+                severity_select,
             ),
         );
 
@@ -130,7 +126,7 @@ export class DebugView extends ResizableView {
             thread_select.selected.bind_to(ctrl.debugging_thread_id),
             thread_select.enabled.bind_to(ctrl.can_select_thread),
 
-            severity_filter.selected.observe(
+            severity_select.selected.observe(
                 ({ value }) => value != undefined && ctrl.set_severity(value),
             ),
         );
