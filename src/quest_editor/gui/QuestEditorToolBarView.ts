@@ -66,7 +66,6 @@ export class QuestEditorToolBarView extends View {
                     " (Ctrl-Shift-Z)",
             ),
         });
-        // TODO: make sure select menu is updated when entity counts change.
         const area_select = new Select<AreaAndLabel>({
             items: ctrl.areas,
             to_label: ({ label }) => label,
