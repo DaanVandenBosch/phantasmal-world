@@ -188,7 +188,6 @@ export class VirtualMachine {
 
     private readonly breakpoints: InstructionPointer[] = [];
     private paused = false;
-    private debugging_thread_id: number | undefined = undefined;
 
     /**
      * Set of unsupported opcodes that have already been logged. Each unsupported opcode will only
@@ -206,7 +205,7 @@ export class VirtualMachine {
 
     set step_mode(step_mode: StepMode) {
         if (step_mode != undefined) {
-            const thread = this.threads.find(thread => thread.id === this.debugging_thread_id);
+            const thread = this.current_thread();
 
             if (thread) {
                 thread.step_mode = step_mode;
@@ -262,15 +261,9 @@ export class VirtualMachine {
             );
         }
 
-        const thread = new Thread(
-            this.io,
-            new InstructionPointer(seg_idx!, 0, this.object_code),
-            area_id,
+        this.threads.push(
+            new Thread(this.io, new InstructionPointer(seg_idx!, 0, this.object_code), area_id),
         );
-        if (this.debugging_thread_id === undefined) {
-            this.debugging_thread_id = thread.id;
-        }
-        this.threads.push(thread);
     }
 
     /**
@@ -296,18 +289,8 @@ export class VirtualMachine {
                 const thread = this.current_thread();
 
                 if (!thread) {
-                    this.ignore_pauses_until_after_line = undefined;
                     return ExecutionResult.Suspended;
                 }
-
-                // This thread is the one currently selected for debugging?
-                const debugging_current_thread = thread.id === this.debugging_thread_id;
-
-                const allow_pausing = debugging_current_thread
-                    ? // Debugging current thread: Allow pausing if not ignoring pauses.
-                      this.ignore_pauses_until_after_line === undefined
-                    : // Not debugging current thread: Only allow pausing on breakpoints.
-                      thread.step_mode === StepMode.BreakPoint;
 
                 // Get current instruction.
                 const frame = thread.current_stack_frame()!;
@@ -316,15 +299,11 @@ export class VirtualMachine {
 
                 // Check whether the VM needs to pause only if it's not already paused. In that case
                 // it's resuming.
-                if (allow_pausing && !this.paused) {
+                if (!this.paused) {
                     switch (thread.step_mode) {
                         case StepMode.BreakPoint:
                             if (this.breakpoints.findIndex(bp => bp.equals(inst_ptr!)) !== -1) {
                                 this.paused = true;
-                                // A breakpoint should interrupt the pause ignoring process
-                                // since we are now in a different execution location.
-                                this.debugging_thread_id = thread.id;
-                                this.ignore_pauses_until_after_line = undefined;
                                 return ExecutionResult.Paused;
                             }
                             break;
@@ -357,15 +336,6 @@ export class VirtualMachine {
                                 return ExecutionResult.Paused;
                             }
                             break;
-                    }
-                }
-
-                // Check if we can stop ignoring pauses.
-                if (debugging_current_thread && this.ignore_pauses_until_after_line !== undefined) {
-                    const line = inst.asm?.mnemonic?.line_no;
-                    // Reached line, allow pausing again.
-                    if (this.ignore_pauses_until_after_line === line) {
-                        this.ignore_pauses_until_after_line = undefined;
                     }
                 }
 
@@ -427,9 +397,7 @@ export class VirtualMachine {
             this._halted = true;
             this.paused = false;
             this.breakpoints.splice(0, Infinity);
-            this.debugging_thread_id = undefined;
             this.unsupported_opcodes_logged.clear();
-            this.ignore_pauses_until_after_line = undefined;
             Thread.reset_id_counter();
         }
     }
@@ -477,35 +445,6 @@ export class VirtualMachine {
         }
     }
 
-    set_debugging_thread(thread_id: number): void {
-        if (this.threads.find(thread => thread.id === thread_id)) {
-            this.debugging_thread_id = thread_id;
-
-            const ip = this.get_instruction_pointer(thread_id);
-
-            if (thread_id === this.current_thread()?.id) {
-                this.ignore_pauses_until_after_line = undefined;
-            }
-            // If switching away from the thread that is currently being executed
-            // it will look like we are paused but actually the VM has not yet
-            // processed the next instruction and is not yet actually paused.
-            // We shall ignore the next pause to prevent the user from having
-            // to press the step button twice.
-            else {
-                // Exists in source?
-                if (ip && ip.source_location) {
-                    this.ignore_pauses_until_after_line = ip.source_location.line_no;
-                } else {
-                    this.ignore_pauses_until_after_line = undefined;
-                }
-            }
-        }
-    }
-
-    get_debugging_thread_id(): number | undefined {
-        return this.debugging_thread_id;
-    }
-
     get_thread_ids(): number[] {
         return this.threads.map(thread => thread.id);
     }
@@ -522,14 +461,6 @@ export class VirtualMachine {
         const thread = this.threads[thread_idx];
 
         this.threads.splice(thread_idx, 1);
-
-        if (thread.id === this.debugging_thread_id) {
-            if (this.threads.length === 0) {
-                this.debugging_thread_id = undefined;
-            } else {
-                this.debugging_thread_id = this.threads[0].id;
-            }
-        }
 
         if (this.thread_idx >= thread_idx && this.thread_idx > 0) {
             this.thread_idx--;

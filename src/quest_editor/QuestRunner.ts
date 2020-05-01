@@ -70,10 +70,8 @@ export class QuestRunner {
     private readonly _breakpoints: WritableListProperty<Breakpoint> = list_property();
     private readonly _pause_location: WritableProperty<number | undefined> = property(undefined);
     private readonly _thread_ids: WritableListProperty<number> = list_property();
-    private readonly _debugging_thread_id: WritableProperty<number | undefined> = property(
-        undefined,
-    );
     private readonly _active_thread_id: WritableProperty<number | undefined> = property(undefined);
+    private readonly _shown_thread_id: WritableProperty<number | undefined> = property(undefined);
 
     private readonly debugger: Debugger;
 
@@ -96,8 +94,8 @@ export class QuestRunner {
     readonly breakpoints: ListProperty<Breakpoint> = this._breakpoints;
     readonly pause_location: Property<number | undefined> = this._pause_location;
     readonly thread_ids: ListProperty<number> = this._thread_ids;
-    readonly debugging_thread_id: Property<number | undefined> = this._debugging_thread_id;
     readonly active_thread_id: Property<number | undefined> = this._active_thread_id;
+    readonly shown_thread_id: Property<number | undefined> = this._shown_thread_id;
 
     get game_state(): GameState {
         return this._game_state;
@@ -171,8 +169,8 @@ export class QuestRunner {
         this.debugger.deactivate_breakpoints();
         this._state.val = QuestRunnerState.Stopped;
         this._pause_location.val = undefined;
-        this._debugging_thread_id.val = undefined;
         this._active_thread_id.val = undefined;
+        this._shown_thread_id.val = undefined;
         this._thread_ids.clear();
         this.npcs.splice(0, this.npcs.length);
         this.objects.splice(0, this.objects.length);
@@ -207,24 +205,18 @@ export class QuestRunner {
         this._breakpoints.splice(0, Infinity, ...this.debugger.breakpoints);
     }
 
-    set_debugging_thread(thread_id: number): void {
-        if (
-            thread_id !== this.debugging_thread_id.val &&
-            this.thread_ids.val.indexOf(thread_id) > -1
-        ) {
-            // Update pause location.
-            const ip = this.vm.get_instruction_pointer(thread_id);
+    show_thread_location(thread_id: number): void {
+        // Update highlight location.
+        const ip = this.vm.get_instruction_pointer(thread_id);
 
-            // Exists in source?
-            if (ip && ip.source_location) {
-                this._debugging_thread_id.val = thread_id;
-                this.vm.set_debugging_thread(thread_id);
-                this._pause_location.val = ip.source_location.line_no;
-            } else {
-                this.logger.warn(
-                    `Failed to select thread #${thread_id} because its execution location is unknown.`,
-                );
-            }
+        // Exists in source?
+        if (ip && ip.source_location) {
+            this._pause_location.val = ip.source_location.line_no;
+            this._shown_thread_id.val = thread_id;
+        } else {
+            this.logger.warn(
+                `Failed to select thread #${thread_id} because its execution location is unknown.`,
+            );
         }
     }
 
@@ -295,8 +287,9 @@ export class QuestRunner {
     };
 
     private update_thread_info(): void {
-        this._debugging_thread_id.val = this.vm.get_debugging_thread_id();
-        this._active_thread_id.val = this.vm.get_current_thread_id();
+        const thread_id = this.vm.get_current_thread_id();
+        this._active_thread_id.val = thread_id;
+        this._shown_thread_id.val = thread_id;
         this._thread_ids.splice(0, this._thread_ids.length.val, ...this.vm.get_thread_ids());
     }
 

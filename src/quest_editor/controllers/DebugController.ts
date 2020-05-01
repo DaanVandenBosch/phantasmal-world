@@ -6,14 +6,19 @@ import { GuiStore, GuiTool } from "../../core/stores/GuiStore";
 import { LogEntry } from "../../core/Logger";
 import { LogStore } from "../stores/LogStore";
 import { Severity } from "../../core/Severity";
+import { map } from "../../core/observable";
+
+type ThreadIdAndLabel = {
+    id: number;
+    label: string;
+};
 
 export class DebugController extends Controller {
     readonly can_debug: Property<boolean>;
     readonly can_step: Property<boolean>;
     readonly can_stop: Property<boolean>;
-    readonly thread_ids: ListProperty<number>;
-    readonly debugging_thread_id: Property<number | undefined>;
-    readonly active_thread_id: Property<number | undefined>;
+    readonly threads: Property<ThreadIdAndLabel[]>;
+    readonly selected_thread_id: Property<ThreadIdAndLabel>;
     readonly can_select_thread: Property<boolean>;
     readonly log: ListProperty<LogEntry>;
     readonly severity: Property<Severity>;
@@ -31,11 +36,24 @@ export class DebugController extends Controller {
 
         this.can_stop = quest_editor_store.quest_runner.running;
 
-        this.thread_ids = quest_editor_store.quest_runner.thread_ids;
+        this.threads = map(
+            (thread_ids, active_thread_id) =>
+                thread_ids.map(id => {
+                    const status = active_thread_id === id ? "Active" : "Yielded";
+                    return {
+                        id,
+                        label: `Thread #${id} (${status})`,
+                    };
+                }),
+            quest_editor_store.quest_runner.thread_ids,
+            quest_editor_store.quest_runner.active_thread_id,
+        );
 
-        this.debugging_thread_id = quest_editor_store.quest_runner.debugging_thread_id;
-
-        this.active_thread_id = quest_editor_store.quest_runner.active_thread_id;
+        this.selected_thread_id = map(
+            (threads, shown_thread_id) => threads.find(thread => thread.id === shown_thread_id)!,
+            this.threads,
+            quest_editor_store.quest_runner.shown_thread_id,
+        );
 
         this.can_select_thread = quest_editor_store.quest_runner.thread_ids.map(
             ids => ids.length > 0 && quest_editor_store.quest_runner.running.val,
@@ -92,6 +110,6 @@ export class DebugController extends Controller {
     };
 
     select_thread = (thread_id: number): void => {
-        this.quest_editor_store.quest_runner.set_debugging_thread(thread_id);
+        this.quest_editor_store.quest_runner.show_thread_location(thread_id);
     };
 }

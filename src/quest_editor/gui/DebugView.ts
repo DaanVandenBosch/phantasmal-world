@@ -49,15 +49,12 @@ export class DebugView extends ResizableView {
             icon_left: Icon.Stop,
             tooltip: "Stop execution (Shift-F5)",
         });
-        // TODO: ensure label is up-to-date.
         const thread_select = new Select({
             class: "quest_editor_DebugView_thread_select",
             label: "Thread:",
-            items: ctrl.thread_ids,
-            to_label: id => {
-                const status = ctrl.active_thread_id.val === id ? "Active" : "Yielded";
-                return `Thread #${id} (${status})`;
-            },
+            items: ctrl.threads,
+            selected: ctrl.selected_thread_id,
+            to_label: id_and_label => id_and_label.label,
         });
         const severity_select = new Select({
             class: "quest_editor_DebugView_severity_select",
@@ -122,8 +119,7 @@ export class DebugView extends ResizableView {
             stop_button.onclick.observe(ctrl.stop),
             stop_button.enabled.bind_to(ctrl.can_stop),
 
-            thread_select.selected.observe(({ value }) => ctrl.select_thread(value!)),
-            thread_select.selected.bind_to(ctrl.debugging_thread_id),
+            thread_select.selected.observe(({ value }) => ctrl.select_thread(value!.id)),
             thread_select.enabled.bind_to(ctrl.can_select_thread),
 
             severity_select.selected.observe(
