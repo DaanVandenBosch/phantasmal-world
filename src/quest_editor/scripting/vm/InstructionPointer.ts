@@ -43,7 +43,7 @@ export class InstructionPointer {
     }
 
     get source_location(): AsmToken | undefined {
-        return this.instruction.asm?.mnemonic;
+        return this.instruction.asm?.mnemonic || this.instruction.asm?.args[0];
     }
 
     /**

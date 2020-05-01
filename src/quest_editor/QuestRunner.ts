@@ -221,13 +221,7 @@ export class QuestRunner {
             // Exists in source?
             if (ip && ip.source_location) {
                 this._pause_location.val = ip.source_location.line_no;
-            }
-            // No source location. Belongs to another instruction?
-            else if (ip && ip.instruction.asm && ip.instruction.asm.args.length > 0) {
-                this._pause_location.val = ip.instruction.asm.args[0].line_no;
-            }
-            // No source location can be inferred.
-            else {
+            } else {
                 this._pause_location.val = undefined;
             }
         }
