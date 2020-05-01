@@ -303,6 +303,12 @@ export class VirtualMachine {
                 // This thread is the one currently selected for debugging?
                 const debugging_current_thread = thread.id === this.debugging_thread_id;
 
+                const allow_pausing = debugging_current_thread
+                    ? // Debugging current thread: Allow pausing if not ignoring pauses.
+                      this.ignore_pauses_until_after_line === undefined
+                    : // Not debugging current thread: Only allow pausing on breakpoints.
+                      thread.step_mode === StepMode.BreakPoint;
+
                 // Get current instruction.
                 const frame = thread.current_stack_frame()!;
                 inst_ptr = frame.instruction_pointer;
@@ -310,25 +316,21 @@ export class VirtualMachine {
 
                 // Check whether the VM needs to pause only if it's not already paused. In that case
                 // it's resuming.
-                if (!this.paused) {
+                if (allow_pausing && !this.paused) {
                     switch (thread.step_mode) {
-                        // Always pause on breakpoints regardless of selected thread.
                         case StepMode.BreakPoint:
                             if (this.breakpoints.findIndex(bp => bp.equals(inst_ptr!)) !== -1) {
                                 this.paused = true;
-                                this.debugging_thread_id = thread.id;
                                 // A breakpoint should interrupt the pause ignoring process
-                                // since we are now probably in a different execution location.
+                                // since we are now in a different execution location.
+                                this.debugging_thread_id = thread.id;
                                 this.ignore_pauses_until_after_line = undefined;
                                 return ExecutionResult.Paused;
                             }
                             break;
 
-                        // Only pause on steps if we are in the currently selected thread.
                         case StepMode.Over:
                             if (
-                                debugging_current_thread &&
-                                this.ignore_pauses_until_after_line === undefined &&
                                 thread.step_frame &&
                                 frame.idx <= thread.step_frame.idx &&
                                 inst.asm?.mnemonic
@@ -339,11 +341,7 @@ export class VirtualMachine {
                             break;
 
                         case StepMode.In:
-                            if (
-                                debugging_current_thread &&
-                                this.ignore_pauses_until_after_line === undefined &&
-                                inst.asm?.mnemonic
-                            ) {
+                            if (inst.asm?.mnemonic) {
                                 this.paused = true;
                                 return ExecutionResult.Paused;
                             }
@@ -351,8 +349,6 @@ export class VirtualMachine {
 
                         case StepMode.Out:
                             if (
-                                debugging_current_thread &&
-                                this.ignore_pauses_until_after_line === undefined &&
                                 thread.step_frame &&
                                 frame.idx < thread.step_frame.idx &&
                                 inst.asm?.mnemonic
@@ -362,14 +358,13 @@ export class VirtualMachine {
                             }
                             break;
                     }
+                }
 
+                // Check if we can stop ignoring pauses.
+                if (debugging_current_thread && this.ignore_pauses_until_after_line !== undefined) {
+                    const line = inst.asm?.mnemonic?.line_no;
                     // Reached line, allow pausing again.
-                    if (
-                        debugging_current_thread &&
-                        this.ignore_pauses_until_after_line ===
-                            this.get_instruction_pointer(this.debugging_thread_id)?.source_location
-                                ?.line_no
-                    ) {
+                    if (this.ignore_pauses_until_after_line === line) {
                         this.ignore_pauses_until_after_line = undefined;
                     }
                 }
