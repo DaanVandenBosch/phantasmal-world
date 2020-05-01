@@ -65,7 +65,7 @@ export class QuestEditorToolBarController extends Controller {
         // label should update).
         this.areas = quest_editor_store.current_quest.flat_map(quest => {
             if (quest) {
-                return quest?.entities_per_area.flat_map(entities_per_area => {
+                return quest.entities_per_area.flat_map(entities_per_area => {
                     return list_property<AreaAndLabel>(
                         undefined,
                         ...area_store.get_areas_for_episode(quest.episode).map(area => {
