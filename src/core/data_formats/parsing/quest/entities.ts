@@ -16,6 +16,7 @@ export type QuestNpc = {
     readonly rotation: Vec3;
     /**
      * Seemingly 3 floats, not sure what they represent.
+     * The y component is used to help determine what the NpcType is.
      */
     readonly scale: Vec3;
     /**
@@ -24,6 +25,9 @@ export type QuestNpc = {
     readonly unknown: readonly number[][];
     readonly pso_type_id: number;
     readonly npc_id: number;
+    /**
+     * Only seems to be valid for non-enemies.
+     */
     readonly script_label: number;
     readonly pso_roaming: number;
 };
