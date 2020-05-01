@@ -33,7 +33,8 @@ test("integer arithmetic opcodes", () => {
             0:
                 leti r${result_reg}, ${val1}
                 leti r${other_reg}, ${val2}
-                ${opcode} r${result_reg}, r${other_reg}`);
+                ${opcode} r${result_reg}, r${other_reg}
+                ret`);
 
         return compute_arithmetic(obj_code);
     }
@@ -42,7 +43,8 @@ test("integer arithmetic opcodes", () => {
         const obj_code = to_instructions(`
             0:
                 leti r${result_reg}, ${val1}
-                ${opcode} r${result_reg}, ${val2}`);
+                ${opcode} r${result_reg}, ${val2}
+                ret`);
 
         return compute_arithmetic(obj_code);
     }
@@ -86,6 +88,7 @@ test("floating point arithmetic opcodes", () => {
             fsubi r100, 0.1
             fleti r101, 1.0
             fdiv r101, r100
+            ret
     `);
 
     const vm = new VirtualMachine(new TestIO());
@@ -110,6 +113,7 @@ test("basic window_msg output", () => {
             arg_pushs "${messages[2]}"
             add_msg
             winend
+            ret
     `,
         true,
     );
@@ -173,6 +177,7 @@ test("opcode get_random", () => {
         get_random r100, r106
         get_random r100, r107
         get_random r100, r108
+        ret
     `);
 
     const vm = new VirtualMachine(undefined, new Random(123));
@@ -210,6 +215,7 @@ test("opcode list", () => {
     .code
     0:
         list r${result_reg}, "${list_text}"
+        ret
     `);
 
     const vm = new VirtualMachine(new TestIO());
