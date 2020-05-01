@@ -212,17 +212,18 @@ export class QuestRunner {
             thread_id !== this.debugging_thread_id.val &&
             this.thread_ids.val.indexOf(thread_id) > -1
         ) {
-            this._debugging_thread_id.val = thread_id;
-            this.vm.set_debugging_thread(thread_id);
-
             // Update pause location.
-            const ip = this.vm.get_instruction_pointer(this.debugging_thread_id.val);
+            const ip = this.vm.get_instruction_pointer(thread_id);
 
             // Exists in source?
             if (ip && ip.source_location) {
+                this._debugging_thread_id.val = thread_id;
+                this.vm.set_debugging_thread(thread_id);
                 this._pause_location.val = ip.source_location.line_no;
             } else {
-                this._pause_location.val = undefined;
+                this.logger.warn(
+                    `Failed to select thread #${thread_id} because its execution location is unknown.`,
+                );
             }
         }
     }
