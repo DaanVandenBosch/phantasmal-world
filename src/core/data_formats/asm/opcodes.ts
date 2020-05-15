@@ -7531,7 +7531,16 @@ export const OP_UNKNOWN_F961 = (OPCODES[0xf961] = new_opcode(
     0xf961,
     "unknown_f961",
     undefined,
-    [],
+    [
+        new_param(
+            {
+                kind: Kind.RegTupRef,
+                register_tuples: [new_param(TYPE_DWORD, undefined, ParamAccess.Write)],
+            },
+            undefined,
+            undefined,
+        ),
+    ],
     undefined,
 ));
 export const OP_UNKNOWN_F962 = (OPCODES[0xf962] = new_opcode(

@@ -3821,3 +3821,10 @@ opcodes:
     params:
       - type: dword
     stack: pop
+
+  - code: 0xf961
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            access: write
