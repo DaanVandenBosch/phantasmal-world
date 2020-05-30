@@ -11,11 +11,16 @@
         "lodash": "^4.17.15",
         "luxon": "^1.23.0",
         "monaco-editor": "^0.20.0",
+        "prs-rs": "file:src/core/data_formats/compression/prs/pkg",
         "three": "^0.115.0"
     },
     "scripts": {
         "start": "webpack-dev-server --config webpack.dev.js",
-        "build": "webpack --config webpack.prod.js",
+        "build_prs_rs": "wasm-pack build src/core/data_formats/compression/prs",
+        "build_prs_rs_browser": "yarn build_prs_rs -t bundler && yarn upgrade prs-rs",
+        "build_prs_rs_testing": "yarn build_prs_rs -t nodejs -d 'test/pkg'",
+        "build_bundle": "webpack --config webpack.prod.js",
+        "build": "yarn build_prs_rs_browser && yarn build_bundle",
         "test": "jest",
         "update_generic_data": "ts-node --project=tsconfig-scripts.json assets_generation/update_generic_data.ts",
         "update_ephinea_data": "ts-node --project=tsconfig-scripts.json assets_generation/update_ephinea_data.ts",

@@ -2,16 +2,16 @@ import { readFileSync } from "fs";
 import { Endianness } from "../../Endianness";
 import { ArrayBufferCursor } from "../../cursor/ArrayBufferCursor";
 import { BufferCursor } from "../../cursor/BufferCursor";
-import { prs_compress } from "./compress";
-import { prs_decompress } from "./decompress";
+import { prs_compress_js } from "./compress";
+import { prs_decompress_js } from "./decompress";
 
 function test_with_bytes(bytes: number[], expected_compressed_size: number): void {
     const cursor = new ArrayBufferCursor(new Uint8Array(bytes).buffer, Endianness.Little);
-    const compressed_cursor = prs_compress(cursor);
+    const compressed_cursor = prs_compress_js(cursor);
 
     expect(compressed_cursor.size).toBe(expected_compressed_size);
 
-    const test_cursor = prs_decompress(compressed_cursor);
+    const test_cursor = prs_decompress_js(compressed_cursor);
     cursor.seek_start(0);
 
     expect(test_cursor.size).toBe(cursor.size);
@@ -73,8 +73,8 @@ test("PRS compression and decompression, 3 bytes", () => {
 
 test("PRS compression and decompression of quest118_e.bin", () => {
     const buffer = readFileSync("test/resources/quest118_e.bin");
-    const orig = prs_decompress(new BufferCursor(buffer, Endianness.Little));
-    const test = prs_decompress(prs_compress(orig));
+    const orig = prs_decompress_js(new BufferCursor(buffer, Endianness.Little));
+    const test = prs_decompress_js(prs_compress_js(orig));
     orig.seek_start(0);
 
     expect(test.size).toBe(orig.size);

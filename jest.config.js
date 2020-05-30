@@ -3,6 +3,11 @@ module.exports = {
     moduleDirectories: ["node_modules"],
     setupFiles: ["./test/src/setup.js", "jest-canvas-mock"],
     roots: ["./src", "./test"],
+    modulePathIgnorePatterns: [
+        "/node_modules/",
+        // Ignore prs-rs browser package and only use testing package.
+        "/src/core/data_formats/compression/prs/pkg",
+    ],
     moduleNameMapper: {
         "\\.(css|gif|jpg|png|svg|ttf)$": "<rootDir>/src/__mocks__/static_files.js",
         "^monaco-editor$": "<rootDir>/node_modules/monaco-editor/esm/vs/editor/editor.main.js",

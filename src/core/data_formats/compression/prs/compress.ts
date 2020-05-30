@@ -3,8 +3,22 @@ import { Cursor } from "../../cursor/Cursor";
 import { ResizableBufferCursor } from "../../cursor/ResizableBufferCursor";
 import { WritableCursor } from "../../cursor/WritableCursor";
 import { ResizableBuffer } from "../../ResizableBuffer";
+import { ArrayBufferCursor } from "../../cursor/ArrayBufferCursor";
+import * as prs_wasm from "prs-rs";
+import { browser_supports_webassembly } from "../../../util";
 
+/**
+ * Automatically picks the best available compression method.
+ */
 export function prs_compress(cursor: Cursor): Cursor {
+    if (browser_supports_webassembly()) {
+        return prs_compress_wasm(cursor);
+    } else {
+        return prs_compress_js(cursor);
+    }
+}
+
+export function prs_compress_js(cursor: Cursor): Cursor {
     const pc = new Context(cursor.size, cursor.endianness);
 
     while (cursor.bytes_left) {
@@ -134,4 +148,15 @@ class Context {
             this.write_u8(size - 1);
         }
     }
+}
+
+export function prs_compress_wasm(cursor: Cursor): Cursor {
+    const bytes = new Uint8Array(cursor.array_buffer());
+    const result = prs_wasm.compress(bytes);
+    return new ArrayBufferCursor(
+        result.buffer,
+        Endianness.Little,
+        result.byteOffset,
+        result.length,
+    );
 }

@@ -126,3 +126,7 @@ export function require_array<T>(value: readonly T[], name: string): void {
 export function number_to_hex_string(num: number, min_len: number = 8): string {
     return num.toString(16).padStart(min_len, "0");
 }
+
+export function browser_supports_webassembly(): boolean {
+    return typeof window.WebAssembly === "object";
+}

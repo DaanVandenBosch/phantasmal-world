@@ -29,3 +29,10 @@ yarn-debug.log*
 yarn-error.log*
 # node error reports
 report.*.json
+
+# binary files
+*.wasm
+# rust output
+target/
+# wasm-pack output
+pkg/
