@@ -79,3 +79,9 @@ editor to use the ESLint/Prettier configuration.
 ### Production Build
 
 Create an optimized production build with `yarn build`.
+
+### Optional Modules
+
+### prs-rs
+
+Provides faster PRS routines using WebAssembly. Build for WebPack with `yarn build_prs_rs_browser`. Build for Jest with `yarn build_prs_rs_testing`. Building requires [wasm-pack](https://github.com/rustwasm/wasm-pack).
