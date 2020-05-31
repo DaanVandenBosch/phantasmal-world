@@ -2,16 +2,29 @@ import { readFileSync } from "fs";
 import { Endianness } from "../../Endianness";
 import { ArrayBufferCursor } from "../../cursor/ArrayBufferCursor";
 import { BufferCursor } from "../../cursor/BufferCursor";
-import { prs_compress_js } from "./compress";
-import { prs_decompress_js } from "./decompress";
+import { prs_compress_js, prs_compress_wasm } from "./compress";
+import { prs_decompress_js, prs_decompress_wasm } from "./decompress";
+import { Cursor } from "../../cursor/Cursor";
 
-function test_with_bytes(bytes: number[], expected_compressed_size: number): void {
+type CompressionFunction = (cursor: Cursor) => Cursor;
+
+type CompressionMethod = readonly [string, CompressionFunction, CompressionFunction];
+
+const prs_js: CompressionMethod = ["JS", prs_compress_js, prs_decompress_js] as const;
+const prs_wasm: CompressionMethod = ["WASM", prs_compress_wasm, prs_decompress_wasm] as const;
+
+function test_with_bytes(
+    compress_fn: CompressionFunction,
+    decompress_fn: CompressionFunction,
+    bytes: number[],
+    expected_compressed_size: number,
+): void {
     const cursor = new ArrayBufferCursor(new Uint8Array(bytes).buffer, Endianness.Little);
-    const compressed_cursor = prs_compress_js(cursor);
+    const compressed_cursor = compress_fn(cursor);
 
     expect(compressed_cursor.size).toBe(expected_compressed_size);
 
-    const test_cursor = prs_decompress_js(compressed_cursor);
+    const test_cursor = decompress_fn(compressed_cursor);
     cursor.seek_start(0);
 
     expect(test_cursor.size).toBe(cursor.size);
@@ -27,54 +40,84 @@ function test_with_bytes(bytes: number[], expected_compressed_size: number): voi
     expect(test_cursor.position).toBe(test_cursor.size);
 }
 
-test("PRS compression and decompression, best case", () => {
-    // Compression factor: 0.048
-    test_with_bytes(new Array(10000).fill(128), 475);
-});
+test.each([[prs_js, 475].flat(), [prs_wasm, 134].flat()])(
+    "%s PRS compression and decompression, best case",
+    (
+        _name: string,
+        compress_fn: CompressionFunction,
+        decompress_fn: CompressionFunction,
+        expected: number,
+    ) => {
+        test_with_bytes(compress_fn, decompress_fn, new Array(10000).fill(128), expected);
+    },
+);
 
-test("PRS compression and decompression, worst case", () => {
-    const prng = new Prng();
+test.each([[prs_js, 11253].flat(), [prs_wasm, 11250].flat()])(
+    "%s PRS compression and decompression, worst case",
+    (
+        _name: string,
+        compress_fn: CompressionFunction,
+        decompress_fn: CompressionFunction,
+        expected: number,
+    ) => {
+        const prng = new Prng();
+        test_with_bytes(
+            compress_fn,
+            decompress_fn,
+            new Array(10000).fill(0).map(() => prng.next_integer(0, 255)),
+            expected,
+        );
+    },
+);
 
-    // Compression factor: 1.125
-    test_with_bytes(
-        new Array(10000).fill(0).map(() => prng.next_integer(0, 255)),
-        11253,
-    );
-});
+test.each([[prs_js, 14924].flat(), [prs_wasm, 12901].flat()])(
+    "%s PRS compression and decompression, typical case",
+    (
+        _name: string,
+        compress_fn: CompressionFunction,
+        decompress_fn: CompressionFunction,
+        expected: number,
+    ) => {
+        const prng = new Prng();
+        const pattern = [0, 0, 2, 0, 3, 0, 5, 0, 0, 0, 7, 9, 11, 13, 0, 0];
+        const arrays = new Array(1000)
+            .fill(pattern)
+            .map(array => array.map((e: number) => e + prng.next_integer(0, 10)));
+        test_with_bytes(compress_fn, decompress_fn, arrays.flat(), expected);
+    },
+);
 
-test("PRS compression and decompression, typical case", () => {
-    const prng = new Prng();
-    const pattern = [0, 0, 2, 0, 3, 0, 5, 0, 0, 0, 7, 9, 11, 13, 0, 0];
-    const arrays = new Array(1000)
-        .fill(pattern)
-        .map(array => array.map((e: number) => e + prng.next_integer(0, 10)));
-    // eslint-disable-next-line prefer-spread
-    const flattened_array = [].concat.apply([], arrays);
+test.each([
+    [prs_js[0], 0, prs_js[1], prs_js[2], [], 3],
+    [prs_js[0], 1, prs_js[1], prs_js[2], [111], 4],
+    [prs_js[0], 2, prs_js[1], prs_js[2], [111, 224], 5],
+    [prs_js[0], 3, prs_js[1], prs_js[2], [56, 237, 158], 6],
+    [prs_wasm[0], 0, prs_wasm[1], prs_wasm[2], [], 3],
+    [prs_wasm[0], 1, prs_wasm[1], prs_wasm[2], [111], 4],
+    [prs_wasm[0], 2, prs_wasm[1], prs_wasm[2], [111, 224], 5],
+    [prs_wasm[0], 3, prs_wasm[1], prs_wasm[2], [56, 237, 158], 6],
+])(
+    "%s PRS compression and decompression, %d bytes",
+    (
+        _name: string,
+        _num_bytes: number,
+        compress_fn: CompressionFunction,
+        decompress_fn: CompressionFunction,
+        bytes: number[],
+        expected: number,
+    ) => {
+        test_with_bytes(compress_fn, decompress_fn, bytes, expected);
+    },
+);
 
-    // Compression factor: 0.933
-    test_with_bytes(flattened_array, 14924);
-});
-
-test("PRS compression and decompression, 0 bytes", () => {
-    test_with_bytes([], 3);
-});
-
-test("PRS compression and decompression, 1 byte", () => {
-    test_with_bytes([111], 4);
-});
-
-test("PRS compression and decompression, 2 bytes", () => {
-    test_with_bytes([111, 224], 5);
-});
-
-test("PRS compression and decompression, 3 bytes", () => {
-    test_with_bytes([56, 237, 158], 6);
-});
-
-test("PRS compression and decompression of quest118_e.bin", () => {
-    const buffer = readFileSync("test/resources/quest118_e.bin");
-    const orig = prs_decompress_js(new BufferCursor(buffer, Endianness.Little));
-    const test = prs_decompress_js(prs_compress_js(orig));
+function test_with_quest(
+    compress_fn: CompressionFunction,
+    decompress_fn: CompressionFunction,
+    quest_path: string,
+): void {
+    const buffer = readFileSync(quest_path);
+    const orig = compress_fn(new BufferCursor(buffer, Endianness.Little));
+    const test = decompress_fn(prs_compress_js(orig));
     orig.seek_start(0);
 
     expect(test.size).toBe(orig.size);
@@ -95,7 +138,14 @@ test("PRS compression and decompression of quest118_e.bin", () => {
     }
 
     expect(matching_bytes).toBe(orig.size);
-});
+}
+
+test.each([prs_js, prs_wasm])(
+    "%s PRS compression and decompression of quest118_e.bin",
+    (_name: string, compress_fn: CompressionFunction, decompress_fn: CompressionFunction) => {
+        test_with_quest(compress_fn, decompress_fn, "test/resources/quest118_e.bin");
+    },
+);
 
 class Prng {
     seed = 1;
