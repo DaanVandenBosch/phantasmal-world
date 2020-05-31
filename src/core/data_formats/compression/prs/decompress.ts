@@ -3,19 +3,19 @@ import { ResizableBufferCursor } from "../../cursor/ResizableBufferCursor";
 import { WritableCursor } from "../../cursor/WritableCursor";
 import { ResizableBuffer } from "../../ResizableBuffer";
 import { LogManager } from "../../../Logger";
-import * as prs_wasm from "prs-rs";
 import { browser_supports_webassembly } from "../../../util";
-import { ArrayBufferCursor } from "../../cursor/ArrayBufferCursor";
-import { Endianness } from "../../Endianness";
+import { get_prs_wasm_module } from "./prs_wasm";
 
 const logger = LogManager.get("core/data_formats/compression/prs/decompress");
+
+const prs_wasm = get_prs_wasm_module();
 
 /**
  * Automatically picks the best available decompression method.
  */
 export function prs_decompress(cursor: Cursor): Cursor {
-    if (browser_supports_webassembly()) {
-        return prs_decompress_wasm(cursor);
+    if (browser_supports_webassembly() && prs_wasm) {
+        return prs_wasm.prs_decompress_wasm(cursor);
     } else {
         return prs_decompress_js(cursor);
     }
@@ -134,15 +134,4 @@ class Context {
 
         this.dst.write_cursor(buf.take(length % buf_size));
     }
-}
-
-export function prs_decompress_wasm(cursor: Cursor): Cursor {
-    const bytes = new Uint8Array(cursor.array_buffer());
-    const result = prs_wasm.decompress(bytes);
-    return new ArrayBufferCursor(
-        result.buffer,
-        Endianness.Little,
-        result.byteOffset,
-        result.length,
-    );
 }
