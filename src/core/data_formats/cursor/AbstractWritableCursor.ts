@@ -48,25 +48,25 @@ export abstract class AbstractWritableCursor extends AbstractCursor implements W
         return this;
     }
 
-    write_u8_array(array: readonly number[]): this {
+    write_u8_array(array: ArrayLike<number>): this {
         this.write_u8_array_at(this.position, array);
         this._position += array.length;
         return this;
     }
 
-    write_u16_array(array: readonly number[]): this {
+    write_u16_array(array: ArrayLike<number>): this {
         this.write_u16_array_at(this.position, array);
         this._position += array.length * 2;
         return this;
     }
 
-    write_u32_array(array: readonly number[]): this {
+    write_u32_array(array: ArrayLike<number>): this {
         this.write_u32_array_at(this.position, array);
         this._position += array.length * 4;
         return this;
     }
 
-    write_i32_array(array: readonly number[]): this {
+    write_i32_array(array: ArrayLike<number>): this {
         this.write_i32_array_at(this.position, array);
         this._position += array.length * 4;
         return this;
@@ -151,13 +151,13 @@ export abstract class AbstractWritableCursor extends AbstractCursor implements W
         return this;
     }
 
-    write_u8_array_at(offset: number, array: readonly number[]): this {
+    write_u8_array_at(offset: number, array: ArrayLike<number>): this {
         this.ensure_size(array.length, offset);
         new Uint8Array(this.backing_buffer, this.offset + offset).set(new Uint8Array(array));
         return this;
     }
 
-    write_u16_array_at(offset: number, array: readonly number[]): this {
+    write_u16_array_at(offset: number, array: ArrayLike<number>): this {
         this.ensure_size(2 * array.length, offset);
         const len = array.length;
 
@@ -168,7 +168,7 @@ export abstract class AbstractWritableCursor extends AbstractCursor implements W
         return this;
     }
 
-    write_u32_array_at(offset: number, array: readonly number[]): this {
+    write_u32_array_at(offset: number, array: ArrayLike<number>): this {
         this.ensure_size(4 * array.length, offset);
         const len = array.length;
 
@@ -179,7 +179,7 @@ export abstract class AbstractWritableCursor extends AbstractCursor implements W
         return this;
     }
 
-    write_i32_array_at(offset: number, array: readonly number[]): this {
+    write_i32_array_at(offset: number, array: ArrayLike<number>): this {
         this.ensure_size(4 * array.length, offset);
         const len = array.length;
 
