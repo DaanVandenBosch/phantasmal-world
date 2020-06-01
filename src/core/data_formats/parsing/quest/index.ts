@@ -594,17 +594,35 @@ function get_npc_type(episode: number, { type_id, scale, roaming, area_id }: Dat
 }
 
 function objects_to_dat_data(objects: readonly QuestObject[]): DatObject[] {
-    return objects.map(object => ({
-        type_id: object_data(object.type).pso_id!,
-        id: object.id,
-        group_id: object.group_id,
-        section_id: object.section_id,
-        position: object.position,
-        rotation: object.rotation,
-        properties: [...object.properties.values()],
-        area_id: object.area_id,
-        unknown: object.unknown,
-    }));
+    return objects.map(object => {
+        const props = [...object.properties.values()];
+        const props_target_len = 7;
+
+        // Truncate or pad property list if it is not the correct length.
+        if (props.length > props_target_len) {
+            logger.warn(
+                `Object #${object.id} has too many properties. Truncating property list to length of ${props_target_len}.`,
+            );
+            props.splice(props_target_len);
+        } else if (props.length < props_target_len) {
+            const to_add = props_target_len - props.length;
+            for (let i = 0; i < to_add; i++) {
+                props.push(0);
+            }
+        }
+
+        return {
+            type_id: object_data(object.type).pso_id!,
+            id: object.id,
+            group_id: object.group_id,
+            section_id: object.section_id,
+            position: object.position,
+            rotation: object.rotation,
+            properties: props,
+            area_id: object.area_id,
+            unknown: object.unknown,
+        };
+    });
 }
 
 function npcs_to_dat_data(npcs: readonly QuestNpc[]): DatNpc[] {
