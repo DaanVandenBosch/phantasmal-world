@@ -2600,6 +2600,72 @@ opcodes:
           - type: any
             access: write
 
+  - code: 0xf8b0
+    mnemonic: read1
+    doc: Reads a 1-byte value from an arbitrary location.
+    params:
+      - type: reg_tup_ref
+        doc: Register to store the result to.
+        reg_tup:
+          - type: byte
+            access: write
+      - type: dword
+        doc: Address to read from.
+
+  - code: 0xf8b1
+    mnemonic: read2
+    doc: Reads a 2-byte value from an arbitrary location.
+    params:
+      - type: reg_tup_ref
+        doc: Register to store the result to.
+        reg_tup:
+          - type: word
+            access: write
+      - type: dword
+        doc: Address to read from.
+
+  - code: 0xf8b2
+    mnemonic: read4
+    doc: Reads a 4-byte value from an arbitrary location.
+    params:
+      - type: reg_tup_ref
+        doc: Register to store the result to.
+        reg_tup:
+          - type: dword
+            access: write
+      - type: dword
+        doc: Address to read from.
+
+  - code: 0xf8b3
+    mnemonic: write1
+    doc: Writes a 1-byte value to an arbitrary location.
+    params:
+      - type: dword
+        doc: Address to write to.
+      - type: byte
+        doc: Value to be written.
+    stack: pop
+
+  - code: 0xf8b4
+    mnemonic: write2
+    doc: Writes a 2-byte value to an arbitrary location.
+    params:
+      - type: dword
+        doc: Address to write to.
+      - type: word
+        doc: Value to be written.
+    stack: pop
+
+  - code: 0xf8b5
+    mnemonic: write4
+    doc: Writes a 4-byte value to an arbitrary location.
+    params:
+      - type: dword
+        doc: Address to write to.
+      - type: dword
+        doc: Value to be written.
+    stack: pop
+
   - code: 0xf8b9
     mnemonic: chl_recovery
     params: []
