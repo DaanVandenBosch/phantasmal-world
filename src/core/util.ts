@@ -128,5 +128,5 @@ export function number_to_hex_string(num: number, min_len: number = 8): string {
 }
 
 export function browser_supports_webassembly(): boolean {
-    return typeof window.WebAssembly === "object";
+    return typeof window === "object" && typeof window.WebAssembly === "object";
 }
