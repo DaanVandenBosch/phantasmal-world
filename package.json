@@ -11,8 +11,10 @@
         "lodash": "^4.17.15",
         "luxon": "^1.23.0",
         "monaco-editor": "^0.20.0",
-        "prs-rs": "file:src/core/data_formats/compression/prs/pkg",
         "three": "^0.115.0"
+    },
+    "optionalDependencies": {
+        "prs-rs": "file:src/core/data_formats/compression/prs/pkg"
     },
     "scripts": {
         "start": "webpack-dev-server --config webpack.dev.js",

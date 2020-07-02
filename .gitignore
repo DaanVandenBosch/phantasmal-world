@@ -35,4 +35,5 @@ report.*.json
 # rust output
 target/
 # wasm-pack output
-pkg/
+pkg/*
+!pkg/package.json
