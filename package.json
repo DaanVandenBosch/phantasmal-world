@@ -26,7 +26,6 @@
         "test": "jest",
         "update_generic_data": "ts-node --project=tsconfig-scripts.json assets_generation/update_generic_data.ts",
         "update_ephinea_data": "ts-node --project=tsconfig-scripts.json assets_generation/update_ephinea_data.ts",
-        "update_shaders": "ts-node --project=tsconfig-scripts.json assets_generation/update_shaders.ts",
         "lint": "prettier --check \"{src,assets_generation,test}/**/*.{ts,tsx}\" && echo Linting... && eslint \"{src,assets_generation,test}/**/*.{ts,tsx}\" && echo All code passes the prettier and eslint checks."
     },
     "devDependencies": {
@@ -38,8 +37,6 @@
         "@types/node-fetch": "^2.5.7",
         "@typescript-eslint/eslint-plugin": "^3.6.1",
         "@typescript-eslint/parser": "^3.6.1",
-        "@webgpu/glslang": "^0.0.15",
-        "@webgpu/types": "^0.0.27",
         "cheerio": "^1.0.0-rc.3",
         "clean-webpack-plugin": "^3.0.0",
         "copy-webpack-plugin": "^6.0.3",
@@ -58,7 +55,6 @@
         "node-fetch": "^2.6.0",
         "optimize-css-assets-webpack-plugin": "^5.0.3",
         "prettier": "^2.0.5",
-        "raw-loader": "^4.0.1",
         "terser-webpack-plugin": "^2.3.7",
         "ts-jest": "^26.1.2",
         "ts-loader": "^8.0.0",

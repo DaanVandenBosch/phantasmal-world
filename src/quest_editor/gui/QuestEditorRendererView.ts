@@ -5,7 +5,7 @@ import { QuestRendererView } from "./QuestRendererView";
 import { QuestEntityControls } from "../rendering/QuestEntityControls";
 import { AreaAssetLoader } from "../loading/AreaAssetLoader";
 import { EntityAssetLoader } from "../loading/EntityAssetLoader";
-import { DisposableThreeRenderer } from "../../core/rendering/ThreeRenderer";
+import { DisposableThreeRenderer } from "../../core/rendering/Renderer";
 
 export class QuestEditorRendererView extends QuestRendererView {
     private readonly entity_controls: QuestEntityControls;

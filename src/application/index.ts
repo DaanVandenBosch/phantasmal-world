@@ -5,7 +5,7 @@ import { create_item_type_stores } from "../core/stores/ItemTypeStore";
 import { create_item_drop_stores } from "../hunt_optimizer/stores/ItemDropStore";
 import { ApplicationView } from "./gui/ApplicationView";
 import { throttle } from "lodash";
-import { DisposableThreeRenderer } from "../core/rendering/ThreeRenderer";
+import { DisposableThreeRenderer } from "../core/rendering/Renderer";
 import { Disposer } from "../core/observable/Disposer";
 import { disposable_custom_listener, disposable_listener } from "../core/gui/dom";
 import { Random } from "../core/Random";

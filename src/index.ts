@@ -9,7 +9,7 @@ import "@fortawesome/fontawesome-free/js/brands";
 import { initialize_application } from "./application";
 import { FetchClient } from "./core/HttpClient";
 import { WebGLRenderer } from "three";
-import { DisposableThreeRenderer } from "./core/rendering/ThreeRenderer";
+import { DisposableThreeRenderer } from "./core/rendering/Renderer";
 import { Random } from "./core/Random";
 import { DateClock } from "./core/Clock";
 

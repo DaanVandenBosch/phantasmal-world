@@ -2,7 +2,7 @@ import { BufferGeometry, CylinderBufferGeometry, Texture } from "three";
 import { LoadingCache } from "./LoadingCache";
 import { Endianness } from "../../core/data_formats/Endianness";
 import { ArrayBufferCursor } from "../../core/data_formats/cursor/ArrayBufferCursor";
-import { ninja_object_to_buffer_geometry } from "../../core/rendering/conversion/ninja_three_geometry";
+import { ninja_object_to_buffer_geometry } from "../../core/rendering/conversion/ninja_geometry";
 import { NjObject, parse_nj, parse_xj } from "../../core/data_formats/parsing/ninja";
 import { parse_xvm } from "../../core/data_formats/parsing/ninja/texture";
 import { xvm_to_three_textures } from "../../core/rendering/conversion/ninja_textures";

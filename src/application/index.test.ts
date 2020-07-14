@@ -5,7 +5,7 @@ import { timeout } from "../../test/src/utils";
 import { Random } from "../core/Random";
 import { Severity } from "../core/Severity";
 import { StubClock } from "../../test/src/core/StubClock";
-import { STUB_THREE_RENDERER } from "../../test/src/core/rendering/StubThreeRenderer";
+import { STUB_RENDERER } from "../../test/src/core/rendering/StubRenderer";
 
 for (const path of [undefined, "/viewer", "/quest_editor", "/hunt_optimizer"]) {
     const with_path = path == undefined ? "without specific path" : `with path ${path}`;
@@ -28,7 +28,7 @@ for (const path of [undefined, "/viewer", "/quest_editor", "/hunt_optimizer"]) {
                 new FileSystemHttpClient(),
                 new Random(() => 0.27),
                 new StubClock(new Date("2020-01-01T15:40:20Z")),
-                () => STUB_THREE_RENDERER,
+                () => STUB_RENDERER,
             );
 
             expect(app).toBeDefined();

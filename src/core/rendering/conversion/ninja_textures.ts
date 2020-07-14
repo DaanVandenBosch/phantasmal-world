@@ -8,29 +8,6 @@ import {
     Texture as ThreeTexture,
 } from "three";
 import { Xvm, XvrTexture } from "../../data_formats/parsing/ninja/texture";
-import { Texture, TextureFormat } from "../Texture";
-import { Gfx } from "../Gfx";
-
-export function xvr_texture_to_texture(gfx: Gfx, xvr: XvrTexture): Texture {
-    let format: TextureFormat;
-    let data_size: number;
-
-    // Ignore mipmaps.
-    switch (xvr.format[1]) {
-        case 6:
-            format = TextureFormat.RGBA_S3TC_DXT1;
-            data_size = (xvr.width * xvr.height) / 2;
-            break;
-        case 7:
-            format = TextureFormat.RGBA_S3TC_DXT3;
-            data_size = xvr.width * xvr.height;
-            break;
-        default:
-            throw new Error(`Format ${xvr.format.join(", ")} not supported.`);
-    }
-
-    return new Texture(gfx, format, xvr.width, xvr.height, xvr.data.slice(0, data_size));
-}
 
 export function xvm_to_three_textures(xvm: Xvm): ThreeTexture[] {
     return xvm.textures.map(xvr_texture_to_three_texture);

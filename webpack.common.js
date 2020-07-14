@@ -17,10 +17,6 @@ module.exports = {
                 test: /\.(gif|jpg|png|svg|ttf)$/,
                 loader: "file-loader",
             },
-            {
-                test: /\.(vert|frag)$/,
-                loader: "raw-loader",
-            },
         ],
     },
     plugins: [
