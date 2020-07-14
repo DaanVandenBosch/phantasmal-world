@@ -66,7 +66,7 @@ export class ResultBuilder<T> {
     /**
      * Add a problem to the problems array and log it with {@link logger}.
      */
-    add_problem(severity: Severity, ui_message: string, message: string, cause?: any): this {
+    add_problem(severity: Severity, ui_message: string, message: string, cause?: unknown): this {
         this.logger.log(severity, message, cause);
         this.problems.push({ severity, ui_message });
         return this;

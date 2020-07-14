@@ -85,7 +85,7 @@ export function filename_extension(filename: string): string {
     return filename;
 }
 
-export function assert(condition: any, msg?: string | (() => string)): asserts condition {
+export function assert(condition: unknown, msg?: string | (() => string)): asserts condition {
     if (!condition) {
         let full_msg = "Assertion Error";
 

@@ -18,6 +18,6 @@ export interface Property<T> extends Observable<T> {
     flat_map<U>(transform: (value: T) => Property<U>): Property<U>;
 }
 
-export function is_property<T>(observable: any): observable is Property<T> {
-    return observable != undefined && observable.is_property;
+export function is_property<T>(observable: unknown): observable is Property<T> {
+    return observable != undefined && (observable as any).is_property;
 }

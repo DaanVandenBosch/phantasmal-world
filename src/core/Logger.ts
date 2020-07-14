@@ -79,27 +79,27 @@ export class Logger {
 
     constructor(readonly name: string) {}
 
-    trace = (message: string, cause?: any): void => {
+    trace = (message: string, cause?: unknown): void => {
         this.log(Severity.Trace, message, cause);
     };
 
-    debug = (message: string, cause?: any): void => {
+    debug = (message: string, cause?: unknown): void => {
         this.log(Severity.Debug, message, cause);
     };
 
-    info = (message: string, cause?: any): void => {
+    info = (message: string, cause?: unknown): void => {
         this.log(Severity.Info, message, cause);
     };
 
-    warn = (message: string, cause?: any): void => {
+    warn = (message: string, cause?: unknown): void => {
         this.log(Severity.Warning, message, cause);
     };
 
-    error = (message: string, cause?: any): void => {
+    error = (message: string, cause?: unknown): void => {
         this.log(Severity.Error, message, cause);
     };
 
-    log(severity: Severity, message: string, cause?: any): void {
+    log(severity: Severity, message: string, cause?: unknown): void {
         if (severity >= this.severity) {
             this.handler({ time: new Date(), message, severity, logger: this, cause }, this.name);
         }

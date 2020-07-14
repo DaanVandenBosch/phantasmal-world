@@ -117,7 +117,7 @@ export type Arg = {
     readonly value: any;
 };
 
-export function new_arg(value: any): Arg {
+export function new_arg(value: unknown): Arg {
     return { value };
 }
 

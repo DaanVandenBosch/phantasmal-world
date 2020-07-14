@@ -4,14 +4,14 @@
     "private": true,
     "license": "MIT",
     "dependencies": {
-        "camera-controls": "^1.21.0",
+        "camera-controls": "^1.22.1",
         "core-js": "^3.6.5",
         "golden-layout": "^1.5.9",
         "javascript-lp-solver": "0.4.17",
-        "lodash": "^4.17.15",
-        "luxon": "^1.23.0",
+        "lodash": "^4.17.19",
+        "luxon": "^1.24.1",
         "monaco-editor": "^0.20.0",
-        "three": "^0.115.0"
+        "three": "^0.118.3"
     },
     "optionalDependencies": {
         "prs-rs": "file:src/core/data_formats/compression/prs/pkg"
@@ -33,11 +33,11 @@
         "@fortawesome/fontawesome-free": "^5.13.1",
         "@types/cheerio": "^0.22.21",
         "@types/jest": "^26.0.4",
-        "@types/lodash": "^4.14.150",
-        "@types/luxon": "^1.22.0",
+        "@types/lodash": "^4.14.157",
+        "@types/luxon": "^1.24.1",
         "@types/node-fetch": "^2.5.7",
-        "@typescript-eslint/eslint-plugin": "^2.29.0",
-        "@typescript-eslint/parser": "^2.29.0",
+        "@typescript-eslint/eslint-plugin": "^3.6.1",
+        "@typescript-eslint/parser": "^3.6.1",
         "@webgpu/glslang": "^0.0.15",
         "@webgpu/types": "^0.0.27",
         "cheerio": "^1.0.0-rc.3",
@@ -45,9 +45,9 @@
         "copy-webpack-plugin": "^6.0.3",
         "css-loader": "^3.6.0",
         "dotenv-webpack": "^2.0.0",
-        "eslint": "^6.8.0",
+        "eslint": "^7.4.0",
         "eslint-config-prettier": "^6.11.0",
-        "eslint-plugin-prettier": "^3.1.3",
+        "eslint-plugin-prettier": "^3.1.4",
         "file-loader": "^6.0.0",
         "fork-ts-checker-webpack-plugin": "^5.0.7",
         "html-webpack-plugin": "^4.3.0",
@@ -61,14 +61,14 @@
         "raw-loader": "^4.0.1",
         "terser-webpack-plugin": "^2.3.7",
         "ts-jest": "^26.1.2",
-        "ts-loader": "^7.0.5",
-        "ts-node": "^8.9.0",
+        "ts-loader": "^8.0.0",
+        "ts-node": "^8.10.2",
         "typescript": "^3.9.6",
         "webpack": "^4.43.0",
         "webpack-cli": "^3.3.12",
         "webpack-dev-server": "^3.11.0",
         "webpack-merge": "^5.0.9",
         "worker-loader": "^2.0.0",
-        "yaml": "^1.9.2"
+        "yaml": "^1.10.0"
     }
 }

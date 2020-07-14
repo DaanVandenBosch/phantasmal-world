@@ -45,7 +45,7 @@ test("After changing section, world position should change accordingly.", () => 
 function create_entity(): QuestEntityModel {
     return new QuestNpcModel(
         NpcType.AlRappy,
-        npc_data(NpcType.AlRappy).pso_type_id!!,
+        npc_data(NpcType.AlRappy).pso_type_id!,
         1,
         undefined,
         0,

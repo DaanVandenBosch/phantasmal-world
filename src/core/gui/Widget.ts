@@ -135,6 +135,7 @@ export abstract class Widget implements Disposable {
      * constructor. When this method is called, we can refer to abstract properties that are
      * provided by subclasses.
      */
+    // eslint-disable-next-line @typescript-eslint/ban-types
     protected finalize_construction(klass: Function): void {
         if (Object.getPrototypeOf(this) !== klass.prototype) return;
 

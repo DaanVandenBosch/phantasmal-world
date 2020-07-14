@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function enum_values<E>(e: any): E[] {
     const values = Object.values(e);
     const number_values = values.filter(v => typeof v === "number");
@@ -9,6 +10,7 @@ export function enum_values<E>(e: any): E[] {
     }
 }
 
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function string_to_enum<E>(e: any, str: string): E | undefined {
     if (str === "") return undefined;
 

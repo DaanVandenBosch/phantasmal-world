@@ -4,11 +4,11 @@ import { LogManager } from "../Logger";
 const logger = LogManager.get("core/persistence/Persister");
 
 export abstract class Persister {
-    protected persist_for_server(server: Server, key: string, data: any): void {
+    protected persist_for_server(server: Server, key: string, data: unknown): void {
         this.persist(this.server_key(server, key), data);
     }
 
-    protected persist(key: string, data: any): void {
+    protected persist(key: string, data: unknown): void {
         try {
             localStorage.setItem(key, JSON.stringify(data));
         } catch (e) {
