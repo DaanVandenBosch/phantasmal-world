@@ -65,33 +65,22 @@ export class QuestEditorUiPersister extends Persister {
             return undefined;
         }
 
-        switch (config.type) {
-            case "component":
-                {
-                    // Remove corrupted components.
-                    if (!("componentName" in config)) {
-                        return undefined;
-                    }
+        if (config.type === "component") {
+            // Remove corrupted components.
+            if (!("componentName" in config)) {
+                return undefined;
+            }
 
-                    const component = components.get(config.componentName);
+            const component = components.get(config.componentName);
 
-                    // Remove deprecated components.
-                    if (!component) {
-                        return undefined;
-                    }
+            // Remove deprecated components.
+            if (!component) {
+                return undefined;
+            }
 
-                    found.add(config.componentName);
-                    config.id = component.id;
-                    config.title = component.title;
-                }
-                break;
-
-            case "stack":
-                // Remove empty stacks.
-                if (config.content == undefined || config.content.length === 0) {
-                    return undefined;
-                }
-                break;
+            found.add(config.componentName);
+            config.id = component.id;
+            config.title = component.title;
         }
 
         // Sanitize child items.
@@ -99,6 +88,17 @@ export class QuestEditorUiPersister extends Persister {
             config.content = config.content
                 .map(child => this.sanitize_layout_child(child, components, found))
                 .filter(item => item) as ItemConfigType[];
+        }
+
+        // Remove empty containers.
+        switch (config.type) {
+            case "row":
+            case "column":
+            case "stack":
+                if (config.content == undefined || config.content.length === 0) {
+                    return undefined;
+                }
+                break;
         }
 
         // Remove corrupted activeItemIndex properties.
