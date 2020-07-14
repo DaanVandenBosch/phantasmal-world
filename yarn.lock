@@ -934,10 +934,10 @@
   resolved "https://registry.yarnpkg.com/@webgpu/glslang/-/glslang-0.0.15.tgz#f5ccaf6015241e6175f4b90906b053f88483d1f2"
   integrity sha512-niT+Prh3Aff8Uf1MVBVUsaNjFj9rJAKDXuoHIKiQbB+6IUP/3J3JIhBNyZ7lDhytvXxw6ppgnwKZdDJ08UMj4Q==
 
-"@webgpu/types@^0.0.24":
-  version "0.0.24"
-  resolved "https://registry.yarnpkg.com/@webgpu/types/-/types-0.0.24.tgz#c1952a0f09416b90df10b7abea069a00e4be4452"
-  integrity sha512-g3axpnE8h42vzcl9Zi8jBjht9ts4Y2E8AI0DTktwsRh4yiIg+OmVjn49Kp/5atsAmsbAGNtROgrOj/lyxkftsA==
+"@webgpu/types@^0.0.27":
+  version "0.0.27"
+  resolved "https://registry.yarnpkg.com/@webgpu/types/-/types-0.0.27.tgz#ce3b39f496109fc22dc22786ca5724f52c68d9e0"
+  integrity sha512-z1laHQvErLFM9nQSxfRuRetMk8iahidOdVQEdHWG9OjMKvXhHk6WnC98En0Bk0pWLQBvhiP1SGg3oHVlnKRucw==
 
 "@xtuc/ieee754@^1.2.0":
   version "1.2.0"
@@ -8001,10 +8001,10 @@ typedarray@^0.0.6:
   resolved "https://registry.yarnpkg.com/typedarray/-/typedarray-0.0.6.tgz#867ac74e3864187b1d3d47d996a78ec5c8830777"
   integrity sha1-hnrHTjhkGHsdPUfZlqeOxciDB3c=
 
-typescript@^3.8.3:
-  version "3.8.3"
-  resolved "https://registry.yarnpkg.com/typescript/-/typescript-3.8.3.tgz#409eb8544ea0335711205869ec458ab109ee1061"
-  integrity sha512-MYlEfn5VrLNsgudQTVJeNaQFUAI7DkhnOjdpAp4T+ku1TfQClewlbSuTVHiA+8skNBgaf02TL/kLOvig4y3G8w==
+typescript@^3.9.6:
+  version "3.9.6"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-3.9.6.tgz#8f3e0198a34c3ae17091b35571d3afd31999365a"
+  integrity sha512-Pspx3oKAPJtjNwE92YS05HQoY7z2SFyOpHo9MqJor3BXAGNaPUs83CuVp9VISFkSjyRfiTpmKuAYGJB7S7hOxw==
 
 union-value@^1.0.0:
   version "1.0.1"
