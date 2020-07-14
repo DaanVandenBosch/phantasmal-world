@@ -61,7 +61,7 @@ export class EventView extends View {
             table(
                 tr(th("ID:"), td(event.id.toString())),
                 tr(th("Section:"), td(event.section_id.toString())),
-                tr(th("Wave:"), td(wave_node as Node)),
+                tr(th("Wave:"), td(undefined, wave_node)),
                 tr(th("Delay:"), td(this.delay_input.element)),
                 tr(th({ colSpan: 2 }, "Actions:")),
                 tr(td({ colSpan: 2 }, action_table)),
@@ -116,7 +116,7 @@ export class EventView extends View {
     ): [HTMLTableRowElement, Disposer] => {
         const disposer = new Disposer();
         let label: string;
-        let node: Node;
+        let node: HTMLElement;
 
         if (action.type === QuestEventActionType.SpawnNpcs) {
             label = "Spawn:";
