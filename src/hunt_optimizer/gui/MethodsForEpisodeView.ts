@@ -151,7 +151,7 @@ export class MethodsForEpisodeView extends ResizableView {
             ),
         );
 
-        this.finalize_construction();
+        this.finalize_construction(MethodsForEpisodeView);
     }
 
     dispose(): void {

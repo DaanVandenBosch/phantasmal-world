@@ -48,7 +48,7 @@ export class CharacterClassSelectionView<T extends { name: string }> extends Res
             ),
         );
 
-        this.finalize_construction();
+        this.finalize_construction(CharacterClassSelectionView);
     }
 
     private list_click = (e: MouseEvent): void => {

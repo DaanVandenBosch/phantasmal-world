@@ -18,14 +18,14 @@ export class TextureView extends ResizableView {
 
     private readonly tool_bar = this.add(new ToolBar(this.open_file_button));
 
-    private readonly renderer_view: RendererWidget;
+    private readonly renderer_widget: RendererWidget;
 
     constructor(ctrl: TextureController, renderer: Renderer) {
         super();
 
-        this.renderer_view = this.add(new RendererWidget(renderer));
+        this.renderer_widget = this.add(new RendererWidget(renderer));
 
-        this.element.append(this.tool_bar.element, this.renderer_view.element);
+        this.element.append(this.tool_bar.element, this.renderer_widget.element);
 
         const dialog = this.disposable(
             new ResultDialog({
@@ -46,23 +46,13 @@ export class TextureView extends ResizableView {
             dialog.ondismiss.observe(ctrl.dismiss_result_dialog),
         );
 
-        this.finalize_construction();
-    }
-
-    activate(): void {
-        this.renderer_view.start_rendering();
-        super.activate();
-    }
-
-    deactivate(): void {
-        super.deactivate();
-        this.renderer_view.stop_rendering();
+        this.finalize_construction(TextureView);
     }
 
     resize(width: number, height: number): this {
         super.resize(width, height);
 
-        this.renderer_view.resize(width, Math.max(0, height - this.tool_bar.height));
+        this.renderer_widget.resize(width, Math.max(0, height - this.tool_bar.height));
 
         return this;
     }

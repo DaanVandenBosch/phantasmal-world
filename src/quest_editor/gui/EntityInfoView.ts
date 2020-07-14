@@ -88,7 +88,7 @@ export class EntityInfoView extends ResizableView {
             this.enabled.bind_to(ctrl.enabled),
         );
 
-        this.finalize_construction();
+        this.finalize_construction(EntityInfoView);
     }
 
     protected set_enabled(enabled: boolean): void {

@@ -84,7 +84,7 @@ export class WantedItemsView extends View {
             ),
         );
 
-        this.finalize_construction();
+        this.finalize_construction(WantedItemsView);
     }
 
     private create_row = (wanted_item: WantedItemModel): [HTMLTableRowElement, Disposable] => {

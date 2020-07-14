@@ -186,7 +186,7 @@ export class QuestEditorView extends ResizableView {
             }),
         );
 
-        this.finalize_construction();
+        this.finalize_construction(QuestEditorView);
     }
 
     activate(): void {

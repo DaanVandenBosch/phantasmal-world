@@ -61,7 +61,7 @@ export class Button extends Control {
 
         this.element.append(inner_element);
 
-        this.finalize_construction();
+        this.finalize_construction(Button);
     }
 
     protected set_enabled(enabled: boolean): void {

@@ -172,6 +172,6 @@ export class QuestEditorToolBarView extends View {
             dialog.ondismiss.observe(ctrl.dismiss_result_dialog),
         );
 
-        this.finalize_construction();
+        this.finalize_construction(QuestEditorToolBarView);
     }
 }

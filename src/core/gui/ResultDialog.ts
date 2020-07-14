@@ -54,7 +54,7 @@ export class ResultDialog extends Dialog {
             result.observe(({ value }) => this.result_changed(value), { call_now: true }),
         );
 
-        this.finalize_construction();
+        this.finalize_construction(ResultDialog);
     }
 
     private result_changed(result?: Result<unknown>): void {

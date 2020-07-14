@@ -30,5 +30,4 @@ test("Renders correctly.", () =>
         );
 
         expect(view.element).toMatchSnapshot();
-    })
-);
+    }));

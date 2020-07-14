@@ -97,7 +97,7 @@ export class Dialog extends ResizableWidget {
         this.overlay_element = div({ className: "core_Dialog_modal_overlay", tabIndex: -1 });
         this.overlay_element.addEventListener("focus", () => this.focus());
 
-        this.finalize_construction();
+        this.finalize_construction(Dialog);
     }
 
     dispose(): void {

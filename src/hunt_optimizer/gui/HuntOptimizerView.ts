@@ -56,7 +56,7 @@ export class HuntOptimizerView extends ResizableView {
             }),
         );
 
-        this.finalize_construction();
+        this.finalize_construction(HuntOptimizerView);
     }
 
     resize(width: number, height: number): void {

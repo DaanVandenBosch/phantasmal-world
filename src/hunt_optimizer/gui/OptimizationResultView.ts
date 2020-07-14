@@ -53,7 +53,7 @@ export class OptimizationResultView extends View {
             ),
         );
 
-        this.finalize_construction();
+        this.finalize_construction(OptimizationResultView);
     }
 
     private update_table(result?: OptimalResultModel): void {

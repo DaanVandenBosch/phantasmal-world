@@ -30,6 +30,6 @@ export class QuestRunnerRendererView extends QuestRendererView {
 
         this.renderer.init_camera_controls();
 
-        this.finalize_construction();
+        this.finalize_construction(QuestRunnerRendererView);
     }
 }

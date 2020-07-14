@@ -127,7 +127,7 @@ export class DebugView extends ResizableView {
             ),
         );
 
-        this.finalize_construction();
+        this.finalize_construction(DebugView);
     }
 
     private scrolled = (): void => {

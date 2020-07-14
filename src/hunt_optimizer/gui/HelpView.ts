@@ -19,6 +19,6 @@ export class HelpView extends ResizableView {
 
     constructor() {
         super();
-        this.finalize_construction();
+        this.finalize_construction(HelpView);
     }
 }

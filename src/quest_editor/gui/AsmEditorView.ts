@@ -215,7 +215,7 @@ export class AsmEditorView extends ResizableView {
             this.enabled.bind_to(quest_runner.running.map(r => !r)),
         );
 
-        this.finalize_construction();
+        this.finalize_construction(AsmEditorView);
     }
 
     focus(): void {

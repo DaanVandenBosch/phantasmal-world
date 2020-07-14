@@ -24,7 +24,7 @@ export class NavigationButton extends Control {
 
         this.element.append(this.input, this.label);
 
-        this.finalize_construction();
+        this.finalize_construction(NavigationButton);
     }
 
     set checked(checked: boolean) {

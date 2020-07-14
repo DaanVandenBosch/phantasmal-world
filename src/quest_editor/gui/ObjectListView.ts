@@ -21,7 +21,7 @@ export class ObjectListView extends EntityListView<ObjectType> {
         );
 
         this.filter_objects();
-        this.finalize_construction();
+        this.finalize_construction(ObjectListView);
     }
 
     private filter_objects = (): void => {

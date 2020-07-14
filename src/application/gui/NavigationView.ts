@@ -72,7 +72,7 @@ export class NavigationView extends View {
             }),
         );
 
-        this.finalize_construction();
+        this.finalize_construction(NavigationView);
     }
 
     private mousedown = (e: MouseEvent): void => {

@@ -36,7 +36,7 @@ export async function create_webgpu_renderer(
 
     const adapter = await window.navigator.gpu.requestAdapter();
     const device = await adapter.requestDevice({
-        extensions: ["textureCompressionBC"] as any as GPUExtensionName[],
+        extensions: (["textureCompressionBC"] as any) as GPUExtensionName[],
     });
     const shader_loader = new ShaderLoader(http_client);
 

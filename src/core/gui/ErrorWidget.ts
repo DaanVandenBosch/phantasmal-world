@@ -17,6 +17,6 @@ export class ErrorWidget extends ResizableWidget {
 
         this.element.append(this.label.element);
 
-        this.finalize_construction();
+        this.finalize_construction(ErrorWidget);
     }
 }

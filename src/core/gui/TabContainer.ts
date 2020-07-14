@@ -62,7 +62,7 @@ export class TabContainer extends ResizableWidget {
 
         this.element.append(this.bar_element, this.panes_element);
 
-        this.finalize_construction();
+        this.finalize_construction(TabContainer);
     }
 
     resize(width: number, height: number): this {

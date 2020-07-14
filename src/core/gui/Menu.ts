@@ -66,7 +66,7 @@ export class Menu<T> extends Widget {
             disposable_listener(document, "keydown", this.document_keydown),
         );
 
-        this.finalize_construction();
+        this.finalize_construction(Menu);
     }
 
     focus(): void {

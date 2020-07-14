@@ -25,6 +25,6 @@ export class FileButton extends Button {
             }),
         );
 
-        this.finalize_construction();
+        this.finalize_construction(FileButton);
     }
 }

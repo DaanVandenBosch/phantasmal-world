@@ -94,7 +94,7 @@ export class QuestInfoView extends ResizableView {
             }),
         );
 
-        this.finalize_construction();
+        this.finalize_construction(QuestInfoView);
     }
 
     protected set_enabled(enabled: boolean): void {

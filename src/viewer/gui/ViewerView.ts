@@ -38,7 +38,7 @@ export class ViewerView extends ResizableView {
             }),
         );
 
-        this.finalize_construction();
+        this.finalize_construction(ViewerView);
     }
 
     resize(width: number, height: number): void {

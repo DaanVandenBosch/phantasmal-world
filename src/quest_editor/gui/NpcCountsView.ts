@@ -24,7 +24,7 @@ export class NpcCountsView extends ResizableView {
             ctrl.npc_counts.observe(({ value }) => this.update_view(value), { call_now: true }),
         );
 
-        this.finalize_construction();
+        this.finalize_construction(NpcCountsView);
     }
 
     private update_view(npcs: readonly NameWithCount[]): void {

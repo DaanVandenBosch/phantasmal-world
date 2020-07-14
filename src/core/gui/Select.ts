@@ -75,7 +75,7 @@ export class Select<T> extends LabelledControl {
             }
         }
 
-        this.finalize_construction();
+        this.finalize_construction(Select);
     }
 
     protected set_enabled(enabled: boolean): void {

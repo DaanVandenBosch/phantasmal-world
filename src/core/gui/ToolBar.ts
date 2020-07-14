@@ -37,7 +37,7 @@ export class ToolBar extends Widget {
             }
         }
 
-        this.finalize_construction();
+        this.finalize_construction(ToolBar);
     }
 
     protected set_enabled(enabled: boolean): void {

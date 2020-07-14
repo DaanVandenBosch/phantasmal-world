@@ -47,6 +47,6 @@ export class LazyWidget extends ResizableWidget {
             });
         }
 
-        this.finalize_construction();
+        this.finalize_construction(LazyWidget);
     }
 }

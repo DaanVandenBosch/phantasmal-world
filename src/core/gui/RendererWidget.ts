@@ -14,14 +14,16 @@ export class RendererWidget extends ResizableWidget {
 
         this.disposable(renderer);
 
-        this.finalize_construction();
+        this.finalize_construction(RendererWidget);
     }
 
-    start_rendering(): void {
+    activate(): void {
         this.renderer.start_rendering();
+        super.activate();
     }
 
-    stop_rendering(): void {
+    deactivate(): void {
+        super.deactivate();
         this.renderer.stop_rendering();
     }
 

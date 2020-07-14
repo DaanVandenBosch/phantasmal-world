@@ -99,6 +99,6 @@ export class ModelToolBarView extends View {
             animation_frame_count_label.enabled.bind_to(enabled),
         );
 
-        this.finalize_construction();
+        this.finalize_construction(ModelToolBarView);
     }
 }

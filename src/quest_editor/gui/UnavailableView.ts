@@ -18,6 +18,6 @@ export class UnavailableView extends View {
 
         this.element.append(this.label.element);
 
-        this.finalize_construction();
+        this.finalize_construction(UnavailableView);
     }
 }

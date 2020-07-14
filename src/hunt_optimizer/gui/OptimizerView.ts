@@ -17,6 +17,6 @@ export class OptimizerView extends ResizableView {
             this.add(new OptimizationResultView(hunt_optimizer_stores)).element,
         );
 
-        this.finalize_construction();
+        this.finalize_construction(OptimizerView);
     }
 }

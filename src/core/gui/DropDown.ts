@@ -66,7 +66,7 @@ export class DropDown<T> extends Control {
             }),
         );
 
-        this.finalize_construction();
+        this.finalize_construction(DropDown);
     }
 
     protected set_enabled(enabled: boolean): void {

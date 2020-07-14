@@ -135,8 +135,8 @@ export abstract class Widget implements Disposable {
      * constructor. When this method is called, we can refer to abstract properties that are
      * provided by subclasses.
      */
-    protected finalize_construction(): void {
-        if (Object.getPrototypeOf(this) !== this.constructor.prototype) return;
+    protected finalize_construction(klass: Function): void {
+        if (Object.getPrototypeOf(this) !== klass.prototype) return;
 
         // At this point we know `this.element` is initialized.
         if (this.options.id) {

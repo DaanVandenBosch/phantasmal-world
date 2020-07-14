@@ -7,7 +7,7 @@ import pos_tex_frag_shader_source from "./pos_tex.frag";
 import { GfxRenderer } from "../GfxRenderer";
 import { WebglGfx, WebglMesh } from "./WebglGfx";
 import { Projection } from "../Camera";
-import { VertexFormat, VertexFormatType } from "../VertexFormat";
+import { VertexFormatType } from "../VertexFormat";
 import { SceneNode } from "../Scene";
 
 export class WebglRenderer extends GfxRenderer {

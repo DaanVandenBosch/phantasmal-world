@@ -131,7 +131,7 @@ export class ComboBox<T> extends LabelledControl {
             bind_attr(down_arrow_element, "hidden", this.menu.visible),
         );
 
-        this.finalize_construction();
+        this.finalize_construction(ComboBox);
     }
 
     protected set_enabled(enabled: boolean): void {

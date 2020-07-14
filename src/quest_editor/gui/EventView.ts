@@ -103,7 +103,7 @@ export class EventView extends View {
             add_action_dropdown.chosen.observe(({ value }) => ctrl.add_action(event, value)),
         );
 
-        this.finalize_construction();
+        this.finalize_construction(EventView);
     }
 
     protected set_enabled(enabled: boolean): void {

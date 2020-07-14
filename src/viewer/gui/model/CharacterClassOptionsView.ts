@@ -45,6 +45,6 @@ export class CharacterClassOptionsView extends ResizableView {
             body_select.selected.observe(({ value }) => ctrl.set_current_body(value)),
         );
 
-        this.finalize_construction();
+        this.finalize_construction(CharacterClassOptionsView);
     }
 }

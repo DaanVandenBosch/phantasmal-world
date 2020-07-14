@@ -26,7 +26,7 @@ export class MainContentView extends ResizableView {
             gui_store.tool.observe(({ value }) => this.set_current_tool(value), { call_now: true }),
         );
 
-        this.finalize_construction();
+        this.finalize_construction(MainContentView);
     }
 
     resize(width: number, height: number): this {

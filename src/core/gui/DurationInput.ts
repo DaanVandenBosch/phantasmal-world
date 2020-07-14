@@ -14,7 +14,7 @@ export class DurationInput extends Input<Duration> {
 
         this.set_value(value);
 
-        this.finalize_construction();
+        this.finalize_construction(DurationInput);
     }
 
     protected get_value(): Duration {

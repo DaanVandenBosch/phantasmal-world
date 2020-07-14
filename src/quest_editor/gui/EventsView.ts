@@ -72,7 +72,7 @@ export class EventsView extends ResizableView {
             }),
         );
 
-        this.finalize_construction();
+        this.finalize_construction(EventsView);
     }
 
     dispose(): void {

@@ -26,7 +26,7 @@ export class ApplicationView extends ResizableView {
         this.add(navigation_view);
         this.add(main_content_view);
 
-        this.finalize_construction();
+        this.finalize_construction(ApplicationView);
     }
 
     resize(width: number, height: number): this {

@@ -20,7 +20,7 @@ export class ModelView extends ResizableView {
     private tool_bar_view: ModelToolBarView;
     private character_class_selection_view: CharacterClassSelectionView<CharacterClassModel>;
     private options_view: CharacterClassOptionsView;
-    private renderer_view: RendererWidget;
+    private renderer_widget: RendererWidget;
     private animation_selection_view: CharacterClassSelectionView<CharacterClassAnimationModel>;
 
     constructor(
@@ -41,7 +41,7 @@ export class ModelView extends ResizableView {
             ),
         );
         this.options_view = this.add(options_view);
-        this.renderer_view = this.add(new RendererWidget(renderer));
+        this.renderer_widget = this.add(new RendererWidget(renderer));
         this.animation_selection_view = this.add(
             new CharacterClassSelectionView(
                 ctrl.animations,
@@ -57,22 +57,12 @@ export class ModelView extends ResizableView {
                 { className: "viewer_model_ModelView_container" },
                 this.character_class_selection_view.element,
                 this.options_view.element,
-                this.renderer_view.element,
+                this.renderer_widget.element,
                 this.animation_selection_view.element,
             ),
         );
 
-        this.finalize_construction();
-    }
-
-    activate(): void {
-        this.renderer_view.start_rendering();
-        super.activate();
-    }
-
-    deactivate(): void {
-        super.deactivate();
-        this.renderer_view.stop_rendering();
+        this.finalize_construction(ModelView);
     }
 
     resize(width: number, height: number): this {
@@ -85,7 +75,7 @@ export class ModelView extends ResizableView {
             container_height,
         );
         this.options_view.resize(CHARACTER_CLASS_OPTIONS_WIDTH, container_height);
-        this.renderer_view.resize(
+        this.renderer_widget.resize(
             Math.max(
                 0,
                 width -

@@ -73,7 +73,7 @@ export class EventSubGraphView extends View {
             }),
         );
 
-        this.finalize_construction();
+        this.finalize_construction(EventSubGraphView);
     }
 
     protected set_enabled(enabled: boolean): void {
