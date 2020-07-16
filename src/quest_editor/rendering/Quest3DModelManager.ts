@@ -6,9 +6,9 @@ import { Disposable } from "../../core/observable/Disposable";
 import { create_entity_mesh } from "./conversion/entities";
 import { AreaUserData } from "./conversion/areas";
 import {
+    ListChangeEvent,
     ListChangeType,
     ListProperty,
-    ListChangeEvent,
 } from "../../core/observable/property/list/ListProperty";
 import { QuestNpcModel } from "../model/QuestNpcModel";
 import { QuestObjectModel } from "../model/QuestObjectModel";

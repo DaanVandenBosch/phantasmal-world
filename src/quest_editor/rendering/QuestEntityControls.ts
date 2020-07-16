@@ -23,6 +23,7 @@ import { CreateEntityAction } from "../actions/CreateEntityAction";
 import { RotateEntityAction } from "../actions/RotateEntityAction";
 import { RemoveEntityAction } from "../actions/RemoveEntityAction";
 import { TranslateEntityAction } from "../actions/TranslateEntityAction";
+import { Object3D } from "three/src/core/Object3D";
 
 const ZERO_VECTOR = Object.freeze(new Vector3(0, 0, 0));
 const UP_VECTOR = Object.freeze(new Vector3(0, 1, 0));
@@ -430,7 +431,10 @@ class IdleState implements State {
     private pick_entity(pointer_position: Vector2): Pick | undefined {
         // Find the nearest object and NPC under the pointer.
         raycaster.setFromCamera(pointer_position, this.renderer.camera);
-        const [intersection] = raycaster.intersectObjects(this.renderer.entity_models.children);
+        const intersection = pick_nearest_visible_object(
+            raycaster,
+            this.renderer.entity_models.children,
+        );
 
         if (!intersection) {
             return undefined;
@@ -969,3 +973,29 @@ function pick_ground(
 
     return {};
 }
+
+const pick_nearest_visible_object = (() => {
+    const intersections: Intersection[] = [];
+
+    return (raycaster: Raycaster, objects: Object3D[]): Intersection | undefined => {
+        let intersection: Intersection | undefined = undefined;
+
+        for (let i = objects.length - 1; i >= 0; i--) {
+            const object = objects[i];
+            if (!object.visible) continue;
+
+            intersections.splice(0);
+            raycaster.intersectObject(object, false, intersections);
+
+            if (!intersections.length) continue;
+
+            const [new_intersection] = intersections;
+
+            if (!intersection || new_intersection.distance < intersection.distance) {
+                intersection = new_intersection;
+            }
+        }
+
+        return intersection;
+    };
+})();
