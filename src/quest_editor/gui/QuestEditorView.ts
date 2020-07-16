@@ -55,7 +55,6 @@ export class QuestEditorView extends ResizableView {
 
     private readonly layout_element = div({ className: "quest_editor_gl_container" });
     private readonly layout: Promise<GoldenLayout>;
-    private loaded_layout: GoldenLayout | undefined;
 
     private readonly sub_views = new Map<string, Widget & Resizable>();
 
@@ -144,8 +143,6 @@ export class QuestEditorView extends ResizableView {
         this.element.append(this.tool_bar.element, this.layout_element);
 
         this.layout = this.init_golden_layout();
-
-        this.layout.then(layout => (this.loaded_layout = layout));
 
         this.disposables(
             gui_store.on_global_keydown(
