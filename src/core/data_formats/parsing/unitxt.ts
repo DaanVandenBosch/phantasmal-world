@@ -1,5 +1,5 @@
 import { prs_decompress } from "../compression/prs/decompress";
-import { Cursor } from "../cursor/Cursor";
+import { Cursor } from "../block/cursor/Cursor";
 
 export type Unitxt = string[][];
 

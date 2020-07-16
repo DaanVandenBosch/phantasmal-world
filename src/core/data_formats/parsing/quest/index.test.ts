@@ -1,8 +1,8 @@
 import { readFileSync } from "fs";
-import { Endianness } from "../../Endianness";
+import { Endianness } from "../../block/Endianness";
 import { walk_qst_files } from "../../../../../test/src/utils";
-import { ArrayBufferCursor } from "../../cursor/ArrayBufferCursor";
-import { BufferCursor } from "../../cursor/BufferCursor";
+import { ArrayBufferCursor } from "../../block/cursor/ArrayBufferCursor";
+import { BufferCursor } from "../../block/cursor/BufferCursor";
 import { parse_qst_to_quest, write_quest_qst } from "./index";
 import { ObjectType } from "./object_types";
 import {

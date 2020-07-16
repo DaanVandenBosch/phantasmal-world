@@ -1,8 +1,8 @@
 import { readFileSync } from "fs";
-import { Endianness } from "../../core/data_formats/Endianness";
+import { Endianness } from "../../core/data_formats/block/Endianness";
 import { prs_decompress } from "../../core/data_formats/compression/prs/decompress";
-import { ArrayBufferCursor } from "../../core/data_formats/cursor/ArrayBufferCursor";
-import { BufferCursor } from "../../core/data_formats/cursor/BufferCursor";
+import { ArrayBufferCursor } from "../../core/data_formats/block/cursor/ArrayBufferCursor";
+import { BufferCursor } from "../../core/data_formats/block/cursor/BufferCursor";
 import { parse_bin, write_bin } from "../../core/data_formats/parsing/quest/bin";
 import { assemble } from "./assembly";
 import { disassemble } from "./disassembly";

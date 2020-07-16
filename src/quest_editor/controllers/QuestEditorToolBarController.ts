@@ -15,8 +15,8 @@ import {
     Quest,
     write_quest_qst,
 } from "../../core/data_formats/parsing/quest";
-import { ArrayBufferCursor } from "../../core/data_formats/cursor/ArrayBufferCursor";
-import { Endianness } from "../../core/data_formats/Endianness";
+import { ArrayBufferCursor } from "../../core/data_formats/block/cursor/ArrayBufferCursor";
+import { Endianness } from "../../core/data_formats/block/Endianness";
 import { convert_quest_from_model, convert_quest_to_model } from "../stores/model_conversion";
 import { LogManager } from "../../core/Logger";
 import { basename } from "../../core/util";

@@ -1,8 +1,7 @@
 import { Endianness } from "../Endianness";
-import { AbstractCursor } from "./AbstractCursor";
-import { Cursor } from "./Cursor";
+import { AbstractArrayBufferCursor } from "./AbstractArrayBufferCursor";
 
-export class BufferCursor extends AbstractCursor implements Cursor {
+export class BufferCursor extends AbstractArrayBufferCursor {
     readonly size: number;
 
     protected buffer: Buffer;

@@ -1,7 +1,7 @@
-import { Endianness } from "../../Endianness";
-import { Cursor } from "../../cursor/Cursor";
+import { Endianness } from "../../block/Endianness";
+import { Cursor } from "../../block/cursor/Cursor";
 import { LogManager } from "../../../Logger";
-import { ArrayBufferCursor } from "../../cursor/ArrayBufferCursor";
+import { ArrayBufferCursor } from "../../block/cursor/ArrayBufferCursor";
 import { assert } from "../../../util";
 import { BinFormat } from "./BinFormat";
 

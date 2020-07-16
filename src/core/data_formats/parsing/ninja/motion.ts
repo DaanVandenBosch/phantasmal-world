@@ -1,5 +1,5 @@
 import { ANGLE_TO_RAD } from "./index";
-import { Cursor } from "../../cursor/Cursor";
+import { Cursor } from "../../block/cursor/Cursor";
 import { Vec3 } from "../../vector";
 
 const NMDM = 0x4d444d4e;

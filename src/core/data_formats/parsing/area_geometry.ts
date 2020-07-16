@@ -1,4 +1,4 @@
-import { Cursor } from "../cursor/Cursor";
+import { Cursor } from "../block/cursor/Cursor";
 import { Vec3 } from "../vector";
 import { ANGLE_TO_RAD, NjObject, parse_xj_object } from "./ninja";
 import { XjModel } from "./ninja/xj";

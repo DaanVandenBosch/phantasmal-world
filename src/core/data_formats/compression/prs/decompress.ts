@@ -1,7 +1,7 @@
-import { Cursor } from "../../cursor/Cursor";
-import { ResizableBufferCursor } from "../../cursor/ResizableBufferCursor";
-import { WritableCursor } from "../../cursor/WritableCursor";
-import { ResizableBuffer } from "../../ResizableBuffer";
+import { Cursor } from "../../block/cursor/Cursor";
+import { ResizableBlockCursor } from "../../block/cursor/ResizableBlockCursor";
+import { WritableCursor } from "../../block/cursor/WritableCursor";
+import { ResizableBlock } from "../../block/ResizableBlock";
 import { LogManager } from "../../../Logger";
 import { browser_supports_webassembly } from "../../../util";
 import { get_prs_wasm_module } from "./prs_wasm";
@@ -78,9 +78,8 @@ class Context {
 
     constructor(cursor: Cursor) {
         this.src = cursor;
-        this.dst = new ResizableBufferCursor(
-            new ResizableBuffer(Math.floor(1.5 * cursor.size)),
-            cursor.endianness,
+        this.dst = new ResizableBlockCursor(
+            new ResizableBlock(Math.floor(1.5 * cursor.size), cursor.endianness),
         );
         this.flags = 0;
         this.flag_bits_left = 0;

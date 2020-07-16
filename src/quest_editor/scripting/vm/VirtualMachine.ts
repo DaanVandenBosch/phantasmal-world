@@ -100,12 +100,12 @@ import {
 } from "./utils";
 import { DefaultVirtualMachineIO, VirtualMachineIO } from "./io";
 import { Episode } from "../../../core/data_formats/parsing/quest/Episode";
-import { Endianness } from "../../../core/data_formats/Endianness";
+import { Endianness } from "../../../core/data_formats/block/Endianness";
 import { Random } from "./Random";
-import { Memory } from "./Memory";
 import { InstructionPointer } from "./InstructionPointer";
 import { StepMode, Thread } from "./Thread";
 import { LogManager } from "../../../core/Logger";
+import { ArrayBufferBlock } from "../../../core/data_formats/block/ArrayBufferBlock";
 
 export const REGISTER_COUNT = 256;
 
@@ -172,7 +172,10 @@ export class VirtualMachine {
 
     // VM state.
 
-    private readonly registers = new Memory(REGISTER_COUNT * REGISTER_SIZE, Endianness.Little);
+    private readonly registers = new ArrayBufferBlock(
+        REGISTER_COUNT * REGISTER_SIZE,
+        Endianness.Little,
+    );
     private string_arg_store = "";
     private threads: Thread[] = [];
     private thread_idx = 0;
@@ -914,43 +917,43 @@ export class VirtualMachine {
     }
 
     public get_register_signed(reg: number): number {
-        return this.registers.i32_at(REGISTER_SIZE * reg);
+        return this.registers.get_i32(REGISTER_SIZE * reg);
     }
 
     private set_register_signed(reg: number, value: number): void {
-        this.registers.write_i32_at(REGISTER_SIZE * reg, value);
+        this.registers.set_i32(REGISTER_SIZE * reg, value);
     }
 
     public get_register_unsigned(reg: number): number {
-        return this.registers.u32_at(REGISTER_SIZE * reg);
+        return this.registers.get_u32(REGISTER_SIZE * reg);
     }
 
     private set_register_unsigned(reg: number, value: number): void {
-        this.registers.write_u32_at(REGISTER_SIZE * reg, value);
+        this.registers.set_u32(REGISTER_SIZE * reg, value);
     }
 
     public get_register_word(reg: number): number {
-        return this.registers.u16_at(REGISTER_SIZE * reg);
+        return this.registers.get_u16(REGISTER_SIZE * reg);
     }
 
     private set_register_word(reg: number, value: number): void {
-        this.registers.write_u16_at(REGISTER_SIZE * reg, value);
+        this.registers.set_u16(REGISTER_SIZE * reg, value);
     }
 
     public get_register_byte(reg: number): number {
-        return this.registers.u8_at(REGISTER_SIZE * reg);
+        return this.registers.get_u8(REGISTER_SIZE * reg);
     }
 
     public set_register_byte(reg: number, value: number): void {
-        this.registers.write_u8_at(REGISTER_SIZE * reg, value);
+        this.registers.set_u8(REGISTER_SIZE * reg, value);
     }
 
     public get_register_float(reg: number): number {
-        return this.registers.f32_at(REGISTER_SIZE * reg);
+        return this.registers.get_f32(REGISTER_SIZE * reg);
     }
 
     private set_register_float(reg: number, value: number): void {
-        this.registers.write_f32_at(REGISTER_SIZE * reg, value);
+        this.registers.set_f32(REGISTER_SIZE * reg, value);
     }
 
     private do_integer_op_with_register(
@@ -1137,7 +1140,7 @@ export class VirtualMachine {
         }
 
         if (address > 0 && address < REGISTER_COUNT * REGISTER_SIZE) {
-            return this.registers.string_utf16_at(address, REGISTER_COUNT * REGISTER_SIZE, true);
+            return this.registers.get_string_utf16(address, REGISTER_COUNT * REGISTER_SIZE, true);
         }
 
         throw new Error(`Failed to dereference string: Invalid address ${address}`);

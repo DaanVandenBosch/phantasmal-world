@@ -1,7 +1,7 @@
 import { parse_item_pmt } from "./itempmt";
 import { readFileSync } from "fs";
-import { BufferCursor } from "../cursor/BufferCursor";
-import { Endianness } from "../Endianness";
+import { BufferCursor } from "../block/cursor/BufferCursor";
+import { Endianness } from "../block/Endianness";
 
 test("parse_item_pmt", () => {
     const buf = readFileSync("test/resources/ItemPMT.bin");

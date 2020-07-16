@@ -3,9 +3,9 @@
  */
 
 import { browser_supports_webassembly } from "../../../util";
-import { Cursor } from "../../cursor/Cursor";
-import { ArrayBufferCursor } from "../../cursor/ArrayBufferCursor";
-import { Endianness } from "../../Endianness";
+import { Cursor } from "../../block/cursor/Cursor";
+import { ArrayBufferCursor } from "../../block/cursor/ArrayBufferCursor";
+import { Endianness } from "../../block/Endianness";
 
 type PrsRsModule = typeof import("prs-rs");
 

@@ -1,10 +1,10 @@
 import { Endianness } from "../Endianness";
-import { enum_values } from "../../enums";
-import { ResizableBuffer } from "../ResizableBuffer";
+import { enum_values } from "../../../enums";
+import { ResizableBlock } from "../ResizableBlock";
 import { ArrayBufferCursor } from "./ArrayBufferCursor";
 import { BufferCursor } from "./BufferCursor";
 import { Cursor } from "./Cursor";
-import { ResizableBufferCursor } from "./ResizableBufferCursor";
+import { ResizableBlockCursor } from "./ResizableBlockCursor";
 
 /**
  * Run a test on every cursor implementation with every endianness.
@@ -20,16 +20,12 @@ function test_all(
 ): void {
     const endiannesses = enum_values<Endianness>(Endianness);
 
-    function rbuf(endianness: Endianness): ResizableBuffer {
+    function block(endianness: Endianness): ResizableBlock {
         const byte_array = bytes(endianness);
-        const rbuf = new ResizableBuffer(byte_array.length);
-        rbuf.size = byte_array.length;
-
-        for (let i = 0; i < byte_array.length; i++) {
-            rbuf.view.setUint8(i, byte_array[i]);
-        }
-
-        return rbuf;
+        const block = new ResizableBlock(byte_array.length, endianness);
+        block.size = byte_array.length;
+        block.uint8_view(0, byte_array.length).set(byte_array);
+        return block;
     }
 
     const cursors: [string, Endianness, Cursor][] = [
@@ -44,9 +40,9 @@ function test_all(
             new BufferCursor(Buffer.from(bytes(endianness)), endianness),
         ]),
         ...endiannesses.map(endianness => [
-            ResizableBufferCursor.name,
+            ResizableBlockCursor.name,
             endianness,
-            new ResizableBufferCursor(rbuf(endianness), endianness),
+            new ResizableBlockCursor(block(endianness)),
         ]),
     ] as any;
 

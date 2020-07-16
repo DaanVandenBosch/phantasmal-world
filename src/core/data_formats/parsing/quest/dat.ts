@@ -1,12 +1,12 @@
 import { groupBy } from "lodash";
-import { Endianness } from "../../Endianness";
-import { Cursor } from "../../cursor/Cursor";
-import { ResizableBufferCursor } from "../../cursor/ResizableBufferCursor";
-import { ResizableBuffer } from "../../ResizableBuffer";
-import { Vec3 } from "../../vector";
-import { WritableCursor } from "../../cursor/WritableCursor";
+import { Endianness } from "../../block/Endianness";
+import { Cursor } from "../../block/cursor/Cursor";
+import { ResizableBlockCursor } from "../../block/cursor/ResizableBlockCursor";
+import { ResizableBlock } from "../../block/ResizableBlock";
+import { WritableCursor } from "../../block/cursor/WritableCursor";
 import { assert } from "../../../util";
 import { LogManager } from "../../../Logger";
+import { Vec3 } from "../../vector";
 
 const logger = LogManager.get("core/data_formats/parsing/quest/dat");
 
@@ -149,13 +149,14 @@ export function parse_dat(cursor: Cursor): DatFile {
     return { objs, npcs, events, unknowns };
 }
 
-export function write_dat({ objs, npcs, events, unknowns }: DatFile): ResizableBuffer {
-    const buffer = new ResizableBuffer(
+export function write_dat({ objs, npcs, events, unknowns }: DatFile): ResizableBlock {
+    const block = new ResizableBlock(
         objs.length * (16 + OBJECT_SIZE) +
             npcs.length * (16 + NPC_SIZE) +
             unknowns.reduce((a, b) => a + b.total_size, 0),
+        Endianness.Little,
     );
-    const cursor = new ResizableBufferCursor(buffer, Endianness.Little);
+    const cursor = new ResizableBlockCursor(block);
 
     write_objects(cursor, objs);
 
@@ -177,7 +178,7 @@ export function write_dat({ objs, npcs, events, unknowns }: DatFile): ResizableB
     cursor.write_u32(0);
     cursor.write_u32(0);
 
-    return buffer;
+    return block;
 }
 
 function parse_objects(cursor: Cursor, area_id: number, objs: DatObject[]): void {

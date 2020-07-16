@@ -1,4 +1,4 @@
-import { Cursor } from "../cursor/Cursor";
+import { Cursor } from "../block/cursor/Cursor";
 
 export type Rel = {
     data_offset: number;

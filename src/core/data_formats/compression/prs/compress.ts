@@ -1,8 +1,8 @@
-import { Endianness } from "../../Endianness";
-import { Cursor } from "../../cursor/Cursor";
-import { ResizableBufferCursor } from "../../cursor/ResizableBufferCursor";
-import { WritableCursor } from "../../cursor/WritableCursor";
-import { ResizableBuffer } from "../../ResizableBuffer";
+import { Endianness } from "../../block/Endianness";
+import { Cursor } from "../../block/cursor/Cursor";
+import { ResizableBlockCursor } from "../../block/cursor/ResizableBlockCursor";
+import { WritableCursor } from "../../block/cursor/WritableCursor";
+import { ResizableBlock } from "../../block/ResizableBlock";
 import { browser_supports_webassembly } from "../../../util";
 import { get_prs_wasm_module } from "./prs_wasm";
 
@@ -29,22 +29,33 @@ export function prs_compress_js(cursor: Cursor): Cursor {
         const min_offset = Math.max(0, cursor.position - Math.min(0x800, cursor.bytes_left));
 
         for (let i = cursor.position - 255; i >= min_offset; i--) {
-            let s1 = cursor.position;
+            const start_pos = cursor.position;
+            let s1 = start_pos;
             let s2 = i;
             let size = 0;
 
             // Optimization: compare 4 bytes at a time while we can.
-            while (s1 + 3 < cursor.size && size < 252 && cursor.u32_at(s1) === cursor.u32_at(s2)) {
+            while (
+                s1 + 3 < cursor.size &&
+                size < 252 &&
+                cursor.seek_start(s1).u32() === cursor.seek_start(s2).u32()
+            ) {
                 size += 4;
                 s1 += 4;
                 s2 += 4;
             }
 
-            while (s1 < cursor.size && size < 255 && cursor.u8_at(s1) === cursor.u8_at(s2)) {
+            while (
+                s1 < cursor.size &&
+                size < 255 &&
+                cursor.seek_start(s1).u8() === cursor.seek_start(s2).u8()
+            ) {
                 size++;
                 s1++;
                 s2++;
             }
+
+            cursor.seek_start(start_pos);
 
             if (size >= best_size) {
                 best_offset = i;
@@ -74,7 +85,7 @@ class Context {
     private flag_offset = 0;
 
     constructor(capacity: number, endianness: Endianness) {
-        this.output = new ResizableBufferCursor(new ResizableBuffer(capacity), endianness);
+        this.output = new ResizableBlockCursor(new ResizableBlock(capacity, endianness));
     }
 
     add_u8(value: number): void {

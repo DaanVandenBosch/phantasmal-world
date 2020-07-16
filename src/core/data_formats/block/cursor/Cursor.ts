@@ -1,5 +1,5 @@
 import { Endianness } from "../Endianness";
-import { Vec3, Vec2 } from "../vector";
+import { Vec3, Vec2 } from "../../vector";
 
 /**
  * A cursor for reading binary data.
@@ -49,19 +49,9 @@ export interface Cursor {
     u8(): number;
 
     /**
-     * Reads an unsigned 8-bit integer at the given absolute offset. Doesn't increment position.
-     */
-    u8_at(offset: number): number;
-
-    /**
      * Reads an unsigned 16-bit integer and increments position by 2.
      */
     u16(): number;
-
-    /**
-     * Reads an unsigned 16-bit integer at the given absolute offset. Doesn't increment position.
-     */
-    u16_at(offset: number): number;
 
     /**
      * Reads an unsigned 32-bit integer and increments position by 4.
@@ -69,19 +59,9 @@ export interface Cursor {
     u32(): number;
 
     /**
-     * Reads an unsigned 32-bit integer at the given absolute offset. Doesn't increment position.
-     */
-    u32_at(offset: number): number;
-
-    /**
      * Reads an signed 8-bit integer and increments position by 1.
      */
     i8(): number;
-
-    /**
-     * Reads an unsigned 8-bit integer at the given absolute offset. Doesn't increment position.
-     */
-    i8_at(offset: number): number;
 
     /**
      * Reads a signed 16-bit integer and increments position by 2.
@@ -89,29 +69,14 @@ export interface Cursor {
     i16(): number;
 
     /**
-     * Reads an unsigned 16-bit integer at the given absolute offset. Doesn't increment position.
-     */
-    i16_at(offset: number): number;
-
-    /**
      * Reads a signed 32-bit integer and increments position by 4.
      */
     i32(): number;
 
     /**
-     * Reads an unsigned 32-bit integer at the given absolute offset. Doesn't increment position.
-     */
-    i32_at(offset: number): number;
-
-    /**
      * Reads a 32-bit floating point number and increments position by 4.
      */
     f32(): number;
-
-    /**
-     * Reads a 32-bit floating point number. Doesn't increment position.
-     */
-    f32_at(offset: number): number;
 
     /**
      * Reads n unsigned 8-bit integers and increments position by n.
@@ -168,16 +133,6 @@ export interface Cursor {
         null_terminated: boolean,
         drop_remaining: boolean,
     ): string;
-
-    /**
-     * Reads an ASCII-encoded string at the given absolute offset. Doesn't increment position.
-     */
-    string_ascii_at(offset: number, max_byte_length: number, null_terminated: boolean): string;
-
-    /**
-     * Reads an UTF-16-encoded string at the given absolute offset. Doesn't increment position.
-     */
-    string_utf16_at(offset: number, max_byte_length: number, null_terminated: boolean): string;
 
     array_buffer(size?: number): ArrayBuffer;
 

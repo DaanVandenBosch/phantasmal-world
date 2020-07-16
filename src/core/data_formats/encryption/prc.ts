@@ -1,6 +1,6 @@
-import { Endianness } from "../Endianness";
-import { ArrayBufferCursor } from "../cursor/ArrayBufferCursor";
-import { Cursor } from "../cursor/Cursor";
+import { Endianness } from "../block/Endianness";
+import { ArrayBufferCursor } from "../block/cursor/ArrayBufferCursor";
+import { Cursor } from "../block/cursor/Cursor";
 
 /**
  * Decrypts the bytes left in cursor.

@@ -10,16 +10,16 @@ import {
     SegmentType,
     StringSegment,
 } from "../../asm/instructions";
-import { Cursor } from "../../cursor/Cursor";
+import { Cursor } from "../../block/cursor/Cursor";
 import { ControlFlowGraph } from "../../asm/data_flow_analysis/ControlFlowGraph";
 import { Kind, OP_JMP, OP_RET, Opcode, OPCODES, StackInteraction } from "../../asm/opcodes";
 import { get_register_value } from "../../asm/data_flow_analysis/get_register_value";
 import { get_stack_value } from "../../asm/data_flow_analysis/get_stack_value";
-import { ArrayBufferCursor } from "../../cursor/ArrayBufferCursor";
-import { Endianness } from "../../Endianness";
+import { ArrayBufferCursor } from "../../block/cursor/ArrayBufferCursor";
+import { Endianness } from "../../block/Endianness";
 import { LogManager } from "../../../Logger";
-import { ResizableBufferCursor } from "../../cursor/ResizableBufferCursor";
-import { ResizableBuffer } from "../../ResizableBuffer";
+import { ResizableBlockCursor } from "../../block/cursor/ResizableBlockCursor";
+import { ResizableBlock } from "../../block/ResizableBlock";
 import { BinFormat } from "./BinFormat";
 
 const logger = LogManager.get("core/data_formats/parsing/quest/object_code");
@@ -49,8 +49,8 @@ export function write_object_code(
     segments: readonly Segment[],
     format: BinFormat,
 ): { object_code: ArrayBuffer; label_offsets: number[] } {
-    const cursor = new ResizableBufferCursor(
-        new ResizableBuffer(100 * segments.length),
+    const cursor = new ResizableBlockCursor(
+        new ResizableBlock(100 * segments.length),
         Endianness.Little,
     );
     const start_pos = cursor.position;

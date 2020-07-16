@@ -1,4 +1,4 @@
-import { Cursor } from "../cursor/Cursor";
+import { Cursor } from "../block/cursor/Cursor";
 import { parse_rel } from "./rel";
 
 export type ItemPmt = {

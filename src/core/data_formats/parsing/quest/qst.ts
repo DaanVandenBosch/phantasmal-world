@@ -1,9 +1,9 @@
-import { Endianness } from "../../Endianness";
-import { ArrayBufferCursor } from "../../cursor/ArrayBufferCursor";
-import { Cursor } from "../../cursor/Cursor";
-import { ResizableBufferCursor } from "../../cursor/ResizableBufferCursor";
-import { WritableCursor } from "../../cursor/WritableCursor";
-import { ResizableBuffer } from "../../ResizableBuffer";
+import { Endianness } from "../../block/Endianness";
+import { ArrayBufferCursor } from "../../block/cursor/ArrayBufferCursor";
+import { Cursor } from "../../block/cursor/Cursor";
+import { ResizableBlockCursor } from "../../block/cursor/ResizableBlockCursor";
+import { WritableCursor } from "../../block/cursor/WritableCursor";
+import { ResizableBlock } from "../../block/ResizableBlock";
 import { assert, basename, defined } from "../../../util";
 import { LogManager } from "../../../Logger";
 import { Version } from "./Version";
@@ -329,9 +329,8 @@ function parse_files(
             file = {
                 name: file_name,
                 expected_size: header?.size,
-                cursor: new ResizableBufferCursor(
-                    new ResizableBuffer(header?.size ?? 10 * CHUNK_BODY_SIZE),
-                    Endianness.Little,
+                cursor: new ResizableBlockCursor(
+                    new ResizableBlock(header?.size ?? 10 * CHUNK_BODY_SIZE, Endianness.Little),
                 ),
                 chunk_nos: new Set(),
             };

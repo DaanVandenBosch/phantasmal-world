@@ -1,4 +1,4 @@
-import { Cursor } from "../../cursor/Cursor";
+import { Cursor } from "../../block/cursor/Cursor";
 import { parse_iff, parse_iff_headers } from "../iff";
 import { LogManager } from "../../../Logger";
 import { Result, result_builder } from "../../../Result";

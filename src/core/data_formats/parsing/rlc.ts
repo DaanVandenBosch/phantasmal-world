@@ -1,5 +1,5 @@
-import { Endianness } from "../Endianness";
-import { Cursor } from "../cursor/Cursor";
+import { Endianness } from "../block/Endianness";
+import { Cursor } from "../block/cursor/Cursor";
 import { parse_prc } from "./prc";
 import { LogManager } from "../../Logger";
 

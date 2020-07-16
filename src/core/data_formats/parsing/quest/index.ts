@@ -2,10 +2,10 @@ import { InstructionSegment, Segment, SegmentType } from "../../asm/instructions
 import { OP_SET_EPISODE } from "../../asm/opcodes";
 import { prs_compress } from "../../compression/prs/compress";
 import { prs_decompress } from "../../compression/prs/decompress";
-import { ArrayBufferCursor } from "../../cursor/ArrayBufferCursor";
-import { Cursor } from "../../cursor/Cursor";
-import { ResizableBufferCursor } from "../../cursor/ResizableBufferCursor";
-import { Endianness } from "../../Endianness";
+import { ArrayBufferCursor } from "../../block/cursor/ArrayBufferCursor";
+import { Cursor } from "../../block/cursor/Cursor";
+import { ResizableBlockCursor } from "../../block/cursor/ResizableBlockCursor";
+import { Endianness } from "../../block/Endianness";
 import { parse_bin, write_bin } from "./bin";
 import { DatNpc, DatObject, DatUnknown, parse_dat, write_dat } from "./dat";
 import { QuestEvent, QuestNpc, QuestObject } from "./entities";
@@ -193,9 +193,7 @@ export function write_quest_qst(
                 id: quest.id,
                 filename: base_file_name + ".dat",
                 quest_name: quest.name,
-                data: prs_compress(
-                    new ResizableBufferCursor(dat, Endianness.Little),
-                ).array_buffer(),
+                data: prs_compress(new ResizableBlockCursor(dat)).array_buffer(),
             },
             {
                 id: quest.id,

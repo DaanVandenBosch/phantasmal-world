@@ -1,7 +1,7 @@
 import { HttpClient } from "../../core/HttpClient";
 import { NjObject, parse_nj } from "../../core/data_formats/parsing/ninja";
-import { ArrayBufferCursor } from "../../core/data_formats/cursor/ArrayBufferCursor";
-import { Endianness } from "../../core/data_formats/Endianness";
+import { ArrayBufferCursor } from "../../core/data_formats/block/cursor/ArrayBufferCursor";
+import { Endianness } from "../../core/data_formats/block/Endianness";
 import { NjcmModel } from "../../core/data_formats/parsing/ninja/njcm";
 import { NjMotion, parse_njm } from "../../core/data_formats/parsing/ninja/motion";
 import { Disposable } from "../../core/observable/Disposable";

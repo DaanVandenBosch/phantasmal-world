@@ -1,10 +1,10 @@
 import { readFileSync } from "fs";
-import { Endianness } from "../../Endianness";
-import { ArrayBufferCursor } from "../../cursor/ArrayBufferCursor";
-import { BufferCursor } from "../../cursor/BufferCursor";
+import { Endianness } from "../../block/Endianness";
+import { ArrayBufferCursor } from "../../block/cursor/ArrayBufferCursor";
+import { BufferCursor } from "../../block/cursor/BufferCursor";
 import { prs_compress_js } from "./compress";
 import { prs_decompress_js } from "./decompress";
-import { Cursor } from "../../cursor/Cursor";
+import { Cursor } from "../../block/cursor/Cursor";
 import { get_prs_wasm_module } from "./prs_wasm";
 
 type CompressionFunction = (cursor: Cursor) => Cursor;

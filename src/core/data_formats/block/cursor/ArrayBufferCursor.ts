@@ -1,11 +1,10 @@
 import { Endianness } from "../Endianness";
-import { AbstractWritableCursor } from "./AbstractWritableCursor";
-import { WritableCursor } from "./WritableCursor";
+import { AbstractArrayBufferCursor } from "./AbstractArrayBufferCursor";
 
 /**
  * A cursor for reading from an array buffer or part of an array buffer.
  */
-export class ArrayBufferCursor extends AbstractWritableCursor implements WritableCursor {
+export class ArrayBufferCursor extends AbstractArrayBufferCursor {
     private _size: number;
 
     get size(): number {

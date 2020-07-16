@@ -1,4 +1,4 @@
-import { Cursor } from "../../cursor/Cursor";
+import { Cursor } from "../../block/cursor/Cursor";
 import { Vec2, Vec3 } from "../../vector";
 import { LogManager } from "../../../Logger";
 

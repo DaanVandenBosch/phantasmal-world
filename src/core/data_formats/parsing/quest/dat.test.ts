@@ -1,7 +1,7 @@
-import { Endianness } from "../../Endianness";
+import { Endianness } from "../../block/Endianness";
 import { prs_decompress } from "../../compression/prs/decompress";
-import { BufferCursor } from "../../cursor/BufferCursor";
-import { ResizableBufferCursor } from "../../cursor/ResizableBufferCursor";
+import { BufferCursor } from "../../block/cursor/BufferCursor";
+import { ResizableBlockCursor } from "../../block/cursor/ResizableBlockCursor";
 import { DatFile, parse_dat, write_dat } from "./dat";
 import { readFileSync } from "fs";
 
@@ -11,7 +11,7 @@ import { readFileSync } from "fs";
 test("parse_dat and write_dat", () => {
     const orig_buffer = readFileSync("test/resources/quest118_e.dat");
     const orig_dat = prs_decompress(new BufferCursor(orig_buffer, Endianness.Little));
-    const test_dat = new ResizableBufferCursor(write_dat(parse_dat(orig_dat)), Endianness.Little);
+    const test_dat = new ResizableBlockCursor(write_dat(parse_dat(orig_dat)));
     orig_dat.seek_start(0);
 
     expect(test_dat.size).toBe(orig_dat.size);
@@ -55,7 +55,7 @@ test("parse, modify and write DAT", () => {
         }),
     };
 
-    const test_dat = new ResizableBufferCursor(write_dat(test_updated), Endianness.Little);
+    const test_dat = new ResizableBlockCursor(write_dat(test_updated));
 
     expect(test_dat.size).toBe(orig_dat.size);
 

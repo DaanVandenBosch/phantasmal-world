@@ -1,6 +1,6 @@
 import { readdirSync, readFileSync, statSync, writeFileSync } from "fs";
 import { ASSETS_DIR, RESOURCE_DIR } from ".";
-import { BufferCursor } from "../src/core/data_formats/cursor/BufferCursor";
+import { BufferCursor } from "../src/core/data_formats/block/cursor/BufferCursor";
 import { ItemPmt, parse_item_pmt } from "../src/core/data_formats/parsing/itempmt";
 import { parse_qst_to_quest } from "../src/core/data_formats/parsing/quest";
 import { parse_unitxt, Unitxt } from "../src/core/data_formats/parsing/unitxt";
@@ -8,7 +8,7 @@ import { Difficulties, Difficulty, SectionId, SectionIds } from "../src/core/mod
 import { update_drops_from_website } from "./update_drops_ephinea";
 import { Episode, EPISODES } from "../src/core/data_formats/parsing/quest/Episode";
 import { npc_data, NPC_TYPES, NpcType } from "../src/core/data_formats/parsing/quest/npc_types";
-import { Endianness } from "../src/core/data_formats/Endianness";
+import { Endianness } from "../src/core/data_formats/block/Endianness";
 import { ItemTypeDto } from "../src/core/dto/ItemTypeDto";
 import { QuestDto } from "../src/hunt_optimizer/dto/QuestDto";
 import { BoxDropDto, EnemyDropDto } from "../src/hunt_optimizer/dto/drops";
@@ -112,7 +112,7 @@ function process_quest_dir(path: string, quests: QuestDto[]): void {
 function process_quest(path: string, quests: QuestDto[]): void {
     try {
         const buf = readFileSync(path);
-        const q = parse_qst_to_quest(new BufferCursor(buf, Endianness.Little), true);
+        const q = parse_qst_to_quest(new BufferCursor(buf, Endianness.Little), true)?.quest;
 
         if (q) {
             logger.trace(`Processing quest "${q.name}".`);

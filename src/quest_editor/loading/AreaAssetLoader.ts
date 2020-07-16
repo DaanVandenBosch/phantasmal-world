@@ -1,6 +1,6 @@
 import { Object3D } from "three";
-import { Endianness } from "../../core/data_formats/Endianness";
-import { ArrayBufferCursor } from "../../core/data_formats/cursor/ArrayBufferCursor";
+import { Endianness } from "../../core/data_formats/block/Endianness";
+import { ArrayBufferCursor } from "../../core/data_formats/block/cursor/ArrayBufferCursor";
 import {
     CollisionObject,
     parse_area_collision_geometry,
