@@ -33,11 +33,13 @@ module.exports = merge(common, {
             ignoreOrder: true,
             filename: "[name].[contenthash].css",
         }),
-        new CopyWebpackPlugin([
-            {
-                from: path.resolve(__dirname, "assets"),
-                to: path.resolve(__dirname, "dist/assets"),
-            },
-        ]),
+        new CopyWebpackPlugin({
+            patterns: [
+                {
+                    from: path.resolve(__dirname, "assets"),
+                    to: path.resolve(__dirname, "dist/assets"),
+                },
+            ],
+        }),
     ],
 });
