@@ -22,13 +22,13 @@ export class BufferCursor extends AbstractArrayBufferCursor {
         buffer: Buffer,
         endianness: Endianness,
         offset: number = 0,
-        size: number = buffer.byteLength - offset,
+        size: number = buffer.length - offset,
     ) {
-        if (offset < 0 || offset > buffer.byteLength) {
+        if (offset < 0 || offset > buffer.length) {
             throw new Error(`Offset ${offset} is out of bounds.`);
         }
 
-        if (size < 0 || size > buffer.byteLength - offset) {
+        if (size < 0 || size > buffer.length - offset) {
             throw new Error(`Size ${size} is out of bounds.`);
         }
 

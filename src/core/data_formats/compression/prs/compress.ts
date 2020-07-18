@@ -21,38 +21,22 @@ export function prs_compress(cursor: Cursor): Cursor {
 
 export function prs_compress_js(cursor: Cursor): Cursor {
     const pc = new Context(cursor.size, cursor.endianness);
+    const comp_cursor = cursor.take(cursor.size);
+    cursor.seek_start(0);
 
     while (cursor.bytes_left) {
         // Find the longest match.
         let best_offset = 0;
         let best_size = 0;
-        const min_offset = Math.max(0, cursor.position - Math.min(0x800, cursor.bytes_left));
+        const start_pos = cursor.position;
+        const min_offset = Math.max(0, start_pos - Math.min(0x800, cursor.bytes_left));
 
-        for (let i = cursor.position - 255; i >= min_offset; i--) {
-            const start_pos = cursor.position;
-            let s1 = start_pos;
-            let s2 = i;
+        for (let i = start_pos - 255; i >= min_offset; i--) {
+            comp_cursor.seek_start(i);
             let size = 0;
 
-            // Optimization: compare 4 bytes at a time while we can.
-            while (
-                s1 + 3 < cursor.size &&
-                size < 252 &&
-                cursor.seek_start(s1).u32() === cursor.seek_start(s2).u32()
-            ) {
-                size += 4;
-                s1 += 4;
-                s2 += 4;
-            }
-
-            while (
-                s1 < cursor.size &&
-                size < 255 &&
-                cursor.seek_start(s1).u8() === cursor.seek_start(s2).u8()
-            ) {
+            while (cursor.bytes_left && size <= 254 && cursor.u8() === comp_cursor.u8()) {
                 size++;
-                s1++;
-                s2++;
             }
 
             cursor.seek_start(start_pos);
