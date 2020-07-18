@@ -1,0 +1,217 @@
+.hunt_optimizer_WantedItemsView {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    padding: 0 6px;
+    min-width: 220px;
+}
+
+.hunt_optimizer_WantedItemsView .hunt_optimizer_WantedItemsView_table_wrapper {
+    flex: 1;
+    width: calc(100% + 6px);
+    overflow: auto;
+    margin: 4px -3px;
+}
+
+.hunt_optimizer_WantedItemsView .hunt_optimizer_WantedItemsView_table_wrapper table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.hunt_optimizer_WantedItemsView .hunt_optimizer_WantedItemsView_table_wrapper td {
+    padding: 1px 3px;
+}
+
+.core_Input {
+    display: inline-block;
+    box-sizing: border-box;
+    height: 24px;
+    border: var(--input-border);
+}
+
+.core_Input .core_Input_inner {
+    box-sizing: border-box;
+    width: 100%;
+    height: 100%;
+    padding: 0 3px;
+    border: var(--input-inner-border);
+    background-color: var(--input-bg-color);
+    color: var(--input-text-color);
+    outline: none;
+    font-size: 13px;
+}
+
+.core_Input:hover {
+    border: var(--input-border-hover);
+}
+
+.core_Input:focus-within {
+    border: var(--input-border-focus);
+}
+
+.core_Input.disabled {
+    border: var(--input-border-disabled);
+}
+
+.core_Input.disabled .core_Input_inner {
+    color: var(--input-text-color-disabled);
+    background-color: var(--input-bg-color-disabled);
+}
+
+.core_NumberInput {
+    width: 54px;
+}
+
+.core_NumberInput .core_NumberInput_inner {
+    padding-right: 1px;
+}
+.core_ComboBox {
+    box-sizing: border-box;
+    position: relative;
+}
+
+.core_ComboBox_inner {
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+}
+
+.core_ComboBox_inner input {
+    flex: 1;
+    padding: 0;
+    border: none;
+    margin: 0;
+    color: var(--input-text-color);
+    background-color: transparent;
+    outline: none;
+}
+
+.core_ComboBox.disabled input {
+    color: var(--input-text-color-disabled);
+}
+
+.core_ComboBox .core_Menu {
+    top: 23px;
+    left: -2px;
+    min-width: calc(100% + 4px);
+}
+
+.core_ComboBox_button {
+    padding: 0 2px;
+}
+
+.hunt_optimizer_OptimizerView {
+    display: flex;
+    align-items: stretch;
+    overflow: hidden;
+}
+
+.hunt_optimizer_OptimizerView div:nth-child(2) {
+    flex: 1;
+    overflow: hidden;
+}
+
+.core_Table {
+    position: relative;
+    display: block;
+    box-sizing: border-box;
+    overflow: auto;
+    background-color: var(--bg-color);
+    border-collapse: collapse;
+}
+
+.core_Table tr {
+    display: flex;
+    align-items: stretch;
+}
+
+.core_Table thead {
+    position: sticky;
+    display: inline-block;
+    top: 0;
+    z-index: 2;
+}
+
+.core_Table thead tr {
+    position: sticky;
+    top: 0;
+}
+
+.core_Table thead th {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.core_Table th,
+.core_Table td {
+    box-sizing: border-box;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 3px 6px;
+    border-right: var(--border);
+    border-bottom: var(--border);
+    background-color: var(--bg-color);
+}
+
+.core_Table tbody {
+    user-select: text;
+    cursor: text;
+}
+
+.core_Table tbody th,
+.core_Table tbody td {
+    white-space: nowrap;
+}
+
+.core_Table tbody th,
+.core_Table tfoot th {
+    text-align: left;
+}
+
+.core_Table th.fixed {
+    position: sticky;
+    text-align: left;
+}
+
+.core_Table th.input {
+    padding: 0;
+    overflow: visible;
+}
+
+.core_Table th.input .core_DurationInput {
+    z-index: 0;
+    height: 100%;
+    width: 100%;
+    border: none;
+}
+
+.core_Table th.input .core_DurationInput:hover,
+.core_Table th.input .core_DurationInput:focus-within {
+    margin: -1px;
+    height: calc(100% + 2px);
+    width: calc(100% + 2px);
+}
+
+.core_Table th.input .core_DurationInput:hover {
+    z-index: 4;
+    border: var(--input-border-hover);
+}
+
+.core_Table th.input .core_DurationInput:focus-within {
+    z-index: 6;
+    border: var(--input-border-focus);
+}
+
+.hunt_optimizer_OptimizationResultView {
+    display: flex;
+    flex-direction: column;
+}
+
+.hunt_optimizer_OptimizationResultView_table {
+    flex: 1;
+    border-top: var(--border);
+    border-left: var(--border);
+}
+
