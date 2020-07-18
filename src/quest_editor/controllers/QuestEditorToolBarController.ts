@@ -7,12 +7,10 @@ import { Property } from "../../core/observable/property/Property";
 import { undo_manager } from "../../core/undo/UndoManager";
 import { Controller } from "../../core/controllers/Controller";
 import { Episode } from "../../core/data_formats/parsing/quest/Episode";
-import { create_new_quest } from "../stores/quest_creation";
 import { open_files, read_file } from "../../core/files";
 import {
     parse_bin_dat_to_quest,
     parse_qst_to_quest,
-    Quest,
     write_quest_qst,
 } from "../../core/data_formats/parsing/quest";
 import { ArrayBufferCursor } from "../../core/data_formats/block/cursor/ArrayBufferCursor";
@@ -24,6 +22,8 @@ import { Version } from "../../core/data_formats/parsing/quest/Version";
 import { WritableProperty } from "../../core/observable/property/WritableProperty";
 import { failure, Result } from "../../core/Result";
 import { Severity } from "../../core/Severity";
+import { Quest } from "../../core/data_formats/parsing/quest/Quest";
+import { QuestLoader } from "../loading/QuestLoader";
 
 const logger = LogManager.get("quest_editor/controllers/QuestEditorToolBarController");
 
@@ -55,6 +55,7 @@ export class QuestEditorToolBarController extends Controller {
     readonly version: Property<Version> = this._version;
 
     constructor(
+        private readonly quest_loader: QuestLoader,
         gui_store: GuiStore,
         private readonly area_store: AreaStore,
         private readonly quest_editor_store: QuestEditorStore,
@@ -107,7 +108,7 @@ export class QuestEditorToolBarController extends Controller {
         this.disposables(
             gui_store.on_global_keydown(GuiTool.QuestEditor, "Ctrl-O", async () => {
                 const files = await open_files({ accept: ".bin, .dat, .qst", multiple: true });
-                this.parse_files(files);
+                await this.parse_files(files);
             }),
 
             gui_store.on_global_keydown(GuiTool.QuestEditor, "Ctrl-Shift-S", this.save_as_clicked),
@@ -129,7 +130,12 @@ export class QuestEditorToolBarController extends Controller {
     create_new_quest = async (episode: Episode): Promise<void> => {
         this.set_filename("");
         this.set_version(Version.BB);
-        this.quest_editor_store.set_current_quest(create_new_quest(this.area_store, episode));
+        await this.quest_editor_store.set_current_quest(
+            convert_quest_to_model(
+                this.area_store,
+                await this.quest_loader.load_default_quest(episode),
+            ),
+        );
     };
 
     parse_files = async (files: File[]): Promise<void> => {

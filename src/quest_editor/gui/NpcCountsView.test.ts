@@ -5,8 +5,7 @@ import {
     create_quest_editor_store,
 } from "../../../test/src/quest_editor/stores/store_creation";
 import { with_disposer } from "../../../test/src/core/observables/disposable_helpers";
-import { create_new_quest } from "../stores/quest_creation";
-import { Episode } from "../../core/data_formats/parsing/quest/Episode";
+import { load_default_quest_model } from "../../../test/src/utils";
 
 test("Renders correctly without a current quest.", () =>
     with_disposer(disposer => {
@@ -22,7 +21,7 @@ test("Renders correctly with a current quest.", () =>
         const store = create_quest_editor_store(disposer, area_store);
         const view = disposer.add(new NpcCountsView(disposer.add(new NpcCountsController(store))));
 
-        store.set_current_quest(create_new_quest(area_store, Episode.I));
+        store.set_current_quest(load_default_quest_model(area_store));
 
         expect(view.element).toMatchSnapshot("Should render a table with NPC names and counts.");
     }));

@@ -2,7 +2,7 @@ import { Endianness } from "../../block/Endianness";
 import { prs_decompress } from "../../compression/prs/decompress";
 import { BufferCursor } from "../../block/cursor/BufferCursor";
 import { ResizableBlockCursor } from "../../block/cursor/ResizableBlockCursor";
-import { DatFile, parse_dat, write_dat } from "./dat";
+import { parse_dat, write_dat } from "./dat";
 import { readFileSync } from "fs";
 
 /**
@@ -37,29 +37,14 @@ test("parse, modify and write DAT", () => {
     const test_parsed = parse_dat(orig_dat);
     orig_dat.seek_start(0);
 
-    const test_updated: DatFile = {
-        ...test_parsed,
-        objs: test_parsed.objs.map((obj, i) => {
-            if (i === 9) {
-                return {
-                    ...obj,
-                    position: {
-                        x: 13,
-                        y: 17,
-                        z: 19,
-                    },
-                };
-            } else {
-                return obj;
-            }
-        }),
-    };
+    const test_obj_array = new Float32Array(test_parsed.objs[9].data);
+    test_obj_array[4] = 13;
+    test_obj_array[5] = 17;
+    test_obj_array[6] = 19;
 
-    const test_dat = new ResizableBlockCursor(write_dat(test_updated));
+    const test_dat = new ResizableBlockCursor(write_dat(test_parsed));
 
     expect(test_dat.size).toBe(orig_dat.size);
-
-    let match = true;
 
     while (orig_dat.bytes_left) {
         if (orig_dat.position === 16 + 9 * 68 + 16) {
@@ -68,11 +53,17 @@ test("parse, modify and write DAT", () => {
             expect(test_dat.f32()).toBe(13);
             expect(test_dat.f32()).toBe(17);
             expect(test_dat.f32()).toBe(19);
-        } else if (test_dat.u8() !== orig_dat.u8()) {
-            match = false;
-            break;
+        } else {
+            const test_byte = test_dat.u8();
+            const orig_byte = orig_dat.u8();
+
+            if (test_byte !== orig_byte) {
+                throw new Error(
+                    `Byte ${
+                        test_dat.position - 1
+                    } didn't match, expected ${orig_byte}, got ${test_byte}.`,
+                );
+            }
         }
     }
-
-    expect(match).toBe(true);
 });

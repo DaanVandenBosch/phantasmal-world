@@ -1,4 +1,4 @@
-import { entity_data, EntityType } from "../../core/data_formats/parsing/quest/entities";
+import { entity_data, EntityType } from "../../core/data_formats/parsing/quest/Quest";
 import { Disposable } from "../../core/observable/Disposable";
 import { Vector2 } from "three";
 import { div } from "../../core/gui/dom";

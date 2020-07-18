@@ -1,6 +1,6 @@
 import { bind_children_to, div, img, span } from "../../core/gui/dom";
 import "./EntityListView.css";
-import { entity_data, EntityType } from "../../core/data_formats/parsing/quest/entities";
+import { entity_data, EntityType } from "../../core/data_formats/parsing/quest/Quest";
 import { entity_dnd_source } from "./entity_dnd";
 import { WritableListProperty } from "../../core/observable/property/list/WritableListProperty";
 import { list_property } from "../../core/observable";

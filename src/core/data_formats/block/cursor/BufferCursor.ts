@@ -40,8 +40,12 @@ export class BufferCursor extends AbstractArrayBufferCursor {
     }
 
     take(size: number): BufferCursor {
-        const offset = this.offset + this.position;
-        const wrapper = new BufferCursor(this.buffer, this.endianness, offset, size);
+        const wrapper = new BufferCursor(
+            this.buffer,
+            this.endianness,
+            this.absolute_position - this.buffer.byteOffset,
+            size,
+        );
         this._position += size;
         return wrapper;
     }

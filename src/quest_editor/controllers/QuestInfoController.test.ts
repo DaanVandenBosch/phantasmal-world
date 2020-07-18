@@ -3,9 +3,8 @@ import {
     create_quest_editor_store,
 } from "../../../test/src/quest_editor/stores/store_creation";
 import { QuestInfoController } from "./QuestInfoController";
-import { create_new_quest } from "../stores/quest_creation";
-import { Episode } from "../../core/data_formats/parsing/quest/Episode";
 import { with_disposer } from "../../../test/src/core/observables/disposable_helpers";
+import { load_default_quest_model } from "../../../test/src/utils";
 
 test("When a property's input value changes, this should be reflected in the current quest object and the undo stack.", async () =>
     with_disposer(async disposer => {
@@ -13,7 +12,7 @@ test("When a property's input value changes, this should be reflected in the cur
         const store = create_quest_editor_store(disposer, area_store);
         const ctrl = disposer.add(new QuestInfoController(store));
 
-        await store.set_current_quest(create_new_quest(area_store, Episode.I));
+        await store.set_current_quest(load_default_quest_model(area_store));
 
         ctrl.set_id(3004);
         expect(store.current_quest.val!.id.val).toBe(3004);

@@ -7,8 +7,12 @@ import { AreaUserData } from "./conversion/areas";
 import { SectionModel } from "../model/SectionModel";
 import { Disposable } from "../../core/observable/Disposable";
 import { Disposer } from "../../core/observable/Disposer";
-import { EntityType, is_npc_type } from "../../core/data_formats/parsing/quest/entities";
-import { npc_data } from "../../core/data_formats/parsing/quest/npc_types";
+import {
+    EntityType,
+    is_npc_type,
+    QuestNpc,
+    QuestObject,
+} from "../../core/data_formats/parsing/quest/Quest";
 import {
     add_entity_dnd_listener,
     EntityDragEvent,
@@ -18,7 +22,6 @@ import { QuestObjectModel } from "../model/QuestObjectModel";
 import { AreaModel } from "../model/AreaModel";
 import { QuestModel } from "../model/QuestModel";
 import { QuestEditorStore } from "../stores/QuestEditorStore";
-import { euler } from "../model/euler";
 import { CreateEntityAction } from "../actions/CreateEntityAction";
 import { RotateEntityAction } from "../actions/RotateEntityAction";
 import { RemoveEntityAction } from "../actions/RemoveEntityAction";
@@ -637,44 +640,14 @@ class CreationState implements State {
         }
 
         if (is_npc_type(evt.entity_type)) {
-            const data = npc_data(evt.entity_type);
+            const wave = quest_editor_store.selected_wave.val;
 
             this.entity = new QuestNpcModel(
-                evt.entity_type,
-                data.pso_type_id!,
-                0,
-                quest_editor_store.selected_wave.val,
-                0,
-                0,
-                data.pso_roaming!,
-                area.id,
-                0,
-                new Vector3(0, 0, 0),
-                euler(0, 0, 0),
-                new Vector3(1, 1, 1),
-                // TODO: do the following values make sense?
-                [
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0],
-                ],
+                QuestNpc.create(evt.entity_type, area.id, wave?.id.val ?? 0),
+                wave,
             );
         } else {
-            this.entity = new QuestObjectModel(
-                evt.entity_type,
-                0,
-                0,
-                area.id,
-                0,
-                new Vector3(0, 0, 0),
-                euler(0, 0, 0),
-                // TODO: which default properties?
-                new Map(),
-                // TODO: do the following values make sense?
-                [
-                    [0, 0, 0, 0, 0, 0],
-                    [0, 0],
-                ],
-            );
+            this.entity = new QuestObjectModel(QuestObject.create(evt.entity_type, area.id));
         }
 
         translate_entity_horizontally(

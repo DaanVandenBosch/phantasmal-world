@@ -12,14 +12,14 @@ const PC_OBJECT_CODE_OFFSET = 920;
 const BB_OBJECT_CODE_OFFSET = 4652;
 
 export type BinFile = {
-    readonly quest_id: number;
-    readonly language: number;
-    readonly quest_name: string;
-    readonly short_description: string;
-    readonly long_description: string;
-    readonly object_code: ArrayBuffer;
-    readonly label_offsets: readonly number[];
-    readonly shop_items: readonly number[];
+    quest_id: number;
+    language: number;
+    quest_name: string;
+    short_description: string;
+    long_description: string;
+    object_code: ArrayBuffer;
+    readonly label_offsets: number[];
+    readonly shop_items: number[];
 };
 
 export function parse_bin(cursor: Cursor): { bin: BinFile; format: BinFormat } {

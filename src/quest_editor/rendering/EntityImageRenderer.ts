@@ -6,7 +6,7 @@ import {
     Scene,
     Vector3,
 } from "three";
-import { EntityType } from "../../core/data_formats/parsing/quest/entities";
+import { EntityType } from "../../core/data_formats/parsing/quest/Quest";
 import { create_entity_type_mesh } from "./conversion/entities";
 import { sequential } from "../../core/sequential";
 import { EntityAssetLoader } from "../loading/EntityAssetLoader";

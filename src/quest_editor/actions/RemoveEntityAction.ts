@@ -1,8 +1,8 @@
 import { Action } from "../../core/undo/Action";
 import { QuestEntityModel } from "../model/QuestEntityModel";
-import { entity_data } from "../../core/data_formats/parsing/quest/entities";
 import { QuestEditorStore } from "../stores/QuestEditorStore";
 import { QuestModel } from "../model/QuestModel";
+import { entity_data } from "../../core/data_formats/parsing/quest/Quest";
 
 export class RemoveEntityAction implements Action {
     readonly description: string;

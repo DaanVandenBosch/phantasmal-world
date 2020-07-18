@@ -5,9 +5,12 @@ import { create_area_store } from "../../../test/src/quest_editor/stores/store_c
 import { QuestEditorStore } from "../stores/QuestEditorStore";
 import { with_disposer } from "../../../test/src/core/observables/disposable_helpers";
 import { LogStore } from "../stores/LogStore";
+import { QuestLoader } from "../loading/QuestLoader";
+import { StubHttpClient } from "../../core/HttpClient";
 
 test("Renders correctly.", () =>
     with_disposer(disposer => {
+        const quest_loader = disposer.add(new QuestLoader(new StubHttpClient()));
         const gui_store = disposer.add(new GuiStore());
         const area_store = create_area_store(disposer);
         const log_store = disposer.add(new LogStore());
@@ -17,7 +20,12 @@ test("Renders correctly.", () =>
         const tool_bar = disposer.add(
             new QuestEditorToolBarView(
                 disposer.add(
-                    new QuestEditorToolBarController(gui_store, area_store, quest_editor_store),
+                    new QuestEditorToolBarController(
+                        quest_loader,
+                        gui_store,
+                        area_store,
+                        quest_editor_store,
+                    ),
                 ),
             ),
         );

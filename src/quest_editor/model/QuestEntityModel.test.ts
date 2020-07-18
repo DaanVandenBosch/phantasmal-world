@@ -1,5 +1,5 @@
 import { QuestNpcModel } from "./QuestNpcModel";
-import { npc_data, NpcType } from "../../core/data_formats/parsing/quest/npc_types";
+import { NpcType } from "../../core/data_formats/parsing/quest/npc_types";
 import { Episode } from "../../core/data_formats/parsing/quest/Episode";
 import { Vector3 } from "three";
 import { SectionModel } from "./SectionModel";
@@ -8,6 +8,7 @@ import { AreaStore } from "../stores/AreaStore";
 import { StubHttpClient } from "../../core/HttpClient";
 import { AreaAssetLoader } from "../loading/AreaAssetLoader";
 import { euler } from "./euler";
+import { QuestNpc } from "../../core/data_formats/parsing/quest/Quest";
 
 const area_store = new AreaStore(new AreaAssetLoader(new StubHttpClient()));
 
@@ -43,19 +44,9 @@ test("After changing section, world position should change accordingly.", () => 
 });
 
 function create_entity(): QuestEntityModel {
-    return new QuestNpcModel(
-        NpcType.AlRappy,
-        npc_data(NpcType.AlRappy).pso_type_id!,
-        1,
-        undefined,
-        0,
-        0,
-        0,
-        area_store.get_area(Episode.I, 0).id,
-        20,
-        new Vector3(5, 5, 5),
-        euler(0, 0, 0),
-        new Vector3(1, 1, 1),
-        [Array(10).fill(0xdead), Array(4).fill(0xdead)],
+    const entity = new QuestNpcModel(
+        QuestNpc.create(NpcType.AlRappy, area_store.get_area(Episode.I, 0).id, 0),
     );
+    entity.set_position(new Vector3(5, 5, 5));
+    return entity;
 }

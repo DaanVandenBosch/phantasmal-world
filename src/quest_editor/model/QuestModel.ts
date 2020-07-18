@@ -10,7 +10,7 @@ import { AreaVariantModel } from "./AreaVariantModel";
 import { ListProperty } from "../../core/observable/property/list/ListProperty";
 import { WritableListProperty } from "../../core/observable/property/list/WritableListProperty";
 import { QuestEntityModel } from "./QuestEntityModel";
-import { entity_type_to_string } from "../../core/data_formats/parsing/quest/entities";
+import { entity_type_to_string } from "../../core/data_formats/parsing/quest/Quest";
 import { QuestEventDagModel } from "./QuestEventDagModel";
 import { assert, defined, require_array } from "../../core/util";
 import { AreaStore } from "../stores/AreaStore";

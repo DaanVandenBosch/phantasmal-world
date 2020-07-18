@@ -4,11 +4,10 @@ import {
     create_quest_editor_store,
 } from "../../../test/src/quest_editor/stores/store_creation";
 import { with_disposer } from "../../../test/src/core/observables/disposable_helpers";
-import { create_new_quest } from "../stores/quest_creation";
-import { Episode } from "../../core/data_formats/parsing/quest/Episode";
 import { Vector3 } from "three";
 import { euler } from "../model/euler";
 import { deg_to_rad } from "../../core/math";
+import { load_default_quest_model } from "../../../test/src/utils";
 
 test("When input values change, this should be reflected in the selected entity.", () =>
     with_disposer(disposer => {
@@ -16,7 +15,7 @@ test("When input values change, this should be reflected in the selected entity.
         const store = create_quest_editor_store(disposer, area_store);
         const ctrl = new EntityInfoController(store);
 
-        const quest = create_new_quest(area_store, Episode.I);
+        const quest = load_default_quest_model(area_store);
         const entity = quest.objects.get(0);
         entity.set_position(new Vector3(0, 0, 0));
         entity.set_rotation(euler(0, 0, 0));

@@ -6,52 +6,33 @@ import { ResizableBlock } from "../../block/ResizableBlock";
 import { WritableCursor } from "../../block/cursor/WritableCursor";
 import { assert } from "../../../util";
 import { LogManager } from "../../../Logger";
-import { Vec3 } from "../../vector";
+import { ArrayBufferCursor } from "../../block/cursor/ArrayBufferCursor";
 
 const logger = LogManager.get("core/data_formats/parsing/quest/dat");
 
-const OBJECT_SIZE = 68;
-const NPC_SIZE = 72;
+export const OBJECT_BYTE_SIZE = 68;
+export const NPC_BYTE_SIZE = 72;
 
 export type DatFile = {
-    readonly objs: readonly DatObject[];
-    readonly npcs: readonly DatNpc[];
-    readonly events: readonly DatEvent[];
-    readonly unknowns: readonly DatUnknown[];
+    readonly objs: DatEntity[];
+    readonly npcs: DatEntity[];
+    readonly events: DatEvent[];
+    readonly unknowns: DatUnknown[];
 };
 
 export type DatEntity = {
-    readonly type_id: number;
-    readonly section_id: number;
-    readonly position: Vec3;
-    readonly rotation: Vec3;
-    readonly area_id: number;
-    readonly unknown: readonly number[][];
-};
-
-export type DatObject = DatEntity & {
-    readonly id: number;
-    readonly group_id: number;
-    readonly properties: readonly number[];
-};
-
-export type DatNpc = DatEntity & {
-    readonly wave: number;
-    readonly wave2: number;
-    readonly scale: Vec3;
-    readonly npc_id: number;
-    readonly script_label: number;
-    readonly roaming: number;
+    area_id: number;
+    readonly data: ArrayBuffer;
 };
 
 export type DatEvent = {
-    readonly id: number;
-    readonly section_id: number;
-    readonly wave: number;
-    readonly delay: number;
-    readonly actions: readonly DatEventAction[];
-    readonly area_id: number;
-    readonly unknown: number;
+    id: number;
+    section_id: number;
+    wave: number;
+    delay: number;
+    readonly actions: DatEventAction[];
+    area_id: number;
+    unknown: number;
 };
 
 export enum DatEventActionType {
@@ -97,8 +78,8 @@ export type DatUnknown = {
 };
 
 export function parse_dat(cursor: Cursor): DatFile {
-    const objs: DatObject[] = [];
-    const npcs: DatNpc[] = [];
+    const objs: DatEntity[] = [];
+    const npcs: DatEntity[] = [];
     const events: DatEvent[] = [];
     const unknowns: DatUnknown[] = [];
 
@@ -122,9 +103,9 @@ export function parse_dat(cursor: Cursor): DatFile {
             const entities_cursor = cursor.take(entities_size);
 
             if (entity_type === 1) {
-                parse_objects(entities_cursor, area_id, objs);
+                parse_entities(entities_cursor, area_id, objs, OBJECT_BYTE_SIZE);
             } else if (entity_type === 2) {
-                parse_npcs(entities_cursor, area_id, npcs);
+                parse_entities(entities_cursor, area_id, npcs, NPC_BYTE_SIZE);
             } else if (entity_type === 3) {
                 parse_events(entities_cursor, area_id, events);
             } else {
@@ -151,16 +132,16 @@ export function parse_dat(cursor: Cursor): DatFile {
 
 export function write_dat({ objs, npcs, events, unknowns }: DatFile): ResizableBlock {
     const block = new ResizableBlock(
-        objs.length * (16 + OBJECT_SIZE) +
-            npcs.length * (16 + NPC_SIZE) +
+        objs.length * (16 + OBJECT_BYTE_SIZE) +
+            npcs.length * (16 + NPC_BYTE_SIZE) +
             unknowns.reduce((a, b) => a + b.total_size, 0),
         Endianness.Little,
     );
     const cursor = new ResizableBlockCursor(block);
 
-    write_objects(cursor, objs);
+    write_entities(cursor, objs, 1, OBJECT_BYTE_SIZE);
 
-    write_npcs(cursor, npcs);
+    write_entities(cursor, npcs, 2, NPC_BYTE_SIZE);
 
     write_events(cursor, events);
 
@@ -181,78 +162,18 @@ export function write_dat({ objs, npcs, events, unknowns }: DatFile): ResizableB
     return block;
 }
 
-function parse_objects(cursor: Cursor, area_id: number, objs: DatObject[]): void {
-    const object_count = Math.floor(cursor.size / OBJECT_SIZE);
+function parse_entities(
+    cursor: Cursor,
+    area_id: number,
+    entities: DatEntity[],
+    entity_size: number,
+): void {
+    const entity_count = Math.floor(cursor.size / entity_size);
 
-    for (let i = 0; i < object_count; ++i) {
-        const type_id = cursor.u16();
-        const unknown1 = cursor.u8_array(6);
-        const id = cursor.u16();
-        const group_id = cursor.u16();
-        const section_id = cursor.u16();
-        const unknown2 = cursor.u8_array(2);
-        const position = cursor.vec3_f32();
-        const rotation = {
-            x: (cursor.i32() / 0xffff) * 2 * Math.PI,
-            y: (cursor.i32() / 0xffff) * 2 * Math.PI,
-            z: (cursor.i32() / 0xffff) * 2 * Math.PI,
-        };
-        const properties = [
-            cursor.f32(),
-            cursor.f32(),
-            cursor.f32(),
-            cursor.u32(),
-            cursor.u32(),
-            cursor.u32(),
-            cursor.u32(),
-        ];
-
-        objs.push({
-            type_id,
-            id,
-            group_id,
-            section_id,
-            position,
-            rotation,
-            properties,
+    for (let i = 0; i < entity_count; ++i) {
+        entities.push({
             area_id,
-            unknown: [unknown1, unknown2],
-        });
-    }
-}
-
-function parse_npcs(cursor: Cursor, area_id: number, npcs: DatNpc[]): void {
-    const npc_count = Math.floor(cursor.size / NPC_SIZE);
-
-    for (let i = 0; i < npc_count; ++i) {
-        const type_id = cursor.u16();
-        const unknown1 = cursor.u8_array(10);
-        const section_id = cursor.u16();
-        const wave = cursor.u16();
-        const wave2 = cursor.u32();
-        const position = cursor.vec3_f32();
-        const rotation_x = (cursor.i32() / 0xffff) * 2 * Math.PI;
-        const rotation_y = (cursor.i32() / 0xffff) * 2 * Math.PI;
-        const rotation_z = (cursor.i32() / 0xffff) * 2 * Math.PI;
-        const scale = cursor.vec3_f32();
-        const npc_id = cursor.f32();
-        const script_label = cursor.f32();
-        const roaming = cursor.u32();
-        const unknown2 = cursor.u8_array(4);
-
-        npcs.push({
-            type_id,
-            section_id,
-            wave,
-            wave2,
-            position,
-            rotation: { x: rotation_x, y: rotation_y, z: rotation_z },
-            scale,
-            npc_id,
-            script_label,
-            roaming,
-            area_id,
-            unknown: [unknown1, unknown2],
+            data: cursor.array_buffer(entity_size),
         });
     }
 }
@@ -375,112 +296,43 @@ function parse_event_actions(cursor: Cursor): DatEventAction[] {
     return actions;
 }
 
-function write_objects(cursor: WritableCursor, objs: readonly DatObject[]): void {
-    const grouped_objs = groupBy(objs, obj => obj.area_id);
-    const obj_area_ids = Object.keys(grouped_objs)
+function write_entities(
+    cursor: WritableCursor,
+    entities: readonly DatEntity[],
+    entity_type: number,
+    entity_size: number,
+): void {
+    const grouped_entities = groupBy(entities, entity => entity.area_id);
+    const entity_area_ids = Object.keys(grouped_entities)
         .map(key => parseInt(key, 10))
         .sort((a, b) => a - b);
 
-    for (const area_id of obj_area_ids) {
-        const area_objs = grouped_objs[area_id];
-        const entities_size = area_objs.length * OBJECT_SIZE;
-        cursor.write_u32(1); // Entity type
+    for (const area_id of entity_area_ids) {
+        const area_entities = grouped_entities[area_id];
+        const entities_size = area_entities.length * entity_size;
+        cursor.write_u32(entity_type);
         cursor.write_u32(entities_size + 16);
         cursor.write_u32(area_id);
         cursor.write_u32(entities_size);
+        const start_pos = cursor.position;
 
-        for (const obj of area_objs) {
+        for (const entity of area_entities) {
             assert(
-                obj.unknown.length === 2,
-                () => `unknown should be of length 2, was ${obj.unknown.length}`,
+                entity.data.byteLength === entity_size,
+                () =>
+                    `Malformed entity in area ${area_id}, data array was of length ${entity.data.byteLength} instead of expected ${entity_size}.`,
             );
 
-            cursor.write_u16(obj.type_id);
-
-            assert(
-                obj.unknown[0].length === 6,
-                () => `unknown[0] should be of length 6, was ${obj.unknown[0].length}`,
-            );
-
-            cursor.write_u8_array(obj.unknown[0]);
-            cursor.write_u16(obj.id);
-            cursor.write_u16(obj.group_id);
-            cursor.write_u16(obj.section_id);
-
-            assert(
-                obj.unknown[1].length === 2,
-                () => `unknown[1] should be of length 2, was ${obj.unknown[1].length}`,
-            );
-
-            cursor.write_u8_array(obj.unknown[1]);
-            cursor.write_vec3_f32(obj.position);
-            cursor.write_i32(Math.round((obj.rotation.x / (2 * Math.PI)) * 0xffff));
-            cursor.write_i32(Math.round((obj.rotation.y / (2 * Math.PI)) * 0xffff));
-            cursor.write_i32(Math.round((obj.rotation.z / (2 * Math.PI)) * 0xffff));
-
-            assert(
-                obj.properties.length === 7,
-                () => `properties should be of length 7, was ${obj.properties.length}`,
-            );
-
-            cursor.write_f32(obj.properties[0]);
-            cursor.write_f32(obj.properties[1]);
-            cursor.write_f32(obj.properties[2]);
-            cursor.write_u32(obj.properties[3]);
-            cursor.write_u32(obj.properties[4]);
-            cursor.write_u32(obj.properties[5]);
-            cursor.write_u32(obj.properties[6]);
+            cursor.write_cursor(new ArrayBufferCursor(entity.data, cursor.endianness));
         }
-    }
-}
 
-function write_npcs(cursor: WritableCursor, npcs: readonly DatNpc[]): void {
-    const grouped_npcs = groupBy(npcs, npc => npc.area_id);
-    const npc_area_ids = Object.keys(grouped_npcs)
-        .map(key => parseInt(key, 10))
-        .sort((a, b) => a - b);
-
-    for (const area_id of npc_area_ids) {
-        const area_npcs = grouped_npcs[area_id];
-        const entities_size = area_npcs.length * NPC_SIZE;
-        cursor.write_u32(2); // Entity type
-        cursor.write_u32(entities_size + 16);
-        cursor.write_u32(area_id);
-        cursor.write_u32(entities_size);
-
-        for (const npc of area_npcs) {
-            assert(
-                npc.unknown.length === 2,
-                () => `unknown should be of length 2, was ${npc.unknown.length}`,
-            );
-
-            cursor.write_u16(npc.type_id);
-
-            assert(
-                npc.unknown[0].length === 10,
-                () => `unknown[0] should be of length 10, was ${npc.unknown[0].length}`,
-            );
-
-            cursor.write_u8_array(npc.unknown[0]);
-            cursor.write_u16(npc.section_id);
-            cursor.write_u16(npc.wave);
-            cursor.write_u32(npc.wave2);
-            cursor.write_vec3_f32(npc.position);
-            cursor.write_i32(Math.round((npc.rotation.x / (2 * Math.PI)) * 0xffff));
-            cursor.write_i32(Math.round((npc.rotation.y / (2 * Math.PI)) * 0xffff));
-            cursor.write_i32(Math.round((npc.rotation.z / (2 * Math.PI)) * 0xffff));
-            cursor.write_vec3_f32(npc.scale);
-            cursor.write_f32(npc.npc_id);
-            cursor.write_f32(npc.script_label);
-            cursor.write_u32(npc.roaming);
-
-            assert(
-                npc.unknown[1].length === 4,
-                () => `unknown[1] should be of length 4, was ${npc.unknown[1].length}`,
-            );
-
-            cursor.write_u8_array(npc.unknown[1]);
-        }
+        assert(
+            cursor.position === start_pos + entities_size,
+            () =>
+                `Wrote ${
+                    cursor.position - start_pos
+                } bytes of entity data instead of expected ${entities_size} bytes for area ${area_id}.`,
+        );
     }
 }
 

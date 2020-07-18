@@ -30,6 +30,7 @@ import { EventsController } from "./controllers/EventsController";
 import { DebugView } from "./gui/DebugView";
 import { DebugController } from "./controllers/DebugController";
 import { LogStore } from "./stores/LogStore";
+import { QuestLoader } from "./loading/QuestLoader";
 
 export function initialize_quest_editor(
     http_client: HttpClient,
@@ -39,6 +40,7 @@ export function initialize_quest_editor(
     const disposer = new Disposer();
 
     // Asset Loaders
+    const quest_loader = disposer.add(new QuestLoader(http_client));
     const area_asset_loader = disposer.add(new AreaAssetLoader(http_client));
     const entity_asset_loader = disposer.add(new EntityAssetLoader(http_client));
 
@@ -65,7 +67,12 @@ export function initialize_quest_editor(
             disposer.add(
                 new QuestEditorToolBarView(
                     disposer.add(
-                        new QuestEditorToolBarController(gui_store, area_store, quest_editor_store),
+                        new QuestEditorToolBarController(
+                            quest_loader,
+                            gui_store,
+                            area_store,
+                            quest_editor_store,
+                        ),
                     ),
                 ),
             ),

@@ -6,14 +6,22 @@ import {
 import { QuestEditorToolBarController } from "./QuestEditorToolBarController";
 import { Episode } from "../../core/data_formats/parsing/quest/Episode";
 import { with_disposer } from "../../../test/src/core/observables/disposable_helpers";
+import { QuestLoader } from "../loading/QuestLoader";
+import { FileSystemHttpClient } from "../../../test/src/core/FileSystemHttpClient";
 
 test("Some widgets should only be enabled when a quest is loaded.", async () =>
     with_disposer(async disposer => {
+        const quest_loader = disposer.add(new QuestLoader(new FileSystemHttpClient()));
         const gui_store = disposer.add(new GuiStore());
         const area_store = create_area_store(disposer);
         const quest_editor_store = create_quest_editor_store(disposer, area_store);
         const ctrl = disposer.add(
-            new QuestEditorToolBarController(gui_store, area_store, quest_editor_store),
+            new QuestEditorToolBarController(
+                quest_loader,
+                gui_store,
+                area_store,
+                quest_editor_store,
+            ),
         );
 
         expect(ctrl.can_save.val).toBe(false);

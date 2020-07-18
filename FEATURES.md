@@ -173,3 +173,4 @@ Features that are in ***bold italics*** are planned but not yet implemented.
     - Desert Fixed Type Box (Breakable Crystals)
     - Merissa A
     - Merissa AA
+- All "Sonic" objects, even the ones that aren't actually Sonic, are rendered as Sonic

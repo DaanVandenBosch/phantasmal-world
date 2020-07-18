@@ -1,6 +1,13 @@
 import * as fs from "fs";
 import { InstructionSegment, SegmentType } from "../../src/core/data_formats/asm/instructions";
 import { assemble } from "../../src/quest_editor/scripting/assembly";
+import { parse_qst_to_quest } from "../../src/core/data_formats/parsing/quest";
+import { BufferCursor } from "../../src/core/data_formats/block/cursor/BufferCursor";
+import { Endianness } from "../../src/core/data_formats/block/Endianness";
+import { Quest } from "../../src/core/data_formats/parsing/quest/Quest";
+import { QuestModel } from "../../src/quest_editor/model/QuestModel";
+import { AreaStore } from "../../src/quest_editor/stores/AreaStore";
+import { convert_quest_to_model } from "../../src/quest_editor/stores/model_conversion";
 
 export async function timeout(millis: number): Promise<void> {
     return new Promise(resolve => {
@@ -57,6 +64,17 @@ export function get_qst_files(dir: string): [string, string][] {
     }
 
     return files;
+}
+
+export function load_default_quest_model(area_store: AreaStore): QuestModel {
+    return convert_quest_to_model(
+        area_store,
+        load_qst_as_quest("assets/quests/defaults/default_ep_1.qst")!,
+    );
+}
+
+export function load_qst_as_quest(path: string): Quest | undefined {
+    return parse_qst_to_quest(new BufferCursor(fs.readFileSync(path), Endianness.Little))?.quest;
 }
 
 export function to_instructions(assembly: string, manual_stack?: boolean): InstructionSegment[] {

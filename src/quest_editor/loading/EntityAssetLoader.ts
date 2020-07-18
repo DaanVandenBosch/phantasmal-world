@@ -12,7 +12,7 @@ import {
     entity_type_to_string,
     EntityType,
     is_npc_type,
-} from "../../core/data_formats/parsing/quest/entities";
+} from "../../core/data_formats/parsing/quest/Quest";
 import { HttpClient } from "../../core/HttpClient";
 import { Disposable } from "../../core/observable/Disposable";
 import { LogManager } from "../../core/Logger";
@@ -424,13 +424,13 @@ function entity_type_to_url(type: EntityType, asset_type: AssetType, no?: number
                 case ObjectType.FallingRock:
                 case ObjectType.DesertFixedTypeBoxBreakableCrystals:
                 case ObjectType.BeeHive:
-                    return `/objects/${object_data(type).pso_id}${no_str}.nj`;
+                    return `/objects/${object_data(type).type_id}${no_str}.nj`;
 
                 default:
-                    return `/objects/${object_data(type).pso_id}${no_str}.xj`;
+                    return `/objects/${object_data(type).type_id}${no_str}.xj`;
             }
         } else {
-            return `/objects/${object_data(type).pso_id}${no_str}.xvm`;
+            return `/objects/${object_data(type).type_id}${no_str}.xvm`;
         }
     }
 }

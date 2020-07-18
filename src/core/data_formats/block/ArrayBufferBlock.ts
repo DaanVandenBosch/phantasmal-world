@@ -9,10 +9,16 @@ export class ArrayBufferBlock extends AbstractWritableBlock {
     protected readonly buffer: ArrayBuffer;
     protected readonly data_view: DataView;
 
-    constructor(size: number, endianness: Endianness) {
+    get backing_buffer(): ArrayBuffer {
+        return this.buffer;
+    }
+
+    constructor(buffer_or_size: ArrayBuffer | number, endianness: Endianness) {
         super(endianness);
 
-        this.buffer = new ArrayBuffer(size);
+        this.buffer =
+            typeof buffer_or_size === "number" ? new ArrayBuffer(buffer_or_size) : buffer_or_size;
+
         this.data_view = new DataView(this.buffer);
     }
 }

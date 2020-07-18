@@ -210,18 +210,18 @@ export type NpcTypeData = {
     /**
      * Type ID used by the game.
      */
-    readonly pso_type_id?: number;
+    readonly type_id?: number;
     /**
-     * Roaming value used by the game.
+     * Skin value used by the game.
      */
-    readonly pso_roaming?: number;
+    readonly skin?: number;
     /**
      * Boolean specifying whether an NPC is the regular or special variant. The game uses a single
      * bit in the y component of the NPC's scale vector for this value.
      * Sometimes signifies a variant (e.g. Barbarous Wolf), sometimes a rare variant (e.g. Pouilly
      * Slime).
      */
-    readonly pso_regular?: boolean;
+    readonly regular?: boolean;
 };
 
 export const NPC_TYPES: NpcType[] = [];
@@ -258,9 +258,9 @@ function define_npc_type_data(
     enemy: boolean,
     rare_type: NpcType | undefined,
     area_ids: number[],
-    pso_type_id: number | undefined,
-    pso_roaming: number | undefined,
-    pso_regular: boolean | undefined,
+    type_id: number | undefined,
+    skin: number | undefined,
+    regular: boolean | undefined,
 ): void {
     NPC_TYPES.push(npc_type);
 
@@ -276,9 +276,9 @@ function define_npc_type_data(
         enemy,
         rare_type,
         area_ids,
-        pso_type_id,
-        pso_roaming,
-        pso_regular,
+        type_id,
+        skin,
+        regular,
     });
 
     if (episode) {

@@ -12,7 +12,7 @@ import {
 } from "../../core/observable/property/list/ListProperty";
 import { QuestNpcModel } from "../model/QuestNpcModel";
 import { QuestObjectModel } from "../model/QuestObjectModel";
-import { entity_type_to_string } from "../../core/data_formats/parsing/quest/entities";
+import { entity_type_to_string } from "../../core/data_formats/parsing/quest/Quest";
 import { Episode } from "../../core/data_formats/parsing/quest/Episode";
 import { AreaVariantModel } from "../model/AreaVariantModel";
 import { EntityAssetLoader } from "../loading/EntityAssetLoader";

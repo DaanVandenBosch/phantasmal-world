@@ -4,10 +4,9 @@ import {
     create_area_store,
     create_quest_editor_store,
 } from "../../../test/src/quest_editor/stores/store_creation";
-import { create_new_quest } from "../stores/quest_creation";
-import { Episode } from "../../core/data_formats/parsing/quest/Episode";
 import { with_disposer } from "../../../test/src/core/observables/disposable_helpers";
 import { undo_manager } from "../../core/undo/UndoManager";
+import { load_default_quest_model } from "../../../test/src/utils";
 
 test("Renders correctly without an entity selected.", () => {
     with_disposer(disposer => {
@@ -19,7 +18,7 @@ test("Renders correctly without an entity selected.", () => {
 
         expect(view.element).toMatchSnapshot('should render a "No entity selected." view');
 
-        store.set_current_quest(create_new_quest(area_store, Episode.I));
+        store.set_current_quest(load_default_quest_model(area_store));
 
         expect(view.element).toMatchSnapshot('should render a "No entity selected." view');
     });
@@ -33,7 +32,7 @@ test("Renders correctly with an entity selected.", () => {
             new EntityInfoView(disposer.add(new EntityInfoController(store))),
         );
 
-        const quest = create_new_quest(area_store, Episode.I);
+        const quest = load_default_quest_model(area_store);
         store.set_current_quest(quest);
         store.set_selected_entity(quest.npcs.get(0));
 

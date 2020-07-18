@@ -5,7 +5,7 @@ import {
     entity_type_to_string,
     EntityType,
     is_npc_type,
-} from "../../../core/data_formats/parsing/quest/entities";
+} from "../../../core/data_formats/parsing/quest/Quest";
 
 export enum ColorType {
     Normal,

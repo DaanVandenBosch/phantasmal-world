@@ -291,7 +291,7 @@ export type ObjectTypeData = {
      * This array can be indexed with an {@link Episode} value.
      */
     readonly area_ids: number[][];
-    readonly pso_id?: number;
+    readonly type_id?: number;
 };
 
 export const OBJECT_TYPES: ObjectType[] = [];
@@ -300,8 +300,8 @@ export function object_data(type: ObjectType): ObjectTypeData {
     return OBJECT_TYPE_DATA[type];
 }
 
-export function pso_id_to_object_type(psoId: number): ObjectType {
-    switch (psoId) {
+export function id_to_object_type(id: number): ObjectType {
+    switch (id) {
         default:
             return ObjectType.Unknown;
 
@@ -870,7 +870,7 @@ const OBJECT_TYPE_DATA: ObjectTypeData[] = [];
 
 function define_object_type_data(
     object_type: ObjectType,
-    pso_id: number | undefined,
+    type_id: number | undefined,
     name: string,
     area_ids: [Episode, number[]][],
 ): void {
@@ -885,7 +885,7 @@ function define_object_type_data(
     OBJECT_TYPE_DATA[object_type] = Object.freeze({
         name,
         area_ids: area_ids_per_episode,
-        pso_id,
+        type_id,
     });
 }
 

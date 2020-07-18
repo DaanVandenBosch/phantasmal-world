@@ -2,13 +2,13 @@ import { Controller } from "../../core/controllers/Controller";
 import { QuestEditorStore } from "../stores/QuestEditorStore";
 import { Property } from "../../core/observable/property/Property";
 import { QuestNpcModel } from "../model/QuestNpcModel";
-import { entity_data } from "../../core/data_formats/parsing/quest/entities";
 import { property } from "../../core/observable";
 import { Euler, Vector3 } from "three";
 import { deg_to_rad } from "../../core/math";
 import { TranslateEntityAction } from "../actions/TranslateEntityAction";
 import { RotateEntityAction } from "../actions/RotateEntityAction";
 import { euler } from "../model/euler";
+import { entity_data } from "../../core/data_formats/parsing/quest/Quest";
 
 const DUMMY_VECTOR = Object.freeze(new Vector3());
 const DUMMY_EULER = Object.freeze(new Euler());
