@@ -8,7 +8,7 @@ import { AreaStore } from "../stores/AreaStore";
 import { StubHttpClient } from "../../core/HttpClient";
 import { AreaAssetLoader } from "../loading/AreaAssetLoader";
 import { euler } from "./euler";
-import { QuestNpc } from "../../core/data_formats/parsing/quest/Quest";
+import { create_quest_npc } from "../../core/data_formats/parsing/quest/QuestNpc";
 
 const area_store = new AreaStore(new AreaAssetLoader(new StubHttpClient()));
 
@@ -45,7 +45,7 @@ test("After changing section, world position should change accordingly.", () => 
 
 function create_entity(): QuestEntityModel {
     const entity = new QuestNpcModel(
-        QuestNpc.create(NpcType.AlRappy, area_store.get_area(Episode.I, 0).id, 0),
+        create_quest_npc(NpcType.AlRappy, area_store.get_area(Episode.I, 0).id, 0),
     );
     entity.set_position(new Vector3(5, 5, 5));
     return entity;

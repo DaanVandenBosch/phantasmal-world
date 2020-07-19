@@ -11,6 +11,8 @@ import {
     SegmentType,
     StringSegment,
 } from "../../asm/instructions";
+import { get_object_position, get_object_section_id, get_object_type } from "./QuestObject";
+import { get_npc_position, get_npc_section_id, get_npc_type } from "./QuestNpc";
 
 test("parse Towards the Future", () => {
     const buffer = readFileSync("test/resources/quest118_e.qst");
@@ -24,8 +26,8 @@ test("parse Towards the Future", () => {
     );
     expect(quest.episode).toBe(1);
     expect(quest.objects.length).toBe(277);
-    expect(quest.objects[0].type).toBe(ObjectType.MenuActivation);
-    expect(quest.objects[4].type).toBe(ObjectType.PlayerSet);
+    expect(get_object_type(quest.objects[0])).toBe(ObjectType.MenuActivation);
+    expect(get_object_type(quest.objects[4])).toBe(ObjectType.PlayerSet);
     expect(quest.npcs.length).toBe(216);
     expect(quest.map_designations).toEqual(
         new Map([
@@ -89,9 +91,9 @@ function round_trip_test(path: string, file_name: string, contents: Buffer): voi
             const orig_obj = orig_quest.objects[i];
             const test_obj = test_quest.objects[i];
             expect(test_obj.area_id).toBe(orig_obj.area_id);
-            expect(test_obj.section_id).toBe(orig_obj.section_id);
-            expect(test_obj.position).toEqual(orig_obj.position);
-            expect(test_obj.type).toBe(orig_obj.type);
+            expect(get_object_section_id(test_obj)).toBe(get_object_section_id(orig_obj));
+            expect(get_object_position(test_obj)).toEqual(get_object_position(orig_obj));
+            expect(get_object_type(test_obj)).toBe(get_object_type(orig_obj));
         }
 
         expect(test_quest.npcs.length).toBe(orig_quest.npcs.length);
@@ -100,9 +102,9 @@ function round_trip_test(path: string, file_name: string, contents: Buffer): voi
             const orig_npc = orig_quest.npcs[i];
             const test_npc = test_quest.npcs[i];
             expect(test_npc.area_id).toBe(orig_npc.area_id);
-            expect(test_npc.section_id).toBe(orig_npc.section_id);
-            expect(test_npc.position).toEqual(orig_npc.position);
-            expect(test_npc.type).toBe(orig_npc.type);
+            expect(get_npc_section_id(test_npc)).toBe(get_npc_section_id(orig_npc));
+            expect(get_npc_position(test_npc)).toEqual(get_npc_position(orig_npc));
+            expect(get_npc_type(test_npc)).toBe(get_npc_type(orig_npc));
         }
 
         expect(test_quest.map_designations).toEqual(orig_quest.map_designations);

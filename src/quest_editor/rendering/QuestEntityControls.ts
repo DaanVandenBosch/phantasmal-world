@@ -7,12 +7,7 @@ import { AreaUserData } from "./conversion/areas";
 import { SectionModel } from "../model/SectionModel";
 import { Disposable } from "../../core/observable/Disposable";
 import { Disposer } from "../../core/observable/Disposer";
-import {
-    EntityType,
-    is_npc_type,
-    QuestNpc,
-    QuestObject,
-} from "../../core/data_formats/parsing/quest/Quest";
+import { EntityType, is_npc_type } from "../../core/data_formats/parsing/quest/Quest";
 import {
     add_entity_dnd_listener,
     EntityDragEvent,
@@ -27,6 +22,8 @@ import { RotateEntityAction } from "../actions/RotateEntityAction";
 import { RemoveEntityAction } from "../actions/RemoveEntityAction";
 import { TranslateEntityAction } from "../actions/TranslateEntityAction";
 import { Object3D } from "three/src/core/Object3D";
+import { create_quest_npc } from "../../core/data_formats/parsing/quest/QuestNpc";
+import { create_quest_object } from "../../core/data_formats/parsing/quest/QuestObject";
 
 const ZERO_VECTOR = Object.freeze(new Vector3(0, 0, 0));
 const UP_VECTOR = Object.freeze(new Vector3(0, 1, 0));
@@ -643,11 +640,11 @@ class CreationState implements State {
             const wave = quest_editor_store.selected_wave.val;
 
             this.entity = new QuestNpcModel(
-                QuestNpc.create(evt.entity_type, area.id, wave?.id.val ?? 0),
+                create_quest_npc(evt.entity_type, area.id, wave?.id.val ?? 0),
                 wave,
             );
         } else {
-            this.entity = new QuestObjectModel(QuestObject.create(evt.entity_type, area.id));
+            this.entity = new QuestObjectModel(create_quest_object(evt.entity_type, area.id));
         }
 
         translate_entity_horizontally(

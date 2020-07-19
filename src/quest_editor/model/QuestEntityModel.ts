@@ -7,6 +7,7 @@ import { Euler, Quaternion, Vector3 } from "three";
 import { floor_mod } from "../../core/math";
 import { euler, euler_from_quat } from "./euler";
 import { vec3_to_threejs } from "../../core/rendering/conversion";
+import { Vec3 } from "../../core/data_formats/vector";
 
 // These quaternions are used as temporary variables to avoid memory allocation.
 const q1 = new Quaternion();
@@ -14,7 +15,7 @@ const q2 = new Quaternion();
 
 export abstract class QuestEntityModel<
     Type extends EntityType = EntityType,
-    Entity extends QuestEntity<Type> = QuestEntity<Type>
+    Entity extends QuestEntity = QuestEntity
 > {
     private readonly _section_id: WritableProperty<number>;
     private readonly _section: WritableProperty<SectionModel | undefined> = property(undefined);
@@ -29,9 +30,7 @@ export abstract class QuestEntityModel<
      */
     readonly entity: Entity;
 
-    get type(): Type {
-        return this.entity.type;
-    }
+    abstract readonly type: Type;
 
     get area_id(): number {
         return this.entity.area_id;
@@ -60,10 +59,10 @@ export abstract class QuestEntityModel<
 
         this.section = this._section;
 
-        this._section_id = property(entity.section_id);
+        this._section_id = property(this.get_entity_section_id());
         this.section_id = this._section_id;
 
-        const position = vec3_to_threejs(entity.position);
+        const position = vec3_to_threejs(this.get_entity_position());
 
         this._position = property(position);
         this.position = this._position;
@@ -71,7 +70,7 @@ export abstract class QuestEntityModel<
         this._world_position = property(position);
         this.world_position = this._world_position;
 
-        const { x: rot_x, y: rot_y, z: rot_z } = entity.rotation;
+        const { x: rot_x, y: rot_y, z: rot_z } = this.get_entity_rotation();
         const rotation = euler(rot_x, rot_y, rot_z);
 
         this._rotation = property(rotation);
@@ -86,7 +85,7 @@ export abstract class QuestEntityModel<
             throw new Error(`Quest entities can't be moved across areas.`);
         }
 
-        this.entity.section_id = section.id;
+        this.set_entity_section_id(section.id);
 
         this._section.val = section;
         this._section_id.val = section.id;
@@ -98,7 +97,7 @@ export abstract class QuestEntityModel<
     }
 
     set_position(pos: Vector3): this {
-        this.entity.position = pos;
+        this.set_entity_position(pos);
 
         this._position.val = pos;
 
@@ -120,7 +119,7 @@ export abstract class QuestEntityModel<
             ? pos.clone().sub(section.position).applyEuler(section.inverse_rotation)
             : pos;
 
-        this.entity.position = rel_pos;
+        this.set_entity_position(rel_pos);
         this._position.val = rel_pos;
 
         return this;
@@ -129,7 +128,7 @@ export abstract class QuestEntityModel<
     set_rotation(rot: Euler): this {
         floor_mod_euler(rot);
 
-        this.entity.rotation = rot;
+        this.set_entity_rotation(rot);
 
         this._rotation.val = rot;
 
@@ -165,11 +164,20 @@ export abstract class QuestEntityModel<
             rel_rot = rot;
         }
 
-        this.entity.rotation = rel_rot;
+        this.set_entity_rotation(rel_rot);
         this._rotation.val = rel_rot;
 
         return this;
     }
+
+    protected abstract get_entity_section_id(): number;
+    protected abstract set_entity_section_id(section_id: number): void;
+
+    protected abstract get_entity_position(): Vec3;
+    protected abstract set_entity_position(position: Vec3): void;
+
+    protected abstract get_entity_rotation(): Vec3;
+    protected abstract set_entity_rotation(rotation: Vec3): void;
 }
 
 function floor_mod_euler(euler: Euler): Euler {

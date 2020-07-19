@@ -8,7 +8,7 @@ import { ResizableBlockCursor } from "../../block/cursor/ResizableBlockCursor";
 import { Endianness } from "../../block/Endianness";
 import { parse_bin, write_bin } from "./bin";
 import { DatEntity, parse_dat, write_dat } from "./dat";
-import { Quest, QuestNpc, QuestObject } from "./Quest";
+import { Quest, QuestEntity } from "./Quest";
 import { Episode } from "./Episode";
 import { parse_qst, QstContainedFile, write_qst } from "./qst";
 import { LogManager } from "../../../Logger";
@@ -17,7 +17,13 @@ import { get_map_designations } from "../../asm/data_flow_analysis/get_map_desig
 import { basename } from "../../../util";
 import { version_to_bin_format } from "./BinFormat";
 import { Version } from "./Version";
-import { ArrayBufferBlock } from "../../block/ArrayBufferBlock";
+import { data_to_quest_npc, get_npc_script_label, QuestNpc } from "./QuestNpc";
+import {
+    data_to_quest_object,
+    get_object_script_label,
+    get_object_script_label_2,
+    QuestObject,
+} from "./QuestObject";
 
 const logger = LogManager.get("core/data_formats/parsing/quest");
 
@@ -32,9 +38,9 @@ export function parse_bin_dat_to_quest(
 
     const dat_decompressed = prs_decompress(dat_cursor);
     const dat = parse_dat(dat_decompressed);
-    const objects = parse_obj_data(dat.objs);
+    const objects = dat.objs.map(({ area_id, data }) => data_to_quest_object(area_id, data));
     // Initialize NPCs with random episode and correct it later.
-    const npcs = parse_npc_data(Episode.I, dat.npcs);
+    const npcs = dat.npcs.map(({ area_id, data }) => data_to_quest_npc(Episode.I, area_id, data));
 
     // Extract episode and map designations from object code.
     let episode = Episode.I;
@@ -77,21 +83,21 @@ export function parse_bin_dat_to_quest(
         logger.warn("File contains no instruction labels.");
     }
 
-    return new Quest(
-        bin.quest_id,
-        bin.language,
-        bin.quest_name,
-        bin.short_description,
-        bin.long_description,
+    return {
+        id: bin.quest_id,
+        language: bin.language,
+        name: bin.quest_name,
+        short_description: bin.short_description,
+        long_description: bin.long_description,
         episode,
         objects,
         npcs,
-        dat.events,
-        dat.unknowns,
+        events: dat.events,
+        dat_unknowns: dat.unknowns,
         object_code,
-        bin.shop_items,
+        shop_items: bin.shop_items,
         map_designations,
-    );
+    };
 }
 
 export function parse_qst_to_quest(
@@ -144,8 +150,8 @@ export function write_quest_qst(
     online: boolean,
 ): ArrayBuffer {
     const dat = write_dat({
-        objs: objects_to_dat_data(quest.objects),
-        npcs: npcs_to_dat_data(quest.npcs),
+        objs: entities_to_dat_data(quest.objects),
+        npcs: entities_to_dat_data(quest.npcs),
         events: quest.events,
         unknowns: quest.dat_unknowns,
     });
@@ -226,13 +232,13 @@ function extract_script_entry_points(
     const entry_points = new Set([0]);
 
     for (const obj of objects) {
-        const entry_point = obj.script_label;
+        const entry_point = get_object_script_label(obj);
 
         if (entry_point != undefined) {
             entry_points.add(entry_point);
         }
 
-        const entry_point_2 = obj.script_label_2;
+        const entry_point_2 = get_object_script_label_2(obj);
 
         if (entry_point_2 != undefined) {
             entry_points.add(entry_point_2);
@@ -240,43 +246,12 @@ function extract_script_entry_points(
     }
 
     for (const npc of npcs) {
-        entry_points.add(npc.script_label);
+        entry_points.add(get_npc_script_label(npc));
     }
 
     return [...entry_points];
 }
 
-function parse_obj_data(objs: readonly DatEntity[]): QuestObject[] {
-    return objs.map(
-        obj_data =>
-            new QuestObject(
-                obj_data.area_id,
-                new ArrayBufferBlock(obj_data.data, Endianness.Little),
-            ),
-    );
-}
-
-function parse_npc_data(episode: number, npcs: readonly DatEntity[]): QuestNpc[] {
-    return npcs.map(
-        npc_data =>
-            new QuestNpc(
-                episode,
-                npc_data.area_id,
-                new ArrayBufferBlock(npc_data.data, Endianness.Little),
-            ),
-    );
-}
-
-function objects_to_dat_data(objects: readonly QuestObject[]): DatEntity[] {
-    return objects.map(object => ({
-        area_id: object.area_id,
-        data: object.data.backing_buffer,
-    }));
-}
-
-function npcs_to_dat_data(npcs: readonly QuestNpc[]): DatEntity[] {
-    return npcs.map(npc => ({
-        area_id: npc.area_id,
-        data: npc.data.backing_buffer,
-    }));
+function entities_to_dat_data(entities: readonly QuestEntity[]): DatEntity[] {
+    return entities.map(({ area_id, data }) => ({ area_id, data }));
 }

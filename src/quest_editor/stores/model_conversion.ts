@@ -14,11 +14,16 @@ import {
     QuestEventActionUnlockModel,
 } from "../model/QuestEventActionModel";
 import { QuestEventDagModel } from "../model/QuestEventDagModel";
-import { Quest, QuestEvent, QuestNpc } from "../../core/data_formats/parsing/quest/Quest";
+import { Quest, QuestEvent } from "../../core/data_formats/parsing/quest/Quest";
 import { clone_segment } from "../../core/data_formats/asm/instructions";
 import { AreaStore } from "./AreaStore";
 import { LogManager } from "../../core/Logger";
 import { WaveModel } from "../model/WaveModel";
+import {
+    get_npc_section_id,
+    get_npc_wave,
+    QuestNpc,
+} from "../../core/data_formats/parsing/quest/QuestNpc";
 
 const logger = LogManager.get("quest_editor/stores/model_conversion");
 
@@ -44,8 +49,11 @@ export function convert_quest_to_model(area_store: AreaStore, quest: Quest): Que
 }
 
 function convert_npc_to_model(wave_cache: Map<string, WaveModel>, npc: QuestNpc): QuestNpcModel {
+    const wave_id = get_npc_wave(npc);
     const wave =
-        npc.wave === 0 ? undefined : get_wave(wave_cache, npc.area_id, npc.section_id, npc.wave);
+        wave_id === 0
+            ? undefined
+            : get_wave(wave_cache, npc.area_id, get_npc_section_id(npc), wave_id);
 
     return new QuestNpcModel(npc, wave);
 }

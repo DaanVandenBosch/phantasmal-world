@@ -1,13 +1,169 @@
-import { NpcType } from "./npc_types";
+import { npc_data, NpcType } from "./npc_types";
+import { Vec3 } from "../../vector";
+import { Episode } from "./Episode";
+import { NPC_BYTE_SIZE } from "./dat";
+import { assert } from "../../../util";
+
+const DEFAULT_SCALE: Vec3 = Object.freeze({ x: 1, y: 1, z: 1 });
+
+export type QuestNpc = {
+    episode: Episode;
+    area_id: number;
+    readonly data: ArrayBuffer;
+    readonly view: DataView;
+};
+
+export function create_quest_npc(type: NpcType, area_id: number, wave: number): QuestNpc {
+    const data = new ArrayBuffer(NPC_BYTE_SIZE);
+    const npc: QuestNpc = {
+        episode: Episode.I,
+        area_id,
+        data,
+        view: new DataView(data),
+    };
+
+    // Set scale before type, because set_npc_type will change it.
+    set_npc_scale(npc, DEFAULT_SCALE);
+    set_npc_type(npc, type);
+    // Set area_id after type, because you might want to overwrite the area_id that type has
+    // determined.
+    npc.area_id = area_id;
+    set_npc_wave(npc, wave);
+    set_npc_wave_2(npc, wave);
+
+    return npc;
+}
+
+export function data_to_quest_npc(episode: Episode, area_id: number, data: ArrayBuffer): QuestNpc {
+    assert(
+        data.byteLength === NPC_BYTE_SIZE,
+        () => `Data byteLength should be ${NPC_BYTE_SIZE} but was ${data.byteLength}.`,
+    );
+
+    return {
+        episode,
+        area_id,
+        data,
+        view: new DataView(data),
+    };
+}
+
+//
+// Simple properties that directly map to a part of the data block.
+//
+
+export function get_npc_type_id(npc: QuestNpc): number {
+    return npc.view.getUint16(0, true);
+}
+
+export function set_npc_type_id(npc: QuestNpc, type_id: number): void {
+    npc.view.setUint16(0, type_id, true);
+}
+
+export function get_npc_section_id(npc: QuestNpc): number {
+    return npc.view.getUint16(12, true);
+}
+
+export function set_npc_section_id(npc: QuestNpc, section_id: number): void {
+    npc.view.setUint16(12, section_id, true);
+}
+
+export function get_npc_wave(npc: QuestNpc): number {
+    return npc.view.getUint16(14, true);
+}
+
+export function set_npc_wave(npc: QuestNpc, wave: number): void {
+    npc.view.setUint16(14, wave, true);
+}
+
+export function get_npc_wave_2(npc: QuestNpc): number {
+    return npc.view.getUint32(16, true);
+}
+
+export function set_npc_wave_2(npc: QuestNpc, wave_2: number): void {
+    npc.view.setUint32(16, wave_2, true);
+}
+
+/**
+ * Section-relative position.
+ */
+export function get_npc_position(npc: QuestNpc): Vec3 {
+    return {
+        x: npc.view.getFloat32(20, true),
+        y: npc.view.getFloat32(24, true),
+        z: npc.view.getFloat32(28, true),
+    };
+}
+
+export function set_npc_position(npc: QuestNpc, position: Vec3): void {
+    npc.view.setFloat32(20, position.x, true);
+    npc.view.setFloat32(24, position.y, true);
+    npc.view.setFloat32(28, position.z, true);
+}
+
+export function get_npc_rotation(npc: QuestNpc): Vec3 {
+    return {
+        x: (npc.view.getInt32(32, true) / 0xffff) * 2 * Math.PI,
+        y: (npc.view.getInt32(36, true) / 0xffff) * 2 * Math.PI,
+        z: (npc.view.getInt32(40, true) / 0xffff) * 2 * Math.PI,
+    };
+}
+
+export function set_npc_rotation(npc: QuestNpc, rotation: Vec3): void {
+    npc.view.setInt32(32, Math.round((rotation.x / (2 * Math.PI)) * 0xffff), true);
+    npc.view.setInt32(36, Math.round((rotation.y / (2 * Math.PI)) * 0xffff), true);
+    npc.view.setInt32(40, Math.round((rotation.z / (2 * Math.PI)) * 0xffff), true);
+}
+
+/**
+ * Seemingly 3 floats, not sure what they represent.
+ * The y component is used to help determine what the NpcType is.
+ */
+export function get_npc_scale(npc: QuestNpc): Vec3 {
+    return {
+        x: npc.view.getFloat32(44, true),
+        y: npc.view.getFloat32(48, true),
+        z: npc.view.getFloat32(52, true),
+    };
+}
+
+export function set_npc_scale(npc: QuestNpc, scale: Vec3): void {
+    npc.view.setFloat32(44, scale.x, true);
+    npc.view.setFloat32(48, scale.y, true);
+    npc.view.setFloat32(52, scale.z, true);
+}
+
+export function get_npc_id(npc: QuestNpc): number {
+    return npc.view.getFloat32(56, true);
+}
+
+/**
+ * Only seems to be valid for non-enemies.
+ */
+export function get_npc_script_label(npc: QuestNpc): number {
+    return Math.round(npc.view.getFloat32(60, true));
+}
+
+export function get_npc_skin(npc: QuestNpc): number {
+    return npc.view.getUint32(64, true);
+}
+
+export function set_npc_skin(npc: QuestNpc, skin: number): void {
+    npc.view.setUint32(64, skin, true);
+}
+
+//
+// Complex properties that use multiple parts of the data block and possible other properties.
+//
 
 // TODO: detect Mothmant, St. Rappy, Hallo Rappy, Egg Rappy, Death Gunner, Bulk and Recon.
-export function get_npc_type(
-    episode: number,
-    type_id: number,
-    regular: boolean,
-    skin: number,
-    area_id: number,
-): NpcType {
+export function get_npc_type(npc: QuestNpc): NpcType {
+    const episode = npc.episode;
+    const type_id = get_npc_type_id(npc);
+    const regular = is_npc_regular(npc);
+    const skin = get_npc_skin(npc);
+    const area_id = npc.area_id;
+
     switch (`${type_id}, ${skin % 3}, ${episode}`) {
         case `${0x044}, 0, 1`:
             return NpcType.Booma;
@@ -278,4 +434,32 @@ export function get_npc_type(
     }
 
     return NpcType.Unknown;
+}
+
+export function set_npc_type(npc: QuestNpc, type: NpcType): void {
+    const data = npc_data(type);
+
+    if (data.episode != undefined) {
+        npc.episode = data.episode;
+    }
+
+    set_npc_type_id(npc, data.type_id ?? 0);
+    set_npc_regular(npc, data.regular ?? true);
+    set_npc_skin(npc, data.skin ?? 0);
+
+    if (data.area_ids.length > 0 && !data.area_ids.includes(npc.area_id)) {
+        npc.area_id = data.area_ids[0];
+    }
+}
+
+export function is_npc_regular(npc: QuestNpc): boolean {
+    return Math.abs(npc.view.getFloat32(48, true) - 1) > 0.00001;
+}
+
+export function set_npc_regular(npc: QuestNpc, regular: boolean): void {
+    npc.view.setInt32(
+        48,
+        (npc.view.getInt32(48, true) & ~0x800000) | (regular ? 0 : 0x800000),
+        true,
+    );
 }
