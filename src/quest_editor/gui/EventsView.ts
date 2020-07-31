@@ -120,6 +120,7 @@ export class EventsView extends ResizableView {
                 sub_graph,
                 this.max_edge_depth,
             );
+            sub_graph_view.enabled.val = this.enabled.val;
             this.sub_graph_views.set(sub_graph, sub_graph_view);
         }
 
