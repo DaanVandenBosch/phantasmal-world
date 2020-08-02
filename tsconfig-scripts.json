@@ -12,7 +12,7 @@
         "resolveJsonModule": true,
         "moduleResolution": "node",
         "noEmit": true,
-        "experimentalDecorators": true
-    },
-    "include": ["static_generation"]
+        "experimentalDecorators": true,
+        "typeRoots" : ["./node_modules/@types", "./typedefs"]
+    }
 }
