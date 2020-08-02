@@ -1587,6 +1587,18 @@ opcodes:
     mnemonic: load_midi
     params: []
 
+  - code: 0xde
+    mnemonic: unknown_de
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: any
+            access: read
+      - type: reg_tup_ref
+        reg_tup:
+          - type: any
+            access: write
+
   - code: 0xdf
     mnemonic: npc_param_v3
     params: 
