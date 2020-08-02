@@ -3041,18 +3041,9 @@ export const OP_GET_SLOTNUMBER = (OPCODES[0xe6] = new_opcode(
 export const OP_GET_SERVERNUMBER = (OPCODES[0xe7] = new_opcode(
     0xe7,
     "get_servernumber",
-    undefined,
-    [
-        new_param(
-            {
-                kind: Kind.RegTupRef,
-                register_tuples: [new_param(TYPE_DWORD, undefined, ParamAccess.Write)],
-            },
-            undefined,
-            undefined,
-        ),
-    ],
-    undefined,
+    "Returns the index of the player who is the leader of the party.",
+    [new_param({ kind: Kind.RegTupRef, register_tuples: [new_param(TYPE_DWORD, undefined, ParamAccess.Write)] }, undefined, undefined)],
+    undefined
 ));
 export const OP_SET_EVENTFLAG2 = (OPCODES[0xe8] = new_opcode(
     0xe8,

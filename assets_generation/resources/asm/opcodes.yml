@@ -1655,6 +1655,7 @@ opcodes:
 
   - code: 0xe7
     mnemonic: get_servernumber
+    doc: Returns the index of the player who is the leader of the party.
     params:
       - type: reg_tup_ref
         reg_tup:
