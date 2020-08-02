@@ -3698,12 +3698,12 @@ export const OP_GO_FLOOR = (OPCODES[0xf828] = new_opcode(
     ],
     undefined,
 ));
-export const OP_UNKNOWN_F829 = (OPCODES[0xf829] = new_opcode(
+export const OP_GET_NUM_KILLS = (OPCODES[0xf829] = new_opcode(
     0xf829,
-    "unknown_f829",
-    undefined,
-    [],
-    undefined,
+    "get_num_kills",
+    "Returns the number of enemies a player has killed during the quest.",
+    [new_param({ kind: Kind.RegTupRef, register_tuples: [new_param(TYPE_DWORD, "Player slot.", ParamAccess.Read)] }, undefined, undefined), new_param(TYPE_ANY, "Unused", undefined), new_param({ kind: Kind.RegTupRef, register_tuples: [new_param(TYPE_DWORD, "Result register.", ParamAccess.Write)] }, undefined, undefined)],
+    undefined
 ));
 export const OP_UNKNOWN_F82A = (OPCODES[0xf82a] = new_opcode(
     0xf82a,

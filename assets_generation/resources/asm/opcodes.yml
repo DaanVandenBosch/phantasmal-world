@@ -1987,6 +1987,23 @@ opcodes:
             doc: Floor ID.
             access: read
 
+  - code: 0xf829
+    mnemonic: get_num_kills
+    doc: Returns the number of enemies a player has killed during the quest.
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            doc: Player slot.
+            access: read
+      - type: any
+        doc: Unused
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            doc: Result register.
+            access: write
+
   - code: 0xf82b
     mnemonic: unlock_door2
     params: [{ type: dword }, { type: dword }]
