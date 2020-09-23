@@ -71,7 +71,7 @@ re-run whenever a file is changed. The testing framework used is Jest.
 
 ### Code Style, Linting and Formatting
 
-Class names are in `PascalCase` and all other identifiers are in `snake_case`.
+Class/interface/type names are in `PascalCase` and all other identifiers are in `snake_case`.
 
 ESLint and Prettier are used for linting and formatting. Run with `yarn lint` and/or configure your
 editor to use the ESLint/Prettier configuration.
@@ -84,4 +84,6 @@ Create an optimized production build with `yarn build`.
 
 ### prs-rs
 
-Provides faster PRS routines using WebAssembly. Build for WebPack with `yarn build_prs_rs_browser`. Build for Jest with `yarn build_prs_rs_testing`. Building requires [wasm-pack](https://github.com/rustwasm/wasm-pack).
+Provides faster PRS routines using WebAssembly. Build for WebPack with `yarn build_prs_rs_browser`.
+Build for Jest with `yarn build_prs_rs_testing`. Building requires
+[wasm-pack](https://github.com/rustwasm/wasm-pack).

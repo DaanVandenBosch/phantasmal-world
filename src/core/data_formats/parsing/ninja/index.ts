@@ -4,8 +4,7 @@ import { parse_iff } from "../iff";
 import { NjcmModel, parse_njcm_model } from "./njcm";
 import { parse_xj_model, XjModel } from "./xj";
 import { Result, success } from "../../../Result";
-
-export const ANGLE_TO_RAD = (2 * Math.PI) / 0xffff;
+import { angle_to_rad } from "./angle";
 
 const NJCM = 0x4d434a4e;
 
@@ -159,9 +158,9 @@ function parse_sibling_objects<M extends NjModel>(
     const model_offset = cursor.u32();
     const pos = cursor.vec3_f32();
     const rotation = {
-        x: cursor.i32() * ANGLE_TO_RAD,
-        y: cursor.i32() * ANGLE_TO_RAD,
-        z: cursor.i32() * ANGLE_TO_RAD,
+        x: angle_to_rad(cursor.i32()),
+        y: angle_to_rad(cursor.i32()),
+        z: angle_to_rad(cursor.i32()),
     };
     const scale = cursor.vec3_f32();
     const child_offset = cursor.u32();

@@ -104,17 +104,24 @@ export function defined<T>(value: T | undefined | null, name: string): asserts v
     assert(value != undefined, () => `${name} should not be null or undefined (was ${value}).`);
 }
 
-export function require_finite(value: number, name: string): void {
+export function require_finite(value: unknown, name: string): asserts value is number {
     assert(Number.isFinite(value), () => `${name} should be a finite number (was ${value}).`);
 }
 
-export function require_integer(value: number, name: string): void {
+export function require_number(value: unknown, name: string): asserts value is number {
+    assert(typeof value === "number", () => `${name} should be a number (was ${value}).`);
+}
+
+export function require_integer(value: unknown, name: string): asserts value is number {
     assert(Number.isInteger(value), () => `${name} should be an integer (was ${value}).`);
 }
 
-export function require_non_negative_integer(value: number, name: string): void {
+export function require_non_negative_integer(
+    value: unknown,
+    name: string,
+): asserts value is number {
     assert(
-        Number.isInteger(value) && value >= 0,
+        Number.isInteger(value) && (value as any) >= 0,
         () => `${name} should be a non-negative integer (was ${value}).`,
     );
 }

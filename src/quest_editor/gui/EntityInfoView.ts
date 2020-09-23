@@ -1,17 +1,22 @@
-import { bind_attr, div, table, td, th, tr } from "../../core/gui/dom";
+import { bind_attr, bind_children_to, div, table, td, th, tr } from "../../core/gui/dom";
 import { UnavailableView } from "./UnavailableView";
 import "./EntityInfoView.css";
 import { NumberInput } from "../../core/gui/NumberInput";
 import { rad_to_deg } from "../../core/math";
 import { EntityInfoController } from "../controllers/EntityInfoController";
 import { ResizableView } from "../../core/gui/ResizableView";
+import { QuestEntityPropModel } from "../model/QuestEntityPropModel";
+import { Disposable } from "../../core/observable/Disposable";
+import { Disposer } from "../../core/observable/Disposer";
+import { EntityPropType } from "../../core/data_formats/parsing/quest/properties";
 
 export class EntityInfoView extends ResizableView {
     readonly element = div({ className: "quest_editor_EntityInfoView", tabIndex: -1 });
 
     private readonly no_entity_view = new UnavailableView("No entity selected.");
 
-    private readonly table_element = table();
+    private readonly standard_props_element = table();
+    private readonly specific_props_element = table();
 
     private readonly type_element: HTMLTableCellElement;
     private readonly name_element: HTMLTableCellElement;
@@ -30,7 +35,7 @@ export class EntityInfoView extends ResizableView {
 
         const coord_class = "quest_editor_EntityInfoView_coord";
 
-        this.table_element.append(
+        this.standard_props_element.append(
             tr(th("Type:"), (this.type_element = td())),
             tr(th("Name:"), (this.name_element = td())),
             tr(th("Section:"), (this.section_id_element = td())),
@@ -45,12 +50,18 @@ export class EntityInfoView extends ResizableView {
             tr(th({ className: coord_class }, "Z:"), td(this.rot_z_element.element)),
         );
 
-        this.element.append(this.table_element, this.no_entity_view.element);
+        bind_children_to(this.specific_props_element, ctrl.props, this.create_prop_row);
+
+        this.element.append(
+            this.standard_props_element,
+            this.specific_props_element,
+            this.no_entity_view.element,
+        );
 
         this.element.addEventListener("focus", ctrl.focused, true);
 
         this.disposables(
-            bind_attr(this.table_element, "hidden", ctrl.unavailable),
+            bind_attr(this.standard_props_element, "hidden", ctrl.unavailable),
             this.no_entity_view.visible.bind_to(ctrl.unavailable),
 
             bind_attr(this.type_element, "textContent", ctrl.type),
@@ -101,5 +112,61 @@ export class EntityInfoView extends ResizableView {
         this.rot_x_element.enabled.val = enabled;
         this.rot_y_element.enabled.val = enabled;
         this.rot_z_element.enabled.val = enabled;
+    }
+
+    private create_prop_row(prop: QuestEntityPropModel): [HTMLTableRowElement, Disposable] {
+        const disposer = new Disposer();
+
+        let min: number | undefined;
+        let max: number | undefined;
+
+        switch (prop.type) {
+            case EntityPropType.U8:
+                min = 0;
+                max = 0xff;
+                break;
+            case EntityPropType.U16:
+                min = 0;
+                max = 0xffff;
+                break;
+            case EntityPropType.U32:
+                min = 0;
+                max = 0xffffffff;
+                break;
+            case EntityPropType.I8:
+                min = -0x80;
+                max = 0x7f;
+                break;
+            case EntityPropType.I16:
+                min = -0x8000;
+                max = 0x7fff;
+                break;
+            case EntityPropType.I32:
+                min = -0x80000000;
+                max = 0x7fffffff;
+                break;
+            case EntityPropType.Angle:
+                min = -2 * Math.PI;
+                max = 2 * Math.PI;
+                break;
+        }
+
+        const round_to =
+            prop.type === EntityPropType.F32 || prop.type === EntityPropType.Angle ? 3 : 1;
+
+        const value_input = disposer.add(
+            new NumberInput(prop.value.val, {
+                min,
+                max,
+                round_to,
+                enabled: false,
+            }),
+        );
+
+        disposer.add_all(value_input.value.bind_to(prop.value));
+
+        const element = tr(th(`${prop.name}:`), td(value_input.element));
+
+        return [element, disposer];
     }
 }

@@ -1,8 +1,9 @@
 import { Cursor } from "../block/cursor/Cursor";
 import { Vec3 } from "../vector";
-import { ANGLE_TO_RAD, NjObject, parse_xj_object } from "./ninja";
+import { NjObject, parse_xj_object } from "./ninja";
 import { XjModel } from "./ninja/xj";
 import { parse_rel } from "./rel";
+import { angle_to_rad } from "./ninja/angle";
 
 export type RenderObject = {
     sections: RenderSection[];
@@ -34,9 +35,9 @@ export function parse_area_geometry(cursor: Cursor): RenderObject {
         const section_id = cursor.i32();
         const section_position = cursor.vec3_f32();
         const section_rotation = {
-            x: cursor.u32() * ANGLE_TO_RAD,
-            y: cursor.u32() * ANGLE_TO_RAD,
-            z: cursor.u32() * ANGLE_TO_RAD,
+            x: angle_to_rad(cursor.u32()),
+            y: angle_to_rad(cursor.u32()),
+            z: angle_to_rad(cursor.u32()),
         };
 
         cursor.seek(4);

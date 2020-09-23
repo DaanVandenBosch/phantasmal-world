@@ -1,6 +1,11 @@
-import { EntityType, QuestEntity } from "../../core/data_formats/parsing/quest/Quest";
+import {
+    entity_data,
+    EntityType,
+    get_entity_type,
+    QuestEntity,
+} from "../../core/data_formats/parsing/quest/Quest";
 import { Property } from "../../core/observable/property/Property";
-import { property } from "../../core/observable";
+import { list_property, property } from "../../core/observable";
 import { WritableProperty } from "../../core/observable/property/WritableProperty";
 import { SectionModel } from "./SectionModel";
 import { Euler, Quaternion, Vector3 } from "three";
@@ -8,6 +13,9 @@ import { floor_mod } from "../../core/math";
 import { euler, euler_from_quat } from "./euler";
 import { vec3_to_threejs } from "../../core/rendering/conversion";
 import { Vec3 } from "../../core/data_formats/vector";
+import { WritableListProperty } from "../../core/observable/property/list/WritableListProperty";
+import { QuestEntityPropModel } from "./QuestEntityPropModel";
+import { ListProperty } from "../../core/observable/property/list/ListProperty";
 
 // These quaternions are used as temporary variables to avoid memory allocation.
 const q1 = new Quaternion();
@@ -23,6 +31,7 @@ export abstract class QuestEntityModel<
     private readonly _world_position: WritableProperty<Vector3>;
     private readonly _rotation: WritableProperty<Euler>;
     private readonly _world_rotation: WritableProperty<Euler>;
+    private readonly _props: WritableListProperty<QuestEntityPropModel>;
 
     /**
      * Many modifications done to the underlying entity directly will not be reflected in this
@@ -54,6 +63,8 @@ export abstract class QuestEntityModel<
 
     readonly world_rotation: Property<Euler>;
 
+    readonly props: ListProperty<QuestEntityPropModel>;
+
     protected constructor(entity: Entity) {
         this.entity = entity;
 
@@ -78,6 +89,14 @@ export abstract class QuestEntityModel<
 
         this._world_rotation = property(rotation);
         this.world_rotation = this._world_rotation;
+
+        this._props = list_property(
+            undefined,
+            ...entity_data(get_entity_type(entity)).properties.map(
+                p => new QuestEntityPropModel(entity, p),
+            ),
+        );
+        this.props = this._props;
     }
 
     set_section(section: SectionModel): this {

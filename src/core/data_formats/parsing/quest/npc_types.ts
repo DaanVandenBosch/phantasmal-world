@@ -1,4 +1,5 @@
 import { check_episode, Episode } from "./Episode";
+import { EntityProp } from "./properties";
 
 // Make sure ObjectType does not overlap NpcType.
 export enum NpcType {
@@ -222,6 +223,10 @@ export type NpcTypeData = {
      * Slime).
      */
     readonly regular?: boolean;
+    /**
+     * Default object-specific properties.
+     */
+    readonly properties: readonly EntityProp[];
 };
 
 export const NPC_TYPES: NpcType[] = [];
@@ -279,6 +284,7 @@ function define_npc_type_data(
         type_id,
         skin,
         regular,
+        properties: [],
     });
 
     if (episode) {

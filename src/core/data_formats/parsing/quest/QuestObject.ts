@@ -2,6 +2,7 @@ import { id_to_object_type, object_data, ObjectType } from "./object_types";
 import { Vec3 } from "../../vector";
 import { OBJECT_BYTE_SIZE } from "./dat";
 import { assert } from "../../../util";
+import { angle_to_rad, rad_to_angle } from "../ninja/angle";
 
 export type QuestObject = {
     area_id: number;
@@ -82,20 +83,20 @@ export function set_object_position(object: QuestObject, position: Vec3): void {
 
 export function get_object_rotation(object: QuestObject): Vec3 {
     return {
-        x: (object.view.getInt32(28, true) / 0xffff) * 2 * Math.PI,
-        y: (object.view.getInt32(32, true) / 0xffff) * 2 * Math.PI,
-        z: (object.view.getInt32(36, true) / 0xffff) * 2 * Math.PI,
+        x: angle_to_rad(object.view.getInt32(28, true)),
+        y: angle_to_rad(object.view.getInt32(32, true)),
+        z: angle_to_rad(object.view.getInt32(36, true)),
     };
 }
 
 export function set_object_rotation(object: QuestObject, rotation: Vec3): void {
-    object.view.setInt32(28, Math.round((rotation.x / (2 * Math.PI)) * 0xffff), true);
-    object.view.setInt32(32, Math.round((rotation.y / (2 * Math.PI)) * 0xffff), true);
-    object.view.setInt32(36, Math.round((rotation.z / (2 * Math.PI)) * 0xffff), true);
+    object.view.setInt32(28, rad_to_angle(rotation.x), true);
+    object.view.setInt32(32, rad_to_angle(rotation.y), true);
+    object.view.setInt32(36, rad_to_angle(rotation.z), true);
 }
 
 //
-// Complex properties that use multiple parts of the data block and possible other properties.
+// Complex properties that use multiple parts of the data block and possibly other properties.
 //
 
 export function get_object_type(object: QuestObject): ObjectType {

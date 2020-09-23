@@ -1,6 +1,6 @@
-import { ANGLE_TO_RAD } from "./index";
 import { Cursor } from "../../block/cursor/Cursor";
 import { Vec3 } from "../../vector";
+import { angle_to_rad } from "./angle";
 
 const NMDM = 0x4d444d4e;
 
@@ -210,9 +210,9 @@ function parse_motion_data_a(
         frames.push({
             frame: cursor.u16(),
             value: {
-                x: cursor.u16() * ANGLE_TO_RAD,
-                y: cursor.u16() * ANGLE_TO_RAD,
-                z: cursor.u16() * ANGLE_TO_RAD,
+                x: angle_to_rad(cursor.u16()),
+                y: angle_to_rad(cursor.u16()),
+                z: angle_to_rad(cursor.u16()),
             },
         });
     }
@@ -238,9 +238,9 @@ function parse_motion_data_a_wide(cursor: Cursor, keyframe_count: number): NjKey
         frames.push({
             frame: cursor.u32(),
             value: {
-                x: cursor.i32() * ANGLE_TO_RAD,
-                y: cursor.i32() * ANGLE_TO_RAD,
-                z: cursor.i32() * ANGLE_TO_RAD,
+                x: angle_to_rad(cursor.i32()),
+                y: angle_to_rad(cursor.i32()),
+                z: angle_to_rad(cursor.i32()),
             },
         });
     }

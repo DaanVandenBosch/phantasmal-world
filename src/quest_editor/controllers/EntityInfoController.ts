@@ -2,13 +2,15 @@ import { Controller } from "../../core/controllers/Controller";
 import { QuestEditorStore } from "../stores/QuestEditorStore";
 import { Property } from "../../core/observable/property/Property";
 import { QuestNpcModel } from "../model/QuestNpcModel";
-import { property } from "../../core/observable";
+import { flat_map_to_list, list_property, property } from "../../core/observable";
 import { Euler, Vector3 } from "three";
 import { deg_to_rad } from "../../core/math";
 import { TranslateEntityAction } from "../actions/TranslateEntityAction";
 import { RotateEntityAction } from "../actions/RotateEntityAction";
 import { euler } from "../model/euler";
 import { entity_data } from "../../core/data_formats/parsing/quest/Quest";
+import { ListProperty } from "../../core/observable/property/list/ListProperty";
+import { QuestEntityPropModel } from "../model/QuestEntityPropModel";
 
 const DUMMY_VECTOR = Object.freeze(new Vector3());
 const DUMMY_EULER = Object.freeze(new Euler());
@@ -23,6 +25,7 @@ export class EntityInfoController extends Controller {
     readonly wave_hidden: Property<boolean>;
     readonly position: Property<Vector3>;
     readonly rotation: Property<Euler>;
+    readonly props: ListProperty<QuestEntityPropModel>;
 
     constructor(private readonly store: QuestEditorStore) {
         super();
@@ -44,6 +47,7 @@ export class EntityInfoController extends Controller {
         this.wave_hidden = entity.map(e => !(e instanceof QuestNpcModel));
         this.position = entity.flat_map(e => e?.position ?? property(DUMMY_VECTOR));
         this.rotation = entity.flat_map(e => e?.rotation ?? property(DUMMY_EULER));
+        this.props = flat_map_to_list(e => e?.props ?? list_property(), entity);
     }
 
     focused = (): void => {

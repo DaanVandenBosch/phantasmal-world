@@ -3,6 +3,7 @@ import { Vec3 } from "../../vector";
 import { Episode } from "./Episode";
 import { NPC_BYTE_SIZE } from "./dat";
 import { assert } from "../../../util";
+import { angle_to_rad, rad_to_angle } from "../ninja/angle";
 
 const DEFAULT_SCALE: Vec3 = Object.freeze({ x: 1, y: 1, z: 1 });
 
@@ -103,16 +104,16 @@ export function set_npc_position(npc: QuestNpc, position: Vec3): void {
 
 export function get_npc_rotation(npc: QuestNpc): Vec3 {
     return {
-        x: (npc.view.getInt32(32, true) / 0xffff) * 2 * Math.PI,
-        y: (npc.view.getInt32(36, true) / 0xffff) * 2 * Math.PI,
-        z: (npc.view.getInt32(40, true) / 0xffff) * 2 * Math.PI,
+        x: angle_to_rad(npc.view.getInt32(32, true)),
+        y: angle_to_rad(npc.view.getInt32(36, true)),
+        z: angle_to_rad(npc.view.getInt32(40, true)),
     };
 }
 
 export function set_npc_rotation(npc: QuestNpc, rotation: Vec3): void {
-    npc.view.setInt32(32, Math.round((rotation.x / (2 * Math.PI)) * 0xffff), true);
-    npc.view.setInt32(36, Math.round((rotation.y / (2 * Math.PI)) * 0xffff), true);
-    npc.view.setInt32(40, Math.round((rotation.z / (2 * Math.PI)) * 0xffff), true);
+    npc.view.setInt32(32, rad_to_angle(rotation.x), true);
+    npc.view.setInt32(36, rad_to_angle(rotation.y), true);
+    npc.view.setInt32(40, rad_to_angle(rotation.z), true);
 }
 
 /**
