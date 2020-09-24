@@ -22,3 +22,7 @@
 .quest_editor_EntityInfoView .core_NumberInput {
     width: 100%;
 }
+
+.quest_editor_EntityInfoView table.quest_editor_EntityInfoView_specific_props {
+    margin-top: -2px;
+}

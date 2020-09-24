@@ -11,6 +11,7 @@ import { euler } from "../model/euler";
 import { entity_data } from "../../core/data_formats/parsing/quest/Quest";
 import { ListProperty } from "../../core/observable/property/list/ListProperty";
 import { QuestEntityPropModel } from "../model/QuestEntityPropModel";
+import { EditEntityPropAction } from "../actions/EditEntityPropAction";
 
 const DUMMY_VECTOR = Object.freeze(new Vector3());
 const DUMMY_EULER = Object.freeze(new Euler());
@@ -170,6 +171,16 @@ export class EntityInfoController extends Controller {
                         false,
                     ),
                 )
+                .redo();
+        }
+    }
+
+    set_prop_value(prop: QuestEntityPropModel, value: number): void {
+        const entity = this.store.selected_entity.val;
+
+        if (entity) {
+            this.store.undo
+                .push(new EditEntityPropAction(this.store, entity, prop, prop.value.val, value))
                 .redo();
         }
     }

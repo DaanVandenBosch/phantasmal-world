@@ -161,7 +161,9 @@ exports[`Renders correctly with an entity selected.: should render a table of ed
       </td>
     </tr>
   </table>
-  <table />
+  <table
+    class="quest_editor_EntityInfoView_specific_props"
+  />
   <div
     class="quest_editor_UnavailableView"
     hidden=""
@@ -334,7 +336,9 @@ exports[`Renders correctly without an entity selected.: should render a "No enti
       </td>
     </tr>
   </table>
-  <table />
+  <table
+    class="quest_editor_EntityInfoView_specific_props"
+  />
   <div
     class="quest_editor_UnavailableView"
   >
@@ -506,7 +510,9 @@ exports[`Renders correctly without an entity selected.: should render a "No enti
       </td>
     </tr>
   </table>
-  <table />
+  <table
+    class="quest_editor_EntityInfoView_specific_props"
+  />
   <div
     class="quest_editor_UnavailableView"
   >

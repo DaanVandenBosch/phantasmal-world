@@ -16,7 +16,9 @@ export class EntityInfoView extends ResizableView {
     private readonly no_entity_view = new UnavailableView("No entity selected.");
 
     private readonly standard_props_element = table();
-    private readonly specific_props_element = table();
+    private readonly specific_props_element = table({
+        className: "quest_editor_EntityInfoView_specific_props",
+    });
 
     private readonly type_element: HTMLTableCellElement;
     private readonly name_element: HTMLTableCellElement;
@@ -114,7 +116,7 @@ export class EntityInfoView extends ResizableView {
         this.rot_z_element.enabled.val = enabled;
     }
 
-    private create_prop_row(prop: QuestEntityPropModel): [HTMLTableRowElement, Disposable] {
+    private create_prop_row = (prop: QuestEntityPropModel): [HTMLTableRowElement, Disposable] => {
         const disposer = new Disposer();
 
         let min: number | undefined;
@@ -159,14 +161,16 @@ export class EntityInfoView extends ResizableView {
                 min,
                 max,
                 round_to,
-                enabled: false,
             }),
         );
 
-        disposer.add_all(value_input.value.bind_to(prop.value));
+        disposer.add_all(
+            value_input.value.bind_to(prop.value),
+            value_input.value.observe(({ value }) => this.ctrl.set_prop_value(prop, value)),
+        );
 
         const element = tr(th(`${prop.name}:`), td(value_input.element));
 
         return [element, disposer];
-    }
+    };
 }
