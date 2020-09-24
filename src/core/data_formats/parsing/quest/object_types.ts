@@ -958,7 +958,7 @@ define_object_type_data(
         ["Destination x", 40, "F32"],
         ["Destination y", 44, "F32"],
         ["Destination z", 48, "F32"],
-        ["Dst. rotation y", 52, "I32"],
+        ["Dst. rotation y", 52, "Angle"],
     ],
 );
 define_object_type_data(
@@ -2288,7 +2288,7 @@ define_object_type_data(
         ["Destination x", 40, "F32"],
         ["Destination y", 44, "F32"],
         ["Destination z", 48, "F32"],
-        ["Dst. rotation y", 52, "I32"],
+        ["Dst. rotation y", 52, "Angle"],
     ],
 );
 define_object_type_data(

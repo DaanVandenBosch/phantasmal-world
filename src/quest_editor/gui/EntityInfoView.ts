@@ -2,7 +2,7 @@ import { bind_attr, bind_children_to, div, table, td, th, tr } from "../../core/
 import { UnavailableView } from "./UnavailableView";
 import "./EntityInfoView.css";
 import { NumberInput } from "../../core/gui/NumberInput";
-import { rad_to_deg } from "../../core/math";
+import { deg_to_rad, rad_to_deg } from "../../core/math";
 import { EntityInfoController } from "../controllers/EntityInfoController";
 import { ResizableView } from "../../core/gui/ResizableView";
 import { QuestEntityPropModel } from "../model/QuestEntityPropModel";
@@ -148,8 +148,8 @@ export class EntityInfoView extends ResizableView {
                 max = 0x7fffffff;
                 break;
             case EntityPropType.Angle:
-                min = -2 * Math.PI;
-                max = 2 * Math.PI;
+                min = -360;
+                max = 360;
                 break;
         }
 
@@ -157,16 +157,27 @@ export class EntityInfoView extends ResizableView {
             prop.type === EntityPropType.F32 || prop.type === EntityPropType.Angle ? 3 : 1;
 
         const value_input = disposer.add(
-            new NumberInput(prop.value.val, {
-                min,
-                max,
-                round_to,
-            }),
+            new NumberInput(
+                prop.type === EntityPropType.Angle ? rad_to_deg(prop.value.val) : prop.value.val,
+                {
+                    min,
+                    max,
+                    round_to,
+                },
+            ),
         );
 
         disposer.add_all(
-            value_input.value.bind_to(prop.value),
-            value_input.value.observe(({ value }) => this.ctrl.set_prop_value(prop, value)),
+            value_input.value.bind_to(
+                prop.type === EntityPropType.Angle ? prop.value.map(rad_to_deg) : prop.value,
+            ),
+
+            value_input.value.observe(({ value }) =>
+                this.ctrl.set_prop_value(
+                    prop,
+                    prop.type === EntityPropType.Angle ? deg_to_rad(value) : value,
+                ),
+            ),
         );
 
         const element = tr(th(`${prop.name}:`), td(value_input.element));
