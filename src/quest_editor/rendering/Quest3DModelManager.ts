@@ -281,14 +281,27 @@ class Entity3DModelManager {
     }
 
     private async load(entity: QuestEntityModel): Promise<void> {
-        const geom = await this.entity_asset_loader.load_geometry(entity.type, entity.model);
-        if (!this.queue.includes(entity)) return; // Could be cancelled by now.
+        let orig_model: number | undefined;
 
-        const tex = await this.entity_asset_loader.load_textures(entity.type, entity.model);
-        if (!this.queue.includes(entity)) return; // Could be cancelled by now.
+        while (true) {
+            orig_model = entity.model.val;
 
-        const model = create_entity_mesh(entity, geom, tex);
-        this.update_entity_geometry(entity, model);
+            const geom = await this.entity_asset_loader.load_geometry(
+                entity.type,
+                entity.model.val,
+            );
+            if (!this.queue.includes(entity)) return; // Could be cancelled by now.
+            if (entity.model.val != orig_model) continue; // Load again if model changed.
+
+            const tex = await this.entity_asset_loader.load_textures(entity.type, entity.model.val);
+            if (!this.queue.includes(entity)) return; // Could be cancelled by now.
+            if (entity.model.val != orig_model) continue; // Load again if model changed.
+
+            const model = create_entity_mesh(entity, geom, tex);
+            this.update_entity_geometry(entity, model);
+
+            break;
+        }
     }
 
     private update_entity_geometry(entity: QuestEntityModel, model: Mesh): void {
@@ -303,6 +316,11 @@ class Entity3DModelManager {
             entity.world_rotation.observe(({ value }) => {
                 model.rotation.copy(value);
                 this.renderer.schedule_render();
+            }),
+
+            entity.model.observe(() => {
+                this.remove([entity]);
+                this.add([entity]);
             }),
         );
 

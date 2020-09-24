@@ -19,14 +19,14 @@ export class QuestObjectModel extends QuestEntityModel<ObjectType, QuestObject> 
         return get_object_type(this.entity);
     }
 
-    get model(): number | undefined {
-        return get_object_model(this.entity);
-    }
-
     constructor(object: QuestObject) {
         defined(object, "object");
 
         super(object);
+    }
+
+    protected get_entity_model(): number | undefined {
+        return get_object_model(this.entity);
     }
 
     protected get_entity_section_id(): number {

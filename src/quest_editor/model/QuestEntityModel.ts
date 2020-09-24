@@ -16,6 +16,7 @@ import { Vec3 } from "../../core/data_formats/vector";
 import { WritableListProperty } from "../../core/observable/property/list/WritableListProperty";
 import { QuestEntityPropModel } from "./QuestEntityPropModel";
 import { ListProperty } from "../../core/observable/property/list/ListProperty";
+import { ObjectType } from "../../core/data_formats/parsing/quest/object_types";
 
 // These quaternions are used as temporary variables to avoid memory allocation.
 const q1 = new Quaternion();
@@ -25,6 +26,7 @@ export abstract class QuestEntityModel<
     Type extends EntityType = EntityType,
     Entity extends QuestEntity = QuestEntity
 > {
+    private readonly _model: WritableProperty<number | undefined>;
     private readonly _section_id: WritableProperty<number>;
     private readonly _section: WritableProperty<SectionModel | undefined> = property(undefined);
     private readonly _position: WritableProperty<Vector3>;
@@ -34,14 +36,14 @@ export abstract class QuestEntityModel<
     private readonly _props: WritableListProperty<QuestEntityPropModel>;
 
     /**
-     * Many modifications done to the underlying entity directly will not be reflected in this
-     * model's properties.
+     * Don't modify the underlying entity directly because most of those modifications will not be
+     * reflected in this model's properties.
      */
     readonly entity: Entity;
 
     abstract readonly type: Type;
 
-    abstract readonly model?: number;
+    readonly model: Property<number | undefined>;
 
     get area_id(): number {
         return this.entity.area_id;
@@ -70,6 +72,9 @@ export abstract class QuestEntityModel<
     protected constructor(entity: Entity) {
         this.entity = entity;
 
+        this._model = property(this.get_entity_model());
+        this.model = this._model;
+
         this.section = this._section;
 
         this._section_id = property(this.get_entity_section_id());
@@ -95,10 +100,59 @@ export abstract class QuestEntityModel<
         this._props = list_property(
             undefined,
             ...entity_data(get_entity_type(entity)).properties.map(
-                p => new QuestEntityPropModel(entity, p),
+                p => new QuestEntityPropModel(this, p),
             ),
         );
         this.props = this._props;
+    }
+
+    set_model(model: number, propagate_to_props: boolean = true): this {
+        this._model.val = model;
+
+        if (propagate_to_props) {
+            let props: QuestEntityPropModel[];
+
+            switch (this.type) {
+                case ObjectType.Probe:
+                    props = this.props.val.filter(p => p.offset === 40);
+                    break;
+
+                case ObjectType.Saw:
+                case ObjectType.LaserDetect:
+                    props = this.props.val.filter(p => p.offset === 48);
+                    break;
+
+                case ObjectType.Sonic:
+                case ObjectType.LittleCryotube:
+                case ObjectType.Cactus:
+                case ObjectType.BigBrownRock:
+                case ObjectType.BigBlackRocks:
+                case ObjectType.BeeHive:
+                    props = this.props.val.filter(p => p.offset === 52);
+                    break;
+
+                case ObjectType.ForestConsole:
+                    props = this.props.val.filter(p => p.offset === 56);
+                    break;
+
+                case ObjectType.PrincipalWarp:
+                case ObjectType.LaserFence:
+                case ObjectType.LaserSquareFence:
+                case ObjectType.LaserFenceEx:
+                case ObjectType.LaserSquareFenceEx:
+                    props = this.props.val.filter(p => p.offset === 60);
+                    break;
+
+                default:
+                    return this;
+            }
+
+            for (const prop of props) {
+                prop.set_value(model, false);
+            }
+        }
+
+        return this;
     }
 
     set_section(section: SectionModel): this {
@@ -190,6 +244,8 @@ export abstract class QuestEntityModel<
 
         return this;
     }
+
+    protected abstract get_entity_model(): number | undefined;
 
     protected abstract get_entity_section_id(): number;
     protected abstract set_entity_section_id(section_id: number): void;

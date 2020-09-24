@@ -24,8 +24,6 @@ export class QuestNpcModel extends QuestEntityModel<NpcType, QuestNpc> {
         return get_npc_type(this.entity);
     }
 
-    readonly model?: number;
-
     private readonly _wave: WritableProperty<WaveModel | undefined>;
 
     readonly wave: Property<WaveModel | undefined>;
@@ -45,6 +43,10 @@ export class QuestNpcModel extends QuestEntityModel<NpcType, QuestNpc> {
         set_npc_wave_2(this.entity, wave_id);
         this._wave.val = wave;
         return this;
+    }
+
+    protected get_entity_model(): undefined {
+        return undefined;
     }
 
     protected get_entity_section_id(): number {
