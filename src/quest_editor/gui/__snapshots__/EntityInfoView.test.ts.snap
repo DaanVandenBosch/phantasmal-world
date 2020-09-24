@@ -161,6 +161,7 @@ exports[`Renders correctly with an entity selected.: should render a table of ed
       </td>
     </tr>
   </table>
+  <table />
   <div
     class="quest_editor_UnavailableView"
     hidden=""
@@ -333,6 +334,7 @@ exports[`Renders correctly without an entity selected.: should render a "No enti
       </td>
     </tr>
   </table>
+  <table />
   <div
     class="quest_editor_UnavailableView"
   >
@@ -504,6 +506,7 @@ exports[`Renders correctly without an entity selected.: should render a "No enti
       </td>
     </tr>
   </table>
+  <table />
   <div
     class="quest_editor_UnavailableView"
   >
