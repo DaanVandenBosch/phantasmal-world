@@ -281,10 +281,10 @@ class Entity3DModelManager {
     }
 
     private async load(entity: QuestEntityModel): Promise<void> {
-        const geom = await this.entity_asset_loader.load_geometry(entity.type);
+        const geom = await this.entity_asset_loader.load_geometry(entity.type, entity.model);
         if (!this.queue.includes(entity)) return; // Could be cancelled by now.
 
-        const tex = await this.entity_asset_loader.load_textures(entity.type);
+        const tex = await this.entity_asset_loader.load_textures(entity.type, entity.model);
         if (!this.queue.includes(entity)) return; // Could be cancelled by now.
 
         const model = create_entity_mesh(entity, geom, tex);

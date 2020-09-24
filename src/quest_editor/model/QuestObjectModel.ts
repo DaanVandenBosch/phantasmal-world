@@ -2,6 +2,7 @@ import { QuestEntityModel } from "./QuestEntityModel";
 import { ObjectType } from "../../core/data_formats/parsing/quest/object_types";
 import { defined } from "../../core/util";
 import {
+    get_object_model,
     get_object_position,
     get_object_rotation,
     get_object_section_id,
@@ -16,6 +17,10 @@ import { Vec3 } from "../../core/data_formats/vector";
 export class QuestObjectModel extends QuestEntityModel<ObjectType, QuestObject> {
     get type(): ObjectType {
         return get_object_type(this.entity);
+    }
+
+    get model(): number | undefined {
+        return get_object_model(this.entity);
     }
 
     constructor(object: QuestObject) {

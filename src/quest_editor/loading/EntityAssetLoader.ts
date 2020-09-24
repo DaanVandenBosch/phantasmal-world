@@ -35,8 +35,8 @@ const DEFAULT_ENTITY_TEX_PROMISE = DisposablePromise.resolve<Texture[]>(DEFAULT_
 // TODO: load correct parts for entities that can have different geometries.
 export class EntityAssetLoader implements Disposable {
     private readonly disposer = new Disposer();
-    private readonly geom_cache = this.disposer.add(new LoadingCache<EntityType, BufferGeometry>());
-    private readonly tex_cache = this.disposer.add(new LoadingCache<EntityType, Texture[]>());
+    private readonly geom_cache = this.disposer.add(new LoadingCache<string, BufferGeometry>());
+    private readonly tex_cache = this.disposer.add(new LoadingCache<string, Texture[]>());
 
     constructor(private readonly http_client: HttpClient) {
         this.warm_up_caches();
@@ -46,11 +46,11 @@ export class EntityAssetLoader implements Disposable {
         this.disposer.dispose();
     }
 
-    load_geometry(type: EntityType): DisposablePromise<BufferGeometry> {
-        return this.geom_cache.get_or_set(type, () => {
+    load_geometry(type: EntityType, model?: number): DisposablePromise<BufferGeometry> {
+        return this.geom_cache.get_or_set(`${type}-${model ?? ""}`, () => {
             return DisposablePromise.all(
                 geometry_parts(type).map(no =>
-                    this.load_data(type, AssetType.Geometry, no)
+                    this.load_data(type, AssetType.Geometry, no, model)
                         .then(({ url, data }) => {
                             const cursor = new ArrayBufferCursor(data, Endianness.Little);
                             const nj_objects = url.endsWith(".nj")
@@ -79,11 +79,11 @@ export class EntityAssetLoader implements Disposable {
                 const nj_object = nj_objects[0];
 
                 for (let i = 1; i < nj_objects.length; i++) {
-                    nj_object.evaluation_flags.break_child_trace = false;
                     nj_object.add_child(nj_objects[i]);
                 }
 
                 if (nj_object) {
+                    nj_object.evaluation_flags.break_child_trace = false;
                     return ninja_object_to_buffer_geometry(nj_object);
                 } else {
                     return DEFAULT_ENTITY;
@@ -92,9 +92,9 @@ export class EntityAssetLoader implements Disposable {
         });
     }
 
-    load_textures(type: EntityType): DisposablePromise<Texture[]> {
-        return this.tex_cache.get_or_set(type, () =>
-            this.load_data(type, AssetType.Texture, texture_part(type))
+    load_textures(type: EntityType, model?: number): DisposablePromise<Texture[]> {
+        return this.tex_cache.get_or_set(`${type}-${model ?? ""}`, () =>
+            this.load_data(type, AssetType.Texture, "", model)
                 .then(({ data }) => {
                     const cursor = new ArrayBufferCursor(data, Endianness.Little);
                     const xvm = parse_xvm(cursor);
@@ -113,9 +113,10 @@ export class EntityAssetLoader implements Disposable {
     private load_data(
         type: EntityType,
         asset_type: AssetType,
-        no?: number,
+        suffix?: string,
+        model?: number,
     ): DisposablePromise<{ url: string; data: ArrayBuffer }> {
-        const url = entity_type_to_url(type, asset_type, no);
+        const url = entity_type_to_url(type, asset_type, suffix, model);
         return this.http_client
             .get(url)
             .array_buffer()
@@ -215,121 +216,113 @@ export class EntityAssetLoader implements Disposable {
             ObjectType.TopOfSaintMillionEgg,
             ObjectType.UnknownItem961,
         ]) {
-            this.geom_cache.set(type, DEFAULT_ENTITY_PROMISE);
-            this.tex_cache.set(type, DEFAULT_ENTITY_TEX_PROMISE);
+            this.geom_cache.set(`${type}-`, DEFAULT_ENTITY_PROMISE);
+            this.tex_cache.set(`${type}-`, DEFAULT_ENTITY_TEX_PROMISE);
         }
     }
 }
 
-function geometry_parts(type: EntityType): (number | undefined)[] {
+/**
+ * @returns the suffix of each geometry part.
+ */
+function geometry_parts(type: EntityType): (string | undefined)[] {
     switch (type) {
         case ObjectType.Teleporter:
-            return [undefined, 2];
+            return ["", "-2"];
         case ObjectType.Warp:
-            return [undefined, 2];
+            return ["", "-2"];
         case ObjectType.BossTeleporter:
-            return [undefined, 2];
+            return ["", "-2"];
         case ObjectType.QuestWarp:
-            return [undefined, 2];
+            return ["", "-2"];
         case ObjectType.Epilogue:
-            return [undefined, 2];
+            return ["", "-2"];
         case ObjectType.MainRagolTeleporter:
-            return [undefined, 2];
+            return ["", "-2"];
         case ObjectType.PrincipalWarp:
-            return [undefined, 2];
+            return ["", "-2"];
         case ObjectType.TeleporterDoor:
-            return [undefined, 2];
+            return ["", "-2"];
         case ObjectType.EasterEgg:
-            return [undefined, 2];
+            return ["", "-2"];
         case ObjectType.ValentinesHeart:
-            return [undefined, 2, 3];
+            return ["", "-2", "-3"];
         case ObjectType.ChristmasTree:
-            return [undefined, 2, 3, 4];
+            return ["", "-2", "-3", "-4"];
         case ObjectType.TwentyFirstCentury:
-            return [undefined, 2];
+            return ["", "-2"];
         case ObjectType.WelcomeBoard:
-            return [undefined]; // TODO: position part 2 correctly.
+            return [""]; // TODO: position part 2 correctly.
         case ObjectType.ForestDoor:
-            return [undefined, 2, 3, 4, 5];
+            return ["", "-2", "-3", "-4", "-5"];
         case ObjectType.ForestSwitch:
-            return [undefined, 2, 3];
+            return ["", "-2", "-3"];
         case ObjectType.LaserFence:
-            return [undefined, 2];
+            return ["", "-2"];
         case ObjectType.LaserSquareFence:
-            return [undefined, 2];
+            return ["", "-2"];
         case ObjectType.ForestLaserFenceSwitch:
-            return [undefined, 2, 3];
+            return ["", "-2", "-3"];
         case ObjectType.Probe:
-            return [0]; // TODO: use correct part.
+            return ["-0"]; // TODO: use correct part.
         case ObjectType.RandomTypeBox1:
-            return [2]; // What are the other two parts for?
+            return ["-2"]; // What are the other two parts for?
         case ObjectType.BlackSlidingDoor:
-            return [undefined, 2];
+            return ["", "-2"];
         case ObjectType.EnergyBarrier:
-            return [undefined, 2];
+            return ["", "-2"];
         case ObjectType.SwitchNoneDoor:
-            return [undefined, 2];
+            return ["", "-2"];
         case ObjectType.EnemyBoxGrey:
-            return [2]; // What are the other two parts for?
+            return ["-2"]; // What are the other two parts for?
         case ObjectType.FixedTypeBox:
-            return [3]; // What are the other three parts for?
+            return ["-3"]; // What are the other three parts for?
         case ObjectType.EnemyBoxBrown:
-            return [3]; // What are the other three parts for?
+            return ["-3"]; // What are the other three parts for?
         case ObjectType.LaserFenceEx:
-            return [undefined, 2];
+            return ["", "-2"];
         case ObjectType.LaserSquareFenceEx:
-            return [undefined, 2];
+            return ["", "-2"];
         case ObjectType.CavesSmashingPillar:
-            return [undefined, 3]; // What's part 2 for?
+            return ["", "-3"]; // What's part 2 for?
         case ObjectType.RobotRechargeStation:
-            return [undefined, 2];
+            return ["", "-2"];
         case ObjectType.RuinsTeleporter:
-            return [undefined, 2, 3, 4];
+            return ["", "-2", "-3", "-4"];
         case ObjectType.RuinsWarpSiteToSite:
-            return [undefined, 2];
+            return ["", "-2"];
         case ObjectType.RuinsSwitch:
-            return [undefined, 2];
+            return ["", "-2"];
         case ObjectType.RuinsPillarTrap:
-            return [undefined, 2, 3, 4];
+            return ["", "-2", "-3", "-4"];
         case ObjectType.RuinsCrystal:
-            return [undefined, 2, 3];
+            return ["", "-2", "-3"];
         case ObjectType.FloatingRocks:
-            return [0];
+            return ["-0"];
         case ObjectType.ItemBoxCca:
-            return [undefined, 3]; // What are the other two parts for?
+            return ["", "-3"]; // What are the other two parts for?
         case ObjectType.TeleporterEp2:
-            return [undefined, 2];
+            return ["", "-2"];
         case ObjectType.CCADoor:
-            return [undefined, 2];
+            return ["", "-2"];
         case ObjectType.SpecialBoxCCA:
-            return [undefined, 4]; // What are the other two parts for?
+            return ["", "-4"]; // What are the other two parts for?
         case ObjectType.BigCCADoor:
-            return [undefined, 2, 3, 4];
+            return ["", "-2", "-3", "-4"];
         case ObjectType.BigCCADoorSwitch:
-            return [undefined, 2];
+            return ["", "-2"];
         case ObjectType.LaserDetect:
-            return [undefined, 2]; // TODO: use correct part.
+            return ["", "-2"]; // TODO: use correct part.
         case ObjectType.LabCeilingWarp:
-            return [undefined, 2];
+            return ["", "-2"];
         case ObjectType.BigBrownRock:
-            return [0]; // TODO: use correct part.
+            return ["-0"]; // TODO: use correct part.
         case ObjectType.BigBlackRocks:
-            return [undefined];
+            return [""];
         case ObjectType.BeeHive:
-            return [undefined, 0, 1];
+            return ["", "-0", "-1"];
         default:
             return [undefined];
-    }
-}
-
-function texture_part(type: EntityType): number | undefined {
-    switch (type) {
-        case ObjectType.FloatingRocks:
-            return 0; // TODO: use correct part.
-        case ObjectType.BigBrownRock:
-            return 0; // TODO: use correct part.
-        default:
-            return undefined;
     }
 }
 
@@ -341,10 +334,24 @@ enum AssetType {
 /**
  * @param type
  * @param asset_type
- * @param no - Asset number. Some entities have multiple assets that need to be combined.
+ * @param suffix - Asset suffix. Some entities have multiple assets that need to be combined.
+ * @param model - Model variant (e.g. Sonic, Tails, Knuckles or Doctor Eggman).
  */
-function entity_type_to_url(type: EntityType, asset_type: AssetType, no?: number): string {
-    const no_str = no == undefined ? "" : `-${no}`;
+function entity_type_to_url(
+    type: EntityType,
+    asset_type: AssetType,
+    suffix?: string,
+    model?: number,
+): string {
+    let full_suffix: string;
+
+    if (suffix != undefined) {
+        full_suffix = suffix;
+    } else if (model != undefined) {
+        full_suffix = `-${model}`;
+    } else {
+        full_suffix = "";
+    }
 
     if (is_npc_type(type)) {
         switch (type) {
@@ -355,53 +362,53 @@ function entity_type_to_url(type: EntityType, asset_type: AssetType, no?: number
             // Episode II VR Temple
 
             case NpcType.Hildebear2:
-                return entity_type_to_url(NpcType.Hildebear, asset_type, no);
+                return entity_type_to_url(NpcType.Hildebear, asset_type, suffix, model);
             case NpcType.Hildeblue2:
-                return entity_type_to_url(NpcType.Hildeblue, asset_type, no);
+                return entity_type_to_url(NpcType.Hildeblue, asset_type, suffix, model);
             case NpcType.RagRappy2:
-                return entity_type_to_url(NpcType.RagRappy, asset_type, no);
+                return entity_type_to_url(NpcType.RagRappy, asset_type, suffix, model);
             case NpcType.Monest2:
-                return entity_type_to_url(NpcType.Monest, asset_type, no);
+                return entity_type_to_url(NpcType.Monest, asset_type, suffix, model);
             case NpcType.Mothmant2:
-                return entity_type_to_url(NpcType.Mothmant, asset_type, no);
+                return entity_type_to_url(NpcType.Mothmant, asset_type, suffix, model);
             case NpcType.PoisonLily2:
-                return entity_type_to_url(NpcType.PoisonLily, asset_type, no);
+                return entity_type_to_url(NpcType.PoisonLily, asset_type, suffix, model);
             case NpcType.NarLily2:
-                return entity_type_to_url(NpcType.NarLily, asset_type, no);
+                return entity_type_to_url(NpcType.NarLily, asset_type, suffix, model);
             case NpcType.GrassAssassin2:
-                return entity_type_to_url(NpcType.GrassAssassin, asset_type, no);
+                return entity_type_to_url(NpcType.GrassAssassin, asset_type, suffix, model);
             case NpcType.Dimenian2:
-                return entity_type_to_url(NpcType.Dimenian, asset_type, no);
+                return entity_type_to_url(NpcType.Dimenian, asset_type, suffix, model);
             case NpcType.LaDimenian2:
-                return entity_type_to_url(NpcType.LaDimenian, asset_type, no);
+                return entity_type_to_url(NpcType.LaDimenian, asset_type, suffix, model);
             case NpcType.SoDimenian2:
-                return entity_type_to_url(NpcType.SoDimenian, asset_type, no);
+                return entity_type_to_url(NpcType.SoDimenian, asset_type, suffix, model);
             case NpcType.DarkBelra2:
-                return entity_type_to_url(NpcType.DarkBelra, asset_type, no);
+                return entity_type_to_url(NpcType.DarkBelra, asset_type, suffix, model);
 
             // Episode II VR Spaceship
 
             case NpcType.SavageWolf2:
-                return entity_type_to_url(NpcType.SavageWolf, asset_type, no);
+                return entity_type_to_url(NpcType.SavageWolf, asset_type, suffix, model);
             case NpcType.BarbarousWolf2:
-                return entity_type_to_url(NpcType.BarbarousWolf, asset_type, no);
+                return entity_type_to_url(NpcType.BarbarousWolf, asset_type, suffix, model);
             case NpcType.PanArms2:
-                return entity_type_to_url(NpcType.PanArms, asset_type, no);
+                return entity_type_to_url(NpcType.PanArms, asset_type, suffix, model);
             case NpcType.Dubchic2:
-                return entity_type_to_url(NpcType.Dubchic, asset_type, no);
+                return entity_type_to_url(NpcType.Dubchic, asset_type, suffix, model);
             case NpcType.Gilchic2:
-                return entity_type_to_url(NpcType.Gilchic, asset_type, no);
+                return entity_type_to_url(NpcType.Gilchic, asset_type, suffix, model);
             case NpcType.Garanz2:
-                return entity_type_to_url(NpcType.Garanz, asset_type, no);
+                return entity_type_to_url(NpcType.Garanz, asset_type, suffix, model);
             case NpcType.Dubswitch2:
-                return entity_type_to_url(NpcType.Dubswitch, asset_type, no);
+                return entity_type_to_url(NpcType.Dubswitch, asset_type, suffix, model);
             case NpcType.Delsaber2:
-                return entity_type_to_url(NpcType.Delsaber, asset_type, no);
+                return entity_type_to_url(NpcType.Delsaber, asset_type, suffix, model);
             case NpcType.ChaosSorcerer2:
-                return entity_type_to_url(NpcType.ChaosSorcerer, asset_type, no);
+                return entity_type_to_url(NpcType.ChaosSorcerer, asset_type, suffix, model);
 
             default:
-                return `/npcs/${NpcType[type]}${no_str}.${
+                return `/npcs/${NpcType[type]}${full_suffix}.${
                     asset_type === AssetType.Geometry ? "nj" : "xvm"
                 }`;
         }
@@ -424,13 +431,13 @@ function entity_type_to_url(type: EntityType, asset_type: AssetType, no?: number
                 case ObjectType.FallingRock:
                 case ObjectType.DesertFixedTypeBoxBreakableCrystals:
                 case ObjectType.BeeHive:
-                    return `/objects/${object_data(type).type_id}${no_str}.nj`;
+                    return `/objects/${object_data(type).type_id}${full_suffix}.nj`;
 
                 default:
-                    return `/objects/${object_data(type).type_id}${no_str}.xj`;
+                    return `/objects/${object_data(type).type_id}${full_suffix}.xj`;
             }
         } else {
-            return `/objects/${object_data(type).type_id}${no_str}.xvm`;
+            return `/objects/${object_data(type).type_id}${full_suffix}.xvm`;
         }
     }
 }

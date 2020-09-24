@@ -41,6 +41,8 @@ export abstract class QuestEntityModel<
 
     abstract readonly type: Type;
 
+    abstract readonly model?: number;
+
     get area_id(): number {
         return this.entity.area_id;
     }

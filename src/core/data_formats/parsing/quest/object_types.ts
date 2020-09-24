@@ -1457,7 +1457,7 @@ define_object_type_data(
         ["Destination y", 44, "F32"],
         ["Destination z", 48, "F32"],
         ["Dst. rotation y", 52, "Angle"],
-        ["Model", 60, "I32"],
+        ["Model", 60, "U32"],
     ],
 );
 define_object_type_data(
@@ -1585,7 +1585,7 @@ define_object_type_data(
         [Episode.II, [0]],
         [Episode.IV, [0]],
     ],
-    [["Model", 52, "I32"]],
+    [["Model", 52, "U32"]],
 );
 define_object_type_data(
     ObjectType.WelcomeBoard,
@@ -1686,7 +1686,7 @@ define_object_type_data(
     [
         ["Color", 40, "F32"],
         ["Switch ID", 52, "I32"],
-        ["Model", 60, "I32"],
+        ["Model", 60, "U32"],
     ],
 );
 define_object_type_data(
@@ -1701,7 +1701,7 @@ define_object_type_data(
     [
         ["Color", 40, "F32"],
         ["Switch ID", 52, "I32"],
-        ["Model", 60, "I32"],
+        ["Model", 60, "U32"],
     ],
 );
 define_object_type_data(
@@ -1780,7 +1780,7 @@ define_object_type_data(
     ],
     [
         ["Script label", 52, "I32"],
-        ["Model", 56, "I32"],
+        ["Model", 56, "U32"],
     ],
 );
 define_object_type_data(
@@ -1894,7 +1894,7 @@ define_object_type_data(
         ["Collision width", 44, "F32"],
         ["Collision depth", 48, "F32"],
         ["Switch ID", 52, "I32"],
-        ["Model", 60, "I32"],
+        ["Model", 60, "U32"],
     ],
 );
 define_object_type_data(
@@ -1907,7 +1907,7 @@ define_object_type_data(
         ["Collision width", 44, "F32"],
         ["Collision depth", 48, "F32"],
         ["Switch ID", 52, "I32"],
-        ["Model", 60, "I32"],
+        ["Model", 60, "U32"],
     ],
 );
 define_object_type_data(
@@ -3021,7 +3021,7 @@ define_object_type_data(
     547,
     "Little Cryotube",
     [[Episode.II, [10, 11, 17]]],
-    [["Model", 52, "I32"]],
+    [["Model", 52, "U32"]],
 );
 define_object_type_data(
     ObjectType.WideGlassWallBreakable,
@@ -3198,7 +3198,7 @@ define_object_type_data(
         ["Scale x", 40, "F32"],
         ["Scale y", 44, "F32"],
         ["Scale z", 48, "F32"],
-        ["Model", 52, "I32"],
+        ["Model", 52, "U32"],
     ],
 );
 define_object_type_data(
@@ -3206,7 +3206,7 @@ define_object_type_data(
     770,
     "Big Brown Rock",
     [[Episode.IV, [1, 2, 3, 4, 5, 6, 7, 8]]],
-    [["Model", 52, "I32"]],
+    [["Model", 52, "U32"]],
 );
 define_object_type_data(
     ObjectType.BreakableBrownRock,
@@ -3251,7 +3251,7 @@ define_object_type_data(
     902,
     "Big Black Rocks",
     [[Episode.IV, [1, 2, 3, 4, 5, 6, 7, 8]]],
-    [["Model", 52, "I32"]],
+    [["Model", 52, "U32"]],
 );
 define_object_type_data(
     ObjectType.UnknownItem903,
@@ -3290,7 +3290,7 @@ define_object_type_data(
     911,
     "Bee Hive",
     [[Episode.IV, [6, 7, 8]]],
-    [["Model", 52, "I32"]],
+    [["Model", 52, "U32"]],
 );
 define_object_type_data(
     ObjectType.UnknownItem912,

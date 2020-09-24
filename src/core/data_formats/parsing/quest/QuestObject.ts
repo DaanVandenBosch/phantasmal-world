@@ -113,8 +113,10 @@ export function get_object_script_label(object: QuestObject): number | undefined
         case ObjectType.ForestConsole:
         case ObjectType.TalkLinkToSupport:
             return object.view.getUint32(52, true);
+
         case ObjectType.RicoMessagePod:
             return object.view.getUint32(56, true);
+
         default:
             return undefined;
     }
@@ -124,6 +126,39 @@ export function get_object_script_label_2(object: QuestObject): number | undefin
     switch (get_object_type(object)) {
         case ObjectType.RicoMessagePod:
             return object.view.getUint32(60, true);
+
+        default:
+            return undefined;
+    }
+}
+
+export function get_object_model(object: QuestObject): number | undefined {
+    switch (get_object_type(object)) {
+        case ObjectType.Probe:
+            return Math.round(object.view.getFloat32(40, true));
+
+        case ObjectType.Saw:
+        case ObjectType.LaserDetect:
+            return Math.round(object.view.getFloat32(48, true));
+
+        case ObjectType.Sonic:
+        case ObjectType.LittleCryotube:
+        case ObjectType.Cactus:
+        case ObjectType.BigBrownRock:
+        case ObjectType.BigBlackRocks:
+        case ObjectType.BeeHive:
+            return object.view.getUint32(52, true);
+
+        case ObjectType.ForestConsole:
+            return object.view.getUint32(56, true);
+
+        case ObjectType.PrincipalWarp:
+        case ObjectType.LaserFence:
+        case ObjectType.LaserSquareFence:
+        case ObjectType.LaserFenceEx:
+        case ObjectType.LaserSquareFenceEx:
+            return object.view.getUint32(60, true);
+
         default:
             return undefined;
     }
