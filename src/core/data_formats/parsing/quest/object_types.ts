@@ -911,7 +911,10 @@ define_object_type_data(
         [Episode.II, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]],
         [Episode.IV, [1, 2, 3, 4, 5, 6, 7, 8, 9, 0]],
     ],
-    [],
+    [
+        ["Slot ID", 40, "F32"],
+        ["Return flag", 52, "I32"],
+    ],
 );
 define_object_type_data(
     ObjectType.Particle,
@@ -933,7 +936,14 @@ define_object_type_data(
         [Episode.II, [0, 1, 2, 3, 4, 12, 13, 14, 15]],
         [Episode.IV, [1, 2, 3, 4, 5, 6, 7, 8, 9, 0]],
     ],
-    [],
+    [
+        ["Area ID", 40, "F32"],
+        ["Color blue", 44, "F32"],
+        ["Color red", 48, "F32"],
+        ["Floor ID", 52, "I32"],
+        ["Display no.", 56, "I32"],
+        ["No display no.", 60, "I32"],
+    ],
 );
 define_object_type_data(
     ObjectType.Warp,
@@ -944,7 +954,12 @@ define_object_type_data(
         [Episode.II, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 16, 17]],
         [Episode.IV, [1, 2, 3, 4, 5, 6, 7, 8, 9, 0]],
     ],
-    [],
+    [
+        ["Destination x", 40, "F32"],
+        ["Destination y", 44, "F32"],
+        ["Destination z", 48, "F32"],
+        ["Dst. rotation y", 52, "I32"],
+    ],
 );
 define_object_type_data(
     ObjectType.LightCollision,
@@ -967,7 +982,11 @@ define_object_type_data(
         [Episode.II, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13]],
         [Episode.IV, [1, 2, 3, 4, 5, 6, 7, 8, 0]],
     ],
-    [],
+    [
+        ["Radius", 48, "F32"],
+        ["SE", 52, "I32"],
+        ["Volume", 56, "I32"],
+    ],
 );
 define_object_type_data(
     ObjectType.FogCollision,
@@ -978,7 +997,10 @@ define_object_type_data(
         [Episode.II, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]],
         [Episode.IV, [1, 2, 3, 4, 5, 6, 7, 8, 0]],
     ],
-    [],
+    [
+        ["Radius", 40, "F32"],
+        ["Fog index no.", 52, "I32"],
+    ],
 );
 define_object_type_data(
     ObjectType.EventCollision,
@@ -1014,7 +1036,13 @@ define_object_type_data(
         [Episode.II, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 16, 17]],
         [Episode.IV, [1, 2, 3, 4, 5, 6, 7, 8, 9]],
     ],
-    [],
+    [
+        ["Radius", 40, "F32"],
+        ["Trap link", 48, "F32"],
+        ["Damage", 52, "I32"],
+        ["Subtype", 56, "I32"],
+        ["Delay", 60, "I32"],
+    ],
 );
 define_object_type_data(
     ObjectType.StatusTrap,
@@ -1025,7 +1053,12 @@ define_object_type_data(
         [Episode.II, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 16, 17]],
         [Episode.IV, [1, 2, 3, 4, 5, 6, 7, 8, 9]],
     ],
-    [],
+    [
+        ["Radius", 40, "F32"],
+        ["Trap link", 48, "F32"],
+        ["Subtype", 56, "I32"],
+        ["Delay", 60, "I32"],
+    ],
 );
 define_object_type_data(
     ObjectType.HealTrap,
@@ -1036,7 +1069,13 @@ define_object_type_data(
         [Episode.II, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 16, 17]],
         [Episode.IV, [1, 2, 3, 4, 5, 6, 7, 8, 9]],
     ],
-    [],
+    [
+        ["Radius", 40, "F32"],
+        ["Trap link", 48, "F32"],
+        ["HP", 52, "I32"],
+        ["Subtype", 56, "I32"],
+        ["Delay", 60, "I32"],
+    ],
 );
 define_object_type_data(
     ObjectType.LargeElementalTrap,
@@ -1047,7 +1086,13 @@ define_object_type_data(
         [Episode.II, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 16, 17]],
         [Episode.IV, [1, 2, 3, 4, 5, 6, 7, 8, 9]],
     ],
-    [],
+    [
+        ["Radus", 40, "F32"],
+        ["Trap link", 48, "F32"],
+        ["Damage", 52, "I32"],
+        ["Subtype", 56, "I32"],
+        ["Delay", 60, "I32"],
+    ],
 );
 define_object_type_data(
     ObjectType.ObjRoomID,
@@ -1058,7 +1103,11 @@ define_object_type_data(
         [Episode.II, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]],
         [Episode.IV, [1, 2, 3, 4, 5, 6, 7, 8, 9]],
     ],
-    [],
+    [
+        ["SCL_TAMA", 40, "F32"],
+        ["Next section", 44, "F32"],
+        ["Previous section ", 48, "F32"],
+    ],
 );
 define_object_type_data(ObjectType.Sensor, 15, "Sensor", [[Episode.I, [1, 2, 4, 5, 6, 7]]], []);
 define_object_type_data(ObjectType.UnknownItem16, 16, "Unknown Item (16)", [], []);
@@ -1078,7 +1127,7 @@ define_object_type_data(
         [Episode.II, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]],
         [Episode.IV, [1, 2, 3, 4, 5, 6, 7, 8, 0]],
     ],
-    [],
+    [["Radius", 40, "F32"]],
 );
 define_object_type_data(
     ObjectType.HealRing,
@@ -1122,7 +1171,7 @@ define_object_type_data(
         [Episode.II, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]],
         [Episode.IV, [1, 2, 3, 4, 5, 6, 7, 8, 0]],
     ],
-    [],
+    [["Subtype", 40, "F32"]],
 );
 define_object_type_data(
     ObjectType.RadarCollision,
@@ -1133,7 +1182,7 @@ define_object_type_data(
         [Episode.II, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]],
         [Episode.IV, [1, 2, 3, 4, 5, 6, 7, 8]],
     ],
-    [],
+    [["Radius", 40, "F32"]],
 );
 define_object_type_data(
     ObjectType.FogCollisionSW,
@@ -1144,7 +1193,12 @@ define_object_type_data(
         [Episode.II, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]],
         [Episode.IV, [1, 2, 3, 4, 5, 6, 7, 8]],
     ],
-    [],
+    [
+        ["Radius", 40, "F32"],
+        ["Status", 44, "F32"],
+        ["Fog index no.", 52, "I32"],
+        ["Switch ID", 60, "I32"],
+    ],
 );
 define_object_type_data(
     ObjectType.BossTeleporter,
@@ -1166,7 +1220,11 @@ define_object_type_data(
         [Episode.II, [0]],
         [Episode.IV, [0]],
     ],
-    [],
+    [
+        ["Scale x", 40, "F32"],
+        ["Scale y", 44, "F32"],
+        ["Scale z", 48, "F32"],
+    ],
 );
 define_object_type_data(
     ObjectType.QuestWarp,
@@ -1221,7 +1279,10 @@ define_object_type_data(
         [Episode.II, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 16, 17]],
         [Episode.IV, [1, 2, 3, 4, 5, 6, 7, 8, 0]],
     ],
-    [],
+    [
+        ["Radius", 40, "F32"],
+        ["Plate ID", 52, "I32"],
+    ],
 );
 define_object_type_data(
     ObjectType.SymbolChatObject,
@@ -1232,7 +1293,7 @@ define_object_type_data(
         [Episode.II, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 16, 17]],
         [Episode.IV, [1, 2, 3, 4, 5, 6, 7, 8, 0]],
     ],
-    [],
+    [["Radius", 40, "F32"]],
 );
 define_object_type_data(
     ObjectType.TouchPlateObject,
@@ -1243,7 +1304,10 @@ define_object_type_data(
         [Episode.II, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 16, 17]],
         [Episode.IV, [1, 2, 3, 4, 5, 6, 7, 8]],
     ],
-    [],
+    [
+        ["Radius", 40, "F32"],
+        ["Switch ID", 52, "I32"],
+    ],
 );
 define_object_type_data(
     ObjectType.TargetableObject,
@@ -1254,7 +1318,10 @@ define_object_type_data(
         [Episode.II, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 16, 17]],
         [Episode.IV, [1, 2, 3, 4, 5, 6, 7, 8]],
     ],
-    [],
+    [
+        ["Switch ID", 48, "F32"],
+        ["HP", 52, "I32"],
+    ],
 );
 define_object_type_data(
     ObjectType.EffectObject,
@@ -1330,7 +1397,7 @@ define_object_type_data(
         [Episode.II, [0]],
         [Episode.IV, [0]],
     ],
-    [],
+    [["Menu ID", 52, "I32"]],
 );
 define_object_type_data(
     ObjectType.TelepipeLocation,
@@ -1341,7 +1408,7 @@ define_object_type_data(
         [Episode.II, [0]],
         [Episode.IV, [0]],
     ],
-    [],
+    [["Slot ID", 52, "I32"]],
 );
 define_object_type_data(
     ObjectType.BGMCollision,
@@ -1390,6 +1457,7 @@ define_object_type_data(
         ["Destination y", 44, "F32"],
         ["Destination z", 48, "F32"],
         ["Dst. rotation y", 52, "Angle"],
+        ["Model", 60, "I32"],
     ],
 );
 define_object_type_data(
@@ -1517,7 +1585,7 @@ define_object_type_data(
         [Episode.II, [0]],
         [Episode.IV, [0]],
     ],
-    [],
+    [["Model", 52, "I32"]],
 );
 define_object_type_data(
     ObjectType.WelcomeBoard,
@@ -1539,7 +1607,13 @@ define_object_type_data(
         [Episode.II, [0, 16]],
         [Episode.IV, [0]],
     ],
-    [],
+    [
+        ["Mdl IDX", 40, "F32"],
+        ["Area width", 44, "F32"],
+        ["Rise height", 48, "F32"],
+        ["Area depth", 52, "I32"],
+        ["Freq", 56, "I32"],
+    ],
 );
 define_object_type_data(
     ObjectType.LobbyScreenDoor,
@@ -1578,9 +1652,15 @@ define_object_type_data(
         [Episode.II, [0]],
         [Episode.IV, [0]],
     ],
-    [],
+    [["Radius", 40, "F32"]],
 );
-define_object_type_data(ObjectType.ForestDoor, 128, "Forest Door", [[Episode.I, [1, 2]]], []);
+define_object_type_data(
+    ObjectType.ForestDoor,
+    128,
+    "Forest Door",
+    [[Episode.I, [1, 2]]],
+    [["Door ID", 52, "I32"]],
+);
 define_object_type_data(
     ObjectType.ForestSwitch,
     129,
@@ -1590,7 +1670,10 @@ define_object_type_data(
         [Episode.II, [1, 2, 3, 4]],
         [Episode.IV, [1, 2, 3, 4, 5, 6, 7, 8]],
     ],
-    [],
+    [
+        ["Switch ID", 52, "I32"],
+        ["Color", 60, "I32"],
+    ],
 );
 define_object_type_data(
     ObjectType.LaserFence,
@@ -1600,7 +1683,11 @@ define_object_type_data(
         [Episode.I, [1, 2, 3, 4, 5, 6, 7, 16, 17]],
         [Episode.IV, [1, 2, 3, 4, 5, 6, 7, 8]],
     ],
-    [],
+    [
+        ["Color", 40, "F32"],
+        ["Switch ID", 52, "I32"],
+        ["Model", 60, "I32"],
+    ],
 );
 define_object_type_data(
     ObjectType.LaserSquareFence,
@@ -1611,7 +1698,11 @@ define_object_type_data(
         [Episode.II, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]],
         [Episode.IV, [1, 2, 3, 4, 5, 6, 7, 8]],
     ],
-    [],
+    [
+        ["Color", 40, "F32"],
+        ["Switch ID", 52, "I32"],
+        ["Model", 60, "I32"],
+    ],
 );
 define_object_type_data(
     ObjectType.ForestLaserFenceSwitch,
@@ -1622,7 +1713,10 @@ define_object_type_data(
         [Episode.II, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 16, 17]],
         [Episode.IV, [1, 2, 3, 4, 5, 6, 7, 8]],
     ],
-    [],
+    [
+        ["Switch ID", 52, "I32"],
+        ["Color", 60, "I32"],
+    ],
 );
 define_object_type_data(
     ObjectType.LightRays,
@@ -1633,7 +1727,11 @@ define_object_type_data(
         [Episode.II, [5, 6, 7, 8, 9]],
         [Episode.IV, [6, 7, 8]],
     ],
-    [],
+    [
+        ["Scale x", 40, "F32"],
+        ["Scale y", 44, "F32"],
+        ["Scale z", 48, "F32"],
+    ],
 );
 define_object_type_data(
     ObjectType.BlueButterfly,
@@ -1645,7 +1743,13 @@ define_object_type_data(
     ],
     [],
 );
-define_object_type_data(ObjectType.Probe, 135, "Probe", [[Episode.I, [1, 2]]], []);
+define_object_type_data(
+    ObjectType.Probe,
+    135,
+    "Probe",
+    [[Episode.I, [1, 2]]],
+    [["Model", 40, "F32"]],
+);
 define_object_type_data(
     ObjectType.RandomTypeBox1,
     136,
@@ -1674,14 +1778,24 @@ define_object_type_data(
         [Episode.II, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 16, 17]],
         [Episode.IV, [1, 2, 3, 4, 5, 6, 7, 8]],
     ],
-    [],
+    [
+        ["Script label", 52, "I32"],
+        ["Model", 56, "I32"],
+    ],
 );
 define_object_type_data(
     ObjectType.BlackSlidingDoor,
     140,
     "Black Sliding Door",
     [[Episode.I, [1, 2, 3]]],
-    [],
+    [
+        ["Distance", 40, "F32"],
+        ["Speed", 44, "F32"],
+        ["Switch ID", 48, "F32"],
+        ["Switch no.", 52, "I32"],
+        ["Disable effect", 56, "I32"],
+        ["Enable effect", 60, "I32"],
+    ],
 );
 define_object_type_data(
     ObjectType.RicoMessagePod,
@@ -1698,14 +1812,14 @@ define_object_type_data(
         [Episode.I, [1, 2, 4, 5, 6, 7]],
         [Episode.IV, [1, 2, 3, 4, 5, 6, 7, 8]],
     ],
-    [],
+    [["Door ID", 52, "I32"]],
 );
 define_object_type_data(
     ObjectType.ForestRisingBridge,
     143,
     "Forest Rising Bridge",
     [[Episode.I, [1, 2]]],
-    [],
+    [["Door ID", 52, "I32"]],
 );
 define_object_type_data(
     ObjectType.SwitchNoneDoor,
@@ -1716,7 +1830,7 @@ define_object_type_data(
         [Episode.II, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 16, 17]],
         [Episode.IV, [1, 2, 3, 4, 5, 6, 7, 8]],
     ],
-    [],
+    [["Switch ID", 52, "I32"]],
 );
 define_object_type_data(
     ObjectType.EnemyBoxGrey,
@@ -1727,7 +1841,7 @@ define_object_type_data(
         [Episode.II, [10, 11]],
         [Episode.IV, [1, 2, 3, 4, 5, 6, 7, 8]],
     ],
-    [],
+    [["Event ID", 40, "F32"]],
 );
 define_object_type_data(
     ObjectType.FixedTypeBox,
@@ -1738,7 +1852,12 @@ define_object_type_data(
         [Episode.II, [10, 11, 13]],
         [Episode.IV, [1, 2, 3, 4, 6, 7, 8, 9]],
     ],
-    [],
+    [
+        ["Full random", 40, "F32"],
+        ["Random item", 44, "F32"],
+        ["Fixed item", 48, "F32"],
+        ["Item parameter", 52, "I32"],
+    ],
 );
 define_object_type_data(
     ObjectType.EnemyBoxBrown,
@@ -1749,7 +1868,7 @@ define_object_type_data(
         [Episode.II, [10, 11]],
         [Episode.IV, [1, 2, 3, 4, 5, 6, 7, 8]],
     ],
-    [],
+    [["Event ID", 40, "F32"]],
 );
 define_object_type_data(
     ObjectType.EmptyTypeBox,
@@ -1759,7 +1878,7 @@ define_object_type_data(
         [Episode.I, [1, 2, 3, 4, 5, 6, 7]],
         [Episode.IV, [1, 2, 3, 4, 5, 6, 7, 8]],
     ],
-    [],
+    [["Event ID", 40, "F32"]],
 );
 define_object_type_data(
     ObjectType.LaserFenceEx,
@@ -1770,9 +1889,27 @@ define_object_type_data(
         [Episode.II, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 16, 17]],
         [Episode.IV, [1, 2, 3, 4, 5, 6, 7, 8]],
     ],
-    [],
+    [
+        ["Color", 40, "F32"],
+        ["Collision width", 44, "F32"],
+        ["Collision depth", 48, "F32"],
+        ["Switch ID", 52, "I32"],
+        ["Model", 60, "I32"],
+    ],
 );
-define_object_type_data(ObjectType.LaserSquareFenceEx, 151, "Laser Square Fence Ex", [], []);
+define_object_type_data(
+    ObjectType.LaserSquareFenceEx,
+    151,
+    "Laser Square Fence Ex",
+    [],
+    [
+        ["Color", 40, "F32"],
+        ["Collision width", 44, "F32"],
+        ["Collision depth", 48, "F32"],
+        ["Switch ID", 52, "I32"],
+        ["Model", 60, "I32"],
+    ],
+);
 define_object_type_data(
     ObjectType.FloorPanel1,
     192,
@@ -1782,21 +1919,31 @@ define_object_type_data(
         [Episode.II, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 16, 17]],
         [Episode.IV, [1, 2, 3, 4, 5, 6, 7, 8]],
     ],
-    [],
+    [
+        ["Scale  x", 40, "F32"],
+        ["Scale  y", 44, "F32"],
+        ["Scale  z", 48, "F32"],
+        ["Switch ID", 52, "I32"],
+        ["Stay active", 56, "I32"],
+    ],
 );
 define_object_type_data(
     ObjectType.Caves4ButtonDoor,
     193,
     "Caves 4 Button door",
     [[Episode.I, [3, 4, 5]]],
-    [],
+    [
+        ["Door ID", 52, "I32"],
+        ["Switch total", 56, "I32"],
+        ["Stay active", 60, "I32"],
+    ],
 );
 define_object_type_data(
     ObjectType.CavesNormalDoor,
     194,
     "Caves Normal door",
     [[Episode.I, [3, 4, 5]]],
-    [],
+    [["Door ID", 52, "I32"]],
 );
 define_object_type_data(
     ObjectType.CavesSmashingPillar,
@@ -1823,7 +1970,17 @@ define_object_type_data(
     ],
     [],
 );
-define_object_type_data(ObjectType.Rainbow, 203, "Rainbow", [[Episode.I, [4]]], []);
+define_object_type_data(
+    ObjectType.Rainbow,
+    203,
+    "Rainbow",
+    [[Episode.I, [4]]],
+    [
+        ["Scale  x", 40, "F32"],
+        ["Scale  y", 44, "F32"],
+        ["Scale  z", 48, "F32"],
+    ],
+);
 define_object_type_data(
     ObjectType.FloatingJellyfish,
     204,
@@ -1850,7 +2007,7 @@ define_object_type_data(
     206,
     "Caves Switch Door",
     [[Episode.I, [3, 4, 5]]],
-    [],
+    [["Door ID", 52, "I32"]],
 );
 define_object_type_data(
     ObjectType.RobotRechargeStation,
@@ -1959,7 +2116,13 @@ define_object_type_data(
         [Episode.II, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 16, 17]],
         [Episode.IV, [1, 2, 3, 4, 5, 6, 7, 8]],
     ],
-    [],
+    [
+        ["Scale x", 40, "F32"],
+        ["Scale y", 44, "F32"],
+        ["Scale z", 48, "F32"],
+        ["Switch ID", 52, "I32"],
+        ["Stay active", 56, "I32"],
+    ],
 );
 define_object_type_data(
     ObjectType.DestructableRockCaves1,
@@ -1982,7 +2145,17 @@ define_object_type_data(
     [[Episode.I, [5]]],
     [],
 );
-define_object_type_data(ObjectType.MinesDoor, 256, "Mines Door", [[Episode.I, [6, 7]]], []);
+define_object_type_data(
+    ObjectType.MinesDoor,
+    256,
+    "Mines Door",
+    [[Episode.I, [6, 7]]],
+    [
+        ["Door ID", 52, "I32"],
+        ["Switch total", 56, "I32"],
+        ["Stay active", 60, "I32"],
+    ],
+);
 define_object_type_data(
     ObjectType.FloorPanel3,
     257,
@@ -1992,7 +2165,13 @@ define_object_type_data(
         [Episode.II, [1, 2, 3, 4]],
         [Episode.IV, [1, 2, 3, 4, 5, 6, 7, 8]],
     ],
-    [],
+    [
+        ["Scale x", 40, "F32"],
+        ["Scale y", 44, "F32"],
+        ["Scale z", 48, "F32"],
+        ["Switch ID", 52, "I32"],
+        ["Stay active", 56, "I32"],
+    ],
 );
 define_object_type_data(
     ObjectType.MinesSwitchDoor,
@@ -2002,7 +2181,11 @@ define_object_type_data(
         [Episode.I, [6, 7]],
         [Episode.IV, [6, 7, 8]],
     ],
-    [],
+    [
+        ["Door ID", 52, "I32"],
+        ["Switch total", 56, "I32"],
+        ["Stay active", 60, "I32"],
+    ],
 );
 define_object_type_data(
     ObjectType.LargeCryoTube,
@@ -2063,7 +2246,17 @@ define_object_type_data(
     [[Episode.I, [6, 7]]],
     [],
 );
-define_object_type_data(ObjectType.SparkMachine, 267, "Spark Machine", [[Episode.I, [6, 7]]], []);
+define_object_type_data(
+    ObjectType.SparkMachine,
+    267,
+    "Spark Machine",
+    [[Episode.I, [6, 7]]],
+    [
+        ["Scale x", 40, "F32"],
+        ["Scale y", 44, "F32"],
+        ["Scale z", 48, "F32"],
+    ],
+);
 define_object_type_data(
     ObjectType.MinesLargeFlashingCrate,
     268,
@@ -2077,60 +2270,108 @@ define_object_type_data(
     320,
     "Ruins Teleporter",
     [[Episode.I, [8, 9, 10]]],
-    [],
+    [
+        ["Area no.", 40, "F32"],
+        ["Color blue", 44, "F32"],
+        ["Color red", 48, "F32"],
+        ["Floor no.", 52, "I32"],
+        ["Display no.", 56, "I32"],
+        ["No display no.", 60, "I32"],
+    ],
 );
 define_object_type_data(
     ObjectType.RuinsWarpSiteToSite,
     321,
-    "Ruins Warp (Site to site)",
+    "Ruins Warp (Site to Site)",
     [[Episode.I, [8, 9, 10]]],
-    [],
+    [
+        ["Destination x", 40, "F32"],
+        ["Destination y", 44, "F32"],
+        ["Destination z", 48, "F32"],
+        ["Dst. rotation y", 52, "I32"],
+    ],
 );
-define_object_type_data(ObjectType.RuinsSwitch, 322, "Ruins Switch", [[Episode.I, [8, 9, 10]]], []);
+define_object_type_data(
+    ObjectType.RuinsSwitch,
+    322,
+    "Ruins Switch",
+    [[Episode.I, [8, 9, 10]]],
+    [["Switch ID", 52, "I32"]],
+);
 define_object_type_data(
     ObjectType.FloorPanel4,
     323,
     "Floor Panel 4",
     [[Episode.I, [8, 9, 10]]],
-    [],
+    [
+        ["Scale x", 40, "F32"],
+        ["Scale y", 44, "F32"],
+        ["Scale z", 48, "F32"],
+        ["Plate ID", 52, "I32"],
+        ["Stay active", 56, "I32"],
+    ],
 );
-define_object_type_data(ObjectType.Ruins1Door, 324, "Ruins 1 Door", [[Episode.I, [8]]], []);
-define_object_type_data(ObjectType.Ruins3Door, 325, "Ruins 3 Door", [[Episode.I, [10]]], []);
-define_object_type_data(ObjectType.Ruins2Door, 326, "Ruins 2 Door", [[Episode.I, [9]]], []);
+define_object_type_data(
+    ObjectType.Ruins1Door,
+    324,
+    "Ruins 1 Door",
+    [[Episode.I, [8]]],
+    [["Door ID", 52, "I32"]],
+);
+define_object_type_data(
+    ObjectType.Ruins3Door,
+    325,
+    "Ruins 3 Door",
+    [[Episode.I, [10]]],
+    [["Door ID", 52, "I32"]],
+);
+define_object_type_data(
+    ObjectType.Ruins2Door,
+    326,
+    "Ruins 2 Door",
+    [[Episode.I, [9]]],
+    [["Door ID", 52, "I32"]],
+);
 define_object_type_data(
     ObjectType.Ruins11ButtonDoor,
     327,
     "Ruins 1-1 Button Door",
     [[Episode.I, [8]]],
-    [],
+    [["Door ID", 52, "I32"]],
 );
 define_object_type_data(
     ObjectType.Ruins21ButtonDoor,
     328,
     "Ruins 2-1 Button Door",
     [[Episode.I, [9]]],
-    [],
+    [["Door ID", 52, "I32"]],
 );
 define_object_type_data(
     ObjectType.Ruins31ButtonDoor,
     329,
     "Ruins 3-1 Button Door",
     [[Episode.I, [10]]],
-    [],
+    [["Door ID", 52, "I32"]],
 );
 define_object_type_data(
     ObjectType.Ruins4ButtonDoor,
     330,
     "Ruins 4-Button Door",
     [[Episode.I, [8, 9, 10]]],
-    [],
+    [
+        ["Door ID", 52, "I32"],
+        ["Stay active", 60, "I32"],
+    ],
 );
 define_object_type_data(
     ObjectType.Ruins2ButtonDoor,
     331,
     "Ruins 2-Button Door",
     [[Episode.I, [8, 9, 10]]],
-    [],
+    [
+        ["Door ID", 52, "I32"],
+        ["Stay active", 60, "I32"],
+    ],
 );
 define_object_type_data(ObjectType.RuinsSensor, 332, "Ruins Sensor", [[Episode.I, [8, 9, 10]]], []);
 define_object_type_data(
@@ -2138,7 +2379,10 @@ define_object_type_data(
     333,
     "Ruins Fence Switch",
     [[Episode.I, [8, 9, 10]]],
-    [],
+    [
+        ["Switch ID", 52, "I32"],
+        ["Color", 56, "I32"],
+    ],
 );
 define_object_type_data(
     ObjectType.RuinsLaserFence4x2,
@@ -2148,7 +2392,10 @@ define_object_type_data(
         [Episode.I, [8, 9, 10]],
         [Episode.IV, [1, 2, 3, 4, 5, 6, 7, 8]],
     ],
-    [],
+    [
+        ["Switch ID", 52, "I32"],
+        ["Color", 56, "I32"],
+    ],
 );
 define_object_type_data(
     ObjectType.RuinsLaserFence6x2,
@@ -2158,21 +2405,30 @@ define_object_type_data(
         [Episode.I, [8, 9, 10]],
         [Episode.IV, [1, 2, 3, 4, 5, 6, 7, 8]],
     ],
-    [],
+    [
+        ["Switch ID", 52, "I32"],
+        ["Color", 56, "I32"],
+    ],
 );
 define_object_type_data(
     ObjectType.RuinsLaserFence4x4,
     336,
     "Ruins Laser Fence 4x4",
     [[Episode.I, [8, 9, 10]]],
-    [],
+    [
+        ["Switch ID", 52, "I32"],
+        ["Color", 56, "I32"],
+    ],
 );
 define_object_type_data(
     ObjectType.RuinsLaserFence6x4,
     337,
     "Ruins Laser Fence 6x4",
     [[Episode.I, [8, 9, 10]]],
-    [],
+    [
+        ["Switch ID", 52, "I32"],
+        ["Color", 56, "I32"],
+    ],
 );
 define_object_type_data(
     ObjectType.RuinsPoisonBlob,
@@ -2200,7 +2456,7 @@ define_object_type_data(
     340,
     "Popup Trap (No Tech)",
     [[Episode.I, [8, 9, 10]]],
-    [],
+    [["Radius", 40, "F32"]],
 );
 define_object_type_data(
     ObjectType.RuinsCrystal,
@@ -2226,7 +2482,14 @@ define_object_type_data(
         [Episode.II, [3, 4, 10, 11]],
         [Episode.IV, [1, 2, 3, 4, 5, 6, 7, 8]],
     ],
-    [],
+    [
+        ["Radius", 40, "F32"],
+        ["Power", 44, "F32"],
+        ["Link", 48, "F32"],
+        ["Switch mode", 52, "I32"],
+        ["Fog index no.", 56, "I32"],
+        ["Switch ID", 60, "I32"],
+    ],
 );
 define_object_type_data(
     ObjectType.FixedBoxTypeRuins,
@@ -2236,7 +2499,12 @@ define_object_type_data(
         [Episode.I, [8, 9, 10, 16, 17]],
         [Episode.II, [1, 2, 3, 4, 14, 15]],
     ],
-    [],
+    [
+        ["Full random", 40, "F32"],
+        ["Random item", 44, "F32"],
+        ["Fixed item", 48, "F32"],
+        ["Item parameter", 52, "I32"],
+    ],
 );
 define_object_type_data(
     ObjectType.RandomBoxTypeRuins,
@@ -2293,7 +2561,12 @@ define_object_type_data(
         [Episode.I, [6, 7, 8, 9, 10]],
         [Episode.II, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 16, 17]],
     ],
-    [],
+    [
+        ["Radius", 40, "F32"],
+        ["HP", 44, "F32"],
+        ["Action", 56, "I32"],
+        ["Tech", 60, "I32"],
+    ],
 );
 define_object_type_data(
     ObjectType.FlyingWhiteBird,
@@ -2416,7 +2689,7 @@ define_object_type_data(
         [Episode.I, [16]],
         [Episode.II, [3, 4]],
     ],
-    [],
+    [["Switch ID", 52, "I32"]],
 );
 define_object_type_data(
     ObjectType.GreyWallHigh,
@@ -2436,7 +2709,7 @@ define_object_type_data(
         [Episode.I, [17]],
         [Episode.II, [1, 2]],
     ],
-    [],
+    [["Switch ID", 52, "I32"]],
 );
 define_object_type_data(
     ObjectType.BreakableWallWallButUnbreakable,
@@ -2575,7 +2848,14 @@ define_object_type_data(
     514,
     "CCA Door",
     [[Episode.II, [5, 6, 7, 8, 9, 16, 17]]],
-    [],
+    [
+        ["Scale x", 40, "F32"],
+        ["Scale y", 44, "F32"],
+        ["Scale z", 48, "F32"],
+        ["Switch ID", 52, "I32"],
+        ["Switch amount", 56, "I32"],
+        ["Stay active", 60, "I32"],
+    ],
 );
 define_object_type_data(
     ObjectType.SpecialBoxCCA,
@@ -2607,12 +2887,12 @@ define_object_type_data(
     519,
     "Little 3 Stone Wall",
     [[Episode.II, [5, 6, 7, 8, 9, 16]]],
-    [],
+    [["Switch ID", 52, "I32"]],
 );
 define_object_type_data(
     ObjectType.Medium3StoneWall,
     520,
-    "Medium 3 stone wall",
+    "Medium 3 Stone Wall",
     [[Episode.II, [5, 6, 7, 8, 9, 16]]],
     [],
 );
@@ -2659,14 +2939,24 @@ define_object_type_data(
     527,
     "Saw",
     [[Episode.II, [5, 6, 7, 8, 9, 10, 11, 16, 17]]],
-    [],
+    [
+        ["Speed", 44, "F32"],
+        ["Model", 48, "F32"],
+        ["Switch ID", 52, "I32"],
+        ["Arc", 56, "I32"],
+        ["Switch flag", 60, "I32"],
+    ],
 );
 define_object_type_data(
     ObjectType.LaserDetect,
     528,
     "Laser Detect",
     [[Episode.II, [5, 6, 7, 8, 9, 10, 11, 16, 17]]],
-    [],
+    [
+        ["Model", 48, "F32"],
+        ["Switch ID", 52, "I32"],
+        ["Arc", 56, "I32"],
+    ],
 );
 define_object_type_data(
     ObjectType.UnknownItem529,
@@ -2710,7 +3000,14 @@ define_object_type_data(
     545,
     "Seabed Door (with blue edges)",
     [[Episode.II, [10, 11]]],
-    [],
+    [
+        ["Scale x", 40, "F32"],
+        ["Scale y", 44, "F32"],
+        ["Scale z", 48, "F32"],
+        ["Switch ID", 52, "I32"],
+        ["Switch amount", 56, "I32"],
+        ["Stay active", 60, "I32"],
+    ],
 );
 define_object_type_data(
     ObjectType.SeabedDoorAlwaysOpenNonTriggerable,
@@ -2724,7 +3021,7 @@ define_object_type_data(
     547,
     "Little Cryotube",
     [[Episode.II, [10, 11, 17]]],
-    [],
+    [["Model", 52, "I32"]],
 );
 define_object_type_data(
     ObjectType.WideGlassWallBreakable,
@@ -2897,14 +3194,19 @@ define_object_type_data(
     769,
     "Cactus",
     [[Episode.IV, [1, 2, 3, 4, 5, 6, 7, 8]]],
-    [],
+    [
+        ["Scale x", 40, "F32"],
+        ["Scale y", 44, "F32"],
+        ["Scale z", 48, "F32"],
+        ["Model", 52, "I32"],
+    ],
 );
 define_object_type_data(
     ObjectType.BigBrownRock,
     770,
     "Big Brown Rock",
     [[Episode.IV, [1, 2, 3, 4, 5, 6, 7, 8]]],
-    [],
+    [["Model", 52, "I32"]],
 );
 define_object_type_data(
     ObjectType.BreakableBrownRock,
@@ -2947,9 +3249,9 @@ define_object_type_data(
 define_object_type_data(
     ObjectType.BigBlackRocks,
     902,
-    "big black rocks",
+    "Big Black Rocks",
     [[Episode.IV, [1, 2, 3, 4, 5, 6, 7, 8]]],
-    [],
+    [["Model", 52, "I32"]],
 );
 define_object_type_data(
     ObjectType.UnknownItem903,
@@ -2983,7 +3285,13 @@ define_object_type_data(
     [],
 );
 define_object_type_data(ObjectType.UnknownItem910, 910, "Unknown Item (910)", [], []);
-define_object_type_data(ObjectType.BeeHive, 911, "Bee Hive", [[Episode.IV, [6, 7, 8]]], []);
+define_object_type_data(
+    ObjectType.BeeHive,
+    911,
+    "Bee Hive",
+    [[Episode.IV, [6, 7, 8]]],
+    [["Model", 52, "I32"]],
+);
 define_object_type_data(
     ObjectType.UnknownItem912,
     912,
@@ -2991,7 +3299,16 @@ define_object_type_data(
     [[Episode.IV, [6, 7, 8]]],
     [],
 );
-define_object_type_data(ObjectType.Heat, 913, "Heat", [[Episode.IV, [6, 7, 8]]], []);
+define_object_type_data(
+    ObjectType.Heat,
+    913,
+    "Heat",
+    [[Episode.IV, [6, 7, 8]]],
+    [
+        ["Radius", 40, "F32"],
+        ["Fog index no.", 52, "I32"],
+    ],
+);
 define_object_type_data(
     ObjectType.TopOfSaintMillionEgg,
     960,
