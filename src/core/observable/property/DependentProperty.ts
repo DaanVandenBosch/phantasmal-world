@@ -11,7 +11,8 @@ import { ChangeEvent } from "../Observable";
  */
 export abstract class DependentProperty<T> extends AbstractMinimalProperty<T> {
     private dependency_disposer = new Disposer();
-    private _val?: T;
+
+    protected _val?: T;
 
     get val(): T {
         return this.get_val();
@@ -19,7 +20,7 @@ export abstract class DependentProperty<T> extends AbstractMinimalProperty<T> {
 
     get_val(): T {
         if (this.should_recompute()) {
-            this._val = this.compute_value();
+            this._val = this.compute_value(this.observers.length > 0);
         }
 
         return this._val as T;
@@ -34,13 +35,13 @@ export abstract class DependentProperty<T> extends AbstractMinimalProperty<T> {
         options?: { call_now?: boolean },
     ): Disposable {
         if (this.dependency_disposer.length === 0) {
-            this._val = this.compute_value();
+            this._val = this.compute_value(true);
 
             this.dependency_disposer.add_all(
                 ...this.dependencies.map(dependency =>
                     dependency.observe(() => {
                         const old_value = this._val!;
-                        this._val = this.compute_value();
+                        this._val = this.compute_value(true);
 
                         if (this._val !== old_value) {
                             this.emit();
@@ -67,5 +68,5 @@ export abstract class DependentProperty<T> extends AbstractMinimalProperty<T> {
         return this.dependency_disposer.length === 0;
     }
 
-    protected abstract compute_value(): T;
+    protected abstract compute_value(has_observers: boolean): T;
 }

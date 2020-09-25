@@ -1,39 +1,46 @@
 import { property } from "../observable";
 import { Undo } from "./Undo";
+import { Property } from "../observable/property/Property";
+import { Action } from "./Action";
+import { WritableProperty } from "../observable/property/WritableProperty";
 
-const NOOP_UNDO: Undo = {
-    can_redo: property(false),
-    can_undo: property(false),
-    first_redo: property(undefined),
-    first_undo: property(undefined),
+class NoopUndo implements Undo {
+    readonly can_redo = property(false);
+    readonly can_undo = property(false);
+    readonly first_redo = property(undefined);
+    readonly first_undo = property(undefined);
 
-    make_current() {
-        undo_manager.current.val = this;
-    },
+    constructor(private readonly manager: UndoManager) {}
 
-    redo() {
+    make_current(): void {
+        this.manager.current.val = this;
+    }
+
+    redo(): boolean {
         return false;
-    },
+    }
 
-    reset() {
+    reset(): void {
         // Do nothing.
-    },
+    }
 
-    undo() {
+    undo(): boolean {
         return false;
-    },
-};
+    }
+}
 
 export class UndoManager {
-    readonly current = property<Undo>(NOOP_UNDO);
+    private readonly noop_undo = new NoopUndo(this);
 
-    can_undo = this.current.flat_map(c => c.can_undo);
+    readonly current: WritableProperty<Undo> = property<Undo>(this.noop_undo);
 
-    can_redo = this.current.flat_map(c => c.can_redo);
+    readonly can_undo: Property<boolean> = this.current.flat_map(c => c.can_undo);
 
-    first_undo = this.current.flat_map(c => c.first_undo);
+    readonly can_redo: Property<boolean> = this.current.flat_map(c => c.can_redo);
 
-    first_redo = this.current.flat_map(c => c.first_redo);
+    readonly first_undo: Property<Action | undefined> = this.current.flat_map(c => c.first_undo);
+
+    readonly first_redo: Property<Action | undefined> = this.current.flat_map(c => c.first_redo);
 
     undo(): boolean {
         return this.current.val.undo();
@@ -44,7 +51,7 @@ export class UndoManager {
     }
 
     make_noop_current(): void {
-        undo_manager.current.val = NOOP_UNDO;
+        this.current.val = this.noop_undo;
     }
 }
 

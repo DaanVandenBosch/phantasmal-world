@@ -31,9 +31,9 @@ export class SimpleUndo implements Undo {
         undo_manager.current.val = this;
     }
 
-    readonly can_undo = property(false);
+    readonly can_undo: WritableProperty<boolean> = property(false);
 
-    readonly can_redo = property(false);
+    readonly can_redo: WritableProperty<boolean> = property(false);
 
     readonly first_undo: Property<Action | undefined>;
 

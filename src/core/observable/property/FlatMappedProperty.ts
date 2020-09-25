@@ -9,10 +9,10 @@ export class FlatMappedProperty<T> extends DependentProperty<T> {
     private computed_disposable?: Disposable;
 
     get_val(): T {
-        if (this.should_recompute() || !this.computed_property) {
+        if (this.should_recompute()) {
             return super.get_val();
         } else {
-            return this.computed_property.val;
+            return this.computed_property!.val;
         }
     }
 
@@ -50,14 +50,17 @@ export class FlatMappedProperty<T> extends DependentProperty<T> {
         return new FlatMappedProperty([this], () => transform(this.val));
     }
 
-    protected compute_value(): T {
-        this.computed_disposable?.dispose();
-
+    protected compute_value(has_observers: boolean): T {
         this.computed_property = this.compute();
 
-        this.computed_disposable = this.computed_property.observe(() => {
-            this.emit();
-        });
+        this.computed_disposable?.dispose();
+
+        if (has_observers) {
+            this.computed_disposable = this.computed_property.observe(() => {
+                this._val = this.computed_property!.val;
+                this.emit();
+            });
+        }
 
         return this.computed_property.val;
     }
