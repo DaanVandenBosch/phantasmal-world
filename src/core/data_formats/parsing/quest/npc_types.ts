@@ -224,7 +224,7 @@ export type NpcTypeData = {
      */
     readonly regular?: boolean;
     /**
-     * Default object-specific properties.
+     * Default NPC-specific properties.
      */
     readonly properties: readonly EntityProp[];
 };

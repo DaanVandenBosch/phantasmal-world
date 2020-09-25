@@ -19,6 +19,7 @@ export abstract class QuestRendererView extends ResizableView {
         super();
 
         this.element = div({ className, tabIndex: -1 });
+        this.element.style.outline = "none";
         this.renderer = renderer;
         this.renderer_widget = this.add(new RendererWidget(this.renderer));
         this.element.append(this.renderer_widget.element);
