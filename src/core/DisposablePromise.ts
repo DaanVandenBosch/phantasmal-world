@@ -1,4 +1,5 @@
 import { Disposable } from "./observable/Disposable";
+import { is_promise_like } from "./util";
 
 enum State {
     Pending,
@@ -249,8 +250,4 @@ export class DisposablePromise<T> implements Promise<T>, Disposable {
                 break;
         }
     }
-}
-
-function is_promise_like<T>(value?: T | PromiseLike<T>): value is PromiseLike<T> {
-    return value != undefined && typeof (value as any).then === "function";
 }

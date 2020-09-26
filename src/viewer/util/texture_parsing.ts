@@ -6,7 +6,7 @@ import { Severity } from "../../core/Severity";
 import { ArrayBufferCursor } from "../../core/data_formats/block/cursor/ArrayBufferCursor";
 import { Endianness } from "../../core/data_formats/block/Endianness";
 import { prs_decompress } from "../../core/data_formats/compression/prs/decompress";
-import { LogManager } from "../../core/Logger";
+import { LogManager } from "../../core/logging";
 
 const logger = LogManager.get("viewer/util/texture_parsing");
 

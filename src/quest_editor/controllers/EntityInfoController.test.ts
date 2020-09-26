@@ -3,14 +3,14 @@ import {
     create_area_store,
     create_quest_editor_store,
 } from "../../../test/src/quest_editor/stores/store_creation";
-import { with_disposer } from "../../../test/src/core/observables/disposable_helpers";
 import { Vector3 } from "three";
 import { euler } from "../model/euler";
 import { deg_to_rad } from "../../core/math";
-import { load_default_quest_model } from "../../../test/src/utils";
+import { load_default_quest_model, pw_test } from "../../../test/src/utils";
 
-test("When input values change, this should be reflected in the selected entity.", () =>
-    with_disposer(disposer => {
+test(
+    "When input values change, this should be reflected in the selected entity.",
+    pw_test({}, disposer => {
         const area_store = create_area_store(disposer);
         const store = create_quest_editor_store(disposer, area_store);
         const ctrl = new EntityInfoController(store);
@@ -45,4 +45,5 @@ test("When input values change, this should be reflected in the selected entity.
         expect(entity.rotation.val.x).toBeCloseTo(deg_to_rad(180), 5);
         expect(entity.rotation.val.y).toBeCloseTo(deg_to_rad(45), 5);
         expect(entity.rotation.val.z).toBeCloseTo(deg_to_rad(223.83), 5);
-    }));
+    }),
+);

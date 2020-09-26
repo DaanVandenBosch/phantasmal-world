@@ -6,7 +6,7 @@ import { ArrayBufferCursor } from "../../../core/data_formats/block/cursor/Array
 import { Endianness } from "../../../core/data_formats/block/Endianness";
 import { parse_nj, parse_xj } from "../../../core/data_formats/parsing/ninja";
 import { parse_njm } from "../../../core/data_formats/parsing/ninja/motion";
-import { LogManager } from "../../../core/Logger";
+import { LogManager } from "../../../core/logging";
 import { failure, problem, Result, success } from "../../../core/Result";
 import { Severity } from "../../../core/Severity";
 import { property } from "../../../core/observable";

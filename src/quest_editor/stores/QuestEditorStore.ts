@@ -13,7 +13,7 @@ import { QuestRunner } from "../QuestRunner";
 import { AreaStore } from "./AreaStore";
 import { disposable_listener } from "../../core/gui/dom";
 import { Store } from "../../core/stores/Store";
-import { LogManager } from "../../core/Logger";
+import { LogManager } from "../../core/logging";
 import { WaveModel } from "../model/WaveModel";
 import { LogStore } from "./LogStore";
 

@@ -5,11 +5,11 @@ import {
     create_area_store,
     create_quest_editor_store,
 } from "../../../test/src/quest_editor/stores/store_creation";
-import { with_disposer } from "../../../test/src/core/observables/disposable_helpers";
-import { load_default_quest_model } from "../../../test/src/utils";
+import { load_default_quest_model, pw_test } from "../../../test/src/utils";
 
-test("Renders correctly without a current quest.", () =>
-    with_disposer(disposer => {
+test(
+    "Renders correctly without a current quest.",
+    pw_test({}, disposer => {
         const view = disposer.add(
             new QuestInfoView(
                 disposer.add(new QuestInfoController(create_quest_editor_store(disposer))),
@@ -17,10 +17,12 @@ test("Renders correctly without a current quest.", () =>
         );
 
         expect(view.element).toMatchSnapshot('should render a "No quest loaded." view');
-    }));
+    }),
+);
 
-test("Renders correctly with a current quest.", () =>
-    with_disposer(async disposer => {
+test(
+    "Renders correctly with a current quest.",
+    pw_test({}, async disposer => {
         const area_store = create_area_store(disposer);
         const store = create_quest_editor_store(disposer);
         const view = disposer.add(new QuestInfoView(disposer.add(new QuestInfoController(store))));
@@ -28,10 +30,12 @@ test("Renders correctly with a current quest.", () =>
         await store.set_current_quest(load_default_quest_model(area_store));
 
         expect(view.element).toMatchSnapshot("should render property inputs");
-    }));
+    }),
+);
 
-test("When the view's element is focused the quest editor store's undo stack should become the current stack.", () =>
-    with_disposer(disposer => {
+test(
+    "When the view's element is focused the quest editor store's undo stack should become the current stack.",
+    pw_test({}, disposer => {
         const store = create_quest_editor_store(disposer);
         const view = disposer.add(new QuestInfoView(disposer.add(new QuestInfoController(store))));
 
@@ -43,4 +47,5 @@ test("When the view's element is focused the quest editor store's undo stack sho
         view.element.focus();
 
         expect(undo_manager.current.val).toBe(store.undo);
-    }));
+    }),
+);

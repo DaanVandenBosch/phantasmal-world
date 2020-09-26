@@ -138,6 +138,40 @@ export function browser_supports_webassembly(): boolean {
     return typeof window === "object" && typeof window.WebAssembly === "object";
 }
 
-export function is_promise(value: unknown): value is Promise<any> {
-    return value && typeof value === "object" && "then" in value && "finally" in value;
+/**
+ * @returns true iff the given value implements PromiseLike.
+ */
+export function is_promise_like<T>(value?: T | PromiseLike<T>): value is PromiseLike<T> {
+    return value != undefined && typeof (value as any).then === "function";
+}
+
+/**
+ * @returns true iff the given value implements Promise.
+ */
+export function is_promise<T>(value?: T | Promise<T>): value is Promise<T> {
+    return (
+        value != undefined &&
+        typeof (value as any).then === "function" &&
+        typeof (value as any).catch === "function" &&
+        typeof (value as any).finally === "function"
+    );
+}
+
+export function try_finally<T>(f: () => T, after: () => void): T {
+    let return_promise = false;
+
+    try {
+        const r = f();
+
+        if (is_promise(r)) {
+            return_promise = true;
+            return (r.finally(() => after()) as unknown) as T;
+        } else {
+            return r;
+        }
+    } finally {
+        if (!return_promise) {
+            after();
+        }
+    }
 }

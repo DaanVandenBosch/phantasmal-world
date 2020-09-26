@@ -14,7 +14,7 @@ import { entity_type_to_string } from "../../core/data_formats/parsing/quest/Que
 import { QuestEventDagModel } from "./QuestEventDagModel";
 import { assert, defined, require_array } from "../../core/util";
 import { AreaStore } from "../stores/AreaStore";
-import { LogManager } from "../../core/Logger";
+import { LogManager } from "../../core/logging";
 import { QuestEventModel } from "./QuestEventModel";
 
 const logger = LogManager.get("quest_editor/model/QuestModel");

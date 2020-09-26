@@ -5,7 +5,7 @@ import { ResizableBlockCursor } from "../../block/cursor/ResizableBlockCursor";
 import { ResizableBlock } from "../../block/ResizableBlock";
 import { WritableCursor } from "../../block/cursor/WritableCursor";
 import { assert } from "../../../util";
-import { LogManager } from "../../../Logger";
+import { LogManager } from "../../../logging";
 import { ArrayBufferCursor } from "../../block/cursor/ArrayBufferCursor";
 
 const logger = LogManager.get("core/data_formats/parsing/quest/dat");

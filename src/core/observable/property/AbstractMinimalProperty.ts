@@ -1,6 +1,6 @@
 import { Disposable } from "../Disposable";
 import { Property } from "./Property";
-import { LogManager } from "../../Logger";
+import { LogManager } from "../../logging";
 import { ChangeEvent } from "../Observable";
 
 const logger = LogManager.get("core/observable/property/AbstractMinimalProperty");

@@ -2,7 +2,7 @@ import { Cursor } from "../../block/cursor/Cursor";
 import { ResizableBlockCursor } from "../../block/cursor/ResizableBlockCursor";
 import { WritableCursor } from "../../block/cursor/WritableCursor";
 import { ResizableBlock } from "../../block/ResizableBlock";
-import { LogManager } from "../../../Logger";
+import { LogManager } from "../../../logging";
 import { browser_supports_webassembly } from "../../../util";
 import { get_prs_wasm_module } from "./prs_wasm";
 import { Result, ResultBuilder, success } from "../../../Result";

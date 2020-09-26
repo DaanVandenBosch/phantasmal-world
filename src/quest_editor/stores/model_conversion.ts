@@ -17,7 +17,7 @@ import { QuestEventDagModel } from "../model/QuestEventDagModel";
 import { Quest, QuestEvent } from "../../core/data_formats/parsing/quest/Quest";
 import { clone_segment } from "../../core/data_formats/asm/instructions";
 import { AreaStore } from "./AreaStore";
-import { LogManager } from "../../core/Logger";
+import { LogManager } from "../../core/logging";
 import { WaveModel } from "../model/WaveModel";
 import {
     get_npc_section_id,

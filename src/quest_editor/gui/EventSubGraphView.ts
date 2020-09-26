@@ -12,7 +12,7 @@ import {
     ListProperty,
 } from "../../core/observable/property/list/ListProperty";
 import { WritableProperty } from "../../core/observable/property/WritableProperty";
-import { LogManager } from "../../core/Logger";
+import { LogManager } from "../../core/logging";
 import { View } from "../../core/gui/View";
 
 const logger = LogManager.get("quest_editor/gui/EventSubGraphView");

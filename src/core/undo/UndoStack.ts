@@ -3,7 +3,7 @@ import { WritableListProperty } from "../observable/property/list/WritableListPr
 import { Action } from "./Action";
 import { list_property, map, property } from "../observable";
 import { undo_manager } from "./UndoManager";
-import { LogManager } from "../Logger";
+import { LogManager } from "../logging";
 
 const logger = LogManager.get("core/undo/UndoStack");
 

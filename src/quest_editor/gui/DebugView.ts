@@ -2,7 +2,7 @@ import { bind_children_to, div, Icon } from "../../core/gui/dom";
 import { ToolBar } from "../../core/gui/ToolBar";
 import "./DebugView.css";
 import { Select } from "../../core/gui/Select";
-import { LogEntry, time_to_string } from "../../core/Logger";
+import { LogEntry, time_to_string } from "../../core/logging";
 import { ResizableView } from "../../core/gui/ResizableView";
 import { Severities, Severity } from "../../core/Severity";
 import { Button } from "../../core/gui/Button";

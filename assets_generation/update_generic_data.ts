@@ -4,7 +4,7 @@ import { BufferCursor } from "../src/core/data_formats/block/cursor/BufferCursor
 import { parse_rlc } from "../src/core/data_formats/parsing/rlc";
 import * as yaml from "yaml";
 import { Endianness } from "../src/core/data_formats/block/Endianness";
-import { LogManager } from "../src/core/Logger";
+import { LogManager } from "../src/core/logging";
 import { Severity } from "../src/core/Severity";
 import { unwrap } from "../src/core/Result";
 

@@ -17,7 +17,7 @@ import { Episode } from "../../core/data_formats/parsing/quest/Episode";
 import { AreaVariantModel } from "../model/AreaVariantModel";
 import { EntityAssetLoader } from "../loading/EntityAssetLoader";
 import { AreaAssetLoader } from "../loading/AreaAssetLoader";
-import { LogManager } from "../../core/Logger";
+import { LogManager } from "../../core/logging";
 import { Property } from "../../core/observable/property/Property";
 import { WaveModel } from "../model/WaveModel";
 import { map } from "../../core/observable";

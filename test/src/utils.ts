@@ -9,6 +9,39 @@ import { QuestModel } from "../../src/quest_editor/model/QuestModel";
 import { AreaStore } from "../../src/quest_editor/stores/AreaStore";
 import { convert_quest_to_model } from "../../src/quest_editor/stores/model_conversion";
 import { unwrap } from "../../src/core/Result";
+import { LogManager } from "../../src/core/logging";
+import { Severity } from "../../src/core/Severity";
+import { Disposer } from "../../src/core/observable/Disposer";
+import { try_finally } from "../../src/core/util";
+
+export function pw_test(
+    { max_log_severity = Severity.Info }: { max_log_severity?: Severity },
+    f: (disposer: Disposer) => void,
+): () => void {
+    return () => {
+        const disposer = new Disposer();
+
+        const log: string[] = [];
+        const orig_severity = LogManager.default_severity;
+        const orig_handler = LogManager.default_handler;
+        LogManager.default_severity = max_log_severity + 1;
+        LogManager.default_handler = entry => log.push(entry.message);
+
+        try_finally(
+            () => f(disposer),
+            () => {
+                disposer.dispose();
+
+                // Reset LogManager after disposing the disposer, because disposing it could trigger
+                // logging.
+                LogManager.default_severity = orig_severity;
+                LogManager.default_handler = orig_handler;
+
+                expect(log).toEqual([]);
+            },
+        );
+    };
+}
 
 export async function timeout(millis: number): Promise<void> {
     return new Promise(resolve => {

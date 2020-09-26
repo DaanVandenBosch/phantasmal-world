@@ -1,6 +1,6 @@
 import { AsmToken } from "../../../core/data_formats/asm/instructions";
 import { InstructionPointer } from "./InstructionPointer";
-import { LogManager } from "../../../core/Logger";
+import { LogManager } from "../../../core/logging";
 
 const logger = LogManager.get("quest_editor/scripting/vm/io");
 

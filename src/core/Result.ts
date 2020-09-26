@@ -1,4 +1,4 @@
-import { Logger } from "./Logger";
+import { Logging } from "./logging";
 import { Severity } from "./Severity";
 
 export type Result<T> = Success<T> | Failure;
@@ -60,7 +60,7 @@ export function unwrap<T>(result: Result<T>): T {
 export class ResultBuilder<T> {
     private readonly problems: Problem[] = [];
 
-    constructor(private readonly logger: Logger) {}
+    constructor(private readonly logger: Logging) {}
 
     /**
      * Add a problem to the problems array and log it with {@link logger}.

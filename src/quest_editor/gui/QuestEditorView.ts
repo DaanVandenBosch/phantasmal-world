@@ -16,7 +16,7 @@ import { DebugView } from "./DebugView";
 import { QuestRunnerRendererView } from "./QuestRunnerRendererView";
 import { QuestEditorStore } from "../stores/QuestEditorStore";
 import { QuestEditorUiPersister } from "../persistence/QuestEditorUiPersister";
-import { LogManager } from "../../core/Logger";
+import { LogManager } from "../../core/logging";
 import { ErrorWidget } from "../../core/gui/ErrorWidget";
 import { div } from "../../core/gui/dom";
 import { ResizableView } from "../../core/gui/ResizableView";

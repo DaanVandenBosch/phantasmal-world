@@ -1,5 +1,5 @@
 import { Cursor } from "../block/cursor/Cursor";
-import { LogManager } from "../../Logger";
+import { LogManager } from "../../logging";
 import { Result, ResultBuilder } from "../../Result";
 import { Severity } from "../../Severity";
 

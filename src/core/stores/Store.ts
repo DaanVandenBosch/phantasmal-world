@@ -4,6 +4,10 @@ import { Disposer } from "../observable/Disposer";
 export abstract class Store implements Disposable {
     private readonly disposer = new Disposer();
 
+    protected get disposed(): boolean {
+        return this.disposer.disposed;
+    }
+
     dispose(): void {
         this.disposer.dispose();
     }

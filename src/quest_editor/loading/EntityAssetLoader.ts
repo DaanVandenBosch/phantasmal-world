@@ -15,7 +15,7 @@ import {
 } from "../../core/data_formats/parsing/quest/Quest";
 import { HttpClient } from "../../core/HttpClient";
 import { Disposable } from "../../core/observable/Disposable";
-import { LogManager } from "../../core/Logger";
+import { LogManager } from "../../core/logging";
 import { DisposablePromise } from "../../core/DisposablePromise";
 import { Disposer } from "../../core/observable/Disposer";
 

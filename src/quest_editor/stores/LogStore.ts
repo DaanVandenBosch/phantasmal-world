@@ -1,7 +1,7 @@
 import { ListProperty } from "../../core/observable/property/list/ListProperty";
 import { Property } from "../../core/observable/property/Property";
 import { list_property, property } from "../../core/observable";
-import { LogEntry, Logger, LogHandler, LogManager } from "../../core/Logger";
+import { LogEntry, Logging, LogHandler, LogManager } from "../../core/logging";
 import { Severity } from "../../core/Severity";
 import { Store } from "../../core/stores/Store";
 
@@ -23,7 +23,7 @@ export class LogStore extends Store {
         this.severity.map(severity => message => message.severity >= severity),
     );
 
-    get_logger(name: string): Logger {
+    get_logger(name: string): Logging {
         const logger = LogManager.get(name);
         logger.handler = this.handler;
         return logger;
@@ -46,6 +46,10 @@ export class LogStore extends Store {
         if (this.adding_log_entries != undefined) return;
 
         this.adding_log_entries = requestAnimationFrame(() => {
+            if (this.disposed) {
+                return;
+            }
+
             const DROP_THRESHOLD = 500;
             const DROP_THRESHOLD_HALF = DROP_THRESHOLD / 2;
             const BATCH_SIZE = 200;

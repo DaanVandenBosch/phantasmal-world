@@ -1,7 +1,7 @@
 import { prs_decompress } from "../compression/prs/decompress";
 import { Cursor } from "../block/cursor/Cursor";
 import { prc_decrypt } from "../encryption/prc";
-import { LogManager } from "../../Logger";
+import { LogManager } from "../../logging";
 import { Result, ResultBuilder } from "../../Result";
 import { Severity } from "../../Severity";
 

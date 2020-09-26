@@ -25,7 +25,7 @@ import {
 } from "../opcodes";
 import { BasicBlock, ControlFlowGraph } from "./ControlFlowGraph";
 import { ValueSet } from "./ValueSet";
-import { LogManager } from "../../../Logger";
+import { LogManager } from "../../../logging";
 
 const logger = LogManager.get("core/data_formats/asm/data_flow_analysis/register_value");
 

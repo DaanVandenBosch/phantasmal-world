@@ -1,15 +1,15 @@
-import { with_disposer } from "../../../test/src/core/observables/disposable_helpers";
 import { GuiStore } from "../../core/stores/GuiStore";
 import { create_area_store } from "../../../test/src/quest_editor/stores/store_creation";
 import { QuestEditorStore } from "../stores/QuestEditorStore";
 import { DebugController } from "./DebugController";
 import { LogStore } from "../stores/LogStore";
-import { load_default_quest_model, next_animation_frame } from "../../../test/src/utils";
+import { load_default_quest_model, next_animation_frame, pw_test } from "../../../test/src/utils";
 import { disassemble } from "../scripting/disassembly";
 import { assemble } from "../scripting/assembly";
 
-test("Some widgets should only be enabled when a quest is loaded.", async () =>
-    with_disposer(async disposer => {
+test(
+    "Some widgets should only be enabled when a quest is loaded.",
+    pw_test({}, async disposer => {
         const gui_store = disposer.add(new GuiStore());
         const area_store = create_area_store(disposer);
         const log_store = disposer.add(new LogStore());
@@ -25,10 +25,12 @@ test("Some widgets should only be enabled when a quest is loaded.", async () =>
 
         expect(ctrl.can_debug.val).toBe(true);
         expect(ctrl.can_step.val).toBe(false);
-    }));
+    }),
+);
 
-test("Debugging controls should be enabled and disabled at the right times.", async () =>
-    with_disposer(async disposer => {
+test(
+    "Debugging controls should be enabled and disabled at the right times.",
+    pw_test({}, async disposer => {
         const gui_store = disposer.add(new GuiStore());
         const area_store = create_area_store(disposer);
         const log_store = disposer.add(new LogStore());
@@ -74,4 +76,5 @@ test("Debugging controls should be enabled and disabled at the right times.", as
 
         expect(ctrl.can_step.val).toBe(true);
         expect(ctrl.can_stop.val).toBe(true);
-    }));
+    }),
+);

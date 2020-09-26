@@ -1,6 +1,6 @@
 import { Cursor } from "../../block/cursor/Cursor";
 import { parse_iff, parse_iff_headers } from "../iff";
-import { LogManager } from "../../../Logger";
+import { LogManager } from "../../../logging";
 import { Result, ResultBuilder } from "../../../Result";
 import { Severity } from "../../../Severity";
 

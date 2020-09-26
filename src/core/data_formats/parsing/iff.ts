@@ -1,6 +1,6 @@
 import { Cursor } from "../block/cursor/Cursor";
 import { Result, ResultBuilder } from "../../Result";
-import { LogManager } from "../../Logger";
+import { LogManager } from "../../logging";
 import { Severity } from "../../Severity";
 
 const logger = LogManager.get("core/data_formats/parsing/iff");

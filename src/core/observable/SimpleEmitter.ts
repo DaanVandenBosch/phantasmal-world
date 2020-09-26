@@ -1,7 +1,7 @@
 import { Disposable } from "./Disposable";
 import { Emitter } from "./Emitter";
 import { ChangeEvent } from "./Observable";
-import { LogManager } from "../Logger";
+import { LogManager } from "../logging";
 
 const logger = LogManager.get("core/observable/SimpleEmitter");
 

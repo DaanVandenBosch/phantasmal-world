@@ -17,7 +17,7 @@ import { get_register_value } from "../../asm/data_flow_analysis/get_register_va
 import { get_stack_value } from "../../asm/data_flow_analysis/get_stack_value";
 import { ArrayBufferCursor } from "../../block/cursor/ArrayBufferCursor";
 import { Endianness } from "../../block/Endianness";
-import { LogManager } from "../../../Logger";
+import { LogManager } from "../../../logging";
 import { ResizableBlockCursor } from "../../block/cursor/ResizableBlockCursor";
 import { ResizableBlock } from "../../block/ResizableBlock";
 import { BinFormat } from "./BinFormat";

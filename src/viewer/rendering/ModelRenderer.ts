@@ -22,7 +22,7 @@ import {
 import { DisposableThreeRenderer, Renderer } from "../../core/rendering/Renderer";
 import { Disposer } from "../../core/observable/Disposer";
 import { ChangeEvent } from "../../core/observable/Observable";
-import { LogManager } from "../../core/Logger";
+import { LogManager } from "../../core/logging";
 import { ModelStore } from "../stores/ModelStore";
 import { CharacterClassModel } from "../model/CharacterClassModel";
 

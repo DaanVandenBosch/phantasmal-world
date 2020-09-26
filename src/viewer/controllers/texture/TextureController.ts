@@ -4,7 +4,7 @@ import { read_file } from "../../../core/files";
 import { XvrTexture } from "../../../core/data_formats/parsing/ninja/texture";
 import { ArrayBufferCursor } from "../../../core/data_formats/block/cursor/ArrayBufferCursor";
 import { Endianness } from "../../../core/data_formats/block/Endianness";
-import { LogManager } from "../../../core/Logger";
+import { LogManager } from "../../../core/logging";
 import { WritableListProperty } from "../../../core/observable/property/list/WritableListProperty";
 import { list_property, property } from "../../../core/observable";
 import { ListProperty } from "../../../core/observable/property/list/ListProperty";

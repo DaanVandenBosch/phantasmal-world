@@ -3,7 +3,7 @@ import { Property } from "../../core/observable/property/Property";
 import { ListProperty } from "../../core/observable/property/list/ListProperty";
 import { QuestEditorStore } from "../stores/QuestEditorStore";
 import { GuiStore, GuiTool } from "../../core/stores/GuiStore";
-import { LogEntry } from "../../core/Logger";
+import { LogEntry } from "../../core/logging";
 import { LogStore } from "../stores/LogStore";
 import { Severity } from "../../core/Severity";
 import { map } from "../../core/observable";

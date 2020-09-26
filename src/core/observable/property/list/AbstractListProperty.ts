@@ -3,7 +3,7 @@ import { AbstractProperty } from "../AbstractProperty";
 import { Disposable } from "../../Disposable";
 import { Observable } from "../../Observable";
 import { Property } from "../Property";
-import { LogManager } from "../../../Logger";
+import { LogManager } from "../../../logging";
 
 const logger = LogManager.get("core/observable/property/list/AbstractListProperty");
 

@@ -9,7 +9,7 @@ import {
 } from "../src/core/data_formats/parsing/quest/npc_types";
 import { ItemTypeDto } from "../src/core/dto/ItemTypeDto";
 import { BoxDropDto, EnemyDropDto } from "../src/hunt_optimizer/dto/drops";
-import { LogManager } from "../src/core/Logger";
+import { LogManager } from "../src/core/logging";
 
 const logger = LogManager.get("assets_generation/update_drops_ephinea");
 

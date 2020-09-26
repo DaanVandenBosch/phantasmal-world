@@ -5,7 +5,7 @@ import { ResizableBlockCursor } from "../../block/cursor/ResizableBlockCursor";
 import { WritableCursor } from "../../block/cursor/WritableCursor";
 import { ResizableBlock } from "../../block/ResizableBlock";
 import { assert, basename, defined } from "../../../util";
-import { LogManager } from "../../../Logger";
+import { LogManager } from "../../../logging";
 import { Version } from "./Version";
 import { Result, ResultBuilder } from "../../../Result";
 import { Severity } from "../../../Severity";

@@ -9,7 +9,7 @@ import {
     ListProperty,
 } from "../observable/property/list/ListProperty";
 import { Disposer } from "../observable/Disposer";
-import { LogManager } from "../Logger";
+import { LogManager } from "../logging";
 
 const logger = LogManager.get("core/gui/dom");
 

@@ -8,7 +8,7 @@ import { ItemTypeStore } from "../../core/stores/ItemTypeStore";
 import { HttpClient } from "../../core/HttpClient";
 import { DisposableServerMap } from "../../core/stores/DisposableServerMap";
 import { Store } from "../../core/stores/Store";
-import { LogManager } from "../../core/Logger";
+import { LogManager } from "../../core/logging";
 
 const logger = LogManager.get("stores/ItemDropStore");
 

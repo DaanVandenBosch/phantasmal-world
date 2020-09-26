@@ -16,7 +16,7 @@ import {
 import { ArrayBufferCursor } from "../../core/data_formats/block/cursor/ArrayBufferCursor";
 import { Endianness } from "../../core/data_formats/block/Endianness";
 import { convert_quest_from_model, convert_quest_to_model } from "../stores/model_conversion";
-import { LogManager } from "../../core/Logger";
+import { LogManager } from "../../core/logging";
 import { basename } from "../../core/util";
 import { Version } from "../../core/data_formats/parsing/quest/Version";
 import { WritableProperty } from "../../core/observable/property/WritableProperty";

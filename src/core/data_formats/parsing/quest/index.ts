@@ -11,7 +11,7 @@ import { DatEntity, parse_dat, write_dat } from "./dat";
 import { Quest, QuestEntity } from "./Quest";
 import { Episode } from "./Episode";
 import { parse_qst, QstContainedFile, write_qst } from "./qst";
-import { LogManager } from "../../../Logger";
+import { LogManager } from "../../../logging";
 import { parse_object_code, write_object_code } from "./object_code";
 import { get_map_designations } from "../../asm/data_flow_analysis/get_map_designations";
 import { basename } from "../../../util";

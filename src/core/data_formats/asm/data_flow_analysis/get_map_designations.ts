@@ -2,7 +2,7 @@ import { InstructionSegment } from "../instructions";
 import { ControlFlowGraph } from "./ControlFlowGraph";
 import { OP_BB_MAP_DESIGNATE, OP_MAP_DESIGNATE, OP_MAP_DESIGNATE_EX } from "../opcodes";
 import { get_register_value } from "./get_register_value";
-import { LogManager } from "../../../Logger";
+import { LogManager } from "../../../logging";
 
 const logger = LogManager.get("core/data_formats/asm/data_flow_analysis/map_designations");
 

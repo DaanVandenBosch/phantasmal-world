@@ -11,7 +11,7 @@ import { GuiStore } from "../../core/stores/GuiStore";
 import { HttpClient } from "../../core/HttpClient";
 import { Store } from "../../core/stores/Store";
 import { DisposableServerMap } from "../../core/stores/DisposableServerMap";
-import { LogManager } from "../../core/Logger";
+import { LogManager } from "../../core/logging";
 
 const logger = LogManager.get("hunt_optimizer/stores/HuntMethodStore");
 

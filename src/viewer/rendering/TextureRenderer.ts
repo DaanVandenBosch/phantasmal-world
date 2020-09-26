@@ -1,5 +1,5 @@
 import { Disposer } from "../../core/observable/Disposer";
-import { LogManager } from "../../core/Logger";
+import { LogManager } from "../../core/logging";
 import { TextureController } from "../controllers/texture/TextureController";
 import { XvrTexture } from "../../core/data_formats/parsing/ninja/texture";
 import { xvr_texture_to_three_texture } from "../../core/rendering/conversion/ninja_textures";

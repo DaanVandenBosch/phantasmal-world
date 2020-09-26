@@ -12,7 +12,7 @@ import { Endianness } from "../src/core/data_formats/block/Endianness";
 import { ItemTypeDto } from "../src/core/dto/ItemTypeDto";
 import { QuestDto } from "../src/hunt_optimizer/dto/QuestDto";
 import { BoxDropDto, EnemyDropDto } from "../src/hunt_optimizer/dto/drops";
-import { LogManager } from "../src/core/Logger";
+import { LogManager } from "../src/core/logging";
 import { Severity } from "../src/core/Severity";
 import { unwrap } from "../src/core/Result";
 import { get_npc_type } from "../src/core/data_formats/parsing/quest/QuestNpc";

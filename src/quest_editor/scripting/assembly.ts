@@ -33,7 +33,7 @@ import {
     Param,
     StackInteraction,
 } from "../../core/data_formats/asm/opcodes";
-import { LogManager } from "../../core/Logger";
+import { LogManager } from "../../core/logging";
 
 const logger = LogManager.get("quest_editor/scripting/assembly");
 

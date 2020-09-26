@@ -13,7 +13,7 @@ import { SortDirection, Table } from "../../core/gui/Table";
 import { list_property } from "../../core/observable";
 import { ServerMap } from "../../core/stores/ServerMap";
 import { HuntMethodStore } from "../stores/HuntMethodStore";
-import { LogManager } from "../../core/Logger";
+import { LogManager } from "../../core/logging";
 import { div } from "../../core/gui/dom";
 import { ResizableView } from "../../core/gui/ResizableView";
 

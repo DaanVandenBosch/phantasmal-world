@@ -8,7 +8,7 @@ import {
     Param,
     StackInteraction,
 } from "../../core/data_formats/asm/opcodes";
-import { LogManager } from "../../core/Logger";
+import { LogManager } from "../../core/logging";
 import { number_to_hex_string } from "../../core/util";
 
 const logger = LogManager.get("quest_editor/scripting/disassembly");

@@ -1,7 +1,6 @@
 import { initialize_application } from "./index";
-import { LogHandler, LogManager } from "../core/Logger";
 import { FileSystemHttpClient } from "../../test/src/core/FileSystemHttpClient";
-import { timeout } from "../../test/src/utils";
+import { pw_test, timeout } from "../../test/src/utils";
 import { Random } from "../core/Random";
 import { Severity } from "../core/Severity";
 import { StubClock } from "../../test/src/core/StubClock";
@@ -10,35 +9,25 @@ import { STUB_RENDERER } from "../../test/src/core/rendering/StubRenderer";
 for (const path of [undefined, "/viewer", "/quest_editor", "/hunt_optimizer"]) {
     const with_path = path == undefined ? "without specific path" : `with path ${path}`;
 
-    test(`Initialization and shutdown ${with_path} should succeed without throwing or logging errors.`, async () => {
-        const logged_errors: string[] = [];
-
-        const handler: LogHandler = ({ severity, message }) => {
-            if (severity >= Severity.Error) {
-                logged_errors.push(message);
-            }
-        };
-
-        return LogManager.with_default_handler(handler, async () => {
+    test(
+        `Initialization and shutdown ${with_path} should succeed without throwing or logging errors.`,
+        pw_test({ max_log_severity: Severity.Warning }, async disposer => {
             if (path != undefined) {
                 window.location.hash = path;
             }
 
-            const app = initialize_application(
-                new FileSystemHttpClient(),
-                new Random(() => 0.27),
-                new StubClock(new Date("2020-01-01T15:40:20Z")),
-                () => STUB_RENDERER,
+            const app = disposer.add(
+                initialize_application(
+                    new FileSystemHttpClient(),
+                    new Random(() => 0.27),
+                    new StubClock(new Date("2020-01-01T15:40:20Z")),
+                    () => STUB_RENDERER,
+                ),
             );
 
             expect(app).toBeDefined();
-            expect(logged_errors).toEqual([]);
 
             await timeout(1000);
-
-            app.dispose();
-
-            expect(logged_errors).toEqual([]);
-        });
-    });
+        }),
+    );
 }

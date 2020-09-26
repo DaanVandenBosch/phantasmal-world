@@ -9,7 +9,7 @@ import "./OptimizationResultView.css";
 import { Duration } from "luxon";
 import { ServerMap } from "../../core/stores/ServerMap";
 import { HuntOptimizerStore } from "../stores/HuntOptimizerStore";
-import { LogManager } from "../../core/Logger";
+import { LogManager } from "../../core/logging";
 import { View } from "../../core/gui/View";
 
 const logger = LogManager.get("hunt_optimizer/gui/OptimizationResultView");

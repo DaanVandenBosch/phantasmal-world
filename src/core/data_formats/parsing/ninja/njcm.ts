@@ -1,6 +1,6 @@
 import { Cursor } from "../../block/cursor/Cursor";
 import { Vec2, Vec3 } from "../../vector";
-import { LogManager } from "../../../Logger";
+import { LogManager } from "../../../logging";
 
 const logger = LogManager.get("core/data_formats/parsing/ninja/njcm");
 

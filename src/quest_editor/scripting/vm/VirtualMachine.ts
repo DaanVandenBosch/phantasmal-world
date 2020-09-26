@@ -104,7 +104,7 @@ import { Endianness } from "../../../core/data_formats/block/Endianness";
 import { Random } from "./Random";
 import { InstructionPointer } from "./InstructionPointer";
 import { StepMode, Thread } from "./Thread";
-import { LogManager } from "../../../core/Logger";
+import { LogManager } from "../../../core/logging";
 import { ArrayBufferBlock } from "../../../core/data_formats/block/ArrayBufferBlock";
 
 export const REGISTER_COUNT = 256;

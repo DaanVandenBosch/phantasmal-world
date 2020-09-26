@@ -25,7 +25,7 @@ import { ListProperty } from "../../core/observable/property/list/ListProperty";
 import { CharacterClassAssetLoader } from "../loading/CharacterClassAssetLoader";
 import { Random } from "../../core/Random";
 import { SectionId, SectionIds } from "../../core/model";
-import { LogManager } from "../../core/Logger";
+import { LogManager } from "../../core/logging";
 import { NjObject } from "../../core/data_formats/parsing/ninja";
 import { GuiStore, GuiTool } from "../../core/stores/GuiStore";
 import { string_to_enum } from "../../core/enums";

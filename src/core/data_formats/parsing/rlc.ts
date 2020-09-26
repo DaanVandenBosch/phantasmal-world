@@ -1,7 +1,7 @@
 import { Endianness } from "../block/Endianness";
 import { Cursor } from "../block/cursor/Cursor";
 import { parse_prc } from "./prc";
-import { LogManager } from "../../Logger";
+import { LogManager } from "../../logging";
 import { Result, ResultBuilder } from "../../Result";
 import { Severity } from "../../Severity";
 

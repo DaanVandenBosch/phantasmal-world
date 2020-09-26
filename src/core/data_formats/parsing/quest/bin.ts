@@ -1,6 +1,6 @@
 import { Endianness } from "../../block/Endianness";
 import { Cursor } from "../../block/cursor/Cursor";
-import { LogManager } from "../../../Logger";
+import { LogManager } from "../../../logging";
 import { ArrayBufferCursor } from "../../block/cursor/ArrayBufferCursor";
 import { assert } from "../../../util";
 import { BinFormat } from "./BinFormat";

@@ -14,7 +14,7 @@ import {
 import { BasicBlock, ControlFlowGraph } from "./ControlFlowGraph";
 import { ValueSet } from "./ValueSet";
 import { get_register_value } from "./get_register_value";
-import { LogManager } from "../../../Logger";
+import { LogManager } from "../../../logging";
 
 const logger = LogManager.get("core/data_formats/asm/data_flow_analysis/stack_value");
 

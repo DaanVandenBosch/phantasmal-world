@@ -3,7 +3,7 @@ import { Disposer } from "../observable/Disposer";
 import { WritableProperty } from "../observable/property/WritableProperty";
 import { WidgetProperty } from "../observable/property/WidgetProperty";
 import { Property } from "../observable/property/Property";
-import { LogManager } from "../Logger";
+import { LogManager } from "../logging";
 
 const logger = LogManager.get("core/gui/Widget");
 

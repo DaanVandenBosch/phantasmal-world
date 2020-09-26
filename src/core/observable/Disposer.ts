@@ -1,5 +1,5 @@
 import { Disposable } from "./Disposable";
-import { LogManager } from "../Logger";
+import { LogManager } from "../logging";
 import { array_remove } from "../util";
 
 const logger = LogManager.get("core/observable/Disposer");

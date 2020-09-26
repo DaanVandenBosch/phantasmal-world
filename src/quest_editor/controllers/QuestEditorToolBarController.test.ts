@@ -5,12 +5,13 @@ import {
 } from "../../../test/src/quest_editor/stores/store_creation";
 import { QuestEditorToolBarController } from "./QuestEditorToolBarController";
 import { Episode } from "../../core/data_formats/parsing/quest/Episode";
-import { with_disposer } from "../../../test/src/core/observables/disposable_helpers";
 import { QuestLoader } from "../loading/QuestLoader";
 import { FileSystemHttpClient } from "../../../test/src/core/FileSystemHttpClient";
+import { pw_test } from "../../../test/src/utils";
 
-test("Some widgets should only be enabled when a quest is loaded.", async () =>
-    with_disposer(async disposer => {
+test(
+    "Some widgets should only be enabled when a quest is loaded.",
+    pw_test({}, async disposer => {
         const quest_loader = disposer.add(new QuestLoader(new FileSystemHttpClient()));
         const gui_store = disposer.add(new GuiStore());
         const area_store = create_area_store(disposer);
@@ -31,4 +32,5 @@ test("Some widgets should only be enabled when a quest is loaded.", async () =>
 
         expect(ctrl.can_save.val).toBe(true);
         expect(ctrl.can_select_area.val).toBe(true);
-    }));
+    }),
+);
