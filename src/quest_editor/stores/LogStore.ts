@@ -8,6 +8,7 @@ import { Store } from "../../core/stores/Store";
 const logger = LogManager.get("quest_editor/stores/LogStore");
 
 export class LogStore extends Store {
+    private animation_frame?: number;
     private readonly log_buffer: LogEntry[] = [];
     private readonly logger_name_buffer: string[] = [];
 
@@ -22,6 +23,15 @@ export class LogStore extends Store {
     readonly log: ListProperty<LogEntry> = this._log.filtered(
         this.severity.map(severity => message => message.severity >= severity),
     );
+
+    dispose(): void {
+        super.dispose();
+
+        if (this.animation_frame != undefined) {
+            cancelAnimationFrame(this.animation_frame);
+            this.animation_frame = undefined;
+        }
+    }
 
     get_logger(name: string): Logging {
         const logger = LogManager.get(name);
@@ -40,16 +50,10 @@ export class LogStore extends Store {
         this.add_buffered_log_entries();
     }
 
-    private adding_log_entries?: number;
-
     private add_buffered_log_entries(): void {
-        if (this.adding_log_entries != undefined) return;
+        if (this.animation_frame != undefined || this.disposed) return;
 
-        this.adding_log_entries = requestAnimationFrame(() => {
-            if (this.disposed) {
-                return;
-            }
-
+        this.animation_frame = requestAnimationFrame(() => {
             const DROP_THRESHOLD = 500;
             const DROP_THRESHOLD_HALF = DROP_THRESHOLD / 2;
             const BATCH_SIZE = 200;
@@ -89,7 +93,7 @@ export class LogStore extends Store {
                 this._log.splice(0, 1000);
             }
 
-            this.adding_log_entries = undefined;
+            this.animation_frame = undefined;
 
             if (this.log_buffer.length) {
                 this.add_buffered_log_entries();
