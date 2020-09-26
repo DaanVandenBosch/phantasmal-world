@@ -8,6 +8,7 @@ import { Quest } from "../../src/core/data_formats/parsing/quest/Quest";
 import { QuestModel } from "../../src/quest_editor/model/QuestModel";
 import { AreaStore } from "../../src/quest_editor/stores/AreaStore";
 import { convert_quest_to_model } from "../../src/quest_editor/stores/model_conversion";
+import { unwrap } from "../../src/core/Result";
 
 export async function timeout(millis: number): Promise<void> {
     return new Promise(resolve => {
@@ -69,12 +70,13 @@ export function get_qst_files(dir: string): [string, string][] {
 export function load_default_quest_model(area_store: AreaStore): QuestModel {
     return convert_quest_to_model(
         area_store,
-        load_qst_as_quest("assets/quests/defaults/default_ep_1.qst")!,
+        load_qst_as_quest("assets/quests/defaults/default_ep_1.qst"),
     );
 }
 
-export function load_qst_as_quest(path: string): Quest | undefined {
-    return parse_qst_to_quest(new BufferCursor(fs.readFileSync(path), Endianness.Little))?.quest;
+export function load_qst_as_quest(path: string): Quest {
+    return unwrap(parse_qst_to_quest(new BufferCursor(fs.readFileSync(path), Endianness.Little)))
+        .quest;
 }
 
 export function to_instructions(assembly: string, manual_stack?: boolean): InstructionSegment[] {

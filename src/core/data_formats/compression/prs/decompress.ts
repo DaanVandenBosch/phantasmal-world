@@ -5,6 +5,8 @@ import { ResizableBlock } from "../../block/ResizableBlock";
 import { LogManager } from "../../../Logger";
 import { browser_supports_webassembly } from "../../../util";
 import { get_prs_wasm_module } from "./prs_wasm";
+import { Result, ResultBuilder, success } from "../../../Result";
+import { Severity } from "../../../Severity";
 
 const logger = LogManager.get("core/data_formats/compression/prs/decompress");
 
@@ -13,11 +15,17 @@ const prs_wasm = get_prs_wasm_module();
 /**
  * Automatically picks the best available decompression method.
  */
-export function prs_decompress(cursor: Cursor): Cursor {
-    if (browser_supports_webassembly() && prs_wasm) {
-        return prs_wasm.prs_decompress_wasm(cursor);
-    } else {
-        return prs_decompress_js(cursor);
+export function prs_decompress(cursor: Cursor): Result<Cursor> {
+    try {
+        if (browser_supports_webassembly() && prs_wasm) {
+            return success(prs_wasm.prs_decompress_wasm(cursor));
+        } else {
+            return success(prs_decompress_js(cursor));
+        }
+    } catch (e) {
+        return new ResultBuilder(logger)
+            .add_problem(Severity.Error, "PRS-compressed stream is corrupt.", undefined, e)
+            .failure();
     }
 }
 
@@ -112,11 +120,11 @@ class Context {
 
     offset_copy(offset: number, length: number): void {
         if (offset < -8192 || offset > 0) {
-            logger.error(`offset was ${offset}, should be between -8192 and 0.`);
+            throw new Error(`offset was ${offset}, should be between -8192 and 0.`);
         }
 
         if (length < 1 || length > 256) {
-            logger.error(`length was ${length}, should be between 1 and 256.`);
+            throw new Error(`length was ${length}, should be between 1 and 256.`);
         }
 
         // The length can be larger than -offset, in that case we copy -offset bytes size/-offset times.

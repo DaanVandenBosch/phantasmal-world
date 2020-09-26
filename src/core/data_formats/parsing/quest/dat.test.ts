@@ -4,13 +4,14 @@ import { BufferCursor } from "../../block/cursor/BufferCursor";
 import { ResizableBlockCursor } from "../../block/cursor/ResizableBlockCursor";
 import { parse_dat, write_dat } from "./dat";
 import { readFileSync } from "fs";
+import { unwrap } from "../../../Result";
 
 /**
  * Parse a file, convert the resulting structure to DAT again and check whether the end result is equal to the original.
  */
 test("parse_dat and write_dat", () => {
     const orig_buffer = readFileSync("test/resources/quest118_e.dat");
-    const orig_dat = prs_decompress(new BufferCursor(orig_buffer, Endianness.Little));
+    const orig_dat = unwrap(prs_decompress(new BufferCursor(orig_buffer, Endianness.Little)));
     const test_dat = new ResizableBlockCursor(write_dat(parse_dat(orig_dat)));
     orig_dat.seek_start(0);
 
@@ -33,7 +34,7 @@ test("parse_dat and write_dat", () => {
  */
 test("parse, modify and write DAT", () => {
     const orig_buffer = readFileSync("./test/resources/quest118_e.dat");
-    const orig_dat = prs_decompress(new BufferCursor(orig_buffer, Endianness.Little));
+    const orig_dat = unwrap(prs_decompress(new BufferCursor(orig_buffer, Endianness.Little)));
     const test_parsed = parse_dat(orig_dat);
     orig_dat.seek_start(0);
 

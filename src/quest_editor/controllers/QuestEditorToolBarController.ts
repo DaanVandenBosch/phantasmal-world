@@ -20,7 +20,7 @@ import { LogManager } from "../../core/Logger";
 import { basename } from "../../core/util";
 import { Version } from "../../core/data_formats/parsing/quest/Version";
 import { WritableProperty } from "../../core/observable/property/WritableProperty";
-import { failure, Result } from "../../core/Result";
+import { failure, problem, Result } from "../../core/Result";
 import { Severity } from "../../core/Severity";
 import { Quest } from "../../core/data_formats/parsing/quest/Quest";
 import { QuestLoader } from "../loading/QuestLoader";
@@ -151,12 +151,13 @@ export class QuestEditorToolBarController extends Controller {
                 const parse_result = parse_qst_to_quest(
                     new ArrayBufferCursor(buffer, Endianness.Little),
                 );
-                if (!parse_result || !parse_result.quest) {
-                    throw new Error("Couldn't parse quest file.");
+                this.set_result(parse_result);
+
+                if (parse_result.success) {
+                    quest = parse_result.value.quest;
+                    this.set_version(parse_result.value.version);
+                    this.set_filename(basename(qst.name));
                 }
-                quest = parse_result.quest;
-                this.set_version(parse_result.version);
-                this.set_filename(basename(qst.name));
             } else {
                 const bin = files.find(f => f.name.toLowerCase().endsWith(".bin"));
                 const dat = files.find(f => f.name.toLowerCase().endsWith(".dat"));
@@ -164,25 +165,36 @@ export class QuestEditorToolBarController extends Controller {
                 if (bin && dat) {
                     const bin_buffer = await read_file(bin);
                     const dat_buffer = await read_file(dat);
-                    quest = parse_bin_dat_to_quest(
+                    const parse_result = parse_bin_dat_to_quest(
                         new ArrayBufferCursor(bin_buffer, Endianness.Little),
                         new ArrayBufferCursor(dat_buffer, Endianness.Little),
                     );
-                    if (!quest) {
-                        throw new Error("Couldn't parse .bin or .dat file.");
+                    this.set_result(parse_result);
+
+                    if (parse_result.success) {
+                        quest = parse_result.value;
+                        this.set_filename(basename(bin.name || dat.name));
                     }
-                    this.set_filename(basename(bin.name || dat.name));
                 } else {
-                    throw new Error("Please select one .qst file or one .bin and one .dat file.");
+                    this.set_result(
+                        failure(
+                            problem(
+                                Severity.Error,
+                                "Please select a .qst file or one .bin and one .dat file.",
+                            ),
+                        ),
+                    );
                 }
             }
 
-            await this.quest_editor_store.set_current_quest(
-                quest && convert_quest_to_model(this.area_store, quest),
-            );
+            if (quest) {
+                await this.quest_editor_store.set_current_quest(
+                    convert_quest_to_model(this.area_store, quest),
+                );
+            }
         } catch (e) {
             logger.error("Couldn't read file.", e);
-            this.set_result(failure([{ severity: Severity.Error, ui_message: e.message }]));
+            this.set_result(failure(problem(Severity.Error, e.message)));
         }
     };
 

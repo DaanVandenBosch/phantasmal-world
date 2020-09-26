@@ -8,6 +8,7 @@ import { ArrayBufferCursor } from "../../core/data_formats/block/cursor/ArrayBuf
 import { Endianness } from "../../core/data_formats/block/Endianness";
 import { assert } from "../../core/util";
 import { Quest } from "../../core/data_formats/parsing/quest/Quest";
+import { unwrap } from "../../core/Result";
 
 export class QuestLoader implements Disposable {
     private readonly cache = new LoadingCache<string, ArrayBuffer>();
@@ -29,7 +30,9 @@ export class QuestLoader implements Disposable {
         return this.cache
             .get_or_set(path, () => this.http_client.get(`/quests${path}`).array_buffer())
             .then(buffer => {
-                const result = parse_qst_to_quest(new ArrayBufferCursor(buffer, Endianness.Little));
+                const result = unwrap(
+                    parse_qst_to_quest(new ArrayBufferCursor(buffer, Endianness.Little)),
+                );
                 assert(result, () => `Quest "${path}" can't be parsed.`);
                 return result.quest;
             });

@@ -1,5 +1,5 @@
 import { Cursor } from "../block/cursor/Cursor";
-import { Result, result_builder } from "../../Result";
+import { Result, ResultBuilder } from "../../Result";
 import { LogManager } from "../../Logger";
 import { Severity } from "../../Severity";
 
@@ -47,7 +47,7 @@ function parse<T>(
     chunks: T[],
     get_chunk: (cursor: Cursor, type: number, size: number) => T,
 ): Result<T[]> {
-    const result = result_builder<T[]>(logger);
+    const result = new ResultBuilder<T[]>(logger);
     let corrupted = false;
 
     while (cursor.bytes_left >= 8) {

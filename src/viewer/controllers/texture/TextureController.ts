@@ -1,19 +1,18 @@
 import { Controller } from "../../../core/controllers/Controller";
 import { filename_extension } from "../../../core/util";
 import { read_file } from "../../../core/files";
-import { is_xvm, parse_xvm, XvrTexture } from "../../../core/data_formats/parsing/ninja/texture";
+import { XvrTexture } from "../../../core/data_formats/parsing/ninja/texture";
 import { ArrayBufferCursor } from "../../../core/data_formats/block/cursor/ArrayBufferCursor";
 import { Endianness } from "../../../core/data_formats/block/Endianness";
-import { parse_afs } from "../../../core/data_formats/parsing/afs";
 import { LogManager } from "../../../core/Logger";
 import { WritableListProperty } from "../../../core/observable/property/list/WritableListProperty";
 import { list_property, property } from "../../../core/observable";
 import { ListProperty } from "../../../core/observable/property/list/ListProperty";
-import { prs_decompress } from "../../../core/data_formats/compression/prs/decompress";
-import { failure, Result, result_builder } from "../../../core/Result";
+import { failure, problem, Result } from "../../../core/Result";
 import { Severity } from "../../../core/Severity";
 import { Property } from "../../../core/observable/property/Property";
 import { WritableProperty } from "../../../core/observable/property/WritableProperty";
+import { parse_afs_textures, parse_xvm_textures } from "../../util/texture_parsing";
 
 const logger = LogManager.get("viewer/controllers/TextureController");
 
@@ -38,49 +37,21 @@ export class TextureController extends Controller {
             const ext = filename_extension(file.name).toLowerCase();
             const buffer = await read_file(file);
             const cursor = new ArrayBufferCursor(buffer, Endianness.Little);
+            let result: Result<XvrTexture[]>;
 
             if (ext === "xvm") {
-                const xvm_result = parse_xvm(cursor);
-                this.set_result(xvm_result);
-
-                if (xvm_result.success) {
-                    this._textures.val = xvm_result.value.textures;
-                }
+                result = parse_xvm_textures(cursor);
             } else if (ext === "afs") {
-                const rb = result_builder(logger);
-                const afs_result = parse_afs(cursor);
-                rb.add_result(afs_result);
-
-                if (!afs_result.success) {
-                    this.set_result(rb.failure());
-                } else {
-                    const textures: XvrTexture[] = afs_result.value.flatMap(file => {
-                        const cursor = new ArrayBufferCursor(file, Endianness.Little);
-
-                        if (is_xvm(cursor)) {
-                            const xvm_result = parse_xvm(cursor);
-                            rb.add_result(xvm_result);
-                            return xvm_result.value?.textures ?? [];
-                        } else {
-                            const xvm_result = parse_xvm(prs_decompress(cursor.seek_start(0)));
-                            rb.add_result(xvm_result);
-                            return xvm_result.value?.textures ?? [];
-                        }
-                    });
-
-                    if (textures.length) {
-                        this.set_result(rb.success(textures));
-                    } else {
-                        this.set_result(rb.failure());
-                    }
-
-                    this._textures.val = textures;
-                }
+                result = parse_afs_textures(cursor);
             } else {
                 logger.debug(`Unsupported file extension in filename "${file.name}".`);
-                this.set_result(
-                    failure([{ severity: Severity.Error, ui_message: "Unsupported file type." }]),
-                );
+                result = failure(problem(Severity.Error, "Unsupported file type."));
+            }
+
+            this.set_result(result);
+
+            if (result.success) {
+                this._textures.val = result.value;
             }
         } catch (e) {
             logger.error("Couldn't read file.", e);

@@ -14,6 +14,8 @@ import { QuestDto } from "../src/hunt_optimizer/dto/QuestDto";
 import { BoxDropDto, EnemyDropDto } from "../src/hunt_optimizer/dto/drops";
 import { LogManager } from "../src/core/Logger";
 import { Severity } from "../src/core/Severity";
+import { unwrap } from "../src/core/Result";
+import { get_npc_type } from "../src/core/data_formats/parsing/quest/QuestNpc";
 
 const logger = LogManager.get("assets_generation/update_ephinea_data");
 
@@ -112,7 +114,7 @@ function process_quest_dir(path: string, quests: QuestDto[]): void {
 function process_quest(path: string, quests: QuestDto[]): void {
     try {
         const buf = readFileSync(path);
-        const q = parse_qst_to_quest(new BufferCursor(buf, Endianness.Little), true)?.quest;
+        const q = parse_qst_to_quest(new BufferCursor(buf, Endianness.Little), true).value?.quest;
 
         if (q) {
             logger.trace(`Processing quest "${q.name}".`);
@@ -124,8 +126,10 @@ function process_quest(path: string, quests: QuestDto[]): void {
             const enemy_counts: { [npc_type_code: string]: number } = {};
 
             for (const npc of q.npcs) {
-                if (npc_data(npc.type).enemy) {
-                    enemy_counts[NpcType[npc.type]] = (enemy_counts[NpcType[npc.type]] || 0) + 1;
+                const type = get_npc_type(npc);
+
+                if (npc_data(type).enemy) {
+                    enemy_counts[NpcType[type]] = (enemy_counts[NpcType[type]] || 0) + 1;
                 }
             }
 
@@ -148,7 +152,7 @@ function load_unitxt(): Unitxt {
 
     const buf = readFileSync(`${EPHINEA_RESOURCE_DIR}/client/data/unitxt_j.prs`);
 
-    const unitxt = parse_unitxt(new BufferCursor(buf, Endianness.Little));
+    const unitxt = unwrap(parse_unitxt(new BufferCursor(buf, Endianness.Little)));
     // Strip custom Ephinea items until we have the Ephinea ItemPMT.bin.
     unitxt[1].splice(177, 50);
     unitxt[1].splice(639, 59);

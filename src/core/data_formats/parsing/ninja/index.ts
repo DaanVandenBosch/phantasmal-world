@@ -136,7 +136,7 @@ function parse_ninja<M extends NjModel>(
         objects.push(...parse_sibling_objects(chunk.data, parse_model, context));
     }
 
-    return success(objects, parse_iff_result.problems);
+    return success(objects, ...parse_iff_result.problems);
 }
 
 // TODO: cache model and object offsets so we don't reparse the same data.

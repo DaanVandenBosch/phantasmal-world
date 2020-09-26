@@ -13,11 +13,12 @@ import {
 } from "../../asm/instructions";
 import { get_object_position, get_object_section_id, get_object_type } from "./QuestObject";
 import { get_npc_position, get_npc_section_id, get_npc_type } from "./QuestNpc";
+import { unwrap } from "../../../Result";
 
 test("parse Towards the Future", () => {
     const buffer = readFileSync("test/resources/quest118_e.qst");
     const cursor = new BufferCursor(buffer, Endianness.Little);
-    const { quest } = parse_qst_to_quest(cursor)!;
+    const { quest } = unwrap(parse_qst_to_quest(cursor));
 
     expect(quest.name).toBe("Towards the Future");
     expect(quest.short_description).toBe("Challenge the\nnew simulator.");
@@ -73,13 +74,13 @@ round_trip_test(
 
 function round_trip_test(path: string, file_name: string, contents: Buffer): void {
     test(`parse_quest and write_quest_qst ${path}`, () => {
-        const { quest: orig_quest, version, online } = parse_qst_to_quest(
-            new BufferCursor(contents, Endianness.Little),
-        )!;
+        const { quest: orig_quest, version, online } = unwrap(
+            parse_qst_to_quest(new BufferCursor(contents, Endianness.Little)),
+        );
         const test_qst = write_quest_qst(orig_quest, file_name, version, online);
-        const { quest: test_quest } = parse_qst_to_quest(
-            new ArrayBufferCursor(test_qst, Endianness.Little),
-        )!;
+        const { quest: test_quest } = unwrap(
+            parse_qst_to_quest(new ArrayBufferCursor(test_qst, Endianness.Little)),
+        );
 
         expect(test_quest.name).toBe(orig_quest.name);
         expect(test_quest.short_description).toBe(orig_quest.short_description);

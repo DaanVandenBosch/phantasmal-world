@@ -21,6 +21,9 @@ import { LogManager } from "../../../Logger";
 import { ResizableBlockCursor } from "../../block/cursor/ResizableBlockCursor";
 import { ResizableBlock } from "../../block/ResizableBlock";
 import { BinFormat } from "./BinFormat";
+import { Result, ResultBuilder } from "../../../Result";
+import { Severity } from "../../../Severity";
+import { assert } from "../../../util";
 
 const logger = LogManager.get("core/data_formats/parsing/quest/object_code");
 
@@ -35,14 +38,114 @@ export function parse_object_code(
     entry_labels: readonly number[],
     lenient: boolean,
     format: BinFormat,
-): Segment[] {
-    return internal_parse_object_code(
-        new ArrayBufferCursor(object_code, Endianness.Little),
-        new LabelHolder(label_offsets),
-        entry_labels,
+): Result<Segment[]> {
+    const cursor = new ArrayBufferCursor(object_code, Endianness.Little);
+    const label_holder = new LabelHolder(label_offsets);
+    const result = new ResultBuilder<Segment[]>(logger);
+    const offset_to_segment = new Map<number, Segment>();
+
+    find_and_parse_segments(
+        cursor,
+        label_holder,
+        entry_labels.reduce((m, l) => m.set(l, SegmentType.Instructions), new Map()),
+        offset_to_segment,
         lenient,
         format,
     );
+
+    const segments: Segment[] = [];
+
+    // Put segments in an array and parse left-over segments as data.
+    let offset = 0;
+
+    while (offset < cursor.size) {
+        let segment: Segment | undefined = offset_to_segment.get(offset);
+
+        // If we have a segment, add it. Otherwise create a new data segment.
+        if (!segment) {
+            const labels = label_holder.get_labels(offset);
+            let end_offset: number;
+
+            if (labels) {
+                const info = label_holder.get_info(labels[0])!;
+                end_offset = info.next ? info.next.offset : cursor.size;
+            } else {
+                end_offset = cursor.size;
+
+                for (const label of label_holder.labels) {
+                    if (label.offset > offset) {
+                        end_offset = label.offset;
+                        break;
+                    }
+                }
+            }
+
+            cursor.seek_start(offset);
+            parse_data_segment(offset_to_segment, cursor, end_offset, labels || []);
+
+            segment = offset_to_segment.get(offset);
+
+            assert(
+                end_offset > offset,
+                () =>
+                    `Next offset ${end_offset} was smaller than or equal to current offset ${offset}.`,
+            );
+            assert(segment, () => `Couldn't create segment for offset ${offset}.`);
+        }
+
+        segments.push(segment);
+
+        switch (segment.type) {
+            case SegmentType.Instructions:
+                for (const instruction of segment.instructions) {
+                    offset += instruction_size(instruction, format);
+                }
+
+                break;
+            case SegmentType.Data:
+                offset += segment.data.byteLength;
+                break;
+            case SegmentType.String:
+                // String segments should be multiples of 4 bytes.
+                offset += 4 * Math.ceil((segment.value.length + 1) / 2);
+                break;
+            default:
+                throw new Error(`${SegmentType[segment!.type]} not implemented.`);
+        }
+    }
+
+    // Add unreferenced labels to their segment.
+    for (const { label, offset } of label_holder.labels) {
+        const segment = offset_to_segment.get(offset);
+
+        if (segment) {
+            if (!segment.labels.includes(label)) {
+                segment.labels.push(label);
+                segment.labels.sort((a, b) => a - b);
+            }
+        } else {
+            result.add_problem(
+                Severity.Warning,
+                `Label ${label} doesn't point to anything.`,
+                `Label ${label} with offset ${offset} doesn't point to anything.`,
+            );
+        }
+    }
+
+    // Sanity check parsed object code.
+    if (cursor.size !== offset) {
+        result.add_problem(
+            Severity.Error,
+            "The script code is corrupt.",
+            `Expected to parse ${cursor.size} bytes but parsed ${offset} instead.`,
+        );
+
+        if (!lenient) {
+            return result.failure();
+        }
+    }
+
+    return result.success(segments);
 }
 
 export function write_object_code(
@@ -164,120 +267,6 @@ export function write_object_code(
     }
 
     return { object_code: cursor.seek_start(0).array_buffer(), label_offsets };
-}
-
-function internal_parse_object_code(
-    cursor: Cursor,
-    label_holder: LabelHolder,
-    entry_labels: readonly number[],
-    lenient: boolean,
-    format: BinFormat,
-): Segment[] {
-    const offset_to_segment = new Map<number, Segment>();
-
-    find_and_parse_segments(
-        cursor,
-        label_holder,
-        entry_labels.reduce((m, l) => m.set(l, SegmentType.Instructions), new Map()),
-        offset_to_segment,
-        lenient,
-        format,
-    );
-
-    const segments: Segment[] = [];
-
-    // Put segments in an array and parse left-over segments as data.
-    let offset = 0;
-
-    while (offset < cursor.size) {
-        let segment: Segment | undefined = offset_to_segment.get(offset);
-
-        // If we have a segment, add it. Otherwise create a new data segment.
-        if (!segment) {
-            const labels = label_holder.get_labels(offset);
-            let end_offset: number;
-
-            if (labels) {
-                const info = label_holder.get_info(labels[0])!;
-                end_offset = info.next ? info.next.offset : cursor.size;
-            } else {
-                end_offset = cursor.size;
-
-                for (const label of label_holder.labels) {
-                    if (label.offset > offset) {
-                        end_offset = label.offset;
-                        break;
-                    }
-                }
-            }
-
-            cursor.seek_start(offset);
-            parse_data_segment(offset_to_segment, cursor, end_offset, labels || []);
-
-            segment = offset_to_segment.get(offset);
-
-            // Should never happen.
-            if (end_offset <= offset) {
-                logger.error(
-                    `Next offset ${end_offset} was smaller than or equal to current offset ${offset}.`,
-                );
-                break;
-            }
-
-            // Should never happen either.
-            if (!segment) {
-                logger.error(`Couldn't create segment for offset ${offset}.`);
-                break;
-            }
-        }
-
-        segments.push(segment);
-
-        switch (segment.type) {
-            case SegmentType.Instructions:
-                for (const instruction of segment.instructions) {
-                    offset += instruction_size(instruction, format);
-                }
-
-                break;
-            case SegmentType.Data:
-                offset += segment.data.byteLength;
-                break;
-            case SegmentType.String:
-                // String segments should be multiples of 4 bytes.
-                offset += 4 * Math.ceil((segment.value.length + 1) / 2);
-                break;
-            default:
-                throw new Error(`${SegmentType[segment!.type]} not implemented.`);
-        }
-    }
-
-    // Add unreferenced labels to their segment.
-    for (const { label, offset } of label_holder.labels) {
-        const segment = offset_to_segment.get(offset);
-
-        if (segment) {
-            if (!segment.labels.includes(label)) {
-                segment.labels.push(label);
-                segment.labels.sort((a, b) => a - b);
-            }
-        } else {
-            logger.warn(`Label ${label} with offset ${offset} does not point to anything.`);
-        }
-    }
-
-    // Sanity check parsed object code.
-    if (cursor.size !== offset) {
-        const message = `Expected to parse ${cursor.size} bytes but parsed ${offset} instead.`;
-
-        if (lenient) {
-            logger.error(message);
-        } else {
-            throw new Error(message);
-        }
-    }
-
-    return segments;
 }
 
 function find_and_parse_segments(
@@ -660,15 +649,15 @@ class LabelHolder {
     /**
      * Labels and their offset sorted by offset and then label.
      */
-    labels: { label: number; offset: number }[] = [];
+    readonly labels: { label: number; offset: number }[] = [];
     /**
      * Mapping of labels to their offset and index into labels.
      */
-    private label_map: Map<number, { offset: number; index: number }> = new Map();
+    private readonly label_map: Map<number, { offset: number; index: number }> = new Map();
     /**
      * Mapping of offsets to lists of labels.
      */
-    private offset_map: Map<number, number[]> = new Map();
+    private readonly offset_map: Map<number, number[]> = new Map();
 
     constructor(label_offsets: readonly number[]) {
         // Populate the main label list.

@@ -24,6 +24,8 @@ import {
     get_object_script_label_2,
     QuestObject,
 } from "./QuestObject";
+import { Result, ResultBuilder } from "../../../Result";
+import { Severity } from "../../../Severity";
 
 const logger = LogManager.get("core/data_formats/parsing/quest");
 
@@ -31,13 +33,27 @@ export function parse_bin_dat_to_quest(
     bin_cursor: Cursor,
     dat_cursor: Cursor,
     lenient: boolean = false,
-): Quest | undefined {
+): Result<Quest> {
+    const rb = new ResultBuilder<Quest>(logger);
+
     // Decompress and parse files.
     const bin_decompressed = prs_decompress(bin_cursor);
-    const { bin, format } = parse_bin(bin_decompressed);
+    rb.add_result(bin_decompressed);
+
+    if (!bin_decompressed.success) {
+        return rb.failure();
+    }
+
+    const { bin, format } = parse_bin(bin_decompressed.value);
 
     const dat_decompressed = prs_decompress(dat_cursor);
-    const dat = parse_dat(dat_decompressed);
+    rb.add_result(dat_decompressed);
+
+    if (!dat_decompressed.success) {
+        return rb.failure();
+    }
+
+    const dat = parse_dat(dat_decompressed.value);
     const objects = dat.objs.map(({ area_id, data }) => data_to_quest_object(area_id, data));
     // Initialize NPCs with random episode and correct it later.
     const npcs = dat.npcs.map(({ area_id, data }) => data_to_quest_npc(Episode.I, area_id, data));
@@ -46,13 +62,21 @@ export function parse_bin_dat_to_quest(
     let episode = Episode.I;
     let map_designations: Map<number, number> = new Map();
 
-    const object_code = parse_object_code(
+    const object_code_result = parse_object_code(
         bin.object_code,
         bin.label_offsets,
         extract_script_entry_points(objects, npcs),
         lenient,
         format,
     );
+
+    rb.add_result(object_code_result);
+
+    if (!object_code_result.success) {
+        return rb.failure();
+    }
+
+    const object_code = object_code_result.value;
 
     if (object_code.length) {
         const instruction_segments = object_code.filter(
@@ -69,7 +93,7 @@ export function parse_bin_dat_to_quest(
         }
 
         if (label_0_segment) {
-            episode = get_episode(label_0_segment);
+            episode = get_episode(rb, label_0_segment);
 
             for (const npc of npcs) {
                 npc.episode = episode;
@@ -77,13 +101,13 @@ export function parse_bin_dat_to_quest(
 
             map_designations = get_map_designations(instruction_segments, label_0_segment);
         } else {
-            logger.warn(`No instruction for label 0 found.`);
+            rb.add_problem(Severity.Warning, "No instruction segment for label 0 found.");
         }
     } else {
-        logger.warn("File contains no instruction labels.");
+        rb.add_problem(Severity.Warning, "File contains no instruction labels.");
     }
 
-    return {
+    return rb.success({
         id: bin.quest_id,
         language: bin.language,
         name: bin.quest_name,
@@ -97,24 +121,31 @@ export function parse_bin_dat_to_quest(
         object_code,
         shop_items: bin.shop_items,
         map_designations,
-    };
+    });
 }
 
-export function parse_qst_to_quest(
-    cursor: Cursor,
-    lenient: boolean = false,
-): { quest: Quest; version: Version; online: boolean } | undefined {
-    // Extract contained .dat and .bin files.
-    const qst = parse_qst(cursor);
+export type QuestData = {
+    quest: Quest;
+    version: Version;
+    online: boolean;
+};
 
-    if (!qst) {
-        return;
+export function parse_qst_to_quest(cursor: Cursor, lenient: boolean = false): Result<QuestData> {
+    const rb = new ResultBuilder<QuestData>(logger);
+
+    // Extract contained .dat and .bin files.
+    const qst_result = parse_qst(cursor);
+    rb.add_result(qst_result);
+
+    if (!qst_result.success) {
+        return rb.failure();
     }
 
+    const { version, online, files } = qst_result.value;
     let dat_file: QstContainedFile | undefined;
     let bin_file: QstContainedFile | undefined;
 
-    for (const file of qst.files) {
+    for (const file of files) {
         const file_name = file.filename.trim().toLowerCase();
 
         if (file_name.endsWith(".dat")) {
@@ -125,22 +156,29 @@ export function parse_qst_to_quest(
     }
 
     if (!dat_file) {
-        logger.error("File contains no DAT file.");
-        return;
+        return rb.add_problem(Severity.Error, "File contains no DAT file.").failure();
     }
 
     if (!bin_file) {
-        logger.error("File contains no BIN file.");
-        return;
+        return rb.add_problem(Severity.Error, "File contains no BIN file.").failure();
     }
 
-    const quest = parse_bin_dat_to_quest(
+    const quest_result = parse_bin_dat_to_quest(
         new ArrayBufferCursor(bin_file.data, Endianness.Little),
         new ArrayBufferCursor(dat_file.data, Endianness.Little),
         lenient,
     );
+    rb.add_result(quest_result);
 
-    return quest && { quest, version: qst.version, online: qst.online };
+    if (!quest_result.success) {
+        return rb.failure();
+    }
+
+    return rb.success({
+        quest: quest_result.value,
+        version,
+        online,
+    });
 }
 
 export function write_quest_qst(
@@ -200,7 +238,7 @@ export function write_quest_qst(
 /**
  * Defaults to episode I.
  */
-function get_episode(func_0_segment: InstructionSegment): Episode {
+function get_episode(rb: ResultBuilder<unknown>, func_0_segment: InstructionSegment): Episode {
     const set_episode = func_0_segment.instructions.find(
         instruction => instruction.opcode.code === OP_SET_EPISODE.code,
     );
@@ -216,7 +254,10 @@ function get_episode(func_0_segment: InstructionSegment): Episode {
             case 2:
                 return Episode.IV;
             default:
-                logger.warn(`Unknown episode ${episode} in function 0 set_episode instruction.`);
+                rb.add_problem(
+                    Severity.Warning,
+                    `Unknown episode ${episode} in function 0 set_episode instruction.`,
+                );
                 return Episode.I;
         }
     } else {

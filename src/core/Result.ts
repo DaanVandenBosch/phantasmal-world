@@ -23,19 +23,23 @@ export type Problem = {
     readonly ui_message: string;
 };
 
-export function success<T>(value: T, problems?: readonly Problem[]): Success<T> {
+export function success<T>(value: T, ...problems: readonly Problem[]): Success<T> {
     return {
         success: true,
         value,
-        problems: problems ?? [],
+        problems,
     };
 }
 
-export function failure(problems?: readonly Problem[]): Failure {
+export function failure(...problems: readonly Problem[]): Failure {
     return {
         success: false,
-        problems: problems ?? [],
+        problems,
     };
+}
+
+export function problem(severity: Severity, ui_message: string): Problem {
+    return { severity, ui_message };
 }
 
 /**
@@ -50,13 +54,8 @@ export function unwrap<T>(result: Result<T>): T {
     }
 }
 
-export function result_builder<T>(logger: Logger): ResultBuilder<T> {
-    return new ResultBuilder(logger);
-}
-
 /**
- * Useful for building up a {@link Result} and logging problems at the same time. Use
- * {@link result_builder} to instantiate.
+ * Useful for building up a {@link Result} and logging problems at the same time.
  */
 export class ResultBuilder<T> {
     private readonly problems: Problem[] = [];
@@ -66,8 +65,8 @@ export class ResultBuilder<T> {
     /**
      * Add a problem to the problems array and log it with {@link logger}.
      */
-    add_problem(severity: Severity, ui_message: string, message: string, cause?: unknown): this {
-        this.logger.log(severity, message, cause);
+    add_problem(severity: Severity, ui_message: string, message?: string, cause?: unknown): this {
+        this.logger.log(severity, message ?? ui_message, cause);
         this.problems.push({ severity, ui_message });
         return this;
     }
@@ -81,10 +80,10 @@ export class ResultBuilder<T> {
     }
 
     success(value: T): Success<T> {
-        return success(value, this.problems);
+        return success(value, ...this.problems);
     }
 
     failure(): Failure {
-        return failure(this.problems);
+        return failure(...this.problems);
     }
 }

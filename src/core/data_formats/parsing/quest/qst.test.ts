@@ -5,10 +5,11 @@ import { BufferCursor } from "../../block/cursor/BufferCursor";
 import { ArrayBufferCursor } from "../../block/cursor/ArrayBufferCursor";
 import * as fs from "fs";
 import { Version } from "./Version";
+import { unwrap } from "../../../Result";
 
 test("Parse a GC quest.", () => {
     const buf = fs.readFileSync("test/resources/lost_heat_sword_gc.qst");
-    const qst = parse_qst(new BufferCursor(buf, Endianness.Little));
+    const qst = unwrap(parse_qst(new BufferCursor(buf, Endianness.Little)));
 
     expect(qst).toBeDefined();
     expect(qst!.version).toBe(Version.GC);
@@ -28,7 +29,7 @@ test("Parse a GC quest.", () => {
 test("parse_qst and write_qst", () => {
     walk_qst_files((_file_path, _file_name, file_content) => {
         const orig_qst = new BufferCursor(file_content, Endianness.Little);
-        const orig_quest = parse_qst(orig_qst);
+        const orig_quest = unwrap(parse_qst(orig_qst));
 
         if (orig_quest) {
             const test_qst = new ArrayBufferCursor(write_qst(orig_quest), Endianness.Little);

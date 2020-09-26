@@ -26,6 +26,7 @@ import {
     write_object_code,
 } from "../../core/data_formats/parsing/quest/object_code";
 import { BinFormat } from "../../core/data_formats/parsing/quest/BinFormat";
+import { unwrap } from "../../core/Result";
 
 test("vararg instructions should be disassembled correctly", () => {
     const asm = disassemble([
@@ -93,14 +94,10 @@ test("va list instructions should be disassembled correctly", () => {
 // Round-trip test.
 test("assembling disassembled object code with manual stack management should result in the same IR", () => {
     const orig_buffer = readFileSync("test/resources/quest27_e.bin");
-    const orig_bytes = prs_decompress(new BufferCursor(orig_buffer, Endianness.Little));
+    const orig_bytes = unwrap(prs_decompress(new BufferCursor(orig_buffer, Endianness.Little)));
     const { bin } = parse_bin(orig_bytes);
-    const orig_object_code = parse_object_code(
-        bin.object_code,
-        bin.label_offsets,
-        [0],
-        false,
-        BinFormat.BB,
+    const orig_object_code = unwrap(
+        parse_object_code(bin.object_code, bin.label_offsets, [0], false, BinFormat.BB),
     );
 
     const { object_code, warnings, errors } = assemble(disassemble(orig_object_code, true), true);
@@ -114,14 +111,10 @@ test("assembling disassembled object code with manual stack management should re
 // Round-trip test.
 test("assembling disassembled object code with automatic stack management should result in the same IR", () => {
     const orig_buffer = readFileSync("test/resources/quest27_e.bin");
-    const orig_bytes = prs_decompress(new BufferCursor(orig_buffer, Endianness.Little));
+    const orig_bytes = unwrap(prs_decompress(new BufferCursor(orig_buffer, Endianness.Little)));
     const { bin } = parse_bin(orig_bytes);
-    const orig_object_code = parse_object_code(
-        bin.object_code,
-        bin.label_offsets,
-        [0],
-        false,
-        BinFormat.BB,
+    const orig_object_code = unwrap(
+        parse_object_code(bin.object_code, bin.label_offsets, [0], false, BinFormat.BB),
     );
 
     const { object_code, warnings, errors } = assemble(disassemble(orig_object_code, false), false);
@@ -135,14 +128,10 @@ test("assembling disassembled object code with automatic stack management should
 // Round-trip test.
 test("assembling disassembled object code with manual stack management should result in the same object code", () => {
     const orig_buffer = readFileSync("test/resources/quest27_e.bin");
-    const orig_bytes = prs_decompress(new BufferCursor(orig_buffer, Endianness.Little));
+    const orig_bytes = unwrap(prs_decompress(new BufferCursor(orig_buffer, Endianness.Little)));
     const { bin, format } = parse_bin(orig_bytes);
-    const orig_object_code = parse_object_code(
-        bin.object_code,
-        bin.label_offsets,
-        [0],
-        false,
-        BinFormat.BB,
+    const orig_object_code = unwrap(
+        parse_object_code(bin.object_code, bin.label_offsets, [0], false, BinFormat.BB),
     );
 
     const { object_code, warnings, errors } = assemble(disassemble(orig_object_code, true), true);
@@ -179,14 +168,10 @@ test("assembling disassembled object code with manual stack management should re
 // Round-trip test.
 test("disassembling assembled assembly code with automatic stack management should result the same assembly code", () => {
     const orig_buffer = readFileSync("test/resources/quest27_e.bin");
-    const orig_bytes = prs_decompress(new BufferCursor(orig_buffer, Endianness.Little));
+    const orig_bytes = unwrap(prs_decompress(new BufferCursor(orig_buffer, Endianness.Little)));
     const { bin } = parse_bin(orig_bytes);
-    const orig_object_code = parse_object_code(
-        bin.object_code,
-        bin.label_offsets,
-        [0],
-        false,
-        BinFormat.BB,
+    const orig_object_code = unwrap(
+        parse_object_code(bin.object_code, bin.label_offsets, [0], false, BinFormat.BB),
     );
     const orig_asm = disassemble(orig_object_code, false);
 

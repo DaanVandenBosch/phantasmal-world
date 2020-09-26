@@ -1,11 +1,18 @@
 import { prs_decompress } from "../compression/prs/decompress";
 import { Cursor } from "../block/cursor/Cursor";
+import { Result, success } from "../../Result";
 
 export type Unitxt = string[][];
 
-export function parse_unitxt(buf: Cursor, compressed: boolean = true): Unitxt {
+export function parse_unitxt(buf: Cursor, compressed: boolean = true): Result<Unitxt> {
     if (compressed) {
-        buf = prs_decompress(buf);
+        const decompression_result = prs_decompress(buf);
+
+        if (!decompression_result.success) {
+            return decompression_result;
+        }
+
+        buf = decompression_result.value;
     }
 
     const category_count = buf.u32();
@@ -29,5 +36,5 @@ export function parse_unitxt(buf: Cursor, compressed: boolean = true): Unitxt {
         }
     }
 
-    return categories;
+    return success(categories);
 }

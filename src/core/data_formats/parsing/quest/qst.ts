@@ -7,6 +7,8 @@ import { ResizableBlock } from "../../block/ResizableBlock";
 import { assert, basename, defined } from "../../../util";
 import { LogManager } from "../../../Logger";
 import { Version } from "./Version";
+import { Result, ResultBuilder } from "../../../Result";
+import { Severity } from "../../../Severity";
 
 const logger = LogManager.get("core/data_formats/parsing/quest/qst");
 
@@ -41,18 +43,22 @@ export type QstContent = {
 
 /**
  * Low level parsing function for .qst files.
- * Can only read the Blue Burst format.
  */
-export function parse_qst(cursor: Cursor): QstContent | undefined {
+export function parse_qst(cursor: Cursor): Result<QstContent> {
+    const result = new ResultBuilder<QstContent>(logger);
+
     // A .qst file contains two headers that describe the embedded .dat and .bin files.
     // Read headers and contained files.
     const headers = parse_headers(cursor);
 
     if (headers.length < 2) {
-        logger.error(
-            `Corrupt .qst file, expected at least 2 headers but only found ${headers.length}.`,
-        );
-        return undefined;
+        return result
+            .add_problem(
+                Severity.Error,
+                "This .qst file is corrupt.",
+                `Corrupt .qst file, expected at least 2 headers but only found ${headers.length}.`,
+            )
+            .failure();
     }
 
     let version: Version | undefined = undefined;
@@ -60,23 +66,29 @@ export function parse_qst(cursor: Cursor): QstContent | undefined {
 
     for (const header of headers) {
         if (version != undefined && header.version !== version) {
-            logger.error(
-                `Corrupt .qst file, header version ${Version[header.version]} for file ${
-                    header.filename
-                } doesn't match the previous header's version ${Version[version]}.`,
-            );
-            return undefined;
+            return result
+                .add_problem(
+                    Severity.Error,
+                    "This .qst file is corrupt.",
+                    `Corrupt .qst file, header version ${Version[header.version]} for file ${
+                        header.filename
+                    } doesn't match the previous header's version ${Version[version]}.`,
+                )
+                .failure();
         }
 
         if (online != undefined && header.online !== online) {
-            logger.error(
-                `Corrupt .qst file, header type ${
-                    header.online ? '"online"' : '"download"'
-                } for file ${header.filename} doesn't match the previous header's type ${
-                    online ? '"online"' : '"download"'
-                }.`,
-            );
-            return undefined;
+            return result
+                .add_problem(
+                    Severity.Error,
+                    "This .qst file is corrupt.",
+                    `Corrupt .qst file, header type ${
+                        header.online ? '"online"' : '"download"'
+                    } for file ${header.filename} doesn't match the previous header's type ${
+                        online ? '"online"' : '"download"'
+                    }.`,
+                )
+                .failure();
         }
 
         version = header.version;
@@ -86,13 +98,22 @@ export function parse_qst(cursor: Cursor): QstContent | undefined {
     defined(version, "version");
     defined(online, "online");
 
-    const files = parse_files(cursor, version, new Map(headers.map(h => [h.filename, h])));
+    const files: Result<QstContainedFile[]> = parse_files(
+        cursor,
+        version,
+        new Map(headers.map(h => [h.filename, h])),
+    );
+    result.add_result(files);
 
-    return {
+    if (!files.success) {
+        return result.failure();
+    }
+
+    return result.success({
         version,
         online,
-        files,
-    };
+        files: files.value,
+    });
 }
 
 export function write_qst({ version, online, files }: QstContent): ArrayBuffer {
@@ -123,9 +144,10 @@ export function write_qst({ version, online, files }: QstContent): ArrayBuffer {
     write_file_headers(cursor, files, version, online, file_header_size);
     write_file_chunks(cursor, files, version);
 
-    if (cursor.position !== total_size) {
-        throw new Error(`Expected a final file size of ${total_size}, but got ${cursor.position}.`);
-    }
+    assert(
+        cursor.position === total_size,
+        () => `Expected a final file size of ${total_size}, but got ${cursor.position}.`,
+    );
 
     return buffer;
 }
@@ -266,7 +288,9 @@ function parse_files(
     cursor: Cursor,
     version: Version,
     headers: Map<string, QstHeader>,
-): QstContainedFile[] {
+): Result<QstContainedFile[]> {
+    const result = new ResultBuilder<QstContainedFile[]>(logger);
+
     // Files are interleaved in 1056 byte chunks.
     // Each chunk has a 20 or 24 byte header, 1024 byte data segment and an 4 or 8 byte trailer.
     const files = new Map<
@@ -338,7 +362,8 @@ function parse_files(
         }
 
         if (file.chunk_nos.has(chunk_no)) {
-            logger.warn(
+            result.add_problem(
+                Severity.Warning,
                 `File chunk number ${chunk_no} of file ${file_name} was already encountered, overwriting previous chunk.`,
             );
         } else {
@@ -350,7 +375,8 @@ function parse_files(
         cursor.seek(-CHUNK_BODY_SIZE - 4);
 
         if (size > CHUNK_BODY_SIZE) {
-            logger.warn(
+            result.add_problem(
+                Severity.Warning,
                 `Data segment size of ${size} is larger than expected maximum size, reading just ${CHUNK_BODY_SIZE} bytes.`,
             );
             size = CHUNK_BODY_SIZE;
@@ -364,17 +390,17 @@ function parse_files(
         // Skip the padding and the trailer.
         cursor.seek(CHUNK_BODY_SIZE + trailer_size - data.size);
 
-        if (cursor.position !== start_position + chunk_size) {
-            throw new Error(
+        assert(
+            cursor.position === start_position + chunk_size,
+            () =>
                 `Read ${
                     cursor.position - start_position
                 } file chunk message bytes instead of expected ${chunk_size}.`,
-            );
-        }
+        );
     }
 
     if (cursor.bytes_left) {
-        logger.warn(`${cursor.bytes_left} Bytes left in file.`);
+        result.add_problem(Severity.Warning, `${cursor.bytes_left} Bytes left in file.`);
     }
 
     for (const file of files.values()) {
@@ -384,7 +410,8 @@ function parse_files(
 
         // Check whether the expected size was correct.
         if (file.expected_size != null && file.cursor.size !== file.expected_size) {
-            logger.warn(
+            result.add_problem(
+                Severity.Warning,
                 `File ${file.name} has an actual size of ${file.cursor.size} instead of the expected size ${file.expected_size}.`,
             );
         }
@@ -395,7 +422,10 @@ function parse_files(
 
         for (let chunk_no = 0; chunk_no < expected_chunk_count; ++chunk_no) {
             if (!file.chunk_nos.has(chunk_no)) {
-                logger.warn(`File ${file.name} is missing chunk ${chunk_no}.`);
+                result.add_problem(
+                    Severity.Warning,
+                    `File ${file.name} is missing chunk ${chunk_no}.`,
+                );
             }
         }
     }
@@ -412,7 +442,7 @@ function parse_files(
         });
     }
 
-    return contained_files;
+    return result.success(contained_files);
 }
 
 function write_file_headers(
@@ -530,11 +560,11 @@ function write_file_chunks(
     for (const file_to_chunk of files_to_chunk) {
         const expected_chunks = Math.ceil(file_to_chunk.data.size / CHUNK_BODY_SIZE);
 
-        if (file_to_chunk.no !== expected_chunks) {
-            throw new Error(
+        assert(
+            file_to_chunk.no === expected_chunks,
+            () =>
                 `Expected to write ${expected_chunks} chunks for file "${file_to_chunk.name}" but ${file_to_chunk.no} where written.`,
-            );
-        }
+        );
     }
 }
 

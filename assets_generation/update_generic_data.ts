@@ -6,6 +6,7 @@ import * as yaml from "yaml";
 import { Endianness } from "../src/core/data_formats/block/Endianness";
 import { LogManager } from "../src/core/Logger";
 import { Severity } from "../src/core/Severity";
+import { unwrap } from "../src/core/Result";
 
 const logger = LogManager.get("assets_generation/update_generic_data");
 
@@ -31,7 +32,7 @@ function extract_player_animations(): void {
     const buf = readFileSync(`${RESOURCE_DIR}/plymotiondata.rlc`);
     let i = 0;
 
-    for (const file of parse_rlc(new BufferCursor(buf, Endianness.Big))) {
+    for (const file of unwrap(parse_rlc(new BufferCursor(buf, Endianness.Big)))) {
         writeFileSync(
             `${ASSETS_DIR}/player/animation/animation_${(i++).toString().padStart(3, "0")}.njm`,
             new Uint8Array(file.array_buffer()),
@@ -46,7 +47,7 @@ function update_opcodes(): void {
 
     // Add manual code.
     const opcodes_src = readFileSync(OPCODES_SRC_FILE, {
-        encoding: "UTF-8",
+        encoding: "utf-8",
     });
     const file_lines: string[] = [];
     let in_manual_code = true;
@@ -69,7 +70,7 @@ function update_opcodes(): void {
     });
 
     // Add generated code.
-    const yml = readFileSync(OPCODES_YML_FILE, { encoding: "UTF-8" });
+    const yml = readFileSync(OPCODES_YML_FILE, { encoding: "utf-8" });
     const input = yaml.parse(yml);
     const generated_lines: string[] = [];
     let i = 0;

@@ -1,7 +1,7 @@
 import { Cursor } from "../../block/cursor/Cursor";
 import { parse_iff, parse_iff_headers } from "../iff";
 import { LogManager } from "../../../Logger";
-import { Result, result_builder } from "../../../Result";
+import { Result, ResultBuilder } from "../../../Result";
 import { Severity } from "../../../Severity";
 
 const logger = LogManager.get("core/data_formats/parsing/ninja/texture");
@@ -62,7 +62,7 @@ export function parse_xvm(cursor: Cursor): Result<Xvm> {
         return iff_result;
     }
 
-    const result = result_builder<Xvm>(logger);
+    const result = new ResultBuilder<Xvm>(logger);
     result.add_result(iff_result);
     const chunks = iff_result.value;
     const header_chunk = chunks.find(chunk => chunk.type === XVMH);

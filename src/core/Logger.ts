@@ -1,4 +1,5 @@
 import { Severity, severity_from_string } from "./Severity";
+import { basename } from "./util";
 
 export type LogEntry = {
     readonly time: Date;
@@ -113,6 +114,8 @@ export class LogManager {
     static default_handler: LogHandler = default_log_handler;
 
     static get(name: string): Logger {
+        name = basename(name);
+
         let logger = this.loggers.get(name);
 
         if (!logger) {

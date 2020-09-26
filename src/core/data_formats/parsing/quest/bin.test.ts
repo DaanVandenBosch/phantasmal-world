@@ -5,13 +5,14 @@ import { ArrayBufferCursor } from "../../block/cursor/ArrayBufferCursor";
 import { BufferCursor } from "../../block/cursor/BufferCursor";
 import { parse_bin, write_bin } from "./bin";
 import { BinFormat } from "./BinFormat";
+import { unwrap } from "../../../Result";
 
 /**
  * Parse a file, convert the resulting structure to BIN again and check whether the end result is equal to the original.
  */
 function test_quest(path: string): void {
     const orig_buffer = readFileSync(path);
-    const orig_bin = prs_decompress(new BufferCursor(orig_buffer, Endianness.Little));
+    const orig_bin = unwrap(prs_decompress(new BufferCursor(orig_buffer, Endianness.Little)));
     const test_buffer = write_bin(parse_bin(orig_bin).bin, BinFormat.BB);
     const test_bin = new ArrayBufferCursor(test_buffer, Endianness.Little);
 

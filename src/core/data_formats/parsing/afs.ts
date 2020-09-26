@@ -1,6 +1,6 @@
 import { Cursor } from "../block/cursor/Cursor";
 import { LogManager } from "../../Logger";
-import { Result, result_builder } from "../../Result";
+import { Result, ResultBuilder } from "../../Result";
 import { Severity } from "../../Severity";
 
 const logger = LogManager.get("core/data_formats/parsing/afs");
@@ -14,7 +14,7 @@ const AFS = 0x00534641;
  * @returns the contained files
  */
 export function parse_afs(cursor: Cursor): Result<ArrayBuffer[]> {
-    const result = result_builder<ArrayBuffer[]>(logger);
+    const result = new ResultBuilder<ArrayBuffer[]>(logger);
 
     if (cursor.bytes_left < 8) {
         return result

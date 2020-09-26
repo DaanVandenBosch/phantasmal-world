@@ -6,14 +6,12 @@ import { ArrayBufferCursor } from "../../../core/data_formats/block/cursor/Array
 import { Endianness } from "../../../core/data_formats/block/Endianness";
 import { parse_nj, parse_xj } from "../../../core/data_formats/parsing/ninja";
 import { parse_njm } from "../../../core/data_formats/parsing/ninja/motion";
-import { is_xvm, parse_xvm, XvrTexture } from "../../../core/data_formats/parsing/ninja/texture";
-import { parse_afs } from "../../../core/data_formats/parsing/afs";
 import { LogManager } from "../../../core/Logger";
-import { prs_decompress } from "../../../core/data_formats/compression/prs/decompress";
-import { failure, Result, result_builder, success } from "../../../core/Result";
+import { failure, problem, Result, success } from "../../../core/Result";
 import { Severity } from "../../../core/Severity";
 import { property } from "../../../core/observable";
 import { WritableProperty } from "../../../core/observable/property/WritableProperty";
+import { parse_afs_textures, parse_xvm_textures } from "../../util/texture_parsing";
 
 const logger = LogManager.get("viewer/controllers/model/ModelToolBarController");
 
@@ -97,54 +95,19 @@ export class ModelToolBarController extends Controller {
                     this.store.set_current_nj_motion(parse_njm(cursor, nj_object.bone_count()));
                     this.set_result(success(undefined));
                 } else {
-                    this.set_result(
-                        failure([{ severity: Severity.Error, ui_message: "No model to animate" }]),
-                    );
+                    this.set_result(failure(problem(Severity.Error, "No model to animate")));
                 }
             } else if (file.name.endsWith(".xvm")) {
-                const xvm_result = parse_xvm(cursor);
+                const xvm_result = parse_xvm_textures(cursor);
                 this.set_result(xvm_result);
-
-                if (xvm_result.success) {
-                    this.store.set_current_textures(xvm_result.value.textures);
-                } else {
-                    this.store.set_current_textures([]);
-                }
+                this.store.set_current_textures(xvm_result.value ?? []);
             } else if (file.name.endsWith(".afs")) {
-                const rb = result_builder(logger);
-                const afs_result = parse_afs(cursor);
-                rb.add_result(afs_result);
-
-                if (!afs_result.success) {
-                    this.set_result(rb.failure());
-                } else {
-                    const textures: XvrTexture[] = afs_result.value.flatMap(file => {
-                        const cursor = new ArrayBufferCursor(file, Endianness.Little);
-
-                        if (is_xvm(cursor)) {
-                            const xvm_result = parse_xvm(cursor);
-                            rb.add_result(xvm_result);
-                            return xvm_result.value?.textures ?? [];
-                        } else {
-                            const xvm_result = parse_xvm(prs_decompress(cursor.seek_start(0)));
-                            rb.add_result(xvm_result);
-                            return xvm_result.value?.textures ?? [];
-                        }
-                    });
-
-                    if (textures.length) {
-                        this.set_result(rb.success(textures));
-                    } else {
-                        this.set_result(rb.failure());
-                    }
-
-                    this.store.set_current_textures(textures);
-                }
+                const afs_result = parse_afs_textures(cursor);
+                this.set_result(afs_result);
+                this.store.set_current_textures(afs_result.value ?? []);
             } else {
                 logger.debug(`Unsupported file extension in filename "${file.name}".`);
-                this.set_result(
-                    failure([{ severity: Severity.Error, ui_message: "Unsupported file type." }]),
-                );
+                this.set_result(failure(problem(Severity.Error, "Unsupported file type.")));
             }
         } catch (e) {
             logger.error("Couldn't read file.", e);
