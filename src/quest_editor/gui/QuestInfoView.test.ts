@@ -31,9 +31,12 @@ test("Renders correctly with a current quest.", () =>
     }));
 
 test("When the view's element is focused the quest editor store's undo stack should become the current stack.", () =>
-    with_disposer(async disposer => {
+    with_disposer(disposer => {
         const store = create_quest_editor_store(disposer);
         const view = disposer.add(new QuestInfoView(disposer.add(new QuestInfoController(store))));
+
+        // Append view element to DOM to make it focusable.
+        document.body.append(view.element);
 
         undo_manager.make_noop_current();
 
