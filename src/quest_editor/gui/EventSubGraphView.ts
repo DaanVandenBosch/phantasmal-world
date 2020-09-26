@@ -24,8 +24,10 @@ export class EventSubGraphView extends View {
     /**
      * Maps event IDs to GUI data.
      */
-    private readonly event_gui_data: Map<QuestEventModel,
-        { event_view: EventView; position: number }> = new Map();
+    private readonly event_gui_data: Map<
+        QuestEventModel,
+        { event_view: EventView; position: number }
+    > = new Map();
 
     private readonly event_container_element = div({
         className: "quest_editor_EventSubGraphView_event_container",

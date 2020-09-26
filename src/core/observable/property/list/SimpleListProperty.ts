@@ -6,7 +6,8 @@ import { is_list_property, ListChangeType, ListProperty } from "./ListProperty";
 import { AbstractListProperty } from "./AbstractListProperty";
 import { MappedListProperty } from "./MappedListProperty";
 
-export class SimpleListProperty<T> extends AbstractListProperty<T>
+export class SimpleListProperty<T>
+    extends AbstractListProperty<T>
     implements WritableListProperty<T> {
     get val(): readonly T[] {
         return this.get_val();

@@ -33,7 +33,8 @@ class LengthProperty extends AbstractProperty<number> {
     }
 }
 
-export abstract class AbstractListProperty<T> extends AbstractProperty<readonly T[]>
+export abstract class AbstractListProperty<T>
+    extends AbstractProperty<readonly T[]>
     implements ListProperty<T> {
     readonly is_list_property = true;
 
