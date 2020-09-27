@@ -678,10 +678,7 @@ define_npc_type_data(
     0x043,
     0,
     true,
-    [
-        ["Group ID", 44, "F32"],
-        ["Leader flag", 48, "F32"],
-    ],
+    [["Group ID", 44, "F32"]],
 );
 define_npc_type_data(
     NpcType.BarbarousWolf,
@@ -695,10 +692,7 @@ define_npc_type_data(
     0x043,
     0,
     false,
-    [
-        ["Group ID", 44, "F32"],
-        ["Leader flag", 48, "F32"],
-    ],
+    [["Group ID", 44, "F32"]],
 );
 define_npc_type_data(
     NpcType.Booma,
@@ -1532,10 +1526,7 @@ define_npc_type_data(
     0x043,
     0,
     true,
-    [
-        ["Group ID", 44, "F32"],
-        ["Leader flag", 48, "F32"],
-    ],
+    [["Group ID", 44, "F32"]],
 );
 define_npc_type_data(
     NpcType.BarbarousWolf2,
@@ -1549,10 +1540,7 @@ define_npc_type_data(
     0x043,
     0,
     false,
-    [
-        ["Group ID", 44, "F32"],
-        ["Leader flag", 48, "F32"],
-    ],
+    [["Group ID", 44, "F32"]],
 );
 define_npc_type_data(
     NpcType.PanArms2,
