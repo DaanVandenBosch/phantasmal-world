@@ -5,8 +5,6 @@ import { NPC_BYTE_SIZE } from "./dat";
 import { assert } from "../../../util";
 import { angle_to_rad, rad_to_angle } from "../ninja/angle";
 
-const DEFAULT_SCALE: Vec3 = Object.freeze({ x: 1, y: 1, z: 1 });
-
 export type QuestNpc = {
     episode: Episode;
     area_id: number;
@@ -23,8 +21,6 @@ export function create_quest_npc(type: NpcType, area_id: number, wave: number): 
         view: new DataView(data),
     };
 
-    // Set scale before type, because set_npc_type will change it.
-    set_npc_scale(npc, DEFAULT_SCALE);
     set_npc_type(npc, type);
     // Set area_id after type, because you might want to overwrite the area_id that type has
     // determined.
@@ -461,13 +457,9 @@ export function set_npc_type(npc: QuestNpc, type: NpcType): void {
 }
 
 export function is_npc_regular(npc: QuestNpc): boolean {
-    return Math.abs(npc.view.getFloat32(48, true) - 1) > 0.00001;
+    return Math.round(npc.view.getFloat32(48, true)) !== 1;
 }
 
 export function set_npc_regular(npc: QuestNpc, regular: boolean): void {
-    npc.view.setInt32(
-        48,
-        (npc.view.getInt32(48, true) & ~0x800000) | (regular ? 0 : 0x800000),
-        true,
-    );
+    npc.view.setFloat32(48, regular ? 0 : 1, true);
 }
