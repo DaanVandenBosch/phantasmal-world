@@ -5,21 +5,20 @@ Features that are in ***bold italics*** are planned but not yet implemented.
 ## Create New Quest
 
 - Load a new quest with minimal script and default entities
-- Support for episodes I, ***II*** and IV
+- Support for episodes I, ***II*** and ***IV***
 
 ## Load Quest
 
 - Open file button
-- Support for .qst (BB, ***GC***, ***PC***, ***DC***)
+- Support for .qst (BB, GC, PC, DC)
 - Notify user when and why quest loading fails
-    - ***Deal with missing DAT or BIN file in QST container file***
 
 ## Save Quest
 
 - "Save as" button
     - "Save as" dialog to choose name
-- Support for .qst (BB, ***GC***, ***PC***, ***DC***)
-- ***Notify user when and why quest saving fails***
+- Support for .qst (BB, GC, ***PC***, ***DC***)
+- Notify user when and why quest saving fails
 - ***Custom text-based format***
     - ***Usable with SCM tools***
 
@@ -72,7 +71,8 @@ Features that are in ***bold italics*** are planned but not yet implemented.
     - Via 3D view
     - Via entity view
 - ***Multi select and translate/rotate/edit***
-- ***Edit entity-specific properties***
+- Edit entity-specific properties
+    - ***Configure entity-specific properties***
 
 ## Events
 
@@ -99,6 +99,7 @@ Features that are in ***bold italics*** are planned but not yet implemented.
 - Simplified stack management (push* instructions are inserted transparently)
 - Data
     - Binary data
+        - ***Interpret data of known type***
     - Strings
 - Labels
 - Interpret code called from NPCs and objects as code
@@ -108,6 +109,7 @@ Features that are in ***bold italics*** are planned but not yet implemented.
 - Instructions
 - Data
     - Binary data
+        - ***Interpret data of known type***
     - Strings
 - Labels
     - ***Show in outline***
@@ -154,7 +156,6 @@ Features that are in ***bold italics*** are planned but not yet implemented.
 
 ## Bugs
 
-- [Load Quest](#load-quest): Can't parse quest 125 White Day
 - [Script Assembly Editor](#script-assembly-editor): Go to definition doesn't work in RT (#231), PW2
 (#234) and Magnitude of Metal (#1, can jump to label 207 from line 433, but not from line 465)
 - When a modal dialog is open, global keybindings should be disabled
@@ -174,5 +175,4 @@ Features that are in ***bold italics*** are planned but not yet implemented.
     - Desert Fixed Type Box (Breakable Crystals)
     - Merissa A
     - Merissa AA
-- All "Sonic" objects, even the ones that aren't actually Sonic, are rendered as Sonic
 - [Event Actions](#Event Actions): Editing event actions can't be undone
