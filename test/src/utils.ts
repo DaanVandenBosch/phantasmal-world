@@ -27,7 +27,7 @@ export function pw_test(
         LogManager.default_severity = max_log_severity + 1;
         LogManager.default_handler = entry => log.push(entry.message);
 
-        try_finally(
+        return try_finally(
             () => f(disposer),
             () => {
                 disposer.dispose();

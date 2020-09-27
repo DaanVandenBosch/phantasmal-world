@@ -1,5 +1,114 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`Renders correctly with a current quest.: should render property inputs 1`] = `
+<div
+  class="quest_editor_QuestInfoView"
+  tabindex="-1"
+>
+  <table>
+    <tr>
+      <th>
+        Episode:
+      </th>
+      <td>
+        I
+      </td>
+    </tr>
+    <tr>
+      <th>
+        ID:
+      </th>
+      <td>
+        <span
+          class="core_NumberInput core_Input"
+        >
+          <input
+            class="core_NumberInput_inner core_Input_inner"
+            min="0"
+            step="1"
+            type="number"
+          />
+        </span>
+      </td>
+    </tr>
+    <tr>
+      <th>
+        Name:
+      </th>
+      <td>
+        <span
+          class="core_TextInput core_Input"
+        >
+          <input
+            class="core_TextInput_inner core_Input_inner"
+            maxlength="32"
+            type="text"
+          />
+        </span>
+      </td>
+    </tr>
+    <tr>
+      <th
+        colspan="2"
+      >
+        Short description:
+      </th>
+    </tr>
+    <tr>
+      <td
+        colspan="2"
+      >
+        <div
+          class="core_TextArea"
+        >
+          <textarea
+            class="core_TextArea_inner"
+            cols="25"
+            maxlength="128"
+            rows="5"
+            style="font-family: \\"Courier New\\", monospace;"
+          />
+        </div>
+      </td>
+    </tr>
+    <tr>
+      <th
+        colspan="2"
+      >
+        Long description:
+      </th>
+    </tr>
+    <tr>
+      <td
+        colspan="2"
+      >
+        <div
+          class="core_TextArea"
+        >
+          <textarea
+            class="core_TextArea_inner"
+            cols="25"
+            maxlength="288"
+            rows="10"
+            style="font-family: \\"Courier New\\", monospace;"
+          />
+        </div>
+      </td>
+    </tr>
+  </table>
+  <div
+    class="quest_editor_UnavailableView"
+    hidden=""
+  >
+    <label
+      class="core_Label disabled"
+    >
+      No quest loaded.
+    </label>
+  </div>
+</div>
+`;
+
 exports[`Renders correctly without a current quest.: should render a "No quest loaded." view 1`] = `
 <div
   class="quest_editor_QuestInfoView"

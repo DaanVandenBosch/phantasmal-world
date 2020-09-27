@@ -84,8 +84,11 @@ export class LogStore extends Store {
 
             for (let i = 0; i < len; i++) {
                 const entry = buffered_entries[i];
-                const logger_name = buffered_logger_names[i];
-                LogManager.default_handler(entry, logger_name);
+
+                if (entry.severity >= LogManager.default_severity) {
+                    const logger_name = buffered_logger_names[i];
+                    LogManager.default_handler(entry, logger_name);
+                }
             }
 
             // Occasionally clean up old log messages if there are too many.
