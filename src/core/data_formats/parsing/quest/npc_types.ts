@@ -1,5 +1,5 @@
 import { check_episode, Episode } from "./Episode";
-import { EntityProp } from "./properties";
+import { EntityProp, EntityPropType } from "./properties";
 
 // Make sure ObjectType does not overlap NpcType.
 export enum NpcType {
@@ -266,6 +266,7 @@ function define_npc_type_data(
     type_id: number | undefined,
     skin: number | undefined,
     regular: boolean | undefined,
+    properties: readonly [string, number, keyof typeof EntityPropType][],
 ): void {
     NPC_TYPES.push(npc_type);
 
@@ -284,7 +285,11 @@ function define_npc_type_data(
         type_id,
         skin,
         regular,
-        properties: [],
+        properties: properties.map(([name, offset, type]) => ({
+            name,
+            offset,
+            type: EntityPropType[type],
+        })),
     });
 
     if (episode) {
@@ -313,11 +318,20 @@ define_npc_type_data(
     undefined,
     undefined,
     undefined,
+    [],
 );
 
 //
 // Friendly NPCs
 //
+
+const FRIENDLY_NPC_PROPERTIES: readonly [string, number, keyof typeof EntityPropType][] = [
+    ["Movement distance", 44, "F32"],
+    ["Hide register", 52, "F32"],
+    ["Character ID", 56, "F32"],
+    ["Script label", 60, "F32"],
+    ["Movement flag", 64, "I32"],
+];
 
 define_npc_type_data(
     NpcType.FemaleFat,
@@ -331,6 +345,7 @@ define_npc_type_data(
     0x004,
     0,
     true,
+    FRIENDLY_NPC_PROPERTIES,
 );
 define_npc_type_data(
     NpcType.FemaleMacho,
@@ -344,6 +359,7 @@ define_npc_type_data(
     0x005,
     0,
     true,
+    FRIENDLY_NPC_PROPERTIES,
 );
 define_npc_type_data(
     NpcType.FemaleTall,
@@ -357,6 +373,7 @@ define_npc_type_data(
     0x007,
     0,
     true,
+    FRIENDLY_NPC_PROPERTIES,
 );
 define_npc_type_data(
     NpcType.MaleDwarf,
@@ -370,6 +387,7 @@ define_npc_type_data(
     0x00a,
     0,
     true,
+    FRIENDLY_NPC_PROPERTIES,
 );
 define_npc_type_data(
     NpcType.MaleFat,
@@ -383,6 +401,7 @@ define_npc_type_data(
     0x00b,
     0,
     true,
+    FRIENDLY_NPC_PROPERTIES,
 );
 define_npc_type_data(
     NpcType.MaleMacho,
@@ -396,6 +415,7 @@ define_npc_type_data(
     0x00c,
     0,
     true,
+    FRIENDLY_NPC_PROPERTIES,
 );
 define_npc_type_data(
     NpcType.MaleOld,
@@ -409,6 +429,7 @@ define_npc_type_data(
     0x00d,
     0,
     true,
+    FRIENDLY_NPC_PROPERTIES,
 );
 define_npc_type_data(
     NpcType.BlueSoldier,
@@ -422,6 +443,7 @@ define_npc_type_data(
     0x019,
     0,
     true,
+    FRIENDLY_NPC_PROPERTIES,
 );
 define_npc_type_data(
     NpcType.RedSoldier,
@@ -435,6 +457,7 @@ define_npc_type_data(
     0x01a,
     0,
     true,
+    FRIENDLY_NPC_PROPERTIES,
 );
 define_npc_type_data(
     NpcType.Principal,
@@ -448,6 +471,7 @@ define_npc_type_data(
     0x01b,
     0,
     true,
+    FRIENDLY_NPC_PROPERTIES,
 );
 define_npc_type_data(
     NpcType.Tekker,
@@ -461,6 +485,7 @@ define_npc_type_data(
     0x01c,
     0,
     true,
+    FRIENDLY_NPC_PROPERTIES,
 );
 define_npc_type_data(
     NpcType.GuildLady,
@@ -474,6 +499,7 @@ define_npc_type_data(
     0x01d,
     0,
     true,
+    FRIENDLY_NPC_PROPERTIES,
 );
 define_npc_type_data(
     NpcType.Scientist,
@@ -487,6 +513,7 @@ define_npc_type_data(
     0x01e,
     0,
     true,
+    FRIENDLY_NPC_PROPERTIES,
 );
 define_npc_type_data(
     NpcType.Nurse,
@@ -500,6 +527,7 @@ define_npc_type_data(
     0x01f,
     0,
     true,
+    FRIENDLY_NPC_PROPERTIES,
 );
 define_npc_type_data(
     NpcType.Irene,
@@ -513,6 +541,7 @@ define_npc_type_data(
     0x020,
     0,
     true,
+    FRIENDLY_NPC_PROPERTIES,
 );
 define_npc_type_data(
     NpcType.ItemShop,
@@ -526,6 +555,7 @@ define_npc_type_data(
     0x0f1,
     0,
     true,
+    FRIENDLY_NPC_PROPERTIES,
 );
 define_npc_type_data(
     NpcType.Nurse2,
@@ -539,6 +569,7 @@ define_npc_type_data(
     0x0fe,
     0,
     true,
+    FRIENDLY_NPC_PROPERTIES,
 );
 
 //
@@ -559,6 +590,7 @@ define_npc_type_data(
     0x040,
     0,
     true,
+    [],
 );
 define_npc_type_data(
     NpcType.Hildeblue,
@@ -572,6 +604,7 @@ define_npc_type_data(
     0x040,
     1,
     true,
+    [],
 );
 define_npc_type_data(
     NpcType.RagRappy,
@@ -585,6 +618,7 @@ define_npc_type_data(
     0x041,
     0,
     true,
+    [],
 );
 define_npc_type_data(
     NpcType.AlRappy,
@@ -598,6 +632,7 @@ define_npc_type_data(
     0x041,
     1,
     true,
+    [],
 );
 define_npc_type_data(
     NpcType.Monest,
@@ -611,6 +646,11 @@ define_npc_type_data(
     0x042,
     0,
     true,
+    [
+        ["State", 44, "F32"],
+        ["Start number", 48, "F32"],
+        ["Total number", 52, "F32"],
+    ],
 );
 define_npc_type_data(
     NpcType.Mothmant,
@@ -624,6 +664,7 @@ define_npc_type_data(
     undefined,
     undefined,
     undefined,
+    [],
 );
 define_npc_type_data(
     NpcType.SavageWolf,
@@ -637,6 +678,10 @@ define_npc_type_data(
     0x043,
     0,
     true,
+    [
+        ["Group ID", 44, "F32"],
+        ["Leader flag", 48, "F32"],
+    ],
 );
 define_npc_type_data(
     NpcType.BarbarousWolf,
@@ -650,6 +695,10 @@ define_npc_type_data(
     0x043,
     0,
     false,
+    [
+        ["Group ID", 44, "F32"],
+        ["Leader flag", 48, "F32"],
+    ],
 );
 define_npc_type_data(
     NpcType.Booma,
@@ -663,6 +712,7 @@ define_npc_type_data(
     0x044,
     0,
     true,
+    [["Idle distance", 48, "F32"]],
 );
 define_npc_type_data(
     NpcType.Gobooma,
@@ -676,6 +726,7 @@ define_npc_type_data(
     0x044,
     1,
     true,
+    [["Idle distance", 48, "F32"]],
 );
 define_npc_type_data(
     NpcType.Gigobooma,
@@ -689,6 +740,7 @@ define_npc_type_data(
     0x044,
     2,
     true,
+    [["Idle distance", 48, "F32"]],
 );
 define_npc_type_data(
     NpcType.Dragon,
@@ -702,6 +754,7 @@ define_npc_type_data(
     0x0c0,
     0,
     true,
+    [],
 );
 
 // Episode I Caves
@@ -718,6 +771,7 @@ define_npc_type_data(
     0x060,
     0,
     true,
+    [],
 );
 define_npc_type_data(
     NpcType.PoisonLily,
@@ -731,6 +785,7 @@ define_npc_type_data(
     0x061,
     0,
     true,
+    [],
 );
 define_npc_type_data(
     NpcType.NarLily,
@@ -744,6 +799,7 @@ define_npc_type_data(
     0x061,
     1,
     true,
+    [],
 );
 define_npc_type_data(
     NpcType.NanoDragon,
@@ -757,6 +813,7 @@ define_npc_type_data(
     0x062,
     0,
     true,
+    [["Spawn flag", 64, "I32"]],
 );
 define_npc_type_data(
     NpcType.EvilShark,
@@ -770,6 +827,7 @@ define_npc_type_data(
     0x063,
     0,
     true,
+    [["Idle distance", 48, "F32"]],
 );
 define_npc_type_data(
     NpcType.PalShark,
@@ -783,6 +841,7 @@ define_npc_type_data(
     0x063,
     1,
     true,
+    [["Idle distance", 48, "F32"]],
 );
 define_npc_type_data(
     NpcType.GuilShark,
@@ -796,6 +855,7 @@ define_npc_type_data(
     0x063,
     2,
     true,
+    [["Idle distance", 48, "F32"]],
 );
 define_npc_type_data(
     NpcType.PofuillySlime,
@@ -809,6 +869,7 @@ define_npc_type_data(
     0x064,
     0,
     true,
+    [],
 );
 define_npc_type_data(
     NpcType.PouillySlime,
@@ -822,6 +883,7 @@ define_npc_type_data(
     0x064,
     0,
     false,
+    [],
 );
 define_npc_type_data(
     NpcType.PanArms,
@@ -835,6 +897,7 @@ define_npc_type_data(
     0x065,
     0,
     true,
+    [],
 );
 define_npc_type_data(
     NpcType.Migium,
@@ -848,6 +911,7 @@ define_npc_type_data(
     undefined,
     undefined,
     undefined,
+    [],
 );
 define_npc_type_data(
     NpcType.Hidoom,
@@ -861,6 +925,7 @@ define_npc_type_data(
     undefined,
     undefined,
     undefined,
+    [],
 );
 define_npc_type_data(
     NpcType.DeRolLe,
@@ -874,6 +939,7 @@ define_npc_type_data(
     0x0c1,
     0,
     true,
+    [],
 );
 
 // Episode I Mines
@@ -890,6 +956,7 @@ define_npc_type_data(
     0x080,
     0,
     true,
+    [],
 );
 define_npc_type_data(
     NpcType.Gilchic,
@@ -903,6 +970,7 @@ define_npc_type_data(
     0x080,
     1,
     true,
+    [],
 );
 define_npc_type_data(
     NpcType.Garanz,
@@ -916,6 +984,7 @@ define_npc_type_data(
     0x081,
     0,
     true,
+    [],
 );
 define_npc_type_data(
     NpcType.SinowBeat,
@@ -929,6 +998,7 @@ define_npc_type_data(
     0x082,
     0,
     true,
+    [],
 );
 define_npc_type_data(
     NpcType.SinowGold,
@@ -942,6 +1012,7 @@ define_npc_type_data(
     0x082,
     0,
     false,
+    [],
 );
 define_npc_type_data(
     NpcType.Canadine,
@@ -955,6 +1026,7 @@ define_npc_type_data(
     0x083,
     0,
     true,
+    [],
 );
 define_npc_type_data(
     NpcType.Canane,
@@ -968,6 +1040,7 @@ define_npc_type_data(
     0x084,
     0,
     true,
+    [],
 );
 define_npc_type_data(
     NpcType.Dubswitch,
@@ -981,6 +1054,7 @@ define_npc_type_data(
     0x085,
     0,
     true,
+    [],
 );
 define_npc_type_data(
     NpcType.VolOptPart1,
@@ -994,6 +1068,7 @@ define_npc_type_data(
     0x0c2,
     0,
     true,
+    [],
 );
 define_npc_type_data(
     NpcType.VolOptPart2,
@@ -1007,6 +1082,7 @@ define_npc_type_data(
     0x0c5,
     0,
     true,
+    [],
 );
 
 // Episode I Ruins
@@ -1023,6 +1099,10 @@ define_npc_type_data(
     0x0a0,
     0,
     true,
+    [
+        ["Jump distance", 44, "F32"],
+        ["Block HP", 48, "F32"],
+    ],
 );
 define_npc_type_data(
     NpcType.ChaosSorcerer,
@@ -1036,6 +1116,7 @@ define_npc_type_data(
     0x0a1,
     0,
     true,
+    [],
 );
 define_npc_type_data(
     NpcType.DarkGunner,
@@ -1049,6 +1130,7 @@ define_npc_type_data(
     0x0a2,
     0,
     true,
+    [],
 );
 define_npc_type_data(
     NpcType.DeathGunner,
@@ -1062,6 +1144,7 @@ define_npc_type_data(
     undefined,
     undefined,
     undefined,
+    [],
 );
 define_npc_type_data(
     NpcType.ChaosBringer,
@@ -1075,6 +1158,7 @@ define_npc_type_data(
     0x0a4,
     0,
     true,
+    [],
 );
 define_npc_type_data(
     NpcType.DarkBelra,
@@ -1088,6 +1172,7 @@ define_npc_type_data(
     0x0a5,
     0,
     true,
+    [],
 );
 define_npc_type_data(
     NpcType.Dimenian,
@@ -1101,6 +1186,7 @@ define_npc_type_data(
     0x0a6,
     0,
     true,
+    [["Idle distance", 48, "F32"]],
 );
 define_npc_type_data(
     NpcType.LaDimenian,
@@ -1114,6 +1200,7 @@ define_npc_type_data(
     0x0a6,
     1,
     true,
+    [["Idle distance", 48, "F32"]],
 );
 define_npc_type_data(
     NpcType.SoDimenian,
@@ -1127,6 +1214,7 @@ define_npc_type_data(
     0x0a6,
     2,
     true,
+    [["Idle distance", 48, "F32"]],
 );
 define_npc_type_data(
     NpcType.Bulclaw,
@@ -1140,6 +1228,7 @@ define_npc_type_data(
     0x0a7,
     0,
     true,
+    [],
 );
 define_npc_type_data(
     NpcType.Bulk,
@@ -1153,6 +1242,7 @@ define_npc_type_data(
     undefined,
     undefined,
     undefined,
+    [],
 );
 define_npc_type_data(
     NpcType.Claw,
@@ -1166,6 +1256,7 @@ define_npc_type_data(
     0x0a8,
     0,
     true,
+    [],
 );
 define_npc_type_data(
     NpcType.DarkFalz,
@@ -1179,6 +1270,7 @@ define_npc_type_data(
     0x0c8,
     0,
     true,
+    [],
 );
 
 // Episode II VR Temple
@@ -1195,6 +1287,7 @@ define_npc_type_data(
     0x040,
     0,
     true,
+    [],
 );
 define_npc_type_data(
     NpcType.Hildeblue2,
@@ -1208,6 +1301,7 @@ define_npc_type_data(
     0x040,
     1,
     true,
+    [],
 );
 define_npc_type_data(
     NpcType.RagRappy2,
@@ -1221,6 +1315,7 @@ define_npc_type_data(
     0x041,
     0,
     true,
+    [],
 );
 define_npc_type_data(
     NpcType.LoveRappy,
@@ -1234,6 +1329,7 @@ define_npc_type_data(
     0x041,
     1,
     true,
+    [],
 );
 define_npc_type_data(
     NpcType.StRappy,
@@ -1247,6 +1343,7 @@ define_npc_type_data(
     undefined,
     undefined,
     undefined,
+    [],
 );
 define_npc_type_data(
     NpcType.HalloRappy,
@@ -1260,6 +1357,7 @@ define_npc_type_data(
     undefined,
     undefined,
     undefined,
+    [],
 );
 define_npc_type_data(
     NpcType.EggRappy,
@@ -1273,6 +1371,7 @@ define_npc_type_data(
     undefined,
     undefined,
     undefined,
+    [],
 );
 define_npc_type_data(
     NpcType.Monest2,
@@ -1286,6 +1385,11 @@ define_npc_type_data(
     0x042,
     0,
     true,
+    [
+        ["State", 44, "F32"],
+        ["Start number", 48, "F32"],
+        ["Total number", 52, "F32"],
+    ],
 );
 define_npc_type_data(
     NpcType.Mothmant2,
@@ -1299,6 +1403,7 @@ define_npc_type_data(
     undefined,
     undefined,
     undefined,
+    [],
 );
 define_npc_type_data(
     NpcType.PoisonLily2,
@@ -1312,6 +1417,7 @@ define_npc_type_data(
     0x061,
     0,
     true,
+    [],
 );
 define_npc_type_data(
     NpcType.NarLily2,
@@ -1325,6 +1431,7 @@ define_npc_type_data(
     0x061,
     1,
     true,
+    [],
 );
 define_npc_type_data(
     NpcType.GrassAssassin2,
@@ -1338,6 +1445,7 @@ define_npc_type_data(
     0x060,
     0,
     true,
+    [],
 );
 define_npc_type_data(
     NpcType.Dimenian2,
@@ -1351,6 +1459,7 @@ define_npc_type_data(
     0x0a6,
     0,
     true,
+    [["Idle distance", 48, "F32"]],
 );
 define_npc_type_data(
     NpcType.LaDimenian2,
@@ -1364,6 +1473,7 @@ define_npc_type_data(
     0x0a6,
     1,
     true,
+    [["Idle distance", 48, "F32"]],
 );
 define_npc_type_data(
     NpcType.SoDimenian2,
@@ -1377,6 +1487,7 @@ define_npc_type_data(
     0x0a6,
     2,
     true,
+    [["Idle distance", 48, "F32"]],
 );
 define_npc_type_data(
     NpcType.DarkBelra2,
@@ -1390,6 +1501,7 @@ define_npc_type_data(
     0x0a5,
     0,
     true,
+    [],
 );
 define_npc_type_data(
     NpcType.BarbaRay,
@@ -1403,6 +1515,7 @@ define_npc_type_data(
     0x0cb,
     0,
     true,
+    [],
 );
 
 // Episode II VR Spaceship
@@ -1419,6 +1532,10 @@ define_npc_type_data(
     0x043,
     0,
     true,
+    [
+        ["Group ID", 44, "F32"],
+        ["Leader flag", 48, "F32"],
+    ],
 );
 define_npc_type_data(
     NpcType.BarbarousWolf2,
@@ -1432,6 +1549,10 @@ define_npc_type_data(
     0x043,
     0,
     false,
+    [
+        ["Group ID", 44, "F32"],
+        ["Leader flag", 48, "F32"],
+    ],
 );
 define_npc_type_data(
     NpcType.PanArms2,
@@ -1445,6 +1566,7 @@ define_npc_type_data(
     0x065,
     0,
     true,
+    [],
 );
 define_npc_type_data(
     NpcType.Migium2,
@@ -1458,6 +1580,7 @@ define_npc_type_data(
     undefined,
     undefined,
     undefined,
+    [],
 );
 define_npc_type_data(
     NpcType.Hidoom2,
@@ -1471,6 +1594,7 @@ define_npc_type_data(
     undefined,
     undefined,
     undefined,
+    [],
 );
 define_npc_type_data(
     NpcType.Dubchic2,
@@ -1484,6 +1608,7 @@ define_npc_type_data(
     0x080,
     0,
     true,
+    [],
 );
 define_npc_type_data(
     NpcType.Gilchic2,
@@ -1497,6 +1622,7 @@ define_npc_type_data(
     0x080,
     1,
     true,
+    [],
 );
 define_npc_type_data(
     NpcType.Garanz2,
@@ -1510,6 +1636,7 @@ define_npc_type_data(
     0x081,
     0,
     true,
+    [],
 );
 define_npc_type_data(
     NpcType.Dubswitch2,
@@ -1523,6 +1650,7 @@ define_npc_type_data(
     0x085,
     0,
     true,
+    [],
 );
 define_npc_type_data(
     NpcType.Delsaber2,
@@ -1536,6 +1664,10 @@ define_npc_type_data(
     0x0a0,
     0,
     true,
+    [
+        ["Jump distance", 44, "F32"],
+        ["Block HP", 48, "F32"],
+    ],
 );
 define_npc_type_data(
     NpcType.ChaosSorcerer2,
@@ -1549,6 +1681,7 @@ define_npc_type_data(
     0x0a1,
     0,
     true,
+    [],
 );
 define_npc_type_data(
     NpcType.GolDragon,
@@ -1562,6 +1695,7 @@ define_npc_type_data(
     0x0cc,
     0,
     true,
+    [],
 );
 
 // Episode II Central Control Area
@@ -1578,6 +1712,7 @@ define_npc_type_data(
     0x0d4,
     0,
     true,
+    [],
 );
 define_npc_type_data(
     NpcType.SinowSpigell,
@@ -1591,6 +1726,7 @@ define_npc_type_data(
     0x0d4,
     1,
     true,
+    [],
 );
 define_npc_type_data(
     NpcType.Merillia,
@@ -1604,6 +1740,7 @@ define_npc_type_data(
     0x0d5,
     0,
     true,
+    [],
 );
 define_npc_type_data(
     NpcType.Meriltas,
@@ -1617,6 +1754,7 @@ define_npc_type_data(
     0x0d5,
     1,
     true,
+    [],
 );
 define_npc_type_data(
     NpcType.Mericarol,
@@ -1630,6 +1768,7 @@ define_npc_type_data(
     0x0d6,
     0,
     true,
+    [],
 );
 define_npc_type_data(
     NpcType.Mericus,
@@ -1643,6 +1782,7 @@ define_npc_type_data(
     0x0d6,
     1,
     true,
+    [],
 );
 define_npc_type_data(
     NpcType.Merikle,
@@ -1656,6 +1796,7 @@ define_npc_type_data(
     0x0d6,
     2,
     true,
+    [],
 );
 define_npc_type_data(
     NpcType.UlGibbon,
@@ -1669,6 +1810,13 @@ define_npc_type_data(
     0x0d7,
     0,
     true,
+    [
+        ["Spot appear", 44, "F32"],
+        ["Jump appear", 48, "F32"],
+        ["Back jump", 52, "F32"],
+        ["Run tech", 56, "F32"],
+        ["Back tech", 60, "F32"],
+    ],
 );
 define_npc_type_data(
     NpcType.ZolGibbon,
@@ -1682,6 +1830,13 @@ define_npc_type_data(
     0x0d7,
     1,
     true,
+    [
+        ["Spot appear", 44, "F32"],
+        ["Jump appear", 48, "F32"],
+        ["Back jump", 52, "F32"],
+        ["Run tech", 56, "F32"],
+        ["Back tech", 60, "F32"],
+    ],
 );
 define_npc_type_data(
     NpcType.Gibbles,
@@ -1695,6 +1850,7 @@ define_npc_type_data(
     0x0d8,
     0,
     true,
+    [],
 );
 define_npc_type_data(
     NpcType.Gee,
@@ -1708,6 +1864,7 @@ define_npc_type_data(
     0x0d9,
     0,
     true,
+    [],
 );
 define_npc_type_data(
     NpcType.GiGue,
@@ -1721,6 +1878,7 @@ define_npc_type_data(
     0x0da,
     0,
     true,
+    [],
 );
 define_npc_type_data(
     NpcType.IllGill,
@@ -1734,6 +1892,7 @@ define_npc_type_data(
     0x0e1,
     0,
     true,
+    [],
 );
 define_npc_type_data(
     NpcType.DelLily,
@@ -1747,6 +1906,7 @@ define_npc_type_data(
     0x061,
     0,
     true,
+    [],
 );
 define_npc_type_data(
     NpcType.Epsilon,
@@ -1760,6 +1920,7 @@ define_npc_type_data(
     0x0e0,
     0,
     true,
+    [],
 );
 define_npc_type_data(
     NpcType.GalGryphon,
@@ -1773,6 +1934,7 @@ define_npc_type_data(
     0x0c0,
     0,
     true,
+    [],
 );
 
 // Episode II Seabed
@@ -1789,6 +1951,7 @@ define_npc_type_data(
     0x0db,
     0,
     true,
+    [],
 );
 define_npc_type_data(
     NpcType.Delbiter,
@@ -1802,6 +1965,14 @@ define_npc_type_data(
     0x0dc,
     0,
     true,
+    [
+        ["Howl percent", 44, "F32"],
+        ["Confuse percent", 48, "F32"],
+        ["Confuse distance", 52, "F32"],
+        ["Laser percent", 56, "F32"],
+        ["Charge percent", 60, "F32"],
+        ["Type", 64, "I32"],
+    ],
 );
 define_npc_type_data(
     NpcType.Dolmolm,
@@ -1815,6 +1986,7 @@ define_npc_type_data(
     0x0dd,
     0,
     true,
+    [],
 );
 define_npc_type_data(
     NpcType.Dolmdarl,
@@ -1828,6 +2000,7 @@ define_npc_type_data(
     0x0dd,
     1,
     true,
+    [],
 );
 define_npc_type_data(
     NpcType.Morfos,
@@ -1841,6 +2014,7 @@ define_npc_type_data(
     0x0de,
     0,
     true,
+    [],
 );
 define_npc_type_data(
     NpcType.Recobox,
@@ -1854,6 +2028,7 @@ define_npc_type_data(
     0x0df,
     0,
     true,
+    [],
 );
 define_npc_type_data(
     NpcType.Recon,
@@ -1867,6 +2042,7 @@ define_npc_type_data(
     undefined,
     undefined,
     undefined,
+    [],
 );
 define_npc_type_data(
     NpcType.SinowZoa,
@@ -1880,6 +2056,7 @@ define_npc_type_data(
     0x0e0,
     0,
     true,
+    [],
 );
 define_npc_type_data(
     NpcType.SinowZele,
@@ -1893,6 +2070,7 @@ define_npc_type_data(
     0x0e0,
     1,
     true,
+    [],
 );
 define_npc_type_data(
     NpcType.OlgaFlow,
@@ -1906,6 +2084,7 @@ define_npc_type_data(
     0x0ca,
     0,
     true,
+    [],
 );
 
 // Episode IV
@@ -1922,6 +2101,7 @@ define_npc_type_data(
     0x041,
     0,
     true,
+    [],
 );
 define_npc_type_data(
     NpcType.DelRappy,
@@ -1935,6 +2115,7 @@ define_npc_type_data(
     0x041,
     1,
     true,
+    [],
 );
 define_npc_type_data(
     NpcType.Astark,
@@ -1948,6 +2129,7 @@ define_npc_type_data(
     0x110,
     0,
     true,
+    [],
 );
 define_npc_type_data(
     NpcType.SatelliteLizard,
@@ -1961,6 +2143,7 @@ define_npc_type_data(
     0x111,
     0,
     true,
+    [],
 );
 define_npc_type_data(
     NpcType.Yowie,
@@ -1974,6 +2157,7 @@ define_npc_type_data(
     0x111,
     0,
     false,
+    [],
 );
 define_npc_type_data(
     NpcType.MerissaA,
@@ -1987,6 +2171,7 @@ define_npc_type_data(
     0x112,
     0,
     true,
+    [],
 );
 define_npc_type_data(
     NpcType.MerissaAA,
@@ -2000,6 +2185,7 @@ define_npc_type_data(
     0x112,
     1,
     true,
+    [],
 );
 define_npc_type_data(
     NpcType.Girtablulu,
@@ -2013,6 +2199,7 @@ define_npc_type_data(
     0x113,
     0,
     true,
+    [],
 );
 define_npc_type_data(
     NpcType.Zu,
@@ -2026,6 +2213,7 @@ define_npc_type_data(
     0x114,
     0,
     true,
+    [],
 );
 define_npc_type_data(
     NpcType.Pazuzu,
@@ -2039,6 +2227,7 @@ define_npc_type_data(
     0x114,
     1,
     true,
+    [],
 );
 define_npc_type_data(
     NpcType.Boota,
@@ -2052,6 +2241,7 @@ define_npc_type_data(
     0x115,
     0,
     true,
+    [],
 );
 define_npc_type_data(
     NpcType.ZeBoota,
@@ -2065,6 +2255,7 @@ define_npc_type_data(
     0x115,
     1,
     true,
+    [],
 );
 define_npc_type_data(
     NpcType.BaBoota,
@@ -2078,6 +2269,7 @@ define_npc_type_data(
     0x115,
     2,
     true,
+    [],
 );
 define_npc_type_data(
     NpcType.Dorphon,
@@ -2091,6 +2283,7 @@ define_npc_type_data(
     0x116,
     0,
     true,
+    [],
 );
 define_npc_type_data(
     NpcType.DorphonEclair,
@@ -2104,6 +2297,7 @@ define_npc_type_data(
     0x116,
     1,
     true,
+    [],
 );
 define_npc_type_data(
     NpcType.Goran,
@@ -2117,6 +2311,7 @@ define_npc_type_data(
     0x117,
     0,
     true,
+    [],
 );
 define_npc_type_data(
     NpcType.PyroGoran,
@@ -2130,6 +2325,7 @@ define_npc_type_data(
     0x117,
     1,
     true,
+    [],
 );
 define_npc_type_data(
     NpcType.GoranDetonator,
@@ -2143,6 +2339,7 @@ define_npc_type_data(
     0x117,
     2,
     true,
+    [],
 );
 define_npc_type_data(
     NpcType.SaintMilion,
@@ -2156,6 +2353,7 @@ define_npc_type_data(
     0x119,
     0,
     true,
+    [],
 );
 define_npc_type_data(
     NpcType.Shambertin,
@@ -2169,6 +2367,7 @@ define_npc_type_data(
     0x119,
     1,
     true,
+    [],
 );
 define_npc_type_data(
     NpcType.Kondrieu,
@@ -2182,6 +2381,7 @@ define_npc_type_data(
     0x119,
     0,
     false,
+    [],
 );
 
 Object.freeze(NPC_TYPES);

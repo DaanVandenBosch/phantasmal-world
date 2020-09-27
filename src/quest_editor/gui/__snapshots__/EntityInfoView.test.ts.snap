@@ -163,7 +163,90 @@ exports[`Renders correctly with an entity selected.: should render a table of ed
   </table>
   <table
     class="quest_editor_EntityInfoView_specific_props"
-  />
+  >
+    <tr>
+      <th>
+        Movement distance:
+      </th>
+      <td>
+        <span
+          class="core_NumberInput core_Input"
+        >
+          <input
+            class="core_NumberInput_inner core_Input_inner"
+            step="any"
+            type="number"
+          />
+        </span>
+      </td>
+    </tr>
+    <tr>
+      <th>
+        Hide register:
+      </th>
+      <td>
+        <span
+          class="core_NumberInput core_Input"
+        >
+          <input
+            class="core_NumberInput_inner core_Input_inner"
+            step="any"
+            type="number"
+          />
+        </span>
+      </td>
+    </tr>
+    <tr>
+      <th>
+        Character ID:
+      </th>
+      <td>
+        <span
+          class="core_NumberInput core_Input"
+        >
+          <input
+            class="core_NumberInput_inner core_Input_inner"
+            step="any"
+            type="number"
+          />
+        </span>
+      </td>
+    </tr>
+    <tr>
+      <th>
+        Script label:
+      </th>
+      <td>
+        <span
+          class="core_NumberInput core_Input"
+        >
+          <input
+            class="core_NumberInput_inner core_Input_inner"
+            step="any"
+            type="number"
+          />
+        </span>
+      </td>
+    </tr>
+    <tr>
+      <th>
+        Movement flag:
+      </th>
+      <td>
+        <span
+          class="core_NumberInput core_Input"
+        >
+          <input
+            class="core_NumberInput_inner core_Input_inner"
+            max="2147483647"
+            min="-2147483648"
+            step="any"
+            type="number"
+          />
+        </span>
+      </td>
+    </tr>
+  </table>
   <div
     class="quest_editor_UnavailableView"
     hidden=""
