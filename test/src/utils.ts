@@ -82,7 +82,7 @@ export function get_qst_files(dir: string): [string, string][] {
             // TODO: Some quests can not yet be parsed correctly.
             const exceptions = [
                 "/battle/", // Battle mode quests
-                "/princ/", // Goverment quests
+                "/princ/", // Government quests
                 "fragmentofmemoryen.qst",
                 "lost havoc vulcan.qst",
                 "ep2/event/ma4-a.qst",

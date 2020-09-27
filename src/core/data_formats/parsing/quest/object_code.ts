@@ -32,6 +32,25 @@ SEGMENT_PRIORITY[SegmentType.Instructions] = 2;
 SEGMENT_PRIORITY[SegmentType.String] = 1;
 SEGMENT_PRIORITY[SegmentType.Data] = 0;
 
+const BUILTIN_FUNCTIONS = new Set([
+    60,
+    70,
+    80,
+    90,
+    100,
+    110,
+    120,
+    130,
+    140,
+    800,
+    810,
+    820,
+    830,
+    840,
+    850,
+    860,
+]);
+
 export function parse_object_code(
     object_code: ArrayBuffer,
     label_offsets: readonly number[],
@@ -409,7 +428,9 @@ function parse_segment(
         const info = label_holder.get_info(label);
 
         if (info == undefined) {
-            logger.warn(`Label ${label} is not registered in the label table.`);
+            if (!BUILTIN_FUNCTIONS.has(label)) {
+                logger.warn(`Label ${label} is not registered in the label table.`);
+            }
             return;
         }
 

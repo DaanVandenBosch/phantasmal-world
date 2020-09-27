@@ -145,6 +145,13 @@ export function get_npc_script_label(npc: QuestNpc): number {
     return Math.round(npc.view.getFloat32(60, true));
 }
 
+/**
+ * Only seems to be valid for non-enemies.
+ */
+export function set_npc_script_label(npc: QuestNpc, script_label: number): void {
+    npc.view.setFloat32(60, script_label, true);
+}
+
 export function get_npc_skin(npc: QuestNpc): number {
     return npc.view.getUint32(64, true);
 }
