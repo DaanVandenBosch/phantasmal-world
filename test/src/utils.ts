@@ -13,6 +13,7 @@ import { LogManager } from "../../src/core/logging";
 import { Severity } from "../../src/core/Severity";
 import { Disposer } from "../../src/core/observable/Disposer";
 import { try_finally } from "../../src/core/util";
+import * as walk_quests from "../../assets_generation/walk_quests";
 
 export function pw_test(
     { max_log_severity = Severity.Info }: { max_log_severity?: Severity },
@@ -60,44 +61,9 @@ export function next_animation_frame(): Promise<void> {
  */
 export function walk_qst_files(
     f: (path: string, file_name: string, contents: Buffer) => void,
-    dir = "test/resources/tethealla_v0.143_quests",
+    dir: string,
 ): void {
-    for (const [path, file] of get_qst_files(dir)) {
-        f(path, file, fs.readFileSync(path));
-    }
-}
-
-export function get_qst_files(dir: string): [string, string][] {
-    let files: [string, string][] = [];
-
-    for (const file of fs.readdirSync(dir)) {
-        const path = `${dir}/${file}`;
-        const stats = fs.statSync(path);
-
-        if (stats.isDirectory()) {
-            files = files.concat(get_qst_files(path));
-        } else if (path.endsWith(".qst")) {
-            // BUG: Battle quests are not always parsed in the same way.
-            // Could be a bug in Jest or Node as the quest parsing code has no randomness or dependency on mutable state.
-            // TODO: Some quests can not yet be parsed correctly.
-            const exceptions = [
-                "/battle/", // Battle mode quests
-                "/princ/", // Government quests
-                "fragmentofmemoryen.qst",
-                "lost havoc vulcan.qst",
-                "ep2/event/ma4-a.qst",
-                "gallon.qst",
-                "ep1/04.qst",
-                "goodluck.qst",
-            ];
-
-            if (exceptions.every(e => path.indexOf(e) === -1)) {
-                files.push([path, file]);
-            }
-        }
-    }
-
-    return files;
+    walk_quests.walk_qst_files(f, dir);
 }
 
 export function load_default_quest_model(area_store: AreaStore): QuestModel {

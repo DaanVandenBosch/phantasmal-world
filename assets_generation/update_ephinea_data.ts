@@ -1,8 +1,8 @@
-import { readdirSync, readFileSync, statSync, writeFileSync } from "fs";
+import { readFileSync, writeFileSync } from "fs";
 import { ASSETS_DIR, RESOURCE_DIR } from ".";
 import { BufferCursor } from "../src/core/data_formats/block/cursor/BufferCursor";
 import { ItemPmt, parse_item_pmt } from "../src/core/data_formats/parsing/itempmt";
-import { parse_qst_to_quest } from "../src/core/data_formats/parsing/quest";
+import { QuestData } from "../src/core/data_formats/parsing/quest";
 import { parse_unitxt, Unitxt } from "../src/core/data_formats/parsing/unitxt";
 import { Difficulties, Difficulty, SectionId, SectionIds } from "../src/core/model";
 import { update_drops_from_website } from "./update_drops_ephinea";
@@ -16,14 +16,13 @@ import { LogManager } from "../src/core/logging";
 import { Severity } from "../src/core/Severity";
 import { unwrap } from "../src/core/Result";
 import { get_npc_type } from "../src/core/data_formats/parsing/quest/QuestNpc";
+import { walk_quests } from "./walk_quests";
 
 const logger = LogManager.get("assets_generation/update_ephinea_data");
 
 LogManager.default_severity = Severity.Error;
 logger.severity = Severity.Info;
 LogManager.get("static/update_drops_ephinea").severity = Severity.Info;
-LogManager.get("core/data_formats/parsing/quest").severity = Severity.Off;
-LogManager.get("core/data_formats/parsing/quest/bin").severity = Severity.Off;
 
 /**
  * Used by static data generation scripts.
@@ -77,8 +76,8 @@ async function update(): Promise<void> {
 function update_quests(): void {
     logger.info("Updating quest data.");
 
-    const quests = new Array<QuestDto>();
-    process_quest_dir(`${EPHINEA_RESOURCE_DIR}/ship-config/quest`, quests);
+    const quests: QuestDto[] = [];
+    walk_quests(`${EPHINEA_RESOURCE_DIR}/ship-config/quest`, q => process_quest(quests, q));
 
     quests.sort((a, b) => a.episode - b.episode || a.name.localeCompare(b.name));
 
@@ -99,52 +98,29 @@ function update_quests(): void {
     logger.info("Done updating quest data.");
 }
 
-function process_quest_dir(path: string, quests: QuestDto[]): void {
-    const stat = statSync(path);
+function process_quest(quests: QuestDto[], { quest }: QuestData): void {
+    logger.trace(`Processing quest "${quest.name}".`);
 
-    if (stat.isFile()) {
-        process_quest(path, quests);
-    } else if (stat.isDirectory()) {
-        for (const file of readdirSync(path)) {
-            process_quest_dir(`${path}/${file}`, quests);
+    if (quest.id == null) {
+        throw new Error("No id.");
+    }
+
+    const enemy_counts: { [npc_type_code: string]: number } = {};
+
+    for (const npc of quest.npcs) {
+        const type = get_npc_type(npc);
+
+        if (npc_data(type).enemy) {
+            enemy_counts[NpcType[type]] = (enemy_counts[NpcType[type]] || 0) + 1;
         }
     }
-}
 
-function process_quest(path: string, quests: QuestDto[]): void {
-    try {
-        const buf = readFileSync(path);
-        const q = parse_qst_to_quest(new BufferCursor(buf, Endianness.Little), true).value?.quest;
-
-        if (q) {
-            logger.trace(`Processing quest "${q.name}".`);
-
-            if (q.id == null) {
-                throw new Error("No id.");
-            }
-
-            const enemy_counts: { [npc_type_code: string]: number } = {};
-
-            for (const npc of q.npcs) {
-                const type = get_npc_type(npc);
-
-                if (npc_data(type).enemy) {
-                    enemy_counts[NpcType[type]] = (enemy_counts[NpcType[type]] || 0) + 1;
-                }
-            }
-
-            quests.push({
-                id: q.id,
-                name: q.name,
-                episode: q.episode,
-                enemy_counts: enemy_counts,
-            });
-        } else {
-            logger.error(`Couldn't process ${path}.`);
-        }
-    } catch (e) {
-        logger.error(`Couldn't process ${path}.`, e);
-    }
+    quests.push({
+        id: quest.id,
+        name: quest.name,
+        episode: quest.episode,
+        enemy_counts: enemy_counts,
+    });
 }
 
 function load_unitxt(): Unitxt {

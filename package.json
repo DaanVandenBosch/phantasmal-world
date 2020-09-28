@@ -26,6 +26,7 @@
         "test": "jest",
         "update_generic_data": "ts-node --project=tsconfig-scripts.json assets_generation/update_generic_data.ts",
         "update_ephinea_data": "ts-node --project=tsconfig-scripts.json assets_generation/update_ephinea_data.ts",
+        "quest_stats": "ts-node --project=tsconfig-scripts.json assets_generation/quest_stats.ts",
         "lint": "prettier --check \"{src,assets_generation,test}/**/*.{ts,tsx}\" && echo Linting... && eslint \"{src,assets_generation,test}/**/*.{ts,tsx}\" && echo All code passes the prettier and eslint checks."
     },
     "devDependencies": {
