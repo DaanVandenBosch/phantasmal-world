@@ -45,7 +45,7 @@ test("After changing section, world position should change accordingly.", () => 
 
 function create_entity(): QuestEntityModel {
     const entity = new QuestNpcModel(
-        create_quest_npc(NpcType.AlRappy, area_store.get_area(Episode.I, 0).id, 0),
+        create_quest_npc(NpcType.AlRappy, Episode.I, area_store.get_area(Episode.I, 0).id, 0),
     );
     entity.set_position(new Vector3(5, 5, 5));
     return entity;

@@ -7,47 +7,47 @@ import { Severity } from "../src/core/Severity";
 
 const logger = LogManager.get("assets_generation/walk_quests");
 
+/**
+ * Applies process to all QST files in a directory. Uses the 106 QST files
+ * provided with Tethealla version 0.143 by default.
+ */
 export function walk_quests(
-    path: string,
+    config: { path: string; suppress_parser_log?: boolean; exclude?: readonly string[] },
     process: (quest: QuestData) => void,
-    suppress_parser_log: boolean = true,
 ): void {
-    const loggers = (suppress_parser_log
+    const loggers = (config.suppress_parser_log !== false
         ? [
-              LogManager.get("core/data_formats/asm/data_flow_analysis/register_value"),
-              LogManager.get("core/data_formats/parsing/quest"),
-              LogManager.get("core/data_formats/parsing/quest/bin"),
-              LogManager.get("core/data_formats/parsing/quest/object_code"),
-              LogManager.get("core/data_formats/parsing/quest/qst"),
+              "core/data_formats/asm/data_flow_analysis/register_value",
+              "core/data_formats/parsing/quest",
+              "core/data_formats/parsing/quest/bin",
+              "core/data_formats/parsing/quest/object_code",
+              "core/data_formats/parsing/quest/qst",
           ]
         : []
-    ).map(logger => {
+    ).map(logger_name => {
+        const logger = LogManager.get(logger_name);
         const old = logger.severity;
         logger.severity = Severity.Error;
         return [logger, old] as const;
     });
 
     try {
-        walk_qst_files(
-            (p, _, contents) => {
-                try {
-                    const result = parse_qst_to_quest(
-                        new BufferCursor(contents, Endianness.Little),
-                        true,
-                    );
+        walk_qst_files(config, (p, _, contents) => {
+            try {
+                const result = parse_qst_to_quest(
+                    new BufferCursor(contents, Endianness.Little),
+                    true,
+                );
 
-                    if (result.success) {
-                        process(result.value);
-                    } else {
-                        logger.error(`Couldn't process ${p}.`);
-                    }
-                } catch (e) {
-                    logger.error(`Couldn't parse ${p}.`, e);
+                if (result.success) {
+                    process(result.value);
+                } else {
+                    logger.error(`Couldn't process ${p}.`);
                 }
-            },
-            path,
-            [],
-        );
+            } catch (e) {
+                logger.error(`Couldn't parse ${p}.`, e);
+            }
+        });
     } finally {
         for (const [logger, severity] of loggers) {
             logger.severity = severity;
@@ -56,21 +56,31 @@ export function walk_quests(
 }
 
 /**
- * Applies f to all QST files in a directory.
+ * Applies f to all 106 QST files provided with Tethealla version 0.143.
  * f is called with the path to the file, the file name and the content of the file.
- * Uses the 106 QST files provided with Tethealla version 0.143 by default.
  */
 export function walk_qst_files(
+    config: { path?: string; exclude?: readonly string[] },
     f: (path: string, file_name: string, contents: Buffer) => void,
-    path = "assets_generation/resources/tethealla_v0.143_quests",
+): void {
+    const path = config.path ?? "assets_generation/resources/tethealla_v0.143_quests";
+
     // BUG: Battle quests are not always parsed in the same way.
     // Could be a bug in Jest or Node as the quest parsing code has no randomness or dependency on mutable state.
     // TODO: Some quests can not yet be parsed correctly.
-    exclude: readonly string[] = [
-        "/battle/", // Battle mode quests.
-        "ep2/event/ma4-a.qst", // .qst seems corrupt, doesn't work in qedit either.
-    ],
-): void {
+    let exclude: readonly string[];
+
+    if (config.exclude) {
+        exclude = config.exclude;
+    } else if (config.path == undefined) {
+        exclude = [
+            "/battle", // Battle mode quests.
+            "/ep2/event/ma4-a.qst", // .qst seems corrupt, doesn't work in qedit either.
+        ];
+    } else {
+        exclude = [];
+    }
+
     const idx = path.lastIndexOf("/");
     walk_qst_files_internal(
         f,
@@ -86,10 +96,14 @@ function walk_qst_files_internal(
     name: string,
     exclude: readonly string[],
 ): void {
+    if (exclude.some(e => path.includes(e))) {
+        return;
+    }
+
     const stat = statSync(path);
 
     if (stat.isFile()) {
-        if (path.endsWith(".qst") && !exclude.some(e => path.includes(e))) {
+        if (path.endsWith(".qst")) {
             f(path, name, readFileSync(path));
         }
     } else if (stat.isDirectory()) {

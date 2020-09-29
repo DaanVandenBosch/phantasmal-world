@@ -12,26 +12,34 @@ print_quest_stats();
 function print_quest_stats(): void {
     const type_data: Map<NpcType, { npc: QuestNpc; quest: string; count: number }[]> = new Map();
 
-    walk_quests(`${RESOURCE_DIR}/tethealla_v0.143_quests`, ({ quest }) => {
-        for (const npc of quest.npcs) {
-            const type = get_npc_type(npc);
-            const npcs = type_data.get(type);
+    walk_quests(
+        {
+            path: `${RESOURCE_DIR}/tethealla_v0.143_quests`,
+            exclude: ["/battle", "/chl/ep1", "/chl/ep4", "/shop"],
+        },
+        ({ quest }) => {
+            for (const npc of quest.npcs) {
+                const type = get_npc_type(npc);
+                const npcs = type_data.get(type);
 
-            if (npcs == undefined) {
-                type_data.set(type, [{ npc, quest: quest.name, count: 1 }]);
-            } else {
-                const found = npcs.find(({ npc: npc_2 }) => entities_equal(npc, npc_2, type));
-
-                if (found) {
-                    found.count++;
+                if (npcs == undefined) {
+                    type_data.set(type, [{ npc, quest: quest.name, count: 1 }]);
                 } else {
-                    npcs.push({ npc, quest: quest.name, count: 1 });
+                    const found = npcs.find(({ npc: npc_2 }) => entities_equal(npc, npc_2, type));
+
+                    if (found) {
+                        found.count++;
+                    } else {
+                        npcs.push({ npc, quest: quest.name, count: 1 });
+                    }
                 }
             }
-        }
-    });
+        },
+    );
 
-    for (const [type, npcs] of type_data) {
+    for (const [type, npcs] of [...type_data.entries()].sort(
+        ([a_type], [b_type]) => a_type - b_type,
+    )) {
         const props = get_properties(type);
 
         /* eslint-disable no-console */
@@ -47,6 +55,75 @@ function print_quest_stats(): void {
         }
         /* eslint-enable no-console */
     }
+
+    // Used to populate the switch in set_npc_default_data.
+    // Prints code of the following form (view is assumed to be a DataView).
+    //
+    // case NpcType.$NPC_TYPE:
+    //     view.set$PROP_TYPE($OFFSET, $VALUE, true); // $PROP_NAME
+    //     break;
+    //
+    // for (const [type, npcs] of [...type_data.entries()].sort(
+    //     ([a_type], [b_type]) => a_type - b_type,
+    // )) {
+    //     const { npc } = npcs.sort((a, b) => b.count - a.count)[0];
+    //
+    //     const props = get_properties(type)
+    //         .map(prop => {
+    //             const value =
+    //                 prop.type === EntityPropType.Angle
+    //                     ? npc.view.getInt32(prop.offset, true)
+    //                     : get_entity_prop_value(npc, prop);
+    //             return [prop, value] as const;
+    //         })
+    //         .filter(([, value]) => value !== 0);
+    //
+    //     if (props.length === 0) continue;
+    //
+    //     /* eslint-disable no-console */
+    //     console.log(`case NpcType.${NpcType[type]}:`);
+    //
+    //     for (const [prop, value] of props) {
+    //         let prop_type: string;
+    //
+    //         switch (prop.type) {
+    //             case EntityPropType.U8:
+    //                 prop_type = "Uint8";
+    //                 break;
+    //             case EntityPropType.U16:
+    //                 prop_type = "Uint16";
+    //                 break;
+    //             case EntityPropType.U32:
+    //                 prop_type = "Uint32";
+    //                 break;
+    //             case EntityPropType.I8:
+    //                 prop_type = "Int8";
+    //                 break;
+    //             case EntityPropType.I16:
+    //                 prop_type = "Int16";
+    //                 break;
+    //             case EntityPropType.I32:
+    //                 prop_type = "Int32";
+    //                 break;
+    //             case EntityPropType.F32:
+    //                 prop_type = "Float32";
+    //                 break;
+    //             case EntityPropType.Angle:
+    //                 prop_type = "Int32";
+    //                 break;
+    //             default:
+    //                 throw new Error(`EntityPropType.${EntityPropType[prop.type]} not supported.`);
+    //         }
+    //
+    //         const offset = prop.offset;
+    //         const comment = prop.name === "Unknown" ? "" : ` // ${prop.name}`;
+    //
+    //         console.log(`    view.set${prop_type}(${offset}, ${value}, true);${comment}`);
+    //     }
+    //
+    //     console.log("    break;");
+    //     /* eslint-enable no-console */
+    // }
 }
 
 /**
@@ -63,52 +140,47 @@ function get_properties(type: NpcType): EntityProp[] {
 
     props = [
         {
-            name: "unknwn",
+            name: "Unknown",
             offset: 2,
             type: EntityPropType.I16,
         },
         {
-            name: "unknwn",
+            name: "Unknown",
             offset: 4,
             type: EntityPropType.I16,
         },
         {
-            name: "clncnt",
+            name: "Clone count",
             offset: 6,
             type: EntityPropType.I16,
         },
         {
-            name: "unknwn",
+            name: "Unknown",
             offset: 8,
             type: EntityPropType.I16,
         },
         {
-            name: "unknwn",
+            name: "Unknown",
             offset: 10,
             type: EntityPropType.I16,
         },
         {
-            name: "scale x",
+            name: "Scale x",
             offset: 44,
             type: EntityPropType.F32,
         },
         {
-            name: "scale y",
-            offset: 48,
-            type: EntityPropType.F32,
-        },
-        {
-            name: "scale z",
+            name: "Scale z",
             offset: 52,
             type: EntityPropType.F32,
         },
         {
-            name: "unknwn",
+            name: "Unknown",
             offset: 68,
             type: EntityPropType.I16,
         },
         {
-            name: "unknwn",
+            name: "Unknown",
             offset: 70,
             type: EntityPropType.I16,
         },
@@ -165,6 +237,8 @@ function col_width(prop: EntityProp): number {
             return 10;
         case EntityPropType.Angle:
             return 4;
+        default:
+            throw new Error(`EntityPropType.${EntityPropType[prop.type]} not supported.`);
     }
 }
 

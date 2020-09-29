@@ -4,6 +4,7 @@ import { Episode } from "./Episode";
 import { NPC_BYTE_SIZE } from "./dat";
 import { assert } from "../../../util";
 import { angle_to_rad, rad_to_angle } from "../ninja/angle";
+import { set_npc_default_data } from "./set_npc_default_data";
 
 export type QuestNpc = {
     episode: Episode;
@@ -12,14 +13,21 @@ export type QuestNpc = {
     readonly view: DataView;
 };
 
-export function create_quest_npc(type: NpcType, area_id: number, wave: number): QuestNpc {
+export function create_quest_npc(
+    type: NpcType,
+    episode: Episode,
+    area_id: number,
+    wave: number,
+): QuestNpc {
     const data = new ArrayBuffer(NPC_BYTE_SIZE);
     const npc: QuestNpc = {
-        episode: Episode.I,
+        episode,
         area_id,
         data,
         view: new DataView(data),
     };
+
+    set_npc_default_data(type, npc.view);
 
     set_npc_type(npc, type);
     // Set area_id after type, because you might want to overwrite the area_id that type has
@@ -448,7 +456,29 @@ export function set_npc_type(npc: QuestNpc, type: NpcType): void {
     }
 
     set_npc_type_id(npc, data.type_id ?? 0);
-    set_npc_regular(npc, data.regular ?? true);
+
+    switch (type) {
+        case NpcType.SaintMilion:
+        case NpcType.SavageWolf:
+        case NpcType.BarbarousWolf:
+        case NpcType.PoisonLily:
+        case NpcType.NarLily:
+        case NpcType.PofuillySlime:
+        case NpcType.PouillySlime:
+        case NpcType.PoisonLily2:
+        case NpcType.NarLily2:
+        case NpcType.SavageWolf2:
+        case NpcType.BarbarousWolf2:
+        case NpcType.Kondrieu:
+        case NpcType.Shambertin:
+        case NpcType.SinowBeat:
+        case NpcType.SinowGold:
+        case NpcType.SatelliteLizard:
+        case NpcType.Yowie:
+            set_npc_regular(npc, data.regular ?? true);
+            break;
+    }
+
     set_npc_skin(npc, data.skin ?? 0);
 
     if (data.area_ids.length > 0 && !data.area_ids.includes(npc.area_id)) {
@@ -456,10 +486,10 @@ export function set_npc_type(npc: QuestNpc, type: NpcType): void {
     }
 }
 
-export function is_npc_regular(npc: QuestNpc): boolean {
+function is_npc_regular(npc: QuestNpc): boolean {
     return Math.round(npc.view.getFloat32(48, true)) !== 1;
 }
 
-export function set_npc_regular(npc: QuestNpc, regular: boolean): void {
+function set_npc_regular(npc: QuestNpc, regular: boolean): void {
     npc.view.setFloat32(48, regular ? 0 : 1, true);
 }

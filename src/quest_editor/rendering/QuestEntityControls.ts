@@ -24,6 +24,7 @@ import { TranslateEntityAction } from "../actions/TranslateEntityAction";
 import { Object3D } from "three/src/core/Object3D";
 import { create_quest_npc } from "../../core/data_formats/parsing/quest/QuestNpc";
 import { create_quest_object } from "../../core/data_formats/parsing/quest/QuestObject";
+import { Episode } from "../../core/data_formats/parsing/quest/Episode";
 
 const ZERO_VECTOR = Object.freeze(new Vector3(0, 0, 0));
 const UP_VECTOR = Object.freeze(new Vector3(0, 1, 0));
@@ -175,6 +176,7 @@ export class QuestEntityControls implements Disposable {
             shift_key: e.event.shiftKey,
             pointer_device_position: this.pointer_device_position,
             entity_type: e.entity_type,
+            episode: this.quest_editor_store.current_quest.val?.episode ?? Episode.I,
             drag_element: e.drag_element,
             data_transfer: e.event.dataTransfer,
             prevent_default: () => e.event.preventDefault(),
@@ -190,6 +192,7 @@ export class QuestEntityControls implements Disposable {
             shift_key: e.event.shiftKey,
             pointer_device_position: this.pointer_device_position,
             entity_type: e.entity_type,
+            episode: this.quest_editor_store.current_quest.val?.episode ?? Episode.I,
             drag_element: e.drag_element,
             data_transfer: e.event.dataTransfer,
             prevent_default: () => e.event.preventDefault(),
@@ -205,6 +208,7 @@ export class QuestEntityControls implements Disposable {
             shift_key: e.event.shiftKey,
             pointer_device_position: this.pointer_device_position,
             entity_type: e.entity_type,
+            episode: this.quest_editor_store.current_quest.val?.episode ?? Episode.I,
             drag_element: e.drag_element,
             data_transfer: e.event.dataTransfer,
             prevent_default: () => e.event.preventDefault(),
@@ -292,6 +296,7 @@ type EntityDragEvt = {
     readonly shift_key: boolean;
     readonly pointer_device_position: Vector2;
     readonly entity_type: EntityType;
+    readonly episode: Episode;
     readonly drag_element: HTMLElement;
     readonly data_transfer: DataTransfer | null;
     stop_propagation(): void;
@@ -640,7 +645,7 @@ class CreationState implements State {
             const wave = quest_editor_store.selected_wave.val;
 
             this.entity = new QuestNpcModel(
-                create_quest_npc(evt.entity_type, area.id, wave?.id.val ?? 0),
+                create_quest_npc(evt.entity_type, evt.episode, area.id, wave?.id.val ?? 0),
                 wave,
             );
         } else {

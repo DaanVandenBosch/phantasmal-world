@@ -77,7 +77,9 @@ function update_quests(): void {
     logger.info("Updating quest data.");
 
     const quests: QuestDto[] = [];
-    walk_quests(`${EPHINEA_RESOURCE_DIR}/ship-config/quest`, q => process_quest(quests, q));
+    walk_quests({ path: `${EPHINEA_RESOURCE_DIR}/ship-config/quest` }, q =>
+        process_quest(quests, q),
+    );
 
     quests.sort((a, b) => a.episode - b.episode || a.name.localeCompare(b.name));
 

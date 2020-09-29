@@ -55,15 +55,13 @@ export function next_animation_frame(): Promise<void> {
 }
 
 /**
- * Applies f to all QST files in a directory.
+ * Applies f to all 106 QST files provided with Tethealla version 0.143.
  * f is called with the path to the file, the file name and the content of the file.
- * Uses the 106 QST files provided with Tethealla version 0.143 by default.
  */
 export function walk_qst_files(
     f: (path: string, file_name: string, contents: Buffer) => void,
-    dir?: string,
 ): void {
-    walk_quests.walk_qst_files(f, dir);
+    walk_quests.walk_qst_files({}, f);
 }
 
 export function load_default_quest_model(area_store: AreaStore): QuestModel {
