@@ -11,20 +11,33 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - name: Git checkout
+        uses: actions/checkout@v2
 
-      - uses: CultureHQ/actions-yarn@v1.0.1
+      - name: Yarn cache
+        uses: actions/cache@v2
+        env:
+          cache-name: yarn-cache
+        with:
+          path: ~/.yarn/cache
+          key: ${{ runner.os }}-build-${{ env.cache-name }}
+
+      - name: Install dependencies
+        uses: CultureHQ/actions-yarn@v1.0.1
         with:
           args: install
 
-      - uses: CultureHQ/actions-yarn@v1.0.1
+      - name: Check formatting and lint
+        uses: CultureHQ/actions-yarn@v1.0.1
         with:
           args: lint
 
-      - uses: CultureHQ/actions-yarn@v1.0.1
+      - name: Run test suite
+        uses: CultureHQ/actions-yarn@v1.0.1
         with:
           args: test
 
-      - uses: CultureHQ/actions-yarn@v1.0.1
+      - name: Build
+        uses: CultureHQ/actions-yarn@v1.0.1
         with:
           args: build
