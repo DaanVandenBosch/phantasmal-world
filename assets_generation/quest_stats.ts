@@ -34,6 +34,7 @@ function print_quest_stats(): void {
     for (const [type, npcs] of type_data) {
         const props = get_properties(type);
 
+        /* eslint-disable no-console */
         console.log(NpcType[type]);
         console.log("    cnt " + props.map(col_print_name).join(" "));
 
@@ -44,6 +45,7 @@ function print_quest_stats(): void {
                     ` ${quest}`,
             );
         }
+        /* eslint-enable no-console */
     }
 }
 
