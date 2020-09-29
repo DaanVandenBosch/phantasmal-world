@@ -1,13 +1,15 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
-# Editors
+# editors
 .idea
 .vscode
 
 # dependencies
 /node_modules
-/.pnp
-.pnp.js
+.yarn/*
+!.yarn/releases
+!.yarn/plugins
+!.yarn/sdks
+!.yarn/versions
+.pnp.*
 
 # testing
 /coverage
@@ -24,6 +26,7 @@
 .env.test.local
 .env.production.local
 
+# log files
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*

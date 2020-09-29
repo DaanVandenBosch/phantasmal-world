@@ -15,8 +15,6 @@
     },
     "include": [
         "src",
-        "typedefs",
-        // Adding WebGPU types via "typeRoots" doesn't work for an unknown reason.
-        "node_modules/@webgpu/types/dist/index.d.ts"
+        "typedefs"
     ]
 }

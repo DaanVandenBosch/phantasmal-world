@@ -7,10 +7,8 @@ import { Cursor } from "../../block/cursor/Cursor";
 import { ArrayBufferCursor } from "../../block/cursor/ArrayBufferCursor";
 import { Endianness } from "../../block/Endianness";
 
-type PrsRsModule = typeof import("prs-rs");
-
 class PrsWasm {
-    constructor(private module: PrsRsModule) {}
+    constructor(private module: any) {}
 
     public prs_compress_wasm(cursor: Cursor): Cursor {
         const bytes = new Uint8Array(cursor.array_buffer());

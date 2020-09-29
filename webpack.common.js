@@ -2,6 +2,7 @@ const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const MonacoWebpackPlugin = require("monaco-editor-webpack-plugin");
 const { ProvidePlugin } = require("webpack");
+const PnpWebpackPlugin = require(`pnp-webpack-plugin`);
 
 module.exports = {
     entry: "./src/index.ts",
@@ -10,6 +11,14 @@ module.exports = {
     },
     resolve: {
         extensions: [".js", ".ts"],
+        plugins: [
+            PnpWebpackPlugin,
+        ],
+    },
+    resolveLoader: {
+        plugins: [
+            PnpWebpackPlugin.moduleLoader(module),
+        ],
     },
     module: {
         rules: [
