@@ -8,6 +8,12 @@
 <img alt="Tests status" src="https://github.com/DaanVandenBosch/phantasmal-world/workflows/Tests/badge.svg">
 </a>
 
+<a href="https://github.com/DaanVandenBosch/phantasmal-world/actions?query=workflow%3ADeploy">
+<img alt="Tests status" src="https://github.com/DaanVandenBosch/phantasmal-world/workflows/Deploy/badge.svg">
+</a>
+
+### Features and Bugs
+
 See [features](./FEATURES.md) for a list of features, planned features and bugs.
 
 ### Getting Started
