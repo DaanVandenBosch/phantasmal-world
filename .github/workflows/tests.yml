@@ -1,4 +1,4 @@
-name: CI
+name: Tests
 
 on:
   push:
@@ -17,7 +17,7 @@ jobs:
           cache-name: yarn-cache
         with:
           path: ~/.yarn
-          key: ${{ runner.os }}-ci-${{ env.cache-name }}
+          key: ${{ runner.os }}-tests-${{ env.cache-name }}
 
       - name: Git checkout
         uses: actions/checkout@v2

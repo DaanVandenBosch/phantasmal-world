@@ -4,6 +4,10 @@
 
 ## Developers
 
+<a href="https://github.com/DaanVandenBosch/phantasmal-world/actions?query=workflow%3ATests">
+<img alt="Tests status" src="https://github.com/DaanVandenBosch/phantasmal-world/workflows/Tests/badge.svg">
+</a>
+
 See [features](./FEATURES.md) for a list of features, planned features and bugs.
 
 ### Getting Started
