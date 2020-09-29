@@ -1,10 +1,4 @@
-name: Tests
-
-on:
-  push:
-    branches: [ master ]
-  pull_request:
-    branches: [ master ]
+name: Deploy
 
 jobs:
   build:
@@ -17,22 +11,27 @@ jobs:
           cache-name: yarn-cache
         with:
           path: ~/.yarn
-          key: ${{ runner.os }}-tests-${{ env.cache-name }}
+          key: ${{ runner.os }}-deploy-${{ env.cache-name }}
 
       - name: Checkout
         uses: actions/checkout@v2
+        with:
+          persist-credentials: false
 
       - name: Install dependencies
         uses: CultureHQ/actions-yarn@v1.0.1
         with:
           args: install
 
-      - name: Check formatting and lint
+      - name: Build
         uses: CultureHQ/actions-yarn@v1.0.1
         with:
-          args: lint
+          args: build
 
-      - name: Run test suite
-        uses: CultureHQ/actions-yarn@v1.0.1
+      - name: Deploy
+        uses: JamesIves/github-pages-deploy-action@3.6.2
         with:
-          args: test
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH: gh-pages
+          FOLDER: dist
+          CLEAN: true
