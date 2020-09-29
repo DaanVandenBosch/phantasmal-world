@@ -94,7 +94,7 @@ function walk_qst_files_internal(
         }
     } else if (stat.isDirectory()) {
         for (const file of readdirSync(path)) {
-            walk_qst_files_internal(f, `${path}/${file}`, name, exclude);
+            walk_qst_files_internal(f, `${path}/${file}`, file, exclude);
         }
     }
 }

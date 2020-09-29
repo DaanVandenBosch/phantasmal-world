@@ -61,7 +61,7 @@ export function next_animation_frame(): Promise<void> {
  */
 export function walk_qst_files(
     f: (path: string, file_name: string, contents: Buffer) => void,
-    dir: string,
+    dir?: string,
 ): void {
     walk_quests.walk_qst_files(f, dir);
 }
