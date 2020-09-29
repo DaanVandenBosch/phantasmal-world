@@ -16,7 +16,7 @@ jobs:
         env:
           cache-name: yarn-cache
         with:
-          path: ~/.yarn
+          path: .yarn
           key: ${{ runner.os }}-tests-${{ env.cache-name }}
 
       - name: Checkout
