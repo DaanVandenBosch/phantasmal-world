@@ -11,16 +11,16 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
       - name: Yarn cache
         uses: actions/cache@v2
         env:
           cache-name: yarn-cache
         with:
-          path: .yarn
+          path: .yarn/cache
           key: ${{ runner.os }}-tests-${{ env.cache-name }}
-
-      - name: Checkout
-        uses: actions/checkout@v2
 
       - name: Install dependencies
         uses: CultureHQ/actions-yarn@v1.0.1
