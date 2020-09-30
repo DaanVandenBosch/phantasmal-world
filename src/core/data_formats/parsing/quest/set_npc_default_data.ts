@@ -7,10 +7,6 @@ export function set_npc_default_data(type: NpcType, view: DataView): void {
             view.setInt16(2, 2, true);
             view.setInt16(4, 1872, true);
             view.setInt16(10, 5969, true);
-            view.setFloat32(44, 24.000009536743164, true); // Movement distance
-            view.setFloat32(56, 1016.0010986328125, true); // Character ID
-            view.setFloat32(60, 100.00004577636719, true); // Script label
-            view.setInt32(64, 1, true); // Movement flag
             view.setInt16(68, -16432, true);
             view.setInt16(70, 1834, true);
             break;
@@ -18,21 +14,12 @@ export function set_npc_default_data(type: NpcType, view: DataView): void {
             view.setInt16(2, 2, true);
             view.setInt16(4, 1876, true);
             view.setInt16(10, 5973, true);
-            view.setFloat32(44, 26.000009536743164, true); // Movement distance
-            view.setFloat32(56, 1014.0010986328125, true); // Character ID
-            view.setFloat32(60, 80.00006866455078, true); // Script label
-            view.setInt32(64, 1, true); // Movement flag
             view.setInt16(68, -12528, true);
             view.setInt16(70, 1834, true);
             break;
         case NpcType.FemaleTall:
             view.setInt16(2, 2, true);
             view.setInt16(4, 1883, true);
-            view.setInt16(10, 5980, true);
-            view.setFloat32(44, 22.000009536743164, true); // Movement distance
-            view.setFloat32(56, 1021.0010986328125, true); // Character ID
-            view.setFloat32(60, 140.00006103515625, true); // Script label
-            view.setInt32(64, 1, true); // Movement flag
             view.setInt16(68, -5504, true);
             view.setInt16(70, 1834, true);
             break;
@@ -40,10 +27,6 @@ export function set_npc_default_data(type: NpcType, view: DataView): void {
             view.setInt16(2, 2, true);
             view.setInt16(4, 1873, true);
             view.setInt16(10, 5970, true);
-            view.setFloat32(44, 30.000009536743164, true); // Movement distance
-            view.setFloat32(56, 1015.0010986328125, true); // Character ID
-            view.setFloat32(60, 90.00004577636719, true); // Script label
-            view.setInt32(64, 1, true); // Movement flag
             view.setInt16(68, -15456, true);
             view.setInt16(70, 1834, true);
             break;
@@ -51,8 +34,6 @@ export function set_npc_default_data(type: NpcType, view: DataView): void {
             view.setInt16(2, 2, true);
             view.setInt16(4, 1882, true);
             view.setInt16(10, 5979, true);
-            view.setFloat32(56, 1007, true); // Character ID
-            view.setFloat32(60, 810, true); // Script label
             view.setInt16(68, -6528, true);
             view.setInt16(70, 1834, true);
             break;
@@ -60,8 +41,6 @@ export function set_npc_default_data(type: NpcType, view: DataView): void {
             view.setInt16(2, 2, true);
             view.setInt16(4, 1880, true);
             view.setInt16(10, 5977, true);
-            view.setFloat32(56, 1006.0010986328125, true); // Character ID
-            view.setFloat32(60, 800, true); // Script label
             view.setInt16(68, -8576, true);
             view.setInt16(70, 1834, true);
             break;
@@ -69,10 +48,6 @@ export function set_npc_default_data(type: NpcType, view: DataView): void {
             view.setInt16(2, 2, true);
             view.setInt16(4, 1878, true);
             view.setInt16(10, 5975, true);
-            view.setFloat32(44, 37.0000114440918, true); // Movement distance
-            view.setFloat32(56, 1012.0010986328125, true); // Character ID
-            view.setFloat32(60, 60.000057220458984, true); // Script label
-            view.setInt32(64, 1, true); // Movement flag
             view.setInt16(68, -10576, true);
             view.setInt16(70, 1834, true);
             break;
@@ -80,8 +55,6 @@ export function set_npc_default_data(type: NpcType, view: DataView): void {
             view.setInt16(2, 2, true);
             view.setInt16(4, 1875, true);
             view.setInt16(10, 5972, true);
-            view.setFloat32(56, 1020.0010986328125, true); // Character ID
-            view.setFloat32(60, 130.00009155273438, true); // Script label
             view.setInt16(68, -13504, true);
             view.setInt16(70, 1834, true);
             break;
@@ -89,16 +62,12 @@ export function set_npc_default_data(type: NpcType, view: DataView): void {
             view.setInt16(2, 2, true);
             view.setInt16(4, 1874, true);
             view.setInt16(10, 5971, true);
-            view.setFloat32(56, 1019.0010986328125, true); // Character ID
-            view.setFloat32(60, 120.00008392333984, true); // Script label
             view.setInt16(68, -14480, true);
             view.setInt16(70, 1834, true);
             break;
         case NpcType.Principal:
             view.setInt16(4, 1888, true);
             view.setInt16(10, 5985, true);
-            view.setFloat32(56, 110, true); // Character ID
-            view.setFloat32(60, 110, true); // Script label
             view.setInt16(68, -384, true);
             view.setInt16(70, 1834, true);
             break;
@@ -106,8 +75,6 @@ export function set_npc_default_data(type: NpcType, view: DataView): void {
             view.setInt16(2, 2, true);
             view.setInt16(4, 1879, true);
             view.setInt16(10, 5976, true);
-            view.setFloat32(56, 1009.0010986328125, true); // Character ID
-            view.setFloat32(60, 830, true); // Script label
             view.setInt16(68, -9600, true);
             view.setInt16(70, 1834, true);
             break;
@@ -115,8 +82,6 @@ export function set_npc_default_data(type: NpcType, view: DataView): void {
             view.setInt16(2, 2, true);
             view.setInt16(4, 1891, true);
             view.setInt16(10, 5988, true);
-            view.setFloat32(56, 1010.0010986328125, true); // Character ID
-            view.setFloat32(60, 840, true); // Script label
             view.setInt16(68, 11584, true);
             view.setInt16(70, 1835, true);
             break;
@@ -124,10 +89,6 @@ export function set_npc_default_data(type: NpcType, view: DataView): void {
             view.setInt16(2, 2, true);
             view.setInt16(4, 1877, true);
             view.setInt16(10, 5974, true);
-            view.setFloat32(44, 30.000009536743164, true); // Movement distance
-            view.setFloat32(56, 1013.0010986328125, true); // Character ID
-            view.setFloat32(60, 70.00006103515625, true); // Script label
-            view.setInt32(64, 1, true); // Movement flag
             view.setInt16(68, -11552, true);
             view.setInt16(70, 1834, true);
             break;
@@ -135,32 +96,24 @@ export function set_npc_default_data(type: NpcType, view: DataView): void {
             view.setInt16(2, 2, true);
             view.setInt16(4, 1884, true);
             view.setInt16(10, 5981, true);
-            view.setFloat32(56, 1017, true); // Character ID
-            view.setFloat32(60, 860, true); // Script label
             view.setInt16(68, -4480, true);
             view.setInt16(70, 1834, true);
             break;
         case NpcType.Irene:
             view.setInt16(4, 1889, true);
             view.setInt16(10, 5986, true);
-            view.setFloat32(56, 111, true); // Character ID
-            view.setFloat32(60, 111, true); // Script label
             view.setInt16(68, 640, true);
             view.setInt16(70, 1835, true);
             break;
         case NpcType.ItemShop:
             view.setInt16(4, 8, true);
             view.setInt16(10, 6453, true);
-            view.setFloat32(56, 1063, true); // Character ID
-            view.setFloat32(60, 900, true); // Script label
             view.setInt16(68, 16560, true);
             view.setInt16(70, 1176, true);
             break;
         case NpcType.Nurse2:
             view.setInt16(4, 2330, true);
             view.setInt16(10, 6496, true);
-            view.setFloat32(56, 1068, true); // Character ID
-            view.setFloat32(60, 950, true); // Script label
             view.setInt16(68, -13280, true);
             view.setInt16(70, 1200, true);
             break;
