@@ -214,15 +214,15 @@ export enum ObjectType {
     FourButtonSpaceshipDoor,
     ItemBoxCca,
     TeleporterEp2,
-    CCADoor,
-    SpecialBoxCCA,
-    BigCCADoor,
-    BigCCADoorSwitch,
+    CcaDoor,
+    SpecialBoxCca,
+    BigCcaDoor,
+    BigCcaDoorSwitch,
     LittleRock,
     Little3StoneWall,
     Medium3StoneWall,
     SpiderPlant,
-    CCAAreaTeleporter,
+    CcaAreaTeleporter,
     UnknownItem523,
     WhiteBird,
     OrangeBird,
@@ -731,13 +731,13 @@ export function id_to_object_type(id: number): ObjectType {
         case 513:
             return ObjectType.TeleporterEp2;
         case 514:
-            return ObjectType.CCADoor;
+            return ObjectType.CcaDoor;
         case 515:
-            return ObjectType.SpecialBoxCCA;
+            return ObjectType.SpecialBoxCca;
         case 516:
-            return ObjectType.BigCCADoor;
+            return ObjectType.BigCcaDoor;
         case 517:
-            return ObjectType.BigCCADoorSwitch;
+            return ObjectType.BigCcaDoorSwitch;
         case 518:
             return ObjectType.LittleRock;
         case 519:
@@ -747,7 +747,7 @@ export function id_to_object_type(id: number): ObjectType {
         case 521:
             return ObjectType.SpiderPlant;
         case 522:
-            return ObjectType.CCAAreaTeleporter;
+            return ObjectType.CcaAreaTeleporter;
         case 523:
             return ObjectType.UnknownItem523;
         case 524:
@@ -2815,21 +2815,21 @@ define_object_type_data(
 define_object_type_data(
     ObjectType.FourSwitchTempleDoor,
     427,
-    "4 switch temple door",
+    "4 Switch Temple Door",
     [[Episode.II, [1, 2]]],
     [],
 );
 define_object_type_data(
     ObjectType.FourButtonSpaceshipDoor,
     448,
-    "4 button spaceship door",
+    "4 button Spaceship Door",
     [[Episode.II, [3, 4]]],
     [],
 );
 define_object_type_data(
     ObjectType.ItemBoxCca,
     512,
-    "item box cca",
+    "Item Box CCA",
     [
         [Episode.II, [5, 6, 7, 8, 9, 12, 16, 17]],
         [Episode.IV, [5]],
@@ -2839,12 +2839,12 @@ define_object_type_data(
 define_object_type_data(
     ObjectType.TeleporterEp2,
     513,
-    "Teleporter (Ep 2)",
+    "Teleporter (Ep. II)",
     [[Episode.II, [5, 6, 7, 8, 9, 10, 11, 12, 13, 16, 17]]],
     [],
 );
 define_object_type_data(
-    ObjectType.CCADoor,
+    ObjectType.CcaDoor,
     514,
     "CCA Door",
     [[Episode.II, [5, 6, 7, 8, 9, 16, 17]]],
@@ -2858,7 +2858,7 @@ define_object_type_data(
     ],
 );
 define_object_type_data(
-    ObjectType.SpecialBoxCCA,
+    ObjectType.SpecialBoxCca,
     515,
     "Special Box CCA",
     [
@@ -2867,9 +2867,9 @@ define_object_type_data(
     ],
     [],
 );
-define_object_type_data(ObjectType.BigCCADoor, 516, "Big CCA Door", [[Episode.II, [5]]], []);
+define_object_type_data(ObjectType.BigCcaDoor, 516, "Big CCA Door", [[Episode.II, [5]]], []);
 define_object_type_data(
-    ObjectType.BigCCADoorSwitch,
+    ObjectType.BigCcaDoorSwitch,
     517,
     "Big CCA Door Switch",
     [[Episode.II, [5, 6, 7, 8, 9, 16, 17]]],
@@ -2904,7 +2904,7 @@ define_object_type_data(
     [],
 );
 define_object_type_data(
-    ObjectType.CCAAreaTeleporter,
+    ObjectType.CcaAreaTeleporter,
     522,
     "CCA Area Teleporter",
     [[Episode.II, [5, 6, 7, 8, 9, 16, 17]]],
@@ -2998,7 +2998,7 @@ define_object_type_data(
 define_object_type_data(
     ObjectType.SeabedDoorWithBlueEdges,
     545,
-    "Seabed Door (with blue edges)",
+    "Seabed Door (with Blue Edges)",
     [[Episode.II, [10, 11]]],
     [
         ["Scale x", 40, "F32"],
@@ -3012,7 +3012,7 @@ define_object_type_data(
 define_object_type_data(
     ObjectType.SeabedDoorAlwaysOpenNonTriggerable,
     546,
-    "Seabed door (always open, non-triggerable)",
+    "Seabed Door (Always Open, Non-Triggerable)",
     [[Episode.II, [10, 11]]],
     [],
 );
@@ -3026,21 +3026,21 @@ define_object_type_data(
 define_object_type_data(
     ObjectType.WideGlassWallBreakable,
     548,
-    "Wide Glass Wall (breakable)",
+    "Wide Glass Wall (Breakable)",
     [[Episode.II, [10, 11]]],
     [],
 );
 define_object_type_data(
     ObjectType.BlueFloatingRobot,
     549,
-    "Blue floating robot",
+    "Blue Floating Robot",
     [[Episode.II, [10, 11]]],
     [],
 );
 define_object_type_data(
     ObjectType.RedFloatingRobot,
     550,
-    "Red floating robot",
+    "Red Floating Robot",
     [[Episode.II, [10, 11]]],
     [],
 );
@@ -3055,7 +3055,7 @@ define_object_type_data(
 define_object_type_data(
     ObjectType.VRLink,
     553,
-    "VR link",
+    "VR Link",
     [[Episode.II, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]]],
     [],
 );
@@ -3115,23 +3115,23 @@ define_object_type_data(
 define_object_type_data(
     ObjectType.OrangeWallWithHoleInMiddle,
     692,
-    "orange wall with hole in middle",
+    "Orange Wall with Hole in Middle",
     [[Episode.II, [0]]],
     [],
 );
 define_object_type_data(
     ObjectType.GreyWallWithHoleInMiddle,
     693,
-    "grey wall with hole in middle",
+    "Grey Wall with Hole in Middle",
     [[Episode.II, [0]]],
     [],
 );
-define_object_type_data(ObjectType.LongTable, 694, "long table", [[Episode.II, [0]]], []);
+define_object_type_data(ObjectType.LongTable, 694, "Long Table", [[Episode.II, [0]]], []);
 define_object_type_data(ObjectType.GBAStation, 695, "GBA Station", [], []);
 define_object_type_data(
     ObjectType.TalkLinkToSupport,
     696,
-    "Talk (link to support)",
+    "Talk (Link to Support)",
     [
         [Episode.I, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]],
         [Episode.II, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]],
@@ -3142,7 +3142,7 @@ define_object_type_data(
 define_object_type_data(
     ObjectType.InstaWarp,
     697,
-    "insta-warp",
+    "Insta-Warp",
     [
         [Episode.I, [0, 1, 2, 3, 4, 5, 6, 7, 11, 12, 13, 14, 16, 17]],
         [Episode.II, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 16, 17]],
@@ -3164,7 +3164,7 @@ define_object_type_data(
 define_object_type_data(
     ObjectType.LabGlassWindowDoor,
     699,
-    "Lab Glass window Door",
+    "Lab Glass Window Door",
     [[Episode.II, [0]]],
     [],
 );
@@ -3185,7 +3185,7 @@ define_object_type_data(
 define_object_type_data(
     ObjectType.Ep4LightSource,
     768,
-    "Ep4 Light Source",
+    "Ep. IV Light Source",
     [[Episode.IV, [1, 2, 3, 4, 5, 6, 7, 8, 9]]],
     [],
 );
@@ -3273,7 +3273,7 @@ define_object_type_data(ObjectType.FallingRock, 907, "Falling Rock", [[Episode.I
 define_object_type_data(
     ObjectType.DesertPlantHasCollision,
     908,
-    "Desert Plant (has collision)",
+    "Desert Plant (Has Collision)",
     [[Episode.IV, [6, 7, 8]]],
     [],
 );
@@ -3312,7 +3312,7 @@ define_object_type_data(
 define_object_type_data(
     ObjectType.TopOfSaintMillionEgg,
     960,
-    "Top of saint million egg",
+    "Top of Saint Million Egg",
     [[Episode.IV, [9]]],
     [],
 );

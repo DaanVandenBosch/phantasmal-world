@@ -186,7 +186,7 @@ export class EntityAssetLoader implements Disposable {
             ObjectType.FloatingSoul,
             ObjectType.Butterfly,
             ObjectType.UnknownItem400,
-            ObjectType.CCAAreaTeleporter,
+            ObjectType.CcaAreaTeleporter,
             ObjectType.UnknownItem523,
             ObjectType.WhiteBird,
             ObjectType.OrangeBird,
@@ -303,13 +303,13 @@ function geometry_parts(type: EntityType): (string | undefined)[] {
             return ["", "-3"]; // What are the other two parts for?
         case ObjectType.TeleporterEp2:
             return ["", "-2"];
-        case ObjectType.CCADoor:
+        case ObjectType.CcaDoor:
             return ["", "-2"];
-        case ObjectType.SpecialBoxCCA:
+        case ObjectType.SpecialBoxCca:
             return ["", "-4"]; // What are the other two parts for?
-        case ObjectType.BigCCADoor:
+        case ObjectType.BigCcaDoor:
             return ["", "-2", "-3", "-4"];
-        case ObjectType.BigCCADoorSwitch:
+        case ObjectType.BigCcaDoorSwitch:
             return ["", "-2"];
         case ObjectType.LaserDetect:
             return ["", "-2"]; // TODO: use correct part.

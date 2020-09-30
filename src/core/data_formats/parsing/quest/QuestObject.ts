@@ -3,6 +3,7 @@ import { Vec3 } from "../../vector";
 import { OBJECT_BYTE_SIZE } from "./dat";
 import { assert } from "../../../util";
 import { angle_to_rad, rad_to_angle } from "../ninja/angle";
+import { set_object_default_data } from "./set_object_default_data";
 
 export type QuestObject = {
     area_id: number;
@@ -17,6 +18,8 @@ export function create_quest_object(type: ObjectType, area_id: number): QuestObj
         data,
         view: new DataView(data),
     };
+
+    set_object_default_data(type, obj.view);
 
     set_object_type(obj, type);
 
