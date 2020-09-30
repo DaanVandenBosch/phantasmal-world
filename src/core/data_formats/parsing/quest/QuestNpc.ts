@@ -172,7 +172,7 @@ export function set_npc_skin(npc: QuestNpc, skin: number): void {
 export function get_npc_type(npc: QuestNpc): NpcType {
     const episode = npc.episode;
     const type_id = get_npc_type_id(npc);
-    const regular = is_npc_regular(npc);
+    const special = is_npc_special(npc);
     const skin = get_npc_skin(npc);
     const area_id = npc.area_id;
 
@@ -291,9 +291,9 @@ export function get_npc_type(npc: QuestNpc): NpcType {
         case `${0x116}, 1, 4`:
             return NpcType.DorphonEclair;
         case `${0x119}, 0, 4`:
-            return regular ? NpcType.SaintMilion : NpcType.Kondrieu;
+            return special ? NpcType.Kondrieu : NpcType.SaintMilion;
         case `${0x119}, 1, 4`:
-            return regular ? NpcType.Shambertin : NpcType.Kondrieu;
+            return special ? NpcType.Kondrieu : NpcType.Shambertin;
     }
 
     switch (`${type_id}, ${episode}`) {
@@ -302,26 +302,26 @@ export function get_npc_type(npc: QuestNpc): NpcType {
         case `${0x042}, 2`:
             return NpcType.Monest2;
         case `${0x043}, 1`:
-            return regular ? NpcType.SavageWolf : NpcType.BarbarousWolf;
+            return special ? NpcType.BarbarousWolf : NpcType.SavageWolf;
         case `${0x043}, 2`:
-            return regular ? NpcType.SavageWolf2 : NpcType.BarbarousWolf2;
+            return special ? NpcType.BarbarousWolf2 : NpcType.SavageWolf2;
 
         case `${0x060}, 1`:
             return NpcType.GrassAssassin;
         case `${0x060}, 2`:
             return NpcType.GrassAssassin2;
         case `${0x061}, 1`:
-            return area_id > 15 ? NpcType.DelLily : regular ? NpcType.PoisonLily : NpcType.NarLily;
+            return area_id > 15 ? NpcType.DelLily : special ? NpcType.NarLily : NpcType.PoisonLily;
         case `${0x061}, 2`:
             return area_id > 15
                 ? NpcType.DelLily
-                : regular
-                ? NpcType.PoisonLily2
-                : NpcType.NarLily2;
+                : special
+                ? NpcType.NarLily2
+                : NpcType.PoisonLily2;
         case `${0x062}, 1`:
             return NpcType.NanoDragon;
         case `${0x064}, 1`:
-            return regular ? NpcType.PofuillySlime : NpcType.PouillySlime;
+            return special ? NpcType.PouillySlime : NpcType.PofuillySlime;
         case `${0x065}, 1`:
             return NpcType.PanArms;
         case `${0x065}, 2`:
@@ -332,7 +332,7 @@ export function get_npc_type(npc: QuestNpc): NpcType {
         case `${0x081}, 2`:
             return NpcType.Garanz2;
         case `${0x082}, 1`:
-            return regular ? NpcType.SinowBeat : NpcType.SinowGold;
+            return special ? NpcType.SinowGold : NpcType.SinowBeat;
         case `${0x083}, 1`:
             return NpcType.Canadine;
         case `${0x084}, 1`:
@@ -403,7 +403,7 @@ export function get_npc_type(npc: QuestNpc): NpcType {
         case `${0x110}, 4`:
             return NpcType.Astark;
         case `${0x111}, 4`:
-            return regular ? NpcType.SatelliteLizard : NpcType.Yowie;
+            return special ? NpcType.Yowie : NpcType.SatelliteLizard;
         case `${0x113}, 4`:
             return NpcType.Girtablulu;
     }
@@ -475,7 +475,7 @@ export function set_npc_type(npc: QuestNpc, type: NpcType): void {
         case NpcType.SinowGold:
         case NpcType.SatelliteLizard:
         case NpcType.Yowie:
-            set_npc_regular(npc, data.regular ?? true);
+            set_npc_special(npc, data.special ?? false);
             break;
     }
 
@@ -486,10 +486,10 @@ export function set_npc_type(npc: QuestNpc, type: NpcType): void {
     }
 }
 
-function is_npc_regular(npc: QuestNpc): boolean {
-    return Math.round(npc.view.getFloat32(48, true)) !== 1;
+function is_npc_special(npc: QuestNpc): boolean {
+    return Math.round(npc.view.getFloat32(48, true)) === 1;
 }
 
-function set_npc_regular(npc: QuestNpc, regular: boolean): void {
-    npc.view.setFloat32(48, regular ? 0 : 1, true);
+function set_npc_special(npc: QuestNpc, special: boolean): void {
+    npc.view.setFloat32(48, special ? 1 : 0, true);
 }

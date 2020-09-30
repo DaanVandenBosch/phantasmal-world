@@ -217,12 +217,11 @@ export type NpcTypeData = {
      */
     readonly skin?: number;
     /**
-     * Boolean specifying whether an NPC is the regular or special variant. The game uses a single
-     * bit in the y component of the NPC's scale vector for this value.
+     * Boolean specifying whether an NPC is the regular or special variant.
      * Sometimes signifies a variant (e.g. Barbarous Wolf), sometimes a rare variant (e.g. Pouilly
      * Slime).
      */
-    readonly regular?: boolean;
+    readonly special?: boolean;
     /**
      * Default NPC-specific properties.
      */
@@ -265,7 +264,7 @@ function define_npc_type_data(
     area_ids: number[],
     type_id: number | undefined,
     skin: number | undefined,
-    regular: boolean | undefined,
+    special: boolean | undefined,
     properties: readonly [string, number, keyof typeof EntityPropType][],
 ): void {
     NPC_TYPES.push(npc_type);
@@ -284,7 +283,7 @@ function define_npc_type_data(
         area_ids,
         type_id,
         skin,
-        regular,
+        special,
         properties: properties.map(([name, offset, type]) => ({
             name,
             offset,
@@ -344,7 +343,7 @@ define_npc_type_data(
     [0],
     0x004,
     0,
-    true,
+    false,
     FRIENDLY_NPC_PROPERTIES,
 );
 define_npc_type_data(
@@ -358,7 +357,7 @@ define_npc_type_data(
     [0],
     0x005,
     0,
-    true,
+    false,
     FRIENDLY_NPC_PROPERTIES,
 );
 define_npc_type_data(
@@ -372,7 +371,7 @@ define_npc_type_data(
     [0],
     0x007,
     0,
-    true,
+    false,
     FRIENDLY_NPC_PROPERTIES,
 );
 define_npc_type_data(
@@ -386,7 +385,7 @@ define_npc_type_data(
     [0],
     0x00a,
     0,
-    true,
+    false,
     FRIENDLY_NPC_PROPERTIES,
 );
 define_npc_type_data(
@@ -400,7 +399,7 @@ define_npc_type_data(
     [0],
     0x00b,
     0,
-    true,
+    false,
     FRIENDLY_NPC_PROPERTIES,
 );
 define_npc_type_data(
@@ -414,7 +413,7 @@ define_npc_type_data(
     [0],
     0x00c,
     0,
-    true,
+    false,
     FRIENDLY_NPC_PROPERTIES,
 );
 define_npc_type_data(
@@ -428,7 +427,7 @@ define_npc_type_data(
     [0],
     0x00d,
     0,
-    true,
+    false,
     FRIENDLY_NPC_PROPERTIES,
 );
 define_npc_type_data(
@@ -442,7 +441,7 @@ define_npc_type_data(
     [0],
     0x019,
     0,
-    true,
+    false,
     FRIENDLY_NPC_PROPERTIES,
 );
 define_npc_type_data(
@@ -456,7 +455,7 @@ define_npc_type_data(
     [0],
     0x01a,
     0,
-    true,
+    false,
     FRIENDLY_NPC_PROPERTIES,
 );
 define_npc_type_data(
@@ -470,7 +469,7 @@ define_npc_type_data(
     [0],
     0x01b,
     0,
-    true,
+    false,
     FRIENDLY_NPC_PROPERTIES,
 );
 define_npc_type_data(
@@ -484,7 +483,7 @@ define_npc_type_data(
     [0],
     0x01c,
     0,
-    true,
+    false,
     FRIENDLY_NPC_PROPERTIES,
 );
 define_npc_type_data(
@@ -498,7 +497,7 @@ define_npc_type_data(
     [0],
     0x01d,
     0,
-    true,
+    false,
     FRIENDLY_NPC_PROPERTIES,
 );
 define_npc_type_data(
@@ -512,7 +511,7 @@ define_npc_type_data(
     [0],
     0x01e,
     0,
-    true,
+    false,
     FRIENDLY_NPC_PROPERTIES,
 );
 define_npc_type_data(
@@ -526,7 +525,7 @@ define_npc_type_data(
     [0],
     0x01f,
     0,
-    true,
+    false,
     FRIENDLY_NPC_PROPERTIES,
 );
 define_npc_type_data(
@@ -540,7 +539,7 @@ define_npc_type_data(
     [0],
     0x020,
     0,
-    true,
+    false,
     FRIENDLY_NPC_PROPERTIES,
 );
 define_npc_type_data(
@@ -554,7 +553,7 @@ define_npc_type_data(
     [0],
     0x0f1,
     0,
-    true,
+    false,
     FRIENDLY_NPC_PROPERTIES,
 );
 define_npc_type_data(
@@ -568,7 +567,7 @@ define_npc_type_data(
     [0],
     0x0fe,
     0,
-    true,
+    false,
     FRIENDLY_NPC_PROPERTIES,
 );
 
@@ -589,7 +588,7 @@ define_npc_type_data(
     [1, 2],
     0x040,
     0,
-    true,
+    false,
     [],
 );
 define_npc_type_data(
@@ -603,7 +602,7 @@ define_npc_type_data(
     [1, 2],
     0x040,
     1,
-    true,
+    false,
     [],
 );
 define_npc_type_data(
@@ -617,7 +616,7 @@ define_npc_type_data(
     [1, 2],
     0x041,
     0,
-    true,
+    false,
     [],
 );
 define_npc_type_data(
@@ -631,7 +630,7 @@ define_npc_type_data(
     [1, 2],
     0x041,
     1,
-    true,
+    false,
     [],
 );
 define_npc_type_data(
@@ -645,7 +644,7 @@ define_npc_type_data(
     [1, 2],
     0x042,
     0,
-    true,
+    false,
     [
         ["State", 44, "F32"],
         ["Start number", 48, "F32"],
@@ -677,7 +676,7 @@ define_npc_type_data(
     [1, 2],
     0x043,
     0,
-    true,
+    false,
     [["Group ID", 44, "F32"]],
 );
 define_npc_type_data(
@@ -691,7 +690,7 @@ define_npc_type_data(
     [1, 2],
     0x043,
     0,
-    false,
+    true,
     [["Group ID", 44, "F32"]],
 );
 define_npc_type_data(
@@ -705,7 +704,7 @@ define_npc_type_data(
     [1, 2],
     0x044,
     0,
-    true,
+    false,
     [["Idle distance", 48, "F32"]],
 );
 define_npc_type_data(
@@ -719,7 +718,7 @@ define_npc_type_data(
     [1, 2],
     0x044,
     1,
-    true,
+    false,
     [["Idle distance", 48, "F32"]],
 );
 define_npc_type_data(
@@ -733,7 +732,7 @@ define_npc_type_data(
     [1, 2],
     0x044,
     2,
-    true,
+    false,
     [["Idle distance", 48, "F32"]],
 );
 define_npc_type_data(
@@ -747,7 +746,7 @@ define_npc_type_data(
     [11],
     0x0c0,
     0,
-    true,
+    false,
     [],
 );
 
@@ -764,7 +763,7 @@ define_npc_type_data(
     [3, 4, 5],
     0x060,
     0,
-    true,
+    false,
     [],
 );
 define_npc_type_data(
@@ -778,7 +777,7 @@ define_npc_type_data(
     [3, 4, 5],
     0x061,
     0,
-    true,
+    false,
     [],
 );
 define_npc_type_data(
@@ -806,7 +805,7 @@ define_npc_type_data(
     [3, 4, 5],
     0x062,
     0,
-    true,
+    false,
     [["Spawn flag", 64, "I32"]],
 );
 define_npc_type_data(
@@ -820,7 +819,7 @@ define_npc_type_data(
     [3, 4, 5],
     0x063,
     0,
-    true,
+    false,
     [["Idle distance", 48, "F32"]],
 );
 define_npc_type_data(
@@ -834,7 +833,7 @@ define_npc_type_data(
     [3, 4, 5],
     0x063,
     1,
-    true,
+    false,
     [["Idle distance", 48, "F32"]],
 );
 define_npc_type_data(
@@ -848,7 +847,7 @@ define_npc_type_data(
     [3, 4, 5],
     0x063,
     2,
-    true,
+    false,
     [["Idle distance", 48, "F32"]],
 );
 define_npc_type_data(
@@ -862,7 +861,7 @@ define_npc_type_data(
     [3, 4, 5],
     0x064,
     0,
-    true,
+    false,
     [],
 );
 define_npc_type_data(
@@ -876,7 +875,7 @@ define_npc_type_data(
     [3, 4, 5],
     0x064,
     0,
-    false,
+    true,
     [],
 );
 define_npc_type_data(
@@ -890,7 +889,7 @@ define_npc_type_data(
     [3, 4, 5],
     0x065,
     0,
-    true,
+    false,
     [],
 );
 define_npc_type_data(
@@ -932,7 +931,7 @@ define_npc_type_data(
     [12],
     0x0c1,
     0,
-    true,
+    false,
     [],
 );
 
@@ -949,7 +948,7 @@ define_npc_type_data(
     [6, 7],
     0x080,
     0,
-    true,
+    false,
     [],
 );
 define_npc_type_data(
@@ -963,7 +962,7 @@ define_npc_type_data(
     [6, 7],
     0x080,
     1,
-    true,
+    false,
     [],
 );
 define_npc_type_data(
@@ -977,7 +976,7 @@ define_npc_type_data(
     [6, 7],
     0x081,
     0,
-    true,
+    false,
     [],
 );
 define_npc_type_data(
@@ -991,7 +990,7 @@ define_npc_type_data(
     [6, 7],
     0x082,
     0,
-    true,
+    false,
     [],
 );
 define_npc_type_data(
@@ -1005,7 +1004,7 @@ define_npc_type_data(
     [6, 7],
     0x082,
     0,
-    false,
+    true,
     [],
 );
 define_npc_type_data(
@@ -1019,7 +1018,7 @@ define_npc_type_data(
     [6, 7],
     0x083,
     0,
-    true,
+    false,
     [],
 );
 define_npc_type_data(
@@ -1033,7 +1032,7 @@ define_npc_type_data(
     [6, 7],
     0x084,
     0,
-    true,
+    false,
     [],
 );
 define_npc_type_data(
@@ -1047,7 +1046,7 @@ define_npc_type_data(
     [6, 7],
     0x085,
     0,
-    true,
+    false,
     [],
 );
 define_npc_type_data(
@@ -1061,7 +1060,7 @@ define_npc_type_data(
     [13],
     0x0c2,
     0,
-    true,
+    false,
     [],
 );
 define_npc_type_data(
@@ -1075,7 +1074,7 @@ define_npc_type_data(
     [13],
     0x0c5,
     0,
-    true,
+    false,
     [],
 );
 
@@ -1092,7 +1091,7 @@ define_npc_type_data(
     [8, 9, 10],
     0x0a0,
     0,
-    true,
+    false,
     [
         ["Jump distance", 44, "F32"],
         ["Block HP", 48, "F32"],
@@ -1109,7 +1108,7 @@ define_npc_type_data(
     [8, 9, 10],
     0x0a1,
     0,
-    true,
+    false,
     [],
 );
 define_npc_type_data(
@@ -1123,7 +1122,7 @@ define_npc_type_data(
     [8, 9, 10],
     0x0a2,
     0,
-    true,
+    false,
     [],
 );
 define_npc_type_data(
@@ -1151,7 +1150,7 @@ define_npc_type_data(
     [8, 9, 10],
     0x0a4,
     0,
-    true,
+    false,
     [],
 );
 define_npc_type_data(
@@ -1165,7 +1164,7 @@ define_npc_type_data(
     [8, 9, 10],
     0x0a5,
     0,
-    true,
+    false,
     [],
 );
 define_npc_type_data(
@@ -1179,7 +1178,7 @@ define_npc_type_data(
     [8, 9, 10],
     0x0a6,
     0,
-    true,
+    false,
     [["Idle distance", 48, "F32"]],
 );
 define_npc_type_data(
@@ -1193,7 +1192,7 @@ define_npc_type_data(
     [8, 9, 10],
     0x0a6,
     1,
-    true,
+    false,
     [["Idle distance", 48, "F32"]],
 );
 define_npc_type_data(
@@ -1207,7 +1206,7 @@ define_npc_type_data(
     [8, 9, 10],
     0x0a6,
     2,
-    true,
+    false,
     [["Idle distance", 48, "F32"]],
 );
 define_npc_type_data(
@@ -1221,7 +1220,7 @@ define_npc_type_data(
     [8, 9, 10],
     0x0a7,
     0,
-    true,
+    false,
     [],
 );
 define_npc_type_data(
@@ -1249,7 +1248,7 @@ define_npc_type_data(
     [8, 9, 10],
     0x0a8,
     0,
-    true,
+    false,
     [],
 );
 define_npc_type_data(
@@ -1263,7 +1262,7 @@ define_npc_type_data(
     [14],
     0x0c8,
     0,
-    true,
+    false,
     [],
 );
 
@@ -1280,7 +1279,7 @@ define_npc_type_data(
     [1, 2],
     0x040,
     0,
-    true,
+    false,
     [],
 );
 define_npc_type_data(
@@ -1294,7 +1293,7 @@ define_npc_type_data(
     [1, 2],
     0x040,
     1,
-    true,
+    false,
     [],
 );
 define_npc_type_data(
@@ -1308,7 +1307,7 @@ define_npc_type_data(
     [1, 2],
     0x041,
     0,
-    true,
+    false,
     [],
 );
 define_npc_type_data(
@@ -1322,7 +1321,7 @@ define_npc_type_data(
     [1, 2],
     0x041,
     1,
-    true,
+    false,
     [],
 );
 define_npc_type_data(
@@ -1378,7 +1377,7 @@ define_npc_type_data(
     [1, 2],
     0x042,
     0,
-    true,
+    false,
     [
         ["State", 44, "F32"],
         ["Start number", 48, "F32"],
@@ -1410,7 +1409,7 @@ define_npc_type_data(
     [1, 2],
     0x061,
     0,
-    true,
+    false,
     [],
 );
 define_npc_type_data(
@@ -1424,7 +1423,7 @@ define_npc_type_data(
     [1, 2],
     0x061,
     1,
-    true,
+    false,
     [],
 );
 define_npc_type_data(
@@ -1438,7 +1437,7 @@ define_npc_type_data(
     [1, 2],
     0x060,
     0,
-    true,
+    false,
     [],
 );
 define_npc_type_data(
@@ -1452,7 +1451,7 @@ define_npc_type_data(
     [1, 2],
     0x0a6,
     0,
-    true,
+    false,
     [["Idle distance", 48, "F32"]],
 );
 define_npc_type_data(
@@ -1466,7 +1465,7 @@ define_npc_type_data(
     [1, 2],
     0x0a6,
     1,
-    true,
+    false,
     [["Idle distance", 48, "F32"]],
 );
 define_npc_type_data(
@@ -1480,7 +1479,7 @@ define_npc_type_data(
     [1, 2],
     0x0a6,
     2,
-    true,
+    false,
     [["Idle distance", 48, "F32"]],
 );
 define_npc_type_data(
@@ -1494,7 +1493,7 @@ define_npc_type_data(
     [1, 2],
     0x0a5,
     0,
-    true,
+    false,
     [],
 );
 define_npc_type_data(
@@ -1508,7 +1507,7 @@ define_npc_type_data(
     [14],
     0x0cb,
     0,
-    true,
+    false,
     [],
 );
 
@@ -1525,7 +1524,7 @@ define_npc_type_data(
     [3, 4],
     0x043,
     0,
-    true,
+    false,
     [["Group ID", 44, "F32"]],
 );
 define_npc_type_data(
@@ -1539,7 +1538,7 @@ define_npc_type_data(
     [3, 4],
     0x043,
     0,
-    false,
+    true,
     [["Group ID", 44, "F32"]],
 );
 define_npc_type_data(
@@ -1553,7 +1552,7 @@ define_npc_type_data(
     [3, 4],
     0x065,
     0,
-    true,
+    false,
     [],
 );
 define_npc_type_data(
@@ -1595,7 +1594,7 @@ define_npc_type_data(
     [3, 4],
     0x080,
     0,
-    true,
+    false,
     [],
 );
 define_npc_type_data(
@@ -1609,7 +1608,7 @@ define_npc_type_data(
     [3, 4],
     0x080,
     1,
-    true,
+    false,
     [],
 );
 define_npc_type_data(
@@ -1623,7 +1622,7 @@ define_npc_type_data(
     [3, 4],
     0x081,
     0,
-    true,
+    false,
     [],
 );
 define_npc_type_data(
@@ -1637,7 +1636,7 @@ define_npc_type_data(
     [3, 4],
     0x085,
     0,
-    true,
+    false,
     [],
 );
 define_npc_type_data(
@@ -1651,7 +1650,7 @@ define_npc_type_data(
     [3, 4],
     0x0a0,
     0,
-    true,
+    false,
     [
         ["Jump distance", 44, "F32"],
         ["Block HP", 48, "F32"],
@@ -1668,7 +1667,7 @@ define_npc_type_data(
     [3, 4],
     0x0a1,
     0,
-    true,
+    false,
     [],
 );
 define_npc_type_data(
@@ -1682,7 +1681,7 @@ define_npc_type_data(
     [15],
     0x0cc,
     0,
-    true,
+    false,
     [],
 );
 
@@ -1699,7 +1698,7 @@ define_npc_type_data(
     [5, 6, 7, 8, 9, 16],
     0x0d4,
     0,
-    true,
+    false,
     [],
 );
 define_npc_type_data(
@@ -1713,7 +1712,7 @@ define_npc_type_data(
     [5, 6, 7, 8, 9, 16],
     0x0d4,
     1,
-    true,
+    false,
     [],
 );
 define_npc_type_data(
@@ -1727,7 +1726,7 @@ define_npc_type_data(
     [5, 6, 7, 8, 9, 16],
     0x0d5,
     0,
-    true,
+    false,
     [],
 );
 define_npc_type_data(
@@ -1741,7 +1740,7 @@ define_npc_type_data(
     [5, 6, 7, 8, 9, 16],
     0x0d5,
     1,
-    true,
+    false,
     [],
 );
 define_npc_type_data(
@@ -1755,7 +1754,7 @@ define_npc_type_data(
     [5, 6, 7, 8, 9, 16, 17],
     0x0d6,
     0,
-    true,
+    false,
     [],
 );
 define_npc_type_data(
@@ -1769,7 +1768,7 @@ define_npc_type_data(
     [5, 6, 7, 8, 9, 16, 17],
     0x0d6,
     1,
-    true,
+    false,
     [],
 );
 define_npc_type_data(
@@ -1783,7 +1782,7 @@ define_npc_type_data(
     [5, 6, 7, 8, 9, 16, 17],
     0x0d6,
     2,
-    true,
+    false,
     [],
 );
 define_npc_type_data(
@@ -1797,7 +1796,7 @@ define_npc_type_data(
     [5, 6, 7, 8, 9, 16],
     0x0d7,
     0,
-    true,
+    false,
     [
         ["Spot appear", 44, "F32"],
         ["Jump appear", 48, "F32"],
@@ -1817,7 +1816,7 @@ define_npc_type_data(
     [5, 6, 7, 8, 9, 16],
     0x0d7,
     1,
-    true,
+    false,
     [
         ["Spot appear", 44, "F32"],
         ["Jump appear", 48, "F32"],
@@ -1837,7 +1836,7 @@ define_npc_type_data(
     [5, 6, 7, 8, 9, 16, 17],
     0x0d8,
     0,
-    true,
+    false,
     [],
 );
 define_npc_type_data(
@@ -1851,7 +1850,7 @@ define_npc_type_data(
     [5, 6, 7, 8, 9, 16],
     0x0d9,
     0,
-    true,
+    false,
     [],
 );
 define_npc_type_data(
@@ -1865,7 +1864,7 @@ define_npc_type_data(
     [5, 6, 7, 8, 9, 16, 17],
     0x0da,
     0,
-    true,
+    false,
     [],
 );
 define_npc_type_data(
@@ -1879,7 +1878,7 @@ define_npc_type_data(
     [17],
     0x0e1,
     0,
-    true,
+    false,
     [],
 );
 define_npc_type_data(
@@ -1893,7 +1892,7 @@ define_npc_type_data(
     [17],
     0x061,
     0,
-    true,
+    false,
     [],
 );
 define_npc_type_data(
@@ -1907,7 +1906,7 @@ define_npc_type_data(
     [17],
     0x0e0,
     0,
-    true,
+    false,
     [],
 );
 define_npc_type_data(
@@ -1921,7 +1920,7 @@ define_npc_type_data(
     [12],
     0x0c0,
     0,
-    true,
+    false,
     [],
 );
 
@@ -1938,7 +1937,7 @@ define_npc_type_data(
     [10, 11],
     0x0db,
     0,
-    true,
+    false,
     [],
 );
 define_npc_type_data(
@@ -1952,7 +1951,7 @@ define_npc_type_data(
     [10, 11, 17],
     0x0dc,
     0,
-    true,
+    false,
     [
         ["Howl percent", 44, "F32"],
         ["Confuse percent", 48, "F32"],
@@ -1973,7 +1972,7 @@ define_npc_type_data(
     [10, 11],
     0x0dd,
     0,
-    true,
+    false,
     [],
 );
 define_npc_type_data(
@@ -1987,7 +1986,7 @@ define_npc_type_data(
     [10, 11],
     0x0dd,
     1,
-    true,
+    false,
     [],
 );
 define_npc_type_data(
@@ -2001,7 +2000,7 @@ define_npc_type_data(
     [10, 11],
     0x0de,
     0,
-    true,
+    false,
     [],
 );
 define_npc_type_data(
@@ -2015,7 +2014,7 @@ define_npc_type_data(
     [10, 11, 17],
     0x0df,
     0,
-    true,
+    false,
     [],
 );
 define_npc_type_data(
@@ -2043,7 +2042,7 @@ define_npc_type_data(
     [10, 11],
     0x0e0,
     0,
-    true,
+    false,
     [],
 );
 define_npc_type_data(
@@ -2057,7 +2056,7 @@ define_npc_type_data(
     [10, 11],
     0x0e0,
     1,
-    true,
+    false,
     [],
 );
 define_npc_type_data(
@@ -2071,7 +2070,7 @@ define_npc_type_data(
     [13],
     0x0ca,
     0,
-    true,
+    false,
     [],
 );
 
@@ -2088,7 +2087,7 @@ define_npc_type_data(
     [1, 2, 3, 4, 5, 6, 7, 8],
     0x041,
     0,
-    true,
+    false,
     [],
 );
 define_npc_type_data(
@@ -2102,7 +2101,7 @@ define_npc_type_data(
     [1, 2, 3, 4, 5, 6, 7, 8],
     0x041,
     1,
-    true,
+    false,
     [],
 );
 define_npc_type_data(
@@ -2116,7 +2115,7 @@ define_npc_type_data(
     [1, 2, 3, 4, 5, 6, 7, 8],
     0x110,
     0,
-    true,
+    false,
     [],
 );
 define_npc_type_data(
@@ -2130,7 +2129,7 @@ define_npc_type_data(
     [1, 2, 3, 4, 5, 6, 7, 8],
     0x111,
     0,
-    true,
+    false,
     [],
 );
 define_npc_type_data(
@@ -2144,7 +2143,7 @@ define_npc_type_data(
     [1, 2, 3, 4, 5, 6, 7, 8],
     0x111,
     0,
-    false,
+    true,
     [],
 );
 define_npc_type_data(
@@ -2158,7 +2157,7 @@ define_npc_type_data(
     [6, 7, 8],
     0x112,
     0,
-    true,
+    false,
     [],
 );
 define_npc_type_data(
@@ -2172,7 +2171,7 @@ define_npc_type_data(
     [6, 7, 8],
     0x112,
     1,
-    true,
+    false,
     [],
 );
 define_npc_type_data(
@@ -2186,7 +2185,7 @@ define_npc_type_data(
     [6, 7, 8],
     0x113,
     0,
-    true,
+    false,
     [],
 );
 define_npc_type_data(
@@ -2200,7 +2199,7 @@ define_npc_type_data(
     [1, 2, 3, 4, 5, 6, 7, 8],
     0x114,
     0,
-    true,
+    false,
     [],
 );
 define_npc_type_data(
@@ -2214,7 +2213,7 @@ define_npc_type_data(
     [1, 2, 3, 4, 5, 6, 7, 8],
     0x114,
     1,
-    true,
+    false,
     [],
 );
 define_npc_type_data(
@@ -2228,7 +2227,7 @@ define_npc_type_data(
     [1, 2, 3, 4, 5],
     0x115,
     0,
-    true,
+    false,
     [],
 );
 define_npc_type_data(
@@ -2242,7 +2241,7 @@ define_npc_type_data(
     [1, 2, 3, 4, 5],
     0x115,
     1,
-    true,
+    false,
     [],
 );
 define_npc_type_data(
@@ -2256,7 +2255,7 @@ define_npc_type_data(
     [1, 2, 3, 4, 5],
     0x115,
     2,
-    true,
+    false,
     [],
 );
 define_npc_type_data(
@@ -2270,7 +2269,7 @@ define_npc_type_data(
     [1, 2, 3, 4, 5],
     0x116,
     0,
-    true,
+    false,
     [],
 );
 define_npc_type_data(
@@ -2284,7 +2283,7 @@ define_npc_type_data(
     [1, 2, 3, 4, 5],
     0x116,
     1,
-    true,
+    false,
     [],
 );
 define_npc_type_data(
@@ -2298,7 +2297,7 @@ define_npc_type_data(
     [6, 7, 8],
     0x117,
     0,
-    true,
+    false,
     [],
 );
 define_npc_type_data(
@@ -2312,7 +2311,7 @@ define_npc_type_data(
     [6, 7, 8],
     0x117,
     1,
-    true,
+    false,
     [],
 );
 define_npc_type_data(
@@ -2326,7 +2325,7 @@ define_npc_type_data(
     [6, 7, 8],
     0x117,
     2,
-    true,
+    false,
     [],
 );
 define_npc_type_data(
@@ -2340,7 +2339,7 @@ define_npc_type_data(
     [9],
     0x119,
     0,
-    true,
+    false,
     [],
 );
 define_npc_type_data(
@@ -2354,7 +2353,7 @@ define_npc_type_data(
     [9],
     0x119,
     1,
-    true,
+    false,
     [],
 );
 define_npc_type_data(
@@ -2368,7 +2367,7 @@ define_npc_type_data(
     [9],
     0x119,
     0,
-    false,
+    true,
     [],
 );
 
