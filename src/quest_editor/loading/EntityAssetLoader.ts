@@ -93,8 +93,19 @@ export class EntityAssetLoader implements Disposable {
     }
 
     load_textures(type: EntityType, model?: number): DisposablePromise<Texture[]> {
+        let suffix: string;
+
+        if (
+            type === ObjectType.FloatingRocks ||
+            (type === ObjectType.BigBrownRock && model == undefined)
+        ) {
+            suffix = "-0";
+        } else {
+            suffix = "";
+        }
+
         return this.tex_cache.get_or_set(`${type}-${model ?? ""}`, () =>
-            this.load_data(type, AssetType.Texture, "", model)
+            this.load_data(type, AssetType.Texture, suffix, model)
                 .then(({ data }) => {
                     const cursor = new ArrayBufferCursor(data, Endianness.Little);
                     const xvm = parse_xvm(cursor);
@@ -131,6 +142,7 @@ export class EntityAssetLoader implements Disposable {
             NpcType.Unknown,
             NpcType.Migium,
             NpcType.Hidoom,
+            NpcType.VolOptPart1,
             NpcType.DeathGunner,
             NpcType.StRappy,
             NpcType.HalloRappy,
