@@ -35,6 +35,7 @@ export class QuestEditorRendererView extends QuestRendererView {
 
         this.element.addEventListener("focus", () => quest_editor_store.undo.make_current(), true);
 
+        // Must be initialized before camera controls.
         this.entity_controls = this.disposable(
             new QuestEntityControls(quest_editor_store, this.renderer),
         );
@@ -50,6 +51,7 @@ export class QuestEditorRendererView extends QuestRendererView {
             ),
         );
 
+        // Must be initialized after QuestEntityControls.
         this.renderer.init_camera_controls();
 
         this.finalize_construction(QuestEditorRendererView);

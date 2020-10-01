@@ -1,9 +1,18 @@
 import { QuestEntityModel } from "../model/QuestEntityModel";
-import { Euler, Intersection, Mesh, Plane, Quaternion, Raycaster, Vector2, Vector3 } from "three";
+import {
+    Euler,
+    Intersection,
+    Mesh,
+    Object3D,
+    Plane,
+    Quaternion,
+    Raycaster,
+    Vector2,
+    Vector3,
+} from "three";
 import { QuestRenderer } from "./QuestRenderer";
 import { EntityUserData } from "./conversion/entities";
 import { QuestNpcModel } from "../model/QuestNpcModel";
-import { AreaUserData } from "./conversion/areas";
 import { SectionModel } from "../model/SectionModel";
 import { Disposable } from "../../core/observable/Disposable";
 import { Disposer } from "../../core/observable/Disposer";
@@ -21,10 +30,10 @@ import { CreateEntityAction } from "../actions/CreateEntityAction";
 import { RotateEntityAction } from "../actions/RotateEntityAction";
 import { RemoveEntityAction } from "../actions/RemoveEntityAction";
 import { TranslateEntityAction } from "../actions/TranslateEntityAction";
-import { Object3D } from "three/src/core/Object3D";
 import { create_quest_npc } from "../../core/data_formats/parsing/quest/QuestNpc";
 import { create_quest_object } from "../../core/data_formats/parsing/quest/QuestObject";
 import { Episode } from "../../core/data_formats/parsing/quest/Episode";
+import { pick_ground } from "./pick_ground";
 
 const ZERO_VECTOR = Object.freeze(new Vector3(0, 0, 0));
 const UP_VECTOR = Object.freeze(new Vector3(0, 1, 0));
@@ -916,38 +925,6 @@ const rotate_entity = (() => {
         }
     };
 })();
-
-/**
- * @param renderer
- * @param pointer_pos - pointer coordinates in normalized device space
- * @param drag_adjust - vector from origin of entity to grabbing point
- */
-function pick_ground(
-    renderer: QuestRenderer,
-    pointer_pos: Vector2,
-    drag_adjust: Vector3,
-): {
-    intersection?: Intersection;
-    section?: SectionModel;
-} {
-    raycaster.setFromCamera(pointer_pos, renderer.camera);
-    raycaster.ray.origin.add(drag_adjust);
-    const intersections = raycaster.intersectObjects(renderer.collision_geometry.children, true);
-
-    // Don't allow entities to be placed on very steep terrain.
-    // E.g. walls.
-    // TODO: make use of the flags field in the collision data.
-    for (const intersection of intersections) {
-        if (intersection.face!.normal.y > 0.75) {
-            return {
-                intersection,
-                section: (intersection.object.userData as AreaUserData).section,
-            };
-        }
-    }
-
-    return {};
-}
 
 const pick_nearest_visible_object = (() => {
     const intersections: Intersection[] = [];

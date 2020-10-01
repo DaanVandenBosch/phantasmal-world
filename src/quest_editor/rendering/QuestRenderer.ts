@@ -1,10 +1,22 @@
 import { DisposableThreeRenderer, Renderer } from "../../core/rendering/Renderer";
-import { Group, Mesh, MeshLambertMaterial, Object3D, PerspectiveCamera } from "three";
+import {
+    Group,
+    Mesh,
+    MeshLambertMaterial,
+    Object3D,
+    PerspectiveCamera,
+    Vector2,
+    Vector3,
+} from "three";
 import { QuestEntityModel } from "../model/QuestEntityModel";
 import { Quest3DModelManager } from "./Quest3DModelManager";
 import { Disposer } from "../../core/observable/Disposer";
 import { ColorType, EntityUserData, NPC_COLORS, OBJECT_COLORS } from "./conversion/entities";
 import { QuestNpcModel } from "../model/QuestNpcModel";
+import { pick_ground } from "./pick_ground";
+
+const ZERO_VECTOR_2 = Object.freeze(new Vector2(0, 0));
+const ZERO_VECTOR_3 = Object.freeze(new Vector3(0, 0, 0));
 
 export class QuestRenderer extends Renderer {
     private _collision_geometry = new Object3D();
@@ -14,6 +26,8 @@ export class QuestRenderer extends Renderer {
     private readonly entity_to_mesh = new Map<QuestEntityModel, Mesh>();
     private hovered_mesh?: Mesh;
     private selected_mesh?: Mesh;
+    private camera_target_timeout?: number;
+    private old_camera_target = new Vector3();
 
     get debug(): boolean {
         return super.debug;
@@ -27,7 +41,7 @@ export class QuestRenderer extends Renderer {
         }
     }
 
-    readonly camera = new PerspectiveCamera(60, 1, 10, 10000);
+    readonly camera = new PerspectiveCamera(60, 1, 10, 5_000);
 
     get collision_geometry(): Object3D {
         return this._collision_geometry;
@@ -68,6 +82,11 @@ export class QuestRenderer extends Renderer {
      */
     init_camera_controls(): void {
         super.init_camera_controls();
+
+        this.controls.verticalDragToForward = true;
+        this.controls.truckSpeed = 2.5;
+
+        this.controls.addEventListener("update", this.camera_controls_updated);
     }
 
     dispose(): void {
@@ -159,6 +178,40 @@ export class QuestRenderer extends Renderer {
 
         this.selected_mesh = undefined;
     }
+
+    protected render(): void {
+        const distance = this.controls.distance;
+        this.camera.near = distance / 100;
+        this.camera.far = Math.max(1_000, distance * 5);
+        this.camera.updateProjectionMatrix();
+        super.render();
+    }
+
+    private camera_controls_updated = (): void => {
+        window.clearTimeout(this.camera_target_timeout);
+        // If we call update_camera_target directly here, the camera will
+        // randomly rotate when panning and releasing the mouse button quickly.
+        // No idea why, but wrapping this call in a timeout makes it work.
+        this.camera_target_timeout = window.setTimeout(this.update_camera_target, 100);
+    };
+
+    private update_camera_target = (): void => {
+        // If the user moved the camera, try setting the camera
+        // target to a better point.
+        this.controls.updateCameraUp();
+        const { intersection } = pick_ground(this, ZERO_VECTOR_2, ZERO_VECTOR_3);
+
+        if (intersection) {
+            this.controls.getTarget(this.old_camera_target);
+            const new_target = intersection.point;
+
+            if (new_target.distanceTo(this.old_camera_target) > 10) {
+                this.controls.setTarget(new_target.x, new_target.y, new_target.z);
+            }
+        }
+
+        this.camera_target_timeout = undefined;
+    };
 }
 
 function set_color(mesh: Mesh, type: ColorType): void {
