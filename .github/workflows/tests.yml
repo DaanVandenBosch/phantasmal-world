@@ -27,12 +27,17 @@ jobs:
         with:
           args: install
 
-      - name: Check formatting and lint
+      - name: Lint
         uses: CultureHQ/actions-yarn@v1.0.1
         with:
           args: lint
 
-      - name: Run test suite
+      - name: Check formatting
+        uses: CultureHQ/actions-yarn@v1.0.1
+        with:
+          args: check_formatting
+
+      - name: Test
         uses: CultureHQ/actions-yarn@v1.0.1
         with:
           args: test

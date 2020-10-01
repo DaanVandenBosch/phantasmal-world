@@ -26,6 +26,11 @@ jobs:
         with:
           args: install
 
+      - name: Test
+        uses: CultureHQ/actions-yarn@v1.0.1
+        with:
+          args: test
+
       - name: Build
         uses: CultureHQ/actions-yarn@v1.0.1
         with:

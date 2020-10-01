@@ -18,16 +18,18 @@
     },
     "scripts": {
         "start": "webpack-dev-server --config webpack.dev.js",
+        "check": "yarn lint && yarn check_formatting",
+        "lint": "echo 'Linting...' && eslint \"{src,assets_generation,test}/**/*.{ts,tsx}\" && echo 'No linting issues.'",
+        "check_formatting": "prettier --check \"{src,assets_generation,test}/**/*.{ts,tsx}\"",
+        "test": "jest",
+        "build": "yarn build_bundle",
+        "build_bundle": "webpack --config webpack.prod.js",
         "build_prs_rs": "wasm-pack build src/core/data_formats/compression/prs",
         "build_prs_rs_browser": "yarn build_prs_rs -t bundler && yarn upgrade prs-rs",
         "build_prs_rs_testing": "yarn build_prs_rs -t nodejs -d 'test/pkg'",
-        "build_bundle": "webpack --config webpack.prod.js",
-        "build": "yarn build_bundle",
-        "test": "jest",
         "update_generic_data": "ts-node --project=tsconfig-scripts.json assets_generation/update_generic_data.ts",
         "update_ephinea_data": "ts-node --project=tsconfig-scripts.json assets_generation/update_ephinea_data.ts",
-        "quest_stats": "ts-node --project=tsconfig-scripts.json assets_generation/quest_stats.ts",
-        "lint": "prettier --check \"{src,assets_generation,test}/**/*.{ts,tsx}\" && echo Linting... && eslint \"{src,assets_generation,test}/**/*.{ts,tsx}\" && echo All code passes the prettier and eslint checks."
+        "quest_stats": "ts-node --project=tsconfig-scripts.json assets_generation/quest_stats.ts"
     },
     "devDependencies": {
         "@fortawesome/fontawesome-free": "^5.13.1",
