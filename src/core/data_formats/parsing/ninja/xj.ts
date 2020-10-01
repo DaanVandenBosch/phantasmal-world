@@ -93,6 +93,9 @@ function parse_vertex_info_table(cursor: Cursor, vertex_info_table_offset: numbe
         let uv: Vec2 | undefined;
 
         switch (vertex_type) {
+            case 2:
+                normal = cursor.vec3_f32();
+                break;
             case 3:
                 normal = cursor.vec3_f32();
                 uv = cursor.vec2_f32();
