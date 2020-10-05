@@ -5,7 +5,7 @@ export type LogEntry = {
     readonly time: Date;
     readonly message: string;
     readonly severity: Severity;
-    readonly logger: Logging;
+    readonly logger: Logger;
     readonly cause?: any;
 };
 
@@ -58,7 +58,7 @@ function time_part_to_string(value: number, n: number): string {
     return value.toString().padStart(n, "0");
 }
 
-export class Logging {
+export class Logger {
     private _severity?: Severity;
 
     get severity(): Severity {
@@ -109,18 +109,18 @@ export class Logging {
 }
 
 export class LogManager {
-    private static readonly loggers = new Map<string, Logging>();
+    private static readonly loggers = new Map<string, Logger>();
 
     static default_severity: Severity = severity_from_string(process.env["LOG_LEVEL"] ?? "Info");
     static default_handler: LogHandler = default_log_handler;
 
-    static get(name: string): Logging {
+    static get(name: string): Logger {
         name = basename(name);
 
         let logger = this.loggers.get(name);
 
         if (!logger) {
-            logger = new Logging(name);
+            logger = new Logger(name);
             this.loggers.set(name, logger);
         }
 

@@ -14,7 +14,7 @@ import { QuestObjectModel } from "./model/QuestObjectModel";
 import { AreaStore } from "./stores/AreaStore";
 import { InstructionPointer } from "./scripting/vm/InstructionPointer";
 import { clone_segment } from "../core/data_formats/asm/instructions";
-import { Logging } from "../core/logging";
+import { Logger } from "../core/logging";
 import { LogStore } from "./stores/LogStore";
 import { Severity } from "../core/Severity";
 
@@ -56,7 +56,7 @@ export type GameState = Readonly<GameStateInternal>;
  * delegates to {@link Debugger}.
  */
 export class QuestRunner {
-    private logger: Logging;
+    private logger: Logger;
     private animation_frame?: number;
     private startup = true;
     private readonly _state: WritableProperty<QuestRunnerState> = property(

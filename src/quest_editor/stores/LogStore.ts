@@ -1,7 +1,7 @@
 import { ListProperty } from "../../core/observable/property/list/ListProperty";
 import { Property } from "../../core/observable/property/Property";
 import { list_property, property } from "../../core/observable";
-import { LogEntry, Logging, LogHandler, LogManager } from "../../core/logging";
+import { LogEntry, Logger, LogHandler, LogManager } from "../../core/logging";
 import { Severity } from "../../core/Severity";
 import { Store } from "../../core/stores/Store";
 
@@ -33,7 +33,7 @@ export class LogStore extends Store {
         }
     }
 
-    get_logger(name: string): Logging {
+    get_logger(name: string): Logger {
         const logger = LogManager.get(name);
         logger.handler = this.handler;
         return logger;
