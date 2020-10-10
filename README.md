@@ -4,6 +4,8 @@
 
 ## Developers
 
+TODO: This entire section is out of date since porting PW to Kotlin.
+
 <a href="https://github.com/DaanVandenBosch/phantasmal-world/actions?query=workflow%3ATests">
 <img alt="Tests status" src="https://github.com/DaanVandenBosch/phantasmal-world/workflows/Tests/badge.svg">
 </a>

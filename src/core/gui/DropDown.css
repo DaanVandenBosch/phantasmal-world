@@ -1,9 +1,0 @@
-.core_DropDown {
-    position: relative;
-}
-
-.core_DropDown .core_Menu {
-    top: 25px;
-    left: 0;
-    min-width: 100%;
-}
