@@ -39,6 +39,7 @@ private fun style() = """
 }
 
 .pw-huntoptimizer-hunt-optimizer > * {
-    flex: 1;
+    flex-grow: 1;
+    overflow: hidden;
 }
 """

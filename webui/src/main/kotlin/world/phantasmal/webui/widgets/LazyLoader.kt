@@ -27,9 +27,11 @@ private fun style() = """
 .pw-lazy-loader {
     display: flex;
     flex-direction: column;
+    align-items: stretch;
 }
 
 .pw-lazy-loader > * {
-    flex: 1;
+    flex-grow: 1;
+    overflow: hidden;
 }
 """

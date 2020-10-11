@@ -28,6 +28,7 @@ private fun style() = """
     flex-direction: column;
 }
 .pw-application-application .pw-application-main-content {
-    flex: 1;
+    flex-grow: 1;
+    overflow: hidden;
 }
 """

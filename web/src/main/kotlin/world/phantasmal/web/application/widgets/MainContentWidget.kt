@@ -30,6 +30,7 @@ private fun style() = """
 }
 
 .pw-application-main-content > * {
-    flex: 1;
+    flex-grow: 1;
+    overflow: hidden;
 }
 """

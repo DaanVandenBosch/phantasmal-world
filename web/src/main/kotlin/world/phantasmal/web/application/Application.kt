@@ -1,6 +1,7 @@
 package world.phantasmal.web.application
 
 import kotlinx.browser.document
+import kotlinx.coroutines.CoroutineScope
 import org.w3c.dom.DragEvent
 import org.w3c.dom.Node
 import org.w3c.dom.events.Event
@@ -11,13 +12,19 @@ import world.phantasmal.web.application.controllers.NavigationController
 import world.phantasmal.web.application.widgets.ApplicationWidget
 import world.phantasmal.web.application.widgets.MainContentWidget
 import world.phantasmal.web.application.widgets.NavigationWidget
+import world.phantasmal.web.core.AssetLoader
 import world.phantasmal.web.core.stores.ApplicationUrl
 import world.phantasmal.web.core.stores.PwTool
 import world.phantasmal.web.core.stores.UiStore
 import world.phantasmal.web.huntoptimizer.HuntOptimizer
 import world.phantasmal.webui.dom.disposableListener
 
-class Application(rootNode: Node, applicationUrl: ApplicationUrl) : DisposableContainer() {
+class Application(
+    scope: CoroutineScope,
+    rootNode: Node,
+    assetLoader: AssetLoader,
+    applicationUrl: ApplicationUrl,
+) : DisposableContainer() {
     init {
         // Disable native undo/redo.
         addDisposable(disposableListener(document, "beforeinput", ::beforeInput))
@@ -33,7 +40,7 @@ class Application(rootNode: Node, applicationUrl: ApplicationUrl) : DisposableCo
         )
 
         // Initialize core stores shared by several submodules.
-        val uiStore = addDisposable(UiStore(applicationUrl))
+        val uiStore = addDisposable(UiStore(scope, applicationUrl))
 
         // Controllers.
         val navigationController = addDisposable(NavigationController(uiStore))
@@ -44,7 +51,9 @@ class Application(rootNode: Node, applicationUrl: ApplicationUrl) : DisposableCo
             ApplicationWidget(
                 addDisposable(NavigationWidget(navigationController)),
                 addDisposable(MainContentWidget(mainContentController, mapOf(
-                    PwTool.HuntOptimizer to { addDisposable(HuntOptimizer(uiStore)).widget }
+                    PwTool.HuntOptimizer to {
+                        addDisposable(HuntOptimizer(scope, assetLoader, uiStore)).widget
+                    }
                 ))),
             ),
         )

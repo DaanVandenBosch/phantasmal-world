@@ -91,12 +91,13 @@ private fun style() = """
 }
 
 .pw-tab-container-panes {
-    flex: 1;
+    flex-grow: 1;
     display: flex;
     flex-direction: row;
+    overflow: hidden;
 }
 
 .pw-tab-container-panes > * {
-    flex: 1;
+    flex-grow: 1;
 }
 """

@@ -1,10 +1,12 @@
 package world.phantasmal.web.core.stores
 
 import kotlinx.browser.window
+import kotlinx.coroutines.CoroutineScope
 import org.w3c.dom.events.KeyboardEvent
 import world.phantasmal.observable.value.MutableVal
 import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.mutableVal
+import world.phantasmal.web.core.models.Server
 import world.phantasmal.webui.dom.disposableListener
 import world.phantasmal.webui.stores.Store
 
@@ -25,13 +27,11 @@ interface ApplicationUrl {
     fun replaceUrl(url: String)
 }
 
-class UiStore(private val applicationUrl: ApplicationUrl) : Store() {
+class UiStore(scope: CoroutineScope, private val applicationUrl: ApplicationUrl) : Store(scope) {
     private val _currentTool: MutableVal<PwTool>
 
-    /**
-     * Application URL without the tool path prefix.
-     */
     private val _path = mutableVal("")
+    private val _server = mutableVal(Server.Ephinea)
 
     /**
      * Maps full paths to maps of parameters and their values. In other words we keep track of
@@ -66,9 +66,14 @@ class UiStore(private val applicationUrl: ApplicationUrl) : Store() {
     val toolToActive: Map<PwTool, Val<Boolean>>
 
     /**
-     * The current path without the tool prefix.
+     * Application URL without the tool path prefix.
      */
     val path: Val<String> = _path
+
+    /**
+     * The private server we're currently showing data and tools for.
+     */
+    val server: Val<Server> = _server
 
     init {
         _currentTool = mutableVal(defaultTool)

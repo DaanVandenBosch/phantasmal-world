@@ -1,5 +1,7 @@
 package world.phantasmal.web.core.controllers
 
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import world.phantasmal.core.disposable.use
 import world.phantasmal.web.core.stores.PwTool
 import world.phantasmal.web.core.stores.UiStore
@@ -43,25 +45,27 @@ class PathAwareTabControllerTests : TestSuite() {
     fun applicationUrl_changes_when_switch_to_tool_with_tabs() {
         val appUrl = TestApplicationUrl("/")
 
-        UiStore(appUrl).use { uiStore ->
-            PathAwareTabController(uiStore, PwTool.HuntOptimizer, listOf(
-                PathAwareTab("A", "/a"),
-                PathAwareTab("B", "/b"),
-                PathAwareTab("C", "/c"),
-            )).use {
-                assertFalse(appUrl.canGoBack)
-                assertFalse(appUrl.canGoForward)
-                assertEquals("/${uiStore.defaultTool.slug}", appUrl.url.value)
+        GlobalScope.launch {
+            UiStore(this, appUrl).use { uiStore ->
+                PathAwareTabController(uiStore, PwTool.HuntOptimizer, listOf(
+                    PathAwareTab("A", "/a"),
+                    PathAwareTab("B", "/b"),
+                    PathAwareTab("C", "/c"),
+                )).use {
+                    assertFalse(appUrl.canGoBack)
+                    assertFalse(appUrl.canGoForward)
+                    assertEquals("/${uiStore.defaultTool.slug}", appUrl.url.value)
 
-                uiStore.setCurrentTool(PwTool.HuntOptimizer)
+                    uiStore.setCurrentTool(PwTool.HuntOptimizer)
 
-                assertEquals(1, appUrl.historyEntries)
-                assertFalse(appUrl.canGoForward)
-                assertEquals("/${PwTool.HuntOptimizer.slug}", appUrl.url.value)
+                    assertEquals(1, appUrl.historyEntries)
+                    assertFalse(appUrl.canGoForward)
+                    assertEquals("/${PwTool.HuntOptimizer.slug}", appUrl.url.value)
 
-                appUrl.back()
+                    appUrl.back()
 
-                assertEquals("/${uiStore.defaultTool.slug}", appUrl.url.value)
+                    assertEquals("/${uiStore.defaultTool.slug}", appUrl.url.value)
+                }
             }
         }
     }
@@ -71,15 +75,17 @@ class PathAwareTabControllerTests : TestSuite() {
     ) {
         val applicationUrl = TestApplicationUrl("/${PwTool.HuntOptimizer.slug}/b")
 
-        UiStore(applicationUrl).use { uiStore ->
-            uiStore.setCurrentTool(PwTool.HuntOptimizer)
+        GlobalScope.launch {
+            UiStore(this, applicationUrl).use { uiStore ->
+                uiStore.setCurrentTool(PwTool.HuntOptimizer)
 
-            PathAwareTabController(uiStore, PwTool.HuntOptimizer, listOf(
-                PathAwareTab("A", "/a"),
-                PathAwareTab("B", "/b"),
-                PathAwareTab("C", "/c"),
-            )).use { ctrl ->
-                block(ctrl, applicationUrl)
+                PathAwareTabController(uiStore, PwTool.HuntOptimizer, listOf(
+                    PathAwareTab("A", "/a"),
+                    PathAwareTab("B", "/b"),
+                    PathAwareTab("C", "/c"),
+                )).use { ctrl ->
+                    block(ctrl, applicationUrl)
+                }
             }
         }
     }
