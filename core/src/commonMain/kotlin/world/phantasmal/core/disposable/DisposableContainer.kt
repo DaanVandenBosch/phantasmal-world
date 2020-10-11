@@ -11,11 +11,11 @@ abstract class DisposableContainer : TrackedDisposable() {
     }
 
     protected fun <T : Disposable> addDisposable(disposable: T): T {
-        return disposer.add(disposable);
+        return disposer.add(disposable)
     }
 
     protected fun addDisposables(vararg disposables: Disposable) {
-        disposer.addAll(*disposables);
+        disposer.addAll(*disposables)
     }
 
     protected fun removeDisposable(disposable: Disposable) =

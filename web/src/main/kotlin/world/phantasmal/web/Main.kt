@@ -24,7 +24,7 @@ private fun init(): Disposable {
 
     val rootNode = document.body!!
 
-    disposer.add(Application(rootNode, HistoryApplicationUrl()))
+    disposer.add(Application(rootNode, disposer.add(HistoryApplicationUrl())))
 
     return disposer
 }

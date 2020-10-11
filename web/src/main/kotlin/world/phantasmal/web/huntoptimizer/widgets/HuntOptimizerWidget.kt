@@ -1,7 +1,7 @@
 package world.phantasmal.web.huntoptimizer.widgets
 
 import org.w3c.dom.Node
-import world.phantasmal.web.core.widgets.TabContainer
+import world.phantasmal.webui.widgets.TabContainer
 import world.phantasmal.web.huntoptimizer.HuntOptimizerUrls
 import world.phantasmal.web.huntoptimizer.controllers.HuntOptimizerController
 import world.phantasmal.webui.dom.div
@@ -10,7 +10,7 @@ import world.phantasmal.webui.widgets.Widget
 class HuntOptimizerWidget(
     private val ctrl: HuntOptimizerController,
     private val createMethodsWidget: () -> MethodsWidget,
-) : Widget() {
+) : Widget(::style) {
     override fun Node.createElement() = div(className = "pw-huntoptimizer-hunt-optimizer") {
         addChild(TabContainer(
             ctrl = ctrl,
@@ -29,3 +29,16 @@ class HuntOptimizerWidget(
         ))
     }
 }
+
+@Suppress("CssUnusedSymbol")
+// language=css
+private fun style() = """
+.pw-huntoptimizer-hunt-optimizer {
+    display: flex;
+    flex-direction: column;
+}
+
+.pw-huntoptimizer-hunt-optimizer > * {
+    flex: 1;
+}
+"""

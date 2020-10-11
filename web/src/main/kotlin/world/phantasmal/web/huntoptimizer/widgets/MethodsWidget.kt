@@ -1,7 +1,7 @@
 package world.phantasmal.web.huntoptimizer.widgets
 
 import org.w3c.dom.Node
-import world.phantasmal.web.core.widgets.TabContainer
+import world.phantasmal.webui.widgets.TabContainer
 import world.phantasmal.web.huntoptimizer.controllers.MethodsController
 import world.phantasmal.webui.dom.div
 import world.phantasmal.webui.widgets.Widget

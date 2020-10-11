@@ -25,8 +25,14 @@ class HelpWidget : Widget(::style) {
     }
 }
 
+@Suppress("CssUnusedSymbol")
 // language=css
 private fun style() = """
+.pw-huntoptimizer-help {
+    cursor: initial;
+    user-select: text;
+}
+
 .pw-huntoptimizer-help p {
     margin: 1em;
     max-width: 600px;

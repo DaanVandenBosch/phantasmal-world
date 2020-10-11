@@ -1,14 +1,12 @@
-package world.phantasmal.web.core.widgets
+package world.phantasmal.webui.widgets
 
 import org.w3c.dom.Node
 import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.falseVal
-import world.phantasmal.web.core.controllers.Tab
-import world.phantasmal.web.core.controllers.TabController
+import world.phantasmal.webui.controllers.Tab
+import world.phantasmal.webui.controllers.TabController
 import world.phantasmal.webui.dom.div
 import world.phantasmal.webui.dom.span
-import world.phantasmal.webui.widgets.LazyLoader
-import world.phantasmal.webui.widgets.Widget
 
 class TabContainer<T : Tab>(
     hidden: Val<Boolean> = falseVal(),
@@ -56,11 +54,16 @@ class TabContainer<T : Tab>(
 @Suppress("CssUnresolvedCustomProperty", "CssUnusedSymbol")
 // language=css
 private fun style() = """
+.pw-tab-container {
+    display: flex;
+    flex-direction: column;
+}
+
 .pw-tab-container-bar {
     box-sizing: border-box;
     height: 28px;
     padding: 3px 3px 0 3px;
-    border-bottom: var(--border);
+    border-bottom: var(--pw-border);
 }
 
 .pw-tab-container-tab {
@@ -69,21 +72,31 @@ private fun style() = """
     align-items: center;
     height: calc(100% + 1px);
     padding: 0 10px;
-    border: var(--border);
+    border: var(--pw-border);
     margin: 0 1px -1px 1px;
-    background-color: hsl(0, 0%, 12%);
-    color: hsl(0, 0%, 75%);
+    background-color: var(--pw-tab-bg-color);
+    color: var(--pw-tab-text-color);
     font-size: 13px;
 }
 
 .pw-tab-container-tab:hover {
-    background-color: hsl(0, 0%, 18%);
-    color: hsl(0, 0%, 85%);
+    background-color: var(--pw-tab-bg-color-hover);
+    color: var(--pw-tab-text-color-hover);
 }
 
 .pw-tab-container-tab.active {
-    background-color: var(--bg-color);
-    color: hsl(0, 0%, 90%);
-    border-bottom-color: var(--bg-color);
+    background-color: var(--pw-tab-bg-color-active);
+    color: var(--pw-tab-text-color-active);
+    border-bottom-color: var(--pw-tab-bg-color-active);
+}
+
+.pw-tab-container-panes {
+    flex: 1;
+    display: flex;
+    flex-direction: row;
+}
+
+.pw-tab-container-panes > * {
+    flex: 1;
 }
 """

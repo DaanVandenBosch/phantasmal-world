@@ -1,9 +1,8 @@
-package world.phantasmal.web.core.controllers
+package world.phantasmal.webui.controllers
 
 import world.phantasmal.observable.value.MutableVal
 import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.mutableVal
-import world.phantasmal.webui.controllers.Controller
 
 interface Tab {
     val title: String

@@ -8,7 +8,7 @@ import world.phantasmal.webui.dom.div
 class LazyLoader(
     hidden: Val<Boolean> = falseVal(),
     private val createWidget: () -> Widget,
-) : Widget(NO_STYLE, hidden) {
+) : Widget(::style, hidden) {
     private var initialized = false
 
     override fun Node.createElement() = div(className = "pw-lazy-loader") {
@@ -20,3 +20,16 @@ class LazyLoader(
         }
     }
 }
+
+@Suppress("CssUnusedSymbol")
+// language=css
+private fun style() = """
+.pw-lazy-loader {
+    display: flex;
+    flex-direction: column;
+}
+
+.pw-lazy-loader > * {
+    flex: 1;
+}
+"""

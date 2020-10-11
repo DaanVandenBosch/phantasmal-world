@@ -28,6 +28,7 @@ class PwToolButton(
         }
 }
 
+@Suppress("CssUnresolvedCustomProperty")
 // language=css
 private fun style() = """
 .pw-application-pw-tool-button input {
@@ -52,6 +53,6 @@ private fun style() = """
 
 .pw-application-pw-tool-button input:checked + label {
     color: hsl(0, 0%, 85%);
-    background-color: var(--bg-color);
+    background-color: var(--pw-bg-color);
 }
 """

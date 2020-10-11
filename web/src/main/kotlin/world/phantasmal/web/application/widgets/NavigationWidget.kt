@@ -14,7 +14,7 @@ class NavigationWidget(private val ctrl: NavigationController) : Widget(::style)
         }
 }
 
-@Suppress("CssUnusedSymbol")
+@Suppress("CssUnusedSymbol", "CssUnresolvedCustomProperty")
 // language=css
 private fun style() = """
 .pw-application-navigation {
@@ -23,7 +23,7 @@ private fun style() = """
     flex-direction: row;
     align-items: stretch;
     background-color: hsl(0, 0%, 10%);
-    border-bottom: solid 2px var(--bg-color);
+    border-bottom: solid 2px var(--pw-bg-color);
 }
 
 .pw-application-navigation-spacer {
@@ -51,10 +51,10 @@ private fun style() = """
     justify-content: center;
     width: 30px;
     font-size: 16px;
-    color: var(--control-text-color);
+    color: var(--pw-control-text-color);
 }
 
 .pw-application-navigation-github:hover {
-    color: var(--control-text-color-hover);
+    color: var(--pw-control-text-color-hover);
 }
 """

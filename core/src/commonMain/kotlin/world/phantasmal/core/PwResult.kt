@@ -53,8 +53,8 @@ class PwResultBuilder<T>(private val logger: KLogger) {
             Severity.Error -> logger.error(cause) { message ?: uiMessage }
         }
 
-        problems.add(Problem(severity, uiMessage));
-        return this;
+        problems.add(Problem(severity, uiMessage))
+        return this
     }
 
     /**
@@ -62,7 +62,7 @@ class PwResultBuilder<T>(private val logger: KLogger) {
      */
     fun addResult(result: PwResult<*>): PwResultBuilder<T> {
         problems.addAll(result.problems)
-        return this;
+        return this
     }
 
     fun success(value: T): Success<T> =

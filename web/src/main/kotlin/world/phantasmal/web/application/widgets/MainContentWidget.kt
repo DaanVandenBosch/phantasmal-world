@@ -11,7 +11,7 @@ import world.phantasmal.webui.widgets.Widget
 class MainContentWidget(
     private val ctrl: MainContentController,
     private val toolViews: Map<PwTool, () -> Widget>,
-) : Widget() {
+) : Widget(::style) {
     override fun Node.createElement() = div(className = "pw-application-main-content") {
         ctrl.tools.forEach { (tool, active) ->
             toolViews[tool]?.let { createWidget ->
@@ -20,3 +20,16 @@ class MainContentWidget(
         }
     }
 }
+
+@Suppress("CssUnusedSymbol")
+// language=css
+private fun style() = """
+.pw-application-main-content {
+    display: flex;
+    flex-direction: column;
+}
+
+.pw-application-main-content > * {
+    flex: 1;
+}
+"""

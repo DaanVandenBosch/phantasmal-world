@@ -1,7 +1,7 @@
 package world.phantasmal.web.application.widgets
 
 import org.w3c.dom.Node
-import world.phantasmal.webui.dom.div
+import world.phantasmal.webui.dom.root
 import world.phantasmal.webui.widgets.Widget
 
 class ApplicationWidget(
@@ -9,7 +9,7 @@ class ApplicationWidget(
     private val mainContentWidget: MainContentWidget,
 ) : Widget(::style) {
     override fun Node.createElement() =
-        div(className = "pw-application-application") {
+        root(className = "pw-application-application") {
             addChild(navigationWidget)
             addChild(mainContentWidget)
         }
@@ -24,5 +24,10 @@ private fun style() = """
     bottom: 0;
     left: 0;
     right: 0;
+    display: flex;
+    flex-direction: column;
+}
+.pw-application-application .pw-application-main-content {
+    flex: 1;
 }
 """

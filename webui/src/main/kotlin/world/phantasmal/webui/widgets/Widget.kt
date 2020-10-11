@@ -22,6 +22,8 @@ abstract class Widget(
     private val _children = mutableListOf<Widget>()
 
     private val elementDelegate = lazy {
+        // Add CSS declarations to stylesheet if this is the first time we're instantiating this
+        // widget.
         if (style !== NO_STYLE && STYLES_ADDED.add(this::class)) {
             STYLE_EL.appendText(style())
         }
@@ -157,6 +159,7 @@ abstract class Widget(
     companion object {
         private val STYLE_EL by lazy {
             val el = document.createElement("style") as HTMLStyleElement
+            el.id = "pw-widget-styles"
             document.head!!.append(el)
             el
         }
