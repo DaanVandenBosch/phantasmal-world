@@ -1,4 +1,4 @@
-package world.phantasmal.web.huntoptimizer
+package world.phantasmal.web.huntOptimizer
 
 object HuntOptimizerUrls {
     const val optimize = "/optimize"

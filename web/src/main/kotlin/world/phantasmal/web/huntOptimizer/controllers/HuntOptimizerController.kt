@@ -1,10 +1,10 @@
-package world.phantasmal.web.huntoptimizer.controllers
+package world.phantasmal.web.huntOptimizer.controllers
 
 import world.phantasmal.web.core.controllers.PathAwareTab
 import world.phantasmal.web.core.controllers.PathAwareTabController
 import world.phantasmal.web.core.stores.PwTool
 import world.phantasmal.web.core.stores.UiStore
-import world.phantasmal.web.huntoptimizer.HuntOptimizerUrls
+import world.phantasmal.web.huntOptimizer.HuntOptimizerUrls
 
 class HuntOptimizerController(uiStore: UiStore) : PathAwareTabController<PathAwareTab>(
     uiStore,

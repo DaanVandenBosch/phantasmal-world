@@ -1,4 +1,4 @@
-package world.phantasmal.web.huntoptimizer.stores
+package world.phantasmal.web.huntOptimizer.stores
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -12,8 +12,8 @@ import world.phantasmal.web.core.IoDispatcher
 import world.phantasmal.web.core.UiDispatcher
 import world.phantasmal.web.core.models.Server
 import world.phantasmal.web.core.stores.UiStore
-import world.phantasmal.web.huntoptimizer.models.HuntMethodModel
-import world.phantasmal.web.huntoptimizer.models.SimpleQuestModel
+import world.phantasmal.web.huntOptimizer.models.HuntMethodModel
+import world.phantasmal.web.huntOptimizer.models.SimpleQuestModel
 import world.phantasmal.webui.stores.Store
 import kotlin.collections.component1
 import kotlin.collections.component2

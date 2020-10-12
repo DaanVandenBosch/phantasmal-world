@@ -1,4 +1,4 @@
-package world.phantasmal.web.huntoptimizer.models
+package world.phantasmal.web.huntOptimizer.models
 
 import world.phantasmal.lib.fileformats.quest.Episode
 import world.phantasmal.lib.fileformats.quest.NpcType

@@ -16,7 +16,7 @@ import world.phantasmal.web.core.AssetLoader
 import world.phantasmal.web.core.stores.ApplicationUrl
 import world.phantasmal.web.core.stores.PwTool
 import world.phantasmal.web.core.stores.UiStore
-import world.phantasmal.web.huntoptimizer.HuntOptimizer
+import world.phantasmal.web.huntOptimizer.HuntOptimizer
 import world.phantasmal.webui.dom.disposableListener
 
 class Application(

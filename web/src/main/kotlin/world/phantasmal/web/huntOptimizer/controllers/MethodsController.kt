@@ -1,4 +1,4 @@
-package world.phantasmal.web.huntoptimizer.controllers
+package world.phantasmal.web.huntOptimizer.controllers
 
 import world.phantasmal.lib.fileformats.quest.Episode
 import world.phantasmal.observable.value.list.ListVal
@@ -8,9 +8,9 @@ import world.phantasmal.web.core.controllers.PathAwareTab
 import world.phantasmal.web.core.controllers.PathAwareTabController
 import world.phantasmal.web.core.stores.PwTool
 import world.phantasmal.web.core.stores.UiStore
-import world.phantasmal.web.huntoptimizer.HuntOptimizerUrls
-import world.phantasmal.web.huntoptimizer.models.HuntMethodModel
-import world.phantasmal.web.huntoptimizer.stores.HuntMethodStore
+import world.phantasmal.web.huntOptimizer.HuntOptimizerUrls
+import world.phantasmal.web.huntOptimizer.models.HuntMethodModel
+import world.phantasmal.web.huntOptimizer.stores.HuntMethodStore
 
 class MethodsTab(title: String, path: String, val episode: Episode) : PathAwareTab(title, path)
 
