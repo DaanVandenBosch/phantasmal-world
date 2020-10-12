@@ -2,10 +2,12 @@ package world.phantasmal.webui.widgets
 
 import kotlinx.browser.document
 import kotlinx.dom.appendText
+import org.w3c.dom.Element
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.HTMLStyleElement
 import org.w3c.dom.Node
 import world.phantasmal.core.disposable.DisposableContainer
+import world.phantasmal.core.disposable.disposable
 import world.phantasmal.observable.Observable
 import world.phantasmal.observable.Observer
 import world.phantasmal.observable.value.Val
@@ -20,6 +22,8 @@ abstract class Widget(
 ) : DisposableContainer() {
     private val _ancestorHidden = mutableVal(false)
     private val _children = mutableListOf<Widget>()
+    private var initResizeObserverRequested = false
+    private var resizeObserverInitialized = false
 
     private val elementDelegate = lazy {
         // Add CSS declarations to stylesheet if this is the first time we're instantiating this
@@ -33,6 +37,10 @@ abstract class Widget(
         observe(hidden) { hidden ->
             el.hidden = hidden
             children.forEach { setAncestorHidden(it, hidden || ancestorHidden.value) }
+        }
+
+        if (initResizeObserverRequested) {
+            initResizeObserver(el)
         }
 
         el
@@ -154,6 +162,40 @@ abstract class Widget(
     protected fun removeChild(child: Widget) {
         _children.remove(child)
         removeDisposable(child)
+    }
+
+    /**
+     * Called whenever [element] is resized.
+     * Must be initialized with [observeResize].
+     */
+    protected open fun resized(width: Double, height: Double) {}
+
+    protected fun observeResize() {
+        if (elementDelegate.isInitialized()) {
+            initResizeObserver(element)
+        } else {
+            initResizeObserverRequested = true
+        }
+    }
+
+    private fun initResizeObserver(element: Element) {
+        if (resizeObserverInitialized) return
+
+        resizeObserverInitialized = true
+        @Suppress("UNUSED_VARIABLE")
+        val resize = ::resizeCallback
+        val observer = js("new ResizeObserver(resize);")
+        observer.observe(element)
+        addDisposable(disposable { observer.disconnect().unsafeCast<Unit>() })
+    }
+
+    private fun resizeCallback(entries: Array<dynamic>) {
+        entries.forEach { entry ->
+            resized(
+                entry.contentRect.width.unsafeCast<Double>(),
+                entry.contentRect.height.unsafeCast<Double>()
+            )
+        }
     }
 
     companion object {

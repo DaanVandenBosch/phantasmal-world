@@ -17,6 +17,7 @@ import world.phantasmal.web.core.stores.ApplicationUrl
 import world.phantasmal.web.core.stores.PwTool
 import world.phantasmal.web.core.stores.UiStore
 import world.phantasmal.web.huntOptimizer.HuntOptimizer
+import world.phantasmal.web.questEditor.QuestEditor
 import world.phantasmal.webui.dom.disposableListener
 
 class Application(
@@ -51,9 +52,12 @@ class Application(
             ApplicationWidget(
                 addDisposable(NavigationWidget(navigationController)),
                 addDisposable(MainContentWidget(mainContentController, mapOf(
+                    PwTool.QuestEditor to {
+                        addDisposable(QuestEditor(scope, uiStore)).widget
+                    },
                     PwTool.HuntOptimizer to {
                         addDisposable(HuntOptimizer(scope, assetLoader, uiStore)).widget
-                    }
+                    },
                 ))),
             ),
         )
