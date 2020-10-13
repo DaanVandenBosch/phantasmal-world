@@ -1,4 +1,4 @@
-package golden_layout
+package world.phantasmal.web.externals
 
 import org.w3c.dom.Element
 

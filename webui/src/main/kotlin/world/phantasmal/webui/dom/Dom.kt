@@ -25,18 +25,19 @@ fun <E : Event> disposableListener(
     }
 }
 
-fun Node.root(className: String? = null, block: HTMLElement.() -> Unit): HTMLElement {
+fun HTMLElement.root(): HTMLElement {
     val styleEl = document.createElement("style") as HTMLStyleElement
     styleEl.id = "pw-root-styles"
     styleEl.appendText(DEFAULT_STYLE)
     document.head!!.append(styleEl)
 
-    return div(id = "pw-root", className, block = block)
+    id = "pw-root"
+    return this
 }
 
 fun <T> Node.bindChildrenTo(
     list: ListVal<T>,
-    createChild: (T, Int) -> Node
+    createChild: (T, Int) -> Node,
 ): Disposable {
     fun spliceChildren(index: Int, removedCount: Int, inserted: List<T>) {
         for (i in 1..removedCount) {

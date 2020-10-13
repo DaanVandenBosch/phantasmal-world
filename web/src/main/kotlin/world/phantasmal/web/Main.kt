@@ -18,6 +18,7 @@ import world.phantasmal.web.core.HttpAssetLoader
 import world.phantasmal.web.core.UiDispatcher
 import world.phantasmal.web.core.stores.ApplicationUrl
 import world.phantasmal.webui.dom.disposableListener
+import world.phantasmal.webui.dom.root
 
 fun main() {
     if (document.body != null) {
@@ -34,7 +35,7 @@ private fun init(): Disposable {
 
     disposer.add(disposable { scope.cancel() })
 
-    val rootNode = document.body!!
+    val rootElement = document.body!!.root()
 
     val httpClient = HttpClient {
         install(JsonFeature) {
@@ -52,7 +53,7 @@ private fun init(): Disposable {
 
     disposer.add(Application(
         scope,
-        rootNode,
+        rootElement,
         HttpAssetLoader(httpClient, basePath),
         disposer.add(HistoryApplicationUrl())
     ))

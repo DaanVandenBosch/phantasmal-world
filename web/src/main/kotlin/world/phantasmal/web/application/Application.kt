@@ -3,7 +3,7 @@ package world.phantasmal.web.application
 import kotlinx.browser.document
 import kotlinx.coroutines.CoroutineScope
 import org.w3c.dom.DragEvent
-import org.w3c.dom.Node
+import org.w3c.dom.HTMLElement
 import org.w3c.dom.events.Event
 import org.w3c.dom.events.KeyboardEvent
 import world.phantasmal.core.disposable.DisposableContainer
@@ -22,7 +22,7 @@ import world.phantasmal.webui.dom.disposableListener
 
 class Application(
     scope: CoroutineScope,
-    rootNode: Node,
+    rootElement: HTMLElement,
     assetLoader: AssetLoader,
     applicationUrl: ApplicationUrl,
 ) : DisposableContainer() {
@@ -62,7 +62,7 @@ class Application(
             ),
         )
 
-        rootNode.appendChild(applicationWidget.element)
+        rootElement.appendChild(applicationWidget.element)
     }
 
     private fun beforeInput(e: Event) {

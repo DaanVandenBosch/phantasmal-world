@@ -1,7 +1,7 @@
-package golden_layout.world.phantasmal.web.core.widgets
+package world.phantasmal.web.core.widgets
 
-import golden_layout.GoldenLayout
-import golden_layout.world.phantasmal.web.core.newJsObject
+import world.phantasmal.web.externals.GoldenLayout
+import world.phantasmal.web.core.newJsObject
 import org.w3c.dom.Node
 import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.falseVal
@@ -134,21 +134,22 @@ class DockWidget(
     }
 }
 
-// Use div.pw-core-dock for higher specificity than the default GoldenLayout CSS.
+// Use #pw-root for higher specificity than the default GoldenLayout CSS.
 @Suppress("CssUnusedSymbol", "CssUnresolvedCustomProperty")
 // language=css
 private fun style() = """
-div.pw-core-dock .lm_header {
+#pw-root .lm_header {
     box-sizing: border-box;
+    height: ${HEADER_HEIGHT + 4}px;
     padding: 3px 0 0 0;
     border-bottom: var(--pw-border);
 }
 
-div.pw-core-dock .lm_tabs {
+#pw-root .lm_header .lm_tabs {
     padding: 0 3px;
 }
 
-div.pw-core-dock .lm_tab {
+#pw-root .lm_header .lm_tabs .lm_tab {
     cursor: default;
     display: inline-flex;
     align-items: center;
@@ -161,22 +162,22 @@ div.pw-core-dock .lm_tab {
     font-size: 13px;
 }
 
-div.pw-core-dock .lm_tab:hover {
+#pw-root .lm_header .lm_tabs .lm_tab:hover {
     background-color: hsl(0, 0%, 18%);
     color: hsl(0, 0%, 85%);
 }
 
-div.pw-core-dock .lm_tab.lm_active {
+#pw-root .lm_header .lm_tabs .lm_tab.lm_active {
     background-color: var(--pw-bg-color);
     color: hsl(0, 0%, 90%);
     border-bottom-color: var(--pw-bg-color);
 }
 
-div.pw-core-dock .lm_header .lm_controls > li {
+#pw-root .lm_header .lm_controls > li {
     cursor: default;
 }
 
-div.pw-core-dock .lm_header .lm_controls .lm_close {
+#pw-root .lm_header .lm_controls .lm_close {
     /* a white 9x9 X shape */
     background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAkAAAAJCAYAAADgkQYQAAAAQUlEQVR4nHXOQQ4AMAgCQeT/f6aXpsGK3jSTuCVJAAr7iBdoAwCKd0nwfaAdHbYERw5b44+E8JoBjEYGMBq5gAYP3usUDu2IvoUAAAAASUVORK5CYII=);
     background-position: center center;
@@ -186,33 +187,41 @@ div.pw-core-dock .lm_header .lm_controls .lm_close {
     transition: opacity 300ms ease;
 }
 
-div.pw-core-dock .lm_header .lm_controls .lm_close:hover {
+#pw-root .lm_header .lm_controls .lm_close:hover {
     opacity: 1;
 }
 
-div.pw-core-dock .lm_content > * {
+#pw-root .lm_content > * {
     width: 100%;
     /* Subtract HEADER_HEIGHT_DIFF px as workaround for bug related to headerHeight. */
     height: calc(100% - ${HEADER_HEIGHT_DIFF}px);
 }
 
-div.pw-core-dock .lm_splitter {
+#pw-root .lm_splitter {
     box-sizing: border-box;
     background-color: hsl(0, 0%, 20%);
 }
 
-div.pw-core-dock .lm_splitter.lm_vertical {
+#pw-root .lm_splitter.lm_vertical {
     border-top: var(--pw-border);
     border-bottom: var(--pw-border);
 }
 
-div.pw-core-dock .lm_splitter.lm_horizontal {
+#pw-root .lm_splitter.lm_horizontal {
     border-left: var(--pw-border);
     border-right: var(--pw-border);
 }
 
-body .lm_dropTargetIndicator {
+#pw-root .lm_dragProxy > .lm_content {
     box-sizing: border-box;
-    background-color: hsla(0, 0%, 100%, 0.2);
+    background-color: var(--pw-bg-color);
+    border-left: var(--pw-border);
+    border-right: var(--pw-border);
+    border-bottom: var(--pw-border);
+}
+
+#pw-root .lm_dropTargetIndicator {
+    box-sizing: border-box;
+    background-color: hsla(0, 0%, 50%, 0.2);
 }
 """

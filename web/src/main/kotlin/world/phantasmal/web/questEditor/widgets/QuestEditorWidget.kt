@@ -1,6 +1,6 @@
 package world.phantasmal.web.questEditor.widgets
 
-import golden_layout.world.phantasmal.web.core.widgets.*
+import world.phantasmal.web.core.widgets.*
 import org.w3c.dom.Node
 import world.phantasmal.webui.dom.div
 import world.phantasmal.webui.widgets.Widget
