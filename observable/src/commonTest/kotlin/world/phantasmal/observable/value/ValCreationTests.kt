@@ -1,6 +1,6 @@
 package world.phantasmal.observable.value
 
-import world.phantasmal.observable.test.TestSuite
+import world.phantasmal.testUtils.TestSuite
 import kotlin.test.*
 
 class ValCreationTests : TestSuite() {

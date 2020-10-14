@@ -1,5 +1,6 @@
 package world.phantasmal.web.core.controllers
 
+import world.phantasmal.core.disposable.Scope
 import world.phantasmal.web.core.stores.PwTool
 import world.phantasmal.web.core.stores.UiStore
 import world.phantasmal.webui.controllers.Tab
@@ -8,18 +9,19 @@ import world.phantasmal.webui.controllers.TabController
 open class PathAwareTab(override val title: String, val path: String) : Tab
 
 open class PathAwareTabController<T : PathAwareTab>(
+    scope: Scope,
     private val uiStore: UiStore,
     private val tool: PwTool,
     tabs: List<T>,
-) : TabController<T>(tabs) {
+) : TabController<T>(scope, tabs) {
     init {
-        addDisposable(uiStore.path.observe(callNow = true) { (path) ->
+        uiStore.path.observe(scope, callNow = true) { (path) ->
             if (uiStore.currentTool.value == tool) {
                 tabs.find { path.startsWith(it.path) }?.let {
                     setActiveTab(it, replaceUrl = true)
                 }
             }
-        })
+        }
     }
 
     override fun setActiveTab(tab: T?, replaceUrl: Boolean) {

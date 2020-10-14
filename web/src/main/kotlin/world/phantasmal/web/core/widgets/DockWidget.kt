@@ -1,10 +1,11 @@
 package world.phantasmal.web.core.widgets
 
-import world.phantasmal.web.externals.GoldenLayout
-import world.phantasmal.web.core.newJsObject
 import org.w3c.dom.Node
+import world.phantasmal.core.disposable.Scope
 import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.falseVal
+import world.phantasmal.web.core.newJsObject
+import world.phantasmal.web.externals.GoldenLayout
 import world.phantasmal.webui.dom.div
 import world.phantasmal.webui.widgets.Widget
 
@@ -38,23 +39,29 @@ class DocketWidget(
     val id: String,
     val title: String,
     flex: Int? = null,
-    val createWidget: () -> Widget,
+    val createWidget: (Scope) -> Widget,
 ) : DockedItem(flex)
 
 class DockWidget(
+    scope: Scope,
     hidden: Val<Boolean> = falseVal(),
     private val item: DockedItem,
-) : Widget(::style, hidden) {
+) : Widget(scope, ::style, hidden) {
     private lateinit var goldenLayout: GoldenLayout
 
     init {
-        js("""require("golden-layout/src/css/goldenlayout-base.css");""")
+        try {
+            // Importing the base CSS fails during unit tests.
+            js("""require("golden-layout/src/css/goldenlayout-base.css");""")
+        } catch (e: Throwable) {
+            e.printStackTrace()
+        }
 
         observeResize()
     }
 
     override fun Node.createElement() = div(className = "pw-core-dock") {
-        val idToCreate = mutableMapOf<String, () -> Widget>()
+        val idToCreate = mutableMapOf<String, (Scope) -> Widget>()
 
         val config = newJsObject<GoldenLayout.Config> {
             settings = newJsObject<GoldenLayout.Settings> {
@@ -78,7 +85,7 @@ class DockWidget(
 
         idToCreate.forEach { (id, create) ->
             goldenLayout.registerComponent(id) { container: GoldenLayout.Container ->
-                container.getElement().append(create().element)
+                container.getElement().append(create(scope).element)
             }
         }
 
@@ -92,9 +99,14 @@ class DockWidget(
         goldenLayout.updateSize(width, height)
     }
 
+    override fun internalDispose() {
+        goldenLayout.destroy()
+        super.internalDispose()
+    }
+
     private fun toConfigContent(
         item: DockedItem,
-        idToCreate: MutableMap<String, () -> Widget>,
+        idToCreate: MutableMap<String, (Scope) -> Widget>,
     ): GoldenLayout.ItemConfig {
         val itemType = when (item) {
             is DockedRow -> "row"
@@ -138,6 +150,11 @@ class DockWidget(
 @Suppress("CssUnusedSymbol", "CssUnresolvedCustomProperty")
 // language=css
 private fun style() = """
+.pw-core-dock {
+    width: 100%;
+    height: 100%;
+}
+
 #pw-root .lm_header {
     box-sizing: border-box;
     height: ${HEADER_HEIGHT + 4}px;

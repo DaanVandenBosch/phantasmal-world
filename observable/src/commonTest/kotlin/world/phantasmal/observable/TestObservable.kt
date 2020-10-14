@@ -3,7 +3,7 @@ package world.phantasmal.observable
 // Test suite for all Observable implementations.
 // These functions are called from type-specific unit tests.
 
-import world.phantasmal.core.disposable.use
+import world.phantasmal.observable.test.withScope
 import kotlin.test.assertEquals
 
 typealias ObservableAndEmit = Pair<Observable<*>, () -> Unit>
@@ -17,9 +17,11 @@ private fun observableShouldCallObserversWhenEventsAreEmitted(create: () -> Obse
     val (observable, emit) = create()
     val changes = mutableListOf<ChangeEvent<*>>()
 
-    observable.observe { c ->
-        changes.add(c)
-    }.use {
+    withScope { scope ->
+        observable.observe(scope) { c ->
+            changes.add(c)
+        }
+
         emit()
 
         assertEquals(1, changes.size)
@@ -36,9 +38,11 @@ private fun observableShouldNotCallObserversAfterTheyAreDisposed(create: () -> O
     val (observable, emit) = create()
     val changes = mutableListOf<ChangeEvent<*>>()
 
-    observable.observe { c ->
-        changes.add(c)
-    }.use {
+    withScope { scope ->
+        observable.observe(scope) { c ->
+            changes.add(c)
+        }
+
         emit()
 
         assertEquals(1, changes.size)

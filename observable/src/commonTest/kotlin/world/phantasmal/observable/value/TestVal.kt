@@ -3,8 +3,8 @@ package world.phantasmal.observable.value
 // Test suite for all Val implementations.
 // These functions are called from type-specific unit tests.
 
-import world.phantasmal.core.disposable.use
 import world.phantasmal.observable.ChangeEvent
+import world.phantasmal.observable.test.withScope
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
@@ -30,21 +30,25 @@ private fun valShouldRespectCallNowArgument(create: () -> ValAndEmit<*>) {
     val (value, emit) = create()
     val changes = mutableListOf<ChangeEvent<*>>()
 
-    // Test callNow = true
-    value.observe(callNow = false) { c ->
-        changes.add(c)
-    }.use {
+    withScope { scope ->
+        // Test callNow = false
+        value.observe(scope, callNow = false) { c ->
+            changes.add(c)
+        }
+
         emit()
 
         assertEquals(1, changes.size)
     }
 
-    // Test callNow = false
-    changes.clear()
+    withScope { scope ->
+        // Test callNow = true
+        changes.clear()
 
-    value.observe(callNow = true) { c ->
-        changes.add(c)
-    }.use {
+        value.observe(scope, callNow = true) { c ->
+            changes.add(c)
+        }
+
         emit()
 
         assertEquals(2, changes.size)

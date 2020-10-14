@@ -6,7 +6,8 @@ import org.w3c.dom.Element
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.HTMLStyleElement
 import org.w3c.dom.Node
-import world.phantasmal.core.disposable.DisposableContainer
+import world.phantasmal.core.disposable.Scope
+import world.phantasmal.core.disposable.TrackedDisposable
 import world.phantasmal.core.disposable.disposable
 import world.phantasmal.observable.Observable
 import world.phantasmal.observable.Observer
@@ -17,9 +18,10 @@ import world.phantasmal.observable.value.or
 import kotlin.reflect.KClass
 
 abstract class Widget(
+    protected val scope: Scope,
     style: () -> String = NO_STYLE,
     val hidden: Val<Boolean> = falseVal(),
-) : DisposableContainer() {
+) : TrackedDisposable(scope.scope()) {
     private val _ancestorHidden = mutableVal(false)
     private val _children = mutableListOf<Widget>()
     private var initResizeObserverRequested = false
@@ -34,7 +36,7 @@ abstract class Widget(
 
         val el = document.createDocumentFragment().createElement()
 
-        observe(hidden) { hidden ->
+        hidden.observe { hidden ->
             el.hidden = hidden
             children.forEach { setAncestorHidden(it, hidden || ancestorHidden.value) }
         }
@@ -71,14 +73,13 @@ abstract class Widget(
         }
 
         _children.clear()
-        super.internalDispose()
     }
 
-    protected fun <V1> observe(o1: Observable<V1>, operation: (V1) -> Unit) {
-        if (o1 is Val<V1>) {
-            addDisposable(o1.observe(callNow = true) { operation(it.value) })
+    protected fun <V1> Observable<V1>.observe(operation: (V1) -> Unit) {
+        if (this is Val<V1>) {
+            this.observe(scope, callNow = true) { operation(it.value) }
         } else {
-            addDisposable(o1.observe { operation(it.value) })
+            this.observe(scope) { operation(it.value) }
         }
     }
 
@@ -90,8 +91,8 @@ abstract class Widget(
         val observer: Observer<*> = {
             operation(v1.value, v2.value)
         }
-        addDisposable(v1.observe(observer))
-        addDisposable(v2.observe(observer))
+        v1.observe(scope, observer)
+        v2.observe(scope, observer)
         operation(v1.value, v2.value)
     }
 
@@ -104,9 +105,9 @@ abstract class Widget(
         val observer: Observer<*> = {
             operation(v1.value, v2.value, v3.value)
         }
-        addDisposable(v1.observe(observer))
-        addDisposable(v2.observe(observer))
-        addDisposable(v3.observe(observer))
+        v1.observe(scope, observer)
+        v2.observe(scope, observer)
+        v3.observe(scope, observer)
         operation(v1.value, v2.value, v3.value)
     }
 
@@ -120,10 +121,10 @@ abstract class Widget(
         val observer: Observer<*> = {
             operation(v1.value, v2.value, v3.value, v4.value)
         }
-        addDisposable(v1.observe(observer))
-        addDisposable(v2.observe(observer))
-        addDisposable(v3.observe(observer))
-        addDisposable(v4.observe(observer))
+        v1.observe(scope, observer)
+        v2.observe(scope, observer)
+        v3.observe(scope, observer)
+        v4.observe(scope, observer)
         operation(v1.value, v2.value, v3.value, v4.value)
     }
 
@@ -138,30 +139,22 @@ abstract class Widget(
         val observer: Observer<*> = {
             operation(v1.value, v2.value, v3.value, v4.value, v5.value)
         }
-        addDisposable(v1.observe(observer))
-        addDisposable(v2.observe(observer))
-        addDisposable(v3.observe(observer))
-        addDisposable(v4.observe(observer))
-        addDisposable(v5.observe(observer))
+        v1.observe(scope, observer)
+        v2.observe(scope, observer)
+        v3.observe(scope, observer)
+        v4.observe(scope, observer)
+        v5.observe(scope, observer)
         operation(v1.value, v2.value, v3.value, v4.value, v5.value)
     }
 
     /**
-     * Adds a child widget to [children] and makes sure it is disposed when this widget is disposed.
+     * Adds a child widget to [children].
      */
     protected fun <T : Widget> Node.addChild(child: T): T {
         _children.add(child)
         setAncestorHidden(child, selfOrAncestorHidden.value)
         appendChild(child.element)
-        return addDisposable(child)
-    }
-
-    /**
-     * Removes a child widget from [children] and disposes it.
-     */
-    protected fun removeChild(child: Widget) {
-        _children.remove(child)
-        removeDisposable(child)
+        return child
     }
 
     /**
@@ -186,7 +179,7 @@ abstract class Widget(
         val resize = ::resizeCallback
         val observer = js("new ResizeObserver(resize);")
         observer.observe(element)
-        addDisposable(disposable { observer.disconnect().unsafeCast<Unit>() })
+        scope.disposable { observer.disconnect().unsafeCast<Unit>() }
     }
 
     private fun resizeCallback(entries: Array<dynamic>) {

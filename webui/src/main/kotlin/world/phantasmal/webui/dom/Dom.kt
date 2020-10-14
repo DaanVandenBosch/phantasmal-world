@@ -6,21 +6,22 @@ import kotlinx.dom.clear
 import org.w3c.dom.*
 import org.w3c.dom.events.Event
 import org.w3c.dom.events.EventTarget
-import world.phantasmal.core.disposable.Disposable
+import world.phantasmal.core.disposable.Scope
 import world.phantasmal.core.disposable.disposable
 import world.phantasmal.observable.value.list.ListVal
 import world.phantasmal.observable.value.list.ListValChangeEvent
 
 fun <E : Event> disposableListener(
+    scope: Scope,
     target: EventTarget,
     type: String,
     listener: (E) -> Unit,
     options: AddEventListenerOptions? = null,
-): Disposable {
+) {
     @Suppress("UNCHECKED_CAST")
     target.addEventListener(type, listener as (Event) -> Unit, options)
 
-    return disposable {
+    scope.disposable {
         target.removeEventListener(type, listener)
     }
 }
@@ -36,9 +37,10 @@ fun HTMLElement.root(): HTMLElement {
 }
 
 fun <T> Node.bindChildrenTo(
+    scope: Scope,
     list: ListVal<T>,
     createChild: (T, Int) -> Node,
-): Disposable {
+) {
     fun spliceChildren(index: Int, removedCount: Int, inserted: List<T>) {
         for (i in 1..removedCount) {
             removeChild(childNodes[index].unsafeCast<Node>())
@@ -59,7 +61,7 @@ fun <T> Node.bindChildrenTo(
         }
     }
 
-    val observer = list.observeList { change: ListValChangeEvent<T> ->
+    list.observeList(scope) { change: ListValChangeEvent<T> ->
         when (change) {
             is ListValChangeEvent.Change -> {
                 spliceChildren(change.index, change.removed.size, change.inserted)
@@ -72,8 +74,5 @@ fun <T> Node.bindChildrenTo(
 
     spliceChildren(0, 0, list.value)
 
-    return disposable {
-        observer.dispose()
-        clear()
-    }
+    scope.disposable { clear() }
 }

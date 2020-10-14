@@ -30,6 +30,14 @@ fun Node.button(
         block()
     }
 
+fun Node.canvas(
+    id: String? = null,
+    className: String? = null,
+    title: String? = null,
+    block: HTMLCanvasElement.() -> Unit = {},
+): HTMLCanvasElement =
+    appendHtmlEl("CANVAS", id, className, title, block)
+
 fun Node.div(
     id: String? = null,
     className: String? = null,

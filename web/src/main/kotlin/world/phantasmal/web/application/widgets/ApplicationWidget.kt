@@ -1,13 +1,15 @@
 package world.phantasmal.web.application.widgets
 
 import org.w3c.dom.Node
+import world.phantasmal.core.disposable.Scope
 import world.phantasmal.webui.dom.div
 import world.phantasmal.webui.widgets.Widget
 
 class ApplicationWidget(
+    scope: Scope,
     private val navigationWidget: NavigationWidget,
     private val mainContentWidget: MainContentWidget,
-) : Widget(::style) {
+) : Widget(scope, ::style) {
     override fun Node.createElement() =
         div(className = "pw-application-application") {
             addChild(navigationWidget)

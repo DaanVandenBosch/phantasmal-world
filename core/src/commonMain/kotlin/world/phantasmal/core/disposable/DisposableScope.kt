@@ -1,50 +1,38 @@
 package world.phantasmal.core.disposable
 
-/**
- * Container for disposables. Takes ownership of all held disposables and automatically disposes
- * them when the Disposer is disposed.
- */
-class Disposer : TrackedDisposable() {
+class DisposableScope : Scope, Disposable {
     private val disposables = mutableListOf<Disposable>()
+    private var disposed = false
 
     /**
      * The amount of held disposables.
      */
     val size: Int get() = disposables.size
 
-    /**
-     * Add a single disposable and return the given disposable.
-     */
-    fun <T : Disposable> add(disposable: T): T {
-        if (disposed) {
-            disposable.dispose()
-        } else {
-            disposables.add(disposable)
-        }
+    override fun scope(): Scope = DisposableScope().also(::add)
 
-        return disposable
+    override fun add(disposable: Disposable) {
+        require(!disposed) { "Scope already disposed." }
+
+        disposables.add(disposable)
     }
 
     /**
      * Add 0 or more disposables.
      */
     fun addAll(disposables: Iterable<Disposable>) {
-        if (disposed) {
-            disposables.forEach { it.dispose() }
-        } else {
-            this.disposables.addAll(disposables)
-        }
+        require(!disposed) { "Scope already disposed." }
+
+        this.disposables.addAll(disposables)
     }
 
     /**
      * Add 0 or more disposables.
      */
     fun addAll(vararg disposables: Disposable) {
-        if (disposed) {
-            disposables.forEach { it.dispose() }
-        } else {
-            this.disposables.addAll(disposables)
-        }
+        require(!disposed) { "Scope already disposed." }
+
+        this.disposables.addAll(disposables)
     }
 
     fun isEmpty(): Boolean = disposables.isEmpty()
@@ -74,7 +62,10 @@ class Disposer : TrackedDisposable() {
         disposables.clear()
     }
 
-    override fun internalDispose() {
-        disposeAll()
+    override fun dispose() {
+        if (!disposed) {
+            disposeAll()
+            disposed = true
+        }
     }
 }

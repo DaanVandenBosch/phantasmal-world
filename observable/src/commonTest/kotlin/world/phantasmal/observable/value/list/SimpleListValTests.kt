@@ -1,8 +1,8 @@
 package world.phantasmal.observable.value.list
 
 import world.phantasmal.observable.observableTests
-import world.phantasmal.observable.test.TestSuite
 import world.phantasmal.observable.value.valTests
+import world.phantasmal.testUtils.TestSuite
 import kotlin.test.Test
 
 class SimpleListValTests : TestSuite() {

@@ -2,11 +2,10 @@ package world.phantasmal.web.core.store
 
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import world.phantasmal.core.disposable.use
+import world.phantasmal.testUtils.TestSuite
 import world.phantasmal.web.core.stores.PwTool
 import world.phantasmal.web.core.stores.UiStore
 import world.phantasmal.web.test.TestApplicationUrl
-import world.phantasmal.web.test.TestSuite
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -16,10 +15,10 @@ class UiStoreTests : TestSuite() {
         val applicationUrl = TestApplicationUrl("/")
 
         GlobalScope.launch {
-            UiStore(this, applicationUrl).use { uiStore ->
-                assertEquals(PwTool.Viewer, uiStore.currentTool.value)
-                assertEquals("/${PwTool.Viewer.slug}", applicationUrl.url.value)
-            }
+            val uiStore = UiStore(scope, this, applicationUrl)
+
+            assertEquals(PwTool.Viewer, uiStore.currentTool.value)
+            assertEquals("/${PwTool.Viewer.slug}", applicationUrl.url.value)
         }
     }
 
@@ -28,13 +27,13 @@ class UiStoreTests : TestSuite() {
         val applicationUrl = TestApplicationUrl("/")
 
         GlobalScope.launch {
-            UiStore(this, applicationUrl).use { uiStore ->
-                PwTool.values().forEach { tool ->
-                    uiStore.setCurrentTool(tool)
+            val uiStore = UiStore(scope, this, applicationUrl)
 
-                    assertEquals(tool, uiStore.currentTool.value)
-                    assertEquals("/${tool.slug}", applicationUrl.url.value)
-                }
+            PwTool.values().forEach { tool ->
+                uiStore.setCurrentTool(tool)
+
+                assertEquals(tool, uiStore.currentTool.value)
+                assertEquals("/${tool.slug}", applicationUrl.url.value)
             }
         }
     }
@@ -44,15 +43,15 @@ class UiStoreTests : TestSuite() {
         val applicationUrl = TestApplicationUrl("/")
 
         GlobalScope.launch {
-            UiStore(this, applicationUrl).use { uiStore ->
-                assertEquals(PwTool.Viewer, uiStore.currentTool.value)
-                assertEquals("/${PwTool.Viewer.slug}", applicationUrl.url.value)
+            val uiStore = UiStore(scope, this, applicationUrl)
 
-                listOf("/models", "/textures", "/animations").forEach { prefix ->
-                    uiStore.setPathPrefix(prefix, replace = false)
+            assertEquals(PwTool.Viewer, uiStore.currentTool.value)
+            assertEquals("/${PwTool.Viewer.slug}", applicationUrl.url.value)
 
-                    assertEquals("/${PwTool.Viewer.slug}${prefix}", applicationUrl.url.value)
-                }
+            listOf("/models", "/textures", "/animations").forEach { prefix ->
+                uiStore.setPathPrefix(prefix, replace = false)
+
+                assertEquals("/${PwTool.Viewer.slug}${prefix}", applicationUrl.url.value)
             }
         }
     }
@@ -62,14 +61,14 @@ class UiStoreTests : TestSuite() {
         val applicationUrl = TestApplicationUrl("/")
 
         GlobalScope.launch {
-            UiStore(this, applicationUrl).use { uiStore ->
-                PwTool.values().forEach { tool ->
-                    listOf("/a", "/b", "/c").forEach { path ->
-                        applicationUrl.url.value = "/${tool.slug}$path"
+            val uiStore = UiStore(scope, this, applicationUrl)
 
-                        assertEquals(tool, uiStore.currentTool.value)
-                        assertEquals(path, uiStore.path.value)
-                    }
+            PwTool.values().forEach { tool ->
+                listOf("/a", "/b", "/c").forEach { path ->
+                    applicationUrl.url.value = "/${tool.slug}$path"
+
+                    assertEquals(tool, uiStore.currentTool.value)
+                    assertEquals(path, uiStore.path.value)
                 }
             }
         }
@@ -80,25 +79,25 @@ class UiStoreTests : TestSuite() {
         val appUrl = TestApplicationUrl("/")
 
         GlobalScope.launch {
-            UiStore(this, appUrl).use { uiStore ->
-                assertEquals("/${uiStore.defaultTool.slug}", appUrl.url.value)
+            val uiStore = UiStore(scope, this, appUrl)
 
-                uiStore.setCurrentTool(PwTool.HuntOptimizer)
+            assertEquals("/${uiStore.defaultTool.slug}", appUrl.url.value)
 
-                assertEquals("/${PwTool.HuntOptimizer.slug}", appUrl.url.value)
+            uiStore.setCurrentTool(PwTool.HuntOptimizer)
 
-                uiStore.setPathPrefix("/prefix", replace = true)
+            assertEquals("/${PwTool.HuntOptimizer.slug}", appUrl.url.value)
 
-                assertEquals("/${PwTool.HuntOptimizer.slug}/prefix", appUrl.url.value)
+            uiStore.setPathPrefix("/prefix", replace = true)
 
-                appUrl.back()
+            assertEquals("/${PwTool.HuntOptimizer.slug}/prefix", appUrl.url.value)
 
-                assertEquals("/${uiStore.defaultTool.slug}", appUrl.url.value)
+            appUrl.back()
 
-                appUrl.forward()
+            assertEquals("/${uiStore.defaultTool.slug}", appUrl.url.value)
 
-                assertEquals("/${PwTool.HuntOptimizer.slug}/prefix", appUrl.url.value)
-            }
+            appUrl.forward()
+
+            assertEquals("/${PwTool.HuntOptimizer.slug}/prefix", appUrl.url.value)
         }
     }
 }

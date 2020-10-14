@@ -3,7 +3,7 @@ package world.phantasmal.observable.value.list
 // Test suite for all ListVal implementations.
 // These functions are called from type-specific unit tests.
 
-import world.phantasmal.core.disposable.use
+import world.phantasmal.observable.test.withScope
 import kotlin.test.assertEquals
 
 typealias ListValAndAdd = Pair<ListVal<*>, () -> Unit>
@@ -19,7 +19,9 @@ private fun listValShouldUpdateSizeValCorrectly(create: () -> ListValAndAdd) {
 
     var observedSize = 0
 
-    list.sizeVal.observe { observedSize = it.value }.use {
+    withScope { scope ->
+        list.sizeVal.observe(scope) { observedSize = it.value }
+
         for (i in 1..3) {
             add()
 

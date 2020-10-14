@@ -1,6 +1,6 @@
 package world.phantasmal.observable
 
-import world.phantasmal.observable.test.TestSuite
+import world.phantasmal.testUtils.TestSuite
 import kotlin.test.Test
 
 class SimpleEmitterTests : TestSuite() {

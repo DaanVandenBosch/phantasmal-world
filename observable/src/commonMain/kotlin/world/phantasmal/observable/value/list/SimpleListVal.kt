@@ -1,7 +1,7 @@
 package world.phantasmal.observable.value.list
 
-import mu.KotlinLogging
-import world.phantasmal.core.disposable.Disposable
+import world.phantasmal.core.disposable.DisposableScope
+import world.phantasmal.core.disposable.Scope
 import world.phantasmal.core.disposable.disposable
 import world.phantasmal.observable.Observable
 import world.phantasmal.observable.Observer
@@ -17,10 +17,6 @@ class SimpleListVal<E>(
      */
     private val extractObservables: ObservablesExtractor<E>? = null,
 ) : AbstractMutableList<E>(), MutableListVal<E> {
-    companion object {
-        private val logger = KotlinLogging.logger {}
-    }
-
     override var value: List<E> = elements
         set(value) {
             val removed = ArrayList(elements)
@@ -76,10 +72,11 @@ class SimpleListVal<E>(
         return removed
     }
 
-    override fun observe(observer: Observer<List<E>>): Disposable =
-        observe(callNow = false, observer)
+    override fun observe(scope: Scope, observer: Observer<List<E>>) {
+        observe(scope, callNow = false, observer)
+    }
 
-    override fun observe(callNow: Boolean, observer: ValObserver<List<E>>): Disposable {
+    override fun observe(scope: Scope, callNow: Boolean, observer: ValObserver<List<E>>) {
         if (elementObservers.isEmpty() && extractObservables != null) {
             replaceElementObservers(0, elementObservers.size, elements)
         }
@@ -90,20 +87,20 @@ class SimpleListVal<E>(
             observer(ValChangeEvent(value, value))
         }
 
-        return disposable {
+        scope.disposable {
             observers.remove(observer)
             disposeElementObserversIfNecessary()
         }
     }
 
-    override fun observeList(observer: ListValObserver<E>): Disposable {
+    override fun observeList(scope: Scope, observer: ListValObserver<E>) {
         if (elementObservers.isEmpty() && extractObservables != null) {
             replaceElementObservers(0, elementObservers.size, elements)
         }
 
         listObservers.add(observer)
 
-        return disposable {
+        scope.disposable {
             listObservers.remove(observer)
             disposeElementObserversIfNecessary()
         }
@@ -128,32 +125,20 @@ class SimpleListVal<E>(
         mutableSizeVal.value = elements.size
 
         listObservers.forEach { observer: ListValObserver<E> ->
-            try {
-                observer(event)
-            } catch (e: Throwable) {
-                logger.error(e) { "List observer threw exception." }
-            }
+            observer(event)
         }
 
         val regularEvent = ValChangeEvent(value, value)
 
         observers.forEach { observer: ValObserver<List<E>> ->
-            try {
-                observer(regularEvent)
-            } catch (e: Throwable) {
-                logger.error(e) { "Observer threw exception." }
-            }
+            observer(regularEvent)
         }
     }
 
     private fun replaceElementObservers(from: Int, amountRemoved: Int, insertedElements: List<E>) {
         for (i in 1..amountRemoved) {
             elementObservers.removeAt(from).observers.forEach { observer ->
-                try {
-                    observer.dispose()
-                } catch (e: Throwable) {
-                    logger.error(e) { "Observer threw exception during disposal." }
-                }
+                observer.dispose()
             }
         }
 
@@ -181,11 +166,7 @@ class SimpleListVal<E>(
         if (listObservers.isEmpty() && observers.isEmpty()) {
             elementObservers.forEach { elementObserver: ElementObserver ->
                 elementObserver.observers.forEach { observer ->
-                    try {
-                        observer.dispose()
-                    } catch (e: Throwable) {
-                        logger.error(e) { "Observer threw exception during disposal." }
-                    }
+                    observer.dispose()
                 }
             }
 
@@ -198,8 +179,9 @@ class SimpleListVal<E>(
         element: E,
         observables: Array<Observable<*>>,
     ) {
-        val observers = Array(observables.size) {
-            observables[it].observe {
+        val observers: Array<DisposableScope> = Array(observables.size) {
+            val scope = DisposableScope()
+            observables[it].observe(scope) {
                 finalizeUpdate(
                     ListValChangeEvent.ElementChange(
                         index,
@@ -207,6 +189,7 @@ class SimpleListVal<E>(
                     )
                 )
             }
+            scope
         }
     }
 }

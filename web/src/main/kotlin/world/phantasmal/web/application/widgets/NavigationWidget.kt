@@ -1,15 +1,17 @@
 package world.phantasmal.web.application.widgets
 
 import org.w3c.dom.Node
+import world.phantasmal.core.disposable.Scope
 import world.phantasmal.web.application.controllers.NavigationController
 import world.phantasmal.webui.dom.div
 import world.phantasmal.webui.widgets.Widget
 
-class NavigationWidget(private val ctrl: NavigationController) : Widget(::style) {
+class NavigationWidget(scope: Scope, private val ctrl: NavigationController) :
+    Widget(scope, ::style) {
     override fun Node.createElement() =
         div(className = "pw-application-navigation") {
             ctrl.tools.forEach { (tool, active) ->
-                addChild(PwToolButton(tool, active) { ctrl.setCurrentTool(tool) })
+                addChild(PwToolButton(scope, tool, active) { ctrl.setCurrentTool(tool) })
             }
         }
 }

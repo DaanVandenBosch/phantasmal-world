@@ -16,4 +16,5 @@ dependencies {
     api("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
 
     testImplementation(kotlin("test-js"))
+    testImplementation(project(":test-utils"))
 }

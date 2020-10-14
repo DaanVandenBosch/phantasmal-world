@@ -1,7 +1,7 @@
 package world.phantasmal.web.huntOptimizer
 
 import kotlinx.coroutines.CoroutineScope
-import world.phantasmal.core.disposable.DisposableContainer
+import world.phantasmal.core.disposable.Scope
 import world.phantasmal.web.core.AssetLoader
 import world.phantasmal.web.core.stores.UiStore
 import world.phantasmal.web.huntOptimizer.controllers.HuntOptimizerController
@@ -11,11 +11,19 @@ import world.phantasmal.web.huntOptimizer.widgets.HuntOptimizerWidget
 import world.phantasmal.web.huntOptimizer.widgets.MethodsWidget
 
 class HuntOptimizer(
-    scope: CoroutineScope,
+    scope: Scope,
+    crScope: CoroutineScope,
     assetLoader: AssetLoader,
     uiStore: UiStore,
-) : DisposableContainer() {
-    val widget = HuntOptimizerWidget(addDisposable(HuntOptimizerController(uiStore))) {
-        MethodsWidget(MethodsController(uiStore, HuntMethodStore(scope, uiStore, assetLoader)))
-    }
+) {
+    private val huntMethodStore = HuntMethodStore(scope, crScope, uiStore, assetLoader)
+
+    private val huntOptimizerController = HuntOptimizerController(scope, uiStore)
+    private val methodsController = MethodsController(scope, uiStore, huntMethodStore)
+
+    val widget = HuntOptimizerWidget(
+        scope,
+        ctrl = huntOptimizerController,
+        createMethodsWidget = { scope -> MethodsWidget(scope, methodsController) }
+    )
 }

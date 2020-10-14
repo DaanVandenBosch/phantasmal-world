@@ -1,6 +1,7 @@
 package world.phantasmal.webui.widgets
 
 import org.w3c.dom.Node
+import world.phantasmal.core.disposable.Scope
 import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.falseVal
 import world.phantasmal.webui.controllers.Tab
@@ -9,10 +10,11 @@ import world.phantasmal.webui.dom.div
 import world.phantasmal.webui.dom.span
 
 class TabContainer<T : Tab>(
+    scope: Scope,
     hidden: Val<Boolean> = falseVal(),
     private val ctrl: TabController<T>,
-    private val createWidget: (T) -> Widget,
-) : Widget(::style, hidden) {
+    private val createWidget: (Scope, T) -> Widget,
+) : Widget(scope, ::style, hidden) {
     override fun Node.createElement() = div(className = "pw-tab-container") {
         div(className = "pw-tab-container-bar") {
             for (tab in ctrl.tabs) {
@@ -22,7 +24,7 @@ class TabContainer<T : Tab>(
                 ) {
                     textContent = tab.title
 
-                    observe(ctrl.activeTab) {
+                    ctrl.activeTab.observe {
                         if (it == tab) {
                             classList.add("active")
                         } else {
@@ -38,8 +40,9 @@ class TabContainer<T : Tab>(
             for (tab in ctrl.tabs) {
                 addChild(
                     LazyLoader(
+                        scope,
                         hidden = ctrl.activeTab.transform { it != tab },
-                        createWidget = { createWidget(tab) }
+                        createWidget = { scope -> createWidget(scope, tab) }
                     )
                 )
             }
@@ -47,7 +50,7 @@ class TabContainer<T : Tab>(
     }
 
     init {
-        observe(selfOrAncestorHidden, ctrl::hiddenChanged)
+        selfOrAncestorHidden.observe(ctrl::hiddenChanged)
     }
 }
 
@@ -62,6 +65,7 @@ private fun style() = """
 .pw-tab-container-bar {
     box-sizing: border-box;
     height: 28px;
+    min-height: 28px; /* To avoid bar from getting squished when pane content gets larger than pane in Firefox. */
     padding: 3px 3px 0 3px;
     border-bottom: var(--pw-border);
 }

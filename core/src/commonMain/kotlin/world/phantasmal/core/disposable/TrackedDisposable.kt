@@ -4,11 +4,14 @@ package world.phantasmal.core.disposable
  * A global count is kept of all undisposed instances of this class.
  * This count can be used to find memory leaks.
  */
-abstract class TrackedDisposable : Disposable {
+abstract class TrackedDisposable(scope: Scope) : Disposable {
     var disposed = false
         private set
 
     init {
+        @Suppress("LeakingThis")
+        scope.add(this)
+
         disposableCount++
     }
 
@@ -20,7 +23,9 @@ abstract class TrackedDisposable : Disposable {
         }
     }
 
-    protected abstract fun internalDispose()
+    protected open fun internalDispose() {
+        // Do nothing.
+    }
 
     companion object {
         var disposableCount: Int = 0

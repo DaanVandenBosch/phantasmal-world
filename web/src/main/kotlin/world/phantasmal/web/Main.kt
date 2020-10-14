@@ -9,14 +9,15 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import org.w3c.dom.PopStateEvent
 import world.phantasmal.core.disposable.Disposable
-import world.phantasmal.core.disposable.DisposableContainer
-import world.phantasmal.core.disposable.Disposer
+import world.phantasmal.core.disposable.DisposableScope
+import world.phantasmal.core.disposable.Scope
 import world.phantasmal.core.disposable.disposable
 import world.phantasmal.observable.value.mutableVal
 import world.phantasmal.web.application.Application
 import world.phantasmal.web.core.HttpAssetLoader
 import world.phantasmal.web.core.UiDispatcher
 import world.phantasmal.web.core.stores.ApplicationUrl
+import world.phantasmal.web.externals.Engine
 import world.phantasmal.webui.dom.disposableListener
 import world.phantasmal.webui.dom.root
 
@@ -29,11 +30,10 @@ fun main() {
 }
 
 private fun init(): Disposable {
-    val disposer = Disposer()
+    val scope = DisposableScope()
 
-    val scope = CoroutineScope(UiDispatcher)
-
-    disposer.add(disposable { scope.cancel() })
+    val crScope = CoroutineScope(UiDispatcher)
+    scope.disposable { crScope.cancel() }
 
     val rootElement = document.body!!.root()
 
@@ -43,33 +43,34 @@ private fun init(): Disposable {
                 ignoreUnknownKeys = true
             })
         }
-    }.also {
-        disposer.add(disposable { it.cancel() })
     }
+    scope.disposable { httpClient.cancel() }
 
     val pathname = window.location.pathname
     val basePath = window.location.origin +
             (if (pathname.lastOrNull() == '/') pathname.dropLast(1) else pathname)
 
-    disposer.add(Application(
+    Application(
         scope,
+        crScope,
         rootElement,
         HttpAssetLoader(httpClient, basePath),
-        disposer.add(HistoryApplicationUrl())
-    ))
+        HistoryApplicationUrl(scope),
+        createEngine = { Engine(it) }
+    )
 
-    return disposer
+    return scope
 }
 
-class HistoryApplicationUrl : DisposableContainer(), ApplicationUrl {
+class HistoryApplicationUrl(scope: Scope) : ApplicationUrl {
     private val path: String get() = window.location.pathname
 
     override val url = mutableVal(window.location.hash.substring(1))
 
     init {
-        addDisposable(disposableListener<PopStateEvent>(window, "popstate", {
+        disposableListener<PopStateEvent>(scope, window, "popstate", {
             url.value = window.location.hash.substring(1)
-        }))
+        })
     }
 
     override fun pushUrl(url: String) {

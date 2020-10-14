@@ -1,7 +1,7 @@
 package world.phantasmal.observable
 
-import world.phantasmal.core.disposable.Disposable
+import world.phantasmal.core.disposable.Scope
 
 interface Observable<out T> {
-    fun observe(observer: Observer<T>): Disposable
+    fun observe(scope: Scope, observer: Observer<T>)
 }

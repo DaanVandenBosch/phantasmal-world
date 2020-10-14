@@ -1,3 +1,3 @@
 rootProject.name = "phantasmal-world"
 
-include("core", "lib", "observable", "web", "webui")
+include("core", "lib", "observable", "test-utils", "web", "webui")
