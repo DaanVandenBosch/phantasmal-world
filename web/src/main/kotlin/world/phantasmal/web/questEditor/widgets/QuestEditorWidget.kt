@@ -19,10 +19,12 @@ private class TestWidget(scope: Scope) : Widget(scope) {
 
 open class QuestEditorWidget(
     scope: Scope,
+    private val toolbar: QuestEditorToolbar,
     private val createQuestRendererWidget: (Scope) -> Widget,
 ) : Widget(scope, ::style) {
     override fun Node.createElement() =
         div(className = "pw-quest-editor-quest-editor") {
+            addChild(toolbar)
             addChild(DockWidget(
                 scope,
                 item = DockedRow(

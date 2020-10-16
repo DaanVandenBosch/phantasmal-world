@@ -29,7 +29,7 @@ private fun style() = """
 }
 
 .pw-application-navigation-spacer {
-    flex: 1;
+    flex-grow: 1;
 }
 
 .pw-application-navigation-server {

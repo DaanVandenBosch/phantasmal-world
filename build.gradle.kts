@@ -22,6 +22,7 @@ subprojects {
 
     tasks.withType<Kotlin2JsCompile> {
         kotlinOptions.freeCompilerArgs += listOf(
+            "-Xopt-in=kotlin.RequiresOptIn",
             "-Xopt-in=kotlin.ExperimentalUnsignedTypes",
             "-Xopt-in=kotlin.time.ExperimentalTime"
         )

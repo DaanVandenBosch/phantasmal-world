@@ -24,7 +24,6 @@ import world.phantasmal.webui.dom.disposableListener
 
 class Application(
     scope: Scope,
-    crScope: CoroutineScope,
     rootElement: HTMLElement,
     assetLoader: AssetLoader,
     applicationUrl: ApplicationUrl,
@@ -43,7 +42,7 @@ class Application(
         disposableListener(scope, document, "drop", ::drop)
 
         // Initialize core stores shared by several submodules.
-        val uiStore = UiStore(scope, crScope, applicationUrl)
+        val uiStore = UiStore(scope, applicationUrl)
 
         // Controllers.
         val navigationController = NavigationController(scope, uiStore)
@@ -55,10 +54,10 @@ class Application(
             NavigationWidget(scope, navigationController),
             MainContentWidget(scope, mainContentController, mapOf(
                 PwTool.QuestEditor to { s ->
-                    QuestEditor(s, crScope, uiStore, createEngine).widget
+                    QuestEditor(s, uiStore, createEngine).widget
                 },
                 PwTool.HuntOptimizer to { s ->
-                    HuntOptimizer(s, crScope, assetLoader, uiStore).widget
+                    HuntOptimizer(s, assetLoader, uiStore).widget
                 },
             ))
         )

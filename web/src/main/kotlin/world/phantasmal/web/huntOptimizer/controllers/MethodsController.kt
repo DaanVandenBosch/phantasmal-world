@@ -1,7 +1,7 @@
 package world.phantasmal.web.huntOptimizer.controllers
 
 import world.phantasmal.core.disposable.Scope
-import world.phantasmal.lib.fileformats.quest.Episode
+import world.phantasmal.lib.fileFormats.quest.Episode
 import world.phantasmal.observable.value.list.ListVal
 import world.phantasmal.observable.value.list.MutableListVal
 import world.phantasmal.observable.value.list.mutableListVal

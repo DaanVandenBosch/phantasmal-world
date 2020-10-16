@@ -12,45 +12,51 @@ import world.phantasmal.webui.dom.span
 class TabContainer<T : Tab>(
     scope: Scope,
     hidden: Val<Boolean> = falseVal(),
+    disabled: Val<Boolean> = falseVal(),
     private val ctrl: TabController<T>,
     private val createWidget: (Scope, T) -> Widget,
-) : Widget(scope, ::style, hidden) {
-    override fun Node.createElement() = div(className = "pw-tab-container") {
-        div(className = "pw-tab-container-bar") {
-            for (tab in ctrl.tabs) {
-                span(
-                    className = "pw-tab-container-tab",
-                    title = tab.title,
-                ) {
-                    textContent = tab.title
+) : Widget(scope, ::style, hidden, disabled) {
+    override fun Node.createElement() =
+        div(className = "pw-tab-container") {
+            div(className = "pw-tab-container-bar") {
+                for (tab in ctrl.tabs) {
+                    span(
+                        className = "pw-tab-container-tab",
+                        title = tab.title,
+                    ) {
+                        textContent = tab.title
 
-                    ctrl.activeTab.observe {
-                        if (it == tab) {
-                            classList.add("active")
-                        } else {
-                            classList.remove("active")
+                        ctrl.activeTab.observe {
+                            if (it == tab) {
+                                classList.add(ACTIVE_CLASS)
+                            } else {
+                                classList.remove(ACTIVE_CLASS)
+                            }
                         }
-                    }
 
-                    onmousedown = { ctrl.setActiveTab(tab) }
+                        onmousedown = { ctrl.setActiveTab(tab) }
+                    }
+                }
+            }
+            div(className = "pw-tab-container-panes") {
+                for (tab in ctrl.tabs) {
+                    addChild(
+                        LazyLoader(
+                            scope,
+                            hidden = ctrl.activeTab.transform { it != tab },
+                            createWidget = { scope -> createWidget(scope, tab) }
+                        )
+                    )
                 }
             }
         }
-        div(className = "pw-tab-container-panes") {
-            for (tab in ctrl.tabs) {
-                addChild(
-                    LazyLoader(
-                        scope,
-                        hidden = ctrl.activeTab.transform { it != tab },
-                        createWidget = { scope -> createWidget(scope, tab) }
-                    )
-                )
-            }
-        }
-    }
 
     init {
         selfOrAncestorHidden.observe(ctrl::hiddenChanged)
+    }
+
+    companion object {
+        private const val ACTIVE_CLASS = "pw-active"
     }
 }
 
@@ -88,7 +94,7 @@ private fun style() = """
     color: var(--pw-tab-text-color-hover);
 }
 
-.pw-tab-container-tab.active {
+.pw-tab-container-tab.pw-active {
     background-color: var(--pw-tab-bg-color-active);
     color: var(--pw-tab-text-color-active);
     border-bottom-color: var(--pw-tab-bg-color-active);

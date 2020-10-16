@@ -1,5 +1,6 @@
 package world.phantasmal.testUtils
 
+import kotlinx.coroutines.Job
 import world.phantasmal.core.disposable.DisposableScope
 import world.phantasmal.core.disposable.Scope
 import world.phantasmal.core.disposable.TrackedDisposable
@@ -16,7 +17,7 @@ abstract class TestSuite {
     @BeforeTest
     fun before() {
         initialDisposableCount = TrackedDisposable.disposableCount
-        _scope = DisposableScope()
+        _scope = DisposableScope(Job())
     }
 
     @AfterTest

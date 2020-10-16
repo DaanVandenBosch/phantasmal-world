@@ -1,4 +1,4 @@
-package world.phantasmal.lib.fileformats.quest
+package world.phantasmal.lib.fileFormats.quest
 
 enum class Episode {
     I,

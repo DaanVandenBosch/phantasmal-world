@@ -1,12 +1,13 @@
 package world.phantasmal.core.disposable
 
+import kotlinx.coroutines.Job
 import kotlin.test.*
 
 class DisposableScopeTests {
     @Test
     fun calling_add_or_addAll_increases_size_correctly() {
         TrackedDisposable.checkNoLeaks {
-            val scope = DisposableScope()
+            val scope = DisposableScope(Job())
             assertEquals(scope.size, 0)
 
             scope.add(Dummy())
@@ -28,7 +29,7 @@ class DisposableScopeTests {
     @Test
     fun disposes_all_its_disposables_when_disposed() {
         TrackedDisposable.checkNoLeaks {
-            val scope = DisposableScope()
+            val scope = DisposableScope(Job())
             var disposablesDisposed = 0
 
             for (i in 1..5) {
@@ -56,7 +57,7 @@ class DisposableScopeTests {
     @Test
     fun disposeAll_disposes_all_disposables() {
         TrackedDisposable.checkNoLeaks {
-            val scope = DisposableScope()
+            val scope = DisposableScope(Job())
 
             var disposablesDisposed = 0
 
@@ -79,7 +80,7 @@ class DisposableScopeTests {
     @Test
     fun size_and_is_empty_should_correctly_reflect_the_contained_disposables() {
         TrackedDisposable.checkNoLeaks {
-            val scope = DisposableScope()
+            val scope = DisposableScope(Job())
 
             assertEquals(scope.size, 0)
             assertTrue(scope.isEmpty())
@@ -101,7 +102,7 @@ class DisposableScopeTests {
     @Test
     fun adding_disposables_after_being_disposed_throws() {
         TrackedDisposable.checkNoLeaks {
-            val scope = DisposableScope()
+            val scope = DisposableScope(Job())
             scope.dispose()
 
             for (i in 1..3) {

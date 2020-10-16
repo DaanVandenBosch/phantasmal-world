@@ -3,12 +3,10 @@ package world.phantasmal.web.huntOptimizer
 import io.ktor.client.*
 import io.ktor.client.features.json.*
 import io.ktor.client.features.json.serializer.*
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import world.phantasmal.core.disposable.disposable
 import world.phantasmal.testUtils.TestSuite
 import world.phantasmal.web.core.HttpAssetLoader
-import world.phantasmal.web.core.UiDispatcher
 import world.phantasmal.web.core.stores.PwTool
 import world.phantasmal.web.core.stores.UiStore
 import world.phantasmal.web.test.TestApplicationUrl
@@ -26,13 +24,10 @@ class HuntOptimizerTests : TestSuite() {
         }
         scope.disposable { httpClient.cancel() }
 
-        val crScope = CoroutineScope(UiDispatcher)
-
         HuntOptimizer(
             scope,
-            crScope,
             assetLoader = HttpAssetLoader(httpClient, basePath = ""),
-            uiStore = UiStore(scope, crScope, TestApplicationUrl("/${PwTool.HuntOptimizer}"))
+            uiStore = UiStore(scope, TestApplicationUrl("/${PwTool.HuntOptimizer}"))
         )
     }
 }

@@ -2,6 +2,7 @@ plugins {
     kotlin("multiplatform")
 }
 
+val coroutinesVersion: String by project.ext
 val kotlinLoggingVersion: String by project.extra
 
 kotlin {
@@ -12,6 +13,7 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
+                api("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
                 api("io.github.microutils:kotlin-logging:$kotlinLoggingVersion")
             }
         }

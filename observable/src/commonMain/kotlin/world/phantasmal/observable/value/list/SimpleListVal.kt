@@ -6,6 +6,7 @@ import world.phantasmal.core.disposable.disposable
 import world.phantasmal.observable.Observable
 import world.phantasmal.observable.Observer
 import world.phantasmal.observable.value.*
+import kotlin.coroutines.EmptyCoroutineContext
 
 typealias ObservablesExtractor<E> = (element: E) -> Array<Observable<*>>
 
@@ -180,7 +181,7 @@ class SimpleListVal<E>(
         observables: Array<Observable<*>>,
     ) {
         val observers: Array<DisposableScope> = Array(observables.size) {
-            val scope = DisposableScope()
+            val scope = DisposableScope(EmptyCoroutineContext)
             observables[it].observe(scope) {
                 finalizeUpdate(
                     ListValChangeEvent.ElementChange(

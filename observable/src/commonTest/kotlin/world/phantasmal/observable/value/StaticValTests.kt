@@ -3,6 +3,7 @@ package world.phantasmal.observable.value
 import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.core.disposable.Scope
 import world.phantasmal.testUtils.TestSuite
+import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.test.Test
 
 class StaticValTests : TestSuite() {
@@ -16,6 +17,8 @@ class StaticValTests : TestSuite() {
     }
 
     private object DummyScope : Scope {
+        override val coroutineContext = EmptyCoroutineContext
+
         override fun add(disposable: Disposable) {
             throw NotImplementedError()
         }

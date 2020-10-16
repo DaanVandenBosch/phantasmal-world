@@ -1,4 +1,4 @@
-package world.phantasmal.lib.fileformats
+package world.phantasmal.lib.fileFormats
 
 import mu.KotlinLogging
 import world.phantasmal.core.PwResult

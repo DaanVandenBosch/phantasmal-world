@@ -9,8 +9,9 @@ import world.phantasmal.webui.dom.div
 class LazyLoader(
     scope: Scope,
     hidden: Val<Boolean> = falseVal(),
+    disabled: Val<Boolean> = falseVal(),
     private val createWidget: (Scope) -> Widget,
-) : Widget(scope, ::style, hidden) {
+) : Widget(scope, ::style, hidden, disabled) {
     private var initialized = false
 
     override fun Node.createElement() = div(className = "pw-lazy-loader") {

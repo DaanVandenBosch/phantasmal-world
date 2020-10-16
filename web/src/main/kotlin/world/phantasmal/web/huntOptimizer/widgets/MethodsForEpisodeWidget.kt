@@ -2,7 +2,7 @@ package world.phantasmal.web.huntOptimizer.widgets
 
 import org.w3c.dom.Node
 import world.phantasmal.core.disposable.Scope
-import world.phantasmal.lib.fileformats.quest.Episode
+import world.phantasmal.lib.fileFormats.quest.Episode
 import world.phantasmal.web.huntOptimizer.controllers.MethodsController
 import world.phantasmal.webui.dom.bindChildrenTo
 import world.phantasmal.webui.dom.div

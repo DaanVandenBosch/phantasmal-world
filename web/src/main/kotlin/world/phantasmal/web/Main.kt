@@ -5,7 +5,6 @@ import io.ktor.client.features.json.*
 import io.ktor.client.features.json.serializer.*
 import kotlinx.browser.document
 import kotlinx.browser.window
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import org.w3c.dom.PopStateEvent
 import world.phantasmal.core.disposable.Disposable
@@ -30,10 +29,7 @@ fun main() {
 }
 
 private fun init(): Disposable {
-    val scope = DisposableScope()
-
-    val crScope = CoroutineScope(UiDispatcher)
-    scope.disposable { crScope.cancel() }
+    val scope = DisposableScope(UiDispatcher)
 
     val rootElement = document.body!!.root()
 
@@ -52,7 +48,6 @@ private fun init(): Disposable {
 
     Application(
         scope,
-        crScope,
         rootElement,
         HttpAssetLoader(httpClient, basePath),
         HistoryApplicationUrl(scope),

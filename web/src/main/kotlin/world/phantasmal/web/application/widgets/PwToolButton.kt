@@ -7,14 +7,14 @@ import world.phantasmal.web.core.stores.PwTool
 import world.phantasmal.webui.dom.input
 import world.phantasmal.webui.dom.label
 import world.phantasmal.webui.dom.span
-import world.phantasmal.webui.widgets.Widget
+import world.phantasmal.webui.widgets.Control
 
 class PwToolButton(
     scope: Scope,
     private val tool: PwTool,
     private val toggled: Observable<Boolean>,
     private val mouseDown: () -> Unit,
-) : Widget(scope, ::style) {
+) : Control(scope, ::style) {
     private val inputId = "pw-application-pw-tool-button-${tool.name.toLowerCase()}"
 
     override fun Node.createElement() =

@@ -27,7 +27,6 @@ kotlin {
     }
 }
 
-val coroutinesVersion: String by project.ext
 val kotlinLoggingVersion: String by project.extra
 val ktorVersion: String by project.extra
 

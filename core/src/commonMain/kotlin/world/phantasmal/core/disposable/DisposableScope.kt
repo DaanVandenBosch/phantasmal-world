@@ -1,6 +1,11 @@
 package world.phantasmal.core.disposable
 
-class DisposableScope : Scope, Disposable {
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlin.coroutines.CoroutineContext
+
+class DisposableScope(override val coroutineContext: CoroutineContext) : Scope, Disposable {
     private val disposables = mutableListOf<Disposable>()
     private var disposed = false
 
@@ -9,7 +14,7 @@ class DisposableScope : Scope, Disposable {
      */
     val size: Int get() = disposables.size
 
-    override fun scope(): Scope = DisposableScope().also(::add)
+    override fun scope(): Scope = DisposableScope(coroutineContext + SupervisorJob()).also(::add)
 
     override fun add(disposable: Disposable) {
         require(!disposed) { "Scope already disposed." }
@@ -65,6 +70,11 @@ class DisposableScope : Scope, Disposable {
     override fun dispose() {
         if (!disposed) {
             disposeAll()
+
+            if (coroutineContext[Job] != null) {
+                cancel()
+            }
+
             disposed = true
         }
     }

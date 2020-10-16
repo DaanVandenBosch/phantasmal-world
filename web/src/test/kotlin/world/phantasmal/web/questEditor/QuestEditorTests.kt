@@ -3,11 +3,9 @@ package world.phantasmal.web.questEditor
 import io.ktor.client.*
 import io.ktor.client.features.json.*
 import io.ktor.client.features.json.serializer.*
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import world.phantasmal.core.disposable.disposable
 import world.phantasmal.testUtils.TestSuite
-import world.phantasmal.web.core.UiDispatcher
 import world.phantasmal.web.core.stores.PwTool
 import world.phantasmal.web.core.stores.UiStore
 import world.phantasmal.web.externals.Engine
@@ -26,12 +24,9 @@ class QuestEditorTests : TestSuite() {
         }
         scope.disposable { httpClient.cancel() }
 
-        val crScope = CoroutineScope(UiDispatcher)
-
         QuestEditor(
             scope,
-            crScope,
-            uiStore = UiStore(scope, crScope, TestApplicationUrl("/${PwTool.QuestEditor}")),
+            uiStore = UiStore(scope, TestApplicationUrl("/${PwTool.QuestEditor}")),
             createEngine = { Engine(it) }
         )
     }

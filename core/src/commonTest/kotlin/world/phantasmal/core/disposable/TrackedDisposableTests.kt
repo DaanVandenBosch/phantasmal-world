@@ -1,5 +1,6 @@
 package world.phantasmal.core.disposable
 
+import kotlinx.coroutines.Job
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -50,6 +51,8 @@ class TrackedDisposableTests {
     }
 
     private class DummyScope : Scope {
+        override val coroutineContext = Job()
+
         override fun add(disposable: Disposable) {
             // Do nothing.
         }

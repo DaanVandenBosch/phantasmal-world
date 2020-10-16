@@ -1,16 +1,16 @@
 package world.phantasmal.observable.value
 
-import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.core.disposable.DisposableScope
 import world.phantasmal.core.disposable.Scope
 import world.phantasmal.core.disposable.disposable
 import world.phantasmal.core.fastCast
+import kotlin.coroutines.EmptyCoroutineContext
 
 class DependentVal<T>(
     private val dependencies: Iterable<Val<*>>,
     private val operation: () -> T,
 ) : AbstractVal<T>() {
-    private var dependencyScope = DisposableScope()
+    private var dependencyScope = DisposableScope(EmptyCoroutineContext)
     private var internalValue: T? = null
 
     override val value: T

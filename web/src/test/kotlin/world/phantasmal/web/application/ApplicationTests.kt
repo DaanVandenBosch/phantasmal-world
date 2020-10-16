@@ -4,13 +4,12 @@ import io.ktor.client.*
 import io.ktor.client.features.json.*
 import io.ktor.client.features.json.serializer.*
 import kotlinx.browser.document
-import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import world.phantasmal.core.disposable.DisposableScope
 import world.phantasmal.core.disposable.disposable
 import world.phantasmal.testUtils.TestSuite
 import world.phantasmal.web.core.HttpAssetLoader
-import world.phantasmal.web.core.UiDispatcher
 import world.phantasmal.web.core.stores.PwTool
 import world.phantasmal.web.externals.Engine
 import world.phantasmal.web.test.TestApplicationUrl
@@ -20,7 +19,7 @@ class ApplicationTests : TestSuite() {
     @Test
     fun initialization_and_shutdown_should_succeed_without_throwing() {
         (listOf(null) + PwTool.values().toList()).forEach { tool ->
-            val scope = DisposableScope()
+            val scope = DisposableScope(Job())
 
             try {
                 val httpClient = HttpClient {
@@ -34,7 +33,6 @@ class ApplicationTests : TestSuite() {
 
                 Application(
                     scope,
-                    crScope = CoroutineScope(UiDispatcher),
                     rootElement = document.body!!,
                     assetLoader = HttpAssetLoader(httpClient, basePath = ""),
                     applicationUrl = TestApplicationUrl(if (tool == null) "" else "/${tool.slug}"),

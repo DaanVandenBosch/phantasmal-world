@@ -20,7 +20,15 @@ import kotlin.reflect.KClass
 abstract class Widget(
     protected val scope: Scope,
     style: () -> String = NO_STYLE,
+    /**
+     * By default determines the hidden attribute of its [element].
+     */
     val hidden: Val<Boolean> = falseVal(),
+    /**
+     * By default determines the disabled attribute of its [element] and whether or not the
+     * `pw-disabled` class is added.
+     */
+    val disabled: Val<Boolean> = falseVal(),
 ) : TrackedDisposable(scope.scope()) {
     private val _ancestorHidden = mutableVal(false)
     private val _children = mutableListOf<Widget>()
@@ -41,10 +49,21 @@ abstract class Widget(
             children.forEach { setAncestorHidden(it, hidden || ancestorHidden.value) }
         }
 
+        disabled.observe { disabled ->
+            if (disabled) {
+                el.setAttribute("disabled", "")
+                el.classList.add("pw-disabled")
+            } else {
+                el.removeAttribute("disabled")
+                el.classList.remove("pw-disabled")
+            }
+        }
+
         if (initResizeObserverRequested) {
             initResizeObserver(el)
         }
 
+        interceptElement(el)
         el
     }
 
@@ -65,7 +84,15 @@ abstract class Widget(
 
     val children: List<Widget> = _children
 
+    /**
+     * Called to initialize [element] when it is first accessed.
+     */
     protected abstract fun Node.createElement(): HTMLElement
+
+    /**
+     * Called right after [createElement] and the default initialization for [element] is done.
+     */
+    protected open fun interceptElement(element: HTMLElement) {}
 
     override fun internalDispose() {
         if (elementDelegate.isInitialized()) {

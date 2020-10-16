@@ -1,4 +1,4 @@
-package world.phantasmal.lib.fileformats.quest
+package world.phantasmal.lib.fileFormats.quest
 
 private val FRIENDLY_NPC_PROPERTIES = listOf(
     EntityProp(name = "Movement distance", offset = 44, type = EntityPropType.F32),

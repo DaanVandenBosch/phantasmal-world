@@ -1,4 +1,4 @@
-package world.phantasmal.lib.fileformats.quest
+package world.phantasmal.lib.fileFormats.quest
 
 /**
  * Represents a configurable property for accessing parts of entity data of which the use is not

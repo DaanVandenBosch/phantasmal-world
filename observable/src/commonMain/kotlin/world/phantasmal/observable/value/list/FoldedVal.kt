@@ -6,13 +6,14 @@ import world.phantasmal.core.disposable.disposable
 import world.phantasmal.core.fastCast
 import world.phantasmal.observable.value.AbstractVal
 import world.phantasmal.observable.value.ValObserver
+import kotlin.coroutines.EmptyCoroutineContext
 
 class FoldedVal<T, R>(
     private val dependency: ListVal<T>,
     private val initial: R,
     private val operation: (R, T) -> R,
 ) : AbstractVal<R>() {
-    private var dependencyDisposable = DisposableScope()
+    private var dependencyDisposable = DisposableScope(EmptyCoroutineContext)
     private var internalValue: R? = null
 
     override val value: R

@@ -1,11 +1,10 @@
 package world.phantasmal.web.huntOptimizer.stores
 
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import world.phantasmal.core.disposable.Scope
-import world.phantasmal.lib.fileformats.quest.Episode
-import world.phantasmal.lib.fileformats.quest.NpcType
+import world.phantasmal.lib.fileFormats.quest.Episode
+import world.phantasmal.lib.fileFormats.quest.NpcType
 import world.phantasmal.observable.value.list.ListVal
 import world.phantasmal.observable.value.list.mutableListVal
 import world.phantasmal.web.core.AssetLoader
@@ -23,10 +22,9 @@ import kotlin.time.minutes
 
 class HuntMethodStore(
     scope: Scope,
-    crScope: CoroutineScope,
     uiStore: UiStore,
     private val assetLoader: AssetLoader,
-) : Store(scope, crScope) {
+) : Store(scope) {
     private val _methods = mutableListVal<HuntMethodModel>()
 
     val methods: ListVal<HuntMethodModel> by lazy {

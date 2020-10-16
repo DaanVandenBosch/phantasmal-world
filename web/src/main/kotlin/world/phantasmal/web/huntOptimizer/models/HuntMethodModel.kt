@@ -1,7 +1,7 @@
 package world.phantasmal.web.huntOptimizer.models
 
-import world.phantasmal.lib.fileformats.quest.Episode
-import world.phantasmal.lib.fileformats.quest.NpcType
+import world.phantasmal.lib.fileFormats.quest.Episode
+import world.phantasmal.lib.fileFormats.quest.NpcType
 import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.mutableVal
 import kotlin.time.Duration

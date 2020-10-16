@@ -1,7 +1,6 @@
 package world.phantasmal.web.core.stores
 
 import kotlinx.browser.window
-import kotlinx.coroutines.CoroutineScope
 import org.w3c.dom.events.KeyboardEvent
 import world.phantasmal.core.disposable.Scope
 import world.phantasmal.observable.value.MutableVal
@@ -28,11 +27,7 @@ interface ApplicationUrl {
     fun replaceUrl(url: String)
 }
 
-class UiStore(
-    scope: Scope,
-    crScope: CoroutineScope,
-    private val applicationUrl: ApplicationUrl,
-) : Store(scope, crScope) {
+class UiStore(scope: Scope, private val applicationUrl: ApplicationUrl) : Store(scope) {
     private val _currentTool: MutableVal<PwTool>
 
     private val _path = mutableVal("")

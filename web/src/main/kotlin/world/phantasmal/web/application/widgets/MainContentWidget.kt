@@ -17,7 +17,7 @@ class MainContentWidget(
     override fun Node.createElement() = div(className = "pw-application-main-content") {
         ctrl.tools.forEach { (tool, active) ->
             toolViews[tool]?.let { createWidget ->
-                addChild(LazyLoader(scope, hidden = !active, createWidget))
+                addChild(LazyLoader(scope, hidden = !active, createWidget = createWidget))
             }
         }
     }
