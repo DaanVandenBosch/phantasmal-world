@@ -1,6 +1,7 @@
 package world.phantasmal.lib.fileFormats.ninja
 
 import mu.KotlinLogging
+import world.phantasmal.lib.ZERO_U8
 import world.phantasmal.lib.cursor.Cursor
 import world.phantasmal.lib.fileFormats.Vec2
 import world.phantasmal.lib.fileFormats.Vec3
@@ -12,7 +13,6 @@ import kotlin.math.abs
 // - bump maps
 
 private val logger = KotlinLogging.logger {}
-private const val ZERO_UBYTE: UByte = 0u
 
 class NjcmModel(
     /**
@@ -357,7 +357,7 @@ private fun parseVertexChunk(
     flags: UByte,
 ): List<NjcmChunkVertex> {
     val boneWeightStatus = flags and 0b11u
-    val calcContinue = (flags and 0x80u) != ZERO_UBYTE
+    val calcContinue = (flags and 0x80u) != ZERO_U8
 
     val index = cursor.u16()
     val vertexCount = cursor.u16()
@@ -442,13 +442,13 @@ private fun parseTriangleStripChunk(
     chunkTypeId: UByte,
     flags: UByte,
 ): List<NjcmTriangleStrip> {
-    val ignoreLight = (flags and 0b1u) != ZERO_UBYTE
-    val ignoreSpecular = (flags and 0b10u) != ZERO_UBYTE
-    val ignoreAmbient = (flags and 0b100u) != ZERO_UBYTE
-    val useAlpha = (flags and 0b1000u) != ZERO_UBYTE
-    val doubleSide = (flags and 0b10000u) != ZERO_UBYTE
-    val flatShading = (flags and 0b100000u) != ZERO_UBYTE
-    val environmentMapping = (flags and 0b1000000u) != ZERO_UBYTE
+    val ignoreLight = (flags and 0b1u) != ZERO_U8
+    val ignoreSpecular = (flags and 0b10u) != ZERO_U8
+    val ignoreAmbient = (flags and 0b100u) != ZERO_U8
+    val useAlpha = (flags and 0b1000u) != ZERO_U8
+    val doubleSide = (flags and 0b10000u) != ZERO_U8
+    val flatShading = (flags and 0b100000u) != ZERO_U8
+    val environmentMapping = (flags and 0b1000000u) != ZERO_U8
 
     val userOffsetAndStripCount = cursor.u16()
     val userFlagsSize = (userOffsetAndStripCount.toUInt() shr 14).toInt()

@@ -21,7 +21,8 @@ interface Cursor {
     /**
      * Seek forward or backward by a number of bytes.
      *
-     * @param offset if positive, seeks forward by offset bytes, otherwise seeks backward by -offset bytes.
+     * @param offset if positive, seeks forward by offset bytes, otherwise seeks backward by -offset
+     * bytes.
      */
     fun seek(offset: Int): Cursor
 
