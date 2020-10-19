@@ -1,5 +1,8 @@
 package world.phantasmal.lib.cursor
 
+import world.phantasmal.lib.Endianness
+import world.phantasmal.lib.buffer.Buffer
+
 /**
  * A cursor for reading binary data.
  */
@@ -17,6 +20,8 @@ interface Cursor {
     var endianness: Endianness
 
     val bytesLeft: UInt
+
+    fun hasBytesLeft(bytes: UInt = 1u): Boolean
 
     /**
      * Seek forward or backward by a number of bytes.
@@ -120,4 +125,9 @@ interface Cursor {
         nullTerminated: Boolean,
         dropRemaining: Boolean,
     ): String
+
+    /**
+     * Returns a buffer with a copy of [size] bytes at [position].
+     */
+    fun buffer(size: UInt): Buffer
 }

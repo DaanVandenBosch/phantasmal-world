@@ -2,6 +2,8 @@ package world.phantasmal.lib.cursor
 
 import org.khronos.webgl.ArrayBuffer
 import org.khronos.webgl.DataView
+import world.phantasmal.lib.Endianness
+import world.phantasmal.lib.buffer.Buffer
 
 abstract class AbstractArrayBufferCursor
 protected constructor(endianness: Endianness, offset: UInt) : AbstractWritableCursor(offset) {
@@ -114,6 +116,16 @@ protected constructor(endianness: Endianness, offset: UInt) : AbstractWritableCu
         }
 
         return array
+    }
+
+    override fun buffer(size: UInt): Buffer {
+        requireSize(size)
+        val r = Buffer.fromArrayBuffer(
+            backingBuffer.slice(absolutePosition.toInt(), (absolutePosition + size).toInt()),
+            endianness
+        )
+        position += size
+        return r
     }
 
     override fun writeU8(value: UByte): WritableCursor {

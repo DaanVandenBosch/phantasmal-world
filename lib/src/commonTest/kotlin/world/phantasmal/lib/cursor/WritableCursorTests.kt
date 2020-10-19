@@ -1,12 +1,13 @@
 package world.phantasmal.lib.cursor
 
+import world.phantasmal.lib.Endianness
 import kotlin.math.abs
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 abstract class WritableCursorTests : CursorTests() {
-    abstract override fun createCursor(bytes: Array<Byte>, endianness: Endianness): WritableCursor
+    abstract override fun createCursor(bytes: ByteArray, endianness: Endianness): WritableCursor
 
     @Test
     fun simple_WritableCursor_properties_and_invariants() {
@@ -15,7 +16,7 @@ abstract class WritableCursorTests : CursorTests() {
     }
 
     private fun simple_WritableCursor_properties_and_invariants(endianness: Endianness) {
-        val cursor = createCursor(arrayOf(0, 1, 2, 3, 4, 5, 6, 7, 8, 9), endianness)
+        val cursor = createCursor(byteArrayOf(0, 1, 2, 3, 4, 5, 6, 7, 8, 9), endianness)
 
         assertEquals(0u, cursor.position)
 
@@ -77,7 +78,7 @@ abstract class WritableCursorTests : CursorTests() {
         val expectedNumber1 = 0x01020304 shr (8 * (4 - byteCount))
         val expectedNumber2 = 0x05060708 shr (8 * (4 - byteCount))
 
-        val cursor = createCursor(Array(2 * byteCount) { 0 }, endianness)
+        val cursor = createCursor(ByteArray(2 * byteCount), endianness)
 
         cursor.write(expectedNumber1)
         cursor.write(expectedNumber2)
@@ -100,7 +101,7 @@ abstract class WritableCursorTests : CursorTests() {
      * Writes and reads two floats.
      */
     private fun writeF32(endianness: Endianness) {
-        val cursor = createCursor(Array(8) { 0 }, endianness)
+        val cursor = createCursor(ByteArray(8), endianness)
 
         cursor.writeF32(1337.9001f)
         cursor.writeF32(103.502f)
@@ -181,7 +182,7 @@ abstract class WritableCursorTests : CursorTests() {
         val testArray1 = IntArray(10) { it }
         val testArray2 = IntArray(10) { it + 10 }
 
-        val cursor = createCursor(Array(20 * byteCount) { 0 }, endianness)
+        val cursor = createCursor(ByteArray(20 * byteCount), endianness)
 
         cursor.write(testArray1)
         assertEquals(10u * byteCount.toUInt(), cursor.position)
@@ -203,7 +204,7 @@ abstract class WritableCursorTests : CursorTests() {
     }
 
     private fun write_seek_backwards_then_take(endianness: Endianness) {
-        val cursor = createCursor(Array(16) { 0 }, endianness)
+        val cursor = createCursor(ByteArray(16), endianness)
 
         cursor.writeU32(1u).writeU32(2u).writeU32(3u).writeU32(4u)
         cursor.seek(-8)

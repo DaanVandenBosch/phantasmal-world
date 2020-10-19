@@ -1,5 +1,6 @@
 package world.phantasmal.lib.cursor
 
+import world.phantasmal.lib.Endianness
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -8,7 +9,7 @@ import kotlin.test.assertEquals
  * implementation.
  */
 abstract class CursorTests {
-    abstract fun createCursor(bytes: Array<Byte>, endianness: Endianness): Cursor
+    abstract fun createCursor(bytes: ByteArray, endianness: Endianness): Cursor
 
     @Test
     fun simple_cursor_properties_and_invariants() {
@@ -17,7 +18,7 @@ abstract class CursorTests {
     }
 
     private fun simple_cursor_properties_and_invariants(endianness: Endianness) {
-        val cursor = createCursor(arrayOf(0, 1, 2, 3, 4, 5, 6, 7, 8, 9), endianness)
+        val cursor = createCursor(byteArrayOf(0, 1, 2, 3, 4, 5, 6, 7, 8, 9), endianness)
 
         for ((seek_to, expectedPos) in listOf(
             0 to 0u,
@@ -42,7 +43,7 @@ abstract class CursorTests {
     }
 
     private fun cursor_handles_byte_order_correctly(endianness: Endianness) {
-        val cursor = createCursor(arrayOf(1, 2, 3, 4), endianness)
+        val cursor = createCursor(byteArrayOf(1, 2, 3, 4), endianness)
 
         if (endianness == Endianness.Little) {
             assertEquals(0x04030201u, cursor.u32())
@@ -96,7 +97,7 @@ abstract class CursorTests {
         val expectedNumber2 = 0x05060708 shr (8 * (4 - byteCount))
 
         // Put them in a byte array.
-        val bytes = Array<Byte>(2 * byteCount) { 0 }
+        val bytes = ByteArray(2 * byteCount)
 
         for (i in 0 until byteCount) {
             val shift =
@@ -128,7 +129,7 @@ abstract class CursorTests {
     }
 
     private fun f32(endianness: Endianness) {
-        val bytes = arrayOf<Byte>(0x40, 0x20, 0, 0, 0x42, 1, 0, 0)
+        val bytes = byteArrayOf(0x40, 0x20, 0, 0, 0x42, 1, 0, 0)
 
         if (endianness == Endianness.Little) {
             bytes.reverse(0, 4)
@@ -194,7 +195,7 @@ abstract class CursorTests {
         endianness: Endianness,
     ) {
         // Generate array of the form 1, 2, 0xFF, 4, 5, 6, 7, 8.
-        val bytes = Array<Byte>(8 * byteCount) { 0 }
+        val bytes = ByteArray(8 * byteCount)
 
         for (i in 0 until 8) {
             if (i == 2) {
@@ -260,7 +261,7 @@ abstract class CursorTests {
         endianness: Endianness,
     ) {
         val chars = byteArrayOf(7, 65, 66, 0, (255).toByte(), 13)
-        val bytes = Array<Byte>(chars.size * byteCount) { 0 }
+        val bytes = ByteArray(chars.size * byteCount)
 
         for (i in 0..chars.size) {
             if (endianness == Endianness.Little) {
@@ -294,5 +295,26 @@ abstract class CursorTests {
         cursor.seekStart(bc)
         assertEquals("AB\u0000ÿ", cursor.read(4u * bc, false, false))
         assertEquals(5u * bc, cursor.position)
+    }
+
+    @Test
+    fun buffer() {
+        testBuffer(Endianness.Little)
+        testBuffer(Endianness.Big)
+    }
+
+    private fun testBuffer(endianness: Endianness) {
+        val bytes = byteArrayOf(1, 2, 3, 4, 5, 6, 7, 8)
+
+        val cursor = createCursor(bytes, endianness)
+
+        val buf = cursor.seek(2).buffer(4u)
+
+        assertEquals(6u, cursor.position)
+        assertEquals(4u, buf.size)
+        assertEquals(3u, buf.getU8(0u))
+        assertEquals(4u, buf.getU8(1u))
+        assertEquals(5u, buf.getU8(2u))
+        assertEquals(6u, buf.getU8(3u))
     }
 }

@@ -2,6 +2,7 @@ package world.phantasmal.lib.cursor
 
 import org.khronos.webgl.ArrayBuffer
 import org.khronos.webgl.DataView
+import world.phantasmal.lib.Endianness
 
 /**
  * A cursor for reading from an array buffer or part of an array buffer.

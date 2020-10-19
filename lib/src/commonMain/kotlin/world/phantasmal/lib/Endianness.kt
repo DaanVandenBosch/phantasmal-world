@@ -1,4 +1,4 @@
-package world.phantasmal.lib.cursor
+package world.phantasmal.lib
 
 enum class Endianness {
     Little,

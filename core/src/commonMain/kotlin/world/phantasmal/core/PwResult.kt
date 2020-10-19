@@ -14,7 +14,7 @@ sealed class PwResult<out T>(val problems: List<Problem>) {
     }
 }
 
-class Success<T>(val value: T, problems: List<Problem>) : PwResult<T>(problems)
+class Success<T>(val value: T, problems: List<Problem> = emptyList()) : PwResult<T>(problems)
 
 class Failure(problems: List<Problem>) : PwResult<Nothing>(problems)
 

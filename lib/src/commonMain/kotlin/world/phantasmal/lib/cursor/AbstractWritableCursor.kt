@@ -2,6 +2,7 @@ package world.phantasmal.lib.cursor
 
 import world.phantasmal.lib.ZERO_U16
 import world.phantasmal.lib.ZERO_U8
+import world.phantasmal.lib.buffer.Buffer
 import kotlin.math.min
 
 abstract class AbstractWritableCursor
@@ -14,6 +15,9 @@ protected constructor(protected val offset: UInt) : WritableCursor {
 
     protected val absolutePosition: UInt
         get() = offset + position
+
+    override fun hasBytesLeft(bytes: UInt): Boolean =
+        bytesLeft >= bytes
 
     override fun seek(offset: Int): WritableCursor =
         seekStart((position.toInt() + offset).toUInt())
