@@ -1,6 +1,7 @@
 package world.phantasmal.lib.fileFormats.quest
 
 import mu.KotlinLogging
+import world.phantasmal.lib.buffer.Buffer
 import world.phantasmal.lib.cursor.Cursor
 
 private val logger = KotlinLogging.logger {}
@@ -16,7 +17,7 @@ class BinFile(
     val questName: String,
     val shortDescription: String,
     val longDescription: String,
-//    val objectCode: ArrayBuffer,
+    val objectCode: Buffer,
     val labelOffsets: IntArray,
     val shopItems: UIntArray,
 )
@@ -64,15 +65,15 @@ fun parseBin(cursor: Cursor): BinFile {
         cursor.seek(1)
         language = cursor.u8().toUInt()
         questId = cursor.u16().toUInt()
-        questName = cursor.stringAscii(32u, true, true)
-        shortDescription = cursor.stringAscii(128u, true, true)
-        longDescription = cursor.stringAscii(288u, true, true)
+        questName = cursor.stringAscii(32u, nullTerminated = true, dropRemaining = true)
+        shortDescription = cursor.stringAscii(128u, nullTerminated = true, dropRemaining = true)
+        longDescription = cursor.stringAscii(288u, nullTerminated = true, dropRemaining = true)
     } else {
         questId = cursor.u32()
         language = cursor.u32()
-        questName = cursor.stringUtf16(64u, true, true)
-        shortDescription = cursor.stringUtf16(256u, true, true)
-        longDescription = cursor.stringUtf16(576u, true, true)
+        questName = cursor.stringUtf16(64u, nullTerminated = true, dropRemaining = true)
+        shortDescription = cursor.stringUtf16(256u, nullTerminated = true, dropRemaining = true)
+        longDescription = cursor.stringUtf16(576u, nullTerminated = true, dropRemaining = true)
     }
 
     if (size != cursor.size) {
@@ -91,9 +92,9 @@ fun parseBin(cursor: Cursor): BinFile {
         .seekStart(labelOffsetTableOffset)
         .i32Array(labelOffsetCount)
 
-//    val objectCode = cursor
-//        .seekStart(objectCodeOffset)
-//        .arrayBuffer(labelOffsetTableOffset - objectCodeOffset);
+    val objectCode = cursor
+        .seekStart(objectCodeOffset)
+        .buffer(labelOffsetTableOffset - objectCodeOffset)
 
     return BinFile(
         format,
@@ -102,7 +103,7 @@ fun parseBin(cursor: Cursor): BinFile {
         questName,
         shortDescription,
         longDescription,
-//        objectCode,
+        objectCode,
         labelOffsets,
         shopItems,
     )

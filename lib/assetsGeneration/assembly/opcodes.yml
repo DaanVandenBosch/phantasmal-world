@@ -1751,13 +1751,6 @@ opcodes:
     mnemonic: default_camera_pos1
     params: []
 
-  - code: 0xf8
-    params:
-      - type: reg_tup_ref
-        reg_tup: # TODO: determine type and access
-          - type: any
-            access: read
-
   - code: 0xfa
     mnemonic: get_gc_number
     params:
