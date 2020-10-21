@@ -368,7 +368,7 @@ private fun parseInstructionsSegment(
     val segment = InstructionSegment(
         labels,
         instructions,
-        SegmentSrcLoc(emptyList())
+        SegmentSrcLoc()
     )
     offsetToSegment[cursor.position.toInt()] = segment
 
@@ -437,7 +437,7 @@ private fun parseDataSegment(
     val segment = DataSegment(
         labels,
         cursor.buffer(endOffset.toUInt() - startOffset),
-        SegmentSrcLoc(listOf()),
+        SegmentSrcLoc(),
     )
     offsetToSegment[startOffset.toInt()] = segment
 }
@@ -465,7 +465,7 @@ private fun parseStringSegment(
                 dropRemaining = true
             )
         },
-        SegmentSrcLoc(listOf())
+        SegmentSrcLoc()
     )
     offsetToSegment[startOffset.toInt()] = segment
 }

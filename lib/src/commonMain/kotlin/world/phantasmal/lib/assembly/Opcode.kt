@@ -1,5 +1,16 @@
 package world.phantasmal.lib.assembly
 
+private val MNEMONIC_TO_OPCODES: MutableMap<String, Opcode> by lazy {
+    val map = mutableMapOf<String, Opcode>()
+
+    OPCODES.forEach { if (it != null) map[it.mnemonic] = it }
+    OPCODES_F8.forEach { if (it != null) map[it.mnemonic] = it }
+    OPCODES_F9.forEach { if (it != null) map[it.mnemonic] = it }
+
+    map
+}
+private val UNKNOWN_OPCODE_MNEMONIC_REGEX = Regex("""^unknown_((f8|f9)?[0-9a-f]{2})$""")
+
 /**
  * Abstract super type of all types.
  */
@@ -163,6 +174,20 @@ fun codeToOpcode(code: Int): Opcode =
         code <= 0xF8FF -> getOpcode(code, code and 0xFF, OPCODES_F8)
         else -> getOpcode(code, code and 0xFF, OPCODES_F9)
     }
+
+fun mnemonicToOpcode(mnemonic: String): Opcode? {
+    var opcode = MNEMONIC_TO_OPCODES[mnemonic]
+
+    if (opcode == null) {
+        UNKNOWN_OPCODE_MNEMONIC_REGEX.matchEntire(mnemonic)?.destructured?.let { (codeStr) ->
+            val code = codeStr.toInt(16)
+            opcode = codeToOpcode(code)
+            MNEMONIC_TO_OPCODES[mnemonic] = opcode!!
+        }
+    }
+
+    return opcode
+}
 
 private fun getOpcode(code: Int, index: Int, opcodes: Array<Opcode?>): Opcode {
     var opcode = opcodes[index]

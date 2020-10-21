@@ -103,25 +103,29 @@ enum class SegmentType {
  * referenced by one or more labels. The segment ends right before the next instruction, byte or
  * string character that is referenced by a label.
  */
-sealed class Segment(val type: SegmentType, val labels: MutableList<Int>)
+sealed class Segment(
+    val type: SegmentType,
+    val labels: MutableList<Int>,
+    val srcLoc: SegmentSrcLoc,
+)
 
 class InstructionSegment(
     labels: MutableList<Int>,
-    val instructions: List<Instruction>,
-    val srcLoc: SegmentSrcLoc,
-) : Segment(SegmentType.Instructions, labels)
+    val instructions: MutableList<Instruction>,
+    srcLoc: SegmentSrcLoc,
+) : Segment(SegmentType.Instructions, labels, srcLoc)
 
 class DataSegment(
     labels: MutableList<Int>,
     val data: Buffer,
-    val srcLoc: SegmentSrcLoc,
-) : Segment(SegmentType.Data, labels)
+    srcLoc: SegmentSrcLoc,
+) : Segment(SegmentType.Data, labels, srcLoc)
 
 class StringSegment(
     labels: MutableList<Int>,
-    val value: String,
-    val srcLoc: SegmentSrcLoc,
-) : Segment(SegmentType.String, labels)
+    var value: String,
+    srcLoc: SegmentSrcLoc,
+) : Segment(SegmentType.String, labels, srcLoc)
 
 /**
  * Position and length of related source assembly code.
@@ -144,9 +148,9 @@ class InstructionSrcLoc(
 /**
  * Locations of an instruction's stack arguments in the source assembly code.
  */
-class StackArgSrcLoc(lineNo: Int, col: Int, len: Int, val value: Int) : SrcLoc(lineNo, col, len)
+class StackArgSrcLoc(lineNo: Int, col: Int, len: Int, val value: Any) : SrcLoc(lineNo, col, len)
 
 /**
  * Locations of a segment's labels in the source assembly code.
  */
-class SegmentSrcLoc(val labels: List<SrcLoc>)
+class SegmentSrcLoc(val labels: MutableList<SrcLoc> = mutableListOf())

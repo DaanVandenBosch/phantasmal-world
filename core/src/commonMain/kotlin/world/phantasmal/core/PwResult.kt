@@ -18,12 +18,17 @@ class Success<T>(val value: T, problems: List<Problem> = emptyList()) : PwResult
 
 class Failure(problems: List<Problem>) : PwResult<Nothing>(problems)
 
-class Problem(
+open class Problem(
     val severity: Severity,
     /**
      * Readable message meant for users.
      */
     val uiMessage: String,
+    /**
+     * Message meant for developers.
+     */
+    val message: String? = null,
+    val cause: Throwable? = null,
 )
 
 enum class Severity {
@@ -42,20 +47,28 @@ class PwResultBuilder<T>(private val logger: KLogger) {
      * Add a problem to the problems list and log it with [logger].
      */
     fun addProblem(
+        problem: Problem,
+    ): PwResultBuilder<T> {
+        when (problem.severity) {
+            Severity.Info -> logger.info(problem.cause) { problem.message ?: problem.uiMessage }
+            Severity.Warning -> logger.warn(problem.cause) { problem.message ?: problem.uiMessage }
+            Severity.Error -> logger.error(problem.cause) { problem.message ?: problem.uiMessage }
+        }
+
+        problems.add(problem)
+        return this
+    }
+
+    /**
+     * Add a problem to the problems list and log it with [logger].
+     */
+    fun addProblem(
         severity: Severity,
         uiMessage: String,
         message: String? = null,
         cause: Throwable? = null,
-    ): PwResultBuilder<T> {
-        when (severity) {
-            Severity.Info -> logger.info(cause) { message ?: uiMessage }
-            Severity.Warning -> logger.warn(cause) { message ?: uiMessage }
-            Severity.Error -> logger.error(cause) { message ?: uiMessage }
-        }
-
-        problems.add(Problem(severity, uiMessage))
-        return this
-    }
+    ): PwResultBuilder<T> =
+        addProblem(Problem(severity, uiMessage, message, cause))
 
     /**
      * Add the given result's problems.
