@@ -23,14 +23,15 @@ class Instruction(
         for (i in 0 until len) {
             val type = opcode.params[i].type
             val arg = args[i]
-            paramToArgs[i] = mutableListOf()
+            val pArgs = mutableListOf<Arg>()
+            paramToArgs.add(pArgs)
 
             if (type is ILabelVarType || type is RegRefVarType) {
                 for (j in i until args.size) {
-                    paramToArgs[i].add(args[j])
+                    pArgs.add(args[j])
                 }
             } else {
-                paramToArgs[i].add(arg)
+                pArgs.add(arg)
             }
         }
 

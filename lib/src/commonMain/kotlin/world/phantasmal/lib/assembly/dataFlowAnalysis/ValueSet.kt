@@ -6,12 +6,10 @@ import kotlin.math.min
 /**
  * Represents a sorted set of integers.
  */
-class ValueSet : Iterable<Int> {
-    private val intervals: MutableList<Interval> = mutableListOf()
-
-    val size: Int
+class ValueSet private constructor(private val intervals: MutableList<Interval>) : Iterable<Int> {
+    val size: Long
         get() =
-            intervals.fold(0) { acc, i -> acc + i.end - i.start + 1 }
+            intervals.fold(0L) { acc, i -> acc + i.end - i.start + 1L }
 
     operator fun get(i: Int): Int? {
         var idx = i
@@ -74,46 +72,99 @@ class ValueSet : Iterable<Int> {
     }
 
     /**
-     * Doesn't take into account integer overflow.
+     * Scalar addition.
      */
-    fun scalarAdd(s: Int): ValueSet {
-        for (int in intervals) {
-            int.start += s
-            int.end += s
+    operator fun plusAssign(scalar: Int) {
+        if (scalar >= 0) {
+            var i = 0
+            var addI = 0
+
+            while (i < intervals.size) {
+                val int = intervals[i]
+                val oldStart = int.start
+                val oldEnd = int.end
+                int.start += scalar
+                int.end += scalar
+
+                if (int.start < oldStart) {
+                    // Integer overflow of both start and end.
+                    intervals.removeAt(i)
+                    intervals.add(addI++, int)
+                } else if (int.end < oldEnd) {
+                    // Integer overflow of end.
+                    val newEnd = int.end
+                    int.end = Int.MAX_VALUE
+
+                    if (newEnd + 1 == intervals.first().start) {
+                        intervals.first().start = Int.MIN_VALUE
+                    } else {
+                        intervals.add(0, Interval(Int.MIN_VALUE, newEnd))
+                        addI++
+                        // Increment i twice because we left this interval and inserted a new one.
+                        i++
+                    }
+                }
+
+                i++
+            }
+        } else {
+            var i = intervals.lastIndex
+            var addI = 0
+
+            while (i >= 0) {
+                val int = intervals[i]
+                val oldStart = int.start
+                val oldEnd = int.end
+                int.start += scalar
+                int.end += scalar
+
+                if (int.end > oldEnd) {
+                    // Integer underflow of both start and end.
+                    intervals.removeAt(i)
+                    intervals.add(intervals.size - addI++, int)
+                } else if (int.start > oldStart) {
+                    // Integer underflow of start.
+                    val newStart = int.start
+                    int.start = Int.MIN_VALUE
+
+                    if (newStart - 1 == intervals.last().end) {
+                        intervals.last().end = Int.MAX_VALUE
+                    } else {
+                        intervals.add(Interval(newStart, Int.MAX_VALUE))
+                        addI++
+                    }
+                }
+
+                i--
+            }
         }
+    }
 
-        return this
+    /**
+     * Scalar subtraction.
+     */
+    operator fun minusAssign(scalar: Int) {
+        plusAssign(-scalar)
     }
 
     /**
      * Doesn't take into account integer overflow.
      */
-    fun scalarSub(s: Int): ValueSet {
-        return scalarAdd(-s)
-    }
-
-    /**
-     * Doesn't take into account integer overflow.
-     */
-    fun scalarMul(s: Int): ValueSet {
+    operator fun timesAssign(s: Int) {
         for (int in intervals) {
             int.start *= s
             int.end *= s
         }
-
-        return this
     }
 
     /**
      * Integer division.
      */
-    fun scalarDiv(s: Int): ValueSet {
+    operator fun divAssign(s: Int) {
         for (int in intervals) {
             int.start = int.start / s
             int.end = int.end / s
         }
-
-        return this
     }
 
     fun union(other: ValueSet): ValueSet {
@@ -123,12 +174,12 @@ class ValueSet : Iterable<Int> {
             while (i < intervals.size) {
                 val a = intervals[i]
 
-                if (b.end < a.start - 1) {
+                if (b.end < a.start - 1L) {
                     // b lies entirely before a, insert it right before a.
                     intervals.add(i, b.copy())
                     i++
                     continue@outer
-                } else if (b.start <= a.end + 1) {
+                } else if (b.start <= a.end + 1L) {
                     // a and b overlap or form a continuous interval (e.g. [1, 2] and [3, 4]).
                     a.start = min(a.start, b.start)
 
@@ -136,7 +187,7 @@ class ValueSet : Iterable<Int> {
                     val j = i + 1
 
                     while (j < intervals.size) {
-                        if (b.end >= intervals[j].start - 1) {
+                        if (b.end >= intervals[j].start - 1L) {
                             a.end = intervals[j].end
                             intervals.removeAt(j)
                         } else {
@@ -187,6 +238,24 @@ class ValueSet : Iterable<Int> {
                 return v
             }
         }
+
+    companion object {
+        /**
+         * Returns an empty [ValueSet].
+         */
+        fun empty(): ValueSet = ValueSet(mutableListOf())
+
+        /**
+         * Returns a [ValueSet] with a single initial [value].
+         */
+        fun of(value: Int): ValueSet = ValueSet(mutableListOf(Interval(value, value)))
+
+        /**
+         * Returns a [ValueSet] with all values between [start] and [end], inclusively.
+         */
+        fun ofInterval(start: Int, end: Int): ValueSet =
+            ValueSet(mutableListOf(Interval(start, end)))
+    }
 }
 
 /**

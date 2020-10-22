@@ -52,6 +52,8 @@ interface BasicBlock {
      * The blocks this block branches to.
      */
     val to: List<BasicBlock>
+
+    fun indexOfInstruction(instruction: Instruction): Int
 }
 
 /**
@@ -59,10 +61,13 @@ interface BasicBlock {
  */
 class ControlFlowGraph(
     val blocks: List<BasicBlock>,
-    private val instructionsToBlock: Map<Instruction, BasicBlock>,
+    private val instructionToBlock: Map<Instruction, BasicBlock>,
 ) {
-    fun getBlockForInstruction(instruction: Instruction): BasicBlock? =
-        instructionsToBlock[instruction]
+    fun getBlockForInstruction(instruction: Instruction): BasicBlock {
+        val block = instructionToBlock[instruction]
+        requireNotNull(block) { "Instruction is not part of the control-flow graph." }
+        return block
+    }
 
     companion object {
         fun create(segments: List<InstructionSegment>): ControlFlowGraph {
@@ -88,7 +93,7 @@ private class ControlFlowGraphBuilder {
         ControlFlowGraph(blocks, instructionsToBlock)
 }
 
-class BasicBlockImpl(
+private class BasicBlockImpl(
     override val segment: InstructionSegment,
     override val start: Int,
     override val end: Int,
@@ -98,14 +103,7 @@ class BasicBlockImpl(
     override val from: MutableList<BasicBlockImpl> = mutableListOf()
     override val to: MutableList<BasicBlockImpl> = mutableListOf()
 
-    fun linkTo(other: BasicBlockImpl) {
-        if (other !in to) {
-            to.add(other)
-            other.from.add(this)
-        }
-    }
-
-    fun indexOfInstruction(instruction: Instruction): Int {
+    override fun indexOfInstruction(instruction: Instruction): Int {
         var index = -1
 
         for (i in start until end) {
@@ -116,6 +114,13 @@ class BasicBlockImpl(
         }
 
         return index
+    }
+
+    fun linkTo(other: BasicBlockImpl) {
+        if (other !in to) {
+            to.add(other)
+            other.from.add(this)
+        }
     }
 }
 

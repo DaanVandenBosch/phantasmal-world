@@ -26,8 +26,10 @@ fun getMapDesignations(
 
                 val areaId = getRegisterValue(cfg, inst, inst.args[0].value as Int)
 
-                if (areaId.size != 1) {
-                    logger.warn { "Couldn't determine area ID for mapDesignate instruction." }
+                if (areaId.size > 1) {
+                    logger.warn {
+                        "Couldn't determine area ID for ${inst.opcode.mnemonic} instruction."
+                    }
                     continue
                 }
 
@@ -35,9 +37,9 @@ fun getMapDesignations(
                     inst.args[0].value as Int + (if (inst.opcode == OP_MAP_DESIGNATE) 2 else 3)
                 val variantId = getRegisterValue(cfg, inst, variantIdRegister)
 
-                if (variantId.size != 1) {
+                if (variantId.size > 1) {
                     logger.warn {
-                        "Couldn't determine area variant ID for mapDesignate instruction."
+                        "Couldn't determine area variant ID for ${inst.opcode.mnemonic} instruction."
                     }
                     continue
                 }

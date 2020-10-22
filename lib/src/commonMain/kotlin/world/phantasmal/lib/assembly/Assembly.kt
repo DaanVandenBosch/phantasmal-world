@@ -217,11 +217,12 @@ private class Assembler(private val assembly: List<String>, private val manualSt
         }
     }
 
-    private fun addError(col: Int, length: Int, message: String) {
+    private fun addError(col: Int, length: Int, uiMessage: String, message: String? = null) {
         result.addProblem(
             AssemblyProblem(
                 Severity.Error,
-                message,
+                uiMessage,
+                message ?: "$uiMessage At $lineNo:$col.",
                 lineNo = lineNo,
                 col = col,
                 length = length
@@ -229,19 +230,19 @@ private class Assembler(private val assembly: List<String>, private val manualSt
         )
     }
 
-    private fun addError(token: Token, message: String) {
-        addError(token.col, token.len, message)
+    private fun addError(token: Token, uiMessage: String, message: String? = null) {
+        addError(token.col, token.len, uiMessage, message)
     }
 
     private fun addUnexpectedTokenError(token: Token) {
-        addError(token, "Unexpected token.")
+        addError(token, "Unexpected token.", "Unexpected ${token::class.simpleName} at ${token.srcLoc()}.")
     }
 
-    private fun addWarning(token: Token, message: String) {
+    private fun addWarning(token: Token, uiMessage: String) {
         result.addProblem(
             AssemblyProblem(
                 Severity.Warning,
-                message,
+                uiMessage,
                 lineNo = lineNo,
                 col = token.col,
                 length = token.len
@@ -252,7 +253,7 @@ private class Assembler(private val assembly: List<String>, private val manualSt
     private fun parseLabel(token: LabelToken) {
         val label = token.value
 
-        if (labels.add(label)) {
+        if (!labels.add(label)) {
             addError(token, "Duplicate label.")
         }
 
@@ -653,7 +654,7 @@ private class Assembler(private val assembly: List<String>, private val manualSt
         // Minimum of the signed version of this integer type.
         val minValue = -(1 shl (bitSize - 1))
         // Maximum of the unsigned version of this integer type.
-        val maxValue = (1 shl (bitSize)) - 1
+        val maxValue = (1L shl (bitSize)) - 1L
 
         when {
             value < minValue -> {
@@ -713,4 +714,6 @@ private class Assembler(private val assembly: List<String>, private val manualSt
 
         addString(token.value.replace("\n", "<cr>"))
     }
+
+    private fun Token.srcLoc(): String = "$lineNo:$col"
 }

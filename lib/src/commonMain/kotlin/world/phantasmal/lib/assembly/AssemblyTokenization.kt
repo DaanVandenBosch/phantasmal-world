@@ -191,7 +191,6 @@ private class LineTokenizer(private var line: String) {
                 return tokenizeHexNumber(col)
             } else if (char == ':') {
                 isLabel = true
-                skip()
                 break
             } else if (char == ',' || char.isWhitespace()) {
                 break
@@ -201,7 +200,14 @@ private class LineTokenizer(private var line: String) {
         }
 
         val value = slice().toIntOrNull()
-            ?: return InvalidNumberToken(col, markedLen())
+
+        if (isLabel) {
+            skip()
+        }
+
+        if (value == null) {
+            return InvalidNumberToken(col, markedLen())
+        }
 
         return if (isLabel) {
             LabelToken(col, markedLen(), value)
