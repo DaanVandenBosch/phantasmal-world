@@ -8,8 +8,7 @@ import kotlin.math.min
  */
 class ValueSet private constructor(private val intervals: MutableList<Interval>) : Iterable<Int> {
     val size: Long
-        get() =
-            intervals.fold(0L) { acc, i -> acc + i.end - i.start + 1L }
+        get() = intervals.fold(0L) { acc, i -> acc + i.end - i.start + 1L }
 
     operator fun get(i: Int): Int? {
         var idx = i
@@ -162,8 +161,8 @@ class ValueSet private constructor(private val intervals: MutableList<Interval>)
      */
     operator fun divAssign(s: Int) {
         for (int in intervals) {
-            int.start = int.start / s
-            int.end = int.end / s
+            int.start /= s
+            int.end /= s
         }
     }
 
@@ -244,6 +243,11 @@ class ValueSet private constructor(private val intervals: MutableList<Interval>)
          * Returns an empty [ValueSet].
          */
         fun empty(): ValueSet = ValueSet(mutableListOf())
+
+        /**
+         * Returns a [ValueSet] containing all possible Int values.
+         */
+        fun all(): ValueSet = ofInterval(Int.MIN_VALUE, Int.MAX_VALUE)
 
         /**
          * Returns a [ValueSet] with a single initial [value].

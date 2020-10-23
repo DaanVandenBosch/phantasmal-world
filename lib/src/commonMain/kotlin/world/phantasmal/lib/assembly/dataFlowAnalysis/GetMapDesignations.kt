@@ -16,9 +16,9 @@ fun getMapDesignations(
     var cfg: ControlFlowGraph? = null
 
     for (inst in func0Segment.instructions) {
-        when (inst.opcode) {
-            OP_MAP_DESIGNATE,
-            OP_MAP_DESIGNATE_EX,
+        when (inst.opcode.code) {
+            OP_MAP_DESIGNATE.code,
+            OP_MAP_DESIGNATE_EX.code,
             -> {
                 if (cfg == null) {
                     cfg = ControlFlowGraph.create(instructionSegments)
@@ -47,7 +47,7 @@ fun getMapDesignations(
                 mapDesignations[areaId[0]!!] = variantId[0]!!
             }
 
-            OP_BB_MAP_DESIGNATE -> {
+            OP_BB_MAP_DESIGNATE.code -> {
                 mapDesignations[inst.args[0].value as Int] = inst.args[2].value as Int
             }
         }

@@ -61,7 +61,7 @@ class ValueSetTests {
     fun plusAssign_integer_overflow() {
         // The set of all integers should stay the same after adding any integer.
         for (i in Int.MIN_VALUE..Int.MAX_VALUE step 10_000_000) {
-            val vs = ValueSet.ofInterval(Int.MIN_VALUE, Int.MAX_VALUE)
+            val vs = ValueSet.all()
             vs += i
 
             assertEquals(1L shl 32, vs.size)
@@ -100,7 +100,7 @@ class ValueSetTests {
     fun minusAssign_integer_underflow() {
         // The set of all integers should stay the same after subtracting any integer.
         for (i in Int.MIN_VALUE..Int.MAX_VALUE step 10_000_000) {
-            val vs = ValueSet.ofInterval(Int.MIN_VALUE, Int.MAX_VALUE)
+            val vs = ValueSet.all()
             vs -= i
 
             assertEquals(1L shl 32, vs.size)

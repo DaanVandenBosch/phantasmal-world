@@ -81,14 +81,14 @@ class GetRegisterValueTests {
         val r0 = getRegisterValue(cfg, im[0].instructions[2], 0)
 
         assertEquals(MAX_REGISTER_VALUES_SIZE, r0.size)
-        assertEquals(MIN_REGISTER_VALUE, r0.minOrNull())
-        assertEquals(MAX_REGISTER_VALUE, r0.maxOrNull())
+        assertEquals(Int.MIN_VALUE, r0.minOrNull())
+        assertEquals(Int.MAX_VALUE, r0.maxOrNull())
 
         val r1 = getRegisterValue(cfg, im[0].instructions[2], 1)
 
         assertEquals(MAX_REGISTER_VALUES_SIZE, r1.size)
-        assertEquals(MIN_REGISTER_VALUE, r1.minOrNull())
-        assertEquals(MAX_REGISTER_VALUE, r1.maxOrNull())
+        assertEquals(Int.MIN_VALUE, r1.minOrNull())
+        assertEquals(Int.MAX_VALUE, r1.maxOrNull())
     }
 
     @Test

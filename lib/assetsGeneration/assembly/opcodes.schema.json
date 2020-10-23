@@ -20,9 +20,8 @@
             "additionalProperties": false,
             "properties": {
                 "code": {
-                    "type": "integer",
-                    "minimum": 0,
-                    "maximum": 63999,
+                    "type": "string",
+                    "pattern": "^0x(f8|f9)?[0-9a-f]{2}$",
                     "description": "Unique byte representation of the opcode."
                 },
                 "mnemonic": {

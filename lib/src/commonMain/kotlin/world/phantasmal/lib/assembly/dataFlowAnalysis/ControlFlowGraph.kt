@@ -135,63 +135,63 @@ private fun createBasicBlocks(cfg: ControlFlowGraphBuilder, segment: Instruction
         var branchType: BranchType
         var branchLabels: List<Int>
 
-        when (inst.opcode) {
+        when (inst.opcode.code) {
             // Return.
-            OP_RET -> {
+            OP_RET.code -> {
                 branchType = BranchType.Return
                 branchLabels = emptyList()
             }
 
             // Unconditional jump.
-            OP_JMP -> {
+            OP_JMP.code -> {
                 branchType = BranchType.Jump
                 branchLabels = listOf(inst.args[0].value as Int)
             }
 
             // Conditional jumps.
-            OP_JMP_ON,
-            OP_JMP_OFF,
+            OP_JMP_ON.code,
+            OP_JMP_OFF.code,
             -> {
                 branchType = BranchType.ConditionalJump
                 branchLabels = listOf(inst.args[0].value as Int)
             }
-            OP_JMP_E,
-            OP_JMPI_E,
-            OP_JMP_NE,
-            OP_JMPI_NE,
-            OP_UJMP_G,
-            OP_UJMPI_G,
-            OP_JMP_G,
-            OP_JMPI_G,
-            OP_UJMP_L,
-            OP_UJMPI_L,
-            OP_JMP_L,
-            OP_JMPI_L,
-            OP_UJMP_GE,
-            OP_UJMPI_GE,
-            OP_JMP_GE,
-            OP_JMPI_GE,
-            OP_UJMP_LE,
-            OP_UJMPI_LE,
-            OP_JMP_LE,
-            OP_JMPI_LE,
+            OP_JMP_E.code,
+            OP_JMPI_E.code,
+            OP_JMP_NE.code,
+            OP_JMPI_NE.code,
+            OP_UJMP_G.code,
+            OP_UJMPI_G.code,
+            OP_JMP_G.code,
+            OP_JMPI_G.code,
+            OP_UJMP_L.code,
+            OP_UJMPI_L.code,
+            OP_JMP_L.code,
+            OP_JMPI_L.code,
+            OP_UJMP_GE.code,
+            OP_UJMPI_GE.code,
+            OP_JMP_GE.code,
+            OP_JMPI_GE.code,
+            OP_UJMP_LE.code,
+            OP_UJMPI_LE.code,
+            OP_JMP_LE.code,
+            OP_JMPI_LE.code,
             -> {
                 branchType = BranchType.ConditionalJump
                 branchLabels = listOf(inst.args[2].value as Int)
             }
-            OP_SWITCH_JMP -> {
+            OP_SWITCH_JMP.code -> {
                 branchType = BranchType.ConditionalJump
                 branchLabels = inst.args.drop(1).map { it.value as Int }
             }
 
             // Calls.
-            OP_CALL,
-            OP_VA_CALL,
+            OP_CALL.code,
+            OP_VA_CALL.code,
             -> {
                 branchType = BranchType.Call
                 branchLabels = listOf(inst.args[0].value as Int)
             }
-            OP_SWITCH_CALL -> {
+            OP_SWITCH_CALL.code -> {
                 branchType = BranchType.Call
                 branchLabels = inst.args.drop(1).map { it.value as Int }
             }
