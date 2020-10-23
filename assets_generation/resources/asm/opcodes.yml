@@ -2641,6 +2641,7 @@ opcodes:
             access: write
       - type: dword
         doc: Address to read from.
+    stack: pop
 
   - code: 0xf8b1
     mnemonic: read2
@@ -2653,6 +2654,7 @@ opcodes:
             access: write
       - type: dword
         doc: Address to read from.
+    stack: pop
 
   - code: 0xf8b2
     mnemonic: read4
@@ -2665,6 +2667,7 @@ opcodes:
             access: write
       - type: dword
         doc: Address to read from.
+    stack: pop
 
   - code: 0xf8b3
     mnemonic: write1

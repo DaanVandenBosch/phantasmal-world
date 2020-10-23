@@ -3042,8 +3042,17 @@ export const OP_GET_SERVERNUMBER = (OPCODES[0xe7] = new_opcode(
     0xe7,
     "get_servernumber",
     "Returns the index of the player who is the leader of the party.",
-    [new_param({ kind: Kind.RegTupRef, register_tuples: [new_param(TYPE_DWORD, undefined, ParamAccess.Write)] }, undefined, undefined)],
-    undefined
+    [
+        new_param(
+            {
+                kind: Kind.RegTupRef,
+                register_tuples: [new_param(TYPE_DWORD, undefined, ParamAccess.Write)],
+            },
+            undefined,
+            undefined,
+        ),
+    ],
+    undefined,
 ));
 export const OP_SET_EVENTFLAG2 = (OPCODES[0xe8] = new_opcode(
     0xe8,
@@ -3702,8 +3711,26 @@ export const OP_GET_NUM_KILLS = (OPCODES[0xf829] = new_opcode(
     0xf829,
     "get_num_kills",
     "Returns the number of enemies a player has killed during the quest.",
-    [new_param({ kind: Kind.RegTupRef, register_tuples: [new_param(TYPE_DWORD, "Player slot.", ParamAccess.Read)] }, undefined, undefined), new_param(TYPE_ANY, "Unused", undefined), new_param({ kind: Kind.RegTupRef, register_tuples: [new_param(TYPE_DWORD, "Result register.", ParamAccess.Write)] }, undefined, undefined)],
-    undefined
+    [
+        new_param(
+            {
+                kind: Kind.RegTupRef,
+                register_tuples: [new_param(TYPE_DWORD, "Player slot.", ParamAccess.Read)],
+            },
+            undefined,
+            undefined,
+        ),
+        new_param(TYPE_ANY, "Unused", undefined),
+        new_param(
+            {
+                kind: Kind.RegTupRef,
+                register_tuples: [new_param(TYPE_DWORD, "Result register.", ParamAccess.Write)],
+            },
+            undefined,
+            undefined,
+        ),
+    ],
+    undefined,
 ));
 export const OP_UNKNOWN_F82A = (OPCODES[0xf82a] = new_opcode(
     0xf82a,
@@ -5212,7 +5239,7 @@ export const OP_READ1 = (OPCODES[0xf8b0] = new_opcode(
         ),
         new_param(TYPE_DWORD, "Address to read from.", undefined),
     ],
-    undefined,
+    StackInteraction.Pop,
 ));
 export const OP_READ2 = (OPCODES[0xf8b1] = new_opcode(
     0xf8b1,
@@ -5229,7 +5256,7 @@ export const OP_READ2 = (OPCODES[0xf8b1] = new_opcode(
         ),
         new_param(TYPE_DWORD, "Address to read from.", undefined),
     ],
-    undefined,
+    StackInteraction.Pop,
 ));
 export const OP_READ4 = (OPCODES[0xf8b2] = new_opcode(
     0xf8b2,
@@ -5246,7 +5273,7 @@ export const OP_READ4 = (OPCODES[0xf8b2] = new_opcode(
         ),
         new_param(TYPE_DWORD, "Address to read from.", undefined),
     ],
-    undefined,
+    StackInteraction.Pop,
 ));
 export const OP_WRITE1 = (OPCODES[0xf8b3] = new_opcode(
     0xf8b3,
