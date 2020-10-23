@@ -3720,7 +3720,6 @@ export const OP_GET_NUM_KILLS = (OPCODES[0xf829] = new_opcode(
             undefined,
             undefined,
         ),
-        new_param(TYPE_ANY, "Unused", undefined),
         new_param(
             {
                 kind: Kind.RegTupRef,

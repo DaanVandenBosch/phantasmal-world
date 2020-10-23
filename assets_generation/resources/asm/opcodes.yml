@@ -1996,8 +1996,6 @@ opcodes:
           - type: dword
             doc: Player slot.
             access: read
-      - type: any
-        doc: Unused
       - type: reg_tup_ref
         reg_tup:
           - type: dword
