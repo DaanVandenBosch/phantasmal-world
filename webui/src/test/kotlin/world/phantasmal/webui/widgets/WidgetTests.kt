@@ -1,7 +1,6 @@
 package world.phantasmal.webui.widgets
 
 import org.w3c.dom.Node
-import world.phantasmal.core.disposable.Scope
 import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.falseVal
 import world.phantasmal.observable.value.mutableVal
@@ -17,9 +16,9 @@ class WidgetTests : TestSuite() {
     fun ancestorHidden_and_selfOrAncestorHidden_should_update_when_hidden_changes() {
         val parentHidden = mutableVal(false)
         val childHidden = mutableVal(false)
-        val grandChild = DummyWidget(scope)
-        val child = DummyWidget(scope, childHidden, grandChild)
-        val parent = DummyWidget(scope, parentHidden, child)
+        val grandChild = DummyWidget()
+        val child = DummyWidget(childHidden, grandChild)
+        val parent = disposer.add(DummyWidget(parentHidden, child))
 
         parent.element // Ensure widgets are fully initialized.
 
@@ -52,8 +51,8 @@ class WidgetTests : TestSuite() {
 
     @Test
     fun added_child_widgets_should_have_ancestorHidden_and_selfOrAncestorHidden_set_correctly() {
-        val parent = DummyWidget(scope, hidden = trueVal())
-        val child = parent.addChild(DummyWidget(scope))
+        val parent = disposer.add(DummyWidget(hidden = trueVal()))
+        val child = parent.addChild(DummyWidget())
 
         assertFalse(parent.ancestorHidden.value)
         assertTrue(parent.selfOrAncestorHidden.value)
@@ -61,11 +60,10 @@ class WidgetTests : TestSuite() {
         assertTrue(child.selfOrAncestorHidden.value)
     }
 
-    private class DummyWidget(
-        scope: Scope,
+    private inner class DummyWidget(
         hidden: Val<Boolean> = falseVal(),
         private val child: Widget? = null,
-    ) : Widget(scope, NO_STYLE, hidden) {
+    ) : Widget(scope, hidden = hidden) {
         override fun Node.createElement() = div {
             child?.let { addChild(it) }
         }

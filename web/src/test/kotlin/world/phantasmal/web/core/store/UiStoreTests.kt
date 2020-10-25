@@ -11,7 +11,7 @@ class UiStoreTests : TestSuite() {
     @Test
     fun applicationUrl_is_initialized_correctly() {
         val applicationUrl = TestApplicationUrl("/")
-        val uiStore = UiStore(scope, applicationUrl)
+        val uiStore = disposer.add(UiStore(scope, applicationUrl))
 
         assertEquals(PwTool.Viewer, uiStore.currentTool.value)
         assertEquals("/${PwTool.Viewer.slug}", applicationUrl.url.value)
@@ -20,7 +20,7 @@ class UiStoreTests : TestSuite() {
     @Test
     fun applicationUrl_changes_when_tool_changes() {
         val applicationUrl = TestApplicationUrl("/")
-        val uiStore = UiStore(scope, applicationUrl)
+        val uiStore = disposer.add(UiStore(scope, applicationUrl))
 
         PwTool.values().forEach { tool ->
             uiStore.setCurrentTool(tool)
@@ -33,7 +33,7 @@ class UiStoreTests : TestSuite() {
     @Test
     fun applicationUrl_changes_when_path_changes() {
         val applicationUrl = TestApplicationUrl("/")
-        val uiStore = UiStore(scope, applicationUrl)
+        val uiStore = disposer.add(UiStore(scope, applicationUrl))
 
         assertEquals(PwTool.Viewer, uiStore.currentTool.value)
         assertEquals("/${PwTool.Viewer.slug}", applicationUrl.url.value)
@@ -48,7 +48,7 @@ class UiStoreTests : TestSuite() {
     @Test
     fun currentTool_and_path_change_when_applicationUrl_changes() {
         val applicationUrl = TestApplicationUrl("/")
-        val uiStore = UiStore(scope, applicationUrl)
+        val uiStore = disposer.add(UiStore(scope, applicationUrl))
 
         PwTool.values().forEach { tool ->
             listOf("/a", "/b", "/c").forEach { path ->
@@ -63,7 +63,7 @@ class UiStoreTests : TestSuite() {
     @Test
     fun browser_navigation_stack_is_manipulated_correctly() {
         val appUrl = TestApplicationUrl("/")
-        val uiStore = UiStore(scope, appUrl)
+        val uiStore = disposer.add(UiStore(scope, appUrl))
 
         assertEquals("/${uiStore.defaultTool.slug}", appUrl.url.value)
 

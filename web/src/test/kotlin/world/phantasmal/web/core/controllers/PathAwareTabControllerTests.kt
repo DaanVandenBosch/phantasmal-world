@@ -41,13 +41,15 @@ class PathAwareTabControllerTests : TestSuite() {
     @Test
     fun applicationUrl_changes_when_switch_to_tool_with_tabs() {
         val appUrl = TestApplicationUrl("/")
-        val uiStore = UiStore(scope, appUrl)
+        val uiStore = disposer.add(UiStore(scope, appUrl))
 
-        PathAwareTabController(scope, uiStore, PwTool.HuntOptimizer, listOf(
-            PathAwareTab("A", "/a"),
-            PathAwareTab("B", "/b"),
-            PathAwareTab("C", "/c"),
-        ))
+        disposer.add(
+            PathAwareTabController(scope, uiStore, PwTool.HuntOptimizer, listOf(
+                PathAwareTab("A", "/a"),
+                PathAwareTab("B", "/b"),
+                PathAwareTab("C", "/c"),
+            ))
+        )
 
         assertFalse(appUrl.canGoBack)
         assertFalse(appUrl.canGoForward)
@@ -68,14 +70,16 @@ class PathAwareTabControllerTests : TestSuite() {
         block: (PathAwareTabController<PathAwareTab>, applicationUrl: TestApplicationUrl) -> Unit,
     ) {
         val applicationUrl = TestApplicationUrl("/${PwTool.HuntOptimizer.slug}/b")
-        val uiStore = UiStore(scope, applicationUrl)
+        val uiStore = disposer.add(UiStore(scope, applicationUrl))
         uiStore.setCurrentTool(PwTool.HuntOptimizer)
 
-        val ctrl = PathAwareTabController(scope, uiStore, PwTool.HuntOptimizer, listOf(
-            PathAwareTab("A", "/a"),
-            PathAwareTab("B", "/b"),
-            PathAwareTab("C", "/c"),
-        ))
+        val ctrl = disposer.add(
+            PathAwareTabController(scope, uiStore, PwTool.HuntOptimizer, listOf(
+                PathAwareTab("A", "/a"),
+                PathAwareTab("B", "/b"),
+                PathAwareTab("C", "/c"),
+            ))
+        )
 
         block(ctrl, applicationUrl)
     }

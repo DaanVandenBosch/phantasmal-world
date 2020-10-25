@@ -1,6 +1,6 @@
 package world.phantasmal.webui.widgets
 
-import world.phantasmal.core.disposable.Scope
+import kotlinx.coroutines.CoroutineScope
 import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.falseVal
 
@@ -9,8 +9,8 @@ import world.phantasmal.observable.value.falseVal
  * etc. Controls are typically leaf nodes and thus typically don't have children.
  */
 abstract class Control(
-    scope: Scope,
-    style: () -> String,
+    scope: CoroutineScope,
+    styles: List<() -> String>,
     hidden: Val<Boolean> = falseVal(),
     disabled: Val<Boolean> = falseVal(),
-) : Widget(scope, style, hidden, disabled)
+) : Widget(scope, styles, hidden, disabled)

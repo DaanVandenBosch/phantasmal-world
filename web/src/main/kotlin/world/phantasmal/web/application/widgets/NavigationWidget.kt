@@ -1,13 +1,13 @@
 package world.phantasmal.web.application.widgets
 
+import kotlinx.coroutines.CoroutineScope
 import org.w3c.dom.Node
-import world.phantasmal.core.disposable.Scope
 import world.phantasmal.web.application.controllers.NavigationController
 import world.phantasmal.webui.dom.div
 import world.phantasmal.webui.widgets.Widget
 
-class NavigationWidget(scope: Scope, private val ctrl: NavigationController) :
-    Widget(scope, ::style) {
+class NavigationWidget(scope: CoroutineScope, private val ctrl: NavigationController) :
+    Widget(scope, listOf(::style)) {
     override fun Node.createElement() =
         div(className = "pw-application-navigation") {
             ctrl.tools.forEach { (tool, active) ->

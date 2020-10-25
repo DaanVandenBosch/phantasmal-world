@@ -1,46 +1,47 @@
 package world.phantasmal.core.disposable
 
-import kotlinx.coroutines.Job
 import kotlin.test.*
 
-class DisposableScopeTests {
+class DisposerTests {
     @Test
     fun calling_add_or_addAll_increases_size_correctly() {
         TrackedDisposable.checkNoLeaks {
-            val scope = DisposableScope(Job())
-            assertEquals(scope.size, 0)
+            val disposer = Disposer()
+            assertEquals(disposer.size, 0)
 
-            scope.add(Dummy())
-            assertEquals(scope.size, 1)
+            disposer.add(StubDisposable())
+            assertEquals(disposer.size, 1)
 
-            scope.addAll(Dummy(), Dummy())
-            assertEquals(scope.size, 3)
+            disposer.addAll(StubDisposable(),
+                StubDisposable())
+            assertEquals(disposer.size, 3)
 
-            scope.add(Dummy())
-            assertEquals(scope.size, 4)
+            disposer.add(StubDisposable())
+            assertEquals(disposer.size, 4)
 
-            scope.addAll(Dummy(), Dummy())
-            assertEquals(scope.size, 6)
+            disposer.addAll(StubDisposable(),
+                StubDisposable())
+            assertEquals(disposer.size, 6)
 
-            scope.dispose()
+            disposer.dispose()
         }
     }
 
     @Test
     fun disposes_all_its_disposables_when_disposed() {
         TrackedDisposable.checkNoLeaks {
-            val scope = DisposableScope(Job())
+            val disposer = Disposer()
             var disposablesDisposed = 0
 
             for (i in 1..5) {
-                scope.add(object : Disposable {
+                disposer.add(object : Disposable {
                     override fun dispose() {
                         disposablesDisposed++
                     }
                 })
             }
 
-            scope.addAll((1..5).map {
+            disposer.addAll((1..5).map {
                 object : Disposable {
                     override fun dispose() {
                         disposablesDisposed++
@@ -48,7 +49,7 @@ class DisposableScopeTests {
                 }
             })
 
-            scope.dispose()
+            disposer.dispose()
 
             assertEquals(10, disposablesDisposed)
         }
@@ -57,67 +58,67 @@ class DisposableScopeTests {
     @Test
     fun disposeAll_disposes_all_disposables() {
         TrackedDisposable.checkNoLeaks {
-            val scope = DisposableScope(Job())
+            val disposer = Disposer()
 
             var disposablesDisposed = 0
 
             for (i in 1..5) {
-                scope.add(object : Disposable {
+                disposer.add(object : Disposable {
                     override fun dispose() {
                         disposablesDisposed++
                     }
                 })
             }
 
-            scope.disposeAll()
+            disposer.disposeAll()
 
             assertEquals(5, disposablesDisposed)
 
-            scope.dispose()
+            disposer.dispose()
         }
     }
 
     @Test
     fun size_and_is_empty_should_correctly_reflect_the_contained_disposables() {
         TrackedDisposable.checkNoLeaks {
-            val scope = DisposableScope(Job())
+            val disposer = Disposer()
 
-            assertEquals(scope.size, 0)
-            assertTrue(scope.isEmpty())
+            assertEquals(disposer.size, 0)
+            assertTrue(disposer.isEmpty())
 
             for (i in 1..5) {
-                scope.add(Dummy())
+                disposer.add(StubDisposable())
 
-                assertEquals(scope.size, i)
-                assertFalse(scope.isEmpty())
+                assertEquals(disposer.size, i)
+                assertFalse(disposer.isEmpty())
             }
 
-            scope.dispose()
+            disposer.dispose()
 
-            assertEquals(scope.size, 0)
-            assertTrue(scope.isEmpty())
+            assertEquals(disposer.size, 0)
+            assertTrue(disposer.isEmpty())
         }
     }
 
     @Test
     fun adding_disposables_after_being_disposed_throws() {
         TrackedDisposable.checkNoLeaks {
-            val scope = DisposableScope(Job())
-            scope.dispose()
+            val disposer = Disposer()
+            disposer.dispose()
 
             for (i in 1..3) {
                 assertFails {
-                    scope.add(Dummy())
+                    disposer.add(StubDisposable())
                 }
             }
 
             assertFails {
-                scope.addAll((1..3).map { Dummy() })
+                disposer.addAll((1..3).map { StubDisposable() })
             }
         }
     }
 
-    private class Dummy : Disposable {
+    private class StubDisposable : Disposable {
         override fun dispose() {
             // Do nothing.
         }

@@ -1,6 +1,6 @@
 package world.phantasmal.web.huntOptimizer.controllers
 
-import world.phantasmal.core.disposable.Scope
+import kotlinx.coroutines.CoroutineScope
 import world.phantasmal.lib.fileFormats.quest.Episode
 import world.phantasmal.observable.value.list.ListVal
 import world.phantasmal.observable.value.list.MutableListVal
@@ -16,7 +16,7 @@ import world.phantasmal.web.huntOptimizer.stores.HuntMethodStore
 class MethodsTab(title: String, path: String, val episode: Episode) : PathAwareTab(title, path)
 
 class MethodsController(
-    scope: Scope,
+    scope: CoroutineScope,
     uiStore: UiStore,
     huntMethodStore: HuntMethodStore,
 ) : PathAwareTabController<MethodsTab>(
@@ -35,7 +35,7 @@ class MethodsController(
 
     init {
         // TODO: Use filtered ListVals.
-        huntMethodStore.methods.observe(scope, callNow = true) { (methods) ->
+        observe(huntMethodStore.methods) { methods ->
             val ep1 = _episodeToMethods.getOrPut(Episode.I) { mutableListVal() }
             val ep2 = _episodeToMethods.getOrPut(Episode.II) { mutableListVal() }
             val ep4 = _episodeToMethods.getOrPut(Episode.IV) { mutableListVal() }

@@ -1,7 +1,7 @@
 package world.phantasmal.web.huntOptimizer.widgets
 
+import kotlinx.coroutines.CoroutineScope
 import org.w3c.dom.Node
-import world.phantasmal.core.disposable.Scope
 import world.phantasmal.web.huntOptimizer.HuntOptimizerUrls
 import world.phantasmal.web.huntOptimizer.controllers.HuntOptimizerController
 import world.phantasmal.webui.dom.div
@@ -9,10 +9,10 @@ import world.phantasmal.webui.widgets.TabContainer
 import world.phantasmal.webui.widgets.Widget
 
 class HuntOptimizerWidget(
-    scope: Scope,
+    scope: CoroutineScope,
     private val ctrl: HuntOptimizerController,
-    private val createMethodsWidget: (Scope) -> MethodsWidget,
-) : Widget(scope, ::style) {
+    private val createMethodsWidget: (CoroutineScope) -> MethodsWidget,
+) : Widget(scope, listOf(::style)) {
     override fun Node.createElement() = div(className = "pw-hunt-optimizer-hunt-optimizer") {
         addChild(TabContainer(
             scope,

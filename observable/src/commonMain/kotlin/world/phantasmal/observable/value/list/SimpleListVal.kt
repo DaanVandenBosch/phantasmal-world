@@ -1,12 +1,10 @@
 package world.phantasmal.observable.value.list
 
-import world.phantasmal.core.disposable.DisposableScope
-import world.phantasmal.core.disposable.Scope
+import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.core.disposable.disposable
 import world.phantasmal.observable.Observable
 import world.phantasmal.observable.Observer
 import world.phantasmal.observable.value.*
-import kotlin.coroutines.EmptyCoroutineContext
 
 typealias ObservablesExtractor<E> = (element: E) -> Array<Observable<*>>
 
@@ -73,11 +71,10 @@ class SimpleListVal<E>(
         return removed
     }
 
-    override fun observe(scope: Scope, observer: Observer<List<E>>) {
-        observe(scope, callNow = false, observer)
-    }
+    override fun observe(observer: Observer<List<E>>): Disposable =
+        observe(callNow = false, observer)
 
-    override fun observe(scope: Scope, callNow: Boolean, observer: ValObserver<List<E>>) {
+    override fun observe(callNow: Boolean, observer: ValObserver<List<E>>): Disposable {
         if (elementObservers.isEmpty() && extractObservables != null) {
             replaceElementObservers(0, elementObservers.size, elements)
         }
@@ -88,20 +85,20 @@ class SimpleListVal<E>(
             observer(ValChangeEvent(value, value))
         }
 
-        scope.disposable {
+        return disposable {
             observers.remove(observer)
             disposeElementObserversIfNecessary()
         }
     }
 
-    override fun observeList(scope: Scope, observer: ListValObserver<E>) {
+    override fun observeList(observer: ListValObserver<E>): Disposable {
         if (elementObservers.isEmpty() && extractObservables != null) {
             replaceElementObservers(0, elementObservers.size, elements)
         }
 
         listObservers.add(observer)
 
-        scope.disposable {
+        return disposable {
             listObservers.remove(observer)
             disposeElementObserversIfNecessary()
         }
@@ -138,9 +135,7 @@ class SimpleListVal<E>(
 
     private fun replaceElementObservers(from: Int, amountRemoved: Int, insertedElements: List<E>) {
         for (i in 1..amountRemoved) {
-            elementObservers.removeAt(from).observers.forEach { observer ->
-                observer.dispose()
-            }
+            elementObservers.removeAt(from).observers.forEach { it.dispose() }
         }
 
         var index = from
@@ -166,9 +161,7 @@ class SimpleListVal<E>(
     private fun disposeElementObserversIfNecessary() {
         if (listObservers.isEmpty() && observers.isEmpty()) {
             elementObservers.forEach { elementObserver: ElementObserver ->
-                elementObserver.observers.forEach { observer ->
-                    observer.dispose()
-                }
+                elementObserver.observers.forEach { it.dispose() }
             }
 
             elementObservers.clear()
@@ -180,9 +173,8 @@ class SimpleListVal<E>(
         element: E,
         observables: Array<Observable<*>>,
     ) {
-        val observers: Array<DisposableScope> = Array(observables.size) {
-            val scope = DisposableScope(EmptyCoroutineContext)
-            observables[it].observe(scope) {
+        val observers: Array<Disposable> = Array(observables.size) {
+            observables[it].observe {
                 finalizeUpdate(
                     ListValChangeEvent.ElementChange(
                         index,
@@ -190,7 +182,6 @@ class SimpleListVal<E>(
                     )
                 )
             }
-            scope
         }
     }
 }

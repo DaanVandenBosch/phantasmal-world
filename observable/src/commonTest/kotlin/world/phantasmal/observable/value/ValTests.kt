@@ -1,8 +1,7 @@
 package world.phantasmal.observable.value
 
-import world.phantasmal.observable.ChangeEvent
+import world.phantasmal.core.disposable.use
 import world.phantasmal.observable.ObservableTests
-import world.phantasmal.observable.test.withScope
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -22,30 +21,26 @@ abstract class ValTests : ObservableTests() {
     @Test
     fun val_respects_call_now_argument() {
         val (value, emit) = create()
-        val changes = mutableListOf<ChangeEvent<*>>()
+        var changes = 0
 
-        withScope { scope ->
-            // Test callNow = false
-            value.observe(scope, callNow = false) { c ->
-                changes.add(c)
-            }
-
+        // Test callNow = false
+        value.observe(callNow = false) {
+            changes++
+        }.use {
             emit()
 
-            assertEquals(1, changes.size)
+            assertEquals(1, changes)
         }
 
-        withScope { scope ->
-            // Test callNow = true
-            changes.clear()
+        // Test callNow = true
+        changes = 0
 
-            value.observe(scope, callNow = true) { c ->
-                changes.add(c)
-            }
-
+        value.observe(callNow = true) {
+            changes++
+        }.use {
             emit()
 
-            assertEquals(2, changes.size)
+            assertEquals(2, changes)
         }
     }
 }

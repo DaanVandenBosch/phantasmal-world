@@ -1,13 +1,13 @@
 package world.phantasmal.web.questEditor.widgets
 
+import kotlinx.coroutines.CoroutineScope
 import org.w3c.dom.Node
-import world.phantasmal.core.disposable.Scope
 import world.phantasmal.web.core.widgets.*
 import world.phantasmal.webui.dom.div
 import world.phantasmal.webui.widgets.Widget
 
 // TODO: Remove TestWidget.
-private class TestWidget(scope: Scope) : Widget(scope) {
+private class TestWidget(scope: CoroutineScope) : Widget(scope) {
     override fun Node.createElement() = div {
         textContent = "Test ${++count}"
     }
@@ -18,10 +18,11 @@ private class TestWidget(scope: Scope) : Widget(scope) {
 }
 
 open class QuestEditorWidget(
-    scope: Scope,
-    private val toolbar: QuestEditorToolbar,
-    private val createQuestRendererWidget: (Scope) -> Widget,
-) : Widget(scope, ::style) {
+    scope: CoroutineScope,
+    private val toolbar: Widget,
+    private val createQuestInfoWidget: (CoroutineScope) -> Widget,
+    private val createQuestRendererWidget: (CoroutineScope) -> Widget,
+) : Widget(scope, listOf(::style)) {
     override fun Node.createElement() =
         div(className = "pw-quest-editor-quest-editor") {
             addChild(toolbar)
@@ -34,19 +35,19 @@ open class QuestEditorWidget(
                             items = listOf(
                                 DockedStack(
                                     items = listOf(
-                                        DocketWidget(
+                                        DockedWidget(
                                             title = "Info",
                                             id = "info",
-                                            createWidget = ::TestWidget
+                                            createWidget = createQuestInfoWidget
                                         ),
-                                        DocketWidget(
+                                        DockedWidget(
                                             title = "NPC Counts",
                                             id = "npc_counts",
                                             createWidget = ::TestWidget
                                         ),
                                     )
                                 ),
-                                DocketWidget(
+                                DockedWidget(
                                     title = "Entity",
                                     id = "entity_info",
                                     createWidget = ::TestWidget
@@ -56,12 +57,12 @@ open class QuestEditorWidget(
                         DockedStack(
                             flex = 9,
                             items = listOf(
-                                DocketWidget(
+                                DockedWidget(
                                     title = "3D View",
                                     id = "quest_renderer",
                                     createWidget = createQuestRendererWidget
                                 ),
-                                DocketWidget(
+                                DockedWidget(
                                     title = "Script",
                                     id = "asm_editor",
                                     createWidget = ::TestWidget
@@ -71,17 +72,17 @@ open class QuestEditorWidget(
                         DockedStack(
                             flex = 2,
                             items = listOf(
-                                DocketWidget(
+                                DockedWidget(
                                     title = "NPCs",
                                     id = "npc_list_view",
                                     createWidget = ::TestWidget
                                 ),
-                                DocketWidget(
+                                DockedWidget(
                                     title = "Objects",
                                     id = "object_list_view",
                                     createWidget = ::TestWidget
                                 ),
-                                DocketWidget(
+                                DockedWidget(
                                     title = "Events",
                                     id = "events_view",
                                     createWidget = ::TestWidget

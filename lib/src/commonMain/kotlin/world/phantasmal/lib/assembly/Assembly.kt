@@ -19,10 +19,6 @@ class AssemblyProblem(
     val length: Int,
 ) : Problem(severity, uiMessage, message, cause)
 
-class AssemblySettings(
-    val manualStack: Boolean,
-)
-
 fun assemble(
     assembly: List<String>,
     manualStack: Boolean = false,

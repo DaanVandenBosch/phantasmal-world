@@ -1,3 +1,4 @@
+import org.jetbrains.kotlin.gradle.tasks.AbstractKotlinCompile
 import org.snakeyaml.engine.v2.api.Load
 import org.snakeyaml.engine.v2.api.LoadSettings
 import java.io.PrintWriter
@@ -16,7 +17,13 @@ val kotlinLoggingVersion: String by project.extra
 
 kotlin {
     js {
-        browser()
+        browser {
+            testTask {
+                useKarma {
+                    useChromeHeadless()
+                }
+            }
+        }
     }
 
     sourceSets {
@@ -166,6 +173,6 @@ fun paramsToCode(params: List<Map<String, Any>>, indent: Int): String {
     }
 }
 
-val build by tasks.build
-
-build.dependsOn(generateOpcodes)
+tasks.withType<AbstractKotlinCompile<*>> {
+    dependsOn(generateOpcodes)
+}

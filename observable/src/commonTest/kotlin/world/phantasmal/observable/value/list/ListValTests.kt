@@ -1,6 +1,5 @@
 package world.phantasmal.observable.value.list
 
-import world.phantasmal.observable.test.withScope
 import world.phantasmal.observable.value.ValTests
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -22,15 +21,15 @@ abstract class ListValTests : ValTests() {
 
         var observedSize = 0
 
-        withScope { scope ->
-            list.sizeVal.observe(scope) { observedSize = it.value }
+        disposer.add(
+            list.sizeVal.observe { observedSize = it.value }
+        )
 
-            for (i in 1..3) {
-                add()
+        for (i in 1..3) {
+            add()
 
-                assertEquals(i, list.sizeVal.value)
-                assertEquals(i, observedSize)
-            }
+            assertEquals(i, list.sizeVal.value)
+            assertEquals(i, observedSize)
         }
     }
 }

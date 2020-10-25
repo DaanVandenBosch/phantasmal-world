@@ -22,12 +22,16 @@ class QuestEditorTests : TestSuite() {
                 })
             }
         }
-        scope.disposable { httpClient.cancel() }
+        disposer.add(disposable { httpClient.cancel() })
 
-        QuestEditor(
-            scope,
-            uiStore = UiStore(scope, TestApplicationUrl("/${PwTool.QuestEditor}")),
-            createEngine = { Engine(it) }
+        val uiStore = disposer.add(UiStore(scope, TestApplicationUrl("/${PwTool.QuestEditor}")))
+
+        disposer.add(
+            QuestEditor(
+                scope,
+                uiStore,
+                createEngine = { Engine(it) }
+            )
         )
     }
 }

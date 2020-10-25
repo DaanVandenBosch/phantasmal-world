@@ -1,17 +1,17 @@
 package world.phantasmal.webui.widgets
 
+import kotlinx.coroutines.CoroutineScope
 import org.w3c.dom.Node
-import world.phantasmal.core.disposable.Scope
 import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.falseVal
 import world.phantasmal.webui.dom.div
 
 class Toolbar(
-    scope: Scope,
+    scope: CoroutineScope,
     hidden: Val<Boolean> = falseVal(),
     disabled: Val<Boolean> = falseVal(),
     children: List<Widget>,
-) : Widget(scope, ::style, hidden, disabled) {
+) : Widget(scope, listOf(::style), hidden, disabled) {
     private val childWidgets = children
 
     override fun Node.createElement() =

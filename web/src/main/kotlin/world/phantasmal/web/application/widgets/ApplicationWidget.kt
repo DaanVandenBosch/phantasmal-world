@@ -1,15 +1,15 @@
 package world.phantasmal.web.application.widgets
 
+import kotlinx.coroutines.CoroutineScope
 import org.w3c.dom.Node
-import world.phantasmal.core.disposable.Scope
 import world.phantasmal.webui.dom.div
 import world.phantasmal.webui.widgets.Widget
 
 class ApplicationWidget(
-    scope: Scope,
+    scope: CoroutineScope,
     private val navigationWidget: NavigationWidget,
     private val mainContentWidget: MainContentWidget,
-) : Widget(scope, ::style) {
+) : Widget(scope, listOf(::style)) {
     override fun Node.createElement() =
         div(className = "pw-application-application") {
             addChild(navigationWidget)

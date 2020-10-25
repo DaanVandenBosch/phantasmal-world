@@ -4,7 +4,7 @@ import org.w3c.dom.Element
 
 @JsModule("golden-layout")
 @JsNonModule
-external open class GoldenLayout(configuration: Config, container: Element = definedExternally) {
+open external class GoldenLayout(configuration: Config, container: Element = definedExternally) {
     open fun init()
     open fun updateSize(width: Double, height: Double)
     open fun registerComponent(name: String, component: Any)
@@ -12,128 +12,62 @@ external open class GoldenLayout(configuration: Config, container: Element = def
 
     interface Settings {
         var hasHeaders: Boolean?
-            get() = definedExternally
-            set(value) = definedExternally
         var constrainDragToContainer: Boolean?
-            get() = definedExternally
-            set(value) = definedExternally
         var reorderEnabled: Boolean?
-            get() = definedExternally
-            set(value) = definedExternally
         var selectionEnabled: Boolean?
-            get() = definedExternally
-            set(value) = definedExternally
         var popoutWholeStack: Boolean?
-            get() = definedExternally
-            set(value) = definedExternally
         var blockedPopoutsThrowError: Boolean?
-            get() = definedExternally
-            set(value) = definedExternally
         var closePopoutsOnUnload: Boolean?
-            get() = definedExternally
-            set(value) = definedExternally
         var showPopoutIcon: Boolean?
-            get() = definedExternally
-            set(value) = definedExternally
         var showMaximiseIcon: Boolean?
-            get() = definedExternally
-            set(value) = definedExternally
         var showCloseIcon: Boolean?
-            get() = definedExternally
-            set(value) = definedExternally
     }
 
     interface Dimensions {
         var borderWidth: Number?
-            get() = definedExternally
-            set(value) = definedExternally
         var minItemHeight: Number?
-            get() = definedExternally
-            set(value) = definedExternally
         var minItemWidth: Number?
-            get() = definedExternally
-            set(value) = definedExternally
         var headerHeight: Number?
-            get() = definedExternally
-            set(value) = definedExternally
         var dragProxyWidth: Number?
-            get() = definedExternally
-            set(value) = definedExternally
         var dragProxyHeight: Number?
-            get() = definedExternally
-            set(value) = definedExternally
     }
 
     interface Labels {
         var close: String?
-            get() = definedExternally
-            set(value) = definedExternally
         var maximise: String?
-            get() = definedExternally
-            set(value) = definedExternally
         var minimise: String?
-            get() = definedExternally
-            set(value) = definedExternally
         var popout: String?
-            get() = definedExternally
-            set(value) = definedExternally
     }
 
     interface ItemConfig {
         var type: String
         var content: Array<ItemConfig>?
-            get() = definedExternally
-            set(value) = definedExternally
         var width: Number?
-            get() = definedExternally
-            set(value) = definedExternally
         var height: Number?
-            get() = definedExternally
-            set(value) = definedExternally
         var id: dynamic /* String? | Array<String>? */
-            get() = definedExternally
-            set(value) = definedExternally
         var isClosable: Boolean?
-            get() = definedExternally
-            set(value) = definedExternally
         var title: String?
-            get() = definedExternally
-            set(value) = definedExternally
     }
 
     interface ComponentConfig : ItemConfig {
         var componentName: String
         var componentState: Any?
-            get() = definedExternally
-            set(value) = definedExternally
     }
 
     interface ReactComponentConfig : ItemConfig {
         var component: String
         var props: Any?
-            get() = definedExternally
-            set(value) = definedExternally
     }
 
     interface Config {
         var settings: Settings?
-            get() = definedExternally
-            set(value) = definedExternally
         var dimensions: Dimensions?
-            get() = definedExternally
-            set(value) = definedExternally
         var labels: Labels?
-            get() = definedExternally
-            set(value) = definedExternally
-        var content: Array<dynamic /* ItemConfig | ComponentConfig | ReactComponentConfig */>?
-            get() = definedExternally
-            set(value) = definedExternally
+        var content: Array<ItemConfig>?
     }
 
     interface ContentItem : EventEmitter {
-        var config: dynamic /* ItemConfig | ComponentConfig | ReactComponentConfig */
-            get() = definedExternally
-            set(value) = definedExternally
+        var config: ItemConfig
         var type: String
         var contentItems: Array<ContentItem>
         var parent: ContentItem

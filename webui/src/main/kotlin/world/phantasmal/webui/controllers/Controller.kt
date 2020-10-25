@@ -1,9 +1,8 @@
 package world.phantasmal.webui.controllers
 
 import kotlinx.coroutines.CoroutineScope
-import world.phantasmal.core.disposable.Scope
-import world.phantasmal.core.disposable.TrackedDisposable
+import world.phantasmal.webui.DisposableContainer
 
-abstract class Controller(protected val scope: Scope) :
-    TrackedDisposable(scope.scope()),
+abstract class Controller(protected val scope: CoroutineScope) :
+    DisposableContainer(),
     CoroutineScope by scope

@@ -1,7 +1,7 @@
 package world.phantasmal.web.core.widgets
 
+import kotlinx.coroutines.CoroutineScope
 import org.w3c.dom.Node
-import world.phantasmal.core.disposable.Scope
 import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.falseVal
 import world.phantasmal.web.core.newJsObject
@@ -35,65 +35,62 @@ class DockedStack(
     items: List<DockedItem> = emptyList(),
 ) : DockedContainer(flex, items)
 
-class DocketWidget(
+class DockedWidget(
     val id: String,
     val title: String,
     flex: Int? = null,
-    val createWidget: (Scope) -> Widget,
+    val createWidget: (CoroutineScope) -> Widget,
 ) : DockedItem(flex)
 
 class DockWidget(
-    scope: Scope,
+    scope: CoroutineScope,
     hidden: Val<Boolean> = falseVal(),
     private val item: DockedItem,
-) : Widget(scope, ::style, hidden) {
+) : Widget(scope, listOf(::style), hidden) {
     private lateinit var goldenLayout: GoldenLayout
 
     init {
-        try {
-            // Importing the base CSS fails during unit tests.
-            js("""require("golden-layout/src/css/goldenlayout-base.css");""")
-        } catch (e: Throwable) {
-            e.printStackTrace()
-        }
+        js("""require("golden-layout/src/css/goldenlayout-base.css");""")
 
         observeResize()
     }
 
-    override fun Node.createElement() = div(className = "pw-core-dock") {
-        val idToCreate = mutableMapOf<String, (Scope) -> Widget>()
+    override fun Node.createElement() =
+        div(className = "pw-core-dock") {
+            val idToCreate = mutableMapOf<String, (CoroutineScope) -> Widget>()
 
-        val config = newJsObject<GoldenLayout.Config> {
-            settings = newJsObject<GoldenLayout.Settings> {
-                showPopoutIcon = false
-                showMaximiseIcon = false
-                showCloseIcon = false
+            val config = newJsObject<GoldenLayout.Config> {
+                settings = newJsObject<GoldenLayout.Settings> {
+                    showPopoutIcon = false
+                    showMaximiseIcon = false
+                    showCloseIcon = false
+                }
+                dimensions = newJsObject<GoldenLayout.Dimensions> {
+                    headerHeight = HEADER_HEIGHT
+                }
+                content = arrayOf(
+                    toConfigContent(item, idToCreate)
+                )
             }
-            dimensions = newJsObject<GoldenLayout.Dimensions> {
-                headerHeight = HEADER_HEIGHT
+
+            // Temporarily set width and height so GoldenLayout initializes correctly.
+            style.width = "1000px"
+            style.height = "700px"
+
+            goldenLayout = GoldenLayout(config, this)
+
+            idToCreate.forEach { (id, create) ->
+                goldenLayout.registerComponent(id) { container: GoldenLayout.Container ->
+                    val node = container.getElement()[0] as Node
+                    node.addChild(create(scope))
+                }
             }
-            content = arrayOf(
-                toConfigContent(item, idToCreate)
-            )
+
+            goldenLayout.init()
+
+            style.width = ""
+            style.height = ""
         }
-
-        // Temporarily set width and height so GoldenLayout initializes correctly.
-        style.width = "1000px"
-        style.height = "700px"
-
-        goldenLayout = GoldenLayout(config, this)
-
-        idToCreate.forEach { (id, create) ->
-            goldenLayout.registerComponent(id) { container: GoldenLayout.Container ->
-                container.getElement().append(create(scope).element)
-            }
-        }
-
-        goldenLayout.init()
-
-        style.width = ""
-        style.height = ""
-    }
 
     override fun resized(width: Double, height: Double) {
         goldenLayout.updateSize(width, height)
@@ -106,17 +103,17 @@ class DockWidget(
 
     private fun toConfigContent(
         item: DockedItem,
-        idToCreate: MutableMap<String, (Scope) -> Widget>,
+        idToCreate: MutableMap<String, (CoroutineScope) -> Widget>,
     ): GoldenLayout.ItemConfig {
         val itemType = when (item) {
             is DockedRow -> "row"
             is DockedColumn -> "column"
             is DockedStack -> "stack"
-            is DocketWidget -> "component"
+            is DockedWidget -> "component"
         }
 
         return when (item) {
-            is DocketWidget -> {
+            is DockedWidget -> {
                 idToCreate[item.id] = item.createWidget
 
                 newJsObject<GoldenLayout.ComponentConfig> {

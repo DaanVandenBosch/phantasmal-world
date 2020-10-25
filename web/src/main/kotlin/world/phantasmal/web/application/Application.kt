@@ -7,7 +7,6 @@ import org.w3c.dom.HTMLCanvasElement
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.events.Event
 import org.w3c.dom.events.KeyboardEvent
-import world.phantasmal.core.disposable.Scope
 import world.phantasmal.web.application.controllers.MainContentController
 import world.phantasmal.web.application.controllers.NavigationController
 import world.phantasmal.web.application.widgets.ApplicationWidget
@@ -20,46 +19,51 @@ import world.phantasmal.web.core.stores.UiStore
 import world.phantasmal.web.externals.Engine
 import world.phantasmal.web.huntOptimizer.HuntOptimizer
 import world.phantasmal.web.questEditor.QuestEditor
+import world.phantasmal.webui.DisposableContainer
 import world.phantasmal.webui.dom.disposableListener
 
 class Application(
-    scope: Scope,
+    scope: CoroutineScope,
     rootElement: HTMLElement,
     assetLoader: AssetLoader,
     applicationUrl: ApplicationUrl,
     createEngine: (HTMLCanvasElement) -> Engine,
-) {
+) : DisposableContainer() {
     init {
-        // Disable native undo/redo.
-        disposableListener(scope, document, "beforeinput", ::beforeInput)
-        // Work-around for FireFox:
-        disposableListener(scope, document, "keydown", ::keydown)
+        addDisposables(
+            // Disable native undo/redo.
+            disposableListener(document, "beforeinput", ::beforeInput),
+            // Work-around for FireFox:
+            disposableListener(document, "keydown", ::keydown),
 
-        // Disable native drag-and-drop to avoid users dragging in unsupported file formats and
-        // leaving the application unexpectedly.
-        disposableListener(scope, document, "dragenter", ::dragenter)
-        disposableListener(scope, document, "dragover", ::dragover)
-        disposableListener(scope, document, "drop", ::drop)
+            // Disable native drag-and-drop to avoid users dragging in unsupported file formats and
+            // leaving the application unexpectedly.
+            disposableListener(document, "dragenter", ::dragenter),
+            disposableListener(document, "dragover", ::dragover),
+            disposableListener(document, "drop", ::drop),
+        )
 
         // Initialize core stores shared by several submodules.
-        val uiStore = UiStore(scope, applicationUrl)
+        val uiStore = addDisposable(UiStore(scope, applicationUrl))
 
         // Controllers.
-        val navigationController = NavigationController(scope, uiStore)
-        val mainContentController = MainContentController(scope, uiStore)
+        val navigationController = addDisposable(NavigationController(scope, uiStore))
+        val mainContentController = addDisposable(MainContentController(scope, uiStore))
 
         // Initialize application view.
-        val applicationWidget = ApplicationWidget(
-            scope,
-            NavigationWidget(scope, navigationController),
-            MainContentWidget(scope, mainContentController, mapOf(
-                PwTool.QuestEditor to { s ->
-                    QuestEditor(s, uiStore, createEngine).widget
-                },
-                PwTool.HuntOptimizer to { s ->
-                    HuntOptimizer(s, assetLoader, uiStore).widget
-                },
-            ))
+        val applicationWidget = addDisposable(
+            ApplicationWidget(
+                scope,
+                NavigationWidget(scope, navigationController),
+                MainContentWidget(scope, mainContentController, mapOf(
+                    PwTool.QuestEditor to { s ->
+                        addDisposable(QuestEditor(s, uiStore, createEngine)).createWidget()
+                    },
+                    PwTool.HuntOptimizer to { s ->
+                        addDisposable(HuntOptimizer(s, assetLoader, uiStore)).createWidget()
+                    },
+                ))
+            )
         )
 
         rootElement.appendChild(applicationWidget.element)

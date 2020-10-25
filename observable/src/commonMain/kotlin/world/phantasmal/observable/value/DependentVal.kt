@@ -1,46 +1,68 @@
 package world.phantasmal.observable.value
 
-import world.phantasmal.core.disposable.DisposableScope
-import world.phantasmal.core.disposable.Scope
+import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.core.disposable.disposable
 import world.phantasmal.core.fastCast
-import kotlin.coroutines.EmptyCoroutineContext
 
-class DependentVal<T>(
+/**
+ * Starts observing its dependencies when the first observer on this val is registered. Stops
+ * observing its dependencies when the last observer on this val is disposed. This way no extra
+ * disposables need to be managed when e.g. [transform] is used.
+ */
+abstract class DependentVal<T>(
     private val dependencies: Iterable<Val<*>>,
-    private val operation: () -> T,
 ) : AbstractVal<T>() {
-    private var dependencyScope = DisposableScope(EmptyCoroutineContext)
-    private var internalValue: T? = null
+    /**
+     * Is either empty or has a disposable per dependency.
+     */
+    private val dependencyObservers = mutableListOf<Disposable>()
+
+    protected var _value: T? = null
 
     override val value: T
         get() {
-            return if (dependencyScope.isEmpty()) {
-                operation()
-            } else {
-                internalValue.fastCast()
+            if (hasNoObservers()) {
+                _value = computeValue()
             }
+
+            return _value.fastCast()
         }
 
-    override fun observe(scope: Scope, callNow: Boolean, observer: ValObserver<T>) {
-        if (dependencyScope.isEmpty()) {
-            internalValue = operation()
-
+    override fun observe(callNow: Boolean, observer: ValObserver<T>): Disposable {
+        if (hasNoObservers()) {
             dependencies.forEach { dependency ->
-                dependency.observe(dependencyScope) {
-                    val oldValue = internalValue
-                    internalValue = operation()
-                    emit(oldValue.fastCast())
-                }
+                dependencyObservers.add(
+                    dependency.observe {
+                        val oldValue = _value
+                        _value = computeValue()
+
+                        if (_value != oldValue) {
+                            emit(oldValue.fastCast())
+                        }
+                    }
+                )
             }
+
+            _value = computeValue()
         }
 
-        super.observe(scope, callNow, observer)
+        val superDisposable = super.observe(callNow, observer)
 
-        scope.disposable {
+        return disposable {
+            superDisposable.dispose()
+
             if (observers.isEmpty()) {
-                dependencyScope.disposeAll()
+                dependencyObservers.forEach { it.dispose() }
+                dependencyObservers.clear()
             }
         }
     }
+
+    protected fun hasObservers(): Boolean =
+        dependencyObservers.isNotEmpty()
+
+    protected fun hasNoObservers(): Boolean =
+        dependencyObservers.isEmpty()
+
+    protected abstract fun computeValue(): T
 }

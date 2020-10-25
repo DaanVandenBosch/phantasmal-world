@@ -1,25 +1,22 @@
 package world.phantasmal.webui.widgets
 
 import kotlinx.browser.document
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.dom.appendText
-import org.w3c.dom.Element
-import org.w3c.dom.HTMLElement
-import org.w3c.dom.HTMLStyleElement
-import org.w3c.dom.Node
-import world.phantasmal.core.disposable.Scope
-import world.phantasmal.core.disposable.TrackedDisposable
+import kotlinx.dom.clear
+import org.w3c.dom.*
 import world.phantasmal.core.disposable.disposable
-import world.phantasmal.observable.Observable
-import world.phantasmal.observable.Observer
 import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.falseVal
+import world.phantasmal.observable.value.list.ListVal
+import world.phantasmal.observable.value.list.ListValChangeEvent
 import world.phantasmal.observable.value.mutableVal
 import world.phantasmal.observable.value.or
-import kotlin.reflect.KClass
+import world.phantasmal.webui.DisposableContainer
 
 abstract class Widget(
-    protected val scope: Scope,
-    style: () -> String = NO_STYLE,
+    protected val scope: CoroutineScope,
+    private val styles: List<() -> String> = emptyList(),
     /**
      * By default determines the hidden attribute of its [element].
      */
@@ -29,27 +26,28 @@ abstract class Widget(
      * `pw-disabled` class is added.
      */
     val disabled: Val<Boolean> = falseVal(),
-) : TrackedDisposable(scope.scope()) {
+) : DisposableContainer() {
     private val _ancestorHidden = mutableVal(false)
     private val _children = mutableListOf<Widget>()
     private var initResizeObserverRequested = false
     private var resizeObserverInitialized = false
 
     private val elementDelegate = lazy {
-        // Add CSS declarations to stylesheet if this is the first time we're instantiating this
-        // widget.
-        if (style !== NO_STYLE && STYLES_ADDED.add(this::class)) {
-            STYLE_EL.appendText(style())
+        // Add CSS declarations to stylesheet if this is the first time we're encountering them.
+        styles.forEach { style ->
+            if (STYLES_ADDED.add(style)) {
+                STYLE_EL.appendText(style())
+            }
         }
 
         val el = document.createDocumentFragment().createElement()
 
-        hidden.observe { hidden ->
+        observe(hidden) { hidden ->
             el.hidden = hidden
             children.forEach { setAncestorHidden(it, hidden || ancestorHidden.value) }
         }
 
-        disabled.observe { disabled ->
+        observe(disabled) { disabled ->
             if (disabled) {
                 el.setAttribute("disabled", "")
                 el.classList.add("pw-disabled")
@@ -100,88 +98,63 @@ abstract class Widget(
         }
 
         _children.clear()
-    }
-
-    protected fun <V1> Observable<V1>.observe(operation: (V1) -> Unit) {
-        if (this is Val<V1>) {
-            this.observe(scope, callNow = true) { operation(it.value) }
-        } else {
-            this.observe(scope) { operation(it.value) }
-        }
-    }
-
-    protected fun <V1, V2> observe(
-        v1: Val<V1>,
-        v2: Val<V2>,
-        operation: (V1, V2) -> Unit,
-    ) {
-        val observer: Observer<*> = {
-            operation(v1.value, v2.value)
-        }
-        v1.observe(scope, observer)
-        v2.observe(scope, observer)
-        operation(v1.value, v2.value)
-    }
-
-    protected fun <V1, V2, V3> observe(
-        v1: Val<V1>,
-        v2: Val<V2>,
-        v3: Val<V3>,
-        operation: (V1, V2, V3) -> Unit,
-    ) {
-        val observer: Observer<*> = {
-            operation(v1.value, v2.value, v3.value)
-        }
-        v1.observe(scope, observer)
-        v2.observe(scope, observer)
-        v3.observe(scope, observer)
-        operation(v1.value, v2.value, v3.value)
-    }
-
-    protected fun <V1, V2, V3, V4> observe(
-        v1: Val<V1>,
-        v2: Val<V2>,
-        v3: Val<V3>,
-        v4: Val<V4>,
-        operation: (V1, V2, V3, V4) -> Unit,
-    ) {
-        val observer: Observer<*> = {
-            operation(v1.value, v2.value, v3.value, v4.value)
-        }
-        v1.observe(scope, observer)
-        v2.observe(scope, observer)
-        v3.observe(scope, observer)
-        v4.observe(scope, observer)
-        operation(v1.value, v2.value, v3.value, v4.value)
-    }
-
-    protected fun <V1, V2, V3, V4, V5> observe(
-        v1: Val<V1>,
-        v2: Val<V2>,
-        v3: Val<V3>,
-        v4: Val<V4>,
-        v5: Val<V5>,
-        operation: (V1, V2, V3, V4, V5) -> Unit,
-    ) {
-        val observer: Observer<*> = {
-            operation(v1.value, v2.value, v3.value, v4.value, v5.value)
-        }
-        v1.observe(scope, observer)
-        v2.observe(scope, observer)
-        v3.observe(scope, observer)
-        v4.observe(scope, observer)
-        v5.observe(scope, observer)
-        operation(v1.value, v2.value, v3.value, v4.value, v5.value)
+        super.internalDispose()
     }
 
     /**
-     * Adds a child widget to [children].
+     * Adds a child widget to [children] and appends its element to the receiving node.
      */
     protected fun <T : Widget> Node.addChild(child: T): T {
+        addDisposable(child)
         _children.add(child)
         setAncestorHidden(child, selfOrAncestorHidden.value)
         appendChild(child.element)
         return child
+    }
+
+    fun <T> Node.bindChildrenTo(
+        list: ListVal<T>,
+        createChild: (T, Int) -> Node,
+    ) {
+        fun spliceChildren(index: Int, removedCount: Int, inserted: List<T>) {
+            for (i in 1..removedCount) {
+                removeChild(childNodes[index].unsafeCast<Node>())
+            }
+
+            val frag = document.createDocumentFragment()
+
+            inserted.forEachIndexed { i, value ->
+                val child = createChild(value, index + i)
+
+                frag.append(child)
+            }
+
+            if (index >= childNodes.length) {
+                appendChild(frag)
+            } else {
+                insertBefore(frag, childNodes[index])
+            }
+        }
+
+        val observer = list.observeList { change: ListValChangeEvent<T> ->
+            when (change) {
+                is ListValChangeEvent.Change -> {
+                    spliceChildren(change.index, change.removed.size, change.inserted)
+                }
+                is ListValChangeEvent.ElementChange -> {
+                    // TODO: Update children.
+                }
+            }
+        }
+
+        spliceChildren(0, 0, list.value)
+
+        addDisposable(
+            disposable {
+                observer.dispose()
+                clear()
+            }
+        )
     }
 
     /**
@@ -206,7 +179,7 @@ abstract class Widget(
         val resize = ::resizeCallback
         val observer = js("new ResizeObserver(resize);")
         observer.observe(element)
-        scope.disposable { observer.disconnect().unsafeCast<Unit>() }
+        addDisposable(disposable { observer.disconnect().unsafeCast<Unit>() })
     }
 
     private fun resizeCallback(entries: Array<dynamic>) {
@@ -225,9 +198,7 @@ abstract class Widget(
             document.head!!.append(el)
             el
         }
-        private val STYLES_ADDED: MutableSet<KClass<out Widget>> = mutableSetOf()
-
-        protected val NO_STYLE = { "" }
+        private val STYLES_ADDED: MutableSet<() -> String> = mutableSetOf()
 
         protected fun setAncestorHidden(widget: Widget, hidden: Boolean) {
             widget._ancestorHidden.value = hidden

@@ -22,12 +22,16 @@ class HuntOptimizerTests : TestSuite() {
                 })
             }
         }
-        scope.disposable { httpClient.cancel() }
+        disposer.add(disposable { httpClient.cancel() })
 
-        HuntOptimizer(
-            scope,
-            assetLoader = HttpAssetLoader(httpClient, basePath = ""),
-            uiStore = UiStore(scope, TestApplicationUrl("/${PwTool.HuntOptimizer}"))
+        val uiStore = disposer.add(UiStore(scope, TestApplicationUrl("/${PwTool.HuntOptimizer}")))
+
+        disposer.add(
+            HuntOptimizer(
+                scope,
+                assetLoader = HttpAssetLoader(httpClient, basePath = ""),
+                uiStore
+            )
         )
     }
 }

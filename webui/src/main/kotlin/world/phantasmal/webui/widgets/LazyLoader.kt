@@ -1,27 +1,28 @@
 package world.phantasmal.webui.widgets
 
+import kotlinx.coroutines.CoroutineScope
 import org.w3c.dom.Node
-import world.phantasmal.core.disposable.Scope
 import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.falseVal
 import world.phantasmal.webui.dom.div
 
 class LazyLoader(
-    scope: Scope,
+    scope: CoroutineScope,
     hidden: Val<Boolean> = falseVal(),
     disabled: Val<Boolean> = falseVal(),
-    private val createWidget: (Scope) -> Widget,
-) : Widget(scope, ::style, hidden, disabled) {
+    private val createWidget: (CoroutineScope) -> Widget,
+) : Widget(scope, listOf(::style), hidden, disabled) {
     private var initialized = false
 
-    override fun Node.createElement() = div(className = "pw-lazy-loader") {
-        this@LazyLoader.hidden.observe { h ->
-            if (!h && !initialized) {
-                initialized = true
-                addChild(createWidget(scope))
+    override fun Node.createElement() =
+        div(className = "pw-lazy-loader") {
+            observe(this@LazyLoader.hidden) { h ->
+                if (!h && !initialized) {
+                    initialized = true
+                    addChild(createWidget(scope))
+                }
             }
         }
-    }
 }
 
 @Suppress("CssUnusedSymbol")

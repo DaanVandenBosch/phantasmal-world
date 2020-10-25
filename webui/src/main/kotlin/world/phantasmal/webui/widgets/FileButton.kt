@@ -1,14 +1,14 @@
 package world.phantasmal.webui.widgets
 
+import kotlinx.coroutines.CoroutineScope
 import org.w3c.dom.HTMLElement
 import org.w3c.files.File
-import world.phantasmal.core.disposable.Scope
 import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.falseVal
 import world.phantasmal.webui.openFiles
 
 class FileButton(
-    scope: Scope,
+    scope: CoroutineScope,
     hidden: Val<Boolean> = falseVal(),
     disabled: Val<Boolean> = falseVal(),
     text: String? = null,

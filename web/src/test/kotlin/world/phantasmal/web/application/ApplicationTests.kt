@@ -4,10 +4,10 @@ import io.ktor.client.*
 import io.ktor.client.features.json.*
 import io.ktor.client.features.json.serializer.*
 import kotlinx.browser.document
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
-import world.phantasmal.core.disposable.DisposableScope
+import world.phantasmal.core.disposable.Disposer
 import world.phantasmal.core.disposable.disposable
+import world.phantasmal.core.disposable.use
 import world.phantasmal.testUtils.TestSuite
 import world.phantasmal.web.core.HttpAssetLoader
 import world.phantasmal.web.core.stores.PwTool
@@ -19,9 +19,7 @@ class ApplicationTests : TestSuite() {
     @Test
     fun initialization_and_shutdown_should_succeed_without_throwing() {
         (listOf(null) + PwTool.values().toList()).forEach { tool ->
-            val scope = DisposableScope(Job())
-
-            try {
+            Disposer().use { disposer ->
                 val httpClient = HttpClient {
                     install(JsonFeature) {
                         serializer = KotlinxSerializer(kotlinx.serialization.json.Json {
@@ -29,17 +27,19 @@ class ApplicationTests : TestSuite() {
                         })
                     }
                 }
-                scope.disposable { httpClient.cancel() }
+                disposer.add(disposable { httpClient.cancel() })
 
-                Application(
-                    scope,
-                    rootElement = document.body!!,
-                    assetLoader = HttpAssetLoader(httpClient, basePath = ""),
-                    applicationUrl = TestApplicationUrl(if (tool == null) "" else "/${tool.slug}"),
-                    createEngine = { Engine(it) }
+                val appUrl = TestApplicationUrl(if (tool == null) "" else "/${tool.slug}")
+
+                disposer.add(
+                    Application(
+                        scope,
+                        rootElement = document.body!!,
+                        assetLoader = HttpAssetLoader(httpClient, basePath = ""),
+                        applicationUrl = appUrl,
+                        createEngine = { Engine(it) }
+                    )
                 )
-            } finally {
-                scope.dispose()
             }
         }
     }

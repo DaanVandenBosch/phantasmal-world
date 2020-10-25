@@ -1,32 +1,25 @@
 package world.phantasmal.core.disposable
 
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
-import kotlin.coroutines.CoroutineContext
-
-class DisposableScope(override val coroutineContext: CoroutineContext) : Scope, Disposable {
-    private val disposables = mutableListOf<Disposable>()
-    private var disposed = false
+class Disposer(vararg disposables: Disposable) : TrackedDisposable() {
+    private val disposables = mutableListOf(*disposables)
 
     /**
      * The amount of held disposables.
      */
     val size: Int get() = disposables.size
 
-    override fun scope(): Scope = DisposableScope(coroutineContext + SupervisorJob()).also(::add)
-
-    override fun add(disposable: Disposable) {
-        require(!disposed) { "Scope already disposed." }
+    fun <T : Disposable> add(disposable: T): T {
+        require(!disposed) { "Disposer already disposed." }
 
         disposables.add(disposable)
+        return disposable
     }
 
     /**
      * Add 0 or more disposables.
      */
     fun addAll(disposables: Iterable<Disposable>) {
-        require(!disposed) { "Scope already disposed." }
+        require(!disposed) { "Disposer already disposed." }
 
         this.disposables.addAll(disposables)
     }
@@ -35,7 +28,7 @@ class DisposableScope(override val coroutineContext: CoroutineContext) : Scope, 
      * Add 0 or more disposables.
      */
     fun addAll(vararg disposables: Disposable) {
-        require(!disposed) { "Scope already disposed." }
+        require(!disposed) { "Disposer already disposed." }
 
         this.disposables.addAll(disposables)
     }
@@ -67,15 +60,7 @@ class DisposableScope(override val coroutineContext: CoroutineContext) : Scope, 
         disposables.clear()
     }
 
-    override fun dispose() {
-        if (!disposed) {
-            disposeAll()
-
-            if (coroutineContext[Job] != null) {
-                cancel()
-            }
-
-            disposed = true
-        }
+    override fun internalDispose() {
+        disposeAll()
     }
 }

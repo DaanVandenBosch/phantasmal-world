@@ -1,6 +1,5 @@
 package world.phantasmal.observable
 
-import world.phantasmal.observable.test.withScope
 import world.phantasmal.testUtils.TestSuite
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -12,49 +11,49 @@ typealias ObservableAndEmit = Pair<Observable<*>, () -> Unit>
  * [Observable] implementation.
  */
 abstract class ObservableTests : TestSuite() {
-    abstract fun create(): ObservableAndEmit
+    protected abstract fun create(): ObservableAndEmit
 
     @Test
     fun observable_calls_observers_when_events_are_emitted() {
         val (observable, emit) = create()
-        val changes = mutableListOf<ChangeEvent<*>>()
+        var changes = 0
 
-        withScope { scope ->
-            observable.observe(scope) { c ->
-                changes.add(c)
+        disposer.add(
+            observable.observe {
+                changes++
             }
+        )
 
-            emit()
+        emit()
 
-            assertEquals(1, changes.size)
+        assertEquals(1, changes)
 
-            emit()
-            emit()
-            emit()
+        emit()
+        emit()
+        emit()
 
-            assertEquals(4, changes.size)
-        }
+        assertEquals(4, changes)
     }
 
     @Test
     fun observable_does_not_call_observers_after_they_are_disposed() {
         val (observable, emit) = create()
-        val changes = mutableListOf<ChangeEvent<*>>()
+        var changes = 0
 
-        withScope { scope ->
-            observable.observe(scope) { c ->
-                changes.add(c)
-            }
-
-            emit()
-
-            assertEquals(1, changes.size)
-
-            emit()
-            emit()
-            emit()
-
-            assertEquals(4, changes.size)
+        val observer = observable.observe {
+            changes++
         }
+
+        emit()
+
+        assertEquals(1, changes)
+
+        observer.dispose()
+
+        emit()
+        emit()
+        emit()
+
+        assertEquals(1, changes)
     }
 }

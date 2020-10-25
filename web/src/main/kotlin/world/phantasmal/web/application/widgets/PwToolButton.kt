@@ -1,7 +1,7 @@
 package world.phantasmal.web.application.widgets
 
+import kotlinx.coroutines.CoroutineScope
 import org.w3c.dom.Node
-import world.phantasmal.core.disposable.Scope
 import world.phantasmal.observable.Observable
 import world.phantasmal.web.core.stores.PwTool
 import world.phantasmal.webui.dom.input
@@ -10,18 +10,18 @@ import world.phantasmal.webui.dom.span
 import world.phantasmal.webui.widgets.Control
 
 class PwToolButton(
-    scope: Scope,
+    scope: CoroutineScope,
     private val tool: PwTool,
     private val toggled: Observable<Boolean>,
     private val mouseDown: () -> Unit,
-) : Control(scope, ::style) {
+) : Control(scope, listOf(::style)) {
     private val inputId = "pw-application-pw-tool-button-${tool.name.toLowerCase()}"
 
     override fun Node.createElement() =
         span(className = "pw-application-pw-tool-button") {
             input(type = "radio", id = inputId) {
                 name = "pw-application-pw-tool-button"
-                toggled.observe { checked = it }
+                observe(toggled) { checked = it }
             }
             label(htmlFor = inputId) {
                 textContent = tool.uiName

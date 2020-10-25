@@ -1,46 +1,47 @@
 package world.phantasmal.observable.value.list
 
-import world.phantasmal.core.disposable.DisposableScope
-import world.phantasmal.core.disposable.Scope
+import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.core.disposable.disposable
 import world.phantasmal.core.fastCast
 import world.phantasmal.observable.value.AbstractVal
 import world.phantasmal.observable.value.ValObserver
-import kotlin.coroutines.EmptyCoroutineContext
 
 class FoldedVal<T, R>(
     private val dependency: ListVal<T>,
     private val initial: R,
     private val operation: (R, T) -> R,
 ) : AbstractVal<R>() {
-    private var dependencyDisposable = DisposableScope(EmptyCoroutineContext)
+    private var dependencyDisposable: Disposable? = null
     private var internalValue: R? = null
 
     override val value: R
         get() {
-            return if (dependencyDisposable.isEmpty()) {
+            return if (dependencyDisposable == null) {
                 computeValue()
             } else {
                 internalValue.fastCast()
             }
         }
 
-    override fun observe(scope: Scope, callNow: Boolean, observer: ValObserver<R>) {
-        super.observe(scope, callNow, observer)
+    override fun observe(callNow: Boolean, observer: ValObserver<R>): Disposable {
+        val superDisposable = super.observe(callNow, observer)
 
-        if (dependencyDisposable.isEmpty()) {
+        if (dependencyDisposable == null) {
             internalValue = computeValue()
 
-            dependency.observe(dependencyDisposable) {
+            dependencyDisposable = dependency.observe {
                 val oldValue = internalValue
                 internalValue = computeValue()
                 emit(oldValue.fastCast())
             }
         }
 
-        scope.disposable {
+        return disposable {
+            superDisposable.dispose()
+
             if (observers.isEmpty()) {
-                dependencyDisposable.disposeAll()
+                dependencyDisposable?.dispose()
+                dependencyDisposable = null
             }
         }
     }

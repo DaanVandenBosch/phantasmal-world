@@ -1,6 +1,6 @@
 package world.phantasmal.observable.value
 
-import world.phantasmal.core.disposable.Scope
+import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.observable.Observable
 import kotlin.reflect.KProperty
 
@@ -15,14 +15,14 @@ interface Val<out T> : Observable<T> {
     /**
      * @param callNow Call [observer] immediately with the current [mutableVal].
      */
-    fun observe(scope: Scope, callNow: Boolean = false, observer: ValObserver<T>)
+    fun observe(callNow: Boolean = false, observer: ValObserver<T>): Disposable
 
     fun <R> transform(transform: (T) -> R): Val<R> =
-        DependentVal(listOf(this)) { transform(value) }
+        TransformedVal(listOf(this)) { transform(value) }
 
     fun <T2, R> transform(v2: Val<T2>, transform: (T, T2) -> R): Val<R> =
-        DependentVal(listOf(this, v2)) { transform(value, v2.value) }
+        TransformedVal(listOf(this, v2)) { transform(value, v2.value) }
 
     fun <R> flatTransform(transform: (T) -> Val<R>): Val<R> =
-        TODO()
+        FlatTransformedVal(listOf(this)) { transform(value) }
 }

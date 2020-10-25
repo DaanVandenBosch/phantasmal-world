@@ -1,7 +1,7 @@
 package world.phantasmal.webui.widgets
 
+import kotlinx.coroutines.CoroutineScope
 import org.w3c.dom.Node
-import world.phantasmal.core.disposable.Scope
 import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.falseVal
 import world.phantasmal.webui.controllers.Tab
@@ -10,12 +10,12 @@ import world.phantasmal.webui.dom.div
 import world.phantasmal.webui.dom.span
 
 class TabContainer<T : Tab>(
-    scope: Scope,
+    scope: CoroutineScope,
     hidden: Val<Boolean> = falseVal(),
     disabled: Val<Boolean> = falseVal(),
     private val ctrl: TabController<T>,
-    private val createWidget: (Scope, T) -> Widget,
-) : Widget(scope, ::style, hidden, disabled) {
+    private val createWidget: (CoroutineScope, T) -> Widget,
+) : Widget(scope, listOf(::style), hidden, disabled) {
     override fun Node.createElement() =
         div(className = "pw-tab-container") {
             div(className = "pw-tab-container-bar") {
@@ -26,7 +26,7 @@ class TabContainer<T : Tab>(
                     ) {
                         textContent = tab.title
 
-                        ctrl.activeTab.observe {
+                        observe(ctrl.activeTab) {
                             if (it == tab) {
                                 classList.add(ACTIVE_CLASS)
                             } else {
@@ -52,7 +52,7 @@ class TabContainer<T : Tab>(
         }
 
     init {
-        selfOrAncestorHidden.observe(ctrl::hiddenChanged)
+        observe(selfOrAncestorHidden, ctrl::hiddenChanged)
     }
 
     companion object {
