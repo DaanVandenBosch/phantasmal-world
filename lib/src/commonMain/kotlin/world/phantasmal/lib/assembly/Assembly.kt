@@ -177,10 +177,10 @@ private class Assembler(private val assembly: List<String>, private val manualSt
 
             is DataSegment -> {
                 val oldSize = seg.data.size
-                seg.data.size += bytes.size.toUInt()
+                seg.data.size += bytes.size
 
                 for (i in bytes.indices) {
-                    seg.data.setI8(i.toUInt() + oldSize, bytes[i])
+                    seg.data.setI8(i + oldSize, bytes[i])
                 }
             }
 
@@ -231,7 +231,9 @@ private class Assembler(private val assembly: List<String>, private val manualSt
     }
 
     private fun addUnexpectedTokenError(token: Token) {
-        addError(token, "Unexpected token.", "Unexpected ${token::class.simpleName} at ${token.srcLoc()}.")
+        addError(token,
+            "Unexpected token.",
+            "Unexpected ${token::class.simpleName} at ${token.srcLoc()}.")
     }
 
     private fun addWarning(token: Token, uiMessage: String) {
@@ -288,7 +290,7 @@ private class Assembler(private val assembly: List<String>, private val manualSt
                 if (!prevLineHadLabel) {
                     segment = DataSegment(
                         labels = mutableListOf(label),
-                        data = Buffer.withCapacity(0u),
+                        data = Buffer.withCapacity(0),
                         srcLoc = SegmentSrcLoc(labels = mutableListOf(srcLoc)),
                     )
                     objectCode.add(segment!!)

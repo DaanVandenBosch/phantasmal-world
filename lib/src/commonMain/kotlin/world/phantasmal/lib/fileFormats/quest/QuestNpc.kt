@@ -8,15 +8,15 @@ class QuestNpc(var episode: Episode, var areaId: Int, val data: Buffer) {
      * Only seems to be valid for non-enemies.
      */
     var scriptLabel: Int
-        get() = data.getF32(60u).roundToInt()
+        get() = data.getF32(60).roundToInt()
         set(value) {
-            data.setF32(60u, value.toFloat())
+            data.setF32(60, value.toFloat())
         }
 
     var skin: Int
-        get() = data.getI32(64u)
+        get() = data.getI32(64)
         set(value) {
-            data.setI32(64u, value)
+            data.setI32(64, value)
         }
 
     init {

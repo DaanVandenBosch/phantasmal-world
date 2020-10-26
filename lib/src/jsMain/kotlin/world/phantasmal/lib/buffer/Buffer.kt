@@ -2,19 +2,20 @@ package world.phantasmal.lib.buffer
 
 import org.khronos.webgl.ArrayBuffer
 import org.khronos.webgl.DataView
+import org.khronos.webgl.Int8Array
 import org.khronos.webgl.Uint8Array
 import world.phantasmal.lib.Endianness
 import world.phantasmal.lib.ZERO_U16
 
 actual class Buffer private constructor(
     private var arrayBuffer: ArrayBuffer,
-    size: UInt,
+    size: Int,
     endianness: Endianness,
 ) {
     private var dataView = DataView(arrayBuffer)
     private var littleEndian = endianness == Endianness.Little
 
-    actual var size: UInt = size
+    actual var size: Int = size
         set(value) {
             ensureCapacity(value)
             field = value
@@ -26,54 +27,54 @@ actual class Buffer private constructor(
             littleEndian = value == Endianness.Little
         }
 
-    actual val capacity: UInt
-        get() = arrayBuffer.byteLength.toUInt()
+    actual val capacity: Int
+        get() = arrayBuffer.byteLength
 
-    actual fun getU8(offset: UInt): UByte {
-        checkOffset(offset, 1u)
-        return dataView.getUint8(offset.toInt()).toUByte()
+    actual fun getU8(offset: Int): UByte {
+        checkOffset(offset, 1)
+        return dataView.getUint8(offset).toUByte()
     }
 
-    actual fun getU16(offset: UInt): UShort {
-        checkOffset(offset, 2u)
-        return dataView.getUint16(offset.toInt(), littleEndian).toUShort()
+    actual fun getU16(offset: Int): UShort {
+        checkOffset(offset, 2)
+        return dataView.getUint16(offset, littleEndian).toUShort()
     }
 
-    actual fun getU32(offset: UInt): UInt {
-        checkOffset(offset, 4u)
-        return dataView.getUint32(offset.toInt(), littleEndian).toUInt()
+    actual fun getU32(offset: Int): UInt {
+        checkOffset(offset, 4)
+        return dataView.getUint32(offset, littleEndian).toUInt()
     }
 
-    actual fun getI8(offset: UInt): Byte {
-        checkOffset(offset, 1u)
-        return dataView.getInt8(offset.toInt())
+    actual fun getI8(offset: Int): Byte {
+        checkOffset(offset, 1)
+        return dataView.getInt8(offset)
     }
 
-    actual fun getI16(offset: UInt): Short {
-        checkOffset(offset, 2u)
-        return dataView.getInt16(offset.toInt(), littleEndian)
+    actual fun getI16(offset: Int): Short {
+        checkOffset(offset, 2)
+        return dataView.getInt16(offset, littleEndian)
     }
 
-    actual fun getI32(offset: UInt): Int {
-        checkOffset(offset, 4u)
-        return dataView.getInt32(offset.toInt(), littleEndian)
+    actual fun getI32(offset: Int): Int {
+        checkOffset(offset, 4)
+        return dataView.getInt32(offset, littleEndian)
     }
 
-    actual fun getF32(offset: UInt): Float {
-        checkOffset(offset, 4u)
-        return dataView.getFloat32(offset.toInt(), littleEndian)
+    actual fun getF32(offset: Int): Float {
+        checkOffset(offset, 4)
+        return dataView.getFloat32(offset, littleEndian)
     }
 
     actual fun getStringUtf16(
-        offset: UInt,
-        maxByteLength: UInt,
+        offset: Int,
+        maxByteLength: Int,
         nullTerminated: Boolean,
     ): String =
         buildString {
-            val len = maxByteLength / 2u
+            val len = maxByteLength / 2
 
-            for (i in 0u until len) {
-                val codePoint = getU16(offset + i * 2u)
+            for (i in 0 until len) {
+                val codePoint = getU16(offset + i * 2)
 
                 if (nullTerminated && codePoint == ZERO_U16) {
                     break
@@ -83,90 +84,69 @@ actual class Buffer private constructor(
             }
         }
 
-    actual fun slice(offset: UInt, size: UInt): Buffer {
+    actual fun slice(offset: Int, size: Int): Buffer {
         checkOffset(offset, size)
         return fromArrayBuffer(
-            arrayBuffer.slice(offset.toInt(), (offset + size).toInt()),
+            arrayBuffer.slice(offset, (offset + size)),
             endianness
         )
     }
 
-    /**
-     * Writes an unsigned 8-bit integer at the given offset.
-     */
-    actual fun setU8(offset: UInt, value: UByte): Buffer {
-        checkOffset(offset, 1u)
-        dataView.setUint8(offset.toInt(), value.toByte())
+    actual fun setU8(offset: Int, value: UByte): Buffer {
+        checkOffset(offset, 1)
+        dataView.setUint8(offset, value.toByte())
         return this
     }
 
-    /**
-     * Writes an unsigned 16-bit integer at the given offset.
-     */
-    actual fun setU16(offset: UInt, value: UShort): Buffer {
-        checkOffset(offset, 2u)
-        dataView.setUint16(offset.toInt(), value.toShort(), littleEndian)
+    actual fun setU16(offset: Int, value: UShort): Buffer {
+        checkOffset(offset, 2)
+        dataView.setUint16(offset, value.toShort(), littleEndian)
         return this
     }
 
-    /**
-     * Writes an unsigned 32-bit integer at the given offset.
-     */
-    actual fun setU32(offset: UInt, value: UInt): Buffer {
-        checkOffset(offset, 4u)
-        dataView.setUint32(offset.toInt(), value.toInt(), littleEndian)
+    actual fun setU32(offset: Int, value: UInt): Buffer {
+        checkOffset(offset, 4)
+        dataView.setUint32(offset, value.toInt(), littleEndian)
         return this
     }
 
-    /**
-     * Writes a signed 8-bit integer at the given offset.
-     */
-    actual fun setI8(offset: UInt, value: Byte): Buffer {
-        checkOffset(offset, 1u)
-        dataView.setInt8(offset.toInt(), value)
+    actual fun setI8(offset: Int, value: Byte): Buffer {
+        checkOffset(offset, 1)
+        dataView.setInt8(offset, value)
         return this
     }
 
-    /**
-     * Writes a signed 16-bit integer at the given offset.
-     */
-    actual fun setI16(offset: UInt, value: Short): Buffer {
-        checkOffset(offset, 2u)
-        dataView.setInt16(offset.toInt(), value, littleEndian)
+    actual fun setI16(offset: Int, value: Short): Buffer {
+        checkOffset(offset, 2)
+        dataView.setInt16(offset, value, littleEndian)
         return this
     }
 
-    /**
-     * Writes a signed 32-bit integer at the given offset.
-     */
-    actual fun setI32(offset: UInt, value: Int): Buffer {
-        checkOffset(offset, 4u)
-        dataView.setInt32(offset.toInt(), value, littleEndian)
+    actual fun setI32(offset: Int, value: Int): Buffer {
+        checkOffset(offset, 4)
+        dataView.setInt32(offset, value, littleEndian)
         return this
     }
 
-    /**
-     * Writes a 32-bit floating point number at the given offset.
-     */
-    actual fun setF32(offset: UInt, value: Float): Buffer {
-        checkOffset(offset, 4u)
-        dataView.setFloat32(offset.toInt(), value, littleEndian)
+    actual fun setF32(offset: Int, value: Float): Buffer {
+        checkOffset(offset, 4)
+        dataView.setFloat32(offset, value, littleEndian)
         return this
     }
 
-    /**
-     * Writes 0 bytes to the entire buffer.
-     */
-    actual fun zero(): Buffer {
-        (Uint8Array(arrayBuffer).asDynamic()).fill(0)
+    actual fun zero(): Buffer =
+        fill(0)
+
+    actual fun fill(value: Byte): Buffer {
+        (Int8Array(arrayBuffer).asDynamic()).fill(value)
         return this
     }
 
     /**
      * Checks whether we can read [size] bytes at [offset].
      */
-    private fun checkOffset(offset: UInt, size: UInt) {
-        require(offset + size <= this.size) {
+    private fun checkOffset(offset: Int, size: Int) {
+        require(offset >= 0 && offset + size <= this.size) {
             "Offset $offset is out of bounds."
         }
     }
@@ -174,16 +154,16 @@ actual class Buffer private constructor(
     /**
      * Reallocates the underlying ArrayBuffer if necessary.
      */
-    private fun ensureCapacity(minNewSize: UInt) {
+    private fun ensureCapacity(minNewSize: Int) {
         if (minNewSize > capacity) {
-            var newSize = if (capacity == 0u) minNewSize else capacity;
+            var newSize = if (capacity == 0) minNewSize else capacity;
 
             do {
-                newSize *= 2u;
+                newSize *= 2;
             } while (newSize < minNewSize);
 
-            val newBuffer = ArrayBuffer(newSize.toInt());
-            Uint8Array(newBuffer).set(Uint8Array(arrayBuffer, 0, size.toInt()));
+            val newBuffer = ArrayBuffer(newSize);
+            Uint8Array(newBuffer).set(Uint8Array(arrayBuffer, 0, size));
             arrayBuffer = newBuffer;
             dataView = DataView(arrayBuffer);
         }
@@ -191,19 +171,21 @@ actual class Buffer private constructor(
 
     actual companion object {
         actual fun withCapacity(
-            initialCapacity: UInt,
+            initialCapacity: Int,
             endianness: Endianness,
         ): Buffer =
-            Buffer(ArrayBuffer(initialCapacity.toInt()), size = 0u, endianness)
+            Buffer(ArrayBuffer(initialCapacity), size = 0, endianness)
+
+        actual fun withSize(initialSize: Int, endianness: Endianness): Buffer =
+            Buffer(ArrayBuffer(initialSize), initialSize, endianness)
 
         actual fun fromByteArray(array: ByteArray, endianness: Endianness): Buffer {
             val arrayBuffer = ArrayBuffer(array.size)
-            Uint8Array(arrayBuffer).set(array.toTypedArray())
-            return Buffer(arrayBuffer, array.size.toUInt(), endianness)
+            Int8Array(arrayBuffer).set(array.toTypedArray())
+            return Buffer(arrayBuffer, array.size, endianness)
         }
 
-        fun fromArrayBuffer(arrayBuffer: ArrayBuffer, endianness: Endianness): Buffer {
-            return Buffer(arrayBuffer, arrayBuffer.byteLength.toUInt(), endianness)
-        }
+        fun fromArrayBuffer(arrayBuffer: ArrayBuffer, endianness: Endianness): Buffer =
+            Buffer(arrayBuffer, arrayBuffer.byteLength, endianness)
     }
 }

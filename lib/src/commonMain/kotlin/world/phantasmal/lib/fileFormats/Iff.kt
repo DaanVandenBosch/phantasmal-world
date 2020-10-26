@@ -7,9 +7,9 @@ import world.phantasmal.lib.cursor.Cursor
 
 private val logger = KotlinLogging.logger {}
 
-class IffChunk(val type: UInt, val data: Cursor)
+class IffChunk(val type: Int, val data: Cursor)
 
-class IffChunkHeader(val type: UInt, val size: UInt)
+class IffChunkHeader(val type: Int, val size: Int)
 
 /**
  * PSO uses a little endian variant of the IFF format.
@@ -27,16 +27,16 @@ fun parseIffHeaders(cursor: Cursor): PwResult<List<IffChunkHeader>> =
 
 private fun <T> parse(
     cursor: Cursor,
-    getChunk: (Cursor, type: UInt, size: UInt) -> T,
+    getChunk: (Cursor, type: Int, size: Int) -> T,
 ): PwResult<List<T>> {
     val result = PwResult.build<List<T>>(logger)
     val chunks = mutableListOf<T>()
     var corrupted = false
 
-    while (cursor.bytesLeft >= 8u) {
-        val type = cursor.u32()
+    while (cursor.bytesLeft >= 8) {
+        val type = cursor.i32()
         val sizePos = cursor.position
-        val size = cursor.u32()
+        val size = cursor.i32()
 
         if (size > cursor.bytesLeft) {
             corrupted = true

@@ -6,7 +6,7 @@ import io.ktor.client.features.json.serializer.*
 import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import org.w3c.dom.PopStateEvent
 import world.phantasmal.core.disposable.Disposable
@@ -47,7 +47,7 @@ private fun init(): Disposable {
     val basePath = window.location.origin +
             (if (pathname.lastOrNull() == '/') pathname.dropLast(1) else pathname)
 
-    val scope = CoroutineScope(Job())
+    val scope = CoroutineScope(SupervisorJob())
     disposer.add(disposable { scope.cancel() })
 
     disposer.add(

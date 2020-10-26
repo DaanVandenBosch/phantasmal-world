@@ -8,7 +8,7 @@ import world.phantasmal.lib.fileFormats.Vec3
 import world.phantasmal.lib.fileFormats.parseIff
 import world.phantasmal.lib.fileFormats.vec3F32
 
-private const val NJCM: UInt = 0x4D434A4Eu
+private const val NJCM: Int = 0x4D434A4E
 
 class NjObject<Model>(
     val evaluationFlags: NjEvaluationFlags,
@@ -72,7 +72,7 @@ private fun <Model, Context> parseSiblingObjects(
     val skip = (evalFlags and 0b1000000u) != 0u
     val shapeSkip = (evalFlags and 0b10000000u) != 0u
 
-    val modelOffset = cursor.u32()
+    val modelOffset = cursor.i32()
     val pos = cursor.vec3F32()
     val rotation = Vec3(
         angleToRad(cursor.i32()),
@@ -80,24 +80,24 @@ private fun <Model, Context> parseSiblingObjects(
         angleToRad(cursor.i32()),
     )
     val scale = cursor.vec3F32()
-    val childOffset = cursor.u32()
-    val siblingOffset = cursor.u32()
+    val childOffset = cursor.i32()
+    val siblingOffset = cursor.i32()
 
-    val model = if (modelOffset == 0u) {
+    val model = if (modelOffset == 0) {
         null
     } else {
         cursor.seekStart(modelOffset)
         parse_model(cursor, context)
     }
 
-    val children = if (childOffset == 0u) {
+    val children = if (childOffset == 0) {
         emptyList()
     } else {
         cursor.seekStart(childOffset)
         parseSiblingObjects(cursor, parse_model, context)
     }
 
-    val siblings = if (siblingOffset == 0u) {
+    val siblings = if (siblingOffset == 0) {
         emptyList()
     } else {
         cursor.seekStart(siblingOffset)

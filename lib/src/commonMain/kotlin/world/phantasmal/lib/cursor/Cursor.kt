@@ -7,21 +7,21 @@ import world.phantasmal.lib.buffer.Buffer
  * A cursor for reading binary data.
  */
 interface Cursor {
-    val size: UInt
+    val size: Int
 
     /**
      * The position from where bytes will be read or written.
      */
-    val position: UInt
+    val position: Int
 
     /**
      * Byte order mode.
      */
     var endianness: Endianness
 
-    val bytesLeft: UInt
+    val bytesLeft: Int
 
-    fun hasBytesLeft(bytes: UInt = 1u): Boolean
+    fun hasBytesLeft(bytes: Int = 1): Boolean
 
     /**
      * Seek forward or backward by a number of bytes.
@@ -34,16 +34,16 @@ interface Cursor {
     /**
      * Seek forward from the start of the cursor by a number of bytes.
      *
-     * @param offset smaller than size
+     * @param offset greater or equal to 0 and smaller than size
      */
-    fun seekStart(offset: UInt): Cursor
+    fun seekStart(offset: Int): Cursor
 
     /**
      * Seek backward from the end of the cursor by a number of bytes.
      *
-     * @param offset smaller than size
+     * @param offset greater or equal to 0 and smaller than size
      */
-    fun seekEnd(offset: UInt): Cursor
+    fun seekEnd(offset: Int): Cursor
 
     /**
      * Reads an unsigned 8-bit integer and increments position by 1.
@@ -83,36 +83,36 @@ interface Cursor {
     /**
      * Reads [n] unsigned 8-bit integers and increments position by [n].
      */
-    fun u8Array(n: UInt): UByteArray
+    fun u8Array(n: Int): UByteArray
 
     /**
      * Reads [n] unsigned 16-bit integers and increments position by 2[n].
      */
-    fun u16Array(n: UInt): UShortArray
+    fun u16Array(n: Int): UShortArray
 
     /**
      * Reads [n] unsigned 32-bit integers and increments position by 4[n].
      */
-    fun u32Array(n: UInt): UIntArray
+    fun u32Array(n: Int): UIntArray
 
     /**
      * Reads [n] signed 32-bit integers and increments position by 4[n].
      */
-    fun i32Array(n: UInt): IntArray
+    fun i32Array(n: Int): IntArray
 
     /**
      * Consumes a variable number of bytes.
      *
      * @param size the amount bytes to consume.
-     * @return a write-through view containing size bytes.
+     * @return a view containing size bytes.
      */
-    fun take(size: UInt): Cursor
+    fun take(size: Int): Cursor
 
     /**
      * Consumes up to [maxByteLength] bytes.
      */
     fun stringAscii(
-        maxByteLength: UInt,
+        maxByteLength: Int,
         nullTerminated: Boolean,
         dropRemaining: Boolean,
     ): String
@@ -121,7 +121,7 @@ interface Cursor {
      * Consumes up to [maxByteLength] bytes.
      */
     fun stringUtf16(
-        maxByteLength: UInt,
+        maxByteLength: Int,
         nullTerminated: Boolean,
         dropRemaining: Boolean,
     ): String
@@ -129,5 +129,5 @@ interface Cursor {
     /**
      * Returns a buffer with a copy of [size] bytes at [position].
      */
-    fun buffer(size: UInt): Buffer
+    fun buffer(size: Int): Buffer
 }

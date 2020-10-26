@@ -5,7 +5,7 @@ import kotlinx.coroutines.launch
 import org.w3c.files.File
 import world.phantasmal.core.*
 import world.phantasmal.lib.Endianness
-import world.phantasmal.lib.cursor.ArrayBufferCursor
+import world.phantasmal.lib.cursor.cursor
 import world.phantasmal.lib.fileFormats.quest.Quest
 import world.phantasmal.lib.fileFormats.quest.parseBinDatToQuest
 import world.phantasmal.observable.value.Val
@@ -17,7 +17,7 @@ import world.phantasmal.webui.readFile
 
 class QuestEditorToolbarController(
     scope: CoroutineScope,
-    private val questEditorStore: QuestEditorStore
+    private val questEditorStore: QuestEditorStore,
 ) : Controller(scope) {
     private val _resultDialogVisible = mutableVal(false)
     private val _result = mutableVal<PwResult<*>?>(null)
@@ -46,11 +46,9 @@ class QuestEditorToolbarController(
                     return@launch
                 }
 
-                val binBuffer = readFile(bin)
-                val datBuffer = readFile(dat)
                 val parseResult = parseBinDatToQuest(
-                    ArrayBufferCursor(binBuffer, Endianness.Little),
-                    ArrayBufferCursor(datBuffer, Endianness.Little)
+                    readFile(bin).cursor(Endianness.Little),
+                    readFile(dat).cursor(Endianness.Little),
                 )
                 setResult(parseResult)
 

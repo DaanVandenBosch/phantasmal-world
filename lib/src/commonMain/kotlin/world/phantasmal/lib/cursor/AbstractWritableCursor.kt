@@ -2,52 +2,51 @@ package world.phantasmal.lib.cursor
 
 import world.phantasmal.lib.ZERO_U16
 import world.phantasmal.lib.ZERO_U8
-import world.phantasmal.lib.buffer.Buffer
 import kotlin.math.min
 
 abstract class AbstractWritableCursor
-protected constructor(protected val offset: UInt) : WritableCursor {
-    override var position: UInt = 0u
+protected constructor(protected val offset: Int) : WritableCursor {
+    override var position: Int = 0
         protected set
 
-    override val bytesLeft: UInt
+    override val bytesLeft: Int
         get() = size - position
 
-    protected val absolutePosition: UInt
+    protected val absolutePosition: Int
         get() = offset + position
 
-    override fun hasBytesLeft(bytes: UInt): Boolean =
+    override fun hasBytesLeft(bytes: Int): Boolean =
         bytesLeft >= bytes
 
     override fun seek(offset: Int): WritableCursor =
-        seekStart((position.toInt() + offset).toUInt())
+        seekStart(position + offset)
 
-    override fun seekStart(offset: UInt): WritableCursor {
-        require(offset <= size) { "Offset $offset is out of bounds." }
+    override fun seekStart(offset: Int): WritableCursor {
+        require(offset >= 0 || offset <= size) { "Offset $offset is out of bounds." }
 
         position = offset
         return this
     }
 
-    override fun seekEnd(offset: UInt): WritableCursor {
-        require(offset <= size) { "Offset $offset is out of bounds." }
+    override fun seekEnd(offset: Int): WritableCursor {
+        require(offset >= 0 || offset <= size) { "Offset $offset is out of bounds." }
 
         position = size - offset
         return this
     }
 
     override fun stringAscii(
-        maxByteLength: UInt,
+        maxByteLength: Int,
         nullTerminated: Boolean,
         dropRemaining: Boolean,
     ): String =
         buildString {
-            for (i in 0u until maxByteLength) {
+            for (i in 0 until maxByteLength) {
                 val codePoint = u8()
 
                 if (nullTerminated && codePoint == ZERO_U8) {
                     if (dropRemaining) {
-                        seek((maxByteLength - i - 1u).toInt())
+                        seek(maxByteLength - i - 1)
                     }
 
                     break
@@ -58,19 +57,19 @@ protected constructor(protected val offset: UInt) : WritableCursor {
         }
 
     override fun stringUtf16(
-        maxByteLength: UInt,
+        maxByteLength: Int,
         nullTerminated: Boolean,
         dropRemaining: Boolean,
     ): String =
         buildString {
-            val len = maxByteLength / 2u
+            val len = maxByteLength / 2
 
-            for (i in 0u until len) {
+            for (i in 0 until len) {
                 val codePoint = u16()
 
                 if (nullTerminated && codePoint == ZERO_U16) {
                     if (dropRemaining) {
-                        seek((maxByteLength - 2u * i - 2u).toInt())
+                        seek(maxByteLength - 2 * i - 2)
                     }
 
                     break
@@ -82,7 +81,7 @@ protected constructor(protected val offset: UInt) : WritableCursor {
 
     override fun writeU8Array(array: UByteArray): WritableCursor {
         val len = array.size
-        requireSize(len.toUInt())
+        requireSize(len)
 
         for (i in 0 until len) {
             writeU8(array[i])
@@ -93,7 +92,7 @@ protected constructor(protected val offset: UInt) : WritableCursor {
 
     override fun writeU16Array(array: UShortArray): WritableCursor {
         val len = array.size
-        requireSize(2u * len.toUInt())
+        requireSize(2 * len)
 
         for (i in 0 until len) {
             writeU16(array[i])
@@ -104,7 +103,7 @@ protected constructor(protected val offset: UInt) : WritableCursor {
 
     override fun writeU32Array(array: UIntArray): WritableCursor {
         val len = array.size
-        requireSize(4u * len.toUInt())
+        requireSize(4 * len)
 
         for (i in 0 until len) {
             writeU32(array[i])
@@ -115,7 +114,7 @@ protected constructor(protected val offset: UInt) : WritableCursor {
 
     override fun writeI32Array(array: IntArray): WritableCursor {
         val len = array.size
-        requireSize(4u * len.toUInt())
+        requireSize(4 * len)
 
         for (i in 0 until len) {
             writeI32(array[i])
@@ -127,51 +126,45 @@ protected constructor(protected val offset: UInt) : WritableCursor {
     override fun writeCursor(other: Cursor): WritableCursor {
         val size = other.bytesLeft
         requireSize(size)
-
-        for (i in 0u until (size / 4u)) {
-            writeU32(other.u32())
+        for (i in 0 until size) {
+            writeI8(other.i8())
         }
 
-        for (i in 0u until (size % 4u)) {
-            writeU8(other.u8())
-        }
-
-        position += size
         return this
     }
 
-    override fun writeStringAscii(str: String, byteLength: UInt): WritableCursor {
+    override fun writeStringAscii(str: String, byteLength: Int): WritableCursor {
         requireSize(byteLength)
 
-        val len = min(byteLength.toInt(), str.length)
+        val len = min(byteLength, str.length)
 
         for (i in 0 until len) {
-            writeU8(str[i].toByte().toUByte())
+            writeI8(str[i].toByte())
         }
 
-        val padLen = byteLength.toInt() - len
+        val padLen = byteLength - len
 
         for (i in 0 until padLen) {
-            writeU8(0u)
+            writeI8(0)
         }
 
         return this
     }
 
-    override fun writeStringUtf16(str: String, byteLength: UInt): WritableCursor {
+    override fun writeStringUtf16(str: String, byteLength: Int): WritableCursor {
         requireSize(byteLength)
 
-        val maxLen = byteLength.toInt() / 2
+        val maxLen = byteLength / 2
         val len = min(maxLen, str.length)
 
         for (i in 0 until len) {
-            writeU16(str[i].toShort().toUShort())
+            writeI16(str[i].toShort())
         }
 
         val padLen = maxLen - len
 
         for (i in 0 until padLen) {
-            writeU16(0u)
+            writeI16(0)
         }
 
         return this
@@ -180,7 +173,7 @@ protected constructor(protected val offset: UInt) : WritableCursor {
     /**
      * Throws an error if less than [size] bytes are left at [position].
      */
-    protected fun requireSize(size: UInt) {
+    protected fun requireSize(size: Int) {
         val left = this.size - position
 
         require(size <= left) { "$size Bytes required but only $left available." }

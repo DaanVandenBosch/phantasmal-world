@@ -53,20 +53,20 @@ class BufferCursorTests : WritableCursorTests() {
         val expectedNumber1 = 7891378
         val expectedNumber2 = 893894273
 
-        val buffer = Buffer.withCapacity(8u, endianness)
+        val buffer = Buffer.withCapacity(8, endianness)
         val cursor = BufferCursor(buffer)
 
-        assertEquals(0u, buffer.size)
-        assertEquals(0u, cursor.size)
+        assertEquals(0, buffer.size)
+        assertEquals(0, cursor.size)
 
         cursor.write(expectedNumber1)
 
-        assertEquals(byteCount.toUInt(), buffer.size)
-        assertEquals(byteCount.toUInt(), cursor.size)
+        assertEquals(byteCount, buffer.size)
+        assertEquals(byteCount, cursor.size)
 
         cursor.write(expectedNumber2)
 
-        assertEquals(2u * byteCount.toUInt(), buffer.size)
-        assertEquals(2u * byteCount.toUInt(), cursor.size)
+        assertEquals(2 * byteCount, buffer.size)
+        assertEquals(2 * byteCount, cursor.size)
     }
 }

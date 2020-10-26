@@ -6,9 +6,9 @@ import world.phantasmal.lib.cursor.Cursor
 
 private val logger = KotlinLogging.logger {}
 
-private const val DC_GC_OBJECT_CODE_OFFSET = 468u
-private const val PC_OBJECT_CODE_OFFSET = 920u
-private const val BB_OBJECT_CODE_OFFSET = 4652u
+private const val DC_GC_OBJECT_CODE_OFFSET = 468
+private const val PC_OBJECT_CODE_OFFSET = 920
+private const val BB_OBJECT_CODE_OFFSET = 4652
 
 class BinFile(
     val format: BinFormat,
@@ -40,17 +40,19 @@ enum class BinFormat {
 }
 
 fun parseBin(cursor: Cursor): BinFile {
-    val objectCodeOffset = cursor.u32()
-    val labelOffsetTableOffset = cursor.u32() // Relative offsets
-    val size = cursor.u32()
+    val objectCodeOffset = cursor.i32()
+    val labelOffsetTableOffset = cursor.i32() // Relative offsets
+    val size = cursor.i32()
     cursor.seek(4) // Always seems to be 0xFFFFFFFF.
 
     val format = when (objectCodeOffset) {
         DC_GC_OBJECT_CODE_OFFSET -> BinFormat.DC_GC
-        BB_OBJECT_CODE_OFFSET -> BinFormat.BB
         PC_OBJECT_CODE_OFFSET -> BinFormat.PC
+        BB_OBJECT_CODE_OFFSET -> BinFormat.BB
         else -> {
-            logger.warn { "Object code at unexpected offset, assuming file is a PC file." }
+            logger.warn {
+                "Object code at unexpected offset $objectCodeOffset, assuming file is a PC file."
+            }
             BinFormat.PC
         }
     }
@@ -65,15 +67,15 @@ fun parseBin(cursor: Cursor): BinFile {
         cursor.seek(1)
         language = cursor.u8().toUInt()
         questId = cursor.u16().toUInt()
-        questName = cursor.stringAscii(32u, nullTerminated = true, dropRemaining = true)
-        shortDescription = cursor.stringAscii(128u, nullTerminated = true, dropRemaining = true)
-        longDescription = cursor.stringAscii(288u, nullTerminated = true, dropRemaining = true)
+        questName = cursor.stringAscii(32, nullTerminated = true, dropRemaining = true)
+        shortDescription = cursor.stringAscii(128, nullTerminated = true, dropRemaining = true)
+        longDescription = cursor.stringAscii(288, nullTerminated = true, dropRemaining = true)
     } else {
         questId = cursor.u32()
         language = cursor.u32()
-        questName = cursor.stringUtf16(64u, nullTerminated = true, dropRemaining = true)
-        shortDescription = cursor.stringUtf16(256u, nullTerminated = true, dropRemaining = true)
-        longDescription = cursor.stringUtf16(576u, nullTerminated = true, dropRemaining = true)
+        questName = cursor.stringUtf16(64, nullTerminated = true, dropRemaining = true)
+        shortDescription = cursor.stringUtf16(256, nullTerminated = true, dropRemaining = true)
+        longDescription = cursor.stringUtf16(576, nullTerminated = true, dropRemaining = true)
     }
 
     if (size != cursor.size) {
@@ -82,12 +84,12 @@ fun parseBin(cursor: Cursor): BinFile {
 
     val shopItems = if (format == BinFormat.BB) {
         cursor.seek(4) // Skip padding.
-        cursor.u32Array(932u)
+        cursor.u32Array(932)
     } else {
         UIntArray(0)
     }
 
-    val labelOffsetCount = (cursor.size - labelOffsetTableOffset) / 4u
+    val labelOffsetCount = (cursor.size - labelOffsetTableOffset) / 4
     val labelOffsets = cursor
         .seekStart(labelOffsetTableOffset)
         .i32Array(labelOffsetCount)

@@ -67,7 +67,7 @@ fun parseObjectCode(
     // Put segments in an array and parse left-over segments as data.
     var offset = 0
 
-    while (offset < cursor.size.toInt()) {
+    while (offset < cursor.size) {
         var segment: Segment? = offsetToSegment[offset]
 
         // If we have a segment, add it. Otherwise create a new data segment.
@@ -76,7 +76,7 @@ fun parseObjectCode(
             var endOffset: Int
 
             if (labels == null) {
-                endOffset = cursor.size.toInt()
+                endOffset = cursor.size
 
                 for (label in labelHolder.labels) {
                     if (label.offset > offset) {
@@ -86,10 +86,10 @@ fun parseObjectCode(
                 }
             } else {
                 val info = labelHolder.getInfo(labels[0])!!
-                endOffset = info.next?.offset ?: cursor.size.toInt()
+                endOffset = info.next?.offset ?: cursor.size
             }
 
-            cursor.seekStart(offset.toUInt())
+            cursor.seekStart(offset)
             parseDataSegment(
                 offsetToSegment,
                 cursor,
@@ -110,7 +110,7 @@ fun parseObjectCode(
         offset += when (segment) {
             is InstructionSegment -> segment.instructions.sumBy { instructionSize(it, dcGcFormat) }
 
-            is DataSegment -> segment.data.size.toInt()
+            is DataSegment -> segment.data.size
 
             // String segments should be multiples of 4 bytes.
             is StringSegment -> 4 * ceil((segment.value.length + 1) / 2.0).toInt()
@@ -136,7 +136,7 @@ fun parseObjectCode(
     }
 
     // Sanity check parsed object code.
-    if (cursor.size != offset.toUInt()) {
+    if (cursor.size != offset) {
         result.addProblem(
             Severity.Error,
             "The script code is corrupt.",
@@ -201,7 +201,8 @@ private fun findAndParseSegments(
                             // Never on the stack.
                             // Eat all remaining arguments.
                             while (i < instruction.args.size) {
-                                newLabels[instruction.args[i].value as Int] = SegmentType.Instructions
+                                newLabels[instruction.args[i].value as Int] =
+                                    SegmentType.Instructions
                                 i++
                             }
                         }
@@ -322,8 +323,8 @@ private fun parseSegment(
                 }
             }
 
-        val endOffset = info.next?.offset ?: cursor.size.toInt()
-        cursor.seekStart(info.offset.toUInt())
+        val endOffset = info.next?.offset ?: cursor.size
+        cursor.seekStart(info.offset)
 
         return when (type) {
             SegmentType.Instructions ->
@@ -370,9 +371,9 @@ private fun parseInstructionsSegment(
         instructions,
         SegmentSrcLoc()
     )
-    offsetToSegment[cursor.position.toInt()] = segment
+    offsetToSegment[cursor.position] = segment
 
-    while (cursor.position < endOffset.toUInt()) {
+    while (cursor.position < endOffset) {
         // Parse the opcode.
         val mainOpcode = cursor.u8()
 
@@ -436,10 +437,10 @@ private fun parseDataSegment(
     val startOffset = cursor.position
     val segment = DataSegment(
         labels,
-        cursor.buffer(endOffset.toUInt() - startOffset),
+        cursor.buffer(endOffset - startOffset),
         SegmentSrcLoc(),
     )
-    offsetToSegment[startOffset.toInt()] = segment
+    offsetToSegment[startOffset] = segment
 }
 
 private fun parseStringSegment(
@@ -454,20 +455,20 @@ private fun parseStringSegment(
         labels,
         if (dcGcFormat) {
             cursor.stringAscii(
-                endOffset.toUInt() - startOffset,
+                endOffset - startOffset,
                 nullTerminated = true,
                 dropRemaining = true
             )
         } else {
             cursor.stringUtf16(
-                endOffset.toUInt() - startOffset,
+                endOffset - startOffset,
                 nullTerminated = true,
                 dropRemaining = true
             )
         },
         SegmentSrcLoc()
     )
-    offsetToSegment[startOffset.toInt()] = segment
+    offsetToSegment[startOffset] = segment
 }
 
 private fun parseInstructionArguments(
@@ -501,7 +502,7 @@ private fun parseInstructionArguments(
                 }
 
                 is StringType -> {
-                    val maxBytes = min(4096u, cursor.bytesLeft)
+                    val maxBytes = min(4096, cursor.bytesLeft)
                     args.add(Arg(
                         if (dcGcFormat) {
                             cursor.stringAscii(
@@ -521,7 +522,7 @@ private fun parseInstructionArguments(
 
                 is ILabelVarType -> {
                     val argSize = cursor.u8()
-                    args.addAll(cursor.u16Array(argSize.toUInt()).map { Arg(it.toInt()) })
+                    args.addAll(cursor.u16Array(argSize.toInt()).map { Arg(it.toInt()) })
                 }
 
                 is RegRefType,
@@ -532,7 +533,7 @@ private fun parseInstructionArguments(
 
                 is RegRefVarType -> {
                     val argSize = cursor.u8()
-                    args.addAll(cursor.u8Array(argSize.toUInt()).map { Arg(it.toInt()) })
+                    args.addAll(cursor.u8Array(argSize.toInt()).map { Arg(it.toInt()) })
                 }
 
                 else -> error("Parameter type ${param.type} not implemented.")

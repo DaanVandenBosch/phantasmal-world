@@ -1,6 +1,7 @@
 package world.phantasmal.lib.cursor
 
 import world.phantasmal.lib.Endianness
+import world.phantasmal.lib.buffer.Buffer
 import kotlin.math.abs
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -18,15 +19,15 @@ abstract class WritableCursorTests : CursorTests() {
     private fun simple_WritableCursor_properties_and_invariants(endianness: Endianness) {
         val cursor = createCursor(byteArrayOf(0, 1, 2, 3, 4, 5, 6, 7, 8, 9), endianness)
 
-        assertEquals(0u, cursor.position)
+        assertEquals(0, cursor.position)
 
         cursor.writeU8(99u).writeU8(99u).writeU8(99u).writeU8(99u)
         cursor.seek(-1)
 
         assertEquals(cursor.position + cursor.bytesLeft, cursor.size)
-        assertEquals(10u, cursor.size)
-        assertEquals(3u, cursor.position)
-        assertEquals(7u, cursor.bytesLeft)
+        assertEquals(10, cursor.size)
+        assertEquals(3, cursor.position)
+        assertEquals(7, cursor.bytesLeft)
         assertEquals(endianness, cursor.endianness)
     }
 
@@ -83,9 +84,9 @@ abstract class WritableCursorTests : CursorTests() {
         cursor.write(expectedNumber1)
         cursor.write(expectedNumber2)
 
-        assertEquals((2 * byteCount).toUInt(), cursor.position)
+        assertEquals(2 * byteCount, cursor.position)
 
-        cursor.seekStart(0u)
+        cursor.seekStart(0)
 
         assertEquals(expectedNumber1, cursor.read())
         assertEquals(expectedNumber2, cursor.read())
@@ -106,23 +107,23 @@ abstract class WritableCursorTests : CursorTests() {
         cursor.writeF32(1337.9001f)
         cursor.writeF32(103.502f)
 
-        assertEquals(8u, cursor.position)
+        assertEquals(8, cursor.position)
 
-        cursor.seekStart(0u)
+        cursor.seekStart(0)
 
         // The read floats won't be exactly the same as the written floats in Kotlin JS, because
         // they're backed by numbers (64-bit floats).
         assertTrue(abs(1337.9001f - cursor.f32()) < 0.001)
         assertTrue(abs(103.502f - cursor.f32()) < 0.001)
 
-        assertEquals(8u, cursor.position)
+        assertEquals(8, cursor.position)
     }
 
     @Test
     fun writeU8Array() {
-        val read: Cursor.(UInt) -> IntArray = { n ->
+        val read: Cursor.(Int) -> IntArray = { n ->
             val arr = u8Array(n)
-            IntArray(n.toInt()) { arr[it].toInt() }
+            IntArray(n) { arr[it].toInt() }
         }
         val write: WritableCursor.(IntArray) -> Unit = { a ->
             writeU8Array(UByteArray(a.size) { a[it].toUByte() })
@@ -134,9 +135,9 @@ abstract class WritableCursorTests : CursorTests() {
 
     @Test
     fun writeU16Array() {
-        val read: Cursor.(UInt) -> IntArray = { n ->
+        val read: Cursor.(Int) -> IntArray = { n ->
             val arr = u16Array(n)
-            IntArray(n.toInt()) { arr[it].toInt() }
+            IntArray(n) { arr[it].toInt() }
         }
         val write: WritableCursor.(IntArray) -> Unit = { a ->
             writeU16Array(UShortArray(a.size) { a[it].toUShort() })
@@ -148,9 +149,9 @@ abstract class WritableCursorTests : CursorTests() {
 
     @Test
     fun writeU32Array() {
-        val read: Cursor.(UInt) -> IntArray = { n ->
+        val read: Cursor.(Int) -> IntArray = { n ->
             val arr = u32Array(n)
-            IntArray(n.toInt()) { arr[it].toInt() }
+            IntArray(n) { arr[it].toInt() }
         }
         val write: WritableCursor.(IntArray) -> Unit = { a ->
             writeU32Array(UIntArray(a.size) { a[it].toUInt() })
@@ -162,7 +163,7 @@ abstract class WritableCursorTests : CursorTests() {
 
     @Test
     fun writeI32Array() {
-        val read: Cursor.(UInt) -> IntArray = { n ->
+        val read: Cursor.(Int) -> IntArray = { n ->
             i32Array(n)
         }
         val write: WritableCursor.(IntArray) -> Unit = { a ->
@@ -175,7 +176,7 @@ abstract class WritableCursorTests : CursorTests() {
 
     private fun testIntegerArrayWrite(
         byteCount: Int,
-        read: Cursor.(UInt) -> IntArray,
+        read: Cursor.(Int) -> IntArray,
         write: WritableCursor.(IntArray) -> Unit,
         endianness: Endianness,
     ) {
@@ -185,16 +186,42 @@ abstract class WritableCursorTests : CursorTests() {
         val cursor = createCursor(ByteArray(20 * byteCount), endianness)
 
         cursor.write(testArray1)
-        assertEquals(10u * byteCount.toUInt(), cursor.position)
+        assertEquals(10 * byteCount, cursor.position)
 
         cursor.write(testArray2)
-        assertEquals(20u * byteCount.toUInt(), cursor.position)
+        assertEquals(20 * byteCount, cursor.position)
 
-        cursor.seekStart(0u)
+        cursor.seekStart(0)
 
-        assertTrue(testArray1.contentEquals(cursor.read(10u)))
-        assertTrue(testArray2.contentEquals(cursor.read(10u)))
-        assertEquals(20u * byteCount.toUInt(), cursor.position)
+        assertTrue(testArray1.contentEquals(cursor.read(10)))
+        assertTrue(testArray2.contentEquals(cursor.read(10)))
+        assertEquals(20 * byteCount, cursor.position)
+    }
+
+    @Test
+    fun writeCursor() {
+        testWriteCursor(Endianness.Little)
+        testWriteCursor(Endianness.Big)
+    }
+
+    private fun testWriteCursor(endianness: Endianness) {
+        val cursor = createCursor(ByteArray(8), endianness)
+
+        cursor.seek(2)
+        cursor.writeCursor(Buffer.fromByteArray(byteArrayOf(1, 2, 3, 4)).cursor())
+
+        assertEquals(6, cursor.position)
+
+        cursor.seekStart(0)
+
+        assertEquals(0, cursor.i8())
+        assertEquals(0, cursor.i8())
+        assertEquals(1, cursor.i8())
+        assertEquals(2, cursor.i8())
+        assertEquals(3, cursor.i8())
+        assertEquals(4, cursor.i8())
+        assertEquals(0, cursor.i8())
+        assertEquals(0, cursor.i8())
     }
 
     @Test
@@ -208,10 +235,11 @@ abstract class WritableCursorTests : CursorTests() {
 
         cursor.writeU32(1u).writeU32(2u).writeU32(3u).writeU32(4u)
         cursor.seek(-8)
-        val newCursor = cursor.take(8u)
+        val newCursor = cursor.take(8)
 
-        assertEquals(8u, newCursor.size)
-        assertEquals(0u, newCursor.position)
+        assertEquals(16, cursor.position)
+        assertEquals(8, newCursor.size)
+        assertEquals(0, newCursor.position)
         assertEquals(3u, newCursor.u32())
         assertEquals(4u, newCursor.u32())
     }

@@ -4,7 +4,13 @@ package world.phantasmal.lib.cursor
  * A cursor for reading and writing binary data.
  */
 interface WritableCursor : Cursor {
-    override var size: UInt
+    override var size: Int
+
+    override fun seek(offset: Int): WritableCursor
+
+    override fun seekStart(offset: Int): WritableCursor
+
+    override fun seekEnd(offset: Int): WritableCursor
 
     /**
      * Writes an unsigned 8-bit integer and increments position by 1.
@@ -74,12 +80,12 @@ interface WritableCursor : Cursor {
      * Writes [byteLength] characters of [str]. If [str] is shorter than [byteLength], nul bytes
      * will be inserted until [byteLength] bytes have been written.
      */
-    fun writeStringAscii(str: String, byteLength: UInt): WritableCursor
+    fun writeStringAscii(str: String, byteLength: Int): WritableCursor
 
     /**
      * Writes characters of [str] without writing more than [byteLength] bytes. If less than
      * [byteLength] bytes can be written this way, nul bytes will be inserted until [byteLength]
      * bytes have been written.
      */
-    fun writeStringUtf16(str: String, byteLength: UInt): WritableCursor
+    fun writeStringUtf16(str: String, byteLength: Int): WritableCursor
 }

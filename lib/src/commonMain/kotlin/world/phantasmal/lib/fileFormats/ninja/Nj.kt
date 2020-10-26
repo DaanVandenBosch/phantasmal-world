@@ -62,7 +62,7 @@ sealed class NjcmChunk(val typeId: UByte) {
 
     class Bits(typeId: UByte, val srcAlpha: UByte, val dstAlpha: UByte) : NjcmChunk(typeId)
 
-    class CachePolygonList(val cacheIndex: UByte, val offset: UInt) : NjcmChunk(4u)
+    class CachePolygonList(val cacheIndex: UByte, val offset: Int) : NjcmChunk(4u)
 
     class DrawPolygonList(val cacheIndex: UByte) : NjcmChunk(5u)
 
@@ -122,15 +122,15 @@ class NjcmErgb(
     val b: UByte,
 )
 
-fun parseNjcmModel(cursor: Cursor, cachedChunkOffsets: MutableMap<UByte, UInt>): NjcmModel {
-    val vlistOffset = cursor.u32() // Vertex list
-    val plistOffset = cursor.u32() // Triangle strip index list
+fun parseNjcmModel(cursor: Cursor, cachedChunkOffsets: MutableMap<UByte, Int>): NjcmModel {
+    val vlistOffset = cursor.i32() // Vertex list
+    val plistOffset = cursor.i32() // Triangle strip index list
     val boundingSphereCenter = cursor.vec3F32()
     val boundingSphereRadius = cursor.f32()
     val vertices: MutableList<NjcmVertex> = mutableListOf()
     val meshes: MutableList<NjcmTriangleStrip> = mutableListOf()
 
-    if (vlistOffset != 0u) {
+    if (vlistOffset != 0) {
         cursor.seekStart(vlistOffset)
 
         for (chunk in parseChunks(cursor, cachedChunkOffsets, true)) {
@@ -148,7 +148,7 @@ fun parseNjcmModel(cursor: Cursor, cachedChunkOffsets: MutableMap<UByte, UInt>):
         }
     }
 
-    if (plistOffset != 0u) {
+    if (plistOffset != 0) {
         cursor.seekStart(plistOffset)
 
         var textureId: UInt? = null
@@ -203,7 +203,7 @@ fun parseNjcmModel(cursor: Cursor, cachedChunkOffsets: MutableMap<UByte, UInt>):
 // TODO: don't reparse when DrawPolygonList chunk is encountered.
 private fun parseChunks(
     cursor: Cursor,
-    cachedChunkOffsets: MutableMap<UByte, UInt>,
+    cachedChunkOffsets: MutableMap<UByte, Int>,
     wideEndChunks: Boolean,
 ): List<NjcmChunk> {
     val chunks: MutableList<NjcmChunk> = mutableListOf()
@@ -214,7 +214,7 @@ private fun parseChunks(
         val flags = cursor.u8()
         val flagsUInt = flags.toUInt()
         val chunkStartPosition = cursor.position
-        var size = 0u
+        var size = 0
 
         when (typeId.toInt()) {
             0 -> {
@@ -253,7 +253,7 @@ private fun parseChunks(
                 ))
             }
             in 8..9 -> {
-                size = 2u
+                size = 2
                 val textureBitsAndId = cursor.u16().toUInt()
 
                 chunks.add(NjcmChunk.Tiny(
@@ -269,7 +269,7 @@ private fun parseChunks(
                 ))
             }
             in 17..31 -> {
-                size = 2u + 2u * cursor.u16()
+                size = 2 + 2 * cursor.i16()
 
                 var diffuse: NjcmArgb? = null
                 var ambient: NjcmArgb? = null
@@ -312,32 +312,32 @@ private fun parseChunks(
                 ))
             }
             in 32..50 -> {
-                size = 2u + 4u * cursor.u16()
+                size = 2 + 4 * cursor.i16()
                 chunks.add(NjcmChunk.Vertex(
                     typeId,
                     vertices = parseVertexChunk(cursor, typeId, flags),
                 ))
             }
             in 56..58 -> {
-                size = 2u + 2u * cursor.u16()
+                size = 2 + 2 * cursor.i16()
                 chunks.add(NjcmChunk.Volume(
                     typeId,
                 ))
             }
             in 64..75 -> {
-                size = 2u + 2u * cursor.u16()
+                size = 2 + 2 * cursor.i16()
                 chunks.add(NjcmChunk.Strip(
                     typeId,
                     triangleStrips = parseTriangleStripChunk(cursor, typeId, flags),
                 ))
             }
             255 -> {
-                size = if (wideEndChunks) 2u else 0u
+                size = if (wideEndChunks) 2 else 0
                 chunks.add(NjcmChunk.End)
                 loop = false
             }
             else -> {
-                size = 2u + 2u * cursor.u16()
+                size = 2 + 2 * cursor.i16()
                 chunks.add(NjcmChunk.Unknown(
                     typeId,
                 ))

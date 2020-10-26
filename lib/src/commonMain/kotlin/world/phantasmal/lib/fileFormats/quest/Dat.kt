@@ -6,13 +6,13 @@ import world.phantasmal.lib.cursor.Cursor
 
 private val logger = KotlinLogging.logger {}
 
-private const val EVENT_ACTION_SPAWN_NPCS: UByte = 0x8u
-private const val EVENT_ACTION_UNLOCK: UByte = 0xAu
-private const val EVENT_ACTION_LOCK: UByte = 0xBu
-private const val EVENT_ACTION_TRIGGER_EVENT: UByte = 0xCu
+private const val EVENT_ACTION_SPAWN_NPCS = 0x8
+private const val EVENT_ACTION_UNLOCK = 0xA
+private const val EVENT_ACTION_LOCK = 0xB
+private const val EVENT_ACTION_TRIGGER_EVENT = 0xC
 
-const val OBJECT_BYTE_SIZE = 68u
-const val NPC_BYTE_SIZE = 72u
+const val OBJECT_BYTE_SIZE = 68
+const val NPC_BYTE_SIZE = 72
 
 class DatFile(
     val objs: List<DatEntity>,
@@ -22,7 +22,7 @@ class DatFile(
 )
 
 class DatEntity(
-    var areaId: UInt,
+    var areaId: Int,
     val data: Buffer,
 )
 
@@ -32,7 +32,7 @@ class DatEvent(
     var wave: UShort,
     var delay: UShort,
     val actions: MutableList<DatEventAction>,
-    val areaId: UInt,
+    val areaId: Int,
     val unknown: UShort,
 )
 
@@ -56,10 +56,10 @@ sealed class DatEventAction {
 }
 
 class DatUnknown(
-    val entityType: UInt,
-    val totalSize: UInt,
-    val areaId: UInt,
-    val entitiesSize: UInt,
+    val entityType: Int,
+    val totalSize: Int,
+    val areaId: Int,
+    val entitiesSize: Int,
     val data: UByteArray,
 )
 
@@ -70,24 +70,24 @@ fun parseDat(cursor: Cursor): DatFile {
     val unknowns = mutableListOf<DatUnknown>()
 
     while (cursor.hasBytesLeft()) {
-        val entityType = cursor.u32()
-        val totalSize = cursor.u32()
-        val areaId = cursor.u32()
-        val entitiesSize = cursor.u32()
+        val entityType = cursor.i32()
+        val totalSize = cursor.i32()
+        val areaId = cursor.i32()
+        val entitiesSize = cursor.i32()
 
-        if (entityType == 0u) {
+        if (entityType == 0) {
             break
         } else {
-            require(entitiesSize == totalSize - 16u) {
-                "Malformed DAT file. Expected an entities size of ${totalSize - 16u}, got ${entitiesSize}."
+            require(entitiesSize == totalSize - 16) {
+                "Malformed DAT file. Expected an entities size of ${totalSize - 16}, got ${entitiesSize}."
             }
 
             val entitiesCursor = cursor.take(entitiesSize)
 
             when (entityType) {
-                1u -> parseEntities(entitiesCursor, areaId, objs, OBJECT_BYTE_SIZE)
-                2u -> parseEntities(entitiesCursor, areaId, npcs, NPC_BYTE_SIZE)
-                3u -> parseEvents(entitiesCursor, areaId, events)
+                1 -> parseEntities(entitiesCursor, areaId, objs, OBJECT_BYTE_SIZE)
+                2 -> parseEntities(entitiesCursor, areaId, npcs, NPC_BYTE_SIZE)
+                3 -> parseEvents(entitiesCursor, areaId, events)
                 else -> {
                     // Unknown entity types 4 and 5 (challenge mode).
                     unknowns.add(DatUnknown(
@@ -118,13 +118,13 @@ fun parseDat(cursor: Cursor): DatFile {
 
 private fun parseEntities(
     cursor: Cursor,
-    areaId: UInt,
+    areaId: Int,
     entities: MutableList<DatEntity>,
-    entitySize: UInt,
+    entitySize: Int,
 ) {
     val entityCount = cursor.size / entitySize
 
-    repeat(entityCount.toInt()) {
+    repeat(entityCount) {
         entities.add(DatEntity(
             areaId,
             data = cursor.buffer(entitySize),
@@ -132,29 +132,29 @@ private fun parseEntities(
     }
 }
 
-private fun parseEvents(cursor: Cursor, areaId: UInt, events: MutableList<DatEvent>) {
-    val actionsOffset = cursor.u32()
+private fun parseEvents(cursor: Cursor, areaId: Int, events: MutableList<DatEvent>) {
+    val actionsOffset = cursor.i32()
     cursor.seek(4) // Always 0x10
-    val eventCount = cursor.u32()
+    val eventCount = cursor.i32()
     cursor.seek(3) // Always 0
     val eventType = cursor.u8()
 
-    require(eventType == (0x32u).toUByte()) {
+    require(eventType != (0x32u).toUByte()) {
         "Can't parse challenge mode quests yet."
     }
 
     cursor.seekStart(actionsOffset)
     val actionsCursor = cursor.take(cursor.bytesLeft)
-    cursor.seekStart(16u)
+    cursor.seekStart(16)
 
-    repeat(eventCount.toInt()) {
+    repeat(eventCount) {
         val id = cursor.u32()
         cursor.seek(4) // Always 0x100
         val sectionId = cursor.u16()
         val wave = cursor.u16()
         val delay = cursor.u16()
         val unknown = cursor.u16() // "wavesetting"?
-        val eventActionsOffset = cursor.u32()
+        val eventActionsOffset = cursor.i32()
 
         val actions: MutableList<DatEventAction> =
             if (eventActionsOffset < actionsCursor.size) {
@@ -178,7 +178,7 @@ private fun parseEvents(cursor: Cursor, areaId: UInt, events: MutableList<DatEve
 
     if (cursor.position != actionsOffset) {
         logger.warn {
-            "Read ${cursor.position - 16u} bytes of event data instead of expected ${actionsOffset - 16u}."
+            "Read ${cursor.position - 16} bytes of event data instead of expected ${actionsOffset - 16}."
         }
     }
 
@@ -204,8 +204,8 @@ private fun parseEventActions(cursor: Cursor): MutableList<DatEventAction> {
     val actions = mutableListOf<DatEventAction>()
 
     outer@ while (cursor.hasBytesLeft()) {
-        when (val type = cursor.u8()) {
-            (1u).toUByte() -> break@outer
+        when (val type = cursor.u8().toInt()) {
+            1 -> break@outer
 
             EVENT_ACTION_SPAWN_NPCS ->
                 actions.add(DatEventAction.SpawnNpcs(
