@@ -67,8 +67,8 @@ fun parseBinDatToQuest(
         bin.objectCode,
         bin.labelOffsets,
         extractScriptEntryPoints(objects, npcs),
-        lenient,
         bin.format == BinFormat.DC_GC,
+        lenient,
     )
 
     rb.addResult(objectCodeResult)

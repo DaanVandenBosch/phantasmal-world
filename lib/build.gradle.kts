@@ -92,7 +92,7 @@ val generateOpcodes = tasks.register("generateOpcodes") {
 
 fun opcodeToCode(writer: PrintWriter, opcode: Map<String, Any>) {
     val code = (opcode["code"] as String).drop(2).toInt(16)
-    val codeStr = code.toString(16).padStart(2, '0')
+    val codeStr = code.toString(16).toUpperCase().padStart(2, '0')
     val mnemonic = opcode["mnemonic"] as String? ?: "unknown_$codeStr"
     val description = opcode["description"] as String?
     val stack = opcode["stack"] as String?
@@ -119,6 +119,7 @@ fun opcodeToCode(writer: PrintWriter, opcode: Map<String, Any>) {
         in 0xF900..0xF9FF -> "OPCODES_F9"
         else -> error("Invalid opcode $codeStr ($mnemonic).")
     }
+    val indexStr = (code and 0xFF).toString(16).toUpperCase().padStart(2, '0')
 
     writer.println(
         """
@@ -128,7 +129,7 @@ fun opcodeToCode(writer: PrintWriter, opcode: Map<String, Any>) {
         |    ${description?.let { "\"$it\"" }},
         |    $params,
         |    $stackInteraction,
-        |).also { ${array}[0x$codeStr] = it }""".trimMargin()
+        |).also { ${array}[0x$indexStr] = it }""".trimMargin()
     )
 }
 

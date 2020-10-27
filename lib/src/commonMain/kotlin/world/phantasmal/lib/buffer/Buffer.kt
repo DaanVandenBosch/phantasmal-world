@@ -106,8 +106,14 @@ expect class Buffer {
     fun fill(value: Byte): Buffer
 
     companion object {
+        /**
+         * Returns a new buffer the given initial capacity and size 0.
+         */
         fun withCapacity(initialCapacity: Int, endianness: Endianness = Endianness.Little): Buffer
 
+        /**
+         * Returns a new buffer with an initial size and capacity of [initialSize].
+         */
         fun withSize(initialSize: Int, endianness: Endianness = Endianness.Little): Buffer
 
         fun fromByteArray(array: ByteArray, endianness: Endianness = Endianness.Little): Buffer

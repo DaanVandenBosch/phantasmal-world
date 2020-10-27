@@ -6,6 +6,7 @@ import world.phantasmal.core.PwResultBuilder
 import world.phantasmal.core.Severity
 import world.phantasmal.lib.assembly.*
 import world.phantasmal.lib.assembly.dataFlowAnalysis.ControlFlowGraph
+import world.phantasmal.lib.assembly.dataFlowAnalysis.ValueSet
 import world.phantasmal.lib.assembly.dataFlowAnalysis.getRegisterValue
 import world.phantasmal.lib.assembly.dataFlowAnalysis.getStackValue
 import world.phantasmal.lib.buffer.Buffer
@@ -22,6 +23,9 @@ val SEGMENT_PRIORITY = mapOf(
     SegmentType.Data to 0,
 )
 
+/**
+ * These functions are built into the client and can optionally be overridden on BB.
+ */
 val BUILTIN_FUNCTIONS = setOf(
     60,
     70,
@@ -45,8 +49,8 @@ fun parseObjectCode(
     objectCode: Buffer,
     labelOffsets: IntArray,
     entryLabels: Set<Int>,
-    lenient: Boolean,
     dcGcFormat: Boolean,
+    lenient: Boolean,
 ): PwResult<List<Segment>> {
     val cursor = BufferCursor(objectCode)
     val labelHolder = LabelHolder(labelOffsets)
@@ -215,27 +219,35 @@ private fun findAndParseSegments(
 
                         is RegTupRefType -> {
                             // Never on the stack.
-                            val arg = instruction.args[i]
+                            var firstRegister: ValueSet? = null
 
                             for (j in param.type.registerTuples.indices) {
                                 val regTup = param.type.registerTuples[j]
 
                                 if (regTup.type is ILabelType) {
-                                    val labelValues = getRegisterValue(
-                                        cfg,
-                                        instruction,
-                                        arg.value as Int + j,
-                                    )
+                                    if (firstRegister == null) {
+                                        firstRegister = getStackValue(cfg, instruction, i)
+                                    }
 
-                                    if (labelValues.size <= 10) {
-                                        for (label in labelValues) {
-                                            newLabels[label] = SegmentType.Instructions
+                                    for (reg in firstRegister) {
+                                        val labelValues = getRegisterValue(
+                                            cfg,
+                                            instruction,
+                                            reg + j,
+                                        )
+
+                                        if (labelValues.size <= 10) {
+                                            for (label in labelValues) {
+                                                newLabels[label] = SegmentType.Instructions
+                                            }
                                         }
                                     }
                                 }
                             }
                         }
                     }
+
+                    i++
                 }
             }
         }
@@ -378,7 +390,7 @@ private fun parseInstructionsSegment(
         val mainOpcode = cursor.u8()
 
         val fullOpcode = when (mainOpcode.toInt()) {
-            0xF8, 0xF9 -> ((mainOpcode.toUInt() shl 8) or cursor.u8().toUInt()).toInt()
+            0xF8, 0xF9 -> ((mainOpcode.toInt() shl 8) or cursor.u8().toInt())
             else -> mainOpcode.toInt()
         }
 
@@ -479,6 +491,8 @@ private fun parseInstructionArguments(
     val args = mutableListOf<Arg>()
 
     if (opcode.stack != StackInteraction.Pop) {
+        var varargCount = 0
+
         for (param in opcode.params) {
             when (param.type) {
                 is ByteType ->
@@ -521,6 +535,7 @@ private fun parseInstructionArguments(
                 }
 
                 is ILabelVarType -> {
+                    varargCount++
                     val argSize = cursor.u8()
                     args.addAll(cursor.u16Array(argSize.toInt()).map { Arg(it.toInt()) })
                 }
@@ -532,12 +547,19 @@ private fun parseInstructionArguments(
                 }
 
                 is RegRefVarType -> {
+                    varargCount++
                     val argSize = cursor.u8()
                     args.addAll(cursor.u8Array(argSize.toInt()).map { Arg(it.toInt()) })
                 }
 
                 else -> error("Parameter type ${param.type} not implemented.")
             }
+        }
+
+        val minExpectedArgs = opcode.params.size - varargCount
+
+        check(args.size >= minExpectedArgs) {
+            "Expected to parse at least $minExpectedArgs, only parsed ${args.size}."
         }
     }
 

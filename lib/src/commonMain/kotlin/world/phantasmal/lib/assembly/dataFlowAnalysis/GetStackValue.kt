@@ -6,7 +6,7 @@ import world.phantasmal.lib.assembly.*
 private val logger = KotlinLogging.logger {}
 
 /**
- * Computes the possible values of a stack element at the nth position from the top right before a
+ * Computes the possible values of a stack element at the nth position from the top, right before a
  * specific instruction.
  */
 fun getStackValue(cfg: ControlFlowGraph, instruction: Instruction, position: Int): ValueSet {
