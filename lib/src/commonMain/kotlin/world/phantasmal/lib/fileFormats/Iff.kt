@@ -34,9 +34,9 @@ private fun <T> parse(
     var corrupted = false
 
     while (cursor.bytesLeft >= 8) {
-        val type = cursor.i32()
+        val type = cursor.int()
         val sizePos = cursor.position
-        val size = cursor.i32()
+        val size = cursor.int()
 
         if (size > cursor.bytesLeft) {
             corrupted = true

@@ -2,7 +2,7 @@ package world.phantasmal.observable.value
 
 import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.core.disposable.disposable
-import world.phantasmal.core.fastCast
+import world.phantasmal.core.unsafeToNonNull
 
 /**
  * Starts observing its dependencies when the first observer on this val is registered. Stops
@@ -25,7 +25,7 @@ abstract class DependentVal<T>(
                 _value = computeValue()
             }
 
-            return _value.fastCast()
+            return _value.unsafeToNonNull()
         }
 
     override fun observe(callNow: Boolean, observer: ValObserver<T>): Disposable {
@@ -37,7 +37,7 @@ abstract class DependentVal<T>(
                         _value = computeValue()
 
                         if (_value != oldValue) {
-                            emit(oldValue.fastCast())
+                            emit(oldValue.unsafeToNonNull())
                         }
                     }
                 )

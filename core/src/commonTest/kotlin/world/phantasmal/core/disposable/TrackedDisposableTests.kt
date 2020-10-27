@@ -1,6 +1,5 @@
 package world.phantasmal.core.disposable
 
-import kotlinx.coroutines.Job
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -11,7 +10,7 @@ class TrackedDisposableTests {
     fun count_should_go_up_when_created_and_down_when_disposed() {
         val initialCount = TrackedDisposable.disposableCount
 
-        val disposable = object : TrackedDisposable(DummyScope()) {
+        val disposable = object : TrackedDisposable() {
             override fun internalDispose() {}
         }
 
@@ -26,7 +25,7 @@ class TrackedDisposableTests {
     fun double_dispose_should_not_increase_count() {
         val initialCount = TrackedDisposable.disposableCount
 
-        val disposable = object : TrackedDisposable(DummyScope()) {
+        val disposable = object : TrackedDisposable() {
             override fun internalDispose() {}
         }
 
@@ -39,7 +38,7 @@ class TrackedDisposableTests {
 
     @Test
     fun disposed_property_should_be_set_correctly() {
-        val disposable = object : TrackedDisposable(DummyScope()) {
+        val disposable = object : TrackedDisposable() {
             override fun internalDispose() {}
         }
 
@@ -48,15 +47,5 @@ class TrackedDisposableTests {
         disposable.dispose()
 
         assertTrue(disposable.disposed)
-    }
-
-    private class DummyScope : Scope {
-        override val coroutineContext = Job()
-
-        override fun add(disposable: Disposable) {
-            // Do nothing.
-        }
-
-        override fun scope(): Scope = throw NotImplementedError()
     }
 }

@@ -2,8 +2,9 @@ package world.phantasmal.lib.compression.prs
 
 import world.phantasmal.lib.buffer.Buffer
 import world.phantasmal.lib.cursor.cursor
+import world.phantasmal.lib.test.asyncTest
+import world.phantasmal.lib.test.readFile
 import kotlin.random.Random
-import kotlin.random.nextUInt
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -15,7 +16,7 @@ class PrsDecompressTests {
 
     @Test
     fun edge_case_1_byte() {
-        testWithBuffer(Buffer.withSize(1).fill(111))
+        testWithBuffer(Buffer.withSize(1).fillByte(111))
     }
 
     @Test
@@ -30,7 +31,7 @@ class PrsDecompressTests {
 
     @Test
     fun best_case() {
-        testWithBuffer(Buffer.withSize(10_000).fill(127))
+        testWithBuffer(Buffer.withSize(10_000).fillByte(127))
     }
 
     @Test
@@ -39,7 +40,7 @@ class PrsDecompressTests {
         val buffer = Buffer.withSize(10_000)
 
         for (i in 0 until buffer.size step 4) {
-            buffer.setU32(i, random.nextUInt())
+            buffer.setInt(i, random.nextInt())
         }
 
         testWithBuffer(buffer)
@@ -52,7 +53,7 @@ class PrsDecompressTests {
         val buffer = Buffer.withSize(1000 * pattern.size)
 
         for (i in 0 until buffer.size) {
-            buffer.setI8(i, (pattern[i % pattern.size] + random.nextInt(10)).toByte())
+            buffer.setByte(i, (pattern[i % pattern.size] + random.nextInt(10)).toByte())
         }
 
         testWithBuffer(buffer)
@@ -68,8 +69,8 @@ class PrsDecompressTests {
         assertEquals(cursor.size, decompressedCursor.size)
 
         while (cursor.hasBytesLeft()) {
-            val expected = cursor.i8()
-            val actual = decompressedCursor.i8()
+            val expected = cursor.byte()
+            val actual = decompressedCursor.byte()
 
             if (expected != actual) {
                 // Assert after check for performance.
@@ -77,6 +78,34 @@ class PrsDecompressTests {
                     expected,
                     actual,
                     "Got $actual, expected $expected at ${cursor.position - 1}."
+                )
+            }
+        }
+    }
+
+    @Test
+    fun decompress_towards_the_future() = asyncTest {
+        prsDecompress(readFile("/quest118_e.bin")).unwrap()
+    }
+
+    @Test
+    fun compress_and_decompress_towards_the_future() = asyncTest {
+        val orig = readFile("/quest118_e_decompressed.bin")
+        val test = prsDecompress(prsCompress(orig)).unwrap()
+        orig.seekStart(0)
+
+        assertEquals(orig.size, test.size)
+
+        while (orig.hasBytesLeft()) {
+            val expected = orig.byte()
+            val actual = test.byte()
+
+            if (expected != actual) {
+                // Assert after check for performance.
+                assertEquals(
+                    expected,
+                    actual,
+                    "Got $actual, expected $expected at ${orig.position - 1}."
                 )
             }
         }

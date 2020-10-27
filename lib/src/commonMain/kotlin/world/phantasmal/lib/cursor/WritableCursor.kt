@@ -15,60 +15,60 @@ interface WritableCursor : Cursor {
     /**
      * Writes an unsigned 8-bit integer and increments position by 1.
      */
-    fun writeU8(value: UByte): WritableCursor
+    fun writeUByte(value: UByte): WritableCursor
 
     /**
      * Writes an unsigned 16-bit integer and increments position by 2.
      */
-    fun writeU16(value: UShort): WritableCursor
+    fun writeUShort(value: UShort): WritableCursor
 
     /**
      * Writes an unsigned 32-bit integer and increments position by 4.
      */
-    fun writeU32(value: UInt): WritableCursor
+    fun writeUInt(value: UInt): WritableCursor
 
     /**
      * Writes a signed 8-bit integer and increments position by 1.
      */
-    fun writeI8(value: Byte): WritableCursor
+    fun writeByte(value: Byte): WritableCursor
 
     /**
      * Writes a signed 16-bit integer and increments position by 2.
      */
-    fun writeI16(value: Short): WritableCursor
+    fun writeShort(value: Short): WritableCursor
 
     /**
      * Writes a signed 32-bit integer and increments position by 4.
      */
-    fun writeI32(value: Int): WritableCursor
+    fun writeInt(value: Int): WritableCursor
 
     /**
      * Writes a 32-bit floating point number and increments position by 4.
      */
-    fun writeF32(value: Float): WritableCursor
+    fun writeFloat(value: Float): WritableCursor
 
     /**
      * Writes an array of unsigned 8-bit integers and increments position by the array's length.
      */
-    fun writeU8Array(array: UByteArray): WritableCursor
+    fun writeUByteArray(array: UByteArray): WritableCursor
 
     /**
      * Writes an array of unsigned 16-bit integers and increments position by twice the array's
      * length.
      */
-    fun writeU16Array(array: UShortArray): WritableCursor
+    fun writeUShortArray(array: UShortArray): WritableCursor
 
     /**
      * Writes an array of unsigned 32-bit integers and increments position by four times the array's
      * length.
      */
-    fun writeU32Array(array: UIntArray): WritableCursor
+    fun writeUIntArray(array: UIntArray): WritableCursor
 
     /**
      * Writes an array of signed 32-bit integers and increments position by four times the array's
      * length.
      */
-    fun writeI32Array(array: IntArray): WritableCursor
+    fun writeIntArray(array: IntArray): WritableCursor
 
     /**
      * Writes the contents of the given cursor from its position to its end. Increments this

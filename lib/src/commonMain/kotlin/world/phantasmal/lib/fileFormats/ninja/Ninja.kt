@@ -62,7 +62,7 @@ private fun <Model, Context> parseSiblingObjects(
     parse_model: (cursor: Cursor, context: Context) -> Model,
     context: Context,
 ): List<NjObject<Model>> {
-    val evalFlags = cursor.u32()
+    val evalFlags = cursor.uInt()
     val noTranslate = (evalFlags and 0b1u) != 0u
     val noRotate = (evalFlags and 0b10u) != 0u
     val noScale = (evalFlags and 0b100u) != 0u
@@ -72,16 +72,16 @@ private fun <Model, Context> parseSiblingObjects(
     val skip = (evalFlags and 0b1000000u) != 0u
     val shapeSkip = (evalFlags and 0b10000000u) != 0u
 
-    val modelOffset = cursor.i32()
+    val modelOffset = cursor.int()
     val pos = cursor.vec3F32()
     val rotation = Vec3(
-        angleToRad(cursor.i32()),
-        angleToRad(cursor.i32()),
-        angleToRad(cursor.i32()),
+        angleToRad(cursor.int()),
+        angleToRad(cursor.int()),
+        angleToRad(cursor.int()),
     )
     val scale = cursor.vec3F32()
-    val childOffset = cursor.i32()
-    val siblingOffset = cursor.i32()
+    val childOffset = cursor.int()
+    val siblingOffset = cursor.int()
 
     val model = if (modelOffset == 0) {
         null

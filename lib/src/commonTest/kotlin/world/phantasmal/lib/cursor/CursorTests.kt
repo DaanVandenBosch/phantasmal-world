@@ -46,46 +46,46 @@ abstract class CursorTests {
         val cursor = createCursor(byteArrayOf(1, 2, 3, 4), endianness)
 
         if (endianness == Endianness.Little) {
-            assertEquals(0x04030201u, cursor.u32())
+            assertEquals(0x04030201u, cursor.uInt())
         } else {
-            assertEquals(0x01020304u, cursor.u32())
+            assertEquals(0x01020304u, cursor.uInt())
         }
     }
 
     @Test
     fun u8() {
-        testIntegerRead(1, { u8().toInt() }, Endianness.Little)
-        testIntegerRead(1, { u8().toInt() }, Endianness.Big)
+        testIntegerRead(1, { uByte().toInt() }, Endianness.Little)
+        testIntegerRead(1, { uByte().toInt() }, Endianness.Big)
     }
 
     @Test
     fun u16() {
-        testIntegerRead(2, { u16().toInt() }, Endianness.Little)
-        testIntegerRead(2, { u16().toInt() }, Endianness.Big)
+        testIntegerRead(2, { uShort().toInt() }, Endianness.Little)
+        testIntegerRead(2, { uShort().toInt() }, Endianness.Big)
     }
 
     @Test
     fun u32() {
-        testIntegerRead(4, { u32().toInt() }, Endianness.Little)
-        testIntegerRead(4, { u32().toInt() }, Endianness.Big)
+        testIntegerRead(4, { uInt().toInt() }, Endianness.Little)
+        testIntegerRead(4, { uInt().toInt() }, Endianness.Big)
     }
 
     @Test
     fun i8() {
-        testIntegerRead(1, { i8().toInt() }, Endianness.Little)
-        testIntegerRead(1, { i8().toInt() }, Endianness.Big)
+        testIntegerRead(1, { byte().toInt() }, Endianness.Little)
+        testIntegerRead(1, { byte().toInt() }, Endianness.Big)
     }
 
     @Test
     fun i16() {
-        testIntegerRead(2, { i16().toInt() }, Endianness.Little)
-        testIntegerRead(2, { i16().toInt() }, Endianness.Big)
+        testIntegerRead(2, { short().toInt() }, Endianness.Little)
+        testIntegerRead(2, { short().toInt() }, Endianness.Big)
     }
 
     @Test
     fun i32() {
-        testIntegerRead(4, { i32() }, Endianness.Little)
-        testIntegerRead(4, { i32() }, Endianness.Big)
+        testIntegerRead(4, { int() }, Endianness.Little)
+        testIntegerRead(4, { int() }, Endianness.Big)
     }
 
     /**
@@ -138,17 +138,17 @@ abstract class CursorTests {
 
         val cursor = createCursor(bytes, endianness)
 
-        assertEquals(2.5f, cursor.f32())
+        assertEquals(2.5f, cursor.float())
         assertEquals(4, cursor.position)
 
-        assertEquals(32.25f, cursor.f32())
+        assertEquals(32.25f, cursor.float())
         assertEquals(8, cursor.position)
     }
 
     @Test
     fun u8Array() {
         val read: Cursor.(Int) -> IntArray = { n ->
-            val arr = u8Array(n)
+            val arr = uByteArray(n)
             IntArray(n) { arr[it].toInt() }
         }
 
@@ -159,7 +159,7 @@ abstract class CursorTests {
     @Test
     fun u16Array() {
         val read: Cursor.(Int) -> IntArray = { n ->
-            val arr = u16Array(n)
+            val arr = uShortArray(n)
             IntArray(n) { arr[it].toInt() }
         }
 
@@ -170,7 +170,7 @@ abstract class CursorTests {
     @Test
     fun u32Array() {
         val read: Cursor.(Int) -> IntArray = { n ->
-            val arr = u32Array(n)
+            val arr = uIntArray(n)
             IntArray(n) { arr[it].toInt() }
         }
 
@@ -181,7 +181,7 @@ abstract class CursorTests {
     @Test
     fun i32Array() {
         val read: Cursor.(Int) -> IntArray = { n ->
-            val arr = i32Array(n)
+            val arr = intArray(n)
             IntArray(n) { arr[it] }
         }
 
@@ -254,10 +254,10 @@ abstract class CursorTests {
 
         assertEquals(6, cursor.position)
         assertEquals(4, newCursor.size)
-        assertEquals(3u, newCursor.u8())
-        assertEquals(4u, newCursor.u8())
-        assertEquals(5u, newCursor.u8())
-        assertEquals(6u, newCursor.u8())
+        assertEquals(3u, newCursor.uByte())
+        assertEquals(4u, newCursor.uByte())
+        assertEquals(5u, newCursor.uByte())
+        assertEquals(6u, newCursor.uByte())
     }
 
     @Test
@@ -284,7 +284,7 @@ abstract class CursorTests {
         val chars = byteArrayOf(7, 65, 66, 0, (255).toByte(), 13)
         val bytes = ByteArray(chars.size * byteCount)
 
-        for (i in 0..chars.size) {
+        for (i in chars.indices) {
             if (endianness == Endianness.Little) {
                 bytes[byteCount * i] = chars[i]
             } else {
@@ -332,9 +332,9 @@ abstract class CursorTests {
 
         assertEquals(6, cursor.position)
         assertEquals(4, buf.size)
-        assertEquals(3u, buf.getU8(0))
-        assertEquals(4u, buf.getU8(1))
-        assertEquals(5u, buf.getU8(2))
-        assertEquals(6u, buf.getU8(3))
+        assertEquals(3u, buf.getUByte(0))
+        assertEquals(4u, buf.getUByte(1))
+        assertEquals(5u, buf.getUByte(2))
+        assertEquals(6u, buf.getUByte(3))
     }
 }

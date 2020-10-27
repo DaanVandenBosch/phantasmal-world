@@ -12,7 +12,10 @@ actual fun asyncTest(block: suspend () -> Unit): dynamic = GlobalScope.promise {
 
 actual suspend fun readFile(path: String): Cursor {
     return window.fetch(path)
-        .then { it.arrayBuffer() }
+        .then {
+            require(it.ok) { """Couldn't load resource "$path".""" }
+            it.arrayBuffer()
+        }
         .then { ArrayBufferCursor(it, Endianness.Little) }
         .await()
 }

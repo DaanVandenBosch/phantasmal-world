@@ -92,12 +92,12 @@ private class PrsDecompressor(cursor: Cursor) {
     }
 
     fun copyU8() {
-        dst.writeU8(readU8())
+        dst.writeUByte(readU8())
     }
 
-    fun readU8(): UByte = src.u8()
+    fun readU8(): UByte = src.uByte()
 
-    fun readU16(): UShort = src.u16()
+    fun readU16(): UShort = src.uShort()
 
     fun offsetCopy(offset: Int, length: Int) {
         require(offset in -8192..0) {

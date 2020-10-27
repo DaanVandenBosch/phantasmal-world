@@ -48,57 +48,57 @@ interface Cursor {
     /**
      * Reads an unsigned 8-bit integer and increments position by 1.
      */
-    fun u8(): UByte
+    fun uByte(): UByte
 
     /**
      * Reads an unsigned 16-bit integer and increments position by 2.
      */
-    fun u16(): UShort
+    fun uShort(): UShort
 
     /**
      * Reads an unsigned 32-bit integer and increments position by 4.
      */
-    fun u32(): UInt
+    fun uInt(): UInt
 
     /**
      * Reads an signed 8-bit integer and increments position by 1.
      */
-    fun i8(): Byte
+    fun byte(): Byte
 
     /**
      * Reads a signed 16-bit integer and increments position by 2.
      */
-    fun i16(): Short
+    fun short(): Short
 
     /**
      * Reads a signed 32-bit integer and increments position by 4.
      */
-    fun i32(): Int
+    fun int(): Int
 
     /**
      * Reads a 32-bit floating point number and increments position by 4.
      */
-    fun f32(): Float
+    fun float(): Float
 
     /**
      * Reads [n] unsigned 8-bit integers and increments position by [n].
      */
-    fun u8Array(n: Int): UByteArray
+    fun uByteArray(n: Int): UByteArray
 
     /**
      * Reads [n] unsigned 16-bit integers and increments position by 2[n].
      */
-    fun u16Array(n: Int): UShortArray
+    fun uShortArray(n: Int): UShortArray
 
     /**
      * Reads [n] unsigned 32-bit integers and increments position by 4[n].
      */
-    fun u32Array(n: Int): UIntArray
+    fun uIntArray(n: Int): UIntArray
 
     /**
      * Reads [n] signed 32-bit integers and increments position by 4[n].
      */
-    fun i32Array(n: Int): IntArray
+    fun intArray(n: Int): IntArray
 
     /**
      * Consumes a variable number of bytes.

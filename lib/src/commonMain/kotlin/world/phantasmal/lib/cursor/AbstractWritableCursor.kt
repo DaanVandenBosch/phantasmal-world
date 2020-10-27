@@ -42,7 +42,7 @@ protected constructor(protected val offset: Int) : WritableCursor {
     ): String =
         buildString {
             for (i in 0 until maxByteLength) {
-                val codePoint = u8()
+                val codePoint = uByte()
 
                 if (nullTerminated && codePoint == ZERO_U8) {
                     if (dropRemaining) {
@@ -65,7 +65,7 @@ protected constructor(protected val offset: Int) : WritableCursor {
             val len = maxByteLength / 2
 
             for (i in 0 until len) {
-                val codePoint = u16()
+                val codePoint = uShort()
 
                 if (nullTerminated && codePoint == ZERO_U16) {
                     if (dropRemaining) {
@@ -79,45 +79,45 @@ protected constructor(protected val offset: Int) : WritableCursor {
             }
         }
 
-    override fun writeU8Array(array: UByteArray): WritableCursor {
+    override fun writeUByteArray(array: UByteArray): WritableCursor {
         val len = array.size
         requireSize(len)
 
         for (i in 0 until len) {
-            writeU8(array[i])
+            writeUByte(array[i])
         }
 
         return this
     }
 
-    override fun writeU16Array(array: UShortArray): WritableCursor {
+    override fun writeUShortArray(array: UShortArray): WritableCursor {
         val len = array.size
         requireSize(2 * len)
 
         for (i in 0 until len) {
-            writeU16(array[i])
+            writeUShort(array[i])
         }
 
         return this
     }
 
-    override fun writeU32Array(array: UIntArray): WritableCursor {
+    override fun writeUIntArray(array: UIntArray): WritableCursor {
         val len = array.size
         requireSize(4 * len)
 
         for (i in 0 until len) {
-            writeU32(array[i])
+            writeUInt(array[i])
         }
 
         return this
     }
 
-    override fun writeI32Array(array: IntArray): WritableCursor {
+    override fun writeIntArray(array: IntArray): WritableCursor {
         val len = array.size
         requireSize(4 * len)
 
         for (i in 0 until len) {
-            writeI32(array[i])
+            writeInt(array[i])
         }
 
         return this
@@ -127,7 +127,7 @@ protected constructor(protected val offset: Int) : WritableCursor {
         val size = other.bytesLeft
         requireSize(size)
         for (i in 0 until size) {
-            writeI8(other.i8())
+            writeByte(other.byte())
         }
 
         return this
@@ -139,13 +139,13 @@ protected constructor(protected val offset: Int) : WritableCursor {
         val len = min(byteLength, str.length)
 
         for (i in 0 until len) {
-            writeI8(str[i].toByte())
+            writeByte(str[i].toByte())
         }
 
         val padLen = byteLength - len
 
         for (i in 0 until padLen) {
-            writeI8(0)
+            writeByte(0)
         }
 
         return this
@@ -158,13 +158,13 @@ protected constructor(protected val offset: Int) : WritableCursor {
         val len = min(maxLen, str.length)
 
         for (i in 0 until len) {
-            writeI16(str[i].toShort())
+            writeShort(str[i].toShort())
         }
 
         val padLen = maxLen - len
 
         for (i in 0 until padLen) {
-            writeI16(0)
+            writeShort(0)
         }
 
         return this

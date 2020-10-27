@@ -11,38 +11,38 @@ class BufferCursorTests : WritableCursorTests() {
 
     @Test
     fun writeU8_increases_size_correctly() {
-        testIntegerWriteSize(1, { writeU8(it.toUByte()) }, Endianness.Little)
-        testIntegerWriteSize(1, { writeU8(it.toUByte()) }, Endianness.Big)
+        testIntegerWriteSize(1, { writeUByte(it.toUByte()) }, Endianness.Little)
+        testIntegerWriteSize(1, { writeUByte(it.toUByte()) }, Endianness.Big)
     }
 
     @Test
     fun writeU16_increases_size_correctly() {
-        testIntegerWriteSize(2, { writeU16(it.toUShort()) }, Endianness.Little)
-        testIntegerWriteSize(2, { writeU16(it.toUShort()) }, Endianness.Big)
+        testIntegerWriteSize(2, { writeUShort(it.toUShort()) }, Endianness.Little)
+        testIntegerWriteSize(2, { writeUShort(it.toUShort()) }, Endianness.Big)
     }
 
     @Test
     fun writeU32_increases_size_correctly() {
-        testIntegerWriteSize(4, { writeU32(it.toUInt()) }, Endianness.Little)
-        testIntegerWriteSize(4, { writeU32(it.toUInt()) }, Endianness.Big)
+        testIntegerWriteSize(4, { writeUInt(it.toUInt()) }, Endianness.Little)
+        testIntegerWriteSize(4, { writeUInt(it.toUInt()) }, Endianness.Big)
     }
 
     @Test
     fun writeI8_increases_size_correctly() {
-        testIntegerWriteSize(1, { writeI8(it.toByte()) }, Endianness.Little)
-        testIntegerWriteSize(1, { writeI8(it.toByte()) }, Endianness.Big)
+        testIntegerWriteSize(1, { writeByte(it.toByte()) }, Endianness.Little)
+        testIntegerWriteSize(1, { writeByte(it.toByte()) }, Endianness.Big)
     }
 
     @Test
     fun writeI16_increases_size_correctly() {
-        testIntegerWriteSize(2, { writeI16(it.toShort()) }, Endianness.Little)
-        testIntegerWriteSize(2, { writeI16(it.toShort()) }, Endianness.Big)
+        testIntegerWriteSize(2, { writeShort(it.toShort()) }, Endianness.Little)
+        testIntegerWriteSize(2, { writeShort(it.toShort()) }, Endianness.Big)
     }
 
     @Test
     fun writeI32_increases_size_correctly() {
-        testIntegerWriteSize(4, { writeI32(it) }, Endianness.Little)
-        testIntegerWriteSize(4, { writeI32(it) }, Endianness.Big)
+        testIntegerWriteSize(4, { writeInt(it) }, Endianness.Little)
+        testIntegerWriteSize(4, { writeInt(it) }, Endianness.Big)
     }
 
     private fun testIntegerWriteSize(

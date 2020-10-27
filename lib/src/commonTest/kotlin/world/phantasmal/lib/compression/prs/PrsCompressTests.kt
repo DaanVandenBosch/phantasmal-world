@@ -17,7 +17,7 @@ class PrsCompressTests {
 
     @Test
     fun edge_case_1_byte() {
-        val compressed = prsCompress(Buffer.withSize(1).fill(111).cursor())
+        val compressed = prsCompress(Buffer.withSize(1).fillByte(111).cursor())
 
         assertEquals(4, compressed.size)
     }
@@ -38,7 +38,7 @@ class PrsCompressTests {
 
     @Test
     fun best_case() {
-        val compressed = prsCompress(Buffer.withSize(10_000).fill(127).cursor())
+        val compressed = prsCompress(Buffer.withSize(10_000).fillByte(127).cursor())
 
         assertEquals(475, compressed.size)
     }
@@ -49,7 +49,7 @@ class PrsCompressTests {
         val buffer = Buffer.withSize(10_000)
 
         for (i in 0 until buffer.size step 4) {
-            buffer.setU32(i, random.nextUInt())
+            buffer.setUInt(i, random.nextUInt())
         }
 
         val compressed = prsCompress(buffer.cursor())
@@ -64,7 +64,7 @@ class PrsCompressTests {
         val buffer = Buffer.withSize(1000 * pattern.size)
 
         for (i in 0 until buffer.size) {
-            buffer.setI8(i, (pattern[i % pattern.size] + random.nextInt(10)).toByte())
+            buffer.setByte(i, (pattern[i % pattern.size] + random.nextInt(10)).toByte())
         }
 
         val compressed = prsCompress(buffer.cursor())

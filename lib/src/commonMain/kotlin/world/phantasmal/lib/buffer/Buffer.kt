@@ -18,37 +18,37 @@ expect class Buffer {
     /**
      * Reads an unsigned 8-bit integer at the given offset.
      */
-    fun getU8(offset: Int): UByte
+    fun getUByte(offset: Int): UByte
 
     /**
      * Reads an unsigned 16-bit integer at the given offset.
      */
-    fun getU16(offset: Int): UShort
+    fun getUShort(offset: Int): UShort
 
     /**
      * Reads an unsigned 32-bit integer at the given offset.
      */
-    fun getU32(offset: Int): UInt
+    fun getUInt(offset: Int): UInt
 
     /**
      * Reads a signed 8-bit integer at the given offset.
      */
-    fun getI8(offset: Int): Byte
+    fun getByte(offset: Int): Byte
 
     /**
      * Reads a signed 16-bit integer at the given offset.
      */
-    fun getI16(offset: Int): Short
+    fun getShort(offset: Int): Short
 
     /**
      * Reads a signed 32-bit integer at the given offset.
      */
-    fun getI32(offset: Int): Int
+    fun getInt(offset: Int): Int
 
     /**
      * Reads a 32-bit floating point number at the given offset.
      */
-    fun getF32(offset: Int): Float
+    fun getFloat(offset: Int): Float
 
     /**
      * Reads a UTF-16-encoded string at the given offset.
@@ -63,37 +63,37 @@ expect class Buffer {
     /**
      * Writes an unsigned 8-bit integer at the given offset.
      */
-    fun setU8(offset: Int, value: UByte): Buffer
+    fun setUByte(offset: Int, value: UByte): Buffer
 
     /**
      * Writes an unsigned 16-bit integer at the given offset.
      */
-    fun setU16(offset: Int, value: UShort): Buffer
+    fun setUShort(offset: Int, value: UShort): Buffer
 
     /**
      * Writes an unsigned 32-bit integer at the given offset.
      */
-    fun setU32(offset: Int, value: UInt): Buffer
+    fun setUInt(offset: Int, value: UInt): Buffer
 
     /**
      * Writes a signed 8-bit integer at the given offset.
      */
-    fun setI8(offset: Int, value: Byte): Buffer
+    fun setByte(offset: Int, value: Byte): Buffer
 
     /**
      * Writes a signed 16-bit integer at the given offset.
      */
-    fun setI16(offset: Int, value: Short): Buffer
+    fun setShort(offset: Int, value: Short): Buffer
 
     /**
      * Writes a signed 32-bit integer at the given offset.
      */
-    fun setI32(offset: Int, value: Int): Buffer
+    fun setInt(offset: Int, value: Int): Buffer
 
     /**
      * Writes a 32-bit floating point number at the given offset.
      */
-    fun setF32(offset: Int, value: Float): Buffer
+    fun setFloat(offset: Int, value: Float): Buffer
 
     /**
      * Writes 0 bytes to the entire buffer.
@@ -103,7 +103,7 @@ expect class Buffer {
     /**
      * Writes [value] to every byte in the buffer.
      */
-    fun fill(value: Byte): Buffer
+    fun fillByte(value: Byte): Buffer
 
     companion object {
         /**

@@ -21,7 +21,7 @@ abstract class WritableCursorTests : CursorTests() {
 
         assertEquals(0, cursor.position)
 
-        cursor.writeU8(99u).writeU8(99u).writeU8(99u).writeU8(99u)
+        cursor.writeUByte(99u).writeUByte(99u).writeUByte(99u).writeUByte(99u)
         cursor.seek(-1)
 
         assertEquals(cursor.position + cursor.bytesLeft, cursor.size)
@@ -33,38 +33,38 @@ abstract class WritableCursorTests : CursorTests() {
 
     @Test
     fun writeU8() {
-        testIntegerWrite(1, { u8().toInt() }, { writeU8(it.toUByte()) }, Endianness.Little)
-        testIntegerWrite(1, { u8().toInt() }, { writeU8(it.toUByte()) }, Endianness.Big)
+        testIntegerWrite(1, { uByte().toInt() }, { writeUByte(it.toUByte()) }, Endianness.Little)
+        testIntegerWrite(1, { uByte().toInt() }, { writeUByte(it.toUByte()) }, Endianness.Big)
     }
 
     @Test
     fun writeU16() {
-        testIntegerWrite(2, { u16().toInt() }, { writeU16(it.toUShort()) }, Endianness.Little)
-        testIntegerWrite(2, { u16().toInt() }, { writeU16(it.toUShort()) }, Endianness.Big)
+        testIntegerWrite(2, { uShort().toInt() }, { writeUShort(it.toUShort()) }, Endianness.Little)
+        testIntegerWrite(2, { uShort().toInt() }, { writeUShort(it.toUShort()) }, Endianness.Big)
     }
 
     @Test
     fun writeU32() {
-        testIntegerWrite(4, { u32().toInt() }, { writeU32(it.toUInt()) }, Endianness.Little)
-        testIntegerWrite(4, { u32().toInt() }, { writeU32(it.toUInt()) }, Endianness.Big)
+        testIntegerWrite(4, { uInt().toInt() }, { writeUInt(it.toUInt()) }, Endianness.Little)
+        testIntegerWrite(4, { uInt().toInt() }, { writeUInt(it.toUInt()) }, Endianness.Big)
     }
 
     @Test
     fun writeI8() {
-        testIntegerWrite(1, { i8().toInt() }, { writeI8(it.toByte()) }, Endianness.Little)
-        testIntegerWrite(1, { i8().toInt() }, { writeI8(it.toByte()) }, Endianness.Big)
+        testIntegerWrite(1, { byte().toInt() }, { writeByte(it.toByte()) }, Endianness.Little)
+        testIntegerWrite(1, { byte().toInt() }, { writeByte(it.toByte()) }, Endianness.Big)
     }
 
     @Test
     fun writeI16() {
-        testIntegerWrite(2, { i16().toInt() }, { writeI16(it.toShort()) }, Endianness.Little)
-        testIntegerWrite(2, { i16().toInt() }, { writeI16(it.toShort()) }, Endianness.Big)
+        testIntegerWrite(2, { short().toInt() }, { writeShort(it.toShort()) }, Endianness.Little)
+        testIntegerWrite(2, { short().toInt() }, { writeShort(it.toShort()) }, Endianness.Big)
     }
 
     @Test
     fun writeI32() {
-        testIntegerWrite(4, { i32() }, { writeI32(it) }, Endianness.Little)
-        testIntegerWrite(4, { i32() }, { writeI32(it) }, Endianness.Big)
+        testIntegerWrite(4, { int() }, { writeInt(it) }, Endianness.Little)
+        testIntegerWrite(4, { int() }, { writeInt(it) }, Endianness.Big)
     }
 
     /**
@@ -104,8 +104,8 @@ abstract class WritableCursorTests : CursorTests() {
     private fun writeF32(endianness: Endianness) {
         val cursor = createCursor(ByteArray(8), endianness)
 
-        cursor.writeF32(1337.9001f)
-        cursor.writeF32(103.502f)
+        cursor.writeFloat(1337.9001f)
+        cursor.writeFloat(103.502f)
 
         assertEquals(8, cursor.position)
 
@@ -113,8 +113,8 @@ abstract class WritableCursorTests : CursorTests() {
 
         // The read floats won't be exactly the same as the written floats in Kotlin JS, because
         // they're backed by numbers (64-bit floats).
-        assertTrue(abs(1337.9001f - cursor.f32()) < 0.001)
-        assertTrue(abs(103.502f - cursor.f32()) < 0.001)
+        assertTrue(abs(1337.9001f - cursor.float()) < 0.001)
+        assertTrue(abs(103.502f - cursor.float()) < 0.001)
 
         assertEquals(8, cursor.position)
     }
@@ -122,11 +122,11 @@ abstract class WritableCursorTests : CursorTests() {
     @Test
     fun writeU8Array() {
         val read: Cursor.(Int) -> IntArray = { n ->
-            val arr = u8Array(n)
+            val arr = uByteArray(n)
             IntArray(n) { arr[it].toInt() }
         }
         val write: WritableCursor.(IntArray) -> Unit = { a ->
-            writeU8Array(UByteArray(a.size) { a[it].toUByte() })
+            writeUByteArray(UByteArray(a.size) { a[it].toUByte() })
         }
 
         testIntegerArrayWrite(1, read, write, Endianness.Little)
@@ -136,11 +136,11 @@ abstract class WritableCursorTests : CursorTests() {
     @Test
     fun writeU16Array() {
         val read: Cursor.(Int) -> IntArray = { n ->
-            val arr = u16Array(n)
+            val arr = uShortArray(n)
             IntArray(n) { arr[it].toInt() }
         }
         val write: WritableCursor.(IntArray) -> Unit = { a ->
-            writeU16Array(UShortArray(a.size) { a[it].toUShort() })
+            writeUShortArray(UShortArray(a.size) { a[it].toUShort() })
         }
 
         testIntegerArrayWrite(2, read, write, Endianness.Little)
@@ -150,11 +150,11 @@ abstract class WritableCursorTests : CursorTests() {
     @Test
     fun writeU32Array() {
         val read: Cursor.(Int) -> IntArray = { n ->
-            val arr = u32Array(n)
+            val arr = uIntArray(n)
             IntArray(n) { arr[it].toInt() }
         }
         val write: WritableCursor.(IntArray) -> Unit = { a ->
-            writeU32Array(UIntArray(a.size) { a[it].toUInt() })
+            writeUIntArray(UIntArray(a.size) { a[it].toUInt() })
         }
 
         testIntegerArrayWrite(4, read, write, Endianness.Little)
@@ -164,10 +164,10 @@ abstract class WritableCursorTests : CursorTests() {
     @Test
     fun writeI32Array() {
         val read: Cursor.(Int) -> IntArray = { n ->
-            i32Array(n)
+            intArray(n)
         }
         val write: WritableCursor.(IntArray) -> Unit = { a ->
-            writeI32Array(a)
+            writeIntArray(a)
         }
 
         testIntegerArrayWrite(4, read, write, Endianness.Little)
@@ -214,14 +214,14 @@ abstract class WritableCursorTests : CursorTests() {
 
         cursor.seekStart(0)
 
-        assertEquals(0, cursor.i8())
-        assertEquals(0, cursor.i8())
-        assertEquals(1, cursor.i8())
-        assertEquals(2, cursor.i8())
-        assertEquals(3, cursor.i8())
-        assertEquals(4, cursor.i8())
-        assertEquals(0, cursor.i8())
-        assertEquals(0, cursor.i8())
+        assertEquals(0, cursor.byte())
+        assertEquals(0, cursor.byte())
+        assertEquals(1, cursor.byte())
+        assertEquals(2, cursor.byte())
+        assertEquals(3, cursor.byte())
+        assertEquals(4, cursor.byte())
+        assertEquals(0, cursor.byte())
+        assertEquals(0, cursor.byte())
     }
 
     @Test
@@ -233,14 +233,14 @@ abstract class WritableCursorTests : CursorTests() {
     private fun write_seek_backwards_then_take(endianness: Endianness) {
         val cursor = createCursor(ByteArray(16), endianness)
 
-        cursor.writeU32(1u).writeU32(2u).writeU32(3u).writeU32(4u)
+        cursor.writeUInt(1u).writeUInt(2u).writeUInt(3u).writeUInt(4u)
         cursor.seek(-8)
         val newCursor = cursor.take(8)
 
         assertEquals(16, cursor.position)
         assertEquals(8, newCursor.size)
         assertEquals(0, newCursor.position)
-        assertEquals(3u, newCursor.u32())
-        assertEquals(4u, newCursor.u32())
+        assertEquals(3u, newCursor.uInt())
+        assertEquals(4u, newCursor.uInt())
     }
 }

@@ -180,7 +180,7 @@ private class Assembler(private val assembly: List<String>, private val manualSt
                 seg.data.size += bytes.size
 
                 for (i in bytes.indices) {
-                    seg.data.setI8(i + oldSize, bytes[i])
+                    seg.data.setByte(i + oldSize, bytes[i])
                 }
             }
 

@@ -2,7 +2,6 @@ plugins {
     kotlin("multiplatform")
 }
 
-val coroutinesVersion: String by project.ext
 val kotlinLoggingVersion: String by project.extra
 
 kotlin {
@@ -10,10 +9,11 @@ kotlin {
         browser {}
     }
 
+    jvm()
+
     sourceSets {
         commonMain {
             dependencies {
-                api("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
                 api("io.github.microutils:kotlin-logging:$kotlinLoggingVersion")
             }
         }
@@ -25,14 +25,16 @@ kotlin {
             }
         }
 
-        val jsTest by getting {
+        getByName("jsTest") {
             dependencies {
                 implementation(kotlin("test-js"))
             }
         }
-    }
-}
 
-tasks.register("test") {
-    dependsOn("allTests")
+        getByName("jvmTest") {
+            dependencies {
+                implementation(kotlin("test-junit"))
+            }
+        }
+    }
 }

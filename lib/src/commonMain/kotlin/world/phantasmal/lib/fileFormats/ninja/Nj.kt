@@ -123,10 +123,10 @@ class NjcmErgb(
 )
 
 fun parseNjcmModel(cursor: Cursor, cachedChunkOffsets: MutableMap<UByte, Int>): NjcmModel {
-    val vlistOffset = cursor.i32() // Vertex list
-    val plistOffset = cursor.i32() // Triangle strip index list
+    val vlistOffset = cursor.int() // Vertex list
+    val plistOffset = cursor.int() // Triangle strip index list
     val boundingSphereCenter = cursor.vec3F32()
-    val boundingSphereRadius = cursor.f32()
+    val boundingSphereRadius = cursor.float()
     val vertices: MutableList<NjcmVertex> = mutableListOf()
     val meshes: MutableList<NjcmTriangleStrip> = mutableListOf()
 
@@ -156,6 +156,7 @@ fun parseNjcmModel(cursor: Cursor, cachedChunkOffsets: MutableMap<UByte, Int>): 
         var dstAlpha: UByte? = null
 
         for (chunk in parseChunks(cursor, cachedChunkOffsets, false)) {
+            @Suppress("UNUSED_VALUE") // Ignore useless warning due to compiler bug.
             when (chunk) {
                 is NjcmChunk.Bits -> {
                     srcAlpha = chunk.srcAlpha
@@ -210,8 +211,8 @@ private fun parseChunks(
     var loop = true
 
     while (loop) {
-        val typeId = cursor.u8()
-        val flags = cursor.u8()
+        val typeId = cursor.uByte()
+        val flags = cursor.uByte()
         val flagsUInt = flags.toUInt()
         val chunkStartPosition = cursor.position
         var size = 0
@@ -254,7 +255,7 @@ private fun parseChunks(
             }
             in 8..9 -> {
                 size = 2
-                val textureBitsAndId = cursor.u16().toUInt()
+                val textureBitsAndId = cursor.uShort().toUInt()
 
                 chunks.add(NjcmChunk.Tiny(
                     typeId,
@@ -269,7 +270,7 @@ private fun parseChunks(
                 ))
             }
             in 17..31 -> {
-                size = 2 + 2 * cursor.i16()
+                size = 2 + 2 * cursor.short()
 
                 var diffuse: NjcmArgb? = null
                 var ambient: NjcmArgb? = null
@@ -277,28 +278,28 @@ private fun parseChunks(
 
                 if ((flagsUInt and 0b1u) != 0u) {
                     diffuse = NjcmArgb(
-                        b = cursor.u8().toFloat() / 255f,
-                        g = cursor.u8().toFloat() / 255f,
-                        r = cursor.u8().toFloat() / 255f,
-                        a = cursor.u8().toFloat() / 255f,
+                        b = cursor.uByte().toFloat() / 255f,
+                        g = cursor.uByte().toFloat() / 255f,
+                        r = cursor.uByte().toFloat() / 255f,
+                        a = cursor.uByte().toFloat() / 255f,
                     )
                 }
 
                 if ((flagsUInt and 0b10u) != 0u) {
                     ambient = NjcmArgb(
-                        b = cursor.u8().toFloat() / 255f,
-                        g = cursor.u8().toFloat() / 255f,
-                        r = cursor.u8().toFloat() / 255f,
-                        a = cursor.u8().toFloat() / 255f,
+                        b = cursor.uByte().toFloat() / 255f,
+                        g = cursor.uByte().toFloat() / 255f,
+                        r = cursor.uByte().toFloat() / 255f,
+                        a = cursor.uByte().toFloat() / 255f,
                     )
                 }
 
                 if ((flagsUInt and 0b100u) != 0u) {
                     specular = NjcmErgb(
-                        b = cursor.u8(),
-                        g = cursor.u8(),
-                        r = cursor.u8(),
-                        e = cursor.u8(),
+                        b = cursor.uByte(),
+                        g = cursor.uByte(),
+                        r = cursor.uByte(),
+                        e = cursor.uByte(),
                     )
                 }
 
@@ -312,20 +313,20 @@ private fun parseChunks(
                 ))
             }
             in 32..50 -> {
-                size = 2 + 4 * cursor.i16()
+                size = 2 + 4 * cursor.short()
                 chunks.add(NjcmChunk.Vertex(
                     typeId,
                     vertices = parseVertexChunk(cursor, typeId, flags),
                 ))
             }
             in 56..58 -> {
-                size = 2 + 2 * cursor.i16()
+                size = 2 + 2 * cursor.short()
                 chunks.add(NjcmChunk.Volume(
                     typeId,
                 ))
             }
             in 64..75 -> {
-                size = 2 + 2 * cursor.i16()
+                size = 2 + 2 * cursor.short()
                 chunks.add(NjcmChunk.Strip(
                     typeId,
                     triangleStrips = parseTriangleStripChunk(cursor, typeId, flags),
@@ -337,7 +338,7 @@ private fun parseChunks(
                 loop = false
             }
             else -> {
-                size = 2 + 2 * cursor.i16()
+                size = 2 + 2 * cursor.short()
                 chunks.add(NjcmChunk.Unknown(
                     typeId,
                 ))
@@ -359,8 +360,8 @@ private fun parseVertexChunk(
     val boneWeightStatus = flags and 0b11u
     val calcContinue = (flags and 0x80u) != ZERO_U8
 
-    val index = cursor.u16()
-    val vertexCount = cursor.u16()
+    val index = cursor.uShort()
+    val vertexCount = cursor.uShort()
 
     val vertices: MutableList<NjcmChunkVertex> = mutableListOf()
 
@@ -385,8 +386,8 @@ private fun parseVertexChunk(
                 if (chunkTypeId == (37u).toUByte()) {
                     // NJDCVNF
                     // NinjaFlags32
-                    vertexIndex = index + cursor.u16()
-                    boneWeight = cursor.u16().toFloat() / 255f
+                    vertexIndex = index + cursor.uShort()
+                    boneWeight = cursor.uShort().toFloat() / 255f
                 } else {
                     // Skip user flags and material information.
                     cursor.seek(4)
@@ -401,8 +402,8 @@ private fun parseVertexChunk(
                 if (chunkTypeId == (44u).toUByte()) {
                     // NJDCVVNNF
                     // NinjaFlags32
-                    vertexIndex = index + cursor.u16()
-                    boneWeight = cursor.u16().toFloat() / 255f
+                    vertexIndex = index + cursor.uShort()
+                    boneWeight = cursor.uShort().toFloat() / 255f
                 } else {
                     // Skip user flags and material information.
                     cursor.seek(4)
@@ -410,7 +411,7 @@ private fun parseVertexChunk(
             }
             in 48..50 -> {
                 // 32-Bit vertex normal in format: reserved(2)|x(10)|y(10)|z(10)
-                val n = cursor.u32()
+                val n = cursor.uInt()
                 normal = Vec3(
                     ((n shr 20) and 0x3ffu).toFloat() / 0x3ff,
                     ((n shr 10) and 0x3ffu).toFloat() / 0x3ff,
@@ -450,7 +451,7 @@ private fun parseTriangleStripChunk(
     val flatShading = (flags and 0b100000u) != ZERO_U8
     val environmentMapping = (flags and 0b1000000u) != ZERO_U8
 
-    val userOffsetAndStripCount = cursor.u16()
+    val userOffsetAndStripCount = cursor.uShort()
     val userFlagsSize = (userOffsetAndStripCount.toUInt() shr 14).toInt()
     val stripCount = userOffsetAndStripCount and 0x3fffu
 
@@ -490,17 +491,17 @@ private fun parseTriangleStripChunk(
     val strips: MutableList<NjcmTriangleStrip> = mutableListOf()
 
     repeat(stripCount.toInt()) {
-        val windingFlagAndIndexCount = cursor.i16()
+        val windingFlagAndIndexCount = cursor.short()
         val clockwiseWinding = windingFlagAndIndexCount < 1
         val indexCount = abs(windingFlagAndIndexCount.toInt())
 
         val vertices: MutableList<NjcmMeshVertex> = mutableListOf()
 
         for (j in 0..indexCount) {
-            val index = cursor.u16()
+            val index = cursor.uShort()
 
             val texCoords = if (hasTexCoords) {
-                Vec2(cursor.u16().toFloat() / 255f, cursor.u16().toFloat() / 255f)
+                Vec2(cursor.uShort().toFloat() / 255f, cursor.uShort().toFloat() / 255f)
             } else null
 
             // Ignore ARGB8888 color.
@@ -510,9 +511,9 @@ private fun parseTriangleStripChunk(
 
             val normal = if (hasNormal) {
                 Vec3(
-                    cursor.u16().toFloat() / 255f,
-                    cursor.u16().toFloat() / 255f,
-                    cursor.u16().toFloat() / 255f,
+                    cursor.uShort().toFloat() / 255f,
+                    cursor.uShort().toFloat() / 255f,
+                    cursor.uShort().toFloat() / 255f,
                 )
             } else null
 

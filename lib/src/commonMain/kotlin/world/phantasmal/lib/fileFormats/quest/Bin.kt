@@ -40,9 +40,9 @@ enum class BinFormat {
 }
 
 fun parseBin(cursor: Cursor): BinFile {
-    val objectCodeOffset = cursor.i32()
-    val labelOffsetTableOffset = cursor.i32() // Relative offsets
-    val size = cursor.i32()
+    val objectCodeOffset = cursor.int()
+    val labelOffsetTableOffset = cursor.int() // Relative offsets
+    val size = cursor.int()
     cursor.seek(4) // Always seems to be 0xFFFFFFFF.
 
     val format = when (objectCodeOffset) {
@@ -65,14 +65,14 @@ fun parseBin(cursor: Cursor): BinFile {
 
     if (format == BinFormat.DC_GC) {
         cursor.seek(1)
-        language = cursor.u8().toUInt()
-        questId = cursor.u16().toUInt()
+        language = cursor.uByte().toUInt()
+        questId = cursor.uShort().toUInt()
         questName = cursor.stringAscii(32, nullTerminated = true, dropRemaining = true)
         shortDescription = cursor.stringAscii(128, nullTerminated = true, dropRemaining = true)
         longDescription = cursor.stringAscii(288, nullTerminated = true, dropRemaining = true)
     } else {
-        questId = cursor.u32()
-        language = cursor.u32()
+        questId = cursor.uInt()
+        language = cursor.uInt()
         questName = cursor.stringUtf16(64, nullTerminated = true, dropRemaining = true)
         shortDescription = cursor.stringUtf16(256, nullTerminated = true, dropRemaining = true)
         longDescription = cursor.stringUtf16(576, nullTerminated = true, dropRemaining = true)
@@ -84,7 +84,7 @@ fun parseBin(cursor: Cursor): BinFile {
 
     val shopItems = if (format == BinFormat.BB) {
         cursor.seek(4) // Skip padding.
-        cursor.u32Array(932)
+        cursor.uIntArray(932)
     } else {
         UIntArray(0)
     }
@@ -92,7 +92,7 @@ fun parseBin(cursor: Cursor): BinFile {
     val labelOffsetCount = (cursor.size - labelOffsetTableOffset) / 4
     val labelOffsets = cursor
         .seekStart(labelOffsetTableOffset)
-        .i32Array(labelOffsetCount)
+        .intArray(labelOffsetCount)
 
     val objectCode = cursor
         .seekStart(objectCodeOffset)

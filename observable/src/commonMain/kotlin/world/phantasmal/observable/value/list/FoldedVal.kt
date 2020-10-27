@@ -2,7 +2,7 @@ package world.phantasmal.observable.value.list
 
 import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.core.disposable.disposable
-import world.phantasmal.core.fastCast
+import world.phantasmal.core.unsafeToNonNull
 import world.phantasmal.observable.value.AbstractVal
 import world.phantasmal.observable.value.ValObserver
 
@@ -19,7 +19,7 @@ class FoldedVal<T, R>(
             return if (dependencyDisposable == null) {
                 computeValue()
             } else {
-                internalValue.fastCast()
+                internalValue.unsafeToNonNull()
             }
         }
 
@@ -32,7 +32,7 @@ class FoldedVal<T, R>(
             dependencyDisposable = dependency.observe {
                 val oldValue = internalValue
                 internalValue = computeValue()
-                emit(oldValue.fastCast())
+                emit(oldValue.unsafeToNonNull())
             }
         }
 

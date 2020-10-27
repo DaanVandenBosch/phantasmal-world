@@ -44,94 +44,94 @@ class BufferCursor(
         }
     }
 
-    override fun u8(): UByte {
-        val r = buffer.getU8(absolutePosition)
+    override fun uByte(): UByte {
+        val r = buffer.getUByte(absolutePosition)
         position++
         return r
     }
 
-    override fun u16(): UShort {
-        val r = buffer.getU16(absolutePosition)
+    override fun uShort(): UShort {
+        val r = buffer.getUShort(absolutePosition)
         position += 2
         return r
     }
 
-    override fun u32(): UInt {
-        val r = buffer.getU32(absolutePosition)
+    override fun uInt(): UInt {
+        val r = buffer.getUInt(absolutePosition)
         position += 4
         return r
     }
 
-    override fun i8(): Byte {
-        val r = buffer.getI8(absolutePosition)
+    override fun byte(): Byte {
+        val r = buffer.getByte(absolutePosition)
         position++
         return r
     }
 
-    override fun i16(): Short {
-        val r = buffer.getI16(absolutePosition)
+    override fun short(): Short {
+        val r = buffer.getShort(absolutePosition)
         position += 2
         return r
     }
 
-    override fun i32(): Int {
-        val r = buffer.getI32(absolutePosition)
+    override fun int(): Int {
+        val r = buffer.getInt(absolutePosition)
         position += 4
         return r
     }
 
-    override fun f32(): Float {
-        val r = buffer.getF32(absolutePosition)
+    override fun float(): Float {
+        val r = buffer.getFloat(absolutePosition)
         position += 4
         return r
     }
 
-    override fun u8Array(n: Int): UByteArray {
+    override fun uByteArray(n: Int): UByteArray {
         requireSize(n)
 
         val array = UByteArray(n)
 
         for (i in 0 until n) {
-            array[i] = buffer.getU8(absolutePosition)
+            array[i] = buffer.getUByte(absolutePosition)
             position++
         }
 
         return array
     }
 
-    override fun u16Array(n: Int): UShortArray {
+    override fun uShortArray(n: Int): UShortArray {
         requireSize(2 * n)
 
         val array = UShortArray(n)
 
         for (i in 0 until n) {
-            array[i] = buffer.getU16(absolutePosition)
+            array[i] = buffer.getUShort(absolutePosition)
             position += 2
         }
 
         return array
     }
 
-    override fun u32Array(n: Int): UIntArray {
+    override fun uIntArray(n: Int): UIntArray {
         requireSize(4 * n)
 
         val array = UIntArray(n)
 
         for (i in 0 until n) {
-            array[i] = buffer.getU32(absolutePosition)
+            array[i] = buffer.getUInt(absolutePosition)
             position += 4
         }
 
         return array
     }
 
-    override fun i32Array(n: Int): IntArray {
+    override fun intArray(n: Int): IntArray {
         requireSize(4 * n)
 
         val array = IntArray(n)
 
         for (i in 0 until n) {
-            array[i] = buffer.getI32(absolutePosition)
+            array[i] = buffer.getInt(absolutePosition)
             position += 4
         }
 
@@ -150,73 +150,73 @@ class BufferCursor(
         return wrapper
     }
 
-    override fun writeU8(value: UByte): WritableCursor {
+    override fun writeUByte(value: UByte): WritableCursor {
         ensureSpace(1)
-        buffer.setU8(absolutePosition, value)
+        buffer.setUByte(absolutePosition, value)
         position++
         return this
     }
 
-    override fun writeU16(value: UShort): WritableCursor {
+    override fun writeUShort(value: UShort): WritableCursor {
         ensureSpace(2)
-        buffer.setU16(absolutePosition, value)
+        buffer.setUShort(absolutePosition, value)
         position += 2
         return this
     }
 
-    override fun writeU32(value: UInt): WritableCursor {
+    override fun writeUInt(value: UInt): WritableCursor {
         ensureSpace(4)
-        buffer.setU32(absolutePosition, value)
+        buffer.setUInt(absolutePosition, value)
         position += 4
         return this
     }
 
-    override fun writeI8(value: Byte): WritableCursor {
+    override fun writeByte(value: Byte): WritableCursor {
         ensureSpace(1)
-        buffer.setI8(absolutePosition, value)
+        buffer.setByte(absolutePosition, value)
         position++
         return this
     }
 
-    override fun writeI16(value: Short): WritableCursor {
+    override fun writeShort(value: Short): WritableCursor {
         ensureSpace(2)
-        buffer.setI16(absolutePosition, value)
+        buffer.setShort(absolutePosition, value)
         position += 2
         return this
     }
 
-    override fun writeI32(value: Int): WritableCursor {
+    override fun writeInt(value: Int): WritableCursor {
         ensureSpace(4)
-        buffer.setI32(absolutePosition, value)
+        buffer.setInt(absolutePosition, value)
         position += 4
         return this
     }
 
-    override fun writeF32(value: Float): WritableCursor {
+    override fun writeFloat(value: Float): WritableCursor {
         ensureSpace(4)
-        buffer.setF32(absolutePosition, value)
+        buffer.setFloat(absolutePosition, value)
         position += 4
         return this
     }
 
-    override fun writeU8Array(array: UByteArray): WritableCursor {
+    override fun writeUByteArray(array: UByteArray): WritableCursor {
         ensureSpace(array.size)
-        return super.writeU8Array(array)
+        return super.writeUByteArray(array)
     }
 
-    override fun writeU16Array(array: UShortArray): WritableCursor {
+    override fun writeUShortArray(array: UShortArray): WritableCursor {
         ensureSpace(2 * array.size)
-        return super.writeU16Array(array)
+        return super.writeUShortArray(array)
     }
 
-    override fun writeU32Array(array: UIntArray): WritableCursor {
+    override fun writeUIntArray(array: UIntArray): WritableCursor {
         ensureSpace(4 * array.size)
-        return super.writeU32Array(array)
+        return super.writeUIntArray(array)
     }
 
-    override fun writeI32Array(array: IntArray): WritableCursor {
+    override fun writeIntArray(array: IntArray): WritableCursor {
         ensureSpace(4 * array.size)
-        return super.writeI32Array(array)
+        return super.writeIntArray(array)
     }
 
     override fun writeCursor(other: Cursor): WritableCursor {

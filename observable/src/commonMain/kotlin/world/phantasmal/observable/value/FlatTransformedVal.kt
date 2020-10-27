@@ -2,7 +2,7 @@ package world.phantasmal.observable.value
 
 import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.core.disposable.disposable
-import world.phantasmal.core.fastCast
+import world.phantasmal.core.unsafeToNonNull
 
 class FlatTransformedVal<T>(
     dependencies: Iterable<Val<*>>,
@@ -16,7 +16,7 @@ class FlatTransformedVal<T>(
             return if (hasNoObservers()) {
                 super.value
             } else {
-                computedVal.fastCast<Val<T>>().value
+                computedVal.unsafeToNonNull<Val<T>>().value
             }
         }
 
@@ -42,7 +42,7 @@ class FlatTransformedVal<T>(
 
         if (hasObservers()) {
             computedValObserver = computedVal.observe { (value) ->
-                val oldValue = _value.fastCast<T>()
+                val oldValue = _value.unsafeToNonNull<T>()
                 _value = value
                 emit(oldValue)
             }

@@ -387,10 +387,10 @@ private fun parseInstructionsSegment(
 
     while (cursor.position < endOffset) {
         // Parse the opcode.
-        val mainOpcode = cursor.u8()
+        val mainOpcode = cursor.uByte()
 
         val fullOpcode = when (mainOpcode.toInt()) {
-            0xF8, 0xF9 -> ((mainOpcode.toInt() shl 8) or cursor.u8().toInt())
+            0xF8, 0xF9 -> ((mainOpcode.toInt() shl 8) or cursor.uByte().toInt())
             else -> mainOpcode.toInt()
         }
 
@@ -496,23 +496,23 @@ private fun parseInstructionArguments(
         for (param in opcode.params) {
             when (param.type) {
                 is ByteType ->
-                    args.add(Arg(cursor.u8().toInt()))
+                    args.add(Arg(cursor.uByte().toInt()))
 
                 is WordType ->
-                    args.add(Arg(cursor.u16().toInt()))
+                    args.add(Arg(cursor.uShort().toInt()))
 
                 is DWordType ->
-                    args.add(Arg(cursor.i32()))
+                    args.add(Arg(cursor.int()))
 
                 is FloatType ->
-                    args.add(Arg(cursor.f32()))
+                    args.add(Arg(cursor.float()))
 
                 is LabelType,
                 is ILabelType,
                 is DLabelType,
                 is SLabelType,
                 -> {
-                    args.add(Arg(cursor.u16().toInt()))
+                    args.add(Arg(cursor.uShort().toInt()))
                 }
 
                 is StringType -> {
@@ -536,20 +536,20 @@ private fun parseInstructionArguments(
 
                 is ILabelVarType -> {
                     varargCount++
-                    val argSize = cursor.u8()
-                    args.addAll(cursor.u16Array(argSize.toInt()).map { Arg(it.toInt()) })
+                    val argSize = cursor.uByte()
+                    args.addAll(cursor.uShortArray(argSize.toInt()).map { Arg(it.toInt()) })
                 }
 
                 is RegRefType,
                 is RegTupRefType,
                 -> {
-                    args.add(Arg(cursor.u8().toInt()))
+                    args.add(Arg(cursor.uByte().toInt()))
                 }
 
                 is RegRefVarType -> {
                     varargCount++
-                    val argSize = cursor.u8()
-                    args.addAll(cursor.u8Array(argSize.toInt()).map { Arg(it.toInt()) })
+                    val argSize = cursor.uByte()
+                    args.addAll(cursor.uByteArray(argSize.toInt()).map { Arg(it.toInt()) })
                 }
 
                 else -> error("Parameter type ${param.type} not implemented.")

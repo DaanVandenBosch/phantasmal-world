@@ -35,56 +35,56 @@ class ArrayBufferCursor(
             littleEndian = value == Endianness.Little
         }
 
-    override fun u8(): UByte {
+    override fun uByte(): UByte {
         requireSize(1)
         val r = dv.getUint8(absolutePosition)
         position++
         return r.toUByte()
     }
 
-    override fun u16(): UShort {
+    override fun uShort(): UShort {
         requireSize(2)
         val r = dv.getUint16(absolutePosition, littleEndian)
         position += 2
         return r.toUShort()
     }
 
-    override fun u32(): UInt {
+    override fun uInt(): UInt {
         requireSize(4)
         val r = dv.getUint32(absolutePosition, littleEndian)
         position += 4
         return r.toUInt()
     }
 
-    override fun i8(): Byte {
+    override fun byte(): Byte {
         requireSize(1)
         val r = dv.getInt8(absolutePosition)
         position++
         return r
     }
 
-    override fun i16(): Short {
+    override fun short(): Short {
         requireSize(2)
         val r = dv.getInt16(absolutePosition, littleEndian)
         position += 2
         return r
     }
 
-    override fun i32(): Int {
+    override fun int(): Int {
         requireSize(4)
         val r = dv.getInt32(absolutePosition, littleEndian)
         position += 4
         return r
     }
 
-    override fun f32(): Float {
+    override fun float(): Float {
         requireSize(4)
         val r = dv.getFloat32(absolutePosition, littleEndian)
         position += 4
         return r
     }
 
-    override fun u8Array(n: Int): UByteArray {
+    override fun uByteArray(n: Int): UByteArray {
         requireSize(n)
 
         val array = UByteArray(n)
@@ -97,7 +97,7 @@ class ArrayBufferCursor(
         return array
     }
 
-    override fun u16Array(n: Int): UShortArray {
+    override fun uShortArray(n: Int): UShortArray {
         requireSize(2 * n)
 
         val array = UShortArray(n)
@@ -110,7 +110,7 @@ class ArrayBufferCursor(
         return array
     }
 
-    override fun u32Array(n: Int): UIntArray {
+    override fun uIntArray(n: Int): UIntArray {
         requireSize(4 * n)
 
         val array = UIntArray(n)
@@ -123,7 +123,7 @@ class ArrayBufferCursor(
         return array
     }
 
-    override fun i32Array(n: Int): IntArray {
+    override fun intArray(n: Int): IntArray {
         requireSize(4 * n)
 
         val array = IntArray(n)
@@ -153,49 +153,49 @@ class ArrayBufferCursor(
         return r
     }
 
-    override fun writeU8(value: UByte): WritableCursor {
+    override fun writeUByte(value: UByte): WritableCursor {
         requireSize(1)
         dv.setUint8(absolutePosition, value.toByte())
         position++
         return this
     }
 
-    override fun writeU16(value: UShort): WritableCursor {
+    override fun writeUShort(value: UShort): WritableCursor {
         requireSize(2)
         dv.setUint16(absolutePosition, value.toShort(), littleEndian)
         position += 2
         return this
     }
 
-    override fun writeU32(value: UInt): WritableCursor {
+    override fun writeUInt(value: UInt): WritableCursor {
         requireSize(4)
         dv.setUint32(absolutePosition, value.toInt(), littleEndian)
         position += 4
         return this
     }
 
-    override fun writeI8(value: Byte): WritableCursor {
+    override fun writeByte(value: Byte): WritableCursor {
         requireSize(1)
         dv.setInt8(absolutePosition, value)
         position++
         return this
     }
 
-    override fun writeI16(value: Short): WritableCursor {
+    override fun writeShort(value: Short): WritableCursor {
         requireSize(2)
         dv.setInt16(absolutePosition, value, littleEndian)
         position += 2
         return this
     }
 
-    override fun writeI32(value: Int): WritableCursor {
+    override fun writeInt(value: Int): WritableCursor {
         requireSize(4)
         dv.setInt32(absolutePosition, value, littleEndian)
         position += 4
         return this
     }
 
-    override fun writeF32(value: Float): WritableCursor {
+    override fun writeFloat(value: Float): WritableCursor {
         requireSize(4)
         dv.setFloat32(absolutePosition, value, littleEndian)
         position += 4

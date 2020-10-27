@@ -13,6 +13,7 @@ buildscript {
     }
 }
 
+val coroutinesVersion: String by project.extra
 val kotlinLoggingVersion: String by project.extra
 
 kotlin {
@@ -26,6 +27,8 @@ kotlin {
         }
     }
 
+    jvm()
+
     sourceSets {
         all {
             languageSettings.useExperimentalAnnotation("kotlin.ExperimentalUnsignedTypes")
@@ -35,6 +38,7 @@ kotlin {
             kotlin.setSrcDirs(kotlin.srcDirs + file("build/generated-src/commonMain/kotlin"))
             dependencies {
                 api(project(":core"))
+                api("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
                 api("io.github.microutils:kotlin-logging:$kotlinLoggingVersion")
             }
         }
@@ -46,16 +50,18 @@ kotlin {
             }
         }
 
-        val jsTest by getting {
+        getByName("jsTest") {
             dependencies {
                 implementation(kotlin("test-js"))
             }
         }
-    }
-}
 
-tasks.register("test") {
-    dependsOn("allTests")
+        getByName("jvmTest") {
+            dependencies {
+                implementation(kotlin("test-junit"))
+            }
+        }
+    }
 }
 
 val generateOpcodes = tasks.register("generateOpcodes") {

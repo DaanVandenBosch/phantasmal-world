@@ -38,25 +38,25 @@ class BufferTests {
         assertEquals(101, buffer.size)
         assertTrue(buffer.capacity >= 101)
 
-        buffer.setU8(100, (0xABu).toUByte())
+        buffer.setUByte(100, (0xABu).toUByte())
 
-        assertEquals(0xABu, buffer.getU8(100).toUInt())
+        assertEquals(0xABu, buffer.getUByte(100).toUInt())
     }
 
     @Test
     fun fill_and_zero() {
         val buffer = Buffer.withSize(100)
 
-        buffer.fill(100)
+        buffer.fillByte(100)
 
         for (i in 0 until buffer.size) {
-            assertEquals(100u, buffer.getU8(i))
+            assertEquals(100u, buffer.getUByte(i))
         }
 
         buffer.zero()
 
         for (i in 0 until buffer.size) {
-            assertEquals(0u, buffer.getU8(i))
+            assertEquals(0u, buffer.getUByte(i))
         }
     }
 }
