@@ -82,10 +82,10 @@ sealed class RefType : AnyType()
 object RegRefType : RefType()
 
 /**
- * Reference to a fixed amount of consecutive registers of specific types.
+ * Reference to a fixed tuple of registers of specific types.
  * The only parameterized type.
  */
-class RegTupRefType(val registerTuples: List<Param>) : RefType()
+class RegTupRefType(val registerTuple: List<Param>) : RefType()
 
 /**
  * Arbitrary amount of register references.

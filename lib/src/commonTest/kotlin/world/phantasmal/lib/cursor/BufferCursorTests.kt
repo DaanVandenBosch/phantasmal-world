@@ -10,37 +10,37 @@ class BufferCursorTests : WritableCursorTests() {
         BufferCursor(Buffer.fromByteArray(bytes, endianness))
 
     @Test
-    fun writeU8_increases_size_correctly() {
+    fun writeUByte_increases_size_correctly() {
         testIntegerWriteSize(1, { writeUByte(it.toUByte()) }, Endianness.Little)
         testIntegerWriteSize(1, { writeUByte(it.toUByte()) }, Endianness.Big)
     }
 
     @Test
-    fun writeU16_increases_size_correctly() {
+    fun writeUShort_increases_size_correctly() {
         testIntegerWriteSize(2, { writeUShort(it.toUShort()) }, Endianness.Little)
         testIntegerWriteSize(2, { writeUShort(it.toUShort()) }, Endianness.Big)
     }
 
     @Test
-    fun writeU32_increases_size_correctly() {
+    fun writeUInt_increases_size_correctly() {
         testIntegerWriteSize(4, { writeUInt(it.toUInt()) }, Endianness.Little)
         testIntegerWriteSize(4, { writeUInt(it.toUInt()) }, Endianness.Big)
     }
 
     @Test
-    fun writeI8_increases_size_correctly() {
+    fun writeByte_increases_size_correctly() {
         testIntegerWriteSize(1, { writeByte(it.toByte()) }, Endianness.Little)
         testIntegerWriteSize(1, { writeByte(it.toByte()) }, Endianness.Big)
     }
 
     @Test
-    fun writeI16_increases_size_correctly() {
+    fun writeShort_increases_size_correctly() {
         testIntegerWriteSize(2, { writeShort(it.toShort()) }, Endianness.Little)
         testIntegerWriteSize(2, { writeShort(it.toShort()) }, Endianness.Big)
     }
 
     @Test
-    fun writeI32_increases_size_correctly() {
+    fun writeInt_increases_size_correctly() {
         testIntegerWriteSize(4, { writeInt(it) }, Endianness.Little)
         testIntegerWriteSize(4, { writeInt(it) }, Endianness.Big)
     }

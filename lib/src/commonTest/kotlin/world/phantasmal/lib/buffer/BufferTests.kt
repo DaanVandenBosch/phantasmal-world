@@ -8,27 +8,42 @@ import kotlin.test.assertTrue
 class BufferTests {
     @Test
     fun withCapacity() {
+        withCapacity(Endianness.Little)
+        withCapacity(Endianness.Big)
+    }
+
+    private fun withCapacity(endianness: Endianness) {
         val capacity = 500
-        val buffer = Buffer.withCapacity(capacity)
+        val buffer = Buffer.withCapacity(capacity, endianness)
 
         assertEquals(0, buffer.size)
         assertEquals(capacity, buffer.capacity)
-        assertEquals(Endianness.Little, buffer.endianness)
+        assertEquals(endianness, buffer.endianness)
     }
 
     @Test
     fun withSize() {
+        withSize(Endianness.Little)
+        withSize(Endianness.Big)
+    }
+
+    private fun withSize(endianness: Endianness) {
         val size = 500
-        val buffer = Buffer.withSize(size)
+        val buffer = Buffer.withSize(size, endianness)
 
         assertEquals(size, buffer.size)
         assertEquals(size, buffer.capacity)
-        assertEquals(Endianness.Little, buffer.endianness)
+        assertEquals(endianness, buffer.endianness)
     }
 
     @Test
     fun reallocates_internal_storage_when_necessary() {
-        val buffer = Buffer.withCapacity(100)
+        reallocates_internal_storage_when_necessary(Endianness.Little)
+        reallocates_internal_storage_when_necessary(Endianness.Big)
+    }
+
+    private fun reallocates_internal_storage_when_necessary(endianness: Endianness) {
+        val buffer = Buffer.withCapacity(100, endianness)
 
         assertEquals(0, buffer.size)
         assertEquals(100, buffer.capacity)
@@ -41,6 +56,7 @@ class BufferTests {
         buffer.setUByte(100, (0xABu).toUByte())
 
         assertEquals(0xABu, buffer.getUByte(100).toUInt())
+        assertEquals(endianness, buffer.endianness)
     }
 
     @Test
@@ -50,13 +66,13 @@ class BufferTests {
         buffer.fillByte(100)
 
         for (i in 0 until buffer.size) {
-            assertEquals(100u, buffer.getUByte(i))
+            assertEquals(100, buffer.getByte(i))
         }
 
         buffer.zero()
 
         for (i in 0 until buffer.size) {
-            assertEquals(0u, buffer.getUByte(i))
+            assertEquals(0, buffer.getByte(i))
         }
     }
 }

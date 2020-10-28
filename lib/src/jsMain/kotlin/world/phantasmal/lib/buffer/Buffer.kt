@@ -5,7 +5,6 @@ import org.khronos.webgl.DataView
 import org.khronos.webgl.Int8Array
 import org.khronos.webgl.Uint8Array
 import world.phantasmal.lib.Endianness
-import world.phantasmal.lib.ZERO_U16
 
 actual class Buffer private constructor(
     private var arrayBuffer: ArrayBuffer,
@@ -74,13 +73,13 @@ actual class Buffer private constructor(
             val len = maxByteLength / 2
 
             for (i in 0 until len) {
-                val codePoint = getUShort(offset + i * 2)
+                val codePoint = getShort(offset + i * 2).toChar()
 
-                if (nullTerminated && codePoint == ZERO_U16) {
+                if (nullTerminated && codePoint == '0') {
                     break
                 }
 
-                append(codePoint.toShort().toChar())
+                append(codePoint)
             }
         }
 

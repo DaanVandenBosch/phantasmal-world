@@ -1,6 +1,5 @@
 package world.phantasmal.lib.compression.prs
 
-import world.phantasmal.lib.Endianness
 import world.phantasmal.lib.buffer.Buffer
 import world.phantasmal.lib.cursor.Cursor
 import world.phantasmal.lib.cursor.WritableCursor
@@ -8,93 +7,84 @@ import world.phantasmal.lib.cursor.cursor
 import kotlin.math.max
 import kotlin.math.min
 
-fun prsCompress(cursor: Cursor): Cursor {
-    val compressor = PrsCompressor(cursor.size, cursor.endianness)
-    val comparisonCursor = cursor.take(cursor.size)
-    cursor.seekStart(0)
+// This code uses signed types for better KJS performance. In KJS unsigned types are always boxed.
 
-    while (cursor.hasBytesLeft()) {
-        // Find the longest match.
-        var bestOffset = 0
-        var bestSize = 0
-        val startPos = cursor.position
-        val minOffset = max(0, startPos - min(0x800, cursor.bytesLeft))
+fun prsCompress(cursor: Cursor): Cursor =
+    PrsCompressor(cursor).compress()
 
-        for (i in startPos - 255 downTo minOffset) {
-            comparisonCursor.seekStart(i)
-            var size = 0
-
-            while (cursor.hasBytesLeft() &&
-                size <= 254 &&
-                cursor.uByte() == comparisonCursor.uByte()
-            ) {
-                size++
-            }
-
-            cursor.seekStart(startPos)
-
-            if (size >= bestSize) {
-                bestOffset = i
-                bestSize = size
-
-                if (size >= 255) {
-                    break
-                }
-            }
-        }
-
-        if (bestSize < 3) {
-            compressor.addUByte(cursor.uByte())
-        } else {
-            compressor.copy(bestOffset - cursor.position, bestSize)
-            cursor.seek(bestSize)
-        }
-    }
-
-    return compressor.finalize()
-}
-
-private class PrsCompressor(capacity: Int, endianness: Endianness) {
-    private val output: WritableCursor = Buffer.withCapacity(capacity, endianness).cursor()
+private class PrsCompressor(private val src: Cursor) {
+    private val dst: WritableCursor = Buffer.withCapacity(src.size, src.endianness).cursor()
     private var flags = 0
     private var flagBitsLeft = 0
     private var flagOffset = 0
 
-    fun addUByte(value: UByte) {
-        writeControlBit(1)
-        writeUByte(value)
-    }
+    fun compress(): Cursor {
+        val cmp = src.take(src.size)
+        src.seekStart(0)
 
-    fun copy(offset: Int, size: Int) {
-        if (offset > -256 && size <= 5) {
-            shortCopy(offset, size)
-        } else {
-            longCopy(offset, size)
+        while (src.hasBytesLeft()) {
+            // Find the longest match.
+            var bestOffset = 0
+            var bestSize = 0
+            val startPos = src.position
+            val minOffset = max(0, startPos - min(0x800, src.bytesLeft))
+
+            for (i in startPos - 255 downTo minOffset) {
+                cmp.seekStart(i)
+                var size = 0
+
+                while (src.hasBytesLeft() &&
+                    size < 255 &&
+                    src.byte() == cmp.byte()
+                ) {
+                    size++
+                }
+
+                src.seekStart(startPos)
+
+                if (size >= bestSize) {
+                    bestOffset = i
+                    bestSize = size
+
+                    if (size >= 255) {
+                        break
+                    }
+                }
+            }
+
+            if (bestSize < 3) {
+                addByte(src.byte())
+            } else {
+                copy(bestOffset - src.position, bestSize)
+                src.seek(bestSize)
+            }
         }
+
+        return finalize()
     }
 
-    fun finalize(): Cursor {
+    private fun finalize(): Cursor {
         writeControlBit(0)
         writeControlBit(1)
 
         flags = flags ushr flagBitsLeft
-        val pos = output.position
-        output.seekStart(flagOffset).writeUByte(flags.toUByte()).seekStart(pos)
+        val pos = dst.position
+        dst.seekStart(flagOffset).writeByte(flags.toByte()).seekStart(pos)
 
-        writeUByte(0u)
-        writeUByte(0u)
-        return output.seekStart(0)
+        writeByte(0)
+        writeByte(0)
+        return dst.seekStart(0)
     }
 
     private fun writeControlBit(bit: Int) {
         if (flagBitsLeft == 0) {
             // Write out the flags to their position in the file, and store the next flags byte
             // position.
-            val pos = output.position
-            output.seekStart(flagOffset)
-            output.writeUByte(flags.toUByte())
-            output.seekStart(pos)
-            output.writeUByte(0u) // Placeholder for the next flags byte.
+            val pos = dst.position
+            dst.seekStart(flagOffset)
+            dst.writeByte(flags.toByte())
+            dst.seekStart(pos)
+            dst.writeUByte(0u) // Placeholder for the next flags byte.
             flagOffset = pos
             flagBitsLeft = 8
         }
@@ -108,12 +98,17 @@ private class PrsCompressor(capacity: Int, endianness: Endianness) {
         flagBitsLeft--
     }
 
-    private fun writeUByte(data: UByte) {
-        output.writeUByte(data)
+    private fun addByte(value: Byte) {
+        writeControlBit(1)
+        dst.writeByte(value)
     }
 
-    private fun writeUByte(data: Int) {
-        output.writeUByte(data.toUByte())
+    private fun copy(offset: Int, size: Int) {
+        if (offset > -256 && size <= 5) {
+            shortCopy(offset, size)
+        } else {
+            longCopy(offset, size)
+        }
     }
 
     private fun shortCopy(offset: Int, size: Int) {
@@ -122,7 +117,7 @@ private class PrsCompressor(capacity: Int, endianness: Endianness) {
         writeControlBit(0)
         writeControlBit(((s ushr 1) and 1))
         writeControlBit((s and 1))
-        writeUByte(offset and 0xFF)
+        writeByte(offset)
     }
 
     private fun longCopy(offset: Int, size: Int) {
@@ -130,12 +125,16 @@ private class PrsCompressor(capacity: Int, endianness: Endianness) {
         writeControlBit(1)
 
         if (size <= 9) {
-            writeUByte(((offset shl 3) and 0xF8) or ((size - 2) and 0x07))
-            writeUByte((offset ushr 5) and 0xFF)
+            writeByte(((offset shl 3) and 0xF8) or ((size - 2) and 0b111))
+            writeByte((offset ushr 5))
         } else {
-            writeUByte((offset shl 3) and 0xF8)
-            writeUByte((offset ushr 5) and 0xFF)
-            writeUByte(size - 1)
+            writeByte((offset shl 3) and 0xF8)
+            writeByte((offset ushr 5))
+            writeByte(size - 1)
         }
+    }
+
+    private fun writeByte(data: Int) {
+        dst.writeByte(data.toByte())
     }
 }

@@ -129,5 +129,5 @@ interface Cursor {
     /**
      * Returns a buffer with a copy of [size] bytes at [position].
      */
-    fun buffer(size: Int): Buffer
+    fun buffer(size: Int = bytesLeft): Buffer
 }

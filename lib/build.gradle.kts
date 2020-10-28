@@ -15,6 +15,7 @@ buildscript {
 
 val coroutinesVersion: String by project.extra
 val kotlinLoggingVersion: String by project.extra
+val slf4jVersion: String by project.extra
 
 kotlin {
     js {
@@ -59,6 +60,7 @@ kotlin {
         getByName("jvmTest") {
             dependencies {
                 implementation(kotlin("test-junit"))
+                implementation("org.slf4j:slf4j-simple:$slf4jVersion")
             }
         }
     }

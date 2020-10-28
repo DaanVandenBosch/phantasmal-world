@@ -49,7 +49,7 @@ class PrsCompressTests {
         val buffer = Buffer.withSize(10_000)
 
         for (i in 0 until buffer.size step 4) {
-            buffer.setUInt(i, random.nextUInt())
+            buffer.setInt(i, random.nextInt())
         }
 
         val compressed = prsCompress(buffer.cursor())

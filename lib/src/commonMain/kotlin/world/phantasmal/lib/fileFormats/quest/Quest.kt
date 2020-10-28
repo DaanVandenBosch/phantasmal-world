@@ -55,9 +55,9 @@ fun parseBinDatToQuest(
     }
 
     val dat = parseDat(datDecompressed.value)
-    val objects = dat.objs.map { QuestObject(it.areaId.toInt(), it.data) }
+    val objects = dat.objs.map { QuestObject(it.areaId, it.data) }
     // Initialize NPCs with random episode and correct it later.
-    val npcs = dat.npcs.map { QuestNpc(Episode.I, it.areaId.toInt(), it.data) }
+    val npcs = dat.npcs.map { QuestNpc(Episode.I, it.areaId, it.data) }
 
     // Extract episode and map designations from object code.
     var episode = Episode.I
@@ -107,8 +107,8 @@ fun parseBinDatToQuest(
     }
 
     return rb.success(Quest(
-        id = bin.questId.toInt(),
-        language = bin.language.toInt(),
+        id = bin.questId,
+        language = bin.language,
         name = bin.questName,
         shortDescription = bin.shortDescription,
         longDescription = bin.longDescription,

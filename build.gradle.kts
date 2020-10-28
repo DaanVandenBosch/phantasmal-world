@@ -15,6 +15,7 @@ subprojects {
     project.extra["kotlinLoggingVersion"] = "2.0.2"
     project.extra["ktorVersion"] = "1.4.1"
     project.extra["serializationVersion"] = "1.0.0"
+    project.extra["slf4jVersion"] = "1.7.30"
 
     repositories {
         jcenter()

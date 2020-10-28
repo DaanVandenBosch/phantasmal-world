@@ -6,7 +6,6 @@ import world.phantasmal.core.PwResultBuilder
 import world.phantasmal.core.Severity
 import world.phantasmal.lib.assembly.*
 import world.phantasmal.lib.assembly.dataFlowAnalysis.ControlFlowGraph
-import world.phantasmal.lib.assembly.dataFlowAnalysis.ValueSet
 import world.phantasmal.lib.assembly.dataFlowAnalysis.getRegisterValue
 import world.phantasmal.lib.assembly.dataFlowAnalysis.getStackValue
 import world.phantasmal.lib.buffer.Buffer
@@ -218,28 +217,21 @@ private fun findAndParseSegments(
                             getArgLabelValues(cfg, newLabels, instruction, i, SegmentType.String)
 
                         is RegTupRefType -> {
-                            // Never on the stack.
-                            var firstRegister: ValueSet? = null
+                            for (j in param.type.registerTuple.indices) {
+                                val regTup = param.type.registerTuple[j]
 
-                            for (j in param.type.registerTuples.indices) {
-                                val regTup = param.type.registerTuples[j]
-
+                                // Never on the stack.
                                 if (regTup.type is ILabelType) {
-                                    if (firstRegister == null) {
-                                        firstRegister = getStackValue(cfg, instruction, i)
-                                    }
+                                    val firstRegister = instruction.args[0].value as Int
+                                    val labelValues = getRegisterValue(
+                                        cfg,
+                                        instruction,
+                                        firstRegister + j,
+                                    )
 
-                                    for (reg in firstRegister) {
-                                        val labelValues = getRegisterValue(
-                                            cfg,
-                                            instruction,
-                                            reg + j,
-                                        )
-
-                                        if (labelValues.size <= 10) {
-                                            for (label in labelValues) {
-                                                newLabels[label] = SegmentType.Instructions
-                                            }
+                                    if (labelValues.size <= 10) {
+                                        for (label in labelValues) {
+                                            newLabels[label] = SegmentType.Instructions
                                         }
                                     }
                                 }

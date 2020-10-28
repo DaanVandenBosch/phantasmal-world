@@ -11,6 +11,10 @@ private val logger = KotlinLogging.logger {}
  * Computes the possible values of a register right before a specific instruction.
  */
 fun getRegisterValue(cfg: ControlFlowGraph, instruction: Instruction, register: Int): ValueSet {
+    require(register in 0..255) {
+        "register should be between 0 and 255, inclusive but was $register."
+    }
+
     val block = cfg.getBlockForInstruction(instruction)
 
     return RegisterValueFinder().find(
@@ -178,7 +182,7 @@ private class RegisterValueFinder {
                         if (param.type is RegTupRefType) {
                             val regRef = args[j].value as Int
 
-                            for ((k, reg_param) in param.type.registerTuples.withIndex()) {
+                            for ((k, reg_param) in param.type.registerTuple.withIndex()) {
                                 if ((reg_param.access == ParamAccess.Write ||
                                             reg_param.access == ParamAccess.ReadWrite) &&
                                     regRef + k == register
@@ -204,8 +208,8 @@ private class RegisterValueFinder {
             values.union(find(LinkedHashSet(path), from, from.end, register))
         }
 
-        // If values is empty at this point, we know nothing ever sets the register's value and it still
-        // has its initial value of 0.
+        // If values is empty at this point, we know nothing ever sets the register's value and it
+        // still has its initial value of 0.
         if (values.isEmpty()) {
             values.setValue(0)
         }

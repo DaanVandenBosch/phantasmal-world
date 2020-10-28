@@ -100,7 +100,7 @@ fun parseDat(cursor: Cursor): DatFile {
                 }
             }
 
-            require(!entitiesCursor.hasBytesLeft()) {
+            if (entitiesCursor.hasBytesLeft()) {
                 logger.warn {
                     "Read ${entitiesCursor.position} bytes instead of expected ${entitiesCursor.size} for entity type ${entityType}."
                 }
@@ -137,9 +137,9 @@ private fun parseEvents(cursor: Cursor, areaId: Int, events: MutableList<DatEven
     cursor.seek(4) // Always 0x10
     val eventCount = cursor.int()
     cursor.seek(3) // Always 0
-    val eventType = cursor.uByte()
+    val eventType = cursor.byte()
 
-    require(eventType != (0x32u).toUByte()) {
+    require(eventType != (0x32).toByte()) {
         "Can't parse challenge mode quests yet."
     }
 
@@ -182,17 +182,17 @@ private fun parseEvents(cursor: Cursor, areaId: Int, events: MutableList<DatEven
         }
     }
 
-    var lastU8: UByte = 0xffu
+    var lastUByte: UByte = 0xffu
 
     while (actionsCursor.hasBytesLeft()) {
-        lastU8 = actionsCursor.uByte()
+        lastUByte = actionsCursor.uByte()
 
-        if (lastU8 != (0xffu).toUByte()) {
+        if (lastUByte != (0xffu).toUByte()) {
             break
         }
     }
 
-    if (lastU8 != (0xffu).toUByte()) {
+    if (lastUByte != (0xffu).toUByte()) {
         actionsCursor.seek(-1)
     }
 

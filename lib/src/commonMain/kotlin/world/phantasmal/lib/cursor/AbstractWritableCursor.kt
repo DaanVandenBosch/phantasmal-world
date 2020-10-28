@@ -1,7 +1,6 @@
 package world.phantasmal.lib.cursor
 
-import world.phantasmal.lib.ZERO_U16
-import world.phantasmal.lib.ZERO_U8
+import kotlin.experimental.and
 import kotlin.math.min
 
 abstract class AbstractWritableCursor
@@ -22,14 +21,14 @@ protected constructor(protected val offset: Int) : WritableCursor {
         seekStart(position + offset)
 
     override fun seekStart(offset: Int): WritableCursor {
-        require(offset >= 0 || offset <= size) { "Offset $offset is out of bounds." }
+        require(offset in 0..size) { "Offset $offset is out of bounds." }
 
         position = offset
         return this
     }
 
     override fun seekEnd(offset: Int): WritableCursor {
-        require(offset >= 0 || offset <= size) { "Offset $offset is out of bounds." }
+        require(offset in 0..size) { "Offset $offset is out of bounds." }
 
         position = size - offset
         return this
@@ -42,9 +41,10 @@ protected constructor(protected val offset: Int) : WritableCursor {
     ): String =
         buildString {
             for (i in 0 until maxByteLength) {
-                val codePoint = uByte()
+                // Use Byte instead of UByte for better KJS perf.
+                val codePoint = (byte().toShort() and 0xFF).toChar()
 
-                if (nullTerminated && codePoint == ZERO_U8) {
+                if (nullTerminated && codePoint == '\u0000') {
                     if (dropRemaining) {
                         seek(maxByteLength - i - 1)
                     }
@@ -52,7 +52,7 @@ protected constructor(protected val offset: Int) : WritableCursor {
                     break
                 }
 
-                append(codePoint.toShort().toChar())
+                append(codePoint)
             }
         }
 
@@ -65,9 +65,9 @@ protected constructor(protected val offset: Int) : WritableCursor {
             val len = maxByteLength / 2
 
             for (i in 0 until len) {
-                val codePoint = uShort()
+                val codePoint = short().toChar()
 
-                if (nullTerminated && codePoint == ZERO_U16) {
+                if (nullTerminated && codePoint == '\u0000') {
                     if (dropRemaining) {
                         seek(maxByteLength - 2 * i - 2)
                     }
@@ -75,7 +75,7 @@ protected constructor(protected val offset: Int) : WritableCursor {
                     break
                 }
 
-                append(codePoint.toShort().toChar())
+                append(codePoint)
             }
         }
 
@@ -126,6 +126,7 @@ protected constructor(protected val offset: Int) : WritableCursor {
     override fun writeCursor(other: Cursor): WritableCursor {
         val size = other.bytesLeft
         requireSize(size)
+
         for (i in 0 until size) {
             writeByte(other.byte())
         }

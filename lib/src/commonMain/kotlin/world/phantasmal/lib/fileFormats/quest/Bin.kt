@@ -12,8 +12,8 @@ private const val BB_OBJECT_CODE_OFFSET = 4652
 
 class BinFile(
     val format: BinFormat,
-    val questId: UInt,
-    val language: UInt,
+    val questId: Int,
+    val language: Int,
     val questName: String,
     val shortDescription: String,
     val longDescription: String,
@@ -57,22 +57,28 @@ fun parseBin(cursor: Cursor): BinFile {
         }
     }
 
-    val questId: UInt
-    val language: UInt
+    val questId: Int
+    val language: Int
     val questName: String
     val shortDescription: String
     val longDescription: String
 
     if (format == BinFormat.DC_GC) {
         cursor.seek(1)
-        language = cursor.uByte().toUInt()
-        questId = cursor.uShort().toUInt()
+        language = cursor.byte().toInt()
+        questId = cursor.short().toInt()
         questName = cursor.stringAscii(32, nullTerminated = true, dropRemaining = true)
         shortDescription = cursor.stringAscii(128, nullTerminated = true, dropRemaining = true)
         longDescription = cursor.stringAscii(288, nullTerminated = true, dropRemaining = true)
     } else {
-        questId = cursor.uInt()
-        language = cursor.uInt()
+        if (format == BinFormat.PC) {
+            language = cursor.short().toInt()
+            questId = cursor.short().toInt()
+        } else {
+            questId = cursor.int()
+            language = cursor.int()
+        }
+
         questName = cursor.stringUtf16(64, nullTerminated = true, dropRemaining = true)
         shortDescription = cursor.stringUtf16(256, nullTerminated = true, dropRemaining = true)
         longDescription = cursor.stringUtf16(576, nullTerminated = true, dropRemaining = true)

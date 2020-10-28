@@ -1,6 +1,7 @@
 package world.phantasmal.lib.compression.prs
 
 import world.phantasmal.lib.buffer.Buffer
+import world.phantasmal.lib.cursor.Cursor
 import world.phantasmal.lib.cursor.cursor
 import world.phantasmal.lib.test.asyncTest
 import world.phantasmal.lib.test.readFile
@@ -66,26 +67,15 @@ class PrsDecompressTests {
         val decompressedCursor = prsDecompress(compressedCursor).unwrap()
         cursor.seekStart(0)
 
-        assertEquals(cursor.size, decompressedCursor.size)
-
-        while (cursor.hasBytesLeft()) {
-            val expected = cursor.byte()
-            val actual = decompressedCursor.byte()
-
-            if (expected != actual) {
-                // Assert after check for performance.
-                assertEquals(
-                    expected,
-                    actual,
-                    "Got $actual, expected $expected at ${cursor.position - 1}."
-                )
-            }
-        }
+        assertCursorEquals(cursor, decompressedCursor)
     }
 
     @Test
     fun decompress_towards_the_future() = asyncTest {
-        prsDecompress(readFile("/quest118_e.bin")).unwrap()
+        val orig = readFile("/quest118_e_decompressed.bin")
+        val test = prsDecompress(readFile("/quest118_e.bin")).unwrap()
+
+        assertCursorEquals(orig, test)
     }
 
     @Test
@@ -94,20 +84,24 @@ class PrsDecompressTests {
         val test = prsDecompress(prsCompress(orig)).unwrap()
         orig.seekStart(0)
 
-        assertEquals(orig.size, test.size)
+        assertCursorEquals(orig, test)
+    }
 
-        while (orig.hasBytesLeft()) {
-            val expected = orig.byte()
-            val actual = test.byte()
+    private fun assertCursorEquals(expected: Cursor, actual: Cursor) {
+        while (expected.hasBytesLeft() && actual.hasBytesLeft()) {
+            val expectedByte = expected.byte()
+            val actualByte = actual.byte()
 
-            if (expected != actual) {
+            if (expectedByte != actualByte) {
                 // Assert after check for performance.
                 assertEquals(
-                    expected,
-                    actual,
-                    "Got $actual, expected $expected at ${orig.position - 1}."
+                    expectedByte,
+                    actualByte,
+                    "Got $actualByte, expected $expectedByte at ${expected.position - 1}."
                 )
             }
         }
+
+        assertEquals(expected.size, actual.size)
     }
 }

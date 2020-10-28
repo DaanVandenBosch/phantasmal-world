@@ -166,6 +166,7 @@ actual class Buffer private constructor(
             } while (newSize < minNewSize)
 
             val newBuf = ByteBuffer.allocate(newSize)
+            newBuf.order(buf.order())
             newBuf.put(buf.array())
             buf = newBuf
         }

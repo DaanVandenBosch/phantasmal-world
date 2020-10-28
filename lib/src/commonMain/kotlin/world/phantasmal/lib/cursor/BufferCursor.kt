@@ -35,11 +35,11 @@ class BufferCursor(
         }
 
     init {
-        require(offset <= buffer.size) {
+        require(offset in 0..buffer.size) {
             "Offset $offset is out of bounds."
         }
 
-        require(offset + size <= buffer.size) {
+        require(size >= 0 && offset + size <= buffer.size) {
             "Size $size is out of bounds."
         }
     }

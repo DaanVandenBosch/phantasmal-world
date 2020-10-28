@@ -53,37 +53,37 @@ abstract class CursorTests {
     }
 
     @Test
-    fun u8() {
+    fun uByte() {
         testIntegerRead(1, { uByte().toInt() }, Endianness.Little)
         testIntegerRead(1, { uByte().toInt() }, Endianness.Big)
     }
 
     @Test
-    fun u16() {
+    fun uShort() {
         testIntegerRead(2, { uShort().toInt() }, Endianness.Little)
         testIntegerRead(2, { uShort().toInt() }, Endianness.Big)
     }
 
     @Test
-    fun u32() {
+    fun uInt() {
         testIntegerRead(4, { uInt().toInt() }, Endianness.Little)
         testIntegerRead(4, { uInt().toInt() }, Endianness.Big)
     }
 
     @Test
-    fun i8() {
+    fun byte() {
         testIntegerRead(1, { byte().toInt() }, Endianness.Little)
         testIntegerRead(1, { byte().toInt() }, Endianness.Big)
     }
 
     @Test
-    fun i16() {
+    fun short() {
         testIntegerRead(2, { short().toInt() }, Endianness.Little)
         testIntegerRead(2, { short().toInt() }, Endianness.Big)
     }
 
     @Test
-    fun i32() {
+    fun int() {
         testIntegerRead(4, { int() }, Endianness.Little)
         testIntegerRead(4, { int() }, Endianness.Big)
     }
@@ -123,12 +123,12 @@ abstract class CursorTests {
     }
 
     @Test
-    fun f32() {
-        f32(Endianness.Little)
-        f32(Endianness.Big)
+    fun float() {
+        float(Endianness.Little)
+        float(Endianness.Big)
     }
 
-    private fun f32(endianness: Endianness) {
+    private fun float(endianness: Endianness) {
         val bytes = byteArrayOf(0x40, 0x20, 0, 0, 0x42, 1, 0, 0)
 
         if (endianness == Endianness.Little) {
@@ -146,7 +146,7 @@ abstract class CursorTests {
     }
 
     @Test
-    fun u8Array() {
+    fun uByteArray() {
         val read: Cursor.(Int) -> IntArray = { n ->
             val arr = uByteArray(n)
             IntArray(n) { arr[it].toInt() }
@@ -157,7 +157,7 @@ abstract class CursorTests {
     }
 
     @Test
-    fun u16Array() {
+    fun uShortArray() {
         val read: Cursor.(Int) -> IntArray = { n ->
             val arr = uShortArray(n)
             IntArray(n) { arr[it].toInt() }
@@ -168,7 +168,7 @@ abstract class CursorTests {
     }
 
     @Test
-    fun u32Array() {
+    fun uIntArray() {
         val read: Cursor.(Int) -> IntArray = { n ->
             val arr = uIntArray(n)
             IntArray(n) { arr[it].toInt() }
@@ -179,7 +179,7 @@ abstract class CursorTests {
     }
 
     @Test
-    fun i32Array() {
+    fun intArray() {
         val read: Cursor.(Int) -> IntArray = { n ->
             val arr = intArray(n)
             IntArray(n) { arr[it] }
