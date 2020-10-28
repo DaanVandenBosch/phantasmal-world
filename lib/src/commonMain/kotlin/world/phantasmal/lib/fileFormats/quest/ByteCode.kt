@@ -44,14 +44,14 @@ val BUILTIN_FUNCTIONS = setOf(
     860,
 )
 
-fun parseObjectCode(
-    objectCode: Buffer,
+fun parseByteCode(
+    byteCode: Buffer,
     labelOffsets: IntArray,
     entryLabels: Set<Int>,
     dcGcFormat: Boolean,
     lenient: Boolean,
 ): PwResult<List<Segment>> {
-    val cursor = BufferCursor(objectCode)
+    val cursor = BufferCursor(byteCode)
     val labelHolder = LabelHolder(labelOffsets)
     val result = PwResultBuilder<List<Segment>>(logger)
     val offsetToSegment = mutableMapOf<Int, Segment>()
@@ -138,7 +138,7 @@ fun parseObjectCode(
         }
     }
 
-    // Sanity check parsed object code.
+    // Sanity check parsed byte code.
     if (cursor.size != offset) {
         result.addProblem(
             Severity.Error,
@@ -351,7 +351,7 @@ private fun parseSegment(
         }
     } catch (e: Throwable) {
         if (lenient) {
-            logger.error(e) { "Couldn't fully parse object code segment." }
+            logger.error(e) { "Couldn't fully parse byte code segment." }
         } else {
             throw e
         }

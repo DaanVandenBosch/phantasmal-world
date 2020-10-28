@@ -100,7 +100,7 @@ enum class SegmentType {
 }
 
 /**
- * Segment of object code. A segment starts with an instruction, byte or string character that is
+ * Segment of byte code. A segment starts with an instruction, byte or string character that is
  * referenced by one or more labels. The segment ends right before the next instruction, byte or
  * string character that is referenced by a label.
  */

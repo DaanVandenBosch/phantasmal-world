@@ -129,11 +129,11 @@ enum class StackInteraction {
 }
 
 /**
- * Opcode for script object code. Invoked by instructions.
+ * Opcode for script byte code. Invoked by instructions.
  */
 class Opcode(
     /**
-     * 1- Or 2-byte big-endian representation of this opcode as used in object code.
+     * 1- Or 2-byte big-endian representation of this opcode as used in byte code.
      */
     val code: Int,
     /**

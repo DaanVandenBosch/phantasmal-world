@@ -25,7 +25,7 @@ class Quest(
     val npcs: List<QuestNpc>,
     val events: List<DatEvent>,
     val datUnknowns: List<DatUnknown>,
-    val objectCode: List<Segment>,
+    val byteCodeIr: List<Segment>,
     val shopItems: UIntArray,
     val mapDesignations: Map<Int, Int>,
 )
@@ -59,30 +59,30 @@ fun parseBinDatToQuest(
     // Initialize NPCs with random episode and correct it later.
     val npcs = dat.npcs.map { QuestNpc(Episode.I, it.areaId, it.data) }
 
-    // Extract episode and map designations from object code.
+    // Extract episode and map designations from byte code.
     var episode = Episode.I
     var mapDesignations = emptyMap<Int, Int>()
 
-    val objectCodeResult = parseObjectCode(
-        bin.objectCode,
+    val parseByteCodeResult = parseByteCode(
+        bin.byteCode,
         bin.labelOffsets,
         extractScriptEntryPoints(objects, npcs),
         bin.format == BinFormat.DC_GC,
         lenient,
     )
 
-    rb.addResult(objectCodeResult)
+    rb.addResult(parseByteCodeResult)
 
-    if (objectCodeResult !is Success) {
+    if (parseByteCodeResult !is Success) {
         return rb.failure()
     }
 
-    val objectCode = objectCodeResult.value
+    val byteCodeIr = parseByteCodeResult.value
 
-    if (objectCode.isEmpty()) {
+    if (byteCodeIr.isEmpty()) {
         rb.addProblem(Severity.Warning, "File contains no instruction labels.")
     } else {
-        val instructionSegments = objectCode.filterIsInstance<InstructionSegment>()
+        val instructionSegments = byteCodeIr.filterIsInstance<InstructionSegment>()
 
         var label0Segment: InstructionSegment? = null
 
@@ -117,7 +117,7 @@ fun parseBinDatToQuest(
         npcs,
         events = dat.events,
         datUnknowns = dat.unknowns,
-        objectCode,
+        byteCodeIr,
         shopItems = bin.shopItems,
         mapDesignations,
     ))

@@ -40,7 +40,7 @@ fun assemble(
 private class Assembler(private val assembly: List<String>, private val manualStack: Boolean) {
     private var lineNo = 1
     private lateinit var tokens: MutableList<Token>
-    private var objectCode: MutableList<Segment> = mutableListOf()
+    private var ir: MutableList<Segment> = mutableListOf()
 
     /**
      * The current segment.
@@ -113,7 +113,7 @@ private class Assembler(private val assembly: List<String>, private val manualSt
             lineNo++
         }
 
-        return result.success(objectCode)
+        return result.success(ir)
     }
 
     private fun addInstruction(
@@ -133,7 +133,7 @@ private class Assembler(private val assembly: List<String>, private val manualSt
                     srcLoc = SegmentSrcLoc()
                 )
 
-                objectCode.add(segment!!)
+                ir.add(segment!!)
             }
 
             is InstructionSegment -> {
@@ -172,7 +172,7 @@ private class Assembler(private val assembly: List<String>, private val manualSt
                     srcLoc = SegmentSrcLoc()
                 )
 
-                objectCode.add(segment!!)
+                ir.add(segment!!)
             }
 
             is DataSegment -> {
@@ -200,7 +200,7 @@ private class Assembler(private val assembly: List<String>, private val manualSt
                     srcLoc = SegmentSrcLoc()
                 )
 
-                objectCode.add(segment!!)
+                ir.add(segment!!)
             }
 
             is StringSegment -> {
@@ -260,7 +260,7 @@ private class Assembler(private val assembly: List<String>, private val manualSt
         val srcLoc = SrcLoc(lineNo, token.col, token.len)
 
         if (prevLineHadLabel) {
-            val segment = objectCode.last()
+            val segment = ir.last()
             segment.labels.add(label)
             segment.srcLoc.labels.add(srcLoc)
         }
@@ -274,7 +274,7 @@ private class Assembler(private val assembly: List<String>, private val manualSt
                         srcLoc = SegmentSrcLoc(labels = mutableListOf(srcLoc)),
                     )
 
-                    objectCode.add(segment!!)
+                    ir.add(segment!!)
                 }
 
                 if (nextToken != null) {
@@ -293,7 +293,7 @@ private class Assembler(private val assembly: List<String>, private val manualSt
                         data = Buffer.withCapacity(0),
                         srcLoc = SegmentSrcLoc(labels = mutableListOf(srcLoc)),
                     )
-                    objectCode.add(segment!!)
+                    ir.add(segment!!)
                 }
 
                 if (nextToken != null) {
@@ -312,7 +312,7 @@ private class Assembler(private val assembly: List<String>, private val manualSt
                         value = "",
                         srcLoc = SegmentSrcLoc(labels = mutableListOf(srcLoc)),
                     )
-                    objectCode.add(segment!!)
+                    ir.add(segment!!)
                 }
 
                 if (nextToken != null) {
@@ -509,7 +509,7 @@ private class Assembler(private val assembly: List<String>, private val manualSt
     }
 
     /**
-     * @returns true if arguments can be translated to object code, possibly after truncation. False otherwise.
+     * Returns true iff arguments can be translated to byte code, possibly after truncation.
      */
     private fun parseArgs(
         params: List<Param>,

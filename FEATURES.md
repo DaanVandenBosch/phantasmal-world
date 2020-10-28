@@ -91,7 +91,7 @@ Features that are in ***bold italics*** are planned but not yet implemented.
 - ***Spawn NPCs***
 - ***Reorder actions***
 
-## Script Object Code
+## Script Byte Code
 
 - Disassembler
 - Assembler

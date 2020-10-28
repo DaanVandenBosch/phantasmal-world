@@ -9,7 +9,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-class ObjectCode {
+class ByteCode {
     @Test
     fun minimal() {
         val buffer = Buffer.fromByteArray(ubyteArrayOf(
@@ -18,7 +18,7 @@ class ObjectCode {
             0x01u                                            // ret
         ).toByteArray())
 
-        val result = parseObjectCode(
+        val result = parseByteCode(
             buffer,
             labelOffsets = intArrayOf(0),
             entryLabels = setOf(0),
