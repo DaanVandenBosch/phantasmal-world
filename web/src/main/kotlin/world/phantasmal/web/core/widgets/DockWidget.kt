@@ -46,7 +46,7 @@ class DockWidget(
     scope: CoroutineScope,
     hidden: Val<Boolean> = falseVal(),
     private val item: DockedItem,
-) : Widget(scope, listOf(::style), hidden) {
+) : Widget(scope, hidden) {
     private lateinit var goldenLayout: GoldenLayout
 
     init {
@@ -56,7 +56,9 @@ class DockWidget(
     }
 
     override fun Node.createElement() =
-        div(className = "pw-core-dock") {
+        div {
+            className = "pw-core-dock"
+
             val idToCreate = mutableMapOf<String, (CoroutineScope) -> Widget>()
 
             val config = newJsObject<GoldenLayout.Config> {
@@ -141,101 +143,105 @@ class DockWidget(
                 }
         }
     }
-}
 
-// Use #pw-root for higher specificity than the default GoldenLayout CSS.
-@Suppress("CssUnusedSymbol", "CssUnresolvedCustomProperty")
-// language=css
-private fun style() = """
-.pw-core-dock {
-    width: 100%;
-    height: 100%;
+    companion object {
+        init {
+            // Use #pw-root for higher specificity than the default GoldenLayout CSS.
+            @Suppress("CssUnusedSymbol", "CssUnresolvedCustomProperty")
+            // language=css
+            style("""
+                .pw-core-dock {
+                    width: 100%;
+                    height: 100%;
+                }
+                
+                #pw-root .lm_header {
+                    box-sizing: border-box;
+                    height: ${HEADER_HEIGHT + 4}px;
+                    padding: 3px 0 0 0;
+                    border-bottom: var(--pw-border);
+                }
+                
+                #pw-root .lm_header .lm_tabs {
+                    padding: 0 3px;
+                }
+                
+                #pw-root .lm_header .lm_tabs .lm_tab {
+                    cursor: default;
+                    display: inline-flex;
+                    align-items: center;
+                    height: 23px;
+                    padding: 0 10px;
+                    border: var(--pw-border);
+                    margin: 0 1px -1px 1px;
+                    background-color: hsl(0, 0%, 12%);
+                    color: hsl(0, 0%, 75%);
+                    font-size: 13px;
+                }
+                
+                #pw-root .lm_header .lm_tabs .lm_tab:hover {
+                    background-color: hsl(0, 0%, 18%);
+                    color: hsl(0, 0%, 85%);
+                }
+                
+                #pw-root .lm_header .lm_tabs .lm_tab.lm_active {
+                    background-color: var(--pw-bg-color);
+                    color: hsl(0, 0%, 90%);
+                    border-bottom-color: var(--pw-bg-color);
+                }
+                
+                #pw-root .lm_header .lm_controls > li {
+                    cursor: default;
+                }
+                
+                #pw-root .lm_header .lm_controls .lm_close {
+                    /* a white 9x9 X shape */
+                    background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAkAAAAJCAYAAADgkQYQAAAAQUlEQVR4nHXOQQ4AMAgCQeT/f6aXpsGK3jSTuCVJAAr7iBdoAwCKd0nwfaAdHbYERw5b44+E8JoBjEYGMBq5gAYP3usUDu2IvoUAAAAASUVORK5CYII=);
+                    background-position: center center;
+                    background-repeat: no-repeat;
+                    cursor: pointer;
+                    opacity: 0.4;
+                    transition: opacity 300ms ease;
+                }
+                
+                #pw-root .lm_header .lm_controls .lm_close:hover {
+                    opacity: 1;
+                }
+                
+                #pw-root .lm_content > * {
+                    width: 100%;
+                    /* Subtract HEADER_HEIGHT_DIFF px as workaround for bug related to headerHeight. */
+                    height: calc(100% - ${HEADER_HEIGHT_DIFF}px);
+                }
+                
+                #pw-root .lm_splitter {
+                    box-sizing: border-box;
+                    background-color: hsl(0, 0%, 20%);
+                }
+                
+                #pw-root .lm_splitter.lm_vertical {
+                    border-top: var(--pw-border);
+                    border-bottom: var(--pw-border);
+                }
+                
+                #pw-root .lm_splitter.lm_horizontal {
+                    border-left: var(--pw-border);
+                    border-right: var(--pw-border);
+                }
+                
+                #pw-root .lm_dragProxy > .lm_content {
+                    box-sizing: border-box;
+                    background-color: var(--pw-bg-color);
+                    border-left: var(--pw-border);
+                    border-right: var(--pw-border);
+                    border-bottom: var(--pw-border);
+                }
+                
+                #pw-root .lm_dropTargetIndicator {
+                    box-sizing: border-box;
+                    background-color: hsla(0, 0%, 50%, 0.2);
+                }
+            """.trimIndent())
+        }
+    }
 }
-
-#pw-root .lm_header {
-    box-sizing: border-box;
-    height: ${HEADER_HEIGHT + 4}px;
-    padding: 3px 0 0 0;
-    border-bottom: var(--pw-border);
-}
-
-#pw-root .lm_header .lm_tabs {
-    padding: 0 3px;
-}
-
-#pw-root .lm_header .lm_tabs .lm_tab {
-    cursor: default;
-    display: inline-flex;
-    align-items: center;
-    height: 23px;
-    padding: 0 10px;
-    border: var(--pw-border);
-    margin: 0 1px -1px 1px;
-    background-color: hsl(0, 0%, 12%);
-    color: hsl(0, 0%, 75%);
-    font-size: 13px;
-}
-
-#pw-root .lm_header .lm_tabs .lm_tab:hover {
-    background-color: hsl(0, 0%, 18%);
-    color: hsl(0, 0%, 85%);
-}
-
-#pw-root .lm_header .lm_tabs .lm_tab.lm_active {
-    background-color: var(--pw-bg-color);
-    color: hsl(0, 0%, 90%);
-    border-bottom-color: var(--pw-bg-color);
-}
-
-#pw-root .lm_header .lm_controls > li {
-    cursor: default;
-}
-
-#pw-root .lm_header .lm_controls .lm_close {
-    /* a white 9x9 X shape */
-    background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAkAAAAJCAYAAADgkQYQAAAAQUlEQVR4nHXOQQ4AMAgCQeT/f6aXpsGK3jSTuCVJAAr7iBdoAwCKd0nwfaAdHbYERw5b44+E8JoBjEYGMBq5gAYP3usUDu2IvoUAAAAASUVORK5CYII=);
-    background-position: center center;
-    background-repeat: no-repeat;
-    cursor: pointer;
-    opacity: 0.4;
-    transition: opacity 300ms ease;
-}
-
-#pw-root .lm_header .lm_controls .lm_close:hover {
-    opacity: 1;
-}
-
-#pw-root .lm_content > * {
-    width: 100%;
-    /* Subtract HEADER_HEIGHT_DIFF px as workaround for bug related to headerHeight. */
-    height: calc(100% - ${HEADER_HEIGHT_DIFF}px);
-}
-
-#pw-root .lm_splitter {
-    box-sizing: border-box;
-    background-color: hsl(0, 0%, 20%);
-}
-
-#pw-root .lm_splitter.lm_vertical {
-    border-top: var(--pw-border);
-    border-bottom: var(--pw-border);
-}
-
-#pw-root .lm_splitter.lm_horizontal {
-    border-left: var(--pw-border);
-    border-right: var(--pw-border);
-}
-
-#pw-root .lm_dragProxy > .lm_content {
-    box-sizing: border-box;
-    background-color: var(--pw-bg-color);
-    border-left: var(--pw-border);
-    border-right: var(--pw-border);
-    border-bottom: var(--pw-border);
-}
-
-#pw-root .lm_dropTargetIndicator {
-    box-sizing: border-box;
-    background-color: hsla(0, 0%, 50%, 0.2);
-}
-"""

@@ -11,19 +11,25 @@ class MethodsForEpisodeWidget(
     scope: CoroutineScope,
     private val ctrl: MethodsController,
     private val episode: Episode,
-) : Widget(scope, listOf(::style)) {
+) : Widget(scope) {
     override fun Node.createElement() =
-        div(className = "pw-hunt-optimizer-methods-for-episode") {
+        div {
+            className = "pw-hunt-optimizer-methods-for-episode"
+
             bindChildrenTo(ctrl.episodeToMethods.getValue(episode)) { method, _ ->
                 div { textContent = method.name }
             }
         }
-}
 
-@Suppress("CssUnusedSymbol")
-// language=css
-private fun style() = """
-.pw-hunt-optimizer-methods-for-episode {
-    overflow: auto;
+    companion object {
+        init {
+            @Suppress("CssUnusedSymbol")
+            // language=css
+            style("""
+                .pw-hunt-optimizer-methods-for-episode {
+                    overflow: auto;
+                }
+            """.trimIndent())
+        }
+    }
 }
-"""

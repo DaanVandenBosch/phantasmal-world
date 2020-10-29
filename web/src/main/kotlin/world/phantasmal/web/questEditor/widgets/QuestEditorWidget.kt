@@ -22,9 +22,11 @@ open class QuestEditorWidget(
     private val toolbar: Widget,
     private val createQuestInfoWidget: (CoroutineScope) -> Widget,
     private val createQuestRendererWidget: (CoroutineScope) -> Widget,
-) : Widget(scope, listOf(::style)) {
+) : Widget(scope) {
     override fun Node.createElement() =
-        div(className = "pw-quest-editor-quest-editor") {
+        div {
+            className = "pw-quest-editor-quest-editor"
+
             addChild(toolbar)
             addChild(DockWidget(
                 scope,
@@ -93,17 +95,21 @@ open class QuestEditorWidget(
                 )
             ))
         }
-}
 
-@Suppress("CssUnusedSymbol")
-// language=css
-private fun style() = """
-.pw-quest-editor-quest-editor {
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
+    companion object {
+        init {
+            @Suppress("CssUnusedSymbol")
+            // language=css
+            style("""
+                .pw-quest-editor-quest-editor {
+                    display: flex;
+                    flex-direction: column;
+                    overflow: hidden;
+                }
+                .pw-quest-editor-quest-editor > * {
+                    flex-grow: 1;
+                }
+            """.trimIndent())
+        }
+    }
 }
-.pw-quest-editor-quest-editor > * {
-    flex-grow: 1;
-}
-"""

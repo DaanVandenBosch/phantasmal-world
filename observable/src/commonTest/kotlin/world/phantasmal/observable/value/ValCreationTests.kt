@@ -5,27 +5,27 @@ import kotlin.test.*
 
 class ValCreationTests : TestSuite() {
     @Test
-    fun test_value() {
+    fun test_value() = test {
         assertEquals(7, value(7).value)
     }
 
     @Test
-    fun test_trueVal() {
+    fun test_trueVal() = test {
         assertTrue(trueVal().value)
     }
 
     @Test
-    fun test_falseVal() {
+    fun test_falseVal() = test {
         assertFalse(falseVal().value)
     }
 
     @Test
-    fun test_nullVal() {
+    fun test_nullVal() = test {
         assertNull(nullVal().value)
     }
 
     @Test
-    fun test_mutableVal_with_initial_value() {
+    fun test_mutableVal_with_initial_value() = test {
         val v = mutableVal(17)
 
         assertEquals(17, v.value)
@@ -36,7 +36,7 @@ class ValCreationTests : TestSuite() {
     }
 
     @Test
-    fun test_mutableVal_with_getter_and_setter() {
+    fun test_mutableVal_with_getter_and_setter() = test {
         var x = 17
         val v = mutableVal({ x }, { x = it })
 

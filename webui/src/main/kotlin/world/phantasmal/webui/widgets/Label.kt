@@ -12,22 +12,29 @@ class Label(
     disabled: Val<Boolean> = falseVal(),
     private val text: String? = null,
     private val textVal: Val<String>? = null,
-    private val htmlFor: String?,
-) : Widget(scope, listOf(::style), hidden, disabled) {
+    private val htmlFor: String? = null,
+) : Widget(scope, hidden, disabled) {
     override fun Node.createElement() =
-        label(htmlFor) {
+        label {
+            className = "pw-label"
+            this@Label.htmlFor?.let { htmlFor = it }
+
             if (textVal != null) {
-                observe(textVal) { textContent = it }
+                text(textVal)
             } else if (text != null) {
                 textContent = text
             }
         }
-}
 
-@Suppress("CssUnusedSymbol", "CssUnresolvedCustomProperty")
-// language=css
-private fun style() = """
-.pw-label.disabled {
-    color: var(--pw-text-color-disabled);
+    companion object{
+        init {
+            @Suppress("CssUnusedSymbol", "CssUnresolvedCustomProperty")
+            // language=css
+            style("""
+                .pw-label.pw-disabled {
+                    color: var(--pw-text-color-disabled);
+                }
+            """.trimIndent())
+        }
+    }
 }
-"""

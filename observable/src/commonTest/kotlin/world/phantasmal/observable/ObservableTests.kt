@@ -14,7 +14,7 @@ abstract class ObservableTests : TestSuite() {
     protected abstract fun create(): ObservableAndEmit
 
     @Test
-    fun observable_calls_observers_when_events_are_emitted() {
+    fun observable_calls_observers_when_events_are_emitted() = test {
         val (observable, emit) = create()
         var changes = 0
 
@@ -36,7 +36,7 @@ abstract class ObservableTests : TestSuite() {
     }
 
     @Test
-    fun observable_does_not_call_observers_after_they_are_disposed() {
+    fun observable_does_not_call_observers_after_they_are_disposed() = test {
         val (observable, emit) = create()
         var changes = 0
 

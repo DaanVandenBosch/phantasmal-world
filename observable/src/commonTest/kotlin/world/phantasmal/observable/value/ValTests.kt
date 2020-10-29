@@ -19,7 +19,7 @@ abstract class ValTests : ObservableTests() {
      * Otherwise it should only call the observer when it changes.
      */
     @Test
-    fun val_respects_call_now_argument() {
+    fun val_respects_call_now_argument() = test {
         val (value, emit) = create()
         var changes = 0
 

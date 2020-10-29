@@ -14,7 +14,7 @@ abstract class ListValTests : ValTests() {
     abstract override fun create(): ListValAndAdd
 
     @Test
-    fun listVal_updates_sizeVal_correctly() {
+    fun listVal_updates_sizeVal_correctly() = test {
         val (list: List<*>, add) = create()
 
         assertEquals(0, list.sizeVal.value)

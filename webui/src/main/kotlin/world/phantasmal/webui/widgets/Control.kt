@@ -10,7 +10,6 @@ import world.phantasmal.observable.value.falseVal
  */
 abstract class Control(
     scope: CoroutineScope,
-    styles: List<() -> String>,
     hidden: Val<Boolean> = falseVal(),
     disabled: Val<Boolean> = falseVal(),
-) : Widget(scope, styles, hidden, disabled)
+) : Widget(scope, hidden, disabled)

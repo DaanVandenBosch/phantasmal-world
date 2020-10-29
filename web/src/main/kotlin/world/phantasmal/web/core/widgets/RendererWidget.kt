@@ -12,9 +12,11 @@ import kotlin.math.floor
 class RendererWidget(
     scope: CoroutineScope,
     private val createEngine: (HTMLCanvasElement) -> Engine,
-) : Widget(scope, listOf(::style)) {
+) : Widget(scope) {
     override fun Node.createElement() =
-        canvas(className = "pw-core-renderer") {
+        canvas {
+            className = "pw-core-renderer"
+
             observeResize()
             addDisposable(QuestRenderer(this, createEngine))
         }
@@ -24,13 +26,17 @@ class RendererWidget(
         canvas.width = floor(width).toInt()
         canvas.height = floor(height).toInt()
     }
-}
 
-@Suppress("CssUnusedSymbol")
-// language=css
-private fun style() = """
-.pw-core-renderer {
-    width: 100%;
-    height: 100%;
+    companion object {
+        init {
+            @Suppress("CssUnusedSymbol")
+            // language=css
+            style("""
+                .pw-core-renderer {
+                    width: 100%;
+                    height: 100%;
+                }
+            """.trimIndent())
+        }
+    }
 }
-"""

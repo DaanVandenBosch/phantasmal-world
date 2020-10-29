@@ -13,7 +13,7 @@ class FlatTransformedValDependentValEmitsTests : RegularValTests() {
      * same.
      */
     @Test
-    fun emits_a_change_when_its_direct_val_dependency_changes() {
+    fun emits_a_change_when_its_direct_val_dependency_changes() = test {
         val v = SimpleVal(SimpleVal(7))
         val fv = FlatTransformedVal(listOf(v)) { v.value }
         var observedValue: Int? = null

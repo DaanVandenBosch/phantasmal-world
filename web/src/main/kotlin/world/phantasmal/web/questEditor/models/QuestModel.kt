@@ -1,5 +1,6 @@
 package world.phantasmal.web.questEditor.models
 
+import world.phantasmal.lib.fileFormats.quest.Episode
 import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.mutableVal
 
@@ -9,6 +10,7 @@ class QuestModel(
     name: String,
     shortDescription: String,
     longDescription: String,
+    val episode: Episode,
 ) {
     private val _id = mutableVal(0)
     private val _language = mutableVal(0)

@@ -3,7 +3,6 @@ package world.phantasmal.lib.compression.prs
 import world.phantasmal.lib.buffer.Buffer
 import world.phantasmal.lib.cursor.cursor
 import kotlin.random.Random
-import kotlin.random.nextUInt
 import kotlin.test.Test
 import kotlin.test.assertEquals
 

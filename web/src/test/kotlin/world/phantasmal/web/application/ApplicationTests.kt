@@ -17,7 +17,7 @@ import kotlin.test.Test
 
 class ApplicationTests : TestSuite() {
     @Test
-    fun initialization_and_shutdown_should_succeed_without_throwing() {
+    fun initialization_and_shutdown_should_succeed_without_throwing() = test {
         (listOf(null) + PwTool.values().toList()).forEach { tool ->
             Disposer().use { disposer ->
                 val httpClient = HttpClient {

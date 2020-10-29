@@ -6,9 +6,11 @@ import world.phantasmal.webui.dom.div
 import world.phantasmal.webui.dom.p
 import world.phantasmal.webui.widgets.Widget
 
-class HelpWidget(scope: CoroutineScope) : Widget(scope, listOf(::style)) {
+class HelpWidget(scope: CoroutineScope) : Widget(scope) {
     override fun Node.createElement() =
-        div(className = "pw-hunt-optimizer-help") {
+        div {
+            className = "pw-hunt-optimizer-help"
+
             p {
                 textContent =
                     "Add some items with the combo box on the left to see the optimal combination of hunt methods on the right."
@@ -25,18 +27,22 @@ class HelpWidget(scope: CoroutineScope) : Widget(scope, listOf(::style)) {
                     "The optimal result is calculated using linear optimization. The optimizer takes into account rare enemies and the fact that pan arms can be split in two."
             }
         }
-}
 
-@Suppress("CssUnusedSymbol")
-// language=css
-private fun style() = """
-.pw-hunt-optimizer-help {
-    cursor: initial;
-    user-select: text;
+    companion object {
+        init {
+            @Suppress("CssUnusedSymbol")
+            // language=css
+            style("""
+                .pw-hunt-optimizer-help {
+                    cursor: initial;
+                    user-select: text;
+                }
+                
+                .pw-hunt-optimizer-help p {
+                    margin: 1em;
+                    max-width: 600px;
+                }
+            """.trimIndent())
+        }
+    }
 }
-
-.pw-hunt-optimizer-help p {
-    margin: 1em;
-    max-width: 600px;
-}
-"""

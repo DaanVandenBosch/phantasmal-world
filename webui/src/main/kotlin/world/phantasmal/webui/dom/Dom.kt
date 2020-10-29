@@ -2,14 +2,13 @@ package world.phantasmal.webui.dom
 
 import kotlinx.browser.document
 import kotlinx.dom.appendText
-import kotlinx.dom.clear
-import org.w3c.dom.*
+import org.w3c.dom.AddEventListenerOptions
+import org.w3c.dom.HTMLElement
+import org.w3c.dom.HTMLStyleElement
 import org.w3c.dom.events.Event
 import org.w3c.dom.events.EventTarget
 import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.core.disposable.disposable
-import world.phantasmal.observable.value.list.ListVal
-import world.phantasmal.observable.value.list.ListValChangeEvent
 
 fun <E : Event> disposableListener(
     target: EventTarget,

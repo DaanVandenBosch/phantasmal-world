@@ -12,18 +12,21 @@ class QuestEditorToolbar(
     scope: CoroutineScope,
     private val ctrl: QuestEditorToolbarController,
 ) : Widget(scope) {
-    override fun Node.createElement() = div(className = "pw-quest-editor-toolbar") {
-        addChild(Toolbar(
-            scope,
-            children = listOf(
-                FileButton(
-                    scope,
-                    text = "Open file...",
-                    accept = ".bin, .dat, .qst",
-                    multiple = true,
-                    filesSelected = ctrl::openFiles
+    override fun Node.createElement() =
+        div {
+            className = "pw-quest-editor-toolbar"
+
+            addChild(Toolbar(
+                scope,
+                children = listOf(
+                    FileButton(
+                        scope,
+                        text = "Open file...",
+                        accept = ".bin, .dat, .qst",
+                        multiple = true,
+                        filesSelected = ctrl::openFiles
+                    )
                 )
-            )
-        ))
-    }
+            ))
+        }
 }

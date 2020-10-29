@@ -11,20 +11,27 @@ import world.phantasmal.webui.widgets.Widget
 abstract class QuestRendererWidget(
     scope: CoroutineScope,
     private val createEngine: (HTMLCanvasElement) -> Engine,
-) : Widget(scope, listOf(::style)) {
-    override fun Node.createElement() = div(className = "pw-quest-editor-quest-renderer") {
-        addChild(RendererWidget(scope, createEngine))
+) : Widget(scope) {
+    override fun Node.createElement() =
+        div {
+            className = "pw-quest-editor-quest-renderer"
+
+            addChild(RendererWidget(scope, createEngine))
+        }
+
+    companion object {
+        init {
+            @Suppress("CssUnusedSymbol")
+            // language=css
+            style("""
+                .pw-quest-editor-quest-renderer {
+                    display: flex;
+                    overflow: hidden;
+                }
+                .pw-quest-editor-quest-renderer > * {
+                    flex-grow: 1;
+                }
+            """.trimIndent())
+        }
     }
 }
-
-@Suppress("CssUnusedSymbol")
-// language=css
-private fun style() = """
-.pw-quest-editor-quest-renderer {
-    display: flex;
-    overflow: hidden;
-}
-.pw-quest-editor-quest-renderer > * {
-    flex-grow: 1;
-}
-"""

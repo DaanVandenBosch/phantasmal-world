@@ -1,5 +1,6 @@
 package world.phantasmal.webui.widgets
 
+import kotlinx.coroutines.CoroutineScope
 import org.w3c.dom.Node
 import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.falseVal
@@ -10,15 +11,16 @@ import world.phantasmal.webui.dom.div
 import kotlin.test.Test
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
+import kotlin.test.fail
 
 class WidgetTests : TestSuite() {
     @Test
-    fun ancestorHidden_and_selfOrAncestorHidden_should_update_when_hidden_changes() {
+    fun ancestorHidden_and_selfOrAncestorHidden_should_update_when_hidden_changes() = test {
         val parentHidden = mutableVal(false)
         val childHidden = mutableVal(false)
-        val grandChild = DummyWidget()
-        val child = DummyWidget(childHidden, grandChild)
-        val parent = disposer.add(DummyWidget(parentHidden, child))
+        val grandChild = DummyWidget(scope)
+        val child = DummyWidget(scope, childHidden, grandChild)
+        val parent = disposer.add(DummyWidget(scope, parentHidden, child))
 
         parent.element // Ensure widgets are fully initialized.
 
@@ -50,17 +52,19 @@ class WidgetTests : TestSuite() {
     }
 
     @Test
-    fun added_child_widgets_should_have_ancestorHidden_and_selfOrAncestorHidden_set_correctly() {
-        val parent = disposer.add(DummyWidget(hidden = trueVal()))
-        val child = parent.addChild(DummyWidget())
+    fun added_child_widgets_should_have_ancestorHidden_and_selfOrAncestorHidden_set_correctly() =
+        test {
+            val parent = disposer.add(DummyWidget(scope, hidden = trueVal()))
+            val child = parent.addChild(DummyWidget(scope))
 
-        assertFalse(parent.ancestorHidden.value)
-        assertTrue(parent.selfOrAncestorHidden.value)
-        assertTrue(child.ancestorHidden.value)
-        assertTrue(child.selfOrAncestorHidden.value)
-    }
+            assertFalse(parent.ancestorHidden.value)
+            assertTrue(parent.selfOrAncestorHidden.value)
+            assertTrue(child.ancestorHidden.value)
+            assertTrue(child.selfOrAncestorHidden.value)
+        }
 
     private inner class DummyWidget(
+        scope: CoroutineScope,
         hidden: Val<Boolean> = falseVal(),
         private val child: Widget? = null,
     ) : Widget(scope, hidden = hidden) {

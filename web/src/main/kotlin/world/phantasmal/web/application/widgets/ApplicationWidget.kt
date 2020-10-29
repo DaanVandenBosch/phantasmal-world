@@ -9,28 +9,34 @@ class ApplicationWidget(
     scope: CoroutineScope,
     private val navigationWidget: NavigationWidget,
     private val mainContentWidget: MainContentWidget,
-) : Widget(scope, listOf(::style)) {
+) : Widget(scope) {
     override fun Node.createElement() =
-        div(className = "pw-application-application") {
+        div {
+            className = "pw-application-application"
+
             addChild(navigationWidget)
             addChild(mainContentWidget)
         }
-}
 
-@Suppress("CssUnusedSymbol")
-// language=css
-private fun style() = """
-.pw-application-application {
-    position: fixed;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    display: flex;
-    flex-direction: column;
+    companion object {
+        init {
+            @Suppress("CssUnusedSymbol")
+            // language=css
+            style("""
+                .pw-application-application {
+                    position: fixed;
+                    top: 0;
+                    bottom: 0;
+                    left: 0;
+                    right: 0;
+                    display: flex;
+                    flex-direction: column;
+                }
+                .pw-application-application .pw-application-main-content {
+                    flex-grow: 1;
+                    overflow: hidden;
+                }
+            """.trimIndent())
+        }
+    }
 }
-.pw-application-application .pw-application-main-content {
-    flex-grow: 1;
-    overflow: hidden;
-}
-"""

@@ -10,7 +10,7 @@ import kotlin.test.assertFalse
 
 class PathAwareTabControllerTests : TestSuite() {
     @Test
-    fun activeTab_is_initialized_correctly() {
+    fun activeTab_is_initialized_correctly() = test {
         setup { ctrl, appUrl ->
             assertEquals("/b", ctrl.activeTab.value?.path)
             assertFalse(appUrl.canGoBack)
@@ -19,7 +19,7 @@ class PathAwareTabControllerTests : TestSuite() {
     }
 
     @Test
-    fun applicationUrl_changes_when_activeTab_changes() {
+    fun applicationUrl_changes_when_activeTab_changes() = test {
         setup { ctrl, appUrl ->
             ctrl.setActiveTab(ctrl.tabs[2])
 
@@ -30,7 +30,7 @@ class PathAwareTabControllerTests : TestSuite() {
     }
 
     @Test
-    fun activeTab_changes_when_applicationUrl_changes() {
+    fun activeTab_changes_when_applicationUrl_changes() = test {
         setup { ctrl, applicationUrl ->
             applicationUrl.pushUrl("/${PwTool.HuntOptimizer.slug}/c")
 
@@ -39,7 +39,7 @@ class PathAwareTabControllerTests : TestSuite() {
     }
 
     @Test
-    fun applicationUrl_changes_when_switch_to_tool_with_tabs() {
+    fun applicationUrl_changes_when_switch_to_tool_with_tabs() = test {
         val appUrl = TestApplicationUrl("/")
         val uiStore = disposer.add(UiStore(scope, appUrl))
 
@@ -66,7 +66,7 @@ class PathAwareTabControllerTests : TestSuite() {
         assertEquals("/${uiStore.defaultTool.slug}", appUrl.url.value)
     }
 
-    private fun setup(
+    private fun TestContext.setup(
         block: (PathAwareTabController<PathAwareTab>, applicationUrl: TestApplicationUrl) -> Unit,
     ) {
         val applicationUrl = TestApplicationUrl("/${PwTool.HuntOptimizer.slug}/b")

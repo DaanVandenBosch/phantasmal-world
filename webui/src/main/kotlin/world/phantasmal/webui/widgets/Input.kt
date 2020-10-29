@@ -9,7 +9,6 @@ import world.phantasmal.webui.dom.span
 
 abstract class Input<T>(
     scope: CoroutineScope,
-    styles: List<() -> String>,
     hidden: Val<Boolean>,
     disabled: Val<Boolean>,
     label: String?,
@@ -21,12 +20,12 @@ abstract class Input<T>(
     private val value: T?,
     private val valueVal: Val<T>?,
     private val setValue: ((T) -> Unit)?,
+    private val maxLength: Int?,
     private val min: Int?,
     private val max: Int?,
     private val step: Int?,
 ) : LabelledControl(
     scope,
-    styles + ::style,
     hidden,
     disabled,
     label,
@@ -34,11 +33,12 @@ abstract class Input<T>(
     preferredLabelPosition,
 ) {
     override fun Node.createElement() =
-        span(className = "pw-input") {
-            classList.add(className)
+        span {
+            classList.add("pw-input", this@Input.className)
 
-            input(className = "pw-input-inner", type = inputType) {
-                classList.add(inputClassName)
+            input {
+                classList.add("pw-input-inner", inputClassName)
+                type = inputType
 
                 observe(this@Input.disabled) { disabled = it }
 
@@ -58,61 +58,58 @@ abstract class Input<T>(
                     setInputValue(this, this@Input.value)
                 }
 
-                if (this@Input.min != null) {
-                    min = this@Input.min.toString()
-                }
-
-                if (this@Input.max != null) {
-                    max = this@Input.max.toString()
-                }
-
-                if (this@Input.step != null) {
-                    step = this@Input.step.toString()
-                }
+                this@Input.maxLength?.let { maxLength = it }
+                this@Input.min?.let { min = it.toString() }
+                this@Input.max?.let { max = it.toString() }
+                this@Input.step?.let { step = it.toString() }
             }
         }
 
     protected abstract fun getInputValue(input: HTMLInputElement): T
 
     protected abstract fun setInputValue(input: HTMLInputElement, value: T)
-}
 
-@Suppress("CssUnusedSymbol", "CssUnresolvedCustomProperty")
-// language=css
-private fun style() = """
-.pw-input {
-    display: inline-block;
-    box-sizing: border-box;
-    height: 24px;
-    border: var(--pw-input-border);
-}
+    companion object {
+        init {
+            @Suppress("CssUnusedSymbol", "CssUnresolvedCustomProperty")
+            // language=css
+            style("""
+                .pw-input {
+                    display: inline-block;
+                    box-sizing: border-box;
+                    height: 24px;
+                    border: var(--pw-input-border);
+                }
 
-.pw-input .pw-input-inner {
-    box-sizing: border-box;
-    width: 100%;
-    height: 100%;
-    padding: 0 3px;
-    border: var(--pw-input-inner-border);
-    background-color: var(--pw-input-bg-color);
-    color: var(--pw-input-text-color);
-    outline: none;
-    font-size: 13px;
-}
+                .pw-input .pw-input-inner {
+                    box-sizing: border-box;
+                    width: 100%;
+                    height: 100%;
+                    padding: 0 3px;
+                    border: var(--pw-input-inner-border);
+                    background-color: var(--pw-input-bg-color);
+                    color: var(--pw-input-text-color);
+                    outline: none;
+                    font-size: 13px;
+                }
 
-.pw-input:hover {
-    border: var(--pw-input-border-hover);
-}
+                .pw-input:hover {
+                    border: var(--pw-input-border-hover);
+                }
 
-.pw-input:focus-within {
-    border: var(--pw-input-border-focus);
-}
+                .pw-input:focus-within {
+                    border: var(--pw-input-border-focus);
+                }
 
-.pw-input.disabled {
-    border: var(--pw-input-border-disabled);
-}
+                .pw-input.disabled {
+                    border: var(--pw-input-border-disabled);
+                }
 
-.pw-input.disabled .pw-input-inner {
-    color: var(--pw-input-text-color-disabled);
-    background-color: var(--pw-input-bg-color-disabled);
+                .pw-input.disabled .pw-input-inner {
+                    color: var(--pw-input-text-color-disabled);
+                    background-color: var(--pw-input-bg-color-disabled);
+                }
+            """.trimIndent())
+        }
+    }
 }
-"""

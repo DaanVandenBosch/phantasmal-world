@@ -13,27 +13,33 @@ class MainContentWidget(
     scope: CoroutineScope,
     private val ctrl: MainContentController,
     private val toolViews: Map<PwTool, (CoroutineScope) -> Widget>,
-) : Widget(scope, listOf(::style)) {
+) : Widget(scope) {
     override fun Node.createElement() =
-        div(className = "pw-application-main-content") {
+        div {
+            className = "pw-application-main-content"
+
             ctrl.tools.forEach { (tool, active) ->
                 toolViews[tool]?.let { createWidget ->
                     addChild(LazyLoader(scope, hidden = !active, createWidget = createWidget))
                 }
             }
         }
-}
 
-@Suppress("CssUnusedSymbol")
-// language=css
-private fun style() = """
-.pw-application-main-content {
-    display: flex;
-    flex-direction: column;
-}
+    companion object {
+        init {
+            @Suppress("CssUnusedSymbol")
+            // language=css
+            style("""
+                .pw-application-main-content {
+                    display: flex;
+                    flex-direction: column;
+                }
 
-.pw-application-main-content > * {
-    flex-grow: 1;
-    overflow: hidden;
+                .pw-application-main-content > * {
+                    flex-grow: 1;
+                    overflow: hidden;
+                }
+            """.trimIndent())
+        }
+    }
 }
-"""

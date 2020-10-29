@@ -14,7 +14,7 @@ import kotlin.test.Test
 
 class HuntOptimizerTests : TestSuite() {
     @Test
-    fun initialization_and_shutdown_should_succeed_without_throwing() {
+    fun initialization_and_shutdown_should_succeed_without_throwing() = test {
         val httpClient = HttpClient {
             install(JsonFeature) {
                 serializer = KotlinxSerializer(kotlinx.serialization.json.Json {

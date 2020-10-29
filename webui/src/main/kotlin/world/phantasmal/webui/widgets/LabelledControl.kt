@@ -11,13 +11,12 @@ enum class LabelPosition {
 
 abstract class LabelledControl(
     scope: CoroutineScope,
-    styles: List<() -> String>,
     hidden: Val<Boolean> = falseVal(),
     disabled: Val<Boolean> = falseVal(),
     label: String? = null,
     labelVal: Val<String>? = null,
     val preferredLabelPosition: LabelPosition,
-) : Control(scope, styles, hidden, disabled) {
+) : Control(scope, hidden, disabled) {
     val label: Label? by lazy {
         if (label == null && labelVal == null) {
             null

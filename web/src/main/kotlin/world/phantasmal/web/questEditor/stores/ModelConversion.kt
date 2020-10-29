@@ -9,6 +9,7 @@ fun convertQuestToModel(quest: Quest): QuestModel {
         quest.language,
         quest.name,
         quest.shortDescription,
-        quest.longDescription
+        quest.longDescription,
+        quest.episode,
     )
 }

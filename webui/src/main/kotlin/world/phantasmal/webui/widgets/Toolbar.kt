@@ -11,15 +11,19 @@ class Toolbar(
     hidden: Val<Boolean> = falseVal(),
     disabled: Val<Boolean> = falseVal(),
     children: List<Widget>,
-) : Widget(scope, listOf(::style), hidden, disabled) {
+) : Widget(scope, hidden, disabled) {
     private val childWidgets = children
 
     override fun Node.createElement() =
-        div(className = "pw-toolbar") {
+        div {
+            className = "pw-toolbar"
+
             childWidgets.forEach { child ->
                 // Group labelled controls and their labels together.
                 if (child is LabelledControl && child.label != null) {
-                    div(className = "pw-toolbar-group") {
+                    div {
+                        className = "pw-toolbar-group"
+
                         when (child.preferredLabelPosition) {
                             LabelPosition.Before -> {
                                 addChild(child.label!!)
@@ -36,36 +40,40 @@ class Toolbar(
                 }
             }
         }
-}
 
-@Suppress("CssUnusedSymbol", "CssUnresolvedCustomProperty")
-// language=css
-private fun style() = """
-.pw-toolbar {
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    border-bottom: var(--pw-border);
-    padding: 0 2px;
-}
+    companion object {
+        init {
+            @Suppress("CssUnusedSymbol", "CssUnresolvedCustomProperty")
+            // language=css
+            style("""
+                .pw-toolbar {
+                    box-sizing: border-box;
+                    display: flex;
+                    flex-direction: row;
+                    align-items: center;
+                    border-bottom: var(--pw-border);
+                    padding: 0 2px;
+                }
 
-.pw-toolbar > * {
-    margin: 2px 1px;
-}
+                .pw-toolbar > * {
+                    margin: 2px 1px;
+                }
 
-.pw-toolbar > .pw-toolbar-group {
-    margin: 2px 3px;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-}
+                .pw-toolbar > .pw-toolbar-group {
+                    margin: 2px 3px;
+                    display: flex;
+                    flex-direction: row;
+                    align-items: center;
+                }
 
-.pw-toolbar > .pw-toolbar-group > * {
-    margin: 0 2px;
-}
+                .pw-toolbar > .pw-toolbar-group > * {
+                    margin: 0 2px;
+                }
 
-.pw-toolbar .pw-input {
-    height: 26px;
+                .pw-toolbar .pw-input {
+                    height: 26px;
+                }
+            """.trimIndent())
+        }
+    }
 }
-"""

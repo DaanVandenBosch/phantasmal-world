@@ -2,10 +2,10 @@ package world.phantasmal.webui.widgets
 
 import kotlinx.browser.document
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.dom.appendText
 import kotlinx.dom.clear
 import org.w3c.dom.*
 import world.phantasmal.core.disposable.disposable
+import world.phantasmal.observable.Observable
 import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.falseVal
 import world.phantasmal.observable.value.list.ListVal
@@ -16,7 +16,6 @@ import world.phantasmal.webui.DisposableContainer
 
 abstract class Widget(
     protected val scope: CoroutineScope,
-    private val styles: List<() -> String> = emptyList(),
     /**
      * By default determines the hidden attribute of its [element].
      */
@@ -33,13 +32,6 @@ abstract class Widget(
     private var resizeObserverInitialized = false
 
     private val elementDelegate = lazy {
-        // Add CSS declarations to stylesheet if this is the first time we're encountering them.
-        styles.forEach { style ->
-            if (STYLES_ADDED.add(style)) {
-                STYLE_EL.appendText(style())
-            }
-        }
-
         val el = document.createDocumentFragment().createElement()
 
         observe(hidden) { hidden ->
@@ -101,6 +93,23 @@ abstract class Widget(
         super.internalDispose()
     }
 
+    protected fun Node.text(observable: Observable<String>) {
+        observe(observable) { textContent = it }
+    }
+
+    protected fun HTMLElement.hidden(observable: Observable<Boolean>) {
+        observe(observable) { hidden = it }
+    }
+
+    /**
+     * Appends a widget's element to the receiving node.
+     */
+    protected fun <T : Widget> Node.addWidget(widget: T): T {
+        addDisposable(widget)
+        appendChild(widget.element)
+        return widget
+    }
+
     /**
      * Adds a child widget to [children] and appends its element to the receiving node.
      */
@@ -112,7 +121,7 @@ abstract class Widget(
         return child
     }
 
-    fun <T> Node.bindChildrenTo(
+    protected fun <T> Node.bindChildrenTo(
         list: ListVal<T>,
         createChild: (T, Int) -> Node,
     ) {
@@ -198,7 +207,10 @@ abstract class Widget(
             document.head!!.append(el)
             el
         }
-        private val STYLES_ADDED: MutableSet<() -> String> = mutableSetOf()
+
+        protected fun style(style: String) {
+            STYLE_EL.append(style)
+        }
 
         protected fun setAncestorHidden(widget: Widget, hidden: Boolean) {
             widget._ancestorHidden.value = hidden

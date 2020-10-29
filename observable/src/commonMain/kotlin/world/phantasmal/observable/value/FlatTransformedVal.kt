@@ -16,7 +16,7 @@ class FlatTransformedVal<T>(
             return if (hasNoObservers()) {
                 super.value
             } else {
-                computedVal.unsafeToNonNull<Val<T>>().value
+                computedVal.unsafeToNonNull().value
             }
         }
 

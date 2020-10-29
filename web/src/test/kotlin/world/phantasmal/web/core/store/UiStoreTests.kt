@@ -9,7 +9,7 @@ import kotlin.test.assertEquals
 
 class UiStoreTests : TestSuite() {
     @Test
-    fun applicationUrl_is_initialized_correctly() {
+    fun applicationUrl_is_initialized_correctly() = test {
         val applicationUrl = TestApplicationUrl("/")
         val uiStore = disposer.add(UiStore(scope, applicationUrl))
 
@@ -18,7 +18,7 @@ class UiStoreTests : TestSuite() {
     }
 
     @Test
-    fun applicationUrl_changes_when_tool_changes() {
+    fun applicationUrl_changes_when_tool_changes() = test {
         val applicationUrl = TestApplicationUrl("/")
         val uiStore = disposer.add(UiStore(scope, applicationUrl))
 
@@ -31,7 +31,7 @@ class UiStoreTests : TestSuite() {
     }
 
     @Test
-    fun applicationUrl_changes_when_path_changes() {
+    fun applicationUrl_changes_when_path_changes() = test {
         val applicationUrl = TestApplicationUrl("/")
         val uiStore = disposer.add(UiStore(scope, applicationUrl))
 
@@ -46,7 +46,7 @@ class UiStoreTests : TestSuite() {
     }
 
     @Test
-    fun currentTool_and_path_change_when_applicationUrl_changes() {
+    fun currentTool_and_path_change_when_applicationUrl_changes() = test {
         val applicationUrl = TestApplicationUrl("/")
         val uiStore = disposer.add(UiStore(scope, applicationUrl))
 
@@ -61,7 +61,7 @@ class UiStoreTests : TestSuite() {
     }
 
     @Test
-    fun browser_navigation_stack_is_manipulated_correctly() {
+    fun browser_navigation_stack_is_manipulated_correctly() = test {
         val appUrl = TestApplicationUrl("/")
         val uiStore = disposer.add(UiStore(scope, appUrl))
 

@@ -18,7 +18,6 @@ abstract class NumberInput<T : Number>(
     step: Int?,
 ) : Input<T>(
     scope,
-    listOf(::style),
     hidden,
     disabled,
     label,
@@ -30,19 +29,24 @@ abstract class NumberInput<T : Number>(
     value,
     valueVal,
     setValue,
+    maxLength = null,
     min,
     max,
     step,
-)
+) {
+    companion object {
+        init {
+            @Suppress("CssUnusedSymbol")
+            // language=css
+            style("""
+                .pw-number-input {
+                    width: 54px;
+                }
 
-@Suppress("CssUnusedSymbol")
-// language=css
-private fun style() = """
-.pw-number-input {
-    width: 54px;
+                .pw-number-input .pw-number-input-inner {
+                    padding-right: 1px;
+                }
+            """.trimIndent())
+        }
+    }
 }
-
-.pw-number-input .pw-number-input-inner {
-    padding-right: 1px;
-}
-"""

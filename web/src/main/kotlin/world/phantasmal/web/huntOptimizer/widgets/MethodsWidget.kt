@@ -10,25 +10,31 @@ import world.phantasmal.webui.widgets.Widget
 class MethodsWidget(
     scope: CoroutineScope,
     private val ctrl: MethodsController,
-) : Widget(scope, listOf(::style)) {
+) : Widget(scope) {
     override fun Node.createElement() =
-        div(className = "pw-hunt-optimizer-methods") {
+        div {
+            className = "pw-hunt-optimizer-methods"
+
             addChild(TabContainer(scope, ctrl = ctrl, createWidget = { scope, tab ->
                 MethodsForEpisodeWidget(scope, ctrl, tab.episode)
             }))
         }
-}
 
-@Suppress("CssUnusedSymbol")
-// language=css
-private fun style() = """
-.pw-hunt-optimizer-methods {
-    display: flex;
-    flex-direction: column;
+    companion object {
+        init {
+            @Suppress("CssUnusedSymbol")
+            // language=css
+            style("""
+                .pw-hunt-optimizer-methods {
+                    display: flex;
+                    flex-direction: column;
+                }
+                
+                .pw-hunt-optimizer-methods > * {
+                    flex-grow: 1;
+                    overflow: hidden;
+                }
+            """.trimIndent())
+        }
+    }
 }
-
-.pw-hunt-optimizer-methods > * {
-    flex-grow: 1;
-    overflow: hidden;
-}
-"""

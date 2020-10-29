@@ -13,7 +13,7 @@ abstract class RegularValTests : ValTests() {
     protected abstract fun createBoolean(bool: Boolean): ValAndEmit<Boolean>
 
     @Test
-    fun val_boolean_extensions() {
+    fun val_boolean_extensions() = test {
         listOf(true, false).forEach { bool ->
             val (value) = createBoolean(bool)
 
