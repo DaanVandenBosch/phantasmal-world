@@ -22,7 +22,7 @@ fun getStackValue(cfg: ControlFlowGraph, instruction: Instruction, position: Int
 }
 
 private class StackValueFinder {
-    var iterations = 0
+    private var iterations = 0
 
     fun find(
         path: MutableSet<BasicBlock>,
@@ -54,7 +54,6 @@ private class StackValueFinder {
                         return getRegisterValue(cfg, instruction, args[0].value as Int)
                     } else {
                         pos--
-                        break
                     }
                 }
 
@@ -66,7 +65,6 @@ private class StackValueFinder {
                         return ValueSet.of(args[0].value as Int)
                     } else {
                         pos--
-                        break
                     }
                 }
 
@@ -78,11 +76,8 @@ private class StackValueFinder {
                         return ValueSet.all()
                     } else {
                         pos--
-                        break
                     }
                 }
-
-                else -> break
             }
         }
 

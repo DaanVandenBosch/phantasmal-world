@@ -151,8 +151,8 @@ fun paramsToCode(params: List<Map<String, Any>>, indent: Int): String {
         val type = when (param["type"]) {
             "any" -> "AnyType()"
             "byte" -> "ByteType"
-            "word" -> "WordType"
-            "dword" -> "DWordType"
+            "short" -> "ShortType"
+            "int" -> "IntType"
             "float" -> "FloatType"
             "label" -> "LabelType()"
             "instruction_label" -> "ILabelType"

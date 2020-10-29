@@ -112,6 +112,17 @@ protected constructor(protected val offset: Int) : WritableCursor {
         return this
     }
 
+    override fun writeByteArray(array: ByteArray): WritableCursor {
+        val len = array.size
+        requireSize(len)
+
+        for (i in 0 until len) {
+            writeByte(array[i])
+        }
+
+        return this
+    }
+
     override fun writeIntArray(array: IntArray): WritableCursor {
         val len = array.size
         requireSize(4 * len)

@@ -435,7 +435,7 @@ private class Assembler(private val assembly: List<String>, private val manualSt
                                 )
                             }
 
-                            is WordType,
+                            is ShortType,
                             is LabelType,
                             is ILabelType,
                             is DLabelType,
@@ -451,7 +451,7 @@ private class Assembler(private val assembly: List<String>, private val manualSt
                                 )
                             }
 
-                            is DWordType -> {
+                            is IntType -> {
                                 addInstruction(
                                     OP_ARG_PUSHL,
                                     listOf(arg),
@@ -554,7 +554,7 @@ private class Assembler(private val assembly: List<String>, private val manualSt
                                 match = true
                                 parseInt(1, token, argAndTokens)
                             }
-                            is WordType,
+                            is ShortType,
                             is LabelType,
                             is ILabelType,
                             is DLabelType,
@@ -564,7 +564,7 @@ private class Assembler(private val assembly: List<String>, private val manualSt
                                 match = true
                                 parseInt(2, token, argAndTokens)
                             }
-                            is DWordType -> {
+                            is IntType -> {
                                 match = true
                                 parseInt(4, token, argAndTokens)
                             }
@@ -613,8 +613,8 @@ private class Assembler(private val assembly: List<String>, private val manualSt
 
                     val typeStr: String? = when (param.type) {
                         is ByteType -> "an 8-bit integer"
-                        is WordType -> "a 16-bit integer"
-                        is DWordType -> "a 32-bit integer"
+                        is ShortType -> "a 16-bit integer"
+                        is IntType -> "a 32-bit integer"
                         is FloatType -> "a float"
                         is LabelType -> "a label"
 

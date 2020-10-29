@@ -29,12 +29,12 @@ object ByteType : ValueType()
 /**
  * 16-Bit integer.
  */
-object WordType : ValueType()
+object ShortType : ValueType()
 
 /**
  * 32-Bit integer.
  */
-object DWordType : ValueType()
+object IntType : ValueType()
 
 /**
  * 32-Bit floating point number.
@@ -62,14 +62,14 @@ object DLabelType : LabelType()
 object SLabelType : LabelType()
 
 /**
- * String of arbitrary size.
- */
-object StringType : LabelType()
-
-/**
  * Arbitrary amount of instruction labels.
  */
 object ILabelVarType : LabelType()
+
+/**
+ * String of arbitrary size.
+ */
+object StringType : ValueType()
 
 /**
  * Purely abstract super type of all reference types.
@@ -96,13 +96,6 @@ object RegRefVarType : RefType()
  * Raw memory pointer.
  */
 object PointerType : AnyType()
-
-const val MIN_SIGNED_DWORD_VALUE = Int.MIN_VALUE
-const val MAX_SIGNED_DWORD_VALUE = Int.MAX_VALUE
-const val MIN_UNSIGNED_DWORD_VALUE = UInt.MIN_VALUE
-const val MAX_UNSIGNED_DWORD_VALUE = UInt.MAX_VALUE
-const val MIN_DWORD_VALUE = MIN_SIGNED_DWORD_VALUE
-const val MAX_DWORD_VALUE = MAX_UNSIGNED_DWORD_VALUE
 
 enum class ParamAccess {
     Read,

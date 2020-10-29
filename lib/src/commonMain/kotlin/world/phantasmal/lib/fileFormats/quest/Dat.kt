@@ -27,31 +27,31 @@ class DatEntity(
 )
 
 class DatEvent(
-    var id: UInt,
-    var sectionId: UShort,
-    var wave: UShort,
-    var delay: UShort,
+    var id: Int,
+    var sectionId: Short,
+    var wave: Short,
+    var delay: Short,
     val actions: MutableList<DatEventAction>,
     val areaId: Int,
-    val unknown: UShort,
+    val unknown: Short,
 )
 
 sealed class DatEventAction {
     class SpawnNpcs(
-        val sectionId: UShort,
-        val appearFlag: UShort,
+        val sectionId: Short,
+        val appearFlag: Short,
     ) : DatEventAction()
 
     class Unlock(
-        val doorId: UShort,
+        val doorId: Short,
     ) : DatEventAction()
 
     class Lock(
-        val doorId: UShort,
+        val doorId: Short,
     ) : DatEventAction()
 
     class TriggerEvent(
-        val eventId: UInt,
+        val eventId: Int,
     ) : DatEventAction()
 }
 
@@ -60,7 +60,7 @@ class DatUnknown(
     val totalSize: Int,
     val areaId: Int,
     val entitiesSize: Int,
-    val data: UByteArray,
+    val data: ByteArray,
 )
 
 fun parseDat(cursor: Cursor): DatFile {
@@ -95,7 +95,7 @@ fun parseDat(cursor: Cursor): DatFile {
                         totalSize,
                         areaId,
                         entitiesSize,
-                        data = cursor.uByteArray(entitiesSize),
+                        data = cursor.byteArray(entitiesSize),
                     ))
                 }
             }
@@ -139,7 +139,7 @@ private fun parseEvents(cursor: Cursor, areaId: Int, events: MutableList<DatEven
     cursor.seek(3) // Always 0
     val eventType = cursor.byte()
 
-    require(eventType != (0x32).toByte()) {
+    require(eventType.toInt() != 0x32) {
         "Can't parse challenge mode quests yet."
     }
 
@@ -148,12 +148,12 @@ private fun parseEvents(cursor: Cursor, areaId: Int, events: MutableList<DatEven
     cursor.seekStart(16)
 
     repeat(eventCount) {
-        val id = cursor.uInt()
+        val id = cursor.int()
         cursor.seek(4) // Always 0x100
-        val sectionId = cursor.uShort()
-        val wave = cursor.uShort()
-        val delay = cursor.uShort()
-        val unknown = cursor.uShort() // "wavesetting"?
+        val sectionId = cursor.short()
+        val wave = cursor.short()
+        val delay = cursor.short()
+        val unknown = cursor.short() // "wavesetting"?
         val eventActionsOffset = cursor.int()
 
         val actions: MutableList<DatEventAction> =
@@ -182,17 +182,17 @@ private fun parseEvents(cursor: Cursor, areaId: Int, events: MutableList<DatEven
         }
     }
 
-    var lastUByte: UByte = 0xffu
+    var lastByte: Byte = -1
 
     while (actionsCursor.hasBytesLeft()) {
-        lastUByte = actionsCursor.uByte()
+        lastByte = actionsCursor.byte()
 
-        if (lastUByte != (0xffu).toUByte()) {
+        if (lastByte.toInt() != -1) {
             break
         }
     }
 
-    if (lastUByte != (0xffu).toUByte()) {
+    if (lastByte.toInt() != -1) {
         actionsCursor.seek(-1)
     }
 
@@ -209,23 +209,23 @@ private fun parseEventActions(cursor: Cursor): MutableList<DatEventAction> {
 
             EVENT_ACTION_SPAWN_NPCS ->
                 actions.add(DatEventAction.SpawnNpcs(
-                    sectionId = cursor.uShort(),
-                    appearFlag = cursor.uShort(),
+                    sectionId = cursor.short(),
+                    appearFlag = cursor.short(),
                 ))
 
             EVENT_ACTION_UNLOCK ->
                 actions.add(DatEventAction.Unlock(
-                    doorId = cursor.uShort(),
+                    doorId = cursor.short(),
                 ))
 
             EVENT_ACTION_LOCK ->
                 actions.add(DatEventAction.Lock(
-                    doorId = cursor.uShort(),
+                    doorId = cursor.short(),
                 ))
 
             EVENT_ACTION_TRIGGER_EVENT ->
                 actions.add(DatEventAction.TriggerEvent(
-                    eventId = cursor.uInt(),
+                    eventId = cursor.int(),
                 ))
 
             else -> {

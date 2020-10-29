@@ -125,6 +125,19 @@ class BufferCursor(
         return array
     }
 
+    override fun byteArray(n: Int): ByteArray {
+        requireSize(n)
+
+        val array = ByteArray(n)
+
+        for (i in 0 until n) {
+            array[i] = buffer.getByte(absolutePosition)
+            position++
+        }
+
+        return array
+    }
+
     override fun intArray(n: Int): IntArray {
         requireSize(4 * n)
 
@@ -212,6 +225,11 @@ class BufferCursor(
     override fun writeUIntArray(array: UIntArray): WritableCursor {
         ensureSpace(4 * array.size)
         return super.writeUIntArray(array)
+    }
+
+    override fun writeByteArray(array: ByteArray): WritableCursor {
+        ensureSpace(array.size)
+        return super.writeByteArray(array)
     }
 
     override fun writeIntArray(array: IntArray): WritableCursor {

@@ -26,7 +26,7 @@ fun getRegisterValue(cfg: ControlFlowGraph, instruction: Instruction, register: 
 }
 
 private class RegisterValueFinder {
-    var iterations = 0
+    private var iterations = 0
 
     fun find(
         path: MutableSet<BasicBlock>,

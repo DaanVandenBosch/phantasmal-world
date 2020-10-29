@@ -490,14 +490,22 @@ private fun parseInstructionArguments(
                 is ByteType ->
                     args.add(Arg(cursor.uByte().toInt()))
 
-                is WordType ->
+                is ShortType ->
                     args.add(Arg(cursor.uShort().toInt()))
 
-                is DWordType ->
+                is IntType ->
                     args.add(Arg(cursor.int()))
 
                 is FloatType ->
                     args.add(Arg(cursor.float()))
+
+                // Ensure this case is before the LabelType case because ILabelVarType extends
+                // LabelType.
+                is ILabelVarType -> {
+                    varargCount++
+                    val argSize = cursor.uByte()
+                    args.addAll(cursor.uShortArray(argSize.toInt()).map { Arg(it.toInt()) })
+                }
 
                 is LabelType,
                 is ILabelType,
@@ -524,12 +532,6 @@ private fun parseInstructionArguments(
                             )
                         },
                     ))
-                }
-
-                is ILabelVarType -> {
-                    varargCount++
-                    val argSize = cursor.uByte()
-                    args.addAll(cursor.uShortArray(argSize.toInt()).map { Arg(it.toInt()) })
                 }
 
                 is RegRefType,

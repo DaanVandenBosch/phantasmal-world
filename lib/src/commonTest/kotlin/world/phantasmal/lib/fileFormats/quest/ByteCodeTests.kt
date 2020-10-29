@@ -9,7 +9,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-class ByteCode {
+class ByteCodeTests {
     @Test
     fun minimal() {
         val buffer = Buffer.fromByteArray(ubyteArrayOf(

@@ -58,14 +58,14 @@ fun instructionSize(instruction: Instruction, dcGcFormat: Boolean): Int {
             is RegTupRefType,
             -> 1
 
-            is WordType,
+            is ShortType,
             is LabelType,
             is ILabelType,
             is DLabelType,
             is SLabelType,
             -> 2
 
-            is DWordType,
+            is IntType,
             is FloatType,
             -> 4
 

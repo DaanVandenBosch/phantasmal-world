@@ -96,8 +96,8 @@
             "enum": [
                 "any",
                 "byte",
-                "word",
-                "dword",
+                "short",
+                "int",
                 "float",
                 "label",
                 "instruction_label",

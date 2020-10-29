@@ -17,7 +17,7 @@ opcodes:
   - code: 0x03
     mnemonic: exit
     params:
-      - type: dword
+      - type: int
     stack: pop
 
   - code: 0x04
@@ -56,11 +56,11 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: write
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: read
 
   - code: 0x09
@@ -69,9 +69,9 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: write
-      - type: dword
+      - type: int
 
   - code: 0x0a
     mnemonic: letb
@@ -89,9 +89,9 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: word
+          - type: short
             access: write
-      - type: word
+      - type: short
 
   - code: 0x0c
     mnemonic: leta
@@ -122,7 +122,7 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: write
 
   - code: 0x11
@@ -131,7 +131,7 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: write
 
   - code: 0x12
@@ -140,37 +140,37 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: read_write
 
   - code: 0x13
     mnemonic: gset
     params:
-      - type: word
+      - type: short
 
   - code: 0x14
     mnemonic: gclear
     params:
-      - type: word
+      - type: short
 
   - code: 0x15
     mnemonic: grev
     params:
-      - type: word
+      - type: short
 
   - code: 0x16
     mnemonic: glet
     params:
-      - type: word
+      - type: short
 
   - code: 0x17
     mnemonic: gget
     doc: Sets a register to value of the given flag.
     params:
-      - type: word
+      - type: short
       - type: reg_tup_ref
         reg_tup:
-          - type: word
+          - type: short
             access: write
 
   - code: 0x18
@@ -178,11 +178,11 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: write
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: read
 
   - code: 0x19
@@ -190,20 +190,20 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: write
-      - type: dword
+      - type: int
 
   - code: 0x1a
     mnemonic: sub
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: write
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: read
 
   - code: 0x1b
@@ -211,20 +211,20 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: write
-      - type: dword
+      - type: int
 
   - code: 0x1c
     mnemonic: mul
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: write
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: read
 
   - code: 0x1d
@@ -232,20 +232,20 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: write
-      - type: dword
+      - type: int
 
   - code: 0x1e
     mnemonic: div
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: write
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: read
 
   - code: 0x1f
@@ -253,20 +253,20 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: write
-      - type: dword
+      - type: int
 
   - code: 0x20
     mnemonic: and
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: write
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: read
 
   - code: 0x21
@@ -274,20 +274,20 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: write
-      - type: dword
+      - type: int
 
   - code: 0x22
     mnemonic: or
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: write
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: read
 
   - code: 0x23
@@ -295,20 +295,20 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: write
-      - type: dword
+      - type: int
 
   - code: 0x24
     mnemonic: xor
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: write
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: read
 
   - code: 0x25
@@ -316,20 +316,20 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: write
-      - type: dword
+      - type: int
 
   - code: 0x26
     mnemonic: mod
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: write
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: read
 
   - code: 0x27
@@ -337,9 +337,9 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: write
-      - type: dword
+      - type: int
 
   - code: 0x28
     mnemonic: jmp
@@ -383,9 +383,9 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: read
-      - type: dword
+      - type: int
       - type: instruction_label
 
   - code: 0x2e
@@ -406,9 +406,9 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: read
-      - type: dword
+      - type: int
       - type: instruction_label
 
   - code: 0x30
@@ -416,11 +416,11 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: read
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: read
       - type: instruction_label
 
@@ -429,9 +429,9 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: read
-      - type: dword
+      - type: int
       - type: instruction_label
 
   - code: 0x32
@@ -439,11 +439,11 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: read
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: read
       - type: instruction_label
 
@@ -452,9 +452,9 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: read
-      - type: dword
+      - type: int
       - type: instruction_label
 
   - code: 0x34
@@ -462,11 +462,11 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: read
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: read
       - type: instruction_label
 
@@ -475,9 +475,9 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: read
-      - type: dword
+      - type: int
       - type: instruction_label
 
   - code: 0x36
@@ -485,11 +485,11 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: read
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: read
       - type: instruction_label
 
@@ -498,9 +498,9 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: read
-      - type: dword
+      - type: int
       - type: instruction_label
 
   - code: 0x38
@@ -508,11 +508,11 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: read
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: read
       - type: instruction_label
 
@@ -521,9 +521,9 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: read
-      - type: dword
+      - type: int
       - type: instruction_label
 
   - code: 0x3a
@@ -531,11 +531,11 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: read
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: read
       - type: instruction_label
 
@@ -544,9 +544,9 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: read
-      - type: dword
+      - type: int
       - type: instruction_label
 
   - code: 0x3c
@@ -554,11 +554,11 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: read
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: read
       - type: instruction_label
 
@@ -567,9 +567,9 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: read
-      - type: dword
+      - type: int
       - type: instruction_label
 
   - code: 0x3e
@@ -577,11 +577,11 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: read
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: read
       - type: instruction_label
 
@@ -590,9 +590,9 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: read
-      - type: dword
+      - type: int
       - type: instruction_label
 
   - code: 0x40
@@ -600,7 +600,7 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: read
       - type: instruction_label_var
 
@@ -609,7 +609,7 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: read
       - type: instruction_label_var
 
@@ -635,7 +635,7 @@ opcodes:
     params:
       - type: reg_ref
         access: read
-      - type: dword
+      - type: int
 
   - code: 0x45
     mnemonic: stack_popm
@@ -643,7 +643,7 @@ opcodes:
     params:
       - type: reg_ref
         access: write
-      - type: dword
+      - type: int
 
   - code: 0x48
     mnemonic: arg_pushr
@@ -659,7 +659,7 @@ opcodes:
     mnemonic: arg_pushl
     doc: Pushes the given value onto the stack.
     params:
-      - type: dword
+      - type: int
     stack: push
 
   - code: 0x4a
@@ -673,7 +673,7 @@ opcodes:
     mnemonic: arg_pushw
     doc: Pushes the given value onto the stack.
     params:
-      - type: word
+      - type: short
     stack: push
 
   - code: 0x4c
@@ -714,7 +714,7 @@ opcodes:
   - code: 0x50
     mnemonic: message
     params:
-      - type: dword
+      - type: int
       - type: string
     stack: pop
 
@@ -742,25 +742,25 @@ opcodes:
   - code: 0x54
     mnemonic: se
     params:
-      - type: dword
+      - type: int
     stack: pop
 
   - code: 0x55
     mnemonic: bgm
     params:
-      - type: dword
+      - type: int
     stack: pop
 
   - code: 0x58
     mnemonic: enable
     params:
-      - type: dword
+      - type: int
     stack: pop
 
   - code: 0x59
     mnemonic: disable
     params:
-      - type: dword
+      - type: int
     stack: pop
 
   - code: 0x5a
@@ -784,7 +784,7 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: write
 
   - code: 0x5e
@@ -802,19 +802,19 @@ opcodes:
   - code: 0x61
     mnemonic: npc_stop
     params:
-      - type: dword
+      - type: int
     stack: pop
 
   - code: 0x62
     mnemonic: npc_play
     params:
-      - type: dword
+      - type: int
     stack: pop
 
   - code: 0x63
     mnemonic: npc_kill
     params:
-      - type: dword
+      - type: int
     stack: pop
 
   - code: 0x64
@@ -846,7 +846,7 @@ opcodes:
   - code: 0x68
     mnemonic: create_pipe
     params:
-      - type: dword
+      - type: int
     stack: pop
 
   - code: 0x69
@@ -856,7 +856,7 @@ opcodes:
         reg_tup: # TODO: determine type and access
           - type: any
             access: read
-      - type: dword
+      - type: int
     stack: pop
 
   - code: 0x6a
@@ -864,9 +864,9 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: write
-      - type: dword
+      - type: int
         doc: Player slot.
     stack: pop
 
@@ -889,7 +889,7 @@ opcodes:
   - code: 0x6e
     mnemonic: p_look
     params:
-      - type: dword
+      - type: int
     stack: pop
 
   - code: 0x70
@@ -903,13 +903,13 @@ opcodes:
   - code: 0x72
     mnemonic: disable_movement1
     params:
-      - type: dword
+      - type: int
     stack: pop
 
   - code: 0x73
     mnemonic: enable_movement1
     params:
-      - type: dword
+      - type: int
     stack: pop
 
   - code: 0x74
@@ -924,20 +924,20 @@ opcodes:
     mnemonic: p_setpos
     doc: Sets a player's position.
     params:
-      - type: dword
+      - type: int
         doc: Player slot.
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             doc: X coordinate.
             access: read
-          - type: dword
+          - type: int
             doc: Y coordinate.
             access: read
-          - type: dword
+          - type: int
             doc: Z coordinate.
             access: read
-          - type: dword
+          - type: int
             doc: Y-axis rotation.
             access: read
     stack: pop
@@ -949,7 +949,7 @@ opcodes:
   - code: 0x78
     mnemonic: p_talk_guild
     params:
-      - type: dword
+      - type: int
     stack: pop
 
   - code: 0x79
@@ -963,7 +963,7 @@ opcodes:
   - code: 0x7a
     mnemonic: npc_talk_kill
     params:
-      - type: dword
+      - type: int
     stack: pop
 
   - code: 0x7b
@@ -993,8 +993,8 @@ opcodes:
   - code: 0x7e
     mnemonic: p_look_at_v1
     params:
-      - type: dword
-      - type: dword
+      - type: int
+      - type: int
     stack: pop
 
   - code: 0x7f
@@ -1026,15 +1026,15 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: read
-          - type: dword
+          - type: int
             access: read
-          - type: dword
+          - type: int
             access: read
-          - type: dword
+          - type: int
             access: read
-          - type: dword
+          - type: int
             access: read
 
   - code: 0x85
@@ -1051,16 +1051,16 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             doc: X coordinate.
             access: read
-          - type: dword
+          - type: int
             doc: Y coordinate.
             access: read
-          - type: dword
+          - type: int
             doc: Z coordinate.
             access: read
-          - type: dword
+          - type: int
             doc: Player slot.
             access: read
 
@@ -1069,13 +1069,13 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: write
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: read
-          - type: dword
+          - type: int
             access: read
 
   - code: 0x89
@@ -1084,7 +1084,7 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: write
 
   - code: 0x8a
@@ -1092,11 +1092,11 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: read
-          - type: dword
+          - type: int
             access: read
-          - type: dword
+          - type: int
             access: read
 
   - code: 0x8b
@@ -1104,13 +1104,13 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: read
-          - type: dword
+          - type: int
             access: read
-          - type: dword
+          - type: int
             access: read
-          - type: dword
+          - type: int
             access: read
 
   - code: 0x8c
@@ -1118,13 +1118,13 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: read
-          - type: dword
+          - type: int
             access: read
-          - type: dword
+          - type: int
             access: read
-          - type: dword
+          - type: int
             access: read
           - type: instruction_label
             access: read
@@ -1134,13 +1134,13 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: read
-          - type: dword
+          - type: int
             access: read
-          - type: dword
+          - type: int
             access: read
-          - type: dword
+          - type: int
             access: read
           - type: instruction_label
             access: read
@@ -1150,13 +1150,13 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: read
-          - type: dword
+          - type: int
             access: read
-          - type: dword
+          - type: int
             access: read
-          - type: dword
+          - type: int
             access: read
           - type: instruction_label
             access: read
@@ -1172,25 +1172,25 @@ opcodes:
   - code: 0x90
     mnemonic: switch_on
     params:
-      - type: dword
+      - type: int
     stack: pop
 
   - code: 0x91
     mnemonic: switch_off
     params:
-      - type: dword
+      - type: int
     stack: pop
 
   - code: 0x92
     mnemonic: playbgm_epi
     params:
-      - type: dword
+      - type: int
     stack: pop
 
   - code: 0x93
     mnemonic: set_mainwarp
     params:
-      - type: dword
+      - type: int
     stack: pop
 
   - code: 0x94
@@ -1199,22 +1199,22 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             doc: X coordinate.
             access: read
-          - type: dword
+          - type: int
             doc: Y coordinate.
             access: read
-          - type: dword
+          - type: int
             doc: Z coordinate.
             access: read
-          - type: dword
+          - type: int
             doc: Collision radius.
             access: read
           - type: instruction_label
             doc: Function label.
             access: read
-          - type: dword
+          - type: int
             doc: Vertical position of the cursor.
             access: read
       - type: reg_tup_ref
@@ -1226,7 +1226,7 @@ opcodes:
   - code: 0x95
     mnemonic: set_floor_handler
     params:
-      - type: dword
+      - type: int
         doc: Floor number.
       - type: instruction_label
         doc: Handler function label.
@@ -1235,7 +1235,7 @@ opcodes:
   - code: 0x96
     mnemonic: clr_floor_handler
     params:
-      - type: dword
+      - type: int
         doc: Floor number.
     stack: pop
 
@@ -1301,8 +1301,8 @@ opcodes:
   - code: 0xb0
     mnemonic: pl_add_meseta
     params:
-      - type: dword
-      - type: dword
+      - type: int
+      - type: int
     stack: pop
 
   - code: 0xb1
@@ -1361,11 +1361,11 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: read
-          - type: dword
+          - type: int
             access: read
-          - type: dword
+          - type: int
             access: read
       - type: reg_tup_ref
         reg_tup: # TODO: determine type and access
@@ -1387,7 +1387,7 @@ opcodes:
   - code: 0xb8
     mnemonic: setevt
     params:
-      - type: dword
+      - type: int
     stack: pop
 
   - code: 0xb9
@@ -1398,7 +1398,7 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: write
 
   - code: 0xba
@@ -1421,7 +1421,7 @@ opcodes:
   - code: 0xc1
     mnemonic: npc_text
     params:
-      - type: dword
+      - type: int
       - type: string
     stack: pop
 
@@ -1462,7 +1462,7 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: write
 
   - code: 0xca
@@ -1476,7 +1476,7 @@ opcodes:
   - code: 0xcb
     mnemonic: set_quest_board_handler
     params:
-      - type: dword
+      - type: int
       - type: instruction_label
       - type: string
     stack: pop
@@ -1484,7 +1484,7 @@ opcodes:
   - code: 0xcc
     mnemonic: clear_quest_board_handler
     params:
-      - type: dword
+      - type: int
     stack: pop
 
   - code: 0xcd
@@ -1492,13 +1492,13 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: read
-          - type: dword
+          - type: int
             access: read
-          - type: dword
+          - type: int
             access: read
-          - type: dword
+          - type: int
             access: read
 
   - code: 0xce
@@ -1558,8 +1558,8 @@ opcodes:
   - code: 0xd8
     mnemonic: set_eventflag_v3
     params:
-      - type: dword
-      - type: dword
+      - type: int
+      - type: int
     stack: pop
 
   - code: 0xd9
@@ -1567,9 +1567,9 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: write
-      - type: dword
+      - type: int
 
   - code: 0xda
     mnemonic: set_returnhunter
@@ -1606,7 +1606,7 @@ opcodes:
         reg_tup: # TODO: determine type and access
           - type: any
             access: read
-      - type: dword
+      - type: int
     stack: pop
 
   - code: 0xe0
@@ -1616,7 +1616,7 @@ opcodes:
   - code: 0xe1
     mnemonic: clear_mainwarp
     params:
-      - type: dword
+      - type: int
     stack: pop
 
   - code: 0xe2
@@ -1634,7 +1634,7 @@ opcodes:
         reg_tup: # TODO: determine type and access
           - type: any
             access: read
-      - type: dword
+      - type: int
     stack: pop
 
   - code: 0xe4
@@ -1650,7 +1650,7 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: write
 
   - code: 0xe7
@@ -1658,13 +1658,13 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: write # TODO: determine reg_tup
 
   - code: 0xe8
     mnemonic: set_eventflag2
     params:
-      - type: dword
+      - type: int
       - type: reg_tup_ref
         reg_tup: # TODO: determine type and access
           - type: any
@@ -1689,12 +1689,12 @@ opcodes:
         reg_tup: # TODO: determine type and access
           - type: any
             access: read
-      - type: dword
+      - type: int
 
   - code: 0xeb
     mnemonic: enable_bgmctrl
     params:
-      - type: dword
+      - type: int
     stack: pop
 
   - code: 0xec
@@ -1712,7 +1712,7 @@ opcodes:
   - code: 0xee
     mnemonic: pl_add_meseta2
     params:
-      - type: dword
+      - type: int
     stack: pop
 
   - code: 0xef
@@ -1720,9 +1720,9 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: write
-      - type: dword
+      - type: int
     stack: pop
 
   - code: 0xf0
@@ -1734,17 +1734,17 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: read
-          - type: dword
+          - type: int
             access: read
-          - type: dword
+          - type: int
             access: read
-          - type: dword
+          - type: int
             access: read
-          - type: dword
+          - type: int
             access: read
-          - type: dword
+          - type: int
             access: read
 
   - code: 0xf2
@@ -1761,7 +1761,7 @@ opcodes:
 
   - code: 0xfb
     params:
-      - type: word
+      - type: short
 
   - code: 0xf801
     mnemonic: set_chat_callback
@@ -1779,7 +1779,7 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: write
 
   - code: 0xf809
@@ -1788,7 +1788,7 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: write
 
   - code: 0xf80a
@@ -1797,18 +1797,18 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup: 
-          - type: dword
+          - type: int
             doc: X coordinate.
             access: write
-          - type: dword
+          - type: int
             doc: Y coordinate.
             access: write
-          - type: dword
+          - type: int
             doc: Z coordinate.
             access: write
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             doc: Player slot.
             access: read
 
@@ -1825,31 +1825,31 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup: 
-          - type: dword
+          - type: int
             access: read
-          - type: dword
+          - type: int
             access: read
-          - type: dword
+          - type: int
             access: read
-          - type: dword
+          - type: int
             access: read
-          - type: dword
+          - type: int
             access: read
 
   - code: 0xf80e
     params:
-      - type: dword
+      - type: int
     stack: pop
 
   - code: 0xf80f
     params:
-      - type: dword
+      - type: int
     stack: pop
 
   - code: 0xf810
     mnemonic: ba_initial_floor
     params:
-      - type: dword
+      - type: int
     stack: pop
 
   - code: 0xf811
@@ -1858,52 +1858,52 @@ opcodes:
 
   - code: 0xf812
     params:
-      - type: dword
+      - type: int
     stack: pop
 
   - code: 0xf813
     params:
-      - type: dword
+      - type: int
     stack: pop
 
   - code: 0xf814
     params:
-      - type: dword
+      - type: int
     stack: pop
 
   - code: 0xf815
     params:
-      - type: dword
+      - type: int
     stack: pop
 
   - code: 0xf816
     params:
-      - type: dword
+      - type: int
     stack: pop
 
   - code: 0xf817
     params:
-      - type: dword
+      - type: int
     stack: pop
 
   - code: 0xf818
     params:
-      - type: dword
+      - type: int
     stack: pop
 
   - code: 0xf819
     params:
-      - type: dword
+      - type: int
     stack: pop
 
   - code: 0xf81a
     params:
-      - type: dword
+      - type: int
     stack: pop
 
   - code: 0xf81b
     params:
-      - type: dword
+      - type: int
     stack: pop
 
   - code: 0xf81c
@@ -1915,29 +1915,29 @@ opcodes:
   - code: 0xf81d
     mnemonic: death_lvl_up
     params:
-      - type: dword
+      - type: int
     stack: pop
 
   - code: 0xf81e
     mnemonic: death_tech_lvl_up
     params:
-      - type: dword
+      - type: int
     stack: pop
 
   - code: 0xf820
     mnemonic: cmode_stage
     params:
-      - type: dword
+      - type: int
     stack: pop
 
   - code: 0xf823
     params:
-      - type: dword
+      - type: int
     stack: pop
 
   - code: 0xf824
     params:
-      - type: dword
+      - type: int
     stack: pop
 
   - code: 0xf825
@@ -1970,23 +1970,23 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             doc: Player slot.
             access: read
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             doc: Floor ID.
             access: read
 
   - code: 0xf82b
     mnemonic: unlock_door2
-    params: [{ type: dword }, { type: dword }]
+    params: [{ type: int }, { type: int }]
     stack: pop
 
   - code: 0xf82c
     mnemonic: lock_door2
-    params: [{ type: dword }, { type: dword }]
+    params: [{ type: int }, { type: int }]
     stack: pop
 
   - code: 0xf82d
@@ -1994,9 +1994,9 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup: # TODO: determine type and access
-          - type: dword
+          - type: int
             access: read
-          - type: dword
+          - type: int
             access: write
 
   - code: 0xf82e
@@ -2004,18 +2004,18 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             doc: Floor ID.
             access: read
-          - type: dword
+          - type: int
             doc: Switch ID.
             access: read
-          - type: dword
+          - type: int
             doc: Will be set to 1 if the switch is pressed, 0 otherwise.
             access: write
 
   - code: 0xf82f
-    params: [{ type: dword }, { type: dword }]
+    params: [{ type: int }, { type: int }]
     stack: pop
 
   - code: 0xf830
@@ -2023,7 +2023,7 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup: # TODO: determine type and access
-          - type: dword
+          - type: int
             access: read
 
   - code: 0xf831
@@ -2035,7 +2035,7 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             doc: Player slot.
             access: read
 
@@ -2044,7 +2044,7 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             doc: Player slot.
             access: read
 
@@ -2053,18 +2053,18 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup: # TODO: determine type and access
-          - type: dword
+          - type: int
             access: read
 
   - code: 0xf83d
     params:
-      - type: dword
+      - type: int
     stack: pop
 
   - code: 0xf83e
     mnemonic: delete_area_title
     params:
-      - type: dword
+      - type: int
     stack: pop
 
   - code: 0xf840
@@ -2081,7 +2081,7 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup: # TODO: determine type and access
-          - type: dword
+          - type: int
             access: write
 
   - code: 0xf849
@@ -2089,7 +2089,7 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup: # TODO: determine type and access
-          - type: dword
+          - type: int
             access: write
 
   - code: 0xf84a
@@ -2097,7 +2097,7 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup: # TODO: determine type and access
-          - type: dword
+          - type: int
             access: write
 
   - code: 0xf84b
@@ -2105,7 +2105,7 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup: # TODO: determine type and access
-          - type: dword
+          - type: int
             access: write
 
   - code: 0xf84c
@@ -2113,7 +2113,7 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup: # TODO: determine type and access
-          - type: dword
+          - type: int
             access: write
 
   - code: 0xf84d
@@ -2121,7 +2121,7 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup: # TODO: determine type and access
-          - type: dword
+          - type: int
             access: write
 
   - code: 0xf84e
@@ -2129,7 +2129,7 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup: # TODO: determine type and access
-          - type: dword
+          - type: int
             access: write
 
   - code: 0xf84f
@@ -2137,7 +2137,7 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup: # TODO: determine type and access
-          - type: dword
+          - type: int
             access: write
 
   - code: 0xf850
@@ -2145,19 +2145,19 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup: # TODO: determine type and access
-          - type: dword
+          - type: int
             access: write
 
   - code: 0xf851
     params:
       - type: reg_tup_ref
         reg_tup: # TODO: determine type and access
-          - type: dword
+          - type: int
             access: write
 
   - code: 0xf852
     params:
-      - type: dword
+      - type: int
     stack: pop
 
   - code: 0xf853
@@ -2187,24 +2187,24 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup: # TODO: determine type and access
-          - type: dword
+          - type: int
             access: read
 
   - code: 0xf85b
     mnemonic: unequip_item
     params:
-      - type: dword
-      - type: dword
+      - type: int
+      - type: int
     stack: pop
 
   - code: 0xf85e
     params:
-      - type: dword
+      - type: int
     stack: pop
 
   - code: 0xf85f
     params:
-      - type: dword
+      - type: int
     stack: pop
 
   - code: 0xf860
@@ -2212,13 +2212,13 @@ opcodes:
 
   - code: 0xf861
     params:
-      - type: dword
+      - type: int
     stack: pop
 
   - code: 0xf864
     mnemonic: cmode_rank
     params:
-      - type: dword
+      - type: int
       - type: string
     stack: pop
 
@@ -2235,7 +2235,7 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup: # TODO: determine type and access
-          - type: dword
+          - type: int
             access: read
 
   - code: 0xf868
@@ -2290,25 +2290,25 @@ opcodes:
   - code: 0xf86f
     mnemonic: ba_set_lives
     params:
-      - type: dword
+      - type: int
     stack: pop
 
   - code: 0xf870
     mnemonic: ba_set_tech_lvl
     params:
-      - type: dword
+      - type: int
     stack: pop
 
   - code: 0xf871
     mnemonic: ba_set_lvl
     params:
-      - type: dword
+      - type: int
     stack: pop
 
   - code: 0xf872
     mnemonic: ba_set_time_limit
     params:
-      - type: dword
+      - type: int
     stack: pop
 
   - code: 0xf873
@@ -2325,7 +2325,7 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             doc: Player slot.
             access: read
 
@@ -2335,7 +2335,7 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             doc: Player slot.
             access: read
 
@@ -2345,12 +2345,12 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             doc: Player slot.
             access: read
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             doc: Player gender.
             access: write
 
@@ -2360,15 +2360,15 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             doc: Player slot.
             access: read
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             doc: Player race. 0 If human, 1 if newman, 2 if cast.
             access: write
-          - type: dword
+          - type: int
             doc: Player class. 0 If hunter, 1 if ranger, 2 if force.
             access: write
 
@@ -2378,15 +2378,15 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             doc: Player slot.
             access: read
-          - type: dword
+          - type: int
             doc: Amount of meseta to take.
             access: read
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             doc: Will be set to 1 if the meseta was taken, 0 otherwise.
             access: write
 
@@ -2415,7 +2415,7 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             doc: Player slot.
             access: read
   - code: 0xf882
@@ -2424,7 +2424,7 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             doc: Player slot.
             access: read
   - code: 0xf883
@@ -2494,39 +2494,39 @@ opcodes:
   - code: 0xf891
     mnemonic: load_enemy_data
     params:
-      - type: dword
+      - type: int
     stack: pop
 
   - code: 0xf892
     mnemonic: get_physical_data
     params:
-      - type: word
+      - type: short
 
   - code: 0xf893
     mnemonic: get_attack_data
     params:
-      - type: word
+      - type: short
 
   - code: 0xf894
     mnemonic: get_resist_data
     params:
-      - type: word
+      - type: short
 
   - code: 0xf895
     mnemonic: get_movement_data
     params:
-      - type: word
+      - type: short
 
   - code: 0xf898
     mnemonic: shift_left
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: write
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: read
 
   - code: 0xf899
@@ -2534,11 +2534,11 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: write
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: read
 
   - code: 0xf89a
@@ -2546,13 +2546,13 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: read
-          - type: dword
+          - type: int
             access: read
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: write
 
     # TODO: Do you have to change areas after calling this opcode?
@@ -2575,7 +2575,7 @@ opcodes:
 
   - code: 0xf89e
     params:
-      - type: dword
+      - type: int
     stack: pop
 
   - code: 0xf89f
@@ -2587,7 +2587,7 @@ opcodes:
 
   - code: 0xf8a8
     params:
-      - type: dword
+      - type: int
     stack: pop
 
   - code: 0xf8a9
@@ -2614,7 +2614,7 @@ opcodes:
         reg_tup:
           - type: byte
             access: write
-      - type: dword
+      - type: int
         doc: Address to read from.
 
   - code: 0xf8b1
@@ -2624,9 +2624,9 @@ opcodes:
       - type: reg_tup_ref
         doc: Register to store the result to.
         reg_tup:
-          - type: word
+          - type: short
             access: write
-      - type: dword
+      - type: int
         doc: Address to read from.
 
   - code: 0xf8b2
@@ -2636,16 +2636,16 @@ opcodes:
       - type: reg_tup_ref
         doc: Register to store the result to.
         reg_tup:
-          - type: dword
+          - type: int
             access: write
-      - type: dword
+      - type: int
         doc: Address to read from.
 
   - code: 0xf8b3
     mnemonic: write1
     doc: Writes a 1-byte value to an arbitrary location.
     params:
-      - type: dword
+      - type: int
         doc: Address to write to.
       - type: byte
         doc: Value to be written.
@@ -2655,9 +2655,9 @@ opcodes:
     mnemonic: write2
     doc: Writes a 2-byte value to an arbitrary location.
     params:
-      - type: dword
+      - type: int
         doc: Address to write to.
-      - type: word
+      - type: short
         doc: Value to be written.
     stack: pop
 
@@ -2665,9 +2665,9 @@ opcodes:
     mnemonic: write4
     doc: Writes a 4-byte value to an arbitrary location.
     params:
-      - type: dword
+      - type: int
         doc: Address to write to.
-      - type: dword
+      - type: int
         doc: Value to be written.
     stack: pop
 
@@ -2678,12 +2678,12 @@ opcodes:
   - code: 0xf8bc
     mnemonic: set_episode
     params:
-      - type: dword
+      - type: int
 
   - code: 0xf8c0
     mnemonic: file_dl_req
     params:
-      - type: dword
+      - type: int
       - type: string
     stack: pop
 
@@ -2730,15 +2730,15 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             doc: Player slot.
             access: read
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             doc: Animation ID.
             access: read
-          - type: dword
+          - type: int
             doc: Animation duration in number of frames.
             access: read
 
@@ -2747,7 +2747,7 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             doc: Player slot.
             access: read
 
@@ -2768,12 +2768,12 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             doc: Player slot.
             access: read
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: read
 
   - code: 0xf8cb
@@ -2788,7 +2788,7 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             doc: Player slot.
             access: read
 
@@ -2797,7 +2797,7 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             doc: Player slot.
             access: read
 
@@ -2806,7 +2806,7 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             doc: Player slot.
             access: read
 
@@ -2815,7 +2815,7 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             doc: Player slot.
             access: read
 
@@ -2824,7 +2824,7 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             doc: Player slot.
             access: read
 
@@ -2833,7 +2833,7 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             doc: Player slot.
             access: read
 
@@ -2842,7 +2842,7 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             doc: Player slot.
             access: read
 
@@ -2851,7 +2851,7 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             doc: Player slot.
             access: read
 
@@ -2860,7 +2860,7 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             doc: Player slot.
             access: read
 
@@ -2869,7 +2869,7 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             doc: Player slot.
             access: read
 
@@ -2885,7 +2885,7 @@ opcodes:
   - code: 0xf8d7
     mnemonic: fleti_locked_camera
     params:
-      - type: dword
+      - type: int
       - type: reg_tup_ref
         reg_tup: # TODO: determine type and access
           - type: any
@@ -2906,15 +2906,15 @@ opcodes:
 
   - code: 0xf8db
     params:
-      - type: dword
-      - type: dword
-      - type: dword
-      - type: dword
+      - type: int
+      - type: int
+      - type: int
+      - type: int
       - type: reg_tup_ref
         reg_tup: # TODO: determine type and access
           - type: any
             access: read
-      - type: word
+      - type: short
     stack: pop
 
   - code: 0xf8dc
@@ -2922,11 +2922,11 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: read
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: read
       - type: string_label
 
@@ -3088,8 +3088,8 @@ opcodes:
   - code: 0xf8ee
     mnemonic: call_image_data
     params:
-      - type: dword
-      - type: word
+      - type: int
+      - type: short
     stack: pop
 
   - code: 0xf8f0
@@ -3103,10 +3103,10 @@ opcodes:
   - code: 0xf8f2
     mnemonic: load_unk_data
     params:
-      - type: dword
-      - type: dword
-      - type: dword
-      - type: dword
+      - type: int
+      - type: int
+      - type: int
+      - type: int
       - type: reg_tup_ref
         reg_tup: # TODO: determine type and access
           - type: any
@@ -3121,7 +3121,7 @@ opcodes:
         reg_tup: # TODO: determine type and access
           - type: any
             access: read
-      - type: dword
+      - type: int
       - type: float
     stack: pop
 
@@ -3134,7 +3134,7 @@ opcodes:
             access: write
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: read
 
   - code: 0xf902
@@ -3142,7 +3142,7 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: write
       - type: reg_tup_ref
         reg_tup:
@@ -3257,10 +3257,10 @@ opcodes:
   - code: 0xf910
     mnemonic: get_unknown_count
     params:
-      - type: dword
+      - type: int
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: write
     stack: pop
 
@@ -3269,18 +3269,18 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             doc: Player slot.
             access: read
-          - type: dword
+          - type: int
             access: read
-          - type: dword
+          - type: int
             access: read
-          - type: dword
+          - type: int
             access: read
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: write
 
   - code: 0xf912
@@ -3294,7 +3294,7 @@ opcodes:
   - code: 0xf914
     mnemonic: set_palettex_callback
     params:
-      - type: dword
+      - type: int
         doc: Player slot.
       - type: instruction_label
     stack: pop
@@ -3302,63 +3302,63 @@ opcodes:
   - code: 0xf915
     mnemonic: activate_palettex
     params:
-      - type: dword
+      - type: int
         doc: Player slot.
     stack: pop
 
   - code: 0xf916
     mnemonic: enable_palettex
     params:
-      - type: dword
+      - type: int
         doc: Player slot.
     stack: pop
 
   - code: 0xf917
     mnemonic: restore_palettex
     params:
-      - type: dword
+      - type: int
         doc: Player slot.
     stack: pop
 
   - code: 0xf918
     mnemonic: disable_palettex
     params:
-      - type: dword
+      - type: int
         doc: Player slot.
     stack: pop
 
   - code: 0xf919
     mnemonic: get_palettex_activated
     params:
-      - type: dword
+      - type: int
         doc: Player slot.
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: write
     stack: pop
 
   - code: 0xf91a
     mnemonic: get_unknown_palettex_status
     params:
-      - type: dword
+      - type: int
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: write
     stack: pop
 
   - code: 0xf91b
     mnemonic: disable_movement2
     params:
-      - type: dword
+      - type: int
         doc: Player slot.
     stack: pop
 
   - code: 0xf91c
     mnemonic: enable_movement2
     params:
-      - type: dword
+      - type: int
         doc: Player slot.
     stack: pop
 
@@ -3367,7 +3367,7 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup: # TODO: determine type and access
-          - type: dword
+          - type: int
             access: write
 
   - code: 0xf91e
@@ -3375,7 +3375,7 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup: # TODO: determine type and access
-          - type: dword
+          - type: int
             access: write
 
   - code: 0xf91f
@@ -3383,48 +3383,48 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: write
 
   - code: 0xf920
     mnemonic: get_player_level
     params:
-      - type: dword
+      - type: int
         doc: Player slot.
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: write
     stack: pop
 
   - code: 0xf921
     mnemonic: get_section_id
     params:
-      - type: dword
+      - type: int
         doc: Player slot.
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: write
     stack: pop
 
   - code: 0xf922
     mnemonic: get_player_hp
     params:
-      - type: dword
+      - type: int
         doc: Player slot.
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             doc: Maximum HP.
             access: write
-          - type: dword
+          - type: int
             doc: Current HP.
             access: write
-          - type: dword
+          - type: int
             doc: Maximum TP.
             access: write
-          - type: dword
+          - type: int
             doc: Current TP.
             access: write
     stack: pop
@@ -3432,11 +3432,11 @@ opcodes:
   - code: 0xf923
     mnemonic: get_floor_number
     params:
-      - type: dword
+      - type: int
         doc: Player slot.
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: write
     stack: pop
 
@@ -3456,18 +3456,18 @@ opcodes:
   - code: 0xf925
     mnemonic: read_global_flag
     params:
-      - type: dword
+      - type: int
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: write
     stack: pop
 
   - code: 0xf926
     mnemonic: write_global_flag
     params:
-      - type: dword
-      - type: dword
+      - type: int
+      - type: int
     stack: pop
 
   - code: 0xf927
@@ -3486,13 +3486,13 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: write
-          - type: dword
+          - type: int
             access: write
-          - type: dword
+          - type: int
             access: write
-          - type: dword
+          - type: int
             access: write
 
   - code: 0xf929
@@ -3524,47 +3524,47 @@ opcodes:
   - code: 0xf92d
     mnemonic: color_change
     params:
-      - type: dword
-      - type: dword
-      - type: dword
-      - type: dword
-      - type: dword
+      - type: int
+      - type: int
+      - type: int
+      - type: int
+      - type: int
     stack: pop
 
   - code: 0xf92e
     mnemonic: send_statistic
     params:
-      - type: dword
-      - type: dword
-      - type: dword
-      - type: dword
-      - type: dword
-      - type: dword
-      - type: dword
-      - type: dword
+      - type: int
+      - type: int
+      - type: int
+      - type: int
+      - type: int
+      - type: int
+      - type: int
+      - type: int
     stack: pop
 
   - code: 0xf92f
     params:
-      - type: dword
-      - type: dword
+      - type: int
+      - type: int
     stack: pop
 
   - code: 0xf930
     mnemonic: chat_box
     params:
-      - type: dword
-      - type: dword
-      - type: dword
-      - type: dword
-      - type: dword
+      - type: int
+      - type: int
+      - type: int
+      - type: int
+      - type: int
       - type: string
     stack: pop
 
   - code: 0xf931
     mnemonic: chat_bubble
     params:
-      - type: dword
+      - type: int
       - type: string
     stack: pop
 
@@ -3578,15 +3578,15 @@ opcodes:
   - code: 0xf934
     mnemonic: scroll_text
     params:
-      - type: dword
-      - type: dword
-      - type: dword
-      - type: dword
-      - type: dword
+      - type: int
+      - type: int
+      - type: int
+      - type: int
+      - type: int
       - type: float
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: write
       - type: string
     stack: pop
@@ -3606,20 +3606,20 @@ opcodes:
   - code: 0xf938
     mnemonic: add_damage_to
     params:
-      - type: dword
-      - type: dword
+      - type: int
+      - type: int
     stack: pop
 
   - code: 0xf939
     mnemonic: item_delete3
     params:
-      - type: dword
+      - type: int
     stack: pop
 
   - code: 0xf93a
     mnemonic: get_item_info
     params:
-      - type: dword
+      - type: int
       - type: reg_tup_ref
         reg_tup: # TODO: determine type and access
           - type: any
@@ -3629,14 +3629,14 @@ opcodes:
   - code: 0xf93b
     mnemonic: item_packing1
     params:
-      - type: dword
+      - type: int
     stack: pop
 
   - code: 0xf93c
     mnemonic: item_packing2
     params:
-      - type: dword
-      - type: dword
+      - type: int
+      - type: int
     stack: pop
 
   - code: 0xf93d
@@ -3651,7 +3651,7 @@ opcodes:
   - code: 0xf93e
     mnemonic: prepare_statistic
     params:
-      - type: dword
+      - type: int
       - type: instruction_label
       - type: instruction_label
     stack: pop
@@ -3665,9 +3665,9 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: write
-      - type: dword
+      - type: int
         doc: Player slot.
       - type: string
     stack: pop
@@ -3675,29 +3675,29 @@ opcodes:
   - code: 0xf941
     mnemonic: get_guildcard_num
     params:
-      - type: dword
+      - type: int
         doc: Player slot.
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: write
     stack: pop
 
   - code: 0xf944
     mnemonic: get_wrap_status
     params:
-      - type: dword
+      - type: int
         doc: Player slot.
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: write
     stack: pop
 
   - code: 0xf945
     mnemonic: initial_floor
     params:
-      - type: dword
+      - type: int
     stack: pop
 
   - code: 0xf946
@@ -3705,9 +3705,9 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup: # TODO: determine type and access
-          - type: dword
+          - type: int
             access: write
-      - type: dword
+      - type: int
     stack: pop
 
   - code: 0xf947
@@ -3715,9 +3715,9 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup: # TODO: determine type and access
-          - type: dword
+          - type: int
             access: write
-      - type: dword
+      - type: int
     stack: pop
 
   - code: 0xf94a
@@ -3725,21 +3725,21 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup: # TODO: determine type and access
-          - type: dword
+          - type: int
             access: write
 
   - code: 0xf94b
     params:
       - type: reg_tup_ref
         reg_tup: # TODO: determine type and access
-          - type: dword
+          - type: int
             access: write
 
   - code: 0xf94c
     params:
       - type: reg_tup_ref
         reg_tup: # TODO: determine type and access
-          - type: dword
+          - type: int
             access: write
 
   - code: 0xf94d
@@ -3747,20 +3747,20 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup: # TODO: determine type and access
-          - type: dword
+          - type: int
             access: write
 
   - code: 0xf950
     mnemonic: bb_p2_menu
     params:
-      - type: dword
+      - type: int
     stack: pop
 
   - code: 0xf951
     mnemonic: bb_map_designate
     params:
       - type: byte
-      - type: word
+      - type: short
       - type: byte
       - type: byte
 
@@ -3769,18 +3769,18 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: write
 
   - code: 0xf953
     mnemonic: bb_swap_item
     params:
-      - type: dword
-      - type: dword
-      - type: dword
-      - type: dword
-      - type: dword
-      - type: dword
+      - type: int
+      - type: int
+      - type: int
+      - type: int
+      - type: int
+      - type: int
       - type: instruction_label
       - type: instruction_label
     stack: pop
@@ -3788,19 +3788,19 @@ opcodes:
   - code: 0xf954
     mnemonic: bb_check_wrap
     params:
-      - type: dword
+      - type: int
       - type: reg_tup_ref
         reg_tup: # TODO: determine type and access
-          - type: dword
+          - type: int
             access: write
     stack: pop
 
   - code: 0xf955
     mnemonic: bb_exchange_pd_item
     params: # TODO: determine types
-      - type: dword
-      - type: dword
-      - type: dword
+      - type: int
+      - type: int
+      - type: int
       - type: instruction_label
       - type: instruction_label
     stack: pop
@@ -3808,11 +3808,11 @@ opcodes:
   - code: 0xf956
     mnemonic: bb_exchange_pd_srank
     params: # TODO: determine types
-      - type: dword
-      - type: dword
-      - type: dword
-      - type: dword
-      - type: dword
+      - type: int
+      - type: int
+      - type: int
+      - type: int
+      - type: int
       - type: instruction_label
       - type: instruction_label
     stack: pop
@@ -3820,12 +3820,12 @@ opcodes:
   - code: 0xf957
     mnemonic: bb_exchange_pd_special
     params: # TODO: determine types
-      - type: dword
-      - type: dword
-      - type: dword
-      - type: dword
-      - type: dword
-      - type: dword
+      - type: int
+      - type: int
+      - type: int
+      - type: int
+      - type: int
+      - type: int
       - type: instruction_label
       - type: instruction_label
     stack: pop
@@ -3833,28 +3833,28 @@ opcodes:
   - code: 0xf958
     mnemonic: bb_exchange_pd_percent
     params: # TODO: determine types
-      - type: dword
-      - type: dword
-      - type: dword
-      - type: dword
-      - type: dword
-      - type: dword
+      - type: int
+      - type: int
+      - type: int
+      - type: int
+      - type: int
+      - type: int
       - type: instruction_label
       - type: instruction_label
     stack: pop
 
   - code: 0xf959
     params:
-      - type: dword
+      - type: int
     stack: pop
 
   - code: 0xf95c
     mnemonic: bb_exchange_slt
     params:
-      - type: dword
+      - type: int
       - type: reg_tup_ref
         reg_tup: # TODO: determine type and access
-          - type: dword
+          - type: int
             access: write
       - type: instruction_label
       - type: instruction_label
@@ -3867,7 +3867,7 @@ opcodes:
   - code: 0xf95e
     mnemonic: bb_box_create_bp
     params:
-      - type: dword
+      - type: int
       - type: float
       - type: float
     stack: pop
@@ -3877,25 +3877,25 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup: # TODO: determine type and access
-          - type: dword
+          - type: int
             access: write
       - type: reg_tup_ref
         reg_tup: # TODO: determine type and access
-          - type: dword
+          - type: int
             access: write
-      - type: dword
+      - type: int
       - type: instruction_label
       - type: instruction_label
     stack: pop
 
   - code: 0xf960
     params:
-      - type: dword
+      - type: int
     stack: pop
 
   - code: 0xf961
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             access: write

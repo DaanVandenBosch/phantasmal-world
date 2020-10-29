@@ -123,6 +123,19 @@ class ArrayBufferCursor(
         return array
     }
 
+    override fun byteArray(n: Int): ByteArray {
+        requireSize(n)
+
+        val array = ByteArray(n)
+
+        for (i in 0 until n) {
+            array[i] = dv.getInt8(absolutePosition)
+            position++
+        }
+
+        return array
+    }
+
     override fun intArray(n: Int): IntArray {
         requireSize(4 * n)
 

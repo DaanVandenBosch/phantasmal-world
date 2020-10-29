@@ -65,6 +65,11 @@ interface WritableCursor : Cursor {
     fun writeUIntArray(array: UIntArray): WritableCursor
 
     /**
+     * Writes an array of signed 8-bit integers and increments position by the array's length.
+     */
+    fun writeByteArray(array: ByteArray): WritableCursor
+
+    /**
      * Writes an array of signed 32-bit integers and increments position by four times the array's
      * length.
      */

@@ -96,6 +96,11 @@ interface Cursor {
     fun uIntArray(n: Int): UIntArray
 
     /**
+     * Reads [n] signed 8-bit integers and increments position by [n].
+     */
+    fun byteArray(n: Int): ByteArray
+
+    /**
      * Reads [n] signed 32-bit integers and increments position by 4[n].
      */
     fun intArray(n: Int): IntArray

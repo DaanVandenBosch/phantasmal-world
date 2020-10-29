@@ -162,6 +162,20 @@ abstract class WritableCursorTests : CursorTests() {
     }
 
     @Test
+    fun writeByteArray() {
+        val read: Cursor.(Int) -> IntArray = { n ->
+            val arr = byteArray(n)
+            IntArray(n) { arr[it].toInt() }
+        }
+        val write: WritableCursor.(IntArray) -> Unit = { a ->
+            writeByteArray(ByteArray(a.size) { a[it].toByte() })
+        }
+
+        testIntegerArrayWrite(1, read, write, Endianness.Little)
+        testIntegerArrayWrite(1, read, write, Endianness.Big)
+    }
+
+    @Test
     fun writeIntArray() {
         val read: Cursor.(Int) -> IntArray = { n ->
             intArray(n)

@@ -179,6 +179,17 @@ abstract class CursorTests {
     }
 
     @Test
+    fun byteArray() {
+        val read: Cursor.(Int) -> IntArray = { n ->
+            val arr = byteArray(n)
+            IntArray(n) { arr[it].toInt() }
+        }
+
+        testIntegerArrayRead(1, read, Endianness.Little)
+        testIntegerArrayRead(1, read, Endianness.Big)
+    }
+
+    @Test
     fun intArray() {
         val read: Cursor.(Int) -> IntArray = { n ->
             val arr = intArray(n)
@@ -194,25 +205,16 @@ abstract class CursorTests {
         read: Cursor.(Int) -> IntArray,
         endianness: Endianness,
     ) {
-        // Generate array of the form 1, 2, 0xFF, 4, 5, 6, 7, 8.
+        // Generate array of the form 1, 2, 3, 4, 5, 6, 7, 8.
         val bytes = ByteArray(8 * byteCount)
 
         for (i in 0 until 8) {
-            if (i == 2) {
-                for (j in 0 until byteCount) {
-                    bytes[i * byteCount + j] = (0xff).toByte()
-                }
+            if (endianness == Endianness.Little) {
+                bytes[i * byteCount] = (i + 1).toByte()
             } else {
-                if (endianness == Endianness.Little) {
-                    bytes[i * byteCount] = (i + 1).toByte()
-                } else {
-                    bytes[i * byteCount + byteCount - 1] = (i + 1).toByte()
-                }
+                bytes[i * byteCount + byteCount - 1] = (i + 1).toByte()
             }
         }
-
-        var allOnes = 0
-        repeat(byteCount) { allOnes = ((allOnes shl 8) or 0xff) }
 
         // Test cursor.
         val cursor = createCursor(bytes, endianness)
@@ -220,12 +222,12 @@ abstract class CursorTests {
         val array1 = cursor.read(3)
         assertEquals(1, array1[0])
         assertEquals(2, array1[1])
-        assertEquals(allOnes, array1[2])
+        assertEquals(3, array1[2])
         assertEquals(3 * byteCount, cursor.position)
 
         cursor.seekStart(2 * byteCount)
         val array2 = cursor.read(4)
-        assertEquals(allOnes, array2[0])
+        assertEquals(3, array2[0])
         assertEquals(4, array2[1])
         assertEquals(5, array2[2])
         assertEquals(6, array2[3])
