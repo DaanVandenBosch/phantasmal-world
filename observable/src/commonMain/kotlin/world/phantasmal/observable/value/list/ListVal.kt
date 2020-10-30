@@ -3,7 +3,7 @@ package world.phantasmal.observable.value.list
 import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.observable.value.Val
 
-interface ListVal<E> : Val<List<E>>, List<E> {
+interface ListVal<E> : Val<List<E>> {
     val sizeVal: Val<Int>
 
     fun observeList(observer: ListValObserver<E>): Disposable

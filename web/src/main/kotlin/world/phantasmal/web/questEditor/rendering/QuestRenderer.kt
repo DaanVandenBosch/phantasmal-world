@@ -1,7 +1,7 @@
 package world.phantasmal.web.questEditor.rendering
 
 import org.w3c.dom.HTMLCanvasElement
-import world.phantasmal.web.core.newJsObject
+import world.phantasmal.webui.newJsObject
 import world.phantasmal.web.core.rendering.Renderer
 import world.phantasmal.web.externals.*
 import kotlin.math.PI

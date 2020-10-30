@@ -4,7 +4,7 @@ import kotlinx.coroutines.CoroutineScope
 import org.w3c.dom.Node
 import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.falseVal
-import world.phantasmal.web.core.newJsObject
+import world.phantasmal.webui.newJsObject
 import world.phantasmal.web.externals.GoldenLayout
 import world.phantasmal.webui.dom.div
 import world.phantasmal.webui.widgets.Widget
@@ -84,7 +84,9 @@ class DockWidget(
             idToCreate.forEach { (id, create) ->
                 goldenLayout.registerComponent(id) { container: GoldenLayout.Container ->
                     val node = container.getElement()[0] as Node
-                    node.addChild(create(scope))
+                    val widget = create(scope)
+                    node.addChild(widget)
+                    widget.focus()
                 }
             }
 

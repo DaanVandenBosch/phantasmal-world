@@ -7,8 +7,14 @@ import world.phantasmal.web.questEditor.stores.QuestEditorStore
 import world.phantasmal.webui.controllers.Controller
 
 class QuestInfoController(scope: CoroutineScope, store: QuestEditorStore) : Controller(scope) {
-    val unavailable = store.currentQuest.transform { it == null }
-    val episode: Val<String> = store.currentQuest.transform { it?.episode?.name ?: "" }
-    val id: Val<Int> = store.currentQuest.flatTransform { it?.id ?: value(0) }
-    val name: Val<String> = store.currentQuest.flatTransform { it?.name ?: value("") }
+    val unavailable: Val<Boolean> = store.currentQuest.map { it == null }
+    val disabled: Val<Boolean> = store.questEditingDisabled
+
+    val episode: Val<String> = store.currentQuest.map { it?.episode?.name ?: "" }
+    val id: Val<Int> = store.currentQuest.flatMap { it?.id ?: value(0) }
+    val name: Val<String> = store.currentQuest.flatMap { it?.name ?: value("") }
+    val shortDescription: Val<String> =
+        store.currentQuest.flatMap { it?.shortDescription ?: value("") }
+    val longDescription: Val<String> =
+        store.currentQuest.flatMap { it?.longDescription ?: value("") }
 }

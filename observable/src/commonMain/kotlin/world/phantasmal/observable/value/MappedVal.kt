@@ -1,6 +1,6 @@
 package world.phantasmal.observable.value
 
-class TransformedVal<T>(
+class MappedVal<T>(
     dependencies: Iterable<Val<*>>,
     private val compute: () -> T,
 ) : DependentVal<T>(dependencies) {

@@ -12,4 +12,5 @@ abstract class Control(
     scope: CoroutineScope,
     hidden: Val<Boolean> = falseVal(),
     disabled: Val<Boolean> = falseVal(),
-) : Widget(scope, hidden, disabled)
+    tooltip: String? = null,
+) : Widget(scope, hidden, disabled, tooltip)

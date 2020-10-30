@@ -48,7 +48,7 @@ class TabContainer<T : Tab>(
                     addChild(
                         LazyLoader(
                             scope,
-                            hidden = ctrl.activeTab.transform { it != tab },
+                            hidden = ctrl.activeTab.map { it != tab },
                             createWidget = { scope -> createWidget(scope, tab) }
                         )
                     )

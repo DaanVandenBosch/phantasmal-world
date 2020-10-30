@@ -7,7 +7,7 @@ import world.phantasmal.core.unsafeToNonNull
 /**
  * Starts observing its dependencies when the first observer on this val is registered. Stops
  * observing its dependencies when the last observer on this val is disposed. This way no extra
- * disposables need to be managed when e.g. [transform] is used.
+ * disposables need to be managed when e.g. [map] is used.
  */
 abstract class DependentVal<T>(
     private val dependencies: Iterable<Val<*>>,

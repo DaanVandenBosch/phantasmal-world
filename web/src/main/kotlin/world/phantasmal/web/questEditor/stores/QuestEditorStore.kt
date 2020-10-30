@@ -11,6 +11,9 @@ class QuestEditorStore(scope: CoroutineScope) : Store(scope) {
 
     val currentQuest: Val<QuestModel?> = _currentQuest
 
+    // TODO: Take into account whether we're debugging or not.
+    val questEditingDisabled: Val<Boolean> = currentQuest.map { it == null }
+
     fun setCurrentQuest(quest: QuestModel?) {
         _currentQuest.value = quest
     }

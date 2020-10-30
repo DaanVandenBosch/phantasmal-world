@@ -7,13 +7,14 @@ import world.phantasmal.web.core.widgets.UnavailableWidget
 import world.phantasmal.web.questEditor.controllers.QuestInfoController
 import world.phantasmal.webui.dom.*
 import world.phantasmal.webui.widgets.IntInput
+import world.phantasmal.webui.widgets.TextArea
 import world.phantasmal.webui.widgets.TextInput
 import world.phantasmal.webui.widgets.Widget
 
 class QuestInfoWidget(
     scope: CoroutineScope,
     private val ctrl: QuestInfoController,
-) : Widget(scope) {
+) : Widget(scope, disabled = ctrl.disabled) {
     override fun Node.createElement() =
         div {
             className = "pw-quest-editor-quest-info"
@@ -31,9 +32,10 @@ class QuestInfoWidget(
                     td {
                         addChild(IntInput(
                             this@QuestInfoWidget.scope,
+                            disabled = ctrl.disabled,
                             valueVal = ctrl.id,
                             min = 0,
-                            step = 1
+                            step = 1,
                         ))
                     }
                 }
@@ -42,8 +44,49 @@ class QuestInfoWidget(
                     td {
                         addChild(TextInput(
                             this@QuestInfoWidget.scope,
+                            disabled = ctrl.disabled,
                             valueVal = ctrl.name,
-                            maxLength = 32
+                            maxLength = 32,
+                        ))
+                    }
+                }
+                tr {
+                    th {
+                        colSpan = 2
+                        textContent = "Short description:"
+                    }
+                }
+                tr {
+                    td {
+                        colSpan = 2
+                        addChild(TextArea(
+                            this@QuestInfoWidget.scope,
+                            disabled = ctrl.disabled,
+                            valueVal = ctrl.shortDescription,
+                            maxLength = 128,
+                            fontFamily = "\"Courier New\", monospace",
+                            cols = 25,
+                            rows = 5,
+                        ))
+                    }
+                }
+                tr {
+                    th {
+                        colSpan = 2
+                        textContent = "Long description:"
+                    }
+                }
+                tr {
+                    td {
+                        colSpan = 2
+                        addChild(TextArea(
+                            this@QuestInfoWidget.scope,
+                            disabled = ctrl.disabled,
+                            valueVal = ctrl.longDescription,
+                            maxLength = 288,
+                            fontFamily = "\"Courier New\", monospace",
+                            cols = 25,
+                            rows = 10,
                         ))
                     }
                 }

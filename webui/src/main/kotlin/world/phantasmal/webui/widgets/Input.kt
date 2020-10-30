@@ -11,6 +11,7 @@ abstract class Input<T>(
     scope: CoroutineScope,
     hidden: Val<Boolean>,
     disabled: Val<Boolean>,
+    tooltip: String?,
     label: String?,
     labelVal: Val<String>?,
     preferredLabelPosition: LabelPosition,
@@ -19,7 +20,7 @@ abstract class Input<T>(
     private val inputType: String,
     private val value: T?,
     private val valueVal: Val<T>?,
-    private val setValue: ((T) -> Unit)?,
+    private val onChange: (T) -> Unit,
     private val maxLength: Int?,
     private val min: Int?,
     private val max: Int?,
@@ -28,6 +29,7 @@ abstract class Input<T>(
     scope,
     hidden,
     disabled,
+    tooltip,
     label,
     labelVal,
     preferredLabelPosition,
@@ -42,13 +44,11 @@ abstract class Input<T>(
 
                 observe(this@Input.disabled) { disabled = it }
 
-                if (setValue != null) {
-                    onchange = { setValue.invoke(getInputValue(this)) }
+                onchange = { onChange(getInputValue(this)) }
 
-                    onkeydown = { e ->
-                        if (e.key == "Enter") {
-                            setValue.invoke(getInputValue(this))
-                        }
+                onkeydown = { e ->
+                    if (e.key == "Enter") {
+                        onChange(getInputValue(this))
                     }
                 }
 

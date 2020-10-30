@@ -4,7 +4,7 @@ import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.core.disposable.disposable
 import world.phantasmal.core.unsafeToNonNull
 
-class FlatTransformedVal<T>(
+class FlatMappedVal<T>(
     dependencies: Iterable<Val<*>>,
     private val compute: () -> Val<T>,
 ) : DependentVal<T>(dependencies) {

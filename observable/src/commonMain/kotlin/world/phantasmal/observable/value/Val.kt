@@ -17,12 +17,12 @@ interface Val<out T> : Observable<T> {
      */
     fun observe(callNow: Boolean = false, observer: ValObserver<T>): Disposable
 
-    fun <R> transform(transform: (T) -> R): Val<R> =
-        TransformedVal(listOf(this)) { transform(value) }
+    fun <R> map(transform: (T) -> R): Val<R> =
+        MappedVal(listOf(this)) { transform(value) }
 
-    fun <T2, R> transform(v2: Val<T2>, transform: (T, T2) -> R): Val<R> =
-        TransformedVal(listOf(this, v2)) { transform(value, v2.value) }
+    fun <T2, R> map(v2: Val<T2>, transform: (T, T2) -> R): Val<R> =
+        MappedVal(listOf(this, v2)) { transform(value, v2.value) }
 
-    fun <R> flatTransform(transform: (T) -> Val<R>): Val<R> =
-        FlatTransformedVal(listOf(this)) { transform(value) }
+    fun <R> flatMap(transform: (T) -> Val<R>): Val<R> =
+        FlatMappedVal(listOf(this)) { transform(value) }
 }

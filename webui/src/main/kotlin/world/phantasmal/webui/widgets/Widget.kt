@@ -2,7 +2,6 @@ package world.phantasmal.webui.widgets
 
 import kotlinx.browser.document
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.dom.clear
 import org.w3c.dom.*
 import world.phantasmal.core.disposable.disposable
 import world.phantasmal.observable.Observable
@@ -22,9 +21,10 @@ abstract class Widget(
     val hidden: Val<Boolean> = falseVal(),
     /**
      * By default determines the disabled attribute of its [element] and whether or not the
-     * `pw-disabled` class is added.
+     * "pw-disabled" class is added.
      */
     val disabled: Val<Boolean> = falseVal(),
+    val tooltip: String? = null,
 ) : DisposableContainer() {
     private val _ancestorHidden = mutableVal(false)
     private val _children = mutableListOf<Widget>()
@@ -48,6 +48,8 @@ abstract class Widget(
                 el.classList.remove("pw-disabled")
             }
         }
+
+        tooltip?.let { el.title = it }
 
         if (initResizeObserverRequested) {
             initResizeObserver(el)
@@ -73,6 +75,10 @@ abstract class Widget(
     val selfOrAncestorHidden: Val<Boolean> = hidden or ancestorHidden
 
     val children: List<Widget> = _children
+
+    open fun focus() {
+        element.focus()
+    }
 
     /**
      * Called to initialize [element] when it is first accessed.
@@ -121,9 +127,30 @@ abstract class Widget(
         return child
     }
 
-    protected fun <T> Node.bindChildrenTo(
+    protected fun <T> Element.bindChildrenTo(
+        list: Val<List<T>>,
+        createChild: Node.(T, Int) -> Node,
+    ) {
+        if (list is ListVal) {
+            bindChildrenTo(list, createChild)
+        } else {
+            observe(list) { items ->
+                innerHTML = ""
+
+                val frag = document.createDocumentFragment()
+
+                items.forEachIndexed { i, item ->
+                    frag.createChild(item, i)
+                }
+
+                appendChild(frag)
+            }
+        }
+    }
+
+    protected fun <T> Element.bindChildrenTo(
         list: ListVal<T>,
-        createChild: (T, Int) -> Node,
+        createChild: Node.(T, Int) -> Node,
     ) {
         fun spliceChildren(index: Int, removedCount: Int, inserted: List<T>) {
             for (i in 1..removedCount) {
@@ -133,9 +160,7 @@ abstract class Widget(
             val frag = document.createDocumentFragment()
 
             inserted.forEachIndexed { i, value ->
-                val child = createChild(value, index + i)
-
-                frag.append(child)
+                frag.createChild(value, index + i)
             }
 
             if (index >= childNodes.length) {
@@ -145,25 +170,20 @@ abstract class Widget(
             }
         }
 
-        val observer = list.observeList { change: ListValChangeEvent<T> ->
-            when (change) {
-                is ListValChangeEvent.Change -> {
-                    spliceChildren(change.index, change.removed.size, change.inserted)
-                }
-                is ListValChangeEvent.ElementChange -> {
-                    // TODO: Update children.
-                }
-            }
-        }
-
-        spliceChildren(0, 0, list.value)
-
         addDisposable(
-            disposable {
-                observer.dispose()
-                clear()
+            list.observeList { change: ListValChangeEvent<T> ->
+                when (change) {
+                    is ListValChangeEvent.Change -> {
+                        spliceChildren(change.index, change.removed.size, change.inserted)
+                    }
+                    is ListValChangeEvent.ElementChange -> {
+                        // TODO: Update children.
+                    }
+                }
             }
         )
+
+        spliceChildren(0, 0, list.value)
     }
 
     /**

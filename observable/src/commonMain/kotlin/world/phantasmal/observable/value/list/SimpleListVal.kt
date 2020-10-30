@@ -15,7 +15,7 @@ class SimpleListVal<E>(
      * will be propagated via ElementChange events.
      */
     private val extractObservables: ObservablesExtractor<E>? = null,
-) : AbstractMutableList<E>(), MutableListVal<E> {
+) : MutableListVal<E> {
     override var value: List<E> = elements
         set(value) {
             val removed = ArrayList(elements)
@@ -34,8 +34,6 @@ class SimpleListVal<E>(
 
     override val sizeVal: Val<Int> = mutableSizeVal
 
-    override val size: Int by sizeVal
-
     /**
      * Internal observers which observe observables related to this list's elements so that their
      * changes can be propagated via ElementChange events.
@@ -52,12 +50,16 @@ class SimpleListVal<E>(
      */
     private val observers = mutableListOf<ValObserver<List<E>>>()
 
-    override fun get(index: Int): E = elements[index]
-
     override fun set(index: Int, element: E): E {
         val removed = elements.set(index, element)
         finalizeUpdate(ListValChangeEvent.Change(index, listOf(removed), listOf(element)))
         return removed
+    }
+
+    override fun add(element: E) {
+        val index = elements.size
+        elements.add(element)
+        finalizeUpdate(ListValChangeEvent.Change(index, emptyList(), listOf(element)))
     }
 
     override fun add(index: Int, element: E) {
@@ -69,6 +71,19 @@ class SimpleListVal<E>(
         val removed = elements.removeAt(index)
         finalizeUpdate(ListValChangeEvent.Change(index, listOf(removed), emptyList()))
         return removed
+    }
+
+    override fun replaceAll(elements: Sequence<E>) {
+        val removed = ArrayList(this.elements)
+        this.elements.clear()
+        this.elements.addAll(elements)
+        finalizeUpdate(ListValChangeEvent.Change(0, removed, this.elements))
+    }
+
+    override fun clear() {
+        val removed = ArrayList(elements)
+        elements.clear()
+        finalizeUpdate(ListValChangeEvent.Change(0, removed, emptyList()))
     }
 
     override fun observe(observer: Observer<List<E>>): Disposable =

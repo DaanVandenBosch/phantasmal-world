@@ -15,7 +15,7 @@ abstract class ListValTests : ValTests() {
 
     @Test
     fun listVal_updates_sizeVal_correctly() = test {
-        val (list: List<*>, add) = create()
+        val (list: ListVal<*>, add) = create()
 
         assertEquals(0, list.sizeVal.value)
 

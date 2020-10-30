@@ -2,6 +2,7 @@ package world.phantasmal.webui.widgets
 
 import kotlinx.coroutines.CoroutineScope
 import org.w3c.dom.Node
+import org.w3c.dom.events.KeyboardEvent
 import org.w3c.dom.events.MouseEvent
 import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.falseVal
@@ -14,12 +15,22 @@ open class Button(
     disabled: Val<Boolean> = falseVal(),
     private val text: String? = null,
     private val textVal: Val<String>? = null,
-    private val onclick: ((MouseEvent) -> Unit)? = null,
+    private val onMouseDown: ((MouseEvent) -> Unit)? = null,
+    private val onMouseUp: ((MouseEvent) -> Unit)? = null,
+    private val onClick: ((MouseEvent) -> Unit)? = null,
+    private val onKeyDown: ((KeyboardEvent) -> Unit)? = null,
+    private val onKeyUp: ((KeyboardEvent) -> Unit)? = null,
+    private val onKeyPress: ((KeyboardEvent) -> Unit)? = null,
 ) : Control(scope, hidden, disabled) {
     override fun Node.createElement() =
         button {
             className = "pw-button"
-            onclick = this@Button.onclick
+            onmousedown = onMouseDown
+            onmouseup = onMouseUp
+            onclick = onClick
+            onkeydown = onKeyDown
+            onkeyup = onKeyUp
+            onkeypress = onKeyPress
 
             span {
                 className = "pw-button-inner"

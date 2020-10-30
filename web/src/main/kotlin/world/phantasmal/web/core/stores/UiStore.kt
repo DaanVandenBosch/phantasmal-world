@@ -81,7 +81,7 @@ class UiStore(scope: CoroutineScope, private val applicationUrl: ApplicationUrl)
 
         toolToActive = tools
             .map { tool ->
-                tool to currentTool.transform { it == tool }
+                tool to currentTool.map { it == tool }
             }
             .toMap()
 

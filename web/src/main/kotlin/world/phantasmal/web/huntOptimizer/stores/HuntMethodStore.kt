@@ -93,9 +93,7 @@ class HuntMethodStore(
                 }
 
             withContext(UiDispatcher) {
-                // TODO: Add more performant replaceAll method.
-                _methods.clear()
-                _methods.addAll(methods)
+                _methods.replaceAll(methods)
             }
         }
     }

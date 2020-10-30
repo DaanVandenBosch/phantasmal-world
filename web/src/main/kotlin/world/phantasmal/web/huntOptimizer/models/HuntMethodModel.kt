@@ -26,7 +26,7 @@ class HuntMethodModel(
      */
     val userTime: Val<Duration?> = _userTime
 
-    val time: Val<Duration> = userTime.transform { it ?: defaultTime }
+    val time: Val<Duration> = userTime.map { it ?: defaultTime }
 
     fun setUserTime(userTime: Duration?): HuntMethodModel {
         _userTime.value = userTime

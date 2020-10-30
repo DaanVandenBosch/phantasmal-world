@@ -51,6 +51,9 @@ fun Node.table(block: HTMLTableElement.() -> Unit = {}): HTMLTableElement =
 fun Node.td(block: HTMLTableCellElement.() -> Unit = {}): HTMLTableCellElement =
     appendHtmlEl("TD", block)
 
+fun Node.textarea(block: HTMLTextAreaElement.() -> Unit = {}): HTMLTextAreaElement =
+    appendHtmlEl("TEXTAREA", block)
+
 fun Node.th(block: HTMLTableCellElement.() -> Unit = {}): HTMLTableCellElement =
     appendHtmlEl("TH", block)
 
