@@ -2,25 +2,28 @@ package world.phantasmal.web.core.rendering
 
 import org.w3c.dom.HTMLCanvasElement
 import world.phantasmal.core.disposable.TrackedDisposable
-import world.phantasmal.web.externals.Engine
-import world.phantasmal.web.externals.Scene
+import world.phantasmal.web.externals.babylon.Engine
+import world.phantasmal.web.externals.babylon.Scene
 
 abstract class Renderer(
     protected val canvas: HTMLCanvasElement,
-    createEngine: (HTMLCanvasElement) -> Engine,
+    protected val engine: Engine,
 ) : TrackedDisposable() {
-    protected val engine = createEngine(canvas)
     protected val scene = Scene(engine)
 
     init {
-        println(engine.description)
-
         engine.runRenderLoop {
             scene.render()
         }
     }
 
     override fun internalDispose() {
-        // TODO: Clean up Babylon resources.
+        scene.dispose()
+        engine.dispose()
+        super.internalDispose()
+    }
+
+    fun scheduleRender() {
+        // TODO: Remove scheduleRender?
     }
 }

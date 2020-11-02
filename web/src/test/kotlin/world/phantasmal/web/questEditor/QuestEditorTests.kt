@@ -6,10 +6,8 @@ import io.ktor.client.features.json.serializer.*
 import kotlinx.coroutines.cancel
 import world.phantasmal.core.disposable.disposable
 import world.phantasmal.testUtils.TestSuite
-import world.phantasmal.web.core.stores.PwTool
-import world.phantasmal.web.core.stores.UiStore
-import world.phantasmal.web.externals.Engine
-import world.phantasmal.web.test.TestApplicationUrl
+import world.phantasmal.web.core.loading.AssetLoader
+import world.phantasmal.web.externals.babylon.Engine
 import kotlin.test.Test
 
 class QuestEditorTests : TestSuite() {
@@ -24,12 +22,10 @@ class QuestEditorTests : TestSuite() {
         }
         disposer.add(disposable { httpClient.cancel() })
 
-        val uiStore = disposer.add(UiStore(scope, TestApplicationUrl("/${PwTool.QuestEditor}")))
-
         disposer.add(
             QuestEditor(
                 scope,
-                uiStore,
+                AssetLoader(basePath = "", httpClient),
                 createEngine = { Engine(it) }
             )
         )

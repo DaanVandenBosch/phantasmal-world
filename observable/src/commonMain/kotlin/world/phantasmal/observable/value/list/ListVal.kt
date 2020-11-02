@@ -6,7 +6,7 @@ import world.phantasmal.observable.value.Val
 interface ListVal<E> : Val<List<E>> {
     val sizeVal: Val<Int>
 
-    fun observeList(observer: ListValObserver<E>): Disposable
+    fun observeList(callNow: Boolean = false, observer: ListValObserver<E>): Disposable
 
     fun sumBy(selector: (E) -> Int): Val<Int> =
         fold(0) { acc, el -> acc + selector(el) }

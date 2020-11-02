@@ -1,7 +1,7 @@
 package world.phantasmal.web.huntOptimizer
 
 import kotlinx.coroutines.CoroutineScope
-import world.phantasmal.web.core.AssetLoader
+import world.phantasmal.web.core.loading.AssetLoader
 import world.phantasmal.web.core.stores.UiStore
 import world.phantasmal.web.huntOptimizer.controllers.HuntOptimizerController
 import world.phantasmal.web.huntOptimizer.controllers.MethodsController

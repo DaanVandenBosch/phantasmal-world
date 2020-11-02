@@ -4,7 +4,10 @@ import kotlinx.coroutines.CoroutineScope
 import org.w3c.dom.Node
 import world.phantasmal.observable.value.trueVal
 import world.phantasmal.web.application.controllers.NavigationController
+import world.phantasmal.web.core.dom.externalLink
+import world.phantasmal.webui.dom.Icon
 import world.phantasmal.webui.dom.div
+import world.phantasmal.webui.dom.icon
 import world.phantasmal.webui.widgets.Select
 import world.phantasmal.webui.widgets.Widget
 
@@ -36,6 +39,13 @@ class NavigationWidget(
                 )
                 addWidget(serverSelect.label!!)
                 addChild(serverSelect)
+
+                externalLink("https://github.com/DaanVandenBosch/phantasmal-world") {
+                    className = "pw-application-navigation-github"
+                    title = "Phantasmal World is open source, code available on GitHub"
+
+                    icon(Icon.GitHub)
+                }
             }
         }
 
@@ -67,11 +77,7 @@ class NavigationWidget(
                 }
                 
                 .pw-application-navigation-github {
-                    display: flex;
-                    flex-direction: row;
-                    align-items: center;
-                    justify-content: center;
-                    width: 30px;
+                    margin: 0 6px 0 4px;
                     font-size: 16px;
                     color: var(--pw-control-text-color);
                 }

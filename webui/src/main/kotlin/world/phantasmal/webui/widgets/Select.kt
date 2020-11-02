@@ -8,6 +8,7 @@ import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.falseVal
 import world.phantasmal.observable.value.mutableVal
 import world.phantasmal.observable.value.value
+import world.phantasmal.webui.dom.Icon
 import world.phantasmal.webui.dom.div
 
 class Select<T : Any>(
@@ -51,6 +52,7 @@ class Select<T : Any>(
                 scope,
                 disabled = disabled,
                 textVal = buttonText,
+                iconRight = Icon.TriangleDown,
                 onMouseDown = ::onButtonMouseDown,
                 onMouseUp = { onButtonMouseUp() },
                 onKeyDown = ::onButtonKeyDown,

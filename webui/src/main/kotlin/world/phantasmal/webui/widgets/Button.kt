@@ -6,7 +6,9 @@ import org.w3c.dom.events.KeyboardEvent
 import org.w3c.dom.events.MouseEvent
 import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.falseVal
+import world.phantasmal.webui.dom.Icon
 import world.phantasmal.webui.dom.button
+import world.phantasmal.webui.dom.icon
 import world.phantasmal.webui.dom.span
 
 open class Button(
@@ -15,6 +17,8 @@ open class Button(
     disabled: Val<Boolean> = falseVal(),
     private val text: String? = null,
     private val textVal: Val<String>? = null,
+    private val iconLeft: Icon? = null,
+    private val iconRight: Icon? = null,
     private val onMouseDown: ((MouseEvent) -> Unit)? = null,
     private val onMouseUp: ((MouseEvent) -> Unit)? = null,
     private val onClick: ((MouseEvent) -> Unit)? = null,
@@ -35,6 +39,13 @@ open class Button(
             span {
                 className = "pw-button-inner"
 
+                iconLeft?.let {
+                    span {
+                        className = "pw-button-left"
+                        icon(iconLeft)
+                    }
+                }
+
                 span {
                     className = "pw-button-center"
 
@@ -47,6 +58,13 @@ open class Button(
                         textContent = text
                     } else {
                         hidden = true
+                    }
+                }
+
+                iconRight?.let {
+                    span {
+                        className = "pw-button-right"
+                        icon(iconRight)
                     }
                 }
             }

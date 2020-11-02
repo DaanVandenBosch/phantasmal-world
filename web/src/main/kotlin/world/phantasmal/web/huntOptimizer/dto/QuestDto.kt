@@ -1,4 +1,4 @@
-package world.phantasmal.web.core.dto
+package world.phantasmal.web.huntOptimizer.dto
 
 import kotlinx.serialization.Serializable
 

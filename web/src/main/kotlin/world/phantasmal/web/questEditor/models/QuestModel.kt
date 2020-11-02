@@ -2,6 +2,8 @@ package world.phantasmal.web.questEditor.models
 
 import world.phantasmal.lib.fileFormats.quest.Episode
 import world.phantasmal.observable.value.Val
+import world.phantasmal.observable.value.list.ListVal
+import world.phantasmal.observable.value.list.mutableListVal
 import world.phantasmal.observable.value.mutableVal
 
 class QuestModel(
@@ -11,18 +13,24 @@ class QuestModel(
     shortDescription: String,
     longDescription: String,
     val episode: Episode,
+    npcs: MutableList<QuestNpcModel>,
+    objects: MutableList<QuestObjectModel>,
 ) {
     private val _id = mutableVal(0)
     private val _language = mutableVal(0)
     private val _name = mutableVal("")
     private val _shortDescription = mutableVal("")
     private val _longDescription = mutableVal("")
+    private val _npcs = mutableListVal(npcs)
+    private val _objects = mutableListVal(objects)
 
     val id: Val<Int> = _id
     val language: Val<Int> = _language
     val name: Val<String> = _name
     val shortDescription: Val<String> = _shortDescription
     val longDescription: Val<String> = _longDescription
+    val npcs: ListVal<QuestNpcModel> = _npcs
+    val objects: ListVal<QuestObjectModel> = _objects
 
     init {
         setId(id)

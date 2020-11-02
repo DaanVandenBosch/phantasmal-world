@@ -3,6 +3,7 @@ package world.phantasmal.web.questEditor.widgets
 import kotlinx.coroutines.CoroutineScope
 import org.w3c.dom.Node
 import world.phantasmal.web.questEditor.controllers.QuestEditorToolbarController
+import world.phantasmal.webui.dom.Icon
 import world.phantasmal.webui.dom.div
 import world.phantasmal.webui.widgets.FileButton
 import world.phantasmal.webui.widgets.Toolbar
@@ -22,6 +23,7 @@ class QuestEditorToolbar(
                     FileButton(
                         scope,
                         text = "Open file...",
+                        iconLeft = Icon.File,
                         accept = ".bin, .dat, .qst",
                         multiple = true,
                         filesSelected = ctrl::openFiles

@@ -3,22 +3,22 @@ package world.phantasmal.web.core.widgets
 import kotlinx.coroutines.CoroutineScope
 import org.w3c.dom.HTMLCanvasElement
 import org.w3c.dom.Node
-import world.phantasmal.web.externals.Engine
-import world.phantasmal.web.questEditor.rendering.QuestRenderer
+import world.phantasmal.web.core.rendering.Renderer
 import world.phantasmal.webui.dom.canvas
 import world.phantasmal.webui.widgets.Widget
 import kotlin.math.floor
 
 class RendererWidget(
     scope: CoroutineScope,
-    private val createEngine: (HTMLCanvasElement) -> Engine,
+    private val createRenderer: (HTMLCanvasElement) -> Renderer,
 ) : Widget(scope) {
     override fun Node.createElement() =
         canvas {
             className = "pw-core-renderer"
+            tabIndex = -1
 
             observeResize()
-            addDisposable(QuestRenderer(this, createEngine))
+            addDisposable(createRenderer(this))
         }
 
     override fun resized(width: Double, height: Double) {
@@ -35,6 +35,7 @@ class RendererWidget(
                 .pw-core-renderer {
                     width: 100%;
                     height: 100%;
+                    outline: none;
                 }
             """.trimIndent())
         }

@@ -4,8 +4,8 @@ import kotlinx.coroutines.CoroutineScope
 import org.w3c.dom.Node
 import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.falseVal
-import world.phantasmal.webui.newJsObject
-import world.phantasmal.web.externals.GoldenLayout
+import world.phantasmal.webui.obj
+import world.phantasmal.web.externals.goldenLayout.GoldenLayout
 import world.phantasmal.webui.dom.div
 import world.phantasmal.webui.widgets.Widget
 
@@ -61,13 +61,13 @@ class DockWidget(
 
             val idToCreate = mutableMapOf<String, (CoroutineScope) -> Widget>()
 
-            val config = newJsObject<GoldenLayout.Config> {
-                settings = newJsObject<GoldenLayout.Settings> {
+            val config = obj<GoldenLayout.Config> {
+                settings = obj<GoldenLayout.Settings> {
                     showPopoutIcon = false
                     showMaximiseIcon = false
                     showCloseIcon = false
                 }
-                dimensions = newJsObject<GoldenLayout.Dimensions> {
+                dimensions = obj<GoldenLayout.Dimensions> {
                     headerHeight = HEADER_HEIGHT
                 }
                 content = arrayOf(
@@ -120,7 +120,7 @@ class DockWidget(
             is DockedWidget -> {
                 idToCreate[item.id] = item.createWidget
 
-                newJsObject<GoldenLayout.ComponentConfig> {
+                obj<GoldenLayout.ComponentConfig> {
                     title = item.title
                     type = "component"
                     componentName = item.id
@@ -134,7 +134,7 @@ class DockWidget(
             }
 
             is DockedContainer ->
-                newJsObject {
+                obj {
                     type = itemType
                     content = Array(item.items.size) { toConfigContent(item.items[it], idToCreate) }
 

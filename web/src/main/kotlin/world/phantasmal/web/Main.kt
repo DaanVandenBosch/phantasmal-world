@@ -15,9 +15,9 @@ import world.phantasmal.core.disposable.TrackedDisposable
 import world.phantasmal.core.disposable.disposable
 import world.phantasmal.observable.value.mutableVal
 import world.phantasmal.web.application.Application
-import world.phantasmal.web.core.HttpAssetLoader
+import world.phantasmal.web.core.loading.AssetLoader
 import world.phantasmal.web.core.stores.ApplicationUrl
-import world.phantasmal.web.externals.Engine
+import world.phantasmal.web.externals.babylon.Engine
 import world.phantasmal.webui.dom.disposableListener
 import world.phantasmal.webui.dom.root
 
@@ -44,8 +44,9 @@ private fun init(): Disposable {
     disposer.add(disposable { httpClient.cancel() })
 
     val pathname = window.location.pathname
-    val basePath = window.location.origin +
-            (if (pathname.lastOrNull() == '/') pathname.dropLast(1) else pathname)
+    val assetBasePath = window.location.origin +
+            (if (pathname.lastOrNull() == '/') pathname.dropLast(1) else pathname) +
+            "/assets"
 
     val scope = CoroutineScope(SupervisorJob())
     disposer.add(disposable { scope.cancel() })
@@ -54,7 +55,7 @@ private fun init(): Disposable {
         Application(
             scope,
             rootElement,
-            HttpAssetLoader(httpClient, basePath),
+            AssetLoader(assetBasePath, httpClient),
             disposer.add(HistoryApplicationUrl()),
             createEngine = { Engine(it) }
         )

@@ -14,120 +14,12 @@ import kotlin.math.abs
 
 private val logger = KotlinLogging.logger {}
 
-class NjcmModel(
-    /**
-     * Sparse list of vertices.
-     */
-    val vertices: List<NjcmVertex>,
-    val meshes: List<NjcmTriangleStrip>,
-    val collisionSphereCenter: Vec3,
-    val collisionSphereRadius: Float,
-)
-
-class NjcmVertex(
-    val position: Vec3,
-    val normal: Vec3?,
-    val boneWeight: Float,
-    val boneWeightStatus: UByte,
-    val calcContinue: Boolean,
-)
-
-class NjcmTriangleStrip(
-    val ignoreLight: Boolean,
-    val ignoreSpecular: Boolean,
-    val ignoreAmbient: Boolean,
-    val useAlpha: Boolean,
-    val doubleSide: Boolean,
-    val flatShading: Boolean,
-    val environmentMapping: Boolean,
-    val clockwiseWinding: Boolean,
-    val hasTexCoords: Boolean,
-    val hasNormal: Boolean,
-    var textureId: UInt?,
-    var srcAlpha: UByte?,
-    var dstAlpha: UByte?,
-    val vertices: List<NjcmMeshVertex>,
-)
-
-class NjcmMeshVertex(
-    val index: UShort,
-    val normal: Vec3?,
-    val texCoords: Vec2?,
-)
-
-sealed class NjcmChunk(val typeId: UByte) {
-    class Unknown(typeId: UByte) : NjcmChunk(typeId)
-
-    object Null : NjcmChunk(0u)
-
-    class Bits(typeId: UByte, val srcAlpha: UByte, val dstAlpha: UByte) : NjcmChunk(typeId)
-
-    class CachePolygonList(val cacheIndex: UByte, val offset: Int) : NjcmChunk(4u)
-
-    class DrawPolygonList(val cacheIndex: UByte) : NjcmChunk(5u)
-
-    class Tiny(
-        typeId: UByte,
-        val flipU: Boolean,
-        val flipV: Boolean,
-        val clampU: Boolean,
-        val clampV: Boolean,
-        val mipmapDAdjust: UInt,
-        val filterMode: UInt,
-        val superSample: Boolean,
-        val textureId: UInt,
-    ) : NjcmChunk(typeId)
-
-    class Material(
-        typeId: UByte,
-        val srcAlpha: UByte,
-        val dstAlpha: UByte,
-        val diffuse: NjcmArgb?,
-        val ambient: NjcmArgb?,
-        val specular: NjcmErgb?,
-    ) : NjcmChunk(typeId)
-
-    class Vertex(typeId: UByte, val vertices: List<NjcmChunkVertex>) : NjcmChunk(typeId)
-
-    class Volume(typeId: UByte) : NjcmChunk(typeId)
-
-    class Strip(typeId: UByte, val triangleStrips: List<NjcmTriangleStrip>) : NjcmChunk(typeId)
-
-    object End : NjcmChunk(255u)
-}
-
-class NjcmChunkVertex(
-    val index: Int,
-    val position: Vec3,
-    val normal: Vec3?,
-    val boneWeight: Float,
-    val boneWeightStatus: UByte,
-    val calcContinue: Boolean,
-)
-
-/**
- * Channels are in range [0, 1].
- */
-class NjcmArgb(
-    val a: Float,
-    val r: Float,
-    val g: Float,
-    val b: Float,
-)
-
-class NjcmErgb(
-    val e: UByte,
-    val r: UByte,
-    val g: UByte,
-    val b: UByte,
-)
-
 fun parseNjcmModel(cursor: Cursor, cachedChunkOffsets: MutableMap<UByte, Int>): NjcmModel {
     val vlistOffset = cursor.int() // Vertex list
     val plistOffset = cursor.int() // Triangle strip index list
     val boundingSphereCenter = cursor.vec3F32()
     val boundingSphereRadius = cursor.float()
-    val vertices: MutableList<NjcmVertex> = mutableListOf()
+    val vertices: MutableList<NjcmVertex?> = mutableListOf()
     val meshes: MutableList<NjcmTriangleStrip> = mutableListOf()
 
     if (vlistOffset != 0) {
@@ -136,6 +28,10 @@ fun parseNjcmModel(cursor: Cursor, cachedChunkOffsets: MutableMap<UByte, Int>): 
         for (chunk in parseChunks(cursor, cachedChunkOffsets, true)) {
             if (chunk is NjcmChunk.Vertex) {
                 for (vertex in chunk.vertices) {
+                    while (vertices.size <= vertex.index) {
+                        vertices.add(null)
+                    }
+
                     vertices[vertex.index] = NjcmVertex(
                         vertex.position,
                         vertex.normal,
@@ -156,23 +52,19 @@ fun parseNjcmModel(cursor: Cursor, cachedChunkOffsets: MutableMap<UByte, Int>): 
         var dstAlpha: UByte? = null
 
         for (chunk in parseChunks(cursor, cachedChunkOffsets, false)) {
-            @Suppress("UNUSED_VALUE") // Ignore useless warning due to compiler bug.
             when (chunk) {
                 is NjcmChunk.Bits -> {
                     srcAlpha = chunk.srcAlpha
                     dstAlpha = chunk.dstAlpha
-                    break
                 }
 
                 is NjcmChunk.Tiny -> {
                     textureId = chunk.textureId
-                    break
                 }
 
                 is NjcmChunk.Material -> {
                     srcAlpha = chunk.srcAlpha
                     dstAlpha = chunk.dstAlpha
-                    break
                 }
 
                 is NjcmChunk.Strip -> {
@@ -183,7 +75,6 @@ fun parseNjcmModel(cursor: Cursor, cachedChunkOffsets: MutableMap<UByte, Int>): 
                     }
 
                     meshes.addAll(chunk.triangleStrips)
-                    break
                 }
 
                 else -> {
@@ -357,7 +248,7 @@ private fun parseVertexChunk(
     chunkTypeId: UByte,
     flags: UByte,
 ): List<NjcmChunkVertex> {
-    val boneWeightStatus = flags and 0b11u
+    val boneWeightStatus = (flags and 0b11u).toInt()
     val calcContinue = (flags and 0x80u) != ZERO_U8
 
     val index = cursor.uShort()
@@ -451,9 +342,9 @@ private fun parseTriangleStripChunk(
     val flatShading = (flags and 0b100000u) != ZERO_U8
     val environmentMapping = (flags and 0b1000000u) != ZERO_U8
 
-    val userOffsetAndStripCount = cursor.uShort()
-    val userFlagsSize = (userOffsetAndStripCount.toUInt() shr 14).toInt()
-    val stripCount = userOffsetAndStripCount and 0x3fffu
+    val userOffsetAndStripCount = cursor.short().toInt()
+    val userFlagsSize = (userOffsetAndStripCount ushr 14)
+    val stripCount = userOffsetAndStripCount and 0x3FFF
 
     var hasTexCoords = false
     var hasColor = false
@@ -490,14 +381,14 @@ private fun parseTriangleStripChunk(
 
     val strips: MutableList<NjcmTriangleStrip> = mutableListOf()
 
-    repeat(stripCount.toInt()) {
+    repeat(stripCount) {
         val windingFlagAndIndexCount = cursor.short()
         val clockwiseWinding = windingFlagAndIndexCount < 1
         val indexCount = abs(windingFlagAndIndexCount.toInt())
 
         val vertices: MutableList<NjcmMeshVertex> = mutableListOf()
 
-        for (j in 0..indexCount) {
+        for (j in 0 until indexCount) {
             val index = cursor.uShort()
 
             val texCoords = if (hasTexCoords) {

@@ -1,4 +1,6 @@
-package world.phantasmal.web.externals
+@file:Suppress("unused")
+
+package world.phantasmal.web.externals.goldenLayout
 
 import org.w3c.dom.Element
 

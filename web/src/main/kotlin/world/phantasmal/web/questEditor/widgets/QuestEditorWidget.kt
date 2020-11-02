@@ -17,7 +17,7 @@ private class TestWidget(scope: CoroutineScope) : Widget(scope) {
     }
 }
 
-open class QuestEditorWidget(
+class QuestEditorWidget(
     scope: CoroutineScope,
     private val toolbar: Widget,
     private val createQuestInfoWidget: (CoroutineScope) -> Widget,

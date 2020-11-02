@@ -1,28 +1,83 @@
 package world.phantasmal.web.questEditor.rendering
 
 import org.w3c.dom.HTMLCanvasElement
-import world.phantasmal.webui.newJsObject
 import world.phantasmal.web.core.rendering.Renderer
-import world.phantasmal.web.externals.*
+import world.phantasmal.web.externals.babylon.*
+import world.phantasmal.web.questEditor.models.QuestEntityModel
+import world.phantasmal.web.questEditor.rendering.conversion.EntityMetadata
 import kotlin.math.PI
 
 class QuestRenderer(
     canvas: HTMLCanvasElement,
-    createEngine: (HTMLCanvasElement) -> Engine,
-) : Renderer(canvas, createEngine) {
-    private val camera = ArcRotateCamera("Camera", PI / 2, PI / 2, 2.0, Vector3.Zero(), scene)
+    engine: Engine,
+    createMeshManager: (QuestRenderer, Scene) -> QuestMeshManager,
+) : Renderer(canvas, engine) {
+    private val meshManager = createMeshManager(this, scene)
+    private var entityMeshes = TransformNode("Entities", scene)
+    private val entityToMesh = mutableMapOf<QuestEntityModel<*, *>, AbstractMesh>()
+    private val camera = ArcRotateCamera("Camera", 0.0, PI / 6, 500.0, Vector3.Zero(), scene)
     private val light = HemisphericLight("Light", Vector3(1.0, 1.0, 0.0), scene)
-    private val cylinder =
-        MeshBuilder.CreateCylinder("Cylinder", newJsObject { diameter = 1.0 }, scene)
 
     init {
-        camera.attachControl(canvas, noPreventDefault = true)
+        with(camera) {
+            attachControl(
+                canvas,
+                noPreventDefault = false,
+                useCtrlForPanning = false,
+                panningMouseButton = 0
+            )
+            inertia = 0.0
+            angularSensibilityX = 200.0
+            angularSensibilityY = 200.0
+            panningInertia = 0.0
+            panningSensibility = 3.0
+            panningAxis = Vector3(1.0, 0.0, 1.0)
+            pinchDeltaPercentage = 0.1
+            wheelDeltaPercentage = 0.1
+        }
     }
 
     override fun internalDispose() {
+        meshManager.dispose()
+        entityMeshes.dispose()
+        entityToMesh.clear()
         camera.dispose()
         light.dispose()
-        cylinder.dispose()
         super.internalDispose()
+    }
+
+    fun resetEntityMeshes() {
+        entityMeshes.dispose(false)
+        entityToMesh.clear()
+
+        entityMeshes = TransformNode("Entities", scene)
+        scheduleRender()
+    }
+
+    fun addEntityMesh(mesh: AbstractMesh) {
+        val entity = (mesh.metadata as EntityMetadata).entity
+        mesh.parent = entityMeshes
+
+        entityToMesh[entity]?.let { prevMesh ->
+            prevMesh.parent = null
+            prevMesh.dispose()
+        }
+
+        entityToMesh[entity] = mesh
+
+        // TODO: Mark selected entity.
+//        if (entity === this.selected_entity) {
+//            this.mark_selected(model)
+//        }
+
+        this.scheduleRender()
+    }
+
+    fun removeEntityMesh(entity: QuestEntityModel<*, *>) {
+        entityToMesh.remove(entity)?.let { mesh ->
+            mesh.parent = null
+            mesh.dispose()
+            this.scheduleRender()
+        }
     }
 }

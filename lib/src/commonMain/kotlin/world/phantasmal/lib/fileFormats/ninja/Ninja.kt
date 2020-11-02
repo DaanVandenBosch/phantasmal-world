@@ -10,46 +10,26 @@ import world.phantasmal.lib.fileFormats.vec3F32
 
 private const val NJCM: Int = 0x4D434A4E
 
-class NjObject<Model>(
-    val evaluationFlags: NjEvaluationFlags,
-    val model: Model?,
-    val position: Vec3,
-    /**
-     * Euler angles in radians.
-     */
-    val rotation: Vec3,
-    val scale: Vec3,
-    val children: List<NjObject<Model>>,
-)
-
-class NjEvaluationFlags(
-    val noTranslate: Boolean,
-    val noRotate: Boolean,
-    val noScale: Boolean,
-    val hidden: Boolean,
-    val breakChildTrace: Boolean,
-    val zxyRotationOrder: Boolean,
-    val skip: Boolean,
-    val shapeSkip: Boolean,
-)
-
-fun parseNj(cursor: Cursor): PwResult<List<NjObject<NjcmModel>>> =
+fun parseNj(cursor: Cursor): PwResult<List<NinjaObject<NjcmModel>>> =
     parseNinja(cursor, ::parseNjcmModel, mutableMapOf())
 
-private fun <Model, Context> parseNinja(
+fun parseXj(cursor: Cursor): PwResult<List<NinjaObject<XjModel>>> =
+    parseNinja(cursor, { _, _ -> XjModel() }, Unit)
+
+private fun <Model : NinjaModel, Context> parseNinja(
     cursor: Cursor,
-    parse_model: (cursor: Cursor, context: Context) -> Model,
+    parseModel: (cursor: Cursor, context: Context) -> Model,
     context: Context,
-): PwResult<List<NjObject<Model>>> =
+): PwResult<List<NinjaObject<Model>>> =
     when (val parseIffResult = parseIff(cursor)) {
         is Failure -> parseIffResult
         is Success -> {
             // POF0 and other chunks types are ignored.
             val njcmChunks = parseIffResult.value.filter { chunk -> chunk.type == NJCM }
-            val objects: MutableList<NjObject<Model>> = mutableListOf()
+            val objects: MutableList<NinjaObject<Model>> = mutableListOf()
 
             for (chunk in njcmChunks) {
-                objects.addAll(parseSiblingObjects(chunk.data, parse_model, context))
+                objects.addAll(parseSiblingObjects(chunk.data, parseModel, context))
             }
 
             Success(objects, parseIffResult.problems)
@@ -57,11 +37,11 @@ private fun <Model, Context> parseNinja(
     }
 
 // TODO: cache model and object offsets so we don't reparse the same data.
-private fun <Model, Context> parseSiblingObjects(
+private fun <Model : NinjaModel, Context> parseSiblingObjects(
     cursor: Cursor,
-    parse_model: (cursor: Cursor, context: Context) -> Model,
+    parseModel: (cursor: Cursor, context: Context) -> Model,
     context: Context,
-): List<NjObject<Model>> {
+): MutableList<NinjaObject<Model>> {
     val evalFlags = cursor.uInt()
     val noTranslate = (evalFlags and 0b1u) != 0u
     val noRotate = (evalFlags and 0b10u) != 0u
@@ -87,25 +67,25 @@ private fun <Model, Context> parseSiblingObjects(
         null
     } else {
         cursor.seekStart(modelOffset)
-        parse_model(cursor, context)
+        parseModel(cursor, context)
     }
 
     val children = if (childOffset == 0) {
-        emptyList()
+        mutableListOf()
     } else {
         cursor.seekStart(childOffset)
-        parseSiblingObjects(cursor, parse_model, context)
+        parseSiblingObjects(cursor, parseModel, context)
     }
 
     val siblings = if (siblingOffset == 0) {
-        emptyList()
+        mutableListOf()
     } else {
         cursor.seekStart(siblingOffset)
-        parseSiblingObjects(cursor, parse_model, context)
+        parseSiblingObjects(cursor, parseModel, context)
     }
 
-    val obj = NjObject(
-        NjEvaluationFlags(
+    val obj = NinjaObject(
+        NinjaEvaluationFlags(
             noTranslate,
             noRotate,
             noScale,
@@ -122,5 +102,6 @@ private fun <Model, Context> parseSiblingObjects(
         children,
     )
 
-    return listOf(obj) + siblings
+    siblings.add(0, obj)
+    return siblings
 }

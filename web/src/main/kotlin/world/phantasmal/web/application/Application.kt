@@ -12,11 +12,11 @@ import world.phantasmal.web.application.controllers.NavigationController
 import world.phantasmal.web.application.widgets.ApplicationWidget
 import world.phantasmal.web.application.widgets.MainContentWidget
 import world.phantasmal.web.application.widgets.NavigationWidget
-import world.phantasmal.web.core.AssetLoader
+import world.phantasmal.web.core.loading.AssetLoader
 import world.phantasmal.web.core.stores.ApplicationUrl
 import world.phantasmal.web.core.stores.PwTool
 import world.phantasmal.web.core.stores.UiStore
-import world.phantasmal.web.externals.Engine
+import world.phantasmal.web.externals.babylon.Engine
 import world.phantasmal.web.huntOptimizer.HuntOptimizer
 import world.phantasmal.web.questEditor.QuestEditor
 import world.phantasmal.webui.DisposableContainer
@@ -56,11 +56,19 @@ class Application(
                 scope,
                 NavigationWidget(scope, navigationController),
                 MainContentWidget(scope, mainContentController, mapOf(
-                    PwTool.QuestEditor to { s ->
-                        addDisposable(QuestEditor(s, uiStore, createEngine)).createWidget()
+                    PwTool.QuestEditor to { widgetScope ->
+                        addDisposable(QuestEditor(
+                            widgetScope,
+                            assetLoader,
+                            createEngine
+                        )).createWidget()
                     },
-                    PwTool.HuntOptimizer to { s ->
-                        addDisposable(HuntOptimizer(s, assetLoader, uiStore)).createWidget()
+                    PwTool.HuntOptimizer to { widgetScope ->
+                        addDisposable(HuntOptimizer(
+                            widgetScope,
+                            assetLoader,
+                            uiStore
+                        )).createWidget()
                     },
                 ))
             )

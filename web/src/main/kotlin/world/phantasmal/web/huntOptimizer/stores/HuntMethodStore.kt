@@ -7,11 +7,12 @@ import world.phantasmal.lib.fileFormats.quest.Episode
 import world.phantasmal.lib.fileFormats.quest.NpcType
 import world.phantasmal.observable.value.list.ListVal
 import world.phantasmal.observable.value.list.mutableListVal
-import world.phantasmal.web.core.AssetLoader
 import world.phantasmal.web.core.IoDispatcher
 import world.phantasmal.web.core.UiDispatcher
+import world.phantasmal.web.core.loading.AssetLoader
 import world.phantasmal.web.core.models.Server
 import world.phantasmal.web.core.stores.UiStore
+import world.phantasmal.web.huntOptimizer.dto.QuestDto
 import world.phantasmal.web.huntOptimizer.models.HuntMethodModel
 import world.phantasmal.web.huntOptimizer.models.SimpleQuestModel
 import world.phantasmal.webui.stores.Store
@@ -34,9 +35,10 @@ class HuntMethodStore(
 
     private fun loadMethods(server: Server) {
         launch(IoDispatcher) {
-            val quests = assetLoader.getQuests(server)
+            val quests = assetLoader.load<List<QuestDto>>("/quests.${server.slug}.json")
 
-            val methods = quests.asSequence()
+            val methods = quests
+                .asSequence()
                 .filter {
                     when (it.id) {
                         // The following quests are left out because their enemies don't drop

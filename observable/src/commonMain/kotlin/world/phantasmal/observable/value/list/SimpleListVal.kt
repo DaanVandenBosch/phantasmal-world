@@ -97,7 +97,7 @@ class SimpleListVal<E>(
         observers.add(observer)
 
         if (callNow) {
-            observer(ValChangeEvent(value, value))
+            observer(ValChangeEvent(elements, elements))
         }
 
         return disposable {
@@ -106,12 +106,16 @@ class SimpleListVal<E>(
         }
     }
 
-    override fun observeList(observer: ListValObserver<E>): Disposable {
+    override fun observeList(callNow: Boolean, observer: ListValObserver<E>): Disposable {
         if (elementObservers.isEmpty() && extractObservables != null) {
             replaceElementObservers(0, elementObservers.size, elements)
         }
 
         listObservers.add(observer)
+
+        if (callNow) {
+            observer(ListValChangeEvent.Change(0, emptyList(), elements))
+        }
 
         return disposable {
             listObservers.remove(observer)
@@ -141,7 +145,7 @@ class SimpleListVal<E>(
             observer(event)
         }
 
-        val regularEvent = ValChangeEvent(value, value)
+        val regularEvent = ValChangeEvent(elements, elements)
 
         observers.forEach { observer: ValObserver<List<E>> ->
             observer(regularEvent)

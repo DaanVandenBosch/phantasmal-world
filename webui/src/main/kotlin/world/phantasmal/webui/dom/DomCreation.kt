@@ -3,9 +3,6 @@ package world.phantasmal.webui.dom
 import kotlinx.browser.document
 import org.w3c.dom.*
 
-fun Node.a(block: HTMLAnchorElement.() -> Unit = {}): HTMLAnchorElement =
-    appendHtmlEl("A", block)
-
 fun Node.button(block: HTMLButtonElement.() -> Unit = {}): HTMLButtonElement =
     appendHtmlEl("BUTTON", block)
 

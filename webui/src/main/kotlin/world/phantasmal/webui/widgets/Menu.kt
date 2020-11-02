@@ -11,7 +11,7 @@ import world.phantasmal.observable.value.falseVal
 import world.phantasmal.observable.value.value
 import world.phantasmal.webui.dom.disposableListener
 import world.phantasmal.webui.dom.div
-import world.phantasmal.webui.newJsObject
+import world.phantasmal.webui.obj
 
 class Menu<T : Any>(
     scope: CoroutineScope,
@@ -173,7 +173,7 @@ class Menu<T : Any>(
         highlightedElement?.let {
             highlightedIndex = index
             it.classList.add("pw-menu-highlighted")
-            it.scrollIntoView(newJsObject { block = "nearest" })
+            it.scrollIntoView(obj { block = "nearest" })
         }
     }
 
