@@ -11,6 +11,7 @@ import world.phantasmal.lib.assembly.Segment
 import world.phantasmal.lib.assembly.dataFlowAnalysis.getMapDesignations
 import world.phantasmal.lib.compression.prs.prsDecompress
 import world.phantasmal.lib.cursor.Cursor
+import world.phantasmal.lib.cursor.cursor
 
 private val logger = KotlinLogging.logger {}
 
@@ -35,23 +36,23 @@ fun parseBinDatToQuest(
     datCursor: Cursor,
     lenient: Boolean = false,
 ): PwResult<Quest> {
-    val rb = PwResultBuilder<Quest>(logger)
+    val result = PwResult.build<Quest>(logger)
 
     // Decompress and parse files.
     val binDecompressed = prsDecompress(binCursor)
-    rb.addResult(binDecompressed)
+    result.addResult(binDecompressed)
 
     if (binDecompressed !is Success) {
-        return rb.failure()
+        return result.failure()
     }
 
     val bin = parseBin(binDecompressed.value)
 
     val datDecompressed = prsDecompress(datCursor)
-    rb.addResult(datDecompressed)
+    result.addResult(datDecompressed)
 
     if (datDecompressed !is Success) {
-        return rb.failure()
+        return result.failure()
     }
 
     val dat = parseDat(datDecompressed.value)
@@ -71,16 +72,16 @@ fun parseBinDatToQuest(
         lenient,
     )
 
-    rb.addResult(parseByteCodeResult)
+    result.addResult(parseByteCodeResult)
 
     if (parseByteCodeResult !is Success) {
-        return rb.failure()
+        return result.failure()
     }
 
     val byteCodeIr = parseByteCodeResult.value
 
     if (byteCodeIr.isEmpty()) {
-        rb.addProblem(Severity.Warning, "File contains no instruction labels.")
+        result.addProblem(Severity.Warning, "File contains no instruction labels.")
     } else {
         val instructionSegments = byteCodeIr.filterIsInstance<InstructionSegment>()
 
@@ -94,7 +95,7 @@ fun parseBinDatToQuest(
         }
 
         if (label0Segment != null) {
-            episode = getEpisode(rb, label0Segment)
+            episode = getEpisode(result, label0Segment)
 
             for (npc in npcs) {
                 npc.episode = episode
@@ -102,11 +103,11 @@ fun parseBinDatToQuest(
 
             mapDesignations = getMapDesignations(instructionSegments, label0Segment)
         } else {
-            rb.addProblem(Severity.Warning, "No instruction segment for label 0 found.")
+            result.addProblem(Severity.Warning, "No instruction segment for label 0 found.")
         }
     }
 
-    return rb.success(Quest(
+    return result.success(Quest(
         id = bin.questId,
         language = bin.language,
         name = bin.questName,
@@ -120,6 +121,65 @@ fun parseBinDatToQuest(
         byteCodeIr,
         shopItems = bin.shopItems,
         mapDesignations,
+    ))
+}
+
+class QuestData(
+    val quest: Quest,
+    val version: Version,
+    val online: Boolean,
+)
+
+fun parseQstToQuest(cursor: Cursor, lenient: Boolean = false): PwResult<QuestData> {
+    val result = PwResult.build<QuestData>(logger)
+
+    // Extract contained .dat and .bin files.
+    val qstResult = parseQst(cursor)
+    result.addResult(qstResult)
+
+    if (qstResult !is Success) {
+        return result.failure()
+    }
+
+    val version = qstResult.value.version
+    val online = qstResult.value.online
+    val files = qstResult.value.files
+    var datFile: QstContainedFile? = null
+    var binFile: QstContainedFile? = null
+
+    for (file in files) {
+        val fileName = file.filename.trim().toLowerCase()
+
+        if (fileName.endsWith(".dat")) {
+            datFile = file
+        } else if (fileName.endsWith(".bin")) {
+            binFile = file
+        }
+    }
+
+    if (datFile == null) {
+        return result.addProblem(Severity.Error, "File contains no DAT file.").failure()
+    }
+
+    if (binFile == null) {
+        return result.addProblem(Severity.Error, "File contains no BIN file.").failure()
+    }
+
+    val questResult = parseBinDatToQuest(
+        binFile.data.cursor(),
+        datFile.data.cursor(),
+        lenient,
+    )
+    result.addResult(questResult)
+
+    if (questResult !is Success) {
+        return result.failure()
+    }
+
+    return result.success(QuestData(
+        questResult.value,
+        version,
+        online,
     ))
 }
 

@@ -21,6 +21,7 @@ class QuestEditorWidget(
     scope: CoroutineScope,
     private val toolbar: Widget,
     private val createQuestInfoWidget: (CoroutineScope) -> Widget,
+    private val createNpcCountsWidget: (CoroutineScope) -> Widget,
     private val createQuestRendererWidget: (CoroutineScope) -> Widget,
 ) : Widget(scope) {
     override fun Node.createElement() =
@@ -45,7 +46,7 @@ class QuestEditorWidget(
                                         DockedWidget(
                                             title = "NPC Counts",
                                             id = "npc_counts",
-                                            createWidget = ::TestWidget
+                                            createWidget = createNpcCountsWidget
                                         ),
                                     )
                                 ),

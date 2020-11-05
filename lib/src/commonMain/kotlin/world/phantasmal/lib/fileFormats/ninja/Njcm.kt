@@ -1,23 +1,26 @@
 package world.phantasmal.lib.fileFormats.ninja
 
 import mu.KotlinLogging
-import world.phantasmal.lib.ZERO_U8
 import world.phantasmal.lib.cursor.Cursor
 import world.phantasmal.lib.fileFormats.Vec2
 import world.phantasmal.lib.fileFormats.Vec3
-import world.phantasmal.lib.fileFormats.vec3F32
+import world.phantasmal.lib.fileFormats.vec3Float
 import kotlin.math.abs
 
 // TODO:
-// - colors
-// - bump maps
+//  - colors
+//  - bump maps
 
 private val logger = KotlinLogging.logger {}
 
+private const val ZERO_U8: UByte = 0u
+
+// TODO: Simplify parser by not parsing chunks into vertices and meshes. Do the chunk to vertex/mesh
+//       conversion at a higher level.
 fun parseNjcmModel(cursor: Cursor, cachedChunkOffsets: MutableMap<UByte, Int>): NjcmModel {
     val vlistOffset = cursor.int() // Vertex list
     val plistOffset = cursor.int() // Triangle strip index list
-    val boundingSphereCenter = cursor.vec3F32()
+    val boundingSphereCenter = cursor.vec3Float()
     val boundingSphereRadius = cursor.float()
     val vertices: MutableList<NjcmVertex?> = mutableListOf()
     val meshes: MutableList<NjcmTriangleStrip> = mutableListOf()
@@ -120,20 +123,18 @@ private fun parseChunks(
                 ))
             }
             4 -> {
-                val cacheIndex = flags
                 val offset = cursor.position
 
                 chunks.add(NjcmChunk.CachePolygonList(
-                    cacheIndex,
+                    cacheIndex = flags,
                     offset,
                 ))
 
-                cachedChunkOffsets[cacheIndex] = offset
+                cachedChunkOffsets[flags] = offset
                 loop = false
             }
             5 -> {
-                val cacheIndex = flags
-                val cachedOffset = cachedChunkOffsets[cacheIndex]
+                val cachedOffset = cachedChunkOffsets[flags]
 
                 if (cachedOffset != null) {
                     cursor.seekStart(cachedOffset)
@@ -141,7 +142,7 @@ private fun parseChunks(
                 }
 
                 chunks.add(NjcmChunk.DrawPolygonList(
-                    cacheIndex,
+                    cacheIndex = flags,
                 ))
             }
             in 8..9 -> {
@@ -258,7 +259,7 @@ private fun parseVertexChunk(
 
     for (i in (0u).toUShort() until vertexCount) {
         var vertexIndex = index + i
-        val position = cursor.vec3F32()
+        val position = cursor.vec3Float()
         var normal: Vec3? = null
         var boneWeight = 1f
 
@@ -270,7 +271,7 @@ private fun parseVertexChunk(
             33 -> {
                 // NJDCVVNSH
                 cursor.seek(4) // Always 1.0
-                normal = cursor.vec3F32()
+                normal = cursor.vec3Float()
                 cursor.seek(4) // Always 0.0
             }
             in 35..40 -> {
@@ -285,10 +286,10 @@ private fun parseVertexChunk(
                 }
             }
             41 -> {
-                normal = cursor.vec3F32()
+                normal = cursor.vec3Float()
             }
             in 42..47 -> {
-                normal = cursor.vec3F32()
+                normal = cursor.vec3Float()
 
                 if (chunkTypeId == (44u).toUByte()) {
                     // NJDCVVNNF

@@ -6,7 +6,7 @@ import world.phantasmal.core.Success
 import world.phantasmal.lib.cursor.Cursor
 import world.phantasmal.lib.fileFormats.Vec3
 import world.phantasmal.lib.fileFormats.parseIff
-import world.phantasmal.lib.fileFormats.vec3F32
+import world.phantasmal.lib.fileFormats.vec3Float
 
 private const val NJCM: Int = 0x4D434A4E
 
@@ -53,13 +53,13 @@ private fun <Model : NinjaModel, Context> parseSiblingObjects(
     val shapeSkip = (evalFlags and 0b10000000u) != 0u
 
     val modelOffset = cursor.int()
-    val pos = cursor.vec3F32()
+    val pos = cursor.vec3Float()
     val rotation = Vec3(
         angleToRad(cursor.int()),
         angleToRad(cursor.int()),
         angleToRad(cursor.int()),
     )
-    val scale = cursor.vec3F32()
+    val scale = cursor.vec3Float()
     val childOffset = cursor.int()
     val siblingOffset = cursor.int()
 

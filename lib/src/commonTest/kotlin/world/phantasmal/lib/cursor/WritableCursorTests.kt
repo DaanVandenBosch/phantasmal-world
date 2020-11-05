@@ -8,7 +8,11 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 abstract class WritableCursorTests : CursorTests() {
-    abstract override fun createCursor(bytes: ByteArray, endianness: Endianness): WritableCursor
+    abstract override fun createCursor(
+        bytes: ByteArray,
+        endianness: Endianness,
+        size: Int,
+    ): WritableCursor
 
     @Test
     fun simple_WritableCursor_properties_and_invariants() {
@@ -29,6 +33,33 @@ abstract class WritableCursorTests : CursorTests() {
         assertEquals(3, cursor.position)
         assertEquals(7, cursor.bytesLeft)
         assertEquals(endianness, cursor.endianness)
+    }
+
+    @Test
+    fun size() {
+        size(Endianness.Little)
+        size(Endianness.Big)
+    }
+
+    private fun size(endianness: Endianness) {
+        val cursor = createCursor(ByteArray(20), endianness, size = 0)
+
+        assertEquals(0, cursor.size)
+
+        cursor.size = 10
+        cursor.seek(10)
+
+        assertEquals(10, cursor.size)
+
+        cursor.size = 20
+        cursor.seek(10)
+
+        assertEquals(20, cursor.size)
+
+        cursor.size = 5
+
+        assertEquals(5, cursor.size)
+        assertEquals(5, cursor.position)
     }
 
     @Test

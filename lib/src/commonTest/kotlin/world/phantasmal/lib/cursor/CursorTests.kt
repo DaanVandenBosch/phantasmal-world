@@ -9,7 +9,11 @@ import kotlin.test.assertEquals
  * implementation.
  */
 abstract class CursorTests {
-    abstract fun createCursor(bytes: ByteArray, endianness: Endianness): Cursor
+    abstract fun createCursor(
+        bytes: ByteArray,
+        endianness: Endianness,
+        size: Int = bytes.size,
+    ): Cursor
 
     @Test
     fun simple_cursor_properties_and_invariants() {

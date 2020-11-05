@@ -19,9 +19,13 @@ class BufferCursor(
         get() = _size
         set(value) {
             if (value > _size) {
-                ensureSpace(value)
+                ensureSpace(value - _size)
             } else {
                 _size = value
+
+                if (position > _size) {
+                    position = _size
+                }
             }
         }
 

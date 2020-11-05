@@ -176,7 +176,10 @@ private fun entityTypeToGeometryFormat(type: EntityType): GeomFormat =
     when (type) {
         is NpcType -> {
             when (type) {
-                NpcType.Dubswitch -> GeomFormat.Xj
+                NpcType.Dubswitch,
+                NpcType.Dubswitch2,
+                -> GeomFormat.Xj
+
                 else -> GeomFormat.Nj
             }
         }

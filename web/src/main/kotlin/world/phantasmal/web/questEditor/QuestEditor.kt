@@ -4,16 +4,15 @@ import kotlinx.coroutines.CoroutineScope
 import org.w3c.dom.HTMLCanvasElement
 import world.phantasmal.web.core.loading.AssetLoader
 import world.phantasmal.web.externals.babylon.Engine
+import world.phantasmal.web.questEditor.controllers.NpcCountsController
 import world.phantasmal.web.questEditor.controllers.QuestEditorToolbarController
 import world.phantasmal.web.questEditor.controllers.QuestInfoController
 import world.phantasmal.web.questEditor.loading.EntityAssetLoader
+import world.phantasmal.web.questEditor.loading.QuestLoader
 import world.phantasmal.web.questEditor.rendering.QuestEditorMeshManager
 import world.phantasmal.web.questEditor.rendering.QuestRenderer
 import world.phantasmal.web.questEditor.stores.QuestEditorStore
-import world.phantasmal.web.questEditor.widgets.QuestEditorRendererWidget
-import world.phantasmal.web.questEditor.widgets.QuestEditorToolbar
-import world.phantasmal.web.questEditor.widgets.QuestEditorWidget
-import world.phantasmal.web.questEditor.widgets.QuestInfoWidget
+import world.phantasmal.web.questEditor.widgets.*
 import world.phantasmal.webui.DisposableContainer
 import world.phantasmal.webui.widgets.Widget
 
@@ -22,19 +21,24 @@ class QuestEditor(
     private val assetLoader: AssetLoader,
     private val createEngine: (HTMLCanvasElement) -> Engine,
 ) : DisposableContainer() {
+    // Asset Loaders
+    private val questLoader = addDisposable(QuestLoader(scope, assetLoader))
+
     // Stores
     private val questEditorStore = addDisposable(QuestEditorStore(scope))
 
     // Controllers
     private val toolbarController =
-        addDisposable(QuestEditorToolbarController(scope, questEditorStore))
+        addDisposable(QuestEditorToolbarController(scope, questLoader, questEditorStore))
     private val questInfoController = addDisposable(QuestInfoController(scope, questEditorStore))
+    private val npcCountsController = addDisposable(NpcCountsController(scope, questEditorStore))
 
     fun createWidget(): Widget =
         QuestEditorWidget(
             scope,
             QuestEditorToolbar(scope, toolbarController),
             { scope -> QuestInfoWidget(scope, questInfoController) },
+            { scope -> NpcCountsWidget(scope, npcCountsController) },
             { scope -> QuestEditorRendererWidget(scope, ::createQuestEditorRenderer) }
         )
 

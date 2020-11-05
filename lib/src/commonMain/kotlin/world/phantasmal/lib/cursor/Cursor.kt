@@ -21,7 +21,7 @@ interface Cursor {
 
     val bytesLeft: Int
 
-    fun hasBytesLeft(bytes: Int = 1): Boolean
+    fun hasBytesLeft(atLeast: Int = 1): Boolean
 
     /**
      * Seek forward or backward by a number of bytes.

@@ -14,8 +14,8 @@ protected constructor(protected val offset: Int) : WritableCursor {
     protected val absolutePosition: Int
         get() = offset + position
 
-    override fun hasBytesLeft(bytes: Int): Boolean =
-        bytesLeft >= bytes
+    override fun hasBytesLeft(atLeast: Int): Boolean =
+        bytesLeft >= atLeast
 
     override fun seek(offset: Int): WritableCursor =
         seekStart(position + offset)

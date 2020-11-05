@@ -2,7 +2,6 @@ package world.phantasmal.lib.fileFormats.quest
 
 import mu.KotlinLogging
 import world.phantasmal.core.PwResult
-import world.phantasmal.core.PwResultBuilder
 import world.phantasmal.core.Severity
 import world.phantasmal.lib.assembly.*
 import world.phantasmal.lib.assembly.dataFlowAnalysis.ControlFlowGraph
@@ -53,7 +52,7 @@ fun parseByteCode(
 ): PwResult<List<Segment>> {
     val cursor = BufferCursor(byteCode)
     val labelHolder = LabelHolder(labelOffsets)
-    val result = PwResultBuilder<List<Segment>>(logger)
+    val result = PwResult.build<List<Segment>>(logger)
     val offsetToSegment = mutableMapOf<Int, Segment>()
 
     findAndParseSegments(

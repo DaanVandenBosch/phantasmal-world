@@ -27,6 +27,10 @@ class ArrayBufferCursor(
         set(value) {
             require(size <= backingBuffer.byteLength - offset)
             field = value
+
+            if (position > size) {
+                position = size
+            }
         }
 
     override var endianness: Endianness

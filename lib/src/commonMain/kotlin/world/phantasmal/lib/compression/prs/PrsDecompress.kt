@@ -2,7 +2,6 @@ package world.phantasmal.lib.compression.prs
 
 import mu.KotlinLogging
 import world.phantasmal.core.PwResult
-import world.phantasmal.core.PwResultBuilder
 import world.phantasmal.core.Severity
 import world.phantasmal.core.Success
 import world.phantasmal.lib.buffer.Buffer
@@ -67,7 +66,7 @@ private class PrsDecompressor(private val src: Cursor) {
 
             return Success(dst.seekStart(0))
         } catch (e: Throwable) {
-            return PwResultBuilder<Cursor>(logger)
+            return PwResult.build<Cursor>(logger)
                 .addProblem(Severity.Error, "PRS-compressed stream is corrupt.", cause = e)
                 .failure()
         }

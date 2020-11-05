@@ -6,8 +6,8 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class BufferCursorTests : WritableCursorTests() {
-    override fun createCursor(bytes: ByteArray, endianness: Endianness) =
-        BufferCursor(Buffer.fromByteArray(bytes, endianness))
+    override fun createCursor(bytes: ByteArray, endianness: Endianness, size: Int) =
+        BufferCursor(Buffer.fromByteArray(bytes, endianness), size = size)
 
     @Test
     fun writeUByte_increases_size_correctly() {

@@ -3,7 +3,6 @@ package world.phantasmal.lib.assembly
 import mu.KotlinLogging
 import world.phantasmal.core.Problem
 import world.phantasmal.core.PwResult
-import world.phantasmal.core.PwResultBuilder
 import world.phantasmal.core.Severity
 import world.phantasmal.lib.buffer.Buffer
 
@@ -55,7 +54,7 @@ private class Assembler(private val assembly: List<String>, private val manualSt
     private var firstSectionMarker = true
     private var prevLineHadLabel = false
 
-    private val result = PwResultBuilder<List<Segment>>(logger)
+    private val result = PwResult.build<List<Segment>>(logger)
 
     fun assemble(): PwResult<List<Segment>> {
         // Tokenize and assemble line by line.
