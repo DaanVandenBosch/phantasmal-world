@@ -29,9 +29,9 @@ class QuestEditor(
 
     // Controllers
     private val toolbarController =
-        addDisposable(QuestEditorToolbarController(scope, questLoader, questEditorStore))
-    private val questInfoController = addDisposable(QuestInfoController(scope, questEditorStore))
-    private val npcCountsController = addDisposable(NpcCountsController(scope, questEditorStore))
+        addDisposable(QuestEditorToolbarController(questLoader, questEditorStore))
+    private val questInfoController = addDisposable(QuestInfoController(questEditorStore))
+    private val npcCountsController = addDisposable(NpcCountsController(questEditorStore))
 
     fun createWidget(): Widget =
         QuestEditorWidget(

@@ -65,7 +65,7 @@ private class PrsDecompressor(private val src: Cursor) {
             }
 
             return Success(dst.seekStart(0))
-        } catch (e: Throwable) {
+        } catch (e: Exception) {
             return PwResult.build<Cursor>(logger)
                 .addProblem(Severity.Error, "PRS-compressed stream is corrupt.", cause = e)
                 .failure()

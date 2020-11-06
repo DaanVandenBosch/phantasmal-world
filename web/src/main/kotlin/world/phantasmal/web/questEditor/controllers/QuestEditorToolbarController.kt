@@ -1,6 +1,5 @@
 package world.phantasmal.web.questEditor.controllers
 
-import kotlinx.coroutines.CoroutineScope
 import mu.KotlinLogging
 import org.w3c.files.File
 import world.phantasmal.core.*
@@ -21,10 +20,9 @@ import world.phantasmal.webui.readFile
 private val logger = KotlinLogging.logger {}
 
 class QuestEditorToolbarController(
-    scope: CoroutineScope,
     private val questLoader: QuestLoader,
     private val questEditorStore: QuestEditorStore,
-) : Controller(scope) {
+) : Controller() {
     private val _resultDialogVisible = mutableVal(false)
     private val _result = mutableVal<PwResult<*>?>(null)
 
@@ -72,7 +70,7 @@ class QuestEditorToolbarController(
                     setCurrentQuest(parseResult.value)
                 }
             }
-        } catch (e: Throwable) {
+        } catch (e: Exception) {
             setResult(
                 PwResult.build<Nothing>(logger)
                     .addProblem(Severity.Error, "Couldn't parse file.", cause = e)

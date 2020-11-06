@@ -1,12 +1,11 @@
 package world.phantasmal.web.questEditor.controllers
 
-import kotlinx.coroutines.CoroutineScope
 import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.value
 import world.phantasmal.web.questEditor.stores.QuestEditorStore
 import world.phantasmal.webui.controllers.Controller
 
-class QuestInfoController(scope: CoroutineScope, store: QuestEditorStore) : Controller(scope) {
+class QuestInfoController(store: QuestEditorStore) : Controller() {
     val unavailable: Val<Boolean> = store.currentQuest.map { it == null }
     val disabled: Val<Boolean> = store.questEditingDisabled
 

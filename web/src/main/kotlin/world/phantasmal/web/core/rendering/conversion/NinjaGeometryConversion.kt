@@ -4,7 +4,7 @@ import mu.KotlinLogging
 import world.phantasmal.lib.fileFormats.Vec3
 import world.phantasmal.lib.fileFormats.ninja.NinjaModel
 import world.phantasmal.lib.fileFormats.ninja.NinjaObject
-import world.phantasmal.lib.fileFormats.ninja.NjcmModel
+import world.phantasmal.lib.fileFormats.ninja.NjModel
 import world.phantasmal.lib.fileFormats.ninja.XjModel
 import world.phantasmal.web.externals.babylon.*
 import kotlin.math.cos
@@ -40,7 +40,7 @@ private class NinjaToVertexDataConverter(private val builder: VertexDataBuilder)
             if (ef.noTranslate) NO_TRANSLATION else vec3ToBabylon(obj.position),
         )
 
-        parentMatrix.multiplyToRef(matrix, matrix)
+        matrix.multiplyToRef(parentMatrix, matrix)
 
         if (!ef.hidden) {
             obj.model?.let { model ->
@@ -59,11 +59,11 @@ private class NinjaToVertexDataConverter(private val builder: VertexDataBuilder)
 
     private fun modelToVertexData(model: NinjaModel, matrix: Matrix) =
         when (model) {
-            is NjcmModel -> njcmModelToVertexData(model, matrix)
+            is NjModel -> njModelToVertexData(model, matrix)
             is XjModel -> xjModelToVertexData(model, matrix)
         }
 
-    private fun njcmModelToVertexData(model: NjcmModel, matrix: Matrix) {
+    private fun njModelToVertexData(model: NjModel, matrix: Matrix) {
         val normalMatrix = Matrix.Identity()
         matrix.toNormalMatrix(normalMatrix)
 
@@ -93,7 +93,7 @@ private class NinjaToVertexDataConverter(private val builder: VertexDataBuilder)
             var i = 0
 
             for (meshVertex in mesh.vertices) {
-                val vertices = vertexHolder.get(meshVertex.index.toInt())
+                val vertices = vertexHolder.get(meshVertex.index)
 
                 if (vertices.isEmpty()) {
                     logger.debug {
@@ -112,7 +112,7 @@ private class NinjaToVertexDataConverter(private val builder: VertexDataBuilder)
                     )
 
                     if (i >= 2) {
-                        if (i % 2 == if (mesh.clockwiseWinding) 1 else 0) {
+                        if (i % 2 == if (mesh.clockwiseWinding) 0 else 1) {
                             builder.addIndex(index - 2)
                             builder.addIndex(index - 1)
                             builder.addIndex(index)
@@ -151,7 +151,87 @@ private class NinjaToVertexDataConverter(private val builder: VertexDataBuilder)
         }
     }
 
-    private fun xjModelToVertexData(model: XjModel, matrix: Matrix) {}
+    private fun xjModelToVertexData(model: XjModel, matrix: Matrix) {
+        val indexOffset = builder.vertexCount
+        val normalMatrix = Matrix.Identity()
+        matrix.toNormalMatrix(normalMatrix)
+
+        for (vertex in model.vertices) {
+            val p = vec3ToBabylon(vertex.position)
+            Vector3.TransformCoordinatesToRef(p, matrix, p)
+
+            val n = vertex.normal?.let(::vec3ToBabylon) ?: Vector3.Up()
+            Vector3.TransformCoordinatesToRef(n, normalMatrix, n)
+
+            val uv = vertex.uv?.let(::vec2ToBabylon) ?: DEFAULT_UV
+
+            builder.addVertex(p, n, uv)
+        }
+
+        var currentMatIdx: Int? = null
+        var currentSrcAlpha: Int? = null
+        var currentDstAlpha: Int? = null
+
+        for (mesh in model.meshes) {
+            val startIndexCount = builder.indexCount
+            var clockwise = true
+
+            for (j in 2 until mesh.indices.size) {
+                val a = indexOffset + mesh.indices[j - 2]
+                val b = indexOffset + mesh.indices[j - 1]
+                val c = indexOffset + mesh.indices[j]
+                val pa = builder.getPosition(a)
+                val pb = builder.getPosition(b)
+                val pc = builder.getPosition(c)
+                val na = builder.getNormal(a)
+                val nb = builder.getNormal(b)
+                val nc = builder.getNormal(c)
+
+                // Calculate a surface normal and reverse the vertex winding if at least 2 of the
+                // vertex normals point in the opposite direction. This hack fixes the winding for
+                // most models.
+                val normal = pb.subtract(pa).cross(pc.subtract(pa))
+
+                if (!clockwise) {
+                    normal.negateInPlace()
+                }
+
+                val oppositeCount =
+                    (if (Vector3.Dot(normal, na) < 0) 1 else 0) +
+                            (if (Vector3.Dot(normal, nb) < 0) 1 else 0) +
+                            (if (Vector3.Dot(normal, nc) < 0) 1 else 0)
+
+                if (oppositeCount >= 2) {
+                    clockwise = !clockwise
+                }
+
+                if (clockwise) {
+                    builder.addIndex(b)
+                    builder.addIndex(a)
+                    builder.addIndex(c)
+                } else {
+                    builder.addIndex(a)
+                    builder.addIndex(b)
+                    builder.addIndex(c)
+                }
+
+                clockwise = !clockwise
+            }
+
+            mesh.material.textureId?.let { currentMatIdx = it }
+            mesh.material.srcAlpha?.let { currentSrcAlpha = it }
+            mesh.material.dstAlpha?.let { currentDstAlpha = it }
+
+            // TODO: support multiple materials
+//            builder.addGroup(
+//                start_index_count,
+//                this.builder.index_count - start_index_count,
+//                current_mat_idx,
+//                true,
+//                current_src_alpha !== 4 || current_dst_alpha !== 5,
+//            );
+        }
+    }
 }
 
 private class Vertex(
@@ -164,21 +244,21 @@ private class Vertex(
 )
 
 private class VertexHolder {
-    private val stack = mutableListOf<MutableList<Vertex>>()
+    private val buffer = mutableListOf<MutableList<Vertex>>()
 
     fun add(vertices: List<Vertex?>) {
         vertices.forEachIndexed { i, vertex ->
-            if (i >= stack.size) {
-                stack.add(mutableListOf())
+            if (i >= buffer.size) {
+                buffer.add(mutableListOf())
             }
 
             if (vertex != null) {
-                stack[i].add(vertex)
+                buffer[i].add(vertex)
             }
         }
     }
 
-    fun get(index: Int): List<Vertex> = stack[index]
+    fun get(index: Int): List<Vertex> = buffer[index]
 }
 
 private fun eulerToQuat(angles: Vec3, zxyRotationOrder: Boolean): Quaternion {

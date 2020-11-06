@@ -1,6 +1,5 @@
 package world.phantasmal.web.questEditor.controllers
 
-import kotlinx.coroutines.CoroutineScope
 import world.phantasmal.lib.fileFormats.quest.NpcType
 import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.list.emptyListVal
@@ -8,7 +7,7 @@ import world.phantasmal.web.questEditor.models.QuestNpcModel
 import world.phantasmal.web.questEditor.stores.QuestEditorStore
 import world.phantasmal.webui.controllers.Controller
 
-class NpcCountsController(scope: CoroutineScope, store: QuestEditorStore) : Controller(scope) {
+class NpcCountsController(store: QuestEditorStore) : Controller() {
     val unavailable: Val<Boolean> = store.currentQuest.map { it == null }
 
     val npcCounts: Val<List<NameWithCount>> = store.currentQuest

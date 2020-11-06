@@ -38,17 +38,17 @@ sealed class NinjaModel
 /**
  * The model type used in .nj files.
  */
-class NjcmModel(
+class NjModel(
     /**
      * Sparse list of vertices.
      */
-    val vertices: List<NjcmVertex?>,
-    val meshes: List<NjcmTriangleStrip>,
+    val vertices: List<NjVertex?>,
+    val meshes: List<NjTriangleStrip>,
     val collisionSphereCenter: Vec3,
     val collisionSphereRadius: Float,
 ) : NinjaModel()
 
-class NjcmVertex(
+class NjVertex(
     val position: Vec3,
     val normal: Vec3?,
     val boneWeight: Float,
@@ -56,7 +56,7 @@ class NjcmVertex(
     val calcContinue: Boolean,
 )
 
-class NjcmTriangleStrip(
+class NjTriangleStrip(
     val ignoreLight: Boolean,
     val ignoreSpecular: Boolean,
     val ignoreAmbient: Boolean,
@@ -70,25 +70,25 @@ class NjcmTriangleStrip(
     var textureId: UInt?,
     var srcAlpha: UByte?,
     var dstAlpha: UByte?,
-    val vertices: List<NjcmMeshVertex>,
+    val vertices: List<NjMeshVertex>,
 )
 
-class NjcmMeshVertex(
-    val index: UShort,
+class NjMeshVertex(
+    val index: Int,
     val normal: Vec3?,
     val texCoords: Vec2?,
 )
 
-sealed class NjcmChunk(val typeId: UByte) {
-    class Unknown(typeId: UByte) : NjcmChunk(typeId)
+sealed class NjChunk(val typeId: UByte) {
+    class Unknown(typeId: UByte) : NjChunk(typeId)
 
-    object Null : NjcmChunk(0u)
+    object Null : NjChunk(0u)
 
-    class Bits(typeId: UByte, val srcAlpha: UByte, val dstAlpha: UByte) : NjcmChunk(typeId)
+    class Bits(typeId: UByte, val srcAlpha: UByte, val dstAlpha: UByte) : NjChunk(typeId)
 
-    class CachePolygonList(val cacheIndex: UByte, val offset: Int) : NjcmChunk(4u)
+    class CachePolygonList(val cacheIndex: UByte, val offset: Int) : NjChunk(4u)
 
-    class DrawPolygonList(val cacheIndex: UByte) : NjcmChunk(5u)
+    class DrawPolygonList(val cacheIndex: UByte) : NjChunk(5u)
 
     class Tiny(
         typeId: UByte,
@@ -100,27 +100,27 @@ sealed class NjcmChunk(val typeId: UByte) {
         val filterMode: UInt,
         val superSample: Boolean,
         val textureId: UInt,
-    ) : NjcmChunk(typeId)
+    ) : NjChunk(typeId)
 
     class Material(
         typeId: UByte,
         val srcAlpha: UByte,
         val dstAlpha: UByte,
-        val diffuse: NjcmArgb?,
-        val ambient: NjcmArgb?,
-        val specular: NjcmErgb?,
-    ) : NjcmChunk(typeId)
+        val diffuse: NjArgb?,
+        val ambient: NjArgb?,
+        val specular: NjErgb?,
+    ) : NjChunk(typeId)
 
-    class Vertex(typeId: UByte, val vertices: List<NjcmChunkVertex>) : NjcmChunk(typeId)
+    class Vertex(typeId: UByte, val vertices: List<NjChunkVertex>) : NjChunk(typeId)
 
-    class Volume(typeId: UByte) : NjcmChunk(typeId)
+    class Volume(typeId: UByte) : NjChunk(typeId)
 
-    class Strip(typeId: UByte, val triangleStrips: List<NjcmTriangleStrip>) : NjcmChunk(typeId)
+    class Strip(typeId: UByte, val triangleStrips: List<NjTriangleStrip>) : NjChunk(typeId)
 
-    object End : NjcmChunk(255u)
+    object End : NjChunk(255u)
 }
 
-class NjcmChunkVertex(
+class NjChunkVertex(
     val index: Int,
     val position: Vec3,
     val normal: Vec3?,
@@ -132,14 +132,14 @@ class NjcmChunkVertex(
 /**
  * Channels are in range [0, 1].
  */
-class NjcmArgb(
+class NjArgb(
     val a: Float,
     val r: Float,
     val g: Float,
     val b: Float,
 )
 
-class NjcmErgb(
+class NjErgb(
     val e: UByte,
     val r: UByte,
     val g: UByte,
@@ -149,4 +149,30 @@ class NjcmErgb(
 /**
  * The model type used in .xj files.
  */
-class XjModel : NinjaModel()
+class XjModel(
+    val vertices: List<XjVertex>,
+    val meshes: List<XjMesh>,
+    val collisionSpherePosition: Vec3,
+    val collisionSphereRadius: Float,
+) : NinjaModel()
+
+class XjVertex(
+    val position: Vec3,
+    val normal: Vec3?,
+    val uv: Vec2?,
+)
+
+class XjMesh(
+    val material: XjMaterial,
+    val indices: List<Int>,
+)
+
+class XjMaterial(
+    val srcAlpha: Int?,
+    val dstAlpha: Int?,
+    val textureId: Int?,
+    val diffuseR: Int?,
+    val diffuseG: Int?,
+    val diffuseB: Int?,
+    val diffuseA: Int?,
+)

@@ -54,7 +54,7 @@ class EntityAssetLoader(
                             mesh
                         }
                     } ?: defaultMesh
-                } catch (e: Throwable) {
+                } catch (e: Exception) {
                     logger.error(e) { "Couldn't load mesh for $type (model: $model)." }
                     defaultMesh
                 }

@@ -12,13 +12,23 @@ class RendererWidget(
     scope: CoroutineScope,
     private val createRenderer: (HTMLCanvasElement) -> Renderer,
 ) : Widget(scope) {
+    private var renderer: Renderer? = null
+
     override fun Node.createElement() =
         canvas {
             className = "pw-core-renderer"
             tabIndex = -1
 
             observeResize()
-            addDisposable(createRenderer(this))
+            renderer = addDisposable(createRenderer(this))
+
+            observe(selfOrAncestorHidden) { hidden ->
+                if (hidden) {
+                    renderer?.stopRendering()
+                } else {
+                    renderer?.startRendering()
+                }
+            }
         }
 
     override fun resized(width: Double, height: Double) {

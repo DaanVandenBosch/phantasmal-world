@@ -18,9 +18,9 @@ class HuntOptimizer(
 ) : DisposableContainer() {
     private val huntMethodStore = addDisposable(HuntMethodStore(scope, uiStore, assetLoader))
 
-    private val huntOptimizerController = addDisposable(HuntOptimizerController(scope, uiStore))
+    private val huntOptimizerController = addDisposable(HuntOptimizerController(uiStore))
     private val methodsController =
-        addDisposable(MethodsController(scope, uiStore, huntMethodStore))
+        addDisposable(MethodsController(uiStore, huntMethodStore))
 
     fun createWidget(): Widget =
         HuntOptimizerWidget(

@@ -1,6 +1,6 @@
 @file:JsModule("@babylonjs/core")
 @file:JsNonModule
-@file:Suppress("FunctionName", "unused")
+@file:Suppress("FunctionName", "unused", "CovariantEquals")
 
 package world.phantasmal.web.externals.babylon
 
@@ -13,13 +13,17 @@ external class Vector2(x: Double, y: Double) {
     var y: Double
 
     fun addInPlace(otherVector: Vector2): Vector2
-
     fun addInPlaceFromFloats(x: Double, y: Double): Vector2
-
+    fun subtract(otherVector: Vector2): Vector2
+    fun negate(): Vector2
+    fun negateInPlace(): Vector2
+    fun clone(): Vector2
     fun copyFrom(source: Vector2): Vector2
+    fun equals(otherVector: Vector2): Boolean
 
     companion object {
         fun Zero(): Vector2
+        fun Dot(left: Vector2, right: Vector2): Double
     }
 }
 
@@ -29,17 +33,22 @@ external class Vector3(x: Double, y: Double, z: Double) {
     var z: Double
 
     fun toQuaternion(): Quaternion
-
     fun addInPlace(otherVector: Vector3): Vector3
-
     fun addInPlaceFromFloats(x: Double, y: Double, z: Double): Vector3
-
+    fun subtract(otherVector: Vector3): Vector3
+    fun negate(): Vector3
+    fun negateInPlace(): Vector3
+    fun cross(other: Vector3): Vector3
+    fun rotateByQuaternionToRef(quaternion: Quaternion, result: Vector3): Vector3
+    fun clone(): Vector3
     fun copyFrom(source: Vector3): Vector3
+    fun equals(otherVector: Vector3): Boolean
 
     companion object {
         fun One(): Vector3
         fun Up(): Vector3
         fun Zero(): Vector3
+        fun Dot(left: Vector3, right: Vector3): Double
         fun TransformCoordinates(vector: Vector3, transformation: Matrix): Vector3
         fun TransformCoordinatesToRef(vector: Vector3, transformation: Matrix, result: Vector3)
         fun TransformNormal(vector: Vector3, transformation: Matrix): Vector3
@@ -71,6 +80,9 @@ external class Quaternion(
      */
     fun multiplyToRef(q1: Quaternion, result: Quaternion): Quaternion
 
+    fun clone(): Quaternion
+    fun copyFrom(other: Quaternion): Quaternion
+
     companion object {
         fun Identity(): Quaternion
         fun FromEulerAngles(x: Double, y: Double, z: Double): Quaternion
@@ -82,12 +94,35 @@ external class Matrix {
     fun multiply(other: Matrix): Matrix
     fun multiplyToRef(other: Matrix, result: Matrix): Matrix
     fun toNormalMatrix(ref: Matrix)
+    fun copyFrom(other: Matrix): Matrix
+    fun equals(value: Matrix): Boolean
 
     companion object {
         fun Identity(): Matrix
         fun Compose(scale: Vector3, rotation: Quaternion, translation: Vector3): Matrix
     }
 }
+
+external class EventState
+
+external class Observable<T> {
+    fun add(
+        callback: (eventData: T, eventState: EventState) -> Unit,
+        mask: Int = definedExternally,
+        insertFirst: Boolean = definedExternally,
+        scope: Any = definedExternally,
+        unregisterOnFirstCall: Boolean = definedExternally,
+    ): Observer<T>?
+
+    fun remove(observer: Observer<T>?): Boolean
+
+    fun removeCallback(
+        callback: (eventData: T, eventState: EventState) -> Unit,
+        scope: Any = definedExternally,
+    ): Boolean
+}
+
+external class Observer<T>
 
 open external class ThinEngine {
     val description: String
@@ -98,6 +133,13 @@ open external class ThinEngine {
      */
     fun runRenderLoop(renderFunction: () -> Unit)
 
+    /**
+     * stop executing a render loop function and remove it from the execution array
+     * @param renderFunction defines the function to be removed. If not provided all functions will
+     * be removed.
+     */
+    fun stopRenderLoop(renderFunction: () -> Unit = definedExternally)
+
     fun dispose()
 }
 
@@ -107,6 +149,8 @@ external class Engine(
 ) : ThinEngine
 
 external class Scene(engine: Engine) {
+    var clearColor: Color4
+
     fun render()
     fun addLight(light: Light)
     fun addMesh(newMesh: AbstractMesh, recursive: Boolean? = definedExternally)
@@ -120,11 +164,11 @@ external class Scene(engine: Engine) {
 open external class Node {
     var metadata: Any?
     var parent: Node?
-    var position: Vector3
-    var rotation: Vector3
-    var scaling: Vector3
 
     fun setEnabled(value: Boolean)
+    fun getViewMatrix(force: Boolean = definedExternally): Matrix
+    fun getProjectionMatrix(force: Boolean = definedExternally): Matrix
+    fun getTransformationMatrix(): Matrix
 
     /**
      * Releases resources associated with this node.
@@ -138,6 +182,11 @@ open external class Node {
 }
 
 open external class Camera : Node {
+    val absoluteRotation: Quaternion
+    val onProjectionMatrixChangedObservable: Observable<Camera>
+    val onViewMatrixChangedObservable: Observable<Camera>
+    val onAfterCheckInputsObservable: Observable<Camera>
+
     fun attachControl(noPreventDefault: Boolean = definedExternally)
 }
 
@@ -174,16 +223,25 @@ external class ArcRotateCamera(
 
 abstract external class Light : Node
 
-external class HemisphericLight(name: String, direction: Vector3, scene: Scene) : Light
+external class HemisphericLight(name: String, direction: Vector3, scene: Scene) : Light {
+    var direction: Vector3
+}
 
 open external class TransformNode(
     name: String,
     scene: Scene? = definedExternally,
     isPure: Boolean = definedExternally,
 ) : Node {
+    var position: Vector3
+    var rotation: Vector3
+    var rotationQuaternion: Quaternion?
+    val absoluteRotation: Quaternion
+    var scaling: Vector3
 }
 
-abstract external class AbstractMesh : TransformNode
+abstract external class AbstractMesh : TransformNode {
+    fun getBoundingInfo(): BoundingInfo
+}
 
 external class Mesh(
     name: String,
@@ -197,6 +255,34 @@ external class Mesh(
 }
 
 external class InstancedMesh : AbstractMesh
+
+external class BoundingInfo {
+    val boundingBox: BoundingBox
+    val boundingSphere: BoundingSphere
+}
+
+external class BoundingBox {
+    val center: Vector3
+    val centerWorld: Vector3
+    val directions: Array<Vector3>
+    val extendSize: Vector3
+    val extendSizeWorld: Vector3
+    val maximum: Vector3
+    val maximumWorld: Vector3
+    val minimum: Vector3
+    val minimumWorld: Vector3
+    val vectors: Array<Vector3>
+    val vectorsWorld: Array<Vector3>
+}
+
+external class BoundingSphere {
+    val center: Vector3
+    val centerWorld: Vector3
+    val maximum: Vector3
+    val minimum: Vector3
+    val radius: Double
+    val radiusWorld: Double
+}
 
 external class MeshBuilder {
     companion object {
@@ -225,4 +311,26 @@ external class VertexData {
     var indices: Uint16Array? // number[] | Int32Array | Uint32Array | Uint16Array
 
     fun applyToMesh(mesh: Mesh, updatable: Boolean = definedExternally): VertexData
+}
+
+external class Color3(
+    r: Double = definedExternally,
+    g: Double = definedExternally,
+    b: Double = definedExternally,
+) {
+    var r: Double
+    var g: Double
+    var b: Double
+}
+
+external class Color4(
+    r: Double = definedExternally,
+    g: Double = definedExternally,
+    b: Double = definedExternally,
+    a: Double = definedExternally,
+) {
+    var r: Double
+    var g: Double
+    var b: Double
+    var a: Double
 }

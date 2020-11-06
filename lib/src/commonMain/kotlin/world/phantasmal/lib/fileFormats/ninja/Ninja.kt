@@ -10,11 +10,11 @@ import world.phantasmal.lib.fileFormats.vec3Float
 
 private const val NJCM: Int = 0x4D434A4E
 
-fun parseNj(cursor: Cursor): PwResult<List<NinjaObject<NjcmModel>>> =
-    parseNinja(cursor, ::parseNjcmModel, mutableMapOf())
+fun parseNj(cursor: Cursor): PwResult<List<NinjaObject<NjModel>>> =
+    parseNinja(cursor, ::parseNjModel, mutableMapOf())
 
 fun parseXj(cursor: Cursor): PwResult<List<NinjaObject<XjModel>>> =
-    parseNinja(cursor, { _, _ -> XjModel() }, Unit)
+    parseNinja(cursor, { c, _ -> parseXjModel(c) }, Unit)
 
 private fun <Model : NinjaModel, Context> parseNinja(
     cursor: Cursor,

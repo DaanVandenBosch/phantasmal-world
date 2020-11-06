@@ -348,7 +348,7 @@ private fun parseSegment(
             SegmentType.String ->
                 parseStringSegment(offsetToSegment, cursor, endOffset, labels, dcGcFormat)
         }
-    } catch (e: Throwable) {
+    } catch (e: Exception) {
         if (lenient) {
             logger.error(e) { "Couldn't fully parse byte code segment." }
         } else {
@@ -391,7 +391,7 @@ private fun parseInstructionsSegment(
         try {
             val args = parseInstructionArguments(cursor, opcode, dcGcFormat)
             instructions.add(Instruction(opcode, args, null))
-        } catch (e: Throwable) {
+        } catch (e: Exception) {
             if (lenient) {
                 logger.error(e) {
                     "Exception occurred while parsing arguments for instruction ${opcode.mnemonic}."

@@ -19,6 +19,7 @@ import world.phantasmal.web.core.stores.UiStore
 import world.phantasmal.web.externals.babylon.Engine
 import world.phantasmal.web.huntOptimizer.HuntOptimizer
 import world.phantasmal.web.questEditor.QuestEditor
+import world.phantasmal.web.viewer.Viewer
 import world.phantasmal.webui.DisposableContainer
 import world.phantasmal.webui.dom.disposableListener
 
@@ -47,8 +48,8 @@ class Application(
         val uiStore = addDisposable(UiStore(scope, applicationUrl))
 
         // Controllers.
-        val navigationController = addDisposable(NavigationController(scope, uiStore))
-        val mainContentController = addDisposable(MainContentController(scope, uiStore))
+        val navigationController = addDisposable(NavigationController(uiStore))
+        val mainContentController = addDisposable(MainContentController(uiStore))
 
         // Initialize application view.
         val applicationWidget = addDisposable(
@@ -56,18 +57,24 @@ class Application(
                 scope,
                 NavigationWidget(scope, navigationController),
                 MainContentWidget(scope, mainContentController, mapOf(
+                    PwTool.Viewer to { widgetScope ->
+                        addDisposable(Viewer(
+                            widgetScope,
+                            createEngine,
+                        )).createWidget()
+                    },
                     PwTool.QuestEditor to { widgetScope ->
                         addDisposable(QuestEditor(
                             widgetScope,
                             assetLoader,
-                            createEngine
+                            createEngine,
                         )).createWidget()
                     },
                     PwTool.HuntOptimizer to { widgetScope ->
                         addDisposable(HuntOptimizer(
                             widgetScope,
                             assetLoader,
-                            uiStore
+                            uiStore,
                         )).createWidget()
                     },
                 ))

@@ -17,25 +17,25 @@ private const val ZERO_U8: UByte = 0u
 
 // TODO: Simplify parser by not parsing chunks into vertices and meshes. Do the chunk to vertex/mesh
 //       conversion at a higher level.
-fun parseNjcmModel(cursor: Cursor, cachedChunkOffsets: MutableMap<UByte, Int>): NjcmModel {
+fun parseNjModel(cursor: Cursor, cachedChunkOffsets: MutableMap<UByte, Int>): NjModel {
     val vlistOffset = cursor.int() // Vertex list
     val plistOffset = cursor.int() // Triangle strip index list
-    val boundingSphereCenter = cursor.vec3Float()
-    val boundingSphereRadius = cursor.float()
-    val vertices: MutableList<NjcmVertex?> = mutableListOf()
-    val meshes: MutableList<NjcmTriangleStrip> = mutableListOf()
+    val collisionSphereCenter = cursor.vec3Float()
+    val collisionSphereRadius = cursor.float()
+    val vertices: MutableList<NjVertex?> = mutableListOf()
+    val meshes: MutableList<NjTriangleStrip> = mutableListOf()
 
     if (vlistOffset != 0) {
         cursor.seekStart(vlistOffset)
 
         for (chunk in parseChunks(cursor, cachedChunkOffsets, true)) {
-            if (chunk is NjcmChunk.Vertex) {
+            if (chunk is NjChunk.Vertex) {
                 for (vertex in chunk.vertices) {
                     while (vertices.size <= vertex.index) {
                         vertices.add(null)
                     }
 
-                    vertices[vertex.index] = NjcmVertex(
+                    vertices[vertex.index] = NjVertex(
                         vertex.position,
                         vertex.normal,
                         vertex.boneWeight,
@@ -56,21 +56,21 @@ fun parseNjcmModel(cursor: Cursor, cachedChunkOffsets: MutableMap<UByte, Int>): 
 
         for (chunk in parseChunks(cursor, cachedChunkOffsets, false)) {
             when (chunk) {
-                is NjcmChunk.Bits -> {
+                is NjChunk.Bits -> {
                     srcAlpha = chunk.srcAlpha
                     dstAlpha = chunk.dstAlpha
                 }
 
-                is NjcmChunk.Tiny -> {
+                is NjChunk.Tiny -> {
                     textureId = chunk.textureId
                 }
 
-                is NjcmChunk.Material -> {
+                is NjChunk.Material -> {
                     srcAlpha = chunk.srcAlpha
                     dstAlpha = chunk.dstAlpha
                 }
 
-                is NjcmChunk.Strip -> {
+                is NjChunk.Strip -> {
                     for (strip in chunk.triangleStrips) {
                         strip.textureId = textureId
                         strip.srcAlpha = srcAlpha
@@ -87,11 +87,11 @@ fun parseNjcmModel(cursor: Cursor, cachedChunkOffsets: MutableMap<UByte, Int>): 
         }
     }
 
-    return NjcmModel(
+    return NjModel(
         vertices,
         meshes,
-        boundingSphereCenter,
-        boundingSphereRadius,
+        collisionSphereCenter,
+        collisionSphereRadius,
     )
 }
 
@@ -100,8 +100,8 @@ private fun parseChunks(
     cursor: Cursor,
     cachedChunkOffsets: MutableMap<UByte, Int>,
     wideEndChunks: Boolean,
-): List<NjcmChunk> {
-    val chunks: MutableList<NjcmChunk> = mutableListOf()
+): List<NjChunk> {
+    val chunks: MutableList<NjChunk> = mutableListOf()
     var loop = true
 
     while (loop) {
@@ -113,10 +113,10 @@ private fun parseChunks(
 
         when (typeId.toInt()) {
             0 -> {
-                chunks.add(NjcmChunk.Null)
+                chunks.add(NjChunk.Null)
             }
             in 1..3 -> {
-                chunks.add(NjcmChunk.Bits(
+                chunks.add(NjChunk.Bits(
                     typeId,
                     srcAlpha = ((flagsUInt shr 3).toUByte() and 0b111u),
                     dstAlpha = flags and 0b111u,
@@ -125,7 +125,7 @@ private fun parseChunks(
             4 -> {
                 val offset = cursor.position
 
-                chunks.add(NjcmChunk.CachePolygonList(
+                chunks.add(NjChunk.CachePolygonList(
                     cacheIndex = flags,
                     offset,
                 ))
@@ -141,7 +141,7 @@ private fun parseChunks(
                     chunks.addAll(parseChunks(cursor, cachedChunkOffsets, wideEndChunks))
                 }
 
-                chunks.add(NjcmChunk.DrawPolygonList(
+                chunks.add(NjChunk.DrawPolygonList(
                     cacheIndex = flags,
                 ))
             }
@@ -149,7 +149,7 @@ private fun parseChunks(
                 size = 2
                 val textureBitsAndId = cursor.uShort().toUInt()
 
-                chunks.add(NjcmChunk.Tiny(
+                chunks.add(NjChunk.Tiny(
                     typeId,
                     flipU = (typeId.toUInt() and 0x80u) != 0u,
                     flipV = (typeId.toUInt() and 0x40u) != 0u,
@@ -164,12 +164,12 @@ private fun parseChunks(
             in 17..31 -> {
                 size = 2 + 2 * cursor.short()
 
-                var diffuse: NjcmArgb? = null
-                var ambient: NjcmArgb? = null
-                var specular: NjcmErgb? = null
+                var diffuse: NjArgb? = null
+                var ambient: NjArgb? = null
+                var specular: NjErgb? = null
 
                 if ((flagsUInt and 0b1u) != 0u) {
-                    diffuse = NjcmArgb(
+                    diffuse = NjArgb(
                         b = cursor.uByte().toFloat() / 255f,
                         g = cursor.uByte().toFloat() / 255f,
                         r = cursor.uByte().toFloat() / 255f,
@@ -178,7 +178,7 @@ private fun parseChunks(
                 }
 
                 if ((flagsUInt and 0b10u) != 0u) {
-                    ambient = NjcmArgb(
+                    ambient = NjArgb(
                         b = cursor.uByte().toFloat() / 255f,
                         g = cursor.uByte().toFloat() / 255f,
                         r = cursor.uByte().toFloat() / 255f,
@@ -187,7 +187,7 @@ private fun parseChunks(
                 }
 
                 if ((flagsUInt and 0b100u) != 0u) {
-                    specular = NjcmErgb(
+                    specular = NjErgb(
                         b = cursor.uByte(),
                         g = cursor.uByte(),
                         r = cursor.uByte(),
@@ -195,7 +195,7 @@ private fun parseChunks(
                     )
                 }
 
-                chunks.add(NjcmChunk.Material(
+                chunks.add(NjChunk.Material(
                     typeId,
                     srcAlpha = ((flagsUInt shr 3).toUByte() and 0b111u),
                     dstAlpha = flags and 0b111u,
@@ -206,32 +206,32 @@ private fun parseChunks(
             }
             in 32..50 -> {
                 size = 2 + 4 * cursor.short()
-                chunks.add(NjcmChunk.Vertex(
+                chunks.add(NjChunk.Vertex(
                     typeId,
                     vertices = parseVertexChunk(cursor, typeId, flags),
                 ))
             }
             in 56..58 -> {
                 size = 2 + 2 * cursor.short()
-                chunks.add(NjcmChunk.Volume(
+                chunks.add(NjChunk.Volume(
                     typeId,
                 ))
             }
             in 64..75 -> {
                 size = 2 + 2 * cursor.short()
-                chunks.add(NjcmChunk.Strip(
+                chunks.add(NjChunk.Strip(
                     typeId,
                     triangleStrips = parseTriangleStripChunk(cursor, typeId, flags),
                 ))
             }
             255 -> {
                 size = if (wideEndChunks) 2 else 0
-                chunks.add(NjcmChunk.End)
+                chunks.add(NjChunk.End)
                 loop = false
             }
             else -> {
                 size = 2 + 2 * cursor.short()
-                chunks.add(NjcmChunk.Unknown(
+                chunks.add(NjChunk.Unknown(
                     typeId,
                 ))
                 logger.warn { "Unknown chunk type $typeId at offset ${chunkStartPosition}." }
@@ -248,14 +248,14 @@ private fun parseVertexChunk(
     cursor: Cursor,
     chunkTypeId: UByte,
     flags: UByte,
-): List<NjcmChunkVertex> {
+): List<NjChunkVertex> {
     val boneWeightStatus = (flags and 0b11u).toInt()
     val calcContinue = (flags and 0x80u) != ZERO_U8
 
     val index = cursor.uShort()
     val vertexCount = cursor.uShort()
 
-    val vertices: MutableList<NjcmChunkVertex> = mutableListOf()
+    val vertices: MutableList<NjChunkVertex> = mutableListOf()
 
     for (i in (0u).toUShort() until vertexCount) {
         var vertexIndex = index + i
@@ -317,7 +317,7 @@ private fun parseVertexChunk(
             }
         }
 
-        vertices.add(NjcmChunkVertex(
+        vertices.add(NjChunkVertex(
             vertexIndex.toInt(),
             position,
             normal,
@@ -334,7 +334,7 @@ private fun parseTriangleStripChunk(
     cursor: Cursor,
     chunkTypeId: UByte,
     flags: UByte,
-): List<NjcmTriangleStrip> {
+): List<NjTriangleStrip> {
     val ignoreLight = (flags and 0b1u) != ZERO_U8
     val ignoreSpecular = (flags and 0b10u) != ZERO_U8
     val ignoreAmbient = (flags and 0b100u) != ZERO_U8
@@ -380,17 +380,17 @@ private fun parseTriangleStripChunk(
         else -> error("Unexpected chunk type ID: ${chunkTypeId}.")
     }
 
-    val strips: MutableList<NjcmTriangleStrip> = mutableListOf()
+    val strips: MutableList<NjTriangleStrip> = mutableListOf()
 
     repeat(stripCount) {
         val windingFlagAndIndexCount = cursor.short()
         val clockwiseWinding = windingFlagAndIndexCount < 1
         val indexCount = abs(windingFlagAndIndexCount.toInt())
 
-        val vertices: MutableList<NjcmMeshVertex> = mutableListOf()
+        val vertices: MutableList<NjMeshVertex> = mutableListOf()
 
         for (j in 0 until indexCount) {
-            val index = cursor.uShort()
+            val index = cursor.uShort().toInt()
 
             val texCoords = if (hasTexCoords) {
                 Vec2(cursor.uShort().toFloat() / 255f, cursor.uShort().toFloat() / 255f)
@@ -419,14 +419,14 @@ private fun parseTriangleStripChunk(
                 cursor.seek(2 * userFlagsSize)
             }
 
-            vertices.add(NjcmMeshVertex(
+            vertices.add(NjMeshVertex(
                 index,
                 normal,
                 texCoords,
             ))
         }
 
-        strips.add(NjcmTriangleStrip(
+        strips.add(NjTriangleStrip(
             ignoreLight,
             ignoreSpecular,
             ignoreAmbient,

@@ -102,7 +102,6 @@ class EntityMeshManager(
         val disposer = Disposer(
             entity.worldPosition.observe { (pos) ->
                 mesh.position = pos
-                renderer.scheduleRender()
             },
 
             // TODO: Rotation.
@@ -126,7 +125,6 @@ class EntityMeshManager(
                     }
                     .observe(callNow = true) { (visible) ->
                         mesh.setEnabled(visible)
-                        renderer.scheduleRender()
                     },
             )
         }

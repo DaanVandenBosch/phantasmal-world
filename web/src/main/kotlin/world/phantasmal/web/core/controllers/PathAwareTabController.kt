@@ -1,6 +1,5 @@
 package world.phantasmal.web.core.controllers
 
-import kotlinx.coroutines.CoroutineScope
 import world.phantasmal.web.core.stores.PwTool
 import world.phantasmal.web.core.stores.UiStore
 import world.phantasmal.webui.controllers.Tab
@@ -9,11 +8,10 @@ import world.phantasmal.webui.controllers.TabController
 open class PathAwareTab(override val title: String, val path: String) : Tab
 
 open class PathAwareTabController<T : PathAwareTab>(
-    scope: CoroutineScope,
     private val uiStore: UiStore,
     private val tool: PwTool,
     tabs: List<T>,
-) : TabController<T>(scope, tabs) {
+) : TabController<T>(tabs) {
     init {
         observe(uiStore.path) { path ->
             if (uiStore.currentTool.value == tool) {

@@ -1,6 +1,5 @@
 package world.phantasmal.web.huntOptimizer.controllers
 
-import kotlinx.coroutines.CoroutineScope
 import world.phantasmal.lib.fileFormats.quest.Episode
 import world.phantasmal.observable.value.list.ListVal
 import world.phantasmal.observable.value.list.MutableListVal
@@ -16,11 +15,9 @@ import world.phantasmal.web.huntOptimizer.stores.HuntMethodStore
 class MethodsTab(title: String, path: String, val episode: Episode) : PathAwareTab(title, path)
 
 class MethodsController(
-    scope: CoroutineScope,
     uiStore: UiStore,
     huntMethodStore: HuntMethodStore,
 ) : PathAwareTabController<MethodsTab>(
-    scope,
     uiStore,
     PwTool.HuntOptimizer,
     listOf(

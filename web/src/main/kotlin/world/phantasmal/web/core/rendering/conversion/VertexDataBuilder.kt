@@ -21,6 +21,12 @@ class VertexDataBuilder {
     val indexCount: Int
         get() = indices.size
 
+    fun getPosition(index: Int): Vector3 =
+        positions[index]
+
+    fun getNormal(index: Int): Vector3 =
+        normals[index]
+
     fun addVertex(position: Vector3, normal: Vector3, uv: Vector2) {
         positions.add(position)
         normals.add(normal)
@@ -48,6 +54,9 @@ class VertexDataBuilder {
 //    }
 
     fun build(): VertexData {
+        check(this.positions.size == this.normals.size)
+        check(this.positions.size == this.uvs.size)
+
         val positions = Float32Array(3 * positions.size)
         val normals = Float32Array(3 * normals.size)
         val uvs = Float32Array(2 * uvs.size)

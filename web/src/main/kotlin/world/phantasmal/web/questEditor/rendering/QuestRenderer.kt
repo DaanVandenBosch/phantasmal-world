@@ -15,8 +15,8 @@ class QuestRenderer(
     private val meshManager = createMeshManager(this, scene)
     private var entityMeshes = TransformNode("Entities", scene)
     private val entityToMesh = mutableMapOf<QuestEntityModel<*, *>, AbstractMesh>()
-    private val camera = ArcRotateCamera("Camera", 0.0, PI / 6, 500.0, Vector3.Zero(), scene)
-    private val light = HemisphericLight("Light", Vector3(1.0, 1.0, 0.0), scene)
+
+    override val camera = ArcRotateCamera("Camera", 0.0, PI / 6, 500.0, Vector3.Zero(), scene)
 
     init {
         with(camera) {
@@ -41,8 +41,6 @@ class QuestRenderer(
         meshManager.dispose()
         entityMeshes.dispose()
         entityToMesh.clear()
-        camera.dispose()
-        light.dispose()
         super.internalDispose()
     }
 
@@ -51,7 +49,6 @@ class QuestRenderer(
         entityToMesh.clear()
 
         entityMeshes = TransformNode("Entities", scene)
-        scheduleRender()
     }
 
     fun addEntityMesh(mesh: AbstractMesh) {
@@ -69,15 +66,12 @@ class QuestRenderer(
 //        if (entity === this.selected_entity) {
 //            this.mark_selected(model)
 //        }
-
-        this.scheduleRender()
     }
 
     fun removeEntityMesh(entity: QuestEntityModel<*, *>) {
         entityToMesh.remove(entity)?.let { mesh ->
             mesh.parent = null
             mesh.dispose()
-            this.scheduleRender()
         }
     }
 }
