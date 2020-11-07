@@ -30,10 +30,10 @@ abstract class QuestMeshManager protected constructor(
     private val areaDisposer = disposer.add(Disposer())
     private val areaMeshManager = AreaMeshManager(areaAssetLoader)
     private val npcMeshManager = disposer.add(
-        EntityMeshManager(scope, questEditorStore.selectedWave, renderer, entityAssetLoader)
+        EntityMeshManager(scope, questEditorStore, renderer, entityAssetLoader)
     )
     private val objectMeshManager = disposer.add(
-        EntityMeshManager(scope, questEditorStore.selectedWave, renderer, entityAssetLoader)
+        EntityMeshManager(scope, questEditorStore, renderer, entityAssetLoader)
     )
 
     private var loadJob: Job? = null
@@ -51,7 +51,6 @@ abstract class QuestMeshManager protected constructor(
             areaDisposer.disposeAll()
             npcMeshManager.removeAll()
             objectMeshManager.removeAll()
-            renderer.resetEntityMeshes()
 
             // Load entity meshes.
             areaDisposer.addAll(

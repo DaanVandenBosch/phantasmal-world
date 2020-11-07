@@ -12,6 +12,7 @@ external class Vector2(x: Double, y: Double) {
     var x: Double
     var y: Double
 
+    fun set(x: Double, y: Double): Vector2
     fun addInPlace(otherVector: Vector2): Vector2
     fun addInPlaceFromFloats(x: Double, y: Double): Vector2
     fun subtract(otherVector: Vector2): Vector2
@@ -32,10 +33,12 @@ external class Vector3(x: Double, y: Double, z: Double) {
     var y: Double
     var z: Double
 
+    fun set(x: Double, y: Double, z: Double): Vector2
     fun toQuaternion(): Quaternion
     fun addInPlace(otherVector: Vector3): Vector3
     fun addInPlaceFromFloats(x: Double, y: Double, z: Double): Vector3
     fun subtract(otherVector: Vector3): Vector3
+    fun subtractInPlace(otherVector: Vector3): Vector3
     fun negate(): Vector3
     fun negateInPlace(): Vector3
     fun cross(other: Vector3): Vector3
@@ -148,9 +151,25 @@ external class Engine(
     antialias: Boolean = definedExternally,
 ) : ThinEngine
 
+external class Ray
+
+external class PickingInfo {
+    val bu: Double
+    val bv: Double
+    val distance: Double
+    val faceId: Int
+    val hit: Boolean
+    val originMesh: AbstractMesh?
+    val pickedMesh: AbstractMesh?
+    val pickedPoint: Vector3?
+    val ray: Ray?
+}
+
 external class Scene(engine: Engine) {
     var useRightHandedSystem: Boolean
     var clearColor: Color4
+    var pointerX: Double
+    var pointerY: Double
 
     fun render()
     fun addLight(light: Light)
@@ -159,6 +178,15 @@ external class Scene(engine: Engine) {
     fun removeLight(toRemove: Light)
     fun removeMesh(toRemove: TransformNode, recursive: Boolean? = definedExternally)
     fun removeTransformNode(toRemove: TransformNode)
+    fun pick(
+        x: Double,
+        y: Double,
+        predicate: (AbstractMesh) -> Boolean = definedExternally,
+        fastCheck: Boolean = definedExternally,
+        camera: Camera? = definedExternally,
+        trianglePredicate: (p0: Vector3, p1: Vector3, p2: Vector3, ray: Ray) -> Boolean = definedExternally,
+    ): PickingInfo?
+
     fun dispose()
 }
 
@@ -238,9 +266,13 @@ open external class TransformNode(
     var rotationQuaternion: Quaternion?
     val absoluteRotation: Quaternion
     var scaling: Vector3
+
+    fun locallyTranslate(vector3: Vector3): TransformNode
 }
 
 abstract external class AbstractMesh : TransformNode {
+    var showBoundingBox: Boolean
+
     fun getBoundingInfo(): BoundingInfo
 }
 
@@ -253,6 +285,9 @@ external class Mesh(
     clonePhysicsImpostor: Boolean = definedExternally,
 ) : AbstractMesh {
     fun createInstance(name: String): InstancedMesh
+    fun bakeCurrentTransformIntoVertices(
+        bakeIndependenlyOfChildren: Boolean = definedExternally,
+    ): Mesh
 }
 
 external class InstancedMesh : AbstractMesh

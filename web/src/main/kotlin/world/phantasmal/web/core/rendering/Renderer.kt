@@ -8,20 +8,30 @@ import world.phantasmal.webui.DisposableContainer
 private val logger = KotlinLogging.logger {}
 
 abstract class Renderer(
-    protected val canvas: HTMLCanvasElement,
+    val canvas: HTMLCanvasElement,
     protected val engine: Engine,
 ) : DisposableContainer() {
-    val scene = Scene(engine)
-
-    private val light = HemisphericLight("Light", Vector3(-1.0, 1.0, 1.0), scene)
+    private val light: HemisphericLight
 
     protected abstract val camera: Camera
+
+    val scene = Scene(engine)
 
     init {
         with(scene) {
             useRightHandedSystem = true
             clearColor = Color4(0.09, 0.09, 0.09, 1.0)
         }
+
+        light = HemisphericLight("Light", Vector3(-1.0, 1.0, 1.0), scene)
+    }
+
+    override fun internalDispose() {
+        camera.dispose()
+        light.dispose()
+        scene.dispose()
+        engine.dispose()
+        super.internalDispose()
     }
 
     fun startRendering() {
@@ -32,14 +42,6 @@ abstract class Renderer(
     fun stopRendering() {
         logger.trace { "${this::class.simpleName} - stop rendering." }
         engine.stopRenderLoop()
-    }
-
-    override fun internalDispose() {
-        camera.dispose()
-        light.dispose()
-        scene.dispose()
-        engine.dispose()
-        super.internalDispose()
     }
 
     private fun render() {

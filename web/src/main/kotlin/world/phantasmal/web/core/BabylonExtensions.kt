@@ -6,6 +6,10 @@ import world.phantasmal.web.externals.babylon.Vector3
 operator fun Vector3.minus(other: Vector3): Vector3 =
     subtract(other)
 
+operator fun Vector3.minusAssign(other: Vector3) {
+    subtractInPlace(other)
+}
+
 infix fun Vector3.dot(other: Vector3): Double =
     Vector3.Dot(this, other)
 

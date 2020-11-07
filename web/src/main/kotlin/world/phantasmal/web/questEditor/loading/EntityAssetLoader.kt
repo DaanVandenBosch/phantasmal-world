@@ -33,32 +33,33 @@ class EntityAssetLoader(
         MeshBuilder.CreateCylinder(
             "Entity",
             obj {
-                diameter = 6.0
-                height = 20.0
+                diameter = 5.0
+                height = 18.0
             },
             scene
         ).apply {
             setEnabled(false)
-            position = Vector3(0.0, 10.0, 0.0)
+            locallyTranslate(Vector3(0.0, 10.0, 0.0))
+            bakeCurrentTransformIntoVertices()
         }
 
     private val meshCache =
         addDisposable(LoadingCache<Pair<EntityType, Int?>, Mesh> { it.dispose() })
+
+    override fun internalDispose() {
+        defaultMesh.dispose()
+        super.internalDispose()
+    }
 
     suspend fun loadMesh(type: EntityType, model: Int?): Mesh =
         meshCache.getOrPut(Pair(type, model)) {
             scope.async {
                 try {
                     loadGeometry(type, model)?.let { vertexData ->
-                        // TODO: Remove this check when XJ models are parsed.
-                        if (vertexData.indices == null || vertexData.indices!!.length == 0) {
-                            defaultMesh
-                        } else {
-                            val mesh = Mesh("${type.uniqueName}${model?.let { "-$it" }}", scene)
-                            mesh.setEnabled(false)
-                            vertexData.applyToMesh(mesh)
-                            mesh
-                        }
+                        val mesh = Mesh("${type.uniqueName}${model?.let { "-$it" }}", scene)
+                        mesh.setEnabled(false)
+                        vertexData.applyToMesh(mesh)
+                        mesh
                     } ?: defaultMesh
                 } catch (e: Exception) {
                     logger.error(e) { "Couldn't load mesh for $type (model: $model)." }

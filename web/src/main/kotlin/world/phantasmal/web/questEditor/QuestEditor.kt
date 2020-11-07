@@ -14,6 +14,7 @@ import world.phantasmal.web.questEditor.loading.AreaAssetLoader
 import world.phantasmal.web.questEditor.loading.EntityAssetLoader
 import world.phantasmal.web.questEditor.loading.QuestLoader
 import world.phantasmal.web.questEditor.rendering.QuestEditorMeshManager
+import world.phantasmal.web.questEditor.rendering.EntityManipulator
 import world.phantasmal.web.questEditor.rendering.QuestRenderer
 import world.phantasmal.web.questEditor.stores.AreaStore
 import world.phantasmal.web.questEditor.stores.QuestEditorStore
@@ -48,13 +49,16 @@ class QuestEditor(
         val npcCountsController = addDisposable(NpcCountsController(questEditorStore))
 
         // Rendering
-        addDisposable(QuestEditorMeshManager(
-            scope,
-            questEditorStore,
-            renderer,
-            areaAssetLoader,
-            entityAssetLoader
-        ))
+        addDisposables(
+            QuestEditorMeshManager(
+                scope,
+                questEditorStore,
+                renderer,
+                areaAssetLoader,
+                entityAssetLoader
+            ),
+            EntityManipulator(questEditorStore, renderer)
+        )
 
         // Main Widget
         return QuestEditorWidget(
