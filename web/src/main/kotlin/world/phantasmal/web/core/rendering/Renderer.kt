@@ -11,12 +11,17 @@ abstract class Renderer(
     protected val canvas: HTMLCanvasElement,
     protected val engine: Engine,
 ) : DisposableContainer() {
-    protected val scene = Scene(engine)
-    private val light = HemisphericLight("Light", Vector3(-1.0, 1.0, 0.0), scene)
+    val scene = Scene(engine)
+
+    private val light = HemisphericLight("Light", Vector3(-1.0, 1.0, 1.0), scene)
+
     protected abstract val camera: Camera
 
     init {
-        scene.clearColor = Color4(0.09, 0.09, 0.09, 1.0)
+        with(scene) {
+            useRightHandedSystem = true
+            clearColor = Color4(0.09, 0.09, 0.09, 1.0)
+        }
     }
 
     fun startRendering() {
@@ -38,7 +43,7 @@ abstract class Renderer(
     }
 
     private fun render() {
-        val lightDirection = Vector3(-1.0, 1.0, 0.0)
+        val lightDirection = Vector3(-1.0, 1.0, 1.0)
         lightDirection.rotateByQuaternionToRef(camera.absoluteRotation, lightDirection)
         light.direction = lightDirection
         scene.render()

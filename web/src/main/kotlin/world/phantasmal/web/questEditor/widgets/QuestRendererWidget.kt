@@ -10,14 +10,15 @@ import world.phantasmal.webui.widgets.Widget
 
 abstract class QuestRendererWidget(
     scope: CoroutineScope,
-    private val createRenderer: (HTMLCanvasElement) -> QuestRenderer,
+    private val canvas: HTMLCanvasElement,
+    private val renderer: QuestRenderer,
 ) : Widget(scope) {
     override fun Node.createElement() =
         div {
             className = "pw-quest-editor-quest-renderer"
             tabIndex = -1
 
-            addChild(RendererWidget(scope, createRenderer))
+            addChild(RendererWidget(scope, canvas, renderer))
         }
 
     companion object {

@@ -73,6 +73,13 @@ class SimpleListVal<E>(
         return removed
     }
 
+    override fun replaceAll(elements: Iterable<E>) {
+        val removed = ArrayList(this.elements)
+        this.elements.clear()
+        this.elements.addAll(elements)
+        finalizeUpdate(ListValChangeEvent.Change(0, removed, this.elements))
+    }
+
     override fun replaceAll(elements: Sequence<E>) {
         val removed = ArrayList(this.elements)
         this.elements.clear()

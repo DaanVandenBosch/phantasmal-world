@@ -1,6 +1,6 @@
 package world.phantasmal.web.core.controllers
 
-import world.phantasmal.web.core.stores.PwTool
+import world.phantasmal.web.core.PwToolType
 import world.phantasmal.web.core.stores.UiStore
 import world.phantasmal.webui.controllers.Tab
 import world.phantasmal.webui.controllers.TabController
@@ -9,7 +9,7 @@ open class PathAwareTab(override val title: String, val path: String) : Tab
 
 open class PathAwareTabController<T : PathAwareTab>(
     private val uiStore: UiStore,
-    private val tool: PwTool,
+    private val tool: PwToolType,
     tabs: List<T>,
 ) : TabController<T>(tabs) {
     init {

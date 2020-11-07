@@ -6,18 +6,10 @@ import org.w3c.dom.events.KeyboardEvent
 import world.phantasmal.observable.value.MutableVal
 import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.mutableVal
+import world.phantasmal.web.core.PwToolType
 import world.phantasmal.web.core.models.Server
 import world.phantasmal.webui.dom.disposableListener
 import world.phantasmal.webui.stores.Store
-
-/**
- * Phantasmal World consists of several tools.
- */
-enum class PwTool(val uiName: String, val slug: String) {
-    Viewer("Viewer", "viewer"),
-    QuestEditor("Quest Editor", "quest_editor"),
-    HuntOptimizer("Hunt Optimizer", "hunt_optimizer"),
-}
 
 interface ApplicationUrl {
     val url: Val<String>
@@ -27,8 +19,11 @@ interface ApplicationUrl {
     fun replaceUrl(url: String)
 }
 
-class UiStore(scope: CoroutineScope, private val applicationUrl: ApplicationUrl) : Store(scope) {
-    private val _currentTool: MutableVal<PwTool>
+class UiStore(
+    scope: CoroutineScope,
+    private val applicationUrl: ApplicationUrl,
+) : Store(scope) {
+    private val _currentTool: MutableVal<PwToolType>
 
     private val _path = mutableVal("")
     private val _server = mutableVal(Server.Ephinea)
@@ -48,22 +43,22 @@ class UiStore(scope: CoroutineScope, private val applicationUrl: ApplicationUrl)
      */
     private val features: MutableSet<String> = mutableSetOf()
 
-    val tools: List<PwTool> = PwTool.values().toList()
+    val tools: List<PwToolType> = PwToolType.values().toList()
 
     /**
      * The default tool that is loaded.
      */
-    val defaultTool: PwTool = PwTool.Viewer
+    val defaultTool: PwToolType = PwToolType.Viewer
 
     /**
-     * The tool that is current visible.
+     * The tool that is currently visible.
      */
-    val currentTool: Val<PwTool>
+    val currentTool: Val<PwToolType>
 
     /**
      * Map of tools to a boolean Val that says whether they are the current tool or not.
      */
-    val toolToActive: Map<PwTool, Val<Boolean>>
+    val toolToActive: Map<PwToolType, Val<Boolean>>
 
     /**
      * Application URL without the tool path prefix.
@@ -92,7 +87,7 @@ class UiStore(scope: CoroutineScope, private val applicationUrl: ApplicationUrl)
         observe(applicationUrl.url) { setDataFromUrl(it) }
     }
 
-    fun setCurrentTool(tool: PwTool) {
+    fun setCurrentTool(tool: PwToolType) {
         if (tool != currentTool.value) {
             updateApplicationUrl(tool, path = "", replace = false)
             setCurrentTool(tool, path = "")
@@ -150,12 +145,12 @@ class UiStore(scope: CoroutineScope, private val applicationUrl: ApplicationUrl)
         }
     }
 
-    private fun setCurrentTool(tool: PwTool, path: String) {
+    private fun setCurrentTool(tool: PwToolType, path: String) {
         _path.value = path
         _currentTool.value = tool
     }
 
-    private fun updateApplicationUrl(tool: PwTool, path: String, replace: Boolean) {
+    private fun updateApplicationUrl(tool: PwToolType, path: String, replace: Boolean) {
         val fullPath = "/${tool.slug}${path}"
         val params: MutableMap<String, String> =
             parameters[fullPath]?.let { HashMap(it) } ?: mutableMapOf()
@@ -195,12 +190,12 @@ class UiStore(scope: CoroutineScope, private val applicationUrl: ApplicationUrl)
         }
     }
 
-    private fun handlerKey(tool: PwTool, binding: String): String {
+    private fun handlerKey(tool: PwToolType, binding: String): String {
         return "$tool -> $binding"
     }
 
     companion object {
-        private val SLUG_TO_PW_TOOL: Map<String, PwTool> =
-            PwTool.values().map { it.slug to it }.toMap()
+        private val SLUG_TO_PW_TOOL: Map<String, PwToolType> =
+            PwToolType.values().map { it.slug to it }.toMap()
     }
 }

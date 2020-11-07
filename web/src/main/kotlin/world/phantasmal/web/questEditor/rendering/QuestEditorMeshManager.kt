@@ -1,46 +1,50 @@
 package world.phantasmal.web.questEditor.rendering
 
 import kotlinx.coroutines.CoroutineScope
-import world.phantasmal.observable.value.Val
+import world.phantasmal.lib.fileFormats.quest.Episode
 import world.phantasmal.observable.value.list.ListVal
 import world.phantasmal.observable.value.list.listVal
+import world.phantasmal.web.questEditor.loading.AreaAssetLoader
 import world.phantasmal.web.questEditor.loading.EntityAssetLoader
 import world.phantasmal.web.questEditor.models.*
+import world.phantasmal.web.questEditor.stores.QuestEditorStore
 
 class QuestEditorMeshManager(
     scope: CoroutineScope,
-    private val currentQuest: Val<QuestModel?>,
-    private val currentArea: Val<AreaModel?>,
-    selectedWave: Val<WaveModel?>,
+    questEditorStore: QuestEditorStore,
     renderer: QuestRenderer,
+    areaAssetLoader: AreaAssetLoader,
     entityAssetLoader: EntityAssetLoader,
-) : QuestMeshManager(scope, selectedWave, renderer, entityAssetLoader) {
+) : QuestMeshManager(scope, questEditorStore, renderer, areaAssetLoader, entityAssetLoader) {
     init {
         disposer.addAll(
-            currentQuest.observe { areaVariantChanged() },
-            currentArea.observe { areaVariantChanged() },
+            questEditorStore.currentQuest.map(questEditorStore.currentArea, ::getAreaVariantDetails)
+                .observe { (details) ->
+                    loadMeshes(details.episode, details.areaVariant, details.npcs, details.objects)
+                },
         )
     }
 
-    override fun getAreaVariantDetails(): AreaVariantDetails {
-        val quest = currentQuest.value
-        val area = currentArea.value
+    private fun getAreaVariantDetails(quest: QuestModel?, area: AreaModel?): AreaVariantDetails {
+        quest?.let {
+            val areaVariant = area?.let {
+                quest.areaVariants.value.find { it.area.id == area.id }
+            }
 
-        val areaVariant: AreaVariantModel?
-        val npcs: ListVal<QuestNpcModel>
-        val objects: ListVal<QuestObjectModel>
-
-        if (quest != null /*&& area != null*/) {
-            // TODO: Set areaVariant.
-            areaVariant = null
-            npcs = quest.npcs // TODO: Filter NPCs.
-            objects = listVal() // TODO: Filter objects.
-        } else {
-            areaVariant = null
-            npcs = listVal()
-            objects = listVal()
+            areaVariant?.let {
+                val npcs = quest.npcs // TODO: Filter NPCs.
+                val objects = quest.objects // TODO: Filter objects.
+                return AreaVariantDetails(quest.episode, areaVariant, npcs, objects)
+            }
         }
 
-        return AreaVariantDetails(quest?.episode, areaVariant, npcs, objects)
+        return AreaVariantDetails(null, null, listVal(), listVal())
     }
+
+    private class AreaVariantDetails(
+        val episode: Episode?,
+        val areaVariant: AreaVariantModel?,
+        val npcs: ListVal<QuestNpcModel>,
+        val objects: ListVal<QuestObjectModel>,
+    )
 }

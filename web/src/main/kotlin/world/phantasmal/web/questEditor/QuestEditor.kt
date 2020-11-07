@@ -1,56 +1,68 @@
 package world.phantasmal.web.questEditor
 
+import kotlinx.browser.document
 import kotlinx.coroutines.CoroutineScope
 import org.w3c.dom.HTMLCanvasElement
+import world.phantasmal.web.core.PwTool
+import world.phantasmal.web.core.PwToolType
 import world.phantasmal.web.core.loading.AssetLoader
 import world.phantasmal.web.externals.babylon.Engine
 import world.phantasmal.web.questEditor.controllers.NpcCountsController
 import world.phantasmal.web.questEditor.controllers.QuestEditorToolbarController
 import world.phantasmal.web.questEditor.controllers.QuestInfoController
+import world.phantasmal.web.questEditor.loading.AreaAssetLoader
 import world.phantasmal.web.questEditor.loading.EntityAssetLoader
 import world.phantasmal.web.questEditor.loading.QuestLoader
 import world.phantasmal.web.questEditor.rendering.QuestEditorMeshManager
 import world.phantasmal.web.questEditor.rendering.QuestRenderer
+import world.phantasmal.web.questEditor.stores.AreaStore
 import world.phantasmal.web.questEditor.stores.QuestEditorStore
 import world.phantasmal.web.questEditor.widgets.*
 import world.phantasmal.webui.DisposableContainer
 import world.phantasmal.webui.widgets.Widget
 
 class QuestEditor(
-    private val scope: CoroutineScope,
     private val assetLoader: AssetLoader,
     private val createEngine: (HTMLCanvasElement) -> Engine,
-) : DisposableContainer() {
-    // Asset Loaders
-    private val questLoader = addDisposable(QuestLoader(scope, assetLoader))
+) : DisposableContainer(), PwTool {
+    override val toolType = PwToolType.QuestEditor
 
-    // Stores
-    private val questEditorStore = addDisposable(QuestEditorStore(scope))
+    override fun initialize(scope: CoroutineScope): Widget {
+        // Renderer
+        val canvas = document.createElement("CANVAS") as HTMLCanvasElement
+        val renderer = addDisposable(QuestRenderer(canvas, createEngine(canvas)))
 
-    // Controllers
-    private val toolbarController =
-        addDisposable(QuestEditorToolbarController(questLoader, questEditorStore))
-    private val questInfoController = addDisposable(QuestInfoController(questEditorStore))
-    private val npcCountsController = addDisposable(NpcCountsController(questEditorStore))
+        // Asset Loaders
+        val questLoader = addDisposable(QuestLoader(scope, assetLoader))
+        val areaAssetLoader = addDisposable(AreaAssetLoader(scope, assetLoader, renderer.scene))
+        val entityAssetLoader = addDisposable(EntityAssetLoader(scope, assetLoader, renderer.scene))
 
-    fun createWidget(): Widget =
-        QuestEditorWidget(
+        // Stores
+        val areaStore = addDisposable(AreaStore(scope, areaAssetLoader))
+        val questEditorStore = addDisposable(QuestEditorStore(scope, areaStore))
+
+        // Controllers
+        val toolbarController =
+            addDisposable(QuestEditorToolbarController(questLoader, areaStore, questEditorStore))
+        val questInfoController = addDisposable(QuestInfoController(questEditorStore))
+        val npcCountsController = addDisposable(NpcCountsController(questEditorStore))
+
+        // Rendering
+        addDisposable(QuestEditorMeshManager(
+            scope,
+            questEditorStore,
+            renderer,
+            areaAssetLoader,
+            entityAssetLoader
+        ))
+
+        // Main Widget
+        return QuestEditorWidget(
             scope,
             QuestEditorToolbar(scope, toolbarController),
-            { scope -> QuestInfoWidget(scope, questInfoController) },
-            { scope -> NpcCountsWidget(scope, npcCountsController) },
-            { scope -> QuestEditorRendererWidget(scope, ::createQuestEditorRenderer) }
+            { s -> QuestInfoWidget(s, questInfoController) },
+            { s -> NpcCountsWidget(s, npcCountsController) },
+            { s -> QuestEditorRendererWidget(s, canvas, renderer) }
         )
-
-    private fun createQuestEditorRenderer(canvas: HTMLCanvasElement): QuestRenderer =
-        QuestRenderer(canvas, createEngine(canvas)) { renderer, scene ->
-            QuestEditorMeshManager(
-                scope,
-                questEditorStore.currentQuest,
-                questEditorStore.currentArea,
-                questEditorStore.selectedWave,
-                renderer,
-                EntityAssetLoader(scope, assetLoader, scene)
-            )
-        }
+    }
 }

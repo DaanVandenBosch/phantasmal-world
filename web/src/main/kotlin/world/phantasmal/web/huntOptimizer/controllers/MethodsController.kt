@@ -4,9 +4,9 @@ import world.phantasmal.lib.fileFormats.quest.Episode
 import world.phantasmal.observable.value.list.ListVal
 import world.phantasmal.observable.value.list.MutableListVal
 import world.phantasmal.observable.value.list.mutableListVal
+import world.phantasmal.web.core.PwToolType
 import world.phantasmal.web.core.controllers.PathAwareTab
 import world.phantasmal.web.core.controllers.PathAwareTabController
-import world.phantasmal.web.core.stores.PwTool
 import world.phantasmal.web.core.stores.UiStore
 import world.phantasmal.web.huntOptimizer.HuntOptimizerUrls
 import world.phantasmal.web.huntOptimizer.models.HuntMethodModel
@@ -19,7 +19,7 @@ class MethodsController(
     huntMethodStore: HuntMethodStore,
 ) : PathAwareTabController<MethodsTab>(
     uiStore,
-    PwTool.HuntOptimizer,
+    PwToolType.HuntOptimizer,
     listOf(
         MethodsTab("Episode I", HuntOptimizerUrls.methodsEpisodeI, Episode.I),
         MethodsTab("Episode II", HuntOptimizerUrls.methodsEpisodeII, Episode.II),

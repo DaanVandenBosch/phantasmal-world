@@ -4,7 +4,8 @@ import kotlinx.coroutines.CoroutineScope
 import org.w3c.dom.Node
 import world.phantasmal.observable.value.not
 import world.phantasmal.web.application.controllers.MainContentController
-import world.phantasmal.web.core.stores.PwTool
+import world.phantasmal.web.core.PwTool
+import world.phantasmal.web.core.PwToolType
 import world.phantasmal.webui.dom.div
 import world.phantasmal.webui.widgets.LazyLoader
 import world.phantasmal.webui.widgets.Widget
@@ -12,7 +13,7 @@ import world.phantasmal.webui.widgets.Widget
 class MainContentWidget(
     scope: CoroutineScope,
     private val ctrl: MainContentController,
-    private val toolViews: Map<PwTool, (CoroutineScope) -> Widget>,
+    private val toolViews: Map<PwToolType, (CoroutineScope) -> Widget>,
 ) : Widget(scope) {
     override fun Node.createElement() =
         div {

@@ -149,6 +149,7 @@ external class Engine(
 ) : ThinEngine
 
 external class Scene(engine: Engine) {
+    var useRightHandedSystem: Boolean
     var clearColor: Color4
 
     fun render()

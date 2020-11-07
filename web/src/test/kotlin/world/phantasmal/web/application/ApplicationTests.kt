@@ -10,7 +10,7 @@ import world.phantasmal.core.disposable.disposable
 import world.phantasmal.core.disposable.use
 import world.phantasmal.testUtils.TestSuite
 import world.phantasmal.web.core.loading.AssetLoader
-import world.phantasmal.web.core.stores.PwTool
+import world.phantasmal.web.core.PwTool
 import world.phantasmal.web.externals.babylon.Engine
 import world.phantasmal.web.test.TestApplicationUrl
 import kotlin.test.Test

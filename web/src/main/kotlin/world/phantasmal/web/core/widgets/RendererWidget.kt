@@ -4,35 +4,35 @@ import kotlinx.coroutines.CoroutineScope
 import org.w3c.dom.HTMLCanvasElement
 import org.w3c.dom.Node
 import world.phantasmal.web.core.rendering.Renderer
-import world.phantasmal.webui.dom.canvas
+import world.phantasmal.webui.dom.div
 import world.phantasmal.webui.widgets.Widget
 import kotlin.math.floor
 
 class RendererWidget(
     scope: CoroutineScope,
-    private val createRenderer: (HTMLCanvasElement) -> Renderer,
+    private val canvas: HTMLCanvasElement,
+    private val renderer: Renderer,
 ) : Widget(scope) {
-    private var renderer: Renderer? = null
 
     override fun Node.createElement() =
-        canvas {
+        div {
             className = "pw-core-renderer"
             tabIndex = -1
 
             observeResize()
-            renderer = addDisposable(createRenderer(this))
 
             observe(selfOrAncestorHidden) { hidden ->
                 if (hidden) {
-                    renderer?.stopRendering()
+                    renderer.stopRendering()
                 } else {
-                    renderer?.startRendering()
+                    renderer.startRendering()
                 }
             }
+
+            append(canvas)
         }
 
     override fun resized(width: Double, height: Double) {
-        val canvas = (element as HTMLCanvasElement)
         canvas.width = floor(width).toInt()
         canvas.height = floor(height).toInt()
     }

@@ -12,6 +12,7 @@ import world.phantasmal.lib.fileFormats.quest.parseQstToQuest
 import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.mutableVal
 import world.phantasmal.web.questEditor.loading.QuestLoader
+import world.phantasmal.web.questEditor.stores.AreaStore
 import world.phantasmal.web.questEditor.stores.QuestEditorStore
 import world.phantasmal.web.questEditor.stores.convertQuestToModel
 import world.phantasmal.webui.controllers.Controller
@@ -21,6 +22,7 @@ private val logger = KotlinLogging.logger {}
 
 class QuestEditorToolbarController(
     private val questLoader: QuestLoader,
+    private val areaStore: AreaStore,
     private val questEditorStore: QuestEditorStore,
 ) : Controller() {
     private val _resultDialogVisible = mutableVal(false)
@@ -31,7 +33,7 @@ class QuestEditorToolbarController(
 
     suspend fun createNewQuest(episode: Episode) {
         questEditorStore.setCurrentQuest(
-            convertQuestToModel(questLoader.loadDefaultQuest(episode))
+            convertQuestToModel(questLoader.loadDefaultQuest(episode), areaStore::getVariant)
         )
     }
 
@@ -80,7 +82,7 @@ class QuestEditorToolbarController(
     }
 
     private fun setCurrentQuest(quest: Quest) {
-        questEditorStore.setCurrentQuest(convertQuestToModel(quest))
+        questEditorStore.setCurrentQuest(convertQuestToModel(quest, areaStore::getVariant))
     }
 
     private fun setResult(result: PwResult<*>) {

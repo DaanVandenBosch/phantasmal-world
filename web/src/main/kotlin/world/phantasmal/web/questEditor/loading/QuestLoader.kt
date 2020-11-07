@@ -15,7 +15,7 @@ class QuestLoader(
     private val scope: CoroutineScope,
     private val assetLoader: AssetLoader,
 ) : TrackedDisposable() {
-    private val cache = LoadingCache<String, ArrayBuffer>()
+    private val cache = LoadingCache<String, ArrayBuffer> {}
 
     override fun internalDispose() {
         cache.dispose()

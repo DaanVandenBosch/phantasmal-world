@@ -3,7 +3,7 @@ package world.phantasmal.web.application.widgets
 import kotlinx.coroutines.CoroutineScope
 import org.w3c.dom.Node
 import world.phantasmal.observable.Observable
-import world.phantasmal.web.core.stores.PwTool
+import world.phantasmal.web.core.PwToolType
 import world.phantasmal.webui.dom.input
 import world.phantasmal.webui.dom.label
 import world.phantasmal.webui.dom.span
@@ -11,7 +11,7 @@ import world.phantasmal.webui.widgets.Control
 
 class PwToolButton(
     scope: CoroutineScope,
-    private val tool: PwTool,
+    private val tool: PwToolType,
     private val toggled: Observable<Boolean>,
     private val mouseDown: () -> Unit,
 ) : Control(scope) {

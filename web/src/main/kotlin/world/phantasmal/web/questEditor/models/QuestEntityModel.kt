@@ -15,6 +15,8 @@ abstract class QuestEntityModel<Type : EntityType, Entity : QuestEntity<Type>>(
 
     val type: Type get() = entity.type
 
+    val areaId: Int get() = entity.areaId
+
     /**
      * Section-relative position
      */

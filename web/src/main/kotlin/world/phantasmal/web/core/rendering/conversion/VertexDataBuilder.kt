@@ -27,10 +27,10 @@ class VertexDataBuilder {
     fun getNormal(index: Int): Vector3 =
         normals[index]
 
-    fun addVertex(position: Vector3, normal: Vector3, uv: Vector2) {
+    fun addVertex(position: Vector3, normal: Vector3, uv: Vector2? = null) {
         positions.add(position)
         normals.add(normal)
-        uvs.add(uv)
+        uv?.let { uvs.add(uv) }
     }
 
     fun addIndex(index: Int) {
@@ -55,11 +55,11 @@ class VertexDataBuilder {
 
     fun build(): VertexData {
         check(this.positions.size == this.normals.size)
-        check(this.positions.size == this.uvs.size)
+        check(this.uvs.isEmpty() || this.positions.size == this.uvs.size)
 
         val positions = Float32Array(3 * positions.size)
         val normals = Float32Array(3 * normals.size)
-        val uvs = Float32Array(2 * uvs.size)
+        val uvs = if (uvs.isEmpty()) null else Float32Array(2 * uvs.size)
 
         for (i in this.positions.indices) {
             val pos = this.positions[i]
@@ -72,9 +72,11 @@ class VertexDataBuilder {
             normals[3 * i + 1] = normal.y.toFloat()
             normals[3 * i + 2] = normal.z.toFloat()
 
-            val uv = this.uvs[i]
-            uvs[2 * i] = uv.x.toFloat()
-            uvs[2 * i + 1] = uv.y.toFloat()
+            uvs?.let {
+                val uv = this.uvs[i]
+                uvs[2 * i] = uv.x.toFloat()
+                uvs[2 * i + 1] = uv.y.toFloat()
+            }
         }
 
         val data = VertexData()

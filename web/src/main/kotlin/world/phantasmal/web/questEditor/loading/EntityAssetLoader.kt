@@ -29,18 +29,24 @@ class EntityAssetLoader(
     private val assetLoader: AssetLoader,
     private val scene: Scene,
 ) : DisposableContainer() {
-    private val defaultMesh = MeshBuilder.CreateCylinder("Entity", obj {
-        diameter = 6.0
-        height = 20.0
-    }, scene).apply {
-        setEnabled(false)
-        position = Vector3(0.0, 10.0, 0.0)
-    }
+    private val defaultMesh =
+        MeshBuilder.CreateCylinder(
+            "Entity",
+            obj {
+                diameter = 6.0
+                height = 20.0
+            },
+            scene
+        ).apply {
+            setEnabled(false)
+            position = Vector3(0.0, 10.0, 0.0)
+        }
 
-    private val meshCache = addDisposable(LoadingCache<Pair<EntityType, Int?>, Mesh>())
+    private val meshCache =
+        addDisposable(LoadingCache<Pair<EntityType, Int?>, Mesh> { it.dispose() })
 
-    suspend fun loadMesh(type: EntityType, model: Int?): Mesh {
-        return meshCache.getOrPut(Pair(type, model)) {
+    suspend fun loadMesh(type: EntityType, model: Int?): Mesh =
+        meshCache.getOrPut(Pair(type, model)) {
             scope.async {
                 try {
                     loadGeometry(type, model)?.let { vertexData ->
@@ -60,7 +66,6 @@ class EntityAssetLoader(
                 }
             }
         }.await()
-    }
 
     private suspend fun loadGeometry(type: EntityType, model: Int?): VertexData? {
         val geomFormat = entityTypeToGeometryFormat(type)

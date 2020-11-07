@@ -8,7 +8,7 @@ import world.phantasmal.web.questEditor.models.QuestModel
 import world.phantasmal.web.questEditor.models.WaveModel
 import world.phantasmal.webui.stores.Store
 
-class QuestEditorStore(scope: CoroutineScope) : Store(scope) {
+class QuestEditorStore(scope: CoroutineScope, private val areaStore: AreaStore) : Store(scope) {
     private val _currentQuest = mutableVal<QuestModel?>(null)
     private val _currentArea = mutableVal<AreaModel?>(null)
     private val _selectedWave = mutableVal<WaveModel?>(null)
@@ -21,6 +21,11 @@ class QuestEditorStore(scope: CoroutineScope) : Store(scope) {
     val questEditingDisabled: Val<Boolean> = currentQuest.map { it == null }
 
     fun setCurrentQuest(quest: QuestModel?) {
+        _currentArea.value = null
         _currentQuest.value = quest
+
+        quest?.let {
+            _currentArea.value = areaStore.getArea(quest.episode, 0)
+        }
     }
 }

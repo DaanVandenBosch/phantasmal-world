@@ -6,7 +6,7 @@ import world.phantasmal.lib.fileFormats.ninja.angleToRad
 import world.phantasmal.lib.fileFormats.ninja.radToAngle
 import kotlin.math.roundToInt
 
-class QuestObject(var areaId: Int, val data: Buffer) : QuestEntity<ObjectType> {
+class QuestObject(override var areaId: Int, val data: Buffer) : QuestEntity<ObjectType> {
     var typeId: Int
         get() = data.getInt(0)
         set(value) {

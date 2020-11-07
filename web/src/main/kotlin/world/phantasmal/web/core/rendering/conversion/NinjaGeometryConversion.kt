@@ -6,6 +6,7 @@ import world.phantasmal.lib.fileFormats.ninja.NinjaModel
 import world.phantasmal.lib.fileFormats.ninja.NinjaObject
 import world.phantasmal.lib.fileFormats.ninja.NjModel
 import world.phantasmal.lib.fileFormats.ninja.XjModel
+import world.phantasmal.web.core.*
 import world.phantasmal.web.externals.babylon.*
 import kotlin.math.cos
 import kotlin.math.sin
@@ -39,8 +40,7 @@ private class NinjaToVertexDataConverter(private val builder: VertexDataBuilder)
             if (ef.noRotate) NO_ROTATION else eulerToQuat(obj.rotation, ef.zxyRotationOrder),
             if (ef.noTranslate) NO_TRANSLATION else vec3ToBabylon(obj.position),
         )
-
-        matrix.multiplyToRef(parentMatrix, matrix)
+        matrix.preMultiply(parentMatrix)
 
         if (!ef.hidden) {
             obj.model?.let { model ->
@@ -72,8 +72,8 @@ private class NinjaToVertexDataConverter(private val builder: VertexDataBuilder)
                 val position = vec3ToBabylon(vertex.position)
                 val normal = vertex.normal?.let(::vec3ToBabylon) ?: Vector3.Up()
 
-                Vector3.TransformCoordinatesToRef(position, matrix, position)
-                Vector3.TransformNormalToRef(normal, normalMatrix, normal)
+                matrix.multiply(position)
+                normalMatrix.multiply3x3(normal)
 
                 Vertex(
                     boneIndex,
@@ -158,10 +158,10 @@ private class NinjaToVertexDataConverter(private val builder: VertexDataBuilder)
 
         for (vertex in model.vertices) {
             val p = vec3ToBabylon(vertex.position)
-            Vector3.TransformCoordinatesToRef(p, matrix, p)
+            matrix.multiply(p)
 
             val n = vertex.normal?.let(::vec3ToBabylon) ?: Vector3.Up()
-            Vector3.TransformCoordinatesToRef(n, normalMatrix, n)
+            normalMatrix.multiply3x3(n)
 
             val uv = vertex.uv?.let(::vec2ToBabylon) ?: DEFAULT_UV
 
@@ -190,16 +190,16 @@ private class NinjaToVertexDataConverter(private val builder: VertexDataBuilder)
                 // Calculate a surface normal and reverse the vertex winding if at least 2 of the
                 // vertex normals point in the opposite direction. This hack fixes the winding for
                 // most models.
-                val normal = pb.subtract(pa).cross(pc.subtract(pa))
+                val normal = (pb - pa) cross (pc - pa)
 
                 if (!clockwise) {
                     normal.negateInPlace()
                 }
 
                 val oppositeCount =
-                    (if (Vector3.Dot(normal, na) < 0) 1 else 0) +
-                            (if (Vector3.Dot(normal, nb) < 0) 1 else 0) +
-                            (if (Vector3.Dot(normal, nc) < 0) 1 else 0)
+                    (if (normal dot na < 0) 1 else 0) +
+                            (if (normal dot nb < 0) 1 else 0) +
+                            (if (normal dot nc < 0) 1 else 0)
 
                 if (oppositeCount >= 2) {
                     clockwise = !clockwise

@@ -11,7 +11,8 @@ import world.phantasmal.webui.widgets.Widget
 class ViewerWidget(
     scope: CoroutineScope,
     private val toolbar: Widget,
-    private val createRenderer: (HTMLCanvasElement) -> Renderer,
+    private val canvas: HTMLCanvasElement,
+    private val renderer: Renderer,
 ) : Widget(scope) {
     override fun Node.createElement() =
         div {
@@ -21,7 +22,7 @@ class ViewerWidget(
             div {
                 className = "pw-viewer-viewer-container"
 
-                addChild(RendererWidget(scope, createRenderer))
+                addChild(RendererWidget(scope, canvas, renderer))
             }
         }
 
@@ -38,6 +39,7 @@ class ViewerWidget(
                     flex-grow: 1;
                     display: flex;
                     flex-direction: row;
+                    overflow: hidden;
                 }
             """.trimIndent())
         }

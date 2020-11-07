@@ -12,9 +12,9 @@ import world.phantasmal.web.application.controllers.NavigationController
 import world.phantasmal.web.application.widgets.ApplicationWidget
 import world.phantasmal.web.application.widgets.MainContentWidget
 import world.phantasmal.web.application.widgets.NavigationWidget
+import world.phantasmal.web.core.PwTool
 import world.phantasmal.web.core.loading.AssetLoader
 import world.phantasmal.web.core.stores.ApplicationUrl
-import world.phantasmal.web.core.stores.PwTool
 import world.phantasmal.web.core.stores.UiStore
 import world.phantasmal.web.externals.babylon.Engine
 import world.phantasmal.web.huntOptimizer.HuntOptimizer
@@ -47,6 +47,13 @@ class Application(
         // Initialize core stores shared by several submodules.
         val uiStore = addDisposable(UiStore(scope, applicationUrl))
 
+        // The various tools Phantasmal World consists of.
+        val tools: List<PwTool> = listOf(
+            Viewer(createEngine),
+            QuestEditor(assetLoader, createEngine),
+            HuntOptimizer(assetLoader, uiStore),
+        )
+
         // Controllers.
         val navigationController = addDisposable(NavigationController(uiStore))
         val mainContentController = addDisposable(MainContentController(uiStore))
@@ -56,28 +63,11 @@ class Application(
             ApplicationWidget(
                 scope,
                 NavigationWidget(scope, navigationController),
-                MainContentWidget(scope, mainContentController, mapOf(
-                    PwTool.Viewer to { widgetScope ->
-                        addDisposable(Viewer(
-                            widgetScope,
-                            createEngine,
-                        )).createWidget()
-                    },
-                    PwTool.QuestEditor to { widgetScope ->
-                        addDisposable(QuestEditor(
-                            widgetScope,
-                            assetLoader,
-                            createEngine,
-                        )).createWidget()
-                    },
-                    PwTool.HuntOptimizer to { widgetScope ->
-                        addDisposable(HuntOptimizer(
-                            widgetScope,
-                            assetLoader,
-                            uiStore,
-                        )).createWidget()
-                    },
-                ))
+                MainContentWidget(
+                    scope,
+                    mainContentController,
+                    tools.map { it.toolType to it::initialize }.toMap()
+                )
             )
         )
 

@@ -11,6 +11,8 @@ interface MutableListVal<E> : ListVal<E>, MutableVal<List<E>> {
 
     fun removeAt(index: Int): E
 
+    fun replaceAll(elements: Iterable<E>)
+
     fun replaceAll(elements: Sequence<E>)
 
     fun clear()

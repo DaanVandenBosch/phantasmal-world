@@ -1,6 +1,8 @@
 package world.phantasmal.web.huntOptimizer
 
 import kotlinx.coroutines.CoroutineScope
+import world.phantasmal.web.core.PwTool
+import world.phantasmal.web.core.PwToolType
 import world.phantasmal.web.core.loading.AssetLoader
 import world.phantasmal.web.core.stores.UiStore
 import world.phantasmal.web.huntOptimizer.controllers.HuntOptimizerController
@@ -12,20 +14,24 @@ import world.phantasmal.webui.DisposableContainer
 import world.phantasmal.webui.widgets.Widget
 
 class HuntOptimizer(
-    private val scope: CoroutineScope,
-    assetLoader: AssetLoader,
-    uiStore: UiStore,
-) : DisposableContainer() {
-    private val huntMethodStore = addDisposable(HuntMethodStore(scope, uiStore, assetLoader))
+    private val assetLoader: AssetLoader,
+    private val uiStore: UiStore,
+) : DisposableContainer(), PwTool {
+    override val toolType = PwToolType.HuntOptimizer
 
-    private val huntOptimizerController = addDisposable(HuntOptimizerController(uiStore))
-    private val methodsController =
-        addDisposable(MethodsController(uiStore, huntMethodStore))
+    override fun initialize(scope: CoroutineScope): Widget {
+        // Stores
+        val huntMethodStore = addDisposable(HuntMethodStore(scope, uiStore, assetLoader))
 
-    fun createWidget(): Widget =
-        HuntOptimizerWidget(
+        // Controllers
+        val huntOptimizerController = addDisposable(HuntOptimizerController(uiStore))
+        val methodsController = addDisposable(MethodsController(uiStore, huntMethodStore))
+
+        // Main Widget
+        return HuntOptimizerWidget(
             scope,
             ctrl = huntOptimizerController,
-            createMethodsWidget = { scope -> MethodsWidget(scope, methodsController) }
+            createMethodsWidget = { s -> MethodsWidget(s, methodsController) }
         )
+    }
 }

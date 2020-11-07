@@ -4,7 +4,10 @@ import org.w3c.dom.HTMLCanvasElement
 import world.phantasmal.lib.fileFormats.ninja.NinjaObject
 import world.phantasmal.web.core.rendering.Renderer
 import world.phantasmal.web.core.rendering.conversion.ninjaObjectToVertexData
-import world.phantasmal.web.externals.babylon.*
+import world.phantasmal.web.externals.babylon.ArcRotateCamera
+import world.phantasmal.web.externals.babylon.Engine
+import world.phantasmal.web.externals.babylon.Mesh
+import world.phantasmal.web.externals.babylon.Vector3
 import world.phantasmal.web.viewer.store.ViewerStore
 import kotlin.math.PI
 
@@ -15,7 +18,7 @@ class MeshRenderer(
 ) : Renderer(canvas, engine) {
     private var mesh: Mesh? = null
 
-    override val camera = ArcRotateCamera("Camera", 0.0, PI / 3, 70.0, Vector3.Zero(), scene)
+    override val camera = ArcRotateCamera("Camera", PI / 2, PI / 3, 70.0, Vector3.Zero(), scene)
 
     init {
         with(camera) {
@@ -29,7 +32,7 @@ class MeshRenderer(
             angularSensibilityX = 200.0
             angularSensibilityY = 200.0
             panningInertia = 0.0
-            panningSensibility = 20.0
+            panningSensibility = 10.0
             panningAxis = Vector3(1.0, 1.0, 0.0)
             pinchDeltaPercentage = 0.1
             wheelDeltaPercentage = 0.1
