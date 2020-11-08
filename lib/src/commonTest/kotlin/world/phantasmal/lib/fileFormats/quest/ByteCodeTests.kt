@@ -5,11 +5,12 @@ import world.phantasmal.lib.assembly.InstructionSegment
 import world.phantasmal.lib.assembly.OP_BB_MAP_DESIGNATE
 import world.phantasmal.lib.assembly.OP_SET_EPISODE
 import world.phantasmal.lib.buffer.Buffer
+import world.phantasmal.lib.test.LibTestSuite
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-class ByteCodeTests {
+class ByteCodeTests : LibTestSuite() {
     @Test
     fun minimal() {
         val buffer = Buffer.fromByteArray(ubyteArrayOf(

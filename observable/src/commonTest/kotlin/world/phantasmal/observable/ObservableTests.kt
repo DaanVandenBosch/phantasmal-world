@@ -1,6 +1,6 @@
 package world.phantasmal.observable
 
-import world.phantasmal.testUtils.TestSuite
+import world.phantasmal.observable.test.ObservableTestSuite
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -10,7 +10,7 @@ typealias ObservableAndEmit = Pair<Observable<*>, () -> Unit>
  * Test suite for all [Observable] implementations. There is a subclass of this suite for every
  * [Observable] implementation.
  */
-abstract class ObservableTests : TestSuite() {
+abstract class ObservableTests : ObservableTestSuite() {
     protected abstract fun create(): ObservableAndEmit
 
     @Test

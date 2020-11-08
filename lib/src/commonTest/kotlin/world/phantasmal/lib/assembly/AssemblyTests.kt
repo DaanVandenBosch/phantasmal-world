@@ -1,11 +1,12 @@
 package world.phantasmal.lib.assembly
 
 import world.phantasmal.core.Success
+import world.phantasmal.lib.test.LibTestSuite
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-class AssemblyTests {
+class AssemblyTests : LibTestSuite() {
     @Test
     fun assemble_basic_script() {
         val result = assemble("""

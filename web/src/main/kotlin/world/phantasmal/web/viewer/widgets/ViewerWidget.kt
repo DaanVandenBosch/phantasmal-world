@@ -8,9 +8,12 @@ import world.phantasmal.web.core.widgets.RendererWidget
 import world.phantasmal.webui.dom.div
 import world.phantasmal.webui.widgets.Widget
 
+/**
+ * Takes ownership of the widget returned by [createToolbar].
+ */
 class ViewerWidget(
     scope: CoroutineScope,
-    private val toolbar: Widget,
+    private val createToolbar: (CoroutineScope) -> Widget,
     private val canvas: HTMLCanvasElement,
     private val renderer: Renderer,
 ) : Widget(scope) {
@@ -18,7 +21,7 @@ class ViewerWidget(
         div {
             className = "pw-viewer-viewer"
 
-            addChild(toolbar)
+            addChild(createToolbar(scope))
             div {
                 className = "pw-viewer-viewer-container"
 

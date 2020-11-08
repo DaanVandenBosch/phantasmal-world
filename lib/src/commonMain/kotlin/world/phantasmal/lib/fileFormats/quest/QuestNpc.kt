@@ -11,6 +11,20 @@ class QuestNpc(
     override var areaId: Int,
     val data: Buffer,
 ) : QuestEntity<NpcType> {
+    constructor(
+        type: NpcType,
+        episode: Episode,
+        areaId: Int,
+        wave: Int,
+    ) : this(episode, areaId, Buffer.withSize(NPC_BYTE_SIZE)) {
+        this.type = type
+        // TODO: Set default data.
+        // Set area_id after type, because you might want to overwrite the area_id that type has
+        // determined.
+        this.areaId = areaId
+        // TODO: Set wave properties.
+    }
+
     var typeId: Short
         get() = data.getShort(0)
         set(value) {

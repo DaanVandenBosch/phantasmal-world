@@ -1,11 +1,12 @@
 package world.phantasmal.lib.buffer
 
 import world.phantasmal.lib.Endianness
+import world.phantasmal.lib.test.LibTestSuite
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-class BufferTests {
+class BufferTests : LibTestSuite() {
     @Test
     fun withCapacity() {
         withCapacity(Endianness.Little)

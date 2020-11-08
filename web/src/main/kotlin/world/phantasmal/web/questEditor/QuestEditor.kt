@@ -13,8 +13,8 @@ import world.phantasmal.web.questEditor.controllers.QuestInfoController
 import world.phantasmal.web.questEditor.loading.AreaAssetLoader
 import world.phantasmal.web.questEditor.loading.EntityAssetLoader
 import world.phantasmal.web.questEditor.loading.QuestLoader
-import world.phantasmal.web.questEditor.rendering.QuestEditorMeshManager
 import world.phantasmal.web.questEditor.rendering.EntityManipulator
+import world.phantasmal.web.questEditor.rendering.QuestEditorMeshManager
 import world.phantasmal.web.questEditor.rendering.QuestRenderer
 import world.phantasmal.web.questEditor.stores.AreaStore
 import world.phantasmal.web.questEditor.stores.QuestEditorStore
@@ -63,7 +63,7 @@ class QuestEditor(
         // Main Widget
         return QuestEditorWidget(
             scope,
-            QuestEditorToolbar(scope, toolbarController),
+            { s -> QuestEditorToolbar(s, toolbarController) },
             { s -> QuestInfoWidget(s, questInfoController) },
             { s -> NpcCountsWidget(s, npcCountsController) },
             { s -> QuestEditorRendererWidget(s, canvas, renderer) }

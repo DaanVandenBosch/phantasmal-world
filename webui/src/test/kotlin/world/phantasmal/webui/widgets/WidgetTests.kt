@@ -6,14 +6,13 @@ import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.falseVal
 import world.phantasmal.observable.value.mutableVal
 import world.phantasmal.observable.value.trueVal
-import world.phantasmal.testUtils.TestSuite
 import world.phantasmal.webui.dom.div
+import world.phantasmal.webui.test.WebuiTestSuite
 import kotlin.test.Test
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
-import kotlin.test.fail
 
-class WidgetTests : TestSuite() {
+class WidgetTests : WebuiTestSuite() {
     @Test
     fun ancestorHidden_and_selfOrAncestorHidden_should_update_when_hidden_changes() = test {
         val parentHidden = mutableVal(false)

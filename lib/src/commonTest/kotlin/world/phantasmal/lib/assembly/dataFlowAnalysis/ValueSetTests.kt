@@ -1,11 +1,12 @@
 package world.phantasmal.lib.assembly.dataFlowAnalysis
 
+import world.phantasmal.lib.test.LibTestSuite
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
-class ValueSetTests {
+class ValueSetTests : LibTestSuite() {
     @Test
     fun empty_set_has_size_0() {
         val vs = ValueSet.empty()

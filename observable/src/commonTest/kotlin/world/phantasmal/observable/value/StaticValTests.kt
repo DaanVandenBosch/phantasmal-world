@@ -1,10 +1,10 @@
 package world.phantasmal.observable.value
 
-import world.phantasmal.testUtils.TestSuite
+import world.phantasmal.observable.test.ObservableTestSuite
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-class StaticValTests : TestSuite() {
+class StaticValTests : ObservableTestSuite() {
     @Test
     fun observing_StaticVal_should_never_create_leaks() = test {
         val static = StaticVal("test value")

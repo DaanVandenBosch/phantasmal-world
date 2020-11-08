@@ -39,15 +39,11 @@ class EntityManipulator(
     init {
         state = IdleState(questEditorStore, renderer, enabled)
 
-        observe(questEditorStore.selectedEntity, ::selectedEntityChanged)
+        observe(questEditorStore.selectedEntity) { state.cancel() }
 
         addDisposables(
             disposableListener(renderer.canvas, "pointerdown", ::onPointerDown)
         )
-    }
-
-    private fun selectedEntityChanged(entity: QuestEntityModel<*, *>?) {
-        state.cancel()
     }
 
     private fun onPointerDown(e: PointerEvent) {

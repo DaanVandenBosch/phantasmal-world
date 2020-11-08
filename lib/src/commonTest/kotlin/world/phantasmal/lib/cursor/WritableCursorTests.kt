@@ -2,7 +2,7 @@ package world.phantasmal.lib.cursor
 
 import world.phantasmal.lib.Endianness
 import world.phantasmal.lib.buffer.Buffer
-import kotlin.math.abs
+import world.phantasmal.testUtils.assertCloseTo
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -144,8 +144,8 @@ abstract class WritableCursorTests : CursorTests() {
 
         // The read floats won't be exactly the same as the written floats in Kotlin JS, because
         // they're backed by numbers (64-bit floats).
-        assertTrue(abs(1337.9001f - cursor.float()) < 0.001)
-        assertTrue(abs(103.502f - cursor.float()) < 0.001)
+        assertCloseTo(1337.9001f, cursor.float(), epsilon = 0.001f)
+        assertCloseTo(103.502f, cursor.float(), epsilon = 0.001f)
 
         assertEquals(8, cursor.position)
     }

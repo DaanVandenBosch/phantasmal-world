@@ -2,13 +2,13 @@ package world.phantasmal.lib.fileFormats.quest
 
 import world.phantasmal.core.Success
 import world.phantasmal.lib.assembly.*
-import world.phantasmal.lib.test.asyncTest
+import world.phantasmal.lib.test.LibTestSuite
 import world.phantasmal.lib.test.readFile
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-class QuestTests {
+class QuestTests : LibTestSuite() {
     @Test
     fun parseBinDatToQuest_with_towards_the_future() = asyncTest {
         val result = parseBinDatToQuest(readFile("/quest118_e.bin"), readFile("/quest118_e.dat"))

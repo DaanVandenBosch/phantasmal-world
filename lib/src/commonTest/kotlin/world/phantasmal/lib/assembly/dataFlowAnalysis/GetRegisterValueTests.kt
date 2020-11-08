@@ -1,13 +1,14 @@
 package world.phantasmal.lib.assembly.dataFlowAnalysis
 
 import world.phantasmal.lib.assembly.*
+import world.phantasmal.lib.test.LibTestSuite
 import world.phantasmal.lib.test.toInstructions
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
 private const val MAX_REGISTER_VALUES_SIZE: Long = 1L shl 32
 
-class GetRegisterValueTests {
+class GetRegisterValueTests : LibTestSuite() {
     @Test
     fun when_no_instruction_sets_the_register_zero_is_returned() {
         val im = toInstructions("""

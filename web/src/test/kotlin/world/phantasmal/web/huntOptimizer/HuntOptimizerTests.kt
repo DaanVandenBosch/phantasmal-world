@@ -1,37 +1,18 @@
 package world.phantasmal.web.huntOptimizer
 
-import io.ktor.client.*
-import io.ktor.client.features.json.*
-import io.ktor.client.features.json.serializer.*
-import kotlinx.coroutines.cancel
-import world.phantasmal.core.disposable.disposable
-import world.phantasmal.testUtils.TestSuite
-import world.phantasmal.web.core.loading.AssetLoader
-import world.phantasmal.web.core.PwTool
+import world.phantasmal.web.core.PwToolType
 import world.phantasmal.web.core.stores.UiStore
 import world.phantasmal.web.test.TestApplicationUrl
+import world.phantasmal.web.test.WebTestSuite
 import kotlin.test.Test
 
-class HuntOptimizerTests : TestSuite() {
+class HuntOptimizerTests : WebTestSuite() {
     @Test
     fun initialization_and_shutdown_should_succeed_without_throwing() = test {
-        val httpClient = HttpClient {
-            install(JsonFeature) {
-                serializer = KotlinxSerializer(kotlinx.serialization.json.Json {
-                    ignoreUnknownKeys = true
-                })
-            }
-        }
-        disposer.add(disposable { httpClient.cancel() })
+        val uiStore =
+            disposer.add(UiStore(scope, TestApplicationUrl("/${PwToolType.HuntOptimizer}")))
 
-        val uiStore = disposer.add(UiStore(scope, TestApplicationUrl("/${PwTool.HuntOptimizer}")))
-
-        disposer.add(
-            HuntOptimizer(
-                scope,
-                AssetLoader(basePath = "", httpClient),
-                uiStore
-            )
-        )
+        val huntOptimizer = disposer.add(HuntOptimizer(components.assetLoader, uiStore))
+        disposer.add(huntOptimizer.initialize(scope))
     }
 }

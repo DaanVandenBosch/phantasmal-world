@@ -31,6 +31,11 @@ class Viewer(
         val renderer = addDisposable(MeshRenderer(viewerStore, canvas, createEngine(canvas)))
 
         // Main Widget
-        return ViewerWidget(scope, ViewerToolbar(scope, viewerToolbarController), canvas, renderer)
+        return ViewerWidget(
+            scope,
+            { s -> ViewerToolbar(s, viewerToolbarController) },
+            canvas,
+            renderer
+        )
     }
 }

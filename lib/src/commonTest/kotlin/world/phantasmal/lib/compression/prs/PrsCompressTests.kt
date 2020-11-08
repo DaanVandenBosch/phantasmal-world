@@ -2,11 +2,12 @@ package world.phantasmal.lib.compression.prs
 
 import world.phantasmal.lib.buffer.Buffer
 import world.phantasmal.lib.cursor.cursor
+import world.phantasmal.lib.test.LibTestSuite
 import kotlin.random.Random
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-class PrsCompressTests {
+class PrsCompressTests : LibTestSuite() {
     @Test
     fun edge_case_0_bytes() {
         val compressed = prsCompress(Buffer.withSize(0).cursor())

@@ -1,6 +1,7 @@
 package world.phantasmal.lib.cursor
 
 import world.phantasmal.lib.Endianness
+import world.phantasmal.lib.test.LibTestSuite
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -8,7 +9,7 @@ import kotlin.test.assertEquals
  * Test suite for all [Cursor] implementations. There is a subclass of this suite for every [Cursor]
  * implementation.
  */
-abstract class CursorTests {
+abstract class CursorTests : LibTestSuite() {
     abstract fun createCursor(
         bytes: ByteArray,
         endianness: Endianness,

@@ -9,6 +9,8 @@ kotlin {
         browser {}
     }
 
+    jvm()
+
     sourceSets {
         commonMain {
             dependencies {
@@ -22,6 +24,12 @@ kotlin {
         named("jsMain") {
             dependencies {
                 api(kotlin("test-js"))
+            }
+        }
+
+        named("jvmMain") {
+            dependencies {
+                api(kotlin("test"))
             }
         }
     }

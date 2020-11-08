@@ -10,12 +10,18 @@ abstract class TrackedDisposable : Disposable {
 
     init {
         disposableCount++
+
+        if (trackPrecise) {
+            @Suppress("LeakingThis")
+            disposables.add(this)
+        }
     }
 
     final override fun dispose() {
         if (!disposed) {
             disposed = true
             disposableCount--
+            disposables.remove(this)
             internalDispose()
         }
     }
@@ -25,16 +31,45 @@ abstract class TrackedDisposable : Disposable {
     }
 
     companion object {
+        const val DISPOSABLE_PRINT_COUNT = 10
+
+        var disposables: MutableSet<Disposable> = mutableSetOf()
+        var trackPrecise = false
         var disposableCount: Int = 0
             private set
 
-        fun checkNoLeaks(block: () -> Unit) {
-            val count = disposableCount
+        inline fun checkNoLeaks(trackPrecise: Boolean = false, block: () -> Unit) {
+            val initialCount = disposableCount
+            val initialTrackPrecise = this.trackPrecise
+            val initialDisposables = disposables
+            this.trackPrecise = trackPrecise
+            disposables = mutableSetOf()
 
             try {
                 block()
+                checkLeaks(disposableCount - initialCount)
             } finally {
-                check(count == disposableCount) { "TrackedDisposables were leaked." }
+                this.trackPrecise = initialTrackPrecise
+                disposables = initialDisposables
+            }
+        }
+
+        fun checkLeaks(leakCount: Int) {
+            buildString {
+                append("$leakCount TrackedDisposables were leaked")
+
+                if (trackPrecise) {
+                    append(": ")
+                    disposables.take(DISPOSABLE_PRINT_COUNT).joinTo(this) {
+                        it::class.simpleName ?: "Anonymous"
+                    }
+
+                    if (disposables.size > DISPOSABLE_PRINT_COUNT) {
+                        append(",..")
+                    }
+                }
+
+                append(".")
             }
         }
     }

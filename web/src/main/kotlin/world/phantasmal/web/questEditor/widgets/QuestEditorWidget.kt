@@ -17,9 +17,12 @@ private class TestWidget(scope: CoroutineScope) : Widget(scope) {
     }
 }
 
+/**
+ * Takes ownership of the widgets created by the given createWidget functions.
+ */
 class QuestEditorWidget(
     scope: CoroutineScope,
-    private val toolbar: Widget,
+    private val createToolbar: (CoroutineScope) -> Widget,
     private val createQuestInfoWidget: (CoroutineScope) -> Widget,
     private val createNpcCountsWidget: (CoroutineScope) -> Widget,
     private val createQuestRendererWidget: (CoroutineScope) -> Widget,
@@ -28,7 +31,7 @@ class QuestEditorWidget(
         div {
             className = "pw-quest-editor-quest-editor"
 
-            addChild(toolbar)
+            addChild(createToolbar(scope))
             addChild(DockWidget(
                 scope,
                 item = DockedRow(

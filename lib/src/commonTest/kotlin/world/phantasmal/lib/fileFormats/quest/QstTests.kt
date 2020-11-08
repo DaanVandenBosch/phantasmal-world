@@ -1,14 +1,14 @@
 package world.phantasmal.lib.fileFormats.quest
 
-import world.phantasmal.lib.test.asyncTest
+import world.phantasmal.lib.test.LibTestSuite
 import world.phantasmal.lib.test.readFile
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-class QstTests {
+class QstTests : LibTestSuite() {
     @Test
-    fun parse_a_GC_quest() = asyncTest{
+    fun parse_a_GC_quest() = asyncTest {
         val cursor = readFile("/lost_heat_sword_gc.qst")
         val qst = parseQst(cursor).unwrap()
 

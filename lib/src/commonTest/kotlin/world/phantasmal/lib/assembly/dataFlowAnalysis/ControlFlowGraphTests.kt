@@ -1,11 +1,12 @@
 package world.phantasmal.lib.assembly.dataFlowAnalysis
 
+import world.phantasmal.lib.test.LibTestSuite
 import world.phantasmal.lib.test.toInstructions
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-class ControlFlowGraphTests {
+class ControlFlowGraphTests : LibTestSuite() {
     @Test
     fun single_instruction() {
         val im = toInstructions("""

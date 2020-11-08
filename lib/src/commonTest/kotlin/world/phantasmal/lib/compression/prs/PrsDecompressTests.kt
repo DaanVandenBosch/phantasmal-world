@@ -3,13 +3,13 @@ package world.phantasmal.lib.compression.prs
 import world.phantasmal.lib.buffer.Buffer
 import world.phantasmal.lib.cursor.Cursor
 import world.phantasmal.lib.cursor.cursor
-import world.phantasmal.lib.test.asyncTest
+import world.phantasmal.lib.test.LibTestSuite
 import world.phantasmal.lib.test.readFile
 import kotlin.random.Random
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-class PrsDecompressTests {
+class PrsDecompressTests : LibTestSuite() {
     @Test
     fun edge_case_0_bytes() {
         testWithBuffer(Buffer.withSize(0))
