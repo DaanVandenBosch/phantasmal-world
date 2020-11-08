@@ -5,28 +5,65 @@ import kotlinx.coroutines.async
 import org.khronos.webgl.ArrayBuffer
 import world.phantasmal.lib.Endianness
 import world.phantasmal.lib.cursor.cursor
+import world.phantasmal.lib.fileFormats.CollisionObject
+import world.phantasmal.lib.fileFormats.RenderObject
 import world.phantasmal.lib.fileFormats.parseAreaCollisionGeometry
+import world.phantasmal.lib.fileFormats.parseAreaGeometry
 import world.phantasmal.lib.fileFormats.quest.Episode
 import world.phantasmal.web.core.loading.AssetLoader
+import world.phantasmal.web.core.rendering.conversion.VertexDataBuilder
+import world.phantasmal.web.core.rendering.conversion.ninjaObjectToVertexDataBuilder
+import world.phantasmal.web.core.rendering.conversion.vec3ToBabylon
+import world.phantasmal.web.externals.babylon.Mesh
 import world.phantasmal.web.externals.babylon.Scene
 import world.phantasmal.web.externals.babylon.TransformNode
 import world.phantasmal.web.questEditor.models.AreaVariantModel
-import world.phantasmal.web.questEditor.rendering.conversion.areaCollisionGeometryToTransformNode
+import world.phantasmal.web.questEditor.models.SectionModel
 import world.phantasmal.webui.DisposableContainer
 
+/**
+ * Loads and caches area assets.
+ */
 class AreaAssetLoader(
     private val scope: CoroutineScope,
     private val assetLoader: AssetLoader,
     private val scene: Scene,
 ) : DisposableContainer() {
-    private val collisionObjectCache =
-        addDisposable(LoadingCache<Triple<Episode, Int, Int>, TransformNode> { it.dispose() })
+    /**
+     * This cache's values consist of a TransformNode containing area render meshes and a list of
+     * that area's sections.
+     */
+    private val renderObjectCache = addDisposable(
+        LoadingCache<CacheKey, Pair<TransformNode, List<SectionModel>>> { it.first.dispose() }
+    )
+
+    private val collisionObjectCache = addDisposable(
+        LoadingCache<CacheKey, TransformNode> { it.dispose() }
+    )
+
+    suspend fun loadSections(episode: Episode, areaVariant: AreaVariantModel): List<SectionModel> =
+        loadRenderGeometryAndSections(episode, areaVariant).second
+
+    suspend fun loadRenderGeometry(episode: Episode, areaVariant: AreaVariantModel): TransformNode =
+        loadRenderGeometryAndSections(episode, areaVariant).first
+
+    private suspend fun loadRenderGeometryAndSections(
+        episode: Episode,
+        areaVariant: AreaVariantModel,
+    ): Pair<TransformNode, List<SectionModel>> =
+        renderObjectCache.getOrPut(CacheKey(episode, areaVariant.area.id, areaVariant.id)) {
+            scope.async {
+                val buffer = getAreaAsset(episode, areaVariant, AssetType.Render)
+                val obj = parseAreaGeometry(buffer.cursor(Endianness.Little))
+                areaGeometryToTransformNodeAndSections(scene, obj, areaVariant)
+            }
+        }.await()
 
     suspend fun loadCollisionGeometry(
         episode: Episode,
         areaVariant: AreaVariantModel,
     ): TransformNode =
-        collisionObjectCache.getOrPut(Triple(episode, areaVariant.area.id, areaVariant.id)) {
+        collisionObjectCache.getOrPut(CacheKey(episode, areaVariant.area.id, areaVariant.id)) {
             scope.async {
                 val buffer = getAreaAsset(episode, areaVariant, AssetType.Collision)
                 val obj = parseAreaCollisionGeometry(buffer.cursor(Endianness.Little))
@@ -47,10 +84,20 @@ class AreaAssetLoader(
         return assetLoader.loadArrayBuffer(baseUrl + suffix)
     }
 
-    enum class AssetType {
+    private data class CacheKey(
+        val episode: Episode,
+        val areaId: Int,
+        val areaVariantId: Int,
+    )
+
+    private enum class AssetType {
         Render, Collision
     }
 }
+
+class AreaMetadata(
+    val section: SectionModel?,
+)
 
 private val AREA_BASE_NAMES: Map<Episode, List<Pair<String, Int>>> = mapOf(
     Episode.I to listOf(
@@ -134,4 +181,88 @@ private fun areaVersionToBaseUrl(episode: Episode, areaVariant: AreaVariantModel
     }
 
     return "/maps/map_${base_name}${variant}"
+}
+
+private fun areaGeometryToTransformNodeAndSections(
+    scene: Scene,
+    renderObject: RenderObject,
+    areaVariant: AreaVariantModel,
+): Pair<TransformNode, List<SectionModel>> {
+    val sections = mutableListOf<SectionModel>()
+    val node = TransformNode("Render Geometry", scene)
+    node.setEnabled(false)
+
+    for (section in renderObject.sections) {
+        val builder = VertexDataBuilder()
+
+        for (obj in section.objects) {
+            ninjaObjectToVertexDataBuilder(obj, builder)
+        }
+
+        val vertexData = builder.build()
+        val mesh = Mesh("Render Geometry", scene, node)
+        vertexData.applyToMesh(mesh)
+        // TODO: Material.
+
+        mesh.position = vec3ToBabylon(section.position)
+        mesh.rotation = vec3ToBabylon(section.rotation)
+
+        if (section.id >= 0) {
+            val sec = SectionModel(
+                section.id,
+                vec3ToBabylon(section.position),
+                vec3ToBabylon(section.rotation),
+                areaVariant,
+            )
+            sections.add(sec)
+            mesh.metadata = AreaMetadata(sec)
+        }
+    }
+
+    return Pair(node, sections)
+}
+
+private fun areaCollisionGeometryToTransformNode(
+    scene: Scene,
+    obj: CollisionObject,
+): TransformNode {
+    val node = TransformNode("Collision Geometry", scene)
+
+    for (collisionMesh in obj.meshes) {
+        val builder = VertexDataBuilder()
+
+        for (triangle in collisionMesh.triangles) {
+            val isSectionTransition = (triangle.flags and 0b1000000) != 0
+            val isVegetation = (triangle.flags and 0b10000) != 0
+            val isGround = (triangle.flags and 0b1) != 0
+            val colorIndex = when {
+                isSectionTransition -> 3
+                isVegetation -> 2
+                isGround -> 1
+                else -> 0
+            }
+
+            // Filter out walls.
+            if (colorIndex != 0) {
+                val p1 = vec3ToBabylon(collisionMesh.vertices[triangle.index1])
+                val p2 = vec3ToBabylon(collisionMesh.vertices[triangle.index2])
+                val p3 = vec3ToBabylon(collisionMesh.vertices[triangle.index3])
+                val n = vec3ToBabylon(triangle.normal)
+
+                builder.addIndex(builder.vertexCount)
+                builder.addVertex(p1, n)
+                builder.addIndex(builder.vertexCount)
+                builder.addVertex(p3, n)
+                builder.addIndex(builder.vertexCount)
+                builder.addVertex(p2, n)
+            }
+        }
+
+        if (builder.vertexCount > 0) {
+            val mesh = Mesh("Collision Geometry", scene, parent = node)
+            builder.build().applyToMesh(mesh)
+        }
+    }
+
+    return node
 }

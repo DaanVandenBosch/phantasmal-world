@@ -7,6 +7,8 @@ interface QuestEntity<Type : EntityType> {
 
     var areaId: Int
 
+    var sectionId: Int
+
     /**
      * Section-relative position.
      */

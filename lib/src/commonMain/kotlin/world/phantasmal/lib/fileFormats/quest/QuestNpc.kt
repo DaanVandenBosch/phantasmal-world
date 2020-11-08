@@ -69,6 +69,12 @@ class QuestNpc(
             }
         }
 
+    override var sectionId: Int
+        get() = data.getUShort(12).toInt()
+        set(value) {
+            data.setUShort(12, value.toUShort())
+        }
+
     override var position: Vec3
         get() = Vec3(data.getFloat(20), data.getFloat(24), data.getFloat(28))
         set(value) {

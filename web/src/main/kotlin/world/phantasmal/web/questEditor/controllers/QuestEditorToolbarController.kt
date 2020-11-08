@@ -81,7 +81,7 @@ class QuestEditorToolbarController(
         }
     }
 
-    private fun setCurrentQuest(quest: Quest) {
+    private suspend fun setCurrentQuest(quest: Quest) {
         questEditorStore.setCurrentQuest(convertQuestToModel(quest, areaStore::getVariant))
     }
 

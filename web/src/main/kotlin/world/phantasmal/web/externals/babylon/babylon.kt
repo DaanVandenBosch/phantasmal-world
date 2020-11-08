@@ -82,13 +82,16 @@ external class Quaternion(
      * @return the current quaternion
      */
     fun multiplyToRef(q1: Quaternion, result: Quaternion): Quaternion
-
+    fun toEulerAngles(): Vector3
+    fun toEulerAnglesToRef(result: Vector3): Quaternion
+    fun rotateByQuaternionToRef(quaternion: Quaternion, result: Vector3): Vector3
     fun clone(): Quaternion
     fun copyFrom(other: Quaternion): Quaternion
 
     companion object {
         fun Identity(): Quaternion
         fun FromEulerAngles(x: Double, y: Double, z: Double): Quaternion
+        fun FromEulerAnglesToRef(x: Double, y: Double, z: Double, result: Quaternion): Quaternion
         fun RotationYawPitchRoll(yaw: Double, pitch: Double, roll: Double): Quaternion
     }
 }

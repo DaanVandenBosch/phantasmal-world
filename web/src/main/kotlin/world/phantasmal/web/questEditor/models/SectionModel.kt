@@ -1,5 +1,6 @@
 package world.phantasmal.web.questEditor.models
 
+import world.phantasmal.web.externals.babylon.Quaternion
 import world.phantasmal.web.externals.babylon.Vector3
 
 class SectionModel(
@@ -13,4 +14,7 @@ class SectionModel(
             "id should be greater than or equal to -1 but was $id."
         }
     }
+
+    val rotationQuaternion: Quaternion =
+        Quaternion.FromEulerAngles(rotation.x, rotation.y, rotation.z)
 }

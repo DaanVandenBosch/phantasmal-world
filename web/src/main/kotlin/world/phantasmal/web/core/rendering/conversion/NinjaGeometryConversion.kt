@@ -19,10 +19,16 @@ private val NO_TRANSLATION = Vector3.Zero()
 private val NO_ROTATION = Quaternion.Identity()
 private val NO_SCALE = Vector3.One()
 
-// TODO: take into account different kinds of meshes/vertices (with or without normals, uv, etc.).
 fun ninjaObjectToVertexData(ninjaObject: NinjaObject<*>): VertexData =
     NinjaToVertexDataConverter(VertexDataBuilder()).convert(ninjaObject)
 
+fun ninjaObjectToVertexDataBuilder(
+    ninjaObject: NinjaObject<*>,
+    builder: VertexDataBuilder,
+): VertexData =
+    NinjaToVertexDataConverter(builder).convert(ninjaObject)
+
+// TODO: take into account different kinds of meshes/vertices (with or without normals, uv, etc.).
 private class NinjaToVertexDataConverter(private val builder: VertexDataBuilder) {
     private val vertexHolder = VertexHolder()
     private var boneIndex = 0

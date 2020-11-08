@@ -16,6 +16,9 @@ fun parseNj(cursor: Cursor): PwResult<List<NinjaObject<NjModel>>> =
 fun parseXj(cursor: Cursor): PwResult<List<NinjaObject<XjModel>>> =
     parseNinja(cursor, { c, _ -> parseXjModel(c) }, Unit)
 
+fun parseXjObject(cursor: Cursor): List<NinjaObject<XjModel>> =
+    parseSiblingObjects(cursor, { c, _ -> parseXjModel(c) }, Unit)
+
 private fun <Model : NinjaModel, Context> parseNinja(
     cursor: Cursor,
     parseModel: (cursor: Cursor, context: Context) -> Model,

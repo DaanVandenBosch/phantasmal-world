@@ -146,13 +146,11 @@ private class LoadedEntity(
             mesh.position = pos
         }
 
-        addDisposables(
-            // TODO: Rotation.
-//            entity.worldRotation.observe { (value) ->
-//                mesh.rotation.copy(value)
-//                renderer.schedule_render()
-//            },
+        observe(entity.worldRotation) { rot ->
+            mesh.rotation = rot
+        }
 
+        addDisposables(
             // TODO: Model.
 //            entity.model.observe {
 //                remove(listOf(entity))

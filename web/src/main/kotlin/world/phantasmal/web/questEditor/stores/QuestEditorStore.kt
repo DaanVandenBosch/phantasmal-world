@@ -1,13 +1,13 @@
 package world.phantasmal.web.questEditor.stores
 
 import kotlinx.coroutines.CoroutineScope
+import mu.KotlinLogging
 import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.mutableVal
-import world.phantasmal.web.questEditor.models.AreaModel
-import world.phantasmal.web.questEditor.models.QuestEntityModel
-import world.phantasmal.web.questEditor.models.QuestModel
-import world.phantasmal.web.questEditor.models.WaveModel
+import world.phantasmal.web.questEditor.models.*
 import world.phantasmal.webui.stores.Store
+
+private val logger = KotlinLogging.logger {}
 
 class QuestEditorStore(scope: CoroutineScope, private val areaStore: AreaStore) : Store(scope) {
     private val _currentQuest = mutableVal<QuestModel?>(null)
@@ -23,12 +23,38 @@ class QuestEditorStore(scope: CoroutineScope, private val areaStore: AreaStore) 
     // TODO: Take into account whether we're debugging or not.
     val questEditingDisabled: Val<Boolean> = currentQuest.map { it == null }
 
-    fun setCurrentQuest(quest: QuestModel?) {
+    suspend fun setCurrentQuest(quest: QuestModel?) {
         _currentArea.value = null
         _currentQuest.value = quest
 
         quest?.let {
             _currentArea.value = areaStore.getArea(quest.episode, 0)
+
+            // Load section data.
+            quest.areaVariants.value.forEach { variant ->
+                val sections = areaStore.getSections(quest.episode, variant)
+                variant.setSections(sections)
+                setSectionOnQuestEntities(quest.npcs.value, variant, sections)
+                setSectionOnQuestEntities(quest.objects.value, variant, sections)
+            }
+        }
+    }
+
+    private fun setSectionOnQuestEntities(
+        entities: List<QuestEntityModel<*, *>>,
+        variant: AreaVariantModel,
+        sections: List<SectionModel>,
+    ) {
+        entities.forEach { entity ->
+            if (entity.areaId == variant.area.id) {
+                val section = sections.find { it.id == entity.sectionId.value }
+
+                if (section == null) {
+                    logger.warn { "Section ${entity.sectionId.value} not found." }
+                } else {
+                    entity.setSection(section)
+                }
+            }
         }
     }
 
