@@ -3,6 +3,7 @@ package world.phantasmal.observable.value
 import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.core.disposable.disposable
 import world.phantasmal.core.unsafeToNonNull
+import world.phantasmal.observable.Observer
 
 class FlatMappedVal<T>(
     dependencies: Iterable<Val<*>>,
@@ -13,20 +14,20 @@ class FlatMappedVal<T>(
 
     override val value: T
         get() {
-            return if (hasNoObservers()) {
-                super.value
-            } else {
+            return if (hasObservers) {
                 computedVal.unsafeToNonNull().value
+            } else {
+                super.value
             }
         }
 
-    override fun observe(callNow: Boolean, observer: ValObserver<T>): Disposable {
+    override fun observe(callNow: Boolean, observer: Observer<T>): Disposable {
         val superDisposable = super.observe(callNow, observer)
 
         return disposable {
             superDisposable.dispose()
 
-            if (hasNoObservers()) {
+            if (!hasObservers) {
                 computedValObserver?.dispose()
                 computedValObserver = null
                 computedVal = null
@@ -40,11 +41,10 @@ class FlatMappedVal<T>(
 
         computedValObserver?.dispose()
 
-        if (hasObservers()) {
+        if (hasObservers) {
             computedValObserver = computedVal.observe { (value) ->
-                val oldValue = _value.unsafeToNonNull<T>()
                 _value = value
-                emit(oldValue)
+                emit()
             }
         }
 

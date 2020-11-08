@@ -37,8 +37,7 @@ class Select<T : Any>(
     private val items: Val<List<T>> = itemsVal ?: value(items ?: emptyList())
     private val selected: Val<T?> = selectedVal ?: value(selected)
 
-    // Default to a single space so the inner text part won't be hidden.
-    private val buttonText = mutableVal(this.selected.value?.let(itemToString) ?: " ")
+    private val buttonText = mutableVal(" ")
     private val menuHidden = mutableVal(true)
 
     private lateinit var menu: Menu<T>
@@ -47,6 +46,9 @@ class Select<T : Any>(
     override fun Node.createElement() =
         div {
             className = "pw-select"
+
+            // Default to a single space so the inner text part won't be hidden.
+            observe(selected) { buttonText.value = it?.let(itemToString) ?: " " }
 
             addWidget(Button(
                 scope,

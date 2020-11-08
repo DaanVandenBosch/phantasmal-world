@@ -3,8 +3,8 @@ package world.phantasmal.observable.value.list
 import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.core.disposable.disposable
 import world.phantasmal.core.unsafeToNonNull
+import world.phantasmal.observable.Observer
 import world.phantasmal.observable.value.AbstractVal
-import world.phantasmal.observable.value.ValObserver
 
 class FoldedVal<T, R>(
     private val dependency: ListVal<T>,
@@ -23,16 +23,15 @@ class FoldedVal<T, R>(
             }
         }
 
-    override fun observe(callNow: Boolean, observer: ValObserver<R>): Disposable {
+    override fun observe(callNow: Boolean, observer: Observer<R>): Disposable {
         val superDisposable = super.observe(callNow, observer)
 
         if (dependencyDisposable == null) {
             internalValue = computeValue()
 
             dependencyDisposable = dependency.observe {
-                val oldValue = internalValue
                 internalValue = computeValue()
-                emit(oldValue.unsafeToNonNull())
+                emit()
             }
         }
 

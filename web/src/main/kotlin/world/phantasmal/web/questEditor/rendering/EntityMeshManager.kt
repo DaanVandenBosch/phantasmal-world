@@ -9,6 +9,7 @@ import world.phantasmal.web.externals.babylon.TransformNode
 import world.phantasmal.web.questEditor.loading.EntityAssetLoader
 import world.phantasmal.web.questEditor.models.QuestEntityModel
 import world.phantasmal.web.questEditor.models.QuestNpcModel
+import world.phantasmal.web.questEditor.models.QuestObjectModel
 import world.phantasmal.web.questEditor.models.WaveModel
 import world.phantasmal.web.questEditor.rendering.conversion.EntityMetadata
 import world.phantasmal.web.questEditor.stores.QuestEditorStore
@@ -117,8 +118,10 @@ class EntityMeshManager(
     }
 
     private suspend fun load(entity: QuestEntityModel<*, *>) {
-        // TODO
-        val mesh = entityAssetLoader.loadMesh(entity.type, model = null)
+        val mesh = entityAssetLoader.loadMesh(
+            type = entity.type,
+            model = (entity as? QuestObjectModel)?.model?.value
+        )
 
         // Only add an instance of this mesh if the entity is still in the queue at this point.
         if (queue.remove(entity)) {
@@ -132,48 +135,53 @@ class EntityMeshManager(
             loadedEntities[entity] = LoadedEntity(entity, instance, questEditorStore.selectedWave)
         }
     }
-}
 
-private class LoadedEntity(
-    entity: QuestEntityModel<*, *>,
-    val mesh: AbstractMesh,
-    selectedWave: Val<WaveModel?>,
-) : DisposableContainer() {
-    init {
-        mesh.metadata = EntityMetadata(entity)
+    private inner class LoadedEntity(
+        entity: QuestEntityModel<*, *>,
+        val mesh: AbstractMesh,
+        selectedWave: Val<WaveModel?>,
+    ) : DisposableContainer() {
+        init {
+            mesh.metadata = EntityMetadata(entity)
 
-        observe(entity.worldPosition) { pos ->
-            mesh.position = pos
-        }
+            observe(entity.worldPosition) { pos ->
+                mesh.position = pos
+            }
 
-        observe(entity.worldRotation) { rot ->
-            mesh.rotation = rot
-        }
+            observe(entity.worldRotation) { rot ->
+                mesh.rotation = rot
+            }
 
-        addDisposables(
-            // TODO: Model.
-//            entity.model.observe {
-//                remove(listOf(entity))
-//                add(listOf(entity))
-//            },
-        )
+            val isVisible: Val<Boolean>
 
-        if (entity is QuestNpcModel) {
-            addDisposable(
-                selectedWave
-                    .map(entity.wave) { sWave, entityWave ->
-                        sWave == null || sWave == entityWave
+            if (entity is QuestNpcModel) {
+                isVisible =
+                    entity.sectionInitialized.map(
+                        selectedWave,
+                        entity.wave
+                    ) { sectionInitialized, sWave, entityWave ->
+                        sectionInitialized && (sWave == null || sWave == entityWave)
                     }
-                    .observe(callNow = true) { (visible) ->
-                        mesh.setEnabled(visible)
-                    },
-            )
-        }
-    }
+            } else {
+                isVisible = entity.section.map { section -> section != null }
 
-    override fun internalDispose() {
-        mesh.parent = null
-        mesh.dispose()
-        super.internalDispose()
+                if (entity is QuestObjectModel) {
+                    addDisposable(entity.model.observe(callNow = false) {
+                        remove(listOf(entity))
+                        add(listOf(entity))
+                    })
+                }
+            }
+
+            observe(isVisible) { visible ->
+                mesh.setEnabled(visible)
+            }
+        }
+
+        override fun internalDispose() {
+            mesh.parent = null
+            mesh.dispose()
+            super.internalDispose()
+        }
     }
 }

@@ -13,4 +13,7 @@ interface ListVal<E> : Val<List<E>> {
 
     fun <R> fold(initialValue: R, operation: (R, E) -> R): Val<R> =
         FoldedVal(this, initialValue, operation)
+
+    fun filtered(predicate: (E) -> Boolean): ListVal<E> =
+        DependentListVal(listOf(this)) { value.filter(predicate) }
 }

@@ -2,19 +2,20 @@ package world.phantasmal.observable.value
 
 import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.core.disposable.disposable
+import world.phantasmal.observable.ChangeEvent
 import world.phantasmal.observable.Observer
 
 abstract class AbstractVal<T> : Val<T> {
-    protected val observers: MutableList<ValObserver<T>> = mutableListOf()
+    protected val observers: MutableList<Observer<T>> = mutableListOf()
 
     final override fun observe(observer: Observer<T>): Disposable =
         observe(callNow = false, observer)
 
-    override fun observe(callNow: Boolean, observer: ValObserver<T>): Disposable {
+    override fun observe(callNow: Boolean, observer: Observer<T>): Disposable {
         observers.add(observer)
 
         if (callNow) {
-            observer(ValChangeEvent(value, value))
+            observer(ChangeEvent(value))
         }
 
         return disposable {
@@ -22,8 +23,8 @@ abstract class AbstractVal<T> : Val<T> {
         }
     }
 
-    protected fun emit(oldValue: T) {
-        val event = ValChangeEvent(value, oldValue)
+    protected fun emit() {
+        val event = ChangeEvent(value)
         observers.forEach { it(event) }
     }
 }

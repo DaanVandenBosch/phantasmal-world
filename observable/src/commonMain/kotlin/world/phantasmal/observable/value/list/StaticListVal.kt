@@ -2,10 +2,9 @@ package world.phantasmal.observable.value.list
 
 import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.core.disposable.stubDisposable
+import world.phantasmal.observable.ChangeEvent
 import world.phantasmal.observable.Observer
 import world.phantasmal.observable.value.Val
-import world.phantasmal.observable.value.ValChangeEvent
-import world.phantasmal.observable.value.ValObserver
 import world.phantasmal.observable.value.value
 
 class StaticListVal<E>(elements: List<E>) : ListVal<E> {
@@ -13,9 +12,9 @@ class StaticListVal<E>(elements: List<E>) : ListVal<E> {
 
     override val value: List<E> = elements
 
-    override fun observe(callNow: Boolean, observer: ValObserver<List<E>>): Disposable {
+    override fun observe(callNow: Boolean, observer: Observer<List<E>>): Disposable {
         if (callNow) {
-            observer(ValChangeEvent(value, value))
+            observer(ChangeEvent(value))
         }
 
         return stubDisposable()

@@ -24,11 +24,12 @@ class QuestEditorStore(scope: CoroutineScope, private val areaStore: AreaStore) 
     val questEditingDisabled: Val<Boolean> = currentQuest.map { it == null }
 
     suspend fun setCurrentQuest(quest: QuestModel?) {
-        _currentArea.value = null
-        _currentQuest.value = quest
-
-        quest?.let {
+        if (quest == null) {
+            _currentArea.value = null
+            _currentQuest.value = null
+        } else {
             _currentArea.value = areaStore.getArea(quest.episode, 0)
+            _currentQuest.value = quest
 
             // Load section data.
             quest.areaVariants.value.forEach { variant ->
@@ -37,6 +38,10 @@ class QuestEditorStore(scope: CoroutineScope, private val areaStore: AreaStore) 
                 setSectionOnQuestEntities(quest.npcs.value, variant, sections)
                 setSectionOnQuestEntities(quest.objects.value, variant, sections)
             }
+
+            // Ensure all entities have their section initialized.
+            quest.npcs.value.forEach { it.setSectionInitialized() }
+            quest.objects.value.forEach { it.setSectionInitialized() }
         }
     }
 
@@ -51,11 +56,19 @@ class QuestEditorStore(scope: CoroutineScope, private val areaStore: AreaStore) 
 
                 if (section == null) {
                     logger.warn { "Section ${entity.sectionId.value} not found." }
+                    entity.setSectionInitialized()
                 } else {
                     entity.setSection(section)
                 }
             }
         }
+    }
+
+    fun setCurrentArea(area: AreaModel?) {
+        // TODO: Set wave.
+
+        _selectedEntity.value = null
+        _currentArea.value = area
     }
 
     fun setSelectedEntity(entity: QuestEntityModel<*, *>?) {

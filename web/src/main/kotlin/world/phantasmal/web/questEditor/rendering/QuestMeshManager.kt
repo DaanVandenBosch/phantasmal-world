@@ -21,7 +21,7 @@ import world.phantasmal.web.questEditor.stores.QuestEditorStore
 abstract class QuestMeshManager protected constructor(
     private val scope: CoroutineScope,
     questEditorStore: QuestEditorStore,
-    private val renderer: QuestRenderer,
+    renderer: QuestRenderer,
     areaAssetLoader: AreaAssetLoader,
     entityAssetLoader: EntityAssetLoader,
 ) : TrackedDisposable() {
@@ -46,11 +46,13 @@ abstract class QuestMeshManager protected constructor(
     ) {
         loadJob?.cancel()
         loadJob = scope.launch {
-            areaMeshManager.load(episode, areaVariant)
-
+            // Reset models.
             areaDisposer.disposeAll()
             npcMeshManager.removeAll()
             objectMeshManager.removeAll()
+
+            // Load area model.
+            areaMeshManager.load(episode, areaVariant)
 
             // Load entity meshes.
             areaDisposer.addAll(

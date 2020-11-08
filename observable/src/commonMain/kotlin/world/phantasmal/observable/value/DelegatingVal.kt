@@ -11,7 +11,7 @@ class DelegatingVal<T>(
 
             if (value != oldValue) {
                 setter(value)
-                emit(oldValue)
+                emit()
             }
         }
 }

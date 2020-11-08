@@ -28,12 +28,12 @@ class QuestEditorMeshManager(
     private fun getAreaVariantDetails(quest: QuestModel?, area: AreaModel?): AreaVariantDetails {
         quest?.let {
             val areaVariant = area?.let {
-                quest.areaVariants.value.find { it.area.id == area.id }
+                quest.areaVariants.value.find { it.area.id == area.id } ?: area.areaVariants.first()
             }
 
             areaVariant?.let {
-                val npcs = quest.npcs // TODO: Filter NPCs.
-                val objects = quest.objects // TODO: Filter objects.
+                val npcs = quest.npcs.filtered { it.areaId == area.id }
+                val objects = quest.objects.filtered { it.areaId == area.id }
                 return AreaVariantDetails(quest.episode, areaVariant, npcs, objects)
             }
         }

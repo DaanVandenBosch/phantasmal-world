@@ -20,9 +20,9 @@ class QuestObject(override var areaId: Int, val data: Buffer) : QuestEntity<Obje
         }
 
     override var sectionId: Int
-        get() = data.getUShort(12).toInt()
+        get() = data.getShort(12).toInt()
         set(value) {
-            data.setUShort(12, value.toUShort())
+            data.setShort(12, value.toShort())
         }
 
     override var position: Vec3

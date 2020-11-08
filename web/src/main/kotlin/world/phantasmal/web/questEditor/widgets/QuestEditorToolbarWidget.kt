@@ -7,12 +7,9 @@ import world.phantasmal.lib.fileFormats.quest.Episode
 import world.phantasmal.web.questEditor.controllers.QuestEditorToolbarController
 import world.phantasmal.webui.dom.Icon
 import world.phantasmal.webui.dom.div
-import world.phantasmal.webui.widgets.Button
-import world.phantasmal.webui.widgets.FileButton
-import world.phantasmal.webui.widgets.Toolbar
-import world.phantasmal.webui.widgets.Widget
+import world.phantasmal.webui.widgets.*
 
-class QuestEditorToolbar(
+class QuestEditorToolbarWidget(
     scope: CoroutineScope,
     private val ctrl: QuestEditorToolbarController,
 ) : Widget(scope) {
@@ -36,6 +33,14 @@ class QuestEditorToolbar(
                         accept = ".bin, .dat, .qst",
                         multiple = true,
                         filesSelected = { files -> scope.launch { ctrl.openFiles(files) } }
+                    ),
+                    Select(
+                        scope,
+                        disabled = ctrl.areaSelectDisabled,
+                        itemsVal = ctrl.areas,
+                        itemToString = { it.label },
+                        selectedVal =  ctrl.currentArea,
+                        onSelect = ctrl::setCurrentArea
                     )
                 )
             ))

@@ -63,7 +63,7 @@ class QuestEditor(
         // Main Widget
         return QuestEditorWidget(
             scope,
-            { s -> QuestEditorToolbar(s, toolbarController) },
+            { s -> QuestEditorToolbarWidget(s, toolbarController) },
             { s -> QuestInfoWidget(s, questInfoController) },
             { s -> NpcCountsWidget(s, npcCountsController) },
             { s -> QuestEditorRendererWidget(s, canvas, renderer) }

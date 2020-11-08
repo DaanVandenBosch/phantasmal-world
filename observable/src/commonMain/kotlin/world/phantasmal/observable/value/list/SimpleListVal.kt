@@ -1,54 +1,29 @@
 package world.phantasmal.observable.value.list
 
-import world.phantasmal.core.disposable.Disposable
-import world.phantasmal.core.disposable.disposable
 import world.phantasmal.observable.Observable
-import world.phantasmal.observable.Observer
-import world.phantasmal.observable.value.*
+import world.phantasmal.observable.value.MutableVal
+import world.phantasmal.observable.value.Val
+import world.phantasmal.observable.value.mutableVal
 
 typealias ObservablesExtractor<E> = (element: E) -> Array<Observable<*>>
 
+/**
+ * @param elements The backing list for this ListVal
+ * @param extractObservables Extractor function called on each element in this list, changes to the
+ * returned observables will be propagated via ElementChange events
+ */
 class SimpleListVal<E>(
-    private val elements: MutableList<E>,
-    /**
-     * Extractor function called on each element in this list. Changes to the returned observables
-     * will be propagated via ElementChange events.
-     */
-    private val extractObservables: ObservablesExtractor<E>? = null,
-) : MutableListVal<E> {
+    elements: MutableList<E>,
+    extractObservables: ObservablesExtractor<E>? = null,
+) : AbstractListVal<E>(elements, extractObservables), MutableListVal<E> {
+    private val _sizeVal: MutableVal<Int> = mutableVal(elements.size)
+
     override var value: List<E> = elements
         set(value) {
-            val removed = ArrayList(elements)
-            elements.clear()
-            elements.addAll(value)
-            finalizeUpdate(
-                ListValChangeEvent.Change(
-                    index = 0,
-                    removed = removed,
-                    inserted = value
-                )
-            )
+            replaceAll(value)
         }
 
-    private val mutableSizeVal: MutableVal<Int> = mutableVal(elements.size)
-
-    override val sizeVal: Val<Int> = mutableSizeVal
-
-    /**
-     * Internal observers which observe observables related to this list's elements so that their
-     * changes can be propagated via ElementChange events.
-     */
-    private val elementObservers = mutableListOf<ElementObserver>()
-
-    /**
-     * External list observers which are observing this list.
-     */
-    private val listObservers = mutableListOf<ListValObserver<E>>()
-
-    /**
-     * External regular observers which are observing this list.
-     */
-    private val observers = mutableListOf<ValObserver<List<E>>>()
+    override val sizeVal: Val<Int> = _sizeVal
 
     override fun set(index: Int, element: E): E {
         val removed = elements.set(index, element)
@@ -93,121 +68,8 @@ class SimpleListVal<E>(
         finalizeUpdate(ListValChangeEvent.Change(0, removed, emptyList()))
     }
 
-    override fun observe(observer: Observer<List<E>>): Disposable =
-        observe(callNow = false, observer)
-
-    override fun observe(callNow: Boolean, observer: ValObserver<List<E>>): Disposable {
-        if (elementObservers.isEmpty() && extractObservables != null) {
-            replaceElementObservers(0, elementObservers.size, elements)
-        }
-
-        observers.add(observer)
-
-        if (callNow) {
-            observer(ValChangeEvent(elements, elements))
-        }
-
-        return disposable {
-            observers.remove(observer)
-            disposeElementObserversIfNecessary()
-        }
-    }
-
-    override fun observeList(callNow: Boolean, observer: ListValObserver<E>): Disposable {
-        if (elementObservers.isEmpty() && extractObservables != null) {
-            replaceElementObservers(0, elementObservers.size, elements)
-        }
-
-        listObservers.add(observer)
-
-        if (callNow) {
-            observer(ListValChangeEvent.Change(0, emptyList(), elements))
-        }
-
-        return disposable {
-            listObservers.remove(observer)
-            disposeElementObserversIfNecessary()
-        }
-    }
-
-    /**
-     * Does the following in the given order:
-     * - Updates element observers
-     * - Emits size ValChangeEvent if necessary
-     * - Emits ListValChangeEvent
-     * - Emits ValChangeEvent
-     */
-    private fun finalizeUpdate(event: ListValChangeEvent<E>) {
-        if (
-            (listObservers.isNotEmpty() || observers.isNotEmpty()) &&
-            extractObservables != null &&
-            event is ListValChangeEvent.Change
-        ) {
-            replaceElementObservers(event.index, event.removed.size, event.inserted)
-        }
-
-        mutableSizeVal.value = elements.size
-
-        listObservers.forEach { observer: ListValObserver<E> ->
-            observer(event)
-        }
-
-        val regularEvent = ValChangeEvent(elements, elements)
-
-        observers.forEach { observer: ValObserver<List<E>> ->
-            observer(regularEvent)
-        }
-    }
-
-    private fun replaceElementObservers(from: Int, amountRemoved: Int, insertedElements: List<E>) {
-        for (i in 1..amountRemoved) {
-            elementObservers.removeAt(from).observers.forEach { it.dispose() }
-        }
-
-        var index = from
-
-        elementObservers.addAll(
-            from,
-            insertedElements.map { element ->
-                ElementObserver(
-                    index++,
-                    element,
-                    extractObservables!!(element)
-                )
-            }
-        )
-
-        val shift = insertedElements.size - amountRemoved
-
-        while (index < elementObservers.size) {
-            elementObservers[index++].index += shift
-        }
-    }
-
-    private fun disposeElementObserversIfNecessary() {
-        if (listObservers.isEmpty() && observers.isEmpty()) {
-            elementObservers.forEach { elementObserver: ElementObserver ->
-                elementObserver.observers.forEach { it.dispose() }
-            }
-
-            elementObservers.clear()
-        }
-    }
-
-    private inner class ElementObserver(
-        var index: Int,
-        element: E,
-        observables: Array<Observable<*>>,
-    ) {
-        val observers: Array<Disposable> = Array(observables.size) {
-            observables[it].observe {
-                finalizeUpdate(
-                    ListValChangeEvent.ElementChange(
-                        index,
-                        listOf(element)
-                    )
-                )
-            }
-        }
+    override fun finalizeUpdate(event: ListValChangeEvent<E>) {
+        _sizeVal.value = elements.size
+        super.finalizeUpdate(event)
     }
 }

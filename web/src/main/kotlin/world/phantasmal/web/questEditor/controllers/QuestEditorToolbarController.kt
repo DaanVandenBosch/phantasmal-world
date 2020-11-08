@@ -11,7 +11,9 @@ import world.phantasmal.lib.fileFormats.quest.parseBinDatToQuest
 import world.phantasmal.lib.fileFormats.quest.parseQstToQuest
 import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.mutableVal
+import world.phantasmal.observable.value.value
 import world.phantasmal.web.questEditor.loading.QuestLoader
+import world.phantasmal.web.questEditor.models.AreaModel
 import world.phantasmal.web.questEditor.stores.AreaStore
 import world.phantasmal.web.questEditor.stores.QuestEditorStore
 import world.phantasmal.web.questEditor.stores.convertQuestToModel
@@ -19,6 +21,8 @@ import world.phantasmal.webui.controllers.Controller
 import world.phantasmal.webui.readFile
 
 private val logger = KotlinLogging.logger {}
+
+class AreaAndLabel(val area: AreaModel, val label: String)
 
 class QuestEditorToolbarController(
     private val questLoader: QuestLoader,
@@ -30,6 +34,28 @@ class QuestEditorToolbarController(
 
     val resultDialogVisible: Val<Boolean> = _resultDialogVisible
     val result: Val<PwResult<*>?> = _result
+
+    // Ensure the areas list is updated when entities are added or removed (the count in the
+    // label should update).
+    val areas: Val<List<AreaAndLabel>> = questEditorStore.currentQuest.flatMap { quest ->
+        quest?.let {
+            quest.entitiesPerArea.map { entitiesPerArea ->
+                areaStore.getAreasForEpisode(quest.episode).map { area ->
+                    val entityCount = entitiesPerArea[area.id]
+                    AreaAndLabel(area, area.name + (entityCount?.let { " ($it)" } ?: ""))
+                }
+            }
+        } ?: value(emptyList())
+    }
+    val currentArea: Val<AreaAndLabel?> = areas.map(questEditorStore.currentArea) { areas, area ->
+        areas.find { it.area == area }
+    }
+    val areaSelectDisabled: Val<Boolean>
+
+    init {
+        val noQuestLoaded = questEditorStore.currentQuest.map { it == null }
+        areaSelectDisabled = noQuestLoaded
+    }
 
     suspend fun createNewQuest(episode: Episode) {
         questEditorStore.setCurrentQuest(
@@ -79,6 +105,10 @@ class QuestEditorToolbarController(
                     .failure()
             )
         }
+    }
+
+    fun setCurrentArea(areaAndLabel: AreaAndLabel) {
+        questEditorStore.setCurrentArea(areaAndLabel.area)
     }
 
     private suspend fun setCurrentQuest(quest: Quest) {

@@ -3,6 +3,7 @@ package world.phantasmal.observable.value
 import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.core.disposable.disposable
 import world.phantasmal.core.unsafeToNonNull
+import world.phantasmal.observable.Observer
 
 /**
  * Starts observing its dependencies when the first observer on this val is registered. Stops
@@ -17,19 +18,26 @@ abstract class DependentVal<T>(
      */
     private val dependencyObservers = mutableListOf<Disposable>()
 
+    /**
+     * Set to true right before actual observers are added.
+     */
+    protected var hasObservers = false
+
     protected var _value: T? = null
 
     override val value: T
         get() {
-            if (hasNoObservers()) {
+            if (!hasObservers) {
                 _value = computeValue()
             }
 
             return _value.unsafeToNonNull()
         }
 
-    override fun observe(callNow: Boolean, observer: ValObserver<T>): Disposable {
-        if (hasNoObservers()) {
+    override fun observe(callNow: Boolean, observer: Observer<T>): Disposable {
+        if (dependencyObservers.isEmpty()) {
+            hasObservers = true
+
             dependencies.forEach { dependency ->
                 dependencyObservers.add(
                     dependency.observe {
@@ -37,7 +45,7 @@ abstract class DependentVal<T>(
                         _value = computeValue()
 
                         if (_value != oldValue) {
-                            emit(oldValue.unsafeToNonNull())
+                            emit()
                         }
                     }
                 )
@@ -52,17 +60,12 @@ abstract class DependentVal<T>(
             superDisposable.dispose()
 
             if (observers.isEmpty()) {
+                hasObservers = false
                 dependencyObservers.forEach { it.dispose() }
                 dependencyObservers.clear()
             }
         }
     }
-
-    protected fun hasObservers(): Boolean =
-        dependencyObservers.isNotEmpty()
-
-    protected fun hasNoObservers(): Boolean =
-        dependencyObservers.isEmpty()
 
     protected abstract fun computeValue(): T
 }

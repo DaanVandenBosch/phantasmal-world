@@ -18,6 +18,7 @@ abstract class QuestEntityModel<Type : EntityType, Entity : QuestEntity<Type>>(
 ) {
     private val _sectionId = mutableVal(entity.sectionId)
     private val _section = mutableVal<SectionModel?>(null)
+    private val _sectionInitialized = mutableVal(false)
     private val _position = mutableVal(vec3ToBabylon(entity.position))
     private val _worldPosition = mutableVal(_position.value)
     private val _rotation = mutableVal(vec3ToBabylon(entity.rotation))
@@ -30,6 +31,7 @@ abstract class QuestEntityModel<Type : EntityType, Entity : QuestEntity<Type>>(
     val sectionId: Val<Int> = _sectionId
 
     val section: Val<SectionModel?> = _section
+    val sectionInitialized: Val<Boolean> = _sectionInitialized
 
     /**
      * Section-relative position
@@ -57,6 +59,12 @@ abstract class QuestEntityModel<Type : EntityType, Entity : QuestEntity<Type>>(
 
         setPosition(position.value)
         setRotation(rotation.value)
+
+        setSectionInitialized()
+    }
+
+    fun setSectionInitialized() {
+        _sectionInitialized.value = true
     }
 
     fun setPosition(pos: Vector3) {
