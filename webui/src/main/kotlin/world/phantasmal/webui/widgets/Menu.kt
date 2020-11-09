@@ -6,6 +6,7 @@ import org.w3c.dom.*
 import org.w3c.dom.events.Event
 import org.w3c.dom.events.KeyboardEvent
 import org.w3c.dom.events.MouseEvent
+import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.falseVal
 import world.phantasmal.observable.value.value
@@ -34,6 +35,7 @@ class Menu<T : Any>(
     private var highlightedIndex: Int? = null
     private var highlightedElement: Element? = null
     private var previouslyFocusedElement: Element? = null
+    private var onDocumentMouseDownListener: Disposable? = null
 
     override fun Node.createElement() =
         div {
@@ -57,12 +59,14 @@ class Menu<T : Any>(
 
             observe(this@Menu.hidden) {
                 if (it) {
-                    document.removeEventListener("mousedown", ::onDocumentMouseDown)
+                    onDocumentMouseDownListener?.dispose()
+                    onDocumentMouseDownListener = null
                     clearHighlightItem()
 
                     (previouslyFocusedElement as HTMLElement?)?.focus()
                 } else {
-                    document.addEventListener("mousedown", ::onDocumentMouseDown)
+                    onDocumentMouseDownListener =
+                        disposableListener(document, "mousedown", ::onDocumentMouseDown)
                 }
             }
 
@@ -76,7 +80,7 @@ class Menu<T : Any>(
         }
 
     override fun internalDispose() {
-        document.removeEventListener("mousedown", ::onDocumentMouseDown)
+        onDocumentMouseDownListener?.dispose()
         super.internalDispose()
     }
 

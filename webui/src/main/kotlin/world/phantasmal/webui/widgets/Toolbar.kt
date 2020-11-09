@@ -52,15 +52,15 @@ class Toolbar(
                     flex-direction: row;
                     align-items: center;
                     border-bottom: var(--pw-border);
-                    padding: 0 2px;
+                    padding: 3px 2px;
                 }
 
                 .pw-toolbar > * {
-                    margin: 2px 1px;
+                    margin: 0 1px;
                 }
 
                 .pw-toolbar > .pw-toolbar-group {
-                    margin: 2px 3px;
+                    margin: 0 3px;
                     display: flex;
                     flex-direction: row;
                     align-items: center;

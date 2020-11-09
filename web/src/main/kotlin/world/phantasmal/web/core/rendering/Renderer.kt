@@ -9,11 +9,11 @@ private val logger = KotlinLogging.logger {}
 
 abstract class Renderer(
     val canvas: HTMLCanvasElement,
-    protected val engine: Engine,
+    val engine: Engine,
 ) : DisposableContainer() {
     private val light: HemisphericLight
 
-    protected abstract val camera: Camera
+    abstract val camera: Camera
 
     val scene = Scene(engine)
 
@@ -44,7 +44,7 @@ abstract class Renderer(
         engine.stopRenderLoop()
     }
 
-    private fun render() {
+    protected open fun render() {
         val lightDirection = Vector3(-1.0, 1.0, 1.0)
         lightDirection.rotateByQuaternionToRef(camera.absoluteRotation, lightDirection)
         light.direction = lightDirection

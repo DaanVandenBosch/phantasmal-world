@@ -21,14 +21,14 @@ import world.phantasmal.web.questEditor.stores.QuestEditorStore
 abstract class QuestMeshManager protected constructor(
     private val scope: CoroutineScope,
     questEditorStore: QuestEditorStore,
-    renderer: QuestRenderer,
+    private val renderer: QuestRenderer,
     areaAssetLoader: AreaAssetLoader,
     entityAssetLoader: EntityAssetLoader,
 ) : TrackedDisposable() {
     protected val disposer = Disposer()
 
     private val areaDisposer = disposer.add(Disposer())
-    private val areaMeshManager = AreaMeshManager(areaAssetLoader)
+    private val areaMeshManager = AreaMeshManager(renderer, areaAssetLoader)
     private val npcMeshManager = disposer.add(
         EntityMeshManager(scope, questEditorStore, renderer, entityAssetLoader)
     )
@@ -50,6 +50,8 @@ abstract class QuestMeshManager protected constructor(
             areaDisposer.disposeAll()
             npcMeshManager.removeAll()
             objectMeshManager.removeAll()
+
+            renderer.resetCamera()
 
             // Load area model.
             areaMeshManager.load(episode, areaVariant)

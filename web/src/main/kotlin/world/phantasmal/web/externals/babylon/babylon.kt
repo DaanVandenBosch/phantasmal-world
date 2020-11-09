@@ -50,6 +50,7 @@ external class Vector3(x: Double, y: Double, z: Double) {
     companion object {
         fun One(): Vector3
         fun Up(): Vector3
+        fun Down(): Vector3
         fun Zero(): Vector3
         fun Dot(left: Vector3, right: Vector3): Double
         fun TransformCoordinates(vector: Vector3, transformation: Matrix): Vector3
@@ -145,6 +146,8 @@ open external class ThinEngine {
      * be removed.
      */
     fun stopRenderLoop(renderFunction: () -> Unit = definedExternally)
+    fun getRenderWidth(useScreen: Boolean = definedExternally): Double
+    fun getRenderHeight(useScreen: Boolean = definedExternally): Double
 
     fun dispose()
 }
@@ -154,7 +157,7 @@ external class Engine(
     antialias: Boolean = definedExternally,
 ) : ThinEngine
 
-external class Ray
+external class Ray(origin: Vector3, direction: Vector3, length: Double = definedExternally)
 
 external class PickingInfo {
     val bu: Double
@@ -166,6 +169,13 @@ external class PickingInfo {
     val pickedMesh: AbstractMesh?
     val pickedPoint: Vector3?
     val ray: Ray?
+
+    fun getNormal(
+        useWorldCoordinates: Boolean = definedExternally,
+        useVerticesNormals: Boolean = definedExternally,
+    ): Vector3?
+
+    fun getTextureCoordinates(): Vector2?
 }
 
 external class Scene(engine: Engine) {
@@ -189,6 +199,32 @@ external class Scene(engine: Engine) {
         camera: Camera? = definedExternally,
         trianglePredicate: (p0: Vector3, p1: Vector3, p2: Vector3, ray: Ray) -> Boolean = definedExternally,
     ): PickingInfo?
+
+    fun pickWithRay(
+        ray: Ray,
+        predicate: (AbstractMesh) -> Boolean = definedExternally,
+        fastCheck: Boolean = definedExternally,
+        trianglePredicate: (p0: Vector3, p1: Vector3, p2: Vector3, ray: Ray) -> Boolean = definedExternally,
+    ): PickingInfo?
+
+    /**
+     * @param x X position on screen
+     * @param y Y position on screen
+     * @param predicate Predicate function used to determine eligible meshes. Can be set to null. In this case, a mesh must be enabled, visible and with isPickable set to true
+     */
+    fun multiPick(
+        x: Double,
+        y: Double,
+        predicate: (AbstractMesh) -> Boolean = definedExternally,
+        camera: Camera = definedExternally,
+        trianglePredicate: (p0: Vector3, p1: Vector3, p2: Vector3, ray: Ray) -> Boolean = definedExternally,
+    ): Array<PickingInfo>?
+
+    fun multiPickWithRay(
+        ray: Ray,
+        predicate: (AbstractMesh) -> Boolean = definedExternally,
+        trianglePredicate: (p0: Vector3, p1: Vector3, p2: Vector3, ray: Ray) -> Boolean = definedExternally,
+    ): Array<PickingInfo>?
 
     fun dispose()
 }
@@ -214,15 +250,21 @@ open external class Node {
 }
 
 open external class Camera : Node {
+    var minZ: Double
+    var maxZ: Double
     val absoluteRotation: Quaternion
     val onProjectionMatrixChangedObservable: Observable<Camera>
     val onViewMatrixChangedObservable: Observable<Camera>
     val onAfterCheckInputsObservable: Observable<Camera>
 
     fun attachControl(noPreventDefault: Boolean = definedExternally)
+    fun storeState(): Camera
+    fun restoreState(): Boolean
 }
 
-open external class TargetCamera : Camera
+open external class TargetCamera : Camera {
+    var target: Vector3
+}
 
 /**
  * @param setActiveOnSceneIfNoneActive default true
@@ -236,6 +278,9 @@ external class ArcRotateCamera(
     scene: Scene,
     setActiveOnSceneIfNoneActive: Boolean = definedExternally,
 ) : TargetCamera {
+    var alpha: Double
+    var beta: Double
+    var radius: Double
     var inertia: Double
     var angularSensibilityX: Double
     var angularSensibilityY: Double
@@ -244,6 +289,7 @@ external class ArcRotateCamera(
     var panningAxis: Vector3
     var pinchDeltaPercentage: Double
     var wheelDeltaPercentage: Double
+    var lowerBetaLimit: Double
 
     fun attachControl(
         element: HTMLCanvasElement,

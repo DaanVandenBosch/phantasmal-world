@@ -19,6 +19,7 @@ import world.phantasmal.web.externals.babylon.Scene
 import world.phantasmal.web.externals.babylon.TransformNode
 import world.phantasmal.web.questEditor.models.AreaVariantModel
 import world.phantasmal.web.questEditor.models.SectionModel
+import world.phantasmal.web.questEditor.rendering.CollisionMetadata
 import world.phantasmal.webui.DisposableContainer
 
 /**
@@ -261,6 +262,7 @@ private fun areaCollisionGeometryToTransformNode(
         if (builder.vertexCount > 0) {
             val mesh = Mesh("Collision Geometry", scene, parent = node)
             builder.build().applyToMesh(mesh)
+            mesh.metadata = CollisionMetadata()
         }
     }
 

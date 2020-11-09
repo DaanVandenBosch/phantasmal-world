@@ -13,7 +13,7 @@ import world.phantasmal.web.questEditor.controllers.QuestInfoController
 import world.phantasmal.web.questEditor.loading.AreaAssetLoader
 import world.phantasmal.web.questEditor.loading.EntityAssetLoader
 import world.phantasmal.web.questEditor.loading.QuestLoader
-import world.phantasmal.web.questEditor.rendering.EntityManipulator
+import world.phantasmal.web.questEditor.rendering.UserInputManager
 import world.phantasmal.web.questEditor.rendering.QuestEditorMeshManager
 import world.phantasmal.web.questEditor.rendering.QuestRenderer
 import world.phantasmal.web.questEditor.stores.AreaStore
@@ -57,7 +57,7 @@ class QuestEditor(
                 areaAssetLoader,
                 entityAssetLoader
             ),
-            EntityManipulator(questEditorStore, renderer)
+            UserInputManager(questEditorStore, renderer)
         )
 
         // Main Widget

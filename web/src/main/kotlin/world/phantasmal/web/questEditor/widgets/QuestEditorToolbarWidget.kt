@@ -39,7 +39,7 @@ class QuestEditorToolbarWidget(
                         disabled = ctrl.areaSelectDisabled,
                         itemsVal = ctrl.areas,
                         itemToString = { it.label },
-                        selectedVal =  ctrl.currentArea,
+                        selectedVal = ctrl.currentArea,
                         onSelect = ctrl::setCurrentArea
                     )
                 )

@@ -11,7 +11,6 @@ import world.phantasmal.web.questEditor.models.QuestEntityModel
 import world.phantasmal.web.questEditor.models.QuestNpcModel
 import world.phantasmal.web.questEditor.models.QuestObjectModel
 import world.phantasmal.web.questEditor.models.WaveModel
-import world.phantasmal.web.questEditor.rendering.conversion.EntityMetadata
 import world.phantasmal.web.questEditor.stores.QuestEditorStore
 import world.phantasmal.webui.DisposableContainer
 
