@@ -16,12 +16,6 @@ class QuestRenderer(canvas: HTMLCanvasElement, engine: Engine) : Renderer(canvas
 
     init {
         with(camera) {
-            attachControl(
-                canvas,
-                noPreventDefault = false,
-                useCtrlForPanning = false,
-                panningMouseButton = 0
-            )
             inertia = 0.0
             angularSensibilityX = 200.0
             angularSensibilityY = 200.0
@@ -38,12 +32,27 @@ class QuestRenderer(canvas: HTMLCanvasElement, engine: Engine) : Renderer(canvas
                 updatePanningSensibility()
             })
 
+            enableCameraControls()
+
             camera.storeState()
         }
     }
 
     fun resetCamera() {
         camera.restoreState()
+    }
+
+    fun enableCameraControls() {
+        camera.attachControl(
+            canvas,
+            noPreventDefault = false,
+            useCtrlForPanning = false,
+            panningMouseButton = 0
+        )
+    }
+
+    fun disableCameraControls() {
+        camera.detachControl()
     }
 
     override fun render() {
@@ -53,8 +62,8 @@ class QuestRenderer(canvas: HTMLCanvasElement, engine: Engine) : Renderer(canvas
     }
 
     /**
-     * Make "panningSensibility" an inverse function of radius to make panning work "sensibly"
-     * at all distances.
+     * Make "panningSensibility" an inverse function of radius to make panning work "sensibly" at
+     * all distances.
      */
     private fun updatePanningSensibility() {
         camera.panningSensibility = 1_000 / camera.radius

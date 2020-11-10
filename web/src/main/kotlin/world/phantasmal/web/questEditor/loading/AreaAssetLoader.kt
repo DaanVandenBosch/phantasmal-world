@@ -68,7 +68,7 @@ class AreaAssetLoader(
             scope.async {
                 val buffer = getAreaAsset(episode, areaVariant, AssetType.Collision)
                 val obj = parseAreaCollisionGeometry(buffer.cursor(Endianness.Little))
-                areaCollisionGeometryToTransformNode(scene, obj)
+                areaCollisionGeometryToTransformNode(scene, obj, episode, areaVariant)
             }
         }.await()
 
@@ -226,10 +226,15 @@ private fun areaGeometryToTransformNodeAndSections(
 private fun areaCollisionGeometryToTransformNode(
     scene: Scene,
     obj: CollisionObject,
+    episode: Episode,
+    areaVariant: AreaVariantModel,
 ): TransformNode {
-    val node = TransformNode("Collision Geometry", scene)
+    val node = TransformNode(
+        "Collision Geometry $episode-${areaVariant.area.id}-${areaVariant.id}",
+        scene
+    )
 
-    for (collisionMesh in obj.meshes) {
+    obj.meshes.forEachIndexed { i, collisionMesh ->
         val builder = VertexDataBuilder()
 
         for (triangle in collisionMesh.triangles) {
@@ -260,7 +265,11 @@ private fun areaCollisionGeometryToTransformNode(
         }
 
         if (builder.vertexCount > 0) {
-            val mesh = Mesh("Collision Geometry", scene, parent = node)
+            val mesh = Mesh(
+                "Collision Geometry $episode-${areaVariant.area.id}-${areaVariant.id}-$i",
+                scene,
+                parent = node
+            )
             builder.build().applyToMesh(mesh)
             mesh.metadata = CollisionMetadata()
         }

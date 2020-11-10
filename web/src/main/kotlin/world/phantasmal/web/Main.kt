@@ -8,6 +8,8 @@ import kotlinx.browser.window
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import mu.KotlinLoggingConfiguration
+import mu.KotlinLoggingLevel
 import org.w3c.dom.PopStateEvent
 import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.core.disposable.Disposer
@@ -30,6 +32,10 @@ fun main() {
 }
 
 private fun init(): Disposable {
+    if (window.location.hostname == "localhost") {
+        KotlinLoggingConfiguration.LOG_LEVEL = KotlinLoggingLevel.TRACE
+    }
+
     val disposer = Disposer()
 
     val rootElement = document.body!!.root()

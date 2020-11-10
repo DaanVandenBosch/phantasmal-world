@@ -20,8 +20,10 @@ class AreaMeshManager(
 
         try {
             val geom = areaAssetLoader.loadCollisionGeometry(episode, areaVariant)
-            geom.setEnabled(true)
+            // Call setEnabled(false) on renderer.collisionGeometry before calling setEnabled(true)
+            // on geom, because they can refer to the same object.
             renderer.collisionGeometry?.setEnabled(false)
+            geom.setEnabled(true)
             renderer.collisionGeometry = geom
         } catch (e: Exception) {
             logger.error(e) {

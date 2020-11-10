@@ -5,10 +5,9 @@ import world.phantasmal.lib.fileFormats.quest.EntityType
 import world.phantasmal.lib.fileFormats.quest.QuestEntity
 import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.mutableVal
-import world.phantasmal.web.core.plusAssign
+import world.phantasmal.web.core.*
 import world.phantasmal.web.core.rendering.conversion.babylonToVec3
 import world.phantasmal.web.core.rendering.conversion.vec3ToBabylon
-import world.phantasmal.web.core.timesAssign
 import world.phantasmal.web.externals.babylon.Quaternion
 import world.phantasmal.web.externals.babylon.Vector3
 import kotlin.math.PI
@@ -75,11 +74,24 @@ abstract class QuestEntityModel<Type : EntityType, Entity : QuestEntity<Type>>(
         val section = section.value
 
         _worldPosition.value =
+            section?.rotationQuaternion?.transformed(pos)?.also {
+                it += section.position
+            } ?: pos
+    }
+
+    fun setWorldPosition(pos: Vector3) {
+        _worldPosition.value = pos
+
+        val section = section.value
+
+        val relPos =
             if (section == null) pos
-            else Vector3.Zero().also { worldPos ->
-                pos.rotateByQuaternionToRef(section.rotationQuaternion, worldPos)
-                worldPos += section.position
+            else (pos - section.position).also {
+                section.inverseRotationQuaternion.transform(it)
             }
+
+        entity.position = babylonToVec3(relPos)
+        _position.value = relPos
     }
 
     fun setRotation(rot: Vector3) {

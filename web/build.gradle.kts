@@ -39,7 +39,7 @@ dependencies {
     implementation("io.ktor:ktor-client-serialization-js:$ktorVersion")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-core-js:1.0.0")
     implementation(npm("golden-layout", "1.5.9"))
-    implementation(npm("@babylonjs/core", "4.1.0"))
+    implementation(npm("@babylonjs/core", "4.2.0-rc.5"))
 
     testImplementation(kotlin("test-js"))
     testImplementation(project(":test-utils"))

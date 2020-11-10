@@ -35,6 +35,7 @@ external class Vector3(x: Double, y: Double, z: Double) {
 
     fun set(x: Double, y: Double, z: Double): Vector2
     fun toQuaternion(): Quaternion
+    fun add(otherVector: Vector3): Vector3
     fun addInPlace(otherVector: Vector3): Vector3
     fun addInPlaceFromFloats(x: Double, y: Double, z: Double): Vector3
     fun subtract(otherVector: Vector3): Vector3
@@ -42,6 +43,19 @@ external class Vector3(x: Double, y: Double, z: Double) {
     fun negate(): Vector3
     fun negateInPlace(): Vector3
     fun cross(other: Vector3): Vector3
+
+    /**
+     * Returns a new Vector3 set with the current Vector3 coordinates multiplied by the float "scale"
+     */
+    fun scale(scale: Double): Vector3
+
+    /**
+     * Multiplies the Vector3 coordinates by the float "scale"
+     *
+     * @return the current updated Vector3
+     */
+    fun scaleInPlace(scale: Double): Vector3
+
     fun rotateByQuaternionToRef(quaternion: Quaternion, result: Vector3): Vector3
     fun clone(): Vector3
     fun copyFrom(source: Vector3): Vector3
@@ -94,6 +108,7 @@ external class Quaternion(
         fun FromEulerAngles(x: Double, y: Double, z: Double): Quaternion
         fun FromEulerAnglesToRef(x: Double, y: Double, z: Double, result: Quaternion): Quaternion
         fun RotationYawPitchRoll(yaw: Double, pitch: Double, roll: Double): Quaternion
+        fun Inverse(q: Quaternion): Quaternion
     }
 }
 
@@ -105,6 +120,8 @@ external class Matrix {
     fun equals(value: Matrix): Boolean
 
     companion object {
+        val IdentityReadOnly: Matrix
+
         fun Identity(): Matrix
         fun Compose(scale: Vector3, rotation: Quaternion, translation: Vector3): Matrix
     }
@@ -157,7 +174,17 @@ external class Engine(
     antialias: Boolean = definedExternally,
 ) : ThinEngine
 
-external class Ray(origin: Vector3, direction: Vector3, length: Double = definedExternally)
+external class Ray(origin: Vector3, direction: Vector3, length: Double = definedExternally) {
+    var origin: Vector3
+    var direction: Vector3
+    var length: Double
+
+    fun intersectsPlane(plane: Plane): Double?
+
+    companion object {
+        fun Zero(): Ray
+    }
+}
 
 external class PickingInfo {
     val bu: Double
@@ -191,6 +218,31 @@ external class Scene(engine: Engine) {
     fun removeLight(toRemove: Light)
     fun removeMesh(toRemove: TransformNode, recursive: Boolean? = definedExternally)
     fun removeTransformNode(toRemove: TransformNode)
+
+    fun createPickingRay(
+        x: Double,
+        y: Double,
+        world: Matrix,
+        camera: Camera?,
+        cameraViewSpace: Boolean = definedExternally,
+    ): Ray
+
+    fun createPickingRayToRef(
+        x: Double,
+        y: Double,
+        world: Matrix,
+        result: Ray,
+        camera: Camera?,
+        cameraViewSpace: Boolean = definedExternally,
+    ): Scene
+
+    fun createPickingRayInCameraSpaceToRef(
+        x: Double,
+        y: Double,
+        result: Ray,
+        camera: Camera = definedExternally,
+    ): Scene
+
     fun pick(
         x: Double,
         y: Double,
@@ -233,10 +285,9 @@ open external class Node {
     var metadata: Any?
     var parent: Node?
 
+    fun isEnabled(checkAncestors: Boolean = definedExternally): Boolean
     fun setEnabled(value: Boolean)
-    fun getViewMatrix(force: Boolean = definedExternally): Matrix
-    fun getProjectionMatrix(force: Boolean = definedExternally): Matrix
-    fun getTransformationMatrix(): Matrix
+    fun getWorldMatrix(): Matrix
 
     /**
      * Releases resources associated with this node.
@@ -257,7 +308,11 @@ open external class Camera : Node {
     val onViewMatrixChangedObservable: Observable<Camera>
     val onAfterCheckInputsObservable: Observable<Camera>
 
+    fun getViewMatrix(force: Boolean = definedExternally): Matrix
+    fun getProjectionMatrix(force: Boolean = definedExternally): Matrix
+    fun getTransformationMatrix(): Matrix
     fun attachControl(noPreventDefault: Boolean = definedExternally)
+    fun detachControl()
     fun storeState(): Camera
     fun restoreState(): Boolean
 }
@@ -290,6 +345,7 @@ external class ArcRotateCamera(
     var pinchDeltaPercentage: Double
     var wheelDeltaPercentage: Double
     var lowerBetaLimit: Double
+    val inputs: ArcRotateCameraInputsManager
 
     fun attachControl(
         element: HTMLCanvasElement,
@@ -298,6 +354,13 @@ external class ArcRotateCamera(
         panningMouseButton: Int,
     )
 }
+
+open external class CameraInputsManager<TCamera : Camera> {
+    fun attachElement(noPreventDefault: Boolean = definedExternally)
+    fun detachElement(disconnect: Boolean = definedExternally)
+}
+
+external class ArcRotateCameraInputsManager : CameraInputsManager<ArcRotateCamera>
 
 abstract external class Light : Node
 
@@ -386,6 +449,18 @@ external class MeshBuilder {
             options: CreateCylinderOptions,
             scene: Scene? = definedExternally,
         ): Mesh
+    }
+}
+
+external class Plane(a: Double, b: Double, c: Double, d: Double) {
+    var normal: Vector3
+    var d: Double
+
+    companion object {
+        /**
+         *	Note : the vector "normal" is updated because normalized.
+         */
+        fun FromPositionAndNormal(origin: Vector3, normal: Vector3): Plane
     }
 }
 

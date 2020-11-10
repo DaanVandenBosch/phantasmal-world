@@ -1,5 +1,6 @@
 package world.phantasmal.web.questEditor.models
 
+import world.phantasmal.web.core.inverse
 import world.phantasmal.web.externals.babylon.Quaternion
 import world.phantasmal.web.externals.babylon.Vector3
 
@@ -17,4 +18,6 @@ class SectionModel(
 
     val rotationQuaternion: Quaternion =
         Quaternion.FromEulerAngles(rotation.x, rotation.y, rotation.z)
+
+    val inverseRotationQuaternion: Quaternion = rotationQuaternion.inverse()
 }
