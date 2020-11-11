@@ -9,9 +9,8 @@ import world.phantasmal.lib.fileFormats.quest.Episode
 import world.phantasmal.lib.fileFormats.quest.Quest
 import world.phantasmal.lib.fileFormats.quest.parseBinDatToQuest
 import world.phantasmal.lib.fileFormats.quest.parseQstToQuest
-import world.phantasmal.observable.value.Val
-import world.phantasmal.observable.value.mutableVal
-import world.phantasmal.observable.value.value
+import world.phantasmal.observable.value.*
+import world.phantasmal.web.core.undo.UndoManager
 import world.phantasmal.web.questEditor.loading.QuestLoader
 import world.phantasmal.web.questEditor.models.AreaModel
 import world.phantasmal.web.questEditor.stores.AreaStore
@@ -32,11 +31,31 @@ class QuestEditorToolbarController(
     private val _resultDialogVisible = mutableVal(false)
     private val _result = mutableVal<PwResult<*>?>(null)
 
+    // Result
+
     val resultDialogVisible: Val<Boolean> = _resultDialogVisible
     val result: Val<PwResult<*>?> = _result
 
-    // Ensure the areas list is updated when entities are added or removed (the count in the
-    // label should update).
+    // Undo
+
+    val undoTooltip: Val<String> = questEditorStore.firstUndo.map { action ->
+        (action?.let { "Undo \"${action.description}\"" } ?: "Nothing to undo") + " (Ctrl-Z)"
+    }
+
+    val undoEnabled: Val<Boolean> = questEditorStore.canUndo
+
+    // Redo
+
+    val redoTooltip: Val<String> = questEditorStore.firstRedo.map { action ->
+        (action?.let { "Redo \"${action.description}\"" } ?: "Nothing to redo") + " (Ctrl-Shift-Z)"
+    }
+
+    val redoEnabled: Val<Boolean> = questEditorStore.canRedo
+
+    // Areas
+
+    // Ensure the areas list is updated when entities are added or removed (the count in the label
+    // should update).
     val areas: Val<List<AreaAndLabel>> = questEditorStore.currentQuest.flatMap { quest ->
         quest?.let {
             quest.entitiesPerArea.map { entitiesPerArea ->
@@ -47,15 +66,12 @@ class QuestEditorToolbarController(
             }
         } ?: value(emptyList())
     }
+
     val currentArea: Val<AreaAndLabel?> = areas.map(questEditorStore.currentArea) { areas, area ->
         areas.find { it.area == area }
     }
-    val areaSelectDisabled: Val<Boolean>
 
-    init {
-        val noQuestLoaded = questEditorStore.currentQuest.map { it == null }
-        areaSelectDisabled = noQuestLoaded
-    }
+    val areaSelectEnabled: Val<Boolean> = questEditorStore.currentQuest.isNotNull()
 
     suspend fun createNewQuest(episode: Episode) {
         questEditorStore.setCurrentQuest(
@@ -105,6 +121,14 @@ class QuestEditorToolbarController(
                     .failure()
             )
         }
+    }
+
+    fun undo() {
+        questEditorStore.undo()
+    }
+
+    fun redo() {
+        questEditorStore.redo()
     }
 
     fun setCurrentArea(areaAndLabel: AreaAndLabel) {

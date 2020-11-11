@@ -8,6 +8,8 @@ import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.core.disposable.disposable
 import world.phantasmal.testUtils.TestContext
 import world.phantasmal.web.core.loading.AssetLoader
+import world.phantasmal.web.core.stores.ApplicationUrl
+import world.phantasmal.web.core.stores.UiStore
 import world.phantasmal.web.externals.babylon.Engine
 import world.phantasmal.web.externals.babylon.Scene
 import world.phantasmal.web.questEditor.loading.AreaAssetLoader
@@ -33,6 +35,8 @@ class TestComponents(private val ctx: TestContext) {
         }
     }
 
+    var applicationUrl: ApplicationUrl by default { TestApplicationUrl("") }
+
     // Babylon.js
 
     var scene: Scene by default { Scene(Engine(null)) }
@@ -49,10 +53,12 @@ class TestComponents(private val ctx: TestContext) {
 
     // Stores
 
+    var uiStore: UiStore by default { UiStore(ctx.scope, applicationUrl) }
+
     var areaStore: AreaStore by default { AreaStore(ctx.scope, areaAssetLoader) }
 
     var questEditorStore: QuestEditorStore by default {
-        QuestEditorStore(ctx.scope, areaStore)
+        QuestEditorStore(ctx.scope, uiStore, areaStore)
     }
 
     private fun <T> default(defaultValue: () -> T) = LazyDefault {

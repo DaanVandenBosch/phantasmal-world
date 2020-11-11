@@ -10,13 +10,13 @@ enum class LabelPosition {
 
 abstract class LabelledControl(
     scope: CoroutineScope,
-    hidden: Val<Boolean>,
-    disabled: Val<Boolean>,
-    tooltip: String? = null,
+    visible: Val<Boolean>,
+    enabled: Val<Boolean>,
+    tooltip: Val<String?>,
     label: String?,
     labelVal: Val<String>?,
     val preferredLabelPosition: LabelPosition,
-) : Control(scope, hidden, disabled, tooltip) {
+) : Control(scope, visible, enabled, tooltip) {
     val label: Label? by lazy {
         if (label == null && labelVal == null) {
             null
@@ -28,7 +28,7 @@ abstract class LabelledControl(
                 element.id = id
             }
 
-            Label(scope, hidden, disabled, label, labelVal, htmlFor = id)
+            Label(scope, visible, enabled, label, labelVal, htmlFor = id)
         }
     }
 

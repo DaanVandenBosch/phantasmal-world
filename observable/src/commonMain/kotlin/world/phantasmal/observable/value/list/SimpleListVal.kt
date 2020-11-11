@@ -25,7 +25,10 @@ class SimpleListVal<E>(
 
     override val sizeVal: Val<Int> = _sizeVal
 
-    override fun set(index: Int, element: E): E {
+    override operator fun get(index: Int): E =
+        elements[index]
+
+    override operator fun set(index: Int, element: E): E {
         val removed = elements.set(index, element)
         finalizeUpdate(ListValChangeEvent.Change(index, listOf(removed), listOf(element)))
         return removed
@@ -60,6 +63,13 @@ class SimpleListVal<E>(
         this.elements.clear()
         this.elements.addAll(elements)
         finalizeUpdate(ListValChangeEvent.Change(0, removed, this.elements))
+    }
+
+    override fun splice(from: Int, removeCount: Int, newElement: E) {
+        val removed = ArrayList(elements.subList(from, from + removeCount))
+        repeat(removeCount) { elements.removeAt(from) }
+        elements.add(from, newElement)
+        finalizeUpdate(ListValChangeEvent.Change(from, removed, listOf(newElement)))
     }
 
     override fun clear() {

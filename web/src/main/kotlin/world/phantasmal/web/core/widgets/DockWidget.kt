@@ -3,10 +3,10 @@ package world.phantasmal.web.core.widgets
 import kotlinx.coroutines.CoroutineScope
 import org.w3c.dom.Node
 import world.phantasmal.observable.value.Val
-import world.phantasmal.observable.value.falseVal
-import world.phantasmal.webui.obj
+import world.phantasmal.observable.value.trueVal
 import world.phantasmal.web.externals.goldenLayout.GoldenLayout
 import world.phantasmal.webui.dom.div
+import world.phantasmal.webui.obj
 import world.phantasmal.webui.widgets.Widget
 
 private const val HEADER_HEIGHT = 24
@@ -44,9 +44,9 @@ class DockedWidget(
 
 class DockWidget(
     scope: CoroutineScope,
-    hidden: Val<Boolean> = falseVal(),
+    visible: Val<Boolean> = trueVal(),
     private val item: DockedItem,
-) : Widget(scope, hidden) {
+) : Widget(scope, visible) {
     private lateinit var goldenLayout: GoldenLayout
 
     init {

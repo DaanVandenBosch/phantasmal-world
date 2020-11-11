@@ -24,7 +24,7 @@ class QuestEditorToolbarWidget(
                         scope,
                         text = "New quest",
                         iconLeft = Icon.NewFile,
-                        onClick = { scope.launch { ctrl.createNewQuest(Episode.I) } }
+                        onClick = { scope.launch { ctrl.createNewQuest(Episode.I) } },
                     ),
                     FileButton(
                         scope,
@@ -32,15 +32,31 @@ class QuestEditorToolbarWidget(
                         iconLeft = Icon.File,
                         accept = ".bin, .dat, .qst",
                         multiple = true,
-                        filesSelected = { files -> scope.launch { ctrl.openFiles(files) } }
+                        filesSelected = { files -> scope.launch { ctrl.openFiles(files) } },
+                    ),
+                    Button(
+                        scope,
+                        text = "Undo",
+                        iconLeft = Icon.Undo,
+                        enabled = ctrl.undoEnabled,
+                        tooltip = ctrl.undoTooltip,
+                        onClick = { ctrl.undo() },
+                    ),
+                    Button(
+                        scope,
+                        text = "Redo",
+                        iconLeft = Icon.Redo,
+                        enabled = ctrl.redoEnabled,
+                        tooltip = ctrl.redoTooltip,
+                        onClick = { ctrl.redo() },
                     ),
                     Select(
                         scope,
-                        disabled = ctrl.areaSelectDisabled,
+                        enabled = ctrl.areaSelectEnabled,
                         itemsVal = ctrl.areas,
                         itemToString = { it.label },
                         selectedVal = ctrl.currentArea,
-                        onSelect = ctrl::setCurrentArea
+                        onSelect = ctrl::setCurrentArea,
                     )
                 )
             ))

@@ -1,17 +1,21 @@
 package world.phantasmal.observable.value.list
 
+import world.phantasmal.observable.ObservableAndEmit
 import world.phantasmal.observable.value.ValTests
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-typealias ListValAndAdd = Pair<ListVal<*>, () -> Unit>
+class ListValAndAdd<T, out O : ListVal<T>>(
+    observable: O,
+    add: () -> Unit,
+) : ObservableAndEmit<List<T>, O>(observable, add)
 
 /**
  * Test suite for all [ListVal] implementations. There is a subclass of this suite for every
  * [ListVal] implementation.
  */
 abstract class ListValTests : ValTests() {
-    abstract override fun create(): ListValAndAdd
+    abstract override fun create(): ListValAndAdd<*, ListVal<*>>
 
     @Test
     fun listVal_updates_sizeVal_correctly() = test {

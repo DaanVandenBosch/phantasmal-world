@@ -4,14 +4,20 @@ import world.phantasmal.observable.test.ObservableTestSuite
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-typealias ObservableAndEmit = Pair<Observable<*>, () -> Unit>
+open class ObservableAndEmit<T, out O : Observable<T>>(
+    val observable: O,
+    val emit: () -> Unit,
+) {
+    operator fun component1() = observable
+    operator fun component2() = emit
+}
 
 /**
  * Test suite for all [Observable] implementations. There is a subclass of this suite for every
  * [Observable] implementation.
  */
 abstract class ObservableTests : ObservableTestSuite() {
-    protected abstract fun create(): ObservableAndEmit
+    protected abstract fun create(): ObservableAndEmit<*, Observable<*>>
 
     @Test
     fun observable_calls_observers_when_events_are_emitted() = test {

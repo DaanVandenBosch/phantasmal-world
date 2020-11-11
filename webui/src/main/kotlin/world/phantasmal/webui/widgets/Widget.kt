@@ -5,12 +5,9 @@ import kotlinx.coroutines.CoroutineScope
 import org.w3c.dom.*
 import world.phantasmal.core.disposable.disposable
 import world.phantasmal.observable.Observable
-import world.phantasmal.observable.value.Val
-import world.phantasmal.observable.value.falseVal
+import world.phantasmal.observable.value.*
 import world.phantasmal.observable.value.list.ListVal
 import world.phantasmal.observable.value.list.ListValChangeEvent
-import world.phantasmal.observable.value.mutableVal
-import world.phantasmal.observable.value.or
 import world.phantasmal.webui.DisposableContainer
 
 abstract class Widget(
@@ -18,15 +15,15 @@ abstract class Widget(
     /**
      * By default determines the hidden attribute of its [element].
      */
-    val hidden: Val<Boolean> = falseVal(),
+    val visible: Val<Boolean> = trueVal(),
     /**
      * By default determines the disabled attribute of its [element] and whether or not the
      * "pw-disabled" class is added.
      */
-    val disabled: Val<Boolean> = falseVal(),
-    val tooltip: String? = null,
+    val enabled: Val<Boolean> = trueVal(),
+    val tooltip: Val<String?> = nullVal(),
 ) : DisposableContainer() {
-    private val _ancestorHidden = mutableVal(false)
+    private val _ancestorVisible = mutableVal(true)
     private val _children = mutableListOf<Widget>()
     private var initResizeObserverRequested = false
     private var resizeObserverInitialized = false
@@ -34,22 +31,28 @@ abstract class Widget(
     private val elementDelegate = lazy {
         val el = document.createDocumentFragment().createElement()
 
-        observe(hidden) { hidden ->
-            el.hidden = hidden
-            children.forEach { setAncestorHidden(it, hidden || ancestorHidden.value) }
+        observe(visible) { visible ->
+            el.hidden = !visible
+            children.forEach { setAncestorVisible(it, visible && ancestorVisible.value) }
         }
 
-        observe(disabled) { disabled ->
-            if (disabled) {
-                el.setAttribute("disabled", "")
-                el.classList.add("pw-disabled")
-            } else {
+        observe(enabled) { enabled ->
+            if (enabled) {
                 el.removeAttribute("disabled")
                 el.classList.remove("pw-disabled")
+            } else {
+                el.setAttribute("disabled", "")
+                el.classList.add("pw-disabled")
             }
         }
 
-        tooltip?.let { el.title = it }
+        observe(tooltip) { tooltip ->
+            if (tooltip == null) {
+                el.removeAttribute("title")
+            } else {
+                el.title = tooltip
+            }
+        }
 
         if (initResizeObserverRequested) {
             initResizeObserver(el)
@@ -65,14 +68,14 @@ abstract class Widget(
     val element: HTMLElement by elementDelegate
 
     /**
-     * True if any of this widget's ancestors are [hidden], false otherwise.
+     * True if this widget's ancestors are [visible], false otherwise.
      */
-    val ancestorHidden: Val<Boolean> = _ancestorHidden
+    val ancestorVisible: Val<Boolean> = _ancestorVisible
 
     /**
-     * True if this widget or any of its ancestors are [hidden], false otherwise.
+     * True if this widget and all of its ancestors are [visible], false otherwise.
      */
-    val selfOrAncestorHidden: Val<Boolean> = hidden or ancestorHidden
+    val selfOrAncestorVisible: Val<Boolean> = visible and ancestorVisible
 
     val children: List<Widget> = _children
 
@@ -122,7 +125,7 @@ abstract class Widget(
     protected fun <T : Widget> Node.addChild(child: T): T {
         addDisposable(child)
         _children.add(child)
-        setAncestorHidden(child, selfOrAncestorHidden.value)
+        setAncestorVisible(child, selfOrAncestorVisible.value)
         appendChild(child.element)
         return child
     }
@@ -239,13 +242,13 @@ abstract class Widget(
             STYLE_EL.append(style)
         }
 
-        protected fun setAncestorHidden(widget: Widget, hidden: Boolean) {
-            widget._ancestorHidden.value = hidden
+        protected fun setAncestorVisible(widget: Widget, visible: Boolean) {
+            widget._ancestorVisible.value = visible
 
-            if (widget.hidden.value) return
+            if (!widget.visible.value) return
 
             widget.children.forEach {
-                setAncestorHidden(it, widget.selfOrAncestorHidden.value)
+                setAncestorVisible(it, widget.selfOrAncestorVisible.value)
             }
         }
     }

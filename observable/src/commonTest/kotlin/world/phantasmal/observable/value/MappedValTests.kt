@@ -1,15 +1,16 @@
 package world.phantasmal.observable.value
 
+import world.phantasmal.observable.ObservableAndEmit
+
 class MappedValTests : RegularValTests() {
-    override fun create(): ValAndEmit<*> {
+    override fun create(): ObservableAndEmit<*, MappedVal<*>> {
         val v = SimpleVal(0)
         val value = MappedVal(listOf(v)) { 2 * v.value }
-        return ValAndEmit(value) { v.value += 2 }
+        return ObservableAndEmit(value) { v.value += 2 }
     }
 
-    override fun createBoolean(bool: Boolean): ValAndEmit<Boolean> {
-        val v = SimpleVal(bool)
-        val value = MappedVal(listOf(v)) { v.value }
-        return ValAndEmit(value) { v.value = !v.value }
+    override fun <T> createWithValue(value: T): MappedVal<T> {
+        val v = SimpleVal(value)
+        return MappedVal(listOf(v)) { v.value }
     }
 }

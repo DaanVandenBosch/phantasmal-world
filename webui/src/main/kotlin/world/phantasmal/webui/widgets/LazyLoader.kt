@@ -3,23 +3,23 @@ package world.phantasmal.webui.widgets
 import kotlinx.coroutines.CoroutineScope
 import org.w3c.dom.Node
 import world.phantasmal.observable.value.Val
-import world.phantasmal.observable.value.falseVal
+import world.phantasmal.observable.value.trueVal
 import world.phantasmal.webui.dom.div
 
 class LazyLoader(
     scope: CoroutineScope,
-    hidden: Val<Boolean> = falseVal(),
-    disabled: Val<Boolean> = falseVal(),
+    visible: Val<Boolean> = trueVal(),
+    enabled: Val<Boolean> = trueVal(),
     private val createWidget: (CoroutineScope) -> Widget,
-) : Widget(scope, hidden, disabled) {
+) : Widget(scope, visible, enabled) {
     private var initialized = false
 
     override fun Node.createElement() =
         div {
             className = "pw-lazy-loader"
 
-            observe(this@LazyLoader.hidden) { h ->
-                if (!h && !initialized) {
+            observe(this@LazyLoader.visible) { v ->
+                if (v && !initialized) {
                     initialized = true
                     addChild(createWidget(scope))
                 }

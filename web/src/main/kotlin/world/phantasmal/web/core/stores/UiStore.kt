@@ -5,6 +5,7 @@ import kotlinx.coroutines.CoroutineScope
 import org.w3c.dom.events.KeyboardEvent
 import world.phantasmal.observable.value.MutableVal
 import world.phantasmal.observable.value.Val
+import world.phantasmal.observable.value.eq
 import world.phantasmal.observable.value.mutableVal
 import world.phantasmal.web.core.PwToolType
 import world.phantasmal.web.core.models.Server
@@ -76,7 +77,7 @@ class UiStore(
 
         toolToActive = tools
             .map { tool ->
-                tool to currentTool.map { it == tool }
+                tool to (currentTool eq tool)
             }
             .toMap()
 

@@ -14,59 +14,59 @@ import kotlin.test.assertTrue
 
 class WidgetTests : WebuiTestSuite() {
     @Test
-    fun ancestorHidden_and_selfOrAncestorHidden_should_update_when_hidden_changes() = test {
-        val parentHidden = mutableVal(false)
-        val childHidden = mutableVal(false)
+    fun ancestorVisible_and_selfOrAncestorVisible_should_update_when_visible_changes() = test {
+        val parentVisible = mutableVal(true)
+        val childVisible = mutableVal(true)
         val grandChild = DummyWidget(scope)
-        val child = DummyWidget(scope, childHidden, grandChild)
-        val parent = disposer.add(DummyWidget(scope, parentHidden, child))
+        val child = DummyWidget(scope, childVisible, grandChild)
+        val parent = disposer.add(DummyWidget(scope, parentVisible, child))
 
         parent.element // Ensure widgets are fully initialized.
 
-        assertFalse(parent.ancestorHidden.value)
-        assertFalse(parent.selfOrAncestorHidden.value)
-        assertFalse(child.ancestorHidden.value)
-        assertFalse(child.selfOrAncestorHidden.value)
-        assertFalse(grandChild.ancestorHidden.value)
-        assertFalse(grandChild.selfOrAncestorHidden.value)
+        assertTrue(parent.ancestorVisible.value)
+        assertTrue(parent.selfOrAncestorVisible.value)
+        assertTrue(child.ancestorVisible.value)
+        assertTrue(child.selfOrAncestorVisible.value)
+        assertTrue(grandChild.ancestorVisible.value)
+        assertTrue(grandChild.selfOrAncestorVisible.value)
 
-        parentHidden.value = true
+        parentVisible.value = false
 
-        assertFalse(parent.ancestorHidden.value)
-        assertTrue(parent.selfOrAncestorHidden.value)
-        assertTrue(child.ancestorHidden.value)
-        assertTrue(child.selfOrAncestorHidden.value)
-        assertTrue(grandChild.ancestorHidden.value)
-        assertTrue(grandChild.selfOrAncestorHidden.value)
+        assertTrue(parent.ancestorVisible.value)
+        assertFalse(parent.selfOrAncestorVisible.value)
+        assertFalse(child.ancestorVisible.value)
+        assertFalse(child.selfOrAncestorVisible.value)
+        assertFalse(grandChild.ancestorVisible.value)
+        assertFalse(grandChild.selfOrAncestorVisible.value)
 
-        childHidden.value = true
-        parentHidden.value = false
+        childVisible.value = false
+        parentVisible.value = true
 
-        assertFalse(parent.ancestorHidden.value)
-        assertFalse(parent.selfOrAncestorHidden.value)
-        assertFalse(child.ancestorHidden.value)
-        assertTrue(child.selfOrAncestorHidden.value)
-        assertTrue(grandChild.ancestorHidden.value)
-        assertTrue(grandChild.selfOrAncestorHidden.value)
+        assertTrue(parent.ancestorVisible.value)
+        assertTrue(parent.selfOrAncestorVisible.value)
+        assertTrue(child.ancestorVisible.value)
+        assertFalse(child.selfOrAncestorVisible.value)
+        assertFalse(grandChild.ancestorVisible.value)
+        assertFalse(grandChild.selfOrAncestorVisible.value)
     }
 
     @Test
-    fun added_child_widgets_should_have_ancestorHidden_and_selfOrAncestorHidden_set_correctly() =
+    fun added_child_widgets_should_have_ancestorVisible_and_selfOrAncestorVisible_set_correctly() =
         test {
-            val parent = disposer.add(DummyWidget(scope, hidden = trueVal()))
+            val parent = disposer.add(DummyWidget(scope, visible = falseVal()))
             val child = parent.addChild(DummyWidget(scope))
 
-            assertFalse(parent.ancestorHidden.value)
-            assertTrue(parent.selfOrAncestorHidden.value)
-            assertTrue(child.ancestorHidden.value)
-            assertTrue(child.selfOrAncestorHidden.value)
+            assertTrue(parent.ancestorVisible.value)
+            assertFalse(parent.selfOrAncestorVisible.value)
+            assertFalse(child.ancestorVisible.value)
+            assertFalse(child.selfOrAncestorVisible.value)
         }
 
     private inner class DummyWidget(
         scope: CoroutineScope,
-        hidden: Val<Boolean> = falseVal(),
+        visible: Val<Boolean> = trueVal(),
         private val child: Widget? = null,
-    ) : Widget(scope, hidden = hidden) {
+    ) : Widget(scope, visible = visible) {
         override fun Node.createElement() = div {
             child?.let { addChild(it) }
         }

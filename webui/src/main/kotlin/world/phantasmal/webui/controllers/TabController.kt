@@ -17,5 +17,5 @@ open class TabController<T : Tab>(val tabs: List<T>) : Controller() {
         _activeTab.value = tab
     }
 
-    open fun hiddenChanged(hidden: Boolean) {}
+    open fun visibleChanged(visible: Boolean) {}
 }

@@ -3,13 +3,14 @@ package world.phantasmal.webui.widgets
 import kotlinx.coroutines.CoroutineScope
 import org.w3c.dom.HTMLInputElement
 import world.phantasmal.observable.value.Val
-import world.phantasmal.observable.value.falseVal
+import world.phantasmal.observable.value.nullVal
+import world.phantasmal.observable.value.trueVal
 
 class IntInput(
     scope: CoroutineScope,
-    hidden: Val<Boolean> = falseVal(),
-    disabled: Val<Boolean> = falseVal(),
-    tooltip: String? = null,
+    visible: Val<Boolean> = trueVal(),
+    enabled: Val<Boolean> = trueVal(),
+    tooltip: Val<String?> = nullVal(),
     label: String? = null,
     labelVal: Val<String>? = null,
     preferredLabelPosition: LabelPosition = LabelPosition.Before,
@@ -21,8 +22,8 @@ class IntInput(
     step: Int? = null,
 ) : NumberInput<Int>(
     scope,
-    hidden,
-    disabled,
+    visible,
+    enabled,
     tooltip,
     label,
     labelVal,

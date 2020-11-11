@@ -3,17 +3,17 @@ package world.phantasmal.webui.widgets
 import kotlinx.coroutines.CoroutineScope
 import org.w3c.dom.Node
 import world.phantasmal.observable.value.Val
-import world.phantasmal.observable.value.falseVal
+import world.phantasmal.observable.value.trueVal
 import world.phantasmal.webui.dom.label
 
 class Label(
     scope: CoroutineScope,
-    hidden: Val<Boolean> = falseVal(),
-    disabled: Val<Boolean> = falseVal(),
+    visible: Val<Boolean> = trueVal(),
+    enabled: Val<Boolean> = trueVal(),
     private val text: String? = null,
     private val textVal: Val<String>? = null,
     private val htmlFor: String? = null,
-) : Widget(scope, hidden, disabled) {
+) : Widget(scope, visible, enabled) {
     override fun Node.createElement() =
         label {
             className = "pw-label"
@@ -26,7 +26,7 @@ class Label(
             }
         }
 
-    companion object{
+    companion object {
         init {
             @Suppress("CssUnusedSymbol", "CssUnresolvedCustomProperty")
             // language=css

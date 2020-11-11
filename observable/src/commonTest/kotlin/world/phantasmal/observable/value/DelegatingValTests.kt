@@ -1,15 +1,16 @@
 package world.phantasmal.observable.value
 
+import world.phantasmal.observable.ObservableAndEmit
+
 class DelegatingValTests : RegularValTests() {
-    override fun create(): ValAndEmit<*> {
+    override fun create(): ObservableAndEmit<*, DelegatingVal<*>> {
         var v = 0
         val value = DelegatingVal({ v }, { v = it })
-        return ValAndEmit(value) { value.value += 2 }
+        return ObservableAndEmit(value) { value.value += 2 }
     }
 
-    override fun createBoolean(bool: Boolean): ValAndEmit<Boolean> {
-        var v = bool
-        val value = DelegatingVal({ v }, { v = it })
-        return ValAndEmit(value) { value.value = !value.value }
+    override fun <T> createWithValue(value: T): DelegatingVal<T> {
+        var v = value
+        return DelegatingVal({ v }, { v = it })
     }
 }

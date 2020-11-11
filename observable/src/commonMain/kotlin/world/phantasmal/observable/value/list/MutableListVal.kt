@@ -3,7 +3,7 @@ package world.phantasmal.observable.value.list
 import world.phantasmal.observable.value.MutableVal
 
 interface MutableListVal<E> : ListVal<E>, MutableVal<List<E>> {
-    fun set(index: Int, element: E): E
+    operator fun set(index: Int, element: E): E
 
     fun add(element: E)
 
@@ -14,6 +14,8 @@ interface MutableListVal<E> : ListVal<E>, MutableVal<List<E>> {
     fun replaceAll(elements: Iterable<E>)
 
     fun replaceAll(elements: Sequence<E>)
+
+    fun splice(from: Int, removeCount: Int, newElement: E)
 
     fun clear()
 }

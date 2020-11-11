@@ -8,7 +8,8 @@ import org.w3c.dom.events.KeyboardEvent
 import org.w3c.dom.events.MouseEvent
 import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.observable.value.Val
-import world.phantasmal.observable.value.falseVal
+import world.phantasmal.observable.value.nullVal
+import world.phantasmal.observable.value.trueVal
 import world.phantasmal.observable.value.value
 import world.phantasmal.webui.dom.disposableListener
 import world.phantasmal.webui.dom.div
@@ -16,9 +17,9 @@ import world.phantasmal.webui.obj
 
 class Menu<T : Any>(
     scope: CoroutineScope,
-    hidden: Val<Boolean> = falseVal(),
-    disabled: Val<Boolean> = falseVal(),
-    tooltip: String? = null,
+    visible: Val<Boolean> = trueVal(),
+    enabled: Val<Boolean> = trueVal(),
+    tooltip: Val<String?> = nullVal(),
     items: List<T>? = null,
     itemsVal: Val<List<T>>? = null,
     private val itemToString: (T) -> String = Any::toString,
@@ -26,8 +27,8 @@ class Menu<T : Any>(
     private val onCancel: () -> Unit = {},
 ) : Widget(
     scope,
-    hidden,
-    disabled,
+    visible,
+    enabled,
     tooltip,
 ) {
     private val items: Val<List<T>> = itemsVal ?: value(items ?: emptyList())
@@ -57,21 +58,21 @@ class Menu<T : Any>(
                 }
             }
 
-            observe(this@Menu.hidden) {
+            observe(this@Menu.visible) {
                 if (it) {
+                    onDocumentMouseDownListener =
+                        disposableListener(document, "mousedown", ::onDocumentMouseDown)
+                } else {
                     onDocumentMouseDownListener?.dispose()
                     onDocumentMouseDownListener = null
                     clearHighlightItem()
 
                     (previouslyFocusedElement as HTMLElement?)?.focus()
-                } else {
-                    onDocumentMouseDownListener =
-                        disposableListener(document, "mousedown", ::onDocumentMouseDown)
                 }
             }
 
-            observe(disabled) {
-                if (it) {
+            observe(enabled) {
+                if (!it) {
                     clearHighlightItem()
                 }
             }
@@ -170,7 +171,7 @@ class Menu<T : Any>(
     private fun highlightItemAt(index: Int) {
         highlightedElement?.classList?.remove("pw-menu-highlighted")
 
-        if (disabled.value) return
+        if (!enabled.value) return
 
         highlightedElement = innerElement.children.item(index)
 
@@ -182,7 +183,7 @@ class Menu<T : Any>(
     }
 
     private fun selectItem(index: Int) {
-        if (disabled.value) return
+        if (!enabled.value) return
 
         items.value.getOrNull(index)?.let(onSelect)
     }

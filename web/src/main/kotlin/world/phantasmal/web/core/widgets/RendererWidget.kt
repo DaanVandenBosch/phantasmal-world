@@ -21,11 +21,11 @@ class RendererWidget(
 
             observeResize()
 
-            observe(selfOrAncestorHidden) { hidden ->
-                if (hidden) {
-                    renderer.stopRendering()
-                } else {
+            observe(selfOrAncestorVisible) { visible ->
+                if (visible) {
                     renderer.startRendering()
+                } else {
+                    renderer.stopRendering()
                 }
             }
 

@@ -12,7 +12,7 @@ import kotlin.test.assertTrue
 
 class NpcCountsControllerTests : WebTestSuite() {
     @Test
-    fun exposes_correct_model_before_and_after_a_quest_is_loaded() = test {
+    fun exposes_correct_model_before_and_after_a_quest_is_loaded() = asyncTest {
         val store = components.questEditorStore
         val ctrl = disposer.add(NpcCountsController(store))
 

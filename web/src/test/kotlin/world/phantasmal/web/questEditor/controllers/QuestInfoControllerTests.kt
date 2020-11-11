@@ -10,12 +10,12 @@ import kotlin.test.assertTrue
 
 class QuestInfoControllerTests : WebTestSuite() {
     @Test
-    fun exposes_correct_model_before_and_after_a_quest_is_loaded() = test {
+    fun exposes_correct_model_before_and_after_a_quest_is_loaded() = asyncTest {
         val store = components.questEditorStore
         val ctrl = disposer.add(QuestInfoController(store))
 
         assertTrue(ctrl.unavailable.value)
-        assertTrue(ctrl.disabled.value)
+        assertFalse(ctrl.enabled.value)
 
         store.setCurrentQuest(createQuestModel(
             id = 25,
@@ -26,7 +26,7 @@ class QuestInfoControllerTests : WebTestSuite() {
         ))
 
         assertFalse(ctrl.unavailable.value)
-        assertFalse(ctrl.disabled.value)
+        assertTrue(ctrl.enabled.value)
         assertEquals("II", ctrl.episode.value)
         assertEquals(25, ctrl.id.value)
         assertEquals("A Quest", ctrl.name.value)

@@ -3,21 +3,21 @@ package world.phantasmal.web.core.widgets
 import kotlinx.coroutines.CoroutineScope
 import org.w3c.dom.Node
 import world.phantasmal.observable.value.Val
-import world.phantasmal.observable.value.trueVal
+import world.phantasmal.observable.value.falseVal
 import world.phantasmal.webui.dom.div
 import world.phantasmal.webui.widgets.Label
 import world.phantasmal.webui.widgets.Widget
 
 class UnavailableWidget(
     scope: CoroutineScope,
-    hidden: Val<Boolean>,
+    visible: Val<Boolean>,
     private val message: String,
-) : Widget(scope, hidden) {
+) : Widget(scope, visible) {
     override fun Node.createElement() =
         div {
             className = "pw-core-unavailable"
 
-            addWidget(Label(scope, disabled = trueVal(), text = message))
+            addWidget(Label(scope, enabled = falseVal(), text = message))
         }
 
     companion object {

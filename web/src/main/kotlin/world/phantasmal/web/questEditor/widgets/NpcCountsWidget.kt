@@ -2,7 +2,6 @@ package world.phantasmal.web.questEditor.widgets
 
 import kotlinx.coroutines.CoroutineScope
 import org.w3c.dom.Node
-import world.phantasmal.observable.value.not
 import world.phantasmal.web.core.widgets.UnavailableWidget
 import world.phantasmal.web.questEditor.controllers.NpcCountsController
 import world.phantasmal.webui.dom.*
@@ -28,7 +27,7 @@ class NpcCountsWidget(
             }
             addChild(UnavailableWidget(
                 scope,
-                hidden = !ctrl.unavailable,
+                visible = ctrl.unavailable,
                 message = "No quest loaded."
             ))
         }

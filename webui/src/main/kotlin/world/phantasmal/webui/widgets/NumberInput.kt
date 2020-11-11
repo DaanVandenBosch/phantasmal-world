@@ -5,9 +5,9 @@ import world.phantasmal.observable.value.Val
 
 abstract class NumberInput<T : Number>(
     scope: CoroutineScope,
-    hidden: Val<Boolean>,
-    disabled: Val<Boolean>,
-    tooltip: String?,
+    visible: Val<Boolean>,
+    enabled: Val<Boolean>,
+    tooltip: Val<String?>,
     label: String?,
     labelVal: Val<String>?,
     preferredLabelPosition: LabelPosition,
@@ -19,8 +19,8 @@ abstract class NumberInput<T : Number>(
     step: Int?,
 ) : Input<T>(
     scope,
-    hidden,
-    disabled,
+    visible,
+    enabled,
     tooltip,
     label,
     labelVal,

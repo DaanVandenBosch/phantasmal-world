@@ -3,7 +3,8 @@ package world.phantasmal.webui.widgets
 import kotlinx.coroutines.CoroutineScope
 import org.w3c.dom.Node
 import world.phantasmal.observable.value.Val
-import world.phantasmal.observable.value.falseVal
+import world.phantasmal.observable.value.eq
+import world.phantasmal.observable.value.trueVal
 import world.phantasmal.webui.controllers.Tab
 import world.phantasmal.webui.controllers.TabController
 import world.phantasmal.webui.dom.div
@@ -11,11 +12,11 @@ import world.phantasmal.webui.dom.span
 
 class TabContainer<T : Tab>(
     scope: CoroutineScope,
-    hidden: Val<Boolean> = falseVal(),
-    disabled: Val<Boolean> = falseVal(),
+    visible: Val<Boolean> = trueVal(),
+    enabled: Val<Boolean> = trueVal(),
     private val ctrl: TabController<T>,
     private val createWidget: (CoroutineScope, T) -> Widget,
-) : Widget(scope, hidden, disabled) {
+) : Widget(scope, visible, enabled) {
     override fun Node.createElement() =
         div {
             className = "pw-tab-container"
@@ -48,7 +49,7 @@ class TabContainer<T : Tab>(
                     addChild(
                         LazyLoader(
                             scope,
-                            hidden = ctrl.activeTab.map { it != tab },
+                            visible = ctrl.activeTab eq tab,
                             createWidget = { scope -> createWidget(scope, tab) }
                         )
                     )
@@ -57,7 +58,7 @@ class TabContainer<T : Tab>(
         }
 
     init {
-        observe(selfOrAncestorHidden, ctrl::hiddenChanged)
+        observe(selfOrAncestorVisible, ctrl::visibleChanged)
     }
 
     companion object {

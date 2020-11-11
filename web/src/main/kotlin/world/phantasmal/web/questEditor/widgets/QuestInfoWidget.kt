@@ -2,7 +2,6 @@ package world.phantasmal.web.questEditor.widgets
 
 import kotlinx.coroutines.CoroutineScope
 import org.w3c.dom.Node
-import world.phantasmal.observable.value.not
 import world.phantasmal.web.core.widgets.UnavailableWidget
 import world.phantasmal.web.questEditor.controllers.QuestInfoController
 import world.phantasmal.webui.dom.*
@@ -14,7 +13,7 @@ import world.phantasmal.webui.widgets.Widget
 class QuestInfoWidget(
     scope: CoroutineScope,
     private val ctrl: QuestInfoController,
-) : Widget(scope, disabled = ctrl.disabled) {
+) : Widget(scope, enabled = ctrl.enabled) {
     override fun Node.createElement() =
         div {
             className = "pw-quest-editor-quest-info"
@@ -32,7 +31,7 @@ class QuestInfoWidget(
                     td {
                         addChild(IntInput(
                             this@QuestInfoWidget.scope,
-                            disabled = ctrl.disabled,
+                            enabled = ctrl.enabled,
                             valueVal = ctrl.id,
                             min = 0,
                             step = 1,
@@ -44,7 +43,7 @@ class QuestInfoWidget(
                     td {
                         addChild(TextInput(
                             this@QuestInfoWidget.scope,
-                            disabled = ctrl.disabled,
+                            enabled = ctrl.enabled,
                             valueVal = ctrl.name,
                             maxLength = 32,
                         ))
@@ -61,7 +60,7 @@ class QuestInfoWidget(
                         colSpan = 2
                         addChild(TextArea(
                             this@QuestInfoWidget.scope,
-                            disabled = ctrl.disabled,
+                            enabled = ctrl.enabled,
                             valueVal = ctrl.shortDescription,
                             maxLength = 128,
                             fontFamily = "\"Courier New\", monospace",
@@ -81,7 +80,7 @@ class QuestInfoWidget(
                         colSpan = 2
                         addChild(TextArea(
                             this@QuestInfoWidget.scope,
-                            disabled = ctrl.disabled,
+                            enabled = ctrl.enabled,
                             valueVal = ctrl.longDescription,
                             maxLength = 288,
                             fontFamily = "\"Courier New\", monospace",
@@ -93,7 +92,7 @@ class QuestInfoWidget(
             }
             addChild(UnavailableWidget(
                 scope,
-                hidden = !ctrl.unavailable,
+                visible = ctrl.unavailable,
                 message = "No quest loaded."
             ))
         }

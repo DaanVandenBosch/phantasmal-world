@@ -6,14 +6,11 @@ import world.phantasmal.observable.ChangeEvent
 import world.phantasmal.observable.Observable
 import world.phantasmal.observable.Observer
 import world.phantasmal.observable.value.AbstractVal
-import world.phantasmal.observable.value.MutableVal
-import world.phantasmal.observable.value.Val
-import world.phantasmal.observable.value.mutableVal
 
 abstract class AbstractListVal<E>(
     protected val elements: MutableList<E>,
-    private val extractObservables: ObservablesExtractor<E>? ,
-): AbstractVal<List<E>>(), ListVal<E> {
+    private val extractObservables: ObservablesExtractor<E>?,
+) : AbstractVal<List<E>>(), ListVal<E> {
     /**
      * Internal observers which observe observables related to this list's elements so that their
      * changes can be propagated via ElementChange events.
@@ -24,6 +21,9 @@ abstract class AbstractListVal<E>(
      * External list observers which are observing this list.
      */
     protected val listObservers = mutableListOf<ListValObserver<E>>()
+
+    override fun get(index: Int): E =
+        elements[index]
 
     override fun observe(callNow: Boolean, observer: Observer<List<E>>): Disposable {
         if (elementObservers.isEmpty() && extractObservables != null) {

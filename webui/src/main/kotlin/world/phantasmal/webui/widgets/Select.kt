@@ -4,18 +4,15 @@ import kotlinx.coroutines.CoroutineScope
 import org.w3c.dom.Node
 import org.w3c.dom.events.KeyboardEvent
 import org.w3c.dom.events.MouseEvent
-import world.phantasmal.observable.value.Val
-import world.phantasmal.observable.value.falseVal
-import world.phantasmal.observable.value.mutableVal
-import world.phantasmal.observable.value.value
+import world.phantasmal.observable.value.*
 import world.phantasmal.webui.dom.Icon
 import world.phantasmal.webui.dom.div
 
 class Select<T : Any>(
     scope: CoroutineScope,
-    hidden: Val<Boolean> = falseVal(),
-    disabled: Val<Boolean> = falseVal(),
-    tooltip: String? = null,
+    visible: Val<Boolean> = trueVal(),
+    enabled: Val<Boolean> = trueVal(),
+    tooltip: Val<String?> = nullVal(),
     label: String? = null,
     labelVal: Val<String>? = null,
     preferredLabelPosition: LabelPosition = LabelPosition.Before,
@@ -27,8 +24,8 @@ class Select<T : Any>(
     private val onSelect: (T) -> Unit = {},
 ) : LabelledControl(
     scope,
-    hidden,
-    disabled,
+    visible,
+    enabled,
     tooltip,
     label,
     labelVal,
@@ -38,7 +35,7 @@ class Select<T : Any>(
     private val selected: Val<T?> = selectedVal ?: value(selected)
 
     private val buttonText = mutableVal(" ")
-    private val menuHidden = mutableVal(true)
+    private val menuVisible = mutableVal(false)
 
     private lateinit var menu: Menu<T>
     private var justOpened = false
@@ -52,7 +49,7 @@ class Select<T : Any>(
 
             addWidget(Button(
                 scope,
-                disabled = disabled,
+                enabled = enabled,
                 textVal = buttonText,
                 iconRight = Icon.TriangleDown,
                 onMouseDown = ::onButtonMouseDown,
@@ -61,19 +58,19 @@ class Select<T : Any>(
             ))
             menu = addWidget(Menu(
                 scope,
-                hidden = menuHidden,
-                disabled = disabled,
+                visible = menuVisible,
+                enabled = enabled,
                 itemsVal = items,
                 itemToString = itemToString,
                 onSelect = ::select,
-                onCancel = { menuHidden.value = true },
+                onCancel = { menuVisible.value = false },
             ))
         }
 
     private fun onButtonMouseDown(e: MouseEvent) {
         e.stopPropagation()
-        justOpened = menuHidden.value
-        menuHidden.value = false
+        justOpened = !menuVisible.value
+        menuVisible.value = true
         selected.value?.let(menu::highlightItem)
     }
 
@@ -81,7 +78,7 @@ class Select<T : Any>(
         if (justOpened) {
             menu.focus()
         } else {
-            menuHidden.value = true
+            menuVisible.value = false
         }
 
         justOpened = false
@@ -93,8 +90,8 @@ class Select<T : Any>(
                 e.preventDefault()
                 e.stopPropagation()
 
-                justOpened = menuHidden.value
-                menuHidden.value = false
+                justOpened = !menuVisible.value
+                menuVisible.value = true
                 selected.value?.let(menu::highlightItem)
                 menu.focus()
             }
@@ -134,7 +131,7 @@ class Select<T : Any>(
     }
 
     private fun select(item: T) {
-        menuHidden.value = true
+        menuVisible.value = false
         buttonText.value = itemToString(item)
         onSelect(item)
     }

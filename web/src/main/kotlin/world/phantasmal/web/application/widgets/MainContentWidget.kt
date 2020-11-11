@@ -2,9 +2,7 @@ package world.phantasmal.web.application.widgets
 
 import kotlinx.coroutines.CoroutineScope
 import org.w3c.dom.Node
-import world.phantasmal.observable.value.not
 import world.phantasmal.web.application.controllers.MainContentController
-import world.phantasmal.web.core.PwTool
 import world.phantasmal.web.core.PwToolType
 import world.phantasmal.webui.dom.div
 import world.phantasmal.webui.widgets.LazyLoader
@@ -21,7 +19,7 @@ class MainContentWidget(
 
             ctrl.tools.forEach { (tool, active) ->
                 toolViews[tool]?.let { createWidget ->
-                    addChild(LazyLoader(scope, hidden = !active, createWidget = createWidget))
+                    addChild(LazyLoader(scope, visible = active, createWidget = createWidget))
                 }
             }
         }

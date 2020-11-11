@@ -50,7 +50,7 @@ class Application(
         // The various tools Phantasmal World consists of.
         val tools: List<PwTool> = listOf(
             Viewer(createEngine),
-            QuestEditor(assetLoader, createEngine),
+            QuestEditor(assetLoader, uiStore, createEngine),
             HuntOptimizer(assetLoader, uiStore),
         )
 

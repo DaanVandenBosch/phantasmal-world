@@ -2,7 +2,8 @@ package world.phantasmal.web.application.widgets
 
 import kotlinx.coroutines.CoroutineScope
 import org.w3c.dom.Node
-import world.phantasmal.observable.value.trueVal
+import world.phantasmal.observable.value.falseVal
+import world.phantasmal.observable.value.value
 import world.phantasmal.web.application.controllers.NavigationController
 import world.phantasmal.web.core.dom.externalLink
 import world.phantasmal.webui.dom.Icon
@@ -31,11 +32,11 @@ class NavigationWidget(
 
                 val serverSelect = Select(
                     scope,
-                    disabled = trueVal(),
+                    enabled = falseVal(),
                     label = "Server:",
                     items = listOf("Ephinea"),
                     selected = "Ephinea",
-                    tooltip = "Only Ephinea is supported at the moment",
+                    tooltip = value("Only Ephinea is supported at the moment"),
                 )
                 addWidget(serverSelect.label!!)
                 addChild(serverSelect)

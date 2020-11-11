@@ -9,9 +9,9 @@ import world.phantasmal.webui.dom.span
 
 abstract class Input<T>(
     scope: CoroutineScope,
-    hidden: Val<Boolean>,
-    disabled: Val<Boolean>,
-    tooltip: String?,
+    visible: Val<Boolean>,
+    enabled: Val<Boolean>,
+    tooltip: Val<String?>,
     label: String?,
     labelVal: Val<String>?,
     preferredLabelPosition: LabelPosition,
@@ -27,8 +27,8 @@ abstract class Input<T>(
     private val step: Int?,
 ) : LabelledControl(
     scope,
-    hidden,
-    disabled,
+    visible,
+    enabled,
     tooltip,
     label,
     labelVal,
@@ -42,7 +42,7 @@ abstract class Input<T>(
                 classList.add("pw-input-inner", inputClassName)
                 type = inputType
 
-                observe(this@Input.disabled) { disabled = it }
+                observe(this@Input.enabled) { disabled = !it }
 
                 onchange = { onChange(getInputValue(this)) }
 

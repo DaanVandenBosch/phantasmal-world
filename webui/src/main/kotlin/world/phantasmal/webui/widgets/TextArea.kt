@@ -3,15 +3,16 @@ package world.phantasmal.webui.widgets
 import kotlinx.coroutines.CoroutineScope
 import org.w3c.dom.Node
 import world.phantasmal.observable.value.Val
-import world.phantasmal.observable.value.falseVal
+import world.phantasmal.observable.value.nullVal
+import world.phantasmal.observable.value.trueVal
 import world.phantasmal.webui.dom.div
 import world.phantasmal.webui.dom.textarea
 
 class TextArea(
     scope: CoroutineScope,
-    hidden: Val<Boolean> = falseVal(),
-    disabled: Val<Boolean> = falseVal(),
-    tooltip: String? = null,
+    visible: Val<Boolean> = trueVal(),
+    enabled: Val<Boolean> = trueVal(),
+    tooltip: Val<String?> = nullVal(),
     label: String? = null,
     labelVal: Val<String>? = null,
     preferredLabelPosition: LabelPosition = LabelPosition.Before,
@@ -24,8 +25,8 @@ class TextArea(
     private val cols: Int? = null,
 ) : LabelledControl(
     scope,
-    hidden,
-    disabled,
+    visible,
+    enabled,
     tooltip,
     label,
     labelVal,
@@ -38,7 +39,7 @@ class TextArea(
             textarea {
                 className = "pw-text-area-inner"
 
-                observe(this@TextArea.disabled) { disabled = it }
+                observe(this@TextArea.enabled) { disabled = !it }
 
                 if (setValue != null) {
                     onchange = { setValue.invoke(value) }

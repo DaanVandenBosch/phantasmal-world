@@ -157,6 +157,24 @@ private class StateContext(
         }
     }
 
+    fun finalizeTranslation(
+        entity: QuestEntityModel<*, *>,
+        oldSection: SectionModel?,
+        newSection: SectionModel?,
+        oldPosition: Vector3,
+        newPosition: Vector3,
+        world: Boolean,
+    ) {
+        questEditorStore.translateEntity(
+            entity,
+            oldSection,
+            newSection,
+            oldPosition,
+            newPosition,
+            world
+        )
+    }
+
     /**
      * If the drag-adjusted pointer is over the ground, translate an entity horizontally across the
      * ground. Otherwise translate the entity over the horizontal plane that intersects its origin.
@@ -426,22 +444,14 @@ private class TranslationState(
                 ctx.renderer.enableCameraControls()
 
                 if (!cancelled && event.movedSinceLastPointerDown) {
-                    // TODO
-//                    questEditorStore.undo
-//                        .push(
-//                            new TranslateEntityAction (
-//                                    this.questEditorStore,
-//                            this.entity,
-//                            this.initialSection,
-//                            this.entity.section.
-//                            val ,
-//                                    this.initial_position,
-//                            this.entity.world_position.
-//                            val ,
-//                            true,
-//                        ),
-//                    )
-//                    .redo()
+                    ctx.finalizeTranslation(
+                        entity,
+                        initialSection,
+                        entity.section.value,
+                        initialPosition,
+                        entity.worldPosition.value,
+                        true,
+                    )
                 }
 
                 IdleState(ctx, entityManipulationEnabled = true)

@@ -5,7 +5,8 @@ import org.w3c.dom.Node
 import org.w3c.dom.events.KeyboardEvent
 import org.w3c.dom.events.MouseEvent
 import world.phantasmal.observable.value.Val
-import world.phantasmal.observable.value.falseVal
+import world.phantasmal.observable.value.nullVal
+import world.phantasmal.observable.value.trueVal
 import world.phantasmal.webui.dom.Icon
 import world.phantasmal.webui.dom.button
 import world.phantasmal.webui.dom.icon
@@ -13,8 +14,9 @@ import world.phantasmal.webui.dom.span
 
 open class Button(
     scope: CoroutineScope,
-    hidden: Val<Boolean> = falseVal(),
-    disabled: Val<Boolean> = falseVal(),
+    visible: Val<Boolean> = trueVal(),
+    enabled: Val<Boolean> = trueVal(),
+    tooltip: Val<String?> = nullVal(),
     private val text: String? = null,
     private val textVal: Val<String>? = null,
     private val iconLeft: Icon? = null,
@@ -25,7 +27,7 @@ open class Button(
     private val onKeyDown: ((KeyboardEvent) -> Unit)? = null,
     private val onKeyUp: ((KeyboardEvent) -> Unit)? = null,
     private val onKeyPress: ((KeyboardEvent) -> Unit)? = null,
-) : Control(scope, hidden, disabled) {
+) : Control(scope, visible, enabled, tooltip) {
     override fun Node.createElement() =
         button {
             className = "pw-button"

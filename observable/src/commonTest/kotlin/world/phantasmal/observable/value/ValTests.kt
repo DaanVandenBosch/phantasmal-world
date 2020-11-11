@@ -1,18 +1,18 @@
 package world.phantasmal.observable.value
 
 import world.phantasmal.core.disposable.use
+import world.phantasmal.observable.Observable
+import world.phantasmal.observable.ObservableAndEmit
 import world.phantasmal.observable.ObservableTests
 import kotlin.test.Test
 import kotlin.test.assertEquals
-
-typealias ValAndEmit<T> = Pair<Val<T>, () -> Unit>
 
 /**
  * Test suite for all [Val] implementations. There is a subclass of this suite for every [Val]
  * implementation.
  */
 abstract class ValTests : ObservableTests() {
-    abstract override fun create(): ValAndEmit<*>
+     abstract override fun create(): ObservableAndEmit<*, Val<*>>
 
     /**
      * When [Val.observe] is called with callNow = true, it should call the observer immediately.

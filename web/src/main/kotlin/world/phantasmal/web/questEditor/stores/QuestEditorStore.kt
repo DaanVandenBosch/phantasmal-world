@@ -2,28 +2,75 @@ package world.phantasmal.web.questEditor.stores
 
 import kotlinx.coroutines.CoroutineScope
 import mu.KotlinLogging
-import world.phantasmal.observable.value.Val
-import world.phantasmal.observable.value.mutableVal
+import world.phantasmal.observable.value.*
+import world.phantasmal.web.core.PwToolType
+import world.phantasmal.web.core.stores.UiStore
+import world.phantasmal.web.core.actions.Action
+import world.phantasmal.web.core.undo.UndoManager
+import world.phantasmal.web.core.undo.UndoStack
+import world.phantasmal.web.externals.babylon.Vector3
+import world.phantasmal.web.questEditor.QuestRunner
+import world.phantasmal.web.questEditor.actions.TranslateEntityAction
 import world.phantasmal.web.questEditor.models.*
 import world.phantasmal.webui.stores.Store
 
 private val logger = KotlinLogging.logger {}
 
-class QuestEditorStore(scope: CoroutineScope, private val areaStore: AreaStore) : Store(scope) {
+class QuestEditorStore(
+    scope: CoroutineScope,
+    private val uiStore: UiStore,
+    private val areaStore: AreaStore,
+) : Store(scope) {
     private val _currentQuest = mutableVal<QuestModel?>(null)
     private val _currentArea = mutableVal<AreaModel?>(null)
     private val _selectedWave = mutableVal<WaveModel?>(null)
     private val _selectedEntity = mutableVal<QuestEntityModel<*, *>?>(null)
 
+    private val undoManager = UndoManager()
+    private val mainUndo = UndoStack(undoManager)
+
+    val runner = QuestRunner()
     val currentQuest: Val<QuestModel?> = _currentQuest
     val currentArea: Val<AreaModel?> = _currentArea
     val selectedWave: Val<WaveModel?> = _selectedWave
     val selectedEntity: Val<QuestEntityModel<*, *>?> = _selectedEntity
 
-    // TODO: Take into account whether we're debugging or not.
-    val questEditingDisabled: Val<Boolean> = currentQuest.map { it == null }
+    val questEditingEnabled: Val<Boolean> = currentQuest.isNotNull() and !runner.running
+    val canUndo: Val<Boolean> = questEditingEnabled and undoManager.canUndo
+    val firstUndo: Val<Action?> = undoManager.firstUndo
+    val canRedo: Val<Boolean> = questEditingEnabled and undoManager.canRedo
+    val firstRedo: Val<Action?> = undoManager.firstRedo
+
+    init {
+        observe(uiStore.currentTool) { tool ->
+            if (tool == PwToolType.QuestEditor) {
+                mainUndo.makeCurrent()
+            }
+        }
+    }
+
+    fun makeMainUndoCurrent() {
+        mainUndo.makeCurrent()
+    }
+
+    fun undo() {
+        require(canUndo.value) { "Can't undo at the moment." }
+        undoManager.undo()
+    }
+
+    fun redo() {
+        require(canRedo.value) { "Can't redo at the moment." }
+        undoManager.redo()
+    }
 
     suspend fun setCurrentQuest(quest: QuestModel?) {
+        mainUndo.reset()
+
+        // TODO: Stop runner.
+
+        _selectedEntity.value = null
+        _selectedWave.value = null
+
         if (quest == null) {
             _currentArea.value = null
             _currentQuest.value = null
@@ -79,5 +126,24 @@ class QuestEditorStore(scope: CoroutineScope, private val areaStore: AreaStore) 
         }
 
         _selectedEntity.value = entity
+    }
+
+    fun translateEntity(
+        entity: QuestEntityModel<*, *>,
+        oldSection: SectionModel?,
+        newSection: SectionModel?,
+        oldPosition: Vector3,
+        newPosition: Vector3,
+        world: Boolean,
+    ) {
+        mainUndo.push(TranslateEntityAction(
+            ::setSelectedEntity,
+            entity,
+            oldSection,
+            newSection,
+            oldPosition,
+            newPosition,
+            world,
+        )).execute()
     }
 }

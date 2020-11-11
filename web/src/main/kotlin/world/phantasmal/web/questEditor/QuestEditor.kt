@@ -6,6 +6,7 @@ import org.w3c.dom.HTMLCanvasElement
 import world.phantasmal.web.core.PwTool
 import world.phantasmal.web.core.PwToolType
 import world.phantasmal.web.core.loading.AssetLoader
+import world.phantasmal.web.core.stores.UiStore
 import world.phantasmal.web.externals.babylon.Engine
 import world.phantasmal.web.questEditor.controllers.NpcCountsController
 import world.phantasmal.web.questEditor.controllers.QuestEditorToolbarController
@@ -13,9 +14,9 @@ import world.phantasmal.web.questEditor.controllers.QuestInfoController
 import world.phantasmal.web.questEditor.loading.AreaAssetLoader
 import world.phantasmal.web.questEditor.loading.EntityAssetLoader
 import world.phantasmal.web.questEditor.loading.QuestLoader
-import world.phantasmal.web.questEditor.rendering.UserInputManager
 import world.phantasmal.web.questEditor.rendering.QuestEditorMeshManager
 import world.phantasmal.web.questEditor.rendering.QuestRenderer
+import world.phantasmal.web.questEditor.rendering.UserInputManager
 import world.phantasmal.web.questEditor.stores.AreaStore
 import world.phantasmal.web.questEditor.stores.QuestEditorStore
 import world.phantasmal.web.questEditor.widgets.*
@@ -24,6 +25,7 @@ import world.phantasmal.webui.widgets.Widget
 
 class QuestEditor(
     private val assetLoader: AssetLoader,
+    private val uiStore: UiStore,
     private val createEngine: (HTMLCanvasElement) -> Engine,
 ) : DisposableContainer(), PwTool {
     override val toolType = PwToolType.QuestEditor
@@ -40,11 +42,14 @@ class QuestEditor(
 
         // Stores
         val areaStore = addDisposable(AreaStore(scope, areaAssetLoader))
-        val questEditorStore = addDisposable(QuestEditorStore(scope, areaStore))
+        val questEditorStore = addDisposable(QuestEditorStore(scope, uiStore, areaStore))
 
         // Controllers
-        val toolbarController =
-            addDisposable(QuestEditorToolbarController(questLoader, areaStore, questEditorStore))
+        val toolbarController = addDisposable(QuestEditorToolbarController(
+            questLoader,
+            areaStore,
+            questEditorStore,
+        ))
         val questInfoController = addDisposable(QuestInfoController(questEditorStore))
         val npcCountsController = addDisposable(NpcCountsController(questEditorStore))
 

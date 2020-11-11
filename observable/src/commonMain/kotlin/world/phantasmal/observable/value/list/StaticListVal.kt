@@ -7,10 +7,13 @@ import world.phantasmal.observable.Observer
 import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.value
 
-class StaticListVal<E>(elements: List<E>) : ListVal<E> {
+class StaticListVal<E>(private val elements: List<E>) : ListVal<E> {
     override val sizeVal: Val<Int> = value(elements.size)
 
     override val value: List<E> = elements
+
+    override fun get(index: Int): E =
+        elements[index]
 
     override fun observe(callNow: Boolean, observer: Observer<List<E>>): Disposable {
         if (callNow) {

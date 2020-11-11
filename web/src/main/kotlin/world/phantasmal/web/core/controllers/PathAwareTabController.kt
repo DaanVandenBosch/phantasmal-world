@@ -30,10 +30,10 @@ open class PathAwareTabController<T : PathAwareTab>(
         super.setActiveTab(tab)
     }
 
-    override fun hiddenChanged(hidden: Boolean) {
-        super.hiddenChanged(hidden)
+    override fun visibleChanged(visible: Boolean) {
+        super.visibleChanged(visible)
 
-        if (!hidden && uiStore.currentTool.value == tool) {
+        if (visible && uiStore.currentTool.value == tool) {
             activeTab.value?.let {
                 uiStore.setPathPrefix(it.path, replace = true)
             }
