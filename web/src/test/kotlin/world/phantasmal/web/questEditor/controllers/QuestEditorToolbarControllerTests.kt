@@ -13,6 +13,19 @@ import kotlin.test.*
 
 class QuestEditorToolbarControllerTests : WebTestSuite() {
     @Test
+    fun can_create_a_new_quest() = asyncTest {
+        val ctrl = disposer.add(QuestEditorToolbarController(
+            components.questLoader,
+            components.areaStore,
+            components.questEditorStore,
+        ))
+
+        ctrl.createNewQuest(Episode.I)
+
+        assertNotNull(components.questEditorStore.currentQuest.value)
+    }
+
+    @Test
     fun a_failure_is_exposed_when_openFiles_fails() = asyncTest {
         val ctrl = disposer.add(QuestEditorToolbarController(
             components.questLoader,
@@ -56,7 +69,7 @@ class QuestEditorToolbarControllerTests : WebTestSuite() {
 
         // Load quest.
         val npc = createQuestNpcModel(NpcType.Scientist, Episode.I)
-        components.questEditorStore.setCurrentQuest(createQuestModel(npcs= listOf(npc)))
+        components.questEditorStore.setCurrentQuest(createQuestModel(npcs = listOf(npc)))
 
         assertEquals(nothingToUndo, ctrl.undoTooltip.value)
         assertFalse(ctrl.undoEnabled.value)

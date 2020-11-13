@@ -1,6 +1,7 @@
 plugins {
     kotlin("js")
     kotlin("plugin.serialization")
+    id("world.phantasmal.gradle.js")
 }
 
 kotlin {

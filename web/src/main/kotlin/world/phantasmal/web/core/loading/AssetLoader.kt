@@ -4,11 +4,16 @@ import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import kotlinx.browser.window
 import org.khronos.webgl.ArrayBuffer
 
-class AssetLoader(val basePath: String, val httpClient: HttpClient) {
+class AssetLoader(
+    val httpClient: HttpClient,
+    val origin: String = window.location.origin,
+    val basePath: String = window.location.pathname.removeSuffix("/") + "/assets",
+) {
     suspend inline fun <reified T> load(path: String): T =
-        httpClient.get("$basePath$path")
+        httpClient.get("$origin$basePath$path")
 
     suspend fun loadArrayBuffer(path: String): ArrayBuffer {
         val response = load<HttpResponse>(path)

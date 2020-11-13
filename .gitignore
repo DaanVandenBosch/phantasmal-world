@@ -9,3 +9,4 @@ build
 # Misc.
 .DS_Store
 *.log
+karma.config.generated.js

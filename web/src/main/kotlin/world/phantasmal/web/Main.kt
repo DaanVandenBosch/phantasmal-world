@@ -49,11 +49,6 @@ private fun init(): Disposable {
     }
     disposer.add(disposable { httpClient.cancel() })
 
-    val pathname = window.location.pathname
-    val assetBasePath = window.location.origin +
-            (if (pathname.lastOrNull() == '/') pathname.dropLast(1) else pathname) +
-            "/assets"
-
     val scope = CoroutineScope(SupervisorJob())
     disposer.add(disposable { scope.cancel() })
 
@@ -61,7 +56,7 @@ private fun init(): Disposable {
         Application(
             scope,
             rootElement,
-            AssetLoader(assetBasePath, httpClient),
+            AssetLoader(httpClient),
             disposer.add(HistoryApplicationUrl()),
             createEngine = { Engine(it) }
         )

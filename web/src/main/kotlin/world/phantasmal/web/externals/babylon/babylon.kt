@@ -169,10 +169,12 @@ open external class ThinEngine {
     fun dispose()
 }
 
-external class Engine(
+open external class Engine(
     canvasOrContext: HTMLCanvasElement?,
     antialias: Boolean = definedExternally,
 ) : ThinEngine
+
+external class NullEngine : Engine
 
 external class Ray(origin: Vector3, direction: Vector3, length: Double = definedExternally) {
     var origin: Vector3

@@ -5,6 +5,7 @@ import java.io.PrintWriter
 
 plugins {
     kotlin("multiplatform")
+    id("world.phantasmal.gradle.js")
 }
 
 buildscript {

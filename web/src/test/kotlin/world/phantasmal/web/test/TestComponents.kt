@@ -10,7 +10,7 @@ import world.phantasmal.testUtils.TestContext
 import world.phantasmal.web.core.loading.AssetLoader
 import world.phantasmal.web.core.stores.ApplicationUrl
 import world.phantasmal.web.core.stores.UiStore
-import world.phantasmal.web.externals.babylon.Engine
+import world.phantasmal.web.externals.babylon.NullEngine
 import world.phantasmal.web.externals.babylon.Scene
 import world.phantasmal.web.questEditor.loading.AreaAssetLoader
 import world.phantasmal.web.questEditor.loading.QuestLoader
@@ -39,11 +39,11 @@ class TestComponents(private val ctx: TestContext) {
 
     // Babylon.js
 
-    var scene: Scene by default { Scene(Engine(null)) }
+    var scene: Scene by default { Scene(NullEngine()) }
 
     // Asset Loaders
 
-    var assetLoader: AssetLoader by default { AssetLoader(basePath = "", httpClient) }
+    var assetLoader: AssetLoader by default { AssetLoader(httpClient, basePath = "/assets") }
 
     var areaAssetLoader: AreaAssetLoader by default {
         AreaAssetLoader(ctx.scope, assetLoader, scene)

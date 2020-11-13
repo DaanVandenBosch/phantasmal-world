@@ -20,7 +20,7 @@ abstract class Renderer(
     init {
         with(scene) {
             useRightHandedSystem = true
-            clearColor = Color4(0.09, 0.09, 0.09, 1.0)
+            clearColor = Color4.FromInts(0x18, 0x18, 0x18, 0xFF)
         }
 
         light = HemisphericLight("Light", Vector3(-1.0, 1.0, 1.0), scene)
