@@ -11,13 +11,12 @@ enum class BranchType {
     None,
 
     /**
-     * ret
+     * ret.
      */
     Return,
 
     /**
-     * jmp or switch_jmp. switch_jmp is a non-conditional jump because it always jumps even though
-     * the jump location is dynamic.
+     * jmp.
      */
     Jump,
 
@@ -200,7 +199,7 @@ private fun createBasicBlocks(cfg: ControlFlowGraphBuilder, segment: Instruction
                 branchLabels = listOf(inst.args[2].value as Int)
             }
             OP_SWITCH_JMP.code -> {
-                branchType = BranchType.Jump
+                branchType = BranchType.ConditionalJump
                 branchLabels = inst.args.drop(1).map { it.value as Int }
             }
 

@@ -411,7 +411,7 @@ private fun parseInstructionsSegment(
         for (i in instructions.size - 1 downTo 0) {
             val opcode = instructions[i].opcode.code
 
-            if (opcode == OP_RET.code || opcode == OP_JMP.code || opcode == OP_SWITCH_JMP.code) {
+            if (opcode == OP_RET.code || opcode == OP_JMP.code) {
                 dropThrough = false
                 break
             }
