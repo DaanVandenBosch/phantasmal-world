@@ -51,8 +51,6 @@ class DockWidget(
 
     init {
         js("""require("golden-layout/src/css/goldenlayout-base.css");""")
-
-        observeResize()
     }
 
     override fun Node.createElement() =
@@ -94,11 +92,11 @@ class DockWidget(
 
             style.width = ""
             style.height = ""
-        }
 
-    override fun resized(width: Double, height: Double) {
-        goldenLayout.updateSize(width, height)
-    }
+            addDisposable(size.observe { (size) ->
+                goldenLayout.updateSize(size.width, size.height)
+            })
+        }
 
     override fun internalDispose() {
         goldenLayout.destroy()
@@ -155,6 +153,7 @@ class DockWidget(
                 .pw-core-dock {
                     width: 100%;
                     height: 100%;
+                    overflow: hidden;
                 }
                 
                 #pw-root .lm_header {

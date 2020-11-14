@@ -58,11 +58,12 @@ fun instructionSize(instruction: Instruction, dcGcFormat: Boolean): Int {
             is RegTupRefType,
             -> 1
 
+            // Ensure this case is before the LabelType case because ILabelVarType extends
+            // LabelType.
+            is ILabelVarType -> 1 + 2 * args.size
+
             is ShortType,
             is LabelType,
-            is ILabelType,
-            is DLabelType,
-            is SLabelType,
             -> 2
 
             is IntType,
@@ -76,8 +77,6 @@ fun instructionSize(instruction: Instruction, dcGcFormat: Boolean): Int {
                     2 * (args[0].value as String).length + 2
                 }
             }
-
-            is ILabelVarType -> 1 + 2 * args.size
 
             is RegRefVarType -> 1 + args.size
 

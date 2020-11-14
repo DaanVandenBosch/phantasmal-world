@@ -4,6 +4,7 @@ import world.phantasmal.lib.fileFormats.quest.Episode
 import world.phantasmal.lib.fileFormats.quest.NpcType
 import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.mutableVal
+import world.phantasmal.observable.value.orElse
 import kotlin.time.Duration
 
 class HuntMethodModel(
@@ -26,7 +27,7 @@ class HuntMethodModel(
      */
     val userTime: Val<Duration?> = _userTime
 
-    val time: Val<Duration> = userTime.map { it ?: defaultTime }
+    val time: Val<Duration> = userTime.orElse { defaultTime }
 
     fun setUserTime(userTime: Duration?): HuntMethodModel {
         _userTime.value = userTime

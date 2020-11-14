@@ -18,6 +18,9 @@ fun Val<Any?>.isNull(): Val<Boolean> =
 fun Val<Any?>.isNotNull(): Val<Boolean> =
     map { it != null }
 
+fun <T> Val<T?>.orElse(defaultValue: () -> T): Val<T> =
+    map { it ?: defaultValue() }
+
 infix fun <T : Comparable<T>> Val<T>.gt(value: T): Val<Boolean> =
     map { it > value }
 

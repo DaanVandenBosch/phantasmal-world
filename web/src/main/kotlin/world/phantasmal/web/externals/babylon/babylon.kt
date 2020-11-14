@@ -495,4 +495,11 @@ external class Color4(
     var g: Double
     var b: Double
     var a: Double
+
+    companion object {
+        /**
+         * Creates a new Color4 from integer values (< 256)
+         */
+        fun FromInts(r: Int, g: Int, b: Int, a: Int): Color4
+    }
 }

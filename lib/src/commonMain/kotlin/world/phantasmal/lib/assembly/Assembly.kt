@@ -20,11 +20,15 @@ class AssemblyProblem(
 
 fun assemble(
     assembly: List<String>,
-    manualStack: Boolean = false,
+    inlineStackArgs: Boolean = true,
 ): PwResult<List<Segment>> {
-    logger.trace { "Assembly start." }
+    logger.trace {
+        "Assembling ${assembly.size} lines with ${
+            if (inlineStackArgs) "inline stack arguments" else "stack push instructions"
+        }."
+    }
 
-    val result = Assembler(assembly, manualStack).assemble()
+    val result = Assembler(assembly, inlineStackArgs).assemble()
 
     logger.trace {
         val warnings = result.problems.count { it.severity == Severity.Warning }
@@ -36,7 +40,7 @@ fun assemble(
     return result
 }
 
-private class Assembler(private val assembly: List<String>, private val manualStack: Boolean) {
+private class Assembler(private val assembly: List<String>, private val inlineStackArgs: Boolean) {
     private var lineNo = 1
     private lateinit var tokens: MutableList<Token>
     private var ir: MutableList<Segment> = mutableListOf()
@@ -355,7 +359,7 @@ private class Assembler(private val assembly: List<String>, private val manualSt
             }
 
             val paramCount =
-                if (manualStack && opcode.stack == StackInteraction.Pop) 0
+                if (!inlineStackArgs && opcode.stack == StackInteraction.Pop) 0
                 else opcode.params.size
 
             val argCount = tokens.count { it !is ArgSeparatorToken }

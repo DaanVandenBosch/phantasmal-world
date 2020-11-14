@@ -8,6 +8,7 @@ import world.phantasmal.web.core.PwToolType
 import world.phantasmal.web.core.loading.AssetLoader
 import world.phantasmal.web.core.stores.UiStore
 import world.phantasmal.web.externals.babylon.Engine
+import world.phantasmal.web.questEditor.controllers.AssemblyEditorController
 import world.phantasmal.web.questEditor.controllers.NpcCountsController
 import world.phantasmal.web.questEditor.controllers.QuestEditorToolbarController
 import world.phantasmal.web.questEditor.controllers.QuestInfoController
@@ -18,6 +19,7 @@ import world.phantasmal.web.questEditor.rendering.QuestEditorMeshManager
 import world.phantasmal.web.questEditor.rendering.QuestRenderer
 import world.phantasmal.web.questEditor.rendering.UserInputManager
 import world.phantasmal.web.questEditor.stores.AreaStore
+import world.phantasmal.web.questEditor.stores.AssemblyEditorStore
 import world.phantasmal.web.questEditor.stores.QuestEditorStore
 import world.phantasmal.web.questEditor.widgets.*
 import world.phantasmal.webui.DisposableContainer
@@ -33,6 +35,7 @@ class QuestEditor(
     override fun initialize(scope: CoroutineScope): Widget {
         // Renderer
         val canvas = document.createElement("CANVAS") as HTMLCanvasElement
+        canvas.style.outline = "none"
         val renderer = addDisposable(QuestRenderer(canvas, createEngine(canvas)))
 
         // Asset Loaders
@@ -43,6 +46,7 @@ class QuestEditor(
         // Stores
         val areaStore = addDisposable(AreaStore(scope, areaAssetLoader))
         val questEditorStore = addDisposable(QuestEditorStore(scope, uiStore, areaStore))
+        val assemblyEditorStore = addDisposable(AssemblyEditorStore(scope, questEditorStore))
 
         // Controllers
         val toolbarController = addDisposable(QuestEditorToolbarController(
@@ -52,6 +56,7 @@ class QuestEditor(
         ))
         val questInfoController = addDisposable(QuestInfoController(questEditorStore))
         val npcCountsController = addDisposable(NpcCountsController(questEditorStore))
+        val assemblyEditorController = addDisposable(AssemblyEditorController(assemblyEditorStore))
 
         // Rendering
         addDisposables(
@@ -71,7 +76,8 @@ class QuestEditor(
             { s -> QuestEditorToolbarWidget(s, toolbarController) },
             { s -> QuestInfoWidget(s, questInfoController) },
             { s -> NpcCountsWidget(s, npcCountsController) },
-            { s -> QuestEditorRendererWidget(s, canvas, renderer) }
+            { s -> QuestEditorRendererWidget(s, canvas, renderer) },
+            { s -> AssemblyEditorWidget(s, assemblyEditorController) },
         )
     }
 }

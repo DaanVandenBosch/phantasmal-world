@@ -1,5 +1,6 @@
 package world.phantasmal.web.test
 
+import world.phantasmal.lib.assembly.Segment
 import world.phantasmal.lib.fileFormats.quest.Episode
 import world.phantasmal.lib.fileFormats.quest.NpcType
 import world.phantasmal.lib.fileFormats.quest.QuestNpc
@@ -15,6 +16,7 @@ fun createQuestModel(
     episode: Episode = Episode.I,
     npcs: List<QuestNpcModel> = emptyList(),
     objects: List<QuestObjectModel> = emptyList(),
+    byteCodeIr: List<Segment> = emptyList(),
 ): QuestModel =
     QuestModel(
         id,
@@ -26,6 +28,7 @@ fun createQuestModel(
         emptyMap(),
         npcs.toMutableList(),
         objects.toMutableList(),
+        byteCodeIr,
     ) { _, _, _ -> null }
 
 fun createQuestNpcModel(type: NpcType, episode: Episode): QuestNpcModel =

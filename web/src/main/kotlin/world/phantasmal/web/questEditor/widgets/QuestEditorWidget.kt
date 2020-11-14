@@ -26,6 +26,7 @@ class QuestEditorWidget(
     private val createQuestInfoWidget: (CoroutineScope) -> Widget,
     private val createNpcCountsWidget: (CoroutineScope) -> Widget,
     private val createQuestRendererWidget: (CoroutineScope) -> Widget,
+    private val createAssemblyEditorWidget: (CoroutineScope) -> Widget,
 ) : Widget(scope) {
     override fun Node.createElement() =
         div {
@@ -60,7 +61,7 @@ class QuestEditorWidget(
                                 ),
                             )
                         ),
-                        DockedStack(
+                        DockedRow(
                             flex = 9,
                             items = listOf(
                                 DockedWidget(
@@ -71,7 +72,7 @@ class QuestEditorWidget(
                                 DockedWidget(
                                     title = "Script",
                                     id = "asm_editor",
-                                    createWidget = ::TestWidget
+                                    createWidget = createAssemblyEditorWidget
                                 ),
                             )
                         ),

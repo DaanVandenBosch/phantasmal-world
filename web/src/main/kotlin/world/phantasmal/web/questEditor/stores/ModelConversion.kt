@@ -22,6 +22,7 @@ fun convertQuestToModel(
         // TODO: Add WaveModel to QuestNpcModel
         quest.npcs.mapTo(mutableListOf()) { QuestNpcModel(it, null) },
         quest.objects.mapTo(mutableListOf()) { QuestObjectModel(it) },
+        quest.byteCodeIr,
         getVariant
     )
 }

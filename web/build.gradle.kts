@@ -39,8 +39,11 @@ dependencies {
     implementation("io.ktor:ktor-client-core-js:$ktorVersion")
     implementation("io.ktor:ktor-client-serialization-js:$ktorVersion")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-core-js:1.0.0")
-    implementation(npm("golden-layout", "1.5.9"))
-    implementation(npm("@babylonjs/core", "4.2.0-rc.5"))
+    implementation(npm("@babylonjs/core", "^4.2.0-rc.5"))
+    implementation(npm("golden-layout", "^1.5.9"))
+    implementation(npm("monaco-editor", "^0.21.2"))
+
+    implementation(devNpm("file-loader", "^6.0.0"))
 
     testImplementation(kotlin("test-js"))
     testImplementation(project(":test-utils"))

@@ -5,10 +5,30 @@ import world.phantasmal.lib.assembly.*
 // See https://en.wikipedia.org/wiki/Control-flow_graph.
 
 enum class BranchType {
+    /**
+     * Only encountered when the last segment of a script has no jump or return.
+     */
     None,
+
+    /**
+     * ret
+     */
     Return,
+
+    /**
+     * jmp or switch_jmp. switch_jmp is a non-conditional jump because it always jumps even though
+     * the jump location is dynamic.
+     */
     Jump,
+
+    /**
+     * Every other jump instruction.
+     */
     ConditionalJump,
+
+    /**
+     * call, switch_call or va_call.
+     */
     Call,
 }
 
@@ -180,7 +200,7 @@ private fun createBasicBlocks(cfg: ControlFlowGraphBuilder, segment: Instruction
                 branchLabels = listOf(inst.args[2].value as Int)
             }
             OP_SWITCH_JMP.code -> {
-                branchType = BranchType.ConditionalJump
+                branchType = BranchType.Jump
                 branchLabels = inst.args.drop(1).map { it.value as Int }
             }
 
@@ -248,7 +268,7 @@ private fun linkBlocks(cfg: ControlFlowGraphBuilder) {
             BranchType.ConditionalJump,
             -> nextBlock?.let(block::linkTo)
 
-            else -> {
+            BranchType.Jump -> {
                 // Ignore.
             }
         }

@@ -62,7 +62,7 @@ object DLabelType : LabelType()
 object SLabelType : LabelType()
 
 /**
- * Arbitrary amount of instruction labels.
+ * Arbitrary amount of instruction labels (variadic arguments).
  */
 object ILabelVarType : LabelType()
 
@@ -88,7 +88,7 @@ object RegRefType : RefType()
 class RegTupRefType(val registerTuple: List<Param>) : RefType()
 
 /**
- * Arbitrary amount of register references.
+ * Arbitrary amount of register references (variadic arguments).
  */
 object RegRefVarType : RefType()
 

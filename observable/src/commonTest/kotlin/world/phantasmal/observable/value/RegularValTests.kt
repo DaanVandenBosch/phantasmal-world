@@ -25,6 +25,9 @@ abstract class RegularValTests : ValTests() {
 
             // Test `isNotNull`.
             assertEquals(any != null, value.isNotNull().value)
+
+            // Test `orElse`.
+            assertEquals(any ?: "default", value.orElse { "default" }.value)
         }
         listOf(10 to 10, 5 to 99, "a" to "a", "x" to "y").forEach { (a, b) ->
             val aVal = createWithValue(a)

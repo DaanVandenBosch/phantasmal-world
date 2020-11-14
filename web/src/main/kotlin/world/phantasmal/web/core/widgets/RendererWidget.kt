@@ -19,8 +19,6 @@ class RendererWidget(
             className = "pw-core-renderer"
             tabIndex = -1
 
-            observeResize()
-
             observe(selfOrAncestorVisible) { visible ->
                 if (visible) {
                     renderer.startRendering()
@@ -29,13 +27,13 @@ class RendererWidget(
                 }
             }
 
+            addDisposable(size.observe { (size) ->
+                canvas.width = floor(size.width).toInt()
+                canvas.height = floor(size.height).toInt()
+            })
+
             append(canvas)
         }
-
-    override fun resized(width: Double, height: Double) {
-        canvas.width = floor(width).toInt()
-        canvas.height = floor(height).toInt()
-    }
 
     companion object {
         init {

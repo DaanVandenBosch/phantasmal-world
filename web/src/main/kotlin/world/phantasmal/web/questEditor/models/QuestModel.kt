@@ -1,5 +1,6 @@
 package world.phantasmal.web.questEditor.models
 
+import world.phantasmal.lib.assembly.Segment
 import world.phantasmal.lib.fileFormats.quest.Episode
 import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.list.ListVal
@@ -16,6 +17,7 @@ class QuestModel(
     mapDesignations: Map<Int, Int>,
     npcs: MutableList<QuestNpcModel>,
     objects: MutableList<QuestObjectModel>,
+    val byteCodeIr: List<Segment>,
     getVariant: (Episode, areaId: Int, variantId: Int) -> AreaVariantModel?,
 ) {
     private val _id = mutableVal(0)
