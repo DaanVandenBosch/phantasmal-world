@@ -54,6 +54,13 @@ operator fun Quaternion.timesAssign(other: Quaternion) {
 fun Quaternion.inverse(): Quaternion = Quaternion.Inverse(this)
 
 /**
+ * Inverts this quaternion.
+ */
+fun Quaternion.invert() {
+    Quaternion.InverseToRef(this, this)
+}
+
+/**
  * Transforms [p] by this versor.
  */
 fun Quaternion.transform(p: Vector3) {

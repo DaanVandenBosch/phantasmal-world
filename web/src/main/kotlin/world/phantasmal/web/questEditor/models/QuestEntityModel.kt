@@ -98,6 +98,7 @@ abstract class QuestEntityModel<Type : EntityType, Entity : QuestEntity<Type>>(
         floorModEuler(rot)
 
         entity.rotation = babylonToVec3(rot)
+        _rotation.value = rot
 
         val section = section.value
 
@@ -116,6 +117,34 @@ abstract class QuestEntityModel<Type : EntityType, Entity : QuestEntity<Type>>(
             floorModEuler(worldRot)
             _worldRotation.value = worldRot
         }
+    }
+
+    fun setWorldRotation(rot: Vector3) {
+        floorModEuler(rot)
+
+        _worldRotation.value = rot
+
+        val section = section.value
+
+        val relRot = if (section == null) {
+            rot
+        } else {
+            Quaternion.FromEulerAnglesToRef(rot.x, rot.y, rot.z, q1)
+            Quaternion.FromEulerAnglesToRef(
+                section.rotation.x,
+                section.rotation.y,
+                section.rotation.z,
+                q2
+            )
+            q2.invert()
+            q1 *= q2
+            val relRot = q1.toEulerAngles()
+            floorModEuler(relRot)
+            relRot
+        }
+
+        entity.rotation = babylonToVec3(relRot)
+        _rotation.value = relRot
     }
 
     private fun floorModEuler(euler: Vector3) {

@@ -32,6 +32,8 @@ fun main() {
 }
 
 private fun init(): Disposable {
+    KotlinLoggingConfiguration.FORMATTER = LogFormatter()
+
     if (window.location.hostname == "localhost") {
         KotlinLoggingConfiguration.LOG_LEVEL = KotlinLoggingLevel.TRACE
     }

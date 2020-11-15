@@ -4,13 +4,11 @@ import kotlinx.coroutines.CoroutineScope
 import mu.KotlinLogging
 import world.phantasmal.observable.value.*
 import world.phantasmal.web.core.PwToolType
-import world.phantasmal.web.core.stores.UiStore
 import world.phantasmal.web.core.actions.Action
+import world.phantasmal.web.core.stores.UiStore
 import world.phantasmal.web.core.undo.UndoManager
 import world.phantasmal.web.core.undo.UndoStack
-import world.phantasmal.web.externals.babylon.Vector3
 import world.phantasmal.web.questEditor.QuestRunner
-import world.phantasmal.web.questEditor.actions.TranslateEntityAction
 import world.phantasmal.web.questEditor.models.*
 import world.phantasmal.webui.stores.Store
 
@@ -128,22 +126,15 @@ class QuestEditorStore(
         _selectedEntity.value = entity
     }
 
-    fun translateEntity(
-        entity: QuestEntityModel<*, *>,
-        oldSection: SectionModel?,
-        newSection: SectionModel?,
-        oldPosition: Vector3,
-        newPosition: Vector3,
-        world: Boolean,
-    ) {
-        mainUndo.push(TranslateEntityAction(
-            ::setSelectedEntity,
-            entity,
-            oldSection,
-            newSection,
-            oldPosition,
-            newPosition,
-            world,
-        )).execute()
+    fun executeAction(action: Action) {
+        require(questEditingEnabled.value) {
+            val reason = when {
+                currentQuest.value == null -> " (no current quest)"
+                runner.running.value -> " (QuestRunner is running)"
+                else -> ""
+            }
+            "Quest editing is disabled at the moment$reason."
+        }
+        mainUndo.push(action).execute()
     }
 }

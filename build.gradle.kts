@@ -13,8 +13,8 @@ tasks.wrapper {
 subprojects {
     project.extra["coroutinesVersion"] = "1.3.9"
     project.extra["kotlinLoggingVersion"] = "2.0.2"
-    project.extra["ktorVersion"] = "1.4.1"
-    project.extra["serializationVersion"] = "1.0.0"
+    project.extra["ktorVersion"] = "1.4.2"
+    project.extra["serializationVersion"] = "1.4.10"
     project.extra["slf4jVersion"] = "1.7.30"
 
     repositories {

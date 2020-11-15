@@ -33,4 +33,56 @@ class QuestInfoControllerTests : WebTestSuite() {
         assertEquals("A short description.", ctrl.shortDescription.value)
         assertEquals("A long description.", ctrl.longDescription.value)
     }
+
+    @Test
+    fun can_edit_simple_properties_undo_edits_and_redo_edits() = asyncTest {
+        val store = components.questEditorStore
+        val ctrl = disposer.add(QuestInfoController(store))
+
+        store.setCurrentQuest(createQuestModel(
+            id = 1,
+            name = "name 1",
+            shortDescription = "short 1",
+            longDescription = "long 1",
+            episode = Episode.II
+        ))
+
+        assertTrue(ctrl.enabled.value)
+
+        assertEquals(1, ctrl.id.value)
+        assertEquals("name 1", ctrl.name.value)
+        assertEquals("short 1", ctrl.shortDescription.value)
+        assertEquals("long 1", ctrl.longDescription.value)
+
+        ctrl.setId(2)
+        ctrl.setName("name 2")
+        ctrl.setShortDescription("short 2")
+        ctrl.setLongDescription("long 2")
+
+        assertEquals(2, ctrl.id.value)
+        assertEquals("name 2", ctrl.name.value)
+        assertEquals("short 2", ctrl.shortDescription.value)
+        assertEquals("long 2", ctrl.longDescription.value)
+
+        store.makeMainUndoCurrent()
+        store.undo()
+        store.undo()
+        store.undo()
+        store.undo()
+
+        assertEquals(1, ctrl.id.value)
+        assertEquals("name 1", ctrl.name.value)
+        assertEquals("short 1", ctrl.shortDescription.value)
+        assertEquals("long 1", ctrl.longDescription.value)
+
+        store.redo()
+        store.redo()
+        store.redo()
+        store.redo()
+
+        assertEquals(2, ctrl.id.value)
+        assertEquals("name 2", ctrl.name.value)
+        assertEquals("short 2", ctrl.shortDescription.value)
+        assertEquals("long 2", ctrl.longDescription.value)
+    }
 }

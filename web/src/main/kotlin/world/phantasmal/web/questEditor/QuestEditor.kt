@@ -8,10 +8,7 @@ import world.phantasmal.web.core.PwToolType
 import world.phantasmal.web.core.loading.AssetLoader
 import world.phantasmal.web.core.stores.UiStore
 import world.phantasmal.web.externals.babylon.Engine
-import world.phantasmal.web.questEditor.controllers.AssemblyEditorController
-import world.phantasmal.web.questEditor.controllers.NpcCountsController
-import world.phantasmal.web.questEditor.controllers.QuestEditorToolbarController
-import world.phantasmal.web.questEditor.controllers.QuestInfoController
+import world.phantasmal.web.questEditor.controllers.*
 import world.phantasmal.web.questEditor.loading.AreaAssetLoader
 import world.phantasmal.web.questEditor.loading.EntityAssetLoader
 import world.phantasmal.web.questEditor.loading.QuestLoader
@@ -56,6 +53,7 @@ class QuestEditor(
         ))
         val questInfoController = addDisposable(QuestInfoController(questEditorStore))
         val npcCountsController = addDisposable(NpcCountsController(questEditorStore))
+        val entityInfoController = addDisposable(EntityInfoController(questEditorStore))
         val assemblyEditorController = addDisposable(AssemblyEditorController(assemblyEditorStore))
 
         // Rendering
@@ -76,6 +74,7 @@ class QuestEditor(
             { s -> QuestEditorToolbarWidget(s, toolbarController) },
             { s -> QuestInfoWidget(s, questInfoController) },
             { s -> NpcCountsWidget(s, npcCountsController) },
+            { s -> EntityInfoWidget(s, entityInfoController) },
             { s -> QuestEditorRendererWidget(s, canvas, renderer) },
             { s -> AssemblyEditorWidget(s, assemblyEditorController) },
         )

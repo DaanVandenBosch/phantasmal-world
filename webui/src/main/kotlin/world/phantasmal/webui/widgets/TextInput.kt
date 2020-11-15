@@ -5,6 +5,7 @@ import org.w3c.dom.HTMLInputElement
 import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.nullVal
 import world.phantasmal.observable.value.trueVal
+import world.phantasmal.observable.value.value
 
 class TextInput(
     scope: CoroutineScope,
@@ -14,8 +15,7 @@ class TextInput(
     label: String? = null,
     labelVal: Val<String>? = null,
     preferredLabelPosition: LabelPosition = LabelPosition.Before,
-    value: String? = null,
-    valueVal: Val<String>? = null,
+    value: Val<String> = value(""),
     onChange: (String) -> Unit = {},
     maxLength: Int? = null,
 ) : Input<String>(
@@ -30,7 +30,6 @@ class TextInput(
     inputClassName = "pw-number-text-inner",
     inputType = "text",
     value,
-    valueVal,
     onChange,
     maxLength,
     min = null,

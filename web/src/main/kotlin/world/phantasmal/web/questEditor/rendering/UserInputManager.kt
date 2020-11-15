@@ -8,6 +8,7 @@ import world.phantasmal.web.core.minus
 import world.phantasmal.web.core.plusAssign
 import world.phantasmal.web.core.times
 import world.phantasmal.web.externals.babylon.*
+import world.phantasmal.web.questEditor.actions.TranslateEntityAction
 import world.phantasmal.web.questEditor.models.QuestEntityModel
 import world.phantasmal.web.questEditor.models.SectionModel
 import world.phantasmal.web.questEditor.stores.QuestEditorStore
@@ -159,20 +160,21 @@ private class StateContext(
 
     fun finalizeTranslation(
         entity: QuestEntityModel<*, *>,
-        oldSection: SectionModel?,
         newSection: SectionModel?,
-        oldPosition: Vector3,
+        oldSection: SectionModel?,
         newPosition: Vector3,
+        oldPosition: Vector3,
         world: Boolean,
     ) {
-        questEditorStore.translateEntity(
+        questEditorStore.executeAction(TranslateEntityAction(
+            ::setSelectedEntity,
             entity,
-            oldSection,
             newSection,
-            oldPosition,
+            oldSection,
             newPosition,
-            world
-        )
+            oldPosition,
+            world,
+        ))
     }
 
     /**
@@ -446,10 +448,10 @@ private class TranslationState(
                 if (!cancelled && event.movedSinceLastPointerDown) {
                     ctx.finalizeTranslation(
                         entity,
-                        initialSection,
                         entity.section.value,
-                        initialPosition,
+                        initialSection,
                         entity.worldPosition.value,
+                        initialPosition,
                         true,
                     )
                 }

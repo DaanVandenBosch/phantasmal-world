@@ -109,6 +109,7 @@ external class Quaternion(
         fun FromEulerAnglesToRef(x: Double, y: Double, z: Double, result: Quaternion): Quaternion
         fun RotationYawPitchRoll(yaw: Double, pitch: Double, roll: Double): Quaternion
         fun Inverse(q: Quaternion): Quaternion
+        fun InverseToRef(q: Quaternion, result: Quaternion): Quaternion
     }
 }
 

@@ -5,6 +5,7 @@ import org.w3c.dom.HTMLInputElement
 import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.nullVal
 import world.phantasmal.observable.value.trueVal
+import world.phantasmal.observable.value.value
 
 class IntInput(
     scope: CoroutineScope,
@@ -14,8 +15,7 @@ class IntInput(
     label: String? = null,
     labelVal: Val<String>? = null,
     preferredLabelPosition: LabelPosition = LabelPosition.Before,
-    value: Int? = null,
-    valueVal: Val<Int>? = null,
+    value: Val<Int> = value(0),
     onChange: (Int) -> Unit = {},
     min: Int? = null,
     max: Int? = null,
@@ -29,7 +29,6 @@ class IntInput(
     labelVal,
     preferredLabelPosition,
     value,
-    valueVal,
     onChange,
     min,
     max,

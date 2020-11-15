@@ -260,7 +260,7 @@ private fun StringBuilder.appendArgs(params: List<Param>, args: List<ArgWithType
     }
 }
 
-private fun StringBuilder.appendStringArg(value: String) {
+private fun StringBuilder.appendStringArg(value: String): StringBuilder {
     append("\"")
 
     for (char in value) {
@@ -274,9 +274,10 @@ private fun StringBuilder.appendStringArg(value: String) {
     }
 
     append("\"")
+    return this
 }
 
-private fun StringBuilder.appendStringSegment(value: String) {
+private fun StringBuilder.appendStringSegment(value: String): StringBuilder {
     append("\"")
 
     var i = 0
@@ -307,4 +308,5 @@ private fun StringBuilder.appendStringSegment(value: String) {
     }
 
     append("\"")
+    return this
 }

@@ -6,6 +6,8 @@ import world.phantasmal.core.Severity
 import world.phantasmal.lib.fileFormats.quest.Episode
 import world.phantasmal.lib.fileFormats.quest.NpcType
 import world.phantasmal.web.externals.babylon.Vector3
+import world.phantasmal.web.questEditor.actions.EditNameAction
+import world.phantasmal.web.questEditor.actions.TranslateEntityAction
 import world.phantasmal.web.test.WebTestSuite
 import world.phantasmal.web.test.createQuestModel
 import world.phantasmal.web.test.createQuestNpcModel
@@ -69,7 +71,8 @@ class QuestEditorToolbarControllerTests : WebTestSuite() {
 
         // Load quest.
         val npc = createQuestNpcModel(NpcType.Scientist, Episode.I)
-        components.questEditorStore.setCurrentQuest(createQuestModel(npcs = listOf(npc)))
+        val quest = createQuestModel(name = "Old Name", npcs = listOf(npc))
+        components.questEditorStore.setCurrentQuest(quest)
 
         assertEquals(nothingToUndo, ctrl.undoTooltip.value)
         assertFalse(ctrl.undoEnabled.value)
@@ -78,16 +81,9 @@ class QuestEditorToolbarControllerTests : WebTestSuite() {
         assertFalse(ctrl.redoEnabled.value)
 
         // Add an action to the undo stack.
-        components.questEditorStore.translateEntity(
-            npc,
-            null,
-            null,
-            Vector3.Zero(),
-            Vector3.Up(),
-            true,
-        )
+        components.questEditorStore.executeAction(EditNameAction(quest, "New Name", quest.name.value))
 
-        assertEquals("Undo \"Move Scientist\" (Ctrl-Z)", ctrl.undoTooltip.value)
+        assertEquals("Undo \"Edit name\" (Ctrl-Z)", ctrl.undoTooltip.value)
         assertTrue(ctrl.undoEnabled.value)
 
         assertEquals(nothingToRedo, ctrl.redoTooltip.value)
@@ -99,7 +95,7 @@ class QuestEditorToolbarControllerTests : WebTestSuite() {
         assertEquals(nothingToUndo, ctrl.undoTooltip.value)
         assertFalse(ctrl.undoEnabled.value)
 
-        assertEquals("Redo \"Move Scientist\" (Ctrl-Shift-Z)", ctrl.redoTooltip.value)
+        assertEquals("Redo \"Edit name\" (Ctrl-Shift-Z)", ctrl.redoTooltip.value)
         assertTrue(ctrl.redoEnabled.value)
     }
 

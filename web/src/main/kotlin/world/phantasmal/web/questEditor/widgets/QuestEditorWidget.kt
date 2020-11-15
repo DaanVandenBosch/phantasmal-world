@@ -18,13 +18,14 @@ private class TestWidget(scope: CoroutineScope) : Widget(scope) {
 }
 
 /**
- * Takes ownership of the widgets created by the given createWidget functions.
+ * Takes ownership of the widgets created by the given creation functions.
  */
 class QuestEditorWidget(
     scope: CoroutineScope,
     private val createToolbar: (CoroutineScope) -> Widget,
     private val createQuestInfoWidget: (CoroutineScope) -> Widget,
     private val createNpcCountsWidget: (CoroutineScope) -> Widget,
+    private val createEntityInfoWidget: (CoroutineScope) -> Widget,
     private val createQuestRendererWidget: (CoroutineScope) -> Widget,
     private val createAssemblyEditorWidget: (CoroutineScope) -> Widget,
 ) : Widget(scope) {
@@ -57,7 +58,7 @@ class QuestEditorWidget(
                                 DockedWidget(
                                     title = "Entity",
                                     id = "entity_info",
-                                    createWidget = ::TestWidget
+                                    createWidget = createEntityInfoWidget
                                 ),
                             )
                         ),

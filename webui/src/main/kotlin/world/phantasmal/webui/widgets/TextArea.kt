@@ -5,6 +5,7 @@ import org.w3c.dom.Node
 import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.nullVal
 import world.phantasmal.observable.value.trueVal
+import world.phantasmal.observable.value.value
 import world.phantasmal.webui.dom.div
 import world.phantasmal.webui.dom.textarea
 
@@ -16,9 +17,8 @@ class TextArea(
     label: String? = null,
     labelVal: Val<String>? = null,
     preferredLabelPosition: LabelPosition = LabelPosition.Before,
-    private val value: String? = null,
-    private val valueVal: Val<String>? = null,
-    private val setValue: ((String) -> Unit)? = null,
+    private val value: Val<String> = value(""),
+    private val onChange: ((String) -> Unit)? = null,
     private val maxLength: Int? = null,
     private val fontFamily: String? = null,
     private val rows: Int? = null,
@@ -41,15 +41,11 @@ class TextArea(
 
                 observe(this@TextArea.enabled) { disabled = !it }
 
-                if (setValue != null) {
-                    onchange = { setValue.invoke(value) }
+                if (onChange != null) {
+                    onchange = { onChange.invoke(value) }
                 }
 
-                if (valueVal != null) {
-                    observe(valueVal) { value = it }
-                } else if (this@TextArea.value != null) {
-                    value = this@TextArea.value
-                }
+                observe(this@TextArea.value) { value = it }
 
                 this@TextArea.maxLength?.let { maxLength = it }
                 fontFamily?.let { style.fontFamily = it }

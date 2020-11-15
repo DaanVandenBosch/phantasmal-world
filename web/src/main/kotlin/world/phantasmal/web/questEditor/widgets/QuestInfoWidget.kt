@@ -32,7 +32,8 @@ class QuestInfoWidget(
                         addChild(IntInput(
                             this@QuestInfoWidget.scope,
                             enabled = ctrl.enabled,
-                            valueVal = ctrl.id,
+                            value = ctrl.id,
+                            onChange = ctrl::setId,
                             min = 0,
                             step = 1,
                         ))
@@ -44,7 +45,8 @@ class QuestInfoWidget(
                         addChild(TextInput(
                             this@QuestInfoWidget.scope,
                             enabled = ctrl.enabled,
-                            valueVal = ctrl.name,
+                            value = ctrl.name,
+                            onChange = ctrl::setName,
                             maxLength = 32,
                         ))
                     }
@@ -61,7 +63,8 @@ class QuestInfoWidget(
                         addChild(TextArea(
                             this@QuestInfoWidget.scope,
                             enabled = ctrl.enabled,
-                            valueVal = ctrl.shortDescription,
+                            value = ctrl.shortDescription,
+                            onChange = ctrl::setShortDescription,
                             maxLength = 128,
                             fontFamily = "\"Courier New\", monospace",
                             cols = 25,
@@ -81,7 +84,8 @@ class QuestInfoWidget(
                         addChild(TextArea(
                             this@QuestInfoWidget.scope,
                             enabled = ctrl.enabled,
-                            valueVal = ctrl.longDescription,
+                            value = ctrl.longDescription,
+                            onChange = ctrl::setLongDescription,
                             maxLength = 288,
                             fontFamily = "\"Courier New\", monospace",
                             cols = 25,

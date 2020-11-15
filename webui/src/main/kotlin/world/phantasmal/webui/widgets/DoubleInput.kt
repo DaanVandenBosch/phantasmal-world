@@ -5,6 +5,8 @@ import org.w3c.dom.HTMLInputElement
 import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.nullVal
 import world.phantasmal.observable.value.trueVal
+import world.phantasmal.observable.value.value
+import kotlin.math.abs
 import kotlin.math.pow
 import kotlin.math.round
 
@@ -16,8 +18,7 @@ class DoubleInput(
     label: String? = null,
     labelVal: Val<String>? = null,
     preferredLabelPosition: LabelPosition = LabelPosition.Before,
-    value: Double? = null,
-    valueVal: Val<Double>? = null,
+    value: Val<Double> = value(0.0),
     onChange: (Double) -> Unit = {},
     roundTo: Int = 2,
 ) : NumberInput<Double>(
@@ -29,7 +30,6 @@ class DoubleInput(
     labelVal,
     preferredLabelPosition,
     value,
-    valueVal,
     onChange,
     min = null,
     max = null,
@@ -43,4 +43,7 @@ class DoubleInput(
     override fun setInputValue(input: HTMLInputElement, value: Double) {
         input.valueAsNumber = round(value * roundingFactor) / roundingFactor
     }
+
+    override fun valuesEqual(a: Double, b: Double): Boolean =
+        abs(a - b) * roundingFactor < 1.0
 }

@@ -30,6 +30,7 @@ kotlin {
 
 val kotlinLoggingVersion: String by project.extra
 val ktorVersion: String by project.extra
+val serializationVersion: String by project.extra
 
 dependencies {
     implementation(project(":lib"))
@@ -38,12 +39,13 @@ dependencies {
     implementation("io.github.microutils:kotlin-logging-js:$kotlinLoggingVersion")
     implementation("io.ktor:ktor-client-core-js:$ktorVersion")
     implementation("io.ktor:ktor-client-serialization-js:$ktorVersion")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-core-js:1.0.0")
-    implementation(npm("@babylonjs/core", "^4.2.0-rc.5"))
+    implementation("org.jetbrains.kotlin:kotlin-serialization:$serializationVersion")
+    implementation(npm("@babylonjs/core", "^4.2.0"))
     implementation(npm("golden-layout", "^1.5.9"))
     implementation(npm("monaco-editor", "^0.21.2"))
 
     implementation(devNpm("file-loader", "^6.0.0"))
+    implementation(devNpm("monaco-editor-webpack-plugin", "^2.0.0"))
 
     testImplementation(kotlin("test-js"))
     testImplementation(project(":test-utils"))

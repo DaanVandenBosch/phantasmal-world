@@ -18,8 +18,7 @@ abstract class Input<T>(
     private val className: String,
     private val inputClassName: String,
     private val inputType: String,
-    private val value: T?,
-    private val valueVal: Val<T>?,
+    private val value: Val<T>,
     private val onChange: (T) -> Unit,
     private val maxLength: Int?,
     private val min: Int?,
@@ -34,6 +33,8 @@ abstract class Input<T>(
     labelVal,
     preferredLabelPosition,
 ) {
+    private var settingValue = false
+
     override fun Node.createElement() =
         span {
             classList.add("pw-input", this@Input.className)
@@ -44,18 +45,16 @@ abstract class Input<T>(
 
                 observe(this@Input.enabled) { disabled = !it }
 
-                onchange = { onChange(getInputValue(this)) }
+                onchange = { callOnChange(this) }
 
                 onkeydown = { e ->
                     if (e.key == "Enter") {
-                        onChange(getInputValue(this))
+                        callOnChange(this)
                     }
                 }
 
-                if (valueVal != null) {
-                    observe(valueVal) { setInputValue(this, it) }
-                } else if (this@Input.value != null) {
-                    setInputValue(this, this@Input.value)
+                observe(this@Input.value) {
+                    setInputValue(this, it)
                 }
 
                 this@Input.maxLength?.let { maxLength = it }
@@ -68,6 +67,17 @@ abstract class Input<T>(
     protected abstract fun getInputValue(input: HTMLInputElement): T
 
     protected abstract fun setInputValue(input: HTMLInputElement, value: T)
+
+    private fun callOnChange(input: HTMLInputElement) {
+        val v = getInputValue(input)
+
+        if (!valuesEqual(v, this@Input.value.value)) {
+            onChange(v)
+        }
+    }
+
+    protected open fun valuesEqual(a: T, b: T): Boolean =
+        a == b
 
     companion object {
         init {

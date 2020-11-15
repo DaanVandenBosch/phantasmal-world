@@ -3,40 +3,33 @@ package world.phantasmal.web.questEditor.actions
 import world.phantasmal.web.core.actions.Action
 import world.phantasmal.web.externals.babylon.Vector3
 import world.phantasmal.web.questEditor.models.QuestEntityModel
-import world.phantasmal.web.questEditor.models.SectionModel
 
-class TranslateEntityAction(
+class RotateEntityAction(
     private val setSelectedEntity: (QuestEntityModel<*, *>) -> Unit,
     private val entity: QuestEntityModel<*, *>,
-    private val newSection: SectionModel?,
-    private val oldSection: SectionModel?,
-    private val newPosition: Vector3,
-    private val oldPosition: Vector3,
+    private val newRotation: Vector3,
+    private val oldRotation: Vector3,
     private val world: Boolean,
 ) : Action {
-    override val description: String = "Move ${entity.type.simpleName}"
+    override val description: String = "Rotate ${entity.type.simpleName}"
 
     override fun execute() {
         setSelectedEntity(entity)
 
-        newSection?.let(entity::setSection)
-
         if (world) {
-            entity.setWorldPosition(newPosition)
+            entity.setWorldRotation(newRotation)
         } else {
-            entity.setPosition(newPosition)
+            entity.setRotation(newRotation)
         }
     }
 
     override fun undo() {
         setSelectedEntity(entity)
 
-        oldSection?.let(entity::setSection)
-
         if (world) {
-            entity.setWorldPosition(oldPosition)
+            entity.setWorldRotation(oldRotation)
         } else {
-            entity.setPosition(oldPosition)
+            entity.setRotation(oldRotation)
         }
     }
 }
