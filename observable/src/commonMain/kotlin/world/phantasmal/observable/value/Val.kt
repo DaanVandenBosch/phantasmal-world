@@ -53,4 +53,10 @@ interface Val<out T> : Observable<T> {
 
     fun <R> flatMapNull(transform: (T) -> Val<R>?): Val<R?> =
         FlatMappedVal(listOf(this)) { transform(value) ?: nullVal() }
+
+    fun isNull(): Val<Boolean> =
+        map { it == null }
+
+    fun isNotNull(): Val<Boolean> =
+        map { it != null }
 }

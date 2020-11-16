@@ -1,22 +1,16 @@
 package world.phantasmal.observable.value
 
-infix fun Val<Any?>.eq(value: Any?): Val<Boolean> =
+infix fun <T> Val<T>.eq(value: T): Val<Boolean> =
     map { it == value }
 
-infix fun Val<Any?>.eq(value: Val<Any?>): Val<Boolean> =
+infix fun <T> Val<T>.eq(value: Val<T>): Val<Boolean> =
     map(value) { a, b -> a == b }
 
-infix fun Val<Any?>.ne(value: Any?): Val<Boolean> =
+infix fun <T> Val<T>.ne(value: T): Val<Boolean> =
     map { it != value }
 
-infix fun Val<Any?>.ne(value: Val<Any?>): Val<Boolean> =
+infix fun <T> Val<T>.ne(value: Val<T>): Val<Boolean> =
     map(value) { a, b -> a != b }
-
-fun Val<Any?>.isNull(): Val<Boolean> =
-    map { it == null }
-
-fun Val<Any?>.isNotNull(): Val<Boolean> =
-    map { it != null }
 
 fun <T> Val<T?>.orElse(defaultValue: () -> T): Val<T> =
     map { it ?: defaultValue() }
@@ -44,3 +38,15 @@ infix fun Val<Boolean>.xor(other: Val<Boolean>): Val<Boolean> =
     map(other) { a, b -> a != b }
 
 operator fun Val<Boolean>.not(): Val<Boolean> = map { !it }
+
+fun Val<String>.isEmpty(): Val<Boolean> =
+    map { it.isEmpty() }
+
+fun Val<String>.isNotEmpty(): Val<Boolean> =
+    map { it.isNotEmpty() }
+
+fun Val<String>.isBlank(): Val<Boolean> =
+    map { it.isBlank() }
+
+fun Val<String>.isNotBlank(): Val<Boolean> =
+    map { it.isNotBlank() }

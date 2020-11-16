@@ -4,7 +4,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import mu.KotlinLogging
 import world.phantasmal.observable.value.Val
-import world.phantasmal.observable.value.isNotNull
 import world.phantasmal.web.externals.babylon.AbstractMesh
 import world.phantasmal.web.externals.babylon.TransformNode
 import world.phantasmal.web.questEditor.loading.EntityAssetLoader

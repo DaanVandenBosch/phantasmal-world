@@ -13,21 +13,31 @@ abstract class RegularValTests : ValTests() {
     protected abstract fun <T> createWithValue(value: T): Val<T>
 
     @Test
-    fun val_any_extensions() = test {
+    fun val_convenience_methods() = test {
         listOf(Any(), null).forEach { any ->
-            val value = createWithValue(any)
+            val anyVal = createWithValue(any)
 
             // Test the test setup first.
-            assertEquals(any, value.value)
+            assertEquals(any, anyVal.value)
 
             // Test `isNull`.
-            assertEquals(any == null, value.isNull().value)
+            assertEquals(any == null, anyVal.isNull().value)
 
             // Test `isNotNull`.
-            assertEquals(any != null, value.isNotNull().value)
+            assertEquals(any != null, anyVal.isNotNull().value)
+        }
+    }
+
+    @Test
+    fun val_generic_extensions() = test {
+        listOf(Any(), null).forEach { any ->
+            val anyVal = createWithValue(any)
+
+            // Test the test setup first.
+            assertEquals(any, anyVal.value)
 
             // Test `orElse`.
-            assertEquals(any ?: "default", value.orElse { "default" }.value)
+            assertEquals(any ?: "default", anyVal.orElse { "default" }.value)
         }
         listOf(10 to 10, 5 to 99, "a" to "a", "x" to "y").forEach { (a, b) ->
             val aVal = createWithValue(a)
@@ -79,25 +89,47 @@ abstract class RegularValTests : ValTests() {
     @Test
     fun val_boolean_extensions() = test {
         listOf(true, false).forEach { bool ->
-            val value = createWithValue(bool)
+            val boolVal = createWithValue(bool)
 
             // Test the test setup first.
-            assertEquals(bool, value.value)
+            assertEquals(bool, boolVal.value)
 
             // Test `and`.
-            assertEquals(bool, (value and trueVal()).value)
-            assertFalse((value and falseVal()).value)
+            assertEquals(bool, (boolVal and trueVal()).value)
+            assertFalse((boolVal and falseVal()).value)
 
             // Test `or`.
-            assertTrue((value or trueVal()).value)
-            assertEquals(bool, (value or falseVal()).value)
+            assertTrue((boolVal or trueVal()).value)
+            assertEquals(bool, (boolVal or falseVal()).value)
 
             // Test `xor`.
-            assertEquals(!bool, (value xor trueVal()).value)
-            assertEquals(bool, (value xor falseVal()).value)
+            assertEquals(!bool, (boolVal xor trueVal()).value)
+            assertEquals(bool, (boolVal xor falseVal()).value)
 
             // Test `!` (unary not).
-            assertEquals(!bool, (!value).value)
+            assertEquals(!bool, (!boolVal).value)
+        }
+    }
+
+    @Test
+    fun val_string_extensions() = test {
+        listOf("", "  ", "\t\t", "non-empty-non-blank").forEach { string ->
+            val stringVal = createWithValue(string)
+
+            // Test the test setup first.
+            assertEquals(string, stringVal.value)
+
+            // Test `isEmpty`.
+            assertEquals(string.isEmpty(), stringVal.isEmpty().value)
+
+            // Test `isNotEmpty`.
+            assertEquals(string.isNotEmpty(), stringVal.isNotEmpty().value)
+
+            // Test `isBlank`.
+            assertEquals(string.isBlank(), stringVal.isBlank().value)
+
+            // Test `isNotBlank`.
+            assertEquals(string.isNotBlank(), stringVal.isNotBlank().value)
         }
     }
 }

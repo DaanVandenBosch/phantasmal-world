@@ -4,7 +4,7 @@ import mu.KotlinLogging
 import world.phantasmal.core.PwResult
 import world.phantasmal.core.Severity
 import world.phantasmal.core.Success
-import world.phantasmal.core.basename
+import world.phantasmal.core.filenameBase
 import world.phantasmal.lib.Endianness
 import world.phantasmal.lib.buffer.Buffer
 import world.phantasmal.lib.cursor.Cursor
@@ -227,7 +227,7 @@ private fun parseHeaders(cursor: Cursor): List<QstHeader> {
         if (
             prevQuestId != null &&
             prevFilename != null &&
-            (questId != prevQuestId || basename(filename) != basename(prevFilename!!))
+            (questId != prevQuestId || filenameBase(filename) != filenameBase(prevFilename!!))
         ) {
             cursor.seek(-headerSize)
             return@repeat

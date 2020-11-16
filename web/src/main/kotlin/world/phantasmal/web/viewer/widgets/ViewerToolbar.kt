@@ -7,6 +7,7 @@ import world.phantasmal.web.viewer.controller.ViewerToolbarController
 import world.phantasmal.webui.dom.Icon
 import world.phantasmal.webui.dom.div
 import world.phantasmal.webui.widgets.FileButton
+import world.phantasmal.webui.widgets.ResultDialog
 import world.phantasmal.webui.widgets.Toolbar
 import world.phantasmal.webui.widgets.Widget
 
@@ -30,6 +31,13 @@ class ViewerToolbar(
                         filesSelected = { files -> scope.launch { ctrl.openFiles(files) } }
                     )
                 )
+            ))
+            addDisposable(ResultDialog(
+                scope,
+                visible = ctrl.resultDialogVisible,
+                result = ctrl.result,
+                message = ctrl.resultMessage,
+                onDismiss = ctrl::dismissResultDialog,
             ))
         }
 }

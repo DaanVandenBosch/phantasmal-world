@@ -3,14 +3,25 @@ package world.phantasmal.core
 /**
  * Returns the given filename without the file extension.
  */
-fun basename(filename: String): String {
-    val dotIdx = filename.lastIndexOf(".")
-
-    // < 0 means filename doesn't contain any "."
-    // Also skip index 0 because that would mean the basename is empty.
-    if (dotIdx > 1) {
-        return filename.substring(0, dotIdx)
+fun filenameBase(filename: String): String? =
+    when (val dotIdx = filename.lastIndexOf(".")) {
+        // Empty basename.
+        0 -> null
+        // No extension.
+        -1 -> filename
+        // Has a basename and extension.
+        else -> filename.substring(0, dotIdx)
     }
 
-    return filename
-}
+/**
+ * Returns the extension of the given filename.
+ */
+fun filenameExtension(filename: String): String? =
+    when (val dotIdx = filename.lastIndexOf(".")) {
+        // No extension.
+        -1 -> null
+        // Empty extension.
+        filename.lastIndex -> null
+        // Has an extension.
+        else -> filename.substring(dotIdx + 1)
+    }

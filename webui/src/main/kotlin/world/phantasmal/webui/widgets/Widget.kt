@@ -3,6 +3,7 @@ package world.phantasmal.webui.widgets
 import kotlinx.browser.document
 import kotlinx.coroutines.CoroutineScope
 import org.w3c.dom.*
+import org.w3c.dom.pointerevents.PointerEvent
 import world.phantasmal.observable.Observable
 import world.phantasmal.observable.value.*
 import world.phantasmal.observable.value.list.ListVal
@@ -10,6 +11,8 @@ import world.phantasmal.observable.value.list.ListValChangeEvent
 import world.phantasmal.webui.DisposableContainer
 import world.phantasmal.webui.dom.HTMLElementSizeVal
 import world.phantasmal.webui.dom.Size
+import world.phantasmal.webui.dom.disposablePointerDrag
+import world.phantasmal.webui.dom.documentFragment
 
 abstract class Widget(
     protected val scope: CoroutineScope,
@@ -29,7 +32,7 @@ abstract class Widget(
     private val _size = HTMLElementSizeVal()
 
     private val elementDelegate = lazy {
-        val el = document.createDocumentFragment().createElement()
+        val el = documentFragment().createElement()
 
         observe(visible) { visible ->
             el.hidden = !visible
@@ -187,6 +190,14 @@ abstract class Widget(
         )
 
         spliceChildren(0, 0, list.value)
+    }
+
+    fun Element.onDrag(
+        onPointerDown: (e: PointerEvent) -> Boolean,
+        onPointerMove: (movedX: Int, movedY: Int, e: PointerEvent) -> Boolean,
+        onPointerUp: (e: PointerEvent) -> Unit = {},
+    ) {
+        addDisposable(disposablePointerDrag(onPointerDown, onPointerMove, onPointerUp))
     }
 
     companion object {

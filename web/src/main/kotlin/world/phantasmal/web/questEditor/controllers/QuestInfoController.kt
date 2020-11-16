@@ -1,7 +1,7 @@
 package world.phantasmal.web.questEditor.controllers
 
 import world.phantasmal.observable.value.Val
-import world.phantasmal.observable.value.isNull
+import world.phantasmal.observable.value.emptyStringVal
 import world.phantasmal.observable.value.value
 import world.phantasmal.web.questEditor.actions.EditIdAction
 import world.phantasmal.web.questEditor.actions.EditLongDescriptionAction
@@ -16,11 +16,11 @@ class QuestInfoController(private val store: QuestEditorStore) : Controller() {
 
     val episode: Val<String> = store.currentQuest.map { it?.episode?.name ?: "" }
     val id: Val<Int> = store.currentQuest.flatMap { it?.id ?: value(0) }
-    val name: Val<String> = store.currentQuest.flatMap { it?.name ?: value("") }
+    val name: Val<String> = store.currentQuest.flatMap { it?.name ?: emptyStringVal() }
     val shortDescription: Val<String> =
-        store.currentQuest.flatMap { it?.shortDescription ?: value("") }
+        store.currentQuest.flatMap { it?.shortDescription ?: emptyStringVal() }
     val longDescription: Val<String> =
-        store.currentQuest.flatMap { it?.longDescription ?: value("") }
+        store.currentQuest.flatMap { it?.longDescription ?: emptyStringVal() }
 
     fun setId(id: Int) {
         if (!enabled.value) return

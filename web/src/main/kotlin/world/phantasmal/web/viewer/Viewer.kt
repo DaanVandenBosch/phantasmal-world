@@ -28,6 +28,7 @@ class Viewer(
 
         // Rendering
         val canvas = document.createElement("CANVAS") as HTMLCanvasElement
+        canvas.style.outline = "none"
         val renderer = addDisposable(MeshRenderer(viewerStore, canvas, createEngine(canvas)))
 
         // Main Widget

@@ -2,7 +2,6 @@ package world.phantasmal.web.questEditor.controllers
 
 import world.phantasmal.lib.fileFormats.quest.NpcType
 import world.phantasmal.observable.value.Val
-import world.phantasmal.observable.value.isNull
 import world.phantasmal.observable.value.list.emptyListVal
 import world.phantasmal.web.questEditor.models.QuestNpcModel
 import world.phantasmal.web.questEditor.stores.QuestEditorStore

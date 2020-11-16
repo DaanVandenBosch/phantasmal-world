@@ -3,6 +3,7 @@ package world.phantasmal.observable.value
 private val TRUE_VAL: Val<Boolean> = StaticVal(true)
 private val FALSE_VAL: Val<Boolean> = StaticVal(false)
 private val NULL_VALL: Val<Nothing?> = StaticVal(null)
+private val EMPTY_STRING_VAL: Val<String> = StaticVal("")
 
 fun <T> value(value: T): Val<T> = StaticVal(value)
 
@@ -11,6 +12,8 @@ fun trueVal(): Val<Boolean> = TRUE_VAL
 fun falseVal(): Val<Boolean> = FALSE_VAL
 
 fun nullVal(): Val<Nothing?> = NULL_VALL
+
+fun emptyStringVal(): Val<String> = EMPTY_STRING_VAL
 
 /**
  * Creates a [MutableVal] with initial value [value].

@@ -2,10 +2,7 @@ package world.phantasmal.webui.widgets
 
 import kotlinx.coroutines.CoroutineScope
 import org.w3c.dom.Node
-import world.phantasmal.observable.value.Val
-import world.phantasmal.observable.value.nullVal
-import world.phantasmal.observable.value.trueVal
-import world.phantasmal.observable.value.value
+import world.phantasmal.observable.value.*
 import world.phantasmal.webui.dom.div
 import world.phantasmal.webui.dom.textarea
 
@@ -17,7 +14,7 @@ class TextArea(
     label: String? = null,
     labelVal: Val<String>? = null,
     preferredLabelPosition: LabelPosition = LabelPosition.Before,
-    private val value: Val<String> = value(""),
+    private val value: Val<String> = emptyStringVal(),
     private val onChange: ((String) -> Unit)? = null,
     private val maxLength: Int? = null,
     private val fontFamily: String? = null,

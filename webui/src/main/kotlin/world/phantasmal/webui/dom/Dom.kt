@@ -1,13 +1,12 @@
 package world.phantasmal.webui.dom
 
 import kotlinx.browser.document
+import kotlinx.browser.window
 import kotlinx.dom.appendText
-import org.w3c.dom.AddEventListenerOptions
-import org.w3c.dom.HTMLElement
-import org.w3c.dom.HTMLStyleElement
-import org.w3c.dom.Node
+import org.w3c.dom.*
 import org.w3c.dom.events.Event
 import org.w3c.dom.events.EventTarget
+import org.w3c.dom.pointerevents.PointerEvent
 import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.core.disposable.disposable
 
@@ -25,6 +24,50 @@ fun <E : Event> disposableListener(
     }
 }
 
+fun Element.disposablePointerDrag(
+    onPointerDown: (e: PointerEvent) -> Boolean,
+    onPointerMove: (movedX: Int, movedY: Int, e: PointerEvent) -> Boolean,
+    onPointerUp: (e: PointerEvent) -> Unit = {},
+): Disposable {
+    var prevPointerX: Int
+    var prevPointerY: Int
+    var windowMoveListener: Disposable? = null
+    var windowUpListener: Disposable? = null
+
+    val downListener = disposableListener<PointerEvent>(this, "pointerdown", { downEvent ->
+        if (onPointerDown(downEvent)) {
+            prevPointerX = downEvent.clientX
+            prevPointerY = downEvent.clientY
+
+            windowMoveListener =
+                disposableListener<PointerEvent>(window, "pointermove", { moveEvent ->
+                    val movedX = moveEvent.clientX - prevPointerX
+                    val movedY = moveEvent.clientY - prevPointerY
+                    prevPointerX = moveEvent.clientX
+                    prevPointerY = moveEvent.clientY
+
+                    if (!onPointerMove(movedX, movedY, moveEvent)) {
+                        windowMoveListener?.dispose()
+                        windowUpListener?.dispose()
+                    }
+                })
+
+            windowUpListener =
+                disposableListener<PointerEvent>(window, "pointerup", { upEvent ->
+                    onPointerUp(upEvent)
+                    windowMoveListener?.dispose()
+                    windowUpListener?.dispose()
+                })
+        }
+    })
+
+    return disposable {
+        downListener.dispose()
+        windowMoveListener?.dispose()
+        windowUpListener?.dispose()
+    }
+}
+
 fun HTMLElement.root(): HTMLElement {
     val styleEl = document.createElement("style") as HTMLStyleElement
     styleEl.id = "pw-root-styles"
@@ -34,6 +77,8 @@ fun HTMLElement.root(): HTMLElement {
     id = "pw-root"
     return this
 }
+
+fun getRoot(): HTMLElement = document.getElementById("pw-root") as HTMLElement
 
 enum class Icon {
     ArrowDown,

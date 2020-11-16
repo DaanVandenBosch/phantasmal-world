@@ -3,7 +3,6 @@ package world.phantasmal.web.questEditor.controllers
 import world.phantasmal.core.math.degToRad
 import world.phantasmal.core.math.radToDeg
 import world.phantasmal.observable.value.Val
-import world.phantasmal.observable.value.isNull
 import world.phantasmal.observable.value.value
 import world.phantasmal.web.externals.babylon.Vector3
 import world.phantasmal.web.questEditor.actions.RotateEntityAction

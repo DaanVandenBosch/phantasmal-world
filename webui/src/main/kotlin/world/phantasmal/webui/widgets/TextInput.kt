@@ -2,10 +2,7 @@ package world.phantasmal.webui.widgets
 
 import kotlinx.coroutines.CoroutineScope
 import org.w3c.dom.HTMLInputElement
-import world.phantasmal.observable.value.Val
-import world.phantasmal.observable.value.nullVal
-import world.phantasmal.observable.value.trueVal
-import world.phantasmal.observable.value.value
+import world.phantasmal.observable.value.*
 
 class TextInput(
     scope: CoroutineScope,
@@ -15,7 +12,7 @@ class TextInput(
     label: String? = null,
     labelVal: Val<String>? = null,
     preferredLabelPosition: LabelPosition = LabelPosition.Before,
-    value: Val<String> = value(""),
+    value: Val<String> = emptyStringVal(),
     onChange: (String) -> Unit = {},
     maxLength: Int? = null,
 ) : Input<String>(

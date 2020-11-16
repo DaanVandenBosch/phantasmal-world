@@ -3,6 +3,12 @@ package world.phantasmal.webui.dom
 import kotlinx.browser.document
 import org.w3c.dom.*
 
+fun <T : Node> dom(block: Node.() -> T): T =
+    documentFragment().block()
+
+fun documentFragment(): DocumentFragment =
+    document.createDocumentFragment()
+
 fun Node.button(block: HTMLButtonElement.() -> Unit = {}): HTMLButtonElement =
     appendHtmlEl("BUTTON", block)
 
@@ -33,11 +39,17 @@ fun Node.input(block: HTMLInputElement.() -> Unit = {}): HTMLInputElement =
 fun Node.label(block: HTMLLabelElement.() -> Unit = {}): HTMLLabelElement =
     appendHtmlEl("LABEL", block)
 
+fun Node.li(block: HTMLLIElement.() -> Unit = {}): HTMLLIElement =
+    appendHtmlEl("LI", block)
+
 fun Node.main(block: HTMLElement.() -> Unit = {}): HTMLElement =
     appendHtmlEl("MAIN", block)
 
 fun Node.p(block: HTMLParagraphElement.() -> Unit = {}): HTMLParagraphElement =
     appendHtmlEl("P", block)
+
+fun Node.section(block: HTMLElement.() -> Unit = {}): HTMLElement =
+    appendHtmlEl("SECTION", block)
 
 fun Node.span(block: HTMLSpanElement.() -> Unit = {}): HTMLSpanElement =
     appendHtmlEl("SPAN", block)
@@ -56,6 +68,9 @@ fun Node.th(block: HTMLTableCellElement.() -> Unit = {}): HTMLTableCellElement =
 
 fun Node.tr(block: HTMLTableRowElement.() -> Unit = {}): HTMLTableRowElement =
     appendHtmlEl("TR", block)
+
+fun Node.ul(block: HTMLUListElement.() -> Unit = {}): HTMLUListElement =
+    appendHtmlEl("UL", block)
 
 fun <T : HTMLElement> Node.appendHtmlEl(tagName: String, block: T.() -> Unit): T =
     appendChild(newHtmlEl(tagName, block)).unsafeCast<T>()
