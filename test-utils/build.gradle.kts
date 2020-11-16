@@ -5,7 +5,7 @@ plugins {
 val coroutinesVersion: String by project.ext
 
 kotlin {
-    js {
+    js(IR) {
         browser {}
     }
 

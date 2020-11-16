@@ -5,7 +5,7 @@ plugins {
 val kotlinLoggingVersion: String by project.extra
 
 kotlin {
-    js {
+    js(IR) {
         browser {}
     }
 

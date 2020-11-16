@@ -5,7 +5,7 @@ plugins {
 }
 
 kotlin {
-    js {
+    js(IR) {
         browser {
             webpackTask {
                 cssSupport.enabled = true

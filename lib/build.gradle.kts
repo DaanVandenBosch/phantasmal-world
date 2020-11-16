@@ -19,7 +19,7 @@ val kotlinLoggingVersion: String by project.extra
 val slf4jVersion: String by project.extra
 
 kotlin {
-    js {
+    js(IR) {
         browser {
             testTask {
                 useKarma {
