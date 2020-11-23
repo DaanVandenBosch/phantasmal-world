@@ -7,10 +7,13 @@ import org.khronos.webgl.Uint8Array
 import world.phantasmal.lib.Endianness
 
 actual class Buffer private constructor(
-    private var arrayBuffer: ArrayBuffer,
+    arrayBuffer: ArrayBuffer,
     size: Int,
     endianness: Endianness,
 ) {
+    var arrayBuffer = arrayBuffer
+        private set
+
     private var dataView = DataView(arrayBuffer)
     private var littleEndian = endianness == Endianness.Little
 

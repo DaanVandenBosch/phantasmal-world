@@ -18,10 +18,14 @@ import world.phantasmal.core.disposable.disposable
 import world.phantasmal.observable.value.mutableVal
 import world.phantasmal.web.application.Application
 import world.phantasmal.web.core.loading.AssetLoader
+import world.phantasmal.web.core.logging.LogAppender
+import world.phantasmal.web.core.logging.LogFormatter
+import world.phantasmal.web.core.rendering.DisposableThreeRenderer
 import world.phantasmal.web.core.stores.ApplicationUrl
-import world.phantasmal.web.externals.babylon.Engine
+import world.phantasmal.web.externals.three.WebGLRenderer
 import world.phantasmal.webui.dom.disposableListener
 import world.phantasmal.webui.dom.root
+import world.phantasmal.webui.obj
 
 fun main() {
     if (document.body != null) {
@@ -33,6 +37,7 @@ fun main() {
 
 private fun init(): Disposable {
     KotlinLoggingConfiguration.FORMATTER = LogFormatter()
+    KotlinLoggingConfiguration.APPENDER = LogAppender()
 
     if (window.location.hostname == "localhost") {
         KotlinLoggingConfiguration.LOG_LEVEL = KotlinLoggingLevel.TRACE
@@ -60,14 +65,31 @@ private fun init(): Disposable {
             rootElement,
             AssetLoader(httpClient),
             disposer.add(HistoryApplicationUrl()),
-            createEngine = { Engine(it) }
+            ::createThreeRenderer,
         )
     )
 
     return disposer
 }
 
-class HistoryApplicationUrl : TrackedDisposable(), ApplicationUrl {
+private fun createThreeRenderer(): DisposableThreeRenderer =
+    object : TrackedDisposable(), DisposableThreeRenderer {
+        override val renderer = WebGLRenderer(obj {
+            antialias = true
+            alpha = true
+        })
+
+        init {
+            renderer.setPixelRatio(window.devicePixelRatio)
+        }
+
+        override fun internalDispose() {
+            renderer.dispose()
+            super.internalDispose()
+        }
+    }
+
+private class HistoryApplicationUrl : TrackedDisposable(), ApplicationUrl {
     private val path: String get() = window.location.pathname
 
     override val url = mutableVal(window.location.hash.substring(1))

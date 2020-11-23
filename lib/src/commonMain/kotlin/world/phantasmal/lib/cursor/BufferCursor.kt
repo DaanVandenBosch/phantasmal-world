@@ -270,5 +270,5 @@ class BufferCursor(
     }
 }
 
-fun Buffer.cursor(): BufferCursor =
-    BufferCursor(this)
+fun Buffer.cursor(offset: Int = 0, size: Int = this.size - offset): BufferCursor =
+    BufferCursor(this, offset, size)

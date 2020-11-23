@@ -10,6 +10,7 @@ import world.phantasmal.lib.Endianness
 import world.phantasmal.lib.cursor.cursor
 import world.phantasmal.lib.fileFormats.ninja.parseNj
 import world.phantasmal.lib.fileFormats.ninja.parseXj
+import world.phantasmal.lib.fileFormats.ninja.parseXvm
 import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.mutableVal
 import world.phantasmal.web.viewer.store.ViewerStore
@@ -26,8 +27,10 @@ class ViewerToolbarController(private val store: ViewerStore) : Controller() {
     val resultDialogVisible: Val<Boolean> = _resultDialogVisible
     val result: Val<PwResult<*>?> = _result
     val resultMessage: Val<String> = result.map {
-        if (it is Failure) "An error occurred while opening files."
-        else "Encountered some problems while opening files."
+        when (it) {
+            is Success, null -> "Encountered some problems while opening files."
+            is Failure -> "An error occurred while opening files."
+        }
     }
 
     suspend fun openFiles(files: List<File>) {
@@ -62,6 +65,19 @@ class ViewerToolbarController(private val store: ViewerStore) : Controller() {
 
                         if (xjResult is Success) {
                             store.setCurrentNinjaObject(xjResult.value.firstOrNull())
+                            success = true
+                        }
+                    }
+
+                    "xvm" -> {
+                        if (textureFound) continue
+
+                        textureFound = true
+                        val xvmResult = parseXvm(readFile(file).cursor(Endianness.Little))
+                        result.addResult(xvmResult)
+
+                        if (xvmResult is Success) {
+                            store.setCurrentTextures(xvmResult.value.textures)
                             success = true
                         }
                     }

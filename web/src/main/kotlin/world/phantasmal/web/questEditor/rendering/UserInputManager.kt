@@ -4,10 +4,10 @@ import kotlinx.browser.document
 import mu.KotlinLogging
 import org.w3c.dom.pointerevents.PointerEvent
 import world.phantasmal.core.disposable.Disposable
-import world.phantasmal.web.core.minus
-import world.phantasmal.web.core.plusAssign
-import world.phantasmal.web.core.times
-import world.phantasmal.web.externals.babylon.*
+import world.phantasmal.web.externals.three.Intersection
+import world.phantasmal.web.externals.three.Raycaster
+import world.phantasmal.web.externals.three.Vector2
+import world.phantasmal.web.externals.three.Vector3
 import world.phantasmal.web.questEditor.actions.TranslateEntityAction
 import world.phantasmal.web.questEditor.models.QuestEntityModel
 import world.phantasmal.web.questEditor.models.SectionModel
@@ -17,16 +17,18 @@ import world.phantasmal.webui.dom.disposableListener
 
 private val logger = KotlinLogging.logger {}
 
-private val ZERO_VECTOR = Vector3.Zero()
-private val DOWN_VECTOR = Vector3.Down()
+private val ZERO_VECTOR = Vector3(0.0, 0.0, 0.0)
+private val DOWN_VECTOR = Vector3(0.0, -1.0, 0.0)
+
+private val raycaster = Raycaster()
 
 class UserInputManager(
     questEditorStore: QuestEditorStore,
     private val renderer: QuestRenderer,
 ) : DisposableContainer() {
     private val stateContext = StateContext(questEditorStore, renderer)
-    private val pointerPosition = Vector2.Zero()
-    private val lastPointerPosition = Vector2.Zero()
+    private val pointerPosition = Vector2()
+    private val lastPointerPosition = Vector2()
     private var movedSinceLastPointerDown = false
     private var state: State
     private var onPointerUpListener: Disposable? = null
@@ -128,7 +130,7 @@ class UserInputManager(
             }
         }
 
-        lastPointerPosition.copyFrom(pointerPosition)
+        lastPointerPosition.copy(pointerPosition)
     }
 }
 
@@ -136,8 +138,8 @@ private class StateContext(
     private val questEditorStore: QuestEditorStore,
     val renderer: QuestRenderer,
 ) {
-    private val plane = Plane.FromPositionAndNormal(Vector3.Up(), Vector3.Up())
-    private val ray = Ray.Zero()
+//    private val plane = Plane.FromPositionAndNormal(Vector3.Up(), Vector3.Up())
+//    private val ray = Ray.Zero()
 
     val scene = renderer.scene
 
@@ -154,7 +156,7 @@ private class StateContext(
         if (vertically) {
             // TODO: Vertical translation.
         } else {
-            translateEntityHorizontally(entity, dragAdjust, grabOffset)
+//            translateEntityHorizontally(entity, dragAdjust, grabOffset)
         }
     }
 
@@ -181,79 +183,79 @@ private class StateContext(
      * If the drag-adjusted pointer is over the ground, translate an entity horizontally across the
      * ground. Otherwise translate the entity over the horizontal plane that intersects its origin.
      */
-    private fun translateEntityHorizontally(
-        entity: QuestEntityModel<*, *>,
-        dragAdjust: Vector3,
-        grabOffset: Vector3,
-    ) {
-        val pick = pickGround(scene.pointerX, scene.pointerY, dragAdjust)
-
-        if (pick == null) {
-            // If the pointer is not over the ground, we translate the entity across the horizontal
-            // plane in which the entity's origin lies.
-            scene.createPickingRayToRef(
-                scene.pointerX,
-                scene.pointerY,
-                Matrix.IdentityReadOnly,
-                ray,
-                renderer.camera
-            )
-
-            plane.d = -entity.worldPosition.value.y + grabOffset.y
-
-            ray.intersectsPlane(plane)?.let { distance ->
-                // Compute the intersection point.
-                val pos = ray.direction * distance
-                pos += ray.origin
-                // Compute the entity's new world position.
-                pos.x += grabOffset.x
-                pos.y = entity.worldPosition.value.y
-                pos.z += grabOffset.z
-
-                entity.setWorldPosition(pos)
-            }
-        } else {
-            // TODO: Set entity section.
-            entity.setWorldPosition(
-                Vector3(
-                    pick.pickedPoint!!.x,
-                    pick.pickedPoint.y + grabOffset.y - dragAdjust.y,
-                    pick.pickedPoint.z,
-                )
-            )
-        }
-    }
-
-    fun pickGround(x: Double, y: Double, dragAdjust: Vector3 = ZERO_VECTOR): PickingInfo? {
-        scene.createPickingRayToRef(
-            x,
-            y,
-            Matrix.IdentityReadOnly,
-            ray,
-            renderer.camera
-        )
-
-        ray.origin += dragAdjust
-
-        val pickingInfoArray = scene.multiPickWithRay(
-            ray,
-            { it.isEnabled() && it.metadata is CollisionMetadata },
-        )
-
-        if (pickingInfoArray != null) {
-            for (pickingInfo in pickingInfoArray) {
-                pickingInfo.getNormal()?.let { n ->
-                    // Don't allow entities to be placed on very steep terrain. E.g. walls.
-                    // TODO: make use of the flags field in the collision data.
-                    if (n.y > 0.75) {
-                        return pickingInfo
-                    }
-                }
-            }
-        }
-
-        return null
-    }
+//    private fun translateEntityHorizontally(
+//        entity: QuestEntityModel<*, *>,
+//        dragAdjust: Vector3,
+//        grabOffset: Vector3,
+//    ) {
+//        val pick = pickGround(scene.pointerX, scene.pointerY, dragAdjust)
+//
+//        if (pick == null) {
+//            // If the pointer is not over the ground, we translate the entity across the horizontal
+//            // plane in which the entity's origin lies.
+//            scene.createPickingRayToRef(
+//                scene.pointerX,
+//                scene.pointerY,
+//                Matrix.IdentityReadOnly,
+//                ray,
+//                renderer.camera
+//            )
+//
+//            plane.d = -entity.worldPosition.value.y + grabOffset.y
+//
+//            ray.intersectsPlane(plane)?.let { distance ->
+//                // Compute the intersection point.
+//                val pos = ray.direction * distance
+//                pos += ray.origin
+//                // Compute the entity's new world position.
+//                pos.x += grabOffset.x
+//                pos.y = entity.worldPosition.value.y
+//                pos.z += grabOffset.z
+//
+//                entity.setWorldPosition(pos)
+//            }
+//        } else {
+//            // TODO: Set entity section.
+//            entity.setWorldPosition(
+//                Vector3(
+//                    pick.pickedPoint!!.x,
+//                    pick.pickedPoint.y + grabOffset.y - dragAdjust.y,
+//                    pick.pickedPoint.z,
+//                )
+//            )
+//        }
+//    }
+//
+//    fun pickGround(x: Double, y: Double, dragAdjust: Vector3 = ZERO_VECTOR): PickingInfo? {
+//        scene.createPickingRayToRef(
+//            x,
+//            y,
+//            Matrix.IdentityReadOnly,
+//            ray,
+//            renderer.camera
+//        )
+//
+//        ray.origin += dragAdjust
+//
+//        val pickingInfoArray = scene.multiPickWithRay(
+//            ray,
+//            { it.isEnabled() && it.metadata is CollisionUserData },
+//        )
+//
+//        if (pickingInfoArray != null) {
+//            for (pickingInfo in pickingInfoArray) {
+//                pickingInfo.getNormal()?.let { n ->
+//                    // Don't allow entities to be placed on very steep terrain. E.g. walls.
+//                    // TODO: make use of the flags field in the collision data.
+//                    if (n.y > 0.75) {
+//                        return pickingInfo
+//                    }
+//                }
+//            }
+//        }
+//
+//        return null
+//    }
 }
 
 private sealed class Evt
@@ -284,7 +286,7 @@ private class PointerMoveEvt(
 
 private class Pick(
     val entity: QuestEntityModel<*, *>,
-    val mesh: AbstractMesh,
+//    val mesh: AbstractMesh,
 
     /**
      * Vector that points from the grabbing point (somewhere on the model's surface) to the entity's
@@ -319,40 +321,40 @@ private class IdleState(
 ) : State() {
     override fun processEvent(event: Evt): State {
         when (event) {
-            is PointerDownEvt -> {
-                pickEntity()?.let { pick ->
-                    when (event.buttons) {
-                        1 -> {
-                            ctx.setSelectedEntity(pick.entity)
+//            is PointerDownEvt -> {
+//                pickEntity()?.let { pick ->
+//                    when (event.buttons) {
+//                        1 -> {
+//                            ctx.setSelectedEntity(pick.entity)
+//
+//                            if (entityManipulationEnabled) {
+//                                return TranslationState(
+//                                    ctx,
+//                                    pick.entity,
+//                                    pick.dragAdjust,
+//                                    pick.grabOffset
+//                                )
+//                            }
+//                        }
+//                        2 -> {
+//                            ctx.setSelectedEntity(pick.entity)
+//
+//                            if (entityManipulationEnabled) {
+//                                // TODO: Enter RotationState.
+//                            }
+//                        }
+//                    }
+//                }
+//            }
 
-                            if (entityManipulationEnabled) {
-                                return TranslationState(
-                                    ctx,
-                                    pick.entity,
-                                    pick.dragAdjust,
-                                    pick.grabOffset
-                                )
-                            }
-                        }
-                        2 -> {
-                            ctx.setSelectedEntity(pick.entity)
-
-                            if (entityManipulationEnabled) {
-                                // TODO: Enter RotationState.
-                            }
-                        }
-                    }
-                }
-            }
-
-            is PointerUpEvt -> {
-                updateCameraTarget()
-
-                // If the user clicks on nothing, deselect the currently selected entity.
-                if (!event.movedSinceLastPointerDown && pickEntity() == null) {
-                    ctx.setSelectedEntity(null)
-                }
-            }
+//            is PointerUpEvt -> {
+//                updateCameraTarget()
+//
+//                // If the user clicks on nothing, deselect the currently selected entity.
+//                if (!event.movedSinceLastPointerDown && pickEntity() == null) {
+//                    ctx.setSelectedEntity(null)
+//                }
+//            }
 
             else -> {
                 // Do nothing.
@@ -369,44 +371,48 @@ private class IdleState(
     private fun updateCameraTarget() {
         // If the user moved the camera, try setting the camera
         // target to a better point.
-        ctx.pickGround(
-            ctx.renderer.engine.getRenderWidth() / 2,
-            ctx.renderer.engine.getRenderHeight() / 2,
-        )?.pickedPoint?.let { newTarget ->
-            ctx.renderer.camera.target = newTarget
-        }
+//        ctx.pickGround(
+//            ctx.renderer.engine.getRenderWidth() / 2,
+//            ctx.renderer.engine.getRenderHeight() / 2,
+//        )?.pickedPoint?.let { newTarget ->
+//            ctx.renderer.camera.target = newTarget
+//        }
     }
 
-    private fun pickEntity(): Pick? {
-        // Find the nearest object and NPC under the pointer.
-        val pickInfo = ctx.scene.pick(ctx.scene.pointerX, ctx.scene.pointerY)
-        if (pickInfo?.pickedMesh == null) return null
-
-        val entity = (pickInfo.pickedMesh.metadata as? EntityMetadata)?.entity
-            ?: return null
-
-        // Vector from the point where we grab the entity to its position.
-        val grabOffset = pickInfo.pickedMesh.position - pickInfo.pickedPoint!!
-
-        // Vector from the point where we grab the entity to the point on the ground right beneath
-        // its position. The same as grabOffset when an entity is standing on the ground.
-        val dragAdjust = grabOffset.clone()
-
-        // Find vertical distance to the ground.
-        ctx.scene.pickWithRay(
-            Ray(pickInfo.pickedMesh.position, DOWN_VECTOR),
-            { it.isEnabled() && it.metadata is CollisionMetadata },
-        )?.let { groundPick ->
-            dragAdjust.y -= groundPick.distance
-        }
-
-        return Pick(
-            entity,
-            pickInfo.pickedMesh,
-            grabOffset,
-            dragAdjust,
-        )
-    }
+    /**
+     * @param pointerPosition pointer coordinates in normalized device space
+     */
+//    private fun pickEntity(pointerPosition:Vector2): Pick? {
+//        // Find the nearest object and NPC under the pointer.
+//        raycaster.setFromCamera(pointerPosition, ctx.renderer.camera)
+//        val pickInfo = ctx.scene.pick(ctx.scene.pointerX, ctx.scene.pointerY)
+//        if (pickInfo?.pickedMesh == null) return null
+//
+//        val entity = (pickInfo.pickedMesh.metadata as? EntityMetadata)?.entity
+//            ?: return null
+//
+//        // Vector from the point where we grab the entity to its position.
+//        val grabOffset = pickInfo.pickedMesh.position - pickInfo.pickedPoint!!
+//
+//        // Vector from the point where we grab the entity to the point on the ground right beneath
+//        // its position. The same as grabOffset when an entity is standing on the ground.
+//        val dragAdjust = grabOffset.clone()
+//
+//        // Find vertical distance to the ground.
+//        ctx.scene.pickWithRay(
+//            Ray(pickInfo.pickedMesh.position, DOWN_VECTOR),
+//            { it.isEnabled() && it.metadata is CollisionUserData },
+//        )?.let { groundPick ->
+//            dragAdjust.y -= groundPick.distance
+//        }
+//
+//        return Pick(
+//            entity,
+//            pickInfo.pickedMesh,
+//            grabOffset,
+//            dragAdjust,
+//        )
+//    }
 }
 
 private class TranslationState(

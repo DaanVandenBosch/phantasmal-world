@@ -17,7 +17,7 @@ class QuestEditorMeshManager(
     entityAssetLoader: EntityAssetLoader,
 ) : QuestMeshManager(scope, questEditorStore, renderer, areaAssetLoader, entityAssetLoader) {
     init {
-        disposer.addAll(
+        addDisposables(
             questEditorStore.currentQuest.map(questEditorStore.currentArea, ::getAreaVariantDetails)
                 .observe { (details) ->
                     loadMeshes(details.episode, details.areaVariant, details.npcs, details.objects)

@@ -4,7 +4,9 @@ import world.phantasmal.core.math.degToRad
 import world.phantasmal.core.math.radToDeg
 import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.value
-import world.phantasmal.web.externals.babylon.Vector3
+import world.phantasmal.web.core.euler
+import world.phantasmal.web.externals.three.Euler
+import world.phantasmal.web.externals.three.Vector3
 import world.phantasmal.web.questEditor.actions.RotateEntityAction
 import world.phantasmal.web.questEditor.actions.TranslateEntityAction
 import world.phantasmal.web.questEditor.models.QuestEntityModel
@@ -32,12 +34,14 @@ class EntityInfoController(private val store: QuestEditorStore) : Controller() {
 
     val waveHidden: Val<Boolean> = store.selectedEntity.map { it !is QuestNpcModel }
 
-    private val pos: Val<Vector3> = store.selectedEntity.flatMap { it?.position ?: DEFAULT_VECTOR }
+    private val pos: Val<Vector3> =
+        store.selectedEntity.flatMap { it?.position ?: DEFAULT_POSITION }
     val posX: Val<Double> = pos.map { it.x }
     val posY: Val<Double> = pos.map { it.y }
     val posZ: Val<Double> = pos.map { it.z }
 
-    private val rot: Val<Vector3> = store.selectedEntity.flatMap { it?.rotation ?: DEFAULT_VECTOR }
+    private val rot: Val<Euler> =
+        store.selectedEntity.flatMap { it?.rotation ?: DEFAULT_ROTATION }
     val rotX: Val<Double> = rot.map { radToDeg(it.x) }
     val rotY: Val<Double> = rot.map { radToDeg(it.y) }
     val rotZ: Val<Double> = rot.map { radToDeg(it.z) }
@@ -104,13 +108,14 @@ class EntityInfoController(private val store: QuestEditorStore) : Controller() {
         store.executeAction(RotateEntityAction(
             setSelectedEntity = store::setSelectedEntity,
             entity,
-            Vector3(x, y, z),
+            euler(x, y, z),
             entity.rotation.value,
             false,
         ))
     }
 
     companion object {
-        private val DEFAULT_VECTOR = value(Vector3.Zero())
+        private val DEFAULT_POSITION = value(Vector3(0.0, 0.0, 0.0))
+        private val DEFAULT_ROTATION = value(euler(0.0, 0.0, 0.0))
     }
 }

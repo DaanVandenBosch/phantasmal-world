@@ -1,63 +1,53 @@
 package world.phantasmal.web.viewer.rendering
 
-import org.w3c.dom.HTMLCanvasElement
 import world.phantasmal.lib.fileFormats.ninja.NinjaObject
+import world.phantasmal.lib.fileFormats.ninja.XvrTexture
+import world.phantasmal.web.core.rendering.DisposableThreeRenderer
 import world.phantasmal.web.core.rendering.Renderer
-import world.phantasmal.web.core.rendering.conversion.ninjaObjectToVertexData
-import world.phantasmal.web.externals.babylon.ArcRotateCamera
-import world.phantasmal.web.externals.babylon.Engine
-import world.phantasmal.web.externals.babylon.Mesh
-import world.phantasmal.web.externals.babylon.Vector3
+import world.phantasmal.web.core.rendering.conversion.ninjaObjectToMesh
+import world.phantasmal.web.core.rendering.disposeObject3DResources
+import world.phantasmal.web.externals.three.BufferGeometry
+import world.phantasmal.web.externals.three.Mesh
+import world.phantasmal.web.externals.three.PerspectiveCamera
 import world.phantasmal.web.viewer.store.ViewerStore
-import kotlin.math.PI
 
 class MeshRenderer(
     store: ViewerStore,
-    canvas: HTMLCanvasElement,
-    engine: Engine,
-) : Renderer(canvas, engine) {
+    createThreeRenderer: () -> DisposableThreeRenderer,
+) : Renderer(
+    createThreeRenderer,
+    PerspectiveCamera(
+        fov = 45.0,
+        aspect = 1.0,
+        near = 1.0,
+        far = 1_000.0,
+    )
+) {
     private var mesh: Mesh? = null
 
-    override val camera = ArcRotateCamera("Camera", PI / 2, PI / 3, 70.0, Vector3.Zero(), scene)
-
     init {
-        with(camera) {
-            attachControl(
-                canvas,
-                noPreventDefault = false,
-                useCtrlForPanning = false,
-                panningMouseButton = 0
-            )
-            inertia = 0.0
-            angularSensibilityX = 200.0
-            angularSensibilityY = 200.0
-            panningInertia = 0.0
-            panningSensibility = 10.0
-            panningAxis = Vector3(1.0, 1.0, 0.0)
-            pinchDeltaPercentage = 0.1
-            wheelDeltaPercentage = 0.1
+        camera.position.set(0.0, 50.0, 200.0)
+        controls.update()
+
+        controls.screenSpacePanning = true
+
+        observe(store.currentNinjaObject, store.currentTextures, ::ninjaObjectOrXvmChanged)
+    }
+
+    private fun ninjaObjectOrXvmChanged(ninjaObject: NinjaObject<*>?, textures: List<XvrTexture>) {
+        mesh?.let { mesh ->
+            disposeObject3DResources(mesh)
+            scene.remove(mesh)
         }
 
-        observe(store.currentNinjaObject, ::ninjaObjectOrXvmChanged)
-    }
-
-    override fun internalDispose() {
-        mesh?.dispose()
-        super.internalDispose()
-    }
-
-    private fun ninjaObjectOrXvmChanged(ninjaObject: NinjaObject<*>?) {
-        mesh?.dispose()
-
         if (ninjaObject != null) {
-            val mesh = Mesh("Model", scene)
-            val vertexData = ninjaObjectToVertexData(ninjaObject)
-            vertexData.applyToMesh(mesh)
+            val mesh = ninjaObjectToMesh(ninjaObject, textures, boundingVolumes = true)
 
             // Make sure we rotate around the center of the model instead of its origin.
-            val bb = mesh.getBoundingInfo().boundingBox
-            val height = bb.maximum.y - bb.minimum.y
-            mesh.position = mesh.position.addInPlaceFromFloats(0.0, -height / 2 - bb.minimum.y, 0.0)
+            val bb = (mesh.geometry as BufferGeometry).boundingBox!!
+            val height = bb.max.y - bb.min.y
+            mesh.translateY(-height / 2 - bb.min.y)
+            scene.add(mesh)
 
             this.mesh = mesh
         }

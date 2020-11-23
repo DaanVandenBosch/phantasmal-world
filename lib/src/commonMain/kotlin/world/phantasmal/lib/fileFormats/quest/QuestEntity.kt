@@ -15,4 +15,11 @@ interface QuestEntity<Type : EntityType> {
     var position: Vec3
 
     var rotation: Vec3
+
+    /**
+     * Set the section-relative position.
+     */
+    fun setPosition(x: Float, y: Float, z: Float)
+
+    fun setRotation(x: Float, y: Float, z: Float)
 }

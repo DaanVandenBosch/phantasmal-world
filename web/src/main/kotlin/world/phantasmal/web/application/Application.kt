@@ -3,7 +3,6 @@ package world.phantasmal.web.application
 import kotlinx.browser.document
 import kotlinx.coroutines.CoroutineScope
 import org.w3c.dom.DragEvent
-import org.w3c.dom.HTMLCanvasElement
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.events.Event
 import org.w3c.dom.events.KeyboardEvent
@@ -14,9 +13,9 @@ import world.phantasmal.web.application.widgets.MainContentWidget
 import world.phantasmal.web.application.widgets.NavigationWidget
 import world.phantasmal.web.core.PwTool
 import world.phantasmal.web.core.loading.AssetLoader
+import world.phantasmal.web.core.rendering.DisposableThreeRenderer
 import world.phantasmal.web.core.stores.ApplicationUrl
 import world.phantasmal.web.core.stores.UiStore
-import world.phantasmal.web.externals.babylon.Engine
 import world.phantasmal.web.huntOptimizer.HuntOptimizer
 import world.phantasmal.web.questEditor.QuestEditor
 import world.phantasmal.web.viewer.Viewer
@@ -28,7 +27,7 @@ class Application(
     rootElement: HTMLElement,
     assetLoader: AssetLoader,
     applicationUrl: ApplicationUrl,
-    createEngine: (HTMLCanvasElement) -> Engine,
+    createThreeRenderer: () -> DisposableThreeRenderer,
 ) : DisposableContainer() {
     init {
         addDisposables(
@@ -49,8 +48,8 @@ class Application(
 
         // The various tools Phantasmal World consists of.
         val tools: List<PwTool> = listOf(
-            Viewer(createEngine),
-            QuestEditor(assetLoader, uiStore, createEngine),
+            Viewer(createThreeRenderer),
+            QuestEditor(assetLoader, uiStore, createThreeRenderer),
             HuntOptimizer(assetLoader, uiStore),
         )
 

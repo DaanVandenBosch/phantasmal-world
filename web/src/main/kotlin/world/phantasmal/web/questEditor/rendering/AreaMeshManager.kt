@@ -12,19 +12,14 @@ class AreaMeshManager(
     private val areaAssetLoader: AreaAssetLoader,
 ) {
     suspend fun load(episode: Episode?, areaVariant: AreaVariantModel?) {
-        renderer.collisionGeometry?.setEnabled(false)
+        renderer.collisionGeometry = null
 
         if (episode == null || areaVariant == null) {
             return
         }
 
         try {
-            val geom = areaAssetLoader.loadCollisionGeometry(episode, areaVariant)
-            // Call setEnabled(false) on renderer.collisionGeometry before calling setEnabled(true)
-            // on geom, because they can refer to the same object.
-            renderer.collisionGeometry?.setEnabled(false)
-            geom.setEnabled(true)
-            renderer.collisionGeometry = geom
+            renderer.collisionGeometry = areaAssetLoader.loadCollisionGeometry(episode, areaVariant)
         } catch (e: Exception) {
             logger.error(e) {
                 "Couldn't load models for area ${areaVariant.area.id}, variant ${areaVariant.id}."

@@ -1,6 +1,5 @@
-package world.phantasmal.web
+package world.phantasmal.web.core.logging
 
-import mu.DefaultMessageFormatter
 import mu.Formatter
 import mu.KotlinLoggingLevel
 import mu.Marker
@@ -12,15 +11,15 @@ class LogFormatter : Formatter {
         loggerName: String,
         msg: () -> Any?,
     ): String =
-        time() + DefaultMessageFormatter.formatMessage(level, loggerName, msg)
+        "${time()} ${level.str()} $loggerName - ${msg.toStringSafe()}"
 
     override fun formatMessage(
         level: KotlinLoggingLevel,
         loggerName: String,
         t: Throwable?,
         msg: () -> Any?,
-    ): String =
-        time() + DefaultMessageFormatter.formatMessage(level, loggerName, t, msg)
+    ): MessageWithThrowable =
+        MessageWithThrowable(formatMessage(level, loggerName, msg), t)
 
     override fun formatMessage(
         level: KotlinLoggingLevel,
@@ -28,7 +27,7 @@ class LogFormatter : Formatter {
         marker: Marker?,
         msg: () -> Any?,
     ): String =
-        time() + DefaultMessageFormatter.formatMessage(level, loggerName, marker, msg)
+        "${time()} ${level.str()} $loggerName [${marker?.getName()}] - ${msg.toStringSafe()}"
 
     override fun formatMessage(
         level: KotlinLoggingLevel,
@@ -36,8 +35,20 @@ class LogFormatter : Formatter {
         marker: Marker?,
         t: Throwable?,
         msg: () -> Any?,
-    ): String =
-        time() + DefaultMessageFormatter.formatMessage(level, loggerName, marker, t, msg)
+    ): MessageWithThrowable =
+        MessageWithThrowable(formatMessage(level, loggerName, marker, msg), t)
+
+    @Suppress("NOTHING_TO_INLINE")
+    private inline fun (() -> Any?).toStringSafe(): String {
+        return try {
+            invoke().toString()
+        } catch (e: Exception) {
+            "Log message invocation failed: $e"
+        }
+    }
+
+    private fun KotlinLoggingLevel.str(): String =
+        name.padEnd(MIN_LEVEL_LEN)
 
     private fun time(): String {
         val date = Date()
@@ -46,5 +57,10 @@ class LogFormatter : Formatter {
         val s = date.getSeconds().toString().padStart(2, '0')
         val ms = date.getMilliseconds().toString().padStart(3, '0')
         return "$h:$m:$s.$ms "
+    }
+
+    companion object {
+        private val MIN_LEVEL_LEN: Int =
+            KotlinLoggingLevel.values().map { it.name.length }.maxOrNull()!!
     }
 }

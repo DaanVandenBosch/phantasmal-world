@@ -3,10 +3,14 @@ package world.phantasmal.web.questEditor.rendering
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import mu.KotlinLogging
+import world.phantasmal.lib.fileFormats.quest.EntityType
 import world.phantasmal.observable.value.Val
-import world.phantasmal.web.externals.babylon.AbstractMesh
-import world.phantasmal.web.externals.babylon.TransformNode
+import world.phantasmal.web.externals.three.Group
+import world.phantasmal.web.externals.three.InstancedMesh
+import world.phantasmal.web.externals.three.Mesh
+import world.phantasmal.web.externals.three.Object3D
 import world.phantasmal.web.questEditor.loading.EntityAssetLoader
+import world.phantasmal.web.questEditor.loading.LoadingCache
 import world.phantasmal.web.questEditor.models.QuestEntityModel
 import world.phantasmal.web.questEditor.models.QuestNpcModel
 import world.phantasmal.web.questEditor.models.QuestObjectModel
@@ -19,58 +23,74 @@ private val logger = KotlinLogging.logger {}
 class EntityMeshManager(
     private val scope: CoroutineScope,
     private val questEditorStore: QuestEditorStore,
-    renderer: QuestRenderer,
+    private val renderer: QuestRenderer,
     private val entityAssetLoader: EntityAssetLoader,
 ) : DisposableContainer() {
+    private val entityMeshes = Group().apply { name = "Entities" }
+
+    private val meshCache = addDisposable(
+        LoadingCache<CacheKey, InstancedMesh>(
+            scope,
+            { (type, model) ->
+                val mesh = entityAssetLoader.loadInstancedMesh(type, model)
+                entityMeshes.add(mesh)
+                mesh
+            },
+            { /* Nothing to dispose. */ },
+        )
+    )
+
     private val queue: MutableList<QuestEntityModel<*, *>> = mutableListOf()
-    private val loadedEntities: MutableMap<QuestEntityModel<*, *>, LoadedEntity> = mutableMapOf()
+    private val loadedEntities: MutableList<LoadedEntity> = mutableListOf()
     private var loading = false
 
-    private var entityMeshes = TransformNode("Entities", renderer.scene)
-    private var hoveredMesh: AbstractMesh? = null
-    private var selectedMesh: AbstractMesh? = null
+    private var hoveredMesh: Mesh? = null
+    private var selectedMesh: Mesh? = null
 
     init {
-        observe(questEditorStore.selectedEntity) { entity ->
-            if (entity == null) {
-                unmarkSelected()
-            } else {
-                val loaded = loadedEntities[entity]
+        renderer.scene.add(entityMeshes)
 
-                // Mesh might not be loaded yet.
-                if (loaded == null) {
-                    unmarkSelected()
-                } else {
-                    markSelected(loaded.mesh)
-                }
-            }
-        }
+//        observe(questEditorStore.selectedEntity) { entity ->
+//            if (entity == null) {
+//                unmarkSelected()
+//            } else {
+//                val loaded = loadedEntities[entity]
+//
+//                // Mesh might not be loaded yet.
+//                if (loaded == null) {
+//                    unmarkSelected()
+//                } else {
+//                    markSelected(loaded.mesh)
+//                }
+//            }
+//        }
     }
 
     override fun internalDispose() {
-        entityMeshes.dispose()
+        renderer.scene.remove(entityMeshes)
         removeAll()
+        entityMeshes.clear()
         super.internalDispose()
     }
 
-    fun add(entities: List<QuestEntityModel<*, *>>) {
-        queue.addAll(entities)
+    fun add(entity: QuestEntityModel<*, *>) {
+        queue.add(entity)
 
         if (!loading) {
+            loading = true
+
             scope.launch {
                 try {
-                    loading = true
-
                     while (queue.isNotEmpty()) {
-                        val entity = queue.first()
+                        val queuedEntity = queue.first()
 
                         try {
-                            load(entity)
+                            load(queuedEntity)
                         } catch (e: Error) {
                             logger.error(e) {
-                                "Couldn't load model for entity of type ${entity.type}."
+                                "Couldn't load model for entity of type ${queuedEntity.type}."
                             }
-                            queue.remove(entity)
+                            queue.remove(queuedEntity)
                         }
                     }
                 } finally {
@@ -80,16 +100,27 @@ class EntityMeshManager(
         }
     }
 
-    fun remove(entities: List<QuestEntityModel<*, *>>) {
-        for (entity in entities) {
-            queue.remove(entity)
+    fun remove(entity: QuestEntityModel<*, *>) {
+        queue.remove(entity)
 
-            loadedEntities.remove(entity)?.dispose()
+        val idx = loadedEntities.indexOfFirst { it.entity == entity }
+
+        if (idx != -1) {
+            val loaded = loadedEntities.removeAt(idx)
+            loaded.mesh.count--
+
+            for (i in idx until loaded.mesh.count) {
+                loaded.mesh.instanceMatrix.copyAt(i, loaded.mesh.instanceMatrix, i + 1)
+                loadedEntities[i].instanceIndex = i
+            }
+
+            loaded.dispose()
         }
     }
 
     fun removeAll() {
-        for (loaded in loadedEntities.values) {
+        for (loaded in loadedEntities) {
+            loaded.mesh.count = 0
             loaded.dispose()
         }
 
@@ -97,59 +128,64 @@ class EntityMeshManager(
         queue.clear()
     }
 
-    private fun markSelected(entityMesh: AbstractMesh) {
-        if (entityMesh == hoveredMesh) {
-            hoveredMesh = null
-        }
-
-        if (entityMesh != selectedMesh) {
-            selectedMesh?.let { it.showBoundingBox = false }
-
-            entityMesh.showBoundingBox = true
-        }
-
-        selectedMesh = entityMesh
-    }
-
-    private fun unmarkSelected() {
-        selectedMesh?.let { it.showBoundingBox = false }
-        selectedMesh = null
-    }
+//    private fun markSelected(entityMesh: AbstractMesh) {
+//        if (entityMesh == hoveredMesh) {
+//            hoveredMesh = null
+//        }
+//
+//        if (entityMesh != selectedMesh) {
+//            selectedMesh?.let { it.showBoundingBox = false }
+//
+//            entityMesh.showBoundingBox = true
+//        }
+//
+//        selectedMesh = entityMesh
+//    }
+//
+//    private fun unmarkSelected() {
+//        selectedMesh?.let { it.showBoundingBox = false }
+//        selectedMesh = null
+//    }
 
     private suspend fun load(entity: QuestEntityModel<*, *>) {
-        val mesh = entityAssetLoader.loadMesh(
+        val mesh = meshCache.get(CacheKey(
             type = entity.type,
             model = (entity as? QuestObjectModel)?.model?.value
-        )
+        ))
 
         // Only add an instance of this mesh if the entity is still in the queue at this point.
         if (queue.remove(entity)) {
-            val instance = mesh.createInstance(entity.type.uniqueName)
-            instance.parent = entityMeshes
+            val instanceIndex = mesh.count
+            mesh.count++
 
-            if (entity == questEditorStore.selectedEntity.value) {
-                markSelected(instance)
-            }
+//            if (entity == questEditorStore.selectedEntity.value) {
+//                markSelected(instance)
+//            }
 
-            loadedEntities[entity] = LoadedEntity(entity, instance, questEditorStore.selectedWave)
+            loadedEntities.add(LoadedEntity(
+                entity,
+                mesh,
+                instanceIndex,
+                questEditorStore.selectedWave
+            ))
         }
     }
 
+    private data class CacheKey(val type: EntityType, val model: Int?)
+
     private inner class LoadedEntity(
-        entity: QuestEntityModel<*, *>,
-        val mesh: AbstractMesh,
+        val entity: QuestEntityModel<*, *>,
+        val mesh: InstancedMesh,
+        var instanceIndex: Int,
         selectedWave: Val<WaveModel?>,
     ) : DisposableContainer() {
         init {
-            mesh.metadata = EntityMetadata(entity)
+            updateMatrix()
 
-            observe(entity.worldPosition) { pos ->
-                mesh.position = pos
-            }
-
-            observe(entity.worldRotation) { rot ->
-                mesh.rotation = rot
-            }
+            addDisposables(
+                entity.worldPosition.observe { updateMatrix() },
+                entity.worldRotation.observe { updateMatrix() },
+            )
 
             val isVisible: Val<Boolean>
 
@@ -166,21 +202,40 @@ class EntityMeshManager(
 
                 if (entity is QuestObjectModel) {
                     addDisposable(entity.model.observe(callNow = false) {
-                        remove(listOf(entity))
-                        add(listOf(entity))
+                        remove(entity)
+                        add(entity)
                     })
                 }
             }
 
-            observe(isVisible) { visible ->
-                mesh.setEnabled(visible)
-            }
+//            observe(isVisible) { visible ->
+//                mesh.setEnabled(visible)
+//            }
         }
 
         override fun internalDispose() {
-            mesh.parent = null
-            mesh.dispose()
+            // TODO: Dispose instance.
             super.internalDispose()
         }
+
+        private fun updateMatrix() {
+            instanceHelper.position.set(
+                entity.worldPosition.value.x,
+                entity.worldPosition.value.y,
+                entity.worldPosition.value.z,
+            )
+            instanceHelper.rotation.set(
+                entity.worldRotation.value.x,
+                entity.worldRotation.value.y,
+                entity.worldRotation.value.z,
+            )
+            instanceHelper.updateMatrix()
+            mesh.setMatrixAt(instanceIndex, instanceHelper.matrix)
+            mesh.instanceMatrix.needsUpdate = true
+        }
+    }
+
+    companion object {
+        private val instanceHelper = Object3D()
     }
 }

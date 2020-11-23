@@ -13,11 +13,9 @@ import kotlin.math.abs
 
 private val logger = KotlinLogging.logger {}
 
-private const val ZERO_U8: UByte = 0u
-
 // TODO: Simplify parser by not parsing chunks into vertices and meshes. Do the chunk to vertex/mesh
 //       conversion at a higher level.
-fun parseNjModel(cursor: Cursor, cachedChunkOffsets: MutableMap<UByte, Int>): NjModel {
+fun parseNjModel(cursor: Cursor, cachedChunkOffsets: MutableMap<Int, Int>): NjModel {
     val vlistOffset = cursor.int() // Vertex list
     val plistOffset = cursor.int() // Triangle strip index list
     val collisionSphereCenter = cursor.vec3Float()
@@ -50,9 +48,9 @@ fun parseNjModel(cursor: Cursor, cachedChunkOffsets: MutableMap<UByte, Int>): Nj
     if (plistOffset != 0) {
         cursor.seekStart(plistOffset)
 
-        var textureId: UInt? = null
-        var srcAlpha: UByte? = null
-        var dstAlpha: UByte? = null
+        var textureId: Int? = null
+        var srcAlpha: Int? = null
+        var dstAlpha: Int? = null
 
         for (chunk in parseChunks(cursor, cachedChunkOffsets, false)) {
             when (chunk) {
@@ -98,7 +96,7 @@ fun parseNjModel(cursor: Cursor, cachedChunkOffsets: MutableMap<UByte, Int>): Nj
 // TODO: don't reparse when DrawPolygonList chunk is encountered.
 private fun parseChunks(
     cursor: Cursor,
-    cachedChunkOffsets: MutableMap<UByte, Int>,
+    cachedChunkOffsets: MutableMap<Int, Int>,
     wideEndChunks: Boolean,
 ): List<NjChunk> {
     val chunks: MutableList<NjChunk> = mutableListOf()
@@ -106,8 +104,7 @@ private fun parseChunks(
 
     while (loop) {
         val typeId = cursor.uByte()
-        val flags = cursor.uByte()
-        val flagsUInt = flags.toUInt()
+        val flags = cursor.uByte().toInt()
         val chunkStartPosition = cursor.position
         var size = 0
 
@@ -118,8 +115,8 @@ private fun parseChunks(
             in 1..3 -> {
                 chunks.add(NjChunk.Bits(
                     typeId,
-                    srcAlpha = ((flagsUInt shr 3).toUByte() and 0b111u),
-                    dstAlpha = flags and 0b111u,
+                    srcAlpha = (flags ushr 3) and 0b111,
+                    dstAlpha = flags and 0b111,
                 ))
             }
             4 -> {
@@ -147,7 +144,7 @@ private fun parseChunks(
             }
             in 8..9 -> {
                 size = 2
-                val textureBitsAndId = cursor.uShort().toUInt()
+                val textureBitsAndId = cursor.uShort().toInt()
 
                 chunks.add(NjChunk.Tiny(
                     typeId,
@@ -156,9 +153,9 @@ private fun parseChunks(
                     clampU = (typeId.toUInt() and 0x20u) != 0u,
                     clampV = (typeId.toUInt() and 0x10u) != 0u,
                     mipmapDAdjust = typeId.toUInt() and 0b1111u,
-                    filterMode = textureBitsAndId shr 14,
-                    superSample = (textureBitsAndId and 0x40u) != 0u,
-                    textureId = textureBitsAndId and 0x1fffu,
+                    filterMode = textureBitsAndId ushr 14,
+                    superSample = (textureBitsAndId and 0x40) != 0,
+                    textureId = textureBitsAndId and 0x1fff,
                 ))
             }
             in 17..31 -> {
@@ -168,7 +165,7 @@ private fun parseChunks(
                 var ambient: NjArgb? = null
                 var specular: NjErgb? = null
 
-                if ((flagsUInt and 0b1u) != 0u) {
+                if ((flags and 0b1) != 0) {
                     diffuse = NjArgb(
                         b = cursor.uByte().toFloat() / 255f,
                         g = cursor.uByte().toFloat() / 255f,
@@ -177,7 +174,7 @@ private fun parseChunks(
                     )
                 }
 
-                if ((flagsUInt and 0b10u) != 0u) {
+                if ((flags and 0b10) != 0) {
                     ambient = NjArgb(
                         b = cursor.uByte().toFloat() / 255f,
                         g = cursor.uByte().toFloat() / 255f,
@@ -186,7 +183,7 @@ private fun parseChunks(
                     )
                 }
 
-                if ((flagsUInt and 0b100u) != 0u) {
+                if ((flags and 0b100) != 0) {
                     specular = NjErgb(
                         b = cursor.uByte(),
                         g = cursor.uByte(),
@@ -197,8 +194,8 @@ private fun parseChunks(
 
                 chunks.add(NjChunk.Material(
                     typeId,
-                    srcAlpha = ((flagsUInt shr 3).toUByte() and 0b111u),
-                    dstAlpha = flags and 0b111u,
+                    srcAlpha = (flags ushr 3) and 0b111,
+                    dstAlpha = flags and 0b111,
                     diffuse,
                     ambient,
                     specular,
@@ -247,10 +244,10 @@ private fun parseChunks(
 private fun parseVertexChunk(
     cursor: Cursor,
     chunkTypeId: UByte,
-    flags: UByte,
+    flags: Int,
 ): List<NjChunkVertex> {
-    val boneWeightStatus = (flags and 0b11u).toInt()
-    val calcContinue = (flags and 0x80u) != ZERO_U8
+    val boneWeightStatus = flags and 0b11
+    val calcContinue = (flags and 0x80) != 0
 
     val index = cursor.uShort()
     val vertexCount = cursor.uShort()
@@ -333,15 +330,15 @@ private fun parseVertexChunk(
 private fun parseTriangleStripChunk(
     cursor: Cursor,
     chunkTypeId: UByte,
-    flags: UByte,
+    flags: Int,
 ): List<NjTriangleStrip> {
-    val ignoreLight = (flags and 0b1u) != ZERO_U8
-    val ignoreSpecular = (flags and 0b10u) != ZERO_U8
-    val ignoreAmbient = (flags and 0b100u) != ZERO_U8
-    val useAlpha = (flags and 0b1000u) != ZERO_U8
-    val doubleSide = (flags and 0b10000u) != ZERO_U8
-    val flatShading = (flags and 0b100000u) != ZERO_U8
-    val environmentMapping = (flags and 0b1000000u) != ZERO_U8
+    val ignoreLight = (flags and 0b1) != 0
+    val ignoreSpecular = (flags and 0b10) != 0
+    val ignoreAmbient = (flags and 0b100) != 0
+    val useAlpha = (flags and 0b1000) != 0
+    val doubleSide = (flags and 0b10000) != 0
+    val flatShading = (flags and 0b100000) != 0
+    val environmentMapping = (flags and 0b1000000) != 0
 
     val userOffsetAndStripCount = cursor.short().toInt()
     val userFlagsSize = (userOffsetAndStripCount ushr 14)

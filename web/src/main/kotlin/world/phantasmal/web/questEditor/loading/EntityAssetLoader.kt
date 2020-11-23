@@ -1,7 +1,6 @@
 package world.phantasmal.web.questEditor.loading
 
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.async
 import mu.KotlinLogging
 import org.khronos.webgl.ArrayBuffer
 import world.phantasmal.core.PwResult
@@ -9,66 +8,43 @@ import world.phantasmal.core.Success
 import world.phantasmal.lib.Endianness
 import world.phantasmal.lib.cursor.Cursor
 import world.phantasmal.lib.cursor.cursor
-import world.phantasmal.lib.fileFormats.ninja.NinjaModel
-import world.phantasmal.lib.fileFormats.ninja.NinjaObject
-import world.phantasmal.lib.fileFormats.ninja.parseNj
-import world.phantasmal.lib.fileFormats.ninja.parseXj
+import world.phantasmal.lib.fileFormats.ninja.*
 import world.phantasmal.lib.fileFormats.quest.EntityType
 import world.phantasmal.lib.fileFormats.quest.NpcType
 import world.phantasmal.lib.fileFormats.quest.ObjectType
 import world.phantasmal.web.core.loading.AssetLoader
-import world.phantasmal.web.core.rendering.conversion.ninjaObjectToVertexData
-import world.phantasmal.web.externals.babylon.*
+import world.phantasmal.web.core.rendering.conversion.ninjaObjectToInstancedMesh
+import world.phantasmal.web.core.rendering.disposeObject3DResources
+import world.phantasmal.web.externals.three.CylinderBufferGeometry
+import world.phantasmal.web.externals.three.InstancedMesh
+import world.phantasmal.web.externals.three.MeshLambertMaterial
 import world.phantasmal.webui.DisposableContainer
-import world.phantasmal.webui.obj
 
 private val logger = KotlinLogging.logger {}
 
 class EntityAssetLoader(
-    private val scope: CoroutineScope,
+    scope: CoroutineScope,
     private val assetLoader: AssetLoader,
-    private val scene: Scene,
 ) : DisposableContainer() {
-    private val defaultMesh =
-        MeshBuilder.CreateCylinder(
-            "Entity",
-            obj {
-                diameter = 5.0
-                height = 18.0
-            },
-            scene
-        ).apply {
-            setEnabled(false)
-            locallyTranslate(Vector3(0.0, 10.0, 0.0))
-            bakeCurrentTransformIntoVertices()
-        }
-
-    private val meshCache =
-        addDisposable(LoadingCache<Pair<EntityType, Int?>, Mesh> { it.dispose() })
-
-    override fun internalDispose() {
-        defaultMesh.dispose()
-        super.internalDispose()
-    }
-
-    suspend fun loadMesh(type: EntityType, model: Int?): Mesh =
-        meshCache.getOrPut(Pair(type, model)) {
-            scope.async {
+    private val instancedMeshCache = addDisposable(
+        LoadingCache<Pair<EntityType, Int?>, InstancedMesh>(
+            scope,
+            { (type, model) ->
                 try {
-                    loadGeometry(type, model)?.let { vertexData ->
-                        val mesh = Mesh("${type.uniqueName}${model?.let { "-$it" }}", scene)
-                        mesh.setEnabled(false)
-                        vertexData.applyToMesh(mesh)
-                        mesh
-                    } ?: defaultMesh
+                    loadMesh(type, model) ?: DEFAULT_MESH
                 } catch (e: Exception) {
                     logger.error(e) { "Couldn't load mesh for $type (model: $model)." }
-                    defaultMesh
+                    DEFAULT_MESH
                 }
-            }
-        }.await()
+            },
+            ::disposeObject3DResources
+        )
+    )
 
-    private suspend fun loadGeometry(type: EntityType, model: Int?): VertexData? {
+    suspend fun loadInstancedMesh(type: EntityType, model: Int?): InstancedMesh =
+        instancedMeshCache.get(Pair(type, model)).clone() as InstancedMesh
+
+    private suspend fun loadMesh(type: EntityType, model: Int?): InstancedMesh? {
         val geomFormat = entityTypeToGeometryFormat(type)
 
         val geomParts = geometryParts(type).mapNotNull { suffix ->
@@ -78,9 +54,44 @@ class EntityAssetLoader(
             }
         }
 
-        return when (geomFormat) {
+        val ninjaObject = when (geomFormat) {
             GeomFormat.Nj -> parseGeometry(type, geomParts, ::parseNj)
             GeomFormat.Xj -> parseGeometry(type, geomParts, ::parseXj)
+        } ?: return null
+
+        val textures = loadTextures(type, model)
+
+        return ninjaObjectToInstancedMesh(
+            ninjaObject,
+            textures,
+            maxInstances = 300,
+            boundingVolumes = true,
+        )
+    }
+
+    private suspend fun loadTextures(type: EntityType, model: Int?): List<XvrTexture> {
+        val suffix =
+            if (
+                type === ObjectType.FloatingRocks ||
+                (type === ObjectType.BigBrownRock && model == undefined)
+            ) {
+                "-0"
+            } else {
+                ""
+            }
+
+        // GeomFormat is irrelevant for textures.
+        val path = entityTypeToPath(type, AssetType.Texture, suffix, model, GeomFormat.Nj)
+            ?: return emptyList()
+
+        val buffer = assetLoader.loadArrayBuffer(path)
+        val xvm = parseXvm(buffer.cursor(endianness = Endianness.Little))
+
+        return if (xvm is Success) {
+            xvm.value.textures
+        } else {
+            logger.warn { "Couldn't parse $path for $type." }
+            emptyList()
         }
     }
 
@@ -88,8 +99,8 @@ class EntityAssetLoader(
         type: EntityType,
         parts: List<Pair<String, ArrayBuffer>>,
         parse: (Cursor) -> PwResult<List<NinjaObject<Model>>>,
-    ): VertexData? {
-        val njObjects = parts.flatMap { (path, data) ->
+    ): NinjaObject<Model>? {
+        val ninjaObjects = parts.flatMap { (path, data) ->
             val njObjects = parse(data.cursor(Endianness.Little))
 
             if (njObjects is Success && njObjects.value.isNotEmpty()) {
@@ -100,18 +111,30 @@ class EntityAssetLoader(
             }
         }
 
-        if (njObjects.isEmpty()) {
+        if (ninjaObjects.isEmpty()) {
             return null
         }
 
-        val njObject = njObjects.first()
-        njObject.evaluationFlags.breakChildTrace = false
+        val ninjaObject = ninjaObjects.first()
+        ninjaObject.evaluationFlags.breakChildTrace = false
 
-        for (njObj in njObjects.drop(1)) {
-            njObject.addChild(njObj)
+        for (njObj in ninjaObjects.drop(1)) {
+            ninjaObject.addChild(njObj)
         }
 
-        return ninjaObjectToVertexData(njObject)
+        return ninjaObject
+    }
+
+    companion object {
+        private val DEFAULT_MESH = InstancedMesh(
+            CylinderBufferGeometry(radiusTop = 2.5, radiusBottom = 2.5, height = 18.0).apply {
+                translate(0.0, 10.0, 0.0)
+                computeBoundingBox()
+                computeBoundingSphere()
+            },
+            MeshLambertMaterial(),
+            count = 1000,
+        )
     }
 }
 

@@ -1,7 +1,7 @@
 package world.phantasmal.web.questEditor.actions
 
 import world.phantasmal.web.core.actions.Action
-import world.phantasmal.web.externals.babylon.Vector3
+import world.phantasmal.web.externals.three.Vector3
 import world.phantasmal.web.questEditor.models.QuestEntityModel
 import world.phantasmal.web.questEditor.models.SectionModel
 

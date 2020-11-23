@@ -78,9 +78,7 @@ class QuestNpc(
     override var position: Vec3
         get() = Vec3(data.getFloat(20), data.getFloat(24), data.getFloat(28))
         set(value) {
-            data.setFloat(20, value.x)
-            data.setFloat(24, value.y)
-            data.setFloat(28, value.z)
+            setPosition(value.x, value.y, value.z)
         }
 
     override var rotation: Vec3
@@ -90,9 +88,7 @@ class QuestNpc(
             angleToRad(data.getInt(40)),
         )
         set(value) {
-            data.setInt(32, radToAngle(value.x))
-            data.setInt(36, radToAngle(value.y))
-            data.setInt(40, radToAngle(value.z))
+            setRotation(value.x, value.y, value.z)
         }
 
     /**
@@ -120,5 +116,17 @@ class QuestNpc(
         require(data.size == NPC_BYTE_SIZE) {
             "Data size should be $NPC_BYTE_SIZE but was ${data.size}."
         }
+    }
+
+    override fun setPosition(x: Float, y: Float, z: Float) {
+        data.setFloat(20, x)
+        data.setFloat(24, y)
+        data.setFloat(28, z)
+    }
+
+    override fun setRotation(x: Float, y: Float, z: Float) {
+        data.setInt(32, radToAngle(x))
+        data.setInt(36, radToAngle(y))
+        data.setInt(40, radToAngle(z))
     }
 }

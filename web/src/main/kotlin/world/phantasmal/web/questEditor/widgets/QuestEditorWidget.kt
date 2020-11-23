@@ -62,7 +62,7 @@ class QuestEditorWidget(
                                 ),
                             )
                         ),
-                        DockedRow(
+                        DockedStack(
                             flex = 9,
                             items = listOf(
                                 DockedWidget(

@@ -6,6 +6,5 @@ import world.phantasmal.web.questEditor.rendering.QuestRenderer
 
 class QuestEditorRendererWidget(
     scope: CoroutineScope,
-    canvas: HTMLCanvasElement,
     renderer: QuestRenderer,
-) : QuestRendererWidget(scope, canvas, renderer)
+) : QuestRendererWidget(scope, renderer)

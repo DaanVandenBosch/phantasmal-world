@@ -67,9 +67,9 @@ class NjTriangleStrip(
     val clockwiseWinding: Boolean,
     val hasTexCoords: Boolean,
     val hasNormal: Boolean,
-    var textureId: UInt?,
-    var srcAlpha: UByte?,
-    var dstAlpha: UByte?,
+    var textureId: Int?,
+    var srcAlpha: Int?,
+    var dstAlpha: Int?,
     val vertices: List<NjMeshVertex>,
 )
 
@@ -84,11 +84,11 @@ sealed class NjChunk(val typeId: UByte) {
 
     object Null : NjChunk(0u)
 
-    class Bits(typeId: UByte, val srcAlpha: UByte, val dstAlpha: UByte) : NjChunk(typeId)
+    class Bits(typeId: UByte, val srcAlpha: Int, val dstAlpha: Int) : NjChunk(typeId)
 
-    class CachePolygonList(val cacheIndex: UByte, val offset: Int) : NjChunk(4u)
+    class CachePolygonList(val cacheIndex: Int, val offset: Int) : NjChunk(4u)
 
-    class DrawPolygonList(val cacheIndex: UByte) : NjChunk(5u)
+    class DrawPolygonList(val cacheIndex: Int) : NjChunk(5u)
 
     class Tiny(
         typeId: UByte,
@@ -97,15 +97,15 @@ sealed class NjChunk(val typeId: UByte) {
         val clampU: Boolean,
         val clampV: Boolean,
         val mipmapDAdjust: UInt,
-        val filterMode: UInt,
+        val filterMode: Int,
         val superSample: Boolean,
-        val textureId: UInt,
+        val textureId: Int,
     ) : NjChunk(typeId)
 
     class Material(
         typeId: UByte,
-        val srcAlpha: UByte,
-        val dstAlpha: UByte,
+        val srcAlpha: Int,
+        val dstAlpha: Int,
         val diffuse: NjArgb?,
         val ambient: NjArgb?,
         val specular: NjErgb?,

@@ -1,11 +1,11 @@
 package world.phantasmal.web.viewer.widgets
 
 import kotlinx.coroutines.CoroutineScope
-import org.w3c.dom.HTMLCanvasElement
 import org.w3c.dom.Node
-import world.phantasmal.web.core.rendering.Renderer
-import world.phantasmal.web.core.widgets.RendererWidget
+import world.phantasmal.web.viewer.controller.ViewerController
+import world.phantasmal.web.viewer.controller.ViewerTab
 import world.phantasmal.webui.dom.div
+import world.phantasmal.webui.widgets.TabContainer
 import world.phantasmal.webui.widgets.Widget
 
 /**
@@ -13,20 +13,22 @@ import world.phantasmal.webui.widgets.Widget
  */
 class ViewerWidget(
     scope: CoroutineScope,
+    private val ctrl: ViewerController,
     private val createToolbar: (CoroutineScope) -> Widget,
-    private val canvas: HTMLCanvasElement,
-    private val renderer: Renderer,
+    private val createMeshWidget: (CoroutineScope) -> Widget,
+    private val createTextureWidget: (CoroutineScope) -> Widget,
 ) : Widget(scope) {
     override fun Node.createElement() =
         div {
             className = "pw-viewer-viewer"
 
             addChild(createToolbar(scope))
-            div {
-                className = "pw-viewer-viewer-container"
-
-                addChild(RendererWidget(scope, canvas, renderer))
-            }
+            addChild(TabContainer(scope, ctrl = ctrl, createWidget = { scope, tab ->
+                when (tab) {
+                    ViewerTab.Mesh -> createMeshWidget(scope)
+                    ViewerTab.Texture -> createTextureWidget(scope)
+                }
+            }))
         }
 
     companion object {
@@ -38,10 +40,8 @@ class ViewerWidget(
                     display: flex;
                     flex-direction: column;
                 }
-                .pw-viewer-viewer-container {
+                .pw-viewer-viewer > .pw-tab-container {
                     flex-grow: 1;
-                    display: flex;
-                    flex-direction: row;
                     overflow: hidden;
                 }
             """.trimIndent())

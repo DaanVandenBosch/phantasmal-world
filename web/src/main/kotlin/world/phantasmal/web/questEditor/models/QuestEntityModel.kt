@@ -5,11 +5,14 @@ import world.phantasmal.lib.fileFormats.quest.EntityType
 import world.phantasmal.lib.fileFormats.quest.QuestEntity
 import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.mutableVal
-import world.phantasmal.web.core.*
-import world.phantasmal.web.core.rendering.conversion.babylonToVec3
-import world.phantasmal.web.core.rendering.conversion.vec3ToBabylon
-import world.phantasmal.web.externals.babylon.Quaternion
-import world.phantasmal.web.externals.babylon.Vector3
+import world.phantasmal.web.core.euler
+import world.phantasmal.web.core.minus
+import world.phantasmal.web.core.rendering.conversion.vec3ToThree
+import world.phantasmal.web.core.timesAssign
+import world.phantasmal.web.core.toEuler
+import world.phantasmal.web.externals.three.Euler
+import world.phantasmal.web.externals.three.Quaternion
+import world.phantasmal.web.externals.three.Vector3
 import kotlin.math.PI
 
 abstract class QuestEntityModel<Type : EntityType, Entity : QuestEntity<Type>>(
@@ -18,9 +21,9 @@ abstract class QuestEntityModel<Type : EntityType, Entity : QuestEntity<Type>>(
     private val _sectionId = mutableVal(entity.sectionId)
     private val _section = mutableVal<SectionModel?>(null)
     private val _sectionInitialized = mutableVal(false)
-    private val _position = mutableVal(vec3ToBabylon(entity.position))
+    private val _position = mutableVal(vec3ToThree(entity.position))
     private val _worldPosition = mutableVal(_position.value)
-    private val _rotation = mutableVal(vec3ToBabylon(entity.rotation))
+    private val _rotation = entity.rotation.let { mutableVal(euler(it.x, it.y, it.z)) }
     private val _worldRotation = mutableVal(_rotation.value)
 
     val type: Type get() = entity.type
@@ -42,9 +45,9 @@ abstract class QuestEntityModel<Type : EntityType, Entity : QuestEntity<Type>>(
     /**
      * Section-relative rotation
      */
-    val rotation: Val<Vector3> = _rotation
+    val rotation: Val<Euler> = _rotation
 
-    val worldRotation: Val<Vector3> = _worldRotation
+    val worldRotation: Val<Euler> = _worldRotation
 
     fun setSection(section: SectionModel) {
         require(section.areaVariant.area.id == areaId) {
@@ -67,37 +70,34 @@ abstract class QuestEntityModel<Type : EntityType, Entity : QuestEntity<Type>>(
     }
 
     fun setPosition(pos: Vector3) {
-        entity.position = babylonToVec3(pos)
+        entity.setPosition(pos.x.toFloat(), pos.y.toFloat(), pos.z.toFloat())
 
         _position.value = pos
 
         val section = section.value
 
         _worldPosition.value =
-            section?.rotationQuaternion?.transformed(pos)?.also {
-                it += section.position
-            } ?: pos
+            if (section == null) pos
+            else pos.clone().applyEuler(section.rotation).add(section.position)
     }
 
     fun setWorldPosition(pos: Vector3) {
-        _worldPosition.value = pos
-
         val section = section.value
 
         val relPos =
             if (section == null) pos
-            else (pos - section.position).also {
-                section.inverseRotationQuaternion.transform(it)
-            }
+            else (pos - section.position).applyEuler(section.inverseRotation)
 
-        entity.position = babylonToVec3(relPos)
+        entity.setPosition(relPos.x.toFloat(), relPos.y.toFloat(), relPos.z.toFloat())
+
+        _worldPosition.value = pos
         _position.value = relPos
     }
 
-    fun setRotation(rot: Vector3) {
+    fun setRotation(rot: Euler) {
         floorModEuler(rot)
 
-        entity.rotation = babylonToVec3(rot)
+        entity.setRotation(rot.x.toFloat(), rot.y.toFloat(), rot.z.toFloat())
         _rotation.value = rot
 
         val section = section.value
@@ -105,55 +105,39 @@ abstract class QuestEntityModel<Type : EntityType, Entity : QuestEntity<Type>>(
         if (section == null) {
             _worldRotation.value = rot
         } else {
-            Quaternion.FromEulerAnglesToRef(rot.x, rot.y, rot.z, q1)
-            Quaternion.FromEulerAnglesToRef(
-                section.rotation.x,
-                section.rotation.y,
-                section.rotation.z,
-                q2
-            )
+            q1.setFromEuler(rot)
+            q2.setFromEuler(section.rotation)
             q1 *= q2
-            val worldRot = q1.toEulerAngles()
-            floorModEuler(worldRot)
-            _worldRotation.value = worldRot
+            _worldRotation.value = floorModEuler(q1.toEuler())
         }
     }
 
-    fun setWorldRotation(rot: Vector3) {
+    fun setWorldRotation(rot: Euler) {
         floorModEuler(rot)
-
-        _worldRotation.value = rot
 
         val section = section.value
 
         val relRot = if (section == null) {
             rot
         } else {
-            Quaternion.FromEulerAnglesToRef(rot.x, rot.y, rot.z, q1)
-            Quaternion.FromEulerAnglesToRef(
-                section.rotation.x,
-                section.rotation.y,
-                section.rotation.z,
-                q2
-            )
-            q2.invert()
+            q1.setFromEuler(rot)
+            q2.setFromEuler(section.rotation)
+            q2.inverse()
             q1 *= q2
-            val relRot = q1.toEulerAngles()
-            floorModEuler(relRot)
-            relRot
+            floorModEuler(q1.toEuler())
         }
 
-        entity.rotation = babylonToVec3(relRot)
+        entity.setRotation(relRot.x.toFloat(), relRot.y.toFloat(), relRot.z.toFloat())
+        _worldRotation.value = rot
         _rotation.value = relRot
     }
 
-    private fun floorModEuler(euler: Vector3) {
+    private fun floorModEuler(euler: Euler): Euler =
         euler.set(
             floorMod(euler.x, 2 * PI),
             floorMod(euler.y, 2 * PI),
             floorMod(euler.z, 2 * PI),
         )
-    }
 
     companion object {
         // These quaternions are used as temporary variables to avoid memory allocation.
