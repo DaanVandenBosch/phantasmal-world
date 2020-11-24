@@ -88,6 +88,8 @@ external class Vector3(
      */
     fun cross(v: Vector3): Vector3
 
+    fun distanceTo(v: Vector3): Double
+
     fun applyEuler(euler: Euler): Vector3
     fun applyMatrix3(m: Matrix3): Vector3
     fun applyNormalMatrix(m: Matrix3): Vector3
@@ -137,6 +139,21 @@ external class Matrix4 {
     fun compose(translation: Vector3, rotation: Quaternion, scale: Vector3): Matrix4
 
     fun premultiply(m: Matrix4): Matrix4
+}
+
+external class Ray(origin: Vector3 = definedExternally, direction: Vector3 = definedExternally) {
+    var origin: Vector3
+    var direction: Vector3
+
+    fun intersectPlane(plane: Plane, target: Vector3): Vector3?
+}
+
+external class Face3 {
+    var normal: Vector3
+}
+
+external class Plane(normal: Vector3 = definedExternally, constant: Double = definedExternally) {
+    fun set(normal: Vector3, constant: Double): Plane
 }
 
 open external class EventDispatcher
@@ -201,6 +218,8 @@ open external class Object3D {
      * Local transform.
      */
     var matrix: Matrix4
+
+    var visible: Boolean
 
     /**
      * An object that can be used to store custom data about the Object3d. It should not hold references to functions as these will not be cloned.
@@ -589,12 +608,22 @@ external class Raycaster(
     near: Double = definedExternally,
     far: Double = definedExternally,
 ) {
+    var ray: Ray
+
+    fun set(origin: Vector3, direction: Vector3)
+
     /**
      * Updates the ray with a new origin and direction.
      * @param coords 2D coordinates of the mouse, in normalized device coordinates (NDC)---X and Y components should be between -1 and 1.
      * @param camera camera from which the ray should originate
      */
     fun setFromCamera(coords: Vector2, camera: Camera)
+
+    fun intersectObject(
+        `object`: Object3D,
+        recursive: Boolean = definedExternally,
+        optionalTarget: Array<Intersection> = definedExternally,
+    ): Array<Intersection>
 }
 
 external interface Intersection {
@@ -602,6 +631,8 @@ external interface Intersection {
     var distanceToRay: Double?
     var point: Vector3
     var index: Double?
+    var face: Face3?
+    var faceIndex: Int?
     var `object`: Object3D
     var uv: Vector2?
     var instanceId: Int?

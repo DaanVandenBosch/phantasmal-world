@@ -20,4 +20,10 @@ external class OrbitControls(`object`: Camera, domElement: HTMLElement = defined
     var mouseButtons: OrbitControlsMouseButtons
 
     fun update(): Boolean
+
+    fun saveState()
+
+    fun reset()
+
+    fun dispose()
 }

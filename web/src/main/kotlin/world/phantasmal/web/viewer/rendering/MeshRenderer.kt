@@ -27,9 +27,10 @@ class MeshRenderer(
 
     init {
         camera.position.set(0.0, 50.0, 200.0)
-        controls.update()
 
+        initializeControls()
         controls.screenSpacePanning = true
+        controls.update()
 
         observe(store.currentNinjaObject, store.currentTextures, ::ninjaObjectOrXvmChanged)
     }

@@ -50,7 +50,6 @@ class QuestEditor(
         val assemblyEditorController = addDisposable(AssemblyEditorController(assemblyEditorStore))
 
         // Rendering
-        // Renderer
         val renderer = addDisposable(QuestRenderer(createThreeRenderer))
         addDisposables(
             QuestEditorMeshManager(

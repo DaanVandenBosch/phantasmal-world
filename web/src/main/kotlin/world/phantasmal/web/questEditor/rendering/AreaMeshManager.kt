@@ -12,7 +12,7 @@ class AreaMeshManager(
     private val areaAssetLoader: AreaAssetLoader,
 ) {
     suspend fun load(episode: Episode?, areaVariant: AreaVariantModel?) {
-        renderer.collisionGeometry = null
+        renderer.clearCollisionGeometry()
 
         if (episode == null || areaVariant == null) {
             return

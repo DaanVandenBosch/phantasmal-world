@@ -19,7 +19,6 @@ import world.phantasmal.web.externals.three.Group
 import world.phantasmal.web.externals.three.Object3D
 import world.phantasmal.web.questEditor.models.AreaVariantModel
 import world.phantasmal.web.questEditor.models.SectionModel
-import world.phantasmal.web.questEditor.rendering.CollisionUserData
 import world.phantasmal.webui.DisposableContainer
 
 /**
@@ -274,9 +273,7 @@ private fun areaCollisionGeometryToTransformNode(
         }
 
         if (builder.vertexCount > 0) {
-            val mesh = builder.buildMesh(boundingVolumes = true)
-            (mesh.userData.unsafeCast<CollisionUserData>()).collisionMesh = true
-            obj3d.add(mesh)
+            obj3d.add(builder.buildMesh(boundingVolumes = true))
         }
     }
 

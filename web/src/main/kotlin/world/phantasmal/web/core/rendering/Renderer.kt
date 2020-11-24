@@ -4,7 +4,7 @@ import kotlinx.browser.window
 import mu.KotlinLogging
 import org.w3c.dom.HTMLCanvasElement
 import world.phantasmal.core.disposable.Disposable
-import world.phantasmal.web.core.minus
+import world.phantasmal.core.disposable.disposable
 import world.phantasmal.web.externals.three.*
 import world.phantasmal.webui.DisposableContainer
 import world.phantasmal.webui.obj
@@ -24,6 +24,8 @@ abstract class Renderer(
     val camera: Camera,
 ) : DisposableContainer() {
     private val threeRenderer: ThreeRenderer = addDisposable(createThreeRenderer()).renderer
+    private var width = 0.0
+    private var height = 0.0
     private val light = HemisphereLight(
         skyColor = 0xffffff,
         groundColor = 0x505050,
@@ -46,14 +48,19 @@ abstract class Renderer(
             add(lightHolder)
         }
 
-    val controls: OrbitControls =
-        OrbitControls(camera, canvas).apply {
+    lateinit var controls: OrbitControls
+
+    open fun initializeControls() {
+        controls = OrbitControls(camera, canvas).apply {
             mouseButtons = obj {
                 LEFT = MOUSE.PAN
                 MIDDLE = MOUSE.DOLLY
                 RIGHT = MOUSE.ROTATE
             }
+
+            addDisposable(disposable { dispose() })
         }
+    }
 
     fun startRendering() {
         logger.trace { "${this::class.simpleName} - start rendering." }
@@ -72,6 +79,8 @@ abstract class Renderer(
     }
 
     open fun setSize(width: Double, height: Double) {
+        this.width = width
+        this.height = height
         canvas.width = floor(width).toInt()
         canvas.height = floor(height).toInt()
         threeRenderer.setSize(width, height)
@@ -90,9 +99,13 @@ abstract class Renderer(
         controls.update()
     }
 
+    fun pointerPosToDeviceCoords(pos: Vector2) {
+        pos.set((pos.x / width) * 2 - 1, (pos.y / height) * -2 + 1)
+    }
+
     protected open fun render() {
         if (camera is PerspectiveCamera) {
-            val distance = (controls.target - camera.position).length()
+            val distance = camera.position.distanceTo(controls.target)
             camera.near = distance / 100
             camera.far = max(2_000.0, 10 * distance)
             camera.updateProjectionMatrix()

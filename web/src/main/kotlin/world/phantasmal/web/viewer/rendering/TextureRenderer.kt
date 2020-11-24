@@ -25,6 +25,7 @@ class TextureRenderer(
     private var meshes = listOf<Mesh>()
 
     init {
+        initializeControls()
         observe(store.currentTextures, ::texturesChanged)
     }
 

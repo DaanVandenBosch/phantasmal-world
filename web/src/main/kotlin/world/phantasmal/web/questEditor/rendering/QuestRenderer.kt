@@ -2,6 +2,7 @@ package world.phantasmal.web.questEditor.rendering
 
 import world.phantasmal.web.core.rendering.DisposableThreeRenderer
 import world.phantasmal.web.core.rendering.Renderer
+import world.phantasmal.web.externals.three.Group
 import world.phantasmal.web.externals.three.Object3D
 import world.phantasmal.web.externals.three.PerspectiveCamera
 
@@ -16,30 +17,39 @@ class QuestRenderer(
         far = 5_000.0
     )
 ) {
-    var collisionGeometry: Object3D? = null
+    val entities: Object3D = Group().apply {
+        name = "Entities"
+        scene.add(this)
+    }
+
+    var collisionGeometry: Object3D = DEFAULT_COLLISION_GEOMETRY
         set(geom) {
-            field?.let { scene.remove(it) }
+            scene.remove(field)
             field = geom
-            geom?.let { scene.add(it) }
+            scene.add(geom)
         }
 
     init {
         camera.position.set(0.0, 50.0, 200.0)
-        controls.update()
+    }
 
+    override fun initializeControls() {
+        super.initializeControls()
         controls.screenSpacePanning = false
+        controls.update()
     }
 
     fun resetCamera() {
+        // TODO: Camera reset.
     }
 
-    fun enableCameraControls() {
+    fun clearCollisionGeometry() {
+        collisionGeometry = DEFAULT_COLLISION_GEOMETRY
     }
 
-    fun disableCameraControls() {
-    }
-
-    override fun render() {
-        super.render()
+    companion object {
+        private val DEFAULT_COLLISION_GEOMETRY = Group().apply {
+            name = "Default Collision Geometry"
+        }
     }
 }
