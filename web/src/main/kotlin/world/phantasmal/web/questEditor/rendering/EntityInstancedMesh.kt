@@ -25,24 +25,28 @@ class EntityInstancedMesh(
         mesh.userData = this
     }
 
+    fun getInstance(entity: QuestEntityModel<*, *>): EntityInstance? =
+        instances.find { it.entity == entity }
+
     fun getInstanceAt(instanceIndex: Int): EntityInstance =
         instances[instanceIndex]
 
-    fun addInstance(entity: QuestEntityModel<*, *>) {
+    fun addInstance(entity: QuestEntityModel<*, *>): EntityInstance {
         val instanceIndex = mesh.count
         mesh.count++
 
-        instances.add(
-            EntityInstance(
-                entity,
-                mesh,
-                instanceIndex,
-                selectedWave
-            ) { index ->
-                removeAt(index)
-                modelChanged(entity)
-            }
-        )
+        val instance = EntityInstance(
+            entity,
+            mesh,
+            instanceIndex,
+            selectedWave
+        ) { index ->
+            removeAt(index)
+            modelChanged(entity)
+        }
+
+        instances.add(instance)
+        return instance
     }
 
     fun removeInstance(entity: QuestEntityModel<*, *>) {

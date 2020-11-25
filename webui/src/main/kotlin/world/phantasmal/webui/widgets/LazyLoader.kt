@@ -32,13 +32,9 @@ class LazyLoader(
             // language=css
             style("""
                 .pw-lazy-loader {
-                    display: flex;
-                    flex-direction: column;
-                    align-items: stretch;
-                }
-
-                .pw-lazy-loader > * {
-                    flex-grow: 1;
+                    display: grid;
+                    grid-template-rows: 100%;
+                    grid-template-columns: 100%;
                     overflow: hidden;
                 }
             """.trimIndent())

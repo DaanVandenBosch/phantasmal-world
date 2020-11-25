@@ -3,7 +3,8 @@ package world.phantasmal.web.questEditor.rendering
 import kotlinx.coroutines.*
 import mu.KotlinLogging
 import world.phantasmal.lib.fileFormats.quest.EntityType
-import world.phantasmal.web.externals.three.Mesh
+import world.phantasmal.web.externals.three.BoxHelper
+import world.phantasmal.web.externals.three.Color
 import world.phantasmal.web.questEditor.loading.EntityAssetLoader
 import world.phantasmal.web.questEditor.loading.LoadingCache
 import world.phantasmal.web.questEditor.models.QuestEntityModel
@@ -30,7 +31,7 @@ class EntityMeshManager(
                 renderer.entities.add(mesh)
                 EntityInstancedMesh(mesh, questEditorStore.selectedWave) { entity ->
                     // When an entity's model changes, add it again. At this point it has already
-                    // been removed from its previous [EntityInstancedMesh].
+                    // been removed from its previous EntityInstancedMesh.
                     add(entity)
                 }
             },
@@ -43,24 +44,55 @@ class EntityMeshManager(
      */
     private val loadingEntities = mutableMapOf<QuestEntityModel<*, *>, Job>()
 
-    private var hoveredMesh: Mesh? = null
-    private var selectedMesh: Mesh? = null
+    private var highlightedEntityInstance: EntityInstance? = null
+    private var selectedEntityInstance: EntityInstance? = null
+
+    /**
+     * Bounding box around the highlighted entity.
+     */
+    private val highlightedBox = BoxHelper(color = Color(0.7, 0.7, 0.7)).apply {
+        visible = false
+        renderer.scene.add(this)
+    }
+
+    /**
+     * Bounding box around the selected entity.
+     */
+    private val selectedBox = BoxHelper(color = Color(0.9, 0.9, 0.9)).apply {
+        visible = false
+        renderer.scene.add(this)
+    }
 
     init {
-//        observe(questEditorStore.selectedEntity) { entity ->
-//            if (entity == null) {
-//                unmarkSelected()
-//            } else {
-//                val loaded = loadedEntities[entity]
-//
-//                // Mesh might not be loaded yet.
-//                if (loaded == null) {
-//                    unmarkSelected()
-//                } else {
-//                    markSelected(loaded.mesh)
-//                }
-//            }
-//        }
+        observe(questEditorStore.highlightedEntity) { entity ->
+            if (entity == null) {
+                unmarkHighlighted()
+            } else {
+                val instance = getEntityInstance(entity)
+
+                // Mesh might not be loaded yet.
+                if (instance == null) {
+                    unmarkHighlighted()
+                } else {
+                    markHighlighted(instance)
+                }
+            }
+        }
+
+        observe(questEditorStore.selectedEntity) { entity ->
+            if (entity == null) {
+                unmarkSelected()
+            } else {
+                val instance = getEntityInstance(entity)
+
+                // Mesh might not be loaded yet.
+                if (instance == null) {
+                    unmarkSelected()
+                } else {
+                    markSelected(instance)
+                }
+            }
+        }
     }
 
     override fun internalDispose() {
@@ -78,12 +110,14 @@ class EntityMeshManager(
                         model = (entity as? QuestObjectModel)?.model?.value
                     ))
 
-//            if (entity == questEditorStore.selectedEntity.value) {
-//                markSelected(instance)
-//            }
-
-                    meshContainer.addInstance(entity)
+                    val instance = meshContainer.addInstance(entity)
                     loadingEntities.remove(entity)
+
+                    if (entity == questEditorStore.selectedEntity.value) {
+                        markSelected(instance)
+                    } else if (entity == questEditorStore.highlightedEntity.value) {
+                        markHighlighted(instance)
+                    }
                 } catch (e: CancellationException) {
                     // Do nothing.
                 } catch (e: Throwable) {
@@ -119,24 +153,74 @@ class EntityMeshManager(
         }
     }
 
-//    private fun markSelected(entityMesh: AbstractMesh) {
-//        if (entityMesh == hoveredMesh) {
-//            hoveredMesh = null
-//        }
-//
-//        if (entityMesh != selectedMesh) {
-//            selectedMesh?.let { it.showBoundingBox = false }
-//
-//            entityMesh.showBoundingBox = true
-//        }
-//
-//        selectedMesh = entityMesh
-//    }
-//
-//    private fun unmarkSelected() {
-//        selectedMesh?.let { it.showBoundingBox = false }
-//        selectedMesh = null
-//    }
+    private fun markHighlighted(instance: EntityInstance) {
+        if (instance == selectedEntityInstance) {
+            highlightedEntityInstance?.follower = null
+            highlightedEntityInstance = null
+            highlightedBox.visible = false
+            return
+        }
+
+        if (instance != highlightedEntityInstance) {
+            highlightedEntityInstance?.follower = null
+
+            highlightedBox.setFromObject(instance.mesh)
+            instance.follower = highlightedBox
+            highlightedBox.visible = true
+        }
+
+        highlightedEntityInstance = instance
+    }
+
+    private fun unmarkHighlighted() {
+        highlightedEntityInstance?.let { highlighted ->
+            if (highlighted != selectedEntityInstance) {
+                highlighted.follower = null
+            }
+
+            highlightedEntityInstance = null
+            highlightedBox.visible = false
+        }
+    }
+
+    private fun markSelected(instance: EntityInstance) {
+        if (instance == highlightedEntityInstance) {
+            highlightedBox.visible = false
+        }
+
+        if (instance != selectedEntityInstance) {
+            selectedEntityInstance?.follower = null
+
+            selectedBox.setFromObject(instance.mesh)
+            instance.follower = selectedBox
+            selectedBox.visible = true
+        }
+
+        selectedEntityInstance = instance
+    }
+
+    private fun unmarkSelected() {
+        selectedEntityInstance?.let { selected ->
+            if (selected == highlightedEntityInstance) {
+                highlightedBox.setFromObject(selected.mesh)
+                selected.follower = highlightedBox
+                highlightedBox.visible = true
+            } else {
+                selected.follower = null
+            }
+
+            selectedEntityInstance = null
+            selectedBox.visible = false
+        }
+    }
+
+    private fun getEntityInstance(entity: QuestEntityModel<*, *>): EntityInstance? =
+        entityMeshCache.getIfPresentNow(
+            TypeAndModel(
+                entity.type,
+                (entity as? QuestObjectModel)?.model?.value
+            )
+        )?.getInstance(entity)
 
     private data class TypeAndModel(val type: EntityType, val model: Int?)
 }

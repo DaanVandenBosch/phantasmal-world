@@ -29,18 +29,13 @@ class QuestRenderer(
             scene.add(geom)
         }
 
-    init {
-        camera.position.set(0.0, 50.0, 200.0)
-    }
-
     override fun initializeControls() {
         super.initializeControls()
+        camera.position.set(0.0, 800.0, 700.0)
+        controls.target.set(0.0, 0.0, 0.0)
         controls.screenSpacePanning = false
         controls.update()
-    }
-
-    fun resetCamera() {
-        // TODO: Camera reset.
+        controls.saveState()
     }
 
     fun clearCollisionGeometry() {

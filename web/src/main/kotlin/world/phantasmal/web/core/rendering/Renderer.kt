@@ -24,8 +24,6 @@ abstract class Renderer(
     val camera: Camera,
 ) : DisposableContainer() {
     private val threeRenderer: ThreeRenderer = addDisposable(createThreeRenderer()).renderer
-    private var width = 0.0
-    private var height = 0.0
     private val light = HemisphereLight(
         skyColor = 0xffffff,
         groundColor = 0x505050,
@@ -35,6 +33,11 @@ abstract class Renderer(
 
     private var rendering = false
     private var animationFrameHandle: Int = 0
+
+    protected var width = 0.0
+        private set
+    protected var height = 0.0
+        private set
 
     val canvas: HTMLCanvasElement =
         threeRenderer.domElement.apply {
@@ -78,7 +81,13 @@ abstract class Renderer(
         window.cancelAnimationFrame(animationFrameHandle)
     }
 
+    fun resetCamera() {
+        controls.reset()
+    }
+
     open fun setSize(width: Double, height: Double) {
+        if (width == 0.0 || height == 0.0) return
+
         this.width = width
         this.height = height
         canvas.width = floor(width).toInt()

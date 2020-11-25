@@ -15,6 +15,7 @@ external interface OrbitControlsMouseButtons {
 external class OrbitControls(`object`: Camera, domElement: HTMLElement = definedExternally) {
     var enabled: Boolean
     var target: Vector3
+    var zoomSpeed: Double
     var screenSpacePanning: Boolean
 
     var mouseButtons: OrbitControlsMouseButtons

@@ -147,6 +147,10 @@ private class StateContext(
 ) {
     val scene = renderer.scene
 
+    fun setHighlightedEntity(entity: QuestEntityModel<*, *>?) {
+        questEditorStore.setHighlightedEntity(entity)
+    }
+
     fun setSelectedEntity(entity: QuestEntityModel<*, *>?) {
         questEditorStore.setSelectedEntity(entity)
     }
@@ -293,14 +297,16 @@ private class IdleState(
     private val entityManipulationEnabled: Boolean,
 ) : State() {
     private var panning = false
+    private var rotating = false
+    private var zooming = false
 
     override fun processEvent(event: Evt): State {
         when (event) {
             is PointerDownEvt -> {
+                val pick = pickEntity(event.pointerDevicePosition)
+
                 when (event.buttons) {
                     1 -> {
-                        val pick = pickEntity(event.pointerDevicePosition)
-
                         if (pick == null) {
                             panning = true
                         } else {
@@ -317,7 +323,9 @@ private class IdleState(
                         }
                     }
                     2 -> {
-                        pickEntity(event.pointerDevicePosition)?.let { pick ->
+                        if (pick == null) {
+                            rotating = true
+                        } else {
                             ctx.setSelectedEntity(pick.entity)
 
                             if (entityManipulationEnabled) {
@@ -325,14 +333,20 @@ private class IdleState(
                             }
                         }
                     }
+                    4 -> {
+                        zooming = true
+                    }
                 }
             }
 
             is PointerUpEvt -> {
                 if (panning) {
-                    panning = false
                     updateCameraTarget()
                 }
+
+                panning = false
+                rotating = false
+                zooming = false
 
                 // If the user clicks on nothing, deselect the currently selected entity.
                 if (!event.movedSinceLastPointerDown &&
@@ -342,8 +356,11 @@ private class IdleState(
                 }
             }
 
-            else -> {
-                // Do nothing.
+            is PointerMoveEvt -> {
+                if (!panning && !rotating && !zooming) {
+                    // User is hovering.
+                    ctx.setHighlightedEntity(pickEntity(event.pointerDevicePosition)?.entity)
+                }
             }
         }
 

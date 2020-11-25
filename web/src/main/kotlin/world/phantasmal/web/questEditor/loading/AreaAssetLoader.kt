@@ -15,11 +15,11 @@ import world.phantasmal.web.core.rendering.conversion.MeshBuilder
 import world.phantasmal.web.core.rendering.conversion.ninjaObjectToMeshBuilder
 import world.phantasmal.web.core.rendering.conversion.vec3ToThree
 import world.phantasmal.web.core.rendering.disposeObject3DResources
-import world.phantasmal.web.externals.three.Group
-import world.phantasmal.web.externals.three.Object3D
+import world.phantasmal.web.externals.three.*
 import world.phantasmal.web.questEditor.models.AreaVariantModel
 import world.phantasmal.web.questEditor.models.SectionModel
 import world.phantasmal.webui.DisposableContainer
+import world.phantasmal.webui.obj
 
 /**
  * Loads and caches area assets.
@@ -29,11 +29,11 @@ class AreaAssetLoader(
     private val assetLoader: AssetLoader,
 ) : DisposableContainer() {
     /**
-     * This cache's values consist of a TransformNode containing area render meshes and a list of
+     * This cache's values consist of an Object3D containing the area render meshes and a list of
      * that area's sections.
      */
     private val renderObjectCache = addDisposable(
-        LoadingCache<CacheKey, Pair<Object3D, List<SectionModel>>>(
+        LoadingCache<EpisodeAndAreaVariant, Pair<Object3D, List<SectionModel>>>(
             scope,
             { (episode, areaVariant) ->
                 val buffer = getAreaAsset(episode, areaVariant, AssetType.Render)
@@ -45,7 +45,7 @@ class AreaAssetLoader(
     )
 
     private val collisionObjectCache = addDisposable(
-        LoadingCache<CacheKey, Object3D>(
+        LoadingCache<EpisodeAndAreaVariant, Object3D>(
             scope,
             { (episode, areaVariant) ->
                 val buffer = getAreaAsset(episode, areaVariant, AssetType.Collision)
@@ -66,13 +66,13 @@ class AreaAssetLoader(
         episode: Episode,
         areaVariant: AreaVariantModel,
     ): Pair<Object3D, List<SectionModel>> =
-        renderObjectCache.get(CacheKey(episode, areaVariant))
+        renderObjectCache.get(EpisodeAndAreaVariant(episode, areaVariant))
 
     suspend fun loadCollisionGeometry(
         episode: Episode,
         areaVariant: AreaVariantModel,
     ): Object3D =
-        collisionObjectCache.get(CacheKey(episode, areaVariant))
+        collisionObjectCache.get(EpisodeAndAreaVariant(episode, areaVariant))
 
     private suspend fun getAreaAsset(
         episode: Episode,
@@ -87,7 +87,7 @@ class AreaAssetLoader(
         return assetLoader.loadArrayBuffer(baseUrl + suffix)
     }
 
-    private data class CacheKey(
+    private data class EpisodeAndAreaVariant(
         val episode: Episode,
         val areaVariant: AreaVariantModel,
     )
@@ -100,6 +100,30 @@ class AreaAssetLoader(
 interface AreaUserData {
     var sectionId: Int?
 }
+
+private val COLLISION_MATERIALS: Array<Material> = arrayOf(
+    // Wall
+    MeshBasicMaterial(obj {
+        color = Color(0x80c0d0)
+        transparent = true
+        opacity = 0.25
+    }),
+    // Ground
+    MeshLambertMaterial(obj {
+        color = Color(0x405050)
+        side = DoubleSide
+    }),
+    // Vegetation
+    MeshLambertMaterial(obj {
+        color = Color(0x306040)
+        side = DoubleSide
+    }),
+    // Section transition zone
+    MeshLambertMaterial(obj {
+        color = Color(0x402050)
+        side = DoubleSide
+    }),
+)
 
 private val AREA_BASE_NAMES: Map<Episode, List<Pair<String, Int>>> = mapOf(
     Episode.I to listOf(
@@ -231,7 +255,6 @@ private fun areaGeometryToTransformNodeAndSections(
     return Pair(obj3d, sections)
 }
 
-// TODO: Use Geometry and not BufferGeometry for better raycaster performance.
 private fun areaCollisionGeometryToTransformNode(
     obj: CollisionObject,
     episode: Episode,
@@ -241,15 +264,18 @@ private fun areaCollisionGeometryToTransformNode(
     obj3d.name = "Collision Geometry $episode-${areaVariant.area.id}-${areaVariant.id}"
 
     for (collisionMesh in obj.meshes) {
-        val builder = MeshBuilder()
-        // TODO: Material.
-        val group = builder.getGroupIndex(textureId = null, alpha = false, additiveBlending = false)
+        // Use Geometry instead of BufferGeometry for better raycaster performance.
+        val geom = Geometry()
+
+        geom.vertices = Array(collisionMesh.vertices.size) {
+            vec3ToThree(collisionMesh.vertices[it])
+        }
 
         for (triangle in collisionMesh.triangles) {
             val isSectionTransition = (triangle.flags and 0b1000000) != 0
             val isVegetation = (triangle.flags and 0b10000) != 0
             val isGround = (triangle.flags and 0b1) != 0
-            val colorIndex = when {
+            val materialIndex = when {
                 isSectionTransition -> 3
                 isVegetation -> 2
                 isGround -> 1
@@ -257,23 +283,23 @@ private fun areaCollisionGeometryToTransformNode(
             }
 
             // Filter out walls.
-            if (colorIndex != 0) {
-                val p1 = vec3ToThree(collisionMesh.vertices[triangle.index1])
-                val p2 = vec3ToThree(collisionMesh.vertices[triangle.index2])
-                val p3 = vec3ToThree(collisionMesh.vertices[triangle.index3])
-                val n = vec3ToThree(triangle.normal)
-
-                builder.addIndex(group, builder.vertexCount)
-                builder.addVertex(p1, n)
-                builder.addIndex(group, builder.vertexCount)
-                builder.addVertex(p2, n)
-                builder.addIndex(group, builder.vertexCount)
-                builder.addVertex(p3, n)
+            if (materialIndex != 0) {
+                geom.faces.asDynamic().push(
+                    Face3(
+                        triangle.index1,
+                        triangle.index2,
+                        triangle.index3,
+                        vec3ToThree(triangle.normal),
+                        materialIndex = materialIndex,
+                    )
+                )
             }
         }
 
-        if (builder.vertexCount > 0) {
-            obj3d.add(builder.buildMesh(boundingVolumes = true))
+        if (geom.faces.isNotEmpty()) {
+            geom.computeBoundingBox()
+            geom.computeBoundingSphere()
+            obj3d.add(Mesh(geom, COLLISION_MATERIALS))
         }
     }
 

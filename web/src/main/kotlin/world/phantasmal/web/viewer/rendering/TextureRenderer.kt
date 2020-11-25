@@ -7,6 +7,9 @@ import world.phantasmal.web.core.rendering.disposeObject3DResources
 import world.phantasmal.web.externals.three.*
 import world.phantasmal.web.viewer.store.ViewerStore
 import world.phantasmal.webui.obj
+import kotlin.math.ceil
+import kotlin.math.max
+import kotlin.math.sqrt
 
 class TextureRenderer(
     store: ViewerStore,
@@ -26,6 +29,10 @@ class TextureRenderer(
 
     init {
         initializeControls()
+        camera.position.set(0.0, 0.0, 5.0)
+        controls.update()
+        controls.saveState()
+
         observe(store.currentTextures, ::texturesChanged)
     }
 
@@ -35,11 +42,30 @@ class TextureRenderer(
             scene.remove(mesh)
         }
 
-        var x = 0.0
+        resetCamera()
+
+        // Lay textures out in a square grid of "cells".
+        var cellWidth = -1
+        var cellHeight = -1
+
+        textures.forEach {
+            cellWidth = max(cellWidth, SPACING + it.width)
+            cellHeight = max(cellHeight, SPACING + it.height)
+        }
+
+        val cellsPerRow = ceil(sqrt(textures.size.toDouble())).toInt()
+        val cellsPerCol = ceil(textures.size.toDouble() / cellsPerRow).toInt()
+
+        // Start at the center of the first cell because the texture quads are placed at the center
+        // of the given coordinates.
+        val startX = -(cellsPerRow * cellWidth) / 2 + cellWidth / 2
+        var x = startX
+        var y = (cellsPerCol * cellHeight) / 2 - cellHeight / 2
+        var cell = 0
 
         meshes = textures.map { xvr ->
             val quad = Mesh(
-                createQuad(x, 0.0, xvr.width, xvr.height),
+                createQuad(x, y, xvr.width, xvr.height),
                 MeshBasicMaterial(obj {
                     map = xvrTextureToThree(xvr, filter = NearestFilter)
                     transparent = true
@@ -47,13 +73,18 @@ class TextureRenderer(
             )
             scene.add(quad)
 
-            x += xvr.width + 10.0
+            x += cellWidth
+
+            if (++cell % cellsPerRow == 0) {
+                x = startX
+                y -= cellHeight
+            }
 
             quad
         }
     }
 
-    private fun createQuad(x: Double, y: Double, width: Int, height: Int): PlaneGeometry {
+    private fun createQuad(x: Int, y: Int, width: Int, height: Int): PlaneGeometry {
         val quad = PlaneGeometry(
             width.toDouble(),
             height.toDouble(),
@@ -66,7 +97,11 @@ class TextureRenderer(
                 arrayOf(Vector2(0.0, 1.0), Vector2(1.0, 1.0), Vector2(1.0, 0.0)),
             )
         )
-        quad.translate(x + width / 2, y + height / 2, -5.0)
+        quad.translate(x.toDouble(), y.toDouble(), -5.0)
         return quad
+    }
+
+    companion object {
+        private const val SPACING = 10
     }
 }

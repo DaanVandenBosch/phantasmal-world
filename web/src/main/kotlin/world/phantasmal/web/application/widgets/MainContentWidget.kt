@@ -30,12 +30,9 @@ class MainContentWidget(
             // language=css
             style("""
                 .pw-application-main-content {
-                    display: flex;
-                    flex-direction: column;
-                }
-
-                .pw-application-main-content > * {
-                    flex-grow: 1;
+                    display: grid;
+                    grid-template-rows: 100%;
+                    grid-template-columns: 100%;
                     overflow: hidden;
                 }
             """.trimIndent())

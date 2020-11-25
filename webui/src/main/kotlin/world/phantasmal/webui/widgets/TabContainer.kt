@@ -107,13 +107,10 @@ class TabContainer<T : Tab>(
 
                 .pw-tab-container-panes {
                     flex-grow: 1;
-                    display: flex;
-                    flex-direction: row;
+                    display: grid;
+                    grid-template-rows: 100%;
+                    grid-template-columns: 100%;
                     overflow: hidden;
-                }
-
-                .pw-tab-container-panes > * {
-                    flex-grow: 1;
                 }
             """.trimIndent())
         }

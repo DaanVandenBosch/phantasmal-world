@@ -148,7 +148,14 @@ external class Ray(origin: Vector3 = definedExternally, direction: Vector3 = def
     fun intersectPlane(plane: Plane, target: Vector3): Vector3?
 }
 
-external class Face3 {
+external class Face3(
+    a: Int,
+    b: Int,
+    c: Int,
+    normal: Vector3 = definedExternally,
+    color: Color = definedExternally,
+    materialIndex: Int = definedExternally,
+) {
     var normal: Vector3
 }
 
@@ -300,6 +307,19 @@ external class InstancedMesh(
     fun setMatrixAt(index: Int, matrix: Matrix4)
 }
 
+open external class Line : Object3D
+
+open external class LineSegments : Line
+
+open external class BoxHelper(
+    `object`: Object3D = definedExternally,
+    color: Color = definedExternally,
+) : LineSegments {
+    fun update(`object`: Object3D = definedExternally)
+
+    fun setFromObject(`object`: Object3D): BoxHelper
+}
+
 external class Scene : Object3D {
     var background: dynamic /* null | Color | Texture | WebGLCubeRenderTarget */
 }
@@ -395,6 +415,19 @@ external class Color(r: Double, g: Double, b: Double) {
 
 open external class Geometry : EventDispatcher {
     /**
+     * The array of vertices hold every position of points of the model.
+     * To signal an update in this array, Geometry.verticesNeedUpdate needs to be set to true.
+     */
+    var vertices: Array<Vector3>
+
+    /**
+     * Array of triangles or/and quads.
+     * The array of faces describe how each vertex in the model is connected with each other.
+     * To signal an update in this array, Geometry.elementsNeedUpdate needs to be set to true.
+     */
+    var faces: Array<Face3>
+
+    /**
      * Array of face UV layers.
      * Each UV layer is an array of UV matching order and number of vertices in faces.
      * To signal an update in this array, Geometry.uvsNeedUpdate needs to be set to true.
@@ -402,6 +435,17 @@ open external class Geometry : EventDispatcher {
     var faceVertexUvs: Array<Array<Array<Vector2>>>
 
     fun translate(x: Double, y: Double, z: Double): Geometry
+
+    /**
+     * Computes bounding box of the geometry, updating {@link Geometry.boundingBox} attribute.
+     */
+    fun computeBoundingBox()
+
+    /**
+     * Computes bounding sphere of the geometry, updating Geometry.boundingSphere attribute.
+     * Neither bounding boxes or bounding spheres are computed by default. They need to be explicitly computed, otherwise they are null.
+     */
+    fun computeBoundingSphere()
 
     fun dispose()
 }
@@ -492,6 +536,7 @@ open external class Material : EventDispatcher {
 
 external interface MeshBasicMaterialParameters : MaterialParameters {
     var color: Color
+    var opacity: Double
     var map: Texture?
     var skinning: Boolean
 }
@@ -503,6 +548,7 @@ external class MeshBasicMaterial(
 }
 
 external interface MeshLambertMaterialParameters : MaterialParameters {
+    var color: Color
     var skinning: Boolean
 }
 

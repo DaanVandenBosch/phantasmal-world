@@ -1,7 +1,5 @@
 package world.phantasmal.web.viewer.rendering
 
-import world.phantasmal.lib.fileFormats.ninja.NinjaObject
-import world.phantasmal.lib.fileFormats.ninja.XvrTexture
 import world.phantasmal.web.core.rendering.DisposableThreeRenderer
 import world.phantasmal.web.core.rendering.Renderer
 import world.phantasmal.web.core.rendering.conversion.ninjaObjectToMesh
@@ -12,7 +10,7 @@ import world.phantasmal.web.externals.three.PerspectiveCamera
 import world.phantasmal.web.viewer.store.ViewerStore
 
 class MeshRenderer(
-    store: ViewerStore,
+    private val store: ViewerStore,
     createThreeRenderer: () -> DisposableThreeRenderer,
 ) : Renderer(
     createThreeRenderer,
@@ -26,20 +24,34 @@ class MeshRenderer(
     private var mesh: Mesh? = null
 
     init {
-        camera.position.set(0.0, 50.0, 200.0)
-
         initializeControls()
+        camera.position.set(0.0, 25.0, 100.0)
+        controls.target.set(0.0, 0.0, 0.0)
+        controls.zoomSpeed = 2.0
         controls.screenSpacePanning = true
         controls.update()
+        controls.saveState()
 
-        observe(store.currentNinjaObject, store.currentTextures, ::ninjaObjectOrXvmChanged)
+        observe(store.currentNinjaObject) {
+            ninjaObjectOrXvmChanged(reset = true)
+        }
+        observe(store.currentTextures) {
+            ninjaObjectOrXvmChanged(reset = false)
+        }
     }
 
-    private fun ninjaObjectOrXvmChanged(ninjaObject: NinjaObject<*>?, textures: List<XvrTexture>) {
+    private fun ninjaObjectOrXvmChanged(reset: Boolean) {
         mesh?.let { mesh ->
             disposeObject3DResources(mesh)
             scene.remove(mesh)
         }
+
+        if (reset) {
+            resetCamera()
+        }
+
+        val ninjaObject = store.currentNinjaObject.value
+        val textures = store.currentTextures.value
 
         if (ninjaObject != null) {
             val mesh = ninjaObjectToMesh(ninjaObject, textures, boundingVolumes = true)

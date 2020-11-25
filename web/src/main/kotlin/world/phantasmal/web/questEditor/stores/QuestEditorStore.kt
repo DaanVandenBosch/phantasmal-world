@@ -22,6 +22,7 @@ class QuestEditorStore(
     private val _currentQuest = mutableVal<QuestModel?>(null)
     private val _currentArea = mutableVal<AreaModel?>(null)
     private val _selectedWave = mutableVal<WaveModel?>(null)
+    private val _highlightedEntity = mutableVal<QuestEntityModel<*, *>?>(null)
     private val _selectedEntity = mutableVal<QuestEntityModel<*, *>?>(null)
 
     private val undoManager = UndoManager()
@@ -31,6 +32,15 @@ class QuestEditorStore(
     val currentQuest: Val<QuestModel?> = _currentQuest
     val currentArea: Val<AreaModel?> = _currentArea
     val selectedWave: Val<WaveModel?> = _selectedWave
+
+    /**
+     * The entity the user is currently hovering over.
+     */
+    val highlightedEntity: Val<QuestEntityModel<*, *>?> = _highlightedEntity
+
+    /**
+     * The entity the user has selected, typically by clicking it.
+     */
     val selectedEntity: Val<QuestEntityModel<*, *>?> = _selectedEntity
 
     val questEditingEnabled: Val<Boolean> = currentQuest.isNotNull() and !runner.running
@@ -66,6 +76,7 @@ class QuestEditorStore(
 
         // TODO: Stop runner.
 
+        _highlightedEntity.value = null
         _selectedEntity.value = null
         _selectedWave.value = null
 
@@ -112,8 +123,13 @@ class QuestEditorStore(
     fun setCurrentArea(area: AreaModel?) {
         // TODO: Set wave.
 
+        _highlightedEntity.value = null
         _selectedEntity.value = null
         _currentArea.value = area
+    }
+
+    fun setHighlightedEntity(entity: QuestEntityModel<*, *>?) {
+        _highlightedEntity.value = entity
     }
 
     fun setSelectedEntity(entity: QuestEntityModel<*, *>?) {
