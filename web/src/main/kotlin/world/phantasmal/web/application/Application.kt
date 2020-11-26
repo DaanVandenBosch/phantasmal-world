@@ -3,6 +3,7 @@ package world.phantasmal.web.application
 import kotlinx.browser.document
 import kotlinx.coroutines.CoroutineScope
 import org.w3c.dom.DragEvent
+import org.w3c.dom.HTMLCanvasElement
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.events.Event
 import org.w3c.dom.events.KeyboardEvent
@@ -27,7 +28,7 @@ class Application(
     rootElement: HTMLElement,
     assetLoader: AssetLoader,
     applicationUrl: ApplicationUrl,
-    createThreeRenderer: () -> DisposableThreeRenderer,
+    createThreeRenderer: (HTMLCanvasElement) -> DisposableThreeRenderer,
 ) : DisposableContainer() {
     init {
         addDisposables(

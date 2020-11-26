@@ -1,6 +1,7 @@
 package world.phantasmal.web.viewer
 
 import kotlinx.coroutines.CoroutineScope
+import org.w3c.dom.HTMLCanvasElement
 import world.phantasmal.web.core.PwTool
 import world.phantasmal.web.core.PwToolType
 import world.phantasmal.web.core.rendering.DisposableThreeRenderer
@@ -16,7 +17,7 @@ import world.phantasmal.webui.DisposableContainer
 import world.phantasmal.webui.widgets.Widget
 
 class Viewer(
-    private val createThreeRenderer: () -> DisposableThreeRenderer,
+    private val createThreeRenderer: (HTMLCanvasElement) -> DisposableThreeRenderer,
 ) : DisposableContainer(), PwTool {
     override val toolType = PwToolType.Viewer
 

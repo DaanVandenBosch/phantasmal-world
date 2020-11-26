@@ -17,7 +17,7 @@ private val logger = KotlinLogging.logger {}
 class EntityMeshManager(
     private val scope: CoroutineScope,
     private val questEditorStore: QuestEditorStore,
-    private val renderer: QuestRenderer,
+    private val renderContext: QuestRenderContext,
     private val entityAssetLoader: EntityAssetLoader,
 ) : DisposableContainer() {
     /**
@@ -28,7 +28,7 @@ class EntityMeshManager(
             scope,
             { (type, model) ->
                 val mesh = entityAssetLoader.loadInstancedMesh(type, model)
-                renderer.entities.add(mesh)
+                renderContext.entities.add(mesh)
                 EntityInstancedMesh(mesh, questEditorStore.selectedWave) { entity ->
                     // When an entity's model changes, add it again. At this point it has already
                     // been removed from its previous EntityInstancedMesh.
@@ -52,7 +52,7 @@ class EntityMeshManager(
      */
     private val highlightedBox = BoxHelper(color = Color(0.7, 0.7, 0.7)).apply {
         visible = false
-        renderer.scene.add(this)
+        renderContext.scene.add(this)
     }
 
     /**
@@ -60,44 +60,26 @@ class EntityMeshManager(
      */
     private val selectedBox = BoxHelper(color = Color(0.9, 0.9, 0.9)).apply {
         visible = false
-        renderer.scene.add(this)
+        renderContext.scene.add(this)
     }
 
     init {
         observe(questEditorStore.highlightedEntity) { entity ->
-            if (entity == null) {
-                unmarkHighlighted()
-            } else {
-                val instance = getEntityInstance(entity)
-
-                // Mesh might not be loaded yet.
-                if (instance == null) {
-                    unmarkHighlighted()
-                } else {
-                    markHighlighted(instance)
-                }
-            }
+            // getEntityInstance can return null at this point because the entity mesh might not be
+            // loaded yet.
+            markHighlighted(entity?.let(::getEntityInstance))
         }
 
         observe(questEditorStore.selectedEntity) { entity ->
-            if (entity == null) {
-                unmarkSelected()
-            } else {
-                val instance = getEntityInstance(entity)
-
-                // Mesh might not be loaded yet.
-                if (instance == null) {
-                    unmarkSelected()
-                } else {
-                    markSelected(instance)
-                }
-            }
+            // getEntityInstance can return null at this point because the entity mesh might not be
+            // loaded yet.
+            markSelected(entity?.let(::getEntityInstance))
         }
     }
 
     override fun internalDispose() {
         removeAll()
-        renderer.entities.clear()
+        renderContext.entities.clear()
         super.internalDispose()
     }
 
@@ -153,64 +135,46 @@ class EntityMeshManager(
         }
     }
 
-    private fun markHighlighted(instance: EntityInstance) {
+    private fun markHighlighted(instance: EntityInstance?) {
         if (instance == selectedEntityInstance) {
             highlightedEntityInstance?.follower = null
             highlightedEntityInstance = null
             highlightedBox.visible = false
-            return
-        }
-
-        if (instance != highlightedEntityInstance) {
-            highlightedEntityInstance?.follower = null
-
-            highlightedBox.setFromObject(instance.mesh)
-            instance.follower = highlightedBox
-            highlightedBox.visible = true
-        }
-
-        highlightedEntityInstance = instance
-    }
-
-    private fun unmarkHighlighted() {
-        highlightedEntityInstance?.let { highlighted ->
-            if (highlighted != selectedEntityInstance) {
-                highlighted.follower = null
-            }
-
-            highlightedEntityInstance = null
-            highlightedBox.visible = false
+        } else {
+            attachBoxHelper(
+                highlightedBox,
+                highlightedEntityInstance,
+                instance
+            )
+            highlightedEntityInstance = instance
         }
     }
 
-    private fun markSelected(instance: EntityInstance) {
+    private fun markSelected(instance: EntityInstance?) {
         if (instance == highlightedEntityInstance) {
             highlightedBox.visible = false
+            highlightedEntityInstance = null
         }
 
-        if (instance != selectedEntityInstance) {
-            selectedEntityInstance?.follower = null
-
-            selectedBox.setFromObject(instance.mesh)
-            instance.follower = selectedBox
-            selectedBox.visible = true
-        }
-
+        attachBoxHelper(selectedBox, selectedEntityInstance, instance)
         selectedEntityInstance = instance
     }
 
-    private fun unmarkSelected() {
-        selectedEntityInstance?.let { selected ->
-            if (selected == highlightedEntityInstance) {
-                highlightedBox.setFromObject(selected.mesh)
-                selected.follower = highlightedBox
-                highlightedBox.visible = true
-            } else {
-                selected.follower = null
-            }
+    private fun attachBoxHelper(
+        box: BoxHelper,
+        oldInstance: EntityInstance?,
+        newInstance: EntityInstance?,
+    ) {
+        box.visible = newInstance != null
 
-            selectedEntityInstance = null
-            selectedBox.visible = false
+        if (oldInstance == newInstance) return
+
+        oldInstance?.follower = null
+
+        if (newInstance != null) {
+            box.setFromObject(newInstance.mesh)
+            newInstance.follower = box
+            box.visible = true
         }
     }
 

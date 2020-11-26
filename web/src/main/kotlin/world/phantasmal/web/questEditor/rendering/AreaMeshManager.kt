@@ -8,18 +8,19 @@ import world.phantasmal.web.questEditor.models.AreaVariantModel
 private val logger = KotlinLogging.logger {}
 
 class AreaMeshManager(
-    private val renderer: QuestRenderer,
+    private val renderContext: QuestRenderContext,
     private val areaAssetLoader: AreaAssetLoader,
 ) {
     suspend fun load(episode: Episode?, areaVariant: AreaVariantModel?) {
-        renderer.clearCollisionGeometry()
+        renderContext.clearCollisionGeometry()
 
         if (episode == null || areaVariant == null) {
             return
         }
 
         try {
-            renderer.collisionGeometry = areaAssetLoader.loadCollisionGeometry(episode, areaVariant)
+            renderContext.collisionGeometry =
+                areaAssetLoader.loadCollisionGeometry(episode, areaVariant)
         } catch (e: Exception) {
             logger.error(e) {
                 "Couldn't load models for area ${areaVariant.area.id}, variant ${areaVariant.id}."

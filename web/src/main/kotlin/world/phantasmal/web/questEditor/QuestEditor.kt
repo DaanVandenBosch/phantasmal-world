@@ -1,6 +1,7 @@
 package world.phantasmal.web.questEditor
 
 import kotlinx.coroutines.CoroutineScope
+import org.w3c.dom.HTMLCanvasElement
 import world.phantasmal.web.core.PwTool
 import world.phantasmal.web.core.PwToolType
 import world.phantasmal.web.core.loading.AssetLoader
@@ -10,9 +11,7 @@ import world.phantasmal.web.questEditor.controllers.*
 import world.phantasmal.web.questEditor.loading.AreaAssetLoader
 import world.phantasmal.web.questEditor.loading.EntityAssetLoader
 import world.phantasmal.web.questEditor.loading.QuestLoader
-import world.phantasmal.web.questEditor.rendering.QuestEditorMeshManager
 import world.phantasmal.web.questEditor.rendering.QuestRenderer
-import world.phantasmal.web.questEditor.rendering.UserInputManager
 import world.phantasmal.web.questEditor.stores.AreaStore
 import world.phantasmal.web.questEditor.stores.AssemblyEditorStore
 import world.phantasmal.web.questEditor.stores.QuestEditorStore
@@ -23,7 +22,7 @@ import world.phantasmal.webui.widgets.Widget
 class QuestEditor(
     private val assetLoader: AssetLoader,
     private val uiStore: UiStore,
-    private val createThreeRenderer: () -> DisposableThreeRenderer,
+    private val createThreeRenderer: (HTMLCanvasElement) -> DisposableThreeRenderer,
 ) : DisposableContainer(), PwTool {
     override val toolType = PwToolType.QuestEditor
 
@@ -50,17 +49,13 @@ class QuestEditor(
         val assemblyEditorController = addDisposable(AssemblyEditorController(assemblyEditorStore))
 
         // Rendering
-        val renderer = addDisposable(QuestRenderer(createThreeRenderer))
-        addDisposables(
-            QuestEditorMeshManager(
-                scope,
-                questEditorStore,
-                renderer,
-                areaAssetLoader,
-                entityAssetLoader
-            ),
-            UserInputManager(questEditorStore, renderer)
-        )
+        val renderer = addDisposable(QuestRenderer(
+            scope,
+            areaAssetLoader,
+            entityAssetLoader,
+            questEditorStore,
+            createThreeRenderer,
+        ))
 
         // Main Widget
         return QuestEditorWidget(

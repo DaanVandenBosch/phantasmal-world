@@ -11,11 +11,11 @@ import world.phantasmal.web.questEditor.stores.QuestEditorStore
 
 class QuestEditorMeshManager(
     scope: CoroutineScope,
-    questEditorStore: QuestEditorStore,
-    renderer: QuestRenderer,
     areaAssetLoader: AreaAssetLoader,
     entityAssetLoader: EntityAssetLoader,
-) : QuestMeshManager(scope, questEditorStore, renderer, areaAssetLoader, entityAssetLoader) {
+    questEditorStore: QuestEditorStore,
+    renderContext: QuestRenderContext,
+) : QuestMeshManager(scope, areaAssetLoader, entityAssetLoader, questEditorStore, renderContext) {
     init {
         addDisposables(
             questEditorStore.currentQuest.map(questEditorStore.currentArea, ::getAreaVariantDetails)

@@ -1,9 +1,9 @@
 package world.phantasmal.web.viewer.rendering
 
+import org.w3c.dom.HTMLCanvasElement
 import world.phantasmal.lib.fileFormats.ninja.XvrTexture
-import world.phantasmal.web.core.rendering.DisposableThreeRenderer
+import world.phantasmal.web.core.rendering.*
 import world.phantasmal.web.core.rendering.Renderer
-import world.phantasmal.web.core.rendering.disposeObject3DResources
 import world.phantasmal.web.externals.three.*
 import world.phantasmal.web.viewer.store.ViewerStore
 import world.phantasmal.webui.obj
@@ -13,36 +13,42 @@ import kotlin.math.sqrt
 
 class TextureRenderer(
     store: ViewerStore,
-    createThreeRenderer: () -> DisposableThreeRenderer,
-) : Renderer(
-    createThreeRenderer,
-    OrthographicCamera(
-        left = -400.0,
-        right = 400.0,
-        top = 300.0,
-        bottom = -300.0,
-        near = 1.0,
-        far = 10.0,
-    )
-) {
+    createThreeRenderer: (HTMLCanvasElement) -> DisposableThreeRenderer,
+) : Renderer() {
     private var meshes = listOf<Mesh>()
 
-    init {
-        initializeControls()
-        camera.position.set(0.0, 0.0, 5.0)
-        controls.update()
-        controls.saveState()
+    override val context = addDisposable(RenderContext(
+        createCanvas(),
+        OrthographicCamera(
+            left = -400.0,
+            right = 400.0,
+            top = 300.0,
+            bottom = -300.0,
+            near = 1.0,
+            far = 10.0,
+        )
+    ))
 
+    override val threeRenderer = addDisposable(createThreeRenderer(context.canvas)).renderer
+
+    override val inputManager = addDisposable(OrbitalCameraInputManager(
+        context.canvas,
+        context.camera,
+        Vector3(0.0, 0.0, 5.0),
+        screenSpacePanning = true
+    ))
+
+    init {
         observe(store.currentTextures, ::texturesChanged)
     }
 
     private fun texturesChanged(textures: List<XvrTexture>) {
         meshes.forEach { mesh ->
             disposeObject3DResources(mesh)
-            scene.remove(mesh)
+            context.scene.remove(mesh)
         }
 
-        resetCamera()
+        inputManager.resetCamera()
 
         // Lay textures out in a square grid of "cells".
         var cellWidth = -1
@@ -71,7 +77,7 @@ class TextureRenderer(
                     transparent = true
                 })
             )
-            scene.add(quad)
+            context.scene.add(quad)
 
             x += cellWidth
 

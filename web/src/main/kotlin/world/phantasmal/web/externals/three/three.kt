@@ -67,6 +67,11 @@ external class Vector3(
     fun sub(v: Vector3): Vector3
 
     /**
+     * Sets this vector to a - b.
+     */
+    fun subVectors(a: Vector3, b: Vector3): Vector3
+
+    /**
      * Multiplies this vector by scalar s.
      */
     fun multiplyScalar(s: Double): Vector3
@@ -82,6 +87,8 @@ external class Vector3(
     fun dot(v: Vector3): Double
 
     fun length(): Double
+
+    fun normalize(): Vector3
 
     /**
      * Sets this vector to cross product of itself and [v].
@@ -161,6 +168,8 @@ external class Face3(
 
 external class Plane(normal: Vector3 = definedExternally, constant: Double = definedExternally) {
     fun set(normal: Vector3, constant: Double): Plane
+    fun setFromNormalAndCoplanarPoint(normal: Vector3, point: Vector3): Plane
+    fun projectPoint(point: Vector3, target: Vector3): Vector3
 }
 
 open external class EventDispatcher
@@ -174,6 +183,10 @@ external interface Renderer {
 }
 
 external interface WebGLRendererParameters {
+    /**
+     * A Canvas where the renderer draws its output.
+     */
+    var canvas: HTMLCanvasElement /* HTMLCanvasElement | OffscreenCanvas */
     var alpha: Boolean
     var premultipliedAlpha: Boolean
     var antialias: Boolean
@@ -324,7 +337,9 @@ external class Scene : Object3D {
     var background: dynamic /* null | Color | Texture | WebGLCubeRenderTarget */
 }
 
-open external class Camera : Object3D
+open external class Camera : Object3D {
+    fun getWorldDirection(target: Vector3): Vector3
+}
 
 external class PerspectiveCamera(
     fov: Double = definedExternally,

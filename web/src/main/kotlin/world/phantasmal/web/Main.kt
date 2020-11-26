@@ -10,6 +10,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import mu.KotlinLoggingConfiguration
 import mu.KotlinLoggingLevel
+import org.w3c.dom.HTMLCanvasElement
 import org.w3c.dom.PopStateEvent
 import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.core.disposable.Disposer
@@ -72,9 +73,10 @@ private fun init(): Disposable {
     return disposer
 }
 
-private fun createThreeRenderer(): DisposableThreeRenderer =
+private fun createThreeRenderer(canvas: HTMLCanvasElement): DisposableThreeRenderer =
     object : TrackedDisposable(), DisposableThreeRenderer {
         override val renderer = WebGLRenderer(obj {
+            this.canvas = canvas
             antialias = true
             alpha = true
         })

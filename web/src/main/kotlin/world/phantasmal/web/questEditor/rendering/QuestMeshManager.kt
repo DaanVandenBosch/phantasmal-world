@@ -20,18 +20,15 @@ import world.phantasmal.webui.DisposableContainer
  */
 abstract class QuestMeshManager protected constructor(
     private val scope: CoroutineScope,
-    questEditorStore: QuestEditorStore,
-    private val renderer: QuestRenderer,
     areaAssetLoader: AreaAssetLoader,
     entityAssetLoader: EntityAssetLoader,
+    questEditorStore: QuestEditorStore,
+    renderContext: QuestRenderContext,
 ) : DisposableContainer() {
     private val areaDisposer = addDisposable(Disposer())
-    private val areaMeshManager = AreaMeshManager(renderer, areaAssetLoader)
-    private val npcMeshManager = addDisposable(
-        EntityMeshManager(scope, questEditorStore, renderer, entityAssetLoader)
-    )
-    private val objectMeshManager = addDisposable(
-        EntityMeshManager(scope, questEditorStore, renderer, entityAssetLoader)
+    private val areaMeshManager = AreaMeshManager(renderContext, areaAssetLoader)
+    private val entityMeshManager = addDisposable(
+        EntityMeshManager(scope, questEditorStore, renderContext, entityAssetLoader)
     )
 
     private var loadJob: Job? = null
@@ -46,10 +43,7 @@ abstract class QuestMeshManager protected constructor(
         loadJob = scope.launch {
             // Reset models.
             areaDisposer.disposeAll()
-            npcMeshManager.removeAll()
-            objectMeshManager.removeAll()
-
-            renderer.resetCamera()
+            entityMeshManager.removeAll()
 
             // Load area model.
             areaMeshManager.load(episode, areaVariant)
@@ -64,15 +58,15 @@ abstract class QuestMeshManager protected constructor(
 
     private fun npcsChanged(change: ListValChangeEvent<QuestNpcModel>) {
         if (change is ListValChangeEvent.Change) {
-            change.removed.forEach(npcMeshManager::remove)
-            change.inserted.forEach(npcMeshManager::add)
+            change.removed.forEach(entityMeshManager::remove)
+            change.inserted.forEach(entityMeshManager::add)
         }
     }
 
     private fun objectsChanged(change: ListValChangeEvent<QuestObjectModel>) {
         if (change is ListValChangeEvent.Change) {
-            change.removed.forEach(objectMeshManager::remove)
-            change.inserted.forEach(objectMeshManager::add)
+            change.removed.forEach(entityMeshManager::remove)
+            change.inserted.forEach(entityMeshManager::add)
         }
     }
 }

@@ -1,50 +1,48 @@
 package world.phantasmal.web.questEditor.rendering
 
+import kotlinx.coroutines.CoroutineScope
+import org.w3c.dom.HTMLCanvasElement
 import world.phantasmal.web.core.rendering.DisposableThreeRenderer
 import world.phantasmal.web.core.rendering.Renderer
-import world.phantasmal.web.externals.three.Group
-import world.phantasmal.web.externals.three.Object3D
 import world.phantasmal.web.externals.three.PerspectiveCamera
+import world.phantasmal.web.questEditor.loading.AreaAssetLoader
+import world.phantasmal.web.questEditor.loading.EntityAssetLoader
+import world.phantasmal.web.questEditor.rendering.input.QuestInputManager
+import world.phantasmal.web.questEditor.stores.QuestEditorStore
 
 class QuestRenderer(
-    createThreeRenderer: () -> DisposableThreeRenderer,
-) : Renderer(
-    createThreeRenderer,
-    PerspectiveCamera(
-        fov = 45.0,
-        aspect = 1.0,
-        near = 10.0,
-        far = 5_000.0
-    )
-) {
-    val entities: Object3D = Group().apply {
-        name = "Entities"
-        scene.add(this)
-    }
+    scope: CoroutineScope,
+    areaAssetLoader: AreaAssetLoader,
+    entityAssetLoader: EntityAssetLoader,
+    questEditorStore: QuestEditorStore,
+    createThreeRenderer: (HTMLCanvasElement) -> DisposableThreeRenderer,
+) : Renderer() {
+    override val context = addDisposable(QuestRenderContext(
+        createCanvas(),
+        PerspectiveCamera(
+            fov = 45.0,
+            aspect = 1.0,
+            near = 10.0,
+            far = 5_000.0
+        )
+    ))
 
-    var collisionGeometry: Object3D = DEFAULT_COLLISION_GEOMETRY
-        set(geom) {
-            scene.remove(field)
-            field = geom
-            scene.add(geom)
-        }
+    override val threeRenderer = addDisposable(createThreeRenderer(context.canvas)).renderer
 
-    override fun initializeControls() {
-        super.initializeControls()
-        camera.position.set(0.0, 800.0, 700.0)
-        controls.target.set(0.0, 0.0, 0.0)
-        controls.screenSpacePanning = false
-        controls.update()
-        controls.saveState()
-    }
+    override val inputManager = addDisposable(QuestInputManager(questEditorStore, context))
 
-    fun clearCollisionGeometry() {
-        collisionGeometry = DEFAULT_COLLISION_GEOMETRY
-    }
+    init {
+        addDisposables(
+            QuestEditorMeshManager(
+                scope,
+                areaAssetLoader,
+                entityAssetLoader,
+                questEditorStore,
+                context,
+            ),
+        )
 
-    companion object {
-        private val DEFAULT_COLLISION_GEOMETRY = Group().apply {
-            name = "Default Collision Geometry"
-        }
+        observe(questEditorStore.currentQuest) { inputManager.resetCamera() }
+        observe(questEditorStore.currentArea) { inputManager.resetCamera() }
     }
 }
