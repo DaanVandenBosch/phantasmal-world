@@ -16,7 +16,7 @@ fun createQuestModel(
     episode: Episode = Episode.I,
     npcs: List<QuestNpcModel> = emptyList(),
     objects: List<QuestObjectModel> = emptyList(),
-    byteCodeIr: List<Segment> = emptyList(),
+    bytecodeIr: List<Segment> = emptyList(),
 ): QuestModel =
     QuestModel(
         id,
@@ -28,7 +28,7 @@ fun createQuestModel(
         emptyMap(),
         npcs.toMutableList(),
         objects.toMutableList(),
-        byteCodeIr,
+        bytecodeIr,
     ) { _, _, _ -> null }
 
 fun createQuestNpcModel(type: NpcType, episode: Episode): QuestNpcModel =

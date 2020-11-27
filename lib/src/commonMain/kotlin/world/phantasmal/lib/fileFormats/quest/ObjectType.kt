@@ -1,5 +1,7 @@
 package world.phantasmal.lib.fileFormats.quest
 
+import world.phantasmal.lib.fileFormats.quest.NpcType.values
+
 enum class ObjectType(
     override val uniqueName: String,
     /**
@@ -2559,4 +2561,11 @@ enum class ObjectType(
     );
 
     override val simpleName = uniqueName
+
+    companion object {
+        /**
+         * Use this instead of [values] to avoid unnecessary copying.
+         */
+        val VALUES: Array<ObjectType> = ObjectType.values()
+    }
 }

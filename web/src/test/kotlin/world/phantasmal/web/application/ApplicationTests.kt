@@ -4,7 +4,6 @@ import kotlinx.browser.document
 import world.phantasmal.core.disposable.Disposer
 import world.phantasmal.core.disposable.use
 import world.phantasmal.web.core.PwToolType
-import world.phantasmal.web.externals.babylon.Engine
 import world.phantasmal.web.test.TestApplicationUrl
 import world.phantasmal.web.test.WebTestSuite
 import kotlin.test.Test
@@ -22,7 +21,7 @@ class ApplicationTests : WebTestSuite() {
                         rootElement = document.body!!,
                         assetLoader = components.assetLoader,
                         applicationUrl = appUrl,
-                        createEngine = { Engine(it) }
+                        createThreeRenderer = components.createThreeRenderer,
                     )
                 )
             }

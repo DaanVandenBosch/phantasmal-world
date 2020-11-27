@@ -42,7 +42,7 @@ class QuestTests : LibTestSuite() {
         assertEquals(4, quest.mapDesignations[10])
         assertEquals(0, quest.mapDesignations[14])
 
-        val seg1 = quest.byteCodeIr[0]
+        val seg1 = quest.bytecodeIr[0]
         assertTrue(seg1 is InstructionSegment)
         assertTrue(0 in seg1.labels)
         assertEquals(OP_SET_EPISODE, seg1.instructions[0].opcode)
@@ -53,15 +53,15 @@ class QuestTests : LibTestSuite() {
         assertEquals(150, seg1.instructions[2].args[0].value)
         assertEquals(OP_SET_FLOOR_HANDLER, seg1.instructions[3].opcode)
 
-        val seg2 = quest.byteCodeIr[1]
+        val seg2 = quest.bytecodeIr[1]
         assertTrue(seg2 is InstructionSegment)
         assertTrue(1 in seg2.labels)
 
-        val seg3 = quest.byteCodeIr[2]
+        val seg3 = quest.bytecodeIr[2]
         assertTrue(seg3 is InstructionSegment)
         assertTrue(10 in seg3.labels)
 
-        val seg4 = quest.byteCodeIr[3]
+        val seg4 = quest.bytecodeIr[3]
         assertTrue(seg4 is InstructionSegment)
         assertTrue(150 in seg4.labels)
         assertEquals(1, seg4.instructions.size)

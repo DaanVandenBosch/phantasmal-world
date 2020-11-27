@@ -179,7 +179,7 @@ external interface Renderer {
 
     fun render(scene: Object3D, camera: Camera)
 
-    fun setSize(width: Double, height: Double, updateStyle: Boolean = definedExternally)
+    fun setSize(width: Double, height: Double)
 }
 
 external interface WebGLRendererParameters {
@@ -197,7 +197,7 @@ external class WebGLRenderer(parameters: WebGLRendererParameters = definedExtern
 
     override fun render(scene: Object3D, camera: Camera)
 
-    override fun setSize(width: Double, height: Double, updateStyle: Boolean)
+    override fun setSize(width: Double, height: Double)
 
     fun setPixelRatio(value: Double)
 

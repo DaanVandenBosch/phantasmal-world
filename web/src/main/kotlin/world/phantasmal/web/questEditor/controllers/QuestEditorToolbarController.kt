@@ -9,8 +9,10 @@ import world.phantasmal.lib.fileFormats.quest.Episode
 import world.phantasmal.lib.fileFormats.quest.Quest
 import world.phantasmal.lib.fileFormats.quest.parseBinDatToQuest
 import world.phantasmal.lib.fileFormats.quest.parseQstToQuest
-import world.phantasmal.observable.value.*
-import world.phantasmal.web.core.undo.UndoManager
+import world.phantasmal.observable.value.Val
+import world.phantasmal.observable.value.map
+import world.phantasmal.observable.value.mutableVal
+import world.phantasmal.observable.value.value
 import world.phantasmal.web.questEditor.loading.QuestLoader
 import world.phantasmal.web.questEditor.models.AreaModel
 import world.phantasmal.web.questEditor.stores.AreaStore
@@ -67,7 +69,7 @@ class QuestEditorToolbarController(
         } ?: value(emptyList())
     }
 
-    val currentArea: Val<AreaAndLabel?> = areas.map(questEditorStore.currentArea) { areas, area ->
+    val currentArea: Val<AreaAndLabel?> = map(areas, questEditorStore.currentArea) { areas, area ->
         areas.find { it.area == area }
     }
 

@@ -26,7 +26,7 @@ class Quest(
     val npcs: List<QuestNpc>,
     val events: List<DatEvent>,
     val datUnknowns: List<DatUnknown>,
-    val byteCodeIr: List<Segment>,
+    val bytecodeIr: List<Segment>,
     val shopItems: UIntArray,
     val mapDesignations: Map<Int, Int>,
 )
@@ -64,26 +64,26 @@ fun parseBinDatToQuest(
     var episode = Episode.I
     var mapDesignations = emptyMap<Int, Int>()
 
-    val parseByteCodeResult = parseByteCode(
-        bin.byteCode,
+    val parseBytecodeResult = parseBytecode(
+        bin.bytecode,
         bin.labelOffsets,
         extractScriptEntryPoints(objects, npcs),
         bin.format == BinFormat.DC_GC,
         lenient,
     )
 
-    result.addResult(parseByteCodeResult)
+    result.addResult(parseBytecodeResult)
 
-    if (parseByteCodeResult !is Success) {
+    if (parseBytecodeResult !is Success) {
         return result.failure()
     }
 
-    val byteCodeIr = parseByteCodeResult.value
+    val bytecodeIr = parseBytecodeResult.value
 
-    if (byteCodeIr.isEmpty()) {
+    if (bytecodeIr.isEmpty()) {
         result.addProblem(Severity.Warning, "File contains no instruction labels.")
     } else {
-        val instructionSegments = byteCodeIr.filterIsInstance<InstructionSegment>()
+        val instructionSegments = bytecodeIr.filterIsInstance<InstructionSegment>()
 
         var label0Segment: InstructionSegment? = null
 
@@ -118,7 +118,7 @@ fun parseBinDatToQuest(
         npcs,
         events = dat.events,
         datUnknowns = dat.unknowns,
-        byteCodeIr,
+        bytecodeIr,
         shopItems = bin.shopItems,
         mapDesignations,
     ))

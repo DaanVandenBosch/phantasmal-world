@@ -5,6 +5,7 @@ import world.phantasmal.lib.fileFormats.quest.Episode
 import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.list.ListVal
 import world.phantasmal.observable.value.list.mutableListVal
+import world.phantasmal.observable.value.map
 import world.phantasmal.observable.value.mutableVal
 
 class QuestModel(
@@ -17,7 +18,7 @@ class QuestModel(
     mapDesignations: Map<Int, Int>,
     npcs: MutableList<QuestNpcModel>,
     objects: MutableList<QuestObjectModel>,
-    val byteCodeIr: List<Segment>,
+    val bytecodeIr: List<Segment>,
     getVariant: (Episode, areaId: Int, variantId: Int) -> AreaVariantModel?,
 ) {
     private val _id = mutableVal(0)
@@ -56,7 +57,7 @@ class QuestModel(
         setShortDescription(shortDescription)
         setLongDescription(longDescription)
 
-        entitiesPerArea = this.npcs.map(this.objects) { ns, os ->
+        entitiesPerArea = map(this.npcs, this.objects) { ns, os ->
             val map = mutableMapOf<Int, Int>()
 
             for (npc in ns) {
@@ -70,24 +71,23 @@ class QuestModel(
             map
         }
 
-        areaVariants =
-            entitiesPerArea.map(this.mapDesignations) { entitiesPerArea, mds ->
-                val variants = mutableMapOf<Int, AreaVariantModel>()
+        areaVariants = map(entitiesPerArea, this.mapDesignations) { entitiesPerArea, mds ->
+            val variants = mutableMapOf<Int, AreaVariantModel>()
 
-                for (areaId in entitiesPerArea.values) {
-                    getVariant(episode, areaId, 0)?.let {
-                        variants[areaId] = it
-                    }
+            for (areaId in entitiesPerArea.values) {
+                getVariant(episode, areaId, 0)?.let {
+                    variants[areaId] = it
                 }
-
-                for ((areaId, variantId) in mds) {
-                    getVariant(episode, areaId, variantId)?.let {
-                        variants[areaId] = it
-                    }
-                }
-
-                variants.values.toList()
             }
+
+            for ((areaId, variantId) in mds) {
+                getVariant(episode, areaId, variantId)?.let {
+                    variants[areaId] = it
+                }
+            }
+
+            variants.values.toList()
+        }
     }
 
     fun setId(id: Int): QuestModel {

@@ -26,3 +26,28 @@ fun <T> mutableVal(value: T): MutableVal<T> = SimpleVal(value)
  */
 fun <T> mutableVal(getter: () -> T, setter: (T) -> Unit): MutableVal<T> =
     DelegatingVal(getter, setter)
+
+/**
+ * Map a transformation function over 2 vals.
+ *
+ * @param transform called whenever [v1] or [v2] changes
+ */
+fun <T1, T2, R> map(
+    v1: Val<T1>,
+    v2: Val<T2>,
+    transform: (T1, T2) -> R,
+): Val<R> =
+    MappedVal(listOf(v1, v2)) { transform(v1.value, v2.value) }
+
+/**
+ * Map a transformation function over 3 vals.
+ *
+ * @param transform called whenever [v1], [v2] or [v3] changes
+ */
+fun <T1, T2, T3, R> map(
+    v1: Val<T1>,
+    v2: Val<T2>,
+    v3: Val<T3>,
+    transform: (T1, T2, T3) -> R,
+): Val<R> =
+    MappedVal(listOf(v1, v2, v3)) { transform(v1.value, v2.value, v3.value) }

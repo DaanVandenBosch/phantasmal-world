@@ -4,14 +4,14 @@ import io.ktor.client.*
 import io.ktor.client.features.json.*
 import io.ktor.client.features.json.serializer.*
 import kotlinx.coroutines.cancel
+import org.w3c.dom.HTMLCanvasElement
 import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.core.disposable.disposable
 import world.phantasmal.testUtils.TestContext
 import world.phantasmal.web.core.loading.AssetLoader
+import world.phantasmal.web.core.rendering.DisposableThreeRenderer
 import world.phantasmal.web.core.stores.ApplicationUrl
 import world.phantasmal.web.core.stores.UiStore
-import world.phantasmal.web.externals.babylon.NullEngine
-import world.phantasmal.web.externals.babylon.Scene
 import world.phantasmal.web.questEditor.loading.AreaAssetLoader
 import world.phantasmal.web.questEditor.loading.QuestLoader
 import world.phantasmal.web.questEditor.stores.AreaStore
@@ -37,16 +37,12 @@ class TestComponents(private val ctx: TestContext) {
 
     var applicationUrl: ApplicationUrl by default { TestApplicationUrl("") }
 
-    // Babylon.js
-
-    var scene: Scene by default { Scene(NullEngine()) }
-
     // Asset Loaders
 
     var assetLoader: AssetLoader by default { AssetLoader(httpClient, basePath = "/assets") }
 
     var areaAssetLoader: AreaAssetLoader by default {
-        AreaAssetLoader(ctx.scope, assetLoader, scene)
+        AreaAssetLoader(ctx.scope, assetLoader)
     }
 
     var questLoader: QuestLoader by default { QuestLoader(ctx.scope, assetLoader) }
@@ -59,6 +55,16 @@ class TestComponents(private val ctx: TestContext) {
 
     var questEditorStore: QuestEditorStore by default {
         QuestEditorStore(ctx.scope, uiStore, areaStore)
+    }
+
+    // Rendering
+    var createThreeRenderer: (HTMLCanvasElement) -> DisposableThreeRenderer by default {
+        { canvas ->
+            object : DisposableThreeRenderer {
+                override val renderer = NoopRenderer(canvas)
+                override fun dispose() {}
+            }
+        }
     }
 
     private fun <T> default(defaultValue: () -> T) = LazyDefault {

@@ -43,14 +43,14 @@ val BUILTIN_FUNCTIONS = setOf(
     860,
 )
 
-fun parseByteCode(
-    byteCode: Buffer,
+fun parseBytecode(
+    bytecode: Buffer,
     labelOffsets: IntArray,
     entryLabels: Set<Int>,
     dcGcFormat: Boolean,
     lenient: Boolean,
 ): PwResult<List<Segment>> {
-    val cursor = BufferCursor(byteCode)
+    val cursor = BufferCursor(bytecode)
     val labelHolder = LabelHolder(labelOffsets)
     val result = PwResult.build<List<Segment>>(logger)
     val offsetToSegment = mutableMapOf<Int, Segment>()

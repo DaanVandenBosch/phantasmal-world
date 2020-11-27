@@ -27,22 +27,6 @@ interface Val<out T> : Observable<T> {
         MappedVal(listOf(this)) { transform(value) }
 
     /**
-     * Map a transformation function over this val and another val.
-     *
-     * @param transform called whenever this val or [v2] changes
-     */
-    fun <T2, R> map(v2: Val<T2>, transform: (T, T2) -> R): Val<R> =
-        MappedVal(listOf(this, v2)) { transform(value, v2.value) }
-
-    /**
-     * Map a transformation function over this val and two other vals.
-     *
-     * @param transform called whenever this val, [v2] or [v3] changes
-     */
-    fun <T2, T3, R> map(v2: Val<T2>, v3: Val<T3>, transform: (T, T2, T3) -> R): Val<R> =
-        MappedVal(listOf(this, v2, v3)) { transform(value, v2.value, v3.value) }
-
-    /**
      * Map a transformation function that returns a val over this val. The resulting val will change
      * when this val changes and when the val returned by [transform] changes.
      *

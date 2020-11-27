@@ -1,6 +1,7 @@
 package world.phantasmal.web.questEditor.rendering
 
 import world.phantasmal.observable.value.Val
+import world.phantasmal.observable.value.map
 import world.phantasmal.web.externals.three.InstancedMesh
 import world.phantasmal.web.externals.three.Object3D
 import world.phantasmal.web.questEditor.models.QuestEntityModel
@@ -43,7 +44,8 @@ class EntityInstance(
 
         if (entity is QuestNpcModel) {
             isVisible =
-                entity.sectionInitialized.map(
+                map(
+                    entity.sectionInitialized,
                     selectedWave,
                     entity.wave
                 ) { sectionInitialized, sWave, entityWave ->

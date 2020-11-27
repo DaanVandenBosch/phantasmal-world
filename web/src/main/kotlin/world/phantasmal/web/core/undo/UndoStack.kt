@@ -3,6 +3,7 @@ package world.phantasmal.web.core.undo
 import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.gt
 import world.phantasmal.observable.value.list.mutableListVal
+import world.phantasmal.observable.value.map
 import world.phantasmal.observable.value.mutableVal
 import world.phantasmal.web.core.actions.Action
 
@@ -21,7 +22,7 @@ class UndoStack(private val manager: UndoManager) : Undo {
 
     override val canUndo: Val<Boolean> = index gt 0
 
-    override val canRedo: Val<Boolean> = stack.map(index) { stack, index -> index < stack.size }
+    override val canRedo: Val<Boolean> = map(stack, index) { stack, index -> index < stack.size }
 
     override val firstUndo: Val<Action?> = index.map { stack.value.getOrNull(it - 1) }
 

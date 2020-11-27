@@ -38,7 +38,6 @@ enum class NpcType(
      */
     val properties: List<EntityProp> = emptyList(),
 ) : EntityType {
-
     //
     // Unknown NPCs
     //
@@ -1478,4 +1477,11 @@ enum class NpcType(
      * The type of this NPC's rare variant if it has one.
      */
     val rareType: NpcType? by lazy { rareType?.invoke() }
+
+    companion object {
+        /**
+         * Use this instead of [values] to avoid unnecessary copying.
+         */
+        val VALUES: Array<NpcType> = values()
+    }
 }

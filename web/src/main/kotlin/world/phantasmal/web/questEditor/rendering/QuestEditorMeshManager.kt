@@ -4,6 +4,7 @@ import kotlinx.coroutines.CoroutineScope
 import world.phantasmal.lib.fileFormats.quest.Episode
 import world.phantasmal.observable.value.list.ListVal
 import world.phantasmal.observable.value.list.listVal
+import world.phantasmal.observable.value.map
 import world.phantasmal.web.questEditor.loading.AreaAssetLoader
 import world.phantasmal.web.questEditor.loading.EntityAssetLoader
 import world.phantasmal.web.questEditor.models.*
@@ -18,10 +19,13 @@ class QuestEditorMeshManager(
 ) : QuestMeshManager(scope, areaAssetLoader, entityAssetLoader, questEditorStore, renderContext) {
     init {
         addDisposables(
-            questEditorStore.currentQuest.map(questEditorStore.currentArea, ::getAreaVariantDetails)
-                .observe { (details) ->
-                    loadMeshes(details.episode, details.areaVariant, details.npcs, details.objects)
-                },
+            map(
+                questEditorStore.currentQuest,
+                questEditorStore.currentArea,
+                ::getAreaVariantDetails
+            ).observe { (details) ->
+                loadMeshes(details.episode, details.areaVariant, details.npcs, details.objects)
+            },
         )
     }
 

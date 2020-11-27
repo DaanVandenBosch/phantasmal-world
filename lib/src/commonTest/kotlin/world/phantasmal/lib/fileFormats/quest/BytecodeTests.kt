@@ -10,7 +10,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-class ByteCodeTests : LibTestSuite() {
+class BytecodeTests : LibTestSuite() {
     @Test
     fun minimal() {
         val buffer = Buffer.fromByteArray(ubyteArrayOf(
@@ -19,7 +19,7 @@ class ByteCodeTests : LibTestSuite() {
             0x01u                                            // ret
         ).toByteArray())
 
-        val result = parseByteCode(
+        val result = parseBytecode(
             buffer,
             labelOffsets = intArrayOf(0),
             entryLabels = setOf(0),

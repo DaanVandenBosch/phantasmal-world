@@ -17,7 +17,7 @@ class BinFile(
     val questName: String,
     val shortDescription: String,
     val longDescription: String,
-    val byteCode: Buffer,
+    val bytecode: Buffer,
     val labelOffsets: IntArray,
     val shopItems: UIntArray,
 )
@@ -40,18 +40,18 @@ enum class BinFormat {
 }
 
 fun parseBin(cursor: Cursor): BinFile {
-    val byteCodeOffset = cursor.int()
+    val bytecodeOffset = cursor.int()
     val labelOffsetTableOffset = cursor.int() // Relative offsets
     val size = cursor.int()
     cursor.seek(4) // Always seems to be 0xFFFFFFFF.
 
-    val format = when (byteCodeOffset) {
+    val format = when (bytecodeOffset) {
         DC_GC_OBJECT_CODE_OFFSET -> BinFormat.DC_GC
         PC_OBJECT_CODE_OFFSET -> BinFormat.PC
         BB_OBJECT_CODE_OFFSET -> BinFormat.BB
         else -> {
             logger.warn {
-                "Byte code at unexpected offset $byteCodeOffset, assuming file is a PC file."
+                "Byte code at unexpected offset $bytecodeOffset, assuming file is a PC file."
             }
             BinFormat.PC
         }
@@ -100,9 +100,9 @@ fun parseBin(cursor: Cursor): BinFile {
         .seekStart(labelOffsetTableOffset)
         .intArray(labelOffsetCount)
 
-    val byteCode = cursor
-        .seekStart(byteCodeOffset)
-        .buffer(labelOffsetTableOffset - byteCodeOffset)
+    val bytecode = cursor
+        .seekStart(bytecodeOffset)
+        .buffer(labelOffsetTableOffset - bytecodeOffset)
 
     return BinFile(
         format,
@@ -111,7 +111,7 @@ fun parseBin(cursor: Cursor): BinFile {
         questName,
         shortDescription,
         longDescription,
-        byteCode,
+        bytecode,
         labelOffsets,
         shopItems,
     )

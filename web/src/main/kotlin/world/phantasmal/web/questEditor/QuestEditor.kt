@@ -11,6 +11,7 @@ import world.phantasmal.web.questEditor.controllers.*
 import world.phantasmal.web.questEditor.loading.AreaAssetLoader
 import world.phantasmal.web.questEditor.loading.EntityAssetLoader
 import world.phantasmal.web.questEditor.loading.QuestLoader
+import world.phantasmal.web.questEditor.persistence.QuestEditorUiPersister
 import world.phantasmal.web.questEditor.rendering.QuestRenderer
 import world.phantasmal.web.questEditor.stores.AreaStore
 import world.phantasmal.web.questEditor.stores.AssemblyEditorStore
@@ -32,12 +33,16 @@ class QuestEditor(
         val areaAssetLoader = addDisposable(AreaAssetLoader(scope, assetLoader))
         val entityAssetLoader = addDisposable(EntityAssetLoader(scope, assetLoader))
 
+        // Persistence
+        val questEditorUiPersister = QuestEditorUiPersister()
+
         // Stores
         val areaStore = addDisposable(AreaStore(scope, areaAssetLoader))
         val questEditorStore = addDisposable(QuestEditorStore(scope, uiStore, areaStore))
         val assemblyEditorStore = addDisposable(AssemblyEditorStore(scope, questEditorStore))
 
         // Controllers
+        val questEditorController = addDisposable(QuestEditorController(questEditorUiPersister))
         val toolbarController = addDisposable(QuestEditorToolbarController(
             questLoader,
             areaStore,
@@ -47,6 +52,9 @@ class QuestEditor(
         val npcCountsController = addDisposable(NpcCountsController(questEditorStore))
         val entityInfoController = addDisposable(EntityInfoController(questEditorStore))
         val assemblyEditorController = addDisposable(AssemblyEditorController(assemblyEditorStore))
+        val npcListController = addDisposable(EntityListController(questEditorStore, npcs = true))
+        val objectListController =
+            addDisposable(EntityListController(questEditorStore, npcs = false))
 
         // Rendering
         val renderer = addDisposable(QuestRenderer(
@@ -60,12 +68,15 @@ class QuestEditor(
         // Main Widget
         return QuestEditorWidget(
             scope,
+            questEditorController,
             { s -> QuestEditorToolbarWidget(s, toolbarController) },
             { s -> QuestInfoWidget(s, questInfoController) },
             { s -> NpcCountsWidget(s, npcCountsController) },
             { s -> EntityInfoWidget(s, entityInfoController) },
             { s -> QuestEditorRendererWidget(s, renderer) },
             { s -> AssemblyEditorWidget(s, assemblyEditorController) },
+            { s -> EntityListWidget(s, npcListController) },
+            { s -> EntityListWidget(s, objectListController) },
         )
     }
 }
