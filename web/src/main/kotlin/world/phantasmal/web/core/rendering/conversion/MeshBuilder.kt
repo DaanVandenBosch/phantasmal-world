@@ -5,7 +5,6 @@ import org.khronos.webgl.Uint16Array
 import org.khronos.webgl.set
 import world.phantasmal.lib.fileFormats.ninja.XvrTexture
 import world.phantasmal.web.externals.three.*
-import world.phantasmal.web.viewer.rendering.xvrTextureToThree
 import world.phantasmal.webui.obj
 
 class MeshBuilder {
@@ -17,6 +16,12 @@ class MeshBuilder {
      * One group per material.
      */
     private val groups = mutableListOf<Group>()
+
+    private var defaultMaterial: Material = MeshLambertMaterial(obj {
+        // TODO: skinning
+        side = DoubleSide
+    })
+
     private val textures = mutableListOf<XvrTexture>()
 
     fun getGroupIndex(
@@ -47,23 +52,27 @@ class MeshBuilder {
     fun getNormal(index: Int): Vector3 =
         normals[index]
 
-    fun addVertex(position: Vector3, normal: Vector3, uv: Vector2? = null) {
+    fun vertex(position: Vector3, normal: Vector3, uv: Vector2? = null) {
         positions.add(position)
         normals.add(normal)
         uv?.let { uvs.add(uv) }
     }
 
-    fun addIndex(groupIdx: Int, index: Int) {
+    fun index(groupIdx: Int, index: Int) {
         groups[groupIdx].indices.add(index.toShort())
     }
 
-    fun addBoneWeight(groupIdx: Int, index: Int, weight: Float) {
+    fun boneWeight(groupIdx: Int, index: Int, weight: Float) {
         val group = groups[groupIdx]
         group.boneIndices.add(index.toShort())
         group.boneWeights.add(weight)
     }
 
-    fun addTextures(textures: List<XvrTexture>) {
+    fun defaultMaterial(material: Material) {
+        defaultMaterial = material
+    }
+
+    fun textures(textures: List<XvrTexture>) {
         this.textures.addAll(textures)
     }
 
@@ -94,8 +103,8 @@ class MeshBuilder {
         }
 
     private fun build(): Pair<BufferGeometry, Array<Material>> {
-        check(this.positions.size == this.normals.size)
-        check(this.uvs.isEmpty() || this.positions.size == this.uvs.size)
+        check(positions.size == normals.size)
+        check(uvs.isEmpty() || positions.size == uvs.size)
 
         val positions = Float32Array(3 * positions.size)
         val normals = Float32Array(3 * normals.size)
@@ -143,12 +152,10 @@ class MeshBuilder {
             }
 
             val mat = if (tex == null) {
-                MeshLambertMaterial(obj {
-                    // TODO: skinning
-                    side = DoubleSide
-                })
+                defaultMaterial
             } else {
                 MeshBasicMaterial(obj {
+                    // TODO: skinning
                     map = tex
                     side = DoubleSide
 

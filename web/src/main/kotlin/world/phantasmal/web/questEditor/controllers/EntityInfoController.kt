@@ -3,6 +3,7 @@ package world.phantasmal.web.questEditor.controllers
 import world.phantasmal.core.math.degToRad
 import world.phantasmal.core.math.radToDeg
 import world.phantasmal.observable.value.Val
+import world.phantasmal.observable.value.emptyStringVal
 import world.phantasmal.observable.value.value
 import world.phantasmal.web.core.euler
 import world.phantasmal.web.externals.three.Euler
@@ -29,8 +30,15 @@ class EntityInfoController(private val store: QuestEditorStore) : Controller() {
         .map { it?.toString() ?: "" }
 
     val wave: Val<String> = store.selectedEntity
-        .flatMapNull { entity -> (entity as? QuestNpcModel)?.wave?.flatMapNull { it?.id } }
-        .map { it?.toString() ?: "" }
+        .flatMap { entity ->
+            if (entity is QuestNpcModel) {
+                entity.wave.flatMap { wave ->
+                    wave?.id?.map(Any::toString) ?: value("None")
+                }
+            } else {
+                emptyStringVal()
+            }
+        }
 
     val waveHidden: Val<Boolean> = store.selectedEntity.map { it !is QuestNpcModel }
 
@@ -45,6 +53,10 @@ class EntityInfoController(private val store: QuestEditorStore) : Controller() {
     val rotX: Val<Double> = rot.map { radToDeg(it.x) }
     val rotY: Val<Double> = rot.map { radToDeg(it.y) }
     val rotZ: Val<Double> = rot.map { radToDeg(it.z) }
+
+    fun focused() {
+        store.makeMainUndoCurrent()
+    }
 
     fun setPosX(x: Double) {
         store.selectedEntity.value?.let { entity ->

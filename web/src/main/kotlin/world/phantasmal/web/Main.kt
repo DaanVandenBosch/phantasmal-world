@@ -8,6 +8,7 @@ import kotlinx.browser.window
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.datetime.Clock
 import mu.KotlinLoggingConfiguration
 import mu.KotlinLoggingLevel
 import org.w3c.dom.HTMLCanvasElement
@@ -67,6 +68,7 @@ private fun init(): Disposable {
             AssetLoader(httpClient),
             disposer.add(HistoryApplicationUrl()),
             ::createThreeRenderer,
+            Clock.System,
         )
     )
 

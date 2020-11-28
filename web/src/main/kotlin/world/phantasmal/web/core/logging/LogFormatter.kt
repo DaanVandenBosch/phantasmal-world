@@ -56,7 +56,7 @@ class LogFormatter : Formatter {
         val m = date.getMinutes().toString().padStart(2, '0')
         val s = date.getSeconds().toString().padStart(2, '0')
         val ms = date.getMilliseconds().toString().padStart(3, '0')
-        return "$h:$m:$s.$ms "
+        return "$h:$m:$s.$ms"
     }
 
     companion object {

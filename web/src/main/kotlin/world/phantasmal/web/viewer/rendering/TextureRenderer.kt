@@ -4,6 +4,7 @@ import org.w3c.dom.HTMLCanvasElement
 import world.phantasmal.lib.fileFormats.ninja.XvrTexture
 import world.phantasmal.web.core.rendering.*
 import world.phantasmal.web.core.rendering.Renderer
+import world.phantasmal.web.core.rendering.conversion.xvrTextureToThree
 import world.phantasmal.web.externals.three.*
 import world.phantasmal.web.viewer.store.ViewerStore
 import world.phantasmal.webui.obj

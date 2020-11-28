@@ -1,5 +1,8 @@
 package world.phantasmal.core.disposable
 
+/**
+ * Container for disposables that disposes the contained disposables when it is disposed.
+ */
 class Disposer(vararg disposables: Disposable) : TrackedDisposable() {
     private val disposables = mutableListOf(*disposables)
 
@@ -62,5 +65,6 @@ class Disposer(vararg disposables: Disposable) : TrackedDisposable() {
 
     override fun internalDispose() {
         disposeAll()
+        super.internalDispose()
     }
 }

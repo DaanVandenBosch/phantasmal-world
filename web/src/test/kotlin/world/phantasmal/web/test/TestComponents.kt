@@ -4,6 +4,7 @@ import io.ktor.client.*
 import io.ktor.client.features.json.*
 import io.ktor.client.features.json.serializer.*
 import kotlinx.coroutines.cancel
+import kotlinx.datetime.Clock
 import org.w3c.dom.HTMLCanvasElement
 import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.core.disposable.disposable
@@ -34,6 +35,8 @@ class TestComponents(private val ctx: TestContext) {
             ctx.disposer.add(disposable { it.cancel() })
         }
     }
+
+    var clock: Clock by default { StubClock() }
 
     var applicationUrl: ApplicationUrl by default { TestApplicationUrl("") }
 
@@ -97,7 +100,7 @@ class TestComponents(private val ctx: TestContext) {
         }
 
         operator fun setValue(thisRef: Any?, prop: KProperty<*>, value: T) {
-            require(initialized) {
+            require(!initialized) {
                 "Property ${prop.name} is already initialized."
             }
 

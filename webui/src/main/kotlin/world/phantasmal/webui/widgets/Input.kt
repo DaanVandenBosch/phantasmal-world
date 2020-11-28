@@ -111,11 +111,11 @@ abstract class Input<T>(
                     border: var(--pw-input-border-focus);
                 }
 
-                .pw-input.disabled {
+                .pw-input.pw-disabled {
                     border: var(--pw-input-border-disabled);
                 }
 
-                .pw-input.disabled .pw-input-inner {
+                .pw-input.pw-disabled .pw-input-inner {
                     color: var(--pw-input-text-color-disabled);
                     background-color: var(--pw-input-bg-color-disabled);
                 }

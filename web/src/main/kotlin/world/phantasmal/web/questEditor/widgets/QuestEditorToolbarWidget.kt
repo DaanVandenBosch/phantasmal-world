@@ -4,6 +4,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.w3c.dom.Node
 import world.phantasmal.lib.fileFormats.quest.Episode
+import world.phantasmal.observable.value.value
 import world.phantasmal.web.questEditor.controllers.QuestEditorToolbarController
 import world.phantasmal.webui.dom.Icon
 import world.phantasmal.webui.dom.div
@@ -29,6 +30,7 @@ class QuestEditorToolbarWidget(
                     FileButton(
                         scope,
                         text = "Open file...",
+                        tooltip = value("Open a quest file (Ctrl-O)"),
                         iconLeft = Icon.File,
                         accept = ".bin, .dat, .qst",
                         multiple = true,

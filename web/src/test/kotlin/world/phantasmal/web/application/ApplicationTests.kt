@@ -22,6 +22,7 @@ class ApplicationTests : WebTestSuite() {
                         assetLoader = components.assetLoader,
                         applicationUrl = appUrl,
                         createThreeRenderer = components.createThreeRenderer,
+                        clock = components.clock,
                     )
                 )
             }

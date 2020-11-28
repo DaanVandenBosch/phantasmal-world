@@ -35,6 +35,10 @@ class QuestModel(
     val name: Val<String> = _name
     val shortDescription: Val<String> = _shortDescription
     val longDescription: Val<String> = _longDescription
+
+    /**
+     * Map of area IDs to area variant IDs. One designation per area.
+     */
     val mapDesignations: Val<Map<Int, Int>> = _mapDesignations
 
     /**

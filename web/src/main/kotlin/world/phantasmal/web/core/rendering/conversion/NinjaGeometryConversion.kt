@@ -22,7 +22,7 @@ fun ninjaObjectToMesh(
     boundingVolumes: Boolean = false
 ): Mesh {
     val builder = MeshBuilder()
-    builder.addTextures(textures)
+    builder.textures(textures)
     NinjaToMeshConverter(builder).convert(ninjaObject)
     return builder.buildMesh(boundingVolumes)
 }
@@ -34,7 +34,7 @@ fun ninjaObjectToInstancedMesh(
     boundingVolumes: Boolean = false,
 ): InstancedMesh {
     val builder = MeshBuilder()
-    builder.addTextures(textures)
+    builder.textures(textures)
     NinjaToMeshConverter(builder).convert(ninjaObject)
     return builder.buildInstancedMesh(maxInstances, boundingVolumes)
 }
@@ -138,7 +138,7 @@ private class NinjaToMeshConverter(private val builder: MeshBuilder) {
                         vertex.normal ?: meshVertex.normal?.let(::vec3ToThree) ?: DEFAULT_NORMAL
                     val index = builder.vertexCount
 
-                    builder.addVertex(
+                    builder.vertex(
                         vertex.position,
                         normal,
                         meshVertex.texCoords?.let(::vec2ToThree) ?: DEFAULT_UV
@@ -146,13 +146,13 @@ private class NinjaToMeshConverter(private val builder: MeshBuilder) {
 
                     if (i >= 2) {
                         if (i % 2 == if (mesh.clockwiseWinding) 1 else 0) {
-                            builder.addIndex(group, index - 2)
-                            builder.addIndex(group, index - 1)
-                            builder.addIndex(group, index)
+                            builder.index(group, index - 2)
+                            builder.index(group, index - 1)
+                            builder.index(group, index)
                         } else {
-                            builder.addIndex(group, index - 2)
-                            builder.addIndex(group, index)
-                            builder.addIndex(group, index - 1)
+                            builder.index(group, index - 2)
+                            builder.index(group, index)
+                            builder.index(group, index - 1)
                         }
                     }
 
@@ -167,7 +167,7 @@ private class NinjaToMeshConverter(private val builder: MeshBuilder) {
                     val totalWeight = boneWeights.sum()
 
                     for (j in boneIndices.indices) {
-                        builder.addBoneWeight(
+                        builder.boneWeight(
                             group,
                             boneIndices[j],
                             if (totalWeight > 0f) boneWeights[j] / totalWeight else 0f
@@ -193,7 +193,7 @@ private class NinjaToMeshConverter(private val builder: MeshBuilder) {
 
             val uv = vertex.uv?.let(::vec2ToThree) ?: DEFAULT_UV
 
-            builder.addVertex(p, n, uv)
+            builder.vertex(p, n, uv)
         }
 
         var currentTextureIdx: Int? = null
@@ -243,13 +243,13 @@ private class NinjaToMeshConverter(private val builder: MeshBuilder) {
                 }
 
                 if (clockwise) {
-                    builder.addIndex(group, b)
-                    builder.addIndex(group, a)
-                    builder.addIndex(group, c)
+                    builder.index(group, b)
+                    builder.index(group, a)
+                    builder.index(group, c)
                 } else {
-                    builder.addIndex(group, a)
-                    builder.addIndex(group, b)
-                    builder.addIndex(group, c)
+                    builder.index(group, a)
+                    builder.index(group, b)
+                    builder.index(group, c)
                 }
 
                 clockwise = !clockwise

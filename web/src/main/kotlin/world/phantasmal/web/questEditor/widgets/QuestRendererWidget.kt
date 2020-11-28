@@ -14,7 +14,6 @@ abstract class QuestRendererWidget(
     override fun Node.createElement() =
         div {
             className = "pw-quest-editor-quest-renderer"
-            tabIndex = -1
 
             addChild(RendererWidget(scope, renderer))
         }

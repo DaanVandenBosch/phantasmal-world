@@ -101,6 +101,11 @@ class QuestInfoWidget(
             ))
         }
 
+    override fun focus() {
+        super.focus()
+        ctrl.focused()
+    }
+
     companion object {
         init {
             @Suppress("CssUnusedSymbol")

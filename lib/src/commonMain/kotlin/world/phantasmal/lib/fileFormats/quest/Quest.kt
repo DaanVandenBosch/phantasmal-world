@@ -25,6 +25,9 @@ class Quest(
     val objects: List<QuestObject>,
     val npcs: List<QuestNpc>,
     val events: List<DatEvent>,
+    /**
+     * (Partial) raw DAT data that can't be parsed yet by Phantasmal.
+     */
     val datUnknowns: List<DatUnknown>,
     val bytecodeIr: List<Segment>,
     val shopItems: UIntArray,

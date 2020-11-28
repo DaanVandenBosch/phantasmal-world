@@ -32,6 +32,8 @@ open class Problem(
 )
 
 enum class Severity {
+    Trace,
+    Debug,
     Info,
     Warning,
     Error,
@@ -50,6 +52,8 @@ class PwResultBuilder<T>(private val logger: KLogger) {
         problem: Problem,
     ): PwResultBuilder<T> {
         when (problem.severity) {
+            Severity.Trace -> logger.trace(problem.cause) { problem.message ?: problem.uiMessage }
+            Severity.Debug -> logger.debug(problem.cause) { problem.message ?: problem.uiMessage }
             Severity.Info -> logger.info(problem.cause) { problem.message ?: problem.uiMessage }
             Severity.Warning -> logger.warn(problem.cause) { problem.message ?: problem.uiMessage }
             Severity.Error -> logger.error(problem.cause) { problem.message ?: problem.uiMessage }

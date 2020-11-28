@@ -73,7 +73,7 @@ class EntityAssetLoader(
         val suffix =
             if (
                 type === ObjectType.FloatingRocks ||
-                (type === ObjectType.BigBrownRock && model == undefined)
+                (type === ObjectType.BigBrownRock && model == null)
             ) {
                 "-0"
             } else {
@@ -127,8 +127,13 @@ class EntityAssetLoader(
 
     companion object {
         private val DEFAULT_MESH = InstancedMesh(
-            CylinderBufferGeometry(radiusTop = 2.5, radiusBottom = 2.5, height = 18.0).apply {
-                translate(0.0, 10.0, 0.0)
+            CylinderBufferGeometry(
+                radiusTop = 2.5,
+                radiusBottom = 2.5,
+                height = 18.0,
+                radialSegments = 16,
+            ).apply {
+                translate(0.0, 9.0, 0.0)
                 computeBoundingBox()
                 computeBoundingSphere()
             },

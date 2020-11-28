@@ -76,12 +76,14 @@ class QuestEditorToolbarController(
     val areaSelectEnabled: Val<Boolean> = questEditorStore.currentQuest.isNotNull()
 
     suspend fun createNewQuest(episode: Episode) {
+        // TODO: Set filename and version.
         questEditorStore.setCurrentQuest(
             convertQuestToModel(questLoader.loadDefaultQuest(episode), areaStore::getVariant)
         )
     }
 
     suspend fun openFiles(files: List<File>) {
+        // TODO: Set filename and version.
         try {
             if (files.isEmpty()) return
 

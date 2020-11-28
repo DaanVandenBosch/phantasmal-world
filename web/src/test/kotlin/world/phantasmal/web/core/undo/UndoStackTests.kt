@@ -1,8 +1,6 @@
-package world.phantasmal.web.questEditor.undo
+package world.phantasmal.web.core.undo
 
 import world.phantasmal.web.core.actions.Action
-import world.phantasmal.web.core.undo.UndoManager
-import world.phantasmal.web.core.undo.UndoStack
 import world.phantasmal.web.test.WebTestSuite
 import kotlin.test.Test
 import kotlin.test.assertEquals

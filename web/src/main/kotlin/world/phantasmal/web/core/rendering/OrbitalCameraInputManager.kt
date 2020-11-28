@@ -69,7 +69,7 @@ class OrbitalCameraInputManager(
     override fun beforeRender() {
         if (camera is PerspectiveCamera) {
             val distance = camera.position.distanceTo(controls.target)
-            camera.near = distance / 100
+            camera.near = max(.01, distance / 100)
             camera.far = max(2_000.0, 10 * distance)
             camera.updateProjectionMatrix()
         }

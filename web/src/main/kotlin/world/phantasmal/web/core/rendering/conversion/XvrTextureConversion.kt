@@ -1,4 +1,4 @@
-package world.phantasmal.web.viewer.rendering
+package world.phantasmal.web.core.rendering.conversion
 
 import org.khronos.webgl.Uint8Array
 import org.khronos.webgl.set

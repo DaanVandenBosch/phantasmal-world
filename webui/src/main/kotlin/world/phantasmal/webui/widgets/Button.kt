@@ -75,7 +75,7 @@ open class Button(
     companion object {
         init {
             @Suppress("CssUnusedSymbol", "CssUnresolvedCustomProperty")
-// language=css
+            // language=css
             style("""
                 .pw-button {
                     display: inline-flex;

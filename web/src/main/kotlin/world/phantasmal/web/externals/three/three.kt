@@ -241,6 +241,8 @@ open external class Object3D {
 
     var visible: Boolean
 
+    var renderOrder: Int
+
     /**
      * An object that can be used to store custom data about the Object3d. It should not hold references to functions as these will not be cloned.
      */
@@ -422,10 +424,13 @@ external class HemisphereLight(
     )
 }
 
-external class Color(r: Double, g: Double, b: Double) {
+external class Color() {
+    constructor(r: Double, g: Double, b: Double)
     constructor(color: Color)
     constructor(color: String)
     constructor(color: Int)
+
+    fun setHSL(h: Double, s: Double, l: Double): Color
 }
 
 open external class Geometry : EventDispatcher {
@@ -553,6 +558,8 @@ external interface MeshBasicMaterialParameters : MaterialParameters {
     var color: Color
     var opacity: Double
     var map: Texture?
+    var wireframe: Boolean
+    var wireframeLinewidth: Double
     var skinning: Boolean
 }
 

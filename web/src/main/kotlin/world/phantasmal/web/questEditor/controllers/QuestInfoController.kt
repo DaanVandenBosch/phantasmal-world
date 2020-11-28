@@ -22,6 +22,10 @@ class QuestInfoController(private val store: QuestEditorStore) : Controller() {
     val longDescription: Val<String> =
         store.currentQuest.flatMap { it?.longDescription ?: emptyStringVal() }
 
+    fun focused() {
+        store.makeMainUndoCurrent()
+    }
+
     fun setId(id: Int) {
         if (!enabled.value) return
 

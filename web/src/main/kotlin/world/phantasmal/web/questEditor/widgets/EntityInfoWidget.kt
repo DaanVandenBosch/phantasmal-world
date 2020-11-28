@@ -46,6 +46,7 @@ class EntityInfoWidget(
                     td {
                         addChild(DoubleInput(
                             this@EntityInfoWidget.scope,
+                            enabled = ctrl.enabled,
                             value = ctrl.posX,
                             onChange = ctrl::setPosX,
                             roundTo = 3,
@@ -57,6 +58,7 @@ class EntityInfoWidget(
                     td {
                         addChild(DoubleInput(
                             this@EntityInfoWidget.scope,
+                            enabled = ctrl.enabled,
                             value = ctrl.posY,
                             onChange = ctrl::setPosY,
                             roundTo = 3,
@@ -68,6 +70,7 @@ class EntityInfoWidget(
                     td {
                         addChild(DoubleInput(
                             this@EntityInfoWidget.scope,
+                            enabled = ctrl.enabled,
                             value = ctrl.posZ,
                             onChange = ctrl::setPosZ,
                             roundTo = 3,
@@ -82,6 +85,7 @@ class EntityInfoWidget(
                     td {
                         addChild(DoubleInput(
                             this@EntityInfoWidget.scope,
+                            enabled = ctrl.enabled,
                             value = ctrl.rotX,
                             onChange = ctrl::setRotX,
                             roundTo = 3,
@@ -93,6 +97,7 @@ class EntityInfoWidget(
                     td {
                         addChild(DoubleInput(
                             this@EntityInfoWidget.scope,
+                            enabled = ctrl.enabled,
                             value = ctrl.rotY,
                             onChange = ctrl::setRotY,
                             roundTo = 3,
@@ -104,6 +109,7 @@ class EntityInfoWidget(
                     td {
                         addChild(DoubleInput(
                             this@EntityInfoWidget.scope,
+                            enabled = ctrl.enabled,
                             value = ctrl.rotZ,
                             onChange = ctrl::setRotZ,
                             roundTo = 3,
@@ -117,6 +123,11 @@ class EntityInfoWidget(
                 message = "No entity selected.",
             ))
         }
+
+    override fun focus() {
+        super.focus()
+        ctrl.focused()
+    }
 
     companion object {
         private const val COORD_CLASS = "pw-quest-editor-entity-info-coord"

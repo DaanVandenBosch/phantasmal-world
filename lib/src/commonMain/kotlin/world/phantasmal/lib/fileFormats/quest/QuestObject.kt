@@ -8,9 +8,9 @@ import kotlin.math.roundToInt
 
 class QuestObject(override var areaId: Int, val data: Buffer) : QuestEntity<ObjectType> {
     var typeId: Int
-        get() = data.getInt(0)
+        get() = data.getShort(0).toInt()
         set(value) {
-            data.setInt(0, value)
+            data.setShort(0, value.toShort())
         }
 
     override var type: ObjectType

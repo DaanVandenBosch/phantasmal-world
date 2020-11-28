@@ -13,7 +13,6 @@ class RendererWidget(
     override fun Node.createElement() =
         div {
             className = "pw-core-renderer"
-            tabIndex = -1
 
             observe(selfOrAncestorVisible) { visible ->
                 if (visible) {

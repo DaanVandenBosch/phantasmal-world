@@ -9,6 +9,7 @@ import world.phantasmal.web.core.dom.externalLink
 import world.phantasmal.webui.dom.Icon
 import world.phantasmal.webui.dom.div
 import world.phantasmal.webui.dom.icon
+import world.phantasmal.webui.dom.span
 import world.phantasmal.webui.widgets.Select
 import world.phantasmal.webui.widgets.Widget
 
@@ -40,6 +41,11 @@ class NavigationWidget(
                 )
                 addWidget(serverSelect.label!!)
                 addChild(serverSelect)
+
+                span {
+                    title = "Internet time in beats"
+                    text(ctrl.internetTime)
+                }
 
                 externalLink("https://github.com/DaanVandenBosch/phantasmal-world") {
                     className = "pw-application-navigation-github"

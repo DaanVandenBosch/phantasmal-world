@@ -16,6 +16,10 @@ import world.phantasmal.web.externals.three.Vector3
 import kotlin.math.PI
 
 abstract class QuestEntityModel<Type : EntityType, Entity : QuestEntity<Type>>(
+    /**
+     * Don't modify the underlying entity directly because most of those modifications will not be
+     * reflected in this model's properties.
+     */
     private val entity: Entity,
 ) {
     private val _sectionId = mutableVal(entity.sectionId)
@@ -132,16 +136,16 @@ abstract class QuestEntityModel<Type : EntityType, Entity : QuestEntity<Type>>(
         _rotation.value = relRot
     }
 
-    private fun floorModEuler(euler: Euler): Euler =
-        euler.set(
-            floorMod(euler.x, 2 * PI),
-            floorMod(euler.y, 2 * PI),
-            floorMod(euler.z, 2 * PI),
-        )
-
     companion object {
         // These quaternions are used as temporary variables to avoid memory allocation.
         private val q1 = Quaternion()
         private val q2 = Quaternion()
+
+        private fun floorModEuler(euler: Euler): Euler =
+            euler.set(
+                floorMod(euler.x, 2 * PI),
+                floorMod(euler.y, 2 * PI),
+                floorMod(euler.z, 2 * PI),
+            )
     }
 }

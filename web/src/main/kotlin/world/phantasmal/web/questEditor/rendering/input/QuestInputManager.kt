@@ -1,6 +1,6 @@
 package world.phantasmal.web.questEditor.rendering.input
 
-import kotlinx.browser.document
+import kotlinx.browser.window
 import org.w3c.dom.pointerevents.PointerEvent
 import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.web.core.rendering.InputManager
@@ -34,7 +34,7 @@ class QuestInputManager(
      * Whether entity transformations, deletions, etc. are enabled or not.
      * Hover over and selection still work when this is set to false.
      */
-    var entityManipulationEnabled: Boolean = true
+    private var entityManipulationEnabled: Boolean = true
         set(enabled) {
             field = enabled
             returnToIdleState()
@@ -45,7 +45,8 @@ class QuestInputManager(
             disposableListener(renderContext.canvas, "pointerdown", ::onPointerDown)
         )
 
-        onPointerMoveListener = disposableListener(document, "pointermove", ::onPointerMove)
+        onPointerMoveListener =
+            disposableListener(renderContext.canvas, "pointermove", ::onPointerMove)
 
         // Ensure OrbitalCameraControls attaches its listeners after ours.
         cameraInputManager = OrbitalCameraInputManager(
@@ -57,7 +58,9 @@ class QuestInputManager(
 
         stateContext = StateContext(questEditorStore, renderContext, cameraInputManager)
         state = IdleState(stateContext, entityManipulationEnabled)
+
         observe(questEditorStore.selectedEntity) { returnToIdleState() }
+        observe(questEditorStore.questEditingEnabled) { entityManipulationEnabled = it }
     }
 
     override fun internalDispose() {
@@ -92,11 +95,11 @@ class QuestInputManager(
             )
         )
 
-        onPointerUpListener = disposableListener(document, "pointerup", ::onPointerUp)
+        onPointerUpListener = disposableListener(window, "pointerup", ::onPointerUp)
 
-        // Stop listening to canvas move events and start listening to document move events.
+        // Stop listening to canvas move events and start listening to window move events.
         onPointerMoveListener?.dispose()
-        onPointerMoveListener = disposableListener(document, "pointermove", ::onPointerMove)
+        onPointerMoveListener = disposableListener(window, "pointermove", ::onPointerMove)
     }
 
     private fun onPointerUp(e: PointerEvent) {
@@ -115,7 +118,7 @@ class QuestInputManager(
             onPointerUpListener?.dispose()
             onPointerUpListener = null
 
-            // Stop listening to document move events and start listening to canvas move events.
+            // Stop listening to window move events and start listening to canvas move events again.
             onPointerMoveListener?.dispose()
             onPointerMoveListener =
                 disposableListener(renderContext.canvas, "pointermove", ::onPointerMove)

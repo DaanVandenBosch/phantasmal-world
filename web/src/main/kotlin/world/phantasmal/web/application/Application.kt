@@ -2,6 +2,7 @@ package world.phantasmal.web.application
 
 import kotlinx.browser.document
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.datetime.Clock
 import org.w3c.dom.DragEvent
 import org.w3c.dom.HTMLCanvasElement
 import org.w3c.dom.HTMLElement
@@ -29,6 +30,7 @@ class Application(
     assetLoader: AssetLoader,
     applicationUrl: ApplicationUrl,
     createThreeRenderer: (HTMLCanvasElement) -> DisposableThreeRenderer,
+    clock: Clock,
 ) : DisposableContainer() {
     init {
         addDisposables(
@@ -55,7 +57,7 @@ class Application(
         )
 
         // Controllers.
-        val navigationController = addDisposable(NavigationController(uiStore))
+        val navigationController = addDisposable(NavigationController(uiStore, clock))
         val mainContentController = addDisposable(MainContentController(uiStore))
 
         // Initialize application view.

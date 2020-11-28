@@ -38,7 +38,7 @@ class AreaAssetLoader(
             { (episode, areaVariant) ->
                 val buffer = getAreaAsset(episode, areaVariant, AssetType.Render)
                 val obj = parseAreaGeometry(buffer.cursor(Endianness.Little))
-                areaGeometryToTransformNodeAndSections(obj, areaVariant)
+                areaGeometryToObject3DAndSections(obj, areaVariant)
             },
             { (obj3d) -> disposeObject3DResources(obj3d) },
         )
@@ -50,23 +50,17 @@ class AreaAssetLoader(
             { (episode, areaVariant) ->
                 val buffer = getAreaAsset(episode, areaVariant, AssetType.Collision)
                 val obj = parseAreaCollisionGeometry(buffer.cursor(Endianness.Little))
-                areaCollisionGeometryToTransformNode(obj, episode, areaVariant)
+                areaCollisionGeometryToObject3D(obj, episode, areaVariant)
             },
             ::disposeObject3DResources,
         )
     )
 
     suspend fun loadSections(episode: Episode, areaVariant: AreaVariantModel): List<SectionModel> =
-        loadRenderGeometryAndSections(episode, areaVariant).second
+        renderObjectCache.get(EpisodeAndAreaVariant(episode, areaVariant)).second
 
     suspend fun loadRenderGeometry(episode: Episode, areaVariant: AreaVariantModel): Object3D =
-        loadRenderGeometryAndSections(episode, areaVariant).first
-
-    private suspend fun loadRenderGeometryAndSections(
-        episode: Episode,
-        areaVariant: AreaVariantModel,
-    ): Pair<Object3D, List<SectionModel>> =
-        renderObjectCache.get(EpisodeAndAreaVariant(episode, areaVariant))
+        renderObjectCache.get(EpisodeAndAreaVariant(episode, areaVariant)).first
 
     suspend fun loadCollisionGeometry(
         episode: Episode,
@@ -106,7 +100,7 @@ private val COLLISION_MATERIALS: Array<Material> = arrayOf(
     MeshBasicMaterial(obj {
         color = Color(0x80c0d0)
         transparent = true
-        opacity = 0.25
+        opacity = .25
     }),
     // Ground
     MeshLambertMaterial(obj {
@@ -122,6 +116,31 @@ private val COLLISION_MATERIALS: Array<Material> = arrayOf(
     MeshLambertMaterial(obj {
         color = Color(0x402050)
         side = DoubleSide
+    }),
+)
+
+private val COLLISION_WIREFRAME_MATERIALS: Array<Material> = arrayOf(
+    // Wall
+    MeshBasicMaterial(obj {
+        color = Color(0x90d0e0)
+        wireframe = true
+        transparent = true
+        opacity = .3
+    }),
+    // Ground
+    MeshBasicMaterial(obj {
+        color = Color(0x506060)
+        wireframe = true
+    }),
+    // Vegetation
+    MeshBasicMaterial(obj {
+        color = Color(0x405050)
+        wireframe = true
+    }),
+    // Section transition zone
+    MeshBasicMaterial(obj {
+        color = Color(0x503060)
+        wireframe = true
     }),
 )
 
@@ -209,22 +228,28 @@ private fun areaVersionToBaseUrl(episode: Episode, areaVariant: AreaVariantModel
     return "/maps/map_${base_name}${variant}"
 }
 
-private fun areaGeometryToTransformNodeAndSections(
+private fun areaGeometryToObject3DAndSections(
     renderObject: RenderObject,
     areaVariant: AreaVariantModel,
 ): Pair<Object3D, List<SectionModel>> {
     val sections = mutableListOf<SectionModel>()
     val obj3d = Group()
 
-    for (section in renderObject.sections) {
+    for ((i, section) in renderObject.sections.withIndex()) {
         val builder = MeshBuilder()
 
         for (obj in section.objects) {
             ninjaObjectToMeshBuilder(obj, builder)
         }
 
+        builder.defaultMaterial(MeshBasicMaterial(obj {
+            color = Color().setHSL((i % 7) / 7.0, 1.0, .5)
+            transparent = true
+            opacity = .25
+            side = DoubleSide
+        }))
+
         val mesh = builder.buildMesh()
-        // TODO: Material.
 
         mesh.position.set(
             section.position.x.toDouble(),
@@ -239,13 +264,12 @@ private fun areaGeometryToTransformNodeAndSections(
         mesh.updateMatrixWorld()
 
         if (section.id >= 0) {
-            val sec = SectionModel(
+            sections.add(SectionModel(
                 section.id,
                 vec3ToThree(section.position),
                 euler(section.rotation.x, section.rotation.y, section.rotation.z),
                 areaVariant,
-            )
-            sections.add(sec)
+            ))
         }
 
         (mesh.userData.unsafeCast<AreaUserData>()).sectionId = section.id.takeIf { it >= 0 }
@@ -255,7 +279,7 @@ private fun areaGeometryToTransformNodeAndSections(
     return Pair(obj3d, sections)
 }
 
-private fun areaCollisionGeometryToTransformNode(
+private fun areaCollisionGeometryToObject3D(
     obj: CollisionObject,
     episode: Episode,
     areaVariant: AreaVariantModel,
@@ -299,7 +323,18 @@ private fun areaCollisionGeometryToTransformNode(
         if (geom.faces.isNotEmpty()) {
             geom.computeBoundingBox()
             geom.computeBoundingSphere()
-            obj3d.add(Mesh(geom, COLLISION_MATERIALS))
+
+            obj3d.add(
+                Mesh(geom, COLLISION_MATERIALS).apply {
+                    renderOrder = 1
+                }
+            )
+
+            obj3d.add(
+                Mesh(geom, COLLISION_WIREFRAME_MATERIALS).apply {
+                    renderOrder = 2
+                }
+            )
         }
     }
 
