@@ -11,7 +11,7 @@ class UiStoreTests : WebTestSuite() {
     @Test
     fun applicationUrl_is_initialized_correctly() = test {
         val applicationUrl = TestApplicationUrl("/")
-        val uiStore = disposer.add(UiStore(scope, applicationUrl))
+        val uiStore = disposer.add(UiStore(applicationUrl))
 
         assertEquals(PwToolType.Viewer, uiStore.currentTool.value)
         assertEquals("/${PwToolType.Viewer.slug}", applicationUrl.url.value)
@@ -20,7 +20,7 @@ class UiStoreTests : WebTestSuite() {
     @Test
     fun applicationUrl_changes_when_tool_changes() = test {
         val applicationUrl = TestApplicationUrl("/")
-        val uiStore = disposer.add(UiStore(scope, applicationUrl))
+        val uiStore = disposer.add(UiStore(applicationUrl))
 
         PwToolType.values().forEach { tool ->
             uiStore.setCurrentTool(tool)
@@ -33,7 +33,7 @@ class UiStoreTests : WebTestSuite() {
     @Test
     fun applicationUrl_changes_when_path_changes() = test {
         val applicationUrl = TestApplicationUrl("/")
-        val uiStore = disposer.add(UiStore(scope, applicationUrl))
+        val uiStore = disposer.add(UiStore(applicationUrl))
 
         assertEquals(PwToolType.Viewer, uiStore.currentTool.value)
         assertEquals("/${PwToolType.Viewer.slug}", applicationUrl.url.value)
@@ -48,7 +48,7 @@ class UiStoreTests : WebTestSuite() {
     @Test
     fun currentTool_and_path_change_when_applicationUrl_changes() = test {
         val applicationUrl = TestApplicationUrl("/")
-        val uiStore = disposer.add(UiStore(scope, applicationUrl))
+        val uiStore = disposer.add(UiStore(applicationUrl))
 
         PwToolType.values().forEach { tool ->
             listOf("/a", "/b", "/c").forEach { path ->
@@ -63,7 +63,7 @@ class UiStoreTests : WebTestSuite() {
     @Test
     fun browser_navigation_stack_is_manipulated_correctly() = test {
         val appUrl = TestApplicationUrl("/")
-        val uiStore = disposer.add(UiStore(scope, appUrl))
+        val uiStore = disposer.add(UiStore(appUrl))
 
         assertEquals("/${uiStore.defaultTool.slug}", appUrl.url.value)
 

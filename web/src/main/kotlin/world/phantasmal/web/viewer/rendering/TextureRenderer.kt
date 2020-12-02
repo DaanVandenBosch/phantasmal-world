@@ -1,5 +1,6 @@
 package world.phantasmal.web.viewer.rendering
 
+import mu.KotlinLogging
 import org.w3c.dom.HTMLCanvasElement
 import world.phantasmal.lib.fileFormats.ninja.XvrTexture
 import world.phantasmal.web.core.rendering.*
@@ -11,6 +12,8 @@ import world.phantasmal.webui.obj
 import kotlin.math.ceil
 import kotlin.math.max
 import kotlin.math.sqrt
+
+private val logger = KotlinLogging.logger {}
 
 class TextureRenderer(
     store: ViewerStore,
@@ -36,7 +39,8 @@ class TextureRenderer(
         context.canvas,
         context.camera,
         Vector3(0.0, 0.0, 5.0),
-        screenSpacePanning = true
+        screenSpacePanning = true,
+        enableRotate = false,
     ))
 
     init {
@@ -71,11 +75,23 @@ class TextureRenderer(
         var cell = 0
 
         meshes = textures.map { xvr ->
+            val texture =
+                try {
+                    xvrTextureToThree(xvr, filter = NearestFilter)
+                } catch (e: Exception) {
+                    logger.error(e) { "Couldn't convert XVR texture." }
+                    null
+                }
+
             val quad = Mesh(
                 createQuad(x, y, xvr.width, xvr.height),
                 MeshBasicMaterial(obj {
-                    map = xvrTextureToThree(xvr, filter = NearestFilter)
-                    transparent = true
+                    if (texture == null) {
+                        color = Color(0xFF00FF)
+                    } else {
+                        map = texture
+                        transparent = true
+                    }
                 })
             )
             context.scene.add(quad)
@@ -96,7 +112,7 @@ class TextureRenderer(
             width.toDouble(),
             height.toDouble(),
             widthSegments = 1.0,
-            heightSegments = 1.0
+            heightSegments = 1.0,
         )
         quad.faceVertexUvs = arrayOf(
             arrayOf(

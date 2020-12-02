@@ -1,6 +1,5 @@
 package world.phantasmal.webui.widgets
 
-import kotlinx.coroutines.CoroutineScope
 import org.w3c.dom.Node
 import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.falseVal
@@ -17,9 +16,9 @@ class WidgetTests : WebuiTestSuite() {
     fun ancestorVisible_and_selfOrAncestorVisible_should_update_when_visible_changes() = test {
         val parentVisible = mutableVal(true)
         val childVisible = mutableVal(true)
-        val grandChild = DummyWidget(scope)
-        val child = DummyWidget(scope, childVisible, grandChild)
-        val parent = disposer.add(DummyWidget(scope, parentVisible, child))
+        val grandChild = DummyWidget()
+        val child = DummyWidget(childVisible, grandChild)
+        val parent = disposer.add(DummyWidget(parentVisible, child))
 
         parent.element // Ensure widgets are fully initialized.
 
@@ -53,8 +52,8 @@ class WidgetTests : WebuiTestSuite() {
     @Test
     fun added_child_widgets_should_have_ancestorVisible_and_selfOrAncestorVisible_set_correctly() =
         test {
-            val parent = disposer.add(DummyWidget(scope, visible = falseVal()))
-            val child = parent.addChild(DummyWidget(scope))
+            val parent = disposer.add(DummyWidget(visible = falseVal()))
+            val child = parent.addChild(DummyWidget())
 
             assertTrue(parent.ancestorVisible.value)
             assertFalse(parent.selfOrAncestorVisible.value)
@@ -63,10 +62,9 @@ class WidgetTests : WebuiTestSuite() {
         }
 
     private inner class DummyWidget(
-        scope: CoroutineScope,
         visible: Val<Boolean> = trueVal(),
         private val child: Widget? = null,
-    ) : Widget(scope, visible = visible) {
+    ) : Widget(visible = visible) {
         override fun Node.createElement() = div {
             child?.let { addChild(it) }
         }

@@ -1,15 +1,13 @@
 package world.phantasmal.web.core.widgets
 
-import kotlinx.coroutines.CoroutineScope
 import org.w3c.dom.Node
 import world.phantasmal.web.core.rendering.Renderer
 import world.phantasmal.webui.dom.div
 import world.phantasmal.webui.widgets.Widget
 
 class RendererWidget(
-    scope: CoroutineScope,
     private val renderer: Renderer,
-) : Widget(scope) {
+) : Widget() {
     override fun Node.createElement() =
         div {
             className = "pw-core-renderer"

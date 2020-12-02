@@ -42,7 +42,7 @@ class PathAwareTabControllerTests : WebTestSuite() {
     @Test
     fun applicationUrl_changes_when_switch_to_tool_with_tabs() = test {
         val appUrl = TestApplicationUrl("/")
-        val uiStore = disposer.add(UiStore(scope, appUrl))
+        val uiStore = disposer.add(UiStore(appUrl))
 
         disposer.add(
             PathAwareTabController(uiStore, PwToolType.HuntOptimizer, listOf(
@@ -71,7 +71,7 @@ class PathAwareTabControllerTests : WebTestSuite() {
         block: (PathAwareTabController<PathAwareTab>, applicationUrl: TestApplicationUrl) -> Unit,
     ) {
         val applicationUrl = TestApplicationUrl("/${PwToolType.HuntOptimizer.slug}/b")
-        val uiStore = disposer.add(UiStore(scope, applicationUrl))
+        val uiStore = disposer.add(UiStore(applicationUrl))
         uiStore.setCurrentTool(PwToolType.HuntOptimizer)
 
         val ctrl = disposer.add(

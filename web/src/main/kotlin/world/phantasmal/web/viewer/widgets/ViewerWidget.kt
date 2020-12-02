@@ -1,6 +1,5 @@
 package world.phantasmal.web.viewer.widgets
 
-import kotlinx.coroutines.CoroutineScope
 import org.w3c.dom.Node
 import world.phantasmal.web.viewer.controller.ViewerController
 import world.phantasmal.web.viewer.controller.ViewerTab
@@ -12,21 +11,20 @@ import world.phantasmal.webui.widgets.Widget
  * Takes ownership of the widget returned by [createToolbar].
  */
 class ViewerWidget(
-    scope: CoroutineScope,
     private val ctrl: ViewerController,
-    private val createToolbar: (CoroutineScope) -> Widget,
-    private val createMeshWidget: (CoroutineScope) -> Widget,
-    private val createTextureWidget: (CoroutineScope) -> Widget,
-) : Widget(scope) {
+    private val createToolbar: () -> Widget,
+    private val createMeshWidget: () -> Widget,
+    private val createTextureWidget: () -> Widget,
+) : Widget() {
     override fun Node.createElement() =
         div {
             className = "pw-viewer-viewer"
 
-            addChild(createToolbar(scope))
-            addChild(TabContainer(scope, ctrl = ctrl, createWidget = { scope, tab ->
+            addChild(createToolbar())
+            addChild(TabContainer(ctrl = ctrl, createWidget = { tab ->
                 when (tab) {
-                    ViewerTab.Mesh -> createMeshWidget(scope)
-                    ViewerTab.Texture -> createTextureWidget(scope)
+                    ViewerTab.Mesh -> createMeshWidget()
+                    ViewerTab.Texture -> createTextureWidget()
                 }
             }))
         }

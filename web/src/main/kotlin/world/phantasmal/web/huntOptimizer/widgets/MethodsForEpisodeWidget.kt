@@ -1,6 +1,5 @@
 package world.phantasmal.web.huntOptimizer.widgets
 
-import kotlinx.coroutines.CoroutineScope
 import org.w3c.dom.Node
 import world.phantasmal.lib.fileFormats.quest.Episode
 import world.phantasmal.web.huntOptimizer.controllers.MethodsController
@@ -8,10 +7,9 @@ import world.phantasmal.webui.dom.div
 import world.phantasmal.webui.widgets.Widget
 
 class MethodsForEpisodeWidget(
-    scope: CoroutineScope,
     private val ctrl: MethodsController,
     private val episode: Episode,
-) : Widget(scope) {
+) : Widget() {
     override fun Node.createElement() =
         div {
             className = "pw-hunt-optimizer-methods-for-episode"

@@ -1,6 +1,5 @@
 package world.phantasmal.webui.widgets
 
-import kotlinx.coroutines.CoroutineScope
 import org.w3c.dom.HTMLInputElement
 import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.nullVal
@@ -11,7 +10,6 @@ import kotlin.math.pow
 import kotlin.math.round
 
 class DoubleInput(
-    scope: CoroutineScope,
     visible: Val<Boolean> = trueVal(),
     enabled: Val<Boolean> = trueVal(),
     tooltip: Val<String?> = nullVal(),
@@ -22,7 +20,6 @@ class DoubleInput(
     onChange: (Double) -> Unit = {},
     roundTo: Int = 2,
 ) : NumberInput<Double>(
-    scope,
     visible,
     enabled,
     tooltip,

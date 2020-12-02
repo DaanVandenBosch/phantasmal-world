@@ -9,6 +9,8 @@ interface MutableListVal<E> : ListVal<E>, MutableVal<List<E>> {
 
     fun add(index: Int, element: E)
 
+    fun remove(element: E): Boolean
+
     fun removeAt(index: Int): E
 
     fun replaceAll(elements: Iterable<E>)

@@ -12,6 +12,7 @@ import world.phantasmal.web.questEditor.rendering.input.state.IdleState
 import world.phantasmal.web.questEditor.rendering.input.state.State
 import world.phantasmal.web.questEditor.rendering.input.state.StateContext
 import world.phantasmal.web.questEditor.stores.QuestEditorStore
+import world.phantasmal.web.questEditor.widgets.*
 import world.phantasmal.webui.DisposableContainer
 import world.phantasmal.webui.dom.disposableListener
 
@@ -42,11 +43,18 @@ class QuestInputManager(
 
     init {
         addDisposables(
-            disposableListener(renderContext.canvas, "pointerdown", ::onPointerDown)
+            renderContext.canvas.disposableListener("pointerdown", ::onPointerDown)
         )
 
         onPointerMoveListener =
-            disposableListener(renderContext.canvas, "pointermove", ::onPointerMove)
+            renderContext.canvas.disposableListener("pointermove", ::onPointerMove)
+
+        addDisposables(
+            renderContext.canvas.observeEntityDragEnter(::onEntityDragEnter),
+            renderContext.canvas.observeEntityDragOver(::onEntityDragOver),
+            renderContext.canvas.observeEntityDragLeave(::onEntityDragLeave),
+            renderContext.canvas.observeEntityDrop(::onEntityDrop),
+        )
 
         // Ensure OrbitalCameraControls attaches its listeners after ours.
         cameraInputManager = OrbitalCameraInputManager(
@@ -90,16 +98,16 @@ class QuestInputManager(
             PointerDownEvt(
                 e.buttons.toInt(),
                 shiftKeyDown = e.shiftKey,
-                movedSinceLastPointerDown,
                 pointerDevicePosition,
+                movedSinceLastPointerDown,
             )
         )
 
-        onPointerUpListener = disposableListener(window, "pointerup", ::onPointerUp)
+        onPointerUpListener = window.disposableListener("pointerup", ::onPointerUp)
 
         // Stop listening to canvas move events and start listening to window move events.
         onPointerMoveListener?.dispose()
-        onPointerMoveListener = disposableListener(window, "pointermove", ::onPointerMove)
+        onPointerMoveListener = window.disposableListener("pointermove", ::onPointerMove)
     }
 
     private fun onPointerUp(e: PointerEvent) {
@@ -110,8 +118,8 @@ class QuestInputManager(
                 PointerUpEvt(
                     e.buttons.toInt(),
                     shiftKeyDown = e.shiftKey,
-                    movedSinceLastPointerDown,
                     pointerDevicePosition,
+                    movedSinceLastPointerDown,
                 )
             )
         } finally {
@@ -121,7 +129,7 @@ class QuestInputManager(
             // Stop listening to window move events and start listening to canvas move events again.
             onPointerMoveListener?.dispose()
             onPointerMoveListener =
-                disposableListener(renderContext.canvas, "pointermove", ::onPointerMove)
+                renderContext.canvas.disposableListener("pointermove", ::onPointerMove)
         }
     }
 
@@ -132,19 +140,47 @@ class QuestInputManager(
             PointerMoveEvt(
                 e.buttons.toInt(),
                 shiftKeyDown = e.shiftKey,
-                movedSinceLastPointerDown,
                 pointerDevicePosition,
+                movedSinceLastPointerDown,
             )
         )
     }
 
+    private fun onEntityDragEnter(e: EntityDragEvent) {
+        processPointerEvent(type = null, e.clientX, e.clientY)
+
+        state = state.processEvent(EntityDragEnterEvt(e, pointerDevicePosition))
+    }
+
+    private fun onEntityDragOver(e: EntityDragEvent) {
+        processPointerEvent(type = null, e.clientX, e.clientY)
+
+        state = state.processEvent(EntityDragOverEvt(e, pointerDevicePosition))
+    }
+
+    private fun onEntityDragLeave(e: EntityDragEvent) {
+        processPointerEvent(type = null, e.clientX, e.clientY)
+
+        state = state.processEvent(EntityDragLeaveEvt(e, pointerDevicePosition))
+    }
+
+    private fun onEntityDrop(e: EntityDragEvent) {
+        processPointerEvent(type = null, e.clientX, e.clientY)
+
+        state = state.processEvent(EntityDropEvt(e, pointerDevicePosition))
+    }
+
     private fun processPointerEvent(e: PointerEvent) {
+        processPointerEvent(e.type, e.clientX, e.clientY)
+    }
+
+    private fun processPointerEvent(type: String?, clientX: Int, clientY: Int) {
         val rect = renderContext.canvas.getBoundingClientRect()
-        pointerPosition.set(e.clientX - rect.left, e.clientY - rect.top)
+        pointerPosition.set(clientX - rect.left, clientY - rect.top)
         pointerDevicePosition.copy(pointerPosition)
         renderContext.pointerPosToDeviceCoords(pointerDevicePosition)
 
-        when (e.type) {
+        when (type) {
             "pointerdown" -> {
                 movedSinceLastPointerDown = false
             }

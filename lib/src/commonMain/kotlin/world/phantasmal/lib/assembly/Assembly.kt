@@ -70,39 +70,38 @@ private class Assembler(private val assembly: List<String>, private val inlineSt
                 var hasLabel = false
 
                 when (token) {
-                    is LabelToken -> {
+                    is Token.Label -> {
                         parseLabel(token)
                         hasLabel = true
                     }
-                    is SectionToken,
-                    -> {
+                    is Token.Section -> {
                         parseSection(token)
                     }
-                    is IntToken -> {
+                    is Token.Int32 -> {
                         if (section == SegmentType.Data) {
                             parseBytes(token)
                         } else {
                             addUnexpectedTokenError(token)
                         }
                     }
-                    is StringToken -> {
+                    is Token.Str -> {
                         if (section == SegmentType.String) {
                             parseString(token)
                         } else {
                             addUnexpectedTokenError(token)
                         }
                     }
-                    is IdentToken -> {
+                    is Token.Ident -> {
                         if (section === SegmentType.Instructions) {
                             parseInstruction(token)
                         } else {
                             addUnexpectedTokenError(token)
                         }
                     }
-                    is InvalidSectionToken -> {
+                    is Token.InvalidSection -> {
                         addError(token, "Invalid section type.")
                     }
-                    is InvalidIdentToken -> {
+                    is Token.InvalidIdent -> {
                         addError(token, "Invalid identifier.")
                     }
                     else -> {
@@ -234,9 +233,11 @@ private class Assembler(private val assembly: List<String>, private val inlineSt
     }
 
     private fun addUnexpectedTokenError(token: Token) {
-        addError(token,
+        addError(
+            token,
             "Unexpected token.",
-            "Unexpected ${token::class.simpleName} at ${token.srcLoc()}.")
+            "Unexpected ${token::class.simpleName} at ${token.srcLoc()}.",
+        )
     }
 
     private fun addWarning(token: Token, uiMessage: String) {
@@ -246,12 +247,12 @@ private class Assembler(private val assembly: List<String>, private val inlineSt
                 uiMessage,
                 lineNo = lineNo,
                 col = token.col,
-                length = token.len
+                length = token.len,
             )
         )
     }
 
-    private fun parseLabel(token: LabelToken) {
+    private fun parseLabel(token: Token.Label) {
         val label = token.value
 
         if (!labels.add(label)) {
@@ -281,7 +282,7 @@ private class Assembler(private val assembly: List<String>, private val inlineSt
                 }
 
                 if (nextToken != null) {
-                    if (nextToken is IdentToken) {
+                    if (nextToken is Token.Ident) {
                         parseInstruction(nextToken)
                     } else {
                         addError(nextToken, "Expected opcode mnemonic.")
@@ -300,7 +301,7 @@ private class Assembler(private val assembly: List<String>, private val inlineSt
                 }
 
                 if (nextToken != null) {
-                    if (nextToken is IntToken) {
+                    if (nextToken is Token.Int32) {
                         parseBytes(nextToken)
                     } else {
                         addError(nextToken, "Expected bytes.")
@@ -319,7 +320,7 @@ private class Assembler(private val assembly: List<String>, private val inlineSt
                 }
 
                 if (nextToken != null) {
-                    if (nextToken is StringToken) {
+                    if (nextToken is Token.Str) {
                         parseString(nextToken)
                     } else {
                         addError(nextToken, "Expected a string.")
@@ -329,11 +330,11 @@ private class Assembler(private val assembly: List<String>, private val inlineSt
         }
     }
 
-    private fun parseSection(token: SectionToken) {
+    private fun parseSection(token: Token.Section) {
         val section = when (token) {
-            is CodeSectionToken -> SegmentType.Instructions
-            is DataSectionToken -> SegmentType.Data
-            is StringSectionToken -> SegmentType.String
+            is Token.Section.Code -> SegmentType.Instructions
+            is Token.Section.Data -> SegmentType.Data
+            is Token.Section.Str -> SegmentType.String
         }
 
         if (this.section == section && !firstSectionMarker) {
@@ -348,11 +349,11 @@ private class Assembler(private val assembly: List<String>, private val inlineSt
         }
     }
 
-    private fun parseInstruction(identToken: IdentToken) {
+    private fun parseInstruction(identToken: Token.Ident) {
         val opcode = mnemonicToOpcode(identToken.value)
 
         if (opcode == null) {
-            addError(identToken, "Unknown instruction.")
+            addError(identToken, "Unknown opcode.")
         } else {
             val varargs = opcode.params.any {
                 it.type is ILabelVarType || it.type is RegRefVarType
@@ -362,7 +363,7 @@ private class Assembler(private val assembly: List<String>, private val inlineSt
                 if (!inlineStackArgs && opcode.stack == StackInteraction.Pop) 0
                 else opcode.params.size
 
-            val argCount = tokens.count { it !is ArgSeparatorToken }
+            val argCount = tokens.count { it !is Token.ArgSeparator }
 
             val lastToken = tokens.lastOrNull()
             val errorLength = lastToken?.let { it.col + it.len - identToken.col } ?: 0
@@ -375,11 +376,13 @@ private class Assembler(private val assembly: List<String>, private val inlineSt
                 addError(
                     identToken.col,
                     errorLength,
-                    "Expected $paramCount argument ${if (paramCount == 1) "" else "s"}, got $argCount."
+                    "Expected $paramCount argument ${if (paramCount == 1) "" else "s"}, got $argCount.",
                 )
 
                 return
             } else if (varargs && argCount < paramCount) {
+                // TODO: This check assumes we want at least 1 argument for a vararg parameter.
+                //       Is this correct?
                 addError(
                     identToken.col,
                     errorLength,
@@ -388,12 +391,13 @@ private class Assembler(private val assembly: List<String>, private val inlineSt
 
                 return
             } else if (opcode.stack !== StackInteraction.Pop) {
-                // Inline arguments.
+                // Arguments should be inlined right after the opcode.
                 if (!parseArgs(opcode.params, insArgAndTokens, stack = false)) {
                     return
                 }
             } else {
-                if (!this.parseArgs(opcode.params, stackArgAndTokens, stack = true)) {
+                // Arguments should be passed to the opcode via the stack.
+                if (!parseArgs(opcode.params, stackArgAndTokens, stack = true)) {
                     return
                 }
 
@@ -402,7 +406,7 @@ private class Assembler(private val assembly: List<String>, private val inlineSt
                     val argAndToken = stackArgAndTokens.getOrNull(i) ?: continue
                     val (arg, argToken) = argAndToken
 
-                    if (argToken is RegisterToken) {
+                    if (argToken is Token.Register) {
                         if (param.type is RegTupRefType) {
                             addInstruction(
                                 OP_ARG_PUSHB,
@@ -527,7 +531,7 @@ private class Assembler(private val assembly: List<String>, private val inlineSt
             val token = tokens[i]
             val param = params[paramI]
 
-            if (token is ArgSeparatorToken) {
+            if (token is Token.ArgSeparator) {
                 if (shouldBeArg) {
                     addError(token, "Expected an argument.")
                 } else if (
@@ -551,7 +555,7 @@ private class Assembler(private val assembly: List<String>, private val inlineSt
                 var match: Boolean
 
                 when (token) {
-                    is IntToken -> {
+                    is Token.Int32 -> {
                         when (param.type) {
                             is ByteType -> {
                                 match = true
@@ -581,7 +585,7 @@ private class Assembler(private val assembly: List<String>, private val inlineSt
                         }
                     }
 
-                    is FloatToken -> {
+                    is Token.Float32 -> {
                         match = param.type == FloatType
 
                         if (match) {
@@ -589,7 +593,7 @@ private class Assembler(private val assembly: List<String>, private val inlineSt
                         }
                     }
 
-                    is RegisterToken -> {
+                    is Token.Register -> {
                         match = stack ||
                                 param.type is RegRefType ||
                                 param.type is RegRefVarType ||
@@ -598,7 +602,7 @@ private class Assembler(private val assembly: List<String>, private val inlineSt
                         parseRegister(token, argAndTokens)
                     }
 
-                    is StringToken -> {
+                    is Token.Str -> {
                         match = param.type is StringType
 
                         if (match) {
@@ -649,7 +653,11 @@ private class Assembler(private val assembly: List<String>, private val inlineSt
         return semiValid
     }
 
-    private fun parseInt(size: Int, token: IntToken, argAndTokens: MutableList<Pair<Arg, Token>>) {
+    private fun parseInt(
+        size: Int,
+        token: Token.Int32,
+        argAndTokens: MutableList<Pair<Arg, Token>>,
+    ) {
         val value = token.value
         val bitSize = 8 * size
         // Minimum of the signed version of this integer type.
@@ -670,7 +678,7 @@ private class Assembler(private val assembly: List<String>, private val inlineSt
         }
     }
 
-    private fun parseRegister(token: RegisterToken, argAndTokens: MutableList<Pair<Arg, Token>>) {
+    private fun parseRegister(token: Token.Register, argAndTokens: MutableList<Pair<Arg, Token>>) {
         val value = token.value
 
         if (value > 255) {
@@ -680,12 +688,12 @@ private class Assembler(private val assembly: List<String>, private val inlineSt
         }
     }
 
-    private fun parseBytes(firstToken: IntToken) {
+    private fun parseBytes(firstToken: Token.Int32) {
         val bytes = mutableListOf<Byte>()
         var token: Token = firstToken
         var i = 0
 
-        while (token is IntToken) {
+        while (token is Token.Int32) {
             if (token.value < 0) {
                 addError(token, "Unsigned 8-bit integer can't be less than 0.")
             } else if (token.value > 255) {
@@ -708,7 +716,7 @@ private class Assembler(private val assembly: List<String>, private val inlineSt
         addBytes(bytes.toByteArray())
     }
 
-    private fun parseString(token: StringToken) {
+    private fun parseString(token: Token.Str) {
         tokens.removeFirstOrNull()?.let { nextToken ->
             addUnexpectedTokenError(nextToken)
         }

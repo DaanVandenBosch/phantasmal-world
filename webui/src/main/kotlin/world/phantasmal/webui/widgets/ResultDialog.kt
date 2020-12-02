@@ -1,6 +1,5 @@
 package world.phantasmal.webui.widgets
 
-import kotlinx.coroutines.CoroutineScope
 import org.w3c.dom.Node
 import world.phantasmal.core.Failure
 import world.phantasmal.core.PwResult
@@ -16,14 +15,12 @@ import world.phantasmal.webui.dom.ul
  * button in the footer which triggers [onDismiss].
  */
 class ResultDialog(
-    scope: CoroutineScope,
     visible: Val<Boolean> = trueVal(),
     enabled: Val<Boolean> = trueVal(),
     result: Val<PwResult<*>?>,
     message: Val<String>,
     onDismiss: () -> Unit = {},
 ) : Dialog(
-    scope,
     visible,
     enabled,
     title = result.map(::resultToTitle),
@@ -33,7 +30,6 @@ class ResultDialog(
 ) {
     override fun addFooterContent(footer: Node) {
         footer.addChild(Button(
-            scope,
             visible,
             enabled,
             text = "Dismiss",

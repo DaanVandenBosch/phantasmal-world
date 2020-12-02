@@ -5,8 +5,6 @@ import io.ktor.client.features.json.*
 import io.ktor.client.features.json.serializer.*
 import kotlinx.browser.document
 import kotlinx.browser.window
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.datetime.Clock
 import mu.KotlinLoggingConfiguration
@@ -58,12 +56,8 @@ private fun init(): Disposable {
     }
     disposer.add(disposable { httpClient.cancel() })
 
-    val scope = CoroutineScope(SupervisorJob())
-    disposer.add(disposable { scope.cancel() })
-
     disposer.add(
         Application(
-            scope,
             rootElement,
             AssetLoader(httpClient),
             disposer.add(HistoryApplicationUrl()),
@@ -98,7 +92,7 @@ private class HistoryApplicationUrl : TrackedDisposable(), ApplicationUrl {
 
     override val url = mutableVal(window.location.hash.substring(1))
 
-    private val popStateListener = disposableListener<PopStateEvent>(window, "popstate", {
+    private val popStateListener = window.disposableListener<PopStateEvent>("popstate", {
         url.value = window.location.hash.substring(1)
     })
 

@@ -1,6 +1,5 @@
 package world.phantasmal.webui.widgets
 
-import kotlinx.coroutines.CoroutineScope
 import world.phantasmal.observable.value.Val
 
 enum class LabelPosition {
@@ -9,14 +8,13 @@ enum class LabelPosition {
 }
 
 abstract class LabelledControl(
-    scope: CoroutineScope,
     visible: Val<Boolean>,
     enabled: Val<Boolean>,
     tooltip: Val<String?>,
     label: String?,
     labelVal: Val<String>?,
     val preferredLabelPosition: LabelPosition,
-) : Control(scope, visible, enabled, tooltip) {
+) : Control(visible, enabled, tooltip) {
     val label: Label? by lazy {
         if (label == null && labelVal == null) {
             null
@@ -28,7 +26,7 @@ abstract class LabelledControl(
                 element.id = id
             }
 
-            Label(scope, visible, enabled, label, labelVal, htmlFor = id)
+            Label( visible, enabled, label, labelVal, htmlFor = id)
         }
     }
 

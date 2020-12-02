@@ -1,6 +1,5 @@
 package world.phantasmal.web.application.widgets
 
-import kotlinx.coroutines.CoroutineScope
 import org.w3c.dom.Node
 import world.phantasmal.observable.Observable
 import world.phantasmal.web.core.PwToolType
@@ -10,11 +9,10 @@ import world.phantasmal.webui.dom.span
 import world.phantasmal.webui.widgets.Control
 
 class PwToolButton(
-    scope: CoroutineScope,
     private val tool: PwToolType,
     private val toggled: Observable<Boolean>,
     private val mouseDown: () -> Unit,
-) : Control(scope) {
+) : Control() {
     private val inputId = "pw-application-pw-tool-button-${tool.name.toLowerCase()}"
 
     override fun Node.createElement() =

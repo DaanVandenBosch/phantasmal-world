@@ -5,10 +5,7 @@ import world.phantasmal.web.externals.three.Vector2
 import world.phantasmal.web.externals.three.Vector3
 import world.phantasmal.web.questEditor.models.QuestEntityModel
 import world.phantasmal.web.questEditor.rendering.EntityInstancedMesh
-import world.phantasmal.web.questEditor.rendering.input.Evt
-import world.phantasmal.web.questEditor.rendering.input.PointerDownEvt
-import world.phantasmal.web.questEditor.rendering.input.PointerMoveEvt
-import world.phantasmal.web.questEditor.rendering.input.PointerUpEvt
+import world.phantasmal.web.questEditor.rendering.input.*
 
 class IdleState(
     private val ctx: StateContext,
@@ -87,6 +84,17 @@ class IdleState(
                     shouldCheckHighlight = true
                 }
             }
+
+            is EntityDragEnterEvt -> {
+                val quest = ctx.quest.value
+                val area = ctx.area.value
+
+                if (quest != null && area != null) {
+                    return CreationState(ctx, event, quest, area)
+                }
+            }
+
+            else -> return this
         }
 
         return this

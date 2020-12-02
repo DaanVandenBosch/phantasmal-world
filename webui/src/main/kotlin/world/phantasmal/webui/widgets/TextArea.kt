@@ -1,13 +1,11 @@
 package world.phantasmal.webui.widgets
 
-import kotlinx.coroutines.CoroutineScope
 import org.w3c.dom.Node
 import world.phantasmal.observable.value.*
 import world.phantasmal.webui.dom.div
 import world.phantasmal.webui.dom.textarea
 
 class TextArea(
-    scope: CoroutineScope,
     visible: Val<Boolean> = trueVal(),
     enabled: Val<Boolean> = trueVal(),
     tooltip: Val<String?> = nullVal(),
@@ -21,7 +19,6 @@ class TextArea(
     private val rows: Int? = null,
     private val cols: Int? = null,
 ) : LabelledControl(
-    scope,
     visible,
     enabled,
     tooltip,

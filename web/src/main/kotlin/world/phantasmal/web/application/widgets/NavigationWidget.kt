@@ -1,6 +1,5 @@
 package world.phantasmal.web.application.widgets
 
-import kotlinx.coroutines.CoroutineScope
 import org.w3c.dom.Node
 import world.phantasmal.observable.value.falseVal
 import world.phantasmal.observable.value.value
@@ -13,16 +12,13 @@ import world.phantasmal.webui.dom.span
 import world.phantasmal.webui.widgets.Select
 import world.phantasmal.webui.widgets.Widget
 
-class NavigationWidget(
-    scope: CoroutineScope,
-    private val ctrl: NavigationController,
-) : Widget(scope) {
+class NavigationWidget(private val ctrl: NavigationController) : Widget() {
     override fun Node.createElement() =
         div {
             className = "pw-application-navigation"
 
             ctrl.tools.forEach { (tool, active) ->
-                addChild(PwToolButton(scope, tool, active) { ctrl.setCurrentTool(tool) })
+                addChild(PwToolButton(tool, active) { ctrl.setCurrentTool(tool) })
             }
 
             div {
@@ -32,7 +28,6 @@ class NavigationWidget(
                 className = "pw-application-navigation-right"
 
                 val serverSelect = Select(
-                    scope,
                     enabled = falseVal(),
                     label = "Server:",
                     items = listOf("Ephinea"),

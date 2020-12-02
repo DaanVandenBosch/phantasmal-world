@@ -10,9 +10,9 @@ class HuntOptimizerTests : WebTestSuite() {
     @Test
     fun initialization_and_shutdown_should_succeed_without_throwing() = test {
         val uiStore =
-            disposer.add(UiStore(scope, TestApplicationUrl("/${PwToolType.HuntOptimizer}")))
+            disposer.add(UiStore(TestApplicationUrl("/${PwToolType.HuntOptimizer}")))
 
         val huntOptimizer = disposer.add(HuntOptimizer(components.assetLoader, uiStore))
-        disposer.add(huntOptimizer.initialize(scope))
+        disposer.add(huntOptimizer.initialize())
     }
 }

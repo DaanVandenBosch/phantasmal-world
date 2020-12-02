@@ -13,6 +13,7 @@ class OrbitalCameraInputManager(
     private val camera: Camera,
     position: Vector3,
     screenSpacePanning: Boolean,
+    enableRotate: Boolean = true,
 ) : TrackedDisposable(), InputManager {
     private val controls = OrbitControls(camera, canvas)
 
@@ -31,6 +32,7 @@ class OrbitalCameraInputManager(
 
         camera.position.copy(position)
         controls.screenSpacePanning = screenSpacePanning
+        controls.enableRotate = enableRotate
         controls.update()
         controls.saveState()
     }

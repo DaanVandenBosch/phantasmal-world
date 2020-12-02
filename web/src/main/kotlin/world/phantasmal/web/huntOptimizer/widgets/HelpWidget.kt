@@ -1,12 +1,11 @@
 package world.phantasmal.web.huntOptimizer.widgets
 
-import kotlinx.coroutines.CoroutineScope
 import org.w3c.dom.Node
 import world.phantasmal.webui.dom.div
 import world.phantasmal.webui.dom.p
 import world.phantasmal.webui.widgets.Widget
 
-class HelpWidget(scope: CoroutineScope) : Widget(scope) {
+class HelpWidget() : Widget() {
     override fun Node.createElement() =
         div {
             className = "pw-hunt-optimizer-help"

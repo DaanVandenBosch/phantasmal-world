@@ -285,7 +285,7 @@ private fun parseFiles(
         }
     }
 
-    while (cursor.hasBytesLeft(chunkSize)) {
+    while (cursor.bytesLeft >= chunkSize) {
         val startPosition = cursor.position
 
         // Read chunk header.

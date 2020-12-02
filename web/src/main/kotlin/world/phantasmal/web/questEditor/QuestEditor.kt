@@ -1,6 +1,5 @@
 package world.phantasmal.web.questEditor
 
-import kotlinx.coroutines.CoroutineScope
 import org.w3c.dom.HTMLCanvasElement
 import world.phantasmal.web.core.PwTool
 import world.phantasmal.web.core.PwToolType
@@ -12,6 +11,7 @@ import world.phantasmal.web.questEditor.loading.AreaAssetLoader
 import world.phantasmal.web.questEditor.loading.EntityAssetLoader
 import world.phantasmal.web.questEditor.loading.QuestLoader
 import world.phantasmal.web.questEditor.persistence.QuestEditorUiPersister
+import world.phantasmal.web.questEditor.rendering.EntityImageRenderer
 import world.phantasmal.web.questEditor.rendering.QuestRenderer
 import world.phantasmal.web.questEditor.stores.AreaStore
 import world.phantasmal.web.questEditor.stores.AssemblyEditorStore
@@ -27,19 +27,19 @@ class QuestEditor(
 ) : DisposableContainer(), PwTool {
     override val toolType = PwToolType.QuestEditor
 
-    override fun initialize(scope: CoroutineScope): Widget {
+    override fun initialize(): Widget {
         // Asset Loaders
-        val questLoader = addDisposable(QuestLoader(scope, assetLoader))
-        val areaAssetLoader = addDisposable(AreaAssetLoader(scope, assetLoader))
-        val entityAssetLoader = addDisposable(EntityAssetLoader(scope, assetLoader))
+        val questLoader = addDisposable(QuestLoader(assetLoader))
+        val areaAssetLoader = addDisposable(AreaAssetLoader(assetLoader))
+        val entityAssetLoader = addDisposable(EntityAssetLoader(assetLoader))
 
         // Persistence
         val questEditorUiPersister = QuestEditorUiPersister()
 
         // Stores
-        val areaStore = addDisposable(AreaStore(scope, areaAssetLoader))
-        val questEditorStore = addDisposable(QuestEditorStore(scope, uiStore, areaStore))
-        val assemblyEditorStore = addDisposable(AssemblyEditorStore(scope, questEditorStore))
+        val areaStore = addDisposable(AreaStore(areaAssetLoader))
+        val questEditorStore = addDisposable(QuestEditorStore(uiStore, areaStore))
+        val assemblyEditorStore = addDisposable(AssemblyEditorStore(questEditorStore))
 
         // Controllers
         val questEditorController = addDisposable(QuestEditorController(questEditorUiPersister))
@@ -58,25 +58,24 @@ class QuestEditor(
 
         // Rendering
         val renderer = addDisposable(QuestRenderer(
-            scope,
             areaAssetLoader,
             entityAssetLoader,
             questEditorStore,
             createThreeRenderer,
         ))
+        val entityImageRenderer = EntityImageRenderer(entityAssetLoader, createThreeRenderer)
 
         // Main Widget
         return QuestEditorWidget(
-            scope,
             questEditorController,
-            { s -> QuestEditorToolbarWidget(s, toolbarController) },
-            { s -> QuestInfoWidget(s, questInfoController) },
-            { s -> NpcCountsWidget(s, npcCountsController) },
-            { s -> EntityInfoWidget(s, entityInfoController) },
-            { s -> QuestEditorRendererWidget(s, renderer) },
-            { s -> AssemblyEditorWidget(s, assemblyEditorController) },
-            { s -> EntityListWidget(s, npcListController) },
-            { s -> EntityListWidget(s, objectListController) },
+            { QuestEditorToolbarWidget(toolbarController) },
+            { QuestInfoWidget(questInfoController) },
+            { NpcCountsWidget(npcCountsController) },
+            { EntityInfoWidget(entityInfoController) },
+            { QuestEditorRendererWidget(renderer) },
+            { AssemblyEditorWidget(assemblyEditorController) },
+            { EntityListWidget(npcListController, entityImageRenderer) },
+            { EntityListWidget(objectListController, entityImageRenderer) },
         )
     }
 }

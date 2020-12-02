@@ -1,7 +1,6 @@
 package world.phantasmal.webui.widgets
 
 import kotlinx.browser.document
-import kotlinx.coroutines.CoroutineScope
 import org.w3c.dom.*
 import org.w3c.dom.events.Event
 import org.w3c.dom.events.KeyboardEvent
@@ -16,7 +15,6 @@ import world.phantasmal.webui.dom.div
 import world.phantasmal.webui.obj
 
 class Menu<T : Any>(
-    scope: CoroutineScope,
     visible: Val<Boolean> = trueVal(),
     enabled: Val<Boolean> = trueVal(),
     tooltip: Val<String?> = nullVal(),
@@ -26,7 +24,6 @@ class Menu<T : Any>(
     private val onSelect: (T) -> Unit = {},
     private val onCancel: () -> Unit = {},
 ) : Widget(
-    scope,
     visible,
     enabled,
     tooltip,
@@ -61,7 +58,7 @@ class Menu<T : Any>(
             observe(this@Menu.visible) {
                 if (it) {
                     onDocumentMouseDownListener =
-                        disposableListener(document, "mousedown", ::onDocumentMouseDown)
+                        document.disposableListener("mousedown", ::onDocumentMouseDown)
                 } else {
                     onDocumentMouseDownListener?.dispose()
                     onDocumentMouseDownListener = null
@@ -77,7 +74,7 @@ class Menu<T : Any>(
                 }
             }
 
-            disposableListener(document, "keydown", ::onDocumentKeyDown)
+            document.disposableListener("keydown", ::onDocumentKeyDown)
         }
 
     override fun internalDispose() {

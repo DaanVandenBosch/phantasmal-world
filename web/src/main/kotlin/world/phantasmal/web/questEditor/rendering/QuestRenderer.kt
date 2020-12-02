@@ -11,7 +11,6 @@ import world.phantasmal.web.questEditor.rendering.input.QuestInputManager
 import world.phantasmal.web.questEditor.stores.QuestEditorStore
 
 class QuestRenderer(
-    scope: CoroutineScope,
     areaAssetLoader: AreaAssetLoader,
     entityAssetLoader: EntityAssetLoader,
     questEditorStore: QuestEditorStore,
@@ -34,7 +33,6 @@ class QuestRenderer(
     init {
         addDisposables(
             QuestEditorMeshManager(
-                scope,
                 areaAssetLoader,
                 entityAssetLoader,
                 questEditorStore,

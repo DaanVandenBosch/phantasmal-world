@@ -18,6 +18,7 @@ external class Vector2(x: Double = definedExternally, y: Double = definedExterna
      * Sets value of this vector.
      */
     fun set(x: Double, y: Double): Vector2
+    fun clone(): Vector2
 
     /**
      * Copies value of v to this vector.
@@ -28,6 +29,8 @@ external class Vector2(x: Double = definedExternally, y: Double = definedExterna
      * Checks for strict equality of this vector and v.
      */
     fun equals(v: Vector2): Boolean
+
+    fun distanceTo(v: Vector2): Double
 }
 
 external class Vector3(
@@ -172,6 +175,16 @@ external class Plane(normal: Vector3 = definedExternally, constant: Double = def
     fun projectPoint(point: Vector3, target: Vector3): Vector3
 }
 
+external class Box3(min: Vector3 = definedExternally, max: Vector3 = definedExternally) {
+    var min: Vector3
+    var max: Vector3
+}
+
+external class Sphere(center: Vector3 = definedExternally, radius: Double = definedExternally) {
+    var center: Vector3
+    var radius: Double
+}
+
 open external class EventDispatcher
 
 external interface Renderer {
@@ -192,14 +205,22 @@ external interface WebGLRendererParameters {
     var antialias: Boolean
 }
 
-external class WebGLRenderer(parameters: WebGLRendererParameters = definedExternally) : Renderer {
+open external class WebGLRenderer(
+    parameters: WebGLRendererParameters = definedExternally,
+) : Renderer {
     override val domElement: HTMLCanvasElement
+
+    var autoClearColor: Boolean
 
     override fun render(scene: Object3D, camera: Camera)
 
     override fun setSize(width: Double, height: Double)
 
     fun setPixelRatio(value: Double)
+
+    fun setClearColor(color: Color, alpha: Double = definedExternally)
+
+    fun clearColor()
 
     fun dispose()
 }
@@ -251,6 +272,9 @@ open external class Object3D {
     fun add(vararg `object`: Object3D): Object3D
     fun remove(vararg `object`: Object3D): Object3D
     fun clear(): Object3D
+
+    fun lookAt(vector: Vector3)
+    fun lookAt(x: Double, y: Double, z: Double)
 
     /**
      * Updates local transform.
@@ -479,6 +503,7 @@ external class PlaneGeometry(
 
 open external class BufferGeometry : EventDispatcher {
     var boundingBox: Box3?
+    var boundingSphere: Sphere?
 
     fun setIndex(index: BufferAttribute?)
     fun setIndex(index: Array<Double>?)
@@ -655,11 +680,6 @@ external class CompressedTexture(
     anisotropy: Double = definedExternally,
     encoding: TextureEncoding = definedExternally,
 ) : Texture
-
-external class Box3(min: Vector3 = definedExternally, max: Vector3 = definedExternally) {
-    var min: Vector3
-    var max: Vector3
-}
 
 external enum class MOUSE {
     LEFT,

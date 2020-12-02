@@ -1,6 +1,5 @@
 package world.phantasmal.web.questEditor.widgets
 
-import kotlinx.coroutines.CoroutineScope
 import org.w3c.dom.Node
 import world.phantasmal.web.core.widgets.UnavailableWidget
 import world.phantasmal.web.questEditor.controllers.EntityInfoController
@@ -8,10 +7,7 @@ import world.phantasmal.webui.dom.*
 import world.phantasmal.webui.widgets.DoubleInput
 import world.phantasmal.webui.widgets.Widget
 
-class EntityInfoWidget(
-    scope: CoroutineScope,
-    private val ctrl: EntityInfoController,
-) : Widget(scope, enabled = ctrl.enabled) {
+class EntityInfoWidget(private val ctrl: EntityInfoController) : Widget(enabled = ctrl.enabled) {
     override fun Node.createElement() =
         div {
             className = "pw-quest-editor-entity-info"
@@ -45,7 +41,6 @@ class EntityInfoWidget(
                     th { className = COORD_CLASS; textContent = "X:" }
                     td {
                         addChild(DoubleInput(
-                            this@EntityInfoWidget.scope,
                             enabled = ctrl.enabled,
                             value = ctrl.posX,
                             onChange = ctrl::setPosX,
@@ -57,7 +52,6 @@ class EntityInfoWidget(
                     th { className = COORD_CLASS; textContent = "Y:" }
                     td {
                         addChild(DoubleInput(
-                            this@EntityInfoWidget.scope,
                             enabled = ctrl.enabled,
                             value = ctrl.posY,
                             onChange = ctrl::setPosY,
@@ -69,7 +63,6 @@ class EntityInfoWidget(
                     th { className = COORD_CLASS; textContent = "Z:" }
                     td {
                         addChild(DoubleInput(
-                            this@EntityInfoWidget.scope,
                             enabled = ctrl.enabled,
                             value = ctrl.posZ,
                             onChange = ctrl::setPosZ,
@@ -84,7 +77,6 @@ class EntityInfoWidget(
                     th { className = COORD_CLASS; textContent = "X:" }
                     td {
                         addChild(DoubleInput(
-                            this@EntityInfoWidget.scope,
                             enabled = ctrl.enabled,
                             value = ctrl.rotX,
                             onChange = ctrl::setRotX,
@@ -96,7 +88,6 @@ class EntityInfoWidget(
                     th { className = COORD_CLASS; textContent = "Y:" }
                     td {
                         addChild(DoubleInput(
-                            this@EntityInfoWidget.scope,
                             enabled = ctrl.enabled,
                             value = ctrl.rotY,
                             onChange = ctrl::setRotY,
@@ -108,7 +99,6 @@ class EntityInfoWidget(
                     th { className = COORD_CLASS; textContent = "Z:" }
                     td {
                         addChild(DoubleInput(
-                            this@EntityInfoWidget.scope,
                             enabled = ctrl.enabled,
                             value = ctrl.rotZ,
                             onChange = ctrl::setRotZ,
@@ -118,7 +108,6 @@ class EntityInfoWidget(
                 }
             }
             addChild(UnavailableWidget(
-                scope,
                 visible = ctrl.unavailable,
                 message = "No entity selected.",
             ))

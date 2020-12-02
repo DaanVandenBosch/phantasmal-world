@@ -1,6 +1,5 @@
 package world.phantasmal.web.viewer
 
-import kotlinx.coroutines.CoroutineScope
 import org.w3c.dom.HTMLCanvasElement
 import world.phantasmal.web.core.PwTool
 import world.phantasmal.web.core.PwToolType
@@ -21,9 +20,9 @@ class Viewer(
 ) : DisposableContainer(), PwTool {
     override val toolType = PwToolType.Viewer
 
-    override fun initialize(scope: CoroutineScope): Widget {
+    override fun initialize(): Widget {
         // Stores
-        val viewerStore = addDisposable(ViewerStore(scope))
+        val viewerStore = addDisposable(ViewerStore())
 
         // Controllers
         val viewerController = addDisposable(ViewerController())
@@ -39,11 +38,10 @@ class Viewer(
 
         // Main Widget
         return ViewerWidget(
-            scope,
             viewerController,
-            { s -> ViewerToolbar(s, viewerToolbarController) },
-            { s -> RendererWidget(s, meshRenderer) },
-            { s -> RendererWidget(s, textureRenderer) },
+            { ViewerToolbar(viewerToolbarController) },
+            { RendererWidget(meshRenderer) },
+            { RendererWidget(textureRenderer) },
         )
     }
 }

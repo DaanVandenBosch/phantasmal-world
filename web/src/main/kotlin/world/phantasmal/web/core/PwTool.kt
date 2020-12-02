@@ -1,6 +1,5 @@
 package world.phantasmal.web.core
 
-import kotlinx.coroutines.CoroutineScope
 import world.phantasmal.webui.widgets.Widget
 
 /**
@@ -14,5 +13,5 @@ interface PwTool {
     /**
      * The caller of this method takes ownership of the returned widget.
      */
-    fun initialize(scope: CoroutineScope): Widget
+    fun initialize(): Widget
 }

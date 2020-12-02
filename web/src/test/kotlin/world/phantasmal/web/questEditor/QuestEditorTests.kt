@@ -9,6 +9,6 @@ class QuestEditorTests : WebTestSuite() {
         val questEditor = disposer.add(
             QuestEditor(components.assetLoader, components.uiStore, components.createThreeRenderer)
         )
-        disposer.add(questEditor.initialize(scope))
+        disposer.add(questEditor.initialize())
     }
 }

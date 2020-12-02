@@ -1,14 +1,14 @@
 package world.phantasmal.web.questEditor.rendering.input.state
 
+import world.phantasmal.observable.value.Val
 import world.phantasmal.web.core.minusAssign
 import world.phantasmal.web.core.plusAssign
 import world.phantasmal.web.core.rendering.OrbitalCameraInputManager
-import world.phantasmal.web.core.toQuaternion
 import world.phantasmal.web.externals.three.*
+import world.phantasmal.web.questEditor.actions.CreateEntityAction
 import world.phantasmal.web.questEditor.actions.RotateEntityAction
 import world.phantasmal.web.questEditor.actions.TranslateEntityAction
-import world.phantasmal.web.questEditor.models.QuestEntityModel
-import world.phantasmal.web.questEditor.models.SectionModel
+import world.phantasmal.web.questEditor.models.*
 import world.phantasmal.web.questEditor.rendering.QuestRenderContext
 import world.phantasmal.web.questEditor.stores.QuestEditorStore
 import kotlin.math.PI
@@ -19,6 +19,10 @@ class StateContext(
     val renderContext: QuestRenderContext,
     val cameraInputManager: OrbitalCameraInputManager,
 ) {
+    val quest: Val<QuestModel?> = questEditorStore.currentQuest
+    val area: Val<AreaModel?> = questEditorStore.currentArea
+    val wave: Val<WaveModel?> = questEditorStore.selectedWave
+
     fun setHighlightedEntity(entity: QuestEntityModel<*, *>?) {
         questEditorStore.setHighlightedEntity(entity)
     }
@@ -28,27 +32,10 @@ class StateContext(
     }
 
     /**
-     * @param pointerPosition pointer position in normalized device space
-     */
-    fun translateEntity(
-        entity: QuestEntityModel<*, *>,
-        dragAdjust: Vector3,
-        grabOffset: Vector3,
-        pointerPosition: Vector2,
-        vertically: Boolean,
-    ) {
-        if (vertically) {
-            translateEntityVertically(entity, dragAdjust, grabOffset, pointerPosition)
-        } else {
-            translateEntityHorizontally(entity, dragAdjust, grabOffset, pointerPosition)
-        }
-    }
-
-    /**
      * If the drag-adjusted pointer is over the ground, translate an entity horizontally across the
      * ground. Otherwise translate the entity over the horizontal plane that intersects its origin.
      */
-    private fun translateEntityHorizontally(
+    fun translateEntityHorizontally(
         entity: QuestEntityModel<*, *>,
         dragAdjust: Vector3,
         grabOffset: Vector3,
@@ -80,7 +67,7 @@ class StateContext(
         }
     }
 
-    private fun translateEntityVertically(
+    fun translateEntityVertically(
         entity: QuestEntityModel<*, *>,
         dragAdjust: Vector3,
         grabOffset: Vector3,
@@ -182,6 +169,14 @@ class StateContext(
             newRotation,
             oldRotation,
             world = true,
+        ))
+    }
+
+    fun finalizeEntityCreation(quest: QuestModel, entity: QuestEntityModel<*, *>) {
+        questEditorStore.pushAction(CreateEntityAction(
+            ::setSelectedEntity,
+            quest,
+            entity,
         ))
     }
 

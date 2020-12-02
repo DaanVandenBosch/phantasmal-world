@@ -57,13 +57,22 @@ class TranslationState(
 
     override fun beforeRender() {
         if (shouldTranslate) {
-            ctx.translateEntity(
-                entity,
-                dragAdjust,
-                grabOffset,
-                pointerDevicePosition,
-                shouldTranslateVertically,
-            )
+            if (shouldTranslateVertically) {
+                ctx.translateEntityVertically(
+                    entity,
+                    dragAdjust,
+                    grabOffset,
+                    pointerDevicePosition,
+                )
+            } else {
+                ctx.translateEntityHorizontally(
+                    entity,
+                    dragAdjust,
+                    grabOffset,
+                    pointerDevicePosition,
+                )
+            }
+
             shouldTranslate = false
         }
     }

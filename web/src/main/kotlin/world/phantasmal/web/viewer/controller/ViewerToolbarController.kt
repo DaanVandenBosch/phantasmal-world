@@ -7,10 +7,11 @@ import world.phantasmal.core.PwResult
 import world.phantasmal.core.Severity
 import world.phantasmal.core.Success
 import world.phantasmal.lib.Endianness
+import world.phantasmal.lib.compression.prs.prsDecompress
+import world.phantasmal.lib.cursor.Cursor
 import world.phantasmal.lib.cursor.cursor
-import world.phantasmal.lib.fileFormats.ninja.parseNj
-import world.phantasmal.lib.fileFormats.ninja.parseXj
-import world.phantasmal.lib.fileFormats.ninja.parseXvm
+import world.phantasmal.lib.fileFormats.ninja.*
+import world.phantasmal.lib.fileFormats.parseAfs
 import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.mutableVal
 import world.phantasmal.web.viewer.store.ViewerStore
@@ -38,56 +39,71 @@ class ViewerToolbarController(private val store: ViewerStore) : Controller() {
         var success = false
 
         try {
-            var modelFound = false
-            var textureFound = false
+            val kindsFound = mutableSetOf<FileKind>()
 
             for (file in files) {
-                when (file.extension()?.toLowerCase()) {
-                    "nj" -> {
-                        if (modelFound) continue
+                val extension = file.extension()?.toLowerCase()
 
-                        modelFound = true
-                        val njResult = parseNj(readFile(file).cursor(Endianness.Little))
-                        result.addResult(njResult)
+                val kind = when (extension) {
+                    "nj", "xj" -> FileKind.Model
+                    "afs", "xvm" -> FileKind.Texture
+                    else -> {
+                        result.addProblem(
+                            Severity.Error,
+                            """File "${file.name}" has an unsupported file type.""",
+                        )
+                        continue
+                    }
+                }
+
+                if (kind in kindsFound) continue
+
+                val cursor = readFile(file).cursor(Endianness.Little)
+                var fileResult: PwResult<*>? = null
+
+                when (extension) {
+                    "nj" -> {
+                        val njResult = parseNj(cursor)
+                        fileResult = njResult
 
                         if (njResult is Success) {
                             store.setCurrentNinjaObject(njResult.value.firstOrNull())
-                            success = true
                         }
                     }
 
                     "xj" -> {
-                        if (modelFound) continue
-
-                        modelFound = true
-                        val xjResult = parseXj(readFile(file).cursor(Endianness.Little))
-                        result.addResult(xjResult)
+                        val xjResult = parseXj(cursor)
+                        fileResult = xjResult
 
                         if (xjResult is Success) {
                             store.setCurrentNinjaObject(xjResult.value.firstOrNull())
-                            success = true
+                        }
+                    }
+
+                    "afs" -> {
+                        val afsResult = parseAfsTextures(cursor)
+                        fileResult = afsResult
+
+                        if (afsResult is Success) {
+                            store.setCurrentTextures(afsResult.value)
                         }
                     }
 
                     "xvm" -> {
-                        if (textureFound) continue
-
-                        textureFound = true
-                        val xvmResult = parseXvm(readFile(file).cursor(Endianness.Little))
-                        result.addResult(xvmResult)
+                        val xvmResult = parseXvm(cursor)
+                        fileResult = xvmResult
 
                         if (xvmResult is Success) {
                             store.setCurrentTextures(xvmResult.value.textures)
-                            success = true
                         }
                     }
+                }
 
-                    else -> {
-                        result.addProblem(
-                            Severity.Error,
-                            """File "${file.name}" has an unsupported file type."""
-                        )
-                    }
+                fileResult?.let(result::addResult)
+
+                if (fileResult is Success<*>) {
+                    success = true
+                    kindsFound.add(kind)
                 }
             }
         } catch (e: Exception) {
@@ -104,5 +120,48 @@ class ViewerToolbarController(private val store: ViewerStore) : Controller() {
     private fun setResult(result: PwResult<*>?) {
         _result.value = result
         _resultDialogVisible.value = result != null && result.problems.isNotEmpty()
+    }
+
+    private fun parseAfsTextures(cursor: Cursor): PwResult<List<XvrTexture>> {
+        val result = PwResult.build<List<XvrTexture>>(logger)
+        val afsResult = parseAfs(cursor)
+        result.addResult(afsResult)
+
+        if (afsResult !is Success) {
+            return result.failure()
+        }
+
+        if (afsResult.value.isEmpty()) {
+            result.addProblem(Severity.Info, "AFS archive is empty.")
+        }
+
+        val textures: List<XvrTexture> = afsResult.value.flatMap { file ->
+            val fileCursor = file.cursor()
+
+            val decompressedCursor: Cursor =
+                if (isXvm(fileCursor)) {
+                    fileCursor
+                } else {
+                    val decompressionResult = prsDecompress(fileCursor)
+                    result.addResult(decompressionResult)
+
+                    if (decompressionResult !is Success) {
+                        return@flatMap emptyList()
+                    }
+
+                    decompressionResult.value
+                }
+
+            val xvmResult = parseXvm(decompressedCursor)
+            result.addResult(xvmResult)
+
+            if (xvmResult is Success) xvmResult.value.textures else emptyList()
+        }
+
+        return result.success(textures)
+    }
+
+    private enum class FileKind {
+        Model, Texture
     }
 }

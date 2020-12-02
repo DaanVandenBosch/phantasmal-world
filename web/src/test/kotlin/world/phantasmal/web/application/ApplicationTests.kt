@@ -17,7 +17,6 @@ class ApplicationTests : WebTestSuite() {
 
                 disposer.add(
                     Application(
-                        scope,
                         rootElement = document.body!!,
                         assetLoader = components.assetLoader,
                         applicationUrl = appUrl,

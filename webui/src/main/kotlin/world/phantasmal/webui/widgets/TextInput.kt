@@ -1,11 +1,12 @@
 package world.phantasmal.webui.widgets
 
-import kotlinx.coroutines.CoroutineScope
 import org.w3c.dom.HTMLInputElement
-import world.phantasmal.observable.value.*
+import world.phantasmal.observable.value.Val
+import world.phantasmal.observable.value.emptyStringVal
+import world.phantasmal.observable.value.nullVal
+import world.phantasmal.observable.value.trueVal
 
 class TextInput(
-    scope: CoroutineScope,
     visible: Val<Boolean> = trueVal(),
     enabled: Val<Boolean> = trueVal(),
     tooltip: Val<String?> = nullVal(),
@@ -16,7 +17,6 @@ class TextInput(
     onChange: (String) -> Unit = {},
     maxLength: Int? = null,
 ) : Input<String>(
-    scope,
     visible,
     enabled,
     tooltip,

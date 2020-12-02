@@ -1,6 +1,5 @@
 package world.phantasmal.webui.widgets
 
-import kotlinx.coroutines.CoroutineScope
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.Node
 import world.phantasmal.observable.value.Val
@@ -8,7 +7,6 @@ import world.phantasmal.webui.dom.input
 import world.phantasmal.webui.dom.span
 
 abstract class Input<T>(
-    scope: CoroutineScope,
     visible: Val<Boolean>,
     enabled: Val<Boolean>,
     tooltip: Val<String?>,
@@ -25,7 +23,6 @@ abstract class Input<T>(
     private val max: Int?,
     private val step: Int?,
 ) : LabelledControl(
-    scope,
     visible,
     enabled,
     tooltip,
@@ -58,9 +55,12 @@ abstract class Input<T>(
                 }
 
                 this@Input.maxLength?.let { maxLength = it }
-                this@Input.min?.let { min = it.toString() }
-                this@Input.max?.let { max = it.toString() }
-                this@Input.step?.let { step = it.toString() }
+
+                if (inputType == "number") {
+                    this@Input.min?.let { min = it.toString() }
+                    this@Input.max?.let { max = it.toString() }
+                    step = this@Input.step?.toString() ?: "any"
+                }
             }
         }
 

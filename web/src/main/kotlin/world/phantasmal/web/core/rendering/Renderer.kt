@@ -4,16 +4,11 @@ import kotlinx.browser.document
 import kotlinx.browser.window
 import mu.KotlinLogging
 import org.w3c.dom.HTMLCanvasElement
-import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.webui.DisposableContainer
 import kotlin.math.floor
 import world.phantasmal.web.externals.three.Renderer as ThreeRenderer
 
 private val logger = KotlinLogging.logger {}
-
-interface DisposableThreeRenderer : Disposable {
-    val renderer: ThreeRenderer
-}
 
 abstract class Renderer : DisposableContainer() {
     protected abstract val context: RenderContext

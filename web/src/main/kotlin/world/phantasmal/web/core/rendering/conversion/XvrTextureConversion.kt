@@ -55,7 +55,7 @@ private fun xvrTextureToUint8Array(xvr: XvrTexture): Uint8Array {
     val stride = 4 * xvr.width
     var i = 0
 
-    while (cursor.hasBytesLeft(8)) {
+    while (cursor.bytesLeft >= 8) {
         // Each block of 4 x 4 pixels is compressed to 8 bytes.
         val c0 = cursor.uShort().toInt() // Color 0
         val c1 = cursor.uShort().toInt() // Color 1

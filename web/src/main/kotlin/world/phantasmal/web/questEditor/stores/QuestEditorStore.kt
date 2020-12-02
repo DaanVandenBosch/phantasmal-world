@@ -1,8 +1,11 @@
 package world.phantasmal.web.questEditor.stores
 
-import kotlinx.coroutines.CoroutineScope
 import mu.KotlinLogging
-import world.phantasmal.observable.value.*
+import world.phantasmal.observable.value.Val
+import world.phantasmal.observable.value.and
+import world.phantasmal.observable.value.list.emptyListVal
+import world.phantasmal.observable.value.mutableVal
+import world.phantasmal.observable.value.not
 import world.phantasmal.web.core.PwToolType
 import world.phantasmal.web.core.actions.Action
 import world.phantasmal.web.core.stores.UiStore
@@ -15,10 +18,9 @@ import world.phantasmal.webui.stores.Store
 private val logger = KotlinLogging.logger {}
 
 class QuestEditorStore(
-    scope: CoroutineScope,
     private val uiStore: UiStore,
     private val areaStore: AreaStore,
-) : Store(scope) {
+) : Store() {
     private val _currentQuest = mutableVal<QuestModel?>(null)
     private val _currentArea = mutableVal<AreaModel?>(null)
     private val _selectedWave = mutableVal<WaveModel?>(null)
@@ -52,7 +54,23 @@ class QuestEditorStore(
     init {
         observe(uiStore.currentTool) { tool ->
             if (tool == PwToolType.QuestEditor) {
-                mainUndo.makeCurrent()
+                makeMainUndoCurrent()
+            }
+        }
+
+        observe(currentQuest.flatMap { it?.npcs ?: emptyListVal() }) { npcs ->
+            val selected = selectedEntity.value
+
+            if (selected is QuestNpcModel && selected !in npcs) {
+                _selectedEntity.value = null
+            }
+        }
+
+        observe(currentQuest.flatMap { it?.objects ?: emptyListVal() }) { objects ->
+            val selected = selectedEntity.value
+
+            if (selected is QuestObjectModel && selected !in objects) {
+                _selectedEntity.value = null
             }
         }
     }
@@ -143,6 +161,11 @@ class QuestEditorStore(
     }
 
     fun executeAction(action: Action) {
+        pushAction(action)
+        action.execute()
+    }
+
+    fun pushAction(action: Action) {
         require(questEditingEnabled.value) {
             val reason = when {
                 currentQuest.value == null -> " (no current quest)"
@@ -151,6 +174,6 @@ class QuestEditorStore(
             }
             "Quest editing is disabled at the moment$reason."
         }
-        mainUndo.push(action).execute()
+        mainUndo.push(action)
     }
 }

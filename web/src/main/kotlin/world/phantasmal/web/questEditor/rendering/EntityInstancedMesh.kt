@@ -39,7 +39,7 @@ class EntityInstancedMesh(
             entity,
             mesh,
             instanceIndex,
-            selectedWave
+            selectedWave,
         ) { index ->
             removeAt(index)
             modelChanged(entity)

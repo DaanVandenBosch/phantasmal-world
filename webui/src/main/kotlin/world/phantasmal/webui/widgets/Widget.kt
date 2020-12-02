@@ -2,8 +2,11 @@ package world.phantasmal.webui.widgets
 
 import kotlinx.browser.document
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.cancel
 import org.w3c.dom.*
 import org.w3c.dom.pointerevents.PointerEvent
+import world.phantasmal.core.disposable.Disposer
 import world.phantasmal.observable.Observable
 import world.phantasmal.observable.value.*
 import world.phantasmal.observable.value.list.ListVal
@@ -15,7 +18,6 @@ import world.phantasmal.webui.dom.disposablePointerDrag
 import world.phantasmal.webui.dom.documentFragment
 
 abstract class Widget(
-    protected val scope: CoroutineScope,
     /**
      * By default determines the hidden attribute of its [element].
      */
@@ -63,6 +65,8 @@ abstract class Widget(
         el
     }
 
+    protected val scope: CoroutineScope = MainScope()
+
     /**
      * This widget's outermost DOM element.
      */
@@ -102,6 +106,7 @@ abstract class Widget(
         }
 
         _children.clear()
+        scope.cancel("Widget disposed.")
         super.internalDispose()
     }
 
@@ -125,8 +130,11 @@ abstract class Widget(
     /**
      * Adds a child widget to [children] and appends its element to the receiving node.
      */
-    protected fun <T : Widget> Node.addChild(child: T): T {
-        addDisposable(child)
+    protected fun <T : Widget> Node.addChild(child: T, addToDisposer: Boolean = true): T {
+        if (addToDisposer) {
+            addDisposable(child)
+        }
+
         _children.add(child)
         setAncestorVisible(child, selfOrAncestorVisible.value)
         appendChild(child.element)
@@ -135,7 +143,7 @@ abstract class Widget(
 
     protected fun <T> Element.bindChildrenTo(
         list: Val<List<T>>,
-        createChild: Node.(T, Int) -> Node,
+        createChild: Node.(T, index: Int) -> Node,
     ) {
         if (list is ListVal) {
             bindChildrenTo(list, createChild)
@@ -156,7 +164,7 @@ abstract class Widget(
 
     protected fun <T> Element.bindChildrenTo(
         list: ListVal<T>,
-        createChild: Node.(T, Int) -> Node,
+        createChild: Node.(T, index: Int) -> Node,
     ) {
         fun spliceChildren(index: Int, removedCount: Int, inserted: List<T>) {
             for (i in 1..removedCount) {
@@ -167,6 +175,74 @@ abstract class Widget(
 
             inserted.forEachIndexed { i, value ->
                 frag.createChild(value, index + i)
+            }
+
+            if (index >= childNodes.length) {
+                appendChild(frag)
+            } else {
+                insertBefore(frag, childNodes[index])
+            }
+        }
+
+        addDisposable(
+            list.observeList { change: ListValChangeEvent<T> ->
+                when (change) {
+                    is ListValChangeEvent.Change -> {
+                        spliceChildren(change.index, change.removed.size, change.inserted)
+                    }
+                    is ListValChangeEvent.ElementChange -> {
+                        // TODO: Update children.
+                    }
+                }
+            }
+        )
+
+        spliceChildren(0, 0, list.value)
+    }
+
+    protected fun <T> Element.bindChildWidgetsTo(
+        list: Val<List<T>>,
+        createChild: (T, index: Int) -> Widget,
+    ) {
+        val disposer = addDisposable(Disposer())
+
+        if (list is ListVal) {
+            bindChildWidgetsTo(list, createChild)
+        } else {
+            observe(list) { items ->
+                innerHTML = ""
+                disposer.disposeAll()
+
+                val frag = document.createDocumentFragment()
+
+                items.forEachIndexed { i, item ->
+                    val child = disposer.add(createChild(item, i))
+                    frag.addChild(child, addToDisposer = false)
+                }
+
+                appendChild(frag)
+            }
+        }
+    }
+
+    protected fun <T> Element.bindChildWidgetsTo(
+        list: ListVal<T>,
+        createChild: (T, index: Int) -> Widget,
+    ) {
+        val disposer = addDisposable(Disposer())
+
+        fun spliceChildren(index: Int, removedCount: Int, inserted: List<T>) {
+            for (i in 1..removedCount) {
+                removeChild(childNodes[index].unsafeCast<Node>())
+            }
+
+            disposer.removeAt(index, removedCount)
+
+            val frag = document.createDocumentFragment()
+
+            inserted.forEachIndexed { i, value ->
+                val child = addDisposable(createChild(value, index + i))
+                frag.addChild(child, addToDisposer = false)
             }
 
             if (index >= childNodes.length) {

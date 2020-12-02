@@ -21,6 +21,10 @@ operator fun Vector3.minusAssign(other: Vector3) {
 operator fun Vector3.times(scalar: Double): Vector3 =
     clone().multiplyScalar(scalar)
 
+operator fun Vector3.timesAssign(scalar: Double) {
+    multiplyScalar(scalar)
+}
+
 infix fun Vector3.dot(other: Vector3): Double =
     dot(other)
 

@@ -1,6 +1,5 @@
 package world.phantasmal.web.questEditor.widgets
 
-import kotlinx.coroutines.CoroutineScope
 import org.w3c.dom.Node
 import world.phantasmal.core.disposable.disposable
 import world.phantasmal.web.externals.monacoEditor.IStandaloneCodeEditor
@@ -12,10 +11,7 @@ import world.phantasmal.webui.dom.div
 import world.phantasmal.webui.obj
 import world.phantasmal.webui.widgets.Widget
 
-class AssemblyEditorWidget(
-    scope: CoroutineScope,
-    private val ctrl: AssemblyEditorController,
-) : Widget(scope) {
+class AssemblyEditorWidget(private val ctrl: AssemblyEditorController) : Widget() {
     private lateinit var editor: IStandaloneCodeEditor
 
     override fun Node.createElement() =

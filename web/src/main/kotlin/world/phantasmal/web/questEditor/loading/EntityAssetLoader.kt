@@ -1,6 +1,5 @@
 package world.phantasmal.web.questEditor.loading
 
-import kotlinx.coroutines.CoroutineScope
 import mu.KotlinLogging
 import org.khronos.webgl.ArrayBuffer
 import world.phantasmal.core.PwResult
@@ -22,13 +21,9 @@ import world.phantasmal.webui.DisposableContainer
 
 private val logger = KotlinLogging.logger {}
 
-class EntityAssetLoader(
-    scope: CoroutineScope,
-    private val assetLoader: AssetLoader,
-) : DisposableContainer() {
+class EntityAssetLoader(private val assetLoader: AssetLoader) : DisposableContainer() {
     private val instancedMeshCache = addDisposable(
         LoadingCache<Pair<EntityType, Int?>, InstancedMesh>(
-            scope,
             { (type, model) ->
                 try {
                     loadMesh(type, model) ?: DEFAULT_MESH
@@ -139,7 +134,10 @@ class EntityAssetLoader(
             },
             MeshLambertMaterial(),
             count = 1000,
-        )
+        ).apply {
+            // Start with 0 instances.
+            count = 0
+        }
     }
 }
 

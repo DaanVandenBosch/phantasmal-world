@@ -10,17 +10,16 @@ import org.w3c.dom.pointerevents.PointerEvent
 import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.core.disposable.disposable
 
-fun <E : Event> disposableListener(
-    target: EventTarget,
+fun <E : Event> EventTarget.disposableListener(
     type: String,
     listener: (E) -> Unit,
     options: AddEventListenerOptions? = null,
 ): Disposable {
     @Suppress("UNCHECKED_CAST")
-    target.addEventListener(type, listener as (Event) -> Unit, options)
+    addEventListener(type, listener as (Event) -> Unit, options)
 
     return disposable {
-        target.removeEventListener(type, listener)
+        removeEventListener(type, listener)
     }
 }
 
@@ -34,13 +33,13 @@ fun Element.disposablePointerDrag(
     var windowMoveListener: Disposable? = null
     var windowUpListener: Disposable? = null
 
-    val downListener = disposableListener<PointerEvent>(this, "pointerdown", { downEvent ->
+    val downListener = disposableListener<PointerEvent>("pointerdown", { downEvent ->
         if (onPointerDown(downEvent)) {
             prevPointerX = downEvent.clientX
             prevPointerY = downEvent.clientY
 
             windowMoveListener =
-                disposableListener<PointerEvent>(window, "pointermove", { moveEvent ->
+                window.disposableListener<PointerEvent>("pointermove", { moveEvent ->
                     val movedX = moveEvent.clientX - prevPointerX
                     val movedY = moveEvent.clientY - prevPointerY
                     prevPointerX = moveEvent.clientX
@@ -53,7 +52,7 @@ fun Element.disposablePointerDrag(
                 })
 
             windowUpListener =
-                disposableListener<PointerEvent>(window, "pointerup", { upEvent ->
+                window.disposableListener<PointerEvent>("pointerup", { upEvent ->
                     onPointerUp(upEvent)
                     windowMoveListener?.dispose()
                     windowUpListener?.dispose()

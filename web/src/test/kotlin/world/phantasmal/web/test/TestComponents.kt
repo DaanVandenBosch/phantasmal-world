@@ -13,6 +13,7 @@ import world.phantasmal.web.core.loading.AssetLoader
 import world.phantasmal.web.core.rendering.DisposableThreeRenderer
 import world.phantasmal.web.core.stores.ApplicationUrl
 import world.phantasmal.web.core.stores.UiStore
+import world.phantasmal.web.externals.three.WebGLRenderer
 import world.phantasmal.web.questEditor.loading.AreaAssetLoader
 import world.phantasmal.web.questEditor.loading.QuestLoader
 import world.phantasmal.web.questEditor.stores.AreaStore
@@ -45,26 +46,26 @@ class TestComponents(private val ctx: TestContext) {
     var assetLoader: AssetLoader by default { AssetLoader(httpClient, basePath = "/assets") }
 
     var areaAssetLoader: AreaAssetLoader by default {
-        AreaAssetLoader(ctx.scope, assetLoader)
+        AreaAssetLoader(assetLoader)
     }
 
-    var questLoader: QuestLoader by default { QuestLoader(ctx.scope, assetLoader) }
+    var questLoader: QuestLoader by default { QuestLoader(assetLoader) }
 
     // Stores
 
-    var uiStore: UiStore by default { UiStore(ctx.scope, applicationUrl) }
+    var uiStore: UiStore by default { UiStore(applicationUrl) }
 
-    var areaStore: AreaStore by default { AreaStore(ctx.scope, areaAssetLoader) }
+    var areaStore: AreaStore by default { AreaStore(areaAssetLoader) }
 
     var questEditorStore: QuestEditorStore by default {
-        QuestEditorStore(ctx.scope, uiStore, areaStore)
+        QuestEditorStore(uiStore, areaStore)
     }
 
     // Rendering
     var createThreeRenderer: (HTMLCanvasElement) -> DisposableThreeRenderer by default {
         { canvas ->
             object : DisposableThreeRenderer {
-                override val renderer = NoopRenderer(canvas)
+                override val renderer = NopRenderer(canvas).unsafeCast<WebGLRenderer>()
                 override fun dispose() {}
             }
         }

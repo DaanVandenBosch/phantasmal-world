@@ -1,6 +1,5 @@
 package world.phantasmal.web.questEditor.widgets
 
-import kotlinx.coroutines.CoroutineScope
 import org.w3c.dom.Node
 import world.phantasmal.web.core.widgets.UnavailableWidget
 import world.phantasmal.web.questEditor.controllers.NpcCountsController
@@ -8,9 +7,8 @@ import world.phantasmal.webui.dom.*
 import world.phantasmal.webui.widgets.Widget
 
 class NpcCountsWidget(
-    scope: CoroutineScope,
     private val ctrl: NpcCountsController,
-) : Widget(scope) {
+) : Widget() {
     override fun Node.createElement() =
         div {
             className = "pw-quest-editor-npc-counts"
@@ -26,7 +24,6 @@ class NpcCountsWidget(
                 }
             }
             addChild(UnavailableWidget(
-                scope,
                 visible = ctrl.unavailable,
                 message = "No quest loaded."
             ))

@@ -45,6 +45,17 @@ class SimpleListVal<E>(
         finalizeUpdate(ListValChangeEvent.Change(index, emptyList(), listOf(element)))
     }
 
+    override fun remove(element: E): Boolean {
+        val index = elements.indexOf(element)
+
+        return if (index != -1) {
+            removeAt(index)
+            true
+        } else {
+            false
+        }
+    }
+
     override fun removeAt(index: Int): E {
         val removed = elements.removeAt(index)
         finalizeUpdate(ListValChangeEvent.Change(index, listOf(removed), emptyList()))

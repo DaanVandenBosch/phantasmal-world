@@ -1,7 +1,6 @@
 package world.phantasmal.webui.widgets
 
 import kotlinx.browser.window
-import kotlinx.coroutines.CoroutineScope
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.Node
 import org.w3c.dom.events.Event
@@ -17,14 +16,13 @@ import world.phantasmal.webui.dom.h1
 import world.phantasmal.webui.dom.section
 
 open class Dialog(
-    scope: CoroutineScope,
     visible: Val<Boolean> = trueVal(),
     enabled: Val<Boolean> = trueVal(),
     private val title: Val<String>,
     private val description: Val<String>,
     private val content: Val<Node>,
     protected val onDismiss: () -> Unit = {},
-) : Widget(scope, visible, enabled) {
+) : Widget(visible, enabled) {
     private var x = 0
     private var y = 0
 

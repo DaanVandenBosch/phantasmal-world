@@ -1,10 +1,8 @@
 package world.phantasmal.webui.widgets
 
-import kotlinx.coroutines.CoroutineScope
 import world.phantasmal.observable.value.Val
 
 abstract class NumberInput<T : Number>(
-    scope: CoroutineScope,
     visible: Val<Boolean>,
     enabled: Val<Boolean>,
     tooltip: Val<String?>,
@@ -17,7 +15,6 @@ abstract class NumberInput<T : Number>(
     max: Int?,
     step: Int?,
 ) : Input<T>(
-    scope,
     visible,
     enabled,
     tooltip,

@@ -1,6 +1,5 @@
 package world.phantasmal.webui.widgets
 
-import kotlinx.coroutines.CoroutineScope
 import org.w3c.dom.Node
 import org.w3c.dom.events.KeyboardEvent
 import org.w3c.dom.events.MouseEvent
@@ -9,7 +8,6 @@ import world.phantasmal.webui.dom.Icon
 import world.phantasmal.webui.dom.div
 
 class Select<T : Any>(
-    scope: CoroutineScope,
     visible: Val<Boolean> = trueVal(),
     enabled: Val<Boolean> = trueVal(),
     tooltip: Val<String?> = nullVal(),
@@ -23,7 +21,6 @@ class Select<T : Any>(
     selectedVal: Val<T?>? = null,
     private val onSelect: (T) -> Unit = {},
 ) : LabelledControl(
-    scope,
     visible,
     enabled,
     tooltip,
@@ -48,7 +45,6 @@ class Select<T : Any>(
             observe(selected) { buttonText.value = it?.let(itemToString) ?: " " }
 
             addWidget(Button(
-                scope,
                 enabled = enabled,
                 textVal = buttonText,
                 iconRight = Icon.TriangleDown,
@@ -57,7 +53,6 @@ class Select<T : Any>(
                 onKeyDown = ::onButtonKeyDown,
             ))
             menu = addWidget(Menu(
-                scope,
                 visible = menuVisible,
                 enabled = enabled,
                 itemsVal = items,

@@ -1,6 +1,5 @@
 package world.phantasmal.webui.widgets
 
-import kotlinx.coroutines.CoroutineScope
 import org.w3c.dom.Node
 import org.w3c.dom.events.KeyboardEvent
 import org.w3c.dom.events.MouseEvent
@@ -13,7 +12,6 @@ import world.phantasmal.webui.dom.icon
 import world.phantasmal.webui.dom.span
 
 open class Button(
-    scope: CoroutineScope,
     visible: Val<Boolean> = trueVal(),
     enabled: Val<Boolean> = trueVal(),
     tooltip: Val<String?> = nullVal(),
@@ -27,7 +25,7 @@ open class Button(
     private val onKeyDown: ((KeyboardEvent) -> Unit)? = null,
     private val onKeyUp: ((KeyboardEvent) -> Unit)? = null,
     private val onKeyPress: ((KeyboardEvent) -> Unit)? = null,
-) : Control(scope, visible, enabled, tooltip) {
+) : Control(visible, enabled, tooltip) {
     override fun Node.createElement() =
         button {
             className = "pw-button"

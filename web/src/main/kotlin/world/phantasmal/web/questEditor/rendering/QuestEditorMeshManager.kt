@@ -1,6 +1,5 @@
 package world.phantasmal.web.questEditor.rendering
 
-import kotlinx.coroutines.CoroutineScope
 import world.phantasmal.lib.fileFormats.quest.Episode
 import world.phantasmal.observable.value.list.ListVal
 import world.phantasmal.observable.value.list.listVal
@@ -11,12 +10,11 @@ import world.phantasmal.web.questEditor.models.*
 import world.phantasmal.web.questEditor.stores.QuestEditorStore
 
 class QuestEditorMeshManager(
-    scope: CoroutineScope,
     areaAssetLoader: AreaAssetLoader,
     entityAssetLoader: EntityAssetLoader,
     questEditorStore: QuestEditorStore,
     renderContext: QuestRenderContext,
-) : QuestMeshManager(scope, areaAssetLoader, entityAssetLoader, questEditorStore, renderContext) {
+) : QuestMeshManager(areaAssetLoader, entityAssetLoader, questEditorStore, renderContext) {
     init {
         addDisposables(
             map(

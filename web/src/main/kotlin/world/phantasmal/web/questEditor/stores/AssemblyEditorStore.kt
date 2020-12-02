@@ -1,30 +1,27 @@
 package world.phantasmal.web.questEditor.stores
 
-import kotlinx.coroutines.CoroutineScope
 import world.phantasmal.lib.assembly.disassemble
 import world.phantasmal.observable.value.Val
+import world.phantasmal.observable.value.map
 import world.phantasmal.observable.value.trueVal
 import world.phantasmal.web.externals.monacoEditor.*
 import world.phantasmal.webui.obj
 import world.phantasmal.webui.stores.Store
 import kotlin.js.RegExp
 
-class AssemblyEditorStore(
-    scope: CoroutineScope,
-    questEditorStore: QuestEditorStore,
-) : Store(scope) {
+class AssemblyEditorStore(questEditorStore: QuestEditorStore) : Store() {
     private var _textModel: ITextModel? = null
 
     val inlineStackArgs: Val<Boolean> = trueVal()
 
     val textModel: Val<ITextModel?> =
-        questEditorStore.currentQuest.map(inlineStackArgs) { quest, inlineArgs ->
+        map(questEditorStore.currentQuest, inlineStackArgs) { quest, inlineArgs ->
             _textModel?.dispose()
 
             _textModel =
                 if (quest == null) null
                 else {
-                    val assembly = disassemble(quest.byteCodeIr, inlineArgs)
+                    val assembly = disassemble(quest.bytecodeIr, inlineArgs)
                     createModel(assembly.joinToString("\n"), ASM_LANG_ID)
                 }
 

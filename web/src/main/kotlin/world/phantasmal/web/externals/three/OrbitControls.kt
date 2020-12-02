@@ -1,6 +1,6 @@
 @file:JsModule("three/examples/jsm/controls/OrbitControls")
 @file:JsNonModule
-@file:Suppress("PropertyName")
+@file:Suppress("PropertyName", "unused")
 
 package world.phantasmal.web.externals.three
 
@@ -14,6 +14,9 @@ external interface OrbitControlsMouseButtons {
 
 external class OrbitControls(`object`: Camera, domElement: HTMLElement = definedExternally) {
     var enabled: Boolean
+    var enablePan: Boolean
+    var enableRotate: Boolean
+    var enableZoom: Boolean
     var target: Vector3
     var zoomSpeed: Double
     var screenSpacePanning: Boolean

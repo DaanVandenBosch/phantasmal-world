@@ -132,4 +132,26 @@ class QuestModel(
         _longDescription.value = longDescription
         return this
     }
+
+    fun addEntity(entity: QuestEntityModel<*, *>) {
+        when (entity) {
+            is QuestNpcModel -> addNpc(entity)
+            is QuestObjectModel -> addObject(entity)
+        }
+    }
+
+    fun addNpc(npc: QuestNpcModel) {
+        _npcs.add(npc)
+    }
+
+    fun addObject(obj: QuestObjectModel) {
+        _objects.add(obj)
+    }
+
+    fun removeEntity(entity: QuestEntityModel<*, *>) {
+        when (entity) {
+            is QuestNpcModel -> _npcs.remove(entity)
+            is QuestObjectModel -> _objects.remove(entity)
+        }
+    }
 }

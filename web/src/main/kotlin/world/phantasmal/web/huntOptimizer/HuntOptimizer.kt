@@ -1,6 +1,5 @@
 package world.phantasmal.web.huntOptimizer
 
-import kotlinx.coroutines.CoroutineScope
 import world.phantasmal.web.core.PwTool
 import world.phantasmal.web.core.PwToolType
 import world.phantasmal.web.core.loading.AssetLoader
@@ -19,9 +18,9 @@ class HuntOptimizer(
 ) : DisposableContainer(), PwTool {
     override val toolType = PwToolType.HuntOptimizer
 
-    override fun initialize(scope: CoroutineScope): Widget {
+    override fun initialize(): Widget {
         // Stores
-        val huntMethodStore = addDisposable(HuntMethodStore(scope, uiStore, assetLoader))
+        val huntMethodStore = addDisposable(HuntMethodStore(uiStore, assetLoader))
 
         // Controllers
         val huntOptimizerController = addDisposable(HuntOptimizerController(uiStore))
@@ -29,9 +28,8 @@ class HuntOptimizer(
 
         // Main Widget
         return HuntOptimizerWidget(
-            scope,
             ctrl = huntOptimizerController,
-            createMethodsWidget = { s -> MethodsWidget(s, methodsController) }
+            createMethodsWidget = { MethodsWidget(methodsController) }
         )
     }
 }

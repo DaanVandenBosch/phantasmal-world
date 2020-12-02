@@ -1,7 +1,6 @@
 package world.phantasmal.web.core.stores
 
 import kotlinx.browser.window
-import kotlinx.coroutines.CoroutineScope
 import org.w3c.dom.events.KeyboardEvent
 import world.phantasmal.observable.value.MutableVal
 import world.phantasmal.observable.value.Val
@@ -20,10 +19,7 @@ interface ApplicationUrl {
     fun replaceUrl(url: String)
 }
 
-class UiStore(
-    scope: CoroutineScope,
-    private val applicationUrl: ApplicationUrl,
-) : Store(scope) {
+class UiStore(private val applicationUrl: ApplicationUrl) : Store() {
     private val _currentTool: MutableVal<PwToolType>
 
     private val _path = mutableVal("")
@@ -82,7 +78,7 @@ class UiStore(
             .toMap()
 
         addDisposables(
-            disposableListener(window, "keydown", ::dispatchGlobalKeydown),
+            window.disposableListener("keydown", ::dispatchGlobalKeydown),
         )
 
         observe(applicationUrl.url) { setDataFromUrl(it) }

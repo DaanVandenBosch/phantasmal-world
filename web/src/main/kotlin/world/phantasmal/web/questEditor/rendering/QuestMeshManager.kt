@@ -1,6 +1,7 @@
 package world.phantasmal.web.questEditor.rendering
 
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import world.phantasmal.core.disposable.Disposer
@@ -19,16 +20,16 @@ import world.phantasmal.webui.DisposableContainer
  * Loads the necessary area and entity 3D models into [QuestRenderer].
  */
 abstract class QuestMeshManager protected constructor(
-    private val scope: CoroutineScope,
     areaAssetLoader: AreaAssetLoader,
     entityAssetLoader: EntityAssetLoader,
     questEditorStore: QuestEditorStore,
     renderContext: QuestRenderContext,
 ) : DisposableContainer() {
+    private val scope: CoroutineScope = CoroutineScope(Dispatchers.Default)
     private val areaDisposer = addDisposable(Disposer())
     private val areaMeshManager = AreaMeshManager(renderContext, areaAssetLoader)
     private val entityMeshManager = addDisposable(
-        EntityMeshManager(scope, questEditorStore, renderContext, entityAssetLoader)
+        EntityMeshManager(questEditorStore, renderContext, entityAssetLoader)
     )
 
     private var loadJob: Job? = null

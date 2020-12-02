@@ -1,6 +1,5 @@
 package world.phantasmal.web.questEditor.widgets
 
-import kotlinx.coroutines.CoroutineScope
 import org.w3c.dom.Node
 import world.phantasmal.web.core.widgets.DockWidget
 import world.phantasmal.web.questEditor.controllers.QuestEditorController
@@ -19,34 +18,32 @@ import world.phantasmal.webui.widgets.Widget
  * Takes ownership of the widgets created by the given creation functions.
  */
 class QuestEditorWidget(
-    scope: CoroutineScope,
     private val ctrl: QuestEditorController,
-    private val createToolbar: (CoroutineScope) -> QuestEditorToolbarWidget,
-    private val createQuestInfoWidget: (CoroutineScope) -> QuestInfoWidget,
-    private val createNpcCountsWidget: (CoroutineScope) -> NpcCountsWidget,
-    private val createEntityInfoWidget: (CoroutineScope) -> EntityInfoWidget,
-    private val createQuestRendererWidget: (CoroutineScope) -> QuestRendererWidget,
-    private val createAssemblyEditorWidget: (CoroutineScope) -> AssemblyEditorWidget,
-    private val createNpcListWidget: (CoroutineScope) -> EntityListWidget,
-    private val createObjectListWidget: (CoroutineScope) -> EntityListWidget,
-) : Widget(scope) {
+    private val createToolbar: () -> QuestEditorToolbarWidget,
+    private val createQuestInfoWidget: () -> QuestInfoWidget,
+    private val createNpcCountsWidget: () -> NpcCountsWidget,
+    private val createEntityInfoWidget: () -> EntityInfoWidget,
+    private val createQuestRendererWidget: () -> QuestRendererWidget,
+    private val createAssemblyEditorWidget: () -> AssemblyEditorWidget,
+    private val createNpcListWidget: () -> EntityListWidget,
+    private val createObjectListWidget: () -> EntityListWidget,
+) : Widget() {
     override fun Node.createElement() =
         div {
             className = "pw-quest-editor-quest-editor"
 
-            addChild(createToolbar(scope))
+            addChild(createToolbar())
             addChild(DockWidget(
-                scope,
                 ctrl = ctrl,
-                createWidget = { scope, id ->
+                createWidget = { id ->
                     when (id) {
-                        QUEST_INFO_WIDGET_ID -> createQuestInfoWidget(scope)
-                        NPC_COUNTS_WIDGET_ID -> createNpcCountsWidget(scope)
-                        ENTITY_INFO_WIDGET_ID -> createEntityInfoWidget(scope)
-                        QUEST_RENDERER_WIDGET_ID -> createQuestRendererWidget(scope)
-                        ASSEMBLY_EDITOR_WIDGET_ID -> createAssemblyEditorWidget(scope)
-                        NPC_LIST_WIDGET_ID -> createNpcListWidget(scope)
-                        OBJECT_LIST_WIDGET_ID -> createObjectListWidget(scope)
+                        QUEST_INFO_WIDGET_ID -> createQuestInfoWidget()
+                        NPC_COUNTS_WIDGET_ID -> createNpcCountsWidget()
+                        ENTITY_INFO_WIDGET_ID -> createEntityInfoWidget()
+                        QUEST_RENDERER_WIDGET_ID -> createQuestRendererWidget()
+                        ASSEMBLY_EDITOR_WIDGET_ID -> createAssemblyEditorWidget()
+                        NPC_LIST_WIDGET_ID -> createNpcListWidget()
+                        OBJECT_LIST_WIDGET_ID -> createObjectListWidget()
                         EVENTS_WIDGET_ID -> null // TODO: EventsWidget.
                         else -> null
                     }

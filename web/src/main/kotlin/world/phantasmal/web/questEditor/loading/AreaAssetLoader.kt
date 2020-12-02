@@ -1,6 +1,5 @@
 package world.phantasmal.web.questEditor.loading
 
-import kotlinx.coroutines.CoroutineScope
 import org.khronos.webgl.ArrayBuffer
 import world.phantasmal.lib.Endianness
 import world.phantasmal.lib.cursor.cursor
@@ -24,17 +23,13 @@ import world.phantasmal.webui.obj
 /**
  * Loads and caches area assets.
  */
-class AreaAssetLoader(
-    scope: CoroutineScope,
-    private val assetLoader: AssetLoader,
-) : DisposableContainer() {
+class AreaAssetLoader(private val assetLoader: AssetLoader) : DisposableContainer() {
     /**
      * This cache's values consist of an Object3D containing the area render meshes and a list of
      * that area's sections.
      */
     private val renderObjectCache = addDisposable(
         LoadingCache<EpisodeAndAreaVariant, Pair<Object3D, List<SectionModel>>>(
-            scope,
             { (episode, areaVariant) ->
                 val buffer = getAreaAsset(episode, areaVariant, AssetType.Render)
                 val obj = parseAreaGeometry(buffer.cursor(Endianness.Little))
@@ -46,7 +41,6 @@ class AreaAssetLoader(
 
     private val collisionObjectCache = addDisposable(
         LoadingCache<EpisodeAndAreaVariant, Object3D>(
-            scope,
             { (episode, areaVariant) ->
                 val buffer = getAreaAsset(episode, areaVariant, AssetType.Collision)
                 val obj = parseAreaCollisionGeometry(buffer.cursor(Endianness.Little))

@@ -1,6 +1,5 @@
 package world.phantasmal.web.questEditor.widgets
 
-import kotlinx.coroutines.CoroutineScope
 import org.w3c.dom.Node
 import world.phantasmal.web.core.widgets.UnavailableWidget
 import world.phantasmal.web.questEditor.controllers.QuestInfoController
@@ -10,10 +9,7 @@ import world.phantasmal.webui.widgets.TextArea
 import world.phantasmal.webui.widgets.TextInput
 import world.phantasmal.webui.widgets.Widget
 
-class QuestInfoWidget(
-    scope: CoroutineScope,
-    private val ctrl: QuestInfoController,
-) : Widget(scope, enabled = ctrl.enabled) {
+class QuestInfoWidget(private val ctrl: QuestInfoController) : Widget(enabled = ctrl.enabled) {
     override fun Node.createElement() =
         div {
             className = "pw-quest-editor-quest-info"
@@ -30,7 +26,6 @@ class QuestInfoWidget(
                     th { textContent = "ID:" }
                     td {
                         addChild(IntInput(
-                            this@QuestInfoWidget.scope,
                             enabled = ctrl.enabled,
                             value = ctrl.id,
                             onChange = ctrl::setId,
@@ -43,7 +38,6 @@ class QuestInfoWidget(
                     th { textContent = "Name:" }
                     td {
                         addChild(TextInput(
-                            this@QuestInfoWidget.scope,
                             enabled = ctrl.enabled,
                             value = ctrl.name,
                             onChange = ctrl::setName,
@@ -61,7 +55,6 @@ class QuestInfoWidget(
                     td {
                         colSpan = 2
                         addChild(TextArea(
-                            this@QuestInfoWidget.scope,
                             enabled = ctrl.enabled,
                             value = ctrl.shortDescription,
                             onChange = ctrl::setShortDescription,
@@ -82,7 +75,6 @@ class QuestInfoWidget(
                     td {
                         colSpan = 2
                         addChild(TextArea(
-                            this@QuestInfoWidget.scope,
                             enabled = ctrl.enabled,
                             value = ctrl.longDescription,
                             onChange = ctrl::setLongDescription,
@@ -95,7 +87,6 @@ class QuestInfoWidget(
                 }
             }
             addChild(UnavailableWidget(
-                scope,
                 visible = ctrl.unavailable,
                 message = "No quest loaded."
             ))

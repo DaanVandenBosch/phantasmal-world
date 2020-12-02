@@ -1,6 +1,5 @@
 package world.phantasmal.webui.widgets
 
-import kotlinx.coroutines.CoroutineScope
 import org.w3c.dom.HTMLInputElement
 import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.nullVal
@@ -8,7 +7,6 @@ import world.phantasmal.observable.value.trueVal
 import world.phantasmal.observable.value.value
 
 class IntInput(
-    scope: CoroutineScope,
     visible: Val<Boolean> = trueVal(),
     enabled: Val<Boolean> = trueVal(),
     tooltip: Val<String?> = nullVal(),
@@ -21,7 +19,6 @@ class IntInput(
     max: Int? = null,
     step: Int? = null,
 ) : NumberInput<Int>(
-    scope,
     visible,
     enabled,
     tooltip,

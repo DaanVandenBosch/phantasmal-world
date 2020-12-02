@@ -1,6 +1,5 @@
 package world.phantasmal.web.viewer.store
 
-import kotlinx.coroutines.CoroutineScope
 import world.phantasmal.lib.fileFormats.ninja.NinjaObject
 import world.phantasmal.lib.fileFormats.ninja.XvrTexture
 import world.phantasmal.observable.value.Val
@@ -9,7 +8,7 @@ import world.phantasmal.observable.value.list.mutableListVal
 import world.phantasmal.observable.value.mutableVal
 import world.phantasmal.webui.stores.Store
 
-class ViewerStore(scope: CoroutineScope) : Store(scope) {
+class ViewerStore() : Store() {
     private val _currentNinjaObject = mutableVal<NinjaObject<*>?>(null)
     private val _currentTextures = mutableListVal<XvrTexture>(mutableListOf())
 

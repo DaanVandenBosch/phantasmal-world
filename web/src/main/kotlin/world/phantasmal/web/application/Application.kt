@@ -1,7 +1,6 @@
 package world.phantasmal.web.application
 
 import kotlinx.browser.document
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.datetime.Clock
 import org.w3c.dom.DragEvent
 import org.w3c.dom.HTMLCanvasElement
@@ -25,7 +24,6 @@ import world.phantasmal.webui.DisposableContainer
 import world.phantasmal.webui.dom.disposableListener
 
 class Application(
-    scope: CoroutineScope,
     rootElement: HTMLElement,
     assetLoader: AssetLoader,
     applicationUrl: ApplicationUrl,
@@ -35,19 +33,19 @@ class Application(
     init {
         addDisposables(
             // Disable native undo/redo.
-            disposableListener(document, "beforeinput", ::beforeInput),
+            document.disposableListener("beforeinput", ::beforeInput),
             // Work-around for FireFox:
-            disposableListener(document, "keydown", ::keydown),
+            document.disposableListener("keydown", ::keydown),
 
             // Disable native drag-and-drop to avoid users dragging in unsupported file formats and
             // leaving the application unexpectedly.
-            disposableListener(document, "dragenter", ::dragenter),
-            disposableListener(document, "dragover", ::dragover),
-            disposableListener(document, "drop", ::drop),
+            document.disposableListener("dragenter", ::dragenter),
+            document.disposableListener("dragover", ::dragover),
+            document.disposableListener("drop", ::drop),
         )
 
         // Initialize core stores shared by several submodules.
-        val uiStore = addDisposable(UiStore(scope, applicationUrl))
+        val uiStore = addDisposable(UiStore(applicationUrl))
 
         // The various tools Phantasmal World consists of.
         val tools: List<PwTool> = listOf(
@@ -63,10 +61,8 @@ class Application(
         // Initialize application view.
         val applicationWidget = addDisposable(
             ApplicationWidget(
-                scope,
-                NavigationWidget(scope, navigationController),
+                NavigationWidget(navigationController),
                 MainContentWidget(
-                    scope,
                     mainContentController,
                     tools.map { it.toolType to it::initialize }.toMap()
                 )

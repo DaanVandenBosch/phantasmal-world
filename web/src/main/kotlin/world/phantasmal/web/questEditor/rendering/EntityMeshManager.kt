@@ -15,17 +15,17 @@ import world.phantasmal.webui.DisposableContainer
 private val logger = KotlinLogging.logger {}
 
 class EntityMeshManager(
-    private val scope: CoroutineScope,
     private val questEditorStore: QuestEditorStore,
     private val renderContext: QuestRenderContext,
     private val entityAssetLoader: EntityAssetLoader,
 ) : DisposableContainer() {
+    private val scope: CoroutineScope = CoroutineScope(Dispatchers.Main)
+
     /**
      * Contains one [EntityInstancedMesh] per [EntityType] and model.
      */
     private val entityMeshCache = addDisposable(
         LoadingCache<TypeAndModel, EntityInstancedMesh>(
-            scope,
             { (type, model) ->
                 val mesh = entityAssetLoader.loadInstancedMesh(type, model)
                 renderContext.entities.add(mesh)
@@ -87,13 +87,12 @@ class EntityMeshManager(
         loadingEntities.getOrPut(entity) {
             scope.launch {
                 try {
-                    val meshContainer = entityMeshCache.get(TypeAndModel(
+                    val entityInstancedMesh = entityMeshCache.get(TypeAndModel(
                         type = entity.type,
                         model = (entity as? QuestObjectModel)?.model?.value
                     ))
 
-                    val instance = meshContainer.addInstance(entity)
-                    loadingEntities.remove(entity)
+                    val instance = entityInstancedMesh.addInstance(entity)
 
                     if (entity == questEditorStore.selectedEntity.value) {
                         markSelected(instance)
@@ -103,10 +102,11 @@ class EntityMeshManager(
                 } catch (e: CancellationException) {
                     // Do nothing.
                 } catch (e: Throwable) {
-                    loadingEntities.remove(entity)
                     logger.error(e) {
                         "Couldn't load mesh for entity of type ${entity.type}."
                     }
+                } finally {
+                    loadingEntities.remove(entity)
                 }
             }
         }

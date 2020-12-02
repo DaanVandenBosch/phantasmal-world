@@ -1,17 +1,19 @@
 package world.phantasmal.web.questEditor.widgets
 
-import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import org.w3c.dom.Node
+import world.phantasmal.lib.fileFormats.quest.EntityType
 import world.phantasmal.web.questEditor.controllers.EntityListController
+import world.phantasmal.web.questEditor.rendering.EntityImageRenderer
 import world.phantasmal.webui.dom.div
 import world.phantasmal.webui.dom.img
 import world.phantasmal.webui.dom.span
 import world.phantasmal.webui.widgets.Widget
 
 class EntityListWidget(
-    scope: CoroutineScope,
     private val ctrl: EntityListController,
-) : Widget(scope, enabled = ctrl.enabled) {
+    private val entityImageRenderer: EntityImageRenderer,
+) : Widget(enabled = ctrl.enabled) {
     override fun Node.createElement() =
         div {
             className = "pw-quest-editor-entity-list"
@@ -20,22 +22,37 @@ class EntityListWidget(
             div {
                 className = "pw-quest-editor-entity-list-inner"
 
-                bindChildrenTo(ctrl.entities) { entityType, index ->
-                    div {
-                        className = "pw-quest-editor-entity-list-entity"
-
-                        img {
-                            width = 100
-                            height = 100
-                        }
-
-                        span {
-                            textContent = entityType.simpleName
-                        }
-                    }
+                bindChildWidgetsTo(ctrl.entities) { entityType, _ ->
+                    EntityListEntityWidget(entityType)
                 }
             }
         }
+
+    private inner class EntityListEntityWidget(private val entityType: EntityType) : Widget() {
+        override fun Node.createElement() =
+            div {
+                className = "pw-quest-editor-entity-list-entity"
+                draggable = true
+
+                img {
+                    width = 100
+                    height = 100
+                    style.visibility = "hidden"
+                    style.asDynamic().pointerEvents = "none"
+
+                    scope.launch {
+                        src = entityImageRenderer.renderToImage(entityType)
+                        style.visibility = ""
+
+                        addDisposable(this@div.entityDndSource(entityType, src))
+                    }
+                }
+
+                span {
+                    textContent = entityType.simpleName
+                }
+            }
+    }
 
     companion object {
         init {

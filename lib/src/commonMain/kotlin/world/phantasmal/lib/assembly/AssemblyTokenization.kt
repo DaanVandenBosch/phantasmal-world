@@ -6,89 +6,89 @@ private val HEX_INT_REGEX = Regex("""^0x[\da-fA-F]+$""")
 private val FLOAT_REGEX = Regex("""^-?\d+(\.\d+)?(e-?\d+)?$""")
 private val IDENT_REGEX = Regex("""^[a-z][a-z0-9_=<>!]*$""")
 
-sealed class Token(
-    val col: Int,
-    val len: Int,
-)
+sealed class Token {
+    abstract val col: Int
+    abstract val len: Int
 
-class IntToken(
-    col: Int,
-    len: Int,
-    val value: Int,
-) : Token(col, len)
+    class Int32(
+        override val col: Int,
+        override val len: Int,
+        val value: Int,
+    ) : Token()
 
-class FloatToken(
-    col: Int,
-    len: Int,
-    val value: Float,
-) : Token(col, len)
+    class Float32(
+        override val col: Int,
+        override val len: Int,
+        val value: Float,
+    ) : Token()
 
-class InvalidNumberToken(
-    col: Int,
-    len: Int,
-) : Token(col, len)
+    class InvalidNumber(
+        override val col: Int,
+        override val len: Int,
+    ) : Token()
 
-class RegisterToken(
-    col: Int,
-    len: Int,
-    val value: Int,
-) : Token(col, len)
+    class Register(
+        override val col: Int,
+        override val len: Int,
+        val value: Int,
+    ) : Token()
 
-class LabelToken(
-    col: Int,
-    len: Int,
-    val value: Int,
-) : Token(col, len)
+    class Label(
+        override val col: Int,
+        override val len: Int,
+        val value: Int,
+    ) : Token()
 
-sealed class SectionToken(col: Int, len: Int) : Token(col, len)
+    sealed class Section : Token() {
+        class Code(
+            override val col: Int,
+            override val len: Int,
+        ) : Section()
 
-class CodeSectionToken(
-    col: Int,
-    len: Int,
-) : SectionToken(col, len)
+        class Data(
+            override val col: Int,
+            override val len: Int,
+        ) : Section()
 
-class DataSectionToken(
-    col: Int,
-    len: Int,
-) : SectionToken(col, len)
+        class Str(
+            override val col: Int,
+            override val len: Int,
+        ) : Section()
+    }
 
-class StringSectionToken(
-    col: Int,
-    len: Int,
-) : SectionToken(col, len)
+    class InvalidSection(
+        override val col: Int,
+        override val len: Int,
+    ) : Token()
 
-class InvalidSectionToken(
-    col: Int,
-    len: Int,
-) : Token(col, len)
+    class Str(
+        override val col: Int,
+        override val len: Int,
+        val value: String,
+    ) : Token()
 
-class StringToken(
-    col: Int,
-    len: Int,
-    val value: String,
-) : Token(col, len)
+    class UnterminatedString(
+        override val col: Int,
+        override val len: Int,
+        val value: String,
+    ) : Token()
 
-class UnterminatedStringToken(
-    col: Int,
-    len: Int,
-    val value: String,
-) : Token(col, len)
+    class Ident(
+        override val col: Int,
+        override val len: Int,
+        val value: String,
+    ) : Token()
 
-class IdentToken(
-    col: Int,
-    len: Int,
-    val value: String,
-) : Token(col, len)
+    class InvalidIdent(
+        override val col: Int,
+        override val len: Int,
+    ) : Token()
 
-class InvalidIdentToken(
-    col: Int,
-    len: Int,
-) : Token(col, len)
-
-class ArgSeparatorToken(
-    col: Int,
-    len: Int,
-) : Token(col, len)
+    class ArgSeparator(
+        override val col: Int,
+        override val len: Int,
+    ) : Token()
+}
 
 fun tokenizeLine(line: String): MutableList<Token> =
     LineTokenizer(line).tokenize()
@@ -125,7 +125,7 @@ private class LineTokenizer(private var line: String) {
             } else if (char == '-' || char.isDigit()) {
                 token = tokenizeNumberOrLabel()
             } else if (char == ',') {
-                token = ArgSeparatorToken(col, 1)
+                token = Token.ArgSeparator(col, 1)
                 skip()
             } else if (char == '.') {
                 token = tokenizeSection()
@@ -206,13 +206,13 @@ private class LineTokenizer(private var line: String) {
         }
 
         if (value == null) {
-            return InvalidNumberToken(col, markedLen())
+            return Token.InvalidNumber(col, markedLen())
         }
 
         return if (isLabel) {
-            LabelToken(col, markedLen(), value)
+            Token.Label(col, markedLen(), value)
         } else {
-            IntToken(col, markedLen(), value)
+            Token.Int32(col, markedLen(), value)
         }
     }
 
@@ -222,11 +222,11 @@ private class LineTokenizer(private var line: String) {
 
         if (HEX_INT_REGEX.matches(hexStr)) {
             hexStr.toIntOrNull(16)?.let { value ->
-                return IntToken(col, markedLen(), value)
+                return Token.Int32(col, markedLen(), value)
             }
         }
 
-        return InvalidNumberToken(col, markedLen())
+        return Token.InvalidNumber(col, markedLen())
     }
 
     private fun tokenizeFloat(col: Int): Token {
@@ -235,11 +235,11 @@ private class LineTokenizer(private var line: String) {
 
         if (FLOAT_REGEX.matches(floatStr)) {
             floatStr.toFloatOrNull()?.let { value ->
-                return FloatToken(col, markedLen(), value)
+                return Token.Float32(col, markedLen(), value)
             }
         }
 
-        return InvalidNumberToken(col, markedLen())
+        return Token.InvalidNumber(col, markedLen())
     }
 
     private fun tokenizeRegisterOrIdent(): Token {
@@ -262,7 +262,7 @@ private class LineTokenizer(private var line: String) {
         return if (isRegister) {
             val value = slice().toInt()
 
-            RegisterToken(col, markedLen() + 1, value)
+            Token.Register(col, markedLen() + 1, value)
         } else {
             back()
             tokenizeIdent()
@@ -282,10 +282,10 @@ private class LineTokenizer(private var line: String) {
         }
 
         return when (slice()) {
-            ".code" -> CodeSectionToken(col, 5)
-            ".data" -> DataSectionToken(col, 5)
-            ".string" -> StringSectionToken(col, 7)
-            else -> InvalidSectionToken(col, markedLen())
+            ".code" -> Token.Section.Code(col, 5)
+            ".data" -> Token.Section.Data(col, 5)
+            ".string" -> Token.Section.Str(col, 7)
+            else -> Token.InvalidSection(col, markedLen())
         }
     }
 
@@ -321,9 +321,9 @@ private class LineTokenizer(private var line: String) {
 
         return if (terminated) {
             next()
-            StringToken(col, markedLen() + 2, value)
+            Token.Str(col, markedLen() + 2, value)
         } else {
-            UnterminatedStringToken(col, markedLen() + 1, value)
+            Token.UnterminatedString(col, markedLen() + 1, value)
         }
     }
 
@@ -351,9 +351,9 @@ private class LineTokenizer(private var line: String) {
         val value = slice()
 
         return if (IDENT_REGEX.matches(value)) {
-            IdentToken(col, markedLen(), value)
+            Token.Ident(col, markedLen(), value)
         } else {
-            InvalidIdentToken(col, markedLen())
+            Token.InvalidIdent(col, markedLen())
         }
     }
 }

@@ -1,6 +1,5 @@
 package world.phantasmal.web.questEditor.widgets
 
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.w3c.dom.Node
 import world.phantasmal.lib.fileFormats.quest.Episode
@@ -10,25 +9,19 @@ import world.phantasmal.webui.dom.Icon
 import world.phantasmal.webui.dom.div
 import world.phantasmal.webui.widgets.*
 
-class QuestEditorToolbarWidget(
-    scope: CoroutineScope,
-    private val ctrl: QuestEditorToolbarController,
-) : Widget(scope) {
+class QuestEditorToolbarWidget(private val ctrl: QuestEditorToolbarController) : Widget() {
     override fun Node.createElement() =
         div {
             className = "pw-quest-editor-toolbar"
 
             addChild(Toolbar(
-                scope,
                 children = listOf(
                     Button(
-                        scope,
                         text = "New quest",
                         iconLeft = Icon.NewFile,
                         onClick = { scope.launch { ctrl.createNewQuest(Episode.I) } },
                     ),
                     FileButton(
-                        scope,
                         text = "Open file...",
                         tooltip = value("Open a quest file (Ctrl-O)"),
                         iconLeft = Icon.File,
@@ -37,7 +30,6 @@ class QuestEditorToolbarWidget(
                         filesSelected = { files -> scope.launch { ctrl.openFiles(files) } },
                     ),
                     Button(
-                        scope,
                         text = "Undo",
                         iconLeft = Icon.Undo,
                         enabled = ctrl.undoEnabled,
@@ -45,7 +37,6 @@ class QuestEditorToolbarWidget(
                         onClick = { ctrl.undo() },
                     ),
                     Button(
-                        scope,
                         text = "Redo",
                         iconLeft = Icon.Redo,
                         enabled = ctrl.redoEnabled,
@@ -53,7 +44,6 @@ class QuestEditorToolbarWidget(
                         onClick = { ctrl.redo() },
                     ),
                     Select(
-                        scope,
                         enabled = ctrl.areaSelectEnabled,
                         itemsVal = ctrl.areas,
                         itemToString = { it.label },

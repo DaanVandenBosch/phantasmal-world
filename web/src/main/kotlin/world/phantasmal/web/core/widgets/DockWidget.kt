@@ -1,6 +1,5 @@
 package world.phantasmal.web.core.widgets
 
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.w3c.dom.Node
 import world.phantasmal.observable.value.Val
@@ -12,11 +11,10 @@ import world.phantasmal.webui.obj
 import world.phantasmal.webui.widgets.Widget
 
 class DockWidget(
-    scope: CoroutineScope,
     visible: Val<Boolean> = trueVal(),
     private val ctrl: DockController,
-    private val createWidget: (scope: CoroutineScope, id: String) -> Widget?,
-) : Widget(scope, visible) {
+    private val createWidget: (id: String) -> Widget?,
+) : Widget(visible) {
     private var goldenLayout: GoldenLayout? = null
 
     init {
@@ -49,7 +47,7 @@ class DockWidget(
                     goldenLayout.registerComponent(id) { container: GoldenLayout.Container ->
                         val node = container.getElement()[0] as Node
 
-                        createWidget(scope, id)?.let { widget ->
+                        createWidget(id)?.let { widget ->
                             node.addChild(widget)
                             widget.focus()
                         }
