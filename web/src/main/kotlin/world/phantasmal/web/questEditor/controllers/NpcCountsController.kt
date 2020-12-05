@@ -7,12 +7,16 @@ import world.phantasmal.web.questEditor.models.QuestNpcModel
 import world.phantasmal.web.questEditor.stores.QuestEditorStore
 import world.phantasmal.webui.controllers.Controller
 
-class NpcCountsController(store: QuestEditorStore) : Controller() {
+class NpcCountsController(private val store: QuestEditorStore) : Controller() {
     val unavailable: Val<Boolean> = store.currentQuest.isNull()
 
     val npcCounts: Val<List<NameWithCount>> = store.currentQuest
         .flatMap { it?.npcs ?: emptyListVal() }
         .map(::countNpcs)
+
+    fun focused() {
+        store.makeMainUndoCurrent()
+    }
 
     private fun countNpcs(npcs: List<QuestNpcModel>): List<NameWithCount> {
         val npcCounts = mutableMapOf<NpcType, Int>()

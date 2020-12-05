@@ -5,6 +5,9 @@ import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.trueVal
 import world.phantasmal.webui.dom.div
 
+/**
+ * Takes ownership of the given [children].
+ */
 class Toolbar(
     visible: Val<Boolean> = trueVal(),
     enabled: Val<Boolean> = trueVal(),

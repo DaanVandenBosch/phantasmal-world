@@ -13,6 +13,8 @@ import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.map
 import world.phantasmal.observable.value.mutableVal
 import world.phantasmal.observable.value.value
+import world.phantasmal.web.core.PwToolType
+import world.phantasmal.web.core.stores.UiStore
 import world.phantasmal.web.questEditor.loading.QuestLoader
 import world.phantasmal.web.questEditor.models.AreaModel
 import world.phantasmal.web.questEditor.stores.AreaStore
@@ -20,12 +22,14 @@ import world.phantasmal.web.questEditor.stores.QuestEditorStore
 import world.phantasmal.web.questEditor.stores.convertQuestToModel
 import world.phantasmal.webui.controllers.Controller
 import world.phantasmal.webui.readFile
+import world.phantasmal.webui.selectFiles
 
 private val logger = KotlinLogging.logger {}
 
 class AreaAndLabel(val area: AreaModel, val label: String)
 
 class QuestEditorToolbarController(
+    uiStore: UiStore,
     private val questLoader: QuestLoader,
     private val areaStore: AreaStore,
     private val questEditorStore: QuestEditorStore,
@@ -37,6 +41,8 @@ class QuestEditorToolbarController(
 
     val resultDialogVisible: Val<Boolean> = _resultDialogVisible
     val result: Val<PwResult<*>?> = _result
+
+    val openFileAccept = ".bin, .dat, .qst"
 
     // Undo
 
@@ -74,6 +80,26 @@ class QuestEditorToolbarController(
     }
 
     val areaSelectEnabled: Val<Boolean> = questEditorStore.currentQuest.isNotNull()
+
+    init {
+        addDisposables(
+            uiStore.onGlobalKeyDown(PwToolType.QuestEditor, "Ctrl-O") {
+                openFiles(selectFiles(accept = openFileAccept, multiple = true))
+            },
+
+            uiStore.onGlobalKeyDown(PwToolType.QuestEditor, "Ctrl-Z") {
+                undo()
+            },
+
+            uiStore.onGlobalKeyDown(PwToolType.QuestEditor, "Ctrl-Shift-Z") {
+                redo()
+            },
+
+            uiStore.onGlobalKeyDown(PwToolType.QuestEditor, "Ctrl-Y") {
+                redo()
+            },
+        )
+    }
 
     suspend fun createNewQuest(episode: Episode) {
         // TODO: Set filename and version.

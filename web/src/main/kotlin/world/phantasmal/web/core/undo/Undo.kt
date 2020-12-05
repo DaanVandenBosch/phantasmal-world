@@ -17,10 +17,6 @@ interface Undo {
      */
     val firstRedo: Val<Action?>
 
-    /**
-     * Ensures this undo is the current undo in its [UndoManager].
-     */
-    fun makeCurrent()
     fun undo(): Boolean
     fun redo(): Boolean
     fun reset()

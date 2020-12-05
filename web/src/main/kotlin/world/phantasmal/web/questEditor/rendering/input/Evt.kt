@@ -6,6 +6,8 @@ import world.phantasmal.web.questEditor.widgets.EntityDragEvent
 
 sealed class Evt
 
+class KeyboardEvt(val key: String) : Evt()
+
 sealed class PointerEvt : Evt() {
     abstract val buttons: Int
     abstract val shiftKeyDown: Boolean
@@ -32,6 +34,13 @@ class PointerUpEvt(
 ) : PointerEvt()
 
 class PointerMoveEvt(
+    override val buttons: Int,
+    override val shiftKeyDown: Boolean,
+    override val pointerDevicePosition: Vector2,
+    override val movedSinceLastPointerDown: Boolean,
+) : PointerEvt()
+
+class PointerOutEvt(
     override val buttons: Int,
     override val shiftKeyDown: Boolean,
     override val pointerDevicePosition: Vector2,

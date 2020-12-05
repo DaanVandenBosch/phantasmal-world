@@ -2,20 +2,19 @@ package world.phantasmal.web.questEditor.widgets
 
 import org.w3c.dom.Node
 import world.phantasmal.core.disposable.disposable
-import world.phantasmal.web.externals.monacoEditor.IStandaloneCodeEditor
-import world.phantasmal.web.externals.monacoEditor.create
-import world.phantasmal.web.externals.monacoEditor.defineTheme
-import world.phantasmal.web.externals.monacoEditor.set
-import world.phantasmal.web.questEditor.controllers.AssemblyEditorController
+import world.phantasmal.web.externals.monacoEditor.*
+import world.phantasmal.web.questEditor.controllers.AsmController
 import world.phantasmal.webui.dom.div
 import world.phantasmal.webui.obj
 import world.phantasmal.webui.widgets.Widget
 
-class AssemblyEditorWidget(private val ctrl: AssemblyEditorController) : Widget() {
+class AsmEditorWidget(private val ctrl: AsmController) : Widget() {
     private lateinit var editor: IStandaloneCodeEditor
 
     override fun Node.createElement() =
         div {
+            className = "pw-quest-editor-asm-editor"
+
             editor = create(this, obj {
                 theme = "phantasmal-world"
                 scrollBeyondLastLine = false
@@ -34,12 +33,52 @@ class AssemblyEditorWidget(private val ctrl: AssemblyEditorController) : Widget(
             observe(ctrl.readOnly) { editor.updateOptions(obj { readOnly = it }) }
 
             addDisposable(size.observe { (size) ->
-                editor.layout(obj {
-                    width = size.width
-                    height = size.height
-                })
+                if (size.width > .0 && size.height > .0) {
+                    editor.layout(obj {
+                        width = size.width
+                        height = size.height
+                    })
+                }
             })
+
+            // Add VSCode keybinding for command palette.
+            val quickCommand = editor.getAction("editor.action.quickCommand")
+
+            editor.addAction(object : IActionDescriptor {
+                override var id = "editor.action.quickCommand"
+                override var label = "Command Palette"
+                override var keybindings =
+                    arrayOf(KeyMod.CtrlCmd or KeyMod.Shift or KeyCode.KEY_P)
+
+                override fun run(editor: ICodeEditor, vararg args: dynamic) {
+                    quickCommand.run()
+                }
+            })
+
+            // Undo/redo.
+            observe(ctrl.didUndo) {
+                editor.focus()
+                editor.trigger(
+                    source = AsmEditorWidget::class.simpleName,
+                    handlerId = "undo",
+                    payload = undefined
+                )
+            }
+
+            observe(ctrl.didRedo) {
+                editor.trigger(
+                    source = AsmEditorWidget::class.simpleName,
+                    handlerId = "redo",
+                    payload = undefined
+                )
+            }
+
+            editor.onDidFocusEditorWidget(ctrl::makeUndoCurrent)
         }
+
+    override fun focus() {
+        editor.focus()
+    }
 
     companion object {
         init {
@@ -61,6 +100,14 @@ class AssemblyEditorWidget(private val ctrl: AssemblyEditorController) : Widget(
                     this["editor.lineHighlightBackground"] = "#202020"
                 }
             })
+
+            @Suppress("CssUnusedSymbol")
+            // language=css
+            style("""
+                .pw-quest-editor-asm-editor {
+                    flex-grow: 1;
+                }
+            """.trimIndent())
         }
     }
 }

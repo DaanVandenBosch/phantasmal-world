@@ -9,18 +9,20 @@ import org.w3c.dom.asList
 import org.w3c.files.File
 import org.w3c.files.FileReader
 
-fun openFiles(accept: String = "", multiple: Boolean = false, callback: (List<File>) -> Unit) {
-    val el = document.createElement("input") as HTMLInputElement
-    el.type = "file"
-    el.accept = accept
-    el.multiple = multiple
+@OptIn(ExperimentalCoroutinesApi::class)
+suspend fun selectFiles(accept: String = "", multiple: Boolean = false): List<File> =
+    suspendCancellableCoroutine { cont ->
+        val el = document.createElement("input") as HTMLInputElement
+        el.type = "file"
+        el.accept = accept
+        el.multiple = multiple
 
-    el.onchange = {
-        callback(el.files?.asList() ?: emptyList())
+        el.onchange = {
+            cont.resume(el.files?.asList() ?: emptyList()) {}
+        }
+
+        el.click()
     }
-
-    el.click()
-}
 
 @OptIn(ExperimentalCoroutinesApi::class)
 suspend fun readFile(file: File): ArrayBuffer = suspendCancellableCoroutine { cont ->

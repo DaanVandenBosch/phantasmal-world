@@ -12,6 +12,9 @@ class NpcCountsWidget(
     override fun Node.createElement() =
         div {
             className = "pw-quest-editor-npc-counts"
+            tabIndex = -1
+
+            addEventListener("focus", { ctrl.focused() }, true)
 
             table {
                 hidden(ctrl.unavailable)

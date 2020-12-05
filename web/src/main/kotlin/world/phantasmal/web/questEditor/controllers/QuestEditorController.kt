@@ -15,24 +15,24 @@ class QuestEditorController(
 
     companion object {
         // These IDs are persisted, don't change them.
-        const val QUEST_INFO_WIDGET_ID = "info"
-        const val NPC_COUNTS_WIDGET_ID = "npc_counts"
-        const val ENTITY_INFO_WIDGET_ID = "entity_info"
-        const val QUEST_RENDERER_WIDGET_ID = "quest_renderer"
-        const val ASSEMBLY_EDITOR_WIDGET_ID = "asm_editor"
-        const val NPC_LIST_WIDGET_ID = "npc_list_view"
-        const val OBJECT_LIST_WIDGET_ID = "object_list_view"
-        const val EVENTS_WIDGET_ID = "events_view"
+        const val QUEST_INFO_WIDGET_ID = "quest-info"
+        const val NPC_COUNTS_WIDGET_ID = "npc-counts"
+        const val ENTITY_INFO_WIDGET_ID = "entity-info"
+        const val QUEST_RENDERER_WIDGET_ID = "quest-renderer"
+        const val ASM_WIDGET_ID = "asm"
+        const val NPC_LIST_WIDGET_ID = "npc-list"
+        const val OBJECT_LIST_WIDGET_ID = "object-list"
+        const val EVENTS_WIDGET_ID = "events"
 
         private val ALL_WIDGET_IDS: Set<String> = setOf(
-            "info",
-            "npc_counts",
-            "entity_info",
-            "quest_renderer",
-            "asm_editor",
-            "npc_list_view",
-            "object_list_view",
-            "events_view",
+            QUEST_INFO_WIDGET_ID,
+            NPC_COUNTS_WIDGET_ID,
+            ENTITY_INFO_WIDGET_ID,
+            QUEST_RENDERER_WIDGET_ID,
+            ASM_WIDGET_ID,
+            NPC_LIST_WIDGET_ID,
+            OBJECT_LIST_WIDGET_ID,
+            EVENTS_WIDGET_ID,
         )
 
         private val DEFAULT_CONFIG = DockedRow(
@@ -67,7 +67,7 @@ class QuestEditorController(
                         ),
                         DockedWidget(
                             title = "Script",
-                            id = ASSEMBLY_EDITOR_WIDGET_ID,
+                            id = ASM_WIDGET_ID,
                         ),
                     )
                 ),

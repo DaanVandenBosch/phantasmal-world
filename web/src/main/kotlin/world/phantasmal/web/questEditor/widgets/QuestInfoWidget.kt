@@ -15,6 +15,8 @@ class QuestInfoWidget(private val ctrl: QuestInfoController) : Widget(enabled = 
             className = "pw-quest-editor-quest-info"
             tabIndex = -1
 
+            addEventListener("focus", { ctrl.focused() }, true)
+
             table {
                 hidden(ctrl.unavailable)
 
@@ -91,11 +93,6 @@ class QuestInfoWidget(private val ctrl: QuestInfoController) : Widget(enabled = 
                 message = "No quest loaded."
             ))
         }
-
-    override fun focus() {
-        super.focus()
-        ctrl.focused()
-    }
 
     companion object {
         init {

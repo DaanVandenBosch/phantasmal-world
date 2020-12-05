@@ -4,6 +4,7 @@ import org.w3c.dom.Node
 import org.w3c.dom.events.KeyboardEvent
 import org.w3c.dom.events.MouseEvent
 import world.phantasmal.observable.value.*
+import world.phantasmal.observable.value.list.emptyListVal
 import world.phantasmal.webui.dom.Icon
 import world.phantasmal.webui.dom.div
 
@@ -14,11 +15,9 @@ class Select<T : Any>(
     label: String? = null,
     labelVal: Val<String>? = null,
     preferredLabelPosition: LabelPosition = LabelPosition.Before,
-    items: List<T>? = null,
-    itemsVal: Val<List<T>>? = null,
+    items: Val<List<T>>? = null,
     private val itemToString: (T) -> String = Any::toString,
-    selected: T? = null,
-    selectedVal: Val<T?>? = null,
+    selected: Val<T?>? = null,
     private val onSelect: (T) -> Unit = {},
 ) : LabelledControl(
     visible,
@@ -28,8 +27,8 @@ class Select<T : Any>(
     labelVal,
     preferredLabelPosition,
 ) {
-    private val items: Val<List<T>> = itemsVal ?: value(items ?: emptyList())
-    private val selected: Val<T?> = selectedVal ?: value(selected)
+    private val items: Val<List<T>> = items ?: emptyListVal()
+    private val selected: Val<T?> = selected ?: nullVal()
 
     private val buttonText = mutableVal(" ")
     private val menuVisible = mutableVal(false)

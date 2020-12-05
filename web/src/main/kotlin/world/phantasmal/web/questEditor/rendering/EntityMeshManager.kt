@@ -2,6 +2,7 @@ package world.phantasmal.web.questEditor.rendering
 
 import kotlinx.coroutines.*
 import mu.KotlinLogging
+import world.phantasmal.core.disposable.DisposableSupervisedScope
 import world.phantasmal.lib.fileFormats.quest.EntityType
 import world.phantasmal.web.externals.three.BoxHelper
 import world.phantasmal.web.externals.three.Color
@@ -19,7 +20,7 @@ class EntityMeshManager(
     private val renderContext: QuestRenderContext,
     private val entityAssetLoader: EntityAssetLoader,
 ) : DisposableContainer() {
-    private val scope: CoroutineScope = CoroutineScope(Dispatchers.Main)
+    private val scope = addDisposable(DisposableSupervisedScope(this::class, Dispatchers.Main))
 
     /**
      * Contains one [EntityInstancedMesh] per [EntityType] and model.
@@ -50,7 +51,7 @@ class EntityMeshManager(
     /**
      * Bounding box around the highlighted entity.
      */
-    private val highlightedBox = BoxHelper(color = Color(0.7, 0.7, 0.7)).apply {
+    private val highlightedBox = BoxHelper(color = Color(.7, .7, .7)).apply {
         visible = false
         renderContext.scene.add(this)
     }
@@ -58,7 +59,7 @@ class EntityMeshManager(
     /**
      * Bounding box around the selected entity.
      */
-    private val selectedBox = BoxHelper(color = Color(0.9, 0.9, 0.9)).apply {
+    private val selectedBox = BoxHelper(color = Color(.9, .9, .9)).apply {
         visible = false
         renderContext.scene.add(this)
     }
@@ -113,7 +114,7 @@ class EntityMeshManager(
     }
 
     fun remove(entity: QuestEntityModel<*, *>) {
-        loadingEntities.remove(entity)?.cancel()
+        loadingEntities.remove(entity)?.cancel("Removed.")
 
         entityMeshCache.getIfPresentNow(
             TypeAndModel(
@@ -125,7 +126,7 @@ class EntityMeshManager(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     fun removeAll() {
-        loadingEntities.values.forEach { it.cancel() }
+        loadingEntities.values.forEach { it.cancel("Removed.") }
         loadingEntities.clear()
 
         for (meshContainerDeferred in entityMeshCache.values) {
@@ -144,7 +145,7 @@ class EntityMeshManager(
             attachBoxHelper(
                 highlightedBox,
                 highlightedEntityInstance,
-                instance
+                instance,
             )
             highlightedEntityInstance = instance
         }

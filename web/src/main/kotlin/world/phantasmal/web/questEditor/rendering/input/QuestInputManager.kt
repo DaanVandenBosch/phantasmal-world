@@ -1,6 +1,8 @@
 package world.phantasmal.web.questEditor.rendering.input
 
 import kotlinx.browser.window
+import org.w3c.dom.events.FocusEvent
+import org.w3c.dom.events.KeyboardEvent
 import org.w3c.dom.pointerevents.PointerEvent
 import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.web.core.rendering.InputManager
@@ -17,7 +19,7 @@ import world.phantasmal.webui.DisposableContainer
 import world.phantasmal.webui.dom.disposableListener
 
 class QuestInputManager(
-    questEditorStore: QuestEditorStore,
+    private val questEditorStore: QuestEditorStore,
     private val renderContext: QuestRenderContext,
 ) : DisposableContainer(), InputManager {
     private val stateContext: StateContext
@@ -42,14 +44,18 @@ class QuestInputManager(
         }
 
     init {
-        addDisposables(
-            renderContext.canvas.disposableListener("pointerdown", ::onPointerDown)
-        )
-
         onPointerMoveListener =
             renderContext.canvas.disposableListener("pointermove", ::onPointerMove)
 
         addDisposables(
+            renderContext.canvas.disposableListener<FocusEvent>(
+                "focus",
+                { onFocus() },
+                useCapture = true,
+            ),
+            renderContext.canvas.disposableListener("pointerdown", ::onPointerDown),
+            renderContext.canvas.disposableListener("pointerout", ::onPointerOut),
+            renderContext.canvas.disposableListener("keydown", ::onKeyDown),
             renderContext.canvas.observeEntityDragEnter(::onEntityDragEnter),
             renderContext.canvas.observeEntityDragOver(::onEntityDragOver),
             renderContext.canvas.observeEntityDragLeave(::onEntityDragLeave),
@@ -89,6 +95,10 @@ class QuestInputManager(
     override fun beforeRender() {
         state.beforeRender()
         cameraInputManager.beforeRender()
+    }
+
+    private fun onFocus() {
+        questEditorStore.makeMainUndoCurrent()
     }
 
     private fun onPointerDown(e: PointerEvent) {
@@ -144,6 +154,23 @@ class QuestInputManager(
                 movedSinceLastPointerDown,
             )
         )
+    }
+
+    private fun onPointerOut(e: PointerEvent) {
+        processPointerEvent(type = null, e.clientX, e.clientY)
+
+        state = state.processEvent(
+            PointerOutEvt(
+                e.buttons.toInt(),
+                shiftKeyDown = e.shiftKey,
+                pointerDevicePosition,
+                movedSinceLastPointerDown,
+            )
+        )
+    }
+
+    private fun onKeyDown(e: KeyboardEvent) {
+        state = state.processEvent(KeyboardEvt(e.key))
     }
 
     private fun onEntityDragEnter(e: EntityDragEvent) {

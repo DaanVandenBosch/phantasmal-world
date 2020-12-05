@@ -36,6 +36,7 @@ class CreationState(
             else -> error("Unsupported entity type ${event.entityType::class}.")
         }
 
+    private val dragAdjust = Vector3(.0, .0, .0)
     private val pointerDevicePosition = Vector2()
     private var shouldTranslate = false
     private var shouldTranslateVertically = false
@@ -83,14 +84,14 @@ class CreationState(
             if (shouldTranslateVertically) {
                 ctx.translateEntityVertically(
                     entity,
-                    ZERO_VECTOR,
+                    dragAdjust,
                     ZERO_VECTOR,
                     pointerDevicePosition,
                 )
             } else {
                 ctx.translateEntityHorizontally(
                     entity,
-                    ZERO_VECTOR,
+                    dragAdjust,
                     ZERO_VECTOR,
                     pointerDevicePosition,
                 )

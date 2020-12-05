@@ -8,7 +8,7 @@ class LoadingCache<K, V>(
     private val loadValue: suspend (K) -> V,
     private val disposeValue: (V) -> Unit,
 ) : TrackedDisposable() {
-    private val scope: CoroutineScope = CoroutineScope(Dispatchers.Default)
+    private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private val map = mutableMapOf<K, Deferred<V>>()
 
     val values: Collection<Deferred<V>> = map.values

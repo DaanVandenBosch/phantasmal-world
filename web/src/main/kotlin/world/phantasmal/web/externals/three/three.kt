@@ -535,7 +535,7 @@ external class CylinderBufferGeometry(
 open external class BufferAttribute {
     var needsUpdate: Boolean
 
-    fun copyAt(index1: Int, attribute: BufferAttribute, index2: Int): BufferAttribute
+    fun copyAt(index1: Int, bufferAttribute: BufferAttribute, index2: Int): BufferAttribute
 }
 
 external class Uint16BufferAttribute(

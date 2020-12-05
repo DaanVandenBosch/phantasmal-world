@@ -13,6 +13,8 @@ class EntityInfoWidget(private val ctrl: EntityInfoController) : Widget(enabled 
             className = "pw-quest-editor-entity-info"
             tabIndex = -1
 
+            addEventListener("focus", { ctrl.focused() }, true)
+
             table {
                 hidden(ctrl.unavailable)
 
@@ -112,11 +114,6 @@ class EntityInfoWidget(private val ctrl: EntityInfoController) : Widget(enabled 
                 message = "No entity selected.",
             ))
         }
-
-    override fun focus() {
-        super.focus()
-        ctrl.focused()
-    }
 
     companion object {
         private const val COORD_CLASS = "pw-quest-editor-entity-info-coord"

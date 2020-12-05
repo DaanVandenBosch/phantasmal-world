@@ -1,7 +1,10 @@
 package world.phantasmal.web.core.stores
 
 import kotlinx.browser.window
+import kotlinx.coroutines.launch
 import org.w3c.dom.events.KeyboardEvent
+import world.phantasmal.core.disposable.Disposable
+import world.phantasmal.core.disposable.disposable
 import world.phantasmal.observable.value.MutableVal
 import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.eq
@@ -30,7 +33,7 @@ class UiStore(private val applicationUrl: ApplicationUrl) : Store() {
      * parameter values per [applicationUrl].
      */
     private val parameters: MutableMap<String, Map<String, String>> = mutableMapOf()
-    private val globalKeydownHandlers: MutableMap<String, (e: KeyboardEvent) -> Unit> =
+    private val globalKeyDownHandlers: MutableMap<String, suspend (e: KeyboardEvent) -> Unit> =
         mutableMapOf()
 
     /**
@@ -78,7 +81,7 @@ class UiStore(private val applicationUrl: ApplicationUrl) : Store() {
             .toMap()
 
         addDisposables(
-            window.disposableListener("keydown", ::dispatchGlobalKeydown),
+            window.disposableListener("keydown", ::dispatchGlobalKeyDown),
         )
 
         observe(applicationUrl.url) { setDataFromUrl(it) }
@@ -99,6 +102,21 @@ class UiStore(private val applicationUrl: ApplicationUrl) : Store() {
             updateApplicationUrl(currentTool.value, prefix, replace)
             _path.value = prefix
         }
+    }
+
+    fun onGlobalKeyDown(
+        tool: PwToolType,
+        binding: String,
+        handler: suspend (KeyboardEvent) -> Unit,
+    ): Disposable {
+        val key = handlerKey(tool, binding)
+        require(key !in globalKeyDownHandlers) {
+            """Binding "$binding" already exists for tool $tool."""
+        }
+
+        globalKeyDownHandlers[key] = handler
+
+        return disposable { globalKeyDownHandlers.remove(key) }
     }
 
     /**
@@ -169,7 +187,7 @@ class UiStore(private val applicationUrl: ApplicationUrl) : Store() {
         }
     }
 
-    private fun dispatchGlobalKeydown(e: KeyboardEvent) {
+    private fun dispatchGlobalKeyDown(e: KeyboardEvent) {
         val bindingParts = mutableListOf<String>()
 
         if (e.ctrlKey) bindingParts.add("Ctrl")
@@ -179,11 +197,11 @@ class UiStore(private val applicationUrl: ApplicationUrl) : Store() {
 
         val binding = bindingParts.joinToString("-")
 
-        val handler = globalKeydownHandlers[handlerKey(currentTool.value, binding)]
+        val handler = globalKeyDownHandlers[handlerKey(currentTool.value, binding)]
 
         if (handler != null) {
             e.preventDefault()
-            handler(e)
+            scope.launch { handler(e) }
         }
     }
 

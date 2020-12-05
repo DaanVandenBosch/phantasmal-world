@@ -6,6 +6,7 @@ import world.phantasmal.web.core.plusAssign
 import world.phantasmal.web.core.rendering.OrbitalCameraInputManager
 import world.phantasmal.web.externals.three.*
 import world.phantasmal.web.questEditor.actions.CreateEntityAction
+import world.phantasmal.web.questEditor.actions.DeleteEntityAction
 import world.phantasmal.web.questEditor.actions.RotateEntityAction
 import world.phantasmal.web.questEditor.actions.TranslateEntityAction
 import world.phantasmal.web.questEditor.models.*
@@ -22,6 +23,7 @@ class StateContext(
     val quest: Val<QuestModel?> = questEditorStore.currentQuest
     val area: Val<AreaModel?> = questEditorStore.currentArea
     val wave: Val<WaveModel?> = questEditorStore.selectedWave
+    val selectedEntity: Val<QuestEntityModel<*, *>?> = questEditorStore.selectedEntity
 
     fun setHighlightedEntity(entity: QuestEntityModel<*, *>?) {
         questEditorStore.setHighlightedEntity(entity)
@@ -174,6 +176,14 @@ class StateContext(
 
     fun finalizeEntityCreation(quest: QuestModel, entity: QuestEntityModel<*, *>) {
         questEditorStore.pushAction(CreateEntityAction(
+            ::setSelectedEntity,
+            quest,
+            entity,
+        ))
+    }
+
+    fun deleteEntity(quest: QuestModel, entity: QuestEntityModel<*, *>) {
+        questEditorStore.executeAction(DeleteEntityAction(
             ::setSelectedEntity,
             quest,
             entity,

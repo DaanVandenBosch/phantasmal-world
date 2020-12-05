@@ -1,11 +1,11 @@
 package world.phantasmal.webui.widgets
 
 import kotlinx.browser.document
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import org.w3c.dom.*
 import org.w3c.dom.pointerevents.PointerEvent
+import world.phantasmal.core.disposable.DisposableSupervisedScope
 import world.phantasmal.core.disposable.Disposer
 import world.phantasmal.observable.Observable
 import world.phantasmal.observable.value.*
@@ -65,7 +65,7 @@ abstract class Widget(
         el
     }
 
-    protected val scope: CoroutineScope = MainScope()
+    protected val scope = addDisposable(DisposableSupervisedScope(this::class, Dispatchers.Main))
 
     /**
      * This widget's outermost DOM element.

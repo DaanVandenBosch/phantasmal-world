@@ -14,10 +14,9 @@ import world.phantasmal.lib.fileFormats.quest.ObjectType
 import world.phantasmal.web.core.loading.AssetLoader
 import world.phantasmal.web.core.rendering.conversion.ninjaObjectToInstancedMesh
 import world.phantasmal.web.core.rendering.disposeObject3DResources
-import world.phantasmal.web.externals.three.CylinderBufferGeometry
-import world.phantasmal.web.externals.three.InstancedMesh
-import world.phantasmal.web.externals.three.MeshLambertMaterial
+import world.phantasmal.web.externals.three.*
 import world.phantasmal.webui.DisposableContainer
+import world.phantasmal.webui.obj
 
 private val logger = KotlinLogging.logger {}
 
@@ -26,10 +25,11 @@ class EntityAssetLoader(private val assetLoader: AssetLoader) : DisposableContai
         LoadingCache<Pair<EntityType, Int?>, InstancedMesh>(
             { (type, model) ->
                 try {
-                    loadMesh(type, model) ?: DEFAULT_MESH
+                    loadMesh(type, model)
+                        ?: if (type is NpcType) DEFAULT_NPC_MESH else DEFAULT_OBJECT_MESH
                 } catch (e: Exception) {
                     logger.error(e) { "Couldn't load mesh for $type (model: $model)." }
-                    DEFAULT_MESH
+                    if (type is NpcType) DEFAULT_NPC_MESH else DEFAULT_OBJECT_MESH
                 }
             },
             ::disposeObject3DResources
@@ -60,8 +60,12 @@ class EntityAssetLoader(private val assetLoader: AssetLoader) : DisposableContai
             ninjaObject,
             textures,
             maxInstances = 300,
+            defaultMaterial = MeshLambertMaterial(obj {
+                color = if (type is NpcType) DEFAULT_NPC_COLOR else DEFAULT_OBJECT_COLOR
+                side = DoubleSide
+            }),
             boundingVolumes = true,
-        )
+        ).apply { name = type.uniqueName }
     }
 
     private suspend fun loadTextures(type: EntityType, model: Int?): List<XvrTexture> {
@@ -121,23 +125,30 @@ class EntityAssetLoader(private val assetLoader: AssetLoader) : DisposableContai
     }
 
     companion object {
-        private val DEFAULT_MESH = InstancedMesh(
-            CylinderBufferGeometry(
-                radiusTop = 2.5,
-                radiusBottom = 2.5,
-                height = 18.0,
-                radialSegments = 16,
+        private val DEFAULT_NPC_COLOR = Color(0xFF0000)
+        private val DEFAULT_OBJECT_COLOR = Color(0xFFFF00)
+
+        private val DEFAULT_NPC_MESH = createCylinder(DEFAULT_NPC_COLOR)
+        private val DEFAULT_OBJECT_MESH = createCylinder(DEFAULT_OBJECT_COLOR)
+
+        private fun createCylinder(color: Color) =
+            InstancedMesh(
+                CylinderBufferGeometry(
+                    radiusTop = 2.5,
+                    radiusBottom = 2.5,
+                    height = 18.0,
+                    radialSegments = 20,
+                ).apply {
+                    translate(0.0, 9.0, 0.0)
+                    computeBoundingBox()
+                    computeBoundingSphere()
+                },
+                MeshLambertMaterial(obj { this.color = color }),
+                count = 1000,
             ).apply {
-                translate(0.0, 9.0, 0.0)
-                computeBoundingBox()
-                computeBoundingSphere()
-            },
-            MeshLambertMaterial(),
-            count = 1000,
-        ).apply {
-            // Start with 0 instances.
-            count = 0
-        }
+                // Start with 0 instances.
+                count = 0
+            }
     }
 }
 

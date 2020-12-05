@@ -10,7 +10,7 @@ import world.phantasmal.web.core.actions.Action
 /**
  * Full-fledged linear undo/redo implementation.
  */
-class UndoStack(private val manager: UndoManager) : Undo {
+class UndoStack(manager: UndoManager) : Undo {
     private val stack = mutableListVal<Action>()
 
     /**
@@ -20,6 +20,10 @@ class UndoStack(private val manager: UndoManager) : Undo {
     private val index = mutableVal(0)
     private var undoingOrRedoing = false
 
+    init {
+        manager.addUndo(this)
+    }
+
     override val canUndo: Val<Boolean> = index gt 0
 
     override val canRedo: Val<Boolean> = map(stack, index) { stack, index -> index < stack.size }
@@ -27,10 +31,6 @@ class UndoStack(private val manager: UndoManager) : Undo {
     override val firstUndo: Val<Action?> = index.map { stack.value.getOrNull(it - 1) }
 
     override val firstRedo: Val<Action?> = index.map { stack.value.getOrNull(it) }
-
-    override fun makeCurrent() {
-        manager.setCurrent(this)
-    }
 
     fun push(action: Action): Action {
         if (!undoingOrRedoing) {

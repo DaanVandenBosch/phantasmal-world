@@ -19,6 +19,17 @@ class IdleState(
 
     override fun processEvent(event: Evt): State {
         when (event) {
+            is KeyboardEvt -> {
+                if (entityManipulationEnabled) {
+                    val quest = ctx.quest.value
+                    val entity = ctx.selectedEntity.value
+
+                    if (quest != null && entity != null && event.key == "Delete") {
+                        ctx.deleteEntity(quest, entity)
+                    }
+                }
+            }
+
             is PointerDownEvt -> {
                 val pick = pickEntity(event.pointerDevicePosition)
 
@@ -83,6 +94,11 @@ class IdleState(
                     pointerDevicePosition.copy(event.pointerDevicePosition)
                     shouldCheckHighlight = true
                 }
+            }
+
+            is PointerOutEvt -> {
+                ctx.setHighlightedEntity(null)
+                shouldCheckHighlight = false
             }
 
             is EntityDragEnterEvt -> {

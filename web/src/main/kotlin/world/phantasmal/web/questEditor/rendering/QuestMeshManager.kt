@@ -1,9 +1,9 @@
 package world.phantasmal.web.questEditor.rendering
 
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import world.phantasmal.core.disposable.DisposableSupervisedScope
 import world.phantasmal.core.disposable.Disposer
 import world.phantasmal.lib.fileFormats.quest.Episode
 import world.phantasmal.observable.value.list.ListVal
@@ -25,7 +25,7 @@ abstract class QuestMeshManager protected constructor(
     questEditorStore: QuestEditorStore,
     renderContext: QuestRenderContext,
 ) : DisposableContainer() {
-    private val scope: CoroutineScope = CoroutineScope(Dispatchers.Default)
+    private val scope = addDisposable(DisposableSupervisedScope(this::class, Dispatchers.Default))
     private val areaDisposer = addDisposable(Disposer())
     private val areaMeshManager = AreaMeshManager(renderContext, areaAssetLoader)
     private val entityMeshManager = addDisposable(

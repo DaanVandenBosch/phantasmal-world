@@ -18,16 +18,15 @@ import world.phantasmal.webui.stores.Store
 private val logger = KotlinLogging.logger {}
 
 class QuestEditorStore(
-    private val uiStore: UiStore,
+    uiStore: UiStore,
     private val areaStore: AreaStore,
+    private val undoManager: UndoManager,
 ) : Store() {
     private val _currentQuest = mutableVal<QuestModel?>(null)
     private val _currentArea = mutableVal<AreaModel?>(null)
     private val _selectedWave = mutableVal<WaveModel?>(null)
     private val _highlightedEntity = mutableVal<QuestEntityModel<*, *>?>(null)
     private val _selectedEntity = mutableVal<QuestEntityModel<*, *>?>(null)
-
-    private val undoManager = UndoManager()
     private val mainUndo = UndoStack(undoManager)
 
     val runner = QuestRunner()
@@ -76,21 +75,19 @@ class QuestEditorStore(
     }
 
     fun makeMainUndoCurrent() {
-        mainUndo.makeCurrent()
+        undoManager.setCurrent(mainUndo)
     }
 
     fun undo() {
-        require(canUndo.value) { "Can't undo at the moment." }
         undoManager.undo()
     }
 
     fun redo() {
-        require(canRedo.value) { "Can't redo at the moment." }
         undoManager.redo()
     }
 
     suspend fun setCurrentQuest(quest: QuestModel?) {
-        mainUndo.reset()
+        undoManager.reset()
 
         // TODO: Stop runner.
 

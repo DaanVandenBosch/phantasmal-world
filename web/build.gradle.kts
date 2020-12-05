@@ -42,11 +42,11 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-serialization:$serializationVersion")
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.1.1")
     implementation(npm("golden-layout", "^1.5.9"))
-    implementation(npm("monaco-editor", "^0.21.2"))
+    implementation(npm("monaco-editor", "0.20.0"))
     implementation(npm("three", "^0.122.0"))
 
     implementation(devNpm("file-loader", "^6.0.0"))
-    implementation(devNpm("monaco-editor-webpack-plugin", "^2.0.0"))
+    implementation(devNpm("monaco-editor-webpack-plugin", "1.9.0"))
 
     testImplementation(kotlin("test-js"))
     testImplementation(project(":test-utils"))

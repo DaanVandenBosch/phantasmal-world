@@ -23,6 +23,19 @@ fun <E : Event> EventTarget.disposableListener(
     }
 }
 
+fun <E : Event> EventTarget.disposableListener(
+    type: String,
+    listener: (E) -> Unit,
+    useCapture: Boolean,
+): Disposable {
+    @Suppress("UNCHECKED_CAST")
+    addEventListener(type, listener as (Event) -> Unit, useCapture)
+
+    return disposable {
+        removeEventListener(type, listener)
+    }
+}
+
 fun Element.disposablePointerDrag(
     onPointerDown: (e: PointerEvent) -> Boolean,
     onPointerMove: (movedX: Int, movedY: Int, e: PointerEvent) -> Boolean,

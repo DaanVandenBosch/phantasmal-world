@@ -59,13 +59,14 @@ class EntityInstancedMesh(
 
     private fun removeAt(index: Int) {
         val instance = instances.removeAt(index)
-        instance.mesh.count--
+        mesh.count--
 
-        for (i in index until instance.mesh.count) {
-            instance.mesh.instanceMatrix.copyAt(i, instance.mesh.instanceMatrix, i + 1)
+        for (i in index..instances.lastIndex) {
+            mesh.instanceMatrix.copyAt(i, mesh.instanceMatrix, i + 1)
             instances[i].instanceIndex = i
         }
 
+        mesh.instanceMatrix.needsUpdate = true
         instance.dispose()
     }
 

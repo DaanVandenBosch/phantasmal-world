@@ -25,7 +25,7 @@ class QuestEditorToolbarWidget(private val ctrl: QuestEditorToolbarController) :
                         text = "Open file...",
                         tooltip = value("Open a quest file (Ctrl-O)"),
                         iconLeft = Icon.File,
-                        accept = ".bin, .dat, .qst",
+                        accept = ctrl.openFileAccept,
                         multiple = true,
                         filesSelected = { files -> scope.launch { ctrl.openFiles(files) } },
                     ),
@@ -45,11 +45,11 @@ class QuestEditorToolbarWidget(private val ctrl: QuestEditorToolbarController) :
                     ),
                     Select(
                         enabled = ctrl.areaSelectEnabled,
-                        itemsVal = ctrl.areas,
+                        items = ctrl.areas,
                         itemToString = { it.label },
-                        selectedVal = ctrl.currentArea,
+                        selected = ctrl.currentArea,
                         onSelect = ctrl::setCurrentArea,
-                    )
+                    ),
                 )
             ))
         }

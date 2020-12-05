@@ -17,7 +17,6 @@ class EntityListWidget(
     override fun Node.createElement() =
         div {
             className = "pw-quest-editor-entity-list"
-            tabIndex = -1
 
             div {
                 className = "pw-quest-editor-entity-list-inner"

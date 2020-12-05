@@ -7,6 +7,7 @@ package world.phantasmal.web.externals.monacoEditor
 
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.Range
+import kotlin.js.Promise
 
 external fun create(
     domElement: HTMLElement,
@@ -122,7 +123,7 @@ external interface IEditor {
         scrollType: ScrollType = definedExternally,
     )
 
-    fun trigger(source: String?, handlerId: String, payload: Any)
+    fun trigger(source: String?, handlerId: String, payload: dynamic)
     fun getModel(): dynamic /* ITextModel? | IDiffEditorModel? */
     fun setModel(model: ITextModel?)
 }
@@ -180,6 +181,26 @@ external interface ICodeEditor : IEditor {
     fun getOffsetForColumn(lineNumber: Number, column: Number): Number
     fun render(forceRedraw: Boolean = definedExternally)
     fun applyFontInfo(target: HTMLElement)
+    fun getSupportedActions(): Array<IEditorAction>
+    fun getAction(id: String): IEditorAction
+    fun addAction(descriptor: IActionDescriptor): IDisposable
+}
+
+external interface IActionDescriptor {
+    var id: String
+    var label: String
+    var keybindings: Array<Int>
+
+    fun run(editor: ICodeEditor, vararg args: dynamic): dynamic
+}
+
+external interface IEditorAction {
+    val id: String
+    val label: String
+    val alias: String
+
+    fun isSupported(): Boolean
+    fun run(): Promise<Unit>
 }
 
 external interface IStandaloneCodeEditor : ICodeEditor {
@@ -540,8 +561,8 @@ external interface ITextModel {
     var uri: Uri
     var id: String
     fun getOptions(): TextModelResolvedOptions
-    fun getVersionId(): Number
-    fun getAlternativeVersionId(): Number
+    fun getVersionId(): Int
+    fun getAlternativeVersionId(): Int
     fun setValue(newValue: String)
     fun getValue(
         eol: EndOfLinePreference = definedExternally,

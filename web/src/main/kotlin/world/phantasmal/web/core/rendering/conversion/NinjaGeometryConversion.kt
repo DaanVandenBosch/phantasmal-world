@@ -19,9 +19,11 @@ private val NO_SCALE = Vector3(1.0, 1.0, 1.0)
 fun ninjaObjectToMesh(
     ninjaObject: NinjaObject<*>,
     textures: List<XvrTexture>,
-    boundingVolumes: Boolean = false
+    defaultMaterial: Material? = null,
+    boundingVolumes: Boolean = false,
 ): Mesh {
     val builder = MeshBuilder()
+    defaultMaterial?.let { builder.defaultMaterial(defaultMaterial) }
     builder.textures(textures)
     NinjaToMeshConverter(builder).convert(ninjaObject)
     return builder.buildMesh(boundingVolumes)
@@ -31,9 +33,11 @@ fun ninjaObjectToInstancedMesh(
     ninjaObject: NinjaObject<*>,
     textures: List<XvrTexture>,
     maxInstances: Int,
+    defaultMaterial: Material? = null,
     boundingVolumes: Boolean = false,
 ): InstancedMesh {
     val builder = MeshBuilder()
+    defaultMaterial?.let { builder.defaultMaterial(defaultMaterial) }
     builder.textures(textures)
     NinjaToMeshConverter(builder).convert(ninjaObject)
     return builder.buildInstancedMesh(maxInstances, boundingVolumes)

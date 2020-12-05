@@ -7,6 +7,7 @@ import world.phantasmal.observable.value.nullVal
 import world.phantasmal.web.core.actions.Action
 
 class UndoManager {
+    private val undos = mutableListOf<Undo>()
     private val _current = mutableVal<Undo>(NopUndo)
 
     val current: Val<Undo> = _current
@@ -16,7 +17,13 @@ class UndoManager {
     val firstUndo: Val<Action?> = current.flatMap { it.firstUndo }
     val firstRedo: Val<Action?> = current.flatMap { it.firstRedo }
 
+    fun addUndo(undo: Undo) {
+        undos.add(undo)
+    }
+
     fun setCurrent(undo: Undo) {
+        require(undo in undos) { "Undo $undo is not managed by this UndoManager." }
+
         _current.value = undo
     }
 
@@ -26,8 +33,11 @@ class UndoManager {
     fun redo(): Boolean =
         current.value.redo()
 
-    fun makeNopCurrent() {
-        setCurrent(NopUndo)
+    /**
+     * Resets all managed undos.
+     */
+    fun reset() {
+        undos.forEach { it.reset() }
     }
 
     private object NopUndo : Undo {
@@ -35,10 +45,6 @@ class UndoManager {
         override val canRedo = falseVal()
         override val firstUndo = nullVal()
         override val firstRedo = nullVal()
-
-        override fun makeCurrent() {
-            // Do nothing.
-        }
 
         override fun undo(): Boolean = false
 

@@ -2,6 +2,7 @@ package world.phantasmal.web.application.widgets
 
 import org.w3c.dom.Node
 import world.phantasmal.observable.value.falseVal
+import world.phantasmal.observable.value.list.listVal
 import world.phantasmal.observable.value.value
 import world.phantasmal.web.application.controllers.NavigationController
 import world.phantasmal.web.core.dom.externalLink
@@ -30,8 +31,8 @@ class NavigationWidget(private val ctrl: NavigationController) : Widget() {
                 val serverSelect = Select(
                     enabled = falseVal(),
                     label = "Server:",
-                    items = listOf("Ephinea"),
-                    selected = "Ephinea",
+                    items = listVal("Ephinea"),
+                    selected = value("Ephinea"),
                     tooltip = value("Only Ephinea is supported at the moment"),
                 )
                 addWidget(serverSelect.label!!)

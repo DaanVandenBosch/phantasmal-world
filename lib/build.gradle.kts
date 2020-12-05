@@ -103,7 +103,7 @@ val generateOpcodes = tasks.register("generateOpcodes") {
 fun opcodeToCode(writer: PrintWriter, opcode: Map<String, Any>) {
     val code = (opcode["code"] as String).drop(2).toInt(16)
     val codeStr = code.toString(16).toUpperCase().padStart(2, '0')
-    val mnemonic = opcode["mnemonic"] as String? ?: "unknown_$codeStr"
+    val mnemonic = opcode["mnemonic"] as String? ?: "unknown_${codeStr.toLowerCase()}"
     val description = opcode["description"] as String?
     val stack = opcode["stack"] as String?
 

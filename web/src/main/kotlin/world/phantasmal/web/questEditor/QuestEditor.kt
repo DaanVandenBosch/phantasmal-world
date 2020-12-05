@@ -6,6 +6,7 @@ import world.phantasmal.web.core.PwToolType
 import world.phantasmal.web.core.loading.AssetLoader
 import world.phantasmal.web.core.rendering.DisposableThreeRenderer
 import world.phantasmal.web.core.stores.UiStore
+import world.phantasmal.web.core.undo.UndoManager
 import world.phantasmal.web.questEditor.controllers.*
 import world.phantasmal.web.questEditor.loading.AreaAssetLoader
 import world.phantasmal.web.questEditor.loading.EntityAssetLoader
@@ -14,7 +15,7 @@ import world.phantasmal.web.questEditor.persistence.QuestEditorUiPersister
 import world.phantasmal.web.questEditor.rendering.EntityImageRenderer
 import world.phantasmal.web.questEditor.rendering.QuestRenderer
 import world.phantasmal.web.questEditor.stores.AreaStore
-import world.phantasmal.web.questEditor.stores.AssemblyEditorStore
+import world.phantasmal.web.questEditor.stores.AsmStore
 import world.phantasmal.web.questEditor.stores.QuestEditorStore
 import world.phantasmal.web.questEditor.widgets.*
 import world.phantasmal.webui.DisposableContainer
@@ -36,14 +37,22 @@ class QuestEditor(
         // Persistence
         val questEditorUiPersister = QuestEditorUiPersister()
 
+        // Undo
+        val undoManager = UndoManager()
+
         // Stores
         val areaStore = addDisposable(AreaStore(areaAssetLoader))
-        val questEditorStore = addDisposable(QuestEditorStore(uiStore, areaStore))
-        val assemblyEditorStore = addDisposable(AssemblyEditorStore(questEditorStore))
+        val questEditorStore = addDisposable(QuestEditorStore(
+            uiStore,
+            areaStore,
+            undoManager,
+        ))
+        val asmStore = addDisposable(AsmStore(questEditorStore, undoManager))
 
         // Controllers
         val questEditorController = addDisposable(QuestEditorController(questEditorUiPersister))
         val toolbarController = addDisposable(QuestEditorToolbarController(
+            uiStore,
             questLoader,
             areaStore,
             questEditorStore,
@@ -51,7 +60,7 @@ class QuestEditor(
         val questInfoController = addDisposable(QuestInfoController(questEditorStore))
         val npcCountsController = addDisposable(NpcCountsController(questEditorStore))
         val entityInfoController = addDisposable(EntityInfoController(questEditorStore))
-        val assemblyEditorController = addDisposable(AssemblyEditorController(assemblyEditorStore))
+        val asmController = addDisposable(AsmController(asmStore))
         val npcListController = addDisposable(EntityListController(questEditorStore, npcs = true))
         val objectListController =
             addDisposable(EntityListController(questEditorStore, npcs = false))
@@ -73,7 +82,7 @@ class QuestEditor(
             { NpcCountsWidget(npcCountsController) },
             { EntityInfoWidget(entityInfoController) },
             { QuestEditorRendererWidget(renderer) },
-            { AssemblyEditorWidget(assemblyEditorController) },
+            { AsmWidget(asmController) },
             { EntityListWidget(npcListController, entityImageRenderer) },
             { EntityListWidget(objectListController, entityImageRenderer) },
         )
