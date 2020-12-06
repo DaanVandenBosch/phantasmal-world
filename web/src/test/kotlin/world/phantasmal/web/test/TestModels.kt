@@ -1,6 +1,6 @@
 package world.phantasmal.web.test
 
-import world.phantasmal.lib.assembly.Segment
+import world.phantasmal.lib.asm.Segment
 import world.phantasmal.lib.fileFormats.quest.Episode
 import world.phantasmal.lib.fileFormats.quest.NpcType
 import world.phantasmal.lib.fileFormats.quest.QuestNpc

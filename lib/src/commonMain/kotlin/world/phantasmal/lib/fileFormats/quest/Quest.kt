@@ -5,10 +5,10 @@ import world.phantasmal.core.PwResult
 import world.phantasmal.core.PwResultBuilder
 import world.phantasmal.core.Severity
 import world.phantasmal.core.Success
-import world.phantasmal.lib.assembly.InstructionSegment
-import world.phantasmal.lib.assembly.OP_SET_EPISODE
-import world.phantasmal.lib.assembly.Segment
-import world.phantasmal.lib.assembly.dataFlowAnalysis.getMapDesignations
+import world.phantasmal.lib.asm.InstructionSegment
+import world.phantasmal.lib.asm.OP_SET_EPISODE
+import world.phantasmal.lib.asm.Segment
+import world.phantasmal.lib.asm.dataFlowAnalysis.getMapDesignations
 import world.phantasmal.lib.compression.prs.prsDecompress
 import world.phantasmal.lib.cursor.Cursor
 import world.phantasmal.lib.cursor.cursor

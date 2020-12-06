@@ -1,7 +1,7 @@
-package world.phantasmal.lib.assembly.dataFlowAnalysis
+package world.phantasmal.lib.asm.dataFlowAnalysis
 
 import mu.KotlinLogging
-import world.phantasmal.lib.assembly.*
+import world.phantasmal.lib.asm.*
 
 private val logger = KotlinLogging.logger {}
 

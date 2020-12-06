@@ -1,8 +1,8 @@
 package world.phantasmal.lib.test
 
 import world.phantasmal.core.Success
-import world.phantasmal.lib.assembly.InstructionSegment
-import world.phantasmal.lib.assembly.assemble
+import world.phantasmal.lib.asm.InstructionSegment
+import world.phantasmal.lib.asm.assemble
 import world.phantasmal.lib.cursor.Cursor
 import kotlin.test.assertTrue
 

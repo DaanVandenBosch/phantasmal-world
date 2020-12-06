@@ -1,4 +1,4 @@
-package world.phantasmal.lib.assembly
+package world.phantasmal.lib.asm
 
 import mu.KotlinLogging
 import world.phantasmal.core.Problem

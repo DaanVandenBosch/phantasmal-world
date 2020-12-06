@@ -1,4 +1,4 @@
-package world.phantasmal.lib.assembly
+package world.phantasmal.lib.asm
 
 import world.phantasmal.lib.buffer.Buffer
 import kotlin.math.min

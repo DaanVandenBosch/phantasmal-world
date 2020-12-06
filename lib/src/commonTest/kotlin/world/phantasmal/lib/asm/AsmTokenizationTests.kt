@@ -1,11 +1,11 @@
-package world.phantasmal.lib.assembly
+package world.phantasmal.lib.asm
 
 import world.phantasmal.lib.test.LibTestSuite
 import world.phantasmal.testUtils.assertCloseTo
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-class AssemblyTokenizationTests : LibTestSuite() {
+class AsmTokenizationTests : LibTestSuite() {
     @Test
     fun valid_floats_are_parsed_as_Float32_tokens() {
         assertCloseTo(808.9f, (tokenizeLine("808.9")[0] as Token.Float32).value)

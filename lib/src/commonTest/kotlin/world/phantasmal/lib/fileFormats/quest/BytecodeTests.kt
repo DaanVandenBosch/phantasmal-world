@@ -1,9 +1,9 @@
 package world.phantasmal.lib.fileFormats.quest
 
 import world.phantasmal.core.Success
-import world.phantasmal.lib.assembly.InstructionSegment
-import world.phantasmal.lib.assembly.OP_BB_MAP_DESIGNATE
-import world.phantasmal.lib.assembly.OP_SET_EPISODE
+import world.phantasmal.lib.asm.InstructionSegment
+import world.phantasmal.lib.asm.OP_BB_MAP_DESIGNATE
+import world.phantasmal.lib.asm.OP_SET_EPISODE
 import world.phantasmal.lib.buffer.Buffer
 import world.phantasmal.lib.test.LibTestSuite
 import kotlin.test.Test

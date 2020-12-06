@@ -8,6 +8,19 @@ external interface IDisposable {
     fun dispose()
 }
 
+external interface CancellationToken {
+    val isCancellationRequested: Boolean
+
+    /**
+     * An event emitted when cancellation is requested
+     * @event
+     */
+    fun onCancellationRequested(
+        listener: (e: Any) -> Any,
+        thisArg: Any = definedExternally,
+    ): IDisposable
+}
+
 external enum class MarkerTag {
     Unnecessary /* = 1 */,
     Deprecated /* = 2 */
@@ -120,21 +133,21 @@ external enum class SelectionDirection {
 }
 
 external interface IPosition {
-    var lineNumber: Number
-    var column: Number
+    var lineNumber: Int
+    var column: Int
 }
 
-open external class Position(lineNumber: Number, column: Number) {
-    open var lineNumber: Number
-    open var column: Number
+open external class Position(lineNumber: Int, column: Int) {
+    open var lineNumber: Int
+    open var column: Int
     open fun with(
-        newLineNumber: Number = definedExternally,
-        newColumn: Number = definedExternally,
+        newLineNumber: Int = definedExternally,
+        newColumn: Int = definedExternally,
     ): Position
 
     open fun delta(
-        deltaLineNumber: Number = definedExternally,
-        deltaColumn: Number = definedExternally,
+        deltaLineNumber: Int = definedExternally,
+        deltaColumn: Int = definedExternally,
     ): Position
 
     open fun equals(other: IPosition): Boolean
@@ -147,7 +160,7 @@ open external class Position(lineNumber: Number, column: Number) {
         fun equals(a: IPosition?, b: IPosition?): Boolean
         fun isBefore(a: IPosition, b: IPosition): Boolean
         fun isBeforeOrEqual(a: IPosition, b: IPosition): Boolean
-        fun compare(a: IPosition, b: IPosition): Number
+        fun compare(a: IPosition, b: IPosition): Int
         fun lift(pos: IPosition): Position
         fun isIPosition(obj: Any): Boolean
     }
@@ -180,6 +193,15 @@ open external class Uri : UriComponents {
         fun revive(data: UriComponents? = definedExternally): Uri?
         fun revive(data: Uri? = definedExternally): Uri?
     }
+}
+
+external interface IMarkdownStringUris
+
+external interface IMarkdownString {
+    var value: String
+    var isTrusted: Boolean
+    var supportThemeIcons: Boolean
+    var uris: IMarkdownStringUris
 }
 
 external object KeyCode {

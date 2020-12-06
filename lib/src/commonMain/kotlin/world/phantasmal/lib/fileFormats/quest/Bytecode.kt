@@ -3,10 +3,10 @@ package world.phantasmal.lib.fileFormats.quest
 import mu.KotlinLogging
 import world.phantasmal.core.PwResult
 import world.phantasmal.core.Severity
-import world.phantasmal.lib.assembly.*
-import world.phantasmal.lib.assembly.dataFlowAnalysis.ControlFlowGraph
-import world.phantasmal.lib.assembly.dataFlowAnalysis.getRegisterValue
-import world.phantasmal.lib.assembly.dataFlowAnalysis.getStackValue
+import world.phantasmal.lib.asm.*
+import world.phantasmal.lib.asm.dataFlowAnalysis.ControlFlowGraph
+import world.phantasmal.lib.asm.dataFlowAnalysis.getRegisterValue
+import world.phantasmal.lib.asm.dataFlowAnalysis.getStackValue
 import world.phantasmal.lib.buffer.Buffer
 import world.phantasmal.lib.cursor.BufferCursor
 import world.phantasmal.lib.cursor.Cursor

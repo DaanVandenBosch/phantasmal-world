@@ -1,10 +1,10 @@
-package world.phantasmal.lib.assembly.dataFlowAnalysis
+package world.phantasmal.lib.asm.dataFlowAnalysis
 
 import mu.KotlinLogging
-import world.phantasmal.lib.assembly.InstructionSegment
-import world.phantasmal.lib.assembly.OP_BB_MAP_DESIGNATE
-import world.phantasmal.lib.assembly.OP_MAP_DESIGNATE
-import world.phantasmal.lib.assembly.OP_MAP_DESIGNATE_EX
+import world.phantasmal.lib.asm.InstructionSegment
+import world.phantasmal.lib.asm.OP_BB_MAP_DESIGNATE
+import world.phantasmal.lib.asm.OP_MAP_DESIGNATE
+import world.phantasmal.lib.asm.OP_MAP_DESIGNATE_EX
 
 private val logger = KotlinLogging.logger {}
 

@@ -71,8 +71,8 @@ kotlin {
 val generateOpcodes = tasks.register("generateOpcodes") {
     group = "code generation"
 
-    val packageName = "world.phantasmal.lib.assembly"
-    val opcodesFile = file("assetsGeneration/assembly/opcodes.yml")
+    val packageName = "world.phantasmal.lib.asm"
+    val opcodesFile = file("assetsGeneration/asm/opcodes.yml")
     val outputFile = file(
         "build/generated-src/commonMain/kotlin/${packageName.replace('.', '/')}/Opcodes.kt"
     )
@@ -104,7 +104,9 @@ fun opcodeToCode(writer: PrintWriter, opcode: Map<String, Any>) {
     val code = (opcode["code"] as String).drop(2).toInt(16)
     val codeStr = code.toString(16).toUpperCase().padStart(2, '0')
     val mnemonic = opcode["mnemonic"] as String? ?: "unknown_${codeStr.toLowerCase()}"
-    val description = opcode["description"] as String?
+    val doc = (opcode["doc"] as String?)?.let {
+        "\"${it.replace("\n", "\\n")}\""
+    }
     val stack = opcode["stack"] as String?
 
     val valName = "OP_" + mnemonic
@@ -136,7 +138,7 @@ fun opcodeToCode(writer: PrintWriter, opcode: Map<String, Any>) {
         |val $valName = Opcode(
         |    0x$codeStr,
         |    "$mnemonic",
-        |    ${description?.let { "\"$it\"" }},
+        |    $doc,
         |    $params,
         |    $stackInteraction,
         |).also { ${array}[0x$indexStr] = it }""".trimMargin()

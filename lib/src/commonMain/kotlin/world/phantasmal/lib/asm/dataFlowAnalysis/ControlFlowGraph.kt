@@ -1,6 +1,6 @@
-package world.phantasmal.lib.assembly.dataFlowAnalysis
+package world.phantasmal.lib.asm.dataFlowAnalysis
 
-import world.phantasmal.lib.assembly.*
+import world.phantasmal.lib.asm.*
 
 // See https://en.wikipedia.org/wiki/Control-flow_graph.
 

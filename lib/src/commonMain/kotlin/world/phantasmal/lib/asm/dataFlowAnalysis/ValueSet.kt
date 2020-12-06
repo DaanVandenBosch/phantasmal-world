@@ -1,4 +1,4 @@
-package world.phantasmal.lib.assembly.dataFlowAnalysis
+package world.phantasmal.lib.asm.dataFlowAnalysis
 
 import kotlin.math.max
 import kotlin.math.min

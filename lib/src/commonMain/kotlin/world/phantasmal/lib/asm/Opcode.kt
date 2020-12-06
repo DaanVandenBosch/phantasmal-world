@@ -1,4 +1,4 @@
-package world.phantasmal.lib.assembly
+package world.phantasmal.lib.asm
 
 private val MNEMONIC_TO_OPCODES: MutableMap<String, Opcode> by lazy {
     val map = mutableMapOf<String, Opcode>()

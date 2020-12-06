@@ -1,4 +1,4 @@
-package world.phantasmal.lib.assembly.dataFlowAnalysis
+package world.phantasmal.lib.asm.dataFlowAnalysis
 
 import world.phantasmal.lib.test.LibTestSuite
 import world.phantasmal.lib.test.toInstructions
