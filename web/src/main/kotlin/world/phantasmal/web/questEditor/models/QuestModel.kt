@@ -1,6 +1,6 @@
 package world.phantasmal.web.questEditor.models
 
-import world.phantasmal.lib.asm.Segment
+import world.phantasmal.lib.asm.BytecodeIr
 import world.phantasmal.lib.fileFormats.quest.Episode
 import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.list.ListVal
@@ -18,7 +18,7 @@ class QuestModel(
     mapDesignations: Map<Int, Int>,
     npcs: MutableList<QuestNpcModel>,
     objects: MutableList<QuestObjectModel>,
-    val bytecodeIr: List<Segment>,
+    bytecodeIr: BytecodeIr,
     getVariant: (Episode, areaId: Int, variantId: Int) -> AreaVariantModel?,
 ) {
     private val _id = mutableVal(0)
@@ -53,6 +53,9 @@ class QuestModel(
 
     val npcs: ListVal<QuestNpcModel> = _npcs
     val objects: ListVal<QuestObjectModel> = _objects
+
+    var bytecodeIr: BytecodeIr = bytecodeIr
+        private set
 
     init {
         setId(id)
@@ -140,6 +143,10 @@ class QuestModel(
         }
     }
 
+    fun setMapDesignations(mapDesignations: Map<Int, Int>) {
+        _mapDesignations.value = mapDesignations
+    }
+
     fun addNpc(npc: QuestNpcModel) {
         _npcs.add(npc)
     }
@@ -153,5 +160,9 @@ class QuestModel(
             is QuestNpcModel -> _npcs.remove(entity)
             is QuestObjectModel -> _objects.remove(entity)
         }
+    }
+
+    fun setBytecodeIr(bytecodeIr: BytecodeIr) {
+        this.bytecodeIr = bytecodeIr
     }
 }

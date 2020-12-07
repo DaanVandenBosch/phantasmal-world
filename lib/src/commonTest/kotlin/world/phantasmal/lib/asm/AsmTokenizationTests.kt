@@ -7,6 +7,17 @@ import kotlin.test.assertEquals
 
 class AsmTokenizationTests : LibTestSuite() {
     @Test
+    fun hexadecimal_numbers_are_parsed_as_ints() {
+        assertEquals(0x00, (tokenizeLine("0X00")[0] as Token.Int32).value)
+        assertEquals(0x70, (tokenizeLine("0x70")[0] as Token.Int32).value)
+        assertEquals(0xA1, (tokenizeLine("0xa1")[0] as Token.Int32).value)
+        assertEquals(0xAB, (tokenizeLine("0xAB")[0] as Token.Int32).value)
+        assertEquals(0xAB, (tokenizeLine("0xAb")[0] as Token.Int32).value)
+        assertEquals(0xAB, (tokenizeLine("0xaB")[0] as Token.Int32).value)
+        assertEquals(0xFF, (tokenizeLine("0xff")[0] as Token.Int32).value)
+    }
+
+    @Test
     fun valid_floats_are_parsed_as_Float32_tokens() {
         assertCloseTo(808.9f, (tokenizeLine("808.9")[0] as Token.Float32).value)
         assertCloseTo(-0.9f, (tokenizeLine("-0.9")[0] as Token.Float32).value)

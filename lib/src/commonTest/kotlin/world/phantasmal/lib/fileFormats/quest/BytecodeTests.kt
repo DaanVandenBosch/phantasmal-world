@@ -30,8 +30,8 @@ class BytecodeTests : LibTestSuite() {
         assertTrue(result is Success)
         assertTrue(result.problems.isEmpty())
 
-        val segments = result.value
-        val segment = segments[0]
+        val ir = result.value
+        val segment = ir.segments[0]
 
         assertTrue(segment is InstructionSegment)
         assertEquals(OP_SET_EPISODE, segment.instructions[0].opcode)

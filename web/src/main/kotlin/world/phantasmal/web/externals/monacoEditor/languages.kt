@@ -5,6 +5,7 @@
 
 package world.phantasmal.web.externals.monacoEditor
 
+import kotlin.js.Promise
 import kotlin.js.RegExp
 
 external fun register(language: ILanguageExtensionPoint)
@@ -33,6 +34,14 @@ external fun registerCompletionItemProvider(
 external fun registerSignatureHelpProvider(
     languageId: String,
     provider: SignatureHelpProvider,
+): IDisposable
+
+/**
+ * Register a definition provider (used by e.g. go to definition).
+ */
+external fun registerDefinitionProvider(
+    languageId: String,
+    provider: DefinitionProvider,
 ): IDisposable
 
 /**
@@ -474,7 +483,7 @@ external interface CompletionItemProvider {
         position: Position,
         context: CompletionContext,
         token: CancellationToken,
-    ): CompletionList /* type ProviderResult<T> = T | undefined | null | Thenable<T | undefined | null> */
+    ): Promise<CompletionList?> /* type ProviderResult<T> = T | undefined | null | Thenable<T | undefined | null> */
 }
 
 /**
@@ -588,7 +597,7 @@ external interface SignatureHelpProvider {
         position: Position,
         token: CancellationToken,
         context: SignatureHelpContext,
-    ): SignatureHelpResult? /* type ProviderResult<T> = T | undefined | null | Thenable<T | undefined | null> */
+    ): Promise<SignatureHelpResult?> /* type ProviderResult<T> = T | undefined | null | Thenable<T | undefined | null> */
 }
 
 /**
@@ -619,5 +628,44 @@ external interface HoverProvider {
         model: ITextModel,
         position: Position,
         token: CancellationToken,
-    ): Hover? /* type ProviderResult<T> = T | undefined | null | Thenable<T | undefined | null> */
+    ): Promise<Hover?> /* type ProviderResult<T> = T | undefined | null | Thenable<T | undefined | null> */
+}
+
+external interface LocationLink {
+    /**
+     * A range to select where this link originates from.
+     */
+    var originSelectionRange: IRange?
+
+    /**
+     * The target uri this link points to.
+     */
+    var uri: Uri
+
+    /**
+     * The full range this link points to.
+     */
+    var range: IRange
+
+    /**
+     * A range to select this link points to. Must be contained
+     * in `LocationLink.range`.
+     */
+    var targetSelectionRange: IRange?
+}
+
+/**
+ * The definition provider interface defines the contract between extensions and
+ * the [go to definition](https://code.visualstudio.com/docs/editor/editingevolved#_go-to-definition)
+ * and peek definition features.
+ */
+external interface DefinitionProvider {
+    /**
+     * Provide the definition of the symbol at the given position and document.
+     */
+    fun provideDefinition(
+        model: ITextModel,
+        position: Position,
+        token: CancellationToken,
+    ): Promise<Array<LocationLink>?>
 }

@@ -1,5 +1,6 @@
 package world.phantasmal.web.questEditor.stores
 
+import kotlinx.coroutines.launch
 import world.phantasmal.lib.asm.disassemble
 import world.phantasmal.observable.ChangeEvent
 import world.phantasmal.observable.Observable
@@ -11,7 +12,6 @@ import world.phantasmal.web.core.undo.SimpleUndo
 import world.phantasmal.web.core.undo.UndoManager
 import world.phantasmal.web.externals.monacoEditor.*
 import world.phantasmal.web.questEditor.asm.*
-import world.phantasmal.web.questEditor.models.QuestModel
 import world.phantasmal.webui.obj
 import world.phantasmal.webui.stores.Store
 
@@ -40,21 +40,30 @@ class AsmStore(
     val didRedo: Observable<Unit> = _didRedo
 
     init {
-        observe(questEditorStore.currentQuest, inlineStackArgs) { quest, inlineArgs ->
+        observe(questEditorStore.currentQuest, inlineStackArgs) { quest, inlineStackArgs ->
             _textModel.value?.dispose()
-            _textModel.value = quest?.let { createModel(quest, inlineArgs) }
+
+            quest?.let {
+                val asm = disassemble(quest.bytecodeIr, inlineStackArgs)
+                scope.launch { AsmAnalyser.setAsm(asm, inlineStackArgs) }
+
+                _textModel.value =
+                    createModel(asm.joinToString("\n"), ASM_LANG_ID)
+                        .also(::addModelChangeListener)
+            }
+        }
+
+        observe(AsmAnalyser.bytecodeIr) {
+            questEditorStore.currentQuest.value?.setBytecodeIr(it)
+        }
+
+        observe(AsmAnalyser.mapDesignations) {
+            questEditorStore.currentQuest.value?.setMapDesignations(it)
         }
     }
 
     fun makeUndoCurrent() {
         undoManager.setCurrent(undo)
-    }
-
-    private fun createModel(quest: QuestModel, inlineArgs: Boolean): ITextModel {
-        val assembly = disassemble(quest.bytecodeIr, inlineArgs)
-        val model = createModel(assembly.joinToString("\n"), ASM_LANG_ID)
-        addModelChangeListener(model)
-        return model
     }
 
     /**
@@ -108,6 +117,7 @@ class AsmStore(
             registerCompletionItemProvider(ASM_LANG_ID, AsmCompletionItemProvider)
             registerSignatureHelpProvider(ASM_LANG_ID, AsmSignatureHelpProvider)
             registerHoverProvider(ASM_LANG_ID, AsmHoverProvider)
+            registerDefinitionProvider(ASM_LANG_ID, AsmDefinitionProvider)
         }
     }
 }

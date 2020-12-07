@@ -1,6 +1,6 @@
 package world.phantasmal.web.test
 
-import world.phantasmal.lib.asm.Segment
+import world.phantasmal.lib.asm.BytecodeIr
 import world.phantasmal.lib.fileFormats.quest.Episode
 import world.phantasmal.lib.fileFormats.quest.NpcType
 import world.phantasmal.lib.fileFormats.quest.QuestNpc
@@ -16,7 +16,7 @@ fun createQuestModel(
     episode: Episode = Episode.I,
     npcs: List<QuestNpcModel> = emptyList(),
     objects: List<QuestObjectModel> = emptyList(),
-    bytecodeIr: List<Segment> = emptyList(),
+    bytecodeIr: BytecodeIr = BytecodeIr(emptyList()),
 ): QuestModel =
     QuestModel(
         id,

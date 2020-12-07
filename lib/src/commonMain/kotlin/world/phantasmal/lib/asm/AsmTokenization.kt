@@ -2,7 +2,7 @@ package world.phantasmal.lib.asm
 
 import world.phantasmal.core.isDigit
 
-private val HEX_INT_REGEX = Regex("""^0x[\da-fA-F]+$""")
+private val HEX_INT_REGEX = Regex("""^0[xX][0-9a-fA-F]+$""")
 private val FLOAT_REGEX = Regex("""^-?\d+(\.\d+)?(e-?\d+)?$""")
 private val IDENT_REGEX = Regex("""^[a-z][a-z0-9_=<>!]*$""")
 
@@ -179,7 +179,7 @@ private class LineTokenizer(private var line: String) {
     private fun tokenizeNumberOrLabel(): Token {
         mark()
         val col = this.col
-        skip()
+        val firstChar = next()
         var isLabel = false
 
         while (hasNext()) {
@@ -187,7 +187,7 @@ private class LineTokenizer(private var line: String) {
 
             if (char == '.' || char == 'e') {
                 return tokenizeFloat(col)
-            } else if (char == 'x') {
+            } else if (firstChar == '0' && (char == 'x' || char == 'X')) {
                 return tokenizeHexNumber(col)
             } else if (char == ':') {
                 isLabel = true
@@ -221,7 +221,7 @@ private class LineTokenizer(private var line: String) {
         val hexStr = slice()
 
         if (HEX_INT_REGEX.matches(hexStr)) {
-            hexStr.toIntOrNull(16)?.let { value ->
+            hexStr.drop(2).toIntOrNull(16)?.let { value ->
                 return Token.Int32(col, markedLen(), value)
             }
         }

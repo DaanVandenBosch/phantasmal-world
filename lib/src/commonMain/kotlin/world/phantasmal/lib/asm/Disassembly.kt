@@ -13,9 +13,9 @@ private val INDENT = " ".repeat(INDENT_WIDTH)
  * @param inlineStackArgs If true, will output stack arguments inline instead of outputting stack
  * management instructions (argpush variants).
  */
-fun disassemble(bytecodeIr: List<Segment>, inlineStackArgs: Boolean = true): List<String> {
+fun disassemble(bytecodeIr: BytecodeIr, inlineStackArgs: Boolean = true): List<String> {
     logger.trace {
-        "Disassembling ${bytecodeIr.size} segments with ${
+        "Disassembling ${bytecodeIr.segments.size} segments with ${
             if (inlineStackArgs) "inline stack arguments" else "stack push instructions"
         }."
     }
@@ -24,7 +24,7 @@ fun disassemble(bytecodeIr: List<Segment>, inlineStackArgs: Boolean = true): Lis
     val stack = mutableListOf<ArgWithType>()
     var sectionType: SegmentType? = null
 
-    for (segment in bytecodeIr) {
+    for (segment in bytecodeIr.segments) {
         // Section marker (.code, .data or .string).
         if (sectionType != segment.type) {
             sectionType = segment.type

@@ -31,6 +31,6 @@ class AssemblyTests : LibTestSuite() {
 
         assertTrue(result is Success)
         assertTrue(result.problems.isEmpty())
-        assertEquals(3, result.value.size)
+        assertEquals(3, result.value.segments.size)
     }
 }

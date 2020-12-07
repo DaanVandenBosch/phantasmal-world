@@ -13,6 +13,7 @@ import world.phantasmal.web.core.loading.AssetLoader
 import world.phantasmal.web.core.rendering.DisposableThreeRenderer
 import world.phantasmal.web.core.stores.ApplicationUrl
 import world.phantasmal.web.core.stores.UiStore
+import world.phantasmal.web.core.undo.UndoManager
 import world.phantasmal.web.externals.three.WebGLRenderer
 import world.phantasmal.web.questEditor.loading.AreaAssetLoader
 import world.phantasmal.web.questEditor.loading.QuestLoader
@@ -51,6 +52,10 @@ class TestComponents(private val ctx: TestContext) {
 
     var questLoader: QuestLoader by default { QuestLoader(assetLoader) }
 
+    // Undo
+
+    var undoManager: UndoManager by default { UndoManager() }
+
     // Stores
 
     var uiStore: UiStore by default { UiStore(applicationUrl) }
@@ -58,7 +63,7 @@ class TestComponents(private val ctx: TestContext) {
     var areaStore: AreaStore by default { AreaStore(areaAssetLoader) }
 
     var questEditorStore: QuestEditorStore by default {
-        QuestEditorStore(uiStore, areaStore)
+        QuestEditorStore(uiStore, areaStore, undoManager)
     }
 
     // Rendering

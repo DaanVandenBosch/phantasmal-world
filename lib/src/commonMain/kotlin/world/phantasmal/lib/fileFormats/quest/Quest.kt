@@ -5,9 +5,9 @@ import world.phantasmal.core.PwResult
 import world.phantasmal.core.PwResultBuilder
 import world.phantasmal.core.Severity
 import world.phantasmal.core.Success
+import world.phantasmal.lib.asm.BytecodeIr
 import world.phantasmal.lib.asm.InstructionSegment
 import world.phantasmal.lib.asm.OP_SET_EPISODE
-import world.phantasmal.lib.asm.Segment
 import world.phantasmal.lib.asm.dataFlowAnalysis.getMapDesignations
 import world.phantasmal.lib.compression.prs.prsDecompress
 import world.phantasmal.lib.cursor.Cursor
@@ -29,7 +29,7 @@ class Quest(
      * (Partial) raw DAT data that can't be parsed yet by Phantasmal.
      */
     val datUnknowns: List<DatUnknown>,
-    val bytecodeIr: List<Segment>,
+    val bytecodeIr: BytecodeIr,
     val shopItems: UIntArray,
     val mapDesignations: Map<Int, Int>,
 )
@@ -83,10 +83,10 @@ fun parseBinDatToQuest(
 
     val bytecodeIr = parseBytecodeResult.value
 
-    if (bytecodeIr.isEmpty()) {
+    if (bytecodeIr.segments.isEmpty()) {
         result.addProblem(Severity.Warning, "File contains no instruction labels.")
     } else {
-        val instructionSegments = bytecodeIr.filterIsInstance<InstructionSegment>()
+        val instructionSegments = bytecodeIr.instructionSegments()
 
         var label0Segment: InstructionSegment? = null
 

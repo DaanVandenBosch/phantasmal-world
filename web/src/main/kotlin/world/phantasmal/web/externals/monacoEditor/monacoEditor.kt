@@ -34,22 +34,22 @@ external enum class MarkerSeverity {
 }
 
 external interface IRange {
-    var startLineNumber: Number
-    var startColumn: Number
-    var endLineNumber: Number
-    var endColumn: Number
+    var startLineNumber: Int
+    var startColumn: Int
+    var endLineNumber: Int
+    var endColumn: Int
 }
 
 open external class Range(
-    startLineNumber: Number,
-    startColumn: Number,
-    endLineNumber: Number,
-    endColumn: Number,
+    startLineNumber: Int,
+    startColumn: Int,
+    endLineNumber: Int,
+    endColumn: Int,
 ) {
-    open var startLineNumber: Number
-    open var startColumn: Number
-    open var endLineNumber: Number
-    open var endColumn: Number
+    open var startLineNumber: Int
+    open var startColumn: Int
+    open var endLineNumber: Int
+    open var endColumn: Int
     open fun isEmpty(): Boolean
     open fun containsPosition(position: IPosition): Boolean
     open fun containsRange(range: IRange): Boolean
@@ -60,8 +60,8 @@ open external class Range(
     open fun getEndPosition(): Position
     open fun getStartPosition(): Position
     override fun toString(): String
-    open fun setEndPosition(endLineNumber: Number, endColumn: Number): Range
-    open fun setStartPosition(startLineNumber: Number, startColumn: Number): Range
+    open fun setEndPosition(endLineNumber: Int, endColumn: Int): Range
+    open fun setStartPosition(startLineNumber: Int, startColumn: Int): Range
     open fun collapseToStart(): Range
 
     companion object {
@@ -88,28 +88,28 @@ open external class Range(
 }
 
 external interface ISelection {
-    var selectionStartLineNumber: Number
-    var selectionStartColumn: Number
-    var positionLineNumber: Number
-    var positionColumn: Number
+    var selectionStartLineNumber: Int
+    var selectionStartColumn: Int
+    var positionLineNumber: Int
+    var positionColumn: Int
 }
 
 open external class Selection(
-    selectionStartLineNumber: Number,
-    selectionStartColumn: Number,
-    positionLineNumber: Number,
-    positionColumn: Number,
+    selectionStartLineNumber: Int,
+    selectionStartColumn: Int,
+    positionLineNumber: Int,
+    positionColumn: Int,
 ) : Range {
-    open var selectionStartLineNumber: Number
-    open var selectionStartColumn: Number
-    open var positionLineNumber: Number
-    open var positionColumn: Number
+    open var selectionStartLineNumber: Int
+    open var selectionStartColumn: Int
+    open var positionLineNumber: Int
+    open var positionColumn: Int
     override fun toString(): String
     open fun equalsSelection(other: ISelection): Boolean
     open fun getDirection(): SelectionDirection
-    override fun setEndPosition(endLineNumber: Number, endColumn: Number): Selection
+    override fun setEndPosition(endLineNumber: Int, endColumn: Int): Selection
     open fun getPosition(): Position
-    override fun setStartPosition(startLineNumber: Number, startColumn: Number): Selection
+    override fun setStartPosition(startLineNumber: Int, startColumn: Int): Selection
 
     companion object {
         fun selectionsEqual(a: ISelection, b: ISelection): Boolean
@@ -118,10 +118,10 @@ open external class Selection(
         fun selectionsArrEqual(a: Array<ISelection>, b: Array<ISelection>): Boolean
         fun isISelection(obj: Any): Boolean
         fun createWithDirection(
-            startLineNumber: Number,
-            startColumn: Number,
-            endLineNumber: Number,
-            endColumn: Number,
+            startLineNumber: Int,
+            startColumn: Int,
+            endLineNumber: Int,
+            endColumn: Int,
             direction: SelectionDirection,
         ): Selection
     }

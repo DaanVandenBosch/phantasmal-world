@@ -43,16 +43,19 @@ val BUILTIN_FUNCTIONS = setOf(
     860,
 )
 
+/**
+ * Parses bytecode into bytecode IR.
+ */
 fun parseBytecode(
     bytecode: Buffer,
     labelOffsets: IntArray,
     entryLabels: Set<Int>,
     dcGcFormat: Boolean,
     lenient: Boolean,
-): PwResult<List<Segment>> {
+): PwResult<BytecodeIr> {
     val cursor = BufferCursor(bytecode)
     val labelHolder = LabelHolder(labelOffsets)
-    val result = PwResult.build<List<Segment>>(logger)
+    val result = PwResult.build<BytecodeIr>(logger)
     val offsetToSegment = mutableMapOf<Int, Segment>()
 
     findAndParseSegments(
@@ -110,7 +113,7 @@ fun parseBytecode(
         segments.add(segment)
 
         offset += when (segment) {
-            is InstructionSegment -> segment.instructions.sumBy { instructionSize(it, dcGcFormat) }
+            is InstructionSegment -> segment.instructions.sumBy { it.getSize(dcGcFormat) }
 
             is DataSegment -> segment.data.size
 
@@ -150,7 +153,7 @@ fun parseBytecode(
         }
     }
 
-    return result.success(segments)
+    return result.success(BytecodeIr(segments))
 }
 
 private fun findAndParseSegments(

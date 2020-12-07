@@ -14,5 +14,5 @@ fun toInstructions(assembly: String): List<InstructionSegment> {
     assertTrue(result is Success)
     assertTrue(result.problems.isEmpty())
 
-    return result.value.filterIsInstance<InstructionSegment>()
+    return result.value.instructionSegments()
 }

@@ -19,16 +19,16 @@ class AssemblyProblem(
 ) : Problem(severity, uiMessage, message, cause)
 
 fun assemble(
-    assembly: List<String>,
+    asm: List<String>,
     inlineStackArgs: Boolean = true,
-): PwResult<List<Segment>> {
+): PwResult<BytecodeIr> {
     logger.trace {
-        "Assembling ${assembly.size} lines with ${
+        "Assembling ${asm.size} lines with ${
             if (inlineStackArgs) "inline stack arguments" else "stack push instructions"
         }."
     }
 
-    val result = Assembler(assembly, inlineStackArgs).assemble()
+    val result = Assembler(asm, inlineStackArgs).assemble()
 
     logger.trace {
         val warnings = result.problems.count { it.severity == Severity.Warning }
@@ -40,7 +40,7 @@ fun assemble(
     return result
 }
 
-private class Assembler(private val assembly: List<String>, private val inlineStackArgs: Boolean) {
+private class Assembler(private val asm: List<String>, private val inlineStackArgs: Boolean) {
     private var lineNo = 1
     private lateinit var tokens: MutableList<Token>
     private var ir: MutableList<Segment> = mutableListOf()
@@ -58,11 +58,11 @@ private class Assembler(private val assembly: List<String>, private val inlineSt
     private var firstSectionMarker = true
     private var prevLineHadLabel = false
 
-    private val result = PwResult.build<List<Segment>>(logger)
+    private val result = PwResult.build<BytecodeIr>(logger)
 
-    fun assemble(): PwResult<List<Segment>> {
+    fun assemble(): PwResult<BytecodeIr> {
         // Tokenize and assemble line by line.
-        for (line in assembly) {
+        for (line in asm) {
             tokens = tokenizeLine(line)
 
             if (tokens.isNotEmpty()) {
@@ -115,7 +115,7 @@ private class Assembler(private val assembly: List<String>, private val inlineSt
             lineNo++
         }
 
-        return result.success(ir)
+        return result.success(BytecodeIr(ir))
     }
 
     private fun addInstruction(

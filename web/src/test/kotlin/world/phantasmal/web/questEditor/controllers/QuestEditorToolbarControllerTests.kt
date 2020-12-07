@@ -15,6 +15,7 @@ class QuestEditorToolbarControllerTests : WebTestSuite() {
     @Test
     fun can_create_a_new_quest() = asyncTest {
         val ctrl = disposer.add(QuestEditorToolbarController(
+            components.uiStore,
             components.questLoader,
             components.areaStore,
             components.questEditorStore,
@@ -28,6 +29,7 @@ class QuestEditorToolbarControllerTests : WebTestSuite() {
     @Test
     fun a_failure_is_exposed_when_openFiles_fails() = asyncTest {
         val ctrl = disposer.add(QuestEditorToolbarController(
+            components.uiStore,
             components.questLoader,
             components.areaStore,
             components.questEditorStore,
@@ -51,6 +53,7 @@ class QuestEditorToolbarControllerTests : WebTestSuite() {
     @Test
     fun undo_state_changes_correctly() = asyncTest {
         val ctrl = disposer.add(QuestEditorToolbarController(
+            components.uiStore,
             components.questLoader,
             components.areaStore,
             components.questEditorStore,
@@ -102,6 +105,7 @@ class QuestEditorToolbarControllerTests : WebTestSuite() {
     @Test
     fun area_state_changes_correctly() = asyncTest {
         val ctrl = disposer.add(QuestEditorToolbarController(
+            components.uiStore,
             components.questLoader,
             components.areaStore,
             components.questEditorStore,
