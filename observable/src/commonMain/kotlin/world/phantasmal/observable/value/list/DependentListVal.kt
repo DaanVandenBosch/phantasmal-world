@@ -2,6 +2,7 @@ package world.phantasmal.observable.value.list
 
 import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.core.disposable.disposable
+import world.phantasmal.core.replaceAll
 import world.phantasmal.observable.Observer
 import world.phantasmal.observable.value.AbstractVal
 import world.phantasmal.observable.value.Val
@@ -61,8 +62,7 @@ class DependentListVal<E>(
     }
 
     private fun recompute() {
-        elements.clear()
-        elements.addAll(computeElements())
+        elements.replaceAll(computeElements())
     }
 
     private fun initDependencyObservers() {

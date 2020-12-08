@@ -1,6 +1,6 @@
 package world.phantasmal.web.questEditor.asm
 
-import world.phantasmal.core.Success
+import world.phantasmal.core.*
 import world.phantasmal.lib.asm.*
 import world.phantasmal.lib.asm.dataFlowAnalysis.getMapDesignations
 import world.phantasmal.observable.value.Val
@@ -46,7 +46,7 @@ object AsmAnalyser {
             }
 
     private var inlineStackArgs: Boolean = true
-    private var asm: List<String> = emptyList()
+    private val asm: JsArray<String> = jsArrayOf()
     private var _bytecodeIr = mutableVal(BytecodeIr(emptyList()))
     private var _mapDesignations = mutableVal<Map<Int, Int>>(emptyMap())
     private val _problems = mutableListVal<AssemblyProblem>()
@@ -57,13 +57,111 @@ object AsmAnalyser {
 
     suspend fun setAsm(asm: List<String>, inlineStackArgs: Boolean) {
         this.inlineStackArgs = inlineStackArgs
-        this.asm = asm
+        this.asm.splice(0, this.asm.length, *asm.toTypedArray())
 
         processAsm()
     }
 
+    suspend fun updateAssembly(changes: List<AsmChange>) {
+        for (change in changes) {
+            val (startLineNo, startCol, endLineNo, endCol) = change.range
+            val linesChanged = endLineNo - startLineNo + 1
+            val newLines = change.newAsm.split("\n").toJsArray()
+
+            when {
+                linesChanged == 1 -> {
+                    replaceLinePart(startLineNo, startCol, endCol, newLines)
+                }
+
+                newLines.length == 1 -> {
+                    replaceLinesAndMergeLineParts(
+                        startLineNo,
+                        endLineNo,
+                        startCol,
+                        endCol,
+                        newLines[0],
+                    )
+                }
+
+                else -> {
+                    // Keep the left part of the first changed line.
+                    replaceLinePartRight(startLineNo, startCol, newLines[0])
+
+                    // Keep the right part of the last changed line.
+                    replaceLinePartLeft(endLineNo, endCol, newLines[newLines.length - 1])
+
+                    // Replace all the lines in between.
+                    // It's important that we do this last.
+                    replaceLines(
+                        startLineNo + 1,
+                        endLineNo - 1,
+                        newLines.slice(1, newLines.length - 1),
+                    )
+                }
+            }
+        }
+
+        processAsm()
+    }
+
+    private fun replaceLinePart(
+        lineNo: Int,
+        startCol: Int,
+        endCol: Int,
+        newLineParts: JsArray<String>,
+    ) {
+        val line = asm[lineNo - 1]
+        // We keep the parts of the line that weren't affected by the edit.
+        val lineStart = line.substring(0, startCol - 1)
+        val lineEnd = line.substring(endCol - 1)
+
+        if (newLineParts.length == 1) {
+            asm[lineNo - 1] = lineStart + newLineParts[0] + lineEnd
+        } else {
+            asm.splice(
+                lineNo - 1,
+                1,
+                lineStart + newLineParts[0],
+                *newLineParts.slice(1, newLineParts.length - 1).asArray(),
+                newLineParts[newLineParts.length - 1] + lineEnd,
+            )
+        }
+    }
+
+    private fun replaceLinePartLeft(lineNo: Int, endCol: Int, newLinePart: String) {
+        asm[lineNo - 1] = newLinePart + asm[lineNo - 1].substring(endCol - 1)
+    }
+
+    private fun replaceLinePartRight(lineNo: Int, startCol: Int, newLinePart: String) {
+        asm[lineNo - 1] = asm[lineNo - 1].substring(0, startCol - 1) + newLinePart
+    }
+
+    private fun replaceLines(startLineNo: Int, endLineNo: Int, newLines: JsArray<String>) {
+        asm.splice(startLineNo - 1, endLineNo - startLineNo + 1, *newLines.asArray())
+    }
+
+    private fun replaceLinesAndMergeLineParts(
+        startLineNo: Int,
+        endLineNo: Int,
+        startCol: Int,
+        endCol: Int,
+        newLinePart: String,
+    ) {
+        val startLine = asm[startLineNo - 1]
+        val endLine = asm[endLineNo - 1]
+        // We keep the parts of the lines that weren't affected by the edit.
+        val startLineStart = startLine.substring(0, startCol - 1)
+        val endLineEnd = endLine.substring(endCol - 1)
+
+        asm.splice(
+            startLineNo - 1,
+            endLineNo - startLineNo + 1,
+            startLineStart + newLinePart + endLineEnd,
+        )
+    }
+
     private fun processAsm() {
-        val assemblyResult = assemble(asm, inlineStackArgs)
+        val assemblyResult = assemble(asm.asArray().toList(), inlineStackArgs)
 
         @Suppress("UNCHECKED_CAST")
         _problems.value = assemblyResult.problems as List<AssemblyProblem>
@@ -220,7 +318,7 @@ object AsmAnalyser {
         return Hover(contents)
     }
 
-    suspend fun getDefinition(lineNo: Int, col: Int): List<TextRange> {
+    suspend fun getDefinition(lineNo: Int, col: Int): List<AsmRange> {
         getInstruction(lineNo, col)?.let { inst ->
             for ((paramIdx, param) in inst.opcode.params.withIndex()) {
                 if (param.type is LabelType) {
@@ -290,14 +388,14 @@ object AsmAnalyser {
         return null
     }
 
-    private fun getLabelDefinitions(label: Int): List<TextRange> =
+    private fun getLabelDefinitions(label: Int): List<AsmRange> =
         bytecodeIr.value.segments.asSequence()
             .filter { label in it.labels }
             .mapNotNull { segment ->
                 val labelIdx = segment.labels.indexOf(label)
 
                 segment.srcLoc.labels.getOrNull(labelIdx)?.let { labelSrcLoc ->
-                    TextRange(
+                    AsmRange(
                         startLineNo = labelSrcLoc.lineNo,
                         startCol = labelSrcLoc.col,
                         endLineNo = labelSrcLoc.lineNo,
@@ -314,5 +412,6 @@ object AsmAnalyser {
             lineNo == srcLoc.lineNo && col >= srcLoc.col && col <= srcLoc.col + srcLoc.len
         }
 
-    private fun getLine(lineNo: Int): String? = asm.getOrNull(lineNo - 1)
+    @Suppress("RedundantNullableReturnType") // Can return undefined.
+    private fun getLine(lineNo: Int): String? = asm[lineNo - 1]
 }

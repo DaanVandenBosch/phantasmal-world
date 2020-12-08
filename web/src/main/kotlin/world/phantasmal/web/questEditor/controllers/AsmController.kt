@@ -1,7 +1,10 @@
 package world.phantasmal.web.questEditor.controllers
 
 import world.phantasmal.observable.Observable
-import world.phantasmal.observable.value.*
+import world.phantasmal.observable.value.Val
+import world.phantasmal.observable.value.not
+import world.phantasmal.observable.value.or
+import world.phantasmal.observable.value.orElse
 import world.phantasmal.web.externals.monacoEditor.ITextModel
 import world.phantasmal.web.externals.monacoEditor.createModel
 import world.phantasmal.web.questEditor.stores.AsmStore
@@ -17,19 +20,24 @@ class AsmController(private val store: AsmStore) : Controller() {
     val didRedo: Observable<Unit> = store.didRedo
 
     val inlineStackArgs: Val<Boolean> = store.inlineStackArgs
-    val inlineStackArgsEnabled: Val<Boolean> = falseVal() // TODO
+    val inlineStackArgsEnabled: Val<Boolean> = store.problems.map { it.isEmpty() }
+    val inlineStackArgsTooltip: Val<String> =
+        inlineStackArgsEnabled.map { enabled ->
+            buildString {
+                append("Transform arg_push* opcodes to be inline with the opcode the arguments are given to.")
 
-    // TODO: Notify user when disabled because of issues with the ASM.
-    val inlineStackArgsTooltip: Val<String> = value(
-        "Transform arg_push* opcodes to be inline with the opcode the arguments are given to."
-    )
+                if (!enabled) {
+                    append("\nThis mode cannot be toggled because there are issues in the script.")
+                }
+            }
+        }
 
     fun makeUndoCurrent() {
         store.makeUndoCurrent()
     }
 
-    fun setInlineStackArgs(value: Boolean) {
-        TODO()
+    fun setInlineStackArgs(inline: Boolean) {
+        store.setInlineStackArgs(inline)
     }
 
     companion object {

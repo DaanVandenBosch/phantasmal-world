@@ -1,10 +1,10 @@
 package world.phantasmal.web.questEditor.asm
 
-class TextRange(
-    var startLineNo: Int,
-    var startCol: Int,
-    var endLineNo: Int,
-    var endCol: Int,
+data class AsmRange(
+    val startLineNo: Int,
+    val startCol: Int,
+    val endLineNo: Int,
+    val endCol: Int,
 )
 
 enum class CompletionItemType {
@@ -34,4 +34,9 @@ class Hover(
      * List of markdown strings.
      */
     val contents: List<String>,
+)
+
+class AsmChange(
+    val range: AsmRange,
+    val newAsm: String,
 )

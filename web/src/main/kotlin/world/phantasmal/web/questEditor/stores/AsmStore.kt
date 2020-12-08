@@ -1,13 +1,16 @@
 package world.phantasmal.web.questEditor.stores
 
 import kotlinx.coroutines.launch
+import world.phantasmal.core.disposable.Disposer
+import world.phantasmal.core.disposable.disposable
+import world.phantasmal.lib.asm.AssemblyProblem
 import world.phantasmal.lib.asm.disassemble
 import world.phantasmal.observable.ChangeEvent
 import world.phantasmal.observable.Observable
 import world.phantasmal.observable.emitter
 import world.phantasmal.observable.value.Val
+import world.phantasmal.observable.value.list.ListVal
 import world.phantasmal.observable.value.mutableVal
-import world.phantasmal.observable.value.trueVal
 import world.phantasmal.web.core.undo.SimpleUndo
 import world.phantasmal.web.core.undo.UndoManager
 import world.phantasmal.web.externals.monacoEditor.*
@@ -19,7 +22,14 @@ class AsmStore(
     questEditorStore: QuestEditorStore,
     private val undoManager: UndoManager,
 ) : Store() {
+    private val _inlineStackArgs = mutableVal(true)
     private var _textModel = mutableVal<ITextModel?>(null)
+
+    /**
+     * Contains all model-related disposables. All contained disposables are disposed whenever a new
+     * model is created.
+     */
+    private val modelDisposer = addDisposable(Disposer())
 
     private val _didUndo = emitter<Unit>()
     private val _didRedo = emitter<Unit>()
@@ -30,7 +40,7 @@ class AsmStore(
         { _didRedo.emit(ChangeEvent(Unit)) },
     )
 
-    val inlineStackArgs: Val<Boolean> = trueVal()
+    val inlineStackArgs: Val<Boolean> = _inlineStackArgs
 
     val textModel: Val<ITextModel?> = _textModel
 
@@ -39,17 +49,38 @@ class AsmStore(
     val didUndo: Observable<Unit> = _didUndo
     val didRedo: Observable<Unit> = _didRedo
 
+    val problems: ListVal<AssemblyProblem> = AsmAnalyser.problems
+
     init {
         observe(questEditorStore.currentQuest, inlineStackArgs) { quest, inlineStackArgs ->
-            _textModel.value?.dispose()
+            modelDisposer.disposeAll()
 
             quest?.let {
                 val asm = disassemble(quest.bytecodeIr, inlineStackArgs)
                 scope.launch { AsmAnalyser.setAsm(asm, inlineStackArgs) }
 
-                _textModel.value =
-                    createModel(asm.joinToString("\n"), ASM_LANG_ID)
-                        .also(::addModelChangeListener)
+                _textModel.value = createModel(asm.joinToString("\n"), ASM_LANG_ID).also { model ->
+                    modelDisposer.add(disposable { model.dispose() })
+
+                    setupUndoRedo(model)
+
+                    model.onDidChangeContent { e ->
+                        scope.launch {
+                            AsmAnalyser.updateAssembly(e.changes.map {
+                                AsmChange(
+                                    AsmRange(
+                                        it.range.startLineNumber,
+                                        it.range.startColumn,
+                                        it.range.endLineNumber,
+                                        it.range.endColumn,
+                                    ),
+                                    it.text,
+                                )
+                            })
+                        }
+                        // TODO: Update breakpoints.
+                    }
+                }
             }
         }
 
@@ -66,10 +97,11 @@ class AsmStore(
         undoManager.setCurrent(undo)
     }
 
-    /**
-     * Sets up undo/redo, code analysis and breakpoint updates on model change.
-     */
-    private fun addModelChangeListener(model: ITextModel) {
+    fun setInlineStackArgs(inline: Boolean) {
+        _inlineStackArgs.value = inline
+    }
+
+    private fun setupUndoRedo(model: ITextModel) {
         val initialVersion = model.getAlternativeVersionId()
         var currentVersion = initialVersion
         var lastVersion = initialVersion
@@ -102,8 +134,6 @@ class AsmStore(
             }
 
             currentVersion = version
-
-            // TODO: Code analysis and breakpoint update.
         }
     }
 

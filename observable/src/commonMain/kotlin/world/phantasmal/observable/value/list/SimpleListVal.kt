@@ -1,5 +1,6 @@
 package world.phantasmal.observable.value.list
 
+import world.phantasmal.core.replaceAll
 import world.phantasmal.observable.Observable
 import world.phantasmal.observable.value.MutableVal
 import world.phantasmal.observable.value.Val
@@ -64,15 +65,13 @@ class SimpleListVal<E>(
 
     override fun replaceAll(elements: Iterable<E>) {
         val removed = ArrayList(this.elements)
-        this.elements.clear()
-        this.elements.addAll(elements)
+        this.elements.replaceAll(elements)
         finalizeUpdate(ListValChangeEvent.Change(0, removed, this.elements))
     }
 
     override fun replaceAll(elements: Sequence<E>) {
         val removed = ArrayList(this.elements)
-        this.elements.clear()
-        this.elements.addAll(elements)
+        this.elements.replaceAll(elements)
         finalizeUpdate(ListValChangeEvent.Change(0, removed, this.elements))
     }
 
