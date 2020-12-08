@@ -66,7 +66,7 @@ class AsmStore(
 
                     model.onDidChangeContent { e ->
                         scope.launch {
-                            AsmAnalyser.updateAssembly(e.changes.map {
+                            AsmAnalyser.updateAsm(e.changes.map {
                                 AsmChange(
                                     AsmRange(
                                         it.range.startLineNumber,

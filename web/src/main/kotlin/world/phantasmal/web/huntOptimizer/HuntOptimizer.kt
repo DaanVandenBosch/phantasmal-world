@@ -6,8 +6,10 @@ import world.phantasmal.web.core.loading.AssetLoader
 import world.phantasmal.web.core.stores.UiStore
 import world.phantasmal.web.huntOptimizer.controllers.HuntOptimizerController
 import world.phantasmal.web.huntOptimizer.controllers.MethodsController
+import world.phantasmal.web.huntOptimizer.controllers.MethodsForEpisodeController
 import world.phantasmal.web.huntOptimizer.stores.HuntMethodStore
 import world.phantasmal.web.huntOptimizer.widgets.HuntOptimizerWidget
+import world.phantasmal.web.huntOptimizer.widgets.MethodsForEpisodeWidget
 import world.phantasmal.web.huntOptimizer.widgets.MethodsWidget
 import world.phantasmal.webui.DisposableContainer
 import world.phantasmal.webui.widgets.Widget
@@ -24,12 +26,16 @@ class HuntOptimizer(
 
         // Controllers
         val huntOptimizerController = addDisposable(HuntOptimizerController(uiStore))
-        val methodsController = addDisposable(MethodsController(uiStore, huntMethodStore))
+        val methodsController = addDisposable(MethodsController(uiStore))
 
         // Main Widget
         return HuntOptimizerWidget(
             ctrl = huntOptimizerController,
-            createMethodsWidget = { MethodsWidget(methodsController) }
+            createMethodsWidget = {
+                MethodsWidget(methodsController) { episode ->
+                    MethodsForEpisodeWidget(MethodsForEpisodeController(huntMethodStore, episode))
+                }
+            }
         )
     }
 }

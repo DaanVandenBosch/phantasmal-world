@@ -62,7 +62,7 @@ object AsmAnalyser {
         processAsm()
     }
 
-    suspend fun updateAssembly(changes: List<AsmChange>) {
+    suspend fun updateAsm(changes: List<AsmChange>) {
         for (change in changes) {
             val (startLineNo, startCol, endLineNo, endCol) = change.range
             val linesChanged = endLineNo - startLineNo + 1

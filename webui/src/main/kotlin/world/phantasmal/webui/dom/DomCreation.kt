@@ -57,14 +57,23 @@ fun Node.span(block: HTMLSpanElement.() -> Unit = {}): HTMLSpanElement =
 fun Node.table(block: HTMLTableElement.() -> Unit = {}): HTMLTableElement =
     appendHtmlEl("TABLE", block)
 
+fun Node.tbody(block: HTMLTableSectionElement.() -> Unit = {}): HTMLTableSectionElement =
+    appendHtmlEl("TBODY", block)
+
 fun Node.td(block: HTMLTableCellElement.() -> Unit = {}): HTMLTableCellElement =
     appendHtmlEl("TD", block)
 
 fun Node.textarea(block: HTMLTextAreaElement.() -> Unit = {}): HTMLTextAreaElement =
     appendHtmlEl("TEXTAREA", block)
 
+fun Node.tfoot(block: HTMLTableSectionElement.() -> Unit = {}): HTMLTableSectionElement =
+    appendHtmlEl("TFOOT", block)
+
 fun Node.th(block: HTMLTableCellElement.() -> Unit = {}): HTMLTableCellElement =
     appendHtmlEl("TH", block)
+
+fun Node.thead(block: HTMLTableSectionElement.() -> Unit = {}): HTMLTableSectionElement =
+    appendHtmlEl("THEAD", block)
 
 fun Node.tr(block: HTMLTableRowElement.() -> Unit = {}): HTMLTableRowElement =
     appendHtmlEl("TR", block)
