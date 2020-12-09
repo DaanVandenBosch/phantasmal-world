@@ -29,8 +29,7 @@ class HuntMethodModel(
 
     val time: Val<Duration> = userTime.orElse { defaultTime }
 
-    fun setUserTime(userTime: Duration?): HuntMethodModel {
+    fun setUserTime(userTime: Duration?) {
         _userTime.value = userTime
-        return this
     }
 }

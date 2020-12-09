@@ -31,7 +31,7 @@ abstract class TrackedDisposable : Disposable {
     }
 
     companion object {
-        const val DISPOSABLE_PRINT_COUNT = 10
+        private const val DISPOSABLE_PRINT_COUNT = 10
 
         var disposables: MutableSet<Disposable> = mutableSetOf()
         var trackPrecise = false
@@ -47,29 +47,31 @@ abstract class TrackedDisposable : Disposable {
 
             try {
                 block()
-                checkLeaks(disposableCount - initialCount)
+                checkLeakCountZero(disposableCount - initialCount)
             } finally {
                 this.trackPrecise = initialTrackPrecise
                 disposables = initialDisposables
             }
         }
 
-        fun checkLeaks(leakCount: Int) {
-            buildString {
-                append("$leakCount TrackedDisposables were leaked")
+        fun checkLeakCountZero(leakCount: Int) {
+            check(leakCount == 0) {
+                buildString {
+                    append("$leakCount TrackedDisposables were leaked")
 
-                if (trackPrecise) {
-                    append(": ")
-                    disposables.take(DISPOSABLE_PRINT_COUNT).joinTo(this) {
-                        it::class.simpleName ?: "Anonymous"
+                    if (trackPrecise) {
+                        append(": ")
+                        disposables.take(DISPOSABLE_PRINT_COUNT).joinTo(this) {
+                            it::class.simpleName ?: "Anonymous"
+                        }
+
+                        if (disposables.size > DISPOSABLE_PRINT_COUNT) {
+                            append(",..")
+                        }
                     }
 
-                    if (disposables.size > DISPOSABLE_PRINT_COUNT) {
-                        append(",..")
-                    }
+                    append(".")
                 }
-
-                append(".")
             }
         }
     }

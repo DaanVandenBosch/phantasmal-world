@@ -49,9 +49,9 @@ class Application(
 
         // The various tools Phantasmal World consists of.
         val tools: List<PwTool> = listOf(
-            Viewer(createThreeRenderer),
-            QuestEditor(assetLoader, uiStore, createThreeRenderer),
-            HuntOptimizer(assetLoader, uiStore),
+            addDisposable(Viewer(createThreeRenderer)),
+            addDisposable(QuestEditor(assetLoader, uiStore, createThreeRenderer)),
+            addDisposable(HuntOptimizer(assetLoader, uiStore)),
         )
 
         // Controllers.
@@ -61,11 +61,13 @@ class Application(
         // Initialize application view.
         val applicationWidget = addDisposable(
             ApplicationWidget(
-                NavigationWidget(navigationController),
-                MainContentWidget(
-                    mainContentController,
-                    tools.map { it.toolType to it::initialize }.toMap()
-                )
+                { NavigationWidget(navigationController) },
+                {
+                    MainContentWidget(
+                        mainContentController,
+                        tools.map { it.toolType to it::initialize }.toMap()
+                    )
+                }
             )
         )
 

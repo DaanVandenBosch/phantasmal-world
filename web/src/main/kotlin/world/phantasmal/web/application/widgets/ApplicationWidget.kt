@@ -5,15 +5,15 @@ import world.phantasmal.webui.dom.div
 import world.phantasmal.webui.widgets.Widget
 
 class ApplicationWidget(
-    private val navigationWidget: NavigationWidget,
-    private val mainContentWidget: MainContentWidget,
+    private val createNavigationWidget: () -> NavigationWidget,
+    private val createMainContentWidget: () -> MainContentWidget,
 ) : Widget() {
     override fun Node.createElement() =
         div {
             className = "pw-application-application"
 
-            addChild(navigationWidget)
-            addChild(mainContentWidget)
+            addChild(createNavigationWidget())
+            addChild(createMainContentWidget())
         }
 
     companion object {

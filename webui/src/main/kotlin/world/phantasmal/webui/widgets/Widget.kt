@@ -3,19 +3,17 @@ package world.phantasmal.webui.widgets
 import kotlinx.browser.document
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
-import org.w3c.dom.*
+import org.w3c.dom.Element
+import org.w3c.dom.HTMLElement
+import org.w3c.dom.HTMLStyleElement
+import org.w3c.dom.Node
 import org.w3c.dom.pointerevents.PointerEvent
+import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.core.disposable.DisposableSupervisedScope
-import world.phantasmal.core.disposable.Disposer
 import world.phantasmal.observable.Observable
 import world.phantasmal.observable.value.*
-import world.phantasmal.observable.value.list.ListVal
-import world.phantasmal.observable.value.list.ListValChangeEvent
 import world.phantasmal.webui.DisposableContainer
-import world.phantasmal.webui.dom.HTMLElementSizeVal
-import world.phantasmal.webui.dom.Size
-import world.phantasmal.webui.dom.disposablePointerDrag
-import world.phantasmal.webui.dom.documentFragment
+import world.phantasmal.webui.dom.*
 
 abstract class Widget(
     /**
@@ -121,8 +119,11 @@ abstract class Widget(
     /**
      * Appends a widget's element to the receiving node.
      */
-    protected fun <T : Widget> Node.addWidget(widget: T): T {
-        addDisposable(widget)
+    protected fun <T : Widget> Node.addWidget(widget: T, addToDisposer: Boolean = true): T {
+        if (addToDisposer) {
+            addDisposable(widget)
+        }
+
         appendChild(widget.element)
         return widget
     }
@@ -145,127 +146,30 @@ abstract class Widget(
         list: Val<List<T>>,
         createChild: Node.(T, index: Int) -> Node,
     ) {
-        if (list is ListVal) {
-            bindChildrenTo(list, createChild)
-        } else {
-            observe(list) { items ->
-                innerHTML = ""
-
-                val frag = document.createDocumentFragment()
-
-                items.forEachIndexed { i, item ->
-                    frag.createChild(item, i)
-                }
-
-                appendChild(frag)
-            }
-        }
+        addDisposable(bindChildrenTo(this, list, createChild))
     }
 
-    protected fun <T> Element.bindChildrenTo(
-        list: ListVal<T>,
-        createChild: Node.(T, index: Int) -> Node,
+    protected fun <T> Element.bindDisposableChildrenTo(
+        list: Val<List<T>>,
+        createChild: Node.(T, index: Int) -> Pair<Node, Disposable>,
     ) {
-        fun spliceChildren(index: Int, removedCount: Int, inserted: List<T>) {
-            for (i in 1..removedCount) {
-                removeChild(childNodes[index].unsafeCast<Node>())
-            }
-
-            val frag = document.createDocumentFragment()
-
-            inserted.forEachIndexed { i, value ->
-                frag.createChild(value, index + i)
-            }
-
-            if (index >= childNodes.length) {
-                appendChild(frag)
-            } else {
-                insertBefore(frag, childNodes[index])
-            }
-        }
-
-        addDisposable(
-            list.observeList { change: ListValChangeEvent<T> ->
-                when (change) {
-                    is ListValChangeEvent.Change -> {
-                        spliceChildren(change.index, change.removed.size, change.inserted)
-                    }
-                    is ListValChangeEvent.ElementChange -> {
-                        // TODO: Update children.
-                    }
-                }
-            }
-        )
-
-        spliceChildren(0, 0, list.value)
+        addDisposable(bindDisposableChildrenTo(this, list, createChild))
     }
 
+    /**
+     * Creates a widget for every element in [list] and adds it as a child.
+     */
     protected fun <T> Element.bindChildWidgetsTo(
         list: Val<List<T>>,
         createChild: (T, index: Int) -> Widget,
     ) {
-        val disposer = addDisposable(Disposer())
-
-        if (list is ListVal) {
-            bindChildWidgetsTo(list, createChild)
-        } else {
-            observe(list) { items ->
-                innerHTML = ""
-                disposer.disposeAll()
-
-                val frag = document.createDocumentFragment()
-
-                items.forEachIndexed { i, item ->
-                    val child = disposer.add(createChild(item, i))
-                    frag.addChild(child, addToDisposer = false)
-                }
-
-                appendChild(frag)
-            }
-        }
-    }
-
-    protected fun <T> Element.bindChildWidgetsTo(
-        list: ListVal<T>,
-        createChild: (T, index: Int) -> Widget,
-    ) {
-        val disposer = addDisposable(Disposer())
-
-        fun spliceChildren(index: Int, removedCount: Int, inserted: List<T>) {
-            for (i in 1..removedCount) {
-                removeChild(childNodes[index].unsafeCast<Node>())
-            }
-
-            disposer.removeAt(index, removedCount)
-
-            val frag = document.createDocumentFragment()
-
-            inserted.forEachIndexed { i, value ->
-                val child = addDisposable(createChild(value, index + i))
-                frag.addChild(child, addToDisposer = false)
-            }
-
-            if (index >= childNodes.length) {
-                appendChild(frag)
-            } else {
-                insertBefore(frag, childNodes[index])
-            }
+        val create: Node.(T, Int) -> Pair<Node, Disposable> = { value: T, index: Int ->
+            val widget = createChild(value, index)
+            addChild(widget, addToDisposer = false)
+            Pair<Node, Disposable>(widget.element, widget)
         }
 
-        addDisposable(
-            list.observeList { change: ListValChangeEvent<T> ->
-                when (change) {
-                    is ListValChangeEvent.Change -> {
-                        spliceChildren(change.index, change.removed.size, change.inserted)
-                    }
-                    is ListValChangeEvent.ElementChange -> {
-                        // TODO: Update children.
-                    }
-                }
-            }
-        )
-
-        spliceChildren(0, 0, list.value)
+        addDisposable(bindDisposableChildrenTo(this, list, create))
     }
 
     fun Element.onDrag(

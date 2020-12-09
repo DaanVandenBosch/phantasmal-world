@@ -1,10 +1,13 @@
 package world.phantasmal.web.huntOptimizer.widgets
 
+import kotlinx.coroutines.launch
 import org.w3c.dom.Node
+import world.phantasmal.lib.fileFormats.quest.NpcType
 import world.phantasmal.web.huntOptimizer.controllers.MethodsForEpisodeController
-import world.phantasmal.web.huntOptimizer.models.HuntMethodModel
+import world.phantasmal.web.huntOptimizer.controllers.MethodsForEpisodeController.Companion.METHOD_COL_KEY
+import world.phantasmal.web.huntOptimizer.controllers.MethodsForEpisodeController.Companion.TIME_COL_KEY
 import world.phantasmal.webui.dom.div
-import world.phantasmal.webui.widgets.Column
+import world.phantasmal.webui.widgets.DurationInput
 import world.phantasmal.webui.widgets.Table
 import world.phantasmal.webui.widgets.Widget
 
@@ -13,32 +16,19 @@ class MethodsForEpisodeWidget(private val ctrl: MethodsForEpisodeController) : W
         div {
             className = "pw-hunt-optimizer-methods-for-episode"
 
-            addChild(
-                Table(
-                    values = ctrl.methods,
-                    columns = listOf(
-                        Column(
-                            title = "Method",
-                            fixed = true,
-                            width = 250,
-                            renderCell = { it.name },
-                        ),
-                        Column(
-                            title = "Time",
-                            fixed = true,
-                            width = 60,
-                            renderCell = { it.time.value.toIsoString() },
-                        ),
-                        *ctrl.enemies.map { enemy ->
-                            Column<HuntMethodModel>(
-                                title = enemy.simpleName,
-                                width = 90,
-                                renderCell = { 69 }
-                            )
-                        }.toTypedArray()
-                    ),
-                )
-            )
+            addChild(Table(
+                ctrl = ctrl,
+                renderCell = { method, column ->
+                    when (column.key) {
+                        METHOD_COL_KEY -> method.name
+                        TIME_COL_KEY -> DurationInput(
+                            value = method.time,
+                            onChange = { scope.launch { ctrl.setMethodTime(method, it) } }
+                        )
+                        else -> method.enemyCounts[NpcType.valueOf(column.key)]?.toString() ?: ""
+                    }
+                }
+            ))
         }
 
     companion object {

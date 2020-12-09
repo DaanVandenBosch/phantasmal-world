@@ -1,30 +1,43 @@
 package world.phantasmal.web.application
 
 import kotlinx.browser.document
-import world.phantasmal.core.disposable.Disposer
-import world.phantasmal.core.disposable.use
 import world.phantasmal.web.core.PwToolType
 import world.phantasmal.web.test.TestApplicationUrl
+import world.phantasmal.web.test.WebTestContext
 import world.phantasmal.web.test.WebTestSuite
 import kotlin.test.Test
 
 class ApplicationTests : WebTestSuite() {
     @Test
-    fun initialization_and_shutdown_should_succeed_without_throwing() = test {
-        (listOf(null) + PwToolType.values().toList()).forEach { tool ->
-            Disposer().use { disposer ->
-                val appUrl = TestApplicationUrl(if (tool == null) "" else "/${tool.slug}")
+    fun initialization_and_shutdown_succeeds_with_empty_url() = test {
+        initialization_and_shutdown_succeeds("")
+    }
 
-                disposer.add(
-                    Application(
-                        rootElement = document.body!!,
-                        assetLoader = components.assetLoader,
-                        applicationUrl = appUrl,
-                        createThreeRenderer = components.createThreeRenderer,
-                        clock = components.clock,
-                    )
-                )
-            }
-        }
+    @Test
+    fun initialization_and_shutdown_succeeds_with_hunt_optimizer_url() = test {
+        initialization_and_shutdown_succeeds("/" + PwToolType.HuntOptimizer.slug)
+    }
+
+    @Test
+    fun initialization_and_shutdown_succeeds_with_quest_editor_url() = test {
+        initialization_and_shutdown_succeeds("/" + PwToolType.QuestEditor.slug)
+    }
+
+    @Test
+    fun initialization_and_shutdown_succeeds_with_viewer_url() = test {
+        initialization_and_shutdown_succeeds("/" + PwToolType.Viewer.slug)
+    }
+
+    private fun WebTestContext.initialization_and_shutdown_succeeds(url: String) {
+        components.applicationUrl = TestApplicationUrl(url)
+        disposer.add(
+            Application(
+                rootElement = document.body!!,
+                assetLoader = components.assetLoader,
+                applicationUrl = components.applicationUrl,
+                createThreeRenderer = components.createThreeRenderer,
+                clock = components.clock,
+            )
+        )
     }
 }

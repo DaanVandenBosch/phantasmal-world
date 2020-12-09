@@ -88,6 +88,11 @@ class SimpleListVal<E>(
         finalizeUpdate(ListValChangeEvent.Change(0, removed, emptyList()))
     }
 
+    override fun sortWith(comparator: Comparator<E>) {
+        elements.sortWith(comparator)
+        finalizeUpdate(ListValChangeEvent.Change(0, elements, elements))
+    }
+
     override fun finalizeUpdate(event: ListValChangeEvent<E>) {
         _sizeVal.value = elements.size
         super.finalizeUpdate(event)

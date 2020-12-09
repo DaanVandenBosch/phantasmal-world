@@ -72,7 +72,8 @@ class QuestEditor(
             questEditorStore,
             createThreeRenderer,
         ))
-        val entityImageRenderer = EntityImageRenderer(entityAssetLoader, createThreeRenderer)
+        val entityImageRenderer =
+            addDisposable(EntityImageRenderer(entityAssetLoader, createThreeRenderer))
 
         // Main Widget
         return QuestEditorWidget(

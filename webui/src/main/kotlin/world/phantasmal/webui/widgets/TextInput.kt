@@ -15,7 +15,7 @@ class TextInput(
     preferredLabelPosition: LabelPosition = LabelPosition.Before,
     value: Val<String> = emptyStringVal(),
     onChange: (String) -> Unit = {},
-    maxLength: Int? = null,
+    private val maxLength: Int? = null,
 ) : Input<String>(
     visible,
     enabled,
@@ -24,15 +24,16 @@ class TextInput(
     labelVal,
     preferredLabelPosition,
     className = "pw-text-input",
-    inputClassName = "pw-number-text-inner",
-    inputType = "text",
     value,
     onChange,
-    maxLength,
-    min = null,
-    max = null,
-    step = null
 ) {
+    override fun interceptInputElement(input: HTMLInputElement) {
+        super.interceptInputElement(input)
+
+        input.type = "text"
+        maxLength?.let { input.maxLength = it }
+    }
+
     override fun getInputValue(input: HTMLInputElement): String = input.value
 
     override fun setInputValue(input: HTMLInputElement, value: String) {

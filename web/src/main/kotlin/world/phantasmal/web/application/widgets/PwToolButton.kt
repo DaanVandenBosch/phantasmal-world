@@ -11,7 +11,7 @@ import world.phantasmal.webui.widgets.Control
 class PwToolButton(
     private val tool: PwToolType,
     private val toggled: Observable<Boolean>,
-    private val mouseDown: () -> Unit,
+    private val onMouseDown: () -> Unit,
 ) : Control() {
     private val inputId = "pw-application-pw-tool-button-${tool.name.toLowerCase()}"
 
@@ -28,7 +28,7 @@ class PwToolButton(
             label {
                 htmlFor = inputId
                 textContent = tool.uiName
-                onmousedown = { mouseDown() }
+                onmousedown = { onMouseDown() }
             }
         }
 

@@ -26,7 +26,7 @@ abstract class LabelledControl(
                 element.id = id
             }
 
-            Label( visible, enabled, label, labelVal, htmlFor = id)
+            Label(visible, enabled, label, labelVal, htmlFor = id)
         }
     }
 

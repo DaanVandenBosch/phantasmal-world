@@ -14,21 +14,29 @@ import world.phantasmal.web.core.stores.UiStore
 import world.phantasmal.web.huntOptimizer.dto.QuestDto
 import world.phantasmal.web.huntOptimizer.models.HuntMethodModel
 import world.phantasmal.web.huntOptimizer.models.SimpleQuestModel
+import world.phantasmal.web.huntOptimizer.persistence.HuntMethodPersister
 import world.phantasmal.webui.stores.Store
 import kotlin.collections.component1
 import kotlin.collections.component2
 import kotlin.collections.set
+import kotlin.time.Duration
 import kotlin.time.minutes
 
 class HuntMethodStore(
-    uiStore: UiStore,
+    private val uiStore: UiStore,
     private val assetLoader: AssetLoader,
+    private val huntMethodPersister: HuntMethodPersister,
 ) : Store() {
     private val _methods = mutableListVal<HuntMethodModel>()
 
     val methods: ListVal<HuntMethodModel> by lazy {
         observe(uiStore.server) { loadMethods(it) }
         _methods
+    }
+
+    suspend fun setMethodTime(method: HuntMethodModel, time: Duration) {
+        method.setUserTime(time)
+        huntMethodPersister.persistMethodUserTimes(methods.value, uiStore.server.value)
     }
 
     private fun loadMethods(server: Server) {
@@ -91,6 +99,9 @@ class HuntMethodStore(
                         duration
                     )
                 }
+                .toList()
+
+            huntMethodPersister.loadMethodUserTimes(methods, server)
 
             withContext(UiDispatcher) {
                 _methods.replaceAll(methods)

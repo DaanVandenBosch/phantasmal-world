@@ -18,6 +18,13 @@ class Disposer(vararg disposables: Disposable) : TrackedDisposable() {
         return disposable
     }
 
+    fun <T : Disposable> add(index: Int, disposable: T): T {
+        require(!disposed) { "Disposer already disposed." }
+
+        disposables.add(index, disposable)
+        return disposable
+    }
+
     /**
      * Add 0 or more disposables.
      */

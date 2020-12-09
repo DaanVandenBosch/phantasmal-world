@@ -20,7 +20,7 @@ class NavigationControllerTests : WebTestSuite() {
             Pair("23:59:59", 41),
         ).forEach { (time, beats) ->
             clock.currentTime = Instant.parse("2020-01-01T${time}Z")
-            val ctrl = NavigationController(components.uiStore, components.clock)
+            val ctrl = disposer.add(NavigationController(components.uiStore, components.clock))
 
             assertEquals("@$beats", ctrl.internetTime.value)
         }

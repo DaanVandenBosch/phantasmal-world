@@ -7,6 +7,7 @@ import world.phantasmal.web.core.stores.UiStore
 import world.phantasmal.web.huntOptimizer.controllers.HuntOptimizerController
 import world.phantasmal.web.huntOptimizer.controllers.MethodsController
 import world.phantasmal.web.huntOptimizer.controllers.MethodsForEpisodeController
+import world.phantasmal.web.huntOptimizer.persistence.HuntMethodPersister
 import world.phantasmal.web.huntOptimizer.stores.HuntMethodStore
 import world.phantasmal.web.huntOptimizer.widgets.HuntOptimizerWidget
 import world.phantasmal.web.huntOptimizer.widgets.MethodsForEpisodeWidget
@@ -21,8 +22,12 @@ class HuntOptimizer(
     override val toolType = PwToolType.HuntOptimizer
 
     override fun initialize(): Widget {
+        // Persistence
+        val huntMethodPersister = HuntMethodPersister()
+
         // Stores
-        val huntMethodStore = addDisposable(HuntMethodStore(uiStore, assetLoader))
+        val huntMethodStore =
+            addDisposable(HuntMethodStore(uiStore, assetLoader, huntMethodPersister))
 
         // Controllers
         val huntOptimizerController = addDisposable(HuntOptimizerController(uiStore))

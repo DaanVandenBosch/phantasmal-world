@@ -35,7 +35,7 @@ class NavigationWidget(private val ctrl: NavigationController) : Widget() {
                     selected = value("Ephinea"),
                     tooltip = value("Only Ephinea is supported at the moment"),
                 )
-                addWidget(serverSelect.label!!)
+                addChild(serverSelect.label!!)
                 addChild(serverSelect)
 
                 span {

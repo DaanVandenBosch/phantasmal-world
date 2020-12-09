@@ -74,7 +74,7 @@ class Menu<T : Any>(
                 }
             }
 
-            document.disposableListener("keydown", ::onDocumentKeyDown)
+            addDisposable(document.disposableListener("keydown", ::onDocumentKeyDown))
         }
 
     override fun internalDispose() {

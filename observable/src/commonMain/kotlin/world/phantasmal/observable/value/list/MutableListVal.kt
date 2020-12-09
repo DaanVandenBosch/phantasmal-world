@@ -20,4 +20,6 @@ interface MutableListVal<E> : ListVal<E>, MutableVal<List<E>> {
     fun splice(from: Int, removeCount: Int, newElement: E)
 
     fun clear()
+
+    fun sortWith(comparator: Comparator<E>)
 }

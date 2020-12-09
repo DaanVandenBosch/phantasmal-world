@@ -19,6 +19,8 @@ abstract class Persister {
         persist(key, data, serializer())
     }
 
+    // Method suspends so we can use async storage in the future.
+    @Suppress("RedundantSuspendModifier")
     protected suspend fun <T> persist(key: String, data: T, serializer: KSerializer<T>) {
         try {
             localStorage.setItem(key, format.encodeToString(serializer, data))
@@ -27,13 +29,19 @@ abstract class Persister {
         }
     }
 
-    protected suspend fun persistForServer(server: Server, key: String, data: Any) {
+    protected suspend inline fun <reified T> persistForServer(
+        server: Server,
+        key: String,
+        data: T,
+    ) {
         persist(serverKey(server, key), data)
     }
 
     protected suspend inline fun <reified T> load(key: String): T? =
         load(key, serializer())
 
+    // Method suspends so we can use async storage in the future.
+    @Suppress("RedundantSuspendModifier")
     protected suspend fun <T> load(key: String, serializer: KSerializer<T>): T? =
         try {
             val json = localStorage.getItem(key)

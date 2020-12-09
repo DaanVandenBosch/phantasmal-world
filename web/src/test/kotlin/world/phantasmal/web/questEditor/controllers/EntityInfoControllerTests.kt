@@ -19,7 +19,7 @@ import kotlin.test.assertTrue
 class EntityInfoControllerTests : WebTestSuite() {
     @Test
     fun test_unavailable_and_enabled() = asyncTest {
-        val ctrl = EntityInfoController(components.questEditorStore)
+        val ctrl = disposer.add(EntityInfoController(components.questEditorStore))
 
         assertTrue(ctrl.unavailable.value)
         assertFalse(ctrl.enabled.value)
@@ -38,7 +38,7 @@ class EntityInfoControllerTests : WebTestSuite() {
 
     @Test
     fun can_read_regular_properties() = asyncTest {
-        val ctrl = EntityInfoController(components.questEditorStore)
+        val ctrl = disposer.add(EntityInfoController(components.questEditorStore))
 
         val questNpc = QuestNpc(NpcType.Booma, Episode.I, areaId = 10, wave = 5)
         questNpc.sectionId = 7
@@ -63,7 +63,7 @@ class EntityInfoControllerTests : WebTestSuite() {
 
     @Test
     fun can_set_regular_properties_undo_and_redo() = asyncTest {
-        val ctrl = EntityInfoController(components.questEditorStore)
+        val ctrl = disposer.add(EntityInfoController(components.questEditorStore))
 
         val npc = createQuestNpcModel(NpcType.Principal, Episode.I)
         components.questEditorStore.setCurrentQuest(createQuestModel(npcs = listOf(npc)))

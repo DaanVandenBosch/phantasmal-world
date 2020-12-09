@@ -8,7 +8,11 @@ import org.w3c.dom.events.Event
 import org.w3c.dom.events.EventTarget
 import org.w3c.dom.pointerevents.PointerEvent
 import world.phantasmal.core.disposable.Disposable
+import world.phantasmal.core.disposable.Disposer
 import world.phantasmal.core.disposable.disposable
+import world.phantasmal.observable.value.Val
+import world.phantasmal.observable.value.list.ListVal
+import world.phantasmal.observable.value.list.ListValChangeEvent
 
 fun <E : Event> EventTarget.disposableListener(
     type: String,
@@ -139,3 +143,136 @@ fun Node.icon(icon: Icon): HTMLElement {
     // the returned element will stay valid.
     return span { span { className = iconStr } }
 }
+
+fun <T> bindChildrenTo(
+    parent: Element,
+    list: Val<List<T>>,
+    createChild: Node.(T, index: Int) -> Node,
+): Disposable =
+    if (list is ListVal) {
+        bindChildrenTo(parent, list, createChild)
+    } else {
+        bindChildrenTo(parent, list, createChild, childrenRemoved = { /* Do nothing. */ })
+    }
+
+fun <T> bindDisposableChildrenTo(
+    parent: Element,
+    list: Val<List<T>>,
+    createChild: Node.(T, index: Int) -> Pair<Node, Disposable>,
+): Disposable =
+    if (list is ListVal) {
+        bindDisposableChildrenTo(parent, list, createChild)
+    } else {
+        val disposer = Disposer()
+
+        val listObserver = bindChildrenTo(
+            parent,
+            list,
+            createChild = { item, index ->
+                val (child, disposable) = createChild(item, index)
+                disposer.add(disposable)
+                child
+            },
+            childrenRemoved = {
+                disposer.disposeAll()
+            }
+        )
+
+        disposable {
+            disposer.dispose()
+            listObserver.dispose()
+        }
+    }
+
+fun <T> bindChildrenTo(
+    parent: Element,
+    list: ListVal<T>,
+    createChild: Node.(T, index: Int) -> Node,
+): Disposable =
+    bindChildrenTo(
+        parent,
+        list,
+        createChild,
+        childrenRemoved = { _, _ ->
+            // Do nothing.
+        }
+    )
+
+fun <T> bindDisposableChildrenTo(
+    parent: Element,
+    list: ListVal<T>,
+    createChild: Node.(T, index: Int) -> Pair<Node, Disposable>,
+): Disposable {
+    val disposer = Disposer()
+
+    val listObserver = bindChildrenTo(
+        parent,
+        list,
+        createChild = { value, index ->
+            val (child, disposable) = createChild(value, index)
+            disposer.add(index, disposable)
+            child
+        },
+        childrenRemoved = { index, count ->
+            disposer.removeAt(index, count)
+        }
+    )
+
+    return disposable {
+        disposer.dispose()
+        listObserver.dispose()
+    }
+}
+
+private fun <T> bindChildrenTo(
+    parent: Element,
+    list: Val<List<T>>,
+    createChild: Node.(T, index: Int) -> Node,
+    childrenRemoved: () -> Unit,
+): Disposable =
+    list.observe(callNow = true) { (items) ->
+        parent.innerHTML = ""
+        childrenRemoved()
+
+        val frag = document.createDocumentFragment()
+
+        items.forEachIndexed { i, item ->
+            frag.appendChild(frag.createChild(item, i))
+        }
+
+        parent.appendChild(frag)
+    }
+
+private fun <T> bindChildrenTo(
+    parent: Element,
+    list: ListVal<T>,
+    createChild: Node.(T, index: Int) -> Node,
+    childrenRemoved: (index: Int, count: Int) -> Unit,
+): Disposable =
+    list.observeList(callNow = true) { change: ListValChangeEvent<T> ->
+        when (change) {
+            is ListValChangeEvent.Change -> {
+                repeat(change.removed.size) {
+                    parent.removeChild(parent.childNodes[change.index].unsafeCast<Node>())
+                }
+
+                childrenRemoved(change.index, change.removed.size)
+
+                val frag = document.createDocumentFragment()
+
+                change.inserted.forEachIndexed { i, value ->
+                    frag.appendChild(frag.createChild(value, change.index + i))
+                }
+
+                if (change.index >= parent.childNodes.length) {
+                    parent.appendChild(frag)
+                } else {
+                    parent.insertBefore(frag, parent.childNodes[change.index])
+                }
+            }
+
+            is ListValChangeEvent.ElementChange -> {
+                // TODO: Update children.
+            }
+        }
+    }

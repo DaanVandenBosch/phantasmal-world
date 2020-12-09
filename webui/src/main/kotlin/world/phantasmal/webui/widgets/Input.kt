@@ -14,14 +14,8 @@ abstract class Input<T>(
     labelVal: Val<String>?,
     preferredLabelPosition: LabelPosition,
     private val className: String,
-    private val inputClassName: String,
-    private val inputType: String,
     private val value: Val<T>,
     private val onChange: (T) -> Unit,
-    private val maxLength: Int?,
-    private val min: Int?,
-    private val max: Int?,
-    private val step: Int?,
 ) : LabelledControl(
     visible,
     enabled,
@@ -37,8 +31,7 @@ abstract class Input<T>(
             classList.add("pw-input", this@Input.className)
 
             input {
-                classList.add("pw-input-inner", inputClassName)
-                type = inputType
+                classList.add("pw-input-inner")
 
                 observe(this@Input.enabled) { disabled = !it }
 
@@ -54,15 +47,14 @@ abstract class Input<T>(
                     setInputValue(this, it)
                 }
 
-                this@Input.maxLength?.let { maxLength = it }
-
-                if (inputType == "number") {
-                    this@Input.min?.let { min = it.toString() }
-                    this@Input.max?.let { max = it.toString() }
-                    step = this@Input.step?.toString() ?: "any"
-                }
+                interceptInputElement(this)
             }
         }
+
+    /**
+     * Called right after [createElement] and the default initialization for [element] is done.
+     */
+    protected open fun interceptInputElement(input: HTMLInputElement) {}
 
     protected abstract fun getInputValue(input: HTMLInputElement): T
 
@@ -91,7 +83,7 @@ abstract class Input<T>(
                     border: var(--pw-input-border);
                 }
 
-                .pw-input .pw-input-inner {
+                .pw-input-inner {
                     box-sizing: border-box;
                     width: 100%;
                     height: 100%;
@@ -115,7 +107,7 @@ abstract class Input<T>(
                     border: var(--pw-input-border-disabled);
                 }
 
-                .pw-input.pw-disabled .pw-input-inner {
+                .pw-input.pw-disabled > .pw-input-inner {
                     color: var(--pw-input-text-color-disabled);
                     background-color: var(--pw-input-bg-color-disabled);
                 }

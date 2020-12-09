@@ -1,5 +1,6 @@
 package world.phantasmal.webui.widgets
 
+import org.w3c.dom.HTMLInputElement
 import world.phantasmal.observable.value.Val
 
 abstract class NumberInput<T : Number>(
@@ -11,9 +12,9 @@ abstract class NumberInput<T : Number>(
     preferredLabelPosition: LabelPosition,
     value: Val<T>,
     onChange: (T) -> Unit,
-    min: Int?,
-    max: Int?,
-    step: Int?,
+    private val min: Int?,
+    private val max: Int?,
+    private val step: Int?,
 ) : Input<T>(
     visible,
     enabled,
@@ -22,15 +23,19 @@ abstract class NumberInput<T : Number>(
     labelVal,
     preferredLabelPosition,
     className = "pw-number-input",
-    inputClassName = "pw-number-input-inner",
-    inputType = "number",
     value,
     onChange,
-    maxLength = null,
-    min,
-    max,
-    step,
 ) {
+    override fun interceptInputElement(input: HTMLInputElement) {
+        super.interceptInputElement(input)
+
+        input.type = "number"
+        input.classList.add("pw-number-input-inner")
+        min?.let { input.min = it.toString() }
+        max?.let { input.max = it.toString() }
+        input.step = step?.toString() ?: "any"
+    }
+
     companion object {
         init {
             @Suppress("CssUnusedSymbol")
@@ -40,7 +45,7 @@ abstract class NumberInput<T : Number>(
                     width: 54px;
                 }
 
-                .pw-number-input .pw-number-input-inner {
+                .pw-number-input-inner {
                     padding-right: 1px;
                 }
             """.trimIndent())

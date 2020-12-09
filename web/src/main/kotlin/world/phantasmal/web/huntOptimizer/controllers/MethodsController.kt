@@ -3,13 +3,13 @@ package world.phantasmal.web.huntOptimizer.controllers
 import world.phantasmal.lib.fileFormats.quest.Episode
 import world.phantasmal.web.core.PwToolType
 import world.phantasmal.web.core.controllers.PathAwareTab
-import world.phantasmal.web.core.controllers.PathAwareTabController
+import world.phantasmal.web.core.controllers.PathAwareTabContainerController
 import world.phantasmal.web.core.stores.UiStore
 import world.phantasmal.web.huntOptimizer.HuntOptimizerUrls
 
 class MethodsTab(title: String, path: String, val episode: Episode) : PathAwareTab(title, path)
 
-class MethodsController(uiStore: UiStore) : PathAwareTabController<MethodsTab>(
+class MethodsController(uiStore: UiStore) : PathAwareTabContainerController<MethodsTab>(
     uiStore,
     PwToolType.HuntOptimizer,
     listOf(
