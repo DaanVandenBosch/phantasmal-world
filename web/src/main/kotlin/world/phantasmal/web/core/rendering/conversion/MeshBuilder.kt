@@ -22,7 +22,7 @@ class MeshBuilder {
         side = DoubleSide
     })
 
-    private val textures = mutableListOf<XvrTexture>()
+    private val textures = mutableListOf<XvrTexture?>()
 
     fun getGroupIndex(
         textureId: Int?,
@@ -72,7 +72,7 @@ class MeshBuilder {
         defaultMaterial = material
     }
 
-    fun textures(textures: List<XvrTexture>) {
+    fun textures(textures: List<XvrTexture?>) {
         this.textures.addAll(textures)
     }
 

@@ -58,8 +58,11 @@ class MethodsForEpisodeController(
         methods.sortWith { a, b ->
             for (sortColumn in sortColumns) {
                 val cmp = when (sortColumn.column.key) {
-                    METHOD_COL_KEY -> a.name.compareTo(b.name)
+                    METHOD_COL_KEY ->
+                        a.name.asDynamic().localeCompare(b.name).unsafeCast<Int>()
+
                     TIME_COL_KEY -> a.time.value.compareTo(b.time.value)
+
                     else -> {
                         val type = NpcType.valueOf(sortColumn.column.key)
                         (a.enemyCounts[type] ?: 0) - (b.enemyCounts[type] ?: 0)

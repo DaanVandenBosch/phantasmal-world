@@ -43,16 +43,16 @@ abstract class Input<T>(
                     }
                 }
 
+                interceptInputElement(this)
+
                 observe(this@Input.value) {
                     setInputValue(this, it)
                 }
-
-                interceptInputElement(this)
             }
         }
 
     /**
-     * Called right after [createElement] and the default initialization for [element] is done.
+     * Called during [createElement].
      */
     protected open fun interceptInputElement(input: HTMLInputElement) {}
 

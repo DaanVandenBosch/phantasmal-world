@@ -44,7 +44,9 @@ class TextureRenderer(
     ))
 
     init {
-        observe(store.currentTextures, ::texturesChanged)
+        observe(store.currentTextures) {
+            texturesChanged(it.filterNotNull())
+        }
     }
 
     private fun texturesChanged(textures: List<XvrTexture>) {

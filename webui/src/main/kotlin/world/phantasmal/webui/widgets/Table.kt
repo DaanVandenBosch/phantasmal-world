@@ -42,7 +42,11 @@ class Table<T>(
                             style.width = "${column.width}px"
 
                             if (column.sortable) {
-                                onmousedown = { ctrl.sortByColumn(column) }
+                                onmousedown = { e ->
+                                    if (e.buttons.toInt() == 1) {
+                                        ctrl.sortByColumn(column)
+                                    }
+                                }
                             }
                         }
                     }

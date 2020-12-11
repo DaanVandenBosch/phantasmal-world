@@ -3,10 +3,12 @@ package world.phantasmal.web.viewer
 import org.w3c.dom.HTMLCanvasElement
 import world.phantasmal.web.core.PwTool
 import world.phantasmal.web.core.PwToolType
+import world.phantasmal.web.core.loading.AssetLoader
 import world.phantasmal.web.core.rendering.DisposableThreeRenderer
 import world.phantasmal.web.core.widgets.RendererWidget
 import world.phantasmal.web.viewer.controller.ViewerController
 import world.phantasmal.web.viewer.controller.ViewerToolbarController
+import world.phantasmal.web.viewer.loading.CharacterClassAssetLoader
 import world.phantasmal.web.viewer.rendering.MeshRenderer
 import world.phantasmal.web.viewer.rendering.TextureRenderer
 import world.phantasmal.web.viewer.store.ViewerStore
@@ -16,16 +18,20 @@ import world.phantasmal.webui.DisposableContainer
 import world.phantasmal.webui.widgets.Widget
 
 class Viewer(
+    private val assetLoader: AssetLoader,
     private val createThreeRenderer: (HTMLCanvasElement) -> DisposableThreeRenderer,
 ) : DisposableContainer(), PwTool {
     override val toolType = PwToolType.Viewer
 
     override fun initialize(): Widget {
+        // Asset Loaders
+        val characterClassAssetLoader = CharacterClassAssetLoader(assetLoader)
+
         // Stores
-        val viewerStore = addDisposable(ViewerStore())
+        val viewerStore = addDisposable(ViewerStore(characterClassAssetLoader))
 
         // Controllers
-        val viewerController = addDisposable(ViewerController())
+        val viewerController = addDisposable(ViewerController(viewerStore))
         val viewerToolbarController = addDisposable(ViewerToolbarController(viewerStore))
 
         // Rendering

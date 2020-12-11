@@ -18,7 +18,7 @@ private val NO_SCALE = Vector3(1.0, 1.0, 1.0)
 
 fun ninjaObjectToMesh(
     ninjaObject: NinjaObject<*>,
-    textures: List<XvrTexture>,
+    textures: List<XvrTexture?>,
     defaultMaterial: Material? = null,
     boundingVolumes: Boolean = false,
 ): Mesh {

@@ -214,8 +214,6 @@ class DockWidget(
             // language=css
             style("""
                 .pw-core-dock {
-                    width: 100%;
-                    height: 100%;
                     overflow: hidden;
                 }
                 

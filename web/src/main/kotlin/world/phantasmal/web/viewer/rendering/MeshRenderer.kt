@@ -1,13 +1,16 @@
 package world.phantasmal.web.viewer.rendering
 
 import org.w3c.dom.HTMLCanvasElement
+import world.phantasmal.core.math.degToRad
 import world.phantasmal.web.core.rendering.*
 import world.phantasmal.web.core.rendering.conversion.ninjaObjectToMesh
+import world.phantasmal.web.core.times
 import world.phantasmal.web.externals.three.BufferGeometry
 import world.phantasmal.web.externals.three.Mesh
 import world.phantasmal.web.externals.three.PerspectiveCamera
 import world.phantasmal.web.externals.three.Vector3
 import world.phantasmal.web.viewer.store.ViewerStore
+import kotlin.math.tan
 
 class MeshRenderer(
     private val viewerStore: ViewerStore,
@@ -28,7 +31,7 @@ class MeshRenderer(
     override val inputManager = addDisposable(OrbitalCameraInputManager(
         context.canvas,
         context.camera,
-        Vector3(0.0, 25.0, 100.0),
+        Vector3(),
         screenSpacePanning = true
     ))
 
@@ -59,13 +62,22 @@ class MeshRenderer(
         if (ninjaObject != null) {
             val mesh = ninjaObjectToMesh(ninjaObject, textures, boundingVolumes = true)
 
-            // Make sure we rotate around the center of the model instead of its origin.
-            val bb = (mesh.geometry as BufferGeometry).boundingBox!!
-            val height = bb.max.y - bb.min.y
-            mesh.translateY(-height / 2 - bb.min.y)
-            context.scene.add(mesh)
+            if (reset) {
+                // Compute camera position.
+                val geom = mesh.geometry as BufferGeometry
+                val bSphere = geom.boundingSphere!!
+                val cameraDistFactor =
+                    1.5 / tan(degToRad((context.camera as PerspectiveCamera).fov) / 2)
+                val cameraPos = CAMERA_POS * (bSphere.radius * cameraDistFactor)
+                inputManager.lookAt(cameraPos, bSphere.center)
+            }
 
+            context.scene.add(mesh)
             this.mesh = mesh
         }
+    }
+
+    companion object {
+        private val CAMERA_POS = Vector3(1.0, 1.0, 2.0).normalize()
     }
 }

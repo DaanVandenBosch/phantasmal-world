@@ -41,6 +41,7 @@ class NpcCountsWidget(
                     box-sizing: border-box;
                     padding: 3px;
                     overflow: auto;
+                    outline: none;
                 }
 
                 .pw-quest-editor-npc-counts table {

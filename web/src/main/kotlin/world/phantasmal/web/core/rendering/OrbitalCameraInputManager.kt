@@ -47,6 +47,12 @@ class OrbitalCameraInputManager(
         controls.update()
     }
 
+    fun lookAt(position: Vector3, target: Vector3) {
+        camera.position.copy(position)
+        controls.target.copy(target)
+        controls.update()
+    }
+
     override fun resetCamera() {
         controls.reset()
     }

@@ -61,7 +61,7 @@ class QuestEditorWidget(
                     flex-direction: column;
                     overflow: hidden;
                 }
-                .pw-quest-editor-quest-editor > * {
+                .pw-quest-editor-quest-editor > .pw-core-dock {
                     flex-grow: 1;
                 }
             """.trimIndent())
