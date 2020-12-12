@@ -11,6 +11,7 @@ import world.phantasmal.webui.widgets.Widget
 class ViewerWidget(
     private val ctrl: ViewerController,
     private val createToolbar: () -> Widget,
+    private val createCharacterClassOptionsWidget: () -> CharacterClassOptionsWidget,
     private val createMeshWidget: () -> Widget,
     private val createTextureWidget: () -> Widget,
 ) : Widget() {
@@ -29,6 +30,7 @@ class ViewerWidget(
                     { char -> scope.launch { ctrl.setCurrentCharacterClass(char) } },
                     { it.uiName },
                 ))
+                addChild(createCharacterClassOptionsWidget())
                 addChild(TabContainer(ctrl = ctrl, createWidget = { tab ->
                     when (tab) {
                         ViewerTab.Mesh -> createMeshWidget()

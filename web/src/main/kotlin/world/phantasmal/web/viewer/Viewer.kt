@@ -6,12 +6,14 @@ import world.phantasmal.web.core.PwToolType
 import world.phantasmal.web.core.loading.AssetLoader
 import world.phantasmal.web.core.rendering.DisposableThreeRenderer
 import world.phantasmal.web.core.widgets.RendererWidget
+import world.phantasmal.web.viewer.controller.CharacterClassOptionsController
 import world.phantasmal.web.viewer.controller.ViewerController
 import world.phantasmal.web.viewer.controller.ViewerToolbarController
 import world.phantasmal.web.viewer.loading.CharacterClassAssetLoader
 import world.phantasmal.web.viewer.rendering.MeshRenderer
 import world.phantasmal.web.viewer.rendering.TextureRenderer
 import world.phantasmal.web.viewer.store.ViewerStore
+import world.phantasmal.web.viewer.widgets.CharacterClassOptionsWidget
 import world.phantasmal.web.viewer.widgets.ViewerToolbar
 import world.phantasmal.web.viewer.widgets.ViewerWidget
 import world.phantasmal.webui.DisposableContainer
@@ -33,6 +35,8 @@ class Viewer(
         // Controllers
         val viewerController = addDisposable(ViewerController(viewerStore))
         val viewerToolbarController = addDisposable(ViewerToolbarController(viewerStore))
+        val characterClassOptionsController =
+            addDisposable(CharacterClassOptionsController(viewerStore))
 
         // Rendering
         val meshRenderer = addDisposable(
@@ -46,6 +50,7 @@ class Viewer(
         return ViewerWidget(
             viewerController,
             { ViewerToolbar(viewerToolbarController) },
+            { CharacterClassOptionsWidget(characterClassOptionsController) },
             { RendererWidget(meshRenderer) },
             { RendererWidget(textureRenderer) },
         )

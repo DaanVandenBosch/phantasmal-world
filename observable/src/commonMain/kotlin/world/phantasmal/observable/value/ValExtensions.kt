@@ -39,6 +39,9 @@ infix fun Val<Boolean>.xor(other: Val<Boolean>): Val<Boolean> =
 
 operator fun Val<Boolean>.not(): Val<Boolean> = map { !it }
 
+operator fun Val<Int>.plus(other: Int): Val<Int> =
+    map { it + other }
+
 fun Val<String>.isEmpty(): Val<Boolean> =
     map { it.isEmpty() }
 

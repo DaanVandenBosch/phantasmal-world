@@ -95,6 +95,7 @@ enum class CharacterClass(
     val slug: String = name
 
     companion object {
-        val VALUES: List<CharacterClass> = values().toList()
+        val VALUES: Array<CharacterClass> = values()
+        val VALUES_LIST: List<CharacterClass> = VALUES.toList()
     }
 }

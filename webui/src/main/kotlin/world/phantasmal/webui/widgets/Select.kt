@@ -3,8 +3,11 @@ package world.phantasmal.webui.widgets
 import org.w3c.dom.Node
 import org.w3c.dom.events.KeyboardEvent
 import org.w3c.dom.events.MouseEvent
-import world.phantasmal.observable.value.*
+import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.list.emptyListVal
+import world.phantasmal.observable.value.mutableVal
+import world.phantasmal.observable.value.nullVal
+import world.phantasmal.observable.value.trueVal
 import world.phantasmal.webui.dom.Icon
 import world.phantasmal.webui.dom.div
 
@@ -12,6 +15,7 @@ class Select<T : Any>(
     visible: Val<Boolean> = trueVal(),
     enabled: Val<Boolean> = trueVal(),
     tooltip: Val<String?> = nullVal(),
+    private val className: String? = null,
     label: String? = null,
     labelVal: Val<String>? = null,
     preferredLabelPosition: LabelPosition = LabelPosition.Before,
@@ -39,6 +43,8 @@ class Select<T : Any>(
     override fun Node.createElement() =
         div {
             className = "pw-select"
+
+            this@Select.className?.let { classList.add(it) }
 
             // Default to a single space so the inner text part won't be hidden.
             observe(selected) { buttonText.value = it?.let(itemToString) ?: " " }

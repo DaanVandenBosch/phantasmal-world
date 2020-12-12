@@ -36,6 +36,7 @@ class RendererWidget(
                     width: 100%;
                     height: 100%;
                     outline: none;
+                    background-color: #181818;
                 }
             """.trimIndent())
         }

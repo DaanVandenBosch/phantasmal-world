@@ -10,5 +10,12 @@ enum class SectionId {
     Redria,
     Oran,
     Yellowboze,
-    Whitill,
+    Whitill;
+
+    val uiName: String = name
+
+    companion object {
+        val VALUES: Array<SectionId> = values()
+        val VALUES_LIST: List<SectionId> = VALUES.toList()
+    }
 }

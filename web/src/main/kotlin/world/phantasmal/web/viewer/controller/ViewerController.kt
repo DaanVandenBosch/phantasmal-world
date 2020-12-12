@@ -14,7 +14,7 @@ sealed class ViewerTab(override val title: String) : Tab {
 class ViewerController(private val store: ViewerStore) : TabContainerController<ViewerTab>(
     tabs = listOf(ViewerTab.Mesh, ViewerTab.Texture)
 ) {
-    val characterClasses: List<CharacterClass> = CharacterClass.VALUES
+    val characterClasses: List<CharacterClass> = CharacterClass.VALUES_LIST
     val currentCharacterClass: Val<CharacterClass?> = store.currentCharacterClass
 
     suspend fun setCurrentCharacterClass(char: CharacterClass?) {

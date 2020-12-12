@@ -1,5 +1,6 @@
 package world.phantasmal.web.viewer.store
 
+import kotlinx.coroutines.launch
 import mu.KotlinLogging
 import world.phantasmal.lib.fileFormats.ninja.NinjaObject
 import world.phantasmal.lib.fileFormats.ninja.XvrTexture
@@ -17,11 +18,22 @@ private val logger = KotlinLogging.logger {}
 class ViewerStore(private val assetLoader: CharacterClassAssetLoader) : Store() {
     private val _currentNinjaObject = mutableVal<NinjaObject<*>?>(null)
     private val _currentTextures = mutableListVal<XvrTexture?>(mutableListOf())
-    private val _currentCharacterClass = mutableVal<CharacterClass?>(null)
+    private val _currentCharacterClass = mutableVal<CharacterClass?>(CharacterClass.VALUES.random())
+    private val _currentSectionId = mutableVal(SectionId.VALUES.random())
+    private val _currentBody =
+        mutableVal((0 until _currentCharacterClass.value!!.bodyStyleCount).random())
 
     val currentNinjaObject: Val<NinjaObject<*>?> = _currentNinjaObject
     val currentTextures: ListVal<XvrTexture?> = _currentTextures
     val currentCharacterClass: Val<CharacterClass?> = _currentCharacterClass
+    val currentSectionId: Val<SectionId> = _currentSectionId
+    val currentBody: Val<Int> = _currentBody
+
+    init {
+        scope.launch {
+            loadCharacterClassNinjaObject()
+        }
+    }
 
     fun setCurrentNinjaObject(ninjaObject: NinjaObject<*>?) {
         if (_currentCharacterClass.value != null) {
@@ -38,6 +50,21 @@ class ViewerStore(private val assetLoader: CharacterClassAssetLoader) : Store() 
 
     suspend fun setCurrentCharacterClass(char: CharacterClass?) {
         _currentCharacterClass.value = char
+
+        if (char != null && _currentBody.value >= char.bodyStyleCount) {
+            _currentBody.value = char.bodyStyleCount - 1
+        }
+
+        loadCharacterClassNinjaObject()
+    }
+
+    suspend fun setCurrentSectionId(sectionId: SectionId) {
+        _currentSectionId.value = sectionId
+        loadCharacterClassNinjaObject()
+    }
+
+    suspend fun setCurrentBody(body: Int) {
+        _currentBody.value = body
         loadCharacterClassNinjaObject()
     }
 
@@ -45,9 +72,12 @@ class ViewerStore(private val assetLoader: CharacterClassAssetLoader) : Store() 
         val char = currentCharacterClass.value
             ?: return
 
+        val sectionId = currentSectionId.value
+        val body = currentBody.value
+
         try {
             val ninjaObject = assetLoader.loadNinjaObject(char)
-            val textures = assetLoader.loadXvrTextures(char, SectionId.Whitill, 0)
+            val textures = assetLoader.loadXvrTextures(char, sectionId, body)
             _currentNinjaObject.value = ninjaObject
             _currentTextures.replaceAll(textures)
         } catch (e: Exception) {
