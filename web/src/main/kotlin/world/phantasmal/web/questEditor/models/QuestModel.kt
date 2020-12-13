@@ -1,7 +1,7 @@
 package world.phantasmal.web.questEditor.models
 
 import world.phantasmal.lib.asm.BytecodeIr
-import world.phantasmal.lib.fileFormats.quest.Episode
+import world.phantasmal.lib.Episode
 import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.list.ListVal
 import world.phantasmal.observable.value.list.mutableListVal

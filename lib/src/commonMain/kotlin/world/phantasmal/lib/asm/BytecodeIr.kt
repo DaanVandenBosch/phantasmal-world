@@ -19,9 +19,9 @@ enum class SegmentType {
 }
 
 /**
- * Segment of byte code. A segment starts with an instruction, byte or string character that is
- * referenced by one or more labels. The segment ends right before the next instruction, byte or
- * string character that is referenced by a label.
+ * Segment of bytecode. A segment starts with an instruction, data block or string that is
+ * referenced by one or more labels. The segment ends right before the next instruction, data block
+ * or string that is referenced by a label.
  */
 sealed class Segment(
     val type: SegmentType,

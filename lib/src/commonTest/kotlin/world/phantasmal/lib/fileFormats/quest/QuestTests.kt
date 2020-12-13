@@ -1,6 +1,7 @@
 package world.phantasmal.lib.fileFormats.quest
 
 import world.phantasmal.core.Success
+import world.phantasmal.lib.Episode
 import world.phantasmal.lib.asm.*
 import world.phantasmal.lib.test.LibTestSuite
 import world.phantasmal.lib.test.readFile

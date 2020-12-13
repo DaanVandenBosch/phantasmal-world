@@ -1,6 +1,6 @@
 package world.phantasmal.web.huntOptimizer.controllers
 
-import world.phantasmal.lib.fileFormats.quest.Episode
+import world.phantasmal.lib.Episode
 import world.phantasmal.web.core.PwToolType
 import world.phantasmal.web.core.controllers.PathAwareTab
 import world.phantasmal.web.core.controllers.PathAwareTabContainerController

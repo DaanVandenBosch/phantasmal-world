@@ -2,7 +2,7 @@ package world.phantasmal.web.huntOptimizer.stores
 
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import world.phantasmal.lib.fileFormats.quest.Episode
+import world.phantasmal.lib.Episode
 import world.phantasmal.lib.fileFormats.quest.NpcType
 import world.phantasmal.observable.value.list.ListVal
 import world.phantasmal.observable.value.list.mutableListVal

@@ -1,5 +1,6 @@
 package world.phantasmal.lib.fileFormats.quest
 
+import world.phantasmal.lib.Episode
 import world.phantasmal.lib.fileFormats.quest.NpcType.values
 
 enum class ObjectType(

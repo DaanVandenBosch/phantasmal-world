@@ -1,7 +1,7 @@
 package world.phantasmal.web.questEditor.controllers
 
 import world.phantasmal.lib.fileFormats.Vec3
-import world.phantasmal.lib.fileFormats.quest.Episode
+import world.phantasmal.lib.Episode
 import world.phantasmal.lib.fileFormats.quest.NpcType
 import world.phantasmal.lib.fileFormats.quest.QuestNpc
 import world.phantasmal.testUtils.assertCloseTo

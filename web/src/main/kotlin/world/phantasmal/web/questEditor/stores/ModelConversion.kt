@@ -1,6 +1,6 @@
 package world.phantasmal.web.questEditor.stores
 
-import world.phantasmal.lib.fileFormats.quest.Episode
+import world.phantasmal.lib.Episode
 import world.phantasmal.lib.fileFormats.quest.Quest
 import world.phantasmal.web.questEditor.models.AreaVariantModel
 import world.phantasmal.web.questEditor.models.QuestModel

@@ -5,6 +5,7 @@ import world.phantasmal.core.PwResult
 import world.phantasmal.core.PwResultBuilder
 import world.phantasmal.core.Severity
 import world.phantasmal.core.Success
+import world.phantasmal.lib.Episode
 import world.phantasmal.lib.asm.BytecodeIr
 import world.phantasmal.lib.asm.InstructionSegment
 import world.phantasmal.lib.asm.OP_SET_EPISODE

@@ -11,7 +11,7 @@ class ViewerTests : WebTestSuite() {
         components.applicationUrl = TestApplicationUrl("/${PwToolType.Viewer}")
 
         val viewer = disposer.add(
-            Viewer(components.createThreeRenderer)
+            Viewer(components.assetLoader, components.createThreeRenderer)
         )
         disposer.add(viewer.initialize())
     }

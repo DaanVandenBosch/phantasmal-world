@@ -5,7 +5,7 @@ import org.w3c.files.File
 import world.phantasmal.core.*
 import world.phantasmal.lib.Endianness
 import world.phantasmal.lib.cursor.cursor
-import world.phantasmal.lib.fileFormats.quest.Episode
+import world.phantasmal.lib.Episode
 import world.phantasmal.lib.fileFormats.quest.Quest
 import world.phantasmal.lib.fileFormats.quest.parseBinDatToQuest
 import world.phantasmal.lib.fileFormats.quest.parseQstToQuest

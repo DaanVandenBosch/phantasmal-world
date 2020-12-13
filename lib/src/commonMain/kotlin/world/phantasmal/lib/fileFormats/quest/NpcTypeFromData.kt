@@ -1,5 +1,7 @@
 package world.phantasmal.lib.fileFormats.quest
 
+import world.phantasmal.lib.Episode
+
 // TODO: detect Mothmant, St. Rappy, Hallo Rappy, Egg Rappy, Death Gunner, Bulk and Recon.
 fun npcTypeFromQuestNpc(npc: QuestNpc): NpcType {
     val episode = npc.episode

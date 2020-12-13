@@ -1,6 +1,6 @@
 package world.phantasmal.web.questEditor.rendering
 
-import world.phantasmal.lib.fileFormats.quest.Episode
+import world.phantasmal.lib.Episode
 import world.phantasmal.observable.value.list.ListVal
 import world.phantasmal.observable.value.list.listVal
 import world.phantasmal.observable.value.map

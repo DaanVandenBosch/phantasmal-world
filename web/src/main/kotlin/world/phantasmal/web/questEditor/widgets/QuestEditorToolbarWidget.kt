@@ -2,7 +2,7 @@ package world.phantasmal.web.questEditor.widgets
 
 import kotlinx.coroutines.launch
 import org.w3c.dom.Node
-import world.phantasmal.lib.fileFormats.quest.Episode
+import world.phantasmal.lib.Episode
 import world.phantasmal.observable.value.value
 import world.phantasmal.web.questEditor.controllers.QuestEditorToolbarController
 import world.phantasmal.webui.dom.Icon

@@ -27,7 +27,7 @@ class Viewer(
 
     override fun initialize(): Widget {
         // Asset Loaders
-        val characterClassAssetLoader = CharacterClassAssetLoader(assetLoader)
+        val characterClassAssetLoader = addDisposable(CharacterClassAssetLoader(assetLoader))
 
         // Stores
         val viewerStore = addDisposable(ViewerStore(characterClassAssetLoader))

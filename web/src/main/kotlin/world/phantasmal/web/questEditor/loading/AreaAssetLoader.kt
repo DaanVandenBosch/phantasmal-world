@@ -7,7 +7,7 @@ import world.phantasmal.lib.fileFormats.CollisionObject
 import world.phantasmal.lib.fileFormats.RenderObject
 import world.phantasmal.lib.fileFormats.parseAreaCollisionGeometry
 import world.phantasmal.lib.fileFormats.parseAreaGeometry
-import world.phantasmal.lib.fileFormats.quest.Episode
+import world.phantasmal.lib.Episode
 import world.phantasmal.web.core.euler
 import world.phantasmal.web.core.loading.AssetLoader
 import world.phantasmal.web.core.rendering.conversion.MeshBuilder

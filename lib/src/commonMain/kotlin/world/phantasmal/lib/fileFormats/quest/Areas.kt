@@ -1,5 +1,7 @@
 package world.phantasmal.lib.fileFormats.quest
 
+import world.phantasmal.lib.Episode
+
 class Area(
     val id: Int,
     val name: String,

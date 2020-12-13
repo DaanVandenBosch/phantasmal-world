@@ -3,7 +3,7 @@ package world.phantasmal.web.questEditor.loading
 import org.khronos.webgl.ArrayBuffer
 import world.phantasmal.lib.Endianness
 import world.phantasmal.lib.cursor.cursor
-import world.phantasmal.lib.fileFormats.quest.Episode
+import world.phantasmal.lib.Episode
 import world.phantasmal.lib.fileFormats.quest.Quest
 import world.phantasmal.lib.fileFormats.quest.parseQstToQuest
 import world.phantasmal.web.core.loading.AssetLoader

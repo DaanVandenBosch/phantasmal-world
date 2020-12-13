@@ -5,7 +5,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import world.phantasmal.core.disposable.DisposableSupervisedScope
 import world.phantasmal.core.disposable.Disposer
-import world.phantasmal.lib.fileFormats.quest.Episode
+import world.phantasmal.lib.Episode
 import world.phantasmal.observable.value.list.ListVal
 import world.phantasmal.observable.value.list.ListValChangeEvent
 import world.phantasmal.web.questEditor.loading.AreaAssetLoader

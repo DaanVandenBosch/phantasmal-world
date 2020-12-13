@@ -3,7 +3,7 @@ package world.phantasmal.web.questEditor.controllers
 import org.w3c.files.File
 import world.phantasmal.core.Failure
 import world.phantasmal.core.Severity
-import world.phantasmal.lib.fileFormats.quest.Episode
+import world.phantasmal.lib.Episode
 import world.phantasmal.lib.fileFormats.quest.NpcType
 import world.phantasmal.web.questEditor.actions.EditNameAction
 import world.phantasmal.web.test.WebTestSuite

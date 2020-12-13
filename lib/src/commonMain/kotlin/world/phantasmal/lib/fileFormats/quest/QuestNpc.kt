@@ -1,5 +1,6 @@
 package world.phantasmal.lib.fileFormats.quest
 
+import world.phantasmal.lib.Episode
 import world.phantasmal.lib.buffer.Buffer
 import world.phantasmal.lib.fileFormats.Vec3
 import world.phantasmal.lib.fileFormats.ninja.angleToRad
