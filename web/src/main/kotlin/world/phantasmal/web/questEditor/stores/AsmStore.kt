@@ -1,9 +1,7 @@
 package world.phantasmal.web.questEditor.stores
 
-import kotlinx.coroutines.launch
 import world.phantasmal.core.disposable.Disposer
 import world.phantasmal.core.disposable.disposable
-import world.phantasmal.lib.asm.AssemblyProblem
 import world.phantasmal.lib.asm.disassemble
 import world.phantasmal.observable.ChangeEvent
 import world.phantasmal.observable.Observable
@@ -14,10 +12,17 @@ import world.phantasmal.observable.value.mutableVal
 import world.phantasmal.web.core.undo.SimpleUndo
 import world.phantasmal.web.core.undo.UndoManager
 import world.phantasmal.web.externals.monacoEditor.*
-import world.phantasmal.web.questEditor.asm.*
+import world.phantasmal.web.questEditor.asm.AsmAnalyser
+import world.phantasmal.web.questEditor.asm.monaco.*
+import world.phantasmal.web.shared.AsmChange
+import world.phantasmal.web.shared.AsmRange
+import world.phantasmal.web.shared.AssemblyProblem
 import world.phantasmal.webui.obj
 import world.phantasmal.webui.stores.Store
 
+/**
+ * Depends on a global [AsmAnalyser], instantiate at most once.
+ */
 class AsmStore(
     questEditorStore: QuestEditorStore,
     private val undoManager: UndoManager,
@@ -49,7 +54,7 @@ class AsmStore(
     val didUndo: Observable<Unit> = _didUndo
     val didRedo: Observable<Unit> = _didRedo
 
-    val problems: ListVal<AssemblyProblem> = AsmAnalyser.problems
+    val problems: ListVal<AssemblyProblem> = asmAnalyser.problems
 
     init {
         observe(questEditorStore.currentQuest, inlineStackArgs) { quest, inlineStackArgs ->
@@ -57,7 +62,7 @@ class AsmStore(
 
             quest?.let {
                 val asm = disassemble(quest.bytecodeIr, inlineStackArgs)
-                scope.launch { AsmAnalyser.setAsm(asm, inlineStackArgs) }
+                asmAnalyser.setAsm(asm, inlineStackArgs)
 
                 _textModel.value = createModel(asm.joinToString("\n"), ASM_LANG_ID).also { model ->
                     modelDisposer.add(disposable { model.dispose() })
@@ -65,30 +70,24 @@ class AsmStore(
                     setupUndoRedo(model)
 
                     model.onDidChangeContent { e ->
-                        scope.launch {
-                            AsmAnalyser.updateAsm(e.changes.map {
-                                AsmChange(
-                                    AsmRange(
-                                        it.range.startLineNumber,
-                                        it.range.startColumn,
-                                        it.range.endLineNumber,
-                                        it.range.endColumn,
-                                    ),
-                                    it.text,
-                                )
-                            })
-                        }
+                        asmAnalyser.updateAsm(e.changes.map {
+                            AsmChange(
+                                AsmRange(
+                                    it.range.startLineNumber,
+                                    it.range.startColumn,
+                                    it.range.endLineNumber,
+                                    it.range.endColumn,
+                                ),
+                                it.text,
+                            )
+                        })
                         // TODO: Update breakpoints.
                     }
                 }
             }
         }
 
-        observe(AsmAnalyser.bytecodeIr) {
-            questEditorStore.currentQuest.value?.setBytecodeIr(it)
-        }
-
-        observe(AsmAnalyser.mapDesignations) {
+        observe(asmAnalyser.mapDesignations) {
             questEditorStore.currentQuest.value?.setMapDesignations(it)
         }
     }
@@ -138,16 +137,23 @@ class AsmStore(
     }
 
     companion object {
+        private val asmAnalyser = AsmAnalyser()
+
         const val ASM_LANG_ID = "psoasm"
 
         init {
             register(obj { id = ASM_LANG_ID })
             setMonarchTokensProvider(ASM_LANG_ID, AsmMonarchLanguage)
             setLanguageConfiguration(ASM_LANG_ID, AsmLanguageConfiguration)
-            registerCompletionItemProvider(ASM_LANG_ID, AsmCompletionItemProvider)
-            registerSignatureHelpProvider(ASM_LANG_ID, AsmSignatureHelpProvider)
-            registerHoverProvider(ASM_LANG_ID, AsmHoverProvider)
-            registerDefinitionProvider(ASM_LANG_ID, AsmDefinitionProvider)
+            registerCompletionItemProvider(ASM_LANG_ID, AsmCompletionItemProvider(asmAnalyser))
+            registerSignatureHelpProvider(ASM_LANG_ID, AsmSignatureHelpProvider(asmAnalyser))
+            registerHoverProvider(ASM_LANG_ID, AsmHoverProvider(asmAnalyser))
+            registerDefinitionProvider(ASM_LANG_ID, AsmDefinitionProvider(asmAnalyser))
+            // TODO: Add symbol provider for go to symbol for labels.
+            // TODO: Add semantic highlighting with registerDocumentSemanticTokensProvider (or
+            //  registerDocumentRangeSemanticTokensProvider?).
+            //  Enable when calling editor.create with 'semanticHighlighting.enabled': true.
+            //  See: https://github.com/microsoft/monaco-editor/issues/1833#issuecomment-588108427
         }
     }
 }

@@ -105,6 +105,8 @@ expect class Buffer {
      */
     fun fillByte(value: Byte): Buffer
 
+    fun toBase64(): String
+
     companion object {
         /**
          * Returns a new buffer the given initial capacity and size 0.
@@ -117,5 +119,7 @@ expect class Buffer {
         fun withSize(initialSize: Int, endianness: Endianness = Endianness.Little): Buffer
 
         fun fromByteArray(array: ByteArray, endianness: Endianness = Endianness.Little): Buffer
+
+        fun fromBase64(data: String, endianness: Endianness = Endianness.Little): Buffer
     }
 }

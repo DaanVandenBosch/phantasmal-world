@@ -5,6 +5,7 @@ import java.io.PrintWriter
 
 plugins {
     kotlin("multiplatform")
+    kotlin("plugin.serialization")
     id("world.phantasmal.gradle.js")
 }
 
@@ -16,6 +17,7 @@ buildscript {
 
 val coroutinesVersion: String by project.extra
 val kotlinLoggingVersion: String by project.extra
+val serializationVersion: String by project.extra
 val slf4jVersion: String by project.extra
 
 kotlin {
@@ -42,6 +44,7 @@ kotlin {
                 api(project(":core"))
                 api("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
                 api("io.github.microutils:kotlin-logging:$kotlinLoggingVersion")
+                api("org.jetbrains.kotlinx:kotlinx-serialization-core:$serializationVersion")
             }
         }
 

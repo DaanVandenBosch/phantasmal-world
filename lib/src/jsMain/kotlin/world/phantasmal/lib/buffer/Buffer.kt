@@ -4,7 +4,10 @@ import org.khronos.webgl.ArrayBuffer
 import org.khronos.webgl.DataView
 import org.khronos.webgl.Int8Array
 import org.khronos.webgl.Uint8Array
+import org.w3c.dom.WindowOrWorkerGlobalScope
 import world.phantasmal.lib.Endianness
+
+external val self: WindowOrWorkerGlobalScope
 
 actual class Buffer private constructor(
     arrayBuffer: ArrayBuffer,
@@ -144,6 +147,16 @@ actual class Buffer private constructor(
         return this
     }
 
+    actual fun toBase64(): String {
+        var str = ""
+
+        for (i in 0 until size) {
+            str += (getByte(i).toInt() and 0xff).toChar()
+        }
+
+        return self.btoa(str)
+    }
+
     /**
      * Checks whether we can read [size] bytes at [offset].
      */
@@ -189,5 +202,16 @@ actual class Buffer private constructor(
 
         fun fromArrayBuffer(arrayBuffer: ArrayBuffer, endianness: Endianness): Buffer =
             Buffer(arrayBuffer, arrayBuffer.byteLength, endianness)
+
+        actual fun fromBase64(data: String, endianness: Endianness): Buffer {
+            val str = self.atob(data)
+            val buf = withSize(str.length, endianness)
+
+            for (i in 0 until buf.size) {
+                buf.setByte(i, str[i].toByte())
+            }
+
+            return buf
+        }
     }
 }

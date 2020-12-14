@@ -1,12 +1,14 @@
-package world.phantasmal.web.questEditor.asm
+package world.phantasmal.web.questEditor.asm.monaco
 
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.promise
 import world.phantasmal.web.externals.monacoEditor.*
+import world.phantasmal.web.questEditor.asm.AsmAnalyser
+import world.phantasmal.web.shared.CompletionItemType
 import world.phantasmal.webui.obj
 import kotlin.js.Promise
 
-object AsmCompletionItemProvider : CompletionItemProvider {
+class AsmCompletionItemProvider(private val analyser: AsmAnalyser) : CompletionItemProvider {
     override fun provideCompletionItems(
         model: ITextModel,
         position: Position,
@@ -14,7 +16,7 @@ object AsmCompletionItemProvider : CompletionItemProvider {
         token: CancellationToken,
     ): Promise<CompletionList> =
         GlobalScope.promise {
-            val completions = AsmAnalyser.getCompletions(
+            val completions = analyser.getCompletions(
                 position.lineNumber,
                 position.column,
             )

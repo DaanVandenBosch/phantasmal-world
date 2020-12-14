@@ -3,6 +3,7 @@ package world.phantasmal.lib.buffer
 import world.phantasmal.lib.Endianness
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import java.util.*
 
 actual class Buffer private constructor(
     private var buf: ByteBuffer,
@@ -145,6 +146,14 @@ actual class Buffer private constructor(
         return this
     }
 
+    actual fun toBase64(): String {
+        buf.limit(size)
+        val str = String(Base64.getEncoder().encode(buf).array())
+        buf.position(0)
+        buf.limit(capacity)
+        return str
+    }
+
     /**
      * Checks whether we can read [size] bytes at [offset].
      */
@@ -182,8 +191,10 @@ actual class Buffer private constructor(
         actual fun withSize(initialSize: Int, endianness: Endianness): Buffer =
             Buffer(ByteBuffer.allocate(initialSize), initialSize, endianness)
 
-        actual fun fromByteArray(array: ByteArray, endianness: Endianness): Buffer {
-            return Buffer(ByteBuffer.wrap(array), array.size, endianness)
-        }
+        actual fun fromByteArray(array: ByteArray, endianness: Endianness): Buffer =
+            Buffer(ByteBuffer.wrap(array), array.size, endianness)
+
+        actual fun fromBase64(data: String, endianness: Endianness): Buffer =
+            fromByteArray(Base64.getDecoder().decode(data), endianness)
     }
 }

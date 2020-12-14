@@ -35,11 +35,12 @@ val serializationVersion: String by project.extra
 dependencies {
     implementation(project(":lib"))
     implementation(project(":webui"))
+    implementation(project(":web:shared"))
 
     implementation("io.github.microutils:kotlin-logging-js:$kotlinLoggingVersion")
     implementation("io.ktor:ktor-client-core-js:$ktorVersion")
     implementation("io.ktor:ktor-client-serialization-js:$ktorVersion")
-    implementation("org.jetbrains.kotlin:kotlin-serialization:$serializationVersion")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:$serializationVersion")
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.1.1")
     implementation(npm("golden-layout", "^1.5.9"))
     implementation(npm("monaco-editor", "0.20.0"))
@@ -50,4 +51,12 @@ dependencies {
 
     testImplementation(kotlin("test-js"))
     testImplementation(project(":test-utils"))
+}
+
+// TODO: Figure out how to trigger this task automatically.
+tasks.register<Copy>("copyAssemblyWorkerJs") {
+    val workerDist = project(":web:assembly-worker").buildDir.resolve("distributions")
+    from(workerDist.resolve("assembly-worker.js"), workerDist.resolve("assembly-worker.js.map"))
+    into(buildDir.resolve("processedResources/js/main"))
+    dependsOn(":web:assembly-worker:build")
 }

@@ -24,6 +24,8 @@ class AsmEditorWidget(private val ctrl: AsmController) : Widget() {
                 wrappingIndent = "indent"
                 renderIndentGuides = false
                 folding = false
+                wordBasedSuggestions = false
+                occurrencesHighlight = false
             })
 
             addDisposable(disposable { editor.dispose() })

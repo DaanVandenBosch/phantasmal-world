@@ -1,4 +1,4 @@
-package world.phantasmal.web.questEditor.asm
+package world.phantasmal.web.questEditor.asm.monaco
 
 import world.phantasmal.web.externals.monacoEditor.IMonarchLanguage
 import world.phantasmal.web.externals.monacoEditor.IMonarchLanguageTokenizer

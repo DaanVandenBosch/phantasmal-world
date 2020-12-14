@@ -1,13 +1,14 @@
-package world.phantasmal.web.questEditor.asm
+package world.phantasmal.web.questEditor.asm.monaco
 
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.promise
 import world.phantasmal.web.externals.monacoEditor.*
+import world.phantasmal.web.questEditor.asm.AsmAnalyser
 import world.phantasmal.webui.obj
 import kotlin.js.Promise
 import world.phantasmal.web.externals.monacoEditor.SignatureHelp as MonacoSigHelp
 
-object AsmSignatureHelpProvider : SignatureHelpProvider {
+class AsmSignatureHelpProvider(private val analyser: AsmAnalyser) : SignatureHelpProvider {
     override val signatureHelpTriggerCharacters: Array<String> =
         arrayOf(" ", ",")
 
@@ -21,7 +22,7 @@ object AsmSignatureHelpProvider : SignatureHelpProvider {
         context: SignatureHelpContext,
     ): Promise<SignatureHelpResult?> =
         GlobalScope.promise {
-            AsmAnalyser.getSignatureHelp(position.lineNumber, position.column)
+            analyser.getSignatureHelp(position.lineNumber, position.column)
                 ?.let { sigHelp ->
                     val monacoSigHelp = obj<MonacoSigHelp> {
                         signatures = arrayOf(
