@@ -89,6 +89,9 @@ class ControlFlowGraph(
     }
 
     companion object {
+        fun create(bytecodeIr: BytecodeIr): ControlFlowGraph =
+            create(bytecodeIr.instructionSegments())
+
         fun create(segments: List<InstructionSegment>): ControlFlowGraph {
             val cfg = ControlFlowGraphBuilder()
 

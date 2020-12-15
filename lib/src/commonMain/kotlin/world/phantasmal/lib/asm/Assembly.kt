@@ -121,7 +121,6 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
     private fun addInstruction(
         opcode: Opcode,
         args: List<Arg>,
-        stackArgs: List<Arg>,
         token: Token?,
         argTokens: List<Token>,
         stackArgTokens: List<Token>,
@@ -150,8 +149,8 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
                             args = argTokens.map {
                                 SrcLoc(lineNo, it.col, it.len)
                             },
-                            stackArgs = stackArgTokens.mapIndexed { i, sat ->
-                                StackArgSrcLoc(lineNo, sat.col, sat.len, stackArgs[i].value)
+                            stackArgs = stackArgTokens.map { sat ->
+                                SrcLoc(lineNo, sat.col, sat.len)
                             },
                         )
                     )
@@ -386,7 +385,7 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
                 addError(
                     identToken.col,
                     errorLength,
-                    "Expected at least $paramCount argument ${if (paramCount == 1) "" else "s"}, got $argCount.",
+                    "Expected at least $paramCount argument${if (paramCount == 1) "" else "s"}, got $argCount.",
                 )
 
                 return
@@ -411,7 +410,6 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
                             addInstruction(
                                 OP_ARG_PUSHB,
                                 listOf(arg),
-                                emptyList(),
                                 null,
                                 listOf(argToken),
                                 emptyList(),
@@ -420,7 +418,6 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
                             addInstruction(
                                 OP_ARG_PUSHR,
                                 listOf(arg),
-                                emptyList(),
                                 null,
                                 listOf(argToken),
                                 emptyList(),
@@ -435,7 +432,6 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
                                 addInstruction(
                                     OP_ARG_PUSHB,
                                     listOf(arg),
-                                    emptyList(),
                                     null,
                                     listOf(argToken),
                                     emptyList(),
@@ -451,7 +447,6 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
                                 addInstruction(
                                     OP_ARG_PUSHW,
                                     listOf(arg),
-                                    emptyList(),
                                     null,
                                     listOf(argToken),
                                     emptyList(),
@@ -462,7 +457,6 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
                                 addInstruction(
                                     OP_ARG_PUSHL,
                                     listOf(arg),
-                                    emptyList(),
                                     null,
                                     listOf(argToken),
                                     emptyList(),
@@ -473,7 +467,6 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
                                 addInstruction(
                                     OP_ARG_PUSHL,
                                     listOf(Arg((arg.value as Float).toRawBits())),
-                                    emptyList(),
                                     null,
                                     listOf(argToken),
                                     emptyList(),
@@ -484,7 +477,6 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
                                 addInstruction(
                                     OP_ARG_PUSHS,
                                     listOf(arg),
-                                    emptyList(),
                                     null,
                                     listOf(argToken),
                                     emptyList(),
@@ -502,12 +494,11 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
             }
 
             val (args, argTokens) = insArgAndTokens.unzip()
-            val (stackArgs, stackArgTokens) = stackArgAndTokens.unzip()
+            val stackArgTokens = stackArgAndTokens.map { it.second }
 
             addInstruction(
                 opcode,
                 args,
-                stackArgs,
                 identToken,
                 argTokens,
                 stackArgTokens,

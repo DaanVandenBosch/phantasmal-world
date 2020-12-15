@@ -296,6 +296,7 @@ private class LineTokenizer(private var line: String) {
         var prevWasBackSpace = false
         var terminated = false
 
+        loop@ // Use label as workaround for https://youtrack.jetbrains.com/issue/KT-43943.
         while (hasNext()) {
             when (peek()) {
                 '\\' -> {
@@ -304,7 +305,7 @@ private class LineTokenizer(private var line: String) {
                 '"' -> {
                     if (!prevWasBackSpace) {
                         terminated = true
-                        break
+                        break@loop
                     }
 
                     prevWasBackSpace = false
@@ -317,13 +318,14 @@ private class LineTokenizer(private var line: String) {
             next()
         }
 
+        val lenWithoutQuotes = markedLen()
         val value = slice().replace("\\\"", "\"").replace("\\n", "\n")
 
         return if (terminated) {
             next()
-            Token.Str(col, markedLen() + 2, value)
+            Token.Str(col, lenWithoutQuotes + 2, value)
         } else {
-            Token.UnterminatedString(col, markedLen() + 1, value)
+            Token.UnterminatedString(col, lenWithoutQuotes + 1, value)
         }
     }
 

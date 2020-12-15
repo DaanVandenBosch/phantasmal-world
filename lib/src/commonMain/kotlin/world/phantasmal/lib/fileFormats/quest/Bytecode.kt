@@ -393,13 +393,13 @@ private fun parseInstructionsSegment(
         // Parse the arguments.
         try {
             val args = parseInstructionArguments(cursor, opcode, dcGcFormat)
-            instructions.add(Instruction(opcode, args, null))
+            instructions.add(Instruction(opcode, args))
         } catch (e: Exception) {
             if (lenient) {
                 logger.error(e) {
                     "Exception occurred while parsing arguments for instruction ${opcode.mnemonic}."
                 }
-                instructions.add(Instruction(opcode, emptyList(), null))
+                instructions.add(Instruction(opcode, emptyList()))
             } else {
                 throw e
             }

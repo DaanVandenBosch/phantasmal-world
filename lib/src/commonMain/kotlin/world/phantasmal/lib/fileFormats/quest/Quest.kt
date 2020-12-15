@@ -9,6 +9,7 @@ import world.phantasmal.lib.Episode
 import world.phantasmal.lib.asm.BytecodeIr
 import world.phantasmal.lib.asm.InstructionSegment
 import world.phantasmal.lib.asm.OP_SET_EPISODE
+import world.phantasmal.lib.asm.dataFlowAnalysis.ControlFlowGraph
 import world.phantasmal.lib.asm.dataFlowAnalysis.getMapDesignations
 import world.phantasmal.lib.compression.prs.prsDecompress
 import world.phantasmal.lib.cursor.Cursor
@@ -105,7 +106,8 @@ fun parseBinDatToQuest(
                 npc.episode = episode
             }
 
-            mapDesignations = getMapDesignations(instructionSegments, label0Segment)
+            mapDesignations =
+                getMapDesignations(label0Segment) { ControlFlowGraph.create(bytecodeIr) }
         } else {
             result.addProblem(Severity.Warning, "No instruction segment for label 0 found.")
         }

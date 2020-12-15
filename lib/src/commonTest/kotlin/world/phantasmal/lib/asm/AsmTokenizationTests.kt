@@ -55,4 +55,31 @@ class AsmTokenizationTests : LibTestSuite() {
         assertEquals(4, tokens4[0].col)
         assertEquals(2, tokens4[0].len)
     }
+
+    @Test
+    fun strings_are_parsed_as_Str_tokens() {
+        val tokens0 = tokenizeLine(""" "one line" """)
+
+        assertEquals(1, tokens0.size)
+        assertEquals(Token.Str::class, tokens0[0]::class)
+        assertEquals("one line", (tokens0[0] as Token.Str).value)
+        assertEquals(2, tokens0[0].col)
+        assertEquals(10, tokens0[0].len)
+
+        val tokens1 = tokenizeLine(""" "two\nlines" """)
+
+        assertEquals(1, tokens1.size)
+        assertEquals(Token.Str::class, tokens1[0]::class)
+        assertEquals("two\nlines", (tokens1[0] as Token.Str).value)
+        assertEquals(2, tokens1[0].col)
+        assertEquals(12, tokens1[0].len)
+
+        val tokens2 = tokenizeLine(""" "is \"this\" escaped?" """)
+
+        assertEquals(1, tokens2.size)
+        assertEquals(Token.Str::class, tokens2[0]::class)
+        assertEquals("is \"this\" escaped?", (tokens2[0] as Token.Str).value)
+        assertEquals(2, tokens2[0].col)
+        assertEquals(22, tokens2[0].len)
+    }
 }

@@ -9,8 +9,8 @@ import world.phantasmal.lib.asm.OP_MAP_DESIGNATE_EX
 private val logger = KotlinLogging.logger {}
 
 fun getMapDesignations(
-    instructionSegments: List<InstructionSegment>,
     func0Segment: InstructionSegment,
+    createCfg: () -> ControlFlowGraph,
 ): Map<Int, Int> {
     val mapDesignations = mutableMapOf<Int, Int>()
     var cfg: ControlFlowGraph? = null
@@ -21,7 +21,7 @@ fun getMapDesignations(
             OP_MAP_DESIGNATE_EX.code,
             -> {
                 if (cfg == null) {
-                    cfg = ControlFlowGraph.create(instructionSegments)
+                    cfg = createCfg()
                 }
 
                 val areaId = getRegisterValue(cfg, inst, inst.args[0].value as Int)

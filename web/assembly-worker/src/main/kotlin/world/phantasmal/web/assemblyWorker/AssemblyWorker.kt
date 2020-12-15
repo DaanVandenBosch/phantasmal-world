@@ -2,16 +2,31 @@ package world.phantasmal.web.assemblyWorker
 
 import world.phantasmal.core.*
 import world.phantasmal.lib.asm.*
+import world.phantasmal.lib.asm.dataFlowAnalysis.ControlFlowGraph
 import world.phantasmal.lib.asm.dataFlowAnalysis.getMapDesignations
+import world.phantasmal.lib.asm.dataFlowAnalysis.getStackValue
 import world.phantasmal.web.shared.*
 import world.phantasmal.web.shared.AssemblyProblem
 import kotlin.math.min
 import world.phantasmal.lib.asm.AssemblyProblem as AssemblerAssemblyProblem
 
 class AssemblyWorker(private val sendMessage: (ServerMessage) -> Unit) {
+    // User input.
     private var inlineStackArgs: Boolean = true
     private val asm: JsArray<String> = jsArrayOf()
+
+    // Output.
     private var bytecodeIr = BytecodeIr(emptyList())
+    private var problems: List<AssemblyProblem>? = null
+
+    // Derived data.
+    private var _cfg: ControlFlowGraph? = null
+    private val cfg: ControlFlowGraph
+        get() {
+            if (_cfg == null) _cfg = ControlFlowGraph.create(bytecodeIr)
+            return _cfg!!
+        }
+
     private var mapDesignations: Map<Int, Int>? = null
 
     fun receiveMessage(message: ClientMessage) =
@@ -137,6 +152,8 @@ class AssemblyWorker(private val sendMessage: (ServerMessage) -> Unit) {
     }
 
     private fun processAsm() {
+        _cfg = null
+
         val assemblyResult = assemble(asm.asArray().toList(), inlineStackArgs)
 
         @Suppress("UNCHECKED_CAST")
@@ -144,7 +161,10 @@ class AssemblyWorker(private val sendMessage: (ServerMessage) -> Unit) {
             AssemblyProblem(it.severity, it.uiMessage)
         }
 
-        sendMessage(ServerNotification.Problems(problems))
+        if (problems != this.problems) {
+            this.problems = problems
+            sendMessage(ServerNotification.Problems(problems))
+        }
 
         if (assemblyResult is Success) {
             bytecodeIr = assemblyResult.value
@@ -152,9 +172,9 @@ class AssemblyWorker(private val sendMessage: (ServerMessage) -> Unit) {
             val instructionSegments = bytecodeIr.instructionSegments()
 
             instructionSegments.find { 0 in it.labels }?.let { label0Segment ->
-                val designations = getMapDesignations(instructionSegments, label0Segment)
+                val designations = getMapDesignations(label0Segment) { cfg }
 
-                if (mapDesignations != designations) {
+                if (designations != mapDesignations) {
                     mapDesignations = designations
                     sendMessage(ServerNotification.MapDesignations(
                         designations
@@ -349,10 +369,14 @@ class AssemblyWorker(private val sendMessage: (ServerMessage) -> Unit) {
                         // Stack arguments.
                         val argSrcLocs = inst.getStackArgSrcLocs(paramIdx)
 
-                        for (argSrcLoc in argSrcLocs) {
+                        for ((i, argSrcLoc) in argSrcLocs.withIndex()) {
                             if (positionInside(lineNo, col, argSrcLoc)) {
-                                val label = argSrcLoc.value as Int
-                                result = getLabelDefinitions(label)
+                                val labelValues = getStackValue(cfg, inst, argSrcLocs.lastIndex - i)
+
+                                if (labelValues.size <= 5) {
+                                    result = labelValues.flatMap(::getLabelDefinitions)
+                                }
+
                                 break@loop
                             }
                         }

@@ -32,19 +32,19 @@ sealed class Segment(
 class InstructionSegment(
     labels: MutableList<Int>,
     val instructions: MutableList<Instruction>,
-    srcLoc: SegmentSrcLoc,
+    srcLoc: SegmentSrcLoc = SegmentSrcLoc(mutableListOf()),
 ) : Segment(SegmentType.Instructions, labels, srcLoc)
 
 class DataSegment(
     labels: MutableList<Int>,
     val data: Buffer,
-    srcLoc: SegmentSrcLoc,
+    srcLoc: SegmentSrcLoc = SegmentSrcLoc(mutableListOf()),
 ) : Segment(SegmentType.Data, labels, srcLoc)
 
 class StringSegment(
     labels: MutableList<Int>,
     var value: String,
-    srcLoc: SegmentSrcLoc,
+    srcLoc: SegmentSrcLoc = SegmentSrcLoc(mutableListOf()),
 ) : Segment(SegmentType.String, labels, srcLoc)
 
 /**
@@ -55,8 +55,8 @@ class Instruction(
     /**
      * Immediate arguments for the opcode.
      */
-    val args: List<Arg>,
-    val srcLoc: InstructionSrcLoc?,
+    val args: List<Arg> = emptyList(),
+    val srcLoc: InstructionSrcLoc? = null,
 ) {
     /**
      * Maps each parameter by index to its immediate arguments.
@@ -114,7 +114,7 @@ class Instruction(
     /**
      * Returns the source locations of the stack arguments for the parameter at the given index.
      */
-    fun getStackArgSrcLocs(paramIndex: Int): List<StackArgSrcLoc> {
+    fun getStackArgSrcLocs(paramIndex: Int): List<SrcLoc> {
         val argSrcLocs = srcLoc?.stackArgs
 
         if (argSrcLocs == null || paramIndex > argSrcLocs.lastIndex) {
@@ -189,7 +189,7 @@ data class Arg(val value: Any)
 /**
  * Position and length of related source assembly code.
  */
-open class SrcLoc(
+class SrcLoc(
     val lineNo: Int,
     val col: Int,
     val len: Int,
@@ -200,14 +200,9 @@ open class SrcLoc(
  */
 class InstructionSrcLoc(
     val mnemonic: SrcLoc?,
-    val args: List<SrcLoc>,
-    val stackArgs: List<StackArgSrcLoc>,
+    val args: List<SrcLoc> = emptyList(),
+    val stackArgs: List<SrcLoc> = emptyList(),
 )
-
-/**
- * Locations of an instruction's stack arguments in the source assembly code.
- */
-class StackArgSrcLoc(lineNo: Int, col: Int, len: Int, val value: Any) : SrcLoc(lineNo, col, len)
 
 /**
  * Locations of a segment's labels in the source assembly code.

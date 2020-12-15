@@ -53,10 +53,12 @@ dependencies {
     testImplementation(project(":test-utils"))
 }
 
-// TODO: Figure out how to trigger this task automatically.
-tasks.register<Copy>("copyAssemblyWorkerJs") {
+val copyAssemblyWorkerJsTask = tasks.register<Copy>("copyAssemblyWorkerJs") {
     val workerDist = project(":web:assembly-worker").buildDir.resolve("distributions")
     from(workerDist.resolve("assembly-worker.js"), workerDist.resolve("assembly-worker.js.map"))
     into(buildDir.resolve("processedResources/js/main"))
     dependsOn(":web:assembly-worker:build")
 }
+
+// TODO: Figure out how to make this work with --continuous.
+tasks.getByName("processResources").dependsOn(copyAssemblyWorkerJsTask)
