@@ -68,9 +68,9 @@ class TestComponents(private val ctx: TestContext) {
 
     // Rendering
     var createThreeRenderer: (HTMLCanvasElement) -> DisposableThreeRenderer by default {
-        { canvas ->
+        { _ ->
             object : DisposableThreeRenderer {
-                override val renderer = NopRenderer(canvas).unsafeCast<WebGLRenderer>()
+                override val renderer = NopRenderer().unsafeCast<WebGLRenderer>()
                 override fun dispose() {}
             }
         }

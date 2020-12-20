@@ -7,6 +7,8 @@ kotlin {
         browser {}
     }
 
+    jvm()
+
     sourceSets {
         commonMain {
             dependencies {
@@ -22,9 +24,15 @@ kotlin {
             }
         }
 
-        val jsTest by getting {
+        getByName("jsTest") {
             dependencies {
                 implementation(kotlin("test-js"))
+            }
+        }
+
+        getByName("jvmTest") {
+            dependencies {
+                implementation(kotlin("test-junit"))
             }
         }
     }

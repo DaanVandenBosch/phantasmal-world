@@ -250,29 +250,23 @@ private fun <T> bindChildrenTo(
     childrenRemoved: (index: Int, count: Int) -> Unit,
 ): Disposable =
     list.observeList(callNow = true) { change: ListValChangeEvent<T> ->
-        when (change) {
-            is ListValChangeEvent.Change -> {
-                repeat(change.removed.size) {
-                    parent.removeChild(parent.childNodes[change.index].unsafeCast<Node>())
-                }
-
-                childrenRemoved(change.index, change.removed.size)
-
-                val frag = document.createDocumentFragment()
-
-                change.inserted.forEachIndexed { i, value ->
-                    frag.appendChild(frag.createChild(value, change.index + i))
-                }
-
-                if (change.index >= parent.childNodes.length) {
-                    parent.appendChild(frag)
-                } else {
-                    parent.insertBefore(frag, parent.childNodes[change.index])
-                }
+        if (change is ListValChangeEvent.Change) {
+            repeat(change.removed.size) {
+                parent.removeChild(parent.childNodes[change.index].unsafeCast<Node>())
             }
 
-            is ListValChangeEvent.ElementChange -> {
-                // TODO: Update children.
+            childrenRemoved(change.index, change.removed.size)
+
+            val frag = document.createDocumentFragment()
+
+            change.inserted.forEachIndexed { i, value ->
+                frag.appendChild(frag.createChild(value, change.index + i))
+            }
+
+            if (change.index >= parent.childNodes.length) {
+                parent.appendChild(frag)
+            } else {
+                parent.insertBefore(frag, parent.childNodes[change.index])
             }
         }
     }

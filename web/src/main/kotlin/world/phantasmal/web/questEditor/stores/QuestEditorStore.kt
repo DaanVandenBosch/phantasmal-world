@@ -129,18 +129,40 @@ class QuestEditorStore(
                     logger.warn { "Section ${entity.sectionId.value} not found." }
                     entity.setSectionInitialized()
                 } else {
-                    entity.setSection(section)
+                    entity.initializeSection(section)
                 }
             }
         }
     }
 
     fun setCurrentArea(area: AreaModel?) {
-        // TODO: Set wave.
+        val wave = selectedWave.value
+
+        if (area != null && wave != null && area.id != wave.areaId) {
+            setSelectedWave(null)
+        }
 
         _highlightedEntity.value = null
         _selectedEntity.value = null
         _currentArea.value = area
+    }
+
+    fun setSelectedWave(wave: WaveModel?) {
+        wave?.let {
+            highlightedEntity.value?.let { entity ->
+                if (entity is QuestNpcModel && entity.wave.value != wave) {
+                    setHighlightedEntity(null)
+                }
+            }
+
+            selectedEntity.value?.let { entity ->
+                if (entity is QuestNpcModel && entity.wave.value != wave) {
+                    setSelectedEntity(null)
+                }
+            }
+        }
+
+        _selectedWave.value = wave
     }
 
     fun setHighlightedEntity(entity: QuestEntityModel<*, *>?) {

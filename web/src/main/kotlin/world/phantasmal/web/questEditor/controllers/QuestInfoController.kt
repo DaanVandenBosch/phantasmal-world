@@ -3,10 +3,7 @@ package world.phantasmal.web.questEditor.controllers
 import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.emptyStringVal
 import world.phantasmal.observable.value.value
-import world.phantasmal.web.questEditor.actions.EditIdAction
-import world.phantasmal.web.questEditor.actions.EditLongDescriptionAction
-import world.phantasmal.web.questEditor.actions.EditNameAction
-import world.phantasmal.web.questEditor.actions.EditShortDescriptionAction
+import world.phantasmal.web.questEditor.actions.EditPropertyAction
 import world.phantasmal.web.questEditor.stores.QuestEditorStore
 import world.phantasmal.webui.controllers.Controller
 
@@ -30,7 +27,7 @@ class QuestInfoController(private val store: QuestEditorStore) : Controller() {
         if (!enabled.value) return
 
         store.currentQuest.value?.let { quest ->
-            store.executeAction(EditIdAction(quest, id, quest.id.value))
+            store.executeAction(EditPropertyAction("Edit ID", quest::setId, id, quest.id.value))
         }
     }
 
@@ -38,7 +35,9 @@ class QuestInfoController(private val store: QuestEditorStore) : Controller() {
         if (!enabled.value) return
 
         store.currentQuest.value?.let { quest ->
-            store.executeAction(EditNameAction(quest, name, quest.name.value))
+            store.executeAction(
+                EditPropertyAction("Edit name", quest::setName, name, quest.name.value)
+            )
         }
     }
 
@@ -47,7 +46,12 @@ class QuestInfoController(private val store: QuestEditorStore) : Controller() {
 
         store.currentQuest.value?.let { quest ->
             store.executeAction(
-                EditShortDescriptionAction(quest, shortDescription, quest.shortDescription.value)
+                EditPropertyAction(
+                    "Edit short description",
+                    quest::setShortDescription,
+                    shortDescription,
+                    quest.shortDescription.value,
+                )
             )
         }
     }
@@ -57,7 +61,12 @@ class QuestInfoController(private val store: QuestEditorStore) : Controller() {
 
         store.currentQuest.value?.let { quest ->
             store.executeAction(
-                EditLongDescriptionAction(quest, longDescription, quest.longDescription.value)
+                EditPropertyAction(
+                    "Edit long description",
+                    quest::setLongDescription,
+                    longDescription,
+                    quest.longDescription.value,
+                )
             )
         }
     }

@@ -5,7 +5,7 @@ import world.phantasmal.core.Failure
 import world.phantasmal.core.Severity
 import world.phantasmal.lib.Episode
 import world.phantasmal.lib.fileFormats.quest.NpcType
-import world.phantasmal.web.questEditor.actions.EditNameAction
+import world.phantasmal.web.core.actions.Action
 import world.phantasmal.web.test.WebTestSuite
 import world.phantasmal.web.test.createQuestModel
 import world.phantasmal.web.test.createQuestNpcModel
@@ -83,10 +83,14 @@ class QuestEditorToolbarControllerTests : WebTestSuite() {
 
         // Add an action to the undo stack.
         components.questEditorStore.executeAction(
-            EditNameAction(quest, "New Name", quest.name.value)
+            object : Action {
+                override val description: String = "Do action"
+                override fun execute() {}
+                override fun undo() {}
+            }
         )
 
-        assertEquals("Undo \"Edit name\" (Ctrl-Z)", ctrl.undoTooltip.value)
+        assertEquals("Undo \"Do action\" (Ctrl-Z)", ctrl.undoTooltip.value)
         assertTrue(ctrl.undoEnabled.value)
 
         assertEquals(nothingToRedo, ctrl.redoTooltip.value)
@@ -98,7 +102,7 @@ class QuestEditorToolbarControllerTests : WebTestSuite() {
         assertEquals(nothingToUndo, ctrl.undoTooltip.value)
         assertFalse(ctrl.undoEnabled.value)
 
-        assertEquals("Redo \"Edit name\" (Ctrl-Shift-Z)", ctrl.redoTooltip.value)
+        assertEquals("Redo \"Do action\" (Ctrl-Shift-Z)", ctrl.redoTooltip.value)
         assertTrue(ctrl.redoEnabled.value)
     }
 

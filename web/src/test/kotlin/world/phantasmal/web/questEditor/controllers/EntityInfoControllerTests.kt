@@ -1,7 +1,7 @@
 package world.phantasmal.web.questEditor.controllers
 
-import world.phantasmal.lib.fileFormats.Vec3
 import world.phantasmal.lib.Episode
+import world.phantasmal.lib.fileFormats.Vec3
 import world.phantasmal.lib.fileFormats.quest.NpcType
 import world.phantasmal.lib.fileFormats.quest.QuestNpc
 import world.phantasmal.testUtils.assertCloseTo
@@ -19,7 +19,8 @@ import kotlin.test.assertTrue
 class EntityInfoControllerTests : WebTestSuite() {
     @Test
     fun test_unavailable_and_enabled() = asyncTest {
-        val ctrl = disposer.add(EntityInfoController(components.questEditorStore))
+        val ctrl =
+            disposer.add(EntityInfoController(components.areaStore, components.questEditorStore))
 
         assertTrue(ctrl.unavailable.value)
         assertFalse(ctrl.enabled.value)
@@ -38,7 +39,8 @@ class EntityInfoControllerTests : WebTestSuite() {
 
     @Test
     fun can_read_regular_properties() = asyncTest {
-        val ctrl = disposer.add(EntityInfoController(components.questEditorStore))
+        val ctrl =
+            disposer.add(EntityInfoController(components.areaStore, components.questEditorStore))
 
         val questNpc = QuestNpc(NpcType.Booma, Episode.I, areaId = 10, wave = 5)
         questNpc.sectionId = 7
@@ -50,8 +52,8 @@ class EntityInfoControllerTests : WebTestSuite() {
 
         assertEquals("NPC", ctrl.type.value)
         assertEquals("Booma", ctrl.name.value)
-        assertEquals("7", ctrl.sectionId.value)
-        assertEquals("5", ctrl.wave.value)
+        assertEquals(7, ctrl.sectionId.value)
+        assertEquals(5, ctrl.waveId.value)
         assertFalse(ctrl.waveHidden.value)
         assertEquals(8.0, ctrl.posX.value)
         assertEquals(16.0, ctrl.posY.value)
@@ -63,7 +65,8 @@ class EntityInfoControllerTests : WebTestSuite() {
 
     @Test
     fun can_set_regular_properties_undo_and_redo() = asyncTest {
-        val ctrl = disposer.add(EntityInfoController(components.questEditorStore))
+        val ctrl =
+            disposer.add(EntityInfoController(components.areaStore, components.questEditorStore))
 
         val npc = createQuestNpcModel(NpcType.Principal, Episode.I)
         components.questEditorStore.setCurrentQuest(createQuestModel(npcs = listOf(npc)))

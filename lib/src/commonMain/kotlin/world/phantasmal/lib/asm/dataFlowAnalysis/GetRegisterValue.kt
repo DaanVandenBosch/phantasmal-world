@@ -44,6 +44,13 @@ private class RegisterValueFinder {
             val args = instruction.args
 
             when (instruction.opcode.code) {
+                OP_SYNC.code -> {
+                    // After a sync call, concurrent code could have modified the register. We don't
+                    // check whether concurrent code *ever* writes to the register to possibly
+                    // continue the analysis.
+                    return ValueSet.all()
+                }
+
                 OP_LET.code -> {
                     if (args[0].value == register) {
                         return find(LinkedHashSet(path), block, i, args[1].value as Int)
@@ -208,10 +215,11 @@ private class RegisterValueFinder {
             values.union(find(LinkedHashSet(path), from, from.end, register))
         }
 
-        // If values is empty at this point, we know nothing ever sets the register's value and it
-        // still has its initial value of 0.
+        // If values is empty at this point, we know nothing ever sets the register's value from
+        // this thread or handler. Concurrent code could have modified it, we don't yet try to
+        // exclude this possibility so we just return all values.
         if (values.isEmpty()) {
-            values.setValue(0)
+            return ValueSet.all()
         }
 
         return values

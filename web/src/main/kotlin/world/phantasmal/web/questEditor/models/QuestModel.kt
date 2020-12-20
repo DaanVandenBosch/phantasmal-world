@@ -1,7 +1,8 @@
 package world.phantasmal.web.questEditor.models
 
-import world.phantasmal.lib.asm.BytecodeIr
 import world.phantasmal.lib.Episode
+import world.phantasmal.lib.asm.BytecodeIr
+import world.phantasmal.lib.fileFormats.quest.DatUnknown
 import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.list.ListVal
 import world.phantasmal.observable.value.list.mutableListVal
@@ -18,7 +19,13 @@ class QuestModel(
     mapDesignations: Map<Int, Int>,
     npcs: MutableList<QuestNpcModel>,
     objects: MutableList<QuestObjectModel>,
+    events: MutableList<QuestEventModel>,
+    /**
+     * (Partial) raw DAT data that can't be parsed yet by Phantasmal.
+     */
+    val datUnknowns: List<DatUnknown>,
     bytecodeIr: BytecodeIr,
+    val shopItems: UIntArray,
     getVariant: (Episode, areaId: Int, variantId: Int) -> AreaVariantModel?,
 ) {
     private val _id = mutableVal(0)
@@ -27,8 +34,9 @@ class QuestModel(
     private val _shortDescription = mutableVal("")
     private val _longDescription = mutableVal("")
     private val _mapDesignations = mutableVal(mapDesignations)
-    private val _npcs = mutableListVal(npcs)
-    private val _objects = mutableListVal(objects)
+    private val _npcs = mutableListVal(npcs) { arrayOf(it.sectionInitialized, it.wave) }
+    private val _objects = mutableListVal(objects) { arrayOf(it.sectionInitialized) }
+    private val _events = mutableListVal(events)
 
     val id: Val<Int> = _id
     val language: Val<Int> = _language
@@ -53,6 +61,8 @@ class QuestModel(
 
     val npcs: ListVal<QuestNpcModel> = _npcs
     val objects: ListVal<QuestObjectModel> = _objects
+
+    val events: ListVal<QuestEventModel> = _events
 
     var bytecodeIr: BytecodeIr = bytecodeIr
         private set
@@ -160,6 +170,14 @@ class QuestModel(
             is QuestNpcModel -> _npcs.remove(entity)
             is QuestObjectModel -> _objects.remove(entity)
         }
+    }
+
+    fun addEvent(index: Int, event: QuestEventModel) {
+        _events.add(index, event)
+    }
+
+    fun removeEvent(event: QuestEventModel) {
+        _events.remove(event)
     }
 
     fun setBytecodeIr(bytecodeIr: BytecodeIr) {

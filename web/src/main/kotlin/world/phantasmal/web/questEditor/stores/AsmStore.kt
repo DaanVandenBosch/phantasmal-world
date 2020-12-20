@@ -1,7 +1,9 @@
 package world.phantasmal.web.questEditor.stores
 
+import kotlinx.browser.window
 import world.phantasmal.core.disposable.Disposer
 import world.phantasmal.core.disposable.disposable
+import world.phantasmal.lib.asm.assemble
 import world.phantasmal.lib.asm.disassemble
 import world.phantasmal.observable.ChangeEvent
 import world.phantasmal.observable.Observable
@@ -14,6 +16,7 @@ import world.phantasmal.web.core.undo.UndoManager
 import world.phantasmal.web.externals.monacoEditor.*
 import world.phantasmal.web.questEditor.asm.AsmAnalyser
 import world.phantasmal.web.questEditor.asm.monaco.*
+import world.phantasmal.web.questEditor.models.QuestModel
 import world.phantasmal.web.shared.AsmChange
 import world.phantasmal.web.shared.AsmRange
 import world.phantasmal.web.shared.AssemblyProblem
@@ -24,11 +27,13 @@ import world.phantasmal.webui.stores.Store
  * Depends on a global [AsmAnalyser], instantiate at most once.
  */
 class AsmStore(
-    questEditorStore: QuestEditorStore,
+    private val questEditorStore: QuestEditorStore,
     private val undoManager: UndoManager,
 ) : Store() {
     private val _inlineStackArgs = mutableVal(true)
     private var _textModel = mutableVal<ITextModel?>(null)
+
+    private var setBytecodeIrTimeout: Int? = null
 
     /**
      * Contains all model-related disposables. All contained disposables are disposed whenever a new
@@ -57,34 +62,17 @@ class AsmStore(
     val problems: ListVal<AssemblyProblem> = asmAnalyser.problems
 
     init {
-        observe(questEditorStore.currentQuest, inlineStackArgs) { quest, inlineStackArgs ->
-            modelDisposer.disposeAll()
+        observe(questEditorStore.currentQuest) { quest ->
+            setTextModel(quest, inlineStackArgs.value)
+        }
 
-            quest?.let {
-                val asm = disassemble(quest.bytecodeIr, inlineStackArgs)
-                asmAnalyser.setAsm(asm, inlineStackArgs)
-
-                _textModel.value = createModel(asm.joinToString("\n"), ASM_LANG_ID).also { model ->
-                    modelDisposer.add(disposable { model.dispose() })
-
-                    setupUndoRedo(model)
-
-                    model.onDidChangeContent { e ->
-                        asmAnalyser.updateAsm(e.changes.map {
-                            AsmChange(
-                                AsmRange(
-                                    it.range.startLineNumber,
-                                    it.range.startColumn,
-                                    it.range.endLineNumber,
-                                    it.range.endColumn,
-                                ),
-                                it.text,
-                            )
-                        })
-                        // TODO: Update breakpoints.
-                    }
-                }
+        observe(inlineStackArgs) { inlineStackArgs ->
+            // Ensure we have the most up-to-date bytecode before we disassemble it again.
+            if (setBytecodeIrTimeout != null) {
+                setBytecodeIr()
             }
+
+            setTextModel(questEditorStore.currentQuest.value, inlineStackArgs)
         }
 
         observe(asmAnalyser.mapDesignations) {
@@ -98,6 +86,56 @@ class AsmStore(
 
     fun setInlineStackArgs(inline: Boolean) {
         _inlineStackArgs.value = inline
+    }
+
+    private fun setTextModel(quest: QuestModel?, inlineStackArgs: Boolean) {
+        setBytecodeIrTimeout?.let { it ->
+            window.clearTimeout(it)
+            setBytecodeIrTimeout = null
+        }
+
+        modelDisposer.disposeAll()
+
+        quest ?: return
+
+        val asm = disassemble(quest.bytecodeIr, inlineStackArgs)
+        asmAnalyser.setAsm(asm, inlineStackArgs)
+
+        _textModel.value = createModel(asm.joinToString("\n"), ASM_LANG_ID).also { model ->
+            modelDisposer.add(disposable { model.dispose() })
+
+            setupUndoRedo(model)
+
+            model.onDidChangeContent { e ->
+                asmAnalyser.updateAsm(e.changes.map {
+                    AsmChange(
+                        AsmRange(
+                            it.range.startLineNumber,
+                            it.range.startColumn,
+                            it.range.endLineNumber,
+                            it.range.endColumn,
+                        ),
+                        it.text,
+                    )
+                })
+
+                setBytecodeIrTimeout?.let(window::clearTimeout)
+                setBytecodeIrTimeout = window.setTimeout(::setBytecodeIr, 300)
+
+                // TODO: Update breakpoints.
+            }
+        }
+    }
+
+    private fun setBytecodeIr() {
+        setBytecodeIrTimeout = null
+
+        val model = textModel.value ?: return
+        val quest = questEditorStore.currentQuest.value ?: return
+
+        assemble(model.getLinesContent().toList(), inlineStackArgs.value)
+            .getOrNull()
+            ?.let(quest::setBytecodeIr)
     }
 
     private fun setupUndoRedo(model: ITextModel) {

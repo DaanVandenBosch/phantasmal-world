@@ -1,15 +1,17 @@
 package world.phantasmal.observable.value.list
 
-sealed class ListValChangeEvent<E> {
+sealed class ListValChangeEvent<out E> {
+    abstract val index: Int
+
     class Change<E>(
-        val index: Int,
+        override val index: Int,
         val removed: List<E>,
-        val inserted: List<E>
+        val inserted: List<E>,
     ) : ListValChangeEvent<E>()
 
     class ElementChange<E>(
-        val index: Int,
-        val updated: List<E>
+        override val index: Int,
+        val updated: E,
     ) : ListValChangeEvent<E>()
 }
 

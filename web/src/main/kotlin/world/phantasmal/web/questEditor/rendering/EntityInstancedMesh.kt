@@ -1,9 +1,7 @@
 package world.phantasmal.web.questEditor.rendering
 
-import world.phantasmal.observable.value.Val
 import world.phantasmal.web.externals.three.InstancedMesh
 import world.phantasmal.web.questEditor.models.QuestEntityModel
-import world.phantasmal.web.questEditor.models.WaveModel
 
 /**
  * Represents a specific entity type and model combination. Contains a single [InstancedMesh] and
@@ -11,7 +9,6 @@ import world.phantasmal.web.questEditor.models.WaveModel
  */
 class EntityInstancedMesh(
     private val mesh: InstancedMesh,
-    private val selectedWave: Val<WaveModel?>,
     /**
      * Called whenever an entity's model changes. At this point the entity's instance has already
      * been removed from this [EntityInstancedMesh]. The entity should then be added to the correct
@@ -35,12 +32,7 @@ class EntityInstancedMesh(
         val instanceIndex = mesh.count
         mesh.count++
 
-        val instance = EntityInstance(
-            entity,
-            mesh,
-            instanceIndex,
-            selectedWave,
-        ) { index ->
+        val instance = EntityInstance(entity, mesh, instanceIndex) { index ->
             removeAt(index)
             modelChanged(entity)
         }

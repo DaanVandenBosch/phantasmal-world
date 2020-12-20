@@ -20,6 +20,12 @@ class FilteredListVal<E>(
 
     private var dependencyObserver: Disposable? = null
 
+    /**
+     * Maps the dependency's indices to this list's indices. When an element of the dependency list
+     * doesn't pass the predicate, it's index in this mapping is set to -1.
+     */
+    private val indexMap = mutableListOf<Int>()
+
     override val value: List<E>
         get() {
             if (!hasObservers) {
@@ -55,7 +61,16 @@ class FilteredListVal<E>(
 
     private fun recompute() {
         elements.clear()
-        dependency.value.filterTo(elements, predicate)
+        indexMap.clear()
+
+        dependency.value.forEach { element ->
+            if (predicate(element)) {
+                elements.add(element)
+                indexMap.add(elements.lastIndex)
+            } else {
+                indexMap.add(-1)
+            }
+        }
     }
 
     private fun initDependencyObservers() {
@@ -65,32 +80,116 @@ class FilteredListVal<E>(
             dependencyObserver = dependency.observeList { event ->
                 when (event) {
                     is ListValChangeEvent.Change -> {
-                        var index = 0
-
-                        repeat(event.index) { i ->
-                            if (predicate(dependency[i])) {
-                                index++
-                            }
-                        }
-
+                        // Figure out which elements should be removed from this list, then simply
+                        // recompute the entire filtered list and finally figure out which elements
+                        // have been added. Emit a Change event if something actually changed.
                         val removed = mutableListOf<E>()
+                        var eventIndex = -1
 
-                        event.removed.forEach { element ->
-                            if (predicate(element)) {
-                                removed.add(elements.removeAt(index))
+                        event.removed.forEachIndexed { i, element ->
+                            val index = indexMap[event.index + i]
+
+                            if (index != -1) {
+                                removed.add(element)
+
+                                if (eventIndex == -1) {
+                                    eventIndex = index
+                                }
                             }
                         }
 
-                        val inserted = event.inserted.filter(predicate)
-                        elements.addAll(index, inserted)
+                        recompute()
+
+                        val inserted = mutableListOf<E>()
+
+                        event.inserted.forEachIndexed { i, element ->
+                            val index = indexMap[event.index + i]
+
+                            if (index != -1) {
+                                inserted.add(element)
+
+                                if (eventIndex == -1) {
+                                    eventIndex = index
+                                }
+                            }
+                        }
 
                         if (removed.isNotEmpty() || inserted.isNotEmpty()) {
-                            finalizeUpdate(ListValChangeEvent.Change(index, removed, inserted))
+                            check(eventIndex != -1)
+                            finalizeUpdate(ListValChangeEvent.Change(eventIndex, removed, inserted))
                         }
                     }
 
                     is ListValChangeEvent.ElementChange -> {
-                        finalizeUpdate(event)
+                        // Emit a Change or ElementChange event based on whether the updated element
+                        // passes the predicate test and whether it was already in the elements list
+                        // (i.e. whether it passed the predicate test before the update).
+                        val index = indexMap[event.index]
+
+                        if (predicate(event.updated)) {
+                            if (index == -1) {
+                                // If the element now passed the test and previously didn't pass,
+                                // insert it and emit a Change event.
+                                var insertIndex = elements.size
+
+                                for (depIdx in (event.index + 1)..indexMap.lastIndex) {
+                                    val thisIdx = indexMap[depIdx]
+
+                                    if (thisIdx != -1) {
+                                        insertIndex = thisIdx
+                                        break
+                                    }
+                                }
+
+                                elements.add(insertIndex, event.updated)
+                                indexMap[event.index] = insertIndex
+
+                                for (depIdx in (event.index + 1)..indexMap.lastIndex) {
+                                    val thisIdx = indexMap[depIdx]
+
+                                    if (thisIdx != -1) {
+                                        indexMap[depIdx]++
+                                    }
+                                }
+
+                                finalizeUpdate(ListValChangeEvent.Change(
+                                    insertIndex,
+                                    emptyList(),
+                                    listOf(event.updated),
+                                ))
+                            } else {
+                                // Otherwise just propagate the ElementChange event.
+                                finalizeUpdate(
+                                    ListValChangeEvent.ElementChange(index, event.updated)
+                                )
+                            }
+                        } else {
+                            if (index != -1) {
+                                // If the element now doesn't pass the test and it previously did
+                                // pass, remove it and emit a Change event.
+                                elements.removeAt(index)
+                                indexMap[event.index] = -1
+
+                                for (depIdx in (event.index + 1)..indexMap.lastIndex) {
+                                    val thisIdx = indexMap[depIdx]
+
+                                    if (thisIdx != -1) {
+                                        indexMap[depIdx]--
+                                    }
+                                }
+
+                                finalizeUpdate(ListValChangeEvent.Change(
+                                    index,
+                                    listOf(event.updated),
+                                    emptyList(),
+                                ))
+                            } else {
+                                // Otherwise just propagate the ElementChange event.
+                                finalizeUpdate(
+                                    ListValChangeEvent.ElementChange(index, event.updated)
+                                )
+                            }
+                        }
                     }
                 }
             }

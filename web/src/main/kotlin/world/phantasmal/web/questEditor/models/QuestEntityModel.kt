@@ -20,9 +20,9 @@ abstract class QuestEntityModel<Type : EntityType, Entity : QuestEntity<Type>>(
      * Don't modify the underlying entity directly because most of those modifications will not be
      * reflected in this model's properties.
      */
-    private val entity: Entity,
+    val entity: Entity,
 ) {
-    private val _sectionId = mutableVal(entity.sectionId)
+    private val _sectionId = mutableVal(entity.sectionId.toInt())
     private val _section = mutableVal<SectionModel?>(null)
     private val _sectionInitialized = mutableVal(false)
     private val _position = mutableVal(vec3ToThree(entity.position))
@@ -53,16 +53,25 @@ abstract class QuestEntityModel<Type : EntityType, Entity : QuestEntity<Type>>(
 
     val worldRotation: Val<Euler> = _worldRotation
 
-    fun setSection(section: SectionModel) {
+    open fun setSectionId(sectionId: Int) {
+        entity.sectionId = sectionId.toShort()
+        _sectionId.value = sectionId
+    }
+
+    fun initializeSection(section: SectionModel) {
+        require(!sectionInitialized.value) {
+            "Section is already initialized."
+        }
         require(section.areaVariant.area.id == areaId) {
-            "Quest entities can't be moved across areas."
+            "Section should lie within the entity's area."
         }
 
-        entity.sectionId = section.id
+        setSectionId(section.id)
 
         _section.value = section
-        _sectionId.value = section.id
 
+        // Update world position and rotation by calling setPosition and setRotation with the
+        // current position and rotation.
         setPosition(position.value)
         setRotation(rotation.value)
 
@@ -71,6 +80,21 @@ abstract class QuestEntityModel<Type : EntityType, Entity : QuestEntity<Type>>(
 
     fun setSectionInitialized() {
         _sectionInitialized.value = true
+    }
+
+    fun setSection(section: SectionModel) {
+        require(section.areaVariant.area.id == areaId) {
+            "Quest entities can't be moved across areas."
+        }
+
+        setSectionId(section.id)
+
+        _section.value = section
+
+        // Update relative position and rotation by calling setWorldPosition and setWorldRotation
+        // with the current world position and rotation.
+        setWorldPosition(worldPosition.value)
+        setWorldRotation(worldRotation.value)
     }
 
     fun setPosition(pos: Vector3) {

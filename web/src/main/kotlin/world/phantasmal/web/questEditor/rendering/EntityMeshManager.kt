@@ -30,11 +30,11 @@ class EntityMeshManager(
             { (type, model) ->
                 val mesh = entityAssetLoader.loadInstancedMesh(type, model)
                 renderContext.entities.add(mesh)
-                EntityInstancedMesh(mesh, questEditorStore.selectedWave) { entity ->
+                EntityInstancedMesh(mesh, modelChanged = { entity ->
                     // When an entity's model changes, add it again. At this point it has already
                     // been removed from its previous EntityInstancedMesh.
                     add(entity)
-                }
+                })
             },
             { /* Nothing to dispose. */ },
         )

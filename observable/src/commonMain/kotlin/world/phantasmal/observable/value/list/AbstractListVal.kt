@@ -82,7 +82,7 @@ abstract class AbstractListVal<E>(
     }
 
     private fun replaceElementObservers(from: Int, amountRemoved: Int, insertedElements: List<E>) {
-        for (i in 1..amountRemoved) {
+        repeat(amountRemoved) {
             elementObservers.removeAt(from).observers.forEach { it.dispose() }
         }
 
@@ -123,12 +123,7 @@ abstract class AbstractListVal<E>(
     ) {
         val observers: Array<Disposable> = Array(observables.size) {
             observables[it].observe {
-                finalizeUpdate(
-                    ListValChangeEvent.ElementChange(
-                        index,
-                        listOf(element)
-                    )
-                )
+                finalizeUpdate(ListValChangeEvent.ElementChange(index, element))
             }
         }
     }

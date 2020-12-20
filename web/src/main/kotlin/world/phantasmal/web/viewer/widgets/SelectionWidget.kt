@@ -27,10 +27,7 @@ class SelectionWidget<T>(
                     className = "pw-viewer-selection-item"
                     textContent = itemToString(item)
 
-                    observe(selected eq item) {
-                        if (it) classList.add("pw-active")
-                        else classList.remove("pw-active")
-                    }
+                    toggleClass("pw-active", selected eq item)
 
                     onclick = { onSelect(item) }
                 }

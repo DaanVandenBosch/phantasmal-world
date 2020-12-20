@@ -27,6 +27,7 @@ class QuestEditorWidget(
     private val createAsmWidget: () -> AsmWidget,
     private val createNpcListWidget: () -> EntityListWidget,
     private val createObjectListWidget: () -> EntityListWidget,
+    private val createEventsWidget: () -> EventsWidget,
 ) : Widget() {
     override fun Node.createElement() =
         div {
@@ -44,7 +45,7 @@ class QuestEditorWidget(
                         ASM_WIDGET_ID -> createAsmWidget()
                         NPC_LIST_WIDGET_ID -> createNpcListWidget()
                         OBJECT_LIST_WIDGET_ID -> createObjectListWidget()
-                        EVENTS_WIDGET_ID -> null // TODO: EventsWidget.
+                        EVENTS_WIDGET_ID -> createEventsWidget()
                         else -> null
                     }
                 },

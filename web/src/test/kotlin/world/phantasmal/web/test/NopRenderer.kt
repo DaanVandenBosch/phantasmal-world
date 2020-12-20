@@ -1,26 +1,22 @@
 package world.phantasmal.web.test
 
-import org.w3c.dom.HTMLCanvasElement
-import world.phantasmal.web.externals.three.Camera
-import world.phantasmal.web.externals.three.Color
-import world.phantasmal.web.externals.three.Object3D
-
 // WebGLRenderer implementation.
-class NopRenderer(val domElement: HTMLCanvasElement) {
+@Suppress("unused")
+class NopRenderer {
     @JsName("render")
-    fun render(scene: Object3D, camera: Camera) {
+    fun render() {
     }
 
     @JsName("setSize")
-    fun setSize(width: Double, height: Double) {
+    fun setSize() {
     }
 
     @JsName("setPixelRatio")
-    fun setPixelRatio(value: Double) {
+    fun setPixelRatio() {
     }
 
     @JsName("setClearColor")
-    fun setClearColor(color: Color) {
+    fun setClearColor() {
     }
 
     @JsName("clearColor")

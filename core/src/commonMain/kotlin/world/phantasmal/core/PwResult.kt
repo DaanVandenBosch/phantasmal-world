@@ -3,6 +3,11 @@ package world.phantasmal.core
 import mu.KLogger
 
 sealed class PwResult<out T>(val problems: List<Problem>) {
+    fun getOrNull(): T? = when (this) {
+        is Success -> value
+        is Failure -> null
+    }
+
     fun unwrap(): T = when (this) {
         is Success -> value
         is Failure -> error(problems.joinToString("\n") { "[${it.severity}] ${it.uiMessage}" })

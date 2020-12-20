@@ -10,7 +10,7 @@ private const val MAX_REGISTER_VALUES_SIZE: Long = 1L shl 32
 
 class GetRegisterValueTests : LibTestSuite() {
     @Test
-    fun when_no_instruction_sets_the_register_zero_is_returned() {
+    fun when_no_instruction_sets_the_register_all_values_are_returned() {
         val im = toInstructions("""
             0:
                 ret
@@ -18,8 +18,7 @@ class GetRegisterValueTests : LibTestSuite() {
         val cfg = ControlFlowGraph.create(im)
         val values = getRegisterValue(cfg, im[0].instructions[0], 6)
 
-        assertEquals(1L, values.size)
-        assertEquals(0, values[0])
+        assertEquals(MAX_REGISTER_VALUES_SIZE, values.size)
     }
 
     @Test

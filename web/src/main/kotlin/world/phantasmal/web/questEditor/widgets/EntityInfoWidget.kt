@@ -1,10 +1,13 @@
 package world.phantasmal.web.questEditor.widgets
 
+import kotlinx.coroutines.launch
 import org.w3c.dom.Node
+import world.phantasmal.observable.value.Val
 import world.phantasmal.web.core.widgets.UnavailableWidget
 import world.phantasmal.web.questEditor.controllers.EntityInfoController
 import world.phantasmal.webui.dom.*
 import world.phantasmal.webui.widgets.DoubleInput
+import world.phantasmal.webui.widgets.IntInput
 import world.phantasmal.webui.widgets.Widget
 
 class EntityInfoWidget(private val ctrl: EntityInfoController) : Widget(enabled = ctrl.enabled) {
@@ -27,87 +30,43 @@ class EntityInfoWidget(private val ctrl: EntityInfoController) : Widget(enabled 
                     td { text(ctrl.name) }
                 }
                 tr {
-                    th { textContent = "Section:" }
-                    td { text(ctrl.sectionId) }
+                    val sectionInput = IntInput(
+                        enabled = ctrl.enabled,
+                        value = ctrl.sectionId,
+                        onChange = { scope.launch { ctrl.setSectionId(it) } },
+                        label = "Section:",
+                        min = 0,
+                        step = 0,
+                    )
+                    th { addChild(sectionInput.label!!) }
+                    td { addChild(sectionInput) }
                 }
                 tr {
                     hidden(ctrl.waveHidden)
 
-                    th { textContent = "Wave:" }
-                    td { text(ctrl.wave) }
+                    val waveInput = IntInput(
+                        enabled = ctrl.enabled,
+                        value = ctrl.waveId,
+                        onChange = ctrl::setWaveId,
+                        label = "Wave:",
+                        min = 0,
+                        step = 0,
+                    )
+                    th { addChild(waveInput.label!!) }
+                    td { addChild(waveInput) }
                 }
                 tr {
                     th { colSpan = 2; textContent = "Position:" }
                 }
-                tr {
-                    th { className = COORD_CLASS; textContent = "X:" }
-                    td {
-                        addChild(DoubleInput(
-                            enabled = ctrl.enabled,
-                            value = ctrl.posX,
-                            onChange = ctrl::setPosX,
-                            roundTo = 3,
-                        ))
-                    }
-                }
-                tr {
-                    th { className = COORD_CLASS; textContent = "Y:" }
-                    td {
-                        addChild(DoubleInput(
-                            enabled = ctrl.enabled,
-                            value = ctrl.posY,
-                            onChange = ctrl::setPosY,
-                            roundTo = 3,
-                        ))
-                    }
-                }
-                tr {
-                    th { className = COORD_CLASS; textContent = "Z:" }
-                    td {
-                        addChild(DoubleInput(
-                            enabled = ctrl.enabled,
-                            value = ctrl.posZ,
-                            onChange = ctrl::setPosZ,
-                            roundTo = 3,
-                        ))
-                    }
-                }
+                createCoordRow("X:", ctrl.posX, ctrl::setPosX)
+                createCoordRow("Y:", ctrl.posY, ctrl::setPosY)
+                createCoordRow("Z:", ctrl.posZ, ctrl::setPosZ)
                 tr {
                     th { colSpan = 2; textContent = "Rotation:" }
                 }
-                tr {
-                    th { className = COORD_CLASS; textContent = "X:" }
-                    td {
-                        addChild(DoubleInput(
-                            enabled = ctrl.enabled,
-                            value = ctrl.rotX,
-                            onChange = ctrl::setRotX,
-                            roundTo = 3,
-                        ))
-                    }
-                }
-                tr {
-                    th { className = COORD_CLASS; textContent = "Y:" }
-                    td {
-                        addChild(DoubleInput(
-                            enabled = ctrl.enabled,
-                            value = ctrl.rotY,
-                            onChange = ctrl::setRotY,
-                            roundTo = 3,
-                        ))
-                    }
-                }
-                tr {
-                    th { className = COORD_CLASS; textContent = "Z:" }
-                    td {
-                        addChild(DoubleInput(
-                            enabled = ctrl.enabled,
-                            value = ctrl.rotZ,
-                            onChange = ctrl::setRotZ,
-                            roundTo = 3,
-                        ))
-                    }
-                }
+                createCoordRow("X:", ctrl.rotX, ctrl::setRotX)
+                createCoordRow("Y:", ctrl.rotY, ctrl::setRotY)
+                createCoordRow("Z:", ctrl.rotZ, ctrl::setRotZ)
             }
             addChild(UnavailableWidget(
                 visible = ctrl.unavailable,
@@ -115,7 +74,28 @@ class EntityInfoWidget(private val ctrl: EntityInfoController) : Widget(enabled 
             ))
         }
 
+    private fun Node.createCoordRow(label: String, value: Val<Double>, onChange: (Double) -> Unit) {
+        tr {
+            className = COORD_CLASS
+
+            val input = DoubleInput(
+                enabled = ctrl.enabled,
+                value = value,
+                onChange = onChange,
+                label = label,
+                roundTo = 3,
+            )
+            th {
+                addChild(input.label!!)
+            }
+            td {
+                addChild(input)
+            }
+        }
+    }
+
     companion object {
+        @Suppress("CssInvalidHtmlTagReference")
         private const val COORD_CLASS = "pw-quest-editor-entity-info-coord"
 
         init {
@@ -139,11 +119,11 @@ class EntityInfoWidget(private val ctrl: EntityInfoController) : Widget(enabled 
                     text-align: left;
                 }
 
-                .pw-quest-editor-entity-info th.pw-quest-editor-entity-info-coord {
+                .pw-quest-editor-entity-info .$COORD_CLASS th {
                     padding-left: 10px;
                 }
 
-                .pw-quest-editor-entity-info .pw-number-input {
+                .pw-quest-editor-entity-info .$COORD_CLASS .pw-number-input {
                     width: 100%;
                 }
 

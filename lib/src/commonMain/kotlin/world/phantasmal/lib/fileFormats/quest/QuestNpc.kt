@@ -16,14 +16,15 @@ class QuestNpc(
         type: NpcType,
         episode: Episode,
         areaId: Int,
-        wave: Int,
+        wave: Short,
     ) : this(episode, areaId, Buffer.withSize(NPC_BYTE_SIZE)) {
         this.type = type
         // TODO: Set default data.
-        // Set area_id after type, because you might want to overwrite the area_id that type has
+        // Set areaId after type, because you might want to overwrite the areaId that type has
         // determined.
         this.areaId = areaId
-        // TODO: Set wave properties.
+        this.wave = wave
+        this.wave2 = wave.toInt()
     }
 
     var typeId: Short
@@ -70,10 +71,22 @@ class QuestNpc(
             }
         }
 
-    override var sectionId: Int
-        get() = data.getShort(12).toInt()
+    override var sectionId: Short
+        get() = data.getShort(12)
         set(value) {
-            data.setShort(12, value.toShort())
+            data.setShort(12, value)
+        }
+
+    var wave: Short
+        get() = data.getShort(14)
+        set(value) {
+            data.setShort(14, value)
+        }
+
+    var wave2: Int
+        get() = data.getInt(16)
+        set(value) {
+            data.setInt(16, value)
         }
 
     override var position: Vec3

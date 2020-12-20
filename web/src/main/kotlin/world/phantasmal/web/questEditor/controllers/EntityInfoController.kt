@@ -3,77 +3,114 @@ package world.phantasmal.web.questEditor.controllers
 import world.phantasmal.core.math.degToRad
 import world.phantasmal.core.math.radToDeg
 import world.phantasmal.observable.value.Val
-import world.phantasmal.observable.value.emptyStringVal
 import world.phantasmal.observable.value.value
+import world.phantasmal.observable.value.zeroIntVal
 import world.phantasmal.web.core.euler
 import world.phantasmal.web.externals.three.Euler
 import world.phantasmal.web.externals.three.Vector3
+import world.phantasmal.web.questEditor.actions.EditEntitySectionAction
+import world.phantasmal.web.questEditor.actions.EditPropertyAction
 import world.phantasmal.web.questEditor.actions.RotateEntityAction
 import world.phantasmal.web.questEditor.actions.TranslateEntityAction
 import world.phantasmal.web.questEditor.models.QuestEntityModel
 import world.phantasmal.web.questEditor.models.QuestNpcModel
+import world.phantasmal.web.questEditor.stores.AreaStore
 import world.phantasmal.web.questEditor.stores.QuestEditorStore
 import world.phantasmal.webui.controllers.Controller
 
-class EntityInfoController(private val store: QuestEditorStore) : Controller() {
-    val unavailable: Val<Boolean> = store.selectedEntity.isNull()
-    val enabled: Val<Boolean> = store.questEditingEnabled
+class EntityInfoController(
+    private val areaStore: AreaStore,
+    private val questEditorStore: QuestEditorStore,
+) : Controller() {
+    val unavailable: Val<Boolean> = questEditorStore.selectedEntity.isNull()
+    val enabled: Val<Boolean> = questEditorStore.questEditingEnabled
 
-    val type: Val<String> = store.selectedEntity.map {
+    val type: Val<String> = questEditorStore.selectedEntity.map {
         it?.let { if (it is QuestNpcModel) "NPC" else "Object" } ?: ""
     }
 
-    val name: Val<String> = store.selectedEntity.map { it?.type?.simpleName ?: "" }
+    val name: Val<String> = questEditorStore.selectedEntity.map { it?.type?.simpleName ?: "" }
 
-    val sectionId: Val<String> = store.selectedEntity
-        .flatMapNull { it?.sectionId }
-        .map { it?.toString() ?: "" }
+    val sectionId: Val<Int> = questEditorStore.selectedEntity
+        .flatMap { it?.sectionId ?: zeroIntVal() }
 
-    val wave: Val<String> = store.selectedEntity
+    val waveId: Val<Int> = questEditorStore.selectedEntity
         .flatMap { entity ->
             if (entity is QuestNpcModel) {
-                entity.wave.flatMap { wave ->
-                    wave?.id?.map(Any::toString) ?: value("None")
-                }
+                entity.wave.map { it.id }
             } else {
-                emptyStringVal()
+                zeroIntVal()
             }
         }
 
-    val waveHidden: Val<Boolean> = store.selectedEntity.map { it !is QuestNpcModel }
+    val waveHidden: Val<Boolean> = questEditorStore.selectedEntity.map { it !is QuestNpcModel }
 
     private val pos: Val<Vector3> =
-        store.selectedEntity.flatMap { it?.position ?: DEFAULT_POSITION }
+        questEditorStore.selectedEntity.flatMap { it?.position ?: DEFAULT_POSITION }
     val posX: Val<Double> = pos.map { it.x }
     val posY: Val<Double> = pos.map { it.y }
     val posZ: Val<Double> = pos.map { it.z }
 
     private val rot: Val<Euler> =
-        store.selectedEntity.flatMap { it?.rotation ?: DEFAULT_ROTATION }
+        questEditorStore.selectedEntity.flatMap { it?.rotation ?: DEFAULT_ROTATION }
     val rotX: Val<Double> = rot.map { radToDeg(it.x) }
     val rotY: Val<Double> = rot.map { radToDeg(it.y) }
     val rotZ: Val<Double> = rot.map { radToDeg(it.z) }
 
     fun focused() {
-        store.makeMainUndoCurrent()
+        questEditorStore.makeMainUndoCurrent()
+    }
+
+    suspend fun setSectionId(sectionId: Int) {
+        questEditorStore.currentQuest.value?.let { quest ->
+            questEditorStore.selectedEntity.value?.let { entity ->
+                val section = areaStore.getSection(
+                    quest.episode,
+                    quest.areaVariants.value.first { it.area.id == entity.areaId },
+                    sectionId,
+                )
+                questEditorStore.executeAction(
+                    EditEntitySectionAction(
+                        entity,
+                        sectionId,
+                        section,
+                        entity.sectionId.value,
+                        entity.section.value,
+                    )
+                )
+            }
+        }
+    }
+
+    fun setWaveId(waveId: Int) {
+        (questEditorStore.selectedEntity.value as? QuestNpcModel)?.let { npc ->
+            questEditorStore.executeAction(
+                EditPropertyAction(
+                    "Edit ${npc.type.simpleName} wave",
+                    npc::setWaveId,
+                    waveId,
+                    npc.wave.value.id,
+                )
+            )
+        }
     }
 
     fun setPosX(x: Double) {
-        store.selectedEntity.value?.let { entity ->
+        questEditorStore.selectedEntity.value?.let { entity ->
             val pos = entity.position.value
             setPos(entity, x, pos.y, pos.z)
         }
     }
 
     fun setPosY(y: Double) {
-        store.selectedEntity.value?.let { entity ->
+        questEditorStore.selectedEntity.value?.let { entity ->
             val pos = entity.position.value
             setPos(entity, pos.x, y, pos.z)
         }
     }
 
     fun setPosZ(z: Double) {
-        store.selectedEntity.value?.let { entity ->
+        questEditorStore.selectedEntity.value?.let { entity ->
             val pos = entity.position.value
             setPos(entity, pos.x, pos.y, z)
         }
@@ -82,8 +119,8 @@ class EntityInfoController(private val store: QuestEditorStore) : Controller() {
     private fun setPos(entity: QuestEntityModel<*, *>, x: Double, y: Double, z: Double) {
         if (!enabled.value) return
 
-        store.executeAction(TranslateEntityAction(
-            setSelectedEntity = store::setSelectedEntity,
+        questEditorStore.executeAction(TranslateEntityAction(
+            setSelectedEntity = questEditorStore::setSelectedEntity,
             entity,
             entity.section.value,
             entity.section.value,
@@ -94,21 +131,21 @@ class EntityInfoController(private val store: QuestEditorStore) : Controller() {
     }
 
     fun setRotX(x: Double) {
-        store.selectedEntity.value?.let { entity ->
+        questEditorStore.selectedEntity.value?.let { entity ->
             val rot = entity.rotation.value
             setRot(entity, degToRad(x), rot.y, rot.z)
         }
     }
 
     fun setRotY(y: Double) {
-        store.selectedEntity.value?.let { entity ->
+        questEditorStore.selectedEntity.value?.let { entity ->
             val rot = entity.rotation.value
             setRot(entity, rot.x, degToRad(y), rot.z)
         }
     }
 
     fun setRotZ(z: Double) {
-        store.selectedEntity.value?.let { entity ->
+        questEditorStore.selectedEntity.value?.let { entity ->
             val rot = entity.rotation.value
             setRot(entity, rot.x, rot.y, degToRad(z))
         }
@@ -117,8 +154,8 @@ class EntityInfoController(private val store: QuestEditorStore) : Controller() {
     private fun setRot(entity: QuestEntityModel<*, *>, x: Double, y: Double, z: Double) {
         if (!enabled.value) return
 
-        store.executeAction(RotateEntityAction(
-            setSelectedEntity = store::setSelectedEntity,
+        questEditorStore.executeAction(RotateEntityAction(
+            setSelectedEntity = questEditorStore::setSelectedEntity,
             entity,
             euler(x, y, z),
             entity.rotation.value,

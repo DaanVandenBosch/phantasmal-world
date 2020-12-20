@@ -12,10 +12,10 @@ class QuestObject(override var areaId: Int, val data: Buffer) : QuestEntity<Obje
         this.type = type
     }
 
-    var typeId: Int
-        get() = data.getShort(0).toInt()
+    var typeId: Short
+        get() = data.getShort(0)
         set(value) {
-            data.setShort(0, value.toShort())
+            data.setShort(0, value)
         }
 
     override var type: ObjectType
@@ -24,10 +24,10 @@ class QuestObject(override var areaId: Int, val data: Buffer) : QuestEntity<Obje
             typeId = value.typeId ?: -1
         }
 
-    override var sectionId: Int
-        get() = data.getShort(12).toInt()
+    override var sectionId: Short
+        get() = data.getShort(12)
         set(value) {
-            data.setShort(12, value.toShort())
+            data.setShort(12, value)
         }
 
     override var position: Vec3

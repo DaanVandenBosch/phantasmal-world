@@ -9,7 +9,7 @@ enum class ObjectType(
      * The valid area IDs per episode in which this object can appear.
      */
     val areaIds: Map<Episode, List<Int>>,
-    val typeId: Int?,
+    val typeId: Short?,
     /**
      * Default object-specific properties.
      */

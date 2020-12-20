@@ -116,6 +116,13 @@ abstract class Widget(
         observe(observable) { hidden = it }
     }
 
+    protected fun HTMLElement.toggleClass(className: String, observable: Observable<Boolean>) {
+        observe(observable) {
+            if (it) classList.add(className)
+            else classList.remove(className)
+        }
+    }
+
     /**
      * Appends a widget's element to the receiving node.
      */
