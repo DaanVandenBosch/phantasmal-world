@@ -3,24 +3,29 @@ package world.phantasmal.web.questEditor.models
 import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.list.ListVal
 import world.phantasmal.observable.value.list.mutableListVal
+import world.phantasmal.observable.value.map
 import world.phantasmal.observable.value.mutableVal
 
 class QuestEventModel(
     id: Int,
     val areaId: Int,
-    val sectionId: Int,
-    wave: WaveModel,
+    sectionId: Int,
+    waveId: Int,
     delay: Int,
     val unknown: Int,
     actions: MutableList<QuestEventActionModel>,
 ) {
     private val _id = mutableVal(id)
-    private val _wave = mutableVal(wave)
+    private val _sectionId = mutableVal(sectionId)
+    private val _waveId = mutableVal(waveId)
     private val _delay = mutableVal(delay)
     private val _actions = mutableListVal(actions)
 
     val id: Val<Int> = _id
-    val wave: Val<WaveModel> = _wave
+    val sectionId: Val<Int> = _sectionId
+    val wave: Val<WaveModel> = map(_waveId, _sectionId) { id, sectionId ->
+        WaveModel(id, areaId, sectionId)
+    }
     val delay: Val<Int> = _delay
     val actions: ListVal<QuestEventActionModel> = _actions
 
@@ -28,8 +33,12 @@ class QuestEventModel(
         _id.value = id
     }
 
+    fun setSectionId(sectionId: Int) {
+        _sectionId.value = sectionId
+    }
+
     fun setWaveId(waveId: Int) {
-        _wave.value = WaveModel(waveId, areaId, sectionId)
+        _waveId.value = waveId
     }
 
     fun setDelay(delay: Int) {
@@ -38,6 +47,10 @@ class QuestEventModel(
 
     fun addAction(action: QuestEventActionModel) {
         _actions.add(action)
+    }
+
+    fun addAction(index: Int, action: QuestEventActionModel) {
+        _actions.add(index, action)
     }
 
     fun removeAction(action: QuestEventActionModel) {

@@ -3,6 +3,7 @@ package world.phantasmal.web.questEditor.widgets
 import kotlinx.coroutines.launch
 import org.w3c.dom.Node
 import world.phantasmal.lib.Episode
+import world.phantasmal.observable.value.list.listVal
 import world.phantasmal.observable.value.value
 import world.phantasmal.web.questEditor.controllers.QuestEditorToolbarController
 import world.phantasmal.webui.dom.Icon
@@ -16,10 +17,11 @@ class QuestEditorToolbarWidget(private val ctrl: QuestEditorToolbarController) :
 
             addChild(Toolbar(
                 children = listOf(
-                    Button(
+                    Dropdown(
                         text = "New quest",
                         iconLeft = Icon.NewFile,
-                        onClick = { scope.launch { ctrl.createNewQuest(Episode.I) } },
+                        items = listVal(Episode.I),
+                        onSelect = { scope.launch { ctrl.createNewQuest(it) } },
                     ),
                     FileButton(
                         text = "Open file...",

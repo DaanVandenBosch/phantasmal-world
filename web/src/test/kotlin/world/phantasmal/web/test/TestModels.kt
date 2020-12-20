@@ -7,7 +7,6 @@ import world.phantasmal.lib.fileFormats.quest.QuestNpc
 import world.phantasmal.web.questEditor.models.QuestModel
 import world.phantasmal.web.questEditor.models.QuestNpcModel
 import world.phantasmal.web.questEditor.models.QuestObjectModel
-import world.phantasmal.web.questEditor.models.WaveModel
 
 fun createQuestModel(
     id: Int = 1,
@@ -38,5 +37,5 @@ fun createQuestModel(
 fun createQuestNpcModel(type: NpcType, episode: Episode): QuestNpcModel =
     QuestNpcModel(
         QuestNpc(type, episode, areaId = 0, wave = 0),
-        WaveModel(id = 0, areaId = 0, sectionId = 0),
+        waveId = 0,
     )

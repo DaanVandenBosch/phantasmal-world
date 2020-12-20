@@ -4,21 +4,21 @@ import world.phantasmal.web.core.actions.Action
 import world.phantasmal.web.questEditor.models.QuestEventModel
 import world.phantasmal.web.questEditor.models.QuestModel
 
-class CreateEventAction(
+class DeleteEventAction(
     private val setSelectedEvent: (QuestEventModel?) -> Unit,
     private val quest: QuestModel,
     private val index: Int,
     private val event: QuestEventModel,
 ) : Action {
-    override val description: String = "Add event ${event.id.value}"
+    override val description: String = "Delete event ${event.id.value}"
 
     override fun execute() {
-        quest.addEvent(index, event)
-        setSelectedEvent(event)
+        setSelectedEvent(null)
+        quest.removeEvent(event)
     }
 
     override fun undo() {
-        setSelectedEvent(null)
-        quest.removeEvent(event)
+        quest.addEvent(index, event)
+        setSelectedEvent(event)
     }
 }

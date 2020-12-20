@@ -24,7 +24,7 @@ class QuestEditorStore(
 ) : Store() {
     private val _currentQuest = mutableVal<QuestModel?>(null)
     private val _currentArea = mutableVal<AreaModel?>(null)
-    private val _selectedWave = mutableVal<WaveModel?>(null)
+    private val _selectedEvent = mutableVal<QuestEventModel?>(null)
     private val _highlightedEntity = mutableVal<QuestEntityModel<*, *>?>(null)
     private val _selectedEntity = mutableVal<QuestEntityModel<*, *>?>(null)
     private val mainUndo = UndoStack(undoManager)
@@ -32,7 +32,7 @@ class QuestEditorStore(
     val runner = QuestRunner()
     val currentQuest: Val<QuestModel?> = _currentQuest
     val currentArea: Val<AreaModel?> = _currentArea
-    val selectedWave: Val<WaveModel?> = _selectedWave
+    val selectedEvent: Val<QuestEventModel?> = _selectedEvent
 
     /**
      * The entity the user is currently hovering over.
@@ -93,7 +93,7 @@ class QuestEditorStore(
 
         _highlightedEntity.value = null
         _selectedEntity.value = null
-        _selectedWave.value = null
+        _selectedEvent.value = null
 
         if (quest == null) {
             _currentArea.value = null
@@ -136,10 +136,10 @@ class QuestEditorStore(
     }
 
     fun setCurrentArea(area: AreaModel?) {
-        val wave = selectedWave.value
+        val event = selectedEvent.value
 
-        if (area != null && wave != null && area.id != wave.areaId) {
-            setSelectedWave(null)
+        if (area != null && event != null && area.id != event.areaId) {
+            setSelectedEvent(null)
         }
 
         _highlightedEntity.value = null
@@ -147,8 +147,10 @@ class QuestEditorStore(
         _currentArea.value = area
     }
 
-    fun setSelectedWave(wave: WaveModel?) {
-        wave?.let {
+    fun setSelectedEvent(event: QuestEventModel?) {
+        event?.let {
+            val wave = event.wave.value
+
             highlightedEntity.value?.let { entity ->
                 if (entity is QuestNpcModel && entity.wave.value != wave) {
                     setHighlightedEntity(null)
@@ -162,7 +164,7 @@ class QuestEditorStore(
             }
         }
 
-        _selectedWave.value = wave
+        _selectedEvent.value = event
     }
 
     fun setHighlightedEntity(entity: QuestEntityModel<*, *>?) {

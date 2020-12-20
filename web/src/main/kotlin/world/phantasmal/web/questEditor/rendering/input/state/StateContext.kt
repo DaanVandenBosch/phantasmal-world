@@ -22,7 +22,7 @@ class StateContext(
 ) {
     val quest: Val<QuestModel?> = questEditorStore.currentQuest
     val area: Val<AreaModel?> = questEditorStore.currentArea
-    val wave: Val<WaveModel?> = questEditorStore.selectedWave
+    val wave: Val<WaveModel?> = questEditorStore.selectedEvent.flatMapNull { it?.wave }
     val selectedEntity: Val<QuestEntityModel<*, *>?> = questEditorStore.selectedEntity
 
     fun setHighlightedEntity(entity: QuestEntityModel<*, *>?) {

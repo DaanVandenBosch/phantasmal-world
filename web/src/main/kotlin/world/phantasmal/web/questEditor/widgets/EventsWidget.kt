@@ -3,6 +3,7 @@ package world.phantasmal.web.questEditor.widgets
 import org.w3c.dom.Node
 import world.phantasmal.web.core.widgets.UnavailableWidget
 import world.phantasmal.web.questEditor.controllers.EventsController
+import world.phantasmal.webui.dom.Icon
 import world.phantasmal.webui.dom.div
 import world.phantasmal.webui.widgets.Button
 import world.phantasmal.webui.widgets.Toolbar
@@ -26,8 +27,15 @@ class EventsWidget(private val ctrl: EventsController) : Widget() {
                         Button(
                             enabled = ctrl.enabled,
                             text = "Add event",
-                            onClick = { ctrl.addEvent() }
-                        )
+                            iconLeft = Icon.Plus,
+                            onClick = { ctrl.addEvent() },
+                        ),
+                        Button(
+                            enabled = ctrl.removeEventEnabled,
+                            text = "Delete event",
+                            iconLeft = Icon.Remove,
+                            onClick = { ctrl.removeSelectedEvent() },
+                        ),
                     )
                 ))
                 div {

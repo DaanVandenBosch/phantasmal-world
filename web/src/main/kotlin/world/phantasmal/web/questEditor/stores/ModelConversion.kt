@@ -17,19 +17,14 @@ fun convertQuestToModel(
         quest.longDescription,
         quest.episode,
         quest.mapDesignations,
-        quest.npcs.mapTo(mutableListOf()) {
-            QuestNpcModel(
-                it,
-                WaveModel(it.wave.toInt(), it.areaId, it.sectionId.toInt()),
-            )
-        },
+        quest.npcs.mapTo(mutableListOf()) { QuestNpcModel(it, it.wave.toInt()) },
         quest.objects.mapTo(mutableListOf()) { QuestObjectModel(it) },
         quest.events.mapTo(mutableListOf()) { event ->
             QuestEventModel(
                 event.id,
                 event.areaId,
                 event.sectionId.toInt(),
-                WaveModel(event.wave.toInt(), event.areaId, event.sectionId.toInt()),
+                event.wave.toInt(),
                 event.delay.toInt(),
                 event.unknown.toInt(),
                 event.actions.mapTo(mutableListOf()) {
@@ -41,10 +36,10 @@ fun convertQuestToModel(
                             )
 
                         is DatEventAction.Unlock ->
-                            QuestEventActionModel.Unlock(it.doorId.toInt())
+                            QuestEventActionModel.Door.Unlock(it.doorId.toInt())
 
                         is DatEventAction.Lock ->
-                            QuestEventActionModel.Lock(it.doorId.toInt())
+                            QuestEventActionModel.Door.Lock(it.doorId.toInt())
 
                         is DatEventAction.TriggerEvent ->
                             QuestEventActionModel.TriggerEvent(it.eventId)

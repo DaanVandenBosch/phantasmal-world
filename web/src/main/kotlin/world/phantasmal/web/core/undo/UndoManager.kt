@@ -40,6 +40,9 @@ class UndoManager {
         undos.forEach { it.reset() }
     }
 
+    fun anyCanUndo(): Boolean =
+        undos.any { it.canUndo.value }
+
     private object NopUndo : Undo {
         override val canUndo = falseVal()
         override val canRedo = falseVal()

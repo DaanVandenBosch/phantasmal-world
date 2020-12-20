@@ -1,5 +1,7 @@
 package world.phantasmal.web.questEditor
 
+import kotlinx.browser.window
+import org.w3c.dom.BeforeUnloadEvent
 import org.w3c.dom.HTMLCanvasElement
 import world.phantasmal.web.core.PwTool
 import world.phantasmal.web.core.PwToolType
@@ -19,6 +21,7 @@ import world.phantasmal.web.questEditor.stores.AsmStore
 import world.phantasmal.web.questEditor.stores.QuestEditorStore
 import world.phantasmal.web.questEditor.widgets.*
 import world.phantasmal.webui.DisposableContainer
+import world.phantasmal.webui.dom.disposableListener
 import world.phantasmal.webui.widgets.Widget
 
 class QuestEditor(
@@ -75,6 +78,17 @@ class QuestEditor(
         ))
         val entityImageRenderer =
             addDisposable(EntityImageRenderer(entityAssetLoader, createThreeRenderer))
+
+        // When the user tries to leave and there's something on any of the undo stacks, ask whether
+        // the user really wants to leave.
+        addDisposable(
+            window.disposableListener("beforeunload", { e: BeforeUnloadEvent ->
+                if (undoManager.anyCanUndo()) {
+                    e.preventDefault()
+                    e.returnValue = "false"
+                }
+            })
+        )
 
         // Main Widget
         return QuestEditorWidget(

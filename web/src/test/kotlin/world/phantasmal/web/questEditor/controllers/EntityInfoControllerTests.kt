@@ -6,7 +6,6 @@ import world.phantasmal.lib.fileFormats.quest.NpcType
 import world.phantasmal.lib.fileFormats.quest.QuestNpc
 import world.phantasmal.testUtils.assertCloseTo
 import world.phantasmal.web.questEditor.models.QuestNpcModel
-import world.phantasmal.web.questEditor.models.WaveModel
 import world.phantasmal.web.test.WebTestSuite
 import world.phantasmal.web.test.createQuestModel
 import world.phantasmal.web.test.createQuestNpcModel
@@ -46,7 +45,7 @@ class EntityInfoControllerTests : WebTestSuite() {
         questNpc.sectionId = 7
         questNpc.position = Vec3(8f, 16f, 32f)
         questNpc.rotation = Vec3(PI.toFloat() / 4, PI.toFloat() / 2, PI.toFloat())
-        val npc = QuestNpcModel(questNpc, WaveModel(5, 10, 7))
+        val npc = QuestNpcModel(questNpc, 5)
         components.questEditorStore.setCurrentQuest(createQuestModel(npcs = listOf(npc)))
         components.questEditorStore.setSelectedEntity(npc)
 

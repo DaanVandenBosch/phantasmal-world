@@ -18,15 +18,18 @@ class CreationState(
     private val entity: QuestEntityModel<*, *> =
         when (event.entityType) {
             is NpcType -> {
-                val wave = ctx.wave.value ?: WaveModel(0, area.id, 0)
+                val wave = ctx.wave.value
+                val waveId = wave?.id ?: 0
                 val npc = QuestNpc(
                     event.entityType,
                     quest.episode,
                     area.id,
-                    wave.id.toShort(),
+                    waveId.toShort(),
                 )
-                npc.sectionId = wave.sectionId.toShort()
-                QuestNpcModel(npc, wave).also {
+                wave?.let {
+                    npc.sectionId = wave.sectionId.toShort()
+                }
+                QuestNpcModel(npc, waveId).also {
                     it.setSectionInitialized()
                     quest.addNpc(it)
                 }

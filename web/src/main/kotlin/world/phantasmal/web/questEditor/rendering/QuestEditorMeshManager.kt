@@ -26,7 +26,7 @@ class QuestEditorMeshManager(
         observe(
             questEditorStore.currentQuest,
             questEditorStore.currentArea,
-            questEditorStore.selectedWave,
+            questEditorStore.selectedEvent.flatMapNull { it?.wave },
         ) { quest, area, wave ->
             loadNpcMeshes(
                 if (quest != null && area != null) {
