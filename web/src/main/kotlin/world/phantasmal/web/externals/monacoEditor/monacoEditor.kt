@@ -4,6 +4,9 @@
 
 package world.phantasmal.web.externals.monacoEditor
 
+import org.w3c.dom.HTMLElement
+import org.w3c.dom.events.MouseEvent
+
 external interface IDisposable {
     fun dispose()
 }
@@ -11,10 +14,6 @@ external interface IDisposable {
 external interface CancellationToken {
     val isCancellationRequested: Boolean
 
-    /**
-     * An event emitted when cancellation is requested
-     * @event
-     */
     fun onCancellationRequested(
         listener: (e: Any) -> Any,
         thisArg: Any = definedExternally,
@@ -402,4 +401,24 @@ external object KeyMod {
     val WinCtrl: Int
 
     fun chord(firstPart: Int, secondPart: Int): Int
+}
+
+external interface IMouseEvent {
+    val browserEvent: MouseEvent
+    val leftButton: Boolean
+    val middleButton: Boolean
+    val rightButton: Boolean
+    val buttons: Int
+    val target: HTMLElement
+    val detail: Double
+    val posx: Double
+    val posy: Double
+    val ctrlKey: Boolean
+    val shiftKey: Boolean
+    val altKey: Boolean
+    val metaKey: Boolean
+    val timestamp: Int
+
+    fun preventDefault()
+    fun stopPropagation()
 }

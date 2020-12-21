@@ -3,6 +3,7 @@ package world.phantasmal.web.questEditor.widgets
 import org.w3c.dom.Node
 import world.phantasmal.core.disposable.disposable
 import world.phantasmal.web.externals.monacoEditor.*
+import world.phantasmal.web.questEditor.asm.monaco.EditorHistory
 import world.phantasmal.web.questEditor.controllers.AsmController
 import world.phantasmal.webui.dom.div
 import world.phantasmal.webui.obj
@@ -76,6 +77,8 @@ class AsmEditorWidget(private val ctrl: AsmController) : Widget() {
             }
 
             editor.onDidFocusEditorWidget(ctrl::makeUndoCurrent)
+
+            addDisposable(EditorHistory(editor))
         }
 
     override fun focus() {

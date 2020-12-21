@@ -5,6 +5,7 @@
 
 package world.phantasmal.web.externals.monacoEditor
 
+import org.w3c.dom.Element
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.Range
 import kotlin.js.Promise
@@ -133,6 +134,37 @@ external interface IEditor {
     fun setModel(model: ITextModel?)
 }
 
+external enum class MouseTargetType {
+    UNKNOWN /* = 0 */,
+    TEXTAREA /* = 1 */,
+    GUTTER_GLYPH_MARGIN /* = 2 */,
+    GUTTER_LINE_NUMBERS /* = 3 */,
+    GUTTER_LINE_DECORATIONS /* = 4 */,
+    GUTTER_VIEW_ZONE /* = 5 */,
+    CONTENT_TEXT /* = 6 */,
+    CONTENT_EMPTY /* = 7 */,
+    CONTENT_VIEW_ZONE /* = 8 */,
+    CONTENT_WIDGET /* = 9 */,
+    OVERVIEW_RULER /* = 10 */,
+    SCROLLBAR /* = 11 */,
+    OVERLAY_WIDGET /* = 12 */,
+    OUTSIDE_EDITOR /* = 13 */,
+}
+
+external interface IMouseTarget {
+    val element: Element?
+    val type: MouseTargetType
+    val position: Position?
+    val mouseColumn: Int
+    val range: Range?
+    val detail: dynamic
+}
+
+external interface IEditorMouseEvent {
+    val event: IMouseEvent
+    val target: IMouseTarget
+}
+
 external interface ICodeEditor : IEditor {
     fun onDidChangeModelContent(listener: (e: IModelContentChangedEvent) -> Unit): IDisposable
     fun onDidChangeModelLanguage(listener: (e: IModelLanguageChangedEvent) -> Unit): IDisposable
@@ -140,6 +172,7 @@ external interface ICodeEditor : IEditor {
     fun onDidChangeModelOptions(listener: (e: IModelOptionsChangedEvent) -> Unit): IDisposable
     fun onDidChangeCursorPosition(listener: (e: ICursorPositionChangedEvent) -> Unit): IDisposable
     fun onDidChangeCursorSelection(listener: (e: ICursorSelectionChangedEvent) -> Unit): IDisposable
+    fun onDidChangeModel(listener: () -> Unit): IDisposable
     fun onDidChangeModelDecorations(listener: (e: IModelDecorationsChangedEvent) -> Unit): IDisposable
     fun onDidFocusEditorText(listener: () -> Unit): IDisposable
     fun onDidBlurEditorText(listener: () -> Unit): IDisposable
@@ -148,6 +181,7 @@ external interface ICodeEditor : IEditor {
     fun onDidCompositionStart(listener: () -> Unit): IDisposable
     fun onDidCompositionEnd(listener: () -> Unit): IDisposable
     fun onDidAttemptReadOnlyEdit(listener: () -> Unit): IDisposable
+    fun onMouseUp(listener: (e: IEditorMouseEvent) -> Unit): IDisposable
     fun hasWidgetFocus(): Boolean
     override fun getModel(): ITextModel?
     override fun setModel(model: ITextModel?)
