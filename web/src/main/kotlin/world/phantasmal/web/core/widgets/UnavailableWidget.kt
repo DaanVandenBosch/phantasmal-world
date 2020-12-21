@@ -3,12 +3,13 @@ package world.phantasmal.web.core.widgets
 import org.w3c.dom.Node
 import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.falseVal
+import world.phantasmal.observable.value.trueVal
 import world.phantasmal.webui.dom.div
 import world.phantasmal.webui.widgets.Label
 import world.phantasmal.webui.widgets.Widget
 
 class UnavailableWidget(
-    visible: Val<Boolean>,
+    visible: Val<Boolean> = trueVal(),
     private val message: String,
 ) : Widget(visible) {
     override fun Node.createElement() =
@@ -24,11 +25,14 @@ class UnavailableWidget(
             // language=css
             style("""
                 .pw-core-unavailable {
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
+                    box-sizing: border-box;
+                    display: grid;
+                    grid-template: 100% / 100%;
+                    place-items: center;
+                    overflow: auto;
                     width: 100%;
                     height: 100%;
+                    padding: 10%;
                     text-align: center;
                 }
             """.trimIndent())

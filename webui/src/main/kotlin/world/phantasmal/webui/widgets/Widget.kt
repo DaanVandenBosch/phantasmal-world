@@ -149,6 +149,14 @@ abstract class Widget(
         return child
     }
 
+    /**
+     * Removed a child widget from [children] and disposes it.
+     */
+    protected fun removeChild(child: Widget) {
+        removeDisposable(child)
+        _children.remove(child)
+    }
+
     protected fun <T> Element.bindChildrenTo(
         list: Val<List<T>>,
         createChild: Node.(T, index: Int) -> Node,

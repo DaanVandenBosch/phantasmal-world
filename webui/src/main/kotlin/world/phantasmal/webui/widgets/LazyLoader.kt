@@ -31,8 +31,7 @@ class LazyLoader(
             style("""
                 .pw-lazy-loader {
                     display: grid;
-                    grid-template-rows: 100%;
-                    grid-template-columns: 100%;
+                    grid-template: 100% / 100%;
                     overflow: hidden;
                 }
             """.trimIndent())

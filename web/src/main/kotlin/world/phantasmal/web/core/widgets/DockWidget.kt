@@ -1,6 +1,7 @@
 package world.phantasmal.web.core.widgets
 
 import kotlinx.coroutines.launch
+import mu.KotlinLogging
 import org.w3c.dom.Node
 import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.trueVal
@@ -10,12 +11,15 @@ import world.phantasmal.webui.dom.div
 import world.phantasmal.webui.obj
 import world.phantasmal.webui.widgets.Widget
 
+private val logger = KotlinLogging.logger {}
+
 class DockWidget(
     visible: Val<Boolean> = trueVal(),
     private val ctrl: DockController,
-    private val createWidget: (id: String) -> Widget?,
+    private val createWidget: (id: String) -> Widget,
 ) : Widget(visible) {
     private var goldenLayout: GoldenLayout? = null
+    private val idToChildWidget = mutableMapOf<String, Widget>()
 
     init {
         js("""require("golden-layout/src/css/goldenlayout-base.css");""")
@@ -44,28 +48,16 @@ class DockWidget(
                 this@DockWidget.goldenLayout = goldenLayout
 
                 dockedWidgetIds.forEach { id ->
+                    // registerComponent expects a regular function and not an arrow function. This
+                    // function will be called with new.
                     goldenLayout.registerComponent(id) { container: GoldenLayout.Container ->
-                        val node = container.getElement()[0] as Node
-
-                        createWidget(id)?.let { widget ->
-                            node.addChild(widget)
-                            widget.focus()
-                        }
+                        createChildWidget(id, container)
                     }
                 }
 
-                goldenLayout.on<Any>("stateChanged", {
-                    val content = goldenLayout.toConfig().content
+                goldenLayout.on<Any>("stateChanged", { onStateChanged() })
 
-                    if (content is Array<*> && content.length > 0) {
-                        fromGoldenLayoutConfig(
-                            content.unsafeCast<Array<GoldenLayout.ItemConfig>>().first(),
-                            useWidthAsFlex = null,
-                        )?.let {
-                            scope.launch { ctrl.configChanged(it) }
-                        }
-                    }
-                })
+                goldenLayout.on("stackCreated", ::onStackCreated)
 
                 goldenLayout.init()
 
@@ -81,6 +73,58 @@ class DockWidget(
     override fun internalDispose() {
         goldenLayout?.destroy()
         super.internalDispose()
+    }
+
+    private fun createChildWidget(id: String, container: GoldenLayout.Container) {
+        val node = container.getElement()[0] as Node
+
+        val widget =
+            try {
+                idToChildWidget[id]?.let { prevWidget ->
+                    logger.error { """Widget with ID "$id" was already created.""" }
+                    prevWidget.dispose()
+                }
+
+                node.addChild(createWidget(id)).apply {
+                    focus()
+                }
+            } catch (e: Exception) {
+                logger.error(e) { """Couldn't instantiate widget with ID "$id".""" }
+
+                node.addChild(UnavailableWidget(
+                    message = "Something went wrong while initializing this tab.",
+                ))
+            }
+
+        idToChildWidget[id] = widget
+
+        container.on("close", {
+            removeChild(widget)
+            idToChildWidget.remove(id)
+        })
+    }
+
+    private fun onStateChanged() {
+        val content = goldenLayout?.toConfig()?.content
+
+        if (content is Array<*> && content.length > 0) {
+            fromGoldenLayoutConfig(
+                content.unsafeCast<Array<GoldenLayout.ItemConfig>>().first(),
+                useWidthAsFlex = null,
+            )?.let {
+                scope.launch { ctrl.configChanged(it) }
+            }
+        }
+    }
+
+    private fun onStackCreated(stack: GoldenLayout.ContentItem) {
+        stack.on("activeContentItemChanged", { item: GoldenLayout.ContentItem ->
+            val config = item.config.unsafeCast<GoldenLayout.ComponentConfig>()
+
+            if (config.componentName != undefined) {
+                idToChildWidget[config.componentName]?.focus()
+            }
+        })
     }
 
     companion object {
@@ -122,7 +166,9 @@ class DockWidget(
 
             return when (item) {
                 is DockedWidget -> {
-                    dockedWidgetIds.add(item.id)
+                    require(dockedWidgetIds.add(item.id)) {
+                        """ID ${item.id} is used more than once."""
+                    }
 
                     obj<GoldenLayout.ComponentConfig> {
                         title = item.title

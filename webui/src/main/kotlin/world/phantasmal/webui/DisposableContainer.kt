@@ -22,6 +22,13 @@ abstract class DisposableContainer : TrackedDisposable() {
         disposer.addAll(*disposables)
     }
 
+    /**
+     * Removes and disposes the given [disposable].
+     */
+    protected fun removeDisposable(disposable: Disposable) {
+        disposer.remove(disposable)
+    }
+
     protected fun <V1> observe(observable: Observable<V1>, operation: (V1) -> Unit) {
         addDisposable(
             if (observable is Val<V1>) {

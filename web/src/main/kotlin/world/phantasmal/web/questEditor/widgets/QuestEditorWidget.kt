@@ -46,7 +46,7 @@ class QuestEditorWidget(
                         NPC_LIST_WIDGET_ID -> createNpcListWidget()
                         OBJECT_LIST_WIDGET_ID -> createObjectListWidget()
                         EVENTS_WIDGET_ID -> createEventsWidget()
-                        else -> null
+                        else -> error("Invalid id: $id.")
                     }
                 },
             ))

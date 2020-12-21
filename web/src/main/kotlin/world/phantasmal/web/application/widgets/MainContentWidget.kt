@@ -29,8 +29,7 @@ class MainContentWidget(
             style("""
                 .pw-application-main-content {
                     display: grid;
-                    grid-template-rows: 100%;
-                    grid-template-columns: 100%;
+                    grid-template: 100% / 100%;
                     overflow: hidden;
                 }
             """.trimIndent())
