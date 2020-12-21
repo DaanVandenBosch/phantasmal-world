@@ -158,7 +158,7 @@ class AssemblyWorker(private val sendMessage: (ServerMessage) -> Unit) {
 
         @Suppress("UNCHECKED_CAST")
         val problems = (assemblyResult.problems as List<AssemblerAssemblyProblem>).map {
-            AssemblyProblem(it.severity, it.uiMessage)
+            AssemblyProblem(it.severity, it.uiMessage, it.lineNo, it.col, it.len)
         }
 
         if (problems != this.problems) {

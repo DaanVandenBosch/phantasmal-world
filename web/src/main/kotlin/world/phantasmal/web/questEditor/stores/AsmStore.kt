@@ -1,6 +1,7 @@
 package world.phantasmal.web.questEditor.stores
 
 import kotlinx.browser.window
+import world.phantasmal.core.Severity
 import world.phantasmal.core.disposable.Disposer
 import world.phantasmal.core.disposable.disposable
 import world.phantasmal.lib.asm.assemble
@@ -77,6 +78,35 @@ class AsmStore(
 
         observe(asmAnalyser.mapDesignations) {
             questEditorStore.currentQuest.value?.setMapDesignations(it)
+        }
+
+        observe(problems) { problems ->
+            textModel.value?.let { model ->
+                val markers = Array<IMarkerData>(problems.size) {
+                    val problem = problems[it]
+                    obj {
+                        severity = when (problem.severity) {
+                            Severity.Trace, Severity.Debug -> MarkerSeverity.Hint
+                            Severity.Info -> MarkerSeverity.Info
+                            Severity.Warning -> MarkerSeverity.Warning
+                            Severity.Error -> MarkerSeverity.Error
+                        }
+                        message = problem.message
+                        startLineNumber = problem.lineNo
+                        startColumn = problem.col
+                        endLineNumber = problem.lineNo
+                        endColumn = problem.col + problem.len
+
+                        // Hack: because only one warning is generated at the moment, "Unnecessary
+                        // section marker.", we can simply add the Unnecessary tag here.
+                        if (problem.severity == Severity.Warning) {
+                            tags = arrayOf(MarkerTag.Unnecessary)
+                        }
+                    }
+                }
+                // Not sure what the "owner" parameter is for.
+                setModelMarkers(model, owner = ASM_LANG_ID, markers)
+            }
         }
     }
 

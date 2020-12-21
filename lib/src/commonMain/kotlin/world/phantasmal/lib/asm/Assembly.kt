@@ -15,7 +15,7 @@ class AssemblyProblem(
     cause: Throwable? = null,
     val lineNo: Int,
     val col: Int,
-    val length: Int,
+    val len: Int,
 ) : Problem(severity, uiMessage, message, cause)
 
 fun assemble(
@@ -214,7 +214,7 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
         }
     }
 
-    private fun addError(col: Int, length: Int, uiMessage: String, message: String? = null) {
+    private fun addError(col: Int, len: Int, uiMessage: String, message: String? = null) {
         result.addProblem(
             AssemblyProblem(
                 Severity.Error,
@@ -222,7 +222,7 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
                 message ?: "$uiMessage At $lineNo:$col.",
                 lineNo = lineNo,
                 col = col,
-                length = length
+                len = len
             )
         )
     }
@@ -246,7 +246,7 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
                 uiMessage,
                 lineNo = lineNo,
                 col = token.col,
-                length = token.len,
+                len = token.len,
             )
         )
     }
@@ -375,7 +375,9 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
                 addError(
                     identToken.col,
                     errorLength,
-                    "Expected $paramCount argument ${if (paramCount == 1) "" else "s"}, got $argCount.",
+                    "Expected $paramCount argument${
+                        if (paramCount == 1) "" else "s"
+                    }, got $argCount.",
                 )
 
                 return
@@ -385,7 +387,9 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
                 addError(
                     identToken.col,
                     errorLength,
-                    "Expected at least $paramCount argument${if (paramCount == 1) "" else "s"}, got $argCount.",
+                    "Expected at least $paramCount argument${
+                        if (paramCount == 1) "" else "s"
+                    }, got $argCount.",
                 )
 
                 return

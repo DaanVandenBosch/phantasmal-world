@@ -22,6 +22,11 @@ external fun createModel(
 
 external fun defineTheme(themeName: String, themeData: IStandaloneThemeData)
 
+/**
+ * Set the markers for a model.
+ */
+external fun setModelMarkers(model: ITextModel, owner: String, markers: Array<IMarkerData>)
+
 external interface IStandaloneThemeData {
     var base: String /* 'vs' | 'vs-dark' | 'hc-black' */
     var inherit: Boolean

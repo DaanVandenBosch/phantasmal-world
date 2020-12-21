@@ -157,4 +157,7 @@ class AsmChange(
 class AssemblyProblem(
     val severity: Severity,
     val message: String,
+    val lineNo: Int,
+    val col: Int,
+    val len: Int,
 )
