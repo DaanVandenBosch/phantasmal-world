@@ -84,13 +84,12 @@ class DockWidget(
     }
 
     companion object {
-        private const val HEADER_HEIGHT = 24
-        private const val DEFAULT_HEADER_HEIGHT = 20
+        private const val HEADER_HEIGHT = 22
 
         /**
          * This value is used to work around a bug in GoldenLayout related to headerHeight.
          */
-        private const val HEADER_HEIGHT_DIFF = HEADER_HEIGHT - DEFAULT_HEADER_HEIGHT
+        private const val HEADER_HEIGHT_DIFF = 4
 
         private fun createConfig(
             item: DockedItem,
@@ -210,7 +209,7 @@ class DockWidget(
 
         init {
             // Use #pw-root for higher specificity than the default GoldenLayout CSS.
-            @Suppress("CssUnusedSymbol", "CssUnresolvedCustomProperty")
+            @Suppress("CssUnusedSymbol", "CssUnresolvedCustomProperty", "CssInvalidPropertyValue")
             // language=css
             style("""
                 .pw-core-dock {
@@ -232,13 +231,13 @@ class DockWidget(
                     cursor: default;
                     display: inline-flex;
                     align-items: center;
-                    height: 23px;
-                    padding: 0 10px;
+                    height: ${HEADER_HEIGHT - 1}px;
+                    padding: 0 8px;
                     border: var(--pw-border);
                     margin: 0 1px -1px 1px;
                     background-color: hsl(0, 0%, 12%);
                     color: hsl(0, 0%, 75%);
-                    font-size: 13px;
+                    font-size: 12px;
                 }
                 
                 #pw-root .lm_header .lm_tabs .lm_tab:hover {

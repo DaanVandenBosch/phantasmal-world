@@ -152,7 +152,7 @@ class Select<T : Any>(
                 }
 
                 .pw-select .pw-menu {
-                    top: 25px;
+                    top: 23px;
                     left: 0;
                     min-width: 100%;
                 }

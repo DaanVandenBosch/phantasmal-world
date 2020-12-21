@@ -79,7 +79,7 @@ abstract class Input<T>(
                 .pw-input {
                     display: inline-block;
                     box-sizing: border-box;
-                    height: 24px;
+                    height: 22px;
                     border: var(--pw-input-border);
                 }
 
@@ -87,12 +87,12 @@ abstract class Input<T>(
                     box-sizing: border-box;
                     width: 100%;
                     height: 100%;
-                    padding: 0 3px;
+                    padding: 0 2px;
                     border: var(--pw-input-inner-border);
                     background-color: var(--pw-input-bg-color);
                     color: var(--pw-input-text-color);
                     outline: none;
-                    font-size: 13px;
+                    font-size: 12px;
                 }
 
                 .pw-input:hover {

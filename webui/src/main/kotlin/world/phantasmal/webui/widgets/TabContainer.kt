@@ -72,8 +72,8 @@ class TabContainer<T : Tab>(
 
                 .pw-tab-container-bar {
                     box-sizing: border-box;
-                    height: 28px;
-                    min-height: 28px; /* To avoid bar from getting squished when pane content gets larger than pane in Firefox. */
+                    height: 26px;
+                    min-height: 26px; /* To avoid bar from getting squished when pane content gets larger than pane in Firefox. */
                     padding: 3px 3px 0 3px;
                     border-bottom: var(--pw-border);
                 }
@@ -83,12 +83,12 @@ class TabContainer<T : Tab>(
                     display: inline-flex;
                     align-items: center;
                     height: calc(100% + 1px);
-                    padding: 0 10px;
+                    padding: 0 8px;
                     border: var(--pw-border);
                     margin: 0 1px -1px 1px;
                     background-color: var(--pw-tab-bg-color);
                     color: var(--pw-tab-text-color);
-                    font-size: 13px;
+                    font-size: 12px;
                 }
 
                 .pw-tab-container-tab:hover {

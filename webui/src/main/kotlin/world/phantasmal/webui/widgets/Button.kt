@@ -81,12 +81,12 @@ open class Button(
                     align-items: stretch;
                     align-content: stretch;
                     box-sizing: border-box;
-                    height: 26px;
+                    height: 24px;
                     padding: 0;
                     border: var(--pw-control-border);
                     color: var(--pw-control-text-color);
                     outline: none;
-                    font-size: 13px;
+                    font-size: 12px;
                     font-family: var(--pw-font-family), sans-serif;
                     overflow: hidden;
                 }
@@ -98,8 +98,8 @@ open class Button(
                     align-items: center;
                     box-sizing: border-box;
                     background-color: var(--pw-control-bg-color);
-                    height: 24px;
-                    padding: 3px 5px;
+                    height: 22px;
+                    padding: 2px 3px;
                     border: var(--pw-control-inner-border);
                     overflow: hidden;
                 }

@@ -208,7 +208,7 @@ class Menu<T : Any>(
                 }
 
                 .pw-menu > .pw-menu-inner > * {
-                    padding: 4px 8px;
+                    padding: 3px 6px;
                     white-space: nowrap;
                 }
 

@@ -68,7 +68,7 @@ class TextArea(
                     background-color: var(--pw-input-bg-color);
                     color: var(--pw-input-text-color);
                     outline: none;
-                    font-size: 13px;
+                    font-size: 12px;
                 }
 
                 .pw-text-area:hover {

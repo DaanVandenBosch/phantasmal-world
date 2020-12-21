@@ -124,7 +124,7 @@ class EventWidget(
                     }
                     tfoot {
                         tr {
-                            th {
+                            td {
                                 colSpan = 3
                                 addWidget(Dropdown(
                                     enabled = ctrl.enabled,
@@ -228,7 +228,7 @@ class EventWidget(
                     display: flex;
                     flex-wrap: wrap;
                     border: var(--pw-border);
-                    margin: 4px;
+                    margin: 2px;
                     background-color: hsl(0, 0%, 17%);
                     outline: none;
                 }
@@ -246,15 +246,15 @@ class EventWidget(
                 }
                 
                 .pw-quest-editor-event-props, .pw-quest-editor-event-actions {
-                    padding: 3px 6px;
+                    padding: 2px 6px;
                 }
                 
                 .pw-quest-editor-event-props {
-                    width: 130px;
+                    width: 120px;
                 }
                 
                 .pw-quest-editor-event-actions {
-                    width: 160px;
+                    width: 150px;
                 }
                 
                 .pw-quest-editor-event > div > table {

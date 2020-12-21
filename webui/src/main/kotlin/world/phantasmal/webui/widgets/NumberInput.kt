@@ -45,8 +45,8 @@ abstract class NumberInput<T : Number>(
                     width: 54px;
                 }
 
-                .pw-number-input-inner {
-                    padding-right: 1px;
+                .pw-input-inner.pw-number-input-inner {
+                    padding-right: 0;
                 }
             """.trimIndent())
         }

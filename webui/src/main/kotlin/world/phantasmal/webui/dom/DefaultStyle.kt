@@ -58,7 +58,7 @@ internal const val DEFAULT_STYLE = """
     cursor: default;
     user-select: none;
     overflow: hidden;
-    font-size: 13px;
+    font-size: 12px;
     background-color: var(--pw-bg-color);
     color: var(--pw-text-color);
     font-family: var(--pw-font-family), sans-serif;

@@ -33,7 +33,7 @@ class MethodsForEpisodeController(
             key = TIME_COL_KEY,
             title = "Time",
             fixed = true,
-            width = 60,
+            width = 50,
             input = true,
             sortable = true,
         ),

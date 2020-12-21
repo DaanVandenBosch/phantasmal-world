@@ -21,6 +21,7 @@ class QuestEditorToolbarWidget(private val ctrl: QuestEditorToolbarController) :
                         text = "New quest",
                         iconLeft = Icon.NewFile,
                         items = listVal(Episode.I),
+                        itemToString = { "Episode $it" },
                         onSelect = { scope.launch { ctrl.createNewQuest(it) } },
                     ),
                     FileButton(
