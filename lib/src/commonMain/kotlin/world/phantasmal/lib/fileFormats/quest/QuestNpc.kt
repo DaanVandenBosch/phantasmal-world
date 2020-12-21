@@ -10,7 +10,7 @@ import kotlin.math.roundToInt
 class QuestNpc(
     var episode: Episode,
     override var areaId: Int,
-    val data: Buffer,
+    override val data: Buffer,
 ) : QuestEntity<NpcType> {
     constructor(
         type: NpcType,

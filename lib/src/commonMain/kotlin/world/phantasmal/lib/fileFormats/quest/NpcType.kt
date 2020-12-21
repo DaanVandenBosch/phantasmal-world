@@ -38,7 +38,7 @@ enum class NpcType(
     /**
      * NPC-specific properties.
      */
-    val properties: List<EntityProp> = emptyList(),
+    override val properties: List<EntityProp> = emptyList(),
 ) : EntityType {
     //
     // Unknown NPCs

@@ -1,11 +1,14 @@
 package world.phantasmal.lib.fileFormats.quest
 
+import world.phantasmal.lib.buffer.Buffer
 import world.phantasmal.lib.fileFormats.Vec3
 
 interface QuestEntity<Type : EntityType> {
     val type: Type
 
     var areaId: Int
+
+    val data: Buffer
 
     var sectionId: Short
 

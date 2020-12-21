@@ -85,4 +85,23 @@ class QuestInfoControllerTests : WebTestSuite() {
         assertEquals("short 2", ctrl.shortDescription.value)
         assertEquals("long 2", ctrl.longDescription.value)
     }
+
+    @Test
+    fun when_focused_main_undo_becomes_current_undo() = asyncTest {
+        val store = components.questEditorStore
+        val ctrl = disposer.add(QuestInfoController(store))
+
+        // Put something on the undo stack.
+        store.setCurrentQuest(createQuestModel(
+            name = "original name",
+        ))
+        ctrl.setName("new name")
+
+        components.undoManager.makeNopCurrent()
+
+        // After focusing, the main undo stack becomes the current undo and we can undo.
+        ctrl.focused()
+
+        assertTrue(store.canUndo.value)
+    }
 }

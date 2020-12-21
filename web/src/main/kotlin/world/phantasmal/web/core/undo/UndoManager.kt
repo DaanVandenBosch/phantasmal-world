@@ -7,7 +7,7 @@ import world.phantasmal.observable.value.nullVal
 import world.phantasmal.web.core.actions.Action
 
 class UndoManager {
-    private val undos = mutableListOf<Undo>()
+    private val undos = mutableListOf<Undo>(NopUndo)
     private val _current = mutableVal<Undo>(NopUndo)
 
     val current: Val<Undo> = _current
@@ -19,6 +19,10 @@ class UndoManager {
 
     fun addUndo(undo: Undo) {
         undos.add(undo)
+    }
+
+    fun makeNopCurrent() {
+        setCurrent(NopUndo)
     }
 
     fun setCurrent(undo: Undo) {

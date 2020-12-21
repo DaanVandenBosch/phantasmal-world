@@ -25,66 +25,70 @@ class QuestInfoWidget(private val ctrl: QuestInfoController) : Widget(enabled = 
                     td { text(ctrl.episode) }
                 }
                 tr {
-                    th { textContent = "ID:" }
-                    td {
-                        addChild(IntInput(
-                            enabled = ctrl.enabled,
-                            value = ctrl.id,
-                            onChange = ctrl::setId,
-                            min = 0,
-                            step = 1,
-                        ))
-                    }
+                    val idInput = IntInput(
+                        label = "ID:",
+                        enabled = ctrl.enabled,
+                        value = ctrl.id,
+                        onChange = ctrl::setId,
+                        min = 0,
+                        step = 1,
+                    )
+                    th { addChild(idInput.label!!) }
+                    td { addChild(idInput) }
                 }
                 tr {
-                    th { textContent = "Name:" }
-                    td {
-                        addChild(TextInput(
-                            enabled = ctrl.enabled,
-                            value = ctrl.name,
-                            onChange = ctrl::setName,
-                            maxLength = 32,
-                        ))
-                    }
+                    val nameInput = TextInput(
+                        label = "Name:",
+                        enabled = ctrl.enabled,
+                        value = ctrl.name,
+                        onChange = ctrl::setName,
+                        maxLength = 32,
+                    )
+                    th { addChild(nameInput.label!!) }
+                    td { addChild(nameInput) }
                 }
-                tr {
-                    th {
-                        colSpan = 2
-                        textContent = "Short description:"
-                    }
-                }
-                tr {
-                    td {
-                        colSpan = 2
-                        addChild(TextArea(
-                            enabled = ctrl.enabled,
-                            value = ctrl.shortDescription,
-                            onChange = ctrl::setShortDescription,
-                            maxLength = 128,
-                            fontFamily = "\"Courier New\", monospace",
-                            cols = 25,
-                            rows = 5,
-                        ))
-                    }
-                }
+                val shortDescriptionTextArea = TextArea(
+                    label = "Short description:",
+                    enabled = ctrl.enabled,
+                    value = ctrl.shortDescription,
+                    onChange = ctrl::setShortDescription,
+                    maxLength = 128,
+                    fontFamily = "\"Courier New\", monospace",
+                    cols = 25,
+                    rows = 5,
+                )
                 tr {
                     th {
                         colSpan = 2
-                        textContent = "Long description:"
+                        addChild(shortDescriptionTextArea.label!!)
                     }
                 }
                 tr {
                     td {
                         colSpan = 2
-                        addChild(TextArea(
-                            enabled = ctrl.enabled,
-                            value = ctrl.longDescription,
-                            onChange = ctrl::setLongDescription,
-                            maxLength = 288,
-                            fontFamily = "\"Courier New\", monospace",
-                            cols = 25,
-                            rows = 10,
-                        ))
+                        addChild(shortDescriptionTextArea)
+                    }
+                }
+                val longDescriptionTextArea = TextArea(
+                    label = "Long description:",
+                    enabled = ctrl.enabled,
+                    value = ctrl.longDescription,
+                    onChange = ctrl::setLongDescription,
+                    maxLength = 288,
+                    fontFamily = "\"Courier New\", monospace",
+                    cols = 25,
+                    rows = 10,
+                )
+                tr {
+                    th {
+                        colSpan = 2
+                        addChild(longDescriptionTextArea.label!!)
+                    }
+                }
+                tr {
+                    td {
+                        colSpan = 2
+                        addChild(longDescriptionTextArea)
                     }
                 }
             }

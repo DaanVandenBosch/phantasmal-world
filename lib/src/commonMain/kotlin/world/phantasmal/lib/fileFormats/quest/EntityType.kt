@@ -13,4 +13,9 @@ interface EntityType {
      * Might conflict with other NPC names (e.g. Delsaber from ep. I and ep. II).
      */
     val simpleName: String
+
+    /**
+     * Entity-specific properties.
+     */
+    val properties: List<EntityProp>
 }

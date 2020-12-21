@@ -13,7 +13,7 @@ enum class ObjectType(
     /**
      * Default object-specific properties.
      */
-    val properties: List<EntityProp> = emptyList(),
+    override val properties: List<EntityProp> = emptyList(),
 ) : EntityType {
     Unknown(
         uniqueName = "Unknown",
@@ -126,7 +126,7 @@ enum class ObjectType(
         typeId = 8,
         properties = listOf(
             EntityProp(name = "Radius", offset = 40, type = EntityPropType.F32),
-            EntityProp(name = "Event ID", offset = 52, type = EntityPropType.U32),
+            EntityProp(name = "Event ID", offset = 52, type = EntityPropType.I32),
         ),
     ),
     CharaCollision(
@@ -545,7 +545,7 @@ enum class ObjectType(
             EntityProp(name = "Destination y", offset = 44, type = EntityPropType.F32),
             EntityProp(name = "Destination z", offset = 48, type = EntityPropType.F32),
             EntityProp(name = "Dst. rotation y", offset = 52, type = EntityPropType.Angle),
-            EntityProp(name = "Model", offset = 60, type = EntityPropType.U32),
+            EntityProp(name = "Model", offset = 60, type = EntityPropType.I32),
         ),
     ),
     ShopDoor(
@@ -651,7 +651,7 @@ enum class ObjectType(
         ),
         typeId = 81,
         properties = listOf(
-            EntityProp(name = "Model", offset = 52, type = EntityPropType.U32),
+            EntityProp(name = "Model", offset = 52, type = EntityPropType.I32),
         ),
     ),
     WelcomeBoard(
@@ -748,7 +748,7 @@ enum class ObjectType(
         properties = listOf(
             EntityProp(name = "Color", offset = 40, type = EntityPropType.F32),
             EntityProp(name = "Switch ID", offset = 52, type = EntityPropType.I32),
-            EntityProp(name = "Model", offset = 60, type = EntityPropType.U32),
+            EntityProp(name = "Model", offset = 60, type = EntityPropType.I32),
         ),
     ),
     LaserSquareFence(
@@ -762,7 +762,7 @@ enum class ObjectType(
         properties = listOf(
             EntityProp(name = "Color", offset = 40, type = EntityPropType.F32),
             EntityProp(name = "Switch ID", offset = 52, type = EntityPropType.I32),
-            EntityProp(name = "Model", offset = 60, type = EntityPropType.U32),
+            EntityProp(name = "Model", offset = 60, type = EntityPropType.I32),
         ),
     ),
     ForestLaserFenceSwitch(
@@ -841,7 +841,7 @@ enum class ObjectType(
         typeId = 139,
         properties = listOf(
             EntityProp(name = "Script label", offset = 52, type = EntityPropType.I32),
-            EntityProp(name = "Model", offset = 56, type = EntityPropType.U32),
+            EntityProp(name = "Model", offset = 56, type = EntityPropType.I32),
         ),
     ),
     BlackSlidingDoor(
@@ -962,7 +962,7 @@ enum class ObjectType(
             EntityProp(name = "Collision width", offset = 44, type = EntityPropType.F32),
             EntityProp(name = "Collision depth", offset = 48, type = EntityPropType.F32),
             EntityProp(name = "Switch ID", offset = 52, type = EntityPropType.I32),
-            EntityProp(name = "Model", offset = 60, type = EntityPropType.U32),
+            EntityProp(name = "Model", offset = 60, type = EntityPropType.I32),
         ),
     ),
     LaserSquareFenceEx(
@@ -974,7 +974,7 @@ enum class ObjectType(
             EntityProp(name = "Collision width", offset = 44, type = EntityPropType.F32),
             EntityProp(name = "Collision depth", offset = 48, type = EntityPropType.F32),
             EntityProp(name = "Switch ID", offset = 52, type = EntityPropType.I32),
-            EntityProp(name = "Model", offset = 60, type = EntityPropType.U32),
+            EntityProp(name = "Model", offset = 60, type = EntityPropType.I32),
         ),
     ),
     FloorPanel1(
@@ -2206,7 +2206,7 @@ enum class ObjectType(
         ),
         typeId = 547,
         properties = listOf(
-            EntityProp(name = "Model", offset = 52, type = EntityPropType.U32),
+            EntityProp(name = "Model", offset = 52, type = EntityPropType.I32),
         ),
     ),
     WideGlassWallBreakable(
@@ -2393,7 +2393,7 @@ enum class ObjectType(
             EntityProp(name = "Scale x", offset = 40, type = EntityPropType.F32),
             EntityProp(name = "Scale y", offset = 44, type = EntityPropType.F32),
             EntityProp(name = "Scale z", offset = 48, type = EntityPropType.F32),
-            EntityProp(name = "Model", offset = 52, type = EntityPropType.U32),
+            EntityProp(name = "Model", offset = 52, type = EntityPropType.I32),
         ),
     ),
     BigBrownRock(
@@ -2403,7 +2403,7 @@ enum class ObjectType(
         ),
         typeId = 770,
         properties = listOf(
-            EntityProp(name = "Model", offset = 52, type = EntityPropType.U32),
+            EntityProp(name = "Model", offset = 52, type = EntityPropType.I32),
         ),
     ),
     BreakableBrownRock(
@@ -2465,7 +2465,7 @@ enum class ObjectType(
         ),
         typeId = 902,
         properties = listOf(
-            EntityProp(name = "Model", offset = 52, type = EntityPropType.U32),
+            EntityProp(name = "Model", offset = 52, type = EntityPropType.I32),
         ),
     ),
     UnknownItem903(
@@ -2525,7 +2525,7 @@ enum class ObjectType(
         ),
         typeId = 911,
         properties = listOf(
-            EntityProp(name = "Model", offset = 52, type = EntityPropType.U32),
+            EntityProp(name = "Model", offset = 52, type = EntityPropType.I32),
         ),
     ),
     UnknownItem912(
@@ -2567,6 +2567,6 @@ enum class ObjectType(
         /**
          * Use this instead of [values] to avoid unnecessary copying.
          */
-        val VALUES: Array<ObjectType> = ObjectType.values()
+        val VALUES: Array<ObjectType> = values()
     }
 }

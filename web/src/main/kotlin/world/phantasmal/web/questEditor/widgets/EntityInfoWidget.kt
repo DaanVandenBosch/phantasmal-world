@@ -2,9 +2,15 @@ package world.phantasmal.web.questEditor.widgets
 
 import kotlinx.coroutines.launch
 import org.w3c.dom.Node
+import world.phantasmal.core.disposable.Disposable
+import world.phantasmal.core.disposable.Disposer
+import world.phantasmal.core.math.degToRad
+import world.phantasmal.core.math.radToDeg
+import world.phantasmal.lib.fileFormats.quest.EntityPropType
 import world.phantasmal.observable.value.Val
 import world.phantasmal.web.core.widgets.UnavailableWidget
 import world.phantasmal.web.questEditor.controllers.EntityInfoController
+import world.phantasmal.web.questEditor.models.QuestEntityPropModel
 import world.phantasmal.webui.dom.*
 import world.phantasmal.webui.widgets.DoubleInput
 import world.phantasmal.webui.widgets.IntInput
@@ -68,6 +74,12 @@ class EntityInfoWidget(private val ctrl: EntityInfoController) : Widget(enabled 
                 createCoordRow("Y:", ctrl.rotY, ctrl::setRotY)
                 createCoordRow("Z:", ctrl.rotZ, ctrl::setRotZ)
             }
+            table {
+                className = "pw-quest-editor-entity-info-specific-props"
+                hidden(ctrl.unavailable)
+
+                bindDisposableChildrenTo(ctrl.props) { prop, _ -> createPropRow(prop) }
+            }
             addChild(UnavailableWidget(
                 visible = ctrl.unavailable,
                 message = "No entity selected.",
@@ -92,6 +104,47 @@ class EntityInfoWidget(private val ctrl: EntityInfoController) : Widget(enabled 
                 addChild(input)
             }
         }
+    }
+
+    private fun Node.createPropRow(prop: QuestEntityPropModel): Pair<Node, Disposable> {
+        val disposer = Disposer()
+
+        val input = disposer.add(when (prop.type) {
+            EntityPropType.I32 -> IntInput(
+                enabled = ctrl.enabled,
+                label = prop.name + ":",
+                min = Int.MIN_VALUE,
+                max = Int.MAX_VALUE,
+                step = 1,
+                value = prop.value.map { it as Int },
+                onChange = { ctrl.setPropValue(prop, it) },
+            )
+            EntityPropType.F32 -> DoubleInput(
+                enabled = ctrl.enabled,
+                label = prop.name + ":",
+                roundTo = 3,
+                value = prop.value.map { (it as Float).toDouble() },
+                onChange = { ctrl.setPropValue(prop, it.toFloat()) },
+            )
+            EntityPropType.Angle -> DoubleInput(
+                enabled = ctrl.enabled,
+                label = prop.name + ":",
+                roundTo = 1,
+                value = prop.value.map { radToDeg((it as Float).toDouble()) },
+                onChange = { ctrl.setPropValue(prop, degToRad(it).toFloat()) },
+            )
+        })
+
+        val node = tr {
+            th {
+                addWidget(disposer.add(input.label!!), addToDisposer = false)
+            }
+            td {
+                addWidget(input, addToDisposer = false)
+            }
+        }
+
+        return Pair(node, disposer)
     }
 
     companion object {
@@ -127,8 +180,13 @@ class EntityInfoWidget(private val ctrl: EntityInfoController) : Widget(enabled 
                     width: 100%;
                 }
 
+                /* Using a selector with high specificity to ensure we override rule above. */
                 .pw-quest-editor-entity-info table.pw-quest-editor-entity-info-specific-props {
                     margin-top: -2px;
+                }
+
+                .pw-quest-editor-entity-info-specific-props .pw-number-input {
+                    width: 100%;
                 }
             """.trimIndent())
         }

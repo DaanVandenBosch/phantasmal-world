@@ -3,6 +3,7 @@ package world.phantasmal.webui.widgets
 import org.w3c.dom.Node
 import org.w3c.dom.events.KeyboardEvent
 import org.w3c.dom.events.MouseEvent
+import org.w3c.dom.get
 import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.list.emptyListVal
 import world.phantasmal.observable.value.mutableVal
@@ -66,6 +67,16 @@ class Select<T : Any>(
                 onCancel = { menuVisible.value = false },
             ))
         }
+
+    override fun getId(): String {
+        val button = element.children[0]!!
+
+        if (button.id.isBlank()) {
+            button.id = uniqueId()
+        }
+
+        return button.id
+    }
 
     private fun onButtonMouseDown(e: MouseEvent) {
         e.stopPropagation()

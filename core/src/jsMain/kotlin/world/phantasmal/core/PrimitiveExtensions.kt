@@ -9,3 +9,8 @@ actual fun Int.reinterpretAsFloat(): Float {
     dataView.setInt32(0, this)
     return dataView.getFloat32(0)
 }
+
+actual fun Float.reinterpretAsInt(): Int {
+    dataView.setFloat32(0, this)
+    return dataView.getInt32(0)
+}

@@ -74,6 +74,11 @@ class QuestEditorStore(
         }
     }
 
+    override fun internalDispose() {
+        runner.stop()
+        super.internalDispose()
+    }
+
     fun makeMainUndoCurrent() {
         undoManager.setCurrent(mainUndo)
     }
@@ -89,7 +94,7 @@ class QuestEditorStore(
     suspend fun setCurrentQuest(quest: QuestModel?) {
         undoManager.reset()
 
-        // TODO: Stop runner.
+        runner.stop()
 
         _highlightedEntity.value = null
         _selectedEntity.value = null

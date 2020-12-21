@@ -3,16 +3,15 @@ package world.phantasmal.web.questEditor.controllers
 import world.phantasmal.core.math.degToRad
 import world.phantasmal.core.math.radToDeg
 import world.phantasmal.observable.value.Val
+import world.phantasmal.observable.value.list.emptyListVal
 import world.phantasmal.observable.value.value
 import world.phantasmal.observable.value.zeroIntVal
 import world.phantasmal.web.core.euler
 import world.phantasmal.web.externals.three.Euler
 import world.phantasmal.web.externals.three.Vector3
-import world.phantasmal.web.questEditor.actions.EditEntitySectionAction
-import world.phantasmal.web.questEditor.actions.EditPropertyAction
-import world.phantasmal.web.questEditor.actions.RotateEntityAction
-import world.phantasmal.web.questEditor.actions.TranslateEntityAction
+import world.phantasmal.web.questEditor.actions.*
 import world.phantasmal.web.questEditor.models.QuestEntityModel
+import world.phantasmal.web.questEditor.models.QuestEntityPropModel
 import world.phantasmal.web.questEditor.models.QuestNpcModel
 import world.phantasmal.web.questEditor.stores.AreaStore
 import world.phantasmal.web.questEditor.stores.QuestEditorStore
@@ -56,6 +55,9 @@ class EntityInfoController(
     val rotX: Val<Double> = rot.map { radToDeg(it.x) }
     val rotY: Val<Double> = rot.map { radToDeg(it.y) }
     val rotZ: Val<Double> = rot.map { radToDeg(it.z) }
+
+    val props: Val<List<QuestEntityPropModel>> =
+        questEditorStore.selectedEntity.flatMap { it?.properties ?: emptyListVal() }
 
     fun focused() {
         questEditorStore.makeMainUndoCurrent()
@@ -161,6 +163,18 @@ class EntityInfoController(
             entity.rotation.value,
             false,
         ))
+    }
+
+    fun setPropValue(prop:QuestEntityPropModel, value:Any) {
+        questEditorStore.selectedEntity.value?.let { entity ->
+            questEditorStore.executeAction(EditEntityPropAction(
+                setSelectedEntity = questEditorStore::setSelectedEntity,
+                entity,
+                prop,
+                value,
+                prop.value.value,
+            ))
+        }
     }
 
     companion object {

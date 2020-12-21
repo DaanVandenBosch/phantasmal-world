@@ -4,6 +4,8 @@ import world.phantasmal.core.math.floorMod
 import world.phantasmal.lib.fileFormats.quest.EntityType
 import world.phantasmal.lib.fileFormats.quest.QuestEntity
 import world.phantasmal.observable.value.Val
+import world.phantasmal.observable.value.list.ListVal
+import world.phantasmal.observable.value.list.listVal
 import world.phantasmal.observable.value.mutableVal
 import world.phantasmal.web.core.euler
 import world.phantasmal.web.core.minus
@@ -52,6 +54,10 @@ abstract class QuestEntityModel<Type : EntityType, Entity : QuestEntity<Type>>(
     val rotation: Val<Euler> = _rotation
 
     val worldRotation: Val<Euler> = _worldRotation
+
+    val properties: ListVal<QuestEntityPropModel> = listVal(*Array(type.properties.size) {
+        QuestEntityPropModel(this, type.properties[it])
+    })
 
     open fun setSectionId(sectionId: Int) {
         entity.sectionId = sectionId.toShort()

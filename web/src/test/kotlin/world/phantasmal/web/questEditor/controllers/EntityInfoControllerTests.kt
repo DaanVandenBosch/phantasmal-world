@@ -118,4 +118,24 @@ class EntityInfoControllerTests : WebTestSuite() {
         assertCloseTo(25.4, ctrl.rotY.value)
         assertCloseTo(12.5, ctrl.rotZ.value)
     }
+
+    @Test
+    fun when_focused_main_undo_becomes_current_undo() = asyncTest {
+        val store = components.questEditorStore
+        val ctrl = disposer.add(EntityInfoController(components.areaStore, store))
+
+        // Put something on the undo stack.
+        val npc = createQuestNpcModel(NpcType.Principal, Episode.I)
+        store.setCurrentQuest(createQuestModel(npcs = listOf(npc)))
+        store.setSelectedEntity(npc)
+
+        ctrl.setWaveId(99)
+
+        components.undoManager.makeNopCurrent()
+
+        // After focusing, the main undo stack becomes the current undo and we can undo.
+        ctrl.focused()
+
+        assertTrue(store.canUndo.value)
+    }
 }

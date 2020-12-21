@@ -1,6 +1,7 @@
 package world.phantasmal.webui.widgets
 
 import org.w3c.dom.Node
+import org.w3c.dom.get
 import world.phantasmal.observable.value.*
 import world.phantasmal.webui.dom.div
 import world.phantasmal.webui.dom.textarea
@@ -47,6 +48,16 @@ class TextArea(
                 this@TextArea.cols?.let { cols = it }
             }
         }
+
+    override fun getId(): String {
+        val textarea = element.children[0]!!
+
+        if (textarea.id.isBlank()) {
+            textarea.id = uniqueId()
+        }
+
+        return textarea.id
+    }
 
     companion object {
         init {

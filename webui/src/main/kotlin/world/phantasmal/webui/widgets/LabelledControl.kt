@@ -19,20 +19,9 @@ abstract class LabelledControl(
         if (label == null && labelVal == null) {
             null
         } else {
-            var id = element.id
-
-            if (id.isBlank()) {
-                id = uniqueId()
-                element.id = id
-            }
-
-            Label(visible, enabled, label, labelVal, htmlFor = id)
+            Label(visible, enabled, label, labelVal, htmlFor = getId())
         }
     }
 
-    companion object {
-        private var id = 0
-
-        private fun uniqueId() = "pw-labelled-control-id-${id++}"
-    }
+    protected abstract fun getId(): String
 }
