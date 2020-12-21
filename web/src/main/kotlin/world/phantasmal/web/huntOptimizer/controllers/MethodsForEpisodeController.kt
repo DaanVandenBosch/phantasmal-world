@@ -38,11 +38,18 @@ class MethodsForEpisodeController(
             sortable = true,
         ),
         *enemies.map { enemy ->
+            // Word-wrap long names.
+            val title = when(enemy) {
+                NpcType.Gigobooma -> "Gigo-\nbooma"
+                NpcType.Shambertin -> "Shamber-\ntin"
+                else -> enemy.simpleName
+            }
             Column<HuntMethodModel>(
                 key = enemy.name,
-                title = enemy.simpleName,
-                width = 90,
-                textAlign = "right",
+                title = title,
+                width = 70,
+                headerClassName = "pw-hunt-optimizer-methods-for-episode-header-cell",
+                className = "pw-hunt-optimizer-methods-for-episode-cell",
                 sortable = true,
             )
         }.toTypedArray()

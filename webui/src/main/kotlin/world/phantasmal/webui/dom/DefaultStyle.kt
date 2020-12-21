@@ -64,32 +64,36 @@ internal const val DEFAULT_STYLE = """
     font-family: var(--pw-font-family), sans-serif;
 }
 
-#pw-root * {
+.pw-root * {
     scrollbar-color: var(--pw-scrollbar-thumb-color) var(--pw-scrollbar-color);
 }
 
-#pw-root ::-webkit-scrollbar {
+.pw-root ::-webkit-scrollbar {
     background-color: var(--pw-scrollbar-color);
 }
 
-#pw-root ::-webkit-scrollbar-track {
+.pw-root ::-webkit-scrollbar-track {
     background-color: var(--pw-scrollbar-color);
 }
 
-#pw-root ::-webkit-scrollbar-thumb {
+.pw-root ::-webkit-scrollbar-thumb {
     background-color: var(--pw-scrollbar-thumb-color);
 }
 
-#pw-root ::-webkit-scrollbar-corner {
+.pw-root ::-webkit-scrollbar-corner {
     background-color: var(--pw-scrollbar-color);
 }
 
-#pw-root h2 {
+.pw-root h2 {
     font-size: 1.1em;
     margin: 0.5em 0;
 }
 
-#pw-root *[hidden] {
+.pw-root th {
+    font-weight: normal;
+}
+
+.pw-root *[hidden] {
     display: none;
 }
 """

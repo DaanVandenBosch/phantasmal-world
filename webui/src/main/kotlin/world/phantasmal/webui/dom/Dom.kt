@@ -91,6 +91,7 @@ fun HTMLElement.root(): HTMLElement {
     document.head!!.append(styleEl)
 
     id = "pw-root"
+    classList.add("pw-root")
     return this
 }
 

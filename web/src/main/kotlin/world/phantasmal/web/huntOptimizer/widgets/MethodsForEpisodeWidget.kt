@@ -42,6 +42,15 @@ class MethodsForEpisodeWidget(private val ctrl: MethodsForEpisodeController) : W
                     grid-template-columns: 100%;
                     overflow: hidden;
                 }
+                
+                .pw-hunt-optimizer-methods-for-episode-header-cell {
+                    font-size: 10px;
+                    padding: 2px;
+                }
+                
+                .pw-hunt-optimizer-methods-for-episode-cell {
+                    text-align: right;
+                }
             """.trimIndent())
         }
     }

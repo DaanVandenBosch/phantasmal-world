@@ -31,7 +31,9 @@ class Table<T>(
                         th {
                             className = "pw-table-cell"
 
-                            span { textContent = column.title }
+                            column.headerClassName?.let { classList.add(it) }
+
+                            textContent = column.title
 
                             if (column.fixed) {
                                 style.position = "sticky"
@@ -65,6 +67,8 @@ class Table<T>(
                             (if (column.fixed) ::th else ::td) {
                                 className = "pw-table-cell pw-table-body-cell"
 
+                                column.className?.let { classList.add(it) }
+
                                 val child = renderCell(value, column)
 
                                 if (child is Widget) {
@@ -86,7 +90,6 @@ class Table<T>(
 
                                 style.width = "${column.width}px"
 
-                                column.textAlign?.let { style.textAlign = it }
                                 column.tooltip?.let { title = it(value) }
                             }
                         }
@@ -134,6 +137,7 @@ class Table<T>(
                 }
 
                 .pw-table-header-row > th {
+                    font-weight: bold;
                     display: flex;
                     flex-direction: column;
                     justify-content: center;

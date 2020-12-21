@@ -33,6 +33,7 @@ class OrbitalCameraInputManager(
         camera.position.copy(position)
         controls.screenSpacePanning = screenSpacePanning
         controls.enableRotate = enableRotate
+        controls.zoomSpeed = 3.0
         controls.update()
         controls.saveState()
     }

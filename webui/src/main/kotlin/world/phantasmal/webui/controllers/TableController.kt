@@ -14,9 +14,10 @@ class Column<T>(
      * Whether cells in this column contain an input widget.
      */
     val input: Boolean = false,
-    val textAlign: String? = null,
     val tooltip: ((T) -> String)? = null,
     val sortable: Boolean = false,
+    val headerClassName: String? = null,
+    val className: String? = null,
 )
 
 enum class SortDirection {
