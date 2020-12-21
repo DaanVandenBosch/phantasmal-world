@@ -50,83 +50,90 @@ class EventWidget(
                 }
             }
 
-            table {
-                tr {
-                    val idInput = IntInput(
-                        enabled = ctrl.enabled,
-                        value = event.id,
-                        onChange = { ctrl.setId(event, it) },
-                        label = "ID:",
-                        min = 0,
-                        step = 1,
-                    )
-                    th { addChild(idInput.label!!) }
-                    td { addChild(idInput) }
-                }
-                tr {
-                    val sectionIdInput = IntInput(
-                        enabled = ctrl.enabled,
-                        value = event.sectionId,
-                        onChange = { ctrl.setSectionId(event, it) },
-                        label = "Section:",
-                        min = 0,
-                        step = 1,
-                    )
-                    th { addChild(sectionIdInput.label!!) }
-                    td { addChild(sectionIdInput) }
-                }
-                tr {
-                    val waveInput = IntInput(
-                        enabled = ctrl.enabled,
-                        value = event.wave.map { it.id },
-                        onChange = { ctrl.setWaveId(event, it) },
-                        label = "Wave:",
-                        min = 1,
-                        step = 1,
-                    )
-                    th { addChild(waveInput.label!!) }
-                    td { addChild(waveInput) }
-                }
-                tr {
-                    val delayInput = IntInput(
-                        enabled = ctrl.enabled,
-                        value = event.delay,
-                        onChange = { ctrl.setDelay(event, it) },
-                        label = "Delay:",
-                        min = 0,
-                        step = 1,
-                    )
-                    th { addChild(delayInput.label!!) }
-                    td { addChild(delayInput) }
-                }
-                tr {
-                    th {
-                        colSpan = 2
-                        textContent = "Actions:"
+            div {
+                className = "pw-quest-editor-event-props"
+
+                table {
+                    tr {
+                        val idInput = IntInput(
+                            enabled = ctrl.enabled,
+                            value = event.id,
+                            onChange = { ctrl.setId(event, it) },
+                            label = "ID:",
+                            min = 0,
+                            step = 1,
+                        )
+                        th { addChild(idInput.label!!) }
+                        td { addChild(idInput) }
                     }
+                    tr {
+                        val sectionIdInput = IntInput(
+                            enabled = ctrl.enabled,
+                            value = event.sectionId,
+                            onChange = { ctrl.setSectionId(event, it) },
+                            label = "Section:",
+                            min = 0,
+                            step = 1,
+                        )
+                        th { addChild(sectionIdInput.label!!) }
+                        td { addChild(sectionIdInput) }
+                    }
+                    tr {
+                        val waveInput = IntInput(
+                            enabled = ctrl.enabled,
+                            value = event.wave.map { it.id },
+                            onChange = { ctrl.setWaveId(event, it) },
+                            label = "Wave:",
+                            min = 1,
+                            step = 1,
+                        )
+                        th { addChild(waveInput.label!!) }
+                        td { addChild(waveInput) }
+                    }
+                    tr {
+                        val delayInput = IntInput(
+                            enabled = ctrl.enabled,
+                            value = event.delay,
+                            onChange = { ctrl.setDelay(event, it) },
+                            label = "Delay:",
+                            min = 0,
+                            step = 1,
+                        )
+                        th { addChild(delayInput.label!!) }
+                        td { addChild(delayInput) }
+                    }
+
                 }
-                tr {
-                    td {
-                        colSpan = 2
+            }
+            div {
+                className = "pw-quest-editor-event-actions"
 
-                        table {
-                            className = "pw-quest-editor-event-actions"
-
-                            bindDisposableChildrenTo(event.actions) { action, _ ->
-                                createActionElement(action)
+                table {
+                    thead {
+                        tr {
+                            th {
+                                colSpan = 3
+                                textContent = "Actions:"
                             }
                         }
                     }
-                }
-                tr {
-                    th {
-                        colSpan = 2
-                        addWidget(Dropdown(
-                            enabled = ctrl.enabled,
-                            text = "Add action",
-                            items = ctrl.eventActionTypes,
-                            onSelect = { ctrl.addAction(event, it) }
-                        ))
+                    tbody {
+                        bindDisposableChildrenTo(event.actions) { action, _ ->
+                            createActionElement(action)
+                        }
+                    }
+                    tfoot {
+                        tr {
+                            th {
+                                colSpan = 3
+                                addWidget(Dropdown(
+                                    enabled = ctrl.enabled,
+                                    text = "Add action",
+                                    items = ctrl.eventActionTypes,
+                                    onSelect = { ctrl.addAction(event, it) }
+                                ))
+                            }
+                        }
                     }
                 }
             }
@@ -219,16 +226,14 @@ class EventWidget(
             style("""
                 .pw-quest-editor-event {
                     display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                    padding: 4px 8px;
+                    flex-wrap: wrap;
                     border: var(--pw-border);
                     margin: 4px;
                     background-color: hsl(0, 0%, 17%);
                     outline: none;
                 }
 
-                .pw-quest-editor-event:hover,.pw-quest-editor-event:focus {
+                .pw-quest-editor-event:hover, .pw-quest-editor-event:focus {
                     border-color: hsl(0, 0%, 30%);
                     background-color: hsl(0, 0%, 20%);
                     color: hsl(0, 0%, 85%);
@@ -239,17 +244,26 @@ class EventWidget(
                     background-color: hsl(0, 0%, 25%);
                     color: hsl(0, 0%, 90%);
                 }
-
-                .pw-quest-editor-event > table {
-                    min-width: 170px;
+                
+                .pw-quest-editor-event-props, .pw-quest-editor-event-actions {
+                    padding: 3px 6px;
+                }
+                
+                .pw-quest-editor-event-props {
+                    width: 130px;
+                }
+                
+                .pw-quest-editor-event-actions {
+                    width: 160px;
+                }
+                
+                .pw-quest-editor-event > div > table {
+                    width: 100%;
+                    border-collapse: collapse;
                 }
 
                 .pw-quest-editor-event th {
                     text-align: left;
-                }
-
-                .pw-quest-editor-event-actions {
-                    margin-left: 4px;
                 }
             """.trimIndent())
         }
