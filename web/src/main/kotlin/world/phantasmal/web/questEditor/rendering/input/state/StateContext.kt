@@ -1,5 +1,6 @@
 package world.phantasmal.web.questEditor.rendering.input.state
 
+import world.phantasmal.core.asJsArray
 import world.phantasmal.observable.value.Val
 import world.phantasmal.web.core.minusAssign
 import world.phantasmal.web.core.plusAssign
@@ -9,6 +10,7 @@ import world.phantasmal.web.questEditor.actions.CreateEntityAction
 import world.phantasmal.web.questEditor.actions.DeleteEntityAction
 import world.phantasmal.web.questEditor.actions.RotateEntityAction
 import world.phantasmal.web.questEditor.actions.TranslateEntityAction
+import world.phantasmal.web.questEditor.loading.AreaUserData
 import world.phantasmal.web.questEditor.models.*
 import world.phantasmal.web.questEditor.rendering.QuestRenderContext
 import world.phantasmal.web.questEditor.stores.QuestEditorStore
@@ -42,6 +44,7 @@ class StateContext(
         dragAdjust: Vector3,
         grabOffset: Vector3,
         pointerPosition: Vector2,
+        adjustSection: Boolean,
     ) {
         val pick = pickGround(pointerPosition, dragAdjust)
 
@@ -58,7 +61,12 @@ class StateContext(
                 ))
             }
         } else {
-            // TODO: Set entity section.
+            if (adjustSection) {
+                pick.`object`.userData.unsafeCast<AreaUserData>().section?.let { section ->
+                    entity.setSection(section)
+                }
+            }
+
             entity.setWorldPosition(
                 Vector3(
                     pick.point.x,
@@ -207,7 +215,7 @@ class StateContext(
         predicate: (Intersection) -> Boolean = { true },
     ): Intersection? {
         raycaster.set(origin, direction)
-        raycasterIntersections.asDynamic().splice(0)
+        raycasterIntersections.asJsArray().splice(0)
         raycaster.intersectObject(obj3d, recursive = true, raycasterIntersections)
         return raycasterIntersections.find(predicate)
     }
@@ -227,7 +235,7 @@ class StateContext(
     ): Intersection? {
         raycaster.setFromCamera(origin, renderContext.camera)
         raycaster.ray.origin += translateOrigin
-        raycasterIntersections.asDynamic().splice(0)
+        raycasterIntersections.asJsArray().splice(0)
         raycaster.intersectObject(obj3d, recursive = true, raycasterIntersections)
         return raycasterIntersections.find(predicate)
     }

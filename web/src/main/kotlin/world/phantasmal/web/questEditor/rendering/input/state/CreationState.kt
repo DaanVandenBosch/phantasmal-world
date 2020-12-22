@@ -49,6 +49,7 @@ class CreationState(
     private val pointerDevicePosition = Vector2()
     private var shouldTranslate = false
     private var shouldTranslateVertically = false
+    private var shouldAdjustSection = false
 
     init {
         event.allowDrop()
@@ -59,6 +60,7 @@ class CreationState(
             ZERO_VECTOR,
             ZERO_VECTOR,
             event.pointerDevicePosition,
+            adjustSection = true,
         )
 
         ctx.setSelectedEntity(entity)
@@ -70,7 +72,8 @@ class CreationState(
                 event.allowDrop()
                 pointerDevicePosition.copy(event.pointerDevicePosition)
                 shouldTranslate = true
-                shouldTranslateVertically = event.shiftKeyDown
+                shouldTranslateVertically = event.shiftKey
+                shouldAdjustSection = !event.ctrlKey
                 this
             }
 
@@ -103,6 +106,7 @@ class CreationState(
                     dragAdjust,
                     ZERO_VECTOR,
                     pointerDevicePosition,
+                    shouldAdjustSection,
                 )
             }
 

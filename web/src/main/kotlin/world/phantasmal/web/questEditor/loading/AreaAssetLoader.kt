@@ -1,13 +1,14 @@
 package world.phantasmal.web.questEditor.loading
 
 import org.khronos.webgl.ArrayBuffer
+import world.phantasmal.core.asJsArray
 import world.phantasmal.lib.Endianness
+import world.phantasmal.lib.Episode
 import world.phantasmal.lib.cursor.cursor
 import world.phantasmal.lib.fileFormats.CollisionObject
 import world.phantasmal.lib.fileFormats.RenderObject
 import world.phantasmal.lib.fileFormats.parseAreaCollisionGeometry
 import world.phantasmal.lib.fileFormats.parseAreaGeometry
-import world.phantasmal.lib.Episode
 import world.phantasmal.web.core.euler
 import world.phantasmal.web.core.loading.AssetLoader
 import world.phantasmal.web.core.rendering.conversion.MeshBuilder
@@ -41,10 +42,16 @@ class AreaAssetLoader(private val assetLoader: AssetLoader) : DisposableContaine
 
     private val collisionObjectCache = addDisposable(
         LoadingCache<EpisodeAndAreaVariant, Object3D>(
-            { (episode, areaVariant) ->
+            { key ->
+                val (episode, areaVariant) = key
                 val buffer = getAreaAsset(episode, areaVariant, AssetType.Collision)
                 val obj = parseAreaCollisionGeometry(buffer.cursor(Endianness.Little))
-                areaCollisionGeometryToObject3D(obj, episode, areaVariant)
+                val obj3d = areaCollisionGeometryToObject3D(obj, episode, areaVariant)
+
+                val (renderObj3d) = renderObjectCache.get(key)
+                addSectionsToCollisionGeometry(obj3d, renderObj3d)
+
+                obj3d
             },
             ::disposeObject3DResources,
         )
@@ -75,6 +82,42 @@ class AreaAssetLoader(private val assetLoader: AssetLoader) : DisposableContaine
         return assetLoader.loadArrayBuffer(baseUrl + suffix)
     }
 
+    private fun addSectionsToCollisionGeometry(collisionGeom: Object3D, renderGeom: Object3D) {
+        for (collisionArea in collisionGeom.children) {
+            val origin =
+                ((collisionArea as Mesh).geometry as Geometry).boundingBox!!.getCenter(tmpVec)
+
+            // Cast a ray downward from the center of the section.
+            raycaster.set(origin, DOWN)
+            tmpIntersections.asJsArray().splice(0)
+            val intersection1 = raycaster
+                .intersectObject(renderGeom, true, tmpIntersections)
+                .find { (it.`object`.userData.unsafeCast<AreaUserData>()).section != null }
+
+            // Cast a ray upward from the center of the section.
+            raycaster.set(origin, UP)
+            tmpIntersections.asJsArray().splice(0)
+            val intersection2 = raycaster
+                .intersectObject(renderGeom, true, tmpIntersections)
+                .find { (it.`object`.userData.unsafeCast<AreaUserData>()).section != null }
+
+            // Choose the nearest intersection if we have 2.
+            val intersection =
+                if (intersection1 != null && intersection2 != null) {
+                    if (intersection1.distance <= intersection2.distance) intersection1
+                    else intersection2
+                } else {
+                    intersection1 ?: intersection2
+                }
+
+            if (intersection != null) {
+                val cud = collisionArea.userData.unsafeCast<AreaUserData>()
+                val rud = intersection.`object`.userData.unsafeCast<AreaUserData>()
+                cud.section = rud.section
+            }
+        }
+    }
+
     private data class EpisodeAndAreaVariant(
         val episode: Episode,
         val areaVariant: AreaVariantModel,
@@ -83,10 +126,18 @@ class AreaAssetLoader(private val assetLoader: AssetLoader) : DisposableContaine
     private enum class AssetType {
         Render, Collision
     }
+
+    companion object {
+        private val DOWN = Vector3(.0, -1.0, .0)
+        private val UP = Vector3(.0, 1.0, .0)
+        private val raycaster = Raycaster()
+        private val tmpVec = Vector3()
+        private val tmpIntersections = arrayOf<Intersection>()
+    }
 }
 
 interface AreaUserData {
-    var sectionId: Int?
+    var section: SectionModel?
 }
 
 private val COLLISION_MATERIALS: Array<Material> = arrayOf(
@@ -258,15 +309,16 @@ private fun areaGeometryToObject3DAndSections(
         mesh.updateMatrixWorld()
 
         if (section.id >= 0) {
-            sections.add(SectionModel(
+            val sectionModel = SectionModel(
                 section.id,
                 vec3ToThree(section.position),
                 euler(section.rotation.x, section.rotation.y, section.rotation.z),
                 areaVariant,
-            ))
+            )
+            sections.add(sectionModel)
+            (mesh.userData.unsafeCast<AreaUserData>()).section = sectionModel
         }
 
-        (mesh.userData.unsafeCast<AreaUserData>()).sectionId = section.id.takeIf { it >= 0 }
         obj3d.add(mesh)
     }
 

@@ -19,6 +19,7 @@ class TranslationState(
     private val pointerDevicePosition = Vector2()
     private var shouldTranslate = false
     private var shouldTranslateVertically = false
+    private var shouldAdjustSection = false
 
     init {
         ctx.cameraInputManager.enabled = false
@@ -30,7 +31,8 @@ class TranslationState(
                 if (event.movedSinceLastPointerDown) {
                     pointerDevicePosition.copy(event.pointerDevicePosition)
                     shouldTranslate = true
-                    shouldTranslateVertically = event.shiftKeyDown
+                    shouldTranslateVertically = event.shiftKey
+                    shouldAdjustSection = !event.ctrlKey
                 }
 
                 this
@@ -70,6 +72,7 @@ class TranslationState(
                     dragAdjust,
                     grabOffset,
                     pointerDevicePosition,
+                    shouldAdjustSection,
                 )
             }
 

@@ -10,7 +10,8 @@ class KeyboardEvt(val key: String) : Evt()
 
 sealed class PointerEvt : Evt() {
     abstract val buttons: Int
-    abstract val shiftKeyDown: Boolean
+    abstract val ctrlKey: Boolean
+    abstract val shiftKey: Boolean
 
     /**
      * Pointer position in normalized device space.
@@ -21,28 +22,32 @@ sealed class PointerEvt : Evt() {
 
 class PointerDownEvt(
     override val buttons: Int,
-    override val shiftKeyDown: Boolean,
+    override val ctrlKey: Boolean,
+    override val shiftKey: Boolean,
     override val pointerDevicePosition: Vector2,
     override val movedSinceLastPointerDown: Boolean,
 ) : PointerEvt()
 
 class PointerUpEvt(
     override val buttons: Int,
-    override val shiftKeyDown: Boolean,
+    override val ctrlKey: Boolean,
+    override val shiftKey: Boolean,
     override val pointerDevicePosition: Vector2,
     override val movedSinceLastPointerDown: Boolean,
 ) : PointerEvt()
 
 class PointerMoveEvt(
     override val buttons: Int,
-    override val shiftKeyDown: Boolean,
+    override val ctrlKey: Boolean,
+    override val shiftKey: Boolean,
     override val pointerDevicePosition: Vector2,
     override val movedSinceLastPointerDown: Boolean,
 ) : PointerEvt()
 
 class PointerOutEvt(
     override val buttons: Int,
-    override val shiftKeyDown: Boolean,
+    override val ctrlKey: Boolean,
+    override val shiftKey: Boolean,
     override val pointerDevicePosition: Vector2,
     override val movedSinceLastPointerDown: Boolean,
 ) : PointerEvt()
@@ -55,7 +60,8 @@ sealed class EntityDragEvt(
     val pointerDevicePosition: Vector2,
 ) : Evt() {
     val entityType: EntityType = event.entityType
-    val shiftKeyDown: Boolean = event.shiftKeyDown
+    val ctrlKey: Boolean = event.ctrlKey
+    val shiftKey: Boolean = event.shiftKey
 
     fun allowDrop() {
         event.allowDrop()

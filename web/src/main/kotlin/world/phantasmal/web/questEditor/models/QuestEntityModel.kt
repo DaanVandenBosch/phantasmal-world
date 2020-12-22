@@ -88,6 +88,9 @@ abstract class QuestEntityModel<Type : EntityType, Entity : QuestEntity<Type>>(
         _sectionInitialized.value = true
     }
 
+    /**
+     * Will update the entity's relative transformation but keep its world transformation constant.
+     */
     fun setSection(section: SectionModel) {
         require(section.areaVariant.area.id == areaId) {
             "Quest entities can't be moved across areas."

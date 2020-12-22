@@ -107,7 +107,8 @@ class QuestInputManager(
         state = state.processEvent(
             PointerDownEvt(
                 e.buttons.toInt(),
-                shiftKeyDown = e.shiftKey,
+                ctrlKey = e.ctrlKey,
+                shiftKey = e.shiftKey,
                 pointerDevicePosition,
                 movedSinceLastPointerDown,
             )
@@ -127,7 +128,8 @@ class QuestInputManager(
             state = state.processEvent(
                 PointerUpEvt(
                     e.buttons.toInt(),
-                    shiftKeyDown = e.shiftKey,
+                    ctrlKey = e.ctrlKey,
+                    shiftKey = e.shiftKey,
                     pointerDevicePosition,
                     movedSinceLastPointerDown,
                 )
@@ -149,7 +151,8 @@ class QuestInputManager(
         state = state.processEvent(
             PointerMoveEvt(
                 e.buttons.toInt(),
-                shiftKeyDown = e.shiftKey,
+                ctrlKey = e.ctrlKey,
+                shiftKey = e.shiftKey,
                 pointerDevicePosition,
                 movedSinceLastPointerDown,
             )
@@ -162,7 +165,8 @@ class QuestInputManager(
         state = state.processEvent(
             PointerOutEvt(
                 e.buttons.toInt(),
-                shiftKeyDown = e.shiftKey,
+                ctrlKey = e.ctrlKey,
+                shiftKey = e.shiftKey,
                 pointerDevicePosition,
                 movedSinceLastPointerDown,
             )

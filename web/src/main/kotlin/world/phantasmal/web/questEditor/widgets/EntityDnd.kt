@@ -31,7 +31,8 @@ class EntityDragEvent(private val data: EventData, private val event: DragEvent)
     val entityType: EntityType = data.entityType
     val clientX = event.clientX
     val clientY = event.clientY
-    val shiftKeyDown = event.shiftKey
+    val ctrlKey = event.ctrlKey
+    val shiftKey = event.shiftKey
 
     fun allowDrop() {
         event.stopPropagation()

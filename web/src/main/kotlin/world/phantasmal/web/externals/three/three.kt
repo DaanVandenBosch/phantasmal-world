@@ -178,6 +178,8 @@ external class Plane(normal: Vector3 = definedExternally, constant: Double = def
 external class Box3(min: Vector3 = definedExternally, max: Vector3 = definedExternally) {
     var min: Vector3
     var max: Vector3
+
+    fun getCenter(target: Vector3): Vector3
 }
 
 external class Sphere(center: Vector3 = definedExternally, radius: Double = definedExternally) {
@@ -458,6 +460,9 @@ external class Color() {
 }
 
 open external class Geometry : EventDispatcher {
+    var boundingBox: Box3?
+    var boundingSphere: Sphere?
+
     /**
      * The array of vertices hold every position of points of the model.
      * To signal an update in this array, Geometry.verticesNeedUpdate needs to be set to true.
