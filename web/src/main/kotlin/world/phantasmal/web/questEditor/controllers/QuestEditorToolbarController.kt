@@ -1,14 +1,16 @@
 package world.phantasmal.web.questEditor.controllers
 
+import kotlinx.browser.document
 import mu.KotlinLogging
+import org.w3c.dom.HTMLAnchorElement
+import org.w3c.dom.url.URL
+import org.w3c.files.Blob
 import org.w3c.files.File
 import world.phantasmal.core.*
 import world.phantasmal.lib.Endianness
-import world.phantasmal.lib.cursor.cursor
 import world.phantasmal.lib.Episode
-import world.phantasmal.lib.fileFormats.quest.Quest
-import world.phantasmal.lib.fileFormats.quest.parseBinDatToQuest
-import world.phantasmal.lib.fileFormats.quest.parseQstToQuest
+import world.phantasmal.lib.cursor.cursor
+import world.phantasmal.lib.fileFormats.quest.*
 import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.map
 import world.phantasmal.observable.value.mutableVal
@@ -19,8 +21,10 @@ import world.phantasmal.web.questEditor.loading.QuestLoader
 import world.phantasmal.web.questEditor.models.AreaModel
 import world.phantasmal.web.questEditor.stores.AreaStore
 import world.phantasmal.web.questEditor.stores.QuestEditorStore
+import world.phantasmal.web.questEditor.stores.convertQuestFromModel
 import world.phantasmal.web.questEditor.stores.convertQuestToModel
 import world.phantasmal.webui.controllers.Controller
+import world.phantasmal.webui.obj
 import world.phantasmal.webui.readFile
 import world.phantasmal.webui.selectFiles
 
@@ -36,6 +40,9 @@ class QuestEditorToolbarController(
 ) : Controller() {
     private val _resultDialogVisible = mutableVal(false)
     private val _result = mutableVal<PwResult<*>?>(null)
+    private val _saveAsDialogVisible = mutableVal(false)
+    private val _filename = mutableVal("")
+    private val _version = mutableVal(Version.BB)
 
     // Result
 
@@ -43,6 +50,13 @@ class QuestEditorToolbarController(
     val result: Val<PwResult<*>?> = _result
 
     val openFileAccept = ".bin, .dat, .qst"
+
+    // Save as
+
+    val saveAsEnabled: Val<Boolean> = questEditorStore.currentQuest.isNotNull()
+    val saveAsDialogVisible: Val<Boolean> = _saveAsDialogVisible
+    val filename: Val<String> = _filename
+    val version: Val<Version> = _version
 
     // Undo
 
@@ -87,6 +101,10 @@ class QuestEditorToolbarController(
                 openFiles(selectFiles(accept = openFileAccept, multiple = true))
             },
 
+            uiStore.onGlobalKeyDown(PwToolType.QuestEditor, "Ctrl-Shift-S") {
+                saveAs()
+            },
+
             uiStore.onGlobalKeyDown(PwToolType.QuestEditor, "Ctrl-Z") {
                 undo()
             },
@@ -102,14 +120,12 @@ class QuestEditorToolbarController(
     }
 
     suspend fun createNewQuest(episode: Episode) {
-        // TODO: Set filename and version.
-        questEditorStore.setCurrentQuest(
-            convertQuestToModel(questLoader.loadDefaultQuest(episode), areaStore::getVariant)
-        )
+        setFilename("")
+        setVersion(Version.BB)
+        setCurrentQuest(questLoader.loadDefaultQuest(episode))
     }
 
     suspend fun openFiles(files: List<File>) {
-        // TODO: Set filename and version.
         try {
             if (files.isEmpty()) return
 
@@ -120,6 +136,8 @@ class QuestEditorToolbarController(
                 setResult(parseResult)
 
                 if (parseResult is Success) {
+                    setFilename(filenameBase(qst.name) ?: qst.name)
+                    setVersion(parseResult.value.version)
                     setCurrentQuest(parseResult.value.quest)
                 }
             } else {
@@ -141,6 +159,8 @@ class QuestEditorToolbarController(
                 setResult(parseResult)
 
                 if (parseResult is Success) {
+                    setFilename(filenameBase(bin.name) ?: filenameBase(dat.name) ?: bin.name)
+                    setVersion(Version.BB)
                     setCurrentQuest(parseResult.value)
                 }
             }
@@ -151,6 +171,64 @@ class QuestEditorToolbarController(
                     .failure()
             )
         }
+    }
+
+    fun saveAs() {
+        if (saveAsEnabled.value) {
+            _saveAsDialogVisible.value = true
+        }
+    }
+
+    fun setFilename(filename: String) {
+        _filename.value = filename
+    }
+
+    fun setVersion(version: Version) {
+        _version.value = version
+    }
+
+    fun saveAsDialogSave() {
+        val quest = questEditorStore.currentQuest.value ?: return
+        var filename = filename.value.trim()
+
+        val buffer = writeQuestToQst(
+            convertQuestFromModel(quest),
+            filename,
+            version.value,
+            online = true,
+        )
+
+        if (!filename.endsWith(".qst")) {
+            filename += ".qst"
+        }
+
+        val a = document.createElement("a") as HTMLAnchorElement
+        val url = URL.createObjectURL(
+            Blob(
+                arrayOf(buffer.arrayBuffer),
+                obj { type = "application/octet-stream" },
+            )
+        )
+        try {
+            a.href = url
+            a.download = filename
+            document.body?.appendChild(a)
+            a.click()
+        } catch (e: Exception) {
+            URL.revokeObjectURL(url)
+            document.body?.removeChild(a)
+            throw e
+        }
+
+        dismissSaveAsDialog()
+    }
+
+    fun dismissSaveAsDialog() {
+        _saveAsDialogVisible.value = false
+    }
+
+    fun dismissResultDialog() {
+        _resultDialogVisible.value = false
     }
 
     fun undo() {

@@ -154,6 +154,9 @@ actual class Buffer private constructor(
         return str
     }
 
+    actual fun copy(): Buffer =
+        fromByteArray(buf.array().copyOf(), endianness)
+
     /**
      * Checks whether we can read [size] bytes at [offset].
      */

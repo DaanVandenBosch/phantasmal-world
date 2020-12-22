@@ -157,6 +157,9 @@ actual class Buffer private constructor(
         return self.btoa(str)
     }
 
+    actual fun copy(): Buffer =
+        Buffer(arrayBuffer.slice(0, size), size, endianness)
+
     /**
      * Checks whether we can read [size] bytes at [offset].
      */

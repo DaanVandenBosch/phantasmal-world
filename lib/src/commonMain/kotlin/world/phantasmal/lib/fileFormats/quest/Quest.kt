@@ -1,16 +1,15 @@
 package world.phantasmal.lib.fileFormats.quest
 
 import mu.KotlinLogging
-import world.phantasmal.core.PwResult
-import world.phantasmal.core.PwResultBuilder
-import world.phantasmal.core.Severity
-import world.phantasmal.core.Success
+import world.phantasmal.core.*
 import world.phantasmal.lib.Episode
 import world.phantasmal.lib.asm.BytecodeIr
 import world.phantasmal.lib.asm.InstructionSegment
 import world.phantasmal.lib.asm.OP_SET_EPISODE
 import world.phantasmal.lib.asm.dataFlowAnalysis.ControlFlowGraph
 import world.phantasmal.lib.asm.dataFlowAnalysis.getMapDesignations
+import world.phantasmal.lib.buffer.Buffer
+import world.phantasmal.lib.compression.prs.prsCompress
 import world.phantasmal.lib.compression.prs.prsDecompress
 import world.phantasmal.lib.cursor.Cursor
 import world.phantasmal.lib.cursor.cursor
@@ -232,4 +231,57 @@ private fun extractScriptEntryPoints(
     }
 
     return entryPoints
+}
+
+/**
+ * Creates a .qst file from [quest].
+ */
+fun writeQuestToQst(quest: Quest, filename: String, version: Version, online: Boolean): Buffer {
+    val dat = writeDat(DatFile(
+        objs = quest.objects.map { DatEntity(it.areaId, it.data) },
+        npcs = quest.npcs.map { DatEntity(it.areaId, it.data) },
+        events = quest.events,
+        unknowns = quest.datUnknowns,
+    ))
+
+    val binFormat = when (version) {
+        Version.DC, Version.GC -> BinFormat.DC_GC
+        Version.PC -> BinFormat.PC
+        Version.BB -> BinFormat.BB
+    }
+
+    val (bytecode, labelOffsets) = writeBytecode(quest.bytecodeIr, binFormat == BinFormat.DC_GC)
+
+    val bin = writeBin(BinFile(
+        binFormat,
+        quest.id,
+        quest.language,
+        quest.name,
+        quest.shortDescription,
+        quest.longDescription,
+        bytecode,
+        labelOffsets,
+        quest.shopItems,
+    ))
+
+    val baseFilename = (filenameBase(filename) ?: filename).take(11)
+
+    return writeQst(QstContent(
+        version,
+        online,
+        files = listOf(
+            QstContainedFile(
+                id = quest.id,
+                filename = "$baseFilename.dat",
+                questName = quest.name,
+                data = prsCompress(dat.cursor()).buffer(),
+            ),
+            QstContainedFile(
+                id = quest.id,
+                filename = "$baseFilename.bin",
+                questName = quest.name,
+                data = prsCompress(bin.cursor()).buffer(),
+            ),
+        ),
+    ))
 }

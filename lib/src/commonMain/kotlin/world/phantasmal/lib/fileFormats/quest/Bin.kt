@@ -3,6 +3,7 @@ package world.phantasmal.lib.fileFormats.quest
 import mu.KotlinLogging
 import world.phantasmal.lib.buffer.Buffer
 import world.phantasmal.lib.cursor.Cursor
+import world.phantasmal.lib.cursor.cursor
 
 private val logger = KotlinLogging.logger {}
 
@@ -115,4 +116,81 @@ fun parseBin(cursor: Cursor): BinFile {
         labelOffsets,
         shopItems,
     )
+}
+
+fun writeBin(bin: BinFile): Buffer {
+    require(bin.questName.length <= 32) {
+        "questName can't be longer than 32 characters, was ${bin.questName.length}"
+    }
+    require(bin.shortDescription.length <= 127) {
+        "shortDescription can't be longer than 127 characters, was ${bin.shortDescription.length}"
+    }
+    require(bin.longDescription.length <= 287) {
+        "longDescription can't be longer than 287 characters, was ${bin.longDescription.length}"
+    }
+    require(bin.shopItems.isEmpty() || bin.format == BinFormat.BB) {
+        "shopItems is only supported in BlueBurst quests."
+    }
+    require(bin.shopItems.size <= 932) {
+        "shopItems can't be larger than 932, was ${bin.shopItems.size}."
+    }
+
+    val bytecodeOffset = when (bin.format) {
+        BinFormat.DC_GC -> DC_GC_OBJECT_CODE_OFFSET
+        BinFormat.PC -> PC_OBJECT_CODE_OFFSET
+        BinFormat.BB -> BB_OBJECT_CODE_OFFSET
+    }
+
+    val fileSize = bytecodeOffset + bin.bytecode.size + 4 * bin.labelOffsets.size
+    val buffer = Buffer.withCapacity(fileSize)
+    val cursor = buffer.cursor()
+
+    cursor.writeInt(bytecodeOffset)
+    cursor.writeInt(bytecodeOffset + bin.bytecode.size) // Label table offset.
+    cursor.writeInt(fileSize)
+    cursor.writeInt(-1)
+
+    if (bin.format == BinFormat.DC_GC) {
+        cursor.writeByte(0)
+        cursor.writeByte(bin.language.toByte())
+        cursor.writeShort(bin.questId.toShort())
+        cursor.writeStringAscii(bin.questName, 32)
+        cursor.writeStringAscii(bin.shortDescription, 128)
+        cursor.writeStringAscii(bin.longDescription, 288)
+    } else {
+        if (bin.format == BinFormat.PC) {
+            cursor.writeShort(bin.language.toShort())
+            cursor.writeShort(bin.questId.toShort())
+        } else {
+            cursor.writeInt(bin.questId)
+            cursor.writeInt(bin.language)
+        }
+
+        cursor.writeStringUtf16(bin.questName, 64)
+        cursor.writeStringUtf16(bin.shortDescription, 256)
+        cursor.writeStringUtf16(bin.longDescription, 576)
+    }
+
+    if (bin.format == BinFormat.BB) {
+        cursor.writeInt(0)
+        cursor.writeUIntArray(bin.shopItems)
+
+        repeat(932 - bin.shopItems.size) {
+            cursor.writeUInt(0u)
+        }
+    }
+
+    check(cursor.position == bytecodeOffset) {
+        "Expected to write $bytecodeOffset bytes before bytecode, but wrote ${cursor.position}."
+    }
+
+    cursor.writeCursor(bin.bytecode.cursor())
+
+    cursor.writeIntArray(bin.labelOffsets)
+
+    check(cursor.position == fileSize) {
+        "Expected to write $fileSize bytes, but wrote ${cursor.position}."
+    }
+
+    return buffer
 }

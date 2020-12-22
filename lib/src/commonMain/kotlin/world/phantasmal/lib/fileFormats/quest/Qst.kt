@@ -12,6 +12,7 @@ import world.phantasmal.lib.cursor.WritableCursor
 import world.phantasmal.lib.cursor.cursor
 import kotlin.math.ceil
 import kotlin.math.max
+import kotlin.math.min
 
 private val logger = KotlinLogging.logger {}
 
@@ -134,7 +135,8 @@ private fun parseHeaders(cursor: Cursor): List<QstHeader> {
     var prevQuestId: Int? = null
     var prevFilename: String? = null
 
-    // .qst files should have two headers, some malformed files have more.
+    // .qst files should have two headers. Some malformed files have more, so we tried to detect at
+    // most 4 headers.
     repeat(4) {
         // Detect version and whether it's an online or download quest.
         val version: Version
@@ -406,4 +408,217 @@ private fun parseFiles(
             )
         }
     )
+}
+
+fun writeQst(qst: QstContent): Buffer {
+    val fileHeaderSize: Int
+    val chunkSize: Int
+
+    when (qst.version) {
+        Version.DC, Version.GC, Version.PC -> {
+            fileHeaderSize = DC_GC_PC_HEADER_SIZE
+            chunkSize = DC_GC_PC_CHUNK_SIZE
+        }
+        Version.BB -> {
+            fileHeaderSize = BB_HEADER_SIZE
+            chunkSize = BB_CHUNK_SIZE
+        }
+    }
+
+    val totalSize = qst.files.sumOf {
+        fileHeaderSize + ceil(it.data.size.toDouble() / CHUNK_BODY_SIZE).toInt() * chunkSize
+    }
+
+    val buffer = Buffer.withCapacity(totalSize)
+    val cursor = buffer.cursor()
+
+    writeFileHeaders(cursor, qst.files, qst.version, qst.online, fileHeaderSize)
+    writeFileChunks(cursor, qst.files, qst.version)
+
+    check(cursor.position == totalSize) {
+        "Expected a final file size of $totalSize, but got ${cursor.position}."
+    }
+
+    return buffer
+}
+
+private fun writeFileHeaders(
+    cursor: WritableCursor,
+    files: List<QstContainedFile>,
+    version: Version,
+    online: Boolean,
+    headerSize: Int,
+) {
+    val maxId: Int
+    val maxQuestNameLength: Int
+
+    if (version == Version.BB) {
+        maxId = 0xffff
+        maxQuestNameLength = 23
+    } else {
+        maxId = 0xff
+        maxQuestNameLength = 31
+    }
+
+    for (file in files) {
+        require(file.id == null || (file.id in 0..maxId)) {
+            "Quest ID should be between 0 and $maxId, inclusive."
+        }
+        require(file.questName == null || file.questName.length <= maxQuestNameLength) {
+            "File ${file.filename} has a quest name longer than $maxQuestNameLength characters (${file.questName})."
+        }
+        require(file.filename.length <= 15) {
+            "File ${file.filename} has a filename longer than 15 characters."
+        }
+
+        when (version) {
+            Version.DC -> {
+                cursor.writeUByte((if (online) ONLINE_QUEST else DOWNLOAD_QUEST).toUByte())
+                cursor.writeUByte(file.id?.toUByte() ?: 0u)
+                cursor.writeUShort(headerSize.toUShort())
+                cursor.writeStringAscii(file.questName ?: file.filename, 32)
+                cursor.writeByte(0)
+                cursor.writeByte(0)
+                cursor.writeByte(0)
+                cursor.writeStringAscii(file.filename, 16)
+                cursor.writeByte(0)
+                cursor.writeInt(file.data.size)
+            }
+
+            Version.GC -> {
+                cursor.writeUByte((if (online) ONLINE_QUEST else DOWNLOAD_QUEST).toUByte())
+                cursor.writeUByte(file.id?.toUByte() ?: 0u)
+                cursor.writeUShort(headerSize.toUShort())
+                cursor.writeStringAscii(file.questName ?: file.filename, 32)
+                cursor.writeInt(0)
+                cursor.writeStringAscii(file.filename, 16)
+                cursor.writeInt(file.data.size)
+            }
+
+            Version.PC -> {
+                cursor.writeUShort(headerSize.toUShort())
+                cursor.writeUByte((if (online) ONLINE_QUEST else DOWNLOAD_QUEST).toUByte())
+                cursor.writeUByte(file.id?.toUByte() ?: 0u)
+                cursor.writeStringAscii(file.questName ?: file.filename, 32)
+                cursor.writeInt(0)
+                cursor.writeStringAscii(file.filename, 16)
+                cursor.writeInt(file.data.size)
+            }
+
+            Version.BB -> {
+                cursor.writeUShort(headerSize.toUShort())
+                cursor.writeUShort((if (online) ONLINE_QUEST else DOWNLOAD_QUEST).toUShort())
+                cursor.writeUShort(file.id?.toUShort() ?: 0u)
+                repeat(38) { cursor.writeByte(0) }
+                cursor.writeStringAscii(file.filename, 16)
+                cursor.writeInt(file.data.size)
+                cursor.writeStringAscii(file.questName ?: file.filename, 24)
+            }
+        }
+    }
+}
+
+private class FileToChunk(
+    var no: Int,
+    val data: Cursor,
+    val name: String,
+)
+
+private fun writeFileChunks(
+    cursor: WritableCursor,
+    files: List<QstContainedFile>,
+    version: Version,
+) {
+    // Files are interleaved in chunks. Each chunk has a header, fixed-size data segment and a
+    // trailer.
+    val filesToChunk = files.map { file ->
+        FileToChunk(
+            no = 0,
+            data = file.data.cursor(),
+            name = file.filename,
+        )
+    }
+    var done = 0
+
+    while (done < filesToChunk.size) {
+        for (fileToChunk in filesToChunk) {
+            if (fileToChunk.data.hasBytesLeft()) {
+                if (
+                    !writeFileChunk(
+                        cursor,
+                        fileToChunk.data,
+                        fileToChunk.no++,
+                        fileToChunk.name,
+                        version,
+                    )
+                ) {
+                    done++
+                }
+            }
+        }
+    }
+
+    for (fileToChunk in filesToChunk) {
+        val expectedChunks = ceil(fileToChunk.data.size.toDouble() / CHUNK_BODY_SIZE).toInt()
+
+        check(fileToChunk.no == expectedChunks) {
+            """Expected to write $expectedChunks chunks for file "${
+                fileToChunk.name
+            }" but ${fileToChunk.no} where written."""
+        }
+    }
+}
+
+/**
+ * Returns true if there are bytes left to write in [data], false otherwise.
+ */
+private fun writeFileChunk(
+    cursor: WritableCursor,
+    data: Cursor,
+    chunkNo: Int,
+    name: String,
+    version: Version,
+): Boolean {
+    when (version) {
+        Version.DC,
+        Version.GC,
+        -> {
+            cursor.writeByte(0)
+            cursor.writeUByte(chunkNo.toUByte())
+            cursor.writeShort(0)
+        }
+
+        Version.PC -> {
+            cursor.writeByte(0)
+            cursor.writeByte(0)
+            cursor.writeByte(0)
+            cursor.writeUByte(chunkNo.toUByte())
+        }
+
+        Version.BB -> {
+            cursor.writeByte(28)
+            cursor.writeByte(4)
+            cursor.writeByte(19)
+            cursor.writeByte(0)
+            cursor.writeInt(chunkNo)
+        }
+    }
+
+    cursor.writeStringAscii(name, 16)
+
+    val size = min(CHUNK_BODY_SIZE, data.bytesLeft)
+    cursor.writeCursor(data.take(size))
+
+    // Padding.
+    repeat(CHUNK_BODY_SIZE - size) {
+        cursor.writeByte(0)
+    }
+
+    cursor.writeInt(size)
+
+    if (version == Version.BB) {
+        cursor.writeInt(0)
+    }
+
+    return data.hasBytesLeft()
 }

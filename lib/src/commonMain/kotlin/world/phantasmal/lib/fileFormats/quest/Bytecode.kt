@@ -3,6 +3,7 @@ package world.phantasmal.lib.fileFormats.quest
 import mu.KotlinLogging
 import world.phantasmal.core.PwResult
 import world.phantasmal.core.Severity
+import world.phantasmal.lib.Endianness
 import world.phantasmal.lib.asm.*
 import world.phantasmal.lib.asm.dataFlowAnalysis.ControlFlowGraph
 import world.phantasmal.lib.asm.dataFlowAnalysis.getRegisterValue
@@ -10,6 +11,7 @@ import world.phantasmal.lib.asm.dataFlowAnalysis.getStackValue
 import world.phantasmal.lib.buffer.Buffer
 import world.phantasmal.lib.cursor.BufferCursor
 import world.phantasmal.lib.cursor.Cursor
+import world.phantasmal.lib.cursor.cursor
 import kotlin.math.ceil
 import kotlin.math.min
 
@@ -118,7 +120,13 @@ fun parseBytecode(
             is DataSegment -> segment.data.size
 
             // String segments should be multiples of 4 bytes.
-            is StringSegment -> 4 * ceil((segment.value.length + 1) / 2.0).toInt()
+            is StringSegment -> {
+                if (dcGcFormat) {
+                    4 * ceil((segment.value.length + 1) / 4.0).toInt()
+                } else {
+                    4 * ceil((segment.value.length + 1) / 2.0).toInt()
+                }
+            }
         }
     }
 
@@ -556,6 +564,103 @@ private fun parseInstructionArguments(
     }
 
     return args
+}
+
+fun writeBytecode(bytecodeIr: BytecodeIr, dcGcFormat: Boolean): BytecodeAndLabelOffsets {
+    val buffer = Buffer.withCapacity(100 * bytecodeIr.segments.size, Endianness.Little)
+    val cursor = buffer.cursor()
+    // Keep track of label offsets.
+    val largestLabel = bytecodeIr.segments.asSequence().flatMap { it.labels }.maxOrNull() ?: -1
+    val labelOffsets = IntArray(largestLabel + 1) { -1 }
+
+    for (segment in bytecodeIr.segments) {
+        for (label in segment.labels) {
+            labelOffsets[label] = cursor.position
+        }
+
+        when (segment) {
+            is InstructionSegment -> {
+                for (instruction in segment.instructions) {
+                    val opcode = instruction.opcode
+
+                    if (opcode.size == 2) {
+                        cursor.writeByte((opcode.code ushr 8).toByte())
+                    }
+
+                    cursor.writeByte(opcode.code.toByte())
+
+                    if (opcode.stack != StackInteraction.Pop) {
+                        for (i in opcode.params.indices) {
+                            val param = opcode.params[i]
+                            val args = instruction.getArgs(i)
+                            val arg = args.first()
+
+                            when (param.type) {
+                                ByteType -> cursor.writeByte((arg.value as Int).toByte())
+                                ShortType -> cursor.writeShort((arg.value as Int).toShort())
+                                IntType -> cursor.writeInt(arg.value as Int)
+                                FloatType -> cursor.writeFloat(arg.value as Float)
+                                // Ensure this case is before the LabelType case because
+                                // ILabelVarType extends LabelType.
+                                ILabelVarType -> {
+                                    cursor.writeByte(args.size.toByte())
+
+                                    for (a in args) {
+                                        cursor.writeShort((a.value as Int).toShort())
+                                    }
+                                }
+                                is LabelType -> cursor.writeShort((arg.value as Int).toShort())
+                                StringType -> {
+                                    val str = arg.value as String
+
+                                    if (dcGcFormat) cursor.writeStringAscii(str, str.length + 1)
+                                    else cursor.writeStringUtf16(str, 2 * str.length + 2)
+                                }
+                                RegRefType, is RegTupRefType -> {
+                                    cursor.writeByte((arg.value as Int).toByte())
+                                }
+                                RegRefVarType -> {
+                                    cursor.writeByte(args.size.toByte())
+
+                                    for (a in args) {
+                                        cursor.writeByte((a.value as Int).toByte())
+                                    }
+                                }
+                                else -> error(
+                                    "Parameter type ${param.type::class.simpleName} not supported."
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            is StringSegment -> {
+                // String segments should be multiples of 4 bytes.
+                if (dcGcFormat) {
+                    val byteLength = 4 * ceil((segment.value.length + 1) / 4.0).toInt()
+                    cursor.writeStringAscii(segment.value, byteLength)
+                } else {
+                    val byteLength = 4 * ceil((segment.value.length + 1) / 2.0).toInt()
+                    cursor.writeStringUtf16(segment.value, byteLength)
+                }
+            }
+
+            is DataSegment -> {
+                cursor.writeCursor(segment.data.cursor())
+            }
+        }
+    }
+
+    return BytecodeAndLabelOffsets(buffer, labelOffsets)
+}
+
+class BytecodeAndLabelOffsets(
+    val bytecode: Buffer,
+    val labelOffsets: IntArray,
+) {
+    operator fun component1(): Buffer = bytecode
+    operator fun component2(): IntArray = labelOffsets
 }
 
 private data class LabelAndOffset(val label: Int, val offset: Int)

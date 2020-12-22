@@ -10,6 +10,9 @@ class BytecodeIr(
 ) {
     fun instructionSegments(): List<InstructionSegment> =
         segments.filterIsInstance<InstructionSegment>()
+
+    fun copy(): BytecodeIr =
+        BytecodeIr(segments.map { it.copy() })
 }
 
 enum class SegmentType {
@@ -27,25 +30,40 @@ sealed class Segment(
     val type: SegmentType,
     val labels: MutableList<Int>,
     val srcLoc: SegmentSrcLoc,
-)
+) {
+    abstract fun copy(): Segment
+}
 
 class InstructionSegment(
     labels: MutableList<Int>,
     val instructions: MutableList<Instruction>,
     srcLoc: SegmentSrcLoc = SegmentSrcLoc(mutableListOf()),
-) : Segment(SegmentType.Instructions, labels, srcLoc)
+) : Segment(SegmentType.Instructions, labels, srcLoc) {
+    override fun copy(): InstructionSegment =
+        InstructionSegment(
+            ArrayList(labels),
+            instructions.mapTo(mutableListOf()) { it.copy() },
+            srcLoc.copy(),
+        )
+}
 
 class DataSegment(
     labels: MutableList<Int>,
     val data: Buffer,
     srcLoc: SegmentSrcLoc = SegmentSrcLoc(mutableListOf()),
-) : Segment(SegmentType.Data, labels, srcLoc)
+) : Segment(SegmentType.Data, labels, srcLoc) {
+    override fun copy(): DataSegment =
+        DataSegment(ArrayList(labels), data.copy(), srcLoc.copy())
+}
 
 class StringSegment(
     labels: MutableList<Int>,
     var value: String,
     srcLoc: SegmentSrcLoc = SegmentSrcLoc(mutableListOf()),
-) : Segment(SegmentType.String, labels, srcLoc)
+) : Segment(SegmentType.String, labels, srcLoc) {
+    override fun copy(): StringSegment =
+        StringSegment(ArrayList(labels), value, srcLoc.copy())
+}
 
 /**
  * Opcode invocation.
@@ -179,6 +197,9 @@ class Instruction(
 
         return size
     }
+
+    fun copy(): Instruction =
+        Instruction(opcode, args, srcLoc)
 }
 
 /**
@@ -207,4 +228,7 @@ class InstructionSrcLoc(
 /**
  * Locations of a segment's labels in the source assembly code.
  */
-class SegmentSrcLoc(val labels: MutableList<SrcLoc> = mutableListOf())
+class SegmentSrcLoc(val labels: MutableList<SrcLoc> = mutableListOf()) {
+    fun copy(): SegmentSrcLoc =
+        SegmentSrcLoc(ArrayList(labels))
+}

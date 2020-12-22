@@ -3,7 +3,10 @@ package world.phantasmal.lib.fileFormats.quest
 import world.phantasmal.core.Success
 import world.phantasmal.lib.Episode
 import world.phantasmal.lib.asm.*
+import world.phantasmal.lib.cursor.Cursor
+import world.phantasmal.lib.cursor.cursor
 import world.phantasmal.lib.test.LibTestSuite
+import world.phantasmal.lib.test.assertDeepEquals
 import world.phantasmal.lib.test.readFile
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -17,8 +20,23 @@ class QuestTests : LibTestSuite() {
         assertTrue(result is Success)
         assertTrue(result.problems.isEmpty())
 
-        val quest = result.value
+        testTowardsTheFutureParseResult(result.value)
+    }
 
+    @Test
+    fun parseQstToQuest_with_towards_the_future() = asyncTest {
+        val result = parseQstToQuest(readFile("/quest118_e.qst"))
+
+        assertTrue(result is Success)
+        assertTrue(result.problems.isEmpty())
+
+        assertEquals(Version.BB, result.value.version)
+        assertTrue(result.value.online)
+
+        testTowardsTheFutureParseResult(result.value.quest)
+    }
+
+    private fun testTowardsTheFutureParseResult(quest: Quest) {
         assertEquals("Towards the Future", quest.name)
         assertEquals("Challenge the\nnew simulator.", quest.shortDescription)
         assertEquals(
@@ -27,9 +45,8 @@ class QuestTests : LibTestSuite() {
         )
         assertEquals(Episode.I, quest.episode)
         assertEquals(277, quest.objects.size)
-        // TODO: Test objects.
-//        assertEquals(ObjectType.MenuActivation, quest.objects[0])
-//        assertEquals(ObjectType.PlayerSet, quest.objects[4])
+        assertEquals(ObjectType.MenuActivation, quest.objects[0].type)
+        assertEquals(ObjectType.PlayerSet, quest.objects[4].type)
         assertEquals(216, quest.npcs.size)
         assertEquals(10, quest.mapDesignations.size)
         assertEquals(0, quest.mapDesignations[0])
@@ -70,5 +87,74 @@ class QuestTests : LibTestSuite() {
         assertEquals(0, seg4.instructions[0].args[0].value)
         assertEquals(200, seg4.instructions[0].args[1].value)
         assertEquals(201, seg4.instructions[0].args[2].value)
+    }
+
+    @Test
+    fun round_trip_test_with_towards_the_future() = asyncTest {
+        val filename = "quest118_e.qst"
+        roundTripTest(filename, readFile("/$filename"))
+    }
+
+    @Test
+    fun round_trip_test_with_seat_of_the_heart() = asyncTest {
+        val filename = "quest27_e.qst"
+        roundTripTest(filename, readFile("/$filename"))
+    }
+
+    @Test
+    fun round_trip_test_with_lost_head_sword_gc() = asyncTest {
+        val filename = "lost_heat_sword_gc.qst"
+        roundTripTest(filename, readFile("/$filename"))
+    }
+
+    /**
+     * Round-trip tests.
+     * Parse a QST file, write the resulting Quest object to QST again, then parse that again.
+     * Then check whether the two Quest objects are deeply equal.
+     */
+    private fun roundTripTest(filename: String, contents: Cursor) {
+        val origQuestData = parseQstToQuest(contents).unwrap()
+        val origQuest = origQuestData.quest
+        val newQuestData = parseQstToQuest(
+            writeQuestToQst(
+                origQuest,
+                filename,
+                origQuestData.version,
+                origQuestData.online,
+            ).cursor()
+        ).unwrap()
+        val newQuest = newQuestData.quest
+
+        assertEquals(origQuestData.version, newQuestData.version)
+        assertEquals(origQuestData.online, newQuestData.online)
+
+        assertEquals(origQuest.name, newQuest.name)
+        assertEquals(origQuest.shortDescription, newQuest.shortDescription)
+        assertEquals(origQuest.longDescription, newQuest.longDescription)
+        assertEquals(origQuest.episode, newQuest.episode)
+        assertEquals(origQuest.objects.size, newQuest.objects.size)
+
+        for (i in origQuest.objects.indices) {
+            val origObj = origQuest.objects[i]
+            val newObj = newQuest.objects[i]
+            assertEquals(origObj.areaId, newObj.areaId)
+            assertEquals(origObj.sectionId, newObj.sectionId)
+            assertEquals(origObj.position, newObj.position)
+            assertEquals(origObj.type, newObj.type)
+        }
+
+        assertEquals(origQuest.npcs.size, newQuest.npcs.size)
+
+        for (i in origQuest.npcs.indices) {
+            val origNpc = origQuest.npcs[i]
+            val newNpc = newQuest.npcs[i]
+            assertEquals(origNpc.areaId, newNpc.areaId)
+            assertEquals(origNpc.sectionId, newNpc.sectionId)
+            assertEquals(origNpc.position, newNpc.position)
+            assertEquals(origNpc.type, newNpc.type)
+        }
+
+        assertDeepEquals(origQuest.mapDesignations, newQuest.mapDesignations, ::assertEquals)
+        assertDeepEquals(origQuest.bytecodeIr, newQuest.bytecodeIr)
     }
 }

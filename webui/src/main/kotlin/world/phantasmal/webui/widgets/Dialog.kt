@@ -8,6 +8,7 @@ import org.w3c.dom.events.KeyboardEvent
 import org.w3c.dom.get
 import org.w3c.dom.pointerevents.PointerEvent
 import world.phantasmal.observable.value.Val
+import world.phantasmal.observable.value.emptyStringVal
 import world.phantasmal.observable.value.isEmpty
 import world.phantasmal.observable.value.trueVal
 import world.phantasmal.webui.dom.div
@@ -19,14 +20,24 @@ open class Dialog(
     visible: Val<Boolean> = trueVal(),
     enabled: Val<Boolean> = trueVal(),
     private val title: Val<String>,
-    private val description: Val<String>,
-    private val content: Val<Node>,
+    private val description: Val<String> = emptyStringVal(),
+    private val content: Node.() -> Unit = {},
+    private val footer: Node.() -> Unit = {},
     protected val onDismiss: () -> Unit = {},
 ) : Widget(visible, enabled) {
     private var x = 0
     private var y = 0
 
-    private var dialogElement = dom {
+    private var overlayElement = dom {
+        div {
+            className = "pw-dialog-modal-overlay"
+            tabIndex = -1
+
+            addEventListener("focus", { this@Dialog.focus() })
+        }
+    }
+
+    val dialogElement = dom {
         section {
             className = "pw-dialog"
             tabIndex = 0
@@ -51,25 +62,12 @@ open class Dialog(
             }
             div {
                 className = "pw-dialog-body"
-
-                observe(content) {
-                    textContent = ""
-                    append(it)
-                }
+                content()
             }
             div {
                 className = "pw-dialog-footer"
-                addFooterContent(this)
+                footer()
             }
-        }
-    }
-
-    private var overlayElement = dom {
-        div {
-            className = "pw-dialog-modal-overlay"
-            tabIndex = -1
-
-            addEventListener("focus", { this@Dialog.focus() })
         }
     }
 
@@ -96,10 +94,6 @@ open class Dialog(
         dialogElement.remove()
         overlayElement.remove()
         super.internalDispose()
-    }
-
-    protected open fun addFooterContent(footer: Node) {
-        // Do nothing.
     }
 
     private fun onPointerMove(movedX: Int, movedY: Int, e: PointerEvent): Boolean {

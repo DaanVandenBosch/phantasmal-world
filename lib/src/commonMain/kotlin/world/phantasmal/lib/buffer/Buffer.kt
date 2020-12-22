@@ -107,6 +107,11 @@ expect class Buffer {
 
     fun toBase64(): String
 
+    /**
+     * Returns a copy of this buffer of the same size. The copy's capacity will equal its size.
+     */
+    fun copy(): Buffer
+
     companion object {
         /**
          * Returns a new buffer the given initial capacity and size 0.

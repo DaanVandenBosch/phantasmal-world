@@ -2,7 +2,9 @@ package world.phantasmal.web.questEditor.widgets
 
 import kotlinx.coroutines.launch
 import org.w3c.dom.Node
+import org.w3c.dom.events.KeyboardEvent
 import world.phantasmal.lib.Episode
+import world.phantasmal.lib.fileFormats.quest.Version
 import world.phantasmal.observable.value.list.listVal
 import world.phantasmal.observable.value.value
 import world.phantasmal.web.questEditor.controllers.QuestEditorToolbarController
@@ -33,6 +35,13 @@ class QuestEditorToolbarWidget(private val ctrl: QuestEditorToolbarController) :
                         filesSelected = { files -> scope.launch { ctrl.openFiles(files) } },
                     ),
                     Button(
+                        text = "Save as...",
+                        iconLeft = Icon.Save,
+                        enabled = ctrl.saveAsEnabled,
+                        tooltip = value("Save this quest to a new file (Ctrl-Shift-S)"),
+                        onClick = { ctrl.saveAs() },
+                    ),
+                    Button(
                         text = "Undo",
                         iconLeft = Icon.Undo,
                         enabled = ctrl.undoEnabled,
@@ -55,5 +64,83 @@ class QuestEditorToolbarWidget(private val ctrl: QuestEditorToolbarController) :
                     ),
                 )
             ))
+
+            val saveAsDialog = addDisposable(Dialog(
+                visible = ctrl.saveAsDialogVisible,
+                title = value("Save As"),
+                content = {
+                    div {
+                        className = "pw-quest-editor-toolbar-save-as"
+
+                        val filenameInput = TextInput(
+                            label = "File name:",
+                            value = ctrl.filename,
+                            onChange = ctrl::setFilename,
+                        )
+                        addWidget(filenameInput.label!!)
+                        addWidget(filenameInput)
+
+                        val versionSelect = Select(
+                            label = "Version:",
+                            items = listVal(Version.GC, Version.BB),
+                            selected = ctrl.version,
+                            itemToString = {
+                                when (it) {
+                                    Version.DC -> "Dreamcast"
+                                    Version.GC -> "GameCube"
+                                    Version.PC -> "PC"
+                                    Version.BB -> "BlueBurst"
+                                }
+                            },
+                            onSelect = ctrl::setVersion,
+                        )
+                        addWidget(versionSelect.label!!)
+                        addWidget(versionSelect)
+                    }
+                },
+                footer = {
+                    addWidget(Button(
+                        text = "Save",
+                        onClick = { ctrl.saveAsDialogSave() },
+                    ))
+                    addWidget(Button(
+                        text = "Cancel",
+                        onClick = { ctrl.dismissSaveAsDialog() },
+                    ))
+                },
+                onDismiss = ctrl::dismissSaveAsDialog,
+            ))
+
+            saveAsDialog.dialogElement.addEventListener("keydown", { e ->
+                if ((e as KeyboardEvent).key == "Enter") {
+                    ctrl.saveAsDialogSave()
+                }
+            })
+
+            addDisposable(ResultDialog(
+                visible = ctrl.resultDialogVisible,
+                result = ctrl.result,
+                onDismiss = ctrl::dismissResultDialog,
+            ))
         }
+
+    companion object {
+        init {
+            @Suppress("CssUnusedSymbol")
+            // language=css
+            style("""
+                .pw-quest-editor-toolbar-save-as {
+                    display: grid;
+                    grid-template-columns: 100px max-content;
+                    grid-column-gap: 4px;
+                    grid-row-gap: 4px;
+                    align-items: center;
+                }
+
+                .pw-quest-editor-toolbar-save-as .pw-input {
+                    margin: 1px;
+                }
+            """.trimIndent())
+        }
+    }
 }
