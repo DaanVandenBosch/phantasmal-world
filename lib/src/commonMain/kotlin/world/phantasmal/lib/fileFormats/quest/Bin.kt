@@ -12,12 +12,12 @@ private const val PC_OBJECT_CODE_OFFSET = 920
 private const val BB_OBJECT_CODE_OFFSET = 4652
 
 class BinFile(
-    val format: BinFormat,
-    val questId: Int,
-    val language: Int,
-    val questName: String,
-    val shortDescription: String,
-    val longDescription: String,
+    var format: BinFormat,
+    var questId: Int,
+    var language: Int,
+    var questName: String,
+    var shortDescription: String,
+    var longDescription: String,
     val bytecode: Buffer,
     val labelOffsets: IntArray,
     val shopItems: UIntArray,

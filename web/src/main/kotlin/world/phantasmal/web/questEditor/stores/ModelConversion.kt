@@ -56,7 +56,7 @@ fun convertQuestToModel(
 
 /**
  * The returned [Quest] object will reference parts of [quest], so some changes to [quest] will be
- * reflected in the returned object.
+ * reflected in the returned object and vice-versa.
  */
 fun convertQuestFromModel(quest: QuestModel): Quest =
     Quest(
@@ -66,15 +66,15 @@ fun convertQuestFromModel(quest: QuestModel): Quest =
         quest.shortDescription.value,
         quest.longDescription.value,
         quest.episode,
-        quest.objects.value.map { it.entity },
-        quest.npcs.value.map { it.entity },
-        quest.events.value.map { event ->
+        quest.objects.value.mapTo(mutableListOf()) { it.entity },
+        quest.npcs.value.mapTo(mutableListOf()) { it.entity },
+        quest.events.value.mapTo(mutableListOf()) { event ->
             DatEvent(
                 event.id.value,
                 event.sectionId.value.toShort(),
                 event.wave.value.id.toShort(),
                 event.delay.value.toShort(),
-                event.actions.value.map { action ->
+                event.actions.value.mapTo(mutableListOf()) { action ->
                     when (action) {
                         is QuestEventActionModel.SpawnNpcs ->
                             DatEventAction.SpawnNpcs(
@@ -96,8 +96,8 @@ fun convertQuestFromModel(quest: QuestModel): Quest =
                 event.unknown.toShort(),
             )
         },
-        quest.datUnknowns,
+        quest.datUnknowns.toMutableList(),
         quest.bytecodeIr,
         quest.shopItems,
-        quest.mapDesignations.value,
+        quest.mapDesignations.value.toMutableMap(),
     )

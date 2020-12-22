@@ -23,16 +23,16 @@ class Quest(
     var shortDescription: String,
     var longDescription: String,
     var episode: Episode,
-    val objects: List<QuestObject>,
-    val npcs: List<QuestNpc>,
-    val events: List<DatEvent>,
+    val objects: MutableList<QuestObject>,
+    val npcs: MutableList<QuestNpc>,
+    val events: MutableList<DatEvent>,
     /**
      * (Partial) raw DAT data that can't be parsed yet by Phantasmal.
      */
-    val datUnknowns: List<DatUnknown>,
-    val bytecodeIr: BytecodeIr,
+    val datUnknowns: MutableList<DatUnknown>,
+    var bytecodeIr: BytecodeIr,
     val shopItems: UIntArray,
-    val mapDesignations: Map<Int, Int>,
+    val mapDesignations: MutableMap<Int, Int>,
 )
 
 fun parseBinDatToQuest(
@@ -60,13 +60,13 @@ fun parseBinDatToQuest(
     }
 
     val dat = parseDat(datDecompressed.value)
-    val objects = dat.objs.map { QuestObject(it.areaId, it.data) }
+    val objects = dat.objs.mapTo(mutableListOf()) { QuestObject(it.areaId, it.data) }
     // Initialize NPCs with random episode and correct it later.
-    val npcs = dat.npcs.map { QuestNpc(Episode.I, it.areaId, it.data) }
+    val npcs = dat.npcs.mapTo(mutableListOf()) { QuestNpc(Episode.I, it.areaId, it.data) }
 
     // Extract episode and map designations from byte code.
     var episode = Episode.I
-    var mapDesignations = emptyMap<Int, Int>()
+    var mapDesignations = mutableMapOf<Int, Int>()
 
     val parseBytecodeResult = parseBytecode(
         bin.bytecode,
@@ -238,8 +238,8 @@ private fun extractScriptEntryPoints(
  */
 fun writeQuestToQst(quest: Quest, filename: String, version: Version, online: Boolean): Buffer {
     val dat = writeDat(DatFile(
-        objs = quest.objects.map { DatEntity(it.areaId, it.data) },
-        npcs = quest.npcs.map { DatEntity(it.areaId, it.data) },
+        objs = quest.objects.mapTo(mutableListOf()) { DatEntity(it.areaId, it.data) },
+        npcs = quest.npcs.mapTo(mutableListOf()) { DatEntity(it.areaId, it.data) },
         events = quest.events,
         unknowns = quest.datUnknowns,
     ))

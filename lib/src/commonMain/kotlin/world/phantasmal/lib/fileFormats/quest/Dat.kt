@@ -19,10 +19,10 @@ const val OBJECT_BYTE_SIZE = 68
 const val NPC_BYTE_SIZE = 72
 
 class DatFile(
-    val objs: List<DatEntity>,
-    val npcs: List<DatEntity>,
-    val events: List<DatEvent>,
-    val unknowns: List<DatUnknown>,
+    val objs: MutableList<DatEntity>,
+    val npcs: MutableList<DatEntity>,
+    val events: MutableList<DatEvent>,
+    val unknowns: MutableList<DatUnknown>,
 )
 
 class DatEntity(
@@ -35,35 +35,35 @@ class DatEvent(
     var sectionId: Short,
     var wave: Short,
     var delay: Short,
-    val actions: List<DatEventAction>,
-    val areaId: Int,
-    val unknown: Short,
+    val actions: MutableList<DatEventAction>,
+    var areaId: Int,
+    var unknown: Short,
 )
 
 sealed class DatEventAction {
     class SpawnNpcs(
-        val sectionId: Short,
-        val appearFlag: Short,
+        var sectionId: Short,
+        var appearFlag: Short,
     ) : DatEventAction()
 
     class Unlock(
-        val doorId: Short,
+        var doorId: Short,
     ) : DatEventAction()
 
     class Lock(
-        val doorId: Short,
+        var doorId: Short,
     ) : DatEventAction()
 
     class TriggerEvent(
-        val eventId: Int,
+        var eventId: Int,
     ) : DatEventAction()
 }
 
 class DatUnknown(
-    val entityType: Int,
-    val totalSize: Int,
-    val areaId: Int,
-    val entitiesSize: Int,
+    var entityType: Int,
+    var totalSize: Int,
+    var areaId: Int,
+    var entitiesSize: Int,
     val data: ByteArray,
 )
 
@@ -160,13 +160,13 @@ private fun parseEvents(cursor: Cursor, areaId: Int, events: MutableList<DatEven
         val unknown = cursor.short() // "wavesetting"?
         val eventActionsOffset = cursor.int()
 
-        val actions: List<DatEventAction> =
+        val actions: MutableList<DatEventAction> =
             if (eventActionsOffset < actionsCursor.size) {
                 actionsCursor.seekStart(eventActionsOffset)
                 parseEventActions(actionsCursor)
             } else {
                 logger.warn { "Invalid event actions offset $eventActionsOffset for event ${id}." }
-                emptyList()
+                mutableListOf()
             }
 
         events.add(DatEvent(
@@ -204,7 +204,7 @@ private fun parseEvents(cursor: Cursor, areaId: Int, events: MutableList<DatEven
     cursor.seekStart(actionsOffset + actionsCursor.position)
 }
 
-private fun parseEventActions(cursor: Cursor): List<DatEventAction> {
+private fun parseEventActions(cursor: Cursor): MutableList<DatEventAction> {
     val actions = mutableListOf<DatEventAction>()
 
     outer@ while (cursor.hasBytesLeft()) {

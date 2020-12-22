@@ -209,15 +209,17 @@ class QuestEditorToolbarController(
                 obj { type = "application/octet-stream" },
             )
         )
+
         try {
             a.href = url
             a.download = filename
             document.body?.appendChild(a)
             a.click()
         } catch (e: Exception) {
+            logger.error(e) { """Couldn't save file "$filename".""" }
+        } finally {
             URL.revokeObjectURL(url)
             document.body?.removeChild(a)
-            throw e
         }
 
         dismissSaveAsDialog()

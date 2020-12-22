@@ -11,7 +11,7 @@ private val logger = KotlinLogging.logger {}
 fun getMapDesignations(
     func0Segment: InstructionSegment,
     createCfg: () -> ControlFlowGraph,
-): Map<Int, Int> {
+): MutableMap<Int, Int> {
     val mapDesignations = mutableMapOf<Int, Int>()
     var cfg: ControlFlowGraph? = null
 
