@@ -29,6 +29,9 @@ class ValueSet private constructor(private val intervals: MutableList<Interval>)
     fun isEmpty(): Boolean =
         intervals.isEmpty()
 
+    fun isNotEmpty(): Boolean =
+        intervals.isNotEmpty()
+
     fun minOrNull(): Int? =
         intervals.firstOrNull()?.start
 

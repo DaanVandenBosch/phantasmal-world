@@ -200,4 +200,52 @@ class GetRegisterValueTests : LibTestSuite() {
         assertEquals(23, v2[3])
         assertEquals(24, v2[4])
     }
+
+    @Test
+    fun va_call() {
+        val im = toInstructions("""
+            0:
+                va_start
+                arg_pushl 42
+                va_call 100
+                va_end
+                ret
+            100:
+                ret
+        """.trimIndent())
+        val cfg = ControlFlowGraph.create(im)
+        val value = getRegisterValue(cfg, im[1].instructions[0], 1)
+
+        assertEquals(1, value.size)
+        assertEquals(42, value[0])
+    }
+
+    @Test
+    fun multiple_va_call() {
+        val im = toInstructions("""
+            0:
+                va_start
+                arg_pushl 1
+                va_call 100
+                va_end
+                va_start
+                arg_pushl 2
+                va_call 100
+                va_end
+                va_start
+                arg_pushl 3
+                va_call 100
+                va_end
+                ret
+            100:
+                ret
+        """.trimIndent())
+        val cfg = ControlFlowGraph.create(im)
+        val value = getRegisterValue(cfg, im[1].instructions[0], 1)
+
+        assertEquals(3, value.size)
+        assertEquals(1, value[0])
+        assertEquals(2, value[1])
+        assertEquals(3, value[2])
+    }
 }

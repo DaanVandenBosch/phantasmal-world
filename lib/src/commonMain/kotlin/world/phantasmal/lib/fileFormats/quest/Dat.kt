@@ -280,7 +280,7 @@ private fun writeEntities(
 ) {
     val groupedEntities = entities.groupBy { it.areaId }
 
-    for ((areaId, areaEntities) in groupedEntities.entries.sortedBy { it.key }) {
+    for ((areaId, areaEntities) in groupedEntities.entries) {
         val entitiesSize = areaEntities.size * entitySize
         cursor.writeInt(entityType)
         cursor.writeInt(16 + entitiesSize)
@@ -309,7 +309,7 @@ private fun writeEntities(
 private fun writeEvents(cursor: WritableCursor, events: List<DatEvent>) {
     val groupedEvents = events.groupBy { it.areaId }
 
-    for ((areaId, areaEvents) in groupedEvents.entries.sortedBy { it.key }) {
+    for ((areaId, areaEvents) in groupedEvents.entries) {
         // Standard header.
         cursor.writeInt(3) // Entity type
         val totalSizeOffset = cursor.position

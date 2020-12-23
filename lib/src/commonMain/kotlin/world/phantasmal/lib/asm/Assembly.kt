@@ -198,6 +198,7 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
                 segment = StringSegment(
                     labels = mutableListOf(),
                     value = str,
+                    bytecodeSize = null,
                     srcLoc = SegmentSrcLoc()
                 )
 
@@ -313,6 +314,7 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
                     segment = StringSegment(
                         labels = mutableListOf(label),
                         value = "",
+                        bytecodeSize = null,
                         srcLoc = SegmentSrcLoc(labels = mutableListOf(srcLoc)),
                     )
                     ir.add(segment!!)

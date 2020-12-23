@@ -1,6 +1,7 @@
 package world.phantasmal.lib.asm
 
 import world.phantasmal.lib.buffer.Buffer
+import kotlin.math.ceil
 
 /**
  * Intermediate representation of PSO bytecode. Used by most ASM/bytecode analysis code.
@@ -31,6 +32,7 @@ sealed class Segment(
     val labels: MutableList<Int>,
     val srcLoc: SegmentSrcLoc,
 ) {
+    abstract fun size(dcGcFormat: Boolean): Int
     abstract fun copy(): Segment
 }
 
@@ -39,6 +41,9 @@ class InstructionSegment(
     val instructions: MutableList<Instruction>,
     srcLoc: SegmentSrcLoc = SegmentSrcLoc(mutableListOf()),
 ) : Segment(SegmentType.Instructions, labels, srcLoc) {
+    override fun size(dcGcFormat: Boolean): Int =
+        instructions.sumBy { it.getSize(dcGcFormat) }
+
     override fun copy(): InstructionSegment =
         InstructionSegment(
             ArrayList(labels),
@@ -52,17 +57,40 @@ class DataSegment(
     val data: Buffer,
     srcLoc: SegmentSrcLoc = SegmentSrcLoc(mutableListOf()),
 ) : Segment(SegmentType.Data, labels, srcLoc) {
+    override fun size(dcGcFormat: Boolean): Int =
+        data.size
+
     override fun copy(): DataSegment =
         DataSegment(ArrayList(labels), data.copy(), srcLoc.copy())
 }
 
 class StringSegment(
     labels: MutableList<Int>,
-    var value: String,
+    value: String,
+    /**
+     * Normally string segments have a byte length that is a multiple of 4, but some bytecode is
+     * malformed so we store the initial size in the bytecode.
+     */
+    private var bytecodeSize: Int?,
     srcLoc: SegmentSrcLoc = SegmentSrcLoc(mutableListOf()),
 ) : Segment(SegmentType.String, labels, srcLoc) {
+    var value: String = value
+        set(value) {
+            bytecodeSize = null
+            field = value
+        }
+
+    override fun size(dcGcFormat: Boolean): Int =
+        // String segments should be multiples of 4 bytes.
+        bytecodeSize
+            ?: if (dcGcFormat) {
+                4 * ceil((value.length + 1) / 4.0).toInt()
+            } else {
+                4 * ceil((value.length + 1) / 2.0).toInt()
+            }
+
     override fun copy(): StringSegment =
-        StringSegment(ArrayList(labels), value, srcLoc.copy())
+        StringSegment(ArrayList(labels), value, bytecodeSize, srcLoc.copy())
 }
 
 /**

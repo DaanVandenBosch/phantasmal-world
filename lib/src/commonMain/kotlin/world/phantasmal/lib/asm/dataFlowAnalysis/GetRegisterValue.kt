@@ -9,6 +9,7 @@ private val logger = KotlinLogging.logger {}
 
 /**
  * Computes the possible values of a register right before a specific instruction.
+ * TODO: Deal with function calls.
  */
 fun getRegisterValue(cfg: ControlFlowGraph, instruction: Instruction, register: Int): ValueSet {
     require(register in 0..255) {
@@ -49,6 +50,11 @@ private class RegisterValueFinder {
                     // check whether concurrent code *ever* writes to the register to possibly
                     // continue the analysis.
                     return ValueSet.all()
+                }
+
+                OP_VA_CALL.code -> {
+                    val value = vaCall(path, block, i, register)
+                    if (value.isNotEmpty()) return value
                 }
 
                 OP_LET.code -> {
@@ -223,5 +229,68 @@ private class RegisterValueFinder {
         }
 
         return values
+    }
+
+    /**
+     * After a va_start instruction, 0 or more arg_push instructions can be used. When va_call is
+     * executed the values on the stack will become the values of registers r1..r7 (inclusive) in
+     * the order that they were pushed.
+     *
+     * E.g.:
+     *
+     * va_start
+     * arg_pushl 10
+     * arg_pushl 20
+     * va_call 777
+     * va_end
+     *
+     * This means call 777 with r1 = 10 and r2 = 20.
+     */
+    private fun vaCall(
+        path: MutableSet<BasicBlock>,
+        block: BasicBlock,
+        vaCallIdx: Int,
+        register: Int,
+    ): ValueSet {
+        if (register !in 1..7) return ValueSet.empty()
+
+        var vaStartIdx = -1
+        // Pairs of type and value.
+        val stack = mutableListOf<Pair<AnyType, Any>>()
+
+        for (i in block.start until vaCallIdx) {
+            val instruction = block.segment.instructions[i]
+            val opcode = instruction.opcode
+
+            if (opcode.code == OP_VA_START.code) {
+                vaStartIdx = i
+            } else if (vaStartIdx != -1) {
+                val type = when (opcode.code) {
+                    OP_ARG_PUSHR.code -> RegRefType
+                    OP_ARG_PUSHL.code -> IntType
+                    OP_ARG_PUSHB.code -> ByteType
+                    OP_ARG_PUSHW.code -> ShortType
+                    OP_ARG_PUSHA.code -> PointerType
+                    OP_ARG_PUSHO.code -> PointerType
+                    OP_ARG_PUSHS.code -> StringType
+                    else -> continue
+                }
+
+                stack.add(Pair(type, instruction.args[0].value))
+            }
+        }
+
+        return if (register in 1..stack.size) {
+            val (type, value) = stack[register - 1]
+
+            when (type) {
+                RegRefType -> find(LinkedHashSet(path), block, vaStartIdx, value as Int)
+                IntType, ByteType, ShortType -> ValueSet.of(value as Int)
+                // TODO: Deal with strings.
+                else -> ValueSet.all() // String or pointer
+            }
+        } else {
+            ValueSet.of(0)
+        }
     }
 }

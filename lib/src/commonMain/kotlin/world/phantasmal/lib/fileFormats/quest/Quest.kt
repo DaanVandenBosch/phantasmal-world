@@ -265,6 +265,7 @@ fun writeQuestToQst(quest: Quest, filename: String, version: Version, online: Bo
     ))
 
     val baseFilename = (filenameBase(filename) ?: filename).take(11)
+    val questName = quest.name.take(if (version == Version.BB) 23 else 31)
 
     return writeQst(QstContent(
         version,
@@ -273,13 +274,13 @@ fun writeQuestToQst(quest: Quest, filename: String, version: Version, online: Bo
             QstContainedFile(
                 id = quest.id,
                 filename = "$baseFilename.dat",
-                questName = quest.name,
+                questName = questName,
                 data = prsCompress(dat.cursor()).buffer(),
             ),
             QstContainedFile(
                 id = quest.id,
                 filename = "$baseFilename.bin",
-                questName = quest.name,
+                questName = questName,
                 data = prsCompress(bin.cursor()).buffer(),
             ),
         ),

@@ -8,6 +8,7 @@ import world.phantasmal.lib.cursor.cursor
 import world.phantasmal.lib.test.LibTestSuite
 import world.phantasmal.lib.test.assertDeepEquals
 import world.phantasmal.lib.test.readFile
+import world.phantasmal.lib.test.testWithTetheallaQuests
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -107,8 +108,21 @@ class QuestTests : LibTestSuite() {
         roundTripTest(filename, readFile("/$filename"))
     }
 
+    // TODO: Figure out why this test is so slow in JS/Karma.
+    @Test
+    fun round_trip_test_with_all_tethealla_quests() = asyncTest(slow = true) {
+        testWithTetheallaQuests { path, filename ->
+            if (EXCLUDED.any { it in path }) return@testWithTetheallaQuests
+
+            try {
+                roundTripTest(filename, readFile(path))
+            } catch (e: Throwable) {
+                throw Exception("""Failed for "$path": ${e.message}""", e)
+            }
+        }
+    }
+
     /**
-     * Round-trip tests.
      * Parse a QST file, write the resulting Quest object to QST again, then parse that again.
      * Then check whether the two Quest objects are deeply equal.
      */
@@ -155,6 +169,20 @@ class QuestTests : LibTestSuite() {
         }
 
         assertDeepEquals(origQuest.mapDesignations, newQuest.mapDesignations, ::assertEquals)
-        assertDeepEquals(origQuest.bytecodeIr, newQuest.bytecodeIr)
+        assertDeepEquals(origQuest.bytecodeIr, newQuest.bytecodeIr, ignoreSrcLocs = true)
+    }
+
+    companion object {
+        private val EXCLUDED = listOf(
+            ".raw",
+            // TODO: Test challenge mode quests when they're supported.
+            "/chl/",
+            // Central Dome Fire Swirl seems to be corrupt for two reasons:
+            // - It's ID is 33554458, according to the .bin, which is too big for the .qst format.
+            // - It has an NPC with script label 100, but the code at that label is invalid.
+            "/solo/ep1/side/26.qst",
+            // PRS-compressed file seems corrupt in Gallon's Plan, but qedit has no issues with it.
+            "/solo/ep1/side/quest035.qst",
+        )
     }
 }

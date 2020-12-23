@@ -12,7 +12,6 @@ import world.phantasmal.lib.buffer.Buffer
 import world.phantasmal.lib.cursor.BufferCursor
 import world.phantasmal.lib.cursor.Cursor
 import world.phantasmal.lib.cursor.cursor
-import kotlin.math.ceil
 import kotlin.math.min
 
 private val logger = KotlinLogging.logger {}
@@ -24,7 +23,8 @@ val SEGMENT_PRIORITY = mapOf(
 )
 
 /**
- * These functions are built into the client and can optionally be overridden on BB.
+ * These functions are built into the client and can optionally be overridden on BB. Other versions
+ * require you to always specify them in the script.
  */
 val BUILTIN_FUNCTIONS = setOf(
     60,
@@ -43,6 +43,13 @@ val BUILTIN_FUNCTIONS = setOf(
     840,
     850,
     860,
+    900,
+    910,
+    920,
+    930,
+    940,
+    950,
+    960,
 )
 
 /**
@@ -114,20 +121,7 @@ fun parseBytecode(
 
         segments.add(segment)
 
-        offset += when (segment) {
-            is InstructionSegment -> segment.instructions.sumBy { it.getSize(dcGcFormat) }
-
-            is DataSegment -> segment.data.size
-
-            // String segments should be multiples of 4 bytes.
-            is StringSegment -> {
-                if (dcGcFormat) {
-                    4 * ceil((segment.value.length + 1) / 4.0).toInt()
-                } else {
-                    4 * ceil((segment.value.length + 1) / 2.0).toInt()
-                }
-            }
-        }
+        offset += segment.size(dcGcFormat)
     }
 
     // Add unreferenced labels to their segment.
@@ -174,11 +168,14 @@ private fun findAndParseSegments(
 ) {
     var newLabels = labels
     var startSegmentCount: Int
+    // Instruction segments which we've been able to fully analyze for label references so far.
+    val analyzedSegments = mutableSetOf<InstructionSegment>()
 
     // Iteratively parse segments from label references.
     do {
         startSegmentCount = offsetToSegment.size
 
+        // Parse segments of which the type is known.
         for ((label, type) in newLabels) {
             parseSegment(offsetToSegment, labelHolder, cursor, label, type, lenient, dcGcFormat)
         }
@@ -194,21 +191,31 @@ private fun findAndParseSegments(
         newLabels = mutableMapOf()
 
         for (segment in sortedSegments) {
-            for (instruction in segment.instructions) {
+            if (segment in analyzedSegments) continue
+
+            var foundAllLabels = true
+
+            for (instructionIdx in segment.instructions.indices) {
+                val instruction = segment.instructions[instructionIdx]
                 var i = 0
 
                 while (i < instruction.opcode.params.size) {
                     val param = instruction.opcode.params[i]
 
                     when (param.type) {
-                        is ILabelType ->
-                            getArgLabelValues(
-                                cfg,
-                                newLabels,
-                                instruction,
-                                i,
-                                SegmentType.Instructions,
-                            )
+                        is ILabelType -> {
+                            if (!getArgLabelValues(
+                                    cfg,
+                                    newLabels,
+                                    segment,
+                                    instructionIdx,
+                                    i,
+                                    SegmentType.Instructions,
+                                )
+                            ) {
+                                foundAllLabels = false
+                            }
+                        }
 
                         is ILabelVarType -> {
                             // Never on the stack.
@@ -220,11 +227,33 @@ private fun findAndParseSegments(
                             }
                         }
 
-                        is DLabelType ->
-                            getArgLabelValues(cfg, newLabels, instruction, i, SegmentType.Data)
+                        is DLabelType -> {
+                            if (!getArgLabelValues(
+                                    cfg,
+                                    newLabels,
+                                    segment,
+                                    instructionIdx,
+                                    i,
+                                    SegmentType.Data
+                                )
+                            ) {
+                                foundAllLabels = false
+                            }
+                        }
 
-                        is SLabelType ->
-                            getArgLabelValues(cfg, newLabels, instruction, i, SegmentType.String)
+                        is SLabelType -> {
+                            if (!getArgLabelValues(
+                                    cfg,
+                                    newLabels,
+                                    segment,
+                                    instructionIdx,
+                                    i,
+                                    SegmentType.String
+                                )
+                            ) {
+                                foundAllLabels = false
+                            }
+                        }
 
                         is RegTupRefType -> {
                             for (j in param.type.registerTuple.indices) {
@@ -239,10 +268,12 @@ private fun findAndParseSegments(
                                         firstRegister + j,
                                     )
 
-                                    if (labelValues.size <= 10) {
+                                    if (labelValues.size <= 20) {
                                         for (label in labelValues) {
                                             newLabels[label] = SegmentType.Instructions
                                         }
+                                    } else {
+                                        foundAllLabels = false
                                     }
                                 }
                             }
@@ -251,6 +282,10 @@ private fun findAndParseSegments(
 
                     i++
                 }
+            }
+
+            if (foundAllLabels) {
+                analyzedSegments.add(segment)
             }
         }
     } while (offsetToSegment.size > startSegmentCount)
@@ -262,10 +297,13 @@ private fun findAndParseSegments(
 private fun getArgLabelValues(
     cfg: ControlFlowGraph,
     labels: MutableMap<Int, SegmentType>,
-    instruction: Instruction,
+    instructionSegment: InstructionSegment,
+    instructionIdx: Int,
     paramIdx: Int,
     segmentType: SegmentType,
-) {
+): Boolean {
+    val instruction = instructionSegment.instructions[instructionIdx]
+
     if (instruction.opcode.stack === StackInteraction.Pop) {
         val stackValues = getStackValue(
             cfg,
@@ -273,7 +311,7 @@ private fun getArgLabelValues(
             instruction.opcode.params.size - paramIdx - 1,
         )
 
-        if (stackValues.size <= 10) {
+        if (stackValues.size <= 20) {
             for (value in stackValues) {
                 val oldType = labels[value]
 
@@ -284,6 +322,8 @@ private fun getArgLabelValues(
                     labels[value] = segmentType
                 }
             }
+
+            return true
         }
     } else {
         val value = instruction.args[paramIdx].value as Int
@@ -293,9 +333,14 @@ private fun getArgLabelValues(
             oldType == null ||
             SEGMENT_PRIORITY.getValue(segmentType) > SEGMENT_PRIORITY.getValue(oldType)
         ) {
+//            println("Type of label $value inferred as $segmentType because of parameter ${paramIdx + 1} of instruction ${instructionIdx + 1} ${instruction.opcode.mnemonic} at label ${instructionSegment.labels.firstOrNull()}.")
             labels[value] = segmentType
         }
+
+        return true
     }
+
+    return false
 }
 
 private fun parseSegment(
@@ -416,10 +461,10 @@ private fun parseInstructionsSegment(
 
     // Recurse on label drop-through.
     if (nextLabel != null) {
-        // Find the first ret or jmp.
+        // Find the last ret or jmp.
         var dropThrough = true
 
-        for (i in instructions.size - 1 downTo 0) {
+        for (i in instructions.lastIndex downTo 0) {
             val opcode = instructions[i].opcode.code
 
             if (opcode == OP_RET.code || opcode == OP_JMP.code) {
@@ -465,21 +510,23 @@ private fun parseStringSegment(
     dcGcFormat: Boolean,
 ) {
     val startOffset = cursor.position
+    val byteLength = endOffset - startOffset
     val segment = StringSegment(
         labels,
         if (dcGcFormat) {
             cursor.stringAscii(
-                endOffset - startOffset,
+                byteLength,
                 nullTerminated = true,
                 dropRemaining = true
             )
         } else {
             cursor.stringUtf16(
-                endOffset - startOffset,
+                byteLength,
                 nullTerminated = true,
                 dropRemaining = true
             )
         },
+        byteLength,
         SegmentSrcLoc()
     )
     offsetToSegment[startOffset] = segment
@@ -593,7 +640,14 @@ fun writeBytecode(bytecodeIr: BytecodeIr, dcGcFormat: Boolean): BytecodeAndLabel
                         for (i in opcode.params.indices) {
                             val param = opcode.params[i]
                             val args = instruction.getArgs(i)
-                            val arg = args.first()
+                            val arg = args.firstOrNull()
+
+                            if (arg == null) {
+                                logger.warn {
+                                    "No argument passed to ${opcode.mnemonic} for parameter ${i + 1}."
+                                }
+                                continue
+                            }
 
                             when (param.type) {
                                 ByteType -> cursor.writeByte((arg.value as Int).toByte())
@@ -638,11 +692,9 @@ fun writeBytecode(bytecodeIr: BytecodeIr, dcGcFormat: Boolean): BytecodeAndLabel
             is StringSegment -> {
                 // String segments should be multiples of 4 bytes.
                 if (dcGcFormat) {
-                    val byteLength = 4 * ceil((segment.value.length + 1) / 4.0).toInt()
-                    cursor.writeStringAscii(segment.value, byteLength)
+                    cursor.writeStringAscii(segment.value, segment.size(dcGcFormat))
                 } else {
-                    val byteLength = 4 * ceil((segment.value.length + 1) / 2.0).toInt()
-                    cursor.writeStringUtf16(segment.value, byteLength)
+                    cursor.writeStringUtf16(segment.value, segment.size(dcGcFormat))
                 }
             }
 
