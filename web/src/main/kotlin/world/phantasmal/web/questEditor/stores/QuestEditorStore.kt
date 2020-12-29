@@ -74,9 +74,9 @@ class QuestEditorStore(
         }
     }
 
-    override fun internalDispose() {
+    override fun dispose() {
         runner.stop()
-        super.internalDispose()
+        super.dispose()
     }
 
     fun makeMainUndoCurrent() {

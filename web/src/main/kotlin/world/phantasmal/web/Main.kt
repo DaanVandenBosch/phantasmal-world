@@ -81,9 +81,9 @@ private fun createThreeRenderer(canvas: HTMLCanvasElement): DisposableThreeRende
             renderer.setPixelRatio(window.devicePixelRatio)
         }
 
-        override fun internalDispose() {
+        override fun dispose() {
             renderer.dispose()
-            super.internalDispose()
+            super.dispose()
         }
     }
 
@@ -96,8 +96,9 @@ private class HistoryApplicationUrl : TrackedDisposable(), ApplicationUrl {
         url.value = window.location.hash.substring(1)
     })
 
-    override fun internalDispose() {
+    override fun dispose() {
         popStateListener.dispose()
+        super.dispose()
     }
 
     override fun pushUrl(url: String) {

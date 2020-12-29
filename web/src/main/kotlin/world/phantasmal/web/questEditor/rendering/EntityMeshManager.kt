@@ -78,10 +78,10 @@ class EntityMeshManager(
         }
     }
 
-    override fun internalDispose() {
+    override fun dispose() {
         removeAll()
         renderContext.entities.clear()
-        super.internalDispose()
+        super.dispose()
     }
 
     fun add(entity: QuestEntityModel<*, *>) {

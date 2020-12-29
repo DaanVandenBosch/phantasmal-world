@@ -9,7 +9,7 @@ import kotlin.test.assertEquals
 
 class DatTests : LibTestSuite() {
     @Test
-    fun parse_quest_towards_the_future() = asyncTest {
+    fun parse_quest_towards_the_future() = testAsync {
         val dat = parseDat(readFile("/quest118_e_decompressed.dat"))
 
         assertEquals(277, dat.objs.size)
@@ -21,7 +21,7 @@ class DatTests : LibTestSuite() {
      * is byte-for-byte equal to the original.
      */
     @Test
-    fun parse_dat_and_write_dat() = asyncTest {
+    fun parse_dat_and_write_dat() = testAsync {
         val origDat = readFile("/quest118_e_decompressed.dat")
         val newDat = writeDat(parseDat(origDat)).cursor()
         origDat.seekStart(0)
@@ -35,7 +35,7 @@ class DatTests : LibTestSuite() {
      * changed.
      */
     @Test
-    fun parse_modify_write_dat() = asyncTest {
+    fun parse_modify_write_dat() = testAsync {
         val origDat = readFile("/quest118_e_decompressed.dat")
         val parsedDat = parseDat(origDat)
         origDat.seekStart(0)

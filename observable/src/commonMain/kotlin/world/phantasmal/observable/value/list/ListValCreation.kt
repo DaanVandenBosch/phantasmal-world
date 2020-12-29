@@ -8,6 +8,6 @@ fun <E> listVal(vararg elements: E): ListVal<E> = StaticListVal(elements.toList(
 fun <E> emptyListVal(): ListVal<E> = EMPTY_LIST_VAL as ListVal<E>
 
 fun <E> mutableListVal(
-    elements: MutableList<E> = mutableListOf(),
+    vararg elements: E,
     extractObservables: ObservablesExtractor<E>? = null,
-): MutableListVal<E> = SimpleListVal(elements, extractObservables)
+): MutableListVal<E> = SimpleListVal(mutableListOf(*elements), extractObservables)

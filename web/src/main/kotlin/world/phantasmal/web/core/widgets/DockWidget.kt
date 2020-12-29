@@ -70,9 +70,9 @@ class DockWidget(
             }
         }
 
-    override fun internalDispose() {
+    override fun dispose() {
         goldenLayout?.destroy()
-        super.internalDispose()
+        super.dispose()
     }
 
     private fun createChildWidget(id: String, container: GoldenLayout.Container) {

@@ -3,6 +3,7 @@ package world.phantasmal.lib.asm
 import world.phantasmal.core.Success
 import world.phantasmal.lib.fileFormats.quest.parseBin
 import world.phantasmal.lib.fileFormats.quest.parseBytecode
+import world.phantasmal.lib.fileFormats.quest.writeBytecode
 import world.phantasmal.lib.test.LibTestSuite
 import world.phantasmal.lib.test.assertDeepEquals
 import world.phantasmal.lib.test.readFile
@@ -12,12 +13,12 @@ import kotlin.test.assertTrue
 
 class DisassemblyAssemblyRoundTripTests : LibTestSuite() {
     @Test
-    fun assembling_disassembled_bytecode_should_result_in_the_same_IR() = asyncTest {
+    fun assembling_disassembled_bytecode_should_result_in_the_same_IR() = testAsync {
         assembling_disassembled_bytecode_should_result_in_the_same_IR(inlineStackArgs = false)
     }
 
     @Test
-    fun assembling_disassembled_bytecode_should_result_in_the_same_IR_inline_args() = asyncTest {
+    fun assembling_disassembled_bytecode_should_result_in_the_same_IR_inline_args() = testAsync {
         assembling_disassembled_bytecode_should_result_in_the_same_IR(inlineStackArgs = true)
     }
 
@@ -42,12 +43,12 @@ class DisassemblyAssemblyRoundTripTests : LibTestSuite() {
     }
 
     @Test
-    fun disassembling_assembled_bytecode_should_result_in_the_same_ASM() = asyncTest {
+    fun disassembling_assembled_bytecode_should_result_in_the_same_ASM() = testAsync {
         disassembling_assembled_bytecode_should_result_in_the_same_ASM(inlineStackArgs = false)
     }
 
     @Test
-    fun disassembling_assembled_bytecode_should_result_in_the_same_ASM_inline_args() = asyncTest {
+    fun disassembling_assembled_bytecode_should_result_in_the_same_ASM_inline_args() = testAsync {
         disassembling_assembled_bytecode_should_result_in_the_same_ASM(inlineStackArgs = true)
     }
 
@@ -68,5 +69,49 @@ class DisassemblyAssemblyRoundTripTests : LibTestSuite() {
             disassemble(assemble(expectedAsm, inlineStackArgs).unwrap(), inlineStackArgs)
 
         assertDeepEquals(expectedAsm, actualAsm, ::assertEquals)
+    }
+
+    @Test
+    fun assembling_disassembled_bytecode_without_inline_stack_args_results_in_the_same_bytecode() =
+        testAsync {
+            assembling_disassembled_bytecode_without_inline_stack_args_results_in_the_same_bytecode(
+                inlineStackArgs = false
+            )
+        }
+
+    @Test
+    fun assembling_disassembled_bytecode_without_inline_stack_args_results_in_the_same_bytecode_inline_args() =
+        testAsync {
+            assembling_disassembled_bytecode_without_inline_stack_args_results_in_the_same_bytecode(
+                inlineStackArgs = true
+            )
+        }
+
+    /**
+     * Parse and disassemble Seat of the Heart bytecode, assemble the ASM to IR and write the IR to
+     * bytecode again, then check whether the original and the new bytecode are byte-for-byte equal.
+     */
+    private suspend fun assembling_disassembled_bytecode_without_inline_stack_args_results_in_the_same_bytecode(
+        inlineStackArgs: Boolean,
+    ) {
+        val origBin = parseBin(readFile("/quest27_e_decompressed.bin"))
+        val origBytecode = origBin.bytecode
+        val result = assemble(disassemble(
+            parseBytecode(
+                origBytecode,
+                origBin.labelOffsets,
+                setOf(0),
+                dcGcFormat = false,
+                lenient = false,
+            ).unwrap(),
+            inlineStackArgs,
+        ), inlineStackArgs)
+
+        assertTrue(result is Success)
+        assertTrue(result.problems.isEmpty())
+
+        val newBytecode = writeBytecode(result.value, dcGcFormat = false).bytecode
+
+        assertDeepEquals(origBytecode, newBytecode)
     }
 }

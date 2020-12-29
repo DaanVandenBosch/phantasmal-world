@@ -5,7 +5,7 @@ import world.phantasmal.lib.asm.BytecodeIr
 import world.phantasmal.lib.fileFormats.quest.DatUnknown
 import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.list.ListVal
-import world.phantasmal.observable.value.list.mutableListVal
+import world.phantasmal.observable.value.list.SimpleListVal
 import world.phantasmal.observable.value.map
 import world.phantasmal.observable.value.mutableVal
 
@@ -34,9 +34,9 @@ class QuestModel(
     private val _shortDescription = mutableVal("")
     private val _longDescription = mutableVal("")
     private val _mapDesignations = mutableVal(mapDesignations)
-    private val _npcs = mutableListVal(npcs) { arrayOf(it.sectionInitialized, it.wave) }
-    private val _objects = mutableListVal(objects) { arrayOf(it.sectionInitialized) }
-    private val _events = mutableListVal(events)
+    private val _npcs = SimpleListVal(npcs) { arrayOf(it.sectionInitialized, it.wave) }
+    private val _objects = SimpleListVal(objects) { arrayOf(it.sectionInitialized) }
+    private val _events = SimpleListVal(events)
 
     val id: Val<Int> = _id
     val language: Val<Int> = _language

@@ -9,7 +9,7 @@ import kotlin.test.assertEquals
 
 class BinTests : LibTestSuite() {
     @Test
-    fun parse_quest_towards_the_future() = asyncTest {
+    fun parse_quest_towards_the_future() = testAsync {
         val bin = parseBin(readFile("/quest118_e_decompressed.bin"))
 
         assertEquals(BinFormat.BB, bin.format)
@@ -29,7 +29,7 @@ class BinTests : LibTestSuite() {
     @Test
     fun parse_and_write_seat_of_the_heart() = parseAndWriteQuest("/quest27_e_decompressed.bin")
 
-    private fun parseAndWriteQuest(file: String) = asyncTest {
+    private fun parseAndWriteQuest(file: String) = testAsync {
         val origBin = readFile(file)
         val newBin = writeBin(parseBin(origBin)).cursor()
         origBin.seekStart(0)

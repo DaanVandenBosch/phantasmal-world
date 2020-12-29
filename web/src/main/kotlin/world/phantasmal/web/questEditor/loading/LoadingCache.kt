@@ -19,7 +19,7 @@ class LoadingCache<K, V>(
     fun getIfPresentNow(key: K): V? =
         map[key]?.takeIf { it.isCompleted }?.getCompleted()
 
-    override fun internalDispose() {
+    override fun dispose() {
         map.values.forEach {
             if (it.isActive) {
                 it.cancel()
@@ -29,6 +29,6 @@ class LoadingCache<K, V>(
         }
 
         scope.cancel("LoadingCache disposed.")
-        super.internalDispose()
+        super.dispose()
     }
 }

@@ -2,7 +2,6 @@ package world.phantasmal.webui.widgets
 
 import kotlinx.browser.document
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.cancel
 import org.w3c.dom.Element
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.HTMLStyleElement
@@ -10,6 +9,7 @@ import org.w3c.dom.Node
 import org.w3c.dom.pointerevents.PointerEvent
 import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.core.disposable.DisposableSupervisedScope
+import world.phantasmal.core.disposable.disposable
 import world.phantasmal.observable.Observable
 import world.phantasmal.observable.value.*
 import world.phantasmal.webui.DisposableContainer
@@ -98,14 +98,13 @@ abstract class Widget(
      */
     protected open fun interceptElement(element: HTMLElement) {}
 
-    override fun internalDispose() {
+    override fun dispose() {
         if (elementDelegate.isInitialized()) {
             element.remove()
         }
 
         _children.clear()
-        scope.cancel("Widget disposed.")
-        super.internalDispose()
+        super.dispose()
     }
 
     protected fun Node.text(observable: Observable<String>) {
@@ -150,10 +149,10 @@ abstract class Widget(
     }
 
     /**
-     * Removed a child widget from [children] and disposes it.
+     * Removes a child widget from [children] and disposes it.
      */
-    protected fun removeChild(child: Widget) {
-        removeDisposable(child)
+    protected fun removeChild(child: Widget, dispose: Boolean = true) {
+        removeDisposable(child, dispose)
         _children.remove(child)
     }
 
@@ -181,7 +180,14 @@ abstract class Widget(
         val create: Node.(T, Int) -> Pair<Node, Disposable> = { value: T, index: Int ->
             val widget = createChild(value, index)
             addChild(widget, addToDisposer = false)
-            Pair<Node, Disposable>(widget.element, widget)
+
+            Pair<Node, Disposable>(
+                widget.element,
+                disposable {
+                    removeChild(widget, dispose = false)
+                    widget.dispose()
+                }
+            )
         }
 
         addDisposable(bindDisposableChildrenTo(this, list, create))

@@ -10,8 +10,8 @@ class DisposableSupervisedScope(
     private val kClass: KClass<*>,
     context: CoroutineContext,
 ) : TrackedDisposable(), CoroutineScope by CoroutineScope(SupervisorJob() + context) {
-    override fun internalDispose() {
+    override fun dispose() {
         cancel("${kClass.simpleName} disposed.")
-        super.internalDispose()
+        super.dispose()
     }
 }

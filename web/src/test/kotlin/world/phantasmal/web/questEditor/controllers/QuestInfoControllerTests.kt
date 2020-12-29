@@ -10,7 +10,7 @@ import kotlin.test.assertTrue
 
 class QuestInfoControllerTests : WebTestSuite() {
     @Test
-    fun exposes_correct_model_before_and_after_a_quest_is_loaded() = asyncTest {
+    fun exposes_correct_model_before_and_after_a_quest_is_loaded() = testAsync {
         val store = components.questEditorStore
         val ctrl = disposer.add(QuestInfoController(store))
 
@@ -35,7 +35,7 @@ class QuestInfoControllerTests : WebTestSuite() {
     }
 
     @Test
-    fun can_edit_simple_properties_undo_edits_and_redo_edits() = asyncTest {
+    fun can_edit_simple_properties_undo_edits_and_redo_edits() = testAsync {
         val store = components.questEditorStore
         val ctrl = disposer.add(QuestInfoController(store))
 
@@ -87,7 +87,7 @@ class QuestInfoControllerTests : WebTestSuite() {
     }
 
     @Test
-    fun when_focused_main_undo_becomes_current_undo() = asyncTest {
+    fun when_focused_main_undo_becomes_current_undo() = testAsync {
         val store = components.questEditorStore
         val ctrl = disposer.add(QuestInfoController(store))
 

@@ -13,7 +13,7 @@ import kotlin.test.*
 
 class QuestEditorToolbarControllerTests : WebTestSuite() {
     @Test
-    fun can_create_a_new_quest() = asyncTest {
+    fun can_create_a_new_quest() = testAsync {
         val ctrl = disposer.add(QuestEditorToolbarController(
             components.uiStore,
             components.questLoader,
@@ -27,7 +27,7 @@ class QuestEditorToolbarControllerTests : WebTestSuite() {
     }
 
     @Test
-    fun a_failure_is_exposed_when_openFiles_fails() = asyncTest {
+    fun a_failure_is_exposed_when_openFiles_fails() = testAsync {
         val ctrl = disposer.add(QuestEditorToolbarController(
             components.uiStore,
             components.questLoader,
@@ -51,7 +51,7 @@ class QuestEditorToolbarControllerTests : WebTestSuite() {
     }
 
     @Test
-    fun undo_state_changes_correctly() = asyncTest {
+    fun undo_state_changes_correctly() = testAsync {
         val ctrl = disposer.add(QuestEditorToolbarController(
             components.uiStore,
             components.questLoader,
@@ -107,7 +107,7 @@ class QuestEditorToolbarControllerTests : WebTestSuite() {
     }
 
     @Test
-    fun area_state_changes_correctly() = asyncTest {
+    fun state_changes_correctly_when_a_quest_is_loaded() = testAsync {
         val ctrl = disposer.add(QuestEditorToolbarController(
             components.uiStore,
             components.questLoader,
@@ -117,15 +117,21 @@ class QuestEditorToolbarControllerTests : WebTestSuite() {
 
         // No quest loaded.
 
+        // No current area and no areas to select.
         assertTrue(ctrl.areas.value.isEmpty())
         assertNull(ctrl.currentArea.value)
         assertFalse(ctrl.areaSelectEnabled.value)
+        // Nothing to save.
+        assertFalse(ctrl.saveAsEnabled.value)
 
         // Load quest.
         components.questEditorStore.setCurrentQuest(createQuestModel())
 
+        // We have some areas and one area is selected at this point.
         assertTrue(ctrl.areas.value.isNotEmpty())
         assertNotNull(ctrl.currentArea.value)
         assertTrue(ctrl.areaSelectEnabled.value)
+        // We can save the current quest.
+        assertTrue(ctrl.saveAsEnabled.value)
     }
 }

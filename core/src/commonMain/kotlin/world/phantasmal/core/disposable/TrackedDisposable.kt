@@ -17,17 +17,12 @@ abstract class TrackedDisposable : Disposable {
         }
     }
 
-    final override fun dispose() {
+    override fun dispose() {
         if (!disposed) {
             disposed = true
             disposableCount--
             disposables.remove(this)
-            internalDispose()
         }
-    }
-
-    protected open fun internalDispose() {
-        // Do nothing.
     }
 
     companion object {
@@ -42,6 +37,7 @@ abstract class TrackedDisposable : Disposable {
             val initialCount = disposableCount
             val initialTrackPrecise = this.trackPrecise
             val initialDisposables = disposables
+
             this.trackPrecise = trackPrecise
             disposables = mutableSetOf()
 

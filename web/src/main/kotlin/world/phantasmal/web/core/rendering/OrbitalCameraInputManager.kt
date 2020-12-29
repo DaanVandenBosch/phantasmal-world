@@ -38,9 +38,9 @@ class OrbitalCameraInputManager(
         controls.saveState()
     }
 
-    override fun internalDispose() {
+    override fun dispose() {
         controls.dispose()
-        super.internalDispose()
+        super.dispose()
     }
 
     fun setTarget(target: Vector3) {

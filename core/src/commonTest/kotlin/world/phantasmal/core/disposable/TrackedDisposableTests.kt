@@ -7,12 +7,10 @@ import kotlin.test.assertTrue
 
 class TrackedDisposableTests {
     @Test
-    fun count_should_go_up_when_created_and_down_when_disposed() {
+    fun count_goes_up_when_created_and_down_when_disposed() {
         val initialCount = TrackedDisposable.disposableCount
 
-        val disposable = object : TrackedDisposable() {
-            override fun internalDispose() {}
-        }
+        val disposable = object : TrackedDisposable() {}
 
         assertEquals(initialCount + 1, TrackedDisposable.disposableCount)
 
@@ -22,12 +20,10 @@ class TrackedDisposableTests {
     }
 
     @Test
-    fun double_dispose_should_not_increase_count() {
+    fun double_dispose_does_not_increase_count() {
         val initialCount = TrackedDisposable.disposableCount
 
-        val disposable = object : TrackedDisposable() {
-            override fun internalDispose() {}
-        }
+        val disposable = object : TrackedDisposable() {}
 
         for (i in 1..5) {
             disposable.dispose()
@@ -37,10 +33,8 @@ class TrackedDisposableTests {
     }
 
     @Test
-    fun disposed_property_should_be_set_correctly() {
-        val disposable = object : TrackedDisposable() {
-            override fun internalDispose() {}
-        }
+    fun disposed_property_is_set_correctly() {
+        val disposable = object : TrackedDisposable() {}
 
         assertFalse(disposable.disposed)
 

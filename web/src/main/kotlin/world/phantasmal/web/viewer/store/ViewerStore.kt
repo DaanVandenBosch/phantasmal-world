@@ -1,6 +1,8 @@
 package world.phantasmal.web.viewer.store
 
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import mu.KotlinLogging
 import world.phantasmal.lib.fileFormats.ninja.NinjaObject
 import world.phantasmal.lib.fileFormats.ninja.XvrTexture
@@ -17,7 +19,7 @@ private val logger = KotlinLogging.logger {}
 
 class ViewerStore(private val assetLoader: CharacterClassAssetLoader) : Store() {
     private val _currentNinjaObject = mutableVal<NinjaObject<*>?>(null)
-    private val _currentTextures = mutableListVal<XvrTexture?>(mutableListOf())
+    private val _currentTextures = mutableListVal<XvrTexture?>()
     private val _currentCharacterClass = mutableVal<CharacterClass?>(CharacterClass.VALUES.random())
     private val _currentSectionId = mutableVal(SectionId.VALUES.random())
     private val _currentBody =
@@ -30,7 +32,7 @@ class ViewerStore(private val assetLoader: CharacterClassAssetLoader) : Store() 
     val currentBody: Val<Int> = _currentBody
 
     init {
-        scope.launch {
+        scope.launch(Dispatchers.Default) {
             loadCharacterClassNinjaObject()
         }
     }
@@ -78,13 +80,18 @@ class ViewerStore(private val assetLoader: CharacterClassAssetLoader) : Store() 
         try {
             val ninjaObject = assetLoader.loadNinjaObject(char)
             val textures = assetLoader.loadXvrTextures(char, sectionId, body)
-            _currentNinjaObject.value = ninjaObject
-            _currentTextures.replaceAll(textures)
+
+            withContext(Dispatchers.Main) {
+                _currentNinjaObject.value = ninjaObject
+                _currentTextures.replaceAll(textures)
+            }
         } catch (e: Exception) {
             logger.error(e) { "Couldn't load Ninja model for $char." }
 
-            _currentNinjaObject.value = null
-            _currentTextures.clear()
+            withContext(Dispatchers.Main) {
+                _currentNinjaObject.value = null
+                _currentTextures.clear()
+            }
         }
     }
 }

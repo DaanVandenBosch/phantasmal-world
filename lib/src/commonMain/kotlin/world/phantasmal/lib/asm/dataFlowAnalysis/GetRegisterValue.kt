@@ -9,7 +9,6 @@ private val logger = KotlinLogging.logger {}
 
 /**
  * Computes the possible values of a register right before a specific instruction.
- * TODO: Deal with function calls.
  */
 fun getRegisterValue(cfg: ControlFlowGraph, instruction: Instruction, register: Int): ValueSet {
     require(register in 0..255) {

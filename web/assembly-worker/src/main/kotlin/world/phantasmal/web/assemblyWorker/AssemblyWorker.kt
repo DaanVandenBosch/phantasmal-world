@@ -185,27 +185,25 @@ class AssemblyWorker(private val sendMessage: (ServerMessage) -> Unit) {
     }
 
     private fun getCompletions(requestId: Int, lineNo: Int, col: Int) {
-        val text = getLine(lineNo)?.take(col) ?: ""
+        val text = getLine(lineNo)?.take(col)?.trim()?.toLowerCase() ?: ""
 
-        sendMessage(Response.GetCompletions(
-            requestId,
-            when {
-                KEYWORD_REGEX.matches(text) -> KEYWORD_SUGGESTIONS
+        val completions: List<CompletionItem> = when {
+            KEYWORD_REGEX.matches(text) -> KEYWORD_SUGGESTIONS
 
-                INSTRUCTION_REGEX.matches(text) -> {
-                    val prefix = text.trimStart()
-                    INSTRUCTION_SUGGESTIONS
-                        .asSequence()
-                        .filter { suggestion ->
-                            suggestion.label.startsWith(prefix)
-                        }
-                        .take(20)
-                        .toList()
-                }
+            INSTRUCTION_REGEX.matches(text) -> {
+                val suggestions = INSTRUCTION_SUGGESTIONS.asSequence()
+                val startingWith = suggestions.filter { it.label.startsWith(text) }
+                val containing = suggestions.filter { it.label.contains(text) }
 
-                else -> emptyList()
-            },
-        ))
+                (startingWith + containing)
+                    .take(20)
+                    .toList()
+            }
+
+            else -> emptyList()
+        }
+
+        sendMessage(Response.GetCompletions(requestId, completions))
     }
 
     private fun getSignatureHelp(requestId: Int, lineNo: Int, col: Int) {

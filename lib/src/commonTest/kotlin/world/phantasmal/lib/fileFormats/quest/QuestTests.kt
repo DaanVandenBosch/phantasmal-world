@@ -15,7 +15,7 @@ import kotlin.test.assertTrue
 
 class QuestTests : LibTestSuite() {
     @Test
-    fun parseBinDatToQuest_with_towards_the_future() = asyncTest {
+    fun parseBinDatToQuest_with_towards_the_future() = testAsync {
         val result = parseBinDatToQuest(readFile("/quest118_e.bin"), readFile("/quest118_e.dat"))
 
         assertTrue(result is Success)
@@ -25,7 +25,7 @@ class QuestTests : LibTestSuite() {
     }
 
     @Test
-    fun parseQstToQuest_with_towards_the_future() = asyncTest {
+    fun parseQstToQuest_with_towards_the_future() = testAsync {
         val result = parseQstToQuest(readFile("/quest118_e.qst"))
 
         assertTrue(result is Success)
@@ -91,26 +91,26 @@ class QuestTests : LibTestSuite() {
     }
 
     @Test
-    fun round_trip_test_with_towards_the_future() = asyncTest {
+    fun round_trip_test_with_towards_the_future() = testAsync {
         val filename = "quest118_e.qst"
         roundTripTest(filename, readFile("/$filename"))
     }
 
     @Test
-    fun round_trip_test_with_seat_of_the_heart() = asyncTest {
+    fun round_trip_test_with_seat_of_the_heart() = testAsync {
         val filename = "quest27_e.qst"
         roundTripTest(filename, readFile("/$filename"))
     }
 
     @Test
-    fun round_trip_test_with_lost_head_sword_gc() = asyncTest {
+    fun round_trip_test_with_lost_head_sword_gc() = testAsync {
         val filename = "lost_heat_sword_gc.qst"
         roundTripTest(filename, readFile("/$filename"))
     }
 
     // TODO: Figure out why this test is so slow in JS/Karma.
     @Test
-    fun round_trip_test_with_all_tethealla_quests() = asyncTest(slow = true) {
+    fun round_trip_test_with_all_tethealla_quests() = testAsync(slow = true) {
         testWithTetheallaQuests { path, filename ->
             if (EXCLUDED.any { it in path }) return@testWithTetheallaQuests
 

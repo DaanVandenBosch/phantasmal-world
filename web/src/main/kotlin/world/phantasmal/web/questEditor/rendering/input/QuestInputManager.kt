@@ -77,11 +77,11 @@ class QuestInputManager(
         observe(questEditorStore.questEditingEnabled) { entityManipulationEnabled = it }
     }
 
-    override fun internalDispose() {
+    override fun dispose() {
         cameraInputManager.dispose()
         onPointerUpListener?.dispose()
         onPointerMoveListener?.dispose()
-        super.internalDispose()
+        super.dispose()
     }
 
     override fun setSize(width: Double, height: Double) {

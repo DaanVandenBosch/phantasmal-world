@@ -9,7 +9,7 @@ import kotlin.test.assertTrue
 
 class NinjaTests : LibTestSuite() {
     @Test
-    fun can_parse_rag_rappy_model() = asyncTest {
+    fun can_parse_rag_rappy_model() = testAsync {
         val result = parseNj(readFile("/RagRappy.nj"))
 
         assertTrue(result is Success)

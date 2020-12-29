@@ -2,7 +2,7 @@ package world.phantasmal.web.questEditor.models
 
 import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.list.ListVal
-import world.phantasmal.observable.value.list.mutableListVal
+import world.phantasmal.observable.value.list.SimpleListVal
 import world.phantasmal.observable.value.map
 import world.phantasmal.observable.value.mutableVal
 
@@ -19,7 +19,7 @@ class QuestEventModel(
     private val _sectionId = mutableVal(sectionId)
     private val _waveId = mutableVal(waveId)
     private val _delay = mutableVal(delay)
-    private val _actions = mutableListVal(actions)
+    private val _actions = SimpleListVal(actions)
 
     val id: Val<Int> = _id
     val sectionId: Val<Int> = _sectionId

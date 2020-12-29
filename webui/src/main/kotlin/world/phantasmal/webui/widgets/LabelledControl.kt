@@ -15,13 +15,13 @@ abstract class LabelledControl(
     labelVal: Val<String>?,
     val preferredLabelPosition: LabelPosition,
 ) : Control(visible, enabled, tooltip) {
+    protected val labelId: String = uniqueId()
+
     val label: Label? by lazy {
         if (label == null && labelVal == null) {
             null
         } else {
-            Label(visible, enabled, label, labelVal, htmlFor = getId())
+            Label(visible, enabled, label, labelVal, htmlFor = labelId)
         }
     }
-
-    protected abstract fun getId(): String
 }

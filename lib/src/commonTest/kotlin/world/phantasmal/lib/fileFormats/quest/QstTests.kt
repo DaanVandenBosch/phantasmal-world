@@ -11,7 +11,7 @@ import kotlin.test.assertTrue
 
 class QstTests : LibTestSuite() {
     @Test
-    fun parse_a_GC_quest() = asyncTest {
+    fun parse_a_GC_quest() = testAsync {
         val cursor = readFile("/lost_heat_sword_gc.qst")
         val qst = parseQst(cursor).unwrap()
 
@@ -31,7 +31,7 @@ class QstTests : LibTestSuite() {
      * is byte-for-byte equal to the original.
      */
     @Test
-    fun parseQst_and_writeQst_with_all_tethealla_quests() = asyncTest {
+    fun parseQst_and_writeQst_with_all_tethealla_quests() = testAsync {
         testWithTetheallaQuests { path, _ ->
             if (EXCLUDED.any { it in path }) return@testWithTetheallaQuests
 

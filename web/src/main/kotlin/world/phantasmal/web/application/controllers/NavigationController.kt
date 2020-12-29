@@ -23,9 +23,9 @@ class NavigationController(private val uiStore: UiStore, private val clock: Cloc
         updateInternetTime()
     }
 
-    override fun internalDispose() {
+    override fun dispose() {
         window.clearInterval(internetTimeInterval)
-        super.internalDispose()
+        super.dispose()
     }
 
     fun setCurrentTool(tool: PwToolType) {

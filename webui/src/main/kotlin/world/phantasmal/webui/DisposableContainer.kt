@@ -10,9 +10,9 @@ import world.phantasmal.observable.value.Val
 abstract class DisposableContainer : TrackedDisposable() {
     private val disposer = Disposer()
 
-    override fun internalDispose() {
+    override fun dispose() {
         disposer.dispose()
-        super.internalDispose()
+        super.dispose()
     }
 
     protected fun <T : Disposable> addDisposable(disposable: T): T =
@@ -23,10 +23,10 @@ abstract class DisposableContainer : TrackedDisposable() {
     }
 
     /**
-     * Removes and disposes the given [disposable].
+     * Removes and by default disposes the given [disposable].
      */
-    protected fun removeDisposable(disposable: Disposable) {
-        disposer.remove(disposable)
+    protected fun removeDisposable(disposable: Disposable, dispose: Boolean = true) {
+        disposer.remove(disposable, dispose)
     }
 
     protected fun <V1> observe(observable: Observable<V1>, operation: (V1) -> Unit) {

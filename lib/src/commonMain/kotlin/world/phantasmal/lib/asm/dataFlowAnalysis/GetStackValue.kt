@@ -8,7 +8,6 @@ private val logger = KotlinLogging.logger {}
 /**
  * Computes the possible values of a stack element at the nth position from the top, right before a
  * specific instruction.
- * TODO: Deal with va_call.
  */
 fun getStackValue(cfg: ControlFlowGraph, instruction: Instruction, position: Int): ValueSet {
     val block = cfg.getBlockForInstruction(instruction)

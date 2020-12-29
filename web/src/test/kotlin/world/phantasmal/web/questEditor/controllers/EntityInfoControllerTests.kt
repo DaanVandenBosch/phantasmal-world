@@ -17,7 +17,7 @@ import kotlin.test.assertTrue
 
 class EntityInfoControllerTests : WebTestSuite() {
     @Test
-    fun test_unavailable_and_enabled() = asyncTest {
+    fun test_unavailable_and_enabled() = testAsync {
         val ctrl =
             disposer.add(EntityInfoController(components.areaStore, components.questEditorStore))
 
@@ -37,7 +37,7 @@ class EntityInfoControllerTests : WebTestSuite() {
     }
 
     @Test
-    fun can_read_regular_properties() = asyncTest {
+    fun can_read_regular_properties() = testAsync {
         val ctrl =
             disposer.add(EntityInfoController(components.areaStore, components.questEditorStore))
 
@@ -63,7 +63,7 @@ class EntityInfoControllerTests : WebTestSuite() {
     }
 
     @Test
-    fun can_set_regular_properties_undo_and_redo() = asyncTest {
+    fun can_set_regular_properties_undo_and_redo() = testAsync {
         val ctrl =
             disposer.add(EntityInfoController(components.areaStore, components.questEditorStore))
 
@@ -120,7 +120,7 @@ class EntityInfoControllerTests : WebTestSuite() {
     }
 
     @Test
-    fun when_focused_main_undo_becomes_current_undo() = asyncTest {
+    fun when_focused_main_undo_becomes_current_undo() = testAsync {
         val store = components.questEditorStore
         val ctrl = disposer.add(EntityInfoController(components.areaStore, store))
 

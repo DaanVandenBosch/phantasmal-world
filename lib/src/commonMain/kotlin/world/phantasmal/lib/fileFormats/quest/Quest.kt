@@ -35,6 +35,9 @@ class Quest(
     val mapDesignations: MutableMap<Int, Int>,
 )
 
+/**
+ * High level quest parsing function that delegates to [parseBin] and [parseDat].
+ */
 fun parseBinDatToQuest(
     binCursor: Cursor,
     datCursor: Cursor,
@@ -135,6 +138,9 @@ class QuestData(
     val online: Boolean,
 )
 
+/**
+ * High level .qst parsing function that delegates to [parseQst], [parseBin] and [parseDat].
+ */
 fun parseQstToQuest(cursor: Cursor, lenient: Boolean = false): PwResult<QuestData> {
     val result = PwResult.build<QuestData>(logger)
 

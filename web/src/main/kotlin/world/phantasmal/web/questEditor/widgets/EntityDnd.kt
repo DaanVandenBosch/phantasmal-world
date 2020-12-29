@@ -101,9 +101,9 @@ class EventData(
             "translate(${position.x - grabPoint.x}px, ${position.y - grabPoint.y}px)"
     }
 
-    override fun internalDispose() {
+    override fun dispose() {
         dragElement.remove()
-        super.internalDispose()
+        super.dispose()
     }
 }
 

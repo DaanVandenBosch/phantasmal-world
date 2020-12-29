@@ -9,6 +9,7 @@ import world.phantasmal.webui.widgets.Widget
 
 class HuntOptimizerWidget(
     private val ctrl: HuntOptimizerController,
+    private val createOptimizerWidget: () -> OptimizerWidget,
     private val createMethodsWidget: () -> MethodsWidget,
 ) : Widget() {
     override fun Node.createElement() =
@@ -19,11 +20,7 @@ class HuntOptimizerWidget(
                 ctrl = ctrl,
                 createWidget = { tab ->
                     when (tab.path) {
-                        HuntOptimizerUrls.optimize -> object : Widget() {
-                            override fun Node.createElement() = div {
-                                textContent = "TODO"
-                            }
-                        }
+                        HuntOptimizerUrls.optimize -> createOptimizerWidget()
                         HuntOptimizerUrls.methods -> createMethodsWidget()
                         HuntOptimizerUrls.help -> HelpWidget()
                         else -> error("""Unknown tab "${tab.title}".""")

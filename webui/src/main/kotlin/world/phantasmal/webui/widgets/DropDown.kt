@@ -44,7 +44,7 @@ class Dropdown<T : Any>(
             menu = addWidget(Menu(
                 visible = menuVisible,
                 enabled = enabled,
-                itemsVal = items,
+                items = items,
                 itemToString = itemToString,
                 onSelect = ::select,
                 onCancel = { menuVisible.value = false },

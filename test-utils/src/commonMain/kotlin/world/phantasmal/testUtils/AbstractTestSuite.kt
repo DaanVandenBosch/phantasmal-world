@@ -16,8 +16,8 @@ abstract class AbstractTestSuite<Ctx : TestContext> {
         }
     }
 
-    fun asyncTest(slow: Boolean = false, testBlock: suspend Ctx.() -> Unit) =
-        world.phantasmal.testUtils.asyncTest lambda@{
+    fun testAsync(slow: Boolean = false, testBlock: suspend Ctx.() -> Unit) =
+        world.phantasmal.testUtils.testAsync lambda@{
             if (slow && !canExecuteSlowTests()) return@lambda
 
             TrackedDisposable.checkNoLeaks(trackPrecise = true) {

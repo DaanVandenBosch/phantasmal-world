@@ -2,6 +2,8 @@ package world.phantasmal.web.application.widgets
 
 import org.w3c.dom.Node
 import world.phantasmal.observable.Observable
+import world.phantasmal.observable.value.nullVal
+import world.phantasmal.observable.value.trueVal
 import world.phantasmal.web.core.PwToolType
 import world.phantasmal.webui.dom.input
 import world.phantasmal.webui.dom.label
@@ -12,7 +14,7 @@ class PwToolButton(
     private val tool: PwToolType,
     private val toggled: Observable<Boolean>,
     private val onMouseDown: () -> Unit,
-) : Control() {
+) : Control(visible = trueVal(), enabled = trueVal(), tooltip = nullVal()) {
     private val inputId = "pw-application-pw-tool-button-${tool.name.toLowerCase()}"
 
     override fun Node.createElement() =

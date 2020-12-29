@@ -1,7 +1,6 @@
 package world.phantasmal.webui.widgets
 
 import org.w3c.dom.Node
-import org.w3c.dom.get
 import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.nullVal
 import world.phantasmal.observable.value.trueVal
@@ -19,6 +18,7 @@ class Checkbox(
 ) : LabelledControl(visible, enabled, tooltip, label, labelVal, preferredLabelPosition) {
     override fun Node.createElement() =
         input {
+            id = labelId
             className = "pw-checkbox"
             type = "checkbox"
 
@@ -32,12 +32,4 @@ class Checkbox(
                 onchange = { onChange.invoke(checked) }
             }
         }
-
-    override fun getId(): String {
-        if (element.id.isBlank()) {
-            element.id = uniqueId()
-        }
-
-        return element.id
-    }
 }

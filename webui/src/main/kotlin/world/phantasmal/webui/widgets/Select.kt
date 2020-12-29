@@ -3,7 +3,6 @@ package world.phantasmal.webui.widgets
 import org.w3c.dom.Node
 import org.w3c.dom.events.KeyboardEvent
 import org.w3c.dom.events.MouseEvent
-import org.w3c.dom.get
 import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.list.emptyListVal
 import world.phantasmal.observable.value.mutableVal
@@ -20,25 +19,15 @@ class Select<T : Any>(
     label: String? = null,
     labelVal: Val<String>? = null,
     preferredLabelPosition: LabelPosition = LabelPosition.Before,
-    items: Val<List<T>>? = null,
+    private val items: Val<List<T>> = emptyListVal(),
     private val itemToString: (T) -> String = Any::toString,
-    selected: Val<T?>? = null,
+    private val selected: Val<T?> = nullVal(),
     private val onSelect: (T) -> Unit = {},
-) : LabelledControl(
-    visible,
-    enabled,
-    tooltip,
-    label,
-    labelVal,
-    preferredLabelPosition,
-) {
-    private val items: Val<List<T>> = items ?: emptyListVal()
-    private val selected: Val<T?> = selected ?: nullVal()
-
+) : LabelledControl(visible, enabled, tooltip, label, labelVal, preferredLabelPosition) {
     private val buttonText = mutableVal(" ")
-    private val menuVisible = mutableVal(false)
 
     private lateinit var menu: Menu<T>
+    private val menuVisible = mutableVal(false)
     private var justOpened = false
 
     override fun Node.createElement() =
@@ -57,26 +46,16 @@ class Select<T : Any>(
                 onMouseDown = ::onButtonMouseDown,
                 onMouseUp = { onButtonMouseUp() },
                 onKeyDown = ::onButtonKeyDown,
-            ))
+            )).element.id = labelId
             menu = addWidget(Menu(
                 visible = menuVisible,
                 enabled = enabled,
-                itemsVal = items,
+                items = items,
                 itemToString = itemToString,
                 onSelect = ::select,
                 onCancel = { menuVisible.value = false },
             ))
         }
-
-    override fun getId(): String {
-        val button = element.children[0]!!
-
-        if (button.id.isBlank()) {
-            button.id = uniqueId()
-        }
-
-        return button.id
-    }
 
     private fun onButtonMouseDown(e: MouseEvent) {
         e.stopPropagation()
@@ -97,14 +76,20 @@ class Select<T : Any>(
 
     private fun onButtonKeyDown(e: KeyboardEvent) {
         when (e.key) {
-            "Enter", " " -> {
-                e.preventDefault()
-                e.stopPropagation()
+            "ArrowDown" -> {
+                if (items.value.isNotEmpty()) {
+                    if (selected.value == null) {
+                        select(items.value.first())
+                    } else {
+                        val index = items.value.indexOf(selected.value) + 1
 
-                justOpened = !menuVisible.value
-                menuVisible.value = true
-                selected.value?.let(menu::highlightItem)
-                menu.focus()
+                        if (index >= items.value.size) {
+                            select(items.value.first())
+                        } else {
+                            select(items.value[index])
+                        }
+                    }
+                }
             }
 
             "ArrowUp" -> {
@@ -123,27 +108,20 @@ class Select<T : Any>(
                 }
             }
 
-            "ArrowDown" -> {
-                if (items.value.isNotEmpty()) {
-                    if (selected.value == null) {
-                        select(items.value.first())
-                    } else {
-                        val index = items.value.indexOf(selected.value) + 1
+            "Enter", " " -> {
+                e.preventDefault()
+                e.stopPropagation()
 
-                        if (index >= items.value.size) {
-                            select(items.value.first())
-                        } else {
-                            select(items.value[index])
-                        }
-                    }
-                }
+                justOpened = !menuVisible.value
+                menuVisible.value = true
+                selected.value?.let(menu::highlightItem)
+                menu.focus()
             }
         }
     }
 
     private fun select(item: T) {
         menuVisible.value = false
-        buttonText.value = itemToString(item)
         onSelect(item)
     }
 

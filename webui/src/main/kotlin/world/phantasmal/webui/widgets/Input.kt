@@ -2,7 +2,6 @@ package world.phantasmal.webui.widgets
 
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.Node
-import org.w3c.dom.get
 import world.phantasmal.observable.value.Val
 import world.phantasmal.webui.dom.input
 import world.phantasmal.webui.dom.span
@@ -32,6 +31,7 @@ abstract class Input<T>(
             classList.add("pw-input", this@Input.className)
 
             input {
+                id = labelId
                 classList.add("pw-input-inner")
 
                 observe(this@Input.enabled) { disabled = !it }
@@ -51,16 +51,6 @@ abstract class Input<T>(
                 }
             }
         }
-
-    override fun getId(): String {
-        val input = element.children[0]!!
-
-        if (input.id.isBlank()) {
-            input.id = uniqueId()
-        }
-
-        return input.id
-    }
 
     /**
      * Called during [createElement].

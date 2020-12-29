@@ -90,10 +90,10 @@ open class Dialog(
 
     override fun Node.createElement() = div { className = "pw-dialog-stub" }
 
-    override fun internalDispose() {
+    override fun dispose() {
         dialogElement.remove()
         overlayElement.remove()
-        super.internalDispose()
+        super.dispose()
     }
 
     private fun onPointerMove(movedX: Int, movedY: Int, e: PointerEvent): Boolean {

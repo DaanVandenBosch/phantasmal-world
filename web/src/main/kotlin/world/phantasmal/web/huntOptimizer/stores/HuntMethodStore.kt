@@ -1,13 +1,12 @@
 package world.phantasmal.web.huntOptimizer.stores
 
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import world.phantasmal.lib.Episode
 import world.phantasmal.lib.fileFormats.quest.NpcType
 import world.phantasmal.observable.value.list.ListVal
 import world.phantasmal.observable.value.list.mutableListVal
-import world.phantasmal.web.core.IoDispatcher
-import world.phantasmal.web.core.UiDispatcher
 import world.phantasmal.web.core.loading.AssetLoader
 import world.phantasmal.web.core.models.Server
 import world.phantasmal.web.core.stores.UiStore
@@ -40,7 +39,7 @@ class HuntMethodStore(
     }
 
     private fun loadMethods(server: Server) {
-        scope.launch(IoDispatcher) {
+        scope.launch(Dispatchers.Default) {
             val quests = assetLoader.load<List<QuestDto>>("/quests.${server.slug}.json")
 
             val methods = quests
@@ -103,7 +102,7 @@ class HuntMethodStore(
 
             huntMethodPersister.loadMethodUserTimes(methods, server)
 
-            withContext(UiDispatcher) {
+            withContext(Dispatchers.Main) {
                 _methods.replaceAll(methods)
             }
         }

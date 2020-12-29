@@ -6,6 +6,6 @@ package world.phantasmal.testUtils
  * framework won't wait for its completion. This is a workaround for issue
  * [https://youtrack.jetbrains.com/issue/KT-22228].
  */
-internal expect fun asyncTest(block: suspend () -> Unit)
+internal expect fun testAsync(block: suspend () -> Unit)
 
 internal expect fun canExecuteSlowTests(): Boolean
