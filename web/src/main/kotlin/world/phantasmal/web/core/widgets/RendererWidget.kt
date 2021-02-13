@@ -21,7 +21,7 @@ class RendererWidget(
             }
 
             addDisposable(size.observe { (size) ->
-                renderer.setSize(size.width, size.height)
+                renderer.setSize(size.width.toInt(), size.height.toInt())
             })
 
             append(renderer.canvas)

@@ -84,7 +84,7 @@ class QuestInputManager(
         super.dispose()
     }
 
-    override fun setSize(width: Double, height: Double) {
+    override fun setSize(width: Int, height: Int) {
         cameraInputManager.setSize(width, height)
     }
 

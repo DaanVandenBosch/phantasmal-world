@@ -75,7 +75,7 @@ val generateOpcodes = tasks.register("generateOpcodes") {
     group = "code generation"
 
     val packageName = "world.phantasmal.lib.asm"
-    val opcodesFile = file("assetsGeneration/asm/opcodes.yml")
+    val opcodesFile = file("srcGeneration/asm/opcodes.yml")
     val outputFile = file(
         "build/generated-src/commonMain/kotlin/${packageName.replace('.', '/')}/Opcodes.kt"
     )
@@ -138,6 +138,7 @@ fun opcodeToCode(writer: PrintWriter, opcode: Map<String, Any>) {
 
     writer.println(
         """
+        |
         |val $valName = Opcode(
         |    0x$codeStr,
         |    "$mnemonic",

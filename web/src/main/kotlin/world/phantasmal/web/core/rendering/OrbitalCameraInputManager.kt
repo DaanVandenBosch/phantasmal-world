@@ -58,17 +58,17 @@ class OrbitalCameraInputManager(
         controls.reset()
     }
 
-    override fun setSize(width: Double, height: Double) {
-        if (width == 0.0 || height == 0.0) return
+    override fun setSize(width: Int, height: Int) {
+        if (width == 0 || height == 0) return
 
         if (camera is PerspectiveCamera) {
-            camera.aspect = width / height
+            camera.aspect = width.toDouble() / height
             camera.updateProjectionMatrix()
         } else if (camera is OrthographicCamera) {
-            camera.left = -floor(width / 2)
-            camera.right = ceil(width / 2)
-            camera.top = floor(height / 2)
-            camera.bottom = -ceil(height / 2)
+            camera.left = -floor(width / 2.0)
+            camera.right = ceil(width / 2.0)
+            camera.top = floor(height / 2.0)
+            camera.bottom = -ceil(height / 2.0)
             camera.updateProjectionMatrix()
         }
 

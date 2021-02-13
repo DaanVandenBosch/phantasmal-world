@@ -14,7 +14,9 @@ class ItemTypeStore(
     private val uiStore: UiStore,
     private val assetLoader: AssetLoader,
 ) : Store() {
-    private val cache: LoadingCache<Server, ServerData> = LoadingCache(::loadItemTypes) {}
+    private val cache: LoadingCache<Server, ServerData> = addDisposable(
+        LoadingCache(::loadItemTypes) {}
+    )
     private val _itemTypes = mutableListVal<ItemType>()
 
     val itemTypes: ListVal<ItemType> by lazy {

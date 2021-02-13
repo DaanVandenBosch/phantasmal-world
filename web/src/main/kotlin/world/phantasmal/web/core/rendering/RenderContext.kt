@@ -15,8 +15,8 @@ open class RenderContext(
     )
     private val lightHolder = Group().add(light)
 
-    var width = 0.0
-    var height = 0.0
+    var width: Int = 0
+    var height: Int = 0
 
     val scene: Scene =
         Scene().apply {

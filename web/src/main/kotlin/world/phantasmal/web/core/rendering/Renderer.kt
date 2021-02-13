@@ -5,7 +5,6 @@ import kotlinx.browser.window
 import mu.KotlinLogging
 import org.w3c.dom.HTMLCanvasElement
 import world.phantasmal.webui.DisposableContainer
-import kotlin.math.floor
 import world.phantasmal.web.externals.three.Renderer as ThreeRenderer
 
 private val logger = KotlinLogging.logger {}
@@ -36,15 +35,15 @@ abstract class Renderer : DisposableContainer() {
         window.cancelAnimationFrame(animationFrameHandle)
     }
 
-    open fun setSize(width: Double, height: Double) {
-        if (width == 0.0 || height == 0.0) return
+    open fun setSize(width: Int, height: Int) {
+        if (width == 0 || height == 0) return
 
         context.width = width
         context.height = height
-        context.canvas.width = floor(width).toInt()
-        context.canvas.height = floor(height).toInt()
+        context.canvas.width = width
+        context.canvas.height = height
 
-        threeRenderer.setSize(width, height)
+        threeRenderer.setSize(width.toDouble(), height.toDouble())
 
         inputManager.setSize(width, height)
     }

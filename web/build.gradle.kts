@@ -7,7 +7,7 @@ plugins {
 kotlin {
     js {
         browser {
-            webpackTask {
+            commonWebpackConfig {
                 cssSupport.enabled = true
             }
             runTask {
@@ -15,12 +15,10 @@ kotlin {
                     open = false,
                     port = 1623
                 )
-                cssSupport.enabled = true
             }
             testTask {
                 useKarma {
                     useChromeHeadless()
-                    webpackConfig.cssSupport.enabled = true
                 }
             }
         }
@@ -62,3 +60,7 @@ val copyAssemblyWorkerJsTask = tasks.register<Copy>("copyAssemblyWorkerJs") {
 
 // TODO: Figure out how to make this work with --continuous.
 tasks.getByName("processResources").dependsOn(copyAssemblyWorkerJsTask)
+
+tasks.register("generateEphineaItems") {
+//    val unitxt =
+}
