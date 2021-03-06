@@ -4,7 +4,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.promise
 import world.phantasmal.web.externals.monacoEditor.*
 import world.phantasmal.web.questEditor.asm.AsmAnalyser
-import world.phantasmal.web.shared.CompletionItemType
+import world.phantasmal.web.shared.messages.CompletionItemType
 import world.phantasmal.webui.obj
 import kotlin.js.Promise
 

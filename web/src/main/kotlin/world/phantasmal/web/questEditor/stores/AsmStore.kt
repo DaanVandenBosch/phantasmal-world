@@ -18,9 +18,9 @@ import world.phantasmal.web.externals.monacoEditor.*
 import world.phantasmal.web.questEditor.asm.AsmAnalyser
 import world.phantasmal.web.questEditor.asm.monaco.*
 import world.phantasmal.web.questEditor.models.QuestModel
-import world.phantasmal.web.shared.AsmChange
-import world.phantasmal.web.shared.AsmRange
-import world.phantasmal.web.shared.AssemblyProblem
+import world.phantasmal.web.shared.messages.AsmChange
+import world.phantasmal.web.shared.messages.AsmRange
+import world.phantasmal.web.shared.messages.AssemblyProblem
 import world.phantasmal.webui.obj
 import world.phantasmal.webui.stores.Store
 

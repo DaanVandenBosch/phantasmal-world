@@ -10,7 +10,7 @@ import world.phantasmal.observable.value.list.mutableListVal
 import world.phantasmal.web.core.loading.AssetLoader
 import world.phantasmal.web.core.models.Server
 import world.phantasmal.web.core.stores.UiStore
-import world.phantasmal.web.huntOptimizer.dto.QuestDto
+import world.phantasmal.web.shared.dto.QuestDto
 import world.phantasmal.web.huntOptimizer.models.HuntMethodModel
 import world.phantasmal.web.huntOptimizer.models.SimpleQuestModel
 import world.phantasmal.web.huntOptimizer.persistence.HuntMethodPersister

@@ -52,15 +52,20 @@ dependencies {
 }
 
 val copyAssemblyWorkerJsTask = tasks.register<Copy>("copyAssemblyWorkerJs") {
+    dependsOn(":web:assembly-worker:build")
+
     val workerDist = project(":web:assembly-worker").buildDir.resolve("distributions")
+
     from(workerDist.resolve("assembly-worker.js"), workerDist.resolve("assembly-worker.js.map"))
     into(buildDir.resolve("processedResources/js/main"))
-    dependsOn(":web:assembly-worker:build")
 }
 
 // TODO: Figure out how to make this work with --continuous.
 tasks.getByName("processResources").dependsOn(copyAssemblyWorkerJsTask)
 
-tasks.register("generateEphineaItems") {
-//    val unitxt =
+tasks.register<Copy>("generateAssets") {
+    dependsOn(":web:assets-generation:generateAssets")
+
+    from("assets-generation/build/generatedAssets")
+    into("src/main/resources/assets")
 }

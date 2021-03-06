@@ -2,7 +2,7 @@ package world.phantasmal.web.questEditor.persistence
 
 import world.phantasmal.web.core.controllers.*
 import world.phantasmal.web.core.persistence.Persister
-import world.phantasmal.web.questEditor.dto.*
+import world.phantasmal.web.shared.dto.*
 
 class QuestEditorUiPersister : Persister() {
     // TODO: Throttle this method.

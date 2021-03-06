@@ -1,16 +1,18 @@
 import org.jetbrains.kotlin.gradle.tasks.Kotlin2JsCompile
 
 plugins {
-    kotlin("js") version "1.4.20" apply false
-    kotlin("multiplatform") version "1.4.20" apply false
-    kotlin("plugin.serialization") version "1.4.20" apply false
+    kotlin("js") version "1.4.30" apply false
+    kotlin("multiplatform") version "1.4.30" apply false
+    kotlin("plugin.serialization") version "1.4.30" apply false
 }
 
 tasks.wrapper {
-    gradleVersion = "6.6.1"
+    gradleVersion = "6.8.2"
 }
 
 subprojects {
+    project.extra["jvmVersion"] = "11"
+
     project.extra["coroutinesVersion"] = "1.4.2"
     project.extra["kotlinLoggingVersion"] = "2.0.2"
     project.extra["ktorVersion"] = "1.4.3"

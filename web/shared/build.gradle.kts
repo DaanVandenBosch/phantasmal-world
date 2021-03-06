@@ -1,6 +1,16 @@
 plugins {
-    kotlin("js")
+    kotlin("multiplatform")
     kotlin("plugin.serialization")
+}
+
+val serializationVersion: String by project.extra
+
+val jvmVersion: String by project.extra
+
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+    kotlinOptions {
+        jvmTarget = jvmVersion
+    }
 }
 
 kotlin {
@@ -8,14 +18,16 @@ kotlin {
         browser {
         }
     }
-}
 
-val kotlinLoggingVersion: String by project.extra
-val serializationVersion: String by project.extra
+    jvm()
 
-dependencies {
-    api(project(":lib"))
+    sourceSets {
+        commonMain {
+            dependencies {
+                api(project(":lib"))
 
-    api("io.github.microutils:kotlin-logging-js:$kotlinLoggingVersion")
-    api("org.jetbrains.kotlinx:kotlinx-serialization-json:$serializationVersion")
+                api("org.jetbrains.kotlinx:kotlinx-serialization-json:$serializationVersion")
+            }
+        }
+    }
 }

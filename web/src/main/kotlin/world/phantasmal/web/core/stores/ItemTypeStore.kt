@@ -3,11 +3,10 @@ package world.phantasmal.web.core.stores
 import kotlinx.coroutines.launch
 import world.phantasmal.observable.value.list.ListVal
 import world.phantasmal.observable.value.list.mutableListVal
-import world.phantasmal.web.core.dto.ItemTypeDto
 import world.phantasmal.web.core.loading.AssetLoader
-import world.phantasmal.web.core.models.ItemType
 import world.phantasmal.web.core.models.Server
 import world.phantasmal.web.questEditor.loading.LoadingCache
+import world.phantasmal.web.shared.dto.*
 import world.phantasmal.webui.stores.Store
 
 class ItemTypeStore(
@@ -33,14 +32,7 @@ class ItemTypeStore(
         cache.get(server).idToItemType[id]
 
     private suspend fun loadItemTypes(server: Server): ServerData {
-        val itemTypes = assetLoader.load<List<ItemTypeDto>>("/item_types.${server.slug}.json")
-            .map {
-                // TODO: Use correct subtype.
-                object : ItemType {
-                    override val id: Int = it.id
-                    override val name: String = it.name
-                }
-            }
+        val itemTypes = assetLoader.load<List<ItemType>>("/item_types.${server.slug}.json")
         val idToItemType = itemTypes.associateBy { it.id }
         return ServerData(itemTypes, idToItemType)
     }

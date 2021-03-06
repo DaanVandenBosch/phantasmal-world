@@ -4,10 +4,10 @@ import world.phantasmal.observable.value.MutableVal
 import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.list.ListVal
 import world.phantasmal.observable.value.mutableVal
-import world.phantasmal.web.core.models.ItemType
 import world.phantasmal.web.core.stores.ItemTypeStore
 import world.phantasmal.web.huntOptimizer.models.WantedItemModel
 import world.phantasmal.web.huntOptimizer.stores.HuntOptimizerStore
+import world.phantasmal.web.shared.dto.ItemType
 import world.phantasmal.webui.controllers.Controller
 
 class WantedItemsController(

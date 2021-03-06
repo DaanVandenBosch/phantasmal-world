@@ -2,7 +2,7 @@ package world.phantasmal.web.huntOptimizer.models
 
 import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.mutableVal
-import world.phantasmal.web.core.models.ItemType
+import world.phantasmal.web.shared.dto.ItemType
 
 class WantedItemModel(val itemType: ItemType, amount: Int) {
     private val _amount = mutableVal(0)

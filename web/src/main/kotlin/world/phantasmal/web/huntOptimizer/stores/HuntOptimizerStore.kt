@@ -5,11 +5,11 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import world.phantasmal.observable.value.list.ListVal
 import world.phantasmal.observable.value.list.mutableListVal
-import world.phantasmal.web.core.models.ItemType
 import world.phantasmal.web.core.models.Server
 import world.phantasmal.web.core.stores.UiStore
 import world.phantasmal.web.huntOptimizer.models.WantedItemModel
 import world.phantasmal.web.huntOptimizer.persistence.WantedItemPersister
+import world.phantasmal.web.shared.dto.ItemType
 import world.phantasmal.webui.stores.Store
 
 // TODO: take into account mothmants spawned from mothverts.

@@ -23,6 +23,7 @@ import world.phantasmal.web.core.logging.LogFormatter
 import world.phantasmal.web.core.rendering.DisposableThreeRenderer
 import world.phantasmal.web.core.stores.ApplicationUrl
 import world.phantasmal.web.externals.three.WebGLRenderer
+import world.phantasmal.web.shared.JSON_FORMAT
 import world.phantasmal.webui.dom.disposableListener
 import world.phantasmal.webui.dom.root
 import world.phantasmal.webui.obj
@@ -49,9 +50,7 @@ private fun init(): Disposable {
 
     val httpClient = HttpClient {
         install(JsonFeature) {
-            serializer = KotlinxSerializer(kotlinx.serialization.json.Json {
-                ignoreUnknownKeys = true
-            })
+            serializer = KotlinxSerializer(JSON_FORMAT)
         }
     }
     disposer.add(disposable { httpClient.cancel() })

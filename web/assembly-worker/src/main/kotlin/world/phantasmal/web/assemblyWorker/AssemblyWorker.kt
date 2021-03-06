@@ -6,7 +6,7 @@ import world.phantasmal.lib.asm.dataFlowAnalysis.ControlFlowGraph
 import world.phantasmal.lib.asm.dataFlowAnalysis.getMapDesignations
 import world.phantasmal.lib.asm.dataFlowAnalysis.getStackValue
 import world.phantasmal.web.shared.*
-import world.phantasmal.web.shared.AssemblyProblem
+import world.phantasmal.web.shared.messages.*
 import kotlin.math.min
 import world.phantasmal.lib.asm.AssemblyProblem as AssemblerAssemblyProblem
 

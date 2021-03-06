@@ -20,6 +20,14 @@ val kotlinLoggingVersion: String by project.extra
 val serializationVersion: String by project.extra
 val slf4jVersion: String by project.extra
 
+val jvmVersion: String by project.extra
+
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+    kotlinOptions {
+        jvmTarget = jvmVersion
+    }
+}
+
 kotlin {
     js {
         browser {

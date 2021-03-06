@@ -3,7 +3,7 @@ package world.phantasmal.web.huntOptimizer.persistence
 import world.phantasmal.web.core.models.Server
 import world.phantasmal.web.core.persistence.Persister
 import world.phantasmal.web.core.stores.ItemTypeStore
-import world.phantasmal.web.huntOptimizer.dto.WantedItemDto
+import world.phantasmal.web.shared.dto.WantedItemDto
 import world.phantasmal.web.huntOptimizer.models.WantedItemModel
 
 class WantedItemPersister(private val itemTypeStore: ItemTypeStore) : Persister() {

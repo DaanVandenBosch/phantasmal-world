@@ -1,4 +1,4 @@
-package world.phantasmal.web.questEditor.dto
+package world.phantasmal.web.shared.dto
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable

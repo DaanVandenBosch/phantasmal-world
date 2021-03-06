@@ -1,7 +1,6 @@
-package world.phantasmal.web.shared
+package world.phantasmal.web.shared.messages
 
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
 import world.phantasmal.core.Severity
 
 /*
@@ -13,10 +12,6 @@ import world.phantasmal.core.Severity
  * - Response: sent by server in response to a request.
  * - Notifications: sent by either the client or server. No response is required.
  */
-
-val JSON_FORMAT = Json {
-    classDiscriminator = "#type"
-}
 
 @Serializable
 sealed class ClientMessage
