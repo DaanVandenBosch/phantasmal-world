@@ -1,4 +1,4 @@
-package world.phantasmal.web.core.models
+package world.phantasmal.web.shared.dto
 
 enum class SectionId {
     Viridia,

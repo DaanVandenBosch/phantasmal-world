@@ -199,5 +199,12 @@ actual class Buffer private constructor(
 
         actual fun fromBase64(data: String, endianness: Endianness): Buffer =
             fromByteArray(Base64.getDecoder().decode(data), endianness)
+
+        fun fromResource(name: String): Buffer {
+            val stream = (Buffer::class.java.getResourceAsStream(name)
+                ?: error("""Couldn't load resource "$name"."""))
+
+            return stream.use { fromByteArray(it.readBytes()) }
+        }
     }
 }

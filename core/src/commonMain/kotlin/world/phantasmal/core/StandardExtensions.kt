@@ -16,6 +16,13 @@ fun <E> MutableList<E>.replaceAll(elements: Sequence<E>): Boolean {
 }
 
 /**
+ * Remove [n] elements at [startIndex].
+ */
+fun <E> MutableList<E>.removeAt(startIndex: Int, n: Int) {
+    repeat(n) { removeAt(startIndex) }
+}
+
+/**
  * Replace [amount] elements at [startIndex] with [elements].
  */
 fun <E> MutableList<E>.splice(startIndex: Int, amount: Int, elements: Iterable<E>) {

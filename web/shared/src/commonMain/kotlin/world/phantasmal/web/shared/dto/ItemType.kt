@@ -11,6 +11,14 @@ import kotlinx.serialization.Serializable
 sealed class ItemType {
     abstract val id: Int
     abstract val name: String
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other == null || this::class != other::class) return false
+        return id == (other as ItemType).id
+    }
+
+    override fun hashCode(): Int = id
 }
 
 @Serializable

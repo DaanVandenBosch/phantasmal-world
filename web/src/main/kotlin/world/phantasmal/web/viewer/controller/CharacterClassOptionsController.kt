@@ -2,7 +2,7 @@ package world.phantasmal.web.viewer.controller
 
 import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.plus
-import world.phantasmal.web.core.models.SectionId
+import world.phantasmal.web.shared.dto.SectionId
 import world.phantasmal.web.viewer.store.ViewerStore
 import world.phantasmal.webui.controllers.Controller
 

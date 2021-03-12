@@ -3,6 +3,7 @@ package world.phantasmal.web.huntOptimizer
 import world.phantasmal.web.core.PwTool
 import world.phantasmal.web.core.PwToolType
 import world.phantasmal.web.core.loading.AssetLoader
+import world.phantasmal.web.core.stores.ItemDropStore
 import world.phantasmal.web.core.stores.ItemTypeStore
 import world.phantasmal.web.core.stores.UiStore
 import world.phantasmal.web.huntOptimizer.controllers.HuntOptimizerController
@@ -24,7 +25,7 @@ class HuntOptimizer(
     override val toolType = PwToolType.HuntOptimizer
 
     override fun initialize(): Widget {
-        val itemTypeStore = addDisposable(ItemTypeStore(uiStore, assetLoader))
+        val itemTypeStore = addDisposable(ItemTypeStore(assetLoader))
 
         // Persistence
         val huntMethodPersister = HuntMethodPersister()
@@ -33,13 +34,18 @@ class HuntOptimizer(
         // Stores
         val huntMethodStore =
             addDisposable(HuntMethodStore(uiStore, assetLoader, huntMethodPersister))
-        val huntOptimizerStore =
-            addDisposable(HuntOptimizerStore(wantedItemPersister, uiStore, huntMethodStore))
+        val itemDropStore = addDisposable(ItemDropStore(assetLoader))
+        val huntOptimizerStore = addDisposable(HuntOptimizerStore(
+            wantedItemPersister,
+            uiStore,
+            huntMethodStore,
+            itemTypeStore,
+            itemDropStore,
+        ))
 
         // Controllers
         val huntOptimizerController = addDisposable(HuntOptimizerController(uiStore))
-        val wantedItemsController =
-            addDisposable(WantedItemsController(huntOptimizerStore, itemTypeStore))
+        val wantedItemsController = addDisposable(WantedItemsController(huntOptimizerStore))
         val methodsController = addDisposable(MethodsController(uiStore))
 
         // Main Widget

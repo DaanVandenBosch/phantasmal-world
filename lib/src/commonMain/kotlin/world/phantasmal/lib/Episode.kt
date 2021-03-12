@@ -5,6 +5,12 @@ enum class Episode {
     II,
     IV;
 
+    fun toInt(): Int = when(this) {
+        I -> 1
+        II -> 2
+        IV -> 4
+    }
+
     companion object {
         fun fromInt(episode: Int) = when (episode) {
             1 -> I

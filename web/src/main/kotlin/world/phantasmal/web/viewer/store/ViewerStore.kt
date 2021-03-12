@@ -10,7 +10,7 @@ import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.list.ListVal
 import world.phantasmal.observable.value.list.mutableListVal
 import world.phantasmal.observable.value.mutableVal
-import world.phantasmal.web.core.models.SectionId
+import world.phantasmal.web.shared.dto.SectionId
 import world.phantasmal.web.viewer.loading.CharacterClassAssetLoader
 import world.phantasmal.web.viewer.models.CharacterClass
 import world.phantasmal.webui.stores.Store

@@ -6,6 +6,8 @@ import kotlinx.coroutines.withContext
 import world.phantasmal.observable.value.list.ListVal
 import world.phantasmal.observable.value.list.mutableListVal
 import world.phantasmal.web.core.models.Server
+import world.phantasmal.web.core.stores.ItemDropStore
+import world.phantasmal.web.core.stores.ItemTypeStore
 import world.phantasmal.web.core.stores.UiStore
 import world.phantasmal.web.huntOptimizer.models.WantedItemModel
 import world.phantasmal.web.huntOptimizer.persistence.WantedItemPersister
@@ -23,8 +25,27 @@ class HuntOptimizerStore(
     private val wantedItemPersister: WantedItemPersister,
     private val uiStore: UiStore,
     private val huntMethodStore: HuntMethodStore,
+    private val itemTypeStore: ItemTypeStore,
+    private val itemDropStore: ItemDropStore,
 ) : Store() {
+    private val _huntableItems = mutableListVal<ItemType>()
     private val _wantedItems = mutableListVal<WantedItemModel> { arrayOf(it.amount) }
+
+    val huntableItems: ListVal<ItemType> by lazy {
+        observe(uiStore.server) { server ->
+            _huntableItems.clear()
+
+            scope.launch {
+                val dropTable = itemDropStore.getEnemyDropTable(server)
+
+                _huntableItems.value = itemTypeStore.getItemTypes(server).filter {
+                    dropTable.getDropsForItemType(it).isNotEmpty()
+                }
+            }
+        }
+
+        _huntableItems
+    }
 
     val wantedItems: ListVal<WantedItemModel> by lazy {
         observe(uiStore.server) { loadWantedItems(it) }
