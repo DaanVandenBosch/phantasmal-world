@@ -37,8 +37,14 @@ class ItemDropStore(
 
 class EnemyDropTable(
     private val table: Map<Triple<Difficulty, SectionId, NpcType>, EnemyDrop>,
+    /**
+     * Mapping of [ItemType] ids to [EnemyDrop]s.
+     */
     private val itemTypeToDrops: Map<Int, List<EnemyDrop>>,
 ) {
+    fun getDrop(difficulty: Difficulty, sectionId: SectionId, npcType: NpcType): EnemyDrop? =
+        table[Triple(difficulty, sectionId, npcType)]
+
     fun getDropsForItemType(itemType: ItemType): List<EnemyDrop> =
         itemTypeToDrops[itemType.id] ?: emptyList()
 }

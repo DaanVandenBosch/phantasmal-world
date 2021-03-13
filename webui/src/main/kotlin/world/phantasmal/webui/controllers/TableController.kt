@@ -5,10 +5,6 @@ import world.phantasmal.observable.value.list.ListVal
 class Column<T>(
     val key: String,
     val title: String,
-    /**
-     * Whether the column stays in place while scrolling.
-     */
-    val fixed: Boolean = false,
     val width: Int,
     /**
      * Whether cells in this column contain an input widget.
@@ -18,6 +14,7 @@ class Column<T>(
     val sortable: Boolean = false,
     val headerClassName: String? = null,
     val className: String? = null,
+    val textAlign: String? = null,
 )
 
 enum class SortDirection {
@@ -33,8 +30,13 @@ interface SortColumn<T> {
 abstract class TableController<T> : Controller() {
     private val sortColumns: MutableList<SortColumnImpl> = mutableListOf()
 
+    /**
+     * How many columns stay in place on the left side while scrolling.
+     */
+    open val fixedColumns: Int = 0
+
     abstract val values: ListVal<T>
-    abstract val columns: List<Column<T>>
+    abstract val columns: ListVal<Column<T>>
 
     open fun sort(sortColumns: List<SortColumn<T>>) {
         error("Not sortable.")

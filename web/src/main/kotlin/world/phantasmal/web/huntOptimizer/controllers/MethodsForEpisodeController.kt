@@ -3,6 +3,7 @@ package world.phantasmal.web.huntOptimizer.controllers
 import world.phantasmal.lib.Episode
 import world.phantasmal.lib.fileFormats.quest.NpcType
 import world.phantasmal.observable.value.list.ListVal
+import world.phantasmal.observable.value.list.listVal
 import world.phantasmal.observable.value.list.mutableListVal
 import world.phantasmal.web.huntOptimizer.models.HuntMethodModel
 import world.phantasmal.web.huntOptimizer.stores.HuntMethodStore
@@ -19,27 +20,27 @@ class MethodsForEpisodeController(
     private val methods = mutableListVal<HuntMethodModel>()
     private val enemies: List<NpcType> = NpcType.VALUES.filter { it.enemy && it.episode == episode }
 
+    override val fixedColumns = 2
+
     override val values: ListVal<HuntMethodModel> = methods
 
-    override val columns: List<Column<HuntMethodModel>> = listOf(
+    override val columns: ListVal<Column<HuntMethodModel>> = listVal(
         Column(
             key = METHOD_COL_KEY,
             title = "Method",
-            fixed = true,
             width = 250,
             sortable = true,
         ),
         Column(
             key = TIME_COL_KEY,
             title = "Time",
-            fixed = true,
             width = 50,
             input = true,
             sortable = true,
         ),
         *enemies.map { enemy ->
             // Word-wrap long names.
-            val title = when(enemy) {
+            val title = when (enemy) {
                 NpcType.Gigobooma -> "Gigo-\nbooma"
                 NpcType.Shambertin -> "Shamber-\ntin"
                 else -> enemy.simpleName
@@ -51,6 +52,7 @@ class MethodsForEpisodeController(
                 headerClassName = "pw-hunt-optimizer-methods-for-episode-header-cell",
                 className = "pw-hunt-optimizer-methods-for-episode-cell",
                 sortable = true,
+                textAlign = "right",
             )
         }.toTypedArray()
     )

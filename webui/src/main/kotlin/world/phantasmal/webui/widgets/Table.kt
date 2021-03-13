@@ -1,6 +1,6 @@
 package world.phantasmal.webui.widgets
 
-import org.w3c.dom.Node
+import org.w3c.dom.*
 import world.phantasmal.core.disposable.Disposer
 import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.trueVal
@@ -25,33 +25,16 @@ class Table<T>(
                 tr {
                     className = "pw-table-row pw-table-header-row"
 
-                    var runningWidth = 0
-
-                    for (column in ctrl.columns) {
-                        th {
-                            className = "pw-table-cell"
-
-                            column.headerClassName?.let { classList.add(it) }
-
-                            textContent = column.title
-
-                            if (column.fixed) {
-                                style.position = "sticky"
-                                style.left = "${runningWidth}px"
-                                runningWidth += column.width
-                            }
-
-                            style.width = "${column.width}px"
-
-                            if (column.sortable) {
-                                onmousedown = { e ->
-                                    if (e.buttons.toInt() == 1) {
-                                        ctrl.sortByColumn(column)
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    addDisposable(bindChildrenTo(
+                        this,
+                        ctrl.columns,
+                        createChild = { column, _ ->
+                            createHeaderRowCell(column)
+                        },
+                        after = {
+                            positionFixedColumns(row = this, headerRow = true)
+                        },
+                    ))
                 }
             }
             tbody {
@@ -61,44 +44,93 @@ class Table<T>(
                     val row = tr {
                         className = "pw-table-row"
 
-                        var runningWidth = 0
-
-                        for (column in ctrl.columns) {
-                            (if (column.fixed) ::th else ::td) {
-                                className = "pw-table-cell pw-table-body-cell"
-
-                                column.className?.let { classList.add(it) }
-
-                                val child = renderCell(value, column)
-
-                                if (child is Widget) {
-                                    rowDisposer.add(child)
-                                    append(child.element)
-                                } else {
-                                    append(child)
-                                }
-
-                                if (column.input) {
-                                    classList.add("pw-table-cell-input")
-                                }
-
-                                if (column.fixed) {
-                                    classList.add("pw-table-cell-fixed")
-                                    style.left = "${runningWidth}px"
-                                    runningWidth += column.width
-                                }
-
-                                style.width = "${column.width}px"
-
-                                column.tooltip?.let { title = it(value) }
-                            }
-                        }
+                        addDisposable(bindChildrenTo(
+                            this,
+                            ctrl.columns,
+                            createChild = { column, _ ->
+                                createRowCell(column, value, rowDisposer)
+                            },
+                            after = {
+                                positionFixedColumns(row = this, headerRow = false)
+                            },
+                        ))
                     }
 
                     Pair(row, rowDisposer)
                 }
             }
         }
+
+    private fun Node.createHeaderRowCell(column: Column<T>): HTMLTableCellElement =
+        th {
+            className = "pw-table-cell"
+
+            column.headerClassName?.let { classList.add(it) }
+
+            textContent = column.title
+
+            style.width = "${column.width}px"
+
+            if (column.sortable) {
+                onmousedown = { e ->
+                    if (e.buttons.toInt() == 1) {
+                        ctrl.sortByColumn(column)
+                    }
+                }
+            }
+        }
+
+    private fun Node.createRowCell(
+        column: Column<T>,
+        value: T,
+        rowDisposer: Disposer,
+    ): HTMLTableCellElement =
+        td {
+            className = "pw-table-cell pw-table-body-cell"
+
+            column.className?.let { classList.add(it) }
+
+            val child = renderCell(value, column)
+
+            if (child is Widget) {
+                rowDisposer.add(child)
+                append(child.element)
+            } else {
+                append(child)
+            }
+
+            if (column.input) {
+                classList.add("pw-table-cell-input")
+            }
+
+            style.width = "${column.width}px"
+
+            column.tooltip?.let { title = it(value) }
+
+            column.textAlign?.let { style.textAlign = it }
+        }
+
+    private fun positionFixedColumns(row: HTMLTableRowElement, headerRow: Boolean) {
+        val columns = ctrl.columns.value
+        var left = 0
+
+        for (index in columns.indices) {
+            val el = row.children[index].unsafeCast<HTMLElement>()
+
+            if (index < ctrl.fixedColumns) {
+                el.style.position = "sticky"
+                el.style.left = "${left}px"
+
+                if (!headerRow) {
+                    el.classList.add("pw-table-cell-fixed")
+                }
+            } else {
+                el.style.position = ""
+            }
+
+            left += columns[index].width
+        }
+    }
 
     companion object {
         init {
@@ -164,6 +196,7 @@ class Table<T>(
                 }
 
                 .pw-table-cell-fixed {
+                    font-weight: bold;
                     position: sticky;
                     text-align: left;
                 }

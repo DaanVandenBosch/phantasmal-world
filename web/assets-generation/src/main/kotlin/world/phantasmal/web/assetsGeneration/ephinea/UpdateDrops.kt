@@ -136,7 +136,7 @@ private fun download(
                                 sectionId,
                                 enemy = npcType,
                                 itemTypeId = itemType.id,
-                                dropRate = dropRateNum.toDouble() / dropRateDenom.toDouble(),
+                                anythingRate = dropRateNum.toDouble() / dropRateDenom.toDouble(),
                                 rareRate = rareRateNum.toDouble() / rareRateDenom.toDouble(),
                             ))
                         } catch (e: Exception) {

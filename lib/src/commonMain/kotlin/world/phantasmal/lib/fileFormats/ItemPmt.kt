@@ -5,7 +5,7 @@ import world.phantasmal.lib.cursor.Cursor
 class ItemPmt(
     val statBoosts: List<PmtStatBoost>,
     val frames: List<PmtFrame>,
-    val barriers: List<PmtFrame>,
+    val barriers: List<PmtBarrier>,
     val units: List<PmtUnit>,
     val tools: List<List<PmtTool>>,
     val weapons: List<List<PmtWeapon>>,
@@ -41,6 +41,8 @@ class PmtFrame(
     val techBoost: Int,
     val unknown1: Int,
 )
+
+typealias PmtBarrier = PmtFrame
 
 class PmtUnit(
     val id: Int,

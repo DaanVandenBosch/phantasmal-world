@@ -176,7 +176,7 @@ fun <T> bindDisposableChildrenTo(
             },
             childrenRemoved = {
                 disposer.disposeAll()
-            }
+            },
         )
 
         disposable {
@@ -189,6 +189,7 @@ fun <T> bindChildrenTo(
     parent: Element,
     list: ListVal<T>,
     createChild: Node.(T, index: Int) -> Node,
+    after: (ListValChangeEvent<T>) -> Unit = {},
 ): Disposable =
     bindChildrenTo(
         parent,
@@ -196,13 +197,15 @@ fun <T> bindChildrenTo(
         createChild,
         childrenRemoved = { _, _ ->
             // Do nothing.
-        }
+        },
+        after,
     )
 
 fun <T> bindDisposableChildrenTo(
     parent: Element,
     list: ListVal<T>,
     createChild: Node.(T, index: Int) -> Pair<Node, Disposable>,
+    after: (ListValChangeEvent<T>) -> Unit = {},
 ): Disposable {
     val disposer = Disposer()
 
@@ -216,7 +219,8 @@ fun <T> bindDisposableChildrenTo(
         },
         childrenRemoved = { index, count ->
             disposer.removeAt(index, count)
-        }
+        },
+        after,
     )
 
     return disposable {
@@ -249,6 +253,7 @@ private fun <T> bindChildrenTo(
     list: ListVal<T>,
     createChild: Node.(T, index: Int) -> Node,
     childrenRemoved: (index: Int, count: Int) -> Unit,
+    after: (ListValChangeEvent<T>) -> Unit,
 ): Disposable =
     list.observeList(callNow = true) { change: ListValChangeEvent<T> ->
         if (change is ListValChangeEvent.Change) {
@@ -270,4 +275,6 @@ private fun <T> bindChildrenTo(
                 parent.insertBefore(frag, parent.childNodes[change.index])
             }
         }
+
+        after(change)
     }
