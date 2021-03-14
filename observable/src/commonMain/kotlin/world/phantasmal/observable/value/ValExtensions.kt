@@ -1,5 +1,8 @@
 package world.phantasmal.observable.value
 
+import world.phantasmal.observable.value.list.DependentListVal
+import world.phantasmal.observable.value.list.ListVal
+
 infix fun <T> Val<T>.eq(value: T): Val<Boolean> =
     map { it == value }
 
@@ -56,3 +59,6 @@ fun Val<String>.isBlank(): Val<Boolean> =
 
 fun Val<String>.isNotBlank(): Val<Boolean> =
     map { it.isNotBlank() }
+
+fun <T> Val<List<T>>.toListVal(): ListVal<T> =
+    DependentListVal(listOf(this)) { value }

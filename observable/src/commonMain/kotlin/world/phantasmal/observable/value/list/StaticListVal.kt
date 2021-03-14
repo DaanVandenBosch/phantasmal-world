@@ -4,11 +4,14 @@ import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.core.disposable.stubDisposable
 import world.phantasmal.observable.ChangeEvent
 import world.phantasmal.observable.Observer
+import world.phantasmal.observable.value.StaticVal
 import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.value
 
 class StaticListVal<E>(private val elements: List<E>) : ListVal<E> {
-    override val sizeVal: Val<Int> = value(elements.size)
+    private val firstOrNull = StaticVal(elements.firstOrNull())
+
+    override val size: Val<Int> = value(elements.size)
 
     override val value: List<E> = elements
 
@@ -32,4 +35,6 @@ class StaticListVal<E>(private val elements: List<E>) : ListVal<E> {
 
         return stubDisposable()
     }
+
+    override fun firstOrNull(): Val<E?> = firstOrNull
 }

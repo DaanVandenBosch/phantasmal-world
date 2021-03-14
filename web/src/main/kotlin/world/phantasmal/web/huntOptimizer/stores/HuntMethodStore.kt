@@ -10,10 +10,10 @@ import world.phantasmal.observable.value.list.mutableListVal
 import world.phantasmal.web.core.loading.AssetLoader
 import world.phantasmal.web.core.models.Server
 import world.phantasmal.web.core.stores.UiStore
-import world.phantasmal.web.shared.dto.QuestDto
 import world.phantasmal.web.huntOptimizer.models.HuntMethodModel
 import world.phantasmal.web.huntOptimizer.models.SimpleQuestModel
 import world.phantasmal.web.huntOptimizer.persistence.HuntMethodPersister
+import world.phantasmal.web.shared.dto.QuestDto
 import world.phantasmal.webui.stores.Store
 import kotlin.collections.component1
 import kotlin.collections.component2
@@ -26,7 +26,7 @@ class HuntMethodStore(
     private val assetLoader: AssetLoader,
     private val huntMethodPersister: HuntMethodPersister,
 ) : Store() {
-    private val _methods = mutableListVal<HuntMethodModel>()
+    private val _methods = mutableListVal<HuntMethodModel> { arrayOf(it.time) }
 
     val methods: ListVal<HuntMethodModel> by lazy {
         observe(uiStore.server) { loadMethods(it) }

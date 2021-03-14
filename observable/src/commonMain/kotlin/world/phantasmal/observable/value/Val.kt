@@ -24,7 +24,7 @@ interface Val<out T> : Observable<T> {
      * @param transform called whenever this val changes
      */
     fun <R> map(transform: (T) -> R): Val<R> =
-        MappedVal(listOf(this)) { transform(value) }
+        DependentVal(listOf(this)) { transform(value) }
 
     /**
      * Map a transformation function that returns a val over this val. The resulting val will change

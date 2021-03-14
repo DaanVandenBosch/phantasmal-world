@@ -4,7 +4,7 @@ import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.observable.value.Val
 
 interface ListVal<E> : Val<List<E>> {
-    val sizeVal: Val<Int>
+    val size: Val<Int>
 
     operator fun get(index: Int): E
 
@@ -18,4 +18,6 @@ interface ListVal<E> : Val<List<E>> {
 
     fun filtered(predicate: (E) -> Boolean): ListVal<E> =
         FilteredListVal(this, predicate)
+
+    fun firstOrNull(): Val<E?>
 }

@@ -24,7 +24,7 @@ class SimpleListVal<E>(
             replaceAll(value)
         }
 
-    override val sizeVal: Val<Int> = _sizeVal
+    override val size: Val<Int> = _sizeVal
 
     override operator fun get(index: Int): E =
         elements[index]

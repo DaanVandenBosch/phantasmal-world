@@ -6,6 +6,8 @@ import world.phantasmal.observable.ChangeEvent
 import world.phantasmal.observable.Observable
 import world.phantasmal.observable.Observer
 import world.phantasmal.observable.value.AbstractVal
+import world.phantasmal.observable.value.DependentVal
+import world.phantasmal.observable.value.Val
 
 abstract class AbstractListVal<E>(
     protected val elements: MutableList<E>,
@@ -58,6 +60,9 @@ abstract class AbstractListVal<E>(
             disposeElementObserversIfNecessary()
         }
     }
+
+    override fun firstOrNull(): Val<E?> =
+        DependentVal(listOf(this)) { elements.firstOrNull() }
 
     /**
      * Does the following in the given order:

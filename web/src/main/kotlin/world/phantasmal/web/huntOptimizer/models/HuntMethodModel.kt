@@ -32,4 +32,12 @@ class HuntMethodModel(
     fun setUserTime(userTime: Duration?) {
         _userTime.value = userTime
     }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other == null || this::class.js != other::class.js) return false
+        return id == (other as HuntMethodModel).id
+    }
+
+    override fun hashCode(): Int = id.hashCode()
 }

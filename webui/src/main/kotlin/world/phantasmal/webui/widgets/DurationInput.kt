@@ -4,6 +4,7 @@ import org.w3c.dom.HTMLInputElement
 import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.nullVal
 import world.phantasmal.observable.value.trueVal
+import world.phantasmal.webui.formatAsHoursAndMinutes
 import kotlin.time.Duration
 import kotlin.time.minutes
 
@@ -50,9 +51,7 @@ class DurationInput(
     }
 
     override fun setInputValue(input: HTMLInputElement, value: Duration) {
-        input.value = value.toComponents { hours, minutes, _, _ ->
-            "${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}"
-        }
+        input.value = value.formatAsHoursAndMinutes()
     }
 
     companion object {

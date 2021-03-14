@@ -8,7 +8,7 @@ import world.phantasmal.observable.Observer
 class FlatMappedVal<T>(
     dependencies: Iterable<Val<*>>,
     private val compute: () -> Val<T>,
-) : DependentVal<T>(dependencies) {
+) : AbstractDependentVal<T>(dependencies) {
     private var computedVal: Val<T>? = null
     private var computedValObserver: Disposable? = null
 

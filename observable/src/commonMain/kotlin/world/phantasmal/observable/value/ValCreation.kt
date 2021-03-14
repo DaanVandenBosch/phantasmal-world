@@ -40,7 +40,7 @@ fun <T1, T2, R> map(
     v2: Val<T2>,
     transform: (T1, T2) -> R,
 ): Val<R> =
-    MappedVal(listOf(v1, v2)) { transform(v1.value, v2.value) }
+    DependentVal(listOf(v1, v2)) { transform(v1.value, v2.value) }
 
 /**
  * Map a transformation function over 3 vals.
@@ -53,7 +53,7 @@ fun <T1, T2, T3, R> map(
     v3: Val<T3>,
     transform: (T1, T2, T3) -> R,
 ): Val<R> =
-    MappedVal(listOf(v1, v2, v3)) { transform(v1.value, v2.value, v3.value) }
+    DependentVal(listOf(v1, v2, v3)) { transform(v1.value, v2.value, v3.value) }
 
 /**
  * Map a transformation function that returns a val over 2 vals. The resulting val will change when

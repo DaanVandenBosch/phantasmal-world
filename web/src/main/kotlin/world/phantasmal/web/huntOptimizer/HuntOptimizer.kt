@@ -6,10 +6,7 @@ import world.phantasmal.web.core.loading.AssetLoader
 import world.phantasmal.web.core.stores.ItemDropStore
 import world.phantasmal.web.core.stores.ItemTypeStore
 import world.phantasmal.web.core.stores.UiStore
-import world.phantasmal.web.huntOptimizer.controllers.HuntOptimizerController
-import world.phantasmal.web.huntOptimizer.controllers.MethodsController
-import world.phantasmal.web.huntOptimizer.controllers.MethodsForEpisodeController
-import world.phantasmal.web.huntOptimizer.controllers.WantedItemsController
+import world.phantasmal.web.huntOptimizer.controllers.*
 import world.phantasmal.web.huntOptimizer.persistence.HuntMethodPersister
 import world.phantasmal.web.huntOptimizer.persistence.WantedItemPersister
 import world.phantasmal.web.huntOptimizer.stores.HuntMethodStore
@@ -43,22 +40,23 @@ class HuntOptimizer(
             itemDropStore,
         ))
 
-        // Controllers
-        val huntOptimizerController = addDisposable(HuntOptimizerController(uiStore))
-        val wantedItemsController = addDisposable(WantedItemsController(huntOptimizerStore))
-        val methodsController = addDisposable(MethodsController(uiStore))
-
         // Main Widget
         return HuntOptimizerWidget(
-            ctrl = huntOptimizerController,
+            ctrl = addDisposable(HuntOptimizerController(uiStore)),
             createOptimizerWidget = {
                 OptimizerWidget(
-                    { WantedItemsWidget(wantedItemsController) },
-                    { OptimizationResultWidget() },
+                    createWantedItemsWidget = {
+                        WantedItemsWidget(addDisposable(WantedItemsController(huntOptimizerStore)))
+                    },
+                    createOptimizationResultWidget = {
+                        OptimizationResultWidget(
+                            addDisposable(OptimizationResultController(huntOptimizerStore))
+                        )
+                    },
                 )
             },
             createMethodsWidget = {
-                MethodsWidget(methodsController) { episode ->
+                MethodsWidget(addDisposable(MethodsController(uiStore))) { episode ->
                     MethodsForEpisodeWidget(MethodsForEpisodeController(huntMethodStore, episode))
                 }
             }

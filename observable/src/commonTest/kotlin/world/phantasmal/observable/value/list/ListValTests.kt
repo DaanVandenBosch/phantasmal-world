@@ -18,21 +18,21 @@ abstract class ListValTests : ValTests() {
     abstract override fun create(): ListValAndAdd<*, ListVal<*>>
 
     @Test
-    fun listVal_updates_sizeVal_correctly() = test {
+    fun listVal_updates_size_correctly() = test {
         val (list: ListVal<*>, add) = create()
 
-        assertEquals(0, list.sizeVal.value)
+        assertEquals(0, list.size.value)
 
         var observedSize = 0
 
         disposer.add(
-            list.sizeVal.observe { observedSize = it.value }
+            list.size.observe { observedSize = it.value }
         )
 
         for (i in 1..3) {
             add()
 
-            assertEquals(i, list.sizeVal.value)
+            assertEquals(i, list.size.value)
             assertEquals(i, observedSize)
         }
     }

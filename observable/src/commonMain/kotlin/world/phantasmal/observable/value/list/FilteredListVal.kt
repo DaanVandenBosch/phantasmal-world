@@ -35,7 +35,7 @@ class FilteredListVal<E>(
             return elements
         }
 
-    override val sizeVal: Val<Int> = _sizeVal
+    override val size: Val<Int> = _sizeVal
 
     override fun observe(callNow: Boolean, observer: Observer<List<E>>): Disposable {
         initDependencyObservers()

@@ -88,7 +88,7 @@ class FilteredListValTests : ListValTests() {
             event = it
         })
 
-        for (i in 0 until dep.sizeVal.value) {
+        for (i in 0 until dep.size.value) {
             event = null
 
             // Make an even number odd or an odd number even so that the . List should emit a Change event.
@@ -108,7 +108,7 @@ class FilteredListValTests : ListValTests() {
             }
         }
 
-        for (i in 0 until dep.sizeVal.value) {
+        for (i in 0 until dep.size.value) {
             event = null
 
             // Change a value, but keep even numbers even and odd numbers odd. List should emit an

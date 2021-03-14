@@ -19,7 +19,7 @@ class WantedItemsController(
         huntOptimizerStore.huntableItems.filtered(filter)
     }
 
-    val wantedItems: ListVal<WantedItemModel> by lazy { huntOptimizerStore.wantedItems }
+    val wantedItems: ListVal<WantedItemModel> = huntOptimizerStore.wantedItems
 
     fun filterSelectableItems(text: String) {
         val sanitized = text.trim()
