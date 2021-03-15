@@ -1,6 +1,7 @@
 package world.phantasmal.webui.widgets
 
 import org.w3c.dom.*
+import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.core.disposable.Disposer
 import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.trueVal
@@ -12,6 +13,7 @@ class Table<T>(
     visible: Val<Boolean> = trueVal(),
     enabled: Val<Boolean> = trueVal(),
     private val ctrl: TableController<T>,
+    private val className: String? = null,
     /**
      * Can return a [Widget].
      */
@@ -20,6 +22,8 @@ class Table<T>(
     override fun Node.createElement() =
         table {
             className = "pw-table"
+
+            this@Table.className?.let { classList.add(it) }
 
             thead {
                 tr {
@@ -59,11 +63,30 @@ class Table<T>(
                     Pair(row, rowDisposer)
                 }
             }
+
+            if (ctrl.hasFooter) {
+                tfoot {
+                    tr {
+                        className = "pw-table-row pw-table-footer-row"
+
+                        addDisposable(bindDisposableChildrenTo(
+                            this,
+                            ctrl.columns,
+                            createChild = { column, _ ->
+                                createFooterRowCell(column)
+                            },
+                            after = {
+                                positionFixedColumns(row = this, headerRow = false)
+                            },
+                        ))
+                    }
+                }
+            }
         }
 
     private fun Node.createHeaderRowCell(column: Column<T>): HTMLTableCellElement =
         th {
-            className = "pw-table-cell"
+            className = "pw-table-cell pw-table-header-cell"
 
             column.headerClassName?.let { classList.add(it) }
 
@@ -104,11 +127,27 @@ class Table<T>(
             }
 
             style.width = "${column.width}px"
-
-            column.tooltip?.let { title = it(value) }
-
+            column.tooltip(value)?.let { title = it }
             column.textAlign?.let { style.textAlign = it }
         }
+
+    private fun Node.createFooterRowCell(
+        column: Column<T>,
+    ): Pair<HTMLTableCellElement, Disposable> {
+        val disposer = Disposer()
+
+        val cell = th {
+            className = "pw-table-cell pw-table-footer-cell"
+
+            style.width = "${column.width}px"
+            column.textAlign?.let { style.textAlign = it }
+
+            disposer.add(column.footer.observe(callNow = true) { textContent = it.value ?: "" })
+            disposer.add(column.footerTooltip.observe(callNow = true) { title = it.value ?: "" })
+        }
+
+        return Pair(cell, disposer)
+    }
 
     private fun positionFixedColumns(row: HTMLTableRowElement, headerRow: Boolean) {
         val columns = ctrl.columns.value
@@ -168,12 +207,17 @@ class Table<T>(
                     top: 0;
                 }
 
-                .pw-table-header-row > th {
+                .pw-table-header-cell {
                     font-weight: bold;
                     display: flex;
                     flex-direction: column;
                     justify-content: center;
                     overflow: hidden;
+                }
+
+                .pw-table-footer-cell {
+                    font-weight: bold;
+                    text-align: left;
                 }
 
                 .pw-table-cell {
@@ -190,8 +234,7 @@ class Table<T>(
                     white-space: nowrap;
                 }
 
-                .pw-table-body-cell,
-                .pw-table-footer-cell {
+                .pw-table-body-cell {
                     text-align: left;
                 }
 

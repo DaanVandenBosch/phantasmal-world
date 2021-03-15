@@ -180,7 +180,7 @@ class HuntOptimizerStore(
             }
         }
 
-        val optimalMethods = solve(filteredWantedItems, constraints, variables, fullMethods)
+        val optimalMethods = solve(wantedItemTypeIds, constraints, variables, fullMethods)
 
         logger.debug { "Optimization end." }
 
@@ -259,7 +259,7 @@ class HuntOptimizerStore(
     }
 
     private fun solve(
-        wantedItems: List<WantedItemModel>,
+        wantedItemTypeIds: JsSet<Int>,
         constraints: dynamic,
         variables: dynamic,
         fullMethods: JsMap<String, FullMethod>,
@@ -281,20 +281,20 @@ class HuntOptimizerStore(
                 val runs = runsOrOther as Double
                 val variable = variables[variableName]
 
-                val itemCounts: Map<ItemType, Double> =
+                val itemTypeIdToCount: Map<Int, Double> =
                     objectEntries(variable)
                         .mapNotNull { (itemTypeIdStr, expectedAmount) ->
                             itemTypeIdStr.toIntOrNull()?.let { itemTypeId ->
-                                wantedItems
-                                    .find { it.itemType.id == itemTypeId }
-                                    ?.let { wanted ->
-                                        Pair(wanted.itemType, runs * (expectedAmount as Double))
-                                    }
+                                if (wantedItemTypeIds.has(itemTypeId)) {
+                                    Pair(itemTypeId, runs * (expectedAmount as Double))
+                                } else {
+                                    null
+                                }
                             }
                         }
                         .toMap()
 
-                check(itemCounts.isNotEmpty()) {
+                check(itemTypeIdToCount.isNotEmpty()) {
                     """Item counts map for variable "$variableName" was empty."""
                 }
 
@@ -348,7 +348,7 @@ class HuntOptimizerStore(
                     method.episode,
                     method.time.value,
                     runs,
-                    itemCounts,
+                    itemTypeIdToCount,
                 )
             }
         }

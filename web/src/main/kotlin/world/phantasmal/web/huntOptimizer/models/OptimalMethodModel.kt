@@ -13,7 +13,7 @@ class OptimalMethodModel(
     val episode: Episode,
     val methodTime: Duration,
     val runs: Double,
-    val itemCounts: Map<ItemType, Double>,
+    val itemTypeIdToCount: Map<Int, Double>,
 ) {
     val totalTime: Duration = methodTime * runs
 }

@@ -89,10 +89,6 @@ internal const val DEFAULT_STYLE = """
     margin: 0.5em 0;
 }
 
-.pw-root th {
-    font-weight: normal;
-}
-
 .pw-root *[hidden] {
     display: none;
 }

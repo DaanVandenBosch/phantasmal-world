@@ -8,7 +8,9 @@ fun Double.toRoundedString(decimals: Int): String =
         var multiplied = this
         repeat(decimals) { multiplied *= 10 }
         val str = multiplied.roundToInt().toString()
+        val intPart = str.dropLast(decimals)
+        val decPart = str.takeLast(decimals).padStart(decimals, '0')
 
-        if (this < 1) "0.$str"
-        else "${str.dropLast(decimals)}.${str.takeLast(decimals)}"
+        if (intPart.isEmpty()) "0.$decPart"
+        else "$intPart.$decPart"
     }

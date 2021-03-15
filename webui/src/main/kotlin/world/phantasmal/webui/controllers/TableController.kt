@@ -1,6 +1,8 @@
 package world.phantasmal.webui.controllers
 
+import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.list.ListVal
+import world.phantasmal.observable.value.nullVal
 
 class Column<T>(
     val key: String,
@@ -10,11 +12,13 @@ class Column<T>(
      * Whether cells in this column contain an input widget.
      */
     val input: Boolean = false,
-    val tooltip: ((T) -> String)? = null,
+    val tooltip: (T) -> String? = { null },
     val sortable: Boolean = false,
     val headerClassName: String? = null,
     val className: String? = null,
     val textAlign: String? = null,
+    val footer: Val<String?> = nullVal(),
+    val footerTooltip: Val<String?> = nullVal(),
 )
 
 enum class SortDirection {
@@ -34,6 +38,7 @@ abstract class TableController<T> : Controller() {
      * How many columns stay in place on the left side while scrolling.
      */
     open val fixedColumns: Int = 0
+    open val hasFooter: Boolean = false
 
     abstract val values: ListVal<T>
     abstract val columns: ListVal<Column<T>>

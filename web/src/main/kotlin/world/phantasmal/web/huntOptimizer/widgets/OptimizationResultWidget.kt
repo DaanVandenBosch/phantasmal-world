@@ -28,6 +28,7 @@ class OptimizationResultWidget(private val ctrl: OptimizationResultController) :
 
             addWidget(Table(
                 ctrl = ctrl,
+                className = "pw-hunt-optimizer-optimization-result-table",
                 renderCell = { optimalMethod, column ->
                     when (column.key) {
                         DIFF_COL -> optimalMethod.difficulty
@@ -45,7 +46,11 @@ class OptimizationResultWidget(private val ctrl: OptimizationResultController) :
                         TIME_PER_RUN_COL -> optimalMethod.methodTime.formatAsHoursAndMinutes()
                         RUNS_COL -> optimalMethod.runs.toRoundedString(1)
                         TOTAL_TIME_COL -> optimalMethod.totalTime.inHours.toRoundedString(1)
-                        else -> ""
+                        else -> {
+                            optimalMethod.itemTypeIdToCount[column.key.toInt()]
+                                ?.toRoundedString(2)
+                                ?: ""
+                        }
                     }
                 },
             ))
@@ -53,11 +58,21 @@ class OptimizationResultWidget(private val ctrl: OptimizationResultController) :
 
     companion object {
         init {
-            @Suppress("CssUnusedSymbol")
+            @Suppress("CssUnusedSymbol", "CssUnresolvedCustomProperty")
             // language=css
             style("""
                 .pw-hunt-optimizer-optimization-result {
                     flex-grow: 1;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: stretch;
+                    overflow: hidden;
+                }
+                
+                .pw-hunt-optimizer-optimization-result-table {
+                    flex-grow: 1;
+                    border-top: var(--pw-border);
+                    border-left: var(--pw-border);
                 }
             """.trimIndent())
         }
