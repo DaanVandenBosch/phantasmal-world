@@ -8,7 +8,7 @@ import kotlin.math.roundToInt
 
 class QuestObject(override var areaId: Int, override val data: Buffer) : QuestEntity<ObjectType> {
     constructor(type: ObjectType, areaId: Int) : this(areaId, Buffer.withSize(OBJECT_BYTE_SIZE)) {
-        // TODO: Set default data.
+        setObjectDefaultData(type, data)
         this.type = type
     }
 
@@ -22,6 +22,18 @@ class QuestObject(override var areaId: Int, override val data: Buffer) : QuestEn
         get() = objectTypeFromId(typeId)
         set(value) {
             typeId = value.typeId ?: -1
+        }
+
+    var id: Short
+        get() = data.getShort(8)
+        set(value) {
+            data.setShort(8, value)
+        }
+
+    var groupId: Short
+        get() = data.getShort(10)
+        set(value) {
+            data.setShort(10, value)
         }
 
     override var sectionId: Short

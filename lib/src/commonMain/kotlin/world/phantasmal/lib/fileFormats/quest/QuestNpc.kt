@@ -18,8 +18,8 @@ class QuestNpc(
         areaId: Int,
         wave: Short,
     ) : this(episode, areaId, Buffer.withSize(NPC_BYTE_SIZE)) {
+        setNpcDefaultData(type, data)
         this.type = type
-        // TODO: Set default data.
         // Set areaId after type, because you might want to overwrite the areaId that type has
         // determined.
         this.areaId = areaId
@@ -103,6 +103,15 @@ class QuestNpc(
         )
         set(value) {
             setRotation(value.x, value.y, value.z)
+        }
+
+    /**
+     * Only seems to be valid for non-enemies.
+     */
+    var id: Int
+        get() = data.getFloat(56).roundToInt()
+        set(value) {
+            data.setFloat(56, value.toFloat())
         }
 
     /**
