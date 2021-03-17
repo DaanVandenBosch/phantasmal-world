@@ -6,11 +6,11 @@ import world.phantasmal.observable.Observer
 import world.phantasmal.observable.value.AbstractVal
 import world.phantasmal.observable.value.Val
 
-// TODO: This class shares 95% of its code with DependentListVal.
+// TODO: This class shares 95% of its code with AbstractDependentListVal.
 class FilteredListVal<E>(
     private val dependency: ListVal<E>,
     private val predicate: (E) -> Boolean,
-) : AbstractListVal<E>(mutableListOf(), extractObservables = null) {
+) : AbstractListVal<E>(extractObservables = null) {
     private val _sizeVal = SizeVal()
 
     /**
@@ -25,6 +25,8 @@ class FilteredListVal<E>(
      * doesn't pass the predicate, it's index in this mapping is set to -1.
      */
     private val indexMap = mutableListOf<Int>()
+
+    override val elements: MutableList<E> = mutableListOf()
 
     override val value: List<E>
         get() {

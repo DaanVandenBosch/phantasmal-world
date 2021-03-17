@@ -2,10 +2,13 @@ package world.phantasmal.observable.value
 
 import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.core.disposable.disposable
-import world.phantasmal.core.unsafeToNonNull
+import world.phantasmal.core.unsafeAssertNotNull
 import world.phantasmal.observable.Observer
 
-class FlatMappedVal<T>(
+/**
+ * Similar to [DependentVal], except that this val's [compute] returns a val.
+ */
+class FlatteningDependentVal<T>(
     dependencies: Iterable<Val<*>>,
     private val compute: () -> Val<T>,
 ) : AbstractDependentVal<T>(dependencies) {
@@ -15,7 +18,7 @@ class FlatMappedVal<T>(
     override val value: T
         get() {
             return if (hasObservers) {
-                computedVal.unsafeToNonNull().value
+                computedVal.unsafeAssertNotNull().value
             } else {
                 super.value
             }

@@ -4,6 +4,8 @@ import world.phantasmal.observable.ObservableAndEmit
 import world.phantasmal.observable.value.ValTests
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 class ListValAndAdd<T, out O : ListVal<T>>(
     observable: O,
@@ -16,6 +18,28 @@ class ListValAndAdd<T, out O : ListVal<T>>(
  */
 abstract class ListValTests : ValTests() {
     abstract override fun create(): ListValAndAdd<*, ListVal<*>>
+
+    @Test
+    fun listVal_calls_list_observers_when_changed() = test {
+        val (list: ListVal<*>, add) = create()
+
+        var event: ListValChangeEvent<*>? = null
+
+        disposer.add(
+            list.observeList {
+                assertNull(event)
+                event = it
+            }
+        )
+
+        for (i in 0..2) {
+            event = null
+
+            add()
+
+            assertTrue(event is ListValChangeEvent.Change<*>)
+        }
+    }
 
     @Test
     fun listVal_updates_size_correctly() = test {

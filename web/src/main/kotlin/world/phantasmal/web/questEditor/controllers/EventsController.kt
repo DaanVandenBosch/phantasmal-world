@@ -3,9 +3,9 @@ package world.phantasmal.web.questEditor.controllers
 import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.and
 import world.phantasmal.observable.value.eq
-import world.phantasmal.observable.value.flatMap
 import world.phantasmal.observable.value.list.ListVal
 import world.phantasmal.observable.value.list.emptyListVal
+import world.phantasmal.observable.value.list.flatMapToList
 import world.phantasmal.observable.value.list.listVal
 import world.phantasmal.web.questEditor.actions.*
 import world.phantasmal.web.questEditor.models.QuestEventActionModel
@@ -18,8 +18,8 @@ class EventsController(private val store: QuestEditorStore) : Controller() {
     val enabled: Val<Boolean> = store.questEditingEnabled
     val removeEventEnabled: Val<Boolean> = enabled and store.selectedEvent.isNotNull()
 
-    val events: Val<List<QuestEventModel>> =
-        flatMap(store.currentQuest, store.currentArea) { quest, area ->
+    val events: ListVal<QuestEventModel> =
+        flatMapToList(store.currentQuest, store.currentArea) { quest, area ->
             if (quest != null && area != null) {
                 quest.events.filtered { it.areaId == area.id }
             } else {

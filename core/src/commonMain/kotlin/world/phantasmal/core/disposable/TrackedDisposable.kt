@@ -21,7 +21,10 @@ abstract class TrackedDisposable : Disposable {
         if (!disposed) {
             disposed = true
             disposableCount--
-            disposables.remove(this)
+
+            if (trackPrecise) {
+                disposables.remove(this)
+            }
         }
     }
 

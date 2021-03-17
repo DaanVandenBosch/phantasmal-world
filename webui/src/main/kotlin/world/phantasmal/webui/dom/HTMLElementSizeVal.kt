@@ -3,7 +3,7 @@ package world.phantasmal.webui.dom
 import org.w3c.dom.HTMLElement
 import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.core.disposable.disposable
-import world.phantasmal.core.unsafeToNonNull
+import world.phantasmal.core.unsafeAssertNotNull
 import world.phantasmal.observable.Observer
 import world.phantasmal.observable.value.AbstractVal
 
@@ -45,7 +45,7 @@ class HTMLElementSizeVal(element: HTMLElement? = null) : AbstractVal<Size>() {
                 _value = getSize()
             }
 
-            return _value.unsafeToNonNull()
+            return _value.unsafeAssertNotNull()
         }
 
     override fun observe(callNow: Boolean, observer: Observer<Size>): Disposable {

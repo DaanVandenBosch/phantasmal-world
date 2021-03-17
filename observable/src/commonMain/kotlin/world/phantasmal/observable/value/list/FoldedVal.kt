@@ -2,7 +2,7 @@ package world.phantasmal.observable.value.list
 
 import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.core.disposable.disposable
-import world.phantasmal.core.unsafeToNonNull
+import world.phantasmal.core.unsafeAssertNotNull
 import world.phantasmal.observable.Observer
 import world.phantasmal.observable.value.AbstractVal
 
@@ -12,14 +12,14 @@ class FoldedVal<T, R>(
     private val operation: (R, T) -> R,
 ) : AbstractVal<R>() {
     private var dependencyDisposable: Disposable? = null
-    private var internalValue: R? = null
+    private var _value: R? = null
 
     override val value: R
         get() {
             return if (dependencyDisposable == null) {
                 computeValue()
             } else {
-                internalValue.unsafeToNonNull()
+                _value.unsafeAssertNotNull()
             }
         }
 
@@ -27,10 +27,10 @@ class FoldedVal<T, R>(
         val superDisposable = super.observe(callNow, observer)
 
         if (dependencyDisposable == null) {
-            internalValue = computeValue()
+            _value = computeValue()
 
             dependencyDisposable = dependency.observe {
-                internalValue = computeValue()
+                _value = computeValue()
                 emit()
             }
         }

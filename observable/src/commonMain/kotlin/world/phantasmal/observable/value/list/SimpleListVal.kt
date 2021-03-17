@@ -14,9 +14,9 @@ typealias ObservablesExtractor<E> = (element: E) -> Array<Observable<*>>
  * returned observables will be propagated via ElementChange events
  */
 class SimpleListVal<E>(
-    elements: MutableList<E>,
+    override val elements: MutableList<E>,
     extractObservables: ObservablesExtractor<E>? = null,
-) : AbstractListVal<E>(elements, extractObservables), MutableListVal<E> {
+) : AbstractListVal<E>(extractObservables), MutableListVal<E> {
     private val _sizeVal: MutableVal<Int> = mutableVal(elements.size)
 
     override var value: List<E> = elements

@@ -2,6 +2,7 @@ package world.phantasmal.observable.value.list
 
 import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.core.disposable.disposable
+import world.phantasmal.core.unsafeAssertNotNull
 import world.phantasmal.observable.ChangeEvent
 import world.phantasmal.observable.Observable
 import world.phantasmal.observable.Observer
@@ -10,7 +11,6 @@ import world.phantasmal.observable.value.DependentVal
 import world.phantasmal.observable.value.Val
 
 abstract class AbstractListVal<E>(
-    protected val elements: MutableList<E>,
     private val extractObservables: ObservablesExtractor<E>?,
 ) : AbstractVal<List<E>>(), ListVal<E> {
     /**
@@ -23,6 +23,8 @@ abstract class AbstractListVal<E>(
      * External list observers which are observing this list.
      */
     protected val listObservers = mutableListOf<ListValObserver<E>>()
+
+    protected abstract val elements: List<E>
 
     override fun get(index: Int): E =
         elements[index]
@@ -99,7 +101,7 @@ abstract class AbstractListVal<E>(
                 ElementObserver(
                     index++,
                     element,
-                    extractObservables!!(element)
+                    extractObservables.unsafeAssertNotNull()(element)
                 )
             }
         )

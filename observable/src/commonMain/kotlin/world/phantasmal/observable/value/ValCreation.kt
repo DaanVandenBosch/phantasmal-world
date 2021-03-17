@@ -66,4 +66,4 @@ fun <T1, T2, R> flatMap(
     v2: Val<T2>,
     transform: (T1, T2) -> Val<R>,
 ): Val<R> =
-    FlatMappedVal(listOf(v1, v2)) { transform(v1.value, v2.value) }
+    FlatteningDependentVal(listOf(v1, v2)) { transform(v1.value, v2.value) }

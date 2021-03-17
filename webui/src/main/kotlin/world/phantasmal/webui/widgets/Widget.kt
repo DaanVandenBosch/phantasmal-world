@@ -63,7 +63,9 @@ abstract class Widget(
         el
     }
 
-    protected val scope = addDisposable(DisposableSupervisedScope(this::class, Dispatchers.Main))
+    protected val scope by lazy {
+        addDisposable(DisposableSupervisedScope(this::class, Dispatchers.Main))
+    }
 
     /**
      * This widget's outermost DOM element.

@@ -1,4 +1,4 @@
 package world.phantasmal.core
 
-@Suppress("UNCHECKED_CAST")
-actual fun <T> T?.unsafeToNonNull(): T = this as T
+@Suppress("UNCHECKED_CAST", "NOTHING_TO_INLINE")
+actual inline fun <T> T?.unsafeAssertNotNull(): T = this as T

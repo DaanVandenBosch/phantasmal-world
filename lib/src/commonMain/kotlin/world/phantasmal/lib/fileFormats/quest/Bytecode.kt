@@ -333,7 +333,6 @@ private fun getArgLabelValues(
             oldType == null ||
             SEGMENT_PRIORITY.getValue(segmentType) > SEGMENT_PRIORITY.getValue(oldType)
         ) {
-//            println("Type of label $value inferred as $segmentType because of parameter ${paramIdx + 1} of instruction ${instructionIdx + 1} ${instruction.opcode.mnemonic} at label ${instructionSegment.labels.firstOrNull()}.")
             labels[value] = segmentType
         }
 

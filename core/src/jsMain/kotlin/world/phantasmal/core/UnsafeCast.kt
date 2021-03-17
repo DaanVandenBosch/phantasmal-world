@@ -1,3 +1,4 @@
 package world.phantasmal.core
 
-actual fun <T> T?.unsafeToNonNull(): T = unsafeCast<T>()
+@Suppress("NOTHING_TO_INLINE")
+actual inline fun <T> T?.unsafeAssertNotNull(): T = unsafeCast<T>()

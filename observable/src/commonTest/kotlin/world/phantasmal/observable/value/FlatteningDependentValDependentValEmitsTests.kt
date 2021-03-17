@@ -6,9 +6,9 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
 /**
- * In these tests the direct dependency of the [FlatMappedVal] changes.
+ * In these tests the direct dependency of the [FlatteningDependentVal] changes.
  */
-class FlatMappedValDependentValEmitsTests : RegularValTests() {
+class FlatteningDependentValDependentValEmitsTests : RegularValTests() {
     /**
      * This is a regression test, it's important that this exact sequence of statements stays the
      * same.
@@ -16,7 +16,7 @@ class FlatMappedValDependentValEmitsTests : RegularValTests() {
     @Test
     fun emits_a_change_when_its_direct_val_dependency_changes() = test {
         val v = SimpleVal(SimpleVal(7))
-        val fv = FlatMappedVal(listOf(v)) { v.value }
+        val fv = FlatteningDependentVal(listOf(v)) { v.value }
         var observedValue: Int? = null
 
         disposer.add(
@@ -34,14 +34,14 @@ class FlatMappedValDependentValEmitsTests : RegularValTests() {
         assertEquals(7, observedValue)
     }
 
-    override fun create(): ObservableAndEmit<*, FlatMappedVal<*>> {
+    override fun create(): ObservableAndEmit<*, FlatteningDependentVal<*>> {
         val v = SimpleVal(SimpleVal(5))
-        val value = FlatMappedVal(listOf(v)) { v.value }
+        val value = FlatteningDependentVal(listOf(v)) { v.value }
         return ObservableAndEmit(value) { v.value = SimpleVal(v.value.value + 5) }
     }
 
-    override fun <T> createWithValue(value: T): FlatMappedVal<T> {
+    override fun <T> createWithValue(value: T): FlatteningDependentVal<T> {
         val v = SimpleVal(SimpleVal(value))
-        return FlatMappedVal(listOf(v)) { v.value }
+        return FlatteningDependentVal(listOf(v)) { v.value }
     }
 }

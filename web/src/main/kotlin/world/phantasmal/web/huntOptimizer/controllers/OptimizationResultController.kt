@@ -1,7 +1,6 @@
 package world.phantasmal.web.huntOptimizer.controllers
 
 import world.phantasmal.observable.value.list.ListVal
-import world.phantasmal.observable.value.toListVal
 import world.phantasmal.observable.value.value
 import world.phantasmal.web.huntOptimizer.models.OptimalMethodModel
 import world.phantasmal.web.huntOptimizer.stores.HuntOptimizerStore
@@ -17,10 +16,10 @@ class OptimizationResultController(
     override val hasFooter = true
 
     override val values: ListVal<OptimalMethodModel> =
-        huntOptimizerStore.optimizationResult.map { it.optimalMethods }.toListVal()
+        huntOptimizerStore.optimizationResult.mapToListVal { it.optimalMethods }
 
     override val columns: ListVal<Column<OptimalMethodModel>> =
-        huntOptimizerStore.optimizationResult.map { result ->
+        huntOptimizerStore.optimizationResult.mapToListVal { result ->
             var totalRuns = .0
             var totalTime = Duration.ZERO
 
@@ -92,7 +91,7 @@ class OptimizationResultController(
                     )
                 },
             )
-        }.toListVal()
+        }
 
     companion object {
         const val DIFF_COL = "diff"

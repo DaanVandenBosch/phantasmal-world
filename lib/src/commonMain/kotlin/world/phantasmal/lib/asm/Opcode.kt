@@ -123,8 +123,9 @@ enum class StackInteraction {
 
 /**
  * Opcode for script byte code. Invoked by instructions.
+ * Don't directly instantiate this class, use the global constants and lookup functions.
  */
-class Opcode(
+class Opcode internal constructor(
     /**
      * 1- Or 2-byte big-endian representation of this opcode as used in byte code.
      */
@@ -151,12 +152,7 @@ class Opcode(
      */
     val size: Int = if (code < 0xFF) 1 else 2
 
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other == null || this::class != other::class) return false
-        other as Opcode
-        return code == other.code
-    }
+    override fun equals(other: Any?): Boolean = this === other
 
     override fun hashCode(): Int = code
 }

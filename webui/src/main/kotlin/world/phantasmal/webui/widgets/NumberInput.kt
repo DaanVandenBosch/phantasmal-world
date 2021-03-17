@@ -42,7 +42,7 @@ abstract class NumberInput<T : Number>(
             // language=css
             style("""
                 .pw-number-input {
-                    width: 54px;
+                    width: 60px;
                 }
 
                 .pw-input-inner.pw-number-input-inner {

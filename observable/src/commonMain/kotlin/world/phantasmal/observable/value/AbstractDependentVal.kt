@@ -2,7 +2,7 @@ package world.phantasmal.observable.value
 
 import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.core.disposable.disposable
-import world.phantasmal.core.unsafeToNonNull
+import world.phantasmal.core.unsafeAssertNotNull
 import world.phantasmal.observable.Observer
 
 /**
@@ -31,7 +31,7 @@ abstract class AbstractDependentVal<T>(
                 _value = computeValue()
             }
 
-            return _value.unsafeToNonNull()
+            return _value.unsafeAssertNotNull()
         }
 
     override fun observe(callNow: Boolean, observer: Observer<T>): Disposable {
