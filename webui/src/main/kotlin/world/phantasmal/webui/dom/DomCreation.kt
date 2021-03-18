@@ -2,7 +2,6 @@ package world.phantasmal.webui.dom
 
 import kotlinx.browser.document
 import org.w3c.dom.*
-import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind.EXACTLY_ONCE
 import kotlin.contracts.contract
 

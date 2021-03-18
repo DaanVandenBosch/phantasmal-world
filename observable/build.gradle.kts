@@ -18,6 +18,10 @@ kotlin {
     jvm()
 
     sourceSets {
+        all {
+            languageSettings.useExperimentalAnnotation("kotlin.contracts.ExperimentalContracts")
+        }
+
         commonMain {
             dependencies {
                 implementation(project(":core"))

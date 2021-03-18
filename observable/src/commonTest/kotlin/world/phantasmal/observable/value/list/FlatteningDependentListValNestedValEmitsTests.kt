@@ -6,14 +6,17 @@ import world.phantasmal.observable.value.StaticVal
  * In these tests the dependency of the [FlatteningDependentListVal]'s direct dependency changes.
  */
 class FlatteningDependentListValNestedValEmitsTests : ListValTests() {
-    override fun create(): ListValAndAdd<*, FlatteningDependentListVal<*>> {
+    override fun create() = object : ListValAndAdd {
         // The nested val can change.
-        val nestedVal = SimpleListVal(mutableListOf<Int>())
-        // The direct dependency of the list under test can't change.
-        val dependentVal = StaticVal<ListVal<Int>>(nestedVal)
-        val list = FlatteningDependentListVal(listOf(dependentVal)) { dependentVal.value }
+        private val nestedVal = SimpleListVal(mutableListOf<Int>())
 
-        return ListValAndAdd(list) {
+        // The direct dependency of the list under test can't change.
+        private val dependentVal = StaticVal<ListVal<Int>>(nestedVal)
+
+        override val observable =
+            FlatteningDependentListVal(listOf(dependentVal)) { dependentVal.value }
+
+        override fun add() {
             // Update the nested dependency.
             nestedVal.add(4)
         }

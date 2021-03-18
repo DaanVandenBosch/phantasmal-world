@@ -17,14 +17,16 @@ abstract class AbstractDependentListVal<E>(
     private val _sizeVal = SizeVal()
 
     /**
-     * Set to true right before actual observers are added.
-     */
-    protected var hasObservers = false
-
-    /**
      * Is either empty or has a disposable per dependency.
      */
     private val dependencyObservers = mutableListOf<Disposable>()
+
+    protected abstract val elements: List<E>
+
+    /**
+     * Set to true right before actual observers are added.
+     */
+    protected var hasObservers = false
 
     override val value: List<E>
         get() {
@@ -73,7 +75,7 @@ abstract class AbstractDependentListVal<E>(
             dependencies.forEach { dependency ->
                 dependencyObservers.add(
                     dependency.observe {
-                        val removed = ArrayList(elements)
+                        val removed = elements
                         computeElements()
                         finalizeUpdate(ListValChangeEvent.Change(0, removed, elements))
                     }

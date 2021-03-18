@@ -4,8 +4,8 @@ import world.phantasmal.core.disposable.Disposer
 import world.phantasmal.core.disposable.TrackedDisposable
 
 abstract class AbstractTestSuite<Ctx : TestContext> {
-    fun test(slowTest: Boolean = false, testBlock: Ctx.() -> Unit) {
-        if (slowTest && !canExecuteSlowTests()) return
+    fun test(slow: Boolean = false, testBlock: Ctx.() -> Unit) {
+        if (slow && !canExecuteSlowTests()) return
 
         TrackedDisposable.checkNoLeaks(trackPrecise = true) {
             val disposer = Disposer()

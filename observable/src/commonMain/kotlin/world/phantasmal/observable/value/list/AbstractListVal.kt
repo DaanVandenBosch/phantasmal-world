@@ -24,20 +24,18 @@ abstract class AbstractListVal<E>(
      */
     protected val listObservers = mutableListOf<ListValObserver<E>>()
 
-    protected abstract val elements: List<E>
-
     override fun get(index: Int): E =
-        elements[index]
+        value[index]
 
     override fun observe(callNow: Boolean, observer: Observer<List<E>>): Disposable {
         if (elementObservers.isEmpty() && extractObservables != null) {
-            replaceElementObservers(0, elementObservers.size, elements)
+            replaceElementObservers(0, elementObservers.size, value)
         }
 
         observers.add(observer)
 
         if (callNow) {
-            observer(ChangeEvent(elements))
+            observer(ChangeEvent(value))
         }
 
         return disposable {
@@ -48,13 +46,13 @@ abstract class AbstractListVal<E>(
 
     override fun observeList(callNow: Boolean, observer: ListValObserver<E>): Disposable {
         if (elementObservers.isEmpty() && extractObservables != null) {
-            replaceElementObservers(0, elementObservers.size, elements)
+            replaceElementObservers(0, elementObservers.size, value)
         }
 
         listObservers.add(observer)
 
         if (callNow) {
-            observer(ListValChangeEvent.Change(0, emptyList(), elements))
+            observer(ListValChangeEvent.Change(0, emptyList(), value))
         }
 
         return disposable {
@@ -64,7 +62,7 @@ abstract class AbstractListVal<E>(
     }
 
     override fun firstOrNull(): Val<E?> =
-        DependentVal(listOf(this)) { elements.firstOrNull() }
+        DependentVal(listOf(this)) { value.firstOrNull() }
 
     /**
      * Does the following in the given order:

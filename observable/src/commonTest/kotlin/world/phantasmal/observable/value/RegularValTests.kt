@@ -1,9 +1,6 @@
 package world.phantasmal.observable.value
 
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
+import kotlin.test.*
 
 /**
  * Test suite for all [Val] implementations that aren't ListVals. There is a subclass of this suite
@@ -11,6 +8,33 @@ import kotlin.test.assertTrue
  */
 abstract class RegularValTests : ValTests() {
     protected abstract fun <T> createWithValue(value: T): Val<T>
+
+    /**
+     * [Val.value] should correctly reflect changes even when the [Val] has no observers. Typically
+     * this means that the val's value is not updated in real time, only when it is queried.
+     */
+    @Test
+    fun reflects_changes_without_observers() = test {
+        val (value, emit) = create()
+
+        var old: Any?
+
+        repeat(5) {
+            // Value should change after emit.
+            old = value.value
+
+            emit()
+
+            val new = value.value
+
+            assertNotEquals(old, new)
+
+            // Value should not change when emit hasn't been called since the last access.
+            assertEquals(new, value.value)
+
+            old = new
+        }
+    }
 
     @Test
     fun val_convenience_methods() = test {
@@ -59,16 +83,7 @@ abstract class RegularValTests : ValTests() {
 
     @Test
     fun val_comparable_extensions() = test {
-        listOf(
-            10 to 10,
-            7.0 to 5.0,
-            (5000).toShort() to (7000).toShort()
-        ).forEach { (a, b) ->
-            @Suppress("UNCHECKED_CAST")
-            a as Comparable<Any>
-            @Suppress("UNCHECKED_CAST")
-            b as Comparable<Any>
-
+        fun <T : Comparable<T>> comparable_tests(a: T, b: T) {
             val aVal = createWithValue(a)
             val bVal = createWithValue(b)
 
@@ -84,6 +99,10 @@ abstract class RegularValTests : ValTests() {
             assertEquals(a < b, (aVal lt b).value)
             assertEquals(a < b, (aVal lt bVal).value)
         }
+
+        comparable_tests(10, 10)
+        comparable_tests(7.0, 5.0)
+        comparable_tests((5000).toShort(), (7000).toShort())
     }
 
     @Test

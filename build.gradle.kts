@@ -1,5 +1,3 @@
-import org.jetbrains.kotlin.gradle.tasks.Kotlin2JsCompile
-
 plugins {
     kotlin("js") version "1.4.30" apply false
     kotlin("multiplatform") version "1.4.30" apply false
@@ -23,14 +21,5 @@ subprojects {
     repositories {
         jcenter()
         maven(url = "https://kotlin.bintray.com/kotlinx/")
-    }
-
-    tasks.withType<Kotlin2JsCompile> {
-        kotlinOptions.freeCompilerArgs += listOf(
-            "-Xopt-in=kotlin.RequiresOptIn",
-            "-Xopt-in=kotlin.contracts.ExperimentalContracts",
-            "-Xopt-in=kotlin.ExperimentalUnsignedTypes",
-            "-Xopt-in=kotlin.time.ExperimentalTime"
-        )
     }
 }

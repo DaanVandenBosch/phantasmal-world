@@ -1,6 +1,5 @@
 package world.phantasmal.observable.value
 
-import world.phantasmal.observable.ObservableAndEmit
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -9,6 +8,21 @@ import kotlin.test.assertNull
  * In these tests the direct dependency of the [FlatteningDependentVal] changes.
  */
 class FlatteningDependentValDependentValEmitsTests : RegularValTests() {
+    override fun create() = object : ValAndEmit {
+        val v = SimpleVal(StaticVal(5))
+
+        override val observable = FlatteningDependentVal(listOf(v)) { v.value }
+
+        override fun emit() {
+            v.value = StaticVal(v.value.value + 5)
+        }
+    }
+
+    override fun <T> createWithValue(value: T): FlatteningDependentVal<T> {
+        val v = StaticVal(StaticVal(value))
+        return FlatteningDependentVal(listOf(v)) { v.value }
+    }
+
     /**
      * This is a regression test, it's important that this exact sequence of statements stays the
      * same.
@@ -32,16 +46,5 @@ class FlatteningDependentValDependentValEmitsTests : RegularValTests() {
         v.value = SimpleVal(7)
 
         assertEquals(7, observedValue)
-    }
-
-    override fun create(): ObservableAndEmit<*, FlatteningDependentVal<*>> {
-        val v = SimpleVal(SimpleVal(5))
-        val value = FlatteningDependentVal(listOf(v)) { v.value }
-        return ObservableAndEmit(value) { v.value = SimpleVal(v.value.value + 5) }
-    }
-
-    override fun <T> createWithValue(value: T): FlatteningDependentVal<T> {
-        val v = SimpleVal(SimpleVal(value))
-        return FlatteningDependentVal(listOf(v)) { v.value }
     }
 }

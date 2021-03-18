@@ -1,8 +1,12 @@
 package world.phantasmal.observable
 
 class SimpleEmitterTests : ObservableTests() {
-    override fun create(): ObservableAndEmit<*, SimpleEmitter<*>> {
-        val observable = SimpleEmitter<Any>()
-        return ObservableAndEmit(observable) { observable.emit(ChangeEvent(Any())) }
-    }
+    override fun create(): ObservableAndEmit =
+        object : ObservableAndEmit {
+            override val observable = SimpleEmitter<Any>()
+
+            override fun emit() {
+                observable.emit(ChangeEvent(Any()))
+            }
+        }
 }

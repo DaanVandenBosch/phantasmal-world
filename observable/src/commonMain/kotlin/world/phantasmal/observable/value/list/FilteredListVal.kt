@@ -26,7 +26,7 @@ class FilteredListVal<E>(
      */
     private val indexMap = mutableListOf<Int>()
 
-    override val elements: MutableList<E> = mutableListOf()
+    private var elements: ListWrapper<E> = ListWrapper(mutableListOf())
 
     override val value: List<E>
         get() {
@@ -62,12 +62,12 @@ class FilteredListVal<E>(
     }
 
     private fun recompute() {
-        elements.clear()
+        elements = ListWrapper(mutableListOf())
         indexMap.clear()
 
         dependency.value.forEach { element ->
             if (predicate(element)) {
-                elements.add(element)
+                elements.mutate { add(element) }
                 indexMap.add(elements.lastIndex)
             } else {
                 indexMap.add(-1)
@@ -143,7 +143,7 @@ class FilteredListVal<E>(
                                     }
                                 }
 
-                                elements.add(insertIndex, event.updated)
+                                elements = elements.mutate { add(insertIndex, event.updated) }
                                 indexMap[event.index] = insertIndex
 
                                 for (depIdx in (event.index + 1)..indexMap.lastIndex) {
@@ -169,7 +169,7 @@ class FilteredListVal<E>(
                             if (index != -1) {
                                 // If the element now doesn't pass the test and it previously did
                                 // pass, remove it and emit a Change event.
-                                elements.removeAt(index)
+                                elements = elements.mutate { removeAt(index) }
                                 indexMap[event.index] = -1
 
                                 for (depIdx in (event.index + 1)..indexMap.lastIndex) {

@@ -4,12 +4,13 @@ import world.phantasmal.observable.test.ObservableTestSuite
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-open class ObservableAndEmit<T, out O : Observable<T>>(
-    val observable: O,
-    val emit: () -> Unit,
-) {
+interface ObservableAndEmit {
+    val observable: Observable<*>
+
+    fun emit()
+
     operator fun component1() = observable
-    operator fun component2() = emit
+    operator fun component2() = ::emit
 }
 
 /**
@@ -17,7 +18,7 @@ open class ObservableAndEmit<T, out O : Observable<T>>(
  * [Observable] implementation.
  */
 abstract class ObservableTests : ObservableTestSuite() {
-    protected abstract fun create(): ObservableAndEmit<*, Observable<*>>
+    protected abstract fun create(): ObservableAndEmit
 
     @Test
     fun observable_calls_observers_when_events_are_emitted() = test {

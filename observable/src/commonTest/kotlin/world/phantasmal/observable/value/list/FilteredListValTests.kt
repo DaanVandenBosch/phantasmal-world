@@ -6,6 +6,40 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
 class FilteredListValTests : ListValTests() {
+    override fun create() = object : ListValAndAdd {
+        private val dependency = SimpleListVal<Int>(mutableListOf())
+
+        override val observable = FilteredListVal(dependency, predicate = { it % 2 == 0 })
+
+        override fun add() {
+            dependency.add(4)
+        }
+    }
+
+    @Test
+    fun contains_only_values_that_match_the_predicate() = test {
+        val dep = SimpleListVal(mutableListOf("a", "b"))
+        val list = FilteredListVal(dep, predicate = { 'a' in it })
+
+        assertEquals(1, list.value.size)
+        assertEquals("a", list.value[0])
+
+        dep.add("foo")
+        dep.add("bar")
+
+        assertEquals(2, list.value.size)
+        assertEquals("a", list.value[0])
+        assertEquals("bar", list.value[1])
+
+        dep.add("quux")
+        dep.add("qaax")
+
+        assertEquals(3, list.value.size)
+        assertEquals("a", list.value[0])
+        assertEquals("bar", list.value[1])
+        assertEquals("qaax", list.value[2])
+    }
+
     @Test
     fun only_emits_when_necessary() = test {
         val dep = SimpleListVal<Int>(mutableListOf())
@@ -91,7 +125,7 @@ class FilteredListValTests : ListValTests() {
         for (i in 0 until dep.size.value) {
             event = null
 
-            // Make an even number odd or an odd number even so that the . List should emit a Change event.
+            // Make an even number odd or an odd number even. List should emit a Change event.
             val newValue = dep[i].value + 1
             dep[i].value = newValue
 
@@ -118,11 +152,5 @@ class FilteredListValTests : ListValTests() {
 
             assertEquals(newValue, (event as ListValChangeEvent.ElementChange).updated.value)
         }
-    }
-
-    override fun create(): ListValAndAdd<*, FilteredListVal<*>> {
-        val l = SimpleListVal<Int>(mutableListOf())
-        val list = FilteredListVal(l, predicate = { it % 2 == 0 })
-        return ListValAndAdd(list) { l.add(4) }
     }
 }

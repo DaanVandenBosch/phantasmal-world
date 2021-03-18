@@ -1,6 +1,5 @@
 package world.phantasmal.observable.value.list
 
-import world.phantasmal.core.replaceAll
 import world.phantasmal.observable.Observable
 import world.phantasmal.observable.value.MutableVal
 import world.phantasmal.observable.value.Val
@@ -14,12 +13,14 @@ typealias ObservablesExtractor<E> = (element: E) -> Array<Observable<*>>
  * returned observables will be propagated via ElementChange events
  */
 class SimpleListVal<E>(
-    override val elements: MutableList<E>,
+    elements: MutableList<E>,
     extractObservables: ObservablesExtractor<E>? = null,
 ) : AbstractListVal<E>(extractObservables), MutableListVal<E> {
+    private var elements = ListWrapper(elements)
     private val _sizeVal: MutableVal<Int> = mutableVal(elements.size)
 
-    override var value: List<E> = elements
+    override var value: List<E>
+        get() = elements
         set(value) {
             replaceAll(value)
         }
@@ -30,19 +31,20 @@ class SimpleListVal<E>(
         elements[index]
 
     override operator fun set(index: Int, element: E): E {
-        val removed = elements.set(index, element)
+        val removed: E
+        elements = elements.mutate { removed = set(index, element) }
         finalizeUpdate(ListValChangeEvent.Change(index, listOf(removed), listOf(element)))
         return removed
     }
 
     override fun add(element: E) {
         val index = elements.size
-        elements.add(element)
+        elements = elements.mutate { add(index, element) }
         finalizeUpdate(ListValChangeEvent.Change(index, emptyList(), listOf(element)))
     }
 
     override fun add(index: Int, element: E) {
-        elements.add(index, element)
+        elements = elements.mutate { add(index, element) }
         finalizeUpdate(ListValChangeEvent.Change(index, emptyList(), listOf(element)))
     }
 
@@ -58,38 +60,41 @@ class SimpleListVal<E>(
     }
 
     override fun removeAt(index: Int): E {
-        val removed = elements.removeAt(index)
+        val removed: E
+        elements = elements.mutate { removed = removeAt(index) }
         finalizeUpdate(ListValChangeEvent.Change(index, listOf(removed), emptyList()))
         return removed
     }
 
     override fun replaceAll(elements: Iterable<E>) {
-        val removed = ArrayList(this.elements)
-        this.elements.replaceAll(elements)
+        val removed = this.elements
+        this.elements = ListWrapper(elements.toMutableList())
         finalizeUpdate(ListValChangeEvent.Change(0, removed, this.elements))
     }
 
     override fun replaceAll(elements: Sequence<E>) {
-        val removed = ArrayList(this.elements)
-        this.elements.replaceAll(elements)
+        val removed = this.elements
+        this.elements = ListWrapper(elements.toMutableList())
         finalizeUpdate(ListValChangeEvent.Change(0, removed, this.elements))
     }
 
     override fun splice(from: Int, removeCount: Int, newElement: E) {
         val removed = ArrayList(elements.subList(from, from + removeCount))
-        repeat(removeCount) { elements.removeAt(from) }
-        elements.add(from, newElement)
+        elements = elements.mutate {
+            repeat(removeCount) { removeAt(from) }
+            add(from, newElement)
+        }
         finalizeUpdate(ListValChangeEvent.Change(from, removed, listOf(newElement)))
     }
 
     override fun clear() {
-        val removed = ArrayList(elements)
-        elements.clear()
+        val removed = elements
+        elements = ListWrapper(mutableListOf())
         finalizeUpdate(ListValChangeEvent.Change(0, removed, emptyList()))
     }
 
     override fun sortWith(comparator: Comparator<E>) {
-        elements.sortWith(comparator)
+        elements = elements.mutate { sortWith(comparator) }
         finalizeUpdate(ListValChangeEvent.Change(0, elements, elements))
     }
 
