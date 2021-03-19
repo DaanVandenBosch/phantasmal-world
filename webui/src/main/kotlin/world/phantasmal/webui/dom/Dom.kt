@@ -12,7 +12,7 @@ import world.phantasmal.core.disposable.Disposer
 import world.phantasmal.core.disposable.disposable
 import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.list.ListVal
-import world.phantasmal.observable.value.list.ListValChangeEvent
+import world.phantasmal.observable.value.list.ListChangeEvent
 
 fun <E : Event> EventTarget.disposableListener(
     type: String,
@@ -189,7 +189,7 @@ fun <T> bindChildrenTo(
     parent: Element,
     list: ListVal<T>,
     createChild: Node.(T, index: Int) -> Node,
-    after: (ListValChangeEvent<T>) -> Unit = {},
+    after: (ListChangeEvent<T>) -> Unit = {},
 ): Disposable =
     bindChildrenTo(
         parent,
@@ -205,7 +205,7 @@ fun <T> bindDisposableChildrenTo(
     parent: Element,
     list: ListVal<T>,
     createChild: Node.(T, index: Int) -> Pair<Node, Disposable>,
-    after: (ListValChangeEvent<T>) -> Unit = {},
+    after: (ListChangeEvent<T>) -> Unit = {},
 ): Disposable {
     val disposer = Disposer()
 
@@ -253,10 +253,10 @@ private fun <T> bindChildrenTo(
     list: ListVal<T>,
     createChild: Node.(T, index: Int) -> Node,
     childrenRemoved: (index: Int, count: Int) -> Unit,
-    after: (ListValChangeEvent<T>) -> Unit,
+    after: (ListChangeEvent<T>) -> Unit,
 ): Disposable =
-    list.observeList(callNow = true) { change: ListValChangeEvent<T> ->
-        if (change is ListValChangeEvent.Change) {
+    list.observeList(callNow = true) { change: ListChangeEvent<T> ->
+        if (change is ListChangeEvent.Change) {
             repeat(change.removed.size) {
                 parent.removeChild(parent.childNodes[change.index].unsafeCast<Node>())
             }

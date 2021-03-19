@@ -81,7 +81,7 @@ class FilteredListVal<E>(
 
             dependencyObserver = dependency.observeList { event ->
                 when (event) {
-                    is ListValChangeEvent.Change -> {
+                    is ListChangeEvent.Change -> {
                         // Figure out which elements should be removed from this list, then simply
                         // recompute the entire filtered list and finally figure out which elements
                         // have been added. Emit a Change event if something actually changed.
@@ -118,11 +118,11 @@ class FilteredListVal<E>(
 
                         if (removed.isNotEmpty() || inserted.isNotEmpty()) {
                             check(eventIndex != -1)
-                            finalizeUpdate(ListValChangeEvent.Change(eventIndex, removed, inserted))
+                            finalizeUpdate(ListChangeEvent.Change(eventIndex, removed, inserted))
                         }
                     }
 
-                    is ListValChangeEvent.ElementChange -> {
+                    is ListChangeEvent.ElementChange -> {
                         // Emit a Change or ElementChange event based on whether the updated element
                         // passes the predicate test and whether it was already in the elements list
                         // (i.e. whether it passed the predicate test before the update).
@@ -154,7 +154,7 @@ class FilteredListVal<E>(
                                     }
                                 }
 
-                                finalizeUpdate(ListValChangeEvent.Change(
+                                finalizeUpdate(ListChangeEvent.Change(
                                     insertIndex,
                                     emptyList(),
                                     listOf(event.updated),
@@ -162,7 +162,7 @@ class FilteredListVal<E>(
                             } else {
                                 // Otherwise just propagate the ElementChange event.
                                 finalizeUpdate(
-                                    ListValChangeEvent.ElementChange(index, event.updated)
+                                    ListChangeEvent.ElementChange(index, event.updated)
                                 )
                             }
                         } else {
@@ -180,7 +180,7 @@ class FilteredListVal<E>(
                                     }
                                 }
 
-                                finalizeUpdate(ListValChangeEvent.Change(
+                                finalizeUpdate(ListChangeEvent.Change(
                                     index,
                                     listOf(event.updated),
                                     emptyList(),
@@ -188,7 +188,7 @@ class FilteredListVal<E>(
                             } else {
                                 // Otherwise just propagate the ElementChange event.
                                 finalizeUpdate(
-                                    ListValChangeEvent.ElementChange(index, event.updated)
+                                    ListChangeEvent.ElementChange(index, event.updated)
                                 )
                             }
                         }
@@ -208,8 +208,8 @@ class FilteredListVal<E>(
         }
     }
 
-    override fun finalizeUpdate(event: ListValChangeEvent<E>) {
-        if (event is ListValChangeEvent.Change && event.removed.size != event.inserted.size) {
+    override fun finalizeUpdate(event: ListChangeEvent<E>) {
+        if (event is ListChangeEvent.Change && event.removed.size != event.inserted.size) {
             _sizeVal.publicEmit()
         }
 

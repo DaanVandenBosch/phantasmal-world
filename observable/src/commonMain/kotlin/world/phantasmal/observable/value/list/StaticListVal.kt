@@ -30,7 +30,7 @@ class StaticListVal<E>(private val elements: List<E>) : ListVal<E> {
 
     override fun observeList(callNow: Boolean, observer: ListValObserver<E>): Disposable {
         if (callNow) {
-            observer(ListValChangeEvent.Change(0, emptyList(), value))
+            observer(ListChangeEvent.Change(0, emptyList(), value))
         }
 
         return stubDisposable()

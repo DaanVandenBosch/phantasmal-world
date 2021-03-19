@@ -7,7 +7,7 @@ import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.core.disposable.DisposableSupervisedScope
 import world.phantasmal.lib.Episode
 import world.phantasmal.observable.value.list.ListVal
-import world.phantasmal.observable.value.list.ListValChangeEvent
+import world.phantasmal.observable.value.list.ListChangeEvent
 import world.phantasmal.web.questEditor.loading.AreaAssetLoader
 import world.phantasmal.web.questEditor.loading.EntityAssetLoader
 import world.phantasmal.web.questEditor.models.AreaVariantModel
@@ -68,15 +68,15 @@ abstract class QuestMeshManager protected constructor(
         }
     }
 
-    private fun npcsChanged(change: ListValChangeEvent<QuestNpcModel>) {
-        if (change is ListValChangeEvent.Change) {
+    private fun npcsChanged(change: ListChangeEvent<QuestNpcModel>) {
+        if (change is ListChangeEvent.Change) {
             change.removed.forEach(npcMeshManager::remove)
             change.inserted.forEach(npcMeshManager::add)
         }
     }
 
-    private fun objectsChanged(change: ListValChangeEvent<QuestObjectModel>) {
-        if (change is ListValChangeEvent.Change) {
+    private fun objectsChanged(change: ListChangeEvent<QuestObjectModel>) {
+        if (change is ListChangeEvent.Change) {
             change.removed.forEach(objectMeshManager::remove)
             change.inserted.forEach(objectMeshManager::add)
         }

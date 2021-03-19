@@ -77,7 +77,7 @@ abstract class AbstractDependentListVal<E>(
                     dependency.observe {
                         val removed = elements
                         computeElements()
-                        finalizeUpdate(ListValChangeEvent.Change(0, removed, elements))
+                        finalizeUpdate(ListChangeEvent.Change(0, removed, elements))
                     }
                 )
             }
@@ -93,8 +93,8 @@ abstract class AbstractDependentListVal<E>(
         }
     }
 
-    override fun finalizeUpdate(event: ListValChangeEvent<E>) {
-        if (event is ListValChangeEvent.Change && event.removed.size != event.inserted.size) {
+    override fun finalizeUpdate(event: ListChangeEvent<E>) {
+        if (event is ListChangeEvent.Change && event.removed.size != event.inserted.size) {
             _sizeVal.publicEmit()
         }
 

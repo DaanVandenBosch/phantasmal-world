@@ -73,7 +73,7 @@ class FilteredListValTests : ListValTests {
     fun emits_correct_change_events() = test {
         val dep = SimpleListVal<Int>(mutableListOf())
         val list = FilteredListVal(dep, predicate = { it % 2 == 0 })
-        var event: ListValChangeEvent<Int>? = null
+        var event: ListChangeEvent<Int>? = null
 
         disposer.add(list.observeList {
             assertNull(event)
@@ -82,7 +82,7 @@ class FilteredListValTests : ListValTests {
 
         dep.replaceAll(listOf(1, 2, 3, 4, 5))
 
-        (event as ListValChangeEvent.Change).let { e ->
+        (event as ListChangeEvent.Change).let { e ->
             assertEquals(0, e.index)
             assertEquals(0, e.removed.size)
             assertEquals(2, e.inserted.size)
@@ -94,7 +94,7 @@ class FilteredListValTests : ListValTests {
 
         dep.splice(2, 2, 10)
 
-        (event as ListValChangeEvent.Change).let { e ->
+        (event as ListChangeEvent.Change).let { e ->
             assertEquals(1, e.index)
             assertEquals(1, e.removed.size)
             assertEquals(4, e.removed[0])
@@ -115,7 +115,7 @@ class FilteredListValTests : ListValTests {
             extractObservables = { arrayOf(it) },
         )
         val list = FilteredListVal(dep, predicate = { it.value % 2 == 0 })
-        var event: ListValChangeEvent<SimpleVal<Int>>? = null
+        var event: ListChangeEvent<SimpleVal<Int>>? = null
 
         disposer.add(list.observeList {
             assertNull(event)
@@ -129,7 +129,7 @@ class FilteredListValTests : ListValTests {
             val newValue = dep[i].value + 1
             dep[i].value = newValue
 
-            (event as ListValChangeEvent.Change).let { e ->
+            (event as ListChangeEvent.Change).let { e ->
                 if (newValue % 2 == 0) {
                     assertEquals(0, e.removed.size)
                     assertEquals(1, e.inserted.size)
@@ -150,7 +150,7 @@ class FilteredListValTests : ListValTests {
             val newValue = dep[i].value + 2
             dep[i].value = newValue
 
-            assertEquals(newValue, (event as ListValChangeEvent.ElementChange).updated.value)
+            assertEquals(newValue, (event as ListChangeEvent.ElementChange).updated.value)
         }
     }
 }

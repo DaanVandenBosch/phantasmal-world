@@ -17,7 +17,7 @@ interface MutableListValTests<T : Any> : ListValTests, MutableValTests<List<T>> 
     fun add() = test {
         val p = createProvider()
 
-        var change: ListValChangeEvent<T>? = null
+        var change: ListChangeEvent<T>? = null
 
         disposer.add(p.observable.observeList {
             assertNull(change)
@@ -31,7 +31,7 @@ interface MutableListValTests<T : Any> : ListValTests, MutableValTests<List<T>> 
         assertEquals(1, p.observable.size.value)
         assertEquals(v1, p.observable[0])
         val c1 = change
-        assertTrue(c1 is ListValChangeEvent.Change<T>)
+        assertTrue(c1 is ListChangeEvent.Change<T>)
         assertEquals(0, c1.index)
         assertTrue(c1.removed.isEmpty())
         assertEquals(1, c1.inserted.size)
@@ -47,7 +47,7 @@ interface MutableListValTests<T : Any> : ListValTests, MutableValTests<List<T>> 
         assertEquals(v1, p.observable[0])
         assertEquals(v2, p.observable[1])
         val c2 = change
-        assertTrue(c2 is ListValChangeEvent.Change<T>)
+        assertTrue(c2 is ListChangeEvent.Change<T>)
         assertEquals(1, c2.index)
         assertTrue(c2.removed.isEmpty())
         assertEquals(1, c2.inserted.size)
@@ -64,7 +64,7 @@ interface MutableListValTests<T : Any> : ListValTests, MutableValTests<List<T>> 
         assertEquals(v3, p.observable[1])
         assertEquals(v2, p.observable[2])
         val c3 = change
-        assertTrue(c3 is ListValChangeEvent.Change<T>)
+        assertTrue(c3 is ListChangeEvent.Change<T>)
         assertEquals(1, c3.index)
         assertTrue(c3.removed.isEmpty())
         assertEquals(1, c3.inserted.size)

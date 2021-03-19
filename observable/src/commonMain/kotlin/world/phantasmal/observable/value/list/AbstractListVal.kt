@@ -52,7 +52,7 @@ abstract class AbstractListVal<E>(
         listObservers.add(observer)
 
         if (callNow) {
-            observer(ListValChangeEvent.Change(0, emptyList(), value))
+            observer(ListChangeEvent.Change(0, emptyList(), value))
         }
 
         return disposable {
@@ -70,11 +70,11 @@ abstract class AbstractListVal<E>(
      * - Emits ListValChangeEvent
      * - Emits ValChangeEvent
      */
-    protected open fun finalizeUpdate(event: ListValChangeEvent<E>) {
+    protected open fun finalizeUpdate(event: ListChangeEvent<E>) {
         if (
             (listObservers.isNotEmpty() || observers.isNotEmpty()) &&
             extractObservables != null &&
-            event is ListValChangeEvent.Change
+            event is ListChangeEvent.Change
         ) {
             replaceElementObservers(event.index, event.removed.size, event.inserted)
         }
@@ -128,7 +128,7 @@ abstract class AbstractListVal<E>(
     ) {
         val observers: Array<Disposable> = Array(observables.size) {
             observables[it].observe {
-                finalizeUpdate(ListValChangeEvent.ElementChange(index, element))
+                finalizeUpdate(ListChangeEvent.ElementChange(index, element))
             }
         }
     }

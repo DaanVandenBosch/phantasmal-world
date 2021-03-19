@@ -14,7 +14,7 @@ interface ListValTests : ValTests {
     fun calls_list_observers_when_changed() = test {
         val p = createProvider()
 
-        var event: ListValChangeEvent<*>? = null
+        var event: ListChangeEvent<*>? = null
 
         disposer.add(
             p.observable.observeList {
@@ -28,7 +28,7 @@ interface ListValTests : ValTests {
 
             p.addElement()
 
-            assertTrue(event is ListValChangeEvent.Change<*>)
+            assertTrue(event is ListChangeEvent.Change<*>)
         }
     }
 
@@ -127,7 +127,7 @@ interface ListValTests : ValTests {
 
         val filtered = p.observable.filtered { true }
 
-        var event: ListValChangeEvent<*>? = null
+        var event: ListChangeEvent<*>? = null
 
         disposer.add(filtered.observeList {
             assertNull(event)
