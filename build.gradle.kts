@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.tasks.Kotlin2JsCompile
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     kotlin("js") version "1.4.30" apply false
@@ -11,9 +12,8 @@ tasks.wrapper {
 }
 
 subprojects {
-    project.extra["jvmVersion"] = "11"
-
     project.extra["coroutinesVersion"] = "1.4.2"
+    project.extra["junitVersion"] = "5.7.1"
     project.extra["kotlinLoggingVersion"] = "2.0.2"
     project.extra["ktorVersion"] = "1.4.3"
     project.extra["log4jVersion"] = "2.14.0"
@@ -23,6 +23,15 @@ subprojects {
     repositories {
         jcenter()
         maven(url = "https://kotlin.bintray.com/kotlinx/")
+    }
+
+    tasks.withType<KotlinCompile> {
+        kotlinOptions {
+            jvmTarget = "11"
+            freeCompilerArgs += listOf(
+                "-Xjvm-default=all"
+            )
+        }
     }
 
     tasks.withType<Kotlin2JsCompile> {

@@ -3,8 +3,8 @@ package world.phantasmal.observable.value
 /**
  * In these tests the dependency of the [FlatteningDependentVal]'s direct dependency changes.
  */
-class FlatteningDependentValNestedValEmitsTests : RegularValTests() {
-    override fun create() = object : ValAndEmit {
+class FlatteningDependentValNestedValEmitsTests : RegularValTests {
+    override fun createProvider() = object : ValTests.Provider {
         val v = StaticVal(SimpleVal(5))
 
         override val observable = FlatteningDependentVal(listOf(v)) { v.value }

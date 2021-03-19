@@ -1,75 +1,79 @@
 package world.phantasmal.observable.value.list
 
+import world.phantasmal.observable.value.MutableValTests
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-interface MutableListValAndAdd : ListValAndAdd {
-    override val observable: MutableListVal<Int>
-
-    override operator fun component1() = observable
-}
-
 /**
  * Test suite for all [MutableListVal] implementations. There is a subclass of this suite for every
  * [MutableListVal] implementation.
  */
-abstract class MutableListValTests : ListValTests() {
-    abstract override fun create(): MutableListValAndAdd
+interface MutableListValTests<T : Any> : ListValTests, MutableValTests<List<T>> {
+    override fun createProvider(): Provider<T>
 
     @Test
     fun add() = test {
-        val (list: MutableListVal<Int>) = create()
+        val p = createProvider()
 
-        var change: ListValChangeEvent<Int>? = null
+        var change: ListValChangeEvent<T>? = null
 
-        disposer.add(list.observeList {
+        disposer.add(p.observable.observeList {
             assertNull(change)
             change = it
         })
 
         // Insert once.
-        list.add(7)
+        val v1 = p.createElement()
+        p.observable.add(v1)
 
-        assertEquals(1, list.size.value)
-        assertEquals(7, list[0])
+        assertEquals(1, p.observable.size.value)
+        assertEquals(v1, p.observable[0])
         val c1 = change
-        assertTrue(c1 is ListValChangeEvent.Change<Int>)
+        assertTrue(c1 is ListValChangeEvent.Change<T>)
         assertEquals(0, c1.index)
         assertTrue(c1.removed.isEmpty())
         assertEquals(1, c1.inserted.size)
-        assertEquals(7, c1.inserted[0])
+        assertEquals(v1, c1.inserted[0])
 
         // Insert a second time.
         change = null
 
-        list.add(11)
+        val v2 = p.createElement()
+        p.observable.add(v2)
 
-        assertEquals(2, list.size.value)
-        assertEquals(7, list[0])
-        assertEquals(11, list[1])
+        assertEquals(2, p.observable.size.value)
+        assertEquals(v1, p.observable[0])
+        assertEquals(v2, p.observable[1])
         val c2 = change
-        assertTrue(c2 is ListValChangeEvent.Change<Int>)
+        assertTrue(c2 is ListValChangeEvent.Change<T>)
         assertEquals(1, c2.index)
         assertTrue(c2.removed.isEmpty())
         assertEquals(1, c2.inserted.size)
-        assertEquals(11, c2.inserted[0])
+        assertEquals(v2, c2.inserted[0])
 
         // Insert at index.
         change = null
 
-        list.add(1, 13)
+        val v3 = p.createElement()
+        p.observable.add(1, v3)
 
-        assertEquals(3, list.size.value)
-        assertEquals(7, list[0])
-        assertEquals(13, list[1])
-        assertEquals(11, list[2])
+        assertEquals(3, p.observable.size.value)
+        assertEquals(v1, p.observable[0])
+        assertEquals(v3, p.observable[1])
+        assertEquals(v2, p.observable[2])
         val c3 = change
-        assertTrue(c3 is ListValChangeEvent.Change<Int>)
+        assertTrue(c3 is ListValChangeEvent.Change<T>)
         assertEquals(1, c3.index)
         assertTrue(c3.removed.isEmpty())
         assertEquals(1, c3.inserted.size)
-        assertEquals(13, c3.inserted[0])
+        assertEquals(v3, c3.inserted[0])
+    }
+
+    interface Provider<T : Any> : ListValTests.Provider, MutableValTests.Provider<List<T>> {
+        override val observable: MutableListVal<T>
+
+        fun createElement(): T
     }
 }

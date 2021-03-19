@@ -6,7 +6,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-class ControlFlowGraphTests : LibTestSuite() {
+class ControlFlowGraphTests : LibTestSuite {
     @Test
     fun single_instruction() {
         val im = toInstructions("""

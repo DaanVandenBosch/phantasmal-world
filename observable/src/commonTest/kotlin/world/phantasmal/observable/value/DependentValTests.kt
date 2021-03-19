@@ -1,7 +1,7 @@
 package world.phantasmal.observable.value
 
-class DependentValTests : RegularValTests() {
-    override fun create() = object : ValAndEmit {
+class DependentValTests : RegularValTests {
+    override fun createProvider() = object : ValTests.Provider {
         val v = SimpleVal(0)
 
         override val observable = DependentVal(listOf(v)) { 2 * v.value }

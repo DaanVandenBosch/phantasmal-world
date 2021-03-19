@@ -5,13 +5,13 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
-class FilteredListValTests : ListValTests() {
-    override fun create() = object : ListValAndAdd {
+class FilteredListValTests : ListValTests {
+    override fun createProvider() = object : ListValTests.Provider {
         private val dependency = SimpleListVal<Int>(mutableListOf())
 
         override val observable = FilteredListVal(dependency, predicate = { it % 2 == 0 })
 
-        override fun add() {
+        override fun addElement() {
             dependency.add(4)
         }
     }

@@ -11,7 +11,7 @@ import world.phantasmal.web.test.createQuestModel
 import world.phantasmal.web.test.createQuestNpcModel
 import kotlin.test.*
 
-class QuestEditorToolbarControllerTests : WebTestSuite() {
+class QuestEditorToolbarControllerTests : WebTestSuite {
     @Test
     fun can_create_a_new_quest() = testAsync {
         val ctrl = disposer.add(QuestEditorToolbarController(

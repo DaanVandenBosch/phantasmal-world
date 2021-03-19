@@ -11,7 +11,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-class DisassemblyAssemblyRoundTripTests : LibTestSuite() {
+class DisassemblyAssemblyRoundTripTests : LibTestSuite {
     @Test
     fun assembling_disassembled_bytecode_should_result_in_the_same_IR() = testAsync {
         assembling_disassembled_bytecode_should_result_in_the_same_IR(inlineStackArgs = false)

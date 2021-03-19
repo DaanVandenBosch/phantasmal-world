@@ -6,7 +6,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-class BufferTests : LibTestSuite() {
+class BufferTests : LibTestSuite {
     @Test
     fun withCapacity() {
         withCapacity(Endianness.Little)

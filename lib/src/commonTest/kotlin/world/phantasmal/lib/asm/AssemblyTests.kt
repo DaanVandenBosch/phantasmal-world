@@ -6,7 +6,7 @@ import world.phantasmal.lib.test.assertDeepEquals
 import kotlin.test.Test
 import kotlin.test.assertTrue
 
-class AssemblyTests : LibTestSuite() {
+class AssemblyTests : LibTestSuite {
     @Test
     fun basic_script() {
         val result = assemble("""

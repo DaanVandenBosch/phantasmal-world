@@ -13,7 +13,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
-class WidgetTests : WebuiTestSuite() {
+class WidgetTests : WebuiTestSuite {
     @Test
     fun a_widget_disposes_its_child_widgets() = test {
         var childrenDisposed = 0

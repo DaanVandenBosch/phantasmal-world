@@ -6,7 +6,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
-class ValueSetTests : LibTestSuite() {
+class ValueSetTests : LibTestSuite {
     @Test
     fun empty_set_has_size_0() {
         val vs = ValueSet.empty()

@@ -4,14 +4,6 @@ plugins {
 
 val coroutinesVersion: String by project.ext
 
-val jvmVersion: String by project.extra
-
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-    kotlinOptions {
-        jvmTarget = jvmVersion
-    }
-}
-
 kotlin {
     js {
         browser {}

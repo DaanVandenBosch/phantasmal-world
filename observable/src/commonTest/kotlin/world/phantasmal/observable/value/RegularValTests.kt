@@ -6,8 +6,8 @@ import kotlin.test.*
  * Test suite for all [Val] implementations that aren't ListVals. There is a subclass of this suite
  * for every non-ListVal [Val] implementation.
  */
-abstract class RegularValTests : ValTests() {
-    protected abstract fun <T> createWithValue(value: T): Val<T>
+interface RegularValTests : ValTests {
+    fun <T> createWithValue(value: T): Val<T>
 
     /**
      * [Val.value] should correctly reflect changes even when the [Val] has no observers. Typically
@@ -15,22 +15,22 @@ abstract class RegularValTests : ValTests() {
      */
     @Test
     fun reflects_changes_without_observers() = test {
-        val (value, emit) = create()
+        val p = createProvider()
 
         var old: Any?
 
         repeat(5) {
             // Value should change after emit.
-            old = value.value
+            old = p.observable.value
 
-            emit()
+            p.emit()
 
-            val new = value.value
+            val new = p.observable.value
 
             assertNotEquals(old, new)
 
             // Value should not change when emit hasn't been called since the last access.
-            assertEquals(new, value.value)
+            assertEquals(new, p.observable.value)
 
             old = new
         }
@@ -63,7 +63,8 @@ abstract class RegularValTests : ValTests() {
             // Test `orElse`.
             assertEquals(any ?: "default", anyVal.orElse { "default" }.value)
         }
-        listOf(10 to 10, 5 to 99, "a" to "a", "x" to "y").forEach { (a, b) ->
+
+        fun <T> testEqNe(a: T, b: T) {
             val aVal = createWithValue(a)
             val bVal = createWithValue(b)
 
@@ -79,6 +80,11 @@ abstract class RegularValTests : ValTests() {
             assertEquals(a != b, (aVal ne b).value)
             assertEquals(a != b, (aVal ne bVal).value)
         }
+
+        testEqNe(10, 10)
+        testEqNe(5, 99)
+        testEqNe("a", "a")
+        testEqNe("x", "y")
     }
 
     @Test

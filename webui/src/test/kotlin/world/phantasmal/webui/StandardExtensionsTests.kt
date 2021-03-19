@@ -4,7 +4,7 @@ import world.phantasmal.webui.test.WebuiTestSuite
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-class StandardExtensionsTests : WebuiTestSuite() {
+class StandardExtensionsTests : WebuiTestSuite {
     @Test
     fun toRoundedString() = test {
         assertEquals("0.90", (0.9).toRoundedString(2))

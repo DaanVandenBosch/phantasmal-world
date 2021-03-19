@@ -16,4 +16,14 @@ internal class ListWrapper<E>(private val mut: MutableList<E>) : List<E> by mut 
         mut.mutator()
         return ListWrapper(mut)
     }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other == null || this::class == other::class || other !is List<*>) return false
+        // If other is a list but not a ListWrapper, call its equals method for a structured
+        // comparison.
+        return other == this
+    }
+
+    override fun hashCode(): Int = mut.hashCode()
 }

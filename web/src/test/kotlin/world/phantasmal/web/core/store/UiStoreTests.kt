@@ -7,7 +7,7 @@ import world.phantasmal.web.test.WebTestSuite
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-class UiStoreTests : WebTestSuite() {
+class UiStoreTests : WebTestSuite {
     @Test
     fun applicationUrl_is_initialized_correctly() = test {
         val applicationUrl = TestApplicationUrl("/")

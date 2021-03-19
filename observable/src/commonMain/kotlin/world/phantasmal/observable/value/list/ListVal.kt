@@ -4,6 +4,12 @@ import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.observable.value.Val
 
 interface ListVal<out E> : Val<List<E>> {
+    /**
+     * Do not keep long-lived references to a [ListVal]'s [value], it may or may not be mutated
+     * when the [ListVal] is mutated.
+     */
+    override val value: List<E>
+
     val size: Val<Int>
 
     operator fun get(index: Int): E

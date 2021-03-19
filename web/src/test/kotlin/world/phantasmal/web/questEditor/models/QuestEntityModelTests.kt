@@ -10,7 +10,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-class QuestEntityModelTests : WebTestSuite() {
+class QuestEntityModelTests : WebTestSuite {
     @Test
     fun positions_are_updated_correctly_when_section_changes() = test {
         // Relative and world position start out the same.

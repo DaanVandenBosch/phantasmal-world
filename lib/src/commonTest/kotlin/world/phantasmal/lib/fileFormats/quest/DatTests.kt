@@ -7,7 +7,7 @@ import world.phantasmal.lib.test.readFile
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-class DatTests : LibTestSuite() {
+class DatTests : LibTestSuite {
     @Test
     fun parse_quest_towards_the_future() = testAsync {
         val dat = parseDat(readFile("/quest118_e_decompressed.dat"))

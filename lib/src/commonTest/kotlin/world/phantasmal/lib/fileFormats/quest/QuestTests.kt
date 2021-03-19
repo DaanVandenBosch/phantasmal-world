@@ -13,7 +13,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-class QuestTests : LibTestSuite() {
+class QuestTests : LibTestSuite {
     @Test
     fun parseBinDatToQuest_with_towards_the_future() = testAsync {
         val result = parseBinDatToQuest(readFile("/quest118_e.bin"), readFile("/quest118_e.dat"))

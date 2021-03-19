@@ -5,7 +5,7 @@ import world.phantasmal.web.test.TestApplicationUrl
 import world.phantasmal.web.test.WebTestSuite
 import kotlin.test.Test
 
-class ViewerTests : WebTestSuite() {
+class ViewerTests : WebTestSuite {
     @Test
     fun initialization_and_shutdown_should_succeed_without_throwing() = test {
         components.applicationUrl = TestApplicationUrl("/${PwToolType.Viewer}")

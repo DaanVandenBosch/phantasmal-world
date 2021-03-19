@@ -7,7 +7,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
-class UndoStackTests : WebTestSuite() {
+class UndoStackTests : WebTestSuite {
     @Test
     fun simple_properties_and_invariants() {
         val stack = UndoStack(UndoManager())

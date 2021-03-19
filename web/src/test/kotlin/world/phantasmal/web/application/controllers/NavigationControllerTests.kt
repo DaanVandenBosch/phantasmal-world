@@ -6,7 +6,7 @@ import world.phantasmal.web.test.WebTestSuite
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-class NavigationControllerTests : WebTestSuite() {
+class NavigationControllerTests : WebTestSuite {
     @Test
     fun internet_time_is_calculated_correctly() = test {
         val clock = StubClock()

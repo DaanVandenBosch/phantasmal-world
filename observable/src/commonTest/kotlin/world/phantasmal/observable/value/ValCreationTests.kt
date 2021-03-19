@@ -3,7 +3,7 @@ package world.phantasmal.observable.value
 import world.phantasmal.observable.test.ObservableTestSuite
 import kotlin.test.*
 
-class ValCreationTests : ObservableTestSuite() {
+class ValCreationTests : ObservableTestSuite {
     @Test
     fun test_value() = test {
         assertEquals(7, value(7).value)

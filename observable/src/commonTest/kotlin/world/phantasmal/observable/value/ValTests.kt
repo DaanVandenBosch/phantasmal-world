@@ -1,30 +1,20 @@
 package world.phantasmal.observable.value
 
 import world.phantasmal.core.disposable.use
-import world.phantasmal.observable.ObservableAndEmit
 import world.phantasmal.observable.ObservableTests
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertNotEquals
-import kotlin.test.assertNull
-
-interface ValAndEmit : ObservableAndEmit {
-    override val observable: Val<Any>
-
-    override fun component1(): Val<Any> = observable
-}
+import kotlin.test.*
 
 /**
  * Test suite for all [Val] implementations. There is a subclass of this suite for every [Val]
  * implementation.
  */
-abstract class ValTests : ObservableTests() {
-    abstract override fun create(): ValAndEmit
+interface ValTests : ObservableTests {
+    override fun createProvider(): Provider
 
     @Test
     fun propagates_changes_to_mapped_val() = test {
-        val (value, emit) = create()
-        val mapped = value.map { it.hashCode() }
+        val p = createProvider()
+        val mapped = p.observable.map { it.hashCode() }
         val initialValue = mapped.value
 
         var observedValue: Int? = null
@@ -34,10 +24,51 @@ abstract class ValTests : ObservableTests() {
             observedValue = it.value
         })
 
-        emit()
+        p.emit()
 
         assertNotEquals(initialValue, mapped.value)
         assertEquals(mapped.value, observedValue)
+    }
+
+    @Test
+    fun propagates_changes_to_flat_mapped_val() = test {
+        val p = createProvider()
+
+        val mapped = p.observable.flatMap { StaticVal(it.hashCode()) }
+        val initialValue = mapped.value
+
+        var observedValue: Int? = null
+
+        disposer.add(mapped.observe {
+            assertNull(observedValue)
+            observedValue = it.value
+        })
+
+        p.emit()
+
+        assertNotEquals(initialValue, mapped.value)
+        assertEquals(mapped.value, observedValue)
+    }
+
+    @Test
+    fun emits_correct_value_in_change_events() = test {
+        val p = createProvider()
+
+        var observedValue: Any? = null
+
+        disposer.add(p.observable.observe {
+            assertNull(observedValue)
+            observedValue = it.value
+        })
+
+        repeat(3) {
+            observedValue = null
+
+            p.emit()
+
+            assertNotNull(observedValue)
+            assertEquals(p.observable.value, observedValue)
+        }
     }
 
     /**
@@ -46,14 +77,14 @@ abstract class ValTests : ObservableTests() {
      */
     @Test
     fun respects_call_now_argument() = test {
-        val (value, emit) = create()
+        val p = createProvider()
         var changes = 0
 
         // Test callNow = false
-        value.observe(callNow = false) {
+        p.observable.observe(callNow = false) {
             changes++
         }.use {
-            emit()
+            p.emit()
 
             assertEquals(1, changes)
         }
@@ -61,12 +92,16 @@ abstract class ValTests : ObservableTests() {
         // Test callNow = true
         changes = 0
 
-        value.observe(callNow = true) {
+        p.observable.observe(callNow = true) {
             changes++
         }.use {
-            emit()
+            p.emit()
 
             assertEquals(2, changes)
         }
+    }
+
+    interface Provider : ObservableTests.Provider {
+        override val observable: Val<Any>
     }
 }

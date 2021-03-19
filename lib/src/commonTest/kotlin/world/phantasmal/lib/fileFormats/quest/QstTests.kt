@@ -9,7 +9,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-class QstTests : LibTestSuite() {
+class QstTests : LibTestSuite {
     @Test
     fun parse_a_GC_quest() = testAsync {
         val cursor = readFile("/lost_heat_sword_gc.qst")

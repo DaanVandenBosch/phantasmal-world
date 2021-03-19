@@ -5,7 +5,15 @@ sealed class ListValChangeEvent<out E> {
 
     class Change<E>(
         override val index: Int,
+        /**
+         * Do not keep long-lived references to a [Change]'s [removed] list, it may or may not be
+         * mutated when the originating [ListVal] is mutated.
+         */
         val removed: List<E>,
+        /**
+         * Do not keep long-lived references to a [Change]'s [inserted] list, it may or may not be
+         * mutated when the originating [ListVal] is mutated.
+         */
         val inserted: List<E>,
     ) : ListValChangeEvent<E>()
 

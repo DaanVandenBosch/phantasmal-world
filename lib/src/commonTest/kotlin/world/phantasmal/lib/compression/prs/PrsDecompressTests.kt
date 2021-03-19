@@ -9,7 +9,7 @@ import kotlin.random.Random
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-class PrsDecompressTests : LibTestSuite() {
+class PrsDecompressTests : LibTestSuite {
     @Test
     fun edge_case_0_bytes() {
         testWithBuffer(Buffer.withSize(0))

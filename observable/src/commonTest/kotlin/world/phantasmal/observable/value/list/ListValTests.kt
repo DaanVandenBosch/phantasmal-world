@@ -1,34 +1,23 @@
 package world.phantasmal.observable.value.list
 
-import world.phantasmal.observable.value.ValAndEmit
 import world.phantasmal.observable.value.ValTests
 import kotlin.test.*
-
-interface ListValAndAdd : ValAndEmit {
-    override val observable: ListVal<Any>
-
-    fun add()
-
-    override fun emit() = add()
-
-    override operator fun component1() = observable
-}
 
 /**
  * Test suite for all [ListVal] implementations. There is a subclass of this suite for every
  * [ListVal] implementation.
  */
-abstract class ListValTests : ValTests() {
-    abstract override fun create(): ListValAndAdd
+interface ListValTests : ValTests {
+    override fun createProvider(): Provider
 
     @Test
     fun calls_list_observers_when_changed() = test {
-        val (list, add) = create()
+        val p = createProvider()
 
         var event: ListValChangeEvent<*>? = null
 
         disposer.add(
-            list.observeList {
+            p.observable.observeList {
                 assertNull(event)
                 event = it
             }
@@ -37,7 +26,7 @@ abstract class ListValTests : ValTests() {
         for (i in 0..2) {
             event = null
 
-            add()
+            p.addElement()
 
             assertTrue(event is ListValChangeEvent.Change<*>)
         }
@@ -45,14 +34,14 @@ abstract class ListValTests : ValTests() {
 
     @Test
     fun updates_size_correctly() = test {
-        val (list, add) = create()
+        val p = createProvider()
 
-        assertEquals(0, list.size.value)
+        assertEquals(0, p.observable.size.value)
 
         var observedSize: Int? = null
 
         disposer.add(
-            list.size.observe {
+            p.observable.size.observe {
                 assertNull(observedSize)
                 observedSize = it.value
             }
@@ -61,32 +50,32 @@ abstract class ListValTests : ValTests() {
         for (i in 1..3) {
             observedSize = null
 
-            add()
+            p.addElement()
 
-            assertEquals(i, list.size.value)
+            assertEquals(i, p.observable.size.value)
             assertEquals(i, observedSize)
         }
     }
 
     @Test
     fun get() = test {
-        val (list, add) = create()
+        val p = createProvider()
 
         assertFailsWith(IndexOutOfBoundsException::class) {
-            list[0]
+            p.observable[0]
         }
 
-        add()
+        p.addElement()
 
         // Shouldn't throw at this point.
-        list[0]
+        p.observable[0]
     }
 
     @Test
     fun fold() = test {
-        val (list, add) = create()
+        val p = createProvider()
 
-        val fold = list.fold(0) { acc, _ -> acc + 1 }
+        val fold = p.observable.fold(0) { acc, _ -> acc + 1 }
 
         var observedValue: Int? = null
 
@@ -100,7 +89,7 @@ abstract class ListValTests : ValTests() {
         for (i in 1..5) {
             observedValue = null
 
-            add()
+            p.addElement()
 
             assertEquals(i, fold.value)
             assertEquals(i, observedValue)
@@ -109,9 +98,9 @@ abstract class ListValTests : ValTests() {
 
     @Test
     fun sumBy() = test {
-        val (list, add) = create()
+        val p = createProvider()
 
-        val sum = list.sumBy { 1 }
+        val sum = p.observable.sumBy { 1 }
 
         var observedValue: Int? = null
 
@@ -125,7 +114,7 @@ abstract class ListValTests : ValTests() {
         for (i in 1..5) {
             observedValue = null
 
-            add()
+            p.addElement()
 
             assertEquals(i, sum.value)
             assertEquals(i, observedValue)
@@ -134,9 +123,9 @@ abstract class ListValTests : ValTests() {
 
     @Test
     fun filtered() = test {
-        val (list, add) = create()
+        val p = createProvider()
 
-        val filtered = list.filtered { true }
+        val filtered = p.observable.filtered { true }
 
         var event: ListValChangeEvent<*>? = null
 
@@ -150,7 +139,7 @@ abstract class ListValTests : ValTests() {
         for (i in 1..5) {
             event = null
 
-            add()
+            p.addElement()
 
             assertEquals(i, filtered.size.value)
             assertNotNull(event)
@@ -159,9 +148,9 @@ abstract class ListValTests : ValTests() {
 
     @Test
     fun firstOrNull() = test {
-        val (list, add) = create()
+        val p = createProvider()
 
-        val firstOrNull = list.firstOrNull()
+        val firstOrNull = p.observable.firstOrNull()
 
         var observedValue: Any? = null
 
@@ -172,7 +161,7 @@ abstract class ListValTests : ValTests() {
 
         assertNull(firstOrNull.value)
 
-        add()
+        p.addElement()
 
         assertNotNull(firstOrNull.value)
         assertNotNull(observedValue)
@@ -180,11 +169,22 @@ abstract class ListValTests : ValTests() {
         repeat(3) {
             observedValue = null
 
-            add()
+            p.addElement()
 
             assertNotNull(firstOrNull.value)
             // Observer should not be called when adding elements at the end of the list.
             assertNull(observedValue)
         }
+    }
+
+    interface Provider : ValTests.Provider {
+        override val observable: ListVal<Any>
+
+        /**
+         * Adds an element to the ListVal under test.
+         */
+        fun addElement()
+
+        override fun emit() = addElement()
     }
 }

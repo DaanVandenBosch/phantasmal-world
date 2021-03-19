@@ -8,7 +8,7 @@ import kotlin.test.assertEquals
 
 private const val MAX_REGISTER_VALUES_SIZE: Long = 1L shl 32
 
-class GetRegisterValueTests : LibTestSuite() {
+class GetRegisterValueTests : LibTestSuite {
     @Test
     fun when_no_instruction_sets_the_register_all_values_are_returned() {
         val im = toInstructions("""

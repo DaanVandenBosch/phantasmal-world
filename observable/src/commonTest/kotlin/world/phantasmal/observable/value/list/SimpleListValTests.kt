@@ -3,13 +3,19 @@ package world.phantasmal.observable.value.list
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-class SimpleListValTests : MutableListValTests() {
-    override fun create() = object : MutableListValAndAdd {
+class SimpleListValTests : MutableListValTests<Int> {
+    override fun createProvider() = object : MutableListValTests.Provider<Int> {
+        private var nextElement = 0
+
         override val observable = SimpleListVal(mutableListOf<Int>())
 
-        override fun add() {
-            observable.add(7)
+        override fun addElement() {
+            observable.add(createElement())
         }
+
+        override fun createValue(): List<Int> = listOf(createElement())
+
+        override fun createElement(): Int = nextElement++
     }
 
     @Test

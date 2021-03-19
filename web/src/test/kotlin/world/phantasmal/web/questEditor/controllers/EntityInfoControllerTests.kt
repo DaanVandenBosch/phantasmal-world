@@ -15,7 +15,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
-class EntityInfoControllerTests : WebTestSuite() {
+class EntityInfoControllerTests : WebTestSuite {
     @Test
     fun test_unavailable_and_enabled() = testAsync {
         val ctrl =

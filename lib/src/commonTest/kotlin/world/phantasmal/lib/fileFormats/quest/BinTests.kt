@@ -7,7 +7,7 @@ import world.phantasmal.lib.test.readFile
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-class BinTests : LibTestSuite() {
+class BinTests : LibTestSuite {
     @Test
     fun parse_quest_towards_the_future() = testAsync {
         val bin = parseBin(readFile("/quest118_e_decompressed.bin"))

@@ -3,7 +3,7 @@ package world.phantasmal.testUtils
 import world.phantasmal.core.disposable.Disposer
 import world.phantasmal.core.disposable.TrackedDisposable
 
-abstract class AbstractTestSuite<Ctx : TestContext> {
+interface AbstractTestSuite<Ctx : TestContext> {
     fun test(slow: Boolean = false, testBlock: Ctx.() -> Unit) {
         if (slow && !canExecuteSlowTests()) return
 
@@ -29,5 +29,5 @@ abstract class AbstractTestSuite<Ctx : TestContext> {
             }
         }
 
-    protected abstract fun createContext(disposer: Disposer): Ctx
+    fun createContext(disposer: Disposer): Ctx
 }

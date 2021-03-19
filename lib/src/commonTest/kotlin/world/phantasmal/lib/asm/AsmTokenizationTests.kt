@@ -5,7 +5,7 @@ import world.phantasmal.testUtils.assertCloseTo
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-class AsmTokenizationTests : LibTestSuite() {
+class AsmTokenizationTests : LibTestSuite {
     @Test
     fun hexadecimal_numbers_are_parsed_as_ints() {
         assertEquals(0x00, (tokenizeLine("0X00")[0] as Token.Int32).value)

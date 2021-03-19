@@ -7,8 +7,8 @@ import kotlin.test.assertNull
 /**
  * In these tests the direct dependency of the [FlatteningDependentVal] changes.
  */
-class FlatteningDependentValDependentValEmitsTests : RegularValTests() {
-    override fun create() = object : ValAndEmit {
+class FlatteningDependentValDependentValEmitsTests : RegularValTests {
+    override fun createProvider() = object : ValTests.Provider {
         val v = SimpleVal(StaticVal(5))
 
         override val observable = FlatteningDependentVal(listOf(v)) { v.value }

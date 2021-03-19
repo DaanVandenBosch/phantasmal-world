@@ -9,7 +9,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 
-class PathAwareTabControllerTests : WebTestSuite() {
+class PathAwareTabControllerTests : WebTestSuite {
     @Test
     fun activeTab_is_initialized_correctly() = test {
         setup { ctrl, appUrl ->

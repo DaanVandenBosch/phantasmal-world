@@ -5,7 +5,7 @@ import world.phantasmal.lib.test.readFile
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-class ItemPmtTests : LibTestSuite() {
+class ItemPmtTests : LibTestSuite {
     @Test
     fun parseBasicItemPmt() = testAsync {
         val itemPmt = parseItemPmt(readFile("/ItemPMT.bin"))

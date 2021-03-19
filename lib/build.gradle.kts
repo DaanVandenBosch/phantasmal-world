@@ -16,16 +16,13 @@ buildscript {
 }
 
 val coroutinesVersion: String by project.extra
+val junitVersion: String by project.extra
 val kotlinLoggingVersion: String by project.extra
 val serializationVersion: String by project.extra
 val slf4jVersion: String by project.extra
 
-val jvmVersion: String by project.extra
-
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-    kotlinOptions {
-        jvmTarget = jvmVersion
-    }
+tasks.withType<Test> {
+    useJUnitPlatform()
 }
 
 kotlin {
@@ -72,8 +69,9 @@ kotlin {
 
         getByName("jvmTest") {
             dependencies {
-                implementation(kotlin("test-junit"))
+                implementation(kotlin("test-junit5"))
                 implementation("org.slf4j:slf4j-simple:$slf4jVersion")
+                runtimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
             }
         }
     }

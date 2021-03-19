@@ -4,7 +4,7 @@ import world.phantasmal.lib.test.LibTestSuite
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-class DisassemblyTests : LibTestSuite() {
+class DisassemblyTests : LibTestSuite {
     @Test
     fun vararg_instructions() {
         val ir = BytecodeIr(listOf(

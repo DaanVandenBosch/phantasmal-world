@@ -7,7 +7,7 @@ import world.phantasmal.web.test.WebTestContext
 import world.phantasmal.web.test.WebTestSuite
 import kotlin.test.Test
 
-class ApplicationTests : WebTestSuite() {
+class ApplicationTests : WebTestSuite {
     @Test
     fun initialization_and_shutdown_succeeds_with_empty_url() = test {
         initialization_and_shutdown_succeeds("")

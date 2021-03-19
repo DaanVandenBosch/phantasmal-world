@@ -1,15 +1,5 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
 plugins {
     kotlin("jvm")
-}
-
-val jvmVersion: String by project.extra
-
-tasks.withType<KotlinCompile> {
-    kotlinOptions {
-        jvmTarget = jvmVersion
-    }
 }
 
 val kotlinLoggingVersion: String by project.extra
