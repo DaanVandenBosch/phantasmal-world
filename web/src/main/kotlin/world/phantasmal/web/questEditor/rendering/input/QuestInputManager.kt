@@ -55,6 +55,7 @@ class QuestInputManager(
             ),
             renderContext.canvas.disposableListener("pointerdown", ::onPointerDown),
             renderContext.canvas.disposableListener("pointerout", ::onPointerOut),
+            renderContext.canvas.disposableListener("pointercancel", ::onPointerCancel),
             renderContext.canvas.disposableListener("keydown", ::onKeyDown),
             renderContext.canvas.observeEntityDragEnter(::onEntityDragEnter),
             renderContext.canvas.observeEntityDragOver(::onEntityDragOver),
@@ -171,6 +172,11 @@ class QuestInputManager(
                 movedSinceLastPointerDown,
             )
         )
+    }
+
+    @Suppress("UNUSED_PARAMETER")
+    private fun onPointerCancel(e: PointerEvent) {
+        returnToIdleState()
     }
 
     private fun onKeyDown(e: KeyboardEvent) {

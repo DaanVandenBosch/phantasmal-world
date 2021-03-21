@@ -157,6 +157,13 @@ class MeshBuilder {
         val indices = Uint16Array(indexCount)
 
         if (skinning) {
+            check(this.positions.size == boneIndices.size / 4)
+            check(this.positions.size == boneWeights.size / 4)
+
+            boneIndices.maxOrNull()?.let {
+                check(it < bones.size)
+            }
+
             geom.setAttribute(
                 "skinIndex",
                 Uint16BufferAttribute(Uint16Array(boneIndices.toTypedArray()), 4)
