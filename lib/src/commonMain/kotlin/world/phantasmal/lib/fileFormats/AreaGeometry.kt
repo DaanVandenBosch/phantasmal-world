@@ -1,5 +1,6 @@
 package world.phantasmal.lib.fileFormats
 
+import world.phantasmal.core.isBitSet
 import world.phantasmal.lib.cursor.Cursor
 import world.phantasmal.lib.fileFormats.ninja.NinjaObject
 import world.phantasmal.lib.fileFormats.ninja.XjModel
@@ -82,7 +83,7 @@ private fun parseGeometryTable(
         cursor.seek(8)
         val flags = cursor.int()
 
-        if (flags and 0b100 != 0) {
+        if (flags.isBitSet(2)) {
             offset = cursor.seekStart(offset).int()
         }
 

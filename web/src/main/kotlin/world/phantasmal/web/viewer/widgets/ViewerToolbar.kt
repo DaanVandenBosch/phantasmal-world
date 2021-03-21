@@ -5,10 +5,7 @@ import org.w3c.dom.Node
 import world.phantasmal.web.viewer.controller.ViewerToolbarController
 import world.phantasmal.webui.dom.Icon
 import world.phantasmal.webui.dom.div
-import world.phantasmal.webui.widgets.FileButton
-import world.phantasmal.webui.widgets.ResultDialog
-import world.phantasmal.webui.widgets.Toolbar
-import world.phantasmal.webui.widgets.Widget
+import world.phantasmal.webui.widgets.*
 
 class ViewerToolbar(private val ctrl: ViewerToolbarController) : Widget() {
     override fun Node.createElement() =
@@ -22,8 +19,13 @@ class ViewerToolbar(private val ctrl: ViewerToolbarController) : Widget() {
                         iconLeft = Icon.File,
                         accept = ".afs, .nj, .njm, .xj, .xvm",
                         multiple = true,
-                        filesSelected = { files -> scope.launch { ctrl.openFiles(files) } }
-                    )
+                        filesSelected = { files -> scope.launch { ctrl.openFiles(files) } },
+                    ),
+                    Checkbox(
+                        label = "Show skeleton",
+                        checked = ctrl.showSkeleton,
+                        onChange = ctrl::setShowSkeleton,
+                    ),
                 )
             ))
             addDisposable(ResultDialog(

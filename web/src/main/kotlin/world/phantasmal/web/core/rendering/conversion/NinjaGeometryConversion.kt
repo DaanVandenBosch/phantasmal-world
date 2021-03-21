@@ -43,6 +43,19 @@ fun ninjaObjectToInstancedMesh(
     return builder.buildInstancedMesh(maxInstances, boundingVolumes)
 }
 
+fun ninjaObjectToSkinnedMesh(
+    ninjaObject: NinjaObject<*>,
+    textures: List<XvrTexture?>,
+    defaultMaterial: Material? = null,
+    boundingVolumes: Boolean = false,
+): SkinnedMesh {
+    val builder = MeshBuilder()
+    defaultMaterial?.let { builder.defaultMaterial(defaultMaterial) }
+    builder.textures(textures)
+    NinjaToMeshConverter(builder).convert(ninjaObject)
+    return builder.buildSkinnedMesh(boundingVolumes)
+}
+
 fun ninjaObjectToMeshBuilder(
     ninjaObject: NinjaObject<*>,
     builder: MeshBuilder,
@@ -56,10 +69,10 @@ private class NinjaToMeshConverter(private val builder: MeshBuilder) {
     private var boneIndex = 0
 
     fun convert(ninjaObject: NinjaObject<*>) {
-        convertObject(ninjaObject, Matrix4())
+        convertObject(ninjaObject, null, Matrix4())
     }
 
-    private fun convertObject(obj: NinjaObject<*>, parentMatrix: Matrix4) {
+    private fun convertObject(obj: NinjaObject<*>, parentBone: Bone?, parentMatrix: Matrix4) {
         val ef = obj.evaluationFlags
 
         val euler = Euler(
@@ -76,6 +89,23 @@ private class NinjaToMeshConverter(private val builder: MeshBuilder) {
             )
             .premultiply(parentMatrix)
 
+        val bone: Bone?
+
+        if (ef.skip) {
+            bone = parentBone
+        } else {
+            bone = Bone()
+            bone.name = boneIndex.toString()
+
+            bone.position.setFromVec3(obj.position)
+            bone.setRotationFromEuler(euler)
+            bone.scale.setFromVec3(obj.scale)
+
+            builder.bone(bone)
+
+            parentBone?.add(bone)
+        }
+
         if (!ef.hidden) {
             obj.model?.let { model ->
                 convertModel(model, matrix)
@@ -86,7 +116,7 @@ private class NinjaToMeshConverter(private val builder: MeshBuilder) {
 
         if (!ef.breakChildTrace) {
             obj.children.forEach { child ->
-                convertObject(child, matrix)
+                convertObject(child, bone, matrix)
             }
         }
     }
@@ -170,13 +200,15 @@ private class NinjaToMeshConverter(private val builder: MeshBuilder) {
 
                     val totalWeight = boneWeights.sum()
 
-                    for (j in boneIndices.indices) {
-                        builder.boneWeight(
-                            group,
-                            boneIndices[j],
-                            if (totalWeight > 0f) boneWeights[j] / totalWeight else 0f
-                        )
+                    if (totalWeight > 0f) {
+                        val weightFactor = 1f / totalWeight
+
+                        for (j in boneWeights.indices) {
+                            boneWeights[j] *= weightFactor
+                        }
                     }
+
+                    builder.boneWeights(boneIndices, boneWeights)
 
                     i++
                 }

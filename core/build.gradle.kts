@@ -18,6 +18,10 @@ kotlin {
     jvm()
 
     sourceSets {
+        all {
+            languageSettings.useExperimentalAnnotation("kotlin.ExperimentalUnsignedTypes")
+        }
+
         commonMain {
             dependencies {
                 api("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")

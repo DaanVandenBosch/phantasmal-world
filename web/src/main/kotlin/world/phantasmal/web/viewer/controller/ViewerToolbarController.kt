@@ -2,10 +2,7 @@ package world.phantasmal.web.viewer.controller
 
 import mu.KotlinLogging
 import org.w3c.files.File
-import world.phantasmal.core.Failure
-import world.phantasmal.core.PwResult
-import world.phantasmal.core.Severity
-import world.phantasmal.core.Success
+import world.phantasmal.core.*
 import world.phantasmal.lib.Endianness
 import world.phantasmal.lib.compression.prs.prsDecompress
 import world.phantasmal.lib.cursor.Cursor
@@ -25,6 +22,7 @@ class ViewerToolbarController(private val store: ViewerStore) : Controller() {
     private val _resultDialogVisible = mutableVal(false)
     private val _result = mutableVal<PwResult<*>?>(null)
 
+    val showSkeleton: Val<Boolean> = store.showSkeleton
     val resultDialogVisible: Val<Boolean> = _resultDialogVisible
     val result: Val<PwResult<*>?> = _result
     val resultMessage: Val<String> = result.map {
@@ -34,19 +32,68 @@ class ViewerToolbarController(private val store: ViewerStore) : Controller() {
         }
     }
 
+    fun setShowSkeleton(show: Boolean) {
+        store.setShowSkeleton(show)
+    }
+
     suspend fun openFiles(files: List<File>) {
         val result = PwResult.build<Unit>(logger)
         var success = false
 
         try {
-            val kindsFound = mutableSetOf<FileKind>()
+            var ninjaObject: NinjaObject<*>? = null
+            var textures: List<XvrTexture>? = null
+            var ninjaMotion: NjMotion? = null
 
             for (file in files) {
                 val extension = file.extension()?.toLowerCase()
 
-                val kind = when (extension) {
-                    "nj", "xj" -> FileKind.Model
-                    "afs", "xvm" -> FileKind.Texture
+                val cursor = readFile(file).cursor(Endianness.Little)
+                var fileResult: PwResult<*>
+
+                when (extension) {
+                    "nj" -> {
+                        val njResult = parseNj(cursor)
+                        fileResult = njResult
+
+                        if (njResult is Success) {
+                            ninjaObject = njResult.value.firstOrNull()
+                        }
+                    }
+
+                    "xj" -> {
+                        val xjResult = parseXj(cursor)
+                        fileResult = xjResult
+
+                        if (xjResult is Success) {
+                            ninjaObject = xjResult.value.firstOrNull()
+                        }
+                    }
+
+                    "afs" -> {
+                        val afsResult = parseAfsTextures(cursor)
+                        fileResult = afsResult
+
+                        if (afsResult is Success) {
+                            textures = afsResult.value
+                        }
+                    }
+
+                    "xvm" -> {
+                        val xvmResult = parseXvm(cursor)
+                        fileResult = xvmResult
+
+                        if (xvmResult is Success) {
+                            textures = xvmResult.value.textures
+                        }
+                    }
+
+                    "njm" -> {
+                        val njm = parseNjm(cursor)
+                        fileResult = Success(njm)
+                        ninjaMotion = njm
+                    }
+
                     else -> {
                         result.addProblem(
                             Severity.Error,
@@ -56,56 +103,16 @@ class ViewerToolbarController(private val store: ViewerStore) : Controller() {
                     }
                 }
 
-                if (kind in kindsFound) continue
-
-                val cursor = readFile(file).cursor(Endianness.Little)
-                var fileResult: PwResult<*>? = null
-
-                when (extension) {
-                    "nj" -> {
-                        val njResult = parseNj(cursor)
-                        fileResult = njResult
-
-                        if (njResult is Success) {
-                            store.setCurrentNinjaObject(njResult.value.firstOrNull())
-                        }
-                    }
-
-                    "xj" -> {
-                        val xjResult = parseXj(cursor)
-                        fileResult = xjResult
-
-                        if (xjResult is Success) {
-                            store.setCurrentNinjaObject(xjResult.value.firstOrNull())
-                        }
-                    }
-
-                    "afs" -> {
-                        val afsResult = parseAfsTextures(cursor)
-                        fileResult = afsResult
-
-                        if (afsResult is Success) {
-                            store.setCurrentTextures(afsResult.value)
-                        }
-                    }
-
-                    "xvm" -> {
-                        val xvmResult = parseXvm(cursor)
-                        fileResult = xvmResult
-
-                        if (xvmResult is Success) {
-                            store.setCurrentTextures(xvmResult.value.textures)
-                        }
-                    }
-                }
-
-                fileResult?.let(result::addResult)
+                result.addResult(fileResult)
 
                 if (fileResult is Success<*>) {
                     success = true
-                    kindsFound.add(kind)
                 }
             }
+
+            ninjaObject?.let(store::setCurrentNinjaObject)
+            textures?.let(store::setCurrentTextures)
+            ninjaMotion?.let(store::setCurrentNinjaMotion)
         } catch (e: Exception) {
             result.addProblem(Severity.Error, "Couldn't parse files.", cause = e)
         }
@@ -159,9 +166,5 @@ class ViewerToolbarController(private val store: ViewerStore) : Controller() {
         }
 
         return result.success(textures)
-    }
-
-    private enum class FileKind {
-        Model, Texture
     }
 }

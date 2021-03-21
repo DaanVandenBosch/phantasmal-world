@@ -1,6 +1,7 @@
 package world.phantasmal.lib.fileFormats.ninja
 
 import mu.KotlinLogging
+import world.phantasmal.core.isBitSet
 import world.phantasmal.lib.cursor.Cursor
 import world.phantasmal.lib.fileFormats.Vec2
 import world.phantasmal.lib.fileFormats.Vec3
@@ -148,10 +149,10 @@ private fun parseChunks(
 
                 chunks.add(NjChunk.Tiny(
                     typeId,
-                    flipU = (typeId.toUInt() and 0x80u) != 0u,
-                    flipV = (typeId.toUInt() and 0x40u) != 0u,
-                    clampU = (typeId.toUInt() and 0x20u) != 0u,
-                    clampV = (typeId.toUInt() and 0x10u) != 0u,
+                    flipU = typeId.isBitSet(7),
+                    flipV = typeId.isBitSet(6),
+                    clampU = typeId.isBitSet(5),
+                    clampV = typeId.isBitSet(4),
                     mipmapDAdjust = typeId.toUInt() and 0b1111u,
                     filterMode = textureBitsAndId ushr 14,
                     superSample = (textureBitsAndId and 0x40) != 0,
@@ -165,7 +166,7 @@ private fun parseChunks(
                 var ambient: NjArgb? = null
                 var specular: NjErgb? = null
 
-                if ((flags and 0b1) != 0) {
+                if (flags.isBitSet(0)) {
                     diffuse = NjArgb(
                         b = cursor.uByte().toFloat() / 255f,
                         g = cursor.uByte().toFloat() / 255f,
@@ -174,7 +175,7 @@ private fun parseChunks(
                     )
                 }
 
-                if ((flags and 0b10) != 0) {
+                if (flags.isBitSet(1)) {
                     ambient = NjArgb(
                         b = cursor.uByte().toFloat() / 255f,
                         g = cursor.uByte().toFloat() / 255f,
@@ -183,7 +184,7 @@ private fun parseChunks(
                     )
                 }
 
-                if ((flags and 0b100) != 0) {
+                if (flags.isBitSet(2)) {
                     specular = NjErgb(
                         b = cursor.uByte(),
                         g = cursor.uByte(),
@@ -332,13 +333,13 @@ private fun parseTriangleStripChunk(
     chunkTypeId: UByte,
     flags: Int,
 ): List<NjTriangleStrip> {
-    val ignoreLight = (flags and 0b1) != 0
-    val ignoreSpecular = (flags and 0b10) != 0
-    val ignoreAmbient = (flags and 0b100) != 0
-    val useAlpha = (flags and 0b1000) != 0
-    val doubleSide = (flags and 0b10000) != 0
-    val flatShading = (flags and 0b100000) != 0
-    val environmentMapping = (flags and 0b1000000) != 0
+    val ignoreLight = flags.isBitSet(0)
+    val ignoreSpecular = flags.isBitSet(1)
+    val ignoreAmbient = flags.isBitSet(2)
+    val useAlpha = flags.isBitSet(3)
+    val doubleSide = flags.isBitSet(4)
+    val flatShading = flags.isBitSet(5)
+    val environmentMapping = flags.isBitSet(6)
 
     val userOffsetAndStripCount = cursor.short().toInt()
     val userFlagsSize = (userOffsetAndStripCount ushr 14)

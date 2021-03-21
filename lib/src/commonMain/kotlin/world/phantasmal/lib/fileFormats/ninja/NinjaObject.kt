@@ -22,30 +22,30 @@ class NinjaObject<Model : NinjaModel>(
     }
 
     fun boneCount(): Int {
-        val idRef = IntArray(0)
-        findBone(this, Int.MAX_VALUE, idRef)
-        return idRef[0]
+        val indexRef = intArrayOf(0)
+        findBone(this, Int.MAX_VALUE, indexRef)
+        return indexRef[0]
     }
 
-    fun getBone(id: Int): NinjaObject<Model>? =
-        findBone(this, id)
+    fun getBone(index: Int): NinjaObject<Model>? =
+        findBone(this, index, intArrayOf(0))
 
     private fun findBone(
         obj: NinjaObject<Model>,
-        boneId: Int,
-        idRef: IntArray = intArrayOf(0),
+        boneIndex: Int,
+        indexRef: IntArray,
     ): NinjaObject<Model>? {
         if (!obj.evaluationFlags.skip) {
-            val id = idRef[0]++
+            val index = indexRef[0]++
 
-            if (id == boneId) {
+            if (index == boneIndex) {
                 return obj
             }
         }
 
         if (!obj.evaluationFlags.breakChildTrace) {
             for (child in obj.children) {
-                val bone = findBone(child, boneId, idRef)
+                val bone = findBone(child, boneIndex, indexRef)
                 if (bone != null) return bone
             }
         }

@@ -7,8 +7,8 @@ import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.list.ListVal
 import world.phantasmal.observable.value.list.listVal
 import world.phantasmal.observable.value.mutableVal
-import world.phantasmal.web.core.euler
 import world.phantasmal.web.core.minus
+import world.phantasmal.web.core.rendering.conversion.vec3ToEuler
 import world.phantasmal.web.core.rendering.conversion.vec3ToThree
 import world.phantasmal.web.core.timesAssign
 import world.phantasmal.web.core.toEuler
@@ -29,7 +29,7 @@ abstract class QuestEntityModel<Type : EntityType, Entity : QuestEntity<Type>>(
     private val _sectionInitialized = mutableVal(false)
     private val _position = mutableVal(vec3ToThree(entity.position))
     private val _worldPosition = mutableVal(_position.value)
-    private val _rotation = entity.rotation.let { mutableVal(euler(it.x, it.y, it.z)) }
+    private val _rotation = mutableVal(vec3ToEuler(entity.rotation))
     private val _worldRotation = mutableVal(_rotation.value)
 
     val type: Type get() = entity.type

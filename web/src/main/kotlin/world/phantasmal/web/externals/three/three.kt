@@ -113,6 +113,11 @@ external class Quaternion(
     z: Double = definedExternally,
     w: Double = definedExternally,
 ) {
+    var x: Double
+    var y: Double
+    var z: Double
+    var w: Double
+
     fun setFromEuler(euler: Euler): Quaternion
 
     /**
@@ -318,6 +323,34 @@ open external class Mesh(
     fun translateY(distance: Double): Mesh
 }
 
+external class SkinnedMesh(
+    geometry: Geometry = definedExternally,
+    material: Material = definedExternally,
+    useVertexTexture: Boolean = definedExternally,
+) : Mesh {
+    constructor(
+        geometry: Geometry,
+        material: Array<Material>,
+        useVertexTexture: Boolean = definedExternally,
+    )
+
+    constructor(
+        geometry: BufferGeometry = definedExternally,
+        material: Material = definedExternally,
+        useVertexTexture: Boolean = definedExternally,
+    )
+
+    constructor(
+        geometry: BufferGeometry,
+        material: Array<Material>,
+        useVertexTexture: Boolean = definedExternally,
+    )
+
+    val skeleton: Skeleton
+
+    fun bind(skeleton: Skeleton, bindMatrix: Matrix4 = definedExternally)
+}
+
 external class InstancedMesh(
     geometry: Geometry,
     material: Material,
@@ -347,6 +380,16 @@ external class InstancedMesh(
     fun getMatrixAt(index: Int, matrix: Matrix4)
     fun setMatrixAt(index: Int, matrix: Matrix4)
 }
+
+external class Bone : Object3D {
+    fun setRotationFromEuler(euler: Euler)
+}
+
+external class Skeleton(bones: Array<Bone>, boneInverses: Array<Matrix4> = definedExternally) {
+    fun dispose()
+}
+
+external class SkeletonHelper(`object`: Object3D) : LineSegments
 
 open external class Line : Object3D
 
@@ -729,4 +772,80 @@ external interface Intersection {
     var `object`: Object3D
     var uv: Vector2?
     var instanceId: Int?
+}
+
+external class Clock(autoStart: Boolean = definedExternally) {
+    fun start()
+    fun stop()
+    fun getDelta(): Double
+}
+
+external class AnimationClip(
+    name: String = definedExternally,
+    duration: Double = definedExternally,
+    tracks: Array<KeyframeTrack> = definedExternally,
+    blendMode: AnimationBlendMode = definedExternally,
+) {
+    fun optimize(): AnimationClip
+}
+
+external interface InterpolationModes
+external object InterpolateDiscrete : InterpolationModes
+external object InterpolateLinear : InterpolationModes
+external object InterpolateSmooth : InterpolationModes
+
+external interface AnimationBlendMode
+external object NormalAnimationBlendMode : AnimationBlendMode
+external object AdditiveAnimationBlendMode : AnimationBlendMode
+
+open external class KeyframeTrack
+
+external class VectorKeyframeTrack(
+    name: String,
+    times: Array<Double>,
+    values: Array<Double>,
+    interpolation: InterpolationModes = definedExternally,
+) : KeyframeTrack
+
+external class QuaternionKeyframeTrack(
+    name: String,
+    times: Array<Double>,
+    values: Array<Double>,
+    interpolation: InterpolationModes = definedExternally,
+) : KeyframeTrack
+
+external class AnimationMixer(root: Object3D) : EventDispatcher {
+    var time: Double
+    var timeScale: Double
+
+    fun clipAction(
+        clip: AnimationClip,
+        root: Object3D = definedExternally,
+        blendMode: AnimationBlendMode = definedExternally,
+    ): AnimationAction
+
+    fun existingAction(
+        clip: AnimationClip,
+        root: Object3D = definedExternally,
+        blendMode: AnimationBlendMode = definedExternally,
+    ): AnimationAction
+
+    fun stopAllAction(): AnimationMixer
+    fun update(deltaTime: Double): AnimationMixer
+    fun uncacheAction(clip: AnimationClip, root: Object3D = definedExternally)
+}
+
+external class AnimationAction(
+    mixer: AnimationMixer,
+    clip: AnimationClip,
+    localRoot: Object3D = definedExternally,
+    blendMode: AnimationBlendMode = definedExternally,
+) {
+    var time: Double
+    var timeScale: Double
+    val paused: Boolean
+
+    fun play(): AnimationAction
+    fun stop(): AnimationAction
+    fun reset(): AnimationAction
 }

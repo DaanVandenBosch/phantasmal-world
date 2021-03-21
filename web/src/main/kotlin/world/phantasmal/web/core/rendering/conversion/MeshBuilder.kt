@@ -3,6 +3,8 @@ package world.phantasmal.web.core.rendering.conversion
 import org.khronos.webgl.Float32Array
 import org.khronos.webgl.Uint16Array
 import org.khronos.webgl.set
+import world.phantasmal.core.asArray
+import world.phantasmal.core.jsArrayOf
 import world.phantasmal.lib.fileFormats.ninja.XvrTexture
 import world.phantasmal.web.externals.three.*
 import world.phantasmal.webui.obj
@@ -11,16 +13,17 @@ class MeshBuilder {
     private val positions = mutableListOf<Vector3>()
     private val normals = mutableListOf<Vector3>()
     private val uvs = mutableListOf<Vector2>()
+    private val boneIndices = mutableListOf<Short>()
+    private val boneWeights = mutableListOf<Float>()
+    private val bones = mutableListOf<Bone>()
 
     /**
      * One group per material.
      */
     private val groups = mutableListOf<Group>()
+    private var indexCount = 0
 
-    private var defaultMaterial: Material = MeshLambertMaterial(obj {
-        // TODO: skinning
-        side = DoubleSide
-    })
+    private var defaultMaterial: Material? = null
 
     private val textures = mutableListOf<XvrTexture?>()
 
@@ -59,13 +62,25 @@ class MeshBuilder {
     }
 
     fun index(groupIdx: Int, index: Int) {
-        groups[groupIdx].indices.add(index.toShort())
+        groups[groupIdx].indices.push(index.toShort())
+        indexCount++
     }
 
-    fun boneWeight(groupIdx: Int, index: Int, weight: Float) {
-        val group = groups[groupIdx]
-        group.boneIndices.add(index.toShort())
-        group.boneWeights.add(weight)
+    fun bone(bone: Bone) {
+        bones.add(bone)
+    }
+
+    fun boneWeights(indices: IntArray, weights: FloatArray) {
+        require(indices.size == 4)
+        require(weights.size == 4)
+
+        for (index in indices) {
+            boneIndices.add(index.toShort())
+        }
+
+        for (weight in weights) {
+            boneWeights.add(weight)
+        }
     }
 
     fun defaultMaterial(material: Material) {
@@ -77,12 +92,7 @@ class MeshBuilder {
     }
 
     fun buildMesh(boundingVolumes: Boolean = false): Mesh =
-        build().let { (geom, materials) ->
-            if (boundingVolumes) {
-                geom.computeBoundingBox()
-                geom.computeBoundingSphere()
-            }
-
+        build(skinning = false, boundingVolumes).let { (geom, materials) ->
             Mesh(geom, materials)
         }
 
@@ -90,22 +100,32 @@ class MeshBuilder {
      * Creates an [InstancedMesh] with 0 instances.
      */
     fun buildInstancedMesh(maxInstances: Int, boundingVolumes: Boolean = false): InstancedMesh =
-        build().let { (geom, materials) ->
-            if (boundingVolumes) {
-                geom.computeBoundingBox()
-                geom.computeBoundingSphere()
-            }
-
+        build(skinning = false, boundingVolumes).let { (geom, materials) ->
             InstancedMesh(geom, materials, maxInstances).apply {
                 // Start with 0 instances.
                 count = 0
             }
         }
 
-    private fun build(): Pair<BufferGeometry, Array<Material>> {
+    /**
+     * Creates a [SkinnedMesh] with bones and a skeleton for animation.
+     */
+    fun buildSkinnedMesh(boundingVolumes: Boolean = false): SkinnedMesh =
+        build(skinning = true, boundingVolumes).let { (geom, materials, bones) ->
+            SkinnedMesh(geom, materials).apply {
+                add(bones[0])
+                bind(Skeleton(bones))
+            }
+        }
+
+    private fun build(
+        skinning: Boolean,
+        boundingVolumes: Boolean,
+    ): Triple<BufferGeometry, Array<Material>, Array<Bone>> {
         check(positions.size == normals.size)
         check(uvs.isEmpty() || positions.size == uvs.size)
 
+        // Per-buffer attributes.
         val positions = Float32Array(3 * positions.size)
         val normals = Float32Array(3 * normals.size)
         val uvs = if (uvs.isEmpty()) null else Float32Array(2 * uvs.size)
@@ -132,16 +152,34 @@ class MeshBuilder {
         geom.setAttribute("position", Float32BufferAttribute(positions, 3))
         geom.setAttribute("normal", Float32BufferAttribute(normals, 3))
         uvs?.let { geom.setAttribute("uv", Float32BufferAttribute(uvs, 2)) }
-        val indices = Uint16Array(groups.sumBy { it.indices.size })
+
+        // Per group/material attributes.
+        val indices = Uint16Array(indexCount)
+
+        if (skinning) {
+            geom.setAttribute(
+                "skinIndex",
+                Uint16BufferAttribute(Uint16Array(boneIndices.toTypedArray()), 4)
+            )
+            geom.setAttribute(
+                "skinWeight",
+                Float32BufferAttribute(Float32Array(boneWeights.toTypedArray()), 4)
+            )
+        }
 
         var offset = 0
         val texCache = mutableMapOf<Int, Texture?>()
 
         val materials = mutableListOf<Material>()
 
+        val defaultMaterial = defaultMaterial ?: MeshLambertMaterial(obj {
+            this.skinning = skinning
+            side = DoubleSide
+        })
+
         for (group in groups) {
-            indices.set(group.indices.toTypedArray(), offset)
-            geom.addGroup(offset, group.indices.size, materials.size)
+            indices.set(group.indices.asArray(), offset)
+            geom.addGroup(offset, group.indices.length, materials.size)
 
             val tex = group.textureId?.let { texId ->
                 texCache.getOrPut(texId) {
@@ -155,7 +193,7 @@ class MeshBuilder {
                 defaultMaterial
             } else {
                 MeshBasicMaterial(obj {
-                    // TODO: skinning
+                    this.skinning = skinning
                     map = tex
                     side = DoubleSide
 
@@ -173,12 +211,17 @@ class MeshBuilder {
             }
 
             materials.add(mat)
-            offset += group.indices.size
+            offset += group.indices.length
         }
 
         geom.setIndex(Uint16BufferAttribute(indices, 1))
 
-        return Pair(geom, materials.toTypedArray())
+        if (boundingVolumes) {
+            geom.computeBoundingBox()
+            geom.computeBoundingSphere()
+        }
+
+        return Triple(geom, materials.toTypedArray(), bones.toTypedArray())
     }
 
     private class Group(
@@ -186,8 +229,6 @@ class MeshBuilder {
         val alpha: Boolean,
         val additiveBlending: Boolean,
     ) {
-        val indices = mutableListOf<Short>()
-        val boneIndices = mutableListOf<Short>()
-        val boneWeights = mutableListOf<Float>()
+        val indices = jsArrayOf<Short>()
     }
 }

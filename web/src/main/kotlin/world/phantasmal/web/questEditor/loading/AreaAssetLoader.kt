@@ -9,11 +9,8 @@ import world.phantasmal.lib.fileFormats.CollisionObject
 import world.phantasmal.lib.fileFormats.RenderObject
 import world.phantasmal.lib.fileFormats.parseAreaCollisionGeometry
 import world.phantasmal.lib.fileFormats.parseAreaGeometry
-import world.phantasmal.web.core.euler
 import world.phantasmal.web.core.loading.AssetLoader
-import world.phantasmal.web.core.rendering.conversion.MeshBuilder
-import world.phantasmal.web.core.rendering.conversion.ninjaObjectToMeshBuilder
-import world.phantasmal.web.core.rendering.conversion.vec3ToThree
+import world.phantasmal.web.core.rendering.conversion.*
 import world.phantasmal.web.core.rendering.disposeObject3DResources
 import world.phantasmal.web.externals.three.*
 import world.phantasmal.web.questEditor.models.AreaVariantModel
@@ -296,23 +293,15 @@ private fun areaGeometryToObject3DAndSections(
 
         val mesh = builder.buildMesh()
 
-        mesh.position.set(
-            section.position.x.toDouble(),
-            section.position.y.toDouble(),
-            section.position.z.toDouble()
-        )
-        mesh.rotation.set(
-            section.rotation.x.toDouble(),
-            section.rotation.y.toDouble(),
-            section.rotation.z.toDouble(),
-        )
+        mesh.position.setFromVec3(section.position)
+        mesh.rotation.setFromVec3(section.rotation)
         mesh.updateMatrixWorld()
 
         if (section.id >= 0) {
             val sectionModel = SectionModel(
                 section.id,
                 vec3ToThree(section.position),
-                euler(section.rotation.x, section.rotation.y, section.rotation.z),
+                vec3ToEuler(section.rotation),
                 areaVariant,
             )
             sections.add(sectionModel)

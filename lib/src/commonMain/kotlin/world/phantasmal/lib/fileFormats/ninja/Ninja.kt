@@ -3,6 +3,7 @@ package world.phantasmal.lib.fileFormats.ninja
 import world.phantasmal.core.Failure
 import world.phantasmal.core.PwResult
 import world.phantasmal.core.Success
+import world.phantasmal.core.isBitSet
 import world.phantasmal.lib.cursor.Cursor
 import world.phantasmal.lib.fileFormats.Vec3
 import world.phantasmal.lib.fileFormats.parseIff
@@ -45,15 +46,15 @@ private fun <Model : NinjaModel, Context> parseSiblingObjects(
     parseModel: (cursor: Cursor, context: Context) -> Model,
     context: Context,
 ): MutableList<NinjaObject<Model>> {
-    val evalFlags = cursor.uInt()
-    val noTranslate = (evalFlags and 0b1u) != 0u
-    val noRotate = (evalFlags and 0b10u) != 0u
-    val noScale = (evalFlags and 0b100u) != 0u
-    val hidden = (evalFlags and 0b1000u) != 0u
-    val breakChildTrace = (evalFlags and 0b10000u) != 0u
-    val zxyRotationOrder = (evalFlags and 0b100000u) != 0u
-    val skip = (evalFlags and 0b1000000u) != 0u
-    val shapeSkip = (evalFlags and 0b10000000u) != 0u
+    val evalFlags = cursor.int()
+    val noTranslate = evalFlags.isBitSet(0)
+    val noRotate = evalFlags.isBitSet(1)
+    val noScale = evalFlags.isBitSet(2)
+    val hidden = evalFlags.isBitSet(3)
+    val breakChildTrace = evalFlags.isBitSet(4)
+    val zxyRotationOrder = evalFlags.isBitSet(5)
+    val skip = evalFlags.isBitSet(6)
+    val shapeSkip = evalFlags.isBitSet(7)
 
     val modelOffset = cursor.int()
     val pos = cursor.vec3Float()
