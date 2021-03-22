@@ -2,9 +2,7 @@ package world.phantasmal.web.core.rendering.conversion
 
 import mu.KotlinLogging
 import world.phantasmal.lib.fileFormats.ninja.*
-import world.phantasmal.web.core.cross
 import world.phantasmal.web.core.dot
-import world.phantasmal.web.core.minus
 import world.phantasmal.web.core.toQuaternion
 import world.phantasmal.web.externals.three.*
 
@@ -15,6 +13,11 @@ private val DEFAULT_UV = Vector2(0.0, 0.0)
 private val NO_TRANSLATION = Vector3(0.0, 0.0, 0.0)
 private val NO_ROTATION = Quaternion()
 private val NO_SCALE = Vector3(1.0, 1.0, 1.0)
+
+// Objects used for temporary calculations to avoid GC.
+private val tmpNormal = Vector3()
+private val tmpVec = Vector3()
+private val tmpNormalMatrix = Matrix3()
 
 fun ninjaObjectToMesh(
     ninjaObject: NinjaObject<*>,
@@ -128,7 +131,7 @@ private class NinjaToMeshConverter(private val builder: MeshBuilder) {
         }
 
     private fun convertNjModel(model: NjModel, matrix: Matrix4) {
-        val normalMatrix = Matrix3().getNormalMatrix(matrix)
+        tmpNormalMatrix.getNormalMatrix(matrix)
 
         val newVertices = model.vertices.map { vertex ->
             vertex?.let {
@@ -136,7 +139,7 @@ private class NinjaToMeshConverter(private val builder: MeshBuilder) {
                 val normal = vertex.normal?.let(::vec3ToThree) ?: Vector3(0.0, 1.0, 0.0)
 
                 position.applyMatrix4(matrix)
-                normal.applyMatrix3(normalMatrix)
+                normal.applyMatrix3(tmpNormalMatrix)
 
                 Vertex(
                     boneIndex,
@@ -218,14 +221,14 @@ private class NinjaToMeshConverter(private val builder: MeshBuilder) {
 
     private fun convertXjModel(model: XjModel, matrix: Matrix4) {
         val indexOffset = builder.vertexCount
-        val normalMatrix = Matrix3().getNormalMatrix(matrix)
+        tmpNormalMatrix.getNormalMatrix(matrix)
 
         for (vertex in model.vertices) {
             val p = vec3ToThree(vertex.position)
             p.applyMatrix4(matrix)
 
             val n = vertex.normal?.let(::vec3ToThree) ?: Vector3(0.0, 1.0, 0.0)
-            n.applyMatrix3(normalMatrix)
+            n.applyMatrix3(tmpNormalMatrix)
 
             val uv = vertex.uv?.let(::vec2ToThree) ?: DEFAULT_UV
 
@@ -263,16 +266,20 @@ private class NinjaToMeshConverter(private val builder: MeshBuilder) {
                 // Calculate a surface normal and reverse the vertex winding if at least 2 of the
                 // vertex normals point in the opposite direction. This hack fixes the winding for
                 // most models.
-                val normal = (pb - pa) cross (pc - pa)
+                tmpNormal.copy(pb)
+                tmpNormal.sub(pa)
+                tmpVec.copy(pc)
+                tmpVec.sub(pa)
+                tmpNormal.cross(tmpVec)
 
                 if (clockwise) {
-                    normal.negate()
+                    tmpNormal.negate()
                 }
 
                 val oppositeCount =
-                    (if (normal dot na < 0) 1 else 0) +
-                            (if (normal dot nb < 0) 1 else 0) +
-                            (if (normal dot nc < 0) 1 else 0)
+                    (if (tmpNormal dot na < 0) 1 else 0) +
+                            (if (tmpNormal dot nb < 0) 1 else 0) +
+                            (if (tmpNormal dot nc < 0) 1 else 0)
 
                 if (oppositeCount >= 2) {
                     clockwise = !clockwise
