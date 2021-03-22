@@ -42,7 +42,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.1.1")
     implementation(npm("golden-layout", "^1.5.9"))
     implementation(npm("monaco-editor", "0.20.0"))
-    implementation(npm("three", "^0.122.0"))
+    implementation(npm("three", "^0.126.0"))
     implementation(npm("javascript-lp-solver", "0.4.17"))
 
     implementation(devNpm("file-loader", "^6.0.0"))

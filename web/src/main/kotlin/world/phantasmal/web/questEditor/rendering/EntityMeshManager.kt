@@ -36,7 +36,7 @@ class EntityMeshManager(
                     add(entity)
                 })
             },
-            { /* Nothing to dispose. */ },
+            EntityInstancedMesh::dispose,
         )
     )
 

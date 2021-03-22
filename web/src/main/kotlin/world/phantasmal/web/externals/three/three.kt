@@ -5,6 +5,7 @@
 package world.phantasmal.web.externals.three
 
 import org.khronos.webgl.Float32Array
+import org.khronos.webgl.Int32Array
 import org.khronos.webgl.Uint16Array
 import org.w3c.dom.HTMLCanvasElement
 
@@ -123,7 +124,7 @@ external class Quaternion(
     /**
      * Inverts this quaternion.
      */
-    fun inverse(): Quaternion
+    fun invert(): Quaternion
 
     /**
      * Multiplies this quaternion by [q].
@@ -218,6 +219,7 @@ open external class WebGLRenderer(
     override val domElement: HTMLCanvasElement
 
     var autoClearColor: Boolean
+    var debug: WebGLDebug
 
     override fun render(scene: Object3D, camera: Camera)
 
@@ -230,6 +232,10 @@ open external class WebGLRenderer(
     fun clearColor()
 
     fun dispose()
+}
+
+external interface WebGLDebug {
+    var checkShaderErrors: Boolean
 }
 
 open external class Object3D {
@@ -299,47 +305,25 @@ open external class Object3D {
 external class Group : Object3D
 
 open external class Mesh(
-    geometry: Geometry = definedExternally,
+    geometry: BufferGeometry = definedExternally,
     material: Material = definedExternally,
 ) : Object3D {
-    constructor(
-        geometry: Geometry,
-        material: Array<Material>,
-    )
-
-    constructor(
-        geometry: BufferGeometry = definedExternally,
-        material: Material = definedExternally,
-    )
-
     constructor(
         geometry: BufferGeometry,
         material: Array<Material>,
     )
 
-    var geometry: Any /* Geometry | BufferGeometry */
+    var geometry: BufferGeometry
     var material: Any /* Material | Material[] */
 
     fun translateY(distance: Double): Mesh
 }
 
 external class SkinnedMesh(
-    geometry: Geometry = definedExternally,
+    geometry: BufferGeometry = definedExternally,
     material: Material = definedExternally,
     useVertexTexture: Boolean = definedExternally,
 ) : Mesh {
-    constructor(
-        geometry: Geometry,
-        material: Array<Material>,
-        useVertexTexture: Boolean = definedExternally,
-    )
-
-    constructor(
-        geometry: BufferGeometry = definedExternally,
-        material: Material = definedExternally,
-        useVertexTexture: Boolean = definedExternally,
-    )
-
     constructor(
         geometry: BufferGeometry,
         material: Array<Material>,
@@ -352,22 +336,10 @@ external class SkinnedMesh(
 }
 
 external class InstancedMesh(
-    geometry: Geometry,
+    geometry: BufferGeometry,
     material: Material,
     count: Int,
 ) : Mesh {
-    constructor(
-        geometry: Geometry,
-        material: Array<Material>,
-        count: Int,
-    )
-
-    constructor(
-        geometry: BufferGeometry,
-        material: Material,
-        count: Int,
-    )
-
     constructor(
         geometry: BufferGeometry,
         material: Array<Material>,
@@ -379,6 +351,7 @@ external class InstancedMesh(
 
     fun getMatrixAt(index: Int, matrix: Matrix4)
     fun setMatrixAt(index: Int, matrix: Matrix4)
+    fun dispose()
 }
 
 external class Bone : Object3D {
@@ -502,53 +475,6 @@ external class Color() {
     fun setHSL(h: Double, s: Double, l: Double): Color
 }
 
-open external class Geometry : EventDispatcher {
-    var boundingBox: Box3?
-    var boundingSphere: Sphere?
-
-    /**
-     * The array of vertices hold every position of points of the model.
-     * To signal an update in this array, Geometry.verticesNeedUpdate needs to be set to true.
-     */
-    var vertices: Array<Vector3>
-
-    /**
-     * Array of triangles or/and quads.
-     * The array of faces describe how each vertex in the model is connected with each other.
-     * To signal an update in this array, Geometry.elementsNeedUpdate needs to be set to true.
-     */
-    var faces: Array<Face3>
-
-    /**
-     * Array of face UV layers.
-     * Each UV layer is an array of UV matching order and number of vertices in faces.
-     * To signal an update in this array, Geometry.uvsNeedUpdate needs to be set to true.
-     */
-    var faceVertexUvs: Array<Array<Array<Vector2>>>
-
-    fun translate(x: Double, y: Double, z: Double): Geometry
-
-    /**
-     * Computes bounding box of the geometry, updating {@link Geometry.boundingBox} attribute.
-     */
-    fun computeBoundingBox()
-
-    /**
-     * Computes bounding sphere of the geometry, updating Geometry.boundingSphere attribute.
-     * Neither bounding boxes or bounding spheres are computed by default. They need to be explicitly computed, otherwise they are null.
-     */
-    fun computeBoundingSphere()
-
-    fun dispose()
-}
-
-external class PlaneGeometry(
-    width: Double = definedExternally,
-    height: Double = definedExternally,
-    widthSegments: Double = definedExternally,
-    heightSegments: Double = definedExternally,
-) : Geometry
-
 open external class BufferGeometry : EventDispatcher {
     var boundingBox: Box3?
     var boundingSphere: Sphere?
@@ -569,6 +495,13 @@ open external class BufferGeometry : EventDispatcher {
     fun dispose()
 }
 
+external class PlaneGeometry(
+    width: Double = definedExternally,
+    height: Double = definedExternally,
+    widthSegments: Double = definedExternally,
+    heightSegments: Double = definedExternally,
+) : BufferGeometry
+
 external class CylinderBufferGeometry(
     radiusTop: Double = definedExternally,
     radiusBottom: Double = definedExternally,
@@ -585,6 +518,12 @@ open external class BufferAttribute {
 
     fun copyAt(index1: Int, bufferAttribute: BufferAttribute, index2: Int): BufferAttribute
 }
+
+external class Int32BufferAttribute(
+    array: Int32Array,
+    itemSize: Int,
+    normalize: Boolean = definedExternally,
+) : BufferAttribute
 
 external class Uint16BufferAttribute(
     array: Uint16Array,

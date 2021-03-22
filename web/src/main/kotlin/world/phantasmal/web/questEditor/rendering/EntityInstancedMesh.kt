@@ -1,5 +1,7 @@
 package world.phantasmal.web.questEditor.rendering
 
+import world.phantasmal.core.disposable.TrackedDisposable
+import world.phantasmal.web.core.rendering.disposeObject3DResources
 import world.phantasmal.web.externals.three.InstancedMesh
 import world.phantasmal.web.questEditor.models.QuestEntityModel
 
@@ -15,11 +17,16 @@ class EntityInstancedMesh(
      * [EntityInstancedMesh].
      */
     private val modelChanged: (QuestEntityModel<*, *>) -> Unit,
-) {
+) : TrackedDisposable() {
     private val instances: MutableList<EntityInstance> = mutableListOf()
 
     init {
         mesh.userData = this
+    }
+
+    override fun dispose() {
+        disposeObject3DResources(mesh)
+        super.dispose()
     }
 
     fun getInstance(entity: QuestEntityModel<*, *>): EntityInstance? =

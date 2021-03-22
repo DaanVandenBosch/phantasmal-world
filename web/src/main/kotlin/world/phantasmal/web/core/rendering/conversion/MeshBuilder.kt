@@ -125,7 +125,6 @@ class MeshBuilder {
         check(positions.size == normals.size)
         check(uvs.isEmpty() || positions.size == uvs.size)
 
-        // Per-buffer attributes.
         val positions = Float32Array(3 * positions.size)
         val normals = Float32Array(3 * normals.size)
         val uvs = if (uvs.isEmpty()) null else Float32Array(2 * uvs.size)
@@ -153,9 +152,6 @@ class MeshBuilder {
         geom.setAttribute("normal", Float32BufferAttribute(normals, 3))
         uvs?.let { geom.setAttribute("uv", Float32BufferAttribute(uvs, 2)) }
 
-        // Per group/material attributes.
-        val indices = Uint16Array(indexCount)
-
         if (skinning) {
             check(this.positions.size == boneIndices.size / 4)
             check(this.positions.size == boneWeights.size / 4)
@@ -173,6 +169,8 @@ class MeshBuilder {
                 Float32BufferAttribute(Float32Array(boneWeights.toTypedArray()), 4)
             )
         }
+
+        val indices = Uint16Array(indexCount)
 
         var offset = 0
         val texCache = mutableMapOf<Int, Texture?>()

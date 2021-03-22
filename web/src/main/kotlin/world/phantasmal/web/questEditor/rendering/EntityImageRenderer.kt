@@ -55,7 +55,7 @@ class EntityImageRenderer(
             scene.add(light, mesh)
 
             // Compute camera position.
-            val bSphere = (mesh.geometry as BufferGeometry).boundingSphere!!
+            val bSphere = mesh.geometry.boundingSphere!!
             camera.position.copy(cameraPos)
             camera.position *= bSphere.radius * cameraDistFactor
             camera.lookAt(bSphere.center)
@@ -69,7 +69,6 @@ class EntityImageRenderer(
             mesh.material = origMaterial
             threeRenderer.render(scene, camera)
 
-            threeRenderer.render(scene, camera)
             return threeRenderer.domElement.toDataURL()
         } finally {
             // Ensure we dispose the original material and not the background material.

@@ -1,5 +1,6 @@
 package world.phantasmal.web.questEditor.widgets
 
+import kotlinx.browser.window
 import kotlinx.coroutines.launch
 import org.w3c.dom.Node
 import world.phantasmal.core.disposable.Disposable
@@ -8,6 +9,7 @@ import world.phantasmal.core.math.degToRad
 import world.phantasmal.core.math.radToDeg
 import world.phantasmal.lib.fileFormats.quest.EntityPropType
 import world.phantasmal.observable.value.Val
+import world.phantasmal.observable.value.mutableVal
 import world.phantasmal.web.core.widgets.UnavailableWidget
 import world.phantasmal.web.questEditor.controllers.EntityInfoController
 import world.phantasmal.web.questEditor.models.QuestEntityPropModel
@@ -90,9 +92,21 @@ class EntityInfoWidget(private val ctrl: EntityInfoController) : Widget(enabled 
         tr {
             className = COORD_CLASS
 
+            val inputValue = mutableVal(value.value)
+            var timeout = -1
+
+            observe(value) {
+                if (timeout == -1) {
+                    timeout = window.setTimeout({
+                        inputValue.value = value.value
+                        timeout = -1
+                    })
+                }
+            }
+
             val input = DoubleInput(
                 enabled = ctrl.enabled,
-                value = value,
+                value = inputValue,
                 onChange = onChange,
                 label = label,
                 roundTo = 3,

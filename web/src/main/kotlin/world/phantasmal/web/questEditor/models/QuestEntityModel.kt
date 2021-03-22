@@ -159,7 +159,7 @@ abstract class QuestEntityModel<Type : EntityType, Entity : QuestEntity<Type>>(
         } else {
             q1.setFromEuler(rot)
             q2.setFromEuler(section.rotation)
-            q2.inverse()
+            q2.invert()
             q1 *= q2
             floorModEuler(q1.toEuler())
         }

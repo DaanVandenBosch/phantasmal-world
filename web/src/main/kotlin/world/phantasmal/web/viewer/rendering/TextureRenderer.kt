@@ -1,6 +1,8 @@
 package world.phantasmal.web.viewer.rendering
 
 import mu.KotlinLogging
+import org.khronos.webgl.Float32Array
+import org.khronos.webgl.Uint16Array
 import org.w3c.dom.HTMLCanvasElement
 import world.phantasmal.lib.fileFormats.ninja.XvrTexture
 import world.phantasmal.web.core.rendering.*
@@ -51,8 +53,8 @@ class TextureRenderer(
 
     private fun texturesChanged(textures: List<XvrTexture>) {
         meshes.forEach { mesh ->
-            disposeObject3DResources(mesh)
             context.scene.remove(mesh)
+            disposeObject3DResources(mesh)
         }
 
         inputManager.resetCamera()
@@ -109,21 +111,59 @@ class TextureRenderer(
         }
     }
 
-    private fun createQuad(x: Int, y: Int, width: Int, height: Int): PlaneGeometry {
-        val quad = PlaneGeometry(
-            width.toDouble(),
-            height.toDouble(),
-            widthSegments = 1.0,
-            heightSegments = 1.0,
+    private fun createQuad(x: Int, y: Int, width: Int, height: Int): BufferGeometry {
+        val halfWidth = width / 2f
+        val halfHeight = height / 2f
+
+        val geom = BufferGeometry()
+
+        geom.setAttribute(
+            "position",
+            Float32BufferAttribute(
+                Float32Array(arrayOf(
+                    -halfWidth, -halfHeight, 0f,
+                    -halfWidth, halfHeight, 0f,
+                    halfWidth, halfHeight, 0f,
+                    halfWidth, -halfHeight, 0f,
+                )),
+                3,
+            ),
         )
-        quad.faceVertexUvs = arrayOf(
-            arrayOf(
-                arrayOf(Vector2(0.0, 0.0), Vector2(0.0, 1.0), Vector2(1.0, 0.0)),
-                arrayOf(Vector2(0.0, 1.0), Vector2(1.0, 1.0), Vector2(1.0, 0.0)),
-            )
+        geom.setAttribute(
+            "normal",
+            Float32BufferAttribute(
+                Float32Array(arrayOf(
+                    0f, 0f, 1f,
+                    0f, 0f, 1f,
+                    0f, 0f, 1f,
+                    0f, 0f, 1f,
+                )),
+                3,
+            ),
         )
-        quad.translate(x.toDouble(), y.toDouble(), -5.0)
-        return quad
+        geom.setAttribute(
+            "uv",
+            Float32BufferAttribute(
+                Float32Array(arrayOf(
+                    0f, 1f,
+                    0f, 0f,
+                    1f, 0f,
+                    1f, 1f,
+                )),
+                2,
+            ),
+        )
+        geom.setIndex(Uint16BufferAttribute(
+            Uint16Array(arrayOf(
+                0, 2, 1,
+                2, 0, 3,
+            )),
+            1,
+        ))
+
+        geom.translate(x.toDouble(), y.toDouble(), -5.0)
+
+        return geom
     }
 
     companion object {

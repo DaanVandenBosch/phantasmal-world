@@ -17,5 +17,5 @@ class SectionModel(
         }
     }
 
-    val inverseRotation: Euler = rotation.toQuaternion().inverse().toEuler()
+    val inverseRotation: Euler = rotation.toQuaternion().invert().toEuler()
 }

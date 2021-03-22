@@ -1,7 +1,12 @@
 package world.phantasmal.web.questEditor.loading
 
 import org.khronos.webgl.ArrayBuffer
+import org.khronos.webgl.Float32Array
+import org.khronos.webgl.Uint16Array
+import world.phantasmal.core.JsArray
+import world.phantasmal.core.asArray
 import world.phantasmal.core.asJsArray
+import world.phantasmal.core.jsArrayOf
 import world.phantasmal.lib.Endianness
 import world.phantasmal.lib.Episode
 import world.phantasmal.lib.cursor.cursor
@@ -81,8 +86,7 @@ class AreaAssetLoader(private val assetLoader: AssetLoader) : DisposableContaine
 
     private fun addSectionsToCollisionGeometry(collisionGeom: Object3D, renderGeom: Object3D) {
         for (collisionArea in collisionGeom.children) {
-            val origin =
-                ((collisionArea as Mesh).geometry as Geometry).boundingBox!!.getCenter(tmpVec)
+            val origin = ((collisionArea as Mesh).geometry).boundingBox!!.getCenter(tmpVec)
 
             // Cast a ray downward from the center of the section.
             raycaster.set(origin, DOWN)
@@ -319,16 +323,14 @@ private fun areaCollisionGeometryToObject3D(
     episode: Episode,
     areaVariant: AreaVariantModel,
 ): Object3D {
-    val obj3d = Group()
-    obj3d.name = "Collision Geometry $episode-${areaVariant.area.id}-${areaVariant.id}"
+    val group = Group()
+    group.name = "Collision Geometry $episode-${areaVariant.area.id}-${areaVariant.id}"
 
     for (collisionMesh in obj.meshes) {
-        // Use Geometry instead of BufferGeometry for better raycaster performance.
-        val geom = Geometry()
-
-        geom.vertices = Array(collisionMesh.vertices.size) {
-            vec3ToThree(collisionMesh.vertices[it])
-        }
+        val positions = jsArrayOf<Float>()
+        val normals = jsArrayOf<Float>()
+        val materialGroups = mutableMapOf<Int, JsArray<Short>>()
+        var index: Short = 0
 
         for (triangle in collisionMesh.triangles) {
             val isSectionTransition = (triangle.flags and 0b1000000) != 0
@@ -343,29 +345,47 @@ private fun areaCollisionGeometryToObject3D(
 
             // Filter out walls.
             if (materialIndex != 0) {
-                geom.faces.asDynamic().push(
-                    Face3(
-                        triangle.index1,
-                        triangle.index2,
-                        triangle.index3,
-                        vec3ToThree(triangle.normal),
-                        materialIndex = materialIndex,
-                    )
-                )
+                val p1 = collisionMesh.vertices[triangle.index1]
+                val p2 = collisionMesh.vertices[triangle.index2]
+                val p3 = collisionMesh.vertices[triangle.index3]
+                positions.push(p1.x, p1.y, p1.z, p2.x, p2.y, p2.z, p3.x, p3.y, p3.z)
+
+                val n = triangle.normal
+                normals.push(n.x, n.y, n.z, n.x, n.y, n.z, n.x, n.y, n.z)
+
+                val indices = materialGroups.getOrPut(materialIndex) { jsArrayOf() }
+                indices.push(index++, index++, index++)
             }
         }
 
-        if (geom.faces.isNotEmpty()) {
+        if (index > 0) {
+            val geom = BufferGeometry()
+            geom.setAttribute(
+                "position", Float32BufferAttribute(Float32Array(positions.asArray()), 3),
+            )
+            geom.setAttribute(
+                "normal", Float32BufferAttribute(Float32Array(normals.asArray()), 3),
+            )
+            val indices = Uint16Array(index.toInt())
+            var offset = 0
+
+            for ((materialIndex, vertexIndices) in materialGroups) {
+                indices.set(vertexIndices.asArray(), offset)
+                geom.addGroup(offset, vertexIndices.length, materialIndex)
+                offset += vertexIndices.length
+            }
+
+            geom.setIndex(Uint16BufferAttribute(indices, 1))
             geom.computeBoundingBox()
             geom.computeBoundingSphere()
 
-            obj3d.add(
+            group.add(
                 Mesh(geom, COLLISION_MATERIALS).apply {
                     renderOrder = 1
                 }
             )
 
-            obj3d.add(
+            group.add(
                 Mesh(geom, COLLISION_WIREFRAME_MATERIALS).apply {
                     renderOrder = 2
                 }
@@ -373,5 +393,5 @@ private fun areaCollisionGeometryToObject3D(
         }
     }
 
-    return obj3d
+    return group
 }

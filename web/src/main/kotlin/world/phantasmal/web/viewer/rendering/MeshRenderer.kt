@@ -103,8 +103,7 @@ class MeshRenderer(
 
             if (resetCamera) {
                 // Compute camera position.
-                val geom = mesh.geometry as BufferGeometry
-                val bSphere = geom.boundingSphere!!
+                val bSphere = mesh.geometry.boundingSphere!!
                 val cameraDistFactor =
                     1.5 / tan(degToRad((context.camera as PerspectiveCamera).fov) / 2)
                 val cameraPos = CAMERA_POS * (bSphere.radius * cameraDistFactor)

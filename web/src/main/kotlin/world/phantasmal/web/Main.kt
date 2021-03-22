@@ -77,6 +77,7 @@ private fun createThreeRenderer(canvas: HTMLCanvasElement): DisposableThreeRende
         })
 
         init {
+            renderer.debug.checkShaderErrors = false
             renderer.setPixelRatio(window.devicePixelRatio)
         }
 
