@@ -4,7 +4,9 @@
 
 ## Developers
 
-TODO: This entire section is out of date since porting PW to Kotlin.
+Phantasmal World is written in [Kotlin](https://kotlinlang.org/) and uses
+the [Gradle](https://gradle.org/) build tool. Much of the code
+is [multiplatform](https://kotlinlang.org/docs/multiplatform.html) and reusable as a library.
 
 <a href="https://github.com/DaanVandenBosch/phantasmal-world/actions?query=workflow%3ATests">
 <img alt="Tests status" src="https://github.com/DaanVandenBosch/phantasmal-world/workflows/Tests/badge.svg">
@@ -20,82 +22,66 @@ See [features](./FEATURES.md) for a list of features, planned features and bugs.
 
 ### Getting Started
 
-1. Install Node.js ([https://nodejs.org/](https://nodejs.org/))
-2. Install Yarn ([https://yarnpkg.com/](https://yarnpkg.com/))
-3. `cd` to the project directory
-4. Install dependencies with `yarn`
-5. Launch server on [http://localhost:1623/](http://localhost:1623/) with `yarn start`
-6. [src/index.ts](src/index.ts) is the application's entry point
+1. Install Java 11+ (e.g. [AdoptOpenJDK](https://adoptopenjdk.net/)
+   or [GraalVM](https://www.graalvm.org/downloads/))
+2. `cd` to the project directory
+3. Launch webpack server on [http://localhost:1623/](http://localhost:1623/)
+   with `./gradlew :web:run --continuous`
+4. [web/src/main/kotlin/world/phantasmal/web/Main.kt](web/src/main/kotlin/world/phantasmal/web/Main.kt)
+   is the application's entry point
+
+[IntelliJ IDEA](https://www.jetbrains.com/idea/download/) is recommended for development. IntelliJ
+setup:
+
+1. Use Ctrl-Alt-Shift-S to open the Project Structure window and select a JDK (you can let IntelliJ
+   download a JDK if you don't have a compatible one installed)
+2. Configure the Gradle run task:
+   1. In the Gradle window, right click web -> Tasks -> other -> run
+   2. Click "Modify Run Configuration..."
+   3. Add `--continuous` to the arguments field
+   4. Click OK
+   5. You can now start the webpack server from the main toolbar
 
 ### Exploring the Code Base
 
-The code base is divided up into a [core](src/core) module, an [application](src/application) module
-and a module per tool (e.g. [quest_editor](src/quest_editor)). The core module contains the base
-code that the other modules depend on. The application module contains the
-[main application view](src/application/gui/ApplicationView.ts) that provides navigation between the
-different tools. The application view lazily loads and initializes the necessary modules. Each other
-module represents a tool such as the quest editor or the hunt optimizer.
+The code base is divided up into the following gradle subprojects.
 
-#### Submodules
+#### core
 
-All modules have an index.ts file that contains an initialization function. They then have several
-common submodules such as controllers, gui, model and stores and some module-specific submodules.
+Core contains the basic utilities that all other subprojects directly or indirectly depend on.
 
-##### GUI
+#### lib
 
-The gui submodule contains views with minimal logic. They simply display what their controller
-provides and forward user input to it. Their only dependency is the DOM and a single controller.
-Keeping logic out of the views makes the UI easier to test. We don't really need to test the views
-as they don't contain complex code, just testing the controller layer gives us confidence that the
-UI works. The only automatic tests for the gui layer are
-[snapshot tests](https://jestjs.io/docs/en/snapshot-testing).
+Lib contains PSO file format parsers, compression/decompression code, a PSO script
+assembler/disassembler and a work-in-progress script engine/VM. It also has a model of the PSO
+scripting bytecode and data flow analysis for it. This subproject can be used as a library in other
+projects.
 
-##### Controllers
+#### observable
 
-The controllers submodule contains the [controllers](src/core/controllers/Controller.ts) on which
-views depend. Usually the view-controller relationship is one-to-one, sometimes it's many-to-one
-(e.g. when a view has many subviews that work with the same data). A controller usually extracts
-data from a shared store and transforms it into a format which the view can easily consume.
+A full-fledged multiplatform implementation of the observer pattern.
 
-##### Model
+#### test-utils
 
-The model submodule contains observable model objects. Models expose read-only observable properties
-and allow their properties to be changed via setters which validate their inputs.
+Test utilities used by the other subprojects.
 
-##### Stores
+#### [web](web/README.md)
 
-The stores submodule contains shared data [stores](src/core/stores/Store.ts). Stores ensure that
-data is loaded when necessary and that the data is deduplicated. Stores also contain ephemeral
-shared state such as the currently selected entity in the quest editor.
+The actual Phantasmal World web application.
 
-#### Some Interesting Parts of the Code Base
+#### webgui
 
-Phantasmal contains parsers for many of the client's formats in
-[src/core/data_formats](src/core/data_formats). A model of the PSO scripting byte code and data flow
-analysis for it can be found in [src/core/data_formats/asm](src/core/data_formats/asm). The
-[src/quest_editor/scripting](src/quest_editor/scripting) directory contains an assembler,
-disassembler and (partly implemented) virtual machine.
+Web GUI toolkit used by Phantasmal World.
 
 ### Unit Tests
 
-Run the unit tests with `yarn test` or `yarn test --watch` if you want the relevant tests to be
-re-run whenever a file is changed. The testing framework used is Jest.
+Run the unit tests with `./gradlew test`. JS tests are run with Karma and Mocha, JVM tests with
+Junit 5.
 
-### Code Style, Linting and Formatting
+### Code Style and Formatting
 
-Class/interface/type names are in `PascalCase` and all other identifiers are in `snake_case`.
-
-ESLint and Prettier are used for linting and formatting. Run with `yarn lint` and/or configure your
-editor to use the ESLint/Prettier configuration.
+The Kotlin [coding conventions](https://kotlinlang.org/docs/coding-conventions.html) are used.
 
 ### Production Build
 
-Create an optimized production build with `yarn build`.
-
-### Optional Modules
-
-### prs-rs
-
-Provides faster PRS routines using WebAssembly. Build for WebPack with `yarn build_prs_rs_browser`.
-Build for Jest with `yarn build_prs_rs_testing`. Building requires
-[wasm-pack](https://github.com/rustwasm/wasm-pack).
+Create an optimized production build with `./gradlew :web:browserDistribution`.

@@ -156,8 +156,6 @@ Features that are in ***bold italics*** are planned but not yet implemented.
 
 ## Bugs
 
-- [Script Assembly Editor](#script-assembly-editor): Go to definition doesn't work in RT (#231), PW2
-(#234) and Magnitude of Metal (#1, can jump to label 207 from line 433, but not from line 465)
 - When a modal dialog is open, global keybindings should be disabled
 - Entities with rendering issues:
     - Caves 4 Button door
@@ -175,4 +173,3 @@ Features that are in ***bold italics*** are planned but not yet implemented.
     - Desert Fixed Type Box (Breakable Crystals)
     - Merissa A
     - Merissa AA
-- [Event Actions](#Event Actions): Editing event actions can't be undone

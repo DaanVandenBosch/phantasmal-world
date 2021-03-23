@@ -1,9 +1,9 @@
-package world.phantasmal.web.viewer.controller
+package world.phantasmal.web.viewer.controllers
 
 import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.plus
 import world.phantasmal.web.shared.dto.SectionId
-import world.phantasmal.web.viewer.store.ViewerStore
+import world.phantasmal.web.viewer.stores.ViewerStore
 import world.phantasmal.webui.controllers.Controller
 
 class CharacterClassOptionsController(private val store: ViewerStore) : Controller() {

@@ -1,8 +1,8 @@
-package world.phantasmal.web.viewer.controller
+package world.phantasmal.web.viewer.controllers
 
 import world.phantasmal.observable.value.Val
 import world.phantasmal.web.viewer.models.CharacterClass
-import world.phantasmal.web.viewer.store.ViewerStore
+import world.phantasmal.web.viewer.stores.ViewerStore
 import world.phantasmal.webui.controllers.Tab
 import world.phantasmal.webui.controllers.TabContainerController
 

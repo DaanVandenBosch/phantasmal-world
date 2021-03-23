@@ -9,7 +9,7 @@ import world.phantasmal.web.core.rendering.conversion.createAnimationClip
 import world.phantasmal.web.core.rendering.conversion.ninjaObjectToSkinnedMesh
 import world.phantasmal.web.core.times
 import world.phantasmal.web.externals.three.*
-import world.phantasmal.web.viewer.store.ViewerStore
+import world.phantasmal.web.viewer.stores.ViewerStore
 import kotlin.math.tan
 
 class MeshRenderer(
@@ -58,11 +58,11 @@ class MeshRenderer(
         super.render()
 
         animation?.let {
-            val action = it.mixer.clipAction(it.clip)
-
-            if (!action.paused) {
-                // TODO: Update current animation frame in store.
-            }
+            // TODO: Update current animation frame in store.
+//            val action = it.mixer.clipAction(it.clip)
+//
+//            if (!action.paused) {
+//            }
         }
     }
 

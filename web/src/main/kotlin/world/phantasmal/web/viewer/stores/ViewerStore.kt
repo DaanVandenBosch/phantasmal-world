@@ -1,4 +1,4 @@
-package world.phantasmal.web.viewer.store
+package world.phantasmal.web.viewer.stores
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

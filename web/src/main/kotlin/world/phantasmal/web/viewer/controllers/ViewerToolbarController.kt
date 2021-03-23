@@ -1,4 +1,4 @@
-package world.phantasmal.web.viewer.controller
+package world.phantasmal.web.viewer.controllers
 
 import mu.KotlinLogging
 import org.w3c.files.File
@@ -11,7 +11,7 @@ import world.phantasmal.lib.fileFormats.ninja.*
 import world.phantasmal.lib.fileFormats.parseAfs
 import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.mutableVal
-import world.phantasmal.web.viewer.store.ViewerStore
+import world.phantasmal.web.viewer.stores.ViewerStore
 import world.phantasmal.webui.controllers.Controller
 import world.phantasmal.webui.extension
 import world.phantasmal.webui.readFile

@@ -2,7 +2,7 @@ package world.phantasmal.web.viewer.widgets
 
 import kotlinx.coroutines.launch
 import org.w3c.dom.Node
-import world.phantasmal.web.viewer.controller.ViewerToolbarController
+import world.phantasmal.web.viewer.controllers.ViewerToolbarController
 import world.phantasmal.webui.dom.Icon
 import world.phantasmal.webui.dom.div
 import world.phantasmal.webui.widgets.*

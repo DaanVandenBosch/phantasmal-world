@@ -2,8 +2,8 @@ package world.phantasmal.web.viewer.widgets
 
 import kotlinx.coroutines.launch
 import org.w3c.dom.Node
-import world.phantasmal.web.viewer.controller.ViewerController
-import world.phantasmal.web.viewer.controller.ViewerTab
+import world.phantasmal.web.viewer.controllers.ViewerController
+import world.phantasmal.web.viewer.controllers.ViewerTab
 import world.phantasmal.webui.dom.div
 import world.phantasmal.webui.widgets.TabContainer
 import world.phantasmal.webui.widgets.Widget
