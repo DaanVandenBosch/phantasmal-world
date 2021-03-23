@@ -1986,12 +1986,12 @@ opcodes:
     params:
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             doc: Player slot.
             access: read
       - type: reg_tup_ref
         reg_tup:
-          - type: dword
+          - type: int
             doc: Result register.
             access: write
 
