@@ -7,6 +7,10 @@ import world.phantasmal.observable.value.list.mutableListVal
 class AreaVariantModel(val id: Int, val area: AreaModel) {
     private val _sections = mutableListVal<SectionModel>()
 
+    // Exception for Seaside Area at Night, variant 1.
+    // Phantasmal World 4 and Lost heart breaker use this to have two tower maps.
+    val name: String = if (area.id == 16 && id == 1) "West Tower" else area.name
+
     val sections: ListVal<SectionModel> = _sections
 
     init {

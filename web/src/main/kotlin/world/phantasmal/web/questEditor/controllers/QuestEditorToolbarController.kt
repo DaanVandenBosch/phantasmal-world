@@ -80,10 +80,11 @@ class QuestEditorToolbarController(
     // should update).
     val areas: Val<List<AreaAndLabel>> = questEditorStore.currentQuest.flatMap { quest ->
         quest?.let {
-            quest.entitiesPerArea.map { entitiesPerArea ->
+            map(quest.entitiesPerArea, quest.areaVariants) { entitiesPerArea, variants ->
                 areaStore.getAreasForEpisode(quest.episode).map { area ->
                     val entityCount = entitiesPerArea[area.id]
-                    AreaAndLabel(area, area.name + (entityCount?.let { " ($it)" } ?: ""))
+                    val name = variants.firstOrNull { it.area == area }?.name ?: area.name
+                    AreaAndLabel(area, name + (entityCount?.let { " ($it)" } ?: ""))
                 }
             }
         } ?: value(emptyList())

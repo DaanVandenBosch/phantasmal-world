@@ -246,7 +246,7 @@ private fun areaVersionToBaseUrl(episode: Episode, areaVariant: AreaVariantModel
     var areaId = areaVariant.area.id
     var areaVariantId = areaVariant.id
 
-    // Exception for Seaside area at night, variant 1.
+    // Exception for Seaside Area at Night, variant 1.
     // Phantasmal World 4 and Lost heart breaker use this to have two tower maps.
     if (areaId == 16 && areaVariantId == 1) {
         areaId = 17
