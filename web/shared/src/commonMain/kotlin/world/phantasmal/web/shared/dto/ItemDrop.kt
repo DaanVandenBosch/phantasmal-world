@@ -1,6 +1,17 @@
+// Use custom serializers because deserializing enums without @Serializable annotation is extremely
+// slow. See https://github.com/Kotlin/kotlinx.serialization/issues/1385.
+@file:UseSerializers(EpisodeSerializer::class, NpcTypeSerializer::class)
+
 package world.phantasmal.web.shared.dto
 
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.UseSerializers
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 import world.phantasmal.lib.Episode
 import world.phantasmal.lib.fileFormats.quest.NpcType
 
@@ -41,3 +52,28 @@ class BoxDrop(
     override val itemTypeId: Int,
     override val dropRate: Double,
 ) : ItemDrop()
+
+private object EpisodeSerializer : KSerializer<Episode> {
+    override val descriptor: SerialDescriptor =
+        PrimitiveSerialDescriptor(Episode::class.simpleName!!, PrimitiveKind.STRING)
+
+    override fun serialize(encoder: Encoder, value: Episode) {
+        encoder.encodeString(value.name)
+    }
+
+    override fun deserialize(decoder: Decoder): Episode =
+        Episode.valueOf(decoder.decodeString())
+}
+
+private object NpcTypeSerializer : KSerializer<NpcType> {
+    override val descriptor: SerialDescriptor =
+        PrimitiveSerialDescriptor(NpcType::class.simpleName!!, PrimitiveKind.STRING)
+
+    override fun serialize(encoder: Encoder, value: NpcType) {
+        encoder.encodeString(value.name)
+    }
+
+    override fun deserialize(decoder: Decoder): NpcType =
+        NpcType.valueOf(decoder.decodeString())
+}
+
