@@ -1601,7 +1601,7 @@ opcodes:
 
   - code: 0xdf
     mnemonic: npc_param_v3
-    params: 
+    params:
       - type: reg_tup_ref
         reg_tup: # TODO: determine type and access
           - type: any
@@ -1655,6 +1655,7 @@ opcodes:
 
   - code: 0xe7
     mnemonic: get_servernumber
+    doc: Returns the index of the player who is the leader of the party.
     params:
       - type: reg_tup_ref
         reg_tup:
@@ -1796,7 +1797,7 @@ opcodes:
     doc: Retrieves a player's position.
     params:
       - type: reg_tup_ref
-        reg_tup: 
+        reg_tup:
           - type: int
             doc: X coordinate.
             access: write
@@ -1824,7 +1825,7 @@ opcodes:
     mnemonic: map_designate_ex
     params:
       - type: reg_tup_ref
-        reg_tup: 
+        reg_tup:
           - type: int
             access: read
           - type: int
@@ -1979,14 +1980,29 @@ opcodes:
             doc: Floor ID.
             access: read
 
+  - code: 0xf829
+    mnemonic: get_num_kills
+    doc: Returns the number of enemies a player has killed during the quest.
+    params:
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            doc: Player slot.
+            access: read
+      - type: reg_tup_ref
+        reg_tup:
+          - type: dword
+            doc: Result register.
+            access: write
+
   - code: 0xf82b
     mnemonic: unlock_door2
-    params: [{ type: int }, { type: int }]
+    params: [ { type: int }, { type: int } ]
     stack: pop
 
   - code: 0xf82c
     mnemonic: lock_door2
-    params: [{ type: int }, { type: int }]
+    params: [ { type: int }, { type: int } ]
     stack: pop
 
   - code: 0xf82d
@@ -2616,6 +2632,7 @@ opcodes:
             access: write
       - type: int
         doc: Address to read from.
+    stack: pop
 
   - code: 0xf8b1
     mnemonic: read2
@@ -2628,6 +2645,7 @@ opcodes:
             access: write
       - type: int
         doc: Address to read from.
+    stack: pop
 
   - code: 0xf8b2
     mnemonic: read4
@@ -2640,6 +2658,7 @@ opcodes:
             access: write
       - type: int
         doc: Address to read from.
+    stack: pop
 
   - code: 0xf8b3
     mnemonic: write1
@@ -2995,7 +3014,7 @@ opcodes:
             access: read
 
   - code: 0xf8e6
-    mnemonic: move_coords_object 
+    mnemonic: move_coords_object
     params:
       - type: reg_tup_ref
         reg_tup: # TODO: determine type and access
