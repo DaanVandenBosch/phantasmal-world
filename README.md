@@ -75,7 +75,7 @@ Web GUI toolkit used by Phantasmal World.
 
 ### Unit Tests
 
-Run the unit tests with `./gradlew test`. JS tests are run with Karma and Mocha, JVM tests with
+Run the unit tests with `./gradlew check`. JS tests are run with Karma and Mocha, JVM tests with
 Junit 5.
 
 ### Code Style and Formatting
