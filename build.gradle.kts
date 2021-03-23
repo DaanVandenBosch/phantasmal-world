@@ -2,9 +2,9 @@ import org.jetbrains.kotlin.gradle.tasks.Kotlin2JsCompile
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("js") version "1.4.30" apply false
-    kotlin("multiplatform") version "1.4.30" apply false
-    kotlin("plugin.serialization") version "1.4.30" apply false
+    kotlin("js") version "1.4.31" apply false
+    kotlin("multiplatform") version "1.4.31" apply false
+    kotlin("plugin.serialization") version "1.4.31" apply false
 }
 
 tasks.wrapper {
