@@ -28,9 +28,10 @@ class ViewerStore(
 ) : Store() {
     private val _currentNinjaObject = mutableVal<NinjaObject<*>?>(null)
     private val _currentTextures = mutableListVal<XvrTexture?>()
-    private val _currentCharacterClass = mutableVal<CharacterClass?>(null)
-    private val _currentSectionId = mutableVal(SectionId.Viridia)
-    private val _currentBody = mutableVal(0)
+    private val _currentCharacterClass = mutableVal<CharacterClass?>(CharacterClass.VALUES.random())
+    private val _currentSectionId = mutableVal(SectionId.VALUES.random())
+    private val _currentBody =
+        mutableVal((1.._currentCharacterClass.value!!.bodyStyleCount).random())
     private val _currentNinjaMotion = mutableVal<NjMotion?>(null)
 
     // Settings
@@ -55,9 +56,9 @@ class ViewerStore(
                     MODEL_PARAM,
                     setInitialValue = { initialValue ->
                         if (uiStore.path.value.startsWith(path)) {
-                            _currentCharacterClass.value =
-                                CharacterClass.VALUES.find { it.slug == initialValue }
-                                    ?: CharacterClass.VALUES.random()
+                            CharacterClass.VALUES.find { it.slug == initialValue }?.let {
+                                _currentCharacterClass.value = it
+                            }
                         }
                     },
                     value = currentCharacterClass.map { it?.slug },
@@ -76,9 +77,9 @@ class ViewerStore(
                     SECTION_ID_PARAM,
                     setInitialValue = { initialValue ->
                         if (uiStore.path.value.startsWith(path)) {
-                            _currentSectionId.value =
-                                initialValue?.let { enumValueOfOrNull<SectionId>(it) }
-                                    ?: SectionId.VALUES.random()
+                            initialValue?.let { enumValueOfOrNull<SectionId>(it) }?.let {
+                                _currentSectionId.value = it
+                            }
                         }
                     },
                     value = currentSectionId.map { it.name },
@@ -99,11 +100,10 @@ class ViewerStore(
                     setInitialValue = { initialValue ->
                         if (uiStore.path.value.startsWith(path)) {
                             val maxBody = _currentCharacterClass.value?.bodyStyleCount ?: 1
-                            _currentBody.value = (
-                                    initialValue?.toIntOrNull()
-                                        ?.takeIf { it <= maxBody }
-                                        ?: (1..maxBody).random()
-                                    ) - 1
+
+                            initialValue?.toIntOrNull()?.takeIf { it <= maxBody }?.let {
+                                _currentBody.value = it - 1
+                            }
                         }
                     },
                     value = currentBody.map { (it + 1).toString() },
