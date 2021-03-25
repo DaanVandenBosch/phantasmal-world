@@ -5,7 +5,9 @@ import world.phantasmal.web.core.stores.UiStore
 import world.phantasmal.webui.controllers.Tab
 import world.phantasmal.webui.controllers.TabContainerController
 
-open class PathAwareTab(override val title: String, val path: String) : Tab
+interface PathAwareTab : Tab {
+    val path: String
+}
 
 open class PathAwareTabContainerController<T : PathAwareTab>(
     private val uiStore: UiStore,

@@ -4,6 +4,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import mu.KotlinLogging
+import world.phantasmal.core.enumValueOfOrNull
 import world.phantasmal.lib.fileFormats.ninja.NinjaObject
 import world.phantasmal.lib.fileFormats.ninja.NjMotion
 import world.phantasmal.lib.fileFormats.ninja.XvrTexture
@@ -14,6 +15,7 @@ import world.phantasmal.observable.value.mutableVal
 import world.phantasmal.web.core.PwToolType
 import world.phantasmal.web.core.stores.UiStore
 import world.phantasmal.web.shared.dto.SectionId
+import world.phantasmal.web.viewer.ViewerUrls
 import world.phantasmal.web.viewer.loading.CharacterClassAssetLoader
 import world.phantasmal.web.viewer.models.CharacterClass
 import world.phantasmal.webui.stores.Store
@@ -27,7 +29,7 @@ class ViewerStore(
     private val _currentNinjaObject = mutableVal<NinjaObject<*>?>(null)
     private val _currentTextures = mutableListVal<XvrTexture?>()
     private val _currentCharacterClass = mutableVal<CharacterClass?>(null)
-    private val _currentSectionId = mutableVal(SectionId.VALUES.random())
+    private val _currentSectionId = mutableVal(SectionId.Viridia)
     private val _currentBody = mutableVal(0)
     private val _currentNinjaMotion = mutableVal<NjMotion?>(null)
 
@@ -45,60 +47,74 @@ class ViewerStore(
     val showSkeleton: Val<Boolean> = _showSkeleton
 
     init {
-        addDisposables(
-            uiStore.registerParameter(
-                PwToolType.Viewer,
-                path = "",
-                MODEL_PARAM,
-                setInitialValue = { initialValue ->
-                    _currentCharacterClass.value =
-                        CharacterClass.VALUES.find { it.slug == initialValue }
-                            ?: CharacterClass.VALUES.random()
-                },
-                value = currentCharacterClass.map { it?.slug },
-                onChange = { newValue ->
-                    scope.launch {
-                        setCurrentCharacterClass(CharacterClass.VALUES.find { it.slug == newValue })
-                    }
-                },
-            ),
+        for (path in listOf(ViewerUrls.mesh, ViewerUrls.texture)) {
+            addDisposables(
+                uiStore.registerParameter(
+                    PwToolType.Viewer,
+                    path,
+                    MODEL_PARAM,
+                    setInitialValue = { initialValue ->
+                        if (uiStore.path.value.startsWith(path)) {
+                            _currentCharacterClass.value =
+                                CharacterClass.VALUES.find { it.slug == initialValue }
+                                    ?: CharacterClass.VALUES.random()
+                        }
+                    },
+                    value = currentCharacterClass.map { it?.slug },
+                    onChange = { newValue ->
+                        scope.launch {
+                            setCurrentCharacterClass(
+                                CharacterClass.VALUES.find { it.slug == newValue },
+                            )
+                        }
+                    },
+                ),
 
-            uiStore.registerParameter(
-                PwToolType.Viewer,
-                path = "",
-                BODY_PARAM,
-                setInitialValue = { initialValue ->
-                    val maxBody = _currentCharacterClass.value?.bodyStyleCount?.minus(1) ?: 0
-                    _currentBody.value =
-                        initialValue?.toIntOrNull()?.takeIf { it <= maxBody }?.minus(1)
-                            ?: (0..maxBody).random()
-                },
-                value = currentBody.map { (it + 1).toString() },
-                onChange = { newValue ->
-                    scope.launch {
-                        setCurrentBody(newValue?.toIntOrNull()?.minus(1) ?: 0)
-                    }
-                },
-            ),
+                uiStore.registerParameter(
+                    PwToolType.Viewer,
+                    path,
+                    SECTION_ID_PARAM,
+                    setInitialValue = { initialValue ->
+                        if (uiStore.path.value.startsWith(path)) {
+                            _currentSectionId.value =
+                                initialValue?.let { enumValueOfOrNull<SectionId>(it) }
+                                    ?: SectionId.VALUES.random()
+                        }
+                    },
+                    value = currentSectionId.map { it.name },
+                    onChange = { newValue ->
+                        scope.launch {
+                            setCurrentSectionId(
+                                newValue?.let { enumValueOfOrNull<SectionId>(it) }
+                                    ?: SectionId.VALUES.random()
+                            )
+                        }
+                    },
+                ),
 
-            uiStore.registerParameter(
-                PwToolType.Viewer,
-                path = "",
-                SECTION_ID_PARAM,
-                setInitialValue = { initialValue ->
-                    _currentSectionId.value =
-                        initialValue?.let(SectionId::valueOf) ?: SectionId.VALUES.random()
-                },
-                value = currentSectionId.map { it.name },
-                onChange = { newValue ->
-                    scope.launch {
-                        setCurrentSectionId(
-                            newValue?.let(SectionId::valueOf) ?: SectionId.VALUES.random()
-                        )
-                    }
-                },
-            ),
-        )
+                uiStore.registerParameter(
+                    PwToolType.Viewer,
+                    path,
+                    BODY_PARAM,
+                    setInitialValue = { initialValue ->
+                        if (uiStore.path.value.startsWith(path)) {
+                            val maxBody = _currentCharacterClass.value?.bodyStyleCount ?: 1
+                            _currentBody.value = (
+                                    initialValue?.toIntOrNull()
+                                        ?.takeIf { it <= maxBody }
+                                        ?: (1..maxBody).random()
+                                    ) - 1
+                        }
+                    },
+                    value = currentBody.map { (it + 1).toString() },
+                    onChange = { newValue ->
+                        scope.launch {
+                            setCurrentBody((newValue?.toIntOrNull() ?: 1) - 1)
+                        }
+                    },
+                ),
+            )
+        }
 
         scope.launch(Dispatchers.Default) {
             loadCharacterClassNinjaObject(clearAnimation = true)

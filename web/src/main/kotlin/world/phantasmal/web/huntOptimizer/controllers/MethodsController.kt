@@ -7,7 +7,11 @@ import world.phantasmal.web.core.controllers.PathAwareTabContainerController
 import world.phantasmal.web.core.stores.UiStore
 import world.phantasmal.web.huntOptimizer.HuntOptimizerUrls
 
-class MethodsTab(title: String, path: String, val episode: Episode) : PathAwareTab(title, path)
+class MethodsTab(
+    override val title: String,
+    override val path: String,
+    val episode: Episode,
+) : PathAwareTab
 
 class MethodsController(uiStore: UiStore) : PathAwareTabContainerController<MethodsTab>(
     uiStore,

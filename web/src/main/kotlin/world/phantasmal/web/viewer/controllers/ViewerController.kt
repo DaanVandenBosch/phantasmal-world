@@ -1,18 +1,29 @@
 package world.phantasmal.web.viewer.controllers
 
 import world.phantasmal.observable.value.Val
+import world.phantasmal.web.core.PwToolType
+import world.phantasmal.web.core.controllers.PathAwareTab
+import world.phantasmal.web.core.controllers.PathAwareTabContainerController
+import world.phantasmal.web.core.stores.UiStore
+import world.phantasmal.web.viewer.ViewerUrls
 import world.phantasmal.web.viewer.models.CharacterClass
 import world.phantasmal.web.viewer.stores.ViewerStore
-import world.phantasmal.webui.controllers.Tab
-import world.phantasmal.webui.controllers.TabContainerController
 
-sealed class ViewerTab(override val title: String) : Tab {
-    object Mesh : ViewerTab("Model")
-    object Texture : ViewerTab("Texture")
+sealed class ViewerTab(
+    override val title: String,
+    override val path: String,
+) : PathAwareTab {
+    object Mesh : ViewerTab("Model", ViewerUrls.mesh)
+    object Texture : ViewerTab("Textures", ViewerUrls.texture)
 }
 
-class ViewerController(private val store: ViewerStore) : TabContainerController<ViewerTab>(
-    tabs = listOf(ViewerTab.Mesh, ViewerTab.Texture)
+class ViewerController(
+    uiStore: UiStore,
+    private val store: ViewerStore,
+) : PathAwareTabContainerController<ViewerTab>(
+    uiStore,
+    PwToolType.Viewer,
+    tabs = listOf(ViewerTab.Mesh, ViewerTab.Texture),
 ) {
     val characterClasses: List<CharacterClass> = CharacterClass.VALUES_LIST
     val currentCharacterClass: Val<CharacterClass?> = store.currentCharacterClass

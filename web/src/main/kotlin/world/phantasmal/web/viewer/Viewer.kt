@@ -35,7 +35,7 @@ class Viewer(
         val viewerStore = addDisposable(ViewerStore(characterClassAssetLoader, uiStore))
 
         // Controllers
-        val viewerController = addDisposable(ViewerController(viewerStore))
+        val viewerController = addDisposable(ViewerController(uiStore, viewerStore))
         val viewerToolbarController = addDisposable(ViewerToolbarController(viewerStore))
         val characterClassOptionsController =
             addDisposable(CharacterClassOptionsController(viewerStore))

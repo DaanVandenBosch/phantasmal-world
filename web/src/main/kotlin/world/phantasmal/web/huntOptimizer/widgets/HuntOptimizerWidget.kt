@@ -1,8 +1,8 @@
 package world.phantasmal.web.huntOptimizer.widgets
 
 import org.w3c.dom.Node
-import world.phantasmal.web.huntOptimizer.HuntOptimizerUrls
 import world.phantasmal.web.huntOptimizer.controllers.HuntOptimizerController
+import world.phantasmal.web.huntOptimizer.controllers.HuntOptimizerTab
 import world.phantasmal.webui.dom.div
 import world.phantasmal.webui.widgets.TabContainer
 import world.phantasmal.webui.widgets.Widget
@@ -19,11 +19,10 @@ class HuntOptimizerWidget(
             addChild(TabContainer(
                 ctrl = ctrl,
                 createWidget = { tab ->
-                    when (tab.path) {
-                        HuntOptimizerUrls.optimize -> createOptimizerWidget()
-                        HuntOptimizerUrls.methods -> createMethodsWidget()
-                        HuntOptimizerUrls.help -> HelpWidget()
-                        else -> error("""Unknown tab "${tab.title}".""")
+                    when (tab) {
+                        HuntOptimizerTab.Optimize -> createOptimizerWidget()
+                        HuntOptimizerTab.Methods -> createMethodsWidget()
+                        HuntOptimizerTab.Help -> HelpWidget()
                     }
                 }
             ))

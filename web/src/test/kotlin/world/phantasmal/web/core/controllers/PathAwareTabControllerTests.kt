@@ -46,9 +46,9 @@ class PathAwareTabControllerTests : WebTestSuite {
 
         disposer.add(
             PathAwareTabContainerController(uiStore, PwToolType.HuntOptimizer, listOf(
-                PathAwareTab("A", "/a"),
-                PathAwareTab("B", "/b"),
-                PathAwareTab("C", "/c"),
+                TestTab("A", "/a"),
+                TestTab("B", "/b"),
+                TestTab("C", "/c"),
             ))
         )
 
@@ -68,7 +68,10 @@ class PathAwareTabControllerTests : WebTestSuite {
     }
 
     private fun TestContext.setup(
-        block: (PathAwareTabContainerController<PathAwareTab>, applicationUrl: TestApplicationUrl) -> Unit,
+        block: (
+            PathAwareTabContainerController<TestTab>,
+            applicationUrl: TestApplicationUrl,
+        ) -> Unit,
     ) {
         val applicationUrl = TestApplicationUrl("/${PwToolType.HuntOptimizer.slug}/b")
         val uiStore = disposer.add(UiStore(applicationUrl))
@@ -76,12 +79,14 @@ class PathAwareTabControllerTests : WebTestSuite {
 
         val ctrl = disposer.add(
             PathAwareTabContainerController(uiStore, PwToolType.HuntOptimizer, listOf(
-                PathAwareTab("A", "/a"),
-                PathAwareTab("B", "/b"),
-                PathAwareTab("C", "/c"),
+                TestTab("A", "/a"),
+                TestTab("B", "/b"),
+                TestTab("C", "/c"),
             ))
         )
 
         block(ctrl, applicationUrl)
     }
+
+    private class TestTab(override val title: String, override val path: String) : PathAwareTab
 }
