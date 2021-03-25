@@ -37,7 +37,7 @@ private fun download(
     difficulty: Difficulty,
     difficultyUrl: String,
     enemyDrops: MutableList<EnemyDrop>,
-    boxDrops: MutableList<BoxDrop>,
+    @Suppress("UNUSED_PARAMETER") boxDrops: MutableList<BoxDrop>,
 ) {
     val doc = Jsoup.connect("https://ephinea.pioneer2.net/drop-charts/${difficultyUrl}/").get()
 

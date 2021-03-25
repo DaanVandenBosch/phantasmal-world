@@ -11,6 +11,8 @@ import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.list.ListVal
 import world.phantasmal.observable.value.list.mutableListVal
 import world.phantasmal.observable.value.mutableVal
+import world.phantasmal.web.core.PwToolType
+import world.phantasmal.web.core.stores.UiStore
 import world.phantasmal.web.shared.dto.SectionId
 import world.phantasmal.web.viewer.loading.CharacterClassAssetLoader
 import world.phantasmal.web.viewer.models.CharacterClass
@@ -18,13 +20,15 @@ import world.phantasmal.webui.stores.Store
 
 private val logger = KotlinLogging.logger {}
 
-class ViewerStore(private val assetLoader: CharacterClassAssetLoader) : Store() {
+class ViewerStore(
+    private val assetLoader: CharacterClassAssetLoader,
+    uiStore: UiStore,
+) : Store() {
     private val _currentNinjaObject = mutableVal<NinjaObject<*>?>(null)
     private val _currentTextures = mutableListVal<XvrTexture?>()
-    private val _currentCharacterClass = mutableVal<CharacterClass?>(CharacterClass.VALUES.random())
+    private val _currentCharacterClass = mutableVal<CharacterClass?>(null)
     private val _currentSectionId = mutableVal(SectionId.VALUES.random())
-    private val _currentBody =
-        mutableVal((0 until _currentCharacterClass.value!!.bodyStyleCount).random())
+    private val _currentBody = mutableVal(0)
     private val _currentNinjaMotion = mutableVal<NjMotion?>(null)
 
     // Settings
@@ -41,6 +45,61 @@ class ViewerStore(private val assetLoader: CharacterClassAssetLoader) : Store() 
     val showSkeleton: Val<Boolean> = _showSkeleton
 
     init {
+        addDisposables(
+            uiStore.registerParameter(
+                PwToolType.Viewer,
+                path = "",
+                MODEL_PARAM,
+                setInitialValue = { initialValue ->
+                    _currentCharacterClass.value =
+                        CharacterClass.VALUES.find { it.slug == initialValue }
+                            ?: CharacterClass.VALUES.random()
+                },
+                value = currentCharacterClass.map { it?.slug },
+                onChange = { newValue ->
+                    scope.launch {
+                        setCurrentCharacterClass(CharacterClass.VALUES.find { it.slug == newValue })
+                    }
+                },
+            ),
+
+            uiStore.registerParameter(
+                PwToolType.Viewer,
+                path = "",
+                BODY_PARAM,
+                setInitialValue = { initialValue ->
+                    val maxBody = _currentCharacterClass.value?.bodyStyleCount?.minus(1) ?: 0
+                    _currentBody.value =
+                        initialValue?.toIntOrNull()?.takeIf { it <= maxBody }?.minus(1)
+                            ?: (0..maxBody).random()
+                },
+                value = currentBody.map { (it + 1).toString() },
+                onChange = { newValue ->
+                    scope.launch {
+                        setCurrentBody(newValue?.toIntOrNull()?.minus(1) ?: 0)
+                    }
+                },
+            ),
+
+            uiStore.registerParameter(
+                PwToolType.Viewer,
+                path = "",
+                SECTION_ID_PARAM,
+                setInitialValue = { initialValue ->
+                    _currentSectionId.value =
+                        initialValue?.let(SectionId::valueOf) ?: SectionId.VALUES.random()
+                },
+                value = currentSectionId.map { it.name },
+                onChange = { newValue ->
+                    scope.launch {
+                        setCurrentSectionId(
+                            newValue?.let(SectionId::valueOf) ?: SectionId.VALUES.random()
+                        )
+                    }
+                },
+            ),
+        )
+
         scope.launch(Dispatchers.Default) {
             loadCharacterClassNinjaObject(clearAnimation = true)
         }
@@ -118,5 +177,11 @@ class ViewerStore(private val assetLoader: CharacterClassAssetLoader) : Store() 
                 _currentTextures.clear()
             }
         }
+    }
+
+    companion object {
+        private const val MODEL_PARAM = "model"
+        private const val BODY_PARAM = "body"
+        private const val SECTION_ID_PARAM = "section_id"
     }
 }

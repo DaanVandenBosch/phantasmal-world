@@ -4,6 +4,7 @@ import kotlinx.browser.window
 import kotlinx.coroutines.launch
 import org.w3c.dom.events.KeyboardEvent
 import world.phantasmal.core.disposable.Disposable
+import world.phantasmal.core.disposable.Disposer
 import world.phantasmal.core.disposable.disposable
 import world.phantasmal.observable.value.MutableVal
 import world.phantasmal.observable.value.Val
@@ -32,7 +33,8 @@ class UiStore(private val applicationUrl: ApplicationUrl) : Store() {
      * Maps full paths to maps of parameters and their values. In other words we keep track of
      * parameter values per [applicationUrl].
      */
-    private val parameters: MutableMap<String, Map<String, String>> = mutableMapOf()
+    private val parameters: MutableMap<String, MutableMap<String, MutableVal<String?>>> =
+        mutableMapOf()
     private val globalKeyDownHandlers: MutableMap<String, suspend (e: KeyboardEvent) -> Unit> =
         mutableMapOf()
 
@@ -43,7 +45,7 @@ class UiStore(private val applicationUrl: ApplicationUrl) : Store() {
      */
     private val features: MutableSet<String> = mutableSetOf()
 
-    val tools: List<PwToolType> = PwToolType.values().toList()
+    private val tools: List<PwToolType> = PwToolType.values().toList()
 
     /**
      * The default tool that is loaded.
@@ -104,6 +106,53 @@ class UiStore(private val applicationUrl: ApplicationUrl) : Store() {
         }
     }
 
+    fun registerParameter(
+        tool: PwToolType,
+        path: String,
+        parameter: String,
+        setInitialValue: (String?) -> Unit,
+        value: Val<String?>,
+        onChange: (String?) -> Unit,
+    ): Disposable {
+        require(parameter !== FEATURES_PARAM) {
+            "$FEATURES_PARAM can't be set because it is a global parameter."
+        }
+
+        val pathParams = parameters.getOrPut("/${tool.slug}$path", ::mutableMapOf)
+        val param = pathParams.getOrPut(parameter) { mutableVal(null) }
+
+        setInitialValue(param.value)
+
+        value.value.let { v ->
+            if (v != param.value) {
+                setParameter(tool, path, param, v, replaceUrl = true)
+            }
+        }
+
+        return Disposer(
+            value.observe {
+                if (it.value != param.value) {
+                    setParameter(tool, path, param, it.value, replaceUrl = false)
+                }
+            },
+            param.observe { onChange(it.value) },
+        )
+    }
+
+    private fun setParameter(
+        tool: PwToolType,
+        path: String,
+        parameter: MutableVal<String?>,
+        value: String?,
+        replaceUrl: Boolean,
+    ) {
+        parameter.value = value
+
+        if (this.currentTool.value == tool && this.path.value == path) {
+            updateApplicationUrl(tool, path, replaceUrl)
+        }
+    }
+
     fun onGlobalKeyDown(
         tool: PwToolType,
         binding: String,
@@ -135,21 +184,19 @@ class UiStore(private val applicationUrl: ApplicationUrl) : Store() {
         val path = if (secondSlashIdx == -1) "" else fullPath.substring(secondSlashIdx)
 
         if (paramsStr != null) {
-            val params = mutableMapOf<String, String>()
+            val params = parameters.getOrPut(fullPath, ::mutableMapOf)
 
             for (p in paramsStr.split("&")) {
                 val (param, value) = p.split("=", limit = 2)
 
-                if (param == "features") {
+                if (param == FEATURES_PARAM) {
                     for (feature in value.split(",")) {
                         features.add(feature)
                     }
                 } else {
-                    params[param] = value
+                    params.getOrPut(param) { mutableVal(value) }.value = value
                 }
             }
-
-            parameters[fullPath] = params
         }
 
         val actualTool = tool ?: defaultTool
@@ -167,11 +214,14 @@ class UiStore(private val applicationUrl: ApplicationUrl) : Store() {
 
     private fun updateApplicationUrl(tool: PwToolType, path: String, replace: Boolean) {
         val fullPath = "/${tool.slug}${path}"
-        val params: MutableMap<String, String> =
-            parameters[fullPath]?.let { HashMap(it) } ?: mutableMapOf()
+        val params = mutableMapOf<String, String>()
+
+        parameters[fullPath]?.forEach { (k, v) ->
+            v.value?.let { params[k] = it }
+        }
 
         if (features.isNotEmpty()) {
-            params["features"] = features.joinToString(",")
+            params[FEATURES_PARAM] = features.joinToString(",")
         }
 
         val paramStr =
@@ -210,6 +260,7 @@ class UiStore(private val applicationUrl: ApplicationUrl) : Store() {
     }
 
     companion object {
+        private const val FEATURES_PARAM = "features"
         private val SLUG_TO_PW_TOOL: Map<String, PwToolType> =
             PwToolType.values().map { it.slug to it }.toMap()
     }
