@@ -49,6 +49,14 @@ class SelectionWidget<T>(
 
                 .pw-viewer-selection-item {
                     padding: 4px 8px;
+                    white-space: nowrap; /* Necessary for Firefox. */
+                }
+
+                /* Firefox-specific hack to ensure the scrollbar doesn't cover the items. */
+                @-moz-document url-prefix() {
+                    .pw-viewer-selection-item {
+                        padding-right: 24px;
+                    }
                 }
 
                 .pw-viewer-selection-item:hover {
