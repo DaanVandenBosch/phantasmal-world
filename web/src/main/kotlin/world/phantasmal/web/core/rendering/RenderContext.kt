@@ -13,7 +13,8 @@ open class RenderContext(
         groundColor = 0x505050,
         intensity = 1.0
     )
-    private val lightHolder = Group().add(light)
+
+    val lightHolder = Group().add(light)
 
     var width: Int = 0
     var height: Int = 0

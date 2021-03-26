@@ -119,6 +119,8 @@ external class Quaternion(
     var z: Double
     var w: Double
 
+    fun copy(q: Quaternion): Quaternion
+
     fun setFromEuler(euler: Euler): Quaternion
 
     /**

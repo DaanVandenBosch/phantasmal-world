@@ -52,6 +52,8 @@ class MeshRenderer(
     override fun render() {
         animation?.mixer?.update(clock.getDelta())
 
+        context.lightHolder.quaternion.copy(context.camera.quaternion)
+
         super.render()
 
         animation?.let {
