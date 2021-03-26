@@ -177,9 +177,14 @@ class ViewerStore(
         _currentNinjaMotion.value = njm
     }
 
-    suspend fun setCurrentAnimation(animation: AnimationModel) {
+    suspend fun setCurrentAnimation(animation: AnimationModel?) {
         _currentAnimation.value = animation
-        loadAnimation(animation)
+
+        if (animation == null) {
+            _currentNinjaMotion.value = null
+        } else {
+            loadAnimation(animation)
+        }
     }
 
     fun setShowSkeleton(show: Boolean) {

@@ -26,6 +26,11 @@ class ViewerToolbar(private val ctrl: ViewerToolbarController) : Widget() {
                         checked = ctrl.showSkeleton,
                         onChange = ctrl::setShowSkeleton,
                     ),
+                    Button(
+                        text = "Clear animation",
+                        enabled = ctrl.clearCurrentAnimationButtonEnabled,
+                        onClick = { scope.launch { ctrl.clearCurrentAnimation() } },
+                    ),
                 )
             ))
             addDisposable(ResultDialog(
