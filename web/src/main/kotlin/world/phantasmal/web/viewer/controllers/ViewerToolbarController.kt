@@ -23,6 +23,7 @@ class ViewerToolbarController(private val store: ViewerStore) : Controller() {
     private val _result = mutableVal<PwResult<*>?>(null)
 
     val showSkeleton: Val<Boolean> = store.showSkeleton
+    val playAnimation: Val<Boolean> = store.animationPlaying
     val clearCurrentAnimationButtonEnabled = store.currentNinjaMotion.isNotNull()
     val resultDialogVisible: Val<Boolean> = _resultDialogVisible
     val result: Val<PwResult<*>?> = _result
@@ -35,6 +36,10 @@ class ViewerToolbarController(private val store: ViewerStore) : Controller() {
 
     fun setShowSkeleton(show: Boolean) {
         store.setShowSkeleton(show)
+    }
+
+    fun setPlayAnimation(play: Boolean) {
+        store.setAnimationPlaying(play)
     }
 
     suspend fun clearCurrentAnimation() {

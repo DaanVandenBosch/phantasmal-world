@@ -47,6 +47,7 @@ class MeshRenderer(
         observe(viewerStore.currentTextures) { ninjaObjectOrXvmChanged() }
         observe(viewerStore.currentNinjaMotion, ::ninjaMotionChanged)
         observe(viewerStore.showSkeleton) { skeletonHelper?.visible = it }
+        observe(viewerStore.animationPlaying, ::animationPlayingChanged)
     }
 
     override fun render() {
@@ -166,6 +167,18 @@ class MeshRenderer(
 
         clock.start()
         mixer!!.clipAction(clip).play()
+    }
+
+    private fun animationPlayingChanged(playing: Boolean) {
+        animation?.let { animation ->
+            animation.mixer.clipAction(animation.clip).paused = !playing
+
+            if (playing) {
+                clock.start()
+            } else {
+                clock.stop()
+            }
+        }
     }
 
     private class Animation(val mixer: AnimationMixer, val clip: AnimationClip)

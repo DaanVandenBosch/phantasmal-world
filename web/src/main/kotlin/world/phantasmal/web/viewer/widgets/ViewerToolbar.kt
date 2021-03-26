@@ -26,6 +26,11 @@ class ViewerToolbar(private val ctrl: ViewerToolbarController) : Widget() {
                         checked = ctrl.showSkeleton,
                         onChange = ctrl::setShowSkeleton,
                     ),
+                    Checkbox(
+                        label = "Play animation",
+                        checked = ctrl.playAnimation,
+                        onChange = ctrl::setPlayAnimation,
+                    ),
                     Button(
                         text = "Clear animation",
                         enabled = ctrl.clearCurrentAnimationButtonEnabled,

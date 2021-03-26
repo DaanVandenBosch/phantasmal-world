@@ -41,6 +41,7 @@ class ViewerStore(
 
     // Settings.
     private val _showSkeleton = mutableVal(false)
+    private val _animationPlaying = mutableVal(true)
 
     // Ninja concepts.
     val currentNinjaObject: Val<NinjaObject<*>?> = _currentNinjaObject
@@ -61,6 +62,7 @@ class ViewerStore(
 
     // Settings.
     val showSkeleton: Val<Boolean> = _showSkeleton
+    val animationPlaying: Val<Boolean> = _animationPlaying
 
     init {
         for (path in listOf(ViewerUrls.mesh, ViewerUrls.texture)) {
@@ -175,6 +177,7 @@ class ViewerStore(
 
     fun setCurrentNinjaMotion(njm: NjMotion) {
         _currentNinjaMotion.value = njm
+        _animationPlaying.value = true
     }
 
     suspend fun setCurrentAnimation(animation: AnimationModel?) {
@@ -189,6 +192,10 @@ class ViewerStore(
 
     fun setShowSkeleton(show: Boolean) {
         _showSkeleton.value = show
+    }
+
+    fun setAnimationPlaying(playing: Boolean) {
+        _animationPlaying.value = playing
     }
 
     private suspend fun loadCharacterClassNinjaObject(clearAnimation: Boolean) {
@@ -222,6 +229,7 @@ class ViewerStore(
     private suspend fun loadAnimation(animation: AnimationModel) {
         try {
             _currentNinjaMotion.value = animationAssetLoader.loadAnimation(animation.filePath)
+            _animationPlaying.value = true
         } catch (e: Exception) {
             logger.error(e) {
                 "Couldn't load Ninja motion for ${animation.name} (path: ${animation.filePath})."

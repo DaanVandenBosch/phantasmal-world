@@ -784,7 +784,7 @@ external class AnimationAction(
 ) {
     var time: Double
     var timeScale: Double
-    val paused: Boolean
+    var paused: Boolean
 
     fun play(): AnimationAction
     fun stop(): AnimationAction
