@@ -1,7 +1,9 @@
 package world.phantasmal.web.viewer.rendering
 
 import org.w3c.dom.HTMLCanvasElement
+import world.phantasmal.core.disposable.TrackedDisposable
 import world.phantasmal.core.math.degToRad
+import world.phantasmal.lib.fileFormats.ninja.NinjaObject
 import world.phantasmal.lib.fileFormats.ninja.NjMotion
 import world.phantasmal.web.core.rendering.*
 import world.phantasmal.web.core.rendering.Renderer
@@ -55,6 +57,11 @@ class MeshRenderer(
         observe(viewerStore.frame, ::frameChanged)
     }
 
+    override fun dispose() {
+        animation?.dispose()
+        super.dispose()
+    }
+
     override fun render() {
         animation?.mixer?.update(clock.getDelta())
 
@@ -63,11 +70,9 @@ class MeshRenderer(
         super.render()
 
         animation?.let {
-            val action = it.mixer.clipAction(it.clip)
-
-            if (!action.paused) {
+            if (!it.action.paused) {
                 updateAnimationTime = false
-                viewerStore.setFrame((action.time * PSO_FRAME_RATE_DOUBLE + 1).roundToInt())
+                viewerStore.setFrame((it.action.time * PSO_FRAME_RATE_DOUBLE + 1).roundToInt())
                 updateAnimationTime = true
             }
         }
@@ -86,23 +91,21 @@ class MeshRenderer(
             skeletonHelper = null
         }
 
-        val ninjaObject = viewerStore.currentNinjaObject.value
+        val njObject = viewerStore.currentNinjaObject.value
         val textures = viewerStore.currentTextures.value
 
         // Stop and clean up previous animation and store animation time.
         var animationTime: Double? = null
 
-        animation?.let { animation ->
-            val mixer = animation.mixer
-            animationTime = mixer.existingAction(animation.clip).time
-            mixer.stopAllAction()
-            mixer.uncacheAction(animation.clip)
+        animation?.let {
+            animationTime = it.action.time
+            it.dispose()
             this.animation = null
         }
 
         // Create a new mesh if necessary.
-        if (ninjaObject != null) {
-            val mesh = ninjaObjectToSkinnedMesh(ninjaObject, textures, boundingVolumes = true)
+        if (njObject != null) {
+            val mesh = ninjaObjectToSkinnedMesh(njObject, textures, boundingVolumes = true)
 
             // Determine whether camera needs to be reset. Resets should always happen when the
             // Ninja object changes except when we're switching between character class models.
@@ -131,28 +134,19 @@ class MeshRenderer(
             this.skeletonHelper = skeletonHelper
 
             // Create a new animation mixer and clip.
-            viewerStore.currentNinjaMotion.value?.let { nj_motion ->
-                val mixer = AnimationMixer(mesh)
-                mixer.timeScale = viewerStore.frameRate.value / PSO_FRAME_RATE_DOUBLE
-
-                val clip = createAnimationClip(ninjaObject, nj_motion)
-
-                animation = Animation(mixer, clip)
-
-                val action = mixer.clipAction(clip, mesh)
-                action.time = animationTime ?: .0
-                action.play()
+            viewerStore.currentNinjaMotion.value?.let { njMotion ->
+                animation = Animation(njObject, njMotion, mesh).also {
+                    it.mixer.timeScale = viewerStore.frameRate.value / PSO_FRAME_RATE_DOUBLE
+                    it.action.time = animationTime ?: .0
+                    it.action.play()
+                }
             }
         }
     }
 
     private fun ninjaMotionChanged(njMotion: NjMotion?) {
-        var mixer: AnimationMixer? = null
-
         animation?.let {
-            it.mixer.stopAllAction()
-            it.mixer.uncacheAction(it.clip)
-            mixer = it.mixer
+            it.dispose()
             animation = null
         }
 
@@ -163,21 +157,17 @@ class MeshRenderer(
             return
         }
 
-        if (mixer == null) {
-            mixer = AnimationMixer(mesh)
+        animation = Animation(njObject, njMotion, mesh).also {
+            it.mixer.timeScale = viewerStore.frameRate.value / PSO_FRAME_RATE_DOUBLE
+            it.action.play()
         }
 
-        val clip = createAnimationClip(njObject, njMotion)
-
-        animation = Animation(mixer!!, clip)
-
         clock.start()
-        mixer!!.clipAction(clip).play()
     }
 
     private fun animationPlayingChanged(playing: Boolean) {
         animation?.let {
-            it.mixer.clipAction(it.clip).paused = !playing
+            it.action.paused = !playing
 
             if (playing) {
                 clock.start()
@@ -196,12 +186,27 @@ class MeshRenderer(
     private fun frameChanged(frame: Int) {
         if (updateAnimationTime) {
             animation?.let {
-                it.mixer.clipAction(it.clip).time = (frame - 1) / PSO_FRAME_RATE_DOUBLE
+                it.action.time = (frame - 1) / PSO_FRAME_RATE_DOUBLE
             }
         }
     }
 
-    private class Animation(val mixer: AnimationMixer, val clip: AnimationClip)
+    private class Animation(
+        njObject: NinjaObject<*>,
+        njMotion: NjMotion,
+        root: Object3D,
+    ) : TrackedDisposable() {
+        private val clip: AnimationClip = createAnimationClip(njObject, njMotion)
+
+        val mixer = AnimationMixer(root)
+        val action: AnimationAction = mixer.clipAction(clip)
+
+        override fun dispose() {
+            mixer.stopAllAction()
+            mixer.uncacheAction(clip)
+            super.dispose()
+        }
+    }
 
     companion object {
         private val CAMERA_POS = Vector3(1.0, 1.0, 2.0).normalize()
