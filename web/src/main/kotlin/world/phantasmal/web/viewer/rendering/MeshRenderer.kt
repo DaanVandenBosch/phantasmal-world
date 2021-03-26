@@ -21,6 +21,7 @@ class MeshRenderer(
     private var mesh: Mesh? = null
     private var skeletonHelper: SkeletonHelper? = null
     private var animation: Animation? = null
+    private var charClassActive = false
 
     override val context = addDisposable(RenderContext(
         createCanvas(),
@@ -28,7 +29,7 @@ class MeshRenderer(
             fov = 45.0,
             aspect = 1.0,
             near = 10.0,
-            far = 5_000.0
+            far = 5_000.0,
         )
     ))
 
@@ -38,16 +39,12 @@ class MeshRenderer(
         context.canvas,
         context.camera,
         Vector3(),
-        screenSpacePanning = true
+        screenSpacePanning = true,
     ))
 
     init {
-        observe(viewerStore.currentNinjaObject) {
-            ninjaObjectOrXvmChanged(resetCamera = true)
-        }
-        observe(viewerStore.currentTextures) {
-            ninjaObjectOrXvmChanged(resetCamera = false)
-        }
+        observe(viewerStore.currentNinjaObject) { ninjaObjectOrXvmChanged() }
+        observe(viewerStore.currentTextures) { ninjaObjectOrXvmChanged() }
         observe(viewerStore.currentNinjaMotion, ::ninjaMotionChanged)
         observe(viewerStore.showSkeleton) { skeletonHelper?.visible = it }
     }
@@ -66,7 +63,7 @@ class MeshRenderer(
         }
     }
 
-    private fun ninjaObjectOrXvmChanged(resetCamera: Boolean) {
+    private fun ninjaObjectOrXvmChanged() {
         // Remove the previous mesh.
         mesh?.let { mesh ->
             disposeObject3DResources(mesh)
@@ -77,10 +74,6 @@ class MeshRenderer(
         skeletonHelper?.let {
             context.scene.remove(it)
             skeletonHelper = null
-        }
-
-        if (resetCamera) {
-            inputManager.resetCamera()
         }
 
         val ninjaObject = viewerStore.currentNinjaObject.value
@@ -100,6 +93,12 @@ class MeshRenderer(
         // Create a new mesh if necessary.
         if (ninjaObject != null) {
             val mesh = ninjaObjectToSkinnedMesh(ninjaObject, textures, boundingVolumes = true)
+
+            // Determine whether camera needs to be reset. Resets should always happen when the
+            // Ninja object changes except when we're switching between character class models.
+            val charClassActive = viewerStore.currentCharacterClass.value != null
+            val resetCamera = !charClassActive || !this.charClassActive
+            this.charClassActive = charClassActive
 
             if (resetCamera) {
                 // Compute camera position.

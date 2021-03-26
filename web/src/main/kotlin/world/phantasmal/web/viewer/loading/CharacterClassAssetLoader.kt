@@ -6,8 +6,8 @@ import world.phantasmal.lib.cursor.cursor
 import world.phantasmal.lib.fileFormats.ninja.*
 import world.phantasmal.lib.fileFormats.parseAfs
 import world.phantasmal.web.core.loading.AssetLoader
-import world.phantasmal.web.shared.dto.SectionId
 import world.phantasmal.web.questEditor.loading.LoadingCache
+import world.phantasmal.web.shared.dto.SectionId
 import world.phantasmal.web.viewer.models.CharacterClass
 import world.phantasmal.web.viewer.models.CharacterClass.*
 import world.phantasmal.webui.DisposableContainer

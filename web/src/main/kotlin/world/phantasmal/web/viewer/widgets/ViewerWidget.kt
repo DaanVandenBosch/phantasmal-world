@@ -37,6 +37,13 @@ class ViewerWidget(
                         ViewerTab.Texture -> createTextureWidget()
                     }
                 }))
+                addChild(SelectionWidget(
+                    ctrl.animations,
+                    ctrl.currentAnimation,
+                    { animation -> scope.launch { ctrl.setCurrentAnimation(animation) } },
+                    { it.name },
+                    borderLeft = true,
+                ))
             }
         }
 

@@ -1,8 +1,6 @@
 package world.phantasmal.web.viewer.stores
 
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import mu.KotlinLogging
 import world.phantasmal.core.enumValueOfOrNull
 import world.phantasmal.lib.fileFormats.ninja.NinjaObject
@@ -16,35 +14,52 @@ import world.phantasmal.web.core.PwToolType
 import world.phantasmal.web.core.stores.UiStore
 import world.phantasmal.web.shared.dto.SectionId
 import world.phantasmal.web.viewer.ViewerUrls
+import world.phantasmal.web.viewer.loading.AnimationAssetLoader
 import world.phantasmal.web.viewer.loading.CharacterClassAssetLoader
+import world.phantasmal.web.viewer.models.AnimationModel
 import world.phantasmal.web.viewer.models.CharacterClass
 import world.phantasmal.webui.stores.Store
 
 private val logger = KotlinLogging.logger {}
 
 class ViewerStore(
-    private val assetLoader: CharacterClassAssetLoader,
+    private val characterClassAssetLoader: CharacterClassAssetLoader,
+    private val animationAssetLoader: AnimationAssetLoader,
     uiStore: UiStore,
 ) : Store() {
+    // Ninja concepts.
     private val _currentNinjaObject = mutableVal<NinjaObject<*>?>(null)
     private val _currentTextures = mutableListVal<XvrTexture?>()
+    private val _currentNinjaMotion = mutableVal<NjMotion?>(null)
+
+    // High-level concepts.
     private val _currentCharacterClass = mutableVal<CharacterClass?>(CharacterClass.VALUES.random())
     private val _currentSectionId = mutableVal(SectionId.VALUES.random())
     private val _currentBody =
         mutableVal((1.._currentCharacterClass.value!!.bodyStyleCount).random())
-    private val _currentNinjaMotion = mutableVal<NjMotion?>(null)
+    private val _currentAnimation = mutableVal<AnimationModel?>(null)
 
-    // Settings
+    // Settings.
     private val _showSkeleton = mutableVal(false)
 
+    // Ninja concepts.
     val currentNinjaObject: Val<NinjaObject<*>?> = _currentNinjaObject
     val currentTextures: ListVal<XvrTexture?> = _currentTextures
+    val currentNinjaMotion: Val<NjMotion?> = _currentNinjaMotion
+
+    // High-level concepts.
     val currentCharacterClass: Val<CharacterClass?> = _currentCharacterClass
     val currentSectionId: Val<SectionId> = _currentSectionId
     val currentBody: Val<Int> = _currentBody
-    val currentNinjaMotion: Val<NjMotion?> = _currentNinjaMotion
+    val animations: List<AnimationModel> = (0 until 572).map {
+        AnimationModel(
+            "Animation ${it + 1}",
+            "/player/animation/animation_${it.toString().padStart(3, '0')}.njm"
+        )
+    }
+    val currentAnimation: Val<AnimationModel?> = _currentAnimation
 
-    // Settings
+    // Settings.
     val showSkeleton: Val<Boolean> = _showSkeleton
 
     init {
@@ -116,7 +131,7 @@ class ViewerStore(
             )
         }
 
-        scope.launch(Dispatchers.Default) {
+        scope.launch {
             loadCharacterClassNinjaObject(clearAnimation = true)
         }
     }
@@ -127,6 +142,7 @@ class ViewerStore(
             _currentTextures.clear()
         }
 
+        _currentAnimation.value = null
         _currentNinjaMotion.value = null
         _currentNinjaObject.value = ninjaObject
     }
@@ -161,6 +177,11 @@ class ViewerStore(
         _currentNinjaMotion.value = njm
     }
 
+    suspend fun setCurrentAnimation(animation: AnimationModel) {
+        _currentAnimation.value = animation
+        loadAnimation(animation)
+    }
+
     fun setShowSkeleton(show: Boolean) {
         _showSkeleton.value = show
     }
@@ -173,25 +194,35 @@ class ViewerStore(
         val body = currentBody.value
 
         try {
-            val ninjaObject = assetLoader.loadNinjaObject(char)
-            val textures = assetLoader.loadXvrTextures(char, sectionId, body)
+            val ninjaObject = characterClassAssetLoader.loadNinjaObject(char)
+            val textures = characterClassAssetLoader.loadXvrTextures(char, sectionId, body)
 
-            withContext(Dispatchers.Main) {
-                if (clearAnimation) {
-                    _currentNinjaMotion.value = null
-                }
-
-                _currentNinjaObject.value = ninjaObject
-                _currentTextures.replaceAll(textures)
+            if (clearAnimation) {
+                _currentAnimation.value = null
+                _currentNinjaMotion.value = null
             }
+
+            _currentNinjaObject.value = ninjaObject
+            _currentTextures.replaceAll(textures)
         } catch (e: Exception) {
             logger.error(e) { "Couldn't load Ninja model for $char." }
 
-            withContext(Dispatchers.Main) {
-                _currentNinjaMotion.value = null
-                _currentNinjaObject.value = null
-                _currentTextures.clear()
+            _currentAnimation.value = null
+            _currentNinjaMotion.value = null
+            _currentNinjaObject.value = null
+            _currentTextures.clear()
+        }
+    }
+
+    private suspend fun loadAnimation(animation: AnimationModel) {
+        try {
+            _currentNinjaMotion.value = animationAssetLoader.loadAnimation(animation.filePath)
+        } catch (e: Exception) {
+            logger.error(e) {
+                "Couldn't load Ninja motion for ${animation.name} (path: ${animation.filePath})."
             }
+
+            _currentNinjaMotion.value = null
         }
     }
 
