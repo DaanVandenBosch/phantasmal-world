@@ -24,7 +24,10 @@ class ViewerToolbarController(private val store: ViewerStore) : Controller() {
 
     val showSkeleton: Val<Boolean> = store.showSkeleton
     val playAnimation: Val<Boolean> = store.animationPlaying
-    val clearCurrentAnimationButtonEnabled = store.currentNinjaMotion.isNotNull()
+    val frameRate: Val<Int> = store.frameRate
+    val frame: Val<Int> = store.frame
+    val animationControlsEnabled: Val<Boolean> = store.currentNinjaMotion.isNotNull()
+    val maxFrame: Val<String> = store.currentNinjaMotion.map { "/ ${it?.frameCount ?: 0}" }
     val resultDialogVisible: Val<Boolean> = _resultDialogVisible
     val result: Val<PwResult<*>?> = _result
     val resultMessage: Val<String> = result.map {
@@ -40,6 +43,14 @@ class ViewerToolbarController(private val store: ViewerStore) : Controller() {
 
     fun setPlayAnimation(play: Boolean) {
         store.setAnimationPlaying(play)
+    }
+
+    fun setFrameRate(frameRate: Int) {
+        store.setFrameRate(frameRate)
+    }
+
+    fun setFrame(frame: Int) {
+        store.setFrame(frame)
     }
 
     suspend fun clearCurrentAnimation() {

@@ -13,6 +13,7 @@ class FileButton(
     visible: Val<Boolean> = trueVal(),
     enabled: Val<Boolean> = trueVal(),
     tooltip: Val<String?> = nullVal(),
+    className: String? = null,
     text: String? = null,
     textVal: Val<String>? = null,
     iconLeft: Icon? = null,
@@ -20,7 +21,7 @@ class FileButton(
     private val accept: String = "",
     private val multiple: Boolean = false,
     private val filesSelected: ((List<File>) -> Unit)? = null,
-) : Button(visible, enabled, tooltip, text, textVal, iconLeft, iconRight) {
+) : Button(visible, enabled, tooltip, className, text, textVal, iconLeft, iconRight) {
     override fun interceptElement(element: HTMLElement) {
         element.classList.add("pw-file-button")
 

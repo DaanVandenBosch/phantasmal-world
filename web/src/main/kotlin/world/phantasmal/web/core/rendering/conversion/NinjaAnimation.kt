@@ -8,7 +8,8 @@ import world.phantasmal.lib.fileFormats.ninja.NjKeyframeTrack
 import world.phantasmal.lib.fileFormats.ninja.NjMotion
 import world.phantasmal.web.externals.three.*
 
-const val PSO_FRAME_RATE: Double = 30.0
+const val PSO_FRAME_RATE: Int = 30
+const val PSO_FRAME_RATE_DOUBLE: Double = PSO_FRAME_RATE.toDouble()
 
 fun createAnimationClip(njObject: NinjaObject<*>, njMotion: NjMotion): AnimationClip {
     val interpolation =
@@ -27,7 +28,7 @@ fun createAnimationClip(njObject: NinjaObject<*>, njMotion: NjMotion): Animation
             val times = jsArrayOf<Double>()
 
             for (keyframe in track.keyframes) {
-                times.push(keyframe.frame / PSO_FRAME_RATE)
+                times.push(keyframe.frame / PSO_FRAME_RATE_DOUBLE)
             }
 
             val values = jsArrayOf<Double>()
@@ -114,7 +115,7 @@ fun createAnimationClip(njObject: NinjaObject<*>, njMotion: NjMotion): Animation
 
     return AnimationClip(
         "Animation",
-        (njMotion.frameCount - 1) / PSO_FRAME_RATE,
+        (njMotion.frameCount - 1) / PSO_FRAME_RATE_DOUBLE,
         tracks.asArray(),
     ).optimize()
 }

@@ -11,6 +11,7 @@ import world.phantasmal.observable.value.list.ListVal
 import world.phantasmal.observable.value.list.mutableListVal
 import world.phantasmal.observable.value.mutableVal
 import world.phantasmal.web.core.PwToolType
+import world.phantasmal.web.core.rendering.conversion.PSO_FRAME_RATE
 import world.phantasmal.web.core.stores.UiStore
 import world.phantasmal.web.shared.dto.SectionId
 import world.phantasmal.web.viewer.ViewerUrls
@@ -42,6 +43,8 @@ class ViewerStore(
     // Settings.
     private val _showSkeleton = mutableVal(false)
     private val _animationPlaying = mutableVal(true)
+    private val _frameRate = mutableVal(PSO_FRAME_RATE)
+    private val _frame = mutableVal(0)
 
     // Ninja concepts.
     val currentNinjaObject: Val<NinjaObject<*>?> = _currentNinjaObject
@@ -63,6 +66,8 @@ class ViewerStore(
     // Settings.
     val showSkeleton: Val<Boolean> = _showSkeleton
     val animationPlaying: Val<Boolean> = _animationPlaying
+    val frameRate: Val<Int> = _frameRate
+    val frame: Val<Int> = _frame
 
     init {
         for (path in listOf(ViewerUrls.mesh, ViewerUrls.texture)) {
@@ -196,6 +201,20 @@ class ViewerStore(
 
     fun setAnimationPlaying(playing: Boolean) {
         _animationPlaying.value = playing
+    }
+
+    fun setFrameRate(frameRate: Int) {
+        _frameRate.value = frameRate
+    }
+
+    fun setFrame(frame: Int) {
+        val maxFrame = currentNinjaMotion.value?.frameCount ?: Int.MAX_VALUE
+
+        _frame.value = when {
+            frame > maxFrame -> 1
+            frame < 1 -> maxFrame
+            else -> frame
+        }
     }
 
     private suspend fun loadCharacterClassNinjaObject(clearAnimation: Boolean) {

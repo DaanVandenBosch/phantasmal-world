@@ -5,11 +5,13 @@ import world.phantasmal.core.math.degToRad
 import world.phantasmal.lib.fileFormats.ninja.NjMotion
 import world.phantasmal.web.core.rendering.*
 import world.phantasmal.web.core.rendering.Renderer
+import world.phantasmal.web.core.rendering.conversion.PSO_FRAME_RATE_DOUBLE
 import world.phantasmal.web.core.rendering.conversion.createAnimationClip
 import world.phantasmal.web.core.rendering.conversion.ninjaObjectToSkinnedMesh
 import world.phantasmal.web.core.times
 import world.phantasmal.web.externals.three.*
 import world.phantasmal.web.viewer.stores.ViewerStore
+import kotlin.math.roundToInt
 import kotlin.math.tan
 
 class MeshRenderer(
@@ -21,6 +23,7 @@ class MeshRenderer(
     private var mesh: Mesh? = null
     private var skeletonHelper: SkeletonHelper? = null
     private var animation: Animation? = null
+    private var updateAnimationTime = true
     private var charClassActive = false
 
     override val context = addDisposable(RenderContext(
@@ -48,6 +51,8 @@ class MeshRenderer(
         observe(viewerStore.currentNinjaMotion, ::ninjaMotionChanged)
         observe(viewerStore.showSkeleton) { skeletonHelper?.visible = it }
         observe(viewerStore.animationPlaying, ::animationPlayingChanged)
+        observe(viewerStore.frameRate, ::frameRateChanged)
+        observe(viewerStore.frame, ::frameChanged)
     }
 
     override fun render() {
@@ -58,11 +63,13 @@ class MeshRenderer(
         super.render()
 
         animation?.let {
-            // TODO: Update current animation frame in store.
-//            val action = it.mixer.clipAction(it.clip)
-//
-//            if (!action.paused) {
-//            }
+            val action = it.mixer.clipAction(it.clip)
+
+            if (!action.paused) {
+                updateAnimationTime = false
+                viewerStore.setFrame((action.time * PSO_FRAME_RATE_DOUBLE + 1).roundToInt())
+                updateAnimationTime = true
+            }
         }
     }
 
@@ -126,8 +133,7 @@ class MeshRenderer(
             // Create a new animation mixer and clip.
             viewerStore.currentNinjaMotion.value?.let { nj_motion ->
                 val mixer = AnimationMixer(mesh)
-                // TODO: Set time scale.
-//                mixer.timeScale = this.store.animation_frame_rate.val / PSO_FRAME_RATE;
+                mixer.timeScale = viewerStore.frameRate.value / PSO_FRAME_RATE_DOUBLE
 
                 val clip = createAnimationClip(ninjaObject, nj_motion)
 
@@ -170,13 +176,27 @@ class MeshRenderer(
     }
 
     private fun animationPlayingChanged(playing: Boolean) {
-        animation?.let { animation ->
-            animation.mixer.clipAction(animation.clip).paused = !playing
+        animation?.let {
+            it.mixer.clipAction(it.clip).paused = !playing
 
             if (playing) {
                 clock.start()
             } else {
                 clock.stop()
+            }
+        }
+    }
+
+    private fun frameRateChanged(frameRate: Int) {
+        animation?.let {
+            it.mixer.timeScale = frameRate / PSO_FRAME_RATE_DOUBLE
+        }
+    }
+
+    private fun frameChanged(frame: Int) {
+        if (updateAnimationTime) {
+            animation?.let {
+                it.mixer.clipAction(it.clip).time = (frame - 1) / PSO_FRAME_RATE_DOUBLE
             }
         }
     }

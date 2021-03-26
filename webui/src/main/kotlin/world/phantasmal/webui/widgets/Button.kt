@@ -15,6 +15,7 @@ open class Button(
     visible: Val<Boolean> = trueVal(),
     enabled: Val<Boolean> = trueVal(),
     tooltip: Val<String?> = nullVal(),
+    private val className: String? = null,
     private val text: String? = null,
     private val textVal: Val<String>? = null,
     private val iconLeft: Icon? = null,
@@ -29,6 +30,9 @@ open class Button(
     override fun Node.createElement() =
         button {
             className = "pw-button"
+
+            this@Button.className?.let { classList.add(it) }
+
             onmousedown = onMouseDown
             onmouseup = onMouseUp
             onclick = onClick

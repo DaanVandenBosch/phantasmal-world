@@ -28,12 +28,34 @@ class ViewerToolbar(private val ctrl: ViewerToolbarController) : Widget() {
                     ),
                     Checkbox(
                         label = "Play animation",
+                        enabled = ctrl.animationControlsEnabled,
                         checked = ctrl.playAnimation,
                         onChange = ctrl::setPlayAnimation,
                     ),
+                    IntInput(
+                        label = "Frame rate:",
+                        enabled = ctrl.animationControlsEnabled,
+                        value = ctrl.frameRate,
+                        onChange = ctrl::setFrameRate,
+                        min = 1,
+                        max = 240,
+                        step = 1,
+                    ),
+                    IntInput(
+                        label = "Frame:",
+                        enabled = ctrl.animationControlsEnabled,
+                        value = ctrl.frame,
+                        onChange = ctrl::setFrame,
+                        step = 1,
+                    ),
+                    Label(
+                        enabled = ctrl.animationControlsEnabled,
+                        textVal = ctrl.maxFrame,
+                    ),
                     Button(
+                        className = "pw-viewer-toolbar-clear-animation",
                         text = "Clear animation",
-                        enabled = ctrl.clearCurrentAnimationButtonEnabled,
+                        enabled = ctrl.animationControlsEnabled,
                         onClick = { scope.launch { ctrl.clearCurrentAnimation() } },
                     ),
                 )
@@ -45,4 +67,16 @@ class ViewerToolbar(private val ctrl: ViewerToolbarController) : Widget() {
                 onDismiss = ctrl::dismissResultDialog,
             ))
         }
+
+    companion object {
+        init {
+            @Suppress("CssUnusedSymbol")
+            // language=css
+            style("""
+                .pw-viewer-toolbar > .pw-toolbar > .pw-viewer-toolbar-clear-animation {
+                    margin-left: 6px;
+                }
+            """.trimIndent())
+        }
+    }
 }
