@@ -9,7 +9,10 @@ import world.phantasmal.lib.fileFormats.ninja.XvrTexture
 import world.phantasmal.web.externals.three.*
 import world.phantasmal.webui.obj
 
-class MeshBuilder {
+class MeshBuilder(
+    private val textures: List<XvrTexture?> = emptyList(),
+    private val textureCache: MutableMap<Int, Texture?> = mutableMapOf(),
+) {
     private val positions = mutableListOf<Vector3>()
     private val normals = mutableListOf<Vector3>()
     private val uvs = mutableListOf<Vector2>()
@@ -25,23 +28,21 @@ class MeshBuilder {
 
     private var defaultMaterial: Material? = null
 
-    private val textures = mutableListOf<XvrTexture?>()
-
     fun getGroupIndex(
-        textureId: Int?,
+        textureIndex: Int?,
         alpha: Boolean,
         additiveBlending: Boolean,
     ): Int {
-        val idx = groups.indexOfFirst {
-            it.textureId == textureId &&
+        val groupIndex = groups.indexOfFirst {
+            it.textureIndex == textureIndex &&
                     it.alpha == alpha &&
                     it.additiveBlending == additiveBlending
         }
 
-        return if (idx != -1) {
-            idx
+        return if (groupIndex != -1) {
+            groupIndex
         } else {
-            groups.add(Group(textureId, alpha, additiveBlending))
+            groups.add(Group(textureIndex, alpha, additiveBlending))
             groups.lastIndex
         }
     }
@@ -87,12 +88,8 @@ class MeshBuilder {
         defaultMaterial = material
     }
 
-    fun textures(textures: List<XvrTexture?>) {
-        this.textures.addAll(textures)
-    }
-
     fun buildMesh(boundingVolumes: Boolean = false): Mesh =
-        build(skinning = false, boundingVolumes).let { (geom, materials) ->
+        build(skinning = false, boundingVolumes) { geom, materials, _ ->
             Mesh(geom, materials)
         }
 
@@ -100,7 +97,7 @@ class MeshBuilder {
      * Creates an [InstancedMesh] with 0 instances.
      */
     fun buildInstancedMesh(maxInstances: Int, boundingVolumes: Boolean = false): InstancedMesh =
-        build(skinning = false, boundingVolumes).let { (geom, materials) ->
+        build(skinning = false, boundingVolumes) { geom, materials, _ ->
             InstancedMesh(geom, materials, maxInstances).apply {
                 // Start with 0 instances.
                 count = 0
@@ -111,17 +108,18 @@ class MeshBuilder {
      * Creates a [SkinnedMesh] with bones and a skeleton for animation.
      */
     fun buildSkinnedMesh(boundingVolumes: Boolean = false): SkinnedMesh =
-        build(skinning = true, boundingVolumes).let { (geom, materials, bones) ->
+        build(skinning = true, boundingVolumes) { geom, materials, bones ->
             SkinnedMesh(geom, materials).apply {
                 add(bones[0])
                 bind(Skeleton(bones))
             }
         }
 
-    private fun build(
+    private fun <M : Mesh> build(
         skinning: Boolean,
         boundingVolumes: Boolean,
-    ): Triple<BufferGeometry, Array<Material>, Array<Bone>> {
+        createMesh: (BufferGeometry, Array<Material>, Array<Bone>) -> M,
+    ): M {
         check(positions.size == normals.size)
         check(uvs.isEmpty() || positions.size == uvs.size)
 
@@ -173,7 +171,6 @@ class MeshBuilder {
         val indices = Uint16Array(indexCount)
 
         var offset = 0
-        val texCache = mutableMapOf<Int, Texture?>()
 
         val materials = mutableListOf<Material>()
 
@@ -186,9 +183,9 @@ class MeshBuilder {
             indices.set(group.indices.asArray(), offset)
             geom.addGroup(offset, group.indices.length, materials.size)
 
-            val tex = group.textureId?.let { texId ->
-                texCache.getOrPut(texId) {
-                    textures.getOrNull(texId)?.let { xvm ->
+            val tex = group.textureIndex?.let { texIndex ->
+                textureCache.getOrPut(texIndex) {
+                    textures.getOrNull(texIndex)?.let { xvm ->
                         xvrTextureToThree(xvm)
                     }
                 }
@@ -226,11 +223,11 @@ class MeshBuilder {
             geom.computeBoundingSphere()
         }
 
-        return Triple(geom, materials.toTypedArray(), bones.toTypedArray())
+        return createMesh(geom, materials.toTypedArray(), bones.toTypedArray())
     }
 
     private class Group(
-        val textureId: Int?,
+        val textureIndex: Int?,
         val alpha: Boolean,
         val additiveBlending: Boolean,
     ) {

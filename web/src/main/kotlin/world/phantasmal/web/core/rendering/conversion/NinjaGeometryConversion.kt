@@ -19,19 +19,6 @@ private val tmpNormal = Vector3()
 private val tmpVec = Vector3()
 private val tmpNormalMatrix = Matrix3()
 
-fun ninjaObjectToMesh(
-    ninjaObject: NinjaObject<*>,
-    textures: List<XvrTexture?>,
-    defaultMaterial: Material? = null,
-    boundingVolumes: Boolean = false,
-): Mesh {
-    val builder = MeshBuilder()
-    defaultMaterial?.let { builder.defaultMaterial(defaultMaterial) }
-    builder.textures(textures)
-    NinjaToMeshConverter(builder).convert(ninjaObject)
-    return builder.buildMesh(boundingVolumes)
-}
-
 fun ninjaObjectToInstancedMesh(
     ninjaObject: NinjaObject<*>,
     textures: List<XvrTexture>,
@@ -39,10 +26,9 @@ fun ninjaObjectToInstancedMesh(
     defaultMaterial: Material? = null,
     boundingVolumes: Boolean = false,
 ): InstancedMesh {
-    val builder = MeshBuilder()
+    val builder = MeshBuilder(textures)
     defaultMaterial?.let { builder.defaultMaterial(defaultMaterial) }
-    builder.textures(textures)
-    NinjaToMeshConverter(builder).convert(ninjaObject)
+    ninjaObjectToMeshBuilder(ninjaObject, builder)
     return builder.buildInstancedMesh(maxInstances, boundingVolumes)
 }
 
@@ -52,10 +38,9 @@ fun ninjaObjectToSkinnedMesh(
     defaultMaterial: Material? = null,
     boundingVolumes: Boolean = false,
 ): SkinnedMesh {
-    val builder = MeshBuilder()
+    val builder = MeshBuilder(textures)
     defaultMaterial?.let { builder.defaultMaterial(defaultMaterial) }
-    builder.textures(textures)
-    NinjaToMeshConverter(builder).convert(ninjaObject)
+    ninjaObjectToMeshBuilder(ninjaObject, builder)
     return builder.buildSkinnedMesh(boundingVolumes)
 }
 

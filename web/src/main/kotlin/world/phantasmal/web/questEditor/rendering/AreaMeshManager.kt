@@ -14,6 +14,7 @@ class AreaMeshManager(
 ) {
     suspend fun load(episode: Episode?, areaVariant: AreaVariantModel?) {
         renderContext.clearCollisionGeometry()
+        renderContext.clearRenderGeometry()
 
         if (episode == null || areaVariant == null) {
             return
@@ -22,6 +23,8 @@ class AreaMeshManager(
         try {
             renderContext.collisionGeometry =
                 areaAssetLoader.loadCollisionGeometry(episode, areaVariant)
+            renderContext.renderGeometry =
+                areaAssetLoader.loadRenderGeometry(episode, areaVariant)
         } catch (e: CancellationException) {
             // Do nothing.
         } catch (e: Exception) {

@@ -1,5 +1,6 @@
 package world.phantasmal.web.core.rendering.conversion
 
+import org.khronos.webgl.Uint16Array
 import org.khronos.webgl.Uint8Array
 import org.khronos.webgl.set
 import world.phantasmal.lib.cursor.cursor
@@ -8,30 +9,77 @@ import world.phantasmal.web.externals.three.*
 import world.phantasmal.webui.obj
 import kotlin.math.roundToInt
 
-fun xvrTextureToThree(xvr: XvrTexture, filter: TextureFilter = LinearFilter): Texture {
-    val format: CompressedPixelFormat
-    val dataSize: Int
-
+fun xvrTextureToThree(xvr: XvrTexture, filter: TextureFilter = LinearFilter): Texture =
     when (xvr.format.second) {
-        6 -> {
-            format = RGBA_S3TC_DXT1_Format
-            dataSize = (xvr.width * xvr.height) / 2
-        }
-        7 -> {
-            format = RGBA_S3TC_DXT3_Format
-            dataSize = xvr.width * xvr.height
-        }
+        2 -> createDataTexture(
+            Uint16Array(xvr.data.arrayBuffer),
+            xvr.width,
+            xvr.height,
+            RGBFormat,
+            UnsignedShort565Type,
+            filter,
+        )
+        // TODO: Figure out what this format actually is.
+        3 -> createDataTexture(
+            Uint8Array(xvr.data.arrayBuffer),
+            xvr.width,
+            xvr.height,
+            LuminanceAlphaFormat,
+            UnsignedByteType,
+            filter,
+        )
+        6 -> createCompressedTexture(
+            Uint8Array(xvr.data.arrayBuffer, 0, (xvr.width * xvr.height) / 2),
+            xvr.width,
+            xvr.height,
+            RGBA_S3TC_DXT1_Format,
+            filter,
+        )
+        7 -> createCompressedTexture(
+            Uint8Array(xvr.data.arrayBuffer, 0, xvr.width * xvr.height),
+            xvr.width,
+            xvr.height,
+            RGBA_S3TC_DXT3_Format,
+            filter,
+        )
         else -> error("Format ${xvr.format.first}, ${xvr.format.second} not supported.")
     }
 
+private fun createDataTexture(
+    data: Any,
+    width: Int,
+    height: Int,
+    format: PixelFormat,
+    type: TextureDataType,
+    filter: TextureFilter,
+): DataTexture =
+    DataTexture(
+        data,
+        width,
+        height,
+        format,
+        type,
+        wrapS = MirroredRepeatWrapping,
+        wrapT = MirroredRepeatWrapping,
+        magFilter = filter,
+        minFilter = filter,
+    )
+
+private fun createCompressedTexture(
+    data: Uint8Array,
+    width: Int,
+    height: Int,
+    format: CompressedPixelFormat,
+    filter: TextureFilter,
+): CompressedTexture {
     val texture = CompressedTexture(
         arrayOf(obj {
-            data = Uint8Array(xvr.data.arrayBuffer, 0, dataSize)
-            width = xvr.width
-            height = xvr.height
+            this.data = data
+            this.width = width
+            this.height = height
         }),
-        xvr.width,
-        xvr.height,
+        width,
+        height,
         format,
         wrapS = MirroredRepeatWrapping,
         wrapT = MirroredRepeatWrapping,

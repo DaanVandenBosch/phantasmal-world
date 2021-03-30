@@ -1,6 +1,5 @@
 package world.phantasmal.web.questEditor.rendering
 
-import kotlinx.coroutines.CoroutineScope
 import org.w3c.dom.HTMLCanvasElement
 import world.phantasmal.web.core.rendering.DisposableThreeRenderer
 import world.phantasmal.web.core.rendering.Renderer
@@ -22,8 +21,8 @@ class QuestRenderer(
             fov = 45.0,
             aspect = 1.0,
             near = 10.0,
-            far = 5_000.0
-        )
+            far = 5_000.0,
+        ),
     ))
 
     override val threeRenderer = addDisposable(createThreeRenderer(context.canvas)).renderer

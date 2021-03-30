@@ -55,5 +55,10 @@ class QuestEditorMeshManager(
                 }
             )
         }
+
+        observe(questEditorStore.showCollisionGeometry) {
+            renderContext.collisionGeometryVisible = it
+            renderContext.renderGeometryVisible = !it
+        }
     }
 }

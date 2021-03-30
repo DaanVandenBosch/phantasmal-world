@@ -96,6 +96,10 @@ class QuestEditorToolbarController(
 
     val areaSelectEnabled: Val<Boolean> = questEditorStore.currentQuest.isNotNull()
 
+    // Settings
+
+    val showCollisionGeometry: Val<Boolean> = questEditorStore.showCollisionGeometry
+
     init {
         addDisposables(
             uiStore.onGlobalKeyDown(PwToolType.QuestEditor, "Ctrl-O") {
@@ -244,6 +248,10 @@ class QuestEditorToolbarController(
 
     fun setCurrentArea(areaAndLabel: AreaAndLabel) {
         questEditorStore.setCurrentArea(areaAndLabel.area)
+    }
+
+    fun setShowCollisionGeometry(show: Boolean) {
+        questEditorStore.setShowCollisionGeometry(show)
     }
 
     private suspend fun setCurrentQuest(quest: Quest) {

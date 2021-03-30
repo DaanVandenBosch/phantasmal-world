@@ -62,6 +62,14 @@ class QuestEditorToolbarWidget(private val ctrl: QuestEditorToolbarController) :
                         selected = ctrl.currentArea,
                         onSelect = ctrl::setCurrentArea,
                     ),
+                    Checkbox(
+                        label = "Simple view",
+                        tooltip = value(
+                            "Whether the collision or the render geometry should be shown",
+                        ),
+                        checked = ctrl.showCollisionGeometry,
+                        onChange = ctrl::setShowCollisionGeometry,
+                    )
                 )
             ))
 

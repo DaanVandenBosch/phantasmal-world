@@ -28,6 +28,7 @@ class QuestEditorStore(
     private val _highlightedEntity = mutableVal<QuestEntityModel<*, *>?>(null)
     private val _selectedEntity = mutableVal<QuestEntityModel<*, *>?>(null)
     private val mainUndo = UndoStack(undoManager)
+    private val _showCollisionGeometry = mutableVal(true)
 
     val runner = QuestRunner()
     val currentQuest: Val<QuestModel?> = _currentQuest
@@ -45,10 +46,13 @@ class QuestEditorStore(
     val selectedEntity: Val<QuestEntityModel<*, *>?> = _selectedEntity
 
     val questEditingEnabled: Val<Boolean> = currentQuest.isNotNull() and !runner.running
+
     val canUndo: Val<Boolean> = questEditingEnabled and undoManager.canUndo
     val firstUndo: Val<Action?> = undoManager.firstUndo
     val canRedo: Val<Boolean> = questEditingEnabled and undoManager.canRedo
     val firstRedo: Val<Action?> = undoManager.firstRedo
+
+    val showCollisionGeometry: Val<Boolean> = _showCollisionGeometry
 
     init {
         observe(uiStore.currentTool) { tool ->
@@ -201,5 +205,9 @@ class QuestEditorStore(
             "Quest editing is disabled at the moment$reason."
         }
         mainUndo.push(action)
+    }
+
+    fun setShowCollisionGeometry(show: Boolean) {
+        _showCollisionGeometry.value = show
     }
 }

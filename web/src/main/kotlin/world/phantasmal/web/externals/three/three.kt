@@ -562,6 +562,8 @@ external interface MaterialParameters {
 }
 
 open external class Material : EventDispatcher {
+    var transparent: Boolean
+
     /**
      * This disposes the material. Textures of a material don't get disposed. These needs to be disposed by [Texture].
      */
@@ -597,6 +599,21 @@ open external class Texture : EventDispatcher {
 
     fun dispose()
 }
+
+external class DataTexture(
+    data: Any, /* TypedArray */
+    width: Int,
+    height: Int,
+    format: PixelFormat = definedExternally,
+    type: TextureDataType = definedExternally,
+    mapping: Mapping = definedExternally,
+    wrapS: Wrapping = definedExternally,
+    wrapT: Wrapping = definedExternally,
+    magFilter: TextureFilter = definedExternally,
+    minFilter: TextureFilter = definedExternally,
+    anisotropy: Double = definedExternally,
+    encoding: TextureEncoding = definedExternally,
+) : Texture
 
 external interface Mapping
 external object UVMapping : Mapping
@@ -637,6 +654,22 @@ external object UnsignedShort4444Type : TextureDataType
 external object UnsignedShort5551Type : TextureDataType
 external object UnsignedShort565Type : TextureDataType
 external object UnsignedInt248Type : TextureDataType
+
+external interface PixelFormat
+external object AlphaFormat : PixelFormat
+external object RGBFormat : PixelFormat
+external object RGBAFormat : PixelFormat
+external object LuminanceFormat : PixelFormat
+external object LuminanceAlphaFormat : PixelFormat
+external object RGBEFormat : PixelFormat
+external object DepthFormat : PixelFormat
+external object DepthStencilFormat : PixelFormat
+external object RedFormat : PixelFormat
+external object RedIntegerFormat : PixelFormat
+external object RGFormat : PixelFormat
+external object RGIntegerFormat : PixelFormat
+external object RGBIntegerFormat : PixelFormat
+external object RGBAIntegerFormat : PixelFormat
 
 // DDS / ST3C Compressed texture formats
 external interface CompressedPixelFormat
