@@ -2,6 +2,7 @@ package world.phantasmal.web.core.rendering.conversion
 
 import org.khronos.webgl.Uint16Array
 import org.khronos.webgl.Uint8Array
+import org.khronos.webgl.get
 import org.khronos.webgl.set
 import world.phantasmal.lib.cursor.cursor
 import world.phantasmal.lib.fileFormats.ninja.XvrTexture
@@ -11,6 +12,7 @@ import kotlin.math.roundToInt
 
 fun xvrTextureToThree(xvr: XvrTexture, filter: TextureFilter = LinearFilter): Texture =
     when (xvr.format.second) {
+        // D3DFMT_R5G6B5
         2 -> createDataTexture(
             Uint16Array(xvr.data.arrayBuffer),
             xvr.width,
@@ -19,15 +21,27 @@ fun xvrTextureToThree(xvr: XvrTexture, filter: TextureFilter = LinearFilter): Te
             UnsignedShort565Type,
             filter,
         )
-        // TODO: Figure out what this format actually is.
-        3 -> createDataTexture(
-            Uint8Array(xvr.data.arrayBuffer),
-            xvr.width,
-            xvr.height,
-            LuminanceAlphaFormat,
-            UnsignedByteType,
-            filter,
-        )
+        // D3DFMT_A1R5G5B5
+        3 -> {
+            val originalData = Uint16Array(xvr.data.arrayBuffer)
+            val data = Uint16Array(originalData.length)
+
+            // Change bit order from ARGB 1555 to RGBA 5551.
+            for (i in 0 until originalData.length) {
+                val x = originalData[i].toInt()
+                data[i] = ((x shl 1) or (x ushr 15)).toShort()
+            }
+
+            createDataTexture(
+                data,
+                xvr.width,
+                xvr.height,
+                RGBAFormat,
+                UnsignedShort5551Type,
+                filter,
+            )
+        }
+        // D3DFMT_DXT1
         6 -> createCompressedTexture(
             Uint8Array(xvr.data.arrayBuffer, 0, (xvr.width * xvr.height) / 2),
             xvr.width,
@@ -35,6 +49,8 @@ fun xvrTextureToThree(xvr: XvrTexture, filter: TextureFilter = LinearFilter): Te
             RGBA_S3TC_DXT1_Format,
             filter,
         )
+        // D3DFMT_DXT2
+        // TODO: Correctly interpret this (DXT2 is basically DXT3 with premultiplied alpha).
         7 -> createCompressedTexture(
             Uint8Array(xvr.data.arrayBuffer, 0, xvr.width * xvr.height),
             xvr.width,
@@ -42,6 +58,22 @@ fun xvrTextureToThree(xvr: XvrTexture, filter: TextureFilter = LinearFilter): Te
             RGBA_S3TC_DXT3_Format,
             filter,
         )
+        // 1 -> D3DFMT_A8R8G8B8
+        // 4 -> D3DFMT_A4R4G4B4
+        // 5 -> D3DFMT_P8
+        // 6 -> D3DFMT_R5G6B5
+        // 8 -> D3DFMT_DXT3
+        // 9 -> D3DFMT_DXT4
+        // 10 -> D3DFMT_DXT5
+        // 11 -> D3DFMT_A8R8G8B8
+        // 12 -> D3DFMT_R5G6B5
+        // 13 -> D3DFMT_A1R5G5B5
+        // 14 -> D3DFMT_A4R4G4B4
+        // 15 -> D3DFMT_YUY2
+        // 16 -> D3DFMT_V8U8
+        // 17 -> D3DFMT_A8
+        // 18 -> D3DFMT_X1R5G5B5
+        // 19 -> D3DFMT_X8R8G8B8
         else -> error("Format ${xvr.format.first}, ${xvr.format.second} not supported.")
     }
 
