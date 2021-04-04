@@ -55,6 +55,8 @@ private fun <Model : NinjaModel, Context> parseSiblingObjects(
     val zxyRotationOrder = evalFlags.isBitSet(5)
     val skip = evalFlags.isBitSet(6)
     val shapeSkip = evalFlags.isBitSet(7)
+    val clip = evalFlags.isBitSet(8)
+    val modifier = evalFlags.isBitSet(9)
 
     val modelOffset = cursor.int()
     val pos = cursor.vec3Float()
@@ -98,6 +100,8 @@ private fun <Model : NinjaModel, Context> parseSiblingObjects(
             zxyRotationOrder,
             skip,
             shapeSkip,
+            clip,
+            modifier,
         ),
         model,
         pos,

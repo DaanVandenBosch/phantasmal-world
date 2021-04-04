@@ -63,6 +63,8 @@ class NinjaEvaluationFlags(
     var zxyRotationOrder: Boolean,
     var skip: Boolean,
     var shapeSkip: Boolean,
+    val clip: Boolean,
+    val modifier: Boolean,
 )
 
 sealed class NinjaModel
@@ -83,7 +85,7 @@ class NjModel(
 class NjVertex(
     val position: Vec3,
     val normal: Vec3?,
-    val boneWeight: Float,
+    val boneWeight: Float?,
     val boneWeightStatus: Int,
     val calcContinue: Boolean,
 )
@@ -111,19 +113,23 @@ class NjMeshVertex(
     val texCoords: Vec2?,
 )
 
-sealed class NjChunk(val typeId: UByte) {
-    class Unknown(typeId: UByte) : NjChunk(typeId)
+sealed class NjChunk(val typeId: Int) {
+    class Unknown(typeId: Int) : NjChunk(typeId)
 
-    object Null : NjChunk(0u)
+    object Null : NjChunk(0)
 
-    class Bits(typeId: UByte, val srcAlpha: Int, val dstAlpha: Int) : NjChunk(typeId)
+    class BlendAlpha(val srcAlpha: Int, val dstAlpha: Int) : NjChunk(1)
 
-    class CachePolygonList(val cacheIndex: Int, val offset: Int) : NjChunk(4u)
+    class MipmapDAdjust(val adjust: Int) : NjChunk(2)
 
-    class DrawPolygonList(val cacheIndex: Int) : NjChunk(5u)
+    class SpecularExponent(val specular: Int) : NjChunk(3)
+
+    class CachePolygonList(val cacheIndex: Int) : NjChunk(4)
+
+    class DrawPolygonList(val cacheIndex: Int) : NjChunk(5)
 
     class Tiny(
-        typeId: UByte,
+        typeId: Int,
         val flipU: Boolean,
         val flipV: Boolean,
         val clampU: Boolean,
@@ -135,7 +141,7 @@ sealed class NjChunk(val typeId: UByte) {
     ) : NjChunk(typeId)
 
     class Material(
-        typeId: UByte,
+        typeId: Int,
         val srcAlpha: Int,
         val dstAlpha: Int,
         val diffuse: NjArgb?,
@@ -143,20 +149,20 @@ sealed class NjChunk(val typeId: UByte) {
         val specular: NjErgb?,
     ) : NjChunk(typeId)
 
-    class Vertex(typeId: UByte, val vertices: List<NjChunkVertex>) : NjChunk(typeId)
+    class Vertex(typeId: Int, val vertices: List<NjChunkVertex>) : NjChunk(typeId)
 
-    class Volume(typeId: UByte) : NjChunk(typeId)
+    class Volume(typeId: Int) : NjChunk(typeId)
 
-    class Strip(typeId: UByte, val triangleStrips: List<NjTriangleStrip>) : NjChunk(typeId)
+    class Strip(typeId: Int, val triangleStrips: List<NjTriangleStrip>) : NjChunk(typeId)
 
-    object End : NjChunk(255u)
+    object End : NjChunk(255)
 }
 
 class NjChunkVertex(
     val index: Int,
     val position: Vec3,
     val normal: Vec3?,
-    val boneWeight: Float,
+    val boneWeight: Float?,
     val boneWeightStatus: Int,
     val calcContinue: Boolean,
 )

@@ -100,7 +100,9 @@ private class NinjaToMeshConverter(private val builder: MeshBuilder) {
             }
         }
 
-        boneIndex++
+        if (!ef.skip) {
+            boneIndex++
+        }
 
         if (!ef.breakChildTrace) {
             obj.children.forEach { child ->
@@ -132,7 +134,6 @@ private class NinjaToMeshConverter(private val builder: MeshBuilder) {
                     normal,
                     vertex.boneWeight,
                     vertex.boneWeightStatus,
-                    vertex.calcContinue,
                 )
             }
         }
@@ -143,7 +144,7 @@ private class NinjaToMeshConverter(private val builder: MeshBuilder) {
             val group = builder.getGroupIndex(
                 mesh.textureId,
                 alpha = mesh.useAlpha,
-                additiveBlending = mesh.srcAlpha != 4 || mesh.dstAlpha != 5
+                additiveBlending = mesh.srcAlpha != 4 || mesh.dstAlpha != 5,
             )
             var i = 0
 
@@ -160,10 +161,35 @@ private class NinjaToMeshConverter(private val builder: MeshBuilder) {
                         vertex.normal ?: meshVertex.normal?.let(::vec3ToThree) ?: DEFAULT_NORMAL
                     val index = builder.vertexCount
 
+                    val boneIndices = IntArray(4)
+                    val boneWeights = FloatArray(4)
+
+                    if (vertex.boneWeight == null) {
+                        boneIndices[0] = vertex.boneIndex
+                        boneWeights[0] = 1f
+                    } else {
+                        for (v in vertices) {
+                            boneIndices[v.boneWeightStatus] = v.boneIndex
+                            boneWeights[v.boneWeightStatus] = v.boneWeight ?: 1f
+                        }
+                    }
+
+                    val totalWeight = boneWeights.sum()
+
+                    if (totalWeight > 0f) {
+                        val weightFactor = 1f / totalWeight
+
+                        for (j in boneWeights.indices) {
+                            boneWeights[j] *= weightFactor
+                        }
+                    }
+
                     builder.vertex(
                         vertex.position,
                         normal,
-                        meshVertex.texCoords?.let(::vec2ToThree) ?: DEFAULT_UV
+                        meshVertex.texCoords?.let(::vec2ToThree) ?: DEFAULT_UV,
+                        boneIndices,
+                        boneWeights,
                     )
 
                     if (i >= 2) {
@@ -177,26 +203,6 @@ private class NinjaToMeshConverter(private val builder: MeshBuilder) {
                             builder.index(group, index - 1)
                         }
                     }
-
-                    val boneIndices = IntArray(4)
-                    val boneWeights = FloatArray(4)
-
-                    for (v in vertices) {
-                        boneIndices[v.boneWeightStatus] = v.boneIndex
-                        boneWeights[v.boneWeightStatus] = v.boneWeight
-                    }
-
-                    val totalWeight = boneWeights.sum()
-
-                    if (totalWeight > 0f) {
-                        val weightFactor = 1f / totalWeight
-
-                        for (j in boneWeights.indices) {
-                            boneWeights[j] *= weightFactor
-                        }
-                    }
-
-                    builder.boneWeights(boneIndices, boneWeights)
 
                     i++
                 }
@@ -290,9 +296,8 @@ private class Vertex(
     val boneIndex: Int,
     val position: Vector3,
     val normal: Vector3?,
-    val boneWeight: Float,
+    val boneWeight: Float?,
     val boneWeightStatus: Int,
-    val calcContinue: Boolean,
 )
 
 private class VertexHolder {

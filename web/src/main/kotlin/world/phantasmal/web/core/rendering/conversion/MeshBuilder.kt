@@ -56,10 +56,29 @@ class MeshBuilder(
     fun getNormal(index: Int): Vector3 =
         normals[index]
 
-    fun vertex(position: Vector3, normal: Vector3, uv: Vector2? = null) {
+    fun vertex(
+        position: Vector3,
+        normal: Vector3,
+        uv: Vector2? = null,
+        boneIndices: IntArray? = null,
+        boneWeights: FloatArray? = null,
+    ) {
         positions.add(position)
         normals.add(normal)
         uv?.let { uvs.add(uv) }
+
+        if (boneIndices != null && boneWeights != null) {
+            require(boneIndices.size == 4)
+            require(boneWeights.size == 4)
+
+            for (index in boneIndices) {
+                this.boneIndices.add(index.toShort())
+            }
+
+            for (weight in boneWeights) {
+                this.boneWeights.add(weight)
+            }
+        }
     }
 
     fun index(groupIdx: Int, index: Int) {
@@ -69,19 +88,6 @@ class MeshBuilder(
 
     fun bone(bone: Bone) {
         bones.add(bone)
-    }
-
-    fun boneWeights(indices: IntArray, weights: FloatArray) {
-        require(indices.size == 4)
-        require(weights.size == 4)
-
-        for (index in indices) {
-            boneIndices.add(index.toShort())
-        }
-
-        for (weight in weights) {
-            boneWeights.add(weight)
-        }
     }
 
     fun defaultMaterial(material: Material) {

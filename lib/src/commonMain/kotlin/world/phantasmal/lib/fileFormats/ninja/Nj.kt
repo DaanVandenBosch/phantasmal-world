@@ -16,7 +16,7 @@ private val logger = KotlinLogging.logger {}
 
 // TODO: Simplify parser by not parsing chunks into vertices and meshes. Do the chunk to vertex/mesh
 //       conversion at a higher level.
-fun parseNjModel(cursor: Cursor, cachedChunkOffsets: MutableMap<Int, Int>): NjModel {
+fun parseNjModel(cursor: Cursor, cachedChunks: MutableMap<Int, List<NjChunk>>): NjModel {
     val vlistOffset = cursor.int() // Vertex list
     val plistOffset = cursor.int() // Triangle strip index list
     val collisionSphereCenter = cursor.vec3Float()
@@ -27,7 +27,7 @@ fun parseNjModel(cursor: Cursor, cachedChunkOffsets: MutableMap<Int, Int>): NjMo
     if (vlistOffset != 0) {
         cursor.seekStart(vlistOffset)
 
-        for (chunk in parseChunks(cursor, cachedChunkOffsets, true)) {
+        for (chunk in parseChunks(cursor)) {
             if (chunk is NjChunk.Vertex) {
                 for (vertex in chunk.vertices) {
                     while (vertices.size <= vertex.index) {
@@ -46,44 +46,10 @@ fun parseNjModel(cursor: Cursor, cachedChunkOffsets: MutableMap<Int, Int>): NjMo
         }
     }
 
-    if (plistOffset != 0) {
+    if (plistOffset > 0) {
         cursor.seekStart(plistOffset)
 
-        var textureId: Int? = null
-        var srcAlpha: Int? = null
-        var dstAlpha: Int? = null
-
-        for (chunk in parseChunks(cursor, cachedChunkOffsets, false)) {
-            when (chunk) {
-                is NjChunk.Bits -> {
-                    srcAlpha = chunk.srcAlpha
-                    dstAlpha = chunk.dstAlpha
-                }
-
-                is NjChunk.Tiny -> {
-                    textureId = chunk.textureId
-                }
-
-                is NjChunk.Material -> {
-                    srcAlpha = chunk.srcAlpha
-                    dstAlpha = chunk.dstAlpha
-                }
-
-                is NjChunk.Strip -> {
-                    for (strip in chunk.triangleStrips) {
-                        strip.textureId = textureId
-                        strip.srcAlpha = srcAlpha
-                        strip.dstAlpha = dstAlpha
-                    }
-
-                    meshes.addAll(chunk.triangleStrips)
-                }
-
-                else -> {
-                    // Ignore
-                }
-            }
-        }
+        PolygonChunkProcessor(cachedChunks, meshes).process(parseChunks(cursor))
     }
 
     return NjModel(
@@ -94,157 +60,236 @@ fun parseNjModel(cursor: Cursor, cachedChunkOffsets: MutableMap<Int, Int>): NjMo
     )
 }
 
-// TODO: don't reparse when DrawPolygonList chunk is encountered.
-private fun parseChunks(
-    cursor: Cursor,
-    cachedChunkOffsets: MutableMap<Int, Int>,
-    wideEndChunks: Boolean,
-): List<NjChunk> {
-    val chunks: MutableList<NjChunk> = mutableListOf()
-    var loop = true
+private class PolygonChunkProcessor(
+    private val cachedChunks: MutableMap<Int, List<NjChunk>>,
+    private val meshes: MutableList<NjTriangleStrip>,
+) {
+    private var textureId: Int? = null
+    private var srcAlpha: Int? = null
+    private var dstAlpha: Int? = null
 
-    while (loop) {
-        val typeId = cursor.uByte()
-        val flags = cursor.uByte().toInt()
-        val chunkStartPosition = cursor.position
-        var size = 0
+    /**
+     * When [cacheList] is non-null we are caching chunks.
+     */
+    private var cacheList: MutableList<NjChunk>? = null
 
-        when (typeId.toInt()) {
-            0 -> {
-                chunks.add(NjChunk.Null)
+    fun process(chunks: List<NjChunk>) {
+        for (chunk in chunks) {
+            if (cacheList == null) {
+                when (chunk) {
+                    is NjChunk.BlendAlpha -> {
+                        srcAlpha = chunk.srcAlpha
+                        dstAlpha = chunk.dstAlpha
+                    }
+
+                    is NjChunk.CachePolygonList -> {
+                        cacheList = mutableListOf()
+                        cachedChunks[chunk.cacheIndex] = cacheList!!
+                    }
+
+                    is NjChunk.DrawPolygonList -> {
+                        val cached = cachedChunks[chunk.cacheIndex]
+
+                        if (cached == null) {
+                            logger.debug {
+                                "Draw Polygon List chunk pointed to nonexistent cache index ${chunk.cacheIndex}."
+                            }
+                        } else {
+                            process(cached)
+                        }
+                    }
+
+                    is NjChunk.Tiny -> {
+                        textureId = chunk.textureId
+                    }
+
+                    is NjChunk.Material -> {
+                        srcAlpha = chunk.srcAlpha
+                        dstAlpha = chunk.dstAlpha
+                    }
+
+                    is NjChunk.Strip -> {
+                        for (strip in chunk.triangleStrips) {
+                            strip.textureId = textureId
+                            strip.srcAlpha = srcAlpha
+                            strip.dstAlpha = dstAlpha
+                        }
+
+                        meshes.addAll(chunk.triangleStrips)
+                    }
+
+                    else -> {
+                        // Ignore
+                    }
+                }
+            } else {
+                cacheList!!.add(chunk)
             }
-            in 1..3 -> {
-                chunks.add(NjChunk.Bits(
-                    typeId,
+        }
+    }
+}
+
+private fun parseChunks(cursor: Cursor): List<NjChunk> {
+    val chunks: MutableList<NjChunk> = mutableListOf()
+
+    do {
+        val chunkStartPosition = cursor.position
+        val typeId = cursor.uByte().toInt()
+        val flags = cursor.uByte().toInt()
+        val chunkDataPosition = cursor.position
+        var size = 0
+        val chunk: NjChunk
+
+        when (typeId) {
+            0 -> {
+                chunk = NjChunk.Null
+            }
+            1 -> {
+                chunk = NjChunk.BlendAlpha(
                     srcAlpha = (flags ushr 3) and 0b111,
                     dstAlpha = flags and 0b111,
-                ))
+                )
+            }
+            2 -> {
+                chunk = NjChunk.MipmapDAdjust(
+                    adjust = flags and 0b1111,
+                )
+            }
+            3 -> {
+                chunk = NjChunk.SpecularExponent(
+                    specular = flags and 0b11111,
+                )
             }
             4 -> {
-                val offset = cursor.position
-
-                chunks.add(NjChunk.CachePolygonList(
+                chunk = NjChunk.CachePolygonList(
                     cacheIndex = flags,
-                    offset,
-                ))
-
-                cachedChunkOffsets[flags] = offset
-                loop = false
+                )
             }
             5 -> {
-                val cachedOffset = cachedChunkOffsets[flags]
-
-                if (cachedOffset != null) {
-                    cursor.seekStart(cachedOffset)
-                    chunks.addAll(parseChunks(cursor, cachedChunkOffsets, wideEndChunks))
-                }
-
-                chunks.add(NjChunk.DrawPolygonList(
+                chunk = NjChunk.DrawPolygonList(
                     cacheIndex = flags,
-                ))
+                )
             }
             in 8..9 -> {
                 size = 2
                 val textureBitsAndId = cursor.uShort().toInt()
 
-                chunks.add(NjChunk.Tiny(
+                chunk = NjChunk.Tiny(
                     typeId,
-                    flipU = typeId.isBitSet(7),
-                    flipV = typeId.isBitSet(6),
-                    clampU = typeId.isBitSet(5),
-                    clampV = typeId.isBitSet(4),
-                    mipmapDAdjust = typeId.toUInt() and 0b1111u,
+                    flipU = flags.isBitSet(7),
+                    flipV = flags.isBitSet(6),
+                    clampU = flags.isBitSet(5),
+                    clampV = flags.isBitSet(4),
+                    mipmapDAdjust = flags.toUInt() and 0b1111u,
                     filterMode = textureBitsAndId ushr 14,
                     superSample = (textureBitsAndId and 0x40) != 0,
-                    textureId = textureBitsAndId and 0x1fff,
-                ))
+                    textureId = textureBitsAndId and 0x1FFF,
+                )
             }
             in 17..31 -> {
-                size = 2 + 2 * cursor.short()
+                val bodySize = 2 * cursor.short()
+                size = 2 + bodySize
 
                 var diffuse: NjArgb? = null
                 var ambient: NjArgb? = null
                 var specular: NjErgb? = null
 
-                if (flags.isBitSet(0)) {
-                    diffuse = NjArgb(
-                        b = cursor.uByte().toFloat() / 255f,
-                        g = cursor.uByte().toFloat() / 255f,
-                        r = cursor.uByte().toFloat() / 255f,
-                        a = cursor.uByte().toFloat() / 255f,
-                    )
+                if (typeId == 24) {
+                    // Skip bump map data.
+                    cursor.seek(bodySize)
+                } else {
+                    if (typeId.isBitSet(0)) {
+                        diffuse = NjArgb(
+                            b = cursor.uByte().toFloat() / 255f,
+                            g = cursor.uByte().toFloat() / 255f,
+                            r = cursor.uByte().toFloat() / 255f,
+                            a = cursor.uByte().toFloat() / 255f,
+                        )
+                    }
+
+                    if (typeId.isBitSet(1)) {
+                        ambient = NjArgb(
+                            b = cursor.uByte().toFloat() / 255f,
+                            g = cursor.uByte().toFloat() / 255f,
+                            r = cursor.uByte().toFloat() / 255f,
+                            a = cursor.uByte().toFloat() / 255f,
+                        )
+                    }
+
+                    if (typeId.isBitSet(2)) {
+                        specular = NjErgb(
+                            b = cursor.uByte(),
+                            g = cursor.uByte(),
+                            r = cursor.uByte(),
+                            e = cursor.uByte(),
+                        )
+                    }
                 }
 
-                if (flags.isBitSet(1)) {
-                    ambient = NjArgb(
-                        b = cursor.uByte().toFloat() / 255f,
-                        g = cursor.uByte().toFloat() / 255f,
-                        r = cursor.uByte().toFloat() / 255f,
-                        a = cursor.uByte().toFloat() / 255f,
-                    )
-                }
-
-                if (flags.isBitSet(2)) {
-                    specular = NjErgb(
-                        b = cursor.uByte(),
-                        g = cursor.uByte(),
-                        r = cursor.uByte(),
-                        e = cursor.uByte(),
-                    )
-                }
-
-                chunks.add(NjChunk.Material(
+                chunk = NjChunk.Material(
                     typeId,
                     srcAlpha = (flags ushr 3) and 0b111,
                     dstAlpha = flags and 0b111,
                     diffuse,
                     ambient,
                     specular,
-                ))
+                )
             }
             in 32..50 -> {
                 size = 2 + 4 * cursor.short()
-                chunks.add(NjChunk.Vertex(
+                chunk = NjChunk.Vertex(
                     typeId,
                     vertices = parseVertexChunk(cursor, typeId, flags),
-                ))
+                )
             }
             in 56..58 -> {
                 size = 2 + 2 * cursor.short()
-                chunks.add(NjChunk.Volume(
+                chunk = NjChunk.Volume(
                     typeId,
-                ))
+                )
+
+                // Skip volume information.
+                cursor.seek(2 * cursor.short())
             }
             in 64..75 -> {
                 size = 2 + 2 * cursor.short()
-                chunks.add(NjChunk.Strip(
+                chunk = NjChunk.Strip(
                     typeId,
                     triangleStrips = parseTriangleStripChunk(cursor, typeId, flags),
-                ))
+                )
             }
             255 -> {
-                size = if (wideEndChunks) 2 else 0
-                chunks.add(NjChunk.End)
-                loop = false
+                chunk = NjChunk.End
             }
             else -> {
-                size = 2 + 2 * cursor.short()
-                chunks.add(NjChunk.Unknown(
+                val bodySize = 2 * cursor.short()
+                size = 2 + bodySize
+                chunk = NjChunk.Unknown(
                     typeId,
-                ))
+                )
+                // Skip unknown data.
+                cursor.seek(bodySize)
                 logger.warn { "Unknown chunk type $typeId at offset ${chunkStartPosition}." }
             }
         }
 
-        cursor.seekStart(chunkStartPosition + size)
-    }
+        chunks.add(chunk)
+
+        val bytesRead = cursor.position - chunkDataPosition
+
+        check(bytesRead <= size) {
+            "Expected to read at most $size bytes, actually read $bytesRead."
+        }
+
+        cursor.seekStart(chunkDataPosition + size)
+    } while (chunk != NjChunk.End)
 
     return chunks
 }
 
 private fun parseVertexChunk(
     cursor: Cursor,
-    chunkTypeId: UByte,
+    chunkTypeId: Int,
     flags: Int,
 ): List<NjChunkVertex> {
     val boneWeightStatus = flags and 0b11
@@ -259,60 +304,79 @@ private fun parseVertexChunk(
         var vertexIndex = index + i
         val position = cursor.vec3Float()
         var normal: Vec3? = null
-        var boneWeight = 1f
+        var boneWeight: Float? = null
 
-        when (chunkTypeId.toInt()) {
+        when (chunkTypeId) {
             32 -> {
-                // NJDCVSH
+                // NJD_CV_SH
                 cursor.seek(4) // Always 1.0
             }
             33 -> {
-                // NJDCVVNSH
+                // NJD_CV_VN_SH
                 cursor.seek(4) // Always 1.0
                 normal = cursor.vec3Float()
                 cursor.seek(4) // Always 0.0
             }
+            34 -> {
+                // NJD_CV
+                // Nothing to do.
+            }
             in 35..40 -> {
-                if (chunkTypeId == (37u).toUByte()) {
-                    // NJDCVNF
+                if (chunkTypeId == 37) {
+                    // NJD_CV_NF
                     // NinjaFlags32
                     vertexIndex = index + cursor.uShort()
                     boneWeight = cursor.uShort().toFloat() / 255f
                 } else {
+                    // NJD_CV_D8
+                    // NJD_CV_UF
+                    // NJD_CV_S5
+                    // NJD_CV_S4
+                    // NJD_CV_IN
                     // Skip user flags and material information.
                     cursor.seek(4)
                 }
             }
             41 -> {
+                // NJD_CV_VN
                 normal = cursor.vec3Float()
             }
             in 42..47 -> {
                 normal = cursor.vec3Float()
 
-                if (chunkTypeId == (44u).toUByte()) {
-                    // NJDCVVNNF
+                if (chunkTypeId == 44) {
+                    // NJD_CV_VN_NF
                     // NinjaFlags32
                     vertexIndex = index + cursor.uShort()
                     boneWeight = cursor.uShort().toFloat() / 255f
                 } else {
+                    // NJD_CV_VN_D8
+                    // NJD_CV_VN_UF
+                    // NJD_CV_VN_S5
+                    // NJD_CV_VN_S4
+                    // NJD_CV_VN_IN
                     // Skip user flags and material information.
                     cursor.seek(4)
                 }
             }
             in 48..50 -> {
+                // NJD_CV_VNX
                 // 32-Bit vertex normal in format: reserved(2)|x(10)|y(10)|z(10)
                 val n = cursor.uInt()
                 normal = Vec3(
-                    ((n shr 20) and 0x3ffu).toFloat() / 0x3ff,
-                    ((n shr 10) and 0x3ffu).toFloat() / 0x3ff,
-                    (n and 0x3ffu).toFloat() / 0x3ff,
+                    ((n shr 20) and 0x3FFu).toFloat() / 0x3FF,
+                    ((n shr 10) and 0x3FFu).toFloat() / 0x3FF,
+                    (n and 0x3FFu).toFloat() / 0x3FF,
                 )
 
-                if (chunkTypeId >= 49u) {
+                if (chunkTypeId >= 49) {
+                    // NJD_CV_VNX_D8
+                    // NJD_CV_VNX_UF
                     // Skip user flags and material information.
                     cursor.seek(4)
                 }
             }
+            else -> error("Unexpected chunk type ID ${chunkTypeId}.")
         }
 
         vertices.add(NjChunkVertex(
@@ -330,7 +394,7 @@ private fun parseVertexChunk(
 
 private fun parseTriangleStripChunk(
     cursor: Cursor,
-    chunkTypeId: UByte,
+    chunkTypeId: Int,
     flags: Int,
 ): List<NjTriangleStrip> {
     val ignoreLight = flags.isBitSet(0)
@@ -342,7 +406,7 @@ private fun parseTriangleStripChunk(
     val environmentMapping = flags.isBitSet(6)
 
     val userOffsetAndStripCount = cursor.short().toInt()
-    val userFlagsSize = (userOffsetAndStripCount ushr 14)
+    val userFlagsSize = 2 * (userOffsetAndStripCount ushr 14)
     val stripCount = userOffsetAndStripCount and 0x3FFF
 
     var hasTexCoords = false
@@ -350,7 +414,7 @@ private fun parseTriangleStripChunk(
     var hasNormal = false
     var hasDoubleTexCoords = false
 
-    when (chunkTypeId.toInt()) {
+    when (chunkTypeId) {
         64 -> {
         }
         65, 66 -> {
@@ -381,9 +445,9 @@ private fun parseTriangleStripChunk(
     val strips: MutableList<NjTriangleStrip> = mutableListOf()
 
     repeat(stripCount) {
-        val windingFlagAndIndexCount = cursor.short()
-        val clockwiseWinding = windingFlagAndIndexCount < 1
-        val indexCount = abs(windingFlagAndIndexCount.toInt())
+        val windingFlagAndIndexCount = cursor.short().toInt()
+        val clockwiseWinding = windingFlagAndIndexCount < 0
+        val indexCount = abs(windingFlagAndIndexCount)
 
         val vertices: MutableList<NjMeshVertex> = mutableListOf()
 
@@ -414,7 +478,7 @@ private fun parseTriangleStripChunk(
 
             // User flags start at the third vertex because they are per-triangle.
             if (j >= 2) {
-                cursor.seek(2 * userFlagsSize)
+                cursor.seek(userFlagsSize)
             }
 
             vertices.add(NjMeshVertex(
