@@ -12,8 +12,7 @@ import world.phantasmal.lib.Episode
 import world.phantasmal.lib.cursor.cursor
 import world.phantasmal.lib.fileFormats.CollisionObject
 import world.phantasmal.lib.fileFormats.RenderObject
-import world.phantasmal.lib.fileFormats.ninja.NinjaObject
-import world.phantasmal.lib.fileFormats.ninja.XjModel
+import world.phantasmal.lib.fileFormats.ninja.XjObject
 import world.phantasmal.lib.fileFormats.ninja.XvrTexture
 import world.phantasmal.lib.fileFormats.ninja.parseXvm
 import world.phantasmal.lib.fileFormats.parseAreaCollisionGeometry
@@ -222,7 +221,7 @@ class AreaAssetLoader(private val assetLoader: AssetLoader) : DisposableContaine
     }
 
     private fun shouldRenderOnTop(
-        obj: NinjaObject<XjModel>,
+        obj: XjObject,
         episode: Episode,
         areaVariant: AreaVariantModel,
     ): Boolean {
@@ -251,7 +250,7 @@ class AreaAssetLoader(private val assetLoader: AssetLoader) : DisposableContaine
                 return false
         }
 
-        fun recurse(obj: NinjaObject<XjModel>): Boolean {
+        fun recurse(obj: XjObject): Boolean {
             obj.model?.meshes?.let { meshes ->
                 for (mesh in meshes) {
                     mesh.material.textureId?.let {

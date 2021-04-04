@@ -5,10 +5,12 @@ import world.phantasmal.core.disposable.TrackedDisposable
 import world.phantasmal.core.math.degToRad
 import world.phantasmal.lib.fileFormats.ninja.NinjaObject
 import world.phantasmal.lib.fileFormats.ninja.NjMotion
+import world.phantasmal.lib.fileFormats.ninja.NjObject
 import world.phantasmal.web.core.rendering.*
 import world.phantasmal.web.core.rendering.Renderer
 import world.phantasmal.web.core.rendering.conversion.PSO_FRAME_RATE_DOUBLE
 import world.phantasmal.web.core.rendering.conversion.createAnimationClip
+import world.phantasmal.web.core.rendering.conversion.ninjaObjectToMesh
 import world.phantasmal.web.core.rendering.conversion.ninjaObjectToSkinnedMesh
 import world.phantasmal.web.core.times
 import world.phantasmal.web.externals.three.*
@@ -91,7 +93,7 @@ class MeshRenderer(
             skeletonHelper = null
         }
 
-        val njObject = viewerStore.currentNinjaObject.value
+        val ninjaObject = viewerStore.currentNinjaObject.value
         val textures = viewerStore.currentTextures.value
 
         // Stop and clean up previous animation and store animation time.
@@ -104,8 +106,13 @@ class MeshRenderer(
         }
 
         // Create a new mesh if necessary.
-        if (njObject != null) {
-            val mesh = ninjaObjectToSkinnedMesh(njObject, textures, boundingVolumes = true)
+        if (ninjaObject != null) {
+            val mesh =
+                if (ninjaObject is NjObject) {
+                    ninjaObjectToSkinnedMesh(ninjaObject, textures, boundingVolumes = true)
+                } else {
+                    ninjaObjectToMesh(ninjaObject, textures, boundingVolumes = true)
+                }
 
             // Determine whether camera needs to be reset. Resets should always happen when the
             // Ninja object changes except when we're switching between character class models.
@@ -125,20 +132,22 @@ class MeshRenderer(
             context.scene.add(mesh)
             this.mesh = mesh
 
-            // Add skeleton.
-            val skeletonHelper = SkeletonHelper(mesh)
-            skeletonHelper.visible = viewerStore.showSkeleton.value
-            skeletonHelper.asDynamic().material.lineWidth = 3
+            if (mesh is SkinnedMesh) {
+                // Add skeleton.
+                val skeletonHelper = SkeletonHelper(mesh)
+                skeletonHelper.visible = viewerStore.showSkeleton.value
+                skeletonHelper.asDynamic().material.lineWidth = 3
 
-            context.scene.add(skeletonHelper)
-            this.skeletonHelper = skeletonHelper
+                context.scene.add(skeletonHelper)
+                this.skeletonHelper = skeletonHelper
 
-            // Create a new animation mixer and clip.
-            viewerStore.currentNinjaMotion.value?.let { njMotion ->
-                animation = Animation(njObject, njMotion, mesh).also {
-                    it.mixer.timeScale = viewerStore.frameRate.value / PSO_FRAME_RATE_DOUBLE
-                    it.action.time = animationTime ?: .0
-                    it.action.play()
+                // Create a new animation mixer and clip.
+                viewerStore.currentNinjaMotion.value?.let { njMotion ->
+                    animation = Animation(ninjaObject, njMotion, mesh).also {
+                        it.mixer.timeScale = viewerStore.frameRate.value / PSO_FRAME_RATE_DOUBLE
+                        it.action.time = animationTime ?: .0
+                        it.action.play()
+                    }
                 }
             }
         }
@@ -192,7 +201,7 @@ class MeshRenderer(
     }
 
     private class Animation(
-        njObject: NinjaObject<*>,
+        njObject: NinjaObject<*, *>,
         njMotion: NjMotion,
         root: Object3D,
     ) : TrackedDisposable() {

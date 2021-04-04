@@ -11,7 +11,7 @@ import world.phantasmal.web.externals.three.*
 const val PSO_FRAME_RATE: Int = 30
 const val PSO_FRAME_RATE_DOUBLE: Double = PSO_FRAME_RATE.toDouble()
 
-fun createAnimationClip(njObject: NinjaObject<*>, njMotion: NjMotion): AnimationClip {
+fun createAnimationClip(njObject: NinjaObject<*, *>, njMotion: NjMotion): AnimationClip {
     val interpolation =
         if (njMotion.interpolation == NjInterpolation.Spline) InterpolateSmooth
         else InterpolateLinear

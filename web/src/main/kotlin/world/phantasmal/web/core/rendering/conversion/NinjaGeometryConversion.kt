@@ -19,8 +19,20 @@ private val tmpNormal = Vector3()
 private val tmpVec = Vector3()
 private val tmpNormalMatrix = Matrix3()
 
+fun ninjaObjectToMesh(
+    ninjaObject: NinjaObject<*, *>,
+    textures: List<XvrTexture?>,
+    defaultMaterial: Material? = null,
+    boundingVolumes: Boolean = false,
+): Mesh {
+    val builder = MeshBuilder(textures)
+    defaultMaterial?.let { builder.defaultMaterial(defaultMaterial) }
+    ninjaObjectToMeshBuilder(ninjaObject, builder)
+    return builder.buildMesh(boundingVolumes)
+}
+
 fun ninjaObjectToInstancedMesh(
-    ninjaObject: NinjaObject<*>,
+    ninjaObject: NinjaObject<*, *>,
     textures: List<XvrTexture>,
     maxInstances: Int,
     defaultMaterial: Material? = null,
@@ -33,7 +45,7 @@ fun ninjaObjectToInstancedMesh(
 }
 
 fun ninjaObjectToSkinnedMesh(
-    ninjaObject: NinjaObject<*>,
+    ninjaObject: NjObject,
     textures: List<XvrTexture?>,
     defaultMaterial: Material? = null,
     boundingVolumes: Boolean = false,
@@ -45,7 +57,7 @@ fun ninjaObjectToSkinnedMesh(
 }
 
 fun ninjaObjectToMeshBuilder(
-    ninjaObject: NinjaObject<*>,
+    ninjaObject: NinjaObject<*, *>,
     builder: MeshBuilder,
 ) {
     NinjaToMeshConverter(builder).convert(ninjaObject)
@@ -56,11 +68,11 @@ private class NinjaToMeshConverter(private val builder: MeshBuilder) {
     private val vertexHolder = VertexHolder()
     private var boneIndex = 0
 
-    fun convert(ninjaObject: NinjaObject<*>) {
+    fun convert(ninjaObject: NinjaObject<*, *>) {
         convertObject(ninjaObject, null, Matrix4())
     }
 
-    private fun convertObject(obj: NinjaObject<*>, parentBone: Bone?, parentMatrix: Matrix4) {
+    private fun convertObject(obj: NinjaObject<*, *>, parentBone: Bone?, parentMatrix: Matrix4) {
         val ef = obj.evaluationFlags
 
         val euler = Euler(

@@ -94,11 +94,11 @@ class EntityAssetLoader(private val assetLoader: AssetLoader) : DisposableContai
         }
     }
 
-    private fun <Model : NinjaModel> parseGeometry(
+    private fun <Obj : NinjaObject<*, Obj>> parseGeometry(
         type: EntityType,
         parts: List<Pair<String, ArrayBuffer>>,
-        parse: (Cursor) -> PwResult<List<NinjaObject<Model>>>,
-    ): NinjaObject<Model>? {
+        parse: (Cursor) -> PwResult<List<Obj>>,
+    ): Obj? {
         val ninjaObjects = parts.flatMap { (path, data) ->
             val njObjects = parse(data.cursor(Endianness.Little))
 

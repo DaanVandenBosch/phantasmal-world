@@ -13,13 +13,13 @@ import world.phantasmal.web.viewer.models.CharacterClass.*
 import world.phantasmal.webui.DisposableContainer
 
 class CharacterClassAssetLoader(private val assetLoader: AssetLoader) : DisposableContainer() {
-    private val ninjaObjectCache: LoadingCache<CharacterClass, NinjaObject<NjModel>> =
+    private val ninjaObjectCache: LoadingCache<CharacterClass, NjObject> =
         addDisposable(LoadingCache(::loadBodyParts) { /* Nothing to dispose. */ })
 
     private val xvrTextureCache: LoadingCache<CharacterClass, List<XvrTexture?>> =
         addDisposable(LoadingCache(::loadTextures) { /* Nothing to dispose. */ })
 
-    suspend fun loadNinjaObject(char: CharacterClass): NinjaObject<NjModel> =
+    suspend fun loadNinjaObject(char: CharacterClass): NjObject =
         ninjaObjectCache.get(char)
 
     suspend fun loadXvrTextures(
@@ -42,7 +42,7 @@ class CharacterClassAssetLoader(private val assetLoader: AssetLoader) : Disposab
     /**
      * Loads the separate body parts and joins them together at the right bones.
      */
-    private suspend fun loadBodyParts(char: CharacterClass): NinjaObject<NjModel> {
+    private suspend fun loadBodyParts(char: CharacterClass): NjObject {
         val texIds = textureIds(char, SectionId.Viridia, 0)
 
         val body = loadBodyPart(char, "Body")
@@ -77,7 +77,7 @@ class CharacterClassAssetLoader(private val assetLoader: AssetLoader) : Disposab
         char: CharacterClass,
         bodyPart: String,
         no: Int? = null,
-    ): NinjaObject<NjModel> {
+    ): NjObject {
         val buffer = assetLoader.loadArrayBuffer("/player/${char.slug}${bodyPart}${no ?: ""}.nj")
         return parseNj(buffer.cursor(Endianness.Little)).unwrap().first()
     }
@@ -85,7 +85,7 @@ class CharacterClassAssetLoader(private val assetLoader: AssetLoader) : Disposab
     /**
      * Shift texture IDs so that the IDs of different body parts don't overlap.
      */
-    private fun shiftTextureIds(njObject: NinjaObject<NjModel>, shift: Int) {
+    private fun shiftTextureIds(njObject: NjObject, shift: Int) {
         njObject.model?.let { model ->
             for (mesh in model.meshes) {
                 mesh.textureId = mesh.textureId?.plus(shift)
@@ -97,9 +97,9 @@ class CharacterClassAssetLoader(private val assetLoader: AssetLoader) : Disposab
         }
     }
 
-    private fun <M : NinjaModel> addToBone(
-        obj: NinjaObject<M>,
-        child: NinjaObject<M>,
+    private fun addToBone(
+        obj: NjObject,
+        child: NjObject,
         parentBoneId: Int,
     ) {
         obj.getBone(parentBoneId)?.let { bone ->

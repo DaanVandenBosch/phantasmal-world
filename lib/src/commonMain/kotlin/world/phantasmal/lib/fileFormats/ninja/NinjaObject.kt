@@ -3,7 +3,7 @@ package world.phantasmal.lib.fileFormats.ninja
 import world.phantasmal.lib.fileFormats.Vec2
 import world.phantasmal.lib.fileFormats.Vec3
 
-class NinjaObject<Model : NinjaModel>(
+sealed class NinjaObject<Model : NinjaModel, Self : NinjaObject<Model, Self>>(
     val evaluationFlags: NinjaEvaluationFlags,
     val model: Model?,
     val position: Vec3,
@@ -12,29 +12,31 @@ class NinjaObject<Model : NinjaModel>(
      */
     val rotation: Vec3,
     val scale: Vec3,
-    children: MutableList<NinjaObject<Model>>,
+    children: MutableList<Self>,
 ) {
     private val _children = children
-    val children: List<NinjaObject<Model>> = _children
+    val children: List<Self> = _children
 
-    fun addChild(child: NinjaObject<Model>) {
+    fun addChild(child: Self) {
         _children.add(child)
     }
 
     fun boneCount(): Int {
         val indexRef = intArrayOf(0)
-        findBone(this, Int.MAX_VALUE, indexRef)
+        @Suppress("UNCHECKED_CAST")
+        findBone(this as Self, Int.MAX_VALUE, indexRef)
         return indexRef[0]
     }
 
-    fun getBone(index: Int): NinjaObject<Model>? =
-        findBone(this, index, intArrayOf(0))
+    fun getBone(index: Int): Self? =
+        @Suppress("UNCHECKED_CAST")
+        findBone(this as Self, index, intArrayOf(0))
 
     private fun findBone(
-        obj: NinjaObject<Model>,
+        obj: Self,
         boneIndex: Int,
         indexRef: IntArray,
-    ): NinjaObject<Model>? {
+    ): Self? {
         if (!obj.evaluationFlags.skip) {
             val index = indexRef[0]++
 
@@ -53,6 +55,38 @@ class NinjaObject<Model : NinjaModel>(
         return null
     }
 }
+
+class NjObject(
+    evaluationFlags: NinjaEvaluationFlags,
+    model: NjModel?,
+    position: Vec3,
+    rotation: Vec3,
+    scale: Vec3,
+    children: MutableList<NjObject>,
+) : NinjaObject<NjModel, NjObject>(
+    evaluationFlags,
+    model,
+    position,
+    rotation,
+    scale,
+    children,
+)
+
+class XjObject(
+    evaluationFlags: NinjaEvaluationFlags,
+    model: XjModel?,
+    position: Vec3,
+    rotation: Vec3,
+    scale: Vec3,
+    children: MutableList<XjObject>,
+) : NinjaObject<XjModel, XjObject>(
+    evaluationFlags,
+    model,
+    position,
+    rotation,
+    scale,
+    children,
+)
 
 class NinjaEvaluationFlags(
     var noTranslate: Boolean,

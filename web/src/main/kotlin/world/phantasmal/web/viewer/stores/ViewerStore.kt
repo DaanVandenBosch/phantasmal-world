@@ -29,7 +29,7 @@ class ViewerStore(
     uiStore: UiStore,
 ) : Store() {
     // Ninja concepts.
-    private val _currentNinjaObject = mutableVal<NinjaObject<*>?>(null)
+    private val _currentNinjaObject = mutableVal<NinjaObject<*, *>?>(null)
     private val _currentTextures = mutableListVal<XvrTexture?>()
     private val _currentNinjaMotion = mutableVal<NjMotion?>(null)
 
@@ -47,7 +47,7 @@ class ViewerStore(
     private val _frame = mutableVal(0)
 
     // Ninja concepts.
-    val currentNinjaObject: Val<NinjaObject<*>?> = _currentNinjaObject
+    val currentNinjaObject: Val<NinjaObject<*, *>?> = _currentNinjaObject
     val currentTextures: ListVal<XvrTexture?> = _currentTextures
     val currentNinjaMotion: Val<NjMotion?> = _currentNinjaMotion
 
@@ -143,7 +143,7 @@ class ViewerStore(
         }
     }
 
-    fun setCurrentNinjaObject(ninjaObject: NinjaObject<*>?) {
+    fun setCurrentNinjaObject(ninjaObject: NinjaObject<*, *>?) {
         if (_currentCharacterClass.value != null) {
             _currentCharacterClass.value = null
             _currentTextures.clear()

@@ -62,7 +62,7 @@ class ViewerToolbarController(private val store: ViewerStore) : Controller() {
         var success = false
 
         try {
-            var ninjaObject: NinjaObject<*>? = null
+            var ninjaObject: NinjaObject<*, *>? = null
             var textures: List<XvrTexture>? = null
             var ninjaMotion: NjMotion? = null
 

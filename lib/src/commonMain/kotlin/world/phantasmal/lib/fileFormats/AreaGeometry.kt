@@ -2,8 +2,7 @@ package world.phantasmal.lib.fileFormats
 
 import world.phantasmal.core.isBitSet
 import world.phantasmal.lib.cursor.Cursor
-import world.phantasmal.lib.fileFormats.ninja.NinjaObject
-import world.phantasmal.lib.fileFormats.ninja.XjModel
+import world.phantasmal.lib.fileFormats.ninja.XjObject
 import world.phantasmal.lib.fileFormats.ninja.angleToRad
 import world.phantasmal.lib.fileFormats.ninja.parseXjObject
 
@@ -15,7 +14,7 @@ class RenderSection(
     val id: Int,
     val position: Vec3,
     val rotation: Vec3,
-    val objects: List<NinjaObject<XjModel>>,
+    val objects: List<XjObject>,
 )
 
 fun parseAreaGeometry(cursor: Cursor): RenderObject {
@@ -73,8 +72,8 @@ private fun parseGeometryTable(
     cursor: Cursor,
     tableOffset: Int,
     tableEntryCount: Int,
-): List<NinjaObject<XjModel>> {
-    val objects = mutableListOf<NinjaObject<XjModel>>()
+): List<XjObject> {
+    val objects = mutableListOf<XjObject>()
 
     for (i in 0 until tableEntryCount) {
         cursor.seekStart(tableOffset + 16 * i)
