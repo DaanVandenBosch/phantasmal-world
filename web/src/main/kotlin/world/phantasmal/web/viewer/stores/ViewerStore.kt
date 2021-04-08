@@ -7,8 +7,10 @@ import world.phantasmal.lib.fileFormats.CollisionGeometry
 import world.phantasmal.lib.fileFormats.RenderGeometry
 import world.phantasmal.lib.fileFormats.ninja.NinjaObject
 import world.phantasmal.lib.fileFormats.ninja.NjMotion
+import world.phantasmal.lib.fileFormats.ninja.NjObject
 import world.phantasmal.lib.fileFormats.ninja.XvrTexture
 import world.phantasmal.observable.value.Val
+import world.phantasmal.observable.value.and
 import world.phantasmal.observable.value.list.ListVal
 import world.phantasmal.observable.value.list.mutableListVal
 import world.phantasmal.observable.value.mutableVal
@@ -72,7 +74,10 @@ class ViewerStore(
     val currentAnimation: Val<AnimationModel?> = _currentAnimation
 
     // Settings.
-    val showSkeleton: Val<Boolean> = _showSkeleton
+    val showSkeletonEnabled: Val<Boolean> = _currentNinjaGeometry.map {
+        it is NinjaGeometry.Object && it.obj is NjObject
+    }
+    val showSkeleton: Val<Boolean> = showSkeletonEnabled and _showSkeleton
     val animationPlaying: Val<Boolean> = _animationPlaying
     val frameRate: Val<Int> = _frameRate
     val frame: Val<Int> = _frame

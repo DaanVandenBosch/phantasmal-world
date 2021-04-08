@@ -331,7 +331,7 @@ open external class Mesh(
 
     val isMesh: Boolean
     var geometry: BufferGeometry
-    var material: Any /* Material | Material[] */
+    var material: dynamic /* Material | Material[] */
 
     fun translateY(distance: Double): Mesh
 }
@@ -382,7 +382,9 @@ external class Skeleton(bones: Array<Bone>, boneInverses: Array<Matrix4> = defin
 
 external class SkeletonHelper(`object`: Object3D) : LineSegments
 
-open external class Line : Object3D
+open external class Line : Object3D {
+    var material: dynamic /* Material | Material[] */
+}
 
 open external class LineSegments : Line
 
@@ -611,6 +613,10 @@ external interface MeshLambertMaterialParameters : MaterialParameters {
 external class MeshLambertMaterial(
     parameters: MeshLambertMaterialParameters = definedExternally,
 ) : Material
+
+external class LineBasicMaterial : Material {
+    var linewidth: Int
+}
 
 open external class Texture : EventDispatcher {
     var needsUpdate: Boolean

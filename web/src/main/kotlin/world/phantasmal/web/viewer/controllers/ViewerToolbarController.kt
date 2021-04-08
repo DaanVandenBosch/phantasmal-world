@@ -2,7 +2,10 @@ package world.phantasmal.web.viewer.controllers
 
 import mu.KotlinLogging
 import org.w3c.files.File
-import world.phantasmal.core.*
+import world.phantasmal.core.Failure
+import world.phantasmal.core.PwResult
+import world.phantasmal.core.Severity
+import world.phantasmal.core.Success
 import world.phantasmal.lib.Endianness
 import world.phantasmal.lib.compression.prs.prsDecompress
 import world.phantasmal.lib.cursor.Cursor
@@ -25,6 +28,7 @@ class ViewerToolbarController(private val store: ViewerStore) : Controller() {
     private val _resultDialogVisible = mutableVal(false)
     private val _result = mutableVal<PwResult<*>?>(null)
 
+    val showSkeletonEnabled: Val<Boolean> = store.showSkeletonEnabled
     val showSkeleton: Val<Boolean> = store.showSkeleton
     val playAnimation: Val<Boolean> = store.animationPlaying
     val frameRate: Val<Int> = store.frameRate

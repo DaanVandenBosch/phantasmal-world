@@ -50,8 +50,8 @@ class MeshRenderer(
     ))
 
     init {
-        observe(viewerStore.currentNinjaGeometry) { ninjaObjectOrXvmChanged() }
-        observe(viewerStore.currentTextures) { ninjaObjectOrXvmChanged() }
+        observe(viewerStore.currentNinjaGeometry) { ninjaGeometryOrXvmChanged() }
+        observe(viewerStore.currentTextures) { ninjaGeometryOrXvmChanged() }
         observe(viewerStore.currentNinjaMotion, ::ninjaMotionChanged)
         observe(viewerStore.showSkeleton) { skeletonHelper?.visible = it }
         observe(viewerStore.animationPlaying, ::animationPlayingChanged)
@@ -80,7 +80,7 @@ class MeshRenderer(
         }
     }
 
-    private fun ninjaObjectOrXvmChanged() {
+    private fun ninjaGeometryOrXvmChanged() {
         // Remove the previous mesh.
         obj3d?.let { mesh ->
             disposeObject3DResources(mesh)
@@ -124,7 +124,7 @@ class MeshRenderer(
             }
 
             // Determine whether camera needs to be reset. Resets should always happen when the
-            // Ninja object changes except when we're switching between character class models.
+            // Ninja geometry changes except when we're switching between character class models.
             val charClassActive = viewerStore.currentCharacterClass.value != null
             val resetCamera = !charClassActive || !this.charClassActive
             this.charClassActive = charClassActive
@@ -145,7 +145,7 @@ class MeshRenderer(
                 // Add skeleton.
                 val skeletonHelper = SkeletonHelper(obj3d)
                 skeletonHelper.visible = viewerStore.showSkeleton.value
-                skeletonHelper.asDynamic().material.lineWidth = 3
+                skeletonHelper.material.unsafeCast<LineBasicMaterial>().linewidth = 3
 
                 context.scene.add(skeletonHelper)
                 this.skeletonHelper = skeletonHelper

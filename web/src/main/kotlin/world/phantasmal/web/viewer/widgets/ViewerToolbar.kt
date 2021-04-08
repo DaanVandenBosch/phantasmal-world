@@ -23,6 +23,7 @@ class ViewerToolbar(private val ctrl: ViewerToolbarController) : Widget() {
                     ),
                     Checkbox(
                         label = "Show skeleton",
+                        enabled = ctrl.showSkeletonEnabled,
                         checked = ctrl.showSkeleton,
                         onChange = ctrl::setShowSkeleton,
                     ),
