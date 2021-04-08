@@ -211,11 +211,12 @@ class AreaAssetLoader(private val assetLoader: AssetLoader) : DisposableContaine
         episode: Episode,
         areaVariant: AreaVariantModel,
     ): Pair<Object3D, List<SectionModel>> {
+        val renderOnTopTextures = RENDER_ON_TOP_TEXTURES[Pair(episode, areaVariant.area.id)]
         val sections = mutableMapOf<Int, SectionModel>()
 
         val group =
             renderGeometryToGroup(renderGeometry, textures) { renderSection, xjObject, mesh ->
-                if (shouldRenderOnTop(xjObject, episode, areaVariant)) {
+                if (shouldRenderOnTop(xjObject, renderOnTopTextures)) {
                     mesh.renderOrder = 1
                 }
 
@@ -236,28 +237,22 @@ class AreaAssetLoader(private val assetLoader: AssetLoader) : DisposableContaine
         return Pair(group, sections.values.toList())
     }
 
-    private fun shouldRenderOnTop(
-        obj: XjObject,
-        episode: Episode,
-        areaVariant: AreaVariantModel,
-    ): Boolean {
-        fun recurse(obj: XjObject): Boolean {
-            obj.model?.meshes?.let { meshes ->
-                for (mesh in meshes) {
-                    mesh.material.textureId?.let { textureId ->
-                        RENDER_ON_TOP_TEXTURES[Pair(episode, areaVariant.id)]?.let { textureIds ->
-                            if (textureId in textureIds) {
-                                return true
-                            }
-                        }
+    private fun shouldRenderOnTop(obj: XjObject, renderOnTopTextures: Set<Int>?): Boolean {
+        renderOnTopTextures ?: return false
+
+        obj.model?.meshes?.let { meshes ->
+            for (mesh in meshes) {
+                mesh.material.textureId?.let { textureId ->
+                    if (textureId in renderOnTopTextures) {
+                        return true
                     }
                 }
             }
-
-            return obj.children.any(::recurse)
         }
 
-        return recurse(obj)
+        return obj.children.any {
+            shouldRenderOnTop(it, renderOnTopTextures)
+        }
     }
 
     private fun areaCollisionGeometryToObject3D(
