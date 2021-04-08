@@ -1,10 +1,21 @@
 package world.phantasmal.web.core.rendering.conversion
 
 import mu.KotlinLogging
+import org.khronos.webgl.Float32Array
+import org.khronos.webgl.Uint16Array
+import world.phantasmal.core.JsArray
+import world.phantasmal.core.asArray
+import world.phantasmal.core.isBitSet
+import world.phantasmal.core.jsArrayOf
+import world.phantasmal.lib.fileFormats.CollisionGeometry
+import world.phantasmal.lib.fileFormats.CollisionTriangle
+import world.phantasmal.lib.fileFormats.RenderGeometry
+import world.phantasmal.lib.fileFormats.RenderSection
 import world.phantasmal.lib.fileFormats.ninja.*
 import world.phantasmal.web.core.dot
 import world.phantasmal.web.core.toQuaternion
 import world.phantasmal.web.externals.three.*
+import world.phantasmal.webui.obj
 
 private val logger = KotlinLogging.logger {}
 
@@ -13,6 +24,55 @@ private val DEFAULT_UV = Vector2(0.0, 0.0)
 private val NO_TRANSLATION = Vector3(0.0, 0.0, 0.0)
 private val NO_ROTATION = Quaternion()
 private val NO_SCALE = Vector3(1.0, 1.0, 1.0)
+
+private val COLLISION_MATERIALS: Array<Material> = arrayOf(
+    // Wall
+    MeshBasicMaterial(obj {
+        color = Color(0x80c0d0)
+        transparent = true
+        opacity = .25
+    }),
+    // Ground
+    MeshLambertMaterial(obj {
+        color = Color(0x405050)
+        side = DoubleSide
+    }),
+    // Vegetation
+    MeshLambertMaterial(obj {
+        color = Color(0x306040)
+        side = DoubleSide
+    }),
+    // Section transition zone
+    MeshLambertMaterial(obj {
+        color = Color(0x402050)
+        side = DoubleSide
+    }),
+)
+
+private val COLLISION_WIREFRAME_MATERIALS: Array<Material> = arrayOf(
+    // Wall
+    MeshBasicMaterial(obj {
+        color = Color(0x90d0e0)
+        wireframe = true
+        transparent = true
+        opacity = .3
+    }),
+    // Ground
+    MeshBasicMaterial(obj {
+        color = Color(0x506060)
+        wireframe = true
+    }),
+    // Vegetation
+    MeshBasicMaterial(obj {
+        color = Color(0x405050)
+        wireframe = true
+    }),
+    // Section transition zone
+    MeshBasicMaterial(obj {
+        color = Color(0x503060)
+        wireframe = true
+    }),
+)
 
 // Objects used for temporary calculations to avoid GC.
 private val tmpNormal = Vector3()
@@ -61,6 +121,117 @@ fun ninjaObjectToMeshBuilder(
     builder: MeshBuilder,
 ) {
     NinjaToMeshConverter(builder).convert(ninjaObject)
+}
+
+fun renderGeometryToGroup(
+    renderGeometry: RenderGeometry,
+    textures: List<XvrTexture?>,
+    processMesh: (RenderSection, XjObject, Mesh) -> Unit = { _, _, _ -> },
+): Group {
+    val group = Group()
+    val textureCache = mutableMapOf<Int, Texture?>()
+
+    for ((i, section) in renderGeometry.sections.withIndex()) {
+        for (xjObj in section.objects) {
+            val builder = MeshBuilder(textures, textureCache)
+            ninjaObjectToMeshBuilder(xjObj, builder)
+
+            builder.defaultMaterial(MeshBasicMaterial(obj {
+                color = Color().setHSL((i % 7) / 7.0, 1.0, .5)
+                transparent = true
+                opacity = .25
+                side = DoubleSide
+            }))
+
+            val mesh = builder.buildMesh(boundingVolumes = true)
+
+            mesh.position.setFromVec3(section.position)
+            mesh.rotation.setFromVec3(section.rotation)
+            mesh.updateMatrixWorld()
+
+            processMesh(section, xjObj, mesh)
+
+            group.add(mesh)
+        }
+    }
+
+    return group
+}
+
+fun collisionGeometryToGroup(
+    collisionGeometry: CollisionGeometry,
+    trianglePredicate: (CollisionTriangle) -> Boolean = { true },
+): Group {
+    val group = Group()
+
+    for (collisionMesh in collisionGeometry.meshes) {
+        val positions = jsArrayOf<Float>()
+        val normals = jsArrayOf<Float>()
+        val materialGroups = mutableMapOf<Int, JsArray<Short>>()
+        var index: Short = 0
+
+        for (triangle in collisionMesh.triangles) {
+            // This a vague approximation of the real meaning of these flags.
+            val isGround = triangle.flags.isBitSet(0)
+            val isVegetation = triangle.flags.isBitSet(4)
+            val isSectionTransition = triangle.flags.isBitSet(6)
+            val materialIndex = when {
+                isSectionTransition -> 3
+                isVegetation -> 2
+                isGround -> 1
+                else -> 0
+            }
+
+            if (trianglePredicate(triangle)) {
+                val p1 = collisionMesh.vertices[triangle.index1]
+                val p2 = collisionMesh.vertices[triangle.index2]
+                val p3 = collisionMesh.vertices[triangle.index3]
+                positions.push(p1.x, p1.y, p1.z, p2.x, p2.y, p2.z, p3.x, p3.y, p3.z)
+
+                val n = triangle.normal
+                normals.push(n.x, n.y, n.z, n.x, n.y, n.z, n.x, n.y, n.z)
+
+                val indices = materialGroups.getOrPut(materialIndex) { jsArrayOf() }
+                indices.push(index++, index++, index++)
+            }
+        }
+
+        if (index > 0) {
+            val geom = BufferGeometry()
+            geom.setAttribute(
+                "position", Float32BufferAttribute(Float32Array(positions.asArray()), 3),
+            )
+            geom.setAttribute(
+                "normal", Float32BufferAttribute(Float32Array(normals.asArray()), 3),
+            )
+            val indices = Uint16Array(index.toInt())
+            var offset = 0
+
+            for ((materialIndex, vertexIndices) in materialGroups) {
+                indices.set(vertexIndices.asArray(), offset)
+                geom.addGroup(offset, vertexIndices.length, materialIndex)
+                offset += vertexIndices.length
+            }
+
+            geom.setIndex(Uint16BufferAttribute(indices, 1))
+            geom.computeBoundingBox()
+            geom.computeBoundingSphere()
+
+            group.add(
+                Mesh(geom, COLLISION_MATERIALS).apply {
+                    renderOrder = 1
+                }
+            )
+
+            group.add(
+                Mesh(geom, COLLISION_WIREFRAME_MATERIALS).apply {
+                    renderOrder = 2
+                }
+            )
+        }
+    }
+
+    return group
 }
 
 // TODO: take into account different kinds of meshes/vertices (with or without normals, uv, etc.).

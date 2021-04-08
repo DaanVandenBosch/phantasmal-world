@@ -9,8 +9,11 @@ import world.phantasmal.lib.cursor.Cursor
 import world.phantasmal.lib.cursor.cursor
 import world.phantasmal.lib.fileFormats.ninja.*
 import world.phantasmal.lib.fileFormats.parseAfs
+import world.phantasmal.lib.fileFormats.parseAreaCollisionGeometry
+import world.phantasmal.lib.fileFormats.parseAreaRenderGeometry
 import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.mutableVal
+import world.phantasmal.web.viewer.stores.NinjaGeometry
 import world.phantasmal.web.viewer.stores.ViewerStore
 import world.phantasmal.webui.controllers.Controller
 import world.phantasmal.webui.extension
@@ -62,7 +65,7 @@ class ViewerToolbarController(private val store: ViewerStore) : Controller() {
         var success = false
 
         try {
-            var ninjaObject: NinjaObject<*, *>? = null
+            var ninjaGeometry: NinjaGeometry? = null
             var textures: List<XvrTexture>? = null
             var ninjaMotion: NjMotion? = null
 
@@ -78,7 +81,7 @@ class ViewerToolbarController(private val store: ViewerStore) : Controller() {
                         fileResult = njResult
 
                         if (njResult is Success) {
-                            ninjaObject = njResult.value.firstOrNull()
+                            ninjaGeometry = njResult.value.firstOrNull()?.let(NinjaGeometry::Object)
                         }
                     }
 
@@ -87,7 +90,19 @@ class ViewerToolbarController(private val store: ViewerStore) : Controller() {
                         fileResult = xjResult
 
                         if (xjResult is Success) {
-                            ninjaObject = xjResult.value.firstOrNull()
+                            ninjaGeometry = xjResult.value.firstOrNull()?.let(NinjaGeometry::Object)
+                        }
+                    }
+
+                    "rel" -> {
+                        if (file.name.endsWith("c.rel")) {
+                            val collisionGeometry = parseAreaCollisionGeometry(cursor)
+                            fileResult = Success(collisionGeometry)
+                            ninjaGeometry = NinjaGeometry.Collision(collisionGeometry)
+                        } else {
+                            val renderGeometry = parseAreaRenderGeometry(cursor)
+                            fileResult = Success(renderGeometry)
+                            ninjaGeometry = NinjaGeometry.Render(renderGeometry)
                         }
                     }
 
@@ -131,7 +146,7 @@ class ViewerToolbarController(private val store: ViewerStore) : Controller() {
                 }
             }
 
-            ninjaObject?.let(store::setCurrentNinjaObject)
+            ninjaGeometry?.let(store::setCurrentNinjaGeometry)
             textures?.let(store::setCurrentTextures)
             ninjaMotion?.let(store::setCurrentNinjaMotion)
         } catch (e: Exception) {

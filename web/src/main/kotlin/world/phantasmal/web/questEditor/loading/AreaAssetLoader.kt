@@ -1,22 +1,19 @@
 package world.phantasmal.web.questEditor.loading
 
 import org.khronos.webgl.ArrayBuffer
-import org.khronos.webgl.Float32Array
-import org.khronos.webgl.Uint16Array
-import world.phantasmal.core.JsArray
-import world.phantasmal.core.asArray
 import world.phantasmal.core.asJsArray
-import world.phantasmal.core.jsArrayOf
+import world.phantasmal.core.isBitSet
 import world.phantasmal.lib.Endianness
 import world.phantasmal.lib.Episode
 import world.phantasmal.lib.cursor.cursor
-import world.phantasmal.lib.fileFormats.CollisionObject
-import world.phantasmal.lib.fileFormats.RenderObject
+import world.phantasmal.lib.fileFormats.CollisionGeometry
+import world.phantasmal.lib.fileFormats.RenderGeometry
 import world.phantasmal.lib.fileFormats.ninja.XjObject
 import world.phantasmal.lib.fileFormats.ninja.XvrTexture
 import world.phantasmal.lib.fileFormats.ninja.parseXvm
 import world.phantasmal.lib.fileFormats.parseAreaCollisionGeometry
-import world.phantasmal.lib.fileFormats.parseAreaGeometry
+import world.phantasmal.lib.fileFormats.parseAreaRenderGeometry
+import world.phantasmal.web.core.dot
 import world.phantasmal.web.core.loading.AssetLoader
 import world.phantasmal.web.core.rendering.conversion.*
 import world.phantasmal.web.core.rendering.disposeObject3DResources
@@ -24,7 +21,8 @@ import world.phantasmal.web.externals.three.*
 import world.phantasmal.web.questEditor.models.AreaVariantModel
 import world.phantasmal.web.questEditor.models.SectionModel
 import world.phantasmal.webui.DisposableContainer
-import world.phantasmal.webui.obj
+import kotlin.math.PI
+import kotlin.math.cos
 
 interface AreaUserData {
     var section: SectionModel?
@@ -34,53 +32,53 @@ interface AreaUserData {
  * Loads and caches area assets.
  */
 class AreaAssetLoader(private val assetLoader: AssetLoader) : DisposableContainer() {
-    /**
-     * This cache's values consist of an Object3D containing the area render meshes and a list of
-     * that area's sections.
-     */
-    private val renderObjectCache = addDisposable(
-        LoadingCache<EpisodeAndAreaVariant, Pair<Object3D, List<SectionModel>>>(
+    private val cache = addDisposable(
+        LoadingCache<EpisodeAndAreaVariant, Geom>(
             { (episode, areaVariant) ->
-                val obj = parseAreaGeometry(
+                val renderObj = parseAreaRenderGeometry(
                     getAreaAsset(episode, areaVariant, AssetType.Render).cursor(Endianness.Little),
                 )
                 val xvm = parseXvm(
                     getAreaAsset(episode, areaVariant, AssetType.Texture).cursor(Endianness.Little),
                 ).unwrap()
-                areaGeometryToObject3DAndSections(obj, xvm.textures, episode, areaVariant)
+                val (renderObj3d, sections) = areaGeometryToObject3DAndSections(
+                    renderObj,
+                    xvm.textures,
+                    episode,
+                    areaVariant,
+                )
+
+                val collisionObj = parseAreaCollisionGeometry(
+                    getAreaAsset(episode, areaVariant, AssetType.Collision)
+                        .cursor(Endianness.Little)
+                )
+                val collisionObj3d =
+                    areaCollisionGeometryToObject3D(collisionObj, episode, areaVariant)
+
+                addSectionsToCollisionGeometry(collisionObj3d, renderObj3d)
+
+//                cullRenderGeometry(collisionObj3d, renderObj3d)
+
+                Geom(sections, renderObj3d, collisionObj3d)
             },
-            { (obj3d) -> disposeObject3DResources(obj3d) },
-        )
-    )
-
-    private val collisionObjectCache = addDisposable(
-        LoadingCache<EpisodeAndAreaVariant, Object3D>(
-            { key ->
-                val (episode, areaVariant) = key
-                val buffer = getAreaAsset(episode, areaVariant, AssetType.Collision)
-                val obj = parseAreaCollisionGeometry(buffer.cursor(Endianness.Little))
-                val obj3d = areaCollisionGeometryToObject3D(obj, episode, areaVariant)
-
-                val (renderObj3d) = renderObjectCache.get(key)
-                addSectionsToCollisionGeometry(obj3d, renderObj3d)
-
-                obj3d
+            { geom ->
+                disposeObject3DResources(geom.renderGeometry)
+                disposeObject3DResources(geom.collisionGeometry)
             },
-            ::disposeObject3DResources,
         )
     )
 
     suspend fun loadSections(episode: Episode, areaVariant: AreaVariantModel): List<SectionModel> =
-        renderObjectCache.get(EpisodeAndAreaVariant(episode, areaVariant)).second
+        cache.get(EpisodeAndAreaVariant(episode, areaVariant)).sections
 
     suspend fun loadRenderGeometry(episode: Episode, areaVariant: AreaVariantModel): Object3D =
-        renderObjectCache.get(EpisodeAndAreaVariant(episode, areaVariant)).first
+        cache.get(EpisodeAndAreaVariant(episode, areaVariant)).renderGeometry
 
     suspend fun loadCollisionGeometry(
         episode: Episode,
         areaVariant: AreaVariantModel,
     ): Object3D =
-        collisionObjectCache.get(EpisodeAndAreaVariant(episode, areaVariant))
+        cache.get(EpisodeAndAreaVariant(episode, areaVariant)).collisionGeometry
 
     private suspend fun getAreaAsset(
         episode: Episode,
@@ -91,8 +89,8 @@ class AreaAssetLoader(private val assetLoader: AssetLoader) : DisposableContaine
     }
 
     private fun addSectionsToCollisionGeometry(collisionGeom: Object3D, renderGeom: Object3D) {
-        for (collisionArea in collisionGeom.children) {
-            val origin = ((collisionArea as Mesh).geometry).boundingBox!!.getCenter(tmpVec)
+        for (collisionMesh in collisionGeom.children) {
+            val origin = ((collisionMesh as Mesh).geometry).boundingBox!!.getCenter(tmpVec)
 
             // Cast a ray downward from the center of the section.
             raycaster.set(origin, DOWN)
@@ -118,10 +116,49 @@ class AreaAssetLoader(private val assetLoader: AssetLoader) : DisposableContaine
                 }
 
             if (intersection != null) {
-                val cud = collisionArea.userData.unsafeCast<AreaUserData>()
+                val cud = collisionMesh.userData.unsafeCast<AreaUserData>()
                 val rud = intersection.`object`.userData.unsafeCast<AreaUserData>()
                 cud.section = rud.section
             }
+        }
+    }
+
+    private fun cullRenderGeometry(collisionGeom: Object3D, renderGeom: Object3D) {
+        val cullingVolumes = mutableMapOf<Int, Box3>()
+
+        for (collisionMesh in collisionGeom.children) {
+            collisionMesh as Mesh
+            collisionMesh.userData.unsafeCast<AreaUserData>().section?.let { section ->
+                cullingVolumes.getOrPut(section.id, ::Box3)
+                    .union(
+                        collisionMesh.geometry.boundingBox!!.applyMatrix4(collisionMesh.matrixWorld)
+                    )
+            }
+        }
+
+        for (cullingVolume in cullingVolumes.values) {
+            cullingVolume.min.x -= 50
+            cullingVolume.min.y = cullingVolume.max.y + 20
+            cullingVolume.min.z -= 50
+            cullingVolume.max.x += 50
+            cullingVolume.max.y = Double.POSITIVE_INFINITY
+            cullingVolume.max.z += 50
+        }
+
+        var i = 0
+
+        outer@ while (i < renderGeom.children.size) {
+            val renderMesh = renderGeom.children[i] as Mesh
+            val bb = renderMesh.geometry.boundingBox!!.applyMatrix4(renderMesh.matrixWorld)
+
+            for (cullingVolume in cullingVolumes.values) {
+                if (bb.intersectsBox(cullingVolume)) {
+                    renderGeom.remove(renderMesh)
+                    continue@outer
+                }
+            }
+
+            i++
         }
     }
 
@@ -169,55 +206,34 @@ class AreaAssetLoader(private val assetLoader: AssetLoader) : DisposableContaine
     }
 
     private fun areaGeometryToObject3DAndSections(
-        renderObject: RenderObject,
+        renderGeometry: RenderGeometry,
         textures: List<XvrTexture>,
         episode: Episode,
         areaVariant: AreaVariantModel,
     ): Pair<Object3D, List<SectionModel>> {
-        val sections = mutableListOf<SectionModel>()
-        val group = Group()
-        val textureCache = mutableMapOf<Int, Texture?>()
+        val sections = mutableMapOf<Int, SectionModel>()
 
-        for ((i, section) in renderObject.sections.withIndex()) {
-            val sectionModel = if (section.id >= 0) {
-                SectionModel(
-                    section.id,
-                    vec3ToThree(section.position),
-                    vec3ToEuler(section.rotation),
-                    areaVariant,
-                ).also(sections::add)
-            } else null
-
-            for (obj in section.objects) {
-                val builder = MeshBuilder(textures, textureCache)
-                ninjaObjectToMeshBuilder(obj, builder)
-
-                builder.defaultMaterial(MeshBasicMaterial(obj {
-                    color = Color().setHSL((i % 7) / 7.0, 1.0, .5)
-                    transparent = true
-                    opacity = .25
-                    side = DoubleSide
-                }))
-
-                val mesh = builder.buildMesh()
-
-                if (shouldRenderOnTop(obj, episode, areaVariant)) {
+        val group =
+            renderGeometryToGroup(renderGeometry, textures) { renderSection, xjObject, mesh ->
+                if (shouldRenderOnTop(xjObject, episode, areaVariant)) {
                     mesh.renderOrder = 1
                 }
 
-                mesh.position.setFromVec3(section.position)
-                mesh.rotation.setFromVec3(section.rotation)
-                mesh.updateMatrixWorld()
+                if (renderSection.id >= 0) {
+                    val sectionModel = sections.getOrPut(renderSection.id) {
+                        SectionModel(
+                            renderSection.id,
+                            vec3ToThree(renderSection.position),
+                            vec3ToEuler(renderSection.rotation),
+                            areaVariant,
+                        )
+                    }
 
-                sectionModel?.let {
                     (mesh.userData.unsafeCast<AreaUserData>()).section = sectionModel
                 }
-
-                group.add(mesh)
             }
-        }
 
-        return Pair(group, sections)
+        return Pair(group, sections.values.toList())
     }
 
     private fun shouldRenderOnTop(
@@ -225,37 +241,14 @@ class AreaAssetLoader(private val assetLoader: AssetLoader) : DisposableContaine
         episode: Episode,
         areaVariant: AreaVariantModel,
     ): Boolean {
-        // Manual fixes for various areas. Might not be necessary anymore once order-independent
-        // rendering is implemented.
-        val textureIds: Set<Int> = when {
-            // Pioneer 2
-            episode == Episode.I && areaVariant.area.id == 0 ->
-                setOf(70, 71, 72, 126, 127, 155, 156, 198, 230, 231, 232, 233, 234)
-            // Forest 1
-            episode == Episode.I && areaVariant.area.id == 1 ->
-                setOf(12, 41)
-            // Mine 2
-            episode == Episode.I && areaVariant.area.id == 7 ->
-                setOf(0, 1, 7, 8, 17, 23, 56, 57, 58, 59, 60, 83)
-            // Ruins 1
-            episode == Episode.I && areaVariant.area.id == 8 ->
-                setOf(1, 21, 22, 27, 28, 43, 51, 59, 70, 72, 75)
-            // Lab
-            episode == Episode.II && areaVariant.area.id == 0 ->
-                setOf(36, 37, 38, 48, 60, 67, 79, 80)
-            // Central Control Area
-            episode == Episode.II && areaVariant.area.id == 5 ->
-                (0..59).toSet() + setOf(69, 77)
-            else ->
-                return false
-        }
-
         fun recurse(obj: XjObject): Boolean {
             obj.model?.meshes?.let { meshes ->
                 for (mesh in meshes) {
-                    mesh.material.textureId?.let {
-                        if (it in textureIds) {
-                            return true
+                    mesh.material.textureId?.let { textureId ->
+                        RENDER_ON_TOP_TEXTURES[Pair(episode, areaVariant.id)]?.let { textureIds ->
+                            if (textureId in textureIds) {
+                                return true
+                            }
                         }
                     }
                 }
@@ -268,80 +261,20 @@ class AreaAssetLoader(private val assetLoader: AssetLoader) : DisposableContaine
     }
 
     private fun areaCollisionGeometryToObject3D(
-        obj: CollisionObject,
+        obj: CollisionGeometry,
         episode: Episode,
         areaVariant: AreaVariantModel,
     ): Object3D {
-        val group = Group()
-        group.name = "Collision Geometry $episode-${areaVariant.area.id}-${areaVariant.id}"
-
-        for (collisionMesh in obj.meshes) {
-            val positions = jsArrayOf<Float>()
-            val normals = jsArrayOf<Float>()
-            val materialGroups = mutableMapOf<Int, JsArray<Short>>()
-            var index: Short = 0
-
-            for (triangle in collisionMesh.triangles) {
-                val isSectionTransition = (triangle.flags and 0b1000000) != 0
-                val isVegetation = (triangle.flags and 0b10000) != 0
-                val isGround = (triangle.flags and 0b1) != 0
-                val materialIndex = when {
-                    isSectionTransition -> 3
-                    isVegetation -> 2
-                    isGround -> 1
-                    else -> 0
-                }
-
-                // Filter out walls.
-                if (materialIndex != 0) {
-                    val p1 = collisionMesh.vertices[triangle.index1]
-                    val p2 = collisionMesh.vertices[triangle.index2]
-                    val p3 = collisionMesh.vertices[triangle.index3]
-                    positions.push(p1.x, p1.y, p1.z, p2.x, p2.y, p2.z, p3.x, p3.y, p3.z)
-
-                    val n = triangle.normal
-                    normals.push(n.x, n.y, n.z, n.x, n.y, n.z, n.x, n.y, n.z)
-
-                    val indices = materialGroups.getOrPut(materialIndex) { jsArrayOf() }
-                    indices.push(index++, index++, index++)
-                }
-            }
-
-            if (index > 0) {
-                val geom = BufferGeometry()
-                geom.setAttribute(
-                    "position", Float32BufferAttribute(Float32Array(positions.asArray()), 3),
-                )
-                geom.setAttribute(
-                    "normal", Float32BufferAttribute(Float32Array(normals.asArray()), 3),
-                )
-                val indices = Uint16Array(index.toInt())
-                var offset = 0
-
-                for ((materialIndex, vertexIndices) in materialGroups) {
-                    indices.set(vertexIndices.asArray(), offset)
-                    geom.addGroup(offset, vertexIndices.length, materialIndex)
-                    offset += vertexIndices.length
-                }
-
-                geom.setIndex(Uint16BufferAttribute(indices, 1))
-                geom.computeBoundingBox()
-                geom.computeBoundingSphere()
-
-                group.add(
-                    Mesh(geom, COLLISION_MATERIALS).apply {
-                        renderOrder = 1
-                    }
-                )
-
-                group.add(
-                    Mesh(geom, COLLISION_WIREFRAME_MATERIALS).apply {
-                        renderOrder = 2
-                    }
-                )
+        val group = collisionGeometryToGroup(obj) {
+            // Filter out walls and steep triangles.
+            if (it.flags.isBitSet(0) || it.flags.isBitSet(4) || it.flags.isBitSet(6)) {
+                tmpVec.setFromVec3(it.normal)
+                tmpVec dot UP >= COS_75_DEG
+            } else {
+                false
             }
         }
-
+        group.name = "Collision Geometry $episode-${areaVariant.area.id}-${areaVariant.id}"
         return group
     }
 
@@ -350,62 +283,20 @@ class AreaAssetLoader(private val assetLoader: AssetLoader) : DisposableContaine
         val areaVariant: AreaVariantModel,
     )
 
+    private class Geom(
+        val sections: List<SectionModel>,
+        val renderGeometry: Object3D,
+        val collisionGeometry: Object3D,
+    )
+
     private enum class AssetType {
         Render, Collision, Texture
     }
 
     companion object {
+        private val COS_75_DEG = cos(PI / 180 * 75)
         private val DOWN = Vector3(.0, -1.0, .0)
         private val UP = Vector3(.0, 1.0, .0)
-
-        private val COLLISION_MATERIALS: Array<Material> = arrayOf(
-            // Wall
-            MeshBasicMaterial(obj {
-                color = Color(0x80c0d0)
-                transparent = true
-                opacity = .25
-            }),
-            // Ground
-            MeshLambertMaterial(obj {
-                color = Color(0x405050)
-                side = DoubleSide
-            }),
-            // Vegetation
-            MeshLambertMaterial(obj {
-                color = Color(0x306040)
-                side = DoubleSide
-            }),
-            // Section transition zone
-            MeshLambertMaterial(obj {
-                color = Color(0x402050)
-                side = DoubleSide
-            }),
-        )
-
-        private val COLLISION_WIREFRAME_MATERIALS: Array<Material> = arrayOf(
-            // Wall
-            MeshBasicMaterial(obj {
-                color = Color(0x90d0e0)
-                wireframe = true
-                transparent = true
-                opacity = .3
-            }),
-            // Ground
-            MeshBasicMaterial(obj {
-                color = Color(0x506060)
-                wireframe = true
-            }),
-            // Vegetation
-            MeshBasicMaterial(obj {
-                color = Color(0x405050)
-                wireframe = true
-            }),
-            // Section transition zone
-            MeshBasicMaterial(obj {
-                color = Color(0x503060)
-                wireframe = true
-            }),
-        )
 
         private val AREA_BASE_NAMES: Map<Episode, List<Pair<String, Boolean>>> = mapOf(
             Episode.I to listOf(
@@ -457,6 +348,28 @@ class AreaAssetLoader(private val assetLoader: AssetLoader) : DisposableContaine
                 Pair("desert03", true),
                 Pair("boss09", true),
             )
+        )
+
+        /**
+         * Mapping of episode and area ID to set of texture IDs.
+         * Manual fixes for various areas. Might not be necessary anymore once order-independent
+         * rendering is implemented.
+         */
+        val RENDER_ON_TOP_TEXTURES: Map<Pair<Episode, Int>, Set<Int>> = mapOf(
+            // Pioneer 2
+            Pair(Episode.I, 0) to setOf(
+                70, 71, 72, 126, 127, 155, 156, 198, 230, 231, 232, 233, 234,
+            ),
+            // Forest 1
+            Pair(Episode.I, 1) to setOf(12, 41),
+            // Mine 2
+            Pair(Episode.I, 7) to setOf(0, 1, 7, 8, 17, 23, 56, 57, 58, 59, 60, 83),
+            // Ruins 1
+            Pair(Episode.I, 8) to setOf(1, 21, 22, 27, 28, 43, 51, 59, 70, 72, 75),
+            // Lab
+            Pair(Episode.II, 0) to setOf(36, 37, 38, 48, 60, 67, 79, 80),
+            // Central Control Area
+            Pair(Episode.II, 5) to (0..59).toSet() + setOf(69, 77),
         )
 
         private val raycaster = Raycaster()

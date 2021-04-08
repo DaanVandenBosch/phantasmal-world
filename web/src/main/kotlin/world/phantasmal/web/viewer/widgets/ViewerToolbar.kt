@@ -17,7 +17,7 @@ class ViewerToolbar(private val ctrl: ViewerToolbarController) : Widget() {
                     FileButton(
                         text = "Open file...",
                         iconLeft = Icon.File,
-                        accept = ".afs, .nj, .njm, .xj, .xvm",
+                        accept = ".afs, .nj, .njm, .rel, .xj, .xvm",
                         multiple = true,
                         filesSelected = { files -> scope.launch { ctrl.openFiles(files) } },
                     ),

@@ -31,7 +31,7 @@ class CharacterClassAssetLoader(private val assetLoader: AssetLoader) : Disposab
         val texIds = textureIds(char, sectionId, body)
 
         return listOf(
-            texIds.section_id,
+            texIds.sectionId,
             *texIds.body,
             *texIds.head,
             *texIds.hair,
@@ -128,7 +128,7 @@ class CharacterClassAssetLoader(private val assetLoader: AssetLoader) : Disposab
             HUmar -> {
                 val bodyIdx = body * 3
                 TextureIds(
-                    section_id = sectionId.ordinal + 126,
+                    sectionId = sectionId.ordinal + 126,
                     body = arrayOf(bodyIdx, bodyIdx + 1, bodyIdx + 2, body + 108),
                     head = arrayOf(54, 55),
                     hair = arrayOf(94, 95),
@@ -138,7 +138,7 @@ class CharacterClassAssetLoader(private val assetLoader: AssetLoader) : Disposab
             HUnewearl -> {
                 val bodyIdx = body * 13
                 TextureIds(
-                    section_id = sectionId.ordinal + 299,
+                    sectionId = sectionId.ordinal + 299,
                     body = arrayOf(
                         bodyIdx + 13,
                         bodyIdx,
@@ -156,7 +156,7 @@ class CharacterClassAssetLoader(private val assetLoader: AssetLoader) : Disposab
             HUcast -> {
                 val bodyIdx = body * 5
                 TextureIds(
-                    section_id = sectionId.ordinal + 275,
+                    sectionId = sectionId.ordinal + 275,
                     body = arrayOf(bodyIdx, bodyIdx + 1, bodyIdx + 2, body + 250),
                     head = arrayOf(bodyIdx + 3, bodyIdx + 4),
                     hair = arrayOf(),
@@ -166,7 +166,7 @@ class CharacterClassAssetLoader(private val assetLoader: AssetLoader) : Disposab
             HUcaseal -> {
                 val bodyIdx = body * 5
                 TextureIds(
-                    section_id = sectionId.ordinal + 375,
+                    sectionId = sectionId.ordinal + 375,
                     body = arrayOf(bodyIdx, bodyIdx + 1, bodyIdx + 2),
                     head = arrayOf(bodyIdx + 3, bodyIdx + 4),
                     hair = arrayOf(),
@@ -176,7 +176,7 @@ class CharacterClassAssetLoader(private val assetLoader: AssetLoader) : Disposab
             RAmar -> {
                 val bodyIdx = body * 7
                 TextureIds(
-                    section_id = sectionId.ordinal + 197,
+                    sectionId = sectionId.ordinal + 197,
                     body = arrayOf(bodyIdx + 4, bodyIdx + 5, bodyIdx + 6, body + 179),
                     head = arrayOf(126, 127),
                     hair = arrayOf(166, 167),
@@ -186,7 +186,7 @@ class CharacterClassAssetLoader(private val assetLoader: AssetLoader) : Disposab
             RAmarl -> {
                 val bodyIdx = body * 16
                 TextureIds(
-                    section_id = sectionId.ordinal + 322,
+                    sectionId = sectionId.ordinal + 322,
                     body = arrayOf(bodyIdx + 15, bodyIdx + 1, bodyIdx),
                     head = arrayOf(288),
                     hair = arrayOf(308, 309),
@@ -196,7 +196,7 @@ class CharacterClassAssetLoader(private val assetLoader: AssetLoader) : Disposab
             RAcast -> {
                 val bodyIdx = body * 5
                 TextureIds(
-                    section_id = sectionId.ordinal + 300,
+                    sectionId = sectionId.ordinal + 300,
                     body = arrayOf(bodyIdx, bodyIdx + 1, bodyIdx + 2, bodyIdx + 3, body + 275),
                     head = arrayOf(bodyIdx + 4),
                     hair = arrayOf(),
@@ -206,7 +206,7 @@ class CharacterClassAssetLoader(private val assetLoader: AssetLoader) : Disposab
             RAcaseal -> {
                 val bodyIdx = body * 5
                 TextureIds(
-                    section_id = sectionId.ordinal + 375,
+                    sectionId = sectionId.ordinal + 375,
                     body = arrayOf(body + 350, bodyIdx, bodyIdx + 1, bodyIdx + 2),
                     head = arrayOf(bodyIdx + 3),
                     hair = arrayOf(bodyIdx + 4),
@@ -216,7 +216,7 @@ class CharacterClassAssetLoader(private val assetLoader: AssetLoader) : Disposab
             FOmar -> {
                 val bodyIdx = if (body == 0) 0 else body * 15 + 2
                 TextureIds(
-                    section_id = sectionId.ordinal + 310,
+                    sectionId = sectionId.ordinal + 310,
                     body = arrayOf(bodyIdx + 12, bodyIdx + 13, bodyIdx + 14, bodyIdx),
                     head = arrayOf(276, 272),
                     hair = arrayOf(null, 296, 297),
@@ -226,7 +226,7 @@ class CharacterClassAssetLoader(private val assetLoader: AssetLoader) : Disposab
             FOmarl -> {
                 val bodyIdx = body * 16
                 TextureIds(
-                    section_id = sectionId.ordinal + 326,
+                    sectionId = sectionId.ordinal + 326,
                     body = arrayOf(bodyIdx, bodyIdx + 2, bodyIdx + 1, 322 /*hands*/),
                     head = arrayOf(288),
                     hair = arrayOf(null, null, 308),
@@ -236,7 +236,7 @@ class CharacterClassAssetLoader(private val assetLoader: AssetLoader) : Disposab
             FOnewm -> {
                 val bodyIdx = body * 17
                 TextureIds(
-                    section_id = sectionId.ordinal + 344,
+                    sectionId = sectionId.ordinal + 344,
                     body = arrayOf(bodyIdx + 4, 340 /*hands*/, bodyIdx, bodyIdx + 5),
                     head = arrayOf(306, 310),
                     hair = arrayOf(null, null, 330),
@@ -247,7 +247,7 @@ class CharacterClassAssetLoader(private val assetLoader: AssetLoader) : Disposab
             FOnewearl -> {
                 val bodyIdx = body * 26
                 TextureIds(
-                    section_id = sectionId.ordinal + 505,
+                    sectionId = sectionId.ordinal + 505,
                     body = arrayOf(bodyIdx + 1, bodyIdx, bodyIdx + 2, 501 /*hands*/),
                     head = arrayOf(472, 468),
                     hair = arrayOf(null, null, 492),
@@ -257,7 +257,7 @@ class CharacterClassAssetLoader(private val assetLoader: AssetLoader) : Disposab
         }
 
     private class TextureIds(
-        val section_id: Int,
+        val sectionId: Int,
         val body: Array<Int>,
         val head: Array<Int>,
         val hair: Array<Int?>,

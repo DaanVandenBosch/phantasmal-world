@@ -72,7 +72,7 @@ class Toolbar(
                 }
 
                 .pw-toolbar .pw-input {
-                    height: 26px;
+                    height: 24px;
                 }
             """.trimIndent())
         }

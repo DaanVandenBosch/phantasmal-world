@@ -6,7 +6,7 @@ import world.phantasmal.lib.fileFormats.ninja.XjObject
 import world.phantasmal.lib.fileFormats.ninja.angleToRad
 import world.phantasmal.lib.fileFormats.ninja.parseXjObject
 
-class RenderObject(
+class RenderGeometry(
     val sections: List<RenderSection>,
 )
 
@@ -17,7 +17,7 @@ class RenderSection(
     val objects: List<XjObject>,
 )
 
-fun parseAreaGeometry(cursor: Cursor): RenderObject {
+fun parseAreaRenderGeometry(cursor: Cursor): RenderGeometry {
     val sections = mutableListOf<RenderSection>()
 
     cursor.seekEnd(16)
@@ -64,7 +64,7 @@ fun parseAreaGeometry(cursor: Cursor): RenderObject {
         ))
     }
 
-    return RenderObject(sections)
+    return RenderGeometry(sections)
 }
 
 // TODO: don't reparse the same objects multiple times. Create DAG instead of tree.

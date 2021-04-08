@@ -3,6 +3,8 @@ package world.phantasmal.web.viewer.stores
 import kotlinx.coroutines.launch
 import mu.KotlinLogging
 import world.phantasmal.core.enumValueOfOrNull
+import world.phantasmal.lib.fileFormats.CollisionGeometry
+import world.phantasmal.lib.fileFormats.RenderGeometry
 import world.phantasmal.lib.fileFormats.ninja.NinjaObject
 import world.phantasmal.lib.fileFormats.ninja.NjMotion
 import world.phantasmal.lib.fileFormats.ninja.XvrTexture
@@ -23,13 +25,19 @@ import world.phantasmal.webui.stores.Store
 
 private val logger = KotlinLogging.logger {}
 
+sealed class NinjaGeometry {
+    class Object(val obj: NinjaObject<*, *>) : NinjaGeometry()
+    class Render(val geometry: RenderGeometry) : NinjaGeometry()
+    class Collision(val geometry: CollisionGeometry) : NinjaGeometry()
+}
+
 class ViewerStore(
     private val characterClassAssetLoader: CharacterClassAssetLoader,
     private val animationAssetLoader: AnimationAssetLoader,
     uiStore: UiStore,
 ) : Store() {
     // Ninja concepts.
-    private val _currentNinjaObject = mutableVal<NinjaObject<*, *>?>(null)
+    private val _currentNinjaGeometry = mutableVal<NinjaGeometry?>(null)
     private val _currentTextures = mutableListVal<XvrTexture?>()
     private val _currentNinjaMotion = mutableVal<NjMotion?>(null)
 
@@ -47,7 +55,7 @@ class ViewerStore(
     private val _frame = mutableVal(0)
 
     // Ninja concepts.
-    val currentNinjaObject: Val<NinjaObject<*, *>?> = _currentNinjaObject
+    val currentNinjaGeometry: Val<NinjaGeometry?> = _currentNinjaGeometry
     val currentTextures: ListVal<XvrTexture?> = _currentTextures
     val currentNinjaMotion: Val<NjMotion?> = _currentNinjaMotion
 
@@ -58,7 +66,7 @@ class ViewerStore(
     val animations: List<AnimationModel> = (0 until 572).map {
         AnimationModel(
             "Animation ${it + 1}",
-            "/player/animation/animation_${it.toString().padStart(3, '0')}.njm"
+            "/player/animation/animation_${it.toString().padStart(3, '0')}.njm",
         )
     }
     val currentAnimation: Val<AnimationModel?> = _currentAnimation
@@ -143,7 +151,7 @@ class ViewerStore(
         }
     }
 
-    fun setCurrentNinjaObject(ninjaObject: NinjaObject<*, *>?) {
+    fun setCurrentNinjaGeometry(geometry: NinjaGeometry?) {
         if (_currentCharacterClass.value != null) {
             _currentCharacterClass.value = null
             _currentTextures.clear()
@@ -151,7 +159,7 @@ class ViewerStore(
 
         _currentAnimation.value = null
         _currentNinjaMotion.value = null
-        _currentNinjaObject.value = ninjaObject
+        _currentNinjaGeometry.value = geometry
     }
 
     fun setCurrentTextures(textures: List<XvrTexture>) {
@@ -233,14 +241,14 @@ class ViewerStore(
                 _currentNinjaMotion.value = null
             }
 
-            _currentNinjaObject.value = ninjaObject
+            _currentNinjaGeometry.value = NinjaGeometry.Object(ninjaObject)
             _currentTextures.replaceAll(textures)
         } catch (e: Exception) {
             logger.error(e) { "Couldn't load Ninja model for $char." }
 
             _currentAnimation.value = null
             _currentNinjaMotion.value = null
-            _currentNinjaObject.value = null
+            _currentNinjaGeometry.value = null
             _currentTextures.clear()
         }
     }

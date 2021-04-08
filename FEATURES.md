@@ -157,16 +157,19 @@ Features that are in ***bold italics*** are planned but not yet implemented.
 ## Bugs
 
 - When a modal dialog is open, global keybindings should be disabled
+- Wen right-click dragging from the 3D-view and releasing the mouse button outside the 3D-view, the
+  default context menu pops up
+- Improve the default camera target for Crater Interior
 - Entities with rendering issues:
-    - Caves 4 Button door
-    - Pofuilly Slime
-    - Pouilly Slime
-    - Easter Egg
-    - Christmas Tree
-    - Halloween Pumpkin
-    - 21st Century
-    - Light rays - used in forest and CCA
-    - Big CCA Door Switch
+  - Caves 4 Button door
+  - Pofuilly Slime
+  - Pouilly Slime
+  - Easter Egg
+  - Christmas Tree
+  - Halloween Pumpkin
+  - 21st Century
+  - Light rays - used in forest and CCA
+  - Big CCA Door Switch
     - Laser Detect - used in CCA
     - Wide Glass Wall (breakable) - used in Seabed
     - item box cca

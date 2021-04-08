@@ -1,8 +1,10 @@
 package world.phantasmal.web.core
 
-import world.phantasmal.web.externals.three.Euler
-import world.phantasmal.web.externals.three.Quaternion
-import world.phantasmal.web.externals.three.Vector3
+import world.phantasmal.web.externals.three.*
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.contract
+
+private val tmpSphere = Sphere()
 
 operator fun Vector3.plus(other: Vector3): Vector3 =
     clone().add(other)
@@ -58,3 +60,36 @@ fun euler(x: Double, y: Double, z: Double): Euler =
  */
 fun Euler.toQuaternion(): Quaternion =
     Quaternion().setFromEuler(this)
+
+@OptIn(ExperimentalContracts::class)
+inline fun Object3D.isMesh(): Boolean {
+    contract {
+        returns(true) implies (this@isMesh is Mesh)
+    }
+
+    return unsafeCast<Mesh>().isMesh
+}
+
+@OptIn(ExperimentalContracts::class)
+inline fun Object3D.isSkinnedMesh(): Boolean {
+    contract {
+        returns(true) implies (this@isSkinnedMesh is SkinnedMesh)
+    }
+
+    return unsafeCast<SkinnedMesh>().isSkinnedMesh
+}
+
+fun boundingSphere(object3d: Object3D, bSphere: Sphere = Sphere()): Sphere {
+    if (object3d.isMesh()) {
+        // Don't use reference to union method to improve performance of emitted JS.
+        object3d.geometry.boundingSphere?.let {
+            tmpSphere.copy(it)
+            tmpSphere.applyMatrix4(object3d.matrixWorld)
+            bSphere.union(tmpSphere)
+        }
+    }
+
+    object3d.children.forEach { boundingSphere(it, bSphere) }
+
+    return bSphere
+}

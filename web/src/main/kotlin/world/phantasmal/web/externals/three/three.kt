@@ -187,12 +187,25 @@ external class Box3(min: Vector3 = definedExternally, max: Vector3 = definedExte
     var min: Vector3
     var max: Vector3
 
+    fun applyMatrix4(matrix: Matrix4): Box3
+
+    fun copy(box: Box3): Box3
+
     fun getCenter(target: Vector3): Vector3
+
+    fun intersectsBox(box: Box3): Boolean
+
+    fun union(box: Box3): Box3
 }
 
 external class Sphere(center: Vector3 = definedExternally, radius: Double = definedExternally) {
     var center: Vector3
     var radius: Double
+
+    fun applyMatrix4(matrix: Matrix4): Sphere
+    fun clone(): Sphere
+    fun copy(sphere: Sphere): Sphere
+    fun union(sphere: Sphere): Sphere
 }
 
 open external class EventDispatcher
@@ -274,6 +287,7 @@ open external class Object3D {
      * Local transform.
      */
     var matrix: Matrix4
+    var matrixWorld: Matrix4
 
     var visible: Boolean
 
@@ -315,6 +329,7 @@ open external class Mesh(
         material: Array<Material>,
     )
 
+    val isMesh: Boolean
     var geometry: BufferGeometry
     var material: Any /* Material | Material[] */
 
@@ -332,6 +347,7 @@ external class SkinnedMesh(
         useVertexTexture: Boolean = definedExternally,
     )
 
+    val isSkinnedMesh: Boolean
     val skeleton: Skeleton
 
     fun bind(skeleton: Skeleton, bindMatrix: Matrix4 = definedExternally)
@@ -378,6 +394,8 @@ open external class BoxHelper(
 
     fun setFromObject(`object`: Object3D): BoxHelper
 }
+
+external class Box3Helper(box: Box3, color: Color = definedExternally) : LineSegments
 
 external class Scene : Object3D {
     var background: dynamic /* null | Color | Texture | WebGLCubeRenderTarget */

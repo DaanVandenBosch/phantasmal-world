@@ -9,7 +9,7 @@ class CreateEntityAction(
     private val quest: QuestModel,
     private val entity: QuestEntityModel<*, *>,
 ) : Action {
-    override val description: String = "Create ${entity.type.name}"
+    override val description: String = "Add ${entity.type.name}"
 
     override fun execute() {
         quest.addEntity(entity)
