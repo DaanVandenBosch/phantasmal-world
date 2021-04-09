@@ -3,7 +3,9 @@ package world.phantasmal.web.core.rendering.conversion
 import org.khronos.webgl.Float32Array
 import org.khronos.webgl.Uint16Array
 import org.khronos.webgl.set
+import world.phantasmal.core.JsMap
 import world.phantasmal.core.asArray
+import world.phantasmal.core.emptyJsMap
 import world.phantasmal.core.jsArrayOf
 import world.phantasmal.lib.fileFormats.ninja.XvrTexture
 import world.phantasmal.web.externals.three.*
@@ -11,7 +13,7 @@ import world.phantasmal.webui.obj
 
 class MeshBuilder(
     private val textures: List<XvrTexture?> = emptyList(),
-    private val textureCache: MutableMap<Int, Texture?> = mutableMapOf(),
+    private val textureCache: JsMap<Int, Texture?> = emptyJsMap(),
 ) {
     private val positions = mutableListOf<Vector3>()
     private val normals = mutableListOf<Vector3>()
@@ -189,11 +191,16 @@ class MeshBuilder(
             indices.set(group.indices.asArray(), offset)
             geom.addGroup(offset, group.indices.length, materials.size)
 
-            val tex = group.textureIndex?.let { texIndex ->
-                textureCache.getOrPut(texIndex) {
-                    textures.getOrNull(texIndex)?.let { xvm ->
+            var tex: Texture? = null
+
+            if (group.textureIndex != null) {
+                textureCache.get(group.textureIndex)
+
+                if (tex == null) {
+                    tex = textures.getOrNull(group.textureIndex)?.let { xvm ->
                         xvrTextureToThree(xvm)
                     }
+                    textureCache.set(group.textureIndex, tex)
                 }
             }
 

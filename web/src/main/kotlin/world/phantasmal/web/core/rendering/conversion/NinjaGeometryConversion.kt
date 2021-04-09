@@ -3,10 +3,7 @@ package world.phantasmal.web.core.rendering.conversion
 import mu.KotlinLogging
 import org.khronos.webgl.Float32Array
 import org.khronos.webgl.Uint16Array
-import world.phantasmal.core.JsArray
-import world.phantasmal.core.asArray
-import world.phantasmal.core.isBitSet
-import world.phantasmal.core.jsArrayOf
+import world.phantasmal.core.*
 import world.phantasmal.lib.fileFormats.CollisionGeometry
 import world.phantasmal.lib.fileFormats.CollisionTriangle
 import world.phantasmal.lib.fileFormats.RenderGeometry
@@ -129,8 +126,8 @@ fun renderGeometryToGroup(
     processMesh: (RenderSection, XjObject, Mesh) -> Unit = { _, _, _ -> },
 ): Group {
     val group = Group()
-    val textureCache = mutableMapOf<Int, Texture?>()
-    val meshCache = mutableMapOf<XjObject, Mesh>()
+    val textureCache = emptyJsMap<Int, Texture?>()
+    val meshCache = emptyJsMap<XjObject, Mesh>()
 
     for ((i, section) in renderGeometry.sections.withIndex()) {
         for (xjObj in section.objects) {
@@ -151,14 +148,14 @@ fun renderGeometryToGroup(
 
 private fun xjObjectToMesh(
     textures: List<XvrTexture?>,
-    textureCache: MutableMap<Int, Texture?>,
-    meshCache: MutableMap<XjObject, Mesh>,
+    textureCache: JsMap<Int, Texture?>,
+    meshCache: JsMap<XjObject, Mesh>,
     xjObj: XjObject,
     index: Int,
     section: RenderSection,
     processMesh: (RenderSection, XjObject, Mesh) -> Unit,
 ): Mesh {
-    var mesh = meshCache[xjObj]
+    var mesh = meshCache.get(xjObj)
 
     if (mesh == null) {
         val builder = MeshBuilder(textures, textureCache)
@@ -172,6 +169,7 @@ private fun xjObjectToMesh(
         }))
 
         mesh = builder.buildMesh(boundingVolumes = true)
+        meshCache.set(xjObj, mesh)
     } else {
         // If we already have a mesh for this XjObject, make a copy and reuse the existing buffer
         // geometry and materials.

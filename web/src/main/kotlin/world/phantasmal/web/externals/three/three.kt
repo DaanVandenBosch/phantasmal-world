@@ -494,7 +494,13 @@ external class Color() {
     constructor(color: String)
     constructor(color: Int)
 
+    fun set(color: Color): Color
+    fun set(color: String): Color
+    fun set(color: Int): Color
+
     fun setHSL(h: Double, s: Double, l: Double): Color
+
+    fun clone(): Color
 }
 
 open external class BufferGeometry : EventDispatcher {
@@ -602,6 +608,7 @@ external interface MeshBasicMaterialParameters : MaterialParameters {
 external class MeshBasicMaterial(
     parameters: MeshBasicMaterialParameters = definedExternally,
 ) : Material {
+    var color: Color
     var map: Texture?
 }
 
