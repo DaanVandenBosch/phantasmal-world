@@ -130,32 +130,61 @@ fun renderGeometryToGroup(
 ): Group {
     val group = Group()
     val textureCache = mutableMapOf<Int, Texture?>()
+    val meshCache = mutableMapOf<XjObject, Mesh>()
 
     for ((i, section) in renderGeometry.sections.withIndex()) {
         for (xjObj in section.objects) {
-            val builder = MeshBuilder(textures, textureCache)
-            ninjaObjectToMeshBuilder(xjObj, builder)
+            group.add(xjObjectToMesh(
+                textures, textureCache, meshCache, xjObj, i, section, processMesh,
+            ))
+        }
 
-            builder.defaultMaterial(MeshBasicMaterial(obj {
-                color = Color().setHSL((i % 7) / 7.0, 1.0, .5)
-                transparent = true
-                opacity = .25
-                side = DoubleSide
-            }))
-
-            val mesh = builder.buildMesh(boundingVolumes = true)
-
-            mesh.position.setFromVec3(section.position)
-            mesh.rotation.setFromVec3(section.rotation)
-            mesh.updateMatrixWorld()
-
-            processMesh(section, xjObj, mesh)
-
-            group.add(mesh)
+        for (xjObj in section.animatedObjects) {
+            group.add(xjObjectToMesh(
+                textures, textureCache, meshCache, xjObj, i, section, processMesh,
+            ))
         }
     }
 
     return group
+}
+
+private fun xjObjectToMesh(
+    textures: List<XvrTexture?>,
+    textureCache: MutableMap<Int, Texture?>,
+    meshCache: MutableMap<XjObject, Mesh>,
+    xjObj: XjObject,
+    index: Int,
+    section: RenderSection,
+    processMesh: (RenderSection, XjObject, Mesh) -> Unit,
+): Mesh {
+    var mesh = meshCache[xjObj]
+
+    if (mesh == null) {
+        val builder = MeshBuilder(textures, textureCache)
+        ninjaObjectToMeshBuilder(xjObj, builder)
+
+        builder.defaultMaterial(MeshBasicMaterial(obj {
+            color = Color().setHSL((index % 7) / 7.0, 1.0, .5)
+            transparent = true
+            opacity = .25
+            side = DoubleSide
+        }))
+
+        mesh = builder.buildMesh(boundingVolumes = true)
+    } else {
+        // If we already have a mesh for this XjObject, make a copy and reuse the existing buffer
+        // geometry and materials.
+        mesh = Mesh(mesh.geometry, mesh.material.unsafeCast<Array<Material>>())
+    }
+
+    mesh.position.setFromVec3(section.position)
+    mesh.rotation.setFromVec3(section.rotation)
+    mesh.updateMatrixWorld()
+
+    processMesh(section, xjObj, mesh)
+
+    return mesh
 }
 
 fun collisionGeometryToGroup(

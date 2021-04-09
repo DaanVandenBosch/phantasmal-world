@@ -15,6 +15,7 @@ class RenderSection(
     val position: Vec3,
     val rotation: Vec3,
     val objects: List<XjObject>,
+    val animatedObjects: List<XjObject>,
 )
 
 fun parseAreaRenderGeometry(cursor: Cursor): RenderGeometry {
@@ -30,6 +31,8 @@ fun parseAreaRenderGeometry(cursor: Cursor): RenderGeometry {
     val sectionTableOffset = cursor.int()
     // val textureNameOffset = cursor.int()
 
+    val xjObjectCache = mutableMapOf<Int, List<XjObject>>()
+
     for (i in 0 until sectionCount) {
         cursor.seekStart(sectionTableOffset + 52 * i)
 
@@ -41,19 +44,28 @@ fun parseAreaRenderGeometry(cursor: Cursor): RenderGeometry {
             angleToRad(cursor.int()),
         )
 
-        cursor.seek(4)
+        cursor.seek(4) // Radius?
 
         val simpleGeometryOffsetTableOffset = cursor.int()
-//         val animatedGeometryOffsetTableOffset = cursor.int()
-        cursor.seek(4)
+        val animatedGeometryOffsetTableOffset = cursor.int()
         val simpleGeometryOffsetCount = cursor.int()
-//         val animatedGeometryOffsetCount = cursor.int()
-        // Ignore animatedGeometryOffsetCount and the last 4 bytes.
+        val animatedGeometryOffsetCount = cursor.int()
+        // Ignore the last 4 bytes.
 
         val objects = parseGeometryTable(
             cursor,
+            xjObjectCache,
             simpleGeometryOffsetTableOffset,
             simpleGeometryOffsetCount,
+            animated = false,
+        )
+
+        val animatedObjects = parseGeometryTable(
+            cursor,
+            xjObjectCache,
+            animatedGeometryOffsetTableOffset,
+            animatedGeometryOffsetCount,
+            animated = true,
         )
 
         sections.add(RenderSection(
@@ -61,22 +73,25 @@ fun parseAreaRenderGeometry(cursor: Cursor): RenderGeometry {
             sectionPosition,
             sectionRotation,
             objects,
+            animatedObjects,
         ))
     }
 
     return RenderGeometry(sections)
 }
 
-// TODO: don't reparse the same objects multiple times. Create DAG instead of tree.
 private fun parseGeometryTable(
     cursor: Cursor,
+    xjObjectCache: MutableMap<Int, List<XjObject>>,
     tableOffset: Int,
     tableEntryCount: Int,
+    animated: Boolean,
 ): List<XjObject> {
+    val tableEntrySize = if (animated) 32 else 16
     val objects = mutableListOf<XjObject>()
 
     for (i in 0 until tableEntryCount) {
-        cursor.seekStart(tableOffset + 16 * i)
+        cursor.seekStart(tableOffset + tableEntrySize * i)
 
         var offset = cursor.int()
         cursor.seek(8)
@@ -86,8 +101,12 @@ private fun parseGeometryTable(
             offset = cursor.seekStart(offset).int()
         }
 
-        cursor.seekStart(offset)
-        objects.addAll(parseXjObject(cursor))
+        objects.addAll(
+            xjObjectCache.getOrPut(offset) {
+                cursor.seekStart(offset)
+                parseXjObject(cursor)
+            }
+        )
     }
 
     return objects
