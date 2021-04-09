@@ -6,6 +6,7 @@ import world.phantasmal.core.math.degToRad
 import world.phantasmal.lib.fileFormats.ninja.NinjaObject
 import world.phantasmal.lib.fileFormats.ninja.NjMotion
 import world.phantasmal.lib.fileFormats.ninja.NjObject
+import world.phantasmal.web.core.Throttle
 import world.phantasmal.web.core.boundingSphere
 import world.phantasmal.web.core.isSkinnedMesh
 import world.phantasmal.web.core.rendering.*
@@ -23,6 +24,7 @@ class MeshRenderer(
     createThreeRenderer: (HTMLCanvasElement) -> DisposableThreeRenderer,
 ) : Renderer() {
     private val clock = Clock()
+    private val throttleRebuildMesh = Throttle(before = 10)
 
     private var obj3d: Object3D? = null
     private var skeletonHelper: SkeletonHelper? = null
@@ -45,13 +47,14 @@ class MeshRenderer(
     override val inputManager = addDisposable(OrbitalCameraInputManager(
         context.canvas,
         context.camera,
-        Vector3(),
+        position = Vector3(.0, .0, .0),
         screenSpacePanning = true,
     ))
 
     init {
-        observe(viewerStore.currentNinjaGeometry) { ninjaGeometryOrXvmChanged() }
-        observe(viewerStore.currentTextures) { ninjaGeometryOrXvmChanged() }
+        observe(viewerStore.currentNinjaGeometry) { rebuildMesh(resetCamera = true) }
+        observe(viewerStore.currentTextures) { rebuildMesh(resetCamera = true) }
+        observe(viewerStore.applyTextures) { rebuildMesh(resetCamera = false) }
         observe(viewerStore.currentNinjaMotion, ::ninjaMotionChanged)
         observe(viewerStore.showSkeleton) { skeletonHelper?.visible = it }
         observe(viewerStore.animationPlaying, ::animationPlayingChanged)
@@ -80,82 +83,87 @@ class MeshRenderer(
         }
     }
 
-    private fun ninjaGeometryOrXvmChanged() {
-        // Remove the previous mesh.
-        obj3d?.let { mesh ->
-            disposeObject3DResources(mesh)
-            context.scene.remove(mesh)
-        }
+    private fun rebuildMesh(resetCamera: Boolean) {
+        throttleRebuildMesh {
+            // Remove the previous mesh.
+            obj3d?.let { mesh ->
+                disposeObject3DResources(mesh)
+                context.scene.remove(mesh)
+            }
 
-        // Remove the previous skeleton.
-        skeletonHelper?.let {
-            context.scene.remove(it)
-            skeletonHelper = null
-        }
+            // Remove the previous skeleton.
+            skeletonHelper?.let {
+                context.scene.remove(it)
+                skeletonHelper = null
+            }
 
-        val ninjaGeometry = viewerStore.currentNinjaGeometry.value
-        val textures = viewerStore.currentTextures.value
+            val ninjaGeometry = viewerStore.currentNinjaGeometry.value
+            val textures =
+                if (viewerStore.applyTextures.value) viewerStore.currentTextures.value
+                else emptyList()
 
-        // Stop and clean up previous animation and store animation time.
-        var animationTime: Double? = null
+            // Stop and clean up previous animation and store animation time.
+            var animationTime: Double? = null
 
-        animation?.let {
-            animationTime = it.action.time
-            it.dispose()
-            this.animation = null
-        }
+            animation?.let {
+                animationTime = it.action.time
+                it.dispose()
+                this.animation = null
+            }
 
-        // Create a new mesh if necessary.
-        if (ninjaGeometry != null) {
-            val obj3d = when (ninjaGeometry) {
-                is NinjaGeometry.Object -> {
-                    val obj = ninjaGeometry.obj
+            // Create a new mesh if necessary.
+            if (ninjaGeometry != null) {
+                val obj3d = when (ninjaGeometry) {
+                    is NinjaGeometry.Object -> {
+                        val obj = ninjaGeometry.obj
 
-                    if (obj is NjObject) {
-                        ninjaObjectToSkinnedMesh(obj, textures, boundingVolumes = true)
-                    } else {
-                        ninjaObjectToMesh(obj, textures, boundingVolumes = true)
+                        if (obj is NjObject) {
+                            ninjaObjectToSkinnedMesh(obj, textures, boundingVolumes = true)
+                        } else {
+                            ninjaObjectToMesh(obj, textures, boundingVolumes = true)
+                        }
                     }
+
+                    is NinjaGeometry.Render -> renderGeometryToGroup(ninjaGeometry.geometry,
+                        textures)
+
+                    is NinjaGeometry.Collision -> collisionGeometryToGroup(ninjaGeometry.geometry)
                 }
 
-                is NinjaGeometry.Render -> renderGeometryToGroup(ninjaGeometry.geometry, textures)
+                // Determine whether camera needs to be reset. Resets should always happen when the
+                // Ninja geometry changes except when we're switching between character class models.
+                val charClassActive = viewerStore.currentCharacterClass.value != null
+                val cameraResetNecessary = !charClassActive || !this.charClassActive
+                this.charClassActive = charClassActive
 
-                is NinjaGeometry.Collision -> collisionGeometryToGroup(ninjaGeometry.geometry)
-            }
+                if (resetCamera && cameraResetNecessary) {
+                    // Compute camera position.
+                    val bSphere = boundingSphere(obj3d)
+                    val cameraDistFactor =
+                        1.5 / tan(degToRad((context.camera as PerspectiveCamera).fov) / 2)
+                    val cameraPos = CAMERA_POS * (bSphere.radius * cameraDistFactor)
+                    inputManager.lookAt(cameraPos, bSphere.center)
+                }
 
-            // Determine whether camera needs to be reset. Resets should always happen when the
-            // Ninja geometry changes except when we're switching between character class models.
-            val charClassActive = viewerStore.currentCharacterClass.value != null
-            val resetCamera = !charClassActive || !this.charClassActive
-            this.charClassActive = charClassActive
+                context.scene.add(obj3d)
+                this.obj3d = obj3d
 
-            if (resetCamera) {
-                // Compute camera position.
-                val bSphere = boundingSphere(obj3d)
-                val cameraDistFactor =
-                    1.5 / tan(degToRad((context.camera as PerspectiveCamera).fov) / 2)
-                val cameraPos = CAMERA_POS * (bSphere.radius * cameraDistFactor)
-                inputManager.lookAt(cameraPos, bSphere.center)
-            }
+                if (obj3d.isSkinnedMesh() && ninjaGeometry is NinjaGeometry.Object) {
+                    // Add skeleton.
+                    val skeletonHelper = SkeletonHelper(obj3d)
+                    skeletonHelper.visible = viewerStore.showSkeleton.value
+                    skeletonHelper.material.unsafeCast<LineBasicMaterial>().linewidth = 3
 
-            context.scene.add(obj3d)
-            this.obj3d = obj3d
+                    context.scene.add(skeletonHelper)
+                    this.skeletonHelper = skeletonHelper
 
-            if (obj3d.isSkinnedMesh() && ninjaGeometry is NinjaGeometry.Object) {
-                // Add skeleton.
-                val skeletonHelper = SkeletonHelper(obj3d)
-                skeletonHelper.visible = viewerStore.showSkeleton.value
-                skeletonHelper.material.unsafeCast<LineBasicMaterial>().linewidth = 3
-
-                context.scene.add(skeletonHelper)
-                this.skeletonHelper = skeletonHelper
-
-                // Create a new animation mixer and clip.
-                viewerStore.currentNinjaMotion.value?.let { njMotion ->
-                    animation = Animation(ninjaGeometry.obj, njMotion, obj3d).also {
-                        it.mixer.timeScale = viewerStore.frameRate.value / PSO_FRAME_RATE_DOUBLE
-                        it.action.time = animationTime ?: .0
-                        it.action.play()
+                    // Create a new animation mixer and clip.
+                    viewerStore.currentNinjaMotion.value?.let { njMotion ->
+                        animation = Animation(ninjaGeometry.obj, njMotion, obj3d).also {
+                            it.mixer.timeScale = viewerStore.frameRate.value / PSO_FRAME_RATE_DOUBLE
+                            it.action.time = animationTime ?: .0
+                            it.action.play()
+                        }
                     }
                 }
             }

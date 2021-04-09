@@ -51,6 +51,7 @@ class ViewerStore(
     private val _currentAnimation = mutableVal<AnimationModel?>(null)
 
     // Settings.
+    private val _applyTextures = mutableVal(true)
     private val _showSkeleton = mutableVal(false)
     private val _animationPlaying = mutableVal(true)
     private val _frameRate = mutableVal(PSO_FRAME_RATE)
@@ -74,6 +75,10 @@ class ViewerStore(
     val currentAnimation: Val<AnimationModel?> = _currentAnimation
 
     // Settings.
+    val applyTexturesEnabled: Val<Boolean> = _currentNinjaGeometry.map {
+        it == null || it !is NinjaGeometry.Collision
+    }
+    val applyTextures: Val<Boolean> = applyTexturesEnabled and _applyTextures
     val showSkeletonEnabled: Val<Boolean> = _currentNinjaGeometry.map {
         it is NinjaGeometry.Object && it.obj is NjObject
     }
@@ -206,6 +211,10 @@ class ViewerStore(
         } else {
             loadAnimation(animation)
         }
+    }
+
+    fun setApplyTextures(apply: Boolean) {
+        _applyTextures.value = apply
     }
 
     fun setShowSkeleton(show: Boolean) {

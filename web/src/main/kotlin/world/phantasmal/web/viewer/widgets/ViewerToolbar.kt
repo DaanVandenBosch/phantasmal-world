@@ -28,6 +28,12 @@ class ViewerToolbar(private val ctrl: ViewerToolbarController) : Widget() {
                         onChange = ctrl::setShowSkeleton,
                     ),
                     Checkbox(
+                        label = "Apply textures",
+                        enabled = ctrl.applyTexturesEnabled,
+                        checked = ctrl.applyTextures,
+                        onChange = ctrl::setApplyTextures,
+                    ),
+                    Checkbox(
                         label = "Play animation",
                         enabled = ctrl.animationControlsEnabled,
                         checked = ctrl.playAnimation,

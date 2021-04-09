@@ -579,6 +579,7 @@ external interface MaterialParameters {
     var blending: Blending
     var side: Side
     var transparent: Boolean
+    var opacity: Double
 }
 
 open external class Material : EventDispatcher {
@@ -592,7 +593,6 @@ open external class Material : EventDispatcher {
 
 external interface MeshBasicMaterialParameters : MaterialParameters {
     var color: Color
-    var opacity: Double
     var map: Texture?
     var wireframe: Boolean
     var wireframeLinewidth: Double

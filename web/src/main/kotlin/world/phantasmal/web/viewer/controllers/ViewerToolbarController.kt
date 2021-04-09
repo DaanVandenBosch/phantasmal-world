@@ -28,6 +28,8 @@ class ViewerToolbarController(private val store: ViewerStore) : Controller() {
     private val _resultDialogVisible = mutableVal(false)
     private val _result = mutableVal<PwResult<*>?>(null)
 
+    val applyTexturesEnabled: Val<Boolean> = store.applyTexturesEnabled
+    val applyTextures: Val<Boolean> = store.applyTextures
     val showSkeletonEnabled: Val<Boolean> = store.showSkeletonEnabled
     val showSkeleton: Val<Boolean> = store.showSkeleton
     val playAnimation: Val<Boolean> = store.animationPlaying
@@ -42,6 +44,10 @@ class ViewerToolbarController(private val store: ViewerStore) : Controller() {
             is Success, null -> "Encountered some problems while opening files."
             is Failure -> "An error occurred while opening files."
         }
+    }
+
+    fun setApplyTextures(apply: Boolean) {
+        store.setApplyTextures(apply)
     }
 
     fun setShowSkeleton(show: Boolean) {

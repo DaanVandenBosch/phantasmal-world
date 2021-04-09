@@ -164,10 +164,10 @@ private fun xjObjectToMesh(
         val builder = MeshBuilder(textures, textureCache)
         ninjaObjectToMeshBuilder(xjObj, builder)
 
-        builder.defaultMaterial(MeshBasicMaterial(obj {
+        builder.defaultMaterial(MeshLambertMaterial(obj {
             color = Color().setHSL((index % 7) / 7.0, 1.0, .5)
             transparent = true
-            opacity = .25
+            opacity = .5
             side = DoubleSide
         }))
 
