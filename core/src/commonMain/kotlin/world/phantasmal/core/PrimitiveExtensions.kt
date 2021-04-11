@@ -20,6 +20,15 @@ fun Int.isBitSet(bit: Int): Boolean =
 fun UByte.isBitSet(bit: Int): Boolean =
     toInt().isBitSet(bit)
 
+fun Int.setBit(bit: Int, value: Boolean): Int =
+    if (value) {
+        this or (1 shl bit)
+    } else {
+        this and (1 shl bit).inv()
+    }
+
 expect fun Int.reinterpretAsFloat(): Float
 
 expect fun Float.reinterpretAsInt(): Int
+
+expect fun Float.reinterpretAsUInt(): UInt

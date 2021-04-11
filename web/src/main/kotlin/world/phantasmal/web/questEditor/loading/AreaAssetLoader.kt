@@ -1,18 +1,14 @@
 package world.phantasmal.web.questEditor.loading
 
 import org.khronos.webgl.ArrayBuffer
-import world.phantasmal.core.asJsArray
-import world.phantasmal.core.isBitSet
+import world.phantasmal.core.*
 import world.phantasmal.lib.Endianness
 import world.phantasmal.lib.Episode
 import world.phantasmal.lib.cursor.cursor
-import world.phantasmal.lib.fileFormats.CollisionGeometry
-import world.phantasmal.lib.fileFormats.RenderGeometry
+import world.phantasmal.lib.fileFormats.*
 import world.phantasmal.lib.fileFormats.ninja.XjObject
 import world.phantasmal.lib.fileFormats.ninja.XvrTexture
 import world.phantasmal.lib.fileFormats.ninja.parseXvm
-import world.phantasmal.lib.fileFormats.parseAreaCollisionGeometry
-import world.phantasmal.lib.fileFormats.parseAreaRenderGeometry
 import world.phantasmal.web.core.dot
 import world.phantasmal.web.core.loading.AssetLoader
 import world.phantasmal.web.core.rendering.conversion.*
@@ -123,44 +119,44 @@ class AreaAssetLoader(private val assetLoader: AssetLoader) : DisposableContaine
         }
     }
 
-    private fun cullRenderGeometry(collisionGeom: Object3D, renderGeom: Object3D) {
-        val cullingVolumes = mutableMapOf<Int, Box3>()
-
-        for (collisionMesh in collisionGeom.children) {
-            collisionMesh as Mesh
-            collisionMesh.userData.unsafeCast<AreaUserData>().section?.let { section ->
-                cullingVolumes.getOrPut(section.id, ::Box3)
-                    .union(
-                        collisionMesh.geometry.boundingBox!!.applyMatrix4(collisionMesh.matrixWorld)
-                    )
-            }
-        }
-
-        for (cullingVolume in cullingVolumes.values) {
-            cullingVolume.min.x -= 50
-            cullingVolume.min.y = cullingVolume.max.y + 20
-            cullingVolume.min.z -= 50
-            cullingVolume.max.x += 50
-            cullingVolume.max.y = Double.POSITIVE_INFINITY
-            cullingVolume.max.z += 50
-        }
-
-        var i = 0
-
-        outer@ while (i < renderGeom.children.size) {
-            val renderMesh = renderGeom.children[i] as Mesh
-            val bb = renderMesh.geometry.boundingBox!!.applyMatrix4(renderMesh.matrixWorld)
-
-            for (cullingVolume in cullingVolumes.values) {
-                if (bb.intersectsBox(cullingVolume)) {
-                    renderGeom.remove(renderMesh)
-                    continue@outer
-                }
-            }
-
-            i++
-        }
-    }
+//    private fun cullRenderGeometry(collisionGeom: Object3D, renderGeom: Object3D) {
+//        val cullingVolumes = mutableMapOf<Int, Box3>()
+//
+//        for (collisionMesh in collisionGeom.children) {
+//            collisionMesh as Mesh
+//            collisionMesh.userData.unsafeCast<AreaUserData>().section?.let { section ->
+//                cullingVolumes.getOrPut(section.id, ::Box3)
+//                    .union(
+//                        collisionMesh.geometry.boundingBox!!.applyMatrix4(collisionMesh.matrixWorld)
+//                    )
+//            }
+//        }
+//
+//        for (cullingVolume in cullingVolumes.values) {
+//            cullingVolume.min.x -= 50
+//            cullingVolume.min.y = cullingVolume.max.y + 20
+//            cullingVolume.min.z -= 50
+//            cullingVolume.max.x += 50
+//            cullingVolume.max.y = Double.POSITIVE_INFINITY
+//            cullingVolume.max.z += 50
+//        }
+//
+//        var i = 0
+//
+//        outer@ while (i < renderGeom.children.size) {
+//            val renderMesh = renderGeom.children[i] as Mesh
+//            val bb = renderMesh.geometry.boundingBox!!.applyMatrix4(renderMesh.matrixWorld)
+//
+//            for (cullingVolume in cullingVolumes.values) {
+//                if (bb.intersectsBox(cullingVolume)) {
+//                    renderGeom.remove(renderMesh)
+//                    continue@outer
+//                }
+//            }
+//
+//            i++
+//        }
+//    }
 
     private fun areaAssetUrl(
         episode: Episode,
@@ -206,18 +202,25 @@ class AreaAssetLoader(private val assetLoader: AssetLoader) : DisposableContaine
     }
 
     private fun areaGeometryToObject3DAndSections(
-        renderGeometry: RenderGeometry,
+        renderGeometry: AreaGeometry,
         textures: List<XvrTexture>,
         episode: Episode,
         areaVariant: AreaVariantModel,
     ): Pair<Object3D, List<SectionModel>> {
-        val renderOnTopTextures = RENDER_ON_TOP_TEXTURES[Pair(episode, areaVariant.area.id)]
+        val fix = MANUAL_FIXES[Pair(episode, areaVariant.area.id)]
         val sections = mutableMapOf<Int, SectionModel>()
+        console.log(renderGeometry)
 
         val group =
-            renderGeometryToGroup(renderGeometry, textures) { renderSection, xjObject, mesh ->
-                if (shouldRenderOnTop(xjObject, renderOnTopTextures)) {
-                    mesh.renderOrder = 1
+            renderGeometryToGroup(renderGeometry, textures) { renderSection, areaObj, mesh ->
+                if (fix != null) {
+                    if (fix.shouldRenderOnTop(areaObj.xjObject)) {
+                        mesh.renderOrder = 1
+                    }
+
+                    if (fix.shouldHide(areaObj)) {
+                        mesh.visible = false
+                    }
                 }
 
                 if (renderSection.id >= 0) {
@@ -235,24 +238,6 @@ class AreaAssetLoader(private val assetLoader: AssetLoader) : DisposableContaine
             }
 
         return Pair(group, sections.values.toList())
-    }
-
-    private fun shouldRenderOnTop(obj: XjObject, renderOnTopTextures: Set<Int>?): Boolean {
-        renderOnTopTextures ?: return false
-
-        obj.model?.meshes?.let { meshes ->
-            for (mesh in meshes) {
-                mesh.material.textureId?.let { textureId ->
-                    if (textureId in renderOnTopTextures) {
-                        return true
-                    }
-                }
-            }
-        }
-
-        return obj.children.any {
-            shouldRenderOnTop(it, renderOnTopTextures)
-        }
     }
 
     private fun areaCollisionGeometryToObject3D(
@@ -286,6 +271,38 @@ class AreaAssetLoader(private val assetLoader: AssetLoader) : DisposableContaine
 
     private enum class AssetType {
         Render, Collision, Texture
+    }
+
+    private class Fix(
+        /**
+         * Textures that should be rendered on top of other textures. These are usually very
+         * translucent. E.g. forest 1 has a mesh with baked-in shadow that's overlaid over the
+         * regular geometry. Might not be necessary anymore once order-independent rendering is
+         * implemented.
+         */
+        private val renderOnTopTextures: JsSet<Int> = emptyJsSet(),
+        /**
+         * Set of [AreaObject] finger prints.
+         * These objects should be hidden because they cover floors and other useful geometry.
+         */
+        private val hiddenObjects: JsSet<String> = emptyJsSet(),
+    ) {
+        fun shouldRenderOnTop(obj: XjObject): Boolean {
+            obj.model?.meshes?.let { meshes ->
+                for (mesh in meshes) {
+                    mesh.material.textureId?.let { textureId ->
+                        if (renderOnTopTextures.has(textureId)) {
+                            return true
+                        }
+                    }
+                }
+            }
+
+            return obj.children.any(::shouldRenderOnTop)
+        }
+
+        fun shouldHide(areaObj: AreaObject): Boolean =
+            hiddenObjects.has(areaObj.fingerPrint())
     }
 
     companion object {
@@ -346,26 +363,178 @@ class AreaAssetLoader(private val assetLoader: AssetLoader) : DisposableContaine
         )
 
         /**
-         * Mapping of episode and area ID to set of texture IDs.
-         * Manual fixes for various areas. Might not be necessary anymore once order-independent
-         * rendering is implemented.
+         * Mapping of episode and area ID to data for manually fixing issues with the render
+         * geometry.
          */
-        val RENDER_ON_TOP_TEXTURES: Map<Pair<Episode, Int>, Set<Int>> = mapOf(
+        private val MANUAL_FIXES: Map<Pair<Episode, Int>, Fix> = mutableMapOf(
             // Pioneer 2
-            Pair(Episode.I, 0) to setOf(
-                70, 71, 72, 126, 127, 155, 156, 198, 230, 231, 232, 233, 234,
+            Pair(Episode.I, 0) to Fix(
+                renderOnTopTextures = jsSetOf(
+                    70, 71, 72, 126, 127, 155, 156, 198, 230, 231, 232, 233, 234,
+                ),
+                hiddenObjects = jsSetOf(
+                    "s_m_0_6a_d_iu5sg6",
+                    "s_m_0_4b_7_ioh738",
+                    "s_k_0_1s_3_irasis",
+                    "s_k_0_a_1_ir4eod",
+                    "s_n_0_9e_h_imjyqr", // Hunter Guild roof + walls (seems to remove slightly too much).
+                    "s_n_0_40_a_it58n7", // Neon signs throughout the city.
+                    "s_n_0_2m_1_isvawv",
+                    "s_n_0_o_1_iwk2nr",
+                    "a_n_0_2k_5_iyebd3",
+                    "s_n_0_4_1_ikyjfd",
+                    "s_n_0_g_1_iom8uk",
+                    "s_n_0_j5_b_ivdcj1",
+                    "s_n_0_28_1_iopx1k",
+                    "s_m_0_3q_6_iqmvjr",
+                    "s_m_0_26_2_inh1ma",
+                    "s_m_0_4b_4_immz8l",
+                    "s_m_0_22_2_ilwnn5",
+                    "s_m_0_84_e_iv6noc",
+                    "s_m_0_d_1_ili3v2",
+                    "s_m_0_58_2_igd0am",
+                    "s_m_0_25_3_iovf21",
+                    "s_n_0_8_1_ik11uc",
+                    "s_m_0_19_1_ijocvh",
+                    "s_m_0_2h_5_is8o4b",
+                    "s_m_0_1l_4_ilkky7",
+                    "s_m_0_35_1_il8hoa",
+                    "s_m_0_58_3_in4nwl",
+                    "s_m_0_3d_1_iro50a",
+                    "s_m_0_4_1_is53va",
+                    "s_m_0_3l_6_igzvga",
+                    "s_n_0_en_3_iiawrz",
+                ),
             ),
             // Forest 1
-            Pair(Episode.I, 1) to setOf(12, 41),
+            Pair(Episode.I, 1) to Fix(
+                renderOnTopTextures = jsSetOf(12, 41),
+            ),
+            // Cave 1
+            Pair(Episode.I, 3) to Fix(
+                hiddenObjects = jsSetOf(
+                    "s_n_0_8_1_iqrqjj",
+                    "s_i_0_b5_1_is7ajh",
+                    "s_n_0_24_1_in5ce2",
+                    "s_n_0_u_3_im4944",
+                    "s_n_0_1b_2_im4945",
+                    "s_n_0_2b_1_iktmat",
+                    "s_n_0_3c_1_iksavp",
+                    "s_n_0_31_1_ijhyzw",
+                    "s_n_0_2i_3_ik3g7o",
+                    "s_n_0_39_1_ix3ls0",
+                    "s_n_0_37_1_ix3nxi",
+                    "s_n_0_8x_1_iw2lqw",
+                    "s_n_0_8w_1_ivx9ro",
+                    "s_n_0_2c_1_itkfue",
+                    "s_n_0_2u_1_iuilbk",
+                    "s_n_0_30_1_ivmffx",
+                    "s_n_0_2o_1_iu42tg",
+                    "s_n_0_1u_1_ipk1qq",
+                    "s_n_0_3i_1_iuz9mq",
+                    "s_n_0_36_1_itm5fi",
+                    "s_n_0_2o_1_ircjgr",
+                    "s_n_0_3i_1_iurb4o",
+                    "s_n_0_22_1_ii9035",
+                    "s_n_0_2i_3_iiqupy",
+                ),
+            ),
+            // Cave 2
+            Pair(Episode.I, 4) to Fix(
+                hiddenObjects = jsSetOf(
+                    "s_n_0_4j_1_irf90i",
+                    "s_n_0_5i_1_iqqrft",
+                    "s_n_0_g_1_iipv9r",
+                    "s_n_0_c_1_ihboen",
+                ),
+            ),
+            // Cave 3
+            Pair(Episode.I, 5) to Fix(
+                hiddenObjects = jsSetOf(
+                    "s_n_0_2o_5_inun1c",
+                    "s_n_0_5y_2_ipyair",
+                ),
+            ),
+            // Mine 1
+            Pair(Episode.I, 6) to Fix(
+                hiddenObjects = jsSetOf(
+                    "s_n_0_2e_2_iqfpg8",
+                    "s_n_0_d_1_iruof6",
+                    "s_n_0_o_1_im9ta5",
+                    "s_n_0_18_3_im1kwg",
+                ),
+            ),
             // Mine 2
-            Pair(Episode.I, 7) to setOf(0, 1, 7, 8, 17, 23, 56, 57, 58, 59, 60, 83),
+            Pair(Episode.I, 7) to Fix(
+                renderOnTopTextures = jsSetOf(0, 1, 7, 8, 17, 23, 56, 57, 58, 59, 60, 83),
+            ),
             // Ruins 1
-            Pair(Episode.I, 8) to setOf(1, 21, 22, 27, 28, 43, 51, 59, 70, 72, 75),
+            Pair(Episode.I, 8) to Fix(
+                renderOnTopTextures = jsSetOf(1, 21, 22, 27, 28, 43, 51, 59, 70, 72, 75),
+                hiddenObjects = jsSetOf(
+                    "s_n_0_2p_4_iohs6r",
+                    "s_n_0_2q_4_iohs6r",
+                    "s_m_0_l_1_io448k",
+                ),
+            ),
+            // Ruins 2
+            Pair(Episode.I, 9) to Fix(
+                hiddenObjects = jsSetOf(
+                    "s_m_0_l_1_io448k",
+                ),
+            ),
             // Lab
-            Pair(Episode.II, 0) to setOf(36, 37, 38, 48, 60, 67, 79, 80),
+            Pair(Episode.II, 0) to Fix(
+                renderOnTopTextures = jsSetOf(36, 37, 38, 48, 60, 67, 79, 80),
+            ),
+            // VR Spaceship Alpha
+            Pair(Episode.II, 3) to Fix(
+                renderOnTopTextures = jsSetOf(7, 59),
+                hiddenObjects = jsSetOf(
+                    "s_l_0_45_5_ing07n",
+                    "s_n_0_45_5_ing07k",
+                    "s_n_0_g2_b_im2en1",
+                    "s_n_0_3j_1_irr4qe",
+                    "s_n_0_bp_8_irbqmy",
+                    "s_n_0_4h_1_irkudv",
+                    "s_n_0_4g_1_irkudv",
+                    "s_n_0_l_1_ijtl6r",
+                    "s_n_0_l_1_ijtl6u",
+                    "s_n_0_1s_1_imgj8o",
+                    "s_n_0_r_1_ijua1b",
+                    "s_n_0_g0_c_ilpett",
+                    "s_n_0_16_1_igxq22",
+                    "s_n_0_1c_1_imgj8o",
+                    "s_n_0_1c_1_imgj8p",
+                    "s_n_0_1u_1_imgj8o",
+                    "s_n_0_1u_1_imgj8p",
+                    "s_n_0_20_1_im13wb",
+                    "s_n_0_12_1_ilsbgy",
+                    "s_n_0_8_1_ihmjxh",
+                    "s_n_0_1u_1_imv5rn",
+                    "s_i_0_2d_4_ir3kzk",
+                    "s_g_0_2d_4_ir3kzk",
+                    "s_n_0_1t_1_imgj8o",
+                    "s_n_0_l_1_ijoqlv",
+                    "s_m_0_c_1_iayi9w",
+                    "s_k_0_c_1_iayi9w",
+                    "s_n_0_gl_8_imtj35",
+                    "s_n_0_gc_8_imtj35",
+                    "s_n_0_g_1_ildjm9",
+                ),
+            ),
             // Central Control Area
-            Pair(Episode.II, 5) to (0..59).toSet() + setOf(69, 77),
-        )
+            Pair(Episode.II, 5) to Fix(
+                renderOnTopTextures = jsSetOf(*((0..59).toSet() + setOf(69, 77)).toTypedArray()),
+            ),
+            // Jungle Area East
+            Pair(Episode.II, 6) to Fix(
+                renderOnTopTextures = jsSetOf(0, 1, 2, 18, 21, 24),
+            ),
+        ).also {
+            // VR Spaceship Beta = VR Spaceship Alpha
+            it[Pair(Episode.II, 4)] = it[Pair(Episode.II, 3)]!!
+        }
 
         private val raycaster = Raycaster()
         private val tmpVec = Vector3()

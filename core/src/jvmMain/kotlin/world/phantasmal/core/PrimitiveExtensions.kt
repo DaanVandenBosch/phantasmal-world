@@ -8,3 +8,5 @@ import java.lang.Float.intBitsToFloat
 actual fun Int.reinterpretAsFloat(): Float = intBitsToFloat(this)
 
 actual fun Float.reinterpretAsInt(): Int = floatToIntBits(this)
+
+actual fun Float.reinterpretAsUInt(): UInt = reinterpretAsInt().toUInt()

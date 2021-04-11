@@ -4,10 +4,7 @@ import mu.KotlinLogging
 import org.khronos.webgl.Float32Array
 import org.khronos.webgl.Uint16Array
 import world.phantasmal.core.*
-import world.phantasmal.lib.fileFormats.CollisionGeometry
-import world.phantasmal.lib.fileFormats.CollisionTriangle
-import world.phantasmal.lib.fileFormats.RenderGeometry
-import world.phantasmal.lib.fileFormats.RenderSection
+import world.phantasmal.lib.fileFormats.*
 import world.phantasmal.lib.fileFormats.ninja.*
 import world.phantasmal.web.core.dot
 import world.phantasmal.web.core.toQuaternion
@@ -76,6 +73,11 @@ private val tmpNormal = Vector3()
 private val tmpVec = Vector3()
 private val tmpNormalMatrix = Matrix3()
 
+interface AreaObjectUserData {
+    var sectionId: Int
+    var areaObject: AreaObject
+}
+
 fun ninjaObjectToMesh(
     ninjaObject: NinjaObject<*, *>,
     textures: List<XvrTexture?>,
@@ -121,24 +123,36 @@ fun ninjaObjectToMeshBuilder(
 }
 
 fun renderGeometryToGroup(
-    renderGeometry: RenderGeometry,
+    renderGeometry: AreaGeometry,
     textures: List<XvrTexture?>,
-    processMesh: (RenderSection, XjObject, Mesh) -> Unit = { _, _, _ -> },
+    processMesh: (AreaSection, AreaObject, Mesh) -> Unit = { _, _, _ -> },
 ): Group {
     val group = Group()
     val textureCache = emptyJsMap<Int, Texture?>()
     val meshCache = emptyJsMap<XjObject, Mesh>()
 
-    for ((i, section) in renderGeometry.sections.withIndex()) {
-        for (xjObj in section.objects) {
-            group.add(xjObjectToMesh(
-                textures, textureCache, meshCache, xjObj, i, section, processMesh,
+    for ((sectionIndex, section) in renderGeometry.sections.withIndex()) {
+        for (areaObj in section.objects) {
+            group.add(areaObjectToMesh(
+                textures,
+                textureCache,
+                meshCache,
+                section,
+                sectionIndex,
+                areaObj,
+                processMesh,
             ))
         }
 
-        for (xjObj in section.animatedObjects) {
-            group.add(xjObjectToMesh(
-                textures, textureCache, meshCache, xjObj, i, section, processMesh,
+        for (areaObj in section.animatedObjects) {
+            group.add(areaObjectToMesh(
+                textures,
+                textureCache,
+                meshCache,
+                section,
+                sectionIndex,
+                areaObj,
+                processMesh,
             ))
         }
     }
@@ -146,41 +160,83 @@ fun renderGeometryToGroup(
     return group
 }
 
-private fun xjObjectToMesh(
+/**
+ * Calculates a fingerprint that can be used to match duplicated [AreaObject]s across sections, area
+ * variants and even areas.
+ */
+fun AreaObject.fingerPrint(): String =
+    buildString {
+        append(if (this@fingerPrint is AreaObject.Animated) 'a' else 's')
+
+        append('_')
+
+        var evalFlags = 0
+        var childCount = 0
+        var vertCount = 0
+        var meshCount = 0
+        var radius = 0f
+
+        fun recurse(xjObject: XjObject) {
+            evalFlags = evalFlags or xjObject.evaluationFlags.bits
+            childCount += xjObject.children.size
+            vertCount += xjObject.model?.vertices?.size ?: 0
+            meshCount += xjObject.model?.meshes?.size ?: 0
+            radius += xjObject.model?.collisionSphereRadius ?: 0f
+            xjObject.children.forEach(::recurse)
+        }
+
+        recurse(xjObject)
+
+        append(evalFlags.toString(36))
+        append('_')
+        append(childCount.toString(36))
+        append('_')
+        append(vertCount.toString(36))
+        append('_')
+        append(meshCount.toString(36))
+        append('_')
+        append(radius.reinterpretAsUInt().toString(36))
+    }
+
+private fun areaObjectToMesh(
     textures: List<XvrTexture?>,
     textureCache: JsMap<Int, Texture?>,
     meshCache: JsMap<XjObject, Mesh>,
-    xjObj: XjObject,
-    index: Int,
-    section: RenderSection,
-    processMesh: (RenderSection, XjObject, Mesh) -> Unit,
+    section: AreaSection,
+    sectionIndex: Int,
+    areaObj: AreaObject,
+    processMesh: (AreaSection, AreaObject, Mesh) -> Unit,
 ): Mesh {
-    var mesh = meshCache.get(xjObj)
+    var mesh = meshCache.get(areaObj.xjObject)
 
     if (mesh == null) {
         val builder = MeshBuilder(textures, textureCache)
-        ninjaObjectToMeshBuilder(xjObj, builder)
+        ninjaObjectToMeshBuilder(areaObj.xjObject, builder)
 
         builder.defaultMaterial(MeshLambertMaterial(obj {
-            color = Color().setHSL((index % 7) / 7.0, 1.0, .5)
+            color = Color().setHSL((sectionIndex % 7) / 7.0, 1.0, .5)
             transparent = true
             opacity = .5
             side = DoubleSide
         }))
 
         mesh = builder.buildMesh(boundingVolumes = true)
-        meshCache.set(xjObj, mesh)
+        meshCache.set(areaObj.xjObject, mesh)
     } else {
         // If we already have a mesh for this XjObject, make a copy and reuse the existing buffer
         // geometry and materials.
         mesh = Mesh(mesh.geometry, mesh.material.unsafeCast<Array<Material>>())
     }
 
+    val userData = mesh.userData.unsafeCast<AreaObjectUserData>()
+    userData.sectionId = section.id
+    userData.areaObject = areaObj
+
     mesh.position.setFromVec3(section.position)
     mesh.rotation.setFromVec3(section.rotation)
     mesh.updateMatrixWorld()
 
-    processMesh(section, xjObj, mesh)
+    processMesh(section, areaObj, mesh)
 
     return mesh
 }

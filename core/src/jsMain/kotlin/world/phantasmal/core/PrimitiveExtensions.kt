@@ -14,3 +14,8 @@ actual fun Float.reinterpretAsInt(): Int {
     dataView.setFloat32(0, this)
     return dataView.getInt32(0)
 }
+
+actual fun Float.reinterpretAsUInt(): UInt {
+    dataView.setFloat32(0, this)
+    return dataView.getUint32(0).toUInt()
+}

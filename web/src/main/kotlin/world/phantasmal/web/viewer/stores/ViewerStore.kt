@@ -3,8 +3,8 @@ package world.phantasmal.web.viewer.stores
 import kotlinx.coroutines.launch
 import mu.KotlinLogging
 import world.phantasmal.core.enumValueOfOrNull
+import world.phantasmal.lib.fileFormats.AreaGeometry
 import world.phantasmal.lib.fileFormats.CollisionGeometry
-import world.phantasmal.lib.fileFormats.RenderGeometry
 import world.phantasmal.lib.fileFormats.ninja.NinjaObject
 import world.phantasmal.lib.fileFormats.ninja.NjMotion
 import world.phantasmal.lib.fileFormats.ninja.NjObject
@@ -29,7 +29,7 @@ private val logger = KotlinLogging.logger {}
 
 sealed class NinjaGeometry {
     class Object(val obj: NinjaObject<*, *>) : NinjaGeometry()
-    class Render(val geometry: RenderGeometry) : NinjaGeometry()
+    class Render(val geometry: AreaGeometry) : NinjaGeometry()
     class Collision(val geometry: CollisionGeometry) : NinjaGeometry()
 }
 

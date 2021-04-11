@@ -101,13 +101,13 @@ private fun parseAction(cursor: Cursor): NjMotion {
     return parseMotion(cursor, v2Format = false)
 }
 
-private fun parseMotion(cursor: Cursor, v2Format: Boolean): NjMotion {
+fun parseMotion(cursor: Cursor, v2Format: Boolean): NjMotion {
     // For v2, try to determine the end of the mData offset table by finding the lowest mDataOffset
     // value. This is usually the value that the first mDataOffset points to. This value is assumed
     // to be the end of the mDataOffset table.
     var mDataTableEnd = if (v2Format) cursor.size else cursor.position
 
-    // Points to an array the size of boneCount.
+    // Points to an array with an element per bone.
     val mDataTableOffset = cursor.int()
     val frameCount = cursor.int()
     val type = cursor.uShort().toInt()

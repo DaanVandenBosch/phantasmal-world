@@ -1,40 +1,69 @@
 package world.phantasmal.lib.fileFormats
 
+import mu.KotlinLogging
 import world.phantasmal.core.isBitSet
 import world.phantasmal.lib.cursor.Cursor
-import world.phantasmal.lib.fileFormats.ninja.XjObject
-import world.phantasmal.lib.fileFormats.ninja.angleToRad
-import world.phantasmal.lib.fileFormats.ninja.parseXjObject
+import world.phantasmal.lib.fileFormats.ninja.*
 
-class RenderGeometry(
-    val sections: List<RenderSection>,
+private val logger = KotlinLogging.logger {}
+
+class AreaGeometry(
+    val sections: List<AreaSection>,
 )
 
-class RenderSection(
+class AreaSection(
     val id: Int,
     val position: Vec3,
     val rotation: Vec3,
-    val objects: List<XjObject>,
-    val animatedObjects: List<XjObject>,
+    val radius: Float,
+    val objects: List<AreaObject.Simple>,
+    val animatedObjects: List<AreaObject.Animated>,
 )
 
-fun parseAreaRenderGeometry(cursor: Cursor): RenderGeometry {
-    val sections = mutableListOf<RenderSection>()
+sealed class AreaObject {
+    abstract val offset: Int
+    abstract val xjObject: XjObject
+    abstract val flags: Int
 
-    cursor.seekEnd(16)
+    class Simple(
+        override val offset: Int,
+        override val xjObject: XjObject,
+        override val flags: Int,
+    ) : AreaObject()
 
+    class Animated(
+        override val offset: Int,
+        override val xjObject: XjObject,
+        val njMotion: NjMotion,
+        val speed: Float,
+        override val flags: Int,
+    ) : AreaObject()
+}
+
+fun parseAreaRenderGeometry(cursor: Cursor): AreaGeometry {
     val dataOffset = parseRel(cursor, parseIndex = false).dataOffset
+
     cursor.seekStart(dataOffset)
-    cursor.seek(8) // Format "fmt2" in UTF-16.
-    val sectionCount = cursor.int()
+    val format = cursor.stringAscii(maxByteLength = 4, nullTerminated = true, dropRemaining = true)
+
+    if (format != "fmt2") {
+        logger.warn { """Expected format to be "fmt2" but was "$format".""" }
+    }
+
     cursor.seek(4)
-    val sectionTableOffset = cursor.int()
-    // val textureNameOffset = cursor.int()
+    val sectionsCount = cursor.int()
+    cursor.seek(4)
+    val sectionsOffset = cursor.int()
 
-    val xjObjectCache = mutableMapOf<Int, List<XjObject>>()
+    val sections = mutableListOf<AreaSection>()
 
-    for (i in 0 until sectionCount) {
-        cursor.seekStart(sectionTableOffset + 52 * i)
+    // Cache keys are offsets.
+    val simpleAreaObjectCache = mutableMapOf<Int, List<AreaObject.Simple>>()
+    val animatedAreaObjectCache = mutableMapOf<Int, List<AreaObject.Animated>>()
+    val njMotionCache = mutableMapOf<Int, NjMotion>()
+
+    for (i in 0 until sectionsCount) {
+        cursor.seekStart(sectionsOffset + 52 * i)
 
         val sectionId = cursor.int()
         val sectionPosition = cursor.vec3Float()
@@ -44,67 +73,110 @@ fun parseAreaRenderGeometry(cursor: Cursor): RenderGeometry {
             angleToRad(cursor.int()),
         )
 
-        cursor.seek(4) // Radius?
+        val radius = cursor.float()
 
-        val simpleGeometryOffsetTableOffset = cursor.int()
-        val animatedGeometryOffsetTableOffset = cursor.int()
-        val simpleGeometryOffsetCount = cursor.int()
-        val animatedGeometryOffsetCount = cursor.int()
+        val simpleAreaObjectsOffset = cursor.int()
+        val animatedAreaObjectsOffset = cursor.int()
+        val simpleAreaObjectsCount = cursor.int()
+        val animatedAreaObjectsCount = cursor.int()
         // Ignore the last 4 bytes.
 
-        val objects = parseGeometryTable(
-            cursor,
-            xjObjectCache,
-            simpleGeometryOffsetTableOffset,
-            simpleGeometryOffsetCount,
-            animated = false,
-        )
+//        println("section $sectionId (index $i), simple geom at $simpleGeometryTableOffset, animated geom at $animatedGeometryTableOffset")
 
-        val animatedObjects = parseGeometryTable(
-            cursor,
-            xjObjectCache,
-            animatedGeometryOffsetTableOffset,
-            animatedGeometryOffsetCount,
-            animated = true,
-        )
+        @Suppress("UNCHECKED_CAST")
+        val simpleObjects = simpleAreaObjectCache.getOrPut(simpleAreaObjectsOffset) {
+            parseAreaObjects(
+                cursor,
+                njMotionCache,
+                simpleAreaObjectsOffset,
+                simpleAreaObjectsCount,
+                animated = false,
+            ) as List<AreaObject.Simple>
+        }
 
-        sections.add(RenderSection(
+        @Suppress("UNCHECKED_CAST")
+        val animatedObjects = animatedAreaObjectCache.getOrPut(animatedAreaObjectsOffset) {
+            parseAreaObjects(
+                cursor,
+                njMotionCache,
+                animatedAreaObjectsOffset,
+                animatedAreaObjectsCount,
+                animated = true,
+            ) as List<AreaObject.Animated>
+        }
+
+        sections.add(AreaSection(
             sectionId,
             sectionPosition,
             sectionRotation,
-            objects,
+            radius,
+            simpleObjects,
             animatedObjects,
         ))
     }
 
-    return RenderGeometry(sections)
+    return AreaGeometry(sections)
 }
 
-private fun parseGeometryTable(
+private fun parseAreaObjects(
     cursor: Cursor,
-    xjObjectCache: MutableMap<Int, List<XjObject>>,
-    tableOffset: Int,
-    tableEntryCount: Int,
+    njMotionCache: MutableMap<Int, NjMotion>,
+    offset: Int,
+    count: Int,
     animated: Boolean,
-): List<XjObject> {
-    val tableEntrySize = if (animated) 32 else 16
-    val objects = mutableListOf<XjObject>()
+): List<AreaObject> {
+    val objectSize = if (animated) 32 else 16
+    val objects = mutableListOf<AreaObject>()
 
-    for (i in 0 until tableEntryCount) {
-        cursor.seekStart(tableOffset + tableEntrySize * i)
+    for (i in 0 until count) {
+        val objectOffset = offset + objectSize * i
+        cursor.seekStart(objectOffset)
 
-        var offset = cursor.int()
-        cursor.seek(8)
+        var xjObjectOffset = cursor.int()
+        val speed: Float?
+        val njMotionOffset: Int?
+
+        if (animated) {
+            njMotionOffset = cursor.int()
+            cursor.seek(8)
+            speed = cursor.float()
+        } else {
+            speed = null
+            njMotionOffset = null
+        }
+
+        val slideTextureIdOffset = cursor.int()
+        val swapTextureIdOffset = cursor.int()
+
         val flags = cursor.int()
 
         if (flags.isBitSet(2)) {
-            offset = cursor.seekStart(offset).int()
+            xjObjectOffset = cursor.seekStart(xjObjectOffset).int()
         }
 
-        objects.addAll(
-            xjObjectCache.getOrPut(offset) {
-                cursor.seekStart(offset)
-                parseXjObject(cursor)
+        cursor.seekStart(xjObjectOffset)
+        val xjObjects = parseXjObject(cursor)
+
+        if (xjObjects.size > 1) {
+            logger.warn {
+                "Expected exactly one xjObject at ${xjObjectOffset}, got ${xjObjects.size}."
+            }
+        }
+
+        val xjObject = xjObjects.first()
+
+        val njMotion = njMotionOffset?.let {
+            njMotionCache.getOrPut(njMotionOffset) {
+                cursor.seekStart(njMotionOffset)
+                parseMotion(cursor, v2Format = false)
+            }
+        }
+
+        objects.add(
+            if (animated) {
+                AreaObject.Animated(objectOffset, xjObject, njMotion!!, speed!!, flags)
+            } else {
+                AreaObject.Simple(objectOffset, xjObject, flags)
             }
         )
     }

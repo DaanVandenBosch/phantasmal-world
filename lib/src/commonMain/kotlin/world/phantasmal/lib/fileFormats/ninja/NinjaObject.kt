@@ -1,9 +1,12 @@
 package world.phantasmal.lib.fileFormats.ninja
 
+import world.phantasmal.core.isBitSet
+import world.phantasmal.core.setBit
 import world.phantasmal.lib.fileFormats.Vec2
 import world.phantasmal.lib.fileFormats.Vec3
 
 sealed class NinjaObject<Model : NinjaModel, Self : NinjaObject<Model, Self>>(
+    val offset: Int,
     val evaluationFlags: NinjaEvaluationFlags,
     val model: Model?,
     val position: Vec3,
@@ -57,6 +60,7 @@ sealed class NinjaObject<Model : NinjaModel, Self : NinjaObject<Model, Self>>(
 }
 
 class NjObject(
+    offset: Int,
     evaluationFlags: NinjaEvaluationFlags,
     model: NjModel?,
     position: Vec3,
@@ -64,6 +68,7 @@ class NjObject(
     scale: Vec3,
     children: MutableList<NjObject>,
 ) : NinjaObject<NjModel, NjObject>(
+    offset,
     evaluationFlags,
     model,
     position,
@@ -73,6 +78,7 @@ class NjObject(
 )
 
 class XjObject(
+    offset: Int,
     evaluationFlags: NinjaEvaluationFlags,
     model: XjModel?,
     position: Vec3,
@@ -80,6 +86,7 @@ class XjObject(
     scale: Vec3,
     children: MutableList<XjObject>,
 ) : NinjaObject<XjModel, XjObject>(
+    offset,
     evaluationFlags,
     model,
     position,
@@ -88,18 +95,60 @@ class XjObject(
     children,
 )
 
-class NinjaEvaluationFlags(
-    var noTranslate: Boolean,
-    var noRotate: Boolean,
-    var noScale: Boolean,
-    var hidden: Boolean,
-    var breakChildTrace: Boolean,
-    var zxyRotationOrder: Boolean,
-    var skip: Boolean,
-    var shapeSkip: Boolean,
-    val clip: Boolean,
-    val modifier: Boolean,
-)
+class NinjaEvaluationFlags(bits: Int) {
+    var bits: Int = bits
+        private set
+    var noTranslate: Boolean
+        get() = bits.isBitSet(0)
+        set(value) {
+            bits = bits.setBit(0, value)
+        }
+    var noRotate: Boolean
+        get() = bits.isBitSet(1)
+        set(value) {
+            bits = bits.setBit(1, value)
+        }
+    var noScale: Boolean
+        get() = bits.isBitSet(2)
+        set(value) {
+            bits = bits.setBit(2, value)
+        }
+    var hidden: Boolean
+        get() = bits.isBitSet(3)
+        set(value) {
+            bits = bits.setBit(3, value)
+        }
+    var breakChildTrace: Boolean
+        get() = bits.isBitSet(4)
+        set(value) {
+            bits = bits.setBit(4, value)
+        }
+    var zxyRotationOrder: Boolean
+        get() = bits.isBitSet(5)
+        set(value) {
+            bits = bits.setBit(5, value)
+        }
+    var skip: Boolean
+        get() = bits.isBitSet(6)
+        set(value) {
+            bits = bits.setBit(6, value)
+        }
+    var shapeSkip: Boolean
+        get() = bits.isBitSet(7)
+        set(value) {
+            bits = bits.setBit(7, value)
+        }
+    var clip: Boolean
+        get() = bits.isBitSet(8)
+        set(value) {
+            bits = bits.setBit(8, value)
+        }
+    var modifier: Boolean
+        get() = bits.isBitSet(9)
+        set(value) {
+            bits = bits.setBit(9, value)
+        }
+}
 
 sealed class NinjaModel
 

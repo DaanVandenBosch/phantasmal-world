@@ -3,7 +3,6 @@ package world.phantasmal.lib.fileFormats.ninja
 import world.phantasmal.core.Failure
 import world.phantasmal.core.PwResult
 import world.phantasmal.core.Success
-import world.phantasmal.core.isBitSet
 import world.phantasmal.lib.cursor.Cursor
 import world.phantasmal.lib.fileFormats.Vec3
 import world.phantasmal.lib.fileFormats.parseIff
@@ -21,6 +20,7 @@ fun parseXjObject(cursor: Cursor): List<XjObject> =
     parseSiblingObjects(cursor, { c, _ -> parseXjModel(c) }, ::XjObject, Unit)
 
 private typealias CreateObject<Model, Obj> = (
+    offset: Int,
     evaluationFlags: NinjaEvaluationFlags,
     model: Model?,
     position: Vec3,
@@ -57,17 +57,8 @@ private fun <Model : NinjaModel, Obj : NinjaObject<Model, Obj>, Context> parseSi
     createObject: CreateObject<Model, Obj>,
     context: Context,
 ): MutableList<Obj> {
+    val offset = cursor.position
     val evalFlags = cursor.int()
-    val noTranslate = evalFlags.isBitSet(0)
-    val noRotate = evalFlags.isBitSet(1)
-    val noScale = evalFlags.isBitSet(2)
-    val hidden = evalFlags.isBitSet(3)
-    val breakChildTrace = evalFlags.isBitSet(4)
-    val zxyRotationOrder = evalFlags.isBitSet(5)
-    val skip = evalFlags.isBitSet(6)
-    val shapeSkip = evalFlags.isBitSet(7)
-    val clip = evalFlags.isBitSet(8)
-    val modifier = evalFlags.isBitSet(9)
 
     val modelOffset = cursor.int()
     val pos = cursor.vec3Float()
@@ -102,18 +93,8 @@ private fun <Model : NinjaModel, Obj : NinjaObject<Model, Obj>, Context> parseSi
     }
 
     val obj = createObject(
-        NinjaEvaluationFlags(
-            noTranslate,
-            noRotate,
-            noScale,
-            hidden,
-            breakChildTrace,
-            zxyRotationOrder,
-            skip,
-            shapeSkip,
-            clip,
-            modifier,
-        ),
+        offset,
+        NinjaEvaluationFlags(evalFlags),
         model,
         pos,
         rotation,
