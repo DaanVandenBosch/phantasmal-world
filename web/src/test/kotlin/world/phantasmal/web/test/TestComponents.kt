@@ -63,7 +63,7 @@ class TestComponents(private val ctx: TestContext) {
     var areaStore: AreaStore by default { AreaStore(areaAssetLoader) }
 
     var questEditorStore: QuestEditorStore by default {
-        QuestEditorStore(uiStore, areaStore, undoManager)
+        QuestEditorStore(questLoader, uiStore, areaStore, undoManager)
     }
 
     // Rendering
