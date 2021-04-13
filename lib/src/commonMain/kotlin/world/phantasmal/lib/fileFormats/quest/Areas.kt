@@ -74,7 +74,7 @@ private val AREAS by lazy {
 
     @Suppress("UNUSED_CHANGED_VALUE")
     val ep4 = listOf(
-        createArea(0, "Pioneer II (Ep. IV)", order++, 1),
+        createArea(0, "Pioneer II", order++, 1),
         createArea(1, "Crater Route 1", order++, 1),
         createArea(2, "Crater Route 2", order++, 1),
         createArea(3, "Crater Route 3", order++, 1),

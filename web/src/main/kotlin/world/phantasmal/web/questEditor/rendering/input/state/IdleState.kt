@@ -1,6 +1,7 @@
 package world.phantasmal.web.questEditor.rendering.input.state
 
 import world.phantasmal.web.core.minus
+import world.phantasmal.web.externals.three.Mesh
 import world.phantasmal.web.externals.three.Vector2
 import world.phantasmal.web.externals.three.Vector3
 import world.phantasmal.web.questEditor.models.QuestEntityModel
@@ -85,6 +86,7 @@ class IdleState(
                     pickEntity(event.pointerDevicePosition) == null
                 ) {
                     ctx.setSelectedEntity(null)
+                    pickAndHighlightMesh()
                 }
             }
 
@@ -173,6 +175,19 @@ class IdleState(
         }
 
         return Pick(entity, grabOffset, dragAdjust)
+    }
+
+    private fun pickAndHighlightMesh() {
+        if (ctx.devMode.value) {
+            val intersection = ctx.intersectObject(
+                pointerDevicePosition,
+                ctx.renderContext.renderGeometry,
+            ) { it.`object`.visible }
+
+            ctx.setHighlightedMesh(intersection?.`object` as Mesh?)
+        } else {
+            ctx.setHighlightedMesh(null)
+        }
     }
 
     private class Pick(

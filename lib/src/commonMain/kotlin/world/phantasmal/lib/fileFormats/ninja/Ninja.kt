@@ -50,7 +50,8 @@ private fun <Model : NinjaModel, Obj : NinjaObject<Model, Obj>, Context> parseNi
         }
     }
 
-// TODO: cache model and object offsets so we don't reparse the same data.
+// We don't need to cache references to other objects or models because in practice the graph is
+// a tree, i.e. no two objects point to the same object or model.
 private fun <Model : NinjaModel, Obj : NinjaObject<Model, Obj>, Context> parseSiblingObjects(
     cursor: Cursor,
     parseModel: (cursor: Cursor, context: Context) -> Model,

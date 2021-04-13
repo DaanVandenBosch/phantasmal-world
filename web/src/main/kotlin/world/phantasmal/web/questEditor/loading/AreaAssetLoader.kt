@@ -209,7 +209,6 @@ class AreaAssetLoader(private val assetLoader: AssetLoader) : DisposableContaine
     ): Pair<Object3D, List<SectionModel>> {
         val fix = MANUAL_FIXES[Pair(episode, areaVariant.area.id)]
         val sections = mutableMapOf<Int, SectionModel>()
-        console.log(renderGeometry)
 
         val group =
             renderGeometryToGroup(renderGeometry, textures) { renderSection, areaObj, mesh ->
@@ -370,7 +369,33 @@ class AreaAssetLoader(private val assetLoader: AssetLoader) : DisposableContaine
             // Pioneer 2
             Pair(Episode.I, 0) to Fix(
                 renderOnTopTextures = jsSetOf(
-                    70, 71, 72, 126, 127, 155, 156, 198, 230, 231, 232, 233, 234,
+                    20,
+                    40,
+                    41,
+                    67,
+                    70,
+                    71,
+                    72,
+                    93,
+                    94,
+                    96,
+                    105,
+                    120,
+                    121,
+                    122,
+                    155,
+                    156,
+                    170,
+                    198,
+                    218,
+                    220,
+                    221,
+                    230,
+                    231,
+                    232,
+                    233,
+                    234,
+                    243,
                 ),
                 hiddenObjects = jsSetOf(
                     "s_m_0_6a_d_iu5sg6",
@@ -404,14 +429,39 @@ class AreaAssetLoader(private val assetLoader: AssetLoader) : DisposableContaine
                     "s_m_0_4_1_is53va",
                     "s_m_0_3l_6_igzvga",
                     "s_n_0_en_3_iiawrz",
+                    "a_k_0_1k_3_ihdi9s",
                 ),
             ),
             // Forest 1
             Pair(Episode.I, 1) to Fix(
-                renderOnTopTextures = jsSetOf(12, 41),
+                renderOnTopTextures = jsSetOf(12, 24, 41),
+                // Hiding trees and their shadows, doesn't seem to improve things.
+//                hiddenObjects = jsSetOf(
+//                    // Trees
+//                    "s_n_0_2i_2_im1teq",
+//                    "s_n_0_2i_2_im1tep",
+//                    // Baked-in shadows.
+//                    "s_n_0_2n_1_irv6ha",
+//                    "s_n_0_2g_1_iqvdru",
+//                    "s_n_0_2p_1_irv6h6",
+//                    "s_n_0_47_1_iqve55",
+//                    "s_n_0_3p_1_ip2uvk",
+//                    "s_n_0_1r_1_iqve64",
+//                    "s_n_0_1f_1_irv6h0",
+//                    "s_n_0_1o_1_iqvdnv",
+//                    "s_n_0_28_1_iqvdw5",
+//                    "s_n_0_2b_1_iqvdrj",
+//                    "s_n_0_22_1_ip2w4r",
+//                    "s_n_0_3i_1_iqvdxp",
+//                    "s_n_0_33_1_iqve4e",
+//                    "s_n_0_2i_1_ip2v47",
+//                    "s_n_0_3a_1_ip2ugm",
+//                    "s_n_0_39_1_irv672",
+//                ),
             ),
             // Cave 1
             Pair(Episode.I, 3) to Fix(
+                renderOnTopTextures = jsSetOf(89),
                 hiddenObjects = jsSetOf(
                     "s_n_0_8_1_iqrqjj",
                     "s_i_0_b5_1_is7ajh",
@@ -437,6 +487,14 @@ class AreaAssetLoader(private val assetLoader: AssetLoader) : DisposableContaine
                     "s_n_0_3i_1_iurb4o",
                     "s_n_0_22_1_ii9035",
                     "s_n_0_2i_3_iiqupy",
+                    "s_n_0_s_3_im3sg2",
+                    "s_n_0_o_2_im3v5x",
+                    "s_n_0_52_2_ilqxdf",
+                    "s_n_0_1g_3_im5sui",
+                    "s_n_0_15_2_im5sum",
+                    "s_n_0_6l_1_im1ktx",
+                    "s_n_0_3v_1_ikzchf",
+                    "s_n_0_2i_3_ilfw56",
                 ),
             ),
             // Cave 2
@@ -530,10 +588,69 @@ class AreaAssetLoader(private val assetLoader: AssetLoader) : DisposableContaine
             // Jungle Area East
             Pair(Episode.II, 6) to Fix(
                 renderOnTopTextures = jsSetOf(0, 1, 2, 18, 21, 24),
+                hiddenObjects = jsSetOf(
+                    "a_m_0_1i_1_isf1hw",
+                    "a_m_0_1i_1_isfvf0",
+                    "a_m_0_1i_1_ise7ew",
+                    "a_m_0_1i_1_ishhj6",
+                    "a_m_0_1i_1_isiw4p",
+                    "a_m_0_1i_1_ishyp4",
+                    "a_m_0_1i_1_isewhg",
+                    "a_m_0_1i_1_isemhl",
+                    "a_m_0_1i_1_isiuce",
+                    "a_m_0_1i_1_isfvey",
+                    "a_m_0_1i_1_isgolp",
+                    "a_m_0_1i_1_iseg19",
+                    "a_m_0_1i_1_isdzut",
+                    "a_m_0_1i_1_isf0vs",
+                    "a_m_0_1i_1_ishrwm",
+                    "a_m_0_1i_1_isivaf",
+                    "a_m_0_1i_1_isf0vs",
+                    "a_m_0_1i_1_isfqe9",
+                ),
+            ),
+            // Subterranean Desert 1
+            Pair(Episode.IV, 6) to Fix(
+                renderOnTopTextures = jsSetOf(48, 50, 58, 66, 80, 81, 92, 93, 94, 99, 100, 103),
+                hiddenObjects = jsSetOf(
+                    "s_v_f_16u_b_j2s5tx",
+                    "s_v_d_84_f_j046sf",
+                    "s_v_1v_205_2n_jb17vl",
+                    "s_n_0_1s_1_iwnfqt",
+                    "s_n_0_g1_6_iovjxw",
+                    "s_v_d_z6_k_j1viu6",
+                    "s_n_0_do_4_ipdh8p",
+                    "s_v_c_7y_c_iu7yzc",
+                    "s_v_8_4a_8_ixe9km",
+                    "s_v_4_15_4_in60hf",
+                    "s_n_0_6_1_ihtf3l",
+                    "s_n_0_6_1_ikxbmr",
+                    "s_v_9_3e_9_itbo7o",
+                    "s_v_t_19k_r_iv3zbt",
+                    "s_v_a_2s_a_ix4iob",
+                    "s_v_b_37_b_iu5dp9",
+                    "s_v_6_5t_7_iqx2nn",
+                    "s_v_8_145_l_j0crhw",
+                    "s_n_0_6_1_ikk5cn",
+                    "s_v_5_15r_d_j2n06s",
+                    "s_v_p_8n_p_j1enrp",
+                    "s_v_b_p3_d_iu4vwf",
+                    "s_v_c_3z_c_ithfqt",
+                    "s_v_2_3g_2_itis48",
+                    "s_v_17_h3_13_j7o59x",
+                    "s_n_0_2t_1_iw2868",
+                    "s_v_5_k1_8_ir35lp",
+                    "s_v_h_7k_y_j5h3h2",
+                    "s_v_8_4d_8_irrw8y",
+                    "s_v_o_1qg_h_iyilpg", // Removes roof and walls but also some rocks in the middle.
+                    "s_v_10_14y_11_j0vhyd",
+                ),
             ),
         ).also {
             // VR Spaceship Beta = VR Spaceship Alpha
             it[Pair(Episode.II, 4)] = it[Pair(Episode.II, 3)]!!
+            // Ep. IV Pioneer II = Ep. I Pioneer II
+            it[Pair(Episode.IV, 0)] = it[Pair(Episode.I, 0)]!!
         }
 
         private val raycaster = Raycaster()

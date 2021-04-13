@@ -241,8 +241,8 @@ class UiStore(private val applicationUrl: ApplicationUrl) : Store() {
         val bindingParts = mutableListOf<String>()
 
         if (e.ctrlKey) bindingParts.add("Ctrl")
-        if (e.shiftKey) bindingParts.add("Shift")
         if (e.altKey) bindingParts.add("Alt")
+        if (e.shiftKey) bindingParts.add("Shift")
         bindingParts.add(e.key.toUpperCase())
 
         val binding = bindingParts.joinToString("-")

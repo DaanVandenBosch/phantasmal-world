@@ -22,6 +22,7 @@ class QuestEditorStore(
     private val areaStore: AreaStore,
     private val undoManager: UndoManager,
 ) : Store() {
+    private val _devMode = mutableVal(false)
     private val _currentQuest = mutableVal<QuestModel?>(null)
     private val _currentArea = mutableVal<AreaModel?>(null)
     private val _selectedEvent = mutableVal<QuestEventModel?>(null)
@@ -29,6 +30,8 @@ class QuestEditorStore(
     private val _selectedEntity = mutableVal<QuestEntityModel<*, *>?>(null)
     private val mainUndo = UndoStack(undoManager)
     private val _showCollisionGeometry = mutableVal(true)
+
+    val devMode: Val<Boolean> = _devMode
 
     val runner = QuestRunner()
     val currentQuest: Val<QuestModel?> = _currentQuest
@@ -55,6 +58,14 @@ class QuestEditorStore(
     val showCollisionGeometry: Val<Boolean> = _showCollisionGeometry
 
     init {
+        addDisposables(
+            uiStore.onGlobalKeyDown(PwToolType.QuestEditor, "Ctrl-Alt-Shift-D") {
+                _devMode.value = !_devMode.value
+
+                logger.info { "Dev mode ${if (devMode.value) "on" else "off"}." }
+            },
+        )
+
         observe(uiStore.currentTool) { tool ->
             if (tool == PwToolType.QuestEditor) {
                 makeMainUndoCurrent()

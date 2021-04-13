@@ -1,10 +1,15 @@
 package world.phantasmal.web.questEditor.rendering.input.state
 
+import mu.KotlinLogging
 import world.phantasmal.core.asJsArray
+import world.phantasmal.lib.fileFormats.ninja.XjObject
 import world.phantasmal.observable.value.Val
+import world.phantasmal.web.core.dot
 import world.phantasmal.web.core.minusAssign
 import world.phantasmal.web.core.plusAssign
 import world.phantasmal.web.core.rendering.OrbitalCameraInputManager
+import world.phantasmal.web.core.rendering.conversion.AreaObjectUserData
+import world.phantasmal.web.core.rendering.conversion.fingerPrint
 import world.phantasmal.web.externals.three.*
 import world.phantasmal.web.questEditor.actions.CreateEntityAction
 import world.phantasmal.web.questEditor.actions.DeleteEntityAction
@@ -17,11 +22,19 @@ import world.phantasmal.web.questEditor.stores.QuestEditorStore
 import kotlin.math.PI
 import kotlin.math.atan2
 
+private val logger = KotlinLogging.logger {}
+
 class StateContext(
     private val questEditorStore: QuestEditorStore,
     val renderContext: QuestRenderContext,
     val cameraInputManager: OrbitalCameraInputManager,
 ) {
+    /**
+     * Highlighted mesh with its original colors.
+     */
+    private var highlightedMesh: Pair<Mesh, List<Color>>? = null
+
+    val devMode: Val<Boolean> = questEditorStore.devMode
     val quest: Val<QuestModel?> = questEditorStore.currentQuest
     val area: Val<AreaModel?> = questEditorStore.currentArea
     val wave: Val<WaveModel?> = questEditorStore.selectedEvent.flatMapNull { it?.wave }
@@ -153,8 +166,8 @@ class StateContext(
 
             // Calculate the angle between the two vectors and rotate the entity around its y-axis
             // by that angle.
-            val cos = axisToGrab.dot(axisToPointer)
-            val sin = planeNormal.dot(axisToGrab.cross(axisToPointer))
+            val cos = axisToGrab dot axisToPointer
+            val sin = planeNormal dot axisToGrab.cross(axisToPointer)
             val angle = atan2(sin, cos)
 
             entity.setWorldRotation(
@@ -238,6 +251,51 @@ class StateContext(
         raycasterIntersections.asJsArray().splice(0)
         raycaster.intersectObject(obj3d, recursive = true, raycasterIntersections)
         return raycasterIntersections.find(predicate)
+    }
+
+    fun setHighlightedMesh(mesh: Mesh?) {
+        highlightedMesh?.let { (prevMesh, prevColors) ->
+            prevMesh.material.unsafeCast<Array<MeshBasicMaterial>>().forEachIndexed { i, mat ->
+                mat.color.set(prevColors[i])
+            }
+        }
+
+        highlightedMesh = null
+
+        if (mesh != null) {
+            logger.info {
+                val userData = mesh.userData.unsafeCast<AreaObjectUserData>()
+
+                val areaObj = userData.areaObject
+                val textureIds = mutableSetOf<Int>()
+
+                fun getAllTextureIds(xjObject: XjObject) {
+                    xjObject.model?.meshes?.forEach { it.material.textureId?.let(textureIds::add) }
+                    xjObject.children.forEach(::getAllTextureIds)
+                }
+
+                getAllTextureIds(areaObj.xjObject)
+
+                buildString {
+                    append("Section ")
+                    append(userData.sectionId)
+                    append(" (finger print: ")
+                    append(areaObj.fingerPrint())
+                    append(", texture IDs: ")
+                    textureIds.joinTo(this)
+                    append(')')
+                }
+            }
+
+            val origColors = mutableListOf<Color>()
+
+            mesh.material.unsafeCast<Array<MeshBasicMaterial>>().forEach {
+                origColors.add(it.color.clone())
+                it.color.set(0xB0FF00)
+            }
+
+            highlightedMesh = Pair(mesh, origColors)
+        }
     }
 
     private fun intersectPlane(

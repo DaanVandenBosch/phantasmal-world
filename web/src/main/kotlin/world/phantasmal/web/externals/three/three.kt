@@ -614,6 +614,7 @@ external class MeshBasicMaterial(
 
 external interface MeshLambertMaterialParameters : MaterialParameters {
     var color: Color
+    var map: Texture?
     var skinning: Boolean
 }
 
