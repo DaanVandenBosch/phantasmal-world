@@ -1,6 +1,9 @@
 package world.phantasmal.web.questEditor.rendering.input
 
+import kotlinx.browser.document
 import kotlinx.browser.window
+import org.w3c.dom.HTMLElement
+import org.w3c.dom.events.Event
 import org.w3c.dom.events.FocusEvent
 import org.w3c.dom.events.KeyboardEvent
 import org.w3c.dom.pointerevents.PointerEvent
@@ -30,6 +33,13 @@ class QuestInputManager(
     private var state: State
     private var onPointerUpListener: Disposable? = null
     private var onPointerMoveListener: Disposable? = null
+    private var contextMenuListener: Disposable? = null
+    private val pointerDragging: Boolean get() = onPointerUpListener != null
+
+    /**
+     * Prevents events from triggering while dragging the pointer.
+     */
+    private val pointerTrap = document.createElement("div") as HTMLElement
 
     private val cameraInputManager: OrbitalCameraInputManager
 
@@ -76,12 +86,26 @@ class QuestInputManager(
 
         observe(questEditorStore.selectedEntity) { returnToIdleState() }
         observe(questEditorStore.questEditingEnabled) { entityManipulationEnabled = it }
+
+        pointerTrap.className = "pw-quest-editor-input-manager-pointer-trap"
+        pointerTrap.hidden = true
+        pointerTrap.style.zIndex = "1000"
+        pointerTrap.style.position = "fixed"
+        pointerTrap.style.left = "0"
+        pointerTrap.style.top = "0"
+        pointerTrap.style.width = "100%"
+        pointerTrap.style.height = "100%"
+        pointerTrap.addEventListener("contextmenu", ::onContextMenu)
+
+        window.document.body?.appendChild(pointerTrap)
     }
 
     override fun dispose() {
         cameraInputManager.dispose()
         onPointerUpListener?.dispose()
         onPointerMoveListener?.dispose()
+        contextMenuListener?.dispose()
+        window.document.body?.removeChild(pointerTrap)
         super.dispose()
     }
 
@@ -120,6 +144,13 @@ class QuestInputManager(
         // Stop listening to canvas move events and start listening to window move events.
         onPointerMoveListener?.dispose()
         onPointerMoveListener = window.disposableListener("pointermove", ::onPointerMove)
+
+        pointerTrap.hidden = false
+        // Add this listener in addition to the pointer trap to avoid context menu from triggering
+        // when dragging and releasing the pointer in a different window.
+        if (contextMenuListener == null) {
+            contextMenuListener = window.disposableListener("contextmenu", ::onContextMenu)
+        }
     }
 
     private fun onPointerUp(e: PointerEvent) {
@@ -143,6 +174,14 @@ class QuestInputManager(
             onPointerMoveListener?.dispose()
             onPointerMoveListener =
                 renderContext.canvas.disposableListener("pointermove", ::onPointerMove)
+
+            window.setTimeout({
+                if (!pointerDragging) {
+                    pointerTrap.hidden = true
+                    contextMenuListener?.dispose()
+                    contextMenuListener = null
+                }
+            }, 0)
         }
     }
 
@@ -207,7 +246,15 @@ class QuestInputManager(
         state = state.processEvent(EntityDropEvt(e, pointerDevicePosition))
     }
 
+    // Avoid context menu from popping up when dragging and releasing mouse outside of 3D view.
+    private fun onContextMenu(e: Event) {
+        e.preventDefault()
+        e.stopPropagation()
+    }
+
     private fun processPointerEvent(e: PointerEvent) {
+        e.stopPropagation()
+
         processPointerEvent(e.type, e.clientX, e.clientY)
     }
 

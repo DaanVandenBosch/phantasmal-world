@@ -383,6 +383,7 @@ class AreaAssetLoader(private val assetLoader: AssetLoader) : DisposableContaine
                     120,
                     121,
                     122,
+                    137,
                     155,
                     156,
                     170,
@@ -430,6 +431,7 @@ class AreaAssetLoader(private val assetLoader: AssetLoader) : DisposableContaine
                     "s_m_0_3l_6_igzvga",
                     "s_n_0_en_3_iiawrz",
                     "a_k_0_1k_3_ihdi9s",
+                    "s_n_0_c_1_jbhy8b",
                 ),
             ),
             // Forest 1
