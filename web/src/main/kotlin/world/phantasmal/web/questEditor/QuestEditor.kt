@@ -46,6 +46,7 @@ class QuestEditor(
         // Stores
         val areaStore = addDisposable(AreaStore(areaAssetLoader))
         val questEditorStore = addDisposable(QuestEditorStore(
+            questLoader,
             uiStore,
             areaStore,
             undoManager,
@@ -56,7 +57,6 @@ class QuestEditor(
         val questEditorController = addDisposable(QuestEditorController(questEditorUiPersister))
         val toolbarController = addDisposable(QuestEditorToolbarController(
             uiStore,
-            questLoader,
             areaStore,
             questEditorStore,
         ))

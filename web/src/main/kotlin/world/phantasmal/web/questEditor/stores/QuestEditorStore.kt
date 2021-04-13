@@ -1,6 +1,8 @@
 package world.phantasmal.web.questEditor.stores
 
+import kotlinx.coroutines.launch
 import mu.KotlinLogging
+import world.phantasmal.lib.Episode
 import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.and
 import world.phantasmal.observable.value.list.emptyListVal
@@ -12,12 +14,14 @@ import world.phantasmal.web.core.stores.UiStore
 import world.phantasmal.web.core.undo.UndoManager
 import world.phantasmal.web.core.undo.UndoStack
 import world.phantasmal.web.questEditor.QuestRunner
+import world.phantasmal.web.questEditor.loading.QuestLoader
 import world.phantasmal.web.questEditor.models.*
 import world.phantasmal.webui.stores.Store
 
 private val logger = KotlinLogging.logger {}
 
 class QuestEditorStore(
+    private val questLoader: QuestLoader,
     uiStore: UiStore,
     private val areaStore: AreaStore,
     private val undoManager: UndoManager,
@@ -87,6 +91,8 @@ class QuestEditorStore(
                 _selectedEntity.value = null
             }
         }
+
+        scope.launch { setDefaultQuest(Episode.I) }
     }
 
     override fun dispose() {
@@ -134,6 +140,12 @@ class QuestEditorStore(
             quest.npcs.value.forEach { it.setSectionInitialized() }
             quest.objects.value.forEach { it.setSectionInitialized() }
         }
+    }
+
+    suspend fun setDefaultQuest(episode: Episode) {
+        setCurrentQuest(
+            convertQuestToModel(questLoader.loadDefaultQuest(episode), areaStore::getVariant)
+        )
     }
 
     private fun setSectionOnQuestEntities(

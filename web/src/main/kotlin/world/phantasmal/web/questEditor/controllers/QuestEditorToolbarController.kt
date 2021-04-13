@@ -17,7 +17,6 @@ import world.phantasmal.observable.value.mutableVal
 import world.phantasmal.observable.value.value
 import world.phantasmal.web.core.PwToolType
 import world.phantasmal.web.core.stores.UiStore
-import world.phantasmal.web.questEditor.loading.QuestLoader
 import world.phantasmal.web.questEditor.models.AreaModel
 import world.phantasmal.web.questEditor.stores.AreaStore
 import world.phantasmal.web.questEditor.stores.QuestEditorStore
@@ -34,7 +33,6 @@ class AreaAndLabel(val area: AreaModel, val label: String)
 
 class QuestEditorToolbarController(
     uiStore: UiStore,
-    private val questLoader: QuestLoader,
     private val areaStore: AreaStore,
     private val questEditorStore: QuestEditorStore,
 ) : Controller() {
@@ -127,7 +125,7 @@ class QuestEditorToolbarController(
     suspend fun createNewQuest(episode: Episode) {
         setFilename("")
         setVersion(Version.BB)
-        setCurrentQuest(questLoader.loadDefaultQuest(episode))
+        questEditorStore.setDefaultQuest(episode)
     }
 
     suspend fun openFiles(files: List<File>) {
