@@ -73,7 +73,7 @@ class QuestInputManager(
             renderContext.canvas.observeEntityDrop(::onEntityDrop),
         )
 
-        // Ensure OrbitalCameraControls attaches its listeners after ours.
+        // Ensure OrbitalCameraControls attaches its listeners after we've attached ours.
         cameraInputManager = OrbitalCameraInputManager(
             renderContext.canvas,
             renderContext.camera,

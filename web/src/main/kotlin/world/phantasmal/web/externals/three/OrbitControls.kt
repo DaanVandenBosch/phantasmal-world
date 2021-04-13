@@ -12,6 +12,11 @@ external interface OrbitControlsMouseButtons {
     var RIGHT: MOUSE
 }
 
+external interface OrbitControlsMouseTouches {
+    var ONE: TOUCH
+    var TWO: TOUCH
+}
+
 external class OrbitControls(`object`: Camera, domElement: HTMLElement = definedExternally) {
     var enabled: Boolean
     var enablePan: Boolean
@@ -22,6 +27,8 @@ external class OrbitControls(`object`: Camera, domElement: HTMLElement = defined
     var screenSpacePanning: Boolean
 
     var mouseButtons: OrbitControlsMouseButtons
+
+    var touches: OrbitControlsMouseTouches
 
     fun update(): Boolean
 

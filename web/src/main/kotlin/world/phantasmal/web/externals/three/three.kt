@@ -744,6 +744,13 @@ external enum class MOUSE {
     PAN,
 }
 
+external enum class TOUCH {
+    ROTATE,
+    PAN,
+    DOLLY_PAN,
+    DOLLY_ROTATE,
+}
+
 external class Raycaster(
     origin: Vector3 = definedExternally,
     direction: Vector3 = definedExternally,

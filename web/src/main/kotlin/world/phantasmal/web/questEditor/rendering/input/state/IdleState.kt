@@ -19,9 +19,18 @@ class IdleState(
     private var shouldCheckHighlight = false
 
     override fun processEvent(event: Evt): State {
+        // Don't highlight or manipulate entities in forced panning/rotating mode.
+        val forcedPanningRotatingMode = when (event) {
+            is KeyboardEvt -> event.key == "Control"
+            is PointerEvt -> event.ctrlKey
+            else -> false
+        }
+
         when (event) {
             is KeyboardEvt -> {
-                if (entityManipulationEnabled) {
+                if (forcedPanningRotatingMode) {
+                    ctx.setHighlightedEntity(null)
+                } else if (entityManipulationEnabled) {
                     val quest = ctx.quest.value
                     val entity = ctx.selectedEntity.value
 
@@ -32,7 +41,9 @@ class IdleState(
             }
 
             is PointerDownEvt -> {
-                val pick = pickEntity(event.pointerDevicePosition)
+                val pick =
+                    if (forcedPanningRotatingMode) null
+                    else pickEntity(event.pointerDevicePosition)
 
                 when (event.buttons) {
                     1 -> {
@@ -93,8 +104,12 @@ class IdleState(
             is PointerMoveEvt -> {
                 if (!panning && !rotating && !zooming) {
                     // User is hovering.
-                    pointerDevicePosition.copy(event.pointerDevicePosition)
-                    shouldCheckHighlight = true
+                    if (forcedPanningRotatingMode) {
+                        ctx.setHighlightedEntity(null)
+                    } else {
+                        pointerDevicePosition.copy(event.pointerDevicePosition)
+                        shouldCheckHighlight = true
+                    }
                 }
             }
 

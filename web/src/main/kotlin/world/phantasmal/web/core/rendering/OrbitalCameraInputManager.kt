@@ -1,8 +1,11 @@
 package world.phantasmal.web.core.rendering
 
 import org.w3c.dom.HTMLCanvasElement
+import org.w3c.dom.pointerevents.PointerEvent
+import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.core.disposable.TrackedDisposable
 import world.phantasmal.web.externals.three.*
+import world.phantasmal.webui.dom.disposableListener
 import world.phantasmal.webui.obj
 import kotlin.math.ceil
 import kotlin.math.floor
@@ -15,7 +18,10 @@ class OrbitalCameraInputManager(
     screenSpacePanning: Boolean,
     enableRotate: Boolean = true,
 ) : TrackedDisposable(), InputManager {
-    private val controls = OrbitControls(camera, canvas)
+    private lateinit var controls: OrbitControls
+
+    @Suppress("JoinDeclarationAndAssignment")
+    private val pointerDownListener: Disposable
 
     var enabled: Boolean
         get() = controls.enabled
@@ -24,10 +30,36 @@ class OrbitalCameraInputManager(
         }
 
     init {
+        // Switch mouse button actions when certain modifier keys are pressed to counteract
+        // OrbitControls switching left and right click behavior in that case.
+        pointerDownListener = canvas.disposableListener<PointerEvent>("pointerdown", {
+            if (it.ctrlKey || it.metaKey || it.shiftKey) {
+                controls.mouseButtons = obj {
+                    LEFT = MOUSE.ROTATE
+                    MIDDLE = MOUSE.DOLLY
+                    RIGHT = MOUSE.PAN
+                }
+            } else {
+                controls.mouseButtons = obj {
+                    LEFT = MOUSE.PAN
+                    MIDDLE = MOUSE.DOLLY
+                    RIGHT = MOUSE.ROTATE
+                }
+            }
+        })
+
+        // Ensure OrbitControls is instantiated after the pointerdown event listener is attached.
+        controls = OrbitControls(camera, canvas)
+
         controls.mouseButtons = obj {
             LEFT = MOUSE.PAN
             MIDDLE = MOUSE.DOLLY
             RIGHT = MOUSE.ROTATE
+        }
+
+        controls.touches = obj {
+            ONE = TOUCH.PAN
+            TWO = TOUCH.DOLLY_ROTATE
         }
 
         camera.position.copy(position)
@@ -40,6 +72,7 @@ class OrbitalCameraInputManager(
 
     override fun dispose() {
         controls.dispose()
+        pointerDownListener.dispose()
         super.dispose()
     }
 
