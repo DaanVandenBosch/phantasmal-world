@@ -16,7 +16,7 @@ import world.phantasmal.web.viewer.rendering.MeshRenderer
 import world.phantasmal.web.viewer.rendering.TextureRenderer
 import world.phantasmal.web.viewer.stores.ViewerStore
 import world.phantasmal.web.viewer.widgets.CharacterClassOptionsWidget
-import world.phantasmal.web.viewer.widgets.ViewerToolbar
+import world.phantasmal.web.viewer.widgets.ViewerToolbarWidget
 import world.phantasmal.web.viewer.widgets.ViewerWidget
 import world.phantasmal.webui.DisposableContainer
 import world.phantasmal.webui.widgets.Widget
@@ -54,7 +54,7 @@ class Viewer(
         // Main Widget
         return ViewerWidget(
             viewerController,
-            { ViewerToolbar(viewerToolbarController) },
+            { ViewerToolbarWidget(viewerToolbarController) },
             { CharacterClassOptionsWidget(characterClassOptionsController) },
             { RendererWidget(meshRenderer) },
             { RendererWidget(textureRenderer) },

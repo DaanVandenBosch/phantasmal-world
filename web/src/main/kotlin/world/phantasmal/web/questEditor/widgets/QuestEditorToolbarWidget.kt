@@ -30,7 +30,7 @@ class QuestEditorToolbarWidget(private val ctrl: QuestEditorToolbarController) :
                         text = "Open file...",
                         tooltip = value("Open a quest file (Ctrl-O)"),
                         iconLeft = Icon.File,
-                        accept = ctrl.openFileAccept,
+                        types = ctrl.supportedFileTypes,
                         multiple = true,
                         filesSelected = { files -> scope.launch { ctrl.openFiles(files) } },
                     ),

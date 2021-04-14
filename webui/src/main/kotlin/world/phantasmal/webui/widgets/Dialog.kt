@@ -16,6 +16,7 @@ import world.phantasmal.webui.dom.dom
 import world.phantasmal.webui.dom.h1
 import world.phantasmal.webui.dom.section
 
+// TODO: Use HTML dialog element.
 open class Dialog(
     visible: Val<Boolean> = trueVal(),
     enabled: Val<Boolean> = trueVal(),

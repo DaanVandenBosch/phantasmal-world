@@ -5,9 +5,10 @@ import org.w3c.dom.Node
 import world.phantasmal.web.viewer.controllers.ViewerToolbarController
 import world.phantasmal.webui.dom.Icon
 import world.phantasmal.webui.dom.div
+import world.phantasmal.webui.files.FileType
 import world.phantasmal.webui.widgets.*
 
-class ViewerToolbar(private val ctrl: ViewerToolbarController) : Widget() {
+class ViewerToolbarWidget(private val ctrl: ViewerToolbarController) : Widget() {
     override fun Node.createElement() =
         div {
             className = "pw-viewer-toolbar"
@@ -17,7 +18,16 @@ class ViewerToolbar(private val ctrl: ViewerToolbarController) : Widget() {
                     FileButton(
                         text = "Open file...",
                         iconLeft = Icon.File,
-                        accept = ".afs, .nj, .njm, .rel, .xj, .xvm",
+                        types = listOf(
+                            FileType(
+                                description = "Models, textures, animations",
+                                accept = mapOf(
+                                    "application/pw-viewer-file" to setOf(
+                                        ".afs", ".nj", ".njm", ".rel", ".xj", ".xvm"
+                                    ),
+                                ),
+                            ),
+                        ),
                         multiple = true,
                         filesSelected = { files -> scope.launch { ctrl.openFiles(files) } },
                     ),

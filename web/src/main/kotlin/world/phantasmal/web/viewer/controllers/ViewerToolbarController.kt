@@ -1,7 +1,6 @@
 package world.phantasmal.web.viewer.controllers
 
 import mu.KotlinLogging
-import org.w3c.files.File
 import world.phantasmal.core.Failure
 import world.phantasmal.core.PwResult
 import world.phantasmal.core.Severity
@@ -16,11 +15,11 @@ import world.phantasmal.lib.fileFormats.parseAreaCollisionGeometry
 import world.phantasmal.lib.fileFormats.parseAreaRenderGeometry
 import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.mutableVal
+import world.phantasmal.web.core.files.cursor
 import world.phantasmal.web.viewer.stores.NinjaGeometry
 import world.phantasmal.web.viewer.stores.ViewerStore
 import world.phantasmal.webui.controllers.Controller
-import world.phantasmal.webui.extension
-import world.phantasmal.webui.readFile
+import world.phantasmal.webui.files.FileHandle
 
 private val logger = KotlinLogging.logger {}
 
@@ -70,7 +69,9 @@ class ViewerToolbarController(private val store: ViewerStore) : Controller() {
         store.setCurrentAnimation(null)
     }
 
-    suspend fun openFiles(files: List<File>) {
+    suspend fun openFiles(files: List<FileHandle>?) {
+        files ?: return
+
         val result = PwResult.build<Unit>(logger)
         var success = false
 
@@ -82,7 +83,7 @@ class ViewerToolbarController(private val store: ViewerStore) : Controller() {
             for (file in files) {
                 val extension = file.extension()?.toLowerCase()
 
-                val cursor = readFile(file).cursor(Endianness.Little)
+                val cursor = file.cursor(Endianness.Little)
                 var fileResult: PwResult<*>
 
                 when (extension) {
@@ -105,6 +106,7 @@ class ViewerToolbarController(private val store: ViewerStore) : Controller() {
                     }
 
                     "rel" -> {
+                        // TODO: Detect .rel type instead of relying on filename.
                         if (file.name.endsWith("c.rel")) {
                             val collisionGeometry = parseAreaCollisionGeometry(cursor)
                             fileResult = Success(collisionGeometry)

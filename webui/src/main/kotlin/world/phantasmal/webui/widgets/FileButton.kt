@@ -2,12 +2,13 @@ package world.phantasmal.webui.widgets
 
 import kotlinx.coroutines.launch
 import org.w3c.dom.HTMLElement
-import org.w3c.files.File
 import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.nullVal
 import world.phantasmal.observable.value.trueVal
 import world.phantasmal.webui.dom.Icon
-import world.phantasmal.webui.selectFiles
+import world.phantasmal.webui.files.FileHandle
+import world.phantasmal.webui.files.FileType
+import world.phantasmal.webui.files.showFilePicker
 
 class FileButton(
     visible: Val<Boolean> = trueVal(),
@@ -18,9 +19,9 @@ class FileButton(
     textVal: Val<String>? = null,
     iconLeft: Icon? = null,
     iconRight: Icon? = null,
-    private val accept: String = "",
+    private val types: List<FileType> = emptyList(),
     private val multiple: Boolean = false,
-    private val filesSelected: ((List<File>) -> Unit)? = null,
+    private val filesSelected: ((List<FileHandle>?) -> Unit)? = null,
 ) : Button(visible, enabled, tooltip, className, text, textVal, iconLeft, iconRight) {
     override fun interceptElement(element: HTMLElement) {
         element.classList.add("pw-file-button")
@@ -28,7 +29,7 @@ class FileButton(
         if (filesSelected != null) {
             element.onclick = {
                 scope.launch {
-                    filesSelected.invoke(selectFiles(accept, multiple))
+                    filesSelected.invoke(showFilePicker(types, multiple))
                 }
             }
         }

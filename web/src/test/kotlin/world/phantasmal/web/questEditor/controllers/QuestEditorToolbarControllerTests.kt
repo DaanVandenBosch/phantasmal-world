@@ -9,6 +9,7 @@ import world.phantasmal.web.core.actions.Action
 import world.phantasmal.web.test.WebTestSuite
 import world.phantasmal.web.test.createQuestModel
 import world.phantasmal.web.test.createQuestNpcModel
+import world.phantasmal.webui.files.FileHandle
 import kotlin.test.*
 
 class QuestEditorToolbarControllerTests : WebTestSuite {
@@ -35,7 +36,7 @@ class QuestEditorToolbarControllerTests : WebTestSuite {
 
         assertNull(ctrl.result.value)
 
-        ctrl.openFiles(listOf(File(arrayOf(), "unknown.extension")))
+        ctrl.openFiles(listOf(FileHandle(File(arrayOf(), "unknown.extension"))))
 
         val result = ctrl.result.value
 

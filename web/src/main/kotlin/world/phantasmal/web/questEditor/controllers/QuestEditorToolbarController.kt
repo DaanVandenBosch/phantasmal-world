@@ -5,17 +5,16 @@ import mu.KotlinLogging
 import org.w3c.dom.HTMLAnchorElement
 import org.w3c.dom.url.URL
 import org.w3c.files.Blob
-import org.w3c.files.File
 import world.phantasmal.core.*
 import world.phantasmal.lib.Endianness
 import world.phantasmal.lib.Episode
-import world.phantasmal.lib.cursor.cursor
 import world.phantasmal.lib.fileFormats.quest.*
 import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.map
 import world.phantasmal.observable.value.mutableVal
 import world.phantasmal.observable.value.value
 import world.phantasmal.web.core.PwToolType
+import world.phantasmal.web.core.files.cursor
 import world.phantasmal.web.core.stores.UiStore
 import world.phantasmal.web.questEditor.models.AreaModel
 import world.phantasmal.web.questEditor.stores.AreaStore
@@ -23,9 +22,10 @@ import world.phantasmal.web.questEditor.stores.QuestEditorStore
 import world.phantasmal.web.questEditor.stores.convertQuestFromModel
 import world.phantasmal.web.questEditor.stores.convertQuestToModel
 import world.phantasmal.webui.controllers.Controller
+import world.phantasmal.webui.files.FileHandle
+import world.phantasmal.webui.files.FileType
+import world.phantasmal.webui.files.showFilePicker
 import world.phantasmal.webui.obj
-import world.phantasmal.webui.readFile
-import world.phantasmal.webui.selectFiles
 
 private val logger = KotlinLogging.logger {}
 
@@ -47,7 +47,12 @@ class QuestEditorToolbarController(
     val resultDialogVisible: Val<Boolean> = _resultDialogVisible
     val result: Val<PwResult<*>?> = _result
 
-    val openFileAccept = ".bin, .dat, .qst"
+    val supportedFileTypes = listOf(
+        FileType(
+            description = "Quests",
+            accept = mapOf("application/pw-quest" to setOf(".qst", ".bin", ".dat")),
+        ),
+    )
 
     // Save as
 
@@ -101,7 +106,7 @@ class QuestEditorToolbarController(
     init {
         addDisposables(
             uiStore.onGlobalKeyDown(PwToolType.QuestEditor, "Ctrl-O") {
-                openFiles(selectFiles(accept = openFileAccept, multiple = true))
+                openFiles(showFilePicker(supportedFileTypes, multiple = true))
             },
 
             uiStore.onGlobalKeyDown(PwToolType.QuestEditor, "Ctrl-Shift-S") {
@@ -128,26 +133,26 @@ class QuestEditorToolbarController(
         questEditorStore.setDefaultQuest(episode)
     }
 
-    suspend fun openFiles(files: List<File>) {
+    suspend fun openFiles(files: List<FileHandle>?) {
         try {
-            if (files.isEmpty()) return
+            if (files.isNullOrEmpty()) return
 
-            val qst = files.find { it.name.endsWith(".qst", ignoreCase = true) }
+            val qstFile = files.find { it.extension().equals("qst", ignoreCase = true) }
 
-            if (qst != null) {
-                val parseResult = parseQstToQuest(readFile(qst).cursor(Endianness.Little))
+            if (qstFile != null) {
+                val parseResult = parseQstToQuest(qstFile.cursor(Endianness.Little))
                 setResult(parseResult)
 
                 if (parseResult is Success) {
-                    setFilename(filenameBase(qst.name) ?: qst.name)
+                    setFilename(filenameBase(qstFile.name) ?: qstFile.name)
                     setVersion(parseResult.value.version)
                     setCurrentQuest(parseResult.value.quest)
                 }
             } else {
-                val bin = files.find { it.name.endsWith(".bin", ignoreCase = true) }
-                val dat = files.find { it.name.endsWith(".dat", ignoreCase = true) }
+                val binFile = files.find { it.extension().equals("bin", ignoreCase = true) }
+                val datFile = files.find { it.extension().equals("dat", ignoreCase = true) }
 
-                if (bin == null || dat == null) {
+                if (binFile == null || datFile == null) {
                     setResult(Failure(listOf(Problem(
                         Severity.Error,
                         "Please select a .qst file or one .bin and one .dat file."
@@ -156,13 +161,13 @@ class QuestEditorToolbarController(
                 }
 
                 val parseResult = parseBinDatToQuest(
-                    readFile(bin).cursor(Endianness.Little),
-                    readFile(dat).cursor(Endianness.Little),
+                    binFile.cursor(Endianness.Little),
+                    datFile.cursor(Endianness.Little),
                 )
                 setResult(parseResult)
 
                 if (parseResult is Success) {
-                    setFilename(filenameBase(bin.name) ?: filenameBase(dat.name) ?: bin.name)
+                    setFilename(binFile.basename() ?: datFile.basename() ?: binFile.name)
                     setVersion(Version.BB)
                     setCurrentQuest(parseResult.value)
                 }
