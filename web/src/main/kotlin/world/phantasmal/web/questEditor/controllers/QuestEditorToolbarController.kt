@@ -39,12 +39,12 @@ class QuestEditorToolbarController(
 ) : Controller() {
     private val _resultDialogVisible = mutableVal(false)
     private val _result = mutableVal<PwResult<*>?>(null)
-    private val _saveAsDialogVisible = mutableVal(false)
     private val saving = mutableVal(false)
 
     // We mainly disable saving while a save is underway for visual feedback that a save is
     // happening/has happened.
     private val savingEnabled = questEditorStore.currentQuest.isNotNull() and !saving
+    private val _saveAsDialogVisible = mutableVal(false)
     private val files: MutableListVal<FileHandle> = mutableListVal()
     private val _filename = mutableVal("")
     private val _version = mutableVal(Version.BB)
@@ -61,7 +61,7 @@ class QuestEditorToolbarController(
         ),
     )
 
-    // Save as
+    // Saving
 
     val saveEnabled: Val<Boolean> =
         savingEnabled and files.notEmpty and BrowserFeatures.fileSystemApi

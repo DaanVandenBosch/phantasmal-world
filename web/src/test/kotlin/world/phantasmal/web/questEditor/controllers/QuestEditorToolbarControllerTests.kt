@@ -36,7 +36,7 @@ class QuestEditorToolbarControllerTests : WebTestSuite {
 
         assertNull(ctrl.result.value)
 
-        ctrl.openFiles(listOf(FileHandle(File(arrayOf(), "unknown.extension"))))
+        ctrl.openFiles(listOf(FileHandle.Simple(File(arrayOf(), "unknown.extension"))))
 
         val result = ctrl.result.value
 
