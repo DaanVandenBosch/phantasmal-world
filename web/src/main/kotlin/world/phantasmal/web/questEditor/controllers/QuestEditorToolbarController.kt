@@ -1,6 +1,7 @@
 package world.phantasmal.web.questEditor.controllers
 
 import kotlinx.browser.document
+import kotlinx.coroutines.await
 import mu.KotlinLogging
 import org.w3c.dom.HTMLAnchorElement
 import org.w3c.dom.url.URL
@@ -9,10 +10,9 @@ import world.phantasmal.core.*
 import world.phantasmal.lib.Endianness
 import world.phantasmal.lib.Episode
 import world.phantasmal.lib.fileFormats.quest.*
-import world.phantasmal.observable.value.Val
-import world.phantasmal.observable.value.map
-import world.phantasmal.observable.value.mutableVal
-import world.phantasmal.observable.value.value
+import world.phantasmal.observable.value.*
+import world.phantasmal.observable.value.list.MutableListVal
+import world.phantasmal.observable.value.list.mutableListVal
 import world.phantasmal.web.core.PwToolType
 import world.phantasmal.web.core.files.cursor
 import world.phantasmal.web.core.stores.UiStore
@@ -21,6 +21,7 @@ import world.phantasmal.web.questEditor.stores.AreaStore
 import world.phantasmal.web.questEditor.stores.QuestEditorStore
 import world.phantasmal.web.questEditor.stores.convertQuestFromModel
 import world.phantasmal.web.questEditor.stores.convertQuestToModel
+import world.phantasmal.webui.BrowserFeatures
 import world.phantasmal.webui.controllers.Controller
 import world.phantasmal.webui.files.FileHandle
 import world.phantasmal.webui.files.FileType
@@ -36,9 +37,11 @@ class QuestEditorToolbarController(
     private val areaStore: AreaStore,
     private val questEditorStore: QuestEditorStore,
 ) : Controller() {
+    private val questLoaded = questEditorStore.currentQuest.isNotNull()
     private val _resultDialogVisible = mutableVal(false)
     private val _result = mutableVal<PwResult<*>?>(null)
     private val _saveAsDialogVisible = mutableVal(false)
+    private val files: MutableListVal<FileHandle> = mutableListVal()
     private val _filename = mutableVal("")
     private val _version = mutableVal(Version.BB)
 
@@ -56,7 +59,12 @@ class QuestEditorToolbarController(
 
     // Save as
 
-    val saveAsEnabled: Val<Boolean> = questEditorStore.currentQuest.isNotNull()
+    val saveEnabled: Val<Boolean> = questLoaded and files.notEmpty and BrowserFeatures.fileSystemApi
+    val saveTooltip: Val<String> = value(
+        if (BrowserFeatures.fileSystemApi) "Save changes (Ctrl-S)"
+        else "This browser doesn't support saving to an existing file"
+    )
+    val saveAsEnabled: Val<Boolean> = questLoaded
     val saveAsDialogVisible: Val<Boolean> = _saveAsDialogVisible
     val filename: Val<String> = _filename
     val version: Val<Version> = _version
@@ -109,6 +117,10 @@ class QuestEditorToolbarController(
                 openFiles(showFilePicker(supportedFileTypes, multiple = true))
             },
 
+            uiStore.onGlobalKeyDown(PwToolType.QuestEditor, "Ctrl-S") {
+                save()
+            },
+
             uiStore.onGlobalKeyDown(PwToolType.QuestEditor, "Ctrl-Shift-S") {
                 saveAs()
             },
@@ -133,11 +145,13 @@ class QuestEditorToolbarController(
         questEditorStore.setDefaultQuest(episode)
     }
 
-    suspend fun openFiles(files: List<FileHandle>?) {
+    suspend fun openFiles(newFiles: List<FileHandle>?) {
         try {
-            if (files.isNullOrEmpty()) return
+            files.clear()
 
-            val qstFile = files.find { it.extension().equals("qst", ignoreCase = true) }
+            if (newFiles.isNullOrEmpty()) return
+
+            val qstFile = newFiles.find { it.extension().equals("qst", ignoreCase = true) }
 
             if (qstFile != null) {
                 val parseResult = parseQstToQuest(qstFile.cursor(Endianness.Little))
@@ -147,10 +161,11 @@ class QuestEditorToolbarController(
                     setFilename(filenameBase(qstFile.name) ?: qstFile.name)
                     setVersion(parseResult.value.version)
                     setCurrentQuest(parseResult.value.quest)
+                    files.replaceAll(listOf(qstFile))
                 }
             } else {
-                val binFile = files.find { it.extension().equals("bin", ignoreCase = true) }
-                val datFile = files.find { it.extension().equals("dat", ignoreCase = true) }
+                val binFile = newFiles.find { it.extension().equals("bin", ignoreCase = true) }
+                val datFile = newFiles.find { it.extension().equals("dat", ignoreCase = true) }
 
                 if (binFile == null || datFile == null) {
                     setResult(Failure(listOf(Problem(
@@ -170,14 +185,57 @@ class QuestEditorToolbarController(
                     setFilename(binFile.basename() ?: datFile.basename() ?: binFile.name)
                     setVersion(Version.BB)
                     setCurrentQuest(parseResult.value)
+                    files.replaceAll(listOf(binFile, datFile))
                 }
             }
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             setResult(
                 PwResult.build<Nothing>(logger)
                     .addProblem(Severity.Error, "Couldn't parse file.", cause = e)
                     .failure()
             )
+        }
+    }
+
+    suspend fun save() {
+        if (saveEnabled.value) {
+            try {
+                val quest = questEditorStore.currentQuest.value ?: return
+                val headerFilename = filename.value.trim()
+
+                files.value.find { it.extension().equals("qst", ignoreCase = true) }
+                    ?.let { qstFile ->
+                        val buffer = writeQuestToQst(
+                            convertQuestFromModel(quest),
+                            headerFilename,
+                            version.value,
+                            online = true,
+                        )
+
+                        qstFile.writableStream()!!.use {
+                            it.write(buffer.arrayBuffer).await()
+                        }
+                    }
+
+                val binFile = files.value.find { it.extension().equals("bin", ignoreCase = true) }
+                val datFile = files.value.find { it.extension().equals("dat", ignoreCase = true) }
+
+                if (binFile != null && datFile != null) {
+                    val (bin, dat) = writeQuestToBinDat(
+                        convertQuestFromModel(quest),
+                        version.value,
+                    )
+
+                    binFile.writableStream()!!.use { it.write(bin.arrayBuffer).await() }
+                    datFile.writableStream()!!.use { it.write(dat.arrayBuffer).await() }
+                }
+            } catch (e: Throwable) {
+                setResult(
+                    PwResult.build<Nothing>(logger)
+                        .addProblem(Severity.Error, "Couldn't save file.", cause = e)
+                        .failure()
+                )
+            }
         }
     }
 
@@ -197,18 +255,17 @@ class QuestEditorToolbarController(
 
     fun saveAsDialogSave() {
         val quest = questEditorStore.currentQuest.value ?: return
-        var filename = filename.value.trim()
+        val headerFilename = filename.value.trim()
+        val filename =
+            if (headerFilename.endsWith(".qst")) headerFilename
+            else "$headerFilename.qst"
 
         val buffer = writeQuestToQst(
             convertQuestFromModel(quest),
-            filename,
+            headerFilename,
             version.value,
             online = true,
         )
-
-        if (!filename.endsWith(".qst")) {
-            filename += ".qst"
-        }
 
         val a = document.createElement("a") as HTMLAnchorElement
         val url = URL.createObjectURL(
@@ -223,8 +280,12 @@ class QuestEditorToolbarController(
             a.download = filename
             document.body?.appendChild(a)
             a.click()
-        } catch (e: Exception) {
-            logger.error(e) { """Couldn't save file "$filename".""" }
+        } catch (e: Throwable) {
+            setResult(
+                PwResult.build<Nothing>(logger)
+                    .addProblem(Severity.Error, "Couldn't save file.", cause = e)
+                    .failure()
+            )
         } finally {
             URL.revokeObjectURL(url)
             document.body?.removeChild(a)

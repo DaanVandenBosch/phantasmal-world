@@ -35,6 +35,13 @@ class QuestEditorToolbarWidget(private val ctrl: QuestEditorToolbarController) :
                         filesSelected = { files -> scope.launch { ctrl.openFiles(files) } },
                     ),
                     Button(
+                        text = "Save",
+                        iconLeft = Icon.Save,
+                        enabled = ctrl.saveEnabled,
+                        tooltip = ctrl.saveTooltip,
+                        onClick = { scope.launch { ctrl.save() } },
+                    ),
+                    Button(
                         text = "Save as...",
                         iconLeft = Icon.Save,
                         enabled = ctrl.saveAsEnabled,

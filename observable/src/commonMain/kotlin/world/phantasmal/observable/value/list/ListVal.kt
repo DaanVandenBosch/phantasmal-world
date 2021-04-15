@@ -12,6 +12,10 @@ interface ListVal<out E> : Val<List<E>> {
 
     val size: Val<Int>
 
+    val empty: Val<Boolean>
+
+    val notEmpty: Val<Boolean>
+
     operator fun get(index: Int): E
 
     fun observeList(callNow: Boolean = false, observer: ListValObserver<E>): Disposable

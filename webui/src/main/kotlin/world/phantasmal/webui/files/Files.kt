@@ -3,6 +3,7 @@ package world.phantasmal.webui.files
 import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.await
 import kotlinx.coroutines.suspendCancellableCoroutine
 import org.khronos.webgl.ArrayBuffer
 import org.w3c.dom.HTMLInputElement
@@ -10,15 +11,13 @@ import org.w3c.dom.asList
 import org.w3c.dom.events.Event
 import org.w3c.files.File
 import world.phantasmal.core.disposable.Disposable
+import world.phantasmal.core.externals.browser.*
 import world.phantasmal.core.filenameBase
 import world.phantasmal.core.filenameExtension
 import world.phantasmal.webui.BrowserFeatures
 import world.phantasmal.webui.dom.disposableListener
-import world.phantasmal.webui.externals.browser.FileSystemFileHandle
-import world.phantasmal.webui.externals.browser.ShowOpenFilePickerOptionsType
-import world.phantasmal.webui.externals.browser.arrayBuffer
-import world.phantasmal.webui.externals.browser.showOpenFilePicker
 import world.phantasmal.webui.obj
+import kotlin.coroutines.resume
 import kotlin.js.Promise
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -45,6 +44,12 @@ class FileHandle private constructor(
      */
     fun extension(): String? = filenameExtension(name)
 
+    /**
+     * Returns a writable stream if this [FileHandle] represents a [FileSystemFileHandle].
+     */
+    suspend fun writableStream(): FileSystemWritableFileStream? =
+        handle?.createWritable()?.await()
+
     suspend fun arrayBuffer(): ArrayBuffer = suspendCancellableCoroutine { cont ->
         getFile()
             .then { it.arrayBuffer() }
@@ -65,9 +70,9 @@ class FileType(
 
 @OptIn(ExperimentalCoroutinesApi::class)
 suspend fun showFilePicker(types: List<FileType>, multiple: Boolean = false): List<FileHandle>? =
-    suspendCancellableCoroutine { cont ->
-        if (BrowserFeatures.fileSystemApi) {
-            window.showOpenFilePicker(obj {
+    if (BrowserFeatures.fileSystemApi) {
+        try {
+            val fileHandles = window.showOpenFilePicker(obj {
                 this.multiple = multiple
                 this.types = types.map {
                     obj<ShowOpenFilePickerOptionsType> {
@@ -79,17 +84,29 @@ suspend fun showFilePicker(types: List<FileType>, multiple: Boolean = false): Li
                         }
                     }
                 }.toTypedArray()
-            }).then({ cont.resume(it.map(::FileHandle)) {} }, { cont.resume(null) {} })
-        } else {
+            }).await()
+
+            fileHandles.map(::FileHandle)
+        } catch (e: Throwable) {
+            // Ensure we return null when the user cancels.
+            if (e.asDynamic().name == "AbortError") {
+                null
+            } else {
+                throw e
+            }
+        }
+    } else {
+        suspendCancellableCoroutine { cont ->
             val el = document.createElement("input") as HTMLInputElement
             el.type = "file"
             el.accept = types.flatMap { it.accept.values.flatten() }.joinToString()
             el.multiple = multiple
 
             el.onchange = {
-                cont.resume(el.files?.asList()?.map(::FileHandle) ?: emptyList()) {}
+                cont.resume(el.files!!.asList().map(::FileHandle))
             }
 
+            // Ensure we return null when the user cancels.
             @Suppress("JoinDeclarationAndAssignment")
             lateinit var focusListener: Disposable
 
@@ -98,7 +115,7 @@ suspend fun showFilePicker(types: List<FileType>, multiple: Boolean = false): Li
 
                 window.setTimeout({
                     if (cont.isActive) {
-                        cont.resume(null) {}
+                        cont.resume(null)
                     }
                 }, 500)
             })

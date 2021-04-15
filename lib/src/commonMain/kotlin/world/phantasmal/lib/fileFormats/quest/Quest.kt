@@ -240,9 +240,9 @@ private fun extractScriptEntryPoints(
 }
 
 /**
- * Creates a .qst file from [quest].
+ * Returns a .bin and .dat file in that order.
  */
-fun writeQuestToQst(quest: Quest, filename: String, version: Version, online: Boolean): Buffer {
+fun writeQuestToBinDat(quest: Quest, version: Version): Pair<Buffer, Buffer> {
     val dat = writeDat(DatFile(
         objs = quest.objects.mapTo(mutableListOf()) { DatEntity(it.areaId, it.data) },
         npcs = quest.npcs.mapTo(mutableListOf()) { DatEntity(it.areaId, it.data) },
@@ -269,6 +269,15 @@ fun writeQuestToQst(quest: Quest, filename: String, version: Version, online: Bo
         labelOffsets,
         quest.shopItems,
     ))
+
+    return Pair(bin, dat)
+}
+
+/**
+ * Creates a .qst file from [quest].
+ */
+fun writeQuestToQst(quest: Quest, filename: String, version: Version, online: Boolean): Buffer {
+    val (bin, dat) = writeQuestToBinDat(quest, version)
 
     val baseFilename = (filenameBase(filename) ?: filename).take(11)
     val questName = quest.name.take(if (version == Version.BB) 23 else 31)

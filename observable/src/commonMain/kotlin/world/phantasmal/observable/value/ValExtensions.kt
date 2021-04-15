@@ -30,6 +30,9 @@ infix fun <T : Comparable<T>> Val<T>.lt(value: Val<T>): Val<Boolean> =
 infix fun Val<Boolean>.and(other: Val<Boolean>): Val<Boolean> =
     map(this, other) { a, b -> a && b }
 
+infix fun Val<Boolean>.and(other: Boolean): Val<Boolean> =
+    if (other) this else falseVal()
+
 infix fun Val<Boolean>.or(other: Val<Boolean>): Val<Boolean> =
     map(this, other) { a, b -> a || b }
 

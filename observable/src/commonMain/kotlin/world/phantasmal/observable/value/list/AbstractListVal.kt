@@ -9,6 +9,7 @@ import world.phantasmal.observable.Observer
 import world.phantasmal.observable.value.AbstractVal
 import world.phantasmal.observable.value.DependentVal
 import world.phantasmal.observable.value.Val
+import world.phantasmal.observable.value.not
 
 abstract class AbstractListVal<E>(
     private val extractObservables: ObservablesExtractor<E>?,
@@ -23,6 +24,10 @@ abstract class AbstractListVal<E>(
      * External list observers which are observing this list.
      */
     protected val listObservers = mutableListOf<ListValObserver<E>>()
+
+    override val empty: Val<Boolean> by lazy { size.map { it == 0 } }
+
+    override val notEmpty: Val<Boolean> by lazy { !empty }
 
     override fun get(index: Int): E =
         value[index]

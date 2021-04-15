@@ -4,14 +4,14 @@ import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.core.disposable.stubDisposable
 import world.phantasmal.observable.ChangeEvent
 import world.phantasmal.observable.Observer
-import world.phantasmal.observable.value.StaticVal
-import world.phantasmal.observable.value.Val
-import world.phantasmal.observable.value.value
+import world.phantasmal.observable.value.*
 
 class StaticListVal<E>(private val elements: List<E>) : ListVal<E> {
     private val firstOrNull = StaticVal(elements.firstOrNull())
 
     override val size: Val<Int> = value(elements.size)
+    override val empty: Val<Boolean> = if (elements.isEmpty()) trueVal() else falseVal()
+    override val notEmpty: Val<Boolean> = if (elements.isNotEmpty()) trueVal() else falseVal()
 
     override val value: List<E> = elements
 
