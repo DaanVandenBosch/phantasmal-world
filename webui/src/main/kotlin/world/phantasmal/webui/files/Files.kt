@@ -18,21 +18,9 @@ import world.phantasmal.webui.BrowserFeatures
 import world.phantasmal.webui.dom.disposableListener
 import world.phantasmal.webui.obj
 import kotlin.coroutines.resume
-import kotlin.js.Promise
 
-@OptIn(ExperimentalCoroutinesApi::class)
-class FileHandle private constructor(
-    private val handle: FileSystemFileHandle?,
-    private val file: File?,
-) {
-    constructor(file: File) : this(null, file)
-    constructor(handle: FileSystemFileHandle) : this(handle, null)
-
-    val name: String = handle?.name ?: file!!.name
-
-    init {
-        require((handle == null) xor (file == null))
-    }
+sealed class FileHandle {
+    abstract val name: String
 
     /**
      * Returns the filename without extension if there is one.
@@ -44,20 +32,29 @@ class FileHandle private constructor(
      */
     fun extension(): String? = filenameExtension(name)
 
-    /**
-     * Returns a writable stream if this [FileHandle] represents a [FileSystemFileHandle].
-     */
-    suspend fun writableStream(): FileSystemWritableFileStream? =
-        handle?.createWritable()?.await()
+    suspend fun arrayBuffer(): ArrayBuffer =
+        getFile().arrayBuffer().await()
 
-    suspend fun arrayBuffer(): ArrayBuffer = suspendCancellableCoroutine { cont ->
-        getFile()
-            .then { it.arrayBuffer() }
-            .then({ cont.resume(it) {} }, cont::cancel)
+    protected abstract suspend fun getFile(): File
+
+    /**
+     * File system access API file handle.
+     */
+    class Fsaa(private val handle: FileSystemFileHandle) : FileHandle() {
+        override val name: String = handle.name
+
+        suspend fun writableStream(): FileSystemWritableFileStream =
+            handle.createWritable().await()
+
+        override suspend fun getFile(): File =
+            handle.getFile().await()
     }
 
-    private fun getFile(): Promise<File> =
-        handle?.getFile() ?: Promise.resolve(file!!)
+    class Simple(private val file: File) : FileHandle() {
+        override val name: String = file.name
+
+        override suspend fun getFile(): File = file
+    }
 }
 
 class FileType(
@@ -86,7 +83,7 @@ suspend fun showFilePicker(types: List<FileType>, multiple: Boolean = false): Li
                 }.toTypedArray()
             }).await()
 
-            fileHandles.map(::FileHandle)
+            fileHandles.map(FileHandle::Fsaa)
         } catch (e: Throwable) {
             // Ensure we return null when the user cancels.
             if (e.asDynamic().name == "AbortError") {
@@ -103,7 +100,7 @@ suspend fun showFilePicker(types: List<FileType>, multiple: Boolean = false): Li
             el.multiple = multiple
 
             el.onchange = {
-                cont.resume(el.files!!.asList().map(::FileHandle))
+                cont.resume(el.files!!.asList().map(FileHandle::Simple))
             }
 
             // Ensure we return null when the user cancels.
