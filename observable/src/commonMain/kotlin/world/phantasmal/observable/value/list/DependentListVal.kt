@@ -7,9 +7,9 @@ import world.phantasmal.observable.value.Val
  * ListVal of which the value depends on 0 or more other vals.
  */
 class DependentListVal<E>(
-    dependencies: List<Val<*>>,
+    vararg dependencies: Val<*>,
     private val computeElements: () -> List<E>,
-) : AbstractDependentListVal<E>(dependencies) {
+) : AbstractDependentListVal<E>(*dependencies) {
     private var _elements: List<E>? = null
 
     override val elements: List<E> get() = _elements.unsafeAssertNotNull()

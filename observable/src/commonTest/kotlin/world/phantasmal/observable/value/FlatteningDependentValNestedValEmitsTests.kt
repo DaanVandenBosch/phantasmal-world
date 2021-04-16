@@ -7,7 +7,7 @@ class FlatteningDependentValNestedValEmitsTests : RegularValTests {
     override fun createProvider() = object : ValTests.Provider {
         val v = StaticVal(SimpleVal(5))
 
-        override val observable = FlatteningDependentVal(listOf(v)) { v.value }
+        override val observable = FlatteningDependentVal(v) { v.value }
 
         override fun emit() {
             v.value.value += 5
@@ -16,6 +16,6 @@ class FlatteningDependentValNestedValEmitsTests : RegularValTests {
 
     override fun <T> createWithValue(value: T): FlatteningDependentVal<T> {
         val v = StaticVal(StaticVal(value))
-        return FlatteningDependentVal(listOf(v)) { v.value }
+        return FlatteningDependentVal(v) { v.value }
     }
 }

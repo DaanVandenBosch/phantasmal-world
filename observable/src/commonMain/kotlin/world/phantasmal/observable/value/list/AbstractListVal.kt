@@ -67,7 +67,7 @@ abstract class AbstractListVal<E>(
     }
 
     override fun firstOrNull(): Val<E?> =
-        DependentVal(listOf(this)) { value.firstOrNull() }
+        DependentVal(this) { value.firstOrNull() }
 
     /**
      * Does the following in the given order:

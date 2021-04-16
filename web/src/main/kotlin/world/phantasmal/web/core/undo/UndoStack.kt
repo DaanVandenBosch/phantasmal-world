@@ -1,10 +1,7 @@
 package world.phantasmal.web.core.undo
 
-import world.phantasmal.observable.value.Val
-import world.phantasmal.observable.value.gt
+import world.phantasmal.observable.value.*
 import world.phantasmal.observable.value.list.mutableListVal
-import world.phantasmal.observable.value.map
-import world.phantasmal.observable.value.mutableVal
 import world.phantasmal.web.core.actions.Action
 
 /**
@@ -18,11 +15,8 @@ class UndoStack(manager: UndoManager) : Undo {
      * action that will be redone when calling [redo].
      */
     private val index = mutableVal(0)
+    private val savePointIndex = mutableVal(0)
     private var undoingOrRedoing = false
-
-    init {
-        manager.addUndo(this)
-    }
 
     override val canUndo: Val<Boolean> = index gt 0
 
@@ -31,6 +25,12 @@ class UndoStack(manager: UndoManager) : Undo {
     override val firstUndo: Val<Action?> = index.map { stack.value.getOrNull(it - 1) }
 
     override val firstRedo: Val<Action?> = index.map { stack.value.getOrNull(it) }
+
+    override val atSavePoint: Val<Boolean> = index eq savePointIndex
+
+    init {
+        manager.addUndo(this)
+    }
 
     fun push(action: Action): Action {
         if (!undoingOrRedoing) {
@@ -67,8 +67,13 @@ class UndoStack(manager: UndoManager) : Undo {
         }
     }
 
+    override fun savePoint() {
+        savePointIndex.value = index.value
+    }
+
     override fun reset() {
         stack.clear()
         index.value = 0
+        savePointIndex.value = 0
     }
 }

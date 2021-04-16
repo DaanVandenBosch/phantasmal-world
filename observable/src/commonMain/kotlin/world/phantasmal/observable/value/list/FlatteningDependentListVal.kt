@@ -8,9 +8,9 @@ import world.phantasmal.observable.value.Val
  * Similar to [DependentListVal], except that this val's [computeElements] returns a ListVal.
  */
 class FlatteningDependentListVal<E>(
-    dependencies: List<Val<*>>,
+    vararg dependencies: Val<*>,
     private val computeElements: () -> ListVal<E>,
-) : AbstractDependentListVal<E>(dependencies) {
+) : AbstractDependentListVal<E>(*dependencies) {
     private var computedVal: ListVal<E>? = null
     private var computedValObserver: Disposable? = null
 

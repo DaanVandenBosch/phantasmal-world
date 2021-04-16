@@ -11,7 +11,7 @@ class FlatteningDependentValDependentValEmitsTests : RegularValTests {
     override fun createProvider() = object : ValTests.Provider {
         val v = SimpleVal(StaticVal(5))
 
-        override val observable = FlatteningDependentVal(listOf(v)) { v.value }
+        override val observable = FlatteningDependentVal(v) { v.value }
 
         override fun emit() {
             v.value = StaticVal(v.value.value + 5)
@@ -20,7 +20,7 @@ class FlatteningDependentValDependentValEmitsTests : RegularValTests {
 
     override fun <T> createWithValue(value: T): FlatteningDependentVal<T> {
         val v = StaticVal(StaticVal(value))
-        return FlatteningDependentVal(listOf(v)) { v.value }
+        return FlatteningDependentVal(v) { v.value }
     }
 
     /**
@@ -30,7 +30,7 @@ class FlatteningDependentValDependentValEmitsTests : RegularValTests {
     @Test
     fun emits_a_change_when_its_direct_val_dependency_changes() = test {
         val v = SimpleVal(SimpleVal(7))
-        val fv = FlatteningDependentVal(listOf(v)) { v.value }
+        val fv = FlatteningDependentVal(v) { v.value }
         var observedValue: Int? = null
 
         disposer.add(

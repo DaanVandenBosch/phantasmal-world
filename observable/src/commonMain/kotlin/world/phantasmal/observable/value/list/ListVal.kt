@@ -23,6 +23,9 @@ interface ListVal<out E> : Val<List<E>> {
     fun <R> fold(initialValue: R, operation: (R, E) -> R): Val<R> =
         FoldedVal(this, initialValue, operation)
 
+    fun all(predicate: (E) -> Boolean): Val<Boolean> =
+        fold(true) { acc, el -> acc && predicate(el) }
+
     fun sumBy(selector: (E) -> Int): Val<Int> =
         fold(0) { acc, el -> acc + selector(el) }
 
@@ -30,4 +33,6 @@ interface ListVal<out E> : Val<List<E>> {
         FilteredListVal(this, predicate)
 
     fun firstOrNull(): Val<E?>
+
+    operator fun contains(element: @UnsafeVariance E): Boolean = element in value
 }

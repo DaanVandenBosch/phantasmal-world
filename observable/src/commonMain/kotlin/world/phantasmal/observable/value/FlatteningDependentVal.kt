@@ -9,9 +9,9 @@ import world.phantasmal.observable.Observer
  * Similar to [DependentVal], except that this val's [compute] returns a val.
  */
 class FlatteningDependentVal<T>(
-    dependencies: Iterable<Val<*>>,
+    vararg dependencies: Val<*>,
     private val compute: () -> Val<T>,
-) : AbstractDependentVal<T>(dependencies) {
+) : AbstractDependentVal<T>(*dependencies) {
     private var computedVal: Val<T>? = null
     private var computedValObserver: Disposable? = null
 

@@ -40,7 +40,7 @@ fun <T1, T2, R> map(
     v2: Val<T2>,
     transform: (T1, T2) -> R,
 ): Val<R> =
-    DependentVal(listOf(v1, v2)) { transform(v1.value, v2.value) }
+    DependentVal(v1, v2) { transform(v1.value, v2.value) }
 
 /**
  * Map a transformation function over 3 vals.
@@ -53,7 +53,7 @@ fun <T1, T2, T3, R> map(
     v3: Val<T3>,
     transform: (T1, T2, T3) -> R,
 ): Val<R> =
-    DependentVal(listOf(v1, v2, v3)) { transform(v1.value, v2.value, v3.value) }
+    DependentVal(v1, v2, v3) { transform(v1.value, v2.value, v3.value) }
 
 /**
  * Map a transformation function that returns a val over 2 vals. The resulting val will change when
@@ -66,4 +66,7 @@ fun <T1, T2, R> flatMap(
     v2: Val<T2>,
     transform: (T1, T2) -> Val<R>,
 ): Val<R> =
-    FlatteningDependentVal(listOf(v1, v2)) { transform(v1.value, v2.value) }
+    FlatteningDependentVal(v1, v2) { transform(v1.value, v2.value) }
+
+fun and(vararg vals: Val<Boolean>): Val<Boolean> =
+    DependentVal(*vals) { vals.all { it.value } }

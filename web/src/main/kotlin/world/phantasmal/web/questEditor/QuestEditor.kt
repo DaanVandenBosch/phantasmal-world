@@ -79,11 +79,11 @@ class QuestEditor(
         val entityImageRenderer =
             addDisposable(EntityImageRenderer(entityAssetLoader, createThreeRenderer))
 
-        // When the user tries to leave and there's something on any of the undo stacks, ask whether
-        // the user really wants to leave.
+        // When the user tries to leave and there are unsaved changes, ask whether the user really
+        // wants to leave.
         addDisposable(
             window.disposableListener("beforeunload", { e: BeforeUnloadEvent ->
-                if (undoManager.anyCanUndo()) {
+                if (!undoManager.allAtSavePoint.value) {
                     e.preventDefault()
                     e.returnValue = "false"
                 }

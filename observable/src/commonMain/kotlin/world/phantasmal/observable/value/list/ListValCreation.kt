@@ -18,4 +18,4 @@ fun <T1, T2, R> flatMapToList(
     v2: Val<T2>,
     transform: (T1, T2) -> ListVal<R>,
 ): ListVal<R> =
-    FlatteningDependentListVal(listOf(v1, v2)) { transform(v1.value, v2.value) }
+    FlatteningDependentListVal(v1, v2) { transform(v1.value, v2.value) }

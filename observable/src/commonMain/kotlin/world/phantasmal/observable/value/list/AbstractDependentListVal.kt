@@ -12,7 +12,7 @@ import world.phantasmal.observable.value.Val
  * This way no extra disposables need to be managed when e.g. [map] is used.
  */
 abstract class AbstractDependentListVal<E>(
-    private val dependencies: List<Val<*>>,
+    private vararg val dependencies: Val<*>,
 ) : AbstractListVal<E>(extractObservables = null) {
     private val _sizeVal = SizeVal()
 

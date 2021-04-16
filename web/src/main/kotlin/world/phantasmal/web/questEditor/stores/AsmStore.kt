@@ -6,18 +6,16 @@ import world.phantasmal.core.disposable.Disposer
 import world.phantasmal.core.disposable.disposable
 import world.phantasmal.lib.asm.assemble
 import world.phantasmal.lib.asm.disassemble
-import world.phantasmal.observable.ChangeEvent
 import world.phantasmal.observable.Observable
-import world.phantasmal.observable.emitter
 import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.list.ListVal
 import world.phantasmal.observable.value.mutableVal
-import world.phantasmal.web.core.undo.SimpleUndo
 import world.phantasmal.web.core.undo.UndoManager
 import world.phantasmal.web.externals.monacoEditor.*
 import world.phantasmal.web.questEditor.asm.AsmAnalyser
 import world.phantasmal.web.questEditor.asm.monaco.*
 import world.phantasmal.web.questEditor.models.QuestModel
+import world.phantasmal.web.questEditor.undo.TextModelUndo
 import world.phantasmal.web.shared.messages.AsmChange
 import world.phantasmal.web.shared.messages.AsmRange
 import world.phantasmal.web.shared.messages.AssemblyProblem
@@ -42,14 +40,7 @@ class AsmStore(
      */
     private val modelDisposer = addDisposable(Disposer())
 
-    private val _didUndo = emitter<Unit>()
-    private val _didRedo = emitter<Unit>()
-    private val undo = SimpleUndo(
-        undoManager,
-        "Script edits",
-        { _didUndo.emit(ChangeEvent(Unit)) },
-        { _didRedo.emit(ChangeEvent(Unit)) },
-    )
+    private val undo = addDisposable(TextModelUndo(undoManager, "Script edits", _textModel))
 
     val inlineStackArgs: Val<Boolean> = _inlineStackArgs
 
@@ -57,8 +48,8 @@ class AsmStore(
 
     val editingEnabled: Val<Boolean> = questEditorStore.questEditingEnabled
 
-    val didUndo: Observable<Unit> = _didUndo
-    val didRedo: Observable<Unit> = _didRedo
+    val didUndo: Observable<Unit> = undo.didUndo
+    val didRedo: Observable<Unit> = undo.didRedo
 
     val problems: ListVal<AssemblyProblem> = asmAnalyser.problems
 
@@ -134,8 +125,6 @@ class AsmStore(
         _textModel.value = createModel(asm.joinToString("\n"), ASM_LANG_ID).also { model ->
             modelDisposer.add(disposable { model.dispose() })
 
-            setupUndoRedo(model)
-
             model.onDidChangeContent { e ->
                 asmAnalyser.updateAsm(e.changes.map {
                     AsmChange(
@@ -166,42 +155,6 @@ class AsmStore(
         assemble(model.getLinesContent().toList(), inlineStackArgs.value)
             .getOrNull()
             ?.let(quest::setBytecodeIr)
-    }
-
-    private fun setupUndoRedo(model: ITextModel) {
-        val initialVersion = model.getAlternativeVersionId()
-        var currentVersion = initialVersion
-        var lastVersion = initialVersion
-
-        model.onDidChangeContent {
-            val version = model.getAlternativeVersionId()
-
-            if (version < currentVersion) {
-                // Undoing.
-                undo.canRedo.value = true
-
-                if (version == initialVersion) {
-                    undo.canUndo.value = false
-                }
-            } else {
-                // Redoing.
-                if (version <= lastVersion) {
-                    if (version == lastVersion) {
-                        undo.canRedo.value = false
-                    }
-                } else {
-                    undo.canRedo.value = false
-
-                    if (currentVersion > lastVersion) {
-                        lastVersion = currentVersion
-                    }
-                }
-
-                undo.canUndo.value = true
-            }
-
-            currentVersion = version
-        }
     }
 
     companion object {

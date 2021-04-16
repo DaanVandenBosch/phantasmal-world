@@ -11,7 +11,7 @@ import world.phantasmal.observable.Observer
  * disposables need to be managed when e.g. [map] is used.
  */
 abstract class AbstractDependentVal<T>(
-    private val dependencies: Iterable<Val<*>>,
+    private vararg val dependencies: Val<*>,
 ) : AbstractVal<T>() {
     /**
      * Is either empty or has a disposable per dependency.

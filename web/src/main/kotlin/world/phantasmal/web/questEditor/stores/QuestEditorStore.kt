@@ -58,6 +58,7 @@ class QuestEditorStore(
     val firstUndo: Val<Action?> = undoManager.firstUndo
     val canRedo: Val<Boolean> = questEditingEnabled and undoManager.canRedo
     val firstRedo: Val<Action?> = undoManager.firstRedo
+    val canSaveChanges: Val<Boolean> = !undoManager.allAtSavePoint
 
     val showCollisionGeometry: Val<Boolean> = _showCollisionGeometry
 
@@ -232,5 +233,9 @@ class QuestEditorStore(
 
     fun setShowCollisionGeometry(show: Boolean) {
         _showCollisionGeometry.value = show
+    }
+
+    fun questSaved() {
+        undoManager.savePoint()
     }
 }

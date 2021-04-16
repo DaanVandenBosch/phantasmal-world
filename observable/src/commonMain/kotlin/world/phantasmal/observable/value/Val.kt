@@ -3,8 +3,8 @@ package world.phantasmal.observable.value
 import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.observable.Observable
 import world.phantasmal.observable.Observer
-import world.phantasmal.observable.value.list.ListVal
 import world.phantasmal.observable.value.list.DependentListVal
+import world.phantasmal.observable.value.list.ListVal
 import kotlin.reflect.KProperty
 
 /**
@@ -26,10 +26,10 @@ interface Val<out T> : Observable<T> {
      * @param transform called whenever this val changes
      */
     fun <R> map(transform: (T) -> R): Val<R> =
-        DependentVal(listOf(this)) { transform(value) }
+        DependentVal(this) { transform(value) }
 
     fun <R> mapToListVal(transform: (T) -> List<R>): ListVal<R> =
-        DependentListVal(listOf(this)) { transform(value) }
+        DependentListVal(this) { transform(value) }
 
     /**
      * Map a transformation function that returns a val over this val. The resulting val will change
@@ -38,10 +38,10 @@ interface Val<out T> : Observable<T> {
      * @param transform called whenever this val changes
      */
     fun <R> flatMap(transform: (T) -> Val<R>): Val<R> =
-        FlatteningDependentVal(listOf(this)) { transform(value) }
+        FlatteningDependentVal(this) { transform(value) }
 
     fun <R> flatMapNull(transform: (T) -> Val<R>?): Val<R?> =
-        FlatteningDependentVal(listOf(this)) { transform(value) ?: nullVal() }
+        FlatteningDependentVal(this) { transform(value) ?: nullVal() }
 
     fun isNull(): Val<Boolean> =
         map { it == null }

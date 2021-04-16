@@ -14,7 +14,7 @@ class FlatteningDependentListValDependentValEmitsTests : ListValTests {
         private val dependencyVal = SimpleVal<ListVal<Int>>(nestedVal)
 
         override val observable =
-            FlatteningDependentListVal(listOf(dependencyVal)) { dependencyVal.value }
+            FlatteningDependentListVal(dependencyVal) { dependencyVal.value }
 
         override fun addElement() {
             // Update the direct dependency.

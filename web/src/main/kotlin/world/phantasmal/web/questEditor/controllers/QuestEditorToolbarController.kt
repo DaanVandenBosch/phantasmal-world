@@ -64,7 +64,11 @@ class QuestEditorToolbarController(
     // Saving
 
     val saveEnabled: Val<Boolean> =
-        savingEnabled and files.notEmpty and BrowserFeatures.fileSystemApi
+        and(
+            savingEnabled,
+            questEditorStore.canSaveChanges,
+            files.notEmpty
+        ) and BrowserFeatures.fileSystemApi
     val saveTooltip: Val<String> = value(
         if (BrowserFeatures.fileSystemApi) "Save changes (Ctrl-S)"
         else "This browser doesn't support saving to an existing file"
@@ -235,6 +239,8 @@ class QuestEditorToolbarController(
                 binFile.writeBuffer(bin)
                 datFile.writeBuffer(dat)
             }
+
+            questEditorStore.questSaved()
         } catch (e: Throwable) {
             setResult(
                 PwResult.build<Nothing>(logger)
@@ -297,6 +303,8 @@ class QuestEditorToolbarController(
                 URL.revokeObjectURL(url)
                 document.body?.removeChild(a)
             }
+
+            questEditorStore.questSaved()
         } catch (e: Throwable) {
             setResult(
                 PwResult.build<Nothing>(logger)
