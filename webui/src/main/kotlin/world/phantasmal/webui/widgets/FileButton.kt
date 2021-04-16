@@ -8,7 +8,7 @@ import world.phantasmal.observable.value.trueVal
 import world.phantasmal.webui.dom.Icon
 import world.phantasmal.webui.files.FileHandle
 import world.phantasmal.webui.files.FileType
-import world.phantasmal.webui.files.showFilePicker
+import world.phantasmal.webui.files.showOpenFilePicker
 
 class FileButton(
     visible: Val<Boolean> = trueVal(),
@@ -29,7 +29,7 @@ class FileButton(
         if (filesSelected != null) {
             element.onclick = {
                 scope.launch {
-                    filesSelected.invoke(showFilePicker(types, multiple))
+                    filesSelected.invoke(showOpenFilePicker(types, multiple))
                 }
             }
         }

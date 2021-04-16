@@ -45,18 +45,28 @@ external class FileSystemWritableFileStream : WritableStream {
     fun seek(position: Int): Promise<Unit>
 }
 
-external interface ShowOpenFilePickerOptionsType {
+external interface ShowFilePickerOptionsType {
     var description: String
     var accept: dynamic
 }
 
-external interface ShowOpenFilePickerOptions {
-    var multiple: Boolean
+external interface ShowFilePickerOptions {
     var excludeAcceptAllOption: Boolean
-    var types: Array<ShowOpenFilePickerOptionsType>
+    var types: Array<ShowFilePickerOptionsType>
+}
+
+external interface ShowOpenFilePickerOptions : ShowFilePickerOptions {
+    var multiple: Boolean
 }
 
 fun Window.showOpenFilePicker(
     options: ShowOpenFilePickerOptions,
 ): Promise<Array<FileSystemFileHandle>> =
     asDynamic().showOpenFilePicker(options).unsafeCast<Promise<Array<FileSystemFileHandle>>>()
+
+external interface ShowSaveFilePickerOptions : ShowFilePickerOptions
+
+fun Window.showSaveFilePicker(
+    options: ShowSaveFilePickerOptions,
+): Promise<FileSystemFileHandle> =
+    asDynamic().showSaveFilePicker(options).unsafeCast<Promise<FileSystemFileHandle>>()

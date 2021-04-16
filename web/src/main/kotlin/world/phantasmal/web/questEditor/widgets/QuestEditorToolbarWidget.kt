@@ -87,13 +87,15 @@ class QuestEditorToolbarWidget(private val ctrl: QuestEditorToolbarController) :
                     div {
                         className = "pw-quest-editor-toolbar-save-as"
 
-                        val filenameInput = TextInput(
-                            label = "File name:",
-                            value = ctrl.filename,
-                            onChange = ctrl::setFilename,
-                        )
-                        addWidget(filenameInput.label!!)
-                        addWidget(filenameInput)
+                        if (ctrl.showSaveAsDialogNameField) {
+                            val filenameInput = TextInput(
+                                label = "File name:",
+                                value = ctrl.filename,
+                                onChange = ctrl::setFilename,
+                            )
+                            addWidget(filenameInput.label!!)
+                            addWidget(filenameInput)
+                        }
 
                         val versionSelect = Select(
                             label = "Version:",
@@ -116,7 +118,7 @@ class QuestEditorToolbarWidget(private val ctrl: QuestEditorToolbarController) :
                 footer = {
                     addWidget(Button(
                         text = "Save",
-                        onClick = { ctrl.saveAsDialogSave() },
+                        onClick = { scope.launch { ctrl.saveAsDialogSave() } },
                     ))
                     addWidget(Button(
                         text = "Cancel",
@@ -128,7 +130,7 @@ class QuestEditorToolbarWidget(private val ctrl: QuestEditorToolbarController) :
 
             saveAsDialog.dialogElement.addEventListener("keydown", { e ->
                 if ((e as KeyboardEvent).key == "Enter") {
-                    ctrl.saveAsDialogSave()
+                    scope.launch { ctrl.saveAsDialogSave() }
                 }
             })
 

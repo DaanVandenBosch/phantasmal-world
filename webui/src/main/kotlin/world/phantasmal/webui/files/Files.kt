@@ -6,15 +6,18 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.await
 import kotlinx.coroutines.suspendCancellableCoroutine
 import org.khronos.webgl.ArrayBuffer
+import org.w3c.dom.HTMLAnchorElement
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.asList
 import org.w3c.dom.events.Event
+import org.w3c.dom.url.URL
+import org.w3c.files.Blob
 import org.w3c.files.File
 import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.core.externals.browser.*
 import world.phantasmal.core.filenameBase
 import world.phantasmal.core.filenameExtension
-import world.phantasmal.webui.BrowserFeatures
+import world.phantasmal.webui.UserAgentFeatures
 import world.phantasmal.webui.dom.disposableListener
 import world.phantasmal.webui.obj
 import kotlin.coroutines.resume
@@ -40,7 +43,7 @@ sealed class FileHandle {
     /**
      * File system access API file handle.
      */
-    class Fsaa(private val handle: FileSystemFileHandle) : FileHandle() {
+    class System(private val handle: FileSystemFileHandle) : FileHandle() {
         override val name: String = handle.name
 
         suspend fun writableStream(): FileSystemWritableFileStream =
@@ -66,13 +69,16 @@ class FileType(
 )
 
 @OptIn(ExperimentalCoroutinesApi::class)
-suspend fun showFilePicker(types: List<FileType>, multiple: Boolean = false): List<FileHandle>? =
-    if (BrowserFeatures.fileSystemApi) {
+suspend fun showOpenFilePicker(
+    types: List<FileType>,
+    multiple: Boolean = false,
+): List<FileHandle>? =
+    if (UserAgentFeatures.fileSystemApi) {
         try {
             val fileHandles = window.showOpenFilePicker(obj {
                 this.multiple = multiple
                 this.types = types.map {
-                    obj<ShowOpenFilePickerOptionsType> {
+                    obj<ShowFilePickerOptionsType> {
                         description = it.description
                         accept = obj {
                             for ((mimeType, extensions) in it.accept) {
@@ -83,7 +89,7 @@ suspend fun showFilePicker(types: List<FileType>, multiple: Boolean = false): Li
                 }.toTypedArray()
             }).await()
 
-            fileHandles.map(FileHandle::Fsaa)
+            fileHandles.map(FileHandle::System)
         } catch (e: Throwable) {
             // Ensure we return null when the user cancels.
             if (e.asDynamic().name == "AbortError") {
@@ -120,3 +126,54 @@ suspend fun showFilePicker(types: List<FileType>, multiple: Boolean = false): Li
             el.click()
         }
     }
+
+suspend fun showSaveFilePicker(types: List<FileType>): FileHandle.System? {
+    require(UserAgentFeatures.fileSystemApi) {
+        "Save file picker is not supported by this user agent."
+    }
+
+    try {
+        val fileHandle = window.showSaveFilePicker(obj {
+            this.types = types.map {
+                obj<ShowFilePickerOptionsType> {
+                    description = it.description
+                    accept = obj {
+                        for ((mimeType, extensions) in it.accept) {
+                            this[mimeType] = extensions.toTypedArray()
+                        }
+                    }
+                }
+            }.toTypedArray()
+        }).await()
+
+        return FileHandle.System(fileHandle)
+    } catch (e: Throwable) {
+        // Ensure we return null when the user cancels.
+        if (e.asDynamic().name == "AbortError") {
+            return null
+        } else {
+            throw e
+        }
+    }
+}
+
+fun downloadFile(data: ArrayBuffer, filename: String): FileHandle.Simple {
+    val a = document.createElement("a") as HTMLAnchorElement
+    val blob = Blob(
+        arrayOf(data),
+        obj { type = "application/octet-stream" },
+    )
+    val url = URL.createObjectURL(blob)
+
+    try {
+        a.href = url
+        a.download = filename
+        document.body?.appendChild(a)
+        a.click()
+    } finally {
+        URL.revokeObjectURL(url)
+        document.body?.removeChild(a)
+    }
+
+    return FileHandle.Simple(File(arrayOf(blob), filename))
+}

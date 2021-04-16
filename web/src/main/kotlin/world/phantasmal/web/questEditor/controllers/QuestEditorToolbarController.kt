@@ -1,32 +1,25 @@
 package world.phantasmal.web.questEditor.controllers
 
-import kotlinx.browser.document
+import kotlinx.coroutines.await
 import mu.KotlinLogging
-import org.w3c.dom.HTMLAnchorElement
-import org.w3c.dom.url.URL
-import org.w3c.files.Blob
 import world.phantasmal.core.*
 import world.phantasmal.lib.Endianness
 import world.phantasmal.lib.Episode
 import world.phantasmal.lib.fileFormats.quest.*
 import world.phantasmal.observable.value.*
-import world.phantasmal.observable.value.list.MutableListVal
-import world.phantasmal.observable.value.list.mutableListVal
 import world.phantasmal.web.core.PwToolType
 import world.phantasmal.web.core.files.cursor
 import world.phantasmal.web.core.files.writeBuffer
 import world.phantasmal.web.core.stores.UiStore
 import world.phantasmal.web.questEditor.models.AreaModel
+import world.phantasmal.web.questEditor.models.QuestModel
 import world.phantasmal.web.questEditor.stores.AreaStore
 import world.phantasmal.web.questEditor.stores.QuestEditorStore
 import world.phantasmal.web.questEditor.stores.convertQuestFromModel
 import world.phantasmal.web.questEditor.stores.convertQuestToModel
-import world.phantasmal.webui.BrowserFeatures
+import world.phantasmal.webui.UserAgentFeatures
 import world.phantasmal.webui.controllers.Controller
-import world.phantasmal.webui.files.FileHandle
-import world.phantasmal.webui.files.FileType
-import world.phantasmal.webui.files.showFilePicker
-import world.phantasmal.webui.obj
+import world.phantasmal.webui.files.*
 
 private val logger = KotlinLogging.logger {}
 
@@ -45,7 +38,7 @@ class QuestEditorToolbarController(
     // happening/has happened.
     private val savingEnabled = questEditorStore.currentQuest.isNotNull() and !saving
     private val _saveAsDialogVisible = mutableVal(false)
-    private val files: MutableListVal<FileHandle> = mutableListVal()
+    private val fileHolder = mutableVal<FileHolder?>(null)
     private val _filename = mutableVal("")
     private val _version = mutableVal(Version.BB)
 
@@ -64,17 +57,18 @@ class QuestEditorToolbarController(
     // Saving
 
     val saveEnabled: Val<Boolean> =
-        and(
-            savingEnabled,
-            questEditorStore.canSaveChanges,
-            files.notEmpty
-        ) and BrowserFeatures.fileSystemApi
-    val saveTooltip: Val<String> = value(
-        if (BrowserFeatures.fileSystemApi) "Save changes (Ctrl-S)"
-        else "This browser doesn't support saving to an existing file"
-    )
+        savingEnabled and questEditorStore.canSaveChanges and UserAgentFeatures.fileSystemApi
+    val saveTooltip: Val<String> =
+        if (UserAgentFeatures.fileSystemApi) {
+            questEditorStore.canSaveChanges.map {
+                (if (it) "Save changes" else "No changes to save") + " (Ctrl-S)"
+            }
+        } else {
+            value("This browser doesn't support saving changes to existing files")
+        }
     val saveAsEnabled: Val<Boolean> = savingEnabled
     val saveAsDialogVisible: Val<Boolean> = _saveAsDialogVisible
+    val showSaveAsDialogNameField: Boolean = !UserAgentFeatures.fileSystemApi
     val filename: Val<String> = _filename
     val version: Val<Version> = _version
 
@@ -123,7 +117,7 @@ class QuestEditorToolbarController(
     init {
         addDisposables(
             uiStore.onGlobalKeyDown(PwToolType.QuestEditor, "Ctrl-O") {
-                openFiles(showFilePicker(supportedFileTypes, multiple = true))
+                openFiles(showOpenFilePicker(supportedFileTypes, multiple = true))
             },
 
             uiStore.onGlobalKeyDown(PwToolType.QuestEditor, "Ctrl-S") {
@@ -149,15 +143,11 @@ class QuestEditorToolbarController(
     }
 
     suspend fun createNewQuest(episode: Episode) {
-        setFilename("")
-        setVersion(Version.BB)
-        questEditorStore.setDefaultQuest(episode)
+        setCurrentQuest(fileHolder = null, Version.BB, questEditorStore.getDefaultQuest(episode))
     }
 
     suspend fun openFiles(newFiles: List<FileHandle>?) {
         try {
-            files.clear()
-
             if (newFiles.isNullOrEmpty()) return
 
             val qstFile = newFiles.find { it.extension().equals("qst", ignoreCase = true) }
@@ -167,10 +157,11 @@ class QuestEditorToolbarController(
                 setResult(parseResult)
 
                 if (parseResult is Success) {
-                    setFilename(filenameBase(qstFile.name) ?: qstFile.name)
-                    setVersion(parseResult.value.version)
-                    setCurrentQuest(parseResult.value.quest)
-                    files.replaceAll(listOf(qstFile))
+                    setCurrentQuest(
+                        FileHolder.Qst(qstFile),
+                        parseResult.value.version,
+                        parseResult.value.quest,
+                    )
                 }
             } else {
                 val binFile = newFiles.find { it.extension().equals("bin", ignoreCase = true) }
@@ -191,10 +182,11 @@ class QuestEditorToolbarController(
                 setResult(parseResult)
 
                 if (parseResult is Success) {
-                    setFilename(binFile.basename() ?: datFile.basename() ?: binFile.name)
-                    setVersion(Version.BB)
-                    setCurrentQuest(parseResult.value)
-                    files.replaceAll(listOf(binFile, datFile))
+                    setCurrentQuest(
+                        FileHolder.BinDat(binFile, datFile),
+                        Version.BB,
+                        parseResult.value,
+                    )
                 }
             }
         } catch (e: Throwable) {
@@ -214,33 +206,44 @@ class QuestEditorToolbarController(
 
             val quest = questEditorStore.currentQuest.value ?: return
             val headerFilename = filename.value.trim()
-            val files = files.value.filterIsInstance<FileHandle.Fsaa>()
 
-            files.find { it.extension().equals("qst", ignoreCase = true) }?.let { qstFile ->
-                val buffer = writeQuestToQst(
-                    convertQuestFromModel(quest),
-                    headerFilename,
-                    version.value,
-                    online = true,
-                )
+            when (val holder = fileHolder.value) {
+                is FileHolder.Qst -> {
+                    if (holder.file is FileHandle.System) {
+                        val buffer = writeQuestToQst(
+                            convertQuestFromModel(quest),
+                            headerFilename,
+                            version.value,
+                            online = true,
+                        )
 
-                qstFile.writeBuffer(buffer)
+                        holder.file.writeBuffer(buffer)
+
+                        questEditorStore.questSaved()
+                        return
+                    }
+                }
+
+                is FileHolder.BinDat -> {
+                    if (holder.binFile is FileHandle.System &&
+                        holder.datFile is FileHandle.System
+                    ) {
+                        val (bin, dat) = writeQuestToBinDat(
+                            convertQuestFromModel(quest),
+                            version.value,
+                        )
+
+                        holder.binFile.writeBuffer(bin)
+                        holder.datFile.writeBuffer(dat)
+
+                        questEditorStore.questSaved()
+                        return
+                    }
+                }
             }
 
-            val binFile = files.find { it.extension().equals("bin", ignoreCase = true) }
-            val datFile = files.find { it.extension().equals("dat", ignoreCase = true) }
-
-            if (binFile != null && datFile != null) {
-                val (bin, dat) = writeQuestToBinDat(
-                    convertQuestFromModel(quest),
-                    version.value,
-                )
-
-                binFile.writeBuffer(bin)
-                datFile.writeBuffer(dat)
-            }
-
-            questEditorStore.questSaved()
+            // When there's no existing file that can be saved, default to "Save as...".
+            _saveAsDialogVisible.value = true
         } catch (e: Throwable) {
             setResult(
                 PwResult.build<Nothing>(logger)
@@ -266,7 +269,7 @@ class QuestEditorToolbarController(
         _version.value = version
     }
 
-    fun saveAsDialogSave() {
+    suspend fun saveAsDialogSave() {
         if (!saveAsEnabled.value) return
 
         val quest = questEditorStore.currentQuest.value ?: return
@@ -286,25 +289,22 @@ class QuestEditorToolbarController(
                 online = true,
             )
 
-            val a = document.createElement("a") as HTMLAnchorElement
-            val url = URL.createObjectURL(
-                Blob(
-                    arrayOf(buffer.arrayBuffer),
-                    obj { type = "application/octet-stream" },
-                )
-            )
+            if (UserAgentFeatures.fileSystemApi) {
+                val fileHandle = showSaveFilePicker(listOf(
+                    FileType("Quest file", mapOf("application/pw-quest" to setOf(".qst")))
+                ))
 
-            try {
-                a.href = url
-                a.download = filename
-                document.body?.appendChild(a)
-                a.click()
-            } finally {
-                URL.revokeObjectURL(url)
-                document.body?.removeChild(a)
+                if (fileHandle != null) {
+                    fileHandle.writableStream().use { it.write(buffer.arrayBuffer).await() }
+
+                    setFileHolder(FileHolder.Qst(fileHandle))
+                    questEditorStore.questSaved()
+                }
+            } else {
+                val fileHandle = downloadFile(buffer.arrayBuffer, filename)
+                setFileHolder(FileHolder.Qst(fileHandle))
+                questEditorStore.questSaved()
             }
-
-            questEditorStore.questSaved()
         } catch (e: Throwable) {
             setResult(
                 PwResult.build<Nothing>(logger)
@@ -341,8 +341,36 @@ class QuestEditorToolbarController(
         questEditorStore.setShowCollisionGeometry(show)
     }
 
-    private suspend fun setCurrentQuest(quest: Quest) {
-        questEditorStore.setCurrentQuest(convertQuestToModel(quest, areaStore::getVariant))
+    private fun setFileHolder(fileHolder: FileHolder?) {
+        setFilename(when (fileHolder) {
+            is FileHolder.Qst -> fileHolder.file.basename() ?: fileHolder.file.name
+
+            is FileHolder.BinDat ->
+                fileHolder.binFile.basename()
+                    ?: fileHolder.datFile.basename()
+                    ?: fileHolder.binFile.name
+
+            null -> ""
+        })
+        this.fileHolder.value = fileHolder
+    }
+
+    private suspend fun setCurrentQuest(
+        fileHolder: FileHolder?,
+        version: Version,
+        quest: QuestModel,
+    ) {
+        setFileHolder(fileHolder)
+        setVersion(version)
+        questEditorStore.setCurrentQuest(quest)
+    }
+
+    private suspend fun setCurrentQuest(
+        fileHolder: FileHolder?,
+        version: Version,
+        quest: Quest,
+    ) {
+        setCurrentQuest(fileHolder, version, convertQuestToModel(quest, areaStore::getVariant))
     }
 
     private fun setResult(result: PwResult<*>) {
@@ -351,5 +379,10 @@ class QuestEditorToolbarController(
         if (result.problems.isNotEmpty()) {
             _resultDialogVisible.value = true
         }
+    }
+
+    private sealed class FileHolder {
+        class Qst(val file: FileHandle) : FileHolder()
+        class BinDat(val binFile: FileHandle, val datFile: FileHandle) : FileHolder()
     }
 }

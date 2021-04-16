@@ -58,6 +58,10 @@ class QuestEditorStore(
     val firstUndo: Val<Action?> = undoManager.firstUndo
     val canRedo: Val<Boolean> = questEditingEnabled and undoManager.canRedo
     val firstRedo: Val<Action?> = undoManager.firstRedo
+
+    /**
+     * True if there have been changes since the last save.
+     */
     val canSaveChanges: Val<Boolean> = !undoManager.allAtSavePoint
 
     val showCollisionGeometry: Val<Boolean> = _showCollisionGeometry
@@ -93,7 +97,7 @@ class QuestEditorStore(
             }
         }
 
-        scope.launch { setDefaultQuest(Episode.I) }
+        scope.launch { setCurrentQuest(getDefaultQuest(Episode.I)) }
     }
 
     override fun dispose() {
@@ -143,11 +147,8 @@ class QuestEditorStore(
         }
     }
 
-    suspend fun setDefaultQuest(episode: Episode) {
-        setCurrentQuest(
-            convertQuestToModel(questLoader.loadDefaultQuest(episode), areaStore::getVariant)
-        )
-    }
+    suspend fun getDefaultQuest(episode: Episode): QuestModel =
+        convertQuestToModel(questLoader.loadDefaultQuest(episode), areaStore::getVariant)
 
     private fun setSectionOnQuestEntities(
         entities: List<QuestEntityModel<*, *>>,

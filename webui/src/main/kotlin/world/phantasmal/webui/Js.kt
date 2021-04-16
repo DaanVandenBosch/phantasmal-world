@@ -4,7 +4,7 @@ import kotlinx.browser.window
 import org.w3c.files.File
 import world.phantasmal.core.filenameExtension
 
-object BrowserFeatures {
+object UserAgentFeatures {
     val fileSystemApi: Boolean = window.asDynamic().showOpenFilePicker != null
 }
 

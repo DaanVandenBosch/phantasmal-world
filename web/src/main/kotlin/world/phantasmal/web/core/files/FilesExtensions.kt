@@ -11,6 +11,6 @@ import world.phantasmal.webui.files.FileHandle
 suspend fun FileHandle.cursor(endianness: Endianness): Cursor =
     arrayBuffer().cursor(endianness)
 
-suspend fun FileHandle.Fsaa.writeBuffer(buffer: Buffer) {
+suspend fun FileHandle.System.writeBuffer(buffer: Buffer) {
     writableStream().use { it.write(buffer.arrayBuffer).await() }
 }
