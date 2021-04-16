@@ -46,14 +46,15 @@ Features that are in ***bold italics*** are planned but not yet implemented.
 
 - Area geometry
     - Collision geometry (c.rel)
-    - ***Rendering geometry (n.rel)***
-        - ***Textures***
+    - Rendering geometry (n.rel)
+        - Textures
+        - ***Hide roofs and walls***
 - NPC/object geometry
     - Textures
 - Transparency
     - ***Order independent transparency***
 - ***Mini-map***
-- ***Top-down view (orthogonal view might suffice?)***
+- ***Top-down, simplified view (orthogonal view might suffice?)***
 - ***Add "shadow" to entities to more easily see where floating entities are positioned***
     - ***MVP: a single line***
 - ***Show positions and radii from the relevant script instructions***
@@ -80,15 +81,15 @@ Features that are in ***bold italics*** are planned but not yet implemented.
 - Add events
 - Delete event
     - ***Delete coupled NPCs if requested***
-- ***Add parent-child relationship***
-- ***Remove parent-child relationship***
+- ***Easy navigations to parent and child events***
 - Edit event delay
+- ***Go to related event via entity view***
 
 ### Event Actions
 
 - Add/Delete
 - Lock/unlock doors
-- ***Spawn NPCs***
+- Spawn NPCs
 - ***Reorder actions***
 
 ## Script Byte Code
@@ -103,6 +104,7 @@ Features that are in ***bold italics*** are planned but not yet implemented.
     - Strings
 - Labels
 - Interpret code called from NPCs and objects as code
+- ***Interpret segments of unknown type as code if possible***
 
 ## Script Assembly Editor
 
@@ -157,22 +159,23 @@ Features that are in ***bold italics*** are planned but not yet implemented.
 ## Bugs
 
 - When a modal dialog is open, global keybindings should be disabled
-- Wen right-click dragging from the 3D-view and releasing the mouse button outside the 3D-view, the
-  default context menu pops up
+- The ASM editor is slow with big scripts, e.g. Seat of the Heart (#27)
 - Improve the default camera target for Crater Interior
+- The 3D doesn't update when a different variant is configured with a map designate instruction for
+  the current area
 - Entities with rendering issues:
-  - Caves 4 Button door
-  - Pofuilly Slime
-  - Pouilly Slime
-  - Easter Egg
-  - Christmas Tree
-  - Halloween Pumpkin
-  - 21st Century
-  - Light rays - used in forest and CCA
-  - Big CCA Door Switch
-    - Laser Detect - used in CCA
-    - Wide Glass Wall (breakable) - used in Seabed
-    - item box cca
-    - Desert Fixed Type Box (Breakable Crystals)
-    - Merissa A
-    - Merissa AA
+    - Caves 4 Button door
+    - Pofuilly Slime
+    - Pouilly Slime
+    - Easter Egg
+    - Christmas Tree
+    - Halloween Pumpkin
+    - 21st Century
+    - Light rays - used in forest and CCA
+    - Big CCA Door Switch
+        - Laser Detect - used in CCA
+        - Wide Glass Wall (breakable) - used in Seabed
+        - item box cca
+        - Desert Fixed Type Box (Breakable Crystals)
+        - Merissa A
+        - Merissa AA
