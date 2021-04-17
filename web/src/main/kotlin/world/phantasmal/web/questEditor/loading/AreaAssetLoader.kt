@@ -122,45 +122,6 @@ class AreaAssetLoader(private val assetLoader: AssetLoader) : DisposableContaine
         }
     }
 
-//    private fun cullRenderGeometry(collisionGeom: Object3D, renderGeom: Object3D) {
-//        val cullingVolumes = mutableMapOf<Int, Box3>()
-//
-//        for (collisionMesh in collisionGeom.children) {
-//            collisionMesh as Mesh
-//            collisionMesh.userData.unsafeCast<AreaUserData>().section?.let { section ->
-//                cullingVolumes.getOrPut(section.id, ::Box3)
-//                    .union(
-//                        collisionMesh.geometry.boundingBox!!.applyMatrix4(collisionMesh.matrixWorld)
-//                    )
-//            }
-//        }
-//
-//        for (cullingVolume in cullingVolumes.values) {
-//            cullingVolume.min.x -= 50
-//            cullingVolume.min.y = cullingVolume.max.y + 20
-//            cullingVolume.min.z -= 50
-//            cullingVolume.max.x += 50
-//            cullingVolume.max.y = Double.POSITIVE_INFINITY
-//            cullingVolume.max.z += 50
-//        }
-//
-//        var i = 0
-//
-//        outer@ while (i < renderGeom.children.size) {
-//            val renderMesh = renderGeom.children[i] as Mesh
-//            val bb = renderMesh.geometry.boundingBox!!.applyMatrix4(renderMesh.matrixWorld)
-//
-//            for (cullingVolume in cullingVolumes.values) {
-//                if (bb.intersectsBox(cullingVolume)) {
-//                    renderGeom.remove(renderMesh)
-//                    continue@outer
-//                }
-//            }
-//
-//            i++
-//        }
-//    }
-
     private fun areaAssetUrl(
         episode: Episode,
         areaVariant: AreaVariantModel,
@@ -440,7 +401,7 @@ class AreaAssetLoader(private val assetLoader: AssetLoader) : DisposableContaine
             // Forest 1
             Pair(Episode.I, 1) to Fix(
                 renderOnTopTextures = jsSetOf(12, 24, 41),
-                // Hiding trees and their shadows, doesn't seem to improve things.
+                // Hiding trees and their shadows doesn't seem to improve things.
 //                hiddenObjects = jsSetOf(
 //                    // Trees
 //                    "s_n_0_2i_2_im1teq",
@@ -534,6 +495,49 @@ class AreaAssetLoader(private val assetLoader: AssetLoader) : DisposableContaine
                 hiddenObjects = jsSetOf(
                     "s_n_0_2o_5_inun1c",
                     "s_n_0_5y_2_ipyair",
+                    "s_n_0_6s_1_ineank",
+                    "s_i_0_1m_2_inaavi",
+                    "s_n_0_z_3_in9y6h",
+                    "s_n_0_y_2_in9y6i",
+                    "s_n_0_65_2_imvj03",
+                    "s_n_0_1z_3_igrun1",
+                    "s_n_0_1c_1_iiwgi4",
+                    "s_n_0_3s_2_ik31gu",
+                    "s_n_0_ck_3_iqmh8l",
+                    "s_n_0_8_1_ipi56i",
+                    "s_n_0_ai_2_imxdng", // Hides a useful wall.
+                    "s_n_0_40_1_idv9vx",
+                    "s_n_0_40_1_iav5sv",
+                    "s_n_0_10_1_i8ln9o",
+                    "s_n_0_40_1_i9d1mq",
+                    "s_n_0_40_1_ial6oq",
+                    "s_n_0_10_1_i9h8dj",
+                    "s_n_0_40_1_iayj3o",
+                    "s_n_0_f_1_i223uy",
+                    "s_n_0_8_2_i2ait3",
+                    "s_n_0_c_1_ihe9y2", // Light rays.
+                    "s_n_0_1g_3_imf1u9",
+                    "s_n_0_13_1_imi0xj", // Hides a useful wall.
+                    "s_n_0_13_1_ie2mdl",
+                    "s_n_0_14_1_iarwat",
+                    "s_n_0_14_1_ib5ibn",
+                    "s_n_0_14_1_ib22ll",
+                    "s_n_0_11_1_i9iiuh",
+                    "s_n_0_c_1_i8pqa1",
+                    "s_n_0_c_1_i9lun8",
+                    "s_n_0_1t_3_in9y6h",
+                    "s_n_0_1m_2_in9y6i",
+                    "s_n_0_30_1_imbylm",
+                    "s_n_0_4c_1_imbvf0",
+                    "s_n_0_1g_3_ina5ek",
+                    "s_n_0_1y_1_inkdfk",
+                    "s_n_0_20_1_inkdfk",
+                    "s_n_0_bq_4_io8w3z", // Hides useful walls.
+                    "s_n_0_2y_3_iguupa",
+                    "s_n_0_g_1_igrun0",
+                    "s_n_0_27_3_iezann",
+                    "s_n_0_c_1_ibf82n",
+                    "s_n_0_51_4_ioiz0s",
                 ),
             ),
             // Mine 1
@@ -543,11 +547,126 @@ class AreaAssetLoader(private val assetLoader: AssetLoader) : DisposableContaine
                     "s_n_0_d_1_iruof6",
                     "s_n_0_o_1_im9ta5",
                     "s_n_0_18_3_im1kwg",
+                    "s_n_0_1p_2_ik8kv4",
+                    "s_n_0_2o_4_icnz3m",
+                    "s_n_0_l_2_iesew4",
+                    "s_n_0_m_2_iesew4",
+                    "s_n_0_n_2_iesew4",
+                    "s_n_0_e_2_iiim6h",
+                    "s_n_0_e_2_iiwz9t",
+                    "s_m_0_5d_5_in2a8p",
+                    "s_n_0_5e_5_in28xs",
+                    "s_n_0_g_2_iiim6h",
+                    "s_n_0_c_1_iicw2a",
+                    "s_n_0_4_1_iocia5",
+                    "s_n_0_w_1_iock4v",
+                    "s_n_0_x_1_iock4v",
+                    "s_n_0_u_1_iock4n",
+                    "s_n_0_w_1_iock4n",
+                    "s_n_0_34_6_ick6fg",
+                    "s_n_0_35_6_ick6fb",
+                    "s_n_0_2f_5_ick6fb",
+                    "s_n_0_2f_5_iax3on",
+                    "s_n_0_2g_5_iax3on",
+                    "s_n_0_7u_6_imu4sl", // Removes useful walls.
+                    "a_n_0_2o_1_ihbps1",
+                    "a_m_0_w_1_ihbps1",
+                    "a_n_0_40_1_im1kwd",
+                    "a_m_0_1c_1_im1kwd",
+                    "a_n_0_5c_1_ioswl8",
+                    "a_m_0_1s_1_ioswl8",
+                    "s_n_0_1q_2_ik8kv4",
+                    "s_n_0_1o_2_ik8kv4",
+                    "s_n_0_2p_4_icnz3m",
+                    "s_n_0_e_2_iogb8r",
+                    "a_m_0_2o_1_ieufi8",
+                    "a_m_0_w_1_ieufi8",
+                    "a_m_0_40_1_ijg6im",
+                    "a_m_0_1c_1_ijg6im",
+                    "a_m_0_5c_1_imapz3",
+                    "a_m_0_1s_1_imapz3",
+                    "s_n_0_4_1_iibhb0",
+                    "s_n_0_y_1_ij7t3e",
+                    "s_n_0_5i_2_is4pjy",
+                    "s_n_0_5o_3_im8ftj",
+                    "a_v_2_w_2_iuevc4",
+                    "s_n_0_g_1_ipgmwz",
+                    "s_n_0_22_4_ii5pmt",
+                    "s_n_0_h_1_icxfm4",
+                    "s_n_0_g_1_icil7w",
+                    "s_n_0_g_2_iiwz9t",
+                    "s_n_0_2i_5_ick6fb",
+                    "s_n_0_2h_5_iax3on",
+                    "s_n_0_35_6_idpxdg",
+                    "s_n_0_4_1_iibia8",
+                    "s_n_0_i_1_iia1hg",
+                    "s_n_0_2i_2_ii5pmt",
+                    "s_n_0_4v_2_if11u9",
+                    "a_g_0_2s_1_i3s3rv",
+                    "s_n_0_i_1_ilhgcl",
+                    "s_n_0_i_1_ic028c",
+                    "a_m_0_2s_1_ifbt7v",
+                    "a_m_0_3c_1_ifn9sx",
+                    "s_n_0_i_1_icgl4q",
+                    "s_n_0_4x_2_if11u9",
+                    "s_n_0_5s_3_im8ftj",
+                    "s_n_0_5r_3_im8ftj",
+                    "s_n_0_5p_3_im8ftj",
+                    "s_n_0_53_1_irss9x",
+                    "s_n_0_g_1_ipdidh",
+                    "s_n_0_8_1_ifmiv6",
+                    "s_n_0_4x_2_iegdcg",
+                    "a_m_0_2z_1_ifn9sx",
+                    "a_m_0_2v_1_ifbt7v",
+                    "s_n_0_4v_2_iegdcg",
+                    "s_n_0_98_2_irj27b",
+                    "s_n_0_5q_3_im8ftj",
+                    "s_n_0_8_1_ihul8g",
+                    "s_n_0_8_1_ihul8h",
+                    "s_n_0_8_1_ifmiv4",
+                    "s_n_0_2i_5_iax3on",
+                    "s_n_0_2g_5_ick6fb",
                 ),
             ),
             // Mine 2
             Pair(Episode.I, 7) to Fix(
-                renderOnTopTextures = jsSetOf(0, 1, 7, 8, 17, 23, 56, 57, 58, 59, 60, 83),
+                renderOnTopTextures = jsSetOf(0, 1, 7, 17, 23, 56, 57, 58, 59, 60, 83),
+                hiddenObjects = jsSetOf(
+                    "s_n_0_22_4_imqetn",
+                    "s_n_0_25_4_imqeto",
+                    "s_n_0_26_4_imqeto",
+                    "s_n_0_ea_b_iqj1du", // Removes useful walls.
+                    "s_n_0_1y_2_ilnv1u",
+                    "s_n_0_3v_4_imvdlv",
+                    "s_n_0_1r_2_ienz85",
+                    "s_n_0_q_1_ikmbk0",
+                    "s_n_0_r_1_ikmbk1",
+                    "s_n_0_u_1_ijvi2n",
+                    "s_n_0_2h_3_ij9v6f",
+                    "a_v_5_44_5_iooqcl",
+                    "s_n_0_3w_1_iermhh",
+                    "s_n_0_3v_1_iermhh",
+                    "s_n_0_41_1_iermhh",
+                    "s_n_0_44_1_iermhh",
+                    "s_n_0_3z_1_iermhh",
+                    "s_n_0_3r_1_iermhh",
+                    "s_n_0_3l_2_icltvn",
+                    "s_n_0_34_2_ib7nty",
+                    "s_n_0_2q_2_iqbtts",
+                    "s_n_0_1b_2_ik31gw",
+                    "a_m_0_g_1_ik31gw",
+                    "s_n_0_8_1_iguxp4",
+                    "s_n_0_18_2_ihbgzw",
+                    "s_n_0_19_2_ii8yrr",
+                    "s_n_0_1c_2_ii8yrr",
+                    "s_n_0_1a_2_ihbgzw",
+                    "s_n_0_k_1_iizb6x",
+                    "s_n_0_8_1_ih1jv0",
+                    "s_n_0_1n_1_il15nq",
+                    "s_n_0_4m_2_ihl4ii",
+                    "s_n_0_6i_1_ihu9uu",
+                    "s_n_0_y_2_igrun1",
+                ),
             ),
             // Ruins 1
             Pair(Episode.I, 8) to Fix(
