@@ -37,7 +37,7 @@ class QuestEditorStore(
 
     val devMode: Val<Boolean> = _devMode
 
-    val runner = QuestRunner()
+    private val runner = QuestRunner()
     val currentQuest: Val<QuestModel?> = _currentQuest
     val currentArea: Val<AreaModel?> = _currentArea
     val selectedEvent: Val<QuestEventModel?> = _selectedEvent
@@ -134,12 +134,7 @@ class QuestEditorStore(
             _currentQuest.value = quest
 
             // Load section data.
-            quest.areaVariants.value.forEach { variant ->
-                val sections = areaStore.getSections(quest.episode, variant)
-                variant.setSections(sections)
-                setSectionOnQuestEntities(quest.npcs.value, variant, sections)
-                setSectionOnQuestEntities(quest.objects.value, variant, sections)
-            }
+            updateQuestEntitySections(quest)
 
             // Ensure all entities have their section initialized.
             quest.npcs.value.forEach { it.setSectionInitialized() }
@@ -149,25 +144,6 @@ class QuestEditorStore(
 
     suspend fun getDefaultQuest(episode: Episode): QuestModel =
         convertQuestToModel(questLoader.loadDefaultQuest(episode), areaStore::getVariant)
-
-    private fun setSectionOnQuestEntities(
-        entities: List<QuestEntityModel<*, *>>,
-        variant: AreaVariantModel,
-        sections: List<SectionModel>,
-    ) {
-        entities.forEach { entity ->
-            if (entity.areaId == variant.area.id) {
-                val section = sections.find { it.id == entity.sectionId.value }
-
-                if (section == null) {
-                    logger.warn { "Section ${entity.sectionId.value} not found." }
-                    entity.setSectionInitialized()
-                } else {
-                    entity.initializeSection(section)
-                }
-            }
-        }
-    }
 
     fun setCurrentArea(area: AreaModel?) {
         val event = selectedEvent.value
@@ -215,6 +191,30 @@ class QuestEditorStore(
         _selectedEntity.value = entity
     }
 
+    suspend fun setMapDesignations(mapDesignations: Map<Int, Int>) {
+        currentQuest.value?.let { quest ->
+            quest.setMapDesignations(mapDesignations)
+            updateQuestEntitySections(quest)
+        }
+    }
+
+    fun setEntitySection(entity: QuestEntityModel<*, *>, sectionId: Int) {
+        currentQuest.value?.let { quest ->
+            val variant = quest.areaVariants.value.find { it.area.id == entity.areaId }
+
+            variant?.let {
+                val section = areaStore.getLoadedSections(quest.episode, variant)
+                    ?.find { it.id == sectionId }
+
+                if (section == null) {
+                    entity.setSectionId(sectionId)
+                } else {
+                    entity.setSection(section)
+                }
+            }
+        }
+    }
+
     fun executeAction(action: Action) {
         pushAction(action)
         action.execute()
@@ -238,5 +238,33 @@ class QuestEditorStore(
 
     fun questSaved() {
         undoManager.savePoint()
+    }
+
+    private suspend fun updateQuestEntitySections(quest: QuestModel) {
+        quest.areaVariants.value.forEach { variant ->
+            val sections = areaStore.getSections(quest.episode, variant)
+            variant.setSections(sections)
+            setSectionOnQuestEntities(quest.npcs.value, variant, sections)
+            setSectionOnQuestEntities(quest.objects.value, variant, sections)
+        }
+    }
+
+    private fun setSectionOnQuestEntities(
+        entities: List<QuestEntityModel<*, *>>,
+        variant: AreaVariantModel,
+        sections: List<SectionModel>,
+    ) {
+        entities.forEach { entity ->
+            if (entity.areaId == variant.area.id) {
+                val section = sections.find { it.id == entity.sectionId.value }
+
+                if (section == null) {
+                    logger.warn { "Section ${entity.sectionId.value} not found." }
+                    entity.setSectionInitialized()
+                } else {
+                    entity.setSection(section, keepRelativeTransform = true)
+                }
+            }
+        }
     }
 }

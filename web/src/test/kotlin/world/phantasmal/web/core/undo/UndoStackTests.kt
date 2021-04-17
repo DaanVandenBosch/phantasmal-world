@@ -9,7 +9,7 @@ import kotlin.test.assertTrue
 
 class UndoStackTests : WebTestSuite {
     @Test
-    fun simple_properties_and_invariants() {
+    fun simple_properties_and_invariants() = test {
         val stack = UndoStack(UndoManager())
 
         assertFalse(stack.canUndo.value)
@@ -35,7 +35,7 @@ class UndoStackTests : WebTestSuite {
     }
 
     @Test
-    fun undo() {
+    fun undo() = test {
         val stack = UndoStack(UndoManager())
 
         var value = 3
@@ -56,7 +56,7 @@ class UndoStackTests : WebTestSuite {
     }
 
     @Test
-    fun redo() {
+    fun redo() = test {
         val stack = UndoStack(UndoManager())
 
         var value = 3
@@ -80,7 +80,7 @@ class UndoStackTests : WebTestSuite {
     }
 
     @Test
-    fun push_then_undo_then_push_again() {
+    fun push_then_undo_then_push_again() = test {
         val stack = UndoStack(UndoManager())
 
         var value = 3

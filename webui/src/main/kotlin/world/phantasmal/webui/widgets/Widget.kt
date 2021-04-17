@@ -1,7 +1,9 @@
 package world.phantasmal.webui.widgets
 
 import kotlinx.browser.document
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import org.w3c.dom.Element
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.HTMLStyleElement
@@ -201,6 +203,10 @@ abstract class Widget(
         onPointerUp: (e: PointerEvent) -> Unit = {},
     ) {
         addDisposable(disposablePointerDrag(onPointerDown, onPointerMove, onPointerUp))
+    }
+
+    protected fun launch(block: suspend CoroutineScope.() -> Unit) {
+        scope.launch(block = block)
     }
 
     companion object {

@@ -19,13 +19,13 @@ class QuestEntityModelTests : WebTestSuite {
 
         assertTrue(entity.position.value.equals(entity.worldPosition.value))
 
-        // When section is initialized, relative position stays the same and world position changes.
-        entity.initializeSection(SectionModel(
+        // Initialize section and keep relative position the same so world position changes.
+        entity.setSection(SectionModel(
             20,
             Vector3(7.0, 7.0, 7.0),
             euler(.0, .0, .0),
             components.areaStore.getVariant(Episode.I, 0, 0)!!,
-        ))
+        ), keepRelativeTransform = true)
 
         assertEquals(5.0, entity.position.value.x)
         assertEquals(5.0, entity.position.value.y)

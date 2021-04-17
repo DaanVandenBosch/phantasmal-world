@@ -161,8 +161,6 @@ Features that are in ***bold italics*** are planned but not yet implemented.
 - When a modal dialog is open, global keybindings should be disabled
 - The ASM editor is slow with big scripts, e.g. Seat of the Heart (#27)
 - Improve the default camera target for Crater Interior
-- The 3D doesn't update when a different variant is configured with a map designate instruction for
-  the current area
 - Entities with rendering issues:
     - Caves 4 Button door
     - Pofuilly Slime

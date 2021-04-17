@@ -62,26 +62,10 @@ abstract class QuestEntityModel<Type : EntityType, Entity : QuestEntity<Type>>(
     open fun setSectionId(sectionId: Int) {
         entity.sectionId = sectionId.toShort()
         _sectionId.value = sectionId
-    }
 
-    fun initializeSection(section: SectionModel) {
-        require(!sectionInitialized.value) {
-            "Section is already initialized."
+        if (sectionId != _section.value?.id) {
+            _section.value = null
         }
-        require(section.areaVariant.area.id == areaId) {
-            "Section should lie within the entity's area."
-        }
-
-        setSectionId(section.id)
-
-        _section.value = section
-
-        // Update world position and rotation by calling setPosition and setRotation with the
-        // current position and rotation.
-        setPosition(position.value)
-        setRotation(rotation.value)
-
-        setSectionInitialized()
     }
 
     fun setSectionInitialized() {
@@ -89,21 +73,32 @@ abstract class QuestEntityModel<Type : EntityType, Entity : QuestEntity<Type>>(
     }
 
     /**
-     * Will update the entity's relative transformation but keep its world transformation constant.
+     * @param keepRelativeTransform If true, keep the entity's relative transform and update its
+     * world transform. Otherwise keep its world transform and update its relative transform.
      */
-    fun setSection(section: SectionModel) {
+    fun setSection(section: SectionModel, keepRelativeTransform: Boolean = false) {
         require(section.areaVariant.area.id == areaId) {
             "Quest entities can't be moved across areas."
         }
 
-        setSectionId(section.id)
+        entity.sectionId = section.id.toShort()
+        _sectionId.value = section.id
 
         _section.value = section
 
-        // Update relative position and rotation by calling setWorldPosition and setWorldRotation
-        // with the current world position and rotation.
-        setWorldPosition(worldPosition.value)
-        setWorldRotation(worldRotation.value)
+        if (keepRelativeTransform) {
+            // Update world position and rotation by calling setPosition and setRotation with the
+            // current position and rotation.
+            setPosition(position.value)
+            setRotation(rotation.value)
+        } else {
+            // Update relative position and rotation by calling setWorldPosition and
+            // setWorldRotation with the current world position and rotation.
+            setWorldPosition(worldPosition.value)
+            setWorldRotation(worldRotation.value)
+        }
+
+        setSectionInitialized()
     }
 
     fun setPosition(pos: Vector3) {

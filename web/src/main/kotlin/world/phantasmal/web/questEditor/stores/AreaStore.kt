@@ -9,8 +9,8 @@ import world.phantasmal.webui.stores.Store
 import world.phantasmal.lib.fileFormats.quest.getAreasForEpisode as getAreasForEpisodeLib
 
 class AreaStore(private val areaAssetLoader: AreaAssetLoader) : Store() {
-    private val areas: Map<Episode, List<AreaModel>> = Episode.values()
-        .map { episode ->
+    private val areas: Map<Episode, List<AreaModel>> =
+        Episode.values().associate { episode ->
             episode to getAreasForEpisodeLib(episode).map { area ->
                 val variants = mutableListOf<AreaVariantModel>()
                 val areaModel = AreaModel(area.id, area.name, area.order, variants)
@@ -22,7 +22,6 @@ class AreaStore(private val areaAssetLoader: AreaAssetLoader) : Store() {
                 areaModel
             }
         }
-        .toMap()
 
     fun getAreasForEpisode(episode: Episode): List<AreaModel> =
         areas.getValue(episode)
@@ -42,4 +41,7 @@ class AreaStore(private val areaAssetLoader: AreaAssetLoader) : Store() {
 
     suspend fun getSections(episode: Episode, variant: AreaVariantModel): List<SectionModel> =
         areaAssetLoader.loadSections(episode, variant)
+
+    fun getLoadedSections(episode: Episode, variant: AreaVariantModel): List<SectionModel>? =
+        areaAssetLoader.getCachedSections(episode, variant)
 }

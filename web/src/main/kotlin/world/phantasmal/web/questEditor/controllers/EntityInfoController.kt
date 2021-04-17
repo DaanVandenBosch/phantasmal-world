@@ -123,12 +123,12 @@ class EntityInfoController(
 
         questEditorStore.executeAction(TranslateEntityAction(
             setSelectedEntity = questEditorStore::setSelectedEntity,
+            setEntitySection = { /* Won't be called. */ },
             entity,
-            entity.section.value,
-            entity.section.value,
-            Vector3(x, y, z),
-            entity.position.value,
-            false,
+            newSection = null,
+            oldSection = null,
+            newPosition = Vector3(x, y, z),
+            oldPosition = entity.position.value,
         ))
     }
 
@@ -165,7 +165,7 @@ class EntityInfoController(
         ))
     }
 
-    fun setPropValue(prop:QuestEntityPropModel, value:Any) {
+    fun setPropValue(prop: QuestEntityPropModel, value: Any) {
         questEditorStore.selectedEntity.value?.let { entity ->
             questEditorStore.executeAction(EditEntityPropAction(
                 setSelectedEntity = questEditorStore::setSelectedEntity,

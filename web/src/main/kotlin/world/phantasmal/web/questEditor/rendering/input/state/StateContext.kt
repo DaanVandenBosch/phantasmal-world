@@ -130,12 +130,12 @@ class StateContext(
     ) {
         questEditorStore.executeAction(TranslateEntityAction(
             ::setSelectedEntity,
+            { questEditorStore.setEntitySection(entity, it) },
             entity,
-            newSection,
-            oldSection,
+            newSection?.id,
+            oldSection?.id,
             newPosition,
             oldPosition,
-            world = true,
         ))
     }
 

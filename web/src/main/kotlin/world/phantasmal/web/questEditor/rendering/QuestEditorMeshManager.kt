@@ -12,10 +12,14 @@ class QuestEditorMeshManager(
     renderContext: QuestRenderContext,
 ) : QuestMeshManager(areaAssetLoader, entityAssetLoader, questEditorStore, renderContext) {
     init {
-        observe(questEditorStore.currentQuest, questEditorStore.currentArea) { quest, area ->
-            val areaVariant = quest?.let {
+        observe(
+            questEditorStore.currentQuest,
+            questEditorStore.currentQuest.flatMapNull { it?.areaVariants },
+            questEditorStore.currentArea,
+        ) { quest, questAreaVariants, area ->
+            val areaVariant = questAreaVariants?.let {
                 area?.let {
-                    quest.areaVariants.value.find { it.area.id == area.id }
+                    questAreaVariants.find { it.area.id == area.id }
                         ?: area.areaVariants.first()
                 }
             }

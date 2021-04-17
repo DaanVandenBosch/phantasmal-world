@@ -6,6 +6,8 @@ import world.phantasmal.lib.fileFormats.quest.DatUnknown
 import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.list.ListVal
 import world.phantasmal.observable.value.list.SimpleListVal
+import world.phantasmal.observable.value.list.flatMapToList
+import world.phantasmal.observable.value.list.listVal
 import world.phantasmal.observable.value.map
 import world.phantasmal.observable.value.mutableVal
 
@@ -57,7 +59,7 @@ class QuestModel(
     /**
      * One variant per area.
      */
-    val areaVariants: Val<List<AreaVariantModel>>
+    val areaVariants: ListVal<AreaVariantModel>
 
     val npcs: ListVal<QuestNpcModel> = _npcs
     val objects: ListVal<QuestObjectModel> = _objects
@@ -88,23 +90,24 @@ class QuestModel(
             map
         }
 
-        areaVariants = map(entitiesPerArea, this.mapDesignations) { entitiesPerArea, mds ->
-            val variants = mutableMapOf<Int, AreaVariantModel>()
+        areaVariants =
+            flatMapToList(entitiesPerArea, this.mapDesignations) { entitiesPerArea, mds ->
+                val variants = mutableMapOf<Int, AreaVariantModel>()
 
-            for (areaId in entitiesPerArea.values) {
-                getVariant(episode, areaId, 0)?.let {
-                    variants[areaId] = it
+                for (areaId in entitiesPerArea.keys) {
+                    getVariant(episode, areaId, 0)?.let {
+                        variants[areaId] = it
+                    }
                 }
-            }
 
-            for ((areaId, variantId) in mds) {
-                getVariant(episode, areaId, variantId)?.let {
-                    variants[areaId] = it
+                for ((areaId, variantId) in mds) {
+                    getVariant(episode, areaId, variantId)?.let {
+                        variants[areaId] = it
+                    }
                 }
-            }
 
-            variants.values.toList()
-        }
+                listVal(*variants.values.toTypedArray())
+            }
     }
 
     fun setId(id: Int): QuestModel {

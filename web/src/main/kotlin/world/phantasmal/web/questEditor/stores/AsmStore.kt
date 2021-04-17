@@ -1,6 +1,7 @@
 package world.phantasmal.web.questEditor.stores
 
 import kotlinx.browser.window
+import kotlinx.coroutines.launch
 import world.phantasmal.core.Severity
 import world.phantasmal.core.disposable.Disposer
 import world.phantasmal.core.disposable.disposable
@@ -68,7 +69,7 @@ class AsmStore(
         }
 
         observe(asmAnalyser.mapDesignations) {
-            questEditorStore.currentQuest.value?.setMapDesignations(it)
+            scope.launch { questEditorStore.setMapDesignations(it) }
         }
 
         observe(problems) { problems ->

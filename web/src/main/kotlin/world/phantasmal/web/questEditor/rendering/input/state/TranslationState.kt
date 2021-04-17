@@ -15,7 +15,7 @@ class TranslationState(
     private val grabOffset: Vector3,
 ) : State() {
     private val initialSection: SectionModel? = entity.section.value
-    private val initialPosition: Vector3 = entity.worldPosition.value
+    private val initialPosition: Vector3 = entity.position.value
     private val pointerDevicePosition = Vector2()
     private var shouldTranslate = false
     private var shouldTranslateVertically = false
@@ -46,7 +46,7 @@ class TranslationState(
                         entity,
                         entity.section.value,
                         initialSection,
-                        entity.worldPosition.value,
+                        entity.position.value,
                         initialPosition,
                     )
                 }
@@ -87,6 +87,6 @@ class TranslationState(
             entity.setSection(initialSection)
         }
 
-        entity.setWorldPosition(initialPosition)
+        entity.setPosition(initialPosition)
     }
 }

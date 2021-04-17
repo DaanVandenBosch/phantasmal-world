@@ -76,6 +76,9 @@ class AreaAssetLoader(private val assetLoader: AssetLoader) : DisposableContaine
     ): Object3D =
         cache.get(EpisodeAndAreaVariant(episode, areaVariant)).collisionGeometry
 
+    fun getCachedSections(episode: Episode, areaVariant: AreaVariantModel): List<SectionModel>? =
+        cache.getIfPresentNow(EpisodeAndAreaVariant(episode, areaVariant))?.sections
+
     private suspend fun getAreaAsset(
         episode: Episode,
         areaVariant: AreaVariantModel,
@@ -506,6 +509,24 @@ class AreaAssetLoader(private val assetLoader: AssetLoader) : DisposableContaine
                     "s_n_0_5i_1_iqqrft",
                     "s_n_0_g_1_iipv9r",
                     "s_n_0_c_1_ihboen",
+                    "s_n_0_3l_2_iljrhl",
+                    "s_n_0_5t_2_ill0ej",
+                    "s_n_0_4e_2_iobj4y", // Deletes useful walls.
+                    "s_n_0_6y_2_ipln11", // Deletes useful walls.
+                    "s_n_0_43_1_iqbzr4",
+                    "s_n_0_o_1_ikqpac",
+                    "s_n_0_c_1_ihrvdk",
+                    "s_n_0_c_1_ih2ob6",
+                    "s_n_0_c_1_ihwsxo",
+                    "s_n_0_c_1_igrh47",
+                    "s_n_0_j9_4_iqqrft", // Deletes useful walls.
+                    "s_n_0_p_2_ihe7ca",
+                    "s_n_0_l_2_igkyx3",
+                    "s_n_0_n_2_igubtb",
+                    "s_n_0_l_2_ihuczl",
+                    "s_n_0_o_1_ijn9y2",
+                    "s_n_0_f_1_ijpzol",
+                    "s_n_0_2n_1_ilgim5",
                 ),
             ),
             // Cave 3

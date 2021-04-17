@@ -38,12 +38,6 @@ abstract class Input<T>(
 
                 onchange = { callOnChange(this) }
 
-                onkeydown = { e ->
-                    if (e.key == "Enter") {
-                        callOnChange(this)
-                    }
-                }
-
                 interceptInputElement(this)
 
                 observe(this@Input.value) {
