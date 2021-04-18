@@ -16,6 +16,12 @@ import kotlin.math.min
 
 private val logger = KotlinLogging.logger {}
 
+private const val MAX_TOTAL_NOPS = 20
+private const val MAX_SEQUENTIAL_NOPS = 10
+private const val MAX_UNKNOWN_OPCODE_RATIO = 0.2
+private const val MAX_STACK_POP_WITHOUT_PRECEDING_PUSH_RATIO = 0.2
+private const val MAX_UNKNOWN_LABEL_RATIO = 0.2
+
 val SEGMENT_PRIORITY = mapOf(
     SegmentType.Instructions to 2,
     SegmentType.String to 1,
@@ -70,7 +76,7 @@ fun parseBytecode(
     findAndParseSegments(
         cursor,
         labelHolder,
-        entryLabels.map { it to SegmentType.Instructions }.toMap(),
+        entryLabels.associateWith { SegmentType.Instructions },
         offsetToSegment,
         lenient,
         dcGcFormat,
@@ -78,7 +84,8 @@ fun parseBytecode(
 
     val segments: MutableList<Segment> = mutableListOf()
 
-    // Put segments in an array and parse left-over segments as data.
+    // Put segments in an array and try to parse leftover segments as instructions segments. When a
+    // segment can't be parsed as instructions, fall back to parsing it as a data segment.
     var offset = 0
 
     while (offset < cursor.size) {
@@ -104,12 +111,26 @@ fun parseBytecode(
             }
 
             cursor.seekStart(offset)
-            parseDataSegment(
+
+            val isInstructionsSegment = tryParseInstructionsSegment(
                 offsetToSegment,
+                labelHolder,
                 cursor,
                 endOffset,
-                labels?.toMutableList() ?: mutableListOf()
+                labels?.toMutableList() ?: mutableListOf(),
+                dcGcFormat,
             )
+
+            if (!isInstructionsSegment) {
+                cursor.seekStart(offset)
+
+                parseDataSegment(
+                    offsetToSegment,
+                    cursor,
+                    endOffset,
+                    labels?.toMutableList() ?: mutableListOf()
+                )
+            }
 
             segment = offsetToSegment[offset]
 
@@ -612,6 +633,141 @@ private fun parseInstructionArguments(
     return args
 }
 
+private fun tryParseInstructionsSegment(
+    offsetToSegment: MutableMap<Int, Segment>,
+    labelHolder: LabelHolder,
+    cursor: Cursor,
+    endOffset: Int,
+    labels: MutableList<Int>,
+    dcGcFormat: Boolean,
+): Boolean {
+    val offset = cursor.position
+
+    fun logReason(reason: String, t: Throwable? = null) {
+        logger.trace(t) {
+            buildString {
+                append("Determined that segment ")
+
+                if (labels.isEmpty()) {
+                    append("without label")
+                } else {
+                    if (labels.size == 1) append("with label ")
+                    else append("with labels ")
+
+                    labels.joinTo(this)
+                }
+
+                append(" at offset ")
+                append(offset)
+                append(" is not an instructions segment because ")
+                append(reason)
+                append(".")
+            }
+        }
+    }
+
+    try {
+        parseInstructionsSegment(
+            offsetToSegment,
+            labelHolder,
+            cursor,
+            endOffset,
+            labels,
+            nextLabel = null,
+            lenient = false,
+            dcGcFormat,
+        )
+
+        val segment = offsetToSegment[offset]
+        val instructions = (segment as InstructionSegment).instructions
+
+        // Heuristically try to detect whether the segment is actually a data segment.
+        var prevOpcode: Opcode? = null
+        var totalNopCount = 0
+        var sequentialNopCount = 0
+        var unknownOpcodeCount = 0
+        var stackPopCount = 0
+        var stackPopWithoutPrecedingPushCount = 0
+        var labelCount = 0
+        var unknownLabelCount = 0
+
+        for (inst in instructions) {
+            if (inst.opcode.code == OP_NOP.code) {
+                if (++totalNopCount > MAX_TOTAL_NOPS) {
+                    logReason("it has more than $MAX_TOTAL_NOPS nop instructions")
+                    return false
+                }
+
+                if (++sequentialNopCount > MAX_SEQUENTIAL_NOPS) {
+                    logReason("it has more than $MAX_SEQUENTIAL_NOPS sequential nop instructions")
+                    return false
+                }
+            } else {
+                sequentialNopCount = 0
+            }
+
+            if (!inst.opcode.known) {
+                unknownOpcodeCount++
+            }
+
+            if (inst.opcode.stack == StackInteraction.Pop) {
+                stackPopCount++
+
+                if (prevOpcode?.stack != StackInteraction.Push) {
+                    stackPopWithoutPrecedingPushCount++
+                }
+            }
+
+            for ((index, param) in inst.opcode.params.withIndex()) {
+                if (index >= inst.args.size) break
+
+                if (param.type is LabelType) {
+                    for (arg in inst.getArgs(index)) {
+                        labelCount++
+
+                        if (!labelHolder.hasLabel(arg.value as Int)) {
+                            unknownLabelCount++
+                        }
+                    }
+                }
+            }
+
+            prevOpcode = inst.opcode
+        }
+
+        val unknownLabelRatio = unknownLabelCount.toDouble() / labelCount
+
+        if (unknownLabelRatio > MAX_UNKNOWN_LABEL_RATIO) {
+            logReason(
+                "${100 * unknownLabelRatio}% of its label references are to nonexistent labels"
+            )
+            return false
+        }
+
+        val stackPopWithoutPrecedingPushRatio =
+            stackPopWithoutPrecedingPushCount.toDouble() / stackPopCount
+
+        if (stackPopWithoutPrecedingPushRatio > MAX_STACK_POP_WITHOUT_PRECEDING_PUSH_RATIO) {
+            logReason(
+                "${100 * stackPopWithoutPrecedingPushRatio}% of its stack pop instructions don't have a preceding push instruction"
+            )
+            return false
+        }
+
+        val unknownOpcodeRatio = unknownOpcodeCount.toDouble() / instructions.size
+
+        if (unknownOpcodeRatio > MAX_UNKNOWN_OPCODE_RATIO) {
+            logReason("${100 * unknownOpcodeRatio}% of its opcodes are unknown")
+            return false
+        }
+
+        return true
+    } catch (e: Exception) {
+        logReason("parsing it resulted in an exception", e)
+        return false
+    }
+}
+
 fun writeBytecode(bytecodeIr: BytecodeIr, dcGcFormat: Boolean): BytecodeAndLabelOffsets {
     val buffer = Buffer.withCapacity(100 * bytecodeIr.segments.size, Endianness.Little)
     val cursor = buffer.cursor()
@@ -763,6 +919,8 @@ private class LabelHolder(labelOffsets: IntArray) {
             offsetMap.getOrPut(offset) { mutableListOf() }.add(label)
         }
     }
+
+    fun hasLabel(label: Int): Boolean = label in labelMap
 
     fun getLabels(offset: Int): List<Int>? = offsetMap[offset]
 

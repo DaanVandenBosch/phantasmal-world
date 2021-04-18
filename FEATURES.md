@@ -104,7 +104,7 @@ Features that are in ***bold italics*** are planned but not yet implemented.
     - Strings
 - Labels
 - Interpret code called from NPCs and objects as code
-- ***Interpret segments of unknown type as code if possible***
+- Interpret segments of unknown type as code if possible
 
 ## Script Assembly Editor
 
@@ -139,6 +139,7 @@ Features that are in ***bold italics*** are planned but not yet implemented.
 - ***Show reserved register usage on hover over***
 - ***When saving, ask user whether to really save when asm contains errors***
 - ***Theme selection***
+- ***Easily switch between segment types***
 
 ## Debugger
 

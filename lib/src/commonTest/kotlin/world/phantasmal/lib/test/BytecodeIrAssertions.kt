@@ -6,8 +6,9 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 
 fun assertDeepEquals(expected: BytecodeIr, actual: BytecodeIr, ignoreSrcLocs: Boolean = false) {
-    assertDeepEquals(expected.segments,
-        actual.segments
+    assertDeepEquals(
+        expected.segments,
+        actual.segments,
     ) { a, b -> assertDeepEquals(a, b, ignoreSrcLocs) }
 }
 

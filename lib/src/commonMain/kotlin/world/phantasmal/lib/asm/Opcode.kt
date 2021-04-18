@@ -152,6 +152,11 @@ class Opcode internal constructor(
      */
     val size: Int = if (code < 0xFF) 1 else 2
 
+    /**
+     * Whether or not the working of this opcode is known.
+     */
+    val known: Boolean = !mnemonic.startsWith("unknown_")
+
     override fun equals(other: Any?): Boolean = this === other
 
     override fun hashCode(): Int = code
