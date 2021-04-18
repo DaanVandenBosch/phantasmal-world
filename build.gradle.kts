@@ -2,26 +2,26 @@ import org.jetbrains.kotlin.gradle.tasks.Kotlin2JsCompile
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("js") version "1.4.31" apply false
-    kotlin("multiplatform") version "1.4.31" apply false
-    kotlin("plugin.serialization") version "1.4.31" apply false
+    kotlin("js") version "1.4.32" apply false
+    kotlin("multiplatform") version "1.4.32" apply false
+    kotlin("plugin.serialization") version "1.4.32" apply false
 }
 
 tasks.wrapper {
-    gradleVersion = "6.8.2"
+    gradleVersion = "7.0"
 }
 
 subprojects {
-    project.extra["coroutinesVersion"] = "1.4.2"
+    project.extra["coroutinesVersion"] = "1.4.3"
     project.extra["junitVersion"] = "5.7.1"
-    project.extra["kotlinLoggingVersion"] = "2.0.2"
-    project.extra["ktorVersion"] = "1.4.3"
-    project.extra["log4jVersion"] = "2.14.0"
+    project.extra["kotlinLoggingVersion"] = "2.0.6"
+    project.extra["ktorVersion"] = "1.5.3"
+    project.extra["log4jVersion"] = "2.14.1"
     project.extra["serializationVersion"] = "1.1.0"
     project.extra["slf4jVersion"] = "1.7.30"
 
     repositories {
-        jcenter()
+        mavenCentral()
         maven(url = "https://kotlin.bintray.com/kotlinx/")
     }
 

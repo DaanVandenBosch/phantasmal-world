@@ -145,8 +145,7 @@ private fun parseAreaObjects(
             njMotionOffset = null
         }
 
-        val slideTextureIdOffset = cursor.int()
-        val swapTextureIdOffset = cursor.int()
+        cursor.seek(8) // Skip slide texture ID offset and swap texture ID offset.
 
         val flags = cursor.int()
 
