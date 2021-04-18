@@ -3,11 +3,8 @@ package world.phantasmal.web.questEditor.stores
 import kotlinx.coroutines.launch
 import mu.KotlinLogging
 import world.phantasmal.lib.Episode
-import world.phantasmal.observable.value.Val
-import world.phantasmal.observable.value.and
+import world.phantasmal.observable.value.*
 import world.phantasmal.observable.value.list.emptyListVal
-import world.phantasmal.observable.value.mutableVal
-import world.phantasmal.observable.value.not
 import world.phantasmal.web.core.PwToolType
 import world.phantasmal.web.core.actions.Action
 import world.phantasmal.web.core.stores.UiStore
@@ -40,6 +37,14 @@ class QuestEditorStore(
     private val runner = QuestRunner()
     val currentQuest: Val<QuestModel?> = _currentQuest
     val currentArea: Val<AreaModel?> = _currentArea
+    val currentAreaVariant: Val<AreaVariantModel?> =
+        map(currentArea, currentQuest.flatMapNull { it?.areaVariants }) { area, variants ->
+            if (area != null && variants != null) {
+                variants.find { it.area.id == area.id } ?: area.areaVariants.first()
+            } else {
+                null
+            }
+        }
     val selectedEvent: Val<QuestEventModel?> = _selectedEvent
 
     /**

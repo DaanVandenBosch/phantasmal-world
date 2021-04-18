@@ -14,16 +14,8 @@ class QuestEditorMeshManager(
     init {
         observe(
             questEditorStore.currentQuest,
-            questEditorStore.currentQuest.flatMapNull { it?.areaVariants },
-            questEditorStore.currentArea,
-        ) { quest, questAreaVariants, area ->
-            val areaVariant = questAreaVariants?.let {
-                area?.let {
-                    questAreaVariants.find { it.area.id == area.id }
-                        ?: area.areaVariants.first()
-                }
-            }
-
+            questEditorStore.currentAreaVariant,
+        ) { quest, areaVariant ->
             loadAreaMeshes(quest?.episode, areaVariant)
         }
 

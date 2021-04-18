@@ -17,9 +17,6 @@ class AreaVariant(
 fun getAreasForEpisode(episode: Episode): List<Area> =
     AREAS.getValue(episode)
 
-fun getAreaVariant(episode: Episode, areaId: Int, variantId: Int): AreaVariant? =
-    AREAS.getValue(episode).find { it.id == areaId }?.areaVariants?.getOrNull(variantId)
-
 private val AREAS by lazy {
     var order = 0
 

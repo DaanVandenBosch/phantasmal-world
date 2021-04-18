@@ -57,7 +57,7 @@ fun <T1, T2, T3, R> map(
 
 /**
  * Map a transformation function that returns a val over 2 vals. The resulting val will change when
- * either val changes and when the val returned by [transform] changes.
+ * either val changes and also when the val returned by [transform] changes.
  *
  * @param transform called whenever this val changes
  */

@@ -40,6 +40,6 @@ class QuestRenderer(
         )
 
         observe(questEditorStore.currentQuest) { inputManager.resetCamera() }
-        observe(questEditorStore.currentArea) { inputManager.resetCamera() }
+        observe(questEditorStore.currentAreaVariant) { inputManager.resetCamera() }
     }
 }
