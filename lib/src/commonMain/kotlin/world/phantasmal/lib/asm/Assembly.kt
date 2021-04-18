@@ -369,9 +369,11 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
             val lastToken = tokens.lastOrNull()
             val errorLength = lastToken?.let { it.col + it.len - identToken.col } ?: 0
             // Inline arguments.
-            val insArgAndTokens = mutableListOf<Pair<Arg, Token>>()
+            val inlineArgs = mutableListOf<Arg>()
+            val inlineTokens = mutableListOf<Token>()
             // Stack arguments.
-            val stackArgAndTokens = mutableListOf<Pair<Arg, Token>>()
+            val stackArgs = mutableListOf<Arg>()
+            val stackTokens = mutableListOf<Token>()
 
             if (!varargs && argCount != paramCount) {
                 addError(
@@ -397,19 +399,19 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
                 return
             } else if (opcode.stack !== StackInteraction.Pop) {
                 // Arguments should be inlined right after the opcode.
-                if (!parseArgs(opcode.params, insArgAndTokens, stack = false)) {
+                if (!parseArgs(opcode.params, inlineArgs, inlineTokens, stack = false)) {
                     return
                 }
             } else {
                 // Arguments should be passed to the opcode via the stack.
-                if (!parseArgs(opcode.params, stackArgAndTokens, stack = true)) {
+                if (!parseArgs(opcode.params, stackArgs, stackTokens, stack = true)) {
                     return
                 }
 
                 for (i in opcode.params.indices) {
                     val param = opcode.params[i]
-                    val argAndToken = stackArgAndTokens.getOrNull(i) ?: continue
-                    val (arg, argToken) = argAndToken
+                    val arg = stackArgs.getOrNull(i) ?: continue
+                    val argToken = stackTokens.getOrNull(i) ?: continue
 
                     if (argToken is Token.Register) {
                         if (param.type is RegTupRefType) {
@@ -499,15 +501,12 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
                 }
             }
 
-            val (args, argTokens) = insArgAndTokens.unzip()
-            val stackArgTokens = stackArgAndTokens.map { it.second }
-
             addInstruction(
                 opcode,
-                args,
+                inlineArgs,
                 identToken,
-                argTokens,
-                stackArgTokens,
+                inlineTokens,
+                stackTokens,
             )
         }
     }
@@ -517,7 +516,8 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
      */
     private fun parseArgs(
         params: List<Param>,
-        argAndTokens: MutableList<Pair<Arg, Token>>,
+        args: MutableList<Arg>,
+        argTokens: MutableList<Token>,
         stack: Boolean,
     ): Boolean {
         var semiValid = true
@@ -556,7 +556,7 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
                         when (param.type) {
                             is ByteType -> {
                                 match = true
-                                parseInt(1, token, argAndTokens)
+                                parseInt(1, token, args, argTokens)
                             }
                             is ShortType,
                             is LabelType,
@@ -566,15 +566,16 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
                             is ILabelVarType,
                             -> {
                                 match = true
-                                parseInt(2, token, argAndTokens)
+                                parseInt(2, token, args, argTokens)
                             }
                             is IntType -> {
                                 match = true
-                                parseInt(4, token, argAndTokens)
+                                parseInt(4, token, args, argTokens)
                             }
                             is FloatType -> {
                                 match = true
-                                argAndTokens.add(Pair(Arg(token.value), token))
+                                args.add(Arg(token.value))
+                                argTokens.add(token)
                             }
                             else -> {
                                 match = false
@@ -586,7 +587,8 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
                         match = param.type == FloatType
 
                         if (match) {
-                            argAndTokens.add(Pair(Arg(token.value), token))
+                            args.add(Arg(token.value))
+                            argTokens.add(token)
                         }
                     }
 
@@ -596,14 +598,15 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
                                 param.type is RegRefVarType ||
                                 param.type is RegTupRefType
 
-                        parseRegister(token, argAndTokens)
+                        parseRegister(token, args, argTokens)
                     }
 
                     is Token.Str -> {
                         match = param.type is StringType
 
                         if (match) {
-                            argAndTokens.add(Pair(Arg(token.value), token))
+                            args.add(Arg(token.value))
+                            argTokens.add(token)
                         }
                     }
 
@@ -653,7 +656,8 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
     private fun parseInt(
         size: Int,
         token: Token.Int32,
-        argAndTokens: MutableList<Pair<Arg, Token>>,
+        args: MutableList<Arg>,
+        argTokens: MutableList<Token>,
     ) {
         val value = token.value
         val bitSize = 8 * size
@@ -670,18 +674,24 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
                 addError(token, "${bitSize}-Bit integer can't be greater than ${maxValue}.")
             }
             else -> {
-                argAndTokens.add(Pair(Arg(value), token))
+                args.add(Arg(value))
+                argTokens.add(token)
             }
         }
     }
 
-    private fun parseRegister(token: Token.Register, argAndTokens: MutableList<Pair<Arg, Token>>) {
+    private fun parseRegister(
+        token: Token.Register,
+        args: MutableList<Arg>,
+        argTokens: MutableList<Token>,
+    ) {
         val value = token.value
 
         if (value > 255) {
             addError(token, "Invalid register reference, expected r0-r255.")
         } else {
-            argAndTokens.add(Pair(Arg(value), token))
+            args.add(Arg(value))
+            argTokens.add(token)
         }
     }
 

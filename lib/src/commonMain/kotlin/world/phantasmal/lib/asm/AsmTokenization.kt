@@ -1,5 +1,6 @@
 package world.phantasmal.lib.asm
 
+import world.phantasmal.core.fastIsWhitespace
 import world.phantasmal.core.isDigit
 
 private val HEX_INT_REGEX = Regex("""^0[xX][0-9a-fA-F]+$""")
@@ -119,7 +120,7 @@ private class LineTokenizer(private var line: String) {
                 }
             }
 
-            if (char.isWhitespace()) {
+            if (char.fastIsWhitespace()) {
                 skip()
                 continue
             } else if (char == '-' || char.isDigit()) {
@@ -169,7 +170,7 @@ private class LineTokenizer(private var line: String) {
         while (hasNext()) {
             val char = next()
 
-            if (char == ',' || char.isWhitespace()) {
+            if (char == ',' || char.fastIsWhitespace()) {
                 back()
                 break
             }
@@ -192,7 +193,7 @@ private class LineTokenizer(private var line: String) {
             } else if (char == ':') {
                 isLabel = true
                 break
-            } else if (char == ',' || char.isWhitespace()) {
+            } else if (char == ',' || char.fastIsWhitespace()) {
                 break
             } else {
                 skip()
@@ -274,7 +275,7 @@ private class LineTokenizer(private var line: String) {
         mark()
 
         while (hasNext()) {
-            if (peek().isWhitespace()) {
+            if (peek().fastIsWhitespace()) {
                 break
             } else {
                 skip()
@@ -336,7 +337,7 @@ private class LineTokenizer(private var line: String) {
         while (hasNext()) {
             val char = peek()
 
-            if (char == ',' || char.isWhitespace()) {
+            if (char == ',' || char.fastIsWhitespace()) {
                 break
             } else if (char == '/') {
                 skip()
