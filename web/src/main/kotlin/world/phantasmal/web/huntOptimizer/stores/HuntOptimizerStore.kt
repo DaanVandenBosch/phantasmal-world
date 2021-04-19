@@ -5,6 +5,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import mu.KotlinLogging
 import world.phantasmal.core.*
+import world.phantasmal.core.unsafe.UnsafeMap
 import world.phantasmal.lib.fileFormats.quest.NpcType
 import world.phantasmal.observable.value.Val
 import world.phantasmal.observable.value.list.ListVal
@@ -134,7 +135,7 @@ class HuntOptimizerStore(
         // enemies that drop the item multiplied by the corresponding drop rate as its value.
         val variables: dynamic = obj {}
         // Each variable has a matching FullMethod.
-        val fullMethods = emptyJsMap<String, FullMethod>()
+        val fullMethods = UnsafeMap<String, FullMethod>()
 
         val wantedItemTypeIds = emptyJsSet<Int>()
 
@@ -148,7 +149,7 @@ class HuntOptimizerStore(
         for (method in methods) {
             // Calculate enemy counts including rare enemies
             // Counts include rare enemies, so they are fractional.
-            val counts = emptyJsMap<NpcType, Double>()
+            val counts = UnsafeMap<NpcType, Double>()
 
             for ((enemyType, count) in method.enemyCounts) {
                 val rareEnemyType = enemyType.rareType
@@ -191,15 +192,15 @@ class HuntOptimizerStore(
         dropTable: EnemyDropTable,
         wantedItemTypeIds: JsSet<Int>,
         method: HuntMethodModel,
-        defaultCounts: JsMap<NpcType, Double>,
+        defaultCounts: UnsafeMap<NpcType, Double>,
         splitPanArms: Boolean,
         variables: dynamic,
-        fullMethods: JsMap<String, FullMethod>,
+        fullMethods: UnsafeMap<String, FullMethod>,
     ) {
-        val counts: JsMap<NpcType, Double>?
+        val counts: UnsafeMap<NpcType, Double>?
 
         if (splitPanArms) {
-            var splitPanArmsCounts: JsMap<NpcType, Double>? = null
+            var splitPanArmsCounts: UnsafeMap<NpcType, Double>? = null
 
             // Create a secondary counts map if there are any pan arms that can be split
             // into migiums and hidooms.
@@ -207,7 +208,7 @@ class HuntOptimizerStore(
             val panArms2Count = defaultCounts.get(NpcType.PanArms2)
 
             if (panArmsCount != null || panArms2Count != null) {
-                splitPanArmsCounts = emptyJsMap()
+                splitPanArmsCounts = UnsafeMap()
 
                 if (panArmsCount != null) {
                     splitPanArmsCounts.delete(NpcType.PanArms)
@@ -262,7 +263,7 @@ class HuntOptimizerStore(
         wantedItemTypeIds: JsSet<Int>,
         constraints: dynamic,
         variables: dynamic,
-        fullMethods: JsMap<String, FullMethod>,
+        fullMethods: UnsafeMap<String, FullMethod>,
     ): List<OptimalMethodModel> {
         val result = Solver.Solve(obj {
             optimize = "time"

@@ -7,26 +7,30 @@ import kotlin.test.assertEquals
 class DisassemblyTests : LibTestSuite {
     @Test
     fun vararg_instructions() {
-        val ir = BytecodeIr(listOf(
-            InstructionSegment(
-                labels = mutableListOf(0),
-                instructions = mutableListOf(
-                    Instruction(
-                        opcode = OP_SWITCH_JMP,
-                        args = listOf(
-                            Arg(90),
-                            Arg(100),
-                            Arg(101),
-                            Arg(102),
+        val ir = BytecodeIr(
+            listOf(
+                InstructionSegment(
+                    labels = mutableListOf(0),
+                    instructions = mutableListOf(
+                        Instruction(
+                            opcode = OP_SWITCH_JMP,
+                            args = listOf(
+                                Arg(90),
+                                Arg(100),
+                                Arg(101),
+                                Arg(102),
+                            ),
+                            srcLoc = null,
+                        ),
+                        Instruction(
+                            opcode = OP_RET,
+                            args = emptyList(),
+                            srcLoc = null,
                         ),
                     ),
-                    Instruction(
-                        opcode = OP_RET,
-                        args = emptyList()
-                    ),
-                ),
+                )
             )
-        ))
+        )
 
         val asm = """
             |.code
@@ -44,30 +48,40 @@ class DisassemblyTests : LibTestSuite {
     // arguments is on or off.
     @Test
     fun va_list_instructions() {
-        val ir = BytecodeIr(listOf(
-            InstructionSegment(
-                labels = mutableListOf(0),
-                instructions = mutableListOf(
-                    Instruction(
-                        opcode = OP_VA_START,
+        val ir = BytecodeIr(
+            listOf(
+                InstructionSegment(
+                    labels = mutableListOf(0),
+                    instructions = mutableListOf(
+                        Instruction(
+                            opcode = OP_VA_START,
+                            args = emptyList(),
+                            srcLoc = null,
+                        ),
+                        Instruction(
+                            opcode = OP_ARG_PUSHW,
+                            args = listOf(Arg(1337)),
+                            srcLoc = null,
+                        ),
+                        Instruction(
+                            opcode = OP_VA_CALL,
+                            args = listOf(Arg(100)),
+                            srcLoc = null,
+                        ),
+                        Instruction(
+                            opcode = OP_VA_END,
+                            args = emptyList(),
+                            srcLoc = null,
+                        ),
+                        Instruction(
+                            opcode = OP_RET,
+                            args = emptyList(),
+                            srcLoc = null,
+                        ),
                     ),
-                    Instruction(
-                        opcode = OP_ARG_PUSHW,
-                        args = listOf(Arg(1337)),
-                    ),
-                    Instruction(
-                        opcode = OP_VA_CALL,
-                        args = listOf(Arg(100)),
-                    ),
-                    Instruction(
-                        opcode = OP_VA_END,
-                    ),
-                    Instruction(
-                        opcode = OP_RET,
-                    ),
-                ),
+                )
             )
-        ))
+        )
 
         val asm = """
             |.code

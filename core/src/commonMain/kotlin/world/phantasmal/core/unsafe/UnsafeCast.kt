@@ -1,4 +1,4 @@
-package world.phantasmal.core
+package world.phantasmal.core.unsafe
 
 /**
  * Asserts that T is not null. No runtime check happens in KJS. Should only be used when absolutely

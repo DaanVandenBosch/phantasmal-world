@@ -40,7 +40,9 @@ kotlin {
 
     sourceSets {
         all {
+            languageSettings.useExperimentalAnnotation("kotlin.RequiresOptIn")
             languageSettings.useExperimentalAnnotation("kotlin.ExperimentalUnsignedTypes")
+            languageSettings.useExperimentalAnnotation("kotlin.time.ExperimentalTime")
         }
 
         commonMain {

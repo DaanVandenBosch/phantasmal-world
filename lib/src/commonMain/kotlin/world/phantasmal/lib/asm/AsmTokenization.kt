@@ -2,12 +2,33 @@ package world.phantasmal.lib.asm
 
 import world.phantasmal.core.fastIsWhitespace
 import world.phantasmal.core.isDigit
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.contract
 
 private val HEX_INT_REGEX = Regex("""^0[xX][0-9a-fA-F]+$""")
 private val FLOAT_REGEX = Regex("""^-?\d+(\.\d+)?(e-?\d+)?$""")
 private val IDENT_REGEX = Regex("""^[a-z][a-z0-9_=<>!]*$""")
 
+const val TOKEN_INT32 = 1
+const val TOKEN_FLOAT32 = 2
+const val TOKEN_INVALID_NUMBER = 3
+const val TOKEN_REGISTER = 4
+const val TOKEN_LABEL = 5
+const val TOKEN_SECTION_CODE = 6
+const val TOKEN_SECTION_DATA = 7
+const val TOKEN_SECTION_STR = 8
+const val TOKEN_INVALID_SECTION = 9
+const val TOKEN_STR = 10
+const val TOKEN_UNTERMINATED_STR = 11
+const val TOKEN_IDENT = 12
+const val TOKEN_INVALID_IDENT = 13
+const val TOKEN_ARG_SEP = 14
+
 sealed class Token {
+    /**
+     * This property is used for increased perf type checks in JS.
+     */
+    abstract val type: Int
     abstract val col: Int
     abstract val len: Int
 
@@ -15,80 +36,143 @@ sealed class Token {
         override val col: Int,
         override val len: Int,
         val value: Int,
-    ) : Token()
+    ) : Token() {
+        override val type = TOKEN_INT32
+    }
 
     class Float32(
         override val col: Int,
         override val len: Int,
         val value: Float,
-    ) : Token()
+    ) : Token() {
+        override val type = TOKEN_FLOAT32
+    }
 
     class InvalidNumber(
         override val col: Int,
         override val len: Int,
-    ) : Token()
+    ) : Token() {
+        override val type = TOKEN_INVALID_NUMBER
+    }
 
     class Register(
         override val col: Int,
         override val len: Int,
         val value: Int,
-    ) : Token()
+    ) : Token() {
+        override val type = TOKEN_REGISTER
+    }
 
     class Label(
         override val col: Int,
         override val len: Int,
         val value: Int,
-    ) : Token()
+    ) : Token() {
+        override val type = TOKEN_LABEL
+    }
 
     sealed class Section : Token() {
         class Code(
             override val col: Int,
             override val len: Int,
-        ) : Section()
+        ) : Section() {
+            override val type = TOKEN_SECTION_CODE
+        }
 
         class Data(
             override val col: Int,
             override val len: Int,
-        ) : Section()
+        ) : Section() {
+            override val type = TOKEN_SECTION_DATA
+        }
 
         class Str(
             override val col: Int,
             override val len: Int,
-        ) : Section()
+        ) : Section() {
+            override val type = TOKEN_SECTION_STR
+        }
     }
 
     class InvalidSection(
         override val col: Int,
         override val len: Int,
-    ) : Token()
+    ) : Token() {
+        override val type = TOKEN_INVALID_SECTION
+    }
 
     class Str(
         override val col: Int,
         override val len: Int,
         val value: String,
-    ) : Token()
+    ) : Token() {
+        override val type = TOKEN_STR
+    }
 
     class UnterminatedString(
         override val col: Int,
         override val len: Int,
         val value: String,
-    ) : Token()
+    ) : Token() {
+        override val type = TOKEN_UNTERMINATED_STR
+    }
 
     class Ident(
         override val col: Int,
         override val len: Int,
         val value: String,
-    ) : Token()
+    ) : Token() {
+        override val type = TOKEN_IDENT
+    }
 
     class InvalidIdent(
         override val col: Int,
         override val len: Int,
-    ) : Token()
+    ) : Token() {
+        override val type = TOKEN_INVALID_IDENT
+    }
 
     class ArgSeparator(
         override val col: Int,
         override val len: Int,
-    ) : Token()
+    ) : Token() {
+        override val type = TOKEN_ARG_SEP
+    }
+
+    @OptIn(ExperimentalContracts::class)
+    @Suppress("NOTHING_TO_INLINE")
+    inline fun isInt32(): Boolean {
+        contract { returns(true) implies (this@Token is Int32) }
+        return type == TOKEN_INT32
+    }
+
+    @OptIn(ExperimentalContracts::class)
+    @Suppress("NOTHING_TO_INLINE")
+    inline fun isFloat32(): Boolean {
+        contract { returns(true) implies (this@Token is Float32) }
+        return type == TOKEN_FLOAT32
+    }
+
+    @OptIn(ExperimentalContracts::class)
+    @Suppress("NOTHING_TO_INLINE")
+    inline fun isRegister(): Boolean {
+        contract { returns(true) implies (this@Token is Register) }
+        return type == TOKEN_REGISTER
+    }
+
+    @OptIn(ExperimentalContracts::class)
+    @Suppress("NOTHING_TO_INLINE")
+    inline fun isStr(): Boolean {
+        contract { returns(true) implies (this@Token is Str) }
+        return type == TOKEN_STR
+    }
+
+    @OptIn(ExperimentalContracts::class)
+    @Suppress("NOTHING_TO_INLINE")
+    inline fun isArgSeparator(): Boolean {
+        contract { returns(true) implies (this@Token is ArgSeparator) }
+        return type == TOKEN_ARG_SEP
+    }
 }
 
 fun tokenizeLine(line: String): MutableList<Token> =

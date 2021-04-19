@@ -1,5 +1,6 @@
 package world.phantasmal.lib.asm
 
+import world.phantasmal.core.unsafe.unsafeAssertNotNull
 import world.phantasmal.lib.buffer.Buffer
 import kotlin.math.ceil
 
@@ -47,7 +48,7 @@ class InstructionSegment(
     override fun copy(): InstructionSegment =
         InstructionSegment(
             ArrayList(labels),
-            instructions.mapTo(mutableListOf()) { it.copy() },
+            instructions.mapTo(ArrayList(instructions.size)) { it.copy() },
             srcLoc.copy(),
         )
 }
@@ -101,43 +102,46 @@ class Instruction(
     /**
      * Immediate arguments for the opcode.
      */
-    val args: List<Arg> = emptyList(),
-    val srcLoc: InstructionSrcLoc? = null,
+    val args: List<Arg>,
+    val srcLoc: InstructionSrcLoc?,
 ) {
     /**
      * Maps each parameter by index to its immediate arguments.
      */
-    private val paramToArgs: List<List<Arg>>
-
-    init {
-        val paramToArgs: MutableList<MutableList<Arg>> = mutableListOf()
-        this.paramToArgs = paramToArgs
-
-        if (opcode.stack != StackInteraction.Pop) {
-            for (i in opcode.params.indices) {
-                val type = opcode.params[i].type
-                val pArgs = mutableListOf<Arg>()
-                paramToArgs.add(pArgs)
-
-                // Variable length arguments are always last, so we can just gobble up all arguments
-                // from this point.
-                if (type is ILabelVarType || type is RegRefVarType) {
-                    check(i == opcode.params.lastIndex)
-
-                    for (j in i until args.size) {
-                        pArgs.add(args[j])
-                    }
-                } else {
-                    pArgs.add(args[i])
-                }
-            }
-        }
-    }
+    // Avoid using lazy to keep GC pressure low.
+    private var paramToArgs: List<List<Arg>>? = null
 
     /**
      * Returns the immediate arguments for the parameter at the given index.
      */
-    fun getArgs(paramIndex: Int): List<Arg> = paramToArgs[paramIndex]
+    fun getArgs(paramIndex: Int): List<Arg> {
+        if (paramToArgs == null) {
+            val paramToArgs: MutableList<MutableList<Arg>> = mutableListOf()
+            this.paramToArgs = paramToArgs
+
+            if (opcode.stack !== StackInteraction.Pop) {
+                for (i in opcode.params.indices) {
+                    val type = opcode.params[i].type
+                    val pArgs = mutableListOf<Arg>()
+                    paramToArgs.add(pArgs)
+
+                    // Variable length arguments are always last, so we can just gobble up all arguments
+                    // from this point.
+                    if (type === ILabelVarType || type === RegRefVarType) {
+                        check(i == opcode.params.lastIndex)
+
+                        for (j in i until args.size) {
+                            pArgs.add(args[j])
+                        }
+                    } else {
+                        pArgs.add(args[i])
+                    }
+                }
+            }
+        }
+
+        return paramToArgs.unsafeAssertNotNull()[paramIndex]
+    }
 
     /**
      * Returns the source locations of the immediate arguments for the parameter at the given index.
@@ -150,7 +154,7 @@ class Instruction(
 
         // Variable length arguments are always last, so we can just gobble up all SrcLocs from
         // paramIndex onward.
-        return if (type is ILabelVarType || type is RegRefVarType) {
+        return if (type === ILabelVarType || type === RegRefVarType) {
             argSrcLocs.drop(paramIndex)
         } else {
             listOf(argSrcLocs[paramIndex])
@@ -171,7 +175,7 @@ class Instruction(
 
         // Variable length arguments are always last, so we can just gobble up all SrcLocs from
         // paramIndex onward.
-        return if (type is ILabelVarType || type is RegRefVarType) {
+        return if (type === ILabelVarType || type === RegRefVarType) {
             argSrcLocs.drop(paramIndex)
         } else {
             listOf(argSrcLocs[paramIndex])
@@ -185,31 +189,28 @@ class Instruction(
     fun getSize(dcGcFormat: Boolean): Int {
         var size = opcode.size
 
-        if (opcode.stack == StackInteraction.Pop) return size
+        if (opcode.stack === StackInteraction.Pop) return size
 
         for (i in opcode.params.indices) {
             val type = opcode.params[i].type
             val args = getArgs(i)
 
             size += when (type) {
-                is ByteType,
-                is RegRefType,
-                is RegTupRefType,
+                ByteType,
+                RegRefType,
                 -> 1
 
                 // Ensure this case is before the LabelType case because ILabelVarType extends
                 // LabelType.
-                is ILabelVarType -> 1 + 2 * args.size
+                ILabelVarType -> 1 + 2 * args.size
 
-                is ShortType,
-                is LabelType,
-                -> 2
+                ShortType -> 2
 
-                is IntType,
-                is FloatType,
+                IntType,
+                FloatType,
                 -> 4
 
-                is StringType -> {
+                StringType -> {
                     if (dcGcFormat) {
                         (args[0].value as String).length + 1
                     } else {
@@ -217,7 +218,12 @@ class Instruction(
                     }
                 }
 
-                is RegRefVarType -> 1 + args.size
+                RegRefVarType -> 1 + args.size
+
+                // Check RegTupRefType and LabelType last, because "is" checks are very slow in JS.
+                is RegTupRefType -> 1
+
+                is LabelType -> 2
 
                 else -> error("Parameter type ${type::class} not implemented.")
             }

@@ -5,6 +5,7 @@ import world.phantasmal.core.Problem
 import world.phantasmal.core.PwResult
 import world.phantasmal.core.Severity
 import world.phantasmal.lib.buffer.Buffer
+import kotlin.time.measureTimedValue
 
 private val logger = KotlinLogging.logger {}
 
@@ -28,13 +29,13 @@ fun assemble(
         }."
     }
 
-    val result = Assembler(asm, inlineStackArgs).assemble()
+    val (result, time) = measureTimedValue { Assembler(asm, inlineStackArgs).assemble() }
 
     logger.trace {
         val warnings = result.problems.count { it.severity == Severity.Warning }
         val errors = result.problems.count { it.severity == Severity.Error }
 
-        "Assembly finished with $warnings warnings and $errors errors."
+        "Assembly finished in ${time.inMilliseconds}ms with $warnings warnings and $errors errors."
     }
 
     return result
@@ -69,7 +70,16 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
                 val token = tokens.removeFirst()
                 var hasLabel = false
 
+                // Token type checks are ordered from most frequent to least frequent for increased
+                // perf.
                 when (token) {
+                    is Token.Ident -> {
+                        if (section === SegmentType.Instructions) {
+                            parseInstruction(token)
+                        } else {
+                            addUnexpectedTokenError(token)
+                        }
+                    }
                     is Token.Label -> {
                         parseLabel(token)
                         hasLabel = true
@@ -78,22 +88,15 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
                         parseSection(token)
                     }
                     is Token.Int32 -> {
-                        if (section == SegmentType.Data) {
+                        if (section === SegmentType.Data) {
                             parseBytes(token)
                         } else {
                             addUnexpectedTokenError(token)
                         }
                     }
                     is Token.Str -> {
-                        if (section == SegmentType.String) {
+                        if (section === SegmentType.String) {
                             parseString(token)
-                        } else {
-                            addUnexpectedTokenError(token)
-                        }
-                    }
-                    is Token.Ident -> {
-                        if (section === SegmentType.Instructions) {
-                            parseInstruction(token)
                         } else {
                             addUnexpectedTokenError(token)
                         }
@@ -146,11 +149,13 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
                             mnemonic = token?.let {
                                 SrcLoc(lineNo, token.col, token.len)
                             },
-                            args = argTokens.map {
+                            // Use mapTo with ArrayList for better perf in JS.
+                            args = argTokens.mapTo(ArrayList(argTokens.size)) {
                                 SrcLoc(lineNo, it.col, it.len)
                             },
-                            stackArgs = stackArgTokens.map { sat ->
-                                SrcLoc(lineNo, sat.col, sat.len)
+                            // Use mapTo with ArrayList for better perf in JS.
+                            stackArgs = stackArgTokens.mapTo(ArrayList(argTokens.size)) {
+                                SrcLoc(lineNo, it.col, it.len)
                             },
                         )
                     )
@@ -356,15 +361,19 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
         if (opcode == null) {
             addError(identToken, "Unknown opcode.")
         } else {
-            val varargs = opcode.params.any {
-                it.type is ILabelVarType || it.type is RegRefVarType
-            }
+            // Use find instead of any for better JS perf.
+            val varargs = opcode.params.find {
+                it.type === ILabelVarType || it.type === RegRefVarType
+            } != null
 
             val paramCount =
-                if (!inlineStackArgs && opcode.stack == StackInteraction.Pop) 0
+                if (!inlineStackArgs && opcode.stack === StackInteraction.Pop) 0
                 else opcode.params.size
 
-            val argCount = tokens.count { it !is Token.ArgSeparator }
+            // Use fold instead of count for better JS perf.
+            val argCount = tokens.fold(0) { sum, token ->
+                if (token.isArgSeparator()) sum else sum + 1
+            }
 
             val lastToken = tokens.lastOrNull()
             val errorLength = lastToken?.let { it.col + it.len - identToken.col } ?: 0
@@ -413,7 +422,7 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
                     val arg = stackArgs.getOrNull(i) ?: continue
                     val argToken = stackTokens.getOrNull(i) ?: continue
 
-                    if (argToken is Token.Register) {
+                    if (argToken.isRegister()) {
                         if (param.type is RegTupRefType) {
                             addInstruction(
                                 OP_ARG_PUSHB,
@@ -433,8 +442,8 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
                         }
                     } else {
                         when (param.type) {
-                            is ByteType,
-                            is RegRefType,
+                            ByteType,
+                            RegRefType,
                             is RegTupRefType,
                             -> {
                                 addInstruction(
@@ -446,11 +455,8 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
                                 )
                             }
 
-                            is ShortType,
+                            ShortType,
                             is LabelType,
-                            is ILabelType,
-                            is DLabelType,
-                            is SLabelType,
                             -> {
                                 addInstruction(
                                     OP_ARG_PUSHW,
@@ -461,7 +467,7 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
                                 )
                             }
 
-                            is IntType -> {
+                            IntType -> {
                                 addInstruction(
                                     OP_ARG_PUSHL,
                                     listOf(arg),
@@ -471,7 +477,7 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
                                 )
                             }
 
-                            is FloatType -> {
+                            FloatType -> {
                                 addInstruction(
                                     OP_ARG_PUSHL,
                                     listOf(Arg((arg.value as Float).toRawBits())),
@@ -481,7 +487,7 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
                                 )
                             }
 
-                            is StringType -> {
+                            StringType -> {
                                 addInstruction(
                                     OP_ARG_PUSHS,
                                     listOf(arg),
@@ -528,12 +534,12 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
             val token = tokens[i]
             val param = params[paramI]
 
-            if (token is Token.ArgSeparator) {
+            if (token.isArgSeparator()) {
                 if (shouldBeArg) {
                     addError(token, "Expected an argument.")
                 } else if (
-                    param.type !is ILabelVarType &&
-                    param.type !is RegRefVarType
+                    param.type !== ILabelVarType &&
+                    param.type !== RegRefVarType
                 ) {
                     paramI++
                 }
@@ -551,28 +557,24 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
 
                 var match: Boolean
 
-                when (token) {
-                    is Token.Int32 -> {
+                when {
+                    token.isInt32() -> {
                         when (param.type) {
-                            is ByteType -> {
+                            ByteType -> {
                                 match = true
                                 parseInt(1, token, args, argTokens)
                             }
-                            is ShortType,
+                            ShortType,
                             is LabelType,
-                            is ILabelType,
-                            is DLabelType,
-                            is SLabelType,
-                            is ILabelVarType,
                             -> {
                                 match = true
                                 parseInt(2, token, args, argTokens)
                             }
-                            is IntType -> {
+                            IntType -> {
                                 match = true
                                 parseInt(4, token, args, argTokens)
                             }
-                            is FloatType -> {
+                            FloatType -> {
                                 match = true
                                 args.add(Arg(token.value))
                                 argTokens.add(token)
@@ -583,8 +585,8 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
                         }
                     }
 
-                    is Token.Float32 -> {
-                        match = param.type == FloatType
+                    token.isFloat32() -> {
+                        match = param.type === FloatType
 
                         if (match) {
                             args.add(Arg(token.value))
@@ -592,17 +594,17 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
                         }
                     }
 
-                    is Token.Register -> {
+                    token.isRegister() -> {
                         match = stack ||
-                                param.type is RegRefType ||
-                                param.type is RegRefVarType ||
+                                param.type === RegRefType ||
+                                param.type === RegRefVarType ||
                                 param.type is RegTupRefType
 
                         parseRegister(token, args, argTokens)
                     }
 
-                    is Token.Str -> {
-                        match = param.type is StringType
+                    token.isStr() -> {
+                        match = param.type === StringType
 
                         if (match) {
                             args.add(Arg(token.value))
@@ -619,22 +621,24 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
                     semiValid = false
 
                     val typeStr: String? = when (param.type) {
-                        is ByteType -> "an 8-bit integer"
-                        is ShortType -> "a 16-bit integer"
-                        is IntType -> "a 32-bit integer"
-                        is FloatType -> "a float"
-                        is LabelType -> "a label"
+                        ByteType -> "an 8-bit integer"
+                        ShortType -> "a 16-bit integer"
+                        IntType -> "a 32-bit integer"
+                        FloatType -> "a float"
 
-                        is ILabelType,
-                        is ILabelVarType,
+                        ILabelType,
+                        ILabelVarType,
                         -> "an instruction label"
 
-                        is DLabelType -> "a data label"
-                        is SLabelType -> "a string label"
-                        is StringType -> "a string"
+                        DLabelType -> "a data label"
+                        SLabelType -> "a string label"
 
-                        is RegRefType,
-                        is RegRefVarType,
+                        is LabelType -> "a label"
+
+                        StringType -> "a string"
+
+                        RegRefType,
+                        RegRefVarType,
                         is RegTupRefType,
                         -> "a register reference"
 
@@ -660,22 +664,30 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
         argTokens: MutableList<Token>,
     ) {
         val value = token.value
-        val bitSize = 8 * size
-        // Minimum of the signed version of this integer type.
-        val minValue = -(1 shl (bitSize - 1))
-        // Maximum of the unsigned version of this integer type.
-        val maxValue = (1L shl (bitSize)) - 1L
 
-        when {
-            value < minValue -> {
-                addError(token, "${bitSize}-Bit integer can't be less than ${minValue}.")
-            }
-            value > maxValue -> {
-                addError(token, "${bitSize}-Bit integer can't be greater than ${maxValue}.")
-            }
-            else -> {
-                args.add(Arg(value))
-                argTokens.add(token)
+        // Fast-path 32-bit ints for improved JS perf. Otherwise maxValue would have to be a Long
+        // or UInt, which incurs a perf hit in JS.
+        if (size == 4) {
+            args.add(Arg(value))
+            argTokens.add(token)
+        } else {
+            val bitSize = 8 * size
+            // Minimum of the signed version of this integer type.
+            val minValue = -(1 shl (bitSize - 1))
+            // Maximum of the unsigned version of this integer type.
+            val maxValue = (1 shl (bitSize)) - 1
+
+            when {
+                value < minValue -> {
+                    addError(token, "${bitSize}-Bit integer can't be less than ${minValue}.")
+                }
+                value > maxValue -> {
+                    addError(token, "${bitSize}-Bit integer can't be greater than ${maxValue}.")
+                }
+                else -> {
+                    args.add(Arg(value))
+                    argTokens.add(token)
+                }
             }
         }
     }

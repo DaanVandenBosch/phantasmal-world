@@ -3,17 +3,16 @@ package world.phantasmal.web.core.rendering.conversion
 import org.khronos.webgl.Float32Array
 import org.khronos.webgl.Uint16Array
 import org.khronos.webgl.set
-import world.phantasmal.core.JsMap
 import world.phantasmal.core.asArray
-import world.phantasmal.core.emptyJsMap
 import world.phantasmal.core.jsArrayOf
+import world.phantasmal.core.unsafe.UnsafeMap
 import world.phantasmal.lib.fileFormats.ninja.XvrTexture
 import world.phantasmal.web.externals.three.*
 import world.phantasmal.webui.obj
 
 class MeshBuilder(
     private val textures: List<XvrTexture?> = emptyList(),
-    private val textureCache: JsMap<Int, Texture?> = emptyJsMap(),
+    private val textureCache: UnsafeMap<Int, Texture?> = UnsafeMap(),
 ) {
     private val positions = mutableListOf<Vector3>()
     private val normals = mutableListOf<Vector3>()

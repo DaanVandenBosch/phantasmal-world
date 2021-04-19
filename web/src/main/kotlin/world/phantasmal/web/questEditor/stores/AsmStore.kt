@@ -140,7 +140,7 @@ class AsmStore(
                 })
 
                 setBytecodeIrTimeout?.let(window::clearTimeout)
-                setBytecodeIrTimeout = window.setTimeout(::setBytecodeIr, 300)
+                setBytecodeIrTimeout = window.setTimeout(::setBytecodeIr, 1000)
 
                 // TODO: Update breakpoints.
             }

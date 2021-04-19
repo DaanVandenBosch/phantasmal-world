@@ -1,6 +1,6 @@
 package world.phantasmal.observable.value.list
 
-import world.phantasmal.core.unsafeAssertNotNull
+import world.phantasmal.core.unsafe.unsafeAssertNotNull
 import world.phantasmal.observable.value.Val
 
 /**

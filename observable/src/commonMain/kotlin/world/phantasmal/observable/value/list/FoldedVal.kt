@@ -2,7 +2,7 @@ package world.phantasmal.observable.value.list
 
 import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.core.disposable.disposable
-import world.phantasmal.core.unsafeAssertNotNull
+import world.phantasmal.core.unsafe.unsafeAssertNotNull
 import world.phantasmal.observable.Observer
 import world.phantasmal.observable.value.AbstractVal
 

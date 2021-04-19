@@ -466,13 +466,13 @@ private fun parseInstructionsSegment(
         // Parse the arguments.
         try {
             val args = parseInstructionArguments(cursor, opcode, dcGcFormat)
-            instructions.add(Instruction(opcode, args))
+            instructions.add(Instruction(opcode, args, srcLoc = null))
         } catch (e: Exception) {
             if (lenient) {
                 logger.error(e) {
                     "Exception occurred while parsing arguments for instruction ${opcode.mnemonic}."
                 }
-                instructions.add(Instruction(opcode, emptyList()))
+                instructions.add(Instruction(opcode, emptyList(), srcLoc = null))
             } else {
                 throw e
             }
@@ -590,21 +590,23 @@ private fun parseInstructionArguments(
 
                 is StringType -> {
                     val maxBytes = min(4096, cursor.bytesLeft)
-                    args.add(Arg(
-                        if (dcGcFormat) {
-                            cursor.stringAscii(
-                                maxBytes,
-                                nullTerminated = true,
-                                dropRemaining = false
-                            )
-                        } else {
-                            cursor.stringUtf16(
-                                maxBytes,
-                                nullTerminated = true,
-                                dropRemaining = false
-                            )
-                        },
-                    ))
+                    args.add(
+                        Arg(
+                            if (dcGcFormat) {
+                                cursor.stringAscii(
+                                    maxBytes,
+                                    nullTerminated = true,
+                                    dropRemaining = false
+                                )
+                            } else {
+                                cursor.stringUtf16(
+                                    maxBytes,
+                                    nullTerminated = true,
+                                    dropRemaining = false
+                                )
+                            },
+                        )
+                    )
                 }
 
                 is RegRefType,

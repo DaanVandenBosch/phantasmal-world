@@ -4,6 +4,7 @@ import mu.KotlinLogging
 import org.khronos.webgl.Float32Array
 import org.khronos.webgl.Uint16Array
 import world.phantasmal.core.*
+import world.phantasmal.core.unsafe.UnsafeMap
 import world.phantasmal.lib.fileFormats.*
 import world.phantasmal.lib.fileFormats.ninja.*
 import world.phantasmal.web.core.dot
@@ -128,32 +129,36 @@ fun renderGeometryToGroup(
     processMesh: (AreaSection, AreaObject, Mesh) -> Unit = { _, _, _ -> },
 ): Group {
     val group = Group()
-    val textureCache = emptyJsMap<Int, Texture?>()
-    val meshCache = emptyJsMap<XjObject, Mesh>()
+    val textureCache = UnsafeMap<Int, Texture?>()
+    val meshCache = UnsafeMap<XjObject, Mesh>()
 
     for ((sectionIndex, section) in renderGeometry.sections.withIndex()) {
         for (areaObj in section.objects) {
-            group.add(areaObjectToMesh(
-                textures,
-                textureCache,
-                meshCache,
-                section,
-                sectionIndex,
-                areaObj,
-                processMesh,
-            ))
+            group.add(
+                areaObjectToMesh(
+                    textures,
+                    textureCache,
+                    meshCache,
+                    section,
+                    sectionIndex,
+                    areaObj,
+                    processMesh,
+                )
+            )
         }
 
         for (areaObj in section.animatedObjects) {
-            group.add(areaObjectToMesh(
-                textures,
-                textureCache,
-                meshCache,
-                section,
-                sectionIndex,
-                areaObj,
-                processMesh,
-            ))
+            group.add(
+                areaObjectToMesh(
+                    textures,
+                    textureCache,
+                    meshCache,
+                    section,
+                    sectionIndex,
+                    areaObj,
+                    processMesh,
+                )
+            )
         }
     }
 
@@ -200,8 +205,8 @@ fun AreaObject.fingerPrint(): String =
 
 private fun areaObjectToMesh(
     textures: List<XvrTexture?>,
-    textureCache: JsMap<Int, Texture?>,
-    meshCache: JsMap<XjObject, Mesh>,
+    textureCache: UnsafeMap<Int, Texture?>,
+    meshCache: UnsafeMap<XjObject, Mesh>,
     section: AreaSection,
     sectionIndex: Int,
     areaObj: AreaObject,

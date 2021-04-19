@@ -1,11 +1,13 @@
 package world.phantasmal.lib.asm
 
-private val MNEMONIC_TO_OPCODES: MutableMap<String, Opcode> by lazy {
-    val map = mutableMapOf<String, Opcode>()
+import world.phantasmal.core.unsafe.UnsafeMap
 
-    OPCODES.forEach { if (it != null) map[it.mnemonic] = it }
-    OPCODES_F8.forEach { if (it != null) map[it.mnemonic] = it }
-    OPCODES_F9.forEach { if (it != null) map[it.mnemonic] = it }
+private val MNEMONIC_TO_OPCODES: UnsafeMap<String, Opcode> by lazy {
+    val map = UnsafeMap<String, Opcode>()
+
+    OPCODES.forEach { if (it != null) map.set(it.mnemonic, it) }
+    OPCODES_F8.forEach { if (it != null) map.set(it.mnemonic, it) }
+    OPCODES_F9.forEach { if (it != null) map.set(it.mnemonic, it) }
 
     map
 }
@@ -170,13 +172,13 @@ fun codeToOpcode(code: Int): Opcode =
     }
 
 fun mnemonicToOpcode(mnemonic: String): Opcode? {
-    var opcode = MNEMONIC_TO_OPCODES[mnemonic]
+    var opcode = MNEMONIC_TO_OPCODES.get(mnemonic)
 
     if (opcode == null) {
         UNKNOWN_OPCODE_MNEMONIC_REGEX.matchEntire(mnemonic)?.destructured?.let { (codeStr) ->
             val code = codeStr.toInt(16)
             opcode = codeToOpcode(code)
-            MNEMONIC_TO_OPCODES[mnemonic] = opcode!!
+            MNEMONIC_TO_OPCODES.set(mnemonic, opcode!!)
         }
     }
 
