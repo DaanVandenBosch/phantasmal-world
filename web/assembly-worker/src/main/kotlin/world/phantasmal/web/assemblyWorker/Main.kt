@@ -2,12 +2,21 @@ package world.phantasmal.web.assemblyWorker
 
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
-import org.w3c.dom.DedicatedWorkerGlobalScope
+import mu.KotlinLoggingConfiguration
+import mu.KotlinLoggingLevel
 import world.phantasmal.web.shared.JSON_FORMAT
-
-external val self: DedicatedWorkerGlobalScope
+import world.phantasmal.web.shared.externals.self
+import world.phantasmal.web.shared.logging.LogAppender
+import world.phantasmal.web.shared.logging.LogFormatter
 
 fun main() {
+    KotlinLoggingConfiguration.FORMATTER = LogFormatter()
+    KotlinLoggingConfiguration.APPENDER = LogAppender()
+
+    if (self.location.hostname == "localhost") {
+        KotlinLoggingConfiguration.LOG_LEVEL = KotlinLoggingLevel.TRACE
+    }
+
     val asmWorker = AssemblyWorker(
         sendMessage = { message ->
             self.postMessage(JSON_FORMAT.encodeToString(message))

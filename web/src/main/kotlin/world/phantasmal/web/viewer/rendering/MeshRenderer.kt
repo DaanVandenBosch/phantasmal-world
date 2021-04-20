@@ -6,7 +6,6 @@ import world.phantasmal.core.math.degToRad
 import world.phantasmal.lib.fileFormats.ninja.NinjaObject
 import world.phantasmal.lib.fileFormats.ninja.NjMotion
 import world.phantasmal.lib.fileFormats.ninja.NjObject
-import world.phantasmal.web.core.Throttle
 import world.phantasmal.web.core.boundingSphere
 import world.phantasmal.web.core.isSkinnedMesh
 import world.phantasmal.web.core.rendering.*
@@ -14,6 +13,7 @@ import world.phantasmal.web.core.rendering.Renderer
 import world.phantasmal.web.core.rendering.conversion.*
 import world.phantasmal.web.core.times
 import world.phantasmal.web.externals.three.*
+import world.phantasmal.web.shared.Throttle
 import world.phantasmal.web.viewer.stores.NinjaGeometry
 import world.phantasmal.web.viewer.stores.ViewerStore
 import kotlin.math.roundToInt
@@ -24,7 +24,7 @@ class MeshRenderer(
     createThreeRenderer: (HTMLCanvasElement) -> DisposableThreeRenderer,
 ) : Renderer() {
     private val clock = Clock()
-    private val throttleRebuildMesh = Throttle(before = 10)
+    private val throttleRebuildMesh = Throttle(wait = 10, leading = false, trailing = true)
 
     private var obj3d: Object3D? = null
     private var skeletonHelper: SkeletonHelper? = null
@@ -32,24 +32,28 @@ class MeshRenderer(
     private var updateAnimationTime = true
     private var charClassActive = false
 
-    override val context = addDisposable(RenderContext(
-        createCanvas(),
-        PerspectiveCamera(
-            fov = 45.0,
-            aspect = 1.0,
-            near = 10.0,
-            far = 5_000.0,
+    override val context = addDisposable(
+        RenderContext(
+            createCanvas(),
+            PerspectiveCamera(
+                fov = 45.0,
+                aspect = 1.0,
+                near = 10.0,
+                far = 5_000.0,
+            )
         )
-    ))
+    )
 
     override val threeRenderer = addDisposable(createThreeRenderer(context.canvas)).renderer
 
-    override val inputManager = addDisposable(OrbitalCameraInputManager(
-        context.canvas,
-        context.camera,
-        position = Vector3(.0, .0, .0),
-        screenSpacePanning = true,
-    ))
+    override val inputManager = addDisposable(
+        OrbitalCameraInputManager(
+            context.canvas,
+            context.camera,
+            position = Vector3(.0, .0, .0),
+            screenSpacePanning = true,
+        )
+    )
 
     init {
         observe(viewerStore.currentNinjaGeometry) { rebuildMesh(resetCamera = true) }
@@ -124,8 +128,10 @@ class MeshRenderer(
                         }
                     }
 
-                    is NinjaGeometry.Render -> renderGeometryToGroup(ninjaGeometry.geometry,
-                        textures)
+                    is NinjaGeometry.Render -> renderGeometryToGroup(
+                        ninjaGeometry.geometry,
+                        textures
+                    )
 
                     is NinjaGeometry.Collision -> collisionGeometryToGroup(ninjaGeometry.geometry)
                 }

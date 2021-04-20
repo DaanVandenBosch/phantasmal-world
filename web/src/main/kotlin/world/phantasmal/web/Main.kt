@@ -18,12 +18,12 @@ import world.phantasmal.core.disposable.disposable
 import world.phantasmal.observable.value.mutableVal
 import world.phantasmal.web.application.Application
 import world.phantasmal.web.core.loading.AssetLoader
-import world.phantasmal.web.core.logging.LogAppender
-import world.phantasmal.web.core.logging.LogFormatter
 import world.phantasmal.web.core.rendering.DisposableThreeRenderer
 import world.phantasmal.web.core.stores.ApplicationUrl
 import world.phantasmal.web.externals.three.WebGLRenderer
 import world.phantasmal.web.shared.JSON_FORMAT
+import world.phantasmal.web.shared.logging.LogAppender
+import world.phantasmal.web.shared.logging.LogFormatter
 import world.phantasmal.webui.dom.disposableListener
 import world.phantasmal.webui.dom.root
 import world.phantasmal.webui.obj

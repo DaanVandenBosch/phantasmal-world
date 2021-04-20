@@ -78,7 +78,7 @@ interface BasicBlock {
 /**
  * Graph representing the flow of control through the [BasicBlock]s of a script.
  */
-class ControlFlowGraph(
+class ControlFlowGraph internal constructor(
     val blocks: List<BasicBlock>,
     private val instructionToBlock: Map<Instruction, BasicBlock>,
 ) {

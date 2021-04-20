@@ -1,4 +1,4 @@
-package world.phantasmal.web.core.logging
+package world.phantasmal.web.shared.logging
 
 import mu.Appender
 

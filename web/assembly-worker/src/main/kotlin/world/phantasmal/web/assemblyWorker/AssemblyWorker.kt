@@ -1,16 +1,23 @@
 package world.phantasmal.web.assemblyWorker
 
+import mu.KotlinLogging
 import world.phantasmal.core.*
 import world.phantasmal.lib.asm.*
 import world.phantasmal.lib.asm.dataFlowAnalysis.ControlFlowGraph
 import world.phantasmal.lib.asm.dataFlowAnalysis.getMapDesignations
 import world.phantasmal.lib.asm.dataFlowAnalysis.getStackValue
-import world.phantasmal.web.shared.*
+import world.phantasmal.web.shared.Throttle
 import world.phantasmal.web.shared.messages.*
 import kotlin.math.min
+import kotlin.time.measureTime
 import world.phantasmal.lib.asm.AssemblyProblem as AssemblerAssemblyProblem
 
+private val logger = KotlinLogging.logger {}
+
 class AssemblyWorker(private val sendMessage: (ServerMessage) -> Unit) {
+    private val messageQueue: MutableList<ClientMessage> = mutableListOf()
+    private val messageProcessingThrottle = Throttle(wait = 100)
+
     // User input.
     private var inlineStackArgs: Boolean = true
     private val asm: JsArray<String> = jsArrayOf()
@@ -29,28 +36,91 @@ class AssemblyWorker(private val sendMessage: (ServerMessage) -> Unit) {
 
     private var mapDesignations: Map<Int, Int>? = null
 
-    fun receiveMessage(message: ClientMessage) =
-        when (message) {
-            is ClientNotification.SetAsm ->
-                setAsm(message.asm, message.inlineStackArgs)
-            is ClientNotification.UpdateAsm ->
-                updateAsm(message.changes)
-            is Request.GetCompletions ->
-                getCompletions(message.id, message.lineNo, message.col)
-            is Request.GetSignatureHelp ->
-                getSignatureHelp(message.id, message.lineNo, message.col)
-            is Request.GetHover ->
-                getHover(message.id, message.lineNo, message.col)
-            is Request.GetDefinition ->
-                getDefinition(message.id, message.lineNo, message.col)
+    fun receiveMessage(message: ClientMessage) {
+        messageQueue.add(message)
+        messageProcessingThrottle(::processMessages)
+    }
+
+    private fun processMessages() {
+        // Split messages into ASM changes and other messages. Remove useless/duplicate
+        // notifications.
+        val asmChanges = mutableListOf<ClientNotification>()
+        val otherMessages = mutableListOf<ClientMessage>()
+
+        for (message in messageQueue) {
+            when (message) {
+                is ClientNotification.SetAsm -> {
+                    // All previous ASM change messages can be discarded when the entire ASM has
+                    // changed.
+                    asmChanges.clear()
+                    asmChanges.add(message)
+                }
+
+                is ClientNotification.UpdateAsm ->
+                    asmChanges.add(message)
+
+                else ->
+                    otherMessages.add(message)
+            }
         }
+
+        messageQueue.clear()
+
+        // Process ASM changes first.
+        processAsmChanges(asmChanges)
+        otherMessages.forEach(::processMessage)
+    }
+
+    private fun processAsmChanges(messages: List<ClientNotification>) {
+        if (messages.isNotEmpty()) {
+            val time = measureTime {
+                for (message in messages) {
+                    when (message) {
+                        is ClientNotification.SetAsm ->
+                            setAsm(message.asm, message.inlineStackArgs)
+
+                        is ClientNotification.UpdateAsm ->
+                            updateAsm(message.changes)
+                    }
+                }
+
+                processAsm()
+            }
+
+            logger.trace {
+                "Processed ${messages.size} assembly changes in ${time.inMilliseconds}ms."
+            }
+        }
+    }
+
+    private fun processMessage(message: ClientMessage) {
+        val time = measureTime {
+            when (message) {
+                is ClientNotification.SetAsm,
+                is ClientNotification.UpdateAsm ->
+                    logger.error { "Unexpected ${message::class.simpleName}." }
+
+                is Request.GetCompletions ->
+                    getCompletions(message.id, message.lineNo, message.col)
+
+                is Request.GetSignatureHelp ->
+                    getSignatureHelp(message.id, message.lineNo, message.col)
+
+                is Request.GetHover ->
+                    getHover(message.id, message.lineNo, message.col)
+
+                is Request.GetDefinition ->
+                    getDefinition(message.id, message.lineNo, message.col)
+            }
+        }
+
+        logger.trace { "Processed ${message::class.simpleName} in ${time.inMilliseconds}ms." }
+    }
 
     private fun setAsm(asm: List<String>, inlineStackArgs: Boolean) {
         this.inlineStackArgs = inlineStackArgs
         this.asm.splice(0, this.asm.length, *asm.toTypedArray())
         mapDesignations = null
-
-        processAsm()
     }
 
     private fun updateAsm(changes: List<AsmChange>) {
@@ -91,8 +161,6 @@ class AssemblyWorker(private val sendMessage: (ServerMessage) -> Unit) {
                 }
             }
         }
-
-        processAsm()
     }
 
     private fun replaceLinePart(
@@ -176,9 +244,11 @@ class AssemblyWorker(private val sendMessage: (ServerMessage) -> Unit) {
 
                 if (designations != mapDesignations) {
                     mapDesignations = designations
-                    sendMessage(ServerNotification.MapDesignations(
-                        designations
-                    ))
+                    sendMessage(
+                        ServerNotification.MapDesignations(
+                            designations
+                        )
+                    )
                 }
             }
         }
