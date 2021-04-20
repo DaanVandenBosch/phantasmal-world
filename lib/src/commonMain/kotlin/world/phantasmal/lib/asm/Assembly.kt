@@ -43,7 +43,7 @@ fun assemble(
 
 private class Assembler(private val asm: List<String>, private val inlineStackArgs: Boolean) {
     private var lineNo = 1
-    private lateinit var tokens: MutableList<Token>
+    private val tokenizer = LineTokenizer()
     private var ir: MutableList<Segment> = mutableListOf()
 
     /**
@@ -64,51 +64,57 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
     fun assemble(): PwResult<BytecodeIr> {
         // Tokenize and assemble line by line.
         for (line in asm) {
-            tokens = tokenizeLine(line)
+            tokenizer.tokenize(line)
+            tokenizer.nextToken()
 
-            if (tokens.isNotEmpty()) {
-                val token = tokens.removeFirst()
+            if (tokenizer.type != null) {
                 var hasLabel = false
 
                 // Token type checks are ordered from most frequent to least frequent for increased
                 // perf.
-                when (token) {
-                    is Token.Ident -> {
+                when (tokenizer.type) {
+                    Token.Ident -> {
                         if (section === SegmentType.Instructions) {
-                            parseInstruction(token)
+                            parseInstruction()
                         } else {
-                            addUnexpectedTokenError(token)
+                            addUnexpectedTokenError()
                         }
                     }
-                    is Token.Label -> {
-                        parseLabel(token)
+                    Token.Label -> {
+                        parseLabel()
                         hasLabel = true
                     }
-                    is Token.Section -> {
-                        parseSection(token)
+                    Token.CodeSection -> {
+                        parseCodeSection()
                     }
-                    is Token.Int32 -> {
+                    Token.DataSection -> {
+                        parseDataSection()
+                    }
+                    Token.StrSection -> {
+                        parseStrSection()
+                    }
+                    Token.Int32 -> {
                         if (section === SegmentType.Data) {
-                            parseBytes(token)
+                            parseBytes()
                         } else {
-                            addUnexpectedTokenError(token)
+                            addUnexpectedTokenError()
                         }
                     }
-                    is Token.Str -> {
+                    Token.Str -> {
                         if (section === SegmentType.String) {
-                            parseString(token)
+                            parseString()
                         } else {
-                            addUnexpectedTokenError(token)
+                            addUnexpectedTokenError()
                         }
                     }
-                    is Token.InvalidSection -> {
-                        addError(token, "Invalid section type.")
+                    Token.InvalidSection -> {
+                        addError("Invalid section type.")
                     }
-                    is Token.InvalidIdent -> {
-                        addError(token, "Invalid identifier.")
+                    Token.InvalidIdent -> {
+                        addError("Invalid identifier.")
                     }
                     else -> {
-                        addUnexpectedTokenError(token)
+                        addUnexpectedTokenError()
                     }
                 }
 
@@ -124,9 +130,9 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
     private fun addInstruction(
         opcode: Opcode,
         args: List<Arg>,
-        token: Token?,
-        argTokens: List<Token>,
-        stackArgTokens: List<Token>,
+        mnemonicSrcLoc: SrcLoc?,
+        argSrcLocs: List<SrcLoc>,
+        stackArgSrcLocs: List<SrcLoc>,
     ) {
         when (val seg = segment) {
             null -> {
@@ -146,17 +152,9 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
                         opcode,
                         args,
                         InstructionSrcLoc(
-                            mnemonic = token?.let {
-                                SrcLoc(lineNo, token.col, token.len)
-                            },
-                            // Use mapTo with ArrayList for better perf in JS.
-                            args = argTokens.mapTo(ArrayList(argTokens.size)) {
-                                SrcLoc(lineNo, it.col, it.len)
-                            },
-                            // Use mapTo with ArrayList for better perf in JS.
-                            stackArgs = stackArgTokens.mapTo(ArrayList(argTokens.size)) {
-                                SrcLoc(lineNo, it.col, it.len)
-                            },
+                            mnemonic = mnemonicSrcLoc,
+                            args = argSrcLocs,
+                            stackArgs = stackArgSrcLocs,
                         )
                     )
                 )
@@ -233,46 +231,45 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
         )
     }
 
-    private fun addError(token: Token, uiMessage: String, message: String? = null) {
-        addError(token.col, token.len, uiMessage, message)
+    private fun addError(uiMessage: String, message: String? = null) {
+        addError(tokenizer.col, tokenizer.len, uiMessage, message)
     }
 
-    private fun addUnexpectedTokenError(token: Token) {
+    private fun addUnexpectedTokenError() {
         addError(
-            token,
             "Unexpected token.",
-            "Unexpected ${token::class.simpleName} at ${token.srcLoc()}.",
+            "Unexpected ${tokenizer.type?.name} at $lineNo:${tokenizer.col}.",
         )
     }
 
-    private fun addWarning(token: Token, uiMessage: String) {
+    private fun addWarning(uiMessage: String) {
         result.addProblem(
             AssemblyProblem(
                 Severity.Warning,
                 uiMessage,
                 lineNo = lineNo,
-                col = token.col,
-                len = token.len,
+                col = tokenizer.col,
+                len = tokenizer.len,
             )
         )
     }
 
-    private fun parseLabel(token: Token.Label) {
-        val label = token.value
+    private fun parseLabel() {
+        val label = tokenizer.intValue
 
         if (!labels.add(label)) {
-            addError(token, "Duplicate label.")
+            addError("Duplicate label.")
         }
 
-        val nextToken = tokens.removeFirstOrNull()
-
-        val srcLoc = SrcLoc(lineNo, token.col, token.len)
+        val srcLoc = srcLocFromTokenizer()
 
         if (prevLineHadLabel) {
             val segment = ir.last()
             segment.labels.add(label)
             segment.srcLoc.labels.add(srcLoc)
         }
+
+        tokenizer.nextToken()
 
         when (section) {
             SegmentType.Instructions -> {
@@ -286,12 +283,10 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
                     ir.add(segment!!)
                 }
 
-                if (nextToken != null) {
-                    if (nextToken is Token.Ident) {
-                        parseInstruction(nextToken)
-                    } else {
-                        addError(nextToken, "Expected opcode mnemonic.")
-                    }
+                if (tokenizer.type === Token.Ident) {
+                    parseInstruction()
+                } else if (tokenizer.type != null) {
+                    addError("Expected opcode mnemonic.")
                 }
             }
 
@@ -305,12 +300,10 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
                     ir.add(segment!!)
                 }
 
-                if (nextToken != null) {
-                    if (nextToken is Token.Int32) {
-                        parseBytes(nextToken)
-                    } else {
-                        addError(nextToken, "Expected bytes.")
-                    }
+                if (tokenizer.type === Token.Int32) {
+                    parseBytes()
+                } else if (tokenizer.type != null) {
+                    addError("Expected bytes.")
                 }
             }
 
@@ -325,194 +318,86 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
                     ir.add(segment!!)
                 }
 
-                if (nextToken != null) {
-                    if (nextToken is Token.Str) {
-                        parseString(nextToken)
-                    } else {
-                        addError(nextToken, "Expected a string.")
-                    }
+                if (tokenizer.type === Token.Str) {
+                    parseString()
+                } else if (tokenizer.type != null) {
+                    addError("Expected a string.")
                 }
             }
         }
     }
 
-    private fun parseSection(token: Token.Section) {
-        val section = when (token) {
-            is Token.Section.Code -> SegmentType.Instructions
-            is Token.Section.Data -> SegmentType.Data
-            is Token.Section.Str -> SegmentType.String
-        }
+    private fun parseCodeSection() {
+        parseSection(SegmentType.Instructions)
+    }
 
+    private fun parseDataSection() {
+        parseSection(SegmentType.Data)
+    }
+
+    private fun parseStrSection() {
+        parseSection(SegmentType.String)
+    }
+
+    private fun parseSection(section: SegmentType) {
         if (this.section == section && !firstSectionMarker) {
-            addWarning(token, "Unnecessary section marker.")
+            addWarning("Unnecessary section marker.")
         }
 
         this.section = section
         firstSectionMarker = false
 
-        tokens.removeFirstOrNull()?.let { nextToken ->
-            addUnexpectedTokenError(nextToken)
+        if (tokenizer.nextToken()) {
+            addUnexpectedTokenError()
         }
     }
 
-    private fun parseInstruction(identToken: Token.Ident) {
-        val opcode = mnemonicToOpcode(identToken.value)
+    private fun parseInstruction() {
+        val opcode = mnemonicToOpcode(tokenizer.strValue)
+        val mnemonicSrcLoc = srcLocFromTokenizer()
 
         if (opcode == null) {
-            addError(identToken, "Unknown opcode.")
+            addError("Unknown opcode.")
         } else {
-            // Use find instead of any for better JS perf.
-            val varargs = opcode.params.find {
-                it.type === ILabelVarType || it.type === RegRefVarType
-            } != null
-
-            val paramCount =
-                if (!inlineStackArgs && opcode.stack === StackInteraction.Pop) 0
-                else opcode.params.size
-
-            // Use fold instead of count for better JS perf.
-            val argCount = tokens.fold(0) { sum, token ->
-                if (token.isArgSeparator()) sum else sum + 1
-            }
-
-            val lastToken = tokens.lastOrNull()
-            val errorLength = lastToken?.let { it.col + it.len - identToken.col } ?: 0
             // Inline arguments.
             val inlineArgs = mutableListOf<Arg>()
-            val inlineTokens = mutableListOf<Token>()
+            val inlineArgSrcLocs = mutableListOf<SrcLoc>()
             // Stack arguments.
             val stackArgs = mutableListOf<Arg>()
-            val stackTokens = mutableListOf<Token>()
+            val stackArgSrcLocs = mutableListOf<SrcLoc>()
 
-            if (!varargs && argCount != paramCount) {
-                addError(
-                    identToken.col,
-                    errorLength,
-                    "Expected $paramCount argument${
-                        if (paramCount == 1) "" else "s"
-                    }, got $argCount.",
-                )
-
-                return
-            } else if (varargs && argCount < paramCount) {
-                // TODO: This check assumes we want at least 1 argument for a vararg parameter.
-                //       Is this correct?
-                addError(
-                    identToken.col,
-                    errorLength,
-                    "Expected at least $paramCount argument${
-                        if (paramCount == 1) "" else "s"
-                    }, got $argCount.",
-                )
-
-                return
-            } else if (opcode.stack !== StackInteraction.Pop) {
+            if (opcode.stack !== StackInteraction.Pop) {
                 // Arguments should be inlined right after the opcode.
-                if (!parseArgs(opcode.params, inlineArgs, inlineTokens, stack = false)) {
+                if (!parseArgs(
+                        opcode,
+                        mnemonicSrcLoc.col,
+                        inlineArgs,
+                        inlineArgSrcLocs,
+                        stack = false,
+                    )
+                ) {
                     return
                 }
             } else {
                 // Arguments should be passed to the opcode via the stack.
-                if (!parseArgs(opcode.params, stackArgs, stackTokens, stack = true)) {
+                if (!parseArgs(
+                        opcode,
+                        mnemonicSrcLoc.col,
+                        stackArgs,
+                        stackArgSrcLocs,
+                        stack = true,
+                    )
+                ) {
                     return
-                }
-
-                for (i in opcode.params.indices) {
-                    val param = opcode.params[i]
-                    val arg = stackArgs.getOrNull(i) ?: continue
-                    val argToken = stackTokens.getOrNull(i) ?: continue
-
-                    if (argToken.isRegister()) {
-                        if (param.type is RegTupRefType) {
-                            addInstruction(
-                                OP_ARG_PUSHB,
-                                listOf(arg),
-                                null,
-                                listOf(argToken),
-                                emptyList(),
-                            )
-                        } else {
-                            addInstruction(
-                                OP_ARG_PUSHR,
-                                listOf(arg),
-                                null,
-                                listOf(argToken),
-                                emptyList(),
-                            )
-                        }
-                    } else {
-                        when (param.type) {
-                            ByteType,
-                            RegRefType,
-                            is RegTupRefType,
-                            -> {
-                                addInstruction(
-                                    OP_ARG_PUSHB,
-                                    listOf(arg),
-                                    null,
-                                    listOf(argToken),
-                                    emptyList(),
-                                )
-                            }
-
-                            ShortType,
-                            is LabelType,
-                            -> {
-                                addInstruction(
-                                    OP_ARG_PUSHW,
-                                    listOf(arg),
-                                    null,
-                                    listOf(argToken),
-                                    emptyList(),
-                                )
-                            }
-
-                            IntType -> {
-                                addInstruction(
-                                    OP_ARG_PUSHL,
-                                    listOf(arg),
-                                    null,
-                                    listOf(argToken),
-                                    emptyList(),
-                                )
-                            }
-
-                            FloatType -> {
-                                addInstruction(
-                                    OP_ARG_PUSHL,
-                                    listOf(Arg((arg.value as Float).toRawBits())),
-                                    null,
-                                    listOf(argToken),
-                                    emptyList(),
-                                )
-                            }
-
-                            StringType -> {
-                                addInstruction(
-                                    OP_ARG_PUSHS,
-                                    listOf(arg),
-                                    null,
-                                    listOf(argToken),
-                                    emptyList(),
-                                )
-                            }
-
-                            else -> {
-                                logger.error {
-                                    "Line $lineNo: Type ${param.type::class} not implemented."
-                                }
-                            }
-                        }
-                    }
                 }
             }
 
             addInstruction(
                 opcode,
                 inlineArgs,
-                identToken,
-                inlineTokens,
-                stackTokens,
+                mnemonicSrcLoc,
+                inlineArgSrcLocs,
+                stackArgSrcLocs,
             )
         }
     }
@@ -521,155 +406,283 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
      * Returns true iff arguments can be translated to byte code, possibly after truncation.
      */
     private fun parseArgs(
-        params: List<Param>,
+        opcode: Opcode,
+        startCol: Int,
         args: MutableList<Arg>,
-        argTokens: MutableList<Token>,
+        srcLocs: MutableList<SrcLoc>,
         stack: Boolean,
     ): Boolean {
+        var varargs = false
+        var argCount = 0
         var semiValid = true
         var shouldBeArg = true
         var paramI = 0
+        var prevCol = 0
+        var prevLen = 0
 
-        for (i in 0 until tokens.size) {
-            val token = tokens[i]
-            val param = params[paramI]
+        while (tokenizer.nextToken()) {
+            if (tokenizer.type !== Token.ArgSeparator) {
+                argCount++
+            }
 
-            if (token.isArgSeparator()) {
-                if (shouldBeArg) {
-                    addError(token, "Expected an argument.")
-                } else if (
-                    param.type !== ILabelVarType &&
-                    param.type !== RegRefVarType
-                ) {
-                    paramI++
+            if (paramI < opcode.params.size) {
+                val param = opcode.params[paramI]
+
+                if (param.type === ILabelVarType || param.type === RegRefVarType) {
+                    // A varargs parameter is always the last parameter.
+                    varargs = true
                 }
 
-                shouldBeArg = true
-            } else {
-                if (!shouldBeArg) {
-                    val prevToken = tokens[i - 1]
-                    val col = prevToken.col + prevToken.len
+                if (tokenizer.type === Token.ArgSeparator) {
+                    if (shouldBeArg) {
+                        addError("Expected an argument.")
+                    } else if (!varargs) {
+                        paramI++
+                    }
 
-                    addError(col, token.col - col, "Expected a comma.")
-                }
+                    shouldBeArg = true
+                } else {
+                    if (!shouldBeArg) {
+                        val col = prevCol + prevLen
+                        addError(col, tokenizer.col - col, "Expected a comma.")
+                    }
 
-                shouldBeArg = false
+                    shouldBeArg = false
 
-                var match: Boolean
+                    // Try to match token type parameter type.
+                    var typeMatch: Boolean
 
-                when {
-                    token.isInt32() -> {
-                        when (param.type) {
-                            ByteType -> {
-                                match = true
-                                parseInt(1, token, args, argTokens)
+                    // If arg is nonnull, types match and argument is syntactically valid.
+                    val arg: Arg? = when (tokenizer.type) {
+                        Token.Int32 -> {
+                            when (param.type) {
+                                ByteType -> {
+                                    typeMatch = true
+                                    parseInt(1)
+                                }
+                                ShortType,
+                                is LabelType,
+                                -> {
+                                    typeMatch = true
+                                    parseInt(2)
+                                }
+                                IntType -> {
+                                    typeMatch = true
+                                    parseInt(4)
+                                }
+                                FloatType -> {
+                                    typeMatch = true
+                                    Arg(tokenizer.intValue.toFloat())
+                                }
+                                else -> {
+                                    typeMatch = false
+                                    null
+                                }
                             }
-                            ShortType,
-                            is LabelType,
-                            -> {
-                                match = true
-                                parseInt(2, token, args, argTokens)
+                        }
+
+                        Token.Float32 -> {
+                            typeMatch = param.type === FloatType
+
+                            if (typeMatch) {
+                                Arg(tokenizer.floatValue)
+                            } else {
+                                null
                             }
-                            IntType -> {
-                                match = true
-                                parseInt(4, token, args, argTokens)
+                        }
+
+                        Token.Register -> {
+                            typeMatch = stack ||
+                                    param.type === RegRefType ||
+                                    param.type === RegRefVarType ||
+                                    param.type is RegTupRefType
+
+                            parseRegister()
+                        }
+
+                        Token.Str -> {
+                            typeMatch = param.type === StringType
+
+                            if (typeMatch) {
+                                Arg(tokenizer.strValue)
+                            } else {
+                                null
                             }
-                            FloatType -> {
-                                match = true
-                                args.add(Arg(token.value))
-                                argTokens.add(token)
-                            }
-                            else -> {
-                                match = false
-                            }
+                        }
+
+                        else -> {
+                            typeMatch = false
+                            null
                         }
                     }
 
-                    token.isFloat32() -> {
-                        match = param.type === FloatType
+                    val srcLoc = srcLocFromTokenizer()
 
-                        if (match) {
-                            args.add(Arg(token.value))
-                            argTokens.add(token)
+                    if (arg != null) {
+                        args.add(arg)
+                        srcLocs.add(srcLoc)
+                    }
+
+                    if (!typeMatch) {
+                        semiValid = false
+
+                        val typeStr: String? = when (param.type) {
+                            ByteType -> "an 8-bit integer"
+                            ShortType -> "a 16-bit integer"
+                            IntType -> "a 32-bit integer"
+                            FloatType -> "a float"
+
+                            ILabelType,
+                            ILabelVarType,
+                            -> "an instruction label"
+
+                            DLabelType -> "a data label"
+                            SLabelType -> "a string label"
+
+                            is LabelType -> "a label"
+
+                            StringType -> "a string"
+
+                            RegRefType,
+                            RegRefVarType,
+                            is RegTupRefType,
+                            -> "a register reference"
+
+                            else -> null
+                        }
+
+                        addError(
+                            if (typeStr == null) "Unexpected token." else "Expected ${typeStr}."
+                        )
+                    } else if (stack && arg != null) {
+                        // Inject stack push instructions if necessary.
+                        // If the token is a register, push it as a register, otherwise coerce type.
+                        if (tokenizer.type === Token.Register) {
+                            if (param.type is RegTupRefType) {
+                                addInstruction(
+                                    OP_ARG_PUSHB,
+                                    listOf(arg),
+                                    null,
+                                    listOf(srcLoc),
+                                    emptyList(),
+                                )
+                            } else {
+                                addInstruction(
+                                    OP_ARG_PUSHR,
+                                    listOf(arg),
+                                    null,
+                                    listOf(srcLoc),
+                                    emptyList(),
+                                )
+                            }
+                        } else {
+                            when (param.type) {
+                                ByteType,
+                                RegRefType,
+                                is RegTupRefType,
+                                -> {
+                                    addInstruction(
+                                        OP_ARG_PUSHB,
+                                        listOf(arg),
+                                        null,
+                                        listOf(srcLoc),
+                                        emptyList(),
+                                    )
+                                }
+
+                                ShortType,
+                                is LabelType,
+                                -> {
+                                    addInstruction(
+                                        OP_ARG_PUSHW,
+                                        listOf(arg),
+                                        null,
+                                        listOf(srcLoc),
+                                        emptyList(),
+                                    )
+                                }
+
+                                IntType -> {
+                                    addInstruction(
+                                        OP_ARG_PUSHL,
+                                        listOf(arg),
+                                        null,
+                                        listOf(srcLoc),
+                                        emptyList(),
+                                    )
+                                }
+
+                                FloatType -> {
+                                    addInstruction(
+                                        OP_ARG_PUSHL,
+                                        listOf(Arg((arg.value as Float).toRawBits())),
+                                        null,
+                                        listOf(srcLoc),
+                                        emptyList(),
+                                    )
+                                }
+
+                                StringType -> {
+                                    addInstruction(
+                                        OP_ARG_PUSHS,
+                                        listOf(arg),
+                                        null,
+                                        listOf(srcLoc),
+                                        emptyList(),
+                                    )
+                                }
+
+                                else -> {
+                                    logger.error {
+                                        "Line $lineNo: Type ${param.type::class} not implemented."
+                                    }
+                                }
+                            }
                         }
                     }
-
-                    token.isRegister() -> {
-                        match = stack ||
-                                param.type === RegRefType ||
-                                param.type === RegRefVarType ||
-                                param.type is RegTupRefType
-
-                        parseRegister(token, args, argTokens)
-                    }
-
-                    token.isStr() -> {
-                        match = param.type === StringType
-
-                        if (match) {
-                            args.add(Arg(token.value))
-                            argTokens.add(token)
-                        }
-                    }
-
-                    else -> {
-                        match = false
-                    }
-                }
-
-                if (!match) {
-                    semiValid = false
-
-                    val typeStr: String? = when (param.type) {
-                        ByteType -> "an 8-bit integer"
-                        ShortType -> "a 16-bit integer"
-                        IntType -> "a 32-bit integer"
-                        FloatType -> "a float"
-
-                        ILabelType,
-                        ILabelVarType,
-                        -> "an instruction label"
-
-                        DLabelType -> "a data label"
-                        SLabelType -> "a string label"
-
-                        is LabelType -> "a label"
-
-                        StringType -> "a string"
-
-                        RegRefType,
-                        RegRefVarType,
-                        is RegTupRefType,
-                        -> "a register reference"
-
-                        else -> null
-                    }
-
-                    addError(
-                        token,
-                        if (typeStr == null) "Unexpected token." else "Expected ${typeStr}."
-                    )
                 }
             }
+
+            prevCol = tokenizer.col
+            prevLen = tokenizer.len
         }
 
-        tokens.clear()
+        val paramCount =
+            if (!inlineStackArgs && opcode.stack === StackInteraction.Pop) 0
+            else opcode.params.size
+
+        val errorLength = prevCol + prevLen - startCol
+
+        if (!varargs && argCount != paramCount) {
+            addError(
+                startCol,
+                errorLength,
+                "Expected $paramCount argument${
+                    if (paramCount == 1) "" else "s"
+                }, got $argCount.",
+            )
+        } else if (varargs && argCount < paramCount) {
+            // TODO: This check assumes we want at least 1 argument for a vararg parameter.
+            //       Is this correct?
+            addError(
+                startCol,
+                errorLength,
+                "Expected at least $paramCount argument${
+                    if (paramCount == 1) "" else "s"
+                }, got $argCount.",
+            )
+        }
+
         return semiValid
     }
 
-    private fun parseInt(
-        size: Int,
-        token: Token.Int32,
-        args: MutableList<Arg>,
-        argTokens: MutableList<Token>,
-    ) {
-        val value = token.value
+    private fun parseInt(size: Int): Arg? {
+        val value = tokenizer.intValue
 
         // Fast-path 32-bit ints for improved JS perf. Otherwise maxValue would have to be a Long
         // or UInt, which incurs a perf hit in JS.
         if (size == 4) {
-            args.add(Arg(value))
-            argTokens.add(token)
+            return Arg(value)
         } else {
             val bitSize = 8 * size
             // Minimum of the signed version of this integer type.
@@ -677,71 +690,64 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
             // Maximum of the unsigned version of this integer type.
             val maxValue = (1 shl (bitSize)) - 1
 
-            when {
+            return when {
                 value < minValue -> {
-                    addError(token, "${bitSize}-Bit integer can't be less than ${minValue}.")
+                    addError("${bitSize}-Bit integer can't be less than ${minValue}.")
+                    null
                 }
                 value > maxValue -> {
-                    addError(token, "${bitSize}-Bit integer can't be greater than ${maxValue}.")
+                    addError("${bitSize}-Bit integer can't be greater than ${maxValue}.")
+                    null
                 }
                 else -> {
-                    args.add(Arg(value))
-                    argTokens.add(token)
+                    Arg(value)
                 }
             }
         }
     }
 
-    private fun parseRegister(
-        token: Token.Register,
-        args: MutableList<Arg>,
-        argTokens: MutableList<Token>,
-    ) {
-        val value = token.value
+    private fun parseRegister(): Arg? {
+        val value = tokenizer.intValue
 
-        if (value > 255) {
-            addError(token, "Invalid register reference, expected r0-r255.")
+        return if (value > 255) {
+            addError("Invalid register reference, expected r0-r255.")
+            null
         } else {
-            args.add(Arg(value))
-            argTokens.add(token)
+            Arg(value)
         }
     }
 
-    private fun parseBytes(firstToken: Token.Int32) {
+    private fun parseBytes() {
         val bytes = mutableListOf<Byte>()
-        var token: Token = firstToken
-        var i = 0
 
-        while (token is Token.Int32) {
-            if (token.value < 0) {
-                addError(token, "Unsigned 8-bit integer can't be less than 0.")
-            } else if (token.value > 255) {
-                addError(token, "Unsigned 8-bit integer can't be greater than 255.")
+        while (tokenizer.type === Token.Int32) {
+            val value = tokenizer.intValue
+
+            if (value < 0) {
+                addError("Unsigned 8-bit integer can't be less than 0.")
+            } else if (value > 255) {
+                addError("Unsigned 8-bit integer can't be greater than 255.")
             }
 
-            bytes.add(token.value.toByte())
+            bytes.add(value.toByte())
 
-            if (i < tokens.size) {
-                token = tokens[i++]
-            } else {
-                break
-            }
+            tokenizer.nextToken()
         }
 
-        if (i < tokens.size) {
-            addError(token, "Expected an unsigned 8-bit integer.")
+        if (tokenizer.type != null) {
+            addError("Expected an unsigned 8-bit integer.")
         }
 
         addBytes(bytes.toByteArray())
     }
 
-    private fun parseString(token: Token.Str) {
-        tokens.removeFirstOrNull()?.let { nextToken ->
-            addUnexpectedTokenError(nextToken)
-        }
+    private fun parseString() {
+        addString(tokenizer.strValue.replace("\n", "<cr>"))
 
-        addString(token.value.replace("\n", "<cr>"))
+        if (tokenizer.nextToken()) {
+            addUnexpectedTokenError()
+        }
     }
 
-    private fun Token.srcLoc(): String = "$lineNo:$col"
+    private fun srcLocFromTokenizer(): SrcLoc = SrcLoc(lineNo, tokenizer.col, tokenizer.len)
 }

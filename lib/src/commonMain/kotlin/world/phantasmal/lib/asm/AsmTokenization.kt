@@ -1,197 +1,79 @@
 package world.phantasmal.lib.asm
 
 import world.phantasmal.core.fastIsWhitespace
+import world.phantasmal.core.fastReplace
+import world.phantasmal.core.getCodePointAt
 import world.phantasmal.core.isDigit
-import kotlin.contracts.ExperimentalContracts
-import kotlin.contracts.contract
 
 private val HEX_INT_REGEX = Regex("""^0[xX][0-9a-fA-F]+$""")
 private val FLOAT_REGEX = Regex("""^-?\d+(\.\d+)?(e-?\d+)?$""")
-private val IDENT_REGEX = Regex("""^[a-z][a-z0-9_=<>!]*$""")
 
-const val TOKEN_INT32 = 1
-const val TOKEN_FLOAT32 = 2
-const val TOKEN_INVALID_NUMBER = 3
-const val TOKEN_REGISTER = 4
-const val TOKEN_LABEL = 5
-const val TOKEN_SECTION_CODE = 6
-const val TOKEN_SECTION_DATA = 7
-const val TOKEN_SECTION_STR = 8
-const val TOKEN_INVALID_SECTION = 9
-const val TOKEN_STR = 10
-const val TOKEN_UNTERMINATED_STR = 11
-const val TOKEN_IDENT = 12
-const val TOKEN_INVALID_IDENT = 13
-const val TOKEN_ARG_SEP = 14
-
-sealed class Token {
-    /**
-     * This property is used for increased perf type checks in JS.
-     */
-    abstract val type: Int
-    abstract val col: Int
-    abstract val len: Int
-
-    class Int32(
-        override val col: Int,
-        override val len: Int,
-        val value: Int,
-    ) : Token() {
-        override val type = TOKEN_INT32
-    }
-
-    class Float32(
-        override val col: Int,
-        override val len: Int,
-        val value: Float,
-    ) : Token() {
-        override val type = TOKEN_FLOAT32
-    }
-
-    class InvalidNumber(
-        override val col: Int,
-        override val len: Int,
-    ) : Token() {
-        override val type = TOKEN_INVALID_NUMBER
-    }
-
-    class Register(
-        override val col: Int,
-        override val len: Int,
-        val value: Int,
-    ) : Token() {
-        override val type = TOKEN_REGISTER
-    }
-
-    class Label(
-        override val col: Int,
-        override val len: Int,
-        val value: Int,
-    ) : Token() {
-        override val type = TOKEN_LABEL
-    }
-
-    sealed class Section : Token() {
-        class Code(
-            override val col: Int,
-            override val len: Int,
-        ) : Section() {
-            override val type = TOKEN_SECTION_CODE
-        }
-
-        class Data(
-            override val col: Int,
-            override val len: Int,
-        ) : Section() {
-            override val type = TOKEN_SECTION_DATA
-        }
-
-        class Str(
-            override val col: Int,
-            override val len: Int,
-        ) : Section() {
-            override val type = TOKEN_SECTION_STR
-        }
-    }
-
-    class InvalidSection(
-        override val col: Int,
-        override val len: Int,
-    ) : Token() {
-        override val type = TOKEN_INVALID_SECTION
-    }
-
-    class Str(
-        override val col: Int,
-        override val len: Int,
-        val value: String,
-    ) : Token() {
-        override val type = TOKEN_STR
-    }
-
-    class UnterminatedString(
-        override val col: Int,
-        override val len: Int,
-        val value: String,
-    ) : Token() {
-        override val type = TOKEN_UNTERMINATED_STR
-    }
-
-    class Ident(
-        override val col: Int,
-        override val len: Int,
-        val value: String,
-    ) : Token() {
-        override val type = TOKEN_IDENT
-    }
-
-    class InvalidIdent(
-        override val col: Int,
-        override val len: Int,
-    ) : Token() {
-        override val type = TOKEN_INVALID_IDENT
-    }
-
-    class ArgSeparator(
-        override val col: Int,
-        override val len: Int,
-    ) : Token() {
-        override val type = TOKEN_ARG_SEP
-    }
-
-    @OptIn(ExperimentalContracts::class)
-    @Suppress("NOTHING_TO_INLINE")
-    inline fun isInt32(): Boolean {
-        contract { returns(true) implies (this@Token is Int32) }
-        return type == TOKEN_INT32
-    }
-
-    @OptIn(ExperimentalContracts::class)
-    @Suppress("NOTHING_TO_INLINE")
-    inline fun isFloat32(): Boolean {
-        contract { returns(true) implies (this@Token is Float32) }
-        return type == TOKEN_FLOAT32
-    }
-
-    @OptIn(ExperimentalContracts::class)
-    @Suppress("NOTHING_TO_INLINE")
-    inline fun isRegister(): Boolean {
-        contract { returns(true) implies (this@Token is Register) }
-        return type == TOKEN_REGISTER
-    }
-
-    @OptIn(ExperimentalContracts::class)
-    @Suppress("NOTHING_TO_INLINE")
-    inline fun isStr(): Boolean {
-        contract { returns(true) implies (this@Token is Str) }
-        return type == TOKEN_STR
-    }
-
-    @OptIn(ExperimentalContracts::class)
-    @Suppress("NOTHING_TO_INLINE")
-    inline fun isArgSeparator(): Boolean {
-        contract { returns(true) implies (this@Token is ArgSeparator) }
-        return type == TOKEN_ARG_SEP
-    }
+enum class Token {
+    Int32,
+    Float32,
+    InvalidNumber,
+    Register,
+    Label,
+    CodeSection,
+    DataSection,
+    StrSection,
+    InvalidSection,
+    Str,
+    UnterminatedStr,
+    Ident,
+    InvalidIdent,
+    ArgSeparator,
 }
 
-fun tokenizeLine(line: String): MutableList<Token> =
-    LineTokenizer(line).tokenize()
-
-private class LineTokenizer(private var line: String) {
+class LineTokenizer {
+    private var line = ""
     private var index = 0
+    private var startIndex = 0
 
-    private val col: Int
-        get() = index + 1
+    private var value: Any? = null
 
-    private var mark = 0
+    var type: Token? = null
+        private set
 
-    fun tokenize(): MutableList<Token> {
-        val tokens = mutableListOf<Token>()
+    val col: Int get() = startIndex + 1
+    val len: Int get() = index - startIndex
+
+    fun tokenize(line: String) {
+        this.line = line
+        index = 0
+        startIndex = 0
+    }
+
+    val intValue: Int
+        get() {
+            require(type === Token.Int32 || type === Token.Register || type === Token.Label)
+            return value as Int
+        }
+
+    val floatValue: Float
+        get() {
+            require(type === Token.Float32)
+            return value as Float
+        }
+
+    val strValue: String
+        get() {
+            require(
+                type === Token.Str ||
+                        type === Token.UnterminatedStr ||
+                        type === Token.Ident ||
+                        type === Token.InvalidIdent
+            )
+            return value as String
+        }
+
+    fun nextToken(): Boolean {
+        type = null
+        value = null
 
         while (hasNext()) {
+            startIndex = index
             val char = peek()
-            var token: Token
 
             if (char == '/') {
                 skip()
@@ -207,25 +89,27 @@ private class LineTokenizer(private var line: String) {
             if (char.fastIsWhitespace()) {
                 skip()
                 continue
-            } else if (char == '-' || char.isDigit()) {
-                token = tokenizeNumberOrLabel()
-            } else if (char == ',') {
-                token = Token.ArgSeparator(col, 1)
-                skip()
-            } else if (char == '.') {
-                token = tokenizeSection()
-            } else if (char == '"') {
-                token = tokenizeString()
-            } else if (char == 'r') {
-                token = tokenizeRegisterOrIdent()
-            } else {
-                token = tokenizeIdent()
             }
 
-            tokens.add(token)
+            if (char == '-' || char.isDigit()) {
+                tokenizeNumberOrLabel()
+            } else if (char == ',') {
+                type = Token.ArgSeparator
+                skip()
+            } else if (char == '.') {
+                tokenizeSection()
+            } else if (char == '"') {
+                tokenizeString()
+            } else if (char == 'r') {
+                tokenizeRegisterOrIdent()
+            } else {
+                tokenizeIdent()
+            }
+
+            break
         }
 
-        return tokens
+        return type != null
     }
 
     private fun hasNext(): Boolean = index < line.length
@@ -242,13 +126,8 @@ private class LineTokenizer(private var line: String) {
         index--
     }
 
-    private fun mark() {
-        mark = index
-    }
-
-    private fun markedLen(): Int = index - mark
-
-    private fun slice(): String = line.substring(mark, index)
+    private fun slice(from: Int = 0, to: Int = 0): String =
+        line.substring(startIndex + from, index - to)
 
     private fun eatRestOfToken() {
         while (hasNext()) {
@@ -261,9 +140,7 @@ private class LineTokenizer(private var line: String) {
         }
     }
 
-    private fun tokenizeNumberOrLabel(): Token {
-        mark()
-        val col = this.col
+    private fun tokenizeNumberOrLabel() {
         val firstChar = next()
         var isLabel = false
 
@@ -271,9 +148,11 @@ private class LineTokenizer(private var line: String) {
             val char = peek()
 
             if (char == '.' || char == 'e') {
-                return tokenizeFloat(col)
+                tokenizeFloat()
+                return
             } else if (firstChar == '0' && (char == 'x' || char == 'X')) {
-                return tokenizeHexNumber(col)
+                tokenizeHexNumber()
+                return
             } else if (char == ':') {
                 isLabel = true
                 break
@@ -284,53 +163,53 @@ private class LineTokenizer(private var line: String) {
             }
         }
 
-        val value = slice().toIntOrNull()
+        value = slice().toIntOrNull()
 
         if (isLabel) {
             skip()
         }
 
-        if (value == null) {
-            return Token.InvalidNumber(col, markedLen())
-        }
-
-        return if (isLabel) {
-            Token.Label(col, markedLen(), value)
-        } else {
-            Token.Int32(col, markedLen(), value)
+        type = when {
+            value == null -> Token.InvalidNumber
+            isLabel -> Token.Label
+            else -> Token.Int32
         }
     }
 
-    private fun tokenizeHexNumber(col: Int): Token {
+    private fun tokenizeHexNumber() {
         eatRestOfToken()
         val hexStr = slice()
 
         if (HEX_INT_REGEX.matches(hexStr)) {
-            hexStr.drop(2).toIntOrNull(16)?.let { value ->
-                return Token.Int32(col, markedLen(), value)
+            value = hexStr.drop(2).toIntOrNull(16)
+
+            if (value != null) {
+                type = Token.Int32
+                return
             }
         }
 
-        return Token.InvalidNumber(col, markedLen())
+        type = Token.InvalidNumber
     }
 
-    private fun tokenizeFloat(col: Int): Token {
+    private fun tokenizeFloat() {
         eatRestOfToken()
         val floatStr = slice()
 
         if (FLOAT_REGEX.matches(floatStr)) {
-            floatStr.toFloatOrNull()?.let { value ->
-                return Token.Float32(col, markedLen(), value)
+            value = floatStr.toFloatOrNull()
+
+            if (value != null) {
+                type = Token.Float32
+                return
             }
         }
 
-        return Token.InvalidNumber(col, markedLen())
+        type = Token.InvalidNumber
     }
 
-    private fun tokenizeRegisterOrIdent(): Token {
-        val col = this.col
+    private fun tokenizeRegisterOrIdent() {
         skip()
-        mark()
         var isRegister = false
 
         while (hasNext()) {
@@ -344,20 +223,16 @@ private class LineTokenizer(private var line: String) {
             }
         }
 
-        return if (isRegister) {
-            val value = slice().toInt()
-
-            Token.Register(col, markedLen() + 1, value)
+        if (isRegister) {
+            value = slice(from = 1).toInt()
+            type = Token.Register
         } else {
             back()
             tokenizeIdent()
         }
     }
 
-    private fun tokenizeSection(): Token {
-        val col = this.col
-        mark()
-
+    private fun tokenizeSection() {
         while (hasNext()) {
             if (peek().fastIsWhitespace()) {
                 break
@@ -366,18 +241,16 @@ private class LineTokenizer(private var line: String) {
             }
         }
 
-        return when (slice()) {
-            ".code" -> Token.Section.Code(col, 5)
-            ".data" -> Token.Section.Data(col, 5)
-            ".string" -> Token.Section.Str(col, 7)
-            else -> Token.InvalidSection(col, markedLen())
+        type = when (slice()) {
+            ".code" -> Token.CodeSection
+            ".data" -> Token.DataSection
+            ".string" -> Token.StrSection
+            else -> Token.InvalidSection
         }
     }
 
-    private fun tokenizeString(): Token {
-        val col = this.col
+    private fun tokenizeString() {
         skip()
-        mark()
         var prevWasBackSpace = false
         var terminated = false
 
@@ -389,6 +262,7 @@ private class LineTokenizer(private var line: String) {
                 }
                 '"' -> {
                     if (!prevWasBackSpace) {
+                        skip()
                         terminated = true
                         break@loop
                     }
@@ -400,24 +274,21 @@ private class LineTokenizer(private var line: String) {
                 }
             }
 
-            next()
+            skip()
         }
 
-        val lenWithoutQuotes = markedLen()
-        val value = slice().replace("\\\"", "\"").replace("\\n", "\n")
+        value = slice(from = 1, to = if (terminated) 1 else 0)
+            .fastReplace("\\\"", "\"")
+            .fastReplace("\\n", "\n")
 
-        return if (terminated) {
-            next()
-            Token.Str(col, lenWithoutQuotes + 2, value)
+        type = if (terminated) {
+            Token.Str
         } else {
-            Token.UnterminatedString(col, lenWithoutQuotes + 1, value)
+            Token.UnterminatedStr
         }
     }
 
-    private fun tokenizeIdent(): Token {
-        val col = this.col
-        mark()
-
+    private fun tokenizeIdent() {
         while (hasNext()) {
             val char = peek()
 
@@ -435,12 +306,33 @@ private class LineTokenizer(private var line: String) {
             }
         }
 
-        val value = slice()
+        val ident = slice()
+        value = ident
 
-        return if (IDENT_REGEX.matches(value)) {
-            Token.Ident(col, markedLen(), value)
-        } else {
-            Token.InvalidIdent(col, markedLen())
+        if (ident.getCodePointAt(0) !in ('a'.toInt())..('z'.toInt())) {
+            type = Token.InvalidIdent
+            return
         }
+
+        for (i in 1 until ident.length) {
+            when (ident.getCodePointAt(i)) {
+                in ('0'.toInt())..('9'.toInt()),
+                in ('a'.toInt())..('z'.toInt()),
+                ('_').toInt(),
+                ('=').toInt(),
+                ('<').toInt(),
+                ('>').toInt(),
+                ('!').toInt(),
+                -> {
+                    // Valid character.
+                }
+                else -> {
+                    type = Token.InvalidIdent
+                    return
+                }
+            }
+        }
+
+        type = Token.Ident
     }
 }

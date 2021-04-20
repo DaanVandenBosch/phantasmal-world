@@ -4,82 +4,107 @@ import world.phantasmal.lib.test.LibTestSuite
 import world.phantasmal.testUtils.assertCloseTo
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 class AsmTokenizationTests : LibTestSuite {
     @Test
     fun hexadecimal_numbers_are_parsed_as_ints() {
-        assertEquals(0x00, (tokenizeLine("0X00")[0] as Token.Int32).value)
-        assertEquals(0x70, (tokenizeLine("0x70")[0] as Token.Int32).value)
-        assertEquals(0xA1, (tokenizeLine("0xa1")[0] as Token.Int32).value)
-        assertEquals(0xAB, (tokenizeLine("0xAB")[0] as Token.Int32).value)
-        assertEquals(0xAB, (tokenizeLine("0xAb")[0] as Token.Int32).value)
-        assertEquals(0xAB, (tokenizeLine("0xaB")[0] as Token.Int32).value)
-        assertEquals(0xFF, (tokenizeLine("0xff")[0] as Token.Int32).value)
+        val tokenizer = LineTokenizer()
+
+        tokenizer.testInt("0X00", 0x00)
+        tokenizer.testInt("0x70", 0x70)
+        tokenizer.testInt("0xa1", 0xA1)
+        tokenizer.testInt("0xAB", 0xAB)
+        tokenizer.testInt("0xAb", 0xAB)
+        tokenizer.testInt("0xaB", 0xAB)
+        tokenizer.testInt("0xff", 0xFF)
+    }
+
+    private fun LineTokenizer.testInt(line: String, value: Int) {
+        tokenize(line)
+        assertTrue(nextToken())
+        assertEquals(Token.Int32, type)
+        assertEquals(value, intValue)
+        assertFalse(nextToken())
     }
 
     @Test
     fun valid_floats_are_parsed_as_Float32_tokens() {
-        assertCloseTo(808.9f, (tokenizeLine("808.9")[0] as Token.Float32).value)
-        assertCloseTo(-0.9f, (tokenizeLine("-0.9")[0] as Token.Float32).value)
-        assertCloseTo(0.001f, (tokenizeLine("1e-3")[0] as Token.Float32).value)
-        assertCloseTo(-600.0f, (tokenizeLine("-6e2")[0] as Token.Float32).value)
+        val tokenizer = LineTokenizer()
+
+        tokenizer.testFloat("808.9", 808.9f)
+        tokenizer.testFloat("-0.9", -0.9f)
+        tokenizer.testFloat("1e-3", 0.001f)
+        tokenizer.testFloat("-6e2", -600.0f)
+    }
+
+    private fun LineTokenizer.testFloat(line: String, value: Float) {
+        tokenize(line)
+        assertTrue(nextToken())
+        assertEquals(Token.Float32, type)
+        assertCloseTo(value, floatValue)
+        assertFalse(nextToken())
     }
 
     @Test
     fun invalid_floats_area_parsed_as_InvalidNumber_tokens_or_InvalidSection_tokens() {
-        val tokens1 = tokenizeLine(" 808.9a ")
+        val tokenizer = LineTokenizer()
 
-        assertEquals(1, tokens1.size)
-        assertEquals(Token.InvalidNumber::class, tokens1[0]::class)
-        assertEquals(2, tokens1[0].col)
-        assertEquals(6, tokens1[0].len)
+        tokenizer.testInvalidFloat(" 808.9a ", Token.InvalidNumber, col = 2, len = 6)
+        tokenizer.testInvalidFloat("  -55e ", Token.InvalidNumber, col = 3, len = 4)
+        tokenizer.testInvalidFloat(".7429", Token.InvalidSection, col = 1, len = 5)
+        tokenizer.testInvalidFloat(
+            "\t\t\t4. test",
+            Token.InvalidNumber,
+            col = 4,
+            len = 2,
+            extraTokens = 1,
+        )
+    }
 
-        val tokens2 = tokenizeLine("  -55e ")
-
-        assertEquals(1, tokens2.size)
-        assertEquals(Token.InvalidNumber::class, tokens2[0]::class)
-        assertEquals(3, tokens2[0].col)
-        assertEquals(4, tokens2[0].len)
-
-        val tokens3 = tokenizeLine(".7429")
-
-        assertEquals(1, tokens3.size)
-        assertEquals(Token.InvalidSection::class, tokens3[0]::class)
-        assertEquals(1, tokens3[0].col)
-        assertEquals(5, tokens3[0].len)
-
-        val tokens4 = tokenizeLine("\t\t\t4. test")
-
-        assertEquals(2, tokens4.size)
-        assertEquals(Token.InvalidNumber::class, tokens4[0]::class)
-        assertEquals(4, tokens4[0].col)
-        assertEquals(2, tokens4[0].len)
+    private fun LineTokenizer.testInvalidFloat(
+        line: String,
+        type: Token,
+        col: Int,
+        len: Int,
+        extraTokens: Int = 0,
+    ) {
+        tokenize(line)
+        assertTrue(nextToken())
+        assertEquals(type, this.type)
+        assertEquals(col, this.col)
+        assertEquals(len, this.len)
+        repeat(extraTokens) { assertTrue(nextToken()) }
+        assertFalse(nextToken())
     }
 
     @Test
     fun strings_are_parsed_as_Str_tokens() {
-        val tokens0 = tokenizeLine(""" "one line" """)
+        val tokenizer = LineTokenizer()
 
-        assertEquals(1, tokens0.size)
-        assertEquals(Token.Str::class, tokens0[0]::class)
-        assertEquals("one line", (tokens0[0] as Token.Str).value)
-        assertEquals(2, tokens0[0].col)
-        assertEquals(10, tokens0[0].len)
+        tokenizer.testString(""" "one line" """, "one line", col = 2, len = 10)
+        tokenizer.testString(""" "two\nlines" """, "two\nlines", col = 2, len = 12)
+        tokenizer.testString(
+            """ "is \"this\" escaped?" """,
+            "is \"this\" escaped?",
+            col = 2,
+            len = 22,
+        )
+    }
 
-        val tokens1 = tokenizeLine(""" "two\nlines" """)
-
-        assertEquals(1, tokens1.size)
-        assertEquals(Token.Str::class, tokens1[0]::class)
-        assertEquals("two\nlines", (tokens1[0] as Token.Str).value)
-        assertEquals(2, tokens1[0].col)
-        assertEquals(12, tokens1[0].len)
-
-        val tokens2 = tokenizeLine(""" "is \"this\" escaped?" """)
-
-        assertEquals(1, tokens2.size)
-        assertEquals(Token.Str::class, tokens2[0]::class)
-        assertEquals("is \"this\" escaped?", (tokens2[0] as Token.Str).value)
-        assertEquals(2, tokens2[0].col)
-        assertEquals(22, tokens2[0].len)
+    private fun LineTokenizer.testString(
+        line: String,
+        value: String,
+        col: Int,
+        len: Int,
+    ) {
+        tokenize(line)
+        assertTrue(nextToken())
+        assertEquals(Token.Str, this.type)
+        assertEquals(value, this.strValue)
+        assertEquals(col, this.col)
+        assertEquals(len, this.len)
+        assertFalse(nextToken())
     }
 }

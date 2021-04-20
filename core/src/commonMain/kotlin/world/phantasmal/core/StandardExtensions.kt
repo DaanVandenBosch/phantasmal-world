@@ -1,5 +1,8 @@
 package world.phantasmal.core
 
+// String.replace is very slow in JS.
+expect inline fun String.fastReplace(oldValue: String, newValue: String): String
+
 fun <E> MutableList<E>.replaceAll(elements: Collection<E>): Boolean {
     clear()
     return addAll(elements)

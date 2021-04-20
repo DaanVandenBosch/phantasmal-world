@@ -2,10 +2,9 @@ package world.phantasmal.core
 
 // Char.isWhitespace is very slow in JS, use this until
 // https://youtrack.jetbrains.com/issue/KT-43216 lands.
-fun Char.fastIsWhitespace(): Boolean =
-    this == ' ' || this in '\u0009'..'\u000D'
+expect inline fun Char.fastIsWhitespace(): Boolean
 
-fun Char.isDigit(): Boolean = this in '0'..'9'
+expect inline fun Char.isDigit(): Boolean
 
 /**
  * Returns true if the bit at the given position is set. Bits are indexed from lowest-order

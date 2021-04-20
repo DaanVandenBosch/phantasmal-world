@@ -17,6 +17,7 @@ private val logger = KotlinLogging.logger {}
 class AssemblyWorker(private val sendMessage: (ServerMessage) -> Unit) {
     private val messageQueue: MutableList<ClientMessage> = mutableListOf()
     private val messageProcessingThrottle = Throttle(wait = 100)
+    private val tokenizer = LineTokenizer()
 
     // User input.
     private var inlineStackArgs: Boolean = true
@@ -288,23 +289,21 @@ class AssemblyWorker(private val sendMessage: (ServerMessage) -> Unit) {
         var activeParam = -1
 
         getLine(lineNo)?.let { text ->
-            val tokens = tokenizeLine(text)
+            tokenizer.tokenize(text)
 
-            tokens.find { it is Token.Ident }?.let { ident ->
-                ident as Token.Ident
-
-                mnemonicToOpcode(ident.value)?.let { opcode ->
-                    signature = getSignature(opcode)
-
-                    for (tkn in tokens) {
-                        if (tkn.col + tkn.len > col) {
-                            break
-                        } else if (tkn is Token.Ident && activeParam == -1) {
-                            activeParam = 0
-                        } else if (tkn is Token.ArgSeparator) {
-                            activeParam++
-                        }
+            while (tokenizer.nextToken()) {
+                if (tokenizer.type === Token.Ident) {
+                    mnemonicToOpcode(tokenizer.strValue)?.let { opcode ->
+                        signature = getSignature(opcode)
                     }
+                }
+
+                if (tokenizer.col + tokenizer.len > col) {
+                    break
+                } else if (tokenizer.type === Token.Ident && activeParam == -1) {
+                    activeParam = 0
+                } else if (tokenizer.type === Token.ArgSeparator) {
+                    activeParam++
                 }
             }
         }

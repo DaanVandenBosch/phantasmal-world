@@ -25,3 +25,5 @@ fun filenameExtension(filename: String): String? =
         // Has an extension.
         else -> filename.substring(dotIdx + 1)
     }
+
+expect inline fun String.getCodePointAt(index: Int): Int
