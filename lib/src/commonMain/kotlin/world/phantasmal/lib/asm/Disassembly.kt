@@ -204,7 +204,7 @@ private fun StringBuilder.appendArgs(params: List<Param>, args: List<ArgWithType
         if (i < args.size) {
             val (arg, argType) = args[i]
 
-            if (argType is RegTupRefType) {
+            if (argType is RegRefType) {
                 append("r")
                 append(arg.value)
             } else {
@@ -235,9 +235,7 @@ private fun StringBuilder.appendArgs(params: List<Param>, args: List<ArgWithType
                         }
                     }
 
-                    RegRefType,
-                    is RegTupRefType,
-                    -> {
+                    is RegRefType -> {
                         append("r")
                         append(arg.value)
                     }

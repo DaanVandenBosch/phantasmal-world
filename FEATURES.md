@@ -160,10 +160,10 @@ Features that are in ***bold italics*** are planned but not yet implemented.
 ## Bugs
 
 - When a modal dialog is open, global keybindings should be disabled
-- The ASM editor is slow with big scripts, e.g. Seat of the Heart (#27)
 - Improve the default camera target for Crater Interior
 - Creating a new quest discards changes to previously open quest without asking user
 - Opening a new file discards changes to previously open quest without asking user
+- Toggling "Inline args" clears the undo stack
 - Entities with rendering issues:
     - Caves 4 Button door
     - Pofuilly Slime

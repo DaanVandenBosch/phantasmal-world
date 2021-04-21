@@ -276,12 +276,12 @@ private fun findAndParseSegments(
                             }
                         }
 
-                        is RegTupRefType -> {
-                            for (j in param.type.registerTuple.indices) {
-                                val regTup = param.type.registerTuple[j]
+                        is RegRefType -> if (param.type.registers != null) {
+                            for (j in param.type.registers.indices) {
+                                val registerParam = param.type.registers[j]
 
                                 // Never on the stack.
-                                if (regTup.type is ILabelType) {
+                                if (registerParam.type is ILabelType) {
                                     val firstRegister = instruction.args[0].value as Int
                                     val labelValues = getRegisterValue(
                                         cfg,
@@ -609,9 +609,7 @@ private fun parseInstructionArguments(
                     )
                 }
 
-                is RegRefType,
-                is RegTupRefType,
-                -> {
+                is RegRefType -> {
                     args.add(Arg(cursor.uByte().toInt()))
                 }
 
@@ -827,7 +825,7 @@ fun writeBytecode(bytecodeIr: BytecodeIr, dcGcFormat: Boolean): BytecodeAndLabel
                                     if (dcGcFormat) cursor.writeStringAscii(str, str.length + 1)
                                     else cursor.writeStringUtf16(str, 2 * str.length + 2)
                                 }
-                                RegRefType, is RegTupRefType -> {
+                                is RegRefType -> {
                                     cursor.writeByte((arg.value as Int).toByte())
                                 }
                                 RegRefVarType -> {

@@ -196,9 +196,7 @@ class Instruction(
             val args = getArgs(i)
 
             size += when (type) {
-                ByteType,
-                RegRefType,
-                -> 1
+                ByteType -> 1
 
                 // Ensure this case is before the LabelType case because ILabelVarType extends
                 // LabelType.
@@ -220,8 +218,9 @@ class Instruction(
 
                 RegRefVarType -> 1 + args.size
 
-                // Check RegTupRefType and LabelType last, because "is" checks are very slow in JS.
-                is RegTupRefType -> 1
+                // Check RegRefType and LabelType last, because "is" checks are very slow in JS.
+
+                is RegRefType -> 1
 
                 is LabelType -> 2
 

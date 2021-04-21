@@ -65,7 +65,7 @@
                 "access": {
                     "$ref": "#/definitions/access"
                 },
-                "reg_tup": {
+                "registers": {
                     "type": "array",
                     "minItems": 1,
                     "description": "Specifies the way the referenced registers will be interpreted. Should only be specified if the parameter type is \"reg_tup_ref\".",
@@ -106,7 +106,6 @@
                 "string",
                 "instruction_label_var",
                 "reg_ref",
-                "reg_tup_ref",
                 "reg_ref_var",
                 "pointer"
             ]

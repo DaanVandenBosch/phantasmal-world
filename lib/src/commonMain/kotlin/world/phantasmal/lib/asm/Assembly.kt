@@ -487,9 +487,8 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
 
                         Token.Register -> {
                             typeMatch = stack ||
-                                    param.type === RegRefType ||
                                     param.type === RegRefVarType ||
-                                    param.type is RegTupRefType
+                                    param.type is RegRefType
 
                             parseRegister()
                         }
@@ -537,9 +536,8 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
 
                             StringType -> "a string"
 
-                            RegRefType,
                             RegRefVarType,
-                            is RegTupRefType,
+                            is RegRefType,
                             -> "a register reference"
 
                             else -> null
@@ -552,7 +550,7 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
                         // Inject stack push instructions if necessary.
                         // If the token is a register, push it as a register, otherwise coerce type.
                         if (tokenizer.type === Token.Register) {
-                            if (param.type is RegTupRefType) {
+                            if (param.type is RegRefType) {
                                 addInstruction(
                                     OP_ARG_PUSHB,
                                     listOf(arg),
@@ -572,8 +570,7 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
                         } else {
                             when (param.type) {
                                 ByteType,
-                                RegRefType,
-                                is RegTupRefType,
+                                is RegRefType,
                                 -> {
                                     addInstruction(
                                         OP_ARG_PUSHB,

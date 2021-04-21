@@ -20,7 +20,7 @@ class AssemblyTests : LibTestSuite {
             150:
                 set_mainwarp 1
                 ret
-        """.trimIndent().split('\n')
+            """.trimIndent().split('\n')
         )
 
         assertTrue(result is Success)
@@ -144,7 +144,7 @@ class AssemblyTests : LibTestSuite {
                 leti r255, 7
                 exit r255
                 ret
-        """.trimIndent().split('\n')
+            """.trimIndent().split('\n')
         )
 
         assertTrue(result is Success)
@@ -210,7 +210,7 @@ class AssemblyTests : LibTestSuite {
             0:
                 p_dead_v3 r200, 3
                 ret
-        """.trimIndent().split('\n')
+            """.trimIndent().split('\n')
         )
 
         assertTrue(result is Success)
@@ -275,12 +275,10 @@ class AssemblyTests : LibTestSuite {
             """
             0:
                 ret 100
-        """.trimIndent().split('\n')
+            """.trimIndent().split('\n')
         )
 
         assertTrue(result is Success)
-        assertEquals(1, result.problems.size)
-
         assertDeepEquals(
             BytecodeIr(
                 listOf(
@@ -298,19 +296,102 @@ class AssemblyTests : LibTestSuite {
                             ),
                         ),
                         srcLoc = SegmentSrcLoc(
-                            labels = mutableListOf(SrcLoc(1, 1, 2))
+                            labels = mutableListOf(SrcLoc(1, 1, 2)),
                         ),
                     ),
                 ),
             ),
-            result.value
+            result.value,
         )
 
+        assertEquals(1, result.problems.size)
         val problem = result.problems.first()
         assertTrue(problem is AssemblyProblem)
         assertEquals(2, problem.lineNo)
         assertEquals(5, problem.col)
         assertEquals(7, problem.len)
         assertEquals("Expected 0 arguments, got 1. At 2:5.", problem.message)
+    }
+
+    @Test
+    fun too_few_arguments() {
+        val result = assemble(
+            """
+            5000:
+                leti r100
+            """.trimIndent().split('\n')
+        )
+
+        assertTrue(result is Success)
+
+        // Bytecode contains no instructions.
+        assertDeepEquals(
+            BytecodeIr(
+                listOf(
+                    InstructionSegment(
+                        labels = mutableListOf(5000),
+                        instructions = mutableListOf(),
+                        srcLoc = SegmentSrcLoc(
+                            labels = mutableListOf(SrcLoc(1, 1, 5)),
+                        ),
+                    ),
+                ),
+            ),
+            result.value,
+        )
+
+        assertEquals(1, result.problems.size)
+        val problem = result.problems.first()
+        assertTrue(problem is AssemblyProblem)
+        assertEquals(2, problem.lineNo)
+        assertEquals(5, problem.col)
+        assertEquals(9, problem.len)
+        assertEquals("Expected 2 arguments, got 1. At 2:5.", problem.message)
+    }
+
+    @Test
+    fun too_few_arguments_varargs() {
+        val result = assemble(
+            """
+            5000:
+                switch_jmp r100
+            """.trimIndent().split('\n')
+        )
+
+        assertTrue(result is Success)
+
+        // Bytecode contains an instruction, since it's technically valid.
+        assertDeepEquals(
+            BytecodeIr(
+                listOf(
+                    InstructionSegment(
+                        labels = mutableListOf(5000),
+                        instructions = mutableListOf(
+                            Instruction(
+                                opcode = OP_SWITCH_JMP,
+                                args = listOf(Arg(100)),
+                                srcLoc = InstructionSrcLoc(
+                                    mnemonic = SrcLoc(2, 5, 10),
+                                    args = listOf(SrcLoc(2, 16, 4)),
+                                    stackArgs = emptyList(),
+                                ),
+                            ),
+                        ),
+                        srcLoc = SegmentSrcLoc(
+                            labels = mutableListOf(SrcLoc(1, 1, 5)),
+                        ),
+                    ),
+                ),
+            ),
+            result.value,
+        )
+
+        assertEquals(1, result.problems.size)
+        val problem = result.problems.first()
+        assertTrue(problem is AssemblyProblem)
+        assertEquals(2, problem.lineNo)
+        assertEquals(5, problem.col)
+        assertEquals(15, problem.len)
+        assertEquals("Expected at least 2 arguments, got 1. At 2:5.", problem.message)
     }
 }

@@ -328,31 +328,15 @@ class AssemblyWorker(private val sendMessage: (ServerMessage) -> Unit) {
                 signature += ", "
             }
 
-            val paramTypeStr = when (param.type) {
-                ByteType -> "Byte"
-                ShortType -> "Short"
-                IntType -> "Int"
-                FloatType -> "Float"
-                ILabelType -> "&Function"
-                DLabelType -> "&Data"
-                SLabelType -> "&String"
-                ILabelVarType -> "...&Function"
-                StringType -> "String"
-                RegRefType, is RegTupRefType -> "Register"
-                RegRefVarType -> "...Register"
-                PointerType -> "Pointer"
-                else -> "Any"
-            }
-
             params.add(
                 Parameter(
                     labelStart = signature.length,
-                    labelEnd = signature.length + paramTypeStr.length,
+                    labelEnd = signature.length + param.type.uiName.length,
                     documentation = param.doc,
                 )
             )
 
-            signature += paramTypeStr
+            signature += param.type.uiName
         }
 
         return Signature(

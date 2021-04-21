@@ -191,14 +191,11 @@ private class RegisterValueFinder {
                     for (j in 0 until argLen) {
                         val param = params[j]
 
-                        if (param.type is RegTupRefType) {
+                        if (param.type is RegRefType && param.type.registers != null) {
                             val regRef = args[j].value as Int
 
-                            for ((k, reg_param) in param.type.registerTuple.withIndex()) {
-                                if ((reg_param.access == ParamAccess.Write ||
-                                            reg_param.access == ParamAccess.ReadWrite) &&
-                                    regRef + k == register
-                                ) {
+                            for ((k, regParam) in param.type.registers.withIndex()) {
+                                if (regParam.writes && regRef + k == register) {
                                     return ValueSet.all()
                                 }
                             }
@@ -254,8 +251,7 @@ private class RegisterValueFinder {
         if (register !in 1..7) return ValueSet.empty()
 
         var vaStartIdx = -1
-        // Pairs of type and value.
-        val stack = mutableListOf<Pair<AnyType, Any>>()
+        val stack = mutableListOf<Instruction>()
 
         for (i in block.start until vaCallIdx) {
             val instruction = block.segment.instructions[i]
@@ -264,27 +260,29 @@ private class RegisterValueFinder {
             if (opcode.code == OP_VA_START.code) {
                 vaStartIdx = i
             } else if (vaStartIdx != -1) {
-                val type = when (opcode.code) {
-                    OP_ARG_PUSHR.code -> RegRefType
-                    OP_ARG_PUSHL.code -> IntType
-                    OP_ARG_PUSHB.code -> ByteType
-                    OP_ARG_PUSHW.code -> ShortType
-                    OP_ARG_PUSHA.code -> PointerType
-                    OP_ARG_PUSHO.code -> PointerType
-                    OP_ARG_PUSHS.code -> StringType
-                    else -> continue
+                when (opcode.code) {
+                    OP_ARG_PUSHR.code,
+                    OP_ARG_PUSHL.code,
+                    OP_ARG_PUSHB.code,
+                    OP_ARG_PUSHW.code,
+                    OP_ARG_PUSHA.code,
+                    OP_ARG_PUSHO.code,
+                    OP_ARG_PUSHS.code -> stack.add(instruction)
                 }
-
-                stack.add(Pair(type, instruction.args[0].value))
             }
         }
 
         return if (register in 1..stack.size) {
-            val (type, value) = stack[register - 1]
+            val instruction = stack[register - 1]
+            val value = instruction.args.first().value
 
-            when (type) {
-                RegRefType -> find(LinkedHashSet(path), block, vaStartIdx, value as Int)
-                IntType, ByteType, ShortType -> ValueSet.of(value as Int)
+            when (instruction.opcode.code) {
+                OP_ARG_PUSHR.code -> find(LinkedHashSet(path), block, vaStartIdx, value as Int)
+
+                OP_ARG_PUSHL.code,
+                OP_ARG_PUSHB.code,
+                OP_ARG_PUSHW.code -> ValueSet.of(value as Int)
+
                 // TODO: Deal with strings.
                 else -> ValueSet.all() // String or pointer
             }

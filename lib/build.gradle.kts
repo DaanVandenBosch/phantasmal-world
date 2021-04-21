@@ -190,9 +190,10 @@ fun paramsToCode(params: List<Map<String, Any>>, indent: Int): String {
             "string_label" -> "SLabelType"
             "string" -> "StringType"
             "instruction_label_var" -> "ILabelVarType"
-            "reg_ref" -> "RegRefType"
-            "reg_tup_ref" -> """RegTupRefType(${
-                paramsToCode(param["reg_tup"] as List<Map<String, Any>>, indent + 4)
+            "reg_ref" -> """RegRefType(${
+                (param["registers"] as List<Map<String, Any>>?)?.let {
+                    paramsToCode(it, indent + 4)
+                } ?: "null"
             })"""
             "reg_ref_var" -> "RegRefVarType"
             "pointer" -> "PointerType"

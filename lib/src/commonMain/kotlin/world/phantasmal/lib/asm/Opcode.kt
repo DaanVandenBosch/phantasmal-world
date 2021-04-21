@@ -17,7 +17,11 @@ private val UNKNOWN_OPCODE_MNEMONIC_REGEX = Regex("""^unknown_((f8|f9)?[0-9a-f]{
  * Abstract super type of all types.
  */
 sealed class AnyType {
-    object Instance : AnyType()
+    abstract val uiName: String
+
+    object Instance : AnyType() {
+        override val uiName = "Any"
+    }
 }
 
 /**
@@ -28,54 +32,74 @@ sealed class ValueType : AnyType()
 /**
  * 8-Bit integer.
  */
-object ByteType : ValueType()
+object ByteType : ValueType() {
+    override val uiName = "Byte"
+}
 
 /**
  * 16-Bit integer.
  */
-object ShortType : ValueType()
+object ShortType : ValueType() {
+    override val uiName = "Short"
+}
 
 /**
  * 32-Bit integer.
  */
-object IntType : ValueType()
+object IntType : ValueType() {
+    override val uiName = "Int"
+}
 
 /**
  * 32-Bit floating point number.
  */
-object FloatType : ValueType()
+object FloatType : ValueType() {
+    override val uiName = "Float"
+}
 
 /**
  * Abstract super type of all label types.
  */
 sealed class LabelType : ValueType() {
-    object Instance : LabelType()
+    object Instance : LabelType() {
+        override val uiName = "Label"
+    }
 }
 
 /**
  * Named reference to an instruction.
  */
-object ILabelType : LabelType()
+object ILabelType : LabelType() {
+    override val uiName = "ILabel"
+}
 
 /**
  * Named reference to a data segment.
  */
-object DLabelType : LabelType()
+object DLabelType : LabelType() {
+    override val uiName = "DLabel"
+}
 
 /**
  * Named reference to a string segment.
  */
-object SLabelType : LabelType()
+object SLabelType : LabelType() {
+    override val uiName = "SLabel"
+}
 
 /**
  * Arbitrary amount of instruction labels (variadic arguments).
  */
-object ILabelVarType : LabelType()
+object ILabelVarType : LabelType() {
+    override val uiName = "...ILabel"
+}
 
 /**
  * String of arbitrary size.
  */
-object StringType : ValueType()
+object StringType : ValueType() {
+    override val uiName = "String"
+}
 
 /**
  * Purely abstract super type of all reference types.
@@ -83,30 +107,41 @@ object StringType : ValueType()
 sealed class RefType : AnyType()
 
 /**
- * Reference to one or more registers.
+ * Register reference. If [registers] is null, references one or more consecutive registers of any
+ * type (only stack_pushm and stack_popm use this). If [registers] is not null, references a fixed
+ * amount of consecutive registers of specific types. [Param.type] can't be a variadic type.
  */
-object RegRefType : RefType()
+class RegRefType(val registers: List<Param>?) : RefType() {
+    override val uiName = buildString {
+        append("Register")
 
-/**
- * Reference to a fixed tuple of registers of specific types.
- * The only parameterized type.
- */
-class RegTupRefType(val registerTuple: List<Param>) : RefType()
+        if (registers != null) {
+            if (registers.size > 1) append("s")
+            append("<")
+            registers.joinTo(this) { it.type.uiName }
+            append(">")
+        }
+    }
+}
 
 /**
  * Arbitrary amount of register references (variadic arguments).
  */
-object RegRefVarType : RefType()
+object RegRefVarType : RefType() {
+    override val uiName = "...Register"
+}
 
 /**
  * Raw memory pointer.
  */
-object PointerType : AnyType()
+object PointerType : AnyType() {
+    override val uiName = "Pointer"
+}
 
 enum class ParamAccess {
     Read,
     Write,
-    ReadWrite,
+    ReadWrite
 }
 
 class Param(
@@ -125,6 +160,20 @@ class Param(
      * Whether or not this parameter takes a variable number of arguments.
      */
     val varargs: Boolean = type === ILabelVarType || type === RegRefVarType
+
+    /**
+     * Whether or not the instruction reads this parameter.
+     */
+    val reads: Boolean
+        get() =
+            access === ParamAccess.Read || access === ParamAccess.ReadWrite
+
+    /**
+     * Whether or not the instruction writes this parameter.
+     */
+    val writes: Boolean
+        get() =
+            access === ParamAccess.Write || access === ParamAccess.ReadWrite
 }
 
 enum class StackInteraction {
