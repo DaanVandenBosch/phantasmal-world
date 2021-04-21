@@ -121,13 +121,13 @@ class Instruction(
 
             if (opcode.stack !== StackInteraction.Pop) {
                 for (i in opcode.params.indices) {
-                    val type = opcode.params[i].type
+                    val param = opcode.params[i]
                     val pArgs = mutableListOf<Arg>()
                     paramToArgs.add(pArgs)
 
-                    // Variable length arguments are always last, so we can just gobble up all arguments
-                    // from this point.
-                    if (type === ILabelVarType || type === RegRefVarType) {
+                    // Variable length arguments are always last, so we can just gobble up all
+                    // arguments from this point.
+                    if (param.varargs) {
                         check(i == opcode.params.lastIndex)
 
                         for (j in i until args.size) {
@@ -150,11 +150,11 @@ class Instruction(
         val argSrcLocs = srcLoc?.args
             ?: return emptyList()
 
-        val type = opcode.params[paramIndex].type
+        val param = opcode.params[paramIndex]
 
         // Variable length arguments are always last, so we can just gobble up all SrcLocs from
         // paramIndex onward.
-        return if (type === ILabelVarType || type === RegRefVarType) {
+        return if (param.varargs) {
             argSrcLocs.drop(paramIndex)
         } else {
             listOf(argSrcLocs[paramIndex])
@@ -171,11 +171,11 @@ class Instruction(
             return emptyList()
         }
 
-        val type = opcode.params[paramIndex].type
+        val param = opcode.params[paramIndex]
 
         // Variable length arguments are always last, so we can just gobble up all SrcLocs from
         // paramIndex onward.
-        return if (type === ILabelVarType || type === RegRefVarType) {
+        return if (param.varargs) {
             argSrcLocs.drop(paramIndex)
         } else {
             listOf(argSrcLocs[paramIndex])

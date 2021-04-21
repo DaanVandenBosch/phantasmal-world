@@ -98,6 +98,8 @@ val generateOpcodes = tasks.register("generateOpcodes") {
 
         outputFile.printWriter()
             .use { writer ->
+                writer.println("@file:Suppress(\"unused\")")
+                writer.println()
                 writer.println("package $packageName")
                 writer.println()
                 writer.println("val OPCODES: Array<Opcode?> = Array(256) { null }")
@@ -134,10 +136,20 @@ fun opcodeToCode(writer: PrintWriter, opcode: Map<String, Any>) {
     }
 
     @Suppress("UNCHECKED_CAST")
-    val params = paramsToCode(opcode["params"] as List<Map<String, Any>>, 4)
+    val params = opcode["params"] as List<Map<String, Any>>
+    val paramsStr = paramsToCode(params, 4)
+
+    val lastParam = params.lastOrNull()
+    val varargs = lastParam != null && when (lastParam["type"]) {
+        null -> error("No type for last parameter of $mnemonic opcode.")
+        "instruction_label_var", "reg_ref_var" -> true
+        else -> false
+    }
+
+    val known = "mnemonic" in opcode
 
     val array = when (code) {
-        in 0..0xFF -> "OPCODES"
+        in 0x00..0xFF -> "OPCODES"
         in 0xF800..0xF8FF -> "OPCODES_F8"
         in 0xF900..0xF9FF -> "OPCODES_F9"
         else -> error("Invalid opcode $codeStr ($mnemonic).")
@@ -148,11 +160,13 @@ fun opcodeToCode(writer: PrintWriter, opcode: Map<String, Any>) {
         """
         |
         |val $valName = Opcode(
-        |    0x$codeStr,
-        |    "$mnemonic",
-        |    $doc,
-        |    $params,
-        |    $stackInteraction,
+        |    code = 0x$codeStr,
+        |    mnemonic = "$mnemonic",
+        |    doc = $doc,
+        |    params = $paramsStr,
+        |    stack = $stackInteraction,
+        |    varargs = $varargs,
+        |    known = $known,
         |).also { ${array}[0x$indexStr] = it }""".trimMargin()
     )
 }
@@ -165,12 +179,12 @@ fun paramsToCode(params: List<Map<String, Any>>, indent: Int): String {
     return params.joinToString(",\n", "listOf(\n", ",\n${i})") { param ->
         @Suppress("UNCHECKED_CAST")
         val type = when (param["type"]) {
-            "any" -> "AnyType()"
+            "any" -> "AnyType.Instance"
             "byte" -> "ByteType"
             "short" -> "ShortType"
             "int" -> "IntType"
             "float" -> "FloatType"
-            "label" -> "LabelType()"
+            "label" -> "LabelType.Instance"
             "instruction_label" -> "ILabelType"
             "data_label" -> "DLabelType"
             "string_label" -> "SLabelType"

@@ -16,7 +16,9 @@ private val UNKNOWN_OPCODE_MNEMONIC_REGEX = Regex("""^unknown_((f8|f9)?[0-9a-f]{
 /**
  * Abstract super type of all types.
  */
-open class AnyType
+sealed class AnyType {
+    object Instance : AnyType()
+}
 
 /**
  * Purely abstract super type of all value types.
@@ -46,7 +48,9 @@ object FloatType : ValueType()
 /**
  * Abstract super type of all label types.
  */
-open class LabelType : ValueType()
+sealed class LabelType : ValueType() {
+    object Instance : LabelType()
+}
 
 /**
  * Named reference to an instruction.
@@ -116,7 +120,12 @@ class Param(
      * register reference.
      */
     val access: ParamAccess?,
-)
+) {
+    /**
+     * Whether or not this parameter takes a variable number of arguments.
+     */
+    val varargs: Boolean = type === ILabelVarType || type === RegRefVarType
+}
 
 enum class StackInteraction {
     Push,
@@ -148,16 +157,19 @@ class Opcode internal constructor(
      * Stack interaction.
      */
     val stack: StackInteraction?,
+    /**
+     * Whether or not the last parameter of this opcode takes a variable number of arguments.
+     */
+    val varargs: Boolean,
+    /**
+     * Whether or not the working of this opcode is known.
+     */
+    val known: Boolean,
 ) {
     /**
      * Byte size of the opcode, either 1 or 2.
      */
     val size: Int = if (code < 0xFF) 1 else 2
-
-    /**
-     * Whether or not the working of this opcode is known.
-     */
-    val known: Boolean = !mnemonic.startsWith("unknown_")
 
     override fun equals(other: Any?): Boolean = this === other
 
@@ -189,7 +201,15 @@ private fun getOpcode(code: Int, index: Int, opcodes: Array<Opcode?>): Opcode {
     var opcode = opcodes[index]
 
     if (opcode == null) {
-        opcode = Opcode(code, "unknown_${code.toString(16)}", null, emptyList(), null)
+        opcode = Opcode(
+            code,
+            mnemonic = "unknown_${code.toString(16)}",
+            doc = null,
+            params = emptyList(),
+            stack = null,
+            varargs = false,
+            known = false,
+        )
         opcodes[index] = opcode
     }
 

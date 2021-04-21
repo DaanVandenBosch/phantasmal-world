@@ -20,7 +20,7 @@ fun toInstructions(assembly: String): List<InstructionSegment> {
 }
 
 fun <T> assertDeepEquals(expected: List<T>, actual: List<T>, assertDeepEquals: (T, T) -> Unit) {
-    assertEquals(expected.size, actual.size)
+    assertEquals(expected.size, actual.size, "Unexpected list size")
 
     for (i in expected.indices) {
         assertDeepEquals(expected[i], actual[i])
@@ -32,7 +32,7 @@ fun <K, V> assertDeepEquals(
     actual: Map<K, V>,
     assertDeepEquals: (V, V) -> Unit,
 ) {
-    assertEquals(expected.size, actual.size)
+    assertEquals(expected.size, actual.size, "Unexpected map size")
 
     for ((key, value) in expected) {
         assertTrue(key in actual)
@@ -41,7 +41,7 @@ fun <K, V> assertDeepEquals(
 }
 
 fun assertDeepEquals(expected: Buffer, actual: Buffer) {
-    assertEquals(expected.size, actual.size)
+    assertEquals(expected.size, actual.size, "Unexpected buffer size")
 
     for (i in 0 until expected.size) {
         assertEquals(expected.getByte(i), actual.getByte(i))
@@ -49,7 +49,7 @@ fun assertDeepEquals(expected: Buffer, actual: Buffer) {
 }
 
 fun assertDeepEquals(expected: Cursor, actual: Cursor) {
-    assertEquals(expected.size, actual.size)
+    assertEquals(expected.size, actual.size, "Unexpected cursor size")
 
     while (expected.hasBytesLeft()) {
         assertEquals(expected.byte(), actual.byte())

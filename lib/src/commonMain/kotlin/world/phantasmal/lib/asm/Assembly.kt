@@ -412,7 +412,6 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
         srcLocs: MutableList<SrcLoc>,
         stack: Boolean,
     ): Boolean {
-        var varargs = false
         var argCount = 0
         var semiValid = true
         var shouldBeArg = true
@@ -428,15 +427,10 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
             if (paramI < opcode.params.size) {
                 val param = opcode.params[paramI]
 
-                if (param.type === ILabelVarType || param.type === RegRefVarType) {
-                    // A varargs parameter is always the last parameter.
-                    varargs = true
-                }
-
                 if (tokenizer.type === Token.ArgSeparator) {
                     if (shouldBeArg) {
                         addError("Expected an argument.")
-                    } else if (!varargs) {
+                    } else if (!param.varargs) {
                         paramI++
                     }
 
@@ -653,7 +647,8 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
 
         val errorLength = prevCol + prevLen - startCol
 
-        if (!varargs && argCount != paramCount) {
+        if (!opcode.varargs && argCount != paramCount) {
+            semiValid = argCount >= paramCount
             addError(
                 startCol,
                 errorLength,
@@ -661,7 +656,8 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
                     if (paramCount == 1) "" else "s"
                 }, got $argCount.",
             )
-        } else if (varargs && argCount < paramCount) {
+        } else if (opcode.varargs && argCount < paramCount) {
+            semiValid = argCount >= paramCount - 1
             // TODO: This check assumes we want at least 1 argument for a vararg parameter.
             //       Is this correct?
             addError(

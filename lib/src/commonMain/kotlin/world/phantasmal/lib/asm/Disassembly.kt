@@ -180,10 +180,7 @@ private fun addTypeToArgs(params: List<Param>, args: List<Arg>): List<ArgWithTyp
     // Deal with varargs.
     val lastParam = params.lastOrNull()
 
-    if (
-        lastParam != null &&
-        (lastParam.type == ILabelVarType || lastParam.type == RegRefVarType)
-    ) {
+    if (lastParam?.varargs == true) {
         for (i in argsWithType.size until args.size) {
             argsWithType.add(ArgWithType(args[i], lastParam.type))
         }
