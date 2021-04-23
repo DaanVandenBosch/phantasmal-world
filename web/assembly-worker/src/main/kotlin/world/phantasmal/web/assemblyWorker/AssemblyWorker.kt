@@ -317,7 +317,7 @@ class AssemblyWorker(private val sendMessage: (ServerMessage) -> Unit) {
     }
 
     private fun getSignature(opcode: Opcode): Signature {
-        var signature = opcode.mnemonic + " "
+        val signature = StringBuilder(opcode.mnemonic).append(" ")
         val params = mutableListOf<Parameter>()
         var first = true
 
@@ -325,25 +325,77 @@ class AssemblyWorker(private val sendMessage: (ServerMessage) -> Unit) {
             if (first) {
                 first = false
             } else {
-                signature += ", "
+                signature.append(", ")
             }
+
+            val labelStart = signature.length
+
+            signature.appendParam(param)
 
             params.add(
                 Parameter(
-                    labelStart = signature.length,
-                    labelEnd = signature.length + param.type.uiName.length,
+                    labelStart,
+                    labelEnd = signature.length,
                     documentation = param.doc,
                 )
             )
-
-            signature += param.type.uiName
         }
 
         return Signature(
-            label = signature,
+            label = signature.toString(),
             documentation = opcode.doc,
             parameters = params,
         )
+    }
+
+    private fun StringBuilder.appendParam(param: Param) {
+        if (param.read || param.write) {
+            if (param.read) append("in")
+            if (param.write) append("out")
+            append(" ")
+        }
+
+        when (val type = param.type) {
+            AnyType.Instance -> append("Any")
+            ByteType -> append("Byte")
+            ShortType -> append("Short")
+            IntType -> append("Int")
+            FloatType -> append("Float")
+            LabelType.Instance -> append("Label")
+            ILabelType -> append("ILabel")
+            DLabelType -> append("DLabel")
+            SLabelType -> append("SLabel")
+            ILabelVarType -> append("...ILabel")
+            StringType -> append("String")
+            is RegType -> {
+                append("Reg")
+
+                type.registers?.let { registers ->
+                    append("<")
+
+                    var first = true
+
+                    for (register in registers) {
+                        if (first) {
+                            first = false
+                        } else {
+                            append(", ")
+                        }
+
+                        appendParam(register)
+                    }
+
+                    append(">")
+                }
+            }
+            RegVarType -> append("...Reg")
+            PointerType -> append("Pointer")
+        }
+
+        param.name?.let {
+            append(" ")
+            append(param.name)
+        }
     }
 
     private fun getHover(requestId: Int, lineNo: Int, col: Int) {

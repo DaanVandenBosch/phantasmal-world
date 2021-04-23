@@ -276,7 +276,7 @@ private fun findAndParseSegments(
                             }
                         }
 
-                        is RegRefType -> if (param.type.registers != null) {
+                        is RegType -> if (param.type.registers != null) {
                             for (j in param.type.registers.indices) {
                                 val registerParam = param.type.registers[j]
 
@@ -609,11 +609,11 @@ private fun parseInstructionArguments(
                     )
                 }
 
-                is RegRefType -> {
+                is RegType -> {
                     args.add(Arg(cursor.uByte().toInt()))
                 }
 
-                is RegRefVarType -> {
+                is RegVarType -> {
                     varargCount++
                     val argSize = cursor.uByte()
                     args.addAll(cursor.uByteArray(argSize.toInt()).map { Arg(it.toInt()) })
@@ -825,10 +825,10 @@ fun writeBytecode(bytecodeIr: BytecodeIr, dcGcFormat: Boolean): BytecodeAndLabel
                                     if (dcGcFormat) cursor.writeStringAscii(str, str.length + 1)
                                     else cursor.writeStringUtf16(str, 2 * str.length + 2)
                                 }
-                                is RegRefType -> {
+                                is RegType -> {
                                     cursor.writeByte((arg.value as Int).toByte())
                                 }
-                                RegRefVarType -> {
+                                RegVarType -> {
                                     cursor.writeByte(args.size.toByte())
 
                                     for (a in args) {

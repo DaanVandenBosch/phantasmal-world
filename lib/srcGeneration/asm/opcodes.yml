@@ -26,7 +26,7 @@ opcodes:
         Starts a new thread. Thread execution will start at the given label.
         Often used to check a register every frame. Make sure to yield control with sync when looping.
     params:
-      - type: instruction_label
+      - type: ilabel
 
   - code: 0x05
     mnemonic: va_start
@@ -48,100 +48,101 @@ opcodes:
         Calls the variable argument function at the given label.
         Called after initializing the argument list with va_start and pushing arguments onto the stack with arg_push* instructions. Make sure to call va_end afterwards.
     params:
-      - type: instruction_label
+      - type: ilabel
 
   - code: 0x08
     mnemonic: let
-    doc: Sets the first register's value to second one's value.
+    doc: Sets a register to a given register's value.
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            access: write
-      - type: reg_ref
+            write: true
+      - type: reg
         registers:
           - type: int
-            access: read
+            read: true
 
   - code: 0x09
     mnemonic: leti
     doc: Sets a register to the given value.
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            access: write
+            write: true
       - type: int
 
   - code: 0x0a
     mnemonic: letb
     doc: Sets a register to the given value.
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: byte
-            access: write
+            write: true
       - type: byte
 
   - code: 0x0b
     mnemonic: letw
     doc: Sets a register to the given value.
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: short
-            access: write
+            write: true
       - type: short
 
   - code: 0x0c
     mnemonic: leta
-    doc: Sets the first register to the memory address of the second register. Not used by Sega.
+    doc: Sets a register to the memory address of a given register. Not used by Sega.
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: pointer
-            access: write
-      - type: reg_ref
+            write: true
+      - type: reg
         registers:
           - type: any
-            access: read
+            read: true
 
   - code: 0x0d
     mnemonic: leto
     doc: Sets a register to the memory address of the given label. Not used by Sega.
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: pointer
-            access: write
+            write: true
       - type: label
 
   - code: 0x10
     mnemonic: set
     doc: Sets a register to 1.
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            access: write
+            write: true
 
   - code: 0x11
     mnemonic: clear
     doc: Sets a register to 0.
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            access: write
+            write: true
 
   - code: 0x12
     mnemonic: rev
     doc: Sets a register to 1 if its current value is 0, otherwise sets it to 0.
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            access: read_write
+            read: true
+            write: true
 
   - code: 0x13
     mnemonic: gset
@@ -168,491 +169,500 @@ opcodes:
     doc: Sets a register to value of the given flag.
     params:
       - type: short
-      - type: reg_ref
+      - type: reg
         registers:
           - type: short
-            access: write
+            name: flag
+            write: true
 
   - code: 0x18
     mnemonic: add
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            access: write
-      - type: reg_ref
+            read: true
+            write: true
+      - type: reg
         registers:
           - type: int
-            access: read
+            read: true
 
   - code: 0x19
     mnemonic: addi
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            access: write
+            write: true
       - type: int
 
   - code: 0x1a
     mnemonic: sub
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            access: write
-      - type: reg_ref
+            read: true
+            write: true
+      - type: reg
         registers:
           - type: int
-            access: read
+            read: true
 
   - code: 0x1b
     mnemonic: subi
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            access: write
+            write: true
       - type: int
 
   - code: 0x1c
     mnemonic: mul
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            access: write
-      - type: reg_ref
+            read: true
+            write: true
+      - type: reg
         registers:
           - type: int
-            access: read
+            read: true
 
   - code: 0x1d
     mnemonic: muli
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            access: write
+            write: true
       - type: int
 
   - code: 0x1e
     mnemonic: div
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            access: write
-      - type: reg_ref
+            read: true
+            write: true
+      - type: reg
         registers:
           - type: int
-            access: read
+            read: true
 
   - code: 0x1f
     mnemonic: divi
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            access: write
+            write: true
       - type: int
 
   - code: 0x20
     mnemonic: and
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            access: write
-      - type: reg_ref
+            read: true
+            write: true
+      - type: reg
         registers:
           - type: int
-            access: read
+            read: true
 
   - code: 0x21
     mnemonic: andi
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            access: write
+            write: true
       - type: int
 
   - code: 0x22
     mnemonic: or
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            access: write
-      - type: reg_ref
+            read: true
+            write: true
+      - type: reg
         registers:
           - type: int
-            access: read
+            read: true
 
   - code: 0x23
     mnemonic: ori
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            access: write
+            write: true
       - type: int
 
   - code: 0x24
     mnemonic: xor
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            access: write
-      - type: reg_ref
+            read: true
+            write: true
+      - type: reg
         registers:
           - type: int
-            access: read
+            read: true
 
   - code: 0x25
     mnemonic: xori
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            access: write
+            write: true
       - type: int
 
   - code: 0x26
     mnemonic: mod
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            access: write
-      - type: reg_ref
+            read: true
+            write: true
+      - type: reg
         registers:
           - type: int
-            access: read
+            read: true
 
   - code: 0x27
     mnemonic: modi
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            access: write
+            write: true
       - type: int
 
   - code: 0x28
     mnemonic: jmp
     params:
-      - type: instruction_label
+      - type: ilabel
 
   - code: 0x29
     mnemonic: call
     params:
-      - type: instruction_label
+      - type: ilabel
 
   - code: 0x2a
     mnemonic: jmp_on
     params:
-      - type: instruction_label
-      - type: reg_ref_var
-        access: read
+      - type: ilabel
+      - type: reg_var
+        read: true
 
   - code: 0x2b
     mnemonic: jmp_off
     params:
-      - type: instruction_label
-      - type: reg_ref_var
-        access: read
+      - type: ilabel
+      - type: reg_var
+        read: true
 
   - code: 0x2c
     mnemonic: jmp_=
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: any
-            access: read
-      - type: reg_ref
+            read: true
+      - type: reg
         registers:
           - type: any
-            access: read
-      - type: instruction_label
+            read: true
+      - type: ilabel
 
   - code: 0x2d
     mnemonic: jmpi_=
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            access: read
+            read: true
       - type: int
-      - type: instruction_label
+      - type: ilabel
 
   - code: 0x2e
     mnemonic: jmp_!=
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: any
-            access: read
-      - type: reg_ref
+            read: true
+      - type: reg
         registers:
           - type: any
-            access: read
-      - type: instruction_label
+            read: true
+      - type: ilabel
 
   - code: 0x2f
     mnemonic: jmpi_!=
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            access: read
+            read: true
       - type: int
-      - type: instruction_label
+      - type: ilabel
 
   - code: 0x30
     mnemonic: ujmp_>
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            access: read
-      - type: reg_ref
+            read: true
+      - type: reg
         registers:
           - type: int
-            access: read
-      - type: instruction_label
+            read: true
+      - type: ilabel
 
   - code: 0x31
     mnemonic: ujmpi_>
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            access: read
+            read: true
       - type: int
-      - type: instruction_label
+      - type: ilabel
 
   - code: 0x32
     mnemonic: jmp_>
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            access: read
-      - type: reg_ref
+            read: true
+      - type: reg
         registers:
           - type: int
-            access: read
-      - type: instruction_label
+            read: true
+      - type: ilabel
 
   - code: 0x33
     mnemonic: jmpi_>
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            access: read
+            read: true
       - type: int
-      - type: instruction_label
+      - type: ilabel
 
   - code: 0x34
     mnemonic: ujmp_<
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            access: read
-      - type: reg_ref
+            read: true
+      - type: reg
         registers:
           - type: int
-            access: read
-      - type: instruction_label
+            read: true
+      - type: ilabel
 
   - code: 0x35
     mnemonic: ujmpi_<
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            access: read
+            read: true
       - type: int
-      - type: instruction_label
+      - type: ilabel
 
   - code: 0x36
     mnemonic: jmp_<
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            access: read
-      - type: reg_ref
+            read: true
+      - type: reg
         registers:
           - type: int
-            access: read
-      - type: instruction_label
+            read: true
+      - type: ilabel
 
   - code: 0x37
     mnemonic: jmpi_<
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            access: read
+            read: true
       - type: int
-      - type: instruction_label
+      - type: ilabel
 
   - code: 0x38
     mnemonic: ujmp_>=
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            access: read
-      - type: reg_ref
+            read: true
+      - type: reg
         registers:
           - type: int
-            access: read
-      - type: instruction_label
+            read: true
+      - type: ilabel
 
   - code: 0x39
     mnemonic: ujmpi_>=
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            access: read
+            read: true
       - type: int
-      - type: instruction_label
+      - type: ilabel
 
   - code: 0x3a
     mnemonic: jmp_>=
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            access: read
-      - type: reg_ref
+            read: true
+      - type: reg
         registers:
           - type: int
-            access: read
-      - type: instruction_label
+            read: true
+      - type: ilabel
 
   - code: 0x3b
     mnemonic: jmpi_>=
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            access: read
+            read: true
       - type: int
-      - type: instruction_label
+      - type: ilabel
 
   - code: 0x3c
     mnemonic: ujmp_<=
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            access: read
-      - type: reg_ref
+            read: true
+      - type: reg
         registers:
           - type: int
-            access: read
-      - type: instruction_label
+            read: true
+      - type: ilabel
 
   - code: 0x3d
     mnemonic: ujmpi_<=
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            access: read
+            read: true
       - type: int
-      - type: instruction_label
+      - type: ilabel
 
   - code: 0x3e
     mnemonic: jmp_<=
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            access: read
-      - type: reg_ref
+            read: true
+      - type: reg
         registers:
           - type: int
-            access: read
-      - type: instruction_label
+            read: true
+      - type: ilabel
 
   - code: 0x3f
     mnemonic: jmpi_<=
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            access: read
+            read: true
       - type: int
-      - type: instruction_label
+      - type: ilabel
 
   - code: 0x40
     mnemonic: switch_jmp
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            access: read
-      - type: instruction_label_var
+            read: true
+      - type: ilabel_var
 
   - code: 0x41
     mnemonic: switch_call
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            access: read
-      - type: instruction_label_var
+            read: true
+      - type: ilabel_var
 
   - code: 0x42
     mnemonic: stack_push
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: any
-            access: read
+            read: true
 
   - code: 0x43
     mnemonic: stack_pop
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: any
-            access: write
+            write: true
 
   - code: 0x44
     mnemonic: stack_pushm
     doc: Pushes the values of an arbitrary amount of registers onto the stack.
     params:
-      - type: reg_ref
-        access: read
+      - type: reg
+        read: true
       - type: int
 
   - code: 0x45
     mnemonic: stack_popm
     doc: Pops an arbitrary amount of values from the stack and writes them to registers.
     params:
-      - type: reg_ref
-        access: write
+      - type: reg
+        write: true
       - type: int
 
   - code: 0x48
     mnemonic: arg_pushr
     doc: Pushes the value of the given register onto the stack.
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: any
-            access: read
+            read: true
     stack: push
 
   - code: 0x49
@@ -680,10 +690,10 @@ opcodes:
     mnemonic: arg_pusha
     doc: Pushes the memory address of the given register onto the stack. Not used by Sega.
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: any
-            access: read
+            read: true
     stack: push
 
   - code: 0x4d
@@ -702,14 +712,14 @@ opcodes:
 
   - code: 0x4f
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: read
-      - type: reg_ref
+            read: true
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: read
+            read: true
 
   - code: 0x50
     mnemonic: message
@@ -724,11 +734,12 @@ opcodes:
         Used to display a list of items and retrieve the item selected by the player.
         List items should be seperated by newlines. The selected item's index will be written to the given register.
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: byte
-            access: write
+            write: true
       - type: string
+        name: list
     stack: pop
 
   - code: 0x52
@@ -782,10 +793,10 @@ opcodes:
   - code: 0x5d
     mnemonic: gettime
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            access: write
+            write: true
 
   - code: 0x5e
     mnemonic: winend
@@ -794,10 +805,10 @@ opcodes:
   - code: 0x60
     mnemonic: npc_crt_v3
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: read
+            read: true
 
   - code: 0x61
     mnemonic: npc_stop
@@ -828,20 +839,20 @@ opcodes:
   - code: 0x66
     mnemonic: npc_crp_v3
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: read
+            read: true
           - type: any
-            access: read
+            read: true
           - type: any
-            access: read
-          - type: instruction_label
-            access: read
+            read: true
+          - type: ilabel
+            read: true
           - type: any
-            access: read
+            read: true
           - type: any
-            access: read
+            read: true
 
   - code: 0x68
     mnemonic: create_pipe
@@ -852,22 +863,22 @@ opcodes:
   - code: 0x69
     mnemonic: p_hpstat_v3
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: read
+            read: true
       - type: int
     stack: pop
 
   - code: 0x6a
     mnemonic: p_dead_v3
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            access: write
+            write: true
       - type: int
-        doc: Player slot.
+        name: slot
     stack: pop
 
   - code: 0x6b
@@ -881,10 +892,10 @@ opcodes:
   - code: 0x6d
     mnemonic: p_move_v3
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: read
+            read: true
 
   - code: 0x6e
     mnemonic: p_look
@@ -925,21 +936,22 @@ opcodes:
     doc: Sets a player's position.
     params:
       - type: int
-        doc: Player slot.
-      - type: reg_ref
+        name: slot
+      - type: reg
+        doc: Coordinates and rotation around y-axis.
         registers:
           - type: int
-            doc: X coordinate.
-            access: read
+            name: x
+            read: true
           - type: int
-            doc: Y coordinate.
-            access: read
+            name: y
+            read: true
           - type: int
-            doc: Z coordinate.
-            access: read
+            name: z
+            read: true
           - type: int
-            doc: Y-axis rotation.
-            access: read
+            name: y_rot
+            read: true
     stack: pop
 
   - code: 0x77
@@ -955,10 +967,10 @@ opcodes:
   - code: 0x79
     mnemonic: npc_talk_pl_v3
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: read
+            read: true
 
   - code: 0x7a
     mnemonic: npc_talk_kill
@@ -969,26 +981,26 @@ opcodes:
   - code: 0x7b
     mnemonic: npc_crtpk_v3
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: read
+            read: true
 
   - code: 0x7c
     mnemonic: npc_crppk_v3
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: read
+            read: true
 
   - code: 0x7d
     mnemonic: npc_crptalk_v3
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: read
+            read: true
 
   - code: 0x7e
     mnemonic: p_look_at_v1
@@ -1000,10 +1012,10 @@ opcodes:
   - code: 0x7f
     mnemonic: npc_crp_id_v3
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: read
+            read: true
 
   - code: 0x80
     mnemonic: cam_quake
@@ -1024,18 +1036,18 @@ opcodes:
   - code: 0x84
     mnemonic: cam_pan_v3
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            access: read
+            read: true
           - type: int
-            access: read
+            read: true
           - type: int
-            access: read
+            read: true
           - type: int
-            access: read
+            read: true
           - type: int
-            access: read
+            read: true
 
   - code: 0x85
     mnemonic: game_lev_super
@@ -1049,125 +1061,125 @@ opcodes:
     mnemonic: pos_pipe_v3
     doc: Create a telepipe at a specific position for the given player slot that takes players back to Pioneer 2 or the Lab.
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            doc: X coordinate.
-            access: read
+            name: x
+            read: true
           - type: int
-            doc: Y coordinate.
-            access: read
+            name: y
+            read: true
           - type: int
-            doc: Z coordinate.
-            access: read
+            name: z
+            read: true
           - type: int
-            doc: Player slot.
-            access: read
+            name: slot
+            read: true
 
   - code: 0x88
     mnemonic: if_zone_clear
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            access: write
-      - type: reg_ref
+            write: true
+      - type: reg
         registers:
           - type: int
-            access: read
+            read: true
           - type: int
-            access: read
+            read: true
 
   - code: 0x89
     mnemonic: chk_ene_num
     doc: Retrieves the amount of enemies killed during the quest.
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            access: write
+            write: true
 
   - code: 0x8a
     mnemonic: unhide_obj
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            access: read
+            read: true
           - type: int
-            access: read
+            read: true
           - type: int
-            access: read
+            read: true
 
   - code: 0x8b
     mnemonic: unhide_ene
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            access: read
+            read: true
           - type: int
-            access: read
+            read: true
           - type: int
-            access: read
+            read: true
           - type: int
-            access: read
+            read: true
 
   - code: 0x8c
     mnemonic: at_coords_call
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            access: read
+            read: true
           - type: int
-            access: read
+            read: true
           - type: int
-            access: read
+            read: true
           - type: int
-            access: read
-          - type: instruction_label
-            access: read
+            read: true
+          - type: ilabel
+            read: true
 
   - code: 0x8d
     mnemonic: at_coords_talk
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            access: read
+            read: true
           - type: int
-            access: read
+            read: true
           - type: int
-            access: read
+            read: true
           - type: int
-            access: read
-          - type: instruction_label
-            access: read
+            read: true
+          - type: ilabel
+            read: true
 
   - code: 0x8e
     mnemonic: col_npcin
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            access: read
+            read: true
           - type: int
-            access: read
+            read: true
           - type: int
-            access: read
+            read: true
           - type: int
-            access: read
-          - type: instruction_label
-            access: read
+            read: true
+          - type: ilabel
+            read: true
 
   - code: 0x8f
     mnemonic: col_npcinr
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: read
+            read: true
 
   - code: 0x90
     mnemonic: switch_on
@@ -1197,38 +1209,38 @@ opcodes:
     mnemonic: set_obj_param
     doc: Creates a targetable object.
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            doc: X coordinate.
-            access: read
+            name: x
+            read: true
           - type: int
-            doc: Y coordinate.
-            access: read
+            name: y
+            read: true
           - type: int
-            doc: Z coordinate.
-            access: read
+            name: z
+            read: true
           - type: int
-            doc: Collision radius.
-            access: read
-          - type: instruction_label
-            doc: Function label.
-            access: read
+            name: radius
+            read: true
+          - type: ilabel
+            name: func
+            read: true
           - type: int
-            doc: Vertical position of the cursor.
-            access: read
-      - type: reg_ref
+            name: cursor_y
+            read: true
+      - type: reg
         doc: Object handle.
         registers:
           - type: any
-            access: write
+            write: true
 
   - code: 0x95
     mnemonic: set_floor_handler
     params:
       - type: int
         doc: Floor number.
-      - type: instruction_label
+      - type: ilabel
         doc: Handler function label.
     stack: pop
 
@@ -1242,10 +1254,10 @@ opcodes:
   - code: 0x97
     mnemonic: col_plinaw
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: read
+            read: true
 
   - code: 0x98
     mnemonic: hud_hide
@@ -1266,12 +1278,12 @@ opcodes:
   - code: 0xa1
     mnemonic: set_qt_failure
     params:
-      - type: instruction_label
+      - type: ilabel
 
   - code: 0xa2
     mnemonic: set_qt_success
     params:
-      - type: instruction_label
+      - type: ilabel
 
   - code: 0xa3
     mnemonic: clr_qt_failure
@@ -1284,7 +1296,7 @@ opcodes:
   - code: 0xa5
     mnemonic: set_qt_cancel
     params:
-      - type: instruction_label
+      - type: ilabel
 
   - code: 0xa6
     mnemonic: clr_qt_cancel
@@ -1293,10 +1305,10 @@ opcodes:
   - code: 0xa8
     mnemonic: pl_walk_v3
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: read
+            read: true
 
   - code: 0xb0
     mnemonic: pl_add_meseta
@@ -1308,81 +1320,81 @@ opcodes:
   - code: 0xb1
     mnemonic: thread_stg
     params:
-      - type: instruction_label
+      - type: ilabel
 
   - code: 0xb2
     mnemonic: del_obj_param
     params:
-      - type: reg_ref
+      - type: reg
         doc: Object handle.
         registers:
           - type: any
-            access: read
+            read: true
 
   - code: 0xb3
     mnemonic: item_create
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: read
-      - type: reg_ref
+            read: true
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: read
+            read: true
 
   - code: 0xb4
     mnemonic: item_create2
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: read
-      - type: reg_ref
+            read: true
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: read
+            read: true
 
   - code: 0xb5
     mnemonic: item_delete
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: read
-      - type: reg_ref
+            read: true
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: read
+            read: true
 
   - code: 0xb6
     mnemonic: item_delete2
     doc: Deletes an item from the player's inventory.
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            access: read
+            read: true
           - type: int
-            access: read
+            read: true
           - type: int
-            access: read
-      - type: reg_ref
+            read: true
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: write
+            write: true
 
   - code: 0xb7
     mnemonic: item_check
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: read
-      - type: reg_ref
+            read: true
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: read
+            read: true
 
   - code: 0xb8
     mnemonic: setevt
@@ -1396,15 +1408,15 @@ opcodes:
         Sets the given register to the current difficulty. 0 For normal, 1 for hard and 2 for both very hard and ultimate.
         Use get_difficulty_level2 if you want to differentiate between very hard and ultimate.
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            access: write
+            write: true
 
   - code: 0xba
     mnemonic: set_qt_exit
     params:
-      - type: instruction_label
+      - type: ilabel
 
   - code: 0xbb
     mnemonic: clr_qt_exit
@@ -1413,10 +1425,10 @@ opcodes:
   - code: 0xc0
     mnemonic: particle_v3
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: read
+            read: true
 
   - code: 0xc1
     mnemonic: npc_text
@@ -1436,10 +1448,10 @@ opcodes:
   - code: 0xc4
     mnemonic: map_designate
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: read
+            read: true
 
   - code: 0xc5
     mnemonic: masterkey_on
@@ -1460,24 +1472,24 @@ opcodes:
   - code: 0xc9
     mnemonic: winset_time
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            access: write
+            write: true
 
   - code: 0xca
     mnemonic: getmtime
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: write
+            write: true
 
   - code: 0xcb
     mnemonic: set_quest_board_handler
     params:
       - type: int
-      - type: instruction_label
+      - type: ilabel
       - type: string
     stack: pop
 
@@ -1490,24 +1502,24 @@ opcodes:
   - code: 0xcd
     mnemonic: particle_id_v3
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            access: read
+            read: true
           - type: int
-            access: read
+            read: true
           - type: int
-            access: read
+            read: true
           - type: int
-            access: read
+            read: true
 
   - code: 0xce
     mnemonic: npc_crptalk_id_v3
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: read
+            read: true
 
   - code: 0xcf
     mnemonic: npc_lang_clean
@@ -1520,14 +1532,14 @@ opcodes:
   - code: 0xd1
     mnemonic: pl_chk_item2
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: read
-      - type: reg_ref
+            read: true
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: read
+            read: true
 
   - code: 0xd2
     mnemonic: enable_mainmenu
@@ -1565,10 +1577,10 @@ opcodes:
   - code: 0xd9
     mnemonic: sync_leti
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            access: write
+            write: true
       - type: int
 
   - code: 0xda
@@ -1590,22 +1602,22 @@ opcodes:
   - code: 0xde
     mnemonic: unknown_de
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: any
-            access: read
-      - type: reg_ref
+            read: true
+      - type: reg
         registers:
           - type: any
-            access: write
+            write: true
 
   - code: 0xdf
     mnemonic: npc_param_v3
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: read
+            read: true
       - type: int
     stack: pop
 
@@ -1622,18 +1634,18 @@ opcodes:
   - code: 0xe2
     mnemonic: pcam_param_v3
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: read
+            read: true
 
   - code: 0xe3
     mnemonic: start_setevt_v3
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: read
+            read: true
       - type: int
     stack: pop
 
@@ -1648,48 +1660,48 @@ opcodes:
   - code: 0xe6
     mnemonic: get_slotnumber
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            access: write
+            write: true
 
   - code: 0xe7
     mnemonic: get_servernumber
     doc: Returns the index of the player who is the leader of the party.
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            access: write # TODO: determine registers
+            write: true # TODO: determine registers
 
   - code: 0xe8
     mnemonic: set_eventflag2
     params:
       - type: int
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: read
+            read: true
     stack: pop
 
   - code: 0xe9
     mnemonic: res
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: read
-      - type: reg_ref
+            read: true
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: read
+            read: true
 
   - code: 0xea
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: read
+            read: true
       - type: int
 
   - code: 0xeb
@@ -1701,10 +1713,10 @@ opcodes:
   - code: 0xec
     mnemonic: sw_send
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: read
+            read: true
 
   - code: 0xed
     mnemonic: create_bgmctrl
@@ -1719,10 +1731,10 @@ opcodes:
   - code: 0xef
     mnemonic: sync_register
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            access: write
+            write: true
       - type: int
     stack: pop
 
@@ -1733,20 +1745,20 @@ opcodes:
   - code: 0xf1
     mnemonic: leti_fixed_camera_v3
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            access: read
+            read: true
           - type: int
-            access: read
+            read: true
           - type: int
-            access: read
+            read: true
           - type: int
-            access: read
+            read: true
           - type: int
-            access: read
+            read: true
           - type: int
-            access: read
+            read: true
 
   - code: 0xf2
     mnemonic: default_camera_pos1
@@ -1755,10 +1767,10 @@ opcodes:
   - code: 0xfa
     mnemonic: get_gc_number
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: write
+            write: true
 
   - code: 0xfb
     params:
@@ -1767,10 +1779,10 @@ opcodes:
   - code: 0xf801
     mnemonic: set_chat_callback
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: read
+            read: true
       - type: string
     stack: pop
 
@@ -1778,40 +1790,40 @@ opcodes:
     mnemonic: get_difficulty_level2
     doc: Sets the given register to the current difficulty. 0 For normal, 1 for hard, 2 for very hard and 3 for ultimate.
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            access: write
+            write: true
 
   - code: 0xf809
     mnemonic: get_number_of_player1
     doc: Set the given register to the current number of players. Either 1, 2, 3 or 4.
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            access: write
+            write: true
 
   - code: 0xf80a
     mnemonic: get_coord_of_player
     doc: Retrieves a player's position.
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            doc: X coordinate.
-            access: write
+            name: x
+            read: true
           - type: int
-            doc: Y coordinate.
-            access: write
+            name: y
+            read: true
           - type: int
-            doc: Z coordinate.
-            access: write
-      - type: reg_ref
+            name: z
+            read: true
+      - type: reg
         registers:
           - type: int
-            doc: Player slot.
-            access: read
+            name: slot
+            read: true
 
   - code: 0xf80b
     mnemonic: enable_map
@@ -1824,18 +1836,18 @@ opcodes:
   - code: 0xf80d
     mnemonic: map_designate_ex
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            access: read
+            read: true
           - type: int
-            access: read
+            read: true
           - type: int
-            access: read
+            read: true
           - type: int
-            access: read
+            read: true
           - type: int
-            access: read
+            read: true
 
   - code: 0xf80e
     params:
@@ -1944,56 +1956,56 @@ opcodes:
   - code: 0xf825
     mnemonic: exp_multiplication
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: write
+            write: true
 
   - code: 0xf826
     mnemonic: exp_division
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: write
+            write: true
 
   - code: 0xf827
     mnemonic: get_user_is_dead
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: write
+            write: true
 
   - code: 0xf828
     mnemonic: go_floor
     doc: Sends a player to the given floor.
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            doc: Player slot.
-            access: read
-      - type: reg_ref
+            name: slot
+            read: true
+      - type: reg
         registers:
           - type: int
-            doc: Floor ID.
-            access: read
+            name: floor_id
+            read: true
 
   - code: 0xf829
     mnemonic: get_num_kills
     doc: Returns the number of enemies a player has killed during the quest.
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            doc: Player slot.
-            access: read
-      - type: reg_ref
+            name: slot
+            read: true
+      - type: reg
         registers:
           - type: int
-            doc: Result register.
-            access: write
+            name: num_kills
+            write: true
 
   - code: 0xf82b
     mnemonic: unlock_door2
@@ -2008,27 +2020,28 @@ opcodes:
   - code: 0xf82d
     mnemonic: if_switch_not_pressed
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: int
-            access: read
+            read: true
           - type: int
-            access: write
+            write: true
 
   - code: 0xf82e
     mnemonic: if_switch_pressed
+    doc: Returns 1 if the switch is pressed, 0 otherwise.
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            doc: Floor ID.
-            access: read
+            name: floor_id
+            read: true
           - type: int
-            doc: Switch ID.
-            access: read
+            name: switch_id
+            read: true
           - type: int
-            doc: Will be set to 1 if the switch is pressed, 0 otherwise.
-            access: write
+            name: is_set
+            write: true
 
   - code: 0xf82f
     params: [{ type: int }, { type: int }]
@@ -2037,10 +2050,10 @@ opcodes:
   - code: 0xf830
     mnemonic: control_dragon
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: int
-            access: read
+            read: true
 
   - code: 0xf831
     mnemonic: release_dragon
@@ -2049,28 +2062,28 @@ opcodes:
   - code: 0xf838
     mnemonic: shrink
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            doc: Player slot.
-            access: read
+            name: slot
+            read: true
 
   - code: 0xf839
     mnemonic: unshrink
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            doc: Player slot.
-            access: read
+            name: slot
+            read: true
 
   - code: 0xf83c
     mnemonic: display_clock2
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: int
-            access: read
+            read: true
 
   - code: 0xf83d
     params:
@@ -2090,86 +2103,86 @@ opcodes:
   - code: 0xf841
     mnemonic: get_npc_data
     params:
-      - type: data_label
+      - type: dlabel
 
   - code: 0xf848
     mnemonic: give_damage_score
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: int
-            access: write
+            write: true
 
   - code: 0xf849
     mnemonic: take_damage_score
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: int
-            access: write
+            write: true
 
   - code: 0xf84a
     mnemonic: unk_score_f84a
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: int
-            access: write
+            write: true
 
   - code: 0xf84b
     mnemonic: unk_score_f84b
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: int
-            access: write
+            write: true
 
   - code: 0xf84c
     mnemonic: kill_score
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: int
-            access: write
+            write: true
 
   - code: 0xf84d
     mnemonic: death_score
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: int
-            access: write
+            write: true
 
   - code: 0xf84e
     mnemonic: unk_score_f84e
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: int
-            access: write
+            write: true
 
   - code: 0xf84f
     mnemonic: enemy_death_score
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: int
-            access: write
+            write: true
 
   - code: 0xf850
     mnemonic: meseta_score
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: int
-            access: write
+            write: true
 
   - code: 0xf851
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: int
-            access: write
+            write: true
 
   - code: 0xf852
     params:
@@ -2201,10 +2214,10 @@ opcodes:
   - code: 0xf85a
     mnemonic: equip_item
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: int
-            access: read
+            read: true
 
   - code: 0xf85b
     mnemonic: unequip_item
@@ -2249,59 +2262,59 @@ opcodes:
   - code: 0xf867
     mnemonic: award_item_give_to
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: int
-            access: read
+            read: true
 
   - code: 0xf868
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: write
-      - type: reg_ref
+            write: true
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: write
+            write: true
 
   - code: 0xf869
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: write
-      - type: reg_ref
+            write: true
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: write
+            write: true
 
   - code: 0xf86a
     mnemonic: item_create_cmode
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: write
-      - type: reg_ref
+            write: true
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: write
+            write: true
 
   - code: 0xf86b
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: read
+            read: true
 
   - code: 0xf86c
     mnemonic: award_item_ok
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: write
+            write: true
 
   - code: 0xf86f
     mnemonic: ba_set_lives
@@ -2330,182 +2343,182 @@ opcodes:
   - code: 0xf873
     mnemonic: boss_is_dead
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: write
+            write: true
 
   - code: 0xf877
     mnemonic: enable_techs
     doc: Enables technique use for the given player.
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            doc: Player slot.
-            access: read
+            name: slot
+            read: true
 
   - code: 0xf878
     mnemonic: disable_techs
     doc: Disables technique use for the given player.
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            doc: Player slot.
-            access: read
+            name: slot
+            read: true
 
   - code: 0xf879
     mnemonic: get_gender
     doc: Retrieves the player's gender. 0 If male, 1 if female.
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            doc: Player slot.
-            access: read
-      - type: reg_ref
+            name: slot
+            read: true
+      - type: reg
         registers:
           - type: int
-            doc: Player gender.
-            access: write
+            name: gender
+            write: true
 
   - code: 0xf87a
     mnemonic: get_chara_class
-    doc: Retrieves the player's race and character class.
+    doc: Retrieves the player's race and character class. race will be 0 if human, 1 if newman and 2 if cast. class will be 0 if hunter, 1 if ranger and 2 if force.
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            doc: Player slot.
-            access: read
-      - type: reg_ref
+            name: slot
+            read: true
+      - type: reg
         registers:
           - type: int
-            doc: Player race. 0 If human, 1 if newman, 2 if cast.
-            access: write
+            name: race
+            write: true
           - type: int
-            doc: Player class. 0 If hunter, 1 if ranger, 2 if force.
-            access: write
+            name: class
+            write: true
 
   - code: 0xf87b
     mnemonic: take_slot_meseta
-    doc: Takes an amount of meseta from a player's inventory.
+    doc: Takes an amount of meseta from a player's inventory. Returns 1 if the meseta was taken, 0 otherwise.
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            doc: Player slot.
-            access: read
+            name: slot
+            read: true
           - type: int
-            doc: Amount of meseta to take.
-            access: read
-      - type: reg_ref
+            name: amount
+            read: true
+      - type: reg
         registers:
           - type: int
-            doc: Will be set to 1 if the meseta was taken, 0 otherwise.
-            access: write
+            name: taken
+            write: true
 
   - code: 0xf87f
     mnemonic: read_guildcard_flag
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: write
-      - type: reg_ref
+            write: true
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: write
+            write: true
 
   - code: 0xf880
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: write
+            write: true
 
   - code: 0xf881
     mnemonic: get_pl_name
     doc: Sets the value of <pl_name> to the given player's name.
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            doc: Player slot.
-            access: read
+            name: slot
+            read: true
   - code: 0xf882
     mnemonic: get_pl_job
     doc: Sets the value of <pl_job> to the given player's job (Hunter/Ranger/Force).
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            doc: Player slot.
-            access: read
+            name: slot
+            read: true
   - code: 0xf883
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: write
-      - type: reg_ref
+            write: true
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: write
+            write: true
 
   - code: 0xf88a
     mnemonic: get_player_status
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: write
-      - type: reg_ref
+            write: true
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: write
+            write: true
 
   - code: 0xf88b
     mnemonic: send_mail
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: read
+            read: true
       - type: string
     stack: pop
 
   - code: 0xf88c
     mnemonic: online_check
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: write
+            write: true
 
   - code: 0xf88d
     mnemonic: chl_set_timerecord
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: read
+            read: true
 
   - code: 0xf88e
     mnemonic: chl_get_timerecord
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: write
+            write: true
 
   - code: 0xf88f
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: write
+            write: true
 
   - code: 0xf891
     mnemonic: load_enemy_data
@@ -2536,40 +2549,40 @@ opcodes:
   - code: 0xf898
     mnemonic: shift_left
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            access: write
-      - type: reg_ref
+            write: true
+      - type: reg
         registers:
           - type: int
-            access: read
+            read: true
 
   - code: 0xf899
     mnemonic: shift_right
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            access: write
-      - type: reg_ref
+            write: true
+      - type: reg
         registers:
           - type: int
-            access: read
+            read: true
 
   - code: 0xf89a
     mnemonic: get_random
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            access: read
+            read: true
           - type: int
-            access: read
-      - type: reg_ref
+            read: true
+      - type: reg
         registers:
           - type: int
-            access: write
+            write: true
 
     # TODO: Do you have to change areas after calling this opcode?
   - code: 0xf89b
@@ -2580,10 +2593,10 @@ opcodes:
   - code: 0xf89c
     mnemonic: disp_chl_retry_menu
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: write
+            write: true
 
   - code: 0xf89d
     mnemonic: chl_reverser
@@ -2596,10 +2609,10 @@ opcodes:
 
   - code: 0xf89f
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: write
+            write: true
 
   - code: 0xf8a8
     params:
@@ -2608,28 +2621,28 @@ opcodes:
 
   - code: 0xf8a9
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: write
+            write: true
 
   - code: 0xf8ad
     mnemonic: get_number_of_player2
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: write
+            write: true
 
   - code: 0xf8b0
     mnemonic: read1
     doc: Reads a 1-byte value from an arbitrary location.
     params:
-      - type: reg_ref
+      - type: reg
         doc: Register to store the result to.
         registers:
           - type: byte
-            access: write
+            write: true
       - type: int
         doc: Address to read from.
     stack: pop
@@ -2638,11 +2651,11 @@ opcodes:
     mnemonic: read2
     doc: Reads a 2-byte value from an arbitrary location.
     params:
-      - type: reg_ref
+      - type: reg
         doc: Register to store the result to.
         registers:
           - type: short
-            access: write
+            write: true
       - type: int
         doc: Address to read from.
     stack: pop
@@ -2651,11 +2664,11 @@ opcodes:
     mnemonic: read4
     doc: Reads a 4-byte value from an arbitrary location.
     params:
-      - type: reg_ref
+      - type: reg
         doc: Register to store the result to.
         registers:
           - type: int
-            access: write
+            write: true
       - type: int
         doc: Address to read from.
     stack: pop
@@ -2709,10 +2722,10 @@ opcodes:
   - code: 0xf8c1
     mnemonic: get_dl_status
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: write
+            write: true
 
   - code: 0xf8c2
     mnemonic: gba_unknown4
@@ -2721,24 +2734,24 @@ opcodes:
   - code: 0xf8c3
     mnemonic: get_gba_state
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: write
+            write: true
 
   - code: 0xf8c4
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: write
+            write: true
 
   - code: 0xf8c5
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: write
+            write: true
 
   - code: 0xf8c6
     mnemonic: qexit
@@ -2747,168 +2760,169 @@ opcodes:
   - code: 0xf8c7
     mnemonic: use_animation
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            doc: Player slot.
-            access: read
-      - type: reg_ref
+            name: slot
+            read: true
+      - type: reg
+        doc: Animation ID and duration in number of frames.
         registers:
           - type: int
-            doc: Animation ID.
-            access: read
+            name: animation
+            read: true
           - type: int
-            doc: Animation duration in number of frames.
-            access: read
+            name: duration
+            read: true
 
   - code: 0xf8c8
     mnemonic: stop_animation
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            doc: Player slot.
-            access: read
+            name: slot
+            read: true
 
   - code: 0xf8c9
     mnemonic: run_to_coord
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: read
-      - type: reg_ref
+            read: true
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: read
+            read: true
 
   - code: 0xf8ca
     mnemonic: set_slot_invincible
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            doc: Player slot.
-            access: read
-      - type: reg_ref
+            name: slot
+            read: true
+      - type: reg
         registers:
           - type: int
-            access: read
+            read: true
 
   - code: 0xf8cb
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: read
+            read: true
 
   - code: 0xf8cc
     mnemonic: set_slot_poison
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            doc: Player slot.
-            access: read
+            name: slot
+            read: true
 
   - code: 0xf8cd
     mnemonic: set_slot_paralyze
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            doc: Player slot.
-            access: read
+            name: slot
+            read: true
 
   - code: 0xf8ce
     mnemonic: set_slot_shock
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            doc: Player slot.
-            access: read
+            name: slot
+            read: true
 
   - code: 0xf8cf
     mnemonic: set_slot_freeze
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            doc: Player slot.
-            access: read
+            name: slot
+            read: true
 
   - code: 0xf8d0
     mnemonic: set_slot_slow
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            doc: Player slot.
-            access: read
+            name: slot
+            read: true
 
   - code: 0xf8d1
     mnemonic: set_slot_confuse
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            doc: Player slot.
-            access: read
+            name: slot
+            read: true
 
   - code: 0xf8d2
     mnemonic: set_slot_shifta
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            doc: Player slot.
-            access: read
+            name: slot
+            read: true
 
   - code: 0xf8d3
     mnemonic: set_slot_deband
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            doc: Player slot.
-            access: read
+            name: slot
+            read: true
 
   - code: 0xf8d4
     mnemonic: set_slot_jellen
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            doc: Player slot.
-            access: read
+            name: slot
+            read: true
 
   - code: 0xf8d5
     mnemonic: set_slot_zalure
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            doc: Player slot.
-            access: read
+            name: slot
+            read: true
 
   - code: 0xf8d6
     mnemonic: fleti_fixed_camera
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: read
+            read: true
     stack: pop
 
   - code: 0xf8d7
     mnemonic: fleti_locked_camera
     params:
       - type: int
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: read
+            read: true
     stack: pop
 
   - code: 0xf8d8
@@ -2929,49 +2943,49 @@ opcodes:
       - type: int
       - type: int
       - type: int
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: read
+            read: true
       - type: short
     stack: pop
 
   - code: 0xf8dc
     mnemonic: npc_action_string
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            access: read
-      - type: reg_ref
+            read: true
+      - type: reg
         registers:
           - type: int
-            access: read
-      - type: string_label
+            read: true
+      - type: slabel
 
   - code: 0xf8dd
     mnemonic: get_pad_cond
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: write
-      - type: reg_ref
+            write: true
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: write
+            write: true
 
   - code: 0xf8de
     mnemonic: get_button_cond
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: write
-      - type: reg_ref
+            write: true
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: write
+            write: true
 
   - code: 0xf8df
     mnemonic: freeze_enemies
@@ -2992,117 +3006,117 @@ opcodes:
   - code: 0xf8e3
     mnemonic: restore_hp
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: read
+            read: true
 
   - code: 0xf8e4
     mnemonic: restore_tp
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: read
+            read: true
 
   - code: 0xf8e5
     mnemonic: close_chat_bubble
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: read
+            read: true
 
   - code: 0xf8e6
     mnemonic: move_coords_object
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: read
-      - type: reg_ref
+            read: true
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: read
+            read: true
 
   - code: 0xf8e7
     mnemonic: at_coords_call_ex
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: read
-      - type: reg_ref
+            read: true
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: read
+            read: true
 
   - code: 0xf8e8
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: read
-      - type: reg_ref
+            read: true
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: read
+            read: true
 
   - code: 0xf8e9
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: read
-      - type: reg_ref
+            read: true
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: read
+            read: true
 
   - code: 0xf8ea
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: read
-      - type: reg_ref
+            read: true
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: read
+            read: true
 
   - code: 0xf8eb
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: read
-      - type: reg_ref
+            read: true
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: read
+            read: true
 
   - code: 0xf8ec
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: read
-      - type: reg_ref
+            read: true
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: read
+            read: true
 
   - code: 0xf8ed
     mnemonic: animation_check
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: read
-      - type: reg_ref
+            read: true
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: read
+            read: true
 
   - code: 0xf8ee
     mnemonic: call_image_data
@@ -3126,20 +3140,20 @@ opcodes:
       - type: int
       - type: int
       - type: int
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: read
-      - type: data_label
+            read: true
+      - type: dlabel
     stack: pop
 
   - code: 0xf8f3
     mnemonic: particle2
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: read
+            read: true
       - type: int
       - type: float
     stack: pop
@@ -3147,160 +3161,160 @@ opcodes:
   - code: 0xf901
     mnemonic: dec2float
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: float
-            access: write
-      - type: reg_ref
+            write: true
+      - type: reg
         registers:
           - type: int
-            access: read
+            read: true
 
   - code: 0xf902
     mnemonic: float2dec
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            access: write
-      - type: reg_ref
+            write: true
+      - type: reg
         registers:
           - type: float
-            access: read
+            read: true
 
   - code: 0xf903
     mnemonic: flet
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: float
-            access: write
-      - type: reg_ref
+            write: true
+      - type: reg
         registers:
           - type: float
-            access: read
+            read: true
 
   - code: 0xf904
     mnemonic: fleti
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: float
-            access: write
+            write: true
       - type: float
 
   - code: 0xf908
     mnemonic: fadd
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: float
-            access: write
-      - type: reg_ref
+            write: true
+      - type: reg
         registers:
           - type: float
-            access: read
+            read: true
 
   - code: 0xf909
     mnemonic: faddi
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: float
-            access: write
+            write: true
       - type: float
 
   - code: 0xf90a
     mnemonic: fsub
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: float
-            access: write
-      - type: reg_ref
+            write: true
+      - type: reg
         registers:
           - type: float
-            access: read
+            read: true
 
   - code: 0xf90b
     mnemonic: fsubi
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: float
-            access: write
+            write: true
       - type: float
 
   - code: 0xf90c
     mnemonic: fmul
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: float
-            access: write
-      - type: reg_ref
+            write: true
+      - type: reg
         registers:
           - type: float
-            access: read
+            read: true
 
   - code: 0xf90d
     mnemonic: fmuli
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: float
-            access: write
+            write: true
       - type: float
 
   - code: 0xf90e
     mnemonic: fdiv
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: float
-            access: write
-      - type: reg_ref
+            write: true
+      - type: reg
         registers:
           - type: float
-            access: read
+            read: true
 
   - code: 0xf90f
     mnemonic: fdivi
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: float
-            access: write
+            write: true
       - type: float
 
   - code: 0xf910
     mnemonic: get_unknown_count
     params:
       - type: int
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            access: write
+            write: true
     stack: pop
 
   - code: 0xf911
     mnemonic: get_stackable_item_count
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            doc: Player slot.
-            access: read
+            name: slot
+            read: true
           - type: int
-            access: read
+            read: true
           - type: int
-            access: read
+            read: true
           - type: int
-            access: read
-      - type: reg_ref
+            read: true
+      - type: reg
         registers:
           - type: int
-            access: write
+            write: true
 
   - code: 0xf912
     mnemonic: freeze_and_hide_equip
@@ -3314,172 +3328,172 @@ opcodes:
     mnemonic: set_palettex_callback
     params:
       - type: int
-        doc: Player slot.
-      - type: instruction_label
+        name: slot
+      - type: ilabel
     stack: pop
 
   - code: 0xf915
     mnemonic: activate_palettex
     params:
       - type: int
-        doc: Player slot.
+        name: slot
     stack: pop
 
   - code: 0xf916
     mnemonic: enable_palettex
     params:
       - type: int
-        doc: Player slot.
+        name: slot
     stack: pop
 
   - code: 0xf917
     mnemonic: restore_palettex
     params:
       - type: int
-        doc: Player slot.
+        name: slot
     stack: pop
 
   - code: 0xf918
     mnemonic: disable_palettex
     params:
       - type: int
-        doc: Player slot.
+        name: slot
     stack: pop
 
   - code: 0xf919
     mnemonic: get_palettex_activated
     params:
       - type: int
-        doc: Player slot.
-      - type: reg_ref
+        name: slot
+      - type: reg
         registers:
           - type: int
-            access: write
+            write: true
     stack: pop
 
   - code: 0xf91a
     mnemonic: get_unknown_palettex_status
     params:
       - type: int
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            access: write
+            write: true
     stack: pop
 
   - code: 0xf91b
     mnemonic: disable_movement2
     params:
       - type: int
-        doc: Player slot.
+        name: slot
     stack: pop
 
   - code: 0xf91c
     mnemonic: enable_movement2
     params:
       - type: int
-        doc: Player slot.
+        name: slot
     stack: pop
 
   - code: 0xf91d
     mnemonic: get_time_played
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: int
-            access: write
+            write: true
 
   - code: 0xf91e
     mnemonic: get_guildcard_total
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: int
-            access: write
+            write: true
 
   - code: 0xf91f
     mnemonic: get_slot_meseta
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            access: write
+            write: true
 
   - code: 0xf920
     mnemonic: get_player_level
     params:
       - type: int
-        doc: Player slot.
-      - type: reg_ref
+        name: slot
+      - type: reg
         registers:
           - type: int
-            access: write
+            write: true
     stack: pop
 
   - code: 0xf921
     mnemonic: get_section_id
     params:
       - type: int
-        doc: Player slot.
-      - type: reg_ref
+        name: slot
+      - type: reg
         registers:
           - type: int
-            access: write
+            write: true
     stack: pop
 
   - code: 0xf922
     mnemonic: get_player_hp
     params:
       - type: int
-        doc: Player slot.
-      - type: reg_ref
+        name: slot
+      - type: reg
         registers:
           - type: int
-            doc: Maximum HP.
-            access: write
+            name: max_hp
+            write: true
           - type: int
-            doc: Current HP.
-            access: write
+            name: hp
+            write: true
           - type: int
-            doc: Maximum TP.
-            access: write
+            name: max_tp
+            write: true
           - type: int
-            doc: Current TP.
-            access: write
+            name: tp
+            write: true
     stack: pop
 
   - code: 0xf923
     mnemonic: get_floor_number
     params:
       - type: int
-        doc: Player slot.
-      - type: reg_ref
+        name: slot
+      - type: reg
         registers:
           - type: int
-            access: write
+            write: true
     stack: pop
 
   - code: 0xf924
     mnemonic: get_coord_player_detect
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            doc: Player slot.
-            access: read
-      - type: reg_ref
+            name: slot
+            read: true
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: read
+            read: true
 
   - code: 0xf925
     mnemonic: read_global_flag
     params:
       - type: int
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            access: write
+            write: true
     stack: pop
 
   - code: 0xf926
@@ -3491,28 +3505,28 @@ opcodes:
 
   - code: 0xf927
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: write
-      - type: reg_ref
+            write: true
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: write
+            write: true
 
   - code: 0xf928
     mnemonic: floor_player_detect
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            access: write
+            write: true
           - type: int
-            access: write
+            write: true
           - type: int
-            access: write
+            write: true
           - type: int
-            access: write
+            write: true
 
   - code: 0xf929
     mnemonic: read_disk_file
@@ -3527,18 +3541,18 @@ opcodes:
   - code: 0xf92b
     mnemonic: item_select
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: write
+            write: true
 
   - code: 0xf92c
     mnemonic: get_item_id
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: write
+            write: true
 
   - code: 0xf92d
     mnemonic: color_change
@@ -3589,10 +3603,10 @@ opcodes:
 
   - code: 0xf933
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: write
+            write: true
 
   - code: 0xf934
     mnemonic: scroll_text
@@ -3603,10 +3617,10 @@ opcodes:
       - type: int
       - type: int
       - type: float
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            access: write
+            write: true
       - type: string
     stack: pop
 
@@ -3639,10 +3653,10 @@ opcodes:
     mnemonic: get_item_info
     params:
       - type: int
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: write
+            write: true
     stack: pop
 
   - code: 0xf93b
@@ -3661,18 +3675,18 @@ opcodes:
   - code: 0xf93d
     mnemonic: get_lang_setting
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: any
-            access: write
+            write: true
     stack: pop
 
   - code: 0xf93e
     mnemonic: prepare_statistic
     params:
       - type: int
-      - type: instruction_label
-      - type: instruction_label
+      - type: ilabel
+      - type: ilabel
     stack: pop
 
   - code: 0xf93f
@@ -3682,12 +3696,12 @@ opcodes:
   - code: 0xf940
     mnemonic: keyword
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            access: write
+            write: true
       - type: int
-        doc: Player slot.
+        name: slot
       - type: string
     stack: pop
 
@@ -3695,22 +3709,22 @@ opcodes:
     mnemonic: get_guildcard_num
     params:
       - type: int
-        doc: Player slot.
-      - type: reg_ref
+        name: slot
+      - type: reg
         registers:
           - type: int
-            access: write
+            write: true
     stack: pop
 
   - code: 0xf944
     mnemonic: get_wrap_status
     params:
       - type: int
-        doc: Player slot.
-      - type: reg_ref
+        name: slot
+      - type: reg
         registers:
           - type: int
-            access: write
+            write: true
     stack: pop
 
   - code: 0xf945
@@ -3722,52 +3736,52 @@ opcodes:
   - code: 0xf946
     mnemonic: sin
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: int
-            access: write
+            write: true
       - type: int
     stack: pop
 
   - code: 0xf947
     mnemonic: cos
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: int
-            access: write
+            write: true
       - type: int
     stack: pop
 
   - code: 0xf94a
     mnemonic: boss_is_dead2
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: int
-            access: write
+            write: true
 
   - code: 0xf94b
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: int
-            access: write
+            write: true
 
   - code: 0xf94c
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: int
-            access: write
+            write: true
 
   - code: 0xf94d
     mnemonic: is_there_cardbattle
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: int
-            access: write
+            write: true
 
   - code: 0xf950
     mnemonic: bb_p2_menu
@@ -3786,10 +3800,10 @@ opcodes:
   - code: 0xf952
     mnemonic: bb_get_number_in_pack
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            access: write
+            write: true
 
   - code: 0xf953
     mnemonic: bb_swap_item
@@ -3800,18 +3814,18 @@ opcodes:
       - type: int
       - type: int
       - type: int
-      - type: instruction_label
-      - type: instruction_label
+      - type: ilabel
+      - type: ilabel
     stack: pop
 
   - code: 0xf954
     mnemonic: bb_check_wrap
     params:
       - type: int
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: int
-            access: write
+            write: true
     stack: pop
 
   - code: 0xf955
@@ -3820,8 +3834,8 @@ opcodes:
       - type: int
       - type: int
       - type: int
-      - type: instruction_label
-      - type: instruction_label
+      - type: ilabel
+      - type: ilabel
     stack: pop
 
   - code: 0xf956
@@ -3832,8 +3846,8 @@ opcodes:
       - type: int
       - type: int
       - type: int
-      - type: instruction_label
-      - type: instruction_label
+      - type: ilabel
+      - type: ilabel
     stack: pop
 
   - code: 0xf957
@@ -3845,8 +3859,8 @@ opcodes:
       - type: int
       - type: int
       - type: int
-      - type: instruction_label
-      - type: instruction_label
+      - type: ilabel
+      - type: ilabel
     stack: pop
 
   - code: 0xf958
@@ -3858,8 +3872,8 @@ opcodes:
       - type: int
       - type: int
       - type: int
-      - type: instruction_label
-      - type: instruction_label
+      - type: ilabel
+      - type: ilabel
     stack: pop
 
   - code: 0xf959
@@ -3871,12 +3885,12 @@ opcodes:
     mnemonic: bb_exchange_slt
     params:
       - type: int
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: int
-            access: write
-      - type: instruction_label
-      - type: instruction_label
+            write: true
+      - type: ilabel
+      - type: ilabel
     stack: pop
 
   - code: 0xf95d
@@ -3894,17 +3908,17 @@ opcodes:
   - code: 0xf95f
     mnemonic: bb_exchange_pt
     params:
-      - type: reg_ref
+      - type: reg
         registers: # TODO: determine type and access
           - type: int
-            access: write
-      - type: reg_ref
+            write: true
+      - type: reg
         registers: # TODO: determine type and access
           - type: int
-            access: write
+            write: true
       - type: int
-      - type: instruction_label
-      - type: instruction_label
+      - type: ilabel
+      - type: ilabel
     stack: pop
 
   - code: 0xf960
@@ -3914,7 +3928,7 @@ opcodes:
 
   - code: 0xf961
     params:
-      - type: reg_ref
+      - type: reg
         registers:
           - type: int
-            access: write
+            write: true

@@ -487,8 +487,8 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
 
                         Token.Register -> {
                             typeMatch = stack ||
-                                    param.type === RegRefVarType ||
-                                    param.type is RegRefType
+                                    param.type === RegVarType ||
+                                    param.type is RegType
 
                             parseRegister()
                         }
@@ -536,8 +536,8 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
 
                             StringType -> "a string"
 
-                            RegRefVarType,
-                            is RegRefType,
+                            RegVarType,
+                            is RegType,
                             -> "a register reference"
 
                             else -> null
@@ -550,7 +550,7 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
                         // Inject stack push instructions if necessary.
                         // If the token is a register, push it as a register, otherwise coerce type.
                         if (tokenizer.type === Token.Register) {
-                            if (param.type is RegRefType) {
+                            if (param.type is RegType) {
                                 addInstruction(
                                     OP_ARG_PUSHB,
                                     listOf(arg),
@@ -570,7 +570,7 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
                         } else {
                             when (param.type) {
                                 ByteType,
-                                is RegRefType,
+                                is RegType,
                                 -> {
                                     addInstruction(
                                         OP_ARG_PUSHB,

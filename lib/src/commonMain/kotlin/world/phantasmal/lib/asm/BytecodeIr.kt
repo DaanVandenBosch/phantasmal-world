@@ -216,11 +216,11 @@ class Instruction(
                     }
                 }
 
-                RegRefVarType -> 1 + args.size
+                RegVarType -> 1 + args.size
 
                 // Check RegRefType and LabelType last, because "is" checks are very slow in JS.
 
-                is RegRefType -> 1
+                is RegType -> 1
 
                 is LabelType -> 2
 

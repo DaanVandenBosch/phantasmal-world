@@ -27,6 +27,7 @@ class AsmEditorWidget(private val ctrl: AsmController) : Widget() {
                 folding = false
                 wordBasedSuggestions = false
                 occurrencesHighlight = false
+                fixedOverflowWidgets = true
             })
 
             addDisposable(disposable { editor.dispose() })
@@ -108,9 +109,13 @@ class AsmEditorWidget(private val ctrl: AsmController) : Widget() {
 
             @Suppress("CssUnusedSymbol")
             // language=css
-            style("""
+            style(
+                """
                 .pw-quest-editor-asm-editor {
                     flex-grow: 1;
+                }
+                .pw-quest-editor-asm-editor .editor-widget {
+                    z-index: 30;
                 }
             """.trimIndent())
         }

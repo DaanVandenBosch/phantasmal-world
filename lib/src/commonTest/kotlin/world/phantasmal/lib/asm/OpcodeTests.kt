@@ -29,12 +29,21 @@ class OpcodeTests : LibTestSuite {
             assertEquals(hasVarargs, opcode.varargs)
 
             // Register references.
-
             for (param in opcode.params) {
                 val type = param.type
 
-                if (type is RegRefType) {
-                    assertTrue(type.registers == null || type.registers!!.isNotEmpty())
+                if (type is RegType) {
+                    val registers = type.registers
+
+                    if (registers == null) {
+                        assertTrue(param.read || param.write)
+                    } else {
+                        assertTrue(registers.isNotEmpty())
+
+                        for (register in registers) {
+                            assertTrue(register.read || register.write)
+                        }
+                    }
                 }
             }
         }

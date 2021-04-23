@@ -62,29 +62,39 @@
                     "type": "string",
                     "description": "Parameter-specific documentation."
                 },
-                "access": {
-                    "$ref": "#/definitions/access"
+                "read": {
+                    "type": "boolean",
+                    "description": "Does this opcode read the given register. Should only be specified if type is \"reg\" or \"reg_var\"."
+                },
+                "write": {
+                    "type": "boolean",
+                    "description": "Does this opcode write to the given register. Should only be specified if type is \"reg\" or \"reg_var\"."
                 },
                 "registers": {
                     "type": "array",
                     "minItems": 1,
-                    "description": "Specifies the way the referenced registers will be interpreted. Should only be specified if the parameter type is \"reg_tup_ref\".",
+                    "description": "Specifies the way the referenced registers will be interpreted. Should only be specified if the parameter type is \"reg\".",
                     "items": {
                         "type": "object",
-                        "required": ["type", "access"],
+                        "required": [
+                            "type"
+                        ],
                         "additionalProperties": false,
                         "properties": {
                             "type": {
                                 "$ref": "#/definitions/param_type"
                             },
                             "name": {
-                                "type": "string"
+                                "type": "string",
+                                "description": "Register name."
                             },
-                            "doc": {
-                                "type": "string"
+                            "read": {
+                                "type": "boolean",
+                                "description": "Does this opcode read the given register."
                             },
-                            "access": {
-                                "$ref": "#/definitions/access"
+                            "write": {
+                                "type": "boolean",
+                                "description": "Does this opcode write to the given register."
                             }
                         }
                     }
@@ -100,20 +110,15 @@
                 "int",
                 "float",
                 "label",
-                "instruction_label",
-                "data_label",
-                "string_label",
+                "ilabel",
+                "dlabel",
+                "slabel",
                 "string",
-                "instruction_label_var",
-                "reg_ref",
-                "reg_ref_var",
+                "ilabel_var",
+                "reg",
+                "reg_var",
                 "pointer"
             ]
-        },
-        "access": {
-            "type": "string",
-            "enum": ["read", "write", "read_write"],
-            "description": "Specifies the way the instruction accesses the referenced register(s)."
         }
     }
 }

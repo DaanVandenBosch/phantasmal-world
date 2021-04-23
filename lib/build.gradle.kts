@@ -142,7 +142,7 @@ fun opcodeToCode(writer: PrintWriter, opcode: Map<String, Any>) {
     val lastParam = params.lastOrNull()
     val varargs = lastParam != null && when (lastParam["type"]) {
         null -> error("No type for last parameter of $mnemonic opcode.")
-        "instruction_label_var", "reg_ref_var" -> true
+        "ilabel_var", "reg_var" -> true
         else -> false
     }
 
@@ -185,31 +185,27 @@ fun paramsToCode(params: List<Map<String, Any>>, indent: Int): String {
             "int" -> "IntType"
             "float" -> "FloatType"
             "label" -> "LabelType.Instance"
-            "instruction_label" -> "ILabelType"
-            "data_label" -> "DLabelType"
-            "string_label" -> "SLabelType"
+            "ilabel" -> "ILabelType"
+            "dlabel" -> "DLabelType"
+            "slabel" -> "SLabelType"
             "string" -> "StringType"
-            "instruction_label_var" -> "ILabelVarType"
-            "reg_ref" -> """RegRefType(${
+            "ilabel_var" -> "ILabelVarType"
+            "reg" -> """RegType(${
                 (param["registers"] as List<Map<String, Any>>?)?.let {
                     paramsToCode(it, indent + 4)
                 } ?: "null"
             })"""
-            "reg_ref_var" -> "RegRefVarType"
+            "reg_var" -> "RegVarType"
             "pointer" -> "PointerType"
             else -> error("Type ${param["type"]} not implemented.")
         }
 
+        val name = (param["name"] as String?)?.let { "\"$it\"" } ?: "null"
         val doc = (param["doc"] as String?)?.let { "\"$it\"" } ?: "null"
+        val read = param["read"] as Boolean? == true
+        val write = param["write"] as Boolean? == true
 
-        val access = when (param["access"]) {
-            "read" -> "ParamAccess.Read"
-            "write" -> "ParamAccess.Write"
-            "read_write" -> "ParamAccess.ReadWrite"
-            else -> "null"
-        }
-
-        "$i    Param(${type}, ${doc}, ${access})"
+        "$i    Param(${type}, ${name}, ${doc}, ${read}, ${write})"
     }
 }
 

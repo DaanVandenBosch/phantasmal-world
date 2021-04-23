@@ -155,7 +155,7 @@ private fun canInlinePushedArg(segment: InstructionSegment, index: Int): Boolean
                 for (param in opcode.params) {
                     when (param.type) {
                         is ILabelVarType -> varArgs = true
-                        is RegRefVarType -> varArgs = true
+                        is RegVarType -> varArgs = true
                         else -> paramCount++
                     }
                 }
@@ -204,7 +204,7 @@ private fun StringBuilder.appendArgs(params: List<Param>, args: List<ArgWithType
         if (i < args.size) {
             val (arg, argType) = args[i]
 
-            if (argType is RegRefType) {
+            if (argType is RegType) {
                 append("r")
                 append(arg.value)
             } else {
@@ -226,7 +226,7 @@ private fun StringBuilder.appendArgs(params: List<Param>, args: List<ArgWithType
                         }
                     }
 
-                    RegRefVarType -> {
+                    RegVarType -> {
                         while (i < args.size) {
                             append("r")
                             append(args[i].arg.value)
@@ -235,7 +235,7 @@ private fun StringBuilder.appendArgs(params: List<Param>, args: List<ArgWithType
                         }
                     }
 
-                    is RegRefType -> {
+                    is RegType -> {
                         append("r")
                         append(arg.value)
                     }

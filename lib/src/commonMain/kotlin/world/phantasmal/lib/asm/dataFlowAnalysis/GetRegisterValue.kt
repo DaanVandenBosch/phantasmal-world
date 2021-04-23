@@ -191,11 +191,11 @@ private class RegisterValueFinder {
                     for (j in 0 until argLen) {
                         val param = params[j]
 
-                        if (param.type is RegRefType && param.type.registers != null) {
+                        if (param.type is RegType && param.type.registers != null) {
                             val regRef = args[j].value as Int
 
                             for ((k, regParam) in param.type.registers.withIndex()) {
-                                if (regParam.writes && regRef + k == register) {
+                                if (regParam.write && regRef + k == register) {
                                     return ValueSet.all()
                                 }
                             }
