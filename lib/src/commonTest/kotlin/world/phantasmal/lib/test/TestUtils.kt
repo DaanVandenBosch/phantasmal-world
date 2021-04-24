@@ -19,32 +19,15 @@ fun toInstructions(assembly: String): List<InstructionSegment> {
     return result.value.instructionSegments()
 }
 
-fun <T> assertDeepEquals(expected: List<T>, actual: List<T>, assertDeepEquals: (T, T) -> Unit) {
-    assertEquals(expected.size, actual.size, "Unexpected list size")
-
-    for (i in expected.indices) {
-        assertDeepEquals(expected[i], actual[i])
-    }
-}
-
-fun <K, V> assertDeepEquals(
-    expected: Map<K, V>,
-    actual: Map<K, V>,
-    assertDeepEquals: (V, V) -> Unit,
-) {
-    assertEquals(expected.size, actual.size, "Unexpected map size")
-
-    for ((key, value) in expected) {
-        assertTrue(key in actual)
-        assertDeepEquals(value, actual[key]!!)
-    }
-}
-
-fun assertDeepEquals(expected: Buffer, actual: Buffer) {
-    assertEquals(expected.size, actual.size, "Unexpected buffer size")
+fun assertDeepEquals(expected: Buffer, actual: Buffer, message: String? = null) {
+    assertEquals(
+        expected.size,
+        actual.size,
+        "Unexpected buffer size" + (if (message == null) "" else ". $message"),
+    )
 
     for (i in 0 until expected.size) {
-        assertEquals(expected.getByte(i), actual.getByte(i))
+        assertEquals(expected.getByte(i), actual.getByte(i), message)
     }
 }
 

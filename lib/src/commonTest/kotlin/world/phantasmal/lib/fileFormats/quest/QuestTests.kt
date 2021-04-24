@@ -9,6 +9,7 @@ import world.phantasmal.lib.test.LibTestSuite
 import world.phantasmal.lib.test.assertDeepEquals
 import world.phantasmal.lib.test.readFile
 import world.phantasmal.lib.test.testWithTetheallaQuests
+import world.phantasmal.testUtils.assertDeepEquals
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue

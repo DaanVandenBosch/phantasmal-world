@@ -51,6 +51,9 @@ sealed class Request : ClientMessage() {
 
     @Serializable
     class GetLabels(override val id: Int) : Request()
+
+    @Serializable
+    class GetHighlights(override val id: Int, val lineNo: Int, val col: Int) : Request()
 }
 
 @Serializable
@@ -107,6 +110,12 @@ sealed class Response<T> : ServerMessage() {
         override val id: Int,
         override val result: List<Label>,
     ) : Response<List<Label>>()
+
+    @Serializable
+    class GetHighlights(
+        override val id: Int,
+        override val result: List<AsmRange>,
+    ) : Response<List<AsmRange>>()
 }
 
 @Serializable
@@ -139,11 +148,11 @@ class Signature(val label: String, val documentation: String?, val parameters: L
 @Serializable
 class Parameter(
     /**
-     * Start column of the parameter label within [Signature.label].
+     * Start index of the parameter label within [Signature.label].
      */
     val labelStart: Int,
     /**
-     * End column (exclusive) of the parameter label within [Signature.label].
+     * End index (exclusive) of the parameter label within [Signature.label].
      */
     val labelEnd: Int,
     val documentation: String?,

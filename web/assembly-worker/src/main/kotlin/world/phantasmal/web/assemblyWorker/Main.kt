@@ -17,7 +17,8 @@ fun main() {
         KotlinLoggingConfiguration.LOG_LEVEL = KotlinLoggingLevel.TRACE
     }
 
-    val asmWorker = AssemblyWorker(
+    val asmServer = AsmServer(
+        AsmAnalyser(),
         sendMessage = { message ->
             self.postMessage(JSON_FORMAT.encodeToString(message))
         }
@@ -25,6 +26,6 @@ fun main() {
 
     self.onmessage = { e ->
         val json = e.data as String
-        asmWorker.receiveMessage(JSON_FORMAT.decodeFromString(json))
+        asmServer.receiveMessage(JSON_FORMAT.decodeFromString(json))
     }
 }

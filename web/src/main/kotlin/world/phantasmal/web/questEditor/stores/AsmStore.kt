@@ -172,6 +172,10 @@ class AsmStore(
             registerHoverProvider(ASM_LANG_ID, AsmHoverProvider(asmAnalyser))
             registerDefinitionProvider(ASM_LANG_ID, AsmDefinitionProvider(asmAnalyser))
             registerDocumentSymbolProvider(ASM_LANG_ID, AsmDocumentSymbolProvider(asmAnalyser))
+            registerDocumentHighlightProvider(
+                ASM_LANG_ID,
+                AsmDocumentHighlightProvider(asmAnalyser)
+            )
             // TODO: Add semantic highlighting with registerDocumentSemanticTokensProvider (or
             //  registerDocumentRangeSemanticTokensProvider?).
             //  Enable when calling editor.create with 'semanticHighlighting.enabled': true.

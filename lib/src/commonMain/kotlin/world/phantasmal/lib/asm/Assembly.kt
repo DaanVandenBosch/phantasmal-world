@@ -131,8 +131,8 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
         opcode: Opcode,
         args: List<Arg>,
         mnemonicSrcLoc: SrcLoc?,
-        argSrcLocs: List<SrcLoc>,
-        stackArgSrcLocs: List<SrcLoc>,
+        argSrcLocs: List<ArgSrcLoc>,
+        stackArgSrcLocs: List<ArgSrcLoc>,
     ) {
         when (val seg = segment) {
             null -> {
@@ -361,10 +361,10 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
         } else {
             // Inline arguments.
             val inlineArgs = mutableListOf<Arg>()
-            val inlineArgSrcLocs = mutableListOf<SrcLoc>()
+            val inlineArgSrcLocs = mutableListOf<ArgSrcLoc>()
             // Stack arguments.
             val stackArgs = mutableListOf<Arg>()
-            val stackArgSrcLocs = mutableListOf<SrcLoc>()
+            val stackArgSrcLocs = mutableListOf<ArgSrcLoc>()
 
             if (opcode.stack !== StackInteraction.Pop) {
                 // Arguments should be inlined right after the opcode.
@@ -409,25 +409,47 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
         opcode: Opcode,
         startCol: Int,
         args: MutableList<Arg>,
-        srcLocs: MutableList<SrcLoc>,
+        srcLocs: MutableList<ArgSrcLoc>,
         stack: Boolean,
     ): Boolean {
         var argCount = 0
         var semiValid = true
         var shouldBeArg = true
         var paramI = 0
-        var prevCol = 0
-        var prevLen = 0
+        var prevCol: Int
+        var prevLen: Int
+        var col = tokenizer.col
+        var len = tokenizer.len
 
-        while (tokenizer.nextToken()) {
-            if (tokenizer.type !== Token.ArgSeparator) {
+        tokenizer.nextToken()
+
+        while (true) {
+            prevCol = col
+            prevLen = len
+
+            val token = tokenizer.type
+            val value = tokenizer.value
+            col = tokenizer.col
+            len = tokenizer.len
+
+            if (token == null) {
+                break
+            }
+
+            tokenizer.nextToken()
+            val coarseCol = prevCol + prevLen
+            val coarseLen =
+                if (tokenizer.type === Token.ArgSeparator) tokenizer.col + tokenizer.len - coarseCol
+                else tokenizer.col - coarseCol
+
+            if (token !== Token.ArgSeparator) {
                 argCount++
             }
 
             if (paramI < opcode.params.size) {
                 val param = opcode.params[paramI]
 
-                if (tokenizer.type === Token.ArgSeparator) {
+                if (token === Token.ArgSeparator) {
                     if (shouldBeArg) {
                         addError("Expected an argument.")
                     } else if (!param.varargs) {
@@ -437,8 +459,7 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
                     shouldBeArg = true
                 } else {
                     if (!shouldBeArg) {
-                        val col = prevCol + prevLen
-                        addError(col, tokenizer.col - col, "Expected a comma.")
+                        addError(coarseCol, col - coarseCol, "Expected a comma.")
                     }
 
                     shouldBeArg = false
@@ -447,26 +468,28 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
                     var typeMatch: Boolean
 
                     // If arg is nonnull, types match and argument is syntactically valid.
-                    val arg: Arg? = when (tokenizer.type) {
+                    val arg: Arg? = when (token) {
                         Token.Int32 -> {
+                            value as Int
+
                             when (param.type) {
                                 ByteType -> {
                                     typeMatch = true
-                                    parseInt(1)
+                                    intValueToArg(value, 1)
                                 }
                                 ShortType,
                                 is LabelType,
                                 -> {
                                     typeMatch = true
-                                    parseInt(2)
+                                    intValueToArg(value, 2)
                                 }
                                 IntType -> {
                                     typeMatch = true
-                                    parseInt(4)
+                                    intValueToArg(value, 4)
                                 }
                                 FloatType -> {
                                     typeMatch = true
-                                    Arg(tokenizer.intValue.toFloat())
+                                    Arg(value.toFloat())
                                 }
                                 else -> {
                                     typeMatch = false
@@ -479,25 +502,32 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
                             typeMatch = param.type === FloatType
 
                             if (typeMatch) {
-                                Arg(tokenizer.floatValue)
+                                Arg(value as Float)
                             } else {
                                 null
                             }
                         }
 
                         Token.Register -> {
+                            value as Int
+
                             typeMatch = stack ||
                                     param.type === RegVarType ||
                                     param.type is RegType
 
-                            parseRegister()
+                            if (value > 255) {
+                                addError("Invalid register reference, expected r0-r255.")
+                                null
+                            } else {
+                                Arg(value)
+                            }
                         }
 
                         Token.Str -> {
                             typeMatch = param.type === StringType
 
                             if (typeMatch) {
-                                Arg(tokenizer.strValue)
+                                Arg(value as String)
                             } else {
                                 null
                             }
@@ -509,7 +539,10 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
                         }
                     }
 
-                    val srcLoc = srcLocFromTokenizer()
+                    val srcLoc = ArgSrcLoc(
+                        precise = SrcLoc(lineNo, col, len),
+                        coarse = SrcLoc(lineNo, coarseCol, coarseLen),
+                    )
 
                     if (arg != null) {
                         args.add(arg)
@@ -549,7 +582,7 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
                     } else if (stack && arg != null) {
                         // Inject stack push instructions if necessary.
                         // If the token is a register, push it as a register, otherwise coerce type.
-                        if (tokenizer.type === Token.Register) {
+                        if (token === Token.Register) {
                             if (param.type is RegType) {
                                 addInstruction(
                                     OP_ARG_PUSHB,
@@ -633,9 +666,6 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
                     }
                 }
             }
-
-            prevCol = tokenizer.col
-            prevLen = tokenizer.len
         }
 
         val paramCount =
@@ -669,9 +699,7 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
         return semiValid
     }
 
-    private fun parseInt(size: Int): Arg? {
-        val value = tokenizer.intValue
-
+    private fun intValueToArg(value: Int, size: Int): Arg? {
         // Fast-path 32-bit ints for improved JS perf. Otherwise maxValue would have to be a Long
         // or UInt, which incurs a perf hit in JS.
         if (size == 4) {
@@ -696,17 +724,6 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
                     Arg(value)
                 }
             }
-        }
-    }
-
-    private fun parseRegister(): Arg? {
-        val value = tokenizer.intValue
-
-        return if (value > 255) {
-            addError("Invalid register reference, expected r0-r255.")
-            null
-        } else {
-            Arg(value)
         }
     }
 

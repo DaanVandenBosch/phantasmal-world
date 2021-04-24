@@ -26,7 +26,7 @@ class AsmEditorWidget(private val ctrl: AsmEditorController) : Widget() {
                 renderIndentGuides = false
                 folding = false
                 wordBasedSuggestions = false
-                occurrencesHighlight = false
+                occurrencesHighlight = true
                 fixedOverflowWidgets = true
             })
 

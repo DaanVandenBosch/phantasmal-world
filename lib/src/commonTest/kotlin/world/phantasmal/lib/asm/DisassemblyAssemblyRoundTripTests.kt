@@ -7,6 +7,7 @@ import world.phantasmal.lib.fileFormats.quest.writeBytecode
 import world.phantasmal.lib.test.LibTestSuite
 import world.phantasmal.lib.test.assertDeepEquals
 import world.phantasmal.lib.test.readFile
+import world.phantasmal.testUtils.assertDeepEquals
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -96,16 +97,18 @@ class DisassemblyAssemblyRoundTripTests : LibTestSuite {
     ) {
         val origBin = parseBin(readFile("/quest27_e_decompressed.bin"))
         val origBytecode = origBin.bytecode
-        val result = assemble(disassemble(
-            parseBytecode(
-                origBytecode,
-                origBin.labelOffsets,
-                setOf(0),
-                dcGcFormat = false,
-                lenient = false,
-            ).unwrap(),
-            inlineStackArgs,
-        ), inlineStackArgs)
+        val result = assemble(
+            disassemble(
+                parseBytecode(
+                    origBytecode,
+                    origBin.labelOffsets,
+                    setOf(0),
+                    dcGcFormat = false,
+                    lenient = false,
+                ).unwrap(),
+                inlineStackArgs,
+            ), inlineStackArgs
+        )
 
         assertTrue(result is Success)
         assertTrue(result.problems.isEmpty())

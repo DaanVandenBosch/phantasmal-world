@@ -69,6 +69,9 @@ class AsmAnalyser {
     suspend fun getLabels(): List<Label> =
         sendRequest { id -> Request.GetLabels(id) }
 
+    suspend fun getHighlights(lineNo: Int, col: Int): List<AsmRange> =
+        sendRequest { id -> Request.GetHighlights(id, lineNo, col) }
+
     private suspend fun <T> sendRequest(createRequest: (id: Int) -> Request): T {
         val id = nextRequestId.getAndIncrement()
 

@@ -146,7 +146,7 @@ class Instruction(
     /**
      * Returns the source locations of the immediate arguments for the parameter at the given index.
      */
-    fun getArgSrcLocs(paramIndex: Int): List<SrcLoc> {
+    fun getArgSrcLocs(paramIndex: Int): List<ArgSrcLoc> {
         val argSrcLocs = srcLoc?.args
             ?: return emptyList()
 
@@ -164,7 +164,7 @@ class Instruction(
     /**
      * Returns the source locations of the stack arguments for the parameter at the given index.
      */
-    fun getStackArgSrcLocs(paramIndex: Int): List<SrcLoc> {
+    fun getStackArgSrcLocs(paramIndex: Int): List<ArgSrcLoc> {
         val argSrcLocs = srcLoc?.stackArgs
 
         if (argSrcLocs == null || paramIndex > argSrcLocs.lastIndex) {
@@ -254,8 +254,23 @@ class SrcLoc(
  */
 class InstructionSrcLoc(
     val mnemonic: SrcLoc?,
-    val args: List<SrcLoc> = emptyList(),
-    val stackArgs: List<SrcLoc> = emptyList(),
+    val args: List<ArgSrcLoc> = emptyList(),
+    val stackArgs: List<ArgSrcLoc> = emptyList(),
+)
+
+/**
+ * Location of an instruction argument in the source assembly code.
+ */
+class ArgSrcLoc(
+    /**
+     * The precise location of this argument.
+     */
+    val precise: SrcLoc,
+    /**
+     * The location of this argument, its surrounding whitespace and the following comma if there is
+     * one.
+     */
+    val coarse: SrcLoc,
 )
 
 /**

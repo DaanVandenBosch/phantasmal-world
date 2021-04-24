@@ -54,6 +54,11 @@ external fun registerDocumentSymbolProvider(
     provider: DocumentSymbolProvider,
 ): IDisposable
 
+external fun registerDocumentHighlightProvider(
+    languageId: String,
+    provider: DocumentHighlightProvider,
+): IDisposable
+
 external interface CommentRule {
     var lineComment: String?
         get() = definedExternally
@@ -726,4 +731,23 @@ external interface DocumentSymbolProvider {
         model: ITextModel,
         token: CancellationToken,
     ): Promise<Array<DocumentSymbol>>
+}
+
+external enum class DocumentHighlightKind {
+    Text /* = 0 */,
+    Read /* = 1 */,
+    Write /* = 2 */
+}
+
+external interface DocumentHighlight {
+    var range: IRange
+    var kind: DocumentHighlightKind?
+}
+
+external interface DocumentHighlightProvider {
+    fun provideDocumentHighlights(
+        model: ITextModel,
+        position: Position,
+        token: CancellationToken,
+    ): Promise<Array<DocumentHighlight>>
 }

@@ -30,7 +30,8 @@ class LineTokenizer {
     private var index = 0
     private var startIndex = 0
 
-    private var value: Any? = null
+    var value: Any? = null
+        private set
 
     var type: Token? = null
         private set
@@ -109,7 +110,13 @@ class LineTokenizer {
             break
         }
 
-        return type != null
+        return if (type == null) {
+            startIndex = line.length
+            index = line.length
+            false
+        } else {
+            true
+        }
     }
 
     private fun hasNext(): Boolean = index < line.length

@@ -170,6 +170,8 @@ class Opcode internal constructor(
     override fun equals(other: Any?): Boolean = this === other
 
     override fun hashCode(): Int = code
+
+    override fun toString(): String = mnemonic
 }
 
 fun codeToOpcode(code: Int): Opcode =

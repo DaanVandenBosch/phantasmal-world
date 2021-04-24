@@ -1,24 +1,16 @@
 package world.phantasmal.web.assemblyWorker
 
-import mu.KotlinLogging
 import world.phantasmal.core.*
 import world.phantasmal.lib.asm.*
 import world.phantasmal.lib.asm.dataFlowAnalysis.ControlFlowGraph
 import world.phantasmal.lib.asm.dataFlowAnalysis.getMapDesignations
 import world.phantasmal.lib.asm.dataFlowAnalysis.getStackValue
-import world.phantasmal.web.shared.Throttle
 import world.phantasmal.web.shared.messages.*
+import world.phantasmal.web.shared.messages.AssemblyProblem
 import kotlin.math.min
-import kotlin.time.measureTime
-import world.phantasmal.lib.asm.AssemblyProblem as AssemblerAssemblyProblem
+import world.phantasmal.lib.asm.AssemblyProblem as LibAssemblyProblem
 
-private val logger = KotlinLogging.logger {}
-
-class AssemblyWorker(private val sendMessage: (ServerMessage) -> Unit) {
-    private val messageQueue: MutableList<ClientMessage> = mutableListOf()
-    private val messageProcessingThrottle = Throttle(wait = 100)
-    private val tokenizer = LineTokenizer()
-
+class AsmAnalyser {
     // User input.
     private var inlineStackArgs: Boolean = true
     private val asm: JsArray<String> = jsArrayOf()
@@ -37,97 +29,13 @@ class AssemblyWorker(private val sendMessage: (ServerMessage) -> Unit) {
 
     private var mapDesignations: Map<Int, Int>? = null
 
-    fun receiveMessage(message: ClientMessage) {
-        messageQueue.add(message)
-        messageProcessingThrottle(::processMessages)
-    }
-
-    private fun processMessages() {
-        // Split messages into ASM changes and other messages. Remove useless/duplicate
-        // notifications.
-        val asmChanges = mutableListOf<ClientNotification>()
-        val otherMessages = mutableListOf<ClientMessage>()
-
-        for (message in messageQueue) {
-            when (message) {
-                is ClientNotification.SetAsm -> {
-                    // All previous ASM change messages can be discarded when the entire ASM has
-                    // changed.
-                    asmChanges.clear()
-                    asmChanges.add(message)
-                }
-
-                is ClientNotification.UpdateAsm ->
-                    asmChanges.add(message)
-
-                else ->
-                    otherMessages.add(message)
-            }
-        }
-
-        messageQueue.clear()
-
-        // Process ASM changes first.
-        processAsmChanges(asmChanges)
-        otherMessages.forEach(::processMessage)
-    }
-
-    private fun processAsmChanges(messages: List<ClientNotification>) {
-        if (messages.isNotEmpty()) {
-            val time = measureTime {
-                for (message in messages) {
-                    when (message) {
-                        is ClientNotification.SetAsm ->
-                            setAsm(message.asm, message.inlineStackArgs)
-
-                        is ClientNotification.UpdateAsm ->
-                            updateAsm(message.changes)
-                    }
-                }
-
-                processAsm()
-            }
-
-            logger.trace {
-                "Processed ${messages.size} assembly changes in ${time.inMilliseconds}ms."
-            }
-        }
-    }
-
-    private fun processMessage(message: ClientMessage) {
-        val time = measureTime {
-            when (message) {
-                is ClientNotification.SetAsm,
-                is ClientNotification.UpdateAsm ->
-                    logger.error { "Unexpected ${message::class.simpleName}." }
-
-                is Request.GetCompletions ->
-                    getCompletions(message.id, message.lineNo, message.col)
-
-                is Request.GetSignatureHelp ->
-                    getSignatureHelp(message.id, message.lineNo, message.col)
-
-                is Request.GetHover ->
-                    getHover(message.id, message.lineNo, message.col)
-
-                is Request.GetDefinition ->
-                    getDefinition(message.id, message.lineNo, message.col)
-
-                is Request.GetLabels ->
-                    getLabels(message.id)
-            }
-        }
-
-        logger.trace { "Processed ${message::class.simpleName} in ${time.inMilliseconds}ms." }
-    }
-
-    private fun setAsm(asm: List<String>, inlineStackArgs: Boolean) {
+    fun setAsm(asm: List<String>, inlineStackArgs: Boolean) {
         this.inlineStackArgs = inlineStackArgs
         this.asm.splice(0, this.asm.length, *asm.toTypedArray())
         mapDesignations = null
     }
 
-    private fun updateAsm(changes: List<AsmChange>) {
+    fun updateAsm(changes: List<AsmChange>) {
         for (change in changes) {
             val (startLineNo, startCol, endLineNo, endCol) = change.range
             val linesChanged = endLineNo - startLineNo + 1
@@ -223,19 +131,21 @@ class AssemblyWorker(private val sendMessage: (ServerMessage) -> Unit) {
         )
     }
 
-    private fun processAsm() {
+    fun processAsm(): List<ServerNotification> {
         _cfg = null
 
+        val notifications = mutableListOf<ServerNotification>()
         val assemblyResult = assemble(asm.asArray().toList(), inlineStackArgs)
 
         @Suppress("UNCHECKED_CAST")
-        val problems = (assemblyResult.problems as List<AssemblerAssemblyProblem>).map {
-            AssemblyProblem(it.severity, it.uiMessage, it.lineNo, it.col, it.len)
-        }
+        val problems =
+            (assemblyResult.problems as List<LibAssemblyProblem>).map {
+                AssemblyProblem(it.severity, it.uiMessage, it.lineNo, it.col, it.len)
+            }
 
         if (problems != this.problems) {
             this.problems = problems
-            sendMessage(ServerNotification.Problems(problems))
+            notifications.add(ServerNotification.Problems(problems))
         }
 
         if (assemblyResult is Success) {
@@ -248,17 +158,17 @@ class AssemblyWorker(private val sendMessage: (ServerMessage) -> Unit) {
 
                 if (designations != mapDesignations) {
                     mapDesignations = designations
-                    sendMessage(
-                        ServerNotification.MapDesignations(
-                            designations
-                        )
+                    notifications.add(
+                        ServerNotification.MapDesignations(designations)
                     )
                 }
             }
         }
+
+        return notifications
     }
 
-    private fun getCompletions(requestId: Int, lineNo: Int, col: Int) {
+    fun getCompletions(requestId: Int, lineNo: Int, col: Int): Response.GetCompletions {
         val text = getLine(lineNo)?.take(col)?.trim()?.toLowerCase() ?: ""
 
         val completions: List<CompletionItem> = when {
@@ -277,38 +187,19 @@ class AssemblyWorker(private val sendMessage: (ServerMessage) -> Unit) {
             else -> emptyList()
         }
 
-        sendMessage(Response.GetCompletions(requestId, completions))
+        return Response.GetCompletions(requestId, completions)
     }
 
-    private fun getSignatureHelp(requestId: Int, lineNo: Int, col: Int) {
-        sendMessage(Response.GetSignatureHelp(requestId, signatureHelp(lineNo, col)))
-    }
+    fun getSignatureHelp(requestId: Int, lineNo: Int, col: Int): Response.GetSignatureHelp =
+        Response.GetSignatureHelp(requestId, signatureHelp(lineNo, col))
 
     private fun signatureHelp(lineNo: Int, col: Int): SignatureHelp? {
-        // Hacky way of providing parameter hints.
-        // We just tokenize the current line and look for the first identifier and check whether
-        // it's a valid opcode.
         var signature: Signature? = null
         var activeParam = -1
 
-        getLine(lineNo)?.let { text ->
-            tokenizer.tokenize(text)
-
-            while (tokenizer.nextToken()) {
-                if (tokenizer.type === Token.Ident) {
-                    mnemonicToOpcode(tokenizer.strValue)?.let { opcode ->
-                        signature = getSignature(opcode)
-                    }
-                }
-
-                if (tokenizer.col + tokenizer.len > col) {
-                    break
-                } else if (tokenizer.type === Token.Ident && activeParam == -1) {
-                    activeParam = 0
-                } else if (tokenizer.type === Token.ArgSeparator) {
-                    activeParam++
-                }
-            }
+        getInstructionForSrcLoc(lineNo, col)?.let { (inst, argIdx) ->
+            signature = getSignature(inst.opcode)
+            activeParam = argIdx
         }
 
         return signature?.let { sig ->
@@ -319,7 +210,7 @@ class AssemblyWorker(private val sendMessage: (ServerMessage) -> Unit) {
         }
     }
 
-    private fun getHover(requestId: Int, lineNo: Int, col: Int) {
+    fun getHover(requestId: Int, lineNo: Int, col: Int): Response.GetHover {
         val hover = signatureHelp(lineNo, col)?.let { help ->
             val sig = help.signature
             val param = sig.parameters.getOrNull(help.activeParameter)
@@ -364,13 +255,13 @@ class AssemblyWorker(private val sendMessage: (ServerMessage) -> Unit) {
             Hover(contents)
         }
 
-        sendMessage(Response.GetHover(requestId, hover))
+        return Response.GetHover(requestId, hover)
     }
 
-    private fun getDefinition(requestId: Int, lineNo: Int, col: Int) {
+    fun getDefinition(requestId: Int, lineNo: Int, col: Int): Response.GetDefinition {
         var result = emptyList<AsmRange>()
 
-        getInstruction(lineNo, col)?.let { inst ->
+        getInstructionForSrcLoc(lineNo, col)?.inst?.let { inst ->
             loop@
             for ((paramIdx, param) in inst.opcode.params.withIndex()) {
                 if (param.type is LabelType) {
@@ -381,7 +272,7 @@ class AssemblyWorker(private val sendMessage: (ServerMessage) -> Unit) {
 
                         for (i in 0 until min(args.size, argSrcLocs.size)) {
                             val arg = args[i]
-                            val srcLoc = argSrcLocs[i]
+                            val srcLoc = argSrcLocs[i].coarse
 
                             if (positionInside(lineNo, col, srcLoc)) {
                                 val label = arg.value as Int
@@ -394,7 +285,7 @@ class AssemblyWorker(private val sendMessage: (ServerMessage) -> Unit) {
                         val argSrcLocs = inst.getStackArgSrcLocs(paramIdx)
 
                         for ((i, argSrcLoc) in argSrcLocs.withIndex()) {
-                            if (positionInside(lineNo, col, argSrcLoc)) {
+                            if (positionInside(lineNo, col, argSrcLoc.coarse)) {
                                 val labelValues = getStackValue(cfg, inst, argSrcLocs.lastIndex - i)
 
                                 if (labelValues.size <= 5) {
@@ -409,41 +300,7 @@ class AssemblyWorker(private val sendMessage: (ServerMessage) -> Unit) {
             }
         }
 
-        sendMessage(Response.GetDefinition(requestId, result))
-    }
-
-    private fun getInstruction(lineNo: Int, col: Int): Instruction? {
-        for (segment in bytecodeIr.segments) {
-            if (segment is InstructionSegment) {
-                // Loop over instructions in reverse order so stack popping instructions will be
-                // handled before the related stack pushing instructions when inlineStackArgs is on.
-                for (i in segment.instructions.lastIndex downTo 0) {
-                    val inst = segment.instructions[i]
-
-                    inst.srcLoc?.let { srcLoc ->
-                        if (positionInside(lineNo, col, srcLoc.mnemonic)) {
-                            return inst
-                        }
-
-                        for (argSrcLoc in srcLoc.args) {
-                            if (positionInside(lineNo, col, argSrcLoc)) {
-                                return inst
-                            }
-                        }
-
-                        if (inlineStackArgs) {
-                            for (argSrcLoc in srcLoc.stackArgs) {
-                                if (positionInside(lineNo, col, argSrcLoc)) {
-                                    return inst
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        return null
+        return Response.GetDefinition(requestId, result)
     }
 
     private fun getLabelDefinitions(label: Int): List<AsmRange> =
@@ -455,7 +312,7 @@ class AssemblyWorker(private val sendMessage: (ServerMessage) -> Unit) {
             }
             .toList()
 
-    private fun getLabels(requestId: Int) {
+    fun getLabels(requestId: Int): Response.GetLabels {
         val result = bytecodeIr.segments.asSequence()
             .flatMap { segment ->
                 segment.labels.mapIndexed { labelIdx, label ->
@@ -465,14 +322,104 @@ class AssemblyWorker(private val sendMessage: (ServerMessage) -> Unit) {
             }
             .toList()
 
-        sendMessage(Response.GetLabels(requestId, result))
+        return Response.GetLabels(requestId, result)
+    }
+
+    fun getHighlights(requestId: Int, lineNo: Int, col: Int): Response.GetHighlights {
+        val result = mutableListOf<AsmRange>()
+
+        when (val ir = getIrForSrcLoc(lineNo, col)) {
+            is Ir.Inst -> {
+                val srcLoc = ir.inst.srcLoc?.mnemonic
+
+                if (ir.argIdx == -1 ||
+                    // Also return this instruction if we're right past the mnemonic. E.g. at the
+                    // first whitespace character preceding the first argument.
+                    (srcLoc != null && col <= srcLoc.col + srcLoc.len)
+                ) {
+                    for (segment in bytecodeIr.segments) {
+                        if (segment is InstructionSegment) {
+                            for (inst in segment.instructions) {
+                                if (inst.opcode.code == ir.inst.opcode.code) {
+                                    inst.srcLoc?.mnemonic?.toAsmRange()?.let(result::add)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return Response.GetHighlights(requestId, result)
+    }
+
+    private fun getInstructionForSrcLoc(lineNo: Int, col: Int): Ir.Inst? =
+        getIrForSrcLoc(lineNo, col) as? Ir.Inst
+
+    private fun getIrForSrcLoc(lineNo: Int, col: Int): Ir? {
+        for (segment in bytecodeIr.segments) {
+            if (segment is InstructionSegment) {
+                // Loop over instructions in reverse order so stack popping instructions will be
+                // handled before the related stack pushing instructions when inlineStackArgs is on.
+                for (i in segment.instructions.lastIndex downTo 0) {
+                    val inst = segment.instructions[i]
+
+                    inst.srcLoc?.let { srcLoc ->
+                        var instLineNo = -1
+                        var lastCol = -1
+
+                        srcLoc.mnemonic?.let { mnemonicSrcLoc ->
+                            instLineNo = mnemonicSrcLoc.lineNo
+                            lastCol = mnemonicSrcLoc.col + mnemonicSrcLoc.len
+
+                            if (positionInside(lineNo, col, mnemonicSrcLoc)) {
+                                return Ir.Inst(inst, argIdx = -1)
+                            }
+                        }
+
+                        for ((argIdx, argSrcLoc) in srcLoc.args.withIndex()) {
+                            instLineNo = argSrcLoc.coarse.lineNo
+                            lastCol = argSrcLoc.coarse.col + argSrcLoc.coarse.len
+
+                            if (positionInside(lineNo, col, argSrcLoc.coarse)) {
+                                return Ir.Inst(inst, argIdx)
+                            }
+                        }
+
+                        if (inlineStackArgs) {
+                            for ((argIdx, argSrcLoc) in srcLoc.stackArgs.withIndex()) {
+                                instLineNo = argSrcLoc.coarse.lineNo
+                                lastCol = argSrcLoc.coarse.col + argSrcLoc.coarse.len
+
+                                if (positionInside(lineNo, col, argSrcLoc.coarse)) {
+                                    return Ir.Inst(inst, argIdx)
+                                }
+                            }
+                        }
+
+                        if (lineNo == instLineNo && col >= lastCol) {
+                            return Ir.Inst(
+                                inst,
+                                if (inlineStackArgs && inst.opcode.stack === StackInteraction.Pop) {
+                                    srcLoc.stackArgs.lastIndex
+                                } else {
+                                    srcLoc.args.lastIndex
+                                },
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        return null
     }
 
     private fun positionInside(lineNo: Int, col: Int, srcLoc: SrcLoc?): Boolean =
         if (srcLoc == null) {
             false
         } else {
-            lineNo == srcLoc.lineNo && col >= srcLoc.col && col <= srcLoc.col + srcLoc.len
+            lineNo == srcLoc.lineNo && col >= srcLoc.col && col < srcLoc.col + srcLoc.len
         }
 
     @Suppress("RedundantNullableReturnType") // Can return undefined.
@@ -485,6 +432,10 @@ class AssemblyWorker(private val sendMessage: (ServerMessage) -> Unit) {
             endLineNo = lineNo,
             endCol = col + len,
         )
+
+    private sealed class Ir {
+        data class Inst(val inst: Instruction, val argIdx: Int) : Ir()
+    }
 
     companion object {
         private val KEYWORD_REGEX = Regex("""^\s*\.[a-z]+${'$'}""")
