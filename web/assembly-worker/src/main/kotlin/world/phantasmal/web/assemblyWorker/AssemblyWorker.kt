@@ -112,6 +112,9 @@ class AssemblyWorker(private val sendMessage: (ServerMessage) -> Unit) {
 
                 is Request.GetDefinition ->
                     getDefinition(message.id, message.lineNo, message.col)
+
+                is Request.GetLabels ->
+                    getLabels(message.id)
             }
         }
 
@@ -448,17 +451,22 @@ class AssemblyWorker(private val sendMessage: (ServerMessage) -> Unit) {
             .filter { label in it.labels }
             .mapNotNull { segment ->
                 val labelIdx = segment.labels.indexOf(label)
+                segment.srcLoc.labels.getOrNull(labelIdx)?.toAsmRange()
+            }
+            .toList()
 
-                segment.srcLoc.labels.getOrNull(labelIdx)?.let { labelSrcLoc ->
-                    AsmRange(
-                        startLineNo = labelSrcLoc.lineNo,
-                        startCol = labelSrcLoc.col,
-                        endLineNo = labelSrcLoc.lineNo,
-                        endCol = labelSrcLoc.col + labelSrcLoc.len,
-                    )
+    private fun getLabels(requestId: Int) {
+        val result = bytecodeIr.segments.asSequence()
+            .flatMap { segment ->
+                segment.labels.mapIndexed { labelIdx, label ->
+                    val range = segment.srcLoc.labels.getOrNull(labelIdx)?.toAsmRange()
+                    Label(name = label, range)
                 }
             }
             .toList()
+
+        sendMessage(Response.GetLabels(requestId, result))
+    }
 
     private fun positionInside(lineNo: Int, col: Int, srcLoc: SrcLoc?): Boolean =
         if (srcLoc == null) {
@@ -469,6 +477,14 @@ class AssemblyWorker(private val sendMessage: (ServerMessage) -> Unit) {
 
     @Suppress("RedundantNullableReturnType") // Can return undefined.
     private fun getLine(lineNo: Int): String? = asm[lineNo - 1]
+
+    private fun SrcLoc.toAsmRange(): AsmRange =
+        AsmRange(
+            startLineNo = lineNo,
+            startCol = col,
+            endLineNo = lineNo,
+            endCol = col + len,
+        )
 
     companion object {
         private val KEYWORD_REGEX = Regex("""^\s*\.[a-z]+${'$'}""")

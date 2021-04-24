@@ -66,6 +66,9 @@ class AsmAnalyser {
     suspend fun getDefinition(lineNo: Int, col: Int): List<AsmRange> =
         sendRequest { id -> Request.GetDefinition(id, lineNo, col) }
 
+    suspend fun getLabels(): List<Label> =
+        sendRequest { id -> Request.GetLabels(id) }
+
     private suspend fun <T> sendRequest(createRequest: (id: Int) -> Request): T {
         val id = nextRequestId.getAndIncrement()
 

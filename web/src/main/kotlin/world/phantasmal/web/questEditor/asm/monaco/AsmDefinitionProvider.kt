@@ -17,16 +17,9 @@ class AsmDefinitionProvider(private val analyser: AsmAnalyser) : DefinitionProvi
             val defs = analyser.getDefinition(position.lineNumber, position.column)
 
             Array(defs.size) {
-                val def = defs[it]
-
                 obj {
                     uri = model.uri
-                    range = obj {
-                        startLineNumber = def.startLineNo
-                        startColumn = def.startCol
-                        endLineNumber = def.endLineNo
-                        endColumn = def.endCol
-                    }
+                    range = defs[it].toIRange()
                 }
             }
         }

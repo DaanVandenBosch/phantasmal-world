@@ -48,6 +48,9 @@ sealed class Request : ClientMessage() {
 
     @Serializable
     class GetDefinition(override val id: Int, val lineNo: Int, val col: Int) : Request()
+
+    @Serializable
+    class GetLabels(override val id: Int) : Request()
 }
 
 @Serializable
@@ -98,6 +101,12 @@ sealed class Response<T> : ServerMessage() {
         override val id: Int,
         override val result: List<AsmRange>,
     ) : Response<List<AsmRange>>()
+
+    @Serializable
+    class GetLabels(
+        override val id: Int,
+        override val result: List<Label>,
+    ) : Response<List<Label>>()
 }
 
 @Serializable
@@ -161,4 +170,10 @@ class AssemblyProblem(
     val lineNo: Int,
     val col: Int,
     val len: Int,
+)
+
+@Serializable
+class Label(
+    val name: Int,
+    val range: AsmRange?,
 )

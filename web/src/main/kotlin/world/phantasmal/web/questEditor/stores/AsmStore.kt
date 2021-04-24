@@ -171,7 +171,7 @@ class AsmStore(
             registerSignatureHelpProvider(ASM_LANG_ID, AsmSignatureHelpProvider(asmAnalyser))
             registerHoverProvider(ASM_LANG_ID, AsmHoverProvider(asmAnalyser))
             registerDefinitionProvider(ASM_LANG_ID, AsmDefinitionProvider(asmAnalyser))
-            // TODO: Add symbol provider for go to symbol for labels.
+            registerDocumentSymbolProvider(ASM_LANG_ID, AsmDocumentSymbolProvider(asmAnalyser))
             // TODO: Add semantic highlighting with registerDocumentSemanticTokensProvider (or
             //  registerDocumentRangeSemanticTokensProvider?).
             //  Enable when calling editor.create with 'semanticHighlighting.enabled': true.
