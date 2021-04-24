@@ -32,6 +32,8 @@ class AsmCompletionItemProvider(private val analyser: AsmAnalyser) : CompletionI
                             CompletionItemType.Opcode -> CompletionItemKind.Function
                         }
                         insertText = completion.insertText
+                        completion.detail?.let { detail = it }
+                        completion.documentation?.let { documentation = it }
                     }
                 }
                 incomplete = false

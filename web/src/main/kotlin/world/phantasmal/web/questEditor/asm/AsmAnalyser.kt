@@ -7,6 +7,7 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
+import mu.KotlinLogging
 import org.w3c.dom.Worker
 import world.phantasmal.observable.ChangeEvent
 import world.phantasmal.observable.Observable
@@ -17,6 +18,8 @@ import world.phantasmal.web.shared.JSON_FORMAT
 import world.phantasmal.web.shared.messages.*
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
+
+private val logger = KotlinLogging.logger {}
 
 class AsmAnalyser {
     private var inlineStackArgs: Boolean = true
@@ -95,8 +98,16 @@ class AsmAnalyser {
             }
 
             is Response<*> -> {
-                val continuation = inFlightRequests[message.id].unsafeCast<Continuation<Any?>?>()
-                continuation?.resume(message.result.unsafeCast<Any?>())
+                val continuation = inFlightRequests.remove(message.id)
+
+                if (continuation == null) {
+                    logger.warn {
+                        "No continuation for ${message::class.simpleName} ${message.id}, possibly due to timeout."
+                    }
+                } else {
+                    continuation.unsafeCast<Continuation<Any>>()
+                        .resume(message.result.unsafeCast<Any>())
+                }
             }
         }
 }

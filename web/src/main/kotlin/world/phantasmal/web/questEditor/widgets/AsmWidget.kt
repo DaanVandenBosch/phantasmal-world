@@ -1,11 +1,11 @@
 package world.phantasmal.web.questEditor.widgets
 
 import org.w3c.dom.Node
-import world.phantasmal.web.questEditor.controllers.AsmController
+import world.phantasmal.web.questEditor.controllers.AsmEditorController
 import world.phantasmal.webui.dom.div
 import world.phantasmal.webui.widgets.Widget
 
-class AsmWidget(private val ctrl: AsmController) : Widget() {
+class AsmWidget(private val ctrl: AsmEditorController) : Widget() {
     private lateinit var editorWidget: AsmEditorWidget
 
     override fun Node.createElement() =

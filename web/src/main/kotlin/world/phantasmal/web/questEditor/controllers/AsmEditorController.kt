@@ -10,7 +10,7 @@ import world.phantasmal.web.externals.monacoEditor.createModel
 import world.phantasmal.web.questEditor.stores.AsmStore
 import world.phantasmal.webui.controllers.Controller
 
-class AsmController(private val store: AsmStore) : Controller() {
+class AsmEditorController(private val store: AsmStore) : Controller() {
     val enabled: Val<Boolean> = store.editingEnabled
     val readOnly: Val<Boolean> = !enabled or store.textModel.isNull()
 

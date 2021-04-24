@@ -4,12 +4,12 @@ import org.w3c.dom.Node
 import world.phantasmal.core.disposable.disposable
 import world.phantasmal.web.externals.monacoEditor.*
 import world.phantasmal.web.questEditor.asm.monaco.EditorHistory
-import world.phantasmal.web.questEditor.controllers.AsmController
+import world.phantasmal.web.questEditor.controllers.AsmEditorController
 import world.phantasmal.webui.dom.div
 import world.phantasmal.webui.obj
 import world.phantasmal.webui.widgets.Widget
 
-class AsmEditorWidget(private val ctrl: AsmController) : Widget() {
+class AsmEditorWidget(private val ctrl: AsmEditorController) : Widget() {
     private lateinit var editor: IStandaloneCodeEditor
 
     override fun Node.createElement() =

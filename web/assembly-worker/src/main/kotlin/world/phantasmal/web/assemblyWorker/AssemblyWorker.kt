@@ -316,88 +316,6 @@ class AssemblyWorker(private val sendMessage: (ServerMessage) -> Unit) {
         }
     }
 
-    private fun getSignature(opcode: Opcode): Signature {
-        val signature = StringBuilder(opcode.mnemonic).append(" ")
-        val params = mutableListOf<Parameter>()
-        var first = true
-
-        for (param in opcode.params) {
-            if (first) {
-                first = false
-            } else {
-                signature.append(", ")
-            }
-
-            val labelStart = signature.length
-
-            signature.appendParam(param)
-
-            params.add(
-                Parameter(
-                    labelStart,
-                    labelEnd = signature.length,
-                    documentation = param.doc,
-                )
-            )
-        }
-
-        return Signature(
-            label = signature.toString(),
-            documentation = opcode.doc,
-            parameters = params,
-        )
-    }
-
-    private fun StringBuilder.appendParam(param: Param) {
-        if (param.read || param.write) {
-            if (param.read) append("in")
-            if (param.write) append("out")
-            append(" ")
-        }
-
-        when (val type = param.type) {
-            AnyType.Instance -> append("Any")
-            ByteType -> append("Byte")
-            ShortType -> append("Short")
-            IntType -> append("Int")
-            FloatType -> append("Float")
-            LabelType.Instance -> append("Label")
-            ILabelType -> append("ILabel")
-            DLabelType -> append("DLabel")
-            SLabelType -> append("SLabel")
-            ILabelVarType -> append("...ILabel")
-            StringType -> append("String")
-            is RegType -> {
-                append("Reg")
-
-                type.registers?.let { registers ->
-                    append("<")
-
-                    var first = true
-
-                    for (register in registers) {
-                        if (first) {
-                            first = false
-                        } else {
-                            append(", ")
-                        }
-
-                        appendParam(register)
-                    }
-
-                    append(">")
-                }
-            }
-            RegVarType -> append("...Reg")
-            PointerType -> append("Pointer")
-        }
-
-        param.name?.let {
-            append(" ")
-            append(param.name)
-        }
-    }
-
     private fun getHover(requestId: Int, lineNo: Int, col: Int) {
         val hover = signatureHelp(lineNo, col)?.let { help ->
             val sig = help.signature
@@ -559,16 +477,22 @@ class AssemblyWorker(private val sendMessage: (ServerMessage) -> Unit) {
                 CompletionItem(
                     label = ".code",
                     type = CompletionItemType.Keyword,
+                    detail = null,
+                    documentation = "Start of a code segment",
                     insertText = "code",
                 ),
                 CompletionItem(
                     label = ".data",
                     type = CompletionItemType.Keyword,
+                    detail = null,
+                    documentation = "Start of a data segment",
                     insertText = "data",
                 ),
                 CompletionItem(
                     label = ".string",
                     type = CompletionItemType.Keyword,
+                    detail = null,
+                    documentation = "Start of a string data segment",
                     insertText = "string",
                 ),
             )
@@ -578,14 +502,98 @@ class AssemblyWorker(private val sendMessage: (ServerMessage) -> Unit) {
             (OPCODES.asSequence() + OPCODES_F8.asSequence() + OPCODES_F9.asSequence())
                 .filterNotNull()
                 .map { opcode ->
+                    val sig = getSignature(opcode)
                     CompletionItem(
                         label = opcode.mnemonic,
-                        // TODO: Add signature?
                         type = CompletionItemType.Opcode,
-                        insertText = opcode.mnemonic,
+                        detail = sig.label,
+                        documentation = sig.documentation,
+                        insertText = "${opcode.mnemonic} ",
                     )
                 }
                 .sortedBy { it.label }
                 .toList()
+
+        private fun getSignature(opcode: Opcode): Signature {
+            val signature = StringBuilder(opcode.mnemonic).append(" ")
+            val params = mutableListOf<Parameter>()
+            var first = true
+
+            for (param in opcode.params) {
+                if (first) {
+                    first = false
+                } else {
+                    signature.append(", ")
+                }
+
+                val labelStart = signature.length
+
+                signature.appendParam(param)
+
+                params.add(
+                    Parameter(
+                        labelStart,
+                        labelEnd = signature.length,
+                        documentation = param.doc,
+                    )
+                )
+            }
+
+            return Signature(
+                label = signature.toString(),
+                documentation = opcode.doc,
+                parameters = params,
+            )
+        }
+
+        private fun StringBuilder.appendParam(param: Param) {
+            if (param.read || param.write) {
+                if (param.read) append("in")
+                if (param.write) append("out")
+                append(" ")
+            }
+
+            when (val type = param.type) {
+                AnyType.Instance -> append("Any")
+                ByteType -> append("Byte")
+                ShortType -> append("Short")
+                IntType -> append("Int")
+                FloatType -> append("Float")
+                LabelType.Instance -> append("Label")
+                ILabelType -> append("ILabel")
+                DLabelType -> append("DLabel")
+                SLabelType -> append("SLabel")
+                ILabelVarType -> append("...ILabel")
+                StringType -> append("String")
+                is RegType -> {
+                    append("Reg")
+
+                    type.registers?.let { registers ->
+                        append("<")
+
+                        var first = true
+
+                        for (register in registers) {
+                            if (first) {
+                                first = false
+                            } else {
+                                append(", ")
+                            }
+
+                            appendParam(register)
+                        }
+
+                        append(">")
+                    }
+                }
+                RegVarType -> append("...Reg")
+                PointerType -> append("Pointer")
+            }
+
+            param.name?.let {
+                append(" ")
+                append(param.name)
+            }
+        }
     }
 }

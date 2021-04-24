@@ -54,7 +54,7 @@ class QstTests : LibTestSuite {
             "/ep2/shop/gallon.qst",
             "/princ/ep1/",
             "/princ/ep4/",
-            "/solo/ep1/04.qst", // Skip because it contains every chuck twice.
+            "/solo/ep1/04.qst", // Skip because it contains every chunk twice.
             "/fragmentofmemoryen.qst",
             "/lost havoc vulcan.qst",
             "/goodluck.qst",

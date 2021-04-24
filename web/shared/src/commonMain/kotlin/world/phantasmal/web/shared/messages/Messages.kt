@@ -113,7 +113,13 @@ enum class CompletionItemType {
 }
 
 @Serializable
-class CompletionItem(val label: String, val type: CompletionItemType, val insertText: String)
+class CompletionItem(
+    val label: String,
+    val type: CompletionItemType,
+    val detail: String?,
+    val documentation: String?,
+    val insertText: String,
+)
 
 @Serializable
 class SignatureHelp(val signature: Signature, val activeParameter: Int)
